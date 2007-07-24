@@ -1,0 +1,52 @@
+//
+// C++ Implementation: stiffness_with_imposed_deformation
+//
+// Description: 
+//
+//
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//
+
+#include "stiffness_with_imposed_deformation.h"
+
+using namespace Mu ;
+
+StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & rig, Vector imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
+{
+	this->time_d = false ;
+} ;
+
+StiffnessWithImposedDeformation::~StiffnessWithImposedDeformation() { } ;
+
+Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
+{
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e) ;
+}
+Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+{
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv) ;
+}
+
+bool StiffnessWithImposedDeformation::fractured() const
+{
+	return false ;
+}
+
+Form * StiffnessWithImposedDeformation::getCopy() const 
+{
+	return new StiffnessWithImposedDeformation(*this) ;
+}
+
+bool StiffnessWithImposedDeformation::hasInducedForces() const 
+{
+	return true ; 
+} 
+
+Vector StiffnessWithImposedDeformation::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+{
+	return VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv) ;
+}
+
