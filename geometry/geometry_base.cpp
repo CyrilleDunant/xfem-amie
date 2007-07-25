@@ -256,9 +256,8 @@ Point Point::operator^(const Vector &p) const
 }
 
 
-PointSet::PointSet()
+PointSet::PointSet() : boundingPoints(0)
 {
-	this->boundingPoints = new std::valarray<Point *>(0); 
 	this->chullEndPos = 0;
 }
 
@@ -270,94 +269,94 @@ std::vector<Point> Geometry::getBoundingBox() const
 
 const std::valarray<Point *> & ConvexGeometry::getBoundingPoints() const
 { 
-	return *this->boundingPoints ; 
+	return boundingPoints ; 
 }
 
 std::valarray<Point *> & ConvexGeometry::getBoundingPoints() 
 { 
-	return *this->boundingPoints ; 
+	return boundingPoints ; 
 }
 
 const Point & ConvexGeometry::getBoundingPoint(size_t i) const
 { 
-	return *(*boundingPoints)[i] ; 
+	return *boundingPoints[i] ; 
 }
 
 Point & ConvexGeometry::getBoundingPoint(size_t i) 
 { 
-	return *(*boundingPoints)[i] ; 
+	return *boundingPoints[i] ; 
 }
 
 const Point & ConvexGeometry::getPoint(size_t i) const
 {
-	if (i < inPoints->size())
+	if (i < inPoints.size())
 	{
-		return *(*inPoints)[i] ;
+		return *inPoints[i] ;
 	}
 	
-	return *(*boundingPoints)[i-inPoints->size()] ;
+	return *boundingPoints[i-inPoints.size()] ;
 }
 
 Point & ConvexGeometry::getPoint(size_t i)
 {
-	if (i < inPoints->size())
+	if (i < inPoints.size())
 	{
-		return *(*inPoints)[i] ;
+		return *inPoints[i] ;
 	}
 	
-	return *(*boundingPoints)[i-inPoints->size()] ;
+	return *boundingPoints[i-inPoints.size()] ;
 }
 
 std::valarray<Point *> & NonConvexGeometry::getBoundingPoints() 
 { 
-	return *this->boundingPoints ; 
+	return boundingPoints ; 
 }
 
 const std::valarray<Point *> & NonConvexGeometry::getBoundingPoints() const
 { 
-	return *this->boundingPoints ; 
+	return boundingPoints ; 
 }
 
 const Point & NonConvexGeometry::getBoundingPoint(size_t i) const
 { 
-	return *(*this->boundingPoints)[i] ; 
+	return *boundingPoints[i] ; 
 }
 
 Point & NonConvexGeometry::getBoundingPoint(size_t i) 
 { 
-	return *(*this->boundingPoints)[i] ; 
+	return *boundingPoints[i] ; 
 }
 
 const Point & Geometry::getInPoint(size_t i) const
 { 
-	return *(*this->inPoints)[i] ; 
+	return *inPoints[i] ; 
 }
 
 Point & Geometry::getInPoint(size_t i) 
 { 
-	return *(*this->inPoints)[i] ; 
+	return *inPoints[i] ; 
 }
 
 void NonConvexGeometry::setBoundingPoint(size_t i, Point * p)
 {
-	(*this->boundingPoints)[i] = p ;
+	boundingPoints[i] = p ;
 }
 
-void NonConvexGeometry::setBoundingPoints(std::valarray<Point *> * nb)
+void NonConvexGeometry::setBoundingPoints(const PointArray & nb)
 {
-	delete this->boundingPoints ;
-	this->boundingPoints = nb ;
+	boundingPoints.resize(nb.size()) ;
+	boundingPoints = nb ;
 }
 
 void ConvexGeometry::setBoundingPoint(size_t i, Point * p)
 {
-	(*this->boundingPoints)[i] = p ;
+	boundingPoints[i] = p ;
 }
 
-void ConvexGeometry::setBoundingPoints(std::valarray<Point *> * nb)
+void ConvexGeometry::setBoundingPoints(const PointArray & nb)
 {
-	delete this->boundingPoints ;
-	this->boundingPoints = nb ;
+	boundingPoints.resize(nb.size()) ;
+	boundingPoints = nb ;
 }
 
 double & Point::operator[](size_t i)
@@ -371,12 +370,12 @@ double Point::operator[](size_t i) const
 
 const std::valarray<Point* > & Geometry::getInPoints() const
 {
-	return *this->inPoints ;
+	return inPoints ;
 }
 
 std::valarray<Point* > & Geometry::getInPoints() 
 {
-	return *this->inPoints ;
+	return inPoints ;
 }
 
 bool Geometry::intersects(const Geometry *g) const
@@ -1091,110 +1090,120 @@ Point & Geometry::getCenter()
 
 PointSet::PointSet(size_t npoints) 
 {
-	this->boundingPoints = new std::valarray<Point *>(npoints) ; 
+	this->boundingPoints.resize(npoints) ; 
 	for(size_t i = 0 ; i < npoints ;i++)
-		(*this->boundingPoints)[i] = NULL ;
+		boundingPoints[i] = NULL ;
 	this->chullEndPos = 0;
 } ;
 
 size_t ConvexGeometry::size() const
 {
-	return 	boundingPoints->size() + inPoints->size() ;
+	return 	boundingPoints.size() + inPoints.size() ;
 }
 
 size_t NonConvexGeometry::size() const
 {
-	return 	boundingPoints->size() + inPoints->size() ;
+	return 	boundingPoints.size() + inPoints.size() ;
 }
 
 double PointSet::x(size_t i) 
 {
-	return (*boundingPoints)[i]->x ; 
+	return boundingPoints[i]->x ; 
 }
 
 double PointSet::y(size_t i) 
 { 
-	return (*boundingPoints)[i]->y ; 
+	return boundingPoints[i]->y ; 
 }
 
 double PointSet::z(size_t i) 
 { 
-	return (*boundingPoints)[i]->z ; 
+	return boundingPoints[i]->z ; 
 }
 
 void PointSet::setX(size_t i, double vv) 
 { 
-	(*boundingPoints)[i]->Point::setX(vv) ; 
+	boundingPoints[i]->Point::setX(vv) ; 
 }
 
 void PointSet::setY(size_t i, double vv) 
 { 
-	(*boundingPoints)[i]->Point::setY(vv) ; 
+	boundingPoints[i]->Point::setY(vv) ; 
 }
 
 void PointSet::setZ(size_t i, double vv) 
 { 
-	(*boundingPoints)[i]->Point::setZ(vv) ; 
+	boundingPoints[i]->Point::setZ(vv) ; 
 }
 
 void PointSet::set(size_t i, Point * p) 
 { 
-	delete (*boundingPoints)[i] ;
-	(*boundingPoints)[i] = p; 
+	delete boundingPoints[i] ;
+	boundingPoints[i] = p; 
 }
 
 void PointSet::set(size_t i, double x, double y) 
 { 
 	int id = -1 ;
-	if((*boundingPoints)[i] != NULL)
-		id = (*boundingPoints)[i]->id ;
+	if(boundingPoints[i] != NULL)
+		id = boundingPoints[i]->id ;
 	
-	delete (*boundingPoints)[i] ;
+	delete boundingPoints[i] ;
 	
-	(*boundingPoints)[i] = new Point(x,y) ; 
-	(*boundingPoints)[i]->id = id ;
+	boundingPoints[i] = new Point(x,y) ; 
+	boundingPoints[i]->id = id ;
 }
 
 void PointSet::set(size_t i, double x, double y, double z) 
 { 
 	int id = -1 ;
-	if((*boundingPoints)[i] != NULL)
-		id = (*boundingPoints)[i]->id ;
+	if(boundingPoints[i] != NULL)
+		id = boundingPoints[i]->id ;
 	
-	delete (*boundingPoints)[i] ;
+	delete boundingPoints[i] ;
 	
-	(*boundingPoints)[i] = new Point(x,y,z) ; 
-	(*boundingPoints)[i]->id = id ;
+	boundingPoints[i] = new Point(x,y,z) ; 
+	boundingPoints[i]->id = id ;
 }
 
 Point * PointSet::operator[](size_t i) 
 { 
-	return (*boundingPoints)[i] ; 
+	return boundingPoints[i] ; 
 }
 
 Point * PointSet::operator[](size_t i) const
 { 
-	return (*boundingPoints)[i] ; 
+	return boundingPoints[i] ; 
 }
 
 Point * PointSet::getPoint(size_t i) const
 { 
-	return (*boundingPoints)[i] ; 
+	return boundingPoints[i] ; 
 }
 
 Point * PointSet::getPoint(size_t i)
 { 
-	return (*boundingPoints)[i] ; 
+	return boundingPoints[i] ; 
 }
 
-PointSet::iterator PointSet::begin() const
+PointSet::const_iterator PointSet::begin() const
 {
-	return &(*boundingPoints)[0] ; 
+	return &boundingPoints[0] ; 
 }
 
-PointSet::iterator PointSet::end() const
+PointSet::const_iterator PointSet::end() const
 {
-	return  &(*boundingPoints)[boundingPoints->size()] ;
+	return  &boundingPoints[boundingPoints.size()] ;
+}
+
+PointSet::iterator PointSet::begin()
+{
+	return &boundingPoints[0] ; 
+}
+
+PointSet::iterator PointSet::end()
+{
+	return  &boundingPoints[boundingPoints.size()] ;
 }
 
 ConvexPolygon * PointSet::convexHull() const
@@ -1226,16 +1235,16 @@ bool PointSet::in(const Point & p)  const
 
 size_t PointSet::size() const
 { 
-	return  boundingPoints->size() ;
+	return  boundingPoints.size() ;
 }
 
 Point PointSet::computeCenter() const 
 {
 	Point ret;
-	for (size_t i = 0 ; i < boundingPoints->size() ; i++)
+	for (size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
-		ret.x += (*boundingPoints)[i]->x/boundingPoints->size() ;
-		ret.y += (*boundingPoints)[i]->y/boundingPoints->size() ;
+		ret.x += boundingPoints[i]->x/boundingPoints.size() ;
+		ret.y += boundingPoints[i]->y/boundingPoints.size() ;
 	}
 	return ret ;
 }
@@ -1246,15 +1255,15 @@ void PointSet::removePoint(size_t index)
 	//std::copy((*this)[0], (*this)[index-1], (*n)[0]) ;
 	for (size_t i = 0 ; i < index ; i++)
 	{
-		n[i] = (*boundingPoints)[i] ;
+		n[i] = boundingPoints[i] ;
 	}
 	for (size_t i = index+1 ; i < size() ; i++)
 	{
-		n[i] = (*boundingPoints)[i] ;
+		n[i] = boundingPoints[i] ;
 	}
 	
-	boundingPoints->resize(n.size()) ;
-	(*boundingPoints) = n ;
+	boundingPoints.resize(n.size()) ;
+	boundingPoints = n ;
 }
 
 
@@ -1510,15 +1519,13 @@ Point Nurb::pointOnNurb(double u)
 /*
 }*/
 
-Geometry::Geometry(): gType(NULL_GEOMETRY)
+Geometry::Geometry(): inPoints(0),gType(NULL_GEOMETRY)
 {
 	sampled = false ;
-	inPoints  = new std::valarray<Point * >(0) ;
 }
 
-Geometry::Geometry(size_t numPoints): gType(NULL_GEOMETRY)
+Geometry::Geometry(size_t numPoints):inPoints(numPoints), gType(NULL_GEOMETRY)
 {
-	inPoints  = new std::valarray<Point * >(numPoints) ;
 }
 
 GeometryType Geometry::getGeometryType() const
@@ -1619,10 +1626,10 @@ bool ConvexPolygon::in(const Point & p) const
 	
 	bool in = false ;
 	
-	for (size_t i = 0, j  =  boundingPoints->size()-1; i <  boundingPoints->size(); j = i++)
+	for (size_t i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
 	{
-		if (((((*boundingPoints)[i]->y <= p.y ) && (p.y<(*boundingPoints)[j]->y)) || (((*boundingPoints)[j]->y <= p.y) && (p.y<(*boundingPoints)[i]->y))) &&
-		    (p.x < ((*boundingPoints)[j]->x - (*boundingPoints)[i]->x) * (p.y - (*boundingPoints)[i]->y) / ((*boundingPoints)[j]->y - (*boundingPoints)[i]->y) + (*boundingPoints)[i]->x))
+		if ((((boundingPoints[i]->y <= p.y ) && (p.y<boundingPoints[j]->y)) || ((boundingPoints[j]->y <= p.y) && (p.y<boundingPoints[i]->y))) &&
+		    (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
 			in = !in;
 	}
 	
@@ -1634,10 +1641,12 @@ bool ConvexPolygon::in(const Point & p) const
 bool ConvexPolygon::isTrigoOriented()  const
 {
 	
-	for (size_t i = 0 ;  i <  boundingPoints->size()-1; i++)
+	for (size_t i = 0 ;  i <  boundingPoints.size()-1; i++)
 	{
-		Point v_0 = *(*boundingPoints)[(i+1)%boundingPoints->size()] - *(*boundingPoints)[(i)%boundingPoints->size()] ;
-		Point v_1 = *(*boundingPoints)[(i+2)%boundingPoints->size()] - *(*boundingPoints)[(i+1)%boundingPoints->size()] ;
+		Point v_0 = *boundingPoints[(i+1)%boundingPoints.size()] 
+			- *boundingPoints[(i)%boundingPoints.size()] ;
+		Point v_1 = *boundingPoints[(i+2)%boundingPoints.size()] 
+			- *boundingPoints[(i+1)%boundingPoints.size()] ;
 		if((v_0^v_1).z < 0 )
 			return false ;
 	}
@@ -1649,34 +1658,34 @@ bool ConvexPolygon::isTrigoOriented()  const
 NonConvexGeometry::NonConvexGeometry() : PointSet(1)
 {
 	orderedSet.resize(1) ;
-	orderedSet[0] = (*this->inPoints)[0] ;
+	orderedSet[0] = inPoints[0] ;
 }
 
 NonConvexGeometry::NonConvexGeometry(size_t numPoints) : PointSet(numPoints)
 {
 	orderedSet.resize(numPoints) ;
 	for(size_t i = 0 ; i < numPoints ; i++)
-		orderedSet[i] = (*this->boundingPoints)[i] ;
+		orderedSet[i] = boundingPoints[i] ;
 }
 
 NonConvexGeometry::NonConvexGeometry(const std::valarray<Point *> & p)
 {
-	this->boundingPoints = new std::valarray<Point *>(p.size()) ;
+	boundingPoints.resize(p.size()) ;
 	std::copy(&p[0], &p[p.size()], begin()) ;//&boundingPoints[0]) ;
 }
 
 const Point & NonConvexGeometry::getPoint(size_t i) const
 {
-	if (i < inPoints->size())
-		return *(*inPoints)[i] ;
-	return *(*boundingPoints)[i-inPoints->size()] ;
+	if (i < inPoints.size())
+		return *inPoints[i] ;
+	return *boundingPoints[i-inPoints.size()] ;
 }
 
 Point & NonConvexGeometry::getPoint(size_t i) 
 {
-	if (i < inPoints->size())
-		return *(*inPoints)[i] ;
-	return *(*boundingPoints)[i-inPoints->size()] ;
+	if (i < inPoints.size())
+		return *inPoints[i] ;
+	return *boundingPoints[i-inPoints.size()] ;
 }
 
 Line::Line(const Point & origin, const Point &vector)
@@ -2556,11 +2565,11 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
 	R[1][0] = 2.*(q2*q1 + q0*q3) ; R[1][1] = (q0*q0 - q1*q1 + q2*q2 - q3*q3) ; R[1][2] = 2.*(q2*q3 - q0*q1) ;
 	R[2][0] = 2.*(q3*q1 - q0*q2) ; R[2][1] = 2.*(q3*q2 + q0*q1) ; R[2][2] = (q0*q0 - q1*q1 - q2*q2 + q3*q3) ;
 	
-	this->boundingPoints->resize(num_points) ;
+	this->boundingPoints.resize(num_points) ;
 	for(size_t i = 0 ; i < num_points ; i++)
 	{
 		start=R*start ;
-		(*boundingPoints)[i] = new Point( start[0] + center.x,
+		boundingPoints[i] = new Point( start[0] + center.x,
 		                           start[1] + center.y, 
 		                           start[2] + center.z) ;
 	}
@@ -2618,10 +2627,10 @@ void OrientableCircle::sampleSurface(size_t num_points)
 		rad -= dr ;
 	}
 	toAdd.push_back(center) ;
-	this->inPoints->resize(toAdd.size()) ;
+	this->inPoints.resize(toAdd.size()) ;
 	for(size_t i = 0 ; i < toAdd.size() ;i++)
 	{
-		(*this->inPoints)[i] = new Point(toAdd[i]) ;
+		inPoints[i] = new Point(toAdd[i]) ;
 	}
 }
 

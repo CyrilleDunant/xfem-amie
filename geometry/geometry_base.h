@@ -9,11 +9,11 @@
 
 #include <map>
 
-#define GEO_DERIVED_OBJECT( __geo_type__)    virtual const std::valarray<Point *> & getBoundingPoints() const \
+#define GEO_DERIVED_OBJECT( __geo_type__)    virtual const PointArray & getBoundingPoints() const \
 {                                                          \
 	return this->__geo_type__::getBoundingPoints() ;       \
 }                                                          \
-virtual std::valarray<Point *> & getBoundingPoints()       \
+virtual PointArray & getBoundingPoints()       \
 {                                                          \
 	return this->__geo_type__::getBoundingPoints() ;       \
 }                                                          \
@@ -37,11 +37,11 @@ virtual void setBoundingPoint(size_t i, Point * p)         \
 {                                                          \
 	this->__geo_type__::setBoundingPoint(i,p) ;            \
 }                                                          \
-virtual void setBoundingPoints(std::valarray<Point *> * nb)\
+virtual void setBoundingPoints(const PointArray & nb)\
 {                                                          \
 	this->__geo_type__::setBoundingPoints(nb) ;            \
 }                                                          \
-virtual void setInPoints(std::valarray<Point *> * nb)      \
+virtual void setInPoints(const PointArray & nb)      \
 {                                                          \
 	this->__geo_type__::setInPoints(nb) ;                  \
 }                                                          \
@@ -258,12 +258,13 @@ struct Point
 	
 } ;
 
+typedef  std::valarray<Point *> PointArray;
 
 class Geometry 
 {
 protected:
 	
-	std::valarray<Point *> * inPoints ;
+	PointArray inPoints ;
 	bool sampled ;
 	
 	Point center ;
@@ -278,15 +279,11 @@ public:
 	Geometry(size_t numPoints) ;
 	virtual ~Geometry() 
 	{
-		if(this->inPoints != NULL)
+
+		for(size_t i = 0 ; i < this->inPoints.size() ; i++)
 		{
-			for(size_t i = 0 ; i < this->inPoints->size() ; i++)
-			{
-				delete (*this->inPoints)[i] ;
-				(*this->inPoints)[i] = NULL ;
-			}
-			delete this->inPoints ;
-			inPoints = NULL ;
+			delete inPoints[i] ;
+			inPoints[i] = NULL ;
 		}
 		
 // 		for(size_t i = 0 ; i < boundingPoints->size() ; i++)
@@ -297,17 +294,17 @@ public:
 // 		delete this->boundingPoints ;
 	}
 	
-	virtual const std::valarray<Point *> & getBoundingPoints() const = 0;
-	virtual std::valarray<Point *> & getBoundingPoints() = 0;
+	virtual const PointArray & getBoundingPoints() const = 0;
+	virtual PointArray & getBoundingPoints() = 0;
 	virtual const Point & getBoundingPoint(size_t i) const = 0;
 	virtual Point & getBoundingPoint(size_t i)  = 0;
-	virtual const std::valarray<Point *> & getInPoints() const ;
-	virtual std::valarray<Point *> & getInPoints() ;
+	virtual const PointArray & getInPoints() const ;
+	virtual PointArray & getInPoints() ;
 	virtual const Point & getInPoint(size_t i) const ;
 	virtual Point & getInPoint(size_t i);
 	virtual void setBoundingPoint(size_t i, Point * p) = 0;
-	virtual void setBoundingPoints(std::valarray<Point *> * nb) = 0;
-	virtual void setInPoints(std::valarray<Point *> * nb) {delete inPoints ; inPoints=nb ; }
+	virtual void setBoundingPoints(const PointArray & nb) = 0;
+	virtual void setInPoints(PointArray nb) {inPoints.resize(nb.size()) ; inPoints=nb ; }
 	virtual const Point & getPoint(size_t i) const = 0;
 	virtual Point & getPoint(size_t i)  = 0;
 	virtual const Point & getCenter() const ;
@@ -411,7 +408,7 @@ public:
 class PointSet
 {
 protected:
-	std::valarray<Point *> * boundingPoints  ;
+	PointArray boundingPoints  ;
 	size_t chullEndPos ;
 	
 public:
@@ -420,17 +417,13 @@ public:
 	
 	virtual ~PointSet()
 	{
-		if(this->boundingPoints != NULL)
+
+		for(size_t i = 0 ; i < this->boundingPoints.size() ; i++)
 		{
-			for(size_t i = 0 ; i < this->boundingPoints->size() ; i++)
-			{
-				if((*this->boundingPoints)[i] != NULL)
-				{
-					delete (*this->boundingPoints)[i] ;
-				}
-			}
-			delete this->boundingPoints ;
+
+			delete boundingPoints[i] ;
 		}
+
 	}
 	double x(size_t i);
 	double y(size_t i) ;
@@ -458,9 +451,12 @@ public:
 	ConvexPolygon * convexHull() const;
 	
 	typedef Point** iterator;
+	typedef Point* const* const_iterator;
 	
-	iterator begin() const ;
-	iterator end() const ;
+	const_iterator begin() const ;
+	const_iterator end() const ;
+	iterator begin() ;
+	iterator end() ;
 } ;
 
 class WeightedPoint : public Point
@@ -546,13 +542,13 @@ public:
 class NonConvexGeometry : public PointSet, public Geometry
 {
 protected:
-	std::valarray<Point *> orderedSet ;
+	PointArray orderedSet ;
 	std::vector<size_t> stopPos ;
 	
 public:
 	NonConvexGeometry() ;
 	NonConvexGeometry(size_t numPoints) ;
-	NonConvexGeometry(const std::valarray<Point *> & p) ;
+	NonConvexGeometry(const PointArray & p) ;
 	virtual ~NonConvexGeometry() { } ;
 	
 	virtual const std::valarray<Point * > & getBoundingPoints() const ;
@@ -563,7 +559,7 @@ public:
 	virtual Point & getPoint(size_t i) ;
 	
 	virtual void setBoundingPoint(size_t i, Point * p) ;
-	virtual void setBoundingPoints(std::valarray<Point *> * nb) ;
+	virtual void setBoundingPoints(const PointArray & nb) ;
 	virtual size_t size() const ;
 	virtual double area() const = 0;
 	
@@ -592,13 +588,13 @@ public:
 	ConvexGeometry(size_t numPoints) ;
 	virtual ~ConvexGeometry() { } ;
 	
-	virtual const std::valarray<Point *> & getBoundingPoints() const ;
-	virtual std::valarray<Point *> & getBoundingPoints();
+	virtual const PointArray & getBoundingPoints() const ;
+	virtual PointArray & getBoundingPoints();
 	virtual const Point & getBoundingPoint(size_t i) const ;
 	virtual Point & getBoundingPoint(size_t i) ;
 	
 	virtual void setBoundingPoint(size_t i, Point * p) ;
-	virtual void setBoundingPoints(std::valarray<Point *> * nb) ;
+	virtual void setBoundingPoints(const PointArray & nb) ;
 	
 	virtual void sampleBoundingSurface(size_t num_points) = 0 ;
 	virtual void sampleSurface(size_t num_points) = 0 ;

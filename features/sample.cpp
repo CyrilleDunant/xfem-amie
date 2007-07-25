@@ -30,13 +30,13 @@ Sample::Sample( double x, double y, double originX, double originY) : Rectangle(
 
 Point * Sample::pointAfter(size_t i)
 {
-	Point * to_insert = new Point(*(*this->boundingPoints)[i]*0.5 + *(*this->boundingPoints)[(i+1)%this->boundingPoints->size()]*0.5) ;
-	std::valarray<Point *> temp(this->boundingPoints->size()+1) ;
-	std::copy(&(*this->boundingPoints)[0], &(*this->boundingPoints)[i], &temp[0]) ;
+	Point * to_insert = new Point(*boundingPoints[i]*0.5 + *boundingPoints[(i+1)%boundingPoints.size()]*0.5) ;
+	std::valarray<Point *> temp(boundingPoints.size()+1) ;
+	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
 	temp[i+1] = to_insert ;
-	std::copy(&(*this->boundingPoints)[i+1], &(*this->boundingPoints)[this->boundingPoints->size()], &temp[i+2]) ;
-	this->boundingPoints->resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &(*this->boundingPoints)[0]) ;
+	std::copy(&boundingPoints[i+1], &boundingPoints[boundingPoints.size()], &temp[i+2]) ;
+	boundingPoints.resize(temp.size()) ;
+	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
 	return to_insert ;
 }
 
@@ -69,7 +69,7 @@ std::vector<DelaunayTriangle *> Sample::getTriangles( DelaunayTree * dt)
 
 bool Sample::interacts(Feature * f) const
 {
-	for(Point ** i =this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;

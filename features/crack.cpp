@@ -13,21 +13,21 @@ std::vector<Geometry *> Crack::getRefinementZones( size_t level) const
 	
 	if(level > 0)
 	{
-		for(size_t i = 0 ; i < this->boundingPoints->size() ; i++)
+		for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 		{
 			ret.push_back(new Circle(0.2, getBoundingPoint(i))) ;
 		}
 	}
 	if(level > 1)
 	{
-		for(size_t i = 0 ; i < this->boundingPoints->size() ; i++)
+		for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 		{
 			ret.push_back(new Circle(0.15, getBoundingPoint(i))) ;
 		}
 	}
 	if(level > 3)
 	{
-		for(size_t i = 0 ; i < this->boundingPoints->size() ; i++)
+		for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 		{
 			ret.push_back(new Circle(0.1, getBoundingPoint(i))) ;
 		}
@@ -40,7 +40,7 @@ std::vector<DelaunayTriangle *> Crack::getTriangles( DelaunayTree * dt)
 	std::vector<DelaunayTriangle *> vec  ;
 	std::vector<DelaunayTriangle *> visited ;
 	
-	for(size_t i = 0 ; i < this->boundingPoints->size()-1 ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size()-1 ; i++)
 	{
 		std::vector<DelaunayTriangle *> ret  ;
 		Point sec = getBoundingPoint(i+1) ;
@@ -161,10 +161,10 @@ std::vector<DelaunayTriangle *> Crack::getIntersectingTriangles( DelaunayTree * 
 	return ret ;
 	std::vector<DelaunayTriangle *> visited ;
 	
-	for(size_t i = 0 ; i < this->boundingPoints->size() ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
 		Point sec ;
-		if(i == this->boundingPoints->size()-1)
+		if(i == boundingPoints.size()-1)
 			sec = getBoundingPoint(i-1) ;
 		else
 			sec = getBoundingPoint(i+1) ;
@@ -317,7 +317,7 @@ bool Crack::enrichmentTarget(DelaunayTriangle * t)
 {
 	if(t==NULL)
 		return false ;
-	for(size_t i = 0 ; i < this->boundingPoints->size()-1 ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size()-1 ; i++)
 	{
 		Segment s(getBoundingPoint(i), getBoundingPoint(i+1)) ;
 		if(s.intersects(dynamic_cast<Triangle *>(t)))
@@ -860,7 +860,7 @@ void Crack::enrich(size_t & counter, DelaunayTree * dtree)
 
 bool Crack::interacts(Feature * f) const
 {
-	for(Point ** i = this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i = this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;
@@ -868,13 +868,13 @@ bool Crack::interacts(Feature * f) const
 
 Point * Crack::pointAfter(size_t i)
 {
-	Point * to_insert = new Point(*(*this->boundingPoints)[i]*0.5 + *(*this->boundingPoints)[(i+1)%this->boundingPoints->size()]*0.5) ;
-	std::valarray<Point *> temp(this->boundingPoints->size()+1) ;
-	std::copy(&(*this->boundingPoints)[0], &(*this->boundingPoints)[i], &temp[0]) ;
+	Point * to_insert = new Point(*boundingPoints[i]*0.5 + *boundingPoints[(i+1)%boundingPoints.size()]*0.5) ;
+	std::valarray<Point *> temp(boundingPoints.size()+1) ;
+	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
 	temp[i+1] = to_insert ;
-	std::copy(&(*this->boundingPoints)[i+1], &(*this->boundingPoints)[this->boundingPoints->size()], &temp[i+2]) ;
-	this->boundingPoints->resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &(*this->boundingPoints)[0]) ;
+	std::copy(&boundingPoints[i+1], &boundingPoints[boundingPoints.size()], &temp[i+2]) ;
+	boundingPoints.resize(temp.size()) ;
+	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
 	return to_insert ;
 }
 
@@ -891,7 +891,7 @@ bool Crack::inBoundary(const Point v) const
 // 	if(!projectionLine.intersects(static_cast<const SegmentedLine *>(this)) && !testt.in(v)&& !testh.in(v))
 // 	   return false ;
 	
-	for(size_t i = 0 ; i < this->boundingPoints->size() ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
 		if((squareDist(getBoundingPoint(i), v) < .001*.001))
 		{
@@ -911,7 +911,7 @@ std::vector<Point *> Crack::getSamplingPoints() const
 	v0 = v0/v0.norm() ;
 	Point n0_0(v0.y, -v0.x) ;
 	Point n0_1(-v0.y, v0.x) ;
-	Point v1 = getBoundingPoint(this->boundingPoints->size()-1) - getBoundingPoint(this->boundingPoints->size()-2) ;
+	Point v1 = getBoundingPoint(boundingPoints.size()-1) - getBoundingPoint(boundingPoints.size()-2) ;
 	Point n1_0(v1.y, -v1.x) ;
 	Point n1_1(-v1.y, v1.x) ;
 	v1 = v1/v1.norm() ;
@@ -920,9 +920,9 @@ std::vector<Point *> Crack::getSamplingPoints() const
 	ret.push_back(new Point(getBoundingPoint(0) - v0*0.45*infRad + n0_0*0.45*infRad)) ;
 	ret.push_back(new Point(getBoundingPoint(0) - v0*0.45*infRad + n0_1*0.45*infRad)) ;
 	
-	ret.push_back(new Point(getBoundingPoint(this->boundingPoints->size()-1) + v1*0.9*infRad)) ;
-	ret.push_back(new Point(getBoundingPoint(this->boundingPoints->size()-1) - v1*0.45*infRad + n1_0*0.45*infRad)) ;
-	ret.push_back(new Point(getBoundingPoint(this->boundingPoints->size()-1) - v1*0.45*infRad + n1_1*0.45*infRad)) ;
+	ret.push_back(new Point(getBoundingPoint(boundingPoints.size()-1) + v1*0.9*infRad)) ;
+	ret.push_back(new Point(getBoundingPoint(boundingPoints.size()-1) - v1*0.45*infRad + n1_0*0.45*infRad)) ;
+	ret.push_back(new Point(getBoundingPoint(boundingPoints.size()-1) - v1*0.45*infRad + n1_1*0.45*infRad)) ;
 	
 	return ret ;
 	
@@ -942,7 +942,7 @@ bool Crack::inBoundary(const Point *v) const
 	if(!projectionLine.intersects(static_cast<const SegmentedLine *>(this)) && !testt.in(*v)&& !testh.in(*v))
 		return false ;
 
-	for(size_t i = 0 ; i < this->boundingPoints->size() ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
 		if((squareDist(getBoundingPoint(i), *v) < 0.1*0.1))
 		{
@@ -1224,8 +1224,8 @@ void Crack::step(double dt, std::valarray<double> *, const DelaunayTree * dtree)
 	double acount = 0 ;
 	double aangle = 0 ;
 	
-	double currentAngle = atan2(getHead()->y - (*boundingPoints)[1]->y,
-	                            getHead()->x -(*boundingPoints)[1]->x) ;
+	double currentAngle = atan2(getHead()->y - boundingPoints[1]->y,
+	                            getHead()->x -boundingPoints[1]->x) ;
 	
 	Point lastDir(getHead()->x-getBoundingPoint(1).x, getHead()->y-getBoundingPoint(1).y) ;
 	if(!tris.empty())
@@ -1265,8 +1265,8 @@ void Crack::step(double dt, std::valarray<double> *, const DelaunayTree * dtree)
 		direction/=direction.norm() ;
 	else
 	{
-		direction = Point(getHead()->x-(*boundingPoints)[1]->x,
-		                  getHead()->y-(*boundingPoints)[1]->y) ;
+		direction = Point(getHead()->x-boundingPoints[1]->x,
+		                  getHead()->y-boundingPoints[1]->y) ;
 		direction /= direction.norm() ;
 		
 	}
@@ -1296,11 +1296,11 @@ void Crack::step(double dt, std::valarray<double> *, const DelaunayTree * dtree)
 	// 		if((direction*currentDir) < 0)
 	// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
 			
-			std::valarray<Point *> * newPoints = new std::valarray<Point *>(boundingPoints->size()+1) ;
-			(*newPoints)[0] = new Point(getHead()->x+direction.x, getHead()->y+direction.y) ;
-			for(size_t i = 1 ; i < newPoints->size() ; i++)
+			std::valarray<Point *> newPoints(boundingPoints.size()+1) ;
+			newPoints[0] = new Point(getHead()->x+direction.x, getHead()->y+direction.y) ;
+			for(size_t i = 1 ; i < newPoints.size() ; i++)
 			{
-				(*newPoints)[i] = (*boundingPoints)[i-1] ;
+				newPoints[i] = boundingPoints[i-1] ;
 			}
 			setBoundingPoints(newPoints) ;
 			setInfluenceRadius(infRad) ;
@@ -1336,8 +1336,8 @@ void Crack::step(double dt, std::valarray<double> *, const DelaunayTree * dtree)
 	aangle = 0 ;
 	direction = Point() ;
 	
-	currentAngle = atan2(getTail()->y-(*boundingPoints)[boundingPoints->size()-2]->y,
-	                            getTail()->x-(*boundingPoints)[boundingPoints->size()-2]->x) ;
+	currentAngle = atan2(getTail()->y-boundingPoints[boundingPoints.size()-2]->y,
+	                            getTail()->x-boundingPoints[boundingPoints.size()-2]->x) ;
 	
 	lastDir = Point(getTail()->x-getBoundingPoint(getBoundingPoints().size()-2).x, getTail()->y-getBoundingPoint(getBoundingPoints().size()-2).y) ;
 	if(!tris.empty())
@@ -1381,8 +1381,8 @@ void Crack::step(double dt, std::valarray<double> *, const DelaunayTree * dtree)
 		direction/=direction.norm() ;
 	else
 	{
-		direction = Point(getTail()->x-(*boundingPoints)[boundingPoints->size()-2]->x,
-		                  getTail()->y-(*boundingPoints)[boundingPoints->size()-2]->y) ;
+		direction = Point(getTail()->x-boundingPoints[boundingPoints.size()-2]->x,
+		                  getTail()->y-boundingPoints[boundingPoints.size()-2]->y) ;
 		direction /= direction.norm() ;
 		
 	}
@@ -1412,12 +1412,12 @@ void Crack::step(double dt, std::valarray<double> *, const DelaunayTree * dtree)
 	// 		if((direction*currentDir) < 0)
 	// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
 			
-			std::valarray<Point *> * newPoints = new std::valarray<Point *>(boundingPoints->size()+1) ;
-			for(size_t i = 0 ; i < boundingPoints->size() ; i++)
+			std::valarray<Point *> newPoints(boundingPoints.size()+1) ;
+			for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 			{
-				(*newPoints)[i] = (*boundingPoints)[i] ;
+				newPoints[i] = boundingPoints[i] ;
 			}
-			(*newPoints)[boundingPoints->size()] = new Point(getTail()->x+direction.x, getTail()->y+direction.y) ;
+			newPoints[boundingPoints.size()] = new Point(getTail()->x+direction.x, getTail()->y+direction.y) ;
 			setBoundingPoints(newPoints) ;
 			setInfluenceRadius(infRad) ;
 		}

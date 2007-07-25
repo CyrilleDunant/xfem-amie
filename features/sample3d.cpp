@@ -28,7 +28,7 @@ Sample3D::Sample3D(double x, double y, double z,double originX, double originY, 
 }
 	
 bool Sample3D::interacts(Feature * f) const {
-	for(Point ** i =this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;

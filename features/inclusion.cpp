@@ -67,17 +67,17 @@ Inclusion::Inclusion(double r, Point center) : Circle(r, center),  Feature(NULL)
 
 Point * Inclusion::pointAfter(size_t i)
 {
-	double theta_i = atan2((*this->boundingPoints)[i]->y, (*this->boundingPoints)[i]->x) ;
-	double theta_ip = atan2((*this->boundingPoints)[(i+1)%this->boundingPoints->size()]->y, (*this->boundingPoints)[(i+1)%this->boundingPoints->size()]->x) ;
+	double theta_i = atan2(boundingPoints[i]->y, boundingPoints[i]->x) ;
+	double theta_ip = atan2(boundingPoints[(i+1)%this->boundingPoints.size()]->y, boundingPoints[(i+1)%this->boundingPoints.size()]->x) ;
 	double theta = 0.5*theta_i + 0.5*theta_ip ;
 	
 	Point * to_insert = new Point(cos(theta)*this->getRadius()+ this->Circle::getCenter().x, sin(theta)*this->getRadius()+ this->Circle::getCenter().y) ;
-	std::valarray<Point *> temp(this->boundingPoints->size()+1) ;
-	std::copy(&(*this->boundingPoints)[0], &(*this->boundingPoints)[i], &temp[0]) ;
+	std::valarray<Point *> temp(this->boundingPoints.size()+1) ;
+	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
 	temp[i+1] = to_insert ;
-	std::copy(&(*this->boundingPoints)[i+1], &(*this->boundingPoints)[this->boundingPoints->size()], &temp[i+2]) ;
-	this->boundingPoints->resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &(*this->boundingPoints)[0]) ;
+	std::copy(&boundingPoints[i+1], &boundingPoints[this->boundingPoints.size()], &temp[i+2]) ;
+	this->boundingPoints.resize(temp.size()) ;
+	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
 	return to_insert ;
 }
 
@@ -105,7 +105,7 @@ std::vector<Geometry *> Inclusion::getRefinementZones(size_t level) const
 
 bool Inclusion::interacts(Feature * f) const
 {
-	for(Point ** i =this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;
@@ -172,8 +172,8 @@ void TriangularInclusion::sample(size_t n)
 std::vector<Geometry *> TriangularInclusion::getRefinementZones(size_t level) const
 {
 	Point a = getBoundingPoint(0) ;
-	Point b = getBoundingPoint(boundingPoints->size()/3) ;
-	Point c = getBoundingPoint(2*boundingPoints->size()/3) ;
+	Point b = getBoundingPoint(boundingPoints.size()/3) ;
+	Point c = getBoundingPoint(2*boundingPoints.size()/3) ;
 	Point va = a-getCenter() ;
 	Point vb = b-getCenter() ;
 	Point vc = c-getCenter() ;
@@ -190,7 +190,7 @@ std::vector<Geometry *> TriangularInclusion::getRefinementZones(size_t level) co
 
 bool TriangularInclusion::interacts(Feature * f) const
 {
-	for(Point ** i =this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;

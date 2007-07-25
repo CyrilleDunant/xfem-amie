@@ -87,25 +87,25 @@ void Pore::sample(size_t n)
 
 Point * Pore::pointAfter(size_t i)
 {
-	double theta_i = atan2((*this->boundingPoints)[i]->y, (*this->boundingPoints)[i]->x) ;
-	double theta_ip = atan2((*this->boundingPoints)[(i+1)%this->boundingPoints->size()]->y, (*this->boundingPoints)[(i+1)%this->boundingPoints->size()]->x) ;
+	double theta_i = atan2(boundingPoints[i]->y, boundingPoints[i]->x) ;
+	double theta_ip = atan2(boundingPoints[(i+1)%boundingPoints.size()]->y, boundingPoints[(i+1)%boundingPoints.size()]->x) ;
 	double theta = 0.5*theta_i + 0.5*theta_ip ;
 	
 	Point * to_insert = new Point(cos(theta)*this->getRadius()+ this->Circle::getCenter().x, sin(theta)*this->getRadius()+ this->Circle::getCenter().y) ;
-	std::valarray<Point *> temp(this->boundingPoints->size()+1) ;
-	std::copy(&(*this->boundingPoints)[0], &(*this->boundingPoints)[i], &temp[0]) ;
+	std::valarray<Point *> temp(boundingPoints.size()+1) ;
+	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
 	temp[i+1] = to_insert ;
-	std::copy(&(*this->boundingPoints)[i+1], &(*this->boundingPoints)[this->boundingPoints->size()], &temp[i+2]) ;
-	this->boundingPoints->resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &(*this->boundingPoints)[0]) ;
+	std::copy(&boundingPoints[i+1], &boundingPoints[boundingPoints.size()], &temp[i+2]) ;
+	boundingPoints.resize(temp.size()) ;
+	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
 	return to_insert ;
 }
 
 std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 {
 	std::vector<Geometry *> ret ;
-// 	ret.push_back(new Circle(radius + radius/(2.*this->boundingPoints->size()), this->Circle::getCenter())) ;
-// 	ret.push_back(new Circle(radius + radius/(1.5*this->boundingPoints->size()), this->Circle::getCenter())) ;
+// 	ret.push_back(new Circle(radius + radius/(2.*boundingPoints.size()), this->Circle::getCenter())) ;
+// 	ret.push_back(new Circle(radius + radius/(1.5*boundingPoints.size()), this->Circle::getCenter())) ;
 	if(level > 0)
 		ret.push_back(new Circle(radius + radius*(0.2), this->Circle::getCenter())) ;
 	if(level > 1)
@@ -113,7 +113,7 @@ std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 	if(level > 2)
 		ret.push_back(new Circle(radius + radius*(0.05), this->Circle::getCenter())) ;
 	//ret.push_back(new Circle(radius + radius*(0.1), this->Circle::getCenter())) ;
-	//	ret.push_back(new Circle(radius + radius/(0.1*this->boundingPoints->size()), this->Circle::getCenter())) ;
+	//	ret.push_back(new Circle(radius + radius/(0.1*boundingPoints.size()), this->Circle::getCenter())) ;
 	
 	return ret ;
 }
@@ -182,8 +182,8 @@ void TriangularPore::sample(size_t n)
 std::vector<Geometry *> TriangularPore::getRefinementZones(size_t level) const
 {
 	Point a = getBoundingPoint(0) ;
-	Point b = getBoundingPoint(boundingPoints->size()/3) ;
-	Point c = getBoundingPoint(2*boundingPoints->size()/3) ;
+	Point b = getBoundingPoint(boundingPoints.size()/3) ;
+	Point c = getBoundingPoint(2*boundingPoints.size()/3) ;
 	Point va = a-getCenter() ;
 	Point vb = b-getCenter() ;
 	Point vc = c-getCenter() ;
@@ -200,7 +200,7 @@ std::vector<Geometry *> TriangularPore::getRefinementZones(size_t level) const
 
 bool TriangularPore::interacts(Feature * f) const
 {
-	for(Point ** i =this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;

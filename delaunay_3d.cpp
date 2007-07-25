@@ -214,16 +214,16 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 		
 		tetra[i]->visited = true ;
 		//six per egde and four for the original points
-		std::valarray<Point *> * newPoints = new std::valarray<Point *> (nodes_per_side*6+4) ;
+		std::valarray<Point *> newPoints(nodes_per_side*6+4) ;
 		std::valarray<bool> done(false, nodes_per_side*6+4) ;
 		
-		(*newPoints)[0] = tetra[i]->first ;
+		newPoints[0] = tetra[i]->first ;
 		done[0] = true ;
-		(*newPoints)[2] = tetra[i]->second ;//updated
+		newPoints[2] = tetra[i]->second ;//updated
 		done[2] = true ;
-		(*newPoints)[4] = tetra[i]->third ;//updated
+		newPoints[4] = tetra[i]->third ;//updated
 		done[4] = true ;
-		(*newPoints)[6] = tetra[i]->fourth ;//updated
+		newPoints[6] = tetra[i]->fourth ;//updated
 		done[6] = true ;
 		
 		std::set<DelaunayTetrahedron *> neighbourhood ;
@@ -270,7 +270,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 							(tetra[i]->first == n->second && tetra[i]->second == n->first)
 						)
 					{
-						(*newPoints)[1] = &n->getBoundingPoint(1) ;
+						newPoints[1] = &n->getBoundingPoint(1) ;
 						done[1] = true ;
 					}
 					
@@ -279,7 +279,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->second && tetra[i]->second == n->third)
 					  )
 					{
-						(*newPoints)[1] = &n->getBoundingPoint(3) ;
+						newPoints[1] = &n->getBoundingPoint(3) ;
 						done[1] = true ;
 					}
 					if(
@@ -287,7 +287,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->first && tetra[i]->second == n->third)
 					  )
 					{
-						(*newPoints)[1] = &n->getBoundingPoint(9) ;
+						newPoints[1] = &n->getBoundingPoint(9) ;
 						done[1] = true ;
 					}
 					if(
@@ -295,7 +295,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->fourth && tetra[i]->second == n->third)
 					  )
 					{
-						(*newPoints)[1] = &n->getBoundingPoint(5) ;
+						newPoints[1] = &n->getBoundingPoint(5) ;
 						done[1] = true ;
 					}
 					if(
@@ -303,7 +303,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->fourth && tetra[i]->second == n->first)
 					  )
 					{
-						(*newPoints)[1] = &n->getBoundingPoint(7) ;
+						newPoints[1] = &n->getBoundingPoint(7) ;
 						done[1] = true ;
 					}
 					if(
@@ -311,7 +311,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->fourth && tetra[i]->second == n->second)
 					  )
 					{
-						(*newPoints)[1] = &n->getBoundingPoint(8) ;
+						newPoints[1] = &n->getBoundingPoint(8) ;
 						done[1] = true ;
 					}
 					//
@@ -320,7 +320,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->second && tetra[i]->second == n->first)
 					  )
 					{
-						(*newPoints)[3] = &n->getBoundingPoint(1) ;
+						newPoints[3] = &n->getBoundingPoint(1) ;
 						done[3] = true ;
 					}
 					
@@ -329,7 +329,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->second && tetra[i]->second == n->third)
 					  )
 					{
-						(*newPoints)[3] = &n->getBoundingPoint(3) ;
+						newPoints[3] = &n->getBoundingPoint(3) ;
 						done[3] = true ;
 					}
 					if(
@@ -337,7 +337,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->first && tetra[i]->second == n->third)
 					  )
 					{
-						(*newPoints)[3] = &n->getBoundingPoint(9) ;
+						newPoints[3] = &n->getBoundingPoint(9) ;
 						done[3] = true ;
 					}
 					if(
@@ -345,7 +345,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->second == n->third)
 					  )
 					{
-						(*newPoints)[3] = &n->getBoundingPoint(5) ;
+						newPoints[3] = &n->getBoundingPoint(5) ;
 						done[3] = true ;
 					}
 					if(
@@ -353,7 +353,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->second == n->first)
 					  )
 					{
-						(*newPoints)[3] = &n->getBoundingPoint(7) ;
+						newPoints[3] = &n->getBoundingPoint(7) ;
 						done[3] = true ;
 					}
 					if(
@@ -361,7 +361,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->second == n->second)
 					  )
 					{
-						(*newPoints)[3] = &n->getBoundingPoint(8) ;
+						newPoints[3] = &n->getBoundingPoint(8) ;
 						done[3] = true ;
 					}
 					//
@@ -370,7 +370,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->second && tetra[i]->first == n->first)
 					  )
 					{
-						(*newPoints)[9] = &n->getBoundingPoint(1) ;
+						newPoints[9] = &n->getBoundingPoint(1) ;
 						done[9] = true ;
 					}
 					
@@ -379,7 +379,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->second && tetra[i]->first == n->third)
 					  )
 					{
-						(*newPoints)[9] = &n->getBoundingPoint(3) ;
+						newPoints[9] = &n->getBoundingPoint(3) ;
 						done[9] = true ;
 					}
 					if(
@@ -387,7 +387,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->first && tetra[i]->first == n->third)
 					  )
 					{
-						(*newPoints)[9] = &n->getBoundingPoint(9) ;
+						newPoints[9] = &n->getBoundingPoint(9) ;
 						done[9] = true ;
 					}
 					if(
@@ -395,7 +395,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->first == n->third)
 					  )
 					{
-						(*newPoints)[9] = &n->getBoundingPoint(5) ;
+						newPoints[9] = &n->getBoundingPoint(5) ;
 						done[9] = true ;
 					}
 					if(
@@ -403,7 +403,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->first == n->first)
 					  )
 					{
-						(*newPoints)[9] = &n->getBoundingPoint(7) ;
+						newPoints[9] = &n->getBoundingPoint(7) ;
 						done[9] = true ;
 					}
 					if(
@@ -411,7 +411,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->first == n->second)
 					  )
 					{
-						(*newPoints)[9] = &n->getBoundingPoint(8) ;
+						newPoints[9] = &n->getBoundingPoint(8) ;
 						done[9] = true ;
 					}
 					//
@@ -420,7 +420,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->second && tetra[i]->fourth == n->first)
 					  )
 					{
-						(*newPoints)[5] = &n->getBoundingPoint(1) ;
+						newPoints[5] = &n->getBoundingPoint(1) ;
 						done[5] = true ;
 					}
 					
@@ -429,7 +429,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->second && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[5] = &n->getBoundingPoint(3) ;
+						newPoints[5] = &n->getBoundingPoint(3) ;
 						done[5] = true ;
 					}
 					if(
@@ -437,7 +437,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->first && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[5] = &n->getBoundingPoint(9) ;
+						newPoints[5] = &n->getBoundingPoint(9) ;
 						done[5] = true ;
 					}
 					if(
@@ -445,7 +445,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[5] = &n->getBoundingPoint(5) ;
+						newPoints[5] = &n->getBoundingPoint(5) ;
 						done[5] = true ;
 					}
 					if(
@@ -453,7 +453,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->fourth == n->first)
 					  )
 					{
-						(*newPoints)[5] = &n->getBoundingPoint(7) ;
+						newPoints[5] = &n->getBoundingPoint(7) ;
 						done[5] = true ;
 					}
 					if(
@@ -461,7 +461,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->third == n->fourth && tetra[i]->fourth == n->second)
 					  )
 					{
-						(*newPoints)[5] = &n->getBoundingPoint(8) ;
+						newPoints[5] = &n->getBoundingPoint(8) ;
 						done[5] = true ;
 					}
 					//
@@ -470,7 +470,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->second && tetra[i]->fourth == n->first)
 					  )
 					{
-						(*newPoints)[7] = &n->getBoundingPoint(1) ;
+						newPoints[7] = &n->getBoundingPoint(1) ;
 						done[7] = true ;
 					}
 					
@@ -479,7 +479,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->second && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[7] = &n->getBoundingPoint(3) ;
+						newPoints[7] = &n->getBoundingPoint(3) ;
 						done[7] = true ;
 					}
 					if(
@@ -487,7 +487,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->first && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[7] = &n->getBoundingPoint(9) ;
+						newPoints[7] = &n->getBoundingPoint(9) ;
 						done[7] = true ;
 					}
 					if(
@@ -495,7 +495,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->fourth && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[7] = &n->getBoundingPoint(5) ;
+						newPoints[7] = &n->getBoundingPoint(5) ;
 						done[7] = true ;
 					}
 					if(
@@ -503,7 +503,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->fourth && tetra[i]->fourth == n->first)
 					  )
 					{
-						(*newPoints)[7] = &n->getBoundingPoint(7) ;
+						newPoints[7] = &n->getBoundingPoint(7) ;
 						done[7] = true ;
 					}
 					if(
@@ -511,7 +511,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->first == n->fourth && tetra[i]->fourth == n->second)
 					  )
 					{
-						(*newPoints)[7] = &n->getBoundingPoint(8) ;
+						newPoints[7] = &n->getBoundingPoint(8) ;
 						done[7] = true ;
 					}
 					//
@@ -520,7 +520,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->second == n->second && tetra[i]->fourth == n->first)
 					  )
 					{
-						(*newPoints)[8] = &n->getBoundingPoint(1) ;
+						newPoints[8] = &n->getBoundingPoint(1) ;
 						done[8] = true ;
 					}
 					
@@ -529,7 +529,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->second == n->second && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[8] = &n->getBoundingPoint(3) ;
+						newPoints[8] = &n->getBoundingPoint(3) ;
 						done[8] = true ;
 					}
 					if(
@@ -537,7 +537,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->second == n->first && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[8] = &n->getBoundingPoint(9) ;
+						newPoints[8] = &n->getBoundingPoint(9) ;
 						done[8] = true ;
 					}
 					if(
@@ -545,7 +545,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->second == n->fourth && tetra[i]->fourth == n->third)
 					  )
 					{
-						(*newPoints)[8] = &n->getBoundingPoint(5) ;
+						newPoints[8] = &n->getBoundingPoint(5) ;
 						done[8] = true ;
 					}
 					if(
@@ -553,7 +553,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->second == n->fourth && tetra[i]->fourth == n->first)
 					  )
 					{
-						(*newPoints)[8] = &n->getBoundingPoint(7) ;
+						newPoints[8] = &n->getBoundingPoint(7) ;
 						done[8] = true ;
 					}
 					if(
@@ -561,7 +561,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 					    (tetra[i]->second == n->fourth && tetra[i]->fourth == n->second)
 					  )
 					{
-						(*newPoints)[8] = &n->getBoundingPoint(8) ;
+						newPoints[8] = &n->getBoundingPoint(8) ;
 						done[8] = true ;
 					}
 				}
@@ -572,35 +572,35 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralEle
 		if(!done[1])
 		{
 
-				(*newPoints)[1] = new Point(*tetra[i]->first*.5 +  *tetra[i]->second*.5) ;
-				(*newPoints)[1]->id = this->global_counter++ ;
+				newPoints[1] = new Point(*tetra[i]->first*.5 +  *tetra[i]->second*.5) ;
+				newPoints[1]->id = this->global_counter++ ;
 		}
 		
 		if(!done[3])
 		{
-			(*newPoints)[3] = new Point(*tetra[i]->third*.5 +  *tetra[i]->second*.5) ;
-			(*newPoints)[3]->id = this->global_counter++ ;
+			newPoints[3] = new Point(*tetra[i]->third*.5 +  *tetra[i]->second*.5) ;
+			newPoints[3]->id = this->global_counter++ ;
 		}
 		
 		if(!done[5])
 		{
-			(*newPoints)[5] = new Point(*tetra[i]->third*.5 +  *tetra[i]->fourth*.5) ;
-			(*newPoints)[5]->id = this->global_counter++ ;
+			newPoints[5] = new Point(*tetra[i]->third*.5 +  *tetra[i]->fourth*.5) ;
+			newPoints[5]->id = this->global_counter++ ;
 		}
 		if(!done[7])
 		{
-			(*newPoints)[7] = new Point(*tetra[i]->first*.5 +  *tetra[i]->fourth*.5) ;
-			(*newPoints)[7]->id = this->global_counter++ ;
+			newPoints[7] = new Point(*tetra[i]->first*.5 +  *tetra[i]->fourth*.5) ;
+			newPoints[7]->id = this->global_counter++ ;
 		}
 		if(!done[8])
 		{
-			(*newPoints)[8] = new Point(*tetra[i]->second*.5 +  *tetra[i]->fourth*.5) ;
-			(*newPoints)[8]->id = this->global_counter++ ;
+			newPoints[8] = new Point(*tetra[i]->second*.5 +  *tetra[i]->fourth*.5) ;
+			newPoints[8]->id = this->global_counter++ ;
 		}
 		if(!done[9])
 		{
-			(*newPoints)[9] = new Point(*tetra[i]->first*.5 +  *tetra[i]->third*.5) ;
-			(*newPoints)[9]->id = this->global_counter++ ;
+			newPoints[9] = new Point(*tetra[i]->first*.5 +  *tetra[i]->third*.5) ;
+			newPoints[9]->id = this->global_counter++ ;
 		}
 		
 		tetra[i]->setBoundingPoints(newPoints) ;
@@ -1870,7 +1870,7 @@ void DelaunayTree_3D::insert(Point *p)
 		}
 		else
 		{
-			std::valarray<Point *> * nullarray = NULL ;
+			std::valarray<Point *> nullarray(0) ;
 			if(ret[i]->isTetrahedron)
 				static_cast<DelaunayTetrahedron *>(ret[i])->setBoundingPoints(nullarray) ;
 			delete ret[i] ;

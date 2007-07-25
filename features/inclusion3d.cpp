@@ -42,7 +42,7 @@ Inclusion3D::Inclusion3D(double r, Point center) : Sphere(r,center ), Feature(NU
 }
 	
 bool Inclusion3D::interacts(Feature * f) const 	{
-	for(Point ** i =this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 	if(f->inBoundary((*i)))
 		return true ;
 return false ;
@@ -140,7 +140,7 @@ VirtualInclusion3D::VirtualInclusion3D(double r, Point center) : Sphere(r,center
 }
 
 bool VirtualInclusion3D::interacts(Feature * f) const 	{
-	for(Point ** i =this->begin() ; i < this->end() ; i++)
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;

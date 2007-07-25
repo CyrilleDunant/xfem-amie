@@ -11,9 +11,9 @@ Triangle::Triangle() : ConvexGeometry(3)
 	gType = TRIANGLE ;
 	assert(this->size() == 3) ;
 	
-	(*boundingPoints)[0] = new Point(0, 1) ;
-	(*boundingPoints)[1] = new Point(0, 0) ;
-	(*boundingPoints)[2] = new Point(1, 0) ;
+	boundingPoints[0] = new Point(0, 1) ;
+	boundingPoints[1] = new Point(0, 0) ;
+	boundingPoints[2] = new Point(1, 0) ;
 	
 	computeCenter() ;
 }
@@ -24,16 +24,16 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 	
 	assert(this->size() == 3) ;
 	
-	(*boundingPoints)[0] = new Point(p0) ;
-	(*boundingPoints)[1] = new Point(p1) ;
-	(*boundingPoints)[2] = new Point(p2) ;
+	boundingPoints[0] = new Point(p0) ;
+	boundingPoints[1] = new Point(p1) ;
+	boundingPoints[2] = new Point(p2) ;
 	
 	
 	if(p0.z == p1.z == p2.z == 0)
 	{
 		if(!isTrigoOriented())
 		{
-			std::swap((*boundingPoints)[1], (*boundingPoints)[2]) ;
+			std::swap(boundingPoints[1], boundingPoints[2]) ;
 			if(!isTrigoOriented())
 				std::cout << "arrrgh !" << std::endl ;
 		}
@@ -59,10 +59,10 @@ Parallelogramme::Parallelogramme() : ConvexGeometry(4)
 	gType =PARALLELOGRAMME;
 	assert(this->size() == 4);
 	
-	(*boundingPoints)[0] = new Point(-1,1);
-	(*boundingPoints)[1] = new Point(-1,-1);
-	(*boundingPoints)[2] = new Point(1, -1);
-	(*boundingPoints)[3] = new Point(1, 1);
+	boundingPoints[0] = new Point(-1,1);
+	boundingPoints[1] = new Point(-1,-1);
+	boundingPoints[2] = new Point(1, -1);
+	boundingPoints[3] = new Point(1, 1);
 	computeCenter() ;
 }
 
@@ -72,16 +72,16 @@ Parallelogramme::Parallelogramme( const Point & p0,  const Point & p1,  const Po
 	
 	assert(this->size() == 4);
 	
-	(*boundingPoints)[0] = new Point(p0) ;
-	(*boundingPoints)[1] = new Point(p1) ;
-	(*boundingPoints)[2] = new Point(p2) ;
-	(*boundingPoints)[3] = new Point(p3) ;
+	boundingPoints[0] = new Point(p0) ;
+	boundingPoints[1] = new Point(p1) ;
+	boundingPoints[2] = new Point(p2) ;
+	boundingPoints[3] = new Point(p3) ;
 	
 	if(p0.z == p1.z == p2.z == 0)
 	{
 		if(!isTrigoOriented())
 		{
-			std::swap((*boundingPoints)[1], (*boundingPoints)[2]) ;
+			std::swap(boundingPoints[1], boundingPoints[2]) ;
 		}
 	}
 	
@@ -106,16 +106,16 @@ Parallelogramme::Parallelogramme( const Point *p0,  const Point *p1,  const Poin
 	
 	assert(this->size() == 4);
 	
-	(*boundingPoints)[0] = new Point(*p0) ;
-	(*boundingPoints)[1] = new Point(*p1) ;
-	(*boundingPoints)[2] = new Point(*p2) ;
-	(*boundingPoints)[3] = new Point(*p3) ;
+	boundingPoints[0] = new Point(*p0) ;
+	boundingPoints[1] = new Point(*p1) ;
+	boundingPoints[2] = new Point(*p2) ;
+	boundingPoints[3] = new Point(*p3) ;
 	
 	if(p0->z == p1->z == p2->z == 0)
 	{
 		if(!isTrigoOriented())
 		{
-			std::swap((*boundingPoints)[1], (*boundingPoints)[2]) ;
+			std::swap(boundingPoints[1], boundingPoints[2]) ;
 		}
 	}
 	
@@ -157,34 +157,34 @@ Point Parallelogramme::getCircumCenter() const
 
 void Parallelogramme::computeCircumCenter()
 {	
-	if (fabs((*boundingPoints)[1]->y-(*boundingPoints)[0]->y) < 20*std::numeric_limits<double>::epsilon()) 
+	if (fabs(boundingPoints[1]->y-boundingPoints[0]->y) < 20*std::numeric_limits<double>::epsilon()) 
 	{
-		double m2 = - ((*boundingPoints)[2]->x-(*boundingPoints)[1]->x) / ((*boundingPoints)[2]->y-(*boundingPoints)[1]->y);
-		double mx2 = ((*boundingPoints)[1]->x + (*boundingPoints)[2]->x) / 2.0;
-		double my2 = ((*boundingPoints)[1]->y + (*boundingPoints)[2]->y) / 2.0;
-		double xc = ((*boundingPoints)[1]->x + (*boundingPoints)[0]->x) / 2.0;
+		double m2 = - (boundingPoints[2]->x-boundingPoints[1]->x) / (boundingPoints[2]->y-boundingPoints[1]->y);
+		double mx2 = (boundingPoints[1]->x + boundingPoints[2]->x) / 2.0;
+		double my2 = (boundingPoints[1]->y + boundingPoints[2]->y) / 2.0;
+		double xc = (boundingPoints[1]->x + boundingPoints[0]->x) / 2.0;
 		double yc = m2 * (xc - mx2) + my2;
 		
 		circumCenter = Point(xc, yc) ;
 	} 
-	else if (fabs((*boundingPoints)[2]->y-(*boundingPoints)[1]->y) < 20*std::numeric_limits<double>::epsilon()) 
+	else if (fabs(boundingPoints[2]->y-boundingPoints[1]->y) < 20*std::numeric_limits<double>::epsilon()) 
 	{
-		double m1 = - ((*boundingPoints)[1]->x-(*boundingPoints)[0]->x) / ((*boundingPoints)[1]->y-(*boundingPoints)[0]->y);
-		double mx1 = ((*boundingPoints)[0]->x + (*boundingPoints)[1]->x) / 2.0;
-		double my1 = ((*boundingPoints)[0]->y + (*boundingPoints)[1]->y) / 2.0;
-		double xc = ((*boundingPoints)[2]->x + (*boundingPoints)[1]->x) / 2.0;
+		double m1 = - (boundingPoints[1]->x-boundingPoints[0]->x) / (boundingPoints[1]->y-boundingPoints[0]->y);
+		double mx1 = (boundingPoints[0]->x + boundingPoints[1]->x) / 2.0;
+		double my1 = (boundingPoints[0]->y + boundingPoints[1]->y) / 2.0;
+		double xc = (boundingPoints[2]->x + boundingPoints[1]->x) / 2.0;
 		double yc = m1 * (xc - mx1) + my1;
 		
 		circumCenter = Point(xc, yc) ;
 	} 
 	else 
 	{
-		double m1 = - ((*boundingPoints)[1]->x-(*boundingPoints)[0]->x) / ((*boundingPoints)[1]->y-(*boundingPoints)[0]->y);
-		double m2 = - ((*boundingPoints)[2]->x-(*boundingPoints)[1]->x) / ((*boundingPoints)[2]->y-(*boundingPoints)[1]->y);
-		double mx1 = ((*boundingPoints)[0]->x + (*boundingPoints)[1]->x) / 2.0;
-		double mx2 = ((*boundingPoints)[1]->x + (*boundingPoints)[2]->x) / 2.0;
-		double my1 = ((*boundingPoints)[0]->y + (*boundingPoints)[1]->y) / 2.0;
-		double my2 = ((*boundingPoints)[1]->y + (*boundingPoints)[2]->y) / 2.0;
+		double m1 = - (boundingPoints[1]->x-boundingPoints[0]->x) / (boundingPoints[1]->y-boundingPoints[0]->y);
+		double m2 = - (boundingPoints[2]->x-boundingPoints[1]->x) / (boundingPoints[2]->y-boundingPoints[1]->y);
+		double mx1 = (boundingPoints[0]->x + boundingPoints[1]->x) / 2.0;
+		double mx2 = (boundingPoints[1]->x + boundingPoints[2]->x) / 2.0;
+		double my1 = (boundingPoints[0]->y + boundingPoints[1]->y) / 2.0;
+		double my2 = (boundingPoints[1]->y + boundingPoints[2]->y) / 2.0;
 		double xc = (m1 * mx1 - m2 * mx2 + my2 - my1) / (m1 - m2);
 		double yc = m1 * (xc - mx1) + my1;
 		
@@ -209,10 +209,10 @@ bool Parallelogramme::is1D() const
 
 double Parallelogramme::area() const
 {
-	assert(this->boundingPoints->size() == 4) ;
+	assert(this->boundingPoints.size() == 4) ;
 	
-	Segment s0((*(*boundingPoints)[0]), (*(*boundingPoints)[1])) ;
-	Segment s1((*(*boundingPoints)[0]), (*(*boundingPoints)[2])) ;
+	Segment s0((*boundingPoints[0]), (*boundingPoints[1])) ;
+	Segment s1((*boundingPoints[0]), (*boundingPoints[2])) ;
 
 	return ((s0.vector())^(s1.vector())).norm() ;
 }
@@ -222,7 +222,7 @@ void Parallelogramme::project(Point * p) const
 {
 	Segment s(getCenter(), *p) ;
 	
-	for(size_t i = 0 ; i < boundingPoints->size() ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
 		if(s.on(getPoint(i)) && !Segment(getPoint(i), *p).on(getCenter()))
 		{
@@ -232,9 +232,9 @@ void Parallelogramme::project(Point * p) const
 		}
 	}
 	
-	for(size_t i = 0 ; i < boundingPoints->size() ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
-		Segment seg(getPoint(i), getPoint((i+1)%boundingPoints->size())) ;
+		Segment seg(getPoint(i), getPoint((i+1)%boundingPoints.size())) ;
 		if(s.intersects(seg))
 		{
 			Point t = s.intersection(seg);
@@ -256,31 +256,31 @@ void Parallelogramme::sampleBoundingSurface(size_t num_points)
 {
 	assert(num_points%4== 0) ;
 	
-	Point v0(*(*this->boundingPoints)[0]) ;
-	Point v1(*(*this->boundingPoints)[1]) ;
-	Point v2(*(*this->boundingPoints)[2]) ;
-	Point v3(*(*this->boundingPoints)[3]) ;
-	this->boundingPoints->resize(num_points) ;
+	Point v0(*boundingPoints[0]) ;
+	Point v1(*boundingPoints[1]) ;
+	Point v2(*boundingPoints[2]) ;
+	Point v3(*boundingPoints[3]) ;
+	this->boundingPoints.resize(num_points) ;
 	
-	(*this->boundingPoints)[0] = new Point(v0) ;
+	boundingPoints[0] = new Point(v0) ;
 	
 	for(size_t i = 1 ; i < num_points/4; i++)
 	{
-		(*this->boundingPoints)[i] = new Point(v0*3.*i/num_points + v1*(1.-3.*i/num_points)) ;
+		boundingPoints[i] = new Point(v0*3.*i/num_points + v1*(1.-3.*i/num_points)) ;
 	}
 	
-	(*this->boundingPoints)[num_points/3] = new Point(v1) ;
+	boundingPoints[num_points/3] = new Point(v1) ;
 	
 	for(size_t i = num_points/3+1 ; i < 2*num_points/3 ; i++)
 	{
-		(*this->boundingPoints)[i] = new Point(v1*3.*(i-num_points/3)/num_points + v2*(1.-3.*(i-num_points/3)/num_points)) ;
+		boundingPoints[i] = new Point(v1*3.*(i-num_points/3)/num_points + v2*(1.-3.*(i-num_points/3)/num_points)) ;
 	}
 	
-	(*this->boundingPoints)[2*num_points/3] = new Point(v2) ;
+	boundingPoints[2*num_points/3] = new Point(v2) ;
 	
 	for(size_t i = 2*num_points/3+1 ; i < num_points ; i++)
 	{
-		(*this->boundingPoints)[i] = new Point(v2*3.*(i-2*num_points/3)/num_points + v0*(1.-3.*(i-2*num_points/3)/num_points)) ;
+		boundingPoints[i] = new Point(v2*3.*(i-2*num_points/3)/num_points + v0*(1.-3.*(i-2*num_points/3)/num_points)) ;
 	}
 }
 
@@ -297,16 +297,16 @@ Triangle::Triangle( Point *p0,  Point *p1,  Point *p2): ConvexGeometry(3)
 	assert(this->size() == 3) ;
 	
 
-	(*boundingPoints)[0] = p0 ;
-	(*boundingPoints)[1] = p1 ;
-	(*boundingPoints)[2] = p2 ;
+	boundingPoints[0] = p0 ;
+	boundingPoints[1] = p1 ;
+	boundingPoints[2] = p2 ;
 
 	
 	if(p0->z == p1->z == p2->z == 0)
 	{
 		if(!isTrigoOriented())
 		{
-			std::swap((*boundingPoints)[1], (*boundingPoints)[2]) ;
+			std::swap(boundingPoints[1], boundingPoints[2]) ;
 			if(!isTrigoOriented())
 				std::cout << "arrrgh !" << std::endl ;
 		}
@@ -400,10 +400,10 @@ bool Triangle::inCircumCircle(const Point *p) const
 
 double Triangle::area() const
 {
-// 	assert(this->boundingPoints->size() == 3) ;
+// 	assert(this->boundingPoints.size() == 3) ;
 	
-	Segment s0(getBoundingPoint(0), getBoundingPoint(this->boundingPoints->size()/3)) ;
-	Segment s1(getBoundingPoint(0), getBoundingPoint(this->boundingPoints->size()/3 * 2)) ;
+	Segment s0(getBoundingPoint(0), getBoundingPoint(this->boundingPoints.size()/3)) ;
+	Segment s1(getBoundingPoint(0), getBoundingPoint(this->boundingPoints.size()/3 * 2)) ;
 
 	return 0.5*(s0.vector()^s1.vector()).norm() ;
 }
@@ -413,7 +413,7 @@ void Triangle::project(Point * p) const
 {
 	Segment s(getCenter(), *p) ;
 	
-	for(size_t i = 0 ; i < boundingPoints->size() ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
 		if(s.on(getBoundingPoint(i)) && !Segment(getBoundingPoint(i), *p).on(getCenter()))
 		{
@@ -423,9 +423,9 @@ void Triangle::project(Point * p) const
 		}
 	}
 	
-	for(size_t i = 0 ; i < boundingPoints->size() ; i++)
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
-		Segment seg(getBoundingPoint(i), getBoundingPoint((i+1)%boundingPoints->size())) ;
+		Segment seg(getBoundingPoint(i), getBoundingPoint((i+1)%boundingPoints.size())) ;
 		if(s.intersects(seg))
 		{
 			Point t = s.intersection(seg);
@@ -454,31 +454,31 @@ void Triangle::sampleBoundingSurface(size_t num_points)
 {
 	assert(num_points%3 == 0) ;
 	
-	Point * v0 =(*this->boundingPoints)[0] ;
-	Point * v1 =(*this->boundingPoints)[1] ;
-	Point * v2 =(*this->boundingPoints)[2] ;
+	Point * v0 =boundingPoints[0] ;
+	Point * v1 =boundingPoints[1] ;
+	Point * v2 =boundingPoints[2] ;
 	
-	this->boundingPoints->resize(num_points) ;
+	this->boundingPoints.resize(num_points) ;
 	
-	(*this->boundingPoints)[0] = v0 ;
+	boundingPoints[0] = v0 ;
 	
 	for(size_t i = 1 ; i < num_points/3 ; i++)
 	{
-		(*this->boundingPoints)[i] = new Point((*v0)*3.*i/num_points + (*v1)*(1.-3.*i/num_points)) ;
+		boundingPoints[i] = new Point((*v0)*3.*i/num_points + (*v1)*(1.-3.*i/num_points)) ;
 	}
 	
-	(*this->boundingPoints)[num_points/3] = v1 ;
+	boundingPoints[num_points/3] = v1 ;
 	
 	for(size_t i = num_points/3+1 ; i < 2*num_points/3 ; i++)
 	{
-		(*this->boundingPoints)[i] = new Point((*v1)*3.*(i-num_points/3)/num_points + (*v2)*(1.-3.*(i-num_points/3)/num_points)) ;
+		boundingPoints[i] = new Point((*v1)*3.*(i-num_points/3)/num_points + (*v2)*(1.-3.*(i-num_points/3)/num_points)) ;
 	}
 	
-	(*this->boundingPoints)[2*num_points/3] = v2 ;
+	boundingPoints[2*num_points/3] = v2 ;
 	
 	for(size_t i = 2*num_points/3+1 ; i < num_points ; i++)
 	{
-		(*this->boundingPoints)[i] = new Point((*v2)*3.*(i-2*num_points/3)/num_points + (*v0)*(1.-3.*(i-2*num_points/3)/num_points)) ;
+		boundingPoints[i] = new Point((*v2)*3.*(i-2*num_points/3)/num_points + (*v0)*(1.-3.*(i-2*num_points/3)/num_points)) ;
 	}
 }
 
@@ -491,7 +491,7 @@ void Triangle::sampleSurface(size_t num_points)
 	
 	std::vector<Point> newPoints ;
 	
-	size_t end_i = 2*boundingPoints->size()/3 ;
+	size_t end_i = 2*boundingPoints.size()/3 ;
 	
 	for(int i = 0 ; i < (int)num_points/3-1 ; i++)
 	{
@@ -505,11 +505,11 @@ void Triangle::sampleSurface(size_t num_points)
 		}
 	}
 	
-	this->inPoints->resize(newPoints.size()) ;
+	this->inPoints.resize(newPoints.size()) ;
 	
-	for(size_t i = 0 ; i < inPoints->size() ; i++)
+	for(size_t i = 0 ; i < inPoints.size() ; i++)
 	{
-		(*inPoints)[i] = new Point(newPoints[i]) ;
+		inPoints[i] = new Point(newPoints[i]) ;
 	}
 	
 }
@@ -518,7 +518,7 @@ void Triangle::print() const
 {
 	std::cout << "inPoints" << std::endl ;
 	
-	for(size_t i = 0 ; i < inPoints->size() ; i++ )
+	for(size_t i = 0 ; i < inPoints.size() ; i++ )
 	{
 		getInPoint(i).print() ;
 	}
@@ -526,7 +526,7 @@ void Triangle::print() const
 	
 		std::cout << "boundingPoints" << std::endl ;
 	
-	for(size_t i = 0 ; i < boundingPoints->size() ; i++ )
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++ )
 	{
 		getBoundingPoint(i).print() ;
 	}
@@ -538,10 +538,10 @@ Rectangle::Rectangle(double x, double y, double originX, double originY) : Conve
 {
 	gType = RECTANGLE ;
 	this->center = Point(originX,originY) ;
-	topLeft = Point(originX-0.5*x, originY+0.5*y) ; (*this->boundingPoints)[0] = new Point(topLeft) ;
-	topRight = Point(originX+0.5*x, originY+0.5*y) ; (*this->boundingPoints)[1] = new Point(topRight) ;
-	bottomRight = Point(originX+0.5*x, originY-0.5*y) ; (*this->boundingPoints)[2] = new Point(bottomRight) ;
-	bottomLeft =  Point(originX-0.5*x, originY-0.5*y) ; (*this->boundingPoints)[3] = new Point(bottomLeft) ;
+	topLeft = Point(originX-0.5*x, originY+0.5*y) ; boundingPoints[0] = new Point(topLeft) ;
+	topRight = Point(originX+0.5*x, originY+0.5*y) ; boundingPoints[1] = new Point(topRight) ;
+	bottomRight = Point(originX+0.5*x, originY-0.5*y) ; boundingPoints[2] = new Point(bottomRight) ;
+	bottomLeft =  Point(originX-0.5*x, originY-0.5*y) ; boundingPoints[3] = new Point(bottomLeft) ;
 	
 	
 } 
@@ -550,10 +550,10 @@ Rectangle::Rectangle(double x, double y, Point &center) :  ConvexGeometry(4), si
 {
 	gType = RECTANGLE ;
 	this->center = center ;
-	topLeft = Point(center.x-0.5*x, center.y+0.5*y) ; (*this->boundingPoints)[0] = new Point(topLeft) ;
-	topRight = Point(center.x+0.5*x, center.y+0.5*y) ; (*this->boundingPoints)[1] = new Point(topRight) ;
-	bottomRight = Point(center.x+0.5*x, center.y-0.5*y) ; (*this->boundingPoints)[2] = new Point(bottomRight) ;
-	bottomLeft =  Point(center.x-0.5*x, center.y-0.5*y) ; (*this->boundingPoints)[3] = new Point(bottomLeft) ;
+	topLeft = Point(center.x-0.5*x, center.y+0.5*y) ; boundingPoints[0] = new Point(topLeft) ;
+	topRight = Point(center.x+0.5*x, center.y+0.5*y) ; boundingPoints[1] = new Point(topRight) ;
+	bottomRight = Point(center.x+0.5*x, center.y-0.5*y) ; boundingPoints[2] = new Point(bottomRight) ;
+	bottomLeft =  Point(center.x-0.5*x, center.y-0.5*y) ; boundingPoints[3] = new Point(bottomLeft) ;
 	
 	
 }
@@ -562,10 +562,10 @@ Rectangle::Rectangle() :  ConvexGeometry(4), size_y(2), size_x(2)
 {
 	gType = RECTANGLE ;
 	this->center = Point(0,0) ; 
-	topLeft = Point(-1, 1) ;(*this->boundingPoints)[0] = &topLeft ;
-	topRight = Point(1,1) ;(*this->boundingPoints)[1] = &topRight ;
-	bottomRight = Point(1, -1) ;(*this->boundingPoints)[2] = &bottomRight ;
-	bottomLeft = Point(-1, -1) ;(*this->boundingPoints)[3] = &bottomLeft ;
+	topLeft = Point(-1, 1) ;boundingPoints[0] = &topLeft ;
+	topRight = Point(1,1) ;boundingPoints[1] = &topRight ;
+	bottomRight = Point(1, -1) ;boundingPoints[2] = &bottomRight ;
+	bottomLeft = Point(-1, -1) ;boundingPoints[3] = &bottomLeft ;
 	
 	
 }
@@ -686,7 +686,7 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 	
 	num_points = ((numberOfPointsAlongX)*2 + (numberOfPointsAlongY)*2 - 4) ;
 	
-	boundingPoints->resize(num_points) ;
+	boundingPoints.resize(num_points) ;
 	
 	for (size_t i = 0 ; i < numberOfPointsAlongY; i++)
 	{
@@ -694,14 +694,14 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 		double randy=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == 0 || i == numberOfPointsAlongY-1)
 			randy = 0 ;
-		(*boundingPoints)[i] = new Point(center.x-0.5*size_x, center.y + 0.5*size_y - i*distanceBetweenPointsAlongY+ randy) ;
+		boundingPoints[i] = new Point(center.x-0.5*size_x, center.y + 0.5*size_y - i*distanceBetweenPointsAlongY+ randy) ;
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX ; i++)
 	{
 			double randx=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongX-1)
 			randx = 0 ;
-		(*boundingPoints)[numberOfPointsAlongY+i-1] = new Point( center.x-0.5*size_x+i*distanceBetweenPointsAlongX+ randx, 
+		boundingPoints[numberOfPointsAlongY+i-1] = new Point( center.x-0.5*size_x+i*distanceBetweenPointsAlongX+ randx, 
 			getCenter().y-0.5*size_y);
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongY ; i++)
@@ -709,14 +709,14 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 		double randy=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongY-1)
 			randy = 0 ;
-		(*boundingPoints)[numberOfPointsAlongX+numberOfPointsAlongY+i-2] = new Point(center.x+0.5*size_x,
+		boundingPoints[numberOfPointsAlongX+numberOfPointsAlongY+i-2] = new Point(center.x+0.5*size_x,
 			center.y-0.5*size_y+i*distanceBetweenPointsAlongY+ randy);
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX-1 ; i++)
 	{
 		double randx= ((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		assert(2*numberOfPointsAlongY+numberOfPointsAlongX+i-3< num_points) ;
-		(*boundingPoints)[2*numberOfPointsAlongY+numberOfPointsAlongX+i-3] = new Point(
+		boundingPoints[2*numberOfPointsAlongY+numberOfPointsAlongX+i-3] = new Point(
 			center.x + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
 			center.y + 0.5*size_y) ;
 		
@@ -732,7 +732,7 @@ void Rectangle::sampleSurface(size_t num_points)
 	
 	size_t nip = static_cast<size_t>((numberOfPointsAlongX-2)*(numberOfPointsAlongY-2)) ;
 	
-	inPoints->resize(nip) ;
+	inPoints.resize(nip) ;
 		
 	double distanceBetweenPointsAlongX = size_x/(this->numberOfPointsAlongX-1) ;
 	double distanceBetweenPointsAlongY = size_y/(this->numberOfPointsAlongY-1) ;
@@ -746,7 +746,7 @@ void Rectangle::sampleSurface(size_t num_points)
 				double randx=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_x/numberOfPointsAlongX) ;
 				double randy=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 				
-				(*inPoints)[i*(numberOfPointsAlongY-2)+j] = new Point(center.x - 0.5*size_x + (double)(i+1)*distanceBetweenPointsAlongX+randx,
+				inPoints[i*(numberOfPointsAlongY-2)+j] = new Point(center.x - 0.5*size_x + (double)(i+1)*distanceBetweenPointsAlongX+randx,
 					center.y - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+ randy) ;
 			}
 		}
@@ -826,15 +826,15 @@ void Circle::project(Point * p) const
 
 void Circle::sampleBoundingSurface(size_t num_points)
 {
-	this->boundingPoints->resize(num_points) ;
+	this->boundingPoints.resize(num_points) ;
 	
 	double angle = 2*M_PI/ (num_points) ;
 	
 	for (size_t i = 0 ; i< num_points ; i++)
 	{
 		double randa= 0;//((2.*(double)random()/(RAND_MAX+1.0))-1.)*0.15*(M_PI/num_points) ;
-		(*this->boundingPoints)[i] = new Point(getRadius()*cos((double)i*angle+randa) + getCenter().x, getRadius()*sin((double)i*angle+randa) + getCenter().y);
-// 		std::cout << "x = " << (*this->boundingPoints)[i]->x << ", y = " << (*this->boundingPoints)[i]->y << std::endl ;
+		boundingPoints[i] = new Point(getRadius()*cos((double)i*angle+randa) + getCenter().x, getRadius()*sin((double)i*angle+randa) + getCenter().y);
+// 		std::cout << "x = " << boundingPoints[i]->x << ", y = " << boundingPoints[i]->y << std::endl ;
 	}
 }
 
@@ -842,7 +842,7 @@ void Circle::sampleSurface(size_t num_points)
 {
 	assert(!sampled) ;
 	
-	if(boundingPoints->size() == 0)
+	if(boundingPoints.size() == 0)
 		this->sampleBoundingSurface(2*num_points) ;
 	sampled = true ;
 	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
@@ -876,9 +876,9 @@ void Circle::sampleSurface(size_t num_points)
 		offset = 0.5*(2.*M_PI/ (num_points) -  2.*M_PI/ (num_points*1.1)) ;
 	}
 	
-	inPoints->resize(temp.size() + 1) ;
-	(*inPoints)[0] = new Point(center) ;
-	std::copy(temp.begin(), temp.end(),&(*inPoints)[1]) ;
+	inPoints.resize(temp.size() + 1) ;
+	inPoints[0] = new Point(center) ;
+	std::copy(temp.begin(), temp.end(),&inPoints[1]) ;
 	//std::cout << "we have " << num_points << " sample points" << std::endl ;
 	
 }
@@ -904,9 +904,9 @@ SegmentedLine::SegmentedLine(const std::valarray<Point *> & points) : NonConvexG
 	gType = SEGMENTED_LINE ;
 	
 	this->center = Point() ;
-	this->boundingPoints->resize(points.size()) ;
+	this->boundingPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
-		(*this->boundingPoints)[i] = points[i] ;
+		boundingPoints[i] = points[i] ;
 }
 
 void SegmentedLine::computeCenter()
@@ -921,12 +921,12 @@ double SegmentedLine::getRadius() const
 
 Point * SegmentedLine::getHead() const 
 {
-	return  (*this->boundingPoints)[0];
+	return  boundingPoints[0];
 }
 
 Point * SegmentedLine::getTail() const 
 {
-	return (*this->boundingPoints)[this->boundingPoints->size()-1] ;
+	return boundingPoints[this->boundingPoints.size()-1] ;
 }
 
 void SegmentedLine::sampleBoundingSurface(size_t num_points) 
@@ -937,7 +937,7 @@ void SegmentedLine::project(Point *p) const
 {
 // 	std::map<double, Segment> m ;
 // 	std::map<double, Point> projected ;
-// 	for(size_t i = 0 ; i < boundingPoints->size()-1 ; i++)
+// 	for(size_t i = 0 ; i < boundingPoints.size()-1 ; i++)
 // 	{
 // 		Segment s(*getBoundingPoint(i), *getBoundingPoint(i+1)) ;
 // 		m[squareDist(p,s.midPoint())] = s ;
@@ -954,7 +954,7 @@ void SegmentedLine::project(Point *p) const
 	
 	Segment target(this->getBoundingPoint(0), this->getBoundingPoint(1)) ;
 	
-	for(size_t i = 1 ; i < boundingPoints->size()-1 ; i++)
+	for(size_t i = 1 ; i < boundingPoints.size()-1 ; i++)
 	{
 		Segment test(getBoundingPoint(i), getBoundingPoint(i+1)) ;
 		if(squareDist(*p, test.midPoint()) < squareDist(*p, target.midPoint()))
@@ -999,8 +999,8 @@ void SegmentedLine::sampleSurface(size_t num_points)
 
 bool SegmentedLine::in(const Point & v) const
 {
-	for (size_t i = 0 ; i < boundingPoints->size() ;i++)
-		if(*(*boundingPoints)[i] == v)
+	for (size_t i = 0 ; i < boundingPoints.size() ;i++)
+		if(*boundingPoints[i] == v)
 			return true ;
 	
 	return false ;

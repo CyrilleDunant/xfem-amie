@@ -159,14 +159,14 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 			
 		size_t nodes_per_plane = nodes_per_side*3+3 ;
 		
-		std::valarray<Point *> * newPoints = new std::valarray<Point *> (nodes_per_plane*time_planes) ;
+		std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
 		std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
 			
-		(*newPoints)[0] = tri[i]->first ;
+		newPoints[0] = tri[i]->first ;
 		done[0] = true ;
-		(*newPoints)[nodes_per_side+1] = tri[i]->second ;
+		newPoints[nodes_per_side+1] = tri[i]->second ;
 		done[nodes_per_side+1] = true ;
-		(*newPoints)[nodes_per_side*2+2] = tri[i]->third ;
+		newPoints[nodes_per_side*2+2] = tri[i]->third ;
 		done[nodes_per_side*2+2] = true ;
 		
 		for(size_t plane = 0 ; plane < time_planes ; plane++)
@@ -187,9 +187,9 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 					{
 						for(size_t k = 0 ;  k <  nodes_per_side ; k++)
 						{
-							(*newPoints)[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane) ;
-							(*newPoints)[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+1) ;
-							(*newPoints)[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint((k+nodes_per_plane*plane+2)) ;
+							newPoints[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane) ;
+							newPoints[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+1) ;
+							newPoints[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint((k+nodes_per_plane*plane+2)) ;
 							done[start-1+k+nodes_per_plane*plane] = true ;
 							done[start+k+nodes_per_plane*plane] = true ;
 							done[start+1+k+nodes_per_plane*plane] = true ;
@@ -200,9 +200,9 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 					{
 						for(size_t k = 0 ;  k <  nodes_per_side ; k++)
 						{
-							(*newPoints)[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+1) ;
-							(*newPoints)[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+2) ;
-							(*newPoints)[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+3) ;
+							newPoints[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+1) ;
+							newPoints[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+2) ;
+							newPoints[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+3) ;
 							done[start-1+k+nodes_per_plane*plane] = true ;
 							done[start+k+nodes_per_plane*plane] = true ;
 							done[start+1+k+nodes_per_plane*plane] = true ;
@@ -213,9 +213,9 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 					{
 						for(size_t k = 0 ;  k <  nodes_per_side ; k++)
 						{
-							(*newPoints)[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side*2+2) ;
-							(*newPoints)[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side*2+3) ;
-							(*newPoints)[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k*nodes_per_plane) ;
+							newPoints[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side*2+2) ;
+							newPoints[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side*2+3) ;
+							newPoints[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k*nodes_per_plane) ;
 							done[start-1+k+nodes_per_plane*plane] = true ;
 							done[start+k+nodes_per_plane*plane] = true ;
 							done[start+1+k+nodes_per_plane*plane] = true ;
@@ -228,24 +228,24 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 			{
 				for(size_t j = 0 ; j < nodes_per_side ; j++)
 				{
-					(*newPoints)[j+1+nodes_per_plane*plane] = new Point(*tri[i]->first*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->second*((1.-j)/(nodes_per_side+1.))) ;
-					(*newPoints)[j+1+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[j+1+nodes_per_plane*plane]->id = this->global_counter++ ;
+					newPoints[j+1+nodes_per_plane*plane] = new Point(*tri[i]->first*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->second*((1.-j)/(nodes_per_side+1.))) ;
+					newPoints[j+1+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[j+1+nodes_per_plane*plane]->id = this->global_counter++ ;
 				}
 				
 				if(plane && !done[nodes_per_plane*plane])
 				{
-					(*newPoints)[nodes_per_plane*plane] = new Point(*tri[i]->first) ;
-					(*newPoints)[nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[nodes_per_plane*plane]->id = this->global_counter++ ;
+					newPoints[nodes_per_plane*plane] = new Point(*tri[i]->first) ;
+					newPoints[nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[nodes_per_plane*plane]->id = this->global_counter++ ;
 					done[nodes_per_plane*plane] = true ;
 				}
 				
 				if(plane && !done[nodes_per_plane*plane+nodes_per_side+1])
 				{
-					(*newPoints)[nodes_per_plane*plane+nodes_per_side+1] = new Point(*tri[i]->second) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_side+1]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_side+1]->id = this->global_counter++ ;
+					newPoints[nodes_per_plane*plane+nodes_per_side+1] = new Point(*tri[i]->second) ;
+					newPoints[nodes_per_plane*plane+nodes_per_side+1]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[nodes_per_plane*plane+nodes_per_side+1]->id = this->global_counter++ ;
 					done[nodes_per_plane*plane+nodes_per_side+1] = true ;
 				}
 			}
@@ -254,24 +254,24 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 			{
 				for(size_t j = 0 ; j < nodes_per_side ; j++)
 				{
-					(*newPoints)[j+nodes_per_side+2+nodes_per_plane*plane] = new Point(*tri[i]->third*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->second*((1.-j)/(nodes_per_side+1.))) ;
-					(*newPoints)[j+2+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-						(*newPoints)[j+nodes_per_side+2+nodes_per_plane*plane]->id = this->global_counter++ ;
+					newPoints[j+nodes_per_side+2+nodes_per_plane*plane] = new Point(*tri[i]->third*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->second*((1.-j)/(nodes_per_side+1.))) ;
+					newPoints[j+2+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
+						newPoints[j+nodes_per_side+2+nodes_per_plane*plane]->id = this->global_counter++ ;
 				}
 				
 				if(plane && !done[nodes_per_plane*plane+nodes_per_side+1])
 				{
-					(*newPoints)[nodes_per_plane*plane+nodes_per_side+1] = new Point(*tri[i]->second) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_side+1]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_side+1]->id = this->global_counter++ ;
+					newPoints[nodes_per_plane*plane+nodes_per_side+1] = new Point(*tri[i]->second) ;
+					newPoints[nodes_per_plane*plane+nodes_per_side+1]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[nodes_per_plane*plane+nodes_per_side+1]->id = this->global_counter++ ;
 					done[nodes_per_plane*plane] = true ;
 				}
 				
 				if(plane && !done[nodes_per_plane*plane+nodes_per_plane-1])
 				{
-					(*newPoints)[nodes_per_plane*plane+nodes_per_plane-1] = new Point(*tri[i]->third) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_plane-1]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_plane-1]->id = this->global_counter++ ;
+					newPoints[nodes_per_plane*plane+nodes_per_plane-1] = new Point(*tri[i]->third) ;
+					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->id = this->global_counter++ ;
 					done[nodes_per_plane*plane+nodes_per_plane-1] = true ;
 				}
 			}
@@ -280,24 +280,24 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 			{
 				for(size_t j = 0 ; j < nodes_per_side ; j++)
 				{
-					(*newPoints)[j+nodes_per_side*2+3+nodes_per_plane*plane] = new Point(*tri[i]->first*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->third*((1.-j)/(nodes_per_side+1.))) ;
-					(*newPoints)[j+nodes_per_side*2+3+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[j+nodes_per_side*2+3+nodes_per_plane*plane]->id = this->global_counter++ ;
+					newPoints[j+nodes_per_side*2+3+nodes_per_plane*plane] = new Point(*tri[i]->first*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->third*((1.-j)/(nodes_per_side+1.))) ;
+					newPoints[j+nodes_per_side*2+3+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[j+nodes_per_side*2+3+nodes_per_plane*plane]->id = this->global_counter++ ;
 				}
 				
 				if(plane && !done[nodes_per_plane*plane+nodes_per_plane-1])
 				{
-					(*newPoints)[nodes_per_plane*plane+nodes_per_plane-1] = new Point(*tri[i]->third) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_plane-1]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[nodes_per_plane*plane+nodes_per_plane-1]->id = this->global_counter++ ;
+					newPoints[nodes_per_plane*plane+nodes_per_plane-1] = new Point(*tri[i]->third) ;
+					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->id = this->global_counter++ ;
 					done[nodes_per_plane*plane+nodes_per_plane-1] = true ;
 				}
 				
 				if(plane && !done[nodes_per_plane*plane])
 				{
-					(*newPoints)[nodes_per_plane*plane] = new Point(*tri[i]->first) ;
-					(*newPoints)[nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					(*newPoints)[nodes_per_plane*plane]->id = this->global_counter++ ;
+					newPoints[nodes_per_plane*plane] = new Point(*tri[i]->first) ;
+					newPoints[nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
+					newPoints[nodes_per_plane*plane]->id = this->global_counter++ ;
 					done[nodes_per_plane*plane] = true ;
 				}
 			}
@@ -1316,7 +1316,7 @@ DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2)
 DelaunayTree::~DelaunayTree() 
 { 	
 	std::vector<Point *> pts ;
-	std::valarray<Point *> * nularray = NULL ;
+	std::valarray<Point *> nularray(0) ;
 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
 	{
 

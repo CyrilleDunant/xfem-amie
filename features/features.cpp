@@ -101,21 +101,21 @@ Feature::Feature(Feature *father, Geometry * b)
 std::vector<Point *> Feature::doubleSurfaceSampling()
 {
 	std::vector<Point *> ret ;
-	std::valarray<Point *> * newboundingPoints = new std::valarray<Point *>(this->getBoundingPoints().size()*2) ;
+	std::valarray<Point *> newboundingPoints(this->getBoundingPoints().size()*2) ;
 	for(size_t i = 0 ; i < this->getBoundingPoints().size()-1 ; i++)
 	{
-		(*newboundingPoints)[i*2] = &getBoundingPoint(i) ;
-		(*newboundingPoints)[i*2+1] = new Point(getBoundingPoint(i)*0.5 + getBoundingPoint(i+1)*0.5) ;
-		this->project((*newboundingPoints)[i*2+1]) ;
-		(*newboundingPoints)[i*2+1]->id = -1 ;
-		ret.push_back((*newboundingPoints)[i*2+1]) ;
+		newboundingPoints[i*2] = &getBoundingPoint(i) ;
+		newboundingPoints[i*2+1] = new Point(getBoundingPoint(i)*0.5 + getBoundingPoint(i+1)*0.5) ;
+		this->project(newboundingPoints[i*2+1]) ;
+		newboundingPoints[i*2+1]->id = -1 ;
+		ret.push_back(newboundingPoints[i*2+1]) ;
 	}
 	
-	(*newboundingPoints)[(getBoundingPoints().size()-1)*2] = &getBoundingPoint(getBoundingPoints().size()-1) ;
-	(*newboundingPoints)[getBoundingPoints().size()*2-1] = new Point(getBoundingPoint(getBoundingPoints().size()-1)*0.5 + getBoundingPoint(0)*0.5) ;
-	(*newboundingPoints)[getBoundingPoints().size()*2-1]->id = -1 ;
-	this->project((*newboundingPoints)[getBoundingPoints().size()*2-1]) ;
-	ret.push_back((*newboundingPoints)[getBoundingPoints().size()*2-1]) ;
+	newboundingPoints[(getBoundingPoints().size()-1)*2] = &getBoundingPoint(getBoundingPoints().size()-1) ;
+	newboundingPoints[getBoundingPoints().size()*2-1] = new Point(getBoundingPoint(getBoundingPoints().size()-1)*0.5 + getBoundingPoint(0)*0.5) ;
+	newboundingPoints[getBoundingPoints().size()*2-1]->id = -1 ;
+	this->project(newboundingPoints[getBoundingPoints().size()*2-1]) ;
+	ret.push_back(newboundingPoints[getBoundingPoints().size()*2-1]) ;
 	
 	dynamic_cast<Geometry *>(this)->setBoundingPoints(newboundingPoints) ;
 	

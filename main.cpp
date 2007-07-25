@@ -1569,15 +1569,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,&reinforcement1) ;
 	Point A(0,-.7); Point b(-0.1,-1.5); Point c(0.1,-1.5) ;
 	TriangularPore * pore = new TriangularPore(A, b, c) ;
-	F.addFeature(&sample,pore) ;
+// 	F.addFeature(&sample,pore) ;
 	
 	
 	PointSet ptset(5) ;
 	
 	std::valarray<Point *> centerpoint(2) ;
 	
-	centerpoint[0] = new Point(-5, -1.5 ) ;
-	centerpoint[1] = new Point(-3.5, -1.5) ;
+	centerpoint[0] = new Point(0, -1.5 ) ;
+	centerpoint[1] = new Point(0, -.7) ;
 	
 	std::valarray<Point *> centerpoint2(2) ;
 	
@@ -1613,9 +1613,9 @@ int main(int argc, char *argv[])
 // 	{
 // 		crack[j]->getHead()->print() ; std::cout << " <- " << j << std::endl ;
 // 	}
-// 	Crack cr(&sample, centerpoint, 0.03) ;
-// 	crack.push_back(&cr) ;
-// 	F.addFeature(&sample, crack[0]) ;
+	Crack cr(&sample, centerpoint, 0.03) ;
+	crack.push_back(&cr) ;
+	F.addFeature(&sample, crack[0]) ;
 // 	
 // 	Crack cr2(&sample, centerpoint2, 0.03) ;
 // 	crack.push_back(&cr2) ;
@@ -1650,8 +1650,8 @@ int main(int argc, char *argv[])
 	a[1] = 0.00 ;
 	a[1] = 0.00 ;
 // 	inc->setBehaviour(new Stiffness(m0*4)) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.25, 0.03)) ;
-// 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.25, 0.03)) ;
+	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
 // 	F.addFeature(&sample,new Pore(1, 0,0)) ;
@@ -1659,7 +1659,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(32) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
