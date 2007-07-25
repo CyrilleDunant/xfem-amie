@@ -7,12 +7,12 @@
 CXX = g++ 
 
 # CXXFLAGS = -g3 -Wall -O2 -DNDEBUG 
-#CXXFLAGS = -g3 -Wall -O0 -DNDEBUG 
+# CXXFLAGS = -g3 -Wall -O0 -DNDEBUG 
 CXXFLAGS = -g3 -Wall -O3 -DNDEBUG -fstrict-aliasing
 LDFLAGS = -lm -lGL -lglut
 
-SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp
-OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o
+SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp
+OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o physics/diffusion.o
 
 SOURCE_ELEMENTS = elements/elements.cpp elements/integrable_entity.cpp
 OBJECTS_ELEMENTS = elements/elements.o elements/integrable_entity.o
@@ -45,6 +45,10 @@ SOURCE_MAIN_2D =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} sampl
 OBJECTS_MAIN_2D =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_2D = tryit
 
+SOURCE_MAIN_DIFFUSION =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_diffusion.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_DIFFUSION =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_diffusion.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+TARGET_MAIN_DIFFUSION = tryit_diffusion
+
 SOURCE_MAIN_JEROME =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} utilities/granulo.cpp samplingcriterion.cpp  main_jerome.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
 OBJECTS_MAIN_JEROME =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} utilities/granulo.o samplingcriterion.o main_jerome.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_JEROME = statistique
@@ -53,8 +57,8 @@ SOURCE_MAIN =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS}  samplin
 OBJECTS_MAIN =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_3d.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN = tryit_3d
 
-SOURCE_NURB =    main_nurbs.cpp matrixops.cpp ${SOURCE_NEW_GEO} 
-OBJECTS_NURB =   main_nurbs.o matrixops.o  ${OBJECTS_NEW_GEO} 
+SOURCE_NURB =  main_nurbs.cpp matrixops.cpp ${SOURCE_NEW_GEO} 
+OBJECTS_NURB = main_nurbs.o matrixops.o ${OBJECTS_NEW_GEO} 
 TARGET_NURB = tryit_nurbs
  
 SOURCE_AMOR_3D =  ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} main_amor.cpp matrixops.cpp ${SOURCE_FUNCTIONS} ${SOURCE_NEW_GEO} ${SOURCE_SOLVERS} samplingcriterion.cpp configuration.cpp ${SOURCE_FEATURE} delaunay.cpp delaunay_3d.cpp parser.cpp ${SOURCE_SPARSE}
@@ -75,6 +79,9 @@ TARGET_viscoelasticity_c3s = tryit_viscoelasticity_c3s
 
 
 ${TARGET_MAIN}: ${OBJECTS_MAIN}
+	${CXX} ${LDFLAGS} -o $@ $+
+
+${TARGET_MAIN_DIFFUSION}: ${OBJECTS_MAIN_DIFFUSION}
 	${CXX} ${LDFLAGS} -o $@ $+
 
 ${TARGET_MAIN_2D}: ${OBJECTS_MAIN_2D}
@@ -106,6 +113,9 @@ depend_main: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN} > $@
 	
 depend_main_2d: Makefile
+	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_2D} > $@
+
+depend_main_diffusion: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_2D} > $@
 
 depend_main_jerome: Makefile

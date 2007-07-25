@@ -541,7 +541,7 @@ Function::Function(const std::valarray<std::valarray<Matrix> > & coeffs, bool di
 						
 						if(l > 0)
 						{
-							tempb.push_back(new ZToken()) ;
+							tempb.push_back(new TToken()) ;
 							if(l > 1)
 							{
 								tempb.push_back(new ConstantToken(l)) ;
@@ -610,7 +610,6 @@ Function::Function(const std::valarray<std::valarray<Matrix> > & coeffs, bool di
 			}
 			dy[i] = dy_ ;
 		}
-		
 		derivative[ETA] = Function(dy, false) ;
 		
 		std::valarray< std::valarray<Matrix> > dz(coeffs.size()) ;
@@ -653,7 +652,7 @@ Function::Function(const std::valarray<std::valarray<Matrix> > & coeffs, bool di
 			
 			dt[i] = dt_ ;
 		}
-		derivative[TIME_VARIABLE] = Function(dz, false) ;
+		derivative[TIME_VARIABLE] = Function(dt, false) ;
 	}
 }
 

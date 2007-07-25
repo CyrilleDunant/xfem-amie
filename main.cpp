@@ -254,16 +254,17 @@ void setBC()
 			
 			if (
 			     triangles[k]->getBoundingPoint(c).y < -0.9999 
-			     && (std::abs(triangles[k]->getBoundingPoint(c).x -3) < 0.1
-			         || std::abs(triangles[k]->getBoundingPoint(c).x +3) < 0.1)
+			     && (std::abs(triangles[k]->getBoundingPoint(c).x -4) < 0.1
+			         || std::abs(triangles[k]->getBoundingPoint(c).x +4) < 0.1)
 			   )
 			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 
 			if (std::abs(triangles[k]->getBoundingPoint(c).x) < .1 && triangles[k]->getBoundingPoint(c).y > 0.9999 )
 			{
-				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setForceOn(ETA, -timepos- 0.00001, triangles[k]->getBoundingPoint(c).id) ;
+// 				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 
 // 			if(triangles[k]->getBoundingPoint(c).x < -2.999)
@@ -855,7 +856,7 @@ void Menu(int selection)
 		}
 	case ID_NEXT_TIME:
 		{
-			timepos +=0.01 ;
+			timepos +=0.0001 ;
 		}
 	case ID_DISP : 
 		{
@@ -1413,19 +1414,7 @@ void Display(void)
 		glColor3f(1, 1, 1) ;
 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			Circle circ(1,1,1) ;
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
-// 			{
-// 				
-// 				glColor3f(1, 0, 0) ;
-// 				glBegin(GL_LINE_LOOP);
-// 				for(size_t k = 0 ; k < triangles[j]->getBoundingPoints().size() ; k++)
-// 				{
-// 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x) ,  double(triangles[j]->getBoundingPoint(k).y) );
-// 				}
-// 				glEnd();
-// 			}
-// 			else
 			{
 				if(triangles[j]->getBehaviour()->fractured())
 					glColor3f(1, 0, 0) ;
@@ -1569,7 +1558,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,&reinforcement1) ;
 	Point A(0,-.7); Point b(-0.1,-1.5); Point c(0.1,-1.5) ;
 	TriangularPore * pore = new TriangularPore(A, b, c) ;
-// 	F.addFeature(&sample,pore) ;
+	F.addFeature(&sample,pore) ;
 	
 	
 	PointSet ptset(5) ;
@@ -1613,9 +1602,9 @@ int main(int argc, char *argv[])
 // 	{
 // 		crack[j]->getHead()->print() ; std::cout << " <- " << j << std::endl ;
 // 	}
-	Crack cr(&sample, centerpoint, 0.03) ;
-	crack.push_back(&cr) ;
-	F.addFeature(&sample, crack[0]) ;
+// 	Crack cr(&sample, centerpoint, 0.03) ;
+// 	crack.push_back(&cr) ;
+// 	F.addFeature(&sample, crack[0]) ;
 // 	
 // 	Crack cr2(&sample, centerpoint2, 0.03) ;
 // 	crack.push_back(&cr2) ;
@@ -1650,8 +1639,8 @@ int main(int argc, char *argv[])
 	a[1] = 0.00 ;
 	a[1] = 0.00 ;
 // 	inc->setBehaviour(new Stiffness(m0*4)) ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.25, 0.03)) ;
-	sample.setBehaviour(new Stiffness(m0*0.35)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.25, 0.03)) ;
+// 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
 // 	F.addFeature(&sample,new Pore(1, 0,0)) ;
@@ -1659,7 +1648,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(128) ;
+	F.sample(400) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

@@ -54,7 +54,7 @@ Point::Point(double x, double y, double z, double t)
 
 void Point::print() const
 {
-	std::cout << " ( id = " << id << " ; "<< x << ", " << y << ","<< z<< ") " << std::endl;
+	std::cout << " ( id = " << id << " ; "<< x << "; " << y << "; "<< z<< "; "<< t << ") " << std::endl;
 }
 
 double Point::norm() const
@@ -91,6 +91,7 @@ void Point::set(const Point & p)
 	x = p.x ; 
 	y = p.y;
 	z = p.z;
+	t = p.t;
 }
 
 void Point::set(const Point * p)
@@ -98,6 +99,7 @@ void Point::set(const Point * p)
 	x = p->x ; 
 	y = p->y;
 	z = p->z;
+	t = p->t;
 }
 
 void Point::set(double v, double vv)
@@ -143,6 +145,7 @@ Point Point::operator-(const Point &p) const
 	ret.x -= p.x; 
 	ret.y -= p.y ; 
 	ret.z -= p.z ; 
+	ret.t -= p.t ; 
 	return ret ;
 }
 
@@ -151,7 +154,10 @@ Point Point::operator-(const Vector &p) const
 	Point ret((*this)) ;
 	ret.x -= p[0] ; 
 	ret.y -= p[1] ; 
-	ret.z -= p[2] ; 
+	if(p.size() > 2)
+		ret.z -= p[2] ; 
+	if(p.size() > 3)
+		ret.t -= p[3] ; 
 	return ret ; 
 }
 
@@ -161,6 +167,7 @@ Point Point::operator+(const Point &p) const
 	ret.x += p.x; 
 	ret.y += p.y ; 
 	ret.z += p.z ; 
+	ret.t += p.t ; 
 	return ret ;
 }
 
@@ -169,6 +176,7 @@ void Point::operator+=(const Point &p)
 	x += p.x; 
 	y += p.y ; 
 	z += p.z ; 
+	t += p.t ; 
 }
 
 void Point::operator-=(const Point &p)
@@ -176,6 +184,7 @@ void Point::operator-=(const Point &p)
 	x -= p.x; 
 	y -= p.y ; 
 	z -= p.z ; 
+	t -= p.t ; 
 }
 
 Point Point::operator+(const Vector &p) const
@@ -183,8 +192,10 @@ Point Point::operator+(const Vector &p) const
 	Point ret((*this)) ;
 	ret.x += p[0] ; 
 	ret.y += p[1] ; 
-	if(p.size() == 3)
+	if(p.size() > 2)
 		ret.z += p[2] ; 
+	if(p.size() > 3)
+		ret.t += p[3] ; 
 	return ret ; 
 }
 
@@ -194,6 +205,7 @@ Point Point::operator/(const double p) const
 	ret.x /= p ; 
 	ret.y /= p ; 
 	ret.z /= p ; 
+	ret.t /= p ; 
 	return ret ; 
 }
 
@@ -204,7 +216,16 @@ bool Point::operator <(const Point &p) const
 		return false ;
 	
 	double tol = POINT_TOLERANCE ;
-	return (y < p.y ) || (( std::abs(y - p.y) < tol) && (x < p.x)) ||  (( std::abs(y - p.y) < tol) && ( std::abs(x - p.x) < tol) && (z < p.z));
+	return (y < p.y ) 
+		|| (( std::abs(y - p.y) < tol) 
+		    && (x < p.x)) 
+		|| (( std::abs(y - p.y) < tol) 
+		    && ( std::abs(x - p.x) < tol) 
+		    && (z < p.z)) 
+		|| (( std::abs(y - p.y) < tol) 
+		    && ( std::abs(x - p.x) < tol) 
+		    && ( std::abs(z - p.z) < tol) 
+		    && (t < p.t));
 }
 
 bool Point::operator >(const Point &p) const 
@@ -213,7 +234,16 @@ bool Point::operator >(const Point &p) const
 		return false ;
 	
 	double tol = POINT_TOLERANCE ;
-	return (y > p.y ) || ( ( std::abs(y - p.y) < tol) && (x > p.x) ||  ( std::abs(y - p.y) < tol) && ( std::abs(x - p.x) < tol) && (z> p.z));
+	return (y > p.y ) 
+		|| (( std::abs(y - p.y) < tol) 
+		    && (x > p.x)) 
+		|| (( std::abs(y - p.y) < tol) 
+		    && ( std::abs(x - p.x) < tol) 
+		    && (z> p.z)) 
+		||(( std::abs(y - p.y) < tol) 
+		   && ( std::abs(x - p.x) < tol) 
+		   && ( std::abs(z - p.z) < tol) 
+		   && (z> p.z));
 }
 
 Point Point::operator*(const double p)  const 
@@ -222,18 +252,24 @@ Point Point::operator*(const double p)  const
 	ret.x *= p ; 
 	ret.y *= p ; 
 	ret.z *= p ; 
+	ret.t *= p ; 
 	return ret ; 
 }
 
 
 double Point::operator*(const Point &p) const
 {
-	return x*p.x + y*p.y + z*p.z;
+	return x*p.x + y*p.y + z*p.z+ t*p.t;
 }
 
 double Point::operator*(const Vector &p) const
 {
-	return x*p[0] + y*p[1] + z*p[2]; 
+	double ret = x*p[0] + y*p[1] ;
+	if(p.size() >2)
+		ret+=z*p[2] ;
+	if(p.size() >3)
+		ret+=t*p[3] ;
+	return ret ; 
 }
 
 Point Point::operator^(const Point &p) const
@@ -2392,7 +2428,8 @@ double dist(const Point & v1, const Point & v2)
 	double x = v2.x-v1.x ;
 	double y = v2.y-v1.y ;
 	double z = v2.z-v1.z ;
-	return sqrt (x*x+y*y+z*z) ;
+	double t = v2.t-v1.t ;
+	return sqrt (x*x+y*y+z*z +t*t) ;
 }
 
 double dist(const Point * v1, const Point * v2)
@@ -2400,18 +2437,19 @@ double dist(const Point * v1, const Point * v2)
 	double x = v2->x-v1->x ;
 	double y = v2->y-v1->y ;
 	double z = v2->z-v1->z ;
-	return sqrt (x*x+y*y+z*z) ;
+	double t = v2->t-v1->t ;
+	return sqrt (x*x+y*y+z*z+t*t) ;
 }
 
 
 double squareDist(const  Point &v1, const Point & v2)
 {
-	return (v2.x-v1.x)*(v2.x-v1.x)+(v2.y-v1.y)*(v2.y-v1.y) + (v2.z-v1.z)*(v2.z-v1.z);
+	return (v2.x-v1.x)*(v2.x-v1.x)+(v2.y-v1.y)*(v2.y-v1.y) + (v2.z-v1.z)*(v2.z-v1.z)+ (v2.t-v1.t)*(v2.t-v1.t);
 }
 
 double squareDist(const Point *v1, const Point *v2)
 {
-	return (v2->x-v1->x)*(v2->x-v1->x)+(v2->y-v1->y)*(v2->y-v1->y) + (v2->z-v1->z)*(v2->z-v1->z);
+	return (v2->x-v1->x)*(v2->x-v1->x)+(v2->y-v1->y)*(v2->y-v1->y) + (v2->z-v1->z)*(v2->z-v1->z)+ (v2->t-v1->t)*(v2->t-v1->t);
 }
 
 ConvexPolygon* convexHull(const std::vector<Point *> * points)

@@ -120,7 +120,7 @@ struct Memory
 	Vector stack;
 	Vector heap ;
 	int top_pos ;
-	Memory() : stack(0., 64), heap(0., 128), top_pos(-1)
+	Memory() : stack(0., 64), heap(0., 256), top_pos(-1)
 	{
 	} ;
 	

@@ -40,17 +40,17 @@ double VirtualMachine::eval(const std::vector<RefCountedToken> &f, const double 
 	return  stack[0] ;
  }
 
-double VirtualMachine::eval(const Function &f, const Point & p, const double t, const Point & p_) 
+double VirtualMachine::eval(const Function &f, const Point & p, const Point & p_) 
 {
-	return eval(f, p.x, p.y, p.z,t,p_.x, p_.y, p_.z) ;
+	return eval(f, p.x, p.y, p.z,p.t,p_.x, p_.y, p_.z) ;
 }
 
 
-double VirtualMachine::eval(const Function &f, const Point *p, const double t, const Point * p_) 
+double VirtualMachine::eval(const Function &f, const Point *p, const Point * p_) 
 {
 	if(p_)
-		return eval(f, p->x, p->y, p->z, t, p_->x, p_->y, p_->z) ;
-	return eval(f, p->x, p->y, p->z, t) ;
+		return eval(f, p->x, p->y, p->z, p->t, p_->x, p_->y, p_->z) ;
+	return eval(f, p->x, p->y, p->z, p->t) ;
 }
 
 
@@ -92,16 +92,16 @@ Matrix VirtualMachine::eval(const FunctionMatrix &f, const double x, const doubl
 	
 }
 
-Matrix VirtualMachine::eval(const FunctionMatrix &f, const Point & p, const double t, const Point & p_) 
+Matrix VirtualMachine::eval(const FunctionMatrix &f, const Point & p, const Point & p_) 
 {
-	return eval(f, p.x, p.y, p.z, t, p_.x, p_.y, p_.z) ;
+	return eval(f, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z) ;
 }
 
-Matrix VirtualMachine::eval(const FunctionMatrix &f, const Point * p, const double t, const Point *p_) 
+Matrix VirtualMachine::eval(const FunctionMatrix &f, const Point * p, const Point *p_) 
 {
 	if(p_)
-		return eval(f, p->x, p->y, p->z, t, p_->x, p_->y, p_->z) ;
-	return eval(f, p->x, p->y, p->z, t) ;
+		return eval(f, p->x, p->y, p->z, p->t, p_->x, p_->y, p_->z) ;
+	return eval(f, p->x, p->y, p->z, p->t) ;
 }
 
 double VirtualMachine::deval(const Function &f, const Point&p,  const double x, const double y, const double z , const double eps , bool normed)
@@ -171,7 +171,8 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 			}
 		case TIME_VARIABLE : 
 			{
-				return ( eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-eps, u, v, w))/(2.*eps) ;
+				return (eval(f, x, y, z, t-2.*eps, u, v, w) -8.*eval(f, x, y, z, t-eps, u, v, w) + 8.*eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-2.*eps, u, v, w))/(eps*12.) ;
+// 				return ( eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-eps, u, v, w))/(2.*eps) ;
 				//f(x) = (f(x-2*eps) - 8*f(x-eps) + 8*f(x+eps) - f(x+eps))/(12*eps)
 // 				return (eval(f, x, y, z, t-2.*eps, u, v, w) -8.*eval(f, x, y, z, t-eps, u, v, w) + 8.*eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-2.*eps, u, v, w))/(eps*12.) ;
 			}
@@ -211,14 +212,14 @@ Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v_,  const 
 	return ret ;
 }
 
-double VirtualMachine::deval(const Function &f, const Variable v, const Point p, const double t, const Point p_, const double eps)
+double VirtualMachine::deval(const Function &f, const Variable v, const Point p, const Point p_, const double eps)
 {
-	return deval(f, v, p.x, p.y, p.z, t, p_.x, p_.y, p_.z, eps) ;
+	return deval(f, v, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z, eps) ;
 }
 
-Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v, const Point p, const double t, const Point p_, const double eps)
+Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v, const Point p, const Point p_, const double eps)
 {
-	return deval(f, v, p.x, p.y, p.z, t, p_.x, p_.y, p_.z, eps) ;
+	return deval(f, v, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z, eps) ;
 }
 
 double VirtualMachine::ieval(const Function &f, const std::valarray< std::pair<Point, double> > &gp)
@@ -757,7 +758,7 @@ double VirtualMachine::ieval(const DtF & d, const std::valarray< std::pair<Point
 				for(size_t j = 0 ; j < Jinv[i].numCols() ; j++)
 				{
 					ret += deval(d.d.f, (Variable)j, gp[i].first)*
-						   deval(d.f, (Variable)j, gp[i].first)*Jinv[i][0][j]*gp[i].second ;
+						   eval(d.f, gp[i].first)*Jinv[i][0][j]*gp[i].second ;
 				}
 			}
 			
@@ -771,7 +772,7 @@ double VirtualMachine::ieval(const DtF & d, const std::valarray< std::pair<Point
 				for(size_t j = 0 ; j < Jinv[i].numCols() ; j++)
 				{
 					ret += deval(d.d.f, (Variable)j, gp[i].first)*
-						deval(d.f, (Variable)j, gp[i].first)*Jinv[i][1][j]*gp[i].second ;
+						eval(d.f, gp[i].first)*Jinv[i][1][j]*gp[i].second ;
 				}
 			}
 			
@@ -785,7 +786,7 @@ double VirtualMachine::ieval(const DtF & d, const std::valarray< std::pair<Point
 				for(size_t j = 0 ; j < Jinv[i].numCols() ; j++)
 				{
 					ret += deval(d.d.f, (Variable)j, gp[i].first)*
-						deval(d.f, (Variable)j, gp[i].first)*Jinv[i][2][j]*gp[i].second ;
+						eval(d.f, gp[i].first)*Jinv[i][2][j]*gp[i].second ;
 				}
 			}
 			
@@ -797,7 +798,7 @@ double VirtualMachine::ieval(const DtF & d, const std::valarray< std::pair<Point
 			for(size_t i = 0 ; i < gp.size() ; i++)
 			{
 				ret += deval(d.d.f, TIME_VARIABLE, gp[i].first)*
-					deval(d.f, TIME_VARIABLE, gp[i].first)*gp[i].second ;
+					eval(d.f, gp[i].first)*gp[i].second ;
 			}
 			
 			return ret ;
@@ -895,7 +896,7 @@ double VirtualMachine::ieval(const DtF & d, const IntegrableEntity *e)
 				for(size_t j = 0 ; j < Jinv.numCols() ; j++)
 				{
 					ret += deval(d.d.f, (Variable)j, gp[i].first)*
-						   deval(d.f, (Variable)j, gp[i].first)*Jinv[0][j]*gp[i].second ;
+						   eval(d.f, gp[i].first)*Jinv[0][j]*gp[i].second ;
 				}
 			}
 			
@@ -911,7 +912,7 @@ double VirtualMachine::ieval(const DtF & d, const IntegrableEntity *e)
 				for(size_t j = 0 ; j < Jinv.numCols() ; j++)
 				{
 					ret += deval(d.d.f, (Variable)j, gp[i].first)*
-						   deval(d.f, (Variable)j, gp[i].first)*Jinv[1][j]*gp[i].second ;
+						   eval(d.f, gp[i].first)*Jinv[1][j]*gp[i].second ;
 				}
 			}
 			
@@ -927,7 +928,7 @@ double VirtualMachine::ieval(const DtF & d, const IntegrableEntity *e)
 				for(size_t j = 0 ; j < Jinv.numCols() ; j++)
 				{
 					ret += deval(d.d.f, (Variable)j, gp[i].first)*
-						   deval(d.f, (Variable)j, gp[i].first)*Jinv[2][j]*gp[i].second ;
+						   eval(d.f,  gp[i].first)*Jinv[2][j]*gp[i].second ;
 				}
 			}
 			
@@ -939,7 +940,7 @@ double VirtualMachine::ieval(const DtF & d, const IntegrableEntity *e)
 			for(size_t i = 0 ; i < gp.size() ; i++)
 			{
 				ret += deval(d.f, TIME_VARIABLE, gp[i].first)*
-					   deval(d.f, TIME_VARIABLE, gp[i].first)*gp[i].second ;
+					   eval(d.f, gp[i].first)*gp[i].second ;
 			}
 			
 			return ret ;

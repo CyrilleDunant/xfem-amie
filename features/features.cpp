@@ -501,62 +501,62 @@ void FeatureTree::stitch()
 				}
 			case CONSTANT_TIME_LINEAR:
 				{
-					this->dtree->addSharedNodes(0,2,0) ;
+					this->dtree->addSharedNodes(0,2,2) ;
 					break ;
 				}
 			case CONSTANT_TIME_QUADRATIC:
 				{
-					this->dtree->addSharedNodes(0,3,0) ;
+					this->dtree->addSharedNodes(0,3,2) ;
 					break ;
 				}
 			case LINEAR_TIME_LINEAR:
 				{
-					this->dtree->addSharedNodes(0,2,0) ;
+					this->dtree->addSharedNodes(0,2,2) ;
 					break ;
 				}
 			case LINEAR_TIME_QUADRATIC:
 				{
-					this->dtree->addSharedNodes(0,2,0) ;
+					this->dtree->addSharedNodes(0,3,2) ;
 					break ;
 				}
 			case QUADRATIC_TIME_LINEAR:
 				{
-					this->dtree->addSharedNodes(1,2,0) ;
+					this->dtree->addSharedNodes(1,2,2) ;
 					break ;
 				}
 			case QUADRATIC_TIME_QUADRATIC:
 				{
-					this->dtree->addSharedNodes(1,3,0) ;
+					this->dtree->addSharedNodes(1,3,2) ;
 					break ;
 				}
 			case CUBIC_TIME_LINEAR:
 				{
-					this->dtree->addSharedNodes(2,2,0) ;
+					this->dtree->addSharedNodes(2,2,2) ;
 					break ;
 				}
 			case CUBIC_TIME_QUADRATIC:
 				{
-					this->dtree->addSharedNodes(2,3,0) ;
+					this->dtree->addSharedNodes(2,3,2) ;
 					break ;
 				}
 			case QUADRIC_TIME_LINEAR:
 				{
-					this->dtree->addSharedNodes(3,2,0) ;
+					this->dtree->addSharedNodes(3,2,2) ;
 					break ;
 				}
 			case QUADRIC_TIME_QUADRATIC:
 				{
-					this->dtree->addSharedNodes(3,3,0) ;
+					this->dtree->addSharedNodes(3,3,2) ;
 					break ;
 				}
 			case QUINTIC_TIME_LINEAR:
 				{
-					this->dtree->addSharedNodes(3,2,0) ;
+					this->dtree->addSharedNodes(3,2,2) ;
 					break ;
 				}
 			case QUINTIC_TIME_QUADRATIC:
 				{
-					this->dtree->addSharedNodes(3,3,0) ;
+					this->dtree->addSharedNodes(3,3,2) ;
 					break ;
 				}
 				

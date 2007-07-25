@@ -15,7 +15,7 @@
 namespace Mu
 {
 
-const double default_derivation_delta= 2e-7 ;
+const double default_derivation_delta= 2e-8 ;
 
 struct GtFMtG ;
 struct IntegrableEntity ;
@@ -30,15 +30,15 @@ public:
 	double eval(const std::vector<RefCountedToken> &f, const double x, const double y = 0, const double z = 0,const double t=0, const double u = 0, const double v = 0, const double w = 0)   ;
 	Matrix eval(const FunctionMatrix &f, const double x, const double y = 0, const double z = 0,const double t=0, const double u = 0, const double v = 0, const double w = 0)  ;
 	
-	double eval(const Function &f, const Point & p,const double t=0, const Point &p_ = Point())  ;
-	double eval(const Function &f, const Point * p,const double t=0, const Point *p_ = NULL)  ;
-	Matrix eval(const FunctionMatrix &f, const Point & p,const double t=0, const Point &p_ = Point())  ;
-	Matrix eval(const FunctionMatrix &f, const Point * p,const double t=0, const Point *p_ = NULL)  ;
+	double eval(const Function &f, const Point & p, const Point &p_ = Point())  ;
+	double eval(const Function &f, const Point * p, const Point *p_ = NULL)  ;
+	Matrix eval(const FunctionMatrix &f, const Point & p, const Point &p_ = Point())  ;
+	Matrix eval(const FunctionMatrix &f, const Point * p, const Point *p_ = NULL)  ;
 	
 	double deval(const Function &f, const Variable v,  const double x, const double y = 0, const double z = 0,const double t=0, const double u = 0, const double v = 0, const double w = 0, const double eps = default_derivation_delta)  ;
 	Matrix deval(const FunctionMatrix &f, const Variable v,  const double x, const double y = 0, const double z = 0,const double t=0, const double u = 0, const double v = 0, const double w = 0, const double eps= default_derivation_delta)  ;
-	double deval(const Function &f, const Variable v, const Point p, const double t= 0, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
-	Matrix deval(const FunctionMatrix &f, const Variable v, const Point p, const double t= 0, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
+	double deval(const Function &f, const Variable v, const Point p, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
+	Matrix deval(const FunctionMatrix &f, const Variable v, const Point p, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
 	
 	double deval(const Function &f, const Point&p,  const double x, const double y = 0, const double z = 0,const double eps = default_derivation_delta, bool normed = false)  ;
 	Matrix deval(const FunctionMatrix &f,const Point&p,  const double x, const double y = 0, const double z = 0,const double eps= default_derivation_delta, bool normed = false)  ;

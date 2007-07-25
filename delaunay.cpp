@@ -150,8 +150,6 @@ void Star::updateNeighbourhood()
 void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TriElement * father)
 {
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
-	
-
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
 		
@@ -161,144 +159,53 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 		
 		std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
 		std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
-			
-		newPoints[0] = tri[i]->first ;
-		done[0] = true ;
-		newPoints[nodes_per_side+1] = tri[i]->second ;
-		done[nodes_per_side+1] = true ;
-		newPoints[nodes_per_side*2+2] = tri[i]->third ;
-		done[nodes_per_side*2+2] = true ;
 		
 		for(size_t plane = 0 ; plane < time_planes ; plane++)
 		{
-
-			for(size_t j = 0 ; j < tri[i]->neighbour.size() ; j++)
+			for(size_t side = 0 ; side < 3 ; side++)
 			{
-				if(tri[i]->neighbour[j]->visited && tri[i]->neighbour[j]->isTriangle && tri[i]->neighbour[j]->isAlive() && tri[i]->neighbour[j]->numberOfCommonVertices(tri[i]) == 2)
+				Point a(tri[i]->getBoundingPoint(side)) ;
+				Point b(tri[i]->getBoundingPoint((side+1)%3)) ;
+				
+				a.t = plane*(timestep/(time_planes-1));
+				b.t = plane*(timestep/(time_planes-1));
+				for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
 				{
-					DelaunayTriangle * n = (DelaunayTriangle *)(tri[i]->neighbour[j]) ;
-					size_t start = 1 ;
-					if(n->isVertexByID(tri[i]->third) && n->isVertexByID(tri[i]->second))
-						start = nodes_per_side+2 ;
-					if(n->isVertexByID(tri[i]->third) && n->isVertexByID(tri[i]->first))
-						start = nodes_per_side*2+3 ;
-					
-					if(tri[i]->isVertexByID(n->first) && tri[i]->isVertexByID(n->second))
+					double fraction = (double)(node)/((double)nodes_per_side+1) ;
+					Point proto = a*(1.-fraction) + b*fraction ;
+					Point * foundPoint = NULL ;
+		 			for(size_t j = 0 ; j < tri[i]->neighbour.size() ; j++)
 					{
-						for(size_t k = 0 ;  k <  nodes_per_side ; k++)
+						if(tri[i]->neighbour[j]->isTriangle && tri[i]->neighbour[j]->visited)
 						{
-							newPoints[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane) ;
-							newPoints[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+1) ;
-							newPoints[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint((k+nodes_per_plane*plane+2)) ;
-							done[start-1+k+nodes_per_plane*plane] = true ;
-							done[start+k+nodes_per_plane*plane] = true ;
-							done[start+1+k+nodes_per_plane*plane] = true ;
+							DelaunayTriangle * n = static_cast<DelaunayTriangle *>(tri[i]->neighbour[j]) ;
+							for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
+							{
+								if(n->getBoundingPoint(k) == proto)
+								{
+									foundPoint = &n->getBoundingPoint(k) ;
+									break ;
+								}
+							}
+							
+							if(foundPoint)
+								break ;
 						}
 					}
 					
-					if(tri[i]->isVertexByID(n->second) && tri[i]->isVertexByID(n->third))
+					if(!done[nodes_per_plane*plane+side*(nodes_per_side+1)+node])
 					{
-						for(size_t k = 0 ;  k <  nodes_per_side ; k++)
+						if(foundPoint)
 						{
-							newPoints[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+1) ;
-							newPoints[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+2) ;
-							newPoints[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side+3) ;
-							done[start-1+k+nodes_per_plane*plane] = true ;
-							done[start+k+nodes_per_plane*plane] = true ;
-							done[start+1+k+nodes_per_plane*plane] = true ;
+							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = foundPoint ;
 						}
-					}
-					
-					if(tri[i]->isVertexByID(n->first) && tri[i]->isVertexByID(n->third))
-					{
-						for(size_t k = 0 ;  k <  nodes_per_side ; k++)
+						else
 						{
-							newPoints[start-1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side*2+2) ;
-							newPoints[start+k+nodes_per_plane*plane] = &n->getBoundingPoint(k+nodes_per_plane*plane+nodes_per_side*2+3) ;
-							newPoints[start+1+k+nodes_per_plane*plane] = &n->getBoundingPoint(k*nodes_per_plane) ;
-							done[start-1+k+nodes_per_plane*plane] = true ;
-							done[start+k+nodes_per_plane*plane] = true ;
-							done[start+1+k+nodes_per_plane*plane] = true ;
+							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = new Point(proto) ;
 						}
+						
+						done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
 					}
-				}
-			}
-			
-			if(!done[1])
-			{
-				for(size_t j = 0 ; j < nodes_per_side ; j++)
-				{
-					newPoints[j+1+nodes_per_plane*plane] = new Point(*tri[i]->first*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->second*((1.-j)/(nodes_per_side+1.))) ;
-					newPoints[j+1+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[j+1+nodes_per_plane*plane]->id = this->global_counter++ ;
-				}
-				
-				if(plane && !done[nodes_per_plane*plane])
-				{
-					newPoints[nodes_per_plane*plane] = new Point(*tri[i]->first) ;
-					newPoints[nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[nodes_per_plane*plane]->id = this->global_counter++ ;
-					done[nodes_per_plane*plane] = true ;
-				}
-				
-				if(plane && !done[nodes_per_plane*plane+nodes_per_side+1])
-				{
-					newPoints[nodes_per_plane*plane+nodes_per_side+1] = new Point(*tri[i]->second) ;
-					newPoints[nodes_per_plane*plane+nodes_per_side+1]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[nodes_per_plane*plane+nodes_per_side+1]->id = this->global_counter++ ;
-					done[nodes_per_plane*plane+nodes_per_side+1] = true ;
-				}
-			}
-			
-			if(!done[nodes_per_side+2])
-			{
-				for(size_t j = 0 ; j < nodes_per_side ; j++)
-				{
-					newPoints[j+nodes_per_side+2+nodes_per_plane*plane] = new Point(*tri[i]->third*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->second*((1.-j)/(nodes_per_side+1.))) ;
-					newPoints[j+2+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-						newPoints[j+nodes_per_side+2+nodes_per_plane*plane]->id = this->global_counter++ ;
-				}
-				
-				if(plane && !done[nodes_per_plane*plane+nodes_per_side+1])
-				{
-					newPoints[nodes_per_plane*plane+nodes_per_side+1] = new Point(*tri[i]->second) ;
-					newPoints[nodes_per_plane*plane+nodes_per_side+1]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[nodes_per_plane*plane+nodes_per_side+1]->id = this->global_counter++ ;
-					done[nodes_per_plane*plane] = true ;
-				}
-				
-				if(plane && !done[nodes_per_plane*plane+nodes_per_plane-1])
-				{
-					newPoints[nodes_per_plane*plane+nodes_per_plane-1] = new Point(*tri[i]->third) ;
-					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->id = this->global_counter++ ;
-					done[nodes_per_plane*plane+nodes_per_plane-1] = true ;
-				}
-			}
-			
-			if(!done[nodes_per_side*2+3])
-			{
-				for(size_t j = 0 ; j < nodes_per_side ; j++)
-				{
-					newPoints[j+nodes_per_side*2+3+nodes_per_plane*plane] = new Point(*tri[i]->first*((1.+j)/(nodes_per_side+1.)) +  *tri[i]->third*((1.-j)/(nodes_per_side+1.))) ;
-					newPoints[j+nodes_per_side*2+3+nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[j+nodes_per_side*2+3+nodes_per_plane*plane]->id = this->global_counter++ ;
-				}
-				
-				if(plane && !done[nodes_per_plane*plane+nodes_per_plane-1])
-				{
-					newPoints[nodes_per_plane*plane+nodes_per_plane-1] = new Point(*tri[i]->third) ;
-					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[nodes_per_plane*plane+nodes_per_plane-1]->id = this->global_counter++ ;
-					done[nodes_per_plane*plane+nodes_per_plane-1] = true ;
-				}
-				
-				if(plane && !done[nodes_per_plane*plane])
-				{
-					newPoints[nodes_per_plane*plane] = new Point(*tri[i]->first) ;
-					newPoints[nodes_per_plane*plane]->t = plane*(timestep/(time_planes-1)) ;
-					newPoints[nodes_per_plane*plane]->id = this->global_counter++ ;
-					done[nodes_per_plane*plane] = true ;
 				}
 			}
 		}
@@ -977,7 +884,7 @@ void DelaunayTriangle::print() const
 {
 	for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
 	{
-		std::cout << "(" << getBoundingPoint(i).x << ", " << getBoundingPoint(i).y << ") " ;
+		std::cout << "(" << getBoundingPoint(i).x << ";" << getBoundingPoint(i).y <<  ";" << getBoundingPoint(i).t <<") " ;
 	}
 	std::cout <<  ":: "<< isAlive() << std::endl ;
 }

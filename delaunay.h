@@ -331,7 +331,7 @@ public:
 	 */
 	std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) ;
 	
-	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = -1, const TriElement * father = NULL) ; 
+	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = NULL) ; 
 	void refresh(TriElement *father, bool compile = true) ;
 	
 	size_t numPoints() const;

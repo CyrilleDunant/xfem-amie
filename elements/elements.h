@@ -21,6 +21,7 @@
 Mu::Function XTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
 Mu::Function YTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
 Mu::Function ZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
+Mu::Function TTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
 Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
 Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
 Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
@@ -72,10 +73,13 @@ public:
 	virtual  std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  ;
 	virtual const Function getXTransform() const ;
 	virtual const Function getYTransform() const ;
+	virtual const Function getTTransform() const ;
 	const Function getdXTransform(Variable) const ;
 	const Function getdYTransform(Variable) const ;
+	const Function getdTTransform(Variable) const ;
 	const double getdXTransform(Variable, const Point p) const ;
 	const double getdYTransform(Variable, const Point p) const ;
+	const double getdTTransform(Variable, const Point p) const ;
 	
 	virtual ElementState * getState() const ;
 	

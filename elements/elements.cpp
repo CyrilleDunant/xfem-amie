@@ -379,7 +379,6 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 		}
 	case QUADRATIC :
 		{
-			this->Triangle::sampleSurface(6) ;
 			shapefunc = new std::valarray<Function>(6) ;
 			
 			
@@ -407,8 +406,8 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 		{
 			shapefunc = new std::valarray<Function>(2) ;
 			Matrix m(1, 2) ;
-			std::valarray<Matrix> v(1) ; v[0] = m ;
-			std::valarray<std::valarray<Matrix> > vv(1) ;
+			std::valarray<Matrix> v(m,1) ; v[0] = m ;
+			std::valarray<std::valarray<Matrix> > vv(v,1) ;
 			vv[0] = v ;
 			
 			vv[0][0][0][1] = 1 ;
@@ -422,8 +421,8 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 		{
 			shapefunc = new std::valarray<Function>(3) ;
 			Matrix m(1, 3) ;
-			std::valarray<Matrix> v(1) ; v[0] = m ;
-			std::valarray<std::valarray<Matrix> > vv(1) ;
+			std::valarray<Matrix> v(m,1) ; v[0] = m ;
+			std::valarray<std::valarray<Matrix> > vv(v,1) ;
 			vv[0] = v ;
 			
 			vv[0][0][0][2] = .5 ;
@@ -442,12 +441,10 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 	case LINEAR_TIME_LINEAR :
 		{
 			shapefunc = new std::valarray<Function>(6) ;
-			Matrix m(1, 2) ;
-			std::valarray<Matrix> v(2) ; v[0] = m ; v[1] = m ;
-			std::valarray<std::valarray<Matrix> >vv(2) ; vv[0] = v ;  vv[1] = v ;
-			Matrix xi(2,2) ; xi[1][0] = 1 ;
-			Matrix eta(2,2) ; eta[0][1] = 1 ;
-			Matrix one(2,2) ; one[0][0] = 1 ;
+			Matrix m(2, 2) ;
+			std::valarray<Matrix> v(m, 2) ; v[0] = m ; v[1] = m ;
+			std::valarray<std::valarray<Matrix> >vv(v, 2) ; vv[0] = v ;  vv[1] = v ;
+
 		//0
 			vv[0][1][0][0] = .5  ;
 			vv[0][1][0][1] = -.5  ;
@@ -477,7 +474,7 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 		//3
 			vv[0][1][0][0] = .5  ;
 			vv[0][1][0][1] = .5  ;
-			(*shapefunc)[0] = Function(vv) ;
+			(*shapefunc)[3] = Function(vv) ;
 			vv[0][1][0][0] = 0  ;
 			vv[0][1][0][1] = 0  ;
 		//4
@@ -487,7 +484,7 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 			vv[0][0][0][1] = .5  ;
 			vv[1][0][0][1] = -.5  ;
 			vv[0][1][0][1] = -.5  ;
-			(*shapefunc)[1] = Function(vv) ;
+			(*shapefunc)[4] = Function(vv) ;
 			vv[0][0][0][0] = 0  ;
 			vv[1][0][0][0] = 0  ;
 			vv[0][1][0][0] = 0  ;
@@ -497,37 +494,35 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 		//5
 			vv[1][0][0][0] = .5  ;
 			vv[1][0][0][1] = .5  ;
-			(*shapefunc)[2] = Function(xi) ;
+			(*shapefunc)[5] = Function(vv) ;
 			break ;
 		}
 	case LINEAR_TIME_QUADRATIC :
 		{
-			this->Triangle::sampleSurface(6) ;
 			shapefunc = new std::valarray<Function>(9) ;
 			
 		//0
-			(*shapefunc)[0] = Function("y t 2 ^ 0.5 * t 0.5 * - *") ;
+			(*shapefunc)[0] = Function("y 0.5 t t * * 0.5 t * - *") ;
 		//1
-			(*shapefunc)[1] = Function("1 y x - - t 2 ^ 0.5 * t 0.5 * - *") ;
+			(*shapefunc)[1] = Function("1 x y - - 0.5 t t * * 0.5 t * - *") ;
 		//2
-			(*shapefunc)[2] = Function("x t 2 ^ 0.5 * t 0.5 * - *") ;
+			(*shapefunc)[2] = Function("x 0.5 t t * * 0.5 t * - *") ;
 		//3
-			(*shapefunc)[3] = Function("y 1 t 2 ^ - *") ;
+			(*shapefunc)[3] = Function("y 1 t t * - *") ;
 		//4
-			(*shapefunc)[4] = Function("1 y x - - 1 t 2 ^ - *") ;
+			(*shapefunc)[4] = Function("1 x y - - 1 t t * - *") ;
 		//5
-			(*shapefunc)[5] = Function("x 1 t 2 ^ - *") ;
+			(*shapefunc)[5] = Function("x 1 t t * - *") ;
 		//6
-			(*shapefunc)[3] = Function("y t 2 ^ 0.5 * t 0.5 * + *") ;
+			(*shapefunc)[6] = Function("y 0.5 t t * * 0.5 t * + *") ;
 		//7
-			(*shapefunc)[4] = Function("1 y x - - t 2 ^ 0.5 * t 0.5 * + *") ;
+			(*shapefunc)[7] = Function("1 x y - - 0.5 t t * * 0.5 t * + *") ;
 		//8
-			(*shapefunc)[5] = Function("x t 2 ^ 0.5 * t 0.5 * + *") ;
+			(*shapefunc)[8] = Function("x 0.5 t t * * 0.5 t * + *") ;
 			break ;
 		}
 	case QUADRATIC_TIME_LINEAR:
 		{
-			this->Triangle::sampleSurface(6) ;
 			shapefunc = new std::valarray<Function>(12) ;
 			
 		//0
@@ -554,14 +549,15 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 			(*shapefunc)[10] = Function("x x 2 * * x - 0.5 0.5 t * + *") ;
 		//5
 			(*shapefunc)[11] = Function("x y 4 * * 0.5 0.5 t * + *") ;
+			break ;
 		}
 	case QUADRATIC_TIME_QUADRATIC:
 		{
-			this->Triangle::sampleSurface(6) ;
 			shapefunc = new std::valarray<Function>(18) ;
 			
 		//0
 			(*shapefunc)[0] = Function("y y 2 * * y - 0.5 t t * * 0.5 t * - *") ;
+			
 		//1
 			(*shapefunc)[1] = Function("y 4 * x y 4 * * - y y 4 * * - 0.5 t t * * 0.5 t * - *") ;
 		//2
@@ -585,7 +581,7 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 		//5
 			(*shapefunc)[11] = Function("x y 4 * * 1 t t * - *") ;
 		//0
-			(*shapefunc)[12] = Function("y y 2 * * y - 0.5 t t * * 0.5 tx * + *") ;
+			(*shapefunc)[12] = Function("y y 2 * * y - 0.5 t t * * 0.5 t x * + *") ;
 		//1
 			(*shapefunc)[13] = Function("y 4 * x y 4 * * - y y 4 * * - 0.5 t t * * 0.5 t * + *") ;
 		//2
@@ -596,6 +592,7 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 			(*shapefunc)[16] = Function("x x 2 * * x - 0.5 t t * * 0.5 t * + *") ;
 		//5
 			(*shapefunc)[17] = Function("x y 4 * * 0.5 t t * * 0.5 t * + *") ;
+			break ;
 		}
 	default:
 		{
@@ -644,12 +641,30 @@ Function TriElement::jacobian() const
 	
 double  TriElement::jacobianAtPoint(const Point p) const 
 {
-	double xdxi = this->getdXTransform(XI, p) ;
-	double ydxi = this->getdYTransform(XI, p) ;
-	double xdeta = this->getdXTransform(ETA, p) ;
-	double ydeta = this->getdYTransform(ETA, p) ;
-	
-	return ydeta*xdxi - ydxi*xdeta ;
+	if(order < CONSTANT_TIME_LINEAR)
+	{
+		double xdxi = this->getdXTransform(XI, p) ;
+		double ydxi = this->getdYTransform(XI, p) ;
+		double xdeta = this->getdXTransform(ETA, p) ;
+		double ydeta = this->getdYTransform(ETA, p) ;
+		
+		return ydeta*xdxi - ydxi*xdeta ;
+	}
+	else
+	{
+		double xdxi = this->getdXTransform(XI, p) ;
+		double ydxi = this->getdYTransform(XI, p) ;
+		double zdxi = this->getdTTransform(XI, p) ;
+		double xdeta = this->getdXTransform(ETA, p) ;
+		double ydeta = this->getdYTransform(ETA, p) ;
+		double zdeta = this->getdTTransform(ETA, p) ;
+		double xdzeta = this->getdXTransform(TIME_VARIABLE,p) ;
+		double ydzeta = this->getdYTransform(TIME_VARIABLE,p) ;
+		double zdzeta = this->getdTTransform(TIME_VARIABLE,p) ;
+		
+		return xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
+			xdxi*ydzeta*zdeta - xdeta*ydxi*zdzeta - xdzeta*ydeta*zdxi ;
+	}
 	
 }
 	
@@ -688,9 +703,14 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 {
 		// in barycentric coordinates, we have the following :
 		
+	size_t factor = 1 ;
+	
+	if(order == QUADRATIC || order == QUADRATIC_TIME_LINEAR || order == QUADRATIC_TIME_QUADRATIC)
+		factor = 2 ;
+	
 	Matrix S(3,3) ;
-	S[0][0] = this->getBoundingPoint(0).x ; S[0][1] = this->getBoundingPoint(order).x ;  S[0][2] = this->getBoundingPoint(order*2).x ; 
-	S[1][0] = this->getBoundingPoint(0).y ; S[1][1] = this->getBoundingPoint(order).y ;  S[1][2] = this->getBoundingPoint(order*2).y ; 
+	S[0][0] = this->getBoundingPoint(0).x ; S[0][1] = this->getBoundingPoint(factor).x ;  S[0][2] = this->getBoundingPoint(factor*2).x ; 
+	S[1][0] = this->getBoundingPoint(0).y ; S[1][1] = this->getBoundingPoint(factor).y ;  S[1][2] = this->getBoundingPoint(factor*2).y ; 
 	S[2][0] = 1 ; S[2][1] = 1 ;  S[2][2] = 1 ; 
 	
 	Vector v(3) ; 
@@ -1000,7 +1020,6 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 	}
 	else if(order == QUADRATIC_TIME_QUADRATIC)
 	{
-		this->Tetrahedron::sampleSurface(10) ;
 		shapefunc = new std::valarray<Function>(30) ;
 		
 			//0
@@ -1134,6 +1153,11 @@ const Function ElementarySurface::getYTransform() const
 	return YTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
 }
 
+const Function ElementarySurface::getTTransform() const
+{
+	return TTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
+}
+
 const Function ElementarySurface::getdXTransform(Variable v) const
 {
 	return dXTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
@@ -1142,6 +1166,11 @@ const Function ElementarySurface::getdXTransform(Variable v) const
 const Function ElementarySurface::getdYTransform(Variable v) const
 {
 	return dYTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
+}
+
+const Function ElementarySurface::getdTTransform(Variable v) const
+{
+	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
 }
 
 const double ElementarySurface::getdXTransform(Variable v, const Point p) const
@@ -1154,6 +1183,10 @@ const double ElementarySurface::getdYTransform(Variable v, const Point p) const
 	return dYTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
+const double ElementarySurface::getdTTransform(Variable v, const Point p) const
+{
+	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
+}
 
 void ElementarySurface::setEnrichment(std::pair<size_t, Function>  p)
 {
@@ -1794,6 +1827,35 @@ Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	return ret ;
 }
 
+Function TTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+{
+	Function ret ;
+	Function der_x ;
+	Function der_y ;
+	Function der_z ;
+	Function der_t ;
+	
+	assert(points.size() == basis.size()) ;
+	for(size_t i = 0 ; i < points.size() ; i++)
+	{
+		ret += basis[i]*points[i]->t ;
+		der_x += basis[i].d(XI)*points[i]->t ;
+		der_y += basis[i].d(ETA)*points[i]->t ;
+		der_z += basis[i].d(ZETA)*points[i]->t ;
+		der_t += basis[i].d(ZETA)*points[i]->t ;
+		
+	}
+	
+	ret.getDerivatives().resize(basis[0].getDerivatives().size()) ;
+	ret.getDerivatives()[0] = der_x ;
+	ret.getDerivatives()[1] = der_y ;
+	ret.getDerivatives()[2] = der_z ;
+	ret.getDerivatives()[3] = der_t ;
+	
+	
+	return ret ;
+}
+
 Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v)
 {
 	switch(v)
@@ -1833,6 +1895,18 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			}
 			
 			return der_z ;
+		}
+	case TIME_VARIABLE:
+		{
+			Function der_t ;
+			
+			assert(points.size() == basis.size()) ;
+			for(size_t i = 0 ; i < points.size() ; i++)
+			{
+				der_t += basis[i].d(TIME_VARIABLE)*points[i]->x ;
+			}
+			
+			return der_t ;
 		}
 	default:
 		{
@@ -1882,6 +1956,18 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			
 			return der_z ;
 		}
+	case TIME_VARIABLE:
+		{
+			Function der_t ;
+			
+			assert(points.size() == basis.size()) ;
+			for(size_t i = 0 ; i < points.size() ; i++)
+			{
+				der_t += basis[i].d(TIME_VARIABLE)*points[i]->y ;
+			}
+			
+			return der_t ;
+		}
 	default:
 		{
 			std::cout << "*** error ***" << std::endl ;
@@ -1929,6 +2015,18 @@ Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			}
 			
 			return der_z ;
+		}
+	case TIME_VARIABLE:
+		{
+			Function der_t ;
+			
+			assert(points.size() == basis.size()) ;
+			for(size_t i = 0 ; i < points.size() ; i++)
+			{
+				der_t += basis[i].d(TIME_VARIABLE)*points[i]->t ;
+			}
+			
+			return der_t ;
 		}
 	default:
 		{
@@ -2006,9 +2104,8 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		{
 			VirtualMachine vm ;
 			double der_x = 0;
-			
-			assert(points->size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+					
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_x += vm.deval(basis[i],XI,p)*points[i]->x ;
 			}
@@ -2021,7 +2118,7 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			double der_y = 0 ;
 			
 			assert(points.size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_y += vm.deval(basis[i],ETA, p)*points[i]->x ;
 			}
@@ -2034,12 +2131,25 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			double der_z = 0 ;
 			
 			assert(points.size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_z += vm.deval(basis[i],ZETA,p)*points[i]->x ;
 			}
 			
 			return der_z ;
+		}
+	case TIME_VARIABLE:
+		{
+			VirtualMachine vm ;
+			double der_t = 0 ;
+			
+			assert(points.size() == basis.size()) ;
+			for(size_t i = 0 ; i < basis.size() ; i++)
+			{
+				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->x ;
+			}
+			
+			return der_t ;
 		}
 	default:
 		{
@@ -2058,8 +2168,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_x = 0;
 			
-			assert(points.size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_x += vm.deval(basis[i],XI,p)*points[i]->y ;
 			}
@@ -2072,7 +2181,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			double der_y = 0 ;
 			
 			assert(points->size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_y += vm.deval(basis[i],ETA, p)*points[i]->y ;
 			}
@@ -2085,12 +2194,25 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			double der_z = 0 ;
 			
 			assert(points.size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_z += vm.deval(basis[i],ZETA,p)*points[i]->y ;
 			}
 			
 			return der_z ;
+		}
+	case TIME_VARIABLE:
+		{
+			VirtualMachine vm ;
+			double der_t = 0 ;
+			
+			assert(points.size() == basis.size()) ;
+			for(size_t i = 0 ; i < basis.size() ; i++)
+			{
+				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->y ;
+			}
+			
+			return der_t ;
 		}
 	default:
 		{
@@ -2123,7 +2245,7 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			double der_y = 0 ;
 			
 			assert(points->size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_y += vm.deval(basis[i],ETA, p)*points[i]->z ;
 			}
@@ -2143,6 +2265,19 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			return der_z ;
 		}
+	case TIME_VARIABLE:
+		{
+			VirtualMachine vm ;
+			double der_t = 0 ;
+			
+			assert(points.size() == basis.size()) ;
+			for(size_t i = 0 ; i < points.size() ; i++)
+			{
+				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->z ;
+			}
+			
+			return der_t ;
+		}
 	default:
 		{
 			std::cout << "*** error ***" << std::endl ;
@@ -2161,7 +2296,7 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			double der_x = 0;
 			
 			assert(points->size() == basis.size()) ;
-			for(size_t i = 0 ; i < points.size() ; i++)
+			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_x += vm.deval(basis[i],XI,p)*points[i]->t ;
 			}

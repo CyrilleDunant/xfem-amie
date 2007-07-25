@@ -59,7 +59,6 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	
 	Vector z(r) ;
 	P->precondition(r,z) ;
-	std::cout << "p-c" << std::endl ;
 	Vector p = z ;
 	Vector q = A*p ;
 	

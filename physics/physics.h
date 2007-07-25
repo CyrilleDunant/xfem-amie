@@ -10,6 +10,7 @@
 #include "physics_base.h"
 #include "void_form.h"
 #include "stiffness.h"
+#include "diffusion.h"
 #include "weibull_distributed_stiffness.h"
 #include "stiffness_and_fracture.h"
 #include "stiffness_with_imposed_deformation.h"
