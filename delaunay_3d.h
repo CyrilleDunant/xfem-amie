@@ -340,6 +340,7 @@ public:
 	std::vector<DelaunayTetrahedron *> getTetrahedrons() const;
 	
 	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = NULL) ; 
+	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep =2, const TriElement * father =NULL) ;
 	
 	void refresh(const TetrahedralElement *father) ;
 	
