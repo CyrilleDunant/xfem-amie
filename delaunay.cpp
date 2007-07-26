@@ -167,29 +167,45 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 				Point a(tri[i]->getBoundingPoint(side)) ;
 				Point b(tri[i]->getBoundingPoint((side+1)%3)) ;
 				
-				a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
-				b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+				if(time_planes> 1)
+				{
+					a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+					b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+				}
 				for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
 				{
 					double fraction = (double)(node)/((double)nodes_per_side+1) ;
 					Point proto = a*(1.-fraction) + b*fraction ;
 					Point * foundPoint = NULL ;
-		 			for(size_t j = 0 ; j < tri[i]->neighbour.size() ; j++)
+					
+					for(size_t j = 0 ; j< tri[i]->getBoundingPoints().size() ; j++)
 					{
-						if(tri[i]->neighbour[j]->isTriangle && tri[i]->neighbour[j]->visited)
+						if(tri[i]->getBoundingPoint(j) == proto)
 						{
-							DelaunayTriangle * n = static_cast<DelaunayTriangle *>(tri[i]->neighbour[j]) ;
-							for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
+							foundPoint = &tri[i]->getBoundingPoint(j) ;
+							break ;
+						}
+					}
+					
+					if(!foundPoint)
+					{
+						for(size_t j = 0 ; j < tri[i]->neighbour.size() ; j++)
+						{
+							if(tri[i]->neighbour[j]->isTriangle && tri[i]->neighbour[j]->visited)
 							{
-								if(n->getBoundingPoint(k) == proto)
+								DelaunayTriangle * n = static_cast<DelaunayTriangle *>(tri[i]->neighbour[j]) ;
+								for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
 								{
-									foundPoint = &n->getBoundingPoint(k) ;
-									break ;
+									if(n->getBoundingPoint(k) == proto)
+									{
+										foundPoint = &n->getBoundingPoint(k) ;
+										break ;
+									}
 								}
+								
+								if(foundPoint)
+									break ;
 							}
-							
-							if(foundPoint)
-								break ;
 						}
 					}
 					
@@ -202,6 +218,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 						else
 						{
 							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = new Point(proto) ;
+							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = global_counter++ ;
 						}
 						
 						done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;

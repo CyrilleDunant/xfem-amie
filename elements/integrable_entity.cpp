@@ -467,6 +467,7 @@ Vector ElementState::getStress(const Point & p, bool local) const
 		}
 		
 		Matrix Jinv = parent->getInverseJacobianMatrix(p_) ;
+		
 		lstrain[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1]  + (x_zeta)*Jinv[0][2];
 		lstrain[1] = (y_xi)*Jinv[1][0] + (y_eta)*Jinv[1][1]  + (y_zeta)*Jinv[1][2];
 		lstrain[2] = (z_xi)*Jinv[2][0] + (z_eta)*Jinv[2][1]  + (z_zeta)*Jinv[2][2]; 
@@ -579,6 +580,7 @@ Vector ElementState::getNonEnrichedStress(const Point & p, bool local) const
 		}
 		
 		Matrix Jinv = parent->getInverseJacobianMatrix(p_) ;
+		
 		lstrain[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1]  + (x_zeta)*Jinv[0][2];
 		lstrain[1] = (y_xi)*Jinv[1][0] + (y_eta)*Jinv[1][1]  + (y_zeta)*Jinv[1][2];
 		lstrain[2] = (z_xi)*Jinv[2][0] + (z_eta)*Jinv[2][1]  + (z_zeta)*Jinv[2][2]; 

@@ -16,6 +16,15 @@ Point::Point()
 	this->id = -1 ;
 }
 
+Point::Point(const Point & p) 
+{
+	this->x = p.x ; 
+	this->y = p.y ;
+	this->z = p.z ;
+	this->t = p.t ;
+	this->id = p.id ;
+}
+
 double Point::angle() const
 {
 	assert(z==0) ;

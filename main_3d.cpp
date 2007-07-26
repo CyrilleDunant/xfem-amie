@@ -665,6 +665,8 @@ int main(int argc, char *argv[])
 	
 // 	ft.assemble() ;
 	myTets= ft.getTetrahedrons() ;
+	
+	
 	for(size_t i = 0 ; i < myTets.size(); i++)
 	{
 		for(size_t j = 0 ; j < myTets[i]->getBoundingPoints().size() ; j++)
@@ -683,6 +685,83 @@ int main(int argc, char *argv[])
 	}
 
 	ft.step(0) ;
+	
+	std::valarray<Function> * shapefunc = new std::valarray<Function>(10) ;
+	
+	Matrix zero(3,3) ;
+	std::valarray<Matrix> f0(zero, 3) ;
+	f0[0][0][1] = -1 ; // z
+	f0[0][0][2] =  2 ; // z^2
+	
+	std::valarray<Matrix> f1(zero,3) ;
+	f1[0][0][1] = 4 ; // z
+	f1[0][0][2] = -4 ; // z^2
+	f1[1][0][1] = -4 ; // zx
+	f1[0][1][1] = -4 ; // zy
+	
+	std::valarray<Matrix> f2(zero,3) ;
+	f2[0][0][0] = 1 ; // 1
+	f2[0][0][1] = -3 ; // z
+	f2[0][0][2] = 2 ; // z^2
+	f2[1][0][1] = 4 ; // zx
+	f2[0][1][1] = 4 ; // zy
+	f2[1][0][0] = -3 ; // x
+	f2[2][0][0] = 2 ; // x^2
+	f2[1][1][0] = 4 ; // xy
+	f2[0][1][0] = -3 ; // y
+	f2[0][2][0] = 2 ; // y^2
+	
+	std::valarray<Matrix> f3(zero,3) ;
+	f3[1][0][0] = 4 ; // x
+	f3[2][0][0] = -4 ; // x^2
+	f3[1][0][1] = -4 ; // zx
+	f3[1][1][0] = -4 ; // xy
+	
+	std::valarray<Matrix> f4(zero, 3) ;
+	f4[1][0][0] = -1 ; // x
+	f4[2][0][0] = 2 ; // x^2
+	
+	std::valarray<Matrix> f5(zero,3) ;
+	f5[1][1][0] = 4 ; // xy
+	
+	std::valarray<Matrix> f6(zero,3) ;
+	f6[0][1][0] = -1 ; // y
+	f6[0][2][0] = 2 ; // y^2
+	
+	std::valarray<Matrix> f7(zero,3) ;
+	f7[0][1][1] = 4 ; // yz
+	
+	std::valarray<Matrix> f8(zero,3) ;
+	f8[0][1][0] = 4 ; // y
+	f8[0][2][0] = -4 ; // y^2
+	f8[0][1][1] = -4 ; // zy
+	f8[1][1][0] = -4 ; // xy
+	
+	
+	std::valarray<Matrix> f9(zero,3) ;
+	f9[1][0][1] = 4 ; // xz
+	
+	(*shapefunc)[0] = Function(f0) ;//z- z*2*(one-x-y-z) - x*z*2 - y*z*2 ; 
+	(*shapefunc)[1] = Function(f1) ; //z*4*(one-x-y-z) ;
+	(*shapefunc)[2] = Function(f2) ; //one-x-y-z-(one-x-y-z)*(x+y+z)*2 ;
+	(*shapefunc)[3] = Function(f3) ; //x*4*(one-x-y-z) ;
+	(*shapefunc)[4] = Function(f4) ; //x- x*2*(one-x-y-z) - x*z*2 - y*x*2 ; 
+	(*shapefunc)[5] = Function(f5) ; //x*y*4 ; 
+	(*shapefunc)[6] = Function(f6) ; //y- y*2*(one-x-y-z) - y*z*2 - y*x*2 ; 
+	(*shapefunc)[7] = Function(f7) ; //y*z*4 ;
+	(*shapefunc)[8] = Function(f8) ; //y*4*(one-x-y-z) ;
+	(*shapefunc)[9] = Function(f9) ; //x*z*4 ;
+	
+	for(size_t i = 0 ; i < shapefunc->size() ; i++)
+	{
+		std::cout << i << " :: " << std::flush ;
+		for(size_t j = 0 ; j < myTets[myTets.size()-1]->getBoundingPoints().size() ; j++)
+		{
+			std::cout << round(VirtualMachine().eval((*shapefunc)[i], myTets[myTets.size()-1]->inLocalCoordinates(myTets[myTets.size()-1]->getBoundingPoint(j)))) << std::flush ;
+		}
+		std::cout << std::endl ;
+	}
+	
 	
 	x = new Vector(ft.getAssembly()->getDisplacements()) ;//Vector(ft.getAssembly()->getDisplacements()) ;
 // 	for(size_t i = 0 ; i < myTets->size(); i++)
@@ -709,36 +788,19 @@ int main(int argc, char *argv[])
 		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
 		{
 			Vector s = myTets[i]->getState()->getStress(*myTets[i]->first) ;
-			(*sigma)[i*4] = sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-// 			(*sigma)[i*4] = s[3];
- 			if((*sigma)[i*4] > 5.)
- 				(*sigma)[i*4] = 5. ;
-// 			if(s[0] < -5.)
-// 				(*sigma)[i*4] = -5. ;
+			(*sigma)[i*4] = s[0] ; //sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
 
 			s = myTets[i]->getState()->getStress(*myTets[i]->second) ;
-			(*sigma)[i*4+1] = sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-// 			(*sigma)[i*4+1] = s[3];
- 			if((*sigma)[i*4+1] > 5.)
- 				(*sigma)[i*4+1] = 5. ;
-// 			if(s[0] < -5.)
-// 				(*sigma)[i*4+1] = -5. ;
+			(*sigma)[i*4+1] = s[0];//sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
+
 	
 			s = myTets[i]->getState()->getStress(*myTets[i]->third) ;
-			(*sigma)[i*4+2] = sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-// 			(*sigma)[i*4+2] = s[3];
- 			if((*sigma)[i*4+2] > 5.)
- 				(*sigma)[i*4+2] = 5. ;
-// 			if(s[0] < -5.)
-// 				(*sigma)[i*4+2] = -5. ;
+			(*sigma)[i*4+2] = s[0] ; //sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
+
 
 			s = myTets[i]->getState()->getStress(*myTets[i]->fourth) ;
-			(*sigma)[i*4+3] = sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-// 			(*sigma)[i*4+3] = s[3];
- 			if((*sigma)[i*4+3] > 5.)
- 				(*sigma)[i*4+3] = 5. ;
-// 			if(s[0] < -5.)
-// 				(*sigma)[i*4+3] = -5. ;
+			(*sigma)[i*4+3] = s[0] ; //sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
+
 
 		
 // 			(*sigma)[i*4] = sqrt((*x)[myTets[i]->first->id*3]*(*x)[myTets[i]->first->id*3] + 

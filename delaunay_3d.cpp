@@ -204,7 +204,7 @@ void Star_3D::updateNeighbourhood()
 }
 
 
-void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TriElement * father)
+void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement * father)
 {
 	std::vector<DelaunayTetrahedron *> tri = getTetrahedrons() ;
 	
@@ -227,18 +227,23 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 			positions.push_back(0) ;
 			positions.push_back(1) ;
 			positions.push_back(2) ;
+			
 			positions.push_back(2) ;
 			positions.push_back(3) ;
 			positions.push_back(4) ;
+			
 			positions.push_back(4) ;
 			positions.push_back(5) ;
 			positions.push_back(6) ;
-			positions.push_back(6) ;
-			positions.push_back(7) ;
+			
 			positions.push_back(0) ;
+			positions.push_back(7) ;
+			positions.push_back(6) ;
+			
 			positions.push_back(6) ;
 			positions.push_back(8) ;
 			positions.push_back(2) ;
+			
 			positions.push_back(0) ;
 			positions.push_back(9) ;
 			positions.push_back(4) ;
@@ -266,60 +271,83 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 		std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
 		std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
 		
-		size_t current = 0 ;
+		
 		
 		for(size_t plane = 0 ; plane < time_planes ; plane++)
 		{
-
+			size_t current = 0 ;
 			for(size_t side = 0 ; side < 6 ; side++)
 			{
 				Point a(sides[side].first) ;
 				Point b(sides[side].second) ;
-				
-				a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
-				b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
-				for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
+				if(time_planes> 1)
+				{
+					a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+					b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+				}
+				for(size_t node = 0 ; node < nodes_per_side+2 ; node++)
 				{
 					double fraction = (double)(node)/((double)nodes_per_side+1) ;
 					Point proto = a*(1.-fraction) + b*fraction ;
 					Point * foundPoint = NULL ;
-					for(size_t j = 0 ; j < tri[i]->neighbour.size() ; j++)
+					
+					for(size_t j = 0 ; j< tri[i]->getBoundingPoints().size() ; j++)
 					{
-						if(tri[i]->neighbour[j]->isTetrahedron && tri[i]->neighbour[j]->visited)
+						if(tri[i]->getBoundingPoint(j) == proto)
 						{
-							DelaunayTetrahedron * n = static_cast<DelaunayTetrahedron *>(tri[i]->neighbour[j]) ;
-							for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
-							{
-								if(n->getBoundingPoint(k) == proto)
-								{
-									foundPoint = &n->getBoundingPoint(k) ;
-									break ;
-								}
-							}
-							
-							if(foundPoint)
-								break ;
+							foundPoint = &tri[i]->getBoundingPoint(j) ;
+							break ;
 						}
 					}
 					
-					if(!done[positions[current]])
+					if(!foundPoint)
+					{
+						for(size_t j = 0 ; j < 4 ; j++)
+						{
+							if(tri[i]->neighbour[j]->isTetrahedron && tri[i]->neighbour[j]->visited)
+							{
+								DelaunayTetrahedron * n = static_cast<DelaunayTetrahedron *>(tri[i]->neighbour[j]) ;
+								for(size_t k = 0 ; k < n->getBoundingPoints().size() ;k++)
+								{
+									if(n->getBoundingPoint(k) == proto)
+									{
+										foundPoint = &n->getBoundingPoint(k) ;
+										break ;
+									}
+								}
+								
+								if(foundPoint)
+									break ;
+							}
+						}
+					}
+					
+					if(!done[positions[current]+plane*nodes_per_plane])
 					{
 						if(foundPoint)
 						{
-							newPoints[positions[current]]  = foundPoint ;
+							newPoints[positions[current]+plane*nodes_per_plane]  = foundPoint ;
 						}
 						else
 						{
-							newPoints[positions[current]]  = new Point(proto) ;
+							newPoints[positions[current]+plane*nodes_per_plane]  = new Point(proto) ;
+							newPoints[positions[current]+plane*nodes_per_plane]->id = global_counter++ ;
 						}
 						
-						done[positions[current]] = true ;
+						done[positions[current]+plane*nodes_per_plane] = true ;
 					}
 					
 					current++ ;
 				}
 			}
 		}
+		
+		if( *newPoints[0] != *tri[i]->first 
+		    || *newPoints[2] != *tri[i]->second 
+		    || *newPoints[4] != *tri[i]->third 
+		    || *newPoints[6] != *tri[i]->fourth 
+		  )
+			std::cout << "arrgh" << std::endl ;
 		
 		tri[i]->setBoundingPoints(newPoints) ;
 	}
@@ -333,7 +361,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 }
 
 
-// void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father)
+// void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement * father)
 // {
 // 	std::vector<DelaunayTetrahedron *> tetra = getTetrahedrons() ;
 // 	

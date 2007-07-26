@@ -140,7 +140,7 @@ Matrix VirtualMachine::deval(const FunctionMatrix &f,  const Point&p, const Poin
 
 double VirtualMachine::deval(const Function &f, const Variable v_,  const double x, const double y , const double z,  const double t, const double u, const double v, const double w, const double eps) 
 {
-	if(f.isDifferentiable() && false)
+	if(f.isDifferentiable())
 	{
 		return eval(f.d(v_), x, y, z, t, u, v, w) ;
 	}
@@ -399,6 +399,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 	{
 		if(transpose)
 		{
+			
 			Matrix ret(3,2) ;
 			double dxi = deval(f, var[0], x,y,z) ;
 			double deta = deval(f, var[1], x,y,z) ;
