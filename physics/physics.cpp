@@ -41,10 +41,11 @@ Matrix BimaterialInterface::getTensor(const Point * p) const
 Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
 	VirtualMachine vm ;
-	
 	Function domain(inGeometry, xtransform, ytransform) ;
-	
 	FunctionMatrix C(3,3) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
 	
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
@@ -54,7 +55,7 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 		}
 	}
 	
-	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), e) ;
+	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), e,v) ;
 }
 
 Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
@@ -68,6 +69,9 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 	position = domain(position) ;
 	
 	FunctionMatrix C(3,3) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
 	
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
@@ -77,7 +81,7 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 		}
 	}
 	
-	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv) ;
+	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 bool BimaterialInterface::fractured() const
@@ -122,6 +126,9 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 	VirtualMachine vm ;
 	
 	FunctionMatrix C(3,3) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
 
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
@@ -132,7 +139,7 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 		}
 	}
 	
-	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), e) ;
+	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), e,v) ;
 }
 
 bool RadialStiffnessGradient::fractured() const
@@ -162,6 +169,9 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 {
 	
 	FunctionMatrix C(3,3) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
 
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
@@ -171,7 +181,7 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 		}
 	}
 	
-	return VirtualMachine().ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv) ;
+	return VirtualMachine().ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 Form * RadialStiffnessGradient::getCopy() const 
@@ -184,87 +194,87 @@ Vector RadialStiffnessGradient::getForces(const ElementState * s, const Function
 	return Vector(0) ;
 }
 
-Diffusion2D::Diffusion2D(double capacity, double conductivityX, double conductivityY) : LinearForm(Matrix(2,2), false, true, 1)
-{
-	
-	c = capacity ;
-	
-	alpha =  0.5;
-	tau = .01;
-	
-	param[0][0] = conductivityX ; 
-	param[1][1] = conductivityY ; 
-
-}
-	
-Diffusion2D::~Diffusion2D() { } ;
-
-
-Matrix Diffusion2D::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	Matrix ret(1,1) ;
-	
-	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e)/(alpha*tau) + c*VirtualMachine().ieval(p_i * p_j, e);
-	
-	return ret ;
-}
-	
-Matrix Diffusion2D::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
-{
-	Matrix ret(1,1) ;
-	
-	ret[0][0] =  VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true) , gp, Jinv)/(alpha*tau) + c*VirtualMachine().ieval(p_i * p_j, gp) ;
-	
-	return ret ;
-}
-	
-void Diffusion2D::step(double timestep, ElementState * currentState) 
-{
-	Vector du = currentState->getBuffer() ;
-	currentState->getDisplacements() +=  tau*currentState->getPreviousDisplacements()+ du;
-	currentState->getPreviousDisplacements() += du/(alpha*tau) ;
-}
-	
-bool Diffusion2D::fractured() const
-{
-	return false;
-}
-	
-
-Form * Diffusion2D::getCopy() const 
-{
-	return new Diffusion2D(*this) ;
-}
-
-bool Diffusion2D::hasInducedForces() const 
-{
-	return true ;
-}
-
-Vector Diffusion2D::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
-{
-	
-	Vector ret(1) ;
-
-	size_t index = 0 ;
-	for(size_t i = 0 ; i < s->getParent()->getBoundingPoints().size() ; i++)
-	{
-		if(VirtualMachine().eval(p_j, s->getParent()->inLocalCoordinates( s->getParent()->getBoundingPoint(i))) > .5)
-		{
-			index = i ;
-			break ;
-		}
-	}
-	
-	Vector v = s->getPreviousDisplacements() ;
-	Vector u = s->getDisplacements() ;
-	
-	ret[0] = -c*VirtualMachine().ieval(p_i*p_j, gp)*(v[index]) -
-			VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), gp, Jinv)*
-						(u[index]+tau*v[index]);
-	
-	return ret ;
-}
+// Diffusion2D::Diffusion2D(double capacity, double conductivityX, double conductivityY) : LinearForm(Matrix(2,2), false, true, 1)
+// {
+// 	
+// 	c = capacity ;
+// 	
+// 	alpha =  0.5;
+// 	tau = .01;
+// 	
+// 	param[0][0] = conductivityX ; 
+// 	param[1][1] = conductivityY ; 
+// 
+// }
+// 	
+// Diffusion2D::~Diffusion2D() { } ;
+// 
+// 
+// Matrix Diffusion2D::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
+// {
+// 	Matrix ret(1,1) ;
+// 	
+// 	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e)/(alpha*tau) + c*VirtualMachine().ieval(p_i * p_j, e);
+// 	
+// 	return ret ;
+// }
+// 	
+// Matrix Diffusion2D::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+// {
+// 	Matrix ret(1,1) ;
+// 	
+// 	ret[0][0] =  VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true) , gp, Jinv)/(alpha*tau) + c*VirtualMachine().ieval(p_i * p_j, gp) ;
+// 	
+// 	return ret ;
+// }
+// 	
+// void Diffusion2D::step(double timestep, ElementState * currentState) 
+// {
+// 	Vector du = currentState->getBuffer() ;
+// 	currentState->getDisplacements() +=  tau*currentState->getPreviousDisplacements()+ du;
+// 	currentState->getPreviousDisplacements() += du/(alpha*tau) ;
+// }
+// 	
+// bool Diffusion2D::fractured() const
+// {
+// 	return false;
+// }
+// 	
+// 
+// Form * Diffusion2D::getCopy() const 
+// {
+// 	return new Diffusion2D(*this) ;
+// }
+// 
+// bool Diffusion2D::hasInducedForces() const 
+// {
+// 	return true ;
+// }
+// 
+// Vector Diffusion2D::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+// {
+// 	
+// 	Vector ret(1) ;
+// 
+// 	size_t index = 0 ;
+// 	for(size_t i = 0 ; i < s->getParent()->getBoundingPoints().size() ; i++)
+// 	{
+// 		if(VirtualMachine().eval(p_j, s->getParent()->inLocalCoordinates( s->getParent()->getBoundingPoint(i))) > .5)
+// 		{
+// 			index = i ;
+// 			break ;
+// 		}
+// 	}
+// 	
+// 	Vector v = s->getPreviousDisplacements() ;
+// 	Vector u = s->getDisplacements() ;
+// 	
+// 	ret[0] = -c*VirtualMachine().ieval(p_i*p_j, gp)*(v[index]) -
+// 			VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), gp, Jinv)*
+// 						(u[index]+tau*v[index]);
+// 	
+// 	return ret ;
+// }
 	
 NonLinearStiffness::NonLinearStiffness(Function f, double n) 
 {
@@ -307,7 +317,11 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 	m0[1][0] = E_/(1-nu*nu)*nu ; m0[1][1] = E_/(1-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E_/(1-nu*nu)*(1.-nu)/2. ; 
 	
-	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), e) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	
+	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), e,v) ;
 }
 
 bool NonLinearStiffness::hasInducedForces() const
@@ -344,14 +358,22 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 	m0[1][0] = E_/(1-nu*nu)*nu ; m0[1][1] = E_/(1-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E_/(1-nu*nu)*(1.-nu)/2. ; 
 	
-	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp, Jinv) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	
+	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 Vector NonLinearStiffness::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	Vector stress = state->getStress(gp) ; 
 
-	return VirtualMachine().ieval(Gradient(p_j, true)*stress, gp, Jinv) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	
+	return VirtualMachine().ieval(Gradient(p_j, true)*stress, gp, Jinv,v) ;
 }
 
 bool NonLinearStiffness::isActive() const 
@@ -449,8 +471,11 @@ Vector TwoDCohesiveForces::getForces(const ElementState * s, const Function & p_
 			Vector stress(3) ;
 			for(size_t j = 0 ; j < 3 ; j++)
 				stress[j] = apparentStress[i*3+j] ;
+			std::vector<Variable> v ;
+			v.push_back(XI);
+			v.push_back(ETA);
 			
-			Matrix grad = VirtualMachine().geval(p_j, Jinv[i], gp[i].first, true) ;
+			Matrix grad = VirtualMachine().geval(p_j, Jinv[i],v, gp[i].first, true) ;
 			Vector force = (Vector)(grad*stress) ;
 				
 			double normalAmplitude = force[0]*normals[0].x + force[1]*normals[0].y;
@@ -560,12 +585,20 @@ ViscoElasticity::~ViscoElasticity() { } ;
 
 Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	v.push_back(ZETA);
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
 
 Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
 {
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	v.push_back(ZETA);
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 void ViscoElasticity::step(double timestep, ElementState * currentState)
 {
@@ -717,7 +750,11 @@ void ViscoElasticity::step(double timestep, ElementState * currentState)
 	
 Vector ViscoElasticity::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const
 {
-	return VirtualMachine().ieval(Gradient(p_j, true)*average_delta_sigma, gp, Jinv) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	v.push_back(ZETA);
+	return VirtualMachine().ieval(Gradient(p_j, true)*average_delta_sigma, gp, Jinv,v) ;
 }
 
 bool ViscoElasticity::hasInducedForces()

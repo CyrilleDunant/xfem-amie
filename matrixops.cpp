@@ -192,6 +192,19 @@ Matrix &Matrix::operator =(const Matrix &m)
 	return *this ;
 }
 
+void Matrix::print() const
+{
+	for(size_t i = 0 ; i < numRows() ;i++)
+	{
+		for(size_t j = 0 ; j < numCols() ;j++)
+		{
+			std::cout << (*this)[i][j] << "   " << std::flush ;
+		}
+		
+		std::cout << std::endl ;
+	}
+}
+
 MtM::operator const Matrix() const
 {
 	return matrix_multiply(first, second) ;

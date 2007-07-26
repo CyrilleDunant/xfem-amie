@@ -15,7 +15,7 @@
 namespace Mu
 {
 
-const double default_derivation_delta= 2e-8 ;
+const double default_derivation_delta= 2e-7 ;
 
 struct GtFMtG ;
 struct IntegrableEntity ;
@@ -40,8 +40,8 @@ public:
 	double deval(const Function &f, const Variable v, const Point p, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
 	Matrix deval(const FunctionMatrix &f, const Variable v, const Point p, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
 	
-	double deval(const Function &f, const Point&p,  const double x, const double y = 0, const double z = 0,const double eps = default_derivation_delta, bool normed = false)  ;
-	Matrix deval(const FunctionMatrix &f,const Point&p,  const double x, const double y = 0, const double z = 0,const double eps= default_derivation_delta, bool normed = false)  ;
+	double deval(const Function &f, const Point&p,  const double x, const double y = 0, const double z = 0, const double t = 0,const double eps = default_derivation_delta, bool normed = false)  ;
+	Matrix deval(const FunctionMatrix &f,const Point&p,  const double x, const double y = 0, const double z = 0, const double t = 0,const double eps= default_derivation_delta, bool normed = false)  ;
 	double deval(const Function &f,  const Point&p, const Point p, const double eps= default_derivation_delta, bool normed = false)  ;
 	Matrix deval(const FunctionMatrix &f,  const Point&p, const Point p, const double eps= default_derivation_delta, bool normed = false)  ;
 	
@@ -51,31 +51,31 @@ public:
 // 	
 	Matrix ieval(const FunctionMatrix &f, const IntegrableEntity *e)  ;
 	Matrix ieval(const FMtMtFM &f, const IntegrableEntity *e) ;
-	Matrix ieval(const GtM &f, const IntegrableEntity *e) ;
-	Matrix ieval(const GtMtG &f, const IntegrableEntity *e) ;
-	Matrix ieval(const GtMtG &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) ;
-	Vector ieval(const GtV &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) ;
-	Matrix ieval(const GtFMtG &f, const IntegrableEntity *e) ;
-	Matrix ieval(const GtFMtG &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) ;
-	Matrix ieval(const VGtM &f, const IntegrableEntity *e) ;
-	double ieval(const VGtMtVG &f, const IntegrableEntity *e) ;
+	Matrix ieval(const GtM &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	Matrix ieval(const GtMtG &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	Matrix ieval(const GtMtG &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	Vector ieval(const GtV &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	Matrix ieval(const GtFMtG &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	Matrix ieval(const GtFMtG &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	Matrix ieval(const VGtM &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	double ieval(const VGtMtVG &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
 	double ieval(const Function &f, const std::vector<std::pair<Segment *, IntegrableEntity *> > & gamma) ;
-	double ieval(const VGtMtVG &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) ;
-	double ieval(const VGtV &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) ;
-	double ieval(const Differential & d, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) ;
-	double ieval(const DtF & d, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) ;
-	double ieval(const Differential & d, const IntegrableEntity *e) ;
-	double ieval(const DtF & d, const IntegrableEntity *e) ;
+	double ieval(const VGtMtVG &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	double ieval(const VGtV &f, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	double ieval(const Differential & d, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	double ieval(const DtF & d, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	double ieval(const Differential & d, const IntegrableEntity *e, const std::vector<Variable> & var) ;
+	double ieval(const DtF & d, const IntegrableEntity *e, const std::vector<Variable> & var) ;
 		
-	Matrix geval(const Function &f, const IntegrableEntity *e, const double x, const double y = 0, const double z = 0, bool transpose = false) ;	
-	Matrix geval(const Gradient &f, const IntegrableEntity *e, const double x, const double y = 0, const double z = 0) ;
-	Matrix geval(const Function &f, const Matrix & m, const double x, const double y = 0, const double z = 0, bool transpose = false) ;	
-	Matrix geval(const Function &f, const Matrix & m, const Point& p, bool transpose ) ;
-	Matrix geval(const Gradient &f, const Matrix & m, const double x, const double y = 0, const double z = 0) ;
-	Matrix gveval(const Function &f, const IntegrableEntity *e, const double x, const double y = 0, const double z = 0, bool transpose = false) ;	
-	Matrix gveval(const VectorGradient &f, const IntegrableEntity *e, const double x, const double y = 0, const double z = 0) ;
-	Matrix gveval(const Function &f, const Matrix & m, const double x, const double y = 0, const double z = 0, bool transpose = false) ;	
-	Matrix gveval(const VectorGradient &f, const Matrix & m, const double x, const double y = 0, const double z = 0) ;
+	Matrix geval(const Function &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
+	Matrix geval(const Gradient &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
+	Matrix geval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
+	Matrix geval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const Point& p, bool transpose ) ;
+	Matrix geval(const Gradient &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
+	Matrix gveval(const Function &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
+	Matrix gveval(const VectorGradient &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
+	Matrix gveval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
+	Matrix gveval(const VectorGradient &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
 
 	std::vector<Point> allHints(const Function &, const Function &,const IntegrableEntity *e ) ;
 	std::vector<Point> allHints(const Function &,const IntegrableEntity *e ) ;

@@ -24,14 +24,30 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const Integr
 {
 	Matrix ret(1,1) ;
 	
-	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e) +  VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, e) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 9)
+		v.push_back(ZETA);
+	
+	v.push_back(TIME_VARIABLE);
+	
+	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e,v) +  VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, e,v) ;
 	return ret ;
 }
 
 Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
 {
 	Matrix ret(1,1) ;
-	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv) +  VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, gp, Jinv) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 9)
+		v.push_back(ZETA);
+	
+	v.push_back(TIME_VARIABLE);
+		
+	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv,v) +  VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, gp, Jinv,v) ;
 	return ret ;
 }
 

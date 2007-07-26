@@ -322,21 +322,21 @@ std::valarray< std::pair<Point, double> > TriElement::genGaussPoints() const
 		}
 	}
 
-	if(moved)
-	{
+// 	if(moved)
+// 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second*=jacobianAtPoint(fin[i].first);
 		}
-	}
-	else
-	{
-		double j = jacobianAtPoint(Point(1./3., 1./3.)) ;
-		for(size_t i = 0 ; i < fin.size() ; i++)
-		{
-			fin[i].second*=j;
-		}
-	}
+// 	}
+// 	else
+// 	{
+// 		double j = jacobianAtPoint(Point(1./3., 1./3.)) ;
+// 		for(size_t i = 0 ; i < fin.size() ; i++)
+// 		{
+// 			fin[i].second*=j;
+// 		}
+// 	}
 	
 	return fin ;
 } ;
@@ -555,42 +555,25 @@ TriElement::TriElement(Order order , bool father ): ElementarySurface(father),mo
 		{
 			shapefunc = new std::valarray<Function>(18) ;
 			
-		//0
 			(*shapefunc)[0] = Function("y y 2 * * y - 0.5 t t * * 0.5 t * - *") ;
-			
-		//1
 			(*shapefunc)[1] = Function("y 4 * x y 4 * * - y y 4 * * - 0.5 t t * * 0.5 t * - *") ;
-		//2
 			(*shapefunc)[2] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * + 0.5 t t * * 0.5 t * - *") ;
-		//3
 			(*shapefunc)[3] = Function("4 x *  x x 4 * * - x y 4 * * - 0.5 t t * * 0.5 t * - *") ;
-		//4
 			(*shapefunc)[4] = Function("x x 2 * * x - 0.5 t t * * 0.5 t * - *") ;
-		//5
 			(*shapefunc)[5] = Function("x y 4 * * 0.5 t t * * 0.5 t * - *") ;
-		//0
+
 			(*shapefunc)[6] = Function("y y 2 * * y - 1 t t * - *") ;
-		//1
 			(*shapefunc)[7] = Function("y 4 * x y 4 * * - y y 4 * * - 1 t t * - *") ;
-		//2
 			(*shapefunc)[8] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * + 1 t t * - *") ;
-		//3
 			(*shapefunc)[9] = Function("4 x *  x x 4 * * - x y 4 * * - 1 t t * - *") ;
-		//4
 			(*shapefunc)[10] = Function("x x 2 * * x - 1 t t * - *") ;
-		//5
 			(*shapefunc)[11] = Function("x y 4 * * 1 t t * - *") ;
-		//0
-			(*shapefunc)[12] = Function("y y 2 * * y - 0.5 t t * * 0.5 t x * + *") ;
-		//1
+
+			(*shapefunc)[12] = Function("y y 2 * * y - 0.5 t t * * 0.5 t * + *") ;
 			(*shapefunc)[13] = Function("y 4 * x y 4 * * - y y 4 * * - 0.5 t t * * 0.5 t * + *") ;
-		//2
 			(*shapefunc)[14] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * + 0.5 t t * * 0.5 t * + *") ;
-		//3
 			(*shapefunc)[15] = Function("4 x *  x x 4 * * - x y 4 * * - 0.5 t t * * 0.5 t * + *") ;
-		//4
 			(*shapefunc)[16] = Function("x x 2 * * x - 0.5 t t * * 0.5 t * + *") ;
-		//5
 			(*shapefunc)[17] = Function("x y 4 * * 0.5 t t * * 0.5 t * + *") ;
 			break ;
 		}
@@ -670,18 +653,39 @@ double  TriElement::jacobianAtPoint(const Point p) const
 	
 Matrix TriElement::getInverseJacobianMatrix(const Point & p) const
 {
-	Matrix  J0(2,2) ;
-	
-	double xdxi = this->getdXTransform(XI,p) ;
-	double ydxi = this->getdYTransform(XI,p) ;
-	double xdeta = this->getdXTransform(ETA,p) ;
-	double ydeta = this->getdYTransform(ETA,p) ;
-	
-	J0[0][0] = xdxi ; J0[0][1] = ydxi ; 
-	J0[1][0] = xdeta ; J0[1][1] = ydeta ;
-	invert2x2Matrix(J0) ;
-	return J0 ;
-	
+	if(order < CONSTANT_TIME_LINEAR)
+	{
+		Matrix  J0(2,2) ;
+		
+		double xdxi = this->getdXTransform(XI,p) ;
+		double ydxi = this->getdYTransform(XI,p) ;
+		double xdeta = this->getdXTransform(ETA,p) ;
+		double ydeta = this->getdYTransform(ETA,p) ;
+		
+		J0[0][0] = xdxi ; J0[0][1] = ydxi ; 
+		J0[1][0] = xdeta ; J0[1][1] = ydeta ;
+		invert2x2Matrix(J0) ;
+		return J0 ;
+	}
+	else
+	{
+		Matrix  J0(3,3) ;
+		double xdxi = this->getdXTransform(XI, p) ;
+		double ydxi = this->getdYTransform(XI, p) ;
+		double zdxi = this->getdTTransform(XI, p) ;
+		double xdeta = this->getdXTransform(ETA, p) ;
+		double ydeta = this->getdYTransform(ETA, p) ;
+		double zdeta = this->getdTTransform(ETA, p) ;
+		double xdzeta = this->getdXTransform(TIME_VARIABLE,p) ;
+		double ydzeta = this->getdYTransform(TIME_VARIABLE,p) ;
+		double zdzeta = this->getdTTransform(TIME_VARIABLE,p) ;
+		
+		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; 
+		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ;
+		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ;
+		invert3x3Matrix(J0) ;
+		return J0 ;
+	}
 }
 	
 std::valarray< std::pair<Point, double> > TriElement::getGaussPoints() const
@@ -720,7 +724,7 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 	
 	Vector coeff = inverse3x3Matrix( S) * v ;
 	
-	return Point(0,1)*coeff[0] + Point(0,0)*coeff[1] + Point(1,0)*coeff[2] ; 
+	return Point(0,1,0,p.t)*coeff[0] + Point(0,0,0,p.t)*coeff[1] + Point(1,0,0,p.t)*coeff[2] ; 
 }
 
 
@@ -1692,25 +1696,7 @@ Matrix ElementaryVolume::getInverseJacobianMatrix(const Point & p) const
 
 	invert3x3Matrix(J0) ;
 	return J0 ;
-	
-	
-// 	FunctionMatrix J(3,3) ;
-// 	Function xdxi = this->getXTransform().d(XI) ;
-// 	Function ydxi = this->getYTransform().d(XI) ;
-// 	Function zdxi = this->getZTransform().d(XI) ;
-// 	Function xdeta = this->getXTransform().d(ETA) ;
-// 	Function ydeta = this->getYTransform().d(ETA) ;
-// 	Function zdeta = this->getZTransform().d(ETA) ;
-// 	Function xdzeta = this->getXTransform().d(ZETA) ;
-// 	Function ydzeta = this->getYTransform().d(ZETA) ;
-// 	Function zdzeta = this->getZTransform().d(ZETA) ;
-// 	
-// 	J[0][0] = xdxi ; J[0][1] = ydxi ;  J[0][2] = zdxi ; 
-// 	J[1][0] = xdeta ; J[1][1] = ydeta ;  J[1][2] = zdeta ; 
-// 	J[2][0] = xdzeta ; J[2][1] = ydzeta ;  J[2][2] = zdzeta ; 
-// 	
-// 	VirtualMachine vm ;
-// 	return inverse3x3Matrix(vm.eval(J, p)) ;
+
 }
 
  Vector HexahedralElement::getNonLinearForces() const 
@@ -2104,25 +2090,22 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		{
 			VirtualMachine vm ;
 			double der_x = 0;
-					
+			
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_x += vm.deval(basis[i],XI,p)*points[i]->x ;
 			}
-			
 			return der_x ;
 		}
 	case ETA:
 		{
 			VirtualMachine vm ;
 			double der_y = 0 ;
-			
-			assert(points.size() == basis.size()) ;
+
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_y += vm.deval(basis[i],ETA, p)*points[i]->x ;
 			}
-			
 			return der_y ;
 		}
 	case ZETA:
@@ -2130,7 +2113,6 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_z = 0 ;
 			
-			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_z += vm.deval(basis[i],ZETA,p)*points[i]->x ;
@@ -2143,7 +2125,6 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_t = 0 ;
 			
-			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->x ;
@@ -2165,14 +2146,18 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 	{
 	case XI:
 		{
+			
 			VirtualMachine vm ;
 			double der_x = 0;
-			
+// 			std::cout << "-----" << std::endl ;
+// 			p.print() ;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
+// 				vm.print(basis[i]) ;
+// 				std::cout << vm.deval(basis[i],XI, p) << " X "<< points[i]->y << std::endl ;
 				der_x += vm.deval(basis[i],XI,p)*points[i]->y ;
 			}
-			
+// 			std::cout << "-----" << std::endl ;
 			return der_x ;
 		}
 	case ETA:
@@ -2180,7 +2165,6 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_y = 0 ;
 			
-			assert(points->size() == basis.size()) ;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_y += vm.deval(basis[i],ETA, p)*points[i]->y ;
@@ -2193,7 +2177,6 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_z = 0 ;
 			
-			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_z += vm.deval(basis[i],ZETA,p)*points[i]->y ;
@@ -2206,7 +2189,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_t = 0 ;
 			
-			assert(points.size() == basis.size()) ;
+
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->y ;
@@ -2231,7 +2214,6 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_x = 0;
 			
-			assert(points->size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_x += vm.deval(basis[i],XI,p)*points[i]->z ;
@@ -2244,7 +2226,6 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_y = 0 ;
 			
-			assert(points->size() == basis.size()) ;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_y += vm.deval(basis[i],ETA, p)*points[i]->z ;
@@ -2257,7 +2238,6 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_z = 0 ;
 			
-			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_z += vm.deval(basis[i],ZETA,p)*points[i]->z ;
@@ -2270,7 +2250,6 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_t = 0 ;
 			
-			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->z ;
@@ -2294,13 +2273,10 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		{
 			VirtualMachine vm ;
 			double der_x = 0;
-			
-			assert(points->size() == basis.size()) ;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
 				der_x += vm.deval(basis[i],XI,p)*points[i]->t ;
 			}
-			
 			return der_x ;
 		}
 	case ETA:
@@ -2308,7 +2284,6 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_y = 0 ;
 			
-			assert(points->size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_y += vm.deval(basis[i],ETA, p)*points[i]->t ;
@@ -2321,7 +2296,6 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_z = 0 ;
 			
-			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_z += vm.deval(basis[i],ZETA,p)*points[i]->t ;
@@ -2334,7 +2308,6 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			VirtualMachine vm ;
 			double der_t = 0 ;
 			
-			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->t ;

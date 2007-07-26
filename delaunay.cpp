@@ -167,8 +167,8 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 				Point a(tri[i]->getBoundingPoint(side)) ;
 				Point b(tri[i]->getBoundingPoint((side+1)%3)) ;
 				
-				a.t = plane*(timestep/(time_planes-1));
-				b.t = plane*(timestep/(time_planes-1));
+				a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+				b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
 				for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
 				{
 					double fraction = (double)(node)/((double)nodes_per_side+1) ;
@@ -1804,23 +1804,23 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 	std::valarray<Matrix> Jinv ;
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 
-	if(moved)
-	{
+// 	if(moved)
+// 	{
 		Jinv.resize(gp.size()) ;
 		for(size_t i = 0 ; i < gp.size() ;  i++)
 		{
 			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
 		}
-	}
-	else
-	{
-		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
-		{
-			Jinv[i] = J ;
-		}
-	}
+// 	}
+// 	else
+// 	{
+// 		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
+// 		Jinv.resize(gp.size()) ;
+// 		for(size_t i = 0 ; i < gp.size() ;  i++)
+// 		{
+// 			Jinv[i] = J ;
+// 		}
+// 	}
 	
 	for(size_t i = 0 ; i < dofs.size() ; i++)
 	{
@@ -1892,23 +1892,23 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 	std::valarray<std::pair<Point, double> > gp = getSubTriangulatedGaussPoints() ;
 	this->nonlinbehaviour->setState(this->getState()) ;
 	
-	if(moved)
-	{
+// 	if(moved)
+// 	{
 		Jinv.resize(gp.size()) ;
 		for(size_t i = 0 ; i < gp.size() ;  i++)
 		{
 			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
 		}
-	}
-	else
-	{
-		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
-		{
-			Jinv[i] = J ;
-		}
-	}
+// 	}
+// 	else
+// 	{
+// 		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
+// 		Jinv.resize(gp.size()) ;
+// 		for(size_t i = 0 ; i < gp.size() ;  i++)
+// 		{
+// 			Jinv[i] = J ;
+// 		}
+// 	}
 	
 	for(size_t i = 0 ; i < dofs.size() ; i++)
 	{
@@ -1936,141 +1936,6 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 	return mother ;
 }
 
-// std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGaussPoints() const
-// {
-// 	std::valarray<std::pair<Point, double> > gp = getGaussPoints() ; 
-// 	
-// 	VirtualMachine vm ;
-// 	
-// 	if(getEnrichmentFunctions().size() > 0 )
-// 	{
-// 		std::vector<std::pair<Point, double> > gp_alternative ;
-// 		std::vector<Point> to_add ;
-// 		std::vector<Point> to_add_extra ;
-// 		
-// 		std::vector<Point> box ;
-// 		
-// 		to_add.push_back(Point(0,1)) ;
-// 		to_add.push_back(Point(0,0)) ;
-// 		to_add.push_back(Point(1,0)) ;
-// 		
-// 		box.push_back(Point(-1,2)) ;
-// 		box.push_back(Point(-1,-1)) ;
-// 		box.push_back(Point(2,-1)) ;
-// 		box.push_back(Point(2,2)) ;
-// 		
-// 		to_add.push_back(Point(0,2)) ;
-// 		to_add.push_back(Point(1,2)) ;
-// 		
-// 		to_add.push_back(Point(-1,1)) ;
-// 		to_add.push_back(Point(1,1)) ;
-// 		to_add.push_back(Point(2,1)) ;
-// 		to_add.push_back(Point(-1,0)) ;
-// 		to_add.push_back(Point(2,0)) ;
-// 		
-// 		to_add.push_back(Point(0,-1)) ;
-// 		to_add.push_back(Point(1,-1)) ;
-// 		
-// 		
-// 		TriElement father(QUADRATIC) ;
-// 		
-// 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
-// 		{
-// 			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
-// 			{
-// 				if(getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[0] && 
-// 				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[1] && 
-// 				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[2])
-// 				{
-// 					bool ok = true ;
-// 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
-// 					{
-// 						if(dist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-6)
-// 						{
-// 							ok = false ;
-// 							break ;
-// 						}
-// 					}
-// 					if(ok && father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)))
-// 						to_add_extra.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
-// 				}
-// 			}
-// 		}
-// 		
-// 		to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-// 		
-// 		std::random_shuffle(to_add.begin(), to_add.end()) ;
-// 		DelaunayTree dt(new Point(box[0]), new Point(box[1]), new Point(box[2])) ;
-// 		dt.insert(new Point(box[3])) ;
-// 		
-// 		for(size_t i = 0 ; i < to_add.size() ; i++)
-// 		{
-// 			dt.insert(new Point(to_add[i])) ;
-// 		}
-// 		
-// 		dt.addSharedNodes(1) ;
-// 		dt.refresh( &father, false) ;
-// 		
-// 		std::vector<DelaunayTriangle *> triAll = dt.getTriangles() ;
-// 		
-// 		std::vector<DelaunayTriangle *> tri ;
-// 		
-// 		for(size_t i = 0 ; i < triAll.size() ; i++)
-// 		{
-// 			int count = father.in(triAll[i]->first) + father.in(triAll[i]->second) + father.in(triAll[i]->third);
-// 			if(father.in(triAll[i]->getCenter()) && count > 1)
-// 				tri.push_back(triAll[i]) ;
-// 		}
-// 		
-// 		if(moved)
-// 		{
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 			{
-// // 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 				Function x = tri[i]->getXTransform() ;
-// 				Function y = tri[i]->getYTransform() ;
-// 				
-// 				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
-// 				
-// 				for(size_t j = 0 ; j < gp_temp.size() ; j++)
-// 				{
-// // 					gp_temp[j].second /= jmin ;
-// 					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-// 					gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
-// 					gp_alternative.push_back(gp_temp[j]) ;
-// 				}
-// 				
-// 			}
-// 		}
-// 		else
-// 		{
-// 			double ja = this->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 			{
-// // 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 				Function x = tri[i]->getXTransform() ;
-// 				Function y = tri[i]->getYTransform() ;
-// 				
-// 				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
-// 				
-// 				for(size_t j = 0 ; j < gp_temp.size() ; j++)
-// 				{
-// // 					gp_temp[j].second /= jmin ;
-// 					gp_temp[j].second *= ja ;
-// 					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-// 					gp_alternative.push_back(gp_temp[j]) ;
-// 				}
-// 				
-// 			}
-// 		}
-// 		
-// 		gp.resize(gp_alternative.size()) ;
-// 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp[0]);
-// 		
-// 	}
-// 	
-// 	return gp ;
-// }
 
 
 std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGaussPoints() const
@@ -2149,8 +2014,8 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		tri = dt.getTriangles(false) ;
 		dt.refresh( &father, false) ;
 
-		if(moved)
-		{
+// 		if(moved)
+// 		{
 			for(size_t i = 0 ; i < tri.size() ; i++)
 			{
 
@@ -2170,29 +2035,29 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 				}
 			}
 
-		}
-		else
-		{
-			double ja = this->jacobianAtPoint(Point(1./3.,1./3.)) ;
-			for(size_t i = 0 ; i < tri.size() ; i++)
-			{
-
-// 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
-				Function x = tri[i]->getXTransform() ;
-				Function y = tri[i]->getYTransform() ;
-				tri[i]->setOrder(QUADRATIC) ;
-
-				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
-				
-				for(size_t j = 0 ; j < gp_temp.size() ; j++)
-				{
-// 					gp_temp[j].second /= jmin ;
-					gp_temp[j].second *= ja ;
-					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-					gp_alternative.push_back(gp_temp[j]) ;
-				}
-			}
-		}
+// 		}
+// 		else
+// 		{
+// 			double ja = this->jacobianAtPoint(Point(1./3.,1./3.)) ;
+// 			for(size_t i = 0 ; i < tri.size() ; i++)
+// 			{
+// 
+// // 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
+// 				Function x = tri[i]->getXTransform() ;
+// 				Function y = tri[i]->getYTransform() ;
+// 				tri[i]->setOrder(QUADRATIC) ;
+// 
+// 				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
+// 				
+// 				for(size_t j = 0 ; j < gp_temp.size() ; j++)
+// 				{
+// // 					gp_temp[j].second /= jmin ;
+// 					gp_temp[j].second *= ja ;
+// 					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
+// 					gp_alternative.push_back(gp_temp[j]) ;
+// 				}
+// 			}
+// 		}
 		
 		
 		gp.resize(gp_alternative.size()) ;
@@ -2204,200 +2069,6 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 }
 
 
-
-// std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGaussPoints() const
-// {
-// 
-// 		std::valarray<std::pair<Point, double> > gp = getGaussPoints() ; 
-// 		
-// 		VirtualMachine vm ;
-// 		
-// 		if(getEnrichmentFunctions().size() > 0 )
-// 		{
-// // 			std::cout << "original : " << std::endl ;
-// 			std::vector<std::pair<Point, double> > gp_alternative ;
-// 			std::vector<Point> to_add ;
-// 			std::vector<Point> to_add_extra ;
-// 			to_add.push_back(Point(0,1)) ;
-// 			to_add.push_back(Point(0,0)) ;
-// 			to_add.push_back(Point(1,0)) ;
-// 			TriElement father(QUADRATIC) ;
-// 			
-// 			for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
-// 			{
-// 				for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
-// 				{
-// 					if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-8 && 
-// 					squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-8 && 
-// 					squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-8)
-// 					{
-// 						bool ok = true ;
-// 						for(size_t k = 0 ; k < to_add_extra.size() ; k++)
-// 						{
-// 							if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-8)
-// 							{
-// 								ok = false ;
-// 								break ;
-// 							}
-// 						}
-// 						if(ok && father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)))
-// 							to_add_extra.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
-// 					}
-// 				}
-// 			}
-// 	
-// 			to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-// 			
-// 			DelaunayTree dt(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
-// 			for(size_t i = 3 ; i < to_add.size() ; i++)
-// 			{
-// 				dt.insert(new Point(to_add[i])) ;
-// 			}
-// 			
-// 			dt.addSharedNodes(1) ;
-// 			dt.refresh( &father, false) ;
-// 			
-// 			std::vector<DelaunayTriangle *> tri = dt.getTriangles() ;
-// 
-// 	
-// // 	std::valarray<std::pair<Point, double> > gp = getGaussPoints() ; 
-// // 	
-// // 	VirtualMachine vm ;
-// 	
-// // 	if(getEnrichmentFunctions().size() > 0 )
-// // 	{
-// // 		std::cout << "copy :" << std::endl ;
-// // 		std::vector<std::pair<Point, double> > gp_alternative ;
-// // 		std::vector<Point> to_add ;
-// // 		std::vector<Point> to_add_extra ;
-// // 		
-// // 		std::vector<Point> box ;
-// // 		
-// // 		to_add.push_back(Point(0,1)) ;
-// // 		to_add.push_back(Point(0,0)) ;
-// // 		to_add.push_back(Point(1,0)) ;
-// // 		
-// // 		box.push_back(Point(-1,2)) ;
-// // 		box.push_back(Point(-1,-1)) ;
-// // 		box.push_back(Point(2,-1)) ;
-// // 		box.push_back(Point(2,2)) ;
-// // 		
-// // 		to_add.push_back(Point(0,2)) ;
-// // 		to_add.push_back(Point(1,2)) ;
-// // 		
-// // 		to_add.push_back(Point(-1,1)) ;
-// // 		to_add.push_back(Point(1,1)) ;
-// // 		to_add.push_back(Point(2,1)) ;
-// // 		to_add.push_back(Point(-1,0)) ;
-// // 		to_add.push_back(Point(2,0)) ;
-// // 		
-// // 		to_add.push_back(Point(0,-1)) ;
-// // 		to_add.push_back(Point(1,-1)) ;
-// // 		
-// // 		
-// // 		TriElement father(QUADRATIC) ;
-// // 		
-// // 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
-// // 		{
-// // 			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
-// // 			{
-// // 				if(getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[0] && 
-// // 				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[1] && 
-// // 				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[2])
-// // 				{
-// // 					bool ok = true ;
-// // 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
-// // 					{
-// // 						if(dist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-8)
-// // 						{
-// // 							ok = false ;
-// // 							break ;
-// // 						}
-// // 					}
-// // 					if(ok && father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)))
-// // 						to_add_extra.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
-// // 				}
-// // 			}
-// // 		}
-// // 		
-// // 		to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-// // 		
-// // 		std::random_shuffle(to_add.begin(), to_add.end()) ;
-// // 		DelaunayTree dt(new Point(box[0]), new Point(box[1]), new Point(box[2])) ;
-// // 		dt.insert(new Point(box[3])) ;
-// // 		
-// // 		for(size_t i = 0 ; i < to_add.size() ; i++)
-// // 		{
-// // 			dt.insert(new Point(to_add[i])) ;
-// // 		}
-// // 		
-// // 		dt.addSharedNodes(1) ;
-// // 		dt.refresh( &father, false) ;
-// // 		
-// // 		std::vector<DelaunayTriangle *> triAll = dt.getTriangles() ;
-// // 		
-// // 		std::vector<DelaunayTriangle *> tri ;
-// // 		
-// // 		for(size_t i = 0 ; i < triAll.size() ; i++)
-// // 		{
-// // 			int count = father.in(triAll[i]->first) + father.in(triAll[i]->second) + father.in(triAll[i]->third);
-// // 			if(father.in(triAll[i]->getCenter()))
-// // 			{
-// // 				tri.push_back(triAll[i]) ;
-// // 				triAll[i]->print() ;
-// // 			}
-// // 		}
-// 		
-// 		if(moved)
-// 		{
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 			{
-// // 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 				Function x = tri[i]->getXTransform() ;
-// 				Function y = tri[i]->getYTransform() ;
-// 				
-// 				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
-// 
-// 				for(size_t j = 0 ; j < gp_temp.size() ; j++)
-// 				{
-// // 					gp_temp[j].second /= jmin ;
-// 					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-// 					gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
-// 					gp_alternative.push_back(gp_temp[j]) ;
-// 				}
-// 
-// 			}
-// 		}
-// 		else
-// 		{
-// 			double ja = this->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 			{
-// // 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 				Function x = tri[i]->getXTransform() ;
-// 				Function y = tri[i]->getYTransform() ;
-// 				
-// 				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
-// 				
-// 				for(size_t j = 0 ; j < gp_temp.size() ; j++)
-// 				{
-// // 					gp_temp[j].second /= jmin ;
-// 					gp_temp[j].second *= ja ;
-// 					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-// 					gp_alternative.push_back(gp_temp[j]) ;
-// 				}
-// 
-// 			}
-// 		}
-// 				
-// 		gp.resize(gp_alternative.size()) ;
-// 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp[0]);
-// 		
-// 	}
-// 	
-// 	return gp ;
-// }
-// 
 
 Vector DelaunayTriangle::getNonLinearForces() const
 {
@@ -2422,23 +2093,23 @@ Vector DelaunayTriangle::getNonLinearForces() const
 	
 	std::valarray<std::pair<Point, double> > gp  = getSubTriangulatedGaussPoints() ;
 	
-	if(moved)
-	{
+// 	if(moved)
+// 	{
 		Jinv.resize(gp.size()) ;
 		for(size_t i = 0 ; i < gp.size() ;  i++)
 		{
 			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
 		}
-	}
-	else
-	{
-		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
-		{
-			Jinv[i] = J ;
-		}
-	}
+// 	}
+// 	else
+// 	{
+// 		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
+// 		Jinv.resize(gp.size()) ;
+// 		for(size_t i = 0 ; i < gp.size() ;  i++)
+// 		{
+// 			Jinv[i] = J ;
+// 		}
+// 	}
 	
 	
 	for(size_t i = 0 ; i < dofs.size() ; i++)
@@ -2461,25 +2132,25 @@ Vector DelaunayTriangle::getForces() const
 	std::valarray<Matrix> Jinv ;
 	std::valarray<std::pair<Point, double> > gp = getSubTriangulatedGaussPoints() ;
 	
-	if(moved)
-	{
+// 	if(moved)
+// 	{
 		Jinv.resize(gp.size()) ;
 		for(size_t i = 0 ; i < gp.size() ;  i++)
 		{
 			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
 		}
-	}
-	else
-	{
-		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
-
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
-		{
-			Jinv[i] = J ;
-		}
-	}
-	
+// 	}
+// 	else
+// 	{
+// 		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
+// 
+// 		Jinv.resize(gp.size()) ;
+// 		for(size_t i = 0 ; i < gp.size() ;  i++)
+// 		{
+// 			Jinv[i] = J ;
+// 		}
+// 	}
+// 	
 	size_t numdof = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int offset = numdof-1 ;
 	

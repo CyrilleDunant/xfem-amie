@@ -23,11 +23,25 @@ StiffnessWithImposedDeformation::~StiffnessWithImposedDeformation() { } ;
 
 Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 36)
+		v.push_back(ZETA);
+	
+	
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
 Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
 {
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 36)
+		v.push_back(ZETA);
+	
+	
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 bool StiffnessWithImposedDeformation::fractured() const
@@ -47,6 +61,13 @@ bool StiffnessWithImposedDeformation::hasInducedForces() const
 
 Vector StiffnessWithImposedDeformation::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
-	return VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv) ;
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 36)
+		v.push_back(ZETA);
+	
+	
+	return VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv,v) ;
 }
 

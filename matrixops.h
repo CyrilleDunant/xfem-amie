@@ -121,6 +121,8 @@ public:
 	
 	Vector &array() {return *v ;}
 	Vector array() const {return *v ;}
+	
+	void print() const ;
 } ;
 
 
