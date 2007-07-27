@@ -990,15 +990,15 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//4
 		(*shapefunc)[4] = Function("2 x * 1 - x * 1 t - 0.5 * *") ;
 			//5
-		(*shapefunc)[5] = Function("x y * 1 t - 0.5 * *") ;
+		(*shapefunc)[5] = Function("x y 4 * * 1 t - 0.5 * *") ;
 			//6
 		(*shapefunc)[6] = Function("2 y * 1 - y * 1 t - 0.5 * *") ;
 			//7
-		(*shapefunc)[7] = Function("y z * 1 t - 0.5 * *") ;
+		(*shapefunc)[7] = Function("y z 4 * * 1 t - 0.5 * *") ;
 		    //8
 		(*shapefunc)[8] = Function("1 x - y - z - y * 4 * 1 t - 0.5 * *") ;
 			//9
-		(*shapefunc)[9] = Function("x z * 1 t - 0.5 * *") ;
+		(*shapefunc)[9] = Function("x z 4 * * 1 t - 0.5 * *") ;
 		    //10
 		(*shapefunc)[10] = Function("2 z * 1 - z * 1 t + 0.5 * *") ;
 			//11
@@ -1010,15 +1010,15 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//14
 		(*shapefunc)[14] = Function("2 x * 1 - x * 1 t + 0.5 * *") ;
 			//15
-		(*shapefunc)[15] = Function("x y * 1 t + 0.5 * *") ;
+		(*shapefunc)[15] = Function("x y 4 * * 1 t + 0.5 * *") ;
 			//16
 		(*shapefunc)[16] = Function("2 y * 1 - y * 1 t + 0.5 * *") ;
 			//17
-		(*shapefunc)[17] = Function("y z * 1 t + 0.5 * *") ;
+		(*shapefunc)[17] = Function("y z 4 * * 1 t + 0.5 * *") ;
 		    //18
 		(*shapefunc)[18] = Function("1 x - y - z - y * 4 * 1 t + 0.5 * *") ;
 			//19
-		(*shapefunc)[19] = Function("x z * 1 t + 0.5 * *") ;
+		(*shapefunc)[19] = Function("x z 4 * * 1 t + 0.5 * *") ;
 	}
 	else if(order == QUADRATIC_TIME_QUADRATIC)
 	{
