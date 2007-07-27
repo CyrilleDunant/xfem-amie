@@ -282,6 +282,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 				{
 					a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
 					b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+// 					std::cout << a.t << std::endl ;
 				}
 				for(size_t node = 0 ; node < nodes_per_side+2 ; node++)
 				{

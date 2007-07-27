@@ -73,7 +73,7 @@ std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > gener
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = 0.2 + .9*(double)random()/((double)RAND_MAX+1) ;
+		double radius = 0.5 + .9*(double)random()/((double)RAND_MAX+1) ;
 		radius*=radius ;
 		
 		Point center = Point(
@@ -608,7 +608,7 @@ int main(int argc, char *argv[])
 	Stiffness soth0(cgStress0) ;
 
 
-// 	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > features = generateInclusionsAndPores(4, 0, &soth, &s3d, &ft) ;
+	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > features = generateInclusionsAndPores(18, 0, &soth, &s3d, &ft) ;
 
 // 	ft.addFeature(&s3d, &inclusion15) ;
 // 	ft.addFeature(&inclusion15, &inclusion17) ;
@@ -655,11 +655,11 @@ int main(int argc, char *argv[])
 // 	s3d.setBehaviour(new VoidForm()) ;
 	s3d.setBehaviour(&sc3s) ;
 	
-	ft.sample(512) ;
+	ft.sample(2048) ;
 
 	ft.setOrder(QUADRATIC) ;
 
-	ft.generateElements(0) ;
+	ft.generateElements(1) ;
 // 	ft.refine(1) ;	
 // 	
 	

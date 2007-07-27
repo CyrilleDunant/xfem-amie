@@ -85,9 +85,8 @@ void ElementarySurface::nonLinearStep(double dt, Vector *displacements)
 
 void ElementaryVolume::step(double dt, Vector *displacements)
 {
-	
-	this->state->step(dt, displacements) ;
-	this->behaviour->step(dt, this->state) ;
+	getState()->step(dt, displacements) ;
+	getBehaviour()->updateElementState(dt, getState()) ;
 }
 
 void ElementaryVolume::nonLinearStep(double dt, Vector *displacements)
@@ -802,21 +801,21 @@ std::valarray< std::pair<Point, double> > TetrahedralElement::genGaussPoints() c
 		assert(false) ;
 	}
 	
-	if( moved)
-	{
+// 	if( moved)
+// 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second*=this->jacobianAtPoint(fin[i].first) ;
 		}
-	}
-	else
-	{
-		double j = this->jacobianAtPoint(Point(.25, .25, .25)) ;
-		for(size_t i = 0 ; i < fin.size() ; i++)
-		{
-			fin[i].second*=j ;
-		}
-	}
+// 	}
+// 	else
+// 	{
+// 		double j = this->jacobianAtPoint(Point(.25, .25, .25)) ;
+// 		for(size_t i = 0 ; i < fin.size() ; i++)
+// 		{
+// 			fin[i].second*=j ;
+// 		}
+// 	}
 	
 	return fin ;
 }
@@ -930,24 +929,23 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 	}
 	else if(order == LINEAR_TIME_LINEAR)
 	{
-		this->Tetrahedron::sampleSurface(4) ;
 		shapefunc = new std::valarray<Function>(8) ;
 			//0
-		(*shapefunc)[0] = Function("x 1 t - 0.5 * *") ;
+		(*shapefunc)[0] = Function("z 0.5 0.5 t * - *") ;
 			//1
-		(*shapefunc)[1] = Function("y 1 t - 0.5 * *") ;
+		(*shapefunc)[1] = Function("1 x - y - z - 0.5 0.5 t * - *") ;
 			//2
-		(*shapefunc)[2] = Function("z 1 t - 0.5 * *") ;
+		(*shapefunc)[2] = Function("x 0.5 0.5 t * - *") ;
 			//3
-		(*shapefunc)[3] = Function("1 x y z - - - 1 t - 0.5 * *") ;
+		(*shapefunc)[3] = Function("y 0.5 0.5 t * - *") ;
 			//4
-		(*shapefunc)[0] = Function("x 1 t + 0.5 * *") ;
+		(*shapefunc)[4] = Function("z 0.5 0.5 t * + *") ;
 			//5
-		(*shapefunc)[1] = Function("y 1 t + 0.5 * *") ;
+		(*shapefunc)[5] = Function("1 x - y - z - 0.5 0.5 t * + *") ;
 			//6
-		(*shapefunc)[2] = Function("z 1 t + 0.5 * *") ;
+		(*shapefunc)[6] = Function("x 0.5 0.5 t * + *") ;
 			//7
-		(*shapefunc)[3] = Function("1 x y z - - - 1 t + 0.5 * *") ;
+		(*shapefunc)[7] = Function("y 0.5 0.5 t * + *") ;
 	}
 	else if(order == LINEAR_TIME_QUADRATIC)
 	{
@@ -959,7 +957,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//2
 		(*shapefunc)[2] = Function("z t 1 - t * 0.5 * *") ;
 			//3
-		(*shapefunc)[3] = Function("1 x y z - - - t 1 - t * 0.5 * *") ;
+		(*shapefunc)[3] = Function("1 x - y - z - t 1 - t * 0.5 * *") ;
 			//4
 		(*shapefunc)[4] = Function("x 1 t t * - *") ;
 			//5
@@ -967,7 +965,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//6
 		(*shapefunc)[6] = Function("z 1 t t * - *") ;
 			//7
-		(*shapefunc)[7] = Function("1 x y z - - - 1 t t * - *") ;
+		(*shapefunc)[7] = Function("1 x - y - z - 1 t t * - *") ;
 		    //8
 		(*shapefunc)[8] = Function("x t 1 + t * 0.5 * *") ;
 			//9
@@ -975,7 +973,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//10
 		(*shapefunc)[10] = Function("z t 1 + t * 0.5 * *") ;
 			//11
-		(*shapefunc)[11] = Function("1 x y z - - - t 1 + t * 0.5 * *") ;
+		(*shapefunc)[11] = Function("1 x - y - z - t 1 + t * 0.5 * *") ;
 	}
 	else if(order == QUADRATIC_TIME_LINEAR)
 	{
@@ -984,11 +982,11 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//0
 		(*shapefunc)[0] = Function("2 z * 1 - z * 1 t - 0.5 * *") ;
 			//1
-		(*shapefunc)[1] = Function("1 x y z - - - z * 4 * 1 t - 0.5 * *") ;
+		(*shapefunc)[1] = Function("1 x - y - z - z * 4 * 1 t - 0.5 * *") ;
 			//2
 		(*shapefunc)[2] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + 1 t - 0.5 * *") ;
 			//3
-		(*shapefunc)[3] = Function("1 x y z - - - x * 4 * 1 t - 0.5 * *") ;
+		(*shapefunc)[3] = Function("1 x - y - z - x * 4 * 1 t - 0.5 * *") ;
 			//4
 		(*shapefunc)[4] = Function("2 x * 1 - x * 1 t - 0.5 * *") ;
 			//5
@@ -998,17 +996,17 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//7
 		(*shapefunc)[7] = Function("y z * 1 t - 0.5 * *") ;
 		    //8
-		(*shapefunc)[8] = Function("1 x y z - - - y * 4 * 1 t - 0.5 * *") ;
+		(*shapefunc)[8] = Function("1 x - y - z - y * 4 * 1 t - 0.5 * *") ;
 			//9
 		(*shapefunc)[9] = Function("x z * 1 t - 0.5 * *") ;
 		    //10
 		(*shapefunc)[10] = Function("2 z * 1 - z * 1 t + 0.5 * *") ;
 			//11
-		(*shapefunc)[11] = Function("1 x y z - - -z * 4 * 1 t + 0.5 * *") ;
+		(*shapefunc)[11] = Function("1 x - y - z - z * 4 * 1 t + 0.5 * *") ;
 			//12
 		(*shapefunc)[12] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + 1 t + 0.5 * *") ;
 			//13
-		(*shapefunc)[13] = Function("1 x y z - - - x * 4 * 1 t + 0.5 * *") ;
+		(*shapefunc)[13] = Function("1 x - y - z - x * 4 * 1 t + 0.5 * *") ;
 			//14
 		(*shapefunc)[14] = Function("2 x * 1 - x * 1 t + 0.5 * *") ;
 			//15
@@ -1018,7 +1016,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//17
 		(*shapefunc)[17] = Function("y z * 1 t + 0.5 * *") ;
 		    //18
-		(*shapefunc)[18] = Function("1 x y z - - - y * 4 * 1 t + 0.5 * *") ;
+		(*shapefunc)[18] = Function("1 x - y - z - y * 4 * 1 t + 0.5 * *") ;
 			//19
 		(*shapefunc)[19] = Function("x z * 1 t + 0.5 * *") ;
 	}
@@ -1029,11 +1027,11 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//0
 		(*shapefunc)[0] = Function("2 z * 1 - z * t 1 - t * 0.5 * *") ;
 			//1
-		(*shapefunc)[1] = Function("1 x y z - - - z * 4 * t 1 - t * 0.5 * *") ;
+		(*shapefunc)[1] = Function("1 x - y - z - z * 4 * t 1 - t * 0.5 * *") ;
 			//2
 		(*shapefunc)[2] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + t 1 - t * 0.5 * *") ;
 			//3
-		(*shapefunc)[3] = Function("1 x y z - - - x * 4 * t 1 - t * 0.5 * *") ;
+		(*shapefunc)[3] = Function("1 x - y - z - x * 4 * t 1 - t * 0.5 * *") ;
 			//4
 		(*shapefunc)[4] = Function("2 x * 1 - x * t 1 - t * 0.5 * *") ;
 			//5
@@ -1043,17 +1041,17 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//7
 		(*shapefunc)[7] = Function("y z * t 1 - t * 0.5 * *") ;
 		    //8
-		(*shapefunc)[8] = Function("1 x y z - - - y * 4 * t 1 - t * 0.5 * *") ;
+		(*shapefunc)[8] = Function("1 x - y - z - y * 4 * t 1 - t * 0.5 * *") ;
 			//9
 		(*shapefunc)[9] = Function("x z * t 1 - t * 0.5 * *") ;
 		    //10
 		(*shapefunc)[10] = Function("2 z * 1 - z * 1 t t * - *") ;
 			//11
-		(*shapefunc)[11] = Function("1 x y z - - -z * 4 * 1 t t * - *") ;
+		(*shapefunc)[11] = Function("1 x - y - z - z * 4 * 1 t t * - *") ;
 			//12
 		(*shapefunc)[12] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + 1 t t * - *") ;
 			//13
-		(*shapefunc)[13] = Function("1 x y z - - - x * 4 * 1 t t * - *") ;
+		(*shapefunc)[13] = Function("1 x - y - z - x * 4 * 1 t t * - *") ;
 			//14
 		(*shapefunc)[14] = Function("2 x * 1 - x * 1 t t * - *") ;
 			//15
@@ -1063,17 +1061,17 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//17
 		(*shapefunc)[17] = Function("y z * 1 t t * - *") ;
 		    //18
-		(*shapefunc)[18] = Function("1 x y z - - - y * 4 * 1 t t * - *") ;
+		(*shapefunc)[18] = Function("1 x - y - z - y * 4 * 1 t t * - *") ;
 			//19
 		(*shapefunc)[19] = Function("x z * 1 t t * - *") ;
 			//20
 		(*shapefunc)[20] = Function("2 z * 1 - z * t 1 + t * 0.5 * *") ;
 			//21
-		(*shapefunc)[21] = Function("1 x y z - - - z * 4 * t 1 + t * 0.5 * *") ;
+		(*shapefunc)[21] = Function("1 x - y - z - z * 4 * t 1 + t * 0.5 * *") ;
 			//22
 		(*shapefunc)[22] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + t 1 + t * 0.5 * *") ;
 			//23
-		(*shapefunc)[23] = Function("1 x y z - - - x * 4 * t 1 + t * 0.5 * *") ;
+		(*shapefunc)[23] = Function("1 x - y - z - x * 4 * t 1 + t * 0.5 * *") ;
 			//24
 		(*shapefunc)[24] = Function("2 x * 1 - x * t 1 + t * 0.5 * *") ;
 			//25
@@ -1083,7 +1081,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//27
 		(*shapefunc)[27] = Function("y z * t 1 + t * 0.5 * *") ;
 		    //28
-		(*shapefunc)[28] = Function("1 x y z - - - y * 4 * t 1 + t * 0.5 * *") ;
+		(*shapefunc)[28] = Function("1 x - y - z - y * 4 * t 1 + t * 0.5 * *") ;
 			//29
 		(*shapefunc)[29] = Function("x z * t 1 + t * 0.5 * *") ;
 	}
@@ -1266,21 +1264,26 @@ std::vector< std::pair<size_t, Function>  >  & ElementarySurface::getEnrichmentF
 Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 {
 	
-	Matrix S(4,4) ;
-	S[0][0] = this->getBoundingPoint(order*2).x ; 
-	S[0][1] = this->getBoundingPoint(order*3).x ;  
-	S[0][2] = this->getBoundingPoint(0      ).x;
-	S[0][3]=  this->getBoundingPoint(order  ).x; 
+	size_t factor = 1 ;
 	
-	S[1][0] = this->getBoundingPoint(order*2).y ; 
-	S[1][1] = this->getBoundingPoint(order*3).y ;  
+	if(order == QUADRATIC || order == QUADRATIC_TIME_LINEAR || order == QUADRATIC_TIME_QUADRATIC)
+		factor = 2 ;
+	
+	Matrix S(4,4) ;
+	S[0][0] = this->getBoundingPoint(factor*2).x ; 
+	S[0][1] = this->getBoundingPoint(factor*3).x ;  
+	S[0][2] = this->getBoundingPoint(0      ).x;
+	S[0][3]=  this->getBoundingPoint(factor  ).x; 
+	
+	S[1][0] = this->getBoundingPoint(factor*2).y ; 
+	S[1][1] = this->getBoundingPoint(factor*3).y ;  
 	S[1][2] = this->getBoundingPoint(0      ).y ;
-	S[1][3]=  this->getBoundingPoint(order  ).y;
+	S[1][3]=  this->getBoundingPoint(factor  ).y;
 
-	S[2][0] = this->getBoundingPoint(order*2).z ; 
-	S[2][1] = this->getBoundingPoint(order*3).z ;  
+	S[2][0] = this->getBoundingPoint(factor*2).z ; 
+	S[2][1] = this->getBoundingPoint(factor*3).z ;  
 	S[2][2] = this->getBoundingPoint(0      ).z ;
-	S[2][3]=  this->getBoundingPoint(order  ).z;
+	S[2][3]=  this->getBoundingPoint(factor  ).z;
 	
 	S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]=1;
 	
@@ -1290,7 +1293,7 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 	v[2] = p.z ;
 	v[3] = 1 ;
 	Vector coeff = inverse4x4Matrix(S) * v ;
-	return Point(1,0,0)*coeff[0] + Point(0,1,0)*coeff[1] + Point(0,0,1)*coeff[2] ; 
+	return Point(1,0,0)*coeff[0] + Point(0,1,0)*coeff[1] + Point(0,0,1)*coeff[2] + Point(0,0,0,p.t); 
 }
 
 Point HexahedralElement::inLocalCoordinates(const Point& p) const
@@ -1361,6 +1364,12 @@ const Function ElementaryVolume::getdZTransform(Variable v) const
 	return dZTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
 }
 
+const Function ElementaryVolume::getdTTransform(Variable v) const
+{
+	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
+}
+
+
 const double ElementaryVolume::getdXTransform(Variable v, const Point p) const
 {
 	return dXTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
@@ -1374,6 +1383,11 @@ const double ElementaryVolume::getdYTransform(Variable v, const Point p) const
 const double ElementaryVolume::getdZTransform(Variable v, const Point p) const
 {
 	return dZTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
+}
+
+const double ElementaryVolume::getdTTransform(Variable v, const Point p) const
+{
+	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
 
@@ -1414,18 +1428,52 @@ Function ElementaryVolume::jacobian() const
 double ElementaryVolume::jacobianAtPoint(const Point p) const 
 {
 	
-	double xdxi = this->getdXTransform(XI, p) ;
-	double ydxi = this->getdYTransform(XI, p) ;
-	double zdxi = this->getdZTransform(XI, p) ;
-	double xdeta = this->getdXTransform(ETA, p) ;
-	double ydeta = this->getdYTransform(ETA, p) ;
-	double zdeta = this->getdZTransform(ETA, p) ;
-	double xdzeta = this->getdXTransform(ZETA,p) ;
-	double ydzeta = this->getdYTransform(ZETA,p) ;
-	double zdzeta = this->getdZTransform(ZETA,p) ;
-	
-	return xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
-		xdxi*ydzeta*zdeta - xdeta*ydxi*zdzeta - xdzeta*ydeta*zdxi ;
+	if(order < CONSTANT_TIME_LINEAR)
+	{
+		double xdxi = this->getdXTransform(XI, p) ;
+		double ydxi = this->getdYTransform(XI, p) ;
+		double zdxi = this->getdZTransform(XI, p) ;
+		double xdeta = this->getdXTransform(ETA, p) ;
+		double ydeta = this->getdYTransform(ETA, p) ;
+		double zdeta = this->getdZTransform(ETA, p) ;
+		double xdzeta = this->getdXTransform(ZETA,p) ;
+		double ydzeta = this->getdYTransform(ZETA,p) ;
+		double zdzeta = this->getdZTransform(ZETA,p) ;
+		
+		return xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
+			xdxi*ydzeta*zdeta - xdeta*ydxi*zdzeta - xdzeta*ydeta*zdxi ;
+	}
+	else
+	{
+		Matrix  J0(4,4) ;
+		
+		double xdxi = this->getdXTransform(XI,p) ;
+		double ydxi = this->getdYTransform(XI,p) ;
+		double zdxi = this->getdZTransform(XI,p) ;
+		double tdxi = this->getdTTransform(XI,p) ;
+		
+		double xdeta = this->getdXTransform(ETA,p) ;
+		double ydeta = this->getdYTransform(ETA,p) ;
+		double zdeta = this->getdZTransform(ETA,p) ;
+		double tdeta = this->getdTTransform(ETA,p) ;
+		
+		double xdzeta = this->getdXTransform(ZETA,p) ;
+		double ydzeta = this->getdYTransform(ZETA,p) ;
+		double zdzeta = this->getdZTransform(ZETA,p) ;
+		double tdzeta = this->getdTTransform(ZETA,p) ;
+		
+		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
+		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
+		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
+		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
+		
+		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; J0[0][3] = tdxi; 
+		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ; J0[1][3] = tdeta;
+		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ; J0[2][3] = tdzeta;
+		J0[3][0] = xdtheta ; J0[3][1] = ydtheta ; J0[3][2] = zdtheta ; J0[3][3] = tdtheta;
+		
+		return det(J0) ;
+	}
 	
 	
 	VirtualMachine vm ;
@@ -1447,6 +1495,10 @@ const Function  ElementaryVolume::getZTransform() const
 	return ZTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
 }
 
+const Function  ElementaryVolume::getTTransform() const
+{
+	return TTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
+}
 
 void ElementaryVolume::setEnrichment(std::pair<size_t, Function>  p)
 {
@@ -1676,26 +1728,61 @@ Function & ElementaryVolume::getShapeFunction(size_t i)
 
 Matrix ElementaryVolume::getInverseJacobianMatrix(const Point & p) const
 {
-	Matrix  J0(3,3) ;
+	if(order < CONSTANT_TIME_LINEAR)
+	{
+		Matrix  J0(3,3) ;
+		
+		double xdxi = this->getdXTransform(XI,p) ;
+		double ydxi = this->getdYTransform(XI,p) ;
+		double zdxi = this->getdZTransform(XI,p) ;
+		
+		double xdeta = this->getdXTransform(ETA,p) ;
+		double ydeta = this->getdYTransform(ETA,p) ;
+		double zdeta = this->getdZTransform(ETA,p) ;
+		
+		double xdzeta = this->getdXTransform(ZETA,p) ;
+		double ydzeta = this->getdYTransform(ZETA,p) ;
+		double zdzeta = this->getdZTransform(ZETA,p) ;
+		
+		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; 
+		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ;
+		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ;
 	
-	double xdxi = this->getdXTransform(XI,p) ;
-	double ydxi = this->getdYTransform(XI,p) ;
-	double zdxi = this->getdZTransform(XI,p) ;
-	
-	double xdeta = this->getdXTransform(ETA,p) ;
-	double ydeta = this->getdYTransform(ETA,p) ;
-	double zdeta = this->getdZTransform(ETA,p) ;
-	
-	double xdzeta = this->getdXTransform(ZETA,p) ;
-	double ydzeta = this->getdYTransform(ZETA,p) ;
-	double zdzeta = this->getdZTransform(ZETA,p) ;
-	
-	J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; 
-	J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ;
-	J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ;
-
-	invert3x3Matrix(J0) ;
-	return J0 ;
+		invert3x3Matrix(J0) ;
+		return J0 ;
+	}
+	else
+	{
+		Matrix  J0(4,4) ;
+		
+		double xdxi = this->getdXTransform(XI,p) ;
+		double ydxi = this->getdYTransform(XI,p) ;
+		double zdxi = this->getdZTransform(XI,p) ;
+		double tdxi = this->getdTTransform(XI,p) ;
+		
+		double xdeta = this->getdXTransform(ETA,p) ;
+		double ydeta = this->getdYTransform(ETA,p) ;
+		double zdeta = this->getdZTransform(ETA,p) ;
+		double tdeta = this->getdTTransform(ETA,p) ;
+		
+		double xdzeta = this->getdXTransform(ZETA,p) ;
+		double ydzeta = this->getdYTransform(ZETA,p) ;
+		double zdzeta = this->getdZTransform(ZETA,p) ;
+		double tdzeta = this->getdTTransform(ZETA,p) ;
+		
+		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
+		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
+		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
+		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
+		
+		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; J0[0][3] = tdxi; 
+		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ; J0[1][3] = tdeta;
+		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ; J0[2][3] = tdzeta;
+		J0[3][0] = xdtheta ; J0[3][1] = ydtheta ; J0[3][2] = zdtheta ; J0[3][3] = tdtheta;
+		
+		J0 = inverse4x4Matrix(J0) ;
+		return J0 ;
+	}
 
 }
 
@@ -1896,7 +1983,7 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dXTransform error ***" << std::endl ;
 			return Function() ;
 		}
 	}
@@ -1956,7 +2043,7 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dYTransform error ***" << std::endl ;
 			return Function() ;
 		}
 	}
@@ -2016,7 +2103,7 @@ Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::va
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dZTransform error ***" << std::endl ;
 			return Function() ;
 		}
 	}
@@ -2076,7 +2163,7 @@ Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::va
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dTTransform error ***" << std::endl ;
 			return Function() ;
 		}
 	}
@@ -2134,7 +2221,7 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dXTransform error ***" << std::endl ;
 			return 0 ;
 		}
 	}
@@ -2199,7 +2286,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dYTransform error ***" << std::endl ;
 			return 0 ;
 		}
 	}
@@ -2259,7 +2346,7 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dZTransform error ***" << std::endl ;
 			return 0 ;
 		}
 	}
@@ -2317,7 +2404,7 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		}
 	default:
 		{
-			std::cout << "*** error ***" << std::endl ;
+			std::cout << "*** dTTransform error ***" << std::endl ;
 			return 0 ;
 		}
 	}

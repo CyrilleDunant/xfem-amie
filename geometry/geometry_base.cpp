@@ -63,7 +63,7 @@ Point::Point(double x, double y, double z, double t)
 
 void Point::print() const
 {
-	std::cout << " ( id = " << id << " ; "<< x << "; " << y << "; "<< z<< "; "<< t << ") " << std::endl;
+	std::cout << " ( id = " << id << " ; "<< round(x*1000.)/1000. << "; " << round(y*1000.)/1000. << "; "<< round(z*1000.)/1000.<< "; "<< round(t*1000.)/1000. << ") " << std::endl;
 }
 
 double Point::norm() const

@@ -8,7 +8,7 @@ CXX = g++
 
 # CXXFLAGS = -g3 -Wall -O2 -DNDEBUG 
 # CXXFLAGS = -g3 -Wall -O0 -DNDEBUG 
-CXXFLAGS = -g3 -Wall -O3 -DNDEBUG -fstrict-aliasing
+CXXFLAGS = -g3 -Wall -O3 -DNDEBUG -fstrict-aliasing -fno-exceptions
 LDFLAGS = -lm -lGL -lglut
 
 SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp

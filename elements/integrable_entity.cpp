@@ -2213,83 +2213,27 @@ Vector & ElementState::getBuffer()
 void ElementState::step(double dt, Vector * d)
 {
 
-	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	previousPreviousTimePos = previousTimePos ;
+	previousTimePos = timePos ;
+	timePos+=dt ;
+	size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	int offset = ndofs-1 ;
+	std::vector< size_t > ids = parent->getDofIds() ;
+	
+	if(buffer.size() != parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs)
+		buffer.resize(parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs) ;
+	
+	for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
 	{
-
-		if(previousPreviousDisplacements.size() != previousDisplacements.size())
-			previousPreviousDisplacements.resize(previousDisplacements.size()) ;
-		
-		this->previousPreviousDisplacements = this->previousDisplacements ;
-		
-		if(previousDisplacements.size() != displacements.size())
-			previousDisplacements.resize(displacements.size()) ;
-		
-		this->previousDisplacements = this->displacements ;
-		
-// 		if(previousPreviousEnrichedDisplacements.size() != previousEnrichedDisplacements.size())
-// 			previousPreviousEnrichedDisplacements.resize(previousEnrichedDisplacements.size()) ;
-// 		
-// 		this->previousPreviousEnrichedDisplacements = this->previousEnrichedDisplacements ;
-// 		
-// 		if(previousEnrichedDisplacements.size() != enrichedDisplacements.size())
-// 			previousEnrichedDisplacements.resize(enrichedDisplacements.size()) ;
-// 		
-// 		this->previousEnrichedDisplacements = this->enrichedDisplacements ;
-		
-		if(displacements.size() != parent->getBoundingPoints().size()*3)
-			displacements.resize(parent->getBoundingPoints().size()*3) ;
-		
-		std::vector< size_t > ids = parent->getDofIds() ;
-		for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-		{
-			displacements[i*3]   = (*d)[ids[i]*3] ;
-			displacements[i*3+1] = (*d)[ids[i]*3+1] ;
-			displacements[i*3+2] = (*d)[ids[i]*3+2] ;
-		}
-		
-		for(size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++)
-		{
-			size_t bps = parent->getBoundingPoints().size() ;
-			enrichedDisplacements[i*3]   = (*d)[ids[i+bps]*3] ;
-			enrichedDisplacements[i*3+1] = (*d)[ids[i+bps]*3+1] ;
-			enrichedDisplacements[i*3+2] = (*d)[ids[i+bps]*3+2] ;
-		}
-		
-		if(timePos == 0)
-		{
-			this->previousPreviousDisplacements = this->previousDisplacements ;
-			this->previousDisplacements = this->displacements ;
-// 			this->previousPreviousEnrichedDisplacements = this->previousEnrichedDisplacements ;
-// 			this->previousEnrichedDisplacements = this->enrichedDisplacements ;
-		}
-		previousPreviousTimePos = previousTimePos ;
-		previousTimePos = timePos ;
-		timePos+=dt ;
+		buffer[i*ndofs] = (*d)[ids[i]*ndofs] ;
+		buffer[i*ndofs+offset] = (*d)[ids[i]*ndofs+offset] ;
 	}
-	else if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->type != VOID_BEHAVIOUR)
+	
+	int nbp = parent->getBoundingPoints().size() ;
+	for(size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++)
 	{
-		previousPreviousTimePos = previousTimePos ;
-		previousTimePos = timePos ;
-		timePos+=dt ;
-		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		int offset = ndofs-1 ;
-		std::vector< size_t > ids = parent->getDofIds() ;
-		
-		if(buffer.size() != parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs)
-			buffer.resize(parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs) ;
-		
-		for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-		{
-			buffer[i*ndofs] = (*d)[ids[i]*ndofs] ;
-			buffer[i*ndofs+offset] = (*d)[ids[i]*ndofs+offset] ;
-		}
-		
-		int nbp = parent->getBoundingPoints().size() ;
-		for(size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++)
-		{
-			buffer[i*ndofs+nbp*ndofs] = (*d)[ids[i+nbp]*ndofs] ;
-			buffer[i*ndofs+nbp*ndofs+offset] = (*d)[ids[i+nbp]*ndofs+offset] ;
-		}
+		buffer[i*ndofs+nbp*ndofs] = (*d)[ids[i+nbp]*ndofs] ;
+		buffer[i*ndofs+nbp*ndofs+offset] = (*d)[ids[i+nbp]*ndofs+offset] ;
 	}
 }
 

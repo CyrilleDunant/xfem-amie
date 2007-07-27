@@ -197,12 +197,15 @@ public:
 	virtual const Function getXTransform() const ;
 	virtual const Function getYTransform() const ;
 	virtual const Function getZTransform() const ;
+	virtual const Function getTTransform() const ;
 	virtual const Function getdXTransform(Variable v) const ;
 	virtual const Function getdYTransform(Variable v) const ;
 	virtual const Function getdZTransform(Variable v) const ;
+	virtual const Function getdTTransform(Variable v) const ;
 	virtual const double getdXTransform(Variable v, const Point p) const ;
 	virtual const double getdYTransform(Variable v, const Point p) const ;
 	virtual const double getdZTransform(Variable v, const Point p) const ;
+	virtual const double getdTTransform(Variable v, const Point p) const ;
 
 	virtual void setEnrichment(std::pair<size_t, Function>  p) ;
 	

@@ -1358,7 +1358,7 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 					else
 					{
 						Form * b = tree[i]->getBehaviour()->getCopy() ;
-						b->transform(t->getXTransform(), t->getYTransform()) ;
+						b->transform(t->getXTransform(), t->getYTransform()/*, t->getZTransform()*/) ;
 						return b ;
 					}
 				}
@@ -1500,6 +1500,7 @@ void FeatureTree::assemble()
 {
 	father3D = new TetrahedralElement(this->elemOrder) ;
 	std::vector<DelaunayTriangle *> triangles ; 
+	std::vector<DelaunayTetrahedron *> tetrahedrons ; 
 	for(size_t k = 0 ; k < father3D->getShapeFunctions().size() ; k++)
 	{
 		father3D->getShapeFunction(k).compile() ;
@@ -1554,6 +1555,18 @@ void FeatureTree::assemble()
 		std::cout << " ...done" << std::endl ;
 		
 		en_counter = this->dtree3D->global_counter ;
+		
+		tetrahedrons = this->dtree3D->getTetrahedrons() ;
+		
+		for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
+		{
+			if(!tetrahedrons[i]->getBehaviour())
+				tetrahedrons[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
+			tetrahedrons[i]->getEnrichmentFunctions().clear() ;
+		}
+		
+		if(!initialized)
+			initializeElements() ;
 	}
 	
 	std::cout << " enriching..." << std::flush ;		
@@ -1904,11 +1917,30 @@ void FeatureTree::step(double dt)
 	}
 	else if(is3D())
 	{
-		for(size_t i = 0 ; i < elements3D.size() ;i++)
-		{
-			elements3D[i]->step(dt, &K->getDisplacements()) ;
-			if(elements3D[i]->getBehaviour()->fractured())
-				needAssembly = true ;
+		
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getTetrahedrons() ;
+		
+		//this will update the state of all elements. This is necessary as 
+		//the behaviour updates might depend on the global state of the 
+		//simulation.
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{	
+			elements[i]->step(dt, &K->getDisplacements()) ;
+		}
+		
+		int fracturedCount = 0 ;
+		
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{	
+			if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && !elements[i]->getBehaviour()->fractured())
+			{
+				elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+				if(elements[i]->getBehaviour()->fractured())
+				{
+					fracturedCount++ ;
+					needAssembly = true ;
+				}
+			}
 		}
 		
 		for(size_t i = 0 ; i< tree.size() ; i++)
@@ -2037,10 +2069,22 @@ bool FeatureTree::is2D() const
 
 void FeatureTree::initializeElements() 
 {
-	std::vector<DelaunayTriangle *> triangles = this->dtree->getTriangles() ;
-	for(size_t i = 0 ; i < triangles.size() ;i++)
+	if(dtree)
 	{
-		triangles[i]->getState()->initialize() ;
+		std::vector<DelaunayTriangle *> triangles = this->dtree->getTriangles() ;
+		for(size_t i = 0 ; i < triangles.size() ;i++)
+		{
+			triangles[i]->getState()->initialize() ;
+		}
+	}
+	
+	if(dtree3D)
+	{
+		std::vector<DelaunayTetrahedron *> triangles = this->dtree3D->getTetrahedrons() ;
+		for(size_t i = 0 ; i < triangles.size() ;i++)
+		{
+			triangles[i]->getState()->initialize() ;
+		}
 	}
 	
 	initialized = true ;
