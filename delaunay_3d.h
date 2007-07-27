@@ -168,6 +168,9 @@ public:
 	Vector getNonLinearForces() const ;
 	
 	std::valarray<std::pair<Point, double> > getSubTriangulatedGaussPoints() const ;
+	
+	std::vector<DelaunayTetrahedron *> neighbourhood ;
+	bool isInNeighbourhood(const DelaunayTetrahedron * t) const ;
 		
 	
 } ;
@@ -290,6 +293,7 @@ friend class Geometry ;
 	
 protected:
 	size_t global_counter ;
+	bool neighbourhood ;
 	
 public:
 
@@ -337,7 +341,7 @@ public:
 	 * 
 	 * @return all the living triangles resulting from the triangulation.
 	 */
-	std::vector<DelaunayTetrahedron *> getTetrahedrons() const;
+	std::vector<DelaunayTetrahedron *> getTetrahedrons(bool buildNeighbourhood = true) ;
 	
 	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = NULL) ; 
 	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep =2, const TetrahedralElement * father =NULL) ;

@@ -1772,6 +1772,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 		std::cout << " ...done" << std::endl ;
 		neighbourhood = true ;
 	}
+	
 	return ret ;
 }
 

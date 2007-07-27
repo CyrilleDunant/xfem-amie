@@ -655,7 +655,7 @@ int main(int argc, char *argv[])
 // 	s3d.setBehaviour(new VoidForm()) ;
 	s3d.setBehaviour(&sc3s) ;
 	
-	ft.sample(8) ;
+	ft.sample(512) ;
 
 	ft.setOrder(QUADRATIC) ;
 

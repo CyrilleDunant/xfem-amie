@@ -2388,7 +2388,7 @@ std::vector<DelaunayTriangle *> Feature::getBoundingTriangles( DelaunayTree * dt
 
 }
 
-std::vector<DelaunayTetrahedron *> Feature::getBoundingTetrahedrons(const DelaunayTree_3D * dt)
+std::vector<DelaunayTetrahedron *> Feature::getBoundingTetrahedrons( DelaunayTree_3D * dt)
 {
 	std::vector<DelaunayTetrahedron *> tri = dt->conflicts(dynamic_cast<Geometry *>(this)) ;
 	

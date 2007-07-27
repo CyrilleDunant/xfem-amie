@@ -168,9 +168,9 @@ public:
 	 * @return the vector of triangles satisfying the condition center \f$ \in \f$ Feature. 
 	 */
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  = 0;
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree_3D * dt)  = 0;
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(DelaunayTree_3D * dt)  = 0;
 	virtual std::vector<DelaunayTriangle *> getBoundingTriangles( DelaunayTree * dt) ;
-	virtual std::vector<DelaunayTetrahedron *> getBoundingTetrahedrons(const DelaunayTree_3D * dt) ;
+	virtual std::vector<DelaunayTetrahedron *> getBoundingTetrahedrons(DelaunayTree_3D * dt) ;
 	
 	/** Check for interaction.
 	 * 

@@ -29,7 +29,7 @@ public:
 	
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
 	
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree_3D * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree_3D * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
 	
 	virtual void computeCenter()
 	{

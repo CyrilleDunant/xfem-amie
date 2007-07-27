@@ -39,7 +39,7 @@ std::vector<DelaunayTriangle *> Sample3D::getTriangles( DelaunayTree * dt)
 	return std::vector<DelaunayTriangle *>(0) ;
 }
 	
-std::vector<DelaunayTetrahedron *> Sample3D::getTetrahedrons(const DelaunayTree_3D * dt)
+std::vector<DelaunayTetrahedron *> Sample3D::getTetrahedrons( DelaunayTree_3D * dt)
 {
 	std::vector<DelaunayTetrahedron *> ret ;
 	std::vector<DelaunayTetrahedron *> temp ;
