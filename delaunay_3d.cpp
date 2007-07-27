@@ -206,6 +206,7 @@ void Star_3D::updateNeighbourhood()
 
 void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement * father)
 {
+	if( true) {
 	std::vector<DelaunayTetrahedron *> tri = getTetrahedrons() ;
 	
 	if(nodes_per_side> 1)
@@ -270,9 +271,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 		
 		std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
 		std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
-		
-		
-		
+				
 		for(size_t plane = 0 ; plane < time_planes ; plane++)
 		{
 			size_t current = 0 ;
@@ -302,14 +301,14 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 					
 					if(!foundPoint)
 					{
-						for(size_t j = 0 ; j < 4 ; j++)
+						for(size_t j = 0 ; j < tri[i]->neighbour.size() ; j++)
 						{
-							if(tri[i]->neighbour[j]->isTetrahedron && tri[i]->neighbour[j]->visited)
+							if(tri[i]->neighbour[j]->visited && tri[i]->neighbour[j]->isTetrahedron )
 							{
 								DelaunayTetrahedron * n = static_cast<DelaunayTetrahedron *>(tri[i]->neighbour[j]) ;
 								for(size_t k = 0 ; k < n->getBoundingPoints().size() ;k++)
 								{
-									if(n->getBoundingPoint(k) == proto)
+									if(n->getBoundingPoint(k) ==  proto)
 									{
 										foundPoint = &n->getBoundingPoint(k) ;
 										break ;
@@ -317,7 +316,12 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 								}
 								
 								if(foundPoint)
+								{
+									std::cout << "yay" << std::endl ;
 									break ;
+								}
+								else
+									std::cout << "boo" << std::endl ;
 							}
 						}
 					}
@@ -341,14 +345,6 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 				}
 			}
 		}
-		
-		if( *newPoints[0] != *tri[i]->first 
-		    || *newPoints[2] != *tri[i]->second 
-		    || *newPoints[4] != *tri[i]->third 
-		    || *newPoints[6] != *tri[i]->fourth 
-		  )
-			std::cout << "arrgh" << std::endl ;
-		
 		tri[i]->setBoundingPoints(newPoints) ;
 	}
 	
@@ -356,423 +352,428 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
 		tri[i]->clearVisited() ;
+		if(father != NULL)
+			refresh(father) ;
 	}
 	
+	}
+
+	if(false){
+	std::vector<DelaunayTetrahedron *> tetra = getTetrahedrons() ;
+	
+	for(size_t i = 0 ; i < tetra.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cout << "\r adding supplementary nodes... tetrahedron " << i+1 << "/" <<  tetra.size() << std::flush ;
+		
+		tetra[i]->visited = true ;
+		//six per egde and four for the original points
+		
+		size_t nodes_per_plane = nodes_per_side*6+4 ;
+		std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
+		std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
+		
+		
+		newPoints[0] = tetra[i]->first ;
+		done[0] = true ;
+		newPoints[2] = tetra[i]->second ;//updated
+		done[2] = true ;
+		newPoints[4] = tetra[i]->third ;//updated
+		done[4] = true ;
+		newPoints[6] = tetra[i]->fourth ;//updated
+		done[6] = true ;
+		
+		std::set<DelaunayTetrahedron *> neighbourhood ;
+		for(size_t j = 0 ; j < tetra[i]->neighbour.size() ; j++)
+		{
+			if(tetra[i]->neighbour[j]->isTetrahedron)
+				neighbourhood.insert(static_cast<DelaunayTetrahedron *>(tetra[i]->neighbour[j])) ;
+		}
+		
+		size_t newly_inserted = neighbourhood.size() ;
+		
+		while(newly_inserted> 0)
+		{
+			newly_inserted = 0 ;
+			std::set<DelaunayTetrahedron *> to_insert ;
+			
+			for(std::set<DelaunayTetrahedron *>::iterator n = neighbourhood.begin() ; n != neighbourhood.end() ;++n)
+			{
+				for(size_t k = 0 ; k< (*n)->neighbour.size() ; k++ )
+				{
+					if((*n)->neighbour[k]->isTetrahedron && (*n)->neighbour[k]->numberOfCommonVertices(tetra[i]) > 0)
+					{
+						to_insert.insert(static_cast<DelaunayTetrahedron *>((*n)->neighbour[k])) ;
+					}
+				}
+			}
+			
+			for(std::set<DelaunayTetrahedron *>::iterator n = to_insert.begin() ; n != to_insert.end() ;++n)
+			{
+				if(neighbourhood.insert(*n).second)
+					newly_inserted++ ;
+			}
+			
+		}
+
+		
+		for(std::set<DelaunayTetrahedron *>::iterator j = neighbourhood.begin() ; j != neighbourhood.end() ;++j)
+		{			
+			if((*j)->visited && (*j) != tetra[i])
+				{
+					DelaunayTetrahedron * n = (*j) ;
+					
+					if(
+							(tetra[i]->first == n->first && tetra[i]->second == n->second) || 
+							(tetra[i]->first == n->second && tetra[i]->second == n->first)
+						)
+					{
+						newPoints[1] = &n->getBoundingPoint(1) ;
+						done[1] = true ;
+					}
+					
+					if(
+						(tetra[i]->first == n->third && tetra[i]->second == n->second) || 
+						(tetra[i]->first == n->second && tetra[i]->second == n->third)
+					)
+					{
+						newPoints[1] = &n->getBoundingPoint(3) ;
+						done[1] = true ;
+					}
+					if(
+						(tetra[i]->first == n->third && tetra[i]->second == n->first) || 
+						(tetra[i]->first == n->first && tetra[i]->second == n->third)
+					)
+					{
+						newPoints[1] = &n->getBoundingPoint(9) ;
+						done[1] = true ;
+					}
+					if(
+						(tetra[i]->first == n->third && tetra[i]->second == n->fourth) || 
+						(tetra[i]->first == n->fourth && tetra[i]->second == n->third)
+					)
+					{
+						newPoints[1] = &n->getBoundingPoint(5) ;
+						done[1] = true ;
+					}
+					if(
+						(tetra[i]->first == n->first && tetra[i]->second == n->fourth) || 
+						(tetra[i]->first == n->fourth && tetra[i]->second == n->first)
+					)
+					{
+						newPoints[1] = &n->getBoundingPoint(7) ;
+						done[1] = true ;
+					}
+					if(
+						(tetra[i]->first == n->second && tetra[i]->second == n->fourth) || 
+						(tetra[i]->first == n->fourth && tetra[i]->second == n->second)
+					)
+					{
+						newPoints[1] = &n->getBoundingPoint(8) ;
+						done[1] = true ;
+					}
+					//
+					if(
+						(tetra[i]->third == n->first && tetra[i]->second == n->second) || 
+						(tetra[i]->third == n->second && tetra[i]->second == n->first)
+					)
+					{
+						newPoints[3] = &n->getBoundingPoint(1) ;
+						done[3] = true ;
+					}
+					
+					if(
+						(tetra[i]->third == n->third && tetra[i]->second == n->second) || 
+						(tetra[i]->third == n->second && tetra[i]->second == n->third)
+					)
+					{
+						newPoints[3] = &n->getBoundingPoint(3) ;
+						done[3] = true ;
+					}
+					if(
+						(tetra[i]->third == n->third && tetra[i]->second == n->first) || 
+						(tetra[i]->third == n->first && tetra[i]->second == n->third)
+					)
+					{
+						newPoints[3] = &n->getBoundingPoint(9) ;
+						done[3] = true ;
+					}
+					if(
+						(tetra[i]->third == n->third && tetra[i]->second == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->second == n->third)
+					)
+					{
+						newPoints[3] = &n->getBoundingPoint(5) ;
+						done[3] = true ;
+					}
+					if(
+						(tetra[i]->third == n->first && tetra[i]->second == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->second == n->first)
+					)
+					{
+						newPoints[3] = &n->getBoundingPoint(7) ;
+						done[3] = true ;
+					}
+					if(
+						(tetra[i]->third == n->second && tetra[i]->second == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->second == n->second)
+					)
+					{
+						newPoints[3] = &n->getBoundingPoint(8) ;
+						done[3] = true ;
+					}
+					//
+					if(
+						(tetra[i]->third == n->first && tetra[i]->first == n->second) || 
+						(tetra[i]->third == n->second && tetra[i]->first == n->first)
+					)
+					{
+						newPoints[9] = &n->getBoundingPoint(1) ;
+						done[9] = true ;
+					}
+					
+					if(
+						(tetra[i]->third == n->third && tetra[i]->first == n->second) || 
+						(tetra[i]->third == n->second && tetra[i]->first == n->third)
+					)
+					{
+						newPoints[9] = &n->getBoundingPoint(3) ;
+						done[9] = true ;
+					}
+					if(
+						(tetra[i]->third == n->third && tetra[i]->first == n->first) || 
+						(tetra[i]->third == n->first && tetra[i]->first == n->third)
+					)
+					{
+						newPoints[9] = &n->getBoundingPoint(9) ;
+						done[9] = true ;
+					}
+					if(
+						(tetra[i]->third == n->third && tetra[i]->first == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->first == n->third)
+					)
+					{
+						newPoints[9] = &n->getBoundingPoint(5) ;
+						done[9] = true ;
+					}
+					if(
+						(tetra[i]->third == n->first && tetra[i]->first == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->first == n->first)
+					)
+					{
+						newPoints[9] = &n->getBoundingPoint(7) ;
+						done[9] = true ;
+					}
+					if(
+						(tetra[i]->third == n->second && tetra[i]->first == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->first == n->second)
+					)
+					{
+						newPoints[9] = &n->getBoundingPoint(8) ;
+						done[9] = true ;
+					}
+					//
+					if(
+						(tetra[i]->third == n->first && tetra[i]->fourth == n->second) || 
+						(tetra[i]->third == n->second && tetra[i]->fourth == n->first)
+					)
+					{
+						newPoints[5] = &n->getBoundingPoint(1) ;
+						done[5] = true ;
+					}
+					
+					if(
+						(tetra[i]->third == n->third && tetra[i]->fourth == n->second) || 
+						(tetra[i]->third == n->second && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[5] = &n->getBoundingPoint(3) ;
+						done[5] = true ;
+					}
+					if(
+						(tetra[i]->third == n->third && tetra[i]->fourth == n->first) || 
+						(tetra[i]->third == n->first && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[5] = &n->getBoundingPoint(9) ;
+						done[5] = true ;
+					}
+					if(
+						(tetra[i]->third == n->third && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[5] = &n->getBoundingPoint(5) ;
+						done[5] = true ;
+					}
+					if(
+						(tetra[i]->third == n->first && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->fourth == n->first)
+					)
+					{
+						newPoints[5] = &n->getBoundingPoint(7) ;
+						done[5] = true ;
+					}
+					if(
+						(tetra[i]->third == n->second && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->third == n->fourth && tetra[i]->fourth == n->second)
+					)
+					{
+						newPoints[5] = &n->getBoundingPoint(8) ;
+						done[5] = true ;
+					}
+					//
+					if(
+						(tetra[i]->first == n->first && tetra[i]->fourth == n->second) || 
+						(tetra[i]->first == n->second && tetra[i]->fourth == n->first)
+					)
+					{
+						newPoints[7] = &n->getBoundingPoint(1) ;
+						done[7] = true ;
+					}
+					
+					if(
+						(tetra[i]->first == n->third && tetra[i]->fourth == n->second) || 
+						(tetra[i]->first == n->second && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[7] = &n->getBoundingPoint(3) ;
+						done[7] = true ;
+					}
+					if(
+						(tetra[i]->first == n->third && tetra[i]->fourth == n->first) || 
+						(tetra[i]->first == n->first && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[7] = &n->getBoundingPoint(9) ;
+						done[7] = true ;
+					}
+					if(
+						(tetra[i]->first == n->third && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->first == n->fourth && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[7] = &n->getBoundingPoint(5) ;
+						done[7] = true ;
+					}
+					if(
+						(tetra[i]->first == n->first && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->first == n->fourth && tetra[i]->fourth == n->first)
+					)
+					{
+						newPoints[7] = &n->getBoundingPoint(7) ;
+						done[7] = true ;
+					}
+					if(
+						(tetra[i]->first == n->second && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->first == n->fourth && tetra[i]->fourth == n->second)
+					)
+					{
+						newPoints[7] = &n->getBoundingPoint(8) ;
+						done[7] = true ;
+					}
+					//
+					if(
+						(tetra[i]->second == n->first && tetra[i]->fourth == n->second) || 
+						(tetra[i]->second == n->second && tetra[i]->fourth == n->first)
+					)
+					{
+						newPoints[8] = &n->getBoundingPoint(1) ;
+						done[8] = true ;
+					}
+					
+					if(
+						(tetra[i]->second == n->third && tetra[i]->fourth == n->second) || 
+						(tetra[i]->second == n->second && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[8] = &n->getBoundingPoint(3) ;
+						done[8] = true ;
+					}
+					if(
+						(tetra[i]->second == n->third && tetra[i]->fourth == n->first) || 
+						(tetra[i]->second == n->first && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[8] = &n->getBoundingPoint(9) ;
+						done[8] = true ;
+					}
+					if(
+						(tetra[i]->second == n->third && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->second == n->fourth && tetra[i]->fourth == n->third)
+					)
+					{
+						newPoints[8] = &n->getBoundingPoint(5) ;
+						done[8] = true ;
+					}
+					if(
+						(tetra[i]->second == n->first && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->second == n->fourth && tetra[i]->fourth == n->first)
+					)
+					{
+						newPoints[8] = &n->getBoundingPoint(7) ;
+						done[8] = true ;
+					}
+					if(
+						(tetra[i]->second == n->second && tetra[i]->fourth == n->fourth) || 
+						(tetra[i]->second == n->fourth && tetra[i]->fourth == n->second)
+					)
+					{
+						newPoints[8] = &n->getBoundingPoint(8) ;
+						done[8] = true ;
+					}
+				}
+				
+				
+		}
+		
+		if(!done[1])
+		{
+
+				newPoints[1] = new Point(*tetra[i]->first*.5 +  *tetra[i]->second*.5) ;
+				newPoints[1]->id = this->global_counter++ ;
+		}
+		
+		if(!done[3])
+		{
+			newPoints[3] = new Point(*tetra[i]->third*.5 +  *tetra[i]->second*.5) ;
+			newPoints[3]->id = this->global_counter++ ;
+		}
+		
+		if(!done[5])
+		{
+			newPoints[5] = new Point(*tetra[i]->third*.5 +  *tetra[i]->fourth*.5) ;
+			newPoints[5]->id = this->global_counter++ ;
+		}
+		if(!done[7])
+		{
+			newPoints[7] = new Point(*tetra[i]->first*.5 +  *tetra[i]->fourth*.5) ;
+			newPoints[7]->id = this->global_counter++ ;
+		}
+		if(!done[8])
+		{
+			newPoints[8] = new Point(*tetra[i]->second*.5 +  *tetra[i]->fourth*.5) ;
+			newPoints[8]->id = this->global_counter++ ;
+		}
+		if(!done[9])
+		{
+			newPoints[9] = new Point(*tetra[i]->first*.5 +  *tetra[i]->third*.5) ;
+			newPoints[9]->id = this->global_counter++ ;
+		}
+		tetra[i]->setBoundingPoints(newPoints) ;
+		tetra[i]->print() ;
+	}
+	
+	std::cout << "\r adding supplementary nodes... tetrahedron " << tetra.size() << "/" <<  tetra.size() << " ... done" << std::endl ;
+	
+	for(size_t i = 0 ; i < tetra.size() ; i++)
+	{
+		tetra[i]->clearVisited() ;
+		if(father != NULL)
+			refresh(father) ;
+	}
+	}
 }
-
-
-// void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement * father)
-// {
-// 	std::vector<DelaunayTetrahedron *> tetra = getTetrahedrons() ;
-// 	
-// 	for(size_t i = 0 ; i < tetra.size() ; i++)
-// 	{
-// 		if(i%1000 == 0)
-// 			std::cout << "\r adding supplementary nodes... tetrahedron " << i+1 << "/" <<  tetra.size() << std::flush ;
-// 		
-// 		tetra[i]->visited = true ;
-// 		//six per egde and four for the original points
-// 		std::valarray<Point *> newPoints(nodes_per_side*6+4) ;
-// 		std::valarray<bool> done(false, nodes_per_side*6+4) ;
-// 		
-// 		newPoints[0] = tetra[i]->first ;
-// 		done[0] = true ;
-// 		newPoints[2] = tetra[i]->second ;//updated
-// 		done[2] = true ;
-// 		newPoints[4] = tetra[i]->third ;//updated
-// 		done[4] = true ;
-// 		newPoints[6] = tetra[i]->fourth ;//updated
-// 		done[6] = true ;
-// 		
-// 		std::set<DelaunayTetrahedron *> neighbourhood ;
-// 		for(size_t j = 0 ; j < tetra[i]->neighbour.size() ; j++)
-// 		{
-// 			if(tetra[i]->neighbour[j]->isTetrahedron)
-// 				neighbourhood.insert(static_cast<DelaunayTetrahedron *>(tetra[i]->neighbour[j])) ;
-// 		}
-// 		
-// 		size_t newly_inserted = neighbourhood.size() ;
-// 		
-// 		while(newly_inserted> 0)
-// 		{
-// 			newly_inserted = 0 ;
-// 			std::set<DelaunayTetrahedron *> to_insert ;
-// 			
-// 			for(std::set<DelaunayTetrahedron *>::iterator n = neighbourhood.begin() ; n != neighbourhood.end() ;++n)
-// 			{
-// 				for(size_t k = 0 ; k< (*n)->neighbour.size() ; k++ )
-// 				{
-// 					if((*n)->neighbour[k]->isTetrahedron && (*n)->neighbour[k]->numberOfCommonVertices(tetra[i]) > 0)
-// 					{
-// 						to_insert.insert(static_cast<DelaunayTetrahedron *>((*n)->neighbour[k])) ;
-// 					}
-// 				}
-// 			}
-// 			
-// 			for(std::set<DelaunayTetrahedron *>::iterator n = to_insert.begin() ; n != to_insert.end() ;++n)
-// 			{
-// 				if(neighbourhood.insert(*n).second)
-// 					newly_inserted++ ;
-// 			}
-// 			
-// 		}
-// 		
-// 		for(std::set<DelaunayTetrahedron *>::iterator j = neighbourhood.begin() ; j != neighbourhood.end() ;++j)
-// 		{			
-// 			if((*j)->visited && (*j) != tetra[i])
-// 				{
-// 					DelaunayTetrahedron * n = (*j) ;
-// 					
-// 					if(
-// 							(tetra[i]->first == n->first && tetra[i]->second == n->second) || 
-// 							(tetra[i]->first == n->second && tetra[i]->second == n->first)
-// 						)
-// 					{
-// 						newPoints[1] = &n->getBoundingPoint(1) ;
-// 						done[1] = true ;
-// 					}
-// 					
-// 					if(
-// 					    (tetra[i]->first == n->third && tetra[i]->second == n->second) || 
-// 					    (tetra[i]->first == n->second && tetra[i]->second == n->third)
-// 					  )
-// 					{
-// 						newPoints[1] = &n->getBoundingPoint(3) ;
-// 						done[1] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->third && tetra[i]->second == n->first) || 
-// 					    (tetra[i]->first == n->first && tetra[i]->second == n->third)
-// 					  )
-// 					{
-// 						newPoints[1] = &n->getBoundingPoint(9) ;
-// 						done[1] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->third && tetra[i]->second == n->fourth) || 
-// 					    (tetra[i]->first == n->fourth && tetra[i]->second == n->third)
-// 					  )
-// 					{
-// 						newPoints[1] = &n->getBoundingPoint(5) ;
-// 						done[1] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->first && tetra[i]->second == n->fourth) || 
-// 					    (tetra[i]->first == n->fourth && tetra[i]->second == n->first)
-// 					  )
-// 					{
-// 						newPoints[1] = &n->getBoundingPoint(7) ;
-// 						done[1] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->second && tetra[i]->second == n->fourth) || 
-// 					    (tetra[i]->first == n->fourth && tetra[i]->second == n->second)
-// 					  )
-// 					{
-// 						newPoints[1] = &n->getBoundingPoint(8) ;
-// 						done[1] = true ;
-// 					}
-// 					//
-// 					if(
-// 					    (tetra[i]->third == n->first && tetra[i]->second == n->second) || 
-// 					    (tetra[i]->third == n->second && tetra[i]->second == n->first)
-// 					  )
-// 					{
-// 						newPoints[3] = &n->getBoundingPoint(1) ;
-// 						done[3] = true ;
-// 					}
-// 					
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->second == n->second) || 
-// 					    (tetra[i]->third == n->second && tetra[i]->second == n->third)
-// 					  )
-// 					{
-// 						newPoints[3] = &n->getBoundingPoint(3) ;
-// 						done[3] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->second == n->first) || 
-// 					    (tetra[i]->third == n->first && tetra[i]->second == n->third)
-// 					  )
-// 					{
-// 						newPoints[3] = &n->getBoundingPoint(9) ;
-// 						done[3] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->second == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->second == n->third)
-// 					  )
-// 					{
-// 						newPoints[3] = &n->getBoundingPoint(5) ;
-// 						done[3] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->first && tetra[i]->second == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->second == n->first)
-// 					  )
-// 					{
-// 						newPoints[3] = &n->getBoundingPoint(7) ;
-// 						done[3] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->second && tetra[i]->second == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->second == n->second)
-// 					  )
-// 					{
-// 						newPoints[3] = &n->getBoundingPoint(8) ;
-// 						done[3] = true ;
-// 					}
-// 					//
-// 					if(
-// 					    (tetra[i]->third == n->first && tetra[i]->first == n->second) || 
-// 					    (tetra[i]->third == n->second && tetra[i]->first == n->first)
-// 					  )
-// 					{
-// 						newPoints[9] = &n->getBoundingPoint(1) ;
-// 						done[9] = true ;
-// 					}
-// 					
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->first == n->second) || 
-// 					    (tetra[i]->third == n->second && tetra[i]->first == n->third)
-// 					  )
-// 					{
-// 						newPoints[9] = &n->getBoundingPoint(3) ;
-// 						done[9] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->first == n->first) || 
-// 					    (tetra[i]->third == n->first && tetra[i]->first == n->third)
-// 					  )
-// 					{
-// 						newPoints[9] = &n->getBoundingPoint(9) ;
-// 						done[9] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->first == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->first == n->third)
-// 					  )
-// 					{
-// 						newPoints[9] = &n->getBoundingPoint(5) ;
-// 						done[9] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->first && tetra[i]->first == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->first == n->first)
-// 					  )
-// 					{
-// 						newPoints[9] = &n->getBoundingPoint(7) ;
-// 						done[9] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->second && tetra[i]->first == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->first == n->second)
-// 					  )
-// 					{
-// 						newPoints[9] = &n->getBoundingPoint(8) ;
-// 						done[9] = true ;
-// 					}
-// 					//
-// 					if(
-// 					    (tetra[i]->third == n->first && tetra[i]->fourth == n->second) || 
-// 					    (tetra[i]->third == n->second && tetra[i]->fourth == n->first)
-// 					  )
-// 					{
-// 						newPoints[5] = &n->getBoundingPoint(1) ;
-// 						done[5] = true ;
-// 					}
-// 					
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->fourth == n->second) || 
-// 					    (tetra[i]->third == n->second && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[5] = &n->getBoundingPoint(3) ;
-// 						done[5] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->fourth == n->first) || 
-// 					    (tetra[i]->third == n->first && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[5] = &n->getBoundingPoint(9) ;
-// 						done[5] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->third && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[5] = &n->getBoundingPoint(5) ;
-// 						done[5] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->first && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->fourth == n->first)
-// 					  )
-// 					{
-// 						newPoints[5] = &n->getBoundingPoint(7) ;
-// 						done[5] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->third == n->second && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->third == n->fourth && tetra[i]->fourth == n->second)
-// 					  )
-// 					{
-// 						newPoints[5] = &n->getBoundingPoint(8) ;
-// 						done[5] = true ;
-// 					}
-// 					//
-// 					if(
-// 					    (tetra[i]->first == n->first && tetra[i]->fourth == n->second) || 
-// 					    (tetra[i]->first == n->second && tetra[i]->fourth == n->first)
-// 					  )
-// 					{
-// 						newPoints[7] = &n->getBoundingPoint(1) ;
-// 						done[7] = true ;
-// 					}
-// 					
-// 					if(
-// 					    (tetra[i]->first == n->third && tetra[i]->fourth == n->second) || 
-// 					    (tetra[i]->first == n->second && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[7] = &n->getBoundingPoint(3) ;
-// 						done[7] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->third && tetra[i]->fourth == n->first) || 
-// 					    (tetra[i]->first == n->first && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[7] = &n->getBoundingPoint(9) ;
-// 						done[7] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->third && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->first == n->fourth && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[7] = &n->getBoundingPoint(5) ;
-// 						done[7] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->first && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->first == n->fourth && tetra[i]->fourth == n->first)
-// 					  )
-// 					{
-// 						newPoints[7] = &n->getBoundingPoint(7) ;
-// 						done[7] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->first == n->second && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->first == n->fourth && tetra[i]->fourth == n->second)
-// 					  )
-// 					{
-// 						newPoints[7] = &n->getBoundingPoint(8) ;
-// 						done[7] = true ;
-// 					}
-// 					//
-// 					if(
-// 					    (tetra[i]->second == n->first && tetra[i]->fourth == n->second) || 
-// 					    (tetra[i]->second == n->second && tetra[i]->fourth == n->first)
-// 					  )
-// 					{
-// 						newPoints[8] = &n->getBoundingPoint(1) ;
-// 						done[8] = true ;
-// 					}
-// 					
-// 					if(
-// 					    (tetra[i]->second == n->third && tetra[i]->fourth == n->second) || 
-// 					    (tetra[i]->second == n->second && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[8] = &n->getBoundingPoint(3) ;
-// 						done[8] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->second == n->third && tetra[i]->fourth == n->first) || 
-// 					    (tetra[i]->second == n->first && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[8] = &n->getBoundingPoint(9) ;
-// 						done[8] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->second == n->third && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->second == n->fourth && tetra[i]->fourth == n->third)
-// 					  )
-// 					{
-// 						newPoints[8] = &n->getBoundingPoint(5) ;
-// 						done[8] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->second == n->first && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->second == n->fourth && tetra[i]->fourth == n->first)
-// 					  )
-// 					{
-// 						newPoints[8] = &n->getBoundingPoint(7) ;
-// 						done[8] = true ;
-// 					}
-// 					if(
-// 					    (tetra[i]->second == n->second && tetra[i]->fourth == n->fourth) || 
-// 					    (tetra[i]->second == n->fourth && tetra[i]->fourth == n->second)
-// 					  )
-// 					{
-// 						newPoints[8] = &n->getBoundingPoint(8) ;
-// 						done[8] = true ;
-// 					}
-// 				}
-// 				
-// 				
-// 		}
-// 		
-// 		if(!done[1])
-// 		{
-// 
-// 				newPoints[1] = new Point(*tetra[i]->first*.5 +  *tetra[i]->second*.5) ;
-// 				newPoints[1]->id = this->global_counter++ ;
-// 		}
-// 		
-// 		if(!done[3])
-// 		{
-// 			newPoints[3] = new Point(*tetra[i]->third*.5 +  *tetra[i]->second*.5) ;
-// 			newPoints[3]->id = this->global_counter++ ;
-// 		}
-// 		
-// 		if(!done[5])
-// 		{
-// 			newPoints[5] = new Point(*tetra[i]->third*.5 +  *tetra[i]->fourth*.5) ;
-// 			newPoints[5]->id = this->global_counter++ ;
-// 		}
-// 		if(!done[7])
-// 		{
-// 			newPoints[7] = new Point(*tetra[i]->first*.5 +  *tetra[i]->fourth*.5) ;
-// 			newPoints[7]->id = this->global_counter++ ;
-// 		}
-// 		if(!done[8])
-// 		{
-// 			newPoints[8] = new Point(*tetra[i]->second*.5 +  *tetra[i]->fourth*.5) ;
-// 			newPoints[8]->id = this->global_counter++ ;
-// 		}
-// 		if(!done[9])
-// 		{
-// 			newPoints[9] = new Point(*tetra[i]->first*.5 +  *tetra[i]->third*.5) ;
-// 			newPoints[9]->id = this->global_counter++ ;
-// 		}
-// 		
-// 		tetra[i]->setBoundingPoints(newPoints) ;
-// 	}
-// 	
-// 	std::cout << "\r adding supplementary nodes... tetrahedron " << tetra.size() << "/" <<  tetra.size() << " ... done" << std::endl ;
-// 	
-// 	for(size_t i = 0 ; i < tetra.size() ; i++)
-// 	{
-// 		tetra[i]->clearVisited() ;
-// 		if(father != NULL)
-// 			refresh(father) ;
-// 	}
-// }
 
 void DelaunayTree_3D::refresh(const TetrahedralElement *father)
 {

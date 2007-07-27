@@ -655,7 +655,7 @@ int main(int argc, char *argv[])
 // 	s3d.setBehaviour(new VoidForm()) ;
 	s3d.setBehaviour(&sc3s) ;
 	
-	ft.sample(512) ;
+	ft.sample(8) ;
 
 	ft.setOrder(QUADRATIC) ;
 
@@ -752,18 +752,22 @@ int main(int argc, char *argv[])
 	(*shapefunc)[8] = Function(f8) ; //y*4*(one-x-y-z) ;
 	(*shapefunc)[9] = Function(f9) ; //x*z*4 ;
 	
-	for(size_t i = 0 ; i < shapefunc->size() ; i++)
-	{
-		std::cout << i << " :: " << std::flush ;
-		for(size_t j = 0 ; j < myTets[myTets.size()-1]->getBoundingPoints().size() ; j++)
-		{
-			std::cout << round(VirtualMachine().eval((*shapefunc)[i], myTets[myTets.size()-1]->inLocalCoordinates(myTets[myTets.size()-1]->getBoundingPoint(j)))) << std::flush ;
-		}
-		std::cout << std::endl ;
-	}
+// 	for(size_t k = 0 ; k < myTets.size(); k++)
+// 	{
+// 		for(size_t i = 0 ; i < shapefunc->size() ; i++)
+// 		{
+// 			std::cout << i << " :: " << std::flush ;
+// 			for(size_t j = 0 ; j < myTets[k]->getBoundingPoints().size() ; j++)
+// 			{
+// 				std::cout << round(VirtualMachine().eval((*shapefunc)[i], myTets[k]->inLocalCoordinates(myTets[k]->getBoundingPoint(j)))*1000.)/1000. << std::flush ;
+// 			}
+// 			std::cout << std::endl ;
+// 		}
+// 	}
 	
 	
 	x = new Vector(ft.getAssembly()->getDisplacements()) ;//Vector(ft.getAssembly()->getDisplacements()) ;
+
 // 	for(size_t i = 0 ; i < myTets->size(); i++)
 // 	{
 // 		if(i%1000 == 0)
