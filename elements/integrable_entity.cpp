@@ -2212,28 +2212,33 @@ Vector & ElementState::getBuffer()
 
 void ElementState::step(double dt, Vector * d)
 {
-
-	previousPreviousTimePos = previousTimePos ;
-	previousTimePos = timePos ;
-	timePos+=dt ;
-	size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	int offset = ndofs-1 ;
-	std::vector< size_t > ids = parent->getDofIds() ;
-	
-	if(buffer.size() != parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs)
-		buffer.resize(parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs) ;
-	
-	for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+	if(parent->getBehaviour()->type != VOID_BEHAVIOUR)
 	{
-		buffer[i*ndofs] = (*d)[ids[i]*ndofs] ;
-		buffer[i*ndofs+offset] = (*d)[ids[i]*ndofs+offset] ;
-	}
-	
-	int nbp = parent->getBoundingPoints().size() ;
-	for(size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++)
-	{
-		buffer[i*ndofs+nbp*ndofs] = (*d)[ids[i+nbp]*ndofs] ;
-		buffer[i*ndofs+nbp*ndofs+offset] = (*d)[ids[i+nbp]*ndofs+offset] ;
+		previousPreviousTimePos = previousTimePos ;
+		previousTimePos = timePos ;
+		timePos+=dt ;
+		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		int offset = ndofs-1 ;
+		if(!ndofs)
+			offset = 0 ;
+		
+		std::vector< size_t > ids = parent->getDofIds() ;
+		
+		if(buffer.size() != parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs)
+			buffer.resize(parent->getBoundingPoints().size()*ndofs+parent->getEnrichmentFunctions().size()*ndofs) ;
+		
+		for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+		{
+			buffer[i*ndofs] = (*d)[ids[i]*ndofs] ;
+			buffer[i*ndofs+offset] = (*d)[ids[i]*ndofs+offset] ;
+		}
+		
+		int nbp = parent->getBoundingPoints().size() ;
+		for(size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++)
+		{
+			buffer[i*ndofs+nbp*ndofs] = (*d)[ids[i+nbp]*ndofs] ;
+			buffer[i*ndofs+nbp*ndofs+offset] = (*d)[ids[i+nbp]*ndofs+offset] ;
+		}
 	}
 }
 

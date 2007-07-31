@@ -17,12 +17,14 @@ using namespace Mu ;
 
 VoidForm::VoidForm() 
 {
+	this->num_dof = 0 ;
 	this->type = VOID_BEHAVIOUR ;
 	this->time_d = false ;
 }
 
 Matrix VoidForm::apply(const Function & p_i, const Function & p_j,const IntegrableEntity *e)  const
 {
+	
 	Matrix ret ;
 	return ret ; 
 }
