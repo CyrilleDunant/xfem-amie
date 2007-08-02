@@ -29,8 +29,20 @@ bool MohrCoulomb::met(const ElementState * s) const
 	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s->getParent()) ;
 	if(tested)
 	{
-		std::vector<DelaunayTriangle *> neighbourhood = tested->neighbourhood ;
-		
+		std::vector<DelaunayTriangle *> neighbourhood ;
+		std::vector<DelaunayTriangle *> neighbours = tested->neighbourhood ;
+		for(size_t i = 0 ; i < neighbours.size() ; i++)
+		{
+			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
+			{
+				if(std::find(neighbourhood.begin(), 
+				             neighbourhood.end(), 
+				             neighbours[i]->neighbourhood[j]) == neighbourhood.end() 
+				   && neighbours[i]->neighbourhood[j] != tested)
+					neighbourhood.push_back(neighbours[i]->neighbourhood[j]) ;
+			}
+		}
+
 		double maxNeighbourhoodStress = 0 ;
 		double minNeighbourhoodStress = 0 ;
 		if(!neighbourhood.empty())

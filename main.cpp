@@ -73,6 +73,9 @@ std::vector<bool> cracked ;
 DelaunayTree *dt ; //(pts) ;
 std::vector<Crack *> crack ;
 
+double E_min = 10;
+double E_max = 0;
+
 double timepos = 0.0 ;
 
 bool firstRun = true ;
@@ -156,7 +159,6 @@ struct fissureSimple
 	}
 } ;
 
-
 void applyForcesInInclusion(size_t n, Inclusion * i)
 {
 	size_t tot = 0 ;
@@ -209,7 +211,6 @@ void applyForcesInInclusion(size_t n, Inclusion * i)
 // 	std::cout << "applied " << tot << " force zones" << std::endl ;
 } ;
 
-
 void setBC()
 {
 	triangles = featureTree->getTriangles() ;
@@ -252,12 +253,14 @@ void setBC()
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
 			
-			if (
-			     (std::abs(triangles[k]->getBoundingPoint(c).x -4) < 0.1
-			         || std::abs(triangles[k]->getBoundingPoint(c).x +4) < 0.1)
-			   )
+			if (std::abs(triangles[k]->getBoundingPoint(c).x +4) < 0.001)
 			{
-				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
+			}
+			
+			if (std::abs(triangles[k]->getBoundingPoint(c).y +2) < 0.001)
+			{
+				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 
 // 			if (std::abs(triangles[k]->getBoundingPoint(c).x) < .1 && triangles[k]->getBoundingPoint(c).y > 0.9999 )
@@ -313,20 +316,19 @@ void setBC()
 // 	}
 }
 
-
 void step()
 {
 	
-	for(size_t i = 0 ; i < 1 ; i++)
+	for(size_t i = 0 ; i < 100 ; i++)
 	{
-		std::cout << "\r iteration " << i << "/20" << std::flush ;
+		std::cout << "\r iteration " << i << "/100" << std::flush ;
 		setBC() ;
 		featureTree->step(timepos) ;
 		
 // 		timepos+= 0.01 ;
 	}
 	
-	std::cout << "\r iteration " << "20/20 ... done" << std::endl ;
+	std::cout << "\r iteration " << "100/100 ... done" << std::endl ;
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	dt = featureTree->getDelaunayTree() ;
@@ -384,6 +386,14 @@ void step()
 		
 		if(!in && !triangles[k]->getBehaviour()->fractured())
 		{
+			
+			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				if(triangles[k]->getBehaviour()->param[0][0] > E_max)
+					E_max = triangles[k]->getBehaviour()->param[0][0] ;
+				if(triangles[k]->getBehaviour()->param[0][0] < E_min)
+					E_min = triangles[k]->getBehaviour()->param[0][0] ;
+			}
 // 			std::cout << sigma[k*npoints*3] << "   " 
 // 				<< sigma[k*npoints*3+1] << "   " 
 // 				<< sigma[k*npoints*3+2] << "   " 
@@ -639,7 +649,7 @@ std::vector<Inclusion * > generateInclusions(size_t n, Matrix * tensor)
 
 void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E = .01 ;
+	double E = .1 ;
 	double nu = .45 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
@@ -650,9 +660,9 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 	for(size_t i = 0 ; i < incs.size() ; i++)
 	{
 		std::vector<Inclusion *> ret ;
-		for(size_t j = 0 ; j < n ; j++)
+		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.12*incs[i]->getRadius() ;
+			double radius = 0.0005 ;
 			
 			Point center = incs[i]->getCenter()+Point(
 			                      (2.*random()/RAND_MAX-1.),
@@ -678,7 +688,7 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 				
 				ret.push_back(new Inclusion(radius, center)) ;
 				(*ret.rbegin())->setBehaviour(new StiffnessWithImposedDeformation(m0,a)) ;
-				F.addFeature(incs[0],*ret.rbegin()) ; 
+				F.addFeature(incs[i],*ret.rbegin()) ; 
 			}
 		}
 	}
@@ -753,7 +763,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = 0.001 + 0.24*random()/RAND_MAX ;
+		double radius = 0.01 + 0.5*random()/RAND_MAX ;
 		
 		Point center = Point(
 		                      (2.*random()/RAND_MAX-1.)*(4.-2.*radius-0.001),
@@ -784,7 +794,8 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		imp[1] = 0.01 ;
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
-		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor*4,new MohrCoulomb(0.04, -0.08))) ;
+		
+		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, 0.04)) ;
 		F->addFeature(father, temp) ;
 	}
 	
@@ -1118,8 +1129,6 @@ void Display(void)
 		double vonMises_min = vonMises.min() ;
 		
 		glNewList(  DISPLAY_LIST_VON_MISES,  GL_COMPILE ) ;
-		
-		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
@@ -1157,7 +1166,6 @@ void Display(void)
 		double angle_max = angle.max() ;
 		double angle_min = angle.min() ;
 		glNewList(  DISPLAY_LIST_ANGLE,  GL_COMPILE ) ;
-		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
@@ -1195,7 +1203,6 @@ void Display(void)
 		double sigma22_max = sigma22.max() ;
 		
 		glNewList(  DISPLAY_LIST_STRAIN_YY,  GL_COMPILE ) ;
-		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
@@ -1230,7 +1237,6 @@ void Display(void)
 		
 		double sigma12_min = sigma12.min() ;
 		double sigma12_max = sigma12.max() ;
-		
 		glNewList(  DISPLAY_LIST_STRAIN_XY,  GL_COMPILE ) ;
 		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1266,7 +1272,6 @@ void Display(void)
 		glEndList() ;
 		
 		glNewList(  DISPLAY_LIST_STIFFNESS,  GL_COMPILE ) ;
-		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
@@ -1282,7 +1287,7 @@ void Display(void)
 				glBegin(GL_TRIANGLE_FAN);
 				
 				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(0)) ;
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*5./(triangles[j]->getBehaviour()->getTensor(a)[0][0]), 1., 1.) ;
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
 				
@@ -1291,7 +1296,7 @@ void Display(void)
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(k)) ;
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*5./(triangles[j]->getBehaviour()->getTensor(a)[0][0]), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1665,7 +1670,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-	i_et_p = generateInclusionsAndPores(256, .05, &m0, &sample, &F) ;
+	i_et_p = generateInclusionsAndPores(1024, .05, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1685,8 +1690,8 @@ int main(int argc, char *argv[])
 	a[1] = 0.00 ;
 	a[1] = 0.00 ;
 // 	inc->setBehaviour(new Stiffness(m0*4)) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.25, 0.03)) ;
-	generateExpansiveZones(4, i_et_p.first, F) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.005)) ;
+	generateExpansiveZones(10, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1695,7 +1700,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(400) ;
+	F.sample(1200) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
