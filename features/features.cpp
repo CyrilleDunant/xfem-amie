@@ -315,13 +315,13 @@ void FeatureTree::renumber()
 	{
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getTriangles() ;
 		size_t count = 0 ;
-		std::cout << " renumbering... " << std::flush ;
+		std::cerr << " renumbering... " << std::flush ;
 	// 	for(size_t i = 0 ;  i < this->meshPoints.size() ; i++)
 	// 	{
-	// 		std::cout << "\r reseting point IDs... point " << ++count << "/"<< this->meshPoints.size() <<  std::flush ;
+	// 		std::cerr << "\r reseting point IDs... point " << ++count << "/"<< this->meshPoints.size() <<  std::flush ;
 	// 		this->meshPoints[i].first->id = -1 ;
 	// 	}
-	// 	std::cout << " ...done."<< std::endl ;
+	// 	std::cerr << " ...done."<< std::endl ;
 		
 		std::vector<Point *> points ;
 		for(size_t i = 0 ; i < triangles.size() ; i++)
@@ -374,20 +374,20 @@ void FeatureTree::renumber()
 		
 		this->dtree->global_counter = count ;
 		
-		std::cout << count*2 << " ...done " << std::endl ;
+		std::cerr << count*2 << " ...done " << std::endl ;
 
 	}
 	else if (dtree3D !=NULL)
 	{
 		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
 		size_t count = 0 ;
-		std::cout << " renumbering... " << std::flush ;
+		std::cerr << " renumbering... " << std::flush ;
 // 	for(size_t i = 0 ;  i < this->meshPoints.size() ; i++)
 // 	{
-// 		std::cout << "\r reseting point IDs... point " << ++count << "/"<< this->meshPoints.size() <<  std::flush ;
+// 		std::cerr << "\r reseting point IDs... point " << ++count << "/"<< this->meshPoints.size() <<  std::flush ;
 // 		this->meshPoints[i].first->id = -1 ;
 // 	}
-// 	std::cout << " ...done."<< std::endl ;
+// 	std::cerr << " ...done."<< std::endl ;
 		
 		std::vector<Point *> points ;
 		for(size_t i = 0 ; i < tets.size() ; i++)
@@ -447,7 +447,7 @@ void FeatureTree::renumber()
 		
 		this->dtree3D->global_counter = count ;
 		
-		std::cout << count*4 << " ...done " << std::endl ;
+		std::cerr << count*4 << " ...done " << std::endl ;
 	}
 	
 	renumbered = true ;
@@ -573,20 +573,20 @@ void FeatureTree::stitch()
 					{
 						if(triangles[i]->Triangle::intersects(dynamic_cast<Geometry *>(tree[j])))
 						{
-		// 					std::cout << "----------" << std::endl ;
+		// 					std::cerr << "----------" << std::endl ;
 							Point proj_0(*triangles[i]->first) ;
-		// 					std::cout << proj_0.x << "," << proj_0.y << std::flush ;
+		// 					std::cerr << proj_0.x << "," << proj_0.y << std::flush ;
 							tree[j]->project(&proj_0) ;
-		// 					std::cout << "=> "<< proj_0.x << "," << proj_0.y << std::endl ;
+		// 					std::cerr << "=> "<< proj_0.x << "," << proj_0.y << std::endl ;
 							Point proj_1(*triangles[i]->second) ;
-		// 					std::cout << proj_1.x << "," << proj_1.y << std::flush ;
+		// 					std::cerr << proj_1.x << "," << proj_1.y << std::flush ;
 							tree[j]->project(&proj_1) ;
-		// 					std::cout << "=> "<< proj_1.x << "," << proj_1.y << std::endl ;
+		// 					std::cerr << "=> "<< proj_1.x << "," << proj_1.y << std::endl ;
 							Point proj_2(*triangles[i]->third) ;
-		// 					std::cout << proj_2.x << "," << proj_2.y << std::flush ;
+		// 					std::cerr << proj_2.x << "," << proj_2.y << std::flush ;
 							tree[j]->project(&proj_2) ;
-		// 					std::cout << "=> "<< proj_2.x << "," << proj_2.y << std::endl ;
-		// 					std::cout << "----------" << std::endl ;
+		// 					std::cerr << "=> "<< proj_2.x << "," << proj_2.y << std::endl ;
+		// 					std::cerr << "----------" << std::endl ;
 							bool changed  = true;
 							
 							if(squareDist(&proj_0 , triangles[i]->first ) < 0.0000001 && 
@@ -601,7 +601,7 @@ void FeatureTree::stitch()
 									tree[j]->project(&triangles[i]->getBoundingPoint(1)) ;
 									triangles[i]->moved = true ;
 								}
-		// 						std::cout << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
+		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
 							}
 							if(squareDist(&proj_1 , triangles[i]->second) < 0.0000001 && 
 								squareDist(&proj_2 , triangles[i]->third) < 0.0000001 )
@@ -616,7 +616,7 @@ void FeatureTree::stitch()
 									triangles[i]->moved = true ;
 								}
 								
-		// 						std::cout << "--> " << (*triangles)[i]->getBoundingPoint(3)->x << ", " << (*triangles)[i]->getBoundingPoint(3)->y << std::endl ;
+		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(3)->x << ", " << (*triangles)[i]->getBoundingPoint(3)->y << std::endl ;
 							}
 							if(squareDist(&proj_2 , triangles[i]->third) < 0.0000001 && 
 							   squareDist(&proj_0, triangles[i]->first) < 0.0000001) 
@@ -631,12 +631,12 @@ void FeatureTree::stitch()
 									triangles[i]->moved = true ;
 								}
 								
-		// 						std::cout << "--> " << (*triangles)[i]->getBoundingPoint(5)->x << ", " << (*triangles)[i]->getBoundingPoint(5)->y << std::endl ;
+		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(5)->x << ", " << (*triangles)[i]->getBoundingPoint(5)->y << std::endl ;
 							}
 							
 						}
 						if(count % 1000 == 0)
-							std::cout << "\r projecting points on boundaries... triangle " << count << "/" << triangles.size() << " feature " << i << std::flush ; 
+							std::cerr << "\r projecting points on boundaries... triangle " << count << "/" << triangles.size() << " feature " << i << std::flush ; 
 						
 					}
 				}
@@ -818,21 +818,21 @@ void FeatureTree::stitch()
 						}
 
 						if(count % 1000 == 0)
-							std::cout << "\r projecting points on boundaries... point " << count << "/" << ++pd << " feature " << i << std::flush ; 
+							std::cerr << "\r projecting points on boundaries... point " << count << "/" << ++pd << " feature " << i << std::flush ; 
 					}
 				}
 			}
 		}
 	}
 	stitched = true ;
-	std::cout << " ...done."<< std::endl ;
+	std::cerr << " ...done."<< std::endl ;
 }
 
 void FeatureTree::sample(size_t n)
 {
 	if(is2D())
 	{
-		std::cout << "2D features" << std::endl ;
+		std::cerr << "2D features" << std::endl ;
 		double total_area = tree[0]->area() ;
 		tree[0]->sample(n) ;
 		for(size_t i  = 1 ; i < this->tree.size() ; i ++)
@@ -841,14 +841,14 @@ void FeatureTree::sample(size_t n)
 // 			if((size_t)((double)n*sqrt(tree[i]->area()/(total_area))) >= 8)
 // 				tree[i]->sample((size_t)((double)n*sqrt(tree[i]->area()/(total_area)))) ;
 			tree[i]->sample(std::max((size_t)((double)n*sqrt(tree[i]->area()/(total_area))),(size_t)8)) ;
-// 			std::cout << std::max((size_t)((double)n*tree[i]->area()/(.9*total_area)),(size_t)12) << std::endl ;
+// 			std::cerr << std::max((size_t)((double)n*tree[i]->area()/(.9*total_area)),(size_t)12) << std::endl ;
 	// 		tree[i]->sample(sqrt(n)*10) ;
 	// 		tree[i]->sampleSurface(n) ;
 		}
 	}
 	else if (is3D())
 	{
-		std::cout << "3D features" << std::endl ;
+		std::cerr << "3D features" << std::endl ;
 		double total_area = tree[0]->area() ;
 // 		total_volume = sqrt(total_volume) ;
 		tree[0]->sample(n) ;
@@ -872,7 +872,7 @@ void FeatureTree::sample(size_t n)
 											)
 									) ;
 			}
-// 			std::cout << (size_t)((double)n*pow(v/total_volume, .6)/2.) << std::endl ;
+// 			std::cerr << (size_t)((double)n*pow(v/total_volume, .6)/2.) << std::endl ;
 	// 		tree[i]->sample(sqrt(n)*10) ;
 	// 		tree[i]->sampleSurface(n) ;
 		}
@@ -899,7 +899,7 @@ void FeatureTree::refine(size_t nit, SamplingCriterion *cri)
 			}
 		}
 		
-		std::cout << "we have " << toAdd.size() << " non-conforming triangles" << std::endl ;
+		std::cerr << "we have " << toAdd.size() << " non-conforming triangles" << std::endl ;
 		
 		std::stable_sort(toAdd.begin(), toAdd.end()) ;
 		std::vector<Point>::iterator e = std::unique(toAdd.begin(), toAdd.end());
@@ -908,7 +908,7 @@ void FeatureTree::refine(size_t nit, SamplingCriterion *cri)
 		std::random_shuffle(toAdd.begin(), toAdd.end()) ;
 		for(size_t i = 0 ; i< toAdd.size() ; i++)
 		{
-			//std::cout << "inserting..." ; toAdd[i].print() ; std::cout << std::endl ;
+			//std::cerr << "inserting..." ; toAdd[i].print() ; std::cerr << std::endl ;
 			insert(new Point(toAdd[i])) ;
 		}
 		
@@ -916,7 +916,7 @@ void FeatureTree::refine(size_t nit, SamplingCriterion *cri)
 		
 		if(toAdd.size() < 2)
 		{
-			std::cout << "Wow ! we Converged !" << std::endl ;
+			std::cerr << "Wow ! we Converged !" << std::endl ;
 			nothingToAdd = true ;
 		}
 		
@@ -1069,12 +1069,12 @@ void FeatureTree::refine( size_t level )
 					std::vector<Point>::iterator e = std::unique(toAdd.begin(), toAdd.end());
 					toAdd.erase(e, toAdd.end()) ;
 				
-	// 			std::cout << "we have " << toAdd.size() << " points for refinement" << std::endl ;
+	// 			std::cerr << "we have " << toAdd.size() << " points for refinement" << std::endl ;
 
 					std::random_shuffle(toAdd.begin(), toAdd.end()) ;
 					for(size_t k = 0 ; k< toAdd.size() ;k++)
 					{
-						std::cout << "\r refining feature " << i+1 << "/" << zonesVec.size() << "...added " << points_added << " points"<< std::flush ;
+						std::cerr << "\r refining feature " << i+1 << "/" << zonesVec.size() << "...added " << points_added << " points"<< std::flush ;
 						Point * p = new Point(toAdd[k]) ;
 						points_added++ ;
 						this->meshPoints.push_back(std::pair<Point*, Feature *>(p, zonesVec[i].second->getFather())) ;
@@ -1083,7 +1083,7 @@ void FeatureTree::refine( size_t level )
 				}
 			}
 		}
-		std::cout << "...done"<< std::endl ;
+		std::cerr << "...done"<< std::endl ;
 	}
 	else
 	{
@@ -1222,11 +1222,11 @@ void FeatureTree::refine( size_t level )
 			std::vector<Point>::iterator e = std::unique(toAdd.begin(), toAdd.end());
 			toAdd.erase(e, toAdd.end()) ;
 			
-// 			std::cout << "we have " << toAdd.size() << " points for refinement" << std::endl ;
+// 			std::cerr << "we have " << toAdd.size() << " points for refinement" << std::endl ;
 			std::random_shuffle(toAdd.begin(), toAdd.end()) ;
 			for(size_t k = 0 ; k< toAdd.size() ;k++)
 			{
-				std::cout << "\r refining feature " << i+1 << "/" << zonesVec.size() << "...added " << points_added << " points"<< std::flush ;
+				std::cerr << "\r refining feature " << i+1 << "/" << zonesVec.size() << "...added " << points_added << " points"<< std::flush ;
 				Point * p = new Point(toAdd[k]) ;
 				points_added++ ;
 				this->meshPoints.push_back(std::pair<Point*, Feature *>(p, zonesVec[i].second->getFather())) ;
@@ -1234,7 +1234,7 @@ void FeatureTree::refine( size_t level )
 			}
 		}
 	}
-	std::cout << "...done"<< std::endl ;
+	std::cerr << "...done"<< std::endl ;
 	}
 }
 
@@ -1523,9 +1523,9 @@ void FeatureTree::assemble()
 			stitch() ;
 		if(!renumbered)
 			renumber() ;
-		std::cout << " refreshing..." << std::flush ;
+		std::cerr << " refreshing..." << std::flush ;
 		this->dtree->refresh(father2D, false) ;
-		std::cout << " ...done" << std::endl ;
+		std::cerr << " ...done" << std::endl ;
 		en_counter = this->dtree->global_counter ;
 		
 		triangles = this->dtree->getTriangles() ;
@@ -1544,15 +1544,15 @@ void FeatureTree::assemble()
 	else if(this->dtree3D != NULL && this->dtree ==NULL)
 	{
 		
-		std::cout << " stich..." << std::flush ;
+		std::cerr << " stich..." << std::flush ;
 		if(!stitched)
 			stitch() ;
 		if(!renumbered)
 			renumber() ;
 		
-		std::cout << " refreshing..." << std::flush ;
+		std::cerr << " refreshing..." << std::flush ;
 		this->dtree3D->refresh(father3D) ;
-		std::cout << " ...done" << std::endl ;
+		std::cerr << " ...done" << std::endl ;
 		
 		en_counter = this->dtree3D->global_counter ;
 		
@@ -1569,7 +1569,7 @@ void FeatureTree::assemble()
 			initializeElements() ;
 	}
 	
-	std::cout << " enriching..." << std::flush ;		
+	std::cerr << " enriching..." << std::flush ;		
 	
 	
 	for(size_t i = 1 ; i < this->tree.size() ; i++)
@@ -1581,30 +1581,30 @@ void FeatureTree::assemble()
 		}
 		
 		if(i%10 == 0)
-			std::cout << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
+			std::cerr << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
 	}
-	std::cout << " ...done" << std::endl ;
+	std::cerr << " ...done" << std::endl ;
 	
 	if(this->dtree3D == NULL && this->dtree !=NULL)
 	{
-		std::cout << " refreshing..." << std::flush ;
+		std::cerr << " refreshing..." << std::flush ;
 		this->dtree->refresh(father2D, false) ;
-		std::cout << " ...done" << std::endl ;
+		std::cerr << " ...done" << std::endl ;
 	}
 	else if(this->dtree3D != NULL && this->dtree ==NULL)
 	{
-		std::cout << " refreshing..." << std::flush ;
+		std::cerr << " refreshing..." << std::flush ;
 		this->dtree3D->refresh(father3D) ;
-		std::cout << " ...done" << std::endl ;
+		std::cerr << " ...done" << std::endl ;
 	}
 	
 	this->numdofs = en_counter ;
 	
 	if(this->dtree != NULL)
 	{
-// 		std::cout << " refreshing..." << std::flush ;
+// 		std::cerr << " refreshing..." << std::flush ;
 // 		this->dtree->refresh(father2D, true) ;
-// 		std::cout << " ...done" << std::endl ;
+// 		std::cerr << " ...done" << std::endl ;
 // 		triangles = this->dtree->getTriangles() ;
 		
 		for(size_t j = 0 ; j < triangles.size() ; j++)
@@ -1612,7 +1612,7 @@ void FeatureTree::assemble()
 			if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 // 				if(j%1000 == 0)
-					std::cout << "\r assembling stiffness matrix... triangle " << j+1 << "/" << triangles.size() << std::flush ;
+					std::cerr << "\r assembling stiffness matrix... triangle " << j+1 << "/" << triangles.size() << std::flush ;
 				
 				for(size_t k = 0 ; k < triangles[j]->getEnrichmentFunctions().size() ; k++)
 				{
@@ -1622,7 +1622,7 @@ void FeatureTree::assemble()
 				K->add(triangles[j]) ;
 			}
 		}
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 	}
 	else
 	{
@@ -1634,7 +1634,7 @@ void FeatureTree::assemble()
 			{
 				
 				if(j%1000 == 0)
-					std::cout << "\r assembling stiffness matrix... tetrahedron " << j+1 << "/" << tets.size() << std::flush ;
+					std::cerr << "\r assembling stiffness matrix... tetrahedron " << j+1 << "/" << tets.size() << std::flush ;
 				
 				for(size_t k = 0 ; k < tets[j]->getEnrichmentFunctions().size() ; k++)
 				{
@@ -1646,7 +1646,7 @@ void FeatureTree::assemble()
 			}
 		}
 		
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 	}
 }
 
@@ -1671,11 +1671,11 @@ Vector FeatureTree::stressFromDisplacements() const
 				for(size_t j = 0 ; j < 9 ; j++)
 					stress[i*3*3+j] = str[j] ;
 		
-				std::cout << "\r computing stress... element " << i+1 << "/" << elements.size() << std::flush ;
+				std::cerr << "\r computing stress... element " << i+1 << "/" << elements.size() << std::flush ;
 			}
 			
 		}
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 		return stress ;
 	}
 	else
@@ -1694,10 +1694,10 @@ Vector FeatureTree::stressFromDisplacements() const
 			for(size_t j = 0 ; j < 9 ; j++)
 				stress[i*4*6+j] = str[j] ;
 			
-			std::cout << "\r computing stress... element " << i+1 << "/" << elements3D.size() << std::flush ;
+			std::cerr << "\r computing stress... element " << i+1 << "/" << elements3D.size() << std::flush ;
 			
 		}
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 		return stress ;
 	}
 }
@@ -1729,10 +1729,10 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
 					stress_strain.first[i*elements[0]->getBoundingPoints().size()*3+j] = str.first[j] ;
 					stress_strain.second[i*elements[0]->getBoundingPoints().size()*3+j] = str.second[j] ;
 				}
-				std::cout << "\r computing strain+stress... element " << i+1 << "/" << elements.size() << std::flush ;
+				std::cerr << "\r computing strain+stress... element " << i+1 << "/" << elements.size() << std::flush ;
 			}
 		}
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 		return stress_strain ;
 	}
 	else
@@ -1754,9 +1754,9 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
 				stress_strain.first[i*4*6+j] = str.first[j] ;
 				stress_strain.second[i*4*6+j] = str.second[j] ;
 			}
-			std::cout << "\r computing strain+stress... element " << i+1 << "/" << elements3D.size() << std::flush ;
+			std::cerr << "\r computing strain+stress... element " << i+1 << "/" << elements3D.size() << std::flush ;
 		}
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 		return stress_strain ;
 	}
 }
@@ -1781,10 +1781,10 @@ Vector FeatureTree::strainFromDisplacements() const
 				
 				for(size_t j = 0 ; j < 9 ; j++)
 					strain[i*3*3+j] = str[j] ;
-				std::cout << "\r computing strain... element " << i+1 << "/" << elements.size() << std::flush ;
+				std::cerr << "\r computing strain... element " << i+1 << "/" << elements.size() << std::flush ;
 			}
 		}
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 		return strain ;
 	}
 	else
@@ -1804,9 +1804,9 @@ Vector FeatureTree::strainFromDisplacements() const
 			
 			for(size_t j = 0 ; j < 24 ; j++)
 				strain[i*4*6+j] = str[j] ;
-			std::cout << "\r computing strain... element " << i+1 << "/" << elements3D.size() << std::flush ;
+			std::cerr << "\r computing strain... element " << i+1 << "/" << elements3D.size() << std::flush ;
 		}
-		std::cout << " ...done." << std::endl ;
+		std::cerr << " ...done." << std::endl ;
 		return strain ;
 	}
 	
@@ -1859,9 +1859,9 @@ void FeatureTree::insert(Point * p )
 	}
 }
 
-void FeatureTree::step(double dt)
+bool FeatureTree::step(double dt)
 {
-	
+	bool ret = true ;
 	if(true/*needAssembly*/)
 	{
 		this->K->clear() ;
@@ -1899,11 +1899,12 @@ void FeatureTree::step(double dt)
 				{
 					fracturedCount++ ;
 					needAssembly = true ;
+					ret = false ;
 				}
 			}
 		}
 		
-		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
+		std::cerr << " Fractured " << fracturedCount << " Elements" << std::endl ;
 		
 		for(size_t i = 0 ; i< tree.size() ; i++)
 		{
@@ -1911,6 +1912,7 @@ void FeatureTree::step(double dt)
 			{
 				dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &K->getForces(), dtree) ;
 				needAssembly = dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
+// 				ret = false ;
 			}
 		}
 		
@@ -1939,6 +1941,7 @@ void FeatureTree::step(double dt)
 				{
 					fracturedCount++ ;
 					needAssembly = true ;
+					ret = false ;
 				}
 			}
 		}
@@ -1949,9 +1952,12 @@ void FeatureTree::step(double dt)
 			{
 				dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &K->getForces(), dtree) ;
 				needAssembly = dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
+// 				ret = false ;
 			}
 		}
 	}
+	
+	return ret ;
 	
 }
 
@@ -2133,10 +2139,10 @@ void FeatureTree::generateElements( size_t correctionSteps)
 	}
 	
 	size_t basepoints = 0 ;
-	std::cout << "getting mesh points..." << std::flush ;
+	std::cerr << "getting mesh points..." << std::flush ;
 	for(size_t i  = 0 ; i < this->tree.size() ; i++)
 	{
-		std::cout << "\rgetting mesh points... feature " <<i << "/"<< this->tree.size() << std::flush ;
+		std::cerr << "\rgetting mesh points... feature " <<i << "/"<< this->tree.size() << std::flush ;
 		if(!tree[i]->isEnrichmentFeature)
 		{
 			for(size_t j  =  0 ; j <  this->tree[i]->getBoundingPoints().size() ; j++)
@@ -2198,7 +2204,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		}
 	}
 	
-	std::cout << "...done" << std::endl ;
+	std::cerr << "...done" << std::endl ;
 	
 	size_t count  = 0 ;
 
@@ -2225,14 +2231,14 @@ void FeatureTree::generateElements( size_t correctionSteps)
 							delete going_in ;
 
 						if(count%100 == 0)
-							std::cout << "\r adding intersection points... " << count << std::flush ;
+							std::cerr << "\r adding intersection points... " << count << std::flush ;
 					}
 				}
 			}
 		}
 	}
 	count = 0 ;
-	std::cout << " ...done." << std::endl ;
+	std::cerr << " ...done." << std::endl ;
 	
 	//let us make sure we have no overlap
 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
@@ -2253,7 +2259,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+4 ; i != this->meshPoints.end(); ++i)
 		{
 			if( (i - meshPoints.begin())%1000 == 0)
-				std::cout << "\r generating triangles... point " << ++count*1000 << "/" << meshPoints.size() << std::flush ;
+				std::cerr << "\r generating triangles... point " << ++count*1000 << "/" << meshPoints.size() << std::flush ;
 			
 			
 			if(*i->first != bbox[0] &&
@@ -2264,7 +2270,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				dtree->insert(i->first) ;
 		}
 		
-		std::cout << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
+		std::cerr << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
 		
 	}
 	else if (is3D())
@@ -2295,7 +2301,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+8 ; i != this->meshPoints.end(); ++i)
 		{
 			if((i - meshPoints.begin())%100 == 0)
-				std::cout << "\r generating tetrahedrons... point " << ++count*100 << "/" << meshPoints.size()-8 << std::flush ;
+				std::cerr << "\r generating tetrahedrons... point " << ++count*100 << "/" << meshPoints.size()-8 << std::flush ;
 			if(*i->first != bbox[0] &&
 			   *i->first != bbox[1] &&
 			   *i->first != bbox[2] &&
@@ -2324,7 +2330,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				if(inRoot(*pts[i]))
 				{
 					meshPoints.push_back(std::pair<Point *, Feature *>(pts[i], this->tree[0])) ;
-					std::cout << "\r generating tetrahedrons.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
+					std::cerr << "\r generating tetrahedrons.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
 					dtree3D->insert(pts[i]) ;
 				}
 			}
@@ -2352,7 +2358,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 			
 			for(size_t i = 0 ; i < to_insert.size() ;i++)
 			{
-				std::cout << "\r generating tetrahedrons.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
+				std::cerr << "\r generating tetrahedrons.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
 				if(*to_insert[i] != bbox[0] &&
 							*to_insert[i] != bbox[1] &&
 							*to_insert[i] != bbox[2] &&
@@ -2371,7 +2377,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 			tries-- ;
 			
 		}
-		std::cout << " ...done."<< std::endl ;
+		std::cerr << " ...done."<< std::endl ;
 		
 	}
 }

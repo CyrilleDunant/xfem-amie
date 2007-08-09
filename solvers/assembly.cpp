@@ -179,7 +179,7 @@ bool Assembly::nonLinearStep()
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
 // 		if(i%100 == 0)
-// 			std::cout << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
+// 			std::cerr << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 		if(element2d[i]->getNonLinearBehaviour() != NULL)
 		{
 			element2d[i]->nonLinearStep(0, &this->displacements) ;
@@ -233,7 +233,7 @@ bool Assembly::nonLinearStep()
 		if(element2d[i]->getNonLinearBehaviour() != NULL && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix())
 		{
 // 			if(i%100 == 0)
-// 				std::cout << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
+// 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 			if(element2d[i]->getNonLinearBehaviour()->isActive())
 			{
 				std::vector<size_t> ids = element2d[i]->getDofIds() ;
@@ -270,7 +270,7 @@ bool Assembly::nonLinearStep()
 				nl = true ;
 				for(size_t j = 0 ; j < ids.size() ;j++)
 				{
-// 					std::cout << forces[j*2] << ", " << forces[j*2+1] << std::endl ;
+// 					std::cerr << forces[j*2] << ", " << forces[j*2+1] << std::endl ;
 					
 					bool hasBC = false;
 					for(size_t k = 0 ; k < multipliers.size() ; k++)
@@ -294,7 +294,7 @@ bool Assembly::nonLinearStep()
 	}
 	
 	return nl ;
-// 	std::cout << " ...done" << std::endl ;
+// 	std::cerr << " ...done" << std::endl ;
 	
 }
 
@@ -311,11 +311,11 @@ void Assembly::setBoundaryConditions()
 	if(!element2d.empty())
 		ndofs = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	
-	std::cout << " setting BCs... forces element " << 0 << "/" << std::max(element2d.size(),element3d.size()) << std::flush ;
+	std::cerr << " setting BCs... forces element " << 0 << "/" << std::max(element2d.size(),element3d.size()) << std::flush ;
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
 		if(i%1000 == 0)
-			std::cout << "\r setting BCs... forces element " << i << "/" << element2d.size() << std::flush ;
+			std::cerr << "\r setting BCs... forces element " << i << "/" << element2d.size() << std::flush ;
 		std::vector<size_t> ids = element2d[i]->getDofIds() ;
 // 		std::vector<std::vector<Matrix > > mother  = element2d[i]->getElementaryMatrix();
 		
@@ -341,7 +341,7 @@ void Assembly::setBoundaryConditions()
 	for(size_t i = 0 ; i < element3d.size() ; i++)
 	{
 		if(i%1000 == 0)
-			std::cout << "\r setting BCs... forces element " << i << "/" << element3d.size() << std::flush ;
+			std::cerr << "\r setting BCs... forces element " << i << "/" << element3d.size() << std::flush ;
 		
 		std::vector<size_t> ids = element3d[i]->getDofIds() ;
 // 		std::vector<std::vector<Matrix > > mother  = element3d[i]->getElementaryMatrix();
@@ -360,7 +360,7 @@ void Assembly::setBoundaryConditions()
 		}
 	}
 	
-	std::cout << " ...done" << std::endl ;
+	std::cerr << " ...done" << std::endl ;
 	
 	for(size_t i = 0 ; i < multipliers.size() ; i++)
 	{
@@ -387,12 +387,12 @@ void Assembly::setBoundaryConditions()
 	
 	std::sort(multipliers.begin(), multipliers.end()) ;
 	
-	std::cout << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
+	std::cerr << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
 	
 	for(size_t k = 0 ; k < coordinateIndexedMatrix->row_size.size() ; k++)
 	{
 		if(k% 1000 == 0)
-			std::cout << "\r setting BCs... displacement dof " << k << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
+			std::cerr << "\r setting BCs... displacement dof " << k << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
 
 		int array_index = coordinateIndexedMatrix->accumulated_row_size[k] ;
 
@@ -438,11 +438,11 @@ void Assembly::setBoundaryConditions()
 		}
 	}
 	
-	std::cout << " ...done" << std::endl ;
+	std::cerr << " ...done" << std::endl ;
 	
 	multipliers.clear() ;
 	
-// 	std::cout << " ...done." << std::endl ;
+// 	std::cerr << " ...done." << std::endl ;
 
 }
 
@@ -452,7 +452,7 @@ void Assembly::make_final()
 	{
 		size_t ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ; 
 		
-		std::cout << "ndof = " << ndof << std::endl ;
+		std::cerr << "ndof = " << ndof << std::endl ;
 		
 		delete this->coordinateIndexedMatrix ;
 
@@ -461,7 +461,7 @@ void Assembly::make_final()
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			if(i%1000 == 0)
-				std::cout << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
+				std::cerr << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
 			
 			for(size_t j = 0 ; j< ids.size() ;j++)
@@ -510,7 +510,7 @@ void Assembly::make_final()
 			map->insert(std::make_pair(i,i)) ;
 		}
 		
-		std::cout << " ...done" << std::endl ;
+		std::cerr << " ...done" << std::endl ;
 		size_t total_num_dof = map->rbegin()->first+1 ;
 		nonLinearExternalForces.resize(total_num_dof, 0.) ;
 		
@@ -537,7 +537,7 @@ void Assembly::make_final()
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			if(i%100 == 0)
-				std::cout << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
+				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 			
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
 			std::vector<std::vector<Matrix > > mother  = element2d[i]->getElementaryMatrix();
@@ -566,7 +566,7 @@ void Assembly::make_final()
 			}
 		}
 		
-		std::cout << " ...done" << std::endl ;
+		std::cerr << " ...done" << std::endl ;
 		
 		setBoundaryConditions() ;
 		
@@ -581,7 +581,7 @@ void Assembly::make_final()
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			if(i%1000 == 0)
-				std::cout << "\r computing sparsness pattern... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
+				std::cerr << "\r computing sparsness pattern... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
 			std::vector<size_t> ids = element3d[i]->getDofIds() ;
 			
 			for(size_t j = 0 ; j< ids.size() ;j++)
@@ -648,11 +648,11 @@ void Assembly::make_final()
 			delete map ;
 			this->coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index) ;
 			this->displacements.resize(max, 0.) ;
-			std::cout << " ...done" << std::endl ;
+			std::cerr << " ...done" << std::endl ;
 			for(size_t i = 0 ; i < element3d.size() ; i++)
 			{
 				if(i%1000 == 0)
-					std::cout << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
+					std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
 				
 				std::vector<size_t> ids = element3d[i]->getDofIds() ;
 				std::vector<std::vector<Matrix > > mother  = element3d[i]->getElementaryMatrix();
@@ -686,7 +686,7 @@ void Assembly::make_final()
 				}
 			}
 			
-			std::cout << " ...done" << std::endl ;
+			std::cerr << " ...done" << std::endl ;
 			
 		setBoundaryConditions() ;
 	
@@ -717,14 +717,14 @@ void Assembly::print()
 	for(size_t i = 0 ; i < getMatrix().row_size.size() ; i++)
 	{
 		for(size_t j = 0 ; j < getMatrix().row_size.size() ; j++)
-			std::cout << getMatrix()[i][j] << "   " << std::flush ;
+			std::cerr << getMatrix()[i][j] << "   " << std::flush ;
 		
-		std::cout << std::endl ;
+		std::cerr << std::endl ;
 	}
-	std::cout << std::endl ;
+	std::cerr << std::endl ;
 	for(size_t i = 0 ; i < externalForces.size() ; i++)
 	{
-		std::cout << externalForces[i] << std::endl ;
+		std::cerr << externalForces[i] << std::endl ;
 	}
 }
 
@@ -1043,7 +1043,7 @@ Vector Assembly::cgnpsolve(const Vector b, size_t maxit)
 void Assembly::printDiag() const
 {
 	for(size_t i = 0 ; i < getMatrix().row_size.size() ; i++)
-		std::cout << getMatrix()[i][i] << std::endl ;
+		std::cerr << getMatrix()[i][i] << std::endl ;
 }
 
 Vector operator *(const std::map< std::pair<size_t, size_t>, Matrix > A , const Vector x)

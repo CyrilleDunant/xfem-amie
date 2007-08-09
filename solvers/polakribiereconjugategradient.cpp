@@ -40,7 +40,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 	
 	if(!nl) 
 	{
-		std::cout << "Linear problem, falling back to linear CG" << std::endl;
+		std::cerr << "Linear problem, falling back to linear CG" << std::endl;
 		x =  ConjugateGradient(assembly->getMatrix(), b).solve(x, NULL,eps, b.size()/8, true) ;
 		return x ;
 		
@@ -72,7 +72,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 	double delta_new = std::inner_product(&r[0],&r[vsize],&d[0], double(0) );
 	double delta_0 = delta_new ;
 	
-	std::cout << " iteration : " << i << " error :"<< delta_new <<", max : "  << x.max() << ", min : "  << x.min() << "             "<< std::endl ;
+	std::cerr << " iteration : " << i << " error :"<< delta_new <<", max : "  << x.max() << ", min : "  << x.min() << "             "<< std::endl ;
 	
 	
 	while((i < 800 /*b.size()/4*/) && 
@@ -128,7 +128,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 				
 			} while (true) ;
 			
-			std::cout << "eta_prev = " << eta_prev << std::endl ;
+			std::cerr << "eta_prev = " << eta_prev << std::endl ;
 			secantcount++ ;
 		}
 		
@@ -140,9 +140,9 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 		P.precondition(r,s) ;//s = ConjugateGradient(A+assembly->getNonLinearMatrix(), r).solve(s, &P, 1e-24, 10, false) ;//
 // 		s*=-1 ;
 		delta_new = std::inner_product(&r[0], &r[vsize], &s[0], double(0)) ;
-		std::cout << i << " :: delta_new = " << delta_new << std::endl ;
-		std::cout << i << " :: delta_mid = " << delta_mid << std::endl ;
-		std::cout << i << " :: delta_old = " << delta_old << std::endl ;
+		std::cerr << i << " :: delta_new = " << delta_new << std::endl ;
+		std::cerr << i << " :: delta_mid = " << delta_mid << std::endl ;
+		std::cerr << i << " :: delta_old = " << delta_old << std::endl ;
 		
 		double beta = (delta_new-delta_mid)/delta_old ;
 		k++ ;
@@ -150,7 +150,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 		if(i%128 == 0)
 		{
 			
-			std::cout << /*"\r iteration : " <<*/ i << "  "<< delta_new  << "                       "<< std::endl ;
+			std::cerr << /*"\r iteration : " <<*/ i << "  "<< delta_new  << "                       "<< std::endl ;
 		}
 		if(k == resetParameter || beta < 0)
 		{
@@ -166,7 +166,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 	
 	r = (A+assembly->getNonLinearMatrix())*x -b-nlb;
 	
-	std::cout << "\n iteration : " << i << " error :"<< std::abs(r).max() <<", max : "  << x.max() << ", min : "  << x.min() << "             "<< std::endl ;
+	std::cerr << "\n iteration : " << i << " error :"<< std::abs(r).max() <<", max : "  << x.max() << ", min : "  << x.min() << "             "<< std::endl ;
 	
 	return assembly->getDisplacements() ;
 }

@@ -52,7 +52,7 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	double err = std::abs(r).max() ;
 	if (err < eps)
 	{
-		std::cout << "b in : " << b.min() << ", " << b.max() << std::endl ;
+		std::cerr << "b in : " << b.min() << ", " << b.max() << std::endl ;
 		return x ;
 	}
 	//*************************************
@@ -90,7 +90,7 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 		if(	verbose && nit%100 == 0)
 		{
 			r = b-A*x ;
-			std::cout << "\r iteration : " << nit << " error :"<< last_rho /*<<", max : "  << x.max() << ", min : "  << x.min()*/ << "             "<< std::flush ;
+			std::cerr << "\r iteration : " << nit << " error :"<< last_rho /*<<", max : "  << x.max() << ", min : "  << x.min()*/ << "             "<< std::flush ;
 		}
 		
 // 		err = std::abs(r).max() ;
@@ -104,12 +104,12 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	err = std::abs(r).max() ;
 // 	for(size_t i = 0 ; i < r.size() ; i++)
 // 	{
-// 		std::cout << r[i] << std::endl ;
+// 		std::cerr << r[i] << std::endl ;
 // 	}
 	
 	
 	if(verbose)
-		std::cout << "\n converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+		std::cerr << "\n converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	
 	if(cleanup)
 	{

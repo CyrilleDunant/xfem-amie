@@ -76,7 +76,7 @@ std::vector<Crack *> crack ;
 double E_min = 10;
 double E_max = 0;
 
-double timepos = 0.0 ;
+double timepos = 0.1620 ;
 
 bool firstRun = true ;
 
@@ -253,14 +253,16 @@ void setBC()
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
 			
-			if (std::abs(triangles[k]->getBoundingPoint(c).x +4) < 0.001)
-			{
-				featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			
-			if (std::abs(triangles[k]->getBoundingPoint(c).y +2) < 0.001)
+			if ((std::abs(triangles[k]->getBoundingPoint(c).x +3.5) < 0.1 
+			     || std::abs(triangles[k]->getBoundingPoint(c).x -3.5) < 0.1) 
+			    && triangles[k]->getBoundingPoint(c).y < -.9999)
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+			}
+			
+			if (std::abs(triangles[k]->getBoundingPoint(c).x ) < 0.1 && triangles[k]->getBoundingPoint(c).y > .9999)
+			{
+				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 
 // 			if (std::abs(triangles[k]->getBoundingPoint(c).x) < .1 && triangles[k]->getBoundingPoint(c).y > 0.9999 )
@@ -319,14 +321,18 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 100 ; i++)
+	for(size_t i = 0 ; i < 1 ; i++)
 	{
-		std::cout << "\r iteration " << i << "/100" << std::flush ;
+		std::cout << "\r iteration " << i << "/10" << std::flush ;
 		setBC() ;
-		featureTree->step(timepos) ;
+		while(!featureTree->step(timepos))
+		{
+			setBC() ;
+		}
 		
-// 		timepos+= 0.01 ;
-	}
+		
+		timepos+= 0.0001 ;
+	
 	
 	std::cout << "\r iteration " << "100/100 ... done" << std::endl ;
 	x.resize(featureTree->getDisplacements().size()) ;
@@ -370,6 +376,15 @@ void step()
 	cracked.clear() ;
 	
 	int npoints = triangles[0]->getBoundingPoints().size() ;
+	
+	double area = 0 ;
+	double avg_e_xx = 0;
+	double avg_e_yy = 0;
+	double avg_e_xy = 0;
+	double avg_s_xx = 0;
+	double avg_s_yy = 0;
+	double avg_s_xy = 0;
+	
 	for(size_t k = 0 ; k < triangles.size() ; k++)
 	{
 /*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
@@ -386,7 +401,7 @@ void step()
 		
 		if(!in && !triangles[k]->getBehaviour()->fractured())
 		{
-			
+			area += triangles[k]->area() ;
 			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				if(triangles[k]->getBehaviour()->param[0][0] > E_max)
@@ -467,6 +482,17 @@ void step()
 				double agl = triangles[k]->getState()->getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
 				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
 			}
+			
+			double ar = triangles[k]->area() ;
+			for(size_t l = 0 ; l < npoints ;l++)
+			{
+				avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
+				avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
+				avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
+				avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
+				avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
+				avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
+			}
 				
 
 			
@@ -546,6 +572,13 @@ void step()
 	std::cout << "max von Mises :" << vonMises.max() << std::endl ;
 	std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 	
+	std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
+	std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
+	std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
+	std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
+	std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+	std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+	}
 }
 
 std::vector<fissureSimple> generateInInclusion(size_t n, Inclusion * i)
@@ -662,7 +695,7 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 		std::vector<Inclusion *> ret ;
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.0005 ;
+			double radius = 0.07 ;
 			
 			Point center = incs[i]->getCenter()+Point(
 			                      (2.*random()/RAND_MAX-1.),
@@ -682,8 +715,8 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = 0.5 ;
-				a[1] = 0.5 ;
+				a[0] = 0.1 ;
+				a[1] = 0.1 ;
 				a[2] = 0.00 ;
 				
 				ret.push_back(new Inclusion(radius, center)) ;
@@ -763,11 +796,11 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = 0.01 + 0.5*random()/RAND_MAX ;
+		double radius = 0.01 + 0.12*random()/RAND_MAX ;
 		
 		Point center = Point(
 		                      (2.*random()/RAND_MAX-1.)*(4.-2.*radius-0.001),
-		                      (2.*random()/RAND_MAX-1.)*(2.-2.*radius-0.001)
+		                      (2.*random()/RAND_MAX-1.)*(1.-2.*radius-0.001)
 		                    ); 
 		bool alone  = true ;
 		
@@ -1595,7 +1628,7 @@ int main(int argc, char *argv[])
 	m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1-nu*nu)*(1.-nu)/2. ; 
 	
-	Sample sample(NULL, 8,4,0,0) ;
+	Sample sample(NULL, 8,2,0,0) ;
 	
 	Sample reinforcement0(NULL, 8,.15,0,.5) ;
 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
@@ -1616,13 +1649,13 @@ int main(int argc, char *argv[])
 	
 	std::valarray<Point *> centerpoint(2) ;
 	
-	centerpoint[0] = new Point(0, -1.5 ) ;
-	centerpoint[1] = new Point(0, -.7) ;
+	centerpoint[0] = new Point(-5, -.5 ) ;
+	centerpoint[1] = new Point(-3, -.5) ;
 	
 	std::valarray<Point *> centerpoint2(2) ;
 	
-	centerpoint2[0] = new Point(5,1.5 ) ;
-	centerpoint2[1] = new Point(3.5, 1.5) ;
+	centerpoint2[0] = new Point(5,.5 ) ;
+	centerpoint2[1] = new Point(3, .5) ;
 	
 	
 	std::valarray<Point *> side0(2) ;
@@ -1653,13 +1686,13 @@ int main(int argc, char *argv[])
 // 	{
 // 		crack[j]->getHead()->print() ; std::cout << " <- " << j << std::endl ;
 // 	}
-// 	Crack cr(&sample, centerpoint, 0.03) ;
-// 	crack.push_back(&cr) ;
-// 	F.addFeature(&sample, crack[0]) ;
-// 	
-// 	Crack cr2(&sample, centerpoint2, 0.03) ;
-// 	crack.push_back(&cr2) ;
-// 	F.addFeature(&sample, crack[1]) ;
+	Crack cr(&sample, centerpoint, 0.03) ;
+	crack.push_back(&cr) ;
+	F.addFeature(&sample, crack[0]) ;
+	
+	Crack cr2(&sample, centerpoint2, 0.03) ;
+	crack.push_back(&cr2) ;
+	F.addFeature(&sample, crack[1]) ;
 
 // 	crack.push_back(new Crack(&sample, &side0, 0.1)) ;
 // 	F.addFeature(sample, crack[0]) ;
@@ -1670,7 +1703,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-	i_et_p = generateInclusionsAndPores(1024, .05, &m0, &sample, &F) ;
+// 	i_et_p = generateInclusionsAndPores(2048, .05, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1690,8 +1723,9 @@ int main(int argc, char *argv[])
 	a[1] = 0.00 ;
 	a[1] = 0.00 ;
 // 	inc->setBehaviour(new Stiffness(m0*4)) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.005)) ;
-	generateExpansiveZones(10, i_et_p.first, F) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.025)) ;
+	sample.setBehaviour(new Stiffness(m0*4)) ;
+// 	generateExpansiveZones(10, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1700,7 +1734,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(1200) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

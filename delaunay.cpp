@@ -467,7 +467,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 	if(!inCircumCircle(*p))
 		return  ;
 	
-// 	std::cout << "stepsons" << std::endl ;
+// 	std::cerr << "stepsons" << std::endl ;
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
 		bool limit = false ;
@@ -485,7 +485,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 			ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
 		}
 	}
-// 	std::cout << "sons" << std::endl ;
+// 	std::cerr << "sons" << std::endl ;
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		bool limit = false ;
@@ -508,7 +508,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 	{
 		ret.first.push_back(this) ;
 	}
-// 	std::cout << "neighbour" << std::endl ;
+// 	std::cerr << "neighbour" << std::endl ;
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
 		
@@ -901,9 +901,9 @@ void DelaunayTriangle::print() const
 {
 	for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
 	{
-		std::cout << "(" << getBoundingPoint(i).x << ";" << getBoundingPoint(i).y <<  ";" << getBoundingPoint(i).t <<") " ;
+		std::cerr << "(" << getBoundingPoint(i).x << ";" << getBoundingPoint(i).y <<  ";" << getBoundingPoint(i).t <<") " ;
 	}
-	std::cout <<  ":: "<< isAlive() << std::endl ;
+	std::cerr <<  ":: "<< isAlive() << std::endl ;
 }
 
 
@@ -1051,7 +1051,7 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 
 void DelaunayDemiPlane::print() const 
 {
-	std::cout << "###############(" << first->x << ", " << first->y << ") (" <<
+	std::cerr << "###############(" << first->x << ", " << first->y << ") (" <<
 		second->x << ", " << second->y << ")" << "X (" << third->x << ", " << third->y << ") :: " << isAlive()  << std::endl ;
 }
 
@@ -1108,7 +1108,7 @@ DelaunayRoot::DelaunayRoot(Point * p0, Point * p1, Point * p2) : DelaunayTreeIte
 	
 void DelaunayRoot::print() const
 {
-	std::cout << "I am root !" << std::endl ;
+	std::cerr << "I am root !" << std::endl ;
 }
 
 
@@ -1409,7 +1409,7 @@ void DelaunayTree::insert(Point *p)
 		
 	if(cons.empty())
 	{
-// 		std::cout << "Failed insertion : in nothing !" << std::endl ;
+// 		std::cerr << "Failed insertion : in nothing !" << std::endl ;
 		return ;
 	}
 	
@@ -1419,7 +1419,7 @@ void DelaunayTree::insert(Point *p)
 	{
 		if(cons[i]->isVertex(p)) 
 		{
-// 			std::cout << "Vertex collision !" << std::endl ;
+// 			std::cerr << "Vertex collision !" << std::endl ;
 			return ;
 		}
 	}
@@ -1703,7 +1703,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 
 	if(!neighbourhood && buildNeighbourhood)
 	{
-		std::cout << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
+		std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
 		for( size_t i = 0 ; i < ret.size() ;i++)
 		{
 			ret[i]->neighbourhood.clear() ;
@@ -1715,7 +1715,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 		for( size_t i = 0 ; i < ret.size() ;i++)
 		{
 			if(i%100 == 0)
-				std::cout << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
+				std::cerr << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
 			
 			std::vector<DelaunayTriangle *> tocheck ;
 			std::vector<DelaunayTriangle *> toclean ;
@@ -1769,7 +1769,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 // 			}
 		}
 		
-		std::cout << " ...done" << std::endl ;
+		std::cerr << " ...done" << std::endl ;
 		neighbourhood = true ;
 	}
 	
@@ -1779,7 +1779,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 void DelaunayTree::print() const
 {
 	size_t alive = 0 ;
-	std::cout << "we have a total of " << tree.size() << " elements" << std::endl ;
+	std::cerr << "we have a total of " << tree.size() << " elements" << std::endl ;
 	for(size_t i = 0 ; i < tree.size() ; i++)
 	{
 		if (tree[i]->isAlive())
@@ -1787,7 +1787,7 @@ void DelaunayTree::print() const
 			alive++ ;
 		}
 	}
-	std::cout << "of which " << alive << " are alive" << std::endl ;
+	std::cerr << "of which " << alive << " are alive" << std::endl ;
 	#ifdef DEBUG
 	for(size_t i = 0 ; i < tree.size() ; i++)
 	{
@@ -1796,7 +1796,7 @@ void DelaunayTree::print() const
 			tree[i]->print() ;
 			for(size_t j = 0 ; j< tree[i]->neighbour.size() ; j++)
 			{
-				std::cout << "\t --> " ;
+				std::cerr << "\t --> " ;
 				tree[i]->neighbour[j]->print() ;
 			}
 		}
@@ -2095,14 +2095,14 @@ Vector DelaunayTriangle::getNonLinearForces() const
 	
 	if(state == NULL)
 	{
-		std::cout << "no state " << std::endl ;
+		std::cerr << "no state " << std::endl ;
 		forces = 0 ;
 		return forces ;
 	}
 	
 	if(!this->getNonLinearBehaviour()->isActive())
 	{
-// 		std::cout << "not active" << std::endl ;
+// 		std::cerr << "not active" << std::endl ;
 		forces = 0 ;
 		return forces ;
 	}
