@@ -12,6 +12,7 @@
 #include "features/pore.h"
 #include "features/sample.h"
 #include "features/inclusion.h"
+#include "features/expansiveZone.h"
 #include "features/crack.h"
 #include "features/enrichmentInclusion.h"
 #include "delaunay_3d.h"
@@ -76,7 +77,7 @@ std::vector<Crack *> crack ;
 double E_min = 10;
 double E_max = 0;
 
-double timepos = 0.1620 ;
+double timepos = 0.1625 ;
 
 bool firstRun = true ;
 
@@ -325,12 +326,13 @@ void step()
 	{
 		std::cout << "\r iteration " << i << "/10" << std::flush ;
 		setBC() ;
-		while(!featureTree->step(timepos))
-		{
-			setBC() ;
-		}
-		
-		
+		/*while(!*/featureTree->step(timepos)/*)*/ ;
+// 		{
+// 			timepos-= 0.0001 ;
+// 			setBC() ;
+// 		}
+// 		
+// 		
 		timepos+= 0.0001 ;
 	
 	
@@ -1649,13 +1651,13 @@ int main(int argc, char *argv[])
 	
 	std::valarray<Point *> centerpoint(2) ;
 	
-	centerpoint[0] = new Point(-5, -.5 ) ;
-	centerpoint[1] = new Point(-3, -.5) ;
+	centerpoint[0] = new Point(0, -1.5 ) ;
+	centerpoint[1] = new Point(0, -.7) ;
 	
 	std::valarray<Point *> centerpoint2(2) ;
 	
-	centerpoint2[0] = new Point(5,.5 ) ;
-	centerpoint2[1] = new Point(3, .5) ;
+	centerpoint2[0] = new Point(5,1.5 ) ;
+	centerpoint2[1] = new Point(3.5, 1.5) ;
 	
 	
 	std::valarray<Point *> side0(2) ;
@@ -1686,13 +1688,13 @@ int main(int argc, char *argv[])
 // 	{
 // 		crack[j]->getHead()->print() ; std::cout << " <- " << j << std::endl ;
 // 	}
-	Crack cr(&sample, centerpoint, 0.03) ;
-	crack.push_back(&cr) ;
-	F.addFeature(&sample, crack[0]) ;
-	
-	Crack cr2(&sample, centerpoint2, 0.03) ;
-	crack.push_back(&cr2) ;
-	F.addFeature(&sample, crack[1]) ;
+// 	Crack cr(&sample, centerpoint, 0.03) ;
+// 	crack.push_back(&cr) ;
+// 	F.addFeature(&sample, crack[0]) ;
+// 	
+// 	Crack cr2(&sample, centerpoint2, 0.03) ;
+// 	crack.push_back(&cr2) ;
+// 	F.addFeature(&sample, crack[1]) ;
 
 // 	crack.push_back(new Crack(&sample, &side0, 0.1)) ;
 // 	F.addFeature(sample, crack[0]) ;
@@ -1719,12 +1721,12 @@ int main(int argc, char *argv[])
 	
 // 	sample.setBehaviour(new BimaterialInterface(&cercle, m0,  m0*4)) ;
 	Vector a(double(0), 3) ;
-	a[0] = 0.001 ;
-	a[1] = 0.00 ;
+	a[0] = 0.1 ;
+	a[1] = 0.1 ;
 	a[1] = 0.00 ;
 // 	inc->setBehaviour(new Stiffness(m0*4)) ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.025)) ;
-	sample.setBehaviour(new Stiffness(m0*4)) ;
+	sample.setBehaviour(new Stiffness(m0*0.5)) ;
+	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
 // 	generateExpansiveZones(10, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
@@ -1735,7 +1737,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
 	F.sample(256) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
 	

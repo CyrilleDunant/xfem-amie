@@ -11,8 +11,8 @@ CXX = g++
 CXXFLAGS = -g3 -Wall -ftree-vectorize -fno-exceptions -O3 -DNDEBUG -fstrict-aliasing 
 LDFLAGS = -Wl -lm -lGL -lglut
 
-SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp
-OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o physics/diffusion.o
+SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp physics/dual_behaviour.cpp
+OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o physics/diffusion.o physics/dual_behaviour.o
 
 SOURCE_ELEMENTS = elements/elements.cpp elements/integrable_entity.cpp
 OBJECTS_ELEMENTS = elements/elements.o elements/integrable_entity.o
@@ -23,8 +23,8 @@ OBJECTS_SOLVERS = solvers/assembly.o solvers/choleskidecomposed.o solvers/conjug
 SOURCE_NEW_GEO = geometry/geometry_base.cpp geometry/geometry_2D.cpp geometry/geometry_3D.cpp
 OBJECTS_NEW_GEO = geometry/geometry_base.o geometry/geometry_2D.o geometry/geometry_3D.o
 
-SOURCE_FEATURE = features/features.cpp features/pore.cpp features/pore3d.cpp features/inclusion.cpp features/inclusion3d.cpp features/sample.cpp features/sample3d.cpp features/crack.cpp features/enrichmentInclusion.cpp
-OBJECTS_FEATURE = features/features.o features/pore.o features/pore3d.o features/inclusion.o features/inclusion3d.o features/sample.o features/sample3d.o features/crack.o features/enrichmentInclusion.o
+SOURCE_FEATURE = features/features.cpp features/pore.cpp features/pore3d.cpp features/inclusion.cpp features/inclusion3d.cpp features/sample.cpp features/sample3d.cpp features/crack.cpp features/enrichmentInclusion.cpp features/expansiveZone.cpp
+OBJECTS_FEATURE = features/features.o features/pore.o features/pore3d.o features/inclusion.o features/inclusion3d.o features/sample.o features/sample3d.o features/crack.o features/enrichmentInclusion.o features/expansiveZone.o
 
 SOURCE_FUNCTIONS = polynomial/vm_function_matrix.cpp polynomial/vm_token.cpp polynomial/vm_refcount_token.cpp polynomial/vm_function_base.cpp polynomial/vm_base.cpp 
 OBJECTS_FUNCTIONS = polynomial/vm_function_matrix.o polynomial/vm_token.o polynomial/vm_refcount_token.o polynomial/vm_function_base.o polynomial/vm_base.o

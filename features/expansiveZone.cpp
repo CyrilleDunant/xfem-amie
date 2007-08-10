@@ -1,0 +1,53 @@
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007
+//
+// Copyright: See COPYING file that comes with this distribution
+
+#include "expansiveZone.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
+#include "../physics/dual_behaviour.h"
+
+using namespace Mu ;
+
+ExpansiveZone::ExpansiveZone(Feature *father, double radius, double x, double y, Matrix tensor, Vector def) : EnrichmentInclusion(father, radius, x, y),  imposedDef(def),cgTensor(tensor)
+{
+	
+}
+
+ExpansiveZone::~ExpansiveZone() {}
+	
+
+void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
+{
+	
+	EnrichmentInclusion::enrich(counter, dtree) ;
+	//first we get All the triangles affected
+	std::vector<DelaunayTriangle *> disc = dtree->conflicts(static_cast<Circle *>(this)) ;
+
+	//then we select those that are cut by the circle
+	std::vector<DelaunayTriangle *> ring ;
+	std::vector<DelaunayTriangle *> inDisc ;
+	
+	for(size_t i = 0 ; i < disc.size() ; i++)
+	{
+		if(this->intersects(static_cast<Triangle *>(disc[i])))
+			ring.push_back(disc[i]) ;
+		else
+			inDisc.push_back(disc[i]) ;
+	}
+	
+	for(size_t i = 0 ; i < ring.size() ; i++)
+	{
+		ring[i]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
+		                                              new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+		                                              m_f->getBehaviour()->getCopy()
+		                                             )) ;
+	}
+	
+	for(size_t i = 0 ; i < inDisc.size() ; i++)
+	{
+		inDisc[i]->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
+	}
+	
+}
+	
+
