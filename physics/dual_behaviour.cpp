@@ -140,6 +140,11 @@ Vector BimaterialInterface::getForces(const ElementState * s, const Function & p
 	
 	if(inForces.size() == outForces.size())
 		return inForces+outForces ;
+	else if(inForces.size() > outForces.size())
+		return inForces ;
+	
+	return outForces ;
+		
 }
 
 
