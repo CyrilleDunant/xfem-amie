@@ -715,7 +715,7 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 		std::vector<Inclusion *> ret ;
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.1 ;
+			double radius = 0.01 ;
 			
 			Point center = incs[i]->getCenter()+Point(
 			                      (2.*random()/RAND_MAX-1.),
