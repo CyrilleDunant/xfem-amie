@@ -1602,12 +1602,11 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 // 		
 // 	}
 	
-	std::vector<DelaunayTriangle *> toCheck ;
+	std::set<DelaunayTriangle *> toCheck ;
 	
 	for(size_t i = 0 ; i < cons.second.size() ; i++)
 		cons.second[i]->clearVisited() ;
 	
-	cons.second.clear() ;
 	
 	for(size_t i = 0 ; i < cons.first.size() ; i++)
 	{
@@ -1621,60 +1620,50 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 				if(!cons.first[i]->neighbourhood[j]->visited && !cons.first[i]->neighbourhood[j]->visited)
 				{
 					cons.first[i]->neighbourhood[j]->visited = true ;
-					toCheck.push_back(cons.first[i]->neighbourhood[j]) ;
+					toCheck.insert(cons.first[i]->neighbourhood[j]) ;
 				}
 			}
-			
-			break ;
 		}
 	}
 	
-	std::vector<DelaunayTriangle *>::iterator e = std::unique(toCheck.begin(), toCheck.end()) ;
-	toCheck.erase(e, toCheck.end()) ;
 	
-	for(size_t i = 0 ; i < toCheck.size() ; i++)
-		toCheck[i]->clearVisited() ;
+	for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+		(*i)->clearVisited() ;
 	
 	while(!toCheck.empty())
 	{
-		std::vector<DelaunayTriangle *> temp ;
+		std::set<DelaunayTriangle *> temp ;
 		
-		for(size_t i = 0 ; i< toCheck.size() ; i++)
+		for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
 		{
-			toCheck[i]->visited = true ;
-			cons.second.push_back(toCheck[i]) ;
+			(*i)->visited = true ;
+			cons.second.push_back(*i) ;
 			
-			if(toCheck[i]->isConflicting(g))
+			if((*i)->isConflicting(g))
 			{
-				ret.push_back(toCheck[i]) ;
+				ret.push_back(*i) ;
 			}
 		}
 		
-		for(size_t i = 0 ; i< toCheck.size() ; i++)
+		for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
 		{
 
-			for(size_t j = 0 ; j< toCheck[i]->neighbourhood.size() ; j++)
+			for(size_t j = 0 ; j< (*i)->neighbourhood.size() ; j++)
 			{
-				if(!toCheck[i]->neighbourhood[j]->visited )
+				if(!(*i)->neighbourhood[j]->visited )
 				{
-					toCheck[i]->neighbourhood[j]->visited = true ;
-					temp.push_back(toCheck[i]->neighbourhood[j]) ;
+					(*i)->neighbourhood[j]->visited = true ;
+					temp.insert((*i)->neighbourhood[j]) ;
 				}
 			}
 		}
 		
-		for(size_t i = 0 ; i < temp.size() ; i++)
-			temp[i]->clearVisited() ;
+		toCheck = temp ;
 		
-		std::vector<DelaunayTriangle *>::iterator e = std::unique(temp.begin(), temp.end()) ;
-		toCheck = std::vector<DelaunayTriangle *>(temp.begin(), e);
-// 		toCheck.clear() ;
-// 		toCheck.insert(toCheck.end(),temp.begin(), e ) ;
+		for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+			(*i)->clearVisited() ;
 		
 	}
-	
-	for(size_t i = 0 ; i < cons.second.size() ; i++)
-		cons.second[i]->clearVisited() ;
 		
 	std::sort(ret.begin(), ret.end()) ;
 	std::vector<DelaunayTriangle *>::iterator en = std::unique(ret.begin(), ret.end()) ;
