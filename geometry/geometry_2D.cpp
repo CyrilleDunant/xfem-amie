@@ -387,14 +387,14 @@ void Triangle::computeCircumCenter()
 	}
 }
 
-bool Triangle::inCircumCircle(const Point p) const
+bool Triangle::inCircumCircle(const Point & p) const
 {
-	return  dist(circumCenter, p) < radius -1e-12  ;
+	return  (circumCenter.x -p.x)*(circumCenter.x -p.x) + (circumCenter.y -p.y)*(circumCenter.y -p.y)< radius*radius -POINT_TOLERANCE  ;
 }
 
 bool Triangle::inCircumCircle(const Point *p) const
 {
-	return  dist(&circumCenter, p) < radius -1e-12  ;
+	return  (circumCenter.x -p->x)*(circumCenter.x -p->x) + (circumCenter.y -p->y)*(circumCenter.y -p->y) < radius*radius -POINT_TOLERANCE  ;
 }
 
 

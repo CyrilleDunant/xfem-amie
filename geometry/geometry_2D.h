@@ -25,7 +25,7 @@ public:
 	Triangle( Point *p0,  Point *p1,  Point *p2) ;
 	virtual ~Triangle() { } ;
 	
-	virtual bool inCircumCircle(const Point p) const ;
+	virtual bool inCircumCircle(const Point & p) const ;
 	virtual bool inCircumCircle(const Point *p) const ;
 	virtual Point getCircumCenter() const;
 	virtual double getRadius() const ;

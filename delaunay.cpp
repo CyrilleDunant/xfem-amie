@@ -878,7 +878,6 @@ std::pair< Point*,  Point*> DelaunayTriangle::nearestEdge(const Point p)
 bool DelaunayTriangle::inCircumCircle(const Point &p) const 
 {
 	return  this->Triangle::inCircumCircle(p) ;
-
 }
 	
 void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  Star* s)
