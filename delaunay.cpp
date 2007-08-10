@@ -1611,19 +1611,20 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 	
 	for(size_t i = 0 ; i < cons.first.size() ; i++)
 	{
-		if(cons.first[i]->isConflicting(g))
+		if(g->in(cons.first[i]->getCenter()) && cons.first[i]->isConflicting(g))
 		{
 			cons.first[i]->visited = true ;
 			cons.second.push_back(cons.first[i]) ;
 			ret.push_back(cons.first[i]) ;
-			for(size_t j = 0 ; j < cons.first[i]->neighbour.size() ; j++)
-			{
-				if(!cons.first[i]->neighbour[j]->visited && cons.first[i]->neighbour[j]->isTriangle && !cons.first[i]->neighbour[j]->visited)
-				{
-					cons.first[i]->neighbour[j]->visited = true ;
-					toCheck.push_back((DelaunayTriangle *)(cons.first[i]->neighbour[j])) ;
-				}
-			}
+			break ;
+// 			for(size_t j = 0 ; j < cons.first[i]->neighbourhood.size() ; j++)
+// 			{
+// 				if(!cons.first[i]->neighbourhood[j]->visited && cons.first[i]->neighbourhood[j]->isTriangle && !cons.first[i]->neighbourhood[j]->visited)
+// 				{
+// 					cons.first[i]->neighbourhood[j]->visited = true ;
+// 					toCheck.push_back((DelaunayTriangle *)(cons.first[i]->neighbourhood[j])) ;
+// 				}
+// 			}
 		}
 	}
 	

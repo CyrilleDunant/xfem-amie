@@ -1704,7 +1704,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-	i_et_p = generateInclusionsAndPores(2048, .05, &m0, &sample, &F) ;
+	i_et_p = generateInclusionsAndPores(64, .05, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1726,7 +1726,7 @@ int main(int argc, char *argv[])
 // 	inc->setBehaviour(new Stiffness(m0*4)) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0*.125, 0.04)) ;
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
-	generateExpansiveZones(10, i_et_p.first, F) ;
+	generateExpansiveZones(5, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1735,7 +1735,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(600) ;
+	F.sample(256) ;
 	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
