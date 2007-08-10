@@ -1576,7 +1576,7 @@ std::vector<Point *> DelaunayTree::conflicts( const Segment *s) const
 
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 {
-	Circle neighbourhood(0.001, g->getCenter()) ; 
+	Circle neighbourhood(0.01, g->getCenter()) ; 
 //magic value : basically, we don't want to have the center a vertex of the mesh.
 	
 	std::vector<DelaunayTriangle *> ret ;
@@ -1626,9 +1626,9 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 		}
 	}
 	
-	
-	for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
-		(*i)->clearVisited() ;
+	cons.second.clear() ;
+	for(size_t i = 0 ; i < cons.first.size() ; ++i)
+		cons.first[i]->clearVisited() ;
 	
 	while(!toCheck.empty())
 	{
@@ -1668,6 +1668,9 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 	std::sort(ret.begin(), ret.end()) ;
 	std::vector<DelaunayTriangle *>::iterator en = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(en, ret.end()) ;
+	
+	for(size_t i = 0 ; i < cons.second.size() ; i++)
+		cons.second[i]->clearVisited() ;
 	
 	return ret ;
 }
