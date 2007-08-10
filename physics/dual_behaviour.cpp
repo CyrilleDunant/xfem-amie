@@ -136,7 +136,7 @@ Vector BimaterialInterface::getForces(const ElementState * s, const Function & p
 	}
 	
 	Vector inForces = inBehaviour->getForces(s, p_i,p_j, gpIn, Jinv) ;
-	Vector outForces = inBehaviour->getForces(s, p_i,p_j, gpOut, Jinv) ;
+	Vector outForces = outBehaviour->getForces(s, p_i,p_j, gpOut, Jinv) ;
 	
 	if(inForces.size() == outForces.size())
 		return inForces+outForces ;

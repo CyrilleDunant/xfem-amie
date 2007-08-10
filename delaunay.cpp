@@ -1576,7 +1576,7 @@ std::vector<Point *> DelaunayTree::conflicts( const Segment *s) const
 
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 {
-	Circle neighbourhood(0.1, g->getCenter()) ; 
+	Circle neighbourhood(0.001, g->getCenter()) ; 
 //magic value : basically, we don't want to have the center a vertex of the mesh.
 	
 	std::vector<DelaunayTriangle *> ret ;
@@ -1611,19 +1611,19 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 	
 	for(size_t i = 0 ; i < cons.first.size() ; i++)
 	{
-		if(g->in(cons.first[i]->getCenter()) && cons.first[i]->isConflicting(g))
+		if(cons.first[i]->isConflicting(g))
 		{
 			cons.first[i]->visited = true ;
 			cons.second.push_back(cons.first[i]) ;
 			ret.push_back(cons.first[i]) ;
-// 			for(size_t j = 0 ; j < cons.first[i]->neighbourhood.size() ; j++)
-// 			{
-// 				if(!cons.first[i]->neighbourhood[j]->visited && cons.first[i]->neighbourhood[j]->isTriangle && !cons.first[i]->neighbourhood[j]->visited)
-// 				{
-// 					cons.first[i]->neighbourhood[j]->visited = true ;
-// 					toCheck.push_back((DelaunayTriangle *)(cons.first[i]->neighbourhood[j])) ;
-// 				}
-// 			}
+			for(size_t j = 0 ; j < cons.first[i]->neighbourhood.size() ; j++)
+			{
+				if(!cons.first[i]->neighbourhood[j]->visited && !cons.first[i]->neighbourhood[j]->visited)
+				{
+					cons.first[i]->neighbourhood[j]->visited = true ;
+					toCheck.push_back(cons.first[i]->neighbourhood[j]) ;
+				}
+			}
 			
 			break ;
 		}
@@ -1655,7 +1655,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 				if(!toCheck[i]->neighbourhood[j]->visited )
 				{
 					toCheck[i]->neighbourhood[j]->visited = true ;
-					temp.push_back((DelaunayTriangle *)(toCheck[i]->neighbourhood[j])) ;
+					temp.push_back(toCheck[i]->neighbourhood[j]) ;
 				}
 			}
 		}

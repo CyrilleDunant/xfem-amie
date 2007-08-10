@@ -77,6 +77,12 @@ std::vector<Crack *> crack ;
 double E_min = 10;
 double E_max = 0;
 
+double x_max = 0 ;
+double y_max = 0 ;
+
+double x_min = 0 ;
+double y_min = 0 ;
+
 double timepos = 0.1625 ;
 
 bool firstRun = true ;
@@ -361,8 +367,6 @@ void step()
 	angle.resize(sigma.size()/3) ;
 	
 	std::cout << "unknowns :" << x.size() << std::endl ;
-	std::cout << "max value :" << x.max() << std::endl ;
-	std::cout << "min value :" << x.min() << std::endl ;
 	
 	if(crack.size() > 0)
 		tris__ = crack[0]->getIntersectingTriangles(dt) ;
@@ -403,6 +407,17 @@ void step()
 		
 		if(!in && !triangles[k]->getBehaviour()->fractured())
 		{
+			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
+			{
+				if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
+					x_max = x[triangles[k]->getBoundingPoint(p).id*2];
+				if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
+					x_min = x[triangles[k]->getBoundingPoint(p).id*2];
+				if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
+					y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
+				if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
+					y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
+			}
 			area += triangles[k]->area() ;
 			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
@@ -557,6 +572,9 @@ void step()
 			}
 		}
 	}
+		
+	std::cout << "max value :" << x_max << std::endl ;
+	std::cout << "min value :" << x_min << std::endl ;
 	std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
 	std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
 	std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
@@ -1069,17 +1087,17 @@ void Display(void)
 	//std::cout << x.max() << std::endl ;
 	//std::cout << x.min() << std::endl ;
 	
-	double x_max = std::abs(x).min() ;
-	double y_max = std::abs(x).min() ;
-	
-	for(size_t k = 0 ; k < x.size()/2 ; k++)
-	{
-		if(x[k*2]*x[k*2]+x[k*2+1]*x[k*2+1] > x_max*x_max+y_max*y_max )
-		{
-			x_max = x[k*2] ;
-			y_max = x[k*2+1] ;
-		}
-	}
+// 	double x_max = std::abs(x).min() ;
+// 	double y_max = std::abs(x).min() ;
+// 	
+// 	for(size_t k = 0 ; k < x.size()/2 ; k++)
+// 	{
+// 		if(x[k*2]*x[k*2]+x[k*2+1]*x[k*2+1] > x_max*x_max+y_max*y_max )
+// 		{
+// 			x_max = x[k*2] ;
+// 			y_max = x[k*2+1] ;
+// 		}
+// 	}
 	
 	if(!dlist)
 	{
@@ -1728,7 +1746,7 @@ int main(int argc, char *argv[])
 	inc->setBehaviour(new WeibullDistributedStiffness(m0, 0.04)) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0*.125, 0.04)) ;
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
-	generateExpansiveZones(1, inclusions, F) ;
+	generateExpansiveZones(10, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1737,8 +1755,8 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(128) ;
-	F.setOrder(QUADRATIC) ;
+	F.sample(600) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
 	
