@@ -1667,8 +1667,9 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 			temp[i]->clearVisited() ;
 		
 		std::vector<DelaunayTriangle *>::iterator e = std::unique(temp.begin(), temp.end()) ;
-		toCheck.clear() ;
-		toCheck.insert(toCheck.end(),temp.begin(), e ) ;
+		toCheck = std::vector<DelaunayTriangle *>(temp.begin(), e);
+// 		toCheck.clear() ;
+// 		toCheck.insert(toCheck.end(),temp.begin(), e ) ;
 		
 	}
 	
