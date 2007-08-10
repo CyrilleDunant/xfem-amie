@@ -162,6 +162,8 @@ public:
 	std::vector<DelaunayTriangle *> neighbourhood ;
 	bool isInNeighbourhood(const DelaunayTriangle * t) const ;
 	
+	virtual bool isConflicting(const Geometry * g) const ;
+	
 } ;
 
 
@@ -202,6 +204,8 @@ public:
 		return isOnTheSameSide( p, *third, *first, *second) ;
 	}
 
+	virtual bool isConflicting(const Geometry * g) const ;
+	
 	void print() const;
 	
 } ;

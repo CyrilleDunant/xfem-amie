@@ -33,10 +33,38 @@ DelaunayTreeItem::DelaunayTreeItem( DelaunayTreeItem * father,  const Point * c)
 	this->third = NULL ;
 }
 	
+bool DelaunayTriangle::isConflicting(const Geometry * g) const
+{
+	if(g->in(*first))
+		return true ;
+	if(g->in(*second))
+		return true ;
+	if(g->in(*third))
+		return true ;
+	if(inCircumCircle(g->getCenter()))
+		return true ;
+	
+	return false ;
+	
+}
+
+bool DelaunayDemiPlane::isConflicting(const Geometry * g) const
+{
+	if(g->in(*first))
+		return true ;
+	if(g->in(*second))
+		return true ;
+	if(inCircumCircle(g->getCenter()))
+		return true ;
+	
+	return false ;
+}
+
 bool DelaunayTreeItem::isConflicting(const Geometry * g) const
 {
-	return inCircumCircle(g->getCenter()) || g->in(*first) || g->in(*second) || ( isTriangle && g->in(*third)) ;
+	return inCircumCircle(g->getCenter()) || g->in(*first) || g->in(*second)  ;
 }
+
 
 
 DelaunayTreeItem::~DelaunayTreeItem()
