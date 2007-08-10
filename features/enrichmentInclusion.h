@@ -15,8 +15,8 @@ namespace Mu
 
 class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
 {
-
-	
+protected:
+	std::vector<DelaunayTriangle *> cache ;
 public:
 
 	EnrichmentInclusion(Feature *father, double radius, double x, double y) ;

@@ -25,9 +25,12 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 
 void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 {
-	dtree->getTriangles() ;
+// 	dtree->getTriangles() ;
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dtree->conflicts(static_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> disc  = cache;
+	if(cache.empty())
+		disc = dtree->conflicts(static_cast<Circle *>(this)) ;
+	cache = disc ;
 	//first, we get the basis functions for an archetypal element
 	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
 	

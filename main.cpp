@@ -1746,7 +1746,7 @@ int main(int argc, char *argv[])
 	inc->setBehaviour(new WeibullDistributedStiffness(m0, 0.04)) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0*.125, 0.04)) ;
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
-	generateExpansiveZones(10, inclusions, F) ;
+	generateExpansiveZones(100, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1755,7 +1755,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(400) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
