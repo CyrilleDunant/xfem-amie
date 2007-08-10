@@ -339,18 +339,7 @@ void FeatureTree::renumber()
 		
 		for(size_t i = 0 ; i < points.size() ; i++)
 		{
-			bool inNothing =false;
-			for(size_t k = 0 ; k < this->tree.size() ; k++)
-			{
-				if(tree[k]->isVoid(*points[i]))
-				{
-					inNothing = true ;
-					break;
-				}
-			}
-			if(!inNothing)
 				points[i]->id = count++ ;
-			
 		}
 		
 		for(size_t i = 0 ; i < triangles.size() ; i++)
@@ -358,14 +347,7 @@ void FeatureTree::renumber()
 			for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
 			{
 				bool inNothing =false;
-				for(size_t k = 0 ; k < this->tree.size() ; k++)
-				{
-					if(tree[k]->isVoid(triangles[i]->getBoundingPoint(j)))
-					{
-						inNothing = true ;
-						break;
-					}
-				}
+
 				if(!inNothing && triangles[i]->getBoundingPoint(j).id == -1 && inRoot(triangles[i]->getBoundingPoint(j)))
 					triangles[i]->getBoundingPoint(j).id = count++ ;
 			}

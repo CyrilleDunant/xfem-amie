@@ -2006,7 +2006,7 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements = 2 ;
+		size_t numberOfRefinements = 0 ;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{

@@ -254,17 +254,17 @@ void setBC()
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
 			
-			if ((std::abs(triangles[k]->getBoundingPoint(c).x +3.5) < 0.1 
-			     || std::abs(triangles[k]->getBoundingPoint(c).x -3.5) < 0.1) 
-			    && triangles[k]->getBoundingPoint(c).y < -.9999)
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			
-			if (std::abs(triangles[k]->getBoundingPoint(c).x ) < 0.1 && triangles[k]->getBoundingPoint(c).y > .9999)
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
-			}
+// 			if ((std::abs(triangles[k]->getBoundingPoint(c).x +3.5) < 0.1 
+// 			     || std::abs(triangles[k]->getBoundingPoint(c).x -3.5) < 0.1) 
+// 			    && triangles[k]->getBoundingPoint(c).y < -.9999)
+// 			{
+// 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// 			}
+// 			
+// 			if (std::abs(triangles[k]->getBoundingPoint(c).x ) < 0.1 && triangles[k]->getBoundingPoint(c).y > .9999)
+// 			{
+// 				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
+// 			}
 
 // 			if (std::abs(triangles[k]->getBoundingPoint(c).x) < .1 && triangles[k]->getBoundingPoint(c).y > 0.9999 )
 // 			{
@@ -272,14 +272,14 @@ void setBC()
 // // 				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
 
-// 			if(triangles[k]->getBoundingPoint(c).x < -2.999)
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if (triangles[k]->getBoundingPoint(c).y < -2.999 && triangles[k]->getBoundingPoint(c).x > 2.999)
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
+			if(triangles[k]->getBoundingPoint(c).x < -3.999)
+			{
+				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+			}
+			if (triangles[k]->getBoundingPoint(c).y < -0.999 )
+			{
+				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+			}
 // 			if(triangles[k]->getBoundingPoint(c).y > 2.999 && triangles[k]->getBoundingPoint(c).x > 2.999)
 // 			{
 // 				featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
@@ -697,7 +697,7 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 		std::vector<Inclusion *> ret ;
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.07 ;
+			double radius = 0.01 ;
 			
 			Point center = incs[i]->getCenter()+Point(
 			                      (2.*random()/RAND_MAX-1.),
@@ -721,9 +721,8 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 				a[1] = 0.1 ;
 				a[2] = 0.00 ;
 				
-				ret.push_back(new Inclusion(radius, center)) ;
-				(*ret.rbegin())->setBehaviour(new StiffnessWithImposedDeformation(m0,a)) ;
-				F.addFeature(incs[i],*ret.rbegin()) ; 
+				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
+				F.addFeature(incs[i],z) ; 
 			}
 		}
 	}
@@ -1705,7 +1704,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-// 	i_et_p = generateInclusionsAndPores(2048, .05, &m0, &sample, &F) ;
+	i_et_p = generateInclusionsAndPores(2048, .05, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1723,11 +1722,11 @@ int main(int argc, char *argv[])
 	Vector a(double(0), 3) ;
 	a[0] = 0.1 ;
 	a[1] = 0.1 ;
-	a[1] = 0.00 ;
+	a[2] = 0.00 ;
 // 	inc->setBehaviour(new Stiffness(m0*4)) ;
-	sample.setBehaviour(new Stiffness(m0*0.5)) ;
-	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
-// 	generateExpansiveZones(10, i_et_p.first, F) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0*.125, 0.04)) ;
+// 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
+	generateExpansiveZones(10, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1736,7 +1735,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(256) ;
+	F.sample(600) ;
 	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
