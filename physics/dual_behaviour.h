@@ -29,6 +29,7 @@ public:
 	
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 	
+	virtual bool hasInducedForces() const ;
 	
 	/** Check for fracture state
 	 *

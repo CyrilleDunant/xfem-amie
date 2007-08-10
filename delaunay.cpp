@@ -35,7 +35,7 @@ DelaunayTreeItem::DelaunayTreeItem( DelaunayTreeItem * father,  const Point * c)
 	
 bool DelaunayTreeItem::isConflicting(const Geometry * g) const
 {
-	return inCircumCircle(g->getCenter()) || g->in(*first) || g->in(*second) || ( g->in(*third) && isTriangle ) ;
+	return inCircumCircle(g->getCenter()) || g->in(*first) || g->in(*second) || ( isTriangle && g->in(*third)) ;
 }
 
 
@@ -1576,7 +1576,7 @@ std::vector<Point *> DelaunayTree::conflicts( const Segment *s) const
 
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 {
-	Circle neighbourhood(0.01, g->getCenter()) ; 
+	Circle neighbourhood(0.1, g->getCenter()) ; 
 //magic value : basically, we don't want to have the center a vertex of the mesh.
 	
 	std::vector<DelaunayTriangle *> ret ;
@@ -1616,7 +1616,6 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 			cons.first[i]->visited = true ;
 			cons.second.push_back(cons.first[i]) ;
 			ret.push_back(cons.first[i]) ;
-			break ;
 // 			for(size_t j = 0 ; j < cons.first[i]->neighbourhood.size() ; j++)
 // 			{
 // 				if(!cons.first[i]->neighbourhood[j]->visited && cons.first[i]->neighbourhood[j]->isTriangle && !cons.first[i]->neighbourhood[j]->visited)
@@ -1625,6 +1624,8 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 // 					toCheck.push_back((DelaunayTriangle *)(cons.first[i]->neighbourhood[j])) ;
 // 				}
 // 			}
+			
+			break ;
 		}
 	}
 	
@@ -1977,15 +1978,15 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		{
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
 			{
-				if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-12 && 
-				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-12 && 
-				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-12 &&
+				if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-8 && 
+				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-8 && 
+				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-8 &&
 				   father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)) )
 				{
 					bool ok = true ;
 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
 					{
-						if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-12)
+						if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-8)
 						{
 							ok = false ;
 							break ;

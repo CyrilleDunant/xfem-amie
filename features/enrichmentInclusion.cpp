@@ -28,6 +28,58 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 	dtree->getTriangles() ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = dtree->conflicts(static_cast<Circle *>(this)) ;
+	//first, we get the basis functions for an archetypal element
+	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
+	
+	if(disc.size() == 1) // special case for really small inclusions
+	{
+		static_cast<Circle *>(this)->sampleBoundingSurface(8) ;
+
+		std::map<Point *, int> dofId ;
+		
+		dofId[disc[0]->first] = counter++ ;
+		dofId[disc[0]->second] = counter++ ;
+		dofId[disc[0]->third] = counter++ ;
+
+		std::vector<Point> hint ;
+		for(size_t i = 0 ; i < 8 ; i++)
+		{
+			hint.push_back(disc[0]->inLocalCoordinates(getBoundingPoint(i))) ;
+		}
+		
+					//we build the enrichment function, first, we get the transforms from the triangle
+		Function x = disc[0]->getXTransform() ;
+		Function y = disc[0]->getYTransform() ;
+		
+			//this function returns the distance to the centre
+		Function position(getCenter(), x, y) ;
+		
+			//finaly, we have the enrichment function
+		Function hat = 1- f_abs(position -this->getRadius());
+		
+			//enriching the first point
+		Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
+		f.setIntegrationHint(hint) ;
+		f.setPointID(disc[0]->first->id) ;
+		f.setDofID(dofId[disc[0]->first]) ;
+		disc[0]->setEnrichment(std::pair<size_t, Function>(dofId[disc[0]->first], f)) ;
+		
+			//enriching the second point
+		f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
+		f.setIntegrationHint(hint) ;
+		f.setPointID(disc[0]->second->id) ;
+		f.setDofID(dofId[disc[0]->second]) ;
+		disc[0]->setEnrichment(std::pair<size_t, Function>(dofId[disc[0]->second], f)) ;
+		
+			//enriching the third point
+		f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
+		f.setIntegrationHint(hint) ;
+		f.setPointID(disc[0]->third->id) ;
+		f.setDofID(dofId[disc[0]->third]) ;
+		disc[0]->setEnrichment(std::pair<size_t, Function>(dofId[disc[0]->third], f)) ;
+		
+		return ;
+	}
 
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
@@ -63,8 +115,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 	
 	//now, we will start the enrichment itself
 	
-	//first, we get the basis functions for an archetypal element
-	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
+
 	
 	//then we iterate on every element
 	for(size_t i = 0 ; i < ring.size() ; i++)
@@ -94,90 +145,90 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
-			
-			if(this->in(*a) && this->in(*b))
-			{
-
-				hint.push_back((ring[i]->inLocalCoordinates(*a) +
-				                ring[i]->inLocalCoordinates(*b) +
-				               hint[0] +
-				                hint[1])/4
-				              ) ;
-				hint.push_back((hint[0] +
-				                hint[1] +
-				                ring[i]->inLocalCoordinates(*c)
-			                   )/3
-				              ) ;
-			}
-			if(this->in(*a) && this->in(*c))
-			{
-				hint.push_back((ring[i]->inLocalCoordinates(*a) +
-				                ring[i]->inLocalCoordinates(*c) +
-				                hint[0] +
-				                hint[1])/4
-				              ) ;
-				hint.push_back((hint[0] +
-				                hint[1] +
-				                ring[i]->inLocalCoordinates(*b)
-				               )/3
-				              ) ;
-			}
-			if(this->in(*b) && this->in(*c))
-			{
-				hint.push_back((ring[i]->inLocalCoordinates(*b) +
-				                ring[i]->inLocalCoordinates(*c) +
-				                hint[0] +
-				                hint[1])/4
-				              ) ;
-				hint.push_back((hint[0] +
-				                hint[1] +
-				                ring[i]->inLocalCoordinates(*a)
-				               )/3
-				              ) ;
-			}
-			if(!this->in(*a) && !this->in(*b))
-			{
-				hint.push_back((ring[i]->inLocalCoordinates(*b) +
-				                ring[i]->inLocalCoordinates(*a) +
-				                hint[0] +
-				                hint[1])/4
-				              ) ;
-				hint.push_back((hint[0] +
-				                hint[1] +
-				                ring[i]->inLocalCoordinates(*c)
-				               )/3
-				              ) ;
-			}
-			if(!this->in(*a) && !this->in(*c))
-			{
-				hint.push_back((ring[i]->inLocalCoordinates(*c) +
-				                ring[i]->inLocalCoordinates(*a) +
-				                hint[0] +
-				                hint[1])/4
-				              ) ;
-				hint.push_back((hint[0] +
-				                hint[1] +
-				                ring[i]->inLocalCoordinates(*b)
-				               )/3
-				              ) ;
-
-			}
-			if(!this->in(*b) && !this->in(*c))
-			{
-				hint.push_back((ring[i]->inLocalCoordinates(*c) +
-				                ring[i]->inLocalCoordinates(*b) +
-				                hint[0] +
-				                hint[1])/4
-				              ) ;
-				hint.push_back((hint[0] +
-				                hint[1] +
-				                ring[i]->inLocalCoordinates(*a)
-				               )/3
-				              ) ;
-			}
-			
+// 			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+// 			
+// 			if(this->in(*a) && this->in(*b))
+// 			{
+// 
+// 				hint.push_back((ring[i]->inLocalCoordinates(*a) +
+// 				                ring[i]->inLocalCoordinates(*b) +
+// 				               hint[0] +
+// 				                hint[1])/4
+// 				              ) ;
+// 				hint.push_back((hint[0] +
+// 				                hint[1] +
+// 				                ring[i]->inLocalCoordinates(*c)
+// 			                   )/3
+// 				              ) ;
+// 			}
+// 			if(this->in(*a) && this->in(*c))
+// 			{
+// 				hint.push_back((ring[i]->inLocalCoordinates(*a) +
+// 				                ring[i]->inLocalCoordinates(*c) +
+// 				                hint[0] +
+// 				                hint[1])/4
+// 				              ) ;
+// 				hint.push_back((hint[0] +
+// 				                hint[1] +
+// 				                ring[i]->inLocalCoordinates(*b)
+// 				               )/3
+// 				              ) ;
+// 			}
+// 			if(this->in(*b) && this->in(*c))
+// 			{
+// 				hint.push_back((ring[i]->inLocalCoordinates(*b) +
+// 				                ring[i]->inLocalCoordinates(*c) +
+// 				                hint[0] +
+// 				                hint[1])/4
+// 				              ) ;
+// 				hint.push_back((hint[0] +
+// 				                hint[1] +
+// 				                ring[i]->inLocalCoordinates(*a)
+// 				               )/3
+// 				              ) ;
+// 			}
+// 			if(!this->in(*a) && !this->in(*b))
+// 			{
+// 				hint.push_back((ring[i]->inLocalCoordinates(*b) +
+// 				                ring[i]->inLocalCoordinates(*a) +
+// 				                hint[0] +
+// 				                hint[1])/4
+// 				              ) ;
+// 				hint.push_back((hint[0] +
+// 				                hint[1] +
+// 				                ring[i]->inLocalCoordinates(*c)
+// 				               )/3
+// 				              ) ;
+// 			}
+// 			if(!this->in(*a) && !this->in(*c))
+// 			{
+// 				hint.push_back((ring[i]->inLocalCoordinates(*c) +
+// 				                ring[i]->inLocalCoordinates(*a) +
+// 				                hint[0] +
+// 				                hint[1])/4
+// 				              ) ;
+// 				hint.push_back((hint[0] +
+// 				                hint[1] +
+// 				                ring[i]->inLocalCoordinates(*b)
+// 				               )/3
+// 				              ) ;
+// 
+// 			}
+// 			if(!this->in(*b) && !this->in(*c))
+// 			{
+// 				hint.push_back((ring[i]->inLocalCoordinates(*c) +
+// 				                ring[i]->inLocalCoordinates(*b) +
+// 				                hint[0] +
+// 				                hint[1])/4
+// 				              ) ;
+// 				hint.push_back((hint[0] +
+// 				                hint[1] +
+// 				                ring[i]->inLocalCoordinates(*a)
+// 				               )/3
+// 				              ) ;
+// 			}
+// 			
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;
 			Function y = ring[i]->getYTransform() ;
@@ -250,6 +301,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 					}
 				}
 			}
+		
 		}
 	}
 

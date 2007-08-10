@@ -38,7 +38,7 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 	bool allout = true ;
 	for(size_t i = 0 ; i < gp.size() ; i++)
 	{
-		if(inGeometry->in(gp[i].first))
+		if(inGeometry->in(Point(VirtualMachine().eval(xtransform,gp[i].first), VirtualMachine().eval(ytransform,gp[i].first))))
 			allout = false ;
 		else
 			allin = false ;
@@ -60,7 +60,7 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 		std::valarray< std::pair<Point,double> > gpOut(gp) ;
 		for(size_t i = 0 ; i < gp.size() ; i++)
 		{
-			if(inGeometry->in(gp[i].first))
+			if(inGeometry->in(Point(VirtualMachine().eval(xtransform,gp[i].first), VirtualMachine().eval(ytransform,gp[i].first))))
 				gpOut[i].second = 0 ;
 			else
 				gpIn[i].second = 0 ;
@@ -74,38 +74,42 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 
 Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
 {
-	
 	bool allin = true ;
 	bool allout = true ;
 	for(size_t i = 0 ; i < gp.size() ; i++)
 	{
-		if(inGeometry->in(gp[i].first))
+		if(inGeometry->in(Point(VirtualMachine().eval(xtransform,gp[i].first), VirtualMachine().eval(ytransform,gp[i].first))))
 			allout = false ;
 		else
 			allin = false ;
 		
 	}
 	
+	
+	
 	if(allin)
-		return inBehaviour->apply(p_i, p_j, gp, Jinv) ;
-	else if(allout)
-		return outBehaviour->apply(p_i, p_j, gp, Jinv) ;
-	else
 	{
-
-		std::valarray< std::pair<Point,double> > gpIn(gp) ;
-		std::valarray< std::pair<Point,double> > gpOut(gp) ;
-		for(size_t i = 0 ; i < gp.size() ; i++)
-		{
-			if(inGeometry->in(gp[i].first))
-				gpOut[i].second = 0 ;
-			else
-				gpIn[i].second = 0 ;
-		}
-		
-		return inBehaviour->apply(p_i, p_j, gpIn, Jinv) + outBehaviour->apply(p_i, p_j, gpOut, Jinv) ;
-		
+		return inBehaviour->apply(p_i, p_j, gp, Jinv) ;
 	}
+	else if(allout)
+	{
+		return outBehaviour->apply(p_i, p_j, gp, Jinv) ;
+	}
+	
+
+	std::valarray< std::pair<Point,double> > gpIn(gp) ;
+	std::valarray< std::pair<Point,double> > gpOut(gp) ;
+	for(size_t i = 0 ; i < gp.size() ; i++)
+	{
+		if(inGeometry->in(Point(VirtualMachine().eval(xtransform,gp[i].first), VirtualMachine().eval(ytransform,gp[i].first))))
+			gpOut[i].second = 0 ;
+		else
+			gpIn[i].second = 0 ;
+	}
+	
+	return inBehaviour->apply(p_i, p_j, gpIn, Jinv) + outBehaviour->apply(p_i, p_j, gpOut, Jinv) ;
+		
+
 }
 
 bool BimaterialInterface::fractured() const
@@ -121,12 +125,29 @@ Form * BimaterialInterface::getCopy() const
 
 Vector BimaterialInterface::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
-	return Vector(0) ;
+	std::valarray< std::pair<Point,double> > gpIn(gp) ;
+	std::valarray< std::pair<Point,double> > gpOut(gp) ;
+	for(size_t i = 0 ; i < gp.size() ; i++)
+	{
+		if(inGeometry->in(Point(VirtualMachine().eval(xtransform,gp[i].first), VirtualMachine().eval(ytransform,gp[i].first))))
+			gpOut[i].second = 0 ;
+		else
+			gpIn[i].second = 0 ;
+	}
+	
+	Vector inForces = inBehaviour->getForces(s, p_i,p_j, gpIn, Jinv) ;
+	Vector outForces = inBehaviour->getForces(s, p_i,p_j, gpOut, Jinv) ;
+	
+	if(inForces.size() == outForces.size())
+		return inForces+outForces ;
 }
 
 
 
-
+bool BimaterialInterface::hasInducedForces() const
+{
+	return inBehaviour->hasInducedForces() || outBehaviour->hasInducedForces() ;
+}
 
 
 

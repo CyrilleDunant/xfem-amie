@@ -697,7 +697,7 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 		std::vector<Inclusion *> ret ;
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.01 ;
+			double radius = 0.1 ;
 			
 			Point center = incs[i]->getCenter()+Point(
 			                      (2.*random()/RAND_MAX-1.),
@@ -1704,18 +1704,20 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-	i_et_p = generateInclusionsAndPores(64, .05, &m0, &sample, &F) ;
+// 	i_et_p = generateInclusionsAndPores(32, .05, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
 // 	F.addFeature(&sample,new TriangularPore(Point(-1.25, -4), Point(-1,-2.5), Point(-0.75,-4))) ;
 // 	F.addFeature(&sample,new TriangularPore(Point(2.25, -4), Point(2,-1.5), Point(1.75,-4))) ;
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
-// 	Inclusion * inc = new Inclusion(1, 0,0) ;
-// 	F.addFeature(&sample,inc) ;
+	Inclusion * inc = new Inclusion(.5, 0,0) ;
+	std::vector<Inclusion *> inclusions ;
+	inclusions.push_back(inc) ;
+	F.addFeature(&sample,inc) ;
 	
 	
-	Circle cercle(1, 0,0) ;
+	Circle cercle(.5, 0,0) ;
 	
 	
 // 	sample.setBehaviour(new BimaterialInterface(&cercle, m0,  m0*4)) ;
@@ -1723,10 +1725,10 @@ int main(int argc, char *argv[])
 	a[0] = 0.1 ;
 	a[1] = 0.1 ;
 	a[2] = 0.00 ;
-// 	inc->setBehaviour(new Stiffness(m0*4)) ;
+	inc->setBehaviour(new WeibullDistributedStiffness(m0, 0.04)) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0*.125, 0.04)) ;
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
-	generateExpansiveZones(5, i_et_p.first, F) ;
+	generateExpansiveZones(1, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1735,7 +1737,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(256) ;
+	F.sample(128) ;
 	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;

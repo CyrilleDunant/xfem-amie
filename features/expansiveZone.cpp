@@ -41,11 +41,21 @@ void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 		                                              new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 		                                              m_f->getBehaviour()->getCopy()
 		                                             )) ;
+		ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
 	}
 	
 	for(size_t i = 0 ; i < inDisc.size() ; i++)
 	{
 		inDisc[i]->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
+	}
+	
+	if(disc.size() == 1)
+	{
+		disc[0]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
+		                                              new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+		                                              m_f->getBehaviour()->getCopy()
+		                                             )) ;
+		disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;
 	}
 	
 }
