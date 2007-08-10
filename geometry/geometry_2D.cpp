@@ -885,7 +885,7 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const 
 {
-	return (squareDist(getCenter(), v) < radius*radius + POINT_TOLERANCE) ;
+	return (center.x-v.x)*(center.x-v.x) + (center.y-v.y)*(center.y-v.y) < radius*radius + POINT_TOLERANCE ;
 }
 
 double Circle::getRadius() const
