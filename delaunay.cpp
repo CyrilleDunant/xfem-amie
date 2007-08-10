@@ -1580,9 +1580,9 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 //magic value : basically, we don't want to have the center a vertex of the mesh.
 	
 	std::vector<DelaunayTriangle *> ret ;
-	std::pair< std::vector<DelaunayTriangle *>,std::vector<DelaunayTreeItem *> > cons ;
+	std::pair< std::vector<DelaunayTreeItem *>,std::vector<DelaunayTreeItem *> > cons ;
 	if(!tree.empty())
-		this->tree[0]->conflicts(cons, &neighbourhood) ;
+		this->tree[0]->conflicts(cons, &g->getCenter()) ;
 	
 // 	for(size_t i = 0 ; i < plane.size() ; i++)
 // 	{
@@ -1610,17 +1610,18 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 	
 	for(size_t i = 0 ; i < cons.first.size() ; i++)
 	{
-		if(cons.first[i]->isConflicting(g))
+		if(cons.first[i]->isTriangle && cons.first[i]->isConflicting(g))
 		{
-			cons.first[i]->visited = true ;
-			cons.second.push_back(cons.first[i]) ;
-			ret.push_back(cons.first[i]) ;
-			for(size_t j = 0 ; j < cons.first[i]->neighbourhood.size() ; j++)
+			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(cons.first[i]) ;
+			t->visited = true ;
+			cons.second.push_back(t) ;
+			ret.push_back(t) ;
+			for(size_t j = 0 ; j < t->neighbourhood.size() ; j++)
 			{
-				if(!cons.first[i]->neighbourhood[j]->visited && !cons.first[i]->neighbourhood[j]->visited)
+				if(!t->neighbourhood[j]->visited && !t->neighbourhood[j]->visited)
 				{
-					cons.first[i]->neighbourhood[j]->visited = true ;
-					toCheck.insert(cons.first[i]->neighbourhood[j]) ;
+					t->neighbourhood[j]->visited = true ;
+					toCheck.insert(t->neighbourhood[j]) ;
 				}
 			}
 		}
