@@ -12,7 +12,7 @@ void BimaterialInterface::transform(const Function & x, const Function & y)
 	ytransform = y ;
 }
 
-Matrix BimaterialInterface::getTensor(const Point * p) const
+Matrix BimaterialInterface::getTensor(const Point & p) const
 {
 	VirtualMachine vm ;
 	
@@ -24,11 +24,10 @@ Matrix BimaterialInterface::getTensor(const Point * p) const
 	{
 		for(size_t j = 0 ; j < 3 ; j++)
 		{
-			C[i][j] = f_positivity(domain)*outBehaviour->getTensor(*p)[i][j] + f_negativity(domain)*inBehaviour->getTensor(*p)[i][j];
+			C[i][j] = f_positivity(domain)*inBehaviour->getTensor(p)[i][j] + f_negativity(domain)*outBehaviour->getTensor(p)[i][j];
 		}
 	}
-	
-	return vm.eval(C, p->x, p->y) ;
+	return vm.eval(C, p.x, p.y) ;
 }
 
 Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const

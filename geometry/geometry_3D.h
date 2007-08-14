@@ -41,7 +41,7 @@ public:
 		
 	virtual void project(Point * p) const;
 	
-	virtual bool inCircumSphere(const Point p) const ;
+	virtual bool inCircumSphere(const Point & p) const ;
 	virtual bool inCircumSphere(const Point *p) const ;
 	
 	virtual void computeCenter() ;

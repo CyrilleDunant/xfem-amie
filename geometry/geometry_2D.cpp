@@ -774,6 +774,16 @@ Circle::Circle(double r, const Point center)
 	this->radius = r ; 
 }
 
+void Circle::setRadius(double newr)
+{
+	this->radius = newr ;
+	
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+	{
+		project(&getBoundingPoint(i)) ;
+	}
+}
+
 void Circle::computeCenter()
 {
 }

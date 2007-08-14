@@ -204,6 +204,7 @@ public:
 	virtual double area() const ;
 	virtual double volume() const { return 0 ;} 
 
+	virtual void setRadius(double newr);
 		
 	/** Project the point on the circle.
 	 * 
@@ -217,6 +218,10 @@ public:
 	}
 	
 	virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ;}
+	
+	const Circle * getGeometry() const ;
+	
+	Circle * getGeometry() ;
 	
 } ;
 

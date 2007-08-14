@@ -15,13 +15,27 @@ ExpansiveZone::ExpansiveZone(Feature *father, double radius, double x, double y,
 
 ExpansiveZone::~ExpansiveZone() {}
 	
+const Circle * ExpansiveZone::getGeometry() const 
+{
+	return static_cast<const Circle *>(this) ;
+}
+
+Circle * ExpansiveZone::getGeometry() 
+{
+	return static_cast<Circle *>(this) ;
+}
+
+void ExpansiveZone::reset() 
+{
+	cache.clear() ;
+}
 
 void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 {
 	
 	EnrichmentInclusion::enrich(counter, dtree) ;
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = cache ;
+		std::vector<DelaunayTriangle *> disc = cache ;
 
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;

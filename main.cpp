@@ -83,13 +83,15 @@ double y_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 
-double timepos = 0.1625 ;
+double timepos = 0.00 ;
 
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
+
+std::vector<ExpansiveZone *> zones ;
 
 Vector b(0) ;
 Vector x(0) ;
@@ -328,15 +330,15 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 1 ; i++)
+	for(size_t i = 0 ; i < 10 ; i++)
 	{
 		std::cout << "\r iteration " << i << "/10" << std::flush ;
 		setBC() ;
-		/*while(!*/featureTree->step(timepos)/*)*/ ;
-// 		{
+		while(!featureTree->step(timepos))
+		{
 // 			timepos-= 0.0001 ;
-// 			setBC() ;
-// 		}
+			setBC() ;
+		}
 // 		
 // 		
 		timepos+= 0.0001 ;
@@ -598,6 +600,16 @@ void step()
 	std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
 	std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 	std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		
+		double reactedArea = 0 ;
+		
+		for(size_t z = 0 ; z < zones.size() ; z++)
+		{
+			zones[z]->getGeometry()->setRadius(zones[z]->getGeometry()->getRadius()+0.02) ;
+			reactedArea += zones[z]->getGeometry()->area() ;
+		}
+		
+		std::cout << "reacted Area : " << reactedArea << std::endl ;
 	}
 }
 
@@ -700,22 +712,22 @@ std::vector<Inclusion * > generateInclusions(size_t n, Matrix * tensor)
 	return ret ;
 } ;
 
-void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
+std::vector<ExpansiveZone *> generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
 	double E = .1 ;
-	double nu = .45 ;
+	double nu = .4999 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
 	m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1-nu*nu)*(1.-nu)/2. ; 
 	
+	std::vector<ExpansiveZone *> ret ;
 	
 	for(size_t i = 0 ; i < incs.size() ; i++)
 	{
-		std::vector<Inclusion *> ret ;
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.01 ;
+			double radius = 0.005 ;
 			
 			Point center = incs[i]->getCenter()+Point(
 			                      (2.*random()/RAND_MAX-1.),
@@ -740,10 +752,13 @@ void generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTre
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
+				ret.push_back(z) ;
 				F.addFeature(incs[i],z) ; 
 			}
 		}
 	}
+	std::cout << "initial Reacted Area = " << M_PI*0.005*0.005*ret.size() << std::endl ;
+	return ret ;	
 }
 
 std::vector<Crack *> generateCracks(size_t n)
@@ -1044,18 +1059,18 @@ void Menu(int selection)
 	case ID_AMPLIFY :
 		{
 			x *= 1.5 ;
-			sigma11 *= 1.5 ;
-			sigma22 *= 1.5 ;
-			sigma12 *= 1.5 ;
+// 			sigma11 *= 1.5 ;
+// 			sigma22 *= 1.5 ;
+// 			sigma12 *= 1.5 ;
 			dlist = false ;
 			break ;
 		}
 	case ID_DEAMPLIFY :
 		{
 			x /= 1.5 ;
-			sigma11 /= 1.5 ;
-			sigma22 /= 1.5 ;
-			sigma12 /= 1.5 ;
+// 			sigma11 /= 1.5 ;
+// 			sigma22 /= 1.5 ;
+// 			sigma12 /= 1.5 ;
 			dlist = false ;
 			break ;
 		}
@@ -1251,8 +1266,8 @@ void Display(void)
 		}
 		glEndList() ;
 		
-		double sigma22_min = sigma22.min() ;
-		double sigma22_max = sigma22.max() ;
+		double sigma22_min = -0.5 ; //sigma22.min() ;
+		double sigma22_max = 0.5 ; //sigma22.max() ;
 		
 		glNewList(  DISPLAY_LIST_STRAIN_YY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1287,8 +1302,8 @@ void Display(void)
 		}
 		glEndList() ;
 		
-		double sigma12_min = sigma12.min() ;
-		double sigma12_max = sigma12.max() ;
+		double sigma12_min = -0.5 ;sigma12.min() ;
+		double sigma12_max = 0.5 ;sigma12.max() ;
 		glNewList(  DISPLAY_LIST_STRAIN_XY,  GL_COMPILE ) ;
 		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1358,8 +1373,8 @@ void Display(void)
 		}
 		glEndList() ;
 		
-		double epsilon11_min = epsilon11.min() ;
-		double epsilon11_max = epsilon11.max() ;
+		double epsilon11_min = -0.5 ; epsilon11.min() ;
+		double epsilon11_max = 0.5 ; epsilon11.max() ;
 		glNewList(  DISPLAY_LIST_STRESS_XX,  GL_COMPILE ) ;
 			
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1395,8 +1410,8 @@ void Display(void)
 		glEndList() ;
 		
 				
-		double epsilon22_min = epsilon22.min() ;
-		double epsilon22_max = epsilon22.max() ;
+		double epsilon22_min = 0.5 ; epsilon22.min() ;
+		double epsilon22_max = -0.5 ; epsilon22.max() ;
 		
 		glNewList(  DISPLAY_LIST_STRESS_YY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1432,8 +1447,8 @@ void Display(void)
 		
 		glEndList() ;
 		
-		double epsilon12_min = epsilon12.min() ;
-		double epsilon12_max = epsilon12.max() ;
+		double epsilon12_min = 0.5 ; epsilon12.min() ;
+		double epsilon12_max = -0.5 ; epsilon12.max() ;
 		
 		glNewList(  DISPLAY_LIST_STRESS_XY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1722,7 +1737,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-// 	i_et_p = generateInclusionsAndPores(32, .05, &m0, &sample, &F) ;
+	i_et_p = generateInclusionsAndPores(32, .0, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1732,7 +1747,7 @@ int main(int argc, char *argv[])
 	Inclusion * inc = new Inclusion(.5, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
 	inclusions.push_back(inc) ;
-	F.addFeature(&sample,inc) ;
+// 	F.addFeature(&sample,inc) ;
 	
 	
 	Circle cercle(.5, 0,0) ;
@@ -1743,10 +1758,10 @@ int main(int argc, char *argv[])
 	a[0] = 0.1 ;
 	a[1] = 0.1 ;
 	a[2] = 0.00 ;
-	inc->setBehaviour(new WeibullDistributedStiffness(m0, 0.04)) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0*.125, 0.04)) ;
-// 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0, a)) ;
-	generateExpansiveZones(100, inclusions, F) ;
+// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m0*4, a)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.02)) ;
+// 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
+	zones = generateExpansiveZones(3, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1755,7 +1770,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(128) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

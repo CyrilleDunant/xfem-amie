@@ -32,8 +32,11 @@ public:
 		std::cout << "I am an expansive zone" << std::endl ;
 	}
 	
+	void reset() ;
 	
+	const Circle * getGeometry() const ;
 
+	Circle * getGeometry() ;
 	
 public:
 	GEO_DERIVED_OBJECT(Circle) ;

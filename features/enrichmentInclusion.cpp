@@ -95,7 +95,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 	
 	//then we build a list of points to enrich
 	std::vector<Point *> points ;
-	
+
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		points.push_back(ring[i]->first) ;
@@ -148,8 +148,8 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
 // 			
 // 			if(this->in(*a) && this->in(*b))
 // 			{
@@ -272,9 +272,6 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 					                                 t->getXTransform(), t->getYTransform()) -this->getRadius()) ;
 					std::vector<Point> hint;
 					hint.push_back(Point(1./3., 1./3.)) ;
-					hint.push_back(Point(0, .5)) ;
-					hint.push_back(Point(.5, .5)) ;
-					hint.push_back(Point(.5, 0)) ;
 					
 					if(dofId.find(t->first) != dofId.end())
 					{

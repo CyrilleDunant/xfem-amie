@@ -1862,6 +1862,9 @@ bool FeatureTree::step(double dt)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
 		
+		double volume = 0;
+		double crackedVolume = 0 ;
+		
 		//this will update the state of all elements. This is necessary as 
 		//the behaviour updates might depend on the global state of the 
 		//simulation.
@@ -1876,17 +1879,23 @@ bool FeatureTree::step(double dt)
 		{	
 			if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && !elements[i]->getBehaviour()->fractured())
 			{
+				volume += elements[i]->area() ;
+				
 				elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
 				if(elements[i]->getBehaviour()->fractured())
 				{
 					fracturedCount++ ;
 					needAssembly = true ;
 					ret = false ;
+					crackedVolume +=  elements[i]->area() ;
 				}
 			}
+			else if (elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && elements[i]->getBehaviour()->fractured())
+				crackedVolume +=  elements[i]->area() ;
 		}
 		
-		std::cerr << " Fractured " << fracturedCount << " Elements" << std::endl ;
+		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
+		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
 		
 		for(size_t i = 0 ; i< tree.size() ; i++)
 		{

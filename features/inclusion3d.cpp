@@ -16,28 +16,28 @@ using namespace Mu ;
 Inclusion3D::Inclusion3D(Feature *father, double r, double x, double y, double z) : Sphere(r, x, y,z ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r*1.07, x, y,z) ;
+	this->boundary = new Sphere(r*1.1, x, y,z) ;
 	this->boundary2 = new Sphere(r*0.93, x, y,z) ;
 }
 	
 Inclusion3D::Inclusion3D(Feature *father, double r,  Point center) : Sphere(r, center ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r*1.07, center) ;
+	this->boundary = new Sphere(r*1.1, center) ;
 	this->boundary2 = new Sphere(r*0.93, center) ;
 }
 	
 Inclusion3D::Inclusion3D(double r, double x, double y, double z) : Sphere(r, x,y,z ), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r*1.02, x,y,z) ;
+	this->boundary = new Sphere(r*1.1, x,y,z) ;
 	this->boundary2 = new Sphere(r*0.93, x, y,z) ;
 }
 	
 Inclusion3D::Inclusion3D(double r, Point center) : Sphere(r,center ), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r*1.02, center) ;
+	this->boundary = new Sphere(r*1.1, center) ;
 	this->boundary2 = new Sphere(r*0.93, center) ;
 }
 	

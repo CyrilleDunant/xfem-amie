@@ -191,7 +191,7 @@ void Tetrahedron::computeCircumCenter()
 	
 }
 
-bool Tetrahedron::inCircumSphere(const Point p) const
+bool Tetrahedron::inCircumSphere(const Point & p) const
 {
 //  	return false;
 	return  squareDist(circumCenter, p) < radius -1e-12;
@@ -636,7 +636,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	               r + center.z) ;
 	
 	
-	size_t numPointsPerDirection = static_cast<size_t>(pow((double).5*num_points, 1./3.)) ;
+	size_t numPointsPerDirection = static_cast<size_t>(pow((double)0.5*num_points, 1./3.)) ;
 	//face [000] [010] [001]
 	
 	std::vector<double> ds ;
@@ -790,11 +790,11 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 		}
 		speeds = Point() ;
 	}
-/*	
-	for(size_t j = 0 ; j < points.size() ; j++)
-	{
-		
-	}*/
+	
+// 	for(size_t j = 0 ; j < points.size() ; j++)
+// 	{
+// 			project(&points[j],r) ;
+// 	}
 }
 
 void Sphere::sampleBoundingSurface(size_t num_points)

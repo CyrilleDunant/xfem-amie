@@ -23,7 +23,7 @@ public:
 	
 	virtual void transform(const Function & x, const Function & y) ;
 	
-	virtual Matrix getTensor(const Point * p) const ;
+	virtual Matrix getTensor(const Point & p) const ;
 	
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
 	

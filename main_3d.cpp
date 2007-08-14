@@ -228,7 +228,7 @@ void computeDisplayList()
 			
 			glBegin(GL_LINES);
 			
-			if(*myTets[i]->first != Point() && *myTets[i]->second != Point())
+			if( std::abs(myTets[i]->first->norm() - 2.4) < .1 && std::abs(myTets[i]->second->norm() - 2.4) < .1)
 			{
 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
@@ -245,7 +245,7 @@ void computeDisplayList()
 						myTets[i]->second->z+(*x)[myTets[i]->second->id*3+2] );
 			}
 			
-			if(*myTets[i]->first != Point() && *myTets[i]->third != Point())
+			if( std::abs(myTets[i]->first->norm() - 2.4) < .1 && std::abs(myTets[i]->third->norm() - 2.4) < .1)
 			{
 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
@@ -262,7 +262,7 @@ void computeDisplayList()
 						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2] );
 			}
 			
-			if(*myTets[i]->first != Point() && *myTets[i]->fourth != Point())
+			if( std::abs(myTets[i]->first->norm() - 2.4) < .1 && std::abs(myTets[i]->fourth->norm() - 2.4) < .1)
 			{
 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
@@ -279,7 +279,7 @@ void computeDisplayList()
 						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
 			}
 			
-			if(*myTets[i]->second != Point() && *myTets[i]->third != Point())
+			if( std::abs(myTets[i]->second->norm() - 2.4) < .1 && std::abs(myTets[i]->third->norm() - 2.4) < .1)
 			{
 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
@@ -296,7 +296,7 @@ void computeDisplayList()
 						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2]);
 			}
 			
-			if(*myTets[i]->second != Point() && *myTets[i]->fourth != Point())
+			if( std::abs(myTets[i]->second->norm() - 2.4) < .1 && std::abs(myTets[i]->fourth->norm() - 2.4) < .1)
 			{
 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
@@ -313,7 +313,7 @@ void computeDisplayList()
 						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
 			}
 			
-			if(*myTets[i]->third != Point() && *myTets[i]->fourth != Point())
+			if( std::abs(myTets[i]->third->norm() - 2.4) < .1 && std::abs(myTets[i]->fourth->norm() - 2.4) < .1)
 			{
 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
@@ -579,7 +579,7 @@ int main(int argc, char *argv[])
 	Inclusion3D inclusion12(1.9, -1, 0,0) ;
 	Inclusion3D inclusion13(2.1, 1, 0,0) ;
 	Inclusion3D inclusion14(2.1, -1, 0,0) ;
-	Inclusion3D inclusion15(2.4, 1, 0,0) ;
+	Inclusion3D inclusion15(2.4, 0, 0,0) ;
 	Inclusion3D inclusion16(2.7, -1, 0,0) ;
 	Inclusion3D inclusion17(2.3, -5, 0,0) ;
 	Inclusion3D inclusion18(2.7, 5, 0,0) ;
@@ -608,9 +608,9 @@ int main(int argc, char *argv[])
 	Stiffness soth0(cgStress0) ;
 
 
-	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > features = generateInclusionsAndPores(18, 0, &soth, &s3d, &ft) ;
+// 	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > features = generateInclusionsAndPores(18, 0, &soth, &s3d, &ft) ;
 
-// 	ft.addFeature(&s3d, &inclusion15) ;
+	ft.addFeature(&s3d, &inclusion15) ;
 // 	ft.addFeature(&inclusion15, &inclusion17) ;
 // 	ft.addFeature(&inclusion17, &inclusion16) ;
 // 	ft.addFeature(&inclusion16, &inclusion18) ;
@@ -648,7 +648,7 @@ int main(int argc, char *argv[])
 // 	inclusion12.setBehaviour(&soth0) ;
 // 	inclusion13.setBehaviour(&soth) ;
 // 	inclusion14.setBehaviour(&soth0) ;
-// 	inclusion15.setBehaviour(&soth) ;
+	inclusion15.setBehaviour(&soth) ;
 // 	inclusion16.setBehaviour(&soth0) ;
 // 	inclusion17.setBehaviour(&soth) ;
 // 	inclusion18.setBehaviour(&soth0) ;
@@ -657,9 +657,9 @@ int main(int argc, char *argv[])
 	
 	ft.sample(2048) ;
 
-	ft.setOrder(QUADRATIC) ;
+	ft.setOrder(LINEAR) ;
 
-	ft.generateElements(1) ;
+	ft.generateElements(0) ;
 // 	ft.refine(1) ;	
 // 	
 	
@@ -673,13 +673,13 @@ int main(int argc, char *argv[])
 		{
 			if(std::abs(myTets[i]->getBoundingPoint(j).x-3.) <  .001 )
 			{
-				ft.getAssembly()->setPoint(0.5, 0, 0, myTets[i]->getBoundingPoint(j).id) ;
+				ft.getAssembly()->setPoint(0, 0, 0, myTets[i]->getBoundingPoint(j).id) ;
 				
 			}
 		
 			if(std::abs(myTets[i]->getBoundingPoint(j).x+3.) < .001 )
 			{
-				ft.getAssembly()->setPoint(-0.5, 0, 0, myTets[i]->getBoundingPoint(j).id) ;
+				ft.getAssembly()->setPoint(0, 0, 0, myTets[i]->getBoundingPoint(j).id) ;
 			}
 		}
 	}
