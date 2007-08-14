@@ -335,6 +335,7 @@ void Crack::enrich(size_t & counter, DelaunayTree * dtree)
 		std::cout << "crack too small, cowardly discarding" << std::endl ;
 		return ;
 	}
+	
 	map.update(&tris, this, counter) ;
 
 	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;

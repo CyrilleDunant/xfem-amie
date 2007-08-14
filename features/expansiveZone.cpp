@@ -43,9 +43,9 @@ void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(this->intersects(static_cast<Triangle *>(disc[i])))
+		if(this->intersects(static_cast<Triangle *>(disc[i])) )
 			ring.push_back(disc[i]) ;
-		else
+		else if(this->in(disc[i]->getCenter()))
 			inDisc.push_back(disc[i]) ;
 	}
 	
@@ -53,7 +53,7 @@ void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 	{
 		ring[i]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
 		                                              new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-		                                              m_f->getBehaviour()->getCopy()
+		                                              ring[i]->getBehaviour()->getCopy()
 		                                             )) ;
 		ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
 	}
@@ -67,7 +67,7 @@ void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 	{
 		disc[0]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
 		                                              new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-		                                              m_f->getBehaviour()->getCopy()
+		                                              disc[0]->getBehaviour()->getCopy()
 		                                             )) ;
 		disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;
 	}

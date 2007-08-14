@@ -2034,7 +2034,7 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements = 2 ;
+		size_t numberOfRefinements = 1 ;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
@@ -2200,15 +2200,24 @@ Vector DelaunayTriangle::getForces() const
 	size_t numdof = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int offset = numdof-1 ;
 	
+// 	for(size_t i = 0 ; i < dofs.size() ; i++)
+// 	{
+// 		for(size_t j = 0 ; j < dofs.size() ; j++)
+// 		{
+// 			Vector f = behaviour->getForces( this->getState(), dofs[i].second, dofs[j].second,gp, Jinv) ;
+// 			forces[i*numdof] += f[0] ;
+// 			if(offset)
+// 				forces[i*numdof+offset] += f[offset] ;
+// 		}
+// 	}
+
 	for(size_t i = 0 ; i < dofs.size() ; i++)
 	{
-		for(size_t j = 0 ; j < dofs.size() ; j++)
-		{
-			Vector f = behaviour->getForces( this->getState(), dofs[i].second, dofs[j].second,gp, Jinv) ;
-			forces[i*numdof] += f[0] ;
-			if(offset)
-				forces[i*numdof+offset] += f[offset] ;
-		}
+
+		Vector f = behaviour->getForces( this->getState(), dofs[i].second, dofs[i].second,gp, Jinv) ;
+		forces[i*numdof] += f[0] ;
+		if(offset)
+			forces[i*numdof+offset] += f[offset] ;
 	}
 	
 	return forces ;

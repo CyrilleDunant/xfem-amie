@@ -83,9 +83,7 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 			allin = false ;
 		
 	}
-	
-	
-	
+
 	if(allin)
 	{
 		return inBehaviour->apply(p_i, p_j, gp, Jinv) ;

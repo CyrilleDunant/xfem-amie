@@ -851,7 +851,6 @@ void Circle::sampleBoundingSurface(size_t num_points)
 void Circle::sampleSurface(size_t num_points)
 {
 	assert(!sampled) ;
-	
 	if(boundingPoints.size() == 0)
 		this->sampleBoundingSurface(2*num_points) ;
 	sampled = true ;
@@ -895,7 +894,7 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const 
 {
-	return (center.x-v.x)*(center.x-v.x) + (center.y-v.y)*(center.y-v.y) < radius*radius + POINT_TOLERANCE ;
+	return (center.x-v.x)*(center.x-v.x) + (center.y-v.y)*(center.y-v.y) < radius*radius ;
 }
 
 double Circle::getRadius() const
