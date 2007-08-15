@@ -1778,7 +1778,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(32) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
