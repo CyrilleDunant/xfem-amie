@@ -72,11 +72,11 @@ public:
 	virtual const Function getXTransform() const = 0;
 	virtual const Function getYTransform() const = 0;
 
-	virtual	const std::valarray< Function >  getShapeFunctions() const = 0 ;
-	virtual	const std::vector< std::pair< size_t, Function> >  getEnrichmentFunctions() const = 0 ;
+	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
+	virtual	const std::vector< std::pair< size_t, Function> > & getEnrichmentFunctions() const = 0 ;
 	virtual	std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  = 0 ;
 	virtual	const Function & getShapeFunction(size_t i) const = 0 ;
-	virtual const std::pair<size_t, Function> getEnrichmentFunction(size_t i) const = 0;	
+	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const = 0;	
 	virtual Order getOrder() const  = 0 ;
 	
 	virtual const std::vector<std::pair<size_t, Function> > getDofs() const = 0;

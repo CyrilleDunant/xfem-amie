@@ -330,14 +330,16 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 200 ; i++)
+	for(size_t i = 0 ; i < 1 ; i++)
 	{
 		std::cout << "\r iteration " << i << "/10" << std::flush ;
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
+			break ;
 // 			timepos-= 0.0001 ;
 			setBC() ;
+			
 		}
 // 		
 // 		
@@ -1741,7 +1743,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-	i_et_p = generateInclusionsAndPores(16, .0, &m0, &sample, &F) ;
+// 	i_et_p = generateInclusionsAndPores(16, .0, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1764,8 +1766,10 @@ int main(int argc, char *argv[])
 	a[2] = 0.00 ;
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m0*4, a)) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.02)) ;
-// 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
-	zones = generateExpansiveZones(3, i_et_p.first, F) ;
+// 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
+	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
+	F.addFeature(&sample, zones[0]) ;
+// 	zones = generateExpansiveZones(3, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1774,7 +1778,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(600) ;
+	F.sample(32) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

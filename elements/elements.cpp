@@ -1205,7 +1205,7 @@ void ElementarySurface::setEnrichment(std::pair<size_t, Function>  p)
 		enrichfunc.push_back(p) ;
 }
 
-const  std::pair<size_t, Function> ElementarySurface::getEnrichmentFunction(size_t i) const
+const  std::pair<size_t, Function> & ElementarySurface::getEnrichmentFunction(size_t i) const
 {
 	return this->enrichfunc[i];
 }
@@ -1219,13 +1219,13 @@ std::pair<size_t, Function> & ElementarySurface::getEnrichmentFunction(size_t i)
 
 
 
-const std::valarray< Function >  ElementarySurface::getShapeFunctions() const
+const std::valarray< Function >  & ElementarySurface::getShapeFunctions() const
 {
 	return *this->shapefunc   ;
 }
 
 
-const std::vector< std::pair<size_t, Function>  > ElementarySurface::getEnrichmentFunctions() const
+const std::vector< std::pair<size_t, Function>  > & ElementarySurface::getEnrichmentFunctions() const
 {
 	return this->enrichfunc;
 }
@@ -1505,7 +1505,7 @@ void ElementaryVolume::setEnrichment(std::pair<size_t, Function>  p)
 	enrichfunc.push_back(p) ;
 }
 
-const std::pair<size_t, Function> ElementaryVolume::getEnrichmentFunction(size_t i)  const
+const std::pair<size_t, Function> & ElementaryVolume::getEnrichmentFunction(size_t i)  const
 {
 	return this->enrichfunc[i] ;
 }
@@ -1515,7 +1515,7 @@ std::pair<size_t, Function> & ElementaryVolume::getEnrichmentFunction(size_t i)
 	return this->enrichfunc[i] ;
 }
 
-const std::valarray<Function  >  ElementaryVolume::getShapeFunctions() const
+const std::valarray<Function  >  & ElementaryVolume::getShapeFunctions() const
 {
 	return *this->shapefunc ;
 }
@@ -1571,7 +1571,7 @@ const std::vector< size_t > ElementaryVolume::getDofIds() const
 	return ret ;
 }
 
-const std::vector< std::pair<size_t, Function>  > ElementaryVolume::getEnrichmentFunctions() const
+const std::vector< std::pair<size_t, Function>  > & ElementaryVolume::getEnrichmentFunctions() const
 {
 	return this->enrichfunc;
 }

@@ -57,7 +57,7 @@ public:
 	
 	virtual bool isMoved() const = 0 ;
 	
-	virtual const std::valarray< Function >  getShapeFunctions() const ;
+	virtual const std::valarray< Function > & getShapeFunctions() const ;
 
 	virtual const std::vector<std::pair<size_t, Function> > getDofs() const ;
 	virtual const std::vector< size_t > getDofIds() const ;
@@ -65,10 +65,10 @@ public:
 	virtual const Function & getShapeFunction(size_t i) const ;
 	virtual Function & getShapeFunction(size_t i)  ;
 	
-	virtual const std::pair<size_t, Function> getEnrichmentFunction(size_t i) const ;
+	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const ;
 	virtual std::pair<size_t, Function> & getEnrichmentFunction(size_t i)  ;
 	
-	virtual const std::vector< std::pair< size_t, Function> >  getEnrichmentFunctions() const ;
+	virtual const std::vector< std::pair< size_t, Function> > & getEnrichmentFunctions() const ;
 	
 	virtual  std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  ;
 	virtual const Function getXTransform() const ;
@@ -187,12 +187,12 @@ public:
 
 	virtual NonLinearForm * getNonLinearBehaviour() const ;
 	
-	virtual const std::valarray< Function >  getShapeFunctions() const ;
+	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	virtual const Function & getShapeFunction(size_t i) const ;
 	virtual Function & getShapeFunction(size_t i)  ;
-	virtual const std::pair<size_t, Function> getEnrichmentFunction(size_t i) const  ;
-	virtual  std::pair<size_t, Function> &getEnrichmentFunction(size_t i)   ;
-	virtual const std::vector< std::pair< size_t, Function> >  getEnrichmentFunctions() const ;
+	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const  ;
+	virtual  std::pair<size_t, Function> & getEnrichmentFunction(size_t i)   ;
+	virtual const std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions() const ;
 	virtual std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  ;
 	virtual const Function getXTransform() const ;
 	virtual const Function getYTransform() const ;

@@ -1517,6 +1517,7 @@ void FeatureTree::assemble()
 			if(!triangles[i]->getBehaviour())
 				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 			triangles[i]->getEnrichmentFunctions().clear() ;
+			triangles[i]->getState()->initialize() ;
 		}
 		
 		if(!initialized)

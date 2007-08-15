@@ -53,44 +53,13 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 
 void StiffnessAndFracture::step(double timestep, ElementState * currentState) 
 {
-// 	std::vector<DelaunayTriangle *> neighbourhood = dynamic_cast<DelaunayTriangle *>(currentState->getParent())->neighbourhood ;
-// 	
-// 	double maxNeighbourhoodStress = 0 ;
-// 	double minNeighbourhoodStress = 0 ;
-// 	if(!neighbourhood.empty())
-// 	{
-// 		for(size_t i = 0 ; i< neighbourhood.size() ; i++)
-// 		{
-// 			Vector pstress = neighbourhood[i]->getState()->getPrincipalStresses(neighbourhood[i]->getCenter()) ;
-// 			double maxStress = pstress.max() ;
-// 			double minStress = pstress.min() ;
-// 			if(maxStress > maxNeighbourhoodStress)
-// 				maxNeighbourhoodStress = maxStress ;
-// 			if(minStress < minNeighbourhoodStress)
-// 				minNeighbourhoodStress = minStress ;
-// 		}
-// 	}
-// 	
-// 	Vector pstress = currentState->getPrincipalStresses(currentState->getParent()->getCenter()) ;
-// 	double maxStress = pstress.max();
-// 	double minStress = pstress.min();
 	if(!frac && criterion->met(currentState) )
 	{
-// 		if(maxNeighbourhoodStress < maxStress)
-// 		{
-			frac = true ;
-			this->param *= 1e-6 ;
-		}
-// 	}
-/*	
-	if(!frac && minStress < -4.*sigmaRupt )
-	{
-		if(minNeighbourhoodStress > minStress)
-		{
-			frac = true ;
-			this->param *= 1e-6 ;
-		}
-	}*/
+
+		frac = true ;
+		this->param *= 1e-6 ;
+	}
+
 }
 
 bool StiffnessAndFracture::fractured() const

@@ -56,7 +56,7 @@ bool MohrCoulomb::met(const ElementState * s) const
 			}
 		}
 		
-		Vector pstress = s->getPrincipalStresses(tested->getCenter()) ;
+		Vector pstress = s->getPrincipalStresses(Point(1./3., 1./3.), true) ;
 		double maxStress = pstress.max();
 		double minStress = pstress.min();
 		if( maxStress > upVal )
