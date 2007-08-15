@@ -1868,15 +1868,21 @@ bool FeatureTree::step(double dt)
 		//this will update the state of all elements. This is necessary as 
 		//the behaviour updates might depend on the global state of the 
 		//simulation.
+		std::cerr << " stepping through elements... " << std::flush ;
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{	
+			if(i%1000 == 0)
+				std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
 			elements[i]->step(dt, &K->getDisplacements()) ;
 		}
-		
+		std::cerr << " ...done" << std::endl ;
 		int fracturedCount = 0 ;
 		
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{	
+			if(i%1000 == 0)
+				std::cerr << "\r checking for fractures... " << i << "/" << elements.size() << std::flush ;
+			
 			if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && !elements[i]->getBehaviour()->fractured())
 			{
 				volume += elements[i]->area() ;
@@ -1893,6 +1899,7 @@ bool FeatureTree::step(double dt)
 			else if (elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && elements[i]->getBehaviour()->fractured())
 				crackedVolume +=  elements[i]->area() ;
 		}
+		std::cerr << " ...done" << std::endl ;
 		
 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;

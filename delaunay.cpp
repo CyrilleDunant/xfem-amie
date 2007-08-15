@@ -2004,15 +2004,15 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		{
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
 			{
-				if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-8 && 
-				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-8 && 
-				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-8 &&
+				if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-6 && 
+				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-6 && 
+				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-6 &&
 				   father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)) )
 				{
 					bool ok = true ;
 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
 					{
-						if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-8)
+						if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-6)
 						{
 							ok = false ;
 							break ;

@@ -330,7 +330,7 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 10 ; i++)
+	for(size_t i = 0 ; i < 200 ; i++)
 	{
 		std::cout << "\r iteration " << i << "/10" << std::flush ;
 		setBC() ;
@@ -605,8 +605,9 @@ void step()
 		
 		for(size_t z = 0 ; z < zones.size() ; z++)
 		{
-			zones[z]->getGeometry()->setRadius(zones[z]->getGeometry()->getRadius()+0.02) ;
-			reactedArea += zones[z]->getGeometry()->area() ;
+			zones[z]->setRadius(zones[z]->getGeometry()->getRadius()+0.0001) ;
+			reactedArea += zones[z]->area() ;
+			zones[z]->reset() ;
 		}
 		
 		std::cout << "reacted Area : " << reactedArea << std::endl ;
@@ -727,7 +728,8 @@ std::vector<ExpansiveZone *> generateExpansiveZones(int n, std::vector<Inclusion
 	{
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.005 ;
+			double radius = 0.00001 ;
+			
 			
 			Point center = incs[i]->getCenter()+Point(
 			                      (2.*random()/RAND_MAX-1.),
@@ -757,7 +759,7 @@ std::vector<ExpansiveZone *> generateExpansiveZones(int n, std::vector<Inclusion
 			}
 		}
 	}
-	std::cout << "initial Reacted Area = " << M_PI*0.005*0.005*ret.size() << std::endl ;
+	std::cout << "initial Reacted Area = " << M_PI*0.00001*0.00001*ret.size() << std::endl ;
 	return ret ;	
 }
 
@@ -825,12 +827,12 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	std::pair<std::vector<Inclusion * >, std::vector<Pore * > > ret ;
 	ret.first = std::vector<Inclusion * >() ;
 	ret.second = std::vector<Pore * >() ;
-	
+	double v = 0 ;
 	std::vector<Circle *> cercles ;
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = 0.01 + 0.12*random()/RAND_MAX ;
+		double radius = 0.01 + 0.3*random()/RAND_MAX ;
 		
 		Point center = Point(
 		                      (2.*random()/RAND_MAX-1.)*(4.-2.*radius-0.001),
@@ -849,6 +851,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		if (alone)
 		{
 			cercles.push_back(new Circle(radius, center)) ;
+			v+= M_PI*radius*radius ;
 		}
 		else
 			j-- ;
@@ -878,6 +881,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		delete cercles[k] ;
 	}
 	
+	std::cout << "initial aggregate volume was : " << v << std::endl ;
 	return ret ;
 }
 
@@ -1737,7 +1741,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
-	i_et_p = generateInclusionsAndPores(32, .0, &m0, &sample, &F) ;
+	i_et_p = generateInclusionsAndPores(16, .0, &m0, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1761,7 +1765,7 @@ int main(int argc, char *argv[])
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m0*4, a)) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.02)) ;
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
-	zones = generateExpansiveZones(3, inclusions, F) ;
+	zones = generateExpansiveZones(3, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1770,7 +1774,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(1024) ;
+	F.sample(600) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

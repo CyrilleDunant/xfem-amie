@@ -904,7 +904,7 @@ double Circle::getRadius() const
 
 double Circle::area() const
 {
-	return M_PI*this->radius*this->radius ;
+	return M_PI*radius*radius ;
 }
 
 
