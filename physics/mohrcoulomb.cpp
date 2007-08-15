@@ -29,17 +29,14 @@ bool MohrCoulomb::met(const ElementState * s) const
 	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s->getParent()) ;
 	if(tested)
 	{
-		std::vector<DelaunayTriangle *> neighbourhood ;
+		std::set<DelaunayTriangle *> neighbourhood ;
 		std::vector<DelaunayTriangle *> neighbours = tested->neighbourhood ;
 		for(size_t i = 0 ; i < neighbours.size() ; i++)
 		{
 			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
 			{
-				if(std::find(neighbourhood.begin(), 
-				             neighbourhood.end(), 
-				             neighbours[i]->neighbourhood[j]) == neighbourhood.end() 
-				   && neighbours[i]->neighbourhood[j] != tested)
-					neighbourhood.push_back(neighbours[i]->neighbourhood[j]) ;
+				if(neighbours[i]->neighbourhood[j] != tested)
+					neighbourhood.insert(neighbours[i]->neighbourhood[j]) ;
 			}
 		}
 
@@ -47,9 +44,9 @@ bool MohrCoulomb::met(const ElementState * s) const
 		double minNeighbourhoodStress = 0 ;
 		if(!neighbourhood.empty())
 		{
-			for(size_t i = 0 ; i< neighbourhood.size() ; i++)
+			for(std::set<DelaunayTriangle *>::const_iterator i = neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
 			{
-				Vector pstress = neighbourhood[i]->getState()->getPrincipalStresses(neighbourhood[i]->getCenter()) ;
+				Vector pstress = (*i)->getState()->getPrincipalStresses((*i)->getCenter()) ;
 				double maxStress = pstress.max() ;
 				double minStress = pstress.min() ;
 				if(maxStress > maxNeighbourhoodStress)
