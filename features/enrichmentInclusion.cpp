@@ -80,7 +80,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 		f.setPointID(disc[0]->third->id) ;
 		f.setDofID(dofId[disc[0]->third]) ;
 		disc[0]->setEnrichment(std::pair<size_t, Function>(dofId[disc[0]->third], f)) ;
-		
+		disc[0]->getState()->initialize() ;
 		return ;
 	}
 
@@ -181,7 +181,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			f.setPointID(c->id) ;
 			f.setDofID(dofId[c]) ;
 			ring[i]->setEnrichment(std::pair<size_t, Function>(dofId[c], f)) ;
-			
+			ring[i]->getState()->initialize() ;
 			for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 			{
 				DelaunayTriangle * t = ring[i]->neighbourhood[j] ;
@@ -218,6 +218,8 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 						f.setDofID(dofId[t->third]) ;
 						t->setEnrichment(std::pair<size_t, Function>(dofId[t->third], f)) ;
 					}
+					
+					t->getState()->initialize() ;
 				}
 			}
 		
