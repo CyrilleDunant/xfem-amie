@@ -302,14 +302,14 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 	ret.second.push_back(this) ;
 	
 	
-	if(!inCircumCircle(g->getCenter()) && (!g->in(*first) && !g->in(*second) && ( !g->in(*third) && isTriangle ) || ( g->in(*third) && isPlane )) )
+	if(!isConflicting(g) )
 	{
 		return ;
 	}
 	
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
-		if( !stepson[i]->visited && !(!stepson[i]->inCircumCircle(g->getCenter()) && (!g->in(*stepson[i]->first) && !g->in(*stepson[i]->second) && ( !g->in(*stepson[i]->third) && stepson[i]->isTriangle ) || ( g->in(*stepson[i]->third) && stepson[i]->isPlane ))))
+		if( !stepson[i]->visited && stepson[i]->isConflicting(g))
 		{
 			std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp ;
 			stepson[i]->conflicts(temp, g) ;
@@ -320,7 +320,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 	
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
-		if( !son[i]->visited && !(!son[i]->inCircumCircle(g->getCenter()) && (!g->in(*son[i]->first) && !g->in(*son[i]->second) && ( !g->in(*son[i]->third) && son[i]->isTriangle ) || ( g->in(*son[i]->third) && son[i]->isPlane ))))
+		if( !son[i]->visited && son[i]->isConflicting(g))
 		{
 			std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp ;
 			son[i]->conflicts(temp,g) ;
@@ -331,12 +331,12 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 	
 	if(isAlive() && isTriangle)
 	{
-		ret.first.push_back((DelaunayTriangle *)(this)) ;
+		ret.first.push_back(static_cast<DelaunayTriangle *>(this)) ;
 	}
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
-		if( !neighbour[i]->visited && !(!neighbour[i]->inCircumCircle(g->getCenter()) && (!g->in(*neighbour[i]->first) && !g->in(*neighbour[i]->second) && ( !g->in(*neighbour[i]->third) && neighbour[i]->isTriangle ) || ( g->in(*neighbour[i]->third) && neighbour[i]->isPlane ))))
+		if( !neighbour[i]->visited && neighbour[i]->isConflicting(g))
 		{
 			std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp  ;
 			neighbour[i]->conflicts(temp, g) ;
@@ -877,6 +877,7 @@ std::pair< Point*,  Point*> DelaunayTriangle::nearestEdge(const Point p)
 	
 bool DelaunayTriangle::inCircumCircle(const Point &p) const 
 {
+	return  (circumCenter.x -p.x)*(circumCenter.x -p.x) + (circumCenter.y -p.y)*(circumCenter.y -p.y)< radius*radius -POINT_TOLERANCE  ;
 	return  this->Triangle::inCircumCircle(p) ;
 }
 	
@@ -1629,7 +1630,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 // 		
 // 	}
 	
-	std::set<DelaunayTriangle *> toCheck ;
+	std::vector<DelaunayTriangle *> toCheck ;
 	
 	for(size_t i = 0 ; i < cons.second.size() ; i++)
 		cons.second[i]->clearVisited() ;
@@ -1643,26 +1644,30 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 			t->visited = true ;
 			cons.second.push_back(t) ;
 			ret.push_back(t) ;
-			for(size_t j = 0 ; j < t->neighbourhood.size() ; j++)
+			for(size_t j = 0 ; j < t->neighbour.size() ; j++)
 			{
-				if(!t->neighbourhood[j]->visited && !t->neighbourhood[j]->visited)
+				if(t->neighbour[j]->isTriangle && !t->neighbour[j]->visited )
 				{
-					t->neighbourhood[j]->visited = true ;
-					toCheck.insert(t->neighbourhood[j]) ;
+					t->neighbour[j]->visited = true ;
+					toCheck.push_back(static_cast<DelaunayTriangle *>(t->neighbour[j])) ;
 				}
 			}
 		}
 	}
 	
+	std::sort(toCheck.begin(), toCheck.end()) ;
+	std::vector<DelaunayTriangle *>::iterator en = std::unique(toCheck.begin(), toCheck.end()) ;
+	toCheck.erase(en, toCheck.end()) ;
+
 	cons.second.clear() ;
 	for(size_t i = 0 ; i < cons.first.size() ; ++i)
 		cons.first[i]->clearVisited() ;
 	
 	while(!toCheck.empty())
 	{
-		std::set<DelaunayTriangle *> temp ;
+		std::vector<DelaunayTriangle *> temp ;
 		
-		for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+		for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
 		{
 			(*i)->visited = true ;
 			cons.second.push_back(*i) ;
@@ -1673,28 +1678,27 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 			}
 		}
 		
-		for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+		for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
 		{
 
-			for(size_t j = 0 ; j< (*i)->neighbourhood.size() ; j++)
+			for(size_t j = 0 ; j< (*i)->neighbour.size() ; j++)
 			{
-				if(!(*i)->neighbourhood[j]->visited )
+				if((*i)->neighbour[j]->isTriangle && !(*i)->neighbour[j]->visited )
 				{
-					(*i)->neighbourhood[j]->visited = true ;
-					temp.insert((*i)->neighbourhood[j]) ;
+					temp.push_back(static_cast<DelaunayTriangle *>((*i)->neighbour[j])) ;
 				}
 			}
 		}
-		
+		std::sort(temp.begin(), temp.end()) ;
+		std::vector<DelaunayTriangle *>::iterator en = std::unique(temp.begin(), temp.end()) ;
+		temp.erase(en, temp.end()) ;
+
 		toCheck = temp ;
 		
-		for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
-			(*i)->clearVisited() ;
-		
 	}
-		
+
 	std::sort(ret.begin(), ret.end()) ;
-	std::vector<DelaunayTriangle *>::iterator en = std::unique(ret.begin(), ret.end()) ;
+	en = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(en, ret.end()) ;
 	
 	for(size_t i = 0 ; i < cons.second.size() ; i++)
@@ -2034,7 +2038,7 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements = 1 ;
+		size_t numberOfRefinements =  0;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{

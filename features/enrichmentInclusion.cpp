@@ -23,14 +23,91 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 	return static_cast<Triangle *>(t)->intersection(static_cast<Circle *>(this)).size() == 2 ;
 }
 
+void EnrichmentInclusion::update(DelaunayTree * dtree)
+{
+	if(cache.empty())
+		cache = dtree->conflicts(static_cast<Circle *>(this)) ;
+	else
+	{
+		std::vector<DelaunayTriangle *> temp ;
+		std::vector<DelaunayTriangle *> cleanup ;
+		for(size_t i = 0 ; i < cache.size() ; i++)
+		{
+			cache[i]->visited = true ;
+			if(cache[i]->isConflicting(static_cast<Circle *>(this)))
+				temp.push_back(cache[i]) ;
+			
+			cleanup.push_back(cache[i]) ;
+		}
+		
+		
+		std::set<DelaunayTriangle *> toCheck ;
+		
+		for(size_t i = 0 ; i < temp.size() ; i++)
+		{
+
+			for(size_t j = 0 ; j < temp[i]->neighbour.size() ; j++)
+			{
+				if(!temp[i]->neighbour[j]->visited && temp[i]->neighbour[j]->isTriangle)
+				{
+					cleanup.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbour[j])) ;
+					toCheck.insert(static_cast<DelaunayTriangle *>(temp[i]->neighbour[j])) ;
+				}
+			}
+
+		}
+		
+		while(!toCheck.empty())
+		{
+			std::set<DelaunayTriangle *> newSet ;
+			
+			for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+			{
+				(*i)->visited = true ;
+				cleanup.push_back(*i) ;
+				
+				if((*i)->isConflicting(static_cast<Circle *>(this)))
+				{
+					temp.push_back(*i) ;
+				}
+			}
+			
+			for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+			{
+				
+				for(size_t j = 0 ; j< (*i)->neighbour.size() ; j++)
+				{
+					if((*i)->neighbour[j]->isTriangle && !(*i)->neighbour[j]->visited )
+					{
+						newSet.insert(static_cast<DelaunayTriangle *>((*i)->neighbour[j])) ;
+					}
+				}
+			}
+			
+			toCheck = newSet ;
+			
+		}
+		
+		for(size_t i = 0 ; i < cleanup.size() ; i++)
+			cleanup[i]->visited = false ;
+		
+		std::sort(temp.begin(), temp.end()) ;
+		std::vector<DelaunayTriangle *>::iterator en = std::unique(temp.begin(), temp.end()) ;
+		temp.erase(en, temp.end()) ;
+		
+		cache = temp ;
+	}
+}
+
 void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 {
 // 	dtree->getTriangles() ;
 	//first we get All the triangles affected
+	update(dtree) ;
 	std::vector<DelaunayTriangle *> disc  = cache;
-	if(cache.empty())
-		disc = dtree->conflicts(static_cast<Circle *>(this)) ;
-	cache = disc ;
+// 	if(cache.empty())
+// 		disc = dtree->conflicts(static_cast<Circle *>(this)) ;
+// 	cache = disc ;
 	//first, we get the basis functions for an archetypal element
 	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
 	
@@ -146,9 +223,9 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			std::vector<Point> hint ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
-			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+			//hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
+			//hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
+			//hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
 
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;

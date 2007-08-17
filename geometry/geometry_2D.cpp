@@ -850,9 +850,11 @@ void Circle::sampleBoundingSurface(size_t num_points)
 
 void Circle::sampleSurface(size_t num_points)
 {
+	num_points *= 4 ;
+
 	assert(!sampled) ;
 	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(2*num_points) ;
+		this->sampleBoundingSurface(num_points) ;
 	sampled = true ;
 	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
 // 	if(numberOfRings > 0)

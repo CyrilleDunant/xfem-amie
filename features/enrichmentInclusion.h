@@ -73,6 +73,8 @@ public:
 	
 	virtual bool moved() const ;
 
+	void update(DelaunayTree * dtree) ;
+
 protected:
 	virtual void computeCenter() { };
 	
