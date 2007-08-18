@@ -486,6 +486,7 @@ int main(int argc, char *argv[])
 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
+	
 	// material behaviour
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
@@ -500,7 +501,7 @@ int main(int argc, char *argv[])
 	F.addFeature(&sample,inc) ;
 
 	// set behaviour for whole sample
-	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.02)) ;	
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0*0.125, 0.02)) ;	
 	sample.setBehaviour(new StiffnessAndFracture(m0*0.5, new MohrCoulomb(1,-2))) ;
 	// set behaviour for inclusion
 	inc->setBehaviour(new Stiffness(m0)) ;

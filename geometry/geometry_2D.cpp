@@ -562,10 +562,10 @@ Rectangle::Rectangle() :  ConvexGeometry(4), size_y(2), size_x(2)
 {
 	gType = RECTANGLE ;
 	this->center = Point(0,0) ; 
-	topLeft = Point(-1, 1) ;boundingPoints[0] = &topLeft ;
-	topRight = Point(1,1) ;boundingPoints[1] = &topRight ;
-	bottomRight = Point(1, -1) ;boundingPoints[2] = &bottomRight ;
-	bottomLeft = Point(-1, -1) ;boundingPoints[3] = &bottomLeft ;
+	topLeft = Point(-1, 1) ;boundingPoints[0] = new Point(topLeft) ;
+	topRight = Point(1,1) ;boundingPoints[1] = new Point(topRight) ;
+	bottomRight = Point(1, -1) ;boundingPoints[2] = new Point(bottomRight) ;
+	bottomLeft = Point(-1, -1) ;boundingPoints[3] = new Point(bottomLeft) ;
 	
 	
 }

@@ -1267,7 +1267,7 @@ DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2)
 	
 DelaunayTree::~DelaunayTree() 
 { 	
-	std::vector<Point *> pts ;
+/*	std::vector<Point *> pts ;*/
 	std::valarray<Point *> nularray(0) ;
 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
 	{
@@ -1276,8 +1276,8 @@ DelaunayTree::~DelaunayTree()
 		{
 			DelaunayTriangle * t = dynamic_cast<DelaunayTriangle *>(tree[i]) ;
 			
-			for(size_t j = 0 ; j < t->getBoundingPoints().size() ;j++)
-				pts.push_back(&t->getBoundingPoint(j)) ;
+// 			for(size_t j = 0 ; j < t->getBoundingPoints().size() ;j++)
+// 				pts.push_back(&t->getBoundingPoint(j)) ;
 			
 			t->setBoundingPoints(nularray) ;
 		}
@@ -1289,15 +1289,15 @@ DelaunayTree::~DelaunayTree()
 		delete this->tree[i] ;
 	}
 	
-	std::sort(pts.begin(), pts.end()) ;
-	std::vector<Point *>::iterator e = std::unique(pts.begin(), pts.end()) ;
-	pts.erase(e, pts.end()) ;
+// 	std::sort(pts.begin(), pts.end()) ;
+// 	std::vector<Point *>::iterator e = std::unique(pts.begin(), pts.end()) ;
+// 	pts.erase(e, pts.end()) ;
 	
-	for(size_t i = 0 ;  i < pts.size() ; i++)
-	{
-		delete pts[i] ;
-		pts[i] = 0;
-	}
+// 	for(size_t i = 0 ;  i < pts.size() ; i++)
+// 	{
+// 		delete pts[i] ;
+// 		pts[i] = 0;
+// 	}
 	
 // 	for(size_t i = 0 ;  i < arr.size() ; i++)
 // 	{
