@@ -1296,6 +1296,7 @@ DelaunayTree::~DelaunayTree()
 	for(size_t i = 0 ;  i < pts.size() ; i++)
 	{
 		delete pts[i] ;
+		pts[i] = 0;
 	}
 	
 // 	for(size_t i = 0 ;  i < arr.size() ; i++)
