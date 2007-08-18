@@ -93,6 +93,8 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
+
+
 Vector b(0) ;
 Vector x(0) ;
 Vector sigma(0) ; 

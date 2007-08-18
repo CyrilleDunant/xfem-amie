@@ -1,4 +1,3 @@
-
 # Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C} 2005-2007
 #
 # Copyright: See COPYING file that comes with this distribution
@@ -8,42 +7,48 @@ CXX = g++
 
 # CXXFLAGS = -g3 -Wall -O2 -DNDEBUG 
 # CXXFLAGS = -g3 -Wall -O0 -DNDEBUG 
-CXXFLAGS = -g3 -Wall -fno-exceptions -O3 -DNDEBUG -fstrict-aliasing 
+## use -O0 to avoid bugs upon exiting also use valgrind
+## valgrind --num-callers=8 ./your_target
+CXXFLAGS = -g3 -Wall -fno-exceptions -O0 -DNDEBUG -fstrict-aliasing 
+# CXXFLAGS = -g3 -Wall -fno-exceptions -O3 -DNDEBUG -fstrict-aliasing 
+
 LDFLAGS = -Wl -lm -lGL -lglut
 
-SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp physics/dual_behaviour.cpp
-OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o physics/diffusion.o physics/dual_behaviour.o
+SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp physics/dual_behaviour.cpp 
+OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o physics/diffusion.o physics/dual_behaviour.o 
 
 SOURCE_ELEMENTS = elements/elements.cpp elements/integrable_entity.cpp
 OBJECTS_ELEMENTS = elements/elements.o elements/integrable_entity.o
 
-SOURCE_SOLVERS = solvers/assembly.cpp solvers/choleskidecomposed.cpp solvers/conjugategradient.cpp solvers/gausseidell.cpp solvers/polakribiereconjugategradient.cpp solvers/solver.cpp solvers/preconditionners.cpp solvers/gaussseidellstep.cpp solvers/inversediagonal.cpp solvers/incompletecholeskidecomposition.cpp
-OBJECTS_SOLVERS = solvers/assembly.o solvers/choleskidecomposed.o solvers/conjugategradient.o solvers/gausseidell.o solvers/polakribiereconjugategradient.o solvers/solver.o solvers/preconditionners.o solvers/gaussseidellstep.o solvers/inversediagonal.o solvers/incompletecholeskidecomposition.o
+SOURCE_SOLVERS = solvers/assembly.cpp solvers/choleskidecomposed.cpp solvers/conjugategradient.cpp solvers/gausseidell.cpp solvers/polakribiereconjugategradient.cpp solvers/solver.cpp solvers/preconditionners.cpp solvers/gaussseidellstep.cpp solvers/inversediagonal.cpp solvers/incompletecholeskidecomposition.cpp 
+OBJECTS_SOLVERS = solvers/assembly.o solvers/choleskidecomposed.o solvers/conjugategradient.o solvers/gausseidell.o solvers/polakribiereconjugategradient.o solvers/solver.o solvers/preconditionners.o solvers/gaussseidellstep.o solvers/inversediagonal.o solvers/incompletecholeskidecomposition.o 
 
 SOURCE_NEW_GEO = geometry/geometry_base.cpp geometry/geometry_2D.cpp geometry/geometry_3D.cpp
 OBJECTS_NEW_GEO = geometry/geometry_base.o geometry/geometry_2D.o geometry/geometry_3D.o
 
-SOURCE_FEATURE = features/features.cpp features/pore.cpp features/pore3d.cpp features/inclusion.cpp features/inclusion3d.cpp features/sample.cpp features/sample3d.cpp features/crack.cpp features/enrichmentInclusion.cpp features/expansiveZone.cpp
-OBJECTS_FEATURE = features/features.o features/pore.o features/pore3d.o features/inclusion.o features/inclusion3d.o features/sample.o features/sample3d.o features/crack.o features/enrichmentInclusion.o features/expansiveZone.o
+SOURCE_FEATURE = features/features.cpp features/pore.cpp features/pore3d.cpp features/inclusion.cpp features/inclusion3d.cpp features/sample.cpp features/sample3d.cpp features/crack.cpp features/enrichmentInclusion.cpp features/expansiveZone.cpp 
+OBJECTS_FEATURE = features/features.o features/pore.o features/pore3d.o features/inclusion.o features/inclusion3d.o features/sample.o features/sample3d.o features/crack.o features/enrichmentInclusion.o features/expansiveZone.o 
 
 SOURCE_FUNCTIONS = polynomial/vm_function_matrix.cpp polynomial/vm_token.cpp polynomial/vm_refcount_token.cpp polynomial/vm_function_base.cpp polynomial/vm_base.cpp 
-OBJECTS_FUNCTIONS = polynomial/vm_function_matrix.o polynomial/vm_token.o polynomial/vm_refcount_token.o polynomial/vm_function_base.o polynomial/vm_base.o
+OBJECTS_FUNCTIONS = polynomial/vm_function_matrix.o polynomial/vm_token.o polynomial/vm_refcount_token.o polynomial/vm_function_base.o polynomial/vm_base.o 
 
 SOURCE_SPARSE = sparse/sparse_matrix.cpp sparse/sparse_vector.cpp
 OBJECTS_SPARSE = sparse/sparse_matrix.o sparse/sparse_vector.o
 
-#  SOURCE_MAIN =  ${SOURCE_FUNCTIONS} physics/physics.cpp integrable_entity.cpp elements.cpp  samplingcriterion.cpp   main_amor.cpp matrixops.cpp ${SOURCE_NEW_GEO}  assembly.cpp configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp sparse/sparse_matrix.cpp sparse/sparse_vector.cpp
-#  OBJECTS_MAIN =  ${OBJECTS_FUNCTIONS} physics/physics.o integrable_entity.o elements.o   samplingcriterion.o main_amor.o matrixops.o  ${OBJECTS_NEW_GEO}    assembly.o configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o sparse/sparse_matrix.o sparse/sparse_vector.o
-# TARGET_MAIN = tryit
-
-# SOURCE_MAIN =  ${SOURCE_FUNCTIONS} physics/physics.cpp integrable_entity.cpp elements.cpp  samplingcriterion.cpp   main_nurbs.cpp matrixops.cpp ${SOURCE_NEW_GEO}  assembly.cpp configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp sparse/sparse_matrix.cpp sparse/sparse_vector.cpp
-# 
-# OBJECTS_MAIN =  ${OBJECTS_FUNCTIONS} physics/physics.o integrable_entity.o elements.o   samplingcriterion.o main_nurbs.o matrixops.o  ${OBJECTS_NEW_GEO}    assembly.o configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o sparse/sparse_matrix.o sparse/sparse_vector.o
-# TARGET_MAIN = tryit
-
 SOURCE_MAIN_2D =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
 OBJECTS_MAIN_2D =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_2D = tryit
+
+# TARGET_MAIN = steph main_simple 
+SOURCE_MAIN_SIMPLE =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_simple.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_SIMPLE =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_simple.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+TARGET_MAIN_SIMPLE = simple
+
+# TARGET_MAIN = steph main_kill
+SOURCE_MAIN_KILL =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_kill.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_KILL =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_kill.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+TARGET_MAIN_KILL = killelements
+
 
 SOURCE_MAIN_DIFFUSION =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_diffusion.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
 OBJECTS_MAIN_DIFFUSION =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_diffusion.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
@@ -67,7 +72,7 @@ TARGET_AMOR_3D = tryit_amor_3d
 
 SOURCE_elasticity_c3s =  ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} main_elasticity_c3s.cpp matrixops.cpp ${SOURCE_FUNCTIONS} ${SOURCE_NEW_GEO} ${SOURCE_SOLVERS} samplingcriterion.cpp configuration.cpp ${SOURCE_FEATURE} delaunay.cpp delaunay_3d.cpp parser.cpp ${SOURCE_SPARSE}
 OBJECTS_elasticity_c3s = ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} main_elasticity_c3s.o matrixops.o ${OBJECTS_FUNCTIONS} ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} samplingcriterion.o configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o  parser.o ${OBJECTS_SPARSE}
-TARGET_elasticity_c3s = tryit_elasticity_c3s
+TARGET_elasticity_c3s = tryit_elasticity_c3s 
 
 SOURCE_periodic_c3s =  ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} main_periodic_c3s.cpp matrixops.cpp ${SOURCE_FUNCTIONS} ${SOURCE_NEW_GEO} ${SOURCE_SOLVERS} samplingcriterion.cpp configuration.cpp ${SOURCE_FEATURE} delaunay.cpp delaunay_3d.cpp parser.cpp ${SOURCE_SPARSE}
 OBJECTS_periodic_c3s = ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} main_periodic_c3s.o matrixops.o ${OBJECTS_FUNCTIONS} ${OBJECTS_NEW_GEO}  ${OBJECTS_SOLVERS} samplingcriterion.o configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o  parser.o ${OBJECTS_SPARSE}
@@ -75,7 +80,7 @@ TARGET_periodic_c3s = tryit_periodic_c3s
 
 SOURCE_viscoelasticity_c3s =  ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} main_viscoelasticity_c3s.cpp matrixops.cpp ${SOURCE_FUNCTIONS} ${SOURCE_NEW_GEO} ${SOURCE_SOLVERS} samplingcriterion.cpp configuration.cpp ${SOURCE_FEATURE} delaunay.cpp delaunay_3d.cpp parser.cpp ${SOURCE_SPARSE}
 OBJECTS_viscoelasticity_c3s = ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} main_viscoelasticity_c3s.o matrixops.o ${OBJECTS_FUNCTIONS} ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} samplingcriterion.o configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o  parser.o ${OBJECTS_SPARSE}
-TARGET_viscoelasticity_c3s = tryit_viscoelasticity_c3s
+TARGET_viscoelasticity_c3s = tryit_viscoelasticity_c3s 
 
 
 ${TARGET_MAIN}: ${OBJECTS_MAIN}
@@ -85,7 +90,13 @@ ${TARGET_MAIN_DIFFUSION}: ${OBJECTS_MAIN_DIFFUSION}
 	${CXX} ${LDFLAGS} -o $@ $+
 
 ${TARGET_MAIN_2D}: ${OBJECTS_MAIN_2D}
-	${CXX} ${LDFLAGS} -o $@ $+
+	${CXX} ${LDFLAGS} -o $@ $+ 
+
+${TARGET_MAIN_SIMPLE}: ${OBJECTS_MAIN_SIMPLE}
+	${CXX} ${LDFLAGS} -o $@ $+ 
+
+${TARGET_MAIN_KILL}: ${OBJECTS_MAIN_KILL}
+	${CXX} ${LDFLAGS} -o $@ $+ 
 
 ${TARGET_MAIN_JEROME}: ${OBJECTS_MAIN_JEROME}
 	${CXX} ${LDFLAGS} -o $@ $+
@@ -94,7 +105,7 @@ ${TARGET_NEW_GEO}: ${OBJECTS_NEW_GEO}
 	${CXX} ${LDFLAGS} -o $@ $+
 
 ${TARGET_AMOR_3D}: ${OBJECTS_AMOR_3D}
-	${CXX} ${LDFLAGS} -o $@ $+
+	${CXX} ${LDFLAGS} -o $@ $+ 
 
 ${TARGET_elasticity_c3s}: ${OBJECTS_elasticity_c3s}
 	${CXX} ${LDFLAGS} -o $@ $+
@@ -102,7 +113,7 @@ ${TARGET_elasticity_c3s}: ${OBJECTS_elasticity_c3s}
 ${TARGET_periodic_c3s}: ${OBJECTS_periodic_c3s}
 	${CXX} ${LDFLAGS} -o $@ $+
 
-${TARGET_viscoelasticity_c3s}: ${OBJECTS_viscoelasticity_c3s}
+${TARGET_viscoelasticity_c3s}: ${OBJECTS_viscoelasticity_c3s} 
 	${CXX} ${LDFLAGS} -o $@ $+
 
 ${TARGET_NURB}: ${OBJECTS_NURB}
@@ -111,15 +122,15 @@ ${TARGET_NURB}: ${OBJECTS_NURB}
 
 depend_main: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN} > $@
-	
-depend_main_2d: Makefile
+    
+depend_main_2d: Makefile 
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_2D} > $@
 
 depend_main_diffusion: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_2D} > $@
 
 depend_main_jerome: Makefile
-	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_JEROME} > $@
+	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_JEROME} > $@ 
 
 depend_amor: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_AMOR_3D} > $@
@@ -127,17 +138,23 @@ depend_amor: Makefile
 depend_elasticity_c3s: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_elasticity_c3s} > $@
 
-depend_periodic_c3s: Makefile
+depend_periodic_c3s: Makefile 
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_periodic_c3s} > $@
 
 depend_viscoelasticity_c3s: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_viscoelasticity_c3s} > $@
 
 depend_nurb: Makefile
-	${CXX} -MM ${CXXFLAGS} ${SOURCE_NURB} > $@
+	${CXX} -MM ${CXXFLAGS} ${SOURCE_NURB} > $@ 
+
+depend_main_simple: Makefile
+	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_SIMPLE} > $@
+
+depend_main_kill: Makefile
+	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_KILL} > $@
 
 clean:
-	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} utilities/granulo.o depend_main  depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome
+	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} utilities/granulo.o depend_main  depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome depend_main_simple depend_main_kill 
 
 include depend_main
 include depend_amor
@@ -146,4 +163,6 @@ include depend_periodic_c3s
 include depend_viscoelasticity_c3s
 include depend_nurb
 include depend_main_jerome
-include depend_main_2d
+include depend_main_2d 
+include depend_main_simple
+include depend_main_kill

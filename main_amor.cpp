@@ -134,7 +134,9 @@ std::valarray<double> averageStrain(std::valarray<double> *displacements, std::v
 	
 	for(size_t i = 0 ;  i < 6 ; i++)
 	{
-		Point normal ;
+		Point normal tep(double timestep, ElementState * currentState) 
+		{
+			;
 		
 		if(i == 0)
 			normal.set(-1, 0, 0) ;
