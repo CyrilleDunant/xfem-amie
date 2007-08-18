@@ -450,6 +450,11 @@ void Assembly::make_final()
 {
 	if (has3Dims == false)
 	{
+		if( element2d.empty())
+		{
+			std::cerr << "no elements in mesh !" << std::endl ;
+			exit(0) ;
+		}
 		size_t ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ; 
 		
 		std::cerr << "ndof = " << ndof << std::endl ;
