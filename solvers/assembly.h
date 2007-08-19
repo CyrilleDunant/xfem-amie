@@ -208,7 +208,11 @@ public:
 	void setPoint(double ex, size_t id) ;
 	void setPoint(double ex, double ey, size_t id) ;
 	void setPoint(double ex, double ey, double ez, size_t id) ;
-
+/** Set unknown of a given node in a given direction to a given value
+	 * @param var Variable (XI, ETA, or ZETA) along which displacement is fixed
+	 * @param id ID of the node 
+	 * @param val value at which unknown is set
+ */
 	void setPointAlong(Variable, double val, size_t id) ;
 	
 	/** Apply a force on given node

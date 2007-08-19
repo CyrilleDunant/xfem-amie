@@ -127,7 +127,7 @@ void setBC()
   //  cout << "Setting BCs" << endl;
 
 	triangles = featureTree->getTriangles() ;
-	
+	/*
 	if(firstRun)
 	{
 	  //  cout << "Setting BCs -- First run" << endl;
@@ -137,23 +137,48 @@ void setBC()
 		}
 		
 		firstRun = false ;
-	}
-	
+		}
+*/
 	for(size_t k = 0 ; k < triangles.size() ;k++)
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-			
-			if(triangles[k]->getBoundingPoint(c).x < 1.999)
+		  double x = triangles[k]->getBoundingPoint(c).x;
+		  double y = triangles[k]->getBoundingPoint(c).y;
+		  void Assembly::setPointAlong(Variable v, double val, size_t id);
+
+		  if ((std::abs(x) < 0.1)||(std::abs(x - 12) < 0.1)&& (std::abs(y-0) < 0.1))
+ 			{
+ 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+ 			}
+
+			if (x < 3.999)
 			{
-				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint(-timepos,0 ,0,triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < 1.0 )
+			if (x > 3.999)
 			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint( timepos,0, 0,triangles[k]->getBoundingPoint(c).id) ;
+
+				if ( (y - 0) <= eps )
+				  {
+	featureTree->getAssembly()->setPoint( 0,0, 0,triangles[k]->getBoundingPoint(c).id) ;
+				  }
+
 			}
+			/*			if (triangles[k]->getBoundingPoint(c).y < -2.999)
+			{
+				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
+			}
+			if(triangles[k]->getBoundingPoint(c).y > 2.999)
+			{
+				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
+				}*/
 		}
 	}
+
+
+
 }
 
 
@@ -1232,6 +1257,47 @@ int main(int argc, char *argv[])
 
 	step() ; // t -> t+dt
 	
+	glutInit(&argc, argv) ;	
+	glutInitDisplayMode(GLUT_RGBA) ;
+	glutInitWindowSize(600, 600) ;
+	glutReshapeFunc(reshape) ;
+	glutCreateWindow("coucou !") ;
+	
+	int submenu = glutCreateMenu(Menu) ;
+	
+	glutAddMenuEntry(" Displacements ", ID_DISP);
+	glutAddMenuEntry(" Strain (s) xx ", ID_STRAIN_XX);
+	glutAddMenuEntry(" Strain (s) yy ", ID_STRAIN_YY);
+	glutAddMenuEntry(" Strain (s) xy ", ID_STRAIN_XY);
+	glutAddMenuEntry(" Stress (e) xx ", ID_STRESS_XX);
+	glutAddMenuEntry(" Stress (e) yy ", ID_STRESS_YY);
+	glutAddMenuEntry(" Stress (e) xy ", ID_STRESS_XY);
+	glutAddMenuEntry(" Elements      ", ID_ELEM);
+	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
+	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
+	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
+	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
+	
+	glutCreateMenu(Menu) ;
+
+ 	glutAddMenuEntry(" Step          ", ID_NEXT);
+	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
+	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
+	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
+	glutAddMenuEntry(" Amplify       ", ID_AMPLIFY);
+	glutAddMenuEntry(" Deamplify     ", ID_DEAMPLIFY);
+	glutAddSubMenu(  " Display       ", submenu);
+	glutAddMenuEntry(" Quit          ", ID_QUIT) ;
+	
+	
+	glutAttachMenu(GLUT_RIGHT_BUTTON) ;
+	
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glShadeModel(GL_SMOOTH);
+	
+	glutDisplayFunc(Display) ;
+	glutMainLoop() ;
+
 	return 0 ;
 }
 
