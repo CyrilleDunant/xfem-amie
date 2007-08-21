@@ -93,8 +93,6 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
-
-
 Vector b(0) ;
 Vector x(0) ;
 Vector sigma(0) ; 
@@ -109,8 +107,8 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 double nu = 0.3 ;
-double E_agg = 58900 ;
-double E_paste = 12000 ;
+double E_agg = 58900000000 ;
+double E_paste = 12000000000 ;
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 1 ;
@@ -277,11 +275,11 @@ void setBC()
 // // 				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
 
-			if(triangles[k]->getBoundingPoint(c).x < -3.999)
+			if(triangles[k]->getBoundingPoint(c).x < -.0799)
 			{
 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.999 )
+			if (triangles[k]->getBoundingPoint(c).y < -0.0299 )
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
@@ -390,7 +388,9 @@ void step()
 	double avg_s_xx = 0;
 	double avg_s_yy = 0;
 	double avg_s_xy = 0;
-	
+	double e_xx = 0 ;
+		double ex_count = 0 ;
+		
 	for(size_t k = 0 ; k < triangles.size() ; k++)
 	{
 /*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
@@ -405,8 +405,11 @@ void step()
 		}
 		cracked.push_back(in) ;
 		
+
+		
 		if(!in && !triangles[k]->getBehaviour()->fractured())
 		{
+			
 			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
 				if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
@@ -417,6 +420,11 @@ void step()
 					y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 				if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 					y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
+				if(triangles[k]->getBoundingPoint(p).x > 0.0799)
+				{
+					e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
+					ex_count++ ;
+				}
 			}
 			area += triangles[k]->area() ;
 			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -598,6 +606,7 @@ void step()
 	std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
 	std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 	std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 
 	double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/80. ;
@@ -728,18 +737,18 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 	{
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.0001 ;
+			double radius = 0.000001 ;
 			
 			Point pos((2.*random()/RAND_MAX-1.),(2.*random()/RAND_MAX-1.)) ;
 			pos /= pos.norm() ;
-			pos *= (2.*random()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.005) ;
+			pos *= (2.*random()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.00003) ;
 			Point center = incs[i]->getCenter()+pos ; 
 			
 			bool alone  = true ;
 			
 			for(size_t k = 0 ; k < ret.size() ; k++ )
 			{
-				if (squareDist(center, ret[k].first->Circle::getCenter()) < (radius+radius+0.005)*(radius+radius+0.005))
+				if (squareDist(center, ret[k].first->Circle::getCenter()) < (radius+radius+0.00005)*(radius+radius+0.00005))
 				{
 					alone = false ;
 					break ;
@@ -748,8 +757,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = .05 ;
-				a[1] = .05 ;
+				a[0] = .5 ;
+				a[1] = .5 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
@@ -758,7 +767,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			}
 		}
 	}
-	std::cout << "initial Reacted Area = " << M_PI*0.0001*0.0001*ret.size() << std::endl ;
+	std::cout << "initial Reacted Area = " << M_PI*0.000001*0.000001*ret.size() << std::endl ;
 	return ret ;	
 }
 
@@ -831,17 +840,17 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = 0.2 ;//+ .2*random()/RAND_MAX ;
+		double radius = 0.0001+ .0019*random()/RAND_MAX ;
 		
 		Point center = Point(
-		                      (2.*random()/RAND_MAX-1.)*(4.-2.*radius-0.001),
-		                      (2.*random()/RAND_MAX-1.)*(1.-2.*radius-0.001)
+		                      (2.*random()/RAND_MAX-1.)*(4.-2.*radius-0.00001),
+		                      (2.*random()/RAND_MAX-1.)*(1.-2.*radius-0.00001)
 		                    ); 
 		bool alone  = true ;
 		
 		for(size_t k = 0 ; k < cercles.size() ; k++ )
 		{
-			if (squareDist(center, cercles[k]->getCenter()) < (radius+cercles[k]->getRadius()+0.001)*(radius+cercles[k]->getRadius()+0.001))
+			if (squareDist(center, cercles[k]->getCenter()) < (radius+cercles[k]->getRadius()+0.00001)*(radius+cercles[k]->getRadius()+0.00001))
 			{
 				alone = false ;
 				break ;
@@ -863,8 +872,8 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		imp[1] = 0.01 ;
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
-		
-		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, 0.002)) ;
+		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
+// 		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, 0.002)) ;
 		F->addFeature(father, temp) ;
 	}
 	
@@ -1671,7 +1680,7 @@ int main(int argc, char *argv[])
 	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
-	Sample sample(NULL, 8,2,0,0) ;
+	Sample sample(NULL, 0.16, 0.04,0,0) ;
 	
 // 	Sample reinforcement0(NULL, 8,.15,0,.5) ;
 // 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
@@ -1746,7 +1755,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
- 	i_et_p = generateInclusionsAndPores(32, .0, &m0_agg, &sample, &F) ;
+ 	i_et_p = generateInclusionsAndPores(2048, .0, &m0_agg, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1756,7 +1765,7 @@ int main(int argc, char *argv[])
 	Inclusion * inc = new Inclusion(.5, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
 	inclusions.push_back(inc) ;
-// 	F.addFeature(&sample,inc) ;
+	F.addFeature(&sample,inc) ;
 	
 	
 	Circle cercle(.5, 0,0) ;
@@ -1767,12 +1776,12 @@ int main(int argc, char *argv[])
 	a[0] = 0.1 ;
 	a[1] = 0.1 ;
 	a[2] = 0.00 ;
-// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m0*4, a)) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 0.02)) ;
+	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(.005, -.02))) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(200000, -2000000))) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
- 	zones = generateExpansiveZones(5, i_et_p.first, F) ;
+ 	zones = generateExpansiveZones(10, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1781,7 +1790,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(128) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

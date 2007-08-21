@@ -18,6 +18,27 @@ namespace Mu
 {
 
 
+class BranchedCrack : public EnrichmentFeature,  public SegmentedLine
+{
+protected:
+	std::vector<SegmentedLine *> branches ;
+	std::vector<Point * > tips ;
+	std::vector<SegmentedLine * > forks ;
+	
+	void enrichTips(DelaunayTree * dt) ;
+	void enrichForks(DelaunayTree * dt) ;
+	void enrichBranches(DelaunayTree * dt) ;
+	
+	void branch(Point* fromTip, Point * newTip0, Point * newTip1 ) ;
+	
+public:
+	BranchedCrack(Feature *father, Point * a, Point * b) ;
+	BranchedCrack(Point * a, Point * b) ;
+	
+public:
+	GEO_DERIVED_OBJECT(SegmentedLine) ;
+} ;
+
 class Crack :  public EnrichmentFeature,  public SegmentedLine
 {
 	typedef enum

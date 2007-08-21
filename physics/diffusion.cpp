@@ -47,7 +47,8 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const std::v
 	
 	v.push_back(TIME_VARIABLE);
 		
-	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv,v) +  VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, gp, Jinv,v) ;
+	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv,v) +
+		        VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, gp, Jinv,v) ;
 	return ret ;
 }
 

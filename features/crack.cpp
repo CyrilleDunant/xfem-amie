@@ -7,6 +7,77 @@
 
 using namespace Mu ;
 
+void BranchedCrack::branch(Point* fromTip, Point * newTip0, Point * newTip1)
+{
+	tips.erase(std::find(tips.begin(), tips.end(),fromTip)) ;
+	tips.push_back(newTip0) ;
+	tips.push_back(newTip1) ;
+	std::valarray<Point * > newBranch(2) ;
+	newBranch[0] = fromTip ;
+	newBranch[1] = newTip0 ;
+	
+	SegmentedLine * branchToExtend = NULL ;
+	bool fromHead = false ;
+	for(size_t i = 0 ; i < branches.size() ; i++)
+	{
+		if(branches[i]->getHead() == fromTip)
+		{
+			branchToExtend = branches[i] ;
+			fromHead = true ;
+			break ;
+		}
+		
+		if(branches[i]->getTail() == fromTip)
+		{
+			branchToExtend = branches[i] ;
+			break ;
+		}
+	}
+	
+	branches.push_back(new SegmentedLine(newBranch)) ;
+	std::valarray<Point *> forkComponent0(3) ;
+	forkComponent0[0] = newTip0 ;
+	forkComponent0[1] = fromTip ;
+	forkComponent0[1] = newTip1 ;
+	
+	std::valarray<Point *> forkComponent1(3) ;
+	std::valarray<Point *> forkComponent2(3) ;
+	
+	std::valarray<Point *> newBP(branchToExtend->getBoundingPoints().size()+1) ;
+	if(fromHead)
+	{
+		std::copy(&branchToExtend->getBoundingPoints()[0], 
+		          &branchToExtend->getBoundingPoints()[newBP.size()-1], 
+				&newBP[1] ) ;
+		newBP[0] = newTip0 ;
+		forkComponent1[0] = newBP[0] ;
+		forkComponent1[1] = newBP[1] ;
+		forkComponent1[2] = newBP[2] ;
+		forkComponent2[0] = newTip1 ;
+		forkComponent2[1] = newBP[1] ;
+		forkComponent2[2] = newBP[2] ;
+		
+	}
+	else
+	{
+		std::copy(&branchToExtend->getBoundingPoints()[0], 
+		          &branchToExtend->getBoundingPoints()[newBP.size()-1], 
+		          &newBP[0] ) ;
+		newBP[newBP.size()-1] = newTip0 ;
+		forkComponent1[0] = newBP[newBP.size()-3] ;
+		forkComponent1[1] = newBP[newBP.size()-2] ;
+		forkComponent1[2] = newBP[newBP.size()-1] ;
+		forkComponent2[0] = newBP[newBP.size()-3] ;
+		forkComponent2[1] = newBP[newBP.size()-2] ;
+		forkComponent2[2] = newTip1 ;
+	}
+	
+	forks.push_back(new SegmentedLine(forkComponent0)) ;
+	forks.push_back(new SegmentedLine(forkComponent1)) ;
+	forks.push_back(new SegmentedLine(forkComponent2)) ;
+	
+}
+
 std::vector<Geometry *> Crack::getRefinementZones( size_t level) const 
 {
 	std::vector<Geometry *> ret ;
