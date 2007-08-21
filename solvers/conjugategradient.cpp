@@ -50,7 +50,7 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	
 	Vector r = b-A*x ;
 	double err = std::abs(r).max() ;
-	if (err < eps)
+	if (err < eps*eps)
 	{
 		std::cerr << "b in : " << b.min() << ", " << b.max() << std::endl ;
 		return x ;
@@ -71,7 +71,7 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	
 	//****************************************
 	
-	while(std::abs(last_rho)>std::abs(rho_0)*eps*eps && std::abs(last_rho) > 1e-20 && nit < Maxit )
+	while(std::abs(last_rho)>std::abs(rho_0)*eps*eps /*&& std::abs(last_rho) > 1e-20*/ && nit < Maxit )
 	{
 		P->precondition(r,z) ;
 		
