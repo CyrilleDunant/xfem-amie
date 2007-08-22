@@ -54,7 +54,7 @@ bool WeibullDistributedStiffness::fractured() const
 Form * WeibullDistributedStiffness::getCopy() const 
 {
 	double randomVar = (double)random()/(double)RAND_MAX ;
-	randomVar = 1.5*pow(-log(randomVar),1./3.) ;
+	randomVar = 1./sqrt(2.)*pow(-log(randomVar),1./2.) ;
 	Matrix newTensor = param*randomVar ;
 	return new StiffnessAndFracture(newTensor, new MohrCoulomb(criterion, -criterion*4)) ;
 }

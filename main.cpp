@@ -118,109 +118,6 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-// void makeDisplacementsGlobal(std::vector<DelaunayTriangle *> * tri, size_t start, Vector * eps)
-// {
-// 	(*tri)[start]->displace(eps) ;
-// }
-
-/** Les fonctions de Mohsen...
- * 
- */
-
-double generateE( double surface_fissure, double rayon_fissure, double nombre_fissure, double nu ,double E_0, double sigma_max, double sigma, double sigma_moy)
-{
-	double Q = 225.*(1.-2.*nu)*(nu-2.)*(nu-2.)*(1.+nu)/(16.*(1.-nu)) ;
-	double E_max = 1./(Q*nombre_fissure*rayon_fissure*rayon_fissure*rayon_fissure/surface_fissure - 1./E_0) ;
-	return E_max - (E_max - E_0)*(sigma/sigma_max -1)*(sigma/sigma_max -1)*sigma_moy ;
-}
-
-struct fissureSimple
-{
-	fissureSimple(double r,Point c,double p,double e)
-	{
-		rayon = r ;
-		centre  = c ; 
-		phi = p ;
-		epaisseur = e ;
-	}
-	
-	fissureSimple()
-	{
-		rayon = 0 ;
-		centre  = Point() ; 
-		phi = 0 ;
-		epaisseur = 0 ;
-	}
-	
-	
-	double rayon ;
-	Point centre ;
-	double phi ;
-	double epaisseur ;
-	
-	double surface() const
-	{
-		return M_PI*rayon*epaisseur ;
-	}
-	
-	void applyForces(Vector * stresses, Vector *b)
-	{
-		std::cout << "demander la fonction magique de Mohsen" << std::endl ;
-		exit(0) ;
-	}
-} ;
-
-void applyForcesInInclusion(size_t n, Inclusion * i)
-{
-	size_t tot = 0 ;
-	for(size_t j =0 ; j < n ; j++)
-	{
-		if(i->getRadius() > 0.045 + 0.045)
-		{
-			Point center = i->Circle::getCenter() + 
-				Point(
-				       (2.*random()/RAND_MAX-1.),
-				       (2.*random()/RAND_MAX-1.)
-				     )*0.55*i->getRadius() ;
-			double radius = (0.045 + 0.035*random()/RAND_MAX) ;
-			
-			Circle c(radius, center) ;
-			
-			bool allin = true ;
-			
-			
-			std::vector<DelaunayTriangle *> tris =featureTree->getDelaunayTree()->conflicts(&c) ;
-			
-			
-			for(size_t k = 0 ; k < tris.size() ; k++)
-			{
-				if(c.intersects(dynamic_cast<Triangle *>(tris[k])))
-				{
-					allin = false ;
-					break ;
-				}
-			}
-			if(allin) ;
-			{
-				tot++ ;
-				for(size_t k = 0 ; k < tris.size() ; k++)
-				{
-					for(size_t l = 0 ; l < tris[k]->getBoundingPoints().size() ; l++)
-					{
-						if(c.in(tris[k]->getBoundingPoint(l)))
-						{
-							Point vector = (c.getCenter() - tris[k]->getBoundingPoint(l))*timepos ;
-							featureTree->getAssembly()->setForceOn(XI,  vector.x, tris[k]->getBoundingPoint(l).id) ;
-							featureTree->getAssembly()->setForceOn(ETA, vector.y, tris[k]->getBoundingPoint(l).id) ;
-						}
-					}
-				}
-			}
-		}
-	}
-	
-// 	std::cout << "applied " << tot << " force zones" << std::endl ;
-} ;
 
 void setBC()
 {
@@ -279,7 +176,7 @@ void setBC()
 			{
 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.0299 )
+			if (triangles[k]->getBoundingPoint(c).y < -0.0199 )
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
@@ -325,7 +222,7 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 20 ; i++)
+	for(size_t i = 0 ; i < 1 ; i++)
 	{
 		std::cout << "\r iteration " << i << "/20" << std::flush ;
 		setBC() ;
@@ -609,7 +506,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 
-	double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/80. ;
+	double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/10. ;
 	double reactedArea = 0 ;
 		
 	for(size_t z = 0 ; z < zones.size() ; z++)
@@ -623,109 +520,10 @@ void step()
 	}
 }
 
-std::vector<fissureSimple> generateInInclusion(size_t n, Inclusion * i)
-{
-	std::vector<fissureSimple> ret ;
-	for(size_t j =0 ; j < n ; j++)
-	{
-		Point center = i->Circle::getCenter() + Point(i->getRadius()*0.9*random()/RAND_MAX, i->getRadius()*0.9*random()/RAND_MAX) ;
-		double radius = 0.09*i->getRadius()*random()/RAND_MAX ;
-		double phi = 2*M_PI*random()/RAND_MAX - M_PI ;
-		double e = 0.001*radius ;
-		
-		bool alone  = true ;
-		
-		for(size_t k = 0 ; k < ret.size() ; k++ )
-		{
-			if (squareDist(center, ret[k].centre) < (radius+ret[k].rayon)*(radius+ret[k].rayon))
-			{
-				alone = false ;
-				break ;
-			}
-		}
-		if (alone)
-			ret.push_back(fissureSimple(radius,center, phi, e)) ;
-		else
-			j-- ;
-	}
-	
-	return ret ;
-} ;
-
-std::vector<Pore * > generatePores(size_t n)
-{
-	std::vector<Pore *> ret ;
-	for(size_t j =0 ; j < n ; j++)
-	{
-
-		double radius = 0.1 + 0.6*random()/RAND_MAX ;
-		
-		Point center = Point(
-		                      (2.*random()/RAND_MAX-1.),
-		                      (2.*random()/RAND_MAX-1.)
-		                    )*(3./*-2.*radius-0.05*/) ; 
-		
-		bool alone  = true ;
-		
-		for(size_t k = 0 ; k < ret.size() ; k++ )
-		{
-			if (squareDist(center, ret[k]->Circle::getCenter()) < (radius+ret[k]->Circle::getRadius()+0.02)*(radius+ret[k]->Circle::getRadius()+0.02))
-			{
-				alone = false ;
-				break ;
-			}
-		}
-		if (alone)
-		{
-			ret.push_back(new Pore(radius, center)) ;
-			//(*ret.rbegin())->setStrainTensor(tensor) ;
-		}
-		else
-			j-- ;
-	}
-	
-	return ret ;
-} ;
-
-std::vector<Inclusion * > generateInclusions(size_t n, Matrix * tensor)
-{
-	std::vector<Inclusion *> ret ;
-	for(size_t j =0 ; j < n ; j++)
-	{
-		
-		double radius = 0.06 + 0.6*random()/RAND_MAX ;
-		
-		Point center = Point(
-		                      (2.*random()/RAND_MAX-1.),
-		                      (2.*random()/RAND_MAX-1.)
-		                    )*(3./*-2.*radius-0.05*/) ; 
-		
-		bool alone  = true ;
-		
-		for(size_t k = 0 ; k < ret.size() ; k++ )
-		{
-			if (squareDist(center, ret[k]->Circle::getCenter()) < (radius+ret[k]->Circle::getRadius()+0.06)*(radius+ret[k]->Circle::getRadius()+0.06))
-			{
-				alone = false ;
-				break ;
-			}
-		}
-		if (alone)
-		{
-			ret.push_back(new Inclusion(radius, center)) ;
-			(*ret.rbegin())->setBehaviour(new Stiffness(*tensor)) ;
-		}
-		else
-			j-- ;
-	}
-	
-	return ret ;
-} ;
-
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E = 1 ;
-	double nu = .4999 ;
+	double E = 1e+09 ;
+	double nu = .499999 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
 	m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = 0 ; 
@@ -737,18 +535,18 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 	{
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.000001 ;
+			double radius = 0.00001 ;
 			
 			Point pos((2.*random()/RAND_MAX-1.),(2.*random()/RAND_MAX-1.)) ;
 			pos /= pos.norm() ;
-			pos *= (2.*random()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.00003) ;
+			pos *= (2.*random()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.0003) ;
 			Point center = incs[i]->getCenter()+pos ; 
 			
 			bool alone  = true ;
 			
 			for(size_t k = 0 ; k < ret.size() ; k++ )
 			{
-				if (squareDist(center, ret[k].first->Circle::getCenter()) < (radius+radius+0.00005)*(radius+radius+0.00005))
+				if (squareDist(center, ret[k].first->Circle::getCenter()) < (radius+radius+0.0005)*(radius+radius+0.0005))
 				{
 					alone = false ;
 					break ;
@@ -757,8 +555,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = .5 ;
-				a[1] = .5 ;
+				a[0] = 1 ;
+				a[1] = 1 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
@@ -767,7 +565,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			}
 		}
 	}
-	std::cout << "initial Reacted Area = " << M_PI*0.000001*0.000001*ret.size() << std::endl ;
+	std::cout << "initial Reacted Area = " << M_PI*0.00001*0.00001*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
 	return ret ;	
 }
 
@@ -840,11 +638,11 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = 0.0001+ .0019*random()/RAND_MAX ;
+		double radius = .002 ;//0.0001+ .0019*random()/RAND_MAX ;
 		
 		Point center = Point(
-		                      (2.*random()/RAND_MAX-1.)*(4.-2.*radius-0.00001),
-		                      (2.*random()/RAND_MAX-1.)*(1.-2.*radius-0.00001)
+		                      (2.*random()/RAND_MAX-1.)*(.08-2.*radius-0.00001),
+		                      (2.*random()/RAND_MAX-1.)*(.02-2.*radius-0.00001)
 		                    ); 
 		bool alone  = true ;
 		
@@ -872,8 +670,8 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		imp[1] = 0.01 ;
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
-		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-// 		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, 0.002)) ;
+// 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
+		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, 1000000)) ;
 		F->addFeature(father, temp) ;
 	}
 	
@@ -893,29 +691,6 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	aggregateArea = v ;
 	return ret ;
 }
-
-std::vector<std::vector<Inclusion *> > generateFissuresIn(std::vector<Inclusion * > inclusions, Matrix * cg)
-{
-	std::vector<std::vector<Inclusion *> > ret ;
-	for(size_t j =0 ; j < inclusions.size() ; j++)
-	{
-		size_t num_fissures = (size_t)std::ceil(inclusions[j]->Circle::getRadius()/0.2) ;
-		std::vector<Inclusion *> incs ;
-		for(size_t k = 0 ; k < num_fissures ; k++)
-		{
-
-			Point center = inclusions[j]->Circle::getCenter() + 
-				Point( (2.*random()/RAND_MAX-1.), (2.*random()/RAND_MAX-1.) )*0.55*inclusions[j]->getRadius() ;
-			double radius = (0.055 + 0.045*random()/RAND_MAX) ;
-			
-			Inclusion * new_inc = new Inclusion(inclusions[j], radius, center) ;
-			incs.push_back(new_inc) ;
-		}
-		ret.push_back(incs) ;
-	}
-	
-	return ret ;
-} ;
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
 {
@@ -1279,8 +1054,8 @@ void Display(void)
 		}
 		glEndList() ;
 		
-		double sigma22_min = -0.5 ; //sigma22.min() ;
-		double sigma22_max = 0.5 ; //sigma22.max() ;
+		double sigma22_min = sigma22.min() ;
+		double sigma22_max = sigma22.max() ;
 		
 		glNewList(  DISPLAY_LIST_STRAIN_YY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1315,8 +1090,8 @@ void Display(void)
 		}
 		glEndList() ;
 		
-		double sigma12_min = -0.5 ;sigma12.min() ;
-		double sigma12_max = 0.5 ;sigma12.max() ;
+		double sigma12_min = sigma12.min() ;
+		double sigma12_max = sigma12.max() ;
 		glNewList(  DISPLAY_LIST_STRAIN_XY,  GL_COMPILE ) ;
 		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1386,8 +1161,8 @@ void Display(void)
 		}
 		glEndList() ;
 		
-		double epsilon11_min = -0.5 ; epsilon11.min() ;
-		double epsilon11_max = 0.5 ; epsilon11.max() ;
+		double epsilon11_min = epsilon11.min() ;
+		double epsilon11_max = epsilon11.max() ;
 		glNewList(  DISPLAY_LIST_STRESS_XX,  GL_COMPILE ) ;
 			
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1423,8 +1198,8 @@ void Display(void)
 		glEndList() ;
 		
 				
-		double epsilon22_min = 0.5 ; epsilon22.min() ;
-		double epsilon22_max = -0.5 ; epsilon22.max() ;
+		double epsilon22_min = epsilon22.min() ;
+		double epsilon22_max =  epsilon22.max() ;
 		
 		glNewList(  DISPLAY_LIST_STRESS_YY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1460,8 +1235,8 @@ void Display(void)
 		
 		glEndList() ;
 		
-		double epsilon12_min = 0.5 ; epsilon12.min() ;
-		double epsilon12_max = -0.5 ; epsilon12.max() ;
+		double epsilon12_min = epsilon12.min() ;
+		double epsilon12_max =  epsilon12.max() ;
 		
 		glNewList(  DISPLAY_LIST_STRESS_XY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -1755,17 +1530,17 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
- 	i_et_p = generateInclusionsAndPores(2048, .0, &m0_agg, &sample, &F) ;
+ 	i_et_p = generateInclusionsAndPores(32, .0, &m0_agg, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
 // 	F.addFeature(&sample,new TriangularPore(Point(-1.25, -4), Point(-1,-2.5), Point(-0.75,-4))) ;
 // 	F.addFeature(&sample,new TriangularPore(Point(2.25, -4), Point(2,-1.5), Point(1.75,-4))) ;
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
-	Inclusion * inc = new Inclusion(.5, 0,0) ;
+	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
 	inclusions.push_back(inc) ;
-	F.addFeature(&sample,inc) ;
+// 	F.addFeature(&sample,inc) ;
 	
 	
 	Circle cercle(.5, 0,0) ;
@@ -1776,12 +1551,12 @@ int main(int argc, char *argv[])
 	a[0] = 0.1 ;
 	a[1] = 0.1 ;
 	a[2] = 0.00 ;
-	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(.005, -.02))) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(200000, -2000000))) ;
+	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 200000)) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
- 	zones = generateExpansiveZones(10, i_et_p.first, F) ;
+ 	zones = generateExpansiveZones(5, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1790,7 +1565,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(256) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
