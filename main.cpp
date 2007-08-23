@@ -222,9 +222,9 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 1 ; i++)
+	for(size_t i = 0 ; i < 8 ; i++)
 	{
-		std::cout << "\r iteration " << i << "/20" << std::flush ;
+		std::cout << "\r iteration " << i << "/8" << std::flush ;
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
@@ -237,7 +237,7 @@ void step()
 		timepos+= 0.0001 ;
 	
 	
-	std::cout << "\r iteration " << "100/100 ... done" << std::endl ;
+	std::cout << "\r iteration " << "8/8 ... done" << std::endl ;
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	dt = featureTree->getDelaunayTree() ;
@@ -331,24 +331,6 @@ void step()
 				if(triangles[k]->getBehaviour()->param[0][0] < E_min)
 					E_min = triangles[k]->getBehaviour()->param[0][0] ;
 			}
-// 			std::cout << sigma[k*npoints*3] << "   " 
-// 				<< sigma[k*npoints*3+1] << "   " 
-// 				<< sigma[k*npoints*3+2] << "   " 
-// 				<< sigma[k*npoints*3+3] << "   " 
-// 				<< sigma[k*npoints*3+4] << "   " 
-// 				<< sigma[k*npoints*3+5] << "   " 
-// 				<< sigma[k*npoints*3+6] << "   " 
-// 				<< sigma[k*npoints*3+7] << "   " 
-// 				<< sigma[k*npoints*3+8] << "   " 
-// 				<< sigma[k*npoints*3+9] << "   " 
-// 				<< sigma[k*npoints*3+10] << "   " 
-// 				<< sigma[k*npoints*3+11] << "   " 
-// 				<< sigma[k*npoints*3+12] << "   " 
-// 				<< sigma[k*npoints*3+13] << "   " 
-// 				<< sigma[k*npoints*3+14] << "   " 
-// 				<< sigma[k*npoints*3+15] << "   " 
-// 				<< sigma[k*npoints*3+16] << "   " 
-// 				<< sigma[k*npoints*3+17] << std::endl ;
 				
 			sigma11[k*npoints] = sigma[k*npoints*3];
 			sigma22[k*npoints] = sigma[k*npoints*3+1];
@@ -415,12 +397,7 @@ void step()
 				avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
 				avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
 			}
-				
 
-			
-// 			vonMises[k*3]   = sigma11[k*3]*epsilon11[k*3]     + sigma22[k*3]*epsilon22[k*3]     + sigma12[k*3]*epsilon12[k*3];
-// 			vonMises[k*3+1] = sigma11[k*3+1]*epsilon11[k*3+1] + sigma22[k*3+1]*epsilon22[k*3+1] + sigma12[k*3+1]*epsilon12[k*3+2];
-// 			vonMises[k*3+2] = sigma11[k*3+2]*epsilon11[k*3+2] + sigma22[k*3+2]*epsilon22[k*3+2] + sigma12[k*3+2]*epsilon12[k*3+2];
 		}
 		else
 		{
@@ -506,7 +483,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 
-	double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/10. ;
+	double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/8. ;
 	double reactedArea = 0 ;
 		
 	for(size_t z = 0 ; z < zones.size() ; z++)
@@ -522,7 +499,7 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E = 1e+09 ;
+	double E = 0.5e+09 ;
 	double nu = .499999 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
@@ -555,8 +532,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = 1 ;
-				a[1] = 1 ;
+				a[0] = .5 ;
+				a[1] = .5 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
@@ -638,7 +615,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = .002 ;//0.0001+ .0019*random()/RAND_MAX ;
+		double radius = .0005  .0025*random()/RAND_MAX ;
 		
 		Point center = Point(
 		                      (2.*random()/RAND_MAX-1.)*(.08-2.*radius-0.00001),
@@ -1530,7 +1507,7 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
- 	i_et_p = generateInclusionsAndPores(32, .0, &m0_agg, &sample, &F) ;
+ 	i_et_p = generateInclusionsAndPores(512, .0, &m0_agg, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1556,7 +1533,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
- 	zones = generateExpansiveZones(5, i_et_p.first, F) ;
+ 	zones = generateExpansiveZones(3, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1565,7 +1542,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(128) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
