@@ -615,7 +615,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 	for(size_t j =0 ; j < n ; j++)
 	{
 		
-		double radius = .0005  .0025*random()/RAND_MAX ;
+		double radius = .0005 + .0025*random()/RAND_MAX ;
 		
 		Point center = Point(
 		                      (2.*random()/RAND_MAX-1.)*(.08-2.*radius-0.00001),
