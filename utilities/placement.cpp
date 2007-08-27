@@ -5,7 +5,6 @@
 //
 
 #include "placement.h"
-#include "features/inclusion.h"
 
 
 using namespace Mu ;
@@ -21,7 +20,7 @@ double chiffreAleatoire(double longueur) // fonction qui retourne une valeur alÃ
 
 bool bord(double r, double longueurX, double longueurY, double x, double y)//fonction du problÃ¨me de bord
 {
-	if(r>x ||r>(longueurX-x) ||r>y||r>(longueurY-y))
+	if(r>x-longueurX/2. ||r>(longueurX/2.-x) ||r>y||r>(longueurY/2.-y))
 	{			
 		return true;	
 	}
@@ -68,10 +67,10 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 			*nombreGranulatsPlaces = i;
 			sortie = false; 
 			tries++ ;
-			x=chiffreAleatoire(longueurX);
+			x=chiffreAleatoire(longueurX)-longueurX/2.;
 
-			y=chiffreAleatoire(longueurY);
-			//std::cout<< "\r"<< i<<"/" << inclusions.size() << "  "<<inclusions[i] << "    "<<x<<"     "  << y<< "         " <<std::flush; 	
+			y=chiffreAleatoire(longueurY)-longueurY/2.;
+			std::cout<< "\r"<< i<<"/" << inclusions.size() << "  "<<inclusions[i]->getRadius() << "    "<<x<<"     "  << y<< "         " <<std::flush; 	
 
 			Point coordNewGranulat(x,y);
 
@@ -96,9 +95,9 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 					//rayonGranulat=espaceMinGranulat(j,inclusions);
 					if(inclusions[j]->getRadius()>4.0)//espace entre 2 granulats
 					{	
-						rayonGranulat = inclusions[j]->getRadius()+0.04;
+						rayonGranulat = inclusions[j]->getRadius()+0.0004;
 					}
-					else rayonGranulat =inclusions[j]->getRadius()+0.01*inclusions[j]->getRadius();
+					else rayonGranulat =inclusions[j]->getRadius()+0.001*inclusions[j]->getRadius();
 
 					Circle c2(rayonGranulat,coordOldGranulat.x,coordOldGranulat.y);
 					bool inter = c1.intersects(&c2);
