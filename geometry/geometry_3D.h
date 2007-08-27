@@ -17,6 +17,7 @@ class Tetrahedron : public ConvexGeometry
 
 protected:
 	double radius ;
+	double sqradius ;
 	Point circumCenter ;
 	void computeCircumCenter() ;
 	

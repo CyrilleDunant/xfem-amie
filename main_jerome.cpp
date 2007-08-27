@@ -23,7 +23,7 @@
 #include "geometry/geometry_base.h"
 #include "features/sample.h"
 #include "features/inclusion.h"
-#include "placement.cpp"
+#include "utilities/placement.cpp"
 
 using namespace Mu ;
 

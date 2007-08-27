@@ -14,6 +14,7 @@ class Triangle : public ConvexGeometry
 {
 protected:
 	double radius ;
+	double sqradius ;
 	Point circumCenter ;
 	
 	void computeCircumCenter() ;
@@ -145,6 +146,7 @@ class Circle : public ConvexGeometry
 protected:
 	
 	double radius ;
+	double sqradius ;
 	virtual void computeCenter() ;
 	
 public:

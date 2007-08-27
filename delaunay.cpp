@@ -877,7 +877,7 @@ std::pair< Point*,  Point*> DelaunayTriangle::nearestEdge(const Point p)
 	
 bool DelaunayTriangle::inCircumCircle(const Point &p) const 
 {
-	return  (circumCenter.x -p.x)*(circumCenter.x -p.x) + (circumCenter.y -p.y)*(circumCenter.y -p.y)< radius*radius -POINT_TOLERANCE  ;
+// 	return  (circumCenter.x -p.x)*(circumCenter.x -p.x) + (circumCenter.y -p.y)*(circumCenter.y -p.y)< radius*radius -POINT_TOLERANCE  ;
 	return  this->Triangle::inCircumCircle(p) ;
 }
 	
@@ -1605,7 +1605,7 @@ std::vector<Point *> DelaunayTree::conflicts( const Segment *s) const
 
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 {
-	Circle neighbourhood(0.01, g->getCenter()) ; 
+	Circle neighbourhood(1e-8, g->getCenter()) ; 
 //magic value : basically, we don't want to have the center a vertex of the mesh.
 	
 	std::vector<DelaunayTriangle *> ret ;
@@ -2039,7 +2039,7 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements =  0;
+		size_t numberOfRefinements =  1;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{

@@ -23,6 +23,7 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 	}
 	computeCircumCenter() ;
 	radius = squareDist(*p1, circumCenter);
+	sqradius = radius*radius ;
 	assert(this->volume() >0 ) ;
 	computeCenter() ;	
 }
@@ -42,10 +43,11 @@ Tetrahedron::Tetrahedron(Point p0, Point p1, Point p2, Point p3): ConvexGeometry
 		boundingPoints[1] = &p0;
 	}
 	computeCircumCenter() ;
-	radius = std::min(std::min(std::min(squareDist(*boundingPoints[0], circumCenter), 
-	                                    squareDist(*boundingPoints[1], circumCenter)),
-	                           squareDist(*boundingPoints[2], circumCenter)),
-	                  squareDist(*boundingPoints[3], circumCenter));
+	radius = std::min(std::min(std::min(dist(*boundingPoints[0], circumCenter), 
+	                                    dist(*boundingPoints[1], circumCenter)),
+	                           dist(*boundingPoints[2], circumCenter)),
+	                  dist(*boundingPoints[3], circumCenter));
+	sqradius = radius*radius ;
 	computeCenter() ;	
 }
 
@@ -59,10 +61,11 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 	boundingPoints[2] = new Point(0,0,1) ;
 	boundingPoints[3] = new Point(0,0,0) ;
 	computeCircumCenter() ;
-	radius = std::min(std::min(std::min(squareDist(*boundingPoints[0], circumCenter), 
-	                  squareDist(*boundingPoints[1], circumCenter)),
-	                  squareDist(*boundingPoints[2], circumCenter)),
-	                  squareDist(*boundingPoints[3], circumCenter));
+	radius = std::min(std::min(std::min(dist(*boundingPoints[0], circumCenter), 
+	                  dist(*boundingPoints[1], circumCenter)),
+	                  dist(*boundingPoints[2], circumCenter)),
+	                  dist(*boundingPoints[3], circumCenter));
+	sqradius = radius*radius ;
 	computeCenter() ;	
 }
 
@@ -83,7 +86,7 @@ void Tetrahedron::computeCenter()
 
 double Tetrahedron::getRadius() const
 {
-	return sqrt(radius) ;
+	return radius ;
 }
 
 const Point * Tetrahedron::getCircumCenter() const
@@ -193,14 +196,18 @@ void Tetrahedron::computeCircumCenter()
 
 bool Tetrahedron::inCircumSphere(const Point & p) const
 {
-//  	return false;
-	return  squareDist(circumCenter, p) < radius -1e-12;
+	double x = circumCenter.x - p.x ;
+	double y = circumCenter.y - p.y ;
+	double z = circumCenter.z - p.z ;
+	return  x*x +y*y + z*z < sqradius - POINT_TOLERANCE;
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
-{/*
- 	return false;*/
-	return  squareDist(circumCenter, (*p)) < radius -1e-12;
+{
+	double x = circumCenter.x - p->x ;
+	double y = circumCenter.y - p->y ;
+	double z = circumCenter.z - p->z ;
+	return   x*x +y*y + z*z < sqradius -POINT_TOLERANCE;
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)

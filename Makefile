@@ -35,8 +35,8 @@ OBJECTS_FUNCTIONS = polynomial/vm_function_matrix.o polynomial/vm_token.o polyno
 SOURCE_SPARSE = sparse/sparse_matrix.cpp sparse/sparse_vector.cpp
 OBJECTS_SPARSE = sparse/sparse_matrix.o sparse/sparse_vector.o
 
-SOURCE_MAIN_2D =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
-OBJECTS_MAIN_2D =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+SOURCE_MAIN_2D =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main.cpp matrixops.cpp utilities/granulo.cpp utilities/placement.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_2D =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main.o matrixops.o utilities/granulo.o utilities/placement.o ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_2D = tryit
 
 # TARGET_MAIN = steph main_simple 

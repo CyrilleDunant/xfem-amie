@@ -1560,7 +1560,7 @@ void FeatureTree::assemble()
 
 		if(this->tree[i]->isEnrichmentFeature)
 		{
-			dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree) ;
+			static_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree) ;
 		}
 		
 		if(i%10 == 0)
@@ -2322,7 +2322,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		
 		for(size_t k  =  0 ; k <  enrichmentFeature.size() ; k++)
 		{
-			std::vector<Point *> pts = dynamic_cast<EnrichmentFeature *>(enrichmentFeature[k])->getSamplingPoints() ;
+			std::vector<Point *> pts = static_cast<EnrichmentFeature *>(enrichmentFeature[k])->getSamplingPoints() ;
 			
 			for(size_t i = 0 ; i < pts.size() ;i++)
 			{

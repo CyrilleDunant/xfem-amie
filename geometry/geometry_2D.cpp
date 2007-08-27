@@ -16,6 +16,9 @@ Triangle::Triangle() : ConvexGeometry(3)
 	boundingPoints[2] = new Point(1, 0) ;
 	
 	computeCenter() ;
+	computeCircumCenter() ;
+	radius = 0.471405;
+	sqradius = radius*radius ;
 }
 
 Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : ConvexGeometry(3)
@@ -51,6 +54,7 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 	}
 	
 	radius = (dist(p1, circumCenter)+ dist(p0, circumCenter))/2.;
+	sqradius = radius*radius ;
 	
 }
 
@@ -326,6 +330,7 @@ Triangle::Triangle( Point *p0,  Point *p1,  Point *p2): ConvexGeometry(3)
 	}
 	
 	radius = (dist(p1, &circumCenter)+ dist(p0, &circumCenter))/2.;
+	sqradius = radius*radius ;
 }
 
 
@@ -389,12 +394,16 @@ void Triangle::computeCircumCenter()
 
 bool Triangle::inCircumCircle(const Point & p) const
 {
-	return  (circumCenter.x -p.x)*(circumCenter.x -p.x) + (circumCenter.y -p.y)*(circumCenter.y -p.y)< radius*radius -POINT_TOLERANCE  ;
+	double x = circumCenter.x -p.x ;
+	double y = circumCenter.y -p.y ;
+	return  x*x + y*y< sqradius -POINT_TOLERANCE  ;
 }
 
 bool Triangle::inCircumCircle(const Point *p) const
 {
-	return  (circumCenter.x -p->x)*(circumCenter.x -p->x) + (circumCenter.y -p->y)*(circumCenter.y -p->y) < radius*radius -POINT_TOLERANCE  ;
+		double x = circumCenter.x -p->x ;
+	double y = circumCenter.y -p->y ;
+	return  x*x + y*y < sqradius -POINT_TOLERANCE  ;
 }
 
 
@@ -758,6 +767,7 @@ Circle::Circle(double r, double originX, double originY)
 	gType = CIRCLE ;
 	this->center = Point(originX, originY) ;
 	this->radius = r ;
+	this->sqradius = r*r ;
 }
 
 Circle::Circle(double r, const Point *center)
@@ -765,6 +775,7 @@ Circle::Circle(double r, const Point *center)
 	gType = CIRCLE ;
 	this->center = Point(*center) ;
 	this->radius = r ; 
+	this->sqradius = r*r ;
 }
 
 Circle::Circle(double r, const Point center)
@@ -772,6 +783,7 @@ Circle::Circle(double r, const Point center)
 	gType = CIRCLE ;
 	this->center = center ;
 	this->radius = r ; 
+	this->sqradius = r*r ;
 }
 
 void Circle::setRadius(double newr)
@@ -782,6 +794,7 @@ void Circle::setRadius(double newr)
 	{
 		project(&getBoundingPoint(i)) ;
 	}
+	this->sqradius = newr*newr ;
 }
 
 void Circle::computeCenter()
@@ -896,7 +909,9 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const 
 {
-	return (center.x-v.x)*(center.x-v.x) + (center.y-v.y)*(center.y-v.y) < radius*radius ;
+	double x = center.x-v.x ;
+	double y = center.y-v.y ;
+	return x*x + y*y < sqradius ;
 }
 
 double Circle::getRadius() const
@@ -906,7 +921,7 @@ double Circle::getRadius() const
 
 double Circle::area() const
 {
-	return M_PI*radius*radius ;
+	return M_PI*sqradius ;
 }
 
 

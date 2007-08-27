@@ -17,6 +17,8 @@
 #include "features/enrichmentInclusion.h"
 #include "delaunay_3d.h"
 #include "solvers/assembly.h"
+#include "utilities/granulo.h"
+#include "utilities/placement.h"
 
 #include <fstream>
 
@@ -222,9 +224,9 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 8 ; i++)
+	for(size_t i = 0 ; i < 1 ; i++)
 	{
-		std::cout << "\r iteration " << i << "/8" << std::flush ;
+		std::cout << "\r iteration " << i << "/80" << std::flush ;
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
@@ -237,7 +239,7 @@ void step()
 		timepos+= 0.0001 ;
 	
 	
-	std::cout << "\r iteration " << "8/8 ... done" << std::endl ;
+	std::cout << "\r iteration " << "80/80 ... done" << std::endl ;
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	dt = featureTree->getDelaunayTree() ;
@@ -302,7 +304,7 @@ void step()
 		}
 		cracked.push_back(in) ;
 		
-
+		
 		
 		if(!in && !triangles[k]->getBehaviour()->fractured())
 		{
@@ -320,6 +322,7 @@ void step()
 				if(triangles[k]->getBoundingPoint(p).x > 0.0799)
 				{
 					e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
+					std::cout << x[triangles[k]->getBoundingPoint(p).id*2] << "   " << std::flush ;
 					ex_count++ ;
 				}
 			}
@@ -455,43 +458,45 @@ void step()
 		}
 	}
 		
-	std::cout << "max value :" << x_max << std::endl ;
-	std::cout << "min value :" << x_min << std::endl ;
-	std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
-	std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-	std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
-	std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
-	std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
-	std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
 	
-	std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-	std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-	std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-	std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-	std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-	std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-	
-	std::cout << "max von Mises :" << vonMises.max() << std::endl ;
-	std::cout << "min von Mises :" << vonMises.min() << std::endl ;
-	
-	std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
-	std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
-	std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
-	std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-	std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-	std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		std::cout << std::endl ;
+		std::cout << "max value :" << x_max << std::endl ;
+		std::cout << "min value :" << x_min << std::endl ;
+		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
+		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
+		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
+		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
+		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
+		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
+		
+		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
+		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
+		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
+		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
+		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
+		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+		
+		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
+		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
+		
+		std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
+		std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
+		std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
+		std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
+		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 
-	double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/8. ;
-	double reactedArea = 0 ;
-		
-	for(size_t z = 0 ; z < zones.size() ; z++)
-	{
-		zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
-		zones[z].first->reset() ;
-		reactedArea += zones[z].first->area() ;
-	}
+		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/8. ;
+		double reactedArea = 0 ;
+			
+		for(size_t z = 0 ; z < zones.size() ; z++)
+		{
+			zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
+	// 		zones[z].first->reset() ;
+			reactedArea += zones[z].first->area() ;
+		}
 		
 		std::cout << "reacted Area : " << reactedArea << std::endl ;
 	}
@@ -1507,7 +1512,9 @@ int main(int argc, char *argv[])
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
 	
- 	i_et_p = generateInclusionsAndPores(512, .0, &m0_agg, &sample, &F) ;
+	GranuloBolome g(500, 1, BOLOME_A);
+		
+//  	i_et_p = generateInclusionsAndPores(6000, .0, &m0_agg, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
 // 	F.addFeature(&sample,inc) ;
 // 	inc->setBehaviour(new Stiffness(m0)) ;
@@ -1516,9 +1523,16 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions.push_back(inc) ;
+	inclusions = g(.002, 100);
+	int nAgg = 0 ;
+	inclusions=placement(.04, .16, inclusions, &nAgg, 4);
 // 	F.addFeature(&sample,inc) ;
 	
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	{
+		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
+		F.addFeature(&sample,inclusions[i]) ;
+	}
 	
 	Circle cercle(.5, 0,0) ;
 	
@@ -1533,7 +1547,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
- 	zones = generateExpansiveZones(3, i_et_p.first, F) ;
+//  	zones = generateExpansiveZones(20, i_et_p.first, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;

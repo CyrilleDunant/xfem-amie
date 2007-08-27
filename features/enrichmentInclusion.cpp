@@ -41,7 +41,7 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 		}
 		
 		
-		std::set<DelaunayTriangle *> toCheck ;
+		std::vector<DelaunayTriangle *> toCheck ;
 		
 		for(size_t i = 0 ; i < temp.size() ; i++)
 		{
@@ -51,17 +51,20 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 				if(!temp[i]->neighbour[j]->visited && temp[i]->neighbour[j]->isTriangle)
 				{
 					cleanup.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbour[j])) ;
-					toCheck.insert(static_cast<DelaunayTriangle *>(temp[i]->neighbour[j])) ;
+					toCheck.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbour[j])) ;
 				}
 			}
-
 		}
+		
+		std::sort(toCheck.begin(), toCheck.end()) ;
+		std::vector<DelaunayTriangle *>::iterator uend = std::unique(toCheck.begin(), toCheck.end()) ;
+		
 		
 		while(!toCheck.empty())
 		{
-			std::set<DelaunayTriangle *> newSet ;
+			std::vector<DelaunayTriangle *> newSet ;
 			
-			for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+			for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != uend ; ++i)
 			{
 				(*i)->visited = true ;
 				cleanup.push_back(*i) ;
@@ -72,19 +75,23 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 				}
 			}
 			
-			for(std::set<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != toCheck.end() ; ++i)
+			for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != uend ; ++i)
 			{
 				
 				for(size_t j = 0 ; j< (*i)->neighbour.size() ; j++)
 				{
 					if((*i)->neighbour[j]->isTriangle && !(*i)->neighbour[j]->visited )
 					{
-						newSet.insert(static_cast<DelaunayTriangle *>((*i)->neighbour[j])) ;
+						newSet.push_back(static_cast<DelaunayTriangle *>((*i)->neighbour[j])) ;
 					}
 				}
 			}
 			
-			toCheck = newSet ;
+			toCheck.clear() ;
+			std::sort(newSet.begin(), newSet.end()) ;
+			uend = std::unique(newSet.begin(), newSet.end()) ;
+			toCheck.insert(toCheck.end(),newSet.begin(),uend ) ;
+			uend = toCheck.end() ;
 			
 		}
 		
@@ -104,7 +111,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 // 	dtree->getTriangles() ;
 	//first we get All the triangles affected
 	update(dtree) ;
-	std::vector<DelaunayTriangle *> disc  = cache;
+	const std::vector<DelaunayTriangle *> & disc  = cache;
 // 	if(cache.empty())
 // 		disc = dtree->conflicts(static_cast<Circle *>(this)) ;
 // 	cache = disc ;
