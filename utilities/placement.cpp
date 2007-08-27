@@ -12,7 +12,7 @@ using namespace Mu ;
 
 double chiffreAleatoire(double longueur) // fonction qui retourne une valeur aléatoire
 {
-	double chiffreAleatoire = (double) rand()/RAND_MAX*longueur;
+	double chiffreAleatoire = longueur*(double)rand()/(double)RAND_MAX;
 	return chiffreAleatoire;
 }
 
@@ -20,7 +20,11 @@ double chiffreAleatoire(double longueur) // fonction qui retourne une valeur al�
 
 bool bord(double r, double longueurX, double longueurY, double x, double y)//fonction du problème de bord
 {
-	if(r>x-longueurX/2. ||r>(longueurX/2.-x) ||r>y||r>(longueurY/2.-y))
+	if(x+r > longueurX/2. 
+	|| x-r < -longueurX/2.
+	|| y+r > longueurY/2.
+	|| y-r < -longueurY/2.
+	)
 	{			
 		return true;	
 	}
@@ -61,6 +65,8 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 	double x;
 	double y;
 
+	std::vector<Inclusion *> ret ;
+	
 	for(int i=0; i<inclusions.size()&& tries< triesMax; i++) //boucle qui calcul les coordonn�s al�toires des granulats  
 		{
 			
@@ -70,7 +76,6 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 			x=chiffreAleatoire(longueurX)-longueurX/2.;
 
 			y=chiffreAleatoire(longueurY)-longueurY/2.;
-			std::cout<< "\r"<< i<<"/" << inclusions.size() << "  "<<inclusions[i]->getRadius() << "    "<<x<<"     "  << y<< "         " <<std::flush; 	
 
 			Point coordNewGranulat(x,y);
 
@@ -153,11 +158,14 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 				tries = 0 ;
 				inclusions[i]->getCenter().x = coordNewGranulat.x;
 				inclusions[i]->getCenter().y = coordNewGranulat.y;	
+				ret.push_back(inclusions[i]) ;
 			}
+			
+			
 		suite =true;
 
 		}
-	return inclusions;
+	return ret;
 		
 }
 

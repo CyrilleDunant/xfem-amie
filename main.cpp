@@ -1511,8 +1511,6 @@ int main(int argc, char *argv[])
 // 	F.addFeature(sample, crack[2]) ;
 // 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
 // 	F.addFeature(sample, crack[3]) ;
-	
-	GranuloBolome g(500, 1, BOLOME_A);
 		
 //  	i_et_p = generateInclusionsAndPores(6000, .0, &m0_agg, &sample, &F) ;
 // 	Inclusion * inc = new Inclusion(1, 0,0) ;
@@ -1523,9 +1521,9 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = g(.002, 100);
+	inclusions = GranuloBolome(.25, 50000, BOLOME_A)(.002, .1);
 	int nAgg = 0 ;
-	inclusions=placement(.04, .16, inclusions, &nAgg, 4);
+	inclusions=placement(.16, .04, inclusions, &nAgg, 128);
 // 	F.addFeature(&sample,inc) ;
 	
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -1556,7 +1554,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(256) ;
+	F.sample(64) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

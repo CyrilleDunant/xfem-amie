@@ -75,14 +75,14 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	{
 		P->precondition(r,z) ;
 		
-		double rho = std::inner_product(&r[0], &r[r.size()], &z[0], (double)(0)) ;
+		double rho = std::inner_product(&r[0], &r[r.size()], &z[0], 0.) ;
 		double beta = rho/last_rho ;
 		p = z + p*beta ;
 		q = A*p ;
 		
-		assert(std::inner_product(&q[0],&q[q.size()] ,&p[0], (double)(0)) != 0) ;
+		assert(std::inner_product(&q[0],&q[q.size()] ,&p[0], 0.) != 0) ;
 		
-		alpha = rho/std::inner_product(&q[0],&q[q.size()] ,&p[0], (double)(0));
+		alpha = rho/std::inner_product(&q[0],&q[q.size()] ,&p[0], 0.);
 		
 		r -= q*alpha ;
 		x += p*alpha ;
@@ -90,11 +90,8 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 		if(	verbose && nit%100 == 0)
 		{
 			r = b-A*x ;
-			std::cerr << "\r iteration : " << nit << " error :"<< last_rho /*<<", max : "  << x.max() << ", min : "  << x.min()*/ << "             "<< std::flush ;
+			std::cerr << "\r iteration : " << nit << " error :"<< last_rho  << "             "<< std::flush ;
 		}
-		
-// 		err = std::abs(r).max() ;
-// 		err = std::inner_product(&r[0], &r[r.size()], &r[0], (double)(0)) ;
 		
 		last_rho = rho ;
 		nit++ ;
@@ -102,11 +99,6 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	}
 	r = b-A*x ;
 	err = std::abs(r).max() ;
-// 	for(size_t i = 0 ; i < r.size() ; i++)
-// 	{
-// 		std::cerr << r[i] << std::endl ;
-// 	}
-	
 	
 	if(verbose)
 		std::cerr << "\n converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
