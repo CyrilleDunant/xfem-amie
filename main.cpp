@@ -1521,7 +1521,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.25, 50000, BOLOME_A)(.002, .1);
+	inclusions = GranuloBolome(.25, 25000, BOLOME_A)(.002, .05);
 	int nAgg = 0 ;
 	inclusions=placement(.16, .04, inclusions, &nAgg, 128);
 // 	F.addFeature(&sample,inc) ;
@@ -1545,7 +1545,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
-//  	zones = generateExpansiveZones(20, i_et_p.first, F) ;
+ 	zones = generateExpansiveZones(3, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1554,7 +1554,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(64) ;
+	F.sample(400) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

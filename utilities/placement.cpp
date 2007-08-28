@@ -65,6 +65,7 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 	double x;
 	double y;
 
+	double volume = 0 ;
 	std::vector<Inclusion *> ret ;
 	
 	for(int i=0; i<inclusions.size()&& tries< triesMax; i++) //boucle qui calcul les coordonn�s al�toires des granulats  
@@ -159,12 +160,15 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 				inclusions[i]->getCenter().x = coordNewGranulat.x;
 				inclusions[i]->getCenter().y = coordNewGranulat.y;	
 				ret.push_back(inclusions[i]) ;
+				volume += inclusions[i]->area() ;
 			}
 			
 			
 		suite =true;
 
 		}
+	
+	std::cout << " placed aggregate volume = " << volume << std::endl ;
 	return ret;
 		
 }
