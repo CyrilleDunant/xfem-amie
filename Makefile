@@ -17,6 +17,9 @@ LDFLAGS = -Wl -lm -lGL -lglut
 SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp physics/dual_behaviour.cpp 
 OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o physics/diffusion.o physics/dual_behaviour.o 
 
+SOURCE_FILTERS = filters/voxelfilter.cpp
+OBJECTS_FILTERS = filters/voxelfilter.o
+
 SOURCE_ELEMENTS = elements/elements.cpp elements/integrable_entity.cpp
 OBJECTS_ELEMENTS = elements/elements.o elements/integrable_entity.o
 
@@ -58,8 +61,8 @@ SOURCE_MAIN_JEROME =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} u
 OBJECTS_MAIN_JEROME =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} utilities/granulo.o samplingcriterion.o main_jerome.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_JEROME = statistique
 
-SOURCE_MAIN =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS}  samplingcriterion.cpp   main_3d.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
-OBJECTS_MAIN =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_3d.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+SOURCE_MAIN =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS}  samplingcriterion.cpp   main_3d.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE} ${SOURCE_FILTERS}
+OBJECTS_MAIN =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_3d.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE} ${OBJECTS_FILTERS}
 TARGET_MAIN = tryit_3d
 
 SOURCE_NURB =  main_nurbs.cpp matrixops.cpp ${SOURCE_NEW_GEO} 
@@ -154,7 +157,7 @@ depend_main_kill: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_KILL} > $@
 
 clean:
-	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} utilities/granulo.o depend_main  depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome depend_main_simple depend_main_kill 
+	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} ${OBJECTS_FILTERS} utilities/granulo.o depend_main  depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome depend_main_simple depend_main_kill 
 
 include depend_main
 include depend_amor

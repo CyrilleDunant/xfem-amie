@@ -264,7 +264,7 @@ protected :
 	std::valarray< std::pair<Point, double> > genGaussPoints() const;
 	virtual void computeCenter();
 public:
-
+	std::vector<HexahedralElement *> neighbourhood ;
 // 	bool moved;
 	GEO_DERIVED_OBJECT(Hexahedron) ;
 	
@@ -285,6 +285,6 @@ public:
 
 } ;
 
-
+void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralElement *> & vec) ;
 
 #endif // __ELEMENTS_H_

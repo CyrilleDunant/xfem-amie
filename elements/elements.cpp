@@ -2621,3 +2621,45 @@ void HexahedralElement::print()  const
 	std::cout << "I am an hexahedron..." << std::endl ;
 }
 
+std::vector<int> validNeighbours(int i, int j, int k, int length)
+{
+	std::vector<int> ret ;
+	for(int ii = i-1 ; ii < i+2 ; ii++)
+	{
+		for(int jj = j-1 ; jj < j+2 ; jj++)
+		{
+			for(int kk = k-1 ; kk < k+2 ; kk++)
+			{
+				if((ii >= 0 && ii < length)
+				   && (jj >= 0&& jj < length)
+				   && (kk >= 0&& kk < length)
+				   && !( ii == i && jj== j && kk==k)
+				  )
+					ret.push_back(kk + jj*length + ii*length*length) ;
+			}
+		}
+	}
+	return ret ;
+}
+
+void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralElement *> & vec)
+{
+	int length = (int)round(std::pow(vec.size(), 1./3.)) ;
+	
+	for(int i = 0 ; i < length ; i++)
+	{
+		for(int j = 0 ; j < length ; j++)
+		{
+			for(int k = 0 ; k < length ; j++)
+			{
+				std::vector<int> neighbours = validNeighbours(i,j,k,length) ;
+				int current_index = k + j*length + i*length*length ;
+				
+				for(size_t l = 0 ; l < neighbours.size() ; l++)
+				{
+					vec[current_index]->neighbourhood.push_back(vec[neighbours[l]]) ;
+				}
+			}
+		}
+	}
+}

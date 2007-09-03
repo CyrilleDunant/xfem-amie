@@ -221,7 +221,9 @@ FeatureTree::FeatureTree(Feature *first)
 {
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
-	this->addFeature(NULL, first) ;
+	if(first)
+		this->addFeature(NULL, first) ;
+	
 	this->father3D = NULL;
 	this->father2D =NULL ;
 	this->elemOrder = LINEAR ;
@@ -2127,7 +2129,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 	bbox[5] = Point(max_x, min_y, max_z) ;
 	bbox[6] = Point(max_x, max_y, min_z) ;
 	bbox[7] = Point(max_x, max_y, max_z) ;
-	
+
 	std::vector<Feature *> enrichmentFeature ;
 	for(size_t i  = 0 ; i < this->tree.size() ; i++)
 	{
@@ -2295,6 +2297,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		assert(meshPoints[1].first->id > -1 ) ;
 		assert(meshPoints[2].first->id > -1 ) ;
 		assert(meshPoints[3].first->id > -1 ) ;
+		
 		
 		
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+8 ; i != this->meshPoints.end(); ++i)

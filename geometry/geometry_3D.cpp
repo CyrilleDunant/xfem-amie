@@ -22,7 +22,7 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 		boundingPoints[1] = p0;
 	}
 	computeCircumCenter() ;
-	radius = squareDist(*p1, circumCenter);
+	radius = dist(*p1, circumCenter);
 	sqradius = radius*radius ;
 	assert(this->volume() >0 ) ;
 	computeCenter() ;	

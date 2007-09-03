@@ -11,6 +11,7 @@
 #include "features/inclusion3d.h"
 #include "features/sample3d.h"
 #include "delaunay_3d.h"
+#include "filters/voxelfilter.h"
 
 #include <cmath>
 #include <typeinfo>
@@ -46,6 +47,7 @@ double factor = 0.5 ;
 
 std::vector<double> sizered;
 std::vector<DelaunayTetrahedron *> myTets ;
+std::vector<HexahedralElement *> myHexs ;
 std::vector<Point *> points ;
 DelaunayTree_3D *dt ;
 GLint xangle = 0;
@@ -403,6 +405,129 @@ void computeDisplayList()
 			
 	}
 	}
+	
+	for(size_t i = 0 ; i < myHexs.size(); i++)
+	{
+		
+// 		if(dist(*myTets[i]->getCenter(), cen) <1.8 || 
+// 		   dist(*myTets[i]->getCenter(), cen1) <0.9 ||
+// 		   dist(*myTets[i]->getCenter(), cen2) <0.9 ||
+// 		   dist(*myTets[i]->getCenter(), cen3) <0.9 ||
+// 		   dist(*myTets[i]->getCenter(), cen4) <0.9 ||
+// 		   dist(*myTets[i]->getCenter(), cen5) <0.9 ||
+// 		   dist(*myTets[i]->getCenter(), cen6) <0.9 ||
+// 		   dist(*myTets[i]->getCenter(), cen7) <0.9 ||
+// 		   dist(*myTets[i]->getCenter(), cen8) <0.9 
+// 		  )
+// 				glColor4ub (255,0,255,10);
+// 			else
+// 				glColor4ub (0,0,255,10); 			
+		
+		double r, g, b ;
+		
+		HSV2RGB(&r, &g, &b, 360.-360.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
+		glColor4f (r,g,b, .3);
+		
+		if(myHexs[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		{
+// 			glColor3f (0,0,0);
+			
+// 			if(!s.in(myTets[i]->first)  ||
+// 			   !s.in(myTets[i]->second) ||
+// 			   !s.in(myTets[i]->third) ||
+// 			   !s.in(myTets[i]->fourth) ||
+// 			   myTets[i]->Tetrahedron::volume() < 1e-6 
+// 			  )
+// 					glColor4ub (255,0,0,255); 		
+			
+			
+			
+			glBegin(GL_LINE_LOOP);
+			
+
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(0).x+(*x)[myHexs[i]->getBoundingPoint(0).id*3],
+			           myHexs[i]->getBoundingPoint(0).y+(*x)[myHexs[i]->getBoundingPoint(0).id*3+1],
+			           myHexs[i]->getBoundingPoint(0).z+(*x)[myHexs[i]->getBoundingPoint(0).id*3+2]);
+				
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(1).x+(*x)[myHexs[i]->getBoundingPoint(1).id*3],
+			           myHexs[i]->getBoundingPoint(1).y+(*x)[myHexs[i]->getBoundingPoint(1).id*3+1],
+			           myHexs[i]->getBoundingPoint(1).z+(*x)[myHexs[i]->getBoundingPoint(1).id*3+2] );
+
+				
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(2).x+(*x)[myHexs[i]->getBoundingPoint(2).id*3],
+			           myHexs[i]->getBoundingPoint(2).y+(*x)[myHexs[i]->getBoundingPoint(2).id*3+1],
+			           myHexs[i]->getBoundingPoint(2).z+(*x)[myHexs[i]->getBoundingPoint(2).id*3+2] );
+
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(3).x+(*x)[myHexs[i]->getBoundingPoint(3).id*3],
+			           myHexs[i]->getBoundingPoint(3).y+(*x)[myHexs[i]->getBoundingPoint(3).id*3+1],
+			           myHexs[i]->getBoundingPoint(3).z+(*x)[myHexs[i]->getBoundingPoint(3).id*3+2] );
+			glEnd();
+			glBegin(GL_LINE_LOOP);
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(4).x+(*x)[myHexs[i]->getBoundingPoint(4).id*3],
+			           myHexs[i]->getBoundingPoint(4).y+(*x)[myHexs[i]->getBoundingPoint(4).id*3+1],
+			           myHexs[i]->getBoundingPoint(4).z+(*x)[myHexs[i]->getBoundingPoint(4).id*3+2] );
+
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(5).x+(*x)[myHexs[i]->getBoundingPoint(5).id*3],
+			           myHexs[i]->getBoundingPoint(5).y+(*x)[myHexs[i]->getBoundingPoint(5).id*3+1],
+			           myHexs[i]->getBoundingPoint(5).z+(*x)[myHexs[i]->getBoundingPoint(5).id*3+2] );
+				
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(6).x+(*x)[myHexs[i]->getBoundingPoint(6).id*3],
+			           myHexs[i]->getBoundingPoint(6).y+(*x)[myHexs[i]->getBoundingPoint(6).id*3+1],
+			           myHexs[i]->getBoundingPoint(6).z+(*x)[myHexs[i]->getBoundingPoint(6).id*3+2] );
+
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(7).x+(*x)[myHexs[i]->getBoundingPoint(7).id*3],
+			           myHexs[i]->getBoundingPoint(7).y+(*x)[myHexs[i]->getBoundingPoint(7).id*3+1],
+			           myHexs[i]->getBoundingPoint(7).z+(*x)[myHexs[i]->getBoundingPoint(7).id*3+2] );
+				
+			glEnd();
+			glBegin(GL_LINES);
+			for(size_t t = 0 ; t < 4 ; t++)
+			{
+			
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(t).x+(*x)[myHexs[i]->getBoundingPoint(t).id*3],
+			           myHexs[i]->getBoundingPoint(t).y+(*x)[myHexs[i]->getBoundingPoint(t).id*3+1],
+			           myHexs[i]->getBoundingPoint(t).z+(*x)[myHexs[i]->getBoundingPoint(t).id*3+2] );
+				
+				glVertex3f(myHexs[i]->getBoundingPoint(t+4).x+(*x)[myHexs[i]->getBoundingPoint(t+4).id*3],
+				           myHexs[i]->getBoundingPoint(t+4).y+(*x)[myHexs[i]->getBoundingPoint(t+4).id*3+1],
+				           myHexs[i]->getBoundingPoint(t+4).z+(*x)[myHexs[i]->getBoundingPoint(t+4).id*3+2] );
+			}
+			
+			glEnd();
+		}
+			
+	
+	}
+	
+	
+	
 	glEndList() ;
 }
 
@@ -562,33 +687,9 @@ void mouse(int button, int state, int x, int y)
 int main(int argc, char *argv[])
 {
 	
-	Sample3D s3d(6,6,6,0,0,0) ;
-	Inclusion3D inclusion(0.5, 1, 0,0) ;
-	Inclusion3D inclusion0(0.5, -1, 0,0) ;
-	Inclusion3D inclusion1(0.7, 1, 0,0) ;
-	Inclusion3D inclusion2(0.7, -1, 0,0) ;
-	Inclusion3D inclusion3(1, 1, 0,0) ;
-	Inclusion3D inclusion4(1, -1, 0,0) ;
-	Inclusion3D inclusion5(1.2, 1, 0,0) ;
-	Inclusion3D inclusion6(1.2, -1, 0,0) ;
-	Inclusion3D inclusion7(1.5, 1, 0,0) ;
-	Inclusion3D inclusion8(1.5, -1, 0,0) ;
-	Inclusion3D inclusion9(1.7, 1, 0,0) ;
-	Inclusion3D inclusion10(1.7, -1, 0,0) ;
-	Inclusion3D inclusion11(1.9, 1, 0,0) ;
-	Inclusion3D inclusion12(1.9, -1, 0,0) ;
-	Inclusion3D inclusion13(2.1, 1, 0,0) ;
-	Inclusion3D inclusion14(2.1, -1, 0,0) ;
-	Inclusion3D inclusion15(2.4, 0, 0,0) ;
-	Inclusion3D inclusion16(2.7, -1, 0,0) ;
-	Inclusion3D inclusion17(2.3, -5, 0,0) ;
-	Inclusion3D inclusion18(2.7, 5, 0,0) ;
-	FeatureTree ft(&s3d) ;
-// 	ft.addFeature(&s3d,&inclusion) ;
-	
 	double E_c3s = 4. ;      // in MPa
 	double nu_c3s = 0.3 ;
-
+	
 	Matrix cgStressC3S(6,6) ;
 	cgStressC3S[0][0] = 1. - nu_c3s ; cgStressC3S[0][1] = nu_c3s ; cgStressC3S[0][2] = nu_c3s ;
 	cgStressC3S[1][0] = nu_c3s ; cgStressC3S[1][1] = 1. - nu_c3s ; cgStressC3S[1][2] = nu_c3s ;
@@ -598,237 +699,71 @@ int main(int argc, char *argv[])
 	cgStressC3S[5][5] = 0.5 - nu_c3s ;
 	cgStressC3S *= E_c3s/((1.+nu_c3s)*(1.-2.*nu_c3s)) ;
 	
-	Matrix cgStress(6,6) ;
-	cgStress = cgStressC3S*2. ;
-	Matrix cgStress0(6,6) ;
-	cgStress0 = cgStressC3S*8. ;
 	
-	Stiffness sc3s(cgStressC3S) ;
-	Stiffness soth(cgStress) ;
-	Stiffness soth0(cgStress0) ;
-
-
-// 	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > features = generateInclusionsAndPores(18, 0, &soth, &s3d, &ft) ;
-
-	ft.addFeature(&s3d, &inclusion15) ;
-// 	ft.addFeature(&inclusion15, &inclusion17) ;
-// 	ft.addFeature(&inclusion17, &inclusion16) ;
-// 	ft.addFeature(&inclusion16, &inclusion18) ;
-// // // 	ft.addFeature(&s3d, &inclusion16) ;
-// // // 	ft.addFeature(&inclusion16, &inclusion15) ;
-// 	ft.addFeature(&inclusion18, &inclusion14) ;
-// 	ft.addFeature(&inclusion14, &inclusion13) ;
-// 	ft.addFeature(&inclusion13, &inclusion12) ;
-// 	ft.addFeature(&inclusion12, &inclusion11) ;
-// 	ft.addFeature(&inclusion11, &inclusion10) ;
-// 	ft.addFeature(&inclusion10, &inclusion9) ;
-// 	ft.addFeature(&inclusion9, &inclusion8) ;
-// 	ft.addFeature(&inclusion8, &inclusion7) ;
-// 	ft.addFeature(&inclusion7, &inclusion6) ;
-// 	ft.addFeature(&inclusion6, &inclusion5) ;
-// 	ft.addFeature(&inclusion5, &inclusion4) ;
-// 	ft.addFeature(&inclusion4, &inclusion3) ;
-// 	ft.addFeature(&inclusion3, &inclusion2) ;
-// 	ft.addFeature(&inclusion2, &inclusion1) ;
-// 	ft.addFeature(&inclusion1, &inclusion0) ;
-// // 	ft.addFeature(&inclusion0, &inclusion) ;
-// 	inclusion.setBehaviour(&sc3s) ;
-// 	inclusion0.setBehaviour(&sc3s) ;
-// 	inclusion1.setBehaviour(&soth) ;
-// 	inclusion2.setBehaviour(&soth0) ;
-// 	inclusion3.setBehaviour(&soth) ;
-// 	inclusion4.setBehaviour(&soth0) ;
-// 	inclusion5.setBehaviour(&soth) ;
-// 	inclusion6.setBehaviour(&soth0) ;
-// 	inclusion7.setBehaviour(&soth) ;
-// 	inclusion8.setBehaviour(&soth0) ;
-// 	inclusion9.setBehaviour(&soth) ;
-// 	inclusion10.setBehaviour(&soth0) ;
-// 	inclusion11.setBehaviour(&soth) ;
-// 	inclusion12.setBehaviour(&soth0) ;
-// 	inclusion13.setBehaviour(&soth) ;
-// 	inclusion14.setBehaviour(&soth0) ;
-	inclusion15.setBehaviour(&soth) ;
-// 	inclusion16.setBehaviour(&soth0) ;
-// 	inclusion17.setBehaviour(&soth) ;
-// 	inclusion18.setBehaviour(&soth0) ;
-// 	s3d.setBehaviour(new VoidForm()) ;
-	s3d.setBehaviour(&sc3s) ;
-	
-	ft.sample(2048) ;
-
-	ft.setOrder(LINEAR) ;
-
-	ft.generateElements(0) ;
-// 	ft.refine(1) ;	
-// 	
-	
-// 	ft.assemble() ;
-	myTets= ft.getTetrahedrons() ;
+	Assembly * K = new Assembly() ;
 	
 	
-	for(size_t i = 0 ; i < myTets.size(); i++)
+	//1 Alite
+	//2 C-S-H
+	//3 CH
+	//4 C-S-H
+	//5   "
+	
+	VoxelFilter microstruct ;
+	
+	microstruct.behaviourMap[0] = new Stiffness(cgStressC3S) ;
+	microstruct.behaviourMap[1] = new Stiffness(cgStressC3S) ;
+	microstruct.behaviourMap[2] = new Stiffness(cgStressC3S) ;
+	microstruct.behaviourMap[3] = new Stiffness(cgStressC3S) ;
+	microstruct.behaviourMap[4] = new Stiffness(cgStressC3S) ;
+	microstruct.behaviourMap[5] = new Stiffness(cgStressC3S) ;
+	
+	microstruct.read("/home/cyrille/Documents/Data/Microstructures/pixels20.txt") ;
+	std::cout << "reading done" << std::endl ;
+	
+	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+		K->add(microstruct.getElements()[i]) ;
+	std::cout << "adding done" << std::endl ;
+	
+	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)	
 	{
-		for(size_t j = 0 ; j < myTets[i]->getBoundingPoints().size() ; j++)
+		for(size_t j = 0 ; j < microstruct.getElements()[i]->getBoundingPoints().size()  ; j++)
 		{
-			if(std::abs(myTets[i]->getBoundingPoint(j).x-3.) <  .001 )
-			{
-				ft.getAssembly()->setPoint(0, 0, 0, myTets[i]->getBoundingPoint(j).id) ;
-				
-			}
-		
-			if(std::abs(myTets[i]->getBoundingPoint(j).x+3.) < .001 )
-			{
-				ft.getAssembly()->setPoint(0, 0, 0, myTets[i]->getBoundingPoint(j).id) ;
-			}
+			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9)
+				K->setPoint(0,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x-10) < 1e-9)
+				K->setPoint(1,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 		}
 	}
+	
+	K->cgsolve() ;
+	
+	
+	x = new Vector(K->getDisplacements()) ;//Vector(ft.getAssembly()->getDisplacements()) ;
 
-	ft.step(0) ;
+	myHexs =  microstruct.getElements() ;
+	sigma = new Vector(myHexs.size()*8) ;
 	
-	std::valarray<Function> * shapefunc = new std::valarray<Function>(10) ;
-	
-	Matrix zero(3,3) ;
-	std::valarray<Matrix> f0(zero, 3) ;
-	f0[0][0][1] = -1 ; // z
-	f0[0][0][2] =  2 ; // z^2
-	
-	std::valarray<Matrix> f1(zero,3) ;
-	f1[0][0][1] = 4 ; // z
-	f1[0][0][2] = -4 ; // z^2
-	f1[1][0][1] = -4 ; // zx
-	f1[0][1][1] = -4 ; // zy
-	
-	std::valarray<Matrix> f2(zero,3) ;
-	f2[0][0][0] = 1 ; // 1
-	f2[0][0][1] = -3 ; // z
-	f2[0][0][2] = 2 ; // z^2
-	f2[1][0][1] = 4 ; // zx
-	f2[0][1][1] = 4 ; // zy
-	f2[1][0][0] = -3 ; // x
-	f2[2][0][0] = 2 ; // x^2
-	f2[1][1][0] = 4 ; // xy
-	f2[0][1][0] = -3 ; // y
-	f2[0][2][0] = 2 ; // y^2
-	
-	std::valarray<Matrix> f3(zero,3) ;
-	f3[1][0][0] = 4 ; // x
-	f3[2][0][0] = -4 ; // x^2
-	f3[1][0][1] = -4 ; // zx
-	f3[1][1][0] = -4 ; // xy
-	
-	std::valarray<Matrix> f4(zero, 3) ;
-	f4[1][0][0] = -1 ; // x
-	f4[2][0][0] = 2 ; // x^2
-	
-	std::valarray<Matrix> f5(zero,3) ;
-	f5[1][1][0] = 4 ; // xy
-	
-	std::valarray<Matrix> f6(zero,3) ;
-	f6[0][1][0] = -1 ; // y
-	f6[0][2][0] = 2 ; // y^2
-	
-	std::valarray<Matrix> f7(zero,3) ;
-	f7[0][1][1] = 4 ; // yz
-	
-	std::valarray<Matrix> f8(zero,3) ;
-	f8[0][1][0] = 4 ; // y
-	f8[0][2][0] = -4 ; // y^2
-	f8[0][1][1] = -4 ; // zy
-	f8[1][1][0] = -4 ; // xy
-	
-	
-	std::valarray<Matrix> f9(zero,3) ;
-	f9[1][0][1] = 4 ; // xz
-	
-	(*shapefunc)[0] = Function(f0) ;//z- z*2*(one-x-y-z) - x*z*2 - y*z*2 ; 
-	(*shapefunc)[1] = Function(f1) ; //z*4*(one-x-y-z) ;
-	(*shapefunc)[2] = Function(f2) ; //one-x-y-z-(one-x-y-z)*(x+y+z)*2 ;
-	(*shapefunc)[3] = Function(f3) ; //x*4*(one-x-y-z) ;
-	(*shapefunc)[4] = Function(f4) ; //x- x*2*(one-x-y-z) - x*z*2 - y*x*2 ; 
-	(*shapefunc)[5] = Function(f5) ; //x*y*4 ; 
-	(*shapefunc)[6] = Function(f6) ; //y- y*2*(one-x-y-z) - y*z*2 - y*x*2 ; 
-	(*shapefunc)[7] = Function(f7) ; //y*z*4 ;
-	(*shapefunc)[8] = Function(f8) ; //y*4*(one-x-y-z) ;
-	(*shapefunc)[9] = Function(f9) ; //x*z*4 ;
-	
-// 	for(size_t k = 0 ; k < myTets.size(); k++)
-// 	{
-// 		for(size_t i = 0 ; i < shapefunc->size() ; i++)
-// 		{
-// 			std::cout << i << " :: " << std::flush ;
-// 			for(size_t j = 0 ; j < myTets[k]->getBoundingPoints().size() ; j++)
-// 			{
-// 				std::cout << round(VirtualMachine().eval((*shapefunc)[i], myTets[k]->inLocalCoordinates(myTets[k]->getBoundingPoint(j)))*1000.)/1000. << std::flush ;
-// 			}
-// 			std::cout << std::endl ;
-// 		}
-// 	}
-	
-	
-	x = new Vector(ft.getAssembly()->getDisplacements()) ;//Vector(ft.getAssembly()->getDisplacements()) ;
-
-// 	for(size_t i = 0 ; i < myTets->size(); i++)
-// 	{
-// 		if(i%1000 == 0)
-// 			std::cout << "\r stepping through elements ..." << i+1 << "/" << myTets->size() << std::flush ;
-// 		myTets[i]->step(0, x) ;
-// 	}
-// 	std::cout << " ... done" << std::endl ;
-	sigma = new Vector(myTets.size()*4) ;
-	
-	for(size_t i = 0 ; i < myTets.size(); i++)
+	for(size_t i = 0 ; i < myHexs.size(); i++)
 	{
 		if(i%1000 == 0)
 			std::cout << "\r getting strains ..." << i+1 << "/" << myTets.size() << std::flush ;
 
-// 		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
-// 		{
-// 			(*sigma)[i*4] = myTets[i]->getBehaviour()->param[0][0];
-// 			(*sigma)[i*4+1] =  myTets[i]->getBehaviour()->param[0][0];
-// 			(*sigma)[i*4+2] =  myTets[i]->getBehaviour()->param[0][0];
-// 			(*sigma)[i*4+3] =  myTets[i]->getBehaviour()->param[0][0];
-// 		}
-		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
+
+		if(myHexs[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
 		{
-			Vector s = myTets[i]->getState()->getStress(*myTets[i]->first) ;
-			(*sigma)[i*4] = s[0] ; //sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-
-			s = myTets[i]->getState()->getStress(*myTets[i]->second) ;
-			(*sigma)[i*4+1] = s[0];//sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-
-	
-			s = myTets[i]->getState()->getStress(*myTets[i]->third) ;
-			(*sigma)[i*4+2] = s[0] ; //sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-
-
-			s = myTets[i]->getState()->getStress(*myTets[i]->fourth) ;
-			(*sigma)[i*4+3] = s[0] ; //sqrt(((s[0]-s[1])*(s[0]-s[1]) + (s[2]-s[1])*(s[2]-s[1]) + (s[2]-s[0])*(s[2]-s[0]))/2.);
-
-
-		
-// 			(*sigma)[i*4] = sqrt((*x)[myTets[i]->first->id*3]*(*x)[myTets[i]->first->id*3] + 
-// 			                     (*x)[myTets[i]->first->id*3+1]*(*x)[myTets[i]->first->id*3+1]+ 
-// 			                          (*x)[myTets[i]->first->id*3+2]*(*x)[myTets[i]->first->id*3+2]);
-// 			
-// 			(*sigma)[i*4+1] = sqrt((*x)[myTets[i]->first->id*3]*(*x)[myTets[i]->second->id*3] + 
-// 			                       (*x)[myTets[i]->first->id*3+1]*(*x)[myTets[i]->second->id*3+1]+ 
-// 			                            (*x)[myTets[i]->first->id*3+2]*(*x)[myTets[i]->second->id*3+2]);
-// 		
-// 			(*sigma)[i*4+2] = sqrt((*x)[myTets[i]->first->id*3]*(*x)[myTets[i]->third->id*3] + 
-// 			                       (*x)[myTets[i]->first->id*3+1]*(*x)[myTets[i]->third->id*3+1]+ 
-// 			                            (*x)[myTets[i]->first->id*3+2]*(*x)[myTets[i]->third->id*3+2]);
-// 		
-// 			(*sigma)[i*4+3] = sqrt((*x)[myTets[i]->first->id*3]*(*x)[myTets[i]->fourth->id*3] + 
-// 			                       (*x)[myTets[i]->first->id*3+1]*(*x)[myTets[i]->fourth->id*3+1]+ 
-// 			                            (*x)[myTets[i]->first->id*3+2]*(*x)[myTets[i]->fourth->id*3+2]);
+			for(size_t j = 0 ; j < 8 ;j++)
+			{
+				Vector s = myHexs[i]->getState()->getStress(myHexs[i]->getBoundingPoint(j)) ;
+				(*sigma)[i*4+j] = s[0] ; 
+			}
 		}
 		else
 		{
-			(*sigma)[i*4] = 0 ;
-			(*sigma)[i*4+1] = 0 ;
-			(*sigma)[i*4+2] = 0 ;
-			(*sigma)[i*4+3] = 0 ;
+			for(size_t j = 0 ; j < 8 ;j++)
+			{
+				(*sigma)[i*4+j] = 0 ; 
+			}
 		}
 		
 	}

@@ -2323,21 +2323,57 @@ Vector ElementState::getPrincipalAngle(const std::valarray<Point *> & v) const
 
 Vector ElementState::getPrincipalStresses(const Point & p, bool local ) const
 {
-	Vector stresses = getStress(p,local) ;
-
-	Vector lprincipal(2) ;
-	lprincipal[0] = (stresses[0]+stresses[1])/2. + 
-		sqrt(
-		      (stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
-		      (stresses[2]*stresses[2])
-		    ) ;
-	lprincipal[1] = (stresses[0]+stresses[1])/2. - 
-		sqrt(
-		      (stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
-		      (stresses[2]*stresses[2])
-		    ) ;
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		Vector stresses = getStress(p,local) ;
 	
-	return lprincipal ;
+		Vector lprincipal(2) ;
+		lprincipal[0] = (stresses[0]+stresses[1])/2. + 
+			sqrt(
+				(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+				(stresses[2]*stresses[2])
+				) ;
+		lprincipal[1] = (stresses[0]+stresses[1])/2. - 
+			sqrt(
+				(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+				(stresses[2]*stresses[2])
+				) ;
+		
+		return lprincipal ;
+	}
+	else
+	{
+		Vector stresses = getStress(p,local) ;
+		double I_1 = stresses[0] + stresses[1] + stresses[2] ;
+		double I_2 = stresses[0]*stresses[1] 
+			+ stresses[1]*stresses[2] 
+			+ stresses[2]*stresses[0] 
+			- stresses[3]*stresses[3]
+			- stresses[4]*stresses[4]
+			- stresses[5]*stresses[5];
+		double I_3 = stresses[0]*stresses[1]*stresses[2] 
+			+ 2*stresses[3]*stresses[4]*stresses[5]
+			- stresses[0]*stresses[3]*stresses[3]
+			- stresses[1]*stresses[4]*stresses[4]
+			- stresses[2]*stresses[5]*stresses[5];
+		
+		//solving a cubic equation
+		double p = (3.*I_3/I_1 - (I_2/I_1)*(I_2/I_1))/3.;
+		double q = (2.*(I_2/I_1)*(I_2/I_1)*(I_2/I_1) - 9.*(I_2/I_3)/(I_1*I_1))/27.;
+		
+		double phi = acos(-q*.5/(sqrt(std::abs(p*p*p)/27.))) ;
+		
+		Vector lprincipal(3) ;
+		
+		double y_0 = 2.*sqrt(std::abs(p)/3.)*cos(phi/3.) ;
+		double y_1  = -2.*sqrt(std::abs(p)/3.)*cos((phi+M_PI)/3.) ;
+		double y_2  = -2.*sqrt(std::abs(p)/3.)*cos((phi-M_PI)/3.) ;
+		
+		lprincipal[0] = y_0 - I_2/I_1/3. ;
+		lprincipal[1] = y_1 - I_2/I_1/3. ;
+		lprincipal[2] = y_2 - I_2/I_1/3. ;
+		return lprincipal ;
+	}
 }
 
 Vector ElementState::getPrincipalStresses(const std::valarray<Point *> & v) const
