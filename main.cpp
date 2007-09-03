@@ -224,9 +224,9 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 1 ; i++)
+	for(size_t i = 0 ; i < 5 ; i++)
 	{
-		std::cout << "\r iteration " << i << "/80" << std::flush ;
+		std::cout << "\r iteration " << i << "/5" << std::flush ;
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
@@ -239,7 +239,6 @@ void step()
 		timepos+= 0.0001 ;
 	
 	
-	std::cout << "\r iteration " << "80/80 ... done" << std::endl ;
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	dt = featureTree->getDelaunayTree() ;
@@ -487,8 +486,8 @@ void step()
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
-
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/8. ;
+		
+		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/5. ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
@@ -504,7 +503,7 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E = 0.5e+09 ;
+	double E = .2e+09 ;
 	double nu = .499999 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
@@ -512,9 +511,10 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1-nu*nu)*(1.-nu)/2. ; 
 	
 	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
-	
+	aggregateArea = 0 ;
 	for(size_t i = 0 ; i < incs.size() ; i++)
 	{
+		aggregateArea += incs[i]->area() ;
 		for(int j = 0 ; j < n ; j++)
 		{
 			double radius = 0.00001 ;
@@ -537,8 +537,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = .5 ;
-				a[1] = .5 ;
+				a[0] = .2 ;
+				a[1] = .2 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
@@ -1521,9 +1521,9 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.25, 25000, BOLOME_A)(.002, .05);
+	inclusions = GranuloBolome(.90, 25000, BOLOME_A)(.001, .05);
 	int nAgg = 0 ;
-	inclusions=placement(.16, .04, inclusions, &nAgg, 128);
+	inclusions=placement(.16, .04, inclusions, &nAgg, 256);
 // 	F.addFeature(&sample,inc) ;
 	
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -1545,7 +1545,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
- 	zones = generateExpansiveZones(3, inclusions, F) ;
+ 	zones = generateExpansiveZones(1, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1554,7 +1554,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(400) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

@@ -722,7 +722,10 @@ int main(int argc, char *argv[])
 	std::cout << "reading done" << std::endl ;
 	
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	{
 		K->add(microstruct.getElements()[i]) ;
+		microstruct.getElements()[i]->getState()->initialize() ;
+	}
 	std::cout << "adding done" << std::endl ;
 	
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)	
@@ -731,7 +734,7 @@ int main(int argc, char *argv[])
 		{
 			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9)
 				K->setPoint(0,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
-			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x-10) < 1e-9)
+			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x-2.5) < 1e-9)
 				K->setPoint(1,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 		}
 	}
@@ -741,13 +744,22 @@ int main(int argc, char *argv[])
 	
 	x = new Vector(K->getDisplacements()) ;//Vector(ft.getAssembly()->getDisplacements()) ;
 
+	std::cerr << " stepping through elements... " << std::flush ;
+	for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
+	{	
+		if(i%1000 == 0)
+			std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
+			microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
+	}
+	std::cerr << " ...done" << std::endl ;
+
 	myHexs =  microstruct.getElements() ;
 	sigma = new Vector(myHexs.size()*8) ;
 	
 	for(size_t i = 0 ; i < myHexs.size(); i++)
 	{
 		if(i%1000 == 0)
-			std::cout << "\r getting strains ..." << i+1 << "/" << myTets.size() << std::flush ;
+			std::cout << "\r getting strains ..." << i+1 << "/" << myHexs.size() << std::flush ;
 
 
 		if(myHexs[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
@@ -755,14 +767,14 @@ int main(int argc, char *argv[])
 			for(size_t j = 0 ; j < 8 ;j++)
 			{
 				Vector s = myHexs[i]->getState()->getStress(myHexs[i]->getBoundingPoint(j)) ;
-				(*sigma)[i*4+j] = s[0] ; 
+				(*sigma)[i*8+j] = s[0] ; 
 			}
 		}
 		else
 		{
 			for(size_t j = 0 ; j < 8 ;j++)
 			{
-				(*sigma)[i*4+j] = 0 ; 
+				(*sigma)[i*8+j] = 0 ; 
 			}
 		}
 		

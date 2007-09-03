@@ -2424,7 +2424,7 @@ std::valarray< std::pair<Point, double> > HexahedralElement::genGaussPoints() co
 	
 	if(order <= LINEAR)
 	{
-		fin[0] = std::pair<Point, double>(Point(0, 0, 0), 2.0) ;
+		fin[0] = std::pair<Point, double>(Point(0, 0, 0), 8.0) ;
 	}
 	else if (order <= CUBIC)
 	{

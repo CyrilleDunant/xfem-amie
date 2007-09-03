@@ -73,13 +73,14 @@ void VoxelFilter::read(const char * filename)
 	std::cout << "generated points" << std::endl ;
 	
 	index = 0 ;
-	
+
+
 	HexahedralElement * father = new HexahedralElement(LINEAR) ;
-	for( int i = 0 ; i < r ; i++)
+	for( int i = 0 ; i < r/4 ; i++)
 	{
-		for( int j = 0 ; j < c ; j++)
+		for( int j = 0 ; j < c/4 ; j++)
 		{
-			for( int k = 0 ; k < s ; k++)
+			for( int k = 0 ; k < s/4 ; k++)
 			{
 				if(!file.eof())
 				{
@@ -87,18 +88,18 @@ void VoxelFilter::read(const char * filename)
 					file >> behaviourKey ;
 					
 					std::vector<Point *> corner ;
-					corner.push_back(points[k*r*c+j*c+i]) ;
-					corner.push_back(points[k*r*c+j*c+i+1]) ;
-					corner.push_back(points[k*r*c+(j+1)*c+i]) ;
-					corner.push_back(points[k*r*c+(j+1)*c+i+1]) ;
-					corner.push_back(points[(k+1)*r*c+j*c+i]) ;
-					corner.push_back(points[(k+1)*r*c+j*c+i+1]) ;
-					corner.push_back(points[(k+1)*r*c+(j+1)*c+i]) ;
-					corner.push_back(points[(k+1)*r*c+(j+1)*c+i+1]) ;
+					corner.push_back(points[k*(r+1)*(c+1)+j*(c+1)+i]) ;
+					corner.push_back(points[k*(r+1)*(c+1)+j*(c+1)+i+1]) ;
+					corner.push_back(points[k*(r+1)*(c+1)+(j+1)*(c+1)+i]) ;
+					corner.push_back(points[k*(r+1)*(c+1)+(j+1)*(c+1)+i+1]) ;
+					corner.push_back(points[(k+1)*(r+1)*(c+1)+j*(c+1)+i]) ;
+					corner.push_back(points[(k+1)*(r+1)*(c+1)+j*(c+1)+i+1]) ;
+					corner.push_back(points[(k+1)*(r+1)*(c+1)+(j+1)*(c+1)+i]) ;
+					corner.push_back(points[(k+1)*(r+1)*(c+1)+(j+1)*(c+1)+i+1]) ;
 					Hexahedron * hex = new Hexahedron(corner[0], corner[1], corner[3], corner[2], corner[4], corner[5], corner[7], corner[6]) ;
 					elems.push_back(new HexahedralElement(father, hex)) ;
 					LinearForm * behaviour = behaviourMap[behaviourKey] ;
-					(*elems.rbegin())->setBehaviour(behaviour->getCopy()) ;
+					(*elems.rbegin())->setBehaviour(behaviour) ;
 
 				}
 			}
