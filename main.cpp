@@ -224,9 +224,10 @@ void setBC()
 void step()
 {
 	
-	for(size_t i = 0 ; i < 5 ; i++)
+	int nsteps = 8;
+	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/5" << std::flush ;
+		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
@@ -487,7 +488,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 		
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/5. ;
+		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)

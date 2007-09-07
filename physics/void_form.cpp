@@ -15,7 +15,7 @@
 using namespace Mu ;
 
 
-VoidForm::VoidForm() 
+VoidForm::VoidForm() : LinearForm(Matrix(1,1),false, false, 0 )
 {
 	this->num_dof = 0 ;
 	this->type = VOID_BEHAVIOUR ;

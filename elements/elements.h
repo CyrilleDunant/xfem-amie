@@ -168,7 +168,7 @@ protected:
 public:
 	ElementaryVolume(bool f = false) ;
 	virtual Function jacobian() const ;
-	double jacobianAtPoint(const Point p) const ;
+	double jacobianAtPoint(const Point & p) const ;
 	virtual ~ElementaryVolume() ;
 	
 	const bool isFather ;
@@ -202,10 +202,10 @@ public:
 	virtual const Function getdYTransform(Variable v) const ;
 	virtual const Function getdZTransform(Variable v) const ;
 	virtual const Function getdTTransform(Variable v) const ;
-	virtual const double getdXTransform(Variable v, const Point p) const ;
-	virtual const double getdYTransform(Variable v, const Point p) const ;
-	virtual const double getdZTransform(Variable v, const Point p) const ;
-	virtual const double getdTTransform(Variable v, const Point p) const ;
+	virtual const double getdXTransform(Variable v, const Point & p) const ;
+	virtual const double getdYTransform(Variable v, const Point & p) const ;
+	virtual const double getdZTransform(Variable v, const Point & p) const ;
+	virtual const double getdTTransform(Variable v, const Point & p) const ;
 
 	virtual void setEnrichment(std::pair<size_t, Function>  p) ;
 	
@@ -280,11 +280,12 @@ public:
 	virtual Point inLocalCoordinates(const Point & p) const ;
 	virtual Vector getNonLinearForces() const;
 	virtual std::vector<std::vector<Mu::Matrix> > getNonLinearElementaryMatrix() const;
-	
+	bool visited ;
 } ;
 
 } ;
 
 void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralElement *> & vec) ;
+void burn(std::vector<Mu::HexahedralElement *> & vec) ;
 
 #endif // __ELEMENTS_H_

@@ -233,9 +233,9 @@ Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p
 	}
 	
 	this->center = Point(*p0 + *p1 + *p2 + *p3 + *p4+ *p5+ *p6+ *p7)*0.125;
-	this->size_x = std::abs(boundingPoints[6]->x - boundingPoints[0]->x);
-	this->size_y = std::abs(boundingPoints[6]->y - boundingPoints[0]->y);
-	this->size_z = std::abs(boundingPoints[6]->z - boundingPoints[0]->z);
+	this->size_x = std::abs(boundingPoints[7]->x - boundingPoints[0]->x);
+	this->size_y = std::abs(boundingPoints[7]->y - boundingPoints[0]->y);
+	this->size_z = std::abs(boundingPoints[7]->z - boundingPoints[0]->z);
 	
 }
 

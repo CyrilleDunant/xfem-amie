@@ -12,6 +12,7 @@
 #include "features/sample3d.h"
 #include "delaunay_3d.h"
 #include "filters/voxelfilter.h"
+#include "physics/void_form.h"
 
 #include <cmath>
 #include <typeinfo>
@@ -55,6 +56,8 @@ GLint yangle = 0;
 GLint zangle = 0;
 
 double max_x = 5.;
+double maxs = 0;
+double mins = 0;
 
 Vector * x ;
 Vector * sigma ;
@@ -209,8 +212,8 @@ void computeDisplayList()
 			
 			double r, g, b ;
 			
-		HSV2RGB(&r, &g, &b, 360.-360.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
-		glColor4f (r,g,b, .3);
+// 		HSV2RGB(&r, &g, &b, 360.-360.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
+// 		glColor4f (r,g,b, .3);
 			
 		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
@@ -225,204 +228,107 @@ void computeDisplayList()
 // 					glColor4ub (255,0,0,255); 		
 
 			
-			HSV2RGB(&r, &g, &b, 360.*(myTets[i]->getBehaviour()->param[0][0]-3.8)/(11.1-3.8), 1., 1.) ;
+// 			HSV2RGB(&r, &g, &b, 180.-180.*(myTets[i]->getBehaviour()->param[0][0]-mins)/(maxs-mins), 1., 1.) ;
+// 			glColor4f (r,g,b, .3);
+			
+			HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			
 			glBegin(GL_LINES);
 			
-			if( std::abs(myTets[i]->first->norm() - 2.4) < .1 && std::abs(myTets[i]->second->norm() - 2.4) < .1)
-			{
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 	
 				glVertex3f(myTets[i]->first->x+(*x)[myTets[i]->first->id*3],
 						myTets[i]->first->y+(*x)[myTets[i]->first->id*3+1],
 						myTets[i]->first->z+(*x)[myTets[i]->first->id*3+2]);
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 	
 				glVertex3f(myTets[i]->second->x+(*x)[myTets[i]->second->id*3],
 						myTets[i]->second->y+(*x)[myTets[i]->second->id*3+1],
 						myTets[i]->second->z+(*x)[myTets[i]->second->id*3+2] );
-			}
-			
-			if( std::abs(myTets[i]->first->norm() - 2.4) < .1 && std::abs(myTets[i]->third->norm() - 2.4) < .1)
-			{
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 				
 				glVertex3f(myTets[i]->first->x+(*x)[myTets[i]->first->id*3],
 						myTets[i]->first->y+(*x)[myTets[i]->first->id*3+1],
 						myTets[i]->first->z+(*x)[myTets[i]->first->id*3+2] );
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 	
 				glVertex3f(myTets[i]->third->x+(*x)[myTets[i]->third->id*3],
 						myTets[i]->third->y+(*x)[myTets[i]->third->id*3+1],
 						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2] );
-			}
-			
-			if( std::abs(myTets[i]->first->norm() - 2.4) < .1 && std::abs(myTets[i]->fourth->norm() - 2.4) < .1)
-			{
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 				
 				glVertex3f(myTets[i]->first->x+(*x)[myTets[i]->first->id*3],
 						myTets[i]->first->y+(*x)[myTets[i]->first->id*3+1],
 						myTets[i]->first->z+(*x)[myTets[i]->first->id*3+2] );
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 	
 				glVertex3f(myTets[i]->fourth->x+(*x)[myTets[i]->fourth->id*3],
 						myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
 						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
-			}
-			
-			if( std::abs(myTets[i]->second->norm() - 2.4) < .1 && std::abs(myTets[i]->third->norm() - 2.4) < .1)
-			{
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+	
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 	
 				glVertex3f(myTets[i]->second->x+(*x)[myTets[i]->second->id*3],
 						myTets[i]->second->y+(*x)[myTets[i]->second->id*3+1],
 						myTets[i]->second->z+(*x)[myTets[i]->second->id*3+2] );
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 	
 				glVertex3f(myTets[i]->third->x+(*x)[myTets[i]->third->id*3],
 						myTets[i]->third->y+(*x)[myTets[i]->third->id*3+1],
 						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2]);
-			}
-			
-			if( std::abs(myTets[i]->second->norm() - 2.4) < .1 && std::abs(myTets[i]->fourth->norm() - 2.4) < .1)
-			{
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 				
 				glVertex3f(myTets[i]->second->x+(*x)[myTets[i]->second->id*3],
 						myTets[i]->second->y+(*x)[myTets[i]->second->id*3+1],
 						myTets[i]->second->z+(*x)[myTets[i]->second->id*3+2] );
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 				
 				glVertex3f(myTets[i]->fourth->x+(*x)[myTets[i]->fourth->id*3],
 						myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
 						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
-			}
-			
-			if( std::abs(myTets[i]->third->norm() - 2.4) < .1 && std::abs(myTets[i]->fourth->norm() - 2.4) < .1)
-			{
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 				
 				glVertex3f((myTets[i]->third->x)+(*x)[myTets[i]->third->id*3],
 						myTets[i]->third->y+(*x)[myTets[i]->third->id*3+1],
 						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2] );
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
+// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
+// 				glColor4f (r,g,b, .3);
 				
 				glVertex3f(myTets[i]->fourth->x+(*x)[myTets[i]->fourth->id*3],
 						myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
 						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
-			}
+
 			glEnd();
-			
-// 			glBegin(GL_LINES) ;
-// 			glVertex3f(myTets[i]->first->x +(*x)[myTets[i]->first->id*3],
-// 			           myTets[i]->first->y +(*x)[myTets[i]->first->id*3+1],
-// 			           myTets[i]->first->z +(*x)[myTets[i]->first->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(1)->x +(*x)[myTets[i]->getBoundingPoint(1)->id*3],
-// 			           myTets[i]->getBoundingPoint(1)->y +(*x)[myTets[i]->getBoundingPoint(1)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(1)->z +(*x)[myTets[i]->getBoundingPoint(1)->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(1)->x +(*x)[myTets[i]->getBoundingPoint(1)->id*3],
-// 			           myTets[i]->getBoundingPoint(1)->y +(*x)[myTets[i]->getBoundingPoint(1)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(1)->z +(*x)[myTets[i]->getBoundingPoint(1)->id*3+2]);
-// 			glVertex3f(myTets[i]->second->x +(*x)[myTets[i]->second->id*3],
-// 			           myTets[i]->second->y +(*x)[myTets[i]->second->id*3+1],
-// 			           myTets[i]->second->z +(*x)[myTets[i]->second->id*3+2]);
-// 
-// 			glVertex3f(myTets[i]->first->x +(*x)[myTets[i]->first->id*3],
-// 			           myTets[i]->first->y +(*x)[myTets[i]->first->id*3+1],
-// 			           myTets[i]->first->z +(*x)[myTets[i]->first->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(9)->x +(*x)[myTets[i]->getBoundingPoint(9)->id*3],
-// 			           myTets[i]->getBoundingPoint(9)->y +(*x)[myTets[i]->getBoundingPoint(9)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(9)->z +(*x)[myTets[i]->getBoundingPoint(9)->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(9)->x +(*x)[myTets[i]->getBoundingPoint(9)->id*3],
-// 			           myTets[i]->getBoundingPoint(9)->y +(*x)[myTets[i]->getBoundingPoint(9)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(9)->z +(*x)[myTets[i]->getBoundingPoint(9)->id*3+2]);
-// 			glVertex3f(myTets[i]->third->x +(*x)[myTets[i]->third->id*3],
-// 			           myTets[i]->third->y +(*x)[myTets[i]->third->id*3+1],
-// 			           myTets[i]->third->z +(*x)[myTets[i]->third->id*3+2]);
-// 			
-// 			glVertex3f(myTets[i]->first->x +(*x)[myTets[i]->first->id*3],
-// 			           myTets[i]->first->y +(*x)[myTets[i]->first->id*3+1],
-// 			           myTets[i]->first->z +(*x)[myTets[i]->first->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(7)->x +(*x)[myTets[i]->getBoundingPoint(7)->id*3],
-// 			           myTets[i]->getBoundingPoint(7)->y +(*x)[myTets[i]->getBoundingPoint(7)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(7)->z +(*x)[myTets[i]->getBoundingPoint(7)->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(7)->x +(*x)[myTets[i]->getBoundingPoint(7)->id*3],
-// 			           myTets[i]->getBoundingPoint(7)->y +(*x)[myTets[i]->getBoundingPoint(7)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(7)->z +(*x)[myTets[i]->getBoundingPoint(7)->id*3+2]);
-// 			glVertex3f(myTets[i]->fourth->x +(*x)[myTets[i]->fourth->id*3],
-// 			           myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
-// 			           myTets[i]->fourth->z +(*x)[myTets[i]->fourth->id*3+2]);
-// 			glEnd();
-// 			glBegin(GL_LINE_LOOP) ;
-// 			glVertex3f(myTets[i]->second->x +(*x)[myTets[i]->second->id*3],
-// 			           myTets[i]->second->y +(*x)[myTets[i]->second->id*3+1],
-// 			           myTets[i]->second->z +(*x)[myTets[i]->second->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(3)->x +(*x)[myTets[i]->getBoundingPoint(3)->id*3],
-// 			           myTets[i]->getBoundingPoint(3)->y +(*x)[myTets[i]->getBoundingPoint(3)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(3)->z +(*x)[myTets[i]->getBoundingPoint(3)->id*3+2]);
-// 			glVertex3f(myTets[i]->third->x + (*x)[myTets[i]->third->id*3],
-// 			           myTets[i]->third->y + (*x)[myTets[i]->third->id*3+1],
-// 			           myTets[i]->third->z + (*x)[myTets[i]->third->id*3+2] );
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(5)->x +(*x)[myTets[i]->getBoundingPoint(5)->id*3],
-// 			           myTets[i]->getBoundingPoint(5)->y +(*x)[myTets[i]->getBoundingPoint(5)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(5)->z +(*x)[myTets[i]->getBoundingPoint(5)->id*3+2]);
-// 			glVertex3f(myTets[i]->fourth->x +(*x)[myTets[i]->fourth->id*3],
-// 			           myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
-// 			           myTets[i]->fourth->z +(*x)[myTets[i]->fourth->id*3+2]);
-// 			if(myTets[i]->getOrder() == QUADRATIC)
-// 			glVertex3f(myTets[i]->getBoundingPoint(8)->x +(*x)[myTets[i]->getBoundingPoint(8)->id*3],
-// 			           myTets[i]->getBoundingPoint(8)->y +(*x)[myTets[i]->getBoundingPoint(8)->id*3+1],
-// 			           myTets[i]->getBoundingPoint(8)->z +(*x)[myTets[i]->getBoundingPoint(8)->id*3+2]);
-// 			glEnd();
-			
+
 	}
 	}
 	
 	for(size_t i = 0 ; i < myHexs.size(); i++)
 	{
-		
-// 		if(dist(*myTets[i]->getCenter(), cen) <1.8 || 
-// 		   dist(*myTets[i]->getCenter(), cen1) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen2) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen3) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen4) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen5) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen6) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen7) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen8) <0.9 
-// 		  )
-// 				glColor4ub (255,0,255,10);
-// 			else
-// 				glColor4ub (0,0,255,10); 			
-		
+
 		double r, g, b ;
 		
 		HSV2RGB(&r, &g, &b, 360.-360.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
@@ -445,14 +351,14 @@ void computeDisplayList()
 			glBegin(GL_LINE_LOOP);
 			
 
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
 				
 			glVertex3f(myHexs[i]->getBoundingPoint(0).x+(*x)[myHexs[i]->getBoundingPoint(0).id*3],
 			           myHexs[i]->getBoundingPoint(0).y+(*x)[myHexs[i]->getBoundingPoint(0).id*3+1],
 			           myHexs[i]->getBoundingPoint(0).z+(*x)[myHexs[i]->getBoundingPoint(0).id*3+2]);
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+1]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
 				
 			glVertex3f(myHexs[i]->getBoundingPoint(1).x+(*x)[myHexs[i]->getBoundingPoint(1).id*3],
@@ -460,58 +366,58 @@ void computeDisplayList()
 			           myHexs[i]->getBoundingPoint(1).z+(*x)[myHexs[i]->getBoundingPoint(1).id*3+2] );
 
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(2).x+(*x)[myHexs[i]->getBoundingPoint(2).id*3],
-			           myHexs[i]->getBoundingPoint(2).y+(*x)[myHexs[i]->getBoundingPoint(2).id*3+1],
-			           myHexs[i]->getBoundingPoint(2).z+(*x)[myHexs[i]->getBoundingPoint(2).id*3+2] );
-
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+2]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
 				
 			glVertex3f(myHexs[i]->getBoundingPoint(3).x+(*x)[myHexs[i]->getBoundingPoint(3).id*3],
 			           myHexs[i]->getBoundingPoint(3).y+(*x)[myHexs[i]->getBoundingPoint(3).id*3+1],
 			           myHexs[i]->getBoundingPoint(3).z+(*x)[myHexs[i]->getBoundingPoint(3).id*3+2] );
+
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(2).x+(*x)[myHexs[i]->getBoundingPoint(2).id*3],
+			           myHexs[i]->getBoundingPoint(2).y+(*x)[myHexs[i]->getBoundingPoint(2).id*3+1],
+			           myHexs[i]->getBoundingPoint(2).z+(*x)[myHexs[i]->getBoundingPoint(2).id*3+2] );
 			glEnd();
 			glBegin(GL_LINE_LOOP);
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+3]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
 				
 			glVertex3f(myHexs[i]->getBoundingPoint(4).x+(*x)[myHexs[i]->getBoundingPoint(4).id*3],
 			           myHexs[i]->getBoundingPoint(4).y+(*x)[myHexs[i]->getBoundingPoint(4).id*3+1],
 			           myHexs[i]->getBoundingPoint(4).z+(*x)[myHexs[i]->getBoundingPoint(4).id*3+2] );
 
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+1]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
 				
 			glVertex3f(myHexs[i]->getBoundingPoint(5).x+(*x)[myHexs[i]->getBoundingPoint(5).id*3],
 			           myHexs[i]->getBoundingPoint(5).y+(*x)[myHexs[i]->getBoundingPoint(5).id*3+1],
 			           myHexs[i]->getBoundingPoint(5).z+(*x)[myHexs[i]->getBoundingPoint(5).id*3+2] );
 				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(6).x+(*x)[myHexs[i]->getBoundingPoint(6).id*3],
-			           myHexs[i]->getBoundingPoint(6).y+(*x)[myHexs[i]->getBoundingPoint(6).id*3+1],
-			           myHexs[i]->getBoundingPoint(6).z+(*x)[myHexs[i]->getBoundingPoint(6).id*3+2] );
-
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+2]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
 				
 			glVertex3f(myHexs[i]->getBoundingPoint(7).x+(*x)[myHexs[i]->getBoundingPoint(7).id*3],
 			           myHexs[i]->getBoundingPoint(7).y+(*x)[myHexs[i]->getBoundingPoint(7).id*3+1],
 			           myHexs[i]->getBoundingPoint(7).z+(*x)[myHexs[i]->getBoundingPoint(7).id*3+2] );
+
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+1]-min)/(max-min), 1., 1.) ;
+				glColor4f (r,g,b, .3);
+				
+			glVertex3f(myHexs[i]->getBoundingPoint(6).x+(*x)[myHexs[i]->getBoundingPoint(6).id*3],
+			           myHexs[i]->getBoundingPoint(6).y+(*x)[myHexs[i]->getBoundingPoint(6).id*3+1],
+			           myHexs[i]->getBoundingPoint(6).z+(*x)[myHexs[i]->getBoundingPoint(6).id*3+2] );
 				
 			glEnd();
 			glBegin(GL_LINES);
 			for(size_t t = 0 ; t < 4 ; t++)
 			{
 			
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
+				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+3]-min)/(max-min), 1., 1.) ;
 				glColor4f (r,g,b, .3);
 				
-			glVertex3f(myHexs[i]->getBoundingPoint(t).x+(*x)[myHexs[i]->getBoundingPoint(t).id*3],
+				glVertex3f(myHexs[i]->getBoundingPoint(t).x+(*x)[myHexs[i]->getBoundingPoint(t).id*3],
 			           myHexs[i]->getBoundingPoint(t).y+(*x)[myHexs[i]->getBoundingPoint(t).id*3+1],
 			           myHexs[i]->getBoundingPoint(t).z+(*x)[myHexs[i]->getBoundingPoint(t).id*3+2] );
 				
@@ -687,8 +593,15 @@ void mouse(int button, int state, int x, int y)
 int main(int argc, char *argv[])
 {
 	
-	double E_c3s = 4. ;      // in MPa
-	double nu_c3s = 0.3 ;
+	double E_csh = 31 ;      // in GPa
+	double nu_csh = 0.28 ;
+	
+	double E_ch = 40 ;      // in GPa
+	double nu_ch = 0.3 ;
+	
+	double E_c3s = 135 ;      // in GPa
+	double nu_c3s = 0.31 ;
+	
 	
 	Matrix cgStressC3S(6,6) ;
 	cgStressC3S[0][0] = 1. - nu_c3s ; cgStressC3S[0][1] = nu_c3s ; cgStressC3S[0][2] = nu_c3s ;
@@ -699,6 +612,26 @@ int main(int argc, char *argv[])
 	cgStressC3S[5][5] = 0.5 - nu_c3s ;
 	cgStressC3S *= E_c3s/((1.+nu_c3s)*(1.-2.*nu_c3s)) ;
 	
+	Matrix cgStressCSH(6,6) ;
+	cgStressCSH[0][0] = 1. - nu_csh ; cgStressCSH[0][1] = nu_csh ; cgStressCSH[0][2] = nu_csh ;
+	cgStressCSH[1][0] = nu_csh ; cgStressCSH[1][1] = 1. - nu_csh ; cgStressCSH[1][2] = nu_csh ;
+	cgStressCSH[2][0] = nu_csh ; cgStressCSH[2][1] = nu_csh ; cgStressCSH[2][2] = 1. - nu_csh ;
+	cgStressCSH[3][3] = 0.5 - nu_csh ;
+	cgStressCSH[4][4] = 0.5 - nu_csh ;
+	cgStressCSH[5][5] = 0.5 - nu_csh ;
+	cgStressCSH *= E_csh/((1.+nu_csh)*(1.-2.*nu_csh)) ;
+	
+	Matrix cgStressCH(6,6) ;
+	cgStressCH[0][0] = 1. - nu_ch ; cgStressCH[0][1] = nu_ch ; cgStressCH[0][2] = nu_ch ;
+	cgStressCH[1][0] = nu_ch ; cgStressCH[1][1] = 1. - nu_ch ; cgStressCH[1][2] = nu_ch ;
+	cgStressCH[2][0] = nu_ch ; cgStressCH[2][1] = nu_ch ; cgStressCH[2][2] = 1. - nu_ch ;
+	cgStressCH[3][3] = 0.5 - nu_ch ;
+	cgStressCH[4][4] = 0.5 - nu_ch ;
+	cgStressCH[5][5] = 0.5 - nu_ch ;
+	cgStressCH *= E_ch/((1.+nu_ch)*(1.-2.*nu_ch)) ;
+	
+	maxs = std::max(std::max(cgStressC3S[0][0],cgStressCSH[0][0]),cgStressCH[0][0]) ;
+	mins = std::min(std::min(cgStressC3S[0][0],cgStressCSH[0][0]),cgStressCH[0][0]) ;
 	
 	Assembly * K = new Assembly() ;
 	
@@ -711,78 +644,136 @@ int main(int argc, char *argv[])
 	
 	VoxelFilter microstruct ;
 	
-	microstruct.behaviourMap[0] = new Stiffness(cgStressC3S) ;
+	microstruct.behaviourMap[0] = new VoidForm() ;
 	microstruct.behaviourMap[1] = new Stiffness(cgStressC3S) ;
-	microstruct.behaviourMap[2] = new Stiffness(cgStressC3S) ;
-	microstruct.behaviourMap[3] = new Stiffness(cgStressC3S) ;
-	microstruct.behaviourMap[4] = new Stiffness(cgStressC3S) ;
-	microstruct.behaviourMap[5] = new Stiffness(cgStressC3S) ;
+	microstruct.behaviourMap[2] = new Stiffness(cgStressCSH) ;
+	microstruct.behaviourMap[3] = new Stiffness(cgStressCH) ;
+	microstruct.behaviourMap[4] = new Stiffness(cgStressCSH) ;
+	microstruct.behaviourMap[5] = new Stiffness(cgStressCSH) ;
 	
-	microstruct.read("/home/cyrille/Documents/Data/Microstructures/pixels20.txt") ;
+	microstruct.read("/home/cyrille/Documents/Data/Microstructures/size64/pixels26.txt") ;
 	std::cout << "reading done" << std::endl ;
+	
 	
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
 	{
-		K->add(microstruct.getElements()[i]) ;
-		microstruct.getElements()[i]->getState()->initialize() ;
+		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
+		{
+			microstruct.getElements()[i]->getBoundingPoint(j).id = -1 ;
+		}
 	}
+	
+	int index = 0 ;
+	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	{
+		
+		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		{
+			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
+			{
+				if(microstruct.getElements()[i]->getBoundingPoint(j).id == -1)
+					microstruct.getElements()[i]->getBoundingPoint(j).id = index++ ;
+			}
+			
+			K->add(microstruct.getElements()[i]) ;
+			microstruct.getElements()[i]->getState()->initialize() ;
+		}
+	}
+	
 	std::cout << "adding done" << std::endl ;
 	
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)	
 	{
-		for(size_t j = 0 ; j < microstruct.getElements()[i]->getBoundingPoints().size()  ; j++)
+		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
-			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9)
-				K->setPoint(0,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
-			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x-2.5) < 1e-9)
-				K->setPoint(1,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			for(size_t j = 0 ; j < microstruct.getElements()[i]->getBoundingPoints().size()  ; j++)
+			{
+				if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9)
+					K->setPoint(0,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+				if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x- 7.5) < 1e-9)
+					K->setPoint(.2,0,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+				if(microstruct.getElements()[i]->getBoundingPoint(j).y < 1e-9 
+				   || std::abs(microstruct.getElements()[i]->getBoundingPoint(j).y-7.5) < 1e-9)
+					K->setPointAlong(ETA,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+				if(microstruct.getElements()[i]->getBoundingPoint(j).z < 1e-9 
+				   || std::abs(microstruct.getElements()[i]->getBoundingPoint(j).z-7.5) < 1e-9)
+					K->setPointAlong(ZETA,0,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			}
 		}
 	}
 	
 	K->cgsolve() ;
 	
 	
-	x = new Vector(K->getDisplacements()) ;//Vector(ft.getAssembly()->getDisplacements()) ;
+	x = new Vector(K->getDisplacements()) ;
 
 	std::cerr << " stepping through elements... " << std::flush ;
 	for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
 	{	
 		if(i%1000 == 0)
 			std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
+		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		{
 			microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
+			microstruct.getElements()[i]->getBehaviour()->step(.1, microstruct.getElements()[i]->getState()) ;
+		}
 	}
 	std::cerr << " ...done" << std::endl ;
 
-	myHexs =  microstruct.getElements() ;
-	sigma = new Vector(myHexs.size()*8) ;
+	myTets =  microstruct.getElements() ;
+	sigma = new Vector(myTets.size()*4) ;
 	
-	for(size_t i = 0 ; i < myHexs.size(); i++)
+	Vector avg_sigma(0.,6);
+	Vector avg_epsilon(0.,6);
+	int count = 0 ;
+	for(size_t i = 0 ; i < myTets.size(); i++)
 	{
 		if(i%1000 == 0)
-			std::cout << "\r getting strains ..." << i+1 << "/" << myHexs.size() << std::flush ;
+			std::cout << "\r getting strains ..." << i+1 << "/" << myTets.size() << std::flush ;
 
 
-		if(myHexs[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
+		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
 		{
-			for(size_t j = 0 ; j < 8 ;j++)
+			Vector s = myTets[i]->getState()->getStress(Point(0.25,0.25,0.25), true) ;
+			Vector e = myTets[i]->getState()->getStrain(Point(0.25,0.25,0.25), true) ;
+			avg_sigma += s ;
+			avg_epsilon += e ;
+			count++;
+			
+			for(size_t j = 0 ; j < 4 ;j++)
 			{
-				Vector s = myHexs[i]->getState()->getStress(myHexs[i]->getBoundingPoint(j)) ;
-				(*sigma)[i*8+j] = s[0] ; 
+				
+				(*sigma)[i*4+j] = s[0] ; 
 			}
 		}
 		else
 		{
-			for(size_t j = 0 ; j < 8 ;j++)
+			for(size_t j = 0 ; j < 4 ;j++)
 			{
-				(*sigma)[i*8+j] = 0 ; 
+				(*sigma)[i*4+j] = 0 ; 
 			}
 		}
 		
 	}
 	
+	avg_sigma /= count ;
+	avg_epsilon /= count ;
 	std::cout << " ... done" << std::endl ;
 	std::cout << "sigma max = " << sigma->max() << std::endl ;
 	std::cout << "sigma min = " << sigma->min() << std::endl ;
+	std::cout << "sigma avg = " << avg_sigma[0] <<", " <<
+		avg_sigma[1] <<", " << 
+		avg_sigma[2] <<", " << 
+		avg_sigma[3] <<", " <<
+		avg_sigma[4] <<", " <<
+		avg_sigma[5] <<", " <<std::endl ;
+	std::cout << "epsilon avg = " << avg_epsilon[0] <<", " <<
+		avg_epsilon[1] <<", " << 
+		avg_epsilon[2] <<", " << 
+		avg_epsilon[3] <<", " <<
+		avg_epsilon[4] <<", " <<
+		avg_epsilon[5] <<", " <<std::endl ;
+	
 	
 	std::cout << " ... done" << std::endl ;
 	

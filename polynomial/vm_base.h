@@ -15,7 +15,7 @@
 namespace Mu
 {
 
-const double default_derivation_delta= 2e-7 ;
+const double default_derivation_delta= 2e-8 ;
 
 struct GtFMtG ;
 struct IntegrableEntity ;

@@ -25,7 +25,7 @@ Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const Integr
 	std::vector<Variable> v ;
 	v.push_back(XI);
 	v.push_back(ETA);
-	if(param.size() == 36)
+	if(param.size() > 9)
 		v.push_back(ZETA);
 	
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
@@ -36,9 +36,9 @@ Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const std::v
 	std::vector<Variable> v ;
 	v.push_back(XI);
 	v.push_back(ETA);
-	if(param.size() == 36)
+	if(param.size() > 9)
 		v.push_back(ZETA);
-	
+
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 

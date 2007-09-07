@@ -16,6 +16,7 @@
 #include <map>
 
 #include "../elements/elements.h"
+#include "../delaunay_3d.h"
 
 namespace Mu {
 
@@ -25,25 +26,25 @@ namespace Mu {
 class VoxelFilter{
 protected:
 	std::vector<Point *> points ;
-	std::vector<HexahedralElement *> elems;
+	std::vector<DelaunayTetrahedron *> elems;
 	
 public:
 	VoxelFilter();
 
-	~VoxelFilter();
+	virtual ~VoxelFilter();
 	
 	void read(const char * filename) ;
 	
 	std::map<int,LinearForm *> behaviourMap ;
 	
 	std::vector<Point *> & getPoints() ;
-	std::vector<HexahedralElement *> & getElements() ;
+	std::vector<DelaunayTetrahedron *> & getElements() ;
 	
 	const std::vector<Point *> & getPoints() const ;
-	const std::vector<HexahedralElement *> & getElements() const ;
+	const std::vector<DelaunayTetrahedron *> & getElements() const ;
 
 };
 
 }
 
-#endif
+#endif //MUVOXELFILTER_H

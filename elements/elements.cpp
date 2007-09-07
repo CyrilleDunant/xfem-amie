@@ -1302,20 +1302,20 @@ Point HexahedralElement::inLocalCoordinates(const Point& p) const
 	
 	Matrix S(4,4) ;
 	S[0][0] = this->getBoundingPoint(0).x;
-	S[0][1] = this->getBoundingPoint(2).x;
-	S[0][2] = this->getBoundingPoint(4).x;
+	S[0][1] = this->getBoundingPoint(4).x;
+	S[0][2] = this->getBoundingPoint(2).x;
 	S[0][3]=  this->getBoundingPoint(1).x;
 	
 	
 	S[1][0] = this->getBoundingPoint(0).y;
-	S[1][1] = this->getBoundingPoint(2).y;
-	S[1][2] = this->getBoundingPoint(4).y;
+	S[1][1] = this->getBoundingPoint(4).y;
+	S[1][2] = this->getBoundingPoint(2).y;
 	S[1][3]=  this->getBoundingPoint(1).y;
 	
 	
 	S[2][0] = this->getBoundingPoint(0).z;
-	S[2][1] = this->getBoundingPoint(2).z;
-	S[2][2] = this->getBoundingPoint(4).z;
+	S[2][1] = this->getBoundingPoint(4).z;
+	S[2][2] = this->getBoundingPoint(2).z;
 	S[2][3]=  this->getBoundingPoint(1).z;
 	
 	
@@ -1329,7 +1329,7 @@ Point HexahedralElement::inLocalCoordinates(const Point& p) const
 	
 	Vector coeff = inverse4x4Matrix(S) * v ;
 	
-	return Point(-1,-1,-1)*coeff[0] + Point(-1,-1,1)*coeff[1] + Point(-1,1,-1)*coeff[2]+  Point(-1,-1,1)*coeff[3];
+	return Point(-1,-1,-1)*coeff[0] + Point(1,-1,-1)*coeff[1] + Point(-1,1,-1)*coeff[2]+  Point(-1,-1,1)*coeff[3];
 
 }
 
@@ -1370,22 +1370,22 @@ const Function ElementaryVolume::getdTTransform(Variable v) const
 }
 
 
-const double ElementaryVolume::getdXTransform(Variable v, const Point p) const
+const double ElementaryVolume::getdXTransform(Variable v, const Point & p) const
 {
 	return dXTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
-const double ElementaryVolume::getdYTransform(Variable v, const Point p) const
+const double ElementaryVolume::getdYTransform(Variable v, const Point & p) const
 {
 	return dYTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
-const double ElementaryVolume::getdZTransform(Variable v, const Point p) const
+const double ElementaryVolume::getdZTransform(Variable v, const Point & p) const
 {
 	return dZTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
-const double ElementaryVolume::getdTTransform(Variable v, const Point p) const
+const double ElementaryVolume::getdTTransform(Variable v, const Point & p) const
 {
 	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
@@ -1425,7 +1425,7 @@ Function ElementaryVolume::jacobian() const
 	return ret ;
 }
 
-double ElementaryVolume::jacobianAtPoint(const Point p) const 
+double ElementaryVolume::jacobianAtPoint(const Point & p) const 
 {
 	
 	if(order < CONSTANT_TIME_LINEAR)
@@ -2445,12 +2445,12 @@ std::valarray< std::pair<Point, double> > HexahedralElement::genGaussPoints() co
 	{
 		assert(false) ;
 	}
-	Function  J = this->jacobian() ;
-	
-	VirtualMachine vm ;
+// 	Function  J = this->jacobian() ;
+// 	
+// 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < fin.size() ; i++)
 	{
-		fin[i].second*=vm.eval(J, fin[i].first) ;
+		fin[i].second*= jacobianAtPoint(fin[i].first) ;
 	}
 	
 	
@@ -2465,7 +2465,8 @@ void HexahedralElement::computeCenter()
 HexahedralElement::HexahedralElement(Order order, bool f ) : ElementaryVolume( f)
 {
 	this->order = order ;
-	
+	visited = false ;
+
 	if(order == LINEAR)
 	{
 		
@@ -2555,20 +2556,20 @@ HexahedralElement::HexahedralElement(Order order, bool f ) : ElementaryVolume( f
 			//0
 		(*shapefunc)[0] = Function(f1) ;
 			//1
-		(*shapefunc)[1] = Function(f2) ;
+		(*shapefunc)[1] = Function(f5) ;
 			//2
-		(*shapefunc)[2] = Function(f3) ;
+		(*shapefunc)[2] = Function(f4) ;
 			//3
-		(*shapefunc)[3] = Function(f4) ;
+		(*shapefunc)[3] = Function(f8) ;
 			
 			//4
-		(*shapefunc)[4] = Function(f5) ;
+		(*shapefunc)[4] = Function(f2) ;
 			//5
 		(*shapefunc)[5] = Function(f6) ;
 			//6
-		(*shapefunc)[6] = Function(f7) ;
+		(*shapefunc)[6] = Function(f3) ;
 			//7
-		(*shapefunc)[7] = Function(f8) ;
+		(*shapefunc)[7] = Function(f7) ;
 		
 		
 	}
@@ -2590,13 +2591,16 @@ HexahedralElement::HexahedralElement(Order order, bool f ) : ElementaryVolume( f
 HexahedralElement::HexahedralElement(HexahedralElement * parent,Hexahedron * t)
 {
 	this->order =  parent->getOrder() ;
-	
+	visited = false ;
+
 	this->shapefunc = parent->shapefunc ;
 
 	for(size_t i =  0  ; i < this->size() ; i++)
 	{
 		delete &this->getPoint(i) ;
 	}
+	
+	this->Hexahedron::center = t->getCenter() ;
 	
 	this->getInPoints().resize(t->getInPoints().size()) ;
 	this->getBoundingPoints().resize(t->getBoundingPoints().size()) ;
@@ -2624,33 +2628,49 @@ void HexahedralElement::print()  const
 std::vector<int> validNeighbours(int i, int j, int k, int length)
 {
 	std::vector<int> ret ;
-	for(int ii = i-1 ; ii < i+2 ; ii++)
-	{
-		for(int jj = j-1 ; jj < j+2 ; jj++)
-		{
-			for(int kk = k-1 ; kk < k+2 ; kk++)
-			{
-				if((ii >= 0 && ii < length)
-				   && (jj >= 0&& jj < length)
-				   && (kk >= 0&& kk < length)
-				   && !( ii == i && jj== j && kk==k)
-				  )
-					ret.push_back(kk + jj*length + ii*length*length) ;
-			}
-		}
-	}
+	
+	if(k > 0)
+		ret.push_back(i + j*length + (k-1)*length*length) ;
+	if(k < length-1)
+		ret.push_back(i + j*length + (k+1)*length*length) ;
+	if(i > 0)
+		ret.push_back(i-1 + j*length + (k)*length*length) ;
+	if(i < length-1)
+		ret.push_back(i+1 + j*length + (k)*length*length) ;
+	if(j > 0)
+		ret.push_back(i + (j-1)*length + (k)*length*length) ;
+	if(j < length-1)
+		ret.push_back(i + (j+1)*length + (k)*length*length) ;
+	
+// 	for(int ii = i-1 ; ii < i+2 ; ii++)
+// 	{
+// 		for(int jj = j-1 ; jj < j+2 ; jj++)
+// 		{
+// 			for(int kk = k-1 ; kk < k+2 ; kk++)
+// 			{
+// 				if((ii >= 0 && ii < length)
+// 				   && (jj >= 0 && jj < length)
+// 				   && (kk >= 0 && kk < length)
+// 				   && !( ii == i && jj== j && kk==k)
+// 				   && ( ii == i || jj== j || kk==k)
+// 				  )
+// 					ret.push_back(kk + jj*length + ii*length*length) ;
+// 			}
+// 		}
+// 	}
 	return ret ;
 }
 
 void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralElement *> & vec)
 {
 	int length = (int)round(std::pow(vec.size(), 1./3.)) ;
-	
+
+
 	for(int i = 0 ; i < length ; i++)
 	{
 		for(int j = 0 ; j < length ; j++)
 		{
-			for(int k = 0 ; k < length ; j++)
+			for(int k = 0 ; k < length ; k++)
 			{
 				std::vector<int> neighbours = validNeighbours(i,j,k,length) ;
 				int current_index = k + j*length + i*length*length ;
@@ -2662,4 +2682,63 @@ void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralE
 			}
 		}
 	}
+}
+
+void burn(std::vector<Mu::HexahedralElement *> & vec)
+{
+	int length = (int)round(std::pow(vec.size(), 1./3.)) ;
+
+	
+	std::vector<Mu::HexahedralElement *> to_check ;
+	std::vector<Mu::HexahedralElement *> connected ;
+	for(int i = 0 ; i < length ; i++)
+	{
+		for(int j = 0 ; j < length ; j++)
+		{
+
+			int current_index = i + j*length ;
+			
+			if(vec[current_index]->getBehaviour()->type != VOID_BEHAVIOUR)	
+			{
+				to_check.push_back(vec[current_index]) ;
+			}
+				
+		}
+	}
+	
+	while(!to_check.empty())
+	{
+		std::vector<Mu::HexahedralElement *> temp ;
+		
+		for(size_t i = 0 ; i< to_check.size() ; i++)
+		{
+			to_check[i]->visited = true ;
+			connected.push_back(to_check[i]) ;
+			
+			for(size_t l = 0 ; l < to_check[i]->neighbourhood.size() ; l++)
+			{
+				if(!to_check[i]->neighbourhood[l]->visited 
+				   && to_check[i]->neighbourhood[l]->getBehaviour()->type != VOID_BEHAVIOUR
+				  )
+					temp.push_back(to_check[i]->neighbourhood[l]) ;
+			}
+			
+		}
+		
+		std::stable_sort(temp.begin(), temp.end()) ;
+		std::vector<Mu::HexahedralElement *>::iterator e = std::unique(temp.begin(), temp.end()) ;
+		temp.erase(e, temp.end()) ;
+		
+		to_check = temp ;
+	}
+	
+	std::stable_sort(connected.begin(), connected.end()) ;
+	std::vector<Mu::HexahedralElement *>::iterator e = std::unique(connected.begin(), connected.end()) ;
+	connected.erase(e, connected.end()) ;
+	
+	for(size_t i = 0 ; i < vec.size() ; i++)
+		vec[i]->visited = false ;
+	for(size_t i = 0 ; i < connected.size() ; i++)
+		connected[i]->visited = true ;
+
 }

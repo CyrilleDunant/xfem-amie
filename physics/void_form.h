@@ -20,7 +20,7 @@ namespace Mu
 
 	/** A void law
 	*/
-	class VoidForm : public Form
+	class VoidForm : public LinearForm
 	{
 	public:
 		VoidForm() ;
