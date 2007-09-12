@@ -117,10 +117,10 @@ void VoxelPoreFilter::read(const char * filename)
 	
 	for( int i = 0 ; i < r ; i++)
 	{
-		phase.push_back(std::vector<std::vector<int> >(1)) ;
+		phase.push_back(std::vector<std::vector<int> >(0)) ;
 		for( int j = 0 ; j < c ; j++)
 		{
-			phase[i].push_back(std::vector<int>(1)) ;
+			phase[i].push_back(std::vector<int>(0)) ;
 			for( int k = 0 ; k < s ; k++)
 			{
 				if(!file.eof())
