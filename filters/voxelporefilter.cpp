@@ -132,7 +132,7 @@ void VoxelPoreFilter::read(const char * filename)
 			}
 		}
 	}
-	
+	std::cout << "generated phases" << std::endl ;
 	int idx = 0 ;
 	
 	for( int i = 0 ; i < r ; i++)
