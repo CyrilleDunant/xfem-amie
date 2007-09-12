@@ -359,10 +359,6 @@ void mouse(int button, int state, int x, int y)
 int main(int argc, char *argv[])
 {
 	
-	
-	maxs = std::max(std::max(cgStressC3S[0][0],cgStressCSH[0][0]),cgStressCH[0][0]) ;
-	mins = std::min(std::min(cgStressC3S[0][0],cgStressCSH[0][0]),cgStressCH[0][0]) ;
-	
 	Assembly * K = new Assembly() ;
 	
 	Matrix diffusionMatrix(3,3) ;
