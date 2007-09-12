@@ -106,6 +106,13 @@ void VoxelPoreFilter::read(const char * filename)
 	index = 0 ;
 
 	TetrahedralElement * father = new TetrahedralElement(LINEAR_TIME_LINEAR) ;
+	
+	for(size_t j = 0 ; j < father->getShapeFunctions().size()  ; j++)
+	{
+		father->getShapeFunction(j).compile() ;
+	}
+		
+	
 	for( int i = 0 ; i < r ; i++)
 	{
 		for( int j = 0 ; j < c ; j++)
