@@ -173,11 +173,32 @@ void VoxelPoreFilter::read(const char * filename)
 						elems.push_back(tet) ;
 						(*elems.rbegin())->setBehaviour(behaviour) ;
 					}
-
 				}
 				
 			}
 			
+			for( int k = 32 ; k < s ; k++)
+			{
+				if(!file.eof())
+				{
+					int behaviourKey ;
+					file >> behaviourKey ;
+				}
+			}
+			
+		}
+		
+		for( int j = 32 ; j < c ; j++)
+		{
+			
+			for( int k = 0 ; k < s ; k++)
+			{
+				if(!file.eof())
+				{
+					int behaviourKey ;
+					file >> behaviourKey ;
+				}
+			}
 		}
 		
 	}
