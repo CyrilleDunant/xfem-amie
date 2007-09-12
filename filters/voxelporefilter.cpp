@@ -113,11 +113,11 @@ void VoxelPoreFilter::read(const char * filename)
 	}
 		
 	
-	for( int i = 0 ; i < r ; i++)
+	for( int i = 0 ; i < 16 ; i++)
 	{
-		for( int j = 0 ; j < c ; j++)
+		for( int j = 0 ; j < 16 ; j++)
 		{
-			for( int k = 0 ; k < s ; k++)
+			for( int k = 0 ; k < 16 ; k++)
 			{
 				if(!file.eof())
 				{
@@ -176,7 +176,7 @@ void VoxelPoreFilter::read(const char * filename)
 				}
 				
 			}
-/*			
+			
 			for( int k = 16 ; k < s ; k++)
 			{
 				if(!file.eof())
@@ -184,22 +184,22 @@ void VoxelPoreFilter::read(const char * filename)
 					int behaviourKey ;
 					file >> behaviourKey ;
 				}
-			}*/
+			}
 			
 		}
 		
-// 		for( int j = 16 ; j < c ; j++)
-// 		{
-// 			
-// 			for( int k = 0 ; k < s ; k++)
-// 			{
-// 				if(!file.eof())
-// 				{
-// 					int behaviourKey ;
-// 					file >> behaviourKey ;
-// 				}
-// 			}
-// 		}
+		for( int j = 16 ; j < c ; j++)
+		{
+			
+			for( int k = 0 ; k < s ; k++)
+			{
+				if(!file.eof())
+				{
+					int behaviourKey ;
+					file >> behaviourKey ;
+				}
+			}
+		}
 		
 	}
 	
