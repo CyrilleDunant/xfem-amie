@@ -455,7 +455,7 @@ int main(int argc, char *argv[])
 			for(size_t j = 0 ; j < 4 ;j++)
 			{
 				
-				(*sigma)[i*4+j] = (*x)[microstruct.getElements()[i]->getBoundingPoint(j).id] ; 
+				(*sigma)[i*4+j+4] = (*x)[microstruct.getElements()[i]->getBoundingPoint(j).id] ; 
 			}
 		}
 		else
