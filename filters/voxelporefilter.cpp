@@ -310,7 +310,7 @@ void VoxelPoreFilter::read(const char * filename)
 							lbb = false ;
 						}
 					}
-					if(i != r-1&& k!= r-1&& phase[i-1][j][k-1] != poreIndex)
+					if(i&& k&& phase[i-1][j][k-1] != poreIndex)
 					{
 						if(!(
 						      phase[i][j][k-1] != poreIndex || phase[i-1][j][k]!= poreIndex 
