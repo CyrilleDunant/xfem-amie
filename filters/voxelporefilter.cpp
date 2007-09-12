@@ -144,7 +144,7 @@ void VoxelPoreFilter::read(const char * filename)
 					// 0 1 3 2 4 5 7 6
 // 					Hexahedron * hex = new Hexahedron(corner[0], corner[1], corner[2], corner[3], corner[4], corner[5], corner[6], corner[7]) ;
 
-					if(behaviourKey == poreIndex)
+					if(true /*behaviourKey == poreIndex*/)
 					{
 						DelaunayTetrahedron * tet = new DelaunayTetrahedron( NULL, 
 							corner[1], corner[5], corner[4], corner[7],corner[1+8], 
