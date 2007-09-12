@@ -413,9 +413,9 @@ int main(int argc, char *argv[])
 	
 				if(microstruct.getPoints()[i]->t < 1e-9)
 					K->setPoint(0,microstruct.getPoints()[i]->id) ;
+// 				if(microstruct.getPoints()[i]->z < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
+// 					K->setPoint(0,microstruct.getPoints()[i]->id) ;
 				if(microstruct.getPoints()[i]->z < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-					K->setPoint(0,microstruct.getPoints()[i]->id) ;
-				if(std::abs(microstruct.getPoints()[i]->z- 7.5) < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
 					K->setPoint(.2,microstruct.getPoints()[i]->id) ;
 		}
 	}
