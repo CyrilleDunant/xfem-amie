@@ -380,13 +380,9 @@ int main(int argc, char *argv[])
 	microstruct.read("/home/cyrille/Documents/Data/Microstructures/size64/pixels15.txt") ;
 	std::cout << "reading done" << std::endl ;
 	
-	
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
 	{
-		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
-		{
-			microstruct.getElements()[i]->getBoundingPoint(j).id = -1 ;
-		}
+		microstruct.getPoints()[i]->id = -1 ;
 	}
 	
 	int index = 0 ;
@@ -410,15 +406,18 @@ int main(int argc, char *argv[])
 	
 	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
 	{
-		if(i%100 == 0)
-			std::cout << "\rBC point " << i << "/" << microstruct.getPoints().size() << std::flush ;
-
-			if(microstruct.getPoints()[i]->t < 1e-9)
-				K->setPoint(0,microstruct.getPoints()[i]->id) ;
-			if(microstruct.getPoints()[i]->x < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-				K->setPoint(0,microstruct.getPoints()[i]->id) ;
-			if(std::abs(microstruct.getPoints()[i]->x- 7.5) < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-				K->setPoint(.2,microstruct.getPoints()[i]->id) ;
+		if(microstruct.getPoints()[i]->id != -1)
+		{
+			if(i%100 == 0)
+				std::cout << "\rBC point " << i << "/" << microstruct.getPoints().size() << std::flush ;
+	
+				if(microstruct.getPoints()[i]->t < 1e-9)
+					K->setPoint(0,microstruct.getPoints()[i]->id) ;
+				if(microstruct.getPoints()[i]->x < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
+					K->setPoint(0,microstruct.getPoints()[i]->id) ;
+				if(std::abs(microstruct.getPoints()[i]->x- 7.5) < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
+					K->setPoint(.2,microstruct.getPoints()[i]->id) ;
+		}
 	}
 	
 	K->cgsolve() ;
