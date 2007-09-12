@@ -113,11 +113,11 @@ void VoxelPoreFilter::read(const char * filename)
 	}
 		
 	
-	for( int i = 0 ; i < r ; i++)
+	for( int i = 0 ; i < 32 ; i++)
 	{
-		for( int j = 0 ; j < c ; j++)
+		for( int j = 0 ; j < 32 ; j++)
 		{
-			for( int k = 0 ; k < s ; k++)
+			for( int k = 0 ; k < 32 ; k++)
 			{
 				if(!file.eof())
 				{
