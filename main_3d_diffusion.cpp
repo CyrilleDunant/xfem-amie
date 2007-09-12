@@ -410,6 +410,11 @@ int main(int argc, char *argv[])
 	
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)	
 	{
+		for(size_t j = 0 ; j < microstruct.getElements()[i]->getShapeFunctions().size()  ; j++)
+		{
+			microstruct.getElements()[i]->getShapeFunction(j).compile() ;
+		}
+		
 		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
 			for(size_t j = 0 ; j < microstruct.getElements()[i]->getBoundingPoints().size()  ; j++)
