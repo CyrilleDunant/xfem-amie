@@ -32,6 +32,7 @@ public:
 	VoxelPoreFilter();
 
 	LinearForm * behaviour ;
+	LinearForm * behaviourAlt ;
 	virtual ~VoxelPoreFilter();
 	
 	void read(const char * filename) ;

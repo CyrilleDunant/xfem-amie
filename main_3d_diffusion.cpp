@@ -363,9 +363,10 @@ int main(int argc, char *argv[])
 	
 	Matrix diffusionMatrix(3,3) ;
 	
-	diffusionMatrix[0][0] = 0.0005;
-	diffusionMatrix[1][1] = 0.0005;
-	diffusionMatrix[2][2] = 0.0005;
+	diffusionMatrix[0][0] = 0.01;
+	diffusionMatrix[1][1] = 0.01;
+	diffusionMatrix[2][2] = 0.01;
+	
 	
 	//1 Alite
 	//2 C-S-H
@@ -376,6 +377,7 @@ int main(int argc, char *argv[])
 	VoxelPoreFilter microstruct ;
 	
 	microstruct.behaviour = new Diffusion(diffusionMatrix) ;
+	microstruct.behaviourAlt = new Diffusion(diffusionMatrix*.0001) ;
 	
 	microstruct.read("/home/cyrille/xfem++/pixels20.txt") ;
 	std::cout << "reading done" << std::endl ;
