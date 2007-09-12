@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
 	
 	microstruct.behaviour = new Diffusion(diffusionMatrix) ;
 	
-	microstruct.read("/home/cyrille/Documents/Data/Microstructures/size64/pixels15.txt") ;
+	microstruct.read("/home/cyrille/xfem++/pixels20.txt") ;
 	std::cout << "reading done" << std::endl ;
 	
 	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
