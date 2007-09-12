@@ -25,6 +25,7 @@ protected:
 public:
 	
 	Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3) ;
+	Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7) ;
 	
 	Tetrahedron(Point p0, Point p1, Point p2, Point p3) ; 
 	

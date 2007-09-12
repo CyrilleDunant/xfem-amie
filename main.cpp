@@ -224,7 +224,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 8;
+	int nsteps = 5;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -1522,7 +1522,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.90, 25000, BOLOME_A)(.001, .05);
+	inclusions = GranuloBolome(.70, 25000, BOLOME_A)(.004, .05);
 	int nAgg = 0 ;
 	inclusions=placement(.16, .04, inclusions, &nAgg, 256);
 // 	F.addFeature(&sample,inc) ;
@@ -1555,7 +1555,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(128) ;
+	F.sample(800) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

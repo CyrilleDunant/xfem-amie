@@ -629,6 +629,26 @@ DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p
 	assert(fourth->id> -1);
 }
 
+DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem_3D(father, c)
+{
+	
+	first = &getBoundingPoint(0) ;
+	
+	second = &getBoundingPoint(1) ;
+	third = &getBoundingPoint(2) ;
+	fourth = &getBoundingPoint(3) ;
+	
+	assert(in(this->getCenter())) ;
+	
+	neighbour.clear() ;
+	isSpace = false ;
+	isTetrahedron = true ;
+	assert(first->id > -1) ;
+	assert(second->id > -1) ;
+	assert(third->id > -1) ;
+	assert(fourth->id> -1);
+}
+
 DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem_3D(NULL, NULL)
 {
 	first = &getBoundingPoint(0) ;

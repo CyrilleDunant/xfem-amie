@@ -828,6 +828,9 @@ void TetrahedralElement::computeCenter()
 TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father ) : Tetrahedron(p0, p1, p2, p3), ElementaryVolume(father), moved(false) 
 {	}
 
+TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3,  Point * p4,  Point * p5,  Point * p6, Point * p7, bool father ) : Tetrahedron(p0, p1, p2, p3, p4, p5, p6, p7), ElementaryVolume(father), moved(false) 
+{	}
+
 TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVolume(father),moved(false)
 {
 	this->order = order ;

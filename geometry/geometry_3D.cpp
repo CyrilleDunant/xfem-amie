@@ -28,6 +28,33 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 	computeCenter() ;	
 }
 
+Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7): ConvexGeometry(8)
+{
+	gType = TETRAHEDRON ;
+	
+	this->boundingPoints.resize(8) ;
+	boundingPoints[0] = p0 ;
+	boundingPoints[1] = p1 ;
+	boundingPoints[2] = p2 ;
+	boundingPoints[3] = p3 ;
+	boundingPoints[4] = p4 ;
+	boundingPoints[5] = p5 ;
+	boundingPoints[6] = p6 ;
+	boundingPoints[7] = p7 ;
+	
+	if(this->volume() < 0 )
+	{
+		boundingPoints[0] = p1; 
+		boundingPoints[1] = p0;
+	}
+	computeCircumCenter() ;
+	radius = dist(*p1, circumCenter);
+	sqradius = radius*radius ;
+	assert(this->volume() >0 ) ;
+	computeCenter() ;	
+}
+
+
 Tetrahedron::Tetrahedron(Point p0, Point p1, Point p2, Point p3): ConvexGeometry(4)
 {
 	gType = TETRAHEDRON ;

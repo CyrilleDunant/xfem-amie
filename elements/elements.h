@@ -241,6 +241,7 @@ public:
 	GEO_DERIVED_OBJECT(Tetrahedron) ;
 	
 	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father = false) ;
+	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, Point * p4,  Point * p5,  Point * p6, Point * p7, bool father = false) ;
 	TetrahedralElement(Order order = LINEAR, bool father = true);
 	TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
 	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const ;

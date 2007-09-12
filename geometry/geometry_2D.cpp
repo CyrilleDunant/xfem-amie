@@ -909,9 +909,9 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const 
 {
-	double x = center.x-v.x ;
-	double y = center.y-v.y ;
-	return x*x + y*y < sqradius ;
+	double val[2] = {center.x-v.x, center.y-v.y} ;
+
+	return val[0]*val[0] + val[1]*val[1] < sqradius ;
 }
 
 double Circle::getRadius() const
