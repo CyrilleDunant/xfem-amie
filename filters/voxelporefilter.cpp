@@ -43,7 +43,6 @@ bool VoxelPoreFilter::existsPath(std::vector<std::vector<std::vector<int> > > & 
 		{
 			for(int k = std::min(ksource,ktarget)-1 ; k < std::max(ksource,ktarget)+1 ; k++)
 			{
-				std::cout << i << j << k  << std::endl ;
 				if(i >-1 && j>-1 && k >-1&& 
 				   i < (int)phase.size()&& 
 				   j < (int)phase[i].size() && 
