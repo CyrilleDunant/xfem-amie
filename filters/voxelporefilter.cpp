@@ -470,6 +470,7 @@ void VoxelPoreFilter::read(const char * filename)
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
+					
 				if(aaa)
 					corner.push_back(points[points.size()/2 + i*(r+1)*(c+1)+j*(s+1)+k]) ;
 				else
