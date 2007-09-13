@@ -416,23 +416,38 @@ int main(int argc, char *argv[])
 	
 	std::cout << "adding done" << std::endl ;
 	
-	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
-	{
-		if(microstruct.getPoints()[i]->id != -1)
-		{
-			if(i%100 == 0)
-				std::cout << "\rBC point " << i << "/" << microstruct.getPoints().size() << std::flush ;
 	
-			if(microstruct.getPoints()[i]->t < 1e-9)
-				K->setPoint(0.,microstruct.getPoints()[i]->id) ;
-// 				if(microstruct.getPoints()[i]->z < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-// 					K->setPoint(0,microstruct.getPoints()[i]->id) ;
-			if(std::abs(microstruct.getPoints()[i]->x -7.5)< 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-				K->setPoint(0.,microstruct.getPoints()[i]->id) ;
-			if(microstruct.getPoints()[i]->x < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-				K->setPoint(.2,microstruct.getPoints()[i]->id) ;
+	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	{
+		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
+		{
+			if(microstruct.getElements()[i]->getBoundingPoint(j).t < 1e-9)
+				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
+			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
+			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+				K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 		}
 	}
+// 	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
+// 	{
+// 		if(microstruct.getPoints()[i]->id != -1)
+// 		{
+// 			if(i%100 == 0)
+// 				std::cout << "\rBC point " << i << "/" << microstruct.getPoints().size() << std::flush ;
+// 	
+// 			if(microstruct.getPoints()[i]->t < 1e-9)
+// 				K->setPoint(0.,microstruct.getPoints()[i]->id) ;
+// // 				if(microstruct.getPoints()[i]->z < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
+// // 					K->setPoint(0,microstruct.getPoints()[i]->id) ;
+// 			if(std::abs(microstruct.getPoints()[i]->x -7.5)< 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
+// 				K->setPoint(0.,microstruct.getPoints()[i]->id) ;
+// 			if(microstruct.getPoints()[i]->x < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
+// 				K->setPoint(.2,microstruct.getPoints()[i]->id) ;
+// 		}
+// 	}
 	
 	K->cgsolve() ;
 	
