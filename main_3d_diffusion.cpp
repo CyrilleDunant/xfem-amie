@@ -363,9 +363,9 @@ int main(int argc, char *argv[])
 	
 	Matrix diffusionMatrix(3,3) ;
 	
-	diffusionMatrix[0][0] =.05;
-	diffusionMatrix[1][1] =.05;
-	diffusionMatrix[2][2] =.05;
+	diffusionMatrix[0][0] =.1;
+	diffusionMatrix[1][1] =.1;
+	diffusionMatrix[2][2] =.1;
 	
 	
 	//1 Alite
@@ -457,55 +457,57 @@ int main(int argc, char *argv[])
 	
 	K->cgsolve() ;
 	
-	
-	x = new Vector(K->getDisplacements()) ;
-	
-	K->clear() ;
-	
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	for(size_t t = 0  ; t < 5 ; t++)
 	{
+		x = new Vector(K->getDisplacements()) ;
 		
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		K->clear() ;
+		
+		for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
 		{
-			K->add(microstruct.getElements()[i]) ;
-		}
-	}
-
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
-	{
-		if(i% 100 == 0)
-		{
-			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::flush ;
-		}
-		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
-		{
-			if(microstruct.getElements()[i]->getBoundingPoint(j).t < 1e-9)
-				K->setPoint((*x)[microstruct.getElements()[i]->getBoundingPoint(j).id],microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 			
-			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
-			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
-				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
-			
-			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
-			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
-				K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				K->add(microstruct.getElements()[i]) ;
+			}
 		}
-	}
 	
-	K->cgsolve() ;
-	
-	std::cerr << " stepping through elements... " << std::flush ;
-	for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
-	{	
-		if(i%1000 == 0)
-			std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
 		{
-			microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
-			microstruct.getElements()[i]->getBehaviour()->step(.1, microstruct.getElements()[i]->getState()) ;
+			if(i% 100 == 0)
+			{
+				std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::flush ;
+			}
+			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
+			{
+				if(microstruct.getElements()[i]->getBoundingPoint(j).t < 1e-9)
+					K->setPoint((*x)[microstruct.getElements()[i]->getBoundingPoint(j).id],microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+				
+				if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
+				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+					K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+				
+				if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
+				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+					K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			}
 		}
+		
+		K->cgsolve() ;
+		
+		std::cerr << " stepping through elements... " << std::flush ;
+		for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
+		{	
+			if(i%1000 == 0)
+				std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
+			if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
+				microstruct.getElements()[i]->getBehaviour()->step(.1, microstruct.getElements()[i]->getState()) ;
+			}
+		}
+		std::cerr << " ...done" << std::endl ;
 	}
-	std::cerr << " ...done" << std::endl ;
 
 	myTets =  microstruct.getElements() ;
 	sigma = new Vector(myTets.size()*4) ;
