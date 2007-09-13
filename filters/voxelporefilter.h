@@ -40,7 +40,7 @@ protected:
 		int j ; 
 		int k ;
 		bool visited ;
-		ConnectedNode(int i_, int j_, int k_) : i(i_), j(j_), k(k_) { visited = false ;} ;
+		ConnectedNode(int i_, int j_, int k_) : i(i_), j(j_), k(k_), neighbour(0) { visited = false ;} ;
 		
 		std::vector<ConnectedNode *> neighbour ;
 		
