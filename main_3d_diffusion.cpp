@@ -478,7 +478,10 @@ int main(int argc, char *argv[])
 			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
 			{
 				if(microstruct.getElements()[i]->getBoundingPoint(j).t < -.5)
+				{
 					K->setPoint((*x)[microstruct.getElements()[i]->getBoundingPoint(j).id],microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+					std::cout << "ci" << std::endl ;
+				}
 				
 				if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
 				&& microstruct.getElements()[i]->getBoundingPoint(j).t > .5)

@@ -155,12 +155,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i && j && k && phase[i-1][j-1][k-1] == poreIndex)
 					{
 						if(!(
-						         phase[i-1][j-1][k] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k-1] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
-						      || phase[i-1][j][k-1] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
+						      (phase[i-1][j-1][k] == poreIndex && phase[i-1][j][k]== poreIndex) 
+						      || (phase[i-1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex) 
+						      || (phase[i][j-1][k-1] == poreIndex && phase[i][j-1][k]== poreIndex) 
+						      || (phase[i][j-1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex) 
+						      || (phase[i-1][j][k-1] == poreIndex && phase[i-1][j][k]== poreIndex) 
+						      || (phase[i-1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex) 
 						    )
 						  )
 							aaa = false ;
@@ -169,12 +169,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i && j && k != s-1 && phase[i-1][j-1][k+1] == poreIndex)
 					{
 						if(!(
-						         phase[i-1][j-1][k] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k+1] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
-						      || phase[i-1][j][k+1] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
+						      (phase[i-1][j-1][k] == poreIndex && phase[i-1][j][k]== poreIndex )
+						      || (phase[i-1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex) 
+						      || (phase[i][j-1][k+1] == poreIndex && phase[i][j-1][k]== poreIndex) 
+						      || (phase[i][j-1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex) 
+						      || (phase[i-1][j][k+1] == poreIndex && phase[i-1][j][k]== poreIndex) 
+						      || (phase[i-1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex) 
 						    )
 						  )
 							aab = false ;
@@ -183,12 +183,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i && j != c-1 && k &&phase[i-1][j+1][k-1] == poreIndex)
 					{
 						if(!(
-						         phase[i-1][j+1][k] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k-1] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
-						      || phase[i-1][j][k-1] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
+						      (phase[i-1][j+1][k] == poreIndex && phase[i-1][j][k]== poreIndex )
+						      || (phase[i-1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k-1] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex )
+						      || (phase[i-1][j][k-1] == poreIndex && phase[i-1][j][k]== poreIndex )
+						      || (phase[i-1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex )
 						    )
 						  )
 							aba = false ;
@@ -196,12 +196,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i && j != c-1 && k != s-1 && phase[i-1][j+1][k+1] == poreIndex)
 					{
 						if(!(
-						      phase[i-1][j+1][k] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k+1] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
-						      || phase[i-1][j][k+1] == poreIndex && phase[i-1][j][k]== poreIndex 
-						      || phase[i-1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
+						      (phase[i-1][j+1][k] == poreIndex && phase[i-1][j][k]== poreIndex )
+						      || (phase[i-1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k+1] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex )
+						      || (phase[i-1][j][k+1] == poreIndex && phase[i-1][j][k]== poreIndex )
+						      || (phase[i-1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex )
 						    )
 						  )
 							abb = false ;
@@ -210,12 +210,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i != r-1 && j  && k  && phase[i+1][j-1][k-1] == poreIndex)
 					{
 						if(!(
-						      phase[i+1][j-1][k] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k-1] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
-						      || phase[i+1][j][k-1] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
+						      (phase[i+1][j-1][k] == poreIndex && phase[i+1][j][k]== poreIndex )
+						      || (phase[i+1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex )
+						      || (phase[i][j-1][k-1] == poreIndex && phase[i][j-1][k]== poreIndex )
+						      || (phase[i][j-1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex )
+						      || (phase[i+1][j][k-1] == poreIndex && phase[i+1][j][k]== poreIndex )
+						      || (phase[i+1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex )
 						    )
 						  )
 							baa = false ;
@@ -224,12 +224,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i != r-1 && j  && k != s-1 && phase[i+1][j-1][k+1] == poreIndex)
 					{
 						if(!(
-						         phase[i+1][j-1][k] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k+1] == poreIndex && phase[i][j-1][k]== poreIndex 
-						      || phase[i][j-1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
-						      || phase[i+1][j][k+1] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
+						      (phase[i+1][j-1][k] == poreIndex && phase[i+1][j][k]== poreIndex )
+						      || (phase[i+1][j-1][k] == poreIndex && phase[i][j-1][k]== poreIndex) 
+						      || (phase[i][j-1][k+1] == poreIndex && phase[i][j-1][k]== poreIndex) 
+						      || (phase[i][j-1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex) 
+						      || (phase[i+1][j][k+1] == poreIndex && phase[i+1][j][k]== poreIndex) 
+						      || (phase[i+1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex) 
 						    )
 						  )
 							bab = false ;
@@ -238,12 +238,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i != r-1 && j != c-1 && k && phase[i+1][j+1][k-1] == poreIndex)
 					{
 						if(!(
-						         phase[i+1][j+1][k] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k-1] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
-						      || phase[i+1][j][k-1] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
+						      (phase[i+1][j+1][k] == poreIndex && phase[i+1][j][k]== poreIndex )
+						      || (phase[i+1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k-1] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k-1] == poreIndex && phase[i][j][k-1]== poreIndex )
+						      || (phase[i+1][j][k-1] == poreIndex && phase[i+1][j][k]== poreIndex )
+						      || (phase[i+1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex )
 						    )
 						  )
 							bba = false ;
@@ -251,12 +251,12 @@ void VoxelPoreFilter::read(const char * filename)
 					if(i != r-1 && j != c-1 && k != s-1&& phase[i+1][j+1][k+1] == poreIndex)
 					{
 						if(!(
-						         phase[i+1][j+1][k] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k+1] == poreIndex && phase[i][j+1][k]== poreIndex 
-						      || phase[i][j+1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
-						      || phase[i+1][j][k+1] == poreIndex && phase[i+1][j][k]== poreIndex 
-						      || phase[i+1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
+						      (phase[i+1][j+1][k] == poreIndex && phase[i+1][j][k]== poreIndex )
+						      || (phase[i+1][j+1][k] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k+1] == poreIndex && phase[i][j+1][k]== poreIndex )
+						      || (phase[i][j+1][k+1] == poreIndex && phase[i][j][k+1]== poreIndex )
+						      || (phase[i+1][j][k+1] == poreIndex && phase[i+1][j][k]== poreIndex )
+						      || (phase[i+1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex )
 						    )
 						  )
 							bbb = false ;
