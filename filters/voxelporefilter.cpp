@@ -37,11 +37,11 @@ bool VoxelPoreFilter::existsPath(std::vector<std::vector<std::vector<int> > > & 
 			
 	ConnectedNode * start = NULL;
 	ConnectedNode * end = NULL;
-	for(int i = std::min(isource,itarget) ; i < std::max(isource,itarget)+1 ; i++)
+	for(int i = std::min(isource,itarget)-1 ; i < std::max(isource,itarget)+1 ; i++)
 	{
-		for(int j = std::min(jsource,jtarget) ; j < std::max(jsource,jtarget)+1 ; j++)
+		for(int j = std::min(jsource,jtarget)-1 ; j < std::max(jsource,jtarget)+1 ; j++)
 		{
-			for(int k = std::min(ksource,ktarget) ; k < std::max(ksource,ktarget)+1 ; k++)
+			for(int k = std::min(ksource,ktarget)-1 ; k < std::max(ksource,ktarget)+1 ; k++)
 			{
 				std::cout << i << j << k  << std::endl ;
 				if(i >-1 && j>-1 && k >-1&& 
