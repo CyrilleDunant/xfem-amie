@@ -65,6 +65,9 @@ bool VoxelPoreFilter::existsPath(std::vector<std::vector<std::vector<int> > > & 
 		}
 	}
 	
+	if(!end)
+		return false ;
+	
 	for(size_t i = 0 ; i < local.size() ; i++)
 	{
 		for(size_t j = i ; j < local.size() ; j++)
