@@ -461,6 +461,15 @@ int main(int argc, char *argv[])
 	x = new Vector(K->getDisplacements()) ;
 	
 	K->clear() ;
+	
+	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	{
+		
+		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		{
+			K->add(microstruct.getElements()[i]) ;
+		}
+	}
 
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
 	{
@@ -482,6 +491,8 @@ int main(int argc, char *argv[])
 				K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 		}
 	}
+	
+	K->cgsolve() ;
 	
 	std::cerr << " stepping through elements... " << std::flush ;
 	for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
