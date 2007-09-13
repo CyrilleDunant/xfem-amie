@@ -465,11 +465,7 @@ int main(int argc, char *argv[])
 		
 		for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
 		{
-			
-			if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-			{
-				K->add(microstruct.getElements()[i]) ;
-			}
+			K->add(microstruct.getElements()[i]) ;
 		}
 	
 		for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
@@ -480,15 +476,15 @@ int main(int argc, char *argv[])
 			}
 			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
 			{
-				if(microstruct.getElements()[i]->getBoundingPoint(j).t < 1e-9)
+				if(microstruct.getElements()[i]->getBoundingPoint(j).t < -.5)
 					K->setPoint((*x)[microstruct.getElements()[i]->getBoundingPoint(j).id],microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 				
 				if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
-				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+				&& microstruct.getElements()[i]->getBoundingPoint(j).t > .5)
 					K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 				
 				if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
-				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+				&& microstruct.getElements()[i]->getBoundingPoint(j).t > .5)
 					K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 			}
 		}
@@ -500,11 +496,9 @@ int main(int argc, char *argv[])
 		{	
 			if(i%1000 == 0)
 				std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
-			if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-			{
-				microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
-				microstruct.getElements()[i]->getBehaviour()->step(.1, microstruct.getElements()[i]->getState()) ;
-			}
+
+			microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
+			microstruct.getElements()[i]->getBehaviour()->step(.1, microstruct.getElements()[i]->getState()) ;
 		}
 		std::cerr << " ...done" << std::endl ;
 	}

@@ -133,7 +133,6 @@ void VoxelPoreFilter::read(const char * filename)
 		}
 	}
 	std::cout << "generated phases" << std::endl ;
-	int idx = 0 ;
 	
 	for( int i = 0 ; i < 16 ; i++)
 	{
@@ -192,7 +191,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i-1][j][k-1] == poreIndex && phase[i][j][k-1]== poreIndex 
 						    )
 						  )
-						aba = false ;
+							aba = false ;
 					}
 					if(i && j != c-1 && k != s-1 && phase[i-1][j+1][k+1] == poreIndex)
 					{
@@ -205,7 +204,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i-1][j][k+1] == poreIndex && phase[i][j][k+1]== poreIndex 
 						    )
 						  )
-						abb = false ;
+							abb = false ;
 					}
 					
 					if(i != r-1 && j  && k  && phase[i+1][j-1][k-1] == poreIndex)
@@ -398,18 +397,7 @@ void VoxelPoreFilter::read(const char * filename)
 							bab = false ;
 						}
 					}
-				
-				
-// 					 aaa = true ;
-// 					 aab = true ;
-// 					 aba = true ;
-// 					 abb = true ;
-// 					 baa = true ;
-// 					 bab = true ;
-// 					 bba = true ;
-// 					 bbb = true ;
-				
-					
+
 				std::vector<Point *> corner ;
 				if(aaa)
 					corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k]) ;
@@ -525,10 +513,6 @@ void VoxelPoreFilter::read(const char * filename)
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-					// 0 1 3 2 4 5 7 6
-// 					Hexahedron * hex = new Hexahedron(corner[0], corner[1], corner[2], corner[3], corner[4], corner[5], corner[6], corner[7]) ;
-
-
 					DelaunayTetrahedron * tet = new DelaunayTetrahedron( NULL, 
 						corner[1], corner[5], corner[4], corner[7],
 						corner[1+8], corner[5+8], corner[4+8], corner[7+8], NULL) ;
@@ -556,8 +540,6 @@ void VoxelPoreFilter::read(const char * filename)
 					elems.push_back(tet) ;
 					(*elems.rbegin())->setBehaviour(behaviour) ;
 				}
-				
-				idx++ ;
 			}
 			
 // 			for( int k = 16 ; k < s ; k++)
