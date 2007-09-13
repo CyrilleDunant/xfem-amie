@@ -382,6 +382,9 @@ int main(int argc, char *argv[])
 	microstruct.read("/home/cyrille/xfem++/pixels20.txt") ;
 	std::cout << "reading done" << std::endl ;
 	
+	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
+		microstruct.getPoints()[i]->id = -1 ;
+	
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
 	{
 		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
