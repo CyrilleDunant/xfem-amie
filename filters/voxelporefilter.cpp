@@ -402,6 +402,16 @@ void VoxelPoreFilter::read(const char * filename)
 					}
 				
 				
+					 aaa = true ;
+					 aab = true ;
+					 aba = true ;
+					 abb = true ;
+					 baa = true ;
+					 bab = true ;
+					 bba = true ;
+					 bbb = true ;
+				
+					
 				std::vector<Point *> corner ;
 				if(aaa)
 					corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k]) ;
