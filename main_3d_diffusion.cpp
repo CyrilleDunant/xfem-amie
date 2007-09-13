@@ -456,11 +456,12 @@ int main(int argc, char *argv[])
 // 	}
 	
 	K->cgsolve() ;
+	x = new Vector(K->getDisplacements()) ;
 	
 	for(size_t t = 0  ; t < 5 ; t++)
 	{
-		x = new Vector(K->getDisplacements()) ;
 		
+		*x =  K->getDisplacements() ;
 		K->clear() ;
 		
 		for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
