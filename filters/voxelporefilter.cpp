@@ -35,6 +35,9 @@ bool VoxelPoreFilter::existsPath(std::vector<std::vector<std::vector<int> > > & 
 	
 	std::vector<ConnectedNode> local ;
 			
+	
+	std::cout << isource << ", "<< jsource << ", "<< ksource << ", " << std::endl ;
+	std::cout << itarget << ", "<< jtarget << ", "<< ktarget << "; " << std::endl ;
 	ConnectedNode * start = NULL;
 	ConnectedNode * end = NULL;
 	for(int i = std::min(isource,itarget)-1 ; i < std::max(isource,itarget)+1 ; i++)
@@ -51,6 +54,7 @@ bool VoxelPoreFilter::existsPath(std::vector<std::vector<std::vector<int> > > & 
 				{
 					local.push_back(ConnectedNode(i, j, k)) ;
 				
+					std::cout << i << ", "<< j << ", "<< k << ", " << std::endl ;
 					if(i == isource && j == jsource && k== ksource)
 						start = &local[local.size()-1] ;
 					
