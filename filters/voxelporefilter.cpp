@@ -344,10 +344,10 @@ void VoxelPoreFilter::read(const char * filename)
 							bab = false ;
 						}
 					}
-					if( i && k != s-1 && phase[i-1][j][k+1] != poreIndex)
+					if( i && k != s-1 && phase[i-1][j][k+1] == poreIndex)
 					{
 						if(!(
-						      phase[i][j][k+1] != poreIndex || phase[i-1][j][k]!= poreIndex 
+						      phase[i][j][k+1] == poreIndex || phase[i-1][j][k]== poreIndex 
 						    )
 						  )
 						{
@@ -355,10 +355,10 @@ void VoxelPoreFilter::read(const char * filename)
 							abb = false ;
 						}
 					}
-					if(i && j != c-1 && phase[i-1][j+1][k] != poreIndex)
+					if(i && j != c-1 && phase[i-1][j+1][k] == poreIndex)
 					{
 						if(!(
-						      phase[i][j+1][k] != poreIndex || phase[i-1][j][k]!= poreIndex 
+						      phase[i][j+1][k] == poreIndex || phase[i-1][j][k]== poreIndex 
 						    )
 						  )
 						{
@@ -367,10 +367,10 @@ void VoxelPoreFilter::read(const char * filename)
 						}
 					}
 					
-					if(k && j != c-1 && phase[i][j+1][k-1] != poreIndex)
+					if(k && j != c-1 && phase[i][j+1][k-1] == poreIndex)
 					{
 						if(!(
-						      phase[i][j][k-1] != poreIndex || phase[i][j+1][k]!= poreIndex 
+						      phase[i][j][k-1] == poreIndex || phase[i][j+1][k]== poreIndex 
 						    )
 						  )
 						{
