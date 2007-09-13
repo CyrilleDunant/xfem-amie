@@ -142,7 +142,7 @@ void VoxelPoreFilter::read(const char * filename)
 			for( int k = 0 ; k < s ; k++)
 			{				
 				
-				if(true  /*phase[i][j][k] == poreIndex*/)
+				if(phase[i][j][k] == poreIndex)
 				{
 					bool aaa = true ;
 					bool aab = true ;
