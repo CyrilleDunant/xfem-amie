@@ -53,10 +53,10 @@ bool VoxelPoreFilter::existsPath(std::vector<std::vector<std::vector<int> > > & 
 					local.push_back(ConnectedNode(i, j, k)) ;
 				
 					if(i == isource && j == jsource && k== ksource)
-						start = &(*local.rbegin()) ;
+						start = &local[local.size()-1] ;
 					
 					if(i == itarget && j == jtarget && k== ktarget)
-						end = &(*local.rbegin()) ;
+						end = &local[local.size()-1] ;
 				}
 			}
 		}
