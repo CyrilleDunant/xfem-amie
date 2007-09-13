@@ -144,14 +144,14 @@ void VoxelPoreFilter::read(const char * filename)
 				
 				if(phase[i][j][k] == poreIndex)
 				{
-					bool lbb = true ;
-					bool lbf = true ;
-					bool ltb = true ;
-					bool ltf = true ;
-					bool rbb = true ;
-					bool rbf = true ;
-					bool rtb = true ;
-					bool rtf = true ;
+					bool aaa = true ;
+					bool aab = true ;
+					bool aba = true ;
+					bool abb = true ;
+					bool baa = true ;
+					bool bab = true ;
+					bool bba = true ;
+					bool bbb = true ;
 				
 				
 
@@ -166,7 +166,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i-1][j][k-1] != poreIndex && phase[i][j][k-1]!= poreIndex 
 						    )
 						  )
-							lbb = false ;
+							aaa = false ;
 					}
 					
 					if(i && j && k != s-1 && phase[i-1][j-1][k+1] != poreIndex)
@@ -180,7 +180,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i-1][j][k+1] != poreIndex && phase[i][j][k+1]!= poreIndex 
 						    )
 						  )
-							lbf = false ;
+							aab = false ;
 					}
 					
 					if(i && j != c-1 && k &&phase[i-1][j+1][k-1] != poreIndex)
@@ -194,7 +194,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i-1][j][k-1] != poreIndex && phase[i][j][k-1]!= poreIndex 
 						    )
 						  )
-						ltb = false ;
+						aba = false ;
 					}
 					if(i && j != c-1 && k != s-1 && phase[i-1][j+1][k+1] != poreIndex)
 					{
@@ -207,7 +207,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i-1][j][k+1] != poreIndex && phase[i][j][k+1]!= poreIndex 
 						    )
 						  )
-						ltf = false ;
+						abb = false ;
 					}
 					
 					if(i != r-1 && j  && k  && phase[i+1][j-1][k-1] != poreIndex)
@@ -221,7 +221,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i+1][j][k-1] != poreIndex && phase[i][j][k-1]!= poreIndex 
 						    )
 						  )
-							rbb = false ;
+							baa = false ;
 					}
 					
 					if(i != r-1 && j  && k != s-1 && phase[i+1][j-1][k+1] != poreIndex)
@@ -235,7 +235,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i+1][j][k+1] != poreIndex && phase[i][j][k+1]!= poreIndex 
 						    )
 						  )
-							rbf = false ;
+							bab = false ;
 					}
 					
 					if(i != r-1 && j != c-1 && k && phase[i+1][j+1][k-1] != poreIndex)
@@ -249,7 +249,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i+1][j][k-1] != poreIndex && phase[i][j][k-1]!= poreIndex 
 						    )
 						  )
-							rtb = false ;
+							bba = false ;
 					}
 					if(i != r-1 && j != c-1 && k != s-1&& phase[i+1][j+1][k+1] != poreIndex)
 					{
@@ -262,7 +262,7 @@ void VoxelPoreFilter::read(const char * filename)
 						      || phase[i+1][j][k+1] != poreIndex && phase[i][j][k+1]!= poreIndex 
 						    )
 						  )
-							rtf = false ;
+							bbb = false ;
 					}
 					
 					if(j != c-1 && k != s-1&& phase[i][j+1][k+1] != poreIndex)
@@ -272,8 +272,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rtf = false ;
-							ltf = false ;
+							abb = false ;
+							bbb = false ;
 						}
 					}
 					if(i != r-1 && k != s-1&& phase[i+1][j][k+1] != poreIndex)
@@ -283,8 +283,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rtf = false ;
-							rbf = false ;
+							bab = false ;
+							bbb = false ;
 						}
 					}
 					if(i != r-1 && j != c-1&& phase[i+1][j+1][k] != poreIndex)
@@ -294,8 +294,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rtf = false ;
-							rtb = false ;
+							bba = false ;
+							bbb = false ;
 						}
 					}
 					
@@ -306,8 +306,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rbb = false ;
-							lbb = false ;
+							aaa = false ;
+							baa = false ;
 						}
 					}
 					if(i&& k&& phase[i-1][j][k-1] != poreIndex)
@@ -317,8 +317,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							ltb = false ;
-							lbb = false ;
+							aaa = false ;
+							aba = false ;
 						}
 					}
 					if(i && j && phase[i-1][j-1][k] != poreIndex)
@@ -328,8 +328,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							lbf = false ;
-							lbb = false ;
+							aaa = false ;
+							aab = false ;
 						}
 					}
 					
@@ -340,8 +340,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rbf = false ;
-							lbf = false ;
+							aab = false ;
+							bab = false ;
 						}
 					}
 					if( i && k != s-1 && phase[i-1][j][k+1] != poreIndex)
@@ -351,8 +351,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							ltf = false ;
-							lbf = false ;
+							aab = false ;
+							abb = false ;
 						}
 					}
 					if(i && j != c-1 && phase[i-1][j+1][k] != poreIndex)
@@ -362,8 +362,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							ltf = false ;
-							ltb = false ;
+							aba = false ;
+							abb = false ;
 						}
 					}
 					
@@ -374,8 +374,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rtb = false ;
-							ltb = false ;
+							aba = false ;
+							bba = false ;
 						}
 					}
 					if(k && i != r-1 && phase[i+1][j][k-1] != poreIndex)
@@ -385,8 +385,8 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rtb = false ;
-							rbb = false ;
+							baa = false ;
+							bba = false ;
 						}
 					}
 					if( i != r -1 && j && phase[i+1][j-1][k] != poreIndex)
@@ -396,42 +396,42 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
-							rbf = false ;
-							rbb = false ;
+							baa = false ;
+							bab = false ;
 						}
 					}
 				
 				
 				std::vector<Point *> corner ;
-				if(ltb)
+				if(aaa)
 					corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+j*(s+1)+k])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(ltf)
+				if(aab)
 					corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+j*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(lbb)
+				if(aba)
 					corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(lbf)
+				if(abb)
 					corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(rtb)
+				if(baa)
 					corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
 				else
 				{
@@ -439,77 +439,77 @@ void VoxelPoreFilter::read(const char * filename)
 					(*corner.rbegin())->id = index++ ;
 				}
 			
-				if(rtf)
+				if(bab)
 					corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(rbb)
+				if(bba)
 					corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(rbf)
+				if(bbb)
 					corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(ltb)
+				if(aaa)
 					corner.push_back(points[points.size()/2 + i*(r+1)*(c+1)+j*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 + i*(r+1)*(c+1)+j*(s+1)+k])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(ltf)
+				if(aab)
 					corner.push_back(points[points.size()/2 +i*(r+1)*(c+1)+j*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +i*(r+1)*(c+1)+j*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(lbb)
+				if(aba)
 					corner.push_back(points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(lbf)
+				if(abb)
 					corner.push_back(points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(rtb)
+				if(baa)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(rtf)
+				if(bab)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k+1])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(rbb)
+				if(bba)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
 					(*corner.rbegin())->id = index++ ;
 				}
-				if(rbf)
+				if(bbb)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
