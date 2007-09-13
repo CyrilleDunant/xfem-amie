@@ -272,6 +272,7 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
+							std::cout << "[j+1][k+1]" << std::endl ;
 							abb = false ;
 							bbb = false ;
 						}
@@ -306,6 +307,7 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
+							std::cout << "[j-1][k-1]" << std::endl ;
 							aaa = false ;
 							baa = false ;
 						}
@@ -340,6 +342,7 @@ void VoxelPoreFilter::read(const char * filename)
 						    )
 						  )
 						{
+							std::cout << "[j-1][k+1]" << std::endl ;
 							aab = false ;
 							bab = false ;
 						}
@@ -370,10 +373,11 @@ void VoxelPoreFilter::read(const char * filename)
 					if(k && j != c-1 && phase[i][j+1][k-1] == poreIndex)
 					{
 						if(!(
-						      phase[i][j][k-1] == poreIndex || phase[i][j+1][k]== poreIndex 
+						      phase[i][j][k-1] == poreIndex || phase[i][j+1][k] == poreIndex 
 						    )
 						  )
 						{
+							std::cout << "[j+1][k-1]" << std::endl ;
 							aba = false ;
 							bba = false ;
 						}
