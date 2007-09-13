@@ -363,9 +363,9 @@ int main(int argc, char *argv[])
 	
 	Matrix diffusionMatrix(3,3) ;
 	
-	diffusionMatrix[0][0] = 0.01;
-	diffusionMatrix[1][1] = 0.01;
-	diffusionMatrix[2][2] = 0.01;
+	diffusionMatrix[0][0] =1;
+	diffusionMatrix[1][1] =1;
+	diffusionMatrix[2][2] =1;
 	
 	
 	//1 Alite
@@ -419,13 +419,19 @@ int main(int argc, char *argv[])
 	
 	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
 	{
+		if(i% 100 == 0)
+		{
+			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::endl ;
+		}
 		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
 		{
 			if(microstruct.getElements()[i]->getBoundingPoint(j).t < 1e-9)
 				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			
 			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
 			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
 				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			
 			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
 			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
 				K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
@@ -453,7 +459,30 @@ int main(int argc, char *argv[])
 	
 	
 	x = new Vector(K->getDisplacements()) ;
+	
+	K->clear() ;
 
+	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	{
+		if(i% 100 == 0)
+		{
+			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::endl ;
+		}
+		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
+		{
+			if(microstruct.getElements()[i]->getBoundingPoint(j).t < 1e-9)
+				K->setPoint((*x)[microstruct.getElements()[i]->getBoundingPoint(j).id],microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			
+			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
+			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			
+			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
+			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+				K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+		}
+	}
+	
 	std::cerr << " stepping through elements... " << std::flush ;
 	for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
 	{	
