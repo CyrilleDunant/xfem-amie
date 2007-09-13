@@ -135,11 +135,11 @@ void VoxelPoreFilter::read(const char * filename)
 	std::cout << "generated phases" << std::endl ;
 	int idx = 0 ;
 	
-	for( int i = 0 ; i < r ; i++)
+	for( int i = 0 ; i < 16 ; i++)
 	{
-		for( int j = 0 ; j < c ; j++)
+		for( int j = 0 ; j < 16 ; j++)
 		{
-			for( int k = 0 ; k < s ; k++)
+			for( int k = 0 ; k < 16 ; k++)
 			{				
 				
 				if(phase[i][j][k] == poreIndex)
