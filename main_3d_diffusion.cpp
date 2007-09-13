@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
 	{
 		if(i% 100 == 0)
 		{
-			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::endl ;
+			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::flush ;
 		}
 		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
 		{
