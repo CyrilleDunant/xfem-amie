@@ -142,7 +142,7 @@ void VoxelPoreFilter::read(const char * filename)
 			for( int k = 0 ; k < s ; k++)
 			{				
 				
-				if(phase[i][j][k] == poreIndex)
+				if(true  /*phase[i][j][k] == poreIndex*/)
 				{
 					bool aaa = true ;
 					bool aab = true ;
@@ -402,14 +402,14 @@ void VoxelPoreFilter::read(const char * filename)
 					}
 				
 				
-// 					 aaa = false ;
-// 					 aab = false ;
-// 					 aba = false ;
-// 					 abb = false ;
-// 					 baa = false ;
-// 					 bab = false ;
-// 					 bba = false ;
-// 					 bbb = false ;
+					 aaa = true ;
+					 aab = true ;
+					 aba = true ;
+					 abb = true ;
+					 baa = true ;
+					 bab = true ;
+					 bba = true ;
+					 bbb = true ;
 				
 					
 				std::vector<Point *> corner ;

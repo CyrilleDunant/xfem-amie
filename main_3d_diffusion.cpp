@@ -379,7 +379,7 @@ int main(int argc, char *argv[])
 	microstruct.behaviour = new Diffusion(diffusionMatrix) ;
 	microstruct.behaviourAlt = new Diffusion(diffusionMatrix*.0001) ;
 	
-	microstruct.read("/home/cyrille/xfem++/pixels20.txt") ;
+	microstruct.read("/home/cyrille/svntree/xfem++/xfem++/trunk/pixels20.txt") ;
 	std::cout << "reading done" << std::endl ;
 	
 	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
 	{
 		if(i% 100 == 0)
 		{
-			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::endl ;
+			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::flush ;
 		}
 		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
 		{
