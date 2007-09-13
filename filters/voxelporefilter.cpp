@@ -135,7 +135,7 @@ void VoxelPoreFilter::read(const char * filename)
 	std::cout << "generated phases" << std::endl ;
 	int idx = 0 ;
 	
-	for( int i = 0 ; i < 3 ; i++)
+	for( int i = 0 ; i < 2 ; i++)
 	{
 		for( int j = 0 ; j < c ; j++)
 		{
@@ -402,14 +402,14 @@ void VoxelPoreFilter::read(const char * filename)
 					}
 				
 				
-					 aaa = true ;
-					 aab = true ;
-					 aba = true ;
-					 abb = true ;
-					 baa = true ;
-					 bab = true ;
-					 bba = true ;
-					 bbb = true ;
+// 					 aaa = true ;
+// 					 aab = true ;
+// 					 aba = true ;
+// 					 abb = true ;
+// 					 baa = true ;
+// 					 bab = true ;
+// 					 bba = true ;
+// 					 bbb = true ;
 				
 					
 				std::vector<Point *> corner ;
