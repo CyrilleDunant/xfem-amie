@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 #include "../elements/elements.h"
 #include "../delaunay_3d.h"
@@ -27,6 +28,27 @@ class VoxelPoreFilter{
 protected:
 	std::vector<Point *> points ;
 	std::vector<DelaunayTetrahedron *> elems;
+	
+	bool existsPath(std::vector<std::vector<std::vector<int> > > & phase,
+	                int isource, int jsource, int ksource,
+	                int itarget, int jtarget, int ktarget
+	               ) const ;
+	
+	struct ConnectedNode
+	{
+		int i ; 
+		int j ; 
+		int k ;
+		bool visited ;
+		ConnectedNode(int i_, int j_, int k_) : i(i_), j(j_), k(k_) { visited = false ;} ;
+		
+		std::vector<ConnectedNode *> neighbour ;
+		
+		bool isNeighbour(const ConnectedNode * n) const
+		{
+			return std::abs(i-n->i) + std::abs(j-n->j) + std::abs(k-n->k) < 2 ;
+		}
+	} ;
 	
 public:
 	VoxelPoreFilter();
