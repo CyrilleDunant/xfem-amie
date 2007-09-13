@@ -56,7 +56,10 @@ bool VoxelPoreFilter::existsPath(std::vector<std::vector<std::vector<int> > > & 
 				
 					std::cout << i << ", "<< j << ", "<< k << ", " << std::endl ;
 					if(i == isource && j == jsource && k== ksource)
+					{
 						start = &local[local.size()-1] ;
+						std::cout << "yes" << std::endl ;
+					}
 					
 					if(i == itarget && j == jtarget && k== ktarget)
 						end = &local[local.size()-1] ;
