@@ -224,7 +224,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 5;
+	int nsteps = 16;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
