@@ -227,6 +227,7 @@ public:
 	virtual void nonLinearStep(double dt, Vector *displacements) ;
 	
 	virtual Order getOrder() const;
+	virtual void setOrder(Order) ;
 	
 } ;
 

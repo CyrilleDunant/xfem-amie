@@ -1809,6 +1809,10 @@ Order ElementaryVolume::getOrder() const
 	return order ;
 }
 
+ void ElementaryVolume::setOrder(Order o ) 
+{
+	order = o;
+}
 
 Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {

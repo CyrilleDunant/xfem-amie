@@ -31,7 +31,9 @@ protected:
 	
 	bool existsPath(std::vector<std::vector<std::vector<int> > > & phase,
 	                int isource, int jsource, int ksource,
-	                int itarget, int jtarget, int ktarget
+	                int itarget, int jtarget, int ktarget,
+			int istart, int jstart, int kstart,
+	                int iend, int jend, int kend
 	               ) const ;
 	
 	struct ConnectedNode
@@ -54,7 +56,6 @@ public:
 	VoxelPoreFilter();
 
 	LinearForm * behaviour ;
-	LinearForm * behaviourAlt ;
 	virtual ~VoxelPoreFilter();
 	
 	void read(const char * filename) ;

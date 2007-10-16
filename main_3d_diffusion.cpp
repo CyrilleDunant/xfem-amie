@@ -363,9 +363,9 @@ int main(int argc, char *argv[])
 	
 	Matrix diffusionMatrix(3,3) ;
 	
-	diffusionMatrix[0][0] =1;
-	diffusionMatrix[1][1] =1;
-	diffusionMatrix[2][2] =1;
+	diffusionMatrix[0][0] =.1;
+	diffusionMatrix[1][1] =.1;
+	diffusionMatrix[2][2] =.1;
 	
 	
 	//1 Alite
@@ -377,9 +377,8 @@ int main(int argc, char *argv[])
 	VoxelPoreFilter microstruct ;
 	
 	microstruct.behaviour = new Diffusion(diffusionMatrix) ;
-	microstruct.behaviourAlt = new Diffusion(diffusionMatrix*.0001) ;
 	
-	microstruct.read("/home/cyrille/svntree/xfem++/xfem++/trunk/pixels20.txt") ;
+	microstruct.read("/home/cyrille/xfem++/pixels20.txt") ;
 	std::cout << "reading done" << std::endl ;
 	
 	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
@@ -425,16 +424,16 @@ int main(int argc, char *argv[])
 		}
 		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
 		{
-			if(microstruct.getElements()[i]->getBoundingPoint(j).t < 1e-9)
+			if(microstruct.getElements()[i]->getBoundingPoint(j).t < 0)
 				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 			
 			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
-			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
+			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
 				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 			
 			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
-			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 1e-9)
-				K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
+				K->setPoint(.01,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 		}
 	}
 // 	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
@@ -457,8 +456,8 @@ int main(int argc, char *argv[])
 	
 	K->cgsolve() ;
 	x = new Vector(K->getDisplacements()) ;
-	
-	for(size_t t = 0  ; t < 5 ; t++)
+// 	K->print() ;
+	for(size_t t = 0  ; t < 0 ; t++)
 	{
 		
 		*x =  K->getDisplacements() ;
@@ -483,11 +482,11 @@ int main(int argc, char *argv[])
 				}
 				
 				if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
-				&& microstruct.getElements()[i]->getBoundingPoint(j).t > .5)
+				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
 					K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 				
 				if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
-				&& microstruct.getElements()[i]->getBoundingPoint(j).t > .5)
+				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
 					K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
 			}
 		}
