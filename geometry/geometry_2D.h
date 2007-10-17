@@ -268,13 +268,13 @@ public:
 	
 	/** Return first extremity.
 	 * 
-	 * @return the first point of the set.
+	 * @return the first point of the set. This is equivalent to getBoundingPoint(0).
 	 */
 	virtual Point * getHead() const ;
 	
 	/** Return second extremity.
 	 * 
-	 * @return the last point of the set.
+	 * @return the last point of the set. This is equivalent to getBoundingPoint(getBoundingPoints().size()-1).
 	 */
 	virtual Point * getTail() const ;
 		

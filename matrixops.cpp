@@ -270,12 +270,12 @@ void invert2x2Matrix(Mu::Matrix &s)
 		swap[1][0] = 1 ;
 		s *= swap ;
 		
-		double r1 = (double)1/s[0][0] ;
+		double r1 = 1./s[0][0] ;
 		double r2 = s[1][0] * r1 ;
 		double r3 = r1* s[0][1] ;
 		double r4 = s[1][0] * r3 ;
 		double r5 = r4 - s[1][1] ;
-		double r6 = (double)1/r5 ;
+		double r6 = 1./r5 ;
 		s[0][1] = r3*r6 ;
 		s[1][0] = r6*r2 ;
 		double r7 = r3*s[1][0] ;
@@ -317,22 +317,22 @@ void invert3x3Matrix(Mu::Matrix & m)
 	double m10 = m.array()[3] ; double m11 =  m.array()[4] ; double m12 =  m.array()[5] ; 
 	double m20 = m.array()[6] ; double m21 =  m.array()[7] ; double m22 =  m.array()[8] ; 
 	
-	double r11 = m11*m22-m12*m21 ;
-	double r21 = m12*m20-m10*m22 ;
-	double r31 = m10*m21-m11*m20 ;
-	double det = (m00*(r11) + m01*(r21) + m02*(r31)) ;
+	double r11 = fma(m11,m22,-m12*m21) ;
+	double r21 = fma(m12,m20,-m10*m22) ;
+	double r31 = fma(m10,m21,-m11*m20) ;
+	double det = fma(m00,(r11),fma( m01,r21, m02*r31)) ;
 	
 	v[0] = r11 ; 
-	v[1] = m02*m21 - m01*m22 ;
-	v[2] = m01*m12 - m02*m11 ;
+	v[1] = fma(m02,m21, - m01*m22) ;
+	v[2] = fma(m01,m12, - m02*m11) ;
 	
 	v[3] = r21 ; 
-	v[4] = m00*m22 - m02*m20 ;
-	v[5] = m02*m10 - m00*m12 ;
+	v[4] = fma(m00,m22, - m02*m20) ;
+	v[5] = fma(m02,m10, - m00*m12) ;
 	
 	v[6] = r31 ; 
-	v[7] = m01*m20 - m00*m21 ;
-	v[8] = m11*m00 - m01*m10 ;
+	v[7] = fma(m01,m20, - m00*m21) ;
+	v[8] = fma(m11,m00, - m01*m10) ;
 	v /= det ;
 	m.array() = v ;
 
@@ -366,17 +366,17 @@ double det(const Mu::Matrix &s)
 		}
 		case 2:
 		{
-			return s[0][0]*s[1][1]-s[0][1]*s[1][0]; 
+			return fma(s[0][0],s[1][1],-s[0][1]*s[1][0]); 
 		}
 		case 3:
 		{
 			
-			return  s[0][0]*s[1][1]*s[2][2] + 
-							s[1][2]*s[2][0]*s[0][1] + 
-							s[0][2]*s[2][1]*s[1][0] - 
-							s[0][0]*s[1][2]*s[2][1] - 
-							s[0][1]*s[1][0]*s[2][2] - 
-							s[2][0]*s[1][1]*s[0][2];
+			return  fma(s[0][0],s[1][1]*s[2][2],fma(  
+							s[1][2],s[2][0]*s[0][1], fma( 
+							s[0][2],s[2][1]*s[1][0], fma(- 
+							s[0][0],s[1][2]*s[2][1], fma(- 
+							s[0][1],s[1][0]*s[2][2], - 
+							s[2][0]*s[1][1]*s[0][2])))));
 		}
 	
 		case 4:
@@ -393,7 +393,7 @@ double det(const Mu::Matrix &s)
 					
 					Matrix mat(i,j,s) ;
 					
-					ret+= sig*s[i][j]*det(mat) ;
+					ret= fma(sig*s[i][j],det(mat), ret) ;
 				}
 			}
 			

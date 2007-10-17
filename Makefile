@@ -9,8 +9,8 @@ CXX = g++
 #  CXXFLAGS = -g3 -Wall -O0 -DNDEBUG 
 ## use -O0 for mem-checking with valgrind
 ## valgrind --num-callers=8 ./your_target
-CXXFLAGS = -g3 -Wall -fno-exceptions -O0 -DNDEBUG -fstrict-aliasing 
-# CXXFLAGS = -g3 -Wall -fno-exceptions -O3 -DNDEBUG -fstrict-aliasing 
+# CXXFLAGS = -g3 -Wall -fno-exceptions -O0 -DNDEBUG -fstrict-aliasing 
+CXXFLAGS = -g3 -Wall -fno-exceptions -O3 -DNDEBUG -fstrict-aliasing 
 
 LDFLAGS = -Wl -lm -lGL -lglut
 

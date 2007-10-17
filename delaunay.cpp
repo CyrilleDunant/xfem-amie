@@ -961,7 +961,7 @@ std::pair< Point*,  Point*> DelaunayDemiPlane::nearestEdge(const Point p)
 	
 bool DelaunayDemiPlane::inCircumCircle(const Point &p) const
 {
-	return ((vector.x*(p.y - first->y) - vector.y*(p.x - first->x)) * direction < -10*std::numeric_limits<double>::epsilon()) ;
+	return (fma(vector.x,(p.y - first->y), - vector.y*(p.x - first->x)) * direction < -10*std::numeric_limits<double>::epsilon()) ;
 }
 	
 bool DelaunayDemiPlane::isVertex(const Point *p) const

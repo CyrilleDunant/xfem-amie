@@ -224,7 +224,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 16;
+	int nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -1522,14 +1522,19 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.70, 25000, BOLOME_A)(.004, .05);
+	inclusions = GranuloBolome(.90, 25000, BOLOME_A)(.016, .05);
 	int nAgg = 0 ;
 	inclusions=placement(.16, .04, inclusions, &nAgg, 256);
 // 	F.addFeature(&sample,inc) ;
 	
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
+		Vector a(double(0), 3) ;
+		a[0] = .0002 ;
+		a[1] = .0002 ;
+		a[2] = 0.00 ;
+		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
+		//inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
 		F.addFeature(&sample,inclusions[i]) ;
 	}
 	
@@ -1546,7 +1551,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
- 	zones = generateExpansiveZones(1, inclusions, F) ;
+//  	zones = generateExpansiveZones(1, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1555,7 +1560,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(800) ;
+	F.sample(600) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

@@ -349,7 +349,7 @@ Vector CoordinateIndexedIncompleteSparseMatrix::operator *(const Vector v) const
 		size_t r_index = row_index[array_index];
 		size_t c_index = column_index[array_index];
 
-		ret[r_index] += array[array_index] * v[c_index] ;
+		ret[r_index] = fma(array[array_index] , v[c_index], ret[r_index]) ;
 		array_index++ ;
 	}
 	return ret ;

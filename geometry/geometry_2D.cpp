@@ -167,7 +167,7 @@ void Parallelogramme::computeCircumCenter()
 		double mx2 = (boundingPoints[1]->x + boundingPoints[2]->x) / 2.0;
 		double my2 = (boundingPoints[1]->y + boundingPoints[2]->y) / 2.0;
 		double xc = (boundingPoints[1]->x + boundingPoints[0]->x) / 2.0;
-		double yc = m2 * (xc - mx2) + my2;
+		double yc = fma(m2, (xc - mx2), my2);
 		
 		circumCenter = Point(xc, yc) ;
 	} 
@@ -177,7 +177,7 @@ void Parallelogramme::computeCircumCenter()
 		double mx1 = (boundingPoints[0]->x + boundingPoints[1]->x) / 2.0;
 		double my1 = (boundingPoints[0]->y + boundingPoints[1]->y) / 2.0;
 		double xc = (boundingPoints[2]->x + boundingPoints[1]->x) / 2.0;
-		double yc = m1 * (xc - mx1) + my1;
+		double yc = fma(m1, (xc - mx1), my1);
 		
 		circumCenter = Point(xc, yc) ;
 	} 
@@ -189,8 +189,8 @@ void Parallelogramme::computeCircumCenter()
 		double mx2 = (boundingPoints[1]->x + boundingPoints[2]->x) / 2.0;
 		double my1 = (boundingPoints[0]->y + boundingPoints[1]->y) / 2.0;
 		double my2 = (boundingPoints[1]->y + boundingPoints[2]->y) / 2.0;
-		double xc = (m1 * mx1 - m2 * mx2 + my2 - my1) / (m1 - m2);
-		double yc = m1 * (xc - mx1) + my1;
+		double xc = fma(m1, mx1, fma(- m2 , mx2, my2 - my1)) / (m1 - m2);
+		double yc = fma(m1, (xc - mx1), my1);
 		
 		circumCenter = Point(xc, yc) ;
 	}
@@ -396,14 +396,14 @@ bool Triangle::inCircumCircle(const Point & p) const
 {
 	double x = circumCenter.x -p.x ;
 	double y = circumCenter.y -p.y ;
-	return  x*x + y*y< sqradius -POINT_TOLERANCE  ;
+	return  fma(x, x, y*y)< sqradius -POINT_TOLERANCE  ;
 }
 
 bool Triangle::inCircumCircle(const Point *p) const
 {
 		double x = circumCenter.x -p->x ;
 	double y = circumCenter.y -p->y ;
-	return  x*x + y*y < sqradius -POINT_TOLERANCE  ;
+	return  fma(x, x, y*y) < sqradius -POINT_TOLERANCE  ;
 }
 
 
@@ -873,7 +873,7 @@ void Circle::sampleSurface(size_t num_points)
 // 	if(numberOfRings > 0)
 // 		numberOfRings-- ;
 	assert(numberOfRings >= 0) ;
-	double angle = 2*M_PI/ (num_points) ;
+	double angle = 2.*M_PI/ (num_points) ;
 	double offset = 0 ;
 	
 	//std::cout << "we have " << numberOfRings<< " rings" << std::endl ;

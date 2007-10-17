@@ -17,7 +17,15 @@
 namespace Mu
 {
 
-
+/** Branching cracks
+ * Branches are all the segmented lines that form the non-overlaping structure of the crack. 
+ * A branch contains no information on tips or bifurcations. Also, it should be considered 
+ * ending at the elements which contain its head and tail.
+ * tips are the singularities of the cracks. That is, all the branch ends that are not
+ * bifurcations.
+ * forks are all the possible dual domain decomposition frontiers (as segmented lines) in 
+ * elements containing branches. The affected element should be obtained from conflicts(center)
+ */
 class BranchedCrack : public EnrichmentFeature,  public SegmentedLine
 {
 protected:
@@ -30,10 +38,45 @@ protected:
 	void enrichBranches(DelaunayTree * dt) ;
 	
 	void branch(Point* fromTip, Point * newTip0, Point * newTip1 ) ;
+	void merge(BranchedCrack &) ;
 	
 public:
 	BranchedCrack(Feature *father, Point * a, Point * b) ;
 	BranchedCrack(Point * a, Point * b) ;
+
+	const std::vector<SegmentedLine *> & getBranches() const;
+	const std::vector<Point * > & getTips() const;
+	const std::vector<SegmentedLine * > & getForks() const;
+
+	std::vector<SegmentedLine *> & getBranches();
+	std::vector<Point * > & getTips();
+	std::vector<SegmentedLine * > & getForks();
+
+	/** Branch the crack from the given tip, provided the two new tips.
+	 * The branching operation will create a new branch, expand the original branche and add a fork.
+	 *
+	 * @param fromTip the original tip, which will be removed
+	 * @param newTip0 first new tip, used to extend the affected branch
+	 * @param newTip1 second new tip. forms the new branch with the original tip
+	 */
+	void branch(Point* fromTip, Point * newTip0, Point * newTip1 ) ;
+
+	/** Merge two branchedCracks.
+	 * the merging will locate the nearest (segment, tip) couple from the (original, argument) cracks and create a new intersection point.
+	 * 
+	 * the affected branch will have an additional point at the intersection. A fork will be added, and all the branches, forks and tips from the target will be merged into this crack. The crack given as an argument will be emptied.
+	 * 
+	 * @param newSet crack to merge
+	 */
+	void merge(BranchedCrack & newSet) ;
+
+	/** Is this crack still existing.
+	 * This is useful to know if the crack has already been merged.
+	 * 
+	 * @return false if there is at least a branch
+	 */
+	bool isEmpty() const ;
+
 	
 public:
 	GEO_DERIVED_OBJECT(SegmentedLine) ;

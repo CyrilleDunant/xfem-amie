@@ -68,11 +68,13 @@ void Point::print() const
 
 double Point::norm() const
 {
+	return sqrt(fma(x, x, fma(y, y, z*z))) ;
 	return sqrt(x*x + y*y + z*z) ;
 }
 
 double Point::sqNorm() const
 {
+	return fma(x, x, fma(y, y, z*z)) ;
 	return x*x + y*y + z*z;
 }
 void Point::setX(double v) 
@@ -268,6 +270,7 @@ Point Point::operator*(const double p)  const
 
 double Point::operator*(const Point &p) const
 {
+	return fma(x,p.x,fma(y,p.y, fma(z, p.z, t*p.t))) ;
 	return x*p.x + y*p.y + z*p.z+ t*p.t;
 }
 
@@ -284,9 +287,9 @@ double Point::operator*(const Vector &p) const
 Point Point::operator^(const Point &p) const
 {
 	Point ret ;
-	ret.x = y*p.z - z*p.y ;
-	ret.y = z*p.x - x*p.z ;
-	ret.z = x*p.y - y*p.x ;
+	ret.x = fma(y,p.z,  -z*p.y) ;
+	ret.y = fma(z,p.x , -x*p.z) ;
+	ret.z = fma(x,p.y , -y*p.x) ;
 	
 	return ret ;
 }
@@ -2438,6 +2441,7 @@ double dist(const Point & v1, const Point & v2)
 	double y = v2.y-v1.y ;
 	double z = v2.z-v1.z ;
 	double t = v2.t-v1.t ;
+	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
 	return sqrt (x*x+y*y+z*z +t*t) ;
 }
 
@@ -2447,17 +2451,28 @@ double dist(const Point * v1, const Point * v2)
 	double y = v2->y-v1->y ;
 	double z = v2->z-v1->z ;
 	double t = v2->t-v1->t ;
+	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
 	return sqrt (x*x+y*y+z*z+t*t) ;
 }
 
 
 double squareDist(const  Point &v1, const Point & v2)
 {
+	double x = v2.x-v1.x ;
+	double y = v2.y-v1.y ;
+	double z = v2.z-v1.z ;
+	double t = v2.t-v1.t ;
+	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
 	return (v2.x-v1.x)*(v2.x-v1.x)+(v2.y-v1.y)*(v2.y-v1.y) + (v2.z-v1.z)*(v2.z-v1.z)+ (v2.t-v1.t)*(v2.t-v1.t);
 }
 
 double squareDist(const Point *v1, const Point *v2)
 {
+	double x = v2->x-v1->x ;
+	double y = v2->y-v1->y ;
+	double z = v2->z-v1->z ;
+	double t = v2->t-v1->t ;
+	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
 	return (v2->x-v1->x)*(v2->x-v1->x)+(v2->y-v1->y)*(v2->y-v1->y) + (v2->z-v1->z)*(v2->z-v1->z)+ (v2->t-v1->t)*(v2->t-v1->t);
 }
 
