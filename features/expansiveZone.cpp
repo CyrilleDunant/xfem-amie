@@ -32,10 +32,9 @@ void ExpansiveZone::reset()
 
 void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 {
-	
 	EnrichmentInclusion::enrich(counter, dtree) ;
 	//first we get All the triangles affected
-		std::vector<DelaunayTriangle *> disc = cache ;
+	std::vector<DelaunayTriangle *> disc = cache ;
 
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;

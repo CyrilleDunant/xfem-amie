@@ -130,7 +130,7 @@ return this->__geo_type__::volume() ;                      \
 namespace Mu
 {
 
-static const double POINT_TOLERANCE =  1e-12 ; // 4.*std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE =  4e-12 ; // 4.*std::numeric_limits<double>::epsilon() ;
 
 typedef enum
 {
@@ -668,6 +668,9 @@ inline bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Poin
 
 inline bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)
 {
+	Mu::Point a(test-f0) ;
+	Mu::Point b(test-f1) ;
+	return std::abs((a^b).z) < Mu::POINT_TOLERANCE ;
 	return ( std::abs((f2.x-test.x)*((f1.y-test.y)*(f0.z-test.z) - (f0.y-test.y)*(f1.z-test.z))-(f2.y-test.y)*((f1.x-test.x)*(f0.z-test.z) - (f0.x-test.x)*(f1.z-test.z))+(f2.z-test.z)*((f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y))) < Mu::POINT_TOLERANCE) ;
 } ;
 /** Check the alignment of three points.
@@ -679,7 +682,10 @@ inline bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Poin
  */
 inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
 {
-	return ( std::abs((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y)) < Mu::POINT_TOLERANCE) ;
+	Mu::Point a(*test-*f0) ;
+	Mu::Point b(*test-*f1) ;
+	return std::abs((a^b).z) < Mu::POINT_TOLERANCE ;
+	return ( std::abs((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y)) < Mu::POINT_TOLERANCE*Mu::POINT_TOLERANCE) ;
 } ;
 
 inline bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  

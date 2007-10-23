@@ -121,6 +121,86 @@ int count = 0 ;
 double aggregateArea = 0;
 
 
+
+Vector BCGS(Matrix & A, Vector & b, Vector & x)
+{
+
+	double epsilon = 1e-12 ;
+	Vector r = b - (Vector)(A*x) ;
+	Vector r_(r) ;
+	double rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
+
+	Vector invDiag(r.size()) ;
+
+	for(size_t i = 0 ; i < r.size() ; i++)
+	{
+		invDiag[i] = 1./A[i][i] ;
+	}
+	
+	if(rho < epsilon)
+		return x ;
+	
+	Vector p(r) ;
+
+	Vector p_ = invDiag*p ;
+	//Vector p_ = precondition(p) ;
+	
+	Vector v = A*p_ ;
+	
+	double alpha = rho/std::inner_product(&r_[0], &r_[r_.size()], &v[0], double(0)) ;
+	
+	Vector s = r - v*alpha ;
+	
+	if(std::abs(s.max()) < epsilon)
+	{
+		x += p_*alpha ;
+		return x ;
+	}
+
+	Vector s_ = invDiag*s ;
+	//Vector s_ = precondition(s) ;
+	Vector t = A*s_ ;
+	double omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
+	x += p_*alpha +omega*s_ ;
+	r = s- t*omega ;
+	double rho_ =rho ;
+
+	int nit = 0 ;
+	
+	while(nit < r.size())
+	{
+		std::cout << "nit = "<< nit << std::endl ;
+		nit++ ;
+		
+		rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
+		if(std::abs(rho) < epsilon)
+			return x ;
+		
+		double beta = (rho/rho_)*(alpha/omega) ;
+		p = r + (p-v*omega)*beta ;
+		p_ = invDiag*p ;
+		//p_ = precondition(p) ;
+		v = A*p_ ;
+		alpha = rho/std::inner_product(&r_[0], &r_[r_.size()], &v[0], double(0)) ;
+		s = r - v*alpha ;
+
+		//s_ = precondition(s) ;
+		s_ = invDiag*s ;
+		t = A*s_ ;
+		omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
+
+		if(std::abs(omega) < epsilon)
+			return x ;
+		
+		x += p_*alpha +s_*omega ;
+		r = s- t*omega ;
+		rho_ = rho ;
+		
+	}
+
+	return x ;
+}
+
 void setBC()
 {
 	triangles = featureTree->getTriangles() ;
@@ -1426,7 +1506,23 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
+
 	
+// 	DelaunayTree DT(new Point(0,0), new Point(1,0), new Point(0,1)) ;
+// 	DT.insert(new Point(.50000000001,.5)) ;
+// 	DT.insert(new Point(.50000001,.50000001)) ;
+// 	DT.insert(new Point(.500001,.500001)) ;
+// 	DT.print() ;
+	
+// 	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
+// 	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
+// 	branch0.print() ;
+// 	branch1.print() ;
+// 	branch0.merge(branch1) ;
+// 	branch0.print() ;
+// 	branch1.print() ;
+// 
+
 	
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1450,7 +1546,7 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 // 	F.addFeature(&sample,&reinforcement0) ;
 // 	F.addFeature(&sample,&reinforcement1) ;
-	Point A(0,-.7); Point b(-0.1,-1.5); Point c(0.1,-1.5) ;
+// 	Point A(0,-.7); Point b(-0.1,-1.5); Point c(0.1,-1.5) ;
 // 	TriangularPore * pore = new TriangularPore(A, b, c) ;
 // 	F.addFeature(&sample,pore) ;
 	
@@ -1522,7 +1618,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.90, 25000, BOLOME_A)(.016, .05);
+	inclusions = GranuloBolome(.65, 25000, BOLOME_A)(.004, .05);
 	int nAgg = 0 ;
 	inclusions=placement(.16, .04, inclusions, &nAgg, 256);
 // 	F.addFeature(&sample,inc) ;
@@ -1534,10 +1630,11 @@ int main(int argc, char *argv[])
 		a[1] = .0002 ;
 		a[2] = 0.00 ;
 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
-		//inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
+// 		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
 		F.addFeature(&sample,inclusions[i]) ;
 	}
-	
+	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
+	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
 	Circle cercle(.5, 0,0) ;
 	
 	
@@ -1551,7 +1648,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
-//  	zones = generateExpansiveZones(1, inclusions, F) ;
+	zones = generateExpansiveZones(1, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1560,7 +1657,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(600) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

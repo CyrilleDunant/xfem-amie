@@ -13,6 +13,7 @@
 #include "assembly.h"
 #include "gausseidell.h"
 #include "polakribiereconjugategradient.h"
+#include "biconjugategradientstabilized.h"
 using namespace Mu ;
 
 
@@ -1021,12 +1022,14 @@ Vector & Assembly::cgsolve(Vector x0, size_t maxit)
 	if(x0.size() == 0)
 	{
 // 		displacements = ConjugateGradient(getMatrix(), externalForces).solve(displacements, NULL,1e-12, 16000, true) ;
-		ConjugateGradientWithSecant(this).solve() ;
+		displacements = BiConjugateGradientStabilized(getMatrix(), externalForces).solve(displacements, NULL,1e-12, 16000, true) ;
+// 		ConjugateGradientWithSecant(this).solve() ;
 	}
 	else
 	{
+		displacements = BiConjugateGradientStabilized(getMatrix(), externalForces).solve(displacements, NULL,1e-12, 16000, true) ;
 // 		displacements = ConjugateGradient(getMatrix(), externalForces).solve(x0, NULL,1e-12, 16000, true) ;
-		ConjugateGradientWithSecant(this).solve();
+// 		ConjugateGradientWithSecant(this).solve();
 	}
 	return displacements ;
 // 	return ConjugateGradientWithSecant(this).solve() ;

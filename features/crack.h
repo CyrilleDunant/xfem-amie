@@ -19,12 +19,14 @@ namespace Mu
 
 /** Branching cracks
  * Branches are all the segmented lines that form the non-overlaping structure of the crack. 
- * A branch contains no information on tips or bifurcations. Also, it should be considered 
- * ending at the elements which contain its head and tail.
- * tips are the singularities of the cracks. That is, all the branch ends that are not
+ * A branch contains no information on tips or bifurcations.
+ * Tips are the singularities of the cracks. That is, all the branch ends that are not
  * bifurcations.
- * forks are all the possible dual domain decomposition frontiers (as segmented lines) in 
+ * Forks are all the possible dual domain decomposition frontiers (as segmented lines) in 
  * elements containing branches. The affected element should be obtained from conflicts(center)
+ *
+ * The enrichment strategy is the following: first the tips are enriched. Then the forks are enriched.
+ * Then, if there remain unenriched elements crossed by the branches, those are enriched.
  */
 class BranchedCrack : public EnrichmentFeature,  public SegmentedLine
 {
@@ -33,17 +35,49 @@ protected:
 	std::vector<Point * > tips ;
 	std::vector<SegmentedLine * > forks ;
 	
-	void enrichTips(DelaunayTree * dt) ;
-	void enrichForks(DelaunayTree * dt) ;
-	void enrichBranches(DelaunayTree * dt) ;
+	void enrichTips(size_t &, DelaunayTree * dt) ;
+	void enrichTip(size_t &, DelaunayTree * dt, const Point * tip) ;
+
+	void enrichForks(size_t &, DelaunayTree * dt) ;
+	void enrichBranches(size_t &, DelaunayTree * dt) ;
+	void enrichSegmentedLine(size_t &, DelaunayTree * dt, const SegmentedLine * line) ;
 	
-	void branch(Point* fromTip, Point * newTip0, Point * newTip1 ) ;
-	void merge(BranchedCrack &) ;
+	typedef enum
+	{
+		NOT_ENRICHED,
+		TIP_ENRICHED,
+		BIFURCATION_ENRICHED,
+		LINE_ENRICHED
+	} EnrichementState;
+
+	std::map<std::pair<DelaunayTriangle *, Point *>, EnrichementState > enrichmentMap ;
+	
+	double enrichementRadius ;
+	bool changed ;
 	
 public:
+	
+	/** Instantiate a branching crack.
+	 *
+	 * The crack is instantiated as a segment, given two points.
+	 * 
+	 * @param father father feature. This is used to determin whether the points given are tips or lie outside of the domain.
+	 * @param a first point
+	 * @param b second point
+	 */
 	BranchedCrack(Feature *father, Point * a, Point * b) ;
+
+	/** Instantiate a branching crack.
+	 *
+	 * The crack is instantiated as a segment, given two points. There is no check of wheter the points lie within a given domain
+	 * therefore they are assumed to be tips.
+	 *
+	 * @param a first point
+	 * @param b second point
+	 */
 	BranchedCrack(Point * a, Point * b) ;
 
+	double getEnrichementRadius() const ;
 	const std::vector<SegmentedLine *> & getBranches() const;
 	const std::vector<Point * > & getTips() const;
 	const std::vector<SegmentedLine * > & getForks() const;
@@ -51,6 +85,7 @@ public:
 	std::vector<SegmentedLine *> & getBranches();
 	std::vector<Point * > & getTips();
 	std::vector<SegmentedLine * > & getForks();
+	void setEnrichementRadius(double newRadius) ;
 
 	/** Branch the crack from the given tip, provided the two new tips.
 	 * The branching operation will create a new branch, expand the original branche and add a fork.
@@ -77,6 +112,25 @@ public:
 	 */
 	bool isEmpty() const ;
 
+	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
+
+	virtual void computeCenter() ;
+	virtual std::vector<DelaunayTriangle*> getTriangles(DelaunayTree*) ;
+	virtual std::vector<DelaunayTetrahedron*> getTetrahedrons(DelaunayTree_3D*) ;
+	virtual bool interacts(Feature*) const ;
+	virtual Point* pointAfter(size_t) ;
+	virtual std::vector<Mu::Geometry*> getRefinementZones(size_t) const ;
+	virtual void print() const ;
+	virtual void sample(size_t) ;
+	virtual bool isVoid(const Point&) const ;
+	virtual std::vector<Point*> getSamplingPoints() const ;
+	virtual bool enrichmentTarget(DelaunayTriangle*) ;
+	virtual void step(double, Vector*, const DelaunayTree*) ;
+	virtual void snap(DelaunayTree*) ;
+	virtual bool moved() const ;
+
+	virtual ~BranchedCrack() ;
+		
 	
 public:
 	GEO_DERIVED_OBJECT(SegmentedLine) ;

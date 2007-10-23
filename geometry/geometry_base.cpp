@@ -137,7 +137,7 @@ void Point::set(double v, double vv, double vvv, double vvvv)
 bool Point::operator==(const Point &p) const
 {
 
-	return dist( &p, this) < POINT_TOLERANCE ;
+	return squareDist( &p, this) < POINT_TOLERANCE*POINT_TOLERANCE ;
 /*
 	return  std::abs(x-p.x) < 1e-8 && 
 		std::abs(y-p.y) < 1e-8 &&  std::abs(z-p.z) < 1e-8;*/
@@ -147,7 +147,7 @@ bool Point::operator!=(const Point & p) const
 {
 // 	return squareDist( p, *this) >= 1e-8 ;
 	
-	return   dist(this, &p) >  POINT_TOLERANCE ;
+	return   squareDist(this, &p) >  POINT_TOLERANCE*POINT_TOLERANCE ;
 }
 
 Point Point::operator-(const Point &p) const

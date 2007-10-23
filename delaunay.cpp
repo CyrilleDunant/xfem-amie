@@ -292,7 +292,6 @@ size_t DelaunayTree::numPoints() const
 
 void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > & ret, const Geometry *g)
 {
-
 	if(visited)
 	{
 		return ;
@@ -487,7 +486,6 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<Point *>, std::vector<Del
 void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> >& ret,const Point *p)
 {
 // 	print() ;
-	
 	if(visited)
 		return  ;
 	visited = true ;
@@ -502,7 +500,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 		if(!stepson[i]->visited && stepson[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(stepson[i]) ;
-			limit = std::abs(dist(t->getCircumCenter(),*p)-t->getRadius()) < 2.*POINT_TOLERANCE ;
+			limit = std::abs(squareDist(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
 		if( (!stepson[i]->visited && stepson[i]->inCircumCircle(*p)) || limit) 
@@ -520,7 +518,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 		if(!son[i]->visited && son[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(son[i]) ;
-			limit = std::abs(dist(t->getCircumCenter(),*p)-t->getRadius()) < 2.*POINT_TOLERANCE ;
+			limit = std::abs(squareDist(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
 		if( (!son[i]->visited && son[i]->inCircumCircle(*p)) || limit)
@@ -768,11 +766,11 @@ std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * 
 	}
 	else
 	{
-		if(isAligned((*t->first), (*first), (*second)) && isAligned((*t->second), (*first), (*second)))
+		if(isAligned(t->first, first, second) && isAligned(t->second, first, second))
 			return std::pair< Point*,  Point*>(first, second ) ;
-		if(isAligned((*t->first), (*third), (*second)) && isAligned((*t->second), (*third), (*second)))
+		if(isAligned(t->first, third, second) && isAligned(t->second, third, second))
 			return std::pair< Point*,  Point*>(third, second ) ;
-		if(isAligned((*t->first), (*third), (*first)) && isAligned((*t->second), (*third), (*first)))
+		if(isAligned(t->first, third, first) && isAligned(t->second, third, first))
 			return std::pair< Point*,  Point*>(first, third ) ;
 	}
 	
@@ -828,8 +826,12 @@ void DelaunayDemiPlane::merge(DelaunayDemiPlane * p)
 			kill(first) ;
 			return ;
 		}
-		if(isAligned((*first), (*second), (*p->first)) && isAligned((*first), (*second), (*p->second)) &&
-		   isAligned((*first), (*p->first) ,(*p->second)) && isAligned((*second), (*p->first) ,(*p->second)))
+
+		print() ;
+		p->print() ;
+		std::cout << "isAligned(first, second, p->first) " <<isAligned(first, second, p->first) << "\nisAligned(first, second, p->second) " << isAligned(first, second, p->second) << std::endl ;
+		
+		if(isAligned(first, second, p->first) && isAligned(first, second, p->second))
 		{
 
 			for(size_t i = 0 ; i <  p->neighbour.size() ; i++)
@@ -884,6 +886,10 @@ bool DelaunayTriangle::inCircumCircle(const Point &p) const
 void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  Star* s)
 {
 
+	if (visited)
+		return ;
+	visited = true ;
+	
 	for (size_t i = 0 ; i < neighbour.size() ; i++)
 	{
 		if(this->numberOfCommonVertices(neighbour[i]) == 2)
@@ -892,7 +898,7 @@ void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  S
 			if (!neighbour[i]->inCircumCircle(*p))
 			{
 
-				if(!isAligned((*p), (*pp.first), (*pp.second) ))
+				if(!isAligned(p, pp.first, pp.second ))
 				{
 					DelaunayTriangle *ss = new DelaunayTriangle(this, p, pp.first, pp.second, p) ;
 					son.push_back(ss) ;
@@ -966,7 +972,7 @@ bool DelaunayDemiPlane::inCircumCircle(const Point &p) const
 	
 bool DelaunayDemiPlane::isVertex(const Point *p) const
 {
-	return ( (*p) == (*first) || (*p) == (*second) ) || isAligned((*p), (*first), (*second)) ;
+	return ( (*p) == (*first) || (*p) == (*second) ) || isAligned(p, first, second) ;
 }
 	
 
@@ -987,7 +993,10 @@ return false ;
 
 void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, Star *s)
 {
-
+	if (visited)
+		return ;
+	visited = true ;
+	
 	std::vector<Point*> lims ;
 	
 	for(size_t i = 0 ; i < neighbour.size() ; i++)
@@ -1010,7 +1019,7 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 
 				assert(neighbour[i]->isNeighbour(this) );
 				
-				if(!isAligned((*p), (*first), (*second)))
+				if(!isAligned(p, first, second))
 				{
 
 					DelaunayTriangle *ss = new DelaunayTriangle(this, p, pp.first, pp.second , p) ;
@@ -1047,30 +1056,66 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 	
 	assert(lims.size() < 3) ;
 	
-	assert(!isAligned((*lims[0]), (*p), (*lims[1]))) ;
+	assert(!isAligned(lims[0], p, lims[1])) ;
 	assert((*lims[0]) != (*lims[1])) ;
-	
-	DelaunayDemiPlane *p0 = new DelaunayDemiPlane(this, lims[0], p, lims[1], p) ;
 
-	DelaunayDemiPlane *p1 = new DelaunayDemiPlane(this, lims[1], p, lims[0], p) ;
-
-	son.push_back(p0) ;
-	son.push_back(p1) ;
-	
-	ret.push_back(p0) ;
-	ret.push_back(p1) ;
-	
-	for(size_t i = 0 ; i < son.size()-2 ; i++)
+	if(!isAligned(lims[0], p, lims[1]) && !isAligned(lims[1], p, lims[0]))
 	{
-		if(son[i]->isNeighbour(p0))
-			son[i]->addStepson(p0) ;
+		std::cout << "suspected Case" << std::endl ;
+		lims[0]->print() ;
+		lims[1]->print() ;
+		p->print() ;
+		DelaunayDemiPlane *p0 = new DelaunayDemiPlane(this, lims[0], p, lims[1], p) ;
+
+		DelaunayDemiPlane *p1 = new DelaunayDemiPlane(this, lims[1], p, lims[0], p) ;
+
+		son.push_back(p0) ;
+		son.push_back(p1) ;
 		
-		if(son[i]->isNeighbour(p1))
-			son[i]->addStepson(p1) ;
+		ret.push_back(p0) ;
+		ret.push_back(p1) ;
 		
-		for(size_t j = i ; j < son.size()-2 ; j++)
-			if(son[i]->isNeighbour(son[j]))
-				makeNeighbours(son[i], son[j]) ;
+		for(size_t i = 0 ; i < son.size()-2 ; i++)
+		{
+			if(son[i]->isNeighbour(p0))
+				son[i]->addStepson(p0) ;
+			
+			if(son[i]->isNeighbour(p1))
+				son[i]->addStepson(p1) ;
+			
+			for(size_t j = i ; j < son.size()-2 ; j++)
+				if(son[i]->isNeighbour(son[j]))
+					makeNeighbours(son[i], son[j]) ;
+		}
+	}
+	else
+	{
+		std::cout << "suspected Case (alt)" << std::endl ;
+		lims[0]->print() ;
+		lims[1]->print() ;
+		third->print() ;
+		DelaunayDemiPlane *p0 = new DelaunayDemiPlane(this, lims[0], third, lims[1], p) ;
+		
+		DelaunayDemiPlane *p1 = new DelaunayDemiPlane(this, lims[1], third, lims[0], p) ;
+		
+		son.push_back(p0) ;
+		son.push_back(p1) ;
+		
+		ret.push_back(p0) ;
+		ret.push_back(p1) ;
+		
+		for(size_t i = 0 ; i < son.size()-2 ; i++)
+		{
+			if(son[i]->isNeighbour(p0))
+				son[i]->addStepson(p0) ;
+			
+			if(son[i]->isNeighbour(p1))
+				son[i]->addStepson(p1) ;
+			
+			for(size_t j = i ; j < son.size()-2 ; j++)
+				if(son[i]->isNeighbour(son[j]))
+					makeNeighbours(son[i], son[j]) ;
+		}
 	}
 	s->updateNeighbourhood() ;
 
@@ -1550,6 +1595,11 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 		}
 		
 	}
+
+	std::stable_sort(cons.first.begin(), cons.first.end()) ;
+	std::vector<DelaunayTreeItem *>::iterator e = std::unique(cons.first.begin(), cons.first.end()) ;
+	cons.first.erase(e, cons.first.end()) ;
+	
 	
 	for(size_t i = 0 ; i < cons.second.size() ; i++)
 	{
@@ -1821,10 +1871,10 @@ void DelaunayTree::print() const
 		}
 	}
 	std::cerr << "of which " << alive << " are alive" << std::endl ;
-	#ifdef DEBUG
+// 	#ifdef DEBUG
 	for(size_t i = 0 ; i < tree.size() ; i++)
 	{
-		if (tree[i]->isAlive() && tree[i]->neighbour.size() > 3 )
+		if (tree[i]->isAlive())
 		{
 			tree[i]->print() ;
 			for(size_t j = 0 ; j< tree[i]->neighbour.size() ; j++)
@@ -1834,7 +1884,7 @@ void DelaunayTree::print() const
 			}
 		}
 	}
-	#endif
+// 	#endif
 }
 
 void DelaunayTriangle::refresh(const TriElement * father)
@@ -2039,7 +2089,7 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements =  1;
+		size_t numberOfRefinements =  0;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{

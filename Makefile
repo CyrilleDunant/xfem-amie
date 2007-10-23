@@ -9,8 +9,8 @@ CXX = g++
 #  CXXFLAGS = -g3 -Wall -O0 -DNDEBUG 
 ## use -O0 for mem-checking with valgrind
 ## valgrind --num-callers=8 ./your_target
-# CXXFLAGS = -g3 -Wall -fno-exceptions -O0 -DNDEBUG -fstrict-aliasing 
-CXXFLAGS = -g3 -Wall -fno-exceptions -O3 -DNDEBUG -fstrict-aliasing 
+# CXXFLAGS = -g3 -Wall -fno-exceptions -O0 -DNDEBUG -fstrict-aliasing
+CXXFLAGS = -g3 -Wall -fno-exceptions -O3 -march=native -DNDEBUG -fstrict-aliasing
 
 LDFLAGS = -Wl -lm -lGL -lglut
 
@@ -23,8 +23,8 @@ OBJECTS_FILTERS = filters/voxelfilter.o filters/voxelporefilter.o
 SOURCE_ELEMENTS = elements/elements.cpp elements/integrable_entity.cpp
 OBJECTS_ELEMENTS = elements/elements.o elements/integrable_entity.o
 
-SOURCE_SOLVERS = solvers/assembly.cpp solvers/choleskidecomposed.cpp solvers/conjugategradient.cpp solvers/gausseidell.cpp solvers/polakribiereconjugategradient.cpp solvers/solver.cpp solvers/preconditionners.cpp solvers/gaussseidellstep.cpp solvers/inversediagonal.cpp solvers/incompletecholeskidecomposition.cpp 
-OBJECTS_SOLVERS = solvers/assembly.o solvers/choleskidecomposed.o solvers/conjugategradient.o solvers/gausseidell.o solvers/polakribiereconjugategradient.o solvers/solver.o solvers/preconditionners.o solvers/gaussseidellstep.o solvers/inversediagonal.o solvers/incompletecholeskidecomposition.o 
+SOURCE_SOLVERS = solvers/assembly.cpp solvers/choleskidecomposed.cpp solvers/conjugategradient.cpp solvers/gausseidell.cpp solvers/polakribiereconjugategradient.cpp solvers/solver.cpp solvers/preconditionners.cpp solvers/gaussseidellstep.cpp solvers/inversediagonal.cpp solvers/incompletecholeskidecomposition.cpp solvers/biconjugategradientstabilized.cpp
+OBJECTS_SOLVERS = solvers/assembly.o solvers/choleskidecomposed.o solvers/conjugategradient.o solvers/gausseidell.o solvers/polakribiereconjugategradient.o solvers/solver.o solvers/preconditionners.o solvers/gaussseidellstep.o solvers/inversediagonal.o solvers/incompletecholeskidecomposition.o solvers/biconjugategradientstabilized.o
 
 SOURCE_NEW_GEO = geometry/geometry_base.cpp geometry/geometry_2D.cpp geometry/geometry_3D.cpp
 OBJECTS_NEW_GEO = geometry/geometry_base.o geometry/geometry_2D.o geometry/geometry_3D.o
