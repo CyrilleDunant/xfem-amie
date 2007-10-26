@@ -461,4 +461,83 @@ Mu::Matrix log(const Mu::Matrix&m, size_t order)
 	return ret ;
 }
 
+Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
+{
+	
+	double epsilon = 1e-12 ;
+	Vector r = b - (Vector)(A*x) ;
+	Vector r_(r) ;
+	double rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
+	
+	Vector invDiag(r.size()) ;
+	
+	for(size_t i = 0 ; i < r.size() ; i++)
+	{
+		invDiag[i] = 1./A[i][i] ;
+// 		invDiag[i] = 1 ;
+	}
+	
+	if(rho < epsilon)
+		return x ;
+	
+	Vector p(r) ;
+	
+	Vector p_ = invDiag*p ;
+	//Vector p_ = precondition(p) ;
+	
+	Vector v = A*p_ ;
+	
+	double alpha = rho/std::inner_product(&r_[0], &r_[r_.size()], &v[0], double(0)) ;
+	
+	Vector s = r - v*alpha ;
+	
+	if(std::abs(s.max()) < epsilon)
+	{
+		x += p_*alpha ;
+		return x ;
+	}
+	
+	Vector s_ = invDiag*s ;
+	//Vector s_ = precondition(s) ;
+	Vector t = A*s_ ;
+	double omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
+	x += p_*alpha +omega*s_ ;
+	r = s- t*omega ;
+	double rho_ =rho ;
+	
+	int nit = 0 ;
+	
+	while(nit < r.size())
+	{
+		std::cout << "nit = "<< nit << std::endl ;
+		nit++ ;
+		
+		rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
+		if(std::abs(rho) < epsilon)
+			return x ;
+		
+		double beta = (rho/rho_)*(alpha/omega) ;
+		p = r + (p-v*omega)*beta ;
+		p_ = invDiag*p ;
+		//p_ = precondition(p) ;
+		v = A*p_ ;
+		alpha = rho/std::inner_product(&r_[0], &r_[r_.size()], &v[0], double(0)) ;
+		s = r - v*alpha ;
+		
+		//s_ = precondition(s) ;
+		s_ = invDiag*s ;
+		t = A*s_ ;
+		omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
+		
+		if(std::abs(omega) < epsilon)
+			return x ;
+		
+		x += p_*alpha +s_*omega ;
+		r = s- t*omega ;
+		rho_ = rho ;
+		
+	}
+	
+	return x ;
+}
 

@@ -435,7 +435,7 @@ void Hexahedron::sampleBoundingSurface(size_t num_points)
 		}
 	}
 	
-	std::stable_sort(points.begin(), points.end()) ;
+	std::sort(points.begin(), points.end()) ;
 	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
 	points.erase(e, points.end()) ;
 	
@@ -554,7 +554,7 @@ void Hexahedron::sampleSurface(size_t num_points)
 		
 	}
 	
-	std::stable_sort(points.begin(), points.end()) ;
+	std::sort(points.begin(), points.end()) ;
 	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
 	points.erase(e, points.end()) ;
 	

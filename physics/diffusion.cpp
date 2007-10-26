@@ -32,7 +32,7 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const Integr
 	
 	v.push_back(TIME_VARIABLE);
 	
-	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e,v) +  VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, e,v) ;
+	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e, v) +  VirtualMachine().ieval(Differential(p_j, TIME_VARIABLE)*p_i, e,v) ;
 	return ret ;
 }
 
@@ -46,11 +46,10 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const std::v
 		v.push_back(ZETA);
 	
 	v.push_back(TIME_VARIABLE);
-		
-	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv,v) 
-// 		+ VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*p_j, gp, Jinv,v) 
-		/*+ 0.5*VirtualMachine().ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv,v)*/ ;
-;
+
+	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
+		+ VirtualMachine().ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
+
 	return ret ;
 }
 

@@ -105,9 +105,9 @@ void step()
 	x = featureTree->getDisplacements() ;
 	dt = featureTree->getDelaunayTree() ;
 	sigma.resize(triangles.size()*3*3) ;
-	
+
 	epsilon.resize(triangles.size()*3*3) ;
-	
+
 // 	sigma = F.strainFromDisplacements() ;
 // 	epsilon = F.stressFromDisplacements() ;
 	std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
@@ -115,7 +115,7 @@ void step()
 	sigma = sigma_epsilon.first ;
 	epsilon.resize(sigma_epsilon.second.size()) ;
 	epsilon = sigma_epsilon.second ;
-	
+
 	sigma11.resize(sigma.size()/4) ;
 	sigma22.resize(sigma.size()/4) ;
 	sigma12.resize(sigma.size()/4) ;
@@ -123,11 +123,11 @@ void step()
 	epsilon22.resize(sigma.size()/4) ;
 	epsilon12.resize(sigma.size()/4) ;
 	vonMises.resize(sigma.size()/4) ;
-	
+
 	std::cout << "unknowns :" << x.size() << std::endl ;
 	std::cout << "max value :" << x.max() << std::endl ;
 	std::cout << "min value :" << x.min() << std::endl ;
-	
+
 
 	for(size_t k = 0 ; k < triangles.size() ; k++)
 	{
@@ -143,7 +143,7 @@ void step()
 			sigma11[k*3+2] = sigma[k*3*3+6];
 			sigma22[k*3+2] = sigma[k*3*3+7];
 			sigma12[k*3+2] = sigma[k*3*3+8];
-			
+
 			epsilon11[k*3] = epsilon[k*3*3];
 			epsilon22[k*3] = epsilon[k*3*3+1];
 			epsilon12[k*3] = epsilon[k*3*3+2];
@@ -153,14 +153,14 @@ void step()
 			epsilon11[k*3+2] = epsilon[k*3*3+6];
 			epsilon22[k*3+2] = epsilon[k*3*3+7];
 			epsilon12[k*3+2] = epsilon[k*3*3+8];
-			
+
 			Vector vm0 = triangles[k]->getState()->getPrincipalStresses(triangles[k]->first) ;
 			Vector vm1 = triangles[k]->getState()->getPrincipalStresses(triangles[k]->second) ;
 			Vector vm2 = triangles[k]->getState()->getPrincipalStresses(triangles[k]->third) ;
 			vonMises[k*3]   = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 			vonMises[k*3+1] = sqrt(((vm1[0]-vm1[1])*(vm1[0]-vm1[1]))/2.) ;
 			vonMises[k*3+2] = sqrt(((vm2[0]-vm2[1])*(vm2[0]-vm2[1]))/2.) ;
-			
+
 // 			vonMises[k*3]   = sigma11[k*3]*epsilon11[k*3]     + sigma22[k*3]*epsilon22[k*3]     + sigma12[k*3]*epsilon12[k*3];
 // 			vonMises[k*3+1] = sigma11[k*3+1]*epsilon11[k*3+1] + sigma22[k*3+1]*epsilon22[k*3+1] + sigma12[k*3+1]*epsilon12[k*3+2];
 // 			vonMises[k*3+2] = sigma11[k*3+2]*epsilon11[k*3+2] + sigma22[k*3+2]*epsilon22[k*3+2] + sigma12[k*3+2]*epsilon12[k*3+2];
@@ -176,7 +176,7 @@ void step()
 			sigma11[k*3+2] = 0;
 			sigma22[k*3+2] = 0;
 			sigma12[k*3+2] = 0;
-			
+
 			epsilon11[k*3] = 0;
 			epsilon22[k*3] = 0;
 			epsilon12[k*3] = 0;
@@ -186,7 +186,7 @@ void step()
 			epsilon11[k*3+2] = 0;
 			epsilon22[k*3+2] = 0;
 			epsilon12[k*3+2] = 0;
-			
+
 			vonMises[k*3]   = 0 ;
 			vonMises[k*3+1] = 0 ;
 			vonMises[k*3+2] = 0 ;
@@ -198,14 +198,14 @@ void step()
 	std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
 	std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
 	std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
-	
+
 	std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
 	std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
 	std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
 	std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
 	std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
 	std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-	
+
 	std::cout << "max von Mises :" << vonMises.max() << std::endl ;
 	std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 	

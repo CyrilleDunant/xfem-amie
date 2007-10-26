@@ -9,7 +9,9 @@
 #include "solvers/assembly.h"
 #include "features/pore3d.h"
 #include "features/inclusion3d.h"
+#include "features/inclusion.h"
 #include "features/sample3d.h"
+#include "features/sample.h"
 #include "delaunay_3d.h"
 #include "filters/voxelporefilter.h"
 #include "physics/void_form.h"
@@ -47,7 +49,7 @@ using namespace Mu ;
 double factor = 0.5 ;
 
 std::vector<double> sizered;
-std::vector<DelaunayTetrahedron *> myTets ;
+std::vector<DelaunayTriangle *> myTets ;
 std::vector<HexahedralElement *> myHexs ;
 std::vector<Point *> points ;
 DelaunayTree_3D *dt ;
@@ -163,35 +165,52 @@ void computeDisplayList()
 // 			HSV2RGB(&r, &g, &b, 180.-180.*(myTets[i]->getBehaviour()->param[0][0]-mins)/(maxs-mins), 1., 1.) ;
 // 			glColor4f (r,g,b, .3);
 			
-			HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*6]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			
 			glBegin(GL_LINES);
 			
-	
-				glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z);
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+6).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			
+			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, (*x)[myTets[i]->getBoundingPoint(0+6).id]);
 
-				glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
-				
-				glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
-				
-				glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z);
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+6).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			
+			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, (*x)[myTets[i]->getBoundingPoint(2+6).id] );
 
-				glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
-				
-				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z );
-	
-				glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
-				
-				glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z);
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+6).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			
+			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, (*x)[myTets[i]->getBoundingPoint(0+6).id] );
 
-				glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+6).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			
+			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, (*x)[myTets[i]->getBoundingPoint(4+6).id]);
 
-				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
-				
-				glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z);
+// 				glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
+// 				
+// 				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z );
 
-				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+6).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			
+			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, (*x)[myTets[i]->getBoundingPoint(2+6).id] );
+
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+6).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			
+			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, (*x)[myTets[i]->getBoundingPoint(4+6).id]);
+
+// 				glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
+// 
+// 				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+// 				
+// 				glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z);
+// 
+// 				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
 
 			glEnd();
 
@@ -247,7 +266,7 @@ void display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity() ;
 	glTranslatef(0,0,-10) ;
-	gluLookAt(0, 0, 2, 0, 0, 0, 0, 1, 0) ;
+	gluLookAt(4, 0, 4, 4, 1, 0.1, 0, 0, 1) ;
 	glRotatef(xangle , 0, -1, 0) ;
 	glRotatef(yangle , -1, 0, 0) ;
 	glRotatef(zangle , 0, 0, 1) ;
@@ -358,155 +377,170 @@ void mouse(int button, int state, int x, int y)
 
 int main(int argc, char *argv[])
 {
+
+	Matrix diffusionMatrix(2,2) ;
 	
-	Assembly * K = new Assembly() ;
-	
-	Matrix diffusionMatrix(3,3) ;
-	
-	diffusionMatrix[0][0] =.1;
-	diffusionMatrix[1][1] =.1;
-	diffusionMatrix[2][2] =.1;
-	
-	
+	diffusionMatrix[0][0] =10;
+	diffusionMatrix[1][1] =10;
+
 	//1 Alite
 	//2 C-S-H
 	//3 CH
 	//4 C-S-H
 	//5   "
 	
-	VoxelPoreFilter microstruct ;
+
+	Sample * sample = new Sample(8, 2, 4,1) ;
+	sample->setBehaviour(new Diffusion(diffusionMatrix)) ;
+
+	Inclusion * inc = new Inclusion(.6, 4, 1) ;
+	inc->setBehaviour(new Diffusion(diffusionMatrix*0.01)) ;
 	
-	microstruct.behaviour = new Diffusion(diffusionMatrix) ;
+	FeatureTree ft(sample) ;
+	ft.addFeature(sample,inc) ;
+
+	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
+
+	ft.sample(64) ;
 	
-	microstruct.read("/home/cyrille/xfem++/pixels20.txt") ;
-	std::cout << "reading done" << std::endl ;
+	ft.generateElements() ;
+
+	std::vector<DelaunayTriangle *> elems = ft.getTriangles() ;
+
 	
-	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
-		microstruct.getPoints()[i]->id = -1 ;
-	
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
-	{
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
-			{
-				microstruct.getElements()[i]->getBoundingPoint(j).id = -1 ;
-			}
-		}
-	}
-	
-	
-	int index = 0 ;
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
-	{
-		
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
-			{
-				if(microstruct.getElements()[i]->getBoundingPoint(j).id == -1)
-					microstruct.getElements()[i]->getBoundingPoint(j).id = index++ ;
-			}
-			
-			K->add(microstruct.getElements()[i]) ;
-			microstruct.getElements()[i]->getState()->initialize() ;
-		}
-	}
-	
-	std::cout << "adding done" << std::endl ;
-	
-	
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	for(size_t i = 0 ; i < elems.size() ; i++)
 	{
 		if(i% 100 == 0)
 		{
-			std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::flush ;
+			std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
 		}
-		for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
+		
+		for(size_t j = 0 ; j < elems[i]->getBoundingPoints().size() ; j++)
 		{
-			if(microstruct.getElements()[i]->getBoundingPoint(j).t < 0)
-				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
-			
-			if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
-			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
-				K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
-			
-			if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
-			   && microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
-				K->setPoint(.01,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+			ft.getAssembly()->setPoint(0., elems[i]->getBoundingPoint(j).id) ;
 		}
 	}
-// 	for(size_t i = 0 ; i < microstruct.getPoints().size() ; i++)	
-// 	{
-// 		if(microstruct.getPoints()[i]->id != -1)
-// 		{
-// 			if(i%100 == 0)
-// 				std::cout << "\rBC point " << i << "/" << microstruct.getPoints().size() << std::flush ;
-// 	
-// 			if(microstruct.getPoints()[i]->t < 1e-9)
-// 				K->setPoint(0.,microstruct.getPoints()[i]->id) ;
-// // 				if(microstruct.getPoints()[i]->z < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-// // 					K->setPoint(0,microstruct.getPoints()[i]->id) ;
-// 			if(std::abs(microstruct.getPoints()[i]->x -7.5)< 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-// 				K->setPoint(0.,microstruct.getPoints()[i]->id) ;
-// 			if(microstruct.getPoints()[i]->x < 1e-9 && microstruct.getPoints()[i]->t > 1e-9)
-// 				K->setPoint(.2,microstruct.getPoints()[i]->id) ;
-// 		}
-// 	}
+
+	ft.step(0.1) ;
+	std::vector<std::vector<Matrix> > elementaryMatrix = elems[0]->getElementaryMatrix() ;
 	
-	K->cgsolve() ;
-	x = new Vector(K->getDisplacements()) ;
-// 	K->print() ;
-	for(size_t t = 0  ; t < 0 ; t++)
+	x = &ft.getAssembly()->getDisplacements() ;
+
+	for(size_t i = 0 ; i < elems.size() ; i++)
 	{
-		
-		*x =  K->getDisplacements() ;
-		K->clear() ;
-		
-		for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+		if(i% 100 == 0)
 		{
-			K->add(microstruct.getElements()[i]) ;
+			std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
 		}
+		
+		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
+		{
+			if(elems[i]->getBoundingPoint(j).x == 8  )
+			{
+				ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
+			}
+			
+			
+			if(elems[i]->getBoundingPoint(j).t == -1 )
+			{
+				ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
+			}
+			else if(elems[i]->getBoundingPoint(j).x  == 0  && elems[i]->getBoundingPoint(j).t == 1)
+			{
+				ft.getAssembly()->setPoint(.5,elems[i]->getBoundingPoint(j).id) ;
+			}
+
+		}
+		
+	}
+
+	ft.step(0.1) ;
+
+	x = &ft.getAssembly()->getDisplacements() ;
 	
-		for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
+	for(size_t i = 0 ; i < elems.size() ; i++)
+	{
+		if(i% 100 == 0)
+		{
+			std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
+		}
+		
+		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
+		{
+
+			if(elems[i]->getBoundingPoint(j).x == 8  )
+			{
+				ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
+			}
+			
+			if( elems[i]->getBoundingPoint(j).x == 0)
+			{
+				ft.getAssembly()->setPoint(.5,elems[i]->getBoundingPoint(j).id) ;
+			}
+			else if(elems[i]->getBoundingPoint(j).t == -1 )
+			{
+				ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+6).id],elems[i]->getBoundingPoint(j).id) ;
+			}
+
+			
+		}
+		
+	}
+
+	
+	ft.step(0.1) ;
+
+	for(size_t timestep = 0 ; timestep < 5 ; timestep++)
+	{
+		x = &ft.getAssembly()->getDisplacements() ;
+		
+		for(size_t i = 0 ; i < elems.size() ; i++)
 		{
 			if(i% 100 == 0)
 			{
-				std::cout << "\r seting BC : elem " << i << "/" << microstruct.getElements().size() << std::flush ;
+				std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
 			}
-			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
+			
+			for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
 			{
-				if(microstruct.getElements()[i]->getBoundingPoint(j).t < -.5)
+
+				if(elems[i]->getBoundingPoint(j).x == 8  )
 				{
-					K->setPoint((*x)[microstruct.getElements()[i]->getBoundingPoint(j).id],microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+					ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
 				}
 				
-				if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x -7.5)< 1e-9 
-				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
-					K->setPoint(0.,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
-				
-				if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9 
-				&& microstruct.getElements()[i]->getBoundingPoint(j).t > 0)
-					K->setPoint(.2,microstruct.getElements()[i]->getBoundingPoint(j).id) ;
+				if(elems[i]->getBoundingPoint(j).x == 0 )
+				{
+					ft.getAssembly()->setPoint(.5,elems[i]->getBoundingPoint(j).id) ;
+				}
+				else if(elems[i]->getBoundingPoint(j).t == -1|| elems[i]->getBoundingPoint(j).t == 0)
+				{
+					ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+6).id],elems[i]->getBoundingPoint(j).id) ;
+				}
 			}
+			
 		}
 		
-		K->cgsolve() ;
 		
-		std::cerr << " stepping through elements... " << std::flush ;
-		for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
-		{	
-			if(i%1000 == 0)
-				std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
+		ft.step(0.1) ;
+	}
+	
+	x =  &ft.getAssembly()->getDisplacements() ;
+	
+	for(size_t i = 0 ; i < elems.size() ; i++)
+	{
 
-			microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
-			microstruct.getElements()[i]->getBehaviour()->step(.1, microstruct.getElements()[i]->getState()) ;
+		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
+		{
+			std::cout << elems[i]->getBoundingPoint(j).x << "  " << elems[i]->getBoundingPoint(j).t << "  "<< (*x)[elems[i]->getBoundingPoint(j).id] << std::endl ;
+			
 		}
-		std::cerr << " ...done" << std::endl ;
 	}
 
-	myTets =  microstruct.getElements() ;
-	sigma = new Vector(myTets.size()*4) ;
+
+
+	myTets =  elems ;
+	sigma = new Vector(myTets.size()*6) ;
 	
 	int count = 0 ;
 	for(size_t i = 0 ; i < myTets.size(); i++)
@@ -518,18 +552,19 @@ int main(int argc, char *argv[])
 		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
 		{
 			count++;
-			
-			for(size_t j = 4 ; j < 8 ;j++)
+
+// 			for(size_t j = 0 ; j < 10 ;j++)
+			for(size_t j = 6 ; j < 12 ;j++)
 			{
 				
-				(*sigma)[i*4+j-4] = (*x)[microstruct.getElements()[i]->getBoundingPoint(j).id] ; 
+				(*sigma)[i*6+j-6] = (*x)[elems[i]->getBoundingPoint(j).id] ;
 			}
 		}
 		else
 		{
-			for(size_t j = 0 ; j < 4 ;j++)
+			for(size_t j = 0 ; j < 6 ;j++)
 			{
-				(*sigma)[i*4+j] = 0 ; 
+				(*sigma)[i*6+j] = 0 ;
 			}
 		}
 		

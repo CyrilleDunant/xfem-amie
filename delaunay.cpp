@@ -826,10 +826,6 @@ void DelaunayDemiPlane::merge(DelaunayDemiPlane * p)
 			kill(first) ;
 			return ;
 		}
-
-		print() ;
-		p->print() ;
-		std::cout << "isAligned(first, second, p->first) " <<isAligned(first, second, p->first) << "\nisAligned(first, second, p->second) " << isAligned(first, second, p->second) << std::endl ;
 		
 		if(isAligned(first, second, p->first) && isAligned(first, second, p->second))
 		{
@@ -1061,9 +1057,6 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 
 	if(!isAligned(lims[0], p, lims[1]) && !isAligned(lims[1], p, lims[0]))
 	{
-		std::cout << "suspected Case" << std::endl ;
-		lims[0]->print() ;
-		lims[1]->print() ;
 		p->print() ;
 		DelaunayDemiPlane *p0 = new DelaunayDemiPlane(this, lims[0], p, lims[1], p) ;
 
@@ -1090,9 +1083,6 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 	}
 	else
 	{
-		std::cout << "suspected Case (alt)" << std::endl ;
-		lims[0]->print() ;
-		lims[1]->print() ;
 		third->print() ;
 		DelaunayDemiPlane *p0 = new DelaunayDemiPlane(this, lims[0], third, lims[1], p) ;
 		
@@ -1943,7 +1933,7 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 		for(size_t j = i+1 ; j < dofs.size() ; j++)
 		{
 			mother[i][j] = behaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = mother[i][j].transpose() ;
+			mother[j][i] = behaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
 		}
 	}
 
@@ -2031,7 +2021,7 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 		for(size_t j = i+1 ; j < dofs.size() ; j++)
 		{
 			mother[i][j] = nonlinbehaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = mother[i][j].transpose() ;
+			mother[j][i] = nonlinbehaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
 		}
 	}
 	return mother ;

@@ -219,14 +219,30 @@ std::valarray< std::pair<Point, double> > TriElement::genGaussPoints() const
 		{
 			ordre = 8 ;
 			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.260416666666667) ;
-			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.260416666666667) ;
-			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.260416666666667) ;
-			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,-0.577350269189626), -0.28125) ;
-			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.260416666666667) ;
-			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.260416666666667) ;
-			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.260416666666667) ;
-			fin[7] = std::pair<Point, double>(Point(1./3., 1./3.,0,0.577350269189626), -0.28125) ;
+			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
+			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
+			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.2604166666666666667) ;
+			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-0.577350269189626), -0.28125) ;
+			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
+			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
+			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.26041666666666666667) ;
+			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;
+// 			ordre = 14 ;
+// 			fin.resize(ordre);
+// 			fin[0] = std::pair<Point, double>(Point(0.101286507323456, 0.101286507323456,0,-0.577350269189626), 0.062969590272413) ;
+// 			fin[1] = std::pair<Point, double>(Point(0.797426985353087, 0.101286507323456,0,-0.577350269189626), 0.062969590272413) ;
+// 			fin[2] = std::pair<Point, double>(Point(0.101286507323456, 0.797426985353087,0,-0.577350269189626), 0.062969590272413) ;
+// 			fin[3] = std::pair<Point, double>(Point(0.470142064105115, 0.059715871789770,0,-0.577350269189626), 0.066197076394253) ;
+// 			fin[4] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115,0,-0.577350269189626), 0.066197076394253) ;
+// 			fin[5] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115,0,-0.577350269189626), 0.066197076394253) ;
+// 			fin[6] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,-0.577350269189626), 0.1125) ;
+// 			fin[7] = std::pair<Point, double>(Point(0.101286507323456, 0.101286507323456,0,0.577350269189626), 0.062969590272413) ;
+// 			fin[8] = std::pair<Point, double>(Point(0.797426985353087, 0.101286507323456,0,0.577350269189626), 0.062969590272413) ;
+// 			fin[9] = std::pair<Point, double>(Point(0.101286507323456, 0.797426985353087,0,0.577350269189626), 0.062969590272413) ;
+// 			fin[10] = std::pair<Point, double>(Point(0.470142064105115, 0.059715871789770,0,0.577350269189626), 0.066197076394253) ;
+// 			fin[11] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115,0,0.577350269189626), 0.066197076394253) ;
+// 			fin[12] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115,0,0.577350269189626), 0.066197076394253) ;
+// 			fin[13] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0.577350269189626), 0.1125) ;
 			break;
 		}
 	case CUBIC_TIME_LINEAR:
@@ -325,7 +341,7 @@ std::valarray< std::pair<Point, double> > TriElement::genGaussPoints() const
 // 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
-			fin[i].second*=jacobianAtPoint(fin[i].first);
+			fin[i].second*=jacobianAtPoint(fin[i].first)*0.5;
 		}
 // 	}
 // 	else
@@ -671,17 +687,20 @@ Matrix TriElement::getInverseJacobianMatrix(const Point & p) const
 		Matrix  J0(3,3) ;
 		double xdxi = this->getdXTransform(XI, p) ;
 		double ydxi = this->getdYTransform(XI, p) ;
-		double zdxi = this->getdTTransform(XI, p) ;
+// 		double zdxi = this->getdTTransform(XI, p) ;
 		double xdeta = this->getdXTransform(ETA, p) ;
 		double ydeta = this->getdYTransform(ETA, p) ;
-		double zdeta = this->getdTTransform(ETA, p) ;
-		double xdzeta = this->getdXTransform(TIME_VARIABLE,p) ;
-		double ydzeta = this->getdYTransform(TIME_VARIABLE,p) ;
+// 		double zdeta = this->getdTTransform(ETA, p) ;
+// 		double xdzeta = this->getdXTransform(TIME_VARIABLE,p) ;
+// 		double ydzeta = this->getdYTransform(TIME_VARIABLE,p) ;
 		double zdzeta = this->getdTTransform(TIME_VARIABLE,p) ;
 		
-		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; 
-		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ;
-		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ;
+		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = 0 ; 
+		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = 0 ;
+		J0[2][0] = 0 ; J0[2][1] = 0 ; J0[2][2] = zdzeta;
+
+// 		J0.print() ;
+		
 		invert3x3Matrix(J0) ;
 		return J0 ;
 	}
@@ -1761,27 +1780,27 @@ Matrix ElementaryVolume::getInverseJacobianMatrix(const Point & p) const
 		double xdxi = this->getdXTransform(XI,p) ;
 		double ydxi = this->getdYTransform(XI,p) ;
 		double zdxi = this->getdZTransform(XI,p) ;
-		double tdxi = this->getdTTransform(XI,p) ;
+// 		double tdxi = this->getdTTransform(XI,p) ;
 		
 		double xdeta = this->getdXTransform(ETA,p) ;
 		double ydeta = this->getdYTransform(ETA,p) ;
 		double zdeta = this->getdZTransform(ETA,p) ;
-		double tdeta = this->getdTTransform(ETA,p) ;
+// 		double tdeta = this->getdTTransform(ETA,p) ;
 		
 		double xdzeta = this->getdXTransform(ZETA,p) ;
 		double ydzeta = this->getdYTransform(ZETA,p) ;
 		double zdzeta = this->getdZTransform(ZETA,p) ;
-		double tdzeta = this->getdTTransform(ZETA,p) ;
+// 		double tdzeta = this->getdTTransform(ZETA,p) ;
 		
-		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
-		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
-		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
-		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
+// 		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
+// 		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
+// 		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
+// 		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
 		
-		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; J0[0][3] = tdxi; 
-		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ; J0[1][3] = tdeta;
-		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ; J0[2][3] = tdzeta;
-		J0[3][0] = xdtheta ; J0[3][1] = ydtheta ; J0[3][2] = zdtheta ; J0[3][3] = tdtheta;
+		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; J0[0][3] = 0; 
+		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ; J0[1][3] = 0;
+		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ; J0[2][3] = 0;
+		J0[3][0] = 0 ; J0[3][1] = 0 ; J0[3][2] = 0 ; J0[3][3] = 1;
 		
 		J0 = inverse4x4Matrix(J0) ;
 		return J0 ;
@@ -2401,12 +2420,15 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 		{
 			VirtualMachine vm ;
 			double der_t = 0 ;
-			
+// 			std::cout << "-----" << std::endl ;
+// 			std::cout << der_t << std::endl ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
+// 				vm.print(basis[i]) ;
 				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->t ;
+// 				std::cout << der_t << "   " << points[i]->t << std::endl ;
 			}
-			
+// 			std::cout << "-----" << std::endl ;
 			return der_t ;
 		}
 	default:

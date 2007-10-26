@@ -122,85 +122,6 @@ double aggregateArea = 0;
 
 
 
-Vector BCGS(Matrix & A, Vector & b, Vector & x)
-{
-
-	double epsilon = 1e-12 ;
-	Vector r = b - (Vector)(A*x) ;
-	Vector r_(r) ;
-	double rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
-
-	Vector invDiag(r.size()) ;
-
-	for(size_t i = 0 ; i < r.size() ; i++)
-	{
-		invDiag[i] = 1./A[i][i] ;
-	}
-	
-	if(rho < epsilon)
-		return x ;
-	
-	Vector p(r) ;
-
-	Vector p_ = invDiag*p ;
-	//Vector p_ = precondition(p) ;
-	
-	Vector v = A*p_ ;
-	
-	double alpha = rho/std::inner_product(&r_[0], &r_[r_.size()], &v[0], double(0)) ;
-	
-	Vector s = r - v*alpha ;
-	
-	if(std::abs(s.max()) < epsilon)
-	{
-		x += p_*alpha ;
-		return x ;
-	}
-
-	Vector s_ = invDiag*s ;
-	//Vector s_ = precondition(s) ;
-	Vector t = A*s_ ;
-	double omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
-	x += p_*alpha +omega*s_ ;
-	r = s- t*omega ;
-	double rho_ =rho ;
-
-	int nit = 0 ;
-	
-	while(nit < r.size())
-	{
-		std::cout << "nit = "<< nit << std::endl ;
-		nit++ ;
-		
-		rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
-		if(std::abs(rho) < epsilon)
-			return x ;
-		
-		double beta = (rho/rho_)*(alpha/omega) ;
-		p = r + (p-v*omega)*beta ;
-		p_ = invDiag*p ;
-		//p_ = precondition(p) ;
-		v = A*p_ ;
-		alpha = rho/std::inner_product(&r_[0], &r_[r_.size()], &v[0], double(0)) ;
-		s = r - v*alpha ;
-
-		//s_ = precondition(s) ;
-		s_ = invDiag*s ;
-		t = A*s_ ;
-		omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
-
-		if(std::abs(omega) < epsilon)
-			return x ;
-		
-		x += p_*alpha +s_*omega ;
-		r = s- t*omega ;
-		rho_ = rho ;
-		
-	}
-
-	return x ;
-}
-
 void setBC()
 {
 	triangles = featureTree->getTriangles() ;
@@ -1507,12 +1428,31 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	
-// 	DelaunayTree DT(new Point(0,0), new Point(1,0), new Point(0,1)) ;
-// 	DT.insert(new Point(.50000000001,.5)) ;
-// 	DT.insert(new Point(.50000001,.50000001)) ;
-// 	DT.insert(new Point(.500001,.500001)) ;
-// 	DT.print() ;
+	Matrix A(4,4) ;
+
+	A[0][0] = 1 ; A[0][1] = 4 ;  A[0][2] = 2 ;  A[0][3] = 9 ;
+	A[1][0] = 6 ; A[1][1] = 4 ;  A[1][2] = 2 ;  A[1][3] = 1 ;
+	A[2][0] = 8 ; A[2][1] = 7 ;  A[2][2] = 8 ;  A[2][3] = 4 ;
+	A[3][0] = 5 ; A[3][1] = 1 ;  A[3][2] = 5 ;  A[3][3] = 1 ;
+
+	Vector B(4) ;
+
+	B[0] = 1 ;  B[1] =2 ; B[2] = 3; B[3] = 0 ;
+
+	Vector X(B) ;
+
+	solveSystem(A, B, X) ;
+
+	for(size_t i = 0 ; i < 4  ; i++)
+	{
+		std::cout << X[i] << std::endl ;
+	}
+		
+	DelaunayTree DT(new Point(0,0), new Point(1,0), new Point(0,1)) ;
+	DT.insert(new Point(.50000000001,.5)) ;
+	DT.insert(new Point(.50000001,.50000001)) ;
+	DT.insert(new Point(.500001,.500001)) ;
+	DT.print() ;
 	
 // 	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
 // 	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
@@ -1618,7 +1558,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.65, 25000, BOLOME_A)(.004, .05);
+	inclusions = GranuloBolome(.15, 25000, BOLOME_A)(.004, .05);
 	int nAgg = 0 ;
 	inclusions=placement(.16, .04, inclusions, &nAgg, 256);
 // 	F.addFeature(&sample,inc) ;
@@ -1629,8 +1569,8 @@ int main(int argc, char *argv[])
 		a[0] = .0002 ;
 		a[1] = .0002 ;
 		a[2] = 0.00 ;
-		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
-// 		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
+// 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
+		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
 		F.addFeature(&sample,inclusions[i]) ;
 	}
 	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
@@ -1657,7 +1597,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(128) ;
+	F.sample(1200) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

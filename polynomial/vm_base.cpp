@@ -154,36 +154,36 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 			}
 		case XI : 
 			{
-// 				std::cout << "called" << std::endl ;
-				//f(x) = (f(x-2*eps) - 8*f(x-eps) + 8*f(x+eps) - f(x+eps))/(12*eps)
-// 				return ( eval(f, x+eps, y, z, t, u, v, w) - eval(f, x-eps, y, z, t, u, v, w))/(2.*eps) ;
-				return (eval(f, x-2.*eps, y, z, t, u, v, w) -
-				        8.*eval(f, x-eps, y, z, t, u, v, w) + 
-				        8.*eval(f, x+eps, y, z, t, u, v, w) - 
-				        eval(f, x+2.*eps, y, z, t, u, v, w))/(eps*12.) ;
+
+				return ( eval(f, x+eps, y, z, t, u, v, w) - eval(f, x-eps, y, z, t, u, v, w))/(2.*eps) ;
+// 				return (eval(f, x-2.*eps, y, z, t, u, v, w) -
+// 				        8.*eval(f, x-eps, y, z, t, u, v, w) + 
+// 				        8.*eval(f, x+eps, y, z, t, u, v, w) - 
+// 				        eval(f, x+2.*eps, y, z, t, u, v, w))/(eps*12.) ;
 			}
 		case ETA:
 			{
-// 				return ( eval(f, x, y+eps, z, t, u, v, w) - eval(f, x, y-eps, z, t, u, v, w))/(2.*eps) ;
-				return (eval(f, x, y-2.*eps, z, t, u, v, w) -
-				        8.*eval(f, x, y-eps, z, t, u, v, w) +
-				        8.*eval(f, x, y+eps, z, t, u, v, w) - 
-				        eval(f, x, y+2.*eps, z, t, u, v, w))/(eps*12.) ;
+				return ( eval(f, x, y+eps, z, t, u, v, w) - eval(f, x, y-eps, z, t, u, v, w))/(2.*eps) ;
+// 				return (eval(f, x, y-2.*eps, z, t, u, v, w) -
+// 				        8.*eval(f, x, y-eps, z, t, u, v, w) +
+// 				        8.*eval(f, x, y+eps, z, t, u, v, w) - 
+// 				        eval(f, x, y+2.*eps, z, t, u, v, w))/(eps*12.) ;
 			}
 		case ZETA:
 			{
-// 				return ( eval(f, x, y, z+eps, t, u, v, w) - eval(f, x, y, z-eps, t, u, v, w))/(2.*eps) ;
-				return (eval(f, x, y, z-2.*eps, t, u, v, w) -
-				        8.*eval(f, x, y, z-eps, t, u, v, w) + 
-				        8.*eval(f, x, y, z+eps, t, u, v, w) - 
-				        eval(f, x, y, z+2.*eps, t, u, v, w))/(eps*12.) ;
+				return ( eval(f, x, y, z+eps, t, u, v, w) - eval(f, x, y, z-eps, t, u, v, w))/(2.*eps) ;
+// 				return (eval(f, x, y, z-2.*eps, t, u, v, w) -
+// 				        8.*eval(f, x, y, z-eps, t, u, v, w) + 
+// 				        8.*eval(f, x, y, z+eps, t, u, v, w) - 
+// 				        eval(f, x, y, z+2.*eps, t, u, v, w))/(eps*12.) ;
 			}
 		case TIME_VARIABLE : 
 			{
-				return (eval(f, x, y, z, t-2.*eps, u, v, w) -
-				        8.*eval(f, x, y, z, t-eps, u, v, w) + 
-				        8.*eval(f, x, y, z, t+eps, u, v, w) - 
-				        eval(f, x, y, z, t+2.*eps, u, v, w))/(eps*12.) ;
+				return (eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-eps, u, v, w))/(eps*2.) ;
+// 				return (eval(f, x, y, z, t-2.*eps, u, v, w) -
+// 				        8.*eval(f, x, y, z, t-eps, u, v, w) + 
+// 				        8.*eval(f, x, y, z, t+eps, u, v, w) - 
+// 				        eval(f, x, y, z, t+2.*eps, u, v, w))/(eps*12.) ;
 // 				return ( eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-eps, u, v, w))/(2.*eps) ;
 				//f(x) = (f(x-2*eps) - 8*f(x-eps) + 8*f(x+eps) - f(x+eps))/(12*eps)
 // 				return (eval(f, x, y, z, t-2.*eps, u, v, w) -8.*eval(f, x, y, z, t-eps, u, v, w) + 8.*eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-2.*eps, u, v, w))/(eps*12.) ;
@@ -858,10 +858,10 @@ double VirtualMachine::ieval(const DtF & d, const std::valarray< std::pair<Point
 	}
 	for(size_t i = 0 ; i < gp.size() ; i++)
 	{
+		double fx = eval(d.f, gp[i].first) ;
 		for(size_t j = 0 ; j < Jinv[i].numCols() ; j++)
 		{
-			ret += deval(d.d.f, var[j], gp[i].first)*
-				eval(d.f, gp[i].first)*Jinv[i][var_line][j]*gp[i].second ;
+			ret += deval(d.d.f, var[j], gp[i].first)*fx*Jinv[i][var_line][j]*gp[i].second ;
 		}
 	}
 	

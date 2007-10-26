@@ -20,7 +20,29 @@ namespace Mu
 class Sample3D :  public Hexahedron,  public Feature
 {
 public:
+	/** Sample3D constructor.
+	 * 
+	 * @param father father feature
+	 * @param x lenght
+	 * @param y width
+	 * @param z depth
+	 * @param originX center x
+	 * @param originY center y
+	 * @param originZ center z
+	 */
 	Sample3D(Feature *father, double x, double y, double z, double originX, double originY, double originZ) ;
+
+	/** Sample3D constructor.
+	 *
+	 * The father feature is set to NULL.
+	 * 
+	 * @param x lenght
+	 * @param y width
+	 * @param z depth
+	 * @param originX center x
+	 * @param originY center y
+	 * @param originZ center z
+	 */
 	Sample3D(double x, double y, double z,double originX, double originY, double originZ) ;
 	
 	virtual bool interacts(Feature * f) const ;

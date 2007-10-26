@@ -268,7 +268,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 		
 		size_t nodes_per_plane = nodes_per_side*6+4 ;
 		
-		std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
+		std::valarray<Point *> newPoints((Point *)NULL,nodes_per_plane*time_planes ) ;
 		std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
 				
 		for(size_t plane = 0 ; plane < time_planes ; plane++)
@@ -341,6 +341,17 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 				}
 			}
 		}
+
+		for(size_t k = 0 ; k< newPoints.size() ; k++)
+			if(!newPoints[k])
+			{
+				std::cout << "ouch !" << std::endl ;
+				for(size_t k = 0 ; k< newPoints.size() ; k++)
+					if(newPoints[k])
+						newPoints[k]->print() ;
+
+				exit(0) ;
+			}
 		tri[i]->setBoundingPoints(newPoints) ;
 	}
 	

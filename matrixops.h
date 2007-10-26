@@ -147,6 +147,8 @@ struct MtM
 	operator const Matrix() const;
 } ;
 
+Vector solveSystem(const Matrix & A, const Vector & b, Vector & x) ;
+
 }
 
 inline Mu::MtV operator*(const Mu::Matrix& mm, const Vector& v)
@@ -205,6 +207,7 @@ inline const Vector operator*(const Vector &v , const Mu::Matrix &m )
 		ret[i] = std::inner_product(ri, ri.end(), &v[0], (double)(0) ) ;
 	}
 	return ret ;
+
 }
 
 Mu::Matrix swapMatrix(size_t l0, size_t l1, size_t dim = 2) ;

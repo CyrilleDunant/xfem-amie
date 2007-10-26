@@ -1947,15 +1947,15 @@ bool FeatureTree::step(double dt)
 			}
 		}
 		
-		for(size_t i = 0 ; i< tree.size() ; i++)
-		{
-			if(tree[i]->isEnrichmentFeature)
-			{
-				dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &K->getForces(), dtree) ;
-				needAssembly = dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
-// 				ret = false ;
-			}
-		}
+// 		for(size_t i = 0 ; i< tree.size() ; i++)
+// 		{
+// 			if(tree[i]->isEnrichmentFeature)
+// 			{
+// 				dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &K->getForces(), dtree3D) ;
+// 				needAssembly = dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
+// // 				ret = false ;
+// 			}
+// 		}
 	}
 	
 	return ret ;

@@ -277,9 +277,9 @@ double Point::operator*(const Point &p) const
 double Point::operator*(const Vector &p) const
 {
 	double ret = x*p[0] + y*p[1] ;
-	if(p.size() >2)
+	if(p.size() > 2)
 		ret+=z*p[2] ;
-	if(p.size() >3)
+	if(p.size() > 3)
 		ret+=t*p[3] ;
 	return ret ; 
 }
@@ -557,10 +557,10 @@ bool Geometry::intersects(const Geometry *g) const
 // 				return true ;
 				
 				return (((g->getCenter().x+g->getRadius() > getBoundingBox()[0].x) ||
-				         (g->getCenter().x-g->getRadius() < getBoundingBox()[7].x)    ||
-				         (g->getCenter().y+g->getRadius() > getBoundingBox()[0].y)    ||
-				         (g->getCenter().y-g->getRadius() < getBoundingBox()[7].y)    ||
-				         (g->getCenter().z+g->getRadius() > getBoundingBox()[0].z)    ||
+				         (g->getCenter().x-g->getRadius() < getBoundingBox()[7].x) ||
+				         (g->getCenter().y+g->getRadius() > getBoundingBox()[0].y) ||
+				         (g->getCenter().y-g->getRadius() < getBoundingBox()[7].y) ||
+				         (g->getCenter().z+g->getRadius() > getBoundingBox()[0].z) ||
 				         (g->getCenter().z-g->getRadius() < getBoundingBox()[7].z)    )&&in(g->getCenter())) ||
 					(((g->getCenter().x+g->getRadius() < getBoundingBox()[0].x) ||
 					  (g->getCenter().x-g->getRadius() > getBoundingBox()[7].x)    ||
@@ -731,7 +731,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					
 					
 					
-					if(r*r-y_squared_0 >= 0)
+					if((r*r-y_squared_0) >= 0)
 					{
 						double y = sqrt(y_squared_0) ;
 						double x = sqrt(r*r-y_squared_0) ;
@@ -769,7 +769,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 
 				if(y_squared_0 >= 0)
 				{
-					if(r*r-y_squared_0 >= 0)
+					if((r*r-y_squared_0) >= 0)
 					{
 						double x = sqrt(r*r-y_squared_0) ;
 						double y = sqrt(y_squared_0) ;
@@ -801,7 +801,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				}
 				if(y_squared_1 >= 0)
 				{
-					if(r*r-y_squared_1 >= 0)
+					if((r*r-y_squared_1) >= 0)
 					{
 						
 						double x = sqrt(r*r-y_squared_1) ;

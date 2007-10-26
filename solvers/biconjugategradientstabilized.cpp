@@ -30,6 +30,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 	
 	Vector r = b - A*x ;
 	Vector r_(r) ;
+	P->precondition(r,r_) ;
 	double rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
 	
 	Vector invDiag(r.size()) ;
@@ -64,7 +65,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 	double rho_ =rho ;
 	
 	int nit = 0 ;
-	int lastit = maxit ;
+	int lastit = std::min(maxit, (int)b.size()/4) ;
 	if(maxit< 0)
 		lastit = b.size()/4 ;
 	
@@ -73,7 +74,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 		nit++ ;
 		
 		rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
-		if(std::abs(rho) < epsilon)
+		if(std::abs(rho) < epsilon*epsilon)
 		{
 			if(verbose)
 				std::cerr << "\n converged after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
@@ -95,7 +96,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 		t = A*s_ ;
 		omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
 		
-		if(std::abs(omega) < epsilon)
+		if(std::abs(omega) < epsilon*epsilon)
 		{
 			if(verbose)
 				std::cerr << "\n converged after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
@@ -107,8 +108,9 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 		r = s- t*omega ;
 		rho_ = rho ;
 
-		if(	verbose && nit%100 == 0)
+		if(	verbose && nit%60 == 0)
 		{
+// 			r = b - A*x ;
 			std::cerr << "\r iteration : " << nit << " error :"<< rho  << "             "<< std::flush ;
 		}
 		
