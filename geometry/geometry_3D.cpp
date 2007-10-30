@@ -847,7 +847,7 @@ void Sphere::sampleBoundingSurface(size_t num_points)
 void Sphere::sampleSurface(size_t num_points) 
 {
 	if(this->boundingPoints.size() == 0)
-		sampleBoundingSurface(std::max((size_t)(1.5*num_points), (size_t)40)) ;
+		sampleBoundingSurface(std::max((size_t)(4*num_points), (size_t)40)) ;
 	
 	std::vector<Point> points ;
 	size_t numPointsOnSurface = std::max(num_points, (size_t)40) ;

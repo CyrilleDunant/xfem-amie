@@ -38,6 +38,7 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const Integr
 
 Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
 {
+	VirtualMachine vm ;
 	Matrix ret(1,1) ;
 	std::vector<Variable> v ;
 	v.push_back(XI);
@@ -47,8 +48,8 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const std::v
 	
 	v.push_back(TIME_VARIABLE);
 
-	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
-		+ VirtualMachine().ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
+	ret[0][0] = vm.ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
+		+ vm.ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
 
 	return ret ;
 }

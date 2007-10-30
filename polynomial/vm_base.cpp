@@ -487,9 +487,12 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 			if(transpose)
 			{
 				Matrix ret(3,1) ;
-				ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1] + deval(f, var[2], x,y,z,t)*m[0][2];
-				ret[1][0] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1] + deval(f, var[2], x,y,z,t)*m[1][2];
-				ret[2][0] = deval(f, var[0], x,y,z,t)*m[2][0] + deval(f, var[1], x,y,z,t)*m[2][1] + deval(f, var[2], x,y,z,t)*m[2][2];
+				double fx = deval(f, var[0], x,y,z,t) ;
+				double fy = deval(f, var[1], x,y,z,t) ;
+				double fz = deval(f, var[2], x,y,z,t) ;
+				ret[0][0] = fx*m[0][0] + fy*m[0][1] + fz*m[0][2];
+				ret[1][0] = fx*m[1][0] + fy*m[1][1] + fz*m[1][2];
+				ret[2][0] = fx*m[2][0] + fy*m[2][1] + fz*m[2][2];
 	
 				
 				return ret ;
@@ -497,9 +500,12 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 			else
 			{
 				Matrix ret(1,3) ;
-				ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1] + deval(f, var[2], x,y,z,t)*m[0][2];
-				ret[0][1] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1] + deval(f, var[2], x,y,z,t)*m[1][2];
-				ret[0][2] = deval(f, var[0], x,y,z,t)*m[2][0] + deval(f, var[1], x,y,z,t)*m[2][1] + deval(f, var[2], x,y,z,t)*m[2][2];
+				double fx = deval(f, var[0], x,y,z,t) ;
+				double fy = deval(f, var[1], x,y,z,t) ;
+				double fz = deval(f, var[2], x,y,z,t) ;
+				ret[0][0] = fx*m[0][0] + fy*m[0][1] + fz*m[0][2];
+				ret[0][1] = fx*m[1][0] + fy*m[1][1] + fz*m[1][2];
+				ret[0][2] = fx*m[2][0] + fy*m[2][1] + fz*m[2][2];
 				
 		
 				return ret ;
@@ -510,8 +516,10 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 			if(transpose)
 			{
 				Matrix ret(2,1) ;
-				ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1] ;
-				ret[1][0] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1];
+				double fx = deval(f, var[0], x,y,z,t) ;
+				double fy = deval(f, var[1], x,y,z,t) ;
+				ret[0][0] = fx*m[0][0] + fy*m[0][1] ;
+				ret[1][0] = fx*m[1][0] + fy*m[1][1] ;
 
 				
 				
@@ -520,8 +528,10 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 			else
 			{
 				Matrix ret(1,2) ;
-				ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1];
-				ret[0][1] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1];
+				double fx = deval(f, var[0], x,y,z,t) ;
+				double fy = deval(f, var[1], x,y,z,t) ;
+				ret[0][0] = fx*m[0][0] + fy*m[0][1] ;
+				ret[0][1] = fx*m[1][0] + fy*m[1][1] ;
 				
 				return ret ;
 			}
@@ -532,8 +542,10 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 		if(transpose)
 		{
 			Matrix ret(2,1) ;
-			ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1] ;
-			ret[1][0] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1] ;
+			double fx = deval(f, var[0], x,y,z,t) ;
+			double fy = deval(f, var[1], x,y,z,t) ;
+			ret[0][0] = fx*m[0][0] + fy*m[0][1] ;
+			ret[1][0] = fx*m[1][0] + fy*m[1][1] ;
 
 			
 			return ret ;
@@ -541,8 +553,10 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 		else
 		{
 			Matrix ret(1,2) ;
-			ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1] ;
-			ret[0][1] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1] ;
+			double fx = deval(f, var[0], x,y,z,t) ;
+			double fy = deval(f, var[1], x,y,z,t) ;
+			ret[0][0] = fx*m[0][0] + fy*m[0][1] ;
+			ret[0][1] = fx*m[1][0] + fy*m[1][1] ;
 			
 			return ret ;
 		}
@@ -552,18 +566,24 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 		if(transpose)
 		{
 			Matrix ret(3,1) ;
-			ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1] + deval(f, var[2], x,y,z,t)*m[0][2];
-			ret[1][0] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1] + deval(f, var[2], x,y,z,t)*m[1][2];
-			ret[2][0] = deval(f, var[0], x,y,z,t)*m[2][0] + deval(f, var[1], x,y,z,t)*m[2][1] + deval(f, var[2], x,y,z,t)*m[2][2];
+			double fx = deval(f, var[0], x,y,z,t) ;
+			double fy = deval(f, var[1], x,y,z,t) ;
+			double fz = deval(f, var[2], x,y,z,t) ;
+			ret[0][0] = fx*m[0][0] + fy*m[0][1] + fz*m[0][2];
+			ret[1][0] = fx*m[1][0] + fy*m[1][1] + fz*m[1][2];
+			ret[2][0] = fx*m[2][0] + fy*m[2][1] + fz*m[2][2];
                                                                           
 			return ret ;                                                                      
 		}
 		else
 		{
 			Matrix ret(1,3) ;
-			ret[0][0] = deval(f, var[0], x,y,z,t)*m[0][0] + deval(f, var[1], x,y,z,t)*m[0][1] + deval(f, var[2], x,y,z,t)*m[0][2];
-			ret[0][1] = deval(f, var[0], x,y,z,t)*m[1][0] + deval(f, var[1], x,y,z,t)*m[1][1] + deval(f, var[2], x,y,z,t)*m[1][2];
-			ret[0][2] = deval(f, var[0], x,y,z,t)*m[2][0] + deval(f, var[1], x,y,z,t)*m[2][1] + deval(f, var[2], x,y,z,t)*m[2][2];
+			double fx = deval(f, var[0], x,y,z,t) ;
+			double fy = deval(f, var[1], x,y,z,t) ;
+			double fz = deval(f, var[2], x,y,z,t) ;
+			ret[0][0] = fx*m[0][0] + fy*m[0][1] + fz*m[0][2];
+			ret[0][1] = fx*m[1][0] + fy*m[1][1] + fz*m[1][2];
+			ret[0][2] = fx*m[2][0] + fy*m[2][1] + fz*m[2][2];
 
 			return ret ;
 		}

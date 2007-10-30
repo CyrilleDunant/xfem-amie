@@ -583,6 +583,7 @@ void FeatureTree::stitch()
 								if (inRoot(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(1)) ;
+									tree[j]->project(&triangles[i]->getBoundingPoint(7)) ;
 									triangles[i]->moved = true ;
 								}
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
@@ -597,6 +598,7 @@ void FeatureTree::stitch()
 								if (inRoot(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(3)) ;
+									tree[j]->project(&triangles[i]->getBoundingPoint(9)) ;
 									triangles[i]->moved = true ;
 								}
 								
@@ -612,6 +614,7 @@ void FeatureTree::stitch()
 								if (inRoot(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(5)) ;
+									tree[j]->project(&triangles[i]->getBoundingPoint(11)) ;
 									triangles[i]->moved = true ;
 								}
 								
@@ -725,7 +728,7 @@ void FeatureTree::stitch()
 				
 			}
 			stitched = true ;
-// 			return ;
+			return ;
 			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
@@ -753,6 +756,7 @@ void FeatureTree::stitch()
 						{
 							count +=1; 
 							tree[j]->project(&tets[i]->getBoundingPoint(1)) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(11)) ;
 							tets[i]->moved = true ;
 						}
 						if(
@@ -762,6 +766,7 @@ void FeatureTree::stitch()
 						{
 							count +=1; 
 							tree[j]->project(&tets[i]->getBoundingPoint(9)) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(19)) ;
 							tets[i]->moved = true ;
 						}
 						if(
@@ -771,6 +776,7 @@ void FeatureTree::stitch()
 						{
 							count +=1; 
 							tree[j]->project(&tets[i]->getBoundingPoint(7)) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(17)) ;
 							tets[i]->moved = true ;
 						}
 						if(
@@ -780,6 +786,7 @@ void FeatureTree::stitch()
 						{
 							count +=1; 
 							tree[j]->project(&tets[i]->getBoundingPoint(8)) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(18)) ;
 							tets[i]->moved = true ;
 						}
 						if(
@@ -789,6 +796,7 @@ void FeatureTree::stitch()
 						{
 							count +=1; 
 							tree[j]->project(&tets[i]->getBoundingPoint(3)) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(13)) ;
 							tets[i]->moved = true ;
 						}
 						if(
@@ -798,6 +806,7 @@ void FeatureTree::stitch()
 						{
 							count +=1; 
 							tree[j]->project(&tets[i]->getBoundingPoint(5)) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(15)) ;
 							tets[i]->moved = true ;
 						}
 

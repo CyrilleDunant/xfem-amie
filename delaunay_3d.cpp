@@ -2048,13 +2048,15 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		}
 	}
 	
+	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		
 	for(size_t i = 0 ; i < dofs.size() ; i++)
 	{
 		std::vector< Matrix > v_j ;
 		
 		for(size_t j = 0 ; j < dofs.size() ; j++)
 		{
-			v_j.push_back(Matrix(3,3)) ;
+			v_j.push_back(Matrix(size,size)) ;
 		}
 		
 		mother.push_back(v_j) ;
@@ -2068,7 +2070,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		for(size_t j = i+1 ; j < dofs.size() ; j++)
 		{
 			mother[i][j] = behaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = mother[i][j].transpose() ;
+			mother[j][i] = behaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
 		}
 	}
 	
@@ -2229,6 +2231,9 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 	
 	Vector displacement_state = this->getState()->getDisplacements(gp_points) ;
 	this->nonlinbehaviour->setState(this->getState()) ;
+
+	int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
+	
 	
 	for(size_t i = 0 ; i < dofs.size() ; i++)
 	{
@@ -2236,7 +2241,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		
 		for(size_t j = 0 ; j < dofs.size() ; j++)
 		{
-			v_j.push_back(Matrix()) ;
+			v_j.push_back(Matrix(size,size)) ;
 		}
 		
 		mother.push_back(v_j) ;
@@ -2250,7 +2255,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		for(size_t j = i+1 ; j < dofs.size() ; j++)
 		{
 			mother[i][j] = nonlinbehaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = mother[i][j].transpose() ;
+			mother[j][i] = nonlinbehaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
 		}
 	}
 	return mother ;

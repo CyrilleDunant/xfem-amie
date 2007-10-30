@@ -1912,6 +1912,9 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 // 			Jinv[i] = J ;
 // 		}
 // 	}
+
+	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	
 	
 	for(size_t i = 0 ; i < dofs.size() ; i++)
 	{
@@ -1919,7 +1922,7 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 		
 		for(size_t j = 0 ; j < dofs.size() ; j++)
 		{
-			v_j.push_back(Matrix()) ;
+			v_j.push_back(Matrix(size,size)) ;
 		}
 		
 		mother.push_back(v_j) ;
@@ -2000,6 +2003,9 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 // 			Jinv[i] = J ;
 // 		}
 // 	}
+
+	int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
+	
 	
 	for(size_t i = 0 ; i < dofs.size() ; i++)
 	{
@@ -2007,7 +2013,7 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 		
 		for(size_t j = 0 ; j < dofs.size() ; j++)
 		{
-			v_j.push_back(Matrix()) ;
+			v_j.push_back(Matrix(size,size)) ;
 		}
 		
 		mother.push_back(v_j) ;

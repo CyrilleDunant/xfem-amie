@@ -49,7 +49,7 @@ using namespace Mu ;
 double factor = 0.5 ;
 
 std::vector<double> sizered;
-std::vector<DelaunayTriangle *> myTets ;
+std::vector<DelaunayTetrahedron *> myTets ;
 std::vector<HexahedralElement *> myHexs ;
 std::vector<Point *> points ;
 DelaunayTree_3D *dt ;
@@ -170,47 +170,48 @@ void computeDisplayList()
 			
 			glBegin(GL_LINES);
 			
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+6).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			
-			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, (*x)[myTets[i]->getBoundingPoint(0+6).id]);
-
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+6).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z);
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			
-			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, (*x)[myTets[i]->getBoundingPoint(2+6).id] );
+			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
 
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+6).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			
-			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, (*x)[myTets[i]->getBoundingPoint(0+6).id] );
-
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+6).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			
-			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, (*x)[myTets[i]->getBoundingPoint(4+6).id]);
+			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z) ;
 
-// 				glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
-// 				
-// 				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z );
-
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+6).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			
-			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, (*x)[myTets[i]->getBoundingPoint(2+6).id] );
-
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+6).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			
-			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, (*x)[myTets[i]->getBoundingPoint(4+6).id]);
+			glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
 
-// 				glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
-// 
-// 				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
-// 				
-// 				glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z);
-// 
-// 				glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z);
+
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z );
+			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			glColor4f (r,g,b, .3);
+			glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+
 
 			glEnd();
 
@@ -378,10 +379,11 @@ void mouse(int button, int state, int x, int y)
 int main(int argc, char *argv[])
 {
 
-	Matrix diffusionMatrix(2,2) ;
+	Matrix diffusionMatrix(3,3) ;
 	
 	diffusionMatrix[0][0] =10;
 	diffusionMatrix[1][1] =10;
+	diffusionMatrix[2][2] =10;
 
 	//1 Alite
 	//2 C-S-H
@@ -390,22 +392,22 @@ int main(int argc, char *argv[])
 	//5   "
 	
 
-	Sample * sample = new Sample(8, 2, 4,1) ;
+	Sample3D * sample = new Sample3D(8, 2, 2, 4, 1, 1) ;
 	sample->setBehaviour(new Diffusion(diffusionMatrix)) ;
 
-	Inclusion * inc = new Inclusion(.6, 4, 1) ;
-	inc->setBehaviour(new Diffusion(diffusionMatrix*0.01)) ;
+	Inclusion3D * inc = new Inclusion3D(.8, 4, 1, 1) ;
+	inc->setBehaviour(new Diffusion(diffusionMatrix*.1)) ;
 	
 	FeatureTree ft(sample) ;
 	ft.addFeature(sample,inc) ;
 
 	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
 
-	ft.sample(64) ;
+	ft.sample(512) ;
 	
-	ft.generateElements() ;
+	ft.generateElements(4) ;
 
-	std::vector<DelaunayTriangle *> elems = ft.getTriangles() ;
+	std::vector<DelaunayTetrahedron *> elems = ft.getTetrahedrons() ;
 
 	
 	for(size_t i = 0 ; i < elems.size() ; i++)
@@ -422,8 +424,7 @@ int main(int argc, char *argv[])
 	}
 
 	ft.step(0.1) ;
-	std::vector<std::vector<Matrix> > elementaryMatrix = elems[0]->getElementaryMatrix() ;
-	
+
 	x = &ft.getAssembly()->getDisplacements() ;
 
 	for(size_t i = 0 ; i < elems.size() ; i++)
@@ -435,19 +436,17 @@ int main(int argc, char *argv[])
 		
 		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
 		{
-			if(elems[i]->getBoundingPoint(j).x == 8  )
+// 			if(std::abs(elems[i]->getBoundingPoint(j).x - 8)  < 0.0001)
+// 			{
+// 				ft.getAssembly()->setPoint(0, elems[i]->getBoundingPoint(j).id) ;
+// 			}
+			/*else*/ if(elems[i]->getBoundingPoint(j).t == -1 )
 			{
-				ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
-			}
-			
-			
-			if(elems[i]->getBoundingPoint(j).t == -1 )
-			{
-				ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
+				ft.getAssembly()->setPoint(0, elems[i]->getBoundingPoint(j).id) ;
 			}
 			else if(elems[i]->getBoundingPoint(j).x  == 0  && elems[i]->getBoundingPoint(j).t == 1)
 			{
-				ft.getAssembly()->setPoint(.5,elems[i]->getBoundingPoint(j).id) ;
+				ft.getAssembly()->setPoint(.5, elems[i]->getBoundingPoint(j).id) ;
 			}
 
 		}
@@ -455,92 +454,64 @@ int main(int argc, char *argv[])
 	}
 
 	ft.step(0.1) ;
+
+// 	ft.getAssembly()->print() ;
 
 	x = &ft.getAssembly()->getDisplacements() ;
-	
-	for(size_t i = 0 ; i < elems.size() ; i++)
+
+	for(size_t i = 0 ; i < x->size() ; i++)
 	{
-		if(i% 100 == 0)
-		{
-			std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
-		}
-		
-		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
-		{
-
-			if(elems[i]->getBoundingPoint(j).x == 8  )
-			{
-				ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
-			}
-			
-			if( elems[i]->getBoundingPoint(j).x == 0)
-			{
-				ft.getAssembly()->setPoint(.5,elems[i]->getBoundingPoint(j).id) ;
-			}
-			else if(elems[i]->getBoundingPoint(j).t == -1 )
-			{
-				ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+6).id],elems[i]->getBoundingPoint(j).id) ;
-			}
-
-			
-		}
-		
+		std::cout << (*x)[i] << std::endl ;
 	}
 
-	
-	ft.step(0.1) ;
 
-	for(size_t timestep = 0 ; timestep < 5 ; timestep++)
+	for(size_t timestep = 0 ; timestep < 4 ; timestep++)
 	{
 		x = &ft.getAssembly()->getDisplacements() ;
-		
+
 		for(size_t i = 0 ; i < elems.size() ; i++)
 		{
 			if(i% 100 == 0)
 			{
 				std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
 			}
-			
+
 			for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
 			{
 
-				if(elems[i]->getBoundingPoint(j).x == 8  )
-				{
-					ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
-				}
-				
-				if(elems[i]->getBoundingPoint(j).x == 0 )
+// 				if(elems[i]->getBoundingPoint(j).x == 8  )
+// 				{
+// 					ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
+// 				}
+				/*else*/ if(elems[i]->getBoundingPoint(j).x == 0 )
 				{
 					ft.getAssembly()->setPoint(.5,elems[i]->getBoundingPoint(j).id) ;
 				}
-				else if(elems[i]->getBoundingPoint(j).t == -1|| elems[i]->getBoundingPoint(j).t == 0)
+				else if(elems[i]->getBoundingPoint(j).t == -1)
 				{
-					ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+6).id],elems[i]->getBoundingPoint(j).id) ;
+					ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+10).id],elems[i]->getBoundingPoint(j).id) ;
 				}
 			}
-			
+
 		}
-		
-		
+
 		ft.step(0.1) ;
 	}
-	
+
 	x =  &ft.getAssembly()->getDisplacements() ;
-	
-	for(size_t i = 0 ; i < elems.size() ; i++)
-	{
 
-		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
-		{
-			std::cout << elems[i]->getBoundingPoint(j).x << "  " << elems[i]->getBoundingPoint(j).t << "  "<< (*x)[elems[i]->getBoundingPoint(j).id] << std::endl ;
-			
-		}
-	}
-
-
+// 	for(size_t i = 0 ; i < elems.size() ; i++)
+// 	{
+// 
+// 		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
+// 		{
+// 			std::cout << elems[i]->getBoundingPoint(j).x << "  " << elems[i]->getBoundingPoint(j).t << "  "<< (*x)[elems[i]->getBoundingPoint(j).id] << std::endl ;
+// 
+// 		}
+// 	}
 
 	myTets =  elems ;
-	sigma = new Vector(myTets.size()*6) ;
+	sigma = new Vector(myTets.size()*10) ;
 	
 	int count = 0 ;
 	for(size_t i = 0 ; i < myTets.size(); i++)
@@ -554,21 +525,23 @@ int main(int argc, char *argv[])
 			count++;
 
 // 			for(size_t j = 0 ; j < 10 ;j++)
-			for(size_t j = 6 ; j < 12 ;j++)
+			for(size_t j = 10 ; j < 20 ;j++)
 			{
 				
-				(*sigma)[i*6+j-6] = (*x)[elems[i]->getBoundingPoint(j).id] ;
+				(*sigma)[i*10+j-10] = (*x)[elems[i]->getBoundingPoint(j).id] ;
 			}
 		}
 		else
 		{
-			for(size_t j = 0 ; j < 6 ;j++)
+			for(size_t j = 0 ; j < 10 ;j++)
 			{
-				(*sigma)[i*6+j] = 0 ;
+				(*sigma)[i*10+j] = 0 ;
 			}
 		}
 		
 	}
+
+// 	(*x) *= 10 ;
 	
 	std::cout << " ... done" << std::endl ;
 	std::cout << "sigma max = " << sigma->max() << std::endl ;
