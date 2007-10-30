@@ -381,9 +381,9 @@ int main(int argc, char *argv[])
 
 	Matrix diffusionMatrix(3,3) ;
 	
-	diffusionMatrix[0][0] =10;
-	diffusionMatrix[1][1] =10;
-	diffusionMatrix[2][2] =10;
+	diffusionMatrix[0][0] =100;
+	diffusionMatrix[1][1] =100;
+	diffusionMatrix[2][2] =100;
 
 	//1 Alite
 	//2 C-S-H
