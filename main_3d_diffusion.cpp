@@ -67,6 +67,43 @@ Vector * sigma ;
 std::vector<Point *> pts ;
 
 
+std::pair<Matrix,Matrix> arnoldi(const Matrix & A)
+{
+	std::vector<Vector> Q(A.numCols()+1,Vector(double(0),A.numRows())) ;
+	Matrix H(A.numRows(),A.numRows()) ;
+
+	// the first Arnoldi vector is { 1, 0, 0, 0, ...} 
+	Q[0][0] = 1 ;
+	
+	for(size_t k = 1 ; k < A.numCols()+1 ; k++)
+	{
+		Q[k] = A*Q[k-1] ;
+
+		for(size_t j = 0 ; j < k ; j++)
+		{
+			H[j][k-1] = std::inner_product(&Q[j][0], &Q[j][Q[j].size()], &Q[k][0], double(0)) ;
+			Q[k] -= Q[j]*H[j][k-1] ;
+		}
+
+		H[k][k-1] = sqrt(std::inner_product(&Q[k][0], &Q[k][Q[k].size()], &Q[k][0], double(0))) ;
+		Q[k]/=H[k][k-1] ;
+	}
+
+	Matrix Q_(A.numCols(), A.numRows()) ;
+
+	for(size_t i = 0 ; i < A.numRows() ; i++)
+	{
+		for(size_t j = 0 ; j < A.numCols() ; j++)
+		{
+			Q_[i][j] = Q[i][j] ;
+		}
+	}
+
+	H.print() ;
+	std::cout << "\n" << std::endl ;
+	Q_.print() ;
+	return std::make_pair(H,Q_) ;
+}
 
 
 void HSV2RGB( double *r, double *g, double *b, double h, double s, double v )
@@ -146,7 +183,7 @@ void computeDisplayList()
 			
 			double r, g, b ;
 			
-// 		HSV2RGB(&r, &g, &b, 360.-360.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
+// 		HSV2RGB(&r, &g, &b, 360.-350.-340.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
 // 		glColor4f (r,g,b, .3);
 			
 		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -165,52 +202,52 @@ void computeDisplayList()
 // 			HSV2RGB(&r, &g, &b, 180.-180.*(myTets[i]->getBehaviour()->param[0][0]-mins)/(maxs-mins), 1., 1.) ;
 // 			glColor4f (r,g,b, .3);
 			
-			HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*6]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 350.-340.*((*sigma)[i*6]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			
 			glBegin(GL_LINES);
 			
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z);
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1);
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
+			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
 
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1 );
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z) ;
+			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1) ;
 
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->first->x, myTets[i]->first->y, myTets[i]->first->z );
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1 );
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
 
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z);
+			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1);
 
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->second->x, myTets[i]->second->y, myTets[i]->second->z );
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
 
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->third->x, myTets[i]->third->y, myTets[i]->third->z );
-			HSV2RGB(&r, &g, &b, 360.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1 );
+			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->fourth->x, myTets[i]->fourth->y, myTets[i]->fourth->z);
+			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
 
 
 			glEnd();
@@ -350,28 +387,7 @@ void mouse(int button, int state, int x, int y)
 	
 	default:
 		break;
-		
-	
-	
-	
-	
-	
-// 	switch (button) {
-// 	case GLUT_LEFT_BUTTON:
-// 		if (state == GLUT_DOWN) {
-// 			shoulder = (shoulder + .05) ;
-// 			glutPostRedisplay();
-// 			break;
-// 		}
-// 		break;
-// 	case GLUT_RIGHT_BUTTON:
-// 		if (state == GLUT_DOWN)
-// 			shoulder = (shoulder - .05);
-// 			glutPostRedisplay();
-// 		break;
-// 		
-// 	default:
-// 		break;
+
 	}
 }
 
@@ -379,12 +395,123 @@ void mouse(int button, int state, int x, int y)
 int main(int argc, char *argv[])
 {
 
+	Matrix base(4,4) ;
+
+	         //CaO                  SiO2                    Fe2O3                   Al2O3
+	/*C3S  =*/ base[0][0] = 4.0710 ;  base[0][1] = -7.6024 ;  base[0][2] = -1.4297 ;  base[0][3] = -6.7187 ;
+	/*C2S  =*/ base[1][0] = -3.0710 ; base[1][1] = 8.6024 ;   base[1][2] = 1.0785 ;   base[1][3] = 5.0683 ;
+	/*C3A  =*/ base[2][0] = 0 ;       base[2][1] = 0 ;        base[2][2] = -1.6920 ;  base[2][3] = 2.6504 ;
+	/*C4AF =*/ base[3][0] = 0 ;       base[3][1] = 0 ;        base[3][2] = 3.0432 ;   base[3][3] = 0 ;
+
+// 	base = inverse4x4Matrix(base) ;
+	Vector input(4) ;
+
+	input[0] = 92.5 ;
+	input[1] = 6.5 ;
+	input[2] = .7 ;
+	input[3] = .3 ;
+
+	std::map<std::pair<std::pair<int, int>, std::pair<int, int> >, int > world ;
+
+	std::cout << "building..." << std::endl ;
+
+	size_t size = 100 ;
+	
+	std::cout << "...done" << std::endl ;
+	for(size_t i = 0 ; i < 10000000 ; i++)
+	{
+		Vector inputThis(input) ;
+
+		//noisify
+		for(size_t j = 0 ; j < 4 ; j++)
+		{
+			double noise = 2.*((double)random()/(double)RAND_MAX)-1. ;
+			noise*=20 ;
+
+			inputThis[j]+=noise ;
+		}
+
+		//renormalise
+		double norm = inputThis[0] + inputThis[1] + inputThis[2] + inputThis[3] ;
+		inputThis /= norm ;
+		inputThis *= 100. ;
+		//compute
+		inputThis=base*inputThis ;
+
+		
+		if(inputThis.min() >= 0 && inputThis.max() <=100)
+		{
+			double norm = inputThis[0] + inputThis[1] + inputThis[2] + inputThis[3] ;
+			inputThis /= norm ;
+
+			if(world.find(std::make_pair(std::make_pair(round(size*inputThis[0]),
+			                                            round(size*inputThis[1])),
+			                             std::make_pair(round(size*inputThis[2]),
+			                                            round(size*inputThis[3])))) != world.end())
+				world[std::make_pair(std::make_pair(round(size*inputThis[0]),
+				                                    round(size*inputThis[1])),
+				                     std::make_pair(round(size*inputThis[2]),
+				                                    round(size*inputThis[3])))]++ ;
+			else
+				world[std::make_pair(std::make_pair(round(size*inputThis[0]),
+				                                    round(size*inputThis[1])),
+				                     std::make_pair(round(size*inputThis[2]),
+				                                    round(size*inputThis[3])))] = 1 ;
+			
+		}
+	}
+
+	Vector inputThis(input) ;
+	inputThis=base*inputThis;
+
+	for(size_t j = 0 ; j < 4 ; j++)
+	{
+		std::cout << inputThis[j] << std::endl ;
+	}
+
+	std::cout << std::endl ;
+	
+	int x = 0 ; int y = 0 ; int z = 0 ; int t = 0 ;
+
+	int M = world.begin()->second ;
+
+	for(std::map<std::pair<std::pair<int, int>, std::pair<int, int> >, int >::const_iterator i = world.begin() ; i !=world.end() ; ++i )
+	{
+		if(i->second > M)
+		{
+			x = i->first.first.first ;
+			y = i->first.first.second ;
+			z = i->first.second.first ;
+			t = i->first.second.second ;
+			M = i->second ;
+		}
+	}
+
+	std::cout << (double)x*(100./size) << std::endl ;
+	std::cout << (double)y*(100./size) << std::endl ;
+	std::cout << (double)z*(100./size) << std::endl ;
+	std::cout << (double)t*(100./size) << std::endl ;
+	return 0 ;
+	
 	Matrix diffusionMatrix(3,3) ;
+
 	
 	diffusionMatrix[0][0] =100;
 	diffusionMatrix[1][1] =100;
 	diffusionMatrix[2][2] =100;
 
+// 	diffusionMatrix[0][0] =2;    	diffusionMatrix[0][1] =7;    	diffusionMatrix[0][2] =0;
+// 	diffusionMatrix[1][0] =5;    	diffusionMatrix[1][1] =4;    	diffusionMatrix[1][2] =8;
+// 	diffusionMatrix[2][0] =1;    	diffusionMatrix[2][1] =2;    	diffusionMatrix[2][2] =9;
+// 	diffusionMatrix.print() ;
+// 
+// 	std::cout << "\n" ;
+// 	
+// 	
+// 	arnoldi(diffusionMatrix) ;
+// 
+// 	return 0 ;
+	
 	//1 Alite
 	//2 C-S-H
 	//3 CH
@@ -392,11 +519,11 @@ int main(int argc, char *argv[])
 	//5   "
 	
 
-	Sample3D * sample = new Sample3D(8, 2, 2, 4, 1, 1) ;
+	Sample3D * sample = new Sample3D(100, 20, 20, 50, 10, 10) ;
 	sample->setBehaviour(new Diffusion(diffusionMatrix)) ;
 
-	Inclusion3D * inc = new Inclusion3D(.8, 4, 1, 1) ;
-	inc->setBehaviour(new Diffusion(diffusionMatrix*.1)) ;
+	Inclusion3D * inc = new Inclusion3D(8, 30, 10, 10) ;
+	inc->setBehaviour(new Diffusion(diffusionMatrix*.015)) ;
 	
 	FeatureTree ft(sample) ;
 	ft.addFeature(sample,inc) ;
@@ -425,7 +552,7 @@ int main(int argc, char *argv[])
 
 	ft.step(0.1) ;
 
-	x = &ft.getAssembly()->getDisplacements() ;
+// 	x = &ft.getAssembly()->getDisplacements() ;
 
 	for(size_t i = 0 ; i < elems.size() ; i++)
 	{
@@ -457,17 +584,17 @@ int main(int argc, char *argv[])
 
 // 	ft.getAssembly()->print() ;
 
-	x = &ft.getAssembly()->getDisplacements() ;
+// 	x = &ft.getAssembly()->getDisplacements() ;
 
-	for(size_t i = 0 ; i < x->size() ; i++)
-	{
-		std::cout << (*x)[i] << std::endl ;
-	}
+// 	for(size_t i = 0 ; i < x->size() ; i++)
+// 	{
+// 		std::cout << (*x)[i] << std::endl ;
+// 	}
 
 
 	for(size_t timestep = 0 ; timestep < 4 ; timestep++)
 	{
-		x = &ft.getAssembly()->getDisplacements() ;
+// 		x = &ft.getAssembly()->getDisplacements() ;
 
 		for(size_t i = 0 ; i < elems.size() ; i++)
 		{
@@ -489,7 +616,7 @@ int main(int argc, char *argv[])
 				}
 				else if(elems[i]->getBoundingPoint(j).t == -1)
 				{
-					ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+10).id],elems[i]->getBoundingPoint(j).id) ;
+// 					ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+10).id],elems[i]->getBoundingPoint(j).id) ;
 				}
 			}
 
@@ -498,7 +625,7 @@ int main(int argc, char *argv[])
 		ft.step(0.1) ;
 	}
 
-	x =  &ft.getAssembly()->getDisplacements() ;
+// 	x =  &ft.getAssembly()->getDisplacements() ;
 
 // 	for(size_t i = 0 ; i < elems.size() ; i++)
 // 	{
@@ -528,7 +655,7 @@ int main(int argc, char *argv[])
 			for(size_t j = 10 ; j < 20 ;j++)
 			{
 				
-				(*sigma)[i*10+j-10] = (*x)[elems[i]->getBoundingPoint(j).id] ;
+// 				(*sigma)[i*10+j-10] = (*x)[elems[i]->getBoundingPoint(j).id] ;
 			}
 		}
 		else

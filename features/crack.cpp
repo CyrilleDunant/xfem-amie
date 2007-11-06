@@ -190,27 +190,20 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	
 	if(isTail)
 	{
-		Segment onSelf(*targetSegment.first,
-		               *targetSegment.second) ;
-		intersection = onSelf.intersection( Segment(fromBranch->getBoundingPoint(fromBranch->getBoundingPoints().size()-1),
-		                                            fromBranch->getBoundingPoint(fromBranch->getBoundingPoints().size()-2)
-			                              )
-			                       ) ;
+		Line to(*targetSegment.first, *targetSegment.first-*targetSegment.second) ;
+
+		intersection = to.projection(fromBranch->getBoundingPoint(fromBranch->getBoundingPoints().size()-1));
 		
-		if(!onSelf.on(intersection))
-			intersection = onSelf.midPoint() ;
+		if(!Segment(*targetSegment.first, *targetSegment.second).on(intersection))
+			intersection = (*targetSegment.first-*targetSegment.second)*.5 ;
 	}
 	else
 	{
-		Segment onSelf(*targetSegment.first,
-		               *targetSegment.second) ;
-		intersection = onSelf.intersection( Segment(fromBranch->getBoundingPoint(0),
-		                                            fromBranch->getBoundingPoint(1)
-		                                           )
-		                                  ) ;
+		Line to(*targetSegment.first, *targetSegment.first-*targetSegment.second) ;
+		intersection = to.projection( fromBranch->getBoundingPoint(0)) ;
 		
-		if(!onSelf.on(intersection))
-			intersection = onSelf.midPoint() ;
+		if(!Segment(*targetSegment.first, *targetSegment.second).on(intersection))
+			intersection = (*targetSegment.first-*targetSegment.second)*.5 ;
 	}
 	
 	//then 1) the tip is removed as a tip, 

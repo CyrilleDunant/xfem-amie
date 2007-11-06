@@ -1428,41 +1428,17 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	Matrix A(4,4) ;
-
-	A[0][0] = 1 ; A[0][1] = 4 ;  A[0][2] = 2 ;  A[0][3] = 9 ;
-	A[1][0] = 6 ; A[1][1] = 4 ;  A[1][2] = 2 ;  A[1][3] = 1 ;
-	A[2][0] = 8 ; A[2][1] = 7 ;  A[2][2] = 8 ;  A[2][3] = 4 ;
-	A[3][0] = 5 ; A[3][1] = 1 ;  A[3][2] = 5 ;  A[3][3] = 1 ;
-
-	Vector B(4) ;
-
-	B[0] = 1 ;  B[1] =2 ; B[2] = 3; B[3] = 0 ;
-
-	Vector X(B) ;
-
-	solveSystem(A, B, X) ;
-
-	for(size_t i = 0 ; i < 4  ; i++)
-	{
-		std::cout << X[i] << std::endl ;
-	}
-		
-	DelaunayTree DT(new Point(0,0), new Point(1,0), new Point(0,1)) ;
-	DT.insert(new Point(.50000000001,.5)) ;
-	DT.insert(new Point(.50000001,.50000001)) ;
-	DT.insert(new Point(.500001,.500001)) ;
-	DT.print() ;
 	
-// 	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
-// 	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
-// 	branch0.print() ;
-// 	branch1.print() ;
-// 	branch0.merge(branch1) ;
-// 	branch0.print() ;
-// 	branch1.print() ;
+	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
+	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
+	branch0.print() ;
+	branch1.print() ;
+	branch0.merge(branch1) ;
+	branch0.print() ;
+	branch1.print() ;
 // 
 
+	return 0 ;
 	
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1588,7 +1564,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
-	zones = generateExpansiveZones(1, inclusions, F) ;
+	zones = generateExpansiveZones(5, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1597,7 +1573,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(1200) ;
+	F.sample(800) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
