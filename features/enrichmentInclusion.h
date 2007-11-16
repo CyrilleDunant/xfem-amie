@@ -16,6 +16,7 @@ namespace Mu
 class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
 {
 protected:
+	bool updated ;
 	std::vector<DelaunayTriangle *> cache ;
 public:
 
@@ -51,6 +52,8 @@ public:
 	}
 	
 	virtual bool isVoid( const Point &) const {return false ;}
+
+	virtual void setRadius(double newR) ;
 	
 // 	virtual void setSingularityHints(const Point & i, const Point & s, std::vector<Point> * hints) const ;
 	

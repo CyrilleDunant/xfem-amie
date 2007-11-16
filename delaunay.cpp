@@ -1773,7 +1773,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 			ret.push_back((DelaunayTriangle *)(tree[i])) ;
 		}
 	}
-
+	
 	if(!neighbourhood && buildNeighbourhood)
 	{
 		std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;

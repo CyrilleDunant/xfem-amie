@@ -28,6 +28,7 @@ Circle * ExpansiveZone::getGeometry()
 void ExpansiveZone::reset() 
 {
 	cache.clear() ;
+	updated = true ;
 }
 
 void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)

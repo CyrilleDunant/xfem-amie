@@ -283,7 +283,8 @@ public:
 	virtual void step(double timestep, ElementState * currentState) = 0;
 	virtual void updateElementState(double timestep, ElementState * currentState) const = 0;
 	
-	virtual bool fractured() const = 0 ; 
+	virtual bool fractured() const = 0 ;
+	virtual bool changed() const { return false ; } ;
 	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
 	
 	virtual Form * getCopy() const = 0 ;

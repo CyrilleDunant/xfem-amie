@@ -8,12 +8,12 @@ using namespace Mu ;
 
 EnrichmentInclusion::EnrichmentInclusion(Feature *father, double radius, double x, double y) : EnrichmentFeature(father), Circle(radius, x, y)
 {
-	
+	updated = true ;
 }
 
 EnrichmentInclusion::EnrichmentInclusion(double radius, double x, double y) :EnrichmentFeature(NULL), Circle(radius, x, y)
 {
-	
+	updated = true ;
 }
 
 EnrichmentInclusion::~EnrichmentInclusion() {}
@@ -108,6 +108,7 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 
 void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 {
+	updated = false ;
 // 	dtree->getTriangles() ;
 	//first we get All the triangles affected
 	update(dtree) ;
@@ -345,4 +346,10 @@ std::vector<Geometry *> EnrichmentInclusion::getRefinementZones( size_t level) c
 	
 void EnrichmentInclusion::step(double dt, std::valarray<double> *, const DelaunayTree * dtree) {}
 	
-bool EnrichmentInclusion::moved() const { return false ;}
+bool EnrichmentInclusion::moved() const { return updated ;}
+
+void EnrichmentInclusion::setRadius(double newR)
+{
+	Circle::setRadius(newR) ;
+	updated = true ;
+}

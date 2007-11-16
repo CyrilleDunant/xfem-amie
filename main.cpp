@@ -225,7 +225,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 1;
+	int nsteps = 2;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -323,7 +323,6 @@ void step()
 				if(triangles[k]->getBoundingPoint(p).x > 0.0799)
 				{
 					e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
-					std::cout << x[triangles[k]->getBoundingPoint(p).id*2] << "   " << std::flush ;
 					ex_count++ ;
 				}
 			}
@@ -489,7 +488,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 		
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
+		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/64 ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
@@ -506,7 +505,7 @@ void step()
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
 	double E = .2e+09 ;
-	double nu = .499999 ;
+	double nu = .4 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
 	m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = 0 ; 
@@ -539,8 +538,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = .2 ;
-				a[1] = .2 ;
+				a[0] = .1 ;
+				a[1] = .1 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
@@ -1428,7 +1427,7 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	
+/*	
 	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
 	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
 	branch0.print() ;
@@ -1438,7 +1437,7 @@ int main(int argc, char *argv[])
 	branch1.print() ;
 // 
 
-	return 0 ;
+	return 0 ;*/
 	
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1534,7 +1533,8 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.15, 25000, BOLOME_A)(.004, .05);
+	inclusions = GranuloBolome(.15, 25000, BOLOME_A)(.002, .01);
+// 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
 	int nAgg = 0 ;
 	inclusions=placement(.16, .04, inclusions, &nAgg, 256);
 // 	F.addFeature(&sample,inc) ;
@@ -1546,7 +1546,7 @@ int main(int argc, char *argv[])
 		a[1] = .0002 ;
 		a[2] = 0.00 ;
 // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
-		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
+		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(2000000, -20000000))) ;
 		F.addFeature(&sample,inclusions[i]) ;
 	}
 	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
@@ -1560,11 +1560,11 @@ int main(int argc, char *argv[])
 	a[1] = 0.1 ;
 	a[2] = 0.00 ;
 	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 200000)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
-	zones = generateExpansiveZones(5, inclusions, F) ;
+	zones = generateExpansiveZones(8, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;

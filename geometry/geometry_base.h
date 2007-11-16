@@ -526,7 +526,7 @@ public:
 	/// Get nurb
 	std::vector<Point> sampleNurb(size_t n);
 	/**
-        * @param n wished number of nurb points
+        * @param u wished number of nurb points
         */
 	
 	/// Subdivide Nurb 

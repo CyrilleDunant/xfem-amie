@@ -2,7 +2,7 @@
 
 using namespace Mu ;
 
-BimaterialInterface::BimaterialInterface(Geometry * in, Form * inbehaviour, Form * outbehaviour) : LinearForm(Matrix(), false, true, 2), inGeometry(in),inBehaviour(inbehaviour), outBehaviour(outbehaviour)  { }
+BimaterialInterface::BimaterialInterface(Geometry * in, Form * inbehaviour, Form * outbehaviour) : LinearForm(Matrix(), true, true, 2), inGeometry(in),inBehaviour(inbehaviour), outBehaviour(outbehaviour)  { }
 
 BimaterialInterface::~BimaterialInterface() { } ;
 
@@ -150,7 +150,11 @@ Vector BimaterialInterface::getForces(const ElementState * s, const Function & p
 		
 }
 
-
+void BimaterialInterface::step(double timestep, ElementState * currentState)
+{
+	inBehaviour->step(timestep, currentState) ;
+	outBehaviour->step(timestep, currentState) ;
+}
 
 bool BimaterialInterface::hasInducedForces() const
 {

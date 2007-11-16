@@ -21,6 +21,8 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 {
 	criterion = crit ;
 	frac = false ;
+	init = param[0][0] ;
+	change  = false ;
 } ;
 
 StiffnessAndFracture::~StiffnessAndFracture() 
@@ -53,14 +55,21 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 
 void StiffnessAndFracture::step(double timestep, ElementState * currentState) 
 {
+	change = false ;
 	if(!frac && criterion->met(currentState) )
 	{
-
-		frac = true ;
-		this->param *= 1e-6 ;
+		this->param *= .1 ;
+		change = true ;
+		if(this->param[0][0] < init*1e-4)
+			frac = true ;
 	}
 
 }
+
+bool StiffnessAndFracture::changed() const
+{
+	return change ;
+} 
 
 bool StiffnessAndFracture::fractured() const
 {

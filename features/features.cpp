@@ -5,6 +5,7 @@
 //
 
 #include "features.h"
+#include "crackinitiation.h"
 
 using namespace Mu ;
 
@@ -1510,74 +1511,130 @@ void FeatureTree::assemble()
 		this->generateElements() ;
 	
 	size_t en_counter = 0 ;
-	if(this->dtree3D == NULL && this->dtree !=NULL)
+	if(!initialized)
 	{
-		if(!stitched)
-			stitch() ;
-		if(!renumbered)
-			renumber() ;
-		std::cerr << " refreshing..." << std::flush ;
-		this->dtree->refresh(father2D, false) ;
-		std::cerr << " ...done" << std::endl ;
-		en_counter = this->dtree->global_counter ;
-		
-		triangles = this->dtree->getTriangles() ;
-		
-		for(size_t i = 0 ; i < triangles.size() ;i++)
+		if(this->dtree3D == NULL && this->dtree !=NULL)
 		{
-			if(!triangles[i]->getBehaviour())
-				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
-			triangles[i]->getEnrichmentFunctions().clear() ;
-			triangles[i]->getState()->initialize() ;
-		}
-		
-		if(!initialized)
+			if(!stitched)
+				stitch() ;
+			if(!renumbered)
+				renumber() ;
+			std::cerr << " refreshing..." << std::flush ;
+			this->dtree->refresh(father2D, false) ;
+			std::cerr << " ...done" << std::endl ;
+			en_counter = this->dtree->global_counter ;
+			
+			triangles = this->dtree->getTriangles() ;
+			
+			for(size_t i = 0 ; i < triangles.size() ;i++)
+			{
+				if(!triangles[i]->getBehaviour())
+					triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
+				triangles[i]->getEnrichmentFunctions().clear() ;
+				triangles[i]->getState()->initialize() ;
+			}
+			
 			initializeElements() ;
-		
-	}
-	else if(this->dtree3D != NULL && this->dtree ==NULL)
-	{
-		
-		std::cerr << " stich..." << std::flush ;
-		if(!stitched)
-			stitch() ;
-		if(!renumbered)
-			renumber() ;
-		
-		std::cerr << " refreshing..." << std::flush ;
-		this->dtree3D->refresh(father3D) ;
-		std::cerr << " ...done" << std::endl ;
-		
-		en_counter = this->dtree3D->global_counter ;
-		
-		tetrahedrons = this->dtree3D->getTetrahedrons() ;
-		
-		for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
+			
+		}
+		else if(this->dtree3D != NULL && this->dtree ==NULL)
 		{
-			if(!tetrahedrons[i]->getBehaviour())
-				tetrahedrons[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
-			tetrahedrons[i]->getEnrichmentFunctions().clear() ;
-		}
-		
-		if(!initialized)
+			
+			std::cerr << " stich..." << std::flush ;
+			if(!stitched)
+				stitch() ;
+			if(!renumbered)
+				renumber() ;
+			
+			std::cerr << " refreshing..." << std::flush ;
+			this->dtree3D->refresh(father3D) ;
+			std::cerr << " ...done" << std::endl ;
+			
+			en_counter = this->dtree3D->global_counter ;
+			
+			tetrahedrons = this->dtree3D->getTetrahedrons() ;
+			
+			for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
+			{
+				if(!tetrahedrons[i]->getBehaviour())
+					tetrahedrons[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
+				tetrahedrons[i]->getEnrichmentFunctions().clear() ;
+			}
+			
 			initializeElements() ;
+		}
 	}
 	
 	std::cerr << " enriching..." << std::flush ;		
 	
-	
+	bool needToUpdateEnrichement = false ;
+
 	for(size_t i = 1 ; i < this->tree.size() ; i++)
 	{
-
+		
 		if(this->tree[i]->isEnrichmentFeature)
 		{
-			static_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree) ;
+			needToUpdateEnrichement = needToUpdateEnrichement || static_cast<EnrichmentFeature *>(this->tree[i])->moved() ;
 		}
 		
-		if(i%10 == 0)
-			std::cerr << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
 	}
-	std::cerr << " ...done" << std::endl ;
+
+	if(needToUpdateEnrichement)
+	{
+
+		if(this->dtree3D == NULL && this->dtree !=NULL)
+		{
+			en_counter = this->dtree->global_counter ;
+			triangles = this->dtree->getTriangles() ;
+			
+			for(size_t i = 0 ; i < triangles.size() ;i++)
+			{
+				triangles[i]->getEnrichmentFunctions().clear() ;
+				triangles[i]->getState()->initialize() ;
+			}
+		}
+		else
+		{
+			en_counter = this->dtree3D->global_counter ;
+			tetrahedrons = this->dtree3D->getTetrahedrons() ;
+			
+			for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
+			{
+				tetrahedrons[i]->getEnrichmentFunctions().clear() ;
+				tetrahedrons[i]->getState()->initialize() ;
+			}
+		}
+		
+		for(size_t i = 1 ; i < this->tree.size() ; i++)
+		{
+
+			if(this->tree[i]->isEnrichmentFeature)
+			{
+				static_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree) ;
+			}
+			
+			if(i%10 == 0)
+				std::cerr << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
+		}
+
+		std::cerr << " ...done" << std::endl ;
+
+		for(size_t j = 0 ; j < triangles.size() ; j++)
+		{
+			if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				
+				std::cerr << "\r compiling... triangle " << j+1 << "/" << triangles.size() << std::flush ;
+				
+				for(size_t k = 0 ; k < triangles[j]->getEnrichmentFunctions().size() ; k++)
+				{
+					triangles[j]->getEnrichmentFunction(k).second.compile() ;
+				}
+			}
+		}
+
+		std::cerr << " ...done" << std::endl ;
+	}
 	
 	if(this->dtree3D == NULL && this->dtree !=NULL)
 	{
@@ -1599,19 +1656,14 @@ void FeatureTree::assemble()
 // 		std::cerr << " refreshing..." << std::flush ;
 // 		this->dtree->refresh(father2D, true) ;
 // 		std::cerr << " ...done" << std::endl ;
-// 		triangles = this->dtree->getTriangles() ;
+		triangles = this->dtree->getTriangles() ;
 		
 		for(size_t j = 0 ; j < triangles.size() ; j++)
 		{
 			if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-// 				if(j%1000 == 0)
-					std::cerr << "\r assembling stiffness matrix... triangle " << j+1 << "/" << triangles.size() << std::flush ;
-				
-				for(size_t k = 0 ; k < triangles[j]->getEnrichmentFunctions().size() ; k++)
-				{
-					triangles[j]->getEnrichmentFunction(k).second.compile() ;
-				}
+
+				std::cerr << "\r assembling stiffness matrix... triangle " << j+1 << "/" << triangles.size() << std::flush ;
 				
 				K->add(triangles[j]) ;
 			}
@@ -1895,17 +1947,22 @@ bool FeatureTree::step(double dt)
 			if(i%1000 == 0)
 				std::cerr << "\r checking for fractures... " << i << "/" << elements.size() << std::flush ;
 			
-			if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && !elements[i]->getBehaviour()->fractured())
+			if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 			{
 				volume += elements[i]->area() ;
 				
 				elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
-				if(elements[i]->getBehaviour()->fractured())
+				if(elements[i]->getBehaviour()->changed() && elements[i]->getBehaviour()->fractured())
 				{
 					fracturedCount++ ;
 					needAssembly = true ;
 					ret = false ;
 					crackedVolume +=  elements[i]->area() ;
+				}
+				else if(elements[i]->getBehaviour()->changed() )
+				{
+					needAssembly = true ;
+					ret = false ;
 				}
 			}
 			else if (elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && elements[i]->getBehaviour()->fractured())
@@ -1925,6 +1982,8 @@ bool FeatureTree::step(double dt)
 // 				ret = false ;
 			}
 		}
+
+// 		CrackInitiation().step(.01, dtree) ;
 		
 	}
 	else if(is3D())
