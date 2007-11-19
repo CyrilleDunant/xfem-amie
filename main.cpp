@@ -109,7 +109,7 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 double nu = 0.3 ;
-double E_agg = 58900000000 ;
+double E_agg = 20000000000;//58900000000 ;
 double E_paste = 12000000000 ;
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
@@ -175,13 +175,21 @@ void setBC()
 // // 				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
 
-			if(triangles[k]->getBoundingPoint(c).x < -.0799)
+			if(std::abs(triangles[k]->getBoundingPoint(c).x - 0.03) < .001 && triangles[k]->getBoundingPoint(c).y < 0.0001
+			  )
 			{
-				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 )
+			if(
+			    std::abs(triangles[k]->getBoundingPoint(c).x - 0.13) < .001 && triangles[k]->getBoundingPoint(c).y < 0.0001
+			  )
 			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
+			}
+			
+			if (triangles[k]->getBoundingPoint(c).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(c).x - 0.08) < 0.01)
+			{
+				featureTree->getAssembly()->setForceOn( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 // 			if(triangles[k]->getBoundingPoint(c).y > 2.999 && triangles[k]->getBoundingPoint(c).x > 2.999)
 // 			{
@@ -225,7 +233,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 2;
+	int nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -238,8 +246,9 @@ void step()
 		}
 // 		
 // 		
-		timepos+= 0.0001 ;
-	
+		timepos+= 500 ;
+
+		std::cout << "Time " << timepos << std::endl ;
 	
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
@@ -309,9 +318,13 @@ void step()
 		
 		if(!in && !triangles[k]->getBehaviour()->fractured())
 		{
+
 			
 			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
+
+				if (triangles[k]->getBoundingPoint(p).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(p).x - 0.08) < 0.01)
+					std::cout << x[triangles[k]->getBoundingPoint(p).id*2] << "  "<<x[triangles[k]->getBoundingPoint(p).id*2+1]<< std::endl ;
 				if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
 					x_max = x[triangles[k]->getBoundingPoint(p).id*2];
 				if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
@@ -1444,142 +1457,33 @@ int main(int argc, char *argv[])
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
 	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
 
-	
+	nu = 0.05 ;
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
-	Sample sample(NULL, 0.16, 0.04,0,0) ;
-	
-// 	Sample reinforcement0(NULL, 8,.15,0,.5) ;
-// 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
-// 	
-// 	Sample reinforcement1(NULL, 8,.15,0,-.5) ;
-// 	reinforcement1.setBehaviour(new Stiffness(m0*5)) ;
+
+	Sample sample(NULL, 0.16, 0.04,.08, 0.02) ;
+
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
-// 	F.addFeature(&sample,&reinforcement0) ;
-// 	F.addFeature(&sample,&reinforcement1) ;
-// 	Point A(0,-.7); Point b(-0.1,-1.5); Point c(0.1,-1.5) ;
-// 	TriangularPore * pore = new TriangularPore(A, b, c) ;
-// 	F.addFeature(&sample,pore) ;
+	Inclusion i0(.001, .03, 0) ;
+	i0.setBehaviour(new Stiffness(m0_agg)) ;
+	Inclusion i1(.001, .13, 0) ;
+	i1.setBehaviour(new Stiffness(m0_agg)) ;
 	
 	
-	PointSet ptset(5) ;
+	featureTree->addFeature(&sample, new TriangularPore(Point(0.08,0.02), Point(0.075, -.01),Point(0.085, -.01) )) ;
+	featureTree->addFeature(&sample, &i0) ;
+	featureTree->addFeature(&sample, &i1) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_agg, 2000000)) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
 	
-	std::valarray<Point *> centerpoint(2) ;
-	
-	centerpoint[0] = new Point(0, -1.5 ) ;
-	centerpoint[1] = new Point(0, -.7) ;
-	
-	std::valarray<Point *> centerpoint2(2) ;
-	
-	centerpoint2[0] = new Point(5,1.5 ) ;
-	centerpoint2[1] = new Point(3.5, 1.5) ;
-	
-	
-	std::valarray<Point *> side0(2) ;
-	
-	side0[1] = new Point(-0.7,-4 ) ;
-	side0[0] = new Point(-0.7, 4 ) ;
-	
-	std::valarray<Point *> side1(2) ;
-	
-	side1[1] = new Point(-4,0.75 ) ;
-	side1[0] = new Point(4,0.75 ) ;
-	
-	std::valarray<Point *> side2(2) ;
-	
-	side2[1] = new Point(0.7,4 ) ;
-	side2[0] = new Point(0.7,-4 ) ;
-	
-// 	PointSet side3(2) ;
-// 	
-// 	side3.set(1, new Point(1.5,-0.75 )) ;
-// 	side3.set(0, new Point(-1.5,-0.75 )) ;
-	
-// 	crack = generateCracks(10) ;
-// 	for(size_t j = 0 ; j < crack.size() ; j++)
-// 		F.addFeature(&sample, crack[j]) ;
-	
-// 	for(size_t j = 0 ; j < crack.size() ; j++)
-// 	{
-// 		crack[j]->getHead()->print() ; std::cout << " <- " << j << std::endl ;
-// 	}
-// 	Crack cr(&sample, centerpoint, 0.03) ;
-// 	crack.push_back(&cr) ;
-// 	F.addFeature(&sample, crack[0]) ;
-// 	
-// 	Crack cr2(&sample, centerpoint2, 0.03) ;
-// 	crack.push_back(&cr2) ;
-// 	F.addFeature(&sample, crack[1]) ;
-
-// 	crack.push_back(new Crack(&sample, &side0, 0.1)) ;
-// 	F.addFeature(sample, crack[0]) ;
-// 	crack.push_back(new Crack(&sample, &side1, 0.1)) ;
-// 	F.addFeature(sample, crack[1]) ;
-// 	crack.push_back(new Crack(&sample, &side2, 0.1)) ;
-// 	F.addFeature(sample, crack[2]) ;
-// 	crack.push_back(new Crack(&sample, &side3, 0.1)) ;
-// 	F.addFeature(sample, crack[3]) ;
-		
-//  	i_et_p = generateInclusionsAndPores(6000, .0, &m0_agg, &sample, &F) ;
-// 	Inclusion * inc = new Inclusion(1, 0,0) ;
-// 	F.addFeature(&sample,inc) ;
-// 	inc->setBehaviour(new Stiffness(m0)) ;
-// 	F.addFeature(&sample,new TriangularPore(Point(-1.25, -4), Point(-1,-2.5), Point(-0.75,-4))) ;
-// 	F.addFeature(&sample,new TriangularPore(Point(2.25, -4), Point(2,-1.5), Point(1.75,-4))) ;
-// 	F.addFeature(&sample,new Pore(1, 1.5,1)) ;
-	Inclusion * inc = new Inclusion(.01, 0,0) ;
-	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.15, 25000, BOLOME_A)(.002, .01);
-// 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
-	int nAgg = 0 ;
-	inclusions=placement(.16, .04, inclusions, &nAgg, 256);
-// 	F.addFeature(&sample,inc) ;
-	
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
-	{
-		Vector a(double(0), 3) ;
-		a[0] = .0002 ;
-		a[1] = .0002 ;
-		a[2] = 0.00 ;
-// 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
-		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(2000000, -20000000))) ;
-		F.addFeature(&sample,inclusions[i]) ;
-	}
-	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
-	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
-	Circle cercle(.5, 0,0) ;
-	
-	
-// 	sample.setBehaviour(new BimaterialInterface(&cercle, m0,  m0*4)) ;
-	Vector a(double(0), 3) ;
-	a[0] = 0.1 ;
-	a[1] = 0.1 ;
-	a[2] = 0.00 ;
-	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
-// 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
-//	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
-//	F.addFeature(&sample, zones[0]) ;
-	zones = generateExpansiveZones(8, inclusions, F) ;
-// 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
-// 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
-// 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
-// 	F.addFeature(&sample,new Pore(1, 0,0)) ;
-// 	F.addFeature(&sample,new Pore(0.75, 1,-1)) ;
-// 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
-// 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
-	
-	F.sample(800) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
-	
-	for(size_t j = 0 ; j < crack.size() ; j++)
-		crack[j]->setInfluenceRadius(0.03) ;
 // 	
 	step() ;
 	

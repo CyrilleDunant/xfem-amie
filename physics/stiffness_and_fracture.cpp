@@ -58,10 +58,13 @@ void StiffnessAndFracture::step(double timestep, ElementState * currentState)
 	change = false ;
 	if(!frac && criterion->met(currentState) )
 	{
-		this->param *= .1 ;
+		this->param *= .9 ;
 		change = true ;
-		if(this->param[0][0] < init*1e-4)
+		if(this->param[0][0] < init*.8)
+		{
 			frac = true ;
+			this->param *= .0001 ;
+		}
 	}
 
 }
