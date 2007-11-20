@@ -4,7 +4,7 @@ using namespace Mu ;
 
 BiConjugateGradientStabilized::BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) { }
 
-Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditionner * precond, const double epsilon , const int maxit , bool verbose )
+bool BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditionner * precond, const double epsilon , const int maxit , bool verbose )
 {
 	const Preconditionner * P ;
 
@@ -36,7 +36,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 	Vector invDiag(r.size()) ;
 	
 	if(rho < epsilon)
-		return x ;
+		return true ;
 	
 	Vector p(r) ;
 	Vector p_(r) ;
@@ -52,7 +52,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 	if(std::abs(s.max()) < epsilon)
 	{
 		x += p_*alpha ;
-		return x ;
+		return true ;
 	}
 
 	Vector s_(s) ;
@@ -79,7 +79,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 			if(verbose)
 				std::cerr << "\n converged after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 			
-			return x ;
+			return true ;
 		}
 		
 		double beta = (rho/rho_)*(alpha/omega) ;
@@ -101,7 +101,7 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 			if(verbose)
 				std::cerr << "\n converged after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 			
-			return x ;
+			return true ;
 		}
 		
 		x += p_*alpha +s_*omega ;
@@ -119,5 +119,5 @@ Vector & BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditi
 	if(verbose)
 		std::cerr << "\n converged after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	
-	return x ;
+	return false ;
 }

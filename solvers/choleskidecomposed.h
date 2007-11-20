@@ -34,7 +34,7 @@ namespace Mu
 		Vector d ;
 		virtual ~LowerTriangular() { } ;
 		LowerTriangular(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) ;
-		virtual Vector & solve(const Vector &x0, const Preconditionner * precond= NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+		virtual bool solve(const Vector &x0, const Preconditionner * precond= NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
 	struct UpperTriangular : public LinearSolver 
@@ -42,7 +42,7 @@ namespace Mu
 		Vector d ;
 		virtual ~UpperTriangular() { } ;
 		UpperTriangular(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) ;
-		virtual Vector & solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
 	struct CholeskiDecomposed : public LinearSolver
@@ -51,7 +51,7 @@ namespace Mu
 		Vector y ;
 		virtual ~CholeskiDecomposed() { } ;
 		CholeskiDecomposed(const CoordinateIndexedSparseMatrix &A_, const Vector &b_, const Vector &d_) ;
-		virtual Vector & solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	};
 
 } ;

@@ -85,7 +85,8 @@ double y_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 
-double timepos = 0.00 ;
+double timepos = 0.000 ;
+double delta = 10 ;
 
 bool firstRun = true ;
 
@@ -184,7 +185,7 @@ void setBC()
 			    std::abs(triangles[k]->getBoundingPoint(c).x - 0.13) < .001 && triangles[k]->getBoundingPoint(c).y < 0.0001
 			  )
 			{
-				featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( ETA,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
 			
 			if (triangles[k]->getBoundingPoint(c).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(c).x - 0.08) < 0.01)
@@ -233,22 +234,28 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 1;
+	int nsteps = 40;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
-// 			timepos-= 0.0001 ;
+			delta -=1 ;
+			
+			if(delta > 0)
+				timepos-= delta ;
+			else
+				timepos+= delta ;
+			if(timepos < 0)
+				timepos=0 ;
+				
+			std::cout << "Time " << timepos << std::endl ;
 			setBC() ;
 			
 		}
 // 		
-// 		
-		timepos+= 500 ;
 
-		std::cout << "Time " << timepos << std::endl ;
 	
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
@@ -272,8 +279,6 @@ void step()
 	epsilon12.resize(sigma.size()/3) ;
 	vonMises.resize(sigma.size()/3) ;
 	angle.resize(sigma.size()/3) ;
-	
-	std::cout << "unknowns :" << x.size() << std::endl ;
 	
 	if(crack.size() > 0)
 		tris__ = crack[0]->getIntersectingTriangles(dt) ;
@@ -323,7 +328,7 @@ void step()
 			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
 
-				if (triangles[k]->getBoundingPoint(p).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(p).x - 0.08) < 0.01)
+				if (triangles[k]->getBoundingPoint(p).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(p).x - 0.08) < 0.001)
 					std::cout << x[triangles[k]->getBoundingPoint(p).id*2] << "  "<<x[triangles[k]->getBoundingPoint(p).id*2+1]<< std::endl ;
 				if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
 					x_max = x[triangles[k]->getBoundingPoint(p).id*2];
@@ -473,6 +478,8 @@ void step()
 		
 	
 		std::cout << std::endl ;
+		
+		std::cout << "*** " << x_min << "  " << x_max << "  " << timepos << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
 		std::cout << "min value :" << x_min << std::endl ;
 		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
@@ -500,6 +507,12 @@ void step()
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
+		
+		delta++ ;
+		if(delta > 0)
+			timepos+= delta ;
+		else
+			timepos-= delta ;
 		
 		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/64 ;
 		double reactedArea = 0 ;

@@ -19,7 +19,7 @@ using namespace Mu ;
 
 ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) { };
 
-Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
+bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	size_t nit = 0  ;
 	size_t Maxit ;
@@ -53,7 +53,7 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	if (err < eps*eps)
 	{
 		std::cerr << "b in : " << b.min() << ", " << b.max() << std::endl ;
-		return x ;
+		return true ;
 	}
 	//*************************************
 	
@@ -107,6 +107,8 @@ Vector & ConjugateGradient::solve(const Vector &x0, const Preconditionner * prec
 	{
 		delete P ;
 	}
-	return x ;
+
+	
+	return nit < Maxit ;
 }
 

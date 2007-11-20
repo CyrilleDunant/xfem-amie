@@ -15,7 +15,7 @@ namespace Mu {
 
 GaussSeidel::GaussSeidel(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) { };
 
-Vector & GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
+bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	double err=10 ;
 	
@@ -62,11 +62,12 @@ Vector & GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, c
 		nit++ ;
 		
 	}
+	
+	if(nit< Maxit)
+		return true ;
+	return false ;
 // 	if(verbose)
 // 		std::cout << "converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-	
-	
-	return x ;
 }
 
 

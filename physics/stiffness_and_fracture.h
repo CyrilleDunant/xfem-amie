@@ -21,6 +21,7 @@ namespace Mu
 
 	struct StiffnessAndFracture : public LinearForm
 	{
+		Matrix previousParam ;
 		FractureCriterion * criterion ;
 		bool frac ;
 		bool change ; 
@@ -72,6 +73,8 @@ namespace Mu
 		virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 
 		virtual bool changed() const ;
+		
+		virtual void stepBack() ;
 		
 	} ;
 	

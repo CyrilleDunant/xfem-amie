@@ -1905,6 +1905,35 @@ void FeatureTree::insert(Point * p )
 	}
 }
 
+
+void FeatureTree::stepBack()
+{
+	if(is2D())
+	{
+		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{	
+			if(i%1000 == 0)
+				std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
+			elements[i]->stepBack() ;
+		}
+		std::cerr << " ...done" << std::endl ;
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getTetrahedrons() ;
+		
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{	
+			if(i%1000 == 0)
+				std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
+			elements[i]->stepBack() ;
+		}
+		std::cerr << " ...done" << std::endl ;
+	}
+}
+
 bool FeatureTree::step(double dt)
 {
 	bool ret = true ;
@@ -1919,8 +1948,13 @@ bool FeatureTree::step(double dt)
 	}
 	
 	needAssembly = true ;
-	this->K->cgsolve() ;
+	bool converged = this->K->cgsolve() ;
 // 	Vector displacements = this->K->solve(/**extforces*/Vector(0), 100000, true) ;
+	
+	if(!converged)
+	{
+		return false ;
+	}
 	
 	if(is2D())
 	{
@@ -1963,6 +1997,7 @@ bool FeatureTree::step(double dt)
 				{
 					needAssembly = true ;
 					ret = false ;
+					std::cout << "elem changed !" << std::endl ;
 				}
 			}
 			else if (elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && elements[i]->getBehaviour()->fractured())
@@ -2026,6 +2061,7 @@ bool FeatureTree::step(double dt)
 // 		}
 	}
 	
+	std::cout << "return is : " << ret << std::endl ;
 	return ret ;
 	
 }

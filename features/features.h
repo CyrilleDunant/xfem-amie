@@ -447,6 +447,7 @@ public:
 	size_t numPoints() const ;
 	
 	bool step(double dt) ;
+	void stepBack() ;
 	
 	std::deque<std::pair<Point *, Feature *> >::iterator  begin() ;
 	std::deque<std::pair<Point *, Feature *> >::iterator end() ;

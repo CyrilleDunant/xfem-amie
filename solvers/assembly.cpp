@@ -881,20 +881,20 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 		{
 		case XI:
 			{
-// 				if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end())
-// 				{
+				if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end())
+				{
 					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
 					multipliers.rbegin()->type = SET_FORCE_XI ;
-// 				}
+				}
 				break ;
 			}
 		case ETA:
 			{
-// 				if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
-// 				{
+				if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
+				{
 					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
 					multipliers.rbegin()->type = SET_FORCE_ETA ;
-// 				}
+				}
 				break ;
 			}
 		default:
@@ -1004,35 +1004,34 @@ void Assembly::fixPoint(size_t id, Mu::Variable v)
 	setPointAlong(v, 0, id) ;
 }
 
-Vector & Assembly::solve(Vector x0, size_t maxit, const bool verbose)
+bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 {
 	if(this->coordinateIndexedMatrix == NULL)
 		make_final() ;
 	
-	return GaussSeidel(getMatrix(), externalForces).solve(x0, NULL) ;
+	GaussSeidel gs(getMatrix(), externalForces) ;
+	bool ret = gs.solve(x0, NULL) ;
+	displacements.resize(gs.x.size()) ;
+	displacements = gs.x ;
+	return ret ;
 }
 
-Vector & Assembly::cgsolve(Vector x0, size_t maxit) 
+bool Assembly::cgsolve(Vector x0, size_t maxit) 
 {
 	if(this->coordinateIndexedMatrix == NULL)
 		make_final() ;
 	
 // 	print() ;
-	
-	if(x0.size() == 0)
-	{
-// 		displacements = ConjugateGradient(getMatrix(), externalForces).solve(displacements, NULL,1e-12, 16000, true) ;
-// 		displacements = BiConjugateGradientStabilized(getMatrix(), externalForces).solve(displacements, NULL,1e-22, -1, true) ;
-		ConjugateGradientWithSecant(this).solve() ;
-	}
-	else
-	{
+
+	ConjugateGradientWithSecant cg(this) ;
+	bool ret = cg.solve() ;
+	displacements.resize(cg.x.size()) ;
+	displacements = cg.x ;
+
 // 		displacements = BiConjugateGradientStabilized(getMatrix(), externalForces).solve(displacements, NULL,1e-22, -1, true) ;
 // 		displacements = ConjugateGradient(getMatrix(), externalForces).solve(x0, NULL,1e-12, 16000, true) ;
-		ConjugateGradientWithSecant(this).solve();
-	}
-	return displacements ;
-// 	return ConjugateGradientWithSecant(this).solve() ;
+
+	return ret ;
 	
 }
 
@@ -1042,10 +1041,14 @@ void Assembly::fix()
 	make_final() ;
 }
 
-Vector Assembly::cgnpsolve(const Vector b, size_t maxit) 
+bool Assembly::cgnpsolve(const Vector b, size_t maxit) 
 {
 	NullPreconditionner np ;
-	return ConjugateGradient(getMatrix(), externalForces).solve(b, &np, 1e-15, -1) ;
+	ConjugateGradient cg(getMatrix(), externalForces) ;
+	bool ret = cg.solve(b, &np, 1e-15, -1) ;
+	displacements.resize(cg.x.size()) ;
+	displacements = cg.x ;
+	return ret ;
 }
 
 void Assembly::printDiag() const

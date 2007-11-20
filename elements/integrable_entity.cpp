@@ -23,6 +23,13 @@ const Vector & ElementState::getPreviousEnrichedDisplacements() const
 	return this->previousEnrichedDisplacements ;
 }
 
+void ElementState::stepBack()
+{
+	ElementState * current = this ;
+	*this = *history[history.size()-1] ;
+	delete current ;
+}
+
 Vector & ElementState::getPreviousEnrichedDisplacements() 
 {
 	return this->previousEnrichedDisplacements ;
@@ -65,7 +72,7 @@ ElementState::ElementState(IntegrableEntity * s)
 	parent = s ;
 	this->timePos = 0 ;
 	this->previousTimePos = 0 ;
-
+	history.push_back(this) ;
 // 	size_t ndof = 2 ;
 // // 	if(s->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 // // 		ndof = 3 ;
@@ -2212,6 +2219,9 @@ Vector & ElementState::getBuffer()
 
 void ElementState::step(double dt, Vector * d)
 {
+	history.pop_back() ;
+	history.push_back(new ElementState(*this)) ;
+	
 	if(parent->getBehaviour()->type != VOID_BEHAVIOUR)
 	{
 		previousPreviousTimePos = previousTimePos ;

@@ -31,7 +31,7 @@ class Assembly ;
 	
 		virtual ~Solver();
 		
-		virtual Vector & solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
+		virtual bool solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
 	
 	};
 
@@ -47,7 +47,7 @@ class Assembly ;
 		const CoordinateIndexedSparseMatrix & A ;
 		Vector x ;
 		LinearSolver(const CoordinateIndexedSparseMatrix &, const Vector &) ;
-		virtual Vector & solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
+		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
 	};
 	
 	/**
@@ -58,10 +58,10 @@ class Assembly ;
 	struct NonLinearSolver : public Solver
 	{
 		Assembly * assembly ;
-		
+		Vector x ;
 		virtual ~NonLinearSolver() { } ;
 		NonLinearSolver(Assembly * a) ;
-		virtual Vector & solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
+		virtual bool solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
 	};
 
 } ;

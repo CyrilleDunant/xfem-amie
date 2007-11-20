@@ -19,7 +19,7 @@ using namespace Mu ;
 ConjugateGradientWithSecant::ConjugateGradientWithSecant(Assembly * a) : NonLinearSolver(a) { } 
 
 
-Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Preconditionner * precond , const double eps , const int maxit , bool verbose )
+bool ConjugateGradientWithSecant::solve(const Vector &x0, const Preconditionner * precond , const double eps , const int maxit , bool verbose )
 {
 	double sigma = 4;//(1.+sqrt(5.))/2. ; //secant parameter
 	size_t resetParameter = 16 ;
@@ -29,7 +29,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 	size_t i = 0 ;
 	const CoordinateIndexedSparseMatrix &A = assembly->getMatrix() ;
 	const Vector & b = assembly->getForces() ;
-	Vector & x = assembly->getDisplacements();
+	Vector & y = assembly->getDisplacements();
 	bool nl = assembly->nonLinearStep() ;
 	
 	if(x.size() != b.size())
@@ -41,8 +41,12 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 	if(!nl) 
 	{
 		std::cerr << "Linear problem, falling back to linear CG" << std::endl;
-		x =  ConjugateGradient(assembly->getMatrix(), b).solve(x, NULL,eps, b.size()/8, true) ;
-		return x ;
+		ConjugateGradient cg(assembly->getMatrix(), b) ;
+		bool ret =  cg.solve(x0, NULL,eps, b.size()/8, true) ;
+		std::cout << cg.x.size() << std::endl ;
+		x.resize(cg.x.size())  ;
+		x = cg.x ;
+		return ret ;
 		
 	}
 // 	else
@@ -63,7 +67,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 	
 	size_t vsize = b.size() ;
 	Vector & nlb = assembly->getNonLinearForces() ;
-	Vector r = ((A+ assembly->getNonLinearMatrix())*x)-b-nlb;
+	Vector r = ((A+ assembly->getNonLinearMatrix())*y)-b-nlb;
 	Vector s(r);
 	P.precondition(r,s) ;//ConjugateGradient(A,r).solve(x, NULL, 1e-12, 200, true) ;// 
 // 	s*=-1 ;
@@ -75,7 +79,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 	std::cerr << " iteration : " << i << " error :"<< delta_new <<", max : "  << x.max() << ", min : "  << x.min() << "             "<< std::endl ;
 	
 	
-	while((i < 800 /*b.size()/4*/) && 
+	while((i < b.size()/4) && 
 	      (delta_new > eps*eps*delta_0) && 
 	      (delta_new > 4.*POINT_TOLERANCE*POINT_TOLERANCE))
 	{
@@ -88,13 +92,13 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 			size_t j = 0 ;
 			double delta_d = std::inner_product(&d[0],&d[vsize],&d[0], double(0) );
 			double alpha = -sigma ;
-			Vector temp = -(Vector)((A+ assembly->getNonLinearMatrix())*(x + d*sigma)-nlb-b) ;
+			Vector temp = -(Vector)((A+ assembly->getNonLinearMatrix())*(y + d*sigma)-nlb-b) ;
 			
 			double eta_prev = std::inner_product(&temp[0], &temp[vsize], &d[0], double(0)) ;
 			
 			do
 			{
-				Vector temp = -(Vector)((A+ assembly->getNonLinearMatrix())*x-nlb-b) ;
+				Vector temp = -(Vector)((A+ assembly->getNonLinearMatrix())*y-nlb-b) ;
 				double eta =  std::inner_product(&temp[0], &temp[vsize], &d[0], double(0)) ;
 				
 				if(std::isnan(eta/(eta_prev-eta)))
@@ -106,7 +110,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 				
 				
 				alpha *= eta/(eta_prev-eta) ;
-				x += d*alpha ;
+				y += d*alpha ;
 				eta_prev = eta ;
 				j++ ;
 				
@@ -132,7 +136,7 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 			secantcount++ ;
 		}
 		
-		r = (A+assembly->getNonLinearMatrix())*x -b-nlb;
+		r = (A+assembly->getNonLinearMatrix())*y -b-nlb;
 		
 		double delta_old = delta_new ;
 		double delta_mid = std::inner_product(&r[0], &r[vsize], &s[0], double(0)) ;
@@ -164,10 +168,13 @@ Vector & ConjugateGradientWithSecant::solve(const Vector &x0, const Precondition
 		
 	}
 	
-	r = (A+assembly->getNonLinearMatrix())*x -b-nlb;
+	r = (A+assembly->getNonLinearMatrix())*y -b-nlb;
 	
-	std::cerr << "\n iteration : " << i << " error :"<< std::abs(r).max() <<", max : "  << x.max() << ", min : "  << x.min() << "             "<< std::endl ;
 	
-	return assembly->getDisplacements() ;
+	std::cerr << "\n iteration : " << i << " error :"<< std::abs(r).max() <<", max : "  << y.max() << ", min : "  << y.min() << "             "<< std::endl ;
+	
+	x.resize(assembly->getDisplacements().size()) ;
+	x = assembly->getDisplacements() ;
+	return i < b.size()/4;
 }
 

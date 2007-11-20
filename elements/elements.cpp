@@ -75,6 +75,12 @@ void ElementarySurface::step(double dt, Vector *displacements)
 	getBehaviour()->updateElementState(dt, getState()) ;
 }
 
+void ElementarySurface::stepBack()
+{
+	getState()->stepBack() ;
+	getBehaviour()->stepBack() ;
+}
+
 void ElementarySurface::nonLinearStep(double dt, Vector *displacements)
 {
 	getState()->step(dt, displacements) ;
@@ -87,6 +93,12 @@ void ElementaryVolume::step(double dt, Vector *displacements)
 {
 	getState()->step(dt, displacements) ;
 	getBehaviour()->updateElementState(dt, getState()) ;
+}
+
+void ElementaryVolume::stepBack()
+{
+	getState()->stepBack() ;
+	getBehaviour()->stepBack() ;
 }
 
 void ElementaryVolume::nonLinearStep(double dt, Vector *displacements)

@@ -119,6 +119,8 @@ protected:
 	
 	IntegrableEntity * parent ;
 	
+	std::vector<ElementState *> history ;
+	
 public:
 	
 	ElementState(IntegrableEntity *) ;
@@ -187,6 +189,7 @@ public:
 	const Vector & getPreviousPreviousEnrichedDisplacements() const;
 	Vector & getPreviousPreviousEnrichedDisplacements() ;
 	
+	void stepBack() ;
 	
 	Vector getDeltaStrain(const Point & ) const;
 	Vector getDeltaStress(const Point & ) const;
@@ -288,6 +291,7 @@ public:
 	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
 	
 	virtual Form * getCopy() const = 0 ;
+	virtual void stepBack() { }  ;
 	
 	virtual Matrix getTensor(const Point & p) const
 	{

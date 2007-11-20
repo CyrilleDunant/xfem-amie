@@ -182,9 +182,9 @@ public:
 	
 	bool nonLinearStep() ;
 // 	Vector solve(size_t maxit = 1000) ;
-	Vector & solve(Vector x, size_t maxit = 1000, const bool verbose = false) ;
-	Vector & cgsolve(Vector x0 = Vector(0), size_t maxit = 10000) ;
-	Vector cgnpsolve(Vector b, size_t maxit) ;
+	bool solve(Vector x, size_t maxit = 1000, const bool verbose = false) ;
+	bool cgsolve(Vector x0 = Vector(0), size_t maxit = 10000) ;
+	bool cgnpsolve(Vector b, size_t maxit) ;
 	
 	CoordinateIndexedSparseMatrix & getMatrix() ;
 	const CoordinateIndexedSparseMatrix & getMatrix() const;

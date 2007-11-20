@@ -23,6 +23,7 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
+	previousParam = param ;
 } ;
 
 StiffnessAndFracture::~StiffnessAndFracture() 
@@ -53,17 +54,34 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
+
+void StiffnessAndFracture::stepBack()
+{
+	param = previousParam ;
+}
+
 void StiffnessAndFracture::step(double timestep, ElementState * currentState) 
 {
 	change = false ;
 	if(!frac && criterion->met(currentState) )
 	{
+		previousParam = param ;
+		
 		this->param *= .9 ;
 		change = true ;
 		if(this->param[0][0] < init*.8)
 		{
 			frac = true ;
 			this->param *= .0001 ;
+			for(size_t i = 0 ; i < param.numCols() ; i++)
+			{
+				for(size_t j = 0 ; j < param.numRows() ; j++)
+				{
+					if(i!=j)
+						this->param[i][j] = 0 ;
+						
+				}
+			}
 		}
 	}
 
