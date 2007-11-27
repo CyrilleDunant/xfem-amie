@@ -89,7 +89,7 @@ Feature::Feature(Feature *father, Geometry * b)
 	this->boundary2 = NULL ;
 }
 
- bool Feature::inBoundary(const Point v) const 
+ bool Feature::inBoundary(const Point & v) const 
 {
 	bool ret = boundary->in(v) ;
 	for(size_t i = 0 ;  i < this->m_c.size() ; i++)

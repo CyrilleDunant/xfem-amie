@@ -220,9 +220,9 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			//our baseline
 			Line frontier(triCircleIntersectionPoints[0],
 			              triCircleIntersectionPoints[1]-triCircleIntersectionPoints[0]) ;
-			Point mid = (triCircleIntersectionPoints[1]+triCircleIntersectionPoints[0])/2 ;
-			Point q1 = (triCircleIntersectionPoints[1]+mid)/2 ;
-			Point q4 = (mid+triCircleIntersectionPoints[0])/2 ;
+			Point mid = (triCircleIntersectionPoints[1]+triCircleIntersectionPoints[0])*.5 ;
+			Point q1 = (triCircleIntersectionPoints[1]+mid)*.5 ;
+			Point q4 = (mid+triCircleIntersectionPoints[0])*.5 ;
 			this->project(&mid) ;
 			this->project(&q1) ;
 			this->project(&q4) ;
@@ -231,9 +231,9 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			std::vector<Point> hint ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
-			//hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
-			//hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
-			//hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
 
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;

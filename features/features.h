@@ -96,7 +96,7 @@ public:
 	 * @param v  point to check. 
 	 * @return   true if in boundary, or in boundary of one of the descendants.
 	 */
-	virtual bool inBoundary(const Point v) const ;
+	virtual bool inBoundary(const Point & v) const ;
 	
 	 /**  Is Point in boundary?
 	 * 

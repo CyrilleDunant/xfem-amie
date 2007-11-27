@@ -21,6 +21,7 @@
 #include "utilities/placement.h"
 
 #include <fstream>
+#include <valarray>
 
 #include <cmath>
 #include <typeinfo>
@@ -176,16 +177,22 @@ void setBC()
 // // 				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
 
-			if(std::abs(triangles[k]->getBoundingPoint(c).x - 0.03) < .001 && triangles[k]->getBoundingPoint(c).y < 0.0001
-			  )
-			{
-				featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(
-			    std::abs(triangles[k]->getBoundingPoint(c).x - 0.13) < .001 && triangles[k]->getBoundingPoint(c).y < 0.0001
+			if(std::abs(triangles[k]->getBoundingPoint(c).x - 0.03) < .1 && triangles[k]->getBoundingPoint(c).y < 0.0001
 			  )
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0, triangles[k]->getBoundingPoint(c).id) ;
+			}
+			if(
+			    std::abs(triangles[k]->getBoundingPoint(c).x - 0.13) < .1 && triangles[k]->getBoundingPoint(c).y < 0.0001
+			  )
+			{
+				featureTree->getAssembly()->setPointAlong( ETA,0, triangles[k]->getBoundingPoint(c).id) ;
+			}
+			if(
+			    std::abs(triangles[k]->getBoundingPoint(c).x) < .0001 && triangles[k]->getBoundingPoint(c).y < 0.5
+			  )
+			{
+				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
 			
 			if (triangles[k]->getBoundingPoint(c).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(c).x - 0.08) < 0.01)
@@ -234,23 +241,23 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 40;
+	int nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
-			delta -=1 ;
-			
-			if(delta > 0)
-				timepos-= delta ;
-			else
-				timepos+= delta ;
-			if(timepos < 0)
-				timepos=0 ;
-				
-			std::cout << "Time " << timepos << std::endl ;
+// 			delta -=1 ;
+// 			
+// 			if(delta > 0)
+// 				timepos-= delta ;
+// 			else
+// 				timepos+= delta ;
+// 			if(timepos < 0)
+// 				timepos=0 ;
+// 				
+// 			std::cout << "Time " << timepos << std::endl ;
 			setBC() ;
 			
 		}
@@ -1430,7 +1437,10 @@ void Display(void)
 // 		glVertex2f(3.5 ,
 // 		           -3. );
 // 		glEnd() ;
-		
+
+		glMatrixMode(GL_MODELVIEW) ;
+		glLoadIdentity() ;
+		glTranslatef(-0.08, -0.02, 0) ;
 		glCallList(current_list) ;
 		glCallList(DISPLAY_LIST_CRACK) ;
 // 		if(current_list == DISPLAY_LIST_ELEMENTS)
@@ -1465,6 +1475,12 @@ int main(int argc, char *argv[])
 
 	return 0 ;*/
 	
+       std::valarray<Point *> centerpoint(2) ;
+
+       centerpoint[0] = new Point(.08,.01 ) ;
+       centerpoint[1] = new Point(.08,.03) ;
+
+
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
@@ -1478,6 +1494,7 @@ int main(int argc, char *argv[])
 
 	Sample sample(NULL, 0.16, 0.04,.08, 0.02) ;
 
+	crack.push_back( new Crack(NULL, centerpoint, .002)) ;
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
@@ -1487,14 +1504,24 @@ int main(int argc, char *argv[])
 	i1.setBehaviour(new Stiffness(m0_agg)) ;
 	
 	
-	featureTree->addFeature(&sample, new TriangularPore(Point(0.08,0.02), Point(0.075, -.01),Point(0.085, -.01) )) ;
-	featureTree->addFeature(&sample, &i0) ;
-	featureTree->addFeature(&sample, &i1) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_agg, 2000000)) ;
+// 	featureTree->addFeature(&sample, new TriangularPore(Point(0.08,0.02), Point(0.075, -.01),Point(0.085, -.01) )) ;
+// 	featureTree->addFeature(&sample, &i0) ;
+// 	featureTree->addFeature(&sample, &i1) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_agg, 2000000)) ;
+	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
+
+	Vector exp(double(0), 3) ;
+	
+// 	ExpansiveZone inclusion(&sample, .015, .08, .02, m0_agg, exp) ;
+// 	Inclusion inclusion(&sample, .015, .08, .02) ;
+// 	inclusion.setBehaviour(new Stiffness(m0_agg)) ;
+// 	featureTree->addFeature(&sample, &inclusion) ;
+	featureTree->addFeature(&sample, crack[0]) ;
+	
 	
 	F.sample(128) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
 // 	

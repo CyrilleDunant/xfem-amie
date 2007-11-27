@@ -794,7 +794,7 @@ Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double r
 
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
-	changed = false ;
+	changed = true ;
 }
 
 Crack::Crack ( const std::valarray<Point *> & points, double radius ) : EnrichmentFeature ( NULL ), SegmentedLine ( points )
@@ -808,7 +808,7 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
-	changed = false ;
+	changed = true ;
 }
 
 void Crack::setInfluenceRadius ( double r )
@@ -1391,8 +1391,9 @@ Point * Crack::pointAfter ( size_t i )
 	return to_insert ;
 }
 
-bool Crack::inBoundary ( const Point v ) const
+bool Crack::inBoundary ( const Point & v ) const
 {
+	return false ;
 	Point p ( v.x, v.y );
 
 	this->project ( &p ) ;
@@ -1443,7 +1444,7 @@ std::vector<Point *> Crack::getSamplingPoints() const
 
 bool Crack::inBoundary ( const Point *v ) const
 {
-// 	return false ;
+	return false ;
 	Point p ( v->x, v->y );
 
 	this->project ( &p ) ;
@@ -1710,7 +1711,7 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 
 	changed = false ;
 
-// 	return ;
+	return ;
 	double norm = .01 ;
 	std::pair<double, double> headJ = computeJIntegralAtHead ( dt, dtree ) ;
 	Vector J ( 2 ) ; J[0] = headJ.first ; J[1] = headJ.second ;

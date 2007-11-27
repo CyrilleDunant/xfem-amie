@@ -202,7 +202,7 @@ public:
 	virtual bool interacts(Feature * f) const ;
 	virtual void snap(DelaunayTree * dtree) ;
 	
-	virtual bool inBoundary(const Point v) const ;
+	virtual bool inBoundary(const Point & v) const ;
 	virtual bool inBoundary(const Point *v) const ;
 	
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
