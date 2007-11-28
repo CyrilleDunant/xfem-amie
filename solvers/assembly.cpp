@@ -400,12 +400,11 @@ void Assembly::setBoundaryConditions()
 		for(int m = 0 ;  m < (int)multipliers.size() ; m++)
 		{
 			int id = multipliers[m].getId() ;
-			double val = getMatrix()[k][id] ;
 			
 			if(id == (int)k && multipliers[m].type != SET_FORCE_XI 
 				&&  multipliers[m].type != SET_FORCE_ETA 
 				&&  multipliers[m].type != SET_FORCE_ZETA 
-				&& multipliers[m].type != GENERAL
+				&&  multipliers[m].type != GENERAL
 			  )
 			{
 				this->externalForces[id] = multipliers[m].getValue() ;
@@ -430,11 +429,12 @@ void Assembly::setBoundaryConditions()
 			else if( multipliers[m].type != SET_FORCE_XI 
 						&&  multipliers[m].type != SET_FORCE_ETA 
 						&&  multipliers[m].type != SET_FORCE_ZETA 
-						&& multipliers[m].type != GENERAL
+						&&  multipliers[m].type != GENERAL
 			       )
 			{
+				double & val = getMatrix()[k][id] ;
 				this->externalForces[k] -= multipliers[m].getValue()*val ;
-				getMatrix()[k][id] = 0 ;
+				val = 0 ;
 			}
 		}
 	}
