@@ -795,6 +795,8 @@ Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double r
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
+
+	criticalJ = 10 ;
 }
 
 Crack::Crack ( const std::valarray<Point *> & points, double radius ) : EnrichmentFeature ( NULL ), SegmentedLine ( points )
@@ -809,6 +811,8 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
+
+	criticalJ = 10 ;
 }
 
 void Crack::setInfluenceRadius ( double r )
@@ -1706,13 +1710,23 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 }
 
 
+void Crack::setCriticalJ(double newJ)
+{
+	criticalJ = newJ ;
+}
+
+double Crack::getCriticalJ() const
+{
+	return criticalJ ;
+}
+
 void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtree )
 {
 
 	changed = false ;
 
-	return ;
-	double norm = .01 ;
+// 	return ;
+	double norm = .0001 ;
 	std::pair<double, double> headJ = computeJIntegralAtHead ( dt, dtree ) ;
 	Vector J ( 2 ) ; J[0] = headJ.first ; J[1] = headJ.second ;
 	std::cout << "at head : " << J[0] << ", " << J[1] << std::endl ;
@@ -1721,222 +1735,226 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	Circle atHead ( infRad, this->boundary->getCenter() ) ;
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &atHead ) ;
 	std::vector<DelaunayTriangle *> tris ;
-	DelaunayTriangle * headElem = NULL ;
-	for ( size_t i = 0 ; i < disk.size() ; i++ )
-	{
-		if ( !disk[i]->in ( *getHead() )
-		        && !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
-// 		   && !boundary->in(disk[i]->getCenter())
-		   )
-			tris.push_back ( disk[i] ) ;
-		else if ( disk[i]->in ( *getHead() ) )
-			headElem = disk[i] ;
-	}
-
 	Point direction ;
 	double count = 0 ;
 	double acount = 0 ;
 	double aangle = 0 ;
-
 	double currentAngle = atan2 ( getHead()->y - boundingPoints[1]->y,
-	                              getHead()->x -boundingPoints[1]->x ) ;
-
+					getHead()->x -boundingPoints[1]->x ) ;
 	Point lastDir ( getHead()->x-getBoundingPoint ( 1 ).x, getHead()->y-getBoundingPoint ( 1 ).y ) ;
-	if ( !tris.empty() )
+	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	{
-
-		for ( size_t i = 0 ; i < tris.size() ; i++ )
+		DelaunayTriangle * headElem = NULL ;
+		for ( size_t i = 0 ; i < disk.size() ; i++ )
 		{
-
-			DelaunayTriangle * current = tris[i] ;
-			for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
+			if ( !disk[i]->in ( *getHead() )
+				&& !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
+	// 		   && !boundary->in(disk[i]->getCenter())
+			)
+				tris.push_back ( disk[i] ) ;
+			else if ( disk[i]->in ( *getHead() ) )
+				headElem = disk[i] ;
+		}
+		
+		if ( !tris.empty() )
+		{
+	
+			for ( size_t i = 0 ; i < tris.size() ; i++ )
 			{
-
-				double angle = atan2 ( getHead()->y-current->getBoundingPoint ( j ).y,
-				                       getHead()->x-current->getBoundingPoint ( j ).x ) ;
-
-				Point currentDir ( current->getBoundingPoint ( j ).x-getHead()->x, current->getBoundingPoint ( j ).y-getHead()->y ) ;
-				if ( ( currentDir*lastDir ) > 0 )
+	
+				DelaunayTriangle * current = tris[i] ;
+				for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
 				{
-					Vector principalStresses = current->getState()->getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
-					double maxPrincipalStressCurrent = 1./std::abs ( principalStresses[0] );
-					if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
-						maxPrincipalStressCurrent = 1000 ;
-
-					if ( currentDir.norm() > 1e-8 )
+	
+					double angle = atan2 ( getHead()->y-current->getBoundingPoint ( j ).y,
+							getHead()->x-current->getBoundingPoint ( j ).x ) ;
+	
+					Point currentDir ( current->getBoundingPoint ( j ).x-getHead()->x, current->getBoundingPoint ( j ).y-getHead()->y ) ;
+					if ( ( currentDir*lastDir ) > 0 )
 					{
-						aangle += current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
-						acount++ ;
-						direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
-						std::cout << angle << "   " << maxPrincipalStressCurrent << std::endl ;
-						count += maxPrincipalStressCurrent ;
+						Vector principalStresses = current->getState()->getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
+						double maxPrincipalStressCurrent = 1./std::abs ( principalStresses[0] );
+						if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
+							maxPrincipalStressCurrent = 1000 ;
+	
+						if ( currentDir.norm() > 1e-8 )
+						{
+							aangle += current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
+							acount++ ;
+							direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
+							std::cout << angle << "   " << maxPrincipalStressCurrent << std::endl ;
+							count += maxPrincipalStressCurrent ;
+						}
 					}
 				}
 			}
 		}
-	}
-	if ( count> 1e-8 )
-		direction/=direction.norm() ;
-	else
-	{
-		direction = Point ( getHead()->x-boundingPoints[1]->x,
-		                    getHead()->y-boundingPoints[1]->y ) ;
-		direction /= direction.norm() ;
-
-	}
-
-	direction*= norm ;
-	if ( acount )
-		aangle /= acount ;
-
-	if ( headElem )
-	{
-		changed = true ;
-		if ( headElem->getBehaviour()->type == VOID_BEHAVIOUR )
-		{
-			setInfluenceRadius ( 0 ) ;
-		}
+		if ( count> 1e-8 )
+			direction/=direction.norm() ;
 		else
 		{
-			direction.set ( norm*cos ( aangle+M_PI/4 ), norm*sin ( aangle+M_PI/4 ) ) ;
-
-			if ( ( direction*lastDir ) < 0 )
-				direction.set ( norm*cos ( aangle+M_PI+M_PI/4 ), norm*sin ( aangle+M_PI+M_PI/4 ) ) ;
-
-			// 		Point currentDir(getHead()->x-getBoundingPoint(1).x, getHead()->y-getBoundingPoint(1).y) ;
-			// 		double angle = headElem->getState()->getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
-			// 		direction = Point(norm*cos(angle),norm*sin(angle)) ;
-			//
-			// 		if((direction*currentDir) < 0)
-			// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
-
-			std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
-			newPoints[0] = new Point ( getHead()->x+direction.x, getHead()->y+direction.y ) ;
-			for ( size_t i = 1 ; i < newPoints.size() ; i++ )
-			{
-				newPoints[i] = boundingPoints[i-1] ;
-			}
-			setBoundingPoints ( newPoints ) ;
-			setInfluenceRadius ( infRad ) ;
+			direction = Point ( getHead()->x-boundingPoints[1]->x,
+					getHead()->y-boundingPoints[1]->y ) ;
+			direction /= direction.norm() ;
+	
 		}
+	
+		direction*= norm ;
+		if ( acount )
+			aangle /= acount ;
+	
+		if ( headElem )
+		{
+			changed = true ;
+			if ( headElem->getBehaviour()->type == VOID_BEHAVIOUR )
+			{
+				setInfluenceRadius ( 0 ) ;
+			}
+			else
+			{
+				direction.set ( norm*cos ( aangle ), norm*sin ( aangle ) ) ;
+	
+				if ( ( direction*lastDir ) < 0 )
+					direction.set ( norm*cos ( aangle+M_PI ), norm*sin ( aangle+M_PI ) ) ;
+	
+				// 		Point currentDir(getHead()->x-getBoundingPoint(1).x, getHead()->y-getBoundingPoint(1).y) ;
+				// 		double angle = headElem->getState()->getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
+				// 		direction = Point(norm*cos(angle),norm*sin(angle)) ;
+				//
+				// 		if((direction*currentDir) < 0)
+				// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
+	
+				std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
+				newPoints[0] = new Point ( getHead()->x+direction.x, getHead()->y+direction.y ) ;
+				for ( size_t i = 1 ; i < newPoints.size() ; i++ )
+				{
+					newPoints[i] = boundingPoints[i-1] ;
+				}
+				setBoundingPoints ( newPoints ) ;
+				setInfluenceRadius ( infRad ) ;
+			}
+		}
+	
 	}
-
-
 	std::pair<double, double> tailJ = computeJIntegralAtTail ( dt, dtree ) ;
 	J[0] = tailJ.first ; J[1] = tailJ.second ;
 	std::cout << "at tail : " << J[0] << ", " << J[1] << std::endl ;
 	std::cout << "J angle is " << atan2 ( J[1], J[0] ) << std::endl ;
+
+
 	Circle atTail ( infRad, this->boundary2->getCenter() ) ;
 	disk = dtree->conflicts ( &atTail ) ;
 	tris.clear() ;
-	DelaunayTriangle * tailElem = NULL;
-	for ( size_t i = 0 ; i < disk.size() ; i++ )
+	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	{
-		if ( !disk[i]->in ( *getTail() )
-		        && !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
-// 		   && !boundary2->in(disk[i]->getCenter())
-		   )
-			tris.push_back ( disk[i] ) ;
-		else if ( disk[i]->in ( *getTail() ) )
+		DelaunayTriangle * tailElem = NULL;
+		for ( size_t i = 0 ; i < disk.size() ; i++ )
 		{
-			tailElem = disk[i] ;
-		}
-	}
-
-
-
-	count = 0 ;
-	acount = 0 ;
-	aangle = 0 ;
-	direction = Point() ;
-
-	currentAngle = atan2 ( getTail()->y-boundingPoints[boundingPoints.size()-2]->y,
-	                       getTail()->x-boundingPoints[boundingPoints.size()-2]->x ) ;
-
-	lastDir = Point ( getTail()->x-getBoundingPoint ( getBoundingPoints().size()-2 ).x, getTail()->y-getBoundingPoint ( getBoundingPoints().size()-2 ).y ) ;
-	if ( !tris.empty() )
-	{
-
-		for ( size_t i = 0 ; i < tris.size() ; i++ )
-		{
-
-			DelaunayTriangle * current = tris[i] ;
-
-			for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
+			if ( !disk[i]->in ( *getTail() )
+				&& !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
+	// 		   && !boundary2->in(disk[i]->getCenter())
+			)
+				tris.push_back ( disk[i] ) ;
+			else if ( disk[i]->in ( *getTail() ) )
 			{
-
-				double angle = atan2 ( getTail()->y-current->getBoundingPoint ( j ).y,
-				                       getTail()->x-current->getBoundingPoint ( j ).x ) ;
-
-				Point currentDir ( current->getBoundingPoint ( j ).x-getTail()->x, current->getBoundingPoint ( j ).y-getTail()->y ) ;
-
-				if ( ( currentDir*lastDir ) > 0 )
+				tailElem = disk[i] ;
+			}
+		}
+	
+	
+	
+		count = 0 ;
+		acount = 0 ;
+		aangle = 0 ;
+		direction = Point() ;
+	
+		currentAngle = atan2 ( getTail()->y-boundingPoints[boundingPoints.size()-2]->y,
+				getTail()->x-boundingPoints[boundingPoints.size()-2]->x ) ;
+	
+		lastDir = Point ( getTail()->x-getBoundingPoint ( getBoundingPoints().size()-2 ).x, getTail()->y-getBoundingPoint ( getBoundingPoints().size()-2 ).y ) ;
+		if ( !tris.empty() )
+		{
+	
+			for ( size_t i = 0 ; i < tris.size() ; i++ )
+			{
+	
+				DelaunayTriangle * current = tris[i] ;
+	
+				for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
 				{
-					Vector principalStresses = current->getState()->getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
-					double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
-					std::cout << angle << "   " << current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) << "   "<< currentDir.norm() << "  " << maxPrincipalStressCurrent << std::endl ;
-
-					if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
-						maxPrincipalStressCurrent = 1000 ;
-
-					if ( currentDir.norm() > 1e-8 )
+	
+					double angle = atan2 ( getTail()->y-current->getBoundingPoint ( j ).y,
+							getTail()->x-current->getBoundingPoint ( j ).x ) ;
+	
+					Point currentDir ( current->getBoundingPoint ( j ).x-getTail()->x, current->getBoundingPoint ( j ).y-getTail()->y ) ;
+	
+					if ( ( currentDir*lastDir ) > 0 )
 					{
-						aangle += current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
-						acount++ ;
-						direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
-						count += maxPrincipalStressCurrent ;
+						Vector principalStresses = current->getState()->getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
+						double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
+						std::cout << angle << "   " << current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) << "   "<< currentDir.norm() << "  " << maxPrincipalStressCurrent << std::endl ;
+	
+						if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
+							maxPrincipalStressCurrent = 1000 ;
+	
+						if ( currentDir.norm() > 1e-8 )
+						{
+							aangle += current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
+							acount++ ;
+							direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
+							count += maxPrincipalStressCurrent ;
+						}
 					}
 				}
 			}
 		}
-	}
-
-	if ( count> 1e-8 )
-		direction/=direction.norm() ;
-	else
-	{
-		direction = Point ( getTail()->x-boundingPoints[boundingPoints.size()-2]->x,
-		                    getTail()->y-boundingPoints[boundingPoints.size()-2]->y ) ;
-		direction /= direction.norm() ;
-
-	}
-	direction*= norm ;
-	if ( acount )
-		aangle /= acount ;
-
-	if ( tailElem )
-	{
-		changed = true ;
-		if ( tailElem->getBehaviour()->type == VOID_BEHAVIOUR )
-		{
-			setInfluenceRadius ( 0 ) ;
-		}
+	
+		if ( count> 1e-8 )
+			direction/=direction.norm() ;
 		else
 		{
-
-			direction.set ( norm*cos ( aangle+M_PI/4 ), norm*sin ( aangle+M_PI/4 ) ) ;
-
-			if ( ( direction*lastDir ) < 0 )
-				direction.set ( norm*cos ( aangle+M_PI+M_PI/4 ), norm*sin ( aangle+M_PI+M_PI/4 ) ) ;
-
-			// 		Point currentDir(getTail()->x-getBoundingPoint(getBoundingPoints().size()-2).x, getTail()->y-getBoundingPoint(getBoundingPoints().size()-2).y) ;
-			// 		double angle = tailElem->getState()->getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
-			// 		direction = Point(norm*cos(angle), norm*sin(angle)) ;
-			//
-			// 		if((direction*currentDir) < 0)
-			// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
-
-			std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
-			for ( size_t i = 0 ; i < boundingPoints.size() ; i++ )
+			direction = Point ( getTail()->x-boundingPoints[boundingPoints.size()-2]->x,
+					getTail()->y-boundingPoints[boundingPoints.size()-2]->y ) ;
+			direction /= direction.norm() ;
+	
+		}
+		direction*= norm ;
+		if ( acount )
+			aangle /= acount ;
+	
+		if ( tailElem )
+		{
+			changed = true ;
+			if ( tailElem->getBehaviour()->type == VOID_BEHAVIOUR )
 			{
-				newPoints[i] = boundingPoints[i] ;
+				setInfluenceRadius ( 0 ) ;
 			}
-			newPoints[boundingPoints.size() ] = new Point ( getTail()->x+direction.x, getTail()->y+direction.y ) ;
-			setBoundingPoints ( newPoints ) ;
-			setInfluenceRadius ( infRad ) ;
+			else
+			{
+	
+				direction.set ( norm*cos ( aangle+M_PI/4 ), norm*sin ( aangle+M_PI/4 ) ) ;
+	
+				if ( ( direction*lastDir ) < 0 )
+					direction.set ( norm*cos ( aangle+M_PI+M_PI/4 ), norm*sin ( aangle+M_PI+M_PI/4 ) ) ;
+	
+				// 		Point currentDir(getTail()->x-getBoundingPoint(getBoundingPoints().size()-2).x, getTail()->y-getBoundingPoint(getBoundingPoints().size()-2).y) ;
+				// 		double angle = tailElem->getState()->getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
+				// 		direction = Point(norm*cos(angle), norm*sin(angle)) ;
+				//
+				// 		if((direction*currentDir) < 0)
+				// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
+	
+				std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
+				for ( size_t i = 0 ; i < boundingPoints.size() ; i++ )
+				{
+					newPoints[i] = boundingPoints[i] ;
+				}
+				newPoints[boundingPoints.size() ] = new Point ( getTail()->x+direction.x, getTail()->y+direction.y ) ;
+				setBoundingPoints ( newPoints ) ;
+				setInfluenceRadius ( infRad ) ;
+			}
 		}
 	}
-
 
 }
 

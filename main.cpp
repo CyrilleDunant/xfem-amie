@@ -21,7 +21,6 @@
 #include "utilities/placement.h"
 
 #include <fstream>
-#include <valarray>
 
 #include <cmath>
 #include <typeinfo>
@@ -1475,11 +1474,6 @@ int main(int argc, char *argv[])
 
 	return 0 ;*/
 	
-       std::valarray<Point *> centerpoint(2) ;
-
-       centerpoint[0] = new Point(.08,.01 ) ;
-       centerpoint[1] = new Point(.08,.03) ;
-
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1494,7 +1488,6 @@ int main(int argc, char *argv[])
 
 	Sample sample(NULL, 0.16, 0.04,.08, 0.02) ;
 
-	crack.push_back( new Crack(NULL, centerpoint, .002)) ;
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
@@ -1514,13 +1507,12 @@ int main(int argc, char *argv[])
 	Vector exp(double(0), 3) ;
 	
 // 	ExpansiveZone inclusion(&sample, .015, .08, .02, m0_agg, exp) ;
-// 	Inclusion inclusion(&sample, .015, .08, .02) ;
-// 	inclusion.setBehaviour(new Stiffness(m0_agg)) ;
-// 	featureTree->addFeature(&sample, &inclusion) ;
-	featureTree->addFeature(&sample, crack[0]) ;
+	Inclusion inclusion(&sample, .015, .08, .02) ;
+	inclusion.setBehaviour(new Stiffness(m0_agg)) ;
+	featureTree->addFeature(&sample, &inclusion) ;
 	
 	
-	F.sample(128) ;
+	F.sample(256) ;
 	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;

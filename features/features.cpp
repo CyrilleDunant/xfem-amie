@@ -91,7 +91,10 @@ Feature::Feature(Feature *father, Geometry * b)
 
  bool Feature::inBoundary(const Point & v) const 
 {
-	bool ret = boundary->in(v) ;
+	bool ret(false) ;
+	if(boundary)
+		bool ret = boundary->in(v) ;
+
 	for(size_t i = 0 ;  i < this->m_c.size() ; i++)
 		ret = ret || m_c[i]->inBoundary(v) ;
 	

@@ -397,44 +397,49 @@ void Assembly::setBoundaryConditions()
 
 		int array_index = coordinateIndexedMatrix->accumulated_row_size[k] ;
 
-		for(int m = 0 ;  m < (int)multipliers.size() ; m++)
+		std::vector<LagrangeMultiplier>::iterator start_multiplier = std::find_if(multipliers.begin(), multipliers.end(),MultiplierHasIdSupEq(coordinateIndexedMatrix->column_index[array_index])) ;
+
+		int start_m = start_multiplier-multipliers.begin() ;
+		
+		for(int m = start_m ;  m < (int)multipliers.size() ; m++)
 		{
 			int id = multipliers[m].getId() ;
 			
-			if(id == (int)k && multipliers[m].type != SET_FORCE_XI 
+			if(multipliers[m].type != SET_FORCE_XI 
 				&&  multipliers[m].type != SET_FORCE_ETA 
 				&&  multipliers[m].type != SET_FORCE_ZETA 
-				&&  multipliers[m].type != GENERAL
-			  )
+				&&  multipliers[m].type != GENERAL)
 			{
-				this->externalForces[id] = multipliers[m].getValue() ;
-				
-
-				for(size_t l = 0 ; l < coordinateIndexedMatrix->row_size[k] ; l++)
+				if(id == (int)k )
 				{
-					if((int)coordinateIndexedMatrix->column_index[array_index+l] == id)
+					this->externalForces[id] = multipliers[m].getValue() ;
+					
+	
+					for(size_t l = 0 ; l < coordinateIndexedMatrix->row_size[k] ; l++)
 					{
-						coordinateIndexedMatrix->array[array_index+l] = 1 ;
+						if((int)coordinateIndexedMatrix->column_index[array_index+l] == id)
+						{
+							coordinateIndexedMatrix->array[array_index+l] = 1 ;
+						}
+						else
+						{
+							coordinateIndexedMatrix->array[array_index+l] = 0 ;
+						}
 					}
-					else
-					{
-						coordinateIndexedMatrix->array[array_index+l] = 0 ;
-					}
+	
+					
+					break ;
+					
 				}
-
+				else if((int)coordinateIndexedMatrix->column_index[array_index] < id && (int)coordinateIndexedMatrix->column_index[array_index+coordinateIndexedMatrix->row_size[k]-1] >= id+1 )
+				{
+					double & val = getMatrix()[k][id] ;
+					this->externalForces[k] -= multipliers[m].getValue()*val ;
+					val = 0 ;
+				}
 				
-				break ;
-				
-			}
-			else if( multipliers[m].type != SET_FORCE_XI 
-						&&  multipliers[m].type != SET_FORCE_ETA 
-						&&  multipliers[m].type != SET_FORCE_ZETA 
-						&&  multipliers[m].type != GENERAL
-			       )
-			{
-				double & val = getMatrix()[k][id] ;
-				this->externalForces[k] -= multipliers[m].getValue()*val ;
-				val = 0 ;
+				if((int)coordinateIndexedMatrix->column_index[array_index+coordinateIndexedMatrix->row_size[k]-1] < id+1)
+					break ;
 			}
 		}
 	}

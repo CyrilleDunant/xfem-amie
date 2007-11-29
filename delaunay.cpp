@@ -884,6 +884,7 @@ void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  S
 
 	if (visited)
 		return ;
+
 	visited = true ;
 	
 	for (size_t i = 0 ; i < neighbour.size() ; i++)
@@ -1575,11 +1576,14 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 			
 			for(size_t j = 0 ; j < plane[i]->neighbour.size() ; j++)
 			{
-				std::pair< std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > temp ;
-				plane[i]->neighbour[j]->conflicts(temp,p) ;
-				
-				cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
-				cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
+				if(!plane[i]->neighbour[j]->visited)
+				{
+					std::pair< std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > temp ;
+					plane[i]->neighbour[j]->conflicts(temp,p) ;
+					
+					cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
+					cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
+				}
 			}
 			
 		}
@@ -2077,85 +2081,71 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		
 		to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
 		
+// 		std::cout << "Points forming the mesh" << std::endl ;
+// 
+// 		for(size_t i = 0 ; i < to_add.size() ;  i++)
+// 		{
+// 			to_add[i].print() ;
+// 		}
+// 		
+// 		std::cout << std::endl ;
+
 		DelaunayTree dt(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
 		for(size_t i = 3 ; i < to_add.size() ; i++)
 		{
 			dt.insert(new Point(to_add[i])) ;
 		}
-		
+		std::cout << "pong" << std::endl ;
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
 		size_t numberOfRefinements =  2;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
+			std::cout << "." << std::endl ;
 			tri = dt.getTriangles(false) ;
 			std::vector<Point> quadtree ;
-			for(size_t i = 0 ; i < tri.size() ; i++)
+			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				quadtree.push_back((*tri[i]->first+*tri[i]->second)*.5) ;
-				quadtree.push_back((*tri[i]->first+*tri[i]->third)*.5) ;
-				quadtree.push_back((*tri[i]->third+*tri[i]->second)*.5) ;
+				quadtree.push_back((*tri[j]->first+*tri[j]->second)*.5) ;
+				quadtree.push_back((*tri[j]->first+*tri[j]->third)*.5) ;
+				quadtree.push_back((*tri[j]->third+*tri[j]->second)*.5) ;
 			}
 			std::stable_sort(quadtree.begin(), quadtree.end()) ;
 			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end()) ;
 			quadtree.erase(e, quadtree.end()) ;
-			
-			for(size_t i = 0 ; i < quadtree.size() ; i++)
+			std::cout << "!" << std::endl ;
+			for(size_t j = 0 ; j < quadtree.size() ; j++)
 			{
-				dt.insert(new Point(quadtree[i])) ;
+				dt.insert(new Point(quadtree[j])) ;
 			}
+			std::cout << ":" << std::endl ;
 		}
 		
 // 		dt.addSharedNodes(1) ;
 		tri = dt.getTriangles(false) ;
 		dt.refresh( &father, false) ;
+		std::cout << "ping" << std::endl ;
 
-// 		if(moved)
-// 		{
-			for(size_t i = 0 ; i < tri.size() ; i++)
-			{
+		for(size_t i = 0 ; i < tri.size() ; i++)
+		{
 
 // 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
-				Function x = tri[i]->getXTransform() ;
-				Function y = tri[i]->getYTransform() ;
-				tri[i]->setOrder(QUADRATIC) ;
+			Function x = tri[i]->getXTransform() ;
+			Function y = tri[i]->getYTransform() ;
+			tri[i]->setOrder(QUADRATIC) ;
 
-				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
-				
-				for(size_t j = 0 ; j < gp_temp.size() ; j++)
-				{
+			std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
+			
+			for(size_t j = 0 ; j < gp_temp.size() ; j++)
+			{
 // 					gp_temp[j].second /= jmin ;
-					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-					gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
-					gp_alternative.push_back(gp_temp[j]) ;
-				}
+				gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
+				gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
+				gp_alternative.push_back(gp_temp[j]) ;
 			}
+		}
 
-// 		}
-// 		else
-// 		{
-// 			double ja = this->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 			{
-// 
-// // 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
-// 				Function x = tri[i]->getXTransform() ;
-// 				Function y = tri[i]->getYTransform() ;
-// 				tri[i]->setOrder(QUADRATIC) ;
-// 
-// 				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
-// 				
-// 				for(size_t j = 0 ; j < gp_temp.size() ; j++)
-// 				{
-// // 					gp_temp[j].second /= jmin ;
-// 					gp_temp[j].second *= ja ;
-// 					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-// 					gp_alternative.push_back(gp_temp[j]) ;
-// 				}
-// 			}
-// 		}
-		
 		
 		gp.resize(gp_alternative.size()) ;
 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp[0]);

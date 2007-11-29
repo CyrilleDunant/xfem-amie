@@ -138,6 +138,7 @@ public:
 
 class Crack :  public EnrichmentFeature,  public SegmentedLine
 {
+	double criticalJ ;
 	typedef enum
 	{
 		VOID_ENRICHMENT, 
@@ -208,6 +209,10 @@ public:
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree_3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
+	void setCriticalJ(double newJ) ;
+
+	double getCriticalJ() const ;
+
 	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) ;
 	
 	virtual void setInfluenceRadius(double r) ;
