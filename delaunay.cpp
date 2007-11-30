@@ -585,6 +585,11 @@ void DelaunayTreeItem::addNeighbour(DelaunayTreeItem * t)
 		return ;
 	}
 	
+	if(std::find_if(neighbour.begin(), neighbour.end(), EqItems(t, 1e-7)) != neighbour.end())
+	{
+		return ;
+	}
+	
 	if(t->isAlive())
 	{
 		neighbour.push_back(t) ;
@@ -887,19 +892,20 @@ void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  S
 
 	visited = true ;
 	
-	for (size_t i = 0 ; i < neighbour.size() ; i++)
+	for (size_t i = 0 ; i < std::min((size_t)3,neighbour.size()) ; i++)
 	{
 		if(this->numberOfCommonVertices(neighbour[i]) == 2)
 		{
 			std::pair< Point*,  Point*> pp = this->commonEdge(neighbour[i]) ;
 			if (!neighbour[i]->inCircumCircle(*p))
 			{
-
 				if(!isAligned(p, pp.first, pp.second ))
 				{
+					
 					DelaunayTriangle *ss = new DelaunayTriangle(this, p, pp.first, pp.second, p) ;
-					son.push_back(ss) ;
 
+					son.push_back(ss) ;
+	
 					neighbour[i]->addStepson(ss) ;
 					ret.push_back(ss) ;
 					
@@ -2111,12 +2117,13 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 				quadtree.push_back((*tri[j]->first+*tri[j]->third)*.5) ;
 				quadtree.push_back((*tri[j]->third+*tri[j]->second)*.5) ;
 			}
-			std::stable_sort(quadtree.begin(), quadtree.end()) ;
+			std::sort(quadtree.begin(), quadtree.end()) ;
 			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end()) ;
 			quadtree.erase(e, quadtree.end()) ;
-			std::cout << "!" << std::endl ;
+			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
 			for(size_t j = 0 ; j < quadtree.size() ; j++)
 			{
+				quadtree[j].print() ;
 				dt.insert(new Point(quadtree[j])) ;
 			}
 			std::cout << ":" << std::endl ;

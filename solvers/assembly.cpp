@@ -431,14 +431,14 @@ void Assembly::setBoundaryConditions()
 					break ;
 					
 				}
-				else if((int)coordinateIndexedMatrix->column_index[array_index] < id && (int)coordinateIndexedMatrix->column_index[array_index+coordinateIndexedMatrix->row_size[k]-1] >= id+1 )
+				else if(id >= (int)coordinateIndexedMatrix->column_index[array_index]  && id <= (int)coordinateIndexedMatrix->column_index[array_index+coordinateIndexedMatrix->row_size[k]-1]  )
 				{
 					double & val = getMatrix()[k][id] ;
 					this->externalForces[k] -= multipliers[m].getValue()*val ;
 					val = 0 ;
 				}
 				
-				if((int)coordinateIndexedMatrix->column_index[array_index+coordinateIndexedMatrix->row_size[k]-1] < id+1)
+				if(id > (int)coordinateIndexedMatrix->column_index[array_index+coordinateIndexedMatrix->row_size[k]-1] )
 					break ;
 			}
 		}

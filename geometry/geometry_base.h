@@ -126,7 +126,6 @@ virtual double volume() const                              \
 return this->__geo_type__::volume() ;                      \
 }
 
-
 namespace Mu
 {
 
@@ -258,6 +257,7 @@ struct Point
 	
 	
 } ;
+
 
 typedef  std::valarray<Point *> PointArray;
 
@@ -772,7 +772,6 @@ struct PointLessThan
 } ;
 
 
-
 /**Return the sqare distance between two points
  * 
  * @param v1 first point.
@@ -788,6 +787,16 @@ double squareDist(const Mu::Point &v1, const Mu::Point &v2) ;
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
 double squareDist(const Mu::Point *v1, const Mu::Point *v2) ;
+
+struct PointEqTol
+{
+	double tol ;
+	PointEqTol(double t) : tol(t) {}
+	bool operator()(const Mu::Point & m, const Mu::Point & p)
+	{
+		return squareDist(m,p) < tol ;
+	}
+} ;
 
 
 #endif

@@ -109,14 +109,10 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 {
 	updated = false ;
-// 	dtree->getTriangles() ;
-	//first we get All the triangles affected
+
 	update(dtree) ;
 	const std::vector<DelaunayTriangle *> & disc  = cache;
-// 	if(cache.empty())
-// 		disc = dtree->conflicts(static_cast<Circle *>(this)) ;
-// 	cache = disc ;
-	//first, we get the basis functions for an archetypal element
+
 	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
 	
 	if(disc.size() == 1) // special case for really small inclusions
@@ -143,7 +139,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 		Function position(getCenter(), x, y) ;
 		
 			//finaly, we have the enrichment function
-		Function hat = 1- f_abs(position -this->getRadius());
+		Function hat = 1.- f_abs(position -this->getRadius());
 		
 			//enriching the first point
 		Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
@@ -243,7 +239,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			Function position(getCenter(), x, y) ;
 			
 			//finaly, we have the enrichment function
-			Function hat = 1- f_abs(position -this->getRadius());
+			Function hat = 1.- f_abs(position -this->getRadius());
 			
 			//enriching the first point
 			Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;

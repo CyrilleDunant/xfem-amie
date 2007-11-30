@@ -63,7 +63,7 @@ Point::Point(double x, double y, double z, double t)
 
 void Point::print() const
 {
-	std::cout << " ( id = " << id << " ; "<< round(x*1000.)/1000. << "; " << round(y*1000.)/1000. << "; "<< round(z*1000.)/1000.<< "; "<< round(t*1000.)/1000. << ") " << std::endl;
+	std::cout << " ( id = " << id << " ; "<< x << "; " << y << "; "<< z<< "; "<< t << ") " << std::endl;
 }
 
 double Point::norm() const
@@ -213,10 +213,11 @@ Point Point::operator+(const Vector &p) const
 Point Point::operator/(const double p) const 
 {
 	Point ret((*this)) ;
-	ret.x /= p ; 
-	ret.y /= p ; 
-	ret.z /= p ; 
-	ret.t /= p ; 
+	double inv = 1./p ;
+	ret.x *= inv ; 
+	ret.y *= inv ; 
+	ret.z *= inv ; 
+	ret.t *= inv ; 
 	return ret ; 
 }
 
@@ -1997,14 +1998,14 @@ Point Segment::normal(const Point & inside) const
 	if((nx*dx+ny*dy) > 0)
 		return n/n.norm() ;
 	else
-		return n/(-1.*n.norm()) ;
+		return n/(-n.norm()) ;
 }
 
 Segment::Segment(const Point & p0, const Point & p1)
 {
 	f = p0 ;
 	s = p1 ;
-	mid = p0*0.5 + p1*0.5;
+	mid = (p0+p1)*0.5;
 	vec = p1-p0 ;
 }
 
@@ -2266,7 +2267,10 @@ bool Segment::intersects(const Segment & s) const
 	
 	Vector fac = m * v ;
 	
-	return fac[0] < 1.+POINT_TOLERANCE && fac[0] > -POINT_TOLERANCE && fac[1] < 1.+POINT_TOLERANCE && fac[1] > -POINT_TOLERANCE;
+	return fac[0] <= 1 
+		&& fac[0] >= 0 
+		&& fac[1] <= 1
+		&& fac[1] >= 0;
 	
 }
 

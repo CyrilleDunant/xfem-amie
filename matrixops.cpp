@@ -286,12 +286,12 @@ void invert2x2Matrix(Mu::Matrix &s)
 		return ;
 	}
 	
-	double r1 = (double)1/s[0][0] ;
+	double r1 = 1./s[0][0] ;
 	double r2 = s[1][0] * r1 ;
 	double r3 = r1* s[0][1] ;
 	double r4 = s[1][0] * r3 ;
 	double r5 = r4 - s[1][1] ;
-	double r6 = (double)1/r5 ;
+	double r6 = 1./r5 ;
 	s[0][1] = r3*r6 ;
 	s[1][0] = r6*r2 ;
 	double r7 = r3*s[1][0] ;

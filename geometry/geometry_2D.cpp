@@ -811,39 +811,13 @@ void Circle::project(Point * p) const
 	
 	Segment seg(center, *p) ;
 	
-	Point proj = center + seg.vector()*radius/seg.vector().norm() ;
+	Point proj = center + seg.vector()*(radius/seg.vector().norm()) ;
 	
 	p->x = proj.x ;
 	p->y = proj.y ;
 	
 	return ;
 	
-	double hypothenuse = dist(p, &center) ;
-	double oppose = std::abs(p->y - center.y) ;
-	double adjacent = std::abs(p->x - center.x) ;
-	
-	if(p->x >= center.x && p->y >= center.y)
-	{
-		p->x = radius * adjacent/hypothenuse + center.x ;
-		p->y = radius * oppose/hypothenuse + center.y ;
-	}
-	else if (p->x < center.x && p->y >= center.y)
-	{
-		p->x = - radius * adjacent/hypothenuse + center.x ;
-		p->y = radius * oppose/hypothenuse + center.y ;
-	}
-	else if (p->x < center.x && p->y < center.y)
-	{
-		p->x = - radius * adjacent/hypothenuse + center.x ;
-		p->y = - radius * oppose/hypothenuse + center.y ;
-	}
-	else
-	{
-		p->x = radius * adjacent/hypothenuse + center.x ;
-		p->y = - radius * oppose/hypothenuse + center.y ;
-	}
-	
-	return ;
 }
 
 

@@ -343,6 +343,17 @@ public:
 	void print() const;
 } ;
 
+struct EqItems
+{
+	double tol ;
+	DelaunayTreeItem * it ;
+	EqItems(DelaunayTreeItem * i, double t) : tol(t), it(i) { } ;
+	bool operator()(const DelaunayTreeItem * a) const
+	{
+		return squareDist(a->first, it->first) + squareDist(a->second, it->second) + squareDist(a->third, it->third) < tol ;
+	}
+} ;
+
 } ;
 
 //! Make \a t0 and \a t1 Neighbours. Safe.

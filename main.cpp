@@ -85,8 +85,7 @@ double y_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 
-double timepos = 0.000 ;
-double delta = 10 ;
+double timepos = 0.00 ;
 
 bool firstRun = true ;
 
@@ -110,7 +109,7 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 double nu = 0.3 ;
-double E_agg = 20000000000;//58900000000 ;
+double E_agg = 58900000000 ;
 double E_paste = 12000000000 ;
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
@@ -176,27 +175,13 @@ void setBC()
 // // 				featureTree->getAssembly()->setPointAlong( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
 
-			if(std::abs(triangles[k]->getBoundingPoint(c).x - 0.03) < .1 && triangles[k]->getBoundingPoint(c).y < 0.0001
-			  )
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(
-			    std::abs(triangles[k]->getBoundingPoint(c).x - 0.13) < .1 && triangles[k]->getBoundingPoint(c).y < 0.0001
-			  )
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(
-			    std::abs(triangles[k]->getBoundingPoint(c).x) < .0001 && triangles[k]->getBoundingPoint(c).y < 0.5
-			  )
+			if(triangles[k]->getBoundingPoint(c).x < -.0799)
 			{
 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			
-			if (triangles[k]->getBoundingPoint(c).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(c).x - 0.08) < 0.01)
+			if (triangles[k]->getBoundingPoint(c).y < -0.0199 )
 			{
-				featureTree->getAssembly()->setForceOn( ETA,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 // 			if(triangles[k]->getBoundingPoint(c).y > 2.999 && triangles[k]->getBoundingPoint(c).x > 2.999)
 // 			{
@@ -247,21 +232,14 @@ void step()
 		setBC() ;
 		while(!featureTree->step(timepos))
 		{
-// 			delta -=1 ;
-// 			
-// 			if(delta > 0)
-// 				timepos-= delta ;
-// 			else
-// 				timepos+= delta ;
-// 			if(timepos < 0)
-// 				timepos=0 ;
-// 				
-// 			std::cout << "Time " << timepos << std::endl ;
+// 			timepos-= 0.0001 ;
 			setBC() ;
 			
 		}
 // 		
-
+// 		
+		timepos+= 0.0001 ;
+	
 	
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
@@ -285,6 +263,8 @@ void step()
 	epsilon12.resize(sigma.size()/3) ;
 	vonMises.resize(sigma.size()/3) ;
 	angle.resize(sigma.size()/3) ;
+	
+	std::cout << "unknowns :" << x.size() << std::endl ;
 	
 	if(crack.size() > 0)
 		tris__ = crack[0]->getIntersectingTriangles(dt) ;
@@ -329,13 +309,9 @@ void step()
 		
 		if(!in && !triangles[k]->getBehaviour()->fractured())
 		{
-
 			
 			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
-
-				if (triangles[k]->getBoundingPoint(p).y > 0.03999 && std::abs(triangles[k]->getBoundingPoint(p).x - 0.08) < 0.001)
-					std::cout << x[triangles[k]->getBoundingPoint(p).id*2] << "  "<<x[triangles[k]->getBoundingPoint(p).id*2+1]<< std::endl ;
 				if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
 					x_max = x[triangles[k]->getBoundingPoint(p).id*2];
 				if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
@@ -484,8 +460,6 @@ void step()
 		
 	
 		std::cout << std::endl ;
-		
-		std::cout << "*** " << x_min << "  " << x_max << "  " << timepos << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
 		std::cout << "min value :" << x_min << std::endl ;
 		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
@@ -514,13 +488,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 		
-		delta++ ;
-		if(delta > 0)
-			timepos+= delta ;
-		else
-			timepos-= delta ;
-		
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/64 ;
+		double delta_r = sqrt(aggregateArea*0.01/((double)zones.size()*M_PI))/100 ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
@@ -1436,10 +1404,7 @@ void Display(void)
 // 		glVertex2f(3.5 ,
 // 		           -3. );
 // 		glEnd() ;
-
-		glMatrixMode(GL_MODELVIEW) ;
-		glLoadIdentity() ;
-		glTranslatef(-0.08, -0.02, 0) ;
+		
 		glCallList(current_list) ;
 		glCallList(DISPLAY_LIST_CRACK) ;
 // 		if(current_list == DISPLAY_LIST_ELEMENTS)
@@ -1462,6 +1427,60 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
+	std::vector<Point> to_add ;
+	to_add.push_back(Point(0,1));
+ 	to_add.push_back(Point(0,0));
+	to_add.push_back(Point(1,0)) ;
+	to_add.push_back(Point(0.887742,8.98126e-12)) ;
+	to_add.push_back(Point(0.7138, 0.191321)) ;
+	to_add.push_back(Point(0.65186, 0.298096)) ;
+	to_add.push_back(Point(0.803275, 0.0814241)) ;
+
+	Triangle tr(to_add[0], to_add[1], to_add[2]) ;
+	std::cout << tr.in(to_add[3]) << std::endl ;
+	std::cout << "Points forming the mesh" << std::endl ;
+	
+	for(size_t i = 0 ; i < to_add.size() ;  i++)
+	{
+		to_add[i].print() ;
+	}
+	
+	std::cout << std::endl ;
+	
+		DelaunayTree my_test_tree(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
+		for(size_t i = 3 ; i < to_add.size() ; i++)
+		{
+			my_test_tree.insert(new Point(to_add[i])) ;
+		}
+	
+	my_test_tree.print() ;
+	
+		std::cout << "pong" << std::endl ;
+		std::vector<DelaunayTriangle *> tri = my_test_tree.getTriangles(false) ;
+
+		size_t numberOfRefinements =  2;
+		
+		for(size_t i = 0 ; i < numberOfRefinements ; i++)
+		{
+			tri = my_test_tree.getTriangles(false) ;
+			std::vector<Point> quadtree ;
+			for(size_t j = 0 ; j < tri.size() ; j++)
+			{
+				quadtree.push_back((*tri[j]->first+*tri[j]->second)*.5) ;
+				quadtree.push_back((*tri[j]->first+*tri[j]->third)*.5) ;
+				quadtree.push_back((*tri[j]->third+*tri[j]->second)*.5) ;
+			}
+			std::sort(quadtree.begin(), quadtree.end()) ;
+			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-7)) ;
+			quadtree.erase(e, quadtree.end()) ;
+			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
+			for(size_t j = 0 ; j < quadtree.size() ; j++)
+			{
+				quadtree[j].print() ;
+				my_test_tree.insert(new Point(quadtree[j])) ;
+			}
+			my_test_tree.print() ;
+		}
 /*	
 	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
 	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
@@ -1474,48 +1493,78 @@ int main(int argc, char *argv[])
 
 	return 0 ;*/
 	
-
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
 	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
-
-	nu = 0.05 ;
+	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.16, 0.04,.08, 0.02) ;
-
+	Sample sample(NULL, 0.04, 0.04,0,0) ;
+	
+// 	Sample reinforcement0(NULL, 8,.15,0,.5) ;
+// 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
+// 	
+// 	Sample reinforcement1(NULL, 8,.15,0,-.5) ;
+// 	reinforcement1.setBehaviour(new Stiffness(m0*5)) ;
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
-	Inclusion i0(.001, .03, 0) ;
-	i0.setBehaviour(new Stiffness(m0_agg)) ;
-	Inclusion i1(.001, .13, 0) ;
-	i1.setBehaviour(new Stiffness(m0_agg)) ;
-	
-	
-// 	featureTree->addFeature(&sample, new TriangularPore(Point(0.08,0.02), Point(0.075, -.01),Point(0.085, -.01) )) ;
-// 	featureTree->addFeature(&sample, &i0) ;
-// 	featureTree->addFeature(&sample, &i1) ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_agg, 2000000)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
 
-	Vector exp(double(0), 3) ;
+
+	Inclusion * inc = new Inclusion(.01, 0,0) ;
+	std::vector<Inclusion *> inclusions ;
+	inclusions = GranuloBolome(.02, 25000, BOLOME_A)(.002, .01);
+// 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
+	int nAgg = 0 ;
+	inclusions=placement(.04, .04, inclusions, &nAgg, 512);
+// 	F.addFeature(&sample,inc) ;
 	
-// 	ExpansiveZone inclusion(&sample, .015, .08, .02, m0_agg, exp) ;
-	Inclusion inclusion(&sample, .015, .08, .02) ;
-	inclusion.setBehaviour(new Stiffness(m0_agg)) ;
-	featureTree->addFeature(&sample, &inclusion) ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	{
+		Vector a(double(0), 3) ;
+		a[0] = .0002 ;
+		a[1] = .0002 ;
+		a[2] = 0.00 ;
+// 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
+		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(2000000, -20000000))) ;
+		F.addFeature(&sample,inclusions[i]) ;
+	}
+	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
+	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
+	Circle cercle(.5, 0,0) ;
 	
+
+	
+// 	sample.setBehaviour(new BimaterialInterface(&cercle, m0,  m0*4)) ;
+	Vector a(double(0), 3) ;
+	a[0] = 0.1 ;
+	a[1] = 0.1 ;
+	a[2] = 0.00 ;
+	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
+// 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
+//	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
+//	F.addFeature(&sample, zones[0]) ;
+	zones = generateExpansiveZones(3, inclusions, F) ;
+// 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
+// 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
+// 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
+// 	F.addFeature(&sample,new Pore(1, 0,0)) ;
+// 	F.addFeature(&sample,new Pore(0.75, 1,-1)) ;
+// 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
+// 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
 	F.sample(256) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
+	
+	for(size_t j = 0 ; j < crack.size() ; j++)
+		crack[j]->setInfluenceRadius(0.03) ;
 // 	
 	step() ;
 	
