@@ -2467,7 +2467,6 @@ double squareDist(const  Point &v1, const Point & v2)
 	double z = v2.z-v1.z ;
 	double t = v2.t-v1.t ;
 	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
-	return (v2.x-v1.x)*(v2.x-v1.x)+(v2.y-v1.y)*(v2.y-v1.y) + (v2.z-v1.z)*(v2.z-v1.z)+ (v2.t-v1.t)*(v2.t-v1.t);
 }
 
 double squareDist(const Point *v1, const Point *v2)
@@ -2477,7 +2476,22 @@ double squareDist(const Point *v1, const Point *v2)
 	double z = v2->z-v1->z ;
 	double t = v2->t-v1->t ;
 	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
-	return (v2->x-v1->x)*(v2->x-v1->x)+(v2->y-v1->y)*(v2->y-v1->y) + (v2->z-v1->z)*(v2->z-v1->z)+ (v2->t-v1->t)*(v2->t-v1->t);
+}
+
+double squareDist2D(const  Point &v1, const Point & v2)
+{
+	double x = v2.x-v1.x ;
+	double y = v2.y-v1.y ;
+
+	return x*x+y*y ;
+}
+
+double squareDist2D(const Point *v1, const Point *v2)
+{
+	double x = v2->x-v1->x ;
+	double y = v2->y-v1->y ;
+
+	return x*x+y*y ;
 }
 
 ConvexPolygon* convexHull(const std::vector<Point *> * points)

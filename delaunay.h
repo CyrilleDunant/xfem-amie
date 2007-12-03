@@ -350,7 +350,7 @@ struct EqItems
 	EqItems(DelaunayTreeItem * i, double t) : tol(t), it(i) { } ;
 	bool operator()(const DelaunayTreeItem * a) const
 	{
-		return squareDist(a->first, it->first) + squareDist(a->second, it->second) + squareDist(a->third, it->third) < tol ;
+		return squareDist2D(a->first, it->first) + squareDist2D(a->second, it->second) + squareDist2D(a->third, it->third) < tol ;
 	}
 } ;
 

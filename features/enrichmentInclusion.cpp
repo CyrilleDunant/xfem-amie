@@ -112,6 +112,11 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 
 	update(dtree) ;
 	const std::vector<DelaunayTriangle *> & disc  = cache;
+// 	if(disc.size() < 6)
+// 	{
+// 		std::cout << "cowardly discarding" << std::endl ;
+// 		return ;
+// 	}
 
 	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
 	
@@ -139,7 +144,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 		Function position(getCenter(), x, y) ;
 		
 			//finaly, we have the enrichment function
-		Function hat = 1.- f_abs(position -this->getRadius());
+		Function hat = this->getRadius()-f_abs(position -this->getRadius());
 		
 			//enriching the first point
 		Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
@@ -219,9 +224,17 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			Point mid = (triCircleIntersectionPoints[1]+triCircleIntersectionPoints[0])*.5 ;
 			Point q1 = (triCircleIntersectionPoints[1]+mid)*.5 ;
 			Point q4 = (mid+triCircleIntersectionPoints[0])*.5 ;
+			Point q2 = (triCircleIntersectionPoints[1]+q1)*.5 ;
+			Point q3 = (mid+q1)*.5 ;
+			Point q5 = (triCircleIntersectionPoints[0]+q4)*.5 ;
+			Point q6 = (mid+q4)*.5 ;
 			this->project(&mid) ;
 			this->project(&q1) ;
+			this->project(&q2) ;
+			this->project(&q3) ;
 			this->project(&q4) ;
+			this->project(&q5) ;
+			this->project(&q6) ;
 			
 			//for the enrichment, we want to specify points which will form the subtriangulation
 			std::vector<Point> hint ;
@@ -230,6 +243,10 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
 			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
 			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q2)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q3)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q5)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q6)) ;
 
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;

@@ -1426,61 +1426,77 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-
-	std::vector<Point> to_add ;
-	to_add.push_back(Point(0,1));
- 	to_add.push_back(Point(0,0));
-	to_add.push_back(Point(1,0)) ;
-	to_add.push_back(Point(0.887742,8.98126e-12)) ;
-	to_add.push_back(Point(0.7138, 0.191321)) ;
-	to_add.push_back(Point(0.65186, 0.298096)) ;
-	to_add.push_back(Point(0.803275, 0.0814241)) ;
-
-	Triangle tr(to_add[0], to_add[1], to_add[2]) ;
-	std::cout << tr.in(to_add[3]) << std::endl ;
-	std::cout << "Points forming the mesh" << std::endl ;
-	
-	for(size_t i = 0 ; i < to_add.size() ;  i++)
-	{
-		to_add[i].print() ;
-	}
-	
-	std::cout << std::endl ;
-	
-		DelaunayTree my_test_tree(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
-		for(size_t i = 3 ; i < to_add.size() ; i++)
-		{
-			my_test_tree.insert(new Point(to_add[i])) ;
-		}
-	
-	my_test_tree.print() ;
-	
-		std::cout << "pong" << std::endl ;
-		std::vector<DelaunayTriangle *> tri = my_test_tree.getTriangles(false) ;
-
-		size_t numberOfRefinements =  2;
 		
-		for(size_t i = 0 ; i < numberOfRefinements ; i++)
-		{
-			tri = my_test_tree.getTriangles(false) ;
-			std::vector<Point> quadtree ;
-			for(size_t j = 0 ; j < tri.size() ; j++)
-			{
-				quadtree.push_back((*tri[j]->first+*tri[j]->second)*.5) ;
-				quadtree.push_back((*tri[j]->first+*tri[j]->third)*.5) ;
-				quadtree.push_back((*tri[j]->third+*tri[j]->second)*.5) ;
-			}
-			std::sort(quadtree.begin(), quadtree.end()) ;
-			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-7)) ;
-			quadtree.erase(e, quadtree.end()) ;
-			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
-			for(size_t j = 0 ; j < quadtree.size() ; j++)
-			{
-				quadtree[j].print() ;
-				my_test_tree.insert(new Point(quadtree[j])) ;
-			}
-			my_test_tree.print() ;
-		}
+// 	std::vector<Point> to_add ;
+// 	to_add.push_back(Point(0,1));
+//  	to_add.push_back(Point(0,0));
+// 	to_add.push_back(Point(1,0)) ;
+// 	to_add.push_back(Point(0.748884,0.251116)) ;
+// 	to_add.push_back(Point(0.736803, 0.131506)) ;
+// 	to_add.push_back(Point(0.739897, 0.195054)) ;
+// 	to_add.push_back(Point(0.740296, 0.0648157)) ;
+// 	to_add.push_back(Point(0.5, 0, 0, 0) ) ;
+// 	to_add.push_back(Point(0.370148, 0.0324078, 0, 0)) ;
+// 	to_add.push_back(Point(0.870148, 0.0324078, 0, 0) ) ;
+// 	to_add.push_back(Point(0.368401, 0.0657531, 0, 0) ) ;
+// 	to_add.push_back(Point(0.868401, 0.0657531, 0, 0) ) ;
+// 	to_add.push_back(Point(0.369948, 0.097527, 0, 0) ) ;
+// 	to_add.push_back(Point(0.869948, 0.097527, 0, 0) ) ;
+// 	to_add.push_back(Point(0.738549, 0.0981609, 0, 0)) ;
+// 	to_add.push_back(Point(0.374442, 0.125558, 0, 0) ) ;
+// 	to_add.push_back(Point(0.874442, 0.125558, 0, 0) ) ;
+// 	to_add.push_back(Point(0.73835, 0.16328, 0, 0)  ) ;
+// 	to_add.push_back(Point( 0.74439, 0.223085, 0, 0) ) ;
+// 	to_add.push_back(Point(0, 0.5, 0, 0)   ) ;
+// 	to_add.push_back(Point(0.5, 0.5, 0, 0)   ) ;
+// 	to_add.push_back(Point( 0.374442, 0.625558, 0, 0)  ) ;
+// 		
+// 		
+// 	Triangle tr(to_add[0], to_add[1], to_add[2]) ;
+// 	std::cout << tr.in(to_add[3]) << std::endl ;
+// 	std::cout << "Points forming the mesh" << std::endl ;
+// 	
+// 	for(size_t i = 0 ; i < to_add.size() ;  i++)
+// 	{
+// 		to_add[i].print() ;
+// 	}
+// 	
+// 	std::cout << std::endl ;
+// 	
+// 		DelaunayTree my_test_tree(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
+// 		for(size_t i = 3 ; i < to_add.size() ; i++)
+// 		{
+// 			my_test_tree.insert(new Point(to_add[i])) ;
+// 		}
+// 	
+// 	my_test_tree.print() ;
+// 	
+// 		std::cout << "pong" << std::endl ;
+// 		std::vector<DelaunayTriangle *> tri = my_test_tree.getTriangles(false) ;
+// 
+// 		size_t numberOfRefinements =  1;
+// 		
+// 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
+// 		{
+// 			tri = my_test_tree.getTriangles(false) ;
+// 			std::vector<Point> quadtree ;
+// 			for(size_t j = 0 ; j < tri.size() ; j++)
+// 			{
+// 				quadtree.push_back((*tri[j]->first+*tri[j]->second)*.5) ;
+// 				quadtree.push_back((*tri[j]->first+*tri[j]->third)*.5) ;
+// 				quadtree.push_back((*tri[j]->third+*tri[j]->second)*.5) ;
+// 			}
+// 			std::sort(quadtree.begin(), quadtree.end()) ;
+// 			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-8)) ;
+// 			quadtree.erase(e, quadtree.end()) ;
+// 			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
+// 			for(size_t j = 0 ; j < quadtree.size() ; j++)
+// 			{
+// 				quadtree[j].print() ;
+// 				my_test_tree.insert(new Point(quadtree[j])) ;
+// 			}
+// // 			my_test_tree.print() ;
+// 		}
 /*	
 	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
 	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
@@ -1517,7 +1533,7 @@ int main(int argc, char *argv[])
 
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(.02, 25000, BOLOME_A)(.002, .01);
+	inclusions = GranuloBolome(.02, 25000, BOLOME_A)(.002, .9);
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
 	int nAgg = 0 ;
 	inclusions=placement(.04, .04, inclusions, &nAgg, 512);
@@ -1549,7 +1565,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
-	zones = generateExpansiveZones(3, inclusions, F) ;
+	zones = generateExpansiveZones(1, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1558,7 +1574,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(256) ;
+	F.sample(512) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

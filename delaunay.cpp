@@ -500,7 +500,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 		if(!stepson[i]->visited && stepson[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(stepson[i]) ;
-			limit = std::abs(squareDist(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
 		if( (!stepson[i]->visited && stepson[i]->inCircumCircle(*p)) || limit) 
@@ -518,7 +518,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 		if(!son[i]->visited && son[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(son[i]) ;
-			limit = std::abs(squareDist(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
 		if( (!son[i]->visited && son[i]->inCircumCircle(*p)) || limit)
@@ -585,7 +585,7 @@ void DelaunayTreeItem::addNeighbour(DelaunayTreeItem * t)
 		return ;
 	}
 	
-	if(std::find_if(neighbour.begin(), neighbour.end(), EqItems(t, 1e-7)) != neighbour.end())
+	if(std::find_if(neighbour.begin(), neighbour.end(), EqItems(t, 1e-11)) != neighbour.end())
 	{
 		return ;
 	}
@@ -862,11 +862,11 @@ std::pair< Point*,  Point*> DelaunayTriangle::nearestEdge(const Point p)
 {
 	std::map<double, Point> cen ;
 	Point c0(((*first) + (*second))/2.) ;
-	cen[squareDist(c0, p)] = c0 ;
+	cen[squareDist2D(c0, p)] = c0 ;
 	Point c1(((*third) + (*second))/2.) ;
-	cen[squareDist(c1, p)] = c1 ;
+	cen[squareDist2D(c1, p)] = c1 ;
 	Point c2(((*third) + (*first))/2.) ;
-	cen[squareDist(c2, p)] = c2 ;
+	cen[squareDist2D(c2, p)] = c2 ;
 	
 	if(cen.begin()->second == c0)
 		return std::pair< Point*,  Point*>(first, second) ;
@@ -892,7 +892,7 @@ void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  S
 
 	visited = true ;
 	
-	for (size_t i = 0 ; i < std::min((size_t)3,neighbour.size()) ; i++)
+	for (size_t i = 0 ; i < neighbour.size() ; i++)
 	{
 		if(this->numberOfCommonVertices(neighbour[i]) == 2)
 		{
@@ -2065,15 +2065,15 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		{
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
 			{
-				if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-6 && 
-				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-6 && 
-				   squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-6 &&
+				if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-6 && 
+				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-6 && 
+				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-6 &&
 				   father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)) )
 				{
 					bool ok = true ;
 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
 					{
-						if(squareDist(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-6)
+						if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-6)
 						{
 							ok = false ;
 							break ;
@@ -2101,14 +2101,14 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		{
 			dt.insert(new Point(to_add[i])) ;
 		}
-		std::cout << "pong" << std::endl ;
+// 		std::cout << "pong" << std::endl ;
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements =  2;
+		size_t numberOfRefinements =  4;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
-			std::cout << "." << std::endl ;
+// 			std::cout << "." << std::endl ;
 			tri = dt.getTriangles(false) ;
 			std::vector<Point> quadtree ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
@@ -2118,21 +2118,21 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 				quadtree.push_back((*tri[j]->third+*tri[j]->second)*.5) ;
 			}
 			std::sort(quadtree.begin(), quadtree.end()) ;
-			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end()) ;
+			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-5)) ;
 			quadtree.erase(e, quadtree.end()) ;
-			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
+// 			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
 			for(size_t j = 0 ; j < quadtree.size() ; j++)
 			{
-				quadtree[j].print() ;
+// 				quadtree[j].print() ;
 				dt.insert(new Point(quadtree[j])) ;
 			}
-			std::cout << ":" << std::endl ;
+// 			std::cout << ":" << std::endl ;
 		}
 		
 // 		dt.addSharedNodes(1) ;
 		tri = dt.getTriangles(false) ;
 		dt.refresh( &father, false) ;
-		std::cout << "ping" << std::endl ;
+// 		std::cout << "ping" << std::endl ;
 
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{

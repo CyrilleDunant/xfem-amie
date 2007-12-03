@@ -100,7 +100,7 @@ Parallelogramme::Parallelogramme( const Point & p0,  const Point & p1,  const Po
 		}
 	}
 	
-	radius = (squareDist(p1, circumCenter) + squareDist(p0, circumCenter) + squareDist(p2, circumCenter)+squareDist(p3, circumCenter))/4.;
+	radius = (squareDist2D(p1, circumCenter) + squareDist2D(p0, circumCenter) + squareDist2D(p2, circumCenter)+squareDist2D(p3, circumCenter))/4.;
 	
 }
 
@@ -134,7 +134,7 @@ Parallelogramme::Parallelogramme( const Point *p0,  const Point *p1,  const Poin
 		}
 	}
 	
-	radius = (squareDist(*p1, circumCenter) + squareDist(*p0, circumCenter) + squareDist(*p2, circumCenter)+squareDist(*p3, circumCenter))/4.;
+	radius = (squareDist2D(*p1, circumCenter) + squareDist2D(*p0, circumCenter) + squareDist2D(*p2, circumCenter)+squareDist2D(*p3, circumCenter))/4.;
 	
 }
 
@@ -198,12 +198,12 @@ void Parallelogramme::computeCircumCenter()
 
 bool Parallelogramme::inCircumCircle(const Point p) const
 {
-	return  squareDist(circumCenter, p) < radius  ;
+	return  squareDist2D(circumCenter, p) < radius  ;
 }
 
 bool Parallelogramme::inCircumCircle(const Point *p) const
 {
-	return  squareDist(circumCenter, (*p)) < radius  ;
+	return  squareDist2D(circumCenter, (*p)) < radius  ;
 }
 
 bool Parallelogramme::is1D() const
@@ -940,11 +940,11 @@ void SegmentedLine::project(Point *p) const
 // 	for(size_t i = 0 ; i < boundingPoints.size()-1 ; i++)
 // 	{
 // 		Segment s(*getBoundingPoint(i), *getBoundingPoint(i+1)) ;
-// 		m[squareDist(p,s.midPoint())] = s ;
+// 		m[squareDist2D(p,s.midPoint())] = s ;
 // 		Point p_ = *p ;
 // 		Line l(*s.first(), *s.vector()) ;
 // 		p_ = l.projection(&p_) ;
-// 		projected[squareDist(p_, *p)]= p_;
+// 		projected[squareDist2D(p_, *p)]= p_;
 // 	}
 // 	Line l(*m.rbegin()->second.first(), *m.rbegin()->second.vector()) ;
 // 	
@@ -957,7 +957,7 @@ void SegmentedLine::project(Point *p) const
 	for(size_t i = 1 ; i < boundingPoints.size()-1 ; i++)
 	{
 		Segment test(getBoundingPoint(i), getBoundingPoint(i+1)) ;
-		if(squareDist(*p, test.midPoint()) < squareDist(*p, target.midPoint()))
+		if(squareDist2D(*p, test.midPoint()) < squareDist2D(*p, target.midPoint()))
 		{
 			target = test ;
 		}
@@ -971,8 +971,8 @@ void SegmentedLine::project(Point *p) const
 	
 	if(!target.on(proj))
 	{
-		double d0 = squareDist(proj, target.first()) ;
-		double d1 = squareDist(proj, target.second()) ;
+		double d0 = squareDist2D(proj, target.first()) ;
+		double d1 = squareDist2D(proj, target.second()) ;
 		
 		if(d0 < d1)
 			proj = target.first() ;
@@ -982,7 +982,7 @@ void SegmentedLine::project(Point *p) const
 	
 // 	for(size_t i = 0 ; i < projected.size() ; i++)
 // 	{		
-// 		if(squareDist(projected[i], *p ) < squareDist(target, *p ))
+// 		if(squareDist2D(projected[i], *p ) < squareDist2D(target, *p ))
 // 		{
 // 			target = projected[i] ;
 // 		}

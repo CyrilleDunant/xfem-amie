@@ -505,7 +505,7 @@ Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 	r = s- t*omega ;
 	double rho_ =rho ;
 	
-	int nit = 0 ;
+	size_t nit = 0 ;
 	
 	while(nit < r.size())
 	{

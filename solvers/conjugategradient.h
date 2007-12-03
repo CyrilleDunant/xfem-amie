@@ -21,7 +21,7 @@ namespace Mu
 	{
 		virtual ~ConjugateGradient() { } ;
 		ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) ;
-		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-7, const int maxit = -1, bool verbose = false)  ;
+		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-8, const int maxit = -1, bool verbose = false)  ;
 	} ;
 
 } ;
