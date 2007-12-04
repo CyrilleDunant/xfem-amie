@@ -26,7 +26,9 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 void EnrichmentInclusion::update(DelaunayTree * dtree)
 {
 	if(cache.empty())
+	{
 		cache = dtree->conflicts(static_cast<Circle *>(this)) ;
+	}
 	else
 	{
 		std::vector<DelaunayTriangle *> temp ;
@@ -241,12 +243,12 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q2)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q3)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q5)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q6)) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(q2)) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(q3)) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(q5)) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(q6)) ;
 
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;
@@ -256,7 +258,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			Function position(getCenter(), x, y) ;
 			
 			//finaly, we have the enrichment function
-			Function hat = 1.- f_abs(position -this->getRadius());
+			Function hat = 2.*this->getRadius()- f_abs(position -this->getRadius());
 			
 			//enriching the first point
 			Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;

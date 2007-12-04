@@ -43,7 +43,6 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, const Preconditionner 
 		std::cerr << "Linear problem, falling back to linear CG" << std::endl;
 		ConjugateGradient cg(assembly->getMatrix(), b) ;
 		bool ret =  cg.solve(x0, NULL,eps, b.size()/8, true) ;
-		std::cout << cg.x.size() << std::endl ;
 		x.resize(cg.x.size())  ;
 		x = cg.x ;
 		return ret ;
