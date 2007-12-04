@@ -87,7 +87,8 @@ void Inclusion::sample(size_t n)
 	delete this->boundary ;
 	double numberOfRings =round((double)n/(2. * M_PI )) ;
 	double r = getRadius()*(1.+ .6/(numberOfRings+1)) ;
-	this->boundary = new Circle(r, this->Circle::getCenter()) ;
+	this->boundary = new Circle(r, getCenter()) ;
+	std::cout << r << std::endl; 
 	this->sampleSurface(n) ;
 }
 

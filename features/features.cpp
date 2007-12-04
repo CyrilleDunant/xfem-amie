@@ -93,7 +93,7 @@ Feature::Feature(Feature *father, Geometry * b)
 {
 	bool ret(false) ;
 	if(boundary)
-		bool ret = boundary->in(v) ;
+		ret = getBoundary()->in(v) ;
 
 	for(size_t i = 0 ;  i < this->m_c.size() ; i++)
 		ret = ret || m_c[i]->inBoundary(v) ;
@@ -2009,7 +2009,6 @@ bool FeatureTree::step(double dt)
 				{
 					needAssembly = true ;
 					ret = false ;
-					std::cout << "elem changed !" << std::endl ;
 				}
 			}
 			else if (elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR && elements[i]->getBehaviour()->fractured())
@@ -2293,10 +2292,9 @@ void FeatureTree::generateElements( size_t correctionSteps)
 			for(size_t j  =  0 ; j <  this->tree[i]->getInPoints().size() ; j++)
 			{
 				bool isIn = false ;
-					
+
 				for(size_t k  =  0 ; k <  this->tree[i]->getChildren()->size(); k++)
 				{
-
 					if(this->tree[i]->getChild(k)->inBoundary(this->tree[i]->getInPoint(j)) )
 					{
 						isIn = true ;

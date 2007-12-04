@@ -243,12 +243,12 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
 			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q2)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q3)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q5)) ;
-// 			hint.push_back(ring[i]->inLocalCoordinates(q6)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q2)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q3)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q5)) ;
+			hint.push_back(ring[i]->inLocalCoordinates(q6)) ;
 
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;

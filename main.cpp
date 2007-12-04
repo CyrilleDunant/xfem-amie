@@ -113,7 +113,7 @@ double E_agg = 58900000000 ;
 double E_paste = 12000000000 ;
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
-double factor = 1 ;
+double factor = 200 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
 bool dlist = false ;
@@ -183,10 +183,6 @@ void setBC()
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
-// 			if(triangles[k]->getBoundingPoint(c).x > .0199)
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( XI,0.0001, triangles[k]->getBoundingPoint(c).id) ;
-// 			}
 // 			if(triangles[k]->getBoundingPoint(c).y > 2.999 && triangles[k]->getBoundingPoint(c).x > 2.999)
 // 			{
 // 				featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
@@ -229,7 +225,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 1;
+	int nsteps = 2;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -492,7 +488,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		
 		
-		double delta_r = sqrt(aggregateArea*0.01/((double)zones.size()*M_PI))/100 ;
+		double delta_r = sqrt(aggregateArea*0.02/((double)zones.size()*M_PI))/20. ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
@@ -508,8 +504,8 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E = .2e+09 ;
-	double nu = .4 ;
+	double E = .2e+07 ;
+	double nu = .49 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = 0 ;
 	m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = 0 ; 
@@ -542,8 +538,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = .1 ;
-				a[1] = .1 ;
+				a[0] = .5 ;
+				a[1] = .5 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
@@ -907,7 +903,7 @@ void Display(void)
 					double vy = x[triangles[j]->getBoundingPoint(0).id*2+1]; 
 					
 					glBegin(GL_TRIANGLE_FAN);
-					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min)))*300., 1., 1. ) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt((vx*vx + vy*vy)/(x_max*x_max + y_max*y_max))*300., 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 							
 						glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
@@ -917,7 +913,7 @@ void Display(void)
 							vx = x[triangles[j]->getBoundingPoint(k).id*2];
 							vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 						
-							HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min)))*300., 1., 1. ) ;
+							HSVtoRGB( &c1, &c2, &c3, 300. - sqrt((vx*vx + vy*vy)/(x_max*x_max + y_max*y_max))*300., 1., 1. ) ;
 							glColor3f(c1, c2, c3) ;
 							
 							glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
@@ -1537,41 +1533,47 @@ int main(int argc, char *argv[])
 
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-// 	inclusions = GranuloBolome(.04, 25000, BOLOME_A)(.002, .99);
+	inclusions = GranuloBolome(.15, 25000, BOLOME_A)(.002, .5);
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
-// 	inclusions.push_back(new Inclusion(.015, 0,0)) ;
 	int nAgg = 0 ;
-// 	inclusions=placement(.04, .04, inclusions, &nAgg, 512);
+	inclusions=placement(.04, .04, inclusions, &nAgg, 1);
 // 	F.addFeature(&sample,inc) ;
 	
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	for(size_t i = 0 ; i < 4 ; i++)
 	{
-		Vector a(double(0), 3) ;
-		a[0] = .0002 ;
-		a[1] = .0002 ;
-		a[2] = 0.00 ;
+// 		Vector a(double(0), 3) ;
+// 		a[0] = .0002 ;
+// 		a[1] = .0002 ;
+// 		a[2] = 0.00 ;
 // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
-		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(2000000, -20000000))) ;
+		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,2000000)) ;
 		F.addFeature(&sample,inclusions[i]) ;
 	}
-// 	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
-// 	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
+
+	for(size_t i = 4 ; i < inclusions.size() ; i++)
+	{
+		inclusions.pop_back() ;
+	}
+	
+	inclusions.pop_back() ;
+	
+	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
+	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
 	Circle cercle(.5, 0,0) ;
 	
 
 	
 // 	sample.setBehaviour(new BimaterialInterface(&cercle, m0,  m0*4)) ;
 	Vector a(double(0), 3) ;
-	a[0] = -0.1 ;
-	a[1] = 0.0 ;
+	a[0] = 0.1 ;
+	a[1] = 0.1 ;
 	a[2] = 0.00 ;
 	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
-// 	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0_paste*4, a)) ;
-	ExpansiveZone * z =  new ExpansiveZone(&sample, .005, 0,0, m0_paste*4, a) ;
-	F.addFeature(&sample, z) ;
-// 	zones = generateExpansiveZones(1, inclusions, F) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
+// 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
+//	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
+//	F.addFeature(&sample, zones[0]) ;
+	zones = generateExpansiveZones(1, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1580,11 +1582,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(266) ;
-	F.setOrder(QUADRATIC) ;
+	F.sample(512) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
-	F.getDelaunayTree()->insert(new Point(0,0)) ;
 	
 	for(size_t j = 0 ; j < crack.size() ; j++)
 		crack[j]->setInfluenceRadius(0.03) ;
