@@ -53,7 +53,7 @@ public:
 	
 	virtual void print()  const = 0 ;
 	
-	const bool isFather ;
+	bool isFather ;
 	
 	virtual bool isMoved() const = 0 ;
 	

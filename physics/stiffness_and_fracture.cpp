@@ -72,7 +72,9 @@ void StiffnessAndFracture::step(double timestep, ElementState * currentState)
 		if(this->param[0][0] < init*.8)
 		{
 			frac = true ;
-			this->param *= .0001 ;
+			this->param[1][1] = init ;
+			this->param[0][0] *= .0001 ;
+			this->param[2][2] *= .0001 ;
 			for(size_t i = 0 ; i < param.numCols() ; i++)
 			{
 				for(size_t j = 0 ; j < param.numRows() ; j++)

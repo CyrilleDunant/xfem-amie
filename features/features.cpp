@@ -130,7 +130,7 @@ bool Feature::inBoundary(const Point *v) const
 {
 	bool ret = boundary->in(*v) ;
 	for(size_t i = 0 ;  i < this->m_c.size() ; i++)
-		ret =  ret || m_c[i]->inBoundary(*v) ;
+		ret =  ret || m_c[i]->inBoundary(v) ;
 	
 	return ret ;
 }
@@ -1706,6 +1706,23 @@ void FeatureTree::assemble()
 		
 		std::cerr << " ...done." << std::endl ;
 	}
+}
+
+
+std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
+{
+	std::vector<DelaunayTriangle> copy ;
+	
+	std::vector<DelaunayTriangle *> tris = dtree->getTriangles() ;
+	
+	for(size_t i = 0 ; i < tris.size() ; i++)
+	{
+		copy.push_back(*tris[i]) ;
+		copy.rbegin()->setBehaviour(tris[i]->getBehaviour()->getCopy()) ;
+		copy.rbegin()->getState()->initialize() ;
+	}
+	
+	return copy ;
 }
 
 Vector FeatureTree::stressFromDisplacements() const

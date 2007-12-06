@@ -480,6 +480,8 @@ public:
 	
 	bool is3D() const ;
 	bool is2D() const ;
+
+	std::vector<DelaunayTriangle> getSnapshot2D() const ;
 	
 } ;
 
