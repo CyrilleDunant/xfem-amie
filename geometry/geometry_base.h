@@ -396,7 +396,7 @@ public:
 	const Point & vector() const ;
 	double norm() const ;
 	
-	
+	Point project(const Point & p) const ;
 	Point intersection(const Line &l) const;
 	Point intersection(const Segment &l) const;
 	bool intersects(const Point & a, const Point & b) const ;

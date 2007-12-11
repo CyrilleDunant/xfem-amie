@@ -932,61 +932,17 @@ void SegmentedLine::sampleBoundingSurface(size_t num_points)
 
 void SegmentedLine::project(Point *p) const
 {
-// 	std::map<double, Segment> m ;
-// 	std::map<double, Point> projected ;
-// 	for(size_t i = 0 ; i < boundingPoints.size()-1 ; i++)
-// 	{
-// 		Segment s(*getBoundingPoint(i), *getBoundingPoint(i+1)) ;
-// 		m[squareDist2D(p,s.midPoint())] = s ;
-// 		Point p_ = *p ;
-// 		Line l(*s.first(), *s.vector()) ;
-// 		p_ = l.projection(&p_) ;
-// 		projected[squareDist2D(p_, *p)]= p_;
-// 	}
-// 	Line l(*m.rbegin()->second.first(), *m.rbegin()->second.vector()) ;
-// 	
-// 	Point proj = l.projection(p) ;
-// 	p->x = projected.rbegin()->second.x ;
-// 	p->y = projected.rbegin()->second.y ;
-	
-	Segment target(this->getBoundingPoint(0), this->getBoundingPoint(1)) ;
+
+	std::map<double, Point> projections ;
 	
 	for(size_t i = 1 ; i < boundingPoints.size()-1 ; i++)
 	{
-		Segment test(getBoundingPoint(i), getBoundingPoint(i+1)) ;
-		if(squareDist2D(*p, test.midPoint()) < squareDist2D(*p, target.midPoint()))
-		{
-			target = test ;
-		}
+		Point proj = Segment(getBoundingPoint(i), getBoundingPoint(i+1)).project(*p) ;
+		projections[squareDist2D(*p, proj)] = proj ;
 	}
 	
-	if(isAligned(*p, target.first(), target.second()))
-		return ;
-	
-	Line l(target.first(), target.vector()) ;
-	Point proj =  l.projection(*p) ;
-	
-	if(!target.on(proj))
-	{
-		double d0 = squareDist2D(proj, target.first()) ;
-		double d1 = squareDist2D(proj, target.second()) ;
-		
-		if(d0 < d1)
-			proj = target.first() ;
-		else
-			proj = target.second() ;
-	}
-	
-// 	for(size_t i = 0 ; i < projected.size() ; i++)
-// 	{		
-// 		if(squareDist2D(projected[i], *p ) < squareDist2D(target, *p ))
-// 		{
-// 			target = projected[i] ;
-// 		}
-// 	}
-	
-	p->x = proj.x ;
-	p->y = proj.y ;
+	p->x = projections.begin()->second.x ;
+	p->y = projections.begin()->second.y ;
 }
 
 void SegmentedLine::sampleSurface(size_t num_points) 

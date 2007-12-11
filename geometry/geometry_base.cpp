@@ -2274,6 +2274,28 @@ bool Segment::intersects(const Segment & s) const
 	
 }
 
+Point Segment::project(const Point & p) const
+{
+	Matrix m(2,2) ;
+	Vector v(2) ;
+	
+	m[0][0] = vec.x ; m[0][1] = -vec.y ;
+	m[1][0] = vec.y ; m[1][1] = vec.x ;
+	
+	v[0] = p.x - f.x ; v[1] = p.y - f.y ; 
+	
+	invert2x2Matrix(m) ;
+	
+	Vector fac = m * v ;
+	
+	if(fac[0] <= 1 && fac[0] >= 0)
+		return f+vec*fac[0] ;
+	else if(fac[0] < 0)
+		return f;
+	
+	return s ;
+}
+
 bool Segment::intersects(const Point & a, const Point & b) const
 {
 // 	if (std::abs(vec.x * (b->y - a->y) - vec.y * (a->x - b->x)) 
