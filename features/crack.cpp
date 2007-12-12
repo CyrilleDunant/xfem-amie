@@ -1954,7 +1954,6 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 			}
 		}
 	}
-changed = false ;
 }
 
 bool Crack::EnrichmentData::enriched ( DelaunayTriangle * t )
