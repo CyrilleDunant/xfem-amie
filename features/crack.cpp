@@ -796,7 +796,7 @@ Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double r
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
 
-	criticalJ = 10 ;
+	criticalJ = 0.03 ;
 }
 
 Crack::Crack ( const std::valarray<Point *> & points, double radius ) : EnrichmentFeature ( NULL ), SegmentedLine ( points )
@@ -812,7 +812,7 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
 
-	criticalJ = 10 ;
+	criticalJ = 0.03 ;
 }
 
 void Crack::setInfluenceRadius ( double r )
@@ -1512,11 +1512,11 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 {
 	Point direction ( *getHead()- getBoundingPoint ( 1 ) ) ;
 	Segment tip ( *getHead() , getBoundingPoint ( 1 ) ) ;
-	Circle c ( 0.2, boundary->getCenter() ) ;
+	Circle c ( boundary->getRadius()*1.5, boundary->getCenter() ) ;
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-
+	std::cout << disk.size() << std::endl ;
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
 
 
@@ -1533,7 +1533,6 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 
 			if ( tip.intersects ( t ) )
 			{
-
 				if ( A.intersects ( &c ) && B.intersects ( &c ) && !c.in ( C.midPoint() ) )
 				{
 					Point ipoint = C.intersection ( tip ) ;
@@ -1613,7 +1612,8 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 {
 	Point direction ( *getTail()- getBoundingPoint ( getBoundingPoints().size()-2 ) ) ;
 	Segment tip ( *getTail() , getBoundingPoint ( getBoundingPoints().size()-2 ) ) ;
-	Circle c ( 0.2, boundary2->getCenter() ) ;
+	Circle c ( boundary2->getRadius()*1.5, boundary2->getCenter() ) ;
+
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
@@ -1742,7 +1742,8 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	double currentAngle = atan2 ( getHead()->y - boundingPoints[1]->y,
 					getHead()->x -boundingPoints[1]->x ) ;
 	Point lastDir ( getHead()->x-getBoundingPoint ( 1 ).x, getHead()->y-getBoundingPoint ( 1 ).y ) ;
-	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
+	
+if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	{
 		DelaunayTriangle * headElem = NULL ;
 		for ( size_t i = 0 ; i < disk.size() ; i++ )
@@ -1782,7 +1783,6 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 							aangle += current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
 							acount++ ;
 							direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
-							std::cout << angle << "   " << maxPrincipalStressCurrent << std::endl ;
 							count += maxPrincipalStressCurrent ;
 						}
 					}
@@ -1812,10 +1812,10 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 			}
 			else
 			{
-				direction.set ( norm*cos ( aangle ), norm*sin ( aangle ) ) ;
+				direction.set ( norm*cos ( aangle + M_PI*.25), norm*sin ( aangle + M_PI*.25) ) ;
 	
 				if ( ( direction*lastDir ) < 0 )
-					direction.set ( norm*cos ( aangle+M_PI ), norm*sin ( aangle+M_PI ) ) ;
+					direction.set ( norm*cos ( aangle+M_PI + M_PI*.25), norm*sin ( aangle+M_PI + M_PI*.25) ) ;
 	
 				// 		Point currentDir(getHead()->x-getBoundingPoint(1).x, getHead()->y-getBoundingPoint(1).y) ;
 				// 		double angle = headElem->getState()->getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
@@ -1892,7 +1892,6 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 					{
 						Vector principalStresses = current->getState()->getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
 						double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
-						std::cout << angle << "   " << current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) << "   "<< currentDir.norm() << "  " << maxPrincipalStressCurrent << std::endl ;
 	
 						if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
 							maxPrincipalStressCurrent = 1000 ;
@@ -1932,10 +1931,10 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 			else
 			{
 	
-				direction.set ( norm*cos ( aangle+M_PI/4 ), norm*sin ( aangle+M_PI/4 ) ) ;
+				direction.set ( norm*cos ( aangle+ M_PI*.25), norm*sin ( aangle + M_PI*.25) ) ;
 	
 				if ( ( direction*lastDir ) < 0 )
-					direction.set ( norm*cos ( aangle+M_PI+M_PI/4 ), norm*sin ( aangle+M_PI+M_PI/4 ) ) ;
+					direction.set ( norm*cos ( aangle+M_PI + M_PI*.25), norm*sin ( aangle+M_PI + M_PI*.25) ) ;
 	
 				// 		Point currentDir(getTail()->x-getBoundingPoint(getBoundingPoints().size()-2).x, getTail()->y-getBoundingPoint(getBoundingPoints().size()-2).y) ;
 				// 		double angle = tailElem->getState()->getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
@@ -1955,7 +1954,7 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 			}
 		}
 	}
-
+changed = false ;
 }
 
 bool Crack::EnrichmentData::enriched ( DelaunayTriangle * t )

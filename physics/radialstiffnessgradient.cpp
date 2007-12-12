@@ -60,7 +60,7 @@ bool RadialStiffnessGradient::fractured() const
 	return false ;
 }
 
-Matrix RadialStiffnessGradient::getTensor(const Point * p) const
+Matrix RadialStiffnessGradient::getTensor(const Point & p) const
 {
 	VirtualMachine vm ;
 	
@@ -75,7 +75,7 @@ Matrix RadialStiffnessGradient::getTensor(const Point * p) const
 		}
 	}
 	
-	return vm.eval(C, p->x, p->y) ;
+	return vm.eval(C, p.x, p.y) ;
 }
 
 Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const

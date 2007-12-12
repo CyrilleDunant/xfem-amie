@@ -872,10 +872,10 @@ Function::Function(const Point & l, Function x, Function y) : derivative(2), byt
 {
 	this->dofID =-1 ;
 	this->ptID =-1 ;
-	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
-		byteCode[i] = x.getByteCode()[i] ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
-		byteCode[i+x.getByteCode().size()] = y.getByteCode()[i] ;
+		byteCode[i] = y.getByteCode()[i] ;
+	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
 	byteCode[byteCode.size()-1] = RefCountedToken(new PointDistanceBinaryOperatorToken(l)) ;
 }
 
@@ -883,10 +883,10 @@ Function::Function( Geometry * g, Function x, Function y) : derivative(2), byteC
 {
 	this->dofID =-1 ;
 	this->ptID =-1 ;
-	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
-		byteCode[i] = x.getByteCode()[i] ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
-		byteCode[i+x.getByteCode().size()] = y.getByteCode()[i] ;
+		byteCode[i] = y.getByteCode()[i] ;
+	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
 	byteCode[byteCode.size()-1] = RefCountedToken(new DomainBinaryOperatorToken(g)) ;
 }
 

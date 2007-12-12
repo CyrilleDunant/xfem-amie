@@ -119,7 +119,7 @@ protected:
 	
 	IntegrableEntity * parent ;
 	
-	std::vector<ElementState *> history ;
+	std::vector<ElementState> history ;
 	
 public:
 	

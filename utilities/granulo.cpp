@@ -108,7 +108,7 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 	std::vector<Inclusion *> rayon;
 	double rayon_granulat=rayonGranulatMax;
 	
-	double pourcentMasse=1;
+	double pourcentMasse=100;
 	int i=0;
 
 	double masseReste = masseInitiale;
@@ -123,101 +123,103 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 	while (pourcentMasse>pourcentMasseMin)
 	{
 		
-		double masse_granulat =( densite*4.*rayon_granulat*rayon_granulat*rayon_granulat*M_PI)/(3.); // masse plus plus gros granulat
+		double masse_granulat = densite*M_PI*rayon_granulat*rayon_granulat; // masse plus plus gros granulat
 		
 		if (masse_granulat > masseInitiale)
 		{
 			std::cerr<<"La masse du granultat pese plus que la masse totale!"<<std::endl;
 			return rayon ;
 		}
-		double volume = 4.*rayon_granulat*rayon_granulat*rayon_granulat*M_PI/(3.); // volume du plus gros granulat
+		double volume = M_PI*rayon_granulat*rayon_granulat ;//4.*rayon_granulat*rayon_granulat*rayon_granulat*M_PI/(3.); // volume du plus gros granulat
 
-		if(rayon_granulat<=0.0051)
+		if(rayon_granulat<=0.000051)
 		{
 			volumeGranulatsPasPlaces +=volume;
 		}
 
 
 		masseReste = masseReste-masse_granulat; 
-		pourcentMasse = masseReste/masseInitiale; 
+		pourcentMasse = masseReste/masseInitiale*100.; 
 		
 		switch(type)
 		{
 		case BOLOME_A:
-			rayon_granulat = 0.5*(2.*rayonGranulatMax+(2.*100.*pourcentMasse*2.*rayonGranulatMax/50.)-pow(((2.*rayonGranulatMax +(2.*100.*pourcentMasse*2.*rayonGranulatMax/50.))*(2.*rayonGranulatMax +(2.*100.*pourcentMasse*2.*rayonGranulatMax/50.))) -(4.*10000.*pourcentMasse*pourcentMasse*4.*rayonGranulatMax*rayonGranulatMax/2500.),0.5))/2.;
+			rayon_granulat = 0.5*(rayonGranulatMax+4.*pourcentMasse*rayonGranulatMax
+          - sqrt((rayonGranulatMax +8.*pourcentMasse*rayonGranulatMax) * (rayonGranulatMax +8.*pourcentMasse*rayonGranulatMax) 
+          - 16.*pourcentMasse*pourcentMasse*rayonGranulatMax*rayonGranulatMax));
 			break ;
 		case BOLOME_B:
 			// diametre du granulat suivant
-			rayon_granulat = (pourcentMasse*pourcentMasse*10000.*2.*rayonGranulatMax)/20000.;   
+			rayon_granulat = pourcentMasse*pourcentMasse/20000.*rayonGranulatMax;
 			break ;
 		case BOLOME_C:
 			if(rayon_granulat<0.2)
-				rayon_granulat = (pourcentMasse*pourcentMasse*10000.*2.*rayonGranulatMax)/20000.;
+				rayon_granulat = pourcentMasse*pourcentMasse/20000.*rayonGranulatMax;
 				
 			else 
-				rayon_granulat = 1.05*(pourcentMasse*pourcentMasse*10000.*2.*rayonGranulatMax)/20000.;
+				rayon_granulat = 1.05*pourcentMasse*pourcentMasse/20000.*rayonGranulatMax;
 			break ;
 		case BOLOME_D:
 			double m;//pente
 			double b;//ordonnée en x=0
 			
-			if(pourcentMasse<0.045 && pourcentMasse> 0.03)
+// 			if(pourcentMasse<0.045 && pourcentMasse> 0.03)
+// 			{
+// 				Point A(0.1,3.);
+// 				Point B(0.16,4.5);
+// 				m= (B.y-A.y)/(B.x-A.x);
+// 				b=A.y-(m*A.x);
+// 				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+// 			}
+// 			if(pourcentMasse<0.07 && pourcentMasse> 0.045)
+// 			{
+// 				Point A(0.16,4.5);
+// 				Point B(0.25,7.);
+// 				m= (B.y-A.y)/(B.x-A.x);
+// 				b=A.y-(m*A.x);
+// 				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+// 			}
+// 			if(pourcentMasse<0.31 && pourcentMasse> 0.07)
+// 			{
+// 				Point A(0.25,7.0);
+// 				Point B(4.,31.);
+// 				m= (B.y-A.y)/(B.x-A.x);
+// 				b=A.y-(m*A.x);
+// 				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+// 			}
+// 			if(pourcentMasse<0.35 && pourcentMasse> 0.31)
+// 			{
+// 				Point A(4.,31.);
+// 				Point B(5.,35.);
+// 				m= (B.y-A.y)/(B.x-A.x);
+// 				b=A.y-(m*A.x);
+// 				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+// 			}
+			if(pourcentMasse> 0. && pourcentMasse<10)
 			{
-				Point A(0.1,3.);
-				Point B(0.16,4.5);
+				Point A(.000160,0.);
+				Point B(.000315,10.);
 				m= (B.y-A.y)/(B.x-A.x);
 				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+				rayon_granulat = (pourcentMasse-b)/m/2.;
 			}
-			if(pourcentMasse<0.07 && pourcentMasse> 0.045)
+			if(pourcentMasse<20 && pourcentMasse>= 10)
 			{
-				Point A(0.16,4.5);
-				Point B(0.25,7.);
+				Point A(.000315,10.);
+				Point B(.00063,20.);
 				m= (B.y-A.y)/(B.x-A.x);
 				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+				rayon_granulat = (pourcentMasse-b)/m/2.;
 			}
-			if(pourcentMasse<0.31 && pourcentMasse> 0.07)
+			if(pourcentMasse<45 && pourcentMasse> 20)
 			{
-				Point A(0.25,7.0);
-				Point B(4.,31.);
+				Point A(.00063,20.);
+				Point B(.00125,45.);
 				m= (B.y-A.y)/(B.x-A.x);
 				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+				rayon_granulat = (pourcentMasse-b)/m/2.;
 			}
-			if(pourcentMasse<0.35 && pourcentMasse> 0.31)
-			{
-				Point A(4.,31.);
-				Point B(5.,35.);
-				m= (B.y-A.y)/(B.x-A.x);
-				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
-			}
-			if(pourcentMasse<0.42 && pourcentMasse> 0.35)
-			{
-				Point A(5.,35.);
-				Point B(6.3,42.);
-				m= (B.y-A.y)/(B.x-A.x);
-				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
-			}
-			if(pourcentMasse<0.51 && pourcentMasse> 0.42)
-			{
-				Point A(6.3,42.);
-				Point B(8.,51.);
-				m= (B.y-A.y)/(B.x-A.x);
-				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
-			}
-			if(pourcentMasse<0.57 && pourcentMasse> 0.51)
-			{
-				Point A(8.,51.);
-				Point B(10.,57.);
-				m= (B.y-A.y)/(B.x-A.x);
-				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
-			}
-			if(pourcentMasse<0.82 && pourcentMasse> 0.57)
+			if(pourcentMasse<82 && pourcentMasse> 57)
 			{
 				Point A(10.,57.);
 				Point B(16.,82.);
@@ -225,28 +227,28 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 				b=A.y-(m*A.x);
 				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
 			}
-			if(pourcentMasse<0.97 && pourcentMasse> 0.82)
+			if(pourcentMasse<70 && pourcentMasse> 45)
 			{
-				Point A(16.,82.);
-				Point B(25.,97.);
+				Point A(.00125,45.);
+				Point B(.0025,70.);
 				m= (B.y-A.y)/(B.x-A.x);
 				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+				rayon_granulat = (pourcentMasse-b)/m/2.;
 			}
-			if(pourcentMasse<1. && pourcentMasse> 0.97)
+			if(pourcentMasse<100. && pourcentMasse> 70)
 			{
-				Point A(25.,97.);
-				Point B(32.,100.);
+				Point A(.0025,70.);
+				Point B(.005,100.);
 				m= (B.y-A.y)/(B.x-A.x);
 				b=A.y-(m*A.x);
-				rayon_granulat = (100.*pourcentMasse-b)/m/2.;
+				rayon_granulat = (pourcentMasse-b)/m/2.;
 			}
 			break;
 		default:
 			break ;
 		}
 		
-		if(rayon_granulat<0.00008)
+		if(rayon.size() > 20000 || pourcentMasse < pourcentMasseMin)
 		{
 			std::cout<<"volumeGranulatsPasPlaces "<<volumeGranulatsPasPlaces<<std::endl;
 			return rayon;

@@ -2033,8 +2033,8 @@ bool FeatureTree::step(double dt)
 		}
 		std::cerr << " ...done" << std::endl ;
 		
-		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
-		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
+// 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
+// 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
 		
 		for(size_t i = 0 ; i< tree.size() ; i++)
 		{
@@ -2088,8 +2088,6 @@ bool FeatureTree::step(double dt)
 // 			}
 // 		}
 	}
-	
-	std::cout << "return is : " << ret << std::endl ;
 	return ret ;
 	
 }
