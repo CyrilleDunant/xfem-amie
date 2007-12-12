@@ -29,7 +29,7 @@ namespace Mu {
 	
 		virtual ~VonMises();
 		
-		virtual bool met(const ElementState * s) const ;
+		virtual bool met(const ElementState & s) const ;
 	
 	};
 

@@ -34,9 +34,9 @@ namespace Mu
 		
 		virtual Form * getCopy() const = 0 ;
 		
-		virtual void step(double timestep, ElementState * s) ;
+		virtual void step(double timestep, ElementState & s) ;
 		
-		virtual void updateElementState(double timestep, ElementState * currentState) const ;
+		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		
 	} ;
 	
@@ -46,7 +46,7 @@ namespace Mu
 	{
 	protected:
 		std::vector<Point> hints ;
-		ElementState * state ;
+
 	public:
 		NonLinearForm() ;
 		
@@ -58,13 +58,9 @@ namespace Mu
 		
 		virtual void setIntegrationHints(std::vector<Point> h) ;
 		
-		virtual ElementState * getState() ;
+		virtual void step(double timestep, ElementState & s) ;
 		
-		virtual void setState(ElementState * s) ;
-		
-		virtual void step(double timestep, ElementState * s) ;
-		
-		virtual void updateElementState(double timestep, ElementState * currentState) const ;
+		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		
 		virtual bool isActive() const = 0 ;
 		

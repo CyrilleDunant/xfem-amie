@@ -18,9 +18,24 @@ Vector & ElementState::getEnrichedDisplacements()
 	return this->enrichedDisplacements ;
 }
 
+IntegrableEntity::IntegrableEntity() : state(this)
+{
+	
+}
+
 const Vector & ElementState::getPreviousEnrichedDisplacements() const
 {
 	return this->previousEnrichedDisplacements ;
+}
+
+const ElementState & IntegrableEntity::getState() const
+{
+	return state ;
+}
+
+ElementState & IntegrableEntity::getState()
+{
+	return state ;
 }
 
 void ElementState::stepBack()

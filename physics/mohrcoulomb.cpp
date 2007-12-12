@@ -24,10 +24,10 @@ MohrCoulomb::~MohrCoulomb()
 {
 }
 
-bool MohrCoulomb::met(const ElementState * s) const
+bool MohrCoulomb::met(const ElementState & s) const
 {
-	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s->getParent()) ;
-	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s->getParent()) ;
+	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
+	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
 	{
 		std::set<DelaunayTriangle *> neighbourhood ;
@@ -48,7 +48,7 @@ bool MohrCoulomb::met(const ElementState * s) const
 		{
 			for(std::set<DelaunayTriangle *>::const_iterator i = neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
 			{
-				Vector pstress = (*i)->getState()->getPrincipalStresses((*i)->getCenter()) ;
+				Vector pstress = (*i)->getState().getPrincipalStresses((*i)->getCenter()) ;
 				double maxStress = pstress.max() ;
 				double minStress = pstress.min() ;
 				if(maxStress > maxNeighbourhoodStress)
@@ -58,7 +58,7 @@ bool MohrCoulomb::met(const ElementState * s) const
 			}
 		}
 		
-		Vector pstress = s->getPrincipalStresses(Point(1./3., 1./3.), true) ;
+		Vector pstress = s.getPrincipalStresses(Point(1./3., 1./3.), true) ;
 		double maxStress = pstress.max();
 		double minStress = pstress.min();
 		if( maxStress > upVal )
@@ -97,7 +97,7 @@ bool MohrCoulomb::met(const ElementState * s) const
 		{
 			for(std::set<HexahedralElement *>::const_iterator i = neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
 			{
-				Vector pstress = (*i)->getState()->getPrincipalStresses((*i)->getCenter()) ;
+				Vector pstress = (*i)->getState().getPrincipalStresses((*i)->getCenter()) ;
 				double maxStress = pstress.max() ;
 				double minStress = pstress.min() ;
 				if(maxStress > maxNeighbourhoodStress)
@@ -107,7 +107,7 @@ bool MohrCoulomb::met(const ElementState * s) const
 			}
 		}
 		
-		Vector pstress = s->getPrincipalStresses(Point(1./3., 1./3.), true) ;
+		Vector pstress = s.getPrincipalStresses(Point(1./3., 1./3.), true) ;
 		double maxStress = pstress.max();
 		double minStress = pstress.min();
 		if( maxStress > upVal )

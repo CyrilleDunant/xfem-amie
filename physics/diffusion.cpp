@@ -64,7 +64,7 @@ Form * Diffusion::getCopy() const
 	return new Diffusion(*this) ;
 }
 
-Vector Diffusion::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector Diffusion::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

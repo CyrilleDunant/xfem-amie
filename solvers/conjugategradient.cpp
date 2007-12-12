@@ -53,6 +53,10 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	if (err < eps*eps)
 	{
 		std::cerr << "b in : " << b.min() << ", " << b.max() << std::endl ;
+		if(cleanup)
+		{
+			delete P ;
+		}
 		return true ;
 	}
 	//*************************************

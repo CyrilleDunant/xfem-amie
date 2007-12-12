@@ -55,7 +55,7 @@ namespace Mu
 		* 
 		* if the Von Mises yield criterion is true, se fractured state to true
 		*/
-		virtual void step(double timestep, ElementState * currentState) ;
+		virtual void step(double timestep, ElementState & currentState) ;
 		
 		/** Check for fracture state
 		*
@@ -70,7 +70,7 @@ namespace Mu
 		*/
 		virtual Form * getCopy() const ;
 		
-		virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+		virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 
 		virtual bool changed() const ;
 		

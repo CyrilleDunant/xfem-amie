@@ -48,53 +48,7 @@ struct Form ;
 struct NonLinearForm ;
 struct Function ;
 struct DelaunayTriangle ;
-struct ElementState ;
-
-/** Abstract class for the representation of elements
- */
-class IntegrableEntity : public Geometry
-{
-protected:
-	
-	Order order ;
-	
-public:
-	
-	virtual Matrix getInverseJacobianMatrix(const Point &p) const = 0 ;
-	virtual ~IntegrableEntity() { } ;
-	virtual const Point & getPoint(size_t i) const = 0 ;
-	virtual Point & getPoint(size_t i)  = 0 ;
-	virtual std::valarray< std::pair<Point, double> > getGaussPoints() const = 0 ;
-	virtual Point inLocalCoordinates(const Point & p) const  = 0;
-	virtual double area() const { return 0 ; } 
-	virtual double volume() const { return 0 ; } 
-	
-	virtual const Function getXTransform() const = 0;
-	virtual const Function getYTransform() const = 0;
-
-	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
-	virtual	const std::vector< std::pair< size_t, Function> > & getEnrichmentFunctions() const = 0 ;
-	virtual	std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  = 0 ;
-	virtual	const Function & getShapeFunction(size_t i) const = 0 ;
-	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const = 0;	
-	virtual Order getOrder() const  = 0 ;
-	
-	virtual const std::vector<std::pair<size_t, Function> > getDofs() const = 0;
-	virtual const std::vector< size_t > getDofIds() const = 0;
-	
-	virtual Form * getBehaviour() const = 0;
-	virtual NonLinearForm * getNonLinearBehaviour() const = 0;
-	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const  = 0 ;
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const  = 0 ;
-	virtual Vector getForces() const = 0 ;
-	virtual Vector getNonLinearForces() const = 0 ;
-	
-	virtual bool isMoved() const = 0 ;
-	virtual void print() const = 0;
-	
-	virtual ElementState * getState() const = 0 ;
-	
-} ;
+struct IntegrableEntity ;
 
 /** State of the element, allows easy extraction of the various fields
  * 
@@ -232,6 +186,56 @@ public:
 } ;
 
 
+
+/** Abstract class for the representation of elements
+ */
+class IntegrableEntity : public Geometry
+{
+protected:
+	
+	Order order ;
+	ElementState state ;
+	
+public:
+	
+	IntegrableEntity() ;
+	virtual Matrix getInverseJacobianMatrix(const Point &p) const = 0 ;
+	virtual ~IntegrableEntity() { } ;
+	virtual const Point & getPoint(size_t i) const = 0 ;
+	virtual Point & getPoint(size_t i)  = 0 ;
+	virtual std::valarray< std::pair<Point, double> > getGaussPoints() const = 0 ;
+	virtual Point inLocalCoordinates(const Point & p) const  = 0;
+	virtual double area() const { return 0 ; } 
+	virtual double volume() const { return 0 ; } 
+	
+	virtual const Function getXTransform() const = 0;
+	virtual const Function getYTransform() const = 0;
+
+	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
+	virtual	const std::vector< std::pair< size_t, Function> > & getEnrichmentFunctions() const = 0 ;
+	virtual	std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  = 0 ;
+	virtual	const Function & getShapeFunction(size_t i) const = 0 ;
+	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const = 0;	
+	virtual Order getOrder() const  = 0 ;
+	
+	virtual const std::vector<std::pair<size_t, Function> > getDofs() const = 0;
+	virtual const std::vector< size_t > getDofIds() const = 0;
+	
+	virtual Form * getBehaviour() const = 0;
+	virtual NonLinearForm * getNonLinearBehaviour() const = 0;
+	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const  = 0 ;
+	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const  = 0 ;
+	virtual Vector getForces() const = 0 ;
+	virtual Vector getNonLinearForces() const = 0 ;
+	
+	virtual bool isMoved() const = 0 ;
+	virtual void print() const = 0;
+	
+	virtual const ElementState & getState() const ;
+	virtual ElementState & getState() ;
+	
+} ;
+
 /** A Form for DIM degrees of freedom.
  */
 class Form
@@ -283,12 +287,12 @@ public:
 	 * @param timestep length of the timestep
 	 * @param variables variables affecting the next step.
 	 */
-	virtual void step(double timestep, ElementState * currentState) = 0;
-	virtual void updateElementState(double timestep, ElementState * currentState) const = 0;
+	virtual void step(double timestep, ElementState & currentState) = 0;
+	virtual void updateElementState(double timestep, ElementState & currentState) const = 0;
 	
 	virtual bool fractured() const = 0 ;
 	virtual bool changed() const { return false ; } ;
-	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
 	
 	virtual Form * getCopy() const = 0 ;
 	virtual void stepBack() { }  ;

@@ -84,9 +84,9 @@ public:
 	
 	virtual bool hasInducedMatrix() const ;
 	
-	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 
-	virtual void step(double timestep, ElementState * currentState) ;
+	virtual void step(double timestep, ElementState & currentState) ;
 
 	virtual bool isActive() const ;
 } ;
@@ -95,7 +95,8 @@ struct NonLinearStiffness : public NonLinearForm
 {
 	Function E ;
 	double nu ;
-	NonLinearStiffness(Function f, double n) ;
+	NonLinearStiffness(Function f, double n, IntegrableEntity * parent) ;
+	IntegrableEntity * parent ;
 	
 	virtual ~NonLinearStiffness() ;
 	
@@ -114,7 +115,7 @@ struct NonLinearStiffness : public NonLinearForm
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const;
 	
 	
-	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 
 	
 	virtual bool isActive() const ;
@@ -143,8 +144,8 @@ struct ViscoElasticity: public LinearForm
 	
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const;
 	/** \todo remove usage of previousState. complement state instead*/
-	virtual void step(double timestep, ElementState * currentState);
-	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const;
+	virtual void step(double timestep, ElementState & currentState);
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const;
 	
 	virtual bool hasInducedForces();
 	

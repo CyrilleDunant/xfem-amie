@@ -1571,7 +1571,7 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 	{
 		if ( gamma[j].second->getBehaviour()->type != VOID_BEHAVIOUR )
 		{
-			// 		FunctionMatrix displacements = gamma[j].second->getState()->getDisplacementFunction() ;
+			// 		FunctionMatrix displacements = gamma[j].second->getState().getDisplacementFunction() ;
 			std::vector<std::pair<Point, double> > gaussPoints = gamma[j].first->getGaussPoints() ;
 			gaussPoints.push_back ( std::make_pair ( gamma[j].first->midPoint(), ( double ) 1 ) );
 			Point n = gamma[j].first->normal ( gamma[j].second->getCenter() ) ;
@@ -1589,8 +1589,8 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
 			{
 				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
-				Matrix sigma = gamma[j].second->getState()->getStressMatrix ( localGaussPoint,true ) ;
-				Matrix epsilon = gamma[j].second->getState()->getStrainMatrix ( localGaussPoint,true ) ;
+				Matrix sigma = gamma[j].second->getState().getStressMatrix ( localGaussPoint,true ) ;
+				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 
 				Vector T = sigma * normal ;
@@ -1673,7 +1673,7 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 	{
 		if ( gamma[j].second->getBehaviour()->type != VOID_BEHAVIOUR )
 		{
-			// 		FunctionMatrix displacements = gamma[j].second->getState()->getDisplacementFunction() ;
+			// 		FunctionMatrix displacements = gamma[j].second->getState().getDisplacementFunction() ;
 			std::vector<std::pair<Point, double> > gaussPoints = gamma[j].first->getGaussPoints() ;
 			gaussPoints.push_back ( std::make_pair ( gamma[j].first->midPoint(), ( double ) 1 ) );
 			Point n = gamma[j].first->normal ( gamma[j].second->getCenter() ) ;
@@ -1691,8 +1691,8 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
 			{
 				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
-				Matrix sigma = gamma[j].second->getState()->getStressMatrix ( localGaussPoint,true ) ;
-				Matrix epsilon = gamma[j].second->getState()->getStrainMatrix ( localGaussPoint,true ) ;
+				Matrix sigma = gamma[j].second->getState().getStressMatrix ( localGaussPoint,true ) ;
+				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 
 				Vector T = sigma * normal ;
@@ -1773,14 +1773,14 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 					Point currentDir ( current->getBoundingPoint ( j ).x-getHead()->x, current->getBoundingPoint ( j ).y-getHead()->y ) ;
 					if ( ( currentDir*lastDir ) > 0 )
 					{
-						Vector principalStresses = current->getState()->getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
+						Vector principalStresses = current->getState().getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
 						double maxPrincipalStressCurrent = 1./std::abs ( principalStresses[0] );
 						if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
 							maxPrincipalStressCurrent = 1000 ;
 	
 						if ( currentDir.norm() > 1e-8 )
 						{
-							aangle += current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
+							aangle += current->getState().getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
 							acount++ ;
 							direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
 							count += maxPrincipalStressCurrent ;
@@ -1818,7 +1818,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 					direction.set ( norm*cos ( aangle+M_PI + M_PI*.25), norm*sin ( aangle+M_PI + M_PI*.25) ) ;
 	
 				// 		Point currentDir(getHead()->x-getBoundingPoint(1).x, getHead()->y-getBoundingPoint(1).y) ;
-				// 		double angle = headElem->getState()->getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
+				// 		double angle = headElem->getState().getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
 				// 		direction = Point(norm*cos(angle),norm*sin(angle)) ;
 				//
 				// 		if((direction*currentDir) < 0)
@@ -1890,7 +1890,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	
 					if ( ( currentDir*lastDir ) > 0 )
 					{
-						Vector principalStresses = current->getState()->getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
+						Vector principalStresses = current->getState().getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
 						double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
 	
 						if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -1898,7 +1898,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	
 						if ( currentDir.norm() > 1e-8 )
 						{
-							aangle += current->getState()->getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
+							aangle += current->getState().getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
 							acount++ ;
 							direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
 							count += maxPrincipalStressCurrent ;
@@ -1937,7 +1937,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 					direction.set ( norm*cos ( aangle+M_PI + M_PI*.25), norm*sin ( aangle+M_PI + M_PI*.25) ) ;
 	
 				// 		Point currentDir(getTail()->x-getBoundingPoint(getBoundingPoints().size()-2).x, getTail()->y-getBoundingPoint(getBoundingPoints().size()-2).y) ;
-				// 		double angle = tailElem->getState()->getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
+				// 		double angle = tailElem->getState().getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
 				// 		direction = Point(norm*cos(angle), norm*sin(angle)) ;
 				//
 				// 		if((direction*currentDir) < 0)

@@ -59,7 +59,7 @@ bool StiffnessWithImposedDeformation::hasInducedForces() const
 	return true ; 
 } 
 
-Vector StiffnessWithImposedDeformation::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector StiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);

@@ -2078,30 +2078,13 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 }
 
 
- std::vector<std::vector<Matrix> > DelaunayTetrahedron::getNonLinearElementaryMatrix() const 
+ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getNonLinearElementaryMatrix() 
 {
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 	std::vector<std::vector<Matrix> > mother ;
 	
-	if(state == NULL)
-	{
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			std::vector< Matrix > v_j ;
-			
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				v_j.push_back(Matrix()) ;
-			}
-			
-			mother.push_back(v_j) ;
-		}
-		
-		return mother ;
-	}
-	
-	Vector dsp = this->getState()->getDisplacements() ;
-	this->getState()->step(0, &dsp) ;
+	Vector dsp = this->getState().getDisplacements() ;
+	this->getState().step(0, &dsp) ;
 	
 	if(!this->getNonLinearBehaviour()->isActive())
 	{
@@ -2229,8 +2212,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 	for(size_t i = 0 ; i < gp.size() ; i++)
 		gp_points[i] = gp[i].first ;
 	
-	Vector displacement_state = this->getState()->getDisplacements(gp_points) ;
-	this->nonlinbehaviour->setState(this->getState()) ;
+	Vector displacement_state = this->getState().getDisplacements(gp_points) ;
 
 	int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
 	
@@ -2265,12 +2247,6 @@ Vector DelaunayTetrahedron::getNonLinearForces() const
 {
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 	Vector forces(dofs.size()*3) ;
-	
-	if(state == NULL)
-	{
-		forces = 0 ;
-		return forces ;
-	}
 	
 	if(!this->getNonLinearBehaviour()->isActive())
 	{

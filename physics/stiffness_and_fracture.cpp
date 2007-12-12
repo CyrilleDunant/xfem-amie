@@ -60,7 +60,7 @@ void StiffnessAndFracture::stepBack()
 	param = previousParam ;
 }
 
-void StiffnessAndFracture::step(double timestep, ElementState * currentState) 
+void StiffnessAndFracture::step(double timestep, ElementState & currentState) 
 {
 	change = false ;
 	if(!frac && criterion->met(currentState) )
@@ -104,7 +104,7 @@ Form * StiffnessAndFracture::getCopy() const
 	return new StiffnessAndFracture(*this) ;
 }
 
-Vector StiffnessAndFracture::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector StiffnessAndFracture::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

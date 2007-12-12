@@ -243,6 +243,7 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 				b=A.y-(m*A.x);
 				rayon_granulat = (pourcentMasse-b)/m/2.;
 			}
+			rayon_granulat*=.5 ;
 			break;
 		default:
 			break ;

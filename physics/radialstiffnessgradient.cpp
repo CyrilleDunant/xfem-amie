@@ -102,7 +102,7 @@ Form * RadialStiffnessGradient::getCopy() const
 	return new RadialStiffnessGradient(*this) ;
 }
 
-Vector RadialStiffnessGradient::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector RadialStiffnessGradient::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

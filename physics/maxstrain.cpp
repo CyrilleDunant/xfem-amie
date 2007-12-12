@@ -36,7 +36,7 @@ bool MaximumStrain::met(const ElementState * s) const
 		{
 			for(size_t i = 0 ; i< neighbourhood.size() ; i++)
 			{
-				Vector pstrain = neighbourhood[i]->getState()->getStrain(neighbourhood[i]->getBoundingPoints()) ;
+				Vector pstrain = neighbourhood[i]->getState().getStrain(neighbourhood[i]->getBoundingPoints()) ;
 				double maxStrain = pstrain.max() ;
 				if(maxStrain > maxNeighbourhoodStrain)
 					maxNeighbourhoodStrain = maxStrain ;

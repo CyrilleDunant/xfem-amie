@@ -10,13 +10,12 @@
 using namespace Mu ;
 
 
-NonLinearStiffness::NonLinearStiffness(Function f, double n) 
+NonLinearStiffness::NonLinearStiffness(Function f, double n, IntegrableEntity * p) : parent(p) 
 {
 	E = f ;
 	nu = n ;
 	this->time_d = false ;
 	this->type = NON_LINEAR ;
-	this->state = NULL ;
 	FunctionMatrix m0(3,3) ;
 	VirtualMachine vm ;
 	
@@ -41,7 +40,7 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 	
 	double E_ = 0;
 	Matrix m0(3,3) ;
-	Vector displacements = state->getDisplacements( pts) ;
+	Vector displacements = e->getState().getDisplacements( pts) ;
 	for(size_t i = 0 ; i < gp.size() ; i++)
 	{
 		E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp[i].second ;
@@ -80,7 +79,7 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 		pts[i] = gp[i].first ;
 	}
 	
-	Vector displacements = state->getDisplacements( pts) ;
+	Vector displacements = parent->getState().getDisplacements( pts) ;
 	double E_ = 0;
 	
 	for(size_t i = 0 ; i < gp.size() ; i++)
@@ -99,9 +98,9 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
-Vector NonLinearStiffness::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
-	Vector stress = state->getStress(gp) ; 
+	Vector stress = s.getStress(gp) ; 
 
 	std::vector<Variable> v ;
 	v.push_back(XI);
@@ -112,17 +111,15 @@ Vector NonLinearStiffness::getForces(const ElementState * s, const Function & p_
 
 bool NonLinearStiffness::isActive() const 
 {
-	if(!state)
-		return false ;
-	
-	std::valarray< std::pair<Point, double> > gp = state->getParent()->getGaussPoints() ;
+
+	std::valarray< std::pair<Point, double> > gp = parent->getGaussPoints() ;
 	std::valarray<Point> pts(gp.size()) ;
 	for(size_t i = 0; i < gp.size() ; i++)
 	{
 		pts[i] = gp[i].first ;
 	}
 	
-	Vector displacements = state->getDisplacements( pts) ;
+	Vector displacements = parent->getState().getDisplacements( pts) ;
 	double E_ = 0;
 	VirtualMachine vm ;
 	
@@ -186,7 +183,7 @@ bool TwoDCohesiveForces::hasInducedMatrix() const
 }
 	
 	
-Vector TwoDCohesiveForces::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 
 	Vector ret(0., 2) ;
@@ -197,7 +194,7 @@ Vector TwoDCohesiveForces::getForces(const ElementState * s, const Function & p_
 		return ret ;
 	
 
-	Vector apparentStress = source->getState()->getNonEnrichedStress(gp,Jinv) ; 
+	Vector apparentStress = source->getState().getNonEnrichedStress(gp,Jinv) ; 
 	for(size_t i = 0 ; i < gp.size() ; i++)
 	{
 		if(enrichedDof)
@@ -234,42 +231,42 @@ Vector TwoDCohesiveForces::getForces(const ElementState * s, const Function & p_
 
 }
 	
-void TwoDCohesiveForces::step(double timestep, ElementState * s) 
+void TwoDCohesiveForces::step(double timestep, ElementState & s) 
 {
 // 		this->state = currentState ;
 	
 	
-	s->getPreviousPreviousDisplacements() = s->getPreviousDisplacements() ;
-	s->getPreviousDisplacements() = s->getDisplacements() ;
-	s->getPreviousPreviousEnrichedDisplacements() = s->getPreviousEnrichedDisplacements() ;
-	s->getPreviousEnrichedDisplacements() = s->getEnrichedDisplacements() ;
+	s.getPreviousPreviousDisplacements() = s.getPreviousDisplacements() ;
+	s.getPreviousDisplacements() = s.getDisplacements() ;
+	s.getPreviousPreviousEnrichedDisplacements() = s.getPreviousEnrichedDisplacements() ;
+	s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
 	
-	size_t ndofs = s->getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int offset = ndofs-1 ;
 	
-	if(s->getEnrichedDisplacements().size() != s->getParent()->getEnrichmentFunctions().size()*ndofs)
-		s->getEnrichedDisplacements().resize(s->getParent()->getEnrichmentFunctions().size()*ndofs) ;
+	if(s.getEnrichedDisplacements().size() != s.getParent()->getEnrichmentFunctions().size()*ndofs)
+		s.getEnrichedDisplacements().resize(s.getParent()->getEnrichmentFunctions().size()*ndofs) ;
 	
-	for(size_t i = 0 ; i < s->getParent()->getBoundingPoints().size() ; i++)
+	for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
 	{
-		s->getDisplacements()[i*ndofs] = s->getBuffer()[i*ndofs] ;
-		s->getDisplacements()[i*ndofs+offset] = s->getBuffer()[i*ndofs+offset] ;
+		s.getDisplacements()[i*ndofs] = s.getBuffer()[i*ndofs] ;
+		s.getDisplacements()[i*ndofs+offset] = s.getBuffer()[i*ndofs+offset] ;
 	}
 	
-	for(size_t i = 0 ; i < s->getParent()->getEnrichmentFunctions().size() ; i++)
+	for(size_t i = 0 ; i < s.getParent()->getEnrichmentFunctions().size() ; i++)
 	{
-		std::cout << i*ndofs << " vs " << s->getEnrichedDisplacements().size() << std::endl ;
-		s->getEnrichedDisplacements()[i*ndofs] = s->getBuffer()[(i+s->getParent()->getBoundingPoints().size())*ndofs] ;
-		s->getEnrichedDisplacements()[i*ndofs+offset] = s->getBuffer()[(i+s->getParent()->getBoundingPoints().size())*ndofs+offset] ;
+		std::cout << i*ndofs << " vs " << s.getEnrichedDisplacements().size() << std::endl ;
+		s.getEnrichedDisplacements()[i*ndofs] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs] ;
+		s.getEnrichedDisplacements()[i*ndofs+offset] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs+offset] ;
 	}
 }
 	
 
 bool TwoDCohesiveForces::isActive() const 
 {
-	Point a = source->getBoundingPoint(0) + source->getState()->getDisplacements(source->getBoundingPoint(0), false);
-	Point b = source->getBoundingPoint(source->getBoundingPoints().size()/3) + source->getState()->getDisplacements(source->getBoundingPoint(source->getBoundingPoints().size()/3), false);
-	Point c = source->getBoundingPoint(2*source->getBoundingPoints().size()/3) + source->getState()->getDisplacements(source->getBoundingPoint(2*source->getBoundingPoints().size()/3), false);
+	Point a = source->getBoundingPoint(0) + source->getState().getDisplacements(source->getBoundingPoint(0), false);
+	Point b = source->getBoundingPoint(source->getBoundingPoints().size()/3) + source->getState().getDisplacements(source->getBoundingPoint(source->getBoundingPoints().size()/3), false);
+	Point c = source->getBoundingPoint(2*source->getBoundingPoints().size()/3) + source->getState().getDisplacements(source->getBoundingPoint(2*source->getBoundingPoints().size()/3), false);
 	
 	double newArea = Triangle(a,b,c).area() ;
 	
@@ -311,7 +308,7 @@ ViscoElasticity::ViscoElasticity( double _tau_k, double _tau_g, Vector g, Vector
 	
 // 		std::cout << "E = " << E << ", nu = " << nu << std::endl; 
 		
-	this->time_d = true;
+	time_d = true;
 	
 }
 	
@@ -334,7 +331,7 @@ Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const 
 	v.push_back(ZETA);
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
-void ViscoElasticity::step(double timestep, ElementState * currentState)
+void ViscoElasticity::step(double timestep, ElementState & currentState)
 {
 	
 		// computing G
@@ -382,8 +379,8 @@ void ViscoElasticity::step(double timestep, ElementState * currentState)
 	
 	Vector Deltastrain_g(3);
 	Vector previousStrain_g(3);
-	Vector Deltastrain = currentState->getDeltaStrain(currentState->getParent()->getCenter()) ;
-	Vector previousStrain = currentState->getStrain(currentState->getParent()->getCenter())-Deltastrain ;
+	Vector Deltastrain = currentState.getDeltaStrain(currentState.getParent()->getCenter()) ;
+	Vector previousStrain = currentState.getStrain(currentState.getParent()->getCenter())-Deltastrain ;
 	double compoundDeltaStrain = std::accumulate(&Deltastrain[0], &Deltastrain[2], (double)(0.)) ;
 	double previousCompoundStrain = std::accumulate(&previousStrain[0], &previousStrain[2], (double)(0.)) ;
 	Deltastrain_g-= std::accumulate(&Deltastrain[0], &Deltastrain[2], (double)(0.))/3. ;
@@ -482,7 +479,7 @@ void ViscoElasticity::step(double timestep, ElementState * currentState)
 	}
 }
 	
-Vector ViscoElasticity::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const
+Vector ViscoElasticity::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);

@@ -30,7 +30,7 @@ public:
 
     virtual ~MohrCoulomb();
 
-	virtual bool met(const ElementState * s) const ;
+	virtual bool met(const ElementState & s) const ;
 };
 
 }

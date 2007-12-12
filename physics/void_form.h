@@ -36,9 +36,9 @@ namespace Mu
 		* @param timestep length of the timestep
 		* @param currentState current state of the element -- behaviour can be dependant on it
 		*/
-		virtual void step(double timestep, ElementState * currentState);
+		virtual void step(double timestep, const ElementState & currentState);
 		
-		virtual void updateElementState(double timestep, ElementState * s) const ;
+		virtual void updateElementState(double timestep, ElementState & s) const ;
 		
 		virtual bool fractured() const ;
 		
@@ -46,7 +46,7 @@ namespace Mu
 		
 		virtual Form * getCopy() const ;
 		
-		virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+		virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 		
 	} ;
 

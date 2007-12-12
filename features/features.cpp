@@ -229,7 +229,7 @@ FeatureTree::FeatureTree(Feature *first)
 		this->addFeature(NULL, first) ;
 	
 	this->father3D = NULL;
-	this->father2D =NULL ;
+	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
 	this->stitched = false ;
 	this->renumbered = false ;
@@ -257,54 +257,7 @@ FeatureTree::~FeatureTree()
 {
 	delete father3D ;
 	delete father2D ;
-// 	for(size_t i = 0 ;  i < this->meshPoints.size() ; i++)
-// 		delete this->meshPoints[i].first ;
-// 	for(size_t i = 0 ;  i < this->elements.size() ; i++)
-// 	{
-// 		delete this->elements[i] ;
-// 		this->elements[i] = NULL;
-// 	}
-// 
-// 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
-// 	{
-// 	if(this->tree[i]->isEnrichmentFeature)
-// 		delete this->tree[i] ;
-// // 		this->tree[i] = NULL;
-// 	}
-	
-// 	std::vector<Point *> pts ;
-// 	std::valarray<Point *> * nularray = NULL ;
-// 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
-// 	{
-// 
-// 		Geometry * t = dynamic_cast<Geometry *>(tree[i]) ;
-// 		
-// // 		for(size_t j = 0 ; j < t->getBoundingPoints().size() ;j++)
-// // 			pts.push_back(t->getBoundingPoint(j)) ;
-// 		
-// 		t->setBoundingPoints(nularray) ;
-// 		
-// // 		for(size_t j = 0 ; j < t->getInPoints()->size() ;j++)
-// // 			pts.push_back(t->getInPoint(j)) ;
-// 		
-// 		t->setInPoints(nularray) ;
-// 
-// 	}
-// 	
-// 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
-// 	{
-// 		delete this->tree[i] ;
-// 	}
-	
-// 	std::sort(pts.begin(), pts.end()) ;
-// 	std::vector<Point *>::iterator e = std::unique(pts.begin(), pts.end()) ;
-// 	pts.erase(e, pts.end()) ;
-	
-// 	for(size_t i = 0 ;  i < pts.size() ; i++)
-// 	{
-// 		delete pts[i] ;
-// 	}
-	
+
 	delete this->dtree ;
 	delete this->dtree3D ;
 	delete this->K ;
@@ -429,7 +382,7 @@ void FeatureTree::renumber()
 			{
 				if(!tets[i]->getBehaviour())
 					tets[i]->setBehaviour(getElementBehaviour(tets[i])) ;
-				tets[i]->getState()->initialize() ;
+				tets[i]->getState().initialize() ;
 			}
 		
 		
@@ -1504,7 +1457,8 @@ Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 
 void FeatureTree::assemble()
 {
-	father3D = new TetrahedralElement(this->elemOrder) ;
+	if(!father3D)
+		father3D = new TetrahedralElement(this->elemOrder) ;
 	std::vector<DelaunayTriangle *> triangles ; 
 	std::vector<DelaunayTetrahedron *> tetrahedrons ; 
 	for(size_t k = 0 ; k < father3D->getShapeFunctions().size() ; k++)
@@ -1512,7 +1466,8 @@ void FeatureTree::assemble()
 		father3D->getShapeFunction(k).compile() ;
 	}
 	
-	father2D = new TriElement(this->elemOrder) ;
+	if(!father2D)
+		father2D = new TriElement(this->elemOrder) ;
 	
 	for(size_t k = 0 ; k < father2D->getShapeFunctions().size() ; k++)
 	{
@@ -1543,7 +1498,7 @@ void FeatureTree::assemble()
 				if(!triangles[i]->getBehaviour())
 					triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 				triangles[i]->getEnrichmentFunctions().clear() ;
-				triangles[i]->getState()->initialize() ;
+				triangles[i]->getState().initialize() ;
 			}
 			
 			initializeElements() ;
@@ -1602,7 +1557,7 @@ void FeatureTree::assemble()
 			for(size_t i = 0 ; i < triangles.size() ;i++)
 			{
 				triangles[i]->getEnrichmentFunctions().clear() ;
-				triangles[i]->getState()->initialize() ;
+				triangles[i]->getState().initialize() ;
 			}
 		}
 		else
@@ -1613,7 +1568,7 @@ void FeatureTree::assemble()
 			for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
 			{
 				tetrahedrons[i]->getEnrichmentFunctions().clear() ;
-				tetrahedrons[i]->getState()->initialize() ;
+				tetrahedrons[i]->getState().initialize() ;
 			}
 		}
 		
@@ -1719,7 +1674,7 @@ std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
 	{
 		copy.push_back(*tris[i]) ;
 		copy.rbegin()->setBehaviour(tris[i]->getBehaviour()->getCopy()) ;
-		copy.rbegin()->getState()->initialize() ;
+		copy.rbegin()->getState().initialize() ;
 	}
 	
 	return copy ;
@@ -1742,7 +1697,7 @@ Vector FeatureTree::stressFromDisplacements() const
 				pts[1] =  elements[i]->second ;
 				pts[2] =  elements[i]->third ;
 				
-				Vector str = elements[i]->getState()->getStress(pts) ;
+				Vector str = elements[i]->getState().getStress(pts) ;
 				for(size_t j = 0 ; j < 9 ; j++)
 					stress[i*3*3+j] = str[j] ;
 		
@@ -1765,7 +1720,7 @@ Vector FeatureTree::stressFromDisplacements() const
 			pts[2] =  elements3D[i]->third ;
 			pts[2] =  elements3D[i]->fourth ;
 			
-			Vector str = elements3D[i]->getState()->getStress(pts) ;
+			Vector str = elements3D[i]->getState().getStress(pts) ;
 			for(size_t j = 0 ; j < 9 ; j++)
 				stress[i*4*6+j] = str[j] ;
 			
@@ -1797,7 +1752,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
 // 				pts[1] =  elements[i]->second ;
 // 				pts[2] =  elements[i]->third ;
 				
-				std::pair<Vector , Vector > str = elements[i]->getState()->getStressAndStrain(elements[i]->getBoundingPoints()) ;
+				std::pair<Vector , Vector > str = elements[i]->getState().getStressAndStrain(elements[i]->getBoundingPoints()) ;
 				
 				for(size_t j = 0 ; j < elements[0]->getBoundingPoints().size()*3 ; j++)
 				{
@@ -1822,7 +1777,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
 			pts[2] =  elements3D[i]->third ;
 			pts[4] =  elements3D[i]->fourth ;
 			
-			std::pair<Vector , Vector > str = elements3D[i]->getState()->getStressAndStrain(pts) ;
+			std::pair<Vector , Vector > str = elements3D[i]->getState().getStressAndStrain(pts) ;
 			
 			for(size_t j = 0 ; j < 24 ; j++)
 			{
@@ -1852,7 +1807,7 @@ Vector FeatureTree::strainFromDisplacements() const
 				pts[1] =  elements[i]->second ;
 				pts[2] =  elements[i]->third ;
 				
-				Vector str = elements[i]->getState()->getStrain(pts) ;
+				Vector str = elements[i]->getState().getStrain(pts) ;
 				
 				for(size_t j = 0 ; j < 9 ; j++)
 					strain[i*3*3+j] = str[j] ;
@@ -1875,7 +1830,7 @@ Vector FeatureTree::strainFromDisplacements() const
 			pts[3] =  elements3D[i]->fourth ;
 			
 			
-			Vector str = elements3D[i]->getState()->getStrain(pts) ;
+			Vector str = elements3D[i]->getState().getStrain(pts) ;
 			
 			for(size_t j = 0 ; j < 24 ; j++)
 				strain[i*4*6+j] = str[j] ;
@@ -2103,7 +2058,7 @@ double FeatureTree::getMaximumDisplacement() const
 		for(std::vector<DelaunayTriangle *>::const_iterator i = tri.begin() ; i != tri.end() ; ++i)
 		{
 			if((*i)->getBehaviour()->type != VOID_BEHAVIOUR)
-				max = std::max(max, (*i)->getState()->getDisplacements().max()) ;
+				max = std::max(max, (*i)->getState().getDisplacements().max()) ;
 		}
 		
 		return max ;
@@ -2117,7 +2072,7 @@ double FeatureTree::getMaximumDisplacement() const
 		for(std::vector<DelaunayTetrahedron *>::const_iterator i = tets.begin() ; i != tets.end() ; ++i)
 		{
 			if((*i)->getBehaviour()->type != VOID_BEHAVIOUR)
-				max = std::max(max, (*i)->getState()->getDisplacements().max()) ;
+				max = std::max(max, (*i)->getState().getDisplacements().max()) ;
 		}
 		
 		return max ;
@@ -2137,7 +2092,7 @@ double FeatureTree::getMinimumDisplacement() const
 		for(std::vector<DelaunayTriangle *>::const_iterator i = tri.begin() ; i != tri.end() ; ++i)
 		{
 			if((*i)->getBehaviour()->type != VOID_BEHAVIOUR)
-				max = std::min(max, (*i)->getState()->getDisplacements().min()) ;
+				max = std::min(max, (*i)->getState().getDisplacements().min()) ;
 		}
 		
 		return max ;
@@ -2151,7 +2106,7 @@ double FeatureTree::getMinimumDisplacement() const
 		for(std::vector<DelaunayTetrahedron *>::const_iterator i = tets.begin() ; i != tets.end() ; ++i)
 		{
 			if((*i)->getBehaviour()->type != VOID_BEHAVIOUR)
-				max = std::min(max, (*i)->getState()->getDisplacements().min()) ;
+				max = std::min(max, (*i)->getState().getDisplacements().min()) ;
 		}
 		
 		return max ;
@@ -2211,7 +2166,7 @@ void FeatureTree::initializeElements()
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getTriangles() ;
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
-			triangles[i]->getState()->initialize() ;
+			triangles[i]->getState().initialize() ;
 		}
 	}
 	
@@ -2220,7 +2175,7 @@ void FeatureTree::initializeElements()
 		std::vector<DelaunayTetrahedron *> triangles = this->dtree3D->getTetrahedrons() ;
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
-			triangles[i]->getState()->initialize() ;
+			triangles[i]->getState().initialize() ;
 		}
 	}
 	

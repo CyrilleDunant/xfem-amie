@@ -44,7 +44,6 @@ protected:
 	std::vector< std::pair< size_t , Function > > enrichfunc ;
 	Form * behaviour ;
 	NonLinearForm * nonlinbehaviour ;
-	ElementState * state ;
 public:
 	
 	ElementarySurface(bool f = false) ;
@@ -80,8 +79,6 @@ public:
 	const double getdXTransform(Variable, const Point p) const ;
 	const double getdYTransform(Variable, const Point p) const ;
 	const double getdTTransform(Variable, const Point p) const ;
-	
-	virtual ElementState * getState() const ;
 	
 	void setEnrichment(std::pair<size_t,Function> p) ;
 	virtual Point inLocalCoordinates(const Point & p) const  = 0;
@@ -163,7 +160,6 @@ protected:
 	virtual std::valarray< std::pair<Point, double> > genGaussPoints() const = 0 ;
 	Form * behaviour ;
 	Order order ;
-	ElementState * state ;
 	NonLinearForm * nonlinbehaviour ;
 	
 public:
@@ -211,9 +207,7 @@ public:
 	virtual void setEnrichment(std::pair<size_t, Function>  p) ;
 	
 	virtual Matrix getInverseJacobianMatrix(const Point & p) const ;
-	
-	virtual ElementState * getState() const ;
-	
+		
 	virtual const std::valarray< Point * > & getBoundingPoints() const = 0;
 	virtual std::valarray< Point * > & getBoundingPoints() = 0;
 	virtual const Point & getBoundingPoint(size_t i) const = 0;

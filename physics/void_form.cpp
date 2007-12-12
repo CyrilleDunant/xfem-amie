@@ -35,12 +35,12 @@ Matrix VoidForm::apply(const Function & p_i, const Function & p_j, const std::va
 	return ret ; 
 }
 
-void VoidForm::step(double timestep, ElementState * currentState) 
+void VoidForm::step(double timestep, const ElementState & currentState) 
 {
 	
 }
 
-void VoidForm::updateElementState(double timestep, ElementState * s) const
+void VoidForm::updateElementState(double timestep, ElementState & s) const
 {
 	
 }
@@ -57,7 +57,7 @@ Form * VoidForm::getCopy() const
 	return new VoidForm(*this) ;
 }
 
-Vector VoidForm::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector VoidForm::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

@@ -24,69 +24,68 @@ LinearForm::~LinearForm() { } ;
 
 bool LinearForm::fractured() const { return false  ;} ; 
 
-void LinearForm::step(double timestep, ElementState * s)
+void LinearForm::step(double timestep, ElementState & s)
 {
 
 }
 
-void LinearForm::updateElementState(double timestep, ElementState * s) const
+void LinearForm::updateElementState(double timestep, ElementState & s) const
 {
 	
-	s->getPreviousPreviousDisplacements() = s->getPreviousDisplacements() ;
-	s->getPreviousDisplacements() = s->getDisplacements() ;
-	s->getPreviousPreviousEnrichedDisplacements() = s->getPreviousEnrichedDisplacements() ;
-	s->getPreviousEnrichedDisplacements() = s->getEnrichedDisplacements() ;
+	s.getPreviousPreviousDisplacements() = s.getPreviousDisplacements() ;
+	s.getPreviousDisplacements() = s.getDisplacements() ;
+	s.getPreviousPreviousEnrichedDisplacements() = s.getPreviousEnrichedDisplacements() ;
+	s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
 	
-	size_t ndofs = s->getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int offset = ndofs-1 ;
 	
-	if(s->getEnrichedDisplacements().size() != s->getParent()->getEnrichmentFunctions().size()*ndofs)
-		s->getEnrichedDisplacements().resize(s->getParent()->getEnrichmentFunctions().size()*ndofs) ;
+	if(s.getEnrichedDisplacements().size() != s.getParent()->getEnrichmentFunctions().size()*ndofs)
+		s.getEnrichedDisplacements().resize(s.getParent()->getEnrichmentFunctions().size()*ndofs) ;
 	
-	for(size_t i = 0 ; i < s->getParent()->getBoundingPoints().size() ; i++)
+	for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
 	{
-		s->getDisplacements()[i*ndofs] = s->getBuffer()[i*ndofs] ;
-		s->getDisplacements()[i*ndofs+offset] = s->getBuffer()[i*ndofs+offset] ;
+		s.getDisplacements()[i*ndofs] = s.getBuffer()[i*ndofs] ;
+		s.getDisplacements()[i*ndofs+offset] = s.getBuffer()[i*ndofs+offset] ;
 	}
 	
-	for(size_t i = 0 ; i < s->getParent()->getEnrichmentFunctions().size() ; i++)
+	for(size_t i = 0 ; i < s.getParent()->getEnrichmentFunctions().size() ; i++)
 	{
-		s->getEnrichedDisplacements()[i*ndofs] = s->getBuffer()[(i+s->getParent()->getBoundingPoints().size())*ndofs] ;
-		s->getEnrichedDisplacements()[i*ndofs+offset] = s->getBuffer()[(i+s->getParent()->getBoundingPoints().size())*ndofs+offset] ;
+		s.getEnrichedDisplacements()[i*ndofs] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs] ;
+		s.getEnrichedDisplacements()[i*ndofs+offset] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs+offset] ;
 	}
 }
 
-void NonLinearForm::updateElementState(double timestep, ElementState * s) const
+void NonLinearForm::updateElementState(double timestep, ElementState & s) const
 {
 	
-	s->getPreviousPreviousDisplacements() = s->getPreviousDisplacements() ;
-	s->getPreviousDisplacements() = s->getDisplacements() ;
-	s->getPreviousPreviousEnrichedDisplacements() = s->getPreviousEnrichedDisplacements() ;
-	s->getPreviousEnrichedDisplacements() = s->getEnrichedDisplacements() ;
+	s.getPreviousPreviousDisplacements() = s.getPreviousDisplacements() ;
+	s.getPreviousDisplacements() = s.getDisplacements() ;
+	s.getPreviousPreviousEnrichedDisplacements() = s.getPreviousEnrichedDisplacements() ;
+	s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
 	
-	size_t ndofs = s->getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int offset = ndofs-1 ;
 	
-	if(s->getEnrichedDisplacements().size() != s->getParent()->getEnrichmentFunctions().size()*ndofs)
-		s->getEnrichedDisplacements().resize(s->getParent()->getEnrichmentFunctions().size()*ndofs) ;
+	if(s.getEnrichedDisplacements().size() != s.getParent()->getEnrichmentFunctions().size()*ndofs)
+		s.getEnrichedDisplacements().resize(s.getParent()->getEnrichmentFunctions().size()*ndofs) ;
 	
-	for(size_t i = 0 ; i < s->getParent()->getBoundingPoints().size() ; i++)
+	for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
 	{
-		s->getDisplacements()[i*ndofs] = s->getBuffer()[i*ndofs] ;
-		s->getDisplacements()[i*ndofs+offset] = s->getBuffer()[i*ndofs+offset] ;
+		s.getDisplacements()[i*ndofs] = s.getBuffer()[i*ndofs] ;
+		s.getDisplacements()[i*ndofs+offset] = s.getBuffer()[i*ndofs+offset] ;
 	}
 	
-	for(size_t i = 0 ; i < s->getParent()->getEnrichmentFunctions().size() ; i++)
+	for(size_t i = 0 ; i < s.getParent()->getEnrichmentFunctions().size() ; i++)
 	{
-		s->getEnrichedDisplacements()[i*ndofs] = s->getBuffer()[(i+s->getParent()->getBoundingPoints().size())*ndofs] ;
-		s->getEnrichedDisplacements()[i*ndofs+offset] = s->getBuffer()[(i+s->getParent()->getBoundingPoints().size())*ndofs+offset] ;
+		s.getEnrichedDisplacements()[i*ndofs] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs] ;
+		s.getEnrichedDisplacements()[i*ndofs+offset] = s.getBuffer()[(i+s.getParent()->getBoundingPoints().size())*ndofs+offset] ;
 	}
 }
 
 NonLinearForm::NonLinearForm()
 {
 	this->type = NON_LINEAR ;
-	this->state = NULL ;
 }
 
 NonLinearForm::~NonLinearForm() { } ;
@@ -106,17 +105,7 @@ void NonLinearForm::setIntegrationHints(std::vector<Point> h)
 	hints = h ;
 }
 
-ElementState * NonLinearForm::getState()
-{
-	return state ;
-}
-
-void NonLinearForm::setState(ElementState * s)
-{
-	state = s ;
-}
-
-void NonLinearForm::step(double timestep, ElementState * s)
+void NonLinearForm::step(double timestep, ElementState & s)
 {
 }
 

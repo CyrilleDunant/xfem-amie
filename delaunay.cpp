@@ -1869,23 +1869,6 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 	std::vector<std::vector<Matrix> > mother ;
 	
-	if(state == NULL)
-	{
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			std::vector< Matrix > v_j ;
-			
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				v_j.push_back(Matrix()) ;
-			}
-			
-			mother.push_back(v_j) ;
-		}
-		
-		return mother ;
-	}
-	
 	if(!this->getNonLinearBehaviour()->isActive())
 	{
 		for(size_t i = 0 ; i < dofs.size() ; i++)
@@ -1905,7 +1888,6 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 	
 	std::valarray<Matrix> Jinv ;
 	std::valarray<std::pair<Point, double> > gp = getSubTriangulatedGaussPoints() ;
-	this->nonlinbehaviour->setState(this->getState()) ;
 	
 // 	if(moved)
 // 	{
@@ -2107,13 +2089,6 @@ Vector DelaunayTriangle::getNonLinearForces() const
 {
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 	Vector forces(dofs.size()*2) ;
-	
-	if(state == NULL)
-	{
-		std::cerr << "no state " << std::endl ;
-		forces = 0 ;
-		return forces ;
-	}
 	
 	if(!this->getNonLinearBehaviour()->isActive())
 	{

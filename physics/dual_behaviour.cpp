@@ -126,7 +126,7 @@ Form * BimaterialInterface::getCopy() const
 }
 
 
-Vector BimaterialInterface::getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector BimaterialInterface::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	std::valarray< std::pair<Point,double> > gpIn(gp) ;
 	std::valarray< std::pair<Point,double> > gpOut(gp) ;
@@ -150,7 +150,7 @@ Vector BimaterialInterface::getForces(const ElementState * s, const Function & p
 		
 }
 
-void BimaterialInterface::step(double timestep, ElementState * currentState)
+void BimaterialInterface::step(double timestep, ElementState & currentState)
 {
 	inBehaviour->step(timestep, currentState) ;
 	outBehaviour->step(timestep, currentState) ;

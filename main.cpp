@@ -157,7 +157,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 5;
+	int nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -328,10 +328,10 @@ void step()
 				
 				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
 				{
-					Vector vm0 = triangles[k]->getState()->getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
+					Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
 					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 	
-					double agl = triangles[k]->getState()->getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
+					double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
 					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
 				}
 				
@@ -1617,7 +1617,7 @@ int main(int argc, char *argv[])
 
 	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(0.0012, 1, BOLOME_D)(.002, 90);
+	inclusions = GranuloBolome(0.0012, 1, BOLOME_D)(.002, 1);
 	std::cout << inclusions.size() << std::endl;
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
 	int nAgg = 0 ;
@@ -1657,7 +1657,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
 //	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
 //	F.addFeature(&sample, zones[0]) ;
-	zones = generateExpansiveZones(1, inclusions, F) ;
+	zones = generateExpansiveZones(0, inclusions, F) ;
 // 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
 // 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
@@ -1666,7 +1666,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
 // 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(800) ;
+	F.sample(1200) ;
 
 	F.setOrder(LINEAR) ;
 

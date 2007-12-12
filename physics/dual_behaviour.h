@@ -43,9 +43,9 @@ public:
 	 */
 	virtual Form * getCopy() const ;
 
-	virtual void step(double timestep, ElementState * currentState) ;
+	virtual void step(double timestep, ElementState & currentState) ;
 	
-	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 } ;
 

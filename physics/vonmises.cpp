@@ -22,9 +22,9 @@ VonMises::~VonMises()
 {
 }
 
-bool VonMises::met(const ElementState * s) const
+bool VonMises::met(const ElementState & s) const
 {
-	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s->getParent()) ;
+	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	if(tested)
 	{
 		std::vector<DelaunayTriangle *> neighbourhood = tested->neighbourhood ;
@@ -34,14 +34,14 @@ bool VonMises::met(const ElementState * s) const
 		{
 			for(size_t i = 0 ; i< neighbourhood.size() ; i++)
 			{
-				double maxStress =  neighbourhood[i]->getState()->getMaximumVonMisesStress() ;
+				double maxStress =  neighbourhood[i]->getState().getMaximumVonMisesStress() ;
 				if(maxStress > maxNeighbourhoodStress)
 					maxNeighbourhoodStress = maxStress ;
 
 			}
 		}
 		
-		double maxStress = s->getMaximumVonMisesStress() ;
+		double maxStress = s.getMaximumVonMisesStress() ;
 
 		if(maxStress > threshold )
 		{

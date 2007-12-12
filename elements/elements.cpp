@@ -9,31 +9,16 @@
 
 using namespace Mu ;
 
-	
-ElementState * ElementarySurface::getState() const
-{
-	return state ;
-}
-
-
-ElementState * ElementaryVolume::getState() const
-{
-	return state ;
-}
-
 
 ElementarySurface::~ElementarySurface()
 {
 	if(isFather)
 		delete this->shapefunc ;
-	
-	delete this->state ;
 
 }
 
 ElementarySurface::ElementarySurface(bool f ) : isFather(f)
 {
-	this->state = new ElementState(this) ;
 	this->nonlinbehaviour = NULL ;
 	this->behaviour = NULL ;
 }
@@ -71,19 +56,19 @@ void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
 
 void ElementarySurface::step(double dt, Vector *displacements)
 {
-	getState()->step(dt, displacements) ;
+	getState().step(dt, displacements) ;
 	getBehaviour()->updateElementState(dt, getState()) ;
 }
 
 void ElementarySurface::stepBack()
 {
-	getState()->stepBack() ;
+	getState().stepBack() ;
 	getBehaviour()->stepBack() ;
 }
 
 void ElementarySurface::nonLinearStep(double dt, Vector *displacements)
 {
-	getState()->step(dt, displacements) ;
+	getState().step(dt, displacements) ;
 	
 // 	if(getNonLinearBehaviour() !=NULL)
 		getNonLinearBehaviour()->step(dt,getState()) ;
@@ -91,20 +76,20 @@ void ElementarySurface::nonLinearStep(double dt, Vector *displacements)
 
 void ElementaryVolume::step(double dt, Vector *displacements)
 {
-	getState()->step(dt, displacements) ;
+	getState().step(dt, displacements) ;
 	getBehaviour()->updateElementState(dt, getState()) ;
 }
 
 void ElementaryVolume::stepBack()
 {
-	getState()->stepBack() ;
+	getState().stepBack() ;
 	getBehaviour()->stepBack() ;
 }
 
 void ElementaryVolume::nonLinearStep(double dt, Vector *displacements)
 {
 	
-	this->state->step(dt, displacements) ;
+	this->state.step(dt, displacements) ;
 	
 	if(this->nonlinbehaviour !=NULL)
 		this->nonlinbehaviour->step(dt, this->state) ;
@@ -1429,7 +1414,6 @@ ElementaryVolume::ElementaryVolume(bool f )  : isFather(f)
 {
 	this->behaviour = NULL ;
 	this->nonlinbehaviour = NULL ;
-	this->state = new ElementState(this) ;
 }
 ////
 
@@ -1437,7 +1421,6 @@ ElementaryVolume::~ElementaryVolume()
 {
 	if(isFather)
 		delete shapefunc ;
-	delete this->state ;
 }
 
 Function ElementaryVolume::jacobian() const 

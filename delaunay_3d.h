@@ -166,7 +166,7 @@ public:
 	void refresh(const TetrahedralElement *) ;
 	
 	std::vector<std::vector<Matrix> > getElementaryMatrix() const ;
-	std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const  ;
+	std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  ;
 	Vector getForces() const ;
 	Vector getNonLinearForces() const ;
 	
