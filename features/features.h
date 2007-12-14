@@ -286,6 +286,10 @@ protected:
 	
 	TetrahedralElement *father3D  ;
 	TriElement *father2D  ;
+
+	bool meshChange ;
+	bool solverConvergence ;
+	bool enrichmentChange ;
 	
 	/** List of points used for the mesh.
 	 * Each point is associated with the feature from whose discretiation it was generated.
@@ -344,6 +348,10 @@ public:
 	
 	Point * checkElement( const DelaunayTetrahedron * t ) const;
 	Feature * getFeatForTetra( const DelaunayTetrahedron * t ) const;
+
+	bool solverConverged() const ;
+	bool meshChanged() const ;
+	bool enrichmentChanged() const ;
 	
 public:
 	

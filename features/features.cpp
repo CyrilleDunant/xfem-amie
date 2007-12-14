@@ -236,6 +236,10 @@ FeatureTree::FeatureTree(Feature *first)
 	this->needAssembly = true ;
 	this->initialized = false ;
 
+	meshChange = false ;
+	solverConvergence = false ;
+	enrichmentChange = false ;
+
 	K = new Assembly() ;
 	
 	if(is3D())
@@ -1918,9 +1922,27 @@ void FeatureTree::stepBack()
 	}
 }
 
+bool FeatureTree::solverConverged() const
+{
+	return solverConvergence ;
+}
+
+bool FeatureTree::meshChanged() const
+{
+	return meshChange ;
+}
+
+bool FeatureTree::enrichmentChanged() const
+{
+	return enrichmentChange ;
+}
+
 bool FeatureTree::step(double dt)
 {
 	bool ret = true ;
+	meshChange = false ;
+	solverConvergence = false ;
+	enrichmentChange = false ;
 	if(true/*needAssembly*/)
 	{
 		this->K->clear() ;
@@ -1932,14 +1954,10 @@ bool FeatureTree::step(double dt)
 	}
 	
 	needAssembly = true ;
-	bool converged = this->K->cgsolve() ;
+	solverConvergence = this->K->cgsolve() ;
 // 	Vector displacements = this->K->solve(/**extforces*/Vector(0), 100000, true) ;
 	
-	if(!converged)
-	{
-		return false ;
-	}
-	
+
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
@@ -1974,6 +1992,7 @@ bool FeatureTree::step(double dt)
 				{
 					fracturedCount++ ;
 					needAssembly = true ;
+					meshChange = true ;
 					ret = false ;
 					crackedVolume +=  elements[i]->area() ;
 				}
@@ -1996,7 +2015,7 @@ bool FeatureTree::step(double dt)
 			if(tree[i]->isEnrichmentFeature)
 			{
 				dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &K->getForces(), dtree) ;
-				needAssembly = dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
+				enrichmentChange = enrichmentChange || dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
 // 				ret = false ;
 			}
 		}
@@ -2028,6 +2047,7 @@ bool FeatureTree::step(double dt)
 				{
 					fracturedCount++ ;
 					needAssembly = true ;
+					meshChange = true ;
 					ret = false ;
 				}
 			}

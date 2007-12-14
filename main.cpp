@@ -163,10 +163,11 @@ void step()
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		setBC() ;
 		int tries = 0 ;
-		bool no_go = true ;
-		while(no_go && tries < 50)
+		bool go_on = true ;
+		while(go_on && tries < 50)
 		{
-			no_go = !featureTree->step(timepos) ;
+			featureTree->step(timepos) ;
+			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			setBC() ;
@@ -1510,89 +1511,7 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-		
-// 	std::vector<Point> to_add ;
-// 	to_add.push_back(Point(0,1));
-//  	to_add.push_back(Point(0,0));
-// 	to_add.push_back(Point(1,0)) ;
-// 	to_add.push_back(Point(0.748884,0.251116)) ;
-// 	to_add.push_back(Point(0.736803, 0.131506)) ;
-// 	to_add.push_back(Point(0.739897, 0.195054)) ;
-// 	to_add.push_back(Point(0.740296, 0.0648157)) ;
-// 	to_add.push_back(Point(0.5, 0, 0, 0) ) ;
-// 	to_add.push_back(Point(0.370148, 0.0324078, 0, 0)) ;
-// 	to_add.push_back(Point(0.870148, 0.0324078, 0, 0) ) ;
-// 	to_add.push_back(Point(0.368401, 0.0657531, 0, 0) ) ;
-// 	to_add.push_back(Point(0.868401, 0.0657531, 0, 0) ) ;
-// 	to_add.push_back(Point(0.369948, 0.097527, 0, 0) ) ;
-// 	to_add.push_back(Point(0.869948, 0.097527, 0, 0) ) ;
-// 	to_add.push_back(Point(0.738549, 0.0981609, 0, 0)) ;
-// 	to_add.push_back(Point(0.374442, 0.125558, 0, 0) ) ;
-// 	to_add.push_back(Point(0.874442, 0.125558, 0, 0) ) ;
-// 	to_add.push_back(Point(0.73835, 0.16328, 0, 0)  ) ;
-// 	to_add.push_back(Point( 0.74439, 0.223085, 0, 0) ) ;
-// 	to_add.push_back(Point(0, 0.5, 0, 0)   ) ;
-// 	to_add.push_back(Point(0.5, 0.5, 0, 0)   ) ;
-// 	to_add.push_back(Point( 0.374442, 0.625558, 0, 0)  ) ;
-// 		
-// 		
-// 	Triangle tr(to_add[0], to_add[1], to_add[2]) ;
-// 	std::cout << tr.in(to_add[3]) << std::endl ;
-// 	std::cout << "Points forming the mesh" << std::endl ;
-// 	
-// 	for(size_t i = 0 ; i < to_add.size() ;  i++)
-// 	{
-// 		to_add[i].print() ;
-// 	}
-// 	
-// 	std::cout << std::endl ;
-// 	
-// 		DelaunayTree my_test_tree(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
-// 		for(size_t i = 3 ; i < to_add.size() ; i++)
-// 		{
-// 			my_test_tree.insert(new Point(to_add[i])) ;
-// 		}
-// 	
-// 	my_test_tree.print() ;
-// 	
-// 		std::cout << "pong" << std::endl ;
-// 		std::vector<DelaunayTriangle *> tri = my_test_tree.getTriangles(false) ;
-// 
-// 		size_t numberOfRefinements =  1;
-// 		
-// 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
-// 		{
-// 			tri = my_test_tree.getTriangles(false) ;
-// 			std::vector<Point> quadtree ;
-// 			for(size_t j = 0 ; j < tri.size() ; j++)
-// 			{
-// 				quadtree.push_back((*tri[j]->first+*tri[j]->second)*.5) ;
-// 				quadtree.push_back((*tri[j]->first+*tri[j]->third)*.5) ;
-// 				quadtree.push_back((*tri[j]->third+*tri[j]->second)*.5) ;
-// 			}
-// 			std::sort(quadtree.begin(), quadtree.end()) ;
-// 			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-8)) ;
-// 			quadtree.erase(e, quadtree.end()) ;
-// 			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
-// 			for(size_t j = 0 ; j < quadtree.size() ; j++)
-// 			{
-// 				quadtree[j].print() ;
-// 				my_test_tree.insert(new Point(quadtree[j])) ;
-// 			}
-// // 			my_test_tree.print() ;
-// 		}
-/*	
-	BranchedCrack branch0(new Point(0,1), new Point(1,1)) ;
-	BranchedCrack branch1(new Point(0,0), new Point(.5,.5)) ;
-	branch0.print() ;
-	branch1.print() ;
-	branch0.merge(branch1) ;
-	branch0.print() ;
-	branch1.print() ;
-// 
 
-	return 0 ;*/
-	
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
@@ -1615,24 +1534,18 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	Inclusion * inc = new Inclusion(.01, 0,0) ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(0.0012, 1, BOLOME_D)(.002, 1);
-	std::cout << inclusions.size() << std::endl;
+	inclusions = GranuloBolome(0.0012, 1, BOLOME_D)(.002, 50);
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
+
 	int nAgg = 0 ;
 	inclusions=placement(.04, .04, inclusions, &nAgg, 2048);
-// 	F.addFeature(&sample,inc) ;
-	
+
 	double placed_area = 0 ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-// 		Vector a(double(0), 3) ;
-// 		a[0] = .0002 ;
-// 		a[1] = .0002 ;
-// 		a[2] = 0.00 ;
-// 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg,a)) ;
-		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,2000000)) ;
+		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,4000000)) ;
+// 		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
 		F.addFeature(&sample,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1643,30 +1556,12 @@ int main(int argc, char *argv[])
 	std::cout << "placed area = " <<  placed_area << std::endl ;
 	Circle cercle(.5, 0,0) ;
 
-	
-// 	sample.setBehaviour(new BimaterialInterface(&cercle, m0,  m0*4)) ;
-	Vector a(double(0), 3) ;
-	a[0] = 0.1 ;
-	a[1] = 0.1 ;
-	a[2] = 0.00 ;
-	inc->setBehaviour(new StiffnessAndFracture(m0_agg, new MohrCoulomb(1000000, -10000000))) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2000000)) ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	zones = generateExpansiveZones(1, inclusions, F) ;
 
-// 	ExpansiveZone *e = new ExpansiveZone(&sample, .01, 0, 0, m0_agg, a) ;
-// 	F.addFeature(&sample, e) ;
-// 	sample.setBehaviour(new Stiffness(m0*0.125)) ;
-//	zones.push_back(new ExpansiveZone(&sample, .5, 0,0, m0*4, a)) ;
-//	F.addFeature(&sample, zones[0]) ;
-	zones = generateExpansiveZones(0, inclusions, F) ;
-// 	sample.setBehaviour(new Stiffness(m0*0.35)) ;
-// 	sample.setBehaviour(new StiffnessAndFracture(m0, 0.03)) ;
-// 	F.addFeature(&sample,new EnrichmentInclusion(1, 0,0)) ;
-// 	F.addFeature(&sample,new Pore(1, 0,0)) ;
-// 	F.addFeature(&sample,new Pore(0.75, 1,-1)) ;
-// 	F.addFeature(&sample,new Pore(0.75, -1,-1)) ;
-// 	F.addFeature(&sample,new Pore(0.75, -1,1)) ;
 	
-	F.sample(1200) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 
