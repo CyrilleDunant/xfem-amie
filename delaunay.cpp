@@ -1958,15 +1958,15 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		{
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
 			{
-				if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-2 && 
-				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-2 && 
-				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-2 &&
+				if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-6 && 
+				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-6 && 
+				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-6 &&
 				   father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)) )
 				{
 					bool ok = true ;
 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
 					{
-						if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-2)
+						if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-6)
 						{
 							ok = false ;
 							break ;
@@ -1997,8 +1997,9 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 // 		std::cout << "pong" << std::endl ;
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements =  1;
+		size_t numberOfRefinements =  2;
 		
+
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
 // 			std::cout << "." << std::endl ;
@@ -2016,15 +2017,15 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 				
 				for(size_t k = 0 ; k < to_add.size() ; k++)
 				{
-					if(squareDist2D(a, to_add[k]) < 1e-2)
+					if(squareDist2D(a, to_add[k]) < 1e-6)
 					{
 						good_a = false ;
 					}
-					if(squareDist2D(b, to_add[k]) < 1e-2)
+					if(squareDist2D(b, to_add[k]) < 1e-6)
 					{
 						good_b = false ;
 					}
-					if(squareDist2D(c, to_add[k]) < 1e-2)
+					if(squareDist2D(c, to_add[k]) < 1e-6)
 					{
 						good_c = false ;
 					}
@@ -2039,7 +2040,7 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 
 			}
 			std::sort(quadtree.begin(), quadtree.end()) ;
-			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-2)) ;
+			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-6)) ;
 			quadtree.erase(e, quadtree.end()) ;
 // 			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
 			for(size_t j = 0 ; j < quadtree.size() ; j++)

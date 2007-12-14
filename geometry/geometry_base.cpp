@@ -2247,21 +2247,25 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 }
 
 
-bool Segment::intersects(const Segment & s) const
+bool Segment::intersects(const Segment & l) const
 {
-	if (std::abs(vec.x * s.vector().y - vec.y * s.vector().x) < POINT_TOLERANCE)
+	if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
 	{
-		return isAligned(s.first(), s.second(), mid) ;
+		double d = squareDist2D(f, s) ;
+		return  (squareDist2D(l.first(), f) < d 
+		      && squareDist2D(l.first(), s) < d) 
+              ||(squareDist2D(l.second(), f) < d 
+		      && squareDist2D(l.second(), s) < d) ;
 // 		return false ;
 	}
 	
 	Matrix m(2,2) ;
 	Vector v(2) ;
 	
-	m[0][0] = vec.x ; m[0][1] = -s.vector().x ;
-	m[1][0] = vec.y ; m[1][1] = -s.vector().y ;
+	m[0][0] = vec.x ; m[0][1] = -l.vector().x ;
+	m[1][0] = vec.y ; m[1][1] = -l.vector().y ;
 	
-	v[0] = s.first().x - f.x ; v[1] = s.first().y - f.y ; 
+	v[0] = l.first().x - f.x ; v[1] = l.first().y - f.y ; 
 	
 	invert2x2Matrix(m) ;
 	
@@ -2276,6 +2280,18 @@ bool Segment::intersects(const Segment & s) const
 
 Point Segment::project(const Point & p) const
 {
+
+	if(isAligned(f, s, p))
+	{
+		double d = squareDist2D(f, s) ;
+		if( squareDist2D(f, p) < d && squareDist2D(s, p) < d )
+			return p ;
+		else if(squareDist2D(f, p) < squareDist2D(s, p))
+			return f ;
+
+		return s ;
+	}
+
 	Matrix m(2,2) ;
 	Vector v(2) ;
 	

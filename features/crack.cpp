@@ -1402,23 +1402,7 @@ bool Crack::inBoundary ( const Point & v ) const
 
 	this->project ( &p ) ;
 
-	Circle testt ( .001 , *getHead() ) ;
-	Circle testh ( .001 , *getTail() ) ;
-
-// 	Line projectionLine(p, Point(v.x-p.x, v.y-p.y)) ;
-// 	if(!projectionLine.intersects(static_cast<const SegmentedLine *>(this)) && !testt.in(v)&& !testh.in(v))
-// 	   return false ;
-
-	for ( size_t i = 0 ; i < boundingPoints.size() ; i++ )
-	{
-		if ( ( squareDist ( getBoundingPoint ( i ), v ) < .001*.001 ) )
-		{
-			return true ;
-		}
-	}
-
-
-	return squareDist ( p, v ) < .001*.001 && !testt.in ( v ) && !testh.in ( v );
+	return squareDist2D(v, p) < infRad*infRad ;
 }
 
 std::vector<Point *> Crack::getSamplingPoints() const
@@ -1453,23 +1437,7 @@ bool Crack::inBoundary ( const Point *v ) const
 
 	this->project ( &p ) ;
 
-	Circle testt ( 0.1 , *getHead() ) ;
-	Circle testh ( 0.1 , *getTail() ) ;
-
-	Line projectionLine ( p, Point ( v->x-p.x, v->y-p.y ) ) ;
-	if ( !projectionLine.intersects ( static_cast<const SegmentedLine *> ( this ) ) && !testt.in ( *v ) && !testh.in ( *v ) )
-		return false ;
-
-	for ( size_t i = 0 ; i < boundingPoints.size() ; i++ )
-	{
-		if ( ( squareDist ( getBoundingPoint ( i ), *v ) < 0.1*0.1 ) )
-		{
-			return true ;
-		}
-	}
-
-
-	return squareDist ( p, *v ) < infRad*infRad && !testt.in ( *v ) && !testh.in ( *v );
+	return squareDist2D(v, &p) < infRad*infRad ;
 
 }
 
@@ -1726,13 +1694,13 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	changed = false ;
 
 // 	return ;
-	double norm = .0001 ;
+	double norm = .001 ;
 	std::pair<double, double> headJ = computeJIntegralAtHead ( dt, dtree ) ;
 	Vector J ( 2 ) ; J[0] = headJ.first ; J[1] = headJ.second ;
 	std::cout << "at head : " << J[0] << ", " << J[1] << std::endl ;
 	std::cout << "J angle is " << atan2 ( J[1], J[0] ) << std::endl ;
 
-	Circle atHead ( infRad, this->boundary->getCenter() ) ;
+	Circle atHead ( infRad*.1, this->boundary->getCenter() ) ;
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &atHead ) ;
 	std::vector<DelaunayTriangle *> tris ;
 	Point direction ;
@@ -1750,7 +1718,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 		{
 			if ( !disk[i]->in ( *getHead() )
 				&& !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
-	// 		   && !boundary->in(disk[i]->getCenter())
+	            || boundary->in(disk[i]->getCenter())
 			)
 				tris.push_back ( disk[i] ) ;
 			else if ( disk[i]->in ( *getHead() ) )
@@ -1842,7 +1810,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	std::cout << "J angle is " << atan2 ( J[1], J[0] ) << std::endl ;
 
 
-	Circle atTail ( infRad, this->boundary2->getCenter() ) ;
+	Circle atTail ( infRad*.1, this->boundary2->getCenter() ) ;
 	disk = dtree->conflicts ( &atTail ) ;
 	tris.clear() ;
 	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
@@ -1852,7 +1820,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 		{
 			if ( !disk[i]->in ( *getTail() )
 				&& !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
-	// 		   && !boundary2->in(disk[i]->getCenter())
+			   ||boundary2->in(disk[i]->getCenter())
 			)
 				tris.push_back ( disk[i] ) ;
 			else if ( disk[i]->in ( *getTail() ) )

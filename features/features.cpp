@@ -1261,7 +1261,6 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 			}
 		}
 	}
-	
 	//to shut up the compiler
 	return new VoidForm() ;
 }
