@@ -2314,11 +2314,15 @@ Point Segment::project(const Point & p) const
 
 bool Segment::intersects(const Point & a, const Point & b) const
 {
-// 	if (std::abs(vec.x * (b->y - a->y) - vec.y * (a->x - b->x)) 
-// 	{
-// // 		return isAligned(a, b, &mid) ;
+	if (isAligned(a, s, f) && isAligned(b, s, f))
+	{
+		double d = squareDist2D(f, s) ;
+		return  (squareDist2D(a, f) < d 
+		      && squareDist2D(a, s) < d) 
+              ||(squareDist2D(b, f) < d 
+		      && squareDist2D(b, s) < d) ;
 // 		return false ;
-// 	}
+	}
 	
 	Matrix m(2,2) ;
 	Vector v(2) ;
