@@ -1027,9 +1027,10 @@ bool Assembly::cgsolve(Vector x0, size_t maxit)
 		make_final() ;
 	
 // 	print() ;
-
+// 	BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
 	ConjugateGradientWithSecant cg(this) ;
 	bool ret = cg.solve() ;
+// 	bool ret = cg.solve(displacements, NULL,1e-22, -1, true) ;
 	displacements.resize(cg.x.size()) ;
 	displacements = cg.x ;
 

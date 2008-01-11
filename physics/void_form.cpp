@@ -29,7 +29,7 @@ Matrix VoidForm::apply(const Function & p_i, const Function & p_j,const Integrab
 	return ret ; 
 }
 
-Matrix VoidForm::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix VoidForm::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	Matrix ret ;
 	return ret ; 
@@ -57,7 +57,7 @@ Form * VoidForm::getCopy() const
 	return new VoidForm(*this) ;
 }
 
-Vector VoidForm::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector VoidForm::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

@@ -295,13 +295,118 @@ void BranchedCrack::enrichTips(size_t & startid, DelaunayTree * dt)
 {
 	for(size_t i =  0 ; i < tips.size() ; i++)
 	{
-		enrichTip(startid, dt, tips[i]) ;
+		enrichTip(startid, dt, tips[i], 0.) ;
 	}
 }
 
-void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const Point * tip)
+void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const Point * tip, double angle)
 {
+	Circle epsilon(enrichementRadius, *tip) ;
+	std::vector<DelaunayTriangle *> triangles = dt->conflicts(&epsilon) ;
+	std::map<Point *, size_t> done ;
+	VirtualMachine vm ;
 	
+	std::valarray<Function> shapefunc(3) ;
+	Matrix xi(2,2) ; xi[1][0] = 1 ;
+	Matrix eta(2,2) ; eta[0][1] = 1 ;
+	Matrix one(2,2) ; one[0][0] = 1 ;
+
+	shapefunc[0] = Function(eta) ;
+	shapefunc[1] = Function(one-xi-eta) ;
+	shapefunc[2] = Function(xi) ;
+	
+	std::valarray <Point> pointLocal(3) ;
+	pointLocal[0] = Point ( 0,1 ) ;
+	pointLocal[1] = Point ( 0,0 ) ;
+	pointLocal[2] = Point ( 1,0 )  ;
+	
+	for(size_t  i = 0 ; i < triangles.size() ; i++)
+	{
+		std::vector<Point> hint ;
+		Line crossing ( *tip, Point(cos(angle), sin(angle)) ) ;
+		std::vector<Point > completeIntersection = crossing.intersection ( static_cast<Triangle *>(triangles[i]) ) ;
+		
+		if(completeIntersection.size() == 2)
+		{
+			Point intersectionTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[0] ) ;
+			Point intersectionBisTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[1] ) ;
+			Point singularityTransformed = triangles[i]->inLocalCoordinates ( *tip );
+			
+			hint.push_back ( intersectionTransformed ) ;
+			hint.push_back ( intersectionBisTransformed ) ;
+			hint.push_back ( singularityTransformed ) ;
+		}
+		
+		
+		Function x = triangles[i]->getXTransform() ;
+		Function y = triangles[i]->getYTransform() ;
+		double rotatedSingularityX = tip->x*cos ( angle ) + tip->y*sin ( angle ) ;
+		double rotatedSingularityY = -tip->x*sin ( angle ) + tip->y*cos ( angle ) ;
+		Function rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
+		Function rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
+		Function x_ = x - tip->x ;
+		Function y_ = y - tip->y ;
+		Function theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
+		Function r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
+		
+		Function f0 = f_sqrt ( r ) *f_sin ( theta/2 );
+		Function f1 = f_sqrt ( r ) *f_cos ( theta/2 );
+		Function f2 = f_sqrt ( r ) *f_sin ( theta/2 ) *f_cos ( theta );
+		Function f3 = f_sqrt ( r ) *f_cos ( theta/2 ) *f_cos ( theta );
+		
+		std::vector<Point *> currentPoint ;
+		currentPoint.push_back(triangles[i]->first) ;
+		currentPoint.push_back(triangles[i]->second) ;
+		currentPoint.push_back(triangles[i]->third) ;
+		
+		for(size_t p = 0 ; p < 3 ;p++)
+		{
+			if(epsilon.in(*currentPoint[p]))
+			{
+				int usedId = 0 ;
+				if(done.find(currentPoint[p]) == done.end())
+				{
+					done[currentPoint[p]] = startid ;
+					usedId = startid ;
+					startid+=4 ;
+				}
+				else
+				{
+					usedId = done[currentPoint[p]] ;
+				}
+
+				Function f = shapefunc[p]* ( f0 - vm.eval ( f0, pointLocal[p] ) ) ;
+				f.setIntegrationHint ( hint ) ;
+				f.setPointID ( currentPoint[p]->id ) ;
+				f.setDofID ( usedId ) ;
+				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId, f ) ) ;
+				
+				f = shapefunc[p]* ( f1 - vm.eval ( f1, pointLocal[p] ) ) ;
+				f.setIntegrationHint ( hint ) ;
+				f.setPointID ( currentPoint[p]->id ) ;
+				f.setDofID ( usedId+1 ) ;
+				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId+1, f ) ) ;
+				
+				f = shapefunc[p]* ( f2 - vm.eval ( f2, pointLocal[p] ) ) ;
+				f.setIntegrationHint ( hint ) ;
+				f.setPointID ( currentPoint[p]->id ) ;
+				f.setDofID ( usedId+2 ) ;
+				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId+2, f ) ) ;
+				
+				f = shapefunc[p]* ( f3 - vm.eval ( f3, pointLocal[p] ) ) ;
+				f.setIntegrationHint ( hint ) ;
+				f.setPointID (currentPoint[p]->id ) ;
+				f.setDofID ( usedId+3 ) ;
+				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId+3, f ) ) ;
+			}
+		}
+		
+	}
+
+	for(std::map<Point *, size_t>::const_iterator i = done.begin() ; i != done.end() ; ++i)
+	{
+		donePoints.insert(i->first) ;
+	}
 }
 
 void BranchedCrack::enrichForks(size_t & startid, DelaunayTree * dt)
@@ -795,8 +900,8 @@ Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double r
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
-
-	criticalJ = 0.03 ;
+	stepLength = .25*infRad ;
+	criticalJ = 0.0 ;
 }
 
 Crack::Crack ( const std::valarray<Point *> & points, double radius ) : EnrichmentFeature ( NULL ), SegmentedLine ( points )
@@ -811,8 +916,8 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
-
-	criticalJ = 0.03 ;
+	stepLength = .25*infRad ;
+	criticalJ = 0.0 ;
 }
 
 void Crack::setInfluenceRadius ( double r )
@@ -1000,8 +1105,6 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					f.setPointID ( pointGlobal[j]->id ) ;
 					f.setDofID ( ids[0] ) ;
 					e->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
-
-
 
 					f = shapefunc[j]* ( f1 - vm.eval ( f1, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
@@ -1546,7 +1649,7 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 
 
 			Point ln = gamma[j].second->inLocalCoordinates ( n ) ;
-			Vector normal ( 2 ) ; normal[0] = n.x ; normal[1] = n.y ;
+			Vector stepLengthal ( 2 ) ; stepLengthal[0] = n.x ; stepLengthal[1] = n.y ;
 			Vector d ( 2 ) ; d[0] = -n.y ;   d[1] = n.x ;
 			double ilocal0 = 0 ;
 			double ilocal1 = 0 ;
@@ -1561,11 +1664,11 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 
-				Vector T = sigma * normal ;
+				Vector T = sigma * stepLengthal ;
 
 
-				ilocal0 += ( 0.5*sigma_epsilon*normal[0] - ( T[0]*epsilon[0][0] + T[1]*epsilon[0][1] ) ) *gaussPoints[k].second  ;
-				ilocal1 += ( 0.5*sigma_epsilon*normal[1] - ( T[0]*epsilon[0][1] + T[1]*epsilon[1][1] ) ) *gaussPoints[k].second;
+				ilocal0 += ( 0.5*sigma_epsilon*stepLengthal[0] - ( T[0]*epsilon[0][0] + T[1]*epsilon[0][1] ) ) *gaussPoints[k].second  ;
+				ilocal1 += ( 0.5*sigma_epsilon*stepLengthal[1] - ( T[0]*epsilon[0][1] + T[1]*epsilon[1][1] ) ) *gaussPoints[k].second;
 
 			}
 			freeEnergy0 += ilocal0*gamma[j].first->norm() ;
@@ -1648,7 +1751,7 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 
 
 			Point ln = gamma[j].second->inLocalCoordinates ( n ) ;
-			Vector normal ( 2 ) ; normal[0] = n.x ; normal[1] = n.y ;
+			Vector stepLengthal ( 2 ) ; stepLengthal[0] = n.x ; stepLengthal[1] = n.y ;
 			Vector d ( 2 ) ; d[0] = -n.y ;   d[1] = n.x ;
 			double ilocal0 = 0 ;
 			double ilocal1 = 0 ;
@@ -1663,11 +1766,11 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 
-				Vector T = sigma * normal ;
+				Vector T = sigma * stepLengthal ;
 
 
-				ilocal0 += ( 0.5*sigma_epsilon*normal[0] - ( T[0]*epsilon[0][0] + T[1]*epsilon[0][1] ) ) *gaussPoints[k].second  ;
-				ilocal1 += ( 0.5*sigma_epsilon*normal[1] - ( T[0]*epsilon[0][1] + T[1]*epsilon[1][1] ) ) *gaussPoints[k].second;
+				ilocal0 += ( 0.5*sigma_epsilon*stepLengthal[0] - ( T[0]*epsilon[0][0] + T[1]*epsilon[0][1] ) ) *gaussPoints[k].second  ;
+				ilocal1 += ( 0.5*sigma_epsilon*stepLengthal[1] - ( T[0]*epsilon[0][1] + T[1]*epsilon[1][1] ) ) *gaussPoints[k].second;
 
 			}
 			freeEnergy0 += ilocal0*gamma[j].first->norm() ;
@@ -1694,7 +1797,6 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	changed = false ;
 
 // 	return ;
-	double norm = .001 ;
 	std::pair<double, double> headJ = computeJIntegralAtHead ( dt, dtree ) ;
 	Vector J ( 2 ) ; J[0] = headJ.first ; J[1] = headJ.second ;
 	std::cout << "at head : " << J[0] << ", " << J[1] << std::endl ;
@@ -1711,14 +1813,14 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 					getHead()->x -boundingPoints[1]->x ) ;
 	Point lastDir ( getHead()->x-getBoundingPoint ( 1 ).x, getHead()->y-getBoundingPoint ( 1 ).y ) ;
 	
-if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
+	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	{
 		DelaunayTriangle * headElem = NULL ;
 		for ( size_t i = 0 ; i < disk.size() ; i++ )
 		{
 			if ( !disk[i]->in ( *getHead() )
-				&& !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
-	            || boundary->in(disk[i]->getCenter())
+				&& (!disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
+				    || boundary->in(disk[i]->getCenter()))
 			)
 				tris.push_back ( disk[i] ) ;
 			else if ( disk[i]->in ( *getHead() ) )
@@ -1734,9 +1836,6 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 				DelaunayTriangle * current = tris[i] ;
 				for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
 				{
-	
-					double angle = atan2 ( getHead()->y-current->getBoundingPoint ( j ).y,
-							getHead()->x-current->getBoundingPoint ( j ).x ) ;
 	
 					Point currentDir ( current->getBoundingPoint ( j ).x-getHead()->x, current->getBoundingPoint ( j ).y-getHead()->y ) ;
 					if ( ( currentDir*lastDir ) > 0 )
@@ -1767,30 +1866,31 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	
 		}
 	
-		direction*= norm ;
+		direction*= stepLength ;
 		if ( acount )
 			aangle /= acount ;
 	
 		if ( headElem )
 		{
 			changed = true ;
+
 			if ( headElem->getBehaviour()->type == VOID_BEHAVIOUR )
 			{
 				setInfluenceRadius ( 0 ) ;
 			}
 			else
 			{
-				direction.set ( norm*cos ( aangle + M_PI*.25), norm*sin ( aangle + M_PI*.25) ) ;
+				direction.set ( stepLength*cos ( aangle + M_PI*.25), stepLength*sin ( aangle + M_PI*.25) ) ;
 	
 				if ( ( direction*lastDir ) < 0 )
-					direction.set ( norm*cos ( aangle+M_PI + M_PI*.25), norm*sin ( aangle+M_PI + M_PI*.25) ) ;
+					direction.set ( stepLength*cos ( aangle+M_PI + M_PI*.25), stepLength*sin ( aangle+M_PI + M_PI*.25) ) ;
 	
 				// 		Point currentDir(getHead()->x-getBoundingPoint(1).x, getHead()->y-getBoundingPoint(1).y) ;
-				// 		double angle = headElem->getState().getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
-				// 		direction = Point(norm*cos(angle),norm*sin(angle)) ;
+				// 		double angle = headElem->getState().getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(stepLength/100)) ;
+				// 		direction = Point(stepLength*cos(angle),stepLength*sin(angle)) ;
 				//
 				// 		if((direction*currentDir) < 0)
-				// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
+				// 			direction = Point(stepLength*cos(angle+M_PI), stepLength*sin(angle+M_PI)) ;
 	
 				std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
 				newPoints[0] = new Point ( getHead()->x+direction.x, getHead()->y+direction.y ) ;
@@ -1819,17 +1919,19 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 		for ( size_t i = 0 ; i < disk.size() ; i++ )
 		{
 			if ( !disk[i]->in ( *getTail() )
-				&& !disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
-			   ||boundary2->in(disk[i]->getCenter())
+				&& (!disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
+				    || boundary2->in(disk[i]->getCenter()))
 			)
+			{
 				tris.push_back ( disk[i] ) ;
+			}
 			else if ( disk[i]->in ( *getTail() ) )
 			{
 				tailElem = disk[i] ;
 			}
 		}
 	
-	
+		std::cout << tris.size() << std::endl ;
 	
 		count = 0 ;
 		acount = 0 ;
@@ -1850,9 +1952,6 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	
 				for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
 				{
-	
-					double angle = atan2 ( getTail()->y-current->getBoundingPoint ( j ).y,
-							getTail()->x-current->getBoundingPoint ( j ).x ) ;
 	
 					Point currentDir ( current->getBoundingPoint ( j ).x-getTail()->x, current->getBoundingPoint ( j ).y-getTail()->y ) ;
 	
@@ -1885,13 +1984,14 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 			direction /= direction.norm() ;
 	
 		}
-		direction*= norm ;
+		direction*= stepLength ;
 		if ( acount )
 			aangle /= acount ;
 	
 		if ( tailElem )
 		{
 			changed = true ;
+
 			if ( tailElem->getBehaviour()->type == VOID_BEHAVIOUR )
 			{
 				setInfluenceRadius ( 0 ) ;
@@ -1899,17 +1999,17 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 			else
 			{
 	
-				direction.set ( norm*cos ( aangle+ M_PI*.25), norm*sin ( aangle + M_PI*.25) ) ;
+				direction.set ( stepLength*cos ( aangle+ M_PI*.25), stepLength*sin ( aangle + M_PI*.25) ) ;
 	
 				if ( ( direction*lastDir ) < 0 )
-					direction.set ( norm*cos ( aangle+M_PI + M_PI*.25), norm*sin ( aangle+M_PI + M_PI*.25) ) ;
+					direction.set ( stepLength*cos ( aangle+M_PI + M_PI*.25), stepLength*sin ( aangle+M_PI + M_PI*.25) ) ;
 	
 				// 		Point currentDir(getTail()->x-getBoundingPoint(getBoundingPoints().size()-2).x, getTail()->y-getBoundingPoint(getBoundingPoints().size()-2).y) ;
-				// 		double angle = tailElem->getState().getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(norm/100)) ;
-				// 		direction = Point(norm*cos(angle), norm*sin(angle)) ;
+				// 		double angle = tailElem->getState().getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(stepLength/100)) ;
+				// 		direction = Point(stepLength*cos(angle), stepLength*sin(angle)) ;
 				//
 				// 		if((direction*currentDir) < 0)
-				// 			direction = Point(norm*cos(angle+M_PI), norm*sin(angle+M_PI)) ;
+				// 			direction = Point(stepLength*cos(angle+M_PI), stepLength*sin(angle+M_PI)) ;
 	
 				std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
 				for ( size_t i = 0 ; i < boundingPoints.size() ; i++ )

@@ -881,7 +881,7 @@ std::pair< Point*,  Point*> DelaunayTriangle::nearestEdge(const Point p)
 bool DelaunayTriangle::inCircumCircle(const Point &p) const 
 {
 // 	return  (circumCenter.x -p.x)*(circumCenter.x -p.x) + (circumCenter.y -p.y)*(circumCenter.y -p.y)< radius*radius -POINT_TOLERANCE  ;
-	return  this->Triangle::inCircumCircle(p) ;
+	return  Triangle::inCircumCircle(p) ;
 }
 	
 void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  Star* s)
@@ -1062,9 +1062,8 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 	assert(!isAligned(lims[0], p, lims[1])) ;
 	assert((*lims[0]) != (*lims[1])) ;
 
-	if(!isAligned(lims[0], p, lims[1]) && !isAligned(lims[1], p, lims[0]))
+	if(!isAligned(lims[0], p, lims[1]))
 	{
-		p->print() ;
 		DelaunayDemiPlane *p0 = new DelaunayDemiPlane(this, lims[0], p, lims[1], p) ;
 
 		DelaunayDemiPlane *p1 = new DelaunayDemiPlane(this, lims[1], p, lims[0], p) ;
@@ -1090,7 +1089,6 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 	}
 	else
 	{
-		third->print() ;
 		DelaunayDemiPlane *p0 = new DelaunayDemiPlane(this, lims[0], third, lims[1], p) ;
 		
 		DelaunayDemiPlane *p1 = new DelaunayDemiPlane(this, lims[1], third, lims[0], p) ;
@@ -1802,8 +1800,8 @@ void DelaunayTriangle::refresh(const TriElement * father)
 {
 	this->TriElement::refresh(father) ;
 	
-	if(!cachedGPs)
-		cachedGPs = new std::valarray<std::pair<Point, double> >(getSubTriangulatedGaussPoints()) ; 
+// 	if(!cachedGPs)
+// 		cachedGPs = new GaussPointArray(getSubTriangulatedGaussPoints()) ; 
 	
 // 	this->computeCenter() ;
 }
@@ -1812,16 +1810,16 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 {
 
 	std::vector<std::vector<Matrix > > mother ;
-	std::valarray<std::pair<Point, double> > gp =getSubTriangulatedGaussPoints() ;
+	GaussPointArray gp = getSubTriangulatedGaussPoints() ;
 	std::valarray<Matrix> Jinv ;
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 
 // 	if(moved)
 // 	{
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
-			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
+			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
 // 	}
 // 	else
@@ -1887,14 +1885,14 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 	}
 	
 	std::valarray<Matrix> Jinv ;
-	std::valarray<std::pair<Point, double> > gp = getSubTriangulatedGaussPoints() ;
+	GaussPointArray gp = getSubTriangulatedGaussPoints() ;
 	
 // 	if(moved)
 // 	{
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
-			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
+			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
 // 	}
 // 	else
@@ -1938,17 +1936,18 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 
 
 
-std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGaussPoints() const
+GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 {
-	std::valarray<std::pair<Point, double> > gp = getGaussPoints() ; 
+	
+	GaussPointArray gp = getGaussPoints() ; 
 	
 	VirtualMachine vm ;
 	
 	if(getEnrichmentFunctions().size() > 0 )
 	{
+		std::cout << "ping" << std::endl ;
 		std::vector<std::pair<Point, double> > gp_alternative ;
 		std::vector<Point> to_add ;
-		std::vector<Point> to_add_extra ;
 		to_add.push_back(Point(0,1)) ;
 		to_add.push_back(Point(0,0)) ;
 		to_add.push_back(Point(1,0)) ;
@@ -1958,37 +1957,33 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 		{
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
 			{
-				if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[0]) > 1e-6 && 
-				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[1]) > 1e-6 && 
-				   squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add[2]) > 1e-6 &&
-				   father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)) )
+				bool go = true ;
+				
+				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					bool ok = true ;
-					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
+					if(dist(getEnrichmentFunction(i).second.getIntegrationHint(j),to_add[k]))
 					{
-						if(squareDist2D(getEnrichmentFunction(i).second.getIntegrationHint(j), to_add_extra[k]) < 1e-6)
-						{
-							ok = false ;
-							break ;
-						}
+						go = false ;
+						break ;
 					}
-					if(ok && father.in(getEnrichmentFunction(i).second.getIntegrationHint(j)))
-						to_add_extra.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
 				}
+				if(go)
+					to_add.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
 			}
 		}
-		
-		to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-		
-// 		std::cout << "Points forming the mesh" << std::endl ;
-// 
-// 		for(size_t i = 0 ; i < to_add.size() ;  i++)
-// 		{
-// 			to_add[i].print() ;
-// 		}
-// 		
-// 		std::cout << std::endl ;
 
+// 		for(size_t k = 3 ; k < to_add.size() ; k++)
+// 		{
+// 			Point test(to_add[k]) ;
+// 			father.project(&test) ;
+// 			if(squareDist2D(test, to_add[k]) < 1e-4)
+// 				father.project(&to_add[k]) ;
+// 		}
+		
+		std::sort(to_add.begin()+3, to_add.end()) ;
+		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-4)) ;
+		to_add.erase(e, to_add.end()) ;
+		
 		DelaunayTree dt(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
 		for(size_t i = 3 ; i < to_add.size() ; i++)
 		{
@@ -2017,15 +2012,15 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 				
 				for(size_t k = 0 ; k < to_add.size() ; k++)
 				{
-					if(squareDist2D(a, to_add[k]) < 1e-6)
+					if(dist(a, to_add[k]) < 1e-4)
 					{
 						good_a = false ;
 					}
-					if(squareDist2D(b, to_add[k]) < 1e-6)
+					if(dist(b, to_add[k]) < 1e-4)
 					{
 						good_b = false ;
 					}
-					if(squareDist2D(c, to_add[k]) < 1e-6)
+					if(dist(c, to_add[k]) < 1e-4)
 					{
 						good_c = false ;
 					}
@@ -2039,9 +2034,19 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 					quadtree.push_back(c) ;
 
 			}
+			
+// 			for(size_t k = 0 ; k < quadtree.size() ; k++)
+// 			{
+// 				Point test(quadtree[k]) ;
+// 				father.project(&test) ;
+// 				if(dist(test, quadtree[k]) < 1e-6)
+// 					father.project(&quadtree[k]) ;
+// 			}
+			
 			std::sort(quadtree.begin(), quadtree.end()) ;
-			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-6)) ;
+			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-4)) ;
 			quadtree.erase(e, quadtree.end()) ;
+			
 // 			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
 			for(size_t j = 0 ; j < quadtree.size() ; j++)
 			{
@@ -2064,21 +2069,22 @@ std::valarray<std::pair<Point, double> > DelaunayTriangle::getSubTriangulatedGau
 			Function y = tri[i]->getYTransform() ;
 			tri[i]->setOrder(QUADRATIC) ;
 
-			std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
+			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			
-			for(size_t j = 0 ; j < gp_temp.size() ; j++)
+			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 			{
 // 					gp_temp[j].second /= jmin ;
-				gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first)) ;
-				gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
-				gp_alternative.push_back(gp_temp[j]) ;
+				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
+				gp_temp.gaussPoints[j].second *= this->jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
+				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 			}
 		}
 
 		
-		gp.resize(gp_alternative.size()) ;
-		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp[0]);
-		
+		gp.gaussPoints.resize(gp_alternative.size()) ;
+		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
+		std::cout << "pong" << std::endl ;
+		gp.id = -1 ;
 	}
 	
 	return gp ;
@@ -2100,14 +2106,14 @@ Vector DelaunayTriangle::getNonLinearForces() const
 	
 	std::valarray<Matrix> Jinv ;
 	
-	std::valarray<std::pair<Point, double> > gp  = getSubTriangulatedGaussPoints() ;
+	GaussPointArray gp  = getSubTriangulatedGaussPoints() ;
 	
 // 	if(moved)
 // 	{
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
-			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
+			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
 // 	}
 // 	else
@@ -2139,14 +2145,14 @@ Vector DelaunayTriangle::getForces() const
 	Vector forces(dofs.size()*2) ;
 	
 	std::valarray<Matrix> Jinv ;
-	std::valarray<std::pair<Point, double> > gp = getSubTriangulatedGaussPoints() ;
+	GaussPointArray gp = getSubTriangulatedGaussPoints() ;
 	
 // 	if(moved)
 // 	{
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
-			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
+			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
 // 	}
 // 	else

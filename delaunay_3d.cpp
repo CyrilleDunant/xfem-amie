@@ -1908,7 +1908,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 {
 	
 	std::vector<std::vector<Matrix > > mother ;
-	std::valarray<std::pair<Point, double> > gp(0) ; 
+	GaussPointArray gp ; 
 	std::valarray<Matrix> Jinv ;
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 	if(getEnrichmentFunctions().size() > 0 /*&& getEnrichmentFunction(0).second.getIntegrationHint().size() > 0*/ )
@@ -1966,7 +1966,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		
 		std::vector<DelaunayTetrahedron *> tetra = dt.getTetrahedrons() ;
 		
-		Jinv.resize(tetra[0]->getGaussPoints().size()*tetra.size()) ;
+		Jinv.resize(tetra[0]->getGaussPoints().gaussPoints.size()*tetra.size()) ;
 		
 		if(moved)
 		{
@@ -1977,17 +1977,17 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 				Function y = tetra[i]->getYTransform() ;
 				Function z = tetra[i]->getZTransform() ;
 				tetra[i]->order = QUADRATIC ;
-				std::valarray<std::pair<Point, double> > gp_temp = tetra[i]->getGaussPoints() ;
+				GaussPointArray gp_temp = tetra[i]->getGaussPoints() ;
 				VirtualMachine vm ;
 				
-				for(size_t j = 0 ; j < gp_temp.size() ; j++)
+				for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 				{
 					
-					gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
-					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first), vm.eval(z, gp_temp[j].first)) ;
-					Jinv[i*gp_temp.size()+j] = this->getInverseJacobianMatrix( gp_temp[j].first ) ;
+					gp_temp.gaussPoints[j].second *= this->jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
+					gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first), vm.eval(z, gp_temp.gaussPoints[j].first)) ;
+					Jinv[i*gp_temp.gaussPoints.size()+j] = this->getInverseJacobianMatrix( gp_temp.gaussPoints[j].first ) ;
 					
-					gp_alternative.push_back(gp_temp[j]) ;
+					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 				}
 				
 			}
@@ -2002,46 +2002,46 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 				Function x = tetra[i]->getXTransform() ;
 				Function y = tetra[i]->getYTransform() ;
 				Function z = tetra[i]->getZTransform() ;
-				std::valarray<std::pair<Point, double> > gp_temp = tetra[i]->getGaussPoints() ;
+				GaussPointArray gp_temp = tetra[i]->getGaussPoints() ;
 				VirtualMachine vm ;
 				
 				
-				for(size_t j = 0 ; j < gp_temp.size() ; j++)
+				for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 				{
-					gp_temp[j].second *= ja ;
-					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first), vm.eval(z, gp_temp[j].first)) ;
-					Jinv[i*gp_temp.size()+j] = J ;
-					gp_alternative.push_back(gp_temp[j]) ;
+					gp_temp.gaussPoints[j].second *= ja ;
+					gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first), vm.eval(z, gp_temp.gaussPoints[j].first)) ;
+					Jinv[i*gp_temp.gaussPoints.size()+j] = J ;
+					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 				}
 				
 			}
 		}
 		
-		gp.resize(gp_alternative.size()) ;
-		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp[0]);
+		gp.gaussPoints.resize(gp_alternative.size()) ;
+		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 	}
 	else
 	{
 		if(moved)
 		{
-			std::valarray<std::pair<Point, double> > gp_alt(this->getGaussPoints()) ;
-			gp.resize(gp_alt.size()) ;
-			std::copy(&gp_alt[0], &gp_alt[gp_alt.size()], &gp[0]);
-			Jinv.resize(gp_alt.size()) ;
-			for(size_t i = 0 ; i < gp.size() ;  i++)
+			GaussPointArray gp_alt(this->getGaussPoints()) ;
+			gp.gaussPoints.resize(gp_alt.gaussPoints.size()) ;
+			std::copy(&gp_alt.gaussPoints[0], &gp_alt.gaussPoints[gp_alt.gaussPoints.size()], &gp.gaussPoints[0]);
+			Jinv.resize(gp_alt.gaussPoints.size()) ;
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 			{
-				Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
+				Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 			}
 		}
 		else
 		{
 			Matrix J = this->getInverseJacobianMatrix( Point(.25,.25,.25)) ;
-			std::valarray<std::pair<Point, double> > gp_alt(this->getGaussPoints()) ;
-			gp.resize(gp_alt.size()) ;
-			Jinv.resize(gp_alt.size()) ;
-			std::copy(&gp_alt[0], &gp_alt[gp_alt.size()], &gp[0]);
+			GaussPointArray gp_alt(this->getGaussPoints()) ;
+			gp.gaussPoints.resize(gp_alt.gaussPoints.size()) ;
+			Jinv.resize(gp_alt.gaussPoints.size()) ;
+			std::copy(&gp_alt.gaussPoints[0], &gp_alt.gaussPoints[gp_alt.gaussPoints.size()], &gp.gaussPoints[0]);
 			
-			for(size_t i = 0 ; i < gp.size() ;  i++)
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 			{
 				Jinv[i] = J ;
 			}
@@ -2104,7 +2104,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 	}
 	
 	std::valarray<Matrix> Jinv ;
-	std::valarray<std::pair<Point, double> > gp(0) ; 
+	GaussPointArray gp ; 
 	std::vector<std::pair<Point, double> > gp_alternative ;
 	
 	
@@ -2151,7 +2151,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 	
 	std::vector<DelaunayTetrahedron *> tetra = dt.getTetrahedrons() ;
 	
-	Jinv.resize(tetra.size()*tetra[0]->getGaussPoints().size()) ;
+	Jinv.resize(tetra.size()*tetra[0]->getGaussPoints().gaussPoints.size()) ;
 	if(moved)
 	{
 		for(size_t i = 0 ; i < tetra.size() ; i++)
@@ -2161,18 +2161,18 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 			Function y = tetra[i]->getYTransform() ;
 			Function z = tetra[i]->getZTransform() ;
 			tetra[i]->order = QUADRATIC ;
-			std::valarray<std::pair<Point, double> > gp_temp = tetra[i]->getGaussPoints() ;
+			GaussPointArray gp_temp = tetra[i]->getGaussPoints() ;
 			
 			if(moved)
 			{
-				for(size_t j = 0 ; j < gp_temp.size() ; j++)
+				for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 				{
 					
-					gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
-					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first), vm.eval(z, gp_temp[j].first)) ;
-					Jinv[i*gp_temp.size()+j] = this->getInverseJacobianMatrix( gp_temp[j].first ) ;
+					gp_temp.gaussPoints[j].second *= this->jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
+					gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first), vm.eval(z, gp_temp.gaussPoints[j].first)) ;
+					Jinv[i*gp_temp.gaussPoints.size()+j] = this->getInverseJacobianMatrix( gp_temp.gaussPoints[j].first ) ;
 					
-					gp_alternative.push_back(gp_temp[j]) ;
+					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 				}
 			}
 			
@@ -2189,28 +2189,28 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 			Function y = tetra[i]->getYTransform() ;
 			Function z = tetra[i]->getZTransform() ;
 			
-			std::valarray<std::pair<Point, double> > gp_temp = tetra[i]->getGaussPoints() ;
+			GaussPointArray gp_temp = tetra[i]->getGaussPoints() ;
 			VirtualMachine vm ;
 			
 			
-			for(size_t j = 0 ; j < gp_temp.size() ; j++)
+			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 			{
-				gp_temp[j].second *= ja ;
-				gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first), vm.eval(z, gp_temp[j].first)) ;
-				Jinv[i*gp_temp.size()+j] = J ;
+				gp_temp.gaussPoints[j].second *= ja ;
+				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first), vm.eval(z, gp_temp.gaussPoints[j].first)) ;
+				Jinv[i*gp_temp.gaussPoints.size()+j] = J ;
 				
-				gp_alternative.push_back(gp_temp[j]) ;
+				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 			}
 			
 		}
 	}
 	
-	gp.resize(gp_alternative.size()) ;
-	std::copy(gp_alternative.begin(), gp_alternative.end(), &gp[0]);
-	std::valarray<Point> gp_points(gp.size()) ;
+	gp.gaussPoints.resize(gp_alternative.size()) ;
+	std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
+	std::valarray<Point> gp_points(gp.gaussPoints.size()) ;
 	
-	for(size_t i = 0 ; i < gp.size() ; i++)
-		gp_points[i] = gp[i].first ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		gp_points[i] = gp.gaussPoints[i].first ;
 	
 	Vector displacement_state = this->getState().getDisplacements(gp_points) ;
 
@@ -2255,21 +2255,21 @@ Vector DelaunayTetrahedron::getNonLinearForces() const
 	}
 	
 	std::valarray<Matrix> Jinv ;
-	std::valarray<std::pair<Point, double> > gp = getSubTriangulatedGaussPoints() ; 
+	GaussPointArray gp = getSubTriangulatedGaussPoints() ; 
 	
 	if(moved)
 	{
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
-			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
+			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
 	}
 	else
 	{
 		Matrix J = this->getInverseJacobianMatrix(Point( 1./4.,1./4., 1./4.) ) ;
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
 			Jinv[i] = J ;
 		}
@@ -2295,21 +2295,21 @@ Vector DelaunayTetrahedron::getForces() const
 	Vector forces(dofs.size()*3) ;
 	
 	std::valarray<Matrix> Jinv ;
-	std::valarray<std::pair<Point, double> > gp = getSubTriangulatedGaussPoints() ; 
+	GaussPointArray gp = getSubTriangulatedGaussPoints() ; 
 	
 	if(moved)
 	{
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
-			Jinv[i] = getInverseJacobianMatrix( gp[i].first ) ;
+			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
 	}
 	else
 	{
 		Matrix J = this->getInverseJacobianMatrix(Point( 1./4.,1./4., 1./4.) ) ;
-		Jinv.resize(gp.size()) ;
-		for(size_t i = 0 ; i < gp.size() ;  i++)
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
 			Jinv[i] = J ;
 		}
@@ -2330,9 +2330,9 @@ Vector DelaunayTetrahedron::getForces() const
 }
 
 
-std::valarray<std::pair<Point, double> > DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
+GaussPointArray DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
 {
-	std::valarray<std::pair<Point, double> > gp = getGaussPoints() ; 
+	GaussPointArray gp = getGaussPoints() ; 
 	
 	VirtualMachine vm ;
 	
@@ -2390,16 +2390,16 @@ std::valarray<std::pair<Point, double> > DelaunayTetrahedron::getSubTriangulated
 				Function y = tri[i]->getYTransform() ;
 				Function z = tri[i]->getZTransform() ;
 				tri[i]->order = QUADRATIC ;
-				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
+				GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 
-				for(size_t j = 0 ; j < gp_temp.size() ; j++)
+				for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 				{
 	
-					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first),  vm.eval(z, gp_temp[j].first)) ;
-					gp_temp[j].second *= this->jacobianAtPoint(gp_temp[j].first) ;
+					gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first),  vm.eval(z, gp_temp.gaussPoints[j].first)) ;
+					gp_temp.gaussPoints[j].second *= this->jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
 					
 					
-					gp_alternative.push_back(gp_temp[j]) ;
+					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 				}
 
 			}
@@ -2414,20 +2414,20 @@ std::valarray<std::pair<Point, double> > DelaunayTetrahedron::getSubTriangulated
 				Function y = tri[i]->getYTransform() ;
 				Function z = tri[i]->getZTransform() ;
 				
-				std::valarray<std::pair<Point, double> > gp_temp = tri[i]->getGaussPoints() ;
+				GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 				
-				for(size_t j = 0 ; j < gp_temp.size() ; j++)
+				for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 				{
-					gp_temp[j].second *= ja ;
-					gp_temp[j].first.set(vm.eval(x, gp_temp[j].first), vm.eval(y, gp_temp[j].first), vm.eval(z, gp_temp[j].first)) ;
-					gp_alternative.push_back(gp_temp[j]) ;
+					gp_temp.gaussPoints[j].second *= ja ;
+					gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first), vm.eval(z, gp_temp.gaussPoints[j].first)) ;
+					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 				}
 
 			}
 		}
 		
-		gp.resize(gp_alternative.size()) ;
-		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp[0]);
+		gp.gaussPoints.resize(gp_alternative.size()) ;
+		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 	}
 	
 	return gp ;

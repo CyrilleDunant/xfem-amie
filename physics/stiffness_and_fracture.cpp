@@ -12,6 +12,7 @@
 
 #include "stiffness_and_fracture.h"
 #include "../delaunay.h"
+#include "ruptureenergy.h"
 
 
 using namespace Mu ;
@@ -43,7 +44,7 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 	return vm.ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
 
-Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);
@@ -51,7 +52,7 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 	if(param.size() == 36)
 		v.push_back(ZETA);
 	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
 }
 
 
@@ -68,6 +69,9 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 		previousParam = param ;
 		
 		this->param *= .9 ;
+// 		RuptureEnergy * r = dynamic_cast<RuptureEnergy *>(criterion) ;
+// 		if(r)
+// 			r->energy /= .9 ;
 		change = true ;
 		if(this->param[0][0] < init*.8)
 		{
@@ -104,7 +108,7 @@ Form * StiffnessAndFracture::getCopy() const
 	return new StiffnessAndFracture(*this) ;
 }
 
-Vector StiffnessAndFracture::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector StiffnessAndFracture::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

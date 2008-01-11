@@ -80,7 +80,7 @@ Matrix LinearStiffnessGradient::getTensor(const Point & p) const
 	return vm.eval(C, p.x, p.y) ;
 }
 
-Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	
 	FunctionMatrix C(3,3) ;
@@ -97,7 +97,7 @@ Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j
 		}
 	}
 	
-	return VirtualMachine().ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * C * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
 }
 
 Form * LinearStiffnessGradient::getCopy() const 
@@ -105,7 +105,7 @@ Form * LinearStiffnessGradient::getCopy() const
 	return new LinearStiffnessGradient(*this) ;
 }
 
-Vector LinearStiffnessGradient::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector LinearStiffnessGradient::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

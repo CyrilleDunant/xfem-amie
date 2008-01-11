@@ -236,9 +236,9 @@ FeatureTree::FeatureTree(Feature *first)
 	this->needAssembly = true ;
 	this->initialized = false ;
 
-	meshChange = false ;
+	meshChange = true ;
 	solverConvergence = false ;
-	enrichmentChange = false ;
+	enrichmentChange = true ;
 
 	K = new Assembly() ;
 	
@@ -1537,19 +1537,7 @@ void FeatureTree::assemble()
 	
 	std::cerr << " enriching..." << std::flush ;		
 	
-	bool needToUpdateEnrichement = false ;
-
-	for(size_t i = 1 ; i < this->tree.size() ; i++)
-	{
-		
-		if(this->tree[i]->isEnrichmentFeature)
-		{
-			needToUpdateEnrichement = needToUpdateEnrichement || static_cast<EnrichmentFeature *>(this->tree[i])->moved() ;
-		}
-		
-	}
-
-	if(needToUpdateEnrichement)
+	if(enrichmentChange)
 	{
 
 		if(this->dtree3D == NULL && this->dtree !=NULL)
@@ -1939,10 +1927,7 @@ bool FeatureTree::enrichmentChanged() const
 bool FeatureTree::step(double dt)
 {
 	bool ret = true ;
-	meshChange = false ;
-	solverConvergence = false ;
-	enrichmentChange = false ;
-	if(true/*needAssembly*/)
+	if(true)
 	{
 		this->K->clear() ;
 		assemble() ;
@@ -1956,6 +1941,9 @@ bool FeatureTree::step(double dt)
 	solverConvergence = this->K->cgsolve() ;
 // 	Vector displacements = this->K->solve(/**extforces*/Vector(0), 100000, true) ;
 	
+	meshChange = false ;
+	solverConvergence = false ;
+	enrichmentChange = false ;
 
 	if(is2D())
 	{
@@ -1997,6 +1985,7 @@ bool FeatureTree::step(double dt)
 				}
 				else if(elements[i]->getBehaviour()->changed() )
 				{
+					meshChange = true ;
 					needAssembly = true ;
 					ret = false ;
 				}
@@ -2015,7 +2004,7 @@ bool FeatureTree::step(double dt)
 			{
 				dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &K->getForces(), dtree) ;
 				enrichmentChange = enrichmentChange || dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
-// 				ret = false ;
+				needAssembly = true ;
 			}
 		}
 

@@ -13,6 +13,7 @@
 #include "weibull_distributed_stiffness.h"
 #include "physics.h"
 #include "mohrcoulomb.h"
+#include "ruptureenergy.h"
 
 using namespace Mu ;
 
@@ -34,7 +35,7 @@ Matrix WeibullDistributedStiffness::apply(const Function & p_i, const Function &
 	
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
-Matrix WeibullDistributedStiffness::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix WeibullDistributedStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);
@@ -43,7 +44,7 @@ Matrix WeibullDistributedStiffness::apply(const Function & p_i, const Function &
 		v.push_back(ZETA);
 	
 	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
 }
 
 bool WeibullDistributedStiffness::fractured() const
@@ -56,11 +57,11 @@ Form * WeibullDistributedStiffness::getCopy() const
 	double randomVar = (double)random()/(double)RAND_MAX ;
 	randomVar = 1.1284*pow(-log(randomVar),1./2.) ;
 	Matrix newTensor = param*randomVar ;
-	return new StiffnessAndFracture(newTensor, new MohrCoulomb(criterion, -criterion*40)) ;
+	return new StiffnessAndFracture(newTensor, new MohrCoulomb(criterion*randomVar, -4.*criterion*randomVar)) ;
 }
 
 
-Vector WeibullDistributedStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector WeibullDistributedStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

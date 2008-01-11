@@ -36,7 +36,7 @@ protected:
 	std::vector<SegmentedLine * > forks ;
 	
 	void enrichTips(size_t &, DelaunayTree * dt) ;
-	void enrichTip(size_t &, DelaunayTree * dt, const Point * tip) ;
+	void enrichTip(size_t &, DelaunayTree * dt, const Point * tip, double angle) ;
 
 	void enrichForks(size_t &, DelaunayTree * dt) ;
 	void enrichBranches(size_t &, DelaunayTree * dt) ;
@@ -54,6 +54,8 @@ protected:
 	
 	double enrichementRadius ;
 	bool changed ;
+
+	std::set<Point *> donePoints ;
 	
 public:
 	
@@ -138,6 +140,7 @@ public:
 
 class Crack :  public EnrichmentFeature,  public SegmentedLine
 {
+	double stepLength ;
 	double criticalJ ;
 	typedef enum
 	{

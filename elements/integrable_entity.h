@@ -186,6 +186,13 @@ public:
 } ;
 
 
+struct GaussPointArray
+{
+	std::valarray< std::pair<Point, double> > gaussPoints ;
+	int id ;
+	GaussPointArray() : gaussPoints(std::make_pair(Point(), 1.),1), id(-2) { } ;
+	GaussPointArray(const std::valarray< std::pair<Point, double> > & array, int i): gaussPoints(array), id(i) { } ;
+} ;
 
 /** Abstract class for the representation of elements
  */
@@ -203,7 +210,7 @@ public:
 	virtual ~IntegrableEntity() { } ;
 	virtual const Point & getPoint(size_t i) const = 0 ;
 	virtual Point & getPoint(size_t i)  = 0 ;
-	virtual std::valarray< std::pair<Point, double> > getGaussPoints() const = 0 ;
+	virtual GaussPointArray getGaussPoints() const = 0 ;
 	virtual Point inLocalCoordinates(const Point & p) const  = 0;
 	virtual double area() const { return 0 ; } 
 	virtual double volume() const { return 0 ; } 
@@ -261,7 +268,7 @@ public:
 	 * @return The vector of the symbolic matrices at the integration points
 	 */
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const = 0;
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
+	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
 	
 	virtual bool timeDependent() const
 	{
@@ -292,7 +299,7 @@ public:
 	
 	virtual bool fractured() const = 0 ;
 	virtual bool changed() const { return false ; } ;
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
 	
 	virtual Form * getCopy() const = 0 ;
 	virtual void stepBack() { }  ;

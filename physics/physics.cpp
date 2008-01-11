@@ -31,19 +31,19 @@ NonLinearStiffness::~NonLinearStiffness() { } ;
 Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
 	VirtualMachine vm ;
-	std::valarray< std::pair<Point,double> > gp = e->getGaussPoints() ;
-	std::valarray<Point> pts(gp.size()) ;
-	for(size_t i = 0; i < gp.size() ; i++)
+	GaussPointArray gp = e->getGaussPoints() ;
+	std::valarray<Point> pts(gp.gaussPoints.size()) ;
+	for(size_t i = 0; i < gp.gaussPoints.size() ; i++)
 	{
-		pts[i] = gp[i].first ;
+		pts[i] = gp.gaussPoints[i].first ;
 	}
 	
 	double E_ = 0;
 	Matrix m0(3,3) ;
 	Vector displacements = e->getState().getDisplacements( pts) ;
-	for(size_t i = 0 ; i < gp.size() ; i++)
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
-		E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp[i].second ;
+		E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp.gaussPoints[i].second ;
 	}
 	
 	m0[0][0] = E_/(1-nu*nu) ; m0[0][1] =E_/(1-nu*nu)*nu ; m0[0][2] = 0 ;
@@ -67,24 +67,24 @@ bool NonLinearStiffness::hasInducedMatrix() const
 	return true ;
 }
 
-Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	
 	VirtualMachine vm ;
 	Matrix m0(3,3) ;
 	
-	std::valarray<Point> pts(gp.size()) ;
-	for(size_t i = 0; i < gp.size() ; i++)
+	std::valarray<Point> pts(gp.gaussPoints.size()) ;
+	for(size_t i = 0; i < gp.gaussPoints.size() ; i++)
 	{
-		pts[i] = gp[i].first ;
+		pts[i] = gp.gaussPoints[i].first ;
 	}
 	
 	Vector displacements = parent->getState().getDisplacements( pts) ;
 	double E_ = 0;
 	
-	for(size_t i = 0 ; i < gp.size() ; i++)
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
-		E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp[i].second ;
+		E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp.gaussPoints[i].second ;
 	}
 	
 	m0[0][0] = E_/(1-nu*nu) ; m0[0][1] =E_/(1-nu*nu)*nu ; m0[0][2] = 0 ;
@@ -95,37 +95,37 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 	v.push_back(XI);
 	v.push_back(ETA);
 	
-	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp, Jinv,v) ;
+	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
 }
 
-Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
-	Vector stress = s.getStress(gp) ; 
+	Vector stress = s.getStress(gp.gaussPoints) ; 
 
 	std::vector<Variable> v ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	
-	return VirtualMachine().ieval(Gradient(p_j, true)*stress, gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_j, true)*stress, gp.gaussPoints, Jinv,v) ;
 }
 
 bool NonLinearStiffness::isActive() const 
 {
 
-	std::valarray< std::pair<Point, double> > gp = parent->getGaussPoints() ;
-	std::valarray<Point> pts(gp.size()) ;
-	for(size_t i = 0; i < gp.size() ; i++)
+	GaussPointArray gp = parent->getGaussPoints() ;
+	std::valarray<Point> pts(gp.gaussPoints.size()) ;
+	for(size_t i = 0; i < gp.gaussPoints.size() ; i++)
 	{
-		pts[i] = gp[i].first ;
+		pts[i] = gp.gaussPoints[i].first ;
 	}
 	
 	Vector displacements = parent->getState().getDisplacements( pts) ;
 	double E_ = 0;
 	VirtualMachine vm ;
 	
-	for(size_t i = 0 ; i < gp.size() ; i++)
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
-		E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp[i].second ;
+		E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp.gaussPoints[i].second ;
 	}
 	
 	return E_ > 1e-6 ;
@@ -167,7 +167,7 @@ Matrix TwoDCohesiveForces::apply(const Function & p_i, const Function & p_j, con
 	return Matrix() ;
 }
 	
-Matrix TwoDCohesiveForces::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix TwoDCohesiveForces::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	return Matrix() ;
 }
@@ -183,7 +183,7 @@ bool TwoDCohesiveForces::hasInducedMatrix() const
 }
 	
 	
-Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 
 	Vector ret(0., 2) ;
@@ -194,8 +194,8 @@ Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_
 		return ret ;
 	
 
-	Vector apparentStress = source->getState().getNonEnrichedStress(gp,Jinv) ; 
-	for(size_t i = 0 ; i < gp.size() ; i++)
+	Vector apparentStress = source->getState().getNonEnrichedStress(gp.gaussPoints,Jinv) ; 
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		if(enrichedDof)
 		{
@@ -206,7 +206,7 @@ Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_
 			v.push_back(XI);
 			v.push_back(ETA);
 			
-			Matrix grad = VirtualMachine().geval(p_j, Jinv[i],v, gp[i].first, true) ;
+			Matrix grad = VirtualMachine().geval(p_j, Jinv[i],v, gp.gaussPoints[i].first, true) ;
 			Vector force = (Vector)(grad*stress) ;
 				
 			double normalAmplitude = force[0]*normals[0].x + force[1]*normals[0].y;
@@ -220,8 +220,8 @@ Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_
 			tangeantForce[0] = -normals[0].y*tangeantAmplitude ;
 			tangeantForce[1] = normals[0].x*tangeantAmplitude ;
 
-			ret += normalForce*gp[i].second ;
-			ret += tangeantForce*gp[i].second ;
+			ret += normalForce*gp.gaussPoints[i].second ;
+			ret += tangeantForce*gp.gaussPoints[i].second ;
 			
 		}
 
@@ -323,13 +323,13 @@ Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const 
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
 
-Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(ZETA);
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
 }
 void ViscoElasticity::step(double timestep, ElementState & currentState)
 {
@@ -479,13 +479,13 @@ void ViscoElasticity::step(double timestep, ElementState & currentState)
 	}
 }
 	
-Vector ViscoElasticity::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const
+Vector ViscoElasticity::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(ZETA);
-	return VirtualMachine().ieval(Gradient(p_j, true)*average_delta_sigma, gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_j, true)*average_delta_sigma, gp.gaussPoints, Jinv,v) ;
 }
 
 bool ViscoElasticity::hasInducedForces()

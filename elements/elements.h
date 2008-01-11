@@ -114,7 +114,7 @@ class TriElement : public Triangle, public ElementarySurface
 	
 protected :
 	
-	std::valarray< std::pair<Point, double> > genGaussPoints() const;
+	GaussPointArray genGaussPoints() const;
 	virtual void computeCenter();
 	
 public:
@@ -138,7 +138,7 @@ public:
 	
 	Matrix getInverseJacobianMatrix(const Point & p) const ;
 	
-	std::valarray< std::pair<Point, double> > getGaussPoints() const;
+	GaussPointArray getGaussPoints() const;
 	
 	virtual bool isMoved() const;
 	
@@ -157,7 +157,7 @@ class ElementaryVolume : public IntegrableEntity
 protected:
 	std::valarray< Function > *shapefunc ;
 	std::vector< std::pair<size_t , Function> > enrichfunc ;
-	virtual std::valarray< std::pair<Point, double> > genGaussPoints() const = 0 ;
+	virtual GaussPointArray genGaussPoints() const = 0 ;
 	Form * behaviour ;
 	Order order ;
 	NonLinearForm * nonlinbehaviour ;
@@ -176,7 +176,7 @@ public:
 	virtual const std::vector< size_t > getDofIds() const ;
 	
 	virtual void print()  const = 0 ;
-	virtual std::valarray< std::pair<Point, double> > getGaussPoints() const { return genGaussPoints() ;}
+	virtual GaussPointArray getGaussPoints() const { return genGaussPoints() ;}
 	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const = 0;
 	virtual Form * getBehaviour() const ;
 	virtual void setBehaviour(Form *);
@@ -231,7 +231,7 @@ public:
 class TetrahedralElement : public Tetrahedron,  public ElementaryVolume
 {
 protected :
-	std::valarray< std::pair<Point, double> > genGaussPoints() const;
+	GaussPointArray genGaussPoints() const;
 	virtual void computeCenter();
 public:
 	bool moved;
@@ -259,7 +259,7 @@ public:
 class HexahedralElement : public Hexahedron,  public ElementaryVolume
 {
 protected :
-	std::valarray< std::pair<Point, double> > genGaussPoints() const;
+	GaussPointArray genGaussPoints() const;
 	virtual void computeCenter();
 public:
 	std::vector<HexahedralElement *> neighbourhood ;

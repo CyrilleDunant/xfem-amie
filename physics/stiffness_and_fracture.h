@@ -47,7 +47,7 @@ namespace Mu
 		* @param Jinv inverse Jacobian matrix at the integration points
 		* @return matrix resulting of \f$ \nabla H^T K \nabla H \f$.
 		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+		virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
 		/** Check for fracture
 		* @param timestep elapsed time
@@ -70,7 +70,7 @@ namespace Mu
 		*/
 		virtual Form * getCopy() const ;
 		
-		virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+		virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 		virtual bool changed() const ;
 		

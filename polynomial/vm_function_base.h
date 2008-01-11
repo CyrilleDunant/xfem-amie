@@ -61,6 +61,7 @@ protected:
 
 	bool isUnaryOperator(const Token * t) const ;
 
+	std::map<size_t, std::vector<double> > precalc ;
 // 	void vectorizeOne(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
 // 	void vectorizeTwo(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
 // 	void factorize(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;

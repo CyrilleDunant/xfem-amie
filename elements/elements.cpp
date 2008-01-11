@@ -133,7 +133,7 @@ const std::vector< size_t > ElementarySurface::getDofIds() const
 
 
 
-std::valarray< std::pair<Point, double> > TriElement::genGaussPoints() const
+GaussPointArray TriElement::genGaussPoints() const
 {
 	size_t ordre = 0;
 	std::valarray< std::pair<Point, double> > fin ;
@@ -350,7 +350,7 @@ std::valarray< std::pair<Point, double> > TriElement::genGaussPoints() const
 // 		}
 // 	}
 	
-	return fin ;
+	return GaussPointArray(fin, order) ;
 } ;
 
 void TriElement::computeCenter()
@@ -703,7 +703,7 @@ Matrix TriElement::getInverseJacobianMatrix(const Point & p) const
 	}
 }
 	
-std::valarray< std::pair<Point, double> > TriElement::getGaussPoints() const
+GaussPointArray TriElement::getGaussPoints() const
 {
 	return genGaussPoints() ;
 }
@@ -755,7 +755,7 @@ Vector TriElement::getNonLinearForces() const
 }
 
 
-std::valarray< std::pair<Point, double> > TetrahedralElement::genGaussPoints() const
+GaussPointArray TetrahedralElement::genGaussPoints() const
 {
 	size_t ordre=0 ;
 	if(order == LINEAR || order == LINEAR_TIME_LINEAR)
@@ -833,7 +833,7 @@ std::valarray< std::pair<Point, double> > TetrahedralElement::genGaussPoints() c
 // 		}
 // 	}
 	
-	return fin ;
+	return GaussPointArray(fin, order) ;
 }
 
 void TetrahedralElement::computeCenter()
@@ -1602,27 +1602,27 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
 	{
 	
 		std::vector<std::vector<Matrix > > mother ;
-		std::valarray<std::pair<Point, double> > gp  = this->getGaussPoints(); 
+		GaussPointArray gp  = this->getGaussPoints(); 
 		std::valarray<Matrix> Jinv ;
 		std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 /*	VirtualMachine vm ;*/
 		if(getEnrichmentFunctions().size() > 0 /*&& getEnrichmentFunction(0).second.getIntegrationHint().size() > 0*/ )
 		{
 
-			Matrix J = this->getInverseJacobianMatrix( gp[0].first ) ;
-			Jinv.resize(gp.size()) ;
+			Matrix J = this->getInverseJacobianMatrix( gp.gaussPoints[0].first ) ;
+			Jinv.resize(gp.gaussPoints.size()) ;
 			
-			for(size_t i = 0 ; i < gp.size() ;  i++)
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 			{
 				Jinv[i] = J ;	
 			}
 		}
 		else
 		{
-			Matrix J = this->getInverseJacobianMatrix( gp[0].first ) ;
-			Jinv.resize(gp.size()) ;
+			Matrix J = this->getInverseJacobianMatrix( gp.gaussPoints[0].first ) ;
+			Jinv.resize(gp.gaussPoints.size()) ;
 				
-			for(size_t i = 0 ; i < gp.size() ;  i++)
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 			{
 				Jinv[i] = J ;
 			}
@@ -1680,7 +1680,7 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
  Vector HexahedralElement::getForces() const 
 	{
 
-		std::valarray<std::pair<Point, double> > gp  ;
+		GaussPointArray gp  ;
 		std::valarray<Matrix> Jinv ;
 		std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 		Vector forces (dofs.size()*3);
@@ -1688,26 +1688,26 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
 		if(getEnrichmentFunctions().size() > 0)
 		{
 
-			std::valarray<std::pair<Point, double> > gp_alt(this->getGaussPoints()) ;
-			Matrix J = this->getInverseJacobianMatrix( gp_alt[0].first ) ;
-			gp.resize(gp_alt.size()) ;
-			Jinv.resize(gp_alt.size()) ;
-			std::copy(&gp_alt[0], &gp_alt[gp_alt.size()], &gp[0]);
+			GaussPointArray gp_alt(this->getGaussPoints()) ;
+			Matrix J = this->getInverseJacobianMatrix( gp_alt.gaussPoints[0].first ) ;
+			gp.gaussPoints.resize(gp_alt.gaussPoints.size()) ;
+			Jinv.resize(gp_alt.gaussPoints.size()) ;
+			std::copy(&gp_alt.gaussPoints[0], &gp_alt.gaussPoints[gp_alt.gaussPoints.size()], &gp.gaussPoints[0]);
 			
-			for(size_t i = 0 ; i < gp.size() ;  i++)
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 			{
 				Jinv[i] = J ;	
 			}
 		}
 		else
 		{
-			std::valarray<std::pair<Point, double> > gp_alt(this->getGaussPoints()) ;
-			Matrix J = this->getInverseJacobianMatrix( gp_alt[0].first ) ;
-			gp.resize(gp_alt.size()) ;
-			Jinv.resize(gp_alt.size()) ;
-			std::copy(&gp_alt[0], &gp_alt[gp_alt.size()], &gp[0]);
+			GaussPointArray gp_alt(this->getGaussPoints()) ;
+			Matrix J = this->getInverseJacobianMatrix( gp_alt.gaussPoints[0].first ) ;
+			gp.gaussPoints.resize(gp_alt.gaussPoints.size()) ;
+			Jinv.resize(gp_alt.gaussPoints.size()) ;
+			std::copy(&gp_alt.gaussPoints[0], &gp_alt.gaussPoints[gp_alt.gaussPoints.size()], &gp.gaussPoints[0]);
 				
-			for(size_t i = 0 ; i < gp.size() ;  i++)
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 			{
 				Jinv[i] = J ;
 			}
@@ -2436,7 +2436,7 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 	}
 }
 
-std::valarray< std::pair<Point, double> > HexahedralElement::genGaussPoints() const
+GaussPointArray HexahedralElement::genGaussPoints() const
 {
 	size_t ordre=0 ;
 	if(order <= LINEAR)
@@ -2480,7 +2480,7 @@ std::valarray< std::pair<Point, double> > HexahedralElement::genGaussPoints() co
 	}
 	
 	
-	return fin ;
+	return GaussPointArray(fin, order) ;
 }
 	
 void HexahedralElement::computeCenter()

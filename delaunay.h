@@ -157,7 +157,7 @@ public:
 	virtual Vector getForces() const ;
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const  ;
 	virtual Vector getNonLinearForces() const ;
-	virtual std::valarray<std::pair<Point, double> > getSubTriangulatedGaussPoints() const ;
+	virtual GaussPointArray getSubTriangulatedGaussPoints() const ;
 
 	std::vector<DelaunayTriangle *> neighbourhood ;
 	bool isInNeighbourhood(const DelaunayTriangle * t) const ;

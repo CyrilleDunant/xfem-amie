@@ -36,7 +36,7 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const Integr
 	return ret ;
 }
 
-Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	VirtualMachine vm ;
 	Matrix ret(1,1) ;
@@ -48,8 +48,8 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const std::v
 	
 	v.push_back(TIME_VARIABLE);
 
-	ret[0][0] = vm.ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
-		+ vm.ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
+	ret[0][0] = vm.ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp.gaussPoints, Jinv, v)
+		+ vm.ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp.gaussPoints, Jinv, v)  ;
 
 	return ret ;
 }
@@ -64,7 +64,7 @@ Form * Diffusion::getCopy() const
 	return new Diffusion(*this) ;
 }
 
-Vector Diffusion::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector Diffusion::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

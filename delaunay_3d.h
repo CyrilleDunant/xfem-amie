@@ -170,7 +170,7 @@ public:
 	Vector getForces() const ;
 	Vector getNonLinearForces() const ;
 	
-	std::valarray<std::pair<Point, double> > getSubTriangulatedGaussPoints() const ;
+	GaussPointArray getSubTriangulatedGaussPoints() const ;
 	
 	std::vector<DelaunayTetrahedron *> neighbourhood ;
 	bool isInNeighbourhood(const DelaunayTetrahedron * t) const ;

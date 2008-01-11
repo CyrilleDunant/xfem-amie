@@ -31,7 +31,7 @@ Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const Integr
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
 
-Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const
+Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);
@@ -39,7 +39,7 @@ Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const std::v
 	if(param.size() > 9)
 		v.push_back(ZETA);
 
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
 }
 
 bool Stiffness::fractured() const
@@ -52,7 +52,7 @@ Form * Stiffness::getCopy() const
 	return new Stiffness(*this) ;
 }
 
-Vector Stiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const 
+Vector Stiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

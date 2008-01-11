@@ -109,7 +109,7 @@ std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vect
 					bool inter = c1.intersects(&c2);
 					
 					/** placement normal */
-					if(inter==true) //s'il y a intersection et que les nouvelles coordonnées ont déjà été calculées une fois
+					if(inter) //s'il y a intersection et que les nouvelles coordonnées ont déjà été calculées une fois
 					{
 						i--;
 						tries++ ;

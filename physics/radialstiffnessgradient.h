@@ -39,7 +39,7 @@ public:
 	
 	virtual Matrix getTensor(const Point & p) const ;
 	
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 	/** Check for fracture state
 	 *
@@ -53,7 +53,7 @@ public:
 	 */
 	virtual Form * getCopy() const ;
 	
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 } ;
 

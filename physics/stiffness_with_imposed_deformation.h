@@ -45,7 +45,7 @@ namespace Mu
 		*/
 		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
 		
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+		virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
 		virtual bool fractured() const ;
 		
@@ -54,7 +54,7 @@ namespace Mu
 		virtual bool hasInducedForces() const ;
 		
 		
-		virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+		virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
 	} ;
 
