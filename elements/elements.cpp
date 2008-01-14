@@ -1837,7 +1837,7 @@ Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	Function der_y ;
 	Function der_z ;
 	
-	assert(points->size() == basis.size()) ;
+	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		ret += basis[i]*points[i]->x ;
