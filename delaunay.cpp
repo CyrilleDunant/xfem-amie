@@ -2019,6 +2019,8 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			}
 		}
 
+		for(size_t i = 0 ; i < tri.size() ; i++)
+			delete tri[i] ;
 		
 		gp.gaussPoints.resize(gp_alternative.size()) ;
 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
