@@ -676,7 +676,7 @@ int main(int argc, char *argv[])
 			}
 			
 			K->add(microstruct.getElements()[i]) ;
-			microstruct.getElements()[i]->getState()->initialize() ;
+			microstruct.getElements()[i]->getState().initialize() ;
 		}
 	}
 	
@@ -734,8 +734,8 @@ int main(int argc, char *argv[])
 
 		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
 		{
-			Vector s = myTets[i]->getState()->getStress(Point(0.25,0.25,0.25), true) ;
-			Vector e = myTets[i]->getState()->getStrain(Point(0.25,0.25,0.25), true) ;
+			Vector s = myTets[i]->getState().getStress(Point(0.25,0.25,0.25), true) ;
+			Vector e = myTets[i]->getState().getStrain(Point(0.25,0.25,0.25), true) ;
 			avg_sigma += s ;
 			avg_epsilon += e ;
 			count++;
