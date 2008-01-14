@@ -1960,7 +1960,7 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 		{
 			Function der_x ;
 			
-			assert(points->size() == basis.size()) ;
+			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_x += basis[i].d(XI)*points[i]->x ;
@@ -2032,7 +2032,7 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 		{
 			Function der_y ;
 			
-			assert(points->size() == basis.size()) ;
+			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 				der_y += basis[i].d(ETA)*points[i]->y ;
@@ -2607,7 +2607,7 @@ HexahedralElement::HexahedralElement(Order order, bool f ) : ElementaryVolume( f
 	{
 		assert(false) ;
 	}
-	assert(this->jacobianAtPoint(*this->Hexahedron::getCenter()) > 0) ;
+	assert(this->jacobianAtPoint(Hexahedron::getCenter()) > 0) ;
 	
 	this->size_x  = 2 ;
 	this->size_y  = 2 ;
