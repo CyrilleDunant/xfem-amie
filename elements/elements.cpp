@@ -1109,7 +1109,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 		std::cout << "this time-space order combination is not implemented" << std::endl ;
 		assert(false) ;
 	}
-	assert(this->jacobianAtPoint(*this->Tetrahedron::getCenter()) > 0) ;
+	assert(this->jacobianAtPoint(Tetrahedron::getCenter()) > 0) ;
 }
 	
 TetrahedralElement::TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t)

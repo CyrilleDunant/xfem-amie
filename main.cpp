@@ -158,7 +158,7 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 2;
+	int nsteps = 12;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -458,7 +458,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/10. ;
+		double delta_r = sqrt(aggregateArea*0.12/((double)zones.size()*M_PI))/36. ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
