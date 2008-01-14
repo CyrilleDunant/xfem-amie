@@ -1945,7 +1945,6 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 	
 	if(getEnrichmentFunctions().size() > 0 )
 	{
-		std::cout << "ping" << std::endl ;
 		std::vector<std::pair<Point, double> > gp_alternative ;
 		std::vector<Point> to_add ;
 		to_add.push_back(Point(0,1)) ;
@@ -1994,73 +1993,21 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 
 		size_t numberOfRefinements =  2;
 		
-
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
-// 			std::cout << "." << std::endl ;
-			tri = dt.getTriangles(false) ;
-			std::vector<Point> quadtree ;
+			std::vector<DelaunayTriangle *> newTris ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				Point a = (*tri[j]->first+*tri[j]->second)*.5 ;
-				Point b = (*tri[j]->first+*tri[j]->third)*.5 ;
-				Point c = (*tri[j]->third+*tri[j]->second)*.5 ;
-
-				bool good_a = true ;
-				bool good_b = true ;
-				bool good_c = true ;
-				
-				for(size_t k = 0 ; k < to_add.size() ; k++)
-				{
-					if(dist(a, to_add[k]) < 1e-4)
-					{
-						good_a = false ;
-					}
-					if(dist(b, to_add[k]) < 1e-4)
-					{
-						good_b = false ;
-					}
-					if(dist(c, to_add[k]) < 1e-4)
-					{
-						good_c = false ;
-					}
-				}
-
-				if (good_a)
-					quadtree.push_back(a) ;
-				if (good_b)
-					quadtree.push_back(b) ;
-				if (good_c)
-					quadtree.push_back(c) ;
-
+				std::vector<DelaunayTriangle *> q = quad(tri[j]) ;
+				newTris.insert(newTris.end(),q.begin(), q.end()) ;
 			}
-			
-// 			for(size_t k = 0 ; k < quadtree.size() ; k++)
-// 			{
-// 				Point test(quadtree[k]) ;
-// 				father.project(&test) ;
-// 				if(dist(test, quadtree[k]) < 1e-6)
-// 					father.project(&quadtree[k]) ;
-// 			}
-			
-			std::sort(quadtree.begin(), quadtree.end()) ;
-			std::vector<Point>::iterator e = std::unique(quadtree.begin(), quadtree.end(), PointEqTol(1e-4)) ;
-			quadtree.erase(e, quadtree.end()) ;
-			
-// 			std::cout << "adding " << quadtree.size() << " points "<< std::endl ;
-			for(size_t j = 0 ; j < quadtree.size() ; j++)
-			{
-// 				quadtree[j].print() ;
-				dt.insert(new Point(quadtree[j])) ;
-			}
-// 			std::cout << ":" << std::endl ;
+			tri = newTris ;
 		}
-		
-// 		dt.addSharedNodes(1) ;
-		tri = dt.getTriangles(false) ;
-		dt.refresh( &father, false) ;
-// 		std::cout << "ping" << std::endl ;
 
+		
+		for(size_t i = 0 ; i < tri.size() ; i++)
+			tri[i]->refresh(&father) ;
+		
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
 
@@ -2083,7 +2030,6 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		
 		gp.gaussPoints.resize(gp_alternative.size()) ;
 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-		std::cout << "pong" << std::endl ;
 		gp.id = -1 ;
 	}
 	
@@ -2190,5 +2136,21 @@ Vector DelaunayTriangle::getForces() const
 	}
 	
 	return forces ;
+}
+
+std::vector<DelaunayTriangle *> Mu::quad(const DelaunayTriangle * t)
+{
+	std::vector<DelaunayTriangle* > tris ;
+	std::vector<Point> points ;
+
+	points.push_back(*t->first + (*t->second - *t->first)*.5 ) ;
+	points.push_back(*t->first + (*t->third - *t->first)*.5 ) ;
+	points.push_back(*t->second + (*t->third - *t->second)*.5 ) ;
+	
+	tris.push_back(new DelaunayTriangle(NULL, new Point(points[0]), new Point(points[1]), new Point(*t->first), NULL)) ;
+	tris.push_back(new DelaunayTriangle(NULL,new Point(points[0]), new Point(points[2]), new Point(*t->second), NULL)) ;
+	tris.push_back(new DelaunayTriangle(NULL,new Point(points[1]), new Point(points[2]), new Point(*t->third), NULL)) ;
+	tris.push_back(new DelaunayTriangle(NULL,new Point(points[0]), new Point(points[1]), new Point(points[2]), NULL)) ;
+	return tris ;
 }
 

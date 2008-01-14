@@ -1539,7 +1539,7 @@ int main(int argc, char *argv[])
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
 
 	int nAgg = 0 ;
-	inclusions=placement(.04, .04, inclusions, &nAgg, 1);
+	inclusions=placement(.04, .04, inclusions, &nAgg, 2048);
 
 	double placed_area = 0 ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)

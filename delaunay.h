@@ -354,6 +354,8 @@ struct EqItems
 	}
 } ;
 
+std::vector<DelaunayTriangle *> quad(const DelaunayTriangle * t) ;
+
 } ;
 
 //! Make \a t0 and \a t1 Neighbours. Safe.
