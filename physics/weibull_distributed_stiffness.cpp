@@ -44,7 +44,7 @@ Matrix WeibullDistributedStiffness::apply(const Function & p_i, const Function &
 		v.push_back(ZETA);
 	
 	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 bool WeibullDistributedStiffness::fractured() const
@@ -57,7 +57,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 	double randomVar = (double)random()/(double)RAND_MAX ;
 	randomVar = 1.1284*pow(-log(randomVar),1./2.) ;
 	Matrix newTensor = param*randomVar ;
-	return new StiffnessAndFracture(newTensor, new MohrCoulomb(criterion*randomVar, -4.*criterion*randomVar)) ;
+	return new StiffnessAndFracture(newTensor, new MohrCoulomb(criterion*randomVar, -8.*criterion*randomVar)) ;
 }
 
 

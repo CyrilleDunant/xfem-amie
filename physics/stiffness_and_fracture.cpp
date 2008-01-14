@@ -52,7 +52,7 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 	if(param.size() == 36)
 		v.push_back(ZETA);
 	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 

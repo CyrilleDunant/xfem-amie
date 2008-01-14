@@ -95,7 +95,7 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 	v.push_back(XI);
 	v.push_back(ETA);
 	
-	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
+	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
@@ -106,7 +106,7 @@ Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_
 	v.push_back(XI);
 	v.push_back(ETA);
 	
-	return VirtualMachine().ieval(Gradient(p_j, true)*stress, gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_j, true)*stress, gp, Jinv,v) ;
 }
 
 bool NonLinearStiffness::isActive() const 
@@ -329,7 +329,7 @@ Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const 
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(ZETA);
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 void ViscoElasticity::step(double timestep, ElementState & currentState)
 {
@@ -485,7 +485,7 @@ Vector ViscoElasticity::getForces(const ElementState & s, const Function & p_i, 
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(ZETA);
-	return VirtualMachine().ieval(Gradient(p_j, true)*average_delta_sigma, gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_j, true)*average_delta_sigma, gp, Jinv,v) ;
 }
 
 bool ViscoElasticity::hasInducedForces()

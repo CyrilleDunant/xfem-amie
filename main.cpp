@@ -490,7 +490,7 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E = .4e7 ;
+	double E = 4e7 ;
 	double nu = .4999999999 ;
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
@@ -1539,7 +1539,7 @@ int main(int argc, char *argv[])
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
 
 	int nAgg = 0 ;
-	inclusions=placement(.04, .04, inclusions, &nAgg, 2048);
+	inclusions=placement(.04, .04, inclusions, &nAgg, 128);
 
 	double placed_area = 0 ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -1560,7 +1560,7 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	zones = generateExpansiveZones(5, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 

@@ -327,3 +327,160 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
 	
 	return ret/det ;
 }
+
+inline Mu::FMtFV operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionVector& v)
+{
+	return Mu::FMtFV(mm, v) ;
+} ;
+
+inline Mu::FMtFM operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionMatrix& mmm)
+{
+	return Mu::FMtFM(mm, mmm) ;
+} ;
+
+inline Mu::FMtMtFM operator*(const Mu::FMtM& mm, const Mu::FunctionMatrix& mmm)
+{
+	return Mu::FMtMtFM(mm.first, mm.second, mmm) ;
+} ;
+
+
+inline Mu::FMtV operator*(const Mu::FunctionMatrix& mm, const Vector & v)
+{
+	return Mu::FMtV(mm, v) ;
+} ;
+
+inline Mu::FMtM operator*(const Mu::FunctionMatrix& mm, const Mu::Matrix& mmm)
+{
+	return Mu::FMtM(mm, mmm) ;
+} ;
+
+inline Mu::MtFM operator*(const Mu::Matrix& mm, const Mu::FunctionMatrix& mmm)
+{
+	return Mu::MtFM(mm, mmm) ;
+} ;
+
+inline const Mu::FunctionMatrix ff_matrix_multiply(const Mu::FunctionMatrix &m0, const Mu::FunctionMatrix &m1 )
+{
+	assert(m0.numCols() == m1.numRows()) ;
+	
+	Mu::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
+	
+	for(size_t i = 0 ; i < m0.numRows() ; i++)
+	{
+		for(size_t j = 0 ; j < m1.numCols() ; j++)
+		{
+			const Mu::Cslice_iter<Mu::Function>& ri = m0.row(i) ;
+			const Mu::Cslice_iter<Mu::Function>& cj = m1.column(j) ;
+			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Mu::Function()) ;
+		}
+	}
+	return ret ;
+}
+
+inline const Mu::FunctionMatrix fm_matrix_multiply(const Mu::FunctionMatrix &m0, const Mu::Matrix &m1 )
+{
+	assert(m0.numCols() == m1.numRows()) ;
+	
+	Mu::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
+	
+	for(size_t i = 0 ; i < m0.numRows() ; i++)
+	{
+		for(size_t j = 0 ; j < m1.numCols() ; j++)
+		{
+			const Mu::Cslice_iter<Mu::Function>& ri = m0.row(i) ;
+			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Mu::Function() ) ;
+		}
+	}
+	return ret ;
+}
+
+inline const Mu::FunctionMatrix mf_matrix_multiply(const Mu::Matrix &m0, const Mu::FunctionMatrix &m1 )
+{
+	assert(m0.numCols() == m1.numRows()) ;
+	
+	Mu::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
+	
+	for(size_t i = 0 ; i < m0.numRows() ; i++)
+	{
+		for(size_t j = 0 ; j < m1.numCols() ; j++)
+		{
+			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
+			const Mu::Cslice_iter<Mu::Function>& cj = m1.column(j) ;
+			ret[i][j] = std::inner_product(&cj[0], &cj[m0.numCols()], ri, Mu::Function() ) ;
+		}
+	}
+	return ret ;
+}
+
+
+inline const Mu::FunctionVector matrix_fvector_multiply(const Mu::Matrix &m, const Mu::FunctionVector &v )
+{
+	assert(m.numRows() == v.size()) ;
+	
+	Mu::FunctionVector ret(v.size()) ;
+	
+	for(size_t i = 0 ; i < m.numRows() ; i++)
+	{
+		
+		const Mu::Cslice_iter<double>& ri = m.row(i) ;
+		ret[i] = std::inner_product(&v[0], &v[v.size()],ri, Mu::Function() ) ;
+	}
+	return ret ;
+}
+
+inline const Mu::FunctionVector fmatrix_vector_multiply(const Mu::FunctionMatrix &m, const Vector &v )
+{
+	assert(m.numRows() == v.size()) ;
+	
+	Mu::FunctionVector ret(v.size()) ;
+	
+	for(size_t i = 0 ; i < m.numRows() ; i++)
+	{
+		
+		const Mu::Cslice_iter<Mu::Function>& ri = m.row(i) ;
+		ret[i] = std::inner_product(ri, ri.end(), &v[0], Mu::Function() ) ;
+	}
+	return ret ;
+}
+
+inline const Mu::FunctionVector operator*(const Mu::FunctionVector &v , const Mu::FunctionMatrix &m )
+{
+	assert(m.numCols() == v.size()) ;
+	
+	Mu::FunctionVector ret(v.size()) ;
+	
+	for(size_t i = 0 ; i < m.numCols() ; i++)
+	{
+		
+		const Mu::Cslice_iter<Mu::Function>& ri = m.column(i) ;
+		ret[i] = std::inner_product(ri, ri.end(), &v[0] , Mu::Function()) ;
+	}
+	return ret ;
+}
+
+inline const Mu::FunctionVector operator*(const Vector &v , const Mu::FunctionMatrix &m )
+{
+	assert(m.numCols() == v.size()) ;
+	
+	Mu::FunctionVector ret(v.size()) ;
+	
+	for(size_t i = 0 ; i < m.numCols() ; i++)
+	{
+		
+		const Mu::Cslice_iter<Mu::Function>& ri = m.column(i) ;
+		ret[i] = std::inner_product(ri, ri.end(), &v[0] , Mu::Function()) ;
+	}
+	return ret ;
+}
+
+GtFMtG GtFM::operator*(const Mu::Gradient & f) const
+{
+	return GtFMtG(this->first, this->second, f) ;
+}
+
+Mu::GtFM operator *(const Mu::Gradient & g, const Mu::FunctionMatrix & m)
+{
+	return Mu::GtFM(g, m) ;
+}
+

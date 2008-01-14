@@ -1814,23 +1814,23 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 	std::valarray<Matrix> Jinv ;
 	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
 
-// 	if(moved)
-// 	{
+	if(moved)
+	{
 		Jinv.resize(gp.gaussPoints.size()) ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
 			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
-// 	}
-// 	else
-// 	{
-// 		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
-// 		Jinv.resize(gp.size()) ;
-// 		for(size_t i = 0 ; i < gp.size() ;  i++)
-// 		{
-// 			Jinv[i] = J ;
-// 		}
-// 	}
+	}
+	else
+	{
+		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
+		{
+			Jinv[i] = J ;
+		}
+	}
 
 	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	
@@ -1971,14 +1971,6 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			}
 		}
 
-// 		for(size_t k = 3 ; k < to_add.size() ; k++)
-// 		{
-// 			Point test(to_add[k]) ;
-// 			father.project(&test) ;
-// 			if(squareDist2D(test, to_add[k]) < 1e-4)
-// 				father.project(&to_add[k]) ;
-// 		}
-		
 		std::sort(to_add.begin()+3, to_add.end()) ;
 		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-4)) ;
 		to_add.erase(e, to_add.end()) ;
@@ -1988,7 +1980,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		{
 			dt.insert(new Point(to_add[i])) ;
 		}
-// 		std::cout << "pong" << std::endl ;
+		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
 		size_t numberOfRefinements =  2;
@@ -2045,7 +2037,6 @@ Vector DelaunayTriangle::getNonLinearForces() const
 	
 	if(!this->getNonLinearBehaviour()->isActive())
 	{
-// 		std::cerr << "not active" << std::endl ;
 		forces = 0 ;
 		return forces ;
 	}

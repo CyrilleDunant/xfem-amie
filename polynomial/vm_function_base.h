@@ -20,11 +20,15 @@
 #include <cmath>
 
 #include "vm_refcount_token.h"
+#include "../elements/integrable_entity.h"
 #include "../matrixops.h"
 #include "../geometry/geometry_base.h"
 
 namespace Mu
 {
+
+struct GaussPointArray ;
+
 typedef enum
 {
 	POSITION_TOKEN,
@@ -61,7 +65,8 @@ protected:
 
 	bool isUnaryOperator(const Token * t) const ;
 
-	std::map<size_t, std::vector<double> > precalc ;
+	std::map<int, Vector *> precalc ;
+	std::map<int, std::map<Variable, Vector *> > dprecalc ;
 // 	void vectorizeOne(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
 // 	void vectorizeTwo(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
 // 	void factorize(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
@@ -164,8 +169,14 @@ public:
 	}
 	
 	void compile() ;
-	
-	
+	void preCalculate(const GaussPointArray & gp , std::vector<Variable> & var, const double eps = default_derivation_delta) ;
+	void preCalculate(const GaussPointArray & gp) ;	
+
+	bool precalculated(const GaussPointArray & gp) const ;
+	bool precalculated(const GaussPointArray & gp, Variable v) const ;
+
+	const Vector & getPrecalculatedValue(const GaussPointArray & gp) const ;
+	const Vector & getPrecalculatedValue(const GaussPointArray & gp, Variable v) const ;
 	
 } ;
 
@@ -176,6 +187,8 @@ struct GtMtG ;
 struct VGtM ;
 struct VGtV ;
 struct VGtMtVG ;
+
+
 
 struct Differential
 {
@@ -193,6 +206,7 @@ struct Gradient
 	GtM operator *(const Matrix & f) const ;
 	GtV operator *(const Vector & f) const ;
 } ;
+
 
 struct VectorGradient
 {

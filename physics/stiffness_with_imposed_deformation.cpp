@@ -41,7 +41,7 @@ Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Functi
 		v.push_back(ZETA);
 	
 	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 bool StiffnessWithImposedDeformation::fractured() const
@@ -68,6 +68,6 @@ Vector StiffnessWithImposedDeformation::getForces(const ElementState & s, const 
 		v.push_back(ZETA);
 	
 	
-	return VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv,v) ;
 }
 

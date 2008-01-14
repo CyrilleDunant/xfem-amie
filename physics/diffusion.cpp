@@ -48,8 +48,8 @@ Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const GaussP
 	
 	v.push_back(TIME_VARIABLE);
 
-	ret[0][0] = vm.ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp.gaussPoints, Jinv, v)
-		+ vm.ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp.gaussPoints, Jinv, v)  ;
+	ret[0][0] = vm.ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
+		+ vm.ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
 
 	return ret ;
 }

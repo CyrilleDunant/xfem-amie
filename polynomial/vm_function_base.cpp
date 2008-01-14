@@ -90,6 +90,44 @@ Function & Function::operator=(const Function &f)
 	return *this ;
 }
 
+void  Function::preCalculate(const GaussPointArray & gp , std::vector<Variable> & var, const double eps)
+{
+	//this needs to be in to stages, otherwise memory gets accessed too early.
+	Vector * newVal = new Vector(VirtualMachine().eval(*this, gp)) ;
+	precalc[gp.id] = newVal ;
+	std::map<Variable, Vector *> val ;
+	for(size_t i = 0 ; i < var.size() ; i++)
+	{
+		val[var[i]] = new Vector(VirtualMachine().deval(*this,var[i] ,gp, eps)) ;
+	}
+	dprecalc[gp.id] = val ;
+}
+
+void  Function::preCalculate(const GaussPointArray & gp )
+{
+	precalc[gp.id] = new Vector(VirtualMachine().eval(*this, gp)) ;
+}
+
+const Vector & Function::getPrecalculatedValue(const GaussPointArray &gp ) const
+{
+	return *(precalc.find(gp.id)->second) ;
+}
+
+const Vector & Function::getPrecalculatedValue(const GaussPointArray &gp, Variable v) const
+{
+	return *dprecalc.find(gp.id)->second.find(v)->second ;
+}
+
+bool Function::precalculated(const GaussPointArray & gp) const
+{
+	return (precalc.find(gp.id) != precalc.end()) ;
+}
+
+bool Function::precalculated(const GaussPointArray & gp, Variable v) const
+{
+	return dprecalc.find(gp.id) != dprecalc.end() && dprecalc.find(gp.id)->second.find(v) != dprecalc.find(gp.id)->second.end() ;
+}
+
 int Function::getDofID() const
 {
 	return this->dofID ;
@@ -2110,7 +2148,6 @@ VGtMtVG VGtM::operator*(const Mu::VectorGradient & f) const
 {
 	return VGtMtVG(first,second, f) ;
 }
-
 
 
 

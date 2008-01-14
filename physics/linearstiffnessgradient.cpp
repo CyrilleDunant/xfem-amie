@@ -97,7 +97,7 @@ Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j
 		}
 	}
 	
-	return VirtualMachine().ieval(Gradient(p_i) * C * Gradient(p_j, true), gp.gaussPoints, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 Form * LinearStiffnessGradient::getCopy() const 

@@ -1475,6 +1475,10 @@ void FeatureTree::assemble()
 	for(size_t k = 0 ; k < father2D->getShapeFunctions().size() ; k++)
 	{
 		father2D->getShapeFunction(k).compile() ;
+		std::vector<Variable> vars ;
+		vars.push_back(XI) ;
+		vars.push_back(ETA) ;
+		father2D->getShapeFunction(k).preCalculate(father2D->getGaussPoints(), vars) ;
 	}
 	
 	if( this->dtree == NULL && this->dtree3D == NULL)

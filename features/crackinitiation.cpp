@@ -141,6 +141,8 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTre
 
 	}
 
+	return ret ;
+
 }
 
 
