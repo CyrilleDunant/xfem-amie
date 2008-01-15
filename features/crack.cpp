@@ -900,7 +900,7 @@ Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double r
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
-	stepLength = .25*infRad ;
+	stepLength = .175*infRad ;
 	criticalJ = 0.0 ;
 }
 
@@ -916,20 +916,20 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
-	stepLength = .25*infRad ;
+	stepLength = .175*infRad ;
 	criticalJ = 0.0 ;
 }
 
 void Crack::setInfluenceRadius ( double r )
 {
-	this->infRad = r ;
+	
 	delete this->boundary ;
 	delete this->boundary2 ;
 	double maxr = 0.25*dist ( getHead(),getTail() ) ;
 	if ( r > maxr )
 		r = maxr ;
-
-
+	this->infRad = r ;
+	stepLength = .175*infRad ;
 	this->boundary = new Circle ( r, getHead() ) ;
 	this->boundary2 = new Circle ( r, getTail() ) ;
 }
@@ -1872,6 +1872,7 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	
 		if ( headElem )
 		{
+			std::cout << "pouf" << std::endl ;
 			changed = true ;
 
 			if ( headElem->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -1990,6 +1991,7 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	
 		if ( tailElem )
 		{
+			std::cout << "pouf" << std::endl ;
 			changed = true ;
 
 			if ( tailElem->getBehaviour()->type == VOID_BEHAVIOUR )

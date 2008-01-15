@@ -1983,7 +1983,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 
-		size_t numberOfRefinements =  2;
+		size_t numberOfRefinements =  3;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{

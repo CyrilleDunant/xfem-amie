@@ -334,21 +334,26 @@ GaussPointArray TriElement::genGaussPoints() const
 		}
 	}
 
-// 	if(moved)
-// 	{
+	if(moved)
+	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second*=jacobianAtPoint(fin[i].first)*0.5;
 		}
-// 	}
-// 	else
-// 	{
-// 		double j = jacobianAtPoint(Point(1./3., 1./3.)) ;
-// 		for(size_t i = 0 ; i < fin.size() ; i++)
-// 		{
-// 			fin[i].second*=j;
-// 		}
-// 	}
+	}
+	else
+	{
+		double j = 0 ;
+		if(getBoundingPoints().size() != shapefunc->size())
+			j = TriElement(LINEAR).jacobianAtPoint(Point(.33333333, .333333333)) ;
+		else
+			j = jacobianAtPoint(Point(.33333333, .333333333)) ;
+		
+		for(size_t i = 0 ; i < fin.size() ; i++)
+		{
+			fin[i].second*=j;
+		}
+	}
 	
 	return GaussPointArray(fin, order) ;
 } ;
@@ -760,7 +765,7 @@ GaussPointArray TetrahedralElement::genGaussPoints() const
 	size_t ordre=0 ;
 	if(order == LINEAR || order == LINEAR_TIME_LINEAR)
 		ordre = 1 ;
-	if(order == LINEAR_TIME_QUADRATIC)
+	else if(order == LINEAR_TIME_QUADRATIC)
 		ordre = 2 ;
 	else if (order == CUBIC || order == QUADRATIC || order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR)
 		ordre = 5 ;
@@ -817,21 +822,25 @@ GaussPointArray TetrahedralElement::genGaussPoints() const
 		assert(false) ;
 	}
 	
-// 	if( moved)
-// 	{
+	if( moved)
+	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second*=this->jacobianAtPoint(fin[i].first) ;
 		}
-// 	}
-// 	else
-// 	{
-// 		double j = this->jacobianAtPoint(Point(.25, .25, .25)) ;
-// 		for(size_t i = 0 ; i < fin.size() ; i++)
-// 		{
-// 			fin[i].second*=j ;
-// 		}
-// 	}
+	}
+	else
+	{
+		double j = 0. ;
+		if(getBoundingPoints().size() != shapefunc->size())
+			j = TetrahedralElement(LINEAR).jacobianAtPoint(Point(.25, .25, .25)) ;
+		else
+			j = jacobianAtPoint(Point(.25, .25, .25)) ;
+		for(size_t i = 0 ; i < fin.size() ; i++)
+		{
+			fin[i].second*=j ;
+		}
+	}
 	
 	return GaussPointArray(fin, order) ;
 }

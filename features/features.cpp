@@ -1470,6 +1470,7 @@ void FeatureTree::assemble()
 		std::vector<Variable> vars ;
 		vars.push_back(XI) ;
 		vars.push_back(ETA) ;
+		vars.push_back(ZETA) ;
 		father3D->getShapeFunction(k).preCalculate(father3D->getGaussPoints(), vars) ;
 	}
 	
