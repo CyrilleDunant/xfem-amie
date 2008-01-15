@@ -288,6 +288,7 @@ public:
 	virtual size_t getNumberOfDegreesOfFreedom() const { return this->num_dof ; }
 	
 	virtual void transform(const Function & x, const Function & y) { } ;
+	virtual void transform(const Function & x, const Function & y, const Function & z) { } ;
 	
 	/** Step through time
 	 * 

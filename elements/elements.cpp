@@ -1914,6 +1914,7 @@ Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	Function der_z ;
 	
 	assert(points.size() == basis.size()) ;
+
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		ret += basis[i]*points[i]->z ;

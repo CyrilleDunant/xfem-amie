@@ -78,30 +78,38 @@ typedef enum
 	TOKEN_X_POWER_AND_MULTIPLY,
 	TOKEN_Y_POWER_AND_MULTIPLY,
 	TOKEN_Z_POWER_AND_MULTIPLY,
+	TOKEN_T_POWER_AND_MULTIPLY,
 	TOKEN_X_POWER_CONST,
 	TOKEN_Y_POWER_CONST,
 	TOKEN_Z_POWER_CONST,
+	TOKEN_T_POWER_CONST,
 	TOKEN_ADD_X_AND_CONST,
 	TOKEN_ADD_Y_AND_CONST,
 	TOKEN_ADD_Z_AND_CONST,
+	TOKEN_ADD_T_AND_CONST,
 	TOKEN_MULTIPLY_X_AND_CONST,
 	TOKEN_MULTIPLY_Y_AND_CONST,
 	TOKEN_MULTIPLY_Z_AND_CONST,
+	TOKEN_MULTIPLY_T_AND_CONST,
 	TOKEN_MULTIPLY_X_Y_AND_CONST,
 	TOKEN_MULTIPLY_X_Z_AND_CONST,
 	TOKEN_MULTIPLY_Y_Z_AND_CONST,
 	TOKEN_SUBSTRACT_X_WITH_CONST,
 	TOKEN_SUBSTRACT_Y_WITH_CONST,
 	TOKEN_SUBSTRACT_Z_WITH_CONST,
+	TOKEN_SUBSTRACT_T_WITH_CONST,
 	TOKEN_SUBSTRACT_CONST_WITH_X,
 	TOKEN_SUBSTRACT_CONST_WITH_Y,
 	TOKEN_SUBSTRACT_CONST_WITH_Z,
+	TOKEN_SUBSTRACT_CONST_WITH_T,
 	TOKEN_DIVIDE_X_WITH_CONST,
 	TOKEN_DIVIDE_Y_WITH_CONST,
 	TOKEN_DIVIDE_Z_WITH_CONST,
+	TOKEN_DIVIDE_T_WITH_CONST,
 	TOKEN_DIVIDE_CONST_WITH_X,
 	TOKEN_DIVIDE_CONST_WITH_Y,
 	TOKEN_DIVIDE_CONST_WITH_Z,
+	TOKEN_DIVIDE_CONST_WITH_T,
 	TOKEN_READ_ADD_CONST,
 	TOKEN_READ_ADD_READ,
 	TOKEN_READ_SUBSTRACT_CONST,
@@ -1171,6 +1179,32 @@ public:
 	}
 } ;
 
+class TPowerConstToken: public Token
+{
+public:
+	TPowerConstToken(const double& pow) : Token(false,  std::make_pair(std::make_pair(TOKEN_T_POWER_CONST,0), pow)) { } ;
+	virtual ~TPowerConstToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		double val = context.t ;
+		int pow = (int)type.second-1 ;
+		
+		for(int i = 0 ; i < pow ; ++i)
+		{
+			val *= context.t;
+		}
+	    context.memory.push_back(val) ;
+	}
+	
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< t^" << type.second << " >";
+		return s.str() ;
+	}
+} ;
+
 class ReadPowerConstToken: public Token
 {
 public:
@@ -1316,6 +1350,25 @@ public:
 		return s.str() ;
 	}
 } ;
+
+class AddTAndConstToken: public Token
+{
+public:
+	AddTAndConstToken(const double& v) : Token(false,  std::make_pair(std::make_pair(TOKEN_ADD_T_AND_CONST,0), v)) { } ;
+	virtual ~AddTAndConstToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		context.memory.push_back(type.second+context.t) ;
+	}
+	
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< t+" << type.second << " >";
+		return s.str() ;
+	}
+} ;
 	
 
 class MultiplyReadAndConstToken: public Token
@@ -1395,6 +1448,25 @@ public:
 	}
 } ;
 
+class MultiplyTAndConstToken: public Token
+{
+public:
+	MultiplyTAndConstToken(const double& v) : Token(false,  std::make_pair(std::make_pair(TOKEN_MULTIPLY_T_AND_CONST,0), v)) { } ;
+	virtual ~MultiplyTAndConstToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		context.memory.push_back(type.second*context.t) ;
+	}
+	
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< t*" << type.second << " >";
+		return s.str() ;
+	}
+} ;
+
 class SubstractXWithConstToken: public Token
 {
 public:
@@ -1453,6 +1525,25 @@ public:
 	}
 } ;
 
+class SubstractTWithConstToken: public Token
+{
+public:
+	SubstractTWithConstToken(const double& v) : Token(false,  std::make_pair(std::make_pair(TOKEN_SUBSTRACT_T_WITH_CONST,0), v)) { } ;
+	virtual ~SubstractTWithConstToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		context.memory.push_back(context.t-type.second) ;
+	}
+	
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< t-" << type.second << " >";
+		return s.str() ;
+	}
+} ;
+
 class SubstractConstWithXToken: public Token
 {
 public:
@@ -1488,6 +1579,25 @@ public:
 	{
 		std::ostringstream s ;
 		s << "< " << type.second << "-y >";
+		return s.str() ;
+	}
+} ;
+
+class SubstractConstWithTToken: public Token
+{
+public:
+	SubstractConstWithTToken(const double& v) : Token(false,  std::make_pair(std::make_pair(TOKEN_SUBSTRACT_CONST_WITH_T,0), v)) { } ;
+	virtual ~SubstractConstWithTToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		context.memory.push_back(type.second-context.t) ;
+	}
+	
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< " << type.second << "-t >";
 		return s.str() ;
 	}
 } ;
@@ -1596,7 +1706,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		context.memory.push_back(context.x-type.second) ;
+		context.memory.push_back(context.x/type.second) ;
 	}
 	virtual std::string print() const
 	{
@@ -1615,7 +1725,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		context.memory.push_back(context.y-type.second) ;
+		context.memory.push_back(context.y/type.second) ;
 	}
 	virtual std::string print() const
 	{
@@ -1633,7 +1743,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		context.memory.push_back(context.z-type.second) ;
+		context.memory.push_back(context.z/type.second) ;
 	}
 	virtual std::string print() const
 	{
@@ -1643,6 +1753,23 @@ public:
 	}
 } ;
 
+class DivideTWithConstToken: public Token
+{
+public:
+	DivideTWithConstToken(const double& v) : Token(false,  std::make_pair(std::make_pair(TOKEN_DIVIDE_T_WITH_CONST,0), v)) { } ;
+	virtual ~DivideTWithConstToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		context.memory.push_back(context.t/type.second) ;
+	}
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< t/" << type.second << " >";
+		return s.str() ;
+	}
+} ;
 
 class DivideConstWithXToken: public Token
 {
@@ -1652,7 +1779,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		context.memory.push_back(type.second-context.x) ;
+		context.memory.push_back(type.second/context.x) ;
 	}
 	virtual std::string print() const
 	{
@@ -1671,7 +1798,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		context.memory.push_back(type.second-context.y) ;
+		context.memory.push_back(type.second/context.y) ;
 	}
 	
 	virtual std::string print() const
@@ -1690,13 +1817,32 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		context.memory.push_back(type.second-context.z) ;
+		context.memory.push_back(type.second/context.z) ;
 	}
 	
 	virtual std::string print() const
 	{
 		std::ostringstream s ;
 		s << "< " << type.second << "/z >";
+		return s.str() ;
+	}
+} ;
+
+class DivideConstWithTToken: public Token
+{
+public:
+	DivideConstWithTToken(const double& v) : Token(false,  std::make_pair(std::make_pair(TOKEN_DIVIDE_CONST_WITH_T,0), v)) { } ;
+	virtual ~DivideConstWithTToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		context.memory.push_back(type.second/context.t) ;
+	}
+	
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< " << type.second << "/t >";
 		return s.str() ;
 	}
 } ;
@@ -1779,6 +1925,33 @@ public:
 	{
 		std::ostringstream s ;
 		s << "< z^" <<  (int)type.first.second << "*" << type.second << " >";
+		return s.str() ;
+	}
+} ;
+
+class TPowerAndMultiplyToken: public Token
+{
+public:
+	TPowerAndMultiplyToken(const double& v, const size_t pow) : Token(false,  std::make_pair(std::make_pair(TOKEN_T_POWER_AND_MULTIPLY,pow), v)) { } ;
+	virtual ~TPowerAndMultiplyToken() { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		
+		double val = context.t ;
+		int pow = (int)type.first.second-1 ;
+		
+		for(int i = 0 ; i < pow ; ++i)
+		{
+			val *= context.t;
+		}
+	    context.memory.push_back(val*type.second) ;
+	}
+	
+	virtual std::string print() const
+	{
+		std::ostringstream s ;
+		s << "< t^" <<  (int)type.first.second << "*" << type.second << " >";
 		return s.str() ;
 	}
 } ;

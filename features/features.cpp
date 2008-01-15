@@ -270,6 +270,35 @@ FeatureTree::~FeatureTree()
 void FeatureTree::setOrder(Order ord)
 {
 	this->elemOrder = ord ;
+	
+	if(father3D)
+		delete father3D ;
+	
+	father3D = new TetrahedralElement(this->elemOrder) ;
+	
+	for(size_t k = 0 ; k < father3D->getShapeFunctions().size() ; k++)
+	{
+		father3D->getShapeFunction(k).compile() ;
+		std::vector<Variable> vars ;
+		vars.push_back(XI) ;
+		vars.push_back(ETA) ;
+		vars.push_back(ZETA) ;
+		father3D->getShapeFunction(k).preCalculate(father3D->getGaussPoints(), vars) ;
+	}
+	
+	if(father2D)
+		delete father2D ;
+	
+	father2D = new TriElement(this->elemOrder) ;
+	
+	for(size_t k = 0 ; k < father2D->getShapeFunctions().size() ; k++)
+	{
+		father2D->getShapeFunction(k).compile() ;
+		std::vector<Variable> vars ;
+		vars.push_back(XI) ;
+		vars.push_back(ETA) ;
+		father2D->getShapeFunction(k).preCalculate(father2D->getGaussPoints(), vars) ;
+	}
 }
 
 void FeatureTree::renumber()
@@ -362,33 +391,6 @@ void FeatureTree::renumber()
 				points[i]->id = count++ ;
 			
 		}
-		
-// 	for(size_t i = 0 ; i < triangles->size() ; i++)
-// 	{
-// 		for(size_t j = 0 ; j < (*triangles)[i]->getBoundingPoints().size() ; j++)
-// 		{
-// 			bool inNothing =false;
-// 			for(size_t k = 0 ; k < this->tree.size() ; k++)
-// 			{
-// 				if(tree[k]->isVoid((*triangles)[i]->getBoundingPoint(j)))
-// 				{
-// 					inNothing = true ;
-// 					break;
-// 				}
-// 			}
-// 			if(!inNothing && (*triangles)[i]->getBoundingPoint(j).id == -1 /*&& inRoot((*triangles)[i]->getBoundingPoint(j))*/)
-// 				(*triangles)[i]->getBoundingPoint(j).id = count++ ;
-// 		}
-// 	}
-		
-		if(!renumbered)
-			for(size_t i = 0 ; i < tets.size() ; i++)
-			{
-				if(!tets[i]->getBehaviour())
-					tets[i]->setBehaviour(getElementBehaviour(tets[i])) ;
-				tets[i]->getState().initialize() ;
-			}
-		
 		
 		this->dtree3D->global_counter = count ;
 		
@@ -692,7 +694,7 @@ void FeatureTree::stitch()
 				
 			}
 			stitched = true ;
-			return ;
+			
 			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
@@ -1320,7 +1322,10 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 					else
 					{
 						Form * b = tree[i]->getBehaviour()->getCopy() ;
-						b->transform(t->getXTransform(), t->getYTransform()/*, t->getZTransform()*/) ;
+						if(!is3D())
+							b->transform(t->getXTransform(), t->getYTransform()/*, t->getZTransform()*/) ;
+						else
+							b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 						return b ;
 					}
 				}
@@ -1459,11 +1464,13 @@ Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 
 
 void FeatureTree::assemble()
-{
-	if(!father3D)
-		father3D = new TetrahedralElement(this->elemOrder) ;
+{	
 	std::vector<DelaunayTriangle *> triangles ; 
 	std::vector<DelaunayTetrahedron *> tetrahedrons ; 
+	
+	if(!father3D)
+		father3D = new TetrahedralElement(this->elemOrder) ;
+
 	for(size_t k = 0 ; k < father3D->getShapeFunctions().size() ; k++)
 	{
 		father3D->getShapeFunction(k).compile() ;
@@ -1494,13 +1501,17 @@ void FeatureTree::assemble()
 	{
 		if(this->dtree3D == NULL && this->dtree !=NULL)
 		{
+			std::cerr << " stich..." << std::flush ;
 			if(!stitched)
 				stitch() ;
+
 			if(!renumbered)
 				renumber() ;
+			
 			std::cerr << " refreshing..." << std::flush ;
 			this->dtree->refresh(father2D, false) ;
 			std::cerr << " ...done" << std::endl ;
+			
 			en_counter = this->dtree->global_counter ;
 			
 			triangles = this->dtree->getTriangles() ;
@@ -1510,7 +1521,7 @@ void FeatureTree::assemble()
 				if(!triangles[i]->getBehaviour())
 					triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 				triangles[i]->getEnrichmentFunctions().clear() ;
-				triangles[i]->getState().initialize() ;
+// 				triangles[i]->getState().initialize() ;
 			}
 			
 			initializeElements() ;
@@ -1522,6 +1533,7 @@ void FeatureTree::assemble()
 			std::cerr << " stich..." << std::flush ;
 			if(!stitched)
 				stitch() ;
+			
 			if(!renumbered)
 				renumber() ;
 			
@@ -1536,8 +1548,10 @@ void FeatureTree::assemble()
 			for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
 			{
 				if(!tetrahedrons[i]->getBehaviour())
-					tetrahedrons[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
+					tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
 				tetrahedrons[i]->getEnrichmentFunctions().clear() ;
+				
+// 				triangles[i]->getState().initialize() ;
 			}
 			
 			initializeElements() ;
@@ -2494,6 +2508,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getTriangles()
 	{
 		if(!stitched)
 			stitch() ;
+		
 		if(!renumbered)
 			renumber() ;
 		
@@ -2513,6 +2528,7 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getTetrahedrons()
 		
 		if(!stitched)
 			stitch() ;
+
 		if(!renumbered)
 			renumber() ;
 		
