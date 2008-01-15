@@ -30,7 +30,7 @@ namespace Mu {
 		
 		virtual bool met(const ElementState &) const = 0 ;
 		
-		virtual FractureCriterion * getCopy() const;
+		virtual FractureCriterion * getCopy() const = 0;
 	
 	};
 
