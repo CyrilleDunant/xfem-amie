@@ -219,13 +219,15 @@ public:
 	virtual const Function getYTransform() const = 0;
 
 	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
-	virtual	const std::vector< std::pair< size_t, Function> > & getEnrichmentFunctions() const = 0 ;
-	virtual	std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  = 0 ;
+	virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
+	virtual	std::vector< Function> & getEnrichmentFunctions() = 0 ;
 	virtual	const Function & getShapeFunction(size_t i) const = 0 ;
-	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const = 0;	
+	virtual	Function & getShapeFunction(size_t i)  = 0 ;
+	virtual const Function & getEnrichmentFunction(size_t i) const = 0;	
+	virtual Function & getEnrichmentFunction(size_t i) = 0;	
 	virtual Order getOrder() const  = 0 ;
 	
-	virtual const std::vector<std::pair<size_t, Function> > getDofs() const = 0;
+// 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const = 0;
 	virtual const std::vector< size_t > getDofIds() const = 0;
 	
 	virtual Form * getBehaviour() const = 0;

@@ -1812,7 +1812,7 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 	std::vector<std::vector<Matrix > > mother ;
 	GaussPointArray gp = getSubTriangulatedGaussPoints() ;
 	std::valarray<Matrix> Jinv ;
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t > dofs = getDofIds() ;
 
 	if(moved)
 	{
@@ -1848,14 +1848,29 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 	}
 	
 	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		mother[i][i] = behaviour->apply(dofs[i].second, dofs[i].second,gp, Jinv) ;
+		mother[i][i] = behaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv) ;
 		
-		for(size_t j = i+1 ; j < dofs.size() ; j++)
+		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			mother[i][j] = behaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = behaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
+			mother[i][j] = behaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv) ;
+			mother[j][i] = behaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv) ;
+		}
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i][j+getShapeFunctions().size()] = behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i] = behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv) ;
+		}
+	}
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		mother[i+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv) ;
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i+getShapeFunctions().size()][j+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv) ;
 		}
 	}
 
@@ -1864,7 +1879,7 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getElementaryMatrix() const
 
 std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix() const 
 {
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t > dofs = getDofIds() ;
 	std::vector<std::vector<Matrix> > mother ;
 	
 	if(!this->getNonLinearBehaviour()->isActive())
@@ -1921,16 +1936,32 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 	}
 	
 	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		mother[i][i] =nonlinbehaviour->apply(dofs[i].second, dofs[i].second,gp, Jinv) ;
+		mother[i][i] = behaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv) ;
 		
-		for(size_t j = i+1 ; j < dofs.size() ; j++)
+		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			mother[i][j] = nonlinbehaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = nonlinbehaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
+			mother[i][j] = behaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv) ;
+			mother[j][i] = behaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv) ;
+		}
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i][j+getShapeFunctions().size()] = behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i] = behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv) ;
 		}
 	}
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		mother[i+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv) ;
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i+getShapeFunctions().size()][j+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv) ;
+		}
+	}
+	
 	return mother ;
 }
 
@@ -1954,20 +1985,20 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		
 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
+			for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
 			{
 				bool go = true ;
 				
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					if(dist(getEnrichmentFunction(i).second.getIntegrationHint(j),to_add[k]))
+					if(dist(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]))
 					{
 						go = false ;
 						break ;
 					}
 				}
 				if(go)
-					to_add.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
+					to_add.push_back(getEnrichmentFunction(i).getIntegrationHint(j)) ;
 			}
 		}
 
@@ -1975,14 +2006,15 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-4)) ;
 		to_add.erase(e, to_add.end()) ;
 		
-		DelaunayTree dt(new Point(to_add[0]), new Point(to_add[1]), new Point(to_add[2])) ;
+		DelaunayTree dt(&to_add[0], &to_add[1], &to_add[2]) ;
 		for(size_t i = 3 ; i < to_add.size() ; i++)
 		{
-			dt.insert(new Point(to_add[i])) ;
+			dt.insert(&to_add[i]) ;
 		}
 		
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
-
+		std::vector<Point *> pointsToCleanup ;
+		std::vector<DelaunayTriangle *> triangleToCleanup;
 		size_t numberOfRefinements =  3;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
@@ -1990,8 +2022,11 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			std::vector<DelaunayTriangle *> newTris ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				std::vector<DelaunayTriangle *> q = quad(tri[j]) ;
-				newTris.insert(newTris.end(),q.begin(), q.end()) ;
+				std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q = quad(tri[j]) ;
+				newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
+				pointsToCleanup.insert(pointsToCleanup.end(),q.second.begin(), q.second.end()) ;
+				if(i)
+					triangleToCleanup.push_back(tri[j]) ;
 			}
 			tri = newTris ;
 		}
@@ -2019,9 +2054,23 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			}
 		}
 
+		std::valarray<Point *> nularray(0) ;
+
+		for(size_t i = 0 ; i < triangleToCleanup.size() ; i++)
+		{
+			triangleToCleanup[i]->setBoundingPoints(nularray) ;
+			delete triangleToCleanup[i];
+		}
+	
 		for(size_t i = 0 ; i < tri.size() ; i++)
+		{
+			tri[i]->setBoundingPoints(nularray) ;
 			delete tri[i] ;
-		
+		}
+
+		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
+			delete pointsToCleanup[i] ;
+
 		gp.gaussPoints.resize(gp_alternative.size()) ;
 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 		gp.id = -1 ;
@@ -2034,7 +2083,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 
 Vector DelaunayTriangle::getNonLinearForces() const
 {
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t> dofs = getDofIds() ;
 	Vector forces(dofs.size()*2) ;
 	
 	if(!this->getNonLinearBehaviour()->isActive())
@@ -2066,13 +2115,41 @@ Vector DelaunayTriangle::getNonLinearForces() const
 // 	}
 	
 	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		for(size_t j = 0 ; j < dofs.size() ; i++)
+		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
 		{
-			Vector f = getNonLinearBehaviour()->getForces(this->getState(), dofs[i].second, dofs[j].second,gp, Jinv) ;
-			forces[i*2] += f[0] ;
-			forces[i*2+1] += f[1] ;
+			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+			
+			forces[i*2]+=f[0];
+			forces[i*2+1]+=f[1];
+		}
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+			
+			forces[i*2]+=f[0];
+			forces[i*2+1]+=f[1];
+		}
+	}
+	
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+		{
+			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+			
+			forces[(i+getShapeFunctions().size())*2]+=f[0];
+			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
+		}
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+			
+			forces[(i+getShapeFunctions().size())*2]+=f[0];
+			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
 		}
 	}
 	return forces ;
@@ -2080,7 +2157,7 @@ Vector DelaunayTriangle::getNonLinearForces() const
 
 Vector DelaunayTriangle::getForces() const
 {
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t> dofs = getDofIds() ;
 	Vector forces(dofs.size()*2) ;
 	
 	std::valarray<Matrix> Jinv ;
@@ -2119,31 +2196,60 @@ Vector DelaunayTriangle::getForces() const
 // 		}
 // 	}
 
-	for(size_t i = 0 ; i < dofs.size() ; i++)
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-
-		Vector f = behaviour->getForces( this->getState(), dofs[i].second, dofs[i].second,gp, Jinv) ;
-		forces[i*numdof] += f[0] ;
-		if(offset)
-			forces[i*numdof+offset] += f[offset] ;
+		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+		{
+			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+			
+			forces[i*2]+=f[0];
+			forces[i*2+1]+=f[1];
+		}
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+			
+			forces[i*2]+=f[0];
+			forces[i*2+1]+=f[1];
+		}
+	}
+	
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+		{
+			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+			
+			forces[(i+getShapeFunctions().size())*2]+=f[0];
+			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
+		}
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+			
+			forces[(i+getShapeFunctions().size())*2]+=f[0];
+			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
+		}
 	}
 	
 	return forces ;
 }
 
-std::vector<DelaunayTriangle *> Mu::quad(const DelaunayTriangle * t)
+std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > Mu::quad(const DelaunayTriangle * t)
 {
 	std::vector<DelaunayTriangle* > tris ;
-	std::vector<Point> points ;
+	std::vector<Point *> points ;
 
-	points.push_back(*t->first + (*t->second - *t->first)*.5 ) ;
-	points.push_back(*t->first + (*t->third - *t->first)*.5 ) ;
-	points.push_back(*t->second + (*t->third - *t->second)*.5 ) ;
+	points.push_back(new Point(*t->first + (*t->second - *t->first)*.5) ) ;
+	points.push_back(new Point(*t->first + (*t->third - *t->first)*.5 )) ;
+	points.push_back(new Point(*t->second + (*t->third - *t->second)*.5 )) ;
 	
-	tris.push_back(new DelaunayTriangle(NULL, new Point(points[0]), new Point(points[1]), new Point(*t->first), NULL)) ;
-	tris.push_back(new DelaunayTriangle(NULL,new Point(points[0]), new Point(points[2]), new Point(*t->second), NULL)) ;
-	tris.push_back(new DelaunayTriangle(NULL,new Point(points[1]), new Point(points[2]), new Point(*t->third), NULL)) ;
-	tris.push_back(new DelaunayTriangle(NULL,new Point(points[0]), new Point(points[1]), new Point(points[2]), NULL)) ;
-	return tris ;
+	tris.push_back(new DelaunayTriangle(NULL, points[0], points[1], t->first, NULL)) ;
+	tris.push_back(new DelaunayTriangle(NULL,points[0], points[2], t->second, NULL)) ;
+	tris.push_back(new DelaunayTriangle(NULL,points[1], points[2], t->third, NULL)) ;
+	tris.push_back(new DelaunayTriangle(NULL,points[0], points[1], points[2], NULL)) ;
+	return std::make_pair(tris, points) ;
 }
 

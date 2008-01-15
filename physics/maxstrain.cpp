@@ -24,9 +24,9 @@ MaximumStrain::~MaximumStrain()
 {
 }
 
-bool MaximumStrain::met(const ElementState * s) const
+bool MaximumStrain::met(const ElementState & s) const
 {
-	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s->getParent()) ;
+	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	if(tested)
 	{
 		std::vector<DelaunayTriangle *> neighbourhood = tested->neighbourhood ;
@@ -43,7 +43,7 @@ bool MaximumStrain::met(const ElementState * s) const
 			}
 		}
 		
-		Vector pstrain = s->getStrain(tested->getBoundingPoints()) ;
+		Vector pstrain = s.getStrain(tested->getBoundingPoints()) ;
 		double maxStrain = pstrain.max();
 		if( maxStrain > upVal )
 		{
@@ -62,6 +62,11 @@ bool MaximumStrain::met(const ElementState * s) const
 	
 	//shut up the compiler
 	return false ;
+}
+
+FractureCriterion * MaximumStrain::getCopy() const
+{
+	return new MaximumStrain(*this) ;
 }
 
 }

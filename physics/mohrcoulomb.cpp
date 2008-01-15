@@ -136,4 +136,9 @@ bool MohrCoulomb::met(const ElementState & s) const
 	return false ;
 }
 
+FractureCriterion * MohrCoulomb::getCopy() const
+{
+	return new MohrCoulomb(*this) ;
+}
+
 }

@@ -62,4 +62,9 @@ bool VonMises::met(const ElementState & s) const
 	
 }
 
+FractureCriterion * VonMises::getCopy() const
+{
+	return new VonMises(*this) ;
+}
+
 }

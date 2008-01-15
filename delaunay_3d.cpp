@@ -1910,7 +1910,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 	std::vector<std::vector<Matrix > > mother ;
 	GaussPointArray gp ; 
 	std::valarray<Matrix> Jinv ;
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t> dofs = getDofIds() ;
 	if(getEnrichmentFunctions().size() > 0 /*&& getEnrichmentFunction(0).second.getIntegrationHint().size() > 0*/ )
 	{
 		if(!(getEnrichmentFunctions().size() == 1 ||
@@ -1932,23 +1932,23 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		to_add.push_back(Point(0,1,0)) ;
 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
+			for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
 			{
-				if(getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[0] && 
-				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[1] && 
-				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[2]  &&   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[3])
+				if(getEnrichmentFunction(i).getIntegrationHint(j) != to_add[0] && 
+				   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[1] && 
+				   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[2]  &&   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[3])
 				{
 					bool ok = true ;
 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
 					{
-						if(getEnrichmentFunction(i).second.getIntegrationHint(j) == to_add_extra[k])
+						if(getEnrichmentFunction(i).getIntegrationHint(j) == to_add_extra[k])
 						{
 							ok = false ;
 							break ;
 						}
 					}
 					if(ok)
-						to_add_extra.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
+						to_add_extra.push_back(getEnrichmentFunction(i).getIntegrationHint(j)) ;
 				}
 			}
 		}
@@ -2063,14 +2063,29 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 	}
 	
 	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		mother[i][i] =behaviour->apply(dofs[i].second, dofs[i].second,gp, Jinv) ;
+		mother[i][i] = behaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv) ;
 		
-		for(size_t j = i+1 ; j < dofs.size() ; j++)
+		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			mother[i][j] = behaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = behaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
+			mother[i][j] = behaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv) ;
+			mother[j][i] = behaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv) ;
+		}
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i][j+getShapeFunctions().size()] = behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i] = behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv) ;
+		}
+	}
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		mother[i+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv) ;
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i+getShapeFunctions().size()][j+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv) ;
 		}
 	}
 	
@@ -2080,7 +2095,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 
  std::vector<std::vector<Matrix> > DelaunayTetrahedron::getNonLinearElementaryMatrix() 
 {
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t> dofs = getDofIds() ;
 	std::vector<std::vector<Matrix> > mother ;
 	
 	Vector dsp = this->getState().getDisplacements() ;
@@ -2228,24 +2243,39 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		
 		mother.push_back(v_j) ;
 	}
-	
-	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
+
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		mother[i][i] =nonlinbehaviour->apply(dofs[i].second, dofs[i].second,gp, Jinv) ;
+		mother[i][i] = nonlinbehaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv) ;
 		
-		for(size_t j = i+1 ; j < dofs.size() ; j++)
+		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			mother[i][j] = nonlinbehaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-			mother[j][i] = nonlinbehaviour->apply(dofs[j].second, dofs[i].second,gp, Jinv) ;
+			mother[i][j] = nonlinbehaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv) ;
+			mother[j][i] = nonlinbehaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv) ;
+		}
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i][j+getShapeFunctions().size()] = nonlinbehaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i] = nonlinbehaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv) ;
 		}
 	}
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		mother[i+getShapeFunctions().size()][i+getShapeFunctions().size()] = nonlinbehaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv) ;
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i+getShapeFunctions().size()][j+getShapeFunctions().size()] = nonlinbehaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = nonlinbehaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv) ;
+		}
+	}
+	
 	return mother ;
 }
 
 Vector DelaunayTetrahedron::getNonLinearForces() const
 {
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t> dofs = getDofIds() ;
 	Vector forces(dofs.size()*3) ;
 	
 	if(!this->getNonLinearBehaviour()->isActive())
@@ -2276,22 +2306,53 @@ Vector DelaunayTetrahedron::getNonLinearForces() const
 	}
 	
 	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
-	{
-		for(size_t j = 0 ; j < dofs.size() ; j++)
+		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{
-			Vector f = nonlinbehaviour->getForces(this->getState(), dofs[i].second, dofs[j].second, gp, Jinv) ;
-			forces[i*3] += f[0] ;
-			forces[i*3+1] += f[1] ;
-			forces[i*3+2] += f[2] ;
+			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+				
+				forces[i*3]+=f[0];
+				forces[i*3+1]+=f[1];
+				forces[i*3+2]+=f[2];
+			}
+
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				
+				forces[i*3]+=f[0];
+				forces[i*3+1]+=f[1];
+				forces[i*3+2]+=f[2];
+			}
 		}
-	}
+		
+		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+		{
+			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+				
+				forces[(i+getShapeFunctions().size())*3]+=f[0];
+				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
+			}
+
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				
+				forces[(i+getShapeFunctions().size())*3]+=f[0];
+				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
+			}
+		}
 	return forces ;
 }
 
 Vector DelaunayTetrahedron::getForces() const
 {
-	std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+	std::vector<size_t> dofs = getDofIds() ;
 	Vector forces(dofs.size()*3) ;
 	
 	std::valarray<Matrix> Jinv ;
@@ -2316,16 +2377,47 @@ Vector DelaunayTetrahedron::getForces() const
 	}
 	
 	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
-	{
-		for(size_t j = 0 ; j < dofs.size() ; j++)
+		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{
-			Vector f = behaviour->getForces( this->getState(), dofs[i].second, dofs[j].second,gp, Jinv) ;
-			forces[i*3] += f[0] ;
-			forces[i*3+1] += f[1] ;
-			forces[i*3+2] += f[2] ;
+			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+				
+				forces[i*3]+=f[0];
+				forces[i*3+1]+=f[1];
+				forces[i*3+2]+=f[2];
+			}
+
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				
+				forces[i*3]+=f[0];
+				forces[i*3+1]+=f[1];
+				forces[i*3+2]+=f[2];
+			}
 		}
-	}
+		
+		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+		{
+			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+				
+				forces[(i+getShapeFunctions().size())*3]+=f[0];
+				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
+			}
+
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				
+				forces[(i+getShapeFunctions().size())*3]+=f[0];
+				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
+			}
+		}
 	return forces ;
 }
 
@@ -2347,23 +2439,23 @@ GaussPointArray DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
 		to_add.push_back(Point(0,0,1)) ;
 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < getEnrichmentFunction(i).second.getIntegrationHint().size() ; j++)
+			for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
 			{
-				if(getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[0] && 
-				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[1] && 
-				   getEnrichmentFunction(i).second.getIntegrationHint(j) != to_add[2])
+				if(getEnrichmentFunction(i).getIntegrationHint(j) != to_add[0] && 
+				   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[1] && 
+				   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[2])
 				{
 					bool ok = true ;
 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
 					{
-						if(getEnrichmentFunction(i).second.getIntegrationHint(j) == to_add_extra[k])
+						if(getEnrichmentFunction(i).getIntegrationHint(j) == to_add_extra[k])
 						{
 							ok = false ;
 							break ;
 						}
 					}
 					if(ok)
-						to_add_extra.push_back(getEnrichmentFunction(i).second.getIntegrationHint(j)) ;
+						to_add_extra.push_back(getEnrichmentFunction(i).getIntegrationHint(j)) ;
 				}
 			}
 		}

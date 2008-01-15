@@ -74,6 +74,7 @@ protected:
 	
 public:
 	Function();
+	Function(const Function &) ;
 	Function(const char *f) ;
 	Function(const Line & l, Function x, Function y) ;
 	Function(const Point & p, Function x, Function y) ;

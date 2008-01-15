@@ -223,8 +223,8 @@ FunctionMatrix ElementState::getDisplacementFunction() const
 	
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size()*2; j++)
 	{
-		ret[0][0] += parent->getEnrichmentFunction(j).second * enrichedDisplacements[j*2] ;
-		ret[1][0] += parent->getEnrichmentFunction(j).second * enrichedDisplacements[j*2+1] ;
+		ret[0][0] += parent->getEnrichmentFunction(j) * enrichedDisplacements[j*2] ;
+		ret[1][0] += parent->getEnrichmentFunction(j) * enrichedDisplacements[j*2+1] ;
 	}
 	
 	return ret ;
@@ -258,8 +258,8 @@ Vector ElementState::getStrain(const Point & p, bool local) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size()*2; j++)
 		{
-			double f_xi = vm.deval( parent->getEnrichmentFunction(j).second,XI,p_ ) ;
-			double f_eta = vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_) ;
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;
 			
 			x_xi += f_xi*enrichedDisplacements[j*2] ;
 			x_eta += f_eta*enrichedDisplacements[j*2] ;
@@ -318,9 +318,9 @@ Vector ElementState::getStrain(const Point & p, bool local) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			double f_xi = vm.deval( parent->getEnrichmentFunction(j).second,XI,p_ ) ;
-			double f_eta = vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_) ;
-			double f_zeta = vm.deval( parent->getEnrichmentFunction(j).second,ZETA,p_) ;
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction(j),ZETA,p_) ;
 			double x = enrichedDisplacements[j*3] ;
 			double y = enrichedDisplacements[j*3+1] ;
 			double z = enrichedDisplacements[j*3+2] ;
@@ -411,8 +411,8 @@ Vector ElementState::getStress(const Point & p, bool local) const
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
 			
-			double f_xi = vm.deval( parent->getEnrichmentFunction(j).second,XI,p_ ) ;
-			double f_eta = vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_) ;
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;
 			
 				x_xi += f_xi*enrichedDisplacements[j*2] ;
 				x_eta += f_eta*enrichedDisplacements[j*2] ;
@@ -470,9 +470,9 @@ Vector ElementState::getStress(const Point & p, bool local) const
 				
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			double f_xi = vm.deval( parent->getEnrichmentFunction(j).second,XI,p_ ) ;
-			double f_eta = vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_) ;
-			double f_zeta = vm.deval( parent->getEnrichmentFunction(j).second,ZETA,p_) ;
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction(j),ZETA,p_) ;
 			double x = enrichedDisplacements[j*3] ;
 			double y = enrichedDisplacements[j*3+1] ;
 			double z = enrichedDisplacements[j*3+2] ;
@@ -1218,8 +1218,8 @@ Vector ElementState::getStress(const std::valarray<Point *> & pts) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			double f_xi = vm.deval(parent->getEnrichmentFunction(j).second, XI, p_[i]) ;
-			double f_eta = vm.deval(parent->getEnrichmentFunction(j).second, ETA, p_[i]) ;
+			double f_xi = vm.deval(parent->getEnrichmentFunction(j), XI, p_[i]) ;
+			double f_eta = vm.deval(parent->getEnrichmentFunction(j), ETA, p_[i]) ;
 			
 			if(j*2 < enrichedDisplacements.size())
 			{
@@ -1331,8 +1331,8 @@ Vector ElementState::getStrain(const std::valarray<Point *> & pts) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			double f_xi = vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i] ) ;
-			double f_eta = vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i]) ;
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_[i] ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i]) ;
 				
 			if(j*2 < enrichedDisplacements.size())
 			{
@@ -1400,7 +1400,7 @@ Vector ElementState::getDisplacements(const Point & p, bool local) const
 	
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 	{
-		double f = vm.eval(parent->getEnrichmentFunction(j).second, p_) ;
+		double f = vm.eval(parent->getEnrichmentFunction(j), p_) ;
 		ret[0] += f*enrichedDisplacements[j*2] ;
 		ret[1] += f*enrichedDisplacements[j*2+1] ;
 	}
@@ -1427,8 +1427,8 @@ Vector ElementState::getDisplacements(const std::valarray<Point> & p) const
 	
 // 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 // 	{
-// 		x += parent->getEnrichmentFunction(j).second.d(XI)*enrichedDisplacements[j*2] ;
-// 		y += parent->getEnrichmentFunction(j).second.d(ETA)*enrichedDisplacements[j*2+1] ;
+// 		x += parent->getEnrichmentFunction(j).d(XI)*enrichedDisplacements[j*2] ;
+// 		y += parent->getEnrichmentFunction(j).d(ETA)*enrichedDisplacements[j*2+1] ;
 // 	}
 	
 	VirtualMachine vm ;
@@ -1440,8 +1440,8 @@ Vector ElementState::getDisplacements(const std::valarray<Point> & p) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x += vm.eval( parent->getEnrichmentFunction(j).second,p_[i])*enrichedDisplacements[j*2] ;
-			delta_y += vm.eval( parent->getEnrichmentFunction(j).second,p_[i])*enrichedDisplacements[j*2+1] ;
+			delta_x += vm.eval( parent->getEnrichmentFunction(j),p_[i])*enrichedDisplacements[j*2] ;
+			delta_y += vm.eval( parent->getEnrichmentFunction(j),p_[i])*enrichedDisplacements[j*2+1] ;
 		}
 		ret[i*2+0] = vm.eval(x+delta_x, p_[i]) ;
 		ret[i*2+1] = vm.eval(y+delta_y, p_[i]) ;
@@ -1467,7 +1467,7 @@ Vector ElementState::getDisplacements(const std::vector<std::pair<Point, double>
 			
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			double f = vm.eval( parent->getEnrichmentFunction(j).second,p[i].first) ;
+			double f = vm.eval( parent->getEnrichmentFunction(j),p[i].first) ;
 			ret[i*2+0] += f*enrichedDisplacements[j*2] ;
 			ret[i*2+1] += f*enrichedDisplacements[j*2+1] ;
 		}
@@ -1494,8 +1494,8 @@ Vector ElementState::getPreviousDisplacements(const Point & p) const
 	VirtualMachine vm ;
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 	{
-		delta_x += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_)*previousEnrichedDisplacements[j*2] ;
-		delta_y += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_)*previousEnrichedDisplacements[j*2+1] ;
+		delta_x += vm.deval( parent->getEnrichmentFunction(j),XI,p_)*previousEnrichedDisplacements[j*2] ;
+		delta_y += vm.deval( parent->getEnrichmentFunction(j),ETA,p_)*previousEnrichedDisplacements[j*2+1] ;
 	}
 	
 	Vector ret(2) ;
@@ -1531,8 +1531,8 @@ Vector ElementState::getPreviousDisplacements(const std::valarray<Point> & p) co
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x += vm.eval( parent->getEnrichmentFunction(j).second,p_[i])*previousEnrichedDisplacements[j*2] ;
-			delta_y += vm.eval( parent->getEnrichmentFunction(j).second,p_[i])*previousEnrichedDisplacements[j*2+1] ;
+			delta_x += vm.eval( parent->getEnrichmentFunction(j),p_[i])*previousEnrichedDisplacements[j*2] ;
+			delta_y += vm.eval( parent->getEnrichmentFunction(j),p_[i])*previousEnrichedDisplacements[j*2+1] ;
 		}
 		ret[i*2+0] = vm.eval(x+delta_x, p[i]) ;
 		ret[i*2+1] = vm.eval(y+delta_y, p[i]) ;
@@ -1558,8 +1558,8 @@ Vector ElementState::getPreviousPreviousDisplacements(const Point & p) const
 	VirtualMachine vm ;
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 	{
-		delta_x += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_)*previousPreviousEnrichedDisplacements[j*2] ;
-		delta_y += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_)*previousPreviousEnrichedDisplacements[j*2+1] ;
+		delta_x += vm.deval( parent->getEnrichmentFunction(j),XI,p_)*previousPreviousEnrichedDisplacements[j*2] ;
+		delta_y += vm.deval( parent->getEnrichmentFunction(j),ETA,p_)*previousPreviousEnrichedDisplacements[j*2+1] ;
 	}
 	
 	Vector ret(2) ;
@@ -1595,8 +1595,8 @@ Vector ElementState::getPreviousPreviousDisplacements(const std::valarray<Point>
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x += vm.eval( parent->getEnrichmentFunction(j).second,p_[i])*previousPreviousEnrichedDisplacements[j*2] ;
-			delta_y += vm.eval( parent->getEnrichmentFunction(j).second,p_[i])*previousPreviousEnrichedDisplacements[j*2+1] ;
+			delta_x += vm.eval( parent->getEnrichmentFunction(j),p_[i])*previousPreviousEnrichedDisplacements[j*2] ;
+			delta_y += vm.eval( parent->getEnrichmentFunction(j),p_[i])*previousPreviousEnrichedDisplacements[j*2+1] ;
 		}
 		ret[i*2+0] = vm.eval(x+delta_x, p[i]) ;
 		ret[i*2+1] = vm.eval(y+delta_y, p[i]) ;
@@ -1656,8 +1656,8 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain(const std::valarray<
 			
 			for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 			{
-				double f_xi = vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i] ) ;
-				double f_eta = vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i]) ;
+				double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_[i] ) ;
+				double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i]) ;
 				
 				x_xi += f_xi*enrichedDisplacements[j*ndofs] ;
 				x_eta += f_eta*enrichedDisplacements[j*ndofs] ;
@@ -1732,10 +1732,10 @@ Vector ElementState::getDeltaStrain(const Point & p) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x_xi += vm.deval(parent->getEnrichmentFunction(j).second,XI,p_ )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
-			delta_x_eta += vm.deval(parent->getEnrichmentFunction(j).second,ETA,p_)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
-			delta_y_xi += vm.deval(parent->getEnrichmentFunction(j).second,XI,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]) ;
-			delta_y_eta += vm.deval(parent->getEnrichmentFunction(j).second,ETA,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]) ;
+			delta_x_xi += vm.deval(parent->getEnrichmentFunction(j),XI,p_ )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
+			delta_x_eta += vm.deval(parent->getEnrichmentFunction(j),ETA,p_)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
+			delta_y_xi += vm.deval(parent->getEnrichmentFunction(j),XI,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]) ;
+			delta_y_eta += vm.deval(parent->getEnrichmentFunction(j),ETA,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]) ;
 		}
 		
 		Matrix Jinv = parent->getInverseJacobianMatrix(p_) ;
@@ -1785,9 +1785,9 @@ Vector ElementState::getDeltaStrain(const Point & p) const
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
 		
-			double f_xi = vm.deval(parent->getEnrichmentFunction(j).second,XI,p_ ) ;
-			double f_eta = vm.deval(parent->getEnrichmentFunction(j).second,ETA,p_) ;
-			double f_zeta = vm.deval(parent->getEnrichmentFunction(j).second,ZETA,p_) ;
+			double f_xi = vm.deval(parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval(parent->getEnrichmentFunction(j),ETA,p_) ;
+			double f_zeta = vm.deval(parent->getEnrichmentFunction(j),ZETA,p_) ;
 			
 			x_xi += f_xi*(enrichedDisplacements[j*3] - previousEnrichedDisplacements[j*3]) ;
 			x_eta += f_eta*(enrichedDisplacements[j*3] - previousEnrichedDisplacements[j*3]) ;
@@ -1849,10 +1849,10 @@ Vector ElementState::getDeltaStress(const Point & p) const
 	
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 	{
-		delta_x_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_ )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
-		delta_x_eta += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
-		delta_y_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
-		delta_y_eta += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]) ;
+		delta_x_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_ )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
+		delta_x_eta += vm.deval( parent->getEnrichmentFunction(j),ETA,p_)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]) ;
+		delta_y_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+		delta_y_eta += vm.deval( parent->getEnrichmentFunction(j),ETA,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]) ;
 	}
 	
 	Matrix Jinv = parent->getInverseJacobianMatrix(p_) ;
@@ -1914,10 +1914,10 @@ Vector ElementState::getDeltaStress(const std::valarray<Point *> & pts) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i] )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-			delta_x_eta += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-			delta_y_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
-			delta_y_eta += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+			delta_x_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_[i] )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+			delta_x_eta += vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+			delta_y_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+			delta_y_eta += vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
 		}
 		
 		if(parent->isMoved())
@@ -1995,10 +1995,10 @@ Vector ElementState::getDeltaStrain(const std::valarray<Point *> & pts) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i] )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-				delta_x_eta += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-				delta_y_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
-				delta_y_eta += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+			delta_x_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_[i] )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+				delta_x_eta += vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+				delta_y_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+				delta_y_eta += vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
 		}
 		
 		if(parent->isMoved())
@@ -2048,8 +2048,8 @@ Vector ElementState::getDeltaDisplacements(const Point & p) const
 	VirtualMachine vm ;
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 	{
-		delta_x += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-		delta_y += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+		delta_x += vm.deval( parent->getEnrichmentFunction(j),XI,p_)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+		delta_y += vm.deval( parent->getEnrichmentFunction(j),ETA,p_)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
 	}
 	
 	Vector ret(2) ;
@@ -2077,8 +2077,8 @@ Vector ElementState::getDeltaDisplacements(const std::valarray<Point> & p) const
 	
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 	{
-		x += parent->getEnrichmentFunction(j).second.d(XI)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-		y += parent->getEnrichmentFunction(j).second.d(ETA)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+		x += parent->getEnrichmentFunction(j).d(XI)*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+		y += parent->getEnrichmentFunction(j).d(ETA)*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
 	}
 	
 	VirtualMachine vm ;
@@ -2090,8 +2090,8 @@ Vector ElementState::getDeltaDisplacements(const std::valarray<Point> & p) const
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-			delta_y += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i])*(enrichedDisplacements[j*2+1]- previousEnrichedDisplacements[j*2+1]) ;
+			delta_x += vm.deval( parent->getEnrichmentFunction(j),XI,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+			delta_y += vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i])*(enrichedDisplacements[j*2+1]- previousEnrichedDisplacements[j*2+1]) ;
 		}
 		ret[i*2+0] = vm.eval(x+delta_x, p[i]) ;
 		ret[i*2+1] = vm.eval(y+delta_y, p[i]) ;
@@ -2144,10 +2144,10 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain(const std:
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
-			delta_x_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i] )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-			delta_x_eta += vm.deval( parent->getEnrichmentFunction(j).second,ETA,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
-			delta_y_xi += vm.deval( parent->getEnrichmentFunction(j).second,XI,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
-			delta_y_eta += vm.deval(parent->getEnrichmentFunction(j).second,ETA, p_[i])*(enrichedDisplacements[j*2+1]- previousEnrichedDisplacements[j*2+1]) ;
+			delta_x_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_[i] )*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+			delta_x_eta += vm.deval( parent->getEnrichmentFunction(j),ETA,p_[i])*(enrichedDisplacements[j*2] - previousEnrichedDisplacements[j*2]);
+			delta_y_xi += vm.deval( parent->getEnrichmentFunction(j),XI,p_[i])*(enrichedDisplacements[j*2+1] - previousEnrichedDisplacements[j*2+1]);
+			delta_y_eta += vm.deval(parent->getEnrichmentFunction(j),ETA, p_[i])*(enrichedDisplacements[j*2+1]- previousEnrichedDisplacements[j*2+1]) ;
 		}
 		
 		if(parent->isMoved())

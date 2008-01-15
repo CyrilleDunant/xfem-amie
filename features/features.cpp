@@ -1609,7 +1609,7 @@ void FeatureTree::assemble()
 				
 				for(size_t k = 0 ; k < triangles[j]->getEnrichmentFunctions().size() ; k++)
 				{
-					triangles[j]->getEnrichmentFunction(k).second.compile() ;
+					triangles[j]->getEnrichmentFunction(k).compile() ;
 				}
 			}
 		}
@@ -1665,7 +1665,7 @@ void FeatureTree::assemble()
 				
 				for(size_t k = 0 ; k < tets[j]->getEnrichmentFunctions().size() ; k++)
 				{
-					tets[j]->getEnrichmentFunction(k).second.compile() ;
+					tets[j]->getEnrichmentFunction(k).compile() ;
 				}
 				
 				K->add(tets[j]) ;
@@ -1961,11 +1961,10 @@ bool FeatureTree::step(double dt)
 	}
 	
 	needAssembly = true ;
-	solverConvergence = this->K->cgsolve() ;
 // 	Vector displacements = this->K->solve(/**extforces*/Vector(0), 100000, true) ;
 	
 	meshChange = false ;
-	solverConvergence = false ;
+	solverConvergence = this->K->cgsolve() ;
 	enrichmentChange = false ;
 
 	if(is2D())

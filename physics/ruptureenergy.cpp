@@ -183,4 +183,9 @@ bool RuptureEnergy::met(const ElementState & s) const
 	return false ;
 }
 
+FractureCriterion * RuptureEnergy::getCopy() const
+{
+	return new RuptureEnergy(*this) ;
+}
+
 }

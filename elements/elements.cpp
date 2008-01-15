@@ -46,7 +46,8 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 
 void ElementarySurface::setBehaviour(Form * f)
 {
-	this->behaviour = f ;
+	delete behaviour ;
+	behaviour = f ;
 }
 
 void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
@@ -95,20 +96,20 @@ void ElementaryVolume::nonLinearStep(double dt, Vector *displacements)
 		this->nonlinbehaviour->step(dt, this->state) ;
 }
 
-const std::vector<std::pair<size_t, Function> > ElementarySurface::getDofs() const
-{
-	std::vector<std::pair<size_t, Function> > ret ;
-	for (size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-	{
-		ret.push_back(std::make_pair(getBoundingPoint(i).id, getShapeFunction(i))) ;
-	}
-	for (size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-	{
-		ret.push_back(std::make_pair(getEnrichmentFunction(i).second.getDofID(),getEnrichmentFunction(i).second)) ;
-	}
-	
-	return ret ;
-}
+// const std::vector<std::pair<size_t,const Function &> > ElementarySurface::getDofs() const
+// {
+// 	std::vector<std::pair<size_t,const Function &> > ret ;
+// 	for (size_t i = 0 ; i < getShapeFunctions().size() ; i++)
+// 	{
+// 		ret.push_back(std::make_pair(getBoundingPoint(i).id, getShapeFunction(i))) ;
+// 	}
+// 	for (size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+// 	{
+// 		ret.push_back(std::make_pair(getEnrichmentFunction(i).getDofID(),getEnrichmentFunction(i))) ;
+// 	}
+// 	
+// 	return ret ;
+// }
 
 const std::vector< size_t > ElementarySurface::getDofIds() const
 {
@@ -122,8 +123,8 @@ const std::vector< size_t > ElementarySurface::getDofIds() const
 	}
 	for (size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
-		if(getEnrichmentFunction(i).second.getDofID() >= 0)
-			ret.push_back(getEnrichmentFunction(i).second.getDofID()) ;
+		if(getEnrichmentFunction(i).getDofID() >= 0)
+			ret.push_back(getEnrichmentFunction(i).getDofID()) ;
 		else
 			std::cout << "negative ID, check numbering !" << std::endl ;
 	}
@@ -1218,12 +1219,12 @@ const double ElementarySurface::getdTTransform(Variable v, const Point p) const
 	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
-void ElementarySurface::setEnrichment(std::pair<size_t, Function>  p)
+void ElementarySurface::setEnrichment( const Function & p)
 {
 	bool unique = true ;
 	for(size_t i = 0 ;  i < enrichfunc.size() ; i++)
 	{
-		if (getEnrichmentFunction(i).second.getDofID() == p.second.getDofID())
+		if (getEnrichmentFunction(i).getDofID() == p.getDofID())
 		{
 			unique = false ;
 			break ;
@@ -1233,18 +1234,15 @@ void ElementarySurface::setEnrichment(std::pair<size_t, Function>  p)
 		enrichfunc.push_back(p) ;
 }
 
-const  std::pair<size_t, Function> & ElementarySurface::getEnrichmentFunction(size_t i) const
+const  Function & ElementarySurface::getEnrichmentFunction(size_t i) const
 {
 	return this->enrichfunc[i];
 }
 
-std::pair<size_t, Function> & ElementarySurface::getEnrichmentFunction(size_t i)
+ Function & ElementarySurface::getEnrichmentFunction(size_t i) 
 {
 	return this->enrichfunc[i];
 }
-
-
-
 
 
 const std::valarray< Function >  & ElementarySurface::getShapeFunctions() const
@@ -1253,12 +1251,12 @@ const std::valarray< Function >  & ElementarySurface::getShapeFunctions() const
 }
 
 
-const std::vector< std::pair<size_t, Function>  > & ElementarySurface::getEnrichmentFunctions() const
+const std::vector<Function> & ElementarySurface::getEnrichmentFunctions() const
 {
 	return this->enrichfunc;
 }
 
-std::vector< std::pair<size_t, Function>  >  & ElementarySurface::getEnrichmentFunctions()
+std::vector<Function> & ElementarySurface::getEnrichmentFunctions()
 {
 	return this->enrichfunc;
 }
@@ -1526,17 +1524,17 @@ const Function  ElementaryVolume::getTTransform() const
 	return TTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
 }
 
-void ElementaryVolume::setEnrichment(std::pair<size_t, Function>  p)
+void ElementaryVolume::setEnrichment(const Function & p)
 {
 	enrichfunc.push_back(p) ;
 }
 
-const std::pair<size_t, Function> & ElementaryVolume::getEnrichmentFunction(size_t i)  const
+const Function& ElementaryVolume::getEnrichmentFunction(size_t i)  const
 {
 	return this->enrichfunc[i] ;
 }
 
-std::pair<size_t, Function> & ElementaryVolume::getEnrichmentFunction(size_t i) 
+Function& ElementaryVolume::getEnrichmentFunction(size_t i) 
 {
 	return this->enrichfunc[i] ;
 }
@@ -1544,25 +1542,6 @@ std::pair<size_t, Function> & ElementaryVolume::getEnrichmentFunction(size_t i)
 const std::valarray<Function  >  & ElementaryVolume::getShapeFunctions() const
 {
 	return *this->shapefunc ;
-}
-//const std::valarray< Function >  ElementaryVolume::getShapeFunctions() const
-//{
-//	return *this->shapefunc ;
-//}
-
-const std::vector<std::pair<size_t, Function> > ElementaryVolume::getDofs() const
-{
-	std::vector<std::pair<size_t, Function> > ret ;
-	for (size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-	{
-		ret.push_back(std::make_pair(getBoundingPoint(i).id, getShapeFunction(i))) ;
-	}
-	for (size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-	{
-		ret.push_back(std::make_pair(getEnrichmentFunction(i).second.getDofID(),getEnrichmentFunction(i).second)) ;
-	}
-	
-	return ret ;
 }
 
 bool ElementaryVolume::isMoved() const
@@ -1588,8 +1567,8 @@ const std::vector< size_t > ElementaryVolume::getDofIds() const
 	}
 	for (size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
-		if(getEnrichmentFunction(i).second.getDofID() >= 0)
-			ret.push_back(getEnrichmentFunction(i).second.getDofID()) ;
+		if(getEnrichmentFunction(i).getDofID() >= 0)
+			ret.push_back(getEnrichmentFunction(i).getDofID()) ;
 		else
 			std::cout << "negative ID, check numbering !" << std::endl ;
 	}
@@ -1597,15 +1576,16 @@ const std::vector< size_t > ElementaryVolume::getDofIds() const
 	return ret ;
 }
 
-const std::vector< std::pair<size_t, Function>  > & ElementaryVolume::getEnrichmentFunctions() const
+const std::vector< Function> & ElementaryVolume::getEnrichmentFunctions() const
 {
 	return this->enrichfunc;
 }
 
-std::vector< std::pair<size_t, Function>  > & ElementaryVolume::getEnrichmentFunctions() 
+std::vector< Function> & ElementaryVolume::getEnrichmentFunctions() 
 {
 	return this->enrichfunc;
 }
+
 
 std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const 
 	{
@@ -1613,7 +1593,7 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
 		std::vector<std::vector<Matrix > > mother ;
 		GaussPointArray gp  = this->getGaussPoints(); 
 		std::valarray<Matrix> Jinv ;
-		std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+		std::vector<size_t> dofs = getDofIds() ;
 /*	VirtualMachine vm ;*/
 		if(getEnrichmentFunctions().size() > 0 /*&& getEnrichmentFunction(0).second.getIntegrationHint().size() > 0*/ )
 		{
@@ -1651,17 +1631,31 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
 		}
 		
 		
-		for(size_t i = 0 ; i < dofs.size() ; i++)
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
+	{
+		mother[i][i] = behaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv) ;
+		
+		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			mother[i][i] =behaviour->apply(dofs[i].second, dofs[i].second,gp, Jinv) ;
-			
-			for(size_t j = i+1 ; j < dofs.size() ; j++)
-			{
-				mother[i][j] = behaviour->apply(dofs[i].second, dofs[j].second,gp, Jinv) ;
-				mother[j][i] = mother[i][j].transpose() ;
-				
-			}
+			mother[i][j] = behaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv) ;
+			mother[j][i] = behaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv) ;
 		}
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i][j+getShapeFunctions().size()] = behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i] = behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv) ;
+		}
+	}
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		mother[i+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv) ;
+		
+		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		{
+			mother[i+getShapeFunctions().size()][j+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv) ;
+			mother[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv) ;
+		}
+	}
 
 // 		}
 // 	}
@@ -1691,7 +1685,7 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
 
 		GaussPointArray gp  ;
 		std::valarray<Matrix> Jinv ;
-		std::vector<std::pair<size_t, Function> > dofs = getDofs() ;
+		std::vector<size_t> dofs = getDofIds() ;
 		Vector forces (dofs.size()*3);
 /*	VirtualMachine vm ;*/
 		if(getEnrichmentFunctions().size() > 0)
@@ -1722,15 +1716,45 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
 			}
 		}
 			
-		for(size_t i = 0 ; i < dofs.size() ; i++)
+		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < dofs.size() ; j++)
+			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
 			{
-				Vector f = behaviour->getForces(this->getState(), dofs[i].second ,dofs[j].second,gp, Jinv) ;
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
 				
 				forces[i*3]+=f[0];
 				forces[i*3+1]+=f[1];
 				forces[i*3+2]+=f[2];
+			}
+
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				
+				forces[i*3]+=f[0];
+				forces[i*3+1]+=f[1];
+				forces[i*3+2]+=f[2];
+			}
+		}
+		
+		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+		{
+			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+				
+				forces[(i+getShapeFunctions().size())*3]+=f[0];
+				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
+			}
+
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				
+				forces[(i+getShapeFunctions().size())*3]+=f[0];
+				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
 			}
 		}
 
@@ -1826,6 +1850,7 @@ Matrix ElementaryVolume::getInverseJacobianMatrix(const Point & p) const
 
 void ElementaryVolume::setBehaviour(Form * f)
 {
+	delete behaviour ;
 	behaviour =  f ;
 }
 

@@ -966,8 +966,35 @@ Function::Function(const std::vector<Segment> s , const Function & x, const Func
 	}
 }
 
+Function::Function(const Function &f): derivative(f.derivative), iPoint(f.iPoint), ptID(f.ptID), dofID(f.dofID), byteCode(f.byteCode), e_diff(f.e_diff)
+{
+	for(std::map<int, Vector *>::const_iterator i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
+		precalc[i->first] = new Vector(*i->second) ;
+
+	for(std::map<int, std::map<Variable, Vector *> >::const_iterator i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
+	{
+		std::map<Variable, Vector *> v ;
+		for(std::map<Variable, Vector *>::const_iterator j = i->second.begin() ; j != i->second.end() ; ++j)
+		{
+			v[j->first] = new Vector(*j->second) ;
+		}
+		dprecalc[i->first] = v ;
+	}
+}
+
+
 Function::~Function()
 {
+	for(std::map<int, Vector *>::iterator i = precalc.begin() ; i != precalc.end() ; ++i)
+		delete i->second ;
+
+	for(std::map<int, std::map<Variable, Vector *> >::iterator i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
+	{
+		for(std::map<Variable, Vector *>::iterator j = i->second.begin() ; j != i->second.end() ; ++j)
+		{
+			delete j->second ;
+		}
+	}
 }
 
 
@@ -996,12 +1023,12 @@ Function Function::operator*(const Function &f) const
 // 	if(f.isNull())
 // 		return Function() ;
 		
-	return Function(byteCode, f.getByteCode(), new TimesOperatorToken()) ;
+	return Function(byteCode, f.getByteCode(),  RefCountedToken(new TimesOperatorToken())) ;
 }
 	
 Function Function::operator/(const Function &f) const 
 {
-	return Function(byteCode, f.getByteCode(), new DivideOperatorToken()) ;
+	return Function(byteCode, f.getByteCode(), RefCountedToken(new DivideOperatorToken())) ;
 }
 	
 Function Function::operator+(const Function &f) const
@@ -1009,65 +1036,65 @@ Function Function::operator+(const Function &f) const
 // 	if(f.isNull())
 // 		return Function(*this) ;
 		
-	return Function(byteCode, f.getByteCode(), new PlusOperatorToken()) ;
+	return Function(byteCode, f.getByteCode(), RefCountedToken(new PlusOperatorToken())) ;
 }
 	
 Function operator-(const double & a, const Function &f)
 {
-	return Function(a, f.getByteCode(), new MinusOperatorToken()) ;
+	return Function(a, f.getByteCode(),  RefCountedToken(new MinusOperatorToken())) ;
 }
 
 Function operator*(const double & a, const Function &f)
 {
-	return Function(a, f.getByteCode(), new TimesOperatorToken()) ;
+	return Function(a, f.getByteCode(),  RefCountedToken(new TimesOperatorToken())) ;
 }
 
 Function operator+(const double & a, const Function &f)
 {
-	return Function(a, f.getByteCode(), new PlusOperatorToken()) ;
+	return Function(a, f.getByteCode(),  RefCountedToken(new PlusOperatorToken())) ;
 }
 
 Function operator/(const double & a, const Function &f)
 {
-	return Function(a, f.getByteCode(), new DivideOperatorToken()) ;
+	return Function(a, f.getByteCode(),  RefCountedToken(new DivideOperatorToken())) ;
 }
 
 Function Function::operator-(const Function &f) const 
 {
 // 	if(f.isNull())
 // 		return Function(*this) ;
-	return Function(byteCode, f.getByteCode(), new MinusOperatorToken()) ;
+	return Function(byteCode, f.getByteCode(), RefCountedToken(new MinusOperatorToken())) ;
 }
 
 Function Function::operator*(const double a) const
 {
 // 	if(a == 0)
 // 		return Function() ;
-	return Function(byteCode, a, new TimesOperatorToken()) ;
+	return Function(byteCode, a, RefCountedToken(new TimesOperatorToken())) ;
 }
 
 Function Function::operator/(const double a) const 
 {
-	return Function(byteCode, a, new DivideOperatorToken()) ;
+	return Function(byteCode, a, RefCountedToken(new DivideOperatorToken())) ;
 }
 
 Function Function::operator+(const double a) const
 {
 // 	if(a == 0)
 // 		return Function(*this)  ;
-	return Function(byteCode, a, new PlusOperatorToken()) ;
+	return Function(byteCode, a, RefCountedToken(new PlusOperatorToken())) ;
 }
 
 Function Function::operator-(const double a) const 
 {
 // 	if(a == 0)
 // 		return Function(*this) ;
-	return Function(byteCode, a, new MinusOperatorToken()) ;
+	return Function(byteCode, a, RefCountedToken(new MinusOperatorToken())) ;
 }
 
 Function  Function::operator^(const int a) const
 {
-	return Function(byteCode, a, new PowerOperatorToken()) ;
+	return Function(byteCode, a, RefCountedToken(new PowerOperatorToken())) ;
 }
 
 void Function::operator*=(const Function &f) 
@@ -1077,27 +1104,27 @@ void Function::operator*=(const Function &f)
 // 		*this =  Function() ;
 // 		return ;
 // 	}
-	*this =  Function(byteCode, f.getByteCode(), new TimesOperatorToken()) ;
+	*this =  Function(byteCode, f.getByteCode(), RefCountedToken(new TimesOperatorToken())) ;
 	
 }
 
 void Function::operator/=(const Function &f)  
 {
-	*this =  Function(byteCode, f.getByteCode(), new DivideOperatorToken()) ;
+	*this =  Function(byteCode, f.getByteCode(), RefCountedToken(new DivideOperatorToken())) ;
 }
 
 void Function::operator+=(const Function &f) 
 {
 // 	if(f.isNull())
 // 		return ;
-	*this =  Function(byteCode, f.getByteCode(), new PlusOperatorToken()) ;
+	*this =  Function(byteCode, f.getByteCode(), RefCountedToken(new PlusOperatorToken())) ;
 }
 
 void Function::operator-=(const Function &f)  
 {
 // 	if(f.isNull())
 // 		return ;
-	*this =  Function(byteCode, f.getByteCode(), new MinusOperatorToken()) ;
+	*this =  Function(byteCode, f.getByteCode(), RefCountedToken(new MinusOperatorToken())) ;
 }
 
 void Function::operator*=(const double a) 
@@ -1107,12 +1134,12 @@ void Function::operator*=(const double a)
 // 		*this = Function() ;
 // 		return ;
 // 	}
-	*this =  Function(byteCode, a, new TimesOperatorToken()) ;
+	*this =  Function(byteCode, a,RefCountedToken( new TimesOperatorToken())) ;
 }
 
 void Function::operator/=(const double a)  
 {
-	*this =  Function(byteCode, a, new DivideOperatorToken()) ;
+	*this =  Function(byteCode, a, RefCountedToken(new DivideOperatorToken())) ;
 }
 
 void Function::operator+=(const double a) 
@@ -1121,7 +1148,7 @@ void Function::operator+=(const double a)
 	{
 		return ;
 	}
-	*this =  Function(byteCode, a, new PlusOperatorToken()) ;
+	*this =  Function(byteCode, a, RefCountedToken(new PlusOperatorToken())) ;
 }
 
 void Function::operator-=(const double a)  
@@ -1130,7 +1157,7 @@ void Function::operator-=(const double a)
 	{
 		return ;
 	}
-	*this =  Function(byteCode, a, new MinusOperatorToken()) ;
+	*this =  Function(byteCode, a, RefCountedToken(new MinusOperatorToken())) ;
 }
 
 const Function & Function::d(const Variable v) const
@@ -1197,7 +1224,7 @@ Function f_abs(const Function &f)
 	{
 		b[i] = f.getToken(i) ;
 	}	
-	b[f.getByteCode().size()] = new AbsToken() ;
+	b[f.getByteCode().size()] = RefCountedToken(new AbsToken()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;
@@ -1211,7 +1238,7 @@ Function f_log(const Function &f)
 	{
 		b[i] = f.getToken(i) ;
 	}	
-	b[f.getByteCode().size()] = new LogToken() ;
+	b[f.getByteCode().size()] = RefCountedToken(new LogToken()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;
@@ -1225,7 +1252,7 @@ Function f_sqrt(const Function &f)
 	{
 		b[i] = f.getToken(i) ;
 	}	
-	b[f.getByteCode().size()] = new SqrtToken() ;
+	b[f.getByteCode().size()] = RefCountedToken(new SqrtToken()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;
@@ -1243,7 +1270,7 @@ Function f_atan2(const Function &f0, const Function &f1)
 	{
 		b[i+f0.getByteCode().size()] = f1.getToken(i) ;
 	}
-	b[f0.getByteCode().size()+ f1.getByteCode().size()] = new Atan2Token() ;
+	b[f0.getByteCode().size()+ f1.getByteCode().size()] = RefCountedToken(new Atan2Token()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;
@@ -1257,7 +1284,7 @@ Function f_sin(const Function &f)
 	{
 		b[i] = f.getToken(i) ;
 	}	
-	b[f.getByteCode().size()] = new SinToken() ;
+	b[f.getByteCode().size()] = RefCountedToken(new SinToken()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;
@@ -1271,7 +1298,7 @@ Mu::Function f_sign(const Mu::Function &f)
 	{
 		b[i] = f.getToken(i) ;
 	}	
-	b[f.getByteCode().size()] = new SignFunctionToken() ;
+	b[f.getByteCode().size()] = RefCountedToken(new SignFunctionToken()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;
@@ -1285,7 +1312,7 @@ Mu::Function f_positivity(const Mu::Function &f)
 	{
 		b[i] = f.getToken(i) ;
 	}	
-	b[f.getByteCode().size()] = new PositivityFunctionToken() ;
+	b[f.getByteCode().size()] = RefCountedToken(new PositivityFunctionToken()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;
@@ -1300,7 +1327,7 @@ Mu::Function f_negativity(const Mu::Function &f)
 		b[i] = f.getToken(i) ;
 	}
 	
-	b[f.getByteCode().size()] = new NegativityFunctionToken() ;
+	b[f.getByteCode().size()] = RefCountedToken(new NegativityFunctionToken()) ;
 	Function ret ;
 	ret.getByteCode().resize(b.size()) ;
 	ret.getByteCode() = b ;

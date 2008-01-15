@@ -29,6 +29,8 @@ namespace Mu {
 		virtual ~FractureCriterion();
 		
 		virtual bool met(const ElementState &) const = 0 ;
+		
+		virtual FractureCriterion * getCopy() const;
 	
 	};
 

@@ -354,7 +354,7 @@ struct EqItems
 	}
 } ;
 
-std::vector<DelaunayTriangle *> quad(const DelaunayTriangle * t) ;
+std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > quad(const DelaunayTriangle * t) ;
 
 } ;
 

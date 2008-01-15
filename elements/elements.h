@@ -41,7 +41,7 @@ class ElementarySurface : public IntegrableEntity
 {
 protected:
 	std::valarray< Function > * shapefunc ;
-	std::vector< std::pair< size_t , Function > > enrichfunc ;
+	std::vector< Function > enrichfunc ;
 	Form * behaviour ;
 	NonLinearForm * nonlinbehaviour ;
 public:
@@ -58,18 +58,17 @@ public:
 	
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 
-	virtual const std::vector<std::pair<size_t, Function> > getDofs() const ;
+// 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const ;
 	virtual const std::vector< size_t > getDofIds() const ;
 	
 	virtual const Function & getShapeFunction(size_t i) const ;
 	virtual Function & getShapeFunction(size_t i)  ;
 	
-	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const ;
-	virtual std::pair<size_t, Function> & getEnrichmentFunction(size_t i)  ;
+	virtual const Function & getEnrichmentFunction(size_t i) const ;
+	virtual Function & getEnrichmentFunction(size_t i) ;
+	virtual const std::vector<Function>  & getEnrichmentFunctions() const ;
+	virtual std::vector<Function>  & getEnrichmentFunctions() ;
 	
-	virtual const std::vector< std::pair< size_t, Function> > & getEnrichmentFunctions() const ;
-	
-	virtual  std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  ;
 	virtual const Function getXTransform() const ;
 	virtual const Function getYTransform() const ;
 	virtual const Function getTTransform() const ;
@@ -80,7 +79,7 @@ public:
 	const double getdYTransform(Variable, const Point p) const ;
 	const double getdTTransform(Variable, const Point p) const ;
 	
-	void setEnrichment(std::pair<size_t,Function> p) ;
+	void setEnrichment(const Function & p) ;
 	virtual Point inLocalCoordinates(const Point & p) const  = 0;
 	
 	virtual Matrix getInverseJacobianMatrix(const Point & p) const = 0 ;
@@ -156,7 +155,7 @@ class ElementaryVolume : public IntegrableEntity
 {
 protected:
 	std::valarray< Function > *shapefunc ;
-	std::vector< std::pair<size_t , Function> > enrichfunc ;
+	std::vector< Function> enrichfunc ;
 	virtual GaussPointArray genGaussPoints() const = 0 ;
 	Form * behaviour ;
 	Order order ;
@@ -172,7 +171,7 @@ public:
 	
 	virtual bool isMoved() const ;
 	
-	virtual const std::vector<std::pair<size_t, Function> > getDofs() const ;
+// 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const ;
 	virtual const std::vector< size_t > getDofIds() const ;
 	
 	virtual void print()  const = 0 ;
@@ -187,10 +186,10 @@ public:
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	virtual const Function & getShapeFunction(size_t i) const ;
 	virtual Function & getShapeFunction(size_t i)  ;
-	virtual const std::pair<size_t, Function> & getEnrichmentFunction(size_t i) const  ;
-	virtual  std::pair<size_t, Function> & getEnrichmentFunction(size_t i)   ;
-	virtual const std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions() const ;
-	virtual std::vector< std::pair< size_t, Function> >  & getEnrichmentFunctions()  ;
+	virtual const Function & getEnrichmentFunction(size_t i) const  ;
+	virtual Function & getEnrichmentFunction(size_t i)  ;
+	virtual const std::vector< Function>  & getEnrichmentFunctions() const ;
+	virtual std::vector< Function>  & getEnrichmentFunctions() ;
 	virtual const Function getXTransform() const ;
 	virtual const Function getYTransform() const ;
 	virtual const Function getZTransform() const ;
@@ -204,7 +203,7 @@ public:
 	virtual const double getdZTransform(Variable v, const Point & p) const ;
 	virtual const double getdTTransform(Variable v, const Point & p) const ;
 
-	virtual void setEnrichment(std::pair<size_t, Function>  p) ;
+	virtual void setEnrichment(const Function &  p) ;
 	
 	virtual Matrix getInverseJacobianMatrix(const Point & p) const ;
 		

@@ -153,21 +153,21 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 		f.setIntegrationHint(hint) ;
 		f.setPointID(disc[0]->first->id) ;
 		f.setDofID(dofId[disc[0]->first]) ;
-		disc[0]->setEnrichment(std::pair<size_t, Function>(dofId[disc[0]->first], f)) ;
+		disc[0]->setEnrichment(f) ;
 		
 			//enriching the second point
 		f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
 		f.setIntegrationHint(hint) ;
 		f.setPointID(disc[0]->second->id) ;
 		f.setDofID(dofId[disc[0]->second]) ;
-		disc[0]->setEnrichment(std::pair<size_t, Function>(dofId[disc[0]->second], f)) ;
+		disc[0]->setEnrichment(f) ;
 		
 			//enriching the third point
 		f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
 		f.setIntegrationHint(hint) ;
 		f.setPointID(disc[0]->third->id) ;
 		f.setDofID(dofId[disc[0]->third]) ;
-		disc[0]->setEnrichment(std::pair<size_t, Function>(dofId[disc[0]->third], f)) ;
+		disc[0]->setEnrichment(f) ;
 		return ;
 	}
 
@@ -265,21 +265,21 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			f.setIntegrationHint(hint) ;
 			f.setPointID(a->id) ;
 			f.setDofID(dofId[a]) ;
-			ring[i]->setEnrichment(std::pair<size_t, Function>(dofId[a], f)) ;
+			ring[i]->setEnrichment( f) ;
 			
 			//enriching the second point
 			f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
 			f.setIntegrationHint(hint) ;
 			f.setPointID(b->id) ;
 			f.setDofID(dofId[b]) ;
-			ring[i]->setEnrichment(std::pair<size_t, Function>(dofId[b], f)) ;
+			ring[i]->setEnrichment( f) ;
 			
 			//enriching the third point
 			f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
 			f.setIntegrationHint(hint) ;
 			f.setPointID(c->id) ;
 			f.setDofID(dofId[c]) ;
-			ring[i]->setEnrichment(std::pair<size_t, Function>(dofId[c], f)) ;
+			ring[i]->setEnrichment(f) ;
 			for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 			{
 				DelaunayTriangle * t = ring[i]->neighbourhood[j] ;
@@ -296,7 +296,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 						f.setIntegrationHint(hint) ;
 						f.setPointID(t->first->id) ;
 						f.setDofID(dofId[t->first]) ;
-						t->setEnrichment(std::pair<size_t, Function>(dofId[t->first], f)) ;
+						t->setEnrichment(f) ;
 					}
 					
 					if(dofId.find(t->second) != dofId.end())
@@ -305,7 +305,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 						f.setIntegrationHint(hint) ;
 						f.setPointID(t->second->id) ;
 						f.setDofID(dofId[t->second]) ;
-						t->setEnrichment(std::pair<size_t, Function>(dofId[t->second], f)) ;
+						t->setEnrichment(f) ;
 					}
 					
 					if(dofId.find(t->third) != dofId.end())
@@ -314,7 +314,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 						f.setIntegrationHint(hint) ;
 						f.setPointID(t->third->id) ;
 						f.setDofID(dofId[t->third]) ;
-						t->setEnrichment(std::pair<size_t, Function>(dofId[t->third], f)) ;
+						t->setEnrichment(f) ;
 					}
 				}
 			}

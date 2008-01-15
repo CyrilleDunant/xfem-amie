@@ -31,6 +31,9 @@ public:
     virtual ~MohrCoulomb();
 
 	virtual bool met(const ElementState & s) const ;
+
+	virtual FractureCriterion * getCopy() const;
+
 };
 
 }

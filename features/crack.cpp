@@ -379,25 +379,25 @@ void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const Point *
 				f.setIntegrationHint ( hint ) ;
 				f.setPointID ( currentPoint[p]->id ) ;
 				f.setDofID ( usedId ) ;
-				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId, f ) ) ;
+				triangles[i]->setEnrichment (  f  ) ;
 				
 				f = shapefunc[p]* ( f1 - vm.eval ( f1, pointLocal[p] ) ) ;
 				f.setIntegrationHint ( hint ) ;
 				f.setPointID ( currentPoint[p]->id ) ;
 				f.setDofID ( usedId+1 ) ;
-				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId+1, f ) ) ;
+				triangles[i]->setEnrichment ( f  ) ;
 				
 				f = shapefunc[p]* ( f2 - vm.eval ( f2, pointLocal[p] ) ) ;
 				f.setIntegrationHint ( hint ) ;
 				f.setPointID ( currentPoint[p]->id ) ;
 				f.setDofID ( usedId+2 ) ;
-				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId+2, f ) ) ;
+				triangles[i]->setEnrichment ( f  ) ;
 				
 				f = shapefunc[p]* ( f3 - vm.eval ( f3, pointLocal[p] ) ) ;
 				f.setIntegrationHint ( hint ) ;
 				f.setPointID (currentPoint[p]->id ) ;
 				f.setDofID ( usedId+3 ) ;
-				triangles[i]->setEnrichment ( std::pair<size_t, Function> ( usedId+3, f ) ) ;
+				triangles[i]->setEnrichment ( f  ) ;
 			}
 		}
 		
@@ -1104,25 +1104,25 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointGlobal[j]->id ) ;
 					f.setDofID ( ids[0] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+					e->setEnrichment (f) ;
 
 					f = shapefunc[j]* ( f1 - vm.eval ( f1, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointGlobal[j]->id ) ;
 					f.setDofID ( ids[1] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[1], f ) ) ;
+					e->setEnrichment (f) ;
 
 					f = shapefunc[j]* ( f2 - vm.eval ( f2, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointGlobal[j]->id ) ;
 					f.setDofID ( ids[2] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[2], f ) ) ;
+					e->setEnrichment (f ) ;
 
 					f = shapefunc[j]* ( f3 - vm.eval ( f3, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointGlobal[j]->id ) ;
 					f.setDofID ( ids[3] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[3], f ) ) ;
+					e->setEnrichment (f ) ;
 
 				}
 			}
@@ -1175,25 +1175,25 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 							f.setIntegrationHint ( hint ) ;
 							f.setPointID ( pointGlobal[j]->id ) ;
 							f.setDofID ( ids[0] ) ;
-							elem->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+							elem->setEnrichment (f ) ;
 
 							f = shapefunc[j]* ( f1 - vm.eval ( f1, pointLocal[j] ) ) ;
 							f.setIntegrationHint ( hint ) ;
 							f.setPointID ( pointGlobal[j]->id ) ;
 							f.setDofID ( ids[1] ) ;
-							elem->setEnrichment ( std::pair<size_t, Function> ( ids[1], f ) ) ;
+							elem->setEnrichment (f ) ;
 
 							f = shapefunc[j]* ( f2 - vm.eval ( f2, pointLocal[j] ) ) ;
 							f.setIntegrationHint ( hint ) ;
 							f.setPointID ( pointGlobal[j]->id ) ;
 							f.setDofID ( ids[2] ) ;
-							elem->setEnrichment ( std::pair<size_t, Function> ( ids[2], f ) ) ;
+							elem->setEnrichment (f ) ;
 
 							f = shapefunc[j]* ( f3 - vm.eval ( f3, pointLocal[j] ) ) ;
 							f.setIntegrationHint ( hint ) ;
 							f.setPointID ( pointGlobal[j]->id ) ;
 							f.setDofID ( ids[3] ) ;
-							elem->setEnrichment ( std::pair<size_t, Function> ( ids[3], f ) ) ;
+							elem->setEnrichment (f ) ;
 
 						}
 					}
@@ -1244,14 +1244,14 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			f.setIntegrationHint ( hint ) ;
 			f.setPointID ( e->first->id ) ;
 			f.setDofID ( ids[0] ) ;
-			e->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+			e->setEnrichment ( f  ) ;
 
 			ids = map.getEnrichment ( e->second->id ).getID() ;
 			f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
 			f.setIntegrationHint ( hint ) ;
 			f.setPointID ( e->second->id ) ;
 			f.setDofID ( ids[0] ) ;
-			e->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+			e->setEnrichment ( f  ) ;
 
 			ids = map.getEnrichment ( e->third->id ).getID() ;
 			f = shapefunc[2]* ( s - vm.eval ( s, Point ( 1,0 ) ) ) ;
@@ -1259,7 +1259,7 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			f.setIntegrationHint ( hint ) ;
 			f.setPointID ( e->third->id ) ;
 			f.setDofID ( ids[0] ) ;
-			e->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+			e->setEnrichment ( f  ) ;
 
 			std::vector<DelaunayTriangle *> toEnrichAlso ;
 			for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
@@ -1291,7 +1291,7 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( elem->first->id ) ;
 					f.setDofID ( ids[0] ) ;
-					elem->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+					elem->setEnrichment ( f ) ;
 
 				}
 
@@ -1304,7 +1304,7 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( elem->second->id ) ;
 					f.setDofID ( ids[0] ) ;
-					elem->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+					elem->setEnrichment ( f  ) ;
 
 				}
 				if ( e->isVertexByID ( elem->third ) &&
@@ -1315,7 +1315,7 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( elem->third->id ) ;
 					f.setDofID ( ids[0] ) ;
-					elem->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+					elem->setEnrichment ( f  ) ;
 
 				}
 			}
@@ -1386,25 +1386,25 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointsGlobal[j]->id ) ;
 					f.setDofID ( ids[0] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+					e->setEnrichment ( f  ) ;
 
 					f = shapefunc[j]* ( f1 - vm.eval ( f1, pointsLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointsGlobal[j]->id ) ;
 					f.setDofID ( ids[1] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[1], f ) ) ;
+					e->setEnrichment (  f  ) ;
 
 					f = shapefunc[j]* ( f2 - vm.eval ( f2, pointsLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointsGlobal[j]->id ) ;
 					f.setDofID ( ids[2] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[2], f ) ) ;
+					e->setEnrichment (  f  ) ;
 
 					f = shapefunc[j]* ( f3 - vm.eval ( f3, pointsLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
 					f.setPointID ( pointsGlobal[j]->id ) ;
 					f.setDofID ( ids[3] ) ;
-					e->setEnrichment ( std::pair<size_t, Function> ( ids[3], f ) ) ;
+					e->setEnrichment ( f  ) ;
 
 				}
 			}
@@ -1452,25 +1452,25 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 						f.setIntegrationHint ( hint ) ;
 						f.setPointID ( pointsGlobal[j]->id ) ;
 						f.setDofID ( ids[0] ) ;
-						elem->setEnrichment ( std::pair<size_t, Function> ( ids[0], f ) ) ;
+						elem->setEnrichment (  f  ) ;
 
 						f = shapefunc[j]* ( f1 - vm.eval ( f1, pointsLocal[j] ) ) ;
 						f.setIntegrationHint ( hint ) ;
 						f.setPointID ( pointsGlobal[j]->id ) ;
 						f.setDofID ( ids[1] ) ;
-						elem->setEnrichment ( std::pair<size_t, Function> ( ids[1], f ) ) ;
+						elem->setEnrichment (  f  ) ;
 
 						f = shapefunc[j]* ( f2 - vm.eval ( f2, pointsLocal[j] ) ) ;
 						f.setIntegrationHint ( hint ) ;
 						f.setPointID ( pointsGlobal[j]->id ) ;
 						f.setDofID ( ids[2] ) ;
-						elem->setEnrichment ( std::pair<size_t, Function> ( ids[2], f ) ) ;
+						elem->setEnrichment (  f  ) ;
 
 						f = shapefunc[j]* ( f3 - vm.eval ( f3, pointsLocal[j] ) ) ;
 						f.setIntegrationHint ( hint ) ;
 						f.setPointID ( pointsGlobal[j]->id ) ;
 						f.setDofID ( ids[3] ) ;
-						elem->setEnrichment ( std::pair<size_t, Function> ( ids[3], f ) ) ;
+						elem->setEnrichment (  f  ) ;
 					}
 				}
 			}
