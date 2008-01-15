@@ -339,7 +339,7 @@ GaussPointArray TriElement::genGaussPoints() const
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
-			fin[i].second*=jacobianAtPoint(fin[i].first)*0.5;
+			fin[i].second*=jacobianAtPoint(fin[i].first);
 		}
 	}
 	else

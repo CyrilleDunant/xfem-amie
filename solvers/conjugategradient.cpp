@@ -75,7 +75,7 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	
 	//****************************************
 	
-	while(last_rho*last_rho> 1e-8*rho_0*eps*eps && nit < Maxit)
+	while(std::abs(last_rho)> rho_0*eps*eps && nit < Maxit)
 	{
 		P->precondition(r,z) ;
 		
