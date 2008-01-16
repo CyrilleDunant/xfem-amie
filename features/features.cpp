@@ -1634,9 +1634,6 @@ void FeatureTree::assemble()
 	
 	if(this->dtree != NULL)
 	{
-// 		std::cerr << " refreshing..." << std::flush ;
-// 		this->dtree->refresh(father2D, true) ;
-// 		std::cerr << " ...done" << std::endl ;
 		triangles = this->dtree->getTriangles() ;
 		
 		for(size_t j = 0 ; j < triangles.size() ; j++)

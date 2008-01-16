@@ -45,7 +45,7 @@ public:
 
 	virtual void step(double timestep, ElementState & currentState) ;
 	
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 } ;
 

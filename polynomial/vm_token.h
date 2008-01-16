@@ -46,6 +46,7 @@ typedef enum
 	TOKEN_PROJECTION,
 	TOKEN_SIGNED_DISTANCE,
 	TOKEN_POINT_DISTANCE_OPERATOR,
+	TOKEN_POINT_SQUARE_DISTANCE_OPERATOR,
 	TOKEN_X,
 	TOKEN_Y,
 	TOKEN_Z,
@@ -458,6 +459,31 @@ public:
 	virtual std::string print() const
 	{
 		return std::string("pointDistBinOp") ;
+	}
+} ;
+
+class PointSquareDistanceBinaryOperatorToken : public Token
+{
+	Point base ;
+public:
+	PointSquareDistanceBinaryOperatorToken(const Point & p ) : Token(false, std::make_pair(std::make_pair(TOKEN_POINT_SQUARE_DISTANCE_OPERATOR, 0), (double)(0)))
+	{
+		base = p ;
+	}
+	
+	virtual void eval(Context & context) const
+	{
+		
+		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		context.memory.pop_back() ;
+
+		context.memory.stack[context.memory.top_pos] = squareDist2D(p, base) ;
+
+	}
+	virtual ~PointSquareDistanceBinaryOperatorToken() { };
+	virtual std::string print() const
+	{
+		return std::string("pointSqDistBinOp") ;
 	}
 } ;
 

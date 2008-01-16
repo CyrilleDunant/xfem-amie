@@ -52,7 +52,7 @@ Form * Stiffness::getCopy() const
 	return new Stiffness(*this) ;
 }
 
-Vector Stiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+Vector Stiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

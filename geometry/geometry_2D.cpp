@@ -53,7 +53,7 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 		}
 	}
 	
-	radius = (dist(p1, circumCenter)+ dist(p0, circumCenter))/2.;
+	radius = sqrt((squareDist2D(p1, circumCenter)+ squareDist2D(p0, circumCenter))/2.);
 	sqradius = radius*radius ;
 	
 }

@@ -26,86 +26,83 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 void EnrichmentInclusion::update(DelaunayTree * dtree)
 {
 	if(cache.empty())
-	{
 		cache = dtree->conflicts(static_cast<Circle *>(this)) ;
-	}
-	else
-	{
-		std::vector<DelaunayTriangle *> temp ;
-		std::vector<DelaunayTriangle *> cleanup ;
-		for(size_t i = 0 ; i < cache.size() ; i++)
-		{
-			cache[i]->visited = true ;
-			if(cache[i]->isConflicting(static_cast<Circle *>(this)))
-				temp.push_back(cache[i]) ;
-			
-			cleanup.push_back(cache[i]) ;
-		}
-		
-		
-		std::vector<DelaunayTriangle *> toCheck ;
-		
-		for(size_t i = 0 ; i < temp.size() ; i++)
-		{
 
-			for(size_t j = 0 ; j < temp[i]->neighbour.size() ; j++)
-			{
-				if(!temp[i]->neighbour[j]->visited && temp[i]->neighbour[j]->isTriangle)
-				{
-					cleanup.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbour[j])) ;
-					toCheck.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbour[j])) ;
-				}
-			}
-		}
+
+	std::vector<DelaunayTriangle *> temp ;
+	std::vector<DelaunayTriangle *> cleanup ;
+	for(size_t i = 0 ; i < cache.size() ; i++)
+	{
+		cache[i]->visited = true ;
+		if(cache[i]->isConflicting(static_cast<Circle *>(this)))
+			temp.push_back(cache[i]) ;
 		
-		std::sort(toCheck.begin(), toCheck.end()) ;
-		std::vector<DelaunayTriangle *>::iterator uend = std::unique(toCheck.begin(), toCheck.end()) ;
-		
-		
-		while(!toCheck.empty())
-		{
-			std::vector<DelaunayTriangle *> newSet ;
-			
-			for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != uend ; ++i)
-			{
-				(*i)->visited = true ;
-				cleanup.push_back(*i) ;
-				
-				if((*i)->isConflicting(static_cast<Circle *>(this)))
-				{
-					temp.push_back(*i) ;
-				}
-			}
-			
-			for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != uend ; ++i)
-			{
-				
-				for(size_t j = 0 ; j< (*i)->neighbour.size() ; j++)
-				{
-					if((*i)->neighbour[j]->isTriangle && !(*i)->neighbour[j]->visited )
-					{
-						newSet.push_back(static_cast<DelaunayTriangle *>((*i)->neighbour[j])) ;
-					}
-				}
-			}
-			
-			toCheck.clear() ;
-			std::sort(newSet.begin(), newSet.end()) ;
-			uend = std::unique(newSet.begin(), newSet.end()) ;
-			toCheck.insert(toCheck.end(),newSet.begin(),uend ) ;
-			uend = toCheck.end() ;
-			
-		}
-		
-		for(size_t i = 0 ; i < cleanup.size() ; i++)
-			cleanup[i]->visited = false ;
-		
-		std::sort(temp.begin(), temp.end()) ;
-		std::vector<DelaunayTriangle *>::iterator en = std::unique(temp.begin(), temp.end()) ;
-		temp.erase(en, temp.end()) ;
-		
-		cache = temp ;
+		cleanup.push_back(cache[i]) ;
 	}
+	
+	
+	std::vector<DelaunayTriangle *> toCheck ;
+	
+	for(size_t i = 0 ; i < temp.size() ; i++)
+	{
+
+		for(size_t j = 0 ; j < temp[i]->neighbourhood.size() ; j++)
+		{
+			if(!temp[i]->neighbourhood[j]->visited )
+			{
+				cleanup.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbourhood[j])) ;
+				toCheck.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbourhood[j])) ;
+			}
+		}
+	}
+	
+	std::sort(toCheck.begin(), toCheck.end()) ;
+	std::vector<DelaunayTriangle *>::iterator uend = std::unique(toCheck.begin(), toCheck.end()) ;
+	
+	
+	while(!toCheck.empty())
+	{
+		std::vector<DelaunayTriangle *> newSet ;
+		
+		for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != uend ; ++i)
+		{
+			(*i)->visited = true ;
+			cleanup.push_back(*i) ;
+			
+			if((*i)->isConflicting(static_cast<Circle *>(this)))
+			{
+				temp.push_back(*i) ;
+			}
+		}
+		
+		for(std::vector<DelaunayTriangle *>::iterator i = toCheck.begin() ; i != uend ; ++i)
+		{
+			
+			for(size_t j = 0 ; j< (*i)->neighbourhood.size() ; j++)
+			{
+				if(!(*i)->neighbourhood[j]->visited )
+				{
+					newSet.push_back(static_cast<DelaunayTriangle *>((*i)->neighbourhood[j])) ;
+				}
+			}
+		}
+		
+		toCheck.clear() ;
+		std::sort(newSet.begin(), newSet.end()) ;
+		uend = std::unique(newSet.begin(), newSet.end()) ;
+		toCheck.insert(toCheck.end(),newSet.begin(),uend ) ;
+		uend = toCheck.end() ;
+		
+	}
+	
+	for(size_t i = 0 ; i < cleanup.size() ; i++)
+		cleanup[i]->visited = false ;
+	
+	std::sort(temp.begin(), temp.end()) ;
+	std::vector<DelaunayTriangle *>::iterator en = std::unique(temp.begin(), temp.end()) ;
+	temp.erase(en, temp.end()) ;
+	
+	cache = temp ;
 }
 
 void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
@@ -146,7 +143,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 		Function position(getCenter(), x, y) ;
 		
 			//finaly, we have the enrichment function
-		Function hat = this->getRadius()-f_abs(position -this->getRadius());
+		Function hat = radius-f_abs(position -radius);
 		
 			//enriching the first point
 		Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
@@ -258,7 +255,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			Function position(getCenter(), x, y) ;
 			
 			//finaly, we have the enrichment function
-			Function hat = 2.*this->getRadius()- f_abs(position -this->getRadius());
+			Function hat = 2.*radius- f_abs(position -radius);
 			
 			//enriching the first point
 			Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
@@ -285,8 +282,8 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 				DelaunayTriangle * t = ring[i]->neighbourhood[j] ;
 				if(!enrichmentTarget(t))
 				{
-					Function hat = 1- f_abs(Function(getCenter(), 
-					                                 t->getXTransform(), t->getYTransform()) -this->getRadius()) ;
+					Function hat = radius- f_abs(Function(getCenter(), 
+					                                 t->getXTransform(), t->getYTransform()) -radius) ;
 					std::vector<Point> hint;
 					hint.push_back(Point(1./3., 1./3.)) ;
 					

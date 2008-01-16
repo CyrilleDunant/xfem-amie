@@ -457,7 +457,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!stepson[i]->visited && stepson[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(stepson[i]) ;
-			limit = std::abs(dist(t->getCircumCenter(),p)-t->getRadius()) < 1e-8 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-8 ;
 		}
 
 		if( (!stepson[i]->visited && stepson[i]->inCircumSphere(*p)) || limit) 
@@ -476,7 +476,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!son[i]->visited && son[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(son[i]) ;
-			limit = std::abs(dist(t->getCircumCenter(),p)-t->getRadius()) < 1e-8 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-8 ;
 		}
 
 		if( (!son[i]->visited && son[i]->inCircumSphere(*p)) || limit)
@@ -500,7 +500,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!neighbour[i]->visited && neighbour[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(neighbour[i]) ;
-			limit = std::abs(dist(t->getCircumCenter(),p)-t->getRadius()) < 1e-8 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-8 ;
 		}
 // 		limit = true ;
 		
@@ -2308,45 +2308,23 @@ Vector DelaunayTetrahedron::getNonLinearForces() const
 	
 		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-				
-				forces[i*3]+=f[0];
-				forces[i*3+1]+=f[1];
-				forces[i*3+2]+=f[2];
-			}
 
-			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i),gp, Jinv) ;
 				
 				forces[i*3]+=f[0];
 				forces[i*3+1]+=f[1];
 				forces[i*3+2]+=f[2];
-			}
 		}
-		
+
 		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-				
-				forces[(i+getShapeFunctions().size())*3]+=f[0];
-				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-			}
-
-			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-				
-				forces[(i+getShapeFunctions().size())*3]+=f[0];
-				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-			}
+			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i),gp, Jinv) ;
+			
+			forces[(i+getShapeFunctions().size())*3]+=f[0];
+			forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+			forces[(i+getShapeFunctions().size())*3+2]+=f[2];
 		}
+
 	return forces ;
 }
 
@@ -2377,47 +2355,26 @@ Vector DelaunayTetrahedron::getForces() const
 	}
 	
 	
-		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-		{
-			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-				
-				forces[i*3]+=f[0];
-				forces[i*3+1]+=f[1];
-				forces[i*3+2]+=f[2];
-			}
+	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
+	{
 
-			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-				
-				forces[i*3]+=f[0];
-				forces[i*3+1]+=f[1];
-				forces[i*3+2]+=f[2];
-			}
-		}
+		Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,gp, Jinv) ;
 		
-		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-		{
-			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-				
-				forces[(i+getShapeFunctions().size())*3]+=f[0];
-				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-			}
+		forces[i*3]+=f[0];
+		forces[i*3+1]+=f[1];
+		forces[i*3+2]+=f[2];
+	}
 
-			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-				
-				forces[(i+getShapeFunctions().size())*3]+=f[0];
-				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-			}
-		}
+	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+	{
+		Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,gp, Jinv) ;
+		
+		forces[(i+getShapeFunctions().size())*3]+=f[0];
+		forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+		forces[(i+getShapeFunctions().size())*3+2]+=f[2];
+	}
+
+
 	return forces ;
 }
 

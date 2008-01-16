@@ -55,7 +55,7 @@ public:
 
 	virtual bool hasInducedForces() const ;
 	
-	virtual Vector getForces(const ElementState * s, const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 } ;
 
@@ -84,7 +84,7 @@ public:
 	
 	virtual bool hasInducedMatrix() const ;
 	
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 	virtual void step(double timestep, ElementState & currentState) ;
 
@@ -115,7 +115,7 @@ struct NonLinearStiffness : public NonLinearForm
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
 	
 	
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 	
 	virtual bool isActive() const ;
@@ -145,7 +145,7 @@ struct ViscoElasticity: public LinearForm
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
 	/** \todo remove usage of previousState. complement state instead*/
 	virtual void step(double timestep, ElementState & currentState);
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
+	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
 	
 	virtual bool hasInducedForces();
 	

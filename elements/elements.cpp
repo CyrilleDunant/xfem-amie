@@ -1718,44 +1718,21 @@ std::vector<std::vector<Matrix> > HexahedralElement::getElementaryMatrix() const
 			
 		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-				
-				forces[i*3]+=f[0];
-				forces[i*3+1]+=f[1];
-				forces[i*3+2]+=f[2];
-			}
 
-			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
+				Vector f = behaviour->getForces(this->getState(), getShapeFunction(i),gp, Jinv) ;
 				
 				forces[i*3]+=f[0];
 				forces[i*3+1]+=f[1];
 				forces[i*3+2]+=f[2];
-			}
 		}
-		
+
 		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 		{
-			for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-				
-				forces[(i+getShapeFunctions().size())*3]+=f[0];
-				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-			}
-
-			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-			{
-				Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-				
-				forces[(i+getShapeFunctions().size())*3]+=f[0];
-				forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-				forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-			}
+			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i),gp, Jinv) ;
+			
+			forces[(i+getShapeFunctions().size())*3]+=f[0];
+			forces[(i+getShapeFunctions().size())*3+1]+=f[1];
+			forces[(i+getShapeFunctions().size())*3+2]+=f[2];
 		}
 
 		return forces ;

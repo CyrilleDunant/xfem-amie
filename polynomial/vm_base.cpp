@@ -33,7 +33,10 @@ Vector VirtualMachine::eval(const Function &f, const GaussPointArray &gp)
 	
 	Vector ret(gp.gaussPoints.size()) ;
 	for(size_t i = 0 ; i < ret.size() ; i++)
-		ret[i] = eval(f, gp.gaussPoints[i].first) ;
+		ret[i] = eval(f, gp.gaussPoints[i].first.x, 
+						 gp.gaussPoints[i].first.y, 
+						 gp.gaussPoints[i].first.z, 
+						 gp.gaussPoints[i].first.t) ;
 
 	return ret ;
 } 
@@ -42,7 +45,10 @@ Vector VirtualMachine::oeval(const Function &f, const GaussPointArray &gp, const
 {
 	Vector ret(gp.gaussPoints.size()) ;
 	for(size_t i = 0 ; i < ret.size() ; i++)
-		ret[i] = eval(f, gp.gaussPoints[i].first+offset) ;
+		ret[i] = eval(f, gp.gaussPoints[i].first.x+offset.x, 
+						 gp.gaussPoints[i].first.y+offset.y, 
+						 gp.gaussPoints[i].first.z+offset.z,
+						 gp.gaussPoints[i].first.t+offset.t) ;
 
 	return ret ;
 }

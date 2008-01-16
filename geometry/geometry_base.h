@@ -804,6 +804,22 @@ double squareDist2D(const Mu::Point &v1, const Mu::Point &v2) ;
  */
 double squareDist2D(const Mu::Point *v1, const Mu::Point *v2) ;
 
+/**Return the square distance between two points, 2D case
+ * 
+ * @param v1 first point.
+ * @param v2 second point.
+ * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
+ */
+double squareDist3D(const Mu::Point &v1, const Mu::Point &v2) ;
+
+/**Return the square distance between two points, 2D case
+ * 
+ * @param v1 first point.
+ * @param v2 second point.
+ * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
+ */
+double squareDist3D(const Mu::Point *v1, const Mu::Point *v2) ;
+
 struct PointEqTol
 {
 	double tol ;

@@ -42,6 +42,7 @@ bool MohrCoulomb::met(const ElementState & s) const
 			}
 		}
 
+
 		double maxNeighbourhoodStress = 0 ;
 		double minNeighbourhoodStress = 0 ;
 		if(!neighbourhood.empty())

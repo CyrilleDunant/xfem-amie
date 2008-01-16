@@ -55,13 +55,13 @@ bool WeibullDistributedStiffness::fractured() const
 Form * WeibullDistributedStiffness::getCopy() const 
 {
 	double randomVar = (double)random()/(double)RAND_MAX ;
-	randomVar = 1.1284*pow(-log(randomVar),1./2.) ;
-	Matrix newTensor = param*randomVar ;
-	return new StiffnessAndFracture(newTensor, new MohrCoulomb(criterion*randomVar, -8.*criterion*randomVar)) ;
+	randomVar = 1.*pow(-log(randomVar),1./2.) ;
+	Matrix newTensor = param*.8+param*randomVar*.2 ;
+	return new StiffnessAndFracture(newTensor, new MohrCoulomb(criterion/**randomVar*/, -8.*criterion/**randomVar*/)) ;
 }
 
 
-Vector WeibullDistributedStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+Vector WeibullDistributedStiffness::getForces(const ElementState & s, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

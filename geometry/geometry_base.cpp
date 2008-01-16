@@ -519,7 +519,7 @@ bool Geometry::intersects(const Geometry *g) const
 			{
 				if(dist(getCenter(), g->getCenter()) < 1e-8)
 					return false ;
-				if( dist(getCenter(), g->getCenter()) > getRadius()+g->getRadius()) 
+				if( squareDist3D(getCenter(), g->getCenter()) > (getRadius()+g->getRadius())* (getRadius()+g->getRadius())) 
 					return false;
 				if(dist(getCenter(), g->getCenter())+std::min(getRadius(),g->getRadius()) < std::max(getRadius(),g->getRadius()))
 					return false ;
@@ -2534,6 +2534,24 @@ double squareDist2D(const Point *v1, const Point *v2)
 	double y = v2->y-v1->y ;
 
 	return x*x+y*y ;
+}
+
+double squareDist3D(const  Point &v1, const Point & v2)
+{
+	double x = v2.x-v1.x ;
+	double y = v2.y-v1.y ;
+	double z = v2.z-v1.z ;
+
+	return x*x+y*y+z*z ;
+}
+
+double squareDist3D(const Point *v1, const Point *v2)
+{
+	double x = v2->x-v1->x ;
+	double y = v2->y-v1->y ;
+	double z = v2->z-v1->z ;
+
+	return x*x+y*y+z*z ;
 }
 
 ConvexPolygon* convexHull(const std::vector<Point *> * points)

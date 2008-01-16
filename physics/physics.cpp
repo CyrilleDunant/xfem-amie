@@ -98,7 +98,7 @@ Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, con
 	return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
-Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	Vector stress = s.getStress(gp.gaussPoints) ; 
 
@@ -106,7 +106,7 @@ Vector NonLinearStiffness::getForces(const ElementState & s, const Function & p_
 	v.push_back(XI);
 	v.push_back(ETA);
 	
-	return VirtualMachine().ieval(Gradient(p_j, true)*stress, gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i, true)*stress, gp, Jinv,v) ;
 }
 
 bool NonLinearStiffness::isActive() const 
@@ -183,12 +183,12 @@ bool TwoDCohesiveForces::hasInducedMatrix() const
 }
 	
 	
-Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 
 	Vector ret(0., 2) ;
 	
-	bool enrichedDof = !(p_j.getDofID() == -1) ;
+	bool enrichedDof = !(p_i.getDofID() == -1) ;
 	
 	if(!enrichedDof)
 		return ret ;
@@ -206,7 +206,7 @@ Vector TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_
 			v.push_back(XI);
 			v.push_back(ETA);
 			
-			Matrix grad = VirtualMachine().geval(p_j, Jinv[i],v, gp.gaussPoints[i].first, true) ;
+			Matrix grad = VirtualMachine().geval(p_i, Jinv[i],v, gp.gaussPoints[i].first, true) ;
 			Vector force = (Vector)(grad*stress) ;
 				
 			double normalAmplitude = force[0]*normals[0].x + force[1]*normals[0].y;
@@ -479,13 +479,13 @@ void ViscoElasticity::step(double timestep, ElementState & currentState)
 	}
 }
 	
-Vector ViscoElasticity::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+Vector ViscoElasticity::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(ZETA);
-	return VirtualMachine().ieval(Gradient(p_j, true)*average_delta_sigma, gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i, true)*average_delta_sigma, gp, Jinv,v) ;
 }
 
 bool ViscoElasticity::hasInducedForces()

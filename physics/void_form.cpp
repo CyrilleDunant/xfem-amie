@@ -57,7 +57,7 @@ Form * VoidForm::getCopy() const
 	return new VoidForm(*this) ;
 }
 
-Vector VoidForm::getForces(const ElementState & s, const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+Vector VoidForm::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
 }

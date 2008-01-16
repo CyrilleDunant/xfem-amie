@@ -1991,7 +1991,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					if(dist(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]))
+					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-8)
 					{
 						go = false ;
 						break ;
@@ -2015,7 +2015,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  3;
+		size_t numberOfRefinements =  0;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
@@ -2054,20 +2054,22 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			}
 		}
 
-		std::valarray<Point *> nularray(0) ;
-
-		for(size_t i = 0 ; i < triangleToCleanup.size() ; i++)
+		if(numberOfRefinements)
 		{
-			triangleToCleanup[i]->setBoundingPoints(nularray) ;
-			delete triangleToCleanup[i];
-		}
+			std::valarray<Point *> nularray(0) ;
 	
-		for(size_t i = 0 ; i < tri.size() ; i++)
-		{
-			tri[i]->setBoundingPoints(nularray) ;
-			delete tri[i] ;
+			for(size_t i = 0 ; i < triangleToCleanup.size() ; i++)
+			{
+				triangleToCleanup[i]->setBoundingPoints(nularray) ;
+				delete triangleToCleanup[i];
+			}
+		
+			for(size_t i = 0 ; i < tri.size() ; i++)
+			{
+				tri[i]->setBoundingPoints(nularray) ;
+				delete tri[i] ;
+			}
 		}
-
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;
 
@@ -2117,41 +2119,22 @@ Vector DelaunayTriangle::getNonLinearForces() const
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+
+			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,gp, Jinv) ;
 			
 			forces[i*2]+=f[0];
 			forces[i*2+1]+=f[1];
-		}
-		
-		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-			
-			forces[i*2]+=f[0];
-			forces[i*2+1]+=f[1];
-		}
 	}
-	
+		
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
-		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-			
-			forces[(i+getShapeFunctions().size())*2]+=f[0];
-			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
-		}
+		Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,gp, Jinv) ;
 		
-		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-			
-			forces[(i+getShapeFunctions().size())*2]+=f[0];
-			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
-		}
+		forces[(i+getShapeFunctions().size())*2]+=f[0];
+		forces[(i+getShapeFunctions().size())*2+1]+=f[1];
 	}
+
+	
 	return forces ;
 }
 
@@ -2198,40 +2181,19 @@ Vector DelaunayTriangle::getForces() const
 
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getShapeFunction(j),gp, Jinv) ;
+
+			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i),gp, Jinv) ;
 			
 			forces[i*2]+=f[0];
 			forces[i*2+1]+=f[1];
-		}
-		
-		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-			
-			forces[i*2]+=f[0];
-			forces[i*2+1]+=f[1];
-		}
 	}
-	
+		
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
-		for(size_t j = 0 ; j < getShapeFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getShapeFunction(j),gp, Jinv) ;
-			
-			forces[(i+getShapeFunctions().size())*2]+=f[0];
-			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
-		}
+		Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,gp, Jinv) ;
 		
-		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
-		{
-			Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,getEnrichmentFunction(j),gp, Jinv) ;
-			
-			forces[(i+getShapeFunctions().size())*2]+=f[0];
-			forces[(i+getShapeFunctions().size())*2+1]+=f[1];
-		}
+		forces[(i+getShapeFunctions().size())*2]+=f[0];
+		forces[(i+getShapeFunctions().size())*2+1]+=f[1];
 	}
 	
 	return forces ;
