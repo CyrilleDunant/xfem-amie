@@ -23,6 +23,7 @@ struct GtV ;
 struct VGtM ;
 struct VGtV ;
 struct FMtMtFM ;
+struct DtGtMtG ;
 struct IntegrableEntity ;
 struct GaussPointArray ;
 struct Function ;
@@ -75,6 +76,8 @@ public:
 	Matrix ieval(const GtFMtG &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
 	Matrix ieval(const GtFMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 	Matrix ieval(const VGtM &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	Matrix ieval(const DtGtMtG & d, const IntegrableEntity *e, const std::vector<Variable> & var) ;
+	Matrix ieval(const DtGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 	double ieval(const VGtMtVG &f, const IntegrableEntity *e, const std::vector<Variable> & vars) ;
 	double ieval(const Function &f, const std::vector<std::pair<Segment *, IntegrableEntity *> > & gamma) ;
 	double ieval(const VGtMtVG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
@@ -83,7 +86,7 @@ public:
 	double ieval(const DtF & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 	double ieval(const Differential & d, const IntegrableEntity *e, const std::vector<Variable> & var) ;
 	double ieval(const DtF & d, const IntegrableEntity *e, const std::vector<Variable> & var) ;
-		
+
 	Matrix geval(const Function &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
 	Matrix geval(const Gradient &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
 	Matrix geval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	

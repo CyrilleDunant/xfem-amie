@@ -2310,6 +2310,11 @@ DtF Differential::operator *(const Function & f) const
 	return DtF(*this, f) ;
 }
 
+DtGtMtG Differential::operator *(const GtMtG & g) const
+{
+	return DtGtMtG(*this, g) ;
+}
+
 VGtM VectorGradient::operator *(const Matrix & f) const 
 { 
 	return VGtM(*this, f) ; 

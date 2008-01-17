@@ -24,7 +24,8 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
-	previousParam = param ;
+	previousDamage = 0 ;
+	damage = 0 ;
 } ;
 
 StiffnessAndFracture::~StiffnessAndFracture() 
@@ -41,7 +42,7 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 		v.push_back(ZETA);
 	
 	VirtualMachine vm ;
-	return vm.ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
+	return vm.ieval(Gradient(p_i) * (param*(1.-damage)) * Gradient(p_j, true), e,v) ;
 }
 
 Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -52,13 +53,13 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 	if(param.size() == 36)
 		v.push_back(ZETA);
 	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * (param*(1.-damage)) * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 
 void StiffnessAndFracture::stepBack()
 {
-	param = previousParam ;
+	damage = previousDamage ;
 }
 
 void StiffnessAndFracture::step(double timestep, ElementState & currentState) 
@@ -67,28 +68,16 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 
 	if(!frac && criterion->met(currentState) )
 	{
-		previousParam = param ;
+		previousDamage = damage ;
 		
-		this->param *= .9 ;
-// 		RuptureEnergy * r = dynamic_cast<RuptureEnergy *>(criterion) ;
-// 		if(r)
-// 			r->energy /= .9 ;
+		damage += .1 ;
+
 		change = true ;
-		if(this->param[0][0] < init*.8)
+		if(damage > .5)
 		{
 			frac = true ;
-// 			this->param[1][1] = init ;
-			this->param *= .0001 ;
-// 			this->param[2][2] *= .0001 ;
-// 			for(size_t i = 0 ; i < param.numCols() ; i++)
-// 			{
-// 				for(size_t j = 0 ; j < param.numRows() ; j++)
-// 				{
-// 					if(i!=j)
-// 						this->param[i][j] = 0 ;
-// 						
-// 				}
-// 			}
+			damage = .9999 ;
+			this->type = VOID_BEHAVIOUR ;
 		}
 	}
 
@@ -106,11 +95,18 @@ bool StiffnessAndFracture::fractured() const
 
 Form * StiffnessAndFracture::getCopy() const 
 {
-	return new StiffnessAndFracture(param, criterion->getCopy()) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy()) ;
+	copy->damage = damage ;
+	return copy ;
 }
 
 Vector StiffnessAndFracture::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	return Vector(0) ;
+}
+
+Matrix StiffnessAndFracture::getTensor(const Point & p) const
+{
+	return param*(1.-damage) ;
 }
 

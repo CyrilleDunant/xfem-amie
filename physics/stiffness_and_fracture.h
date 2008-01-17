@@ -21,12 +21,13 @@ namespace Mu
 
 	struct StiffnessAndFracture : public LinearForm
 	{
-		Matrix previousParam ;
+		double previousDamage ;
 		FractureCriterion * criterion ;
 		bool frac ;
 		bool change ; 
 		double sigmaRupt ;
 		double init ;
+		double damage ;
 		StiffnessAndFracture(const Matrix & rig, FractureCriterion *)  ;
 		
 		virtual ~StiffnessAndFracture();
@@ -75,6 +76,8 @@ namespace Mu
 		virtual bool changed() const ;
 		
 		virtual void stepBack() ;
+
+		virtual Matrix getTensor(const Point & p) const ;
 		
 	} ;
 	

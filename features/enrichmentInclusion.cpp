@@ -25,8 +25,11 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 
 void EnrichmentInclusion::update(DelaunayTree * dtree)
 {
-	if(cache.empty())
+// 	if(cache.empty())
+// 	{
 		cache = dtree->conflicts(static_cast<Circle *>(this)) ;
+		return ;
+// 	}
 
 
 	std::vector<DelaunayTriangle *> temp ;
@@ -50,8 +53,7 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 		{
 			if(!temp[i]->neighbourhood[j]->visited )
 			{
-				cleanup.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbourhood[j])) ;
-				toCheck.push_back(static_cast<DelaunayTriangle *>(temp[i]->neighbourhood[j])) ;
+				toCheck.push_back(temp[i]->neighbourhood[j]) ;
 			}
 		}
 	}
@@ -82,7 +84,7 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 			{
 				if(!(*i)->neighbourhood[j]->visited )
 				{
-					newSet.push_back(static_cast<DelaunayTriangle *>((*i)->neighbourhood[j])) ;
+					newSet.push_back((*i)->neighbourhood[j]) ;
 				}
 			}
 		}
@@ -107,6 +109,7 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 
 void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 {
+	counter++ ;
 	updated = false ;
 
 	update(dtree) ;
@@ -143,7 +146,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 		Function position(getCenter(), x, y) ;
 		
 			//finaly, we have the enrichment function
-		Function hat = radius-f_abs(position -radius);
+		Function hat = 1-f_abs(position -radius)/radius;
 		
 			//enriching the first point
 		Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
@@ -214,38 +217,43 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 		Point *b = ring[i]->second ;
 		Point *c = ring[i]->third ;
 
-		//if the number of intersection points is not 2, we need not do anything
-		if(triCircleIntersectionPoints.size() == 2)
+		//if there are no intersection points we need not do anything
+		if(!triCircleIntersectionPoints.empty())
 		{
-			//our baseline
-			Line frontier(triCircleIntersectionPoints[0],
-			              triCircleIntersectionPoints[1]-triCircleIntersectionPoints[0]) ;
-			Point mid = (triCircleIntersectionPoints[1]+triCircleIntersectionPoints[0])*.5 ;
-			Point q1 = (triCircleIntersectionPoints[1]+mid)*.5 ;
-			Point q4 = (mid+triCircleIntersectionPoints[0])*.5 ;
-			Point q2 = (triCircleIntersectionPoints[1]+q1)*.5 ;
-			Point q3 = (mid+q1)*.5 ;
-			Point q5 = (triCircleIntersectionPoints[0]+q4)*.5 ;
-			Point q6 = (mid+q4)*.5 ;
-			this->project(&mid) ;
-			this->project(&q1) ;
-			this->project(&q2) ;
-			this->project(&q3) ;
-			this->project(&q4) ;
-			this->project(&q5) ;
-			this->project(&q6) ;
-			
-			//for the enrichment, we want to specify points which will form the subtriangulation
 			std::vector<Point> hint ;
-			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
-			hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
-			hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q2)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q3)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q5)) ;
-			hint.push_back(ring[i]->inLocalCoordinates(q6)) ;
+			//if the number of intersection points is not 2, we need not do anything
+			if(triCircleIntersectionPoints.size() == 2)
+			{
+				//our baseline
+				Line frontier(triCircleIntersectionPoints[0],
+							triCircleIntersectionPoints[1]-triCircleIntersectionPoints[0]) ;
+				Point mid = (triCircleIntersectionPoints[1]+triCircleIntersectionPoints[0])*.5 ;
+				Point q1 = (triCircleIntersectionPoints[1]+mid)*.5 ;
+				Point q4 = (mid+triCircleIntersectionPoints[0])*.5 ;
+				Point q2 = (triCircleIntersectionPoints[1]+q1)*.5 ;
+				Point q3 = (mid+q1)*.5 ;
+				Point q5 = (triCircleIntersectionPoints[0]+q4)*.5 ;
+				Point q6 = (mid+q4)*.5 ;
+				this->project(&mid) ;
+				this->project(&q1) ;
+				this->project(&q2) ;
+				this->project(&q3) ;
+				this->project(&q4) ;
+				this->project(&q5) ;
+				this->project(&q6) ;
+				
+				//for the enrichment, we want to specify points which will form the subtriangulation
+				
+				hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
+				hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
+				hint.push_back(ring[i]->inLocalCoordinates(mid)) ;
+				hint.push_back(ring[i]->inLocalCoordinates(q1)) ;
+				hint.push_back(ring[i]->inLocalCoordinates(q4)) ;
+				hint.push_back(ring[i]->inLocalCoordinates(q2)) ;
+				hint.push_back(ring[i]->inLocalCoordinates(q3)) ;
+				hint.push_back(ring[i]->inLocalCoordinates(q5)) ;
+				hint.push_back(ring[i]->inLocalCoordinates(q6)) ;
+			}
 
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;
@@ -255,7 +263,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			Function position(getCenter(), x, y) ;
 			
 			//finaly, we have the enrichment function
-			Function hat = 2.*radius- f_abs(position -radius);
+			Function hat = 1- f_abs(position -radius)/radius;
 			
 			//enriching the first point
 			Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
@@ -282,8 +290,8 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 				DelaunayTriangle * t = ring[i]->neighbourhood[j] ;
 				if(!enrichmentTarget(t))
 				{
-					Function hat = radius- f_abs(Function(getCenter(), 
-					                                 t->getXTransform(), t->getYTransform()) -radius) ;
+					Function hat = 1- f_abs(Function(getCenter(), 
+					                                 t->getXTransform(), t->getYTransform()) -radius)/radius ;
 					std::vector<Point> hint;
 					hint.push_back(Point(1./3., 1./3.)) ;
 					

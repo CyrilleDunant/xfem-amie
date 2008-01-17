@@ -903,9 +903,107 @@ Matrix VirtualMachine::ieval(const GtMtG &f, const GaussPointArray &gp, const st
 		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
 	
 	return ret ;
+
+}
+
+Matrix VirtualMachine::ieval( const DtGtMtG & d, const IntegrableEntity *e, const std::vector<Variable> & var)
+{
+	GaussPointArray gp = e->getGaussPoints() ;
+	std::valarray<Matrix> Jinv(gp.gaussPoints.size()) ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		Jinv[i] = e->getInverseJacobianMatrix(gp.gaussPoints[i].first) ;
+	}
 	
-	
-	return ret ;
+	return ieval(d, gp, Jinv, var);
+}
+
+Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars)
+{
+	GaussPointArray gp_a(gp_);
+	gp_a.id = -1 ;
+	GaussPointArray gp_b(gp_);
+	gp_b.id = -1 ;
+	switch(d.first.v)
+	{
+		case XI :
+		{
+			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
+			{
+				gp_a.gaussPoints[i].first.x += default_derivation_delta ;
+			}
+			
+			Matrix x_a = ieval(d.second, gp_a, Jinv, vars) ;
+			
+			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
+			{
+				gp_b.gaussPoints[i].first.x -= default_derivation_delta ;
+			}
+			
+			Matrix x_b = ieval(d.second, gp_b, Jinv, vars) ;
+			
+			return (x_a-x_b)/(2.*default_derivation_delta) ;
+		}
+	case ETA :
+		{
+			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
+			{
+				gp_a.gaussPoints[i].first.y += default_derivation_delta ;
+			}
+			
+			Matrix x_a = ieval(d.second, gp_a, Jinv, vars) ;
+			
+			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
+			{
+				gp_b.gaussPoints[i].first.y -= default_derivation_delta ;
+			}
+			
+			Matrix x_b = ieval(d.second, gp_b, Jinv, vars) ;
+			
+			return (x_a-x_b)/(2.*default_derivation_delta) ;
+		}
+	case ZETA :
+		{
+			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
+			{
+				gp_a.gaussPoints[i].first.z += default_derivation_delta ;
+			}
+			
+			Matrix x_a = ieval(d.second, gp_a, Jinv, vars) ;
+			
+			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
+			{
+				gp_b.gaussPoints[i].first.z -= default_derivation_delta ;
+			}
+			
+			Matrix x_b = ieval(d.second, gp_b, Jinv, vars) ;
+			
+			return (x_a-x_b)/(2.*default_derivation_delta) ;
+		}
+	case TIME_VARIABLE :
+		{
+			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
+			{
+				gp_a.gaussPoints[i].first.t += default_derivation_delta ;
+			}
+			
+			Matrix x_a = ieval(d.second, gp_a, Jinv, vars) ;
+			
+			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
+			{
+				gp_b.gaussPoints[i].first.t -= default_derivation_delta ;
+			}
+			
+			Matrix x_b = ieval(d.second, gp_b, Jinv, vars) ;
+			
+			return (x_a-x_b)/(2.*default_derivation_delta) ;
+		}
+	default:
+		{
+			std::cerr << "operator not implemented" << std::endl ;
+			return Matrix() ;
+		}
+	}
 }
 
 double VirtualMachine::ieval(const VGtMtVG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)

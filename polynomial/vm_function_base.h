@@ -188,6 +188,7 @@ struct GtMtG ;
 struct VGtM ;
 struct VGtV ;
 struct VGtMtVG ;
+struct DtGtMtG ;
 
 
 
@@ -196,8 +197,11 @@ struct Differential
 	const Function & f ;
 	const Variable & v ;
 	Differential(const Function &u, const Variable & m) : f(u), v(m) { } ;
+	Differential(const Variable & m) : f(Function()), v(m) { } ;
 	DtF operator *(const Function & f) const ;
+	DtGtMtG operator *(const GtMtG & g) const ;
 } ;
+
 
 struct Gradient
 {
@@ -207,7 +211,6 @@ struct Gradient
 	GtM operator *(const Matrix & f) const ;
 	GtV operator *(const Vector & f) const ;
 } ;
-
 
 struct VectorGradient
 {
@@ -267,6 +270,13 @@ struct GtMtG
 	
 	GtMtG(const Gradient & g, const Matrix & f,const Gradient & g_) : first(g), second(f), third(g_) { };
 	
+} ;
+
+struct DtGtMtG
+{
+	const Differential & first ;
+	const GtMtG & second ;
+	DtGtMtG(const Differential & d, const GtMtG & g) : first(d), second(g) {  };
 } ;
 
 struct VGtMtVG

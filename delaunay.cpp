@@ -35,16 +35,8 @@ DelaunayTreeItem::DelaunayTreeItem( DelaunayTreeItem * father,  const Point * c)
 	
 bool DelaunayTriangle::isConflicting(const Geometry * g) const
 {
-	if(g->in(*first))
-		return true ;
-	if(g->in(*second))
-		return true ;
-	if(g->in(*third))
-		return true ;
-	if(inCircumCircle(g->getCenter()))
-		return true ;
-	
-	return false ;
+
+	return g->in(*first) || g->in(*second) || g->in(*third) || inCircumCircle(g->getCenter()) ;
 	
 }
 
@@ -308,7 +300,14 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 	
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
-		if( !stepson[i]->visited && stepson[i]->isConflicting(g))
+		bool limit = false ;
+		if(!stepson[i]->visited && stepson[i]->isTriangle)
+		{
+			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(stepson[i]) ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
+		}
+		
+		if( !stepson[i]->visited && stepson[i]->isConflicting(g) || limit)
 		{
 			std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp ;
 			stepson[i]->conflicts(temp, g) ;
@@ -319,7 +318,15 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 	
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
-		if( !son[i]->visited && son[i]->isConflicting(g))
+		bool limit = false ;
+
+		if(!son[i]->visited && son[i]->isTriangle)
+		{
+			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(son[i]) ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
+		}
+
+		if( !son[i]->visited && son[i]->isConflicting(g) || limit)
 		{
 			std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp ;
 			son[i]->conflicts(temp,g) ;
@@ -335,8 +342,17 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
-		if( !neighbour[i]->visited && neighbour[i]->isConflicting(g))
+		bool limit = false ;
+
+		if(!neighbour[i]->visited && neighbour[i]->isTriangle)
 		{
+			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(neighbour[i]) ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
+		}
+
+		if( !neighbour[i]->visited && neighbour[i]->isConflicting(g) || limit)
+		{
+			
 			std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp  ;
 			neighbour[i]->conflicts(temp, g) ;
 			ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
@@ -500,7 +516,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 		if(!stepson[i]->visited && stepson[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(stepson[i]) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
 		if( (!stepson[i]->visited && stepson[i]->inCircumCircle(*p)) || limit) 
@@ -518,7 +534,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 		if(!son[i]->visited && son[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(son[i]) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()) < POINT_TOLERANCE*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
 		if( (!son[i]->visited && son[i]->inCircumCircle(*p)) || limit)
@@ -542,7 +558,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTreeItem *>, std:
 		if(!neighbour[i]->visited && neighbour[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(neighbour[i]) ;
-			limit = std::abs(dist(t->getCircumCenter(),*p)-t->getRadius()) < 2.*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
 		if( (!neighbour[i]->visited && neighbour[i]->inCircumCircle(*p)) || limit)
@@ -2015,7 +2031,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  0;
+		size_t numberOfRefinements =  1;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
@@ -2098,23 +2114,23 @@ Vector DelaunayTriangle::getNonLinearForces() const
 	
 	GaussPointArray gp  = getSubTriangulatedGaussPoints() ;
 	
-// 	if(moved)
-// 	{
+	if(moved)
+	{
 		Jinv.resize(gp.gaussPoints.size()) ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
 			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
-// 	}
-// 	else
-// 	{
-// 		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
-// 		Jinv.resize(gp.size()) ;
-// 		for(size_t i = 0 ; i < gp.size() ;  i++)
-// 		{
-// 			Jinv[i] = J ;
-// 		}
-// 	}
+	}
+	else
+	{
+		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
+		{
+			Jinv[i] = J ;
+		}
+	}
 	
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
@@ -2146,38 +2162,28 @@ Vector DelaunayTriangle::getForces() const
 	std::valarray<Matrix> Jinv ;
 	GaussPointArray gp = getSubTriangulatedGaussPoints() ;
 	
-// 	if(moved)
-// 	{
+	if(moved)
+	{
 		Jinv.resize(gp.gaussPoints.size()) ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
 			Jinv[i] = getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
-// 	}
-// 	else
-// 	{
-// 		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
-// 
-// 		Jinv.resize(gp.size()) ;
-// 		for(size_t i = 0 ; i < gp.size() ;  i++)
-// 		{
-// 			Jinv[i] = J ;
-// 		}
-// 	}
+	}
+	else
+	{
+		Matrix J = this->getInverseJacobianMatrix(Point( 1./3.,1./3.) ) ;
+
+		Jinv.resize(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
+		{
+			Jinv[i] = J ;
+		}
+	}
 // 	
 	size_t numdof = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int offset = numdof-1 ;
 	
-// 	for(size_t i = 0 ; i < dofs.size() ; i++)
-// 	{
-// 		for(size_t j = 0 ; j < dofs.size() ; j++)
-// 		{
-// 			Vector f = behaviour->getForces( this->getState(), dofs[i].second, dofs[j].second,gp, Jinv) ;
-// 			forces[i*numdof] += f[0] ;
-// 			if(offset)
-// 				forces[i*numdof+offset] += f[offset] ;
-// 		}
-// 	}
 
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{

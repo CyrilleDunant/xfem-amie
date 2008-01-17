@@ -157,14 +157,14 @@ void setBC()
 void step()
 {
 	
-	int nsteps = 12;
+	int nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		setBC() ;
 		int tries = 0 ;
 		bool go_on = true ;
-		while(go_on && tries < 20)
+		while(go_on && tries < 40)
 		{
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
@@ -457,7 +457,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
-		double delta_r = sqrt(aggregateArea*0.015/((double)zones.size()*M_PI))/36. ;
+		double delta_r = sqrt(aggregateArea*0.12/((double)zones.size()*M_PI))/36. ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
@@ -1568,7 +1568,7 @@ int main(int argc, char *argv[])
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
 
 	int nAgg = 0 ;
-	inclusions=placement(.04, .04, inclusions, &nAgg, 128);
+	inclusions=placement(.04, .04, inclusions, &nAgg, 1);
 
 	double placed_area = 0 ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
@@ -1577,8 +1577,8 @@ int main(int argc, char *argv[])
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		Vector a(3) ;
-		a[0] = .01 ;
-		a[1] = .01 ;
+		a[0] = .02 ;
+		a[1] = .02 ;
 // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg, a)) ;
 		F.addFeature(&sample,inclusions[i]) ;
 // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
@@ -1591,9 +1591,9 @@ int main(int argc, char *argv[])
 	std::cout << "placed area = " <<  placed_area << std::endl ;
 	Circle cercle(.5, 0,0) ;
 
-	zones = generateExpansiveZones(5, inclusions, F) ;
+	zones = generateExpansiveZones(1, inclusions, F) ;
 
-	F.sample(800) ;
+	F.sample(1200) ;
 
 	F.setOrder(LINEAR) ;
 
