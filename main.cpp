@@ -8,6 +8,7 @@
 #include "samplingcriterion.h"
 #include "features/features.h"
 #include "physics/physics.h"
+#include "physics/kelvinvoight.h"
 #include "physics/mohrcoulomb.h"
 #include "physics/ruptureenergy.h"
 #include "features/pore.h"
@@ -135,17 +136,17 @@ void setBC()
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
-			{
-				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
+// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
+// 			{
+// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// 			}
 			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
 			{
-				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint( -.005,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+			if (triangles[k]->getBoundingPoint(c).x > 0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
 			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint( .005,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 
 		}
@@ -1571,7 +1572,7 @@ int main(int argc, char *argv[])
 	inclusions=placement(.04, .04, inclusions, &nAgg, 1);
 
 	double placed_area = 0 ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste)) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1580,7 +1581,7 @@ int main(int argc, char *argv[])
 		a[0] = .02 ;
 		a[1] = .02 ;
 // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg, a)) ;
-		F.addFeature(&sample,inclusions[i]) ;
+// 		F.addFeature(&sample,inclusions[i]) ;
 // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1591,11 +1592,11 @@ int main(int argc, char *argv[])
 	std::cout << "placed area = " <<  placed_area << std::endl ;
 	Circle cercle(.5, 0,0) ;
 
-	zones = generateExpansiveZones(1, inclusions, F) ;
+// 	zones = generateExpansiveZones(1, inclusions, F) ;
 
-	F.sample(1200) ;
+	F.sample(32) ;
 
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC_TIME_LINEAR) ;
 
 	F.generateElements() ;
 	
