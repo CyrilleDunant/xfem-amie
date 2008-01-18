@@ -1251,7 +1251,7 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 					}
 				}
 				else if(!tree[i]->getBehaviour()->spaceDependent())
-					return tree[i]->getBehaviour() ;
+					return tree[i]->getBehaviour()->getCopy() ;
 				else
 				{
 					Form * b = tree[i]->getBehaviour()->getCopy() ;
@@ -1259,7 +1259,7 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 					return b ;
 				}
 				
-				return tree[i]->getBehaviour() ;
+				return tree[i]->getBehaviour()->getCopy() ;
 			}
 		}
 	}

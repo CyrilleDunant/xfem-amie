@@ -45,12 +45,20 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 	bool allout = true ;
 	Vector x = VirtualMachine().eval(xtransform,gp) ;
 	Vector y = VirtualMachine().eval(ytransform,gp) ;
+	std::valarray<bool> inIn(false, x.size()) ;
+	int inCount = 0;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		if(inGeometry->in(Point(x[i],y[i])))
+		{
 			allout = false ;
+			inIn[i] = true ;
+			inCount++ ;
+		}
 		else
+		{
 			allin = false ;
+		}
 			
 	}
 	
@@ -60,27 +68,37 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 		return outBehaviour->apply(p_i, p_j, e) ;
 	else
 	{
-		std::valarray<Matrix> Jinv(gp.gaussPoints.size()) ;
-		for(size_t i = 0 ;i < gp.gaussPoints.size() ; i++)
+		 std::valarray<Matrix> Jinv(gp.gaussPoints.size()) ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
 		{
-			Jinv[i] = e->getInverseJacobianMatrix(gp.gaussPoints[i].first) ;
+			Jinv[i] = e->getInverseJacobianMatrix( gp.gaussPoints[i].first ) ;
 		}
-		GaussPointArray gpIn(gp) ;
-		gpIn.id = -1 ;
-		GaussPointArray gpOut(gp) ;
-		gpOut.id = -1 ;
+
+		std::valarray<std::pair<Point, double> > inArray(inCount) ;
+		std::valarray<Matrix> inMatrixArray(inCount) ;
+		std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
+		std::valarray<Matrix> outMatrixArray(gp.gaussPoints.size()-inCount) ;
+		GaussPointArray gpIn(inArray, -1) ;
+		GaussPointArray gpOut(outArray, -1) ;
+		
+		int outIterator = 0;
+		int inIterator = 0 ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 		{
-			if(inGeometry->in(Point(x[i], y[i])))
-				gpOut.gaussPoints[i].second = 0 ;
+			if(inIn[i])
+			{
+				inMatrixArray[inIterator] = Jinv[i] ;
+				gpIn.gaussPoints[inIterator++] = gp.gaussPoints[i] ;
+			}
 			else
-				gpIn.gaussPoints[i].second = 0 ;
+			{
+				outMatrixArray[outIterator] = Jinv[i] ;
+				gpOut.gaussPoints[outIterator++] = gp.gaussPoints[i] ;
+			}
 		}
-		
-		return inBehaviour->apply(p_i, p_j, gpIn, Jinv) + outBehaviour->apply(p_i, p_j, gpOut, Jinv) ;
-		
 	}
-	
+	//shut up the compiler
+	return Matrix() ;
 }
 
 Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -138,7 +156,7 @@ Matrix BimaterialInterface::apply(const Function & p_i, const Function & p_j, co
 		}
 	}
 	
-	return inBehaviour->apply(p_i, p_j, gpIn, Jinv) + outBehaviour->apply(p_i, p_j, gpOut, Jinv) ;
+	return inBehaviour->apply(p_i, p_j, gpIn, inMatrixArray) + outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray) ;
 		
 
 }
@@ -178,11 +196,11 @@ Vector BimaterialInterface::getForces(const ElementState & s, const Function & p
 			
 	}
 
-	if(allin)
+	if(allin && inBehaviour->hasInducedForces())
 	{
 		return inBehaviour->getForces(s, p_i, gp, Jinv) ;
 	}
-	else if(allout)
+	else if(allout && outBehaviour->hasInducedForces())
 	{
 		return outBehaviour->getForces(s, p_i, gp, Jinv) ;
 	}
@@ -213,13 +231,14 @@ Vector BimaterialInterface::getForces(const ElementState & s, const Function & p
 	Vector inForces = inBehaviour->getForces(s, p_i, gpIn, inMatrixArray) ;
 	Vector outForces = outBehaviour->getForces(s, p_i, gpOut, outMatrixArray) ;
 	
-	if(inForces.size() == outForces.size())
+	if(inBehaviour->hasInducedForces() && outBehaviour->hasInducedForces())
 		return inForces+outForces ;
-	else if(inForces.size() > outForces.size())
+	else if(inBehaviour->hasInducedForces())
 		return inForces ;
+	else if(outBehaviour->hasInducedForces())
+		return outForces ;
 	
-	return outForces ;
-		
+	return Vector(double(0), getNumberOfDegreesOfFreedom()) ;
 }
 
 void BimaterialInterface::step(double timestep, ElementState & currentState)

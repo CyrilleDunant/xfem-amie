@@ -26,8 +26,10 @@ Matrix KelvinVoight::apply(const Function & p_i, const Function & p_j, const Int
 	v.push_back(ETA);
 	if(param.size() > 9)
 		v.push_back(ZETA);
+	v.push_back(TIME_VARIABLE);
 	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) 
+    +      VirtualMachine().ieval(Differential(TIME_VARIABLE)*(Gradient(p_i) * eta * Gradient(p_j, true)), e,v);
 }
 
 Matrix KelvinVoight::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -38,9 +40,8 @@ Matrix KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gau
 	if(param.size() > 9)
 		v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
-
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) 
-	+      VirtualMachine().ieval(Differential(TIME_VARIABLE)*(Gradient(p_i) * eta * Gradient(p_j, true)), gp, Jinv,v);
+	+      VirtualMachine().ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v);
 }
 
 bool KelvinVoight::fractured() const

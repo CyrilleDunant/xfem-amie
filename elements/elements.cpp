@@ -346,9 +346,9 @@ GaussPointArray TriElement::genGaussPoints() const
 	{
 		double j = 0 ;
 		if(getBoundingPoints().size() != shapefunc->size())
-			j = TriElement(LINEAR).jacobianAtPoint(Point(.33333333, .333333333)) ;
+			j = TriElement(LINEAR).jacobianAtPoint(Point(1./3., 1./3.)) ;
 		else
-			j = jacobianAtPoint(Point(.33333333, .333333333)) ;
+			j = jacobianAtPoint(Point(1./3., 1./3.)) ;
 		
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
@@ -1150,6 +1150,46 @@ std::vector<std::vector<Matrix> > TetrahedralElement::getElementaryMatrix() cons
 std::vector<std::vector<Matrix> > TetrahedralElement::getNonLinearElementaryMatrix() const 
 {
 	return std::vector<std::vector<Matrix> >() ;
+}
+
+const Function TriElement::getXTransform() const
+{
+	return XTransform( this->getBoundingPoints(), TriElement(order).getShapeFunctions()) ;
+}
+
+const Function TriElement::getYTransform() const
+{
+	return YTransform( this->getBoundingPoints(), TriElement(order).getShapeFunctions()) ;
+}
+
+const Function TetrahedralElement::getXTransform() const
+{
+	return XTransform( this->getBoundingPoints(), TetrahedralElement(order).getShapeFunctions()) ;
+}
+
+const Function TetrahedralElement::getYTransform() const
+{
+	return YTransform( this->getBoundingPoints(), TetrahedralElement(order).getShapeFunctions()) ;
+}
+
+const Function TetrahedralElement::getZTransform() const
+{
+	return ZTransform( this->getBoundingPoints(), TetrahedralElement(order).getShapeFunctions()) ;
+}
+
+const Function HexahedralElement::getXTransform() const
+{
+	return XTransform( this->getBoundingPoints(), HexahedralElement(order).getShapeFunctions()) ;
+}
+
+const Function HexahedralElement::getYTransform() const
+{
+	return YTransform( this->getBoundingPoints(), HexahedralElement(order).getShapeFunctions()) ;
+}
+
+const Function HexahedralElement::getZTransform() const
+{
+	return ZTransform( this->getBoundingPoints(), HexahedralElement(order).getShapeFunctions()) ;
 }
 
 Vector TetrahedralElement::getForces() const 

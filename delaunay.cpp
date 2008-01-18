@@ -170,6 +170,7 @@ void Star::updateNeighbourhood()
 void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TriElement * father)
 {
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
+
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
 		
@@ -209,11 +210,11 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 					
 					if(!foundPoint)
 					{
-						for(size_t j = 0 ; j < tri[i]->neighbour.size() ; j++)
+						for(size_t j = 0 ; j < tri[i]->neighbourhood.size() ; j++)
 						{
-							if(tri[i]->neighbour[j]->isTriangle && tri[i]->neighbour[j]->visited)
+							if(tri[i]->neighbourhood[j]->visited)
 							{
-								DelaunayTriangle * n = static_cast<DelaunayTriangle *>(tri[i]->neighbour[j]) ;
+								DelaunayTriangle * n = tri[i]->neighbourhood[j] ;
 								for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
 								{
 									if(n->getBoundingPoint(k) == proto)
@@ -954,7 +955,7 @@ void DelaunayTriangle::print() const
 {
 	for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
 	{
-		std::cerr << "(" << getBoundingPoint(i).x << ";" << getBoundingPoint(i).y <<  ";" << getBoundingPoint(i).t <<") " ;
+		std::cerr << "(" << getBoundingPoint(i).id <<  ";" << getBoundingPoint(i).t <<") " ;
 	}
 	std::cerr <<  ":: "<< isAlive() << std::endl ;
 }
@@ -2007,7 +2008,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-8)
+					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-12)
 					{
 						go = false ;
 						break ;
@@ -2019,7 +2020,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		}
 
 		std::sort(to_add.begin()+3, to_add.end()) ;
-		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-4)) ;
+		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-12)) ;
 		to_add.erase(e, to_add.end()) ;
 		
 		DelaunayTree dt(&to_add[0], &to_add[1], &to_add[2]) ;
@@ -2051,10 +2052,11 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		for(size_t i = 0 ; i < tri.size() ; i++)
 			tri[i]->refresh(&father) ;
 		
+		double J = this->jacobianAtPoint(Point(1./3., 1./3.)) ;
+		
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
 
-// 				double jmin =  (*tri)[i]->jacobianAtPoint(Point(1./3.,1./3.)) ;
 			Function x = tri[i]->getXTransform() ;
 			Function y = tri[i]->getYTransform() ;
 			tri[i]->setOrder(QUADRATIC) ;
@@ -2063,9 +2065,13 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			
 			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 			{
-// 					gp_temp[j].second /= jmin ;
+
 				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
-				gp_temp.gaussPoints[j].second *= this->jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
+				if(moved)
+					gp_temp.gaussPoints[j].second *= this->jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
+				else
+					gp_temp.gaussPoints[j].second *= J; 
+				
 				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 			}
 		}
@@ -2132,22 +2138,24 @@ Vector DelaunayTriangle::getNonLinearForces() const
 		}
 	}
 	
+	size_t numdof = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
 
 			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i) ,gp, Jinv) ;
 			
-			forces[i*2]+=f[0];
-			forces[i*2+1]+=f[1];
+		for(size_t j = 0 ; j < numdof ; j++)
+			forces[i*numdof+j]+=f[j];
+
 	}
 		
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
 		Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,gp, Jinv) ;
 		
-		forces[(i+getShapeFunctions().size())*2]+=f[0];
-		forces[(i+getShapeFunctions().size())*2+1]+=f[1];
+		for(size_t j = 0 ; j < numdof ; j++)
+			forces[(i+getShapeFunctions().size())*numdof+j]+=f[j];
 	}
 
 	
@@ -2182,24 +2190,24 @@ Vector DelaunayTriangle::getForces() const
 	}
 // 	
 	size_t numdof = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	int offset = numdof-1 ;
 	
 
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
 
-			Vector f = behaviour->getForces(this->getState(), getShapeFunction(i),gp, Jinv) ;
+		Vector f = behaviour->getForces(this->getState(), getShapeFunction(i),gp, Jinv) ;
 			
-			forces[i*2]+=f[0];
-			forces[i*2+1]+=f[1];
+		for(size_t j = 0 ; j < numdof ; j++)
+			forces[i*numdof+j]+=f[j];
+
 	}
 		
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
 		Vector f = behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,gp, Jinv) ;
 		
-		forces[(i+getShapeFunctions().size())*2]+=f[0];
-		forces[(i+getShapeFunctions().size())*2+1]+=f[1];
+		for(size_t j = 0 ; j < numdof ; j++)
+			forces[(i+getShapeFunctions().size())*numdof+j]+=f[j];
 	}
 	
 	return forces ;

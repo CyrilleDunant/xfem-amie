@@ -147,6 +147,8 @@ public:
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const ;
 	
 	virtual Vector getNonLinearForces() const ;
+	virtual const Function getXTransform() const ;
+	virtual const Function getYTransform() const ;
 	
 } ;
 
@@ -253,6 +255,10 @@ public:
 	virtual void print() const;
 	virtual Point inLocalCoordinates(const Point & p) const ;
 
+	virtual const Function getXTransform() const ;
+	virtual const Function getYTransform() const ;
+	virtual const Function getZTransform() const ;
+
 } ;
 
 class HexahedralElement : public Hexahedron,  public ElementaryVolume
@@ -278,6 +284,11 @@ public:
 	virtual Vector getNonLinearForces() const;
 	virtual std::vector<std::vector<Mu::Matrix> > getNonLinearElementaryMatrix() const;
 	bool visited ;
+
+	virtual const Function getXTransform() const ;
+	virtual const Function getYTransform() const ;
+	virtual const Function getZTransform() const ;
+
 } ;
 
 } ;

@@ -365,6 +365,7 @@ Function::Function() :  derivative(0), e_diff(false)
 	this->ptID =-1 ;
 	this->byteCode.resize(1) ;
 	this->byteCode[0] = RefCountedToken(new NullToken()) ;
+	compiled = false ;
 }
 
 Function::Function(const char *f) :  derivative(0),iPoint(0), e_diff(false)
@@ -386,6 +387,7 @@ Function::Function(const char *f) :  derivative(0),iPoint(0), e_diff(false)
 	
 	byteCode.resize(tempb.size()) ;
 	std::copy(tempb.begin(), tempb.end(), &byteCode[0]) ;
+	compiled = false ;
 }
 
 Function::Function(const std::string &f) : derivative(0), iPoint(0), e_diff(false)
@@ -407,6 +409,7 @@ Function::Function(const std::string &f) : derivative(0), iPoint(0), e_diff(fals
 	
 	byteCode.resize(tempb.size()) ;
 	std::copy(tempb.begin(), tempb.end(), &byteCode[0]) ;
+	compiled = false ;
 }
 
 Function::Function(const std::valarray<Matrix> & coeffs, bool diff) :iPoint(0) , e_diff(diff)
@@ -520,6 +523,7 @@ Function::Function(const std::valarray<Matrix> & coeffs, bool diff) :iPoint(0) ,
 		}
 		derivative[ZETA] = Function(dz, false) ;
 	}
+	compiled = false ;
 }
 
 
@@ -692,12 +696,14 @@ Function::Function(const std::valarray<std::valarray<Matrix> > & coeffs, bool di
 		}
 		derivative[TIME_VARIABLE] = Function(dt, false) ;
 	}
+	compiled = false ;
 }
 
 Function::Function(const Matrix & coeffs, bool diff) :iPoint(0) , e_diff(diff)
 {
 	this->dofID =-1 ;
 	this->ptID =-1 ;
+	compiled = false ;
 	
 	std::vector<RefCountedToken> tempb ;
 	
@@ -793,6 +799,7 @@ Function::Function(const std::valarray<double> & coeffs, bool diff) :iPoint(0) ,
 {
 	this->dofID =-1 ;
 	this->ptID =-1 ;
+	compiled = false ;
 	
 	std::vector<RefCountedToken> tempb ;
 	
@@ -844,6 +851,7 @@ Function::Function(const std::valarray<double> & coeffs, bool diff) :iPoint(0) ,
 
 Function::Function(const Segment s, const Function & x, const Function & y, PositionTokenType t) :  derivative(2)  , byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
 {
+	compiled = false ;
 	switch(t)
 	{
 	case POSITION_TOKEN :
@@ -1456,28 +1464,28 @@ void Function::compile()
 				{
 					if(bytecode[subexpressionEnd-2]->type.first.first == TOKEN_X)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-18)
 							newByteCode.push_back(new AddXAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new XToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_Y)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-18)
 							newByteCode.push_back(new AddYAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new YToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_Z)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-18)
 							newByteCode.push_back(new AddZAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ZToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_T)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-18)
 							newByteCode.push_back(new AddTAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new TToken()) ;
@@ -1491,28 +1499,28 @@ void Function::compile()
 				{
 					if(bytecode[subexpressionEnd-3]->type.first.first == TOKEN_X)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-18)
 							newByteCode.push_back(new AddXAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new XToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_Y)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-18)
 							newByteCode.push_back(new AddYAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new YToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_Z)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-18)
 							newByteCode.push_back(new AddZAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new ZToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_T)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-18)
 							newByteCode.push_back(new AddTAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new TToken()) ;
@@ -1556,28 +1564,28 @@ void Function::compile()
 				{
 					if(bytecode[subexpressionEnd-3]->type.first.first == TOKEN_X)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18)
 							newByteCode.push_back(new SubstractXWithConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new XToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_Y)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18)
 							newByteCode.push_back(new SubstractYWithConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new YToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_Z)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18)
 							newByteCode.push_back(new SubstractZWithConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new ZToken()) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_T)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18)
 							newByteCode.push_back(new SubstractTWithConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
 						else
 							newByteCode.push_back(new TToken()) ;
@@ -1598,28 +1606,28 @@ void Function::compile()
 				{
 					if(bytecode[subexpressionEnd-2]->type.first.first == TOKEN_X)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new MultiplyXAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_Y)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new MultiplyYAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_Z)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new MultiplyZAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_T)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new MultiplyTAndConstToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
@@ -1633,36 +1641,36 @@ void Function::compile()
 				{
 					if(bytecode[subexpressionEnd-3]->type.first.first == TOKEN_X)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-18)
 							newByteCode.push_back(new MultiplyXAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
-						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-16)
+						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-18)
 							newByteCode.push_back(new XToken()) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_Y)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-18)
 							newByteCode.push_back(new MultiplyYAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
-						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-16)
+						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-18)
 							newByteCode.push_back(new YToken()) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_Z)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-18)
 							newByteCode.push_back(new MultiplyZAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
-						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-16)
+						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-18)
 							newByteCode.push_back(new ZToken()) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-3]->type.first.first == TOKEN_T)
 					{
-						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-16 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-2]->type.second) >1e-18 && std::abs(bytecode[subexpressionEnd-2]->type.second-1) >1e-18)
 							newByteCode.push_back(new MultiplyTAndConstToken(bytecode[subexpressionEnd-2]->type.second)) ;
-						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-16)
+						else if(std::abs(bytecode[subexpressionEnd-2]->type.second-1) <= 1e-18)
 							newByteCode.push_back(new TToken()) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
@@ -1683,28 +1691,28 @@ void Function::compile()
 				{
 					if(bytecode[subexpressionEnd-2]->type.first.first == TOKEN_X)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new DivideConstWithXToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_Y)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new DivideConstWithYToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_Z)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new DivideConstWithZToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
 					}
 					else if (bytecode[subexpressionEnd-2]->type.first.first == TOKEN_T)
 					{
-						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-16)
+						if(std::abs(bytecode[subexpressionEnd-3]->type.second) >1e-18)
 							newByteCode.push_back(new DivideConstWithTToken(bytecode[subexpressionEnd-3]->type.second)) ;
 						else
 							newByteCode.push_back(new ConstantToken(0)) ;
@@ -1938,7 +1946,7 @@ void Function::compile()
 					{
 					case TOKEN_READ_VARIABLE :
 						{
-							if(std::abs(bytecode[subexpressionEnd-3]->type.second)> 1e-16)
+							if(std::abs(bytecode[subexpressionEnd-3]->type.second)> 1e-18)
 								newByteCode.push_back(new AddReadAndConstToken(bytecode[subexpressionEnd-2]->type.first.second, bytecode[subexpressionEnd-3]->type.second)) ;
 							else
 								newByteCode.push_back(new ReadHeapVariableToken(bytecode[subexpressionEnd-2]->type.first.second)) ;
@@ -1963,7 +1971,7 @@ void Function::compile()
 					{
 						case TOKEN_CONSTANT :
 						{
-							if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-16)
+							if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-18)
 								newByteCode.push_back(new AddReadAndConstToken(bytecode[subexpressionEnd-3]->type.first.second, bytecode[subexpressionEnd-2]->type.second)) ;
 							else
 								newByteCode.push_back(new ReadHeapVariableToken(bytecode[subexpressionEnd-3]->type.first.second)) ;
@@ -2038,10 +2046,10 @@ void Function::compile()
 					{
 					case TOKEN_READ_VARIABLE :
 						{
-							if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-16 
-							   && std::abs(bytecode[subexpressionEnd-3]->type.second - 1 ) > 1e-16)
+							if(std::abs(bytecode[subexpressionEnd-3]->type.second) > 1e-18 
+							   && std::abs(bytecode[subexpressionEnd-3]->type.second - 1 ) > 1e-18)
 								newByteCode.push_back(new MultiplyReadAndConstToken(bytecode[subexpressionEnd-2]->type.first.second, bytecode[subexpressionEnd-3]->type.second)) ;
-							else if (std::abs(bytecode[subexpressionEnd-3]->type.second - 1 ) <= 1e-16)
+							else if (std::abs(bytecode[subexpressionEnd-3]->type.second - 1 ) <= 1e-18)
 								newByteCode.push_back(new ReadHeapVariableToken(bytecode[subexpressionEnd-2]->type.first.second)) ;
 							else
 								newByteCode.push_back(new ConstantToken(0)) ;
@@ -2147,9 +2155,9 @@ void Function::compile()
 					{
 						case TOKEN_CONSTANT :
 						{
-							if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-16 && std::abs(bytecode[subexpressionEnd-2]->type.second -1 ) > 1e-16)
+							if(std::abs(bytecode[subexpressionEnd-2]->type.second) > 1e-18 && std::abs(bytecode[subexpressionEnd-2]->type.second -1 ) > 1e-18)
 								newByteCode.push_back(new MultiplyReadAndConstToken(bytecode[subexpressionEnd-3]->type.first.second, bytecode[subexpressionEnd-2]->type.second)) ;
-							else if (std::abs(bytecode[subexpressionEnd-2]->type.second -1 ) <= 1e-16 )
+							else if (std::abs(bytecode[subexpressionEnd-2]->type.second -1 ) <= 1e-18 )
 								newByteCode.push_back(new ReadHeapVariableToken(bytecode[subexpressionEnd-3]->type.first.second)) ;
 							else
 								newByteCode.push_back(new ConstantToken(0)) ;
@@ -2313,6 +2321,16 @@ DtF Differential::operator *(const Function & f) const
 DtGtMtG Differential::operator *(const GtMtG & g) const
 {
 	return DtGtMtG(*this, g) ;
+}
+
+GDtMtGD GDtM::operator*(const Mu::GradientDot & f) const
+{
+	return GDtMtGD(*this, f) ;
+}
+
+GDtM GradientDot::operator *(const Matrix & f) const
+{
+	return GDtM(*this, f) ;
 }
 
 VGtM VectorGradient::operator *(const Matrix & f) const 

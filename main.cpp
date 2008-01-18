@@ -8,7 +8,6 @@
 #include "samplingcriterion.h"
 #include "features/features.h"
 #include "physics/physics.h"
-#include "physics/kelvinvoight.h"
 #include "physics/mohrcoulomb.h"
 #include "physics/ruptureenergy.h"
 #include "features/pore.h"
@@ -89,6 +88,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.00 ;
+double percent = 1. ;
 
 bool firstRun = true ;
 
@@ -136,17 +136,17 @@ void setBC()
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
+			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
+			{
+				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
+			}
 			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
 			{
-				featureTree->getAssembly()->setPoint( -.005,0, triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).x > 0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
 			{
-				featureTree->getAssembly()->setPoint( .005,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 
 		}
@@ -165,7 +165,7 @@ void step()
 		setBC() ;
 		int tries = 0 ;
 		bool go_on = true ;
-		while(go_on && tries < 40)
+		while(go_on && tries < 60)
 		{
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
@@ -458,7 +458,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
-		double delta_r = sqrt(aggregateArea*0.12/((double)zones.size()*M_PI))/36. ;
+		double delta_r = sqrt(aggregateArea*0.01/((double)zones.size()*M_PI))/12. ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
@@ -493,7 +493,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 	double E_csh = 31000000000 ;
 	double nu_csh = .28 ;
 	double nu_incompressible = .5 ;
-	double percent = .001 ;
+	
 	double E = percent*E_csh ;
 	double nu = nu_csh*percent+nu_incompressible*(1.-percent) ;
 	Matrix m0(3,3) ;
@@ -528,8 +528,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = 4 ;
-				a[1] = 4 ;
+				a[0] = 1 ;
+				a[1] = 1 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
@@ -1572,7 +1572,7 @@ int main(int argc, char *argv[])
 	inclusions=placement(.04, .04, inclusions, &nAgg, 1);
 
 	double placed_area = 0 ;
-	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1581,7 +1581,7 @@ int main(int argc, char *argv[])
 		a[0] = .02 ;
 		a[1] = .02 ;
 // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg, a)) ;
-// 		F.addFeature(&sample,inclusions[i]) ;
+		F.addFeature(&sample,inclusions[i]) ;
 // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1592,11 +1592,11 @@ int main(int argc, char *argv[])
 	std::cout << "placed area = " <<  placed_area << std::endl ;
 	Circle cercle(.5, 0,0) ;
 
-// 	zones = generateExpansiveZones(1, inclusions, F) ;
+	zones = generateExpansiveZones(1, inclusions, F) ;
 
-	F.sample(32) ;
+	F.sample(400) ;
 
-	F.setOrder(QUADRATIC_TIME_LINEAR) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
 	

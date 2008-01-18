@@ -71,8 +71,9 @@ protected:
 // 	void vectorizeTwo(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
 // 	void factorize(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
 	
-	
+	bool compiled ;
 public:
+	
 	Function();
 	Function(const Function &) ;
 	Function(const char *f) ;
@@ -189,7 +190,8 @@ struct VGtM ;
 struct VGtV ;
 struct VGtMtVG ;
 struct DtGtMtG ;
-
+struct GDtM ;
+struct GDtMtGD ;
 
 
 struct Differential
@@ -212,6 +214,14 @@ struct Gradient
 	GtV operator *(const Vector & f) const ;
 } ;
 
+struct GradientDot
+{
+	const Function & f ;
+	const bool transpose ;
+	GradientDot(const Function &u, bool t = false) : f(u), transpose(t) { };
+	GDtM operator *(const Matrix & f) const ;
+} ;
+
 struct VectorGradient
 {
 	const Function & f ;
@@ -228,6 +238,23 @@ struct GtM
 	
 	GtM(const Gradient & g, const Matrix & f) : first(g), second(f) { };
 	GtMtG operator*(const Mu::Gradient & f) const ;
+} ;
+
+struct GDtM
+{
+	const GradientDot & first ;
+	const Matrix & second ;
+	GDtM(const GradientDot & g, const Matrix & f) : first(g), second(f) { };
+	GDtMtGD operator*(const Mu::GradientDot & f) const ;
+} ;
+
+struct GDtMtGD
+{
+	const GradientDot & first ;
+	const Matrix & second ;
+	const GradientDot & third ;
+	GDtMtGD(const GDtM & g, const GradientDot & p) : first(g.first), second(g.second), third(p) { };
+
 } ;
 
 struct DtF
