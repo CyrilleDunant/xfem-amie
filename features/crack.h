@@ -226,10 +226,7 @@ public:
 	
 	virtual std::vector<Geometry *> getRefinementZones( size_t level) const ;
 	
-	virtual void print() const
-	{
-		std::cout << "I am a crack" << std::endl ;
-	}
+	virtual void print() const ;
 	
 	virtual bool isVoid( const Point &) const {return false ;}
 	

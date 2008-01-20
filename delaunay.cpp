@@ -2008,7 +2008,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-12)
+					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-16)
 					{
 						go = false ;
 						break ;
@@ -2020,7 +2020,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		}
 
 		std::sort(to_add.begin()+3, to_add.end()) ;
-		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-12)) ;
+		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-8)) ;
 		to_add.erase(e, to_add.end()) ;
 		
 		DelaunayTree dt(&to_add[0], &to_add[1], &to_add[2]) ;
@@ -2032,7 +2032,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  1;
+		size_t numberOfRefinements =  3;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
@@ -2059,7 +2059,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 
 			Function x = tri[i]->getXTransform() ;
 			Function y = tri[i]->getYTransform() ;
-			tri[i]->setOrder(QUADRATIC) ;
+// 			tri[i]->setOrder(QUADRATIC) ;
 
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			

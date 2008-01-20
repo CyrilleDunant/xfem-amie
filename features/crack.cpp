@@ -900,7 +900,7 @@ Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double r
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
-	stepLength = .175*infRad ;
+	stepLength = .25*infRad ;
 	criticalJ = 0.0 ;
 }
 
@@ -916,7 +916,7 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 	this->boundary = new Circle ( infRad, getHead() ) ;
 	this->boundary2 = new Circle ( infRad, getTail() ) ;
 	changed = true ;
-	stepLength = .175*infRad ;
+	stepLength = .25*infRad ;
 	criticalJ = 0.0 ;
 }
 
@@ -929,7 +929,7 @@ void Crack::setInfluenceRadius ( double r )
 	if ( r > maxr )
 		r = maxr ;
 	this->infRad = r ;
-	stepLength = .175*infRad ;
+	stepLength = .25*infRad ;
 	this->boundary = new Circle ( r, getHead() ) ;
 	this->boundary2 = new Circle ( r, getTail() ) ;
 }
@@ -1802,8 +1802,8 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	std::cout << "at head : " << J[0] << ", " << J[1] << std::endl ;
 	std::cout << "J angle is " << atan2 ( J[1], J[0] ) << std::endl ;
 
-	Circle atHead ( infRad*.1, this->boundary->getCenter() ) ;
-	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &atHead ) ;
+// 	Circle atHead ( infRad, this->boundary->getCenter() ) ;
+	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( this->boundary ) ;
 	std::vector<DelaunayTriangle *> tris ;
 	Point direction ;
 	double count = 0 ;
@@ -1911,8 +1911,8 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	std::cout << "J angle is " << atan2 ( J[1], J[0] ) << std::endl ;
 
 
-	Circle atTail ( infRad*.1, this->boundary2->getCenter() ) ;
-	disk = dtree->conflicts ( &atTail ) ;
+// 	Circle atTail ( infRad, this->boundary2->getCenter() ) ;
+	disk = dtree->conflicts ( boundary2) ;
 	tris.clear() ;
 	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
 	{
@@ -1931,8 +1931,6 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 				tailElem = disk[i] ;
 			}
 		}
-	
-		std::cout << tris.size() << std::endl ;
 	
 		count = 0 ;
 		acount = 0 ;
@@ -1991,7 +1989,6 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	
 		if ( tailElem )
 		{
-			std::cout << "pouf" << std::endl ;
 			changed = true ;
 
 			if ( tailElem->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -2023,6 +2020,16 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 				setInfluenceRadius ( infRad ) ;
 			}
 		}
+	}
+	
+	print() ;
+}
+
+void Crack::print() const
+{
+	for(size_t i= 0 ; i < getBoundingPoints().size() ;i++)
+	{
+		getBoundingPoint(i).print();
 	}
 }
 

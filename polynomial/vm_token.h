@@ -362,12 +362,12 @@ public:
 			if(s[i].intersects(test, w))
 			{
 				intersections++ ;
-				if(s[i].on(test))
-				{
-					intersections -= 2 ;
-// 					context.memory.stack[context.memory.top_pos] = 0 ;
-// 					return ;
-				}
+// 				if(s[i].on(test))
+// 				{
+// 					intersections -= 2 ;
+// // 					context.memory.stack[context.memory.top_pos] = 0 ;
+// // 					return ;
+// 				}
 			}
 			
 		}
