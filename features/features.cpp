@@ -1515,14 +1515,18 @@ void FeatureTree::assemble()
 			en_counter = this->dtree->global_counter ;
 			
 			triangles = this->dtree->getTriangles() ;
-			
+			std::cerr << " setting behaviours..." << std::flush ;
 			for(size_t i = 0 ; i < triangles.size() ;i++)
 			{
+				if (i%100 == 0)
+					std::cerr << "\r setting behaviours... triangle " << i << "/" << triangles.size() << std::flush ;
+				
 				if(!triangles[i]->getBehaviour())
 					triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 				triangles[i]->getEnrichmentFunctions().clear() ;
 // 				triangles[i]->getState().initialize() ;
 			}
+			std::cerr << " ...done" << std::endl ;
 			
 			initializeElements() ;
 			

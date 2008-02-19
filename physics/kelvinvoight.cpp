@@ -40,6 +40,7 @@ Matrix KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gau
 	if(param.size() > 9)
 		v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
+
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) 
 	+      VirtualMachine().ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v);
 }

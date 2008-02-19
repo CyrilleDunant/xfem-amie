@@ -1707,7 +1707,11 @@ double VirtualMachine::ieval(const VGtMtVG &f, const GaussPointArray &gp, const 
 
 Vector VirtualMachine::ieval(const GtV &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
 {
-
+	if(!Jinv.size())
+	{
+		int size = var.size() - (var[var.size()-1] == TIME_VARIABLE) ;
+		return Vector(double(0), size) ;
+	}
 	Matrix B = geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose);
 	
 	Vector temp(double(0),f.second.size()) ;

@@ -278,22 +278,7 @@ public:
 	
 	Geometry() ;
 	Geometry(size_t numPoints) ;
-	virtual ~Geometry() 
-	{
-
-		for(size_t i = 0 ; i < this->inPoints.size() ; i++)
-		{
-			delete inPoints[i] ;
-			inPoints[i] = NULL ;
-		}
-		
-// 		for(size_t i = 0 ; i < boundingPoints->size() ; i++)
-// 		{
-// 			delete (*boundingPoints)[i] ;
-// 			(*boundingPoints)[i] = NULL ;
-// 		}
-// 		delete this->boundingPoints ;
-	}
+	virtual ~Geometry() ;
 	
 	virtual const PointArray & getBoundingPoints() const = 0;
 	virtual PointArray & getBoundingPoints() = 0;

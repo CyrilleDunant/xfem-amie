@@ -221,6 +221,15 @@ Point Point::operator/(const double p) const
 	return ret ; 
 }
 
+Geometry::~Geometry() 
+{
+
+	for(size_t i = 0 ; i < this->inPoints.size() ; i++)
+	{
+		delete inPoints[i] ;
+		inPoints[i] = NULL ;
+	}
+}
 
 bool Point::operator <(const Point &p) const 
 {

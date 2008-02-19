@@ -25,9 +25,18 @@ RadialStiffnessGradient::RadialStiffnessGradient(double E_int, double nu_int, do
 	paramAlt[1][0] = E_ext/(1-nu_ext*nu_ext)*nu_ext ; paramAlt[1][1] = E_ext/(1-nu_ext*nu_ext) ;        paramAlt[1][2] = 0 ; 
 	paramAlt[2][0] = 0 ; paramAlt[2][1] = 0 ;         paramAlt[2][2] = E_ext/(1-nu_ext*nu_ext)*(1.-nu_ext)/2. ; 
 	this->space_d = true ;
+
+	criterion = NULL ;
+	frac = false ;
+	change  = false ;
+	previousDamage = 0 ;
+	damage = 0 ;
 }
 
-RadialStiffnessGradient::~RadialStiffnessGradient() { } ;
+RadialStiffnessGradient::~RadialStiffnessGradient() 
+{
+	delete criterion ;
+}
 
 void RadialStiffnessGradient::transform(const Function & x, const Function & y)
 {
@@ -55,9 +64,48 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), e,v) ;
 }
 
+void RadialStiffnessGradient::stepBack()
+{
+	damage = previousDamage ;
+}
+
+void RadialStiffnessGradient::setFractureCriterion(FractureCriterion * crit)
+{
+	criterion = crit ;
+}
+
+void RadialStiffnessGradient::step(double timestep, ElementState & currentState) 
+{
+	if(criterion == NULL)
+		return ;
+
+	change = false ;
+
+	if(!frac && criterion->met(currentState) )
+	{
+		previousDamage = damage ;
+		
+		damage += .1 ;
+
+		change = true ;
+		if(damage > .5)
+		{
+			frac = true ;
+			damage = .9999 ;
+// 			this->type = VOID_BEHAVIOUR ;
+		}
+	}
+
+}
+
+bool RadialStiffnessGradient::changed() const
+{
+	return change ;
+} 
+
 bool RadialStiffnessGradient::fractured() const
 {
-	return false ;
+	return frac;
 }
 
 Matrix RadialStiffnessGradient::getTensor(const Point & p) const

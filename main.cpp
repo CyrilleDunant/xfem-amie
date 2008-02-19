@@ -7,6 +7,7 @@
 #include "main.h"
 #include "samplingcriterion.h"
 #include "features/features.h"
+#include "physics/radialstiffnessgradient.h"
 #include "physics/physics.h"
 #include "physics/mohrcoulomb.h"
 #include "physics/ruptureenergy.h"
@@ -88,7 +89,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.00 ;
-double percent = 1. ;
+double percent = .1 ;
 
 bool firstRun = true ;
 
@@ -126,8 +127,6 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-
-
 void setBC()
 {
 	triangles = featureTree->getTriangles() ;
@@ -136,15 +135,19 @@ void setBC()
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
+			if (triangles[k]->getBoundingPoint(c).x < -.0199)
 			{
-				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( XI,0/*-0.0000001*/ ,triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
+			if (triangles[k]->getBoundingPoint(c).x > 0.0199 )
+			{
+				featureTree->getAssembly()->setPointAlong( XI,0/*0.0000001*/ ,triangles[k]->getBoundingPoint(c).id) ;
+			}
+			if(triangles[k]->getBoundingPoint(c).x < -.0199 || triangles[k]->getBoundingPoint(c).x > 0.0199)
 			{
 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+			if (triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > .0199)
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
@@ -155,10 +158,37 @@ void setBC()
 
 }
 
+// void setBC()
+// {
+// 	triangles = featureTree->getTriangles() ;
+// 	
+// 	for(size_t k = 0 ; k < triangles.size() ;k++)
+// 	{
+// 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
+// 		{
+// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
+// 			{
+// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// 			}
+// 			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
+// 			{
+// 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+// 			}
+// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+// 			{
+// 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// 			}
+// 
+// 		}
+// 
+// 	}
+// 
+// }
+
 void step()
 {
 	
-	int nsteps = 1;
+	size_t nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -338,7 +368,7 @@ void step()
 				}
 				
 				double ar = triangles[k]->area() ;
-				for(size_t l = 0 ; l < npoints ;l++)
+				for(int l = 0 ; l < npoints ;l++)
 				{
 					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
 					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
@@ -350,7 +380,7 @@ void step()
 				
 				if(triangles[k]->getEnrichmentFunctions().size() == 0)
 				{
-					for(size_t l = 0 ; l < npoints ;l++)
+					for(int l = 0 ; l < npoints ;l++)
 					{
 						avg_e_xx_nogel += (epsilon11[k*npoints+l]/npoints)*ar;
 						avg_e_yy_nogel += (epsilon22[k*npoints+l]/npoints)*ar;
@@ -458,7 +488,7 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
-		double delta_r = sqrt(aggregateArea*0.01/((double)zones.size()*M_PI))/12. ;
+		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/12. ;
 		double reactedArea = 0 ;
 			
 		for(size_t z = 0 ; z < zones.size() ; z++)
@@ -512,7 +542,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			
 			Point pos((2.*random()/RAND_MAX-1.),(2.*random()/RAND_MAX-1.)) ;
 			pos /= pos.norm() ;
-			pos *= (2.*random()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.0003) ;
+			pos *= (2.*random()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.00003) ;
 			Point center = incs[i]->getCenter()+pos ; 
 			
 			bool alone  = true ;
@@ -1351,34 +1381,34 @@ void Display(void)
 					glVertex2f( double(triangles[j]->third->x + vx) ,
 					            double(triangles[j]->third->y + vy) );
 				}
-				else
-				{
-					double vx = x[triangles[j]->first->id*2]; 
-					double vy = x[triangles[j]->first->id*2+1]; 
-					Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(0)) ;
-					
-					HSVtoRGB( &c1, &c2, &c3, 0,0, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min)) ;
-					glColor3f(c1, c2, c3) ;
-					
-					glVertex2f( double(triangles[j]->first->x + vx) ,
-					            double(triangles[j]->first->y + vy) );
-					
-					vx = x[triangles[j]->second->id*2];
-					vy = x[triangles[j]->second->id*2+1]; 
-					
-					glVertex2f( double(triangles[j]->second->x + vx) ,
-					            double(triangles[j]->second->y + vy) );
-					
-					
-					vx = x[triangles[j]->third->id*2]; 
-					vy = x[triangles[j]->third->id*2+1]; 
-					
-					
-					glVertex2f( double(triangles[j]->third->x + vx) ,
-					            double(triangles[j]->third->y + vy) );
-					
-
-				}
+// 				else
+// 				{
+// 					double vx = x[triangles[j]->first->id*2]; 
+// 					double vy = x[triangles[j]->first->id*2+1]; 
+// 					Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(0)) ;
+// 					
+// 					HSVtoRGB( &c1, &c2, &c3, 0,0, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min)) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					
+// 					glVertex2f( double(triangles[j]->first->x + vx) ,
+// 					            double(triangles[j]->first->y + vy) );
+// 					
+// 					vx = x[triangles[j]->second->id*2];
+// 					vy = x[triangles[j]->second->id*2+1]; 
+// 					
+// 					glVertex2f( double(triangles[j]->second->x + vx) ,
+// 					            double(triangles[j]->second->y + vy) );
+// 					
+// 					
+// 					vx = x[triangles[j]->third->id*2]; 
+// 					vy = x[triangles[j]->third->id*2+1]; 
+// 					
+// 					
+// 					glVertex2f( double(triangles[j]->third->x + vx) ,
+// 					            double(triangles[j]->third->y + vy) );
+// 					
+// 
+// 				}
 			}
 		}
 		glEnd();
@@ -1565,23 +1595,47 @@ int main(int argc, char *argv[])
 
 
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(0.0012, 1, BOLOME_D)(.002, .5);
+	inclusions = GranuloBolome(5.39146e-07, 1, BOLOME_D)(.002, .0001);
 // 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
 
 	int nAgg = 0 ;
-	inclusions=placement(.04, .04, inclusions, &nAgg, 1);
-
+	inclusions=placement(.04, .04, inclusions, &nAgg, 8000);
+	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+// 	for(size_t i = 0 ; i < inclusions.size() ; i++)
+// 	{
+// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 		Vector a(3) ;
+// 		a[0] = .02 ;
+// 		a[1] = .02 ;
+// // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg, a)) ;
+// 		F.addFeature(&sample,inclusions[i]) ;
+// // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
+// 		placed_area += inclusions[i]->area() ;
+// 	}
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
+		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg,new MohrCoulomb(40000*4, -8*40000*4))) ;
+// 		inclusions[i]->setRadius(.01) ;
+// 		inclusions[i]->getCenter().x = 0 ;
+// 		inclusions[i]->getCenter().y = 0 ;
+		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+1.5e-05, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
+		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+1.5e-05, inclusions[i]->getCenter()) ;
+		behaviour->setFractureCriterion(new MohrCoulomb(40000, -8*40000)) ;
+		itz->setBehaviour(behaviour) ;
+	
+// 		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+.002, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
+// 		itz->setBehaviour(new StiffnessAndFracture(m0_paste*.625, new MohrCoulomb(40000*.625, -8*40000*.625))) ;
 		Vector a(3) ;
 		a[0] = .02 ;
 		a[1] = .02 ;
 // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg, a)) ;
-		F.addFeature(&sample,inclusions[i]) ;
+		F.addFeature(&sample,itz) ;
+		F.addFeature(itz,inclusions[i]) ;
 // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1590,14 +1644,14 @@ int main(int argc, char *argv[])
 	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
 	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
 	std::cout << "placed area = " <<  placed_area << std::endl ;
-	Circle cercle(.5, 0,0) ;
+// 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
+// 	zones = generateExpansiveZones(1, inclusions, F) ;
 
-	zones = generateExpansiveZones(1, inclusions, F) ;
-
-	F.sample(400) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 
+// 	F.refine(1) ;
 	F.generateElements() ;
 	
 	for(size_t j = 0 ; j < crack.size() ; j++)

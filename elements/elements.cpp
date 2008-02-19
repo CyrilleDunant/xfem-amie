@@ -149,8 +149,37 @@ GaussPointArray TriElement::genGaussPoints() const
 			break ;
 		}
 	case QUADRATIC:
+	{
+			ordre = 7 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(0.101286507323456, 0.101286507323456), 0.062969590272413) ;
+			fin[1] = std::pair<Point, double>(Point(0.797426985353087, 0.101286507323456), 0.062969590272413) ;
+			fin[2] = std::pair<Point, double>(Point(0.101286507323456, 0.797426985353087), 0.062969590272413) ;
+			fin[3] = std::pair<Point, double>(Point(0.470142064105115, 0.059715871789770), 0.066197076394253) ;
+			fin[4] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115), 0.066197076394253) ;
+			fin[5] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115), 0.066197076394253) ;
+			fin[6] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333), 0.1125) ;
+			break;
+			ordre = 4 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
+			fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
+			fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
+			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
+			break ;
+	}
 	case CUBIC:
 		{
+			ordre = 7 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(0.101286507323456, 0.101286507323456), 0.062969590272413) ;
+			fin[1] = std::pair<Point, double>(Point(0.797426985353087, 0.101286507323456), 0.062969590272413) ;
+			fin[2] = std::pair<Point, double>(Point(0.101286507323456, 0.797426985353087), 0.062969590272413) ;
+			fin[3] = std::pair<Point, double>(Point(0.470142064105115, 0.059715871789770), 0.066197076394253) ;
+			fin[4] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115), 0.066197076394253) ;
+			fin[5] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115), 0.066197076394253) ;
+			fin[6] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333), 0.1125) ;
+			break;
 			ordre = 4 ;
 			fin.resize(ordre);
 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
@@ -160,6 +189,18 @@ GaussPointArray TriElement::genGaussPoints() const
 			break ;
 		}
 	case QUADRIC:
+	{
+			ordre = 7 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(0.101286507323456, 0.101286507323456), 0.062969590272413) ;
+			fin[1] = std::pair<Point, double>(Point(0.797426985353087, 0.101286507323456), 0.062969590272413) ;
+			fin[2] = std::pair<Point, double>(Point(0.101286507323456, 0.797426985353087), 0.062969590272413) ;
+			fin[3] = std::pair<Point, double>(Point(0.470142064105115, 0.059715871789770), 0.066197076394253) ;
+			fin[4] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115), 0.066197076394253) ;
+			fin[5] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115), 0.066197076394253) ;
+			fin[6] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333), 0.1125) ;
+			break;
+	}
 	case QUINTIC:
 		{
 			ordre = 7 ;

@@ -14,6 +14,7 @@
 #define __RADIAL_STIFF_GRADIENT
 
 #include "physics_base.h"
+#include "fracturecriterion.h"
 
 namespace Mu
 {
@@ -27,6 +28,14 @@ public:
 	double r_int ;
 	double dr ;
 	
+	double previousDamage ;
+	FractureCriterion * criterion ;
+	bool frac ;
+	bool change ; 
+	double sigmaRupt ;
+	double init ;
+	double damage ;
+
 	Point centre ;
 
 	RadialStiffnessGradient(double E_int, double nu_int, double rint, double E_ext, double nu_ext, double rext, Point c) ;
@@ -55,6 +64,19 @@ public:
 	
 	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	
+	/** Check for fracture
+	* @param timestep elapsed time
+	* @param currentState state of the element
+	* 
+	* if the Von Mises yield criterion is true, se fractured state to true
+	*/
+	virtual void step(double timestep, ElementState & currentState) ;
+
+	virtual bool changed() const ;
+
+	virtual void stepBack() ;
+
+	void setFractureCriterion(FractureCriterion * crit) ;
 } ;
 
 } ;

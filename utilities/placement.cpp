@@ -10,7 +10,7 @@
 using namespace Mu ;
 
 
-double chiffreAleatoire(double longueur) // fonction qui retourne une valeur aléatoire
+double Mu::chiffreAleatoire(double longueur) // fonction qui retourne une valeur aléatoire
 {
 	double chiffreAleatoire = longueur*(double)rand()/(double)RAND_MAX;
 	return chiffreAleatoire;
@@ -31,145 +31,161 @@ bool bord(double r, double longueurX, double longueurY, double x, double y)//fon
 	return false;
 }
 
-
-// double espaceMinGranulat(int j,std::vector <Inclusion *> inclusions)
-// {
-// 	double rayonGranulat;
-// 	if(inclusions[j]->getRadius()>4.0)//espace entre 2 granulats
-// 	{	
-// 		rayonGranulat = inclusions[j]->getRadius()+0.1;
-// 	}
-// 	else rayonGranulat =inclusions[j]->getRadius()+0.1*inclusions[j]->getRadius();
-// 	return rayonGranulat;
-// }
-
-
-
-// Point calculNewCoordGranulat(Point coordNewGranulat, Point coordOldGranulat,std::vector <Inclusion *> inclusions,int i, int j)
-// {
-// 	
-// 	Point vecteur2Point = coordNewGranulat-coordOldGranulat;
-// 	Point vecteur2PointUnitaire = vecteur2Point/vecteur2Point.norm();
-// 	double distance = inclusions[i]->getRadius()+inclusions[j]->getRadius()+0;// 0.05=1 rayon du plus petit granulat
-// 	coordNewGranulat = coordOldGranulat + (vecteur2PointUnitaire*distance);
-// 	j=-1;
-// 	return coordNewGranulat;
-// }
-
-
-std::vector<Inclusion *> placement(double longueurX, double longueurY, std::vector<Inclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax)
+std::vector<Inclusion *> Mu::placement(double longueurX, double longueurY, std::vector<Inclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax)
 {
-	bool suite =true;
-	bool sortie;
 	int tries = 0 ;
-	double x;
-	double y;
 
 	double volume = 0 ;
 	std::vector<Inclusion *> ret ;
 	
-	for(int i=0; i<inclusions.size()&& tries< triesMax; i++) //boucle qui calcul les coordonn�s al�toires des granulats  
-		{
-			
-			*nombreGranulatsPlaces = i;
-			sortie = false; 
-			tries++ ;
-			x=chiffreAleatoire(longueurX)-longueurX/2.;
-
-			y=chiffreAleatoire(longueurY)-longueurY/2.;
-
-			Point coordNewGranulat(x,y);
-
-			if (bord(inclusions[i]->getRadius(), longueurX, longueurY, coordNewGranulat.x,coordNewGranulat.y))
-			{
-				i--;
-				//std::cout<<"granulat trop pres du bord"<<std::endl;
-// 				tries++ ;
-				suite=false;
-			}
-
-			if (suite)//probl�e du superposage des granulats
-			{
-				
-				Circle c1(inclusions[i]->getRadius(),coordNewGranulat.x,coordNewGranulat.y);
-				for(int j=0; j<i; ++j)
-				{
-// 					tries++ ;
-					Point coordOldGranulat(inclusions[j]->getCenter().x,inclusions[j]->getCenter().y);	
-					double rayonGranulat;
-
-					//rayonGranulat=espaceMinGranulat(j,inclusions);
-					if(inclusions[j]->getRadius()>4.0)//espace entre 2 granulats
-					{	
-						rayonGranulat = inclusions[j]->getRadius()+0.0004;
-					}
-					else rayonGranulat =inclusions[j]->getRadius()+0.001*inclusions[j]->getRadius();
-
-					Circle c2(rayonGranulat,coordOldGranulat.x,coordOldGranulat.y);
-					bool inter = c1.intersects(&c2);
-					
-					/** placement normal */
-					if(inter) //s'il y a intersection et que les nouvelles coordonnées ont déjà été calculées une fois
-					{
-						i--;
-						tries++ ;
-						sortie =false;
-						suite=false;
-						break;
-					}					
-
-
-
-					/** placement amélioré */
-// 					if(inter==true && sortie ==true) //s'il y a intersection et que les nouvelles coordonnées ont déjà été calculées une fois			
-// 					
-// 					{
-// 						i--;
-// // 						tries++ ;
-// 						sortie =false;
-// 						suite=false;
-// 						break;
-// 					}
-// 					
-// 					if(inter==true) //s'il y a intersection, on cherche un nouveau centre qui est r1+r2+0.1 
-// 					{
-// 						//coordNewGranulat= calculNewCoordGranulat(coordNewGranulat, coordOldGranulat, inclusions,i,j);
-// 						tries++;
-// 						Point vecteur2Point = coordNewGranulat-coordOldGranulat;
-// 						Point vecteur2PointUnitaire = vecteur2Point/vecteur2Point.norm();
-// 						double distance = inclusions[i]->getRadius()+inclusions[j]->getRadius()+0;// 0.05=1 rayon du plus petit granulat
-// 						coordNewGranulat = coordOldGranulat + (vecteur2PointUnitaire*distance);
-// 						j=-1;
-// 						
-// 						if (bord(inclusions[i]->getRadius(), longueurX, longueurY, coordNewGranulat.x,coordNewGranulat.y))
-// 						{
-// 							//std::cout<<"granulat trop pres du bord"<<std::endl;
-// 							i--;
-// // 							tries++ ;
-// 							suite=false;
-// 							break;
-// 						}
-// 						sortie = true;	
-// 					}
-				}
-			}
-		if(suite)
-			{	
-				//std::cout<<coordNewGranulat.x<<std::endl;
-				tries = 0 ;
-				inclusions[i]->getCenter().x = coordNewGranulat.x;
-				inclusions[i]->getCenter().y = coordNewGranulat.y;	
-				ret.push_back(inclusions[i]) ;
-				volume += inclusions[i]->area() ;
-			}
-			
-			
-		suite =true;
-
-		}
+	Grid grid(longueurX, longueurY, 40) ;
 	
-	std::cout << " placed aggregate volume = " << volume << std::endl ;
-	return ret;
+	for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
+	{
+		tries++ ;
+
+		inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.*inclusions[i]->getRadius())-(longueurX-2.*inclusions[i]->getRadius())/2.;
+		inclusions[i]->getCenter().y = chiffreAleatoire(longueurY-2.*inclusions[i]->getRadius())-(longueurY-2.*inclusions[i]->getRadius())/2.;
+		while(!grid.add(inclusions[i]) && tries < triesMax)
+		{
+			tries++ ;
+			inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.*inclusions[i]->getRadius())-(longueurX-2.*inclusions[i]->getRadius())/2.;
+			inclusions[i]->getCenter().y = chiffreAleatoire(longueurY-2.*inclusions[i]->getRadius())-(longueurY-2.*inclusions[i]->getRadius())/2.;
+		}
+		
+		if(tries< triesMax)
+		{
+			ret.push_back(inclusions[i]) ;
+			volume += inclusions[i]->area() ;
+			tries = 0 ;
+		}
+		else
+			break ;
+	}
+	
+	std::cout << "\n placed aggregate volume = " << volume << std::endl ;
+	
+	return ret ;
 		
 }
 
+Pixel::Pixel()
+{
+	filled = false ;
+}
+
+Pixel::Pixel(double x, double y, double s) : tl(x-s*.5, y+s*.5), tr(x+s*.5, y+s*.5), bl(x-s*.5, y-s*.5), br(x+s*.5, y-s*.5), filled(false) { } ;
+
+const std::vector<Mu::Inclusion *> & Pixel::getInclusions() const
+{
+	return inclusions ;
+}
+
+std::vector<Mu::Inclusion *> & Pixel::getInclusions()
+{
+	return inclusions ;
+}
+
+bool Pixel::in(const Point & p) const
+{
+	double size = tr.x-bl.x;
+// 		std::cout << (p.x >= tl.x-size)  << (p.x <= br.x+size) << (p.y >= br.y-size) << (p.y <= tl.y+size) << std::endl ;
+	return (p.x >= tl.x-size)  && (p.x <= br.x+size) && (p.y >= br.y-size) && (p.y <= tl.y+size);
+}
+
+bool Pixel::coOccur(const Inclusion * inc)
+{
+	
+	return inc->in(tl) || inc->in(tr) || inc->in(br) || inc->in(bl) || in(inc->getCenter()) ;
+}
+
+void Pixel::remove(Inclusion * inc)
+{
+	inclusions.erase(std::find(inclusions.begin(), inclusions.end(), inc)) ;
+	filled = false ;
+}
+
+bool Pixel::add(Inclusion * inc)
+{
+	if(filled)
+		return false;
+
+	if(!inclusions.empty())
+	{
+		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		{
+			if(
+			    static_cast< Circle *>(inclusions[i])->intersects(static_cast< Circle *>(inc))
+			    || inc->in(inclusions[i]->getCenter())
+			    || inclusions[i]->in(inc->getCenter())
+			  )
+				return false;
+		}
+		inclusions.push_back(inc) ;
+		
+		return true;
+	}
+	else
+	{
+		if(inc->in(tl) && inc->in(tr) && inc->in(br) && inc->in(bl))
+			filled = true ;
+		
+		inclusions.push_back(inc) ;
+		
+		return true ;
+	}
+}
+
+Grid::Grid(double sizeX, double sizeY, int div ) : pixels((size_t)round(div*div*std::max(sizeY/sizeX, sizeX/sizeY))), x(sizeX), y(sizeY) 
+{
+	if(x>y)
+	{
+		lengthX = div*(x/y) ;
+		lengthY = div ;
+	}
+	else
+	{
+		lengthX = div ;
+		lengthY = div*(y/x) ;
+	}
+	
+	int iterator = 0 ;
+	
+	double psize = x/lengthX;
+	for(size_t i = 0 ; i < lengthX ; i++)
+	{
+		for(size_t j = 0 ; j < lengthY ; j++)
+		{
+			pixels[iterator] = Pixel(x*(double)(i)/(double)lengthX-x*.5+psize*.5, y*(double)(j)/(double)lengthY-y*.5+psize*.5, psize) ;
+			iterator++ ;
+		}
+	}
+}
+
+bool Grid::add(Inclusion * inc)
+{
+	bool ret = true ;
+	std::vector<Pixel *> cleanup ;
+	for(size_t i = 0 ; i < pixels.size() ; i++)
+	{
+		if(pixels[i].coOccur(inc))
+		{
+			if(pixels[i].add(inc))
+			{
+				cleanup.push_back(&pixels[i]) ;
+			}
+			else
+			{
+				for(size_t j = 0 ; j < cleanup.size() ; j++)
+				{
+					cleanup[j]->remove(inc) ;
+				}
+				return false ;
+			}
+			
+		}
+		
+	}
+	
+	return ret ;
+}
