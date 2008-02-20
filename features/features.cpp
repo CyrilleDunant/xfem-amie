@@ -44,9 +44,7 @@ Feature::Feature(Feature * father)
 // 	cg[0][0] = E*(1.-nu)/((1.-nu)*(1.+nu)) ; cg[0][1] =E/((1.-nu)*(1.+nu))*nu ; cg[0][2] = 0 ;
 // 	cg[1][0] = E/((1.-nu)*(1.+nu))*nu ; cg[1][1] = E*(1.-nu)/((1.-nu)*(1.+nu)) ; cg[1][2] = 0 ; 
 // 	cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = E*(1.-2*nu)/((1.-nu)*(1.+nu)) ; 
-	
-	double sigmaRupt = 0.15 ;
-	
+		
 	this->behaviour = new Stiffness/*AndFracture*/(cg/*, sigmaRupt*/) ;
 	
 	m_f = father ;
@@ -221,7 +219,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles(Feature * f )
 		return f->getBoundingTriangles(dtree) ;
 }
 
-FeatureTree::FeatureTree(Feature *first)
+FeatureTree::FeatureTree(Feature *first) : grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x, first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 40)
 {
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
@@ -250,6 +248,7 @@ FeatureTree::FeatureTree(Feature *first)
 
 void FeatureTree::addFeature(Feature * father, Feature * f)
 {
+	grid.forceAdd(f) ;
 	f->setFather(father) ;
 	if(father != NULL)
 		father->addChild(f) ;
@@ -509,6 +508,7 @@ void FeatureTree::stitch()
 				
 			}
 			stitched  = true ;	
+			return ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
 				if(!tree[j]->isEnrichmentFeature)
@@ -520,20 +520,12 @@ void FeatureTree::stitch()
 					{
 						if(triangles[i]->Triangle::intersects(dynamic_cast<Geometry *>(tree[j])))
 						{
-		// 					std::cerr << "----------" << std::endl ;
 							Point proj_0(*triangles[i]->first) ;
-		// 					std::cerr << proj_0.x << "," << proj_0.y << std::flush ;
 							tree[j]->project(&proj_0) ;
-		// 					std::cerr << "=> "<< proj_0.x << "," << proj_0.y << std::endl ;
 							Point proj_1(*triangles[i]->second) ;
-		// 					std::cerr << proj_1.x << "," << proj_1.y << std::flush ;
 							tree[j]->project(&proj_1) ;
-		// 					std::cerr << "=> "<< proj_1.x << "," << proj_1.y << std::endl ;
 							Point proj_2(*triangles[i]->third) ;
-		// 					std::cerr << proj_2.x << "," << proj_2.y << std::flush ;
 							tree[j]->project(&proj_2) ;
-		// 					std::cerr << "=> "<< proj_2.x << "," << proj_2.y << std::endl ;
-		// 					std::cerr << "----------" << std::endl ;
 							bool changed  = true;
 							
 							if(squareDist(&proj_0 , triangles[i]->first ) < 0.0000001 && 
@@ -1213,12 +1205,84 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 
 	if(!inRoot(t->getCenter())) 
 		return new VoidForm() ;
+
 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
 		if( t->getBoundingPoint(i).id == -1)
 		{
 			return new VoidForm() ;
 		}
 	
+	std::vector<Feature *> targets = grid.coOccur(static_cast<const Triangle *>(t)) ;
+	if(!targets.empty())
+	{
+		for(int i = targets.size()-1 ; i >=0  ; i--)
+		{
+			if (!targets[i]->isEnrichmentFeature && targets[i]->in(t->getCenter()))
+			{
+				
+				
+				bool notInChildren  = true ;
+				
+				for(size_t j = 0 ; j < targets[i]->getChildren()->size() ; j++)
+				{
+					if(!targets[i]->getChild(j)->isEnrichmentFeature && targets[i]->getChild(j)->in(t->getCenter()))
+					{
+						notInChildren = false ;
+						break ;
+					}
+				}
+				
+				if(notInChildren)
+				{
+					if(targets[i]->getBehaviour()->timeDependent())
+					{
+						if( !targets[i]->getBehaviour()->spaceDependent())
+							return targets[i]->getBehaviour()->getCopy() ;
+						else
+						{
+							Form * b = targets[i]->getBehaviour()->getCopy() ;
+							b->transform(t->getXTransform(), t->getYTransform()) ;
+							return b ;
+						}
+					}
+					else if(!targets[i]->getBehaviour()->spaceDependent())
+						return targets[i]->getBehaviour()->getCopy() ;
+					else
+					{
+						Form * b = targets[i]->getBehaviour()->getCopy() ;
+						b->transform(t->getXTransform(), t->getYTransform()) ;
+						return b ;
+					}
+					
+					return targets[i]->getBehaviour()->getCopy() ;
+				}
+			}
+		}
+	}
+
+	if(tree[0]->getBehaviour()->timeDependent())
+	{
+		if( !tree[0]->getBehaviour()->spaceDependent())
+			return tree[0]->getBehaviour()->getCopy() ;
+		else
+		{
+			Form * b = tree[0]->getBehaviour()->getCopy() ;
+			b->transform(t->getXTransform(), t->getYTransform()) ;
+			return b ;
+		}
+	}
+	else if(!tree[0]->getBehaviour()->spaceDependent())
+		return tree[0]->getBehaviour()->getCopy() ;
+	else
+	{
+		Form * b = tree[0]->getBehaviour()->getCopy() ;
+		b->transform(t->getXTransform(), t->getYTransform()) ;
+		return b ;
+	}
+	
+	return tree[0]->getBehaviour()->getCopy() ;
+
+
 	for(size_t i = tree.size()-1 ; i >= 0 ; i--)
 	{
 		
@@ -1518,7 +1582,7 @@ void FeatureTree::assemble()
 			std::cerr << " setting behaviours..." << std::flush ;
 			for(size_t i = 0 ; i < triangles.size() ;i++)
 			{
-				if (i%100 == 0)
+				if (i%1000 == 0)
 					std::cerr << "\r setting behaviours... triangle " << i << "/" << triangles.size() << std::flush ;
 				
 				if(!triangles[i]->getBehaviour())
@@ -2256,20 +2320,20 @@ void FeatureTree::generateElements( size_t correctionSteps)
 	}
 	
 	size_t basepoints = 0 ;
-	std::cerr << "getting mesh points..." << std::flush ;
-	for(size_t i  = 0 ; i < this->tree.size() ; i++)
+	std::cerr << " getting mesh points..." << std::flush ;
+	for(size_t i  = 0 ; i < tree.size() ; i++)
 	{
-		std::cerr << "\rgetting mesh points... feature " <<i << "/"<< this->tree.size() << std::flush ;
+		std::cerr << "\r getting mesh points... feature " << i << "/"<< tree.size() << std::flush ;
 		if(!tree[i]->isEnrichmentFeature)
 		{
-			for(size_t j  =  0 ; j <  this->tree[i]->getBoundingPoints().size() ; j++)
+			for(size_t j  =  0 ; j <  tree[i]->getBoundingPoints().size() ; j++)
 			{
 				bool isIn = false ;
 
-				for(size_t k  =  0 ; k <  this->tree[i]->getChildren()->size() ; k++)
+				for(size_t k  =  0 ; k <  tree[i]->getChildren()->size() ; k++)
 				{
 
-					if( this->tree[i]->getChild(k)->inBoundary(this->tree[i]->getBoundingPoint(j)) )
+					if( tree[i]->getChild(k)->inBoundary(tree[i]->getBoundingPoint(j)) )
 					{
 						isIn = true ;
 						break ;
@@ -2277,26 +2341,26 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				}
 				
 
-				if(!inRoot(this->tree[i]->getBoundingPoint(j)))
+				if(!inRoot(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
 				
 				
 				if(!isIn)
 				{
-					this->meshPoints.push_back(std::pair<Point *, Feature *>(&this->tree[i]->getBoundingPoint(j), this->tree[i])) ;
+					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getBoundingPoint(j), this->tree[i])) ;
 					if(i == 0)
 						basepoints++ ;
 				}
 			}
 			
 
-			for(size_t j  =  0 ; j <  this->tree[i]->getInPoints().size() ; j++)
+			for(size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++)
 			{
 				bool isIn = false ;
 
-				for(size_t k  =  0 ; k <  this->tree[i]->getChildren()->size(); k++)
+				for(size_t k  =  0 ; k <  tree[i]->getChildren()->size(); k++)
 				{
-					if(this->tree[i]->getChild(k)->inBoundary(this->tree[i]->getInPoint(j)) )
+					if(tree[i]->getChild(k)->inBoundary(tree[i]->getInPoint(j)) )
 					{
 						isIn = true ;
 						break ;
@@ -2305,13 +2369,13 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				}
 				
 				
-				if(!inRoot(this->tree[i]->getInPoint(j)))
+				if(!inRoot(tree[i]->getInPoint(j)))
 					isIn = true ;
 				
 					
 				if(!isIn)
 				{
-					this->meshPoints.push_back(std::pair<Point *, Feature *>(&this->tree[i]->getInPoint(j), this->tree[i])) ;	
+					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getInPoint(j), tree[i])) ;	
 					if(i == 0)
 						basepoints++ ;
 				}
@@ -2325,15 +2389,15 @@ void FeatureTree::generateElements( size_t correctionSteps)
 	size_t count  = 0 ;
 
 	
-	for(size_t i = 0 ;  i < this->tree.size() ; i++)
+	for(size_t i = 0 ;  i < tree.size() ; i++)
 	{
 		if(!tree[i]->isEnrichmentFeature)
 		{
-			for(size_t j  = i+1 ; j < this->tree.size() ; j++)
+			for(size_t j  = i+1 ; j < tree.size() ; j++)
 			{
 				if(!this->tree[j]->isEnrichmentFeature )
 				{
-					std::vector<Point> inter = this->tree[i]->intersection(this->tree[j]) ;
+					std::vector<Point> inter = tree[i]->intersection(tree[j]) ;
 					for(size_t k = 0 ;  k < inter.size() ; k++)
 					{
 						Point * going_in = new Point(inter[k]) ;
@@ -2341,7 +2405,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 						if(inRoot(*going_in))
 						{
 							++count ;
-							this->meshPoints.push_back(std::make_pair(going_in, this->tree[i])) ;
+							meshPoints.push_back(std::make_pair(going_in, tree[i])) ;
 						}
 						else
 							delete going_in ;
@@ -2573,3 +2637,210 @@ std::vector<DelaunayTetrahedron *> Feature::getBoundingTetrahedrons( DelaunayTre
 	
 }
 
+Pixel::Pixel()
+{
+	filled = false ;
+}
+
+Pixel::Pixel(double x, double y, double s) : tl(x-s*.5, y+s*.5), tr(x+s*.5, y+s*.5), bl(x-s*.5, y-s*.5), br(x+s*.5, y-s*.5), filled(false) { } ;
+
+const std::vector<Feature *> & Pixel::getFeatures() const
+{
+	return this->features ;
+}
+
+std::vector<Feature *> & Pixel::getFeatures()
+{
+	return this->features ;
+}
+
+bool Pixel::in(const Point & p) const
+{
+	double size = tr.x-bl.x;
+// 		std::cout << (p.x >= tl.x-size)  << (p.x <= br.x+size) << (p.y >= br.y-size) << (p.y <= tl.y+size) << std::endl ;
+	return (p.x >= tl.x-size)  && (p.x <= br.x+size) && (p.y >= br.y-size) && (p.y <= tl.y+size);
+}
+
+bool Pixel::coOccur(const Geometry * inc) const
+{
+	
+	return inc->in(tl) || inc->in(tr) || inc->in(br) || inc->in(bl) || in(inc->getCenter()) ;
+}
+
+void Pixel::remove(Feature * inc)
+{
+	features.erase(std::find(features.begin(), features.end(), inc)) ;
+	filled = false ;
+}
+
+bool Pixel::add(Feature * inc)
+{
+	if(filled)
+		return false;
+
+	if(!features.empty())
+	{
+		for(size_t i = 0 ; i < this->features.size() ; i++)
+		{
+			if(
+			    this->features[i]->intersects(inc)
+// 			    || inc->in(inclusions[i]->getCenter())
+// 			    || inclusions[i]->in(inc->getCenter())
+			  )
+				return false;
+		}
+		this->features.push_back(inc) ;
+		
+		return true;
+	}
+	else
+	{
+		if(inc->in(tl) && inc->in(tr) && inc->in(br) && inc->in(bl))
+			filled = true ;
+		
+		this->features.push_back(inc) ;
+		
+		return true ;
+	}
+}
+
+void Pixel::forceAdd(Feature * inc)
+{
+	this->features.push_back(inc) ;
+}
+
+void Pixel::print() const
+{
+	for(size_t i = 0 ; i < features.size() ; i++)
+		features[i]->print() ;
+}
+
+Grid::Grid(double sizeX, double sizeY, int div ) : x(sizeX), y(sizeY) 
+{
+	if(x>y)
+	{
+		
+		lengthX = div*(x/y) ;
+		lengthY = div ;
+		pixels.resize(lengthX,std::valarray<Pixel>(lengthY)) ;
+	}
+	else
+	{
+		lengthX = div ;
+		lengthY = div*(y/x) ;
+		pixels.resize(lengthX,std::valarray<Pixel>(lengthY)) ;
+	}
+	
+	psize = x/lengthX;
+	for(size_t i = 0 ; i < lengthX ; i++)
+	{
+		for(size_t j = 0 ; j < lengthY ; j++)
+		{
+			pixels[i][j] = Pixel(x*(double)(i)/(double)lengthX-x*.5+psize*.5, y*(double)(j)/(double)lengthY-y*.5+psize*.5, psize) ;
+		}
+	}
+}
+
+std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
+{
+	std::vector<Feature *> ret ;
+	double startX = .5*x + geo->getCenter().x-geo->getRadius()*2. ;
+	int startI = std::max(0., startX/psize - 2) ;
+	
+	double endX =  startX+4.*geo->getRadius();
+	int endI = std::min(endX/psize + 2, (double)lengthX);
+	
+	double startY = .5*y + geo->getCenter().y-geo->getRadius()*2. ;
+	int startJ = std::max(0., startY/psize - 2) ;
+	
+	double endY =  startY+4.*geo->getRadius();
+	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			if(pixels[i][j].coOccur(geo))
+			{
+				std::vector<Feature *> to_insert = pixels[i][j].getFeatures() ;
+				ret.insert(ret.end(), to_insert.begin(), to_insert.end()) ;
+			}
+		}
+	}
+
+	std::stable_sort(ret.begin(), ret.end());
+	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	ret.erase(e, ret.end()) ;
+	return ret ;
+}
+
+void Grid::forceAdd(Feature * inc)
+{
+	double startX = .5*x + inc->getCenter().x-inc->getRadius() ;
+	int startI = std::max(0., startX/psize - 2) ;
+	
+	double endX =  startX+2.*inc->getRadius();
+	int endI = std::min(endX/psize + 2, (double)lengthX);
+	
+	double startY = .5*y + inc->getCenter().y-inc->getRadius() ;
+	int startJ = std::max(0., startY/psize - 2) ;
+	
+	double endY =  startY+2.*inc->getRadius();
+	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			if(pixels[i][j].coOccur(inc))
+			{
+				pixels[i][j].forceAdd(inc) ;
+			}
+		}
+		
+	}
+}
+
+bool Grid::add(Feature * inc)
+{
+	bool ret = true ;
+	std::vector<Pixel *> cleanup ;
+	
+	double startX = .5*x + inc->getCenter().x-inc->getRadius() ;
+	int startI = std::max(0., startX/psize - 2) ;
+	
+	double endX =  startX+2.*inc->getRadius();
+	int endI = std::min(endX/psize + 2, (double)lengthX);
+	
+	double startY = .5*y + inc->getCenter().y-inc->getRadius() ;
+	int startJ = std::max(0., startY/psize - 2) ;
+	
+	double endY =  startY+2.*inc->getRadius();
+	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			if(pixels[i][j].coOccur(inc))
+			{
+				if(pixels[i][j].add(inc))
+				{
+					cleanup.push_back(&pixels[i][j]) ;
+				}
+				else
+				{
+					for(size_t k = 0 ; k < cleanup.size() ; k++)
+					{
+						cleanup[k]->remove(inc) ;
+					}
+					return false ;
+				}
+				
+			}
+		}
+		
+	}
+	
+	return ret ;
+}

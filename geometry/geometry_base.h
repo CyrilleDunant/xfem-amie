@@ -312,6 +312,9 @@ public:
 	
 	virtual bool intersects(const Geometry *) const ;
 	virtual std::vector<Point> intersection(const Geometry *) const ;
+	/** Get the bounding box. 
+     * The points are topLeft, topRight, bottomRight, bottomLeft
+	 */
 	virtual std::vector<Point> getBoundingBox() const = 0;
 	
 	virtual SpaceDimensionality spaceDimensions() const = 0 ;

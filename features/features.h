@@ -261,6 +261,55 @@ public:
 	
 } ;
 
+class Pixel
+{
+protected:
+	std::vector<Feature *> features ;
+	Point tl ;
+	Point tr ;
+	Point bl ;
+	Point br ;
+	bool filled ;
+public:
+	Pixel();
+	
+	Pixel(double x, double y, double s) ;
+
+	const std::vector<Feature *> & getFeatures() const;
+	
+	std::vector<Feature *> & getFeatures();
+	
+	bool in(const Point & p) const;
+
+	bool coOccur(const Geometry * inc) const;
+	
+	void remove(Feature * inc);
+	
+	bool add(Feature * inc);
+	void forceAdd(Feature * inc) ;
+
+	void print() const ;
+
+} ;
+
+class Grid
+{
+protected:
+	std::valarray< std::valarray<Pixel> > pixels;
+	double x ;
+	double y ;
+	size_t lengthX ;
+	size_t lengthY ;
+	
+	double psize ;
+public:
+		
+	Grid(double sizeX, double sizeY, int div );
+	
+	bool add(Feature * inc);
+	void forceAdd(Feature * inc) ;
+	std::vector<Feature *> coOccur(const Geometry * geo) const ;
+} ;
 
 /** Container for the features defining the setup.
  * 
@@ -276,6 +325,9 @@ class FeatureTree
 protected:
 	/** Contains all the features. */
 	std::vector<Feature *> tree ;
+
+	/**For fast Access*/
+	Grid grid ;
 	
 	/** Contains the mesh in the form of a delaunay tree. 
 	 * The mesh is generated with linear triangles, and when it is final, midpoints are added and 
@@ -510,6 +562,8 @@ struct PairPointFeatureLess_Than
 		return *p1.first < *p2.first ;
 	}
 } ;
+
+
 
 } ;
 

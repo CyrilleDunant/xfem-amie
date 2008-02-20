@@ -89,7 +89,8 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.00 ;
-double percent = .1 ;
+
+double percent = 0.1 ;
 
 bool firstRun = true ;
 
@@ -137,19 +138,15 @@ void setBC()
 		{
 			if (triangles[k]->getBoundingPoint(c).x < -.0199)
 			{
-				featureTree->getAssembly()->setPointAlong( XI,0/*-0.0000001*/ ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( XI,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 			if (triangles[k]->getBoundingPoint(c).x > 0.0199 )
 			{
-				featureTree->getAssembly()->setPointAlong( XI,0/*0.0000001*/ ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( XI, timepos ,triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if(triangles[k]->getBoundingPoint(c).x < -.0199 || triangles[k]->getBoundingPoint(c).x > 0.0199)
+			if(triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
-				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > .0199)
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong( ETA,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
 
 		}
@@ -200,7 +197,6 @@ void step()
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 			std::cout << "." << std::flush ;
-// 			timepos-= 0.0001 ;
 			setBC() ;
 			tries++ ;
 		}
@@ -208,7 +204,7 @@ void step()
 		
 // 		
 // 		
-		timepos+= 0.0001 ;
+		timepos += 0.00000002 ;
 	
 	
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -1545,32 +1541,7 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-// 	TriElement basicTriangle(LINEAR);
-// 
-// 	double angle = M_PI/2. ;
-// 	Point singularity(1./3., 1./3.) ;
-// 	Function x = basicTriangle.getXTransform() ;
-// 	Function y = basicTriangle.getYTransform() ;
-// 	double rotatedSingularityX = singularity.x*cos ( angle ) + singularity.y*sin ( angle ) ;
-// 	double rotatedSingularityY = -singularity.x*sin ( angle ) + singularity.y*cos ( angle ) ;
-// 	Function rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
-// 	Function rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
-// 	Function x_ = x - singularity.x ;
-// 	Function y_ = y - singularity.y ;
-// 	Function theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-// 	Function r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
-// 
-// 	Function f0 = f_sqrt ( r ) *f_sin ( theta/2 );
-// 	Function f1 = f_sqrt ( r ) *f_cos ( theta/2 );
-// 	Function f2 = f_sqrt ( r ) *f_sin ( theta/2 ) *f_cos ( theta );
-// 	Function f3 = f_sqrt ( r ) *f_cos ( theta/2 ) *f_cos ( theta );
-// 
-// 	VirtualMachine().print(f3) ;
-// 	std::cout << VirtualMachine().eval(f3, .2, .1) << std::endl ;
-// 	f3.compile() ;
-// 	VirtualMachine().print(f3) ;
-// 	std::cout << VirtualMachine().eval(f3, .2, .1) << std::endl ;
-// 	return 0 ;
+
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1584,22 +1555,16 @@ int main(int argc, char *argv[])
 
 	Sample sample(NULL, 0.04, 0.04,0,0) ;
 	
-// 	Sample reinforcement0(NULL, 8,.15,0,.5) ;
-// 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
-// 	
-// 	Sample reinforcement1(NULL, 8,.15,0,-.5) ;
-// 	reinforcement1.setBehaviour(new Stiffness(m0*5)) ;
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(5.39146e-07, 1, BOLOME_D)(.002, .0001);
-// 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
+	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 40);
 
 	int nAgg = 0 ;
-	inclusions=placement(.04, .04, inclusions, &nAgg, 8000);
+	inclusions=placement(.04, .04, inclusions, &nAgg, 16000);
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
 // 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
@@ -1618,25 +1583,16 @@ int main(int argc, char *argv[])
 // 	}
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg,new MohrCoulomb(40000*4, -8*40000*4))) ;
-// 		inclusions[i]->setRadius(.01) ;
-// 		inclusions[i]->getCenter().x = 0 ;
-// 		inclusions[i]->getCenter().y = 0 ;
-		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+1.5e-05, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
-		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+1.5e-05, inclusions[i]->getCenter()) ;
-		behaviour->setFractureCriterion(new MohrCoulomb(40000, -8*40000)) ;
+		inclusions[i]->setRadius(inclusions[i]->getRadius()-0.0005) ;
+		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+0.0005, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
+		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+0.0005, inclusions[i]->getCenter()) ;
+		behaviour->setFractureCriterion(new MohrCoulomb(30000, -8*30000)) ;
+// 		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(30000, -8*30000)) ;
 		itz->setBehaviour(behaviour) ;
 	
-// 		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+.002, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
-// 		itz->setBehaviour(new StiffnessAndFracture(m0_paste*.625, new MohrCoulomb(40000*.625, -8*40000*.625))) ;
-		Vector a(3) ;
-		a[0] = .02 ;
-		a[1] = .02 ;
-// 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg, a)) ;
 		F.addFeature(&sample,itz) ;
 		F.addFeature(itz,inclusions[i]) ;
-// 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
 		placed_area += inclusions[i]->area() ;
 	}
 
@@ -1649,7 +1605,7 @@ int main(int argc, char *argv[])
 
 	F.sample(800) ;
 
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 // 	F.refine(1) ;
 	F.generateElements() ;

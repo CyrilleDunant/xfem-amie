@@ -37,6 +37,7 @@ bool MohrCoulomb::met(const ElementState & s) const
 			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
 			{
 				if(neighbours[i]->neighbourhood[j] != testedTri 
+				   && !neighbours[i]->neighbourhood[j]->getBehaviour()
 				   && !neighbours[i]->neighbourhood[j]->getBehaviour()->fractured())
 					neighbourhood.insert(neighbours[i]->neighbourhood[j]) ;
 			}

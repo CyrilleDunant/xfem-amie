@@ -113,13 +113,15 @@ Matrix RadialStiffnessGradient::getTensor(const Point & p) const
 	VirtualMachine vm ;
 	
 	FunctionMatrix C(3,3) ;
-	
+	Matrix dE = (paramAlt-param)/dr ;
+
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
 		for(size_t j = 0 ; j < 3 ; j++)
 		{
 // 				double val =  (paramAlt[i][j] - param[i][j])/dr ;
-			C[i][j] = ((r-r_int)/dr)*paramAlt[i][j] - ((r-r_ext)/dr)*param[i][j];
+// 			C[i][j] = ((r-r_int)/dr)*paramAlt[i][j] - ((r-r_ext)/dr)*param[i][j];
+			C[i][j] = param[i][j] + (r-r_int)*dE[i][j];
 		}
 	}
 	
@@ -134,11 +136,12 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 	v.push_back(XI);
 	v.push_back(ETA);
 
+	Matrix dE = (paramAlt-param)/dr ;
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
 		for(size_t j = 0 ; j < 3 ; j++)
 		{
-			C[i][j] = ((r-r_int)/dr)*paramAlt[i][j] - ((r-r_ext)/dr)*param[i][j];
+			C[i][j] = param[i][j] + (r-r_int)*dE[i][j];
 		}
 	}
 	
