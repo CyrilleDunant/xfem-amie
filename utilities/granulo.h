@@ -49,7 +49,7 @@ private:
 	double densite;
 public:
 	GranuloBolome(double , double , TypeGranulo t) ;
-	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000);
+	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
 	
 	virtual ~GranuloBolome() { } ;
 } ;

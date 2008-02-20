@@ -1560,8 +1560,9 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
+	double itzSize = 0.0005;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 40);
+	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 4000, itzSize);
 
 	int nAgg = 0 ;
 	inclusions=placement(.04, .04, inclusions, &nAgg, 16000);
@@ -1584,9 +1585,9 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg,new MohrCoulomb(40000*4, -8*40000*4))) ;
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-0.0005) ;
-		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+0.0005, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
-		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+0.0005, inclusions[i]->getCenter()) ;
+		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
+		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter()) ;
 		behaviour->setFractureCriterion(new MohrCoulomb(30000, -8*30000)) ;
 // 		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(30000, -8*30000)) ;
 		itz->setBehaviour(behaviour) ;

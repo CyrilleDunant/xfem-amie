@@ -103,7 +103,7 @@ GranuloBolome::GranuloBolome( double masseInitiale, double densite, TypeGranulo 
 }
 
 
-std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, double pourcentMasseMin, int inclusionNumber)
+std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, double pourcentMasseMin, int inclusionNumber, double itzSize)
 {	
 	std::vector<Inclusion *> rayon;
 	double rayon_granulat=rayonGranulatMax;
@@ -116,7 +116,7 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 	double v = 0 ;
 
 // 	rayon.push_back(rayon_granulat);
-	rayon.push_back( new Inclusion(rayon_granulat+0.0001, 0, 0)) ;
+	rayon.push_back( new Inclusion(rayon_granulat+itzSize, 0, 0)) ;
 // 	std::cout<< "n°"<<"masse granulat" << "  " <<"rayon granulat"<<"  " <<"volume granulat" << "  "<<"pourcent masse" <<"   "<<"masse restante"<<std::endl;
 // 	size_t h=0;
 	double volumeGranulatsPasPlaces =0;
@@ -250,7 +250,7 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 			
 		}
 		
-		rayon.push_back(new Inclusion(rayon_granulat+0.0001, 0, 0)) ;
+		rayon.push_back(new Inclusion(rayon_granulat+itzSize, 0, 0)) ;
 		i++;
 
 	
