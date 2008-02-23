@@ -88,7 +88,7 @@ double y_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 
-double timepos = 0.00 ;
+double timepos = 2.6e-08 ;
 
 double percent = 0.1 ;
 
@@ -138,11 +138,11 @@ void setBC()
 		{
 			if (triangles[k]->getBoundingPoint(c).x < -.0199)
 			{
-				featureTree->getAssembly()->setPointAlong( XI,-timepos ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint(-timepos,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 			if (triangles[k]->getBoundingPoint(c).x > 0.0199 )
 			{
-				featureTree->getAssembly()->setPointAlong( XI, timepos ,triangles[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPoint( timepos,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
 			if(triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
@@ -185,7 +185,7 @@ void setBC()
 void step()
 {
 	
-	size_t nsteps = 1;
+	size_t nsteps = 40;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -204,7 +204,7 @@ void step()
 		
 // 		
 // 		
-		timepos += 0.00000002 ;
+		timepos += 0.000000002 ;
 	
 	
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -280,7 +280,7 @@ void step()
 			
 			
 			
-			if(!in && !triangles[k]->getBehaviour()->fractured())
+			if(!in /*&& !triangles[k]->getBehaviour()->fractured()*/)
 			{
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
@@ -504,14 +504,16 @@ void step()
 		
 		if (tries >= 100)
 			break ;
-	}
-	
+
 	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
 		std::cout << expansion_reaction[i].first << "   " 
 		<< expansion_reaction[i].second << "   " 
 		<< expansion_stress[i].first << "   " 
 		<< expansion_stress[i].second << "   " 
 		<< std::endl ;
+	}
+	
+
 }
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
@@ -1560,7 +1562,7 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	double itzSize = 0.0005;
+	double itzSize = 0.0003;
 	std::vector<Inclusion *> inclusions ;
 	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 4000, itzSize);
 
@@ -1585,11 +1587,11 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg,new MohrCoulomb(40000*4, -8*40000*4))) ;
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.9) ;
 		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
-		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter()) ;
-		behaviour->setFractureCriterion(new MohrCoulomb(30000, -8*30000)) ;
-// 		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(30000, -8*30000)) ;
+// 		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter()) ;
+// 		behaviour->setFractureCriterion(new MohrCoulomb(30000, -8*30000)) ;
+		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(30000, -8*30000)) ;
 		itz->setBehaviour(behaviour) ;
 	
 		F.addFeature(&sample,itz) ;
@@ -1604,7 +1606,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(1, inclusions, F) ;
 
-	F.sample(800) ;
+	F.sample(1200) ;
 
 	F.setOrder(QUADRATIC) ;
 

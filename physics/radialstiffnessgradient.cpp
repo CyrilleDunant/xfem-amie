@@ -40,7 +40,8 @@ RadialStiffnessGradient::~RadialStiffnessGradient()
 
 void RadialStiffnessGradient::transform(const Function & x, const Function & y)
 {
-	r = f_sqrt(((x-centre.x)^2)+((y-centre.y)^2)) ;
+	r = f_sqrt(((x-centre.x)^2)+((y-centre.y)^2)) -r_int;
+	r.compile() ;
 }
 
 Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
@@ -121,7 +122,7 @@ Matrix RadialStiffnessGradient::getTensor(const Point & p) const
 		{
 // 				double val =  (paramAlt[i][j] - param[i][j])/dr ;
 // 			C[i][j] = ((r-r_int)/dr)*paramAlt[i][j] - ((r-r_ext)/dr)*param[i][j];
-			C[i][j] = param[i][j] + (r-r_int)*dE[i][j];
+			C[i][j] =  r*dE[i][j] + param[i][j];
 		}
 	}
 	
@@ -141,7 +142,7 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 	{
 		for(size_t j = 0 ; j < 3 ; j++)
 		{
-			C[i][j] = param[i][j] + (r-r_int)*dE[i][j];
+			C[i][j] =  r*dE[i][j] + param[i][j];
 		}
 	}
 	

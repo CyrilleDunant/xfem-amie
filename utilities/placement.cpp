@@ -44,13 +44,13 @@ std::vector<Inclusion *> Mu::placement(double longueurX, double longueurY, std::
 	{
 		tries++ ;
 
-		inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.*inclusions[i]->getRadius())-(longueurX-2.*inclusions[i]->getRadius())/2.;
-		inclusions[i]->getCenter().y = chiffreAleatoire(longueurY-2.*inclusions[i]->getRadius())-(longueurY-2.*inclusions[i]->getRadius())/2.;
+		inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2.;
+		inclusions[i]->getCenter().y = chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2.;
 		while(!grid.add(inclusions[i]) && tries < triesMax)
 		{
 			tries++ ;
-			inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.*inclusions[i]->getRadius())-(longueurX-2.*inclusions[i]->getRadius())/2.;
-			inclusions[i]->getCenter().y = chiffreAleatoire(longueurY-2.*inclusions[i]->getRadius())-(longueurY-2.*inclusions[i]->getRadius())/2.;
+			inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2.;
+			inclusions[i]->getCenter().y = chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2.;
 		}
 		
 		if(tries< triesMax)
