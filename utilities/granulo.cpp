@@ -200,7 +200,7 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 				Point B(.000315,10.);
 				m= (B.y-A.y)/(B.x-A.x);
 				b=A.y-(m*A.x);
-				rayon_granulat = (pourcentMasse-b)/m*.5;
+				rayon_granulat = std::max(7.5e-05, (pourcentMasse-b)/m*.5);
 			}
 			if(pourcentMasse<20 && pourcentMasse>= 10)
 			{
@@ -245,7 +245,7 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, dou
 		{
 			std::cout<<"volumeGranulatsPasPlaces "<<volumeGranulatsPasPlaces<<std::endl;
 			std::cout<<"volumeAgg "<<v<<std::endl;
-			std::cout << "40000 particles" << std::endl ;
+			std::cout << rayon.size() <<" particles" << std::endl ;
 			return rayon;
 			
 		}

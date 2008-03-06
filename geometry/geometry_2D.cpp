@@ -354,6 +354,17 @@ Point Triangle::getCircumCenter() const
 	return this->circumCenter ;
 }
 
+std::vector<Point> Triangle::getBoundingBox() const
+{
+	std::vector<Point> box ;
+	box.push_back(getCircumCenter()+Point(getRadius(), -getRadius())) ;
+	box.push_back(getCircumCenter()+Point(getRadius(), getRadius())) ;
+	box.push_back(getCircumCenter()+Point(-getRadius(), getRadius())) ;
+	box.push_back(getCircumCenter()+Point(-getRadius(), -getRadius())) ;
+	
+	return box ;
+}
+
 void Triangle::computeCircumCenter()
 {	
 	
@@ -799,6 +810,17 @@ void Circle::setRadius(double newr)
 
 void Circle::computeCenter()
 {
+}
+
+std::vector<Point> Circle::getBoundingBox() const
+{
+	std::vector<Point> box ;
+	box.push_back(getCenter()+Point(getRadius(), -getRadius())) ;
+	box.push_back(getCenter()+Point(getRadius(), getRadius())) ;
+	box.push_back(getCenter()+Point(-getRadius(), getRadius())) ;
+	box.push_back(getCenter()+Point(-getRadius(), -getRadius())) ;
+	
+	return box ;
 }
 
 void Circle::project(Point * p) const

@@ -2008,7 +2008,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-16)
+					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-8)
 					{
 						go = false ;
 						break ;
@@ -2032,7 +2032,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  1;
+		size_t numberOfRefinements =  2;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{

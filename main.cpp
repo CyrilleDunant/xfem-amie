@@ -88,7 +88,7 @@ double y_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 
-double timepos = 2.6e-08 ;
+double timepos = 0.1e-07 ;
 
 double percent = 0.1 ;
 
@@ -131,27 +131,94 @@ double aggregateArea = 0;
 void setBC()
 {
 	triangles = featureTree->getTriangles() ;
-	
+	std::vector<size_t > xlow ;
+	std::vector<size_t > xhigh ;
+	std::vector<size_t > yhl ;
+	std::vector<size_t > cornerLeft ;
+	std::vector<size_t > cornerRight ;
 	for(size_t k = 0 ; k < triangles.size() ;k++)
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-			if (triangles[k]->getBoundingPoint(c).x < -.0199)
+			if (triangles[k]->getBoundingPoint(c).x < -0.0199 
+			    && (triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
 			{
-				featureTree->getAssembly()->setPoint(-timepos,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				cornerLeft.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			if (triangles[k]->getBoundingPoint(c).x > 0.0199 )
+			else if(triangles[k]->getBoundingPoint(c).x > .0199 
+			        && (triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
 			{
-				featureTree->getAssembly()->setPoint( timepos,0 ,triangles[k]->getBoundingPoint(c).id) ;
+				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			if(triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199)
+			else if (triangles[k]->getBoundingPoint(c).x < -0.0199)
 			{
-				featureTree->getAssembly()->setPointAlong( ETA,0, triangles[k]->getBoundingPoint(c).id) ;
+				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-
+			else if (triangles[k]->getBoundingPoint(c).x > 0.0199 )
+			{
+				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
+			}
+			else if(triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199)
+			{
+				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
+			}
 		}
 
 	}
+	
+	std::sort(xlow.begin(), xlow.end()) ;
+	std::vector<size_t>::iterator e = std::unique(xlow.begin(), xlow.end()) ;
+	xlow.erase(e, xlow.end()) ;
+	std::sort(xhigh.begin(), xhigh.end()) ;
+	e = std::unique(xhigh.begin(), xhigh.end()) ;
+	xhigh.erase(e, xhigh.end()) ;
+	std::sort(yhl.begin(), yhl.end()) ;
+	e = std::unique(yhl.begin(), yhl.end()) ;
+	yhl.erase(e, yhl.end()) ;
+	std::sort(cornerLeft.begin(), cornerLeft.end()) ;
+	e = std::unique(cornerLeft.begin(), cornerLeft.end()) ;
+	cornerLeft.erase(e, cornerLeft.end()) ;
+	std::sort(cornerRight.begin(), cornerRight.end()) ;
+	e = std::unique(cornerRight.begin(), cornerRight.end()) ;
+	cornerRight.erase(e, cornerRight.end()) ;
+
+	for(size_t i = 0 ; i < xlow.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cout << "\r setting BC tri " << i << "/" << xlow.size() << std::flush ;
+		featureTree->getAssembly()->setPointAlong(XI,-timepos,xlow[i]) ;
+	}
+	std::cout << "...done" << std::endl ;
+	for(size_t i = 0 ; i < xhigh.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cout << "\r setting BC tri " << i << "/" << xhigh.size() << std::flush ;
+		featureTree->getAssembly()->setPointAlong(XI,timepos ,xhigh[i]) ;
+	}
+	std::cout << "...done" << std::endl ;
+	for(size_t i = 0 ; i < yhl.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cout << "\r setting BC tri " << i << "/" << yhl.size() << std::flush ;
+		featureTree->getAssembly()->setPointAlong( ETA,0,yhl[i]) ;
+	}
+	std::cout << "...done" << std::endl ;
+	
+	for(size_t i = 0 ; i < cornerLeft.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cout << "\r setting BC tri " << i << "/" << cornerLeft.size() << std::flush ;
+		featureTree->getAssembly()->setPoint( -timepos,0,cornerLeft[i]) ;
+	}
+	std::cout << "...done" << std::endl ;
+	
+	for(size_t i = 0 ; i < cornerRight.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
+		featureTree->getAssembly()->setPoint( timepos,0,cornerRight[i]) ;
+	}
+	std::cout << "...done" << std::endl ;
 
 }
 
@@ -167,11 +234,11 @@ void setBC()
 // 			{
 // 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
-// 			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
+// 			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y > 0.199*/)
 // 			{
 // 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 // 			}
-// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .199*/)
 // 			{
 // 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
@@ -185,14 +252,16 @@ void setBC()
 void step()
 {
 	
-	size_t nsteps = 40;
-	for(size_t i = 0 ; i < nsteps ; i++)
+	size_t nsteps = 64;
+	size_t nit = 1 ;
+	size_t ntries = 20;
+	for(size_t i = 0 ; i < nit ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		setBC() ;
-		int tries = 0 ;
+		size_t tries = 0 ;
 		bool go_on = true ;
-		while(go_on && tries < 60)
+		while(go_on && tries < ntries)
 		{
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
@@ -204,7 +273,8 @@ void step()
 		
 // 		
 // 		
-		timepos += 0.000000002 ;
+		if (tries < ntries)
+			timepos += 0.00000008 ;
 	
 	
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -484,19 +554,20 @@ void step()
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/12. ;
+		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
 		double reactedArea = 0 ;
 			
-		for(size_t z = 0 ; z < zones.size() ; z++)
-		{
-			zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
-	// 		zones[z].first->reset() ;
-			reactedArea += zones[z].first->area() ;
-		}
+		if (tries < ntries)
+			for(size_t z = 0 ; z < zones.size() ; z++)
+			{
+				zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
+		// 		zones[z].first->reset() ;
+				reactedArea += zones[z].first->area() ;
+			}
 		
 		std::cout << "reacted Area : " << reactedArea << std::endl ;
 		
-		if (tries < 100)
+		if (tries < ntries)
 		{
 			expansion_reaction.push_back(std::make_pair(reactedArea, avg_e_xx/area)) ;
 			expansion_stress.push_back(std::make_pair(avg_e_xx_nogel/nogel_area, avg_s_xx_nogel/nogel_area)) ;
@@ -537,17 +608,15 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 		for(int j = 0 ; j < n ; j++)
 		{
 			double radius = 0.000001 ;
-			
-			Point pos((2.*random()/RAND_MAX-1.),(2.*random()/RAND_MAX-1.)) ;
-			pos /= pos.norm() ;
-			pos *= (2.*random()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.00003) ;
-			Point center = incs[i]->getCenter()+pos ; 
+			double rangle = (2.*random()/RAND_MAX-1.)*M_PI ;
+			double rradius = (double)random()/RAND_MAX*(incs[i]->getRadius()-2.*radius*64) ;
+			Point center = incs[i]->getCenter()+Point(rradius*cos(rangle), rradius*sin(rangle)) ; 
 			
 			bool alone  = true ;
 			
 			for(size_t k = 0 ; k < ret.size() ; k++ )
 			{
-				if (squareDist(center, ret[k].first->Circle::getCenter()) < 32.*(radius+radius)*(radius+radius))
+				if (squareDist(center, ret[k].first->Circle::getCenter()) < 2.*(2.*radius)*(2.*radius)*64*64)
 				{
 					alone = false ;
 					break ;
@@ -627,7 +696,6 @@ std::vector<Crack *> generateCracks(size_t n)
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, Matrix * tensor, Feature * father, FeatureTree * F)
 {
-// 	srandom(time(NULL)) ;
 	size_t nombre_de_pores = static_cast<size_t>(round(n*fraction)) ;
 	size_t nombre_d_inclusions = static_cast<size_t>(round(n*(1. - fraction))) ;
 	
@@ -1543,12 +1611,17 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-
+	srandom(time(NULL)) ;
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
 	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
+	
+	Matrix m0_dest(3,3) ;
+	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =0 ; m0_agg[0][2] = 0 ;
+	m0_agg[1][0] = 0 ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
+	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = 1 ; 
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1562,20 +1635,32 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	double itzSize = 0.0003;
+	double itzSize = 0.00003;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 4000, itzSize);
+	inclusions = GranuloBolome(4.79263e-07*0.19635, 1, BOLOME_D)(.002, .0001, 128, itzSize);
 
+	std::vector<Feature *> feats ;
+	for(size_t i = 0; i < inclusions.size() ; i++)
+		feats.push_back(inclusions[i]) ;
+	
 	int nAgg = 0 ;
-	inclusions=placement(.04, .04, inclusions, &nAgg, 16000);
+	feats=placement(new Circle(.01, 0, 0), feats, &nAgg, 32000);
+	for(size_t i = 0; i < feats.size() ; i++)
+		inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
+	
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	Inclusion * itz = new Inclusion(.005, 0, 0) ;
+// 	itz->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	F.addFeature(&sample,itz) ;
+	F.addFeature(&sample,new Pore(0.001, 0, -0.02)) ;
+	F.addFeature(&sample,new Pore(0.001, 0, 0.02)) ;
+// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 // 	{
-// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 		
 // 		Vector a(3) ;
 // 		a[0] = .02 ;
 // 		a[1] = .02 ;
@@ -1586,14 +1671,15 @@ int main(int argc, char *argv[])
 // 	}
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-		inclusions[i]->setBehaviour(new StiffnessAndFracture(m0_agg,new MohrCoulomb(40000*4, -8*40000*4))) ;
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.9) ;
+		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
+		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+
 		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
 // 		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter()) ;
-// 		behaviour->setFractureCriterion(new MohrCoulomb(30000, -8*30000)) ;
-		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(30000, -8*30000)) ;
+// // 		behaviour->setFractureCriterion(new MohrCoulomb(30000, -8*30000)) ;
+		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(20000, -8*20000)) ;
 		itz->setBehaviour(behaviour) ;
-	
+// 	
 		F.addFeature(&sample,itz) ;
 		F.addFeature(itz,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
@@ -1604,11 +1690,11 @@ int main(int argc, char *argv[])
 	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
 	std::cout << "placed area = " <<  placed_area << std::endl ;
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
-// 	zones = generateExpansiveZones(1, inclusions, F) ;
+// 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(1200) ;
+	F.sample(800) ;
 
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 // 	F.refine(1) ;
 	F.generateElements() ;

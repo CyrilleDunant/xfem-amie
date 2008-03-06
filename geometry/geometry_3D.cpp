@@ -116,6 +116,21 @@ double Tetrahedron::getRadius() const
 	return radius ;
 }
 
+std::vector<Point> Tetrahedron::getBoundingBox() const
+{
+	double r = getRadius() ;
+	std::vector<Point> ret ;
+	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y+0.5*r, circumCenter.z+0.5*r)) ;
+	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y+0.5*r, circumCenter.z-0.5*r)) ;
+	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y-0.5*r, circumCenter.z+0.5*r)) ;
+	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y-0.5*r, circumCenter.z-0.5*r)) ;
+	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y+0.5*r, circumCenter.z+0.5*r)) ;
+	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y+0.5*r, circumCenter.z-0.5*r)) ;
+	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y-0.5*r, circumCenter.z+0.5*r)) ;
+	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y-0.5*r, circumCenter.z-0.5*r)) ;
+	return ret ;
+}
+
 const Point * Tetrahedron::getCircumCenter() const
 {
 	return &this->circumCenter ;

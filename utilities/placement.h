@@ -17,6 +17,7 @@ namespace Mu
 {
 
 	std::vector<Mu::Inclusion *> placement(double longueurX, double longueurY, std::vector<Mu::Inclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax) ;
+	std::vector<Feature *> placement(Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int triesMax) ;
 // 	double masseInitiale;
 // 	double densite;
 

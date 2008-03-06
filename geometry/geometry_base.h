@@ -296,6 +296,7 @@ public:
 	virtual const Point & getCenter() const ;
 	virtual Point & getCenter() ;
 	virtual void project(Point *) const = 0;
+	virtual void setCenter(const Point & newCenter) ;
 	
 	virtual GeometryType getGeometryType() const ;
 	
@@ -313,7 +314,15 @@ public:
 	virtual bool intersects(const Geometry *) const ;
 	virtual std::vector<Point> intersection(const Geometry *) const ;
 	/** Get the bounding box. 
-     * The points are topLeft, topRight, bottomRight, bottomLeft
+     * The points are topLeft, topRight, bottomRight, bottomLeft or in 3D:
+	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z+0.5*size_z) ;
+	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z-0.5*size_z) ;
+	 * center.x+0.5*size_x, center.y-0.5*size_y, center.z+0.5*size_z) ;
+	 * center.x+0.5*size_x, center.y-0.5*size_y, center.z-0.5*size_z) ;
+	 * center.x-0.5*size_x, center.y+0.5*size_y, center.z+0.5*size_z) ;
+	 * center.x-0.5*size_x, center.y+0.5*size_y, center.z-0.5*size_z) ;
+	 * center.x-0.5*size_x, center.y-0.5*size_y, center.z+0.5*size_z) ;
+	 * center.x-0.5*size_x, center.y-0.5*size_y, center.z-0.5*size_z) ;
 	 */
 	virtual std::vector<Point> getBoundingBox() const = 0;
 	

@@ -390,6 +390,18 @@ const Point & Geometry::getInPoint(size_t i) const
 	return *inPoints[i] ; 
 }
 
+
+void Geometry::setCenter(const Point & newCenter)
+{
+	Point delta = newCenter-getCenter();
+	getCenter() = newCenter ;
+	
+	for(size_t  i = 0 ; i < getInPoints().size() ;i++)
+		getInPoint(i) += delta ;
+	for(size_t  i = 0 ; i < getBoundingPoints().size() ;i++)
+		getBoundingPoint(i) += delta ;
+}
+
 Point & Geometry::getInPoint(size_t i) 
 { 
 	return *inPoints[i] ; 
@@ -964,7 +976,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					}
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
-						if(g->in(C.getInPoint(i)) && in(C.getBoundingPoint(i)))
+						if(g->in(C.getInPoint(i)) && in(C.getInPoint(i)))
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
@@ -986,7 +998,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					}
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
-						if(g->in(C.getInPoint(i)) && in(C.getBoundingPoint(i)))
+						if(g->in(C.getInPoint(i)) && in(C.getInPoint(i)))
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
@@ -1106,7 +1118,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					}
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
-						if(g->in(C.getInPoint(i)) && in(C.getBoundingPoint(i)))
+						if(g->in(C.getInPoint(i)) && in(C.getInPoint(i)))
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}

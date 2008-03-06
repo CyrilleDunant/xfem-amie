@@ -57,7 +57,7 @@ public:
 		return SPACE_THREE_DIMENSIONAL ;
 	}
 	
-	virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ;}
+	virtual std::vector<Point> getBoundingBox() const ;
 	
 } ;
 

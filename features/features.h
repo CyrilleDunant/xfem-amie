@@ -152,7 +152,7 @@ public:
 	 * @return a pointer to the m_c member. This is a vector containing the pointers to the children.
 	 */
 	virtual const std::vector<Feature *> * getChildren() const;
-	
+	virtual std::vector<Feature *> getDescendants() const ;
 	
 	/** Reparent the feature.
 	 * 
@@ -270,6 +270,9 @@ protected:
 	Point bl ;
 	Point br ;
 	bool filled ;
+
+// 	const short level ;
+// 	const short levels ;
 public:
 	Pixel();
 	
@@ -292,10 +295,48 @@ public:
 
 } ;
 
+class Voxel
+{
+protected:
+	std::vector<Feature *> features ;
+	Point tlf ;
+	Point trf ;
+	Point blf ;
+	Point brf ;
+	Point tlb ;
+	Point trb;
+	Point blb ;
+	Point brb ;
+	bool filled ;
+
+// 	const short level ;
+// 	const short levels ;
+public:
+	Voxel();
+	
+	Voxel(double x, double y, double z ,double s) ;
+
+	const std::vector<Feature *> & getFeatures() const;
+	
+	std::vector<Feature *> & getFeatures();
+	
+	bool in(const Point & p) const;
+
+	bool coOccur(const Geometry * inc) const;
+	
+	void remove(Feature * inc);
+	
+	bool add(Feature * inc);
+	void forceAdd(Feature * inc) ;
+
+	void print() const ;
+
+} ;
+
 class Grid
 {
 protected:
-	std::valarray< std::valarray<Pixel> > pixels;
+	std::valarray< std::valarray<Pixel *> > pixels;
 	double x ;
 	double y ;
 	size_t lengthX ;
@@ -306,9 +347,36 @@ public:
 		
 	Grid(double sizeX, double sizeY, int div );
 	
+	~Grid() ;
 	bool add(Feature * inc);
 	void forceAdd(Feature * inc) ;
 	std::vector<Feature *> coOccur(const Geometry * geo) const ;
+	const std::vector<Feature *> & coOccur(const Point & p) const ;
+	std::vector<Feature *> & coOccur(const Point & p) ;
+} ;
+
+class Grid3D
+{
+protected:
+	std::valarray<std::valarray< std::valarray<Voxel *> > > pixels;
+	double x ;
+	double y ;
+	double z ;
+	size_t lengthX ;
+	size_t lengthY ;
+	size_t lengthZ ;
+	
+	double psize ;
+public:
+		
+	Grid3D(double sizeX, double sizeY, double sizeZ, int div );
+	
+	~Grid3D() ;
+	bool add(Feature * inc);
+	void forceAdd(Feature * inc) ;
+	std::vector<Feature *> coOccur(const Geometry * geo) const ;
+	const std::vector<Feature *> & coOccur(const Point & p) const ;
+	std::vector<Feature *> & coOccur(const Point & p) ;
 } ;
 
 /** Container for the features defining the setup.
@@ -328,6 +396,7 @@ protected:
 
 	/**For fast Access*/
 	Grid grid ;
+	Grid3D grid3d ;
 	
 	/** Contains the mesh in the form of a delaunay tree. 
 	 * The mesh is generated with linear triangles, and when it is final, midpoints are added and 

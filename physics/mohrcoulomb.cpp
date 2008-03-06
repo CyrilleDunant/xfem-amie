@@ -30,25 +30,57 @@ bool MohrCoulomb::met(const ElementState & s) const
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
 	{
-		std::set<DelaunayTriangle *> neighbourhood ;
-		std::vector<DelaunayTriangle *> neighbours = testedTri->neighbourhood ;
-		for(size_t i = 0 ; i < neighbours.size() ; i++)
+		Circle epsilon(0.001,testedTri->getCenter()) ;
+		std::vector<DelaunayTriangle *> neighbourhood ;
+		std::vector<DelaunayTriangle *> toTry = testedTri->neighbourhood ;
+		std::vector<DelaunayTriangle *> cleanup ;
+		int count = toTry.size() ;
+		cleanup.push_back(testedTri) ;
+		testedTri->visited = true ;
+		while(!toTry.empty())
 		{
-			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
+			std::vector<DelaunayTriangle *> newTrianglesToTry ;
+			for(size_t i = 0 ; i < toTry.size() ; i++)
 			{
-				if(neighbours[i]->neighbourhood[j] != testedTri 
-				   && !neighbours[i]->neighbourhood[j]->getBehaviour()
-				   && !neighbours[i]->neighbourhood[j]->getBehaviour()->fractured())
-					neighbourhood.insert(neighbours[i]->neighbourhood[j]) ;
+				cleanup.push_back(toTry[i]) ;
+				toTry[i]->visited = true ;
+				if(epsilon.in(toTry[i]->getCenter()) || count > 0)
+				{
+					count-- ;
+					neighbourhood.push_back(toTry[i]) ;
+					for(size_t j = 0 ; j < toTry[i]->neighbourhood.size() ;j++)
+					{
+						if(!toTry[i]->neighbourhood[j]->visited)
+							newTrianglesToTry.push_back(toTry[i]->neighbourhood[j]);
+					}
+				}
 			}
+			
+			std::sort(newTrianglesToTry.begin(), newTrianglesToTry.end()) ;
+			std::vector<DelaunayTriangle *>::iterator e = std::unique(newTrianglesToTry.begin(), newTrianglesToTry.end()) ;
+			newTrianglesToTry.erase(e, newTrianglesToTry.end()) ;
+			toTry = newTrianglesToTry ;
 		}
+// 		for(size_t i = 0 ; i < neighbours.size() ; i++)
+// 		{
+// 			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
+// 			{
+// 				if(neighbours[i]->neighbourhood[j] != testedTri 
+// 				   && !neighbours[i]->neighbourhood[j]->getBehaviour()
+// 				   && !neighbours[i]->neighbourhood[j]->getBehaviour()->fractured())
+// 					neighbourhood.insert(neighbours[i]->neighbourhood[j]) ;
+// 			}
+// 		}
+		
+		for(size_t i = 0 ; i < cleanup.size() ;i++)
+			cleanup[i]->visited = false ;
 
 
 		double maxNeighbourhoodStress = 0 ;
 		double minNeighbourhoodStress = 0 ;
 		if(!neighbourhood.empty())
 		{
-			for(std::set<DelaunayTriangle *>::const_iterator i = neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
+			for(std::vector<DelaunayTriangle *>::const_iterator i = neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
 			{
 				Vector pstress = (*i)->getState().getPrincipalStresses((*i)->getCenter()) ;
 				double maxStress = pstress.max() ;

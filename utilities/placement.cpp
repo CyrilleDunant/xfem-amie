@@ -38,7 +38,7 @@ std::vector<Inclusion *> Mu::placement(double longueurX, double longueurY, std::
 	double volume = 0 ;
 	std::vector<Inclusion *> ret ;
 	
-	Grid grid(longueurX, longueurY, 100) ;
+	Grid grid(longueurX, longueurY, 20) ;
 	
 	for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
 	{
@@ -68,6 +68,136 @@ std::vector<Inclusion *> Mu::placement(double longueurX, double longueurY, std::
 	std::cout << "\n placed aggregate volume = " << volume << std::endl ;
 	
 	return ret ;
+		
+}
+
+std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int triesMax)
+{
+	int tries = 0 ;
+
+	double volume = 0 ;
+	std::vector<Feature *> ret ;
+	
+	if(box->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		std::cout << "placing..." << std::endl ;
+		Point offset = box->getCenter() ;
+		std::vector<Point> boundingBox = box->getBoundingBox() ;
+		double longueurX = boundingBox[0].x-boundingBox[2].x;
+		double longueurY = boundingBox[2].y-boundingBox[0].y;
+		std::cout << longueurX << ", " << longueurY << std::endl ;
+		Grid grid(longueurX, longueurY, 20) ;
+		longueurX*=1.2 ;
+		longueurY*=1.2 ;
+		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
+		{
+			tries++ ;
+			Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+			inclusions[i]->setCenter(newCentre) ;
+			while(!box->in(inclusions[i]->getCenter()) && !box->intersects(inclusions[i]) )
+			{
+				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+				inclusions[i]->setCenter(newCentre) ;
+			}
+
+			inclusions[i]->setCenter(inclusions[i]->getCenter()- offset) ;
+			
+			while(!grid.add(inclusions[i]) && tries < triesMax)
+			{
+				tries++ ;
+				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+				inclusions[i]->setCenter(newCentre) ;
+				while(!box->in(inclusions[i]->getCenter()) && !box->intersects(inclusions[i]) )
+				{
+					Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+					inclusions[i]->setCenter(newCentre) ;
+				}
+			}
+			
+			if(tries< triesMax)
+			{
+				if(i%100 == 0)
+					std::cout << "\rplaced " << i << " particles" << std::flush ;
+				inclusions[i]->setCenter(inclusions[i]->getCenter() + offset) ;
+				ret.push_back(inclusions[i]) ;
+				volume += inclusions[i]->area() ;
+				tries = 0 ;
+			}
+			else
+				break ;
+		}
+		
+		std::cout << "\n placed aggregate volume = " << volume << std::endl ;
+		
+		return ret ;
+	}
+	else
+	{
+		std::cout << "placing..." << std::endl ;
+		Point offset = box->getCenter() ;
+		std::vector<Point> boundingBox = box->getBoundingBox() ;
+		double longueurX = boundingBox[0].x-boundingBox[7].x;
+		double longueurY = boundingBox[0].y-boundingBox[7].y;
+		double longueurZ = boundingBox[0].z-boundingBox[7].z;
+		std::cout << longueurX << ", " << longueurY << std::endl ;
+		Grid3D grid(longueurX, longueurY, longueurZ, 20) ;
+		longueurX*=1.2 ;
+		longueurY*=1.2 ;
+		longueurZ*=1.2 ;
+		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
+		{
+			tries++ ;
+			Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
+			                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
+			                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+			               ) ;
+			inclusions[i]->setCenter(newCentre) ;
+			while(!box->in(inclusions[i]->getCenter()) && !box->intersects(inclusions[i]) )
+			{
+				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
+				                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
+				                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+				               ) ;
+				inclusions[i]->setCenter(newCentre) ;
+			}
+			
+			inclusions[i]->setCenter(inclusions[i]->getCenter()- offset) ;
+			
+			while(!grid.add(inclusions[i]) && tries < triesMax)
+			{
+				tries++ ;
+				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
+				                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
+				                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+				               ) ;
+				inclusions[i]->setCenter(newCentre) ;
+				while(!box->in(inclusions[i]->getCenter()) && !box->intersects(inclusions[i]) )
+				{
+					Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
+					                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
+					                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+					               ) ;
+					inclusions[i]->setCenter(newCentre) ;
+				}
+			}
+			
+			if(tries< triesMax)
+			{
+				if(i%100 == 0)
+					std::cout << "\rplaced " << i << " particles" << std::flush ;
+				inclusions[i]->setCenter(inclusions[i]->getCenter() + offset) ;
+				ret.push_back(inclusions[i]) ;
+				volume += inclusions[i]->area() ;
+				tries = 0 ;
+			}
+			else
+				break ;
+		}
+		
+		std::cout << "\n placed aggregate volume = " << volume << std::endl ;
+		
+		return ret ;
+	}
 		
 }
 
