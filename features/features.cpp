@@ -835,7 +835,7 @@ void FeatureTree::sample(size_t n)
 			{
 				double a =tree[i]->area() ;
 
-					tree[i]->sample((size_t)round(
+				tree[i]->sample((size_t)round(
 					                               (2.*a/(total_area))*n
 											)
 								) ;
@@ -1302,53 +1302,6 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 	
 	return tree[0]->getBehaviour()->getCopy() ;
 
-
-	for(size_t i = tree.size()-1 ; i >= 0 ; i--)
-	{
-		
-		if (!tree[i]->isEnrichmentFeature && tree[i]->in(t->getCenter()))
-		{
-			
-			
-			bool notInChildren  = true ;
-			
-			for(size_t j = 0 ; j < tree[i]->getChildren()->size() ; j++)
-			{
-				if(!tree[i]->getChild(j)->isEnrichmentFeature && tree[i]->getChild(j)->in(t->getCenter()))
-				{
-					notInChildren = false ;
-					break ;
-				}
-			}
-			
-			if(notInChildren)
-			{
-				if(tree[i]->getBehaviour()->timeDependent())
-				{
-					if( !tree[i]->getBehaviour()->spaceDependent())
-						return tree[i]->getBehaviour()->getCopy() ;
-					else
-					{
-						Form * b = tree[i]->getBehaviour()->getCopy() ;
-						b->transform(t->getXTransform(), t->getYTransform()) ;
-						return b ;
-					}
-				}
-				else if(!tree[i]->getBehaviour()->spaceDependent())
-					return tree[i]->getBehaviour()->getCopy() ;
-				else
-				{
-					Form * b = tree[i]->getBehaviour()->getCopy() ;
-					b->transform(t->getXTransform(), t->getYTransform()) ;
-					return b ;
-				}
-				
-				return tree[i]->getBehaviour()->getCopy() ;
-			}
-		}
-	}
-	//to shut up the compiler
-	return new VoidForm() ;
 }
 
 Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
@@ -1356,82 +1309,83 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 	
 	if(!inRoot(t->getCenter())) 
 		return new VoidForm() ;
+	
 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
 		if( t->getBoundingPoint(i).id == -1)
-			return new VoidForm() ;
-	
-	for(int i = tree.size()-1 ; i >= 0 ; i--)
-	{
-		if (tree[i]->in(t->getCenter()) && (inRoot(t->getCenter())))
 		{
-			bool inChild = false ;
-			
-			std::vector<Feature *> tocheck = *tree[i]->getChildren();
-			std::vector<Feature *> tocheckNew =  tocheck;
-			
-			while(!tocheckNew.empty())
-			{
-				std::vector<Feature *> tocheckTemp ;
-				for(size_t k = 0 ; k < tocheckNew.size() ; k++)
-				{
-					tocheckTemp.insert(
-					                   tocheckTemp.end(), 
-					                   tocheckNew[k]->getChildren()->begin(), 
-					                   tocheckNew[k]->getChildren()->end()
-					                  ) ;
-				}
-				tocheck.insert(tocheck.end(), tocheckTemp.begin(), tocheckTemp.end()) ;
-				tocheckNew = tocheckTemp ;
-			}
-			
-			for(size_t j = 0 ; j < tocheck.size() ; j++)
-			{
-
-				if(tocheck[j]->in(t->getCenter()) )
-				{
-					inChild = true ;
-					break ;
-				}
-			}
-			
-			if(!inChild)
+			return new VoidForm() ;
+		}
+	
+	std::vector<Feature *> targets = grid3d.coOccur(static_cast<const Tetrahedron *>(t)) ;
+	if(!targets.empty())
+	{
+		for(int i = targets.size()-1 ; i >=0  ; i--)
+		{
+			if (!targets[i]->isEnrichmentFeature && targets[i]->in(t->getCenter()))
 			{
 				
-// 				size_t count_in = 0 ;
-// 				
-				if(tree[i]->in(t->getCenter()))
+				
+				bool notInChildren  = true ;
+				
+				for(size_t j = 0 ; j < targets[i]->getChildren()->size() ; j++)
 				{
-					if(!tree[i]->getBehaviour()->spaceDependent())
-						return tree[i]->getBehaviour() ;
-					else
+					if(!targets[i]->getChild(j)->isEnrichmentFeature && targets[i]->getChild(j)->in(t->getCenter()))
 					{
-						Form * b = tree[i]->getBehaviour()->getCopy() ;
-						if(!is3D())
-							b->transform(t->getXTransform(), t->getYTransform()/*, t->getZTransform()*/) ;
-						else
-							b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-						return b ;
+						notInChildren = false ;
+						break ;
 					}
 				}
-// 				else
-// 					return tree[0]->getBehaviour() ;
-// 				else if(tree[i]->getFather() && tree[i]->getFather()->in(*t->getCenter()))
-// 				{
-// 					count_in = 0 ;
-// 					
-// 					count_in += tree[i]->getFather()->in(t->first) ;
-// 					count_in += tree[i]->getFather()->in(t->second) ;
-// 					count_in += tree[i]->getFather()->in(t->third) ;
-// 					count_in += tree[i]->getFather()->in(t->fourth) ;
-// 					if(count_in > 2)
-// 						return tree[i]->getFather()->getBehaviour() ;
-// 				}
+				
+				if(notInChildren)
+				{
+					if(targets[i]->getBehaviour()->timeDependent())
+					{
+						if( !targets[i]->getBehaviour()->spaceDependent())
+							return targets[i]->getBehaviour()->getCopy() ;
+						else
+						{
+							Form * b = targets[i]->getBehaviour()->getCopy() ;
+							b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+							return b ;
+						}
+					}
+					else if(!targets[i]->getBehaviour()->spaceDependent())
+						return targets[i]->getBehaviour()->getCopy() ;
+					else
+					{
+						Form * b = targets[i]->getBehaviour()->getCopy() ;
+						b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+						return b ;
+					}
 					
+					return targets[i]->getBehaviour()->getCopy() ;
+				}
 			}
 		}
 	}
 	
-	return tree[0]->getBehaviour() ;
+	if(tree[0]->getBehaviour()->timeDependent())
+	{
+		if( !tree[0]->getBehaviour()->spaceDependent())
+			return tree[0]->getBehaviour()->getCopy() ;
+		else
+		{
+			Form * b = tree[0]->getBehaviour()->getCopy() ;
+			b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+			return b ;
+		}
+	}
+	else if(!tree[0]->getBehaviour()->spaceDependent())
+		return tree[0]->getBehaviour()->getCopy() ;
+	else
+	{
+		Form * b = tree[0]->getBehaviour()->getCopy() ;
+		b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+		return b ;
+	}
+	
+	return tree[0]->getBehaviour()->getCopy() ;
+
 }
 
 Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const

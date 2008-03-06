@@ -502,7 +502,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(neighbour[i]) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-8 ;
 		}
-// 		limit = true ;
+		limit = true ;
 		
 		if( !neighbour[i]->visited && neighbour[i]->inCircumSphere(*p) || limit)
 		{

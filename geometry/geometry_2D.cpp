@@ -407,14 +407,14 @@ bool Triangle::inCircumCircle(const Point & p) const
 {
 	double x = circumCenter.x -p.x ;
 	double y = circumCenter.y -p.y ;
-	return  fma(x, x, y*y)< sqradius -POINT_TOLERANCE  ;
+	return  fma(x, x, y*y)< sqradius - 2.*POINT_TOLERANCE  ;
 }
 
 bool Triangle::inCircumCircle(const Point *p) const
 {
-		double x = circumCenter.x -p->x ;
+	double x = circumCenter.x -p->x ;
 	double y = circumCenter.y -p->y ;
-	return  fma(x, x, y*y) < sqradius -POINT_TOLERANCE  ;
+	return  fma(x, x, y*y) < sqradius - 2.*POINT_TOLERANCE  ;
 }
 
 

@@ -241,7 +241,7 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 	double x = circumCenter.x - p.x ;
 	double y = circumCenter.y - p.y ;
 	double z = circumCenter.z - p.z ;
-	return  x*x +y*y + z*z < sqradius - POINT_TOLERANCE;
+	return  x*x +y*y + z*z < sqradius - 2.*POINT_TOLERANCE;
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
@@ -249,7 +249,7 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	double x = circumCenter.x - p->x ;
 	double y = circumCenter.y - p->y ;
 	double z = circumCenter.z - p->z ;
-	return   x*x +y*y + z*z < sqradius -POINT_TOLERANCE;
+	return   x*x +y*y + z*z < sqradius - 2.*POINT_TOLERANCE;
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)
@@ -862,7 +862,7 @@ void Sphere::sampleBoundingSurface(size_t num_points)
 void Sphere::sampleSurface(size_t num_points) 
 {
 	if(this->boundingPoints.size() == 0)
-		sampleBoundingSurface(std::max((size_t)(4*num_points), (size_t)40)) ;
+		sampleBoundingSurface(std::max((size_t)(num_points), (size_t)40)) ;
 	
 	std::vector<Point> points ;
 	size_t numPointsOnSurface = std::max(num_points, (size_t)40) ;

@@ -608,7 +608,7 @@ int main(int argc, char *argv[])
 	Stiffness soth0(cgStress0) ;
 
 
-	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > features = generateInclusionsAndPores(256, 0, &soth, &s3d, &ft) ;
+	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > features = generateInclusionsAndPores(1024, 0, &soth, &s3d, &ft) ;
 
 // 	ft.addFeature(&s3d, &inclusion15) ;
 // 	ft.addFeature(&inclusion15, &inclusion17) ;
@@ -655,11 +655,11 @@ int main(int argc, char *argv[])
 // 	s3d.setBehaviour(new VoidForm()) ;
 	s3d.setBehaviour(&sc3s) ;
 	
-	ft.sample(128) ;
+	ft.sample(512) ;
 
-	ft.setOrder(LINEAR) ;
+	ft.setOrder(QUADRATIC) ;
 
-	ft.generateElements(3) ;
+	ft.generateElements(0) ;
 // 	ft.refine(1) ;	
 // 	
 	

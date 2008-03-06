@@ -694,7 +694,12 @@ inline bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Poi
 	Mu::Point B (*f2-*f1) ;
 	Mu::Point C (*f2-*test) ;
 	
-	return  std::abs((A^B)*C) < Mu::POINT_TOLERANCE ;
+	return  std::abs((A^B)*C) < Mu::POINT_TOLERANCE  
+		 || std::abs((A^C)*B) < Mu::POINT_TOLERANCE
+		 || std::abs((B^A)*C) < Mu::POINT_TOLERANCE
+ 		 || std::abs((B^C)*A) < Mu::POINT_TOLERANCE
+		 || std::abs((C^A)*B) < Mu::POINT_TOLERANCE
+ 		 || std::abs((C^B)*A) < Mu::POINT_TOLERANCE;
 } ;
 
 inline bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -703,7 +708,12 @@ inline bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Poi
 	Mu::Point A (f0-f1) ;
 	Mu::Point B (f2-f1) ; 
 	Mu::Point C (f2-test) ; 
-	return  std::abs((A^B)*C) < Mu::POINT_TOLERANCE ;
+	return  std::abs((A^B)*C) < Mu::POINT_TOLERANCE  
+		 || std::abs((A^C)*B) < Mu::POINT_TOLERANCE
+		 || std::abs((B^A)*C) < Mu::POINT_TOLERANCE
+ 		 || std::abs((B^C)*A) < Mu::POINT_TOLERANCE
+		 || std::abs((C^A)*B) < Mu::POINT_TOLERANCE
+ 		 || std::abs((C^B)*A) < Mu::POINT_TOLERANCE;
 } ;
 
 
