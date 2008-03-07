@@ -29,8 +29,8 @@ OBJECTS_SOLVERS = solvers/assembly.o solvers/choleskidecomposed.o solvers/conjug
 SOURCE_NEW_GEO = geometry/geometry_base.cpp geometry/geometry_2D.cpp geometry/geometry_3D.cpp
 OBJECTS_NEW_GEO = geometry/geometry_base.o geometry/geometry_2D.o geometry/geometry_3D.o
 
-SOURCE_FEATURE = features/features.cpp features/pore.cpp features/pore3d.cpp features/inclusion.cpp features/inclusion3d.cpp features/sample.cpp features/sample3d.cpp features/crack.cpp features/enrichmentInclusion.cpp features/expansiveZone.cpp features/enrichmentbehaviour.cpp features/crackinitiation.cpp
-OBJECTS_FEATURE = features/features.o features/pore.o features/pore3d.o features/inclusion.o features/inclusion3d.o features/sample.o features/sample3d.o features/crack.o features/enrichmentInclusion.o features/expansiveZone.o features/enrichmentbehaviour.o features/crackinitiation.o
+SOURCE_FEATURE = features/features.cpp features/pore.cpp features/pore3d.cpp features/inclusion.cpp features/inclusion3d.cpp features/sample.cpp features/sample3d.cpp features/crack.cpp features/enrichmentInclusion.cpp features/expansiveZone.cpp features/enrichmentbehaviour.cpp features/crackinitiation.cpp features/layeredinclusion.cpp
+OBJECTS_FEATURE = features/features.o features/pore.o features/pore3d.o features/inclusion.o features/inclusion3d.o features/sample.o features/sample3d.o features/crack.o features/enrichmentInclusion.o features/expansiveZone.o features/enrichmentbehaviour.o features/crackinitiation.o features/layeredinclusion.o
 
 SOURCE_FUNCTIONS = polynomial/vm_function_matrix.cpp polynomial/vm_token.cpp polynomial/vm_refcount_token.cpp polynomial/vm_function_base.cpp polynomial/vm_base.cpp 
 OBJECTS_FUNCTIONS = polynomial/vm_function_matrix.o polynomial/vm_token.o polynomial/vm_refcount_token.o polynomial/vm_function_base.o polynomial/vm_base.o 

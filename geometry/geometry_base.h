@@ -135,6 +135,7 @@ typedef enum
 {
 	NULL_GEOMETRY,
 	CIRCLE,
+	LAYERED_CIRCLE,
 	TRIANGLE,
 	RECTANGLE,
 	PARALLELOGRAMME,
@@ -145,6 +146,7 @@ typedef enum
 	TETRAHEDRON = 16,
 	HEXAHEDRON = 17,
 	SPHERE = 18,
+	LAYERED_SPHERE = 19
 } GeometryType ;
 
 typedef enum

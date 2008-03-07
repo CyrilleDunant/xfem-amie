@@ -157,7 +157,7 @@ void Feature::setBehaviour(Form * f)
 }
 
 
-Form * Feature::getBehaviour()
+Form * Feature::getBehaviour( const Point & p)
 {
 	return this->behaviour ;
 }
@@ -237,13 +237,20 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles(Feature * f )
 		return f->getBoundingTriangles(dtree) ;
 }
 
-FeatureTree::FeatureTree(Feature *first) : grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x, first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 20), grid3d(first->getBoundingBox()[7].x-first->getBoundingBox()[0].x, first->getBoundingBox()[7].y-first->getBoundingBox()[0].y, first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 20)
+FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 {
+
+
+
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
 	if(first)
 		this->addFeature(NULL, first) ;
-	
+
+	if(!is3D())
+		grid = new Grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x, first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 20) ;
+	if(is3D())
+		grid3d =new Grid3D(first->getBoundingBox()[7].x-first->getBoundingBox()[0].x, first->getBoundingBox()[7].y-first->getBoundingBox()[0].y, first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 20);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -267,9 +274,9 @@ FeatureTree::FeatureTree(Feature *first) : grid(first->getBoundingBox()[1].x-fir
 void FeatureTree::addFeature(Feature * father, Feature * f)
 {
 	if(!tree.empty() && f->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-		grid.forceAdd(f) ;
+		grid->forceAdd(f) ;
 	else if(!tree.empty())
-		grid3d.forceAdd(f) ;
+		grid3d->forceAdd(f) ;
 	
 	f->setFather(father) ;
 	if(father != NULL)
@@ -282,7 +289,8 @@ FeatureTree::~FeatureTree()
 {
 	delete father3D ;
 	delete father2D ;
-
+	delete grid ;
+	delete grid3d ;
 	delete this->dtree ;
 	delete this->dtree3D ;
 	delete this->K ;
@@ -706,7 +714,8 @@ void FeatureTree::stitch()
 				
 			}
 			stitched = true ;
-			
+#warning there is a problem when the points ge projected
+			return ;
 			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
@@ -728,8 +737,8 @@ void FeatureTree::stitch()
 						
 						
 						if(
-						    squareDist(&proj_0 , tets[i]->first ) < 1e-8 && 
-						    squareDist(&proj_1 , tets[i]->second) < 1e-8 
+						    squareDist(&proj_0 , tets[i]->first ) < 1e-12 && 
+						    squareDist(&proj_1 , tets[i]->second) < 1e-12 
 						  )
 						{
 							count +=1; 
@@ -739,8 +748,8 @@ void FeatureTree::stitch()
 							tets[i]->moved = true ;
 						}
 						if(
-						    squareDist(&proj_0 , tets[i]->first ) < 1e-8 && 
-						    squareDist(&proj_2 , tets[i]->third) < 1e-8 
+						    squareDist(&proj_0 , tets[i]->first ) < 1e-12 && 
+						    squareDist(&proj_2 , tets[i]->third) < 1e-12 
 						  )
 						{
 							count +=1; 
@@ -750,8 +759,8 @@ void FeatureTree::stitch()
 							tets[i]->moved = true ;
 						}
 						if(
-						    squareDist(&proj_0 , tets[i]->first ) < 1e-8 && 
-						    squareDist(&proj_3 , tets[i]->fourth) < 1e-8 
+						    squareDist(&proj_0 , tets[i]->first ) < 1e-12 && 
+						    squareDist(&proj_3 , tets[i]->fourth) < 1e-12 
 						  )
 						{
 							count +=1; 
@@ -761,8 +770,8 @@ void FeatureTree::stitch()
 							tets[i]->moved = true ;
 						}
 						if(
-						    squareDist(&proj_1 , tets[i]->second ) < 1e-8 && 
-						    squareDist(&proj_3 , tets[i]->fourth) < 1e-8 
+						    squareDist(&proj_1 , tets[i]->second ) < 1e-12 && 
+						    squareDist(&proj_3 , tets[i]->fourth) < 1e-12 
 						  )
 						{
 							count +=1; 
@@ -772,8 +781,8 @@ void FeatureTree::stitch()
 							tets[i]->moved = true ;
 						}
 						if(
-						    squareDist(&proj_1 , tets[i]->second ) < 1e-8 && 
-						    squareDist(&proj_2 , tets[i]->third) < 1e-8
+						    squareDist(&proj_1 , tets[i]->second ) < 1e-12 && 
+						    squareDist(&proj_2 , tets[i]->third) < 1e-12
 						  )
 						{
 							count +=1; 
@@ -783,8 +792,8 @@ void FeatureTree::stitch()
 							tets[i]->moved = true ;
 						}
 						if(
-						    squareDist(&proj_3 , tets[i]->fourth ) < 1e-8 && 
-						    squareDist(&proj_2 , tets[i]->third) < 1e-8 
+						    squareDist(&proj_3 , tets[i]->fourth ) < 1e-12 && 
+						    squareDist(&proj_2 , tets[i]->third) < 1e-12 
 						  )
 						{
 							count +=1; 
@@ -1232,7 +1241,7 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 			return new VoidForm() ;
 		}
 	
-	std::vector<Feature *> targets = grid.coOccur(static_cast<const Triangle *>(t)) ;
+	std::vector<Feature *> targets = grid->coOccur(static_cast<const Triangle *>(t)) ;
 	if(!targets.empty())
 	{
 		for(int i = targets.size()-1 ; i >=0  ; i--)
@@ -1254,53 +1263,53 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 				
 				if(notInChildren)
 				{
-					if(targets[i]->getBehaviour()->timeDependent())
+					if(targets[i]->getBehaviour(t->getCenter())->timeDependent())
 					{
-						if( !targets[i]->getBehaviour()->spaceDependent())
-							return targets[i]->getBehaviour()->getCopy() ;
+						if( !targets[i]->getBehaviour(t->getCenter())->spaceDependent())
+							return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 						else
 						{
-							Form * b = targets[i]->getBehaviour()->getCopy() ;
+							Form * b = targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 							b->transform(t->getXTransform(), t->getYTransform()) ;
 							return b ;
 						}
 					}
-					else if(!targets[i]->getBehaviour()->spaceDependent())
-						return targets[i]->getBehaviour()->getCopy() ;
+					else if(!targets[i]->getBehaviour(t->getCenter())->spaceDependent())
+						return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 					else
 					{
-						Form * b = targets[i]->getBehaviour()->getCopy() ;
+						Form * b = targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 						b->transform(t->getXTransform(), t->getYTransform()) ;
 						return b ;
 					}
 					
-					return targets[i]->getBehaviour()->getCopy() ;
+					return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 				}
 			}
 		}
 	}
 
-	if(tree[0]->getBehaviour()->timeDependent())
+	if(tree[0]->getBehaviour(t->getCenter())->timeDependent())
 	{
-		if( !tree[0]->getBehaviour()->spaceDependent())
-			return tree[0]->getBehaviour()->getCopy() ;
+		if( !tree[0]->getBehaviour(t->getCenter())->spaceDependent())
+			return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 		else
 		{
-			Form * b = tree[0]->getBehaviour()->getCopy() ;
+			Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 			b->transform(t->getXTransform(), t->getYTransform()) ;
 			return b ;
 		}
 	}
-	else if(!tree[0]->getBehaviour()->spaceDependent())
-		return tree[0]->getBehaviour()->getCopy() ;
+	else if(!tree[0]->getBehaviour(t->getCenter())->spaceDependent())
+		return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 	else
 	{
-		Form * b = tree[0]->getBehaviour()->getCopy() ;
+		Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 		b->transform(t->getXTransform(), t->getYTransform()) ;
 		return b ;
 	}
 	
-	return tree[0]->getBehaviour()->getCopy() ;
+	return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 
 }
 
@@ -1316,7 +1325,7 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 			return new VoidForm() ;
 		}
 	
-	std::vector<Feature *> targets = grid3d.coOccur(static_cast<const Tetrahedron *>(t)) ;
+	std::vector<Feature *> targets = grid3d->coOccur(static_cast<const Tetrahedron *>(t)) ;
 	if(!targets.empty())
 	{
 		for(int i = targets.size()-1 ; i >=0  ; i--)
@@ -1338,53 +1347,53 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 				
 				if(notInChildren)
 				{
-					if(targets[i]->getBehaviour()->timeDependent())
+					if(targets[i]->getBehaviour(t->getCenter())->timeDependent())
 					{
-						if( !targets[i]->getBehaviour()->spaceDependent())
-							return targets[i]->getBehaviour()->getCopy() ;
+						if( !targets[i]->getBehaviour(t->getCenter())->spaceDependent())
+							return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 						else
 						{
-							Form * b = targets[i]->getBehaviour()->getCopy() ;
+							Form * b = targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 							b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 							return b ;
 						}
 					}
-					else if(!targets[i]->getBehaviour()->spaceDependent())
-						return targets[i]->getBehaviour()->getCopy() ;
+					else if(!targets[i]->getBehaviour(t->getCenter())->spaceDependent())
+						return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 					else
 					{
-						Form * b = targets[i]->getBehaviour()->getCopy() ;
+						Form * b = targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 						b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 						return b ;
 					}
 					
-					return targets[i]->getBehaviour()->getCopy() ;
+					return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 				}
 			}
 		}
 	}
 	
-	if(tree[0]->getBehaviour()->timeDependent())
+	if(tree[0]->getBehaviour(t->getCenter())->timeDependent())
 	{
-		if( !tree[0]->getBehaviour()->spaceDependent())
-			return tree[0]->getBehaviour()->getCopy() ;
+		if( !tree[0]->getBehaviour(t->getCenter())->spaceDependent())
+			return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 		else
 		{
-			Form * b = tree[0]->getBehaviour()->getCopy() ;
+			Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 			b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 			return b ;
 		}
 	}
-	else if(!tree[0]->getBehaviour()->spaceDependent())
-		return tree[0]->getBehaviour()->getCopy() ;
+	else if(!tree[0]->getBehaviour(t->getCenter())->spaceDependent())
+		return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 	else
 	{
-		Form * b = tree[0]->getBehaviour()->getCopy() ;
+		Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 		b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 		return b ;
 	}
 	
-	return tree[0]->getBehaviour()->getCopy() ;
+	return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
 
 }
 
@@ -2309,10 +2318,10 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				std::vector<Feature *> potentialFeatures ;
 				
 				if(tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					potentialFeatures = grid.coOccur(tree[i]->getBoundingPoint(j)) ;
+					potentialFeatures = grid->coOccur(tree[i]->getBoundingPoint(j)) ;
 				else
 				{
-					potentialFeatures = grid3d.coOccur(tree[i]->getBoundingPoint(j)) ;
+					potentialFeatures = grid3d->coOccur(tree[i]->getBoundingPoint(j)) ;
 				}
 				
 				std::vector<Feature *> potentialChildren ;
@@ -2363,9 +2372,9 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				bool isIn = false ;
 				std::vector<Feature *> potentialFeatures  ;
 				if(tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					potentialFeatures = grid.coOccur(tree[i]->getInPoint(j)) ;
+					potentialFeatures = grid->coOccur(tree[i]->getInPoint(j)) ;
 				else
-					potentialFeatures = grid3d.coOccur(tree[i]->getInPoint(j)) ;
+					potentialFeatures = grid3d->coOccur(tree[i]->getInPoint(j)) ;
 				std::vector<Feature *> potentialChildren ;
 				
 				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)

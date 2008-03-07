@@ -14,6 +14,7 @@
 #include "features/pore.h"
 #include "features/sample.h"
 #include "features/inclusion.h"
+#include "features/layeredinclusion.h"
 #include "features/expansiveZone.h"
 #include "features/crack.h"
 #include "features/enrichmentInclusion.h"
@@ -1656,6 +1657,17 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,itz) ;
 	F.addFeature(&sample,new Pore(0.001, 0, -0.02)) ;
 	F.addFeature(&sample,new Pore(0.001, 0, 0.02)) ;
+	std::vector<double> rad ;
+	rad.push_back(0.001) ;
+	rad.push_back(0.005) ;
+	rad.push_back(0.01) ;
+	LayeredInclusion * li = new LayeredInclusion(rad, Point(0,0)) ;
+	std::vector<Form *> bev ;
+	bev.push_back(new Stiffness(m0_agg)) ;
+	bev.push_back(new Stiffness(m0_paste)) ;
+	bev.push_back(new Stiffness(m0_agg)) ;
+	li->setBehaviours(bev) ;
+	F.addFeature(&sample, li) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -1669,7 +1681,7 @@ int main(int argc, char *argv[])
 // // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
 // 		placed_area += inclusions[i]->area() ;
 // 	}
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	for(size_t i = 0 ; i < 0/*inclusions.size() */; i++)
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
@@ -1692,7 +1704,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(800) ;
+	F.sample(512) ;
 
 	F.setOrder(LINEAR) ;
 

@@ -228,6 +228,51 @@ public:
 } ;
 
 
+class LayeredCircle : public Circle
+{
+protected:
+	
+	double radius ;
+	double sqradius ;
+	std::vector<double> radiuses ;
+	
+public:
+	/** Construct a circle.
+	 * 
+	 * @param radii radii of the circles to construct. Will be reordered.
+	 * @param originX global x coordinate of the center.
+	 * @param originY global y coordinate of the center.
+	 */
+	LayeredCircle(std::vector<double> radii,double originX,double originY) ;
+	
+	/** Construct a circle. This constructor is provided for convenience and a copy of the point is made and storder in the internal points.
+	 * 
+	 * @param r radii of the circles to construct. Will be reordered.
+	 * @param center Center of the circle.
+	 */
+	LayeredCircle(std::vector<double> radii, const Point center) ; 
+	
+	/** Construct a circle.
+	 * 
+	 * @param r radius of the circle to construct.
+	 * @param center Center of the circle.
+	 */
+	LayeredCircle(double r, const Point center) ; 
+	virtual ~LayeredCircle() { } ;
+	
+	/** Sample the disc.
+	 * 
+	 * Points are placed in concentric circles, rotated from half the base angle each time. The spacing of the circle is so calculated as to have triangles as nearly equilateral as a regular spacing would allow.
+	 * 
+	 * @param num_points number of points <b>on the boundary</b>.
+	 */
+	virtual void sampleSurface(size_t num_points);
+
+	virtual void setRadius(double newr);
+	virtual void addRadius(double newr);
+	
+} ;
+
 class SegmentedLine :  public NonConvexGeometry
 {
 protected:

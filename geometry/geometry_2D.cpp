@@ -918,6 +918,151 @@ double Circle::area() const
 }
 
 
+LayeredCircle::LayeredCircle(std::vector<double> radii,double originX,double originY): Circle(radii[0], originX, originY)
+{
+	this->gType = LAYERED_CIRCLE ;
+	std::sort(radii.begin(), radii.end()) ;
+	Circle::setRadius(*radii.rbegin()) ;
+	radiuses = radii ;
+	center = Point(originX, originY) ;
+}
+
+
+LayeredCircle::LayeredCircle(std::vector<double> radii, const Point c) : Circle(radii[0], c)
+{
+	this->gType = LAYERED_CIRCLE ;
+	std::sort(radii.begin(), radii.end()) ;
+	Circle::setRadius(*radii.rbegin()) ;
+	radiuses = radii ;
+	center = c ;
+}
+
+LayeredCircle::LayeredCircle(double r, const Point center) : Circle(r, center)
+{
+	radiuses.push_back(r) ;
+}
+
+void LayeredCircle::sampleSurface(size_t num_points)
+{
+	assert(!sampled) ;
+	if(boundingPoints.size() == 0)
+		this->sampleBoundingSurface(num_points) ;
+	sampled = true ;
+	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
+	assert(numberOfRings >= 0) ;
+	double angle = 2.*M_PI/ (num_points) ;
+	double offset = 0 ;
+	
+	size_t num_points_start = num_points ;
+	std::vector<Point*> temp ;
+	std::vector<double> originalSamplingRadiuses ;
+	double meanDelta = getRadius()/(numberOfRings+1);
+	
+	for (size_t i = 0 ; i< numberOfRings ; ++i)
+	{
+		originalSamplingRadiuses.push_back(getRadius()*(1. - (double)(i + 1)/(numberOfRings+1))) ;
+	}
+	
+	originalSamplingRadiuses.insert(originalSamplingRadiuses.end(), radiuses.begin(),  radiuses.end()-1) ;
+	
+	std::sort(originalSamplingRadiuses.begin(),originalSamplingRadiuses.end()) ;
+	
+	for(size_t i = 0 ;  i < originalSamplingRadiuses.size() ; i++)
+	{
+		std::cout << originalSamplingRadiuses[i] << std::endl ;
+	}
+	bool deleted = true ;
+// 	while(deleted)
+// 	{
+// 		deleted = false ;
+// 		for(size_t i = 0 ; i < originalSamplingRadiuses.size() ;++i)
+// 		{
+// 			if(originalSamplingRadiuses[i+1] - originalSamplingRadiuses[i] < .2*meanDelta)
+// 			{
+// 				bool foundI = false ;
+// 				bool foundIp1 = false ;
+// 				for(size_t j = 0 ; j < radiuses.size() ; j++)
+// 				{
+// 					if(std::abs(radiuses[j]-originalSamplingRadiuses[i]) < .2*meanDelta)
+// 						foundI = true ;
+// 					if(std::abs(radiuses[j]-originalSamplingRadiuses[i+1]) < .2*meanDelta)
+// 						foundIp1 = true ;
+// 				}
+// 	
+// 				if(!foundI && foundIp1 )
+// 				{
+// 					originalSamplingRadiuses.erase(i+1) ;
+// 					deleted = true ;
+// 					break ;
+// 				}
+// 				else if (foundI && !foundIp1)
+// 				{
+// 					originalSamplingRadiuses.erase(i) ;
+// 					deleted = true ;
+// 					break ;
+// 				}
+// 			}
+// 		}
+// 	}
+	
+	for(size_t i = 0 ;  i < originalSamplingRadiuses.size() ; i++)
+	{
+		std::cout << originalSamplingRadiuses[i] << std::endl ;
+	}
+	
+	for (size_t i = originalSamplingRadiuses.size()-1 ; i != 0 ; --i)
+	{
+		double r = originalSamplingRadiuses[i] ;
+		for (size_t j = 0 ; j< num_points ; ++j)
+		{
+			double randa= 0 ; //((2.*(double)random()/(RAND_MAX+1.0))-1.)*0.2*(M_PI/num_points) ;
+			double randr= 0 ; //(.2*r/(numberOfRings+1))*((double)random()/RAND_MAX*2.-1.0) ;
+			temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().x, (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().y));
+		}
+		
+		num_points = (size_t)((double)num_points_start*(r/getRadius())) ;
+		
+		angle = 2.*M_PI/ (num_points) ;
+		
+		offset = 0.5*(2.*M_PI/ (num_points) -  2.*M_PI/ (num_points*1.1)) ;
+	}
+	
+	inPoints.resize(temp.size() + 1) ;
+	inPoints[0] = new Point(center) ;
+	std::copy(temp.begin(), temp.end(),&inPoints[1]) ;
+}
+
+void LayeredCircle::setRadius(double newr)
+{
+	double ratio = newr/(*radiuses.rbegin()) ;
+	radiuses.pop_back() ;
+	radiuses.push_back(newr) ;
+	std::sort(radiuses.begin(), radiuses.end()) ;
+	
+	
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+	{
+		getBoundingPoint(i).x = (getBoundingPoint(i).x - center.x)*ratio + center.x ;
+		getBoundingPoint(i).y = (getBoundingPoint(i).y - center.y)*ratio + center.y ;
+	}
+	
+	for(size_t i = 0 ; i < getInPoints().size() ; i++)
+	{
+		getInPoint(i).x = (getInPoint(i).x - center.x)*ratio + center.x ;
+		getInPoint(i).y = (getInPoint(i).y - center.y)*ratio + center.y ;
+	}
+	
+	this->sqradius = newr*newr ;
+}
+
+void LayeredCircle::addRadius(double newr)
+{
+	radiuses.push_back(newr) ;
+	std::sort(radiuses.begin(), radiuses.end()) ;
+	this->sqradius = (*radiuses.rbegin())*(*radiuses.rbegin()) ;
+}
+
+
 SegmentedLine::SegmentedLine(const std::valarray<Point *> & points) : NonConvexGeometry(0)
 {
 	gType = SEGMENTED_LINE ;

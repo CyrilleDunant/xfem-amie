@@ -123,7 +123,7 @@ public:
 	 * 
 	 * @return the Cauchy-Green Strain tensor.
 	 */
-	virtual Form * getBehaviour() ;
+	virtual Form * getBehaviour( const Point & p ) ;
 	
 	/** Add a children to the feature.
 	 * 
@@ -395,8 +395,8 @@ protected:
 	std::vector<Feature *> tree ;
 
 	/**For fast Access*/
-	Grid grid ;
-	Grid3D grid3d ;
+	Grid * grid ;
+	Grid3D * grid3d ;
 	
 	/** Contains the mesh in the form of a delaunay tree. 
 	 * The mesh is generated with linear triangles, and when it is final, midpoints are added and 

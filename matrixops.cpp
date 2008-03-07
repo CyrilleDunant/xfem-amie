@@ -339,49 +339,49 @@ void invert3x3Matrix(Mu::Matrix & m)
 	
 }
 
-// Mu::Matrix inverse4x4Matrix(const Mu::Matrix &s)
-// {	
-// 	Mu::Matrix ret(4,4) ;
-// 	
-// 	
-// 	double deti = det(s) ;
-// 	
-// 	ret[0][0] =  det(Matrix(0,0,s)) ; ret[0][1] = -det(Matrix(1,0,s)) ; ret[0][2] =  det(Matrix(2,0,s)) ; ret[0][3] = -det(Matrix(3,0,s)) ;
-// 	ret[1][0] = -det(Matrix(0,1,s)) ; ret[1][1] =  det(Matrix(1,1,s)) ; ret[1][2] = -det(Matrix(2,1,s)) ; ret[1][3] =  det(Matrix(3,1,s)) ;
-// 	ret[2][0] =  det(Matrix(0,2,s)) ; ret[2][1] = -det(Matrix(1,2,s)) ; ret[2][2] =  det(Matrix(2,2,s)) ; ret[2][3] = -det(Matrix(3,2,s)) ;
-// 	ret[3][0] = -det(Matrix(0,3,s)) ; ret[3][1] =  det(Matrix(1,3,s)) ; ret[3][2] = -det(Matrix(2,3,s)) ; ret[3][3] =  det(Matrix(3,3,s)) ;
-// 	
-// 	return ret/deti ;
-// 
-// }
-
-
 Mu::Matrix inverse4x4Matrix(const Mu::Matrix &s)
 {	
-	Matrix s00(2, 0, 0, s) ;
-	Matrix s10(2, 2, 0, s) ;
-	Matrix s01(2, 0, 2, s) ;
-	Matrix s11(2, 2, 2, s) ;
-	invert2x2Matrix(s00) ;
-	Matrix r2 = s10 * s00 ;
-	Matrix r3 = s00* s01 ;
-	Matrix r4 = s10 * r3 ;
-	Matrix r5 = r4 - s11 ;
-	invert2x2Matrix(r5) ;
-	s01 = r3*r5 ;
-	s10 = r5*r2 ;
-	Matrix r7 = r3*s10 ;
-	s00 -= r7 ;
-	s11 = r5*-1 ;
+	Mu::Matrix ret(4,4) ;
 	
-	Matrix ret(4,4) ;
-	ret[0][0] = s00[0][0]; ret[0][1] = s00[0][1]; ret[0][2] = s01[0][0]; ret[0][3] = s01[0][1];
-	ret[1][0] = s00[1][0]; ret[1][1] = s00[1][1]; ret[1][2] = s01[1][0]; ret[1][3] = s01[1][1];
-	ret[2][0] = s10[0][0];ret[2][1] =  s10[0][1]; ret[2][2] = s11[0][0]; ret[3][3] = s11[0][1];
-	ret[3][0] = s10[1][0];ret[3][1] =  s10[1][1]; ret[3][2] = s11[1][0]; ret[3][3] = s11[1][1];
+	
+	double deti = det(s) ;
+	
+	ret[0][0] =  det(Matrix(0,0,s)) ; ret[0][1] = -det(Matrix(1,0,s)) ; ret[0][2] =  det(Matrix(2,0,s)) ; ret[0][3] = -det(Matrix(3,0,s)) ;
+	ret[1][0] = -det(Matrix(0,1,s)) ; ret[1][1] =  det(Matrix(1,1,s)) ; ret[1][2] = -det(Matrix(2,1,s)) ; ret[1][3] =  det(Matrix(3,1,s)) ;
+	ret[2][0] =  det(Matrix(0,2,s)) ; ret[2][1] = -det(Matrix(1,2,s)) ; ret[2][2] =  det(Matrix(2,2,s)) ; ret[2][3] = -det(Matrix(3,2,s)) ;
+	ret[3][0] = -det(Matrix(0,3,s)) ; ret[3][1] =  det(Matrix(1,3,s)) ; ret[3][2] = -det(Matrix(2,3,s)) ; ret[3][3] =  det(Matrix(3,3,s)) ;
+	
+	return ret/deti ;
 
-	return ret ;
 }
+
+
+// Mu::Matrix inverse4x4Matrix(const Mu::Matrix &s)
+// {	
+// 	Matrix s00(2, 0, 0, s) ;
+// 	Matrix s10(2, 2, 0, s) ;
+// 	Matrix s01(2, 0, 2, s) ;
+// 	Matrix s11(2, 2, 2, s) ;
+// 	invert2x2Matrix(s00) ;
+// 	Matrix r2 = s10 * s00 ;
+// 	Matrix r3 = s00* s01 ;
+// 	Matrix r4 = s10 * r3 ;
+// 	Matrix r5 = r4 - s11 ;
+// 	invert2x2Matrix(r5) ;
+// 	s01 = r3*r5 ;
+// 	s10 = r5*r2 ;
+// 	Matrix r7 = r3*s10 ;
+// 	s00 -= r7 ;
+// 	s11 = r5*-1 ;
+// 	
+// 	Matrix ret(4,4) ;
+// 	ret[0][0] = s00[0][0]; ret[0][1] = s00[0][1]; ret[0][2] = s01[0][0]; ret[0][3] = s01[0][1];
+// 	ret[1][0] = s00[1][0]; ret[1][1] = s00[1][1]; ret[1][2] = s01[1][0]; ret[1][3] = s01[1][1];
+// 	ret[2][0] = s10[0][0];ret[2][1] =  s10[0][1]; ret[2][2] = s11[0][0]; ret[3][3] = s11[0][1];
+// 	ret[3][0] = s10[1][0];ret[3][1] =  s10[1][1]; ret[3][2] = s11[1][0]; ret[3][3] = s11[1][1];
+// 
+// 	return ret ;
+// }
 
 double det(const Mu::Matrix &s) 
 {
@@ -501,7 +501,6 @@ Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 	for(size_t i = 0 ; i < r.size() ; i++)
 	{
 		invDiag[i] = 1./A[i][i] ;
-// 		invDiag[i] = 1 ;
 	}
 	
 	if(rho < epsilon)
@@ -510,7 +509,6 @@ Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 	Vector p(r) ;
 	
 	Vector p_ = invDiag*p ;
-	//Vector p_ = precondition(p) ;
 	
 	Vector v = A*p_ ;
 	
@@ -525,7 +523,6 @@ Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 	}
 	
 	Vector s_ = invDiag*s ;
-	//Vector s_ = precondition(s) ;
 	Vector t = A*s_ ;
 	double omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
 	x += p_*alpha +omega*s_ ;
@@ -546,12 +543,10 @@ Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 		double beta = (rho/rho_)*(alpha/omega) ;
 		p = r + (p-v*omega)*beta ;
 		p_ = invDiag*p ;
-		//p_ = precondition(p) ;
 		v = A*p_ ;
 		alpha = rho/std::inner_product(&r_[0], &r_[r_.size()], &v[0], double(0)) ;
 		s = r - v*alpha ;
 		
-		//s_ = precondition(s) ;
 		s_ = invDiag*s ;
 		t = A*s_ ;
 		omega = std::inner_product(&t[0], &t[t.size()], &s[0], double(0))/std::inner_product(&t[0], &t[t.size()], &t[0], double(0)) ;
