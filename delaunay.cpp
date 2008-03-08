@@ -1991,7 +1991,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 	
 	VirtualMachine vm ;
 	
-	if(getEnrichmentFunctions().size() > 0 )
+	if(getEnrichmentFunctions().size() > 0)
 	{
 		std::vector<std::pair<Point, double> > gp_alternative ;
 		std::vector<Point> to_add ;
@@ -2059,7 +2059,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 
 			Function x = tri[i]->getXTransform() ;
 			Function y = tri[i]->getYTransform() ;
-// 			tri[i]->setOrder(QUADRATIC) ;
+			tri[i]->setOrder(QUADRATIC) ;
 
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			

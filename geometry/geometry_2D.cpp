@@ -966,53 +966,38 @@ void LayeredCircle::sampleSurface(size_t num_points)
 	originalSamplingRadiuses.insert(originalSamplingRadiuses.end(), radiuses.begin(),  radiuses.end()-1) ;
 	
 	std::sort(originalSamplingRadiuses.begin(),originalSamplingRadiuses.end()) ;
-	
-	for(size_t i = 0 ;  i < originalSamplingRadiuses.size() ; i++)
+
+	std::vector<double> samplingRadiuses ;
+
+	for(size_t i = 0 ; i < originalSamplingRadiuses.size()-1 ;i++)
 	{
-		std::cout << originalSamplingRadiuses[i] << std::endl ;
-	}
-	bool deleted = true ;
-// 	while(deleted)
-// 	{
-// 		deleted = false ;
-// 		for(size_t i = 0 ; i < originalSamplingRadiuses.size() ;++i)
-// 		{
-// 			if(originalSamplingRadiuses[i+1] - originalSamplingRadiuses[i] < .2*meanDelta)
-// 			{
-// 				bool foundI = false ;
-// 				bool foundIp1 = false ;
-// 				for(size_t j = 0 ; j < radiuses.size() ; j++)
-// 				{
-// 					if(std::abs(radiuses[j]-originalSamplingRadiuses[i]) < .2*meanDelta)
-// 						foundI = true ;
-// 					if(std::abs(radiuses[j]-originalSamplingRadiuses[i+1]) < .2*meanDelta)
-// 						foundIp1 = true ;
-// 				}
-// 	
-// 				if(!foundI && foundIp1 )
-// 				{
-// 					originalSamplingRadiuses.erase(i+1) ;
-// 					deleted = true ;
-// 					break ;
-// 				}
-// 				else if (foundI && !foundIp1)
-// 				{
-// 					originalSamplingRadiuses.erase(i) ;
-// 					deleted = true ;
-// 					break ;
-// 				}
-// 			}
-// 		}
-// 	}
-	
-	for(size_t i = 0 ;  i < originalSamplingRadiuses.size() ; i++)
-	{
-		std::cout << originalSamplingRadiuses[i] << std::endl ;
+		if(std::abs(originalSamplingRadiuses[i] - originalSamplingRadiuses[i+1]) < .5*meanDelta)
+		{
+			bool foundI = false ;
+			bool foundIp1 = false ;
+			for(size_t j = 0 ; j < radiuses.size() ; j++)
+			{
+				if(std::abs(radiuses[j]-originalSamplingRadiuses[i]) < 1e-8)
+					foundI = true ;
+				if(std::abs(radiuses[j]-originalSamplingRadiuses[i+1]) < 1e-8)
+					foundIp1 = true ;
+			}
+
+			if (foundI && !foundIp1)
+			{
+				samplingRadiuses.push_back(originalSamplingRadiuses[i]) ;
+				i++ ;
+			}
+		}
+		else
+			samplingRadiuses.push_back(originalSamplingRadiuses[i]) ;
 	}
 	
-	for (size_t i = originalSamplingRadiuses.size()-1 ; i != 0 ; --i)
+	samplingRadiuses.push_back(originalSamplingRadiuses[originalSamplingRadiuses.size()-1]) ;
+	
+	for (size_t i = samplingRadiuses.size()-1 ; i != 0 ; --i)
 	{
-		double r = originalSamplingRadiuses[i] ;
+		double r = samplingRadiuses[i] ;
 		for (size_t j = 0 ; j< num_points ; ++j)
 		{
 			double randa= 0 ; //((2.*(double)random()/(RAND_MAX+1.0))-1.)*0.2*(M_PI/num_points) ;
