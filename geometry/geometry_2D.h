@@ -270,6 +270,8 @@ public:
 
 	virtual void setRadius(double newr);
 	virtual void addRadius(double newr);
+
+	virtual const std::vector<double> & getRadii() const ;
 	
 } ;
 

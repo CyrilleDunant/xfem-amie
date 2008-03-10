@@ -918,6 +918,11 @@ double Circle::area() const
 }
 
 
+const std::vector<double> & LayeredCircle::getRadii() const
+{
+	return radiuses ;
+}
+
 LayeredCircle::LayeredCircle(std::vector<double> radii,double originX,double originY): Circle(radii[0], originX, originY)
 {
 	this->gType = LAYERED_CIRCLE ;

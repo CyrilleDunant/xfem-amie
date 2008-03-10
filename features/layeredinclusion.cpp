@@ -89,7 +89,6 @@ Point * LayeredInclusion::pointAfter(size_t i)
 	return to_insert ;
 }
 
-
 void LayeredInclusion::sample(size_t n)
 {
 	delete this->boundary ;
@@ -119,19 +118,60 @@ bool LayeredInclusion::interacts(Feature * f) const
 	return false ;
 }
 
-Form * LayeredInclusion::getBehaviour(const Point & p)
-{
-	double pRadius = dist(p, getCenter()) ;
+// Form * LayeredInclusion::getBehaviour(const Point & p)
+// {
+// 	//special case for Layered Parent ;
+// 	if(m_f && m_f->getGeometryType() == LAYERED_CIRCLE && m_f->in(p))
+// 	{
+// 		std::vector<double> parentRadii = dynamic_cast<LayeredCircle *>(m_f)->getRadii() ;
+// 		std::vector<double> childRadii = getRadii() ;
+// 		Point parentCenter = m_f->getCenter() ;
+// 		Point childCenter = getCenter() ;
+// 		
+// 		std::vector<double> rlist ;
+// 		std::vector<Point> clist ;
+// 		std::vector<bool> inchild ;
+// 
+// 		for(int i = std::min(parentRadii.size(), childRadii.size())-1 ; i >= 0 ; i--)
+// 		{
+// 			rlist.push_back(parentRadii[i]) ;
+// 			inchild.push_back(false) ;
+// 			clist.push_back(parentCenter) ;
+// 			rlist.push_back(childRadii[i]) ;
+// 			inchild.push_back(true) ;
+// 			clist.push_back(childCenter) ;
+// 		}
+// 		
+// 		int index = 0 ;
+// 		
+// 		for(int i = 1 ; i <rlist.size()  ; i++)
+// 		{
+// 			index = i ;
+// 			if(dist(p, clist[i]) > rlist[i])
+// 				break ;
+// 		}
+// 		
+// 		if(!inchild[index])
+// 			return dynamic_cast<LayeredInclusion *>(m_f)->getBehaviour(p, true) ;
+// 		
+// 	}
+// 
+// 	getBehaviour(p, true) ;
+// }
 
+Form * LayeredInclusion::getBehaviour(const Point & p)
+{	
+	double pRadius = dist(p, getCenter()) ;
+	
 	if(layeredBehaviour.size() == 1)
 		return behaviour ;
-
+	
 	for(size_t i = 0 ; i < radiuses.size() ; i++)
 	{
 		if (pRadius < radiuses[i])
 			return layeredBehaviour[i] ;
 	}
-
+	
 	return behaviour ;
 }
 
@@ -173,3 +213,91 @@ void LayeredInclusion::setBehaviours(std::vector<Form *> b)
 		layeredBehaviour.push_back(b[i]) ;
 	}
 }
+
+
+
+VirtualLayer::VirtualLayer(LayeredInclusion *father, double r, double x, double y) : Circle(r, x, y), Feature(father)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = NULL ; //new Sphere(r*1.07, x, y,z) ;
+	this->boundary2 =  NULL ; //new Sphere(r*0.93, x, y,z) ;
+}
+
+VirtualLayer::VirtualLayer(LayeredInclusion *father, double r,  Point center) : Circle(r, center ), Feature(father)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary =  NULL ; //new Sphere(r*1.07, center) ;
+	this->boundary2 =  NULL ; //new Sphere(r*0.93, center) ;
+}
+
+
+bool VirtualLayer::interacts(Feature * f) const 	
+{
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
+		if(f->inBoundary((*i)))
+			return true ;
+	return false ;
+}
+
+bool VirtualLayer::inBoundary(const Point *) const
+{
+	return false ;
+}
+
+bool VirtualLayer::inBoundary(const Point &) const
+{
+	return false ;
+}
+
+std::vector<Geometry *> VirtualLayer::getRefinementZones(size_t level) const 
+{
+	std::vector<Geometry *> ret ;
+	if(level > 0)
+		ret.push_back(new Circle(sqrt(radius)*(1.2), Circle::getCenter())) ;
+	if(level > 1)
+		ret.push_back(new Circle(sqrt(radius)*(1.15), Circle::getCenter())) ;
+	if(level > 2)
+		ret.push_back(new Circle(sqrt(radius)*(1.08), Circle::getCenter())) ;
+	return ret ;
+}
+
+std::vector<DelaunayTriangle *> VirtualLayer::getTriangles( DelaunayTree * dt)  { 
+	std::vector<DelaunayTriangle *> ret  ;
+	
+	std::vector<DelaunayTriangle *> temp = dt->conflicts(dynamic_cast<Circle *>(this)) ;
+	
+	for(size_t i = 0 ; i < temp.size() ; i++)
+	{
+		bool inChild = false ;
+		for(size_t j = 0 ;  j< this->getChildren()->size() ;  j++)
+		{
+			if(this->getChild(j)->in(temp[i]->getCenter()))
+			{
+				inChild = true ; 
+				break ;
+			}
+		}
+		if(this->in(temp[i]->getCenter()) || inChild )
+			ret.push_back(temp[i]) ;
+	}
+	return ret ;
+}
+
+std::vector<DelaunayTetrahedron *> VirtualLayer::getTetrahedrons( DelaunayTree_3D * dt)  {
+	return std::vector<DelaunayTetrahedron *>(0)  ;
+}
+
+
+Point * VirtualLayer::pointAfter(size_t i) { 
+	return NULL ; 
+}
+
+Form * VirtualLayer::getBehaviour(const Point & p)
+{
+	return m_f->getBehaviour(p) ;
+}
+
+void VirtualLayer::sample(size_t n)
+{
+}
+

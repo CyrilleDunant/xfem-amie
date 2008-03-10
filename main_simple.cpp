@@ -9,7 +9,10 @@
 #include "features/features.h"
 #include "features/pore.h"
 #include "features/sample.h"
+#include "features/sample3d.h"
 #include "features/inclusion.h"
+#include "features/inclusion3d.h"
+#include "physics/mohrcoulomb.h"
 
 #include <fstream>
 
@@ -56,32 +59,32 @@ void setBC()
 	
 	for(size_t k = 0 ; k < triangles.size() ;k++)
 	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints()->size() ; c++ )
+		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
 			
-			if (triangles[k]->getBoundingPoint(c)->x < -3.999)
+			if (triangles[k]->getBoundingPoint(c).x < -3.999)
 			{
-				featureTree->getAssembly()->setPoint(-timepos,0 ,0,triangles[k]->getBoundingPoint(c)->id) ;
+				featureTree->getAssembly()->setPoint(-timepos,0 ,0,triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if(triangles[k]->getBoundingPoint(c)->x > 3.999)
+			if(triangles[k]->getBoundingPoint(c).x > 3.999)
 			{
-				featureTree->getAssembly()->setPoint( timepos,0, 0,triangles[k]->getBoundingPoint(c)->id) ;
+				featureTree->getAssembly()->setPoint( timepos,0, 0,triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c)->y < -2.999)
+			if (triangles[k]->getBoundingPoint(c).y < -2.999)
 			{
-				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c)->id) ;
+				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if(triangles[k]->getBoundingPoint(c)->y > 2.999)
+			if(triangles[k]->getBoundingPoint(c).y > 2.999)
 			{
-				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c)->id) ;
+				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c)->z < -2.999)
+			if (triangles[k]->getBoundingPoint(c).z < -2.999)
 			{
-				featureTree->getAssembly()->setPointAlong( ZETA, 0, triangles[k]->getBoundingPoint(c)->id) ;
+				featureTree->getAssembly()->setPointAlong( ZETA, 0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if(triangles[k]->getBoundingPoint(c)->z > 2.999)
+			if(triangles[k]->getBoundingPoint(c).z > 2.999)
 			{
-				featureTree->getAssembly()->setPointAlong( ZETA, 0, triangles[k]->getBoundingPoint(c)->id) ;
+				featureTree->getAssembly()->setPointAlong( ZETA, 0, triangles[k]->getBoundingPoint(c).id) ;
 			}
 		}
 	}
@@ -154,9 +157,9 @@ void step()
 			epsilon22[k*3+2] = epsilon[k*3*3+7];
 			epsilon12[k*3+2] = epsilon[k*3*3+8];
 
-			Vector vm0 = triangles[k]->getState()->getPrincipalStresses(triangles[k]->first) ;
-			Vector vm1 = triangles[k]->getState()->getPrincipalStresses(triangles[k]->second) ;
-			Vector vm2 = triangles[k]->getState()->getPrincipalStresses(triangles[k]->third) ;
+			Vector vm0 = triangles[k]->getState().getPrincipalStresses(*triangles[k]->first) ;
+			Vector vm1 = triangles[k]->getState().getPrincipalStresses(*triangles[k]->second) ;
+			Vector vm2 = triangles[k]->getState().getPrincipalStresses(*triangles[k]->third) ;
 			vonMises[k*3]   = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 			vonMises[k*3+1] = sqrt(((vm1[0]-vm1[1])*(vm1[0]-vm1[1]))/2.) ;
 			vonMises[k*3+2] = sqrt(((vm2[0]-vm2[1])*(vm2[0]-vm2[1]))/2.) ;
@@ -215,7 +218,7 @@ void step()
 int main(int argc, char *argv[])
 {
 
-	Sample3d sample(NULL, 8,6,6,0,0,0) ;
+	Sample3D sample(NULL, 8,6,6,0,0,0) ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
@@ -225,13 +228,13 @@ int main(int argc, char *argv[])
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1-nu*nu)*(1.-nu)/2. ; 
 
 
-	Inclusion3d * inc = new Inclusion3d(1, -1.5,0,0) ;
+	Inclusion3D * inc = new Inclusion3D(1, -1.5,0,0) ;
 	F.addFeature(&sample,inc) ;
 	
 
 	
 	inc->setBehaviour(new Stiffness(m0)) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0*0.5, 1)) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0*0.5, new MohrCoulomb(30, -60))) ;
 
 	F.sample(128) ;
 	F.setOrder(QUADRATIC) ;

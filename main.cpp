@@ -1668,7 +1668,7 @@ int main(int argc, char *argv[])
 	rad.push_back(0.008) ;
 	rad.push_back(0.009) ;
 	rad.push_back(0.01) ;
-	LayeredInclusion * li = new LayeredInclusion(rad, Point(0,0)) ;
+	LayeredInclusion * li = new LayeredInclusion(rad, Point(-0.005,0)) ;
 	std::vector<Form *> bev ;
 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
@@ -1681,7 +1681,21 @@ int main(int argc, char *argv[])
 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
 	li->setBehaviours(bev) ;
+	bev.clear() ;
+	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
 	F.addFeature(&sample, li) ;
+	LayeredInclusion * lii = new LayeredInclusion(rad, Point(0.005,0)) ;
+	lii->setBehaviours(bev) ;
+	F.addFeature(li, lii) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -1718,7 +1732,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(800) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
 
