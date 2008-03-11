@@ -107,7 +107,7 @@ std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > gener
 		ret.first.push_back(temp) ;
 		temp->setBehaviour(behaviour->getCopy()) ;
 		double fact = (2.*random()/RAND_MAX-1.)*0.5+1. ;
-		temp->getBehaviour()->param *= fact ;
+		temp->getBehaviour(cercles[j]->getCenter())->param *= fact ;
 		F->addFeature(current, temp) ;
 		current = temp ;
 	}

@@ -74,12 +74,16 @@ protected:
 public:
 	
 	bool isEnrichmentFeature ;
+	bool isCompositeFeature ;
+	bool isVirtualFeature ;
 	
 	/** Feature constructor.
 	 * 
 	 * @param father sets the father.
 	 */
 	Feature(Feature *father) ;
+
+	Feature() ;
 	
 	/** Feature constructor.
 	 * 
@@ -90,7 +94,9 @@ public:
 	
 	virtual ~Feature() ;
 	
-	virtual Geometry * getBoundary() const ;
+	virtual void setBoundary(Geometry * g) ;
+	virtual const Geometry * getBoundary() const ;
+	virtual Geometry * getBoundary() ;
 	/**  Is Point in boundary?
 	 * 
 	 * @param v  point to check. 
@@ -151,7 +157,8 @@ public:
 	 * 
 	 * @return a pointer to the m_c member. This is a vector containing the pointers to the children.
 	 */
-	virtual const std::vector<Feature *> * getChildren() const;
+	virtual const std::vector<Feature *> & getChildren() const;
+	virtual std::vector<Feature *> & getChildren();
 	virtual std::vector<Feature *> getDescendants() const ;
 	
 	/** Reparent the feature.
@@ -229,8 +236,40 @@ public:
 	
 } ;
 
+class VirtualFeature : virtual public Feature
+{
+public:
 
-class EnrichmentFeature : public Feature
+	VirtualFeature(Feature *father) : Feature(father) { isVirtualFeature = true ;}
+	
+	VirtualFeature(Feature *father, Geometry * b) : Feature(father, b)  { isVirtualFeature = true ;}
+	
+	virtual ~VirtualFeature() { };
+
+	virtual void print() const = 0 ;
+} ;
+
+class CompositeFeature : virtual public Feature
+{
+protected:
+	std::vector<VirtualFeature *> components ;
+public:
+
+	CompositeFeature(Feature *father) : Feature(father) { isCompositeFeature = true ;}
+	
+	CompositeFeature(Feature *father, Geometry * b) : Feature(father, b)  { isCompositeFeature = true ;}
+	
+	virtual ~CompositeFeature() ;
+
+	std::vector<VirtualFeature *> & getComponents() ;
+	const std::vector<VirtualFeature *> & getComponents() const ;
+
+	virtual void print() const = 0 ;
+} ;
+
+
+
+class EnrichmentFeature : virtual public Feature
 {
 public:
 	
@@ -493,7 +532,8 @@ public:
 	 * @param t daughter feature.
 	 */
 	void addFeature(Feature *father, Feature * t) ;
-	
+
+	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
 	Vector getDisplacements() const ;
 	
 	/** Generate the sample points for all the features. The features are passed a sampling 

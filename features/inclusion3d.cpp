@@ -72,7 +72,7 @@ std::vector<DelaunayTetrahedron *> Inclusion3D::getTetrahedrons( DelaunayTree_3D
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;
-		for(size_t j = 0 ;  j< this->getChildren()->size() ;  j++)
+		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
 		{
 			if(this->getChild(j)->in(temp[i]->getCenter()))
 			{
@@ -180,7 +180,7 @@ std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getTetrahedrons( Delaunay
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;
-		for(size_t j = 0 ;  j< this->getChildren()->size() ;  j++)
+		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
 		{
 			if(this->getChild(j)->in(temp[i]->getCenter()))
 			{

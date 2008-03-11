@@ -24,7 +24,7 @@ std::vector<DelaunayTriangle *> LayeredInclusion::getTriangles( DelaunayTree * d
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;
-		for(size_t j = 0 ;  j< this->getChildren()->size() ;  j++)
+		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
 		{
 			if(this->getChild(j)->in(temp[i]->getCenter()))
 			{
@@ -38,39 +38,65 @@ std::vector<DelaunayTriangle *> LayeredInclusion::getTriangles( DelaunayTree * d
 	return ret ;
 }
 
-LayeredInclusion::LayeredInclusion(Feature *father, std::vector<double> radii,double x,double y) : LayeredCircle(radii, x, y ), Feature(father)
+LayeredInclusion::LayeredInclusion(Feature *father, std::vector<double> radii,double x,double y) : CompositeFeature(father), LayeredCircle(radii, x, y )
 {
-	this->isEnrichmentFeature = false ;
 	this->boundary = new Circle(getRadius()*1.1, x, y) ;
 	this->boundary2 = new Circle(getRadius()*.9, x, y) ;
+	
+	for(int i = getRadii().size()-1 ; i > -1 ; i--)
+	{
+		getComponents().push_back(new VirtualLayer(this, getRadii()[i], getCenter() ) );
+	}
 }
 
-LayeredInclusion::LayeredInclusion(Feature *father,std::vector<double> radii, const Point center) : LayeredCircle(radii, center ), Feature(father)
+LayeredInclusion::LayeredInclusion(Feature *father,std::vector<double> radii, const Point center) : CompositeFeature(father), LayeredCircle(radii, center )
 {
-	this->isEnrichmentFeature = false ;
 	this->boundary = new Circle(getRadius()*1.1, center) ;
 	this->boundary2 = new Circle(getRadius()*.9, center) ;
+	
+	for(int i = getRadii().size()-1 ; i > -1 ; i--)
+	{
+		getComponents().push_back(new VirtualLayer(this, getRadii()[i], getCenter() ) );
+	}
 }
 
-LayeredInclusion::LayeredInclusion(std::vector<double> r,double x,double y) : LayeredCircle(r, x, y), Feature(NULL)
+LayeredInclusion::LayeredInclusion(std::vector<double> r,double x,double y) :  CompositeFeature(NULL), LayeredCircle(r, x, y)
 {
-	this->isEnrichmentFeature = false ;
 	this->boundary = new Circle(getRadius()*1.1, x, y) ;
 	this->boundary2 = new Circle(getRadius()*.9, x, y) ;
+	
+	for(int i = getRadii().size()-1 ; i > -1 ; i--)
+	{
+		getComponents().push_back(new VirtualLayer(this, getRadii()[i], getCenter() ) );
+	}
 }
 
-LayeredInclusion::LayeredInclusion(std::vector<double> r,Point center) : LayeredCircle(r, center), Feature(NULL)
+void LayeredInclusion::print() const
+{
+	std::cout << "I am a layered inclusion" << std::endl ;
+}
+
+LayeredInclusion::LayeredInclusion(std::vector<double> r,Point center) : CompositeFeature(NULL), LayeredCircle(r, center)
+{
+	this->boundary = new Circle(getRadius()*1.1, center) ;
+	this->boundary2 = new Circle(getRadius()*.9, center) ;
+	
+	for(int i = getRadii().size()-1 ; i > -1 ; i--)
+	{
+		getComponents().push_back(new VirtualLayer(this, getRadii()[i], getCenter() ) );
+	}
+}
+
+LayeredInclusion::LayeredInclusion(double r, Point center) : CompositeFeature(NULL), LayeredCircle(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->boundary = new Circle(getRadius()*1.1, center) ;
 	this->boundary2 = new Circle(getRadius()*.9, center) ;
-}
-
-LayeredInclusion::LayeredInclusion(double r, Point center) : LayeredCircle(r, center),  Feature(NULL)
-{
-	this->isEnrichmentFeature = false ;
-	this->boundary = new Circle(getRadius()*1.1, center) ;
-	this->boundary2 = new Circle(getRadius()*.9, center) ;
+	
+	for(int i = getRadii().size()-1 ; i > -1 ; i--)
+	{
+		getComponents().push_back(new VirtualLayer(this, getRadii()[i], getCenter() ) );
+	}
 }
 
 Point * LayeredInclusion::pointAfter(size_t i)
@@ -96,6 +122,11 @@ void LayeredInclusion::sample(size_t n)
 	double r = getRadius()*(1.+ .6/(numberOfRings+1)) ;
 	this->boundary = new Circle(r, getCenter()) ;
 	this->sampleSurface(n) ;
+// 	double ratio = (1.+ .001/(numberOfRings+1)) ;
+// 	for(int i = getRadii().size()-1 ; i > -1 ; i--)
+// 	{
+// 		getComponents()[i]->setBoundary(new Circle(getComponents()[i]->getRadius()*ratio, getCenter())) ;
+// 	}
 }
 
 std::vector<Geometry *> LayeredInclusion::getRefinementZones(size_t level) const
@@ -118,46 +149,6 @@ bool LayeredInclusion::interacts(Feature * f) const
 	return false ;
 }
 
-// Form * LayeredInclusion::getBehaviour(const Point & p)
-// {
-// 	//special case for Layered Parent ;
-// 	if(m_f && m_f->getGeometryType() == LAYERED_CIRCLE && m_f->in(p))
-// 	{
-// 		std::vector<double> parentRadii = dynamic_cast<LayeredCircle *>(m_f)->getRadii() ;
-// 		std::vector<double> childRadii = getRadii() ;
-// 		Point parentCenter = m_f->getCenter() ;
-// 		Point childCenter = getCenter() ;
-// 		
-// 		std::vector<double> rlist ;
-// 		std::vector<Point> clist ;
-// 		std::vector<bool> inchild ;
-// 
-// 		for(int i = std::min(parentRadii.size(), childRadii.size())-1 ; i >= 0 ; i--)
-// 		{
-// 			rlist.push_back(parentRadii[i]) ;
-// 			inchild.push_back(false) ;
-// 			clist.push_back(parentCenter) ;
-// 			rlist.push_back(childRadii[i]) ;
-// 			inchild.push_back(true) ;
-// 			clist.push_back(childCenter) ;
-// 		}
-// 		
-// 		int index = 0 ;
-// 		
-// 		for(int i = 1 ; i <rlist.size()  ; i++)
-// 		{
-// 			index = i ;
-// 			if(dist(p, clist[i]) > rlist[i])
-// 				break ;
-// 		}
-// 		
-// 		if(!inchild[index])
-// 			return dynamic_cast<LayeredInclusion *>(m_f)->getBehaviour(p, true) ;
-// 		
-// 	}
-// 
-// 	getBehaviour(p, true) ;
-// }
 
 Form * LayeredInclusion::getBehaviour(const Point & p)
 {	
@@ -216,18 +207,20 @@ void LayeredInclusion::setBehaviours(std::vector<Form *> b)
 
 
 
-VirtualLayer::VirtualLayer(LayeredInclusion *father, double r, double x, double y) : Circle(r, x, y), Feature(father)
+VirtualLayer::VirtualLayer(LayeredInclusion *father, double r, double x, double y) : VirtualFeature(father), Circle(r, x, y)
 {
-	this->isEnrichmentFeature = false ;
-	this->boundary = NULL ; //new Sphere(r*1.07, x, y,z) ;
-	this->boundary2 =  NULL ; //new Sphere(r*0.93, x, y,z) ;
+	source = father ;
+
+	this->boundary = new Circle(getRadius(), getCenter()) ;
+	this->boundary2 = new Circle(getRadius()*.9, getCenter()) ;
 }
 
-VirtualLayer::VirtualLayer(LayeredInclusion *father, double r,  Point center) : Circle(r, center ), Feature(father)
+VirtualLayer::VirtualLayer(LayeredInclusion *father, double r,  Point center) : VirtualFeature(father), Circle(r, center )
 {
-	this->isEnrichmentFeature = false ;
-	this->boundary =  NULL ; //new Sphere(r*1.07, center) ;
-	this->boundary2 =  NULL ; //new Sphere(r*0.93, center) ;
+	source = father ;
+	
+	this->boundary = new Circle(getRadius(), getCenter()) ;
+	this->boundary2 = new Circle(getRadius()*.9, getCenter()) ;
 }
 
 
@@ -239,14 +232,19 @@ bool VirtualLayer::interacts(Feature * f) const
 	return false ;
 }
 
-bool VirtualLayer::inBoundary(const Point *) const
+bool VirtualLayer::inBoundary(const Point * p) const
 {
-	return false ;
+	return boundary->in(*p) ;
 }
 
-bool VirtualLayer::inBoundary(const Point &) const
+bool VirtualLayer::inBoundary(const Point & p) const
 {
-	return false ;
+	return boundary->in(p) ;
+}
+
+void VirtualLayer::print() const
+{
+	std::cout << "I am a virtual layer" << std::endl ;
 }
 
 std::vector<Geometry *> VirtualLayer::getRefinementZones(size_t level) const 
@@ -269,7 +267,7 @@ std::vector<DelaunayTriangle *> VirtualLayer::getTriangles( DelaunayTree * dt)  
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;
-		for(size_t j = 0 ;  j< this->getChildren()->size() ;  j++)
+		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
 		{
 			if(this->getChild(j)->in(temp[i]->getCenter()))
 			{
@@ -294,10 +292,12 @@ Point * VirtualLayer::pointAfter(size_t i) {
 
 Form * VirtualLayer::getBehaviour(const Point & p)
 {
-	return m_f->getBehaviour(p) ;
+	return source->getBehaviour(p) ;
 }
 
 void VirtualLayer::sample(size_t n)
 {
 }
+
+
 

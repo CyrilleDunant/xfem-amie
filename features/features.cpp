@@ -6,11 +6,24 @@
 
 #include "features.h"
 #include "crackinitiation.h"
+#include "layeredinclusion.h"
+#include "../physics/void_form.h"
 
 using namespace Mu ;
 
 
-Geometry * Feature::getBoundary() const
+void Feature::setBoundary(Geometry * g)
+{
+	delete boundary ;
+	this->boundary = g ;
+}
+
+Geometry * Feature::getBoundary()
+{
+	return this->boundary ;
+}
+
+const Geometry * Feature::getBoundary() const
 {
 	return this->boundary ;
 }
@@ -18,6 +31,8 @@ Geometry * Feature::getBoundary() const
 Feature::Feature(Feature * father)
 {
 	this->isEnrichmentFeature = false ;
+	this->isCompositeFeature = false ;
+	this->isVirtualFeature = false ;
 	double nu = 0.32 ;
 	double E = 2 ;
 // 	double nu = 0.5 ;
@@ -55,30 +70,29 @@ Feature::Feature(Feature * father)
 	this->boundary2 = NULL ;
 }
 
+Feature::Feature()
+{
+	this->isEnrichmentFeature = false ;
+	this->isCompositeFeature = false ;
+	this->isVirtualFeature = false ;
+
+	this->behaviour = new VoidForm() ;
+	
+	m_f = NULL ;
+	infRad = DEFAULT_BOUNDARY ;
+	this->boundary = NULL ;
+	this->boundary2 = NULL ;
+}
+
 Feature::Feature(Feature *father, Geometry * b) 
 { 
 	boundary = b ; 
 	m_f = father ; 
 	this->isEnrichmentFeature = false ;
-	double nu = 0.32 ;
-	double E = 14000 ;
-	
-	Matrix cg(3,3) ;
-	
-// 	double coef = E/(1.-nu*nu) ;
-// 	
-// 	cg[0][0] = 1. ; cg[0][1] = nu ; cg[0][2] = 0 ; 
-// 	cg[1][0] = nu ; cg[1][1] = 1. ; cg[1][2] = 0 ; 
-// 	cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu)/2. ; 
-// 	cg *=coef ;
-	
-	double coef = E/((1.+nu)*(1.-2.*nu)) ;
-	
-	cg[0][0] = 1.-nu ; cg[0][1] = nu ;    cg[0][2] = 0 ; 
-	cg[1][0] = nu ;    cg[1][1] = 1.-nu ; cg[1][2] = 0 ; 
-	cg[2][0] = 0 ;     cg[2][1] = 0 ;     cg[2][2] = (1.-2.*nu)/2. ; 
-	cg *=coef ;
-	this->behaviour = new Stiffness(cg) ;
+	this->isCompositeFeature = false ;
+	this->isVirtualFeature = false ;
+
+	this->behaviour = new VoidForm() ;
 	
 	if(father != NULL)
 		father->addChild(this) ;
@@ -167,9 +181,14 @@ Feature * Feature::getChild(size_t i) const
 	return m_c[i] ;
 }
 
-const std::vector<Feature *> * Feature::getChildren() const
+const std::vector<Feature *> & Feature::getChildren() const
 {
-	return &m_c ;
+	return m_c ;
+}
+
+std::vector<Feature *> & Feature::getChildren()
+{
+	return m_c ;
 }
 
 std::vector<Feature *> Feature::getDescendants() const
@@ -202,6 +221,22 @@ void  Feature::setFather(Feature *f)
 // {
 // 	this->sampleSurface(n) ;
 // }
+
+CompositeFeature::~CompositeFeature()
+{
+	for(size_t i = 0 ; i < components.size() ; i++)
+		delete components[i] ;
+}
+
+std::vector<VirtualFeature *> & CompositeFeature::getComponents()
+{
+	return components ;
+}
+
+const std::vector<VirtualFeature *> & CompositeFeature::getComponents() const
+{
+	return components ;
+}
 
 Feature::~Feature() 
 { 
@@ -271,12 +306,60 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 		K->set2D() ;
 }
 
+void FeatureTree::twineFeature(CompositeFeature * father, CompositeFeature * f)
+{
+	std::vector<VirtualFeature *> fatherComponents = father->getComponents() ;
+	std::vector<VirtualFeature *> childComponents = f->getComponents() ;	
+	addFeature(father, f) ;
+	
+	std::sort(father->getChildren().begin(), father->getChildren().end()) ;
+	std::vector<Feature *>::iterator child = std::find(father->getChildren().begin(), father->getChildren().end(),
+	fatherComponents[0]) ;
+	father->getChildren().erase(child) ;
+	child = std::find(tree.begin(), tree.end(), fatherComponents[0]) ;
+	tree.erase(child) ;
+	for(size_t i = 1 ; i< fatherComponents.size() ; i++)
+	{
+		std::vector<Feature *>::iterator child = std::find(fatherComponents[i-1]->getChildren().begin(),
+			fatherComponents[i-1]->getChildren().end(), 
+			fatherComponents[i]) ;
+		fatherComponents[i-1]->getChildren().erase(child) ;
+		child = std::find(tree.begin(), tree.end(), fatherComponents[i]) ;
+		tree.erase(child) ;
+	}
+	
+	addFeature(f, childComponents[0]) ;
+	for(size_t i = 0 ; i< fatherComponents.size() ; i++)
+	{
+		addFeature(childComponents[i], fatherComponents[i]) ;
+		if(i < childComponents.size()-2)
+			addFeature(fatherComponents[i], childComponents[i+1]) ;
+	}
+}
+
+
 void FeatureTree::addFeature(Feature * father, Feature * f)
 {
 	if(!tree.empty() && f->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 		grid->forceAdd(f) ;
 	else if(!tree.empty())
 		grid3d->forceAdd(f) ;
+	
+	if( f->isCompositeFeature && father && !father->isCompositeFeature)
+	{
+		std::vector<VirtualFeature *> pile = dynamic_cast<CompositeFeature *>(f)->getComponents();
+		f->setFather(father) ;
+		if(father != NULL)
+			father->addChild(f) ;
+		this->tree.push_back(f) ;
+		addFeature(f, pile[0]) ;
+		for(size_t i = 0 ; i < pile.size()-1 ; i++)
+		{
+			addFeature(pile[i], pile[i+1]) ;
+		}
+		return ;
+		
+	}
 	
 	f->setFather(father) ;
 	if(father != NULL)
@@ -714,7 +797,7 @@ void FeatureTree::stitch()
 				
 			}
 			stitched = true ;
-#warning there is a problem when the points ge projected
+#warning there is a problem when the points get projected
 			return ;
 			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
@@ -867,49 +950,44 @@ void FeatureTree::sample(size_t n)
 
 void FeatureTree::refine(size_t nit, SamplingCriterion *cri)
 {
-	bool nothingToAdd = false ;
-	size_t count = 0 ;
-	std::vector<Point> toAdd;
-	while(!nothingToAdd && (count < nit))
+	for(size_t t = 0 ; t < 512 ; t++)
 	{
-		nothingToAdd = false ;
-		std::vector <DelaunayTriangle *> triangles  =  dtree->getTriangles() ;
+		bool corrected = false ;
+		std::vector <DelaunayTriangle *> triangles  =  dtree->getTriangles(true) ;
 		
+		int count = 0 ;
 		for(size_t j = 0;  j < triangles.size() ; j++)
 		{
-			if(!cri->meetsCriterion(triangles[j]) && getElementBehaviour(triangles[j])->type != VOID_BEHAVIOUR)
+			if(!cri->meetsCriterion(triangles[j]))
 			{
-				std::vector<Point> temp = cri->suggest(triangles[j]) ;
-				toAdd.insert(toAdd.end(), temp.begin(), temp.end()) ;
-				
+				count++ ;
 			}
 		}
 		
-		std::cerr << "we have " << toAdd.size() << " non-conforming triangles" << std::endl ;
-		
-		std::stable_sort(toAdd.begin(), toAdd.end()) ;
-		std::vector<Point>::iterator e = std::unique(toAdd.begin(), toAdd.end());
-		toAdd.erase(e, toAdd.end()) ;
-
-		std::random_shuffle(toAdd.begin(), toAdd.end()) ;
-		for(size_t i = 0 ; i< toAdd.size() ; i++)
+		std::cout << count << " non-conformant triangles " << std::endl ;
+		for(size_t j = 0;  j < triangles.size() ; j++)
 		{
-			//std::cerr << "inserting..." ; toAdd[i].print() ; std::cerr << std::endl ;
-			insert(new Point(toAdd[i])) ;
+			if(!cri->meetsCriterion(triangles[j]))
+			{
+				std::vector<Point> temp = cri->suggest(triangles[j]) ;
+				if( !temp.empty())
+				{
+					std::random_shuffle(temp.begin(), temp.end()) ;
+					std::cout << "inserting " << temp.size() << " points" << std::endl ;
+					for(size_t i = 0 ; i< temp.size() ; i++)
+					{
+						//std::cerr << "inserting..." ; toAdd[i].print() ; std::cerr << std::endl ;
+						dtree->insert(new Point(temp[i])) ;
+						corrected = true ;
+					}
+					break ;
+				}
+			}
 		}
 		
-		count++ ;
-		
-		if(toAdd.size() < 2)
-		{
-			std::cerr << "Wow ! we Converged !" << std::endl ;
-			nothingToAdd = true ;
-		}
-		
-		
-		toAdd.clear() ;
+		if(!corrected)
+			break ;
 	}
-	dtree->print() ;
 }
 
 void FeatureTree::refine( size_t level )
@@ -975,7 +1053,7 @@ void FeatureTree::refine( size_t level )
 						p5.id = -1 ;
 						
 		
-						for(size_t l = 0 ;  l < zonesVec[i].second->getFather()->getChildren()->size() ; l++)
+						for(size_t l = 0 ;  l < zonesVec[i].second->getFather()->getChildren().size() ; l++)
 						{
 							if(!zonesVec[i].second->getFather()->getChild(l)->isEnrichmentFeature )
 							{
@@ -1115,7 +1193,7 @@ void FeatureTree::refine( size_t level )
 								break ;
 							}
 						}
-						for(size_t l = 0 ; l < zonesVec[i].second->getChildren()->size() ; l++)
+						for(size_t l = 0 ; l < zonesVec[i].second->getChildren().size() ; l++)
 						{
 							if(zonesVec[i].second->getChild(l)->inBoundary(sample[k]))
 							{
@@ -1156,7 +1234,7 @@ void FeatureTree::refine( size_t level )
 					p2.id = -1 ;
 // 					
 	
-					for(size_t l = 0 ;  l < zonesVec[i].second->getFather()->getChildren()->size() ; l++)
+					for(size_t l = 0 ;  l < zonesVec[i].second->getFather()->getChildren().size() ; l++)
 					{
 						if(!zonesVec[i].second->getFather()->getChild(l)->isEnrichmentFeature )
 						{
@@ -1252,7 +1330,7 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 				
 				bool notInChildren  = true ;
 				
-				for(size_t j = 0 ; j < targets[i]->getChildren()->size() ; j++)
+				for(size_t j = 0 ; j < targets[i]->getChildren().size() ; j++)
 				{
 					if(!targets[i]->getChild(j)->isEnrichmentFeature && targets[i]->getChild(j)->in(t->getCenter()))
 					{
@@ -1336,7 +1414,7 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 				
 				bool notInChildren  = true ;
 				
-				for(size_t j = 0 ; j < targets[i]->getChildren()->size() ; j++)
+				for(size_t j = 0 ; j < targets[i]->getChildren().size() ; j++)
 				{
 					if(!targets[i]->getChild(j)->isEnrichmentFeature && targets[i]->getChild(j)->in(t->getCenter()))
 					{
@@ -1409,7 +1487,7 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 		{
 			bool inChild = false ;
 			
-			std::vector<Feature *> tocheck = *tree[i]->getChildren();
+			std::vector<Feature *> tocheck = tree[i]->getChildren();
 			std::vector<Feature *> tocheckNew =  tocheck;
 			
 			while(!tocheckNew.empty())
@@ -1419,8 +1497,8 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 				{
 					tocheckTemp.insert(
 									   tocheckTemp.end(), 
-							tocheckNew[k]->getChildren()->begin(), 
-									tocheckNew[k]->getChildren()->end()
+							tocheckNew[k]->getChildren().begin(), 
+									tocheckNew[k]->getChildren().end()
 									  ) ;
 				}
 				tocheck.insert(tocheck.end(), tocheckTemp.begin(), tocheckTemp.end()) ;
@@ -1477,7 +1555,7 @@ Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 		{
 			bool inChild = false ;
 			
-			std::vector<Feature *> tocheck = *tree[i]->getChildren();
+			std::vector<Feature *> tocheck = tree[i]->getChildren();
 			std::vector<Feature *> tocheckNew =  tocheck;
 			
 			while(!tocheckNew.empty())
@@ -1487,8 +1565,8 @@ Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 				{
 					tocheckTemp.insert(
 									   tocheckTemp.end(), 
-							tocheckNew[k]->getChildren()->begin(), 
-									tocheckNew[k]->getChildren()->end()
+							tocheckNew[k]->getChildren().begin(), 
+									tocheckNew[k]->getChildren().end()
 									  ) ;
 				}
 				tocheck.insert(tocheck.end(), tocheckTemp.begin(), tocheckTemp.end()) ;
@@ -1642,7 +1720,7 @@ void FeatureTree::assemble()
 
 			if(this->tree[i]->isEnrichmentFeature)
 			{
-				static_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree) ;
+				dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree) ;
 			}
 			
 			if(i%10 == 0)
@@ -1919,7 +1997,7 @@ void FeatureTree::insert(Point * p )
 		{
 			bool yes = true ;
 			
-			for(size_t k  =  0 ; k < this->tree[i]->getChildren()->size() && yes; k++)
+			for(size_t k  =  0 ; k < this->tree[i]->getChildren().size() && yes; k++)
 			{
 				if(this->tree[i]->getChild(k)->in((*p)))
 					yes = false ;
@@ -1935,7 +2013,7 @@ void FeatureTree::insert(Point * p )
 	
 	bool yes = true ;
 	
-	for(size_t k  =  0 ; k <  mother->getChildren()->size() && yes; k++)
+	for(size_t k  =  0 ; k <  mother->getChildren().size() && yes; k++)
 	{
 		if( mother->getChild(k)->inBoundary(p))
 			yes = false ;
@@ -2218,11 +2296,11 @@ void FeatureTree::print() const
 void FeatureTree::printForFeature(const Feature *f) const
 {
 	f->print();
-	const std::vector<Feature *> *children = f->getChildren();
-	for (size_t i = 0; i != children->size(); ++i)
+	std::vector<Feature *> children = f->getChildren();
+	for (size_t i = 0; i != children.size(); ++i)
 	{
-// 		if ( !(*children)[i]->getChildren()->empty()) 
-			printForFeature((*children)[i]);
+// 		if ( !(*children)[i]->getChildren().empty()) 
+			printForFeature(children[i]);
 	}
 
 }
@@ -2346,17 +2424,25 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
 				{
 
-					if( potentialChildren[k]->getBoundary()->in(tree[i]->getBoundingPoint(j)) )
+					if( /*!potentialChildren[k]->isVirtualFeature
+					    && */potentialChildren[k]->getBoundary()->in(tree[i]->getBoundingPoint(j)) )
 					{
 						isIn = true ;
 						break ;
 					}
+// 					else if(potentialChildren[k]->isVirtualFeature 
+// 					        && potentialChildren[k]->in(tree[i]->getBoundingPoint(j)))
+// 					{
+// 						isIn = true ;
+// 						break ;
+// 					}
 				}
 				
 
 				if(i != 0 && !inRoot(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
-				
+				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
+					isIn = true ;
 				
 				if(!isIn)
 				{
@@ -2398,18 +2484,26 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				
 				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
 				{
-					if(potentialChildren[k]->getBoundary()->in(tree[i]->getInPoint(j)) )
+					if(/*!potentialChildren[k]->isVirtualFeature 
+					   && */potentialChildren[k]->getBoundary()->in(tree[i]->getInPoint(j)) )
 					{
 						isIn = true ;
 						break ;
 					}
+// 					else if(potentialChildren[k]->isVirtualFeature 
+// 					        && potentialChildren[k]->in(tree[i]->getInPoint(j)))
+// 					{
+// 						isIn = true ;
+// 						break ;
+// 					}
 
 				}
 				
 				
 				if(i != 0 && !inRoot(tree[i]->getInPoint(j)))
 					isIn = true ;
-				
+				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getInPoint(j)))
+					isIn = true ;
 					
 				if(!isIn)
 				{
@@ -2542,7 +2636,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		
 		for(size_t k  =  0 ; k <  enrichmentFeature.size() ; k++)
 		{
-			std::vector<Point *> pts = static_cast<EnrichmentFeature *>(enrichmentFeature[k])->getSamplingPoints() ;
+			std::vector<Point *> pts = dynamic_cast<EnrichmentFeature *>(enrichmentFeature[k])->getSamplingPoints() ;
 			
 			for(size_t i = 0 ; i < pts.size() ;i++)
 			{

@@ -758,7 +758,7 @@ inline bool DelaunayTriangle::hasVertexByID(const std::valarray<Point *> * p) co
 	return false ;
 }
 
-std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * t) 
+std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * t) const
 {
 	if(t == this)
 	{
@@ -799,7 +799,7 @@ std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * 
 	return std::pair< Point*,  Point*>(NULL, NULL) ;
 }
 
-std::pair< Point*,  Point*> DelaunayDemiPlane::commonEdge(const DelaunayTreeItem * t) 
+std::pair< Point*,  Point*> DelaunayDemiPlane::commonEdge(const DelaunayTreeItem * t) const
 {
 	if(t->isTriangle)
 	{

@@ -51,7 +51,7 @@ std::vector<DelaunayTetrahedron *> Sample3D::getTetrahedrons( DelaunayTree_3D * 
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;
-		for(size_t j = 0 ;  j< this->getChildren()->size() ;  j++)
+		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
 		{
 			if(this->getChild(j)->in(temp[i]->getCenter()))
 			{

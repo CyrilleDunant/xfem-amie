@@ -85,18 +85,112 @@ void MinimumAngle::reset()
 std::vector<Point> MinimumAngle::suggest(const DelaunayTriangle * t) const
 {
 
-	Segment s0(*t->first, *t->second) ;
-	Segment s1(*t->second, *t->third) ;
-	Segment s2(*t->third, *t->first) ;
-	std::map<double, Segment> sides;
-	sides[s0.vector().norm()] = s0 ;
-	sides[s1.vector().norm()] = s1 ;
-	sides[s2.vector().norm()] = s2 ;
-	
 	std::vector<Point> ret ;
 	
-	ret.push_back(sides.rbegin()->second.midPoint()) ;
-	ret.push_back((++sides.begin())->second.midPoint()) ;
+	std::vector<Point *> points ;
+	double maxX = std::max(std::max(t->first->x, t->second->x), t->third->x) ;
+	double minX = std::min(std::min(t->first->x, t->second->x), t->third->x) ;
+	double maxY = std::max(std::max(t->first->y, t->second->y), t->third->y) ;
+	double minY = std::min(std::min(t->first->y, t->second->y), t->third->y) ;
+	double count = 1 ;
+	double averageLength = (dist(t->first,t->second) + dist(t->first,t->third)+ dist(t->second,t->third))/3.;
+	for(size_t i = 0 ; i < t->neighbourhood.size() ; i++)
+	{
+		points.push_back(t->neighbourhood[i]->first) ;
+		points.push_back(t->neighbourhood[i]->second) ;
+		points.push_back(t->neighbourhood[i]->third) ;
+		averageLength +=  (dist(t->neighbourhood[i]->first,t->neighbourhood[i]->second) 
+		                   + dist(t->neighbourhood[i]->first,t->neighbourhood[i]->third)
+		                   + dist(t->neighbourhood[i]->second,t->neighbourhood[i]->third))/3.;
+		count++ ;
+		maxX = std::max(
+		                 std::max(
+		                           std::max(
+		                                     t->neighbourhood[i]->first->x, 
+		                                     t->neighbourhood[i]->second->x
+		                                   ), 
+		                           t->neighbourhood[i]->third->x
+		                         ),
+		                 maxX
+		               ) ;
+		minX =  std::min(
+		                         std::min(
+		                                   std::min(
+		                                             t->neighbourhood[i]->first->x, 
+		                                             t->neighbourhood[i]->second->x
+		                                           ), 
+		                                   t->neighbourhood[i]->third->x
+		                                 ),
+		                         minX
+		                       ) ;
+		maxY = std::max(
+		                        std::max(
+		                                  std::max(
+		                                            t->neighbourhood[i]->first->y, 
+		                                            t->neighbourhood[i]->second->y
+		                                          ), 
+		                                  t->neighbourhood[i]->third->y
+		                                ),
+		                        maxY
+		                      ) ;
+		minY =  std::min(
+		                         std::min(
+		                                   std::min(
+		                                             t->neighbourhood[i]->first->y, 
+		                                             t->neighbourhood[i]->second->y
+		                                           ), 
+		                                   t->neighbourhood[i]->third->y
+		                                 ),
+		                         minY
+		                       ) ;
+	}
+	
+	std::sort(points.begin(), points.end()) ;
+	std::vector<Point *>::iterator e = std::unique(points.begin(), points.end()) ;
+	points.erase(e, points.end()) ;
+	averageLength /= count ;
+	int pointsAlongX = ceil((maxX-minX)/averageLength);
+	int pointsAlongY = ceil((maxY-minY)/averageLength);
+	std::cout << "grid is " << pointsAlongX << "×" << pointsAlongY << std::endl ;
+	double d = .5*averageLength ;
+	for(int i = 0 ; i < pointsAlongX+2 ; i++)
+	{
+		for(int j = 0 ; j < pointsAlongY+2 ; j++)
+		{
+			Point potential(minX+(double)i/(pointsAlongX+1)*(maxX-minX), minY+(double)j/(pointsAlongY+1)*(maxY-minY)) ;
+			
+			bool inNeighbourhood = false ;
+			
+			for(size_t k = 0 ; k < t->neighbourhood.size() ; k++)
+			{
+				if(t->neighbourhood[k]->in(potential))
+				{
+					inNeighbourhood = true ;
+					break ;
+				}
+			}
+			if(t->in(potential))
+				inNeighbourhood = true ;
+			
+			if(inNeighbourhood)
+			{
+				bool alone = true ;
+				for(size_t k = 0 ; k < points.size() ;k++)
+				{
+					if(dist(points[k], &potential) < d)
+					{
+						alone = false ;
+						break ;
+					}
+				}
+				
+				if(alone)
+					ret.push_back(potential) ;
+			}
+		}
+	}
+// 	ret.push_back(sides.rbegin()->second.midPoint()) ;
+// 	ret.push_back(sides.rbegin()->second.midPoint() + ((++sides.begin())->second.midPoint()-sides.rbegin()->second.midPoint()) * 2. ) ;
 	
 	return ret ;
 }

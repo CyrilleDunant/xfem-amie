@@ -99,7 +99,7 @@ public:
 	
 	virtual bool isVertex(const Point *p) const = 0 ; //!< Test. Is this point \a p isVertex ?
 	virtual std::pair< Point*,  Point*> nearestEdge(const Point p)  = 0;  //!< What is the nearest edge from this point \a p.
-	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t)   = 0; //!< What is the common edge with this item. returns a null pair if none.
+	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const  = 0; //!< What is the common edge with this item. returns a null pair if none.
 	virtual bool inCircumCircle(const Point & p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
 	virtual bool isNeighbour( DelaunayTreeItem *) = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
@@ -138,7 +138,7 @@ public:
 	bool hasVertexByID(const std::valarray<Point *> * p) const ;
 	
 	std::pair< Point*,  Point*> nearestEdge(const Point p)  ;
-	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t)  ;
+	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const ;
 	
 	/** Check for point location.
 	 * 
@@ -182,7 +182,7 @@ public:
 	virtual ~DelaunayDemiPlane() ;
 	
 	inline std::pair< Point*,  Point*> nearestEdge(const Point p)  ;
-	inline std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t)  ;
+	inline std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const ;
 	
 	/** Check for point location.
 	 * 
@@ -229,7 +229,7 @@ public:
 
 	inline virtual std::pair< Point*,  Point*> nearestEdge(const Point p)  ;
 	
-	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) { return std::pair< Point*,  Point*>(NULL, NULL) ; } 
+	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const { return std::pair< Point*,  Point*>(NULL, NULL) ; } 
 	
 	virtual bool isNeighbour( DelaunayTreeItem *) { return false ; } 
 	

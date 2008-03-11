@@ -1695,8 +1695,8 @@ int main(int argc, char *argv[])
 	F.addFeature(&sample, li) ;
 	LayeredInclusion * lii = new LayeredInclusion(rad, Point(0.005,0)) ;
 	lii->setBehaviours(bev) ;
-	F.addFeature(li, lii) ;
-// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
+	F.twineFeature(li, lii) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 // 	{
@@ -1732,12 +1732,13 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 
-// 	F.refine(1) ;
-	F.generateElements() ;
+	
+	F.generateElements(2) ;
+// 	F.refine(1, new MinimumAngle(M_PI/10.)) ;
 	
 	for(size_t j = 0 ; j < crack.size() ; j++)
 		crack[j]->setInfluenceRadius(0.03) ;
