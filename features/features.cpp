@@ -312,6 +312,9 @@ void FeatureTree::twineFeature(CompositeFeature * father, CompositeFeature * f)
 	std::vector<VirtualFeature *> childComponents = f->getComponents() ;	
 	addFeature(father, f) ;
 	
+	
+	std::cout << "plaf" << std::endl ;
+	
 	std::sort(father->getChildren().begin(), father->getChildren().end()) ;
 	std::vector<Feature *>::iterator child = std::find(father->getChildren().begin(), father->getChildren().end(),
 	fatherComponents[0]) ;
@@ -323,11 +326,13 @@ void FeatureTree::twineFeature(CompositeFeature * father, CompositeFeature * f)
 		std::vector<Feature *>::iterator child = std::find(fatherComponents[i-1]->getChildren().begin(),
 			fatherComponents[i-1]->getChildren().end(), 
 			fatherComponents[i]) ;
-		fatherComponents[i-1]->getChildren().erase(child) ;
+		if(child != fatherComponents[i-1]->getChildren().end())
+			fatherComponents[i-1]->getChildren().erase(child) ;
 		child = std::find(tree.begin(), tree.end(), fatherComponents[i]) ;
-		tree.erase(child) ;
+		if(child != tree.end())
+			tree.erase(child) ;
 	}
-	
+	std::cout << "plif" << std::endl ;
 	addFeature(f, childComponents[0]) ;
 	for(size_t i = 0 ; i< fatherComponents.size() ; i++)
 	{
@@ -2424,8 +2429,17 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
 				{
 
-					if( /*!potentialChildren[k]->isVirtualFeature
-					    && */potentialChildren[k]->getBoundary()->in(tree[i]->getBoundingPoint(j)) )
+					if((!potentialChildren[k]->isVirtualFeature 
+					    && potentialChildren[k]->getBoundary()->in(tree[i]->getBoundingPoint(j))) 
+					   || (potentialChildren[k]->isVirtualFeature 
+					       && tree[i]->isVirtualFeature 
+					       && (dynamic_cast<VirtualFeature *>(potentialChildren[k])->getSource() 
+					           != dynamic_cast<VirtualFeature *>(tree[i])->getSource())
+					       && potentialChildren[k]->getBoundary()->in(tree[i]->getBoundingPoint(j))
+					      )
+					   || (potentialChildren[k]->isVirtualFeature 
+					       && potentialChildren[k]->in(tree[i]->getBoundingPoint(j)))
+					  )
 					{
 						isIn = true ;
 						break ;
@@ -2484,8 +2498,17 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				
 				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
 				{
-					if(/*!potentialChildren[k]->isVirtualFeature 
-					   && */potentialChildren[k]->getBoundary()->in(tree[i]->getInPoint(j)) )
+					if((!potentialChildren[k]->isVirtualFeature 
+					    && potentialChildren[k]->getBoundary()->in(tree[i]->getInPoint(j))) 
+					   || (potentialChildren[k]->isVirtualFeature 
+					       && tree[i]->isVirtualFeature 
+					       && (dynamic_cast<VirtualFeature *>(potentialChildren[k])->getSource() 
+					           != dynamic_cast<VirtualFeature *>(tree[i])->getSource())
+					       && potentialChildren[k]->getBoundary()->in(tree[i]->getInPoint(j))
+					    || (potentialChildren[k]->isVirtualFeature 
+					        && potentialChildren[k]->in(tree[i]->getInPoint(j)))
+					      )
+					  )
 					{
 						isIn = true ;
 						break ;

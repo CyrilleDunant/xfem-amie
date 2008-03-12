@@ -95,6 +95,8 @@ public:
 
 	virtual bool inBoundary(const Point & v) const ;
 	virtual bool inBoundary(const Point *v) const ;
+
+	virtual Feature * getSource() const ;
 	
 	
 public:

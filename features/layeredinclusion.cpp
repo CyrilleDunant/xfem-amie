@@ -297,6 +297,15 @@ Form * VirtualLayer::getBehaviour(const Point & p)
 
 void VirtualLayer::sample(size_t n)
 {
+	delete this->boundary ;
+	double numberOfRings =round((double)n/(2. * M_PI )) ;
+	double r = getRadius()*(1.+ .5*.075/(numberOfRings+1)) ;
+	this->boundary = new Circle(r, getCenter()) ;
+}
+
+Feature * VirtualLayer::getSource() const
+{
+	return source ;
 }
 
 

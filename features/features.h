@@ -247,6 +247,7 @@ public:
 	virtual ~VirtualFeature() { };
 
 	virtual void print() const = 0 ;
+	virtual Feature * getSource() const = 0;
 } ;
 
 class CompositeFeature : virtual public Feature
