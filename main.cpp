@@ -1709,7 +1709,7 @@ int main(int argc, char *argv[])
 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
 	LayeredInclusion * liii = new LayeredInclusion(rad, Point(0.00504,0.00505)) ;
 	liii->setBehaviours(bev) ;
-// 	F.twineFeature(lii, liii) ;
+	F.twineFeature(lii, liii) ;
 	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -1746,12 +1746,12 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(800) ;
 
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	
-	F.generateElements(2) ;
+	F.generateElements(10) ;
 // 	F.refine(1, new MinimumAngle(M_PI/10.)) ;
 	
 	for(size_t j = 0 ; j < crack.size() ; j++)

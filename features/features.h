@@ -136,6 +136,7 @@ public:
 	 * @param f Children to add.
 	 */
 	virtual void addChild(Feature *f) ;
+	virtual void removeChild(Feature *f) ;
 	
 	
 	/** Return i<sup>th</sup> child.
@@ -508,6 +509,7 @@ public:
 	bool initialized ;
 	
 	Point * checkElement( const DelaunayTetrahedron * t ) const;
+	Point * checkElement( const DelaunayTriangle * t ) const ;
 	Feature * getFeatForTetra( const DelaunayTetrahedron * t ) const;
 
 	bool solverConverged() const ;

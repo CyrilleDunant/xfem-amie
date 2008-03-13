@@ -73,7 +73,7 @@ LayeredInclusion::LayeredInclusion(std::vector<double> r,double x,double y) :  C
 
 void LayeredInclusion::print() const
 {
-	std::cout << "I am a layered inclusion" << std::endl ;
+	std::cout << "I am a layered inclusion, radius " << getRadius() << ", center (" << getCenter().x << "; " << getCenter().y << ")"<< std::endl ;
 }
 
 LayeredInclusion::LayeredInclusion(std::vector<double> r,Point center) : CompositeFeature(NULL), LayeredCircle(r, center)
@@ -244,7 +244,7 @@ bool VirtualLayer::inBoundary(const Point & p) const
 
 void VirtualLayer::print() const
 {
-	std::cout << "I am a virtual layer" << std::endl ;
+	std::cout << "I am a virtual layer, radius " << getRadius() << ", center (" << getCenter().x << "; " << getCenter().y << ")"<< std::endl ;
 }
 
 std::vector<Geometry *> VirtualLayer::getRefinementZones(size_t level) const 
@@ -299,7 +299,7 @@ void VirtualLayer::sample(size_t n)
 {
 	delete this->boundary ;
 	double numberOfRings =round((double)n/(2. * M_PI )) ;
-	double r = getRadius()*(1.+ .5*.075/(numberOfRings+1)) ;
+	double r = getRadius()*(1.+ .6/(numberOfRings+1)) ;
 	this->boundary = new Circle(r, getCenter()) ;
 }
 

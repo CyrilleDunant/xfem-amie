@@ -968,13 +968,14 @@ void LayeredCircle::sampleSurface(size_t num_points)
 		originalSamplingRadiuses.push_back(getRadius()*(1. - (double)(i + 1)/(numberOfRings+1))) ;
 	}
 	
-	originalSamplingRadiuses.insert(originalSamplingRadiuses.end(), radiuses.begin(),  radiuses.end()-1) ;
+	originalSamplingRadiuses.insert(originalSamplingRadiuses.end(), radiuses.begin(),  radiuses.end()-2) ;
 	
 	std::sort(originalSamplingRadiuses.begin(),originalSamplingRadiuses.end()) ;
 
 	std::vector<double> samplingRadiuses ;
+	samplingRadiuses.push_back(originalSamplingRadiuses[0]) ;
 
-	for(size_t i = 0 ; i < originalSamplingRadiuses.size()-1 ;i++)
+	for(size_t i = 1 ; i < originalSamplingRadiuses.size()-1 ;i++)
 	{
 		if(std::abs(originalSamplingRadiuses[i] - originalSamplingRadiuses[i+1]) < .5*meanDelta)
 		{

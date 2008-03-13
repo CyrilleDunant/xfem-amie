@@ -165,6 +165,13 @@ void  Feature::addChild(Feature *f)
 	}
 }
 
+void  Feature::removeChild(Feature *f)
+{
+	std::vector<Feature *>::iterator c = std::find(m_c.begin(), m_c.end(), f) ;
+	if(c != m_c.end())
+		m_c.erase(c) ;
+}
+
 void Feature::setBehaviour(Form * f)
 {
 	this->behaviour = f ;
@@ -193,16 +200,21 @@ std::vector<Feature *> & Feature::getChildren()
 
 std::vector<Feature *> Feature::getDescendants() const
 {
+	std::vector<Feature *> childrenToCheck = m_c ;
 	std::vector<Feature *> ret ;
-	for(size_t i = 0 ; i < m_c.size() ; i++)
+	
+	while(!childrenToCheck.empty())
 	{
-		ret.push_back(m_c[i]) ;
-		std::vector<Feature *> to_add = m_c[i]->getDescendants() ;
-		ret.insert(ret.end(), to_add.begin(), to_add.end()) ;
+		std::vector<Feature *> newChildren ;
+		
+		for(size_t i = 0 ; i< childrenToCheck.size() ;i++)
+		{
+			ret.push_back(childrenToCheck[i]) ;
+			newChildren.insert(newChildren.end(), childrenToCheck[i]->getChildren().begin(), childrenToCheck[i]->getChildren().end()) ;
+		}
+		
+		childrenToCheck = newChildren ;
 	}
-	std::stable_sort(ret.begin(), ret.end()) ;
-	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
-	ret.erase(e, ret.end()) ;
 	
 	return ret ;
 }
@@ -308,37 +320,49 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 
 void FeatureTree::twineFeature(CompositeFeature * father, CompositeFeature * f)
 {
+	std::vector<Feature *> chain = father->getDescendants() ;
 	std::vector<VirtualFeature *> fatherComponents = father->getComponents() ;
-	std::vector<VirtualFeature *> childComponents = f->getComponents() ;	
-	addFeature(father, f) ;
+	std::vector<VirtualFeature *> childComponents = f->getComponents() ;
 	
+	//we look for the father of the second descendant of the "father" feature
+	Feature * headerEnd =(*std::find(chain.begin(), chain.end(), fatherComponents[1]))->getFather() ;
+	Feature * headerEndChild = (*headerEnd->getChildren().rbegin()) ;
 	
-	std::cout << "plaf" << std::endl ;
-	
-	std::sort(father->getChildren().begin(), father->getChildren().end()) ;
-	std::vector<Feature *>::iterator child = std::find(father->getChildren().begin(), father->getChildren().end(),
-	fatherComponents[0]) ;
-	father->getChildren().erase(child) ;
-	child = std::find(tree.begin(), tree.end(), fatherComponents[0]) ;
-	tree.erase(child) ;
-	for(size_t i = 1 ; i< fatherComponents.size() ; i++)
-	{
-		std::vector<Feature *>::iterator child = std::find(fatherComponents[i-1]->getChildren().begin(),
-			fatherComponents[i-1]->getChildren().end(), 
-			fatherComponents[i]) ;
-		if(child != fatherComponents[i-1]->getChildren().end())
-			fatherComponents[i-1]->getChildren().erase(child) ;
-		child = std::find(tree.begin(), tree.end(), fatherComponents[i]) ;
-		if(child != tree.end())
-			tree.erase(child) ;
-	}
-	std::cout << "plif" << std::endl ;
+	//we attach the first component of the twinee to the twinee
 	addFeature(f, childComponents[0]) ;
-	for(size_t i = 0 ; i< fatherComponents.size() ; i++)
+	
+	//the header end loses its child and gets a new one
+	headerEnd->removeChild(*headerEnd->getChildren().rbegin());
+	addFeature(headerEnd, f) ;
+	
+	//we re-attach the new header to the rest
+	childComponents[0]->addChild(headerEndChild) ;
+	headerEndChild->setFather(childComponents[0]) ;
+	
+	//now that the header is complete, we find each father component in the chain, and insert at that
+	//point a new link: the corresponding child component
+	
+	for(size_t i = 1 ; i < fatherComponents.size() ;i++)
 	{
-		addFeature(childComponents[i], fatherComponents[i]) ;
-		if(i < childComponents.size()-2)
-			addFeature(fatherComponents[i], childComponents[i+1]) ;
+		Feature * attachPoint = (*std::find(chain.begin(), chain.end(), fatherComponents[i])) ;
+		Feature * attachPointChild = NULL;
+		if(!attachPoint->getChildren().empty())
+			attachPointChild = (*attachPoint->getChildren().rbegin()) ;
+		
+		//we detach the attach point from its father
+		attachPoint->removeChild(attachPointChild) ;
+		
+		//we attach the corresponding child component to the loose end
+		addFeature(attachPoint, childComponents[i]) ;
+
+		//we re-attach the attach point to the new feature
+		if(attachPointChild)
+		{
+			childComponents[i]->addChild(attachPointChild) ;
+			attachPointChild->setFather(childComponents[i]) ;
+
+		}
+		
 	}
 }
 
@@ -1335,9 +1359,11 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 				
 				bool notInChildren  = true ;
 				
-				for(size_t j = 0 ; j < targets[i]->getChildren().size() ; j++)
+				std::vector<Feature *> descendants = targets[i]->getDescendants() ;
+				
+				for(size_t j = 0 ; j < descendants.size() ; j++)
 				{
-					if(!targets[i]->getChild(j)->isEnrichmentFeature && targets[i]->getChild(j)->in(t->getCenter()))
+					if(!descendants[j]->isEnrichmentFeature && descendants[j]->in(t->getCenter()))
 					{
 						notInChildren = false ;
 						break ;
@@ -1419,9 +1445,11 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 				
 				bool notInChildren  = true ;
 				
-				for(size_t j = 0 ; j < targets[i]->getChildren().size() ; j++)
+				std::vector<Feature *> descendants = targets[i]->getDescendants() ;
+				
+				for(size_t j = 0 ; j < descendants.size() ; j++)
 				{
-					if(!targets[i]->getChild(j)->isEnrichmentFeature && targets[i]->getChild(j)->in(t->getCenter()))
+					if(!descendants[j]->isEnrichmentFeature && descendants[j]->in(t->getCenter()))
 					{
 						notInChildren = false ;
 						break ;
@@ -1492,23 +1520,8 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 		{
 			bool inChild = false ;
 			
-			std::vector<Feature *> tocheck = tree[i]->getChildren();
+			std::vector<Feature *> tocheck = tree[i]->getDescendants();
 			std::vector<Feature *> tocheckNew =  tocheck;
-			
-			while(!tocheckNew.empty())
-			{
-				std::vector<Feature *> tocheckTemp ;
-				for(size_t k = 0 ; k < tocheckNew.size() ; k++)
-				{
-					tocheckTemp.insert(
-									   tocheckTemp.end(), 
-							tocheckNew[k]->getChildren().begin(), 
-									tocheckNew[k]->getChildren().end()
-									  ) ;
-				}
-				tocheck.insert(tocheck.end(), tocheckTemp.begin(), tocheckTemp.end()) ;
-				tocheckNew = tocheckTemp ;
-			}
 			
 			for(size_t j = 0 ; j < tocheck.size() ; j++)
 			{	
@@ -1547,6 +1560,75 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 	}
 	return NULL;
 }
+
+
+Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
+{
+	
+	if(!inRoot(t->getCenter())) 
+		return NULL;
+	
+	for(int i = tree.size()-1 ; i >= 0 ; i--)
+	{
+		if (tree[i]->in(t->getCenter()) && (inRoot(t->getCenter())))
+		{
+			bool inChild = false ;
+			
+			std::vector<Feature *> tocheck = tree[i]->getDescendants();
+			std::vector<Feature *> tocheckNew =  tocheck;
+			
+			for(size_t j = 0 ; j < tocheck.size() ; j++)
+			{	
+				if(tocheck[j]->in(t->getCenter()) )
+				{
+					inChild = true ;
+					break ;
+				}
+			}
+			
+			
+			if(!inChild)
+			{
+				
+				size_t count_in = 0 ;
+				
+				count_in += tree[i]->inBoundary(t->first) ;
+				count_in += tree[i]->inBoundary(t->second) ;
+				count_in += tree[i]->inBoundary(t->third) ;
+				
+				if(count_in == 3 && tree[i]->in(t->getCenter()))
+				{
+					return NULL;
+				}
+				
+				else 
+				{
+					Point p1(t->getCenter()) ;
+					Point p0(t->getCircumCenter()) ;
+					tree[i]->project(&p1);
+					tree[i]->project(&p0);
+					double d0 = std::min(dist(&p0, t->first), std::min(dist(&p0, t->second),dist(&p0, t->third))) ;
+					double d1 = std::min(dist(&p1, t->first), std::min(dist(&p1, t->second),dist(&p1, t->third))) ;
+					if(t->inCircumCircle(p0) 
+					   && d0 > 1e-4 
+					   && d0>d1
+					  ) 
+						return new Point(p0);
+					else if(t->inCircumCircle(p1) 
+					        && d1 > 1e-4 
+					        && d1>d0
+					       ) 
+						return new Point(p1);
+					else
+						return NULL ;
+				}
+				
+			}
+		}
+	}
+	return NULL;
+}
+
 
 Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 {
@@ -2606,6 +2688,45 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		}
 		
 		std::cerr << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
+		
+		bool correct = false ;
+		int tries = correctionSteps ;
+		
+		while(!correct && tries)
+		{
+			std::vector< DelaunayTriangle * > tets = dtree->getTriangles();
+			std::vector< Point *> to_insert ;
+			
+			for(size_t i = 0 ; i < tets.size() ;i++)
+			{
+				Point *test = checkElement(tets[i]);
+				if(test)
+				{
+					to_insert.push_back(test);
+				}
+			}
+			
+			if(to_insert.empty())
+				correct = true ;
+			
+			for(size_t i = 0 ; i < to_insert.size() ;i++)
+			{
+				std::cerr << "\r generating triangles.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
+				if(*to_insert[i] != bbox[0] &&
+				   *to_insert[i] != bbox[2] &&
+				   *to_insert[i] != bbox[4] &&
+				   *to_insert[i] != bbox[6] &&
+				   inRoot( *to_insert[i])
+				  )
+					dtree->insert(to_insert[i]) ;
+				if(to_insert[i]->id == -1)
+					delete to_insert[i] ;
+			}
+			
+			tries-- ;
+			
+		}
+		std::cerr << " ...done."<< std::endl ;
 		
 	}
 	else if (is3D())
