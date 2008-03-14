@@ -1612,7 +1612,7 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-	srandom(time(NULL)) ;
+// 	srandom(time(NULL)) ;
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1752,7 +1752,7 @@ int main(int argc, char *argv[])
 
 	
 	F.generateElements(10) ;
-// 	F.refine(1, new MinimumAngle(M_PI/10.)) ;
+// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	
 	for(size_t j = 0 ; j < crack.size() ; j++)
 		crack[j]->setInfluenceRadius(0.03) ;

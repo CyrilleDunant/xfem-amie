@@ -325,7 +325,7 @@ void FeatureTree::twineFeature(CompositeFeature * father, CompositeFeature * f)
 	std::vector<VirtualFeature *> childComponents = f->getComponents() ;
 	
 	//we look for the father of the second descendant of the "father" feature
-	Feature * headerEnd =(*std::find(chain.begin(), chain.end(), fatherComponents[1]))->getFather() ;
+	Feature * headerEnd =(*std::find(chain.begin(), chain.end(), fatherComponents[0])) ;
 	Feature * headerEndChild = (*headerEnd->getChildren().rbegin()) ;
 	
 	//we attach the first component of the twinee to the twinee
@@ -1570,12 +1570,15 @@ Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
 	
 	for(int i = tree.size()-1 ; i >= 0 ; i--)
 	{
-		if (tree[i]->in(t->getCenter()) && (inRoot(t->getCenter())))
+		if ((tree[i]->in(t->getCenter()) 
+		     && (tree[i]->in(*t->first) 
+		         + tree[i]->in(*t->second) 
+		         + tree[i]->in(*t->third)) > 0 ) 
+		    && (inRoot(t->getCenter())))
 		{
 			bool inChild = false ;
 			
 			std::vector<Feature *> tocheck = tree[i]->getDescendants();
-			std::vector<Feature *> tocheckNew =  tocheck;
 			
 			for(size_t j = 0 ; j < tocheck.size() ; j++)
 			{	

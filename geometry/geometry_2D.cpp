@@ -954,7 +954,7 @@ void LayeredCircle::sampleSurface(size_t num_points)
 		this->sampleBoundingSurface(num_points) ;
 	sampled = true ;
 	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
-	assert(numberOfRings >= 0) ;
+
 	double angle = 2.*M_PI/ (num_points) ;
 	double offset = 0 ;
 	
@@ -968,7 +968,7 @@ void LayeredCircle::sampleSurface(size_t num_points)
 		originalSamplingRadiuses.push_back(getRadius()*(1. - (double)(i + 1)/(numberOfRings+1))) ;
 	}
 	
-	originalSamplingRadiuses.insert(originalSamplingRadiuses.end(), radiuses.begin(),  radiuses.end()-2) ;
+	originalSamplingRadiuses.insert(originalSamplingRadiuses.end(), radiuses.begin(),  radiuses.end()) ;
 	
 	std::sort(originalSamplingRadiuses.begin(),originalSamplingRadiuses.end()) ;
 
@@ -981,7 +981,7 @@ void LayeredCircle::sampleSurface(size_t num_points)
 		{
 			bool foundI = false ;
 			bool foundIp1 = false ;
-			for(size_t j = 0 ; j < radiuses.size() ; j++)
+			for(size_t j = 1 ; j < radiuses.size() ; j++)
 			{
 				if(std::abs(radiuses[j]-originalSamplingRadiuses[i]) < 1e-8)
 					foundI = true ;
