@@ -687,36 +687,8 @@ inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Poin
 	return ( std::abs((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y)) < Mu::POINT_TOLERANCE*Mu::POINT_TOLERANCE) ;
 } ;
 
-inline bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
-{
-// 	((*f0-*f1)^(*f2-*f1)).print() ; (*test-*f1).print() ;
-// 	std::cout << "coplanar ? " << std::abs(((*f0-*f1)^(*f2-*f1))*(*test-*f1)) << std::endl ;
-// 	return std::abs(((*f0-*f1)^(*f2-*f1))*((*f0-*f1)^(*test-*f1))-((*f0-*f1)^(*f2-*f1)).norm()*((*f0-*f1)^(*test-*f1)).norm()) < 10*std::numeric_limits<double>::epsilon() ;
-	Mu::Point A (*f0-*f1) ;
-	Mu::Point B (*f2-*f1) ;
-	Mu::Point C (*f2-*test) ;
-	
-	return  std::abs((A^B)*C) < Mu::POINT_TOLERANCE  
-		 || std::abs((A^C)*B) < Mu::POINT_TOLERANCE
-		 || std::abs((B^A)*C) < Mu::POINT_TOLERANCE
- 		 || std::abs((B^C)*A) < Mu::POINT_TOLERANCE
-		 || std::abs((C^A)*B) < Mu::POINT_TOLERANCE
- 		 || std::abs((C^B)*A) < Mu::POINT_TOLERANCE;
-} ;
-
-inline bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
-{
-// 	return std::abs(((f0-f1)^(f2-f1))*((f0-f1)^(test-f1))-((f0-f1)^(f2-f1)).norm()*((f0-f1)^(test-f1)).norm()) < 10*std::numeric_limits<double>::epsilon() ;
-	Mu::Point A (f0-f1) ;
-	Mu::Point B (f2-f1) ; 
-	Mu::Point C (f2-test) ; 
-	return  std::abs((A^B)*C) < Mu::POINT_TOLERANCE  
-		 || std::abs((A^C)*B) < Mu::POINT_TOLERANCE
-		 || std::abs((B^A)*C) < Mu::POINT_TOLERANCE
- 		 || std::abs((B^C)*A) < Mu::POINT_TOLERANCE
-		 || std::abs((C^A)*B) < Mu::POINT_TOLERANCE
- 		 || std::abs((C^B)*A) < Mu::POINT_TOLERANCE;
-} ;
+bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
+bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 
 
 inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1, const Mu::Point *f2)  

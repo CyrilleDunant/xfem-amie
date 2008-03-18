@@ -1646,6 +1646,7 @@ int main(int argc, char *argv[])
 	
 	int nAgg = 0 ;
 	feats=placement(new Circle(.01, 0, 0), feats, &nAgg, 32000);
+	
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
 	

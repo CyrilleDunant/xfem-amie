@@ -139,24 +139,29 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 		double longueurX = boundingBox[0].x-boundingBox[7].x;
 		double longueurY = boundingBox[0].y-boundingBox[7].y;
 		double longueurZ = boundingBox[0].z-boundingBox[7].z;
-		std::cout << longueurX << ", " << longueurY << std::endl ;
-		Grid3D grid(longueurX, longueurY, longueurZ, 20) ;
+		std::cout << longueurX << ", " << longueurY << ", " << longueurZ << std::endl ;
+		Grid3D grid(longueurX, longueurY, longueurZ, 40) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
 		longueurZ*=1.2 ;
 		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
+			double r = inclusions[i]->getRadius() ;
 			tries++ ;
-			Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
-			                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
-			                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+			Point newCentre(chiffreAleatoire(longueurX-2.1*r)-(longueurX-2.1*r)/2. + offset.x, 
+			                chiffreAleatoire(longueurY-2.1*r)-(longueurY-2.1*r)/2. + offset.y,
+			                chiffreAleatoire(longueurZ-2.1*r)-(longueurZ-2.1*r)/2. + offset.z
 			               ) ;
 			inclusions[i]->setCenter(newCentre) ;
-			while(!box->in(inclusions[i]->getCenter()) && !box->intersects(inclusions[i]) )
+			while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 			{
-				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
-				                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
-				                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+				Point newCentre(
+				                 chiffreAleatoire(longueurX-2.1*r)
+				                 -(longueurX-2.1*r)/2. + offset.x, 
+				                chiffreAleatoire(longueurY-2.1*r)
+				                 -(longueurY-2.1*r)/2. + offset.y,
+				                chiffreAleatoire(longueurZ-2.1*r)
+				                 -(longueurZ-2.1*r)/2. + offset.z
 				               ) ;
 				inclusions[i]->setCenter(newCentre) ;
 			}
@@ -166,16 +171,22 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 			while(!grid.add(inclusions[i]) && tries < triesMax)
 			{
 				tries++ ;
-				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
-				                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
-				                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+				Point newCentre(chiffreAleatoire(longueurX-2.1*r)
+				                -(longueurX-2.1*r)/2. + offset.x, 
+				                chiffreAleatoire(longueurY-2.1*r)
+				                -(longueurY-2.1*r)/2. + offset.y,
+				                chiffreAleatoire(longueurZ-2.1*r)
+				                -(longueurZ-2.1*r)/2. + offset.z
 				               ) ;
 				inclusions[i]->setCenter(newCentre) ;
-				while(!box->in(inclusions[i]->getCenter()) && !box->intersects(inclusions[i]) )
+				while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 				{
-					Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 
-					                chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y,
-					                chiffreAleatoire(longueurZ-2.1*inclusions[i]->getRadius())-(longueurZ-2.1*inclusions[i]->getRadius())/2. + offset.z
+					Point newCentre(chiffreAleatoire(longueurX-2.1*r)
+					                -(longueurX-2.1*r)/2. + offset.x, 
+					                chiffreAleatoire(longueurY-2.1*r)
+					                -(longueurY-2.1*r)/2. + offset.y,
+					                chiffreAleatoire(longueurZ-2.1*r)
+					                -(longueurZ-2.1*r)/2. + offset.z
 					               ) ;
 					inclusions[i]->setCenter(newCentre) ;
 				}
@@ -187,7 +198,7 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 					std::cout << "\rplaced " << i << " particles" << std::flush ;
 				inclusions[i]->setCenter(inclusions[i]->getCenter() + offset) ;
 				ret.push_back(inclusions[i]) ;
-				volume += inclusions[i]->area() ;
+				volume += inclusions[i]->volume() ;
 				tries = 0 ;
 			}
 			else

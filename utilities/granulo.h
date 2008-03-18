@@ -13,6 +13,7 @@
 #include <iostream>
 #include <vector>
 #include "../features/inclusion.h"
+#include "../features/inclusion3d.h"
 
 namespace Mu
 {
@@ -50,7 +51,8 @@ private:
 public:
 	GranuloBolome(double , double , TypeGranulo t) ;
 	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
-	
+	virtual std::vector <Inclusion3D *> operator()(bool, double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
+
 	virtual ~GranuloBolome() { } ;
 } ;
 

@@ -407,14 +407,14 @@ bool Triangle::inCircumCircle(const Point & p) const
 {
 	double x = circumCenter.x -p.x ;
 	double y = circumCenter.y -p.y ;
-	return  fma(x, x, y*y)< sqradius - 2.*POINT_TOLERANCE  ;
+	return  fma(x, x, y*y)< sqradius*(1. - POINT_TOLERANCE)  ;
 }
 
 bool Triangle::inCircumCircle(const Point *p) const
 {
 	double x = circumCenter.x -p->x ;
 	double y = circumCenter.y -p->y ;
-	return  fma(x, x, y*y) < sqradius - 2.*POINT_TOLERANCE  ;
+	return  fma(x, x, y*y) < sqradius*(1. - POINT_TOLERANCE)  ;
 }
 
 
@@ -799,12 +799,21 @@ Circle::Circle(double r, const Point center)
 
 void Circle::setRadius(double newr)
 {
-	this->radius = newr ;
+	double ratio = newr/(radius) ;
+	
 	
 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
-		project(&getBoundingPoint(i)) ;
+		getBoundingPoint(i).x = (getBoundingPoint(i).x - center.x)*ratio + center.x ;
+		getBoundingPoint(i).y = (getBoundingPoint(i).y - center.y)*ratio + center.y ;
 	}
+	
+	for(size_t i = 0 ; i < getInPoints().size() ; i++)
+	{
+		getInPoint(i).x = (getInPoint(i).x - center.x)*ratio + center.x ;
+		getInPoint(i).y = (getInPoint(i).y - center.y)*ratio + center.y ;
+	}
+	
 	this->sqradius = newr*newr ;
 }
 

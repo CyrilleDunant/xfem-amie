@@ -946,12 +946,14 @@ void FeatureTree::sample(size_t n)
 	}
 	else if (is3D())
 	{
-		std::cerr << "3D features" << std::endl ;
+		std::cerr << " 3D features..." << std::flush ;
 		double total_area = tree[0]->area() ;
 // 		total_volume = sqrt(total_volume) ;
 		tree[0]->sample(n) ;
 		for(size_t i  = 1 ; i < this->tree.size() ; i ++)
 		{
+			if(i%100 == 0)
+				std::cerr << "\r 3D features... sampling feature "<< i << "/" << this->tree.size() << std::flush ;
 			if(inRoot(this->tree[i]->getCenter()))
 			{
 				double a =tree[i]->area() ;
@@ -974,6 +976,7 @@ void FeatureTree::sample(size_t n)
 	// 		tree[i]->sample(sqrt(n)*10) ;
 	// 		tree[i]->sampleSurface(n) ;
 		}
+		std::cerr << "...done" << std::endl ;
 	}
 }
 
@@ -1570,11 +1573,10 @@ Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
 	
 	for(int i = tree.size()-1 ; i >= 0 ; i--)
 	{
-		if ((tree[i]->in(t->getCenter()) 
-		     && (tree[i]->in(*t->first) 
+		int inCount = tree[i]->in(*t->first) 
 		         + tree[i]->in(*t->second) 
-		         + tree[i]->in(*t->third)) > 0 ) 
-		    && (inRoot(t->getCenter())))
+			+ tree[i]->in(*t->third) +tree[i]->in(t->getCenter());
+		if (inCount > 1 && inRoot(t->getCenter()))
 		{
 			bool inChild = false ;
 			
@@ -2633,11 +2635,17 @@ void FeatureTree::generateElements( size_t correctionSteps)
 	{
 		if(!tree[i]->isEnrichmentFeature)
 		{
-			for(size_t j  = i+1 ; j < tree.size() ; j++)
+			std::vector<Feature *> coOccuringFeatures ;
+			if(is3D())
+				coOccuringFeatures = grid3d->coOccur(tree[i]) ;
+			else
+				coOccuringFeatures = grid->coOccur(tree[i]) ;
+			for(size_t j  = 0 ; j < coOccuringFeatures.size() ; j++)
 			{
-				if(!this->tree[j]->isEnrichmentFeature )
+				if(!coOccuringFeatures[j]->isEnrichmentFeature )
 				{
-					std::vector<Point> inter = tree[i]->intersection(tree[j]) ;
+					
+					std::vector<Point> inter = tree[i]->intersection(coOccuringFeatures[j]) ;
 					for(size_t k = 0 ;  k < inter.size() ; k++)
 					{
 						Point * going_in = new Point(inter[k]) ;
@@ -2978,9 +2986,7 @@ bool Voxel::add(Feature * inc)
 	{
 		for(size_t i = 0 ; i < this->features.size() ; i++)
 		{
-			if(
-				this->features[i]->intersects(inc)
-				)
+			if(this->features[i]->intersects(inc))
 				return false;
 		}
 		this->features.push_back(inc) ;

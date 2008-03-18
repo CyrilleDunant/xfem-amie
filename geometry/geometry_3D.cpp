@@ -241,7 +241,7 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 	double x = circumCenter.x - p.x ;
 	double y = circumCenter.y - p.y ;
 	double z = circumCenter.z - p.z ;
-	return  x*x +y*y + z*z < sqradius - 2.*POINT_TOLERANCE;
+	return  x*x +y*y + z*z < sqradius*(1. - POINT_TOLERANCE);
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
@@ -249,7 +249,7 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	double x = circumCenter.x - p->x ;
 	double y = circumCenter.y - p->y ;
 	double z = circumCenter.z - p->z ;
-	return   x*x +y*y + z*z < sqradius - 2.*POINT_TOLERANCE;
+	return   x*x +y*y + z*z < sqradius*(1. - POINT_TOLERANCE);
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)
@@ -576,14 +576,7 @@ void Hexahedron::sampleSurface(size_t num_points)
 	this->inPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		double ds = 0.5*size_x/(double)(numPointsPerDirectionOnBoundary-1) ;
-		double rx = (double)random()/(double)(RAND_MAX+1)*0.0625*ds - 0.03125*ds ;
-		ds = size_y/(double)(numPointsPerDirectionOnBoundary-1) ;
-		double ry = (double)random()/(double)(RAND_MAX+1)*0.0625*ds - 0.03125*ds ;
-		ds = size_z/(double)(numPointsPerDirectionOnBoundary-1) ;
-		double rz = (double)random()/(double)(RAND_MAX+1)*0.0625*ds - 0.03125*ds ;
-		
-		inPoints[i] = new Point(points[i]/*+Point(rx,ry,rz)*/) ;
+		inPoints[i] = new Point(points[i]) ;
 	}
 	
 }
@@ -630,19 +623,19 @@ void Hexahedron::project(Point * p) const
 	return ;
 }
 
-Sphere::Sphere(double r,double x, double y, double z ) : radius(r*r)
+Sphere::Sphere(double r,double x, double y, double z ) : radius(r), sqradius(r*r)
 {  
 	center = Point(x,y,z) ;
 	gType = SPHERE ;
 }
 	
-Sphere::Sphere(double r,const Point * p0 ) : radius(r*r) 
+Sphere::Sphere(double r,const Point * p0 ) : radius(r) , sqradius(r*r)
 { 
 	center = Point(*p0) ;
 	gType = SPHERE ;
 }
 
-Sphere::Sphere(double r,const Point p0 ) :radius(r*r) 
+Sphere::Sphere(double r,const Point p0 ) :radius(r) , sqradius(r*r)
 { 
 	center = Point(p0) ; 
 	gType = SPHERE ;
@@ -848,7 +841,7 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 
 void Sphere::sampleBoundingSurface(size_t num_points)
 {	
-	std::vector<Point> points = getSamplingPointsOnSphere(num_points, sqrt(radius)) ;
+	std::vector<Point> points = getSamplingPointsOnSphere(num_points, radius) ;
 	this->boundingPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
@@ -873,7 +866,7 @@ void Sphere::sampleSurface(size_t num_points)
 	for(size_t i = 0 ; i < numberOfRadii ; i++)
 	{
 		double r = sqrt(radius)*((double)(numberOfRadii-i-1)/(double)numberOfRadii) ;
-		num_points = (size_t)((double)numPointsOnSurface*((r*r)/radius));
+		num_points = (size_t)((double)numPointsOnSurface*(r/radius));
 		if(num_points < 8 )
 			break ;
 		
@@ -898,17 +891,17 @@ void Sphere::sampleSurface(size_t num_points)
 
 bool Sphere::in(const Point & v) const 
 { 
-	return squareDist(v, center ) < this->radius + POINT_TOLERANCE;
+	return squareDist(v, center ) < this->sqradius + POINT_TOLERANCE;
 }
 
 double Sphere::area() const
 {
-	return 4.*M_PI*radius ;
+	return 4.*M_PI*sqradius ;
 }
 
 double Sphere::volume() const
 {
-	return 4./3.*M_PI*radius*sqrt(radius) ;
+	return 4./3.*M_PI*sqradius*radius ;
 }
 
 void Sphere::project(Point * p) const
@@ -922,7 +915,7 @@ void Sphere::project(Point * p) const
 	
 	Point p_prime = *p-center ;
 	p_prime /= p_prime.norm() ;
-	p_prime = center+p_prime*sqrt(radius) ;
+	p_prime = center+p_prime*radius ;
 	p->x = p_prime.x ;
 	p->y = p_prime.y ;
 	p->z = p_prime.z ;
@@ -954,27 +947,36 @@ void Sphere::project(Point * p, double r) const
 	p->z = p_prime.z ;
 
 	return ;
-	
-	
-	
-	double theta = acos(p_prime.z/p_prime.norm()) ;
-	double phi = atan2(p_prime.y, p_prime.x) ;
-	
-	p->x = r*sin(theta)*cos(phi) ;
-	p->y = r*sin(theta)*sin(phi) ;
-	p->z = r*cos(theta) ;
+
 }
 
 void Sphere::computeCenter() { } ;
+
 double Sphere::getRadius() const 
 {
-	return sqrt(this->radius) ;
+	return this->radius ;
 }
-// std::valarray<Point> Sphere::getBoundingPoints() const
-// {
-// 	return this->boundingPoints;
-// }
 
+void Sphere::setRadius(double newr)
+{
+
+	double ratio = newr/(sqrt(radius)) ;
+	
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+	{
+		getBoundingPoint(i).x = (getBoundingPoint(i).x - center.x)*ratio + center.x ;
+		getBoundingPoint(i).y = (getBoundingPoint(i).y - center.y)*ratio + center.y ;
+	}
+	
+	for(size_t i = 0 ; i < getInPoints().size() ; i++)
+	{
+		getInPoint(i).x = (getInPoint(i).x - center.x)*ratio + center.x ;
+		getInPoint(i).y = (getInPoint(i).y - center.y)*ratio + center.y ;
+	}
+	
+	this->sqradius = newr*newr ;
+	this->radius = newr ;
+}
 
 
 void TriangulatedSurface::addPoint(Point * p)

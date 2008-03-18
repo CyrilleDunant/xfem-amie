@@ -542,15 +542,14 @@ bool Geometry::intersects(const Geometry *g) const
 					return false ;
 				if( squareDist3D(getCenter(), g->getCenter()) > (getRadius()+g->getRadius())* (getRadius()+g->getRadius())) 
 					return false;
-				if(dist(getCenter(), g->getCenter())+std::min(getRadius(),g->getRadius()) < std::max(getRadius(),g->getRadius()))
-					return false ;
+// 				if(dist(getCenter(), g->getCenter())+std::min(getRadius(),g->getRadius()) < std::max(getRadius(),g->getRadius()))
+// 					return false ;
 				
 				return true ;
 			}
 			if(g->getGeometryType() == HEXAHEDRON)
 			{
 				std::vector<Point> bbox = g->getBoundingBox() ;
-				
 				if(g->in(getCenter()))
 					return (getCenter().x+getRadius() > bbox[0].x) ||
 				         (getCenter().x-getRadius() < bbox[7].x)    ||
@@ -575,21 +574,19 @@ bool Geometry::intersects(const Geometry *g) const
 			if(g->getGeometryType() == SPHERE)
 			{
 				
-				
-// 				return true ;
-				
-				return (((g->getCenter().x+g->getRadius() > getBoundingBox()[0].x) ||
-				         (g->getCenter().x-g->getRadius() < getBoundingBox()[7].x) ||
-				         (g->getCenter().y+g->getRadius() > getBoundingBox()[0].y) ||
-				         (g->getCenter().y-g->getRadius() < getBoundingBox()[7].y) ||
-				         (g->getCenter().z+g->getRadius() > getBoundingBox()[0].z) ||
-				         (g->getCenter().z-g->getRadius() < getBoundingBox()[7].z)    )&&in(g->getCenter())) ||
-					(((g->getCenter().x+g->getRadius() < getBoundingBox()[0].x) ||
-					  (g->getCenter().x-g->getRadius() > getBoundingBox()[7].x)    ||
-					  (g->getCenter().y+g->getRadius() < getBoundingBox()[0].y)    ||
-					  (g->getCenter().y-g->getRadius() > getBoundingBox()[7].y)    ||
-					  (g->getCenter().z+g->getRadius() < getBoundingBox()[0].z)    ||
-					  (g->getCenter().z-g->getRadius() > getBoundingBox()[7].z)    )&& !in(g->getCenter()))
+				std::vector<Point> bbox = getBoundingBox() ;
+				return (((g->getCenter().x+g->getRadius() > bbox[0].x) ||
+				         (g->getCenter().x-g->getRadius() < bbox[7].x) ||
+				         (g->getCenter().y+g->getRadius() > bbox[0].y) ||
+				         (g->getCenter().y-g->getRadius() < bbox[7].y) ||
+				         (g->getCenter().z+g->getRadius() > bbox[0].z) ||
+				         (g->getCenter().z-g->getRadius() < bbox[7].z)    )&&in(g->getCenter())) ||
+					(((g->getCenter().x+g->getRadius() < bbox[0].x) ||
+					  (g->getCenter().x-g->getRadius() > bbox[7].x)    ||
+					  (g->getCenter().y+g->getRadius() < bbox[0].y)    ||
+					  (g->getCenter().y-g->getRadius() > bbox[7].y)    ||
+					  (g->getCenter().z+g->getRadius() < bbox[0].z)    ||
+					  (g->getCenter().z-g->getRadius() > bbox[7].z)    )&& !in(g->getCenter()))
 					;
 			}
 			if(g->getGeometryType() == HEXAHEDRON)
@@ -2824,4 +2821,29 @@ double OrientableCircle::getRadius() const
 {
 	return radius ;
 }
+
+bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
+{
+
+	Mu::Point A (*f0-*f1) ;
+	Mu::Point B (*f2-*f1) ;
+	Mu::Point C (*f2-*test) ;
+	
+	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
+	epsilon = std::max(epsilon, squareDist3D(C,B)) ;;
+	return  std::abs((A^B)*C) < epsilon*epsilon*Mu::POINT_TOLERANCE ;
+} ;
+
+bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
+{
+
+	Mu::Point A (f0-f1) ;
+	Mu::Point B (f2-f1) ; 
+	Mu::Point C (f2-test) ; 
+
+	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
+	epsilon = std::max(epsilon, squareDist3D(C,B)) ;
+
+	return  std::abs((A^B)*C) < epsilon*epsilon*Mu::POINT_TOLERANCE ;
+} ;
 

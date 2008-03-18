@@ -457,7 +457,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!stepson[i]->visited && stepson[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(stepson[i]) ;
-			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-8 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-6 ;
 		}
 
 		if( (!stepson[i]->visited && stepson[i]->inCircumSphere(*p)) || limit) 
@@ -476,7 +476,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!son[i]->visited && son[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(son[i]) ;
-			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-8 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-6 ;
 		}
 
 		if( (!son[i]->visited && son[i]->inCircumSphere(*p)) || limit)
@@ -500,7 +500,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!neighbour[i]->visited && neighbour[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(neighbour[i]) ;
-			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-8 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-6 ;
 		}
 		limit = true ;
 		

@@ -174,7 +174,8 @@ class Sphere : public ConvexGeometry
 protected:
 	
 	double radius ;
-	
+	double sqradius ;
+
 	std::vector<Point> getSamplingPointsOnSphere(size_t num_points, double radius) const ;
 	virtual void project(Point * p, double r) const;
 	void smooth(std::vector<Point> & points, double r) const ;
@@ -204,6 +205,7 @@ public:
 	
 	virtual void computeCenter() ;
 	virtual double getRadius() const ;
+	virtual void setRadius(double newr);
 	
 	virtual SpaceDimensionality spaceDimensions() const
 	{

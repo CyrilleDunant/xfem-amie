@@ -427,7 +427,201 @@ void BranchedCrack::enrichBranches(size_t & startid, DelaunayTree * dt)
 
 void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, const SegmentedLine * line)
 {
+	std::vector<DelaunayTriangle *> tris = dt->conflicts(line) ;
+	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
+	VirtualMachine vm ;
+	std::map<Point *, size_t> done ;
 	
+	for ( size_t i = 0 ; i < tris.size() ; i++ )
+	{
+		DelaunayTriangle *e = tris[i] ;
+
+		std::vector<Point> intersection ;
+
+		for ( size_t j = 1 ; j < line->getBoundingPoints().size() ; j++ )
+		{
+			Segment test ( getBoundingPoint ( j-1 ), getBoundingPoint ( j ) ) ;
+
+			if ( test.intersects ( static_cast<Triangle *> ( e ) ) )
+			{
+
+				//there is either one or two intersection points
+				std::vector<Point> temp_intersection = test.intersection ( static_cast<Triangle *> ( e ) ) ;
+
+
+				if ( temp_intersection.size() == 2 ) //we simply cross the element
+				{
+					if ( Segment ( temp_intersection[0], temp_intersection[1] ).vector() * test.vector() < 0 )
+					{
+						std::swap ( temp_intersection[0], temp_intersection[1] ) ;
+					}
+					intersection = temp_intersection ;
+
+				}
+				else //then there are kinks
+				{
+					intersection.push_back ( temp_intersection[0] ) ;
+					intersection.push_back ( getBoundingPoint ( j ) ) ;
+					for ( size_t k = j ; k < this->getBoundingPoints().size()-1 ; k++ )
+					{
+						Segment test_for_kink ( getBoundingPoint ( k ), getBoundingPoint ( k+1 ) ) ;
+
+						if ( !test_for_kink.intersects ( static_cast<Triangle *> ( e ) ) )
+						{
+							intersection.push_back ( getBoundingPoint ( k+1 ) ) ;
+						}
+						else
+						{
+							intersection.push_back ( test_for_kink.intersection ( static_cast<Triangle *> ( e ) ) [0] ) ;
+						}
+					}
+				}
+			}
+		}
+
+
+// 			e->setNonLinearBehaviour( new TwoDCohesiveForces(e, dynamic_cast<SegmentedLine *>(this)) ) ;
+
+
+		std::vector<Point> hint ;
+		std::vector<Point> transformed ;
+
+		for ( size_t k = 0 ; k < intersection.size() ; k++ )
+		{
+			transformed.push_back ( e->inLocalCoordinates ( intersection[k] ) ) ;
+		}
+
+		if ( transformed.size() >2 )
+		{
+			hint.push_back ( transformed[0] ) ;
+			for ( size_t k = 1 ; k < transformed.size()-1 ; k++ )
+			{
+				hint.push_back ( transformed[k] ) ;
+			}
+			hint.push_back ( transformed[transformed.size()-1] ) ;
+		}
+		else
+		{
+			for ( size_t k = 0 ; k < transformed.size() ; k++ )
+			{
+				hint.push_back ( transformed[k] ) ;
+			}
+		}
+		std::vector<Segment> intersectingSegments ;
+		for ( size_t j = 1 ; j < this->getBoundingPoints().size() ; j++ )
+		{
+			intersectingSegments.push_back ( Segment ( getBoundingPoint ( j-1 ), getBoundingPoint ( j ) ) ) ;
+		}
+
+		Function s ( intersectingSegments, e->getXTransform(), e->getYTransform() ) ;
+
+		int usedId = 0 ;
+		if(done.find(e->first) == done.end())
+		{
+			done[e->first] = startid ;
+			usedId = startid ;
+			startid++ ;
+		}
+		else
+		{
+			usedId = done[e->first] ;
+		}
+
+		Function f = shapefunc[0]* ( s - vm.eval ( s, Point ( 0,1 ) ) ) ;
+		f.setIntegrationHint ( hint ) ;
+		f.setPointID ( e->first->id ) ;
+		f.setDofID ( usedId ) ;
+		e->setEnrichment ( f  ) ;
+
+		if(done.find(e->first) == done.end())
+		{
+			done[e->first] = startid ;
+			usedId = startid ;
+			startid++ ;
+		}
+		else
+		{
+			usedId = done[e->first] ;
+		}
+		f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
+		f.setIntegrationHint ( hint ) ;
+		f.setPointID ( e->second->id ) ;
+		f.setDofID ( usedId ) ;
+		e->setEnrichment ( f  ) ;
+
+		if(done.find(e->first) == done.end())
+		{
+			done[e->first] = startid ;
+			usedId = startid ;
+			startid++ ;
+		}
+		else
+		{
+			usedId = done[e->first] ;
+		}
+		f = shapefunc[2]* ( s - vm.eval ( s, Point ( 1,0 ) ) ) ;
+
+		f.setIntegrationHint ( hint ) ;
+		f.setPointID ( e->third->id ) ;
+		f.setDofID ( usedId ) ;
+		e->setEnrichment ( f  ) ;
+
+		std::vector<DelaunayTriangle *> toEnrichAlso ;
+		for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
+		{
+			if ( e->neighbourhood[j]->isAlive() && !line->intersects(static_cast<Triangle *>(e)))
+				toEnrichAlso.push_back ( e->neighbourhood[j] ) ;
+		}
+
+
+		for ( size_t j = 0 ; j < toEnrichAlso.size() ; j++ )
+		{
+			DelaunayTriangle * elem = toEnrichAlso[j] ;
+
+			transformed.clear() ;
+
+			for ( size_t k = 0 ; k < intersection.size() ; k++ )
+			{
+				transformed.push_back ( elem->inLocalCoordinates ( intersection[k] ) ) ;
+			}
+
+			Function s_ ( intersectingSegments, elem->getXTransform(), elem->getYTransform() ) ;
+			hint.clear() ;
+
+			if ( done.find(elem->first) != done.end())
+			{
+				Function f = shapefunc[0]* ( s_ - vm.eval ( s_, Point ( 0,1 ) ) ) ;
+				f.setIntegrationHint ( hint ) ;
+				f.setPointID ( elem->first->id ) ;
+				f.setDofID ( done[elem->first] ) ;
+				elem->setEnrichment ( f ) ;
+
+			}
+
+			if (done.find(elem->second) != done.end())
+			{
+				Function f = shapefunc[1]* ( s_ - vm.eval ( s_, Point ( 0,0 ) ) ) ;
+				f.setIntegrationHint ( hint ) ;
+				f.setPointID ( elem->second->id ) ;
+				f.setDofID ( done[elem->second] ) ;
+				elem->setEnrichment ( f ) ;
+
+			}
+			if (done.find(elem->third) != done.end())
+			{
+				Function f = shapefunc[2]* ( s_ - vm.eval ( s_, Point ( 1,0 ) ) ) ;
+				f.setIntegrationHint ( hint ) ;
+				f.setPointID ( elem->third->id ) ;
+				f.setDofID ( done[elem->third] ) ;
+				elem->setEnrichment ( f ) ;
+			}
+		}
+	}
+	
+	for(std::map<Point *, size_t>::const_iterator i = done.begin() ; i != done.end() ; ++i)
+	{
+		donePoints.insert(i->first) ;
+	}
 }
 
 double BranchedCrack::getEnrichementRadius() const
