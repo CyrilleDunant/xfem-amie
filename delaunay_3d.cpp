@@ -158,6 +158,8 @@ void Star_3D::updateNeighbourhood()
 						                              treeitem[j]
 					                                     )
 					                            ) ;
+				treeitem[j]->stepfather->addStepson(treeitem[i]) ;
+				treeitem[i]->stepfather = treeitem[j]->stepfather ;
 			}
 		}
 	}	
