@@ -133,7 +133,7 @@ void Star_3D::updateNeighbourhood()
 	{
 		for(size_t j = i+1 ; j < treeitem.size() ;j++)
 		{
-			if(items[i]->isDuplicate(treeitem[j]) && treeitem[i]->isAlive() && treeitem[j]->isAlive())
+			if(treeitem[i]->isDuplicate(treeitem[j]) && treeitem[i]->isAlive() && treeitem[j]->isAlive())
 			{
 				for(size_t k = 0 ; k < treeitem[j]->neighbour.size() ; k++)
 				{
