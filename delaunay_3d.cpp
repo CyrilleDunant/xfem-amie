@@ -129,76 +129,45 @@ size_t DelaunayTreeItem_3D::numberOfCommonVertices(const DelaunayTreeItem_3D * s
 
 void Star_3D::updateNeighbourhood()
 {
-
-	std::vector<DelaunayTreeItem_3D *> items ;
-
 	for(size_t i = 0 ; i < treeitem.size() ;i++)
 	{
-		items.insert(items.end() , treeitem[i]->son.begin() , treeitem[i]->son.end()) ;
-// 		items.insert(items.end() , treeitem[i]->stepson.begin() , treeitem[i]->stepson.end()) ;
-// 		if(treeitem[i]->stepfather)
-// 			items.push_back(treeitem[i]->stepfather) ;
-// 		items.insert(items.end() , treeitem[i]->neighbour.begin() , treeitem[i]->neighbour.end()) ;
-	}
-	
-// 	std::stable_sort(items.begin(), items.end()) ;
-// 	std::vector<DelaunayTreeItem_3D *>::iterator e = std::unique(items.begin(), items.end()) ;
-// 	items.erase(e, items.end()) ;
-	
-	for(size_t i = 0 ; i < items.size() ;i++)
-	{
-		for(size_t j = i+1 ; j < items.size() ;j++)
+		for(size_t j = i+1 ; j < treeitem.size() ;j++)
 		{
-			if(items[i]->isDuplicate(items[j]) && items[i]->isAlive() && items[j]->isAlive())
+			if(items[i]->isDuplicate(treeitem[j]) && treeitem[i]->isAlive() && treeitem[j]->isAlive())
 			{
-// 				std::cout << "splash" << std::endl ;
-				for(size_t k = 0 ; k < items[j]->neighbour.size() ; k++)
+				for(size_t k = 0 ; k < treeitem[j]->neighbour.size() ; k++)
 				{
-					makeNeighbours(items[j]->neighbour[k], items[i]) ;
+					makeNeighbours(treeitem[j]->neighbour[k], treeitem[i]) ;
 				}
 				
-				items[j]->kill(creator) ;
-				items[j]->erased = true ;
-// 				if(std::find(items[j]->father->son.begin(), items[j]->father->son.end(),items[j]) !=  
-// 				   items[j]->father->son.end())
-					items[j]->father->son.erase(
-					                             std::find(
-					                                       items[j]->father->son.begin(), 
-					                                       items[j]->father->son.end(), 
-					                                       items[j]
-					                                      )
-					                           ) ;
-// 				if(std::find(items[j]->stepfather->stepson.begin(), items[j]->stepfather->stepson.end(),items[j]) != 
-// 				   items[j]->stepfather->stepson.end())
-					items[j]->stepfather->stepson.erase(
-					                                     std::find
-					                                     (
-					                                       items[j]->stepfather->stepson.begin(),
-						                                     items[j]->stepfather->stepson.end(), 
-						                                     items[j]
+				treeitem[j]->kill(creator) ;
+				treeitem[j]->erased = true ;
+
+				treeitem[j]->father->son.erase(
+					                    std::find(
+					                              treeitem[j]->father->son.begin(), 
+					                              treeitem[j]->father->son.end(), 
+					                              treeitem[j]
+					                              )
+					                    ) ;
+
+				treeitem[j]->stepfather->stepson.erase(
+					                            std::find(
+					                                      treeitem[j]->stepfather->stepson.begin(),
+						                              treeitem[j]->stepfather->stepson.end(), 
+						                              treeitem[j]
 					                                     )
-					                                   ) ;
+					                            ) ;
 			}
 		}
 	}	
 	
-// 	for(size_t i = 0 ; i < treeitem.size() ;i++)
-// 	{
-// // 		items.insert(items.end() , treeitem[i]->son.begin() , treeitem[i]->son.end()) ;
-// // 		items.insert(items.end() , treeitem[i]->stepson.begin() , treeitem[i]->stepson.end()) ;
-// // 		if(treeitem[i]->stepfather)
-// // 			items.push_back(treeitem[i]->stepfather) ;
-// 		items.insert(items.end() , treeitem[i]->neighbour.begin() , treeitem[i]->neighbour.end()) ;
-// 	}
-// 	
-
-	
-	for(size_t i = 0 ; i < items.size() ;i++)
+	for(size_t i = 0 ; i < treeitem.size() ;i++)
 	{
-		for(size_t j = i+1 ; j < items.size() ;j++)
+		for(size_t j = i+1 ; j < treeitem.size() ;j++)
 		{
-			if(!items[i]->erased && !items[j]->erased )
-				makeNeighbours(items[i], items[j]) ;
+			if(!treeitem[i]->erased && !treeitem[j]->erased )
+				makeNeighbours(treeitem[i], treeitem[j]) ;
 		}
 	}
 }
