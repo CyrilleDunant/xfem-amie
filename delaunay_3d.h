@@ -182,7 +182,7 @@ public:
 */
 
 //newly added class
-class DelaunayDemiSpace : virtual public DelaunayTreeItem_3D
+class DelaunayDemiSpace : public DelaunayTreeItem_3D
 {
 protected:
 	Point vector1 ; //!< Frontier vector. Precalculated for performace reasons
