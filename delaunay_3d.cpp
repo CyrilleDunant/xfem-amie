@@ -157,17 +157,15 @@ void Star_3D::updateNeighbourhood()
 					                              items[j]
 					                              )
 					                    ) ;
-				if(items[j]->stepfather && !items[j]->stepfather->stepson.empty())
-				{
-					std::sort(items[j]->stepfather->stepson.begin(),items[j]->stepfather->stepson.end()) ;
-					items[j]->stepfather->stepson.erase(
-									  std::find(
-										    items[j]->stepfather->stepson.begin(),
-										    items[j]->stepfather->stepson.end(), 
-										    items[j]
-										  )
-									  ) ;
-				}
+
+
+				items[j]->stepfather->stepson.erase(
+								  std::find(
+									    items[j]->stepfather->stepson.begin(),
+									    items[j]->stepfather->stepson.end(), 
+									    items[j]
+									  )
+								  ) ;
 			}
 		}
 	}	
@@ -1198,12 +1196,12 @@ bool DelaunayTreeItem_3D::isDuplicate(const DelaunayTreeItem_3D * t) const
 	      && t->isTetrahedron 
 	      && this->numberOfCommonVertices(t) == 4
 	     ) 
-	     || 
-	     (
-	      this->isSpace 
-	      && t->isSpace 
-	      && this->numberOfCommonVertices(t) == 3
-	      )
+// 	     || 
+// 	     (
+// 	      this->isSpace 
+// 	      && t->isSpace 
+// 	      && this->numberOfCommonVertices(t) == 3
+// 	      )
 	     )  ;
 }
 
