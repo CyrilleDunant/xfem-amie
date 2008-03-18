@@ -273,7 +273,7 @@ void DelaunayTree::refresh(TriElement *father, bool compile)
 	{
 		if(this->tree[i]->isAlive() && this->tree[i]->isTriangle)
 		{
-			(dynamic_cast<DelaunayTriangle *>(this->tree[i]))->refresh(father) ;
+			(static_cast<DelaunayTriangle *>(this->tree[i]))->refresh(father) ;
 		}
 	}
 }
@@ -304,7 +304,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		bool limit = false ;
 		if(!stepson[i]->visited && stepson[i]->isTriangle)
 		{
-			DelaunayTriangle * t = dynamic_cast<DelaunayTriangle *>(stepson[i]) ;
+			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(stepson[i]) ;
 			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
