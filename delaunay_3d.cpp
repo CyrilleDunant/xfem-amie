@@ -157,7 +157,7 @@ void Star_3D::updateNeighbourhood()
 					                              items[j]
 					                              )
 					                    ) ;
-
+				std::sort(items[j]->stepfather->stepson.begin(),items[j]->stepfather->stepson.end()) ;
 				items[j]->stepfather->stepson.erase(
 					                            std::find(
 					                                      items[j]->stepfather->stepson.begin(),
