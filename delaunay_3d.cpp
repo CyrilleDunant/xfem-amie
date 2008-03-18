@@ -1202,7 +1202,7 @@ bool DelaunayTreeItem_3D::isDuplicate(const DelaunayTreeItem_3D * t) const
 	     (
 	      this->isSpace 
 	      && t->isSpace 
-	      && this->numberOfCommonVertices(t) == 3
+// 	      && this->numberOfCommonVertices(t) == 3
 	      )
 	     )  ;
 }
