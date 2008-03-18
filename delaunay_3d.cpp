@@ -129,48 +129,55 @@ size_t DelaunayTreeItem_3D::numberOfCommonVertices(const DelaunayTreeItem_3D * s
 
 void Star_3D::updateNeighbourhood()
 {
-	for(size_t i = 0 ; i < treeitem.size() ;i++)
+	std::vector<DelaunayTreeItem_3D *> items ;
+
+        for(size_t i = 0 ; i < treeitem.size() ;i++)
+        {
+		items.insert(items.end() , treeitem[i]->son.begin() , treeitem[i]->son.end()) ;
+	}
+
+	for(size_t i = 0 ; i < items.size() ;i++)
 	{
-		for(size_t j = i+1 ; j < treeitem.size() ;j++)
+		for(size_t j = i+1 ; j < items.size() ;j++)
 		{
-			if(treeitem[i]->isDuplicate(treeitem[j]) && treeitem[i]->isAlive() && treeitem[j]->isAlive())
+			if(items[i]->isDuplicate(items[j]) && items[i]->isAlive() && items[j]->isAlive())
 			{
-				for(size_t k = 0 ; k < treeitem[j]->neighbour.size() ; k++)
+				for(size_t k = 0 ; k < items[j]->neighbour.size() ; k++)
 				{
-					makeNeighbours(treeitem[j]->neighbour[k], treeitem[i]) ;
+					makeNeighbours(items[j]->neighbour[k], items[i]) ;
 				}
 				
-				treeitem[j]->kill(creator) ;
-				treeitem[j]->erased = true ;
+				items[j]->kill(creator) ;
+				items[j]->erased = true ;
 
-				treeitem[j]->father->son.erase(
+				items[j]->father->son.erase(
 					                    std::find(
-					                              treeitem[j]->father->son.begin(), 
-					                              treeitem[j]->father->son.end(), 
-					                              treeitem[j]
+					                              items[j]->father->son.begin(), 
+					                              items[j]->father->son.end(), 
+					                              items[j]
 					                              )
 					                    ) ;
 
-				treeitem[j]->stepfather->stepson.erase(
+				items[j]->stepfather->stepson.erase(
 					                            std::find(
-					                                      treeitem[j]->stepfather->stepson.begin(),
-						                              treeitem[j]->stepfather->stepson.end(), 
-						                              treeitem[j]
+					                                      items[j]->stepfather->stepson.begin(),
+						                              items[j]->stepfather->stepson.end(), 
+						                              items[j]
 					                                     )
 					                            ) ;
-				treeitem[j]->father->addSon(treeitem[i]) ;
-				treeitem[j]->stepfather->addStepson(treeitem[i]) ;
-				treeitem[i]->stepfather = treeitem[j]->stepfather ;
+				items[j]->father->addSon(items[i]) ;
+				items[j]->stepfather->addStepson(items[i]) ;
+				items[i]->stepfather = items[j]->stepfather ;
 			}
 		}
 	}	
 	
-	for(size_t i = 0 ; i < treeitem.size() ;i++)
+	for(size_t i = 0 ; i < items.size() ;i++)
 	{
-		for(size_t j = i+1 ; j < treeitem.size() ;j++)
+		for(size_t j = i+1 ; j < items.size() ;j++)
 		{
-			if(!treeitem[i]->erased && !treeitem[j]->erased )
-				makeNeighbours(treeitem[i], treeitem[j]) ;
+			if(!items[i]->erased && !items[j]->erased )
+				makeNeighbours(items[i], items[j]) ;
 		}
 	}
 }
