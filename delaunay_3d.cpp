@@ -165,9 +165,9 @@ void Star_3D::updateNeighbourhood()
 						                              items[j]
 					                                     )
 					                            ) ;
-				items[j]->father->addSon(items[i]) ;
-				items[j]->stepfather->addStepson(items[i]) ;
-				items[i]->stepfather = items[j]->stepfather ;
+// 				items[j]->father->addSon(items[i]) ;
+// 				items[j]->stepfather->addStepson(items[i]) ;
+// 				items[i]->stepfather = items[j]->stepfather ;
 			}
 		}
 	}	
