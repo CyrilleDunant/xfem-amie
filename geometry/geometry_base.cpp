@@ -2829,9 +2829,9 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	Mu::Point B (*f2-*f1) ;
 	Mu::Point C (*f2-*test) ;
 	
-	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
-	epsilon = std::max(epsilon, squareDist3D(C,B)) ;;
-	return  std::abs((A^B)*C) < epsilon*epsilon*Mu::POINT_TOLERANCE ;
+	double epsilon = std::max(dist(A,B), dist(A,C)) ;
+	epsilon = std::max(epsilon, dist(C,B)) ;;
+	return  std::abs((A^B)*C) < epsilon*epsilon*epsilon*Mu::POINT_TOLERANCE ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2844,6 +2844,34 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
 	epsilon = std::max(epsilon, squareDist3D(C,B)) ;
 
-	return  std::abs((A^B)*C) < epsilon*epsilon*Mu::POINT_TOLERANCE ;
+	return  std::abs((A^B)*C) < epsilon*Mu::POINT_TOLERANCE ;
 } ;
+
+double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
+{
+
+	Mu::Point A (*f0-*f1) ;
+	Mu::Point B (*f2-*f1) ;
+	Mu::Point C (*f2-*test) ;
+	
+	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
+	epsilon = std::max(epsilon, squareDist3D(C,B)) ;
+	return  std::abs((A^B)*C) < epsilon*Mu::POINT_TOLERANCE ;
+} ;
+
+double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
+{
+
+	Mu::Point A (f0-f1) ;
+	Mu::Point B (f2-f1) ; 
+	Mu::Point C (f2-test) ; 
+
+	return  std::abs((A^B)*C)  ;
+} ;
+
+
+double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C)
+{
+	return (A^B)*C ;
+}
 

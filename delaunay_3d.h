@@ -102,7 +102,7 @@ public:
 	//newly added
 	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D *t)   = 0; //!< What is the common edge with this item. returns a null pair if none.
 
-	virtual std::vector< Point*> commonSurface(const DelaunayTreeItem_3D *t)   = 0; //!< What is the common edge with this item. returns a null pair if none
+	virtual std::vector< Point*> commonSurface(const DelaunayTreeItem_3D *t) const  = 0; //!< What is the common edge with this item. returns a null pair if none
 	
 	virtual bool inCircumSphere(const Point &p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
 	//newly aded
@@ -146,7 +146,7 @@ public:
 	std::pair< Point*,  Point*> nearestEdge(const Point & p)  ;
 	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D * t)  ;
 	std::vector< Point*> nearestSurface(const Point & p)  ;
-	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t)  ;
+	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t) const ;
 
 	
 	/** Check for point location.
@@ -200,7 +200,7 @@ public:
 	std::pair< Point*,  Point*> nearestEdge(const Point & p)  ;
 	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D * t)  ;
 	std::vector< Point*> nearestSurface(const Point & p)  ;
-	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t)  ;	
+	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t) const ;	
 	/** Check for point location.
 	 * 
 	 * @param p Point to check.
@@ -246,7 +246,7 @@ public:
 	
 	std::vector< Point*> nearestSurface(const Point & p) ;  //!< What is the nearest surface from this point \a p.
 	
-	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D *t)  ; //!< What is the common edge with this item. returns a null pair if none
+	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D *t) const ; //!< What is the common edge with this item. returns a null pair if none
 	
 	bool isNeighbour( const DelaunayTreeItem_3D *) const { return false ; } 
 	

@@ -1747,12 +1747,12 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(800) ;
+	F.sample(256) ;
 
 	F.setOrder(QUADRATIC) ;
 
 	
-	F.generateElements(10) ;
+	F.generateElements(0) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	
 	for(size_t j = 0 ; j < crack.size() ; j++)

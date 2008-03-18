@@ -457,7 +457,8 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!stepson[i]->visited && stepson[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(stepson[i]) ;
-			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-6 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+				< POINT_TOLERANCE*t->getRadius()*t->getRadius()*t->getRadius() ;
 		}
 
 		if( (!stepson[i]->visited && stepson[i]->inCircumSphere(*p)) || limit) 
@@ -476,7 +477,8 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!son[i]->visited && son[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(son[i]) ;
-			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-6 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+				< POINT_TOLERANCE*t->getRadius()*t->getRadius()*t->getRadius() ;
 		}
 
 		if( (!son[i]->visited && son[i]->inCircumSphere(*p)) || limit)
@@ -500,7 +502,8 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		if(!neighbour[i]->visited && neighbour[i]->isTetrahedron)
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(neighbour[i]) ;
-			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) < 1e-6 ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+				< POINT_TOLERANCE*t->getRadius()*t->getRadius()*t->getRadius() ;
 		}
 		limit = true ;
 		
@@ -738,7 +741,7 @@ std::pair<Point*, Point*> DelaunayTetrahedron::commonEdge(const DelaunayTreeItem
 
 
 
-inline std::vector<Point*> DelaunayTetrahedron::commonSurface(const DelaunayTreeItem_3D * t) 
+inline std::vector<Point*> DelaunayTetrahedron::commonSurface(const DelaunayTreeItem_3D * t) const
 {
 	std::vector<Point *> ret ;
 	if(t == this)
@@ -784,45 +787,120 @@ inline std::vector<Point*> DelaunayTetrahedron::commonSurface(const DelaunayTree
 	}
 	else
 	{
-		if(isCoplanar((*t->first), (*first), (*second),(*third)) && 
-		   isCoplanar((*t->second), (*first), (*second),(*third)) &&
-		   isCoplanar((*t->third), (*first), (*second),(*third)))
+		Point A(*first-*second) ; 
+		Point B(*third-*second) ; 
+		Point C(*third-*t->first) ; 
+		Point D(*third-*t->second) ; 
+		Point E(*third-*t->third) ;
+		double fst = std::abs(triProduct(A, B, C)) ;
+		fst = std::max(fst, std::abs(triProduct(A, B, D))) ;
+		fst = std::max(fst, std::abs(triProduct(A, B, E))) ;
+		
+		A = (*first-*third) ; 
+		B = (*fourth-*third) ; 
+		C = (*fourth-*t->first) ; 
+		D = (*fourth-*t->second) ; 
+		E = (*fourth-*t->third) ;
+		
+		double ftf = std::abs(triProduct(A, B, C)) ;
+		ftf = std::max(ftf, std::abs(triProduct(A, B, D))) ;
+		ftf = std::max(ftf, std::abs(triProduct(A, B, E))) ;
+		
+		A = (*first-*second) ; 
+		B = (*fourth-*second) ; 
+		C = (*fourth-*t->first) ; 
+		D = (*fourth-*t->second) ; 
+		E = (*fourth-*t->third) ;
+		
+		double fsf = std::abs(triProduct(A, B, C)) ;
+		fsf = std::max(fsf, std::abs(triProduct(A, B, D))) ;
+		fsf = std::max(fsf, std::abs(triProduct(A, B, E))) ;
+		
+		A = (*third-*second) ; 
+		B = (*fourth-*second) ; 
+		C = (*fourth-*t->first) ; 
+		D = (*fourth-*t->second) ; 
+		E = (*fourth-*t->third) ;
+		
+		double tsf = std::abs(triProduct(A, B, C)) ;
+		tsf = std::max(tsf, std::abs(triProduct(A, B, D))) ;
+		tsf = std::max(tsf, std::abs(triProduct(A, B, E))) ;
+		
+		if(   fst < ftf 
+		   && fst < fsf 
+		   && fst < tsf)
 		{
 			ret.push_back(first) ;
 			ret.push_back(second) ;
 			ret.push_back(third) ; 
 		}
-		if(isCoplanar((*t->first), (*first), (*third),(*fourth)) && 
-		   isCoplanar((*t->second), (*first), (*third),(*fourth)) &&
-		   isCoplanar((*t->third), (*first), (*third),(*fourth)))
+		
+		if(   ftf < fst 
+		   && ftf < fsf 
+		   && ftf < tsf)
 		{
 			ret.push_back(first) ;
 			ret.push_back(third) ;
 			ret.push_back(fourth) ; 
 		}
-		if(isCoplanar((*t->first), (*first), (*second),(*fourth)) && 
-		   isCoplanar((*t->second), (*first), (*second),(*fourth)) &&
-		   isCoplanar((*t->third), (*first), (*second),(*fourth)))
+		
+		if(   fsf < fst
+		   && fsf < ftf 
+		   && fsf < tsf)
 		{
 			ret.push_back(first) ;
 			ret.push_back(second) ;
 			ret.push_back(fourth) ; 
 		}
-		if(isCoplanar((*t->first), (*third), (*second),(*fourth)) && 
-		   isCoplanar((*t->second), (*third), (*second),(*fourth)) &&
-		   isCoplanar((*t->third), (*third), (*second),(*fourth)))
+		
+		if(   tsf < fst 
+		   && tsf < ftf 
+		   && tsf < fsf)
 		{
 			ret.push_back(third) ;
 			ret.push_back(second) ;
 			ret.push_back(fourth) ; 
 		}
+		
+// 		if(isCoplanar((*t->first), (*first), (*second),(*third)) && 
+// 		   isCoplanar((*t->second), (*first), (*second),(*third)) &&
+// 		   isCoplanar((*t->third), (*first), (*second),(*third)))
+// 		{
+// 			ret.push_back(first) ;
+// 			ret.push_back(second) ;
+// 			ret.push_back(third) ; 
+// 		}
+// 		else if(isCoplanar((*t->first), (*first), (*third),(*fourth)) && 
+// 		   isCoplanar((*t->second), (*first), (*third),(*fourth)) &&
+// 		   isCoplanar((*t->third), (*first), (*third),(*fourth)))
+// 		{
+// 			ret.push_back(first) ;
+// 			ret.push_back(third) ;
+// 			ret.push_back(fourth) ; 
+// 		}
+// 		else if(isCoplanar((*t->first), (*first), (*second),(*fourth)) && 
+// 		   isCoplanar((*t->second), (*first), (*second),(*fourth)) &&
+// 		   isCoplanar((*t->third), (*first), (*second),(*fourth)))
+// 		{
+// 			ret.push_back(first) ;
+// 			ret.push_back(second) ;
+// 			ret.push_back(fourth) ; 
+// 		}
+// 		else if(isCoplanar((*t->first), (*third), (*second),(*fourth)) && 
+// 		   isCoplanar((*t->second), (*third), (*second),(*fourth)) &&
+// 		   isCoplanar((*t->third), (*third), (*second),(*fourth)))
+// 		{
+// 			ret.push_back(third) ;
+// 			ret.push_back(second) ;
+// 			ret.push_back(fourth) ; 
+// 		}
 	}
 	
 	//assert(false) ;
 	return ret;
 }
 
-inline std::vector<Point*> DelaunayDemiSpace::commonSurface(const DelaunayTreeItem_3D * t) 
+inline std::vector<Point*> DelaunayDemiSpace::commonSurface(const DelaunayTreeItem_3D * t) const
 {
 	std::vector<Point *> ret ;
 	if(t == this)
@@ -834,34 +912,35 @@ inline std::vector<Point*> DelaunayDemiSpace::commonSurface(const DelaunayTreeIt
 	
 	if(t->isTetrahedron)
 	{
-		if(this->isVertex(t->first) && this->isVertex(t->second)&& this->isVertex(t->third))
-		{
-			ret.push_back(t->first) ;
-			ret.push_back(t->second) ;
-			ret.push_back(t->third) ;
-		}
-		
-		
-		if(this->isVertex(t->first) && this->isVertex(t->second)&& this->isVertex(t->fourth))
-		{
-			ret.push_back(t->first) ;
-			ret.push_back(t->second) ;
-			ret.push_back(t->fourth) ;
-		}
-		
-		if(this->isVertex(t->first) && this->isVertex(t->fourth)&& this->isVertex(t->third))
-		{
-			ret.push_back(t->first) ;
-			ret.push_back(t->third) ;
-			ret.push_back(t->fourth) ;
-		}
-		
-		if(this->isVertex(t->fourth) && this->isVertex(t->second)&& this->isVertex(t->third))
-		{
-			ret.push_back(t->first) ;
-			ret.push_back(t->second) ;
-			ret.push_back(t->fourth) ;
-		}
+		return t->commonSurface(this) ;
+// 		if(this->isVertex(t->first) && this->isVertex(t->second)&& this->isVertex(t->third))
+// 		{
+// 			ret.push_back(t->first) ;
+// 			ret.push_back(t->second) ;
+// 			ret.push_back(t->third) ;
+// 		}
+// 		
+// 		
+// 		if(this->isVertex(t->first) && this->isVertex(t->second)&& this->isVertex(t->fourth))
+// 		{
+// 			ret.push_back(t->first) ;
+// 			ret.push_back(t->second) ;
+// 			ret.push_back(t->fourth) ;
+// 		}
+// 		
+// 		if(this->isVertex(t->first) && this->isVertex(t->fourth)&& this->isVertex(t->third))
+// 		{
+// 			ret.push_back(t->first) ;
+// 			ret.push_back(t->third) ;
+// 			ret.push_back(t->fourth) ;
+// 		}
+// 		
+// 		if(this->isVertex(t->fourth) && this->isVertex(t->second)&& this->isVertex(t->third))
+// 		{
+// 			ret.push_back(t->first) ;
+// 			ret.push_back(t->second) ;
+// 			ret.push_back(t->fourth) ;
+// 		}
 		
 		
 	}
@@ -869,7 +948,7 @@ inline std::vector<Point*> DelaunayDemiSpace::commonSurface(const DelaunayTreeIt
 	return ret;
 }
 
-std::vector<Point*> DelaunayRoot_3D::commonSurface(const DelaunayTreeItem_3D * t) 
+std::vector<Point*> DelaunayRoot_3D::commonSurface(const DelaunayTreeItem_3D * t) const
 {
 	std::vector<Point *> ret ;
 	
@@ -1266,34 +1345,34 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point 
 // 	{
 		for(size_t i = 0 ; i <neighbour.size() ; i++)
 		{
-				std::vector< Point*> pp = neighbour[i]->commonSurface(this) ;
+			std::vector< Point*> pp = neighbour[i]->commonSurface(this) ;
 
-				if (!neighbour[i]->inCircumSphere(*p) )
+			if (!neighbour[i]->inCircumSphere(*p) )
+			{
+				if(!isCoplanar(p, first, second, third))
 				{
-					if(!isCoplanar(p, first, second, third))
-					{
-						
-						DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1] ,pp[2], p) ;
+					
+					DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1] ,pp[2], p) ;
 
-						son.push_back(ss) ;
-						neighbour[i]->addStepson(ss) ;
-			
-						ret.push_back(ss) ;
-						
-						DelaunayDemiSpace *p0 = new DelaunayDemiSpace(this, pp[0], p, pp[1], pp[2],p) ;
-						DelaunayDemiSpace *p1 = new DelaunayDemiSpace(this, pp[0], p, pp[2], pp[1],p) ;
-						DelaunayDemiSpace *p2 = new DelaunayDemiSpace(this, pp[2], p, pp[1], pp[0],p) ;
-						
-						
-						son.push_back(p0) ;
-						son.push_back(p1) ;
-						son.push_back(p2) ;
-						
-						ret.push_back(p0) ;
-						ret.push_back(p1) ;
-						ret.push_back(p2) ;
-					}
+					son.push_back(ss) ;
+					neighbour[i]->addStepson(ss) ;
+		
+					ret.push_back(ss) ;
+					
+					DelaunayDemiSpace *p0 = new DelaunayDemiSpace(this, pp[0], p, pp[1], pp[2],p) ;
+					DelaunayDemiSpace *p1 = new DelaunayDemiSpace(this, pp[0], p, pp[2], pp[1],p) ;
+					DelaunayDemiSpace *p2 = new DelaunayDemiSpace(this, pp[2], p, pp[1], pp[0],p) ;
+					
+					
+					son.push_back(p0) ;
+					son.push_back(p1) ;
+					son.push_back(p2) ;
+					
+					ret.push_back(p0) ;
+					ret.push_back(p1) ;
+					ret.push_back(p2) ;
 				}
+			}
 		}
 
 		s->updateNeighbourhood() ;
@@ -1623,6 +1702,7 @@ void DelaunayTree_3D::insert(Point *p)
 			tree.push_back(ret[i]) ;
 			if(ret[i]->isTetrahedron && ret[i]->neighbour.size() != 4)
 			{
+				std::cout << "we have " << ret[i]->neighbour.size() << " neighbours"<< std::endl ;
 // 				ret[i]->print() ;
 				correct = false ;
 				

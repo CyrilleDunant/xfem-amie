@@ -690,6 +690,8 @@ inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Poin
 bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 
+double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
 
 inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1, const Mu::Point *f2)  
 {
@@ -792,6 +794,8 @@ double squareDist2D(const Mu::Point *v1, const Mu::Point *v2) ;
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
 double squareDist3D(const Mu::Point &v1, const Mu::Point &v2) ;
+
+double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C) ;
 
 /**Return the square distance between two points, 2D case
  * 

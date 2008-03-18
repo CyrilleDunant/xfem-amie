@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00003;
 
-	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001, 1600, itzSize);
+	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001, 3200, itzSize);
 
 
 	std::vector<Feature *> feats ;
