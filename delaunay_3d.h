@@ -124,7 +124,7 @@ public:
 //! Tetrahedron item the tree, defined by four points. 
 /*!The points are also stored as a valarray of points(inherited from \c Triangle ). Those are stored clockwise but should only be used when creating the final mesh. They insure the proper orientation of the triangles.
 */
-class DelaunayTetrahedron : public TetrahedralElement, public DelaunayTreeItem_3D
+class DelaunayTetrahedron : virtual public TetrahedralElement, virtual public DelaunayTreeItem_3D
 {
 public:
 	
@@ -182,7 +182,7 @@ public:
 */
 
 //newly added class
-class DelaunayDemiSpace : public DelaunayTreeItem_3D
+class DelaunayDemiSpace : virtual public DelaunayTreeItem_3D
 {
 protected:
 	Point vector1 ; //!< Frontier vector. Precalculated for performace reasons
@@ -229,7 +229,7 @@ public:
 //! Root of the tree.
 /*! Neither Plane nor triangle. The constructor should be extended to provide valid starting points for all sorts of geometries.
  */
-class DelaunayRoot_3D : public DelaunayTreeItem_3D
+class DelaunayRoot_3D : virtual public DelaunayTreeItem_3D
 {
 public:
 	DelaunayRoot_3D( Point * p0,  Point * p1,  Point * p2, Point * p3) ;

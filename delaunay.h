@@ -120,7 +120,7 @@ public:
 //! Triangle item the tree, defined by three points. 
 /*!The points are also stored as a valarray of points(inherited from \c Triangle ). Those are stored clockwise but should only be used when creating the final mesh. They insure the proper orientation of the triangles.
 */
-class DelaunayTriangle : public TriElement, public DelaunayTreeItem
+class DelaunayTriangle : virtual public TriElement, virtual public DelaunayTreeItem
 {
 	std::valarray<std::pair<Point, double> > * cachedGPs ;
 public:
@@ -170,7 +170,7 @@ public:
 //! Demi-plane isVertex the tree, defined by three points. 
 /*! The two first points form the frontier segment, whereas the last is chosen <em>outside</em> the demi-plane
 */
-class DelaunayDemiPlane : public DelaunayTreeItem
+class DelaunayDemiPlane : virtual public DelaunayTreeItem
 {
 protected:
 	Point vector ; //!< Frontier vector. Precalculated for performace reasons
@@ -214,7 +214,7 @@ public:
 //! Root of the tree.
 /*! Neither Plane nor triangle. The constructor should be extended to provide valid starting points for all sorts of geometries.
  */
-class DelaunayRoot : public DelaunayTreeItem
+class DelaunayRoot : virtual public DelaunayTreeItem
 {
 public:
 	DelaunayRoot( Point * p0,  Point * p1,  Point * p2) ;
