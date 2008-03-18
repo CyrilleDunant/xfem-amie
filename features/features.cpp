@@ -369,9 +369,9 @@ void FeatureTree::twineFeature(CompositeFeature * father, CompositeFeature * f)
 
 void FeatureTree::addFeature(Feature * father, Feature * f)
 {
-	if(!tree.empty() && f->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	if(!tree.empty() && f->spaceDimensions() == SPACE_TWO_DIMENSIONAL && !f->isEnrichmentFeature)
 		grid->forceAdd(f) ;
-	else if(!tree.empty())
+	else if(!tree.empty()&& !f->isEnrichmentFeature)
 		grid3d->forceAdd(f) ;
 	
 	if( f->isCompositeFeature && father && !father->isCompositeFeature)
