@@ -273,7 +273,7 @@ void DelaunayTree::refresh(TriElement *father, bool compile)
 	{
 		if(this->tree[i]->isAlive() && this->tree[i]->isTriangle)
 		{
-			(static_cast<DelaunayTriangle *>(this->tree[i]))->refresh(father) ;
+			(dynamic_cast<DelaunayTriangle *>(this->tree[i]))->refresh(father) ;
 		}
 	}
 }
