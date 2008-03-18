@@ -353,7 +353,7 @@ void DelaunayTree_3D::refresh(const TetrahedralElement *father)
 	{
 		if(this->tree[i]->isAlive() && this->tree[i]->isTetrahedron)
 		{
-			dynamic_cast<DelaunayTetrahedron *>(this->tree[i])->refresh(father) ;
+			static_cast<DelaunayTetrahedron *>(this->tree[i])->refresh(father) ;
 			
 		}
 	}
