@@ -1212,7 +1212,7 @@ bool DelaunayTetrahedron::isInNeighbourhood(const DelaunayTetrahedron * t) const
 bool DelaunayTreeItem_3D::isDuplicate(const DelaunayTreeItem_3D * t) const
 {
 
-	return (this->numberOfCommonVertices(t) == 4 && ((this->isTetrahedron && t->isTetrahedron) || (this->isSpace && t->isSpace) )) && t!=this ;
+	return t!=this && (((this->isTetrahedron && t->isTetrahedron) && this->numberOfCommonVertices(t) == 4 || ((this->isSpace && t->isSpace) && this->numberOfCommonVertices(t) == 3) ))  ;
 }
 
 
