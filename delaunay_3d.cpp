@@ -165,9 +165,13 @@ void Star_3D::updateNeighbourhood()
 						                              items[j]
 					                                     )
 					                            ) ;
-// 				items[j]->father->addSon(items[i]) ;
-// 				items[j]->stepfather->addStepson(items[i]) ;
-// 				items[i]->stepfather = items[j]->stepfather ;
+				if(items[j]->father)
+					items[j]->father->addSon(items[i]) ;
+				if(items[j]->stepfather)
+				{
+					items[j]->stepfather->addStepson(items[i]) ;
+					items[i]->stepfather = items[j]->stepfather ;
+				}
 			}
 		}
 	}	
@@ -1202,7 +1206,7 @@ bool DelaunayTreeItem_3D::isDuplicate(const DelaunayTreeItem_3D * t) const
 	     (
 	      this->isSpace 
 	      && t->isSpace 
-// 	      && this->numberOfCommonVertices(t) == 3
+	      && this->numberOfCommonVertices(t) == 3
 	      )
 	     )  ;
 }
