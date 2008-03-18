@@ -168,13 +168,6 @@ void Star_3D::updateNeighbourhood()
 										  )
 									  ) ;
 				}
-				if(items[j]->father)
-					items[j]->father->addSon(items[i]) ;
-				if(items[j]->stepfather)
-				{
-					items[j]->stepfather->addStepson(items[i]) ;
-					items[i]->stepfather = items[j]->stepfather ;
-				}
 			}
 		}
 	}	
