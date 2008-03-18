@@ -304,7 +304,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		bool limit = false ;
 		if(!stepson[i]->visited && stepson[i]->isTriangle)
 		{
-			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(stepson[i]) ;
+			DelaunayTriangle * t = dynamic_cast<DelaunayTriangle *>(stepson[i]) ;
 			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
 		}
 		
