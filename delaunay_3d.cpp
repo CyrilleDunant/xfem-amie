@@ -1220,15 +1220,18 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem_3D *> & ret, Poin
 // 	{
 		for (size_t i = 0 ; i < 4 ; i++)
 		{
-			bool ins = !neighbour[i]->visited && (neighbour[i]->isSpace || ( neighbour[i]->isTetrahedron && !neighbour[i]->inCircumSphere(*p)));
+			bool ins =  (neighbour[i]->isSpace || ( !neighbour[i]->visited && neighbour[i]->isTetrahedron && !neighbour[i]->inCircumSphere(*p)));
 			
 			if (ins)
 			{
 				std::vector< Point*> pp = this->commonSurface(neighbour[i]) ;
 				if(!isCoplanar(p, pp[0], pp[1], pp[2] ))
 				{
-					neighbour[i]->visited = true ;
-					s->cleanup.push_back(neighbour[i]) ;
+					if(neighbour[i]->isTetrahedron)
+					{
+						neighbour[i]->visited = true ;
+						s->cleanup.push_back(neighbour[i]) ;
+					}
 					DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1],pp[2], p) ;
 					son.push_back(ss) ;
 					neighbour[i]->addStepson(ss) ;
