@@ -533,7 +533,6 @@ Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 	
 	while(nit < r.size())
 	{
-		std::cout << "nit = "<< nit << std::endl ;
 		nit++ ;
 		
 		rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;

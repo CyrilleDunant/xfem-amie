@@ -129,13 +129,13 @@ size_t DelaunayTreeItem_3D::numberOfCommonVertices(const DelaunayTreeItem_3D * s
 
 void Star_3D::updateNeighbourhood()
 {
+	
 	std::vector<DelaunayTreeItem_3D *> items ;
-
-        for(size_t i = 0 ; i < treeitem.size() ;i++)
-        {
+	for(size_t i = 0 ; i < treeitem.size() ;i++)
+	{	
 		items.insert(items.end() , treeitem[i]->son.begin() , treeitem[i]->son.end()) ;
 	}
-
+	
 	for(size_t i = 0 ; i < items.size() ;i++)
 	{
 		for(size_t j = i+1 ; j < items.size() ;j++)
@@ -151,21 +151,21 @@ void Star_3D::updateNeighbourhood()
 				items[j]->erased = true ;
 
 				items[j]->father->son.erase(
-					                    std::find(
-					                              items[j]->father->son.begin(), 
-					                              items[j]->father->son.end(), 
-					                              items[j]
-					                              )
-					                    ) ;
+										std::find(
+												items[j]->father->son.begin(), 
+												items[j]->father->son.end(), 
+												items[j]
+												)
+										) ;
 
 
 				items[j]->stepfather->stepson.erase(
-								  std::find(
-									    items[j]->stepfather->stepson.begin(),
-									    items[j]->stepfather->stepson.end(), 
-									    items[j]
-									  )
-								  ) ;
+								std::find(
+										items[j]->stepfather->stepson.begin(),
+										items[j]->stepfather->stepson.end(), 
+										items[j]
+									)
+								) ;
 			}
 		}
 	}	
@@ -803,36 +803,36 @@ inline std::vector<Point*> DelaunayTetrahedron::commonSurface(const DelaunayTree
 		tsf = std::max(tsf, std::abs(triProduct(A, B, D))) ;
 		tsf = std::max(tsf, std::abs(triProduct(A, B, E))) ;
 		
-		if(   fst < ftf 
-		   && fst < fsf 
-		   && fst < tsf)
+		if(   fst <= ftf 
+		   && fst <= fsf 
+		   && fst <= tsf)
 		{
 			ret.push_back(first) ;
 			ret.push_back(second) ;
 			ret.push_back(third) ; 
 		}
 		
-		if(   ftf < fst 
-		   && ftf < fsf 
-		   && ftf < tsf)
+		else if(   ftf <= fst 
+		   && ftf <= fsf 
+		   && ftf <= tsf)
 		{
 			ret.push_back(first) ;
 			ret.push_back(third) ;
 			ret.push_back(fourth) ; 
 		}
 		
-		if(   fsf < fst
-		   && fsf < ftf 
-		   && fsf < tsf)
+		else if(   fsf <= fst
+		   && fsf <= ftf 
+		   && fsf <= tsf)
 		{
 			ret.push_back(first) ;
 			ret.push_back(second) ;
 			ret.push_back(fourth) ; 
 		}
 		
-		if(   tsf < fst 
-		   && tsf < ftf 
-		   && tsf < fsf)
+		else /*if(   tsf <= fst 
+		   && tsf <= ftf 
+		   && tsf <= fsf)*/
 		{
 			ret.push_back(third) ;
 			ret.push_back(second) ;
@@ -1220,13 +1220,15 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem_3D *> & ret, Poin
 // 	{
 		for (size_t i = 0 ; i < 4 ; i++)
 		{
-			bool ins = neighbour[i]->isSpace || ( neighbour[i]->isTetrahedron && !neighbour[i]->inCircumSphere(*p));
+			bool ins = !neighbour[i]->visited && (neighbour[i]->isSpace || ( neighbour[i]->isTetrahedron && !neighbour[i]->inCircumSphere(*p)));
 			
 			if (ins)
 			{
 				std::vector< Point*> pp = this->commonSurface(neighbour[i]) ;
 				if(!isCoplanar(p, pp[0], pp[1], pp[2] ))
 				{
+					neighbour[i]->visited = true ;
+					s->cleanup.push_back(neighbour[i]) ;
 					DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1],pp[2], p) ;
 					son.push_back(ss) ;
 					neighbour[i]->addStepson(ss) ;
@@ -1337,13 +1339,13 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point 
 		{
 			std::vector< Point*> pp = neighbour[i]->commonSurface(this) ;
 
-			if (!neighbour[i]->inCircumSphere(*p) )
+			if (!neighbour[i]->visited && !neighbour[i]->inCircumSphere(*p) )
 			{
 				if(!isCoplanar(p, first, second, third))
 				{
 					
 					DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1] ,pp[2], p) ;
-
+					s->cleanup.push_back(neighbour[i]) ;
 					son.push_back(ss) ;
 					neighbour[i]->addStepson(ss) ;
 		
@@ -1584,41 +1586,6 @@ void DelaunayTree_3D::insert(Point *p)
 	
 	std::vector<DelaunayTreeItem_3D *> cons = this->conflicts(p) ;
 	
-	if(cons.size() == 0)
-	{
-		for(size_t i =0 ; i < tree.size() ; i++)
-		{
-			if(tree[i]->isAlive() && tree[i]->inCircumSphere(*p))
-				cons.push_back(tree[i]) ;
-		}
-		
-		for(size_t i =0 ; i< cons.size() ; i++)
-		{
-			std::cout << "when inserting " ;p->print() ; std::cout << " did not get " ;
-			cons[i]->print() ;
-			std::cout << "fatherline " << std::endl ;
-			DelaunayTreeItem_3D * f = cons[i]->father ;
-			if(!f->inCircumSphere(*p))
-				f = cons[i]->stepfather ;
-			
-			while(f)
-			{
-				std::cout << f->inCircumSphere(*p) << "  " ;
-				f->print() ;
-				if(f->father && f->father->inCircumSphere(*p))
-					f = f->father ;
-				else if (f->stepfather && f->stepfather->inCircumSphere(*p))
-					f = f->stepfather ;
-				else
-					f = NULL ;
-			}
-			
-			return ;
-		}
-		
-		
-	}
-	
 	neighbourhood = false ;
 	
 	for(size_t i = 0 ; i < cons.size() ; i++)
@@ -1729,7 +1696,11 @@ void DelaunayTree_3D::insert(Point *p)
 	delete s ;
 }
 
-
+Star_3D::~Star_3D()
+{
+	for( size_t i = 0 ; i < cleanup.size() ; i++)
+		cleanup[i]->visited = false ;
+}
 
 std::vector<DelaunayTreeItem_3D *> DelaunayTree_3D::conflicts( const Point *p) const
 {

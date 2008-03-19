@@ -277,6 +277,8 @@ protected:
 	std::vector<DelaunayTreeItem_3D *> treeitem ;
 	
 public:
+	std::vector<DelaunayTreeItem_3D *> cleanup ;
+	~Star_3D() ;
 	Star_3D(std::vector<DelaunayTreeItem_3D *> *t, const Point *p) ;
 	
 	size_t size() ;

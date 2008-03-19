@@ -280,8 +280,15 @@ Point Point::operator*(const double p)  const
 
 double Point::operator*(const Point &p) const
 {
+	Vector r(double(0), 4) ;
+	r[0] = x*p.x ;
+	r[1] = y*p.y ;
+	r[2] = z*p.z ;
+	r[3] = t*p.t ;
+	std::sort(&r[0], &r[4]) ;
+	return r[0] + r[1] + r[2]+ r[3];
 	return fma(x,p.x,fma(y,p.y, fma(z, p.z, t*p.t))) ;
-	return x*p.x + y*p.y + z*p.z+ t*p.t;
+	
 }
 
 double Point::operator*(const Vector &p) const
@@ -297,10 +304,12 @@ double Point::operator*(const Vector &p) const
 Point Point::operator^(const Point &p) const
 {
 	Point ret ;
-	ret.x = fma(y,p.z,  -z*p.y) ;
-	ret.y = fma(z,p.x , -x*p.z) ;
-	ret.z = fma(x,p.y , -y*p.x) ;
-	
+// 	ret.x = fma(y,p.z,  -z*p.y) ;
+// 	ret.y = fma(z,p.x , -x*p.z) ;
+// 	ret.z = fma(x,p.y , -y*p.x) ;
+	ret.x = y*p.z -z*p.y ;
+	ret.y = z*p.x -x*p.z ;
+	ret.z = x*p.y -y*p.x ;
 	return ret ;
 }
 
@@ -2505,8 +2514,9 @@ double dist(const Point & v1, const Point & v2)
 	double y = v2.y-v1.y ;
 	double z = v2.z-v1.z ;
 	double t = v2.t-v1.t ;
-	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
+	
 	return sqrt (x*x+y*y+z*z +t*t) ;
+	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
 }
 
 double dist(const Point * v1, const Point * v2)
@@ -2515,8 +2525,9 @@ double dist(const Point * v1, const Point * v2)
 	double y = v2->y-v1->y ;
 	double z = v2->z-v1->z ;
 	double t = v2->t-v1->t ;
-	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
+	
 	return sqrt (x*x+y*y+z*z+t*t) ;
+	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
 }
 
 
@@ -2828,10 +2839,17 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	Mu::Point A (*f0-*f1) ;
 	Mu::Point B (*f2-*f1) ;
 	Mu::Point C (*f2-*test) ;
+	double anorm = A.norm() ;
+	double bnorm = B.norm() ;
+	double cnorm = C.norm() ;
+	if(anorm < POINT_TOLERANCE || bnorm < POINT_TOLERANCE || cnorm < POINT_TOLERANCE)
+		return true ;
 	
-	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
-	epsilon = std::max(epsilon, squareDist3D(C,B)) ;;
-	return  std::abs((A^B)*C) < epsilon*Mu::POINT_TOLERANCE ;
+// 	A /= anorm ;
+// 	B /= bnorm ;
+// 	C /= cnorm ;
+
+	return  std::abs(triProduct(A, B, C)) < Mu::POINT_TOLERANCE ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2841,10 +2859,17 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Mu::Point B (f2-f1) ; 
 	Mu::Point C (f2-test) ; 
 
-	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
-	epsilon = std::max(epsilon, squareDist3D(C,B)) ;
+	double anorm = A.norm() ;
+	double bnorm = B.norm() ;
+	double cnorm = C.norm() ;
+	if(anorm < POINT_TOLERANCE || bnorm < POINT_TOLERANCE || cnorm < POINT_TOLERANCE)
+		return true ;
+	
+// 	A /= anorm ;
+// 	B /= bnorm ;
+// 	C /= cnorm ;
 
-	return  std::abs((A^B)*C) < epsilon*Mu::POINT_TOLERANCE ;
+	return  std::abs(triProduct(A, B, C)) < Mu::POINT_TOLERANCE ;
 } ;
 
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
@@ -2854,9 +2879,7 @@ double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *
 	Mu::Point B (*f2-*f1) ;
 	Mu::Point C (*f2-*test) ;
 	
-	double epsilon = std::max(squareDist3D(A,B), squareDist3D(A,C)) ;
-	epsilon = std::max(epsilon, squareDist3D(C,B)) ;
-	return  std::abs((A^B)*C) < epsilon*Mu::POINT_TOLERANCE ;
+	return  std::abs(triProduct(A, B, C)) ;
 } ;
 
 double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2866,12 +2889,19 @@ double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &
 	Mu::Point B (f2-f1) ; 
 	Mu::Point C (f2-test) ; 
 
-	return  std::abs((A^B)*C)  ;
+	return  std::abs(triProduct(A, B, C))  ;
 } ;
 
 
 double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C)
 {
+	Vector r(double(0), 3) ;
+	r[0] = (A.y*B.z-A.z*B.y)*C.x ;
+	r[1] = (A.z*B.x -A.x*B.z)*C.y ;
+	r[2] = (A.x*B.y -A.y*B.x)*C.z ;
+	std::sort(&r[0], &r[3]) ;
+	return  r[0]+r[1]+r[2];
+	return fma(fma(A.y,B.z,  -A.z*B.y), C.x, fma(fma(A.z,B.x , -A.x*B.z),C.y,fma(A.x,B.y , -A.y*B.x)*C.z)) ;
 	return (A^B)*C ;
 }
 

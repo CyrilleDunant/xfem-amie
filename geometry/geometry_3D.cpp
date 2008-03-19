@@ -182,7 +182,7 @@ double Tetrahedron::volume() const
 		Segment s1(getBoundingPoint(2), getBoundingPoint(0)) ;
 		Segment s2(getBoundingPoint(3), getBoundingPoint(0)) ;
 		
-		return ((s0.vector())^(s1.vector()))*(s2.vector())/6 ;
+		return ((s0.vector())^(s1.vector()))*(s2.vector())/6. ;
 	}
 	else
 	{
@@ -190,7 +190,7 @@ double Tetrahedron::volume() const
 		Segment s1(getBoundingPoint(4), getBoundingPoint(0)) ;
 		Segment s2(getBoundingPoint(6), getBoundingPoint(0)) ;
 		
-		return ((s0.vector())^(s1.vector()))*(s2.vector())/6 ;
+		return ((s0.vector())^(s1.vector()))*(s2.vector())/6. ;
 	}
 }
 
@@ -211,13 +211,13 @@ void Tetrahedron::computeCircumCenter()
 	Point * A_ = boundingPoints[3] ;
 	Point BC = (*C-*B) ;
 	
-	Point BC_mid = (*B+*C)/2. ;
+	Point BC_mid = (*B+*C)*.5 ;
 	
 	Point BA = (*A-*B) ;
-	Point BA_mid = (*B+*A)/2. ;
+	Point BA_mid = (*B+*A)*.5 ;
 	
 	Point BA_ = (*A_-*B) ;
-	Point BA__mid = (*B+*A_)/2. ;
+	Point BA__mid = (*B+*A_)*.5 ;
 	
 	Matrix planes(3,3) ;
 	planes[0][0] = BC.x ; planes[0][1] = BC.y ; planes[0][2] = BC.z ; 
@@ -241,7 +241,8 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 	double x = circumCenter.x - p.x ;
 	double y = circumCenter.y - p.y ;
 	double z = circumCenter.z - p.z ;
-	return  x*x +y*y + z*z < sqradius*(1. - 4.*POINT_TOLERANCE);
+	return  x*x+y*y +z*z < sqradius*(1. - 4.*POINT_TOLERANCE);
+	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
@@ -249,7 +250,8 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	double x = circumCenter.x - p->x ;
 	double y = circumCenter.y - p->y ;
 	double z = circumCenter.z - p->z ;
-	return   x*x +y*y + z*z < sqradius*(1. - 4.*POINT_TOLERANCE);
+	return  x*x+y*y +z*z < sqradius*(1. - 4.*POINT_TOLERANCE);
+	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)
