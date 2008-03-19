@@ -2849,7 +2849,7 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 // 	B /= bnorm ;
 // 	C /= cnorm ;
 
-	return  std::abs(triProduct(A, B, C)) < std::max(anorm,std::max(bnorm, cnorm))*Mu::POINT_TOLERANCE ;
+	return  std::abs(triProduct(A, B, C)) < /*std::max(anorm,std::max(bnorm, cnorm))**/Mu::POINT_TOLERANCE ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2869,7 +2869,7 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 // 	B /= bnorm ;
 // 	C /= cnorm ;
 
-	return  std::abs(triProduct(A, B, C)) < std::max(anorm,std::max(bnorm, cnorm))*Mu::POINT_TOLERANCE ;
+	return  std::abs(triProduct(A, B, C)) < /*std::max(anorm,std::max(bnorm, cnorm))**/Mu::POINT_TOLERANCE ;
 } ;
 
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
