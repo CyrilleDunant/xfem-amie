@@ -1349,6 +1349,7 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point 
 					
 					DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1] ,pp[2], p) ;
 					s->cleanup.push_back(neighbour[i]) ;
+					neighbour[i]->visited = true ;
 					son.push_back(ss) ;
 					neighbour[i]->addStepson(ss) ;
 		
