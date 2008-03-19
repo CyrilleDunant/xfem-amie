@@ -1703,6 +1703,7 @@ void DelaunayTree_3D::insert(Point *p)
 	if(!correct)
 		std::cout << "inconsistent state, will crash soon" <<std::endl ;	
 	delete s ;
+	print() ;
 }
 
 Star_3D::~Star_3D()
