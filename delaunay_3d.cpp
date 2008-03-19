@@ -1208,7 +1208,8 @@ bool DelaunayTreeItem_3D::isDuplicate(const DelaunayTreeItem_3D * t) const
 
 void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point *p,  Star_3D* s)
 {
-	
+	std::cout << "inserting in " << std::endl ;
+	print() ;
 // 	if(!isAlive())
 // 		return  ;
 // 		
@@ -1227,6 +1228,8 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem_3D *> & ret, Poin
 				std::vector< Point*> pp = this->commonSurface(neighbour[i]) ;
 				if(!isCoplanar(p, pp[0], pp[1], pp[2] ))
 				{
+					std::cout << "from neighbour " << std::endl ;
+					neighbour[i]->print() ;
 					if(neighbour[i]->isTetrahedron)
 					{
 						neighbour[i]->visited = true ;
@@ -1329,7 +1332,8 @@ return false ;
 
 void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point *p, Star_3D *s)
 {
-
+	std::cout << "inserting in " << std::endl ;
+	print() ;
 // 	if(!isAlive())
 // 		return  ;
 // 		
@@ -1346,7 +1350,8 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point 
 			{
 				if(!isCoplanar(p, first, second, third))
 				{
-					
+					std::cout << "from neighbour " << std::endl ;
+					neighbour[i]->print() ;
 					DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1] ,pp[2], p) ;
 					s->cleanup.push_back(neighbour[i]) ;
 					neighbour[i]->visited = true ;
