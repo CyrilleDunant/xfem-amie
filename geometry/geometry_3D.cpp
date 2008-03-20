@@ -241,7 +241,12 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 	double x = circumCenter.x - p.x ;
 	double y = circumCenter.y - p.y ;
 	double z = circumCenter.z - p.z ;
-	return  x*x+y*y +z*z < sqradius*(1. - 4.*POINT_TOLERANCE);
+	Vector r(3) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	std::sort(&r[0], &r[3]) ;
+	return  r[0]+r[1] +r[2] < sqradius - 4.*POINT_TOLERANCE;
 	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
@@ -250,7 +255,12 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	double x = circumCenter.x - p->x ;
 	double y = circumCenter.y - p->y ;
 	double z = circumCenter.z - p->z ;
-	return  x*x+y*y +z*z < sqradius*(1. - 4.*POINT_TOLERANCE);
+	Vector r(3) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	std::sort(&r[0], &r[3]) ;
+	return  r[0]+r[1] +r[2] < sqradius - 4.*POINT_TOLERANCE;
 	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 

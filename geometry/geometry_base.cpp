@@ -2514,8 +2514,13 @@ double dist(const Point & v1, const Point & v2)
 	double y = v2.y-v1.y ;
 	double z = v2.z-v1.z ;
 	double t = v2.t-v1.t ;
-	
-	return sqrt (x*x+y*y+z*z +t*t) ;
+	Vector r(4) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	r[3] = t*t ;
+	std::sort(&r[0], &r[4]) ;
+	return sqrt (r[0]+r[1] +r[2]+r[3]) ;
 	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
 }
 
@@ -2525,8 +2530,13 @@ double dist(const Point * v1, const Point * v2)
 	double y = v2->y-v1->y ;
 	double z = v2->z-v1->z ;
 	double t = v2->t-v1->t ;
-	
-	return sqrt (x*x+y*y+z*z+t*t) ;
+	Vector r(4) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	r[3] = t*t ;
+	std::sort(&r[0], &r[4]) ;
+	return sqrt (r[0]+r[1] +r[2]+r[3]) ;
 	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
 }
 
@@ -2537,6 +2547,13 @@ double squareDist(const  Point &v1, const Point & v2)
 	double y = v2.y-v1.y ;
 	double z = v2.z-v1.z ;
 	double t = v2.t-v1.t ;
+	Vector r(4) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	r[3] = t*t ;
+	std::sort(&r[0], &r[4]) ;
+	return r[0]+r[1] +r[2]+r[3] ;
 	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
 }
 
@@ -2546,6 +2563,13 @@ double squareDist(const Point *v1, const Point *v2)
 	double y = v2->y-v1->y ;
 	double z = v2->z-v1->z ;
 	double t = v2->t-v1->t ;
+	Vector r(4) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	r[3] = t*t ;
+	std::sort(&r[0], &r[4]) ;
+	return r[0]+r[1] +r[2]+r[3] ;
 	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
 }
 
@@ -2571,7 +2595,12 @@ double squareDist3D(const  Point &v1, const Point & v2)
 	double y = v2.y-v1.y ;
 	double z = v2.z-v1.z ;
 
-	return x*x+y*y+z*z ;
+	Vector r(3) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	std::sort(&r[0], &r[3]) ;
+	return  r[0]+r[1]+r[2] ;
 }
 
 double squareDist3D(const Point *v1, const Point *v2)
@@ -2580,7 +2609,12 @@ double squareDist3D(const Point *v1, const Point *v2)
 	double y = v2->y-v1->y ;
 	double z = v2->z-v1->z ;
 
-	return x*x+y*y+z*z ;
+	Vector r(3) ; 
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	std::sort(&r[0], &r[3]) ;
+	return  r[0]+r[1] +r[2] ;
 }
 
 ConvexPolygon* convexHull(const std::vector<Point *> * points)
@@ -2849,7 +2883,7 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 // 	B /= bnorm ;
 // 	C /= cnorm ;
 
-	return  std::abs(triProduct(A, B, C)) < std::min(anorm,std::min(bnorm, cnorm))*Mu::POINT_TOLERANCE ;
+	return  std::abs(triProduct(A, B, C)) < /*std::max(anorm,std::max(bnorm, cnorm))**/Mu::POINT_TOLERANCE ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2869,7 +2903,7 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 // 	B /= bnorm ;
 // 	C /= cnorm ;
 
-	return  std::abs(triProduct(A, B, C)) < std::min(anorm,std::min(bnorm, cnorm))*Mu::POINT_TOLERANCE ;
+	return  std::abs(triProduct(A, B, C)) < /*std::max(anorm,std::max(bnorm, cnorm))**/Mu::POINT_TOLERANCE ;
 } ;
 
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
