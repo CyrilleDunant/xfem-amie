@@ -76,13 +76,13 @@ size_t DelaunayTreeItem_3D::numberOfCommonVertices(const DelaunayTreeItem_3D * s
 	{
 		size_t ret = 0 ;
 		
-		if(isCoplanar(s->first, s->second, s->third, first))
+		if(isCoplanar(first,s->first, s->second, s->third))
 			ret++ ;
-		if(isCoplanar(s->first, s->second, s->third, second))
+		if(isCoplanar(second,s->first, s->second, s->third ))
 			ret++ ;
-		if(isCoplanar(s->first, s->second, s->third, third))
+		if(isCoplanar(third,s->first, s->second, s->third ))
 			ret++ ;
-		if(isCoplanar(s->first, s->second, s->third, fourth))
+		if(isCoplanar(fourth,s->first, s->second, s->third ))
 			ret++ ;
 		
 		assert(ret < 4) ;
@@ -109,13 +109,13 @@ size_t DelaunayTreeItem_3D::numberOfCommonVertices(const DelaunayTreeItem_3D * s
 	{
 		size_t ret = 0 ;
 		
-		if(isCoplanar(this->first, this->second, this->third ,s->first))
+		if(isCoplanar(s->first,this->first, this->second, this->third  ))
 			ret++ ;
-		if(isCoplanar(this->first, this->second, this->third,s->second))
+		if(isCoplanar(s->second,this->first, this->second, this->third ))
 			ret++ ;
-		if(isCoplanar(this->first, this->second, this->third,s->third))
+		if(isCoplanar(s->third,this->first, this->second, this->third ))
 			ret++ ;
-		if(isCoplanar(this->first, this->second, this->third,s->fourth))
+		if(isCoplanar(s->fourth,this->first, this->second, this->third ))
 			ret++ ;
 		
 		assert(ret < 4) ;
@@ -134,7 +134,11 @@ void Star_3D::updateNeighbourhood()
 	for(size_t i = 0 ; i < treeitem.size() ;i++)
 	{	
 		items.insert(items.end() , treeitem[i]->son.begin() , treeitem[i]->son.end()) ;
+// 		items.insert(items.end() , treeitem[i]->neighbour.begin() , treeitem[i]->neighbour.end()) ;
 	}
+// 	std::sort(items.begin(), items.end()) ;
+// 	std::vector<DelaunayTreeItem_3D *>::iterator e = std::unique(items.begin(), items.end()) ;
+// 	items.erase(e, items.end()) ;
 	
 	for(size_t i = 0 ; i < items.size() ;i++)
 	{
@@ -435,7 +439,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(stepson[i]) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-				< POINT_TOLERANCE*t->getRadius()*t->getRadius()*t->getRadius() ;
+				< 8.*POINT_TOLERANCE ;
 		}
 
 		if( (!stepson[i]->visited && stepson[i]->inCircumSphere(*p)) || limit) 
@@ -455,7 +459,7 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(son[i]) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-				< POINT_TOLERANCE*t->getRadius()*t->getRadius()*t->getRadius() ;
+				< 8.*POINT_TOLERANCE;
 		}
 
 		if( (!son[i]->visited && son[i]->inCircumSphere(*p)) || limit)
@@ -480,9 +484,9 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		{
 			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(neighbour[i]) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-				< POINT_TOLERANCE*t->getRadius()*t->getRadius()*t->getRadius() ;
+				< 8.*POINT_TOLERANCE ;
 		}
-		limit = true ;
+// 		limit = true ;
 		
 		if( !neighbour[i]->visited && neighbour[i]->inCircumSphere(*p) || limit)
 		{
@@ -994,9 +998,9 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 			kill(first) ;
 			return ;
 		}
-		if(isCoplanar(first, second,third, p->first) && 
-		   isCoplanar(first, second,third, p->second) && 
-		   isCoplanar(first, second,third, p->third))
+		if(isCoplanar(p->first,first, second,third ) && 
+		   isCoplanar(p->second,first, second,third ) && 
+		   isCoplanar( p->third,first, second,third))
 		{
 // 			std::cout << "merging" << std::endl ;
 // 			print() ;
@@ -1226,7 +1230,7 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem_3D *> & ret, Poin
 			if (ins)
 			{
 				std::vector< Point*> pp = this->commonSurface(neighbour[i]) ;
-				if(!isCoplanar(p, pp[0], pp[1], pp[2] ))
+				if(!isCoplanar(p, pp[0], pp[1], pp[2]))
 				{
 // 					std::cout << "from neighbour " << std::endl ;
 // 					neighbour[i]->print() ;
@@ -1346,15 +1350,18 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point 
 		{
 			std::vector< Point*> pp = neighbour[i]->commonSurface(this) ;
 
-			if (/*!neighbour[i]->visited && */!neighbour[i]->inCircumSphere(*p) )
+			if ((!neighbour[i]->visited && neighbour[i]->isTetrahedron || neighbour[i]->isSpace) && !neighbour[i]->inCircumSphere(*p) )
 			{
 				if(!isCoplanar(p, first, second, third))
 				{
 // 					std::cout << "from neighbour " << std::endl ;
 // 					neighbour[i]->print() ;
 					DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1] ,pp[2], p) ;
-// 					s->cleanup.push_back(neighbour[i]) ;
-// 					neighbour[i]->visited = true ;
+					if( neighbour[i]->isTetrahedron)
+					{
+						s->cleanup.push_back(neighbour[i]) ;
+						neighbour[i]->visited = true ;
+					}
 					son.push_back(ss) ;
 					neighbour[i]->addStepson(ss) ;
 		
@@ -1668,8 +1675,16 @@ void DelaunayTree_3D::insert(Point *p)
 			tree.push_back(ret[i]) ;
 			if(ret[i]->isTetrahedron && ret[i]->neighbour.size() != 4)
 			{
+				
 				std::cout << "we have " << ret[i]->neighbour.size() << " neighbours"<< std::endl ;
 // 				ret[i]->print() ;
+				p->print() ;
+				ret[i]->father->print() ;
+				ret[i]->print() ;
+				for(size_t k = 0 ; k < ret[i]->neighbour.size() ;  k++)
+				{
+					std::cout << "   --> " << std::flush ;ret[i]->neighbour[k]->print() ;
+				}
 				correct = false ;
 				
 				Sphere sph(.1, p) ;
@@ -1762,13 +1777,16 @@ std::vector<DelaunayTreeItem_3D *> DelaunayTree_3D::conflicts( const Point *p) c
 	
 	
 	ret.insert(ret.end(), cons.first.begin(), cons.first.end()) ;
+	std::sort(ret.begin(), ret.end()) ;
+	std::vector<DelaunayTreeItem_3D *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	ret.erase(e, ret.end()) ;
 	
 // 	std::cout <<"--------------------------" <<std::endl ;
 // 	std::cout << "we have the following conflicts from " << std::flush ;
 // 	p->print() ;std::cout << std::endl ;
 // 	
-// 	for(size_t i = 0 ; i < ret->size() ; i++)
-// 		(*ret)[i]->print() ;
+// 	for(size_t i = 0 ; i < ret.size() ; i++)
+// 		ret[i]->print() ;
 // 	std::cout <<"--------------------------" <<std::endl ;
 	return ret ;
 }

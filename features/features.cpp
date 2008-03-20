@@ -648,7 +648,7 @@ void FeatureTree::stitch()
 				
 			}
 			stitched  = true ;	
-			return ;
+// 			return ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
 				if(!tree[j]->isEnrichmentFeature)
@@ -668,14 +668,14 @@ void FeatureTree::stitch()
 							tree[j]->project(&proj_2) ;
 							bool changed  = true;
 							
-							if(squareDist(&proj_0 , triangles[i]->first ) < 0.0000001 && 
-								squareDist(&proj_1 , triangles[i]->second) < 0.0000001 )
+							if(squareDist2D(&proj_0 , triangles[i]->first ) < POINT_TOLERANCE && 
+								squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE )
 							{
 								count+=changed ; 
 								changed = false ;
 								Point test = triangles[i]->getBoundingPoint(1) ;
 								tree[j]->project(&test) ;
-								if (inRoot(test))
+								if (inRoot(test) && triangles[i]->in(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(1)) ;
 									if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -684,14 +684,14 @@ void FeatureTree::stitch()
 								}
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
 							}
-							if(squareDist(&proj_1 , triangles[i]->second) < 0.0000001 && 
-								squareDist(&proj_2 , triangles[i]->third) < 0.0000001 )
+							if(squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE && 
+								squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE )
 							{
 								count+=changed ; 
 								changed = false ;								
 								Point test = triangles[i]->getBoundingPoint(3) ;
 								tree[j]->project(&test) ;
-								if (inRoot(test))
+								if (inRoot(test) && triangles[i]->in(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(3)) ;
 									if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -701,14 +701,14 @@ void FeatureTree::stitch()
 								
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(3)->x << ", " << (*triangles)[i]->getBoundingPoint(3)->y << std::endl ;
 							}
-							if(squareDist(&proj_2 , triangles[i]->third) < 0.0000001 && 
-							   squareDist(&proj_0, triangles[i]->first) < 0.0000001) 
+							if(squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE && 
+							   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE) 
 							{
 								count+=changed ; 
 								changed = false ;								
 								Point test = triangles[i]->getBoundingPoint(5) ;
 								tree[j]->project(&test) ;
-								if (inRoot(test))
+								if (inRoot(test) && triangles[i]->in(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(5)) ;
 									if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -849,70 +849,100 @@ void FeatureTree::stitch()
 						
 						
 						if(
-						    squareDist(&proj_0 , tets[i]->first ) < 1e-12 && 
-						    squareDist(&proj_1 , tets[i]->second) < 1e-12 
+						    squareDist3D(&proj_0 , tets[i]->first ) < POINT_TOLERANCE && 
+						    squareDist3D(&proj_1 , tets[i]->second) < POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
-							tree[j]->project(&tets[i]->getBoundingPoint(1)) ;
-							if(elemOrder >= CONSTANT_TIME_LINEAR)
-								tree[j]->project(&tets[i]->getBoundingPoint(11)) ;
-							tets[i]->moved = true ;
+							Point test = tets[i]->getBoundingPoint(1) ;
+							tree[j]->project(&test) ;
+							if (inRoot(test) && tets[i]->in(test))
+							{
+								tree[j]->project(&tets[i]->getBoundingPoint(1)) ;
+								if(elemOrder >= CONSTANT_TIME_LINEAR)
+									tree[j]->project(&tets[i]->getBoundingPoint(11)) ;
+								tets[i]->moved = true ;
+							}
 						}
 						if(
-						    squareDist(&proj_0 , tets[i]->first ) < 1e-12 && 
-						    squareDist(&proj_2 , tets[i]->third) < 1e-12 
+						    squareDist3D(&proj_0 , tets[i]->first ) < POINT_TOLERANCE && 
+						    squareDist3D(&proj_2 , tets[i]->third) < POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
-							tree[j]->project(&tets[i]->getBoundingPoint(9)) ;
-							if(elemOrder >= CONSTANT_TIME_LINEAR)
-								tree[j]->project(&tets[i]->getBoundingPoint(19)) ;
-							tets[i]->moved = true ;
+							Point test = tets[i]->getBoundingPoint(9) ;
+							tree[j]->project(&test) ;
+							if (inRoot(test) && tets[i]->in(test))
+							{
+								tree[j]->project(&tets[i]->getBoundingPoint(9)) ;
+								if(elemOrder >= CONSTANT_TIME_LINEAR)
+									tree[j]->project(&tets[i]->getBoundingPoint(19)) ;
+								tets[i]->moved = true ;
+							}
 						}
 						if(
-						    squareDist(&proj_0 , tets[i]->first ) < 1e-12 && 
-						    squareDist(&proj_3 , tets[i]->fourth) < 1e-12 
+						    squareDist3D(&proj_0 , tets[i]->first ) < POINT_TOLERANCE && 
+						    squareDist3D(&proj_3 , tets[i]->fourth) < POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
-							tree[j]->project(&tets[i]->getBoundingPoint(7)) ;
-							if(elemOrder >= CONSTANT_TIME_LINEAR)
-								tree[j]->project(&tets[i]->getBoundingPoint(17)) ;
-							tets[i]->moved = true ;
+							Point test = tets[i]->getBoundingPoint(7) ;
+							tree[j]->project(&test) ;
+							if (inRoot(test) && tets[i]->in(test))
+							{
+								tree[j]->project(&tets[i]->getBoundingPoint(7)) ;
+								if(elemOrder >= CONSTANT_TIME_LINEAR)
+									tree[j]->project(&tets[i]->getBoundingPoint(17)) ;
+								tets[i]->moved = true ;
+							}
 						}
 						if(
-						    squareDist(&proj_1 , tets[i]->second ) < 1e-12 && 
-						    squareDist(&proj_3 , tets[i]->fourth) < 1e-12 
+						    squareDist3D(&proj_1 , tets[i]->second ) < POINT_TOLERANCE && 
+						    squareDist3D(&proj_3 , tets[i]->fourth) < POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
-							tree[j]->project(&tets[i]->getBoundingPoint(8)) ;
-							if(elemOrder >= CONSTANT_TIME_LINEAR)
-								tree[j]->project(&tets[i]->getBoundingPoint(18)) ;
-							tets[i]->moved = true ;
+							Point test = tets[i]->getBoundingPoint(8) ;
+							tree[j]->project(&test) ;
+							if (inRoot(test) && tets[i]->in(test))
+							{
+								tree[j]->project(&tets[i]->getBoundingPoint(8)) ;
+								if(elemOrder >= CONSTANT_TIME_LINEAR)
+									tree[j]->project(&tets[i]->getBoundingPoint(18)) ;
+								tets[i]->moved = true ;
+							}
 						}
 						if(
-						    squareDist(&proj_1 , tets[i]->second ) < 1e-12 && 
-						    squareDist(&proj_2 , tets[i]->third) < 1e-12
+						    squareDist3D(&proj_1 , tets[i]->second ) < POINT_TOLERANCE && 
+						    squareDist3D(&proj_2 , tets[i]->third) < POINT_TOLERANCE
 						  )
 						{
 							count +=1; 
-							tree[j]->project(&tets[i]->getBoundingPoint(3)) ;
-							if(elemOrder >= CONSTANT_TIME_LINEAR)
-								tree[j]->project(&tets[i]->getBoundingPoint(13)) ;
-							tets[i]->moved = true ;
+							Point test = tets[i]->getBoundingPoint(3) ;
+							tree[j]->project(&test) ;
+							if (inRoot(test) && tets[i]->in(test))
+							{
+								tree[j]->project(&tets[i]->getBoundingPoint(3)) ;
+								if(elemOrder >= CONSTANT_TIME_LINEAR)
+									tree[j]->project(&tets[i]->getBoundingPoint(13)) ;
+								tets[i]->moved = true ;
+							}
 						}
 						if(
-						    squareDist(&proj_3 , tets[i]->fourth ) < 1e-12 && 
-						    squareDist(&proj_2 , tets[i]->third) < 1e-12 
+						    squareDist3D(&proj_3 , tets[i]->fourth ) < POINT_TOLERANCE && 
+						    squareDist3D(&proj_2 , tets[i]->third) < POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
-							tree[j]->project(&tets[i]->getBoundingPoint(5)) ;
-							if(elemOrder >= CONSTANT_TIME_LINEAR)
-								tree[j]->project(&tets[i]->getBoundingPoint(15)) ;
-							tets[i]->moved = true ;
+							Point test = tets[i]->getBoundingPoint(5) ;
+							tree[j]->project(&test) ;
+							if (inRoot(test) && tets[i]->in(test))
+							{
+								tree[j]->project(&tets[i]->getBoundingPoint(5)) ;
+								if(elemOrder >= CONSTANT_TIME_LINEAR)
+									tree[j]->project(&tets[i]->getBoundingPoint(15)) ;
+								tets[i]->moved = true ;
+							}
 						}
 
 						if(count % 1000 == 0)
@@ -2471,7 +2501,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 			enrichmentFeature.push_back(tree[i]) ;
 		}
 	}
-	
+	int bpcount = 0 ;
 	size_t basepoints = 0 ;
 	std::cerr << " getting mesh points..." << std::flush ;
 	for(size_t i  = 0 ; i < tree.size() ; i++)
@@ -2483,6 +2513,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 			std::stable_sort(descendants.begin(), descendants.end()) ;
 			for(size_t j  =  0 ; j <  tree[i]->getBoundingPoints().size() ; j++)
 			{
+				
 				bool isIn = false ;
 				
 				std::vector<Feature *> potentialFeatures ;
@@ -2547,6 +2578,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				
 				if(!isIn)
 				{
+					bpcount++ ;
 					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getBoundingPoint(j), this->tree[i])) ;
 					if(i == 0)
 						basepoints++ ;
@@ -2673,7 +2705,8 @@ void FeatureTree::generateElements( size_t correctionSteps)
 	meshPoints.erase(e, meshPoints.end()) ;
 	
 	//shuffle for efficiency
-	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
+	std::random_shuffle(meshPoints.begin(),meshPoints.begin()+bpcount) ;
+	std::random_shuffle(meshPoints.begin()+bpcount, meshPoints.end()) ;
 	
 	if(is2D())
 	{		

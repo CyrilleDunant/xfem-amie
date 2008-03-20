@@ -22,8 +22,15 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 		boundingPoints[1] = p0;
 	}
 	computeCircumCenter() ;
-	radius = dist(*p1, circumCenter);
-	sqradius = radius*radius ;
+	Vector r(4) ;
+	r[0] = squareDist3D(*p0, circumCenter) ;
+	r[1] = squareDist3D(*p1, circumCenter) ;
+	r[2] = squareDist3D(*p2, circumCenter) ;
+	r[3] = squareDist3D(*p3, circumCenter) ;
+	std::sort(&r[0], &r[4]) ;
+	sqradius = r[0] ;
+	radius = sqrt(sqradius);
+	
 	assert(this->volume() >0 ) ;
 	computeCenter() ;	
 }
@@ -48,8 +55,14 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point *
 		boundingPoints[1] = p0;
 	}
 	computeCircumCenter() ;
-	radius = dist(*p1, circumCenter);
-	sqradius = radius*radius ;
+	Vector r(4) ;
+	r[0] = squareDist3D(*p0, circumCenter) ;
+	r[1] = squareDist3D(*p1, circumCenter) ;
+	r[2] = squareDist3D(*p2, circumCenter) ;
+	r[3] = squareDist3D(*p3, circumCenter) ;
+	std::sort(&r[0], &r[4]) ;
+	sqradius = r[0] ;
+	radius = sqrt(sqradius);
 	assert(this->volume() >0 ) ;
 	computeCenter() ;	
 }
@@ -70,11 +83,14 @@ Tetrahedron::Tetrahedron(Point p0, Point p1, Point p2, Point p3): ConvexGeometry
 		boundingPoints[1] = &p0;
 	}
 	computeCircumCenter() ;
-	radius = std::min(std::min(std::min(dist(*boundingPoints[0], circumCenter), 
-	                                    dist(*boundingPoints[1], circumCenter)),
-	                           dist(*boundingPoints[2], circumCenter)),
-	                  dist(*boundingPoints[3], circumCenter));
-	sqradius = radius*radius ;
+	Vector r(4) ;
+	r[0] = squareDist3D(p0, circumCenter) ;
+	r[1] = squareDist3D(p1, circumCenter) ;
+	r[2] = squareDist3D(p2, circumCenter) ;
+	r[3] = squareDist3D(p3, circumCenter) ;
+	std::sort(&r[0], &r[4]) ;
+	sqradius = r[0] ;
+	radius = sqrt(sqradius);
 	computeCenter() ;	
 }
 
@@ -88,11 +104,14 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 	boundingPoints[2] = new Point(0,0,1) ;
 	boundingPoints[3] = new Point(0,0,0) ;
 	computeCircumCenter() ;
-	radius = std::min(std::min(std::min(dist(*boundingPoints[0], circumCenter), 
-	                  dist(*boundingPoints[1], circumCenter)),
-	                  dist(*boundingPoints[2], circumCenter)),
-	                  dist(*boundingPoints[3], circumCenter));
-	sqradius = radius*radius ;
+	Vector r(4) ;
+	r[0] = squareDist3D(*boundingPoints[0], circumCenter) ;
+	r[1] = squareDist3D(*boundingPoints[1], circumCenter) ;
+	r[2] = squareDist3D(*boundingPoints[2], circumCenter) ;
+	r[3] = squareDist3D(*boundingPoints[3], circumCenter) ;
+	std::sort(&r[0], &r[4]) ;
+	sqradius = r[0] ;
+	radius = sqrt(sqradius);
 	computeCenter() ;	
 }
 
@@ -238,30 +257,36 @@ void Tetrahedron::computeCircumCenter()
 
 bool Tetrahedron::inCircumSphere(const Point & p) const
 {
-	double x = circumCenter.x - p.x ;
-	double y = circumCenter.y - p.y ;
-	double z = circumCenter.z - p.z ;
-	Vector r(3) ; 
-	r[0] = x*x ;
-	r[1] = y*y ;
-	r[2] = z*z ;
-	std::sort(&r[0], &r[3]) ;
-	return  r[0]+r[1] +r[2] < sqradius - 4.*POINT_TOLERANCE;
-	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
+	Point a(p) ; a.x += POINT_TOLERANCE ;
+	Point b(p) ; b.x -= POINT_TOLERANCE ;
+	Point c(p) ; c.y += POINT_TOLERANCE ;
+	Point d(p) ; d.y -= POINT_TOLERANCE ;
+	Point e(p) ; e.z += POINT_TOLERANCE ;
+	Point f(p) ; f.z -= POINT_TOLERANCE ;
+	return  squareDist3D(circumCenter, a) < -POINT_TOLERANCE + sqradius 
+		&&  squareDist3D(circumCenter, b) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, c) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, d) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, e) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, f) < -POINT_TOLERANCE + sqradius;
+// 	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
 {
-	double x = circumCenter.x - p->x ;
-	double y = circumCenter.y - p->y ;
-	double z = circumCenter.z - p->z ;
-	Vector r(3) ; 
-	r[0] = x*x ;
-	r[1] = y*y ;
-	r[2] = z*z ;
-	std::sort(&r[0], &r[3]) ;
-	return  r[0]+r[1] +r[2] < sqradius - 4.*POINT_TOLERANCE;
-	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
+	Point a(*p) ; a.x += POINT_TOLERANCE ;
+	Point b(*p) ; b.x -= POINT_TOLERANCE ;
+	Point c(*p) ; c.y += POINT_TOLERANCE ;
+	Point d(*p) ; d.y -= POINT_TOLERANCE ;
+	Point e(*p) ; e.z += POINT_TOLERANCE ;
+	Point f(*p) ; f.z -= POINT_TOLERANCE ;
+	return  squareDist3D(circumCenter, a) < -POINT_TOLERANCE + sqradius 
+		&&  squareDist3D(circumCenter, b) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, c) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, d) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, e) < -POINT_TOLERANCE + sqradius
+		&&  squareDist3D(circumCenter, f) < -POINT_TOLERANCE + sqradius;
+// 	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)

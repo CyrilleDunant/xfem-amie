@@ -16,13 +16,8 @@ Point::Point()
 	this->id = -1 ;
 }
 
-Point::Point(const Point & p) 
+Point::Point(const Point & p) : x(p.x), y(p.y), z(p.z), t(p.t), id(p.id)
 {
-	this->x = p.x ; 
-	this->y = p.y ;
-	this->z = p.z ;
-	this->t = p.t ;
-	this->id = p.id ;
 }
 
 double Point::angle() const
@@ -68,12 +63,26 @@ void Point::print() const
 
 double Point::norm() const
 {
+	Vector r(4) ;
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	r[3] = t*t ;
+	std::sort(&r[0], &r[4]) ;
+	return sqrt(r[0] + r[1] + r[2]+ r[3]);
 	return sqrt(fma(x, x, fma(y, y, z*z))) ;
 	return sqrt(x*x + y*y + z*z) ;
 }
 
 double Point::sqNorm() const
 {
+	Vector r(4) ;
+	r[0] = x*x ;
+	r[1] = y*y ;
+	r[2] = z*z ;
+	r[3] = t*t ;
+	std::sort(&r[0], &r[4]) ;
+	return r[0] + r[1] + r[2]+ r[3];
 	return fma(x, x, fma(y, y, z*z)) ;
 	return x*x + y*y + z*z;
 }
@@ -2873,17 +2882,29 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	Mu::Point A (*f0-*f1) ;
 	Mu::Point B (*f2-*f1) ;
 	Mu::Point C (*f2-*test) ;
-	double anorm = A.norm() ;
-	double bnorm = B.norm() ;
-	double cnorm = C.norm() ;
-	if(anorm < POINT_TOLERANCE || bnorm < POINT_TOLERANCE || cnorm < POINT_TOLERANCE)
+	double anorm = A.sqNorm() ;
+	double bnorm = B.sqNorm() ;
+	double cnorm = C.sqNorm() ;
+	if(anorm <  POINT_TOLERANCE || bnorm <  POINT_TOLERANCE || cnorm < POINT_TOLERANCE)
 		return true ;
 	
 // 	A /= anorm ;
 // 	B /= bnorm ;
 // 	C /= cnorm ;
 
-	return  std::abs(triProduct(A, B, C)) < /*std::max(anorm,std::max(bnorm, cnorm))**/Mu::POINT_TOLERANCE ;
+	Point a(*test) ; a.x += POINT_TOLERANCE ;
+	Point b(*test) ; b.x -= POINT_TOLERANCE ;
+	Point c(*test) ; c.y += POINT_TOLERANCE ;
+	Point d(*test) ; d.y -= POINT_TOLERANCE ;
+	Point e(*test) ; e.z += POINT_TOLERANCE ;
+	Point f(*test) ; f.z -= POINT_TOLERANCE ;
+	
+	return coplanarity(&a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+		|| coplanarity(&b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+		|| coplanarity(&c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+		|| coplanarity(&d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+		|| coplanarity(&e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+		|| coplanarity(&f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2893,17 +2914,25 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Mu::Point B (f2-f1) ; 
 	Mu::Point C (f2-test) ; 
 
-	double anorm = A.norm() ;
-	double bnorm = B.norm() ;
-	double cnorm = C.norm() ;
-	if(anorm < POINT_TOLERANCE || bnorm < POINT_TOLERANCE || cnorm < POINT_TOLERANCE)
+	double anorm = A.sqNorm() ;
+	double bnorm = B.sqNorm() ;
+	double cnorm = C.sqNorm() ;
+	if(anorm <  POINT_TOLERANCE || bnorm <  POINT_TOLERANCE || cnorm <  POINT_TOLERANCE)
 		return true ;
 	
-// 	A /= anorm ;
-// 	B /= bnorm ;
-// 	C /= cnorm ;
+	Point a(test) ; a.x += POINT_TOLERANCE ;
+	Point b(test) ; b.x -= POINT_TOLERANCE ;
+	Point c(test) ; c.y += POINT_TOLERANCE ;
+	Point d(test) ; d.y -= POINT_TOLERANCE ;
+	Point e(test) ; e.z += POINT_TOLERANCE ;
+	Point f(test) ; f.z -= POINT_TOLERANCE ;
 
-	return  std::abs(triProduct(A, B, C)) < /*std::max(anorm,std::max(bnorm, cnorm))**/Mu::POINT_TOLERANCE ;
+	return coplanarity(a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+		|| coplanarity(b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+		|| coplanarity(c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+		|| coplanarity(d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+		|| coplanarity(e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+		|| coplanarity(f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
 } ;
 
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  

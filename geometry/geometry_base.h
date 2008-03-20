@@ -129,7 +129,7 @@ return this->__geo_type__::volume() ;                      \
 namespace Mu
 {
 
-static const double POINT_TOLERANCE =  4e-12 ; // 4.*std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE =  4e-12 ;//std::numeric_limits<double>::epsilon() ;
 
 typedef enum
 {

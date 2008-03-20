@@ -814,6 +814,7 @@ void Circle::setRadius(double newr)
 		getInPoint(i).y = (getInPoint(i).y - center.y)*ratio + center.y ;
 	}
 	
+	this->radius = newr ;
 	this->sqradius = newr*newr ;
 }
 
@@ -856,12 +857,12 @@ void Circle::sampleBoundingSurface(size_t num_points)
 {
 	this->boundingPoints.resize(num_points) ;
 	
-	double angle = 2*M_PI/ (num_points) ;
+	double angle = 2.*M_PI/ (num_points) ;
 	
 	for (size_t i = 0 ; i< num_points ; i++)
 	{
 		double randa= 0;//((2.*(double)random()/(RAND_MAX+1.0))-1.)*0.15*(M_PI/num_points) ;
-		boundingPoints[i] = new Point(getRadius()*cos((double)i*angle+randa) + getCenter().x, getRadius()*sin((double)i*angle+randa) + getCenter().y);
+		boundingPoints[i] = new Point(getRadius()*cos((double)i*angle) + getCenter().x, getRadius()*sin((double)i*angle+randa) + getCenter().y);
 // 		std::cout << "x = " << boundingPoints[i]->x << ", y = " << boundingPoints[i]->y << std::endl ;
 	}
 }
@@ -954,6 +955,7 @@ LayeredCircle::LayeredCircle(std::vector<double> radii, const Point c) : Circle(
 LayeredCircle::LayeredCircle(double r, const Point center) : Circle(r, center)
 {
 	radiuses.push_back(r) ;
+	
 }
 
 void LayeredCircle::sampleSurface(size_t num_points)
@@ -1051,7 +1053,7 @@ void LayeredCircle::setRadius(double newr)
 		getInPoint(i).x = (getInPoint(i).x - center.x)*ratio + center.x ;
 		getInPoint(i).y = (getInPoint(i).y - center.y)*ratio + center.y ;
 	}
-	
+	this->radius = newr ;
 	this->sqradius = newr*newr ;
 }
 
