@@ -266,13 +266,13 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 	Point g(p) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(p) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
 	return  squareDist3D(circumCenter, a) < sqradius 
-		||  squareDist3D(circumCenter, b) < sqradius
-		||  squareDist3D(circumCenter, c) < sqradius
-		||  squareDist3D(circumCenter, d) < sqradius
-		||  squareDist3D(circumCenter, e) < sqradius
-		||  squareDist3D(circumCenter, f) < sqradius
-		||  squareDist3D(circumCenter, g) < sqradius
-		||  squareDist3D(circumCenter, h) < sqradius;
+		&&  squareDist3D(circumCenter, b) < sqradius
+		&&  squareDist3D(circumCenter, c) < sqradius
+		&&  squareDist3D(circumCenter, d) < sqradius
+		&&  squareDist3D(circumCenter, e) < sqradius
+		&&  squareDist3D(circumCenter, f) < sqradius
+		&&  squareDist3D(circumCenter, g) < sqradius
+		&&  squareDist3D(circumCenter, h) < sqradius;
 // 	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
@@ -287,13 +287,13 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	Point g(*p) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(*p) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
 	return  squareDist3D(circumCenter, a) < sqradius 
-		||  squareDist3D(circumCenter, b) < sqradius
-		||  squareDist3D(circumCenter, c) < sqradius
-		||  squareDist3D(circumCenter, d) < sqradius
-		||  squareDist3D(circumCenter, e) < sqradius
-		||  squareDist3D(circumCenter, f) < sqradius
-		||  squareDist3D(circumCenter, g) < sqradius
-		||  squareDist3D(circumCenter, h) < sqradius;
+		&&  squareDist3D(circumCenter, b) < sqradius
+		&&  squareDist3D(circumCenter, c) < sqradius
+		&&  squareDist3D(circumCenter, d) < sqradius
+		&&  squareDist3D(circumCenter, e) < sqradius
+		&&  squareDist3D(circumCenter, f) < sqradius
+		&&  squareDist3D(circumCenter, g) < sqradius
+		&&  squareDist3D(circumCenter, h) < sqradius;
 // 	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
