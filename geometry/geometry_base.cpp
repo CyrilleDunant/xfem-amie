@@ -2901,15 +2901,15 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	Point g(*test) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(*test) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
 
-	return  coplanarity(test, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-			|| coplanarity(&a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-			|| coplanarity(&b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(&c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(&d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-			|| coplanarity(&e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(&f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(&g, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(&h, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
+	return  coplanarity(test, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE 
+			|| coplanarity(&a, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE 
+			|| coplanarity(&b, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(&c, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(&d, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE 
+			|| coplanarity(&e, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(&f, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(&g, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(&h, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2934,15 +2934,15 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point g(test) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(test) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
 
-	return  coplanarity(test, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-			|| coplanarity(a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-			|| coplanarity(b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-			|| coplanarity(e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(g, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-			|| coplanarity(h, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
+	return  coplanarity(test, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE 
+			|| coplanarity(a, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE 
+			|| coplanarity(b, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(c, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(d, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE 
+			|| coplanarity(e, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(f, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(g, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE
+			|| coplanarity(h, f0, f1, f2) < 8.*Mu::POINT_TOLERANCE;
 } ;
 
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
