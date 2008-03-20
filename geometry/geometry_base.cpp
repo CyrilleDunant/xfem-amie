@@ -2899,12 +2899,13 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	Point e(*test) ; e.z += POINT_TOLERANCE ;
 	Point f(*test) ; f.z -= POINT_TOLERANCE ;
 	
-	return coplanarity(&a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-		|| coplanarity(&b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-		|| coplanarity(&c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-		|| coplanarity(&d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-		|| coplanarity(&e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-		|| coplanarity(&f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
+	return  coplanarity(test, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+			|| coplanarity(&a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+			|| coplanarity(&b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+			|| coplanarity(&c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+			|| coplanarity(&d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+			|| coplanarity(&e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+			|| coplanarity(&f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2927,12 +2928,13 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point e(test) ; e.z += POINT_TOLERANCE ;
 	Point f(test) ; f.z -= POINT_TOLERANCE ;
 
-	return coplanarity(a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-		|| coplanarity(b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-		|| coplanarity(c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-		|| coplanarity(d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
-		|| coplanarity(e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
-		|| coplanarity(f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
+	return  coplanarity(test, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+			|| coplanarity(a, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+			|| coplanarity(b, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+			|| coplanarity(c, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+			|| coplanarity(d, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE 
+			|| coplanarity(e, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE
+			|| coplanarity(f, f0, f1, f2) < 4.*Mu::POINT_TOLERANCE;
 } ;
 
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
