@@ -257,6 +257,21 @@ void Tetrahedron::computeCircumCenter()
 
 bool Tetrahedron::inCircumSphere(const Point & p) const
 {
+	if(p.x > circumCenter.x+radius)
+		return false ;
+	if(p.x < circumCenter.x-radius)
+		return false ;
+	if(p.y > circumCenter.y+radius)
+		return false ;
+	if(p.y < circumCenter.y-radius)
+		return false ;
+	if(p.z > circumCenter.z+radius)
+		return false ;
+	if(p.z < circumCenter.z-radius)
+		return false ;
+	if(squareDist3D(circumCenter, p) < - 32.*POINT_TOLERANCE+sqradius)
+		return true ;
+	
 	Point a(p) ; a.x += POINT_TOLERANCE ; a.y += POINT_TOLERANCE ; a.z += POINT_TOLERANCE ;
 	Point b(p) ; b.x += POINT_TOLERANCE ; b.y += POINT_TOLERANCE ; b.z -= POINT_TOLERANCE ;
 	Point c(p) ; c.y += POINT_TOLERANCE ; c.y -= POINT_TOLERANCE ; c.z += POINT_TOLERANCE ;
@@ -265,19 +280,34 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 	Point f(p) ; f.z -= POINT_TOLERANCE ; f.y += POINT_TOLERANCE ; f.z -= POINT_TOLERANCE ;
 	Point g(p) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(p) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
-	return  squareDist3D(circumCenter, a) < - 4.*POINT_TOLERANCE+sqradius 
-		&&  squareDist3D(circumCenter, b) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, c) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, d) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, e) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, f) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, g) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, h) < - 4.*POINT_TOLERANCE+sqradius;
+	return  squareDist3D(circumCenter, a) < - 6.*POINT_TOLERANCE+sqradius 
+		&&  squareDist3D(circumCenter, b) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, c) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, d) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, e) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, f) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, g) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, h) < - 6.*POINT_TOLERANCE+sqradius;
 // 	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
 {
+	if(p->x > circumCenter.x+radius)
+		return false ;
+	if(p->x < circumCenter.x-radius)
+		return false ;
+	if(p->y > circumCenter.y+radius)
+		return false ;
+	if(p->y < circumCenter.y-radius)
+		return false ;
+	if(p->z > circumCenter.z+radius)
+		return false ;
+	if(p->z < circumCenter.z-radius)
+		return false ;
+	if(squareDist3D(&circumCenter, p) < - 32.*POINT_TOLERANCE+sqradius)
+		return true ;
+	
 	Point a(*p) ; a.x += POINT_TOLERANCE ; a.y += POINT_TOLERANCE ; a.z += POINT_TOLERANCE ;
 	Point b(*p) ; b.x += POINT_TOLERANCE ; b.y += POINT_TOLERANCE ; b.z -= POINT_TOLERANCE ;
 	Point c(*p) ; c.y += POINT_TOLERANCE ; c.y -= POINT_TOLERANCE ; c.z += POINT_TOLERANCE ;
@@ -286,14 +316,14 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	Point f(*p) ; f.z -= POINT_TOLERANCE ; f.y += POINT_TOLERANCE ; f.z -= POINT_TOLERANCE ;
 	Point g(*p) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(*p) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
-	return  squareDist3D(circumCenter, a) < - 4.*POINT_TOLERANCE+sqradius 
-		&&  squareDist3D(circumCenter, b) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, c) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, d) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, e) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, f) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, g) < - 4.*POINT_TOLERANCE+sqradius
-		&&  squareDist3D(circumCenter, h) < - 4.*POINT_TOLERANCE+sqradius;
+	return  squareDist3D(circumCenter, a) < - 6.*POINT_TOLERANCE+sqradius 
+		&&  squareDist3D(circumCenter, b) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, c) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, d) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, e) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, f) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, g) < - 6.*POINT_TOLERANCE+sqradius
+		&&  squareDist3D(circumCenter, h) < - 6.*POINT_TOLERANCE+sqradius;
 // 	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
