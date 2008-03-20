@@ -257,17 +257,17 @@ void Tetrahedron::computeCircumCenter()
 
 bool Tetrahedron::inCircumSphere(const Point & p) const
 {
-	if(p.x > circumCenter.x+radius)
+	if(p.x > circumCenter.x+1.1*radius)
 		return false ;
-	if(p.x < circumCenter.x-radius)
+	if(p.x < circumCenter.x-1.1*radius)
 		return false ;
-	if(p.y > circumCenter.y+radius)
+	if(p.y > circumCenter.y+1.1*radius)
 		return false ;
-	if(p.y < circumCenter.y-radius)
+	if(p.y < circumCenter.y-1.1*radius)
 		return false ;
-	if(p.z > circumCenter.z+radius)
+	if(p.z > circumCenter.z+1.1*radius)
 		return false ;
-	if(p.z < circumCenter.z-radius)
+	if(p.z < circumCenter.z-1.1*radius)
 		return false ;
 	if(squareDist3D(circumCenter, p) < - 32.*POINT_TOLERANCE+sqradius)
 		return true ;
@@ -293,17 +293,17 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
 {
-	if(p->x > circumCenter.x+radius)
+	if(p->x > circumCenter.x+1.1*radius)
 		return false ;
-	if(p->x < circumCenter.x-radius)
+	if(p->x < circumCenter.x-1.1*radius)
 		return false ;
-	if(p->y > circumCenter.y+radius)
+	if(p->y > circumCenter.y+1.1*radius)
 		return false ;
-	if(p->y < circumCenter.y-radius)
+	if(p->y < circumCenter.y-1.1*radius)
 		return false ;
-	if(p->z > circumCenter.z+radius)
+	if(p->z > circumCenter.z+1.1*radius)
 		return false ;
-	if(p->z < circumCenter.z-radius)
+	if(p->z < circumCenter.z-1.1*radius)
 		return false ;
 	if(squareDist3D(&circumCenter, p) < - 32.*POINT_TOLERANCE+sqradius)
 		return true ;
