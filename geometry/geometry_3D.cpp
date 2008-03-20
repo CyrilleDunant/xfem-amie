@@ -257,35 +257,43 @@ void Tetrahedron::computeCircumCenter()
 
 bool Tetrahedron::inCircumSphere(const Point & p) const
 {
-	Point a(p) ; a.x += POINT_TOLERANCE ;
-	Point b(p) ; b.x -= POINT_TOLERANCE ;
-	Point c(p) ; c.y += POINT_TOLERANCE ;
-	Point d(p) ; d.y -= POINT_TOLERANCE ;
-	Point e(p) ; e.z += POINT_TOLERANCE ;
-	Point f(p) ; f.z -= POINT_TOLERANCE ;
-	return  squareDist3D(circumCenter, a) < -POINT_TOLERANCE + sqradius 
-		&&  squareDist3D(circumCenter, b) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, c) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, d) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, e) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, f) < -POINT_TOLERANCE + sqradius;
+	Point a(p) ; a.x += POINT_TOLERANCE ; a.y += POINT_TOLERANCE ; a.z += POINT_TOLERANCE ;
+	Point b(p) ; b.x += POINT_TOLERANCE ; b.y += POINT_TOLERANCE ; b.z -= POINT_TOLERANCE ;
+	Point c(p) ; c.y += POINT_TOLERANCE ; c.y -= POINT_TOLERANCE ; c.z += POINT_TOLERANCE ;
+	Point d(p) ; d.y += POINT_TOLERANCE ; d.y -= POINT_TOLERANCE ; d.z -= POINT_TOLERANCE ;
+	Point e(p) ; e.z -= POINT_TOLERANCE ; e.y += POINT_TOLERANCE ; e.z += POINT_TOLERANCE ;
+	Point f(p) ; f.z -= POINT_TOLERANCE ; f.y += POINT_TOLERANCE ; f.z -= POINT_TOLERANCE ;
+	Point g(p) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
+	Point h(p) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
+	return  squareDist3D(circumCenter, a) < sqradius 
+		||  squareDist3D(circumCenter, b) < sqradius
+		||  squareDist3D(circumCenter, c) < sqradius
+		||  squareDist3D(circumCenter, d) < sqradius
+		||  squareDist3D(circumCenter, e) < sqradius
+		||  squareDist3D(circumCenter, f) < sqradius
+		||  squareDist3D(circumCenter, g) < sqradius
+		||  squareDist3D(circumCenter, h) < sqradius;
 // 	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
 {
-	Point a(*p) ; a.x += POINT_TOLERANCE ;
-	Point b(*p) ; b.x -= POINT_TOLERANCE ;
-	Point c(*p) ; c.y += POINT_TOLERANCE ;
-	Point d(*p) ; d.y -= POINT_TOLERANCE ;
-	Point e(*p) ; e.z += POINT_TOLERANCE ;
-	Point f(*p) ; f.z -= POINT_TOLERANCE ;
-	return  squareDist3D(circumCenter, a) < -POINT_TOLERANCE + sqradius 
-		&&  squareDist3D(circumCenter, b) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, c) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, d) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, e) < -POINT_TOLERANCE + sqradius
-		&&  squareDist3D(circumCenter, f) < -POINT_TOLERANCE + sqradius;
+	Point a(*p) ; a.x += POINT_TOLERANCE ; a.y += POINT_TOLERANCE ; a.z += POINT_TOLERANCE ;
+	Point b(*p) ; b.x += POINT_TOLERANCE ; b.y += POINT_TOLERANCE ; b.z -= POINT_TOLERANCE ;
+	Point c(*p) ; c.y += POINT_TOLERANCE ; c.y -= POINT_TOLERANCE ; c.z += POINT_TOLERANCE ;
+	Point d(*p) ; d.y += POINT_TOLERANCE ; d.y -= POINT_TOLERANCE ; d.z -= POINT_TOLERANCE ;
+	Point e(*p) ; e.z -= POINT_TOLERANCE ; e.y += POINT_TOLERANCE ; e.z += POINT_TOLERANCE ;
+	Point f(*p) ; f.z -= POINT_TOLERANCE ; f.y += POINT_TOLERANCE ; f.z -= POINT_TOLERANCE ;
+	Point g(*p) ; g.z -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
+	Point h(*p) ; h.z -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
+	return  squareDist3D(circumCenter, a) < sqradius 
+		||  squareDist3D(circumCenter, b) < sqradius
+		||  squareDist3D(circumCenter, c) < sqradius
+		||  squareDist3D(circumCenter, d) < sqradius
+		||  squareDist3D(circumCenter, e) < sqradius
+		||  squareDist3D(circumCenter, f) < sqradius
+		||  squareDist3D(circumCenter, g) < sqradius
+		||  squareDist3D(circumCenter, h) < sqradius;
 // 	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
