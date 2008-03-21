@@ -3197,6 +3197,8 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div ): x(sizeX), y(
 			}
 		}
 	}
+	
+	std::sort(freepixel.begin(), freepixel.end()) ;
 }
 
 Point Grid3D::randomFreeCenter() const 
@@ -3284,6 +3286,9 @@ bool Grid3D::add(Feature * inc)
 		if(cleanup[l]->isFilled())
 			freepixel.erase(std::find(freepixel.begin(), freepixel.end(), cleanup[l])) ;
 	}
+	
+	if(ret)
+		std::cout << freepixel.size() << std::endl ;
 	return ret ;
 }
 
