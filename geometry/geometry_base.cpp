@@ -2885,8 +2885,8 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	double anorm = A.sqNorm() ;
 	double bnorm = B.sqNorm() ;
 	double cnorm = C.sqNorm() ;
-	if(anorm <  POINT_TOLERANCE || bnorm <  POINT_TOLERANCE || cnorm < POINT_TOLERANCE)
-		return true ;
+// 	if(anorm <  POINT_TOLERANCE || bnorm <  POINT_TOLERANCE || cnorm < POINT_TOLERANCE)
+// 		return true ;
 // 	if(coplanarity(test, f0, f1, f2) > 32.*Mu::POINT_TOLERANCE)
 // 		return false ;
 // 	A /= anorm ;
@@ -2926,8 +2926,8 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	double anorm = A.sqNorm() ;
 	double bnorm = B.sqNorm() ;
 	double cnorm = C.sqNorm() ;
-	if(anorm <  POINT_TOLERANCE || bnorm <  POINT_TOLERANCE || cnorm <  POINT_TOLERANCE)
-		return true ;
+// 	if(anorm <  POINT_TOLERANCE || bnorm <  POINT_TOLERANCE || cnorm <  POINT_TOLERANCE)
+// 		return true ;
 // 	if(coplanarity(test, f0, f1, f2) > 32.*Mu::POINT_TOLERANCE)
 // 		return false ;
 	
