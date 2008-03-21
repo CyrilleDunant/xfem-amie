@@ -3194,13 +3194,13 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div ): x(sizeX), y(
 				
 				pixels[i][j][k] = new Voxel(x*(double)(i)/(double)lengthX-x*.5+psize*.5, y*(double)(j)/(double)lengthY-y*.5+psize*.5,z*(double)(k)/(double)lengthZ-z*.5+psize*.5,  psize) ;
 				freepixel.push_back(pixels[i][j][k]) ;
-				unfilledpixel.push_back(pixels[i][j][k]) ;
+				unfilledpixel.insert(pixels[i][j][k]) ;
 			}
 		}
 	}
 	
-	std::sort(freepixel.begin(), freepixel.end()) ;
-	std::sort(unfilledpixel.begin(), unfilledpixel.end()) ;
+// 	std::sort(freepixel.begin(), freepixel.end()) ;
+// 	std::sort(unfilledpixel.begin(), unfilledpixel.end()) ;
 }
 
 Point Grid3D::randomFreeCenter() const 
@@ -3222,7 +3222,13 @@ Point Grid3D::randomFreeCenter() const
 	else */if(!unfilledpixel.empty())
 	{
 		size_t index = random()%(unfilledpixel.size()-1) ;
-		Point start = unfilledpixel[index]->center() ;
+		std::set<Voxel *>::iterator i = unfilledpixel.begin() ;
+		while(index)
+		{
+			i++ ;
+			index-- ;
+		}
+		Point start = (*i)->center() ;
 		double f0 = (double)random()/(RAND_MAX+1)-.5; 
 		double f1 = (double)random()/(RAND_MAX+1)-.5; 
 		double f2 = (double)random()/(RAND_MAX+1)-.5; 
@@ -3309,9 +3315,9 @@ bool Grid3D::add(Feature * inc)
 // 			freepixel.erase(e) ;
 		if(cleanup[l]->isFilled())
 		{
-			std::vector<Voxel *>::iterator e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
-			if(e != unfilledpixel.end())
-				unfilledpixel.erase(e) ;
+// 			std::vector<Voxel *>::iterator e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
+// 			if(e != unfilledpixel.end())
+				unfilledpixel.erase(cleanup[l]) ;
 		}
 	}
 	

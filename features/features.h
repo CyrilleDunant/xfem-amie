@@ -405,7 +405,7 @@ class Grid3D
 protected:
 	std::valarray<std::valarray< std::valarray<Voxel *> > > pixels;
 	std::vector<Voxel *> freepixel ;
-	std::vector<Voxel *> unfilledpixel ;
+	std::set<Voxel *> unfilledpixel ;
 	double x ;
 	double y ;
 	double z ;
