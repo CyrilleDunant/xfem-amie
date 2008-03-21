@@ -269,7 +269,7 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 		return false ;
 	if(p.z < circumCenter.z-1.01*radius)
 		return false ;
-	if(squareDist3D(circumCenter, p) < - .99*POINT_TOLERANCE+sqradius)
+	if(squareDist3D(circumCenter, p) < - POINT_TOLERANCE+.99*sqradius)
 		return true ;
 	
 	Point a(p) ; a.x += POINT_TOLERANCE ; a.y += POINT_TOLERANCE ; a.z += POINT_TOLERANCE ;
