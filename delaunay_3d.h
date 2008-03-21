@@ -51,8 +51,8 @@ public:
 	
 	Point * first ; //!< Defining point. Is always <em>isVertex</em> the item.
 	Point * second ; //!<  Defining point. Is always <em>isVertex</em> the item.
-	Point * third ; //!<  Defining point. Function differs if item is a triangle or point.
-	Point * fourth ; // newly added
+	Point * third ; //!<  Defining point. Is always <em>isVertex</em> the item.
+	Point * fourth ; //!<  Defining point. Function differs if item is a triangle or point.
 	
 	bool isSpace ;  //newly added
 	bool isTetrahedron ; // newly added
@@ -185,9 +185,9 @@ public:
 class DelaunayDemiSpace : public DelaunayTreeItem_3D
 {
 protected:
-	Point vector1 ; //!< Frontier vector. Precalculated for performace reasons
-	Point vector2 ; //!< Frontier vector. Precalculated for performace reason
-	double direction ;//!< test vector. Precalculated for performace reasons
+	Point vector1 ; //!< Frontier vector. Precalculated for performance reasons
+	Point vector2 ; //!< Frontier vector. Precalculated for performance reason
+	double direction ;//!< test vector. Precalculated for performance reasons
 public:
 	Point pseudonormal ;
 	

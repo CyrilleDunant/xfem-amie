@@ -36,10 +36,6 @@ DelaunayTreeItem_3D::DelaunayTreeItem_3D( DelaunayTreeItem_3D * father,  const P
 	
 DelaunayTreeItem_3D::~DelaunayTreeItem_3D()
 {
-// 	for(size_t i = 0 ; i < neighbour.size() ; i++)
-// 	{
-// 		neighbour[i]->removeNeighbour(this) ;
-// 	}
 }
 	
 const Point * DelaunayTreeItem_3D::killer() const 
@@ -552,6 +548,7 @@ void DelaunayTreeItem_3D::kill(const Point * p)
 	{
 		this->neighbour[i]->removeNeighbour(this) ;
 	}
+	neighbour.clear() ;
 }
 	
 bool DelaunayTreeItem_3D::isAlive() const
