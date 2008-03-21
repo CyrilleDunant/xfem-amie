@@ -140,12 +140,14 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 		double longueurY = boundingBox[0].y-boundingBox[7].y;
 		double longueurZ = boundingBox[0].z-boundingBox[7].z;
 		std::cout << longueurX << ", " << longueurY << ", " << longueurZ << std::endl ;
-		Grid3D grid(longueurX, longueurY, longueurZ, 40) ;
+		int ndiv = 8 ;
+		Grid3D *grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
 		longueurZ*=1.2 ;
 		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
+
 // 			double r = inclusions[i]->getRadius() ;
 			tries++ ;
 // 			Point newCentre(chiffreAleatoire(longueurX-2.1*r)-(longueurX-2.1*r)/2. + offset.x, 
@@ -153,7 +155,7 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 // 			                chiffreAleatoire(longueurZ-2.1*r)-(longueurZ-2.1*r)/2. + offset.z
 // 			               ) ;
 // 			Point newCentre = grid3D.randomFreeCenter() ;
-			inclusions[i]->setCenter( grid.randomFreeCenter()) ;
+			inclusions[i]->setCenter( grid->randomFreeCenter()) ;
 			while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 			{
 // 				Point newCentre(
@@ -164,12 +166,12 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 // 				                chiffreAleatoire(longueurZ-2.1*r)
 // 				                 -(longueurZ-2.1*r)/2. + offset.z
 // 				               ) ;
-				inclusions[i]->setCenter(grid.randomFreeCenter()) ;
+				inclusions[i]->setCenter(grid->randomFreeCenter()) ;
 			}
 			
 			inclusions[i]->setCenter(inclusions[i]->getCenter()- offset) ;
 			
-			while(!grid.add(inclusions[i]) && tries < triesMax)
+			while(!grid->add(inclusions[i]) && tries < triesMax)
 			{
 				tries++ ;
 // 				Point newCentre(chiffreAleatoire(longueurX-2.1*r)
@@ -179,7 +181,7 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 // 				                chiffreAleatoire(longueurZ-2.1*r)
 // 				                -(longueurZ-2.1*r)/2. + offset.z
 // 				               ) ;
-				inclusions[i]->setCenter(grid.randomFreeCenter()) ;
+				inclusions[i]->setCenter(grid->randomFreeCenter()) ;
 				while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 				{
 // 					Point newCentre(chiffreAleatoire(longueurX-2.1*r)
@@ -189,7 +191,7 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 // 					                chiffreAleatoire(longueurZ-2.1*r)
 // 					                -(longueurZ-2.1*r)/2. + offset.z
 // 					               ) ;
-					inclusions[i]->setCenter(grid.randomFreeCenter()) ;
+					inclusions[i]->setCenter(grid->randomFreeCenter()) ;
 				}
 			}
 			
@@ -204,10 +206,19 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 			}
 			else
 				break ;
+				
+			if(grid->fraction() < .6 && ndiv < 64)
+			{
+				ndiv *=2 ;
+				delete grid ;
+				grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
+				for(size_t j = 0 ; j < ret.size() ; j++)
+					grid->forceAdd(ret[j]) ;
+			}
 		}
 		
 		std::cout << "\n placed aggregate volume = " << volume << std::endl ;
-		
+		delete grid ;
 		return ret ;
 	}
 		

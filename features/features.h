@@ -404,7 +404,6 @@ class Grid3D
 {
 protected:
 	std::valarray<std::valarray< std::valarray<Voxel *> > > pixels;
-	std::vector<Voxel *> freepixel ;
 	std::vector<Voxel *> unfilledpixel ;
 	double x ;
 	double y ;
@@ -424,6 +423,7 @@ public:
 	std::vector<Feature *> coOccur(const Geometry * geo) const ;
 	const std::vector<Feature *> & coOccur(const Point & p) const ;
 	std::vector<Feature *> & coOccur(const Point & p) ;
+	double fraction() const ;
 } ;
 
 /** Container for the features defining the setup.

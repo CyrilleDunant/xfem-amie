@@ -3257,6 +3257,11 @@ Grid3D::~Grid3D()
 	}
 }
 
+double Grid3D::fraction() const
+{
+	return (double)unfilledpixel.size()/(lengthX*lengthY*lengthZ) ;
+}
+
 bool Grid3D::add(Feature * inc)
 {
 	bool ret = true ;
@@ -3346,7 +3351,7 @@ void Grid3D::forceAdd(Feature * inc)
 	
 	double endZ =  startZ+2.*inc->getRadius();
 	int endK = std::min(endZ/psize + 2, (double)lengthZ);
-	
+	std::vector<Voxel *> cleanup ;
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -3356,8 +3361,19 @@ void Grid3D::forceAdd(Feature * inc)
 				if(pixels[i][j][k]->coOccur(inc))
 				{
 					pixels[i][j][k]->forceAdd(inc) ;
+					cleanup.push_back(pixels[i][j][k]) ;
 				}
 			}
+		}
+	}
+	
+	for(size_t l = 0 ; l < cleanup.size() ; l++)
+	{
+		if(cleanup[l]->isFilled())
+		{
+			std::vector<Voxel *>::iterator e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
+			if(e != unfilledpixel.end())
+				unfilledpixel.erase(e) ;
 		}
 	}
 }
