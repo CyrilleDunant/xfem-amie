@@ -3310,10 +3310,13 @@ bool Grid3D::add(Feature * inc)
 		if(cleanup[l]->isFilled())
 		{
 			e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
-			if(e != freepixel.end())
+			if(e != unfilledpixel.end())
 				unfilledpixel.erase(e) ;
 		}
 	}
+	
+	if(ret)
+		std::cout << freepixel.size() << ", "<< unfilledpixel.size() << std::endl ; 
 		
 	return ret ;
 }
