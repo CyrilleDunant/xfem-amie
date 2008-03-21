@@ -156,7 +156,7 @@ public:
 	 */
 	bool inCircumSphere(const Point & p) const ;
 	bool isNeighbour( const DelaunayTreeItem_3D * t) const ;
-	
+	void kill(const Point * p) ;
 	void insert(std::vector<DelaunayTreeItem_3D *> &, Point *p,   Star_3D *s) ;
 	
 	void print() const;

@@ -601,6 +601,13 @@ DelaunayTetrahedron::~DelaunayTetrahedron()
 {
 }
 
+void DelaunayTetrahedron::kill(const Point * p)
+{
+	DelaunayTreeItem_3D::kill(p) ;
+	getBoundingPoints().resize(0) ;
+	getInPoints().resize(0) ;
+}
+
 DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point * c) : TetrahedralElement(p0, p1, p2, p3), DelaunayTreeItem_3D(father, c)
 {
 	
