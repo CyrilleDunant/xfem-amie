@@ -288,7 +288,7 @@ std::vector <Inclusion3D *> GranuloBolome::operator()(bool,double rayonGranulatM
 			return rayon ;
 		}
 		double volume = 4./3.*M_PI*rayon_granulat*rayon_granulat*rayon_granulat ;//4.*rayon_granulat*rayon_granulat*rayon_granulat*M_PI/(3.); // volume du plus gros granulat
-		v +=  M_PI*rayon_granulat*rayon_granulat;
+		v +=  volume;
 		if(rayon_granulat<=0.000000051)
 		{
 			volumeGranulatsPasPlaces +=volume;

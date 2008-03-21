@@ -140,7 +140,7 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 		double longueurY = boundingBox[0].y-boundingBox[7].y;
 		double longueurZ = boundingBox[0].z-boundingBox[7].z;
 		std::cout << longueurX << ", " << longueurY << ", " << longueurZ << std::endl ;
-		int ndiv = 8 ;
+		double ndiv = 4 ;
 		Grid3D *grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
@@ -207,13 +207,19 @@ std::vector<Feature *> Mu::placement(Geometry * box, std::vector<Feature *> incl
 			else
 				break ;
 				
-			if(grid->fraction() < .6 && ndiv < 64)
+			if(grid->fraction() > .6 && ndiv < 128 )
 			{
-				ndiv *=2 ;
-				delete grid ;
-				grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
-				for(size_t j = 0 ; j < ret.size() ; j++)
-					grid->forceAdd(ret[j]) ;
+				double newndiv = longueurX/ret[i]->getRadius() ;
+				
+				if(newndiv-ndiv > 2)
+				{
+					ndiv = newndiv ;
+					delete grid ;
+					grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
+					for(size_t j = 0 ; j < ret.size() ; j++)
+						grid->forceAdd(ret[j]) ;
+				}
+				
 			}
 		}
 		

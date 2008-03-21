@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00003;
 
-	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001, 0, itzSize);
+	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,3200, itzSize);
 
 
 	std::vector<Feature *> feats ;
@@ -521,16 +521,16 @@ int main(int argc, char *argv[])
 	{
 		static_cast<Sphere*>(inclusions[i])->setCenter(Point(inclusions[i]->getCenter().x*1000, inclusions[i]->getCenter().y*1000, inclusions[i]->getCenter().z*1000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000-0.03) ;
-		inclusions[i]->setBehaviour(new Stiffness(sc3s)) ;
+		inclusions[i]->setBehaviour(new Stiffness(cgStress)) ;
 
 		ft.addFeature(&s3d, inclusions[i]) ;
 	}
 
-	s3d.setBehaviour(&soth) ;
+	s3d.setBehaviour(&sc3s) ;
 	
-	ft.sample(128) ;
+	ft.sample(512) ;
 
-	ft.setOrder(QUADRATIC) ;
+	ft.setOrder(LINEAR) ;
 
 	ft.generateElements(0) ;
 // 	ft.refine(1) ;	
