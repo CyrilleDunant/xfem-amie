@@ -3209,9 +3209,9 @@ Point Grid3D::randomFreeCenter() const
 	{
 		size_t index = random()%(freepixel.size()-1) ;
 		Point start = freepixel[index]->center() ;
-		double f0 = random()/(RAND_MAX+1)-.5; 
-		double f1 = random()/(RAND_MAX+1)-.5; 
-		double f2 = random()/(RAND_MAX+1)-.5; 
+		double f0 = (double)random()/(RAND_MAX+1)-.5; 
+		double f1 = (double)random()/(RAND_MAX+1)-.5; 
+		double f2 = (double)random()/(RAND_MAX+1)-.5; 
 		
 		start.x += f0*psize ;
 		start.y += f1*psize ;
@@ -3223,9 +3223,9 @@ Point Grid3D::randomFreeCenter() const
 	{
 		size_t index = random()%(unfilledpixel.size()-1) ;
 		Point start = unfilledpixel[index]->center() ;
-		double f0 = random()/(RAND_MAX+1)-.5; 
-		double f1 = random()/(RAND_MAX+1)-.5; 
-		double f2 = random()/(RAND_MAX+1)-.5; 
+		double f0 = (double)random()/(RAND_MAX+1)-.5; 
+		double f1 = (double)random()/(RAND_MAX+1)-.5; 
+		double f2 = (double)random()/(RAND_MAX+1)-.5; 
 		
 		start.x += f0*psize ;
 		start.y += f1*psize ;
