@@ -693,6 +693,9 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
 
+double signedCoplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
+
 inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1, const Mu::Point *f2)  
 {
 	return ( std::abs((f2->x-test->x)*((f1->y-test->y)*(f0->z-test->z) - (f0->y-test->y)*(f1->z-test->z))-(f2->y-test->y)*((f1->x-test->x)*(f0->z-test->z) - (f0->x-test->x)*(f1->z-test->z))+(f2->z-test->z)*((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y))) < Mu::POINT_TOLERANCE) ;

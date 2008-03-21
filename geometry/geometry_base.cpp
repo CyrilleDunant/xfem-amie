@@ -2902,15 +2902,18 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	Point g(*test) ; g.x -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(*test) ; h.x -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
 
-	return  coplanarity(test, f0, f1, f2) < Mu::POINT_TOLERANCE 
-			|| coplanarity(&a, f0, f1, f2) < Mu::POINT_TOLERANCE 
-			|| coplanarity(&b, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(&c, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(&d, f0, f1, f2) < Mu::POINT_TOLERANCE 
-			|| coplanarity(&e, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(&f, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(&g, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(&h, f0, f1, f2) < Mu::POINT_TOLERANCE;
+	double c0 = signedCoplanarity(test, f0, f1, f2) ;
+	double c1 = signedCoplanarity(&a, f0, f1, f2) ;
+	double c2 = signedCoplanarity(&b, f0, f1, f2) ;
+	double c3 = signedCoplanarity(&c, f0, f1, f2) ;
+	double c4 = signedCoplanarity(&d, f0, f1, f2) ;
+	double c5 = signedCoplanarity(&e, f0, f1, f2) ;
+	double c6 = signedCoplanarity(&f, f0, f1, f2) ;
+	double c7 = signedCoplanarity(&g, f0, f1, f2) ;
+	double c8 = signedCoplanarity(&h, f0, f1, f2) ;
+	bool positive = c0 > 0 || c1 > 0 || c2 > 0 || c3 > 0 || c4 > 0 || c5 > 0 || c6 > 0 || c7 > 0 || c8 > 0 ;
+	bool negative = c0 < 0 || c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0 || c5 < 0 || c6 < 0 || c7 < 0 || c8 < 0 ;
+	return  positive && negative ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2936,16 +2939,18 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point f(test) ; f.x -= POINT_TOLERANCE ; f.y += POINT_TOLERANCE ; f.z -= POINT_TOLERANCE ;
 	Point g(test) ; g.x -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
 	Point h(test) ; h.x -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
-
-	return  coplanarity(test, f0, f1, f2) < Mu::POINT_TOLERANCE 
-			|| coplanarity(a, f0, f1, f2) < Mu::POINT_TOLERANCE 
-			|| coplanarity(b, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(c, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(d, f0, f1, f2) < Mu::POINT_TOLERANCE 
-			|| coplanarity(e, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(f, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(g, f0, f1, f2) < Mu::POINT_TOLERANCE
-			|| coplanarity(h, f0, f1, f2) < Mu::POINT_TOLERANCE;
+	double c0 = signedCoplanarity(test, f0, f1, f2) ;
+	double c1 = signedCoplanarity(a, f0, f1, f2) ;
+	double c2 = signedCoplanarity(b, f0, f1, f2) ;
+	double c3 = signedCoplanarity(c, f0, f1, f2) ;
+	double c4 = signedCoplanarity(d, f0, f1, f2) ;
+	double c5 = signedCoplanarity(e, f0, f1, f2) ;
+	double c6 = signedCoplanarity(f, f0, f1, f2) ;
+	double c7 = signedCoplanarity(g, f0, f1, f2) ;
+	double c8 = signedCoplanarity(h, f0, f1, f2) ;
+	bool positive = c0 > 0 || c1 > 0 || c2 > 0 || c3 > 0 || c4 > 0 || c5 > 0 || c6 > 0 || c7 > 0 || c8 > 0 ;
+	bool negative = c0 < 0 || c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0 || c5 < 0 || c6 < 0 || c7 < 0 || c8 < 0 ;
+	return  positive && negative ;
 } ;
 
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
@@ -2968,6 +2973,25 @@ double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &
 	return  std::abs(triProduct(A, B, C))  ;
 } ;
 
+double signedCoplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
+{
+
+	Mu::Point A (f0-f1) ;
+	Mu::Point B (f2-f1) ; 
+	Mu::Point C (f2-test) ; 
+
+	return  triProduct(A, B, C)  ;
+} ;
+
+double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
+{
+
+	Mu::Point A (*f0-*f1) ;
+	Mu::Point B (*f2-*f1) ;
+	Mu::Point C (*f2-*test) ;
+	
+	return  triProduct(A, B, C) ;
+} ;
 
 double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C)
 {
