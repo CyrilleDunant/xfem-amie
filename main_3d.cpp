@@ -521,16 +521,16 @@ int main(int argc, char *argv[])
 	{
 		static_cast<Sphere*>(inclusions[i])->setCenter(Point(inclusions[i]->getCenter().x*1000, inclusions[i]->getCenter().y*1000, inclusions[i]->getCenter().z*1000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000-0.03) ;
-		inclusions[i]->setBehaviour(new Stiffness(cgStress)) ;
+		inclusions[i]->setBehaviour(new Stiffness(sc3s)) ;
 
 		ft.addFeature(&s3d, inclusions[i]) ;
 	}
 
-	s3d.setBehaviour(&sc3s) ;
+	s3d.setBehaviour(&soth) ;
 	
 	ft.sample(128) ;
 
-	ft.setOrder(LINEAR) ;
+	ft.setOrder(QUADRATIC) ;
 
 	ft.generateElements(0) ;
 // 	ft.refine(1) ;	
