@@ -371,6 +371,10 @@ public:
 	void forceAdd(Feature * inc) ;
 
 	void print() const ;
+	
+	bool isFilled() const ;
+	
+	Point center() const ;
 
 } ;
 
@@ -400,6 +404,7 @@ class Grid3D
 {
 protected:
 	std::valarray<std::valarray< std::valarray<Voxel *> > > pixels;
+	std::vector<Voxel *> freepixel ;
 	double x ;
 	double y ;
 	double z ;
@@ -411,7 +416,7 @@ protected:
 public:
 		
 	Grid3D(double sizeX, double sizeY, double sizeZ, int div );
-	
+	Point randomFreeCenter() const ;
 	~Grid3D() ;
 	bool add(Feature * inc);
 	void forceAdd(Feature * inc) ;

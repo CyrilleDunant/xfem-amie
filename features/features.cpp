@@ -3010,6 +3010,16 @@ void Voxel::remove(Feature * inc)
 	filled = false ;
 }
 
+bool Voxel::isFilled() const
+{
+	return filled ;
+}
+
+Point Voxel::center() const
+{
+	return (tlf + brb)*.5 ;
+}
+
 bool Voxel::add(Feature * inc)
 {
 	if(filled)
@@ -3181,10 +3191,27 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div ): x(sizeX), y(
 		{
 			for(size_t k = 0 ; k < lengthZ ; k++)
 			{
+				
 				pixels[i][j][k] = new Voxel(x*(double)(i)/(double)lengthX-x*.5+psize*.5, y*(double)(j)/(double)lengthY-y*.5+psize*.5,z*(double)(k)/(double)lengthZ-z*.5+psize*.5,  psize) ;
+				freepixel.push_back(pixels[i][j][k]) ;
 			}
 		}
 	}
+}
+
+Point Grid3D::randomFreeCenter() const 
+{
+	size_t index = random()%freepixel.size() ;
+	Point start = freepixel[index]->center() ;
+	double f0 = 2.*random()/(RAND_MAX+1)-1; 
+	double f1 = 2.*random()/(RAND_MAX+1)-1; 
+	double f2 = 2.*random()/(RAND_MAX+1)-1; 
+	
+	start.x += f0*psize ;
+	start.y += f1*psize ;
+	start.z += f2*psize ;
+	
+	return start ;
 }
 
 Grid3D::~Grid3D()
@@ -3252,6 +3279,11 @@ bool Grid3D::add(Feature * inc)
 		
 	}
 	
+	for(size_t l = 0 ; l < cleanup.size() ; l++)
+	{
+		if(cleanup[l]->isFilled())
+			freepixel.erase(std::find(freepixel.begin(), freepixel.end(), cleanup[l])) ;
+	}
 	return ret ;
 }
 
