@@ -3155,6 +3155,7 @@ void Pixel::print() const
 
 Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div ): x(sizeX), y(sizeY) , z(sizeZ) 
 {
+	dirtyCounter = 0;
 	if(x < y && x < z)
 	{
 		lengthX = div ;
@@ -3259,7 +3260,7 @@ Grid3D::~Grid3D()
 
 double Grid3D::fraction() const
 {
-	return (double)unfilledpixel.size()/(lengthX*lengthY*lengthZ) ;
+	return (double)dirtyCounter/(lengthX*lengthY*lengthZ) ;
 }
 
 bool Grid3D::add(Feature * inc)
@@ -3315,6 +3316,7 @@ bool Grid3D::add(Feature * inc)
 	
 	for(size_t l = 0 ; l < cleanup.size() ; l++)
 	{
+		dirtyCounter++ ;
 // 		std::vector<Voxel *>::iterator e = std::find(freepixel.begin(), freepixel.end(), cleanup[l]) ;
 // 		if(e != freepixel.end())
 // 			freepixel.erase(e) ;
@@ -3369,6 +3371,7 @@ void Grid3D::forceAdd(Feature * inc)
 	
 	for(size_t l = 0 ; l < cleanup.size() ; l++)
 	{
+		dirtyCounter++ ;
 		if(cleanup[l]->isFilled())
 		{
 			std::vector<Voxel *>::iterator e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;

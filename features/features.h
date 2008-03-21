@@ -413,6 +413,7 @@ protected:
 	size_t lengthZ ;
 	
 	double psize ;
+	int dirtyCounter ;
 public:
 		
 	Grid3D(double sizeX, double sizeY, double sizeZ, int div );
