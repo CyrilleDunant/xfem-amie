@@ -3205,7 +3205,7 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div ): x(sizeX), y(
 
 Point Grid3D::randomFreeCenter() const 
 {
-	if(!freepixel.empty())
+/*	if(!freepixel.empty())
 	{
 		size_t index = random()%(freepixel.size()-1) ;
 		Point start = freepixel[index]->center() ;
@@ -3219,7 +3219,7 @@ Point Grid3D::randomFreeCenter() const
 		
 		return start ;
 	}
-	else if(!unfilledpixel.empty())
+	else */if(!unfilledpixel.empty())
 	{
 		size_t index = random()%(unfilledpixel.size()-1) ;
 		Point start = unfilledpixel[index]->center() ;
@@ -3304,19 +3304,19 @@ bool Grid3D::add(Feature * inc)
 	
 	for(size_t l = 0 ; l < cleanup.size() ; l++)
 	{
-		std::vector<Voxel *>::iterator e = std::find(freepixel.begin(), freepixel.end(), cleanup[l]) ;
-		if(e != freepixel.end())
-			freepixel.erase(e) ;
+// 		std::vector<Voxel *>::iterator e = std::find(freepixel.begin(), freepixel.end(), cleanup[l]) ;
+// 		if(e != freepixel.end())
+// 			freepixel.erase(e) ;
 		if(cleanup[l]->isFilled())
 		{
-			e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
+			std::vector<Voxel *>::iterator e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
 			if(e != unfilledpixel.end())
 				unfilledpixel.erase(e) ;
 		}
 	}
 	
-	if(ret)
-		std::cout << freepixel.size() << ", "<< unfilledpixel.size() << std::endl ; 
+// 	if(ret)
+// 		std::cout << freepixel.size() << ", "<< unfilledpixel.size() << std::endl ; 
 		
 	return ret ;
 }
