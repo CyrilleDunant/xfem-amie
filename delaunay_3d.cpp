@@ -1717,7 +1717,15 @@ void DelaunayTree_3D::insert(Point *p)
 			delete ret[i] ;
 		}
 	}
-
+	
+	for(std::vector<DelaunayDemiSpace *>::iterator i = space.begin() ; i != space.end() ; i++)
+	{
+		if(!(*i)->isAlive())
+		{
+			space.erase(i) ;
+			i-- ;
+		}
+	}
 
 	if(!correct)
 		std::cout << "inconsistent state, will crash soon" <<std::endl ;	
@@ -1735,14 +1743,6 @@ std::vector<DelaunayTreeItem_3D *> DelaunayTree_3D::conflicts( const Point *p) c
 {
 	std::vector<DelaunayTreeItem_3D *> ret  ;
 	
-// 	for(size_t i = 0 ; i < tree.size() ; i++)
-// 	{
-// 		if(tree[i]->inCircumSphere(p) && tree[i]->isAlive() && (tree[i]->isTetrahedron || tree[i]->isSpace))
-// 			ret.push_back(tree[i]) ;
-// 	}
-// 	
-// 	return ret ;
-// 	
 	std::pair< std::vector<DelaunayTreeItem_3D *>,std::vector<DelaunayTreeItem_3D *> > cons;
 	this->tree[0]->conflicts(cons, p) ;
 	
@@ -1754,24 +1754,6 @@ std::vector<DelaunayTreeItem_3D *> DelaunayTree_3D::conflicts( const Point *p) c
 		
 		cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
 		cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
-		
-// 		for(size_t j = 0 ; j < space[i]->son.size() ; j++)
-// 		{
-// 			std::pair< std::vector<DelaunayTreeItem_3D *>, std::vector<DelaunayTreeItem_3D *> > temp;
-// 			space[i]->son[j]->conflicts(temp, p) ;
-// 			
-// 			cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
-// 			cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
-// 		}
-// 		
-// 		for(size_t j = 0 ; j < space[i]->stepson.size() ; j++)
-// 		{
-// 			std::pair< std::vector<DelaunayTreeItem_3D *>, std::vector<DelaunayTreeItem_3D *> > temp;
-// 			space[i]->stepson[j]->conflicts(temp, p) ;
-// 			
-// 			cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
-// 			cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
-// 		}
 	}
 	
 	for(size_t i = 0 ; i < cons.second.size() ; i++)
@@ -1784,14 +1766,7 @@ std::vector<DelaunayTreeItem_3D *> DelaunayTree_3D::conflicts( const Point *p) c
 	std::sort(ret.begin(), ret.end()) ;
 	std::vector<DelaunayTreeItem_3D *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
-	
-// 	std::cout <<"--------------------------" <<std::endl ;
-// 	std::cout << "we have the following conflicts from " << std::flush ;
-// 	p->print() ;std::cout << std::endl ;
-// 	
-// 	for(size_t i = 0 ; i < ret.size() ; i++)
-// 		ret[i]->print() ;
-// 	std::cout <<"--------------------------" <<std::endl ;
+
 	return ret ;
 }
 
