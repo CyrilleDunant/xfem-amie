@@ -2802,7 +2802,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+8 ; i != this->meshPoints.end(); ++i)
 		{
 			if((i - meshPoints.begin())%100 == 0)
-				std::cerr << "\r generating tetrahedrons... point " << ++count*100 << "/" << meshPoints.size()-8 << std::flush ;
+				std::cerr << "\r generating tetrahedrons... point " << ++count*100 << "/" << meshPoints.size()-8 << " tets: "<< dtree3D->tree.size() <<  std::flush ;
 			if(*i->first != bbox[0] &&
 			   *i->first != bbox[1] &&
 			   *i->first != bbox[2] &&
