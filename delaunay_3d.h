@@ -58,9 +58,9 @@ public:
 	bool isTetrahedron ; // newly added
 	bool visited ;//!< Marker. Useful not to lose ourselves isVertex the tree.
 	
-	std::vector<DelaunayTreeItem_3D *> stepson ; ;//!< neighbours created later than ourselves
-	std::vector<DelaunayTreeItem_3D *> neighbour ; //!< neighbours. three for triangles, any number for planes.
-	std::vector<DelaunayTreeItem_3D *> son ;//!< items created by our destruction.
+	std::valarray<DelaunayTreeItem_3D *> stepson ; ;//!< neighbours created later than ourselves
+	std::valarray<DelaunayTreeItem_3D *> neighbour ; //!< neighbours. three for triangles, any number for planes.
+	std::valarray<DelaunayTreeItem_3D *> son ;//!< items created by our destruction.
 	
 	//! Constructor, takes the father and creator point as arguments
 	/*! \a father is the father. Needed for the maintenance of the tree.
@@ -216,6 +216,39 @@ public:
 	//virtual void kill(Point * p) ;
 	
 	void insert(std::vector<DelaunayTreeItem_3D *>& , Point *p, Star_3D *s) ;
+	
+	bool in( const Point & p) const
+	{
+		return isOnTheSameSide( &p, third, first, second, fourth) ;
+	}
+
+	void print() const;
+	
+} ;
+
+
+class DelaunayDeadTetrahedron : public DelaunayTreeItem_3D
+{
+protected:
+	Point center ; //!< Frontier vector. Precalculated for performance reasons
+	double radius ;//!< test vector. Precalculated for performance reasons
+
+public:
+	
+	DelaunayDeadTetrahedron( DelaunayTreeItem_3D * father,   Point  * _one,   Point  * _two, Point  * _three,   Point  * p,   Point * c) ;
+	
+	virtual ~DelaunayDeadTetrahedron() ;
+	
+	std::pair< Point*,  Point*> nearestEdge(const Point & p)  ;
+	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D * t)  ;
+	std::vector< Point*> nearestSurface(const Point & p)  ;
+	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t) const ;	
+
+	bool inCircumSphere(const Point & p) const ;
+	bool isNeighbour( const DelaunayTreeItem_3D * t) const ;
+	bool isVertex(const Point *p) const ;
+	
+	void insert(std::vector<DelaunayTreeItem_3D *>& , Point *p, Star_3D *s) { };
 	
 	bool in( const Point & p) const
 	{

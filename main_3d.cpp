@@ -475,6 +475,8 @@ int main(int argc, char *argv[])
 // 	srandom(time(NULL)) ;
 	Sample3D s3d(40,40,40,0,0,0) ;
 
+// 	std::cout << sizeof(DelaunayTetrahedron) << ", " << sizeof(DelaunayDemiSpace) << ", " << sizeof( DelaunayDeadTetrahedron) << std::endl ;
+// 	return 0 ;
 	FeatureTree ft(&s3d) ;
 	
 	double E_c3s = 4. ;      // in MPa
@@ -500,7 +502,7 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00003;
 
-	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,3200, itzSize);
+	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001, 128, itzSize);
 
 
 	std::vector<Feature *> feats ;
@@ -521,16 +523,16 @@ int main(int argc, char *argv[])
 	{
 		static_cast<Sphere*>(inclusions[i])->setCenter(Point(inclusions[i]->getCenter().x*1000, inclusions[i]->getCenter().y*1000, inclusions[i]->getCenter().z*1000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000-0.03) ;
-		inclusions[i]->setBehaviour(new Stiffness(cgStress)) ;
+		inclusions[i]->setBehaviour(new Stiffness(sc3s)) ;
 
 		ft.addFeature(&s3d, inclusions[i]) ;
 	}
 
-	s3d.setBehaviour(&sc3s) ;
+	s3d.setBehaviour(&soth) ;
 	
-	ft.sample(512) ;
+	ft.sample(256) ;
 
-	ft.setOrder(LINEAR) ;
+	ft.setOrder(QUADRATIC) ;
 
 	ft.generateElements(0) ;
 // 	ft.refine(1) ;	
