@@ -56,6 +56,7 @@ public:
 	
 	bool isSpace ;  //newly added
 	bool isTetrahedron ; // newly added
+	bool isDeadTetrahedron ;
 	bool visited ;//!< Marker. Useful not to lose ourselves isVertex the tree.
 	
 	std::valarray<DelaunayTreeItem_3D *> stepson ; ;//!< neighbours created later than ourselves
@@ -93,14 +94,11 @@ public:
 	void removeSon(DelaunayTreeItem_3D * s) ;//!< Utility removes son. Is safe.
 		
 	void setStepfather(DelaunayTreeItem_3D * s) ;  //!< Accessor. sets the stepfather.
+	void setFather(DelaunayTreeItem_3D * s) ;
 	
 	void clearVisited() ; //!< Accessor. We are not marked visited anymore.
 	
 	virtual bool isVertex(const Point *p) const = 0 ; //!< Test. Is this point \a p isVertex ?
-	virtual std::pair< Point*,  Point*> nearestEdge(const Point & p)  = 0;  //!< What is the nearest edge from this point \a p.
-	virtual std::vector< Point*> nearestSurface(const Point & p)  = 0;  //!< What is the nearest surface from this point \a p.
-	//newly added
-	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D *t)   = 0; //!< What is the common edge with this item. returns a null pair if none.
 
 	virtual std::vector< Point*> commonSurface(const DelaunayTreeItem_3D *t) const  = 0; //!< What is the common edge with this item. returns a null pair if none
 	
@@ -143,9 +141,6 @@ public:
 	bool isVertexByID(const Point * p) const ;
 	bool hasVertexByID(const std::valarray<Point *> * p) const ;
 	
-	std::pair< Point*,  Point*> nearestEdge(const Point & p)  ;
-	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D * t)  ;
-	std::vector< Point*> nearestSurface(const Point & p)  ;
 	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t) const ;
 
 	
@@ -197,9 +192,6 @@ public:
 	
 	virtual ~DelaunayDemiSpace() ;
 	
-	std::pair< Point*,  Point*> nearestEdge(const Point & p)  ;
-	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D * t)  ;
-	std::vector< Point*> nearestSurface(const Point & p)  ;
 	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t) const ;	
 	/** Check for point location.
 	 * 
@@ -230,30 +222,29 @@ public:
 class DelaunayDeadTetrahedron : public DelaunayTreeItem_3D
 {
 protected:
-	Point center ; //!< Frontier vector. Precalculated for performance reasons
-	double radius ;//!< test vector. Precalculated for performance reasons
+	Point center ; 
+	double radius ;
+	double sqradius ;
 
 public:
 	
-	DelaunayDeadTetrahedron( DelaunayTreeItem_3D * father,   Point  * _one,   Point  * _two, Point  * _three,   Point  * p,   Point * c) ;
+	DelaunayDeadTetrahedron(DelaunayTetrahedron * father) ;
 	
 	virtual ~DelaunayDeadTetrahedron() ;
 	
-	std::pair< Point*,  Point*> nearestEdge(const Point & p)  ;
-	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D * t)  ;
-	std::vector< Point*> nearestSurface(const Point & p)  ;
 	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D * t) const ;	
 
 	bool inCircumSphere(const Point & p) const ;
 	bool isNeighbour( const DelaunayTreeItem_3D * t) const ;
 	bool isVertex(const Point *p) const ;
+	bool isVertexByID(const Point *p) const ;
 	
 	void insert(std::vector<DelaunayTreeItem_3D *>& , Point *p, Star_3D *s) { };
 	
-	bool in( const Point & p) const
-	{
-		return isOnTheSameSide( &p, third, first, second, fourth) ;
-	}
+	const Point * getCircumCenter() const ;
+	double getRadius() const ;
+	
+	bool in( const Point & p) const;
 
 	void print() const;
 	
@@ -272,13 +263,7 @@ public:
 	bool isVertex(const Point *p) const ;
 	
 	bool inCircumSphere(const Point & p) const ;
-
-	std::pair< Point*,  Point*> nearestEdge(const Point & p)  ;
-	
-	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem_3D * t) { return std::pair< Point*,  Point*>(NULL, NULL) ; } 
-	
-	std::vector< Point*> nearestSurface(const Point & p) ;  //!< What is the nearest surface from this point \a p.
-	
+			
 	std::vector< Point*> commonSurface(const DelaunayTreeItem_3D *t) const ; //!< What is the common edge with this item. returns a null pair if none
 	
 	bool isNeighbour( const DelaunayTreeItem_3D *) const { return false ; } 

@@ -288,7 +288,6 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 		&&  squareDist3D(circumCenter, f) < sqradius
 		&&  squareDist3D(circumCenter, g) < sqradius
 		&&  squareDist3D(circumCenter, h) < sqradius;
-// 	return  fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
@@ -817,7 +816,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 		}
 	}
 	
-	std::stable_sort(points.begin(), points.end()) ;
+	std::sort(points.begin(), points.end()) ;
 	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
 	if(e != points.end())
 		points.erase(e, points.end()) ;
@@ -834,7 +833,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 // 	for(size_t i = 0 ; i < points.size() ; i++)
 // 		std::cout << points[i].x << ", " << points[i].y << ", " << points[i].z << std::endl ;
 	
-	std::stable_sort(points.begin(), points.end()) ;
+	std::sort(points.begin(), points.end()) ;
 	e = std::unique(points.begin(), points.end()) ;
 	if(e != points.end())
 		points.erase(e, points.end()) ;
