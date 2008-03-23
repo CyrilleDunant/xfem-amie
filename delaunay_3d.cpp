@@ -1868,6 +1868,7 @@ void DelaunayTree_3D::insert(Point *p)
 			}
 			dt->clearVisited() ;
 			tree.erase(std::find(tree.begin(), tree.end(), cons[i])) ;
+			tree.push_back(dt) ;
 			delete cons[i] ;
 		}
 	}
