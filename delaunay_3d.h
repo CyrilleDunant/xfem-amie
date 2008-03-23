@@ -44,6 +44,7 @@ protected:
 	const Point * m_c ; //!< Point creator.
 	
 public:
+	unsigned int index ;
 	bool erased ;
 	
 	DelaunayTreeItem_3D * father ; //!< Item destroyed by the insertion of the creator point.

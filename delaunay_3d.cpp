@@ -33,6 +33,7 @@ DelaunayTreeItem_3D::DelaunayTreeItem_3D( DelaunayTreeItem_3D * father,  const P
 	this->second = NULL ;
 	this->third = NULL ;
 	this->fourth = NULL ;
+	index = 0 ;
 }
 	
 DelaunayTreeItem_3D::~DelaunayTreeItem_3D()
@@ -699,6 +700,7 @@ DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p
 	assert(second->id > -1) ;
 	assert(third->id > -1) ;
 	assert(fourth->id> -1);
+	index = 0 ;
 }
 
 DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem_3D(father, c)
@@ -721,6 +723,7 @@ DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p
 	assert(second->id > -1) ;
 	assert(third->id > -1) ;
 	assert(fourth->id> -1);
+	index = 0 ;
 }
 
 DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem_3D(NULL, NULL)
@@ -735,6 +738,7 @@ DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem_3D(NULL, NULL)
 	isTetrahedron = true ;
 	isDeadTetrahedron = false ;
 	visited =false ;
+	index = 0 ;
 }
 
 DelaunayDemiSpace::~DelaunayDemiSpace()
@@ -807,6 +811,8 @@ radius(parent->getRadius()), sqradius(radius*radius)
 	
 	for(size_t i = 0 ; i< stepson.size() ; i++)
 		stepson[i]->setStepfather(this) ;
+	
+	index = 0 ;
 
 }
 	
@@ -1394,6 +1400,8 @@ DelaunayDemiSpace::DelaunayDemiSpace(DelaunayTreeItem_3D * father,  Point  * _on
 	isTetrahedron = false ;
 	isDeadTetrahedron = false;
 	visited =false ;
+	
+	index = 0 ;
 }
 
 	
@@ -1545,6 +1553,8 @@ DelaunayRoot_3D::DelaunayRoot_3D(Point * p0, Point * p1, Point * p2, Point * p3)
 	addSon(pl3) ;
 	
 	kill(p0) ;
+	
+	index = 0 ;
 }
 	
 void DelaunayRoot_3D::print() const
@@ -1663,12 +1673,17 @@ DelaunayTree_3D::DelaunayTree_3D(Point * p0, Point *p1, Point *p2, Point *p3)
 	p0->id = 0 ; p1->id = 1 ; p2->id = 2 ; p3->id = 3;
 	DelaunayRoot_3D *root = new DelaunayRoot_3D( p0, p1, p2, p3) ;
 	tree.push_back(root) ;
-	
+	root->index = 0 ;
 	tree.push_back(root->getSon(0)) ;
+	root->getSon(0)->index = 1 ;
 	tree.push_back(root->getSon(1)) ;
+	root->getSon(1)->index = 2 ;
 	tree.push_back(root->getSon(2)) ;
+	root->getSon(2)->index = 3 ;
 	tree.push_back(root->getSon(3)) ;
+	root->getSon(3)->index = 4 ;
 	tree.push_back(root->getSon(4)) ;
+	root->getSon(4)->index = 5 ;
 	space.push_back(static_cast<DelaunayDemiSpace *>(root->getSon(1))) ;
 	space.push_back(static_cast<DelaunayDemiSpace *>(root->getSon(2))) ;
 	space.push_back(static_cast<DelaunayDemiSpace *>(root->getSon(3))) ;
@@ -1762,6 +1777,7 @@ void DelaunayTree_3D::insert(Point *p)
 		if(!ret[i]->erased && ((ret[i]->isAlive() && ret[i]->isTetrahedron) || ret[i]->isSpace) )
 		{
 			tree.push_back(ret[i]) ;
+			ret[i]->index = tree.size()-1 ;
 			if(ret[i]->isTetrahedron && ret[i]->neighbour.size() != 4)
 			{
 				
@@ -1867,8 +1883,8 @@ void DelaunayTree_3D::insert(Point *p)
 				cons[i]->stepfather->addStepson(dt) ;
 			}
 			dt->clearVisited() ;
-			tree.erase(std::find(tree.begin(), tree.end(), cons[i])) ;
-			tree.push_back(dt) ;
+			tree[cons[i]->index] = dt ;
+			dt->index = cons[i]->index ;
 			delete cons[i] ;
 		}
 	}
