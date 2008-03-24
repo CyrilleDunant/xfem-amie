@@ -28,6 +28,7 @@ namespace Mu
 
 class Star_3D ;
 class DelaunayTetrahedron ;
+class DelaunayTree_3D ;
 
 /*! Base class of the delaunay tree. 
 
@@ -39,14 +40,14 @@ class DelaunayTreeItem_3D
 protected:
 	bool dead ; //!< Marker. is false when the item is isVertex the current triangulation no more.
 	
-
+	
 	const Point * m_k ; //!< Point killer.
 	const Point * m_c ; //!< Point creator.
 	
 public:
 	unsigned int index ;
 	bool erased ;
-	
+	DelaunayTree_3D * tree ;
 	DelaunayTreeItem_3D * father ; //!< Item destroyed by the insertion of the creator point.
 	DelaunayTreeItem_3D * stepfather ; //!< Still-alive neighbour of the father.
 	
@@ -60,15 +61,15 @@ public:
 	bool isDeadTetrahedron ;
 	bool visited ;//!< Marker. Useful not to lose ourselves isVertex the tree.
 	
-	std::valarray<DelaunayTreeItem_3D *> stepson ; ;//!< neighbours created later than ourselves
-	std::valarray<DelaunayTreeItem_3D *> neighbour ; //!< neighbours. three for triangles, any number for planes.
-	std::valarray<DelaunayTreeItem_3D *> son ;//!< items created by our destruction.
+	std::valarray<unsigned int> stepson ; ;//!< neighbours created later than ourselves
+	std::valarray<unsigned int> neighbour ; //!< neighbours. three for triangles, any number for planes.
+	std::valarray<unsigned int> son ;//!< items created by our destruction.
 	
 	//! Constructor, takes the father and creator point as arguments
 	/*! \a father is the father. Needed for the maintenance of the tree.
 		\a c is the Creator Point. It is useful when building neighbourhood relationships. Also, it allowfor the removal of elements from the tree.
 	 */
-	DelaunayTreeItem_3D( DelaunayTreeItem_3D * father, const Point * c) ;
+	DelaunayTreeItem_3D( DelaunayTree_3D *tree, DelaunayTreeItem_3D * father, const Point * c) ;
 	
 	virtual ~DelaunayTreeItem_3D() ;
 	
@@ -82,6 +83,8 @@ public:
 	void addNeighbour(DelaunayTreeItem_3D * t) ; //!< Utility adds neighbour. Is safe.
 	
 	DelaunayTreeItem_3D * getNeighbour(size_t i) ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem_3D * getSon(size_t i) ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem_3D * getStepson(size_t i) ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
 	
 	virtual void kill(const Point * p) ; //!< kill and update the neighbourhood (livings do not neighbour the deads).
 	virtual void erase(const Point * p) ;//!< kill and don't update the neighbourhood (do not use).
@@ -129,8 +132,8 @@ public:
 	
 	GEO_DERIVED_OBJECT(Tetrahedron) ;
 	
-	DelaunayTetrahedron( DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,  Point * c) ;
-	DelaunayTetrahedron( DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,   
+	DelaunayTetrahedron(DelaunayTree_3D *tree,  DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,  Point * c) ;
+	DelaunayTetrahedron(DelaunayTree_3D *tree,  DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,   
 	                     Point *p4,   Point *p5,   Point *p6, Point *p7,
 	                     Point * c) ;
 	DelaunayTetrahedron() ;
@@ -189,7 +192,7 @@ public:
 	
 public:
 	
-	DelaunayDemiSpace( DelaunayTreeItem_3D * father,   Point  * _one,   Point  * _two, Point  * _three,   Point  * p,   Point * c) ;
+	DelaunayDemiSpace(DelaunayTree_3D *tree,  DelaunayTreeItem_3D * father,   Point  * _one,   Point  * _two, Point  * _three,   Point  * p,   Point * c) ;
 	
 	virtual ~DelaunayDemiSpace() ;
 	
@@ -257,9 +260,7 @@ public:
 class DelaunayRoot_3D : public DelaunayTreeItem_3D
 {
 public:
-	DelaunayRoot_3D( Point * p0,  Point * p1,  Point * p2, Point * p3) ;
-	
-	DelaunayTreeItem_3D *getSon(size_t i) ;
+	DelaunayRoot_3D(DelaunayTree_3D *tree, Point * p0,  Point * p1,  Point * p2, Point * p3) ;
 	
 	bool isVertex(const Point *p) const ;
 	

@@ -17,8 +17,9 @@
 
 using namespace Mu ;
 
-DelaunayTreeItem_3D::DelaunayTreeItem_3D( DelaunayTreeItem_3D * father,  const Point * c) : stepson(0), neighbour(0), son(0)
+DelaunayTreeItem_3D::DelaunayTreeItem_3D( DelaunayTree_3D *t, DelaunayTreeItem_3D * father,  const Point * c) : stepson(0), neighbour(0), son(0)
 {
+	tree = t ;
 	this->stepfather = NULL ;
 	this->father = father;
 	this->m_c  = c ;
@@ -34,10 +35,16 @@ DelaunayTreeItem_3D::DelaunayTreeItem_3D( DelaunayTreeItem_3D * father,  const P
 	this->third = NULL ;
 	this->fourth = NULL ;
 	index = 0 ;
+	if(tree)
+	{
+		index = tree->tree.size() ;
+		tree->tree.push_back(this) ;
+	}
 }
 	
 DelaunayTreeItem_3D::~DelaunayTreeItem_3D()
 {
+// 	tree->tree[index] = NULL ;
 }
 	
 const Point * DelaunayTreeItem_3D::killer() const 
@@ -131,7 +138,9 @@ void Star_3D::updateNeighbourhood()
 	std::vector<DelaunayTreeItem_3D *> items ;
 	for(size_t i = 0 ; i < treeitem.size() ;i++)
 	{	
-		items.insert(items.end() , &treeitem[i]->son[0] , &treeitem[i]->son[treeitem[i]->son.size()]) ;
+		for(size_t j = 0 ; j < treeitem[i]->son.size() ; j++)
+			items.push_back(treeitem[i]->getSon(j)) ;
+// 		items.insert(items.end() , &treeitem[i]->son[0] , &treeitem[i]->son[treeitem[i]->son.size()]) ;
 // 		items.insert(items.end() , treeitem[i]->neighbour.begin() , treeitem[i]->neighbour.end()) ;
 	}
 // 	std::sort(items.begin(), items.end()) ;
@@ -146,12 +155,12 @@ void Star_3D::updateNeighbourhood()
 			{
 				for(size_t k = 0 ; k < items[j]->neighbour.size() ; k++)
 				{
-					makeNeighbours(items[j]->neighbour[k], items[i]) ;
+					makeNeighbours(items[j]->getNeighbour(k), items[i]) ;
 				}
 				
 				items[j]->kill(creator) ;
 				items[j]->erased = true ;
-				std::vector<DelaunayTreeItem_3D *> newSons;
+				std::vector<unsigned int> newSons;
 				newSons.insert(newSons.end(), 
 				               &items[j]->father->son[0] , 
 				               &items[j]->father->son[items[j]->father->son.size()]) ;
@@ -159,13 +168,13 @@ void Star_3D::updateNeighbourhood()
 								std::find(
 										newSons.begin(), 
 										newSons.end(), 
-										items[j]
+										items[j]->index
 										)
 								) ;
 				items[j]->father->son.resize(items[j]->father->son.size()-1);
 				std::copy(newSons.begin(), newSons.end(), &items[j]->father->son[0] ) ;
 
-				std::vector<DelaunayTreeItem_3D *> newStepsons;
+				std::vector<unsigned int> newStepsons;
 				newStepsons.insert(newStepsons.end(), 
 				                   &items[j]->stepfather->stepson[0],
 				                   &items[j]->stepfather->stepson[items[j]->stepfather->stepson.size()]) ;
@@ -173,7 +182,7 @@ void Star_3D::updateNeighbourhood()
 								std::find(
 										newStepsons.begin(), 
 										newStepsons.end(), 
-										items[j]
+										items[j]->index
 										)
 								) ;
 				items[j]->stepfather->stepson.resize(items[j]->stepfather->stepson.size()-1);
@@ -389,10 +398,10 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 	
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
-		if( !stepson[i]->visited && !(!stepson[i]->inCircumSphere(g->getCenter()) && (!g->in(*stepson[i]->first) && !g->in(*stepson[i]->second) && !g->in(*stepson[i]->third) && ( !g->in(*stepson[i]->fourth) && stepson[i]->isTetrahedron ) || ( g->in(*stepson[i]->fourth) && stepson[i]->isSpace ))))
+		if( !getStepson(i)->visited && !(!getStepson(i)->inCircumSphere(g->getCenter()) && (!g->in(*getStepson(i)->first) && !g->in(*getStepson(i)->second) && !g->in(*getStepson(i)->third) && ( !g->in(*getStepson(i)->fourth) && getStepson(i)->isTetrahedron ) || ( g->in(*getStepson(i)->fourth) && getStepson(i)->isSpace ))))
 		{
 			std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem_3D *> > temp ;
-			stepson[i]->conflicts(temp, g) ;
+			getStepson(i)->conflicts(temp, g) ;
 			ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
 			ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
 		}
@@ -400,10 +409,10 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 	
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
-		if( !son[i]->visited && !(!son[i]->inCircumSphere(g->getCenter()) && (!g->in(*son[i]->first) && !g->in(*son[i]->second) && !g->in(*son[i]->third) && ( !g->in(*son[i]->fourth) && son[i]->isTetrahedron ) || ( g->in(*son[i]->fourth) && son[i]->isSpace ))))
+		if( !getSon(i)->visited && !(!getSon(i)->inCircumSphere(g->getCenter()) && (!g->in(*getSon(i)->first) && !g->in(*getSon(i)->second) && !g->in(*getSon(i)->third) && ( !g->in(*getSon(i)->fourth) && getSon(i)->isTetrahedron ) || ( g->in(*getSon(i)->fourth) && getSon(i)->isSpace ))))
 		{
 			std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem_3D *> >  temp  ;
-			son[i]->conflicts(temp, g) ;
+			getSon(i)->conflicts(temp, g) ;
 			ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
 			ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
 		}
@@ -416,10 +425,10 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
-		if( !neighbour[i]->visited && !(!neighbour[i]->inCircumSphere(g->getCenter()) && (!g->in(*neighbour[i]->first) && !g->in(*neighbour[i]->second) && !g->in(*neighbour[i]->third) && ( !g->in(*neighbour[i]->fourth) && neighbour[i]->isTetrahedron ) || ( g->in(*neighbour[i]->fourth) && neighbour[i]->isSpace ))))
+		if( !getNeighbour(i)->visited && !(!getNeighbour(i)->inCircumSphere(g->getCenter()) && (!g->in(*getNeighbour(i)->first) && !g->in(*getNeighbour(i)->second) && !g->in(*getNeighbour(i)->third) && ( !g->in(*getNeighbour(i)->fourth) && getNeighbour(i)->isTetrahedron ) || ( g->in(*getNeighbour(i)->fourth) && getNeighbour(i)->isSpace ))))
 		{
 			std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem_3D *> > temp  ;
-			neighbour[i]->conflicts(temp, g) ;
+			getNeighbour(i)->conflicts(temp, g) ;
 			ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
 			ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
 			
@@ -442,23 +451,23 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
 		bool limit = false ;
-		if(!stepson[i]->visited && stepson[i]->isTetrahedron && !stepson[i]->isDeadTetrahedron)
+		if(!getStepson(i)->visited && getStepson(i)->isTetrahedron && !getStepson(i)->isDeadTetrahedron)
 		{
-			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(stepson[i]) ;
+			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getStepson(i)) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
 				< 8.*POINT_TOLERANCE ;
 		}
-		if(!stepson[i]->visited && stepson[i]->isTetrahedron && stepson[i]->isDeadTetrahedron)
+		if(!getStepson(i)->visited && getStepson(i)->isTetrahedron && getStepson(i)->isDeadTetrahedron)
 		{
-			DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(stepson[i]) ;
+			DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getStepson(i)) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
 				< 8.*POINT_TOLERANCE ;
 		}
 
-		if( (!stepson[i]->visited && stepson[i]->inCircumSphere(*p)) || limit) 
+		if( (!getStepson(i)->visited && getStepson(i)->inCircumSphere(*p)) || limit) 
 		{
 			std::pair<std::vector<DelaunayTreeItem_3D *>, std::vector<DelaunayTreeItem_3D *> > temp  ;
-			stepson[i]->conflicts(temp,p) ;
+			getStepson(i)->conflicts(temp,p) ;
 			ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
 			ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
 		}
@@ -466,25 +475,24 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 	
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
-		
 		bool limit = false ;
-		if(!son[i]->visited && son[i]->isTetrahedron && !son[i]->isDeadTetrahedron)
+		if(!getSon(i)->visited && getSon(i)->isTetrahedron && !getSon(i)->isDeadTetrahedron)
 		{
-			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(son[i]) ;
+			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getSon(i)) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
 				< 8.*POINT_TOLERANCE;
 		}
-		if(!son[i]->visited && son[i]->isTetrahedron&& son[i]->isDeadTetrahedron)
+		if(!getSon(i)->visited && getSon(i)->isTetrahedron&& getSon(i)->isDeadTetrahedron)
 		{
-			DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(son[i]) ;
+			DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getSon(i)) ;
 			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
 				< 8.*POINT_TOLERANCE;
 		}
 
-		if( (!son[i]->visited && son[i]->inCircumSphere(*p)) || limit)
+		if( (!getSon(i)->visited && getSon(i)->inCircumSphere(*p)) || limit)
 		{
 			std::pair<std::vector<DelaunayTreeItem_3D *>, std::vector<DelaunayTreeItem_3D *> > temp  ;
-			son[i]->conflicts(temp,p) ;
+			getSon(i)->conflicts(temp,p) ;
 			ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
 			ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
 		}
@@ -495,33 +503,31 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 		return  ;
 	}
 	
-	if(isAlive())
+
+	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
-		for (size_t i  = 0 ;  i < neighbour.size() ; i++)
+		
+		bool limit = false ;
+		if(!getNeighbour(i)->visited && getNeighbour(i)->isTetrahedron &&  !getNeighbour(i)->isDeadTetrahedron)
 		{
-			
-			bool limit = false ;
-			if(!neighbour[i]->visited && neighbour[i]->isTetrahedron &&  !neighbour[i]->isDeadTetrahedron)
-			{
-				DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(neighbour[i]) ;
-				limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-					< 8.*POINT_TOLERANCE ;
-			}
-			if(!neighbour[i]->visited && neighbour[i]->isTetrahedron &&  neighbour[i]->isDeadTetrahedron)
-			{
-				DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(neighbour[i]) ;
-				limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-					< 8.*POINT_TOLERANCE ;
-			}
-	// 		limit = true ;
-			
-			if( !neighbour[i]->visited && neighbour[i]->inCircumSphere(*p) || limit)
-			{
-				std::pair<std::vector<DelaunayTreeItem_3D *>, std::vector<DelaunayTreeItem_3D *> > temp ;
-				neighbour[i]->conflicts(temp,p) ;
-				ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
-				ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
-			}
+			DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getNeighbour(i)) ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+				< 8.*POINT_TOLERANCE ;
+		}
+		if(!getNeighbour(i)->visited && getNeighbour(i)->isTetrahedron &&  getNeighbour(i)->isDeadTetrahedron)
+		{
+			DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getNeighbour(i)) ;
+			limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+				< 8.*POINT_TOLERANCE ;
+		}
+// 		limit = true ;
+		
+		if( !getNeighbour(i)->visited && getNeighbour(i)->inCircumSphere(*p) || limit)
+		{
+			std::pair<std::vector<DelaunayTreeItem_3D *>, std::vector<DelaunayTreeItem_3D *> > temp ;
+			getNeighbour(i)->conflicts(temp,p) ;
+			ret.first.insert(ret.first.end(), temp.first.begin(), temp.first.end()) ;
+			ret.second.insert(ret.second.end(), temp.second.begin(), temp.second.end()) ;
 		}
 	}
 	
@@ -537,11 +543,11 @@ void DelaunayTreeItem_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>
 
 void DelaunayTreeItem_3D::removeNeighbour(DelaunayTreeItem_3D * t)
 {
-	DelaunayTreeItem_3D ** e = std::find(&neighbour[0], &neighbour[neighbour.size()], t) ;
+	unsigned int* e = std::find(&neighbour[0], &neighbour[neighbour.size()], t->index) ;
 
 	if(e !=  &neighbour[neighbour.size()])
 	{
-		std::valarray<DelaunayTreeItem_3D *>  newneighbours(neighbour.size()-1) ;
+		std::valarray<unsigned int>  newneighbours(neighbour.size()-1) ;
 		std::copy(&neighbour[0], e, &newneighbours[0]) ;
 		std::copy(e+1, &neighbour[neighbour.size()], &newneighbours[e-&neighbour[0]]) ;
 		neighbour.resize(neighbour.size()-1) ;
@@ -553,16 +559,16 @@ void DelaunayTreeItem_3D::addNeighbour(DelaunayTreeItem_3D * t)
 {
 	assert(t != this) ;
 
-	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t) !=  &neighbour[neighbour.size()])
+	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t->index) !=  &neighbour[neighbour.size()])
 	{
 		return ;
 	}
 	
 	if(t->isAlive())
 	{
-		std::valarray<DelaunayTreeItem_3D *>  newneighbours(neighbour.size()+1) ;
+		std::valarray<unsigned int>  newneighbours(neighbour.size()+1) ;
 		std::copy(&neighbour[0], &neighbour[neighbour.size()], &newneighbours[0]) ;
-		newneighbours[neighbour.size()] = t ;
+		newneighbours[neighbour.size()] = t->index ;
 		neighbour.resize(neighbour.size()+1) ;
 		neighbour = newneighbours ;
 	}
@@ -570,7 +576,17 @@ void DelaunayTreeItem_3D::addNeighbour(DelaunayTreeItem_3D * t)
 
 DelaunayTreeItem_3D * DelaunayTreeItem_3D::getNeighbour(size_t i)
 {
-	return this->neighbour[i] ;
+	return tree->tree[neighbour[i]] ;
+}
+
+DelaunayTreeItem_3D * DelaunayTreeItem_3D::getSon(size_t i)
+{
+	return tree->tree[son[i]] ;
+}
+
+DelaunayTreeItem_3D * DelaunayTreeItem_3D::getStepson(size_t i)
+{
+	return tree->tree[stepson[i]] ;
 }
 
 
@@ -587,7 +603,7 @@ void DelaunayTreeItem_3D::kill(const Point * p)
 	
 	for(size_t i = 0 ; i < this->neighbour.size() ; i++)
 	{
-		this->neighbour[i]->removeNeighbour(this) ;
+		this->getNeighbour(i)->removeNeighbour(this) ;
 	}
 }
 	
@@ -601,9 +617,9 @@ void DelaunayTreeItem_3D::addStepson(DelaunayTreeItem_3D * s)
 	if(s == this)
 		return ;
 	
-	std::valarray<DelaunayTreeItem_3D *>  newstepson(stepson.size()+1) ;
+	std::valarray<unsigned int>  newstepson(stepson.size()+1) ;
 	std::copy(&stepson[0], &stepson[stepson.size()], &newstepson[0]) ;
-	newstepson[stepson.size()] = s ;
+	newstepson[stepson.size()] = s->index ;
 	stepson.resize(stepson.size()+1) ;
 	stepson = newstepson ;
 	s->setStepfather(this) ;
@@ -612,9 +628,9 @@ void DelaunayTreeItem_3D::addStepson(DelaunayTreeItem_3D * s)
 
 void DelaunayTreeItem_3D::addSon(DelaunayTreeItem_3D * s)
 {
-	std::valarray<DelaunayTreeItem_3D *>  newson(son.size()+1) ;
+	std::valarray<unsigned int>  newson(son.size()+1) ;
 	std::copy(&son[0], &son[son.size()], &newson[0]) ;
-	newson[son.size()] = s ;
+	newson[son.size()] = s->index ;
 	son.resize(son.size()+1) ;
 	son = newson ;
 }
@@ -623,11 +639,11 @@ void DelaunayTreeItem_3D::removeSon(DelaunayTreeItem_3D * t)
 {
 	if(!son.size())
 		return ;
-	DelaunayTreeItem_3D ** e = std::find(&son[0], &son[son.size()], t) ;
+	unsigned int* e = std::find(&son[0], &son[son.size()], t->index) ;
 	
 	if(e !=  &son[son.size()])
 	{
-		std::valarray<DelaunayTreeItem_3D *>  newson(son.size()-1) ;
+		std::valarray<unsigned int>  newson(son.size()-1) ;
 		std::copy(&son[0], e, &newson[0]) ;
 		std::copy(e+1, &son[son.size()], &newson[e-&son[0]]) ;
 		son.resize(son.size()-1) ;
@@ -639,10 +655,10 @@ void DelaunayTreeItem_3D::removeStepson(DelaunayTreeItem_3D * t)
 {
 	if(stepson.size() == 0)
 		return ;
-	DelaunayTreeItem_3D ** e = std::find(&stepson[0], &stepson[stepson.size()], t) ;
+	unsigned int* e = std::find(&stepson[0], &stepson[stepson.size()], t->index) ;
 	if(e !=  &stepson[stepson.size()])
 	{
-		std::valarray<DelaunayTreeItem_3D *>  newstepson(stepson.size()-1) ;
+		std::valarray<unsigned int>  newstepson(stepson.size()-1) ;
 		std::copy(&stepson[0], e, &newstepson[0]) ;
 		std::copy(e+1, &stepson[stepson.size()], &newstepson[e-&stepson[0]]) ;
 		stepson.resize(stepson.size()-1) ;
@@ -681,11 +697,9 @@ void DelaunayTetrahedron::kill(const Point * p)
 	getInPoints().resize(0) ;
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point * c) : TetrahedralElement(p0, p1, p2, p3), DelaunayTreeItem_3D(father, c)
+DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree_3D *t, DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point * c) : TetrahedralElement(p0, p1, p2, p3), DelaunayTreeItem_3D(t, father, c)
 {
-	
 	first = &getBoundingPoint(0) ;
-	
 	second = &getBoundingPoint(1) ;
 	third = &getBoundingPoint(2) ;
 	fourth = &getBoundingPoint(3) ;
@@ -700,14 +714,12 @@ DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p
 	assert(second->id > -1) ;
 	assert(third->id > -1) ;
 	assert(fourth->id> -1);
-	index = 0 ;
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem_3D(father, c)
+DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree_3D * t, DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem_3D(t, father, c)
 {
 	
 	first = &getBoundingPoint(0) ;
-	
 	second = &getBoundingPoint(1) ;
 	third = &getBoundingPoint(2) ;
 	fourth = &getBoundingPoint(3) ;
@@ -723,10 +735,10 @@ DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTreeItem_3D * father,  Point *p
 	assert(second->id > -1) ;
 	assert(third->id > -1) ;
 	assert(fourth->id> -1);
-	index = 0 ;
+	
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem_3D(NULL, NULL)
+DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem_3D(NULL, NULL, NULL)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -776,7 +788,9 @@ DelaunayDeadTetrahedron::DelaunayDeadTetrahedron( DelaunayTetrahedron * parent) 
 center(*parent->getCircumCenter()), 
 radius(parent->getRadius()), sqradius(radius*radius)
 {
-
+	index = parent->index ;
+	tree = parent->tree ;
+	
 	stepson.resize(parent->stepson.size()) ;
 	stepson = parent->stepson ;
 	
@@ -789,12 +803,6 @@ radius(parent->getRadius()), sqradius(radius*radius)
 	father = parent->father ;
 	stepfather = parent->stepfather ;
 
-	if(father)
-		father->addSon(this) ;
-	if(stepfather)
-	{
-		stepfather->addStepson(this) ;
-	}
 	isTetrahedron = true ;
 	isSpace = false ;
 	isDeadTetrahedron = true ;
@@ -805,15 +813,6 @@ radius(parent->getRadius()), sqradius(radius*radius)
 	third = parent->third ;
 	fourth = parent->fourth ;
 	dead = true ;
-	
-	for(size_t i = 0 ; i< son.size() ; i++)
-		son[i]->setFather(this) ;
-	
-	for(size_t i = 0 ; i< stepson.size() ; i++)
-		stepson[i]->setStepfather(this) ;
-	
-	index = 0 ;
-
 }
 	
 DelaunayDeadTetrahedron::~DelaunayDeadTetrahedron() { } ;
@@ -1135,50 +1134,15 @@ inline std::vector<Point*> DelaunayTetrahedron::commonSurface(const DelaunayTree
 			ret.push_back(fourth) ; 
 		}
 		
-		else /*if(   tsf <= fst 
-		   && tsf <= ftf 
-		   && tsf <= fsf)*/
+		else 
 		{
 			ret.push_back(third) ;
 			ret.push_back(second) ;
 			ret.push_back(fourth) ; 
 		}
-		
-// 		if(isCoplanar((*t->first), (*first), (*second),(*third)) && 
-// 		   isCoplanar((*t->second), (*first), (*second),(*third)) &&
-// 		   isCoplanar((*t->third), (*first), (*second),(*third)))
-// 		{
-// 			ret.push_back(first) ;
-// 			ret.push_back(second) ;
-// 			ret.push_back(third) ; 
-// 		}
-// 		else if(isCoplanar((*t->first), (*first), (*third),(*fourth)) && 
-// 		   isCoplanar((*t->second), (*first), (*third),(*fourth)) &&
-// 		   isCoplanar((*t->third), (*first), (*third),(*fourth)))
-// 		{
-// 			ret.push_back(first) ;
-// 			ret.push_back(third) ;
-// 			ret.push_back(fourth) ; 
-// 		}
-// 		else if(isCoplanar((*t->first), (*first), (*second),(*fourth)) && 
-// 		   isCoplanar((*t->second), (*first), (*second),(*fourth)) &&
-// 		   isCoplanar((*t->third), (*first), (*second),(*fourth)))
-// 		{
-// 			ret.push_back(first) ;
-// 			ret.push_back(second) ;
-// 			ret.push_back(fourth) ; 
-// 		}
-// 		else if(isCoplanar((*t->first), (*third), (*second),(*fourth)) && 
-// 		   isCoplanar((*t->second), (*third), (*second),(*fourth)) &&
-// 		   isCoplanar((*t->third), (*third), (*second),(*fourth)))
-// 		{
-// 			ret.push_back(third) ;
-// 			ret.push_back(second) ;
-// 			ret.push_back(fourth) ; 
-// 		}
+
 	}
 	
-	//assert(false) ;
 	return ret;
 }
 
@@ -1195,36 +1159,6 @@ inline std::vector<Point*> DelaunayDemiSpace::commonSurface(const DelaunayTreeIt
 	if(t->isTetrahedron)
 	{
 		return t->commonSurface(this) ;
-// 		if(this->isVertex(t->first) && this->isVertex(t->second)&& this->isVertex(t->third))
-// 		{
-// 			ret.push_back(t->first) ;
-// 			ret.push_back(t->second) ;
-// 			ret.push_back(t->third) ;
-// 		}
-// 		
-// 		
-// 		if(this->isVertex(t->first) && this->isVertex(t->second)&& this->isVertex(t->fourth))
-// 		{
-// 			ret.push_back(t->first) ;
-// 			ret.push_back(t->second) ;
-// 			ret.push_back(t->fourth) ;
-// 		}
-// 		
-// 		if(this->isVertex(t->first) && this->isVertex(t->fourth)&& this->isVertex(t->third))
-// 		{
-// 			ret.push_back(t->first) ;
-// 			ret.push_back(t->third) ;
-// 			ret.push_back(t->fourth) ;
-// 		}
-// 		
-// 		if(this->isVertex(t->fourth) && this->isVertex(t->second)&& this->isVertex(t->third))
-// 		{
-// 			ret.push_back(t->first) ;
-// 			ret.push_back(t->second) ;
-// 			ret.push_back(t->fourth) ;
-// 		}
-		
-		
 	}
 
 	return ret;
@@ -1234,12 +1168,9 @@ std::vector<Point*> DelaunayRoot_3D::commonSurface(const DelaunayTreeItem_3D * t
 {
 	std::vector<Point *> ret ;
 	
-		ret.push_back(NULL) ;
-		ret.push_back(NULL) ;
-		ret.push_back(NULL);
-	
-	
-	
+	ret.push_back(NULL) ;
+	ret.push_back(NULL) ;
+	ret.push_back(NULL);
 
 	return ret;
 }
@@ -1260,8 +1191,8 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 			{
 				for(size_t j = 0 ; j <  neighbour.size() ; j++)
 				{
-					if(p->neighbour[i]->isNeighbour(neighbour[j]))
-						makeNeighbours(neighbour[j], p->neighbour[i]) ;
+					if(p->getNeighbour(i)->isNeighbour(getNeighbour(j)))
+						makeNeighbours(getNeighbour(j), p->getNeighbour(i)) ;
 				}
 			}
 			p->kill(first) ;
@@ -1274,20 +1205,20 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 		{
 			for(size_t i = 0 ; i <  p->neighbour.size() ; i++)
 			{
-				this->addNeighbour(p->neighbour[i]) ;
-				p->neighbour[i]->addNeighbour(this) ;
+				this->addNeighbour(p->getNeighbour(i)) ;
+				p->getNeighbour(i)->addNeighbour(this) ;
 			}
 			for(size_t i = 0 ; i <  p->son.size() ; i++)
 			{
-				p->son[i]->setFather(this) ;
-				addSon(p->son[i]) ;
+				p->getSon(i)->setFather(this) ;
+				addSon(p->getSon(i)) ;
 			}
 			for(size_t i = 0 ; i <  p->stepson.size() ; i++)
 			{
-				p->stepson[i]->setStepfather(this) ;
-				addStepson(p->stepson[i]) ;
-				this->addNeighbour(p->stepson[i]) ;
-				p->stepson[i]->addNeighbour(this) ;
+				p->getStepson(i)->setStepfather(this) ;
+				addStepson(p->getStepson(i)) ;
+				this->addNeighbour(p->getStepson(i)) ;
+				p->getStepson(i)->addNeighbour(this) ;
 			}
 			p->father->addSon(this) ;
 			p->addSon(this) ;
@@ -1341,17 +1272,18 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem_3D *> & ret, Poin
 
 	for (size_t i = 0 ; i < 4 ; i++)
 	{
-		bool ins =  (neighbour[i]->isSpace || ( /*!neighbour[i]->visited &&*/ neighbour[i]->isTetrahedron && !neighbour[i]->inCircumSphere(*p)));
+		bool ins =  (getNeighbour(i)->isSpace || ( /*!getNeighbour(i)->visited &&*/ getNeighbour(i)->isTetrahedron && !getNeighbour(i)->inCircumSphere(*p)));
 		
 		if (ins)
 		{
-			std::vector< Point*> pp = this->commonSurface(neighbour[i]) ;
+			std::vector< Point*> pp = this->commonSurface(getNeighbour(i)) ;
 			if(!isCoplanar(p, pp[0], pp[1], pp[2]))
 			{
 
-				DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1],pp[2], p) ;
+				DelaunayTetrahedron *ss = new DelaunayTetrahedron(this->tree, this, p, pp[0], pp[1],pp[2], p) ;
+
 				addSon(ss) ;
-				neighbour[i]->addStepson(ss) ;
+				getNeighbour(i)->addStepson(ss) ;
 				ret.push_back(ss) ;
 			}
 		}
@@ -1379,7 +1311,7 @@ void DelaunayTetrahedron::print() const
 // 	(*eps)[first->id*2+1]+=(*eps)[first->id*2+1] ;
 // }
 
-DelaunayDemiSpace::DelaunayDemiSpace(DelaunayTreeItem_3D * father,  Point  * _one,  Point  * _two, Point  * _three, Point  * p,  Point * c) : DelaunayTreeItem_3D(father, c)
+DelaunayDemiSpace::DelaunayDemiSpace(DelaunayTree_3D * t, DelaunayTreeItem_3D * father,  Point  * _one,  Point  * _two, Point  * _three, Point  * p,  Point * c) : DelaunayTreeItem_3D(t, father, c)
 {
 	second  = _two ;
 	first = _one ;
@@ -1401,7 +1333,7 @@ DelaunayDemiSpace::DelaunayDemiSpace(DelaunayTreeItem_3D * father,  Point  * _on
 	isDeadTetrahedron = false;
 	visited =false ;
 	
-	index = 0 ;
+
 }
 
 	
@@ -1412,21 +1344,6 @@ bool DelaunayDemiSpace::inCircumSphere(const Point & p) const
 	double signedDistP = p.x*pseudonormal.x + p.y*pseudonormal.y + p.z*pseudonormal.z - planeConst;
 	double signedDistF = fourth->x*pseudonormal.x + fourth->y*pseudonormal.y + fourth->z*pseudonormal.z - planeConst;
 	return signedDistF*signedDistP < 0   ;
-	
-// 	Point vector = *fourth-*p ;
-// 	Point onPlane = *first-*p ;
-// 	
-// 	double para = vector*pseudonormal;
-// 	if(std::abs(para) < 1e-8)
-// 		return false ;
-// 	
-// 	double lambda = (onPlane*pseudonormal)/para ;
-// 	
-// 	return lambda > 1e-8 && lambda < 1-1e-8 ;
-// 	
-// 	Point v = (*first - *p) + (*second - *p) + (*third - *p) ;
-// 	Point u = (*second - *fourth) +  (*first - *fourth) + (*third - *fourth);
-// 	return (v*pseudonormal)*(u*pseudonormal) < 0 ;
 
 }
 	
@@ -1449,29 +1366,24 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem_3D *> & ret, Point 
 
 	for(size_t i = 0 ; i <neighbour.size() ; i++)
 	{
-		std::vector< Point*> pp = neighbour[i]->commonSurface(this) ;
+		std::vector< Point*> pp = getNeighbour(i)->commonSurface(this) ;
 
-		if ((!neighbour[i]->visited && neighbour[i]->isTetrahedron || neighbour[i]->isSpace) && !neighbour[i]->inCircumSphere(*p) )
+		if ((!getNeighbour(i)->visited && getNeighbour(i)->isTetrahedron || getNeighbour(i)->isSpace) && !getNeighbour(i)->inCircumSphere(*p) )
 		{
 			if(!isCoplanar(p, first, second, third))
 			{
 
-				DelaunayTetrahedron *ss = new DelaunayTetrahedron(this, p, pp[0], pp[1] ,pp[2], p) ;
-				if( neighbour[i]->isTetrahedron)
-				{
-					s->cleanup.push_back(neighbour[i]) ;
-					neighbour[i]->visited = true ;
-				}
+				DelaunayTetrahedron *ss = new DelaunayTetrahedron(tree, this, p, pp[0], pp[1] ,pp[2], p) ;
+
 				addSon(ss) ;
-				neighbour[i]->addStepson(ss) ;
+				getNeighbour(i)->addStepson(ss) ;
 	
 				ret.push_back(ss) ;
 				
-				DelaunayDemiSpace *p0 = new DelaunayDemiSpace(this, pp[0], p, pp[1], pp[2],p) ;
-				DelaunayDemiSpace *p1 = new DelaunayDemiSpace(this, pp[0], p, pp[2], pp[1],p) ;
-				DelaunayDemiSpace *p2 = new DelaunayDemiSpace(this, pp[2], p, pp[1], pp[0],p) ;
-				
-				
+				DelaunayDemiSpace *p0 = new DelaunayDemiSpace(tree, this, pp[0], p, pp[1], pp[2],p) ;
+				DelaunayDemiSpace *p1 = new DelaunayDemiSpace(tree, this, pp[0], p, pp[2], pp[1],p) ;
+				DelaunayDemiSpace *p2 = new DelaunayDemiSpace(tree, this, pp[2], p, pp[1], pp[0],p) ;
+
 				addSon(p0) ;
 				addSon(p1) ;
 				addSon(p2) ;
@@ -1522,23 +1434,22 @@ void updateNeighbours(std::vector<DelaunayTreeItem_3D *> * t)
 	}
 } 
 
-DelaunayRoot_3D::DelaunayRoot_3D(Point * p0, Point * p1, Point * p2, Point * p3) : DelaunayTreeItem_3D(NULL, NULL)
+DelaunayRoot_3D::DelaunayRoot_3D(DelaunayTree_3D *t, Point * p0, Point * p1, Point * p2, Point * p3) : DelaunayTreeItem_3D(t, NULL, NULL)
 {
 	isSpace = false ;
 	isTetrahedron =false ;
 	isDeadTetrahedron =false ;
 	this->father = NULL ;
-	DelaunayTetrahedron *t = new DelaunayTetrahedron(this, p0, p1, p2, p3, NULL) ;
+	DelaunayTetrahedron *tet = new DelaunayTetrahedron(t, this, p0, p1, p2, p3, NULL) ;
+	DelaunayDemiSpace * pl0 = new DelaunayDemiSpace(t, this, p0, p1, p2,p3, NULL);
+	DelaunayDemiSpace * pl1 = new DelaunayDemiSpace(t, this, p0, p1, p3,p2, NULL);
+	DelaunayDemiSpace * pl2 = new DelaunayDemiSpace(t, this, p1, p2, p3,p0, NULL);
+	DelaunayDemiSpace * pl3 = new DelaunayDemiSpace(t, this, p2, p3, p0,p1, NULL);
 	
-	DelaunayDemiSpace * pl0 = new DelaunayDemiSpace(this, p0, p1, p2,p3, NULL);
-	DelaunayDemiSpace * pl1 = new DelaunayDemiSpace(this, p0, p1, p3,p2, NULL);
-	DelaunayDemiSpace * pl2 = new DelaunayDemiSpace(this, p1, p2, p3,p0, NULL);
-	DelaunayDemiSpace * pl3 = new DelaunayDemiSpace(this, p2, p3, p0,p1, NULL);
-	
-	makeNeighbours(t,pl0 ) ;
-	makeNeighbours(t,pl1) ;
-	makeNeighbours(t,pl2) ;
-	makeNeighbours(t,pl3) ;
+	makeNeighbours(tet,pl0 ) ;
+	makeNeighbours(tet,pl1) ;
+	makeNeighbours(tet,pl2) ;
+	makeNeighbours(tet,pl3) ;
 	makeNeighbours(pl1,pl0 ) ;
 	makeNeighbours(pl2,pl1) ;
 	makeNeighbours(pl0,pl2) ;
@@ -1546,26 +1457,18 @@ DelaunayRoot_3D::DelaunayRoot_3D(Point * p0, Point * p1, Point * p2, Point * p3)
 	makeNeighbours(pl3,pl1) ;
 	makeNeighbours(pl3,pl2) ;
 	
-	addSon(t) ;
+	addSon(tet) ;
 	addSon(pl0) ;
 	addSon(pl1) ;
 	addSon(pl2) ;
 	addSon(pl3) ;
 	
 	kill(p0) ;
-	
-	index = 0 ;
 }
 	
 void DelaunayRoot_3D::print() const
 {
 	std::cout << "I am root !" << std::endl ;
-}
-
-
-DelaunayTreeItem_3D * DelaunayRoot_3D::getSon(size_t i)
-{
-	return son[i] ;
 }
 	
 bool DelaunayRoot_3D::isVertex(const Point *p) const
@@ -1586,7 +1489,7 @@ void DelaunayRoot_3D::insert(std::vector<DelaunayTreeItem_3D *>& ret, Point *p, 
 	{
 		
 		std::vector<DelaunayTreeItem_3D *> temp ;
-		son[i]->insert(temp, p, s) ;
+		getSon(i)->insert(temp, p, s) ;
 		
 		for(size_t j = 0 ; j< temp.size() ; j++)
 		{
@@ -1607,7 +1510,7 @@ void DelaunayRoot_3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>, st
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem_3D *> > temp  ;
-		son[i]->conflicts(temp,g) ;
+		getSon(i)->conflicts(temp,g) ;
 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
 	}
@@ -1623,7 +1526,7 @@ void DelaunayRoot_3D::conflicts(std::pair< std::vector<DelaunayTreeItem_3D *>, s
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		std::pair<std::vector<DelaunayTreeItem_3D *>, std::vector<DelaunayTreeItem_3D *> > temp  ;
-		son[i]->conflicts(temp, p) ;
+		getSon(i)->conflicts(temp, p) ;
 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
 	}
@@ -1671,23 +1574,13 @@ DelaunayTree_3D::DelaunayTree_3D(Point * p0, Point *p1, Point *p2, Point *p3)
 	neighbourhood = false ;
 	global_counter = 4;
 	p0->id = 0 ; p1->id = 1 ; p2->id = 2 ; p3->id = 3;
-	DelaunayRoot_3D *root = new DelaunayRoot_3D( p0, p1, p2, p3) ;
-	tree.push_back(root) ;
-	root->index = 0 ;
-	tree.push_back(root->getSon(0)) ;
-	root->getSon(0)->index = 1 ;
-	tree.push_back(root->getSon(1)) ;
-	root->getSon(1)->index = 2 ;
-	tree.push_back(root->getSon(2)) ;
-	root->getSon(2)->index = 3 ;
-	tree.push_back(root->getSon(3)) ;
-	root->getSon(3)->index = 4 ;
-	tree.push_back(root->getSon(4)) ;
-	root->getSon(4)->index = 5 ;
+	DelaunayRoot_3D *root = new DelaunayRoot_3D(this, p0, p1, p2, p3) ;
+	
 	space.push_back(static_cast<DelaunayDemiSpace *>(root->getSon(1))) ;
 	space.push_back(static_cast<DelaunayDemiSpace *>(root->getSon(2))) ;
 	space.push_back(static_cast<DelaunayDemiSpace *>(root->getSon(3))) ;
 	space.push_back(static_cast<DelaunayDemiSpace *>(root->getSon(4))) ;
+	
 }
 	
 DelaunayTree_3D::~DelaunayTree_3D() 
@@ -1703,9 +1596,7 @@ DelaunayTree_3D::~DelaunayTree_3D()
 
 void DelaunayTree_3D::insert(Point *p)
 {
-	
 	std::vector<DelaunayTreeItem_3D *> cons = this->conflicts(p) ;
-	
 	neighbourhood = false ;
 	
 	for(size_t i = 0 ; i < cons.size() ; i++)
@@ -1776,8 +1667,7 @@ void DelaunayTree_3D::insert(Point *p)
 
 		if(!ret[i]->erased && ((ret[i]->isAlive() && ret[i]->isTetrahedron) || ret[i]->isSpace) )
 		{
-			tree.push_back(ret[i]) ;
-			ret[i]->index = tree.size()-1 ;
+
 			if(ret[i]->isTetrahedron && ret[i]->neighbour.size() != 4)
 			{
 				
@@ -1788,7 +1678,7 @@ void DelaunayTree_3D::insert(Point *p)
 				ret[i]->print() ;
 				for(size_t k = 0 ; k < ret[i]->neighbour.size() ;  k++)
 				{
-					std::cout << "   --> " << std::flush ;ret[i]->neighbour[k]->print() ;
+					std::cout << "   --> " << std::flush ;ret[i]->getNeighbour(k)->print() ;
 				}
 				correct = false ;
 				
@@ -1815,8 +1705,8 @@ void DelaunayTree_3D::insert(Point *p)
 			std::valarray<Point *> nullarray(0) ;
 			if(ret[i]->isTetrahedron)
 				static_cast<DelaunayTetrahedron *>(ret[i])->setBoundingPoints(nullarray) ;
+			tree[ret[i]->index] = NULL ;
 			delete ret[i] ;
-			ret[i] = NULL ;
 		}
 	}
 	
@@ -1836,59 +1726,13 @@ void DelaunayTree_3D::insert(Point *p)
 	{
 		if(!cons[i]->isAlive() &&cons[i]->isTetrahedron && !cons[i]->isDeadTetrahedron)
 		{
-
 			DelaunayDeadTetrahedron* dt = new DelaunayDeadTetrahedron(static_cast<DelaunayTetrahedron *>(cons[i])) ;
-			
-			for(size_t j = 0 ; j <  cons[i]->neighbour.size() ; j++)
-			{
-				dt->addNeighbour(cons[i]->neighbour[j]) ;
-				cons[i]->neighbour[j]->addNeighbour(dt) ;
-			}
-			for(size_t j = 0 ; j <  cons[i]->neighbour.size() ; j++)
-			{
-				cons[i]->neighbour[j]->removeNeighbour(cons[i]) ;
-			}
-			
-			for(size_t j = 0 ; j <  cons[i]->son.size() ; j++)
-			{
-				cons[i]->son[j]->setFather(dt) ;
-				dt->addSon(cons[i]->son[j]) ;
-			}
-			
-			for(size_t j = 0 ; j <  cons[i]->son.size() ; j++)
-			{
-				cons[i]->removeSon(cons[i]->son[j]) ;
-			}
-			
-			for(size_t j = 0 ; j <  cons[i]->stepson.size() ; j++)
-			{
-				cons[i]->stepson[j]->stepfather = dt ;
-				dt->addStepson(cons[i]->stepson[j]) ;
-				dt->addNeighbour(cons[i]->stepson[j]) ;
-				cons[i]->stepson[j]->addNeighbour(dt) ;
-			}
-			for(size_t j = 0 ; j <  cons[i]->stepson.size() ; j++)
-			{
-				cons[i]->removeStepson(cons[i]->stepson[j]);
-			}
-			
-			if(cons[i]->father)
-			{
-				cons[i]->father->addSon(dt) ;
-				cons[i]->father->removeSon(cons[i]) ;
-			}
-			if(cons[i]->stepfather)
-			{
-				cons[i]->stepfather->removeStepson(cons[i]) ;
-				cons[i]->stepfather->addStepson(dt) ;
-			}
 			dt->clearVisited() ;
 			tree[cons[i]->index] = dt ;
-			dt->index = cons[i]->index ;
 			delete cons[i] ;
 		}
 	}
-	
+// // 	
 	delete s ;
 // 	print() ;
 }
@@ -1939,7 +1783,6 @@ void DelaunayTetrahedron::refresh(const TetrahedralElement * father)
 
 std::vector<DelaunayTetrahedron *> DelaunayTree_3D::conflicts( const Geometry *g) const
 {
-
 	std::pair< std::vector<DelaunayTetrahedron *>,std::vector<DelaunayTreeItem_3D *> > cons ;
 	this->tree[0]->conflicts(cons, g) ;
 	
@@ -1958,7 +1801,7 @@ std::vector<DelaunayTetrahedron *> DelaunayTree_3D::conflicts( const Geometry *g
 			for(size_t j = 0 ; j < space[i]->neighbour.size() ; j++)
 			{
 				std::pair< std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem_3D *> > temp ;
-				space[i]->neighbour[j]->conflicts(temp,g) ;
+				space[i]->getNeighbour(j)->conflicts(temp,g) ;
 				
 				cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
 				cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
@@ -1999,7 +1842,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 	for(size_t i = 0 ; i < tree.size() ; i++)
 	{
 
-		if(tree[i]->isAlive() && tree[i]->isTetrahedron)
+		if(tree[i] && tree[i]->isAlive() && tree[i]->isTetrahedron)
 		{
 			ret.push_back(static_cast<DelaunayTetrahedron *>(tree[i])) ;
 		}
@@ -2025,10 +1868,10 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 			std::vector<DelaunayTetrahedron *> toclean ;
 			for(size_t j = 0 ; j < ret[i]->neighbour.size() ; j++)
 			{
-				if(ret[i]->neighbour[j]->isTetrahedron && !ret[i]->neighbour[j]->visited)
+				if(ret[i]->getNeighbour(j)->isTetrahedron && !ret[i]->getNeighbour(j)->visited)
 				{
-					tocheck.push_back(static_cast<DelaunayTetrahedron *>(ret[i]->neighbour[j]));
-					ret[i]->neighbour[j]->visited = true ;
+					tocheck.push_back(static_cast<DelaunayTetrahedron *>(ret[i]->getNeighbour(j)));
+					ret[i]->getNeighbour(j)->visited = true ;
 					toclean.push_back(*tocheck.rbegin()) ;
 					ret[i]->neighbourhood.push_back(*tocheck.rbegin()) ;
 				}
@@ -2042,14 +1885,14 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 					for(size_t j = 0 ; j < tocheck[k]->neighbour.size() ; j++)
 					{
 						if(
-						    tocheck[k]->neighbour[j]->isTetrahedron 
-						    && !tocheck[k]->neighbour[j]->visited
-						    && tocheck[k]->neighbour[j] != ret[i]
-						    && static_cast<DelaunayTetrahedron *>(tocheck[k]->neighbour[j])->isInNeighbourhood(ret[i])
+						    tocheck[k]->getNeighbour(j)->isTetrahedron 
+						    && !tocheck[k]->getNeighbour(j)->visited
+						    && tocheck[k]->getNeighbour(j) != ret[i]
+						    && static_cast<DelaunayTetrahedron *>(tocheck[k]->getNeighbour(j))->isInNeighbourhood(ret[i])
 						  )
 						{
-							tocheck_temp.push_back(static_cast<DelaunayTetrahedron *>(tocheck[k]->neighbour[j]));
-							tocheck[k]->neighbour[j]->visited = true ;
+							tocheck_temp.push_back(static_cast<DelaunayTetrahedron *>(tocheck[k]->getNeighbour(j)));
+							tocheck[k]->getNeighbour(j)->visited = true ;
 							toclean.push_back(*tocheck_temp.rbegin()) ;
 							ret[i]->neighbourhood.push_back(*tocheck_temp.rbegin()) ;
 						}
@@ -2098,10 +1941,10 @@ void DelaunayTree_3D::print() const
 			for(size_t j = 0 ; j< tree[i]->neighbour.size() ; j++)
 			{
 				
-// 				if(tree[i]->neighbour[j]->isTetrahedron)
+// 				if(tree[i]->getNeighbour(j)->isTetrahedron)
 // 				{
 					std::cout << "\t --> " ;
-					tree[i]->neighbour[j]->print() ;
+					tree[i]->getNeighbour(j)->print() ;
 // 				}
 			}
 		}
