@@ -301,13 +301,13 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 					{
 						for(size_t j = 0 ; j < tri[i]->neighbourhood.size() ; j++)
 						{
-							if(tri[i]->neighbourhood[j]->visited)
+							if(tri[i]->getNeighbourhood(j)->visited)
 							{
-								for(size_t k = 0 ; k < tri[i]->neighbourhood[j]->getBoundingPoints().size() ;k++)
+								for(size_t k = 0 ; k < tri[i]->getNeighbourhood(j)->getBoundingPoints().size() ;k++)
 								{
-									if(tri[i]->neighbourhood[j]->getBoundingPoint(k) ==  proto)
+									if(tri[i]->getNeighbourhood(j)->getBoundingPoint(k) ==  proto)
 									{
-										foundPoint = &tri[i]->neighbourhood[j]->getBoundingPoint(k) ;
+										foundPoint = &tri[i]->getNeighbourhood(j)->getBoundingPoint(k) ;
 										break ;
 									}
 								}
@@ -554,6 +554,20 @@ void DelaunayTreeItem_3D::removeNeighbour(DelaunayTreeItem_3D * t)
 		neighbour = newneighbours ;
 	}
 }
+
+void DelaunayTetrahedron::removeNeighbourhood(DelaunayTetrahedron * t)
+{
+	unsigned int* e = std::find(&neighbourhood[0], &neighbourhood[neighbourhood.size()], t->index) ;
+
+	if(e !=  &neighbour[neighbour.size()])
+	{
+		std::valarray<unsigned int>  newneighbours(neighbourhood.size()-1) ;
+		std::copy(&neighbourhood[0], e, &newneighbours[0]) ;
+		std::copy(e+1, &neighbourhood[neighbourhood.size()], &newneighbours[e-&neighbourhood[0]]) ;
+		neighbourhood.resize(neighbourhood.size()-1) ;
+		neighbourhood = newneighbours ;
+	}
+}
 	
 void DelaunayTreeItem_3D::addNeighbour(DelaunayTreeItem_3D * t)
 {
@@ -572,6 +586,30 @@ void DelaunayTreeItem_3D::addNeighbour(DelaunayTreeItem_3D * t)
 		neighbour.resize(neighbour.size()+1) ;
 		neighbour = newneighbours ;
 	}
+}
+
+void DelaunayTetrahedron::addNeighbourhood(DelaunayTetrahedron * t)
+{
+	assert(t != this) ;
+
+	if(std::find(&neighbourhood[0], &neighbourhood[neighbourhood.size()],t->index) !=  &neighbourhood[neighbourhood.size()])
+	{
+		return ;
+	}
+	
+	if(t->isAlive())
+	{
+		std::valarray<unsigned int>  newneighbours(neighbourhood.size()+1) ;
+		std::copy(&neighbourhood[0], &neighbourhood[neighbourhood.size()], &newneighbours[0]) ;
+		newneighbours[neighbourhood.size()] = t->index ;
+		neighbourhood.resize(neighbourhood.size()+1) ;
+		neighbourhood = newneighbours ;
+	}
+}
+
+DelaunayTetrahedron * DelaunayTetrahedron::getNeighbourhood(size_t i) const
+{
+	return static_cast<DelaunayTetrahedron *>(tree->tree[neighbourhood[i]]) ;
 }
 
 DelaunayTreeItem_3D * DelaunayTreeItem_3D::getNeighbour(size_t i)
@@ -1853,7 +1891,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 		std::cout << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
 		for( size_t i = 0 ; i < ret.size() ;i++)
 		{
-			ret[i]->neighbourhood.clear() ;
+			ret[i]->neighbourhood.resize(0) ;
 			ret[i]->clearVisited() ;
 		}
 		
@@ -1873,7 +1911,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 					tocheck.push_back(static_cast<DelaunayTetrahedron *>(ret[i]->getNeighbour(j)));
 					ret[i]->getNeighbour(j)->visited = true ;
 					toclean.push_back(*tocheck.rbegin()) ;
-					ret[i]->neighbourhood.push_back(*tocheck.rbegin()) ;
+					ret[i]->addNeighbourhood(*tocheck.rbegin()) ;
 				}
 			}
 			
@@ -1894,7 +1932,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 							tocheck_temp.push_back(static_cast<DelaunayTetrahedron *>(tocheck[k]->getNeighbour(j)));
 							tocheck[k]->getNeighbour(j)->visited = true ;
 							toclean.push_back(*tocheck_temp.rbegin()) ;
-							ret[i]->neighbourhood.push_back(*tocheck_temp.rbegin()) ;
+							ret[i]->addNeighbourhood(*tocheck_temp.rbegin()) ;
 						}
 					}
 				}

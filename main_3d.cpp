@@ -519,7 +519,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(dynamic_cast<Inclusion3D *>(feats[i])) ;
 
-	for(size_t i = 0 ; i < inclusions.size(); i++)
+	for(size_t i = 0 ; i < 0/*inclusions.size()*/; i++)
 	{
 		static_cast<Sphere*>(inclusions[i])->setCenter(Point(inclusions[i]->getCenter().x*1000, inclusions[i]->getCenter().y*1000, inclusions[i]->getCenter().z*1000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000-0.03) ;

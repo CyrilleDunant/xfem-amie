@@ -171,7 +171,10 @@ public:
 	
 	GaussPointArray getSubTriangulatedGaussPoints() const ;
 	
-	std::vector<DelaunayTetrahedron *> neighbourhood ;
+	std::valarray<unsigned int> neighbourhood ;
+	DelaunayTetrahedron * getNeighbourhood(size_t i) const ;
+	void addNeighbourhood(DelaunayTetrahedron * t) ;
+	void removeNeighbourhood(DelaunayTetrahedron *) ;
 	bool isInNeighbourhood(const DelaunayTetrahedron * t) const ;
 		
 	
