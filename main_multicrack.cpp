@@ -164,11 +164,14 @@ void setBC()
 void step()
 {
 	
-  int nsteps = 1;// number of steps between two clicks on the opengl thing
-  bool cracks_did_not_touch;
+  //  int nsteps = 1;// number of steps between two clicks on the opengl thing
+  bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  while (cracks_did_not_touch)
+  size_t max_growth_steps = 1;
+  size_t countit = 0;
+  while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
+      countit++;
       //      std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
       setBC() ;
       
@@ -193,25 +196,29 @@ void step()
 		  //Circle headj(radius, crack[j]->getHead());
 		  
 		  //	      head0.intersects(crack[1]);
-		  
 		}
-	    }
-	
-	  // Print the state of the cracks to a file  
-	  std::string filename = "crackGeo.txt";
-	  fstream filestr;
-	  filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
-	  filestr << "Crack vertices" << std::endl;
-	  filestr << "x" << " " << "y" << std::endl ;
-	  for(size_t l = 0 ; l < crack.size() ; l++)
-	    {
-	      filestr << "Crack number " << l << std::endl ;
-	      crack[l]->printFile(filename);
-	    }
-	
+	    }// end checking crack intersections
+	}// end "time" stepping
+    }// end while loop to check crack interaction
+
+  // Prints the crack geo to a file for each crack
+  if (cracks_did_not_touch == false) // if cracks touched
+    {
+      std::cout << "** Cracks touched exporting file **" << endl;	
+      // Print the state of the cracks to a file  
+      std::string filename = "crackGeo.txt";
+      fstream filestr;
+      filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
+      filestr << "Crack vertices" << std::endl;
+      filestr << "x" << " " << "y" << std::endl ;
+      for(size_t l = 0 ; l < crack.size() ; l++)
+	{
+	  filestr << "Crack number " << l << std::endl ;
+	  crack[l]->printFile(filename);
 	}
       
-      
+    }
+  
       // 		
       // 		
       // From here down, only post-processing (opengl) is done. 
@@ -463,7 +470,7 @@ void step()
 		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
-	}
+
 }
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
@@ -1432,8 +1439,8 @@ int main(int argc, char *argv[])
 	///	F.generateElements(0) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	
-	for(size_t j = 0 ; j < crack.size() ; j++)
-		crack[j]->setInfluenceRadius(0.02) ;
+//	for(size_t j = 0 ; j < crack.size() ; j++)
+	//	crack[j]->setInfluenceRadius(0.02) ;
 // 	
 
 	step() ;
