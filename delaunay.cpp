@@ -2032,7 +2032,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  2;
+		size_t numberOfRefinements =  3;
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
@@ -2059,7 +2059,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 
 			Function x = tri[i]->getXTransform() ;
 			Function y = tri[i]->getYTransform() ;
-			tri[i]->setOrder(QUADRATIC) ;
+			tri[i]->setOrder(LINEAR) ;
 
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			

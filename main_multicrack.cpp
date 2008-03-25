@@ -1376,7 +1376,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(64) ;
+	F.sample(128) ;
 	//	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
@@ -1388,7 +1388,7 @@ int main(int argc, char *argv[])
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	
 	for(size_t j = 0 ; j < crack.size() ; j++)
-		crack[j]->setInfluenceRadius(0.03) ;
+		crack[j]->setInfluenceRadius(0.02) ;
 // 	
 
 	step() ;

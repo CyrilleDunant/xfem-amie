@@ -2383,7 +2383,7 @@ bool Crack::moved() const
 void Crack::printFile(const std::string& filename) const // SB
 {
   fstream filestr;
-  filestr.open (filename, fstream::in | fstream::out | fstream::app);
+  filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
   
   for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
     {
