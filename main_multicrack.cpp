@@ -632,77 +632,77 @@ void Display(void)
 		
 		
 		glNewList( DISPLAY_LIST_DISPLACEMENT,  GL_COMPILE ) ;
-			for (unsigned int j=0 ; j< triangles.size() ; j++ )
-			{
-
-				if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j] && !triangles[j]->getBehaviour()->fractured())
-				{
-					double c1 ;
-					double c2 ;
-					double c3 ;
-		
-					double vx = x[triangles[j]->getBoundingPoint(0).id*2]; 
-					double vy = x[triangles[j]->getBoundingPoint(0).id*2+1]; 
-					
-					glBegin(GL_TRIANGLE_FAN);
-					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min)))*300., 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-							
-						glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+		for (unsigned int j=0 ; j< triangles.size() ; j++ )
+		{
 			
-						for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
-						{
-							vx = x[triangles[j]->getBoundingPoint(k).id*2];
-							vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
-						
-							HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min)))*300., 1., 1. ) ;
-							glColor3f(c1, c2, c3) ;
-							
-							glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
-							
-						}
-					glEnd() ;
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j] && !triangles[j]->getBehaviour()->fractured())
+			{
+				double c1 ;
+				double c2 ;
+				double c3 ;
+				
+				double vx = x[triangles[j]->getBoundingPoint(0).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(0).id*2+1]; 
+				
+				glBegin(GL_TRIANGLE_FAN);
+				HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min)))*300., 1., 1. ) ;
+				glColor3f(c1, c2, c3) ;
+				
+				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				
+				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				{
+					vx = x[triangles[j]->getBoundingPoint(k).id*2];
+					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					
+					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min)))*300., 1., 1. ) ;
+					glColor3f(c1, c2, c3) ;
+					
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
+					
 				}
+				glEnd() ;
 			}
+		}
 		glEndList() ;
 		
 		double sigma11_min = sigma11.min() ;
 		double sigma11_max = sigma11.max() ;
 		glNewList(  DISPLAY_LIST_STRAIN_XX,  GL_COMPILE ) ;
 		
-			for (unsigned int j=0 ; j< triangles.size() ; j++ )
+		for (unsigned int j=0 ; j< triangles.size() ; j++ )
+		{
+			
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
 			{
+				double c1 ;
+				double c2 ;
+				double c3 ;
 				
-				if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
+				glColor3f(c1, c2, c3) ;
+				
+				double vx = x[triangles[j]->first->id*2]; 
+				double vy = x[triangles[j]->first->id*2+1]; 
+				
+				glBegin(GL_TRIANGLE_FAN);
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
+				
+				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				
+				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
-					 double c1 ;
-					 double c2 ;
-					 double c3 ;
+					vx = x[triangles[j]->getBoundingPoint(k).id*2];
+					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()+k]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
-					double vx = x[triangles[j]->first->id*2]; 
-					double vy = x[triangles[j]->first->id*2+1]; 
-					
-					glBegin(GL_TRIANGLE_FAN);
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
-					
-					glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
-					
-					for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
-					{
-						vx = x[triangles[j]->getBoundingPoint(k).id*2];
-						vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
-						
-						HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()+k]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
-						
-					}
-					glEnd() ;
 				}
+				glEnd() ;
 			}
+		}
 		glEndList() ;
 		
 		double vonMises_max = vonMises.max() ;
@@ -717,7 +717,7 @@ void Display(void)
 				double c1 ;
 				double c2 ;
 				double c3 ;
-
+				
 				double vx = x[triangles[j]->first->id*2]; 
 				double vy = x[triangles[j]->first->id*2+1]; 
 				
@@ -754,7 +754,7 @@ void Display(void)
 				double c1 ;
 				double c2 ;
 				double c3 ;
-
+				
 				double vx = x[triangles[j]->first->id*2]; 
 				double vy = x[triangles[j]->first->id*2+1]; 
 				
@@ -911,7 +911,7 @@ void Display(void)
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(k)) ;
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., .2) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -920,11 +920,10 @@ void Display(void)
 			}
 		}
 		glEndList() ;
-		
 		double epsilon11_min = epsilon11.min() ;
 		double epsilon11_max = epsilon11.max() ;
 		glNewList(  DISPLAY_LIST_STRESS_XX,  GL_COMPILE ) ;
-			
+		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
@@ -957,7 +956,7 @@ void Display(void)
 		}
 		glEndList() ;
 		
-				
+		
 		double epsilon22_min = epsilon22.min() ;
 		double epsilon22_max =  epsilon22.max() ;
 		
@@ -1035,41 +1034,69 @@ void Display(void)
 		glBegin(GL_TRIANGLES);
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-
+			
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				double c1 ;
 				double c2 ;
 				double c3 ;
 				
-				double enrichment = triangles[j]->getEnrichmentFunctions().size() ;
+				int enrichment = triangles[j]->getEnrichmentFunctions().size() ;
 				//HSVtoRGB( &c1, &c2, &c3, 180. + 180.*(sigma12[j]-sigma12.min())/(sigma12.max()-sigma12.min()), 1., 1. ) 
 				
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*enrichment/20., 1., 1.) ;
+				
 				if(enrichment)
-					glColor3f(c1, c2, c3) ;
 				{
-				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
-				
-				glVertex2f( double(triangles[j]->first->x + vx) ,
-				            double(triangles[j]->first->y + vy) );
-				
-				vx = x[triangles[j]->second->id*2];
-				vy = x[triangles[j]->second->id*2+1]; 
-
-				glVertex2f( double(triangles[j]->second->x + vx) ,
-				            double(triangles[j]->second->y + vy) );
-				
-				
-				vx = x[triangles[j]->third->id*2]; 
-				vy = x[triangles[j]->third->id*2+1]; 
-				
-
-				glVertex2f( double(triangles[j]->third->x + vx) ,
-				            double(triangles[j]->third->y + vy) );
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*enrichment/20., 1., 1.) ;
+					glColor3f(c1, c2, c3) ;
+					double vx = x[triangles[j]->first->id*2]; 
+					double vy = x[triangles[j]->first->id*2+1]; 
+					
+					glVertex2f( double(triangles[j]->first->x + vx) ,
+					            double(triangles[j]->first->y + vy) );
+					
+					vx = x[triangles[j]->second->id*2];
+					vy = x[triangles[j]->second->id*2+1]; 
+					
+					glVertex2f( double(triangles[j]->second->x + vx) ,
+					            double(triangles[j]->second->y + vy) );
+					
+					
+					vx = x[triangles[j]->third->id*2]; 
+					vy = x[triangles[j]->third->id*2+1]; 
+					
+					
+					glVertex2f( double(triangles[j]->third->x + vx) ,
+					            double(triangles[j]->third->y + vy) );
 				}
+// 				else
+// 				{
+// 					double vx = x[triangles[j]->first->id*2]; 
+// 					double vy = x[triangles[j]->first->id*2+1]; 
+// 					Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(0)) ;
+// 					
+// 					HSVtoRGB( &c1, &c2, &c3, 0,0, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min)) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					
+// 					glVertex2f( double(triangles[j]->first->x + vx) ,
+// 					            double(triangles[j]->first->y + vy) );
+// 					
+// 					vx = x[triangles[j]->second->id*2];
+// 					vy = x[triangles[j]->second->id*2+1]; 
+// 					
+// 					glVertex2f( double(triangles[j]->second->x + vx) ,
+// 					            double(triangles[j]->second->y + vy) );
+// 					
+// 					
+// 					vx = x[triangles[j]->third->id*2]; 
+// 					vy = x[triangles[j]->third->id*2+1]; 
+// 					
+// 					
+// 					glVertex2f( double(triangles[j]->third->x + vx) ,
+// 					            double(triangles[j]->third->y + vy) );
+// 					
+// 
+// 				}
 			}
 		}
 		glEnd();
@@ -1092,7 +1119,7 @@ void Display(void)
 				{
 					double vx = x[triangles[j]->getBoundingPoint(k).id*2]; 
 					double vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
-				
+					
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
 					
 				}
@@ -1109,7 +1136,30 @@ void Display(void)
 		for(size_t k  = 0 ; k < crack.size() ; k++)
 		{
 			glColor3f(1, 0, 0) ;
-
+// 			for(unsigned int j=0 ; j< tris__.size() ; j++ )
+// 			{
+// 				glBegin(GL_LINE_LOOP);
+// 				double vx = x[tris__[j]->first->id*2]; 
+// 				double vy = x[tris__[j]->first->id*2+1]; 
+// 				
+// 				glVertex2f( double(tris__[j]->first->x/*+ vx*/) ,
+// 				            double(tris__[j]->first->y/*+ vy*/) );
+// 				
+// 				vx = x[tris__[j]->second->id*2]; 
+// 				vy = x[tris__[j]->second->id*2+1]; 
+// 				
+// 				glVertex2f( double(tris__[j]->second->x/*+ vx*/) ,
+// 				            double(tris__[j]->second->y/*+ vy*/) );
+// 				
+// 				vx = x[tris__[j]->third->id*2]; 
+// 				vy = x[tris__[j]->third->id*2+1]; 
+// 				
+// 				glVertex2f( double(tris__[j]->third->x/*+ vx*/) ,
+// 				            double(tris__[j]->third->y/*+ vy*/) );
+// 				glEnd();
+// 			}
+// 			
+// 			glColor3f(0, 1, 1) ;
 			glBegin(GL_LINES) ;
 			for(size_t j=0 ; j< crack[k]->getBoundingPoints().size()-1 ; j++ )
 			{
@@ -1120,7 +1170,26 @@ void Display(void)
 			}
 			glEnd();
 		}
-
+		
+// 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
+// 		{
+// 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+// 			{
+// 				
+// 				
+// 				Vector t = triangles[j]->getState()->getPrincipalStresses(triangles[j]->getCenter()) ;
+// 				glBegin(GL_LINE_LOOP);
+// 				
+// 				glColor3f(1, 1, 1) ;
+// 				glVertex2f( triangles[j]->getCenter().x ,  triangles[j]->getCenter().y  );
+// 				glColor3f(1, 1, 1) ;
+// 				glVertex2f( triangles[j]->getCenter().x +5.*t[0],  triangles[j]->getCenter().y +5.*t[1] );
+// 				
+// 				glEnd();
+// 			}
+// 			
+// 			glColor3f(1, 1, 1) ;
+// 		}
 		glLineWidth(1) ;
 		glEndList() ;
 		
@@ -1129,9 +1198,16 @@ void Display(void)
 	}
 	else
 	{
-
+		//glCallList(DISPLAY_LIST_DISPLACEMENT) ;
+		//glCallList(DISPLAY_LIST_STRAIN) ;
 		double c1, c2, c3 = 0;
 		HSVtoRGB( &c1, &c2, &c3, 180. + 0, 1., 1.) ;
+// 		glBegin(GL_LINE) ;
+// 		glVertex2f(3.5 ,
+// 		           3. );
+// 		glVertex2f(3.5 ,
+// 		           -3. );
+// 		glEnd() ;
 		
 		if(current_list != DISPLAY_LIST_ENRICHMENT)
 			glCallList(current_list) ;
@@ -1143,9 +1219,11 @@ void Display(void)
 		}
 		
 		glCallList(DISPLAY_LIST_CRACK) ;
+// 		if(current_list == DISPLAY_LIST_ELEMENTS)
+// 			glCallList(DISPLAY_LIST_CRACK) ;
 		
 		glColor3f(1, 1, 1) ;
-
+		
 		
 	}
 	glColor3f(1, 0, 0) ;
@@ -1294,7 +1372,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-		F.sample(64) ;
+	F.sample(64) ;
 	//	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
