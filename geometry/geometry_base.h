@@ -124,6 +124,10 @@ return this->__geo_type__::area() ;                        \
 virtual double volume() const                              \
 {                                                          \
 return this->__geo_type__::volume() ;                      \
+}                                                          \
+const __geo_type__ * getPrimitive() const                         \
+{                                                          \
+return dynamic_cast<const __geo_type__ *>(this) ;                 \
 }
 
 namespace Mu

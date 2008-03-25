@@ -786,6 +786,8 @@ void BranchedCrack::sample(size_t)
 	return ;
 }
 
+void BranchedCrack::printFile(const std::string& filename) const { } ;
+
 BranchedCrack::~BranchedCrack() { }
 
 bool BranchedCrack::isVoid(const Point&) const

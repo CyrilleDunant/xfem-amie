@@ -2008,7 +2008,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-8)
+					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-12)
 					{
 						go = false ;
 						break ;
@@ -2020,7 +2020,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		}
 
 		std::sort(to_add.begin()+3, to_add.end()) ;
-		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-8)) ;
+		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-12)) ;
 		to_add.erase(e, to_add.end()) ;
 		
 		DelaunayTree dt(&to_add[0], &to_add[1], &to_add[2]) ;
