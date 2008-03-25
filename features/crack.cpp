@@ -5,6 +5,9 @@
 
 #include "crack.h"
 
+#include <fstream>
+using namespace std;
+
 using namespace Mu ;
 
 BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : EnrichmentFeature(father), SegmentedLine(std::valarray<Point * >(0))
@@ -2372,4 +2375,19 @@ void Crack::snap ( DelaunayTree * dtree )
 bool Crack::moved() const
 {
 	return changed ;
+}
+
+/**
+  Prints the geometry of the crack to a file
+**/
+void Crack::printFile(const std::string& filename) const // SB
+{
+  fstream filestr;
+  filestr.open (filename, fstream::in | fstream::out | fstream::app);
+  
+  for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
+    {
+      filestr << this->getBoundingPoint(i).x << "  " << this->getBoundingPoint(i).y << std::endl ;
+    }
+  filestr.close();
 }
