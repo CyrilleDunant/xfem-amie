@@ -134,15 +134,19 @@ void setBC()
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
 
-			if(triangles[k]->getBoundingPoint(c).x < -.0199)
+			if(triangles[k]->getBoundingPoint(c).x < -.0399)
 			{
 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 )
+			if (triangles[k]->getBoundingPoint(c).y < -0.299 )
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if(triangles[k]->getBoundingPoint(c).x > .0199)
+			if (triangles[k]->getBoundingPoint(c).y > 0.299 )
+			{
+				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+			}
+			if(triangles[k]->getBoundingPoint(c).x > .0399)
 			{
 				featureTree->getAssembly()->setPointAlong( XI,0.0001, triangles[k]->getBoundingPoint(c).id) ;
 			}
