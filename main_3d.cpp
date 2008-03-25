@@ -475,8 +475,6 @@ int main(int argc, char *argv[])
 // 	srandom(time(NULL)) ;
 	Sample3D s3d(40,40,40,0,0,0) ;
 
-// 	std::cout << sizeof(DelaunayTetrahedron) << ", " << sizeof(DelaunayDemiSpace) << ", " << sizeof( DelaunayDeadTetrahedron) << std::endl ;
-// 	return 0 ;
 	FeatureTree ft(&s3d) ;
 	
 	double E_c3s = 4. ;      // in MPa
@@ -502,9 +500,9 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00003;
 
-	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001, 128, itzSize);
+	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,12800, itzSize);
 
-
+	std::cout << "largest r = " << features.back()->getRadius() << ", smallest r =" << features.front()->getRadius() << std::endl ; 
 	std::vector<Feature *> feats ;
 	std::vector<Inclusion3D *> inclusions ;
 	for(size_t i = 0; i < features.size() ; i++)
@@ -519,20 +517,20 @@ int main(int argc, char *argv[])
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(dynamic_cast<Inclusion3D *>(feats[i])) ;
 
-	for(size_t i = 0 ; i < 0/*inclusions.size()*/; i++)
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		static_cast<Sphere*>(inclusions[i])->setCenter(Point(inclusions[i]->getCenter().x*1000, inclusions[i]->getCenter().y*1000, inclusions[i]->getCenter().z*1000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000-0.03) ;
-		inclusions[i]->setBehaviour(new Stiffness(sc3s)) ;
+		inclusions[i]->setBehaviour(new Stiffness(cgStress)) ;
 
 		ft.addFeature(&s3d, inclusions[i]) ;
 	}
 
-	s3d.setBehaviour(&soth) ;
+	s3d.setBehaviour(&sc3s) ;
 	
 	ft.sample(512) ;
 
-	ft.setOrder(QUADRATIC) ;
+	ft.setOrder(LINEAR) ;
 
 	ft.generateElements(0) ;
 // 	ft.refine(1) ;	

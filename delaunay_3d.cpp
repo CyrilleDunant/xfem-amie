@@ -1899,7 +1899,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 		
 		for( size_t i = 0 ; i < ret.size() ;i++)
 		{
-			if(i%100 == 0)
+			if(i%10000 == 0)
 				std::cout << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
 			
 			std::vector<DelaunayTetrahedron *> tocheck ;

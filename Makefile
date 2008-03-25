@@ -48,8 +48,8 @@ OBJECTS_MAIN_SIMPLE =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENT
 TARGET_MAIN_SIMPLE = simple
 
 # TARGET_MAIN = steph main_multicrack
-SOURCE_MAIN_SIMPLE =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_simple.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
-OBJECTS_MAIN_SIMPLE =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_simple.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+SOURCE_MAIN_MULTICRACK =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_multicrack.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_MULTICRACK =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_multicrack.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_MULTICRACK = multicrack
 
 # TARGET_MAIN = steph main_kill
