@@ -47,6 +47,11 @@ SOURCE_MAIN_SIMPLE =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} s
 OBJECTS_MAIN_SIMPLE =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_simple.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_SIMPLE = simple
 
+# TARGET_MAIN = steph main_multicrack
+SOURCE_MAIN_SIMPLE =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_simple.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_SIMPLE =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_simple.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+TARGET_MAIN_MULTICRACK = multicrack
+
 # TARGET_MAIN = steph main_kill
 SOURCE_MAIN_KILL =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_kill.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
 OBJECTS_MAIN_KILL =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_kill.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
@@ -103,6 +108,9 @@ ${TARGET_MAIN_2D}: ${OBJECTS_MAIN_2D}
 	${CXX} ${LDFLAGS} -o $@ $+ 
 
 ${TARGET_MAIN_SIMPLE}: ${OBJECTS_MAIN_SIMPLE}
+	${CXX} ${LDFLAGS} -o $@ $+ 
+
+${TARGET_MAIN_MULTICRACK}: ${OBJECTS_MAIN_MULTICRACK}
 	${CXX} ${LDFLAGS} -o $@ $+ 
 
 ${TARGET_MAIN_KILL}: ${OBJECTS_MAIN_KILL}
@@ -163,11 +171,14 @@ depend_nurb: Makefile
 depend_main_simple: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_SIMPLE} > $@
 
+depend_main_multicrack: Makefile
+	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_MULTICRACK} > $@
+
 depend_main_kill: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_KILL} > $@
 
 clean:
-	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${TARGET_MAIN_3D_DIFFUSION} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} ${OBJECTS_FILTERS} utilities/granulo.o depend_main  depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome depend_main_simple depend_main_kill 
+	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${TARGET_MAIN_3D_DIFFUSION} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} ${OBJECTS_FILTERS} utilities/granulo.o depend_main  depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome depend_main_simple depend_main_kill depend_main_multicrack 
 
 include depend_main
 include depend_main_3d_diffusion
@@ -179,4 +190,5 @@ include depend_nurb
 include depend_main_jerome
 include depend_main_2d 
 include depend_main_simple
+include depend_main_multicrack
 include depend_main_kill
