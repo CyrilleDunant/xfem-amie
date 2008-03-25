@@ -22,6 +22,11 @@
 
 #include <fstream>
 
+
+
+
+
+
 #include <cmath>
 #include <typeinfo>
 #include <limits>
@@ -70,6 +75,7 @@
 #define DISPLAY_LIST_STIFFNESS_DARK 24
 
 using namespace Mu ;
+using namespace std;
 
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
@@ -159,21 +165,60 @@ void step()
 {
 	
   int nsteps = 1;// number of steps between two clicks on the opengl thing
-	for(size_t i = 0 ; i < nsteps ; i++)
+  bool cracks_did_not_touch;
+  // for(size_t i = 0 ; i < nsteps ; i++)
+  while (cracks_did_not_touch)
+    {
+      //      std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
+      setBC() ;
+      
+      while(!featureTree->step(timepos))//as long as we can update the features
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		setBC() ;
-
-		while(!featureTree->step(timepos))//as long as we can update the features
+	  // 			timepos-= 0.0001 ;
+	  setBC() ;
+	  
+	  
+	  // check if the two cracks did not touch
+	  cracks_did_not_touch = true;
+	  for(size_t j = 0 ; j < crack.size() ; j++)
+	    {
+	      for(size_t k = j+1 ; k < crack.size() ; k++)
 		{
-// 			timepos-= 0.0001 ;
-			setBC() ;
-			
+		  
+		  if (static_cast<SegmentedLine *>(crack[j])->intersects(static_cast<SegmentedLine *>(crack[k])))
+		    {
+		      cracks_did_not_touch = false;
+		      break;
+		    }
+		  //Circle headj(radius, crack[j]->getHead());
+		  
+		  //	      head0.intersects(crack[1]);
+		  
 		}
-// 		
-// 		
-		timepos+= 0.0001 ;
+	    }
 	
+	  // Print the state of the cracks to a file  
+	  std::string filename = "crackGeo.txt";
+	  fstream filestr;
+	  filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
+	  filestr << "Crack vertices" << std::endl;
+	  filestr << "x" << " " << "y" << std::endl ;
+	  for(size_t l = 0 ; l < crack.size() ; l++)
+	    {
+	      filestr << "Crack number " << l << std::endl ;
+	      crack[l]->printFile(filename);
+	    }
+	
+	}
+      
+      
+      // 		
+      // 		
+      // From here down, only post-processing (opengl) is done. 
+      //
+
+      timepos+= 0.0001 ;
+      
 	
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;

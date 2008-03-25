@@ -123,7 +123,7 @@ public:
 	virtual Point* pointAfter(size_t) ;
 	virtual std::vector<Mu::Geometry*> getRefinementZones(size_t) const ;
 	virtual void print() const ;
-	virtual void printFile(const std::string& filename) const;//SB
+	//	virtual void printFile(const std::string& filename) const;//SB
 	virtual void sample(size_t) ;
 	virtual bool isVoid(const Point&) const ;
 	virtual std::vector<Point*> getSamplingPoints() const ;
