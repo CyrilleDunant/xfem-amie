@@ -30,7 +30,7 @@ bool MohrCoulomb::met(const ElementState & s) const
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
 	{
-		Circle epsilon(0.001,testedTri->getCenter()) ;
+		Circle epsilon(0.0005,testedTri->getCenter()) ;
 		std::vector<DelaunayTriangle *> neighbourhood ;
 		std::vector<DelaunayTriangle *> toTry = testedTri->neighbourhood ;
 		std::vector<DelaunayTriangle *> cleanup ;

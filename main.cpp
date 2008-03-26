@@ -92,7 +92,12 @@ double y_min = 0 ;
 double timepos = 0.1e-07 ;
 
 double percent = 0.1 ;
-
+double load = 0 ;
+double displacement  = 0 ;
+double prescribedDisplacement =  0;
+double derror = 0 ;
+double ierror = 0 ;
+double preverror = 0 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -103,6 +108,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress ;
+std::vector<std::pair<double, double> > load_displacement ;
 
 Vector b(0) ;
 Vector x(0) ;
@@ -128,6 +134,29 @@ bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
+
+void computeDisplacement()
+{
+	x.resize(featureTree->getDisplacements().size()) ;
+	x = featureTree->getDisplacements() ;
+	Vector x_2  = x*x ;
+	std::sort(&x_2[0], &x_2[x_2.size()]) ;
+	displacement = sqrt(std::accumulate(&x_2[0], &x_2[x_2.size()], double(0))) ;
+}
+
+double pidUpdate()
+{
+	double error = prescribedDisplacement-displacement ;
+	derror =  error-preverror ;
+	ierror += error ;
+	load = 2000000.*error + 800000.*ierror+ 10000.*derror;
+	preverror = error ;
+	if( ierror > 0 )
+		ierror = std::max(5e-7, ierror) ;
+	else
+		ierror = std::min(-5e-7, ierror) ;
+	return error ;
+}
 
 void setBC()
 {
@@ -187,14 +216,15 @@ void setBC()
 	{
 		if(i%1000 == 0)
 			std::cout << "\r setting BC tri " << i << "/" << xlow.size() << std::flush ;
-		featureTree->getAssembly()->setPointAlong(XI,-timepos,xlow[i]) ;
+// 		featureTree->getAssembly()->setPointAlong(XI,-timepos,xlow[i]) ;
+		featureTree->getAssembly()->setPointAlong(XI,0,xlow[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < xhigh.size() ; i++)
 	{
 		if(i%1000 == 0)
 			std::cout << "\r setting BC tri " << i << "/" << xhigh.size() << std::flush ;
-		featureTree->getAssembly()->setPointAlong(XI,timepos ,xhigh[i]) ;
+		featureTree->getAssembly()->setForceOn(XI,load ,xhigh[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < yhl.size() ; i++)
@@ -209,17 +239,18 @@ void setBC()
 	{
 		if(i%1000 == 0)
 			std::cout << "\r setting BC tri " << i << "/" << cornerLeft.size() << std::flush ;
-		featureTree->getAssembly()->setPoint( -timepos,0,cornerLeft[i]) ;
+// 		featureTree->getAssembly()->setPoint( -timepos,0,cornerLeft[i]) ;
+		featureTree->getAssembly()->setPoint( 0,0,cornerLeft[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	
-	for(size_t i = 0 ; i < cornerRight.size() ; i++)
-	{
-		if(i%1000 == 0)
-			std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
-		featureTree->getAssembly()->setPoint( timepos,0,cornerRight[i]) ;
-	}
-	std::cout << "...done" << std::endl ;
+// 	for(size_t i = 0 ; i < cornerRight.size() ; i++)
+// 	{
+// 		if(i%1000 == 0)
+// 			std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
+// 		featureTree->getAssembly()->setPoint( timepos,0,cornerRight[i]) ;
+// 	}
+// 	std::cout << "...done" << std::endl ;
 
 }
 
@@ -266,8 +297,20 @@ void step()
 		{
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			std::cout << "." << std::flush ;
+// 			std::cout << "." << std::flush ;
+
+			computeDisplacement() ;
+			load_displacement.push_back(std::make_pair(load, displacement)) ;
+			double error = pidUpdate() ;
+			if(std::abs(error) > 1e-8)
+			{
+				load_displacement.pop_back() ;
+				go_on = true ;
+			}
+
+			std::cout << error << ", "<< load << ", "<< displacement << std::endl ;
 			setBC() ;
+			
 			tries++ ;
 		}
 		std::cout << " " << tries << " tries." << std::endl ;
@@ -275,7 +318,11 @@ void step()
 // 		
 // 		
 		if (tries < ntries)
-			timepos += 0.00000008 ;
+		{
+			ierror = 0 ;
+			derror = 0 ;
+			prescribedDisplacement += 0.0000001 ;
+		}
 	
 	
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -582,6 +629,8 @@ void step()
 		<< expansion_reaction[i].second << "   " 
 		<< expansion_stress[i].first << "   " 
 		<< expansion_stress[i].second << "   " 
+		<< load_displacement[i].first << "   " 
+		<< load_displacement[i].second << "   " 
 		<< std::endl ;
 	}
 	
@@ -1631,21 +1680,24 @@ int main(int argc, char *argv[])
 
 	Sample sample(NULL, 0.04, 0.04,0,0) ;
 	
-	
+	Inclusion inclusion(.00001, 0.02, -.02) ;
+	std::cout << sample.getPrimitive()->intersects(inclusion.getPrimitive())<< std::endl ;
+// return 0 ; 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 
 	double itzSize = 0.00003;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07*0.19635, 1, BOLOME_D)(.002, .0001, 128, itzSize);
+	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 1024, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		feats.push_back(inclusions[i]) ;
 	
 	int nAgg = 0 ;
-	feats=placement(new Circle(.01, 0, 0), feats, &nAgg, 32000);
+// 	feats=placement(sample.getPrimitive(), feats, &nAgg, 32000);
+	feats=placement(new Circle(.1, 0,0), feats, &nAgg, 32000);
 	
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
@@ -1656,63 +1708,61 @@ int main(int argc, char *argv[])
 // 	Inclusion * itz = new Inclusion(.005, 0, 0) ;
 // 	itz->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 // 	F.addFeature(&sample,itz) ;
-	F.addFeature(&sample,new Pore(0.001, 0, -0.02)) ;
-	F.addFeature(&sample,new Pore(0.001, 0, 0.02)) ;
-	std::vector<double> rad ;
-	rad.push_back(0.001) ;
-	rad.push_back(0.002) ;
-	rad.push_back(0.003) ;
-	rad.push_back(0.004) ;
-	rad.push_back(0.005) ;
-	rad.push_back(0.006) ;
-	rad.push_back(0.007) ;
-	rad.push_back(0.008) ;
-	rad.push_back(0.009) ;
-	rad.push_back(0.01) ;
-	LayeredInclusion * li = new LayeredInclusion(rad, Point(-0.005,0)) ;
-	std::vector<Form *> bev ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	li->setBehaviours(bev) ;
-	bev.clear() ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	F.addFeature(&sample, li) ;
-	LayeredInclusion * lii = new LayeredInclusion(rad, Point(0.00504,0.00005)) ;
-	lii->setBehaviours(bev) ;
-	F.twineFeature(li, lii) ;
-	bev.clear() ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-	LayeredInclusion * liii = new LayeredInclusion(rad, Point(0.00504,0.00505)) ;
-	liii->setBehaviours(bev) ;
-	F.twineFeature(lii, liii) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
-// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+// 	std::vector<double> rad ;
+// 	rad.push_back(0.001) ;
+// 	rad.push_back(0.002) ;
+// 	rad.push_back(0.003) ;
+// 	rad.push_back(0.004) ;
+// 	rad.push_back(0.005) ;
+// 	rad.push_back(0.006) ;
+// 	rad.push_back(0.007) ;
+// 	rad.push_back(0.008) ;
+// 	rad.push_back(0.009) ;
+// 	rad.push_back(0.01) ;
+// 	LayeredInclusion * li = new LayeredInclusion(rad, Point(-0.005,0)) ;
+// 	std::vector<Form *> bev ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	li->setBehaviours(bev) ;
+// 	bev.clear() ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	F.addFeature(&sample, li) ;
+// 	LayeredInclusion * lii = new LayeredInclusion(rad, Point(0.00504,0.00005)) ;
+// 	lii->setBehaviours(bev) ;
+// 	F.twineFeature(li, lii) ;
+// 	bev.clear() ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 	LayeredInclusion * liii = new LayeredInclusion(rad, Point(0.00504,0.00505)) ;
+// 	liii->setBehaviours(bev) ;
+// 	F.twineFeature(lii, liii) ;
+// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
 // 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 // 	{
 // 		
@@ -1723,8 +1773,12 @@ int main(int argc, char *argv[])
 // 		F.addFeature(&sample,inclusions[i]) ;
 // // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
 // 		placed_area += inclusions[i]->area() ;
-// 	}
-	for(size_t i = 0 ; i < 0/*inclusions.size() */; i++)
+// 	}	
+	Pore * pore = new Pore(0.001, 0, -0.02) ;
+	F.addFeature(&sample,pore) ;
+	Pore * pore0 = new Pore(0.001, 0, 0.02) ;
+	F.addFeature(pore,pore0) ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
@@ -1735,21 +1789,22 @@ int main(int argc, char *argv[])
 		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(20000, -8*20000)) ;
 		itz->setBehaviour(behaviour) ;
 // 	
-		F.addFeature(&sample,itz) ;
+		F.addFeature(pore0,itz) ;
 		F.addFeature(itz,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
 
-	
+
+
 	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
 	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
 	std::cout << "placed area = " <<  placed_area << std::endl ;
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(512) ;
 
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	
 	F.generateElements(0) ;

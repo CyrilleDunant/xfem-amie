@@ -519,7 +519,7 @@ bool Geometry::intersects(const Geometry *g) const
 			
 			if(g->getGeometryType() == CIRCLE)
 			{
-				return squareDist( this->getCenter(), g->getCenter()) < (this->getRadius() + g->getRadius())*(this->getRadius() + g->getRadius()) ;
+				return squareDist2D( this->getCenter(), g->getCenter()) < (this->getRadius() + g->getRadius())*(this->getRadius() + g->getRadius()) ;
 			}
 			
 			std::vector<Segment> segs ;
@@ -2042,7 +2042,7 @@ Segment::Segment(const Point & p0, const Point & p1)
 	f = p0 ;
 	s = p1 ;
 	mid = (p0+p1)*0.5;
-	vec = p1-p0 ;
+	vec = f-s ;
 }
 
 double Segment::norm() const
@@ -2204,14 +2204,17 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case CIRCLE:
 		{
+			std::vector<Point> ret ;
 			double a = vec.x*vec.x + vec.y*vec.y ;
 			double b = (f.x-g->getCenter().x)*2.*vec.x + (f.y-g->getCenter().y)*2.*vec.y ;
-			double c = (f.x-g->getCenter().x)*(f.x-g->getCenter().x) + (f.y-g->getCenter().y)*(f.y-g->getCenter().y)-g->getRadius()*g->getRadius() ;
+			double c = (f.x-g->getCenter().x)*(f.x-g->getCenter().x) 
+				+ (f.y-g->getCenter().y)*(f.y-g->getCenter().y)
+				- g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4.*a*c ;
 
-			if(delta == 0)
+			if(std::abs(delta) < POINT_TOLERANCE)
 			{
-				std::vector<Point> ret ;
+
 				Point A(f+vec*(-b/(2.*a))) ;
 				if(on(A))
 					ret.push_back(A) ;
@@ -2219,7 +2222,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 			}
 			else if (delta > 0)
 			{
-				std::vector<Point> ret ;
+
 				Point A(f+vec*(-b + sqrt(delta))/(2.*a)) ;
 				if(on(A))
 					ret.push_back(A) ;
@@ -2381,35 +2384,40 @@ bool Segment::intersects(const Point & a, const Point & b) const
 
 bool Segment::on(const Point &p) const
 {
-	return std::abs((vec.norm()- (f-p).norm() - (p-s).norm())) < POINT_TOLERANCE ;
+	if(!isAligned(p, f, s))
+		return false ;
+
+	Point vtest = f-p ;
+	double lambda = vtest.norm()/vec.norm() ;
+	return lambda > -POINT_TOLERANCE && lambda < 1+POINT_TOLERANCE ;
 }
 
 void Segment::setFirst(const Point & p) 
 {
 	f = p ;
 	mid = f*0.5 + s*0.5;
-	vec = s-f ;
+	vec = f-s ;
 }
 
 void Segment::setFirst(double x, double y)
 {
 	f.set(x, y) ;
 	mid = f*0.5 + s*0.5;
-	vec = s-f ;
+	vec = f-s ;
 }
 
 void Segment::setSecond(const Point & p)
 {
 	s = p ;
 	mid = f*0.5 + s*0.5;
-	vec = s-f ;
+	vec = f-s ;
 }
 
 void Segment::setSecond(double x, double y)
 {
 	s.set(x, y) ;
 	mid = f*0.5 + s*0.5;
-	vec = s-f ;
+	vec = f-s ;
 }
 
 void Segment::set(const Point & p0, const Point & p1)
@@ -2417,7 +2425,7 @@ void Segment::set(const Point & p0, const Point & p1)
 	f.set(p0) ;
 	s.set(p1) ;
 	mid = f*0.5 + s*0.5;
-	vec = s-f ;
+	vec = f-s ;
 }
 
 void Segment::set(double x0, double y0, double x1, double y1)
@@ -2425,7 +2433,7 @@ void Segment::set(double x0, double y0, double x1, double y1)
 	f.set(x0, y0) ;
 	s.set(x1, y1) ;
 	mid = f*0.5 + s*0.5;
-	vec = s-f ;
+	vec = f-s ;
 }
 
 const Point & Segment::first() const
