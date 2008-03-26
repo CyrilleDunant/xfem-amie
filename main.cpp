@@ -94,7 +94,7 @@ double timepos = 0.1e-07 ;
 double percent = 0.1 ;
 double load = 0 ;
 double displacement  = 0 ;
-double prescribedDisplacement =  0;
+double prescribedDisplacement =  4.5e-6;
 double derror = 0 ;
 double ierror = 0 ;
 double preverror = 0 ;
@@ -148,8 +148,9 @@ double pidUpdate()
 {
 	double error = prescribedDisplacement-displacement ;
 	derror =  error-preverror ;
-	ierror += error ;
-	load = 2000000.*error + 800000.*ierror+ 10000.*derror;
+	ierror += (error+preverror)*.5 ;
+	double K_p = 1200000. ;
+	load = K_p*error + K_p*ierror+ K_p*.25*derror;
 	preverror = error ;
 	if( ierror > 0 )
 		ierror = std::max(5e-7, ierror) ;
@@ -285,7 +286,7 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 1 ;
+	size_t nit = 50 ;
 	size_t ntries = 20;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
@@ -1689,15 +1690,15 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00003;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 1024, itzSize);
+	inclusions = GranuloBolome(4.79263e-07/**0.19635*/, 1, BOLOME_D)(.002, .0001, 512, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		feats.push_back(inclusions[i]) ;
 	
 	int nAgg = 0 ;
-// 	feats=placement(sample.getPrimitive(), feats, &nAgg, 32000);
-	feats=placement(new Circle(.1, 0,0), feats, &nAgg, 32000);
+	feats=placement(sample.getPrimitive(), feats, &nAgg, 32000);
+// 	feats=placement(new Circle(.01, 0,0), feats, &nAgg, 32000);
 	
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
