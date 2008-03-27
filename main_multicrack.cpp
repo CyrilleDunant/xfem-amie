@@ -133,6 +133,16 @@ double aggregateArea = 0;
 
 void setBC()
 {
+  //if (/*un truc géométrique pour choper les bons points*/)
+       //l'assemblage sur lequel on fout les BC
+       //featureTree->getAssembly()->
+       // au choix
+       //* setPoint(x,y, point.id)
+       //* setPointAlong({XI, ETA}, x, point.id)
+       //* setForceOn({XI, ETA}, f, point.id)
+       //* setForce(fx, fy, point.id)
+       //* setPeriodic(point.id, point2.id)
+
 	triangles = featureTree->getTriangles() ;
 	double bctol  = 1e-10;
 	for(size_t k = 0 ; k < triangles.size() ;k++)
@@ -145,17 +155,17 @@ void setBC()
 		    //}
 		    if(std::abs(triangles[k]->getBoundingPoint(c).y - .300) < bctol)// top boundary			
 		      {
-			featureTree->getAssembly()->setPointAlong( ETA,0.1 ,triangles[k]->getBoundingPoint(c).id) ;
+			featureTree->getAssembly()->setPointAlong( ETA,0.010 ,triangles[k]->getBoundingPoint(c).id) ;
 		      }
 		    if(std::abs(triangles[k]->getBoundingPoint(c).y + .300) < bctol)// bottom boundary			
 		      {
-			featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+			featureTree->getAssembly()->setPoint(0,0,triangles[k]->getBoundingPoint(c).id) ;
 		      }			
-		    if ( (std::abs(triangles[k]->getBoundingPoint(c).y + .300) < bctol) && (std::abs(triangles[k]->getBoundingPoint(c).x + .080) < bctol) )// bottom left point
-		      {
-			featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-		      }
+		    //		    if ( (std::abs(triangles[k]->getBoundingPoint(c).y + .300) < bctol) && (std::abs(triangles[k]->getBoundingPoint(c).x + .080) < bctol) )// bottom left point
+		    //{
+		    //featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+		    //featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
+		    //}
 
 		  }
 	}
@@ -168,7 +178,7 @@ void step()
   //  int nsteps = 1;// number of steps between two clicks on the opengl thing
   bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  size_t max_growth_steps = 100;
+  size_t max_growth_steps = 10;
   size_t countit = 0;
   while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
@@ -1344,7 +1354,9 @@ int main(int argc, char *argv[])
 	ptset1[0] = new Point(x_10, y_10) ;//start of crack
 	ptset1[1] = new Point(x_11, y_11) ;//end of crack
 	std::cout << "coucou2" << std::endl;
+
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
+	
 	crack[0]->setParams(0.001,1.0,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
@@ -1354,10 +1366,11 @@ int main(int argc, char *argv[])
 	std::valarray<Point *> ptset2(2) ;//point set for crack
 	ptset2[0] = new Point(x_20, y_20) ;//start of crack
 	ptset2[1] = new Point(x_21, y_21) ;//end of crack
-	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
 
-	crack[0]->setParams(0.001,1.0,0.0) ;// set params
-	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
+		crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
+
+		crack[0]->setParams(0.001,1.0,0.0) ;// set params
+		F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
 	std::vector<Inclusion *> inclusions ;
