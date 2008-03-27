@@ -2290,6 +2290,7 @@ bool Segment::intersects(const Segment & l) const
 {
 	if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
 	{
+		return l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
 		double d = squareDist2D(f, s) ;
 		return  (squareDist2D(l.first(), f) < d 
 		      && squareDist2D(l.first(), s) < d) 
@@ -2301,8 +2302,8 @@ bool Segment::intersects(const Segment & l) const
 	Matrix m(2,2) ;
 	Vector v(2) ;
 	
-	m[0][0] = vec.x ; m[0][1] = -l.vector().x ;
-	m[1][0] = vec.y ; m[1][1] = -l.vector().y ;
+	m[0][0] = -vec.x ; m[0][1] = l.vector().x ;
+	m[1][0] = -vec.y ; m[1][1] = l.vector().y ;
 	
 	v[0] = l.first().x - f.x ; v[1] = l.first().y - f.y ; 
 	
@@ -2388,8 +2389,11 @@ bool Segment::on(const Point &p) const
 		return false ;
 
 	Point vtest = f-p ;
+	
 	double lambda = vtest.norm()/vec.norm() ;
-	return lambda > -POINT_TOLERANCE && lambda < 1+POINT_TOLERANCE ;
+	
+	std::cout << lambda << std::endl ;
+	return lambda > -POINT_TOLERANCE && lambda < 1.+POINT_TOLERANCE ;
 }
 
 void Segment::setFirst(const Point & p) 
