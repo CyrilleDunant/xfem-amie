@@ -199,6 +199,10 @@ public:
 
 	Crack(Feature *father, const std::valarray<Point *> &points, double radius) ;
 	Crack(const std::valarray<Point *> &points, double radius) ;
+	// SB
+	Crack ( Feature * father, const std::valarray<Point *> & points, double radius, double gfa, double critJ );
+	Crack ( const std::valarray<Point *> & points, double radius, double gfac, double critJ );
+	//end SB
 	virtual ~Crack() ;
 	
 	virtual bool enrichmentTarget(DelaunayTriangle * t) ;
@@ -220,7 +224,9 @@ public:
 	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) ;
 	
 	virtual void setInfluenceRadius(double r) ;
-	
+	// SB	
+	virtual void setParams ( double r, double gfac, double critJ);
+	  // end SB
 	virtual std::vector<Point *> getSamplingPoints() const ;
 	
 	virtual Point * pointAfter(size_t i) ;

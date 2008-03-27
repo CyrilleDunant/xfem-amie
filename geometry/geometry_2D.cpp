@@ -693,7 +693,7 @@ void Rectangle::project(Point * p) const
 
 void Rectangle::sampleBoundingSurface(size_t num_points)
 {
-	assert(num_points%4 == 0) ;
+  //	assert(num_points%4 == 0) ;
 	double perimeter = 2*(size_x+size_y) ;
 	
 	double distanceBetweenPoints = perimeter/num_points ;

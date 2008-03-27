@@ -1087,18 +1087,21 @@ std::vector<DelaunayTriangle *> Crack::getIntersectingTriangles ( DelaunayTree *
 
 Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double radius ) : EnrichmentFeature ( father ), SegmentedLine ( points )
 {
-	infRad = radius ;
-	this->isEnrichmentFeature = true ;
-
-	double maxr = 0.25*dist ( getHead(),getTail() ) ;
-	if ( infRad > maxr )
-		infRad = maxr ;
-
-	this->boundary = new Circle ( infRad, getHead() ) ;
-	this->boundary2 = new Circle ( infRad, getTail() ) ;
-	changed = true ;
-	stepLength = .25*infRad ;
-	criticalJ = 0.0 ;
+  infRad = radius ;// enrichment radius
+  
+  
+  this->isEnrichmentFeature = true ;
+  
+  double maxr = 0.25*dist ( getHead(),getTail() ) ;
+  if ( infRad > maxr )
+    infRad = maxr ;
+  
+  this->boundary = new Circle ( infRad, getHead() ) ;
+  this->boundary2 = new Circle ( infRad, getTail() ) ;
+  changed = true ;
+  // set increment in crack growth for teach step
+  stepLength = 0.25*infRad ;
+  criticalJ = 0.0 ;
 }
 
 Crack::Crack ( const std::valarray<Point *> & points, double radius ) : EnrichmentFeature ( NULL ), SegmentedLine ( points )
@@ -1117,6 +1120,54 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 	criticalJ = 0.0 ;
 }
 
+/**
+SB New constructor 
+@param radius enrichment radius for the crack tips
+@param gfac number such that the growth increment is gfac*enrichment radius
+@param critJ critical value of the J integral for propagation (Fracture toughness, in fact this is a material param...)
+**/
+Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double radius, double gfac, double critJ ) : EnrichmentFeature ( father ), SegmentedLine ( points )
+{
+  infRad = radius ;// enrichment radius
+  
+  
+  this->isEnrichmentFeature = true ;
+  
+  double maxr = 0.25*dist ( getHead(),getTail() ) ;
+  if ( infRad > maxr )
+    infRad = maxr ;
+  
+  this->boundary = new Circle ( infRad, getHead() ) ;
+  this->boundary2 = new Circle ( infRad, getTail() ) ;
+  changed = true ;
+  // set increment in crack growth for teach step
+  stepLength = gfac*infRad ;
+  criticalJ = critJ ;
+}
+
+/**
+SB New constructor 
+@param radius enrichment radius for the crack tips
+@param gfac number such that the growth increment is gfac*enrichment radius
+@param critJ critical value of the J integral for propagation (Fracture toughness, in fact this is a material param...)
+**/
+Crack::Crack ( const std::valarray<Point *> & points, double radius, double gfac, double critJ ) : EnrichmentFeature ( NULL ), SegmentedLine ( points )
+{
+	infRad = radius ;
+	this->isEnrichmentFeature = true ;
+
+	double maxr = 0.25*dist ( getHead(),getTail() ) ;
+	if ( infRad > maxr )
+		infRad = maxr ;
+
+	this->boundary = new Circle ( infRad, getHead() ) ;
+	this->boundary2 = new Circle ( infRad, getTail() ) ;
+	changed = true ;
+	stepLength = gfac*infRad ;
+	criticalJ = critJ ;
+}
+
+
 void Crack::setInfluenceRadius ( double r )
 {
 	
@@ -1129,6 +1180,27 @@ void Crack::setInfluenceRadius ( double r )
 	stepLength = .25*infRad ;
 	this->boundary = new Circle ( r, getHead() ) ;
 	this->boundary2 = new Circle ( r, getTail() ) ;
+}
+
+/**
+SB to set the critical J, influence radius and crack growth increment per step
+@param radius enrichment radius for the crack tips
+@param gfac number such that the growth increment is gfac*enrichment radius
+@param critJ critical value of the J integral for propagation (Fracture toughness, in fact this is a material param...)
+**/
+void Crack::setParams ( double r, double gfac, double critJ)
+{
+	
+	delete this->boundary ;
+	delete this->boundary2 ;
+	double maxr = 0.25*dist ( getHead(),getTail() ) ;
+	if ( r > maxr )
+		r = maxr ;
+	this->infRad = r ;
+	stepLength = gfac*infRad ;
+	this->boundary = new Circle ( r, getHead() ) ;
+	this->boundary2 = new Circle ( r, getTail() ) ;
+	criticalJ = critJ;
 }
 
 bool Crack::enrichmentTarget ( DelaunayTriangle * t )
@@ -1988,12 +2060,15 @@ double Crack::getCriticalJ() const
 	return criticalJ ;
 }
 
-void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtree )
+void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree )
 {
 
 	changed = false ;
 
 // 	return ;
+
+	double norm = .00025 ;
+
 	std::pair<double, double> headJ = computeJIntegralAtHead ( dt, dtree ) ;
 	Vector J ( 2 ) ; J[0] = headJ.first ; J[1] = headJ.second ;
 	std::cout << "at head : " << J[0] << ", " << J[1] << std::endl ;
@@ -2009,8 +2084,15 @@ void Crack::step ( double dt, std::valarray<double> *, const DelaunayTree * dtre
 	double currentAngle = atan2 ( getHead()->y - boundingPoints[1]->y,
 					getHead()->x -boundingPoints[1]->x ) ;
 	Point lastDir ( getHead()->x-getBoundingPoint ( 1 ).x, getHead()->y-getBoundingPoint ( 1 ).y ) ;
+
+
+	criticalJ = 0.;
+
+if(sqrt(J[0]*J[0] + J[1]*J[1]) >= criticalJ)
+
 	
 	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
+
 	{
 		DelaunayTriangle * headElem = NULL ;
 		for ( size_t i = 0 ; i < disk.size() ; i++ )
