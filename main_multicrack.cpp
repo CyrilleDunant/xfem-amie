@@ -134,31 +134,32 @@ double aggregateArea = 0;
 void setBC()
 {
 	triangles = featureTree->getTriangles() ;
-
+	double bctol  = 1e-10;
 	for(size_t k = 0 ; k < triangles.size() ;k++)
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
+		  {
+		    //		  if(std::abs(triangles[k]->getBoundingPoint(c).x + .080) < bctol)// left boundary
+		    //{
+		    //	featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+		    //}
+		    if(std::abs(triangles[k]->getBoundingPoint(c).y - .300) < bctol)// top boundary			
+		      {
+			featureTree->getAssembly()->setPointAlong( ETA,0.1 ,triangles[k]->getBoundingPoint(c).id) ;
+		      }
+		    if(std::abs(triangles[k]->getBoundingPoint(c).y + .300) < bctol)// bottom boundary			
+		      {
+			featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+		      }			
+		    if ( (std::abs(triangles[k]->getBoundingPoint(c).y + .300) < bctol) && (std::abs(triangles[k]->getBoundingPoint(c).x + .080) < bctol) )// bottom left point
+		      {
+			featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+			featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
+		      }
 
-			if(triangles[k]->getBoundingPoint(c).x < -.0399)
-			{
-				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.299 )
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if (triangles[k]->getBoundingPoint(c).y > 0.299 )
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(triangles[k]->getBoundingPoint(c).x > .0399)
-			{
-				featureTree->getAssembly()->setPointAlong( XI,0.0001, triangles[k]->getBoundingPoint(c).id) ;
-			}
-		}
+		  }
 	}
-
+	
 }
 
 void step()
@@ -167,7 +168,7 @@ void step()
   //  int nsteps = 1;// number of steps between two clicks on the opengl thing
   bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  size_t max_growth_steps = 1;
+  size_t max_growth_steps = 100;
   size_t countit = 0;
   while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
@@ -1315,7 +1316,7 @@ int main(int argc, char *argv[])
 	m0_soft[1][0] = E_soft/(1-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1-nu*nu) ; m0_soft[1][2] = 0 ; 
 	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1-nu*nu)*(1.-nu)/2. ; 
 
-	double width = 0.080;
+	double width = 0.160;
 	double height = 0.600;
 	Sample sample(NULL, width, height, 0, 0) ;
 	
@@ -1325,10 +1326,10 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	std::cout << "Defining the two cracks" << std::endl;
 	// Define a crack
-	double S = width/10;
-	double H = height/10;
-	double a1 = width/3;
-	double a2 = width/3;
+	double S = 0.030;
+	double H = S;
+	double a1 = 0.010;
+	double a2 = a1;
 	double x_10 = -S/2-a1;
 	double y_10 = -H;
 	double x_11 = -S/2;
@@ -1344,10 +1345,8 @@ int main(int argc, char *argv[])
 	ptset1[1] = new Point(x_11, y_11) ;//end of crack
 	std::cout << "coucou2" << std::endl;
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
-	crack[0]->setInfluenceRadius(0.001) ;// set enrichment radius for the tips of the crack
+	crack[0]->setParams(0.001,1.0,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
-	crack[0]->setCriticalJ(0.0); //critical J for propagation
-	std::cout << "coucou4" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
 
@@ -1356,8 +1355,8 @@ int main(int argc, char *argv[])
 	ptset2[0] = new Point(x_20, y_20) ;//start of crack
 	ptset2[1] = new Point(x_21, y_21) ;//end of crack
 	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
-	crack[1]->setInfluenceRadius(0.001) ;// set enrichment radius for the tips of the crack
-	crack[1]->setCriticalJ(0.0); //critical J for propagation
+
+	crack[0]->setParams(0.001,1.0,0.0) ;// set params
 	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
