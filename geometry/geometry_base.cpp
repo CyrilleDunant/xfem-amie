@@ -2389,10 +2389,10 @@ bool Segment::on(const Point &p) const
 		return false ;
 
 	Point vtest = f-p ;
-	
+	double direction = vtest*vec ;
 	double lambda = vtest.norm()/vec.norm() ;
 	
-	return lambda > -POINT_TOLERANCE && lambda < 1.+POINT_TOLERANCE ;
+	return lambda > -POINT_TOLERANCE && lambda < 1.+POINT_TOLERANCE && direction > 0;
 }
 
 void Segment::setFirst(const Point & p) 
