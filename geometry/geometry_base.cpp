@@ -2392,7 +2392,6 @@ bool Segment::on(const Point &p) const
 	
 	double lambda = vtest.norm()/vec.norm() ;
 	
-	std::cout << lambda << std::endl ;
 	return lambda > -POINT_TOLERANCE && lambda < 1.+POINT_TOLERANCE ;
 }
 
