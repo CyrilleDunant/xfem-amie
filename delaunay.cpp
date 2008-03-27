@@ -305,7 +305,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		if(!stepson[i]->visited && stepson[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(stepson[i]) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
 		}
 		
 		if( !stepson[i]->visited && stepson[i]->isConflicting(g) || limit)
@@ -324,7 +324,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		if(!son[i]->visited && son[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(son[i]) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
 		}
 
 		if( !son[i]->visited && son[i]->isConflicting(g) || limit)
@@ -348,7 +348,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		if(!neighbour[i]->visited && neighbour[i]->isTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(neighbour[i]) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < 2.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
 		}
 
 		if( !neighbour[i]->visited && neighbour[i]->isConflicting(g) || limit)
@@ -1678,6 +1678,30 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 	if(!tree.empty())
 		this->tree[0]->conflicts(cons, g) ;
 	
+	for(size_t i = 0 ; i < plane.size() ; i++)
+	{
+		
+		if(!plane[i]->visited)
+		{
+			std::pair< std::vector<DelaunayTriangle *>,std::vector<DelaunayTreeItem *> > temp ;
+			plane[i]->conflicts(temp,g) ;
+			
+			cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
+			cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;			
+			
+			for(size_t j = 0 ; j < plane[i]->neighbour.size() ; j++)
+			{
+				std::pair< std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp ;
+				plane[i]->neighbour[j]->conflicts(temp,g) ;
+				
+				cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
+				cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
+			}
+			
+		}
+		
+	}
+
 	for(size_t i = 0 ; i < cons.second.size() ; i++)
 		cons.second[i]->clearVisited() ;
 	

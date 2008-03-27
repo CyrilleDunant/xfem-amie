@@ -1957,7 +1957,11 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-
+	while( disk.size() < 16)
+	{
+		c.setRadius(c.getRadius()*2.) ;
+		disk = dtree->conflicts ( &c ) ;
+	}
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
 
 
@@ -2076,6 +2080,13 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 
 // 	Circle atHead ( infRad, this->boundary->getCenter() ) ;
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( this->boundary ) ;
+	Circle c0(*static_cast<Circle *>(boundary)) ;
+	disk = dtree->conflicts (&c0) ;
+	while( disk.size() < 16)
+	{
+		c0.setRadius(c0.getRadius()*2.) ;
+		disk = dtree->conflicts ( &c0 ) ;
+	}
 	std::vector<DelaunayTriangle *> tris ;
 	Point direction ;
 	double count = 0 ;
@@ -2088,11 +2099,7 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 
 	criticalJ = 0.;
 
-if(sqrt(J[0]*J[0] + J[1]*J[1]) >= criticalJ)
-
-	
-	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
-
+	if(sqrt(J[0]*J[0] + J[1]*J[1]) >= criticalJ)
 	{
 		DelaunayTriangle * headElem = NULL ;
 		for ( size_t i = 0 ; i < disk.size() ; i++ )
@@ -2184,6 +2191,7 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) >= criticalJ)
 		}
 	
 	}
+	
 	std::pair<double, double> tailJ = computeJIntegralAtTail ( dt, dtree ) ;
 	J[0] = tailJ.first ; J[1] = tailJ.second ;
 	std::cout << "at tail : " << J[0] << ", " << J[1] << std::endl ;
@@ -2191,15 +2199,22 @@ if(sqrt(J[0]*J[0] + J[1]*J[1]) >= criticalJ)
 
 
 // 	Circle atTail ( infRad, this->boundary2->getCenter() ) ;
-	disk = dtree->conflicts ( boundary2) ;
+	Circle c(*static_cast<Circle *>(boundary)) ;
+	disk = dtree->conflicts (&c) ;
+	while( disk.size() < 16)
+	{
+		c.setRadius(c.getRadius()*2.) ;
+		disk = dtree->conflicts ( &c ) ;
+	}
 	tris.clear() ;
-	if(sqrt(J[0]*J[0] + J[1]*J[1]) > criticalJ)
+	if(sqrt(J[0]*J[0] + J[1]*J[1]) >= criticalJ)
 	{
 		DelaunayTriangle * tailElem = NULL;
 		for ( size_t i = 0 ; i < disk.size() ; i++ )
 		{
+			
 			if ( !disk[i]->in ( *getTail() )
-				&& (!disk[i]->intersects ( dynamic_cast<SegmentedLine *> ( this ) )
+				&& (!disk[i]->intersects ( getPrimitive() )
 				    || boundary2->in(disk[i]->getCenter()))
 			)
 			{

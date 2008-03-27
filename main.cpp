@@ -94,7 +94,7 @@ double timepos = 0.1e-07 ;
 double percent = 0.1 ;
 double load = 0 ;
 double displacement  = 0 ;
-double prescribedDisplacement =  4.5e-6;
+double prescribedDisplacement = 0;
 double derror = 0 ;
 double ierror = 0 ;
 double preverror = 0 ;
@@ -139,9 +139,27 @@ void computeDisplacement()
 {
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
-	Vector x_2  = x*x ;
-	std::sort(&x_2[0], &x_2[x_2.size()]) ;
-	displacement = sqrt(std::accumulate(&x_2[0], &x_2[x_2.size()], double(0))) ;
+	Circle c(.001, .03, 0) ;
+	std::vector<DelaunayTriangle *> t = featureTree->getDelaunayTree()->conflicts(&c) ;
+	std::vector<int> indices ;
+	for(size_t i = 0 ; i < t.size() ; i++)
+	{
+		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
+		{
+			indices.push_back(t[i]->getBoundingPoint(c).id) ;
+		}
+	}
+	
+	std::sort(indices.begin(), indices.end()) ;
+	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+	displacement = 0 ;
+	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+	{
+		displacement+=x[(*i)*2.]/(e-indices.begin()) ;
+	}
+// 	Vector x_2  = x*x ;
+// 	std::sort(&x_2[0], &x_2[x_2.size()]) ;
+// 	displacement = sqrt(std::accumulate(&x_2[0], &x_2[x_2.size()], double(0))) ;
 }
 
 double pidUpdate()
@@ -149,13 +167,13 @@ double pidUpdate()
 	double error = prescribedDisplacement-displacement ;
 	derror =  error-preverror ;
 	ierror += (error+preverror)*.5 ;
-	double K_p = 1200000. ;
+	double K_p = 12000000. ;
 	load = K_p*error + K_p*ierror+ K_p*.25*derror;
 	preverror = error ;
-	if( ierror > 0 )
-		ierror = std::max(5e-7, ierror) ;
-	else
-		ierror = std::min(-5e-7, ierror) ;
+// 	if( ierror > 0 )
+// 		ierror = std::max(5e-7, ierror) ;
+// 	else
+// 		ierror = std::min(-5e-7, ierror) ;
 	return error ;
 }
 
@@ -171,21 +189,21 @@ void setBC()
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-			if (triangles[k]->getBoundingPoint(c).x < -0.0199 
-			    && (triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
+			if (triangles[k]->getBoundingPoint(c).x < -0.0399 
+			    && (triangles[k]->getBoundingPoint(c).y < -0.0399 || triangles[k]->getBoundingPoint(c).y > 0.0199))
 			{
 				cornerLeft.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(triangles[k]->getBoundingPoint(c).x > .0199 
+			else if(triangles[k]->getBoundingPoint(c).x > .0399 
 			        && (triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
 			{
 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (triangles[k]->getBoundingPoint(c).x < -0.0199)
+			else if (triangles[k]->getBoundingPoint(c).x < -0.0399)
 			{
 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (triangles[k]->getBoundingPoint(c).x > 0.0199 )
+			else if (triangles[k]->getBoundingPoint(c).x > 0.0399 )
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
@@ -294,6 +312,7 @@ void step()
 		setBC() ;
 		size_t tries = 0 ;
 		bool go_on = true ;
+		
 		while(go_on && tries < ntries)
 		{
 			featureTree->step(timepos) ;
@@ -303,7 +322,7 @@ void step()
 			computeDisplacement() ;
 			load_displacement.push_back(std::make_pair(load, displacement)) ;
 			double error = pidUpdate() ;
-			if(std::abs(error) > 1e-8)
+			if(std::abs(error) > 1e-9)
 			{
 				load_displacement.pop_back() ;
 				go_on = true ;
@@ -320,9 +339,7 @@ void step()
 // 		
 		if (tries < ntries)
 		{
-			ierror = 0 ;
-			derror = 0 ;
-			prescribedDisplacement += 0.0000001 ;
+			prescribedDisplacement += 0.00000000005 ;
 		}
 	
 	
@@ -1679,7 +1696,7 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.04, 0.04,0,0) ;
+	Sample sample(NULL, 0.16, 0.04,0,0) ;
 	
 	Inclusion inclusion(.00001, 0.02, -.02) ;
 	std::cout << sample.getPrimitive()->intersects(inclusion.getPrimitive())<< std::endl ;
@@ -1690,7 +1707,7 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00003;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07/**0.19635*/, 1, BOLOME_D)(.002, .0001, 512, itzSize);
+	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 2048, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
@@ -1779,7 +1796,7 @@ int main(int argc, char *argv[])
 	F.addFeature(&sample,pore) ;
 	Pore * pore0 = new Pore(0.001, 0, 0.02) ;
 	F.addFeature(pore,pore0) ;
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	for(size_t i = 0 ; i < 0 /*inclusions.size()*/; i++)
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
@@ -1803,7 +1820,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(512) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
 

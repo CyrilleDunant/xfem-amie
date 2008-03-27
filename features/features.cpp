@@ -3433,7 +3433,7 @@ const std::vector<Feature *> & Grid3D::coOccur(const Point & p) const
 	
 	double startZ = .5*z + p.z ;
 	int startK = std::max(0.,std::min(floor((startZ/z)*lengthZ), (double)lengthZ-1)) ;
-	std::cout << "plouf" << std::endl ;
+
 	return pixels[startI][startJ][startK]->getFeatures() ;
 }
 
