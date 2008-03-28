@@ -272,14 +272,15 @@ bool Tetrahedron::inCircumSphere(const Point & p) const
 	if(squareDist3D(circumCenter, p) < .99*sqradius)
 		return true ;
 	
-	Point a(p) ; a.x += 2.*POINT_TOLERANCE ; a.y += 2.*POINT_TOLERANCE ; a.z += 2.*POINT_TOLERANCE ;
-	Point b(p) ; b.x += 2.*POINT_TOLERANCE ; b.y += 2.*POINT_TOLERANCE ; b.z -= 2.*POINT_TOLERANCE ;
-	Point c(p) ; c.x += 2.*POINT_TOLERANCE ; c.y -= 2.*POINT_TOLERANCE ; c.z += 2.*POINT_TOLERANCE ;
-	Point d(p) ; d.x += 2.*POINT_TOLERANCE ; d.y -= 2.*POINT_TOLERANCE ; d.z -= 2.*POINT_TOLERANCE ;
-	Point e(p) ; e.x -= 2.*POINT_TOLERANCE ; e.y += 2.*POINT_TOLERANCE ; e.z += 2.*POINT_TOLERANCE ;
-	Point f(p) ; f.x -= 2.*POINT_TOLERANCE ; f.y += 2.*POINT_TOLERANCE ; f.z -= 2.*POINT_TOLERANCE ;
-	Point g(p) ; g.x -= 2.*POINT_TOLERANCE ; g.y -= 2.*POINT_TOLERANCE ; g.z += 2.*POINT_TOLERANCE ;
-	Point h(p) ; h.x -= 2.*POINT_TOLERANCE ; h.y -= 2.*POINT_TOLERANCE ; h.z -= 2.*POINT_TOLERANCE ;
+	double delta = sqrt(POINT_TOLERANCE) ;
+	Point a(p) ; a.x += 2.*delta ; a.y += 2.*delta ; a.z += 2.*delta ;
+	Point b(p) ; b.x += 2.*delta ; b.y += 2.*delta ; b.z -= 2.*delta ;
+	Point c(p) ; c.x += 2.*delta ; c.y -= 2.*delta ; c.z += 2.*delta ;
+	Point d(p) ; d.x += 2.*delta ; d.y -= 2.*delta ; d.z -= 2.*delta ;
+	Point e(p) ; e.x -= 2.*delta ; e.y += 2.*delta ; e.z += 2.*delta ;
+	Point f(p) ; f.x -= 2.*delta ; f.y += 2.*delta ; f.z -= 2.*delta ;
+	Point g(p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; g.z += 2.*delta ;
+	Point h(p) ; h.x -= 2.*delta ; h.y -= 2.*delta ; h.z -= 2.*delta ;
 	return  squareDist3D(circumCenter, a) < sqradius 
 		&&  squareDist3D(circumCenter, b) < sqradius
 		&&  squareDist3D(circumCenter, c) < sqradius
@@ -307,14 +308,15 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	if(squareDist3D(&circumCenter, p) < .99*sqradius)
 		return true ;
 	
-	Point a(*p) ; a.x += 2.*POINT_TOLERANCE ; a.y += 2.*POINT_TOLERANCE ; a.z += 2.*POINT_TOLERANCE ;
-	Point b(*p) ; b.x += 2.*POINT_TOLERANCE ; b.y += 2.*POINT_TOLERANCE ; b.z -= 2.*POINT_TOLERANCE ;
-	Point c(*p) ; c.x += 2.*POINT_TOLERANCE ; c.y -= 2.*POINT_TOLERANCE ; c.z += 2.*POINT_TOLERANCE ;
-	Point d(*p) ; d.x += 2.*POINT_TOLERANCE ; d.y -= 2.*POINT_TOLERANCE ; d.z -= 2.*POINT_TOLERANCE ;
-	Point e(*p) ; e.x -= 2.*POINT_TOLERANCE ; e.y += 2.*POINT_TOLERANCE ; e.z += 2.*POINT_TOLERANCE ;
-	Point f(*p) ; f.x -= 2.*POINT_TOLERANCE ; f.y += 2.*POINT_TOLERANCE ; f.z -= 2.*POINT_TOLERANCE ;
-	Point g(*p) ; g.x -= 2.*POINT_TOLERANCE ; g.y -= 2.*POINT_TOLERANCE ; g.z += 2.*POINT_TOLERANCE ;
-	Point h(*p) ; h.x -= 2.*POINT_TOLERANCE ; h.y -= 2.*POINT_TOLERANCE ; h.z -= 2.*POINT_TOLERANCE ;
+	double delta = sqrt(POINT_TOLERANCE) ;
+	Point a(*p) ; a.x += 2.*delta ; a.y += 2.*delta ; a.z += 2.*delta ;
+	Point b(*p) ; b.x += 2.*delta ; b.y += 2.*delta ; b.z -= 2.*delta ;
+	Point c(*p) ; c.x += 2.*delta ; c.y -= 2.*delta ; c.z += 2.*delta ;
+	Point d(*p) ; d.x += 2.*delta ; d.y -= 2.*delta ; d.z -= 2.*delta ;
+	Point e(*p) ; e.x -= 2.*delta ; e.y += 2.*delta ; e.z += 2.*delta ;
+	Point f(*p) ; f.x -= 2.*delta ; f.y += 2.*delta ; f.z -= 2.*delta ;
+	Point g(*p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; g.z += 2.*delta ;
+	Point h(*p) ; h.x -= 2.*delta ; h.y -= 2.*delta ; h.z -= 2.*delta ;
 	return  squareDist3D(circumCenter, a) < sqradius 
 		&&  squareDist3D(circumCenter, b) < sqradius
 		&&  squareDist3D(circumCenter, c) < sqradius
@@ -929,10 +931,10 @@ void Sphere::sampleBoundingSurface(size_t num_points)
 void Sphere::sampleSurface(size_t num_points) 
 {
 	if(this->boundingPoints.size() == 0)
-		sampleBoundingSurface(std::max((size_t)(num_points), (size_t)40)) ;
+		sampleBoundingSurface(std::max((size_t)(num_points)*4, (size_t)40)) ;
 	
 	std::vector<Point> points ;
-	size_t numPointsOnSurface = std::max(num_points, (size_t)40) ;
+	size_t numPointsOnSurface = std::max(num_points*4, (size_t)40) ;
 	size_t numberOfRadii = static_cast<size_t>(round(sqrt(numPointsOnSurface)/2)) ;
 	
 // 	 ; //this->boundingPoints.size() ;

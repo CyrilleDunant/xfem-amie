@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00003;
 
-	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,12800, itzSize);
+	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,4092, itzSize);
 
 	std::cout << "largest r = " << features.back()->getRadius() << ", smallest r =" << features.front()->getRadius() << std::endl ; 
 	std::vector<Feature *> feats ;
@@ -527,8 +527,9 @@ int main(int argc, char *argv[])
 	}
 
 	s3d.setBehaviour(&sc3s) ;
+// 	s3d.setBehaviour(new VoidForm()) ;
 	
-	ft.sample(512) ;
+	ft.sample(512*4) ;
 
 	ft.setOrder(LINEAR) ;
 

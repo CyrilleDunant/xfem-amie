@@ -94,7 +94,7 @@ double timepos = 0.1e-07 ;
 double percent = 0.1 ;
 double load = 0 ;
 double displacement  = 0 ;
-double prescribedDisplacement = 0;
+double prescribedDisplacement = 5.9e-8;
 double derror = 0 ;
 double ierror = 0 ;
 double preverror = 0 ;
@@ -155,7 +155,7 @@ void computeDisplacement()
 	displacement = 0 ;
 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
 	{
-		displacement+=x[(*i)*2.]/(e-indices.begin()) ;
+		displacement+=x[(*i)*2.+1]/(e-indices.begin()) ;
 	}
 // 	Vector x_2  = x*x ;
 // 	std::sort(&x_2[0], &x_2[x_2.size()]) ;
@@ -167,7 +167,7 @@ double pidUpdate()
 	double error = prescribedDisplacement-displacement ;
 	derror =  error-preverror ;
 	ierror += (error+preverror)*.5 ;
-	double K_p = 12000000. ;
+	double K_p = 1200000000. ;
 	load = K_p*error + K_p*ierror+ K_p*.25*derror;
 	preverror = error ;
 // 	if( ierror > 0 )
@@ -185,34 +185,64 @@ void setBC()
 	std::vector<size_t > yhl ;
 	std::vector<size_t > cornerLeft ;
 	std::vector<size_t > cornerRight ;
+// 	for(size_t k = 0 ; k < triangles.size() ;k++)
+// 	{
+// 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
+// 		{
+// 			if (triangles[k]->getBoundingPoint(c).x < -0.0799 
+// 			    && (triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
+// 			{
+// 				cornerLeft.push_back(triangles[k]->getBoundingPoint(c).id);
+// 			}
+// 			else if(triangles[k]->getBoundingPoint(c).x > .0799 
+// 			        && (triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
+// 			{
+// 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
+// 			}
+// 			else if (triangles[k]->getBoundingPoint(c).x < -0.0799)
+// 			{
+// 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
+// 			}
+// 			else if (triangles[k]->getBoundingPoint(c).x > 0.0799 )
+// 			{
+// 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
+// 			}
+// 			else if(triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199)
+// 			{
+// 				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
+// 			}
+// 		}
+// 	}
+	
 	for(size_t k = 0 ; k < triangles.size() ;k++)
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-			if (triangles[k]->getBoundingPoint(c).x < -0.0399 
-			    && (triangles[k]->getBoundingPoint(c).y < -0.0399 || triangles[k]->getBoundingPoint(c).y > 0.0199))
+/*			if (triangles[k]->getBoundingPoint(c).x < -0.0799 
+			    && (triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
 			{
 				cornerLeft.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(triangles[k]->getBoundingPoint(c).x > .0399 
+			else if(triangles[k]->getBoundingPoint(c).x > .0799 
 			        && (triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
 			{
 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
-			}
-			else if (triangles[k]->getBoundingPoint(c).x < -0.0399)
+ 			}*/
+			/*else */if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.008 
+			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (triangles[k]->getBoundingPoint(c).x > 0.0399 )
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.008 
+			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199)
+			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.008 && triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
 				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
 		}
-
 	}
 	
 	std::sort(xlow.begin(), xlow.end()) ;
@@ -233,35 +263,37 @@ void setBC()
 
 	for(size_t i = 0 ; i < xlow.size() ; i++)
 	{
-		if(i%1000 == 0)
-			std::cout << "\r setting BC tri " << i << "/" << xlow.size() << std::flush ;
+// 		if(i%1000 == 0)
+		std::cout << "\r setting BC point " << i+1 << "/" << xlow.size() << std::flush ;
 // 		featureTree->getAssembly()->setPointAlong(XI,-timepos,xlow[i]) ;
-		featureTree->getAssembly()->setPointAlong(XI,0,xlow[i]) ;
+		featureTree->getAssembly()->setPoint(0,0,xlow[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < xhigh.size() ; i++)
 	{
-		if(i%1000 == 0)
-			std::cout << "\r setting BC tri " << i << "/" << xhigh.size() << std::flush ;
-		featureTree->getAssembly()->setForceOn(XI,load ,xhigh[i]) ;
+// 		if(i%1000 == 0)
+			std::cout << "\r setting BC point " << i+1 << "/" << xhigh.size() << std::flush ;
+		featureTree->getAssembly()->setPoint(0,0,xhigh[i]) ;
+		
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < yhl.size() ; i++)
 	{
-		if(i%1000 == 0)
-			std::cout << "\r setting BC tri " << i << "/" << yhl.size() << std::flush ;
-		featureTree->getAssembly()->setPointAlong( ETA,0,yhl[i]) ;
+// 		if(i%1000 == 0)
+		std::cout << "\r setting BC point " << i+1 << "/" << yhl.size() << std::flush ;
+		featureTree->getAssembly()->setForceOn(ETA,load/yhl.size() ,yhl[i]) ;
+// 		featureTree->getAssembly()->setPointAlong( ETA,0,yhl[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	
-	for(size_t i = 0 ; i < cornerLeft.size() ; i++)
-	{
-		if(i%1000 == 0)
-			std::cout << "\r setting BC tri " << i << "/" << cornerLeft.size() << std::flush ;
-// 		featureTree->getAssembly()->setPoint( -timepos,0,cornerLeft[i]) ;
-		featureTree->getAssembly()->setPoint( 0,0,cornerLeft[i]) ;
-	}
-	std::cout << "...done" << std::endl ;
+// 	for(size_t i = 0 ; i < cornerLeft.size() ; i++)
+// 	{
+// 		if(i%1000 == 0)
+// 			std::cout << "\r setting BC tri " << i << "/" << cornerLeft.size() << std::flush ;
+// // 		featureTree->getAssembly()->setPoint( -timepos,0,cornerLeft[i]) ;
+// 		featureTree->getAssembly()->setPoint( 0,0,cornerLeft[i]) ;
+// 	}
+// 	std::cout << "...done" << std::endl ;
 	
 // 	for(size_t i = 0 ; i < cornerRight.size() ; i++)
 // 	{
@@ -327,6 +359,11 @@ void step()
 				load_displacement.pop_back() ;
 				go_on = true ;
 			}
+			if(std::abs(error) > 1)
+			{
+				tries = ntries ;
+				break ;
+			}
 
 			std::cout << error << ", "<< load << ", "<< displacement << std::endl ;
 			setBC() ;
@@ -339,7 +376,7 @@ void step()
 // 		
 		if (tries < ntries)
 		{
-			prescribedDisplacement += 0.00000000005 ;
+			prescribedDisplacement += 0.000000002 ;
 		}
 	
 	
@@ -1792,10 +1829,10 @@ int main(int argc, char *argv[])
 // // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
 // 		placed_area += inclusions[i]->area() ;
 // 	}	
-	Pore * pore = new Pore(0.001, 0, -0.02) ;
-	F.addFeature(&sample,pore) ;
-	Pore * pore0 = new Pore(0.001, 0, 0.02) ;
-	F.addFeature(pore,pore0) ;
+// 	Pore * pore = new Pore(0.001, 0, -0.02) ;
+// 	F.addFeature(&sample,pore) ;
+// 	Pore * pore0 = new Pore(0.001, 0, 0.02) ;
+// 	F.addFeature(pore,pore0) ;
 	for(size_t i = 0 ; i < 0 /*inclusions.size()*/; i++)
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
@@ -1807,7 +1844,7 @@ int main(int argc, char *argv[])
 		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(20000, -8*20000)) ;
 		itz->setBehaviour(behaviour) ;
 // 	
-		F.addFeature(pore0,itz) ;
+		F.addFeature(&sample,itz) ;
 		F.addFeature(itz,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1820,7 +1857,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(64) ;
 
 	F.setOrder(LINEAR) ;
 

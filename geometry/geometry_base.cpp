@@ -2897,15 +2897,15 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	double c0 = signedCoplanarity(test, f0, f1, f2) ;
 	if(std::abs(c0) > .01*std::max(A.sqNorm(), std::max(B.sqNorm(), C.sqNorm())))
 		return false ;
-
-	Point a(*test) ; a.x += POINT_TOLERANCE ; a.y += POINT_TOLERANCE ; a.z += POINT_TOLERANCE ;
-	Point b(*test) ; b.x += POINT_TOLERANCE ; b.y += POINT_TOLERANCE ; b.z -= POINT_TOLERANCE ;
-	Point c(*test) ; c.x += POINT_TOLERANCE ; c.y -= POINT_TOLERANCE ; c.z += POINT_TOLERANCE ;
-	Point d(*test) ; d.x += POINT_TOLERANCE ; d.y -= POINT_TOLERANCE ; d.z -= POINT_TOLERANCE ;
-	Point e(*test) ; e.x -= POINT_TOLERANCE ; e.y += POINT_TOLERANCE ; e.z += POINT_TOLERANCE ;
-	Point f(*test) ; f.x -= POINT_TOLERANCE ; f.y += POINT_TOLERANCE ; f.z -= POINT_TOLERANCE ;
-	Point g(*test) ; g.x -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
-	Point h(*test) ; h.x -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
+	double delta = sqrt(POINT_TOLERANCE) ;
+	Point a(*test) ; a.x += delta ; a.y += delta ; a.z += delta ;
+	Point b(*test) ; b.x += delta ; b.y += delta; b.z -= delta ;
+	Point c(*test) ; c.x += delta ; c.y -= delta; c.z += delta ;
+	Point d(*test) ; d.x += delta ; d.y -= delta; d.z -= delta ;
+	Point e(*test) ; e.x -= delta ; e.y += delta; e.z += delta ;
+	Point f(*test) ; f.x -= delta ; f.y += delta; f.z -= delta ;
+	Point g(*test) ; g.x -= delta ; g.y -= delta; g.z += delta ;
+	Point h(*test) ; h.x -= delta ; h.y -= delta; h.z -= delta ;
 	
 	double c1 = signedCoplanarity(&a, f0, f1, f2) ;
 	double c2 = signedCoplanarity(&b, f0, f1, f2) ;
@@ -2931,14 +2931,15 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	if(std::abs(c0) > .01*std::max(A.sqNorm(), std::max(B.sqNorm(), C.sqNorm())))
 		return false ;
 	
-	Point a(test) ; a.x += POINT_TOLERANCE ; a.y += POINT_TOLERANCE ; a.z += POINT_TOLERANCE ;
-	Point b(test) ; b.x += POINT_TOLERANCE ; b.y += POINT_TOLERANCE ; b.z -= POINT_TOLERANCE ;
-	Point c(test) ; c.x += POINT_TOLERANCE ; c.y -= POINT_TOLERANCE ; c.z += POINT_TOLERANCE ;
-	Point d(test) ; d.x += POINT_TOLERANCE ; d.y -= POINT_TOLERANCE ; d.z -= POINT_TOLERANCE ;
-	Point e(test) ; e.x -= POINT_TOLERANCE ; e.y += POINT_TOLERANCE ; e.z += POINT_TOLERANCE ;
-	Point f(test) ; f.x -= POINT_TOLERANCE ; f.y += POINT_TOLERANCE ; f.z -= POINT_TOLERANCE ;
-	Point g(test) ; g.x -= POINT_TOLERANCE ; g.y -= POINT_TOLERANCE ; g.z += POINT_TOLERANCE ;
-	Point h(test) ; h.x -= POINT_TOLERANCE ; h.y -= POINT_TOLERANCE ; h.z -= POINT_TOLERANCE ;
+	double delta = sqrt(POINT_TOLERANCE) ;
+	Point a(test) ; a.x += delta ; a.y += delta ; a.z += delta ;
+	Point b(test) ; b.x += delta ; b.y += delta; b.z -= delta ;
+	Point c(test) ; c.x += delta ; c.y -= delta; c.z += delta ;
+	Point d(test) ; d.x += delta ; d.y -= delta; d.z -= delta ;
+	Point e(test) ; e.x -= delta ; e.y += delta; e.z += delta ;
+	Point f(test) ; f.x -= delta ; f.y += delta; f.z -= delta ;
+	Point g(test) ; g.x -= delta ; g.y -= delta; g.z += delta ;
+	Point h(test) ; h.x -= delta ; h.y -= delta; h.z -= delta ;
 	
 	double c1 = signedCoplanarity(a, f0, f1, f2) ;
 	double c2 = signedCoplanarity(b, f0, f1, f2) ;

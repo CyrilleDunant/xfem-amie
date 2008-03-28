@@ -1541,20 +1541,78 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 
 }
 
+// Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
+// {
+// 		
+// 	if(!inRoot(t->getCenter())) 
+// 		return NULL;
+// 		
+// 	for(int i = tree.size()-1 ; i >= 0 ; i--)
+// 	{
+// 		if (tree[i]->in(t->getCenter()) && (inRoot(t->getCenter())))
+// 		{
+// 			bool inChild = false ;
+// 			
+// 			std::vector<Feature *> tocheck = tree[i]->getDescendants();
+// 			std::vector<Feature *> tocheckNew =  tocheck;
+// 			
+// 			for(size_t j = 0 ; j < tocheck.size() ; j++)
+// 			{	
+// 				if(tocheck[j]->in(t->getCenter()) )
+// 				{
+// 					inChild = true ;
+// 					break ;
+// 				}
+// 			}
+// 				
+// 			
+// 			if(!inChild)
+// 			{
+// 				
+// 				size_t count_in = 0 ;
+// 				
+// 				count_in += tree[i]->inBoundary(t->first) ;
+// 				count_in += tree[i]->inBoundary(t->second) ;
+// 				count_in += tree[i]->inBoundary(t->third) ;
+// 				count_in += tree[i]->inBoundary(t->fourth) ;
+// 				
+// 				if(count_in == 4 && tree[i]->in(t->getCenter()))
+// 				{
+// 					return NULL;
+// 				}
+// 				
+// 				else 
+// 				{
+// 					Point *p = new Point(*t->getCircumCenter()) ;
+// 					tree[i]->project(p);
+// 					return p;
+// 				}
+// 					
+// 			}
+// 		}
+// 	}
+// 	return NULL;
+// }
+
+
 Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 {
-		
+	
 	if(!inRoot(t->getCenter())) 
 		return NULL;
-		
+	
 	for(int i = tree.size()-1 ; i >= 0 ; i--)
 	{
-		if (tree[i]->in(t->getCenter()) && (inRoot(t->getCenter())))
+		int inCount = tree[i]->in(*t->first) 
+					+ tree[i]->in(*t->second) 
+					+ tree[i]->in(*t->third) 
+					+ tree[i]->in(*t->fourth) 
+					+ tree[i]->in(t->getCenter());
+		if (inCount > 2 && inRoot(t->getCenter()))
 		{
 			bool inChild = false ;
 			
 			std::vector<Feature *> tocheck = tree[i]->getDescendants();
-			std::vector<Feature *> tocheckNew =  tocheck;
 			
 			for(size_t j = 0 ; j < tocheck.size() ; j++)
 			{	
@@ -1564,7 +1622,7 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 					break ;
 				}
 			}
-				
+			
 			
 			if(!inChild)
 			{
@@ -1583,16 +1641,32 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 				
 				else 
 				{
-					Point *p = new Point(*t->getCircumCenter()) ;
-					tree[i]->project(p);
-					return p;
+					Point p1(t->getCenter()) ;
+					Point p0(*t->getCircumCenter()) ;
+					tree[i]->project(&p1);
+					tree[i]->project(&p0);
+					double d0 = std::min(dist(&p0, t->first), std::min(dist(&p0, t->second),dist(&p0, t->third))) ;
+					double d1 = std::min(dist(&p1, t->first), std::min(dist(&p1, t->second),dist(&p1, t->third))) ;
+					if(t->inCircumSphere(p0) 
+					   && d0 > 1e-8 
+					   && d0>d1
+					  ) 
+						return new Point(p0);
+					else if(t->inCircumSphere(p1) 
+					        && d1 > 1e-8 
+					        && d1>d0
+					       ) 
+						return new Point(p1);
+					else
+						return NULL ;
 				}
-					
+				
 			}
 		}
 	}
 	return NULL;
 }
+
 
 
 Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
