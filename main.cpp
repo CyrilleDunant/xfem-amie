@@ -1782,10 +1782,10 @@ int main(int argc, char *argv[])
 	F.addFeature(&sample,pore) ;
 	Inclusion * pore0 = new Inclusion(0.001, -0.0535, -0.02) ;
 	pore0->setBehaviour(new Stiffness(m0_paste)) ;
-	F.addFeature(&sample,pore0) ;
+	F.addFeature(&pore,pore0) ;
 	Inclusion * pore1 = new Inclusion(0.001, 0, 0.02) ;
 	pore1->setBehaviour(new Stiffness(m0_paste)) ;
-	F.addFeature(&sample,pore1) ;
+	F.addFeature(&pore0,pore1) ;
 	for(size_t i = 0 ; i < inclusions.size(); i++)
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
@@ -1797,7 +1797,7 @@ int main(int argc, char *argv[])
 		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(20000, -8*20000)) ;
 		itz->setBehaviour(behaviour) ;
 // 	
-		F.addFeature(&sample,itz) ;
+		F.addFeature(&pore1,itz) ;
 		F.addFeature(itz,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
