@@ -75,7 +75,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 		if(damage > .5)
 		{
 			frac = true ;
-			damage = .999 ;
+			damage = .9999 ;
 // 			param[0][1] = 0 ;param[0][1] = 0 ;
 // 			param[2][2] *= 0.0001 ;
 // 			this->type = VOID_BEHAVIOUR ;

@@ -670,7 +670,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				ret.push_back(intersection[i]) ;
 				
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;
@@ -688,7 +688,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			{
 				ret.push_back(intersection[i]) ;
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;
@@ -702,7 +702,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			{
 				ret.push_back(intersection[i]) ;
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;
@@ -716,7 +716,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			{
 				ret.push_back(intersection[i]) ;
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;

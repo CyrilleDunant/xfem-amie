@@ -27,7 +27,7 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 // 	if(maxit > 0)
 // 		Maxit = maxit ;
 // 	else
-		Maxit = b.size()/4 ;
+		Maxit = b.size()/2 ;
 	
 	bool cleanup = false ;
 	
@@ -105,7 +105,12 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	err = std::abs(r).max() ;
 	
 	if(verbose)
-		std::cerr << "\n converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+	{
+		if(nit < Maxit)
+			std::cerr << "\n converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+		else
+			std::cerr << "\n did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+	}
 	
 	if(cleanup)
 	{

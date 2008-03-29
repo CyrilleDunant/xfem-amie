@@ -94,7 +94,7 @@ double timepos = 0.1e-07 ;
 double percent = 0.1 ;
 double load = 0 ;
 double displacement  = 0 ;
-double prescribedDisplacement = 5.9e-8;
+double prescribedDisplacement = -2.08e-7;
 double derror = 0 ;
 double ierror = 0 ;
 double preverror = 0 ;
@@ -164,12 +164,20 @@ void computeDisplacement()
 
 double pidUpdate()
 {
+	double apriori_command = 0 ;
+	if(!load_displacement.empty() && !(std::abs(load_displacement.back().second < 1e-12)))
+		apriori_command = load_displacement.back().first/load_displacement.back().second*prescribedDisplacement ;
 	double error = prescribedDisplacement-displacement ;
 	derror =  error-preverror ;
 	ierror += (error+preverror)*.5 ;
-	double K_p = 1200000000. ;
-	load = K_p*error + K_p*ierror+ K_p*.25*derror;
+	double K_p = 1000000000. ;
+	load = apriori_command + K_p*error + K_p*ierror*.8+ K_p*.25*derror;
 	preverror = error ;
+	if(std::abs(load) > 1000)
+	{
+		ierror = 0;
+		load = 1000 * std::abs(load)/load ;
+	}
 // 	if( ierror > 0 )
 // 		ierror = std::max(5e-7, ierror) ;
 // 	else
@@ -228,17 +236,17 @@ void setBC()
 			{
 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
  			}*/
-			/*else */if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.008 
+			/*else */if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.0005 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.008 
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.0005 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.008 && triangles[k]->getBoundingPoint(c).y > 0.0199)
+			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.0005 && triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
 				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
@@ -266,14 +274,14 @@ void setBC()
 // 		if(i%1000 == 0)
 		std::cout << "\r setting BC point " << i+1 << "/" << xlow.size() << std::flush ;
 // 		featureTree->getAssembly()->setPointAlong(XI,-timepos,xlow[i]) ;
-		featureTree->getAssembly()->setPoint(0,0,xlow[i]) ;
+		featureTree->getAssembly()->setPointAlong(ETA,0,xlow[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < xhigh.size() ; i++)
 	{
 // 		if(i%1000 == 0)
 			std::cout << "\r setting BC point " << i+1 << "/" << xhigh.size() << std::flush ;
-		featureTree->getAssembly()->setPoint(0,0,xhigh[i]) ;
+		featureTree->getAssembly()->setPointAlong(ETA,0,xhigh[i]) ;
 		
 	}
 	std::cout << "...done" << std::endl ;
@@ -281,6 +289,7 @@ void setBC()
 	{
 // 		if(i%1000 == 0)
 		std::cout << "\r setting BC point " << i+1 << "/" << yhl.size() << std::flush ;
+		featureTree->getAssembly()->setPointAlong( XI,0,yhl[i]) ;
 		featureTree->getAssembly()->setForceOn(ETA,load/yhl.size() ,yhl[i]) ;
 // 		featureTree->getAssembly()->setPointAlong( ETA,0,yhl[i]) ;
 	}
@@ -347,14 +356,21 @@ void step()
 		
 		while(go_on && tries < ntries)
 		{
+			tries++ ;
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 // 			std::cout << "." << std::flush ;
-
+			if(!featureTree->solverConverged())
+			{
+				i = nit ;
+				tries = ntries ;
+				break ;
+			}
 			computeDisplacement() ;
 			load_displacement.push_back(std::make_pair(load, displacement)) ;
+
 			double error = pidUpdate() ;
-			if(std::abs(error) > 1e-9)
+			if(std::abs(load_displacement.back().second - prescribedDisplacement) > 1e-9)
 			{
 				load_displacement.pop_back() ;
 				go_on = true ;
@@ -368,7 +384,7 @@ void step()
 			std::cout << error << ", "<< load << ", "<< displacement << std::endl ;
 			setBC() ;
 			
-			tries++ ;
+			
 		}
 		std::cout << " " << tries << " tries." << std::endl ;
 		
@@ -376,7 +392,7 @@ void step()
 // 		
 		if (tries < ntries)
 		{
-			prescribedDisplacement += 0.000000002 ;
+			prescribedDisplacement -= 0.00000002 ;
 		}
 	
 	
@@ -1742,9 +1758,9 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	double itzSize = 0.00003;
+	double itzSize = 0.0003;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 2048, itzSize);
+	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 32, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
@@ -1760,80 +1776,17 @@ int main(int argc, char *argv[])
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	Inclusion * itz = new Inclusion(.005, 0, 0) ;
-// 	itz->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	F.addFeature(&sample,itz) ;
-// 	std::vector<double> rad ;
-// 	rad.push_back(0.001) ;
-// 	rad.push_back(0.002) ;
-// 	rad.push_back(0.003) ;
-// 	rad.push_back(0.004) ;
-// 	rad.push_back(0.005) ;
-// 	rad.push_back(0.006) ;
-// 	rad.push_back(0.007) ;
-// 	rad.push_back(0.008) ;
-// 	rad.push_back(0.009) ;
-// 	rad.push_back(0.01) ;
-// 	LayeredInclusion * li = new LayeredInclusion(rad, Point(-0.005,0)) ;
-// 	std::vector<Form *> bev ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	li->setBehaviours(bev) ;
-// 	bev.clear() ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	F.addFeature(&sample, li) ;
-// 	LayeredInclusion * lii = new LayeredInclusion(rad, Point(0.00504,0.00005)) ;
-// 	lii->setBehaviours(bev) ;
-// 	F.twineFeature(li, lii) ;
-// 	bev.clear() ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	bev.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 	LayeredInclusion * liii = new LayeredInclusion(rad, Point(0.00504,0.00505)) ;
-// 	liii->setBehaviours(bev) ;
-// 	F.twineFeature(lii, liii) ;
-// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste,new MohrCoulomb(40000, -8*40000))) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-// 	for(size_t i = 0 ; i < inclusions.size() ; i++)
-// 	{
-// 		
-// 		Vector a(3) ;
-// 		a[0] = .02 ;
-// 		a[1] = .02 ;
-// // 		inclusions[i]->setBehaviour(new StiffnessWithImposedDeformation(m0_agg, a)) ;
-// 		F.addFeature(&sample,inclusions[i]) ;
-// // 		F.addFeature(&sample, new ExpansiveZone(&sample, inclusions[i]->getRadius(), inclusions[i]->getCenter().x, inclusions[i]->getCenter().y, m0_agg,a)) ;
-// 		placed_area += inclusions[i]->area() ;
-// 	}	
-// 	Pore * pore = new Pore(0.001, 0, -0.02) ;
-// 	F.addFeature(&sample,pore) ;
-// 	Pore * pore0 = new Pore(0.001, 0, 0.02) ;
-// 	F.addFeature(pore,pore0) ;
-	for(size_t i = 0 ; i < 0 /*inclusions.size()*/; i++)
+
+	Inclusion * pore = new Inclusion(0.001, 0.0535, -0.02) ;
+	pore->setBehaviour(new Stiffness(m0_paste)) ;
+	F.addFeature(&sample,pore) ;
+	Inclusion * pore0 = new Inclusion(0.001, -0.0535, -0.02) ;
+	pore0->setBehaviour(new Stiffness(m0_paste)) ;
+	F.addFeature(&sample,pore0) ;
+	Inclusion * pore1 = new Inclusion(0.001, 0, 0.02) ;
+	pore1->setBehaviour(new Stiffness(m0_paste)) ;
+	F.addFeature(&sample,pore1) ;
+	for(size_t i = 0 ; i < inclusions.size(); i++)
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
