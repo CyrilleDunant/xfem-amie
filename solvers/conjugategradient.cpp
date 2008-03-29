@@ -27,7 +27,7 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 // 	if(maxit > 0)
 // 		Maxit = maxit ;
 // 	else
-		Maxit = b.size()/2 ;
+		Maxit = b.size()*.75 ;
 	
 	bool cleanup = false ;
 	

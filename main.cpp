@@ -1760,7 +1760,7 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.0003;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 32, itzSize);
+	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 128, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
