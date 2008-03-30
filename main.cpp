@@ -271,45 +271,23 @@ void setBC()
 
 	for(size_t i = 0 ; i < xlow.size() ; i++)
 	{
-// 		if(i%1000 == 0)
 		std::cout << "\r setting BC point " << i+1 << "/" << xlow.size() << std::flush ;
-// 		featureTree->getAssembly()->setPointAlong(XI,-timepos,xlow[i]) ;
 		featureTree->getAssembly()->setPoint(0,0,xlow[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < xhigh.size() ; i++)
 	{
-// 		if(i%1000 == 0)
-			std::cout << "\r setting BC point " << i+1 << "/" << xhigh.size() << std::flush ;
+		std::cout << "\r setting BC point " << i+1 << "/" << xhigh.size() << std::flush ;
 		featureTree->getAssembly()->setPoint(0,0,xhigh[i]) ;
 		
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < yhl.size() ; i++)
 	{
-// 		if(i%1000 == 0)
 		std::cout << "\r setting BC point " << i+1 << "/" << yhl.size() << std::flush ;
-// 		featureTree->getAssembly()->setPointAlong( XI,0,yhl[i]) ;
 		featureTree->getAssembly()->setForceOn(ETA,load/yhl.size() ,yhl[i]) ;
-// 		featureTree->getAssembly()->setPointAlong( ETA,0,yhl[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
-	
-// 	for(size_t i = 0 ; i < cornerLeft.size() ; i++)
-// 	{
-// 		if(i%1000 == 0)
-// 			std::cout << "\r setting BC tri " << i << "/" << cornerLeft.size() << std::flush ;
-// // 		featureTree->getAssembly()->setPoint( -timepos,0,cornerLeft[i]) ;
-// 		featureTree->getAssembly()->setPoint( 0,0,cornerLeft[i]) ;
-// 	}
-// 	std::cout << "...done" << std::endl ;
-	
-// 	for(size_t i = 0 ; i < cornerRight.size() ; i++)
-//  	{
-// 		std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
-//  		featureTree->getAssembly()->setPoint( 0,0,cornerRight[i]) ;
-//  	}
-//  	std::cout << "...done" << std::endl ;
 
 }
 
@@ -344,8 +322,8 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 20 ;
-	size_t ntries = 20;
+	size_t nit = 1 ;
+	size_t ntries = 1;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;

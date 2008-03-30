@@ -373,6 +373,7 @@ void Assembly::setBoundaryConditions()
 				|| multipliers[i].type == SET_FORCE_ETA
 				|| multipliers[i].type == SET_FORCE_ZETA)
 		{
+			std::cout << "setting force on " << multipliers[i].getId() << std::endl ;
 			this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ; 
 		}
 	}
@@ -401,19 +402,19 @@ void Assembly::setBoundaryConditions()
 
 		int start_m = start_multiplier-multipliers.begin() ;
 		
-		for(int m = start_m ;  m < (int)multipliers.size() ; m++)
+		for(int m = 0/*start_m*/ ;  m < (int)multipliers.size() ; m++)
 		{
 			int id = multipliers[m].getId() ;
-			
 			if(multipliers[m].type != SET_FORCE_XI 
 				&&  multipliers[m].type != SET_FORCE_ETA 
 				&&  multipliers[m].type != SET_FORCE_ZETA 
 				&&  multipliers[m].type != GENERAL)
 			{
+// 				std::cout << "displacement of " << id << std::endl ;
+				
 				if(id == (int)k )
 				{
 					this->externalForces[id] = multipliers[m].getValue() ;
-					
 	
 					for(size_t l = 0 ; l < coordinateIndexedMatrix->row_size[k] ; l++)
 					{
