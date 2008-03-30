@@ -236,17 +236,17 @@ void setBC()
 			{
 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
  			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.001 
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.0005 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.001 
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.0005 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.001 && triangles[k]->getBoundingPoint(c).y > 0.0199)
+			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.0005 && triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
 				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
@@ -344,8 +344,8 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 1 ;
-	size_t ntries = 1;
+	size_t nit = 20 ;
+	size_t ntries = 20;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
