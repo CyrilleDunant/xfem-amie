@@ -27,7 +27,9 @@ bool VonMises::met(const ElementState & s) const
 	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	if(tested)
 	{
-		std::vector<DelaunayTriangle *> neighbourhood = tested->neighbourhood ;
+		std::vector<DelaunayTriangle *> neighbourhood ;
+		for(size_t i = 0 ; i< tested->neighbourhood.size() ; i++)
+			neighbourhood.push_back(tested->getNeighbourhood(i)) ;
 		
 		double maxNeighbourhoodStress = 0 ;
 		if(!neighbourhood.empty())

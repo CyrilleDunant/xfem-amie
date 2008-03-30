@@ -51,9 +51,9 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 
 		for(size_t j = 0 ; j < temp[i]->neighbourhood.size() ; j++)
 		{
-			if(!temp[i]->neighbourhood[j]->visited )
+			if(!temp[i]->getNeighbourhood(j)->visited )
 			{
-				toCheck.push_back(temp[i]->neighbourhood[j]) ;
+				toCheck.push_back(temp[i]->getNeighbourhood(j)) ;
 			}
 		}
 	}
@@ -82,9 +82,9 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 			
 			for(size_t j = 0 ; j< (*i)->neighbourhood.size() ; j++)
 			{
-				if(!(*i)->neighbourhood[j]->visited )
+				if(!(*i)->getNeighbourhood(j)->visited )
 				{
-					newSet.push_back((*i)->neighbourhood[j]) ;
+					newSet.push_back((*i)->getNeighbourhood(j)) ;
 				}
 			}
 		}
@@ -287,7 +287,7 @@ void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
 			ring[i]->setEnrichment(f) ;
 			for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 			{
-				DelaunayTriangle * t = ring[i]->neighbourhood[j] ;
+				DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 				if(!enrichmentTarget(t))
 				{
 					Function hat = 1- f_abs(Function(getCenter(), 

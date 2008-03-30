@@ -32,8 +32,11 @@ bool RuptureEnergy::met(const ElementState & s) const
 	{
 		Circle epsilon(.01, s.getParent()->getCenter()) ;
 		std::set<DelaunayTriangle *> neighbourhood ;
-		std::vector<DelaunayTriangle *> neighbours = testedTri->neighbourhood ;
+		std::vector<DelaunayTriangle *> neighbours ;
+		for(size_t i = 0 ; i< testedTri->neighbourhood.size() ; i++)
+			neighbours.push_back(testedTri->getNeighbourhood(i)) ;
 		std::vector<DelaunayTriangle *> cleanup ;
+
 		while(!neighbours.empty())
 		{
 			std::vector<DelaunayTriangle *> totest ;
@@ -52,8 +55,8 @@ bool RuptureEnergy::met(const ElementState & s) const
 					
 					if(!neighbours[i]->getBehaviour()->fractured() && !(neighbours[i]->getBehaviour()->type == VOID_BEHAVIOUR))
 						neighbourhood.insert(neighbours[i]) ;
-					
-					totest.insert(totest.end(), neighbours[i]->neighbourhood.begin(), neighbours[i]->neighbourhood.end()) ;
+					for(size_t j = 0 ; j < neighbours[i]->neighbourhood.size() ; j++)
+						totest.push_back(neighbours[i]->getNeighbourhood(j)) ;
 				}
 			}
 			

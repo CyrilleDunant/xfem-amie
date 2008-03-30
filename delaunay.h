@@ -28,6 +28,7 @@ class Star ;
 class SamplingCriterion ;
 class DelaunayTriangle ;
 class TriElement ;
+class DelaunayTree ;
 
 /*! Base class of the delaunay tree. 
 
@@ -43,7 +44,9 @@ protected:
 	const Point * m_c ; //!< Point creator.
 	
 public:	
-	
+
+	unsigned int index ;
+	DelaunayTree * tree ;
 	DelaunayTreeItem * father ; //!< Item destroyed by the insertion of the creator point.
 	DelaunayTreeItem * stepfather ; //!< Still-alive neighbour of the father.
 	
@@ -53,18 +56,21 @@ public:
 	
 	bool isPlane  ;//!< Marker. This allows for a bit of reflectivity, cheaper than using casts.
 	bool isTriangle ;//!< Marker. This allows for a bit of reflectivity, cheaper than using casts.
+	bool isDeadTriangle ;
 	
 	bool visited ;//!< Marker. Useful not to lose ourselves isVertex the tree.
-	std::vector<DelaunayTreeItem *> stepson ; ;//!< neighbours created later than ourselves
-	std::vector<DelaunayTreeItem *> neighbour ; //!< neighbours. three for triangles, any number for planes.
-	std::vector<DelaunayTreeItem *> deadneighbour ;//!< neighbours. died during the current insertion. we still need them for the neighbourhood relationshps.
-	std::vector<DelaunayTreeItem *> son ;//!< items created by our destruction.
+	std::valarray<unsigned int> stepson ; ;//!< neighbours created later than ourselves
+	std::valarray<unsigned int> neighbour ; //!< neighbours. three for triangles, any number for planes.
+	std::valarray<unsigned int> son ;//!< items created by our destruction.
 	
+	DelaunayTreeItem * getNeighbour(size_t i) const ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem * getSon(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem * getStepson(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
 	//! Constructor, takes the father and creator point as arguments
 	/*! \a father is the father. Needed for the maintenance of the tree.
 		\a c is the Creator Point. It is useful when building neighbourhood relationships. Also, it allowfor the removal of elements from the tree.
 	 */
-	DelaunayTreeItem( DelaunayTreeItem * father, const Point * c) ;
+	DelaunayTreeItem( DelaunayTree *tree, DelaunayTreeItem * father, const Point * c) ;
 	
 	virtual ~DelaunayTreeItem() ;
 	
@@ -73,12 +79,9 @@ public:
 	
 	void setCreator(const Point * p) ; //!< Accessor. sets the creator.
 	
-	void removeNeighbour(DelaunayTreeItem * t) ; //!< Utility removes neighbour. Is safe.
-	
-	void addNeighbour(DelaunayTreeItem * t) ; //!< Utility adds neighbour. Is safe.
-	
-	DelaunayTreeItem * getNeighbour(size_t i) ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
-	
+	void removeNeighbour(DelaunayTreeItem * t) ; //!< Utility removes neighbour. Is saf
+	void addNeighbour(DelaunayTreeItem * t) ; //!< Utility adds neighbour. Is safe.	
+
 	virtual void kill(const Point * p) ; //!< kill and update the neighbourhood (livings do not neighbour the deads).
 	virtual void erase(const Point * p) ;//!< kill and don't update the neighbourhood (do not use).
 	
@@ -90,18 +93,15 @@ public:
 	void addSon(DelaunayTreeItem * s) ;//!< Utility adds son. Is safe.
 	void removeSon(DelaunayTreeItem * s) ;//!< Utility removes son. Is safe.
 	
-	void addDeadNeighbour(DelaunayTreeItem * t) ;//!< Utility adds deadNeighbour. Is safe.
-	void removeDeadNeighbour(DelaunayTreeItem * t) ;//!< Utility removes deadNeighbour. Is safe.
-	
 	void setStepfather(DelaunayTreeItem * s) ;  //!< Accessor. sets the stepfather.
 	
 	void clearVisited() ; //!< Accessor. We are not marked visited anymore.
 	
 	virtual bool isVertex(const Point *p) const = 0 ; //!< Test. Is this point \a p isVertex ?
-	virtual std::pair< Point*,  Point*> nearestEdge(const Point p)  = 0;  //!< What is the nearest edge from this point \a p.
+	virtual std::pair< Point*,  Point*> nearestEdge(const Point & p) const = 0;  //!< What is the nearest edge from this point \a p.
 	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const  = 0; //!< What is the common edge with this item. returns a null pair if none.
 	virtual bool inCircumCircle(const Point & p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
-	virtual bool isNeighbour( DelaunayTreeItem *) = 0 ;  //!< Test. Are we a neighbour ?
+	virtual bool isNeighbour( const DelaunayTreeItem *) const = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
 	virtual void conflicts(std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > &,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
 	virtual void conflicts(std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > &, const Geometry *g) ;
@@ -127,7 +127,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Triangle) ;
 	
-	DelaunayTriangle( DelaunayTreeItem * father,   Point *p0,   Point *p1,   Point *p2,  Point * c) ;
+	DelaunayTriangle( DelaunayTree *tree, DelaunayTreeItem * father,   Point *p0,   Point *p1,   Point *p2,  Point * c) ;
 	DelaunayTriangle() ;
 	
 	
@@ -137,7 +137,7 @@ public:
 	bool isVertexByID(const Point * p) const ;
 	bool hasVertexByID(const std::valarray<Point *> * p) const ;
 	
-	std::pair< Point*,  Point*> nearestEdge(const Point p)  ;
+	virtual std::pair< Point*,  Point*> nearestEdge(const Point &p) const ;
 	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const ;
 	
 	/** Check for point location.
@@ -146,7 +146,7 @@ public:
 	 * @return true if we are in the triangle's CircumCircle and false if we are on or outside. 
 	 */
 	virtual bool inCircumCircle(const Point & p) const ;
-	virtual bool isNeighbour( DelaunayTreeItem * t) ;
+	virtual bool isNeighbour( const DelaunayTreeItem * t) const;
 	
 	void insert( std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
 	
@@ -159,8 +159,12 @@ public:
 	virtual Vector getNonLinearForces() const ;
 	virtual GaussPointArray getSubTriangulatedGaussPoints() const ;
 
-	std::vector<DelaunayTriangle *> neighbourhood ;
+	std::valarray<unsigned int> neighbourhood ;
+	DelaunayTriangle * getNeighbourhood(size_t i) const ;
 	bool isInNeighbourhood(const DelaunayTriangle * t) const ;
+
+	void addNeighbourhood(DelaunayTriangle * t) ;
+	void removeNeighbourhood(DelaunayTriangle *) ;
 	
 	virtual bool isConflicting(const Geometry * g) const ;
 	
@@ -177,27 +181,27 @@ protected:
 	double direction ;//!< test vector. Precalculated for performace reasons
 public:
 	
-	DelaunayDemiPlane( DelaunayTreeItem * father,   Point  * _begin,   Point  * _end,    Point  * p,   Point * c) ;
+	DelaunayDemiPlane( DelaunayTree * tree, DelaunayTreeItem * father,   Point  * _begin,   Point  * _end,    Point  * p,   Point * c) ;
 	
 	virtual ~DelaunayDemiPlane() ;
 	
-	inline std::pair< Point*,  Point*> nearestEdge(const Point p)  ;
-	inline std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const ;
+	virtual std::pair< Point*,  Point*> nearestEdge(const Point & p) const ;
+	std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const ;
 	
 	/** Check for point location.
 	 * 
 	 * @param p Point to check.
 	 * @return true if we are in the demi plane, false if we are outside or on the limit.
 	 */
-	inline virtual bool inCircumCircle(const Point & p) const ;
-	inline virtual bool isNeighbour( DelaunayTreeItem * t) ;
-	inline virtual bool isVertex(const Point *p) const ;
+	virtual bool inCircumCircle(const Point & p) const ;
+	virtual bool isNeighbour( const DelaunayTreeItem * t) const;
+	virtual bool isVertex(const Point *p) const ;
 	
 	void merge(DelaunayDemiPlane * p) ;//!< Merge two planes. If the planes are found to form a partition of the universe, they are both killed. If they are found to define the same demiplane, their families are merged, and one of them is killed.
 	
 	//virtual void kill(Point * p) ;
 	
-	inline virtual void insert(std::vector<DelaunayTreeItem *> &,Point *p, Star *s) ;
+	virtual void insert(std::vector<DelaunayTreeItem *> &,Point *p, Star *s) ;
 	
 	virtual bool in( const Point & p) const
 	{
@@ -217,27 +221,25 @@ public:
 class DelaunayRoot :  public DelaunayTreeItem
 {
 public:
-	DelaunayRoot( Point * p0,  Point * p1,  Point * p2) ;
-	
-	DelaunayTreeItem *getSon(size_t i) ;
+	DelaunayRoot( DelaunayTree * tree, Point * p0,  Point * p1,  Point * p2) ;
 	
 	virtual ~DelaunayRoot() { };
 	
-	inline virtual bool isVertex(const Point *p) const ;
+	virtual bool isVertex(const Point *p) const ;
 	
-	inline virtual bool inCircumCircle(const Point & p) const ;
+	virtual bool inCircumCircle(const Point & p) const ;
 
-	inline virtual std::pair< Point*,  Point*> nearestEdge(const Point p)  ;
+	virtual std::pair< Point*,  Point*> nearestEdge(const Point& p) const ;
 	
 	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const { return std::pair< Point*,  Point*>(NULL, NULL) ; } 
 	
-	virtual bool isNeighbour( DelaunayTreeItem *) { return false ; } 
+	virtual bool isNeighbour( const DelaunayTreeItem *) const { return false ; } 
 	
-	inline virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
+	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
 	
-	inline virtual void conflicts(std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > &, const Point *p )  ;
+	virtual void conflicts(std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > &, const Point *p )  ;
 	
-	inline virtual void conflicts(std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > &, const Geometry *g)  ;
+	virtual void conflicts(std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > &, const Geometry *g)  ;
 	
 	virtual void print() const ;
 	
@@ -267,6 +269,38 @@ public:
 	const Point * getEdge(size_t i) const;
 	
 	void updateNeighbourhood() ;
+} ;
+
+class DelaunayDeadTriangle : public DelaunayTreeItem
+{
+protected:
+	Point center ; 
+	double radius ;
+	double sqradius ;
+
+public:
+	
+	DelaunayDeadTriangle(DelaunayTriangle * father) ;
+	
+	virtual ~DelaunayDeadTriangle() ;
+	
+	virtual std::pair<Point*, Point*> commonEdge(const DelaunayTreeItem * t) const ;
+	virtual std::pair< Point*,  Point*> nearestEdge(const Point& p) const ;
+
+	bool inCircumCircle(const Point & p) const ;
+	bool isNeighbour( const DelaunayTreeItem * t) const ;
+	bool isVertex(const Point *p) const ;
+	bool isVertexByID(const Point *p) const ;
+	
+	void insert(std::vector<DelaunayTreeItem *>& , Point *p, Star *s) { };
+	
+	const Point * getCircumCenter() const ;
+	double getRadius() const ;
+	
+	bool in( const Point & p) const;
+
+	void print() const;
+	
 } ;
 
 

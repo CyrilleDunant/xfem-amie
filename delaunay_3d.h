@@ -82,9 +82,9 @@ public:
 	
 	void addNeighbour(DelaunayTreeItem_3D * t) ; //!< Utility adds neighbour. Is safe.
 	
-	DelaunayTreeItem_3D * getNeighbour(size_t i) ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
-	DelaunayTreeItem_3D * getSon(size_t i) ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
-	DelaunayTreeItem_3D * getStepson(size_t i) ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem_3D * getNeighbour(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem_3D * getSon(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem_3D * getStepson(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
 	
 	virtual void kill(const Point * p) ; //!< kill and update the neighbourhood (livings do not neighbour the deads).
 	virtual void erase(const Point * p) ;//!< kill and don't update the neighbourhood (do not use).

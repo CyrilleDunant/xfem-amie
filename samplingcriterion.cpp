@@ -87,43 +87,43 @@ std::vector<Point> MinimumAngle::suggest(const DelaunayTriangle * t) const
 
 	std::vector<Point> ret ;
 
-	double d0 = dist(t->commonEdge(t->neighbour[0]).first, t->commonEdge(t->neighbour[0]).second) ;
-	double d1 = dist(t->commonEdge(t->neighbour[1]).first, t->commonEdge(t->neighbour[1]).second) ;
-	double d2 = dist(t->commonEdge(t->neighbour[2]).first, t->commonEdge(t->neighbour[2]).second) ;
+	double d0 = dist(t->commonEdge(t->getNeighbour(0)).first, t->commonEdge(t->getNeighbour(0)).second) ;
+	double d1 = dist(t->commonEdge(t->getNeighbour(1)).first, t->commonEdge(t->getNeighbour(1)).second) ;
+	double d2 = dist(t->commonEdge(t->getNeighbour(2)).first, t->commonEdge(t->getNeighbour(2)).second) ;
 	if(d0 < d1 && d0 < d2)
 	{
-		if(t->neighbour[1]->isTriangle)
-			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->neighbour[1])->getCenter()) ;
+		if(t->getNeighbour(1)->isTriangle)
+			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->getNeighbour(1))->getCenter()) ;
 		else
-			ret.push_back(*t->commonEdge(t->neighbour[1]).first*.5+ *t->commonEdge(t->neighbour[1]).second*.5) ;
-		if(t->neighbour[2]->isTriangle)
-			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->neighbour[2])->getCenter()) ;
+			ret.push_back(*t->commonEdge(t->getNeighbour(1)).first*.5+ *t->commonEdge(t->getNeighbour(1)).second*.5) ;
+		if(t->getNeighbour(2)->isTriangle)
+			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->getNeighbour(2))->getCenter()) ;
 		else
-			ret.push_back(*t->commonEdge(t->neighbour[2]).first*.5+ *t->commonEdge(t->neighbour[2]).second*.5) ;
+			ret.push_back(*t->commonEdge(t->getNeighbour(2)).first*.5+ *t->commonEdge(t->getNeighbour(2)).second*.5) ;
 	}
 
 	if(d2 < d1 && d2 < d0)
 	{
-		if(t->neighbour[1]->isTriangle)
-			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->neighbour[1])->getCenter()) ;
+		if(t->getNeighbour(1)->isTriangle)
+			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->getNeighbour(1))->getCenter()) ;
 		else
-			ret.push_back(*t->commonEdge(t->neighbour[1]).first*.5+ *t->commonEdge(t->neighbour[1]).second*.5) ;
-		if(t->neighbour[0]->isTriangle)
-			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->neighbour[0])->getCenter()) ;
+			ret.push_back(*t->commonEdge(t->getNeighbour(1)).first*.5+ *t->commonEdge(t->getNeighbour(1)).second*.5) ;
+		if(t->getNeighbour(0)->isTriangle)
+			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->getNeighbour(0))->getCenter()) ;
 		else
-			ret.push_back(*t->commonEdge(t->neighbour[0]).first*.5+ *t->commonEdge(t->neighbour[0]).second*.5) ;
+			ret.push_back(*t->commonEdge(t->getNeighbour(0)).first*.5+ *t->commonEdge(t->getNeighbour(0)).second*.5) ;
 	}
 	
 	if(d1 < d2 && d1 < d0)
 	{
-		if(t->neighbour[0]->isTriangle)
-			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->neighbour[0])->getCenter()) ;
+		if(t->getNeighbour(0)->isTriangle)
+			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->getNeighbour(0))->getCenter()) ;
 		else
-			ret.push_back(*t->commonEdge(t->neighbour[0]).first*.5+ *t->commonEdge(t->neighbour[0]).second*.5) ;
-		if(t->neighbour[2]->isTriangle)
-			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->neighbour[2])->getCenter()) ;
+			ret.push_back(*t->commonEdge(t->getNeighbour(0)).first*.5+ *t->commonEdge(t->getNeighbour(0)).second*.5) ;
+		if(t->getNeighbour(2)->isTriangle)
+			ret.push_back(dynamic_cast<DelaunayTriangle *>(t->getNeighbour(2))->getCenter()) ;
 		else
-			ret.push_back(*t->commonEdge(t->neighbour[2]).first*.5+ *t->commonEdge(t->neighbour[2]).second*.5) ;
+			ret.push_back(*t->commonEdge(t->getNeighbour(2)).first*.5+ *t->commonEdge(t->getNeighbour(2)).second*.5) ;
 	}
 	
 	return ret ;

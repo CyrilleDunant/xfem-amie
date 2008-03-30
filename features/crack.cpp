@@ -572,8 +572,8 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 		std::vector<DelaunayTriangle *> toEnrichAlso ;
 		for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
 		{
-			if ( e->neighbourhood[j]->isAlive() && !line->intersects(static_cast<Triangle *>(e)))
-				toEnrichAlso.push_back ( e->neighbourhood[j] ) ;
+			if ( e->getNeighbourhood(j)->isAlive() && !line->intersects(static_cast<Triangle *>(e)))
+				toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
 		}
 
 
@@ -900,13 +900,13 @@ std::vector<DelaunayTriangle *> Crack::getTriangles ( DelaunayTree * dt )
 			next = NULL ;
 			for ( size_t k = 0 ; k < start->neighbour.size() ; k++ )
 			{
-				if ( start->neighbour[k]->isTriangle &&
-				        start->neighbour[k] != last &&
-				        s.intersection ( dynamic_cast<Triangle *> ( start->neighbour[k] ) ).size() == 2 &&
-				        start->neighbour[k]->isAlive() &&
-				        !start->neighbour[k]->visited )
+				if ( start->getNeighbour(k)->isTriangle &&
+				        start->getNeighbour(k) != last &&
+				        s.intersection ( dynamic_cast<Triangle *> ( start->getNeighbour(k) ) ).size() == 2 &&
+				        start->getNeighbour(k)->isAlive() &&
+				        !start->getNeighbour(k)->visited )
 				{
-					next = static_cast<DelaunayTriangle *> ( start->neighbour[k] );
+					next = static_cast<DelaunayTriangle *> ( start->getNeighbour(k) );
 					last = start ;
 					start = next ;
 					ret.push_back ( start ) ;
@@ -915,12 +915,12 @@ std::vector<DelaunayTriangle *> Crack::getTriangles ( DelaunayTree * dt )
 
 					break ;
 				}
-				else if ( start->neighbour[k]->isTriangle && start->neighbour[k] != last  &&
-				          s.intersection ( dynamic_cast<Triangle *> ( start->neighbour[k] ) ).size() == 1&&
-				          start->neighbour[k]->isAlive() && !start->neighbour[k]->visited )
+				else if ( start->getNeighbour(k)->isTriangle && start->getNeighbour(k) != last  &&
+				          s.intersection ( dynamic_cast<Triangle *> ( start->getNeighbour(k) ) ).size() == 1&&
+				          start->getNeighbour(k)->isAlive() && !start->getNeighbour(k)->visited )
 				{
 					next = NULL ;
-					ret.push_back ( static_cast<DelaunayTriangle *> ( start->neighbour[k] ) ) ;
+					ret.push_back ( static_cast<DelaunayTriangle *> ( start->getNeighbour(k) ) ) ;
 				}
 			}
 		}
@@ -1008,21 +1008,21 @@ std::vector<DelaunayTriangle *> Crack::getIntersectingTriangles ( DelaunayTree *
 			{
 				for ( size_t k = 0 ; k < conf[j]->neighbour.size() ; k++ )
 				{
-					if ( conf[j]->neighbour[k]->isTriangle &&
-					        s.intersects ( dynamic_cast<Triangle *> ( conf[j]->neighbour[k] ) ) &&
-					        conf[j]->neighbour[k]->isAlive() )
+					if ( conf[j]->getNeighbour(k)->isTriangle &&
+					        s.intersects ( dynamic_cast<Triangle *> ( conf[j]->getNeighbour(k) ) ) &&
+					        conf[j]->getNeighbour(k)->isAlive() )
 					{
-						start = static_cast<DelaunayTriangle *> ( conf[j]->neighbour[k] ) ;
+						start = static_cast<DelaunayTriangle *> ( conf[j]->getNeighbour(k) ) ;
 						visited.push_back ( start ) ;
 						start->visited = true ;
 						ret.push_back ( start ) ;
 
-						DelaunayTriangle * t = static_cast<DelaunayTriangle *> ( conf[j]->neighbour[k] ) ;
+						DelaunayTriangle * t = static_cast<DelaunayTriangle *> ( conf[j]->getNeighbour(k) ) ;
 
 						for ( size_t i = 0 ; i <t->neighbourhood.size() ; i++ )
 						{
-							if ( !s.intersection ( static_cast<Triangle *> ( t->neighbourhood[i] ) ).empty() )
-								ret.push_back ( t->neighbourhood[i] ) ;
+							if ( !s.intersection ( static_cast<Triangle *> ( t->getNeighbourhood(i) ) ).empty() )
+								ret.push_back ( t->getNeighbourhood(i) ) ;
 						}
 
 						break ;
@@ -1039,13 +1039,13 @@ std::vector<DelaunayTriangle *> Crack::getIntersectingTriangles ( DelaunayTree *
 			next = NULL ;
 			for ( size_t k = 0 ; k < start->neighbour.size() ; k++ )
 			{
-				if ( start->neighbour[k]->isTriangle &&
-				        start->neighbour[k] != last &&
-				        s.intersection ( dynamic_cast<Triangle *> ( start->neighbour[k] ) ).size() == 2 &&
-				        start->neighbour[k]->isAlive() &&
-				        !start->neighbour[k]->visited )
+				if ( start->getNeighbour(k)->isTriangle &&
+				        start->getNeighbour(k) != last &&
+				        s.intersection ( dynamic_cast<Triangle *> ( start->getNeighbour(k) ) ).size() == 2 &&
+				        start->getNeighbour(k)->isAlive() &&
+				        !start->getNeighbour(k)->visited )
 				{
-					next = static_cast<DelaunayTriangle *> ( start->neighbour[k] );
+					next = static_cast<DelaunayTriangle *> ( start->getNeighbour(k) );
 					last = start ;
 					start = next ;
 					ret.push_back ( start ) ;
@@ -1053,20 +1053,20 @@ std::vector<DelaunayTriangle *> Crack::getIntersectingTriangles ( DelaunayTree *
 					start->visited = true ;
 					break ;
 				}
-				else if ( start->neighbour[k]->isTriangle &&
-				          start->neighbour[k] != last  &&
-				          s.intersection ( dynamic_cast<Triangle *> ( start->neighbour[k] ) ).size() == 1&&
-				          start->neighbour[k]->isAlive() && !start->neighbour[k]->visited )
+				else if ( start->getNeighbour(k)->isTriangle &&
+				          start->getNeighbour(k) != last  &&
+				          s.intersection ( dynamic_cast<Triangle *> ( start->getNeighbour(k) ) ).size() == 1&&
+				          start->getNeighbour(k)->isAlive() && !start->getNeighbour(k)->visited )
 				{
 					next = NULL ;
-					ret.push_back ( static_cast<DelaunayTriangle *> ( start->neighbour[k] ) ) ;
+					ret.push_back ( static_cast<DelaunayTriangle *> ( start->getNeighbour(k) ) ) ;
 
-					DelaunayTriangle * t = static_cast<DelaunayTriangle *> ( start->neighbour[k] ) ;
+					DelaunayTriangle * t = static_cast<DelaunayTriangle *> ( start->getNeighbour(k) ) ;
 
 					for ( size_t i = 0 ; i <t->neighbourhood.size() ; i++ )
 					{
-						if ( !s.intersection ( static_cast<Triangle *> ( t->neighbourhood[i] ) ).empty() )
-							ret.push_back ( t->neighbourhood[i] ) ;
+						if ( !s.intersection ( static_cast<Triangle *> ( t->getNeighbourhood(i) ) ).empty() )
+							ret.push_back ( t->getNeighbourhood(i) ) ;
 					}
 				}
 			}
@@ -1399,8 +1399,8 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			std::vector<DelaunayTriangle *> toEnrichAlso ;
 			for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
 			{
-				if ( e->neighbourhood[j]->isAlive() && !enrichmentTarget ( e->neighbourhood[j] ) )
-					toEnrichAlso.push_back ( e->neighbourhood[j] ) ;
+				if ( e->getNeighbourhood(j)->isAlive() && !enrichmentTarget ( e->getNeighbourhood(j) ) )
+					toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
 			}
 
 
@@ -1533,8 +1533,8 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			std::vector<DelaunayTriangle *> toEnrichAlso ;
 			for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
 			{
-				if ( e->neighbourhood[j]->isAlive() )
-					toEnrichAlso.push_back ( e->neighbourhood[j] ) ;
+				if ( e->getNeighbourhood(j)->isAlive() )
+					toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
 			}
 
 
@@ -1681,8 +1681,8 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			std::vector<DelaunayTriangle *> toEnrichAlso ;
 			for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
 			{
-				if ( e->neighbourhood[j]->isAlive() && !enrichmentTarget ( e->neighbourhood[j] ) )
-					toEnrichAlso.push_back ( e->neighbourhood[j] ) ;
+				if ( e->getNeighbourhood(j)->isAlive() && !enrichmentTarget ( e->getNeighbourhood(j) ) )
+					toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
 			}
 			for ( size_t j = 0 ; j < toEnrichAlso.size() ; j++ )
 			{

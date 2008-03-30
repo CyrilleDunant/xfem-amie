@@ -32,7 +32,9 @@ bool MohrCoulomb::met(const ElementState & s) const
 	{
 		Circle epsilon(0.0005,testedTri->getCenter()) ;
 		std::vector<DelaunayTriangle *> neighbourhood ;
-		std::vector<DelaunayTriangle *> toTry = testedTri->neighbourhood ;
+		std::vector<DelaunayTriangle *> toTry ;
+		for(size_t j = 0 ; j < testedTri->neighbourhood.size() ;j++)
+			toTry.push_back(testedTri->getNeighbourhood(j)) ;
 		std::vector<DelaunayTriangle *> cleanup ;
 		int count = toTry.size() ;
 		cleanup.push_back(testedTri) ;
@@ -50,8 +52,8 @@ bool MohrCoulomb::met(const ElementState & s) const
 					neighbourhood.push_back(toTry[i]) ;
 					for(size_t j = 0 ; j < toTry[i]->neighbourhood.size() ;j++)
 					{
-						if(!toTry[i]->neighbourhood[j]->visited)
-							newTrianglesToTry.push_back(toTry[i]->neighbourhood[j]);
+						if(!toTry[i]->getNeighbourhood(j)->visited)
+							newTrianglesToTry.push_back(toTry[i]->getNeighbourhood(j));
 					}
 				}
 			}
@@ -65,10 +67,10 @@ bool MohrCoulomb::met(const ElementState & s) const
 // 		{
 // 			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
 // 			{
-// 				if(neighbours[i]->neighbourhood[j] != testedTri 
-// 				   && !neighbours[i]->neighbourhood[j]->getBehaviour()
-// 				   && !neighbours[i]->neighbourhood[j]->getBehaviour()->fractured())
-// 					neighbourhood.insert(neighbours[i]->neighbourhood[j]) ;
+// 				if(neighbours[i]->getNeighbourhood(j) != testedTri 
+// 				   && !neighbours[i]->getNeighbourhood(j)->getBehaviour()
+// 				   && !neighbours[i]->getNeighbourhood(j)->getBehaviour()->fractured())
+// 					neighbourhood.insert(neighbours[i]->getNeighbourhood(j)) ;
 // 			}
 // 		}
 		

@@ -612,17 +612,17 @@ DelaunayTetrahedron * DelaunayTetrahedron::getNeighbourhood(size_t i) const
 	return static_cast<DelaunayTetrahedron *>(tree->tree[neighbourhood[i]]) ;
 }
 
-DelaunayTreeItem_3D * DelaunayTreeItem_3D::getNeighbour(size_t i)
+DelaunayTreeItem_3D * DelaunayTreeItem_3D::getNeighbour(size_t i) const
 {
 	return tree->tree[neighbour[i]] ;
 }
 
-DelaunayTreeItem_3D * DelaunayTreeItem_3D::getSon(size_t i)
+DelaunayTreeItem_3D * DelaunayTreeItem_3D::getSon(size_t i) const
 {
 	return tree->tree[son[i]] ;
 }
 
-DelaunayTreeItem_3D * DelaunayTreeItem_3D::getStepson(size_t i)
+DelaunayTreeItem_3D * DelaunayTreeItem_3D::getStepson(size_t i) const
 {
 	return tree->tree[stepson[i]] ;
 }
