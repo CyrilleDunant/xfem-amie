@@ -236,17 +236,17 @@ void setBC()
 			{
 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
  			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.05 
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.001 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.05 
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.001 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.05 && triangles[k]->getBoundingPoint(c).y > 0.0199)
+			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.001 && triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
 				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
@@ -274,14 +274,14 @@ void setBC()
 // 		if(i%1000 == 0)
 		std::cout << "\r setting BC point " << i+1 << "/" << xlow.size() << std::flush ;
 // 		featureTree->getAssembly()->setPointAlong(XI,-timepos,xlow[i]) ;
-		featureTree->getAssembly()->setPointAlong(ETA,0,xlow[i]) ;
+		featureTree->getAssembly()->setPoint(0,0,xlow[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < xhigh.size() ; i++)
 	{
 // 		if(i%1000 == 0)
 			std::cout << "\r setting BC point " << i+1 << "/" << xhigh.size() << std::flush ;
-		featureTree->getAssembly()->setPointAlong(ETA,0,xhigh[i]) ;
+		featureTree->getAssembly()->setPoint(0,0,xhigh[i]) ;
 		
 	}
 	std::cout << "...done" << std::endl ;
@@ -289,7 +289,7 @@ void setBC()
 	{
 // 		if(i%1000 == 0)
 		std::cout << "\r setting BC point " << i+1 << "/" << yhl.size() << std::flush ;
-		featureTree->getAssembly()->setPointAlong( XI,0,yhl[i]) ;
+// 		featureTree->getAssembly()->setPointAlong( XI,0,yhl[i]) ;
 		featureTree->getAssembly()->setForceOn(ETA,load/yhl.size() ,yhl[i]) ;
 // 		featureTree->getAssembly()->setPointAlong( ETA,0,yhl[i]) ;
 	}
@@ -304,12 +304,12 @@ void setBC()
 // 	}
 // 	std::cout << "...done" << std::endl ;
 	
-	for(size_t i = 0 ; i < cornerRight.size() ; i++)
- 	{
-		std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
- 		featureTree->getAssembly()->setPointAlong( XI,0,cornerRight[i]) ;
- 	}
- 	std::cout << "...done" << std::endl ;
+// 	for(size_t i = 0 ; i < cornerRight.size() ; i++)
+//  	{
+// 		std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
+//  		featureTree->getAssembly()->setPoint( 0,0,cornerRight[i]) ;
+//  	}
+//  	std::cout << "...done" << std::endl ;
 
 }
 
@@ -344,8 +344,8 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 50 ;
-	size_t ntries = 20;
+	size_t nit = 1 ;
+	size_t ntries = 1;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -1757,7 +1757,7 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	double itzSize = 0.0003;
+	double itzSize = 0.0006;
 	std::vector<Inclusion *> inclusions ;
 	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 128, itzSize);
 
@@ -1788,7 +1788,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < inclusions.size(); i++)
 	{
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*1.5) ;
 
 		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
 // 		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter()) ;

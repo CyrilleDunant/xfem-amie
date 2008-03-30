@@ -949,7 +949,7 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 		{
 			case XI:
 			{
-// 				if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end() || *std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2))->type )
+				if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end() )
 				{
 					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
 					multipliers.rbegin()->type = SET_ALONG_XI ;
@@ -958,7 +958,7 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 			}
 			case ETA:
 			{
-// 				if(multipliers.empty() ||std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
+				if(multipliers.empty() ||std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
 				{
 					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
 					multipliers.rbegin()->type = SET_ALONG_ETA ;
