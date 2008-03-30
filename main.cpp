@@ -231,22 +231,22 @@ void setBC()
 			{
 				cornerLeft.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(triangles[k]->getBoundingPoint(c).x > .0799 
-			        && (triangles[k]->getBoundingPoint(c).y < -.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
+			else */if(triangles[k]->getBoundingPoint(c).x < -.0799 
+			        && (triangles[k]->getBoundingPoint(c).y < -.015 ))
 			{
 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
- 			}*/
-			/*else */if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.0005 
+ 			}
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x-0.0535) < 0.05 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.0005 
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x+0.0535) < 0.05 
 			         && triangles[k]->getBoundingPoint(c).y < -0.0199)
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.0005 && triangles[k]->getBoundingPoint(c).y > 0.0199)
+			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.05 && triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
 				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
@@ -304,13 +304,12 @@ void setBC()
 // 	}
 // 	std::cout << "...done" << std::endl ;
 	
-// 	for(size_t i = 0 ; i < cornerRight.size() ; i++)
-// 	{
-// 		if(i%1000 == 0)
-// 			std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
-// 		featureTree->getAssembly()->setPoint( timepos,0,cornerRight[i]) ;
-// 	}
-// 	std::cout << "...done" << std::endl ;
+	for(size_t i = 0 ; i < cornerRight.size() ; i++)
+ 	{
+		std::cout << "\r setting BC tri " << i << "/" << cornerRight.size() << std::flush ;
+ 		featureTree->getAssembly()->setPointAlong( XI,0,cornerRight[i]) ;
+ 	}
+ 	std::cout << "...done" << std::endl ;
 
 }
 
@@ -1810,7 +1809,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(64) ;
+	F.sample(512) ;
 
 	F.setOrder(LINEAR) ;
 

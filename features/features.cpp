@@ -229,11 +229,6 @@ void  Feature::setFather(Feature *f)
 	infRad = r ;
 }
 
-// void Feature::sample(size_t n)
-// {
-// 	this->sampleSurface(n) ;
-// }
-
 CompositeFeature::~CompositeFeature()
 {
 	for(size_t i = 0 ; i < components.size() ; i++)
@@ -968,7 +963,7 @@ void FeatureTree::sample(size_t n)
 // 			tree[i]->sample(std::max((size_t)(1.5*n*pow(tree[i]->area()/total_area, .6)),(size_t)10)) ;
 // 			if((size_t)((double)n*sqrt(tree[i]->area()/(total_area))) >= 8)
 // 				tree[i]->sample((size_t)((double)n*sqrt(tree[i]->area()/(total_area)))) ;
-			tree[i]->sample(std::max((size_t)((double)n*sqrt(tree[i]->area()/(total_area))),(size_t)32)) ;
+			tree[i]->sample(std::max((size_t)((double)n*sqrt(tree[i]->area()/(total_area))),(size_t)8)) ;
 // 			std::cerr << std::max((size_t)((double)n*tree[i]->area()/(.9*total_area)),(size_t)12) << std::endl ;
 	// 		tree[i]->sample(sqrt(n)*10) ;
 	// 		tree[i]->sampleSurface(n) ;
