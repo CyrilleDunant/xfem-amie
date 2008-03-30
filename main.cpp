@@ -322,8 +322,8 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 1 ;
-	size_t ntries = 1;
+	size_t nit = 20 ;
+	size_t ntries = 25;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
