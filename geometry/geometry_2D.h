@@ -196,6 +196,12 @@ public:
 	 * @return the radius.
 	 */
 	virtual double getRadius() const ;
+
+	/** Return the circle Radius.
+	 * 
+	 * @return the radius.
+	 */
+	virtual double getSquareRadius() const ;
 	
 	/** Calculate the area.
 	 * 
@@ -231,9 +237,6 @@ public:
 class LayeredCircle : public Circle
 {
 protected:
-	
-	double radius ;
-	double sqradius ;
 	std::vector<double> radiuses ;
 	
 public:

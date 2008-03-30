@@ -322,8 +322,8 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 20 ;
-	size_t ntries = 25;
+	size_t nit = 1 ;
+	size_t ntries = 1;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -1737,7 +1737,7 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.0006;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 128, itzSize);
+	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 512, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
@@ -1765,17 +1765,18 @@ int main(int argc, char *argv[])
 	F.addFeature(pore0,pore1) ;
 	for(size_t i = 0 ; i < inclusions.size(); i++)
 	{
-		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*1.5) ;
+		std::vector<double> radii ;
+		std::vector<Form *> behavs ;
+		if(inclusions[i]->getRadius()-itzSize*.75 > 0)
+			radii.push_back(inclusions[i]->getRadius()-itzSize*.75) ;
+		if(inclusions[i]->getRadius()-itzSize*.5 > 0)
+			radii.push_back(inclusions[i]->getRadius()-itzSize*.5) ;
+		behavs.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+		behavs.push_back(new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(20000, -8*20000))) ;
 
-		Inclusion * itz = new Inclusion(inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter().x, inclusions[i]->getCenter().y) ;
-// 		RadialStiffnessGradient * behaviour = new RadialStiffnessGradient(E_paste*.25, nu, inclusions[i]->getRadius()-.00001, E_paste, nu, inclusions[i]->getRadius()+itzSize, inclusions[i]->getCenter()) ;
-// // 		behaviour->setFractureCriterion(new MohrCoulomb(30000, -8*30000)) ;
-		StiffnessAndFracture * behaviour = new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(20000, -8*20000)) ;
-		itz->setBehaviour(behaviour) ;
-// 	
-		F.addFeature(pore1,itz) ;
-		F.addFeature(itz,inclusions[i]) ;
+		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
+		newinc->setBehaviours(behavs) ;
+		F.addFeature(pore1,newinc) ;
 		placed_area += inclusions[i]->area() ;
 	}
 
@@ -1787,7 +1788,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(512) ;
+	F.sample(64) ;
 
 	F.setOrder(LINEAR) ;
 

@@ -2540,8 +2540,7 @@ double dist(const Point & v1, const Point & v2)
 	r[2] = z*z ;
 	r[3] = t*t ;
 	std::sort(&r[0], &r[4]) ;
-	return sqrt (r[0]+r[1] +r[2]+r[3]) ;
-	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
+	return sqrt (r[0]+r[1]+r[2]+r[3]) ;
 }
 
 double dist(const Point * v1, const Point * v2)
@@ -2556,8 +2555,7 @@ double dist(const Point * v1, const Point * v2)
 	r[2] = z*z ;
 	r[3] = t*t ;
 	std::sort(&r[0], &r[4]) ;
-	return sqrt (r[0]+r[1] +r[2]+r[3]) ;
-	return sqrt(fma(x,x, fma(y,y, fma(z, z, t*t)))) ;
+	return sqrt (r[0]+r[1]+r[2]+r[3]) ;
 }
 
 

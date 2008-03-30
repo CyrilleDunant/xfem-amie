@@ -914,12 +914,17 @@ void Circle::sampleSurface(size_t num_points)
 bool Circle::in(const Point & v) const 
 {
 	double val[2] = {getCenter().x-v.x, getCenter().y-v.y} ;
-	return val[0]*val[0] + val[1]*val[1] < sqradius ;
+	return squareDist2D(v, getCenter()) < getSquareRadius() ;
 }
 
 double Circle::getRadius() const
 {
 	return radius ;
+}
+
+double Circle::getSquareRadius() const
+{
+	return sqradius ;
 }
 
 double Circle::area() const
@@ -955,64 +960,58 @@ LayeredCircle::LayeredCircle(std::vector<double> radii, const Point c) : Circle(
 LayeredCircle::LayeredCircle(double r, const Point center) : Circle(r, center)
 {
 	radiuses.push_back(r) ;
-	
 }
 
 void LayeredCircle::sampleSurface(size_t num_points)
 {
-	assert(!sampled) ;
+
+	std::vector<double> samplingRadiuses = radiuses;
+	bool to_add = true ;
+	std::vector<Point*> temp ;
+	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
+	double meanDelta = getRadius()/(numberOfRings+1);
+
+	while(to_add)
+	{
+		to_add = false ;
+		std::vector<double> newRadii ;
+		if(samplingRadiuses[0] > meanDelta*.25)
+		{
+			newRadii.push_back(samplingRadiuses[0]*.5) ;
+			newRadii.push_back(samplingRadiuses[0]) ;
+			to_add = true ;
+// 			std::cout << "a-added " << samplingRadiuses[0]*.5  << std::endl ;
+		}
+		for(size_t i = 1 ; i < samplingRadiuses.size() ; i++)
+		{
+			newRadii.push_back(samplingRadiuses[i]) ;
+			if(samplingRadiuses[i]-samplingRadiuses[i-1] > meanDelta*.5)
+			{
+				newRadii.push_back(samplingRadiuses[i-1]*.5+samplingRadiuses[i]*.5) ;
+				to_add = true ;
+// 				std::cout << "b-added " << samplingRadiuses[i-1]*.5+samplingRadiuses[i]*.5  << std::endl ;
+			}
+		}
+		std::sort(newRadii.begin() , newRadii.end()) ;
+// 		for(size_t i = 0 ; i < newRadii.size() ; i++)
+// 		{
+// 			std::cout << newRadii[i] << "  "<< std::flush ;
+// 		}
+// 		std::cout <<  std::endl ;
+		samplingRadiuses = newRadii ;
+	}
+
+	
+	num_points = num_points * getRadius() * 2./meanDelta;
+	size_t num_points_start = num_points ;
 	if(boundingPoints.size() == 0)
 		this->sampleBoundingSurface(num_points) ;
 	sampled = true ;
-	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
 
 	double angle = 2.*M_PI/ (num_points) ;
 	double offset = 0 ;
-	
-	size_t num_points_start = num_points ;
-	std::vector<Point*> temp ;
-	std::vector<double> originalSamplingRadiuses ;
-	double meanDelta = getRadius()/(numberOfRings+1);
-	
-	for (size_t i = 0 ; i< numberOfRings ; ++i)
-	{
-		originalSamplingRadiuses.push_back(getRadius()*(1. - (double)(i + 1)/(numberOfRings+1))) ;
-	}
-	
-	originalSamplingRadiuses.insert(originalSamplingRadiuses.end(), radiuses.begin(),  radiuses.end()) ;
-	
-	std::sort(originalSamplingRadiuses.begin(),originalSamplingRadiuses.end()) ;
 
-	std::vector<double> samplingRadiuses ;
-	samplingRadiuses.push_back(originalSamplingRadiuses[0]) ;
-
-	for(size_t i = 1 ; i < originalSamplingRadiuses.size()-1 ;i++)
-	{
-		if(std::abs(originalSamplingRadiuses[i] - originalSamplingRadiuses[i+1]) < .5*meanDelta)
-		{
-			bool foundI = false ;
-			bool foundIp1 = false ;
-			for(size_t j = 1 ; j < radiuses.size() ; j++)
-			{
-				if(std::abs(radiuses[j]-originalSamplingRadiuses[i]) < 1e-8)
-					foundI = true ;
-				if(std::abs(radiuses[j]-originalSamplingRadiuses[i+1]) < 1e-8)
-					foundIp1 = true ;
-			}
-
-			if (foundI && !foundIp1)
-			{
-				samplingRadiuses.push_back(originalSamplingRadiuses[i]) ;
-				i++ ;
-			}
-		}
-		else
-			samplingRadiuses.push_back(originalSamplingRadiuses[i]) ;
-	}
-	
-	samplingRadiuses.push_back(originalSamplingRadiuses[originalSamplingRadiuses.size()-1]) ;
-	
-	for (size_t i = samplingRadiuses.size()-1 ; i != 0 ; --i)
+	for (int i = samplingRadiuses.size()-2 ; i >= 0 ; --i)
 	{
 		double r = samplingRadiuses[i] ;
 		for (size_t j = 0 ; j< num_points ; ++j)

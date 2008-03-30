@@ -157,9 +157,10 @@ Form * LayeredInclusion::getBehaviour(const Point & p)
 	if(layeredBehaviour.size() == 1)
 		return behaviour ;
 	
-	for(size_t i = 0 ; i < radiuses.size() ; i++)
+	for(size_t i = 0 ; i < getRadii().size() ; i++)
 	{
-		if (pRadius < radiuses[i])
+// 		std::cout << pRadius << " vs " << getRadii()[i] << std::endl ;
+		if (pRadius < getRadii()[i])
 			return layeredBehaviour[i] ;
 	}
 	
@@ -199,7 +200,7 @@ void LayeredInclusion::setBehaviours(std::vector<Form *> b)
 	behaviour = b[0] ;
 	layeredBehaviour.clear() ;
 	
-	for(size_t i = 0 ; i < std::min(b.size(), radiuses.size()) ; i++)
+	for(size_t i = 0 ; i < std::min(b.size(), getRadii().size()) ; i++)
 	{
 		layeredBehaviour.push_back(b[i]) ;
 	}
