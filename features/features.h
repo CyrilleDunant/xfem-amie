@@ -311,12 +311,14 @@ protected:
 	Point bl ;
 	Point br ;
 	bool filled ;
-
+	std::valarray<Pixel> pixels ;
+	void refine() ;
+	int computeFillFactor() const;
 // 	const short level ;
 // 	const short levels ;
 public:
 	Pixel();
-	
+	~Pixel();
 	Pixel(double x, double y, double s) ;
 
 	const std::vector<Feature *> & getFeatures() const;
@@ -326,7 +328,9 @@ public:
 	bool in(const Point & p) const;
 
 	bool coOccur(const Geometry * inc) const;
-	
+	bool coOccur(const Point & p) const;
+	void coOccuringFeatures(std::vector<Feature *>&, const Geometry * inc) const ;
+	void coOccuringFeatures(std::vector<Feature *>&, const Point & p) const ;
 	void remove(Feature * inc);
 	
 	bool add(Feature * inc);
@@ -350,12 +354,17 @@ protected:
 	Point brb ;
 	bool filled ;
 
+	std::vector<Voxel *> pixels ;
+	void refine() ;
+	int computeFillFactor() const;
 // 	const short level ;
 // 	const short levels ;
 public:
 	Voxel();
 	
 	Voxel(double x, double y, double z ,double s) ;
+
+	~Voxel();
 
 	const std::vector<Feature *> & getFeatures() const;
 	
@@ -364,7 +373,9 @@ public:
 	bool in(const Point & p) const;
 
 	bool coOccur(const Geometry * inc) const;
-	
+	bool coOccur(const Point & p) const;
+	void coOccuringFeatures(std::vector<Feature *>&, const Geometry * inc) const ;
+	void coOccuringFeatures(std::vector<Feature *>&, const Point & p) const ;
 	void remove(Feature * inc);
 	
 	bool add(Feature * inc);
@@ -396,8 +407,7 @@ public:
 	bool add(Feature * inc);
 	void forceAdd(Feature * inc) ;
 	std::vector<Feature *> coOccur(const Geometry * geo) const ;
-	const std::vector<Feature *> & coOccur(const Point & p) const ;
-	std::vector<Feature *> & coOccur(const Point & p) ;
+	std::vector<Feature *> coOccur(const Point & p) const ;
 } ;
 
 class Grid3D
@@ -422,8 +432,7 @@ public:
 	bool add(Feature * inc);
 	void forceAdd(Feature * inc) ;
 	std::vector<Feature *> coOccur(const Geometry * geo) const ;
-	const std::vector<Feature *> & coOccur(const Point & p) const ;
-	std::vector<Feature *> & coOccur(const Point & p) ;
+	std::vector<Feature *> coOccur(const Point & p) const;
 	double fraction() const ;
 } ;
 

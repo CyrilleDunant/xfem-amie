@@ -913,7 +913,6 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const 
 {
-	double val[2] = {getCenter().x-v.x, getCenter().y-v.y} ;
 	return squareDist2D(v, getCenter()) < getSquareRadius() ;
 }
 
@@ -1002,7 +1001,7 @@ void LayeredCircle::sampleSurface(size_t num_points)
 	}
 
 	
-	num_points = num_points * getRadius() * 2./meanDelta;
+	num_points = std::max(num_points * 2.* getRadius()/meanDelta, 12.);
 	size_t num_points_start = num_points ;
 	if(boundingPoints.size() == 0)
 		this->sampleBoundingSurface(num_points) ;

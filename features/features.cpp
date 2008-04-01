@@ -290,9 +290,12 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 		this->addFeature(NULL, first) ;
 
 	if(!is3D())
-		grid = new Grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x, first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 20) ;
+		grid = new Grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x,
+		                first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 1) ;
 	if(is3D())
-		grid3d =new Grid3D(first->getBoundingBox()[7].x-first->getBoundingBox()[0].x, first->getBoundingBox()[7].y-first->getBoundingBox()[0].y, first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 20);
+		grid3d =new Grid3D(first->getBoundingBox()[7].x-first->getBoundingBox()[0].x,
+		                   first->getBoundingBox()[7].y-first->getBoundingBox()[0].y,
+		                   first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 1);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -963,7 +966,7 @@ void FeatureTree::sample(size_t n)
 // 			tree[i]->sample(std::max((size_t)(1.5*n*pow(tree[i]->area()/total_area, .6)),(size_t)10)) ;
 // 			if((size_t)((double)n*sqrt(tree[i]->area()/(total_area))) >= 8)
 // 				tree[i]->sample((size_t)((double)n*sqrt(tree[i]->area()/(total_area)))) ;
-			tree[i]->sample(std::max((size_t)((double)n*sqrt(tree[i]->area()/(total_area))),(size_t)8)) ;
+			tree[i]->sample(std::max((size_t)((double)n*sqrt(tree[i]->area()/(total_area))),(size_t)12)) ;
 // 			std::cerr << std::max((size_t)((double)n*tree[i]->area()/(.9*total_area)),(size_t)12) << std::endl ;
 	// 		tree[i]->sample(sqrt(n)*10) ;
 	// 		tree[i]->sampleSurface(n) ;
@@ -2598,7 +2601,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
 				{
 					if(!potentialFeatures[l]->isEnrichmentFeature 
-						&& std::find(descendants.begin(), descendants.end(), potentialFeatures[l]) != descendants.end() )
+						&& std::binary_search(descendants.begin(), descendants.end(), potentialFeatures[l]))
 						potentialChildren.push_back(potentialFeatures[l]) ;
 				}
 // 				for(size_t k = 0 ; k < potentialFeatures.size() ; k++)
@@ -2668,7 +2671,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
 				{
 					if(!potentialFeatures[l]->isEnrichmentFeature 
-						&& std::find(descendants.begin(), descendants.end(), potentialFeatures[l]) != descendants.end() )
+					   && std::binary_search(descendants.begin(), descendants.end(), potentialFeatures[l] ))
 						potentialChildren.push_back(potentialFeatures[l]) ;
 				}
 
@@ -3052,6 +3055,44 @@ bool Voxel::in(const Point & p) const
 	return (p.x >= tlf.x)  && (p.x <= brf.x) && (p.y >= brf.y) && (p.y <= tlf.y) && (p.z >= brb.z) && (p.z <= tlf.z);
 }
 
+void Voxel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc) const
+{
+	if(pixels.empty())
+	{
+		f.insert(f.end(), features.begin(), features.end()) ;
+		return ;
+	}
+	
+	std::vector<Feature *> ret ;
+	
+	for(size_t i = 0 ; i < 8 ; i++)
+	{
+		if(pixels[i]->coOccur(inc))
+		{
+			pixels[i]->coOccuringFeatures(f, inc) ;
+		}
+	}
+}
+
+void Voxel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) const
+{
+	if(pixels.empty())
+	{
+		f.insert(f.end(), features.begin(), features.end()) ;
+		return ;
+	}
+	
+	std::vector<Feature *> ret ;
+	
+	for(size_t i = 0 ; i < 8 ; i++)
+	{
+		if(pixels[i]->coOccur(p))
+		{
+			pixels[i]->coOccuringFeatures(f, p) ;
+		}
+	}
+}
+
 bool Voxel::coOccur(const Geometry * inc) const
 {
 	return inc->in(tlf) 
@@ -3075,7 +3116,15 @@ bool Voxel::coOccur(const Geometry * inc) const
 
 void Voxel::remove(Feature * inc)
 {
-	features.erase(std::find(features.begin(), features.end(), inc)) ;
+
+	std::vector<Feature *>::iterator e = std::find(features.begin(), features.end(), inc) ;
+	if(e != features.end())
+		features.erase(e) ;
+	
+	if(!pixels.empty())
+		for(size_t i = 0 ; i < 4 ; i++)
+			pixels[i]->remove(inc) ;
+	
 	filled = false ;
 }
 
@@ -3089,10 +3138,54 @@ Point Voxel::center() const
 	return (tlf + brb)*.5 ;
 }
 
+void Voxel::refine()
+{
+	if(pixels.empty())
+	{
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
+	}
+	else
+		return ;
+	
+	for(size_t i = 0 ; i < 8 ; i++)
+	{
+		for(size_t j = 0 ; j < features.size() ; j++)
+			if(pixels[i]->coOccur(features[j]))
+				pixels[i]->forceAdd(features[j]) ;
+	}
+}
+
 bool Voxel::add(Feature * inc)
 {
+	
+	
 	if(filled)
 		return false;
+	
+	if(features.size() > 64 )
+		refine() ;
+	
+	if(!pixels.empty())
+	{
+		bool ret = true ;
+		for(size_t i = 0 ; i < 8 ; i++)
+			if(pixels[i]->coOccur(inc))
+				ret = ret && pixels[i]->add(inc) ;
+		
+		if(!ret)
+			for(size_t i = 0 ; i < 8 ; i++)
+				pixels[i]->remove(inc) ;
+		if(ret)
+			forceAdd(inc) ;
+		return ret ;
+	}
 	
 	if(!features.empty())
 	{
@@ -3101,6 +3194,7 @@ bool Voxel::add(Feature * inc)
 			if(this->features[i]->intersects(inc))
 				return false;
 		}
+		
 		this->features.push_back(inc) ;
 		
 		return true;
@@ -3123,9 +3217,29 @@ bool Voxel::add(Feature * inc)
 		return true ;
 	}
 }
+
 void Voxel::forceAdd(Feature * inc)
 {
 	this->features.push_back(inc) ;
+	if(inc->in(tlf) 
+	   && inc->in(trf) 
+	   && inc->in(brf) 
+	   && inc->in(blf)
+	   && inc->in(tlb) 
+	   && inc->in(trb) 
+	   && inc->in(brb) 
+	   && inc->in(blb)
+	  )
+		filled = true ;
+	
+	if(!pixels.empty())
+	{
+		for(size_t i = 0 ; i < 8 ; i++)
+			pixels[i]->forceAdd(inc) ;
+	}
+	
+	if(!filled && features.size() > 64 )
+		refine() ;
 }
 
 void Voxel::print() const
@@ -3134,6 +3248,46 @@ void Voxel::print() const
 		features[i]->print() ;
 }
 
+Voxel::~Voxel()
+{
+	if(!pixels.empty())
+		for(size_t i = 0 ; i < 8 ; i++)
+			delete pixels[i] ;
+}
+
+bool Voxel::coOccur(const Point & p) const
+{
+	return p.x > tlf.x &&  p.x < trf.x && p.y > blf.y &&  p.y < tlf.y && p.z > blb.z &&  p.z < tlf.z;
+}
+
+int Voxel::computeFillFactor() const
+{
+	if(!pixels.empty())
+		return 0 ;
+	
+	int count  = 0 ;
+	for(size_t i = 0 ; i < 10 ; i++)
+	{
+		for(size_t j = 0 ; j < 10 ; j++)
+		{
+			for(size_t k = 0 ; k < 10 ; k++)
+			{
+				Point test(blf.x+(double)(i+1)*.1*(brf.x-blf.x), blf.y+(double)(j+1)*.1*(tlf.y-blf.y), blf.y+(double)(k+1)*.1*(tlf.y-blb.y)) ;
+				
+				for(size_t l = 0 ; l < features.size() ; l++)
+				{
+					if(features[l]->in(test))
+					{
+						count++ ;
+						break ;
+					}
+				}
+			}
+		}
+	}
+	
+	return count ;
+}
 
 Pixel::Pixel()
 {
@@ -3154,9 +3308,33 @@ std::vector<Feature *> & Pixel::getFeatures()
 
 bool Pixel::in(const Point & p) const
 {
-// 	double size = (tr.x-bl.x)*.1;
-// 		std::cout << (p.x >= tl.x-size)  << (p.x <= br.x+size) << (p.y >= br.y-size) << (p.y <= tl.y+size) << std::endl ;
-	return (p.x >= tl.x/*-size*/)  && (p.x <= br.x/*+size*/) && (p.y >= br.y/*-size*/) && (p.y <= tl.y/*+size*/);
+	return (p.x >= tl.x)  && (p.x <= br.x) && (p.y >= br.y) && (p.y <= tl.y);
+}
+
+void Pixel::refine()
+{
+	
+	if(pixels.size() == 0)
+	{
+		pixels.resize(4) ;
+		pixels[0] = Pixel(tl.x+(tr.x-tl.x)*.25, bl.y+(tl.y-bl.y)*.75, (tr.x-tl.x)*.5) ;
+		pixels[1] = Pixel(tl.x+(tr.x-tl.x)*.75, bl.y+(tl.y-bl.y)*.75, (tr.x-tl.x)*.5) ;
+		pixels[2] = Pixel(tl.x+(tr.x-tl.x)*.25, bl.y+(tl.y-bl.y)*.25, (tr.x-tl.x)*.5) ;
+		pixels[3] = Pixel(tl.x+(tr.x-tl.x)*.75, bl.y+(tl.y-bl.y)*.25, (tr.x-tl.x)*.5) ;
+		
+		for(size_t i = 0 ; i < 4 ; i++)
+		{
+			for(size_t j = 0 ; j < features.size() ; j++)
+				if(pixels[i].coOccur(features[j]))
+					pixels[i].forceAdd(features[j]) ;
+		}
+	}
+	else
+		return ;
+}
+
+Pixel::~Pixel()
+{
 }
 
 bool Pixel::coOccur(const Geometry * inc) const
@@ -3173,29 +3351,128 @@ bool Pixel::coOccur(const Geometry * inc) const
 		|| in(inc->getCenter()+Point(0,-inc->getRadius())) ;
 }
 
+bool Pixel::coOccur(const Point & p) const
+{
+	return p.x > tl.x &&  p.x < tr.x && p.y > bl.y &&  p.y < tl.y ;
+}
+
 void Pixel::remove(Feature * inc)
 {
-	features.erase(std::find(features.begin(), features.end(), inc)) ;
+	std::vector<Feature *>::iterator e = std::find(features.begin(), features.end(), inc) ;
+	if(e != features.end())
+		features.erase(e) ;
+	
+	if(pixels.size())
+		for(size_t i = 0 ; i < 4 ; i++)
+			pixels[i].remove(inc) ;
+	
+	if(features.empty() && pixels.size())
+	{
+		pixels.resize(0) ;
+	}
+	
 	filled = false ;
+}
+
+int Pixel::computeFillFactor() const
+{
+	if(!pixels.size())
+		return 0 ;
+	
+	int count  = 0 ;
+	for(size_t i = 0 ; i < 10 ; i++)
+	{
+		for(size_t j = 0 ; j < 10 ; j++)
+		{
+			Point test(bl.x+(double)(i+1)*.1*(br.x-bl.x), bl.y+(double)(j+1)*.1*(tl.y-bl.y)) ;
+			
+			for(size_t k = 0 ; k < features.size() ; k++)
+			{
+				if(features[k]->in(test))
+				{
+					count++ ;
+					break ;
+				}
+			}
+		}
+	}
+	
+	return count ;
+}
+
+void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc) const
+{
+	if(!pixels.size() && !features.empty())
+	{
+		f.insert(f.end(), features.begin(), features.end()) ;
+		return ;
+	}
+	
+	std::vector<Feature *> ret ;
+	
+	for(size_t i = 0 ; i < 4 ; i++)
+	{
+		if(pixels[i].coOccur(inc))
+		{
+			pixels[i].coOccuringFeatures(f, inc) ;
+		}
+	}
+}
+
+void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) const
+{
+	if(!pixels.size() && !features.empty())
+	{
+		f.insert(f.end(), features.begin(), features.end()) ;
+		return ;
+	}
+	
+	std::vector<Feature *> ret ;
+	
+	for(size_t i = 0 ; i < 4 ; i++)
+	{
+		if(pixels[i].coOccur(p))
+		{
+			pixels[i].coOccuringFeatures(f, p) ;
+		}
+	}
 }
 
 bool Pixel::add(Feature * inc)
 {
 	if(filled)
 		return false;
+	
+	if(pixels.size())
+	{
+		bool ret = true ;
+		for(size_t i = 0 ; i < 4 ; i++)
+		{
+			if(pixels[i].coOccur(inc))
+				ret = ret && pixels[i].add(inc) ;
+		}
+		
+		if(!ret)
+			for(size_t i = 0 ; i < 4 ; i++)
+				pixels[i].remove(inc) ;
+		
+		if(ret)
+			forceAdd(inc) ;
+		
+		return ret ;
+	}
 
 	if(!features.empty())
 	{
 		for(size_t i = 0 ; i < this->features.size() ; i++)
 		{
-			if(
-			    this->features[i]->intersects(inc)
-// 			    || inc->in(inclusions[i]->getCenter())
-// 			    || inclusions[i]->in(inc->getCenter())
-			  )
+			if(this->features[i]->intersects(inc))
 				return false;
 		}
 		this->features.push_back(inc) ;
+		
+		if(features.size() > 64 )
+			refine() ;
 		
 		return true;
 	}
@@ -3213,6 +3490,23 @@ bool Pixel::add(Feature * inc)
 void Pixel::forceAdd(Feature * inc)
 {
 	this->features.push_back(inc) ;
+	
+	if(inc->in(tl) && inc->in(tr) && inc->in(br) && inc->in(bl))
+		filled = true ;
+	
+	if(pixels.size())
+	{
+		for(size_t i = 0 ; i < 4 ; i++)
+			if(pixels[i].coOccur(inc))
+				pixels[i].forceAdd(inc) ;
+	}
+	
+
+	
+	if(!filled && features.size() > 64 )
+	{
+		refine() ;
+	}
 }
 
 void Pixel::print() const
@@ -3220,7 +3514,6 @@ void Pixel::print() const
 	for(size_t i = 0 ; i < features.size() ; i++)
 		features[i]->print() ;
 }
-
 
 Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div ): x(sizeX), y(sizeY) , z(sizeZ) 
 {
@@ -3275,42 +3568,9 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div ): x(sizeX), y(
 
 Point Grid3D::randomFreeCenter() const 
 {
-/*	if(!freepixel.empty())
-	{
-		size_t index = random()%(freepixel.size()-1) ;
-		Point start = freepixel[index]->center() ;
-		double f0 = (double)random()/(RAND_MAX+1)-.5; 
-		double f1 = (double)random()/(RAND_MAX+1)-.5; 
-		double f2 = (double)random()/(RAND_MAX+1)-.5; 
-		
-		start.x += f0*psize ;
-		start.y += f1*psize ;
-		start.z += f2*psize ;
-		
-		return start ;
-	}
-	else */if(!unfilledpixel.empty())
-	{
-		size_t index = random()%(unfilledpixel.size()-1) ;
-// 		std::set<Voxel *>::iterator i = unfilledpixel.begin() ;
-// 		while(index)
-// 		{
-// 			i++ ;
-// 			index-- ;
-// 		}
-		Point start = unfilledpixel[index]->center() ;
-		double f0 = (double)random()/(RAND_MAX+1)-.5; 
-		double f1 = (double)random()/(RAND_MAX+1)-.5; 
-		double f2 = (double)random()/(RAND_MAX+1)-.5; 
-		
-		start.x += f0*psize ;
-		start.y += f1*psize ;
-		start.z += f2*psize ;
-		
-		return start ;
-	}
-	else
-		return Point(x*random()/(RAND_MAX+1)-.5*x, y*random()/(RAND_MAX+1)-.5*y, z*random()/(RAND_MAX+1)-.5*z) ;
+	return Point(x*(double)random()/(RAND_MAX)-.5*x, 
+	             y*(double)random()/(RAND_MAX)-.5*y, 
+	             z*(double)random()/(RAND_MAX)-.5*z) ;
 }
 
 Grid3D::~Grid3D()
@@ -3383,23 +3643,6 @@ bool Grid3D::add(Feature * inc)
 		
 	}
 	
-	for(size_t l = 0 ; l < cleanup.size() ; l++)
-	{
-		dirtyCounter++ ;
-// 		std::vector<Voxel *>::iterator e = std::find(freepixel.begin(), freepixel.end(), cleanup[l]) ;
-// 		if(e != freepixel.end())
-// 			freepixel.erase(e) ;
-		if(cleanup[l]->isFilled())
-		{
-			std::vector<Voxel *>::iterator e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
-			if(e != unfilledpixel.end())
-				unfilledpixel.erase(e) ;
-		}
-	}
-	
-// 	if(ret)
-// 		std::cout << freepixel.size() << ", "<< unfilledpixel.size() << std::endl ; 
-		
 	return ret ;
 }
 
@@ -3432,20 +3675,8 @@ void Grid3D::forceAdd(Feature * inc)
 				if(pixels[i][j][k]->coOccur(inc))
 				{
 					pixels[i][j][k]->forceAdd(inc) ;
-					cleanup.push_back(pixels[i][j][k]) ;
 				}
 			}
-		}
-	}
-	
-	for(size_t l = 0 ; l < cleanup.size() ; l++)
-	{
-		dirtyCounter++ ;
-		if(cleanup[l]->isFilled())
-		{
-			std::vector<Voxel *>::iterator e = std::find(unfilledpixel.begin(), unfilledpixel.end(), cleanup[l]) ;
-			if(e != unfilledpixel.end())
-				unfilledpixel.erase(e) ;
 		}
 	}
 }
@@ -3479,8 +3710,7 @@ std::vector<Feature *> Grid3D::coOccur(const Geometry * geo) const
 			{
 				if(pixels[i][j][k]->coOccur(geo))
 				{
-					std::vector<Feature *> to_insert = pixels[i][j][k]->getFeatures() ;
-					ret.insert(ret.end(), to_insert.begin(), to_insert.end()) ;
+					pixels[i][j][k]->coOccuringFeatures(ret,geo) ;
 				}
 			}
 		}
@@ -3492,32 +3722,45 @@ std::vector<Feature *> Grid3D::coOccur(const Geometry * geo) const
 	return ret ;
 }
 
-const std::vector<Feature *> & Grid3D::coOccur(const Point & p) const
+std::vector<Feature *> Grid3D::coOccur(const Point & p) const 
 {
-	double startX = .5*x + p.x ;
-	int startI = std::max(0.,std::min(floor((startX/x)*lengthX), (double)lengthX-1)) ;
+	std::vector<Feature *> ret ;
+	double startX = .5*x + p.x-.05*x ;
+	int startI = std::max(0., startX/psize - 2) ;
 	
-	double startY = .5*y + p.y ;
-	int startJ = std::max(0.,std::min(floor((startY/y)*lengthY), (double)lengthY-1)) ;
+	double endX =  startX+.05*x;
+	int endI = std::min(endX/psize + 2, (double)lengthX);
 	
-	double startZ = .5*z + p.z ;
-	int startK = std::max(0.,std::min(floor((startZ/z)*lengthZ), (double)lengthZ-1)) ;
-
-	return pixels[startI][startJ][startK]->getFeatures() ;
-}
-
-std::vector<Feature *> & Grid3D::coOccur(const Point & p)
-{
-	double startX = .5*x + p.x ;
-	int startI = std::max(0.,std::min(floor((startX/x)*lengthX), (double)lengthX-1)) ;
+	double startY = .5*y + p.y-.05*y ;
+	int startJ = std::max(0., startY/psize - 2) ;
 	
-	double startY = .5*y + p.y ;
-	int startJ = std::max(0.,std::min(floor((startY/y)*lengthY), (double)lengthY-1)) ;
+	double endY =  startY+.05*y;
+	int endJ = std::min(endY/psize + 2, (double)lengthY);
 	
-	double startZ = .5*z + p.z ;
-	int startK = std::max(0.,std::min(floor((startZ/z)*lengthZ), (double)lengthZ-1)) ;
+	double startZ = .5*z + p.z-.05*z ;
+	int startK = std::max(0., startZ/psize - 2) ;
 	
-	return pixels[startI][startJ][startK]->getFeatures() ;
+	double endZ =  startZ+.05*z;
+	int endK = std::min(endZ/psize + 2, (double)lengthZ);
+	
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			for(int k = startK ; k < endK ; k++)
+			{
+				if(pixels[i][j][k]->coOccur(p))
+				{
+					pixels[i][j][k]->coOccuringFeatures(ret,p) ;
+				}
+			}
+		}
+	}
+	
+	std::stable_sort(ret.begin(), ret.end());
+	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	ret.erase(e, ret.end()) ;
+	return ret ;
 }
 
 Grid::~Grid()
@@ -3578,8 +3821,7 @@ std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
 		{
 			if(pixels[i][j]->coOccur(geo))
 			{
-				std::vector<Feature *> to_insert = pixels[i][j]->getFeatures() ;
-				ret.insert(ret.end(), to_insert.begin(), to_insert.end()) ;
+				pixels[i][j]->coOccuringFeatures(ret,geo) ;
 			}
 		}
 	}
@@ -3590,26 +3832,38 @@ std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
 	return ret ;
 }
 
- std::vector<Feature *> & Grid::coOccur(const Point & p)
+ std::vector<Feature *> Grid::coOccur(const Point & p) const 
 {
-	double startX = .5*x + p.x ;
-	int startI = std::max(0.,std::min(floor((startX/x)*lengthX), (double)lengthX-1)) ;
-
-	double startY = .5*y + p.y ;
-	int startJ = std::max(0.,std::min(floor((startY/y)*lengthY), (double)lengthY-1)) ;
-	return pixels[startI][startJ]->getFeatures() ;
+	std::vector<Feature *> ret ;
+	double startX = .5*x + p.x-.05*x ;
+	int startI = std::max(0., startX/psize - 2) ;
+	
+	double endX =  startX+.05*x;
+	int endI = std::min(endX/psize + 2, (double)lengthX);
+	
+	double startY = .5*y + p.y-.05*y ;
+	int startJ = std::max(0., startY/psize - 2) ;
+	
+	double endY =  startY+.05*y;
+	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			if(pixels[i][j]->coOccur(p))
+			{
+				pixels[i][j]->coOccuringFeatures(ret,p) ;
+			}
+		}
+	}
+	
+	std::stable_sort(ret.begin(), ret.end());
+	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	ret.erase(e, ret.end()) ;
+	return ret ;
 }
 
-const std::vector<Feature *> & Grid::coOccur(const Point & p) const
-{
-	double startX = .5*x + p.x ;
-	int startI = std::max(0.,floor((startX/x)*lengthX-1)) ;
-	
-	double startY = .5*y + p.y ;
-	int startJ = std::max(0.,floor((startY/y)*lengthY-1)) ;
-	
-	return pixels[startI][startJ]->getFeatures() ;
-}
 
 void Grid::forceAdd(Feature * inc)
 {
@@ -3673,7 +3927,6 @@ bool Grid::add(Feature * inc)
 					}
 					return false ;
 				}
-				
 			}
 		}
 		

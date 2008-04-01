@@ -497,12 +497,16 @@ int main(int argc, char *argv[])
 	Stiffness sc3s(cgStressC3S) ;
 	Stiffness soth(cgStress) ;
 	Stiffness soth0(cgStress0) ;
-
+	Hexahedron box (.04, .04, .04, 0, 0, 0) ;
 	double itzSize = 0.00003;
 
-	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,4092, itzSize);
+	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,2000, itzSize);
+	double volume = 0 ;
+	for(size_t i = 0 ; i < features.size() ; i++)
+		volume += features[i]->volume() ;
 
-	std::cout << "largest r = " << features.back()->getRadius() << ", smallest r =" << features.front()->getRadius() << std::endl ; 
+	std::cout << "largest r = " << features.back()->getRadius() << ", smallest r =" << features.front()->getRadius() << ", filling = " << volume/box.volume()*100.<< "%"<< std::endl ; 
+	
 	std::vector<Feature *> feats ;
 	std::vector<Inclusion3D *> inclusions ;
 	for(size_t i = 0; i < features.size() ; i++)
@@ -510,9 +514,13 @@ int main(int argc, char *argv[])
 
 	
 	int nAgg = 0 ;
-	Hexahedron box (.04, .04, .04, 0, 0, 0) ;
-	feats = placement(&box,feats,  &nAgg, 8000) ;
-
+	
+	feats = placement(&box,feats,  &nAgg, 64000) ;
+	volume = 0 ;
+	for(size_t i = 0 ; i < feats.size() ; i++)
+		volume += feats[i]->volume() ;
+	std::cout << "largest r = " << feats.back()->getRadius() << ", smallest r =" << feats.front()->getRadius() << ", filling = " << volume/box.volume()*100.<< "%"<< std::endl ; 
+// 	return 0 ;
 
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(dynamic_cast<Inclusion3D *>(feats[i])) ;
@@ -522,7 +530,6 @@ int main(int argc, char *argv[])
 		static_cast<Sphere*>(inclusions[i])->setCenter(Point(inclusions[i]->getCenter().x*1000, inclusions[i]->getCenter().y*1000, inclusions[i]->getCenter().z*1000)) ;
 		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000-0.03) ;
 		inclusions[i]->setBehaviour(new Stiffness(cgStress)) ;
-
 		ft.addFeature(&s3d, inclusions[i]) ;
 	}
 

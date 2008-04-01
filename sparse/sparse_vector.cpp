@@ -23,10 +23,10 @@ double SparseVector::operator [](size_t i) const
 {
 	unsigned int * __start__       = &idx[start] ;
 	unsigned int * __end__         = &idx[start+length] ;
-	unsigned int * i_index_pointer = std::find(__start__, __end__, i) ;
+	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i) ;
 	unsigned int offset            = i_index_pointer - __start__ ;
 	
-	if(i_index_pointer !=  __end__)
+	if(std::binary_search(__start__, __end__, i))
 		return val[start+offset] ;
 	
 	return 0 ;
@@ -45,10 +45,10 @@ double & SparseVector::operator [](const size_t i)
 	zero = 0 ;
 	unsigned int * __start__       = &idx[start] ;
 	unsigned int * __end__         = &idx[start+length] ;
-	unsigned int * i_index_pointer = std::find(__start__, __end__, i) ;
+	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i) ;
 	unsigned int offset            = i_index_pointer - __start__ ;
 	
-	if(i_index_pointer !=  __end__)
+	if(std::binary_search(__start__, __end__, i))
 		return val[start+offset] ;
 	
 	return zero ;
@@ -107,19 +107,19 @@ double innerProduct(const SparseVector & v0, const SparseVector & v1, const size
 
 	unsigned int i = 0 ; 
 	unsigned int j = 0 ; 
-	unsigned int *i_index_pointer = std::find(&v0.idx[v0.start], &v0.idx[v0.start+v0.length], end) ;
-	unsigned int *j_index_pointer = std::find(&v1.idx[v1.start], &v1.idx[v1.start+v1.length], end) ;
+	unsigned int *i_index_pointer = std::lower_bound(&v0.idx[v0.start], &v0.idx[v0.start+v0.length], end) ;
+	unsigned int *j_index_pointer = std::lower_bound(&v1.idx[v1.start], &v1.idx[v1.start+v1.length], end) ;
 	unsigned int i_end = i_index_pointer-&v0.idx[v0.start] ;
 	unsigned int j_end = j_index_pointer-&v1.idx[v1.start] ;
 	
 	if(v0.idx[v0.start] > v1.idx[v1.start])
 	{
-		j_index_pointer = std::find(&v1.idx[v1.start+j], &v1.idx[v1.start+v1.length], v0.idx[v0.start+i]) ;
+		j_index_pointer = std::lower_bound(&v1.idx[v1.start+j], &v1.idx[v1.start+v1.length], v0.idx[v0.start+i]) ;
 		j = j_index_pointer-&v1.idx[v1.start] ;
 	}
 	else if(v0.idx[v0.start] < v1.idx[v1.start])
 	{
-		i_index_pointer = std::find(&v0.idx[v0.start+i], &v0.idx[v0.start+v0.length], v1.idx[v1.start + j]) ;
+		i_index_pointer = std::lower_bound(&v0.idx[v0.start+i], &v0.idx[v0.start+v0.length], v1.idx[v1.start + j]) ;
 		i = i_index_pointer-&v0.idx[v0.start] ;
 	}
 	
@@ -131,12 +131,12 @@ double innerProduct(const SparseVector & v0, const SparseVector & v1, const size
 		
 		if(v0.idx[v0.start+i] > v1.idx[v1.start+j])
 		{
-			j_index_pointer = std::find(&v1.idx[v1.start+j], &v1.idx[v1.start+v1.length], v0.idx[v0.start+i]) ;
+			j_index_pointer = std::lower_bound(&v1.idx[v1.start+j], &v1.idx[v1.start+v1.length], v0.idx[v0.start+i]) ;
 			j = j_index_pointer-&v1.idx[v1.start] ;
 		}
 		else if(v0.idx[v0.start+i] < v1.idx[v1.start+j])
 		{
-			i_index_pointer = std::find(&v0.idx[v0.start+i], &v0.idx[v0.start+v0.length],v1.idx[v1.start + j]) ;
+			i_index_pointer = std::lower_bound(&v0.idx[v0.start+i], &v0.idx[v0.start+v0.length],v1.idx[v1.start + j]) ;
 			i = i_index_pointer-&v0.idx[v0.start] ;
 		}
 
@@ -224,7 +224,7 @@ ConstSparseVector::ConstSparseVector(const Vector & v, const std::valarray<unsig
 
 // double ConstSparseVector::operator [](const size_t i) const
 // {
-// 	const size_t *i_index_pointer = std::find(&idx[start], &idx[std::min(start+length,idx.size())], i) ;
+// 	const size_t *i_index_pointer = std::lower_bound(&idx[start], &idx[std::min(start+length,idx.size())], i) ;
 // 	size_t offset = i_index_pointer - &idx[start] ;
 // 	if(i_index_pointer != &idx[std::min(start+length,idx.size())])
 // 		return (val[start+offset]) ;

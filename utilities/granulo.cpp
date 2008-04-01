@@ -105,7 +105,10 @@ GranuloBolome::GranuloBolome( double masseInitiale, double densite, TypeGranulo 
 
 std::vector <Inclusion *> GranuloBolome::operator()(double rayonGranulatMax, double pourcentMasseMin, int inclusionNumber, double itzSize)
 {	
+
 	std::vector<Inclusion *> rayon;
+	if(!inclusionNumber)
+		return rayon ;
 	double rayon_granulat=rayonGranulatMax;
 	
 	double pourcentMasse=100;

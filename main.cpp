@@ -171,17 +171,18 @@ double pidUpdate()
 	derror =  error-preverror ;
 	ierror += (error+preverror)*.5 ;
 	double K_p = 1000000000. ;
-	load = apriori_command + K_p*error + K_p*ierror*.8+ K_p*.25*derror;
-	preverror = error ;
-	if(std::abs(load) > 1000)
+	double factor = 1. ;
+	if(load_displacement.size() > 2 && std::abs(load_displacement.back().second) > 1e-12 && std::abs(load_displacement.front().first) > 1e-12)
 	{
-		ierror = 0;
-		load = 1000 * std::abs(load)/load ;
+		factor = load_displacement.back().first 
+			/ load_displacement.back().second 
+			/ load_displacement.front().first 
+			* load_displacement.front().second ;
 	}
-// 	if( ierror > 0 )
-// 		ierror = std::max(5e-7, ierror) ;
-// 	else
-// 		ierror = std::min(-5e-7, ierror) ;
+	K_p *= factor ;
+	load = apriori_command + K_p*error + K_p*ierror+ K_p* .2 *derror;
+	preverror = error ;
+
 	return error ;
 }
 
@@ -272,21 +273,27 @@ void setBC()
 	for(size_t i = 0 ; i < xlow.size() ; i++)
 	{
 		std::cout << "\r setting BC point " << i+1 << "/" << xlow.size() << std::flush ;
-		featureTree->getAssembly()->setPoint(0,0,xlow[i]) ;
+		featureTree->getAssembly()->setPointAlong(ETA,0,xlow[i]) ;
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < xhigh.size() ; i++)
 	{
 		std::cout << "\r setting BC point " << i+1 << "/" << xhigh.size() << std::flush ;
-		featureTree->getAssembly()->setPoint(0,0,xhigh[i]) ;
+		featureTree->getAssembly()->setPointAlong(ETA,0,xhigh[i]) ;
 		
 	}
 	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < yhl.size() ; i++)
 	{
 		std::cout << "\r setting BC point " << i+1 << "/" << yhl.size() << std::flush ;
+		featureTree->getAssembly()->setPointAlong(XI,0,yhl[i]) ;
 		featureTree->getAssembly()->setForceOn(ETA,load/yhl.size() ,yhl[i]) ;
 	}
+// 	for(size_t i = 0 ; i < cornerRight.size() ; i++)
+// 	{
+// 		std::cout << "\r setting BC point " << i+1 << "/" << cornerRight.size() << std::flush ;
+// 		featureTree->getAssembly()->setPointAlong(XI,0 ,cornerRight[i]) ;
+// 	}
 	std::cout << "...done" << std::endl ;
 
 }
@@ -330,10 +337,9 @@ void step()
 		setBC() ;
 		size_t tries = 0 ;
 		bool go_on = true ;
-		
-		while(go_on && tries < ntries)
+		std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
+		while(go_on)
 		{
-			tries++ ;
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 // 			std::cout << "." << std::flush ;
@@ -349,7 +355,6 @@ void step()
 			double error = pidUpdate() ;
 			if(std::abs(load_displacement.back().second - prescribedDisplacement) > 1e-9)
 			{
-				load_displacement.pop_back() ;
 				go_on = true ;
 			}
 			if(std::abs(error) > 1)
@@ -357,20 +362,20 @@ void step()
 				tries = ntries ;
 				break ;
 			}
+			if(std::abs(load) < 5)
+				break ;
 
 			std::cout << error << ", "<< load << ", "<< displacement << std::endl ;
 			setBC() ;
-			
-			
+			break ;
 		}
 		std::cout << " " << tries << " tries." << std::endl ;
 		
+		saved_load_displacement.push_back(load_displacement.back()) ;
+		load_displacement = saved_load_displacement ;
 // 		
-// 		
-		if (tries < ntries)
-		{
-			prescribedDisplacement -= 0.00000002 ;
-		}
+		prescribedDisplacement -= 0.000000001 ;
+
 	
 	
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -1726,7 +1731,7 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.16, 0.04,0,0) ;
+	Sample sample(NULL, 0.04, 0.04,0,0) ;
 	
 	Inclusion inclusion(.00001, 0.02, -.02) ;
 	std::cout << sample.getPrimitive()->intersects(inclusion.getPrimitive())<< std::endl ;
@@ -1735,18 +1740,19 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	double itzSize = 0.0006;
+	double itzSize = 0.00003;
 	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, 12, itzSize);
+	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 20000, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		feats.push_back(inclusions[i]) ;
 	
 	int nAgg = 0 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg, 32000);
+	feats=placement(sample.getPrimitive(), feats, &nAgg, 64000);
+	return 0 ;
 // 	feats=placement(new Circle(.01, 0,0), feats, &nAgg, 32000);
-	
+	inclusions.clear() ;
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
 	
@@ -1772,23 +1778,29 @@ int main(int argc, char *argv[])
 		if(inclusions[i]->getRadius()-itzSize*.5 > 0)
 			radii.push_back(inclusions[i]->getRadius()-itzSize*.5) ;
 		behavs.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-		behavs.push_back(new StiffnessAndFracture(m0_paste*.66,new MohrCoulomb(20000, -8*20000))) ;
+		behavs.push_back(new StiffnessAndFracture(m0_paste*.5,new MohrCoulomb(10000, -8*10000))) ;
 
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
-		F.addFeature(pore1,newinc) ;
+// 		F.addFeature(pore1,newinc) ;
+		
+		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
+		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
+		F.addFeature(pore1,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
 
 
-
-	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
-	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
-	std::cout << "placed area = " <<  placed_area << std::endl ;
+	if(!inclusions.empty())
+	{
+		std::cout << "largest inclusion with r = " << inclusions.front()->getRadius() << std::endl ;
+		std::cout << "smallest inclusion with r = " << inclusions.back()->getRadius() << std::endl ;
+		std::cout << "placed area = " <<  placed_area << std::endl ;
+	}
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(64) ;
+	F.sample(512) ;
 
 	F.setOrder(LINEAR) ;
 

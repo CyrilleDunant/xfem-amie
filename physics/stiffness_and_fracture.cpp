@@ -70,7 +70,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	{
 		previousDamage = damage ;
 		
-		damage += .1/**currentState.getParent()->area()*1000000.*/ ;
+		damage += .05/**currentState.getParent()->area()*1000000.*/ ;
 		change = true ;
 		if(damage > .5)
 		{

@@ -86,7 +86,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		double longueurX = std::abs(boundingBox[2].x-boundingBox[0].x);
 		double longueurY = std::abs(boundingBox[0].y-boundingBox[2].y);
 		std::cout << longueurX << ", " << longueurY << std::endl ;
-		Grid grid(longueurX, longueurY, 20) ;
+		Grid grid(longueurX, longueurY, 1) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
 		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
@@ -133,39 +133,22 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 	}
 	else
 	{
-		std::cout << "placing..." << std::endl ;
 		Point offset = box->getCenter() ;
 		std::vector<Point> boundingBox = box->getBoundingBox() ;
-		double longueurX = boundingBox[0].x-boundingBox[7].x;
-		double longueurY = boundingBox[0].y-boundingBox[7].y;
-		double longueurZ = boundingBox[0].z-boundingBox[7].z;
-		std::cout << longueurX << ", " << longueurY << ", " << longueurZ << std::endl ;
-		double ndiv = 4 ;
+		double longueurX = std::abs(boundingBox[0].x-boundingBox[7].x);
+		double longueurY = std::abs(boundingBox[0].y-boundingBox[7].y);
+		double longueurZ = std::abs(boundingBox[0].z-boundingBox[7].z);
+		double ndiv = 1 ;
 		Grid3D *grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
 		longueurZ*=1.2 ;
 		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
-
-// 			double r = inclusions[i]->getRadius() ;
 			tries++ ;
-// 			Point newCentre(chiffreAleatoire(longueurX-2.1*r)-(longueurX-2.1*r)/2. + offset.x, 
-// 			                chiffreAleatoire(longueurY-2.1*r)-(longueurY-2.1*r)/2. + offset.y,
-// 			                chiffreAleatoire(longueurZ-2.1*r)-(longueurZ-2.1*r)/2. + offset.z
-// 			               ) ;
-// 			Point newCentre = grid3D.randomFreeCenter() ;
 			inclusions[i]->setCenter( grid->randomFreeCenter()) ;
 			while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 			{
-// 				Point newCentre(
-// 				                 chiffreAleatoire(longueurX-2.1*r)
-// 				                 -(longueurX-2.1*r)/2. + offset.x, 
-// 				                chiffreAleatoire(longueurY-2.1*r)
-// 				                 -(longueurY-2.1*r)/2. + offset.y,
-// 				                chiffreAleatoire(longueurZ-2.1*r)
-// 				                 -(longueurZ-2.1*r)/2. + offset.z
-// 				               ) ;
 				inclusions[i]->setCenter(grid->randomFreeCenter()) ;
 			}
 			
@@ -174,23 +157,9 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			while(!grid->add(inclusions[i]) && tries < triesMax)
 			{
 				tries++ ;
-// 				Point newCentre(chiffreAleatoire(longueurX-2.1*r)
-// 				                -(longueurX-2.1*r)/2. + offset.x, 
-// 				                chiffreAleatoire(longueurY-2.1*r)
-// 				                -(longueurY-2.1*r)/2. + offset.y,
-// 				                chiffreAleatoire(longueurZ-2.1*r)
-// 				                -(longueurZ-2.1*r)/2. + offset.z
-// 				               ) ;
 				inclusions[i]->setCenter(grid->randomFreeCenter()) ;
 				while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 				{
-// 					Point newCentre(chiffreAleatoire(longueurX-2.1*r)
-// 					                -(longueurX-2.1*r)/2. + offset.x, 
-// 					                chiffreAleatoire(longueurY-2.1*r)
-// 					                -(longueurY-2.1*r)/2. + offset.y,
-// 					                chiffreAleatoire(longueurZ-2.1*r)
-// 					                -(longueurZ-2.1*r)/2. + offset.z
-// 					               ) ;
 					inclusions[i]->setCenter(grid->randomFreeCenter()) ;
 				}
 			}
@@ -207,20 +176,6 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			else
 				break ;
 				
-			if(grid->fraction() > .6 && ndiv < 128 )
-			{
-				double newndiv = longueurX/ret[i]->getRadius() ;
-				
-				if(newndiv-ndiv > 2)
-				{
-					ndiv = newndiv ;
-					delete grid ;
-					grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
-					for(size_t j = 0 ; j < ret.size() ; j++)
-						grid->forceAdd(ret[j]) ;
-				}
-				
-			}
 		}
 		
 		std::cout << "\n placed aggregate volume = " << volume << std::endl ;
