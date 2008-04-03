@@ -405,6 +405,28 @@ void Triangle::computeCircumCenter()
 
 bool Triangle::inCircumCircle(const Point & p) const
 {
+	if(p.x > circumCenter.x+1.01*radius)
+		return false ;
+	if(p.x < circumCenter.x-1.01*radius)
+		return false ;
+	if(p.y > circumCenter.y+1.01*radius)
+		return false ;
+	if(p.y < circumCenter.y-1.01*radius)
+		return false ;
+
+	if(squareDist2D(circumCenter, p) < .99*sqradius)
+		return true ;
+	
+	double delta = POINT_TOLERANCE ;
+	Point a(p) ; a.x += 2.*delta ; a.y += 2.*delta ; 
+	Point c(p) ; c.x += 2.*delta ; c.y -= 2.*delta ; 
+	Point e(p) ; e.x -= 2.*delta ; e.y += 2.*delta ; 
+	Point g(p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; 
+
+	return  squareDist3D(circumCenter, a) < sqradius 
+		&&  squareDist3D(circumCenter, c) < sqradius
+		&&  squareDist3D(circumCenter, e) < sqradius
+		&&  squareDist3D(circumCenter, g) < sqradius;
 	double x = circumCenter.x -p.x ;
 	double y = circumCenter.y -p.y ;
 	return  fma(x, x, y*y)< sqradius*(1. - POINT_TOLERANCE)  ;
@@ -412,6 +434,28 @@ bool Triangle::inCircumCircle(const Point & p) const
 
 bool Triangle::inCircumCircle(const Point *p) const
 {
+	if(p->x > circumCenter.x+1.01*radius)
+		return false ;
+	if(p->x < circumCenter.x-1.01*radius)
+		return false ;
+	if(p->y > circumCenter.y+1.01*radius)
+		return false ;
+	if(p->y < circumCenter.y-1.01*radius)
+		return false ;
+
+	if(squareDist2D(circumCenter, *p) < .99*sqradius)
+		return true ;
+	
+	double delta = POINT_TOLERANCE ;
+	Point a(*p) ; a.x += 2.*delta ; a.y += 2.*delta ; 
+	Point c(*p) ; c.x += 2.*delta ; c.y -= 2.*delta ; 
+	Point e(*p) ; e.x -= 2.*delta ; e.y += 2.*delta ; 
+	Point g(*p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; 
+
+	return  squareDist3D(circumCenter, a) < sqradius 
+		&&  squareDist3D(circumCenter, c) < sqradius
+		&&  squareDist3D(circumCenter, e) < sqradius
+		&&  squareDist3D(circumCenter, g) < sqradius;
 	double x = circumCenter.x -p->x ;
 	double y = circumCenter.y -p->y ;
 	return  fma(x, x, y*y) < sqradius*(1. - POINT_TOLERANCE)  ;
@@ -913,6 +957,15 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const 
 {
+	if(v.x < center.x-getRadius())
+		return false ;
+	if(v.x > center.x+getRadius())
+		return false ;
+	if(v.y < center.y-getRadius())
+		return false ;
+	if(v.y > center.y+getRadius())
+		return false ;
+	
 	return squareDist2D(v, getCenter()) < getSquareRadius() ;
 }
 

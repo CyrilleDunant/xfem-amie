@@ -373,7 +373,6 @@ void Assembly::setBoundaryConditions()
 				|| multipliers[i].type == SET_FORCE_ETA
 				|| multipliers[i].type == SET_FORCE_ZETA)
 		{
-			std::cout << "setting force on " << multipliers[i].getId() << std::endl ;
 			this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ; 
 		}
 	}

@@ -24,35 +24,45 @@ MaximumStrain::~MaximumStrain()
 {
 }
 
-bool MaximumStrain::met(const ElementState & s) const
+double MaximumStrain::grade(const ElementState &s) const
+{
+	Vector pstrain = s.getStrain(s.getParent()->getBoundingPoints()) ;
+	double maxStrain = pstrain.max();
+	if(maxStrain > upVal)
+		return 1.-std::abs(upVal/maxStrain) ;
+	else
+		return 0 ;
+	
+}
+
+bool MaximumStrain::met(const ElementState & s) 
 {
 	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	if(tested)
 	{
-		std::vector<DelaunayTriangle *> neighbourhood ;
-		for(size_t i = 0 ; i< tested->neighbourhood.size() ; i++)
-			neighbourhood.push_back(tested->getNeighbourhood(i)) ;
-		double maxNeighbourhoodStrain = 0 ;
+		Circle epsilon(0.0001,tested->getCenter()) ;
+		std::vector<DelaunayTriangle *> neighbourhood  = tested->tree->conflicts(&epsilon);
+
+		double maxNeighbourhoodScore = 0 ;
 		if(!neighbourhood.empty())
 		{
 			for(size_t i = 0 ; i< neighbourhood.size() ; i++)
 			{
-				Vector pstrain = neighbourhood[i]->getState().getStrain(neighbourhood[i]->getBoundingPoints()) ;
-				double maxStrain = pstrain.max() ;
-				if(maxStrain > maxNeighbourhoodStrain)
-					maxNeighbourhoodStrain = maxStrain ;
+				if(neighbourhood[i]->getBehaviour()->getFractureCriterion())
+					maxNeighbourhoodScore = std::max(maxNeighbourhoodScore, neighbourhood[i]->getBehaviour()->getFractureCriterion()->grade(neighbourhood[i]->getState())) ;
 			}
 		}
 		
-		Vector pstrain = s.getStrain(tested->getBoundingPoints()) ;
-		double maxStrain = pstrain.max();
-		if( maxStrain > upVal )
+		double score = grade(s) ;
+		if( score > 0 )
 		{
-			if(maxNeighbourhoodStrain < maxStrain)
+			if(score > maxNeighbourhoodScore)
 			{
 				return true ;
 			}
 		}
+
+		return false ;
 		
 	}
 	else

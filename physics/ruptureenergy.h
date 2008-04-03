@@ -30,13 +30,14 @@ public:
 
 	double energy ;
 
-    RuptureEnergy(double energy);
+	RuptureEnergy(double energy);
 
-    virtual ~RuptureEnergy();
+	virtual ~RuptureEnergy();
 
-	virtual bool met(const ElementState & s) const ;
+	virtual bool met(const ElementState & s)  ;
 
 	virtual FractureCriterion * getCopy() const;
+	virtual double grade(const ElementState &s) const  ;
 };
 
 }

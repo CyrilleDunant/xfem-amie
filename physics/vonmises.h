@@ -29,9 +29,10 @@ namespace Mu {
 	
 		virtual ~VonMises();
 		
-		virtual bool met(const ElementState & s) const ;
+		virtual bool met(const ElementState & s)  ;
 	
 		virtual FractureCriterion * getCopy() const;
+		virtual double grade(const ElementState &s) const  ;
 	};
 
 } ;

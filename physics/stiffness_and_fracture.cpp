@@ -33,6 +33,11 @@ StiffnessAndFracture::~StiffnessAndFracture()
 	delete criterion ;
 } ;
 
+FractureCriterion * StiffnessAndFracture::getFractureCriterion() const
+{
+	return criterion ;
+}
+
 Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
 	std::vector<Variable> v ;

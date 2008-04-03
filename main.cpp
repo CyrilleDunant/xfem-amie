@@ -90,18 +90,21 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.1e-07 ;
+double delta_displacement =  1.e-8 ;
+double displacement_tolerance = 0.01*delta_displacement ; 
+double softeningFactor = 1. ;
 
 double percent = 0.1 ;
 double load = 0 ;
 double displacement  = 0 ;
-double prescribedDisplacement = -2.08e-7;
+double prescribedDisplacement = -1.25e-7;
 double derror = 0 ;
 double ierror = 0 ;
 double preverror = 0 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
-
+double apriori_command = 0 ;
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
@@ -164,23 +167,25 @@ void computeDisplacement()
 
 double pidUpdate()
 {
-	double apriori_command = 0 ;
-	if(!load_displacement.empty() && !(std::abs(load_displacement.back().second < 1e-12)))
-		apriori_command = load_displacement.back().first/load_displacement.back().second*prescribedDisplacement ;
+	
+	if(load_displacement.size() > 2 && !(std::abs(load_displacement.back().second < 1e-12)))
+		apriori_command = load_displacement.back().first
+		/ load_displacement.back().second
+				* prescribedDisplacement ;
 	double error = prescribedDisplacement-displacement ;
 	derror =  error-preverror ;
 	ierror += (error+preverror)*.5 ;
-	double K_p = 1000000000. ;
-	double factor = 1. ;
-	if(load_displacement.size() > 2 && std::abs(load_displacement.back().second) > 1e-12 && std::abs(load_displacement.front().first) > 1e-12)
+	double K_p = 800000000. ;
+	
+	if(load_displacement.size() > 2 && std::abs(load_displacement.back().second) > 1e-12 && std::abs(load_displacement[2].second) > 1e-12)
 	{
-		factor = load_displacement.back().first 
-			/ load_displacement.back().second 
-			/ load_displacement.front().first 
-			* load_displacement.front().second ;
+		softeningFactor = (load_displacement.back().first 
+			/ load_displacement.back().second )
+			/ (load_displacement[2].first 
+			/ load_displacement[2].second ) ;
 	}
-	K_p *= factor ;
-	load = apriori_command + K_p*error + K_p*ierror+ K_p* .2 *derror;
+	K_p *= softeningFactor ;
+	load = apriori_command + K_p*error + K_p*ierror+ K_p* .3 *derror;
 	preverror = error ;
 
 	return error ;
@@ -227,13 +232,8 @@ void setBC()
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-/*			if (triangles[k]->getBoundingPoint(c).x < -0.0799 
-			    && (triangles[k]->getBoundingPoint(c).y < -0.0199 || triangles[k]->getBoundingPoint(c).y > 0.0199))
-			{
-				cornerLeft.push_back(triangles[k]->getBoundingPoint(c).id);
-			}
-			else */if(triangles[k]->getBoundingPoint(c).x < -.0799 
-			        && (triangles[k]->getBoundingPoint(c).y < -.015 ))
+			if(triangles[k]->getBoundingPoint(c).x < -.0799 
+			   && (triangles[k]->getBoundingPoint(c).y < -.015 ))
 			{
 				cornerRight.push_back(triangles[k]->getBoundingPoint(c).id);
  			}
@@ -247,7 +247,8 @@ void setBC()
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.0005 && triangles[k]->getBoundingPoint(c).y > 0.0199)
+			else if(std::abs(triangles[k]->getBoundingPoint(c).x) < 0.0005 
+			        && triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
 				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
@@ -272,88 +273,54 @@ void setBC()
 
 	for(size_t i = 0 ; i < xlow.size() ; i++)
 	{
-		std::cout << "\r setting BC point " << i+1 << "/" << xlow.size() << std::flush ;
 		featureTree->getAssembly()->setPointAlong(ETA,0,xlow[i]) ;
 	}
-	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < xhigh.size() ; i++)
 	{
-		std::cout << "\r setting BC point " << i+1 << "/" << xhigh.size() << std::flush ;
 		featureTree->getAssembly()->setPointAlong(ETA,0,xhigh[i]) ;
 		
 	}
-	std::cout << "...done" << std::endl ;
 	for(size_t i = 0 ; i < yhl.size() ; i++)
 	{
-		std::cout << "\r setting BC point " << i+1 << "/" << yhl.size() << std::flush ;
 		featureTree->getAssembly()->setPointAlong(XI,0,yhl[i]) ;
 		featureTree->getAssembly()->setForceOn(ETA,load/yhl.size() ,yhl[i]) ;
 	}
-// 	for(size_t i = 0 ; i < cornerRight.size() ; i++)
-// 	{
-// 		std::cout << "\r setting BC point " << i+1 << "/" << cornerRight.size() << std::flush ;
-// 		featureTree->getAssembly()->setPointAlong(XI,0 ,cornerRight[i]) ;
-// 	}
-	std::cout << "...done" << std::endl ;
 
 }
-
-// void setBC()
-// {
-// 	triangles = featureTree->getTriangles() ;
-// 	
-// 	for(size_t k = 0 ; k < triangles.size() ;k++)
-// 	{
-// 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-// 		{
-// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y > 0.199*/)
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .199*/)
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-// 
-// 		}
-// 
-// 	}
-// 
-// }
 
 void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 1 ;
-	size_t ntries = 1;
+	size_t nit = 25 ;
+	size_t ntries = 25;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		setBC() ;
 		size_t tries = 0 ;
 		bool go_on = true ;
 		std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
 		while(go_on)
 		{
+			ntries++ ;
 			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-// 			std::cout << "." << std::flush ;
+			go_on = featureTree->solverConverged() 
+				&&  (
+				      featureTree->meshChanged() 
+				      || featureTree->enrichmentChanged()
+				    );
 			if(!featureTree->solverConverged())
 			{
 				i = nit ;
 				tries = ntries ;
+				std::cout << "no convergence" << std::endl ;
 				break ;
 			}
 			computeDisplacement() ;
 			load_displacement.push_back(std::make_pair(load, displacement)) ;
-
+	
 			double error = pidUpdate() ;
-			if(std::abs(load_displacement.back().second - prescribedDisplacement) > 1e-9)
+			if(std::abs(load_displacement.back().second - prescribedDisplacement) > displacement_tolerance)
 			{
 				go_on = true ;
 			}
@@ -366,18 +333,15 @@ void step()
 				break ;
 
 			std::cout << error << ", "<< load << ", "<< displacement << std::endl ;
+
 			setBC() ;
-			break ;
 		}
 		std::cout << " " << tries << " tries." << std::endl ;
 		
 		saved_load_displacement.push_back(load_displacement.back()) ;
 		load_displacement = saved_load_displacement ;
-// 		
-		prescribedDisplacement -= 0.000000001 ;
+		prescribedDisplacement -= delta_displacement ;
 
-	
-	
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		dt = featureTree->getDelaunayTree() ;
@@ -1731,26 +1695,39 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.04, 0.04,0,0) ;
+	Sample sample(NULL, 0.16, 0.04,0,0) ;
 	
 	Inclusion inclusion(.00001, 0.02, -.02) ;
-	std::cout << sample.getPrimitive()->intersects(inclusion.getPrimitive())<< std::endl ;
 // return 0 ; 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 
-	double itzSize = 0.00003;
-	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, 20000, itzSize);
+	double itzSize = 0;
+	int inclusionNumber = 16000 ;
+	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
+
+	if(inclusionNumber)
+		itzSize = .5*inclusions.back()->getRadius() ;
+	for(size_t i = 0; i < inclusions.size() ; i++)
+		delete inclusions[i] ;
+
+	inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		feats.push_back(inclusions[i]) ;
-	
+
 	int nAgg = 0 ;
 	feats=placement(sample.getPrimitive(), feats, &nAgg, 64000);
-	return 0 ;
+
+	double volume = 0 ;
+	for(size_t i = 0 ; i < feats.size() ; i++)
+		volume += feats[i]->area() ;
+	if(!feats.empty())
+		std::cout << "largest r = " << feats.back()->getRadius() 
+		<< ", smallest r =" << feats.front()->getRadius() 
+		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
 // 	feats=placement(new Circle(.01, 0,0), feats, &nAgg, 32000);
 	inclusions.clear() ;
 	for(size_t i = 0; i < feats.size() ; i++)
@@ -1778,7 +1755,7 @@ int main(int argc, char *argv[])
 		if(inclusions[i]->getRadius()-itzSize*.5 > 0)
 			radii.push_back(inclusions[i]->getRadius()-itzSize*.5) ;
 		behavs.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
-		behavs.push_back(new StiffnessAndFracture(m0_paste*.5,new MohrCoulomb(10000, -8*10000))) ;
+		behavs.push_back(new WeibullDistributedStiffness(m0_paste*.5, 40000*.5)) ;
 
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
@@ -1787,6 +1764,7 @@ int main(int argc, char *argv[])
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		F.addFeature(pore1,inclusions[i]) ;
+// 		F.addFeature(pore1,new Pore(inclusions[i]->getRadius()-itzSize*.75, inclusions[i]->getCenter())) ;
 		placed_area += inclusions[i]->area() ;
 	}
 
@@ -1800,7 +1778,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(512) ;
+	F.sample(1600) ;
 
 	F.setOrder(LINEAR) ;
 

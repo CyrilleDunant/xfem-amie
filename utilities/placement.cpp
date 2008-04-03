@@ -138,7 +138,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		double longueurX = std::abs(boundingBox[0].x-boundingBox[7].x);
 		double longueurY = std::abs(boundingBox[0].y-boundingBox[7].y);
 		double longueurZ = std::abs(boundingBox[0].z-boundingBox[7].z);
-		double ndiv = 1 ;
+		double ndiv = 10 ;
 		Grid3D *grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;

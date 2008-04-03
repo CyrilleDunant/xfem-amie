@@ -22,7 +22,21 @@ VonMises::~VonMises()
 {
 }
 
-bool VonMises::met(const ElementState & s) const
+double VonMises::grade(const ElementState &s) const
+{
+	double maxStress = s.getMaximumVonMisesStress() ;
+
+	if(maxStress > threshold )
+	{
+		return 1. - std::abs(threshold/maxStress) ;
+	}
+	else 
+	{
+		return 0 ;
+	}
+}
+
+bool VonMises::met(const ElementState & s)
 {
 	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	if(tested)
@@ -31,27 +45,26 @@ bool VonMises::met(const ElementState & s) const
 		for(size_t i = 0 ; i< tested->neighbourhood.size() ; i++)
 			neighbourhood.push_back(tested->getNeighbourhood(i)) ;
 		
-		double maxNeighbourhoodStress = 0 ;
+		double maxNeighbourhoodScore = 0 ;
 		if(!neighbourhood.empty())
 		{
 			for(size_t i = 0 ; i< neighbourhood.size() ; i++)
 			{
-				double maxStress =  neighbourhood[i]->getState().getMaximumVonMisesStress() ;
-				if(maxStress > maxNeighbourhoodStress)
-					maxNeighbourhoodStress = maxStress ;
-
+				if(neighbourhood[i]->getBehaviour()->getFractureCriterion())
+					maxNeighbourhoodScore = std::max(maxNeighbourhoodScore, neighbourhood[i]->getBehaviour()->getFractureCriterion()->grade(neighbourhood[i]->getState())) ;
 			}
 		}
 		
-		double maxStress = s.getMaximumVonMisesStress() ;
-
-		if(maxStress > threshold )
+		double score = grade(s) ;
+		if( score > 0 )
 		{
-			if(maxNeighbourhoodStress < maxStress)
+			if(score > maxNeighbourhoodScore)
 			{
 				return true ;
 			}
 		}
+
+		return false ;
 	}
 	else
 	{

@@ -519,7 +519,17 @@ bool Geometry::intersects(const Geometry *g) const
 			
 			if(g->getGeometryType() == CIRCLE)
 			{
-				return squareDist2D( this->getCenter(), g->getCenter()) < (this->getRadius() + g->getRadius())*(this->getRadius() + g->getRadius()) ;
+				double birad = getRadius()+g->getRadius() ;
+				if(this->getCenter().x + birad < g->getCenter().x)
+					return false ;
+				if(this->getCenter().x - birad > g->getCenter().x)
+					return false ;
+				if(this->getCenter().y + birad < g->getCenter().y)
+					return false ;
+				if(this->getCenter().y - birad > g->getCenter().y)
+					return false ;
+
+				return squareDist2D( this->getCenter(), g->getCenter()) < birad*birad ;
 			}
 			
 			std::vector<Segment> segs ;
@@ -556,14 +566,22 @@ bool Geometry::intersects(const Geometry *g) const
 		{
 			if(g->getGeometryType() == SPHERE)
 			{
-				if(dist(getCenter(), g->getCenter()) < 1e-8)
+				double birad = getRadius()+g->getRadius() ;
+				if(this->getCenter().x + birad < g->getCenter().x)
 					return false ;
-				if( squareDist3D(getCenter(), g->getCenter()) > (getRadius()+g->getRadius())* (getRadius()+g->getRadius())) 
-					return false;
-// 				if(dist(getCenter(), g->getCenter())+std::min(getRadius(),g->getRadius()) < std::max(getRadius(),g->getRadius()))
-// 					return false ;
-				
-				return true ;
+				if(this->getCenter().x - birad > g->getCenter().x)
+					return false ;
+				if(this->getCenter().y + birad < g->getCenter().y)
+					return false ;
+				if(this->getCenter().y - birad > g->getCenter().y)
+					return false ;
+				if(this->getCenter().z + birad < g->getCenter().z)
+					return false ;
+				if(this->getCenter().z - birad > g->getCenter().z)
+					return false ;
+
+				return squareDist3D(getCenter(), g->getCenter()) < birad*birad ;
+
 			}
 			if(g->getGeometryType() == HEXAHEDRON)
 			{
@@ -2505,7 +2523,7 @@ bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0
 	Point frontier(f1-f0) ;
 	Point yes(witness-f0) ;
 	Point perhaps(test-f0) ;
-	return (frontier^yes).z*(frontier^perhaps).z > -1e-12 ;
+	return (frontier^yes).z*(frontier^perhaps).z > -POINT_TOLERANCE ;
 }
 
 bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, const Point *f1) 
@@ -2513,7 +2531,7 @@ bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, 
 	Point frontier(*f1-*f0) ;
 	Point yes(*witness-*f0) ;
 	Point perhaps(*test-*f0) ;
-	return (frontier^yes).z*(frontier^perhaps).z > -1e-12 ;
+	return (frontier^yes).z*(frontier^perhaps).z > -POINT_TOLERANCE ;
 }
 
 bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, const Point & f2) 
@@ -2916,6 +2934,21 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 	bool positive = c0 > 0 || c1 > 0 || c2 > 0 || c3 > 0 || c4 > 0 || c5 > 0 || c6 > 0 || c7 > 0 || c8 > 0 ;
 	bool negative = c0 < 0 || c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0 || c5 < 0 || c6 < 0 || c7 < 0 || c8 < 0 ;
 	return  positive && negative ;
+} ;
+
+double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
+{
+	return (f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y);
+}
+
+bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
+{
+	return std::abs(signedAlignement(test, f0, f1)) < Mu::POINT_TOLERANCE ;
+} ;
+
+bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
+{
+	return std::abs(signedAlignement(*test, *f0, *f1)) < Mu::POINT_TOLERANCE ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  

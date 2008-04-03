@@ -23,6 +23,7 @@ namespace Mu {
 */
 class MohrCoulomb : public FractureCriterion
 {
+	std::vector<DelaunayTriangle *> cache ;
 	double upVal ;
 	double downVal ;
 public:
@@ -30,9 +31,11 @@ public:
 
     virtual ~MohrCoulomb();
 
-	virtual bool met(const ElementState & s) const ;
+	virtual bool met(const ElementState & s)  ;
 
 	virtual FractureCriterion * getCopy() const;
+
+	virtual double grade(const ElementState &s) const  ;
 
 };
 

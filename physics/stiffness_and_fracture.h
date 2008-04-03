@@ -78,6 +78,8 @@ namespace Mu
 		virtual void stepBack() ;
 
 		virtual Matrix getTensor(const Point & p) const ;
+
+		virtual FractureCriterion * getFractureCriterion() const ;
 		
 	} ;
 	

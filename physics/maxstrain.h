@@ -29,7 +29,9 @@ public:
 
 	virtual ~MaximumStrain();
 
-	virtual bool met(const ElementState & s) const ;
+	virtual bool met(const ElementState & s) ;
+
+	virtual double grade(const ElementState &s) const  ;
  	
 	virtual FractureCriterion * getCopy() const;
 };

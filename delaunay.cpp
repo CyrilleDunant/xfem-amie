@@ -861,6 +861,8 @@ const Point * DelaunayDeadTriangle::getCircumCenter() const
 
 bool DelaunayDeadTriangle::inCircumCircle(const Point & p) const
 {
+
+
 	if(p.x > center.x+1.01*radius)
 		return false ;
 	if(p.x < center.x-1.01*radius)
@@ -880,7 +882,7 @@ bool DelaunayDeadTriangle::inCircumCircle(const Point & p) const
 	return  squareDist2D(center, a) < sqradius 
 		&&  squareDist2D(center, c) < sqradius
 		&&  squareDist2D(center, e) < sqradius
-		&&  squareDist2D(center, h) < sqradius;
+		&&  squareDist2D(center, h) < sqradius;	
 }
 
 bool DelaunayDeadTriangle::isNeighbour( const DelaunayTreeItem * t) const

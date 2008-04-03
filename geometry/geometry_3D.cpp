@@ -967,7 +967,19 @@ void Sphere::sampleSurface(size_t num_points)
 
 bool Sphere::in(const Point & v) const 
 { 
-	return squareDist(v, center ) < this->sqradius + POINT_TOLERANCE;
+	if(v.x < center.x-getRadius())
+		return false ;
+	if(v.x > center.x+getRadius())
+		return false ;
+	if(v.y < center.y-getRadius())
+		return false ;
+	if(v.y > center.y+getRadius())
+		return false ;
+	if(v.z < center.z-getRadius())
+		return false ;
+	if(v.z > center.z+getRadius())
+		return false ;
+	return squareDist3D(v, center ) < this->sqradius + POINT_TOLERANCE;
 }
 
 double Sphere::area() const

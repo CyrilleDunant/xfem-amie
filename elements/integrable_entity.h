@@ -49,6 +49,7 @@ struct NonLinearForm ;
 struct Function ;
 struct DelaunayTriangle ;
 struct IntegrableEntity ;
+struct FractureCriterion ;
 
 /** State of the element, allows easy extraction of the various fields
  * 
@@ -313,6 +314,8 @@ public:
 	}
 	
 	virtual ~Form() { } ;
+
+	virtual FractureCriterion * getFractureCriterion() const { return NULL ; }
 } ;
 
 } ;

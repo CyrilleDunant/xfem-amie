@@ -498,9 +498,9 @@ int main(int argc, char *argv[])
 	Stiffness soth(cgStress) ;
 	Stiffness soth0(cgStress0) ;
 	Hexahedron box (.04, .04, .04, 0, 0, 0) ;
-	double itzSize = 0.00003;
+	double itzSize = 0.000003;
 
-	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,2000, itzSize);
+	std::vector<Inclusion3D * > features = GranuloBolome(4.48e-05, 1, BOLOME_D)(false, .002, .0001,80000, itzSize);
 	double volume = 0 ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 		volume += features[i]->volume() ;
@@ -515,7 +515,7 @@ int main(int argc, char *argv[])
 	
 	int nAgg = 0 ;
 	
-	feats = placement(&box,feats,  &nAgg, 64000) ;
+	feats = placement(&box,feats,  &nAgg, 5000) ;
 	volume = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		volume += feats[i]->volume() ;

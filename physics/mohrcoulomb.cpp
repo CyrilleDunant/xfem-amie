@@ -24,94 +24,58 @@ MohrCoulomb::~MohrCoulomb()
 {
 }
 
-bool MohrCoulomb::met(const ElementState & s) const
+double MohrCoulomb::grade(const ElementState &s) const 
+{
+	Vector pstress = s.getPrincipalStresses(Point(1./3., 1./3.), true) ;
+	double maxStress = pstress.max();
+	double minStress = pstress.min();
+	if( maxStress > upVal )
+	{
+		return 1. - std::abs(upVal/maxStress) ;
+	}
+		
+	if( minStress < downVal )
+	{
+		return 1. - std::abs(downVal/minStress) ;
+	}
+
+	return 0 ;
+}
+
+bool MohrCoulomb::met(const ElementState & s) 
 {
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
 	{
-		Circle epsilon(0.0005,testedTri->getCenter()) ;
-		std::vector<DelaunayTriangle *> neighbourhood ;
-		std::vector<DelaunayTriangle *> toTry ;
-		for(size_t j = 0 ; j < testedTri->neighbourhood.size() ;j++)
-			toTry.push_back(testedTri->getNeighbourhood(j)) ;
-		std::vector<DelaunayTriangle *> cleanup ;
-		int count = toTry.size() ;
-		cleanup.push_back(testedTri) ;
-		testedTri->visited = true ;
-		while(!toTry.empty())
-		{
-			std::vector<DelaunayTriangle *> newTrianglesToTry ;
-			for(size_t i = 0 ; i < toTry.size() ; i++)
-			{
-				cleanup.push_back(toTry[i]) ;
-				toTry[i]->visited = true ;
-				if(epsilon.in(toTry[i]->getCenter()) || count > 0)
-				{
-					count-- ;
-					neighbourhood.push_back(toTry[i]) ;
-					for(size_t j = 0 ; j < toTry[i]->neighbourhood.size() ;j++)
-					{
-						if(!toTry[i]->getNeighbourhood(j)->visited)
-							newTrianglesToTry.push_back(toTry[i]->getNeighbourhood(j));
-					}
-				}
-			}
-			
-			std::sort(newTrianglesToTry.begin(), newTrianglesToTry.end()) ;
-			std::vector<DelaunayTriangle *>::iterator e = std::unique(newTrianglesToTry.begin(), newTrianglesToTry.end()) ;
-			newTrianglesToTry.erase(e, newTrianglesToTry.end()) ;
-			toTry = newTrianglesToTry ;
-		}
-// 		for(size_t i = 0 ; i < neighbours.size() ; i++)
-// 		{
-// 			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
-// 			{
-// 				if(neighbours[i]->getNeighbourhood(j) != testedTri 
-// 				   && !neighbours[i]->getNeighbourhood(j)->getBehaviour()
-// 				   && !neighbours[i]->getNeighbourhood(j)->getBehaviour()->fractured())
-// 					neighbourhood.insert(neighbours[i]->getNeighbourhood(j)) ;
-// 			}
-// 		}
 		
-		for(size_t i = 0 ; i < cleanup.size() ;i++)
-			cleanup[i]->visited = false ;
-
-
-		double maxNeighbourhoodStress = 0 ;
-		double minNeighbourhoodStress = 0 ;
-		if(!neighbourhood.empty())
+		if(cache.empty())
 		{
-			for(std::vector<DelaunayTriangle *>::const_iterator i = neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
+			Circle epsilon(0.005,testedTri->getCenter()) ;
+			cache = testedTri->tree->conflicts(&epsilon);
+		}
+
+		double maxNeighbourhoodScore = 0 ;
+		if(!cache.empty())
+		{
+			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
-				Vector pstress = (*i)->getState().getPrincipalStresses((*i)->getCenter()) ;
-				double maxStress = pstress.max() ;
-				double minStress = pstress.min() ;
-				if(maxStress > maxNeighbourhoodStress)
-					maxNeighbourhoodStress = maxStress ;
-				if(minStress < minNeighbourhoodStress)
-					minNeighbourhoodStress = minStress ;
+				if(cache[i]->getBehaviour()->getFractureCriterion())
+					maxNeighbourhoodScore = std::max(maxNeighbourhoodScore,
+					                                 cache[i]->getBehaviour()->getFractureCriterion()->grade(cache[i]->getState())) ;
 			}
 		}
 		
-		Vector pstress = s.getPrincipalStresses(Point(1./3., 1./3.), true) ;
-		double maxStress = pstress.max();
-		double minStress = pstress.min();
-		if( maxStress > upVal )
+		double score = grade(s) ;
+		if( score > 0 )
 		{
-			if(maxNeighbourhoodStress < maxStress)
+			if(score >= maxNeighbourhoodScore)
 			{
 				return true ;
 			}
 		}
-		
-		if( minStress < downVal )
-		{
-			if(minNeighbourhoodStress > minStress)
-			{
-				return true ;
-			}
-		}
+
+		return false ;
 	}
 	else if(testedHex)
 	{
@@ -127,40 +91,26 @@ bool MohrCoulomb::met(const ElementState & s) const
 			}
 		}
 
-		double maxNeighbourhoodStress = 0 ;
-		double minNeighbourhoodStress = 0 ;
+		double maxNeighbourhoodScore = 0 ;
 		if(!neighbourhood.empty())
 		{
-			for(std::set<HexahedralElement *>::const_iterator i = neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
+			for(std::set<HexahedralElement *>::iterator i= neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
 			{
-				Vector pstress = (*i)->getState().getPrincipalStresses((*i)->getCenter()) ;
-				double maxStress = pstress.max() ;
-				double minStress = pstress.min() ;
-				if(maxStress > maxNeighbourhoodStress)
-					maxNeighbourhoodStress = maxStress ;
-				if(minStress < minNeighbourhoodStress)
-					minNeighbourhoodStress = minStress ;
+				if((*i)->getBehaviour()->getFractureCriterion())
+					maxNeighbourhoodScore = std::max(maxNeighbourhoodScore, (*i)->getBehaviour()->getFractureCriterion()->grade((*i)->getState())) ;
 			}
 		}
 		
-		Vector pstress = s.getPrincipalStresses(Point(1./3., 1./3.), true) ;
-		double maxStress = pstress.max();
-		double minStress = pstress.min();
-		if( maxStress > upVal )
+		double score = grade(s) ;
+		if( score > 0 )
 		{
-			if(maxNeighbourhoodStress < maxStress)
+			if(score > maxNeighbourhoodScore)
 			{
 				return true ;
 			}
 		}
-		
-		if( minStress < downVal )
-		{
-			if(minNeighbourhoodStress > minStress)
-			{
-				return true ;
-			}
-		}
+
+		return false ;
 	}
 	else
 	{

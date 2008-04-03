@@ -133,7 +133,7 @@ return dynamic_cast<const __geo_type__ *>(this) ;                 \
 namespace Mu
 {
 
-static const double POINT_TOLERANCE =  1e-12 ;//std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE =  1e-14 ;//std::numeric_limits<double>::epsilon() ;
 
 typedef enum
 {
@@ -656,6 +656,8 @@ public:
 
 } ;
 
+double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) ;
+
 /** Check the alignment of three points.
  * 
  * @param test first point.
@@ -663,19 +665,16 @@ public:
  * @param f1 third point.
  * @return true if the points are aligned.
  */
-inline bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)  
-{
-	return ( std::abs((f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y)) < Mu::POINT_TOLERANCE) ;
-} ;
+bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)  ;
 
-
-inline bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)
-{
-	Mu::Point a(test-f0) ;
-	Mu::Point b(test-f1) ;
-	return std::abs((a^b).z) < Mu::POINT_TOLERANCE ;
-	return ( std::abs((f2.x-test.x)*((f1.y-test.y)*(f0.z-test.z) - (f0.y-test.y)*(f1.z-test.z))-(f2.y-test.y)*((f1.x-test.x)*(f0.z-test.z) - (f0.x-test.x)*(f1.z-test.z))+(f2.z-test.z)*((f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y))) < Mu::POINT_TOLERANCE) ;
-} ;
+// bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)
+// {
+// 
+// 	Mu::Point a(test-f0) ;
+// 	Mu::Point b(test-f1) ;
+// 	return std::abs((a^b).z) < Mu::POINT_TOLERANCE ;
+// 	return ( std::abs((f2.x-test.x)*((f1.y-test.y)*(f0.z-test.z) - (f0.y-test.y)*(f1.z-test.z))-(f2.y-test.y)*((f1.x-test.x)*(f0.z-test.z) - (f0.x-test.x)*(f1.z-test.z))+(f2.z-test.z)*((f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y))) < Mu::POINT_TOLERANCE) ;
+// } ;
 /** Check the alignment of three points.
  * 
  * @param test first point.
@@ -683,13 +682,7 @@ inline bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Poin
  * @param f1 third point.
  * @return true if the points are aligned.
  */
-inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
-{
-	Mu::Point a(*test-*f0) ;
-	Mu::Point b(*test-*f1) ;
-	return std::abs((a^b).z) < Mu::POINT_TOLERANCE ;
-	return ( std::abs((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y)) < Mu::POINT_TOLERANCE*Mu::POINT_TOLERANCE) ;
-} ;
+bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  ;
 
 bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
@@ -700,10 +693,10 @@ double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *
 double signedCoplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
 
-inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1, const Mu::Point *f2)  
-{
-	return ( std::abs((f2->x-test->x)*((f1->y-test->y)*(f0->z-test->z) - (f0->y-test->y)*(f1->z-test->z))-(f2->y-test->y)*((f1->x-test->x)*(f0->z-test->z) - (f0->x-test->x)*(f1->z-test->z))+(f2->z-test->z)*((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y))) < Mu::POINT_TOLERANCE) ;
-} ;
+// inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1, const Mu::Point *f2)  
+// {
+// 	return ( std::abs((f2->x-test->x)*((f1->y-test->y)*(f0->z-test->z) - (f0->y-test->y)*(f1->z-test->z))-(f2->y-test->y)*((f1->x-test->x)*(f0->z-test->z) - (f0->x-test->x)*(f1->z-test->z))+(f2->z-test->z)*((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y))) < Mu::POINT_TOLERANCE) ;
+// } ;
 
 /** Test if a point is in a triangle defined by three points.
  * 
