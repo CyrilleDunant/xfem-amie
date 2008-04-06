@@ -18,7 +18,7 @@
 namespace Mu
 {
 
-class Inclusion :  public Circle,  public Feature
+class Inclusion :  virtual public Circle,   public Feature
 {
 public:
 	Inclusion(Feature *father, double radius, double x, double y) ;
