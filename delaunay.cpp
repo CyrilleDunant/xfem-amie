@@ -875,14 +875,16 @@ bool DelaunayDeadTriangle::inCircumCircle(const Point & p) const
 	if(squareDist2D(center, p) < .99*sqradius)
 		return true ;
 
-	Point a(p) ; a.x += 2.*POINT_TOLERANCE ; a.y += 2.*POINT_TOLERANCE ;
-	Point c(p) ; c.x += 2.*POINT_TOLERANCE ; c.y -= 2.*POINT_TOLERANCE ; 
-	Point e(p) ; e.x -= 2.*POINT_TOLERANCE ; e.y += 2.*POINT_TOLERANCE ;
-	Point h(p) ; h.x -= 2.*POINT_TOLERANCE ; h.y -= 2.*POINT_TOLERANCE ; 
+	double delta = POINT_TOLERANCE*radius ;
+	Point a(p) ; a.x += delta ; a.y += delta ;
+	Point c(p) ; c.x += delta ; c.y -= delta ; 
+	Point e(p) ; e.x -= delta ; e.y += delta ;
+	Point h(p) ; h.x -= delta ; h.y -= delta ; 
 	return  squareDist2D(center, a) < sqradius 
 		&&  squareDist2D(center, c) < sqradius
 		&&  squareDist2D(center, e) < sqradius
 		&&  squareDist2D(center, h) < sqradius;	
+	
 }
 
 bool DelaunayDeadTriangle::isNeighbour( const DelaunayTreeItem * t) const
@@ -1155,7 +1157,6 @@ bool DelaunayTriangle::inCircumCircle(const Point &p) const
 	
 void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  Star* s)
 {
-
 	if (visited)
 		return ;
 
@@ -1207,7 +1208,7 @@ void DelaunayTriangle::print() const
 {
 	for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
 	{
-		std::cerr << "(" << getBoundingPoint(i).id <<  ";" << getBoundingPoint(i).t <<") " ;
+		std::cerr << "(" << getBoundingPoint(i).x <<  ";" << getBoundingPoint(i).y <<") " ;
 	}
 	std::cerr <<  ":: "<< isAlive() << std::endl ;
 }
@@ -1387,7 +1388,6 @@ void makeNeighbours(DelaunayTreeItem *t0, DelaunayTreeItem *t1 )
 	   return ;
 	if(!t0->isNeighbour(t1))
 		return ;
-	
 	t0->addNeighbour(t1) ;
 	t1->addNeighbour(t0) ;
 } 
@@ -1420,9 +1420,6 @@ DelaunayRoot::DelaunayRoot(DelaunayTree *tt, Point * p0, Point * p1, Point * p2)
 	makeNeighbours(t,pl0 ) ;
 	makeNeighbours(t,pl1) ;
 	makeNeighbours(t,pl2) ;
-	makeNeighbours(pl1,pl0 ) ;
-	makeNeighbours(pl2,pl1) ;
-	makeNeighbours(pl0,pl2) ;
 
 	addSon(t) ;
 	addSon(pl0) ;
@@ -1558,7 +1555,7 @@ DelaunayTree::~DelaunayTree()
 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
 	{
 
-		if(this->tree[i]->isTriangle)
+		if(this->tree[i] && this->tree[i]->isTriangle && !this->tree[i]->isDeadTriangle )
 		{
 			DelaunayTriangle * t = dynamic_cast<DelaunayTriangle *>(tree[i]) ;
 			
@@ -2245,51 +2242,90 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		to_add.push_back(Point(0,0)) ;
 		to_add.push_back(Point(1,0)) ;
 		TriElement father(LINEAR) ;
-		
 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
 		{
+			
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
 			{
 				bool go = true ;
 				
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
-					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j),to_add[k]) < 1e-12)
+					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j), 
+					                to_add[k]) < POINT_TOLERANCE*POINT_TOLERANCE 
+					   || !father.in(getEnrichmentFunction(i).getIntegrationHint(j)))
 					{
 						go = false ;
 						break ;
 					}
 				}
 				if(go)
+				{
 					to_add.push_back(getEnrichmentFunction(i).getIntegrationHint(j)) ;
+				}
 			}
 		}
 
 		std::sort(to_add.begin()+3, to_add.end()) ;
-		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end(), PointEqTol(1e-12)) ;
+		std::vector<Point>::iterator e = std::unique(to_add.begin()+3, to_add.end()) ;
 		to_add.erase(e, to_add.end()) ;
 		
-		DelaunayTree dt(&to_add[0], &to_add[1], &to_add[2]) ;
+		DelaunayTree * dt = new DelaunayTree(&to_add[0], &to_add[1], &to_add[2]) ;
 		for(size_t i = 3 ; i < to_add.size() ; i++)
 		{
-			dt.insert(&to_add[i]) ;
+			dt->insert(&to_add[i]) ;
 		}
 		
-		std::vector<DelaunayTriangle *> tri = dt.getTriangles(false) ;
+		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  5;
+		size_t numberOfRefinements =  24;
 		
+		VirtualMachine vm ;
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
+			for(size_t j = 0 ; j < tri.size() ; j++)
+				tri[j]->refresh(&father) ;
+			std::vector<double> sorted ;
+			std::vector<double> unsorted ;
+			for(size_t j = 0 ; j < tri.size() ; j++)
+			{
+				double error = 0 ;
+
+				for(size_t k = 0 ; k <  getEnrichmentFunctions().size() ; k++)
+				{
+					GaussPointArray gplin = tri[j]->getGaussPoints() ;
+					tri[j]->setOrder(QUADRIC) ;
+					GaussPointArray gpquad = tri[j]->getGaussPoints() ;
+					tri[j]->setOrder(LINEAR) ;
+					double linInt = vm.ieval(getEnrichmentFunction(k), gplin) ;
+					double quadInt = vm.ieval(getEnrichmentFunction(k), gpquad) ;
+					error = std::max(error, std::abs(linInt-quadInt)) ;
+				}
+				unsorted.push_back(error*tri[j]->area()) ;
+				sorted.push_back(error*tri[j]->area()) ;
+			}
+			
+			std::sort(sorted.begin(), sorted.end()) ;
+			std::cout << sorted.size()<< " elements, min = " << sorted.front() << ", max = " << sorted.back() << std::endl ;
+			
+			if(sorted.size() > 1 && sorted.back() < 1e-4)
+				break ;
+			
 			std::vector<DelaunayTriangle *> newTris ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q = quad(tri[j]) ;
-				newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
-				pointsToCleanup.insert(pointsToCleanup.end(),q.second.begin(), q.second.end()) ;
-				if(i)
-					triangleToCleanup.push_back(tri[j]) ;
+				if( (unsorted[j] > 1e-4 
+				     && tri[j]->area() > 4.*POINT_TOLERANCE*POINT_TOLERANCE) 
+				    || tri.size() == 1)
+				{
+					std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q = quad(tri[j]) ;
+					newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
+					pointsToCleanup.insert(pointsToCleanup.end(),q.second.begin(), q.second.end()) ;
+					triangleToCleanup.insert(triangleToCleanup.end(), q.first.begin(), q.first.end()) ;
+				}
+				else
+					newTris.push_back(tri[j]) ;
 			}
 			tri = newTris ;
 		}
@@ -2322,6 +2358,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			}
 		}
 
+		delete dt ;
 		if(numberOfRefinements)
 		{
 			std::valarray<Point *> nularray(0) ;
@@ -2332,11 +2369,11 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				delete triangleToCleanup[i];
 			}
 		
-			for(size_t i = 0 ; i < tri.size() ; i++)
-			{
-				tri[i]->setBoundingPoints(nularray) ;
-				delete tri[i] ;
-			}
+// 			for(size_t i = 0 ; i < tri.size() ; i++)
+// 			{
+// 				tri[i]->setBoundingPoints(nularray) ;
+// 				delete tri[i] ;
+// 			}
 		}
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;

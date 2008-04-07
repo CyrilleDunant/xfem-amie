@@ -417,16 +417,16 @@ bool Triangle::inCircumCircle(const Point & p) const
 	if(squareDist2D(circumCenter, p) < .99*sqradius)
 		return true ;
 	
-	double delta = POINT_TOLERANCE ;
-	Point a(p) ; a.x += 2.*delta ; a.y += 2.*delta ; 
-	Point c(p) ; c.x += 2.*delta ; c.y -= 2.*delta ; 
-	Point e(p) ; e.x -= 2.*delta ; e.y += 2.*delta ; 
-	Point g(p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; 
+	double delta = POINT_TOLERANCE*radius ;
+	Point a(p) ; a.x += delta ; a.y += delta ; 
+	Point c(p) ; c.x += delta ; c.y -= delta ; 
+	Point e(p) ; e.x -= delta ; e.y += delta ; 
+	Point g(p) ; g.x -= delta ; g.y -= delta ; 
 
-	return  squareDist3D(circumCenter, a) < sqradius 
-		&&  squareDist3D(circumCenter, c) < sqradius
-		&&  squareDist3D(circumCenter, e) < sqradius
-		&&  squareDist3D(circumCenter, g) < sqradius;
+	return  squareDist2D(circumCenter, a) < sqradius 
+		&&  squareDist2D(circumCenter, c) < sqradius
+		&&  squareDist2D(circumCenter, e) < sqradius
+		&&  squareDist2D(circumCenter, g) < sqradius;
 	double x = circumCenter.x -p.x ;
 	double y = circumCenter.y -p.y ;
 	return  fma(x, x, y*y)< sqradius*(1. - POINT_TOLERANCE)  ;
@@ -446,16 +446,16 @@ bool Triangle::inCircumCircle(const Point *p) const
 	if(squareDist2D(circumCenter, *p) < .99*sqradius)
 		return true ;
 	
-	double delta = POINT_TOLERANCE ;
-	Point a(*p) ; a.x += 2.*delta ; a.y += 2.*delta ; 
-	Point c(*p) ; c.x += 2.*delta ; c.y -= 2.*delta ; 
-	Point e(*p) ; e.x -= 2.*delta ; e.y += 2.*delta ; 
-	Point g(*p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; 
+	double delta = POINT_TOLERANCE*radius ;
+	Point a(*p) ; a.x += delta ; a.y += delta ; 
+	Point c(*p) ; c.x += delta ; c.y -= delta ; 
+	Point e(*p) ; e.x -= delta ; e.y += delta ; 
+	Point g(*p) ; g.x -= delta ; g.y -= delta ; 
 
-	return  squareDist3D(circumCenter, a) < sqradius 
-		&&  squareDist3D(circumCenter, c) < sqradius
-		&&  squareDist3D(circumCenter, e) < sqradius
-		&&  squareDist3D(circumCenter, g) < sqradius;
+	return  squareDist2D(circumCenter, a) < sqradius 
+		&&  squareDist2D(circumCenter, c) < sqradius
+		&&  squareDist2D(circumCenter, e) < sqradius
+		&&  squareDist2D(circumCenter, g) < sqradius;
 	double x = circumCenter.x -p->x ;
 	double y = circumCenter.y -p->y ;
 	return  fma(x, x, y*y) < sqradius*(1. - POINT_TOLERANCE)  ;

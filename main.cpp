@@ -90,14 +90,14 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.1e-07 ;
-double delta_displacement =  1.e-8 ;
+double delta_displacement =  5.e-8 ;
 double displacement_tolerance = 0.01*delta_displacement ; 
 double softeningFactor = 1. ;
 
 double percent = 0.1 ;
 double load = 0 ;
 double displacement  = 0 ;
-double prescribedDisplacement = -1.25e-7;
+double prescribedDisplacement = 0 ; //-1.25e-7;
 double derror = 0 ;
 double ierror = 0 ;
 double preverror = 0 ;
@@ -142,7 +142,7 @@ void computeDisplacement()
 {
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
-	Circle c(.001, .03, 0) ;
+	Circle c(.0001, 0., 0.015) ;
 	std::vector<DelaunayTriangle *> t = featureTree->getDelaunayTree()->conflicts(&c) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
@@ -175,7 +175,7 @@ double pidUpdate()
 	double error = prescribedDisplacement-displacement ;
 	derror =  error-preverror ;
 	ierror += (error+preverror)*.5 ;
-	double K_p = 800000000. ;
+	double K_p = 100000000. ;
 	
 	if(load_displacement.size() > 2 && std::abs(load_displacement.back().second) > 1e-12 && std::abs(load_displacement[2].second) > 1e-12)
 	{
@@ -293,6 +293,7 @@ void step()
 	
 	size_t nsteps = 64;
 	size_t nit = 25 ;
+	
 	size_t ntries = 25;
 	for(size_t i = 0 ; i < nit ; i++)
 	{
@@ -316,7 +317,11 @@ void step()
 				std::cout << "no convergence" << std::endl ;
 				break ;
 			}
+
 			computeDisplacement() ;
+			if( featureTree->meshChanged() ||featureTree->enrichmentChanged())
+				prescribedDisplacement = displacement ;
+			
 			load_displacement.push_back(std::make_pair(load, displacement)) ;
 	
 			double error = pidUpdate() ;
@@ -1743,6 +1748,7 @@ int main(int argc, char *argv[])
 	Inclusion * pore0 = new Inclusion(0.001, -0.0535, -0.02) ;
 	pore0->setBehaviour(new Stiffness(m0_paste)) ;
 	F.addFeature(pore,pore0) ;
+	
 	Inclusion * pore1 = new Inclusion(0.001, 0, 0.02) ;
 	pore1->setBehaviour(new Stiffness(m0_paste)) ;
 	F.addFeature(pore0,pore1) ;
@@ -1759,11 +1765,11 @@ int main(int argc, char *argv[])
 
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
-// 		F.addFeature(pore1,newinc) ;
+		F.addFeature(pore1,newinc) ;
 		
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-		F.addFeature(pore1,inclusions[i]) ;
+// 		F.addFeature(pore1,inclusions[i]) ;
 // 		F.addFeature(pore1,new Pore(inclusions[i]->getRadius()-itzSize*.75, inclusions[i]->getCenter())) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1778,7 +1784,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(1600) ;
+	F.sample(32) ;
 
 	F.setOrder(LINEAR) ;
 

@@ -48,10 +48,14 @@ bool MohrCoulomb::met(const ElementState & s)
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
 	{
+		double score = grade(s) ;
+		
+		if (score == 0)
+			return false ;
 		
 		if(cache.empty())
 		{
-			Circle epsilon(0.005,testedTri->getCenter()) ;
+			Circle epsilon(0.0005,testedTri->getCenter()) ;
 			cache = testedTri->tree->conflicts(&epsilon);
 		}
 
@@ -66,13 +70,10 @@ bool MohrCoulomb::met(const ElementState & s)
 			}
 		}
 		
-		double score = grade(s) ;
-		if( score > 0 )
+		
+		if(score >= maxNeighbourhoodScore)
 		{
-			if(score >= maxNeighbourhoodScore)
-			{
-				return true ;
-			}
+			return true ;
 		}
 
 		return false ;

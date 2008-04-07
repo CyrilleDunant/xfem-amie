@@ -1856,7 +1856,12 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-	std::cout << disk.size() << std::endl ;
+	while( disk.size() < 8)
+	{
+		c.setRadius(c.getRadius()*2.) ;
+		disk = dtree->conflicts ( &c ) ;
+	}
+
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
 
 
@@ -1957,7 +1962,7 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-	while( disk.size() < 16)
+	while( disk.size() < 8)
 	{
 		c.setRadius(c.getRadius()*2.) ;
 		disk = dtree->conflicts ( &c ) ;
@@ -2082,7 +2087,7 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( this->boundary ) ;
 	Circle c0(*static_cast<Circle *>(boundary)) ;
 	disk = dtree->conflicts (&c0) ;
-	while( disk.size() < 16)
+	while( disk.size() < 8)
 	{
 		c0.setRadius(c0.getRadius()*2.) ;
 		disk = dtree->conflicts ( &c0 ) ;
@@ -2158,7 +2163,6 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 	
 		if ( headElem )
 		{
-			std::cout << "pouf" << std::endl ;
 			changed = true ;
 
 			if ( headElem->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -2199,9 +2203,9 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 
 
 // 	Circle atTail ( infRad, this->boundary2->getCenter() ) ;
-	Circle c(*static_cast<Circle *>(boundary)) ;
+	Circle c(*static_cast<Circle *>(boundary2)) ;
 	disk = dtree->conflicts (&c) ;
-	while( disk.size() < 16)
+	while( disk.size() < 8)
 	{
 		c.setRadius(c.getRadius()*2.) ;
 		disk = dtree->conflicts ( &c ) ;
@@ -2316,7 +2320,6 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 		}
 	}
 	
-	print() ;
 }
 
 void Crack::print() const

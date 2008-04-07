@@ -1559,12 +1559,14 @@ Matrix VirtualMachine::ieval(const GtMtG &f, const GaussPointArray &gp, const st
 
 	std::valarray<Matrix> B = geval(f.first.f, Jinv, var, gp, f.first.transpose) ;
 	std::valarray<Matrix> B_ = geval(f.third.f, Jinv, var, gp, f.third.transpose) ;
+
 	Matrix ret( (Matrix)(B[0]*f.second*B_[0])*gp.gaussPoints[0].second) ;
 	
 	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
 		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
 	
 	return ret ;
+
 
 }
 

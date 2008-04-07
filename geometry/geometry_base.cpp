@@ -2943,12 +2943,61 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
 
 bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
 {
-	return std::abs(signedAlignement(test, f0, f1)) < Mu::POINT_TOLERANCE ;
+// 	Line l(f0, f1-f0) ;
+// 	return dist(test, l.projection(test)) < POINT_TOLERANCE ;
+// 	
+	if(test == f1 || test == f0)
+		return true ;
+	
+	double c0 = std::abs(signedAlignement(test, f0, f1)) ;
+	
+
+	double delta = .25*POINT_TOLERANCE*POINT_TOLERANCE ; ;
+
+	Point b(test) ; b.x += delta ; b.y += delta;
+	Point d(test) ; d.x += delta ; d.y -= delta; 
+	Point f(test) ; f.x -= delta ; f.y += delta; 
+	Point h(test) ; h.x -= delta ; h.y -= delta; 
+	
+
+	double c2 = std::abs(signedAlignement(b, f0, f1)) ;
+	double c4 = std::abs(signedAlignement(d, f0, f1)) ;
+	double c6 = std::abs(signedAlignement(f, f0, f1)) ;
+	double c8 = std::abs(signedAlignement(h, f0, f1)) ;
+	return c0 < delta 
+		&& c2 < delta 
+		&& c4 < delta 
+		&& c6 < delta 
+		&& c8 < delta ;
 } ;
 
 bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
 {
-	return std::abs(signedAlignement(*test, *f0, *f1)) < Mu::POINT_TOLERANCE ;
+// 	Line l(*f0, *f1-*f0) ;
+// 	return dist(*test, l.projection(*test)) < POINT_TOLERANCE ;
+// 	
+	
+	if(*test == *f1 || *test == *f0)
+		return true ;
+	double c0 = std::abs(signedAlignement(*test, *f0, *f1)) ;
+
+	double delta = .25*POINT_TOLERANCE*POINT_TOLERANCE ;
+
+	Point b(*test) ; b.x += delta ; b.y += delta;
+	Point d(*test) ; d.x += delta ; d.y -= delta; 
+	Point f(*test) ; f.x -= delta ; f.y += delta; 
+	Point h(*test) ; h.x -= delta ; h.y -= delta; 
+	
+
+	double c2 = std::abs(signedAlignement(b, *f0, *f1)) ;
+	double c4 = std::abs(signedAlignement(d, *f0, *f1)) ;
+	double c6 = std::abs(signedAlignement(f, *f0, *f1)) ;
+	double c8 = std::abs(signedAlignement(h, *f0, *f1)) ;
+	return c0 < delta 
+		&& c2 < delta 
+		&& c4 < delta 
+		&& c6 < delta 
+		&& c8 < delta ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
@@ -2958,7 +3007,7 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Mu::Point B (f2-f1) ; 
 	Mu::Point C (f2-test) ; 
 
-	double c0 = signedCoplanarity(test, f0, f1, f2) ;
+	double c0 = std::abs(signedCoplanarity(test, f0, f1, f2)) ;
 	if(std::abs(c0) > .01*std::max(A.sqNorm(), std::max(B.sqNorm(), C.sqNorm())))
 		return false ;
 	

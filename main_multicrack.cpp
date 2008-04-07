@@ -1438,9 +1438,10 @@ int main(int argc, char *argv[])
 	//	inclusions[inclusions.size()
 
 
+
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
+	F.sample(512) ;
 	//	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
