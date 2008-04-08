@@ -2308,13 +2308,7 @@ bool Segment::intersects(const Segment & l) const
 {
 	if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
 	{
-		return l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
-		double d = squareDist2D(f, s) ;
-		return  (squareDist2D(l.first(), f) < d 
-		      && squareDist2D(l.first(), s) < d) 
-              ||(squareDist2D(l.second(), f) < d 
-		      && squareDist2D(l.second(), s) < d) ;
-// 		return false ;
+		l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
 	}
 	
 	Matrix m(2,2) ;
@@ -2372,33 +2366,7 @@ Point Segment::project(const Point & p) const
 
 bool Segment::intersects(const Point & a, const Point & b) const
 {
-	if (isAligned(a, s, f) && isAligned(b, s, f))
-	{
-		double d = squareDist2D(f, s) ;
-		return  (squareDist2D(a, f) < d 
-		      && squareDist2D(a, s) < d) 
-              ||(squareDist2D(b, f) < d 
-		      && squareDist2D(b, s) < d) ;
-// 		return false ;
-	}
-	
-	Matrix m(2,2) ;
-	Vector v(2) ;
-	
-	m[0][0] = vec.x ; m[0][1] = (a.x - b.x) ;
-	m[1][0] = vec.y ; m[1][1] = (a.y - b.y) ;
-	
-	if(std::abs(det(m)) < POINT_TOLERANCE)
-		return false ;
-	
-	v[0] = a.x - f.x ; v[1] = a.y - f.y ; 
-	
-	invert2x2Matrix(m) ;
-	
-	Vector fac = m * v ;
-	
-	return fac[0] < 1.+POINT_TOLERANCE && fac[0] > -POINT_TOLERANCE && fac[1] < 1.+POINT_TOLERANCE && fac[1] > -POINT_TOLERANCE;
-	
+	return intersects(Segment(a,b));
 }
 
 bool Segment::on(const Point &p) const
@@ -2495,16 +2463,31 @@ Point Segment::intersection(const Line & l) const
 	return f + vec*fac[0];
 }
 
-Point Segment::intersection(const Segment &s) const
+Point Segment::intersection(const Segment &l) const
 {
+	if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
+	{
+		if(on(l.first()) && on(l.second())) ;
+			return l.midPoint() ;
+		if(on(l.first()))
+			return l.first() ;
+		if(on(l.second()))
+			return l.second() ;
+		if(l.on(f) && l.on(s)) ;
+			return midPoint() ;
+		if(l.on(f))
+			return f ;
+		if(l.on(s))
+			return s ;
+	}
 	
 	Matrix m(2,2) ;
 	Vector v(2) ;
 	
-	m[0][0] = vec.x ; m[0][1] = -s.vector().x ;
-	m[1][0] = vec.y ; m[1][1] = -s.vector().y ;
+	m[0][0] = vec.x ; m[0][1] = -l.vector().x ;
+	m[1][0] = vec.y ; m[1][1] = -l.vector().y ;
 	
-	v[0] = s.first().x - f.x ; v[1] = s.first().y - f.y ; 
+	v[0] = l.first().x - f.x ; v[1] = l.first().y - f.y ; 
 	
 	invert2x2Matrix(m) ;
 	
@@ -2964,11 +2947,11 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	double c4 = std::abs(signedAlignement(d, f0, f1)) ;
 	double c6 = std::abs(signedAlignement(f, f0, f1)) ;
 	double c8 = std::abs(signedAlignement(h, f0, f1)) ;
-	return c0 < delta 
-		&& c2 < delta 
-		&& c4 < delta 
-		&& c6 < delta 
-		&& c8 < delta ;
+	return c0 < POINT_TOLERANCE 
+		&& c2 < POINT_TOLERANCE 
+		&& c4 < POINT_TOLERANCE 
+		&& c6 < POINT_TOLERANCE 
+		&& c8 < POINT_TOLERANCE ;
 } ;
 
 bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
@@ -2993,11 +2976,11 @@ bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)
 	double c4 = std::abs(signedAlignement(d, *f0, *f1)) ;
 	double c6 = std::abs(signedAlignement(f, *f0, *f1)) ;
 	double c8 = std::abs(signedAlignement(h, *f0, *f1)) ;
-	return c0 < delta 
-		&& c2 < delta 
-		&& c4 < delta 
-		&& c6 < delta 
-		&& c8 < delta ;
+	return c0 < POINT_TOLERANCE 
+		&& c2 < POINT_TOLERANCE 
+		&& c4 < POINT_TOLERANCE 
+		&& c6 < POINT_TOLERANCE 
+		&& c8 < POINT_TOLERANCE ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  

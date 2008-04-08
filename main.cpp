@@ -1784,7 +1784,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(32) ;
+	F.sample(400) ;
 
 	F.setOrder(LINEAR) ;
 

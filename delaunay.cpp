@@ -2252,8 +2252,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
 					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j), 
-					                to_add[k]) < POINT_TOLERANCE*POINT_TOLERANCE 
-					   || !father.in(getEnrichmentFunction(i).getIntegrationHint(j)))
+					                to_add[k]) < 4.*default_derivation_delta)
 					{
 						go = false ;
 						break ;
@@ -2279,7 +2278,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  24;
+		size_t numberOfRefinements =  2;
 		
 		VirtualMachine vm ;
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
@@ -2291,45 +2290,76 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
 				double error = 0 ;
-
+				Function x = tri[i]->getXTransform() ;
+				Function y = tri[i]->getYTransform() ;
 				for(size_t k = 0 ; k <  getEnrichmentFunctions().size() ; k++)
 				{
 					GaussPointArray gplin = tri[j]->getGaussPoints() ;
-					tri[j]->setOrder(QUADRIC) ;
+					tri[j]->setOrder(QUADTREE_REFINED) ;
 					GaussPointArray gpquad = tri[j]->getGaussPoints() ;
 					tri[j]->setOrder(LINEAR) ;
-					double linInt = vm.ieval(getEnrichmentFunction(k), gplin) ;
-					double quadInt = vm.ieval(getEnrichmentFunction(k), gpquad) ;
+					double linInt = 0 ;
+					for(size_t m = 0 ; m < gplin.gaussPoints.size() ; m++)
+					{
+						linInt += vm.eval(getEnrichmentFunction(k), 
+						                  vm.eval(x, gplin.gaussPoints[m].first), 
+						                  vm.eval(y, gplin.gaussPoints[m].first)
+						                 ) ;
+
+					}
+					linInt /= gplin.gaussPoints.size() ;
+					double quadInt = 0 ;
+					for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
+					{
+						quadInt += vm.eval(getEnrichmentFunction(k), 
+						                  vm.eval(x, gpquad.gaussPoints[m].first), 
+						                  vm.eval(y, gpquad.gaussPoints[m].first)
+						                 ) ;
+					}
+					quadInt /=gpquad.gaussPoints.size() ;
+// 					std::cout << linInt << ", " << quadInt << std::endl ;
 					error = std::max(error, std::abs(linInt-quadInt)) ;
 				}
-				unsorted.push_back(error*tri[j]->area()) ;
-				sorted.push_back(error*tri[j]->area()) ;
+				unsorted.push_back(error) ;
+				sorted.push_back(error) ;
 			}
 			
 			std::sort(sorted.begin(), sorted.end()) ;
-			std::cout << sorted.size()<< " elements, min = " << sorted.front() << ", max = " << sorted.back() << std::endl ;
+// 			std::cout << sorted.size()<< " elements, min = " << sorted.front() << ", max = " << sorted.back() << std::endl ;
 			
-			if(sorted.size() > 1 && sorted.back() < 1e-4)
+			if(sorted.back() < 1e-4)
+			{
+				for(size_t m = 0 ; m < tri.size() ; m++)
+				{
+					std::cout << tri[m]->getCenter().x << ", " << tri[m]->getCenter().y << ", " << vm.deval(getEnrichmentFunction(0), XI, tri[m]->getCenter().x , tri[m]->getCenter().y) << std::endl ;
+				}
 				break ;
+			}
 			
 			std::vector<DelaunayTriangle *> newTris ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				if( (unsorted[j] > 1e-4 
-				     && tri[j]->area() > 4.*POINT_TOLERANCE*POINT_TOLERANCE) 
-				    || tri.size() == 1)
+				bool tooNear = false ;
+				for(size_t k = 0 ; k < to_add.size() ; k++)
+				{
+					if(squareDist2D(tri[j]->getCenter(), to_add[k]) < 4.*default_derivation_delta)
+					{
+						tooNear = true ;
+						break ;
+					}
+				}
+				if(unsorted[j] > 1e-4  && !tooNear)
 				{
 					std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q = quad(tri[j]) ;
 					newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
 					pointsToCleanup.insert(pointsToCleanup.end(),q.second.begin(), q.second.end()) ;
 					triangleToCleanup.insert(triangleToCleanup.end(), q.first.begin(), q.first.end()) ;
 				}
-				else
+				else if (!tooNear)
 					newTris.push_back(tri[j]) ;
 			}
 			tri = newTris ;
 		}
-
 		
 		for(size_t i = 0 ; i < tri.size() ; i++)
 			tri[i]->refresh(&father) ;

@@ -362,22 +362,12 @@ public:
 			if(s[i].intersects(test, w))
 			{
 				intersections++ ;
-// 				if(s[i].on(test))
-// 				{
-// 					intersections -= 2 ;
-// // 					context.memory.stack[context.memory.top_pos] = 0 ;
-// // 					return ;
-// 				}
 			}
 			
 		}
 		
 		context.memory.stack[context.memory.top_pos] =  (intersections % 2 ) * 2 - 1;
-		
-// 		if(intersections%2 == 1)
-// 		    context.memory.stack[context.memory.top_pos] = -1 ;
-// 		else
-// 		    context.memory.stack[context.memory.top_pos] = 1 ;
+
 	}
 	
 	virtual ~PositionOperatorToken() { };

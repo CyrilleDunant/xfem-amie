@@ -168,6 +168,17 @@ GaussPointArray TriElement::genGaussPoints() const
 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
 			break ;
 	}
+	case QUADTREE_REFINED:
+	{
+
+			ordre = 4 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(1./6., 1./6.), 0.125) ;
+			fin[1] = std::pair<Point, double>(Point(1./6., 2./3.), 0.125) ;
+			fin[2] = std::pair<Point, double>(Point(2./3., 1./6.), 0.125) ;
+			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), 0.125) ;
+			break ;
+	}
 	case CUBIC:
 		{
 // 			ordre = 7 ;

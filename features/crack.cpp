@@ -1231,8 +1231,8 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
 	VirtualMachine vm ;
 
-	double headAngle = atan2 ( getHead()->y-getBoundingPoint ( 1 ).y, getHead()->x-getBoundingPoint ( 1 ).x ) ;
-	double tailAngle = atan2 ( getTail()->y-getBoundingPoint ( getBoundingPoints().size()-2 ).y, getTail()->x-getBoundingPoint ( getBoundingPoints().size()-2 ).x ) ;
+	double headAngle = -atan2 ( getHead()->y-getBoundingPoint ( 1 ).y, getHead()->x-getBoundingPoint ( 1 ).x ) ;
+	double tailAngle = atan2 ( getBoundingPoint ( getBoundingPoints().size()-2 ).y-getTail()->y, getBoundingPoint ( getBoundingPoints().size()-2 ).x-getTail()->x) ;
 
 	std::vector<Segment> intersectingSegments ;
 	for ( size_t j = 1 ; j < this->getBoundingPoints().size() ; j++ )
@@ -1350,6 +1350,18 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			pointGlobal.push_back ( e->second ) ;
 			pointGlobal.push_back ( e->third ) ;
 
+// 			Triangle parent ;
+// 			for(size_t k  = 0 ; k < 100 ;  k++)
+// 			{
+// 				for(size_t l  = 0 ; l < 100 ;  l++)
+// 				{
+// 					if(parent.in(Point((double)k/99., (double)l/99.)))
+// 						std::cout << vm.deval(f1, XI, (double)k/99., (double)l/99.) << "   "<< std::flush ;
+// 					else
+// 						std::cout << "0   "<< std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
 // 			Function f = shapefunc[0]*(f0 - vm.eval(f0, pointLocal[0])) ;
 
 // 			for(size_t i = 0 ; i < 80 ; i++)
@@ -1483,28 +1495,29 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			std::vector<Point> hint ;
 			std::vector<Point> transformed ;
 
-			for ( size_t k = 0 ; k < intersection.size() ; k++ )
+			for ( size_t k = 0 ; k < intersection.size()-1 ; k++ )
 			{
+				std::cout << "glVertex(" 
+					<< intersection[k].x 
+					<< ", "
+					<< intersection[k].y
+					<<") ; "<< std::endl ;
+				std::cout << "glVertex(" 
+					<< intersection[k+1].x 
+					<< ", "
+					<< intersection[k+1].y
+					<<") ; "<< std::endl ;
 				transformed.push_back ( e->inLocalCoordinates ( intersection[k] ) ) ;
+				transformed.push_back ( e->inLocalCoordinates ( intersection[k]*.5+ intersection[k+1]*.5) ) ;
+				Triangle().project(&transformed.back()) ;
+				
 			}
+			transformed.push_back ( e->inLocalCoordinates ( intersection[intersection.size()-1] ) ) ;
 
-			if ( transformed.size() >2 )
+			for ( size_t k = 0 ; k < transformed.size() ; k++ )
 			{
-				hint.push_back ( transformed[0] ) ;
-				for ( size_t k = 1 ; k < transformed.size()-1 ; k++ )
-				{
-					hint.push_back ( transformed[k] ) ;
-				}
-				hint.push_back ( transformed[transformed.size()-1] ) ;
+				hint.push_back ( transformed[k] ) ;
 			}
-			else
-			{
-				for ( size_t k = 0 ; k < transformed.size() ; k++ )
-				{
-					hint.push_back ( transformed[k] ) ;
-				}
-			}
-
 
 			Function s ( intersectingSegments, e->getXTransform(), e->getYTransform() ) ;
 
@@ -1541,13 +1554,6 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			for ( size_t j = 0 ; j < toEnrichAlso.size() ; j++ )
 			{
 				DelaunayTriangle * elem = toEnrichAlso[j] ;
-
-				transformed.clear() ;
-
-				for ( size_t k = 0 ; k < intersection.size() ; k++ )
-				{
-					transformed.push_back ( elem->inLocalCoordinates ( intersection[k] ) ) ;
-				}
 
 				Function s_ ( intersectingSegments, elem->getXTransform(), elem->getYTransform() ) ;
 				hint.clear() ;
