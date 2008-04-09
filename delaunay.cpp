@@ -2396,7 +2396,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 
 			Function x = tri[i]->getXTransform() ;
 			Function y = tri[i]->getYTransform() ;
-			tri[i]->setOrder(order) ;
+			tri[i]->setOrder(LINEAR) ;
 
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			
@@ -2434,9 +2434,12 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			delete pointsToCleanup[i] ;
 
 
-		gp.gaussPoints.resize(gp_alternative.size()) ;
-		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-		gp.id = -1 ;
+		if(gp.gaussPoints.size() < gp_alternative.size())
+		{
+			gp.gaussPoints.resize(gp_alternative.size()) ;
+			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
+			gp.id = -1 ;
+		}
 
 	}
 	
