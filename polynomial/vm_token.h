@@ -340,7 +340,7 @@ public:
 		}
 		
 		Point vector(-s[0].vector().y, s[0].vector().x) ;
-		w= s[0].midPoint()+vector*10. ;
+		w= s[0].midPoint()+vector*100. ;
 	}
 	
 	virtual void eval(Context & context) const
@@ -359,6 +359,11 @@ public:
 		int intersections = 0 ;
 		for(size_t i = 0 ; i < s.size() ; i++)
 		{
+			if(s[i].on(test))
+			{
+				context.memory.stack[context.memory.top_pos] = 0 ;
+				return ;
+			}
 			if(s[i].intersects(test, w))
 			{
 				intersections++ ;
@@ -366,7 +371,10 @@ public:
 			
 		}
 		
-		context.memory.stack[context.memory.top_pos] =  ((intersections % 2)  != 0) * 2 - 1;
+		if((intersections % 2)  != 0)
+			context.memory.stack[context.memory.top_pos] = 1;
+		else
+			context.memory.stack[context.memory.top_pos] =  -1;
 
 	}
 	

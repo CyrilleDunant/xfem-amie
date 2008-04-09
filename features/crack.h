@@ -147,6 +147,7 @@ class Crack :  public EnrichmentFeature,  public SegmentedLine
 	{
 		VOID_ENRICHMENT, 
 		SPLIT_ENRICHMENT,
+		MULTI_SPLIT_ENRICHEMENT,
 		SINGULAR_ENRICHMENT,
 		KINKS_ENRICHMENT,
 		HEAD_ENRICHMENT,

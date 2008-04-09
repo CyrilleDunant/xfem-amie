@@ -396,9 +396,9 @@ GaussPointArray TriElement::genGaussPoints() const
 	}
 	else
 	{
-		double j = 0 ;
+		double j = area() ;
 // 		if(getBoundingPoints().size() != shapefunc->size())
-			j = TriElement(LINEAR).jacobianAtPoint(Point(1./3., 1./3.)) ;
+// 			j = TriElement(LINEAR).jacobianAtPoint(Point(1./3., 1./3.)) ;
 // 		else
 // 			j = jacobianAtPoint(Point(1./3., 1./3.)) ;
 		

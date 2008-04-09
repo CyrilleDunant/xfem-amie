@@ -2190,6 +2190,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 				if(s.intersects(*this))
 					ret.push_back( s.intersection(*this)) ;
 			}
+			std::sort(ret.begin(), ret.end()) ;
 			std::vector<Point>::iterator e = std::unique(ret.begin(), ret.end()) ;
 			ret.erase(e, ret.end()) ;
 			return ret ;
@@ -2218,6 +2219,9 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 			if(s3.intersects(*this))
 				ret.push_back( s3.intersection(*this)) ;
 			
+			std::sort(ret.begin(), ret.end()) ;
+			std::vector<Point>::iterator e = std::unique(ret.begin(), ret.end()) ;
+			ret.erase(e, ret.end()) ;
 			return ret ;
 		}
 	case CIRCLE:
@@ -2308,7 +2312,7 @@ bool Segment::intersects(const Segment & l) const
 {
 	if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
 	{
-		l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
+		return l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
 	}
 	
 	Matrix m(2,2) ;

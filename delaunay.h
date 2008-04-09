@@ -293,6 +293,8 @@ public:
 	bool isVertexByID(const Point *p) const ;
 	
 	void insert(std::vector<DelaunayTreeItem *>& , Point *p, Star *s) { };
+
+	bool isConflicting(const Geometry * g) const ;
 	
 	const Point * getCircumCenter() const ;
 	double getRadius() const ;

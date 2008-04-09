@@ -45,7 +45,14 @@ DelaunayTreeItem::DelaunayTreeItem( DelaunayTree * t, DelaunayTreeItem * father,
 bool DelaunayTriangle::isConflicting(const Geometry * g) const
 {
 
-	return g->in(*first) || g->in(*second) || g->in(*third) || inCircumCircle(g->getCenter()) ;
+	return g->in(*first) || g->in(*second) || g->in(*third) || inCircumCircle(g->getCenter()) || g->intersects(this->getPrimitive()) ;
+	
+}
+
+bool DelaunayDeadTriangle::isConflicting(const Geometry * g) const
+{
+	Triangle t(*first, *second, *third) ;
+	return g->in(*first) || g->in(*second) || g->in(*third) || inCircumCircle(g->getCenter()) || g->intersects(&t) ;
 	
 }
 
@@ -978,7 +985,7 @@ inline bool DelaunayTriangle::isVertex(const Point * p) const
 
 bool DelaunayTriangle::isVertexByID(const Point * p) const
 {
-	return (p->id == first->id || p->id == second->id || p->id == third->id) ;
+	return p == first || p == second || p == third ;
 }
 	
 
@@ -2248,11 +2255,11 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
 			{
 				bool go = true ;
-				getEnrichmentFunction(i).getIntegrationHint(j).print() ;
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
 					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j), 
-					                to_add[k]) < 4.*default_derivation_delta)
+					                to_add[k]) 
+					   < 4.*default_derivation_delta*default_derivation_delta)
 					{
 						go = false ;
 						break ;
@@ -2277,33 +2284,10 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  2;
+		size_t numberOfRefinements =  8;
 		
 		VirtualMachine vm ;
-			Triangle parent ;
-// vm.print(getEnrichmentFunction(0));
-			for(size_t k  = 0 ; k < 10 ;  k++)
-			{
-				for(int l  = 9 ; l >= 0 ;  l--)
-				{
-					if(parent.in(Point((double)k/9., (double)l/9.)))
-						std::cout << vm.deval(getEnrichmentFunction(0), XI, (double)k/9., (double)l/9.) << "   "<< std::flush ;
-					else
-						std::cout << "0   "<< std::flush ;
-				}
-				std::cout << std::endl ;
-			}
-			for(size_t k  = 0 ; k < 10 ;  k++)
-			{
-				for(int l  = 9 ; l >= 0 ;  l--)
-				{
-					if(parent.in(Point((double)k/9., (double)l/9.)))
-						std::cout << vm.eval(getEnrichmentFunction(0), (double)k/9., (double)l/9.) << "   "<< std::flush ;
-					else
-						std::cout << "0   "<< std::flush ;
-				}
-				std::cout << std::endl ;
-			}
+
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
 			for(size_t j = 0 ; j < tri.size() ; j++)
@@ -2313,8 +2297,8 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
 				double error = 0 ;
-				Function x = tri[i]->getXTransform() ;
-				Function y = tri[i]->getYTransform() ;
+				Function x = tri[j]->getXTransform() ;
+				Function y = tri[j]->getYTransform() ;
 				for(size_t k = 0 ; k <  getEnrichmentFunctions().size() ; k++)
 				{
 					GaussPointArray gplin = tri[j]->getGaussPoints() ;
@@ -2324,38 +2308,56 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 					double linInt = 0 ;
 					for(size_t m = 0 ; m < gplin.gaussPoints.size() ; m++)
 					{
-						linInt += vm.eval(getEnrichmentFunction(k), 
+						double dx = vm.deval(getEnrichmentFunction(k), XI,
 						                  vm.eval(x, gplin.gaussPoints[m].first), 
 						                  vm.eval(y, gplin.gaussPoints[m].first)
 						                 ) ;
+						double dy = vm.deval(getEnrichmentFunction(k), ETA,
+						                     vm.eval(x, gplin.gaussPoints[m].first), 
+						                     vm.eval(y, gplin.gaussPoints[m].first)
+						                    ) ;
+						linInt += sqrt(dx*dx+dy*dy) ;
 
 					}
 					linInt /= gplin.gaussPoints.size() ;
 					double quadInt = 0 ;
 					for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
 					{
-						quadInt += vm.eval(getEnrichmentFunction(k), 
-						                  vm.eval(x, gpquad.gaussPoints[m].first), 
-						                  vm.eval(y, gpquad.gaussPoints[m].first)
-						                 ) ;
+						
+						double dx = vm.deval(getEnrichmentFunction(k), XI,
+						                     vm.eval(x, gpquad.gaussPoints[m].first), 
+						                     vm.eval(y, gpquad.gaussPoints[m].first)
+						                    ) ;
+						double dy = vm.deval(getEnrichmentFunction(k), ETA,
+						                     vm.eval(x, gpquad.gaussPoints[m].first), 
+						                     vm.eval(y, gpquad.gaussPoints[m].first)
+						                    ) ;
+						quadInt += sqrt(dx*dx+dy*dy) ;
 					}
 					quadInt /=gpquad.gaussPoints.size() ;
 // 					std::cout << linInt << ", " << quadInt << std::endl ;
-					error = std::max(error, std::abs(linInt-quadInt)) ;
+					error = std::max(error, std::abs(quadInt-linInt)) ;
 				}
 				unsorted.push_back(error) ;
 				sorted.push_back(error) ;
 			}
 			
 			std::sort(sorted.begin(), sorted.end()) ;
-// 			std::cout << sorted.size()<< " elements, min = " << sorted.front() << ", max = " << sorted.back() << std::endl ;
 			
 			if(sorted.back() < 1e-4)
 			{
-				for(size_t m = 0 ; m < tri.size() ; m++)
-				{
-					std::cout << tri[m]->getCenter().x << ", " << tri[m]->getCenter().y << ", " << vm.deval(getEnrichmentFunction(0), XI, tri[m]->getCenter().x , tri[m]->getCenter().y) << std::endl ;
-				}
+// 				if(tri.size() >500)
+// 				{
+// 					for(size_t m = 0 ; m < getEnrichmentFunctions().size() ; m++)
+// 						vm.print(getEnrichmentFunction(m)) ;
+// 					for(size_t m = 0 ; m < to_add.size() ; m++)
+// 						to_add[m].print() ;
+// 					for(size_t m = 0 ; m < tri.size() ; m++)
+// 						std::cout 
+// 						<< tri[m]->getCenter().x 
+// 						<< ", " 
+// 						<< tri[m]->getCenter().y << std::endl ;
+// 				}
 				break ;
 			}
 			
@@ -2365,7 +2367,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				bool tooNear = false ;
 				for(size_t k = 0 ; k < to_add.size() ; k++)
 				{
-					if(squareDist2D(tri[j]->getCenter(), to_add[k]) < 4.*default_derivation_delta)
+					if(squareDist2D(tri[j]->getCenter(), to_add[k]) < 4.*default_derivation_delta*default_derivation_delta)
 					{
 						tooNear = true ;
 						break ;
@@ -2394,7 +2396,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 
 			Function x = tri[i]->getXTransform() ;
 			Function y = tri[i]->getYTransform() ;
-			tri[i]->setOrder(LINEAR) ;
+			tri[i]->setOrder(order) ;
 
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			
@@ -2431,9 +2433,11 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;
 
+
 		gp.gaussPoints.resize(gp_alternative.size()) ;
 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 		gp.id = -1 ;
+
 	}
 	
 	return gp ;

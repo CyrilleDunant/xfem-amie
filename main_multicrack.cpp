@@ -1349,13 +1349,14 @@ int main(int argc, char *argv[])
 	// ADD FIRST CRACK
 	std::valarray<Point *> ptset1(2) ;//point set for crack
 	std::cout << "coucou1" << std::endl;
-	ptset1[0] = new Point(-.160, y_10) ;//start of crack
+	ptset1[0] = new Point(x_10, y_10) ;//start of crack
 	ptset1[1] = new Point(x_11, y_11) ;//end of crack
 	std::cout << "coucou2" << std::endl;
 
+
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
 	
-	crack[0]->setParams(0.01,1.0,0.0) ;// set params
+	crack[0]->setParams(0.001,1.0,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
@@ -1363,11 +1364,11 @@ int main(int argc, char *argv[])
 	// ADD SECOND CRACK
 	std::valarray<Point *> ptset2(2) ;//point set for crack
 	ptset2[0] = new Point(x_20, y_20) ;//start of crack
-	ptset2[1] = new Point(.160, y_21) ;//end of crack
+	ptset2[1] = new Point(x_21, y_21) ;//end of crack
 
 		crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
 
-		crack[1]->setParams(0.01,1.0,0.0) ;// set params
+		crack[1]->setParams(0.001,1.0,0.0) ;// set params
 		F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
@@ -1439,7 +1440,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(32) ;
+	F.sample(128) ;
 	//	F.sample(128) ;
 	F.setOrder(QUADRATIC) ;
 
