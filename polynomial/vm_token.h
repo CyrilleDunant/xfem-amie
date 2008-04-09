@@ -366,7 +366,7 @@ public:
 			
 		}
 		
-		context.memory.stack[context.memory.top_pos] =  (intersections % 2 ) * 2 - 1;
+		context.memory.stack[context.memory.top_pos] =  ((intersections % 2)  != 0) * 2 - 1;
 
 	}
 	

@@ -2248,7 +2248,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
 			{
 				bool go = true ;
-				
+				getEnrichmentFunction(i).getIntegrationHint(j).print() ;
 				for(size_t k = 0 ; k < 3  ; k++ )
 				{
 					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j), 
@@ -2274,13 +2274,36 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		{
 			dt->insert(&to_add[i]) ;
 		}
-		
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
 		size_t numberOfRefinements =  2;
 		
 		VirtualMachine vm ;
+			Triangle parent ;
+// vm.print(getEnrichmentFunction(0));
+			for(size_t k  = 0 ; k < 10 ;  k++)
+			{
+				for(int l  = 9 ; l >= 0 ;  l--)
+				{
+					if(parent.in(Point((double)k/9., (double)l/9.)))
+						std::cout << vm.deval(getEnrichmentFunction(0), XI, (double)k/9., (double)l/9.) << "   "<< std::flush ;
+					else
+						std::cout << "0   "<< std::flush ;
+				}
+				std::cout << std::endl ;
+			}
+			for(size_t k  = 0 ; k < 10 ;  k++)
+			{
+				for(int l  = 9 ; l >= 0 ;  l--)
+				{
+					if(parent.in(Point((double)k/9., (double)l/9.)))
+						std::cout << vm.eval(getEnrichmentFunction(0), (double)k/9., (double)l/9.) << "   "<< std::flush ;
+					else
+						std::cout << "0   "<< std::flush ;
+				}
+				std::cout << std::endl ;
+			}
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
 			for(size_t j = 0 ; j < tri.size() ; j++)

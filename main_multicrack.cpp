@@ -1290,72 +1290,6 @@ void Display(void)
 // 			glCallList(DISPLAY_LIST_CRACK) ;
 		
 		glColor3f(1, 1, 1) ;
-glBegin(GL_LINES) ;
-glVertex2f(-0.0482045, -0.03) ;
-glVertex2f(-0.0581806, -0.03) ;
-glVertex2f(-0.0556854, -0.03) ;
-glVertex2f(-0.08, -0.03) ;
-glVertex2f(-0.078128, -0.03) ;
-glVertex2f(-0.0426684, -0.03) ;
-glVertex2f(-0.0406759, -0.03) ;
-glVertex2f(-0.0527732, -0.03) ;
-glVertex2f(-0.0504075, -0.03) ;
-glVertex2f(-0.078128, -0.03) ;
-glVertex2f(-0.0758552, -0.03) ;
-glVertex2f(-0.0737182, -0.03) ;
-glVertex2f(-0.070977, -0.03) ;
-glVertex2f(-0.0482045, -0.03) ;
-glVertex2f(-0.0457883, -0.03) ;
-glVertex2f(-0.0612984, -0.03) ;
-glVertex2f(-0.0601261, -0.03) ;
-glVertex2f(-0.0457883, -0.03) ;
-glVertex2f(-0.0426684, -0.03) ;
-glVertex2f(-0.0556854, -0.03) ;
-glVertex2f(-0.0527732, -0.03) ;
-glVertex2f(-0.0758552, -0.03) ;
-glVertex2f(-0.0737182, -0.03) ;
-glVertex2f(-0.0656343, -0.03) ;
-glVertex2f(-0.0612984, -0.03) ;
-glVertex2f(-0.0601261, -0.03) ;
-glVertex2f(-0.0581806, -0.03) ;
-glVertex2f(-0.070977, -0.03) ;
-glVertex2f(-0.0682387, -0.03) ;
-glVertex2f(-0.0682387, -0.03) ;
-glVertex2f(-0.0656343, -0.03) ;
-glVertex2f(0.0490691, 0.03) ;
-glVertex2f(0.0514576, 0.03) ;
-glVertex2f(0.07688, 0.03) ;
-glVertex2f(0.08, 0.03) ;
-glVertex2f(0.0690666, 0.03) ;
-glVertex2f(0.0706028, 0.03) ;
-glVertex2f(0.0461485, 0.03) ;
-glVertex2f(0.0490691, 0.03) ;
-glVertex2f(0.0514576, 0.03) ;
-glVertex2f(0.0530398, 0.03) ;
-glVertex2f(0.0530398, 0.03) ;
-glVertex2f(0.0561966, 0.03) ;
-glVertex2f(0.0639279, 0.03) ;
-glVertex2f(0.0658097, 0.03) ;
-glVertex2f(0.0748431, 0.03) ;
-glVertex2f(0.07688, 0.03) ;
-glVertex2f(0.0561966, 0.03) ;
-glVertex2f(0.0590859, 0.03) ;
-glVertex2f(0.0658097, 0.03) ;
-glVertex2f(0.0690666, 0.03) ;
-glVertex2f(0.0590859, 0.03) ;
-glVertex2f(0.0605283, 0.03) ;
-glVertex2f(0.0706028, 0.03) ;
-glVertex2f(0.071572, 0.03) ;
-glVertex2f(0.071572, 0.03) ;
-glVertex2f(0.0748431, 0.03) ;
-glVertex2f(0.0605283, 0.03) ;
-glVertex2f(0.0639279, 0.03) ;
-glVertex2f(0.0433597, 0.03) ;
-glVertex2f(0.0461485, 0.03) ;
-glVertex2f(0.0405388, 0.03) ;
-glVertex2f(0.0433597, 0.03) ;
-glEnd() ;	
-		
 	}
 	glColor3f(1, 0, 0) ;
 	glFlush();
@@ -1421,7 +1355,7 @@ int main(int argc, char *argv[])
 
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
 	
-	crack[0]->setParams(0.02,1.0,0.0) ;// set params
+	crack[0]->setParams(0.01,1.0,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
@@ -1433,7 +1367,7 @@ int main(int argc, char *argv[])
 
 		crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
 
-		crack[1]->setParams(0.02,1.0,0.0) ;// set params
+		crack[1]->setParams(0.01,1.0,0.0) ;// set params
 		F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
@@ -1505,7 +1439,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
+	F.sample(32) ;
 	//	F.sample(128) ;
 	F.setOrder(QUADRATIC) ;
 
