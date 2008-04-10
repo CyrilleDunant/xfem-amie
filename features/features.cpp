@@ -2778,8 +2778,9 @@ void FeatureTree::generateElements( size_t correctionSteps)
 	meshPoints.erase(e, meshPoints.end()) ;
 	
 	//shuffle for efficiency
-	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
-// 	std::random_shuffle(meshPoints.begin()+bpcount, meshPoints.end()) ;
+// 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
+	std::random_shuffle(meshPoints.begin(),meshPoints.begin()+bpcount) ;
+	std::random_shuffle(meshPoints.begin()+bpcount, meshPoints.end()) ;
 	
 	if(is2D())
 	{		

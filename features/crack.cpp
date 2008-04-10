@@ -2118,6 +2118,8 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 		}
 	}
 	
+	print() ;
+	
 }
 
 void Crack::print() const

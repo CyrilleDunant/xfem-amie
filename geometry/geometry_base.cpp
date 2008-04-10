@@ -146,6 +146,30 @@ void Point::set(double v, double vv, double vvv, double vvvv)
 bool Point::operator==(const Point &p) const
 {
 
+	double delta = POINT_TOLERANCE ;
+	Point a(p) ; a.x += delta ; a.y += delta ; a.z += delta ;
+	Point b(p) ; b.x += delta ; b.y += delta; b.z -= delta ;
+	Point c(p) ; c.x += delta ; c.y -= delta; c.z += delta ;
+	Point d(p) ; d.x += delta ; d.y -= delta; d.z -= delta ;
+	Point e(p) ; e.x -= delta ; e.y += delta; e.z += delta ;
+	Point f(p) ; f.x -= delta ; f.y += delta; f.z -= delta ;
+	Point g(p) ; g.x -= delta ; g.y -= delta; g.z += delta ;
+	Point h(p) ; h.x -= delta ; h.y -= delta; h.z -= delta ;
+
+return squareDist( &p, this) < POINT_TOLERANCE*POINT_TOLERANCE 
+		|| squareDist( &a, this) < POINT_TOLERANCE*POINT_TOLERANCE
+		|| squareDist( &b, this) < POINT_TOLERANCE*POINT_TOLERANCE
+		|| squareDist( &c, this) < POINT_TOLERANCE*POINT_TOLERANCE
+		|| squareDist( &d, this) < POINT_TOLERANCE*POINT_TOLERANCE
+		|| squareDist( &e, this) < POINT_TOLERANCE*POINT_TOLERANCE
+		|| squareDist( &f, this) < POINT_TOLERANCE*POINT_TOLERANCE
+		|| squareDist( &g, this) < POINT_TOLERANCE*POINT_TOLERANCE
+		|| squareDist( &h, this) < POINT_TOLERANCE*POINT_TOLERANCE ;
+	return  std::abs(x-p.x) < .5*POINT_TOLERANCE && 
+		std::abs(y-p.y) < .5*POINT_TOLERANCE &&  
+		std::abs(z-p.z) < .5*POINT_TOLERANCE &&
+		std::abs(t-p.t) < .5*POINT_TOLERANCE
+;
 	return squareDist( &p, this) < POINT_TOLERANCE*POINT_TOLERANCE ;
 /*
 	return  std::abs(x-p.x) < 1e-8 && 
@@ -2939,7 +2963,7 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	double c0 = std::abs(signedAlignement(test, f0, f1)) ;
 	
 
-	double delta = .25*POINT_TOLERANCE*POINT_TOLERANCE ; ;
+	double delta = .25*POINT_TOLERANCE*POINT_TOLERANCE ;
 
 	Point b(test) ; b.x += delta ; b.y += delta;
 	Point d(test) ; d.x += delta ; d.y -= delta; 

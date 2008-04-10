@@ -293,8 +293,8 @@ void step()
 	
 	size_t nsteps = 64;
 	size_t nit = 25 ;
-	
 	size_t ntries = 25;
+
 	for(size_t i = 0 ; i < nit ; i++)
 	{
 		setBC() ;
@@ -1765,11 +1765,11 @@ int main(int argc, char *argv[])
 
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
-// 		F.addFeature(pore1,newinc) ;
+		F.addFeature(pore1,newinc) ;
 		
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-		F.addFeature(pore1,inclusions[i]) ;
+// 		F.addFeature(pore1,inclusions[i]) ;
 // 		F.addFeature(pore1,new Pore(inclusions[i]->getRadius()-itzSize*.75, inclusions[i]->getCenter())) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1784,7 +1784,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(400) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 
