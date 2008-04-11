@@ -17,6 +17,8 @@
 namespace Mu
 {
 
+
+
 /** Branching cracks
  * Branches are all the segmented lines that form the non-overlaping structure of the crack. 
  * A branch contains no information on tips or bifurcations.
@@ -32,11 +34,11 @@ class BranchedCrack : public EnrichmentFeature,  public SegmentedLine
 {
 protected:
 	std::vector<SegmentedLine *> branches ;
-	std::vector<Point * > tips ;
+	std::vector<std::pair<Point *, double> > tips ;
 	std::vector<SegmentedLine * > forks ;
 	
 	void enrichTips(size_t &, DelaunayTree * dt) ;
-	void enrichTip(size_t &, DelaunayTree * dt, const Point * tip, double angle) ;
+	void enrichTip(size_t &, DelaunayTree * dt, const std::pair<Point *, double> & tip, double angle) ;
 
 	void enrichForks(size_t &, DelaunayTree * dt) ;
 	void enrichBranches(size_t &, DelaunayTree * dt) ;
@@ -81,11 +83,11 @@ public:
 
 	double getEnrichementRadius() const ;
 	const std::vector<SegmentedLine *> & getBranches() const;
-	const std::vector<Point * > & getTips() const;
+	const std::vector<std::pair<Point *, double> > & getTips() const;
 	const std::vector<SegmentedLine * > & getForks() const;
 
 	std::vector<SegmentedLine *> & getBranches();
-	std::vector<Point * > & getTips();
+	std::vector<std::pair<Point *, double> > & getTips();
 	std::vector<SegmentedLine * > & getForks();
 	void setEnrichementRadius(double newRadius) ;
 
@@ -269,17 +271,10 @@ protected:
 } ;
 
 
-
-
-
-
-
-
-
-
-
-
 } ;
+
+bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b) ;
+
 
 #endif
 

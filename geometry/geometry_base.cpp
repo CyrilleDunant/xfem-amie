@@ -496,15 +496,17 @@ bool Geometry::intersects(const Geometry *g) const
 	{
 	case TRIANGLE :
 		{
-			Segment s0(this->getBoundingPoint(0), this->getBoundingPoint(this->getBoundingPoints().size()/3)) ;
-			Segment s1(this->getBoundingPoint(this->getBoundingPoints().size()/3), this->getBoundingPoint(2*this->getBoundingPoints().size()/3)) ;
-			Segment s2(this->getBoundingPoint(0), this->getBoundingPoint(2*this->getBoundingPoints().size()/3)) ;
+			int numpoints = getBoundingPoints().size() ;
+			Segment s0(getBoundingPoint(0), getBoundingPoint(numpoints/3)) ;
+			Segment s1(getBoundingPoint(numpoints/3), getBoundingPoint(2*numpoints/3)) ;
+			Segment s2(getBoundingPoint(0),getBoundingPoint(2*numpoints/3)) ;
 			
 			if(g->getGeometryType() == TRIANGLE)
 			{
-				Segment t0(g->getBoundingPoint(0), g->getBoundingPoint(g->getBoundingPoints().size()/3)) ;
-				Segment t1(g->getBoundingPoint(g->getBoundingPoints().size()/3), g->getBoundingPoint(2*g->getBoundingPoints().size()/3)) ;
-				Segment t2(g->getBoundingPoint(0), g->getBoundingPoint(2*g->getBoundingPoints().size()/3)) ;
+				int gnumpoints = g->getBoundingPoints().size() ;
+				Segment t0(g->getBoundingPoint(0), g->getBoundingPoint(gnumpoints/3)) ;
+				Segment t1(g->getBoundingPoint(gnumpoints/3), g->getBoundingPoint(2*gnumpoints/3)) ;
+				Segment t2(g->getBoundingPoint(0), g->getBoundingPoint(2*gnumpoints/3)) ;
 				
 				return s0.intersects(t0) || s0.intersects(t1) || s0.intersects(t2)
 					|| s1.intersects(t0) || s1.intersects(t1) || s1.intersects(t2) 
@@ -2339,22 +2341,25 @@ bool Segment::intersects(const Segment & l) const
 		return l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
 	}
 	
+	if(l.on(f) || l.on(s) || on(l.first()) || on(l.second()))
+		return true ;
+	
 	Matrix m(2,2) ;
 	Vector v(2) ;
 	
 	m[0][0] = -vec.x ; m[0][1] = l.vector().x ;
 	m[1][0] = -vec.y ; m[1][1] = l.vector().y ;
 	
-	v[0] = l.first().x - f.x ; v[1] = l.first().y - f.y ; 
+	v[0] = -l.first().x + f.x ; v[1] = -l.first().y + f.y ; 
 	
 	invert2x2Matrix(m) ;
 	
 	Vector fac = m * v ;
 	
-	return fac[0] <= 1 
-		&& fac[0] >= 0 
-		&& fac[1] <= 1
-		&& fac[1] >= 0;
+	return fac[0] > -1. - POINT_TOLERANCE 
+		&& fac[0] < POINT_TOLERANCE 
+		&& fac[1] > -1. - POINT_TOLERANCE 
+		&& fac[1] < POINT_TOLERANCE ;
 	
 }
 

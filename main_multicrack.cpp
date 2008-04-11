@@ -1356,7 +1356,7 @@ int main(int argc, char *argv[])
 
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
 	
-	crack[0]->setParams(0.002,1.0,0.0) ;// set params
+	crack[0]->setParams(0.01,.25,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
@@ -1368,7 +1368,7 @@ int main(int argc, char *argv[])
 
 		crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
 
-		crack[1]->setParams(0.002,1.0,0.0) ;// set params
+		crack[1]->setParams(0.01,.25,0.0) ;// set params
 		F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
@@ -1442,7 +1442,7 @@ int main(int argc, char *argv[])
 
 	F.sample(128) ;
 	//	F.sample(128) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
 

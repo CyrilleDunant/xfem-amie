@@ -6,7 +6,6 @@
 #include "crack.h"
 
 #include <fstream>
-using namespace std;
 
 using namespace Mu ;
 
@@ -18,12 +17,17 @@ BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : Enrichment
 	branches.push_back ( new SegmentedLine ( newBranch ) ) ;
 
 	if(father->in(*a))
-		tips.push_back(a) ;
+		tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
 	if(father->in(*b))
-		tips.push_back(b) ;
+		tips.push_back(std::make_pair(b, atan2(b->y-a->y, b->x-a->x))) ;
 
 	changed = false ;
 	
+}
+
+bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
+{
+	return a.first == b ;
 }
 
 BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), SegmentedLine(std::valarray<Point * >(0))
@@ -33,17 +37,24 @@ BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), Se
 	newBranch[1] = b ;
 	branches.push_back ( new SegmentedLine ( newBranch ) ) ;
 
-	tips.push_back(a) ;
-	tips.push_back(b) ;
+	tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
+	tips.push_back(std::make_pair(b, atan2(b->y-a->y, b->x-a->x))) ;
 
 	changed = false ;
 }
 
 void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 {
-	tips.erase ( std::find ( tips.begin(), tips.end(),fromTip ) ) ;
-	tips.push_back ( newTip0 ) ;
-	tips.push_back ( newTip1 ) ;
+	for(std::vector<std::pair<Point *, double> >::iterator i = tips.begin() ; i !=tips.end() ; ++i)
+	{
+		if(i->first == fromTip)
+		{
+			tips.erase(i) ;
+			break ;
+		}
+	}
+	tips.push_back ( std::make_pair(newTip0, atan2(newTip0->y-fromTip->y, newTip0->x-fromTip->x)) ) ;
+	tips.push_back ( std::make_pair(newTip1, atan2(newTip1->y-fromTip->y, newTip1->x-fromTip->x)) ) ;
 	std::valarray<Point * > newBranch ( 2 ) ;
 	newBranch[0] = fromTip ;
 	newBranch[1] = newTip0 ;
@@ -119,11 +130,11 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 		return ;
 	}
 	
-	Point * tipForMerge = newSet.getTips()[0] ;
+	std::pair<Point *, double> tipForMerge = newSet.getTips()[0] ;
 	double dist = 0 ;
 	for(size_t i = 0 ; i < tips.size() ; i++)
 	{
-		dist = std::max(squareDist(tips[i], tipForMerge), dist) ;
+		dist = std::max(squareDist(tips[i].first, tipForMerge.first), dist) ;
 	}
 	double maxdist = dist*2. ;
 	std::pair<Point*, Point*> targetSegment ;
@@ -132,7 +143,7 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	
 	for(size_t i = 0 ; i < newSet.getTips().size() ; i++)
 	{
-		Point * tipForMergePotential = newSet.getTips()[i] ;
+		std::pair<Point *, double> tipForMergePotential = newSet.getTips()[i] ;
 		double distPotential = maxdist ;
 		std::pair<Point*, Point*> targetSegmentPotential ;
 		SegmentedLine * toBranchPotential = NULL;
@@ -142,7 +153,7 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 			{
 				Point mid = (branches[j]->getBoundingPoint(k)
 				             +branches[j]->getBoundingPoint(k+1))*.5 ;
-				double dtest = squareDist(mid, *tipForMergePotential) ;
+				double dtest = squareDist(mid, *tipForMergePotential.first) ;
 				
 				if(dtest < distPotential)
 				{
@@ -174,14 +185,14 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	
 	for(size_t i = 0 ; i < newSet.getBranches().size() ; i++)
 	{
-		if(newSet.getBranches()[i]->getHead() == tipForMerge)
+		if(newSet.getBranches()[i]->getHead() == tipForMerge.first)
 		{
 			fromBranch = newSet.getBranches()[i] ;
 			isHead = true ;
 			break ;
 		}
 		
-		if(newSet.getBranches()[i]->getTail() == tipForMerge)
+		if(newSet.getBranches()[i]->getTail() == tipForMerge.first)
 		{
 			fromBranch = newSet.getBranches()[i] ;
 			isTail = true ;
@@ -265,12 +276,12 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	std::valarray<Point*> b1(3) ;
 	b1[0] = targetSegment.first ;
 	b1[1] = intersectionPoint ;
-	b1[2] = tipForMerge ;
+	b1[2] = tipForMerge.first ;
 	
 	std::valarray<Point*> b2(3) ;
 	b2[0] = targetSegment.second ;
 	b2[1] = intersectionPoint ;
-	b2[2] = tipForMerge ;
+	b2[2] = tipForMerge.first ;
 	forks.push_back ( new SegmentedLine ( b0 ) ) ;
 	forks.push_back ( new SegmentedLine ( b1 ) ) ;
 	forks.push_back ( new SegmentedLine ( b2 ) ) ;
@@ -302,9 +313,9 @@ void BranchedCrack::enrichTips(size_t & startid, DelaunayTree * dt)
 	}
 }
 
-void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const Point * tip, double angle)
+void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pair<Point *, double> & tip, double angle)
 {
-	Circle epsilon(enrichementRadius, *tip) ;
+	Circle epsilon(enrichementRadius, *tip.first) ;
 	std::vector<DelaunayTriangle *> triangles = dt->conflicts(&epsilon) ;
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
@@ -326,14 +337,14 @@ void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const Point *
 	for(size_t  i = 0 ; i < triangles.size() ; i++)
 	{
 		std::vector<Point> hint ;
-		Line crossing ( *tip, Point(cos(angle), sin(angle)) ) ;
+		Line crossing ( *tip.first, Point(cos(angle), sin(angle)) ) ;
 		std::vector<Point > completeIntersection = crossing.intersection ( static_cast<Triangle *>(triangles[i]) ) ;
 		
 		if(completeIntersection.size() == 2)
 		{
 			Point intersectionTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[0] ) ;
 			Point intersectionBisTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[1] ) ;
-			Point singularityTransformed = triangles[i]->inLocalCoordinates ( *tip );
+			Point singularityTransformed = triangles[i]->inLocalCoordinates ( *tip.first );
 			
 			hint.push_back ( intersectionTransformed ) ;
 			hint.push_back ( intersectionBisTransformed ) ;
@@ -343,12 +354,12 @@ void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const Point *
 		
 		Function x = triangles[i]->getXTransform() ;
 		Function y = triangles[i]->getYTransform() ;
-		double rotatedSingularityX = tip->x*cos ( angle ) + tip->y*sin ( angle ) ;
-		double rotatedSingularityY = -tip->x*sin ( angle ) + tip->y*cos ( angle ) ;
+		double rotatedSingularityX = tip.first->x*cos ( angle ) + tip.first->y*sin ( angle ) ;
+		double rotatedSingularityY = -tip.first->x*sin ( angle ) + tip.first->y*cos ( angle ) ;
 		Function rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
 		Function rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
-		Function x_ = x - tip->x ;
-		Function y_ = y - tip->y ;
+		Function x_ = x - tip.first->x ;
+		Function y_ = y - tip.first->y ;
 		Function theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
 		Function r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
 		
@@ -637,7 +648,7 @@ void BranchedCrack::setEnrichementRadius(double newRadius)
 	enrichementRadius = newRadius ;
 }
 
-const std::vector<Point * > & BranchedCrack::getTips() const
+const std::vector<std::pair<Point *, double> > & BranchedCrack::getTips() const
 {
 	return tips ;
 }
@@ -652,7 +663,7 @@ std::vector<SegmentedLine *> & BranchedCrack::getBranches()
 	return branches ;
 }
 
-std::vector<Point * > & BranchedCrack::getTips()
+std::vector<std::pair<Point *, double> > & BranchedCrack::getTips()
 {
 	return tips ;
 }
@@ -667,16 +678,18 @@ bool BranchedCrack::isEmpty() const
 	return branches.empty() ;
 }
 
-void BranchedCrack::enrich(size_t &,  DelaunayTree * dtree)
+void BranchedCrack::enrich(size_t & counter,  DelaunayTree * dtree)
 {
-	///\todo make it work
+	enrichTips(counter, dtree) ;	
+	enrichForks(counter, dtree) ;
+	enrichBranches(counter, dtree) ;
 }
 
 void BranchedCrack::computeCenter()
 {
 	for(size_t i = 0 ; i < tips.size() ; i++)
 	{
-		SegmentedLine::center += *tips[i]*(1./tips.size()) ;
+		SegmentedLine::center += *tips[i].first*(1./tips.size()) ;
 	}
 }
 
@@ -718,21 +731,21 @@ std::vector<Mu::Geometry*> BranchedCrack::getRefinementZones(size_t level ) cons
 	{
 		for ( size_t i = 0 ; i < tips.size() ; i++ )
 		{
-			ret.push_back ( new Circle ( 0.2, *tips[i] ) ) ;
+			ret.push_back ( new Circle ( 0.2, *tips[i].first ) ) ;
 		}
 	}
 	if ( level > 1 )
 	{
 		for ( size_t i = 0 ; i < tips.size() ; i++ )
 		{
-			ret.push_back ( new Circle ( 0.15, *tips[i] ) ) ;
+			ret.push_back ( new Circle ( 0.15, *tips[i].first ) ) ;
 		}
 	}
 	if ( level > 3 )
 	{
 		for ( size_t i = 0 ; i < tips.size() ; i++ )
 		{
-			ret.push_back ( new Circle ( 0.1, *tips[i] ) ) ;
+			ret.push_back ( new Circle ( 0.1, *tips[i].first ) ) ;
 		}
 	}
 	return ret ;
@@ -756,7 +769,7 @@ void BranchedCrack::print() const
 	std::cout << " tips : " << tips.size() << std::endl;
 	for(size_t i = 0 ; i < tips.size() ; i++)
 	{
-		std::cout << "tip " << i << " : "<< "("<< tips[i]->x << ", " << tips[i]->y << ")"<< std::endl ;
+		std::cout << "tip " << i << " : "<< "("<< tips[i].first->x << ", " << tips[i].first->y << ")"<< std::endl ;
 	}
 	std::cout << " forks : " << forks.size()/3 << std::endl;
 	for(size_t i = 0 ; i < forks.size()/3 ; i++)
@@ -869,7 +882,7 @@ std::vector<DelaunayTriangle *> Crack::getTriangles ( DelaunayTree * dt )
 		vec.push_back ( inhead[i] ) ;
 	}
 
-	std::stable_sort ( vec.begin(), vec.end() ) ;
+	std::sort ( vec.begin(), vec.end() ) ;
 	std::vector<DelaunayTriangle *>::iterator e = std::unique ( vec.begin(), vec.end() );
 	vec.erase ( e, vec.end() ) ;
 	return vec ;
@@ -1287,8 +1300,7 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 		if ( map.getEnrichment ( e->first->id ).getType() == SPLIT_ENRICHMENT &&
 		        map.getEnrichment ( e->second->id ).getType() == SPLIT_ENRICHMENT &&
-		        map.getEnrichment ( e->third->id ).getType() == SPLIT_ENRICHMENT &&
-		     intersection.size() == 2
+		        map.getEnrichment ( e->third->id ).getType() == SPLIT_ENRICHMENT
 		   )
 		{
 // 			e->setNonLinearBehaviour( new TwoDCohesiveForces(e, dynamic_cast<SegmentedLine *>(this)) ) ;
@@ -2162,20 +2174,13 @@ void Crack::EnrichmentMap::EnrichmentMap::update ( std::vector<DelaunayTriangle 
 	props.clear() ;
 	for ( size_t i = 0 ; i < my_triangles->size() ; i++ )
 	{
-
-		for ( size_t j = 0 ; j < ( *my_triangles ) [i]->getBoundingPoints().size() ; j++ )
-		{
-			if ( props.find ( ( *my_triangles ) [i]->getBoundingPoint ( j ).id ) == props.end() )
-				props[ ( *my_triangles ) [i]->getBoundingPoint ( j ).id] = EnrichmentData ( 0, VOID_ENRICHMENT ) ;
-			else if ( props[ ( *my_triangles ) [i]->getBoundingPoint ( j ).id] != EnrichmentData ( 0, VOID_ENRICHMENT ) )
-				props[ ( *my_triangles ) [i]->getBoundingPoint ( j ).id] = EnrichmentData ( 0, DONE_ENRICHMENT ) ;
-		}
-
+		props[ ( *my_triangles ) [i]->first->id] = EnrichmentData ( 0, VOID_ENRICHMENT ) ;
+		props[ ( *my_triangles ) [i]->second->id] = EnrichmentData ( 0, VOID_ENRICHMENT ) ;
+		props[ ( *my_triangles ) [i]->third->id] = EnrichmentData ( 0, VOID_ENRICHMENT ) ;
 	}
 
 	for ( size_t i = 0 ; i < my_triangles->size() ; i++ )
 	{
-		int modulo = ( *my_triangles ) [i]->getBoundingPoints().size() /3 ;
 
 		if ( ( *my_triangles ) [i]->getBehaviour()->type != VOID_BEHAVIOUR )
 		{
@@ -2192,18 +2197,32 @@ void Crack::EnrichmentMap::EnrichmentMap::update ( std::vector<DelaunayTriangle 
 			if ( intersection )
 			{
 
-				for ( size_t j = 0 ; j < ( *my_triangles ) [i]->getBoundingPoints().size() ; j++ )
+				if ( props[ ( *my_triangles ) [i]->first->id].getType() == VOID_ENRICHMENT )
 				{
-					if ( j%modulo == 0 && props[ ( *my_triangles ) [i]->getBoundingPoint ( j ).id].getType() == VOID_ENRICHMENT )
-					{
-
-						std::vector<size_t> id0 ;
-						id0.push_back ( start++ ) ;
-						id0.push_back ( start++ ) ;
-						id0.push_back ( start++ ) ;
-						id0.push_back ( start++ ) ;
-						props[ ( *my_triangles ) [i]->getBoundingPoint ( j ).id] = EnrichmentData ( id0, SINGULAR_ENRICHMENT ) ;
-					}
+					std::vector<size_t> id0 ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					props[ ( *my_triangles ) [i]->first->id] = EnrichmentData ( id0, SINGULAR_ENRICHMENT ) ;
+				}
+				if ( props[ ( *my_triangles ) [i]->second->id].getType() == VOID_ENRICHMENT )
+				{
+					std::vector<size_t> id0 ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					props[ ( *my_triangles ) [i]->second->id] = EnrichmentData ( id0, SINGULAR_ENRICHMENT ) ;
+				}
+				if ( props[ ( *my_triangles ) [i]->third->id].getType() == VOID_ENRICHMENT )
+				{
+					std::vector<size_t> id0 ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					id0.push_back ( start++ ) ;
+					props[ ( *my_triangles ) [i]->third->id] = EnrichmentData ( id0, SINGULAR_ENRICHMENT ) ;
 				}
 			}
 		}
@@ -2211,19 +2230,38 @@ void Crack::EnrichmentMap::EnrichmentMap::update ( std::vector<DelaunayTriangle 
 
 	for ( size_t i = 0 ; i < my_triangles->size() ; i++ )
 	{
-		if ( ( *my_triangles ) [i]->getBehaviour()->type != VOID_BEHAVIOUR && ( *my_triangles ) [i]->intersects(myself->getPrimitive()))
+		if ( ( *my_triangles ) [i]->getBehaviour()->type != VOID_BEHAVIOUR )
 		{
+
 			if ( props[ ( *my_triangles ) [i]->first->id].getType() == VOID_ENRICHMENT )
 			{
 				props[ ( *my_triangles ) [i]->first->id] = EnrichmentData ( start++, SPLIT_ENRICHMENT ) ;
+			}
+			else if(props[ ( *my_triangles ) [i]->first->id].getType() != SINGULAR_ENRICHMENT)
+			{
+				std::cout << "oops !" << std::endl ;
+				( *my_triangles ) [i]->print() ;
+				myself->print() ;
 			}
 			if ( props[ ( *my_triangles ) [i]->second->id].getType() == VOID_ENRICHMENT )
 			{
 				props[ ( *my_triangles ) [i]->second->id] = EnrichmentData ( start++, SPLIT_ENRICHMENT ) ;
 			}
+			else if(props[ ( *my_triangles ) [i]->second->id].getType() != SINGULAR_ENRICHMENT)
+			{
+				std::cout << "oops !" << std::endl ;
+				( *my_triangles ) [i]->print() ;
+				myself->print() ;
+			}
 			if ( props[ ( *my_triangles ) [i]->third->id].getType() == VOID_ENRICHMENT )
 			{
 				props[ ( *my_triangles ) [i]->third->id] = EnrichmentData ( start++, SPLIT_ENRICHMENT ) ;
+			}
+			else if(props[ ( *my_triangles ) [i]->third->id].getType() != SINGULAR_ENRICHMENT)
+			{
+				std::cout << "oops !" << std::endl ;
+				( *my_triangles ) [i]->print() ;
+				myself->print() ;
 			}
 		}
 	}
@@ -2282,8 +2320,8 @@ bool Crack::moved() const
 **/
 void Crack::printFile(const std::string& filename) const // SB
 {
-  fstream filestr;
-  filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
+	std::fstream filestr;
+	filestr.open (filename.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
   
   for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
     {

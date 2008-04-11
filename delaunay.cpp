@@ -44,15 +44,23 @@ DelaunayTreeItem::DelaunayTreeItem( DelaunayTree * t, DelaunayTreeItem * father,
 	
 bool DelaunayTriangle::isConflicting(const Geometry * g) const
 {
-
-	return g->in(*first) || g->in(*second) || g->in(*third) || inCircumCircle(g->getCenter()) || g->intersects(this->getPrimitive()) ;
+	Circle c(getRadius(), getCircumCenter()) ;
+	return g->in(*first) 
+		|| g->in(*second) 
+		|| g->in(*third) 
+		|| inCircumCircle(g->getCenter()) 
+		|| g->intersects(getPrimitive()) ;
 	
 }
 
 bool DelaunayDeadTriangle::isConflicting(const Geometry * g) const
 {
 	Triangle t(*first, *second, *third) ;
-	return g->in(*first) || g->in(*second) || g->in(*third) || inCircumCircle(g->getCenter()) || g->intersects(&t) ;
+	return g->in(*first) 
+		|| g->in(*second) 
+		|| g->in(*third) 
+		|| inCircumCircle(g->getCenter()) 
+		|| g->intersects(&t) ;
 	
 }
 
@@ -312,10 +320,10 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 	ret.second.push_back(this) ;
 	
 	
-	if(!isConflicting(g) )
-	{
-		return ;
-	}
+// 	if(!isConflicting(g) )
+// 	{
+// 		return ;
+// 	}
 	
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
@@ -323,12 +331,21 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		if(!getStepson(i)->visited && getStepson(i)->isTriangle && !getStepson(i)->isDeadTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getStepson(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
+			limit = std::abs(
+			                  squareDist2D(
+			                                t->getCircumCenter(),g->getCenter())
+			                  -(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())
+			                ) 
+				< .1*t->getRadius()*t->getRadius() ;
 		}
 		if(!getStepson(i)->visited && !getStepson(i)->isDeadTriangle)
 		{
 			DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getStepson(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),&g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
+			limit = std::abs(
+			                  squareDist2D(
+			                                t->getCircumCenter(),&g->getCenter())
+			                  -(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius()))
+				< .1*t->getRadius()*t->getRadius() ;
 		}
 		
 		if( !getStepson(i)->visited && getStepson(i)->isConflicting(g) || limit)
@@ -347,12 +364,18 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		if(!getSon(i)->visited && getSon(i)->isTriangle && !getSon(i)->isDeadTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getSon(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
+			limit = std::abs(
+			                  squareDist2D(t->getCircumCenter(),g->getCenter())
+			                  -(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) 
+				< .1*t->getRadius()*t->getRadius() ;
 		}
 		if(!getSon(i)->visited && getSon(i)->isDeadTriangle)
 		{
 			DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getSon(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),&g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
+			limit = std::abs(
+			                  squareDist2D(t->getCircumCenter(),&g->getCenter())
+			                  -(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) 
+				< .1*t->getRadius()*t->getRadius() ;
 		}
 
 		if( !getSon(i)->visited && getSon(i)->isConflicting(g) || limit)
@@ -364,7 +387,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		}
 	}
 	
-	if(isAlive() && isTriangle)
+	if(isAlive() && isTriangle && isConflicting(g))
 	{
 		ret.first.push_back(static_cast<DelaunayTriangle *>(this)) ;
 	}
@@ -376,12 +399,18 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		if(!getNeighbour(i)->visited && getNeighbour(i)->isTriangle&& !getNeighbour(i)->isDeadTriangle)
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getNeighbour(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
+			limit = std::abs(
+			                  squareDist2D(t->getCircumCenter(),g->getCenter())
+			                  -(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) 
+				< .1*t->getRadius()*t->getRadius() ;
 		}
 		if(!getNeighbour(i)->visited && getNeighbour(i)->isDeadTriangle)
 		{
 			DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getNeighbour(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),&g->getCenter())-(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) < POINT_TOLERANCE ;
+			limit = std::abs(squareDist2D(
+			                               t->getCircumCenter(),&g->getCenter())
+			                 -(t->getRadius()+g->getRadius())*(t->getRadius()+g->getRadius())) 
+				< .1*t->getRadius()*t->getRadius() ;
 		}
 
 		if( !getNeighbour(i)->visited && getNeighbour(i)->isConflicting(g) || limit)
@@ -394,7 +423,6 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 			
 		}
 	}
-	return ;
 }
 
 void DelaunayTreeItem::conflicts(std::pair<std::vector<Point *>, std::vector<DelaunayTreeItem *> > & ret, const Segment *s)  
@@ -2284,7 +2312,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  8;
+		size_t numberOfRefinements =  2;
 		
 		VirtualMachine vm ;
 

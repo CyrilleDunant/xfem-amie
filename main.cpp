@@ -1709,7 +1709,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0;
-	int inclusionNumber = 16000 ;
+	int inclusionNumber = 6000 ;
 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	if(inclusionNumber)
@@ -1784,7 +1784,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(800) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
 
