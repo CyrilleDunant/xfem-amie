@@ -213,7 +213,7 @@ void step()
     }// end while loop to check crack interaction
 
   // Prints the crack geo to a file for each crack
-  if (cracks_did_not_touch == false) // if cracks touched
+  if ((cracks_did_not_touch == false) || (countit <= max_growth_steps)) // if cracks touched or finished steps
     {
       std::cout << "** Cracks touched exporting file **" << endl;	
       // Print the state of the cracks to a file  
