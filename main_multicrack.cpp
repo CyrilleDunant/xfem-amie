@@ -178,7 +178,7 @@ void step()
   //  int nsteps = 1;// number of steps between two clicks on the opengl thing
   bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  size_t max_growth_steps = 1;
+  size_t max_growth_steps = 20;
   size_t countit = 0;
   while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
@@ -1335,7 +1335,7 @@ int main(int argc, char *argv[])
 	std::cout << "Defining the two cracks" << std::endl;
 	// Define a crack
 	double S = 0.030;
-	double H = S;
+	double H = S/10;
 	double a1 = 0.020;
 	double a2 = a1;
 	double x_10 = -S/2-a1;
