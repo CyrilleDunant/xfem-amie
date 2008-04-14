@@ -44,7 +44,7 @@ DelaunayTreeItem::DelaunayTreeItem( DelaunayTree * t, DelaunayTreeItem * father,
 	
 bool DelaunayTriangle::isConflicting(const Geometry * g) const
 {
-	Circle c(getRadius(), getCircumCenter()) ;
+// 	Circle c(getRadius(), getCircumCenter()) ;
 	return g->in(*first) 
 		|| g->in(*second) 
 		|| g->in(*third) 
@@ -387,7 +387,7 @@ void DelaunayTreeItem::conflicts(std::pair<std::vector<DelaunayTriangle *>, std:
 		}
 	}
 	
-	if(isAlive() && isTriangle && isConflicting(g))
+	if(isAlive() && isTriangle && !isDeadTriangle && isConflicting(g))
 	{
 		ret.first.push_back(static_cast<DelaunayTriangle *>(this)) ;
 	}

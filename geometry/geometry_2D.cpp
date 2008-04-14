@@ -1172,6 +1172,7 @@ void SegmentedLine::sampleSurface(size_t num_points)
 
 bool SegmentedLine::in(const Point & v) const
 {
+	return false ;
 	for (size_t i = 0 ; i < boundingPoints.size() ;i++)
 		if(*boundingPoints[i] == v)
 			return true ;

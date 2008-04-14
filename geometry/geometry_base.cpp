@@ -562,9 +562,12 @@ bool Geometry::intersects(const Geometry *g) const
 			
 			if(g->getGeometryType() == TRIANGLE)
 			{
-				segs.push_back(Segment(g->getBoundingPoint(0), g->getBoundingPoint(g->getBoundingPoints().size()/3))) ;
-				segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/3), g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
-				segs.push_back(Segment(g->getBoundingPoint(0), g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
+				segs.push_back(Segment(g->getBoundingPoint(0),
+				                       g->getBoundingPoint(g->getBoundingPoints().size()/3))) ;
+				segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/3),
+				                       g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
+				segs.push_back(Segment(g->getBoundingPoint(0),
+				                       g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
 			}
 			if(g->getGeometryType() == RECTANGLE)
 			{
@@ -2253,29 +2256,32 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 	case CIRCLE:
 		{
 			std::vector<Point> ret ;
+			double r_2 = g->getRadius()*g->getRadius() ;
+			double sx_cx = s.x-g->getCenter().x ;
+			double sy_cy = s.y-g->getCenter().y ;
+			
 			double a = vec.x*vec.x + vec.y*vec.y ;
-			double b = (f.x-g->getCenter().x)*2.*vec.x + (f.y-g->getCenter().y)*2.*vec.y ;
-			double c = (f.x-g->getCenter().x)*(f.x-g->getCenter().x) 
-				+ (f.y-g->getCenter().y)*(f.y-g->getCenter().y)
-				- g->getRadius()*g->getRadius() ;
+			double b = sx_cx*2.*vec.x + sy_cy*2.*vec.y ;
+			double c = sx_cx*sx_cx +sy_cy*sy_cy-r_2 ;
+		
 			double delta = b*b - 4.*a*c ;
 
 			if(std::abs(delta) < POINT_TOLERANCE)
 			{
 
-				Point A(f+vec*(-b/(2.*a))) ;
-				if(on(A))
+				Point A(s+vec*(-b/(2.*a))) ;
+				if(on(A) && std::abs(squareDist2D(g->getCenter(), A) - r_2) < POINT_TOLERANCE)
 					ret.push_back(A) ;
 				return ret ;
 			}
 			else if (delta > 0)
 			{
 
-				Point A(f+vec*(-b + sqrt(delta))/(2.*a)) ;
-				if(on(A))
+				Point A(s+vec*(-b + sqrt(delta))/(2.*a)) ;
+				if(on(A)&& std::abs(squareDist2D(g->getCenter(), A) - r_2) < POINT_TOLERANCE)
 					ret.push_back(A) ;
-				Point B(f+vec*(-b - sqrt(delta))/(2.*a)) ;
-				if(on(B))
+				Point B(s+vec*(-b - sqrt(delta))/(2.*a)) ;
+				if(on(B)&& std::abs(squareDist2D(g->getCenter(), B) - r_2) < POINT_TOLERANCE)
 					ret.push_back(B) ;
 				return ret ;
 			}
@@ -2407,11 +2413,19 @@ bool Segment::on(const Point &p) const
 	if(!isAligned(p, f, s))
 		return false ;
 
-	Point vtest = f-p ;
-	double direction = vtest*vec ;
-	double lambda = vtest.norm()/vec.norm() ;
+	double lambda = -1 ;
+	if(std::abs(vec.x) > POINT_TOLERANCE)
+	{
+		lambda = (s.x-p.x)/vec.x ;
+	}
+	else if(std::abs(vec.y) > POINT_TOLERANCE)
+	{
+		lambda = (s.y-p.y)/vec.y ;
+	}
+	else
+		return false ;
 	
-	return lambda > -POINT_TOLERANCE && lambda < 1.+POINT_TOLERANCE && direction > 0;
+	return lambda > -POINT_TOLERANCE && lambda < 1.+POINT_TOLERANCE ;
 }
 
 void Segment::setFirst(const Point & p) 
