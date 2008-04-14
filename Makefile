@@ -17,6 +17,9 @@ LDFLAGS = -Wl -lm -lGL -lglut
 SOURCE_PHYSICS = physics/physics.cpp physics/physics_base.cpp physics/stiffness.cpp physics/diffusion.cpp physics/stiffness_with_imposed_deformation.cpp physics/weibull_distributed_stiffness.cpp physics/stiffness_and_fracture.cpp  physics/void_form.cpp physics/fracturecriterion.cpp physics/mohrcoulomb.cpp physics/vonmises.cpp physics/maxstrain.cpp physics/dual_behaviour.cpp physics/radialstiffnessgradient.cpp physics/linearstiffnessgradient.cpp physics/ruptureenergy.cpp physics/kelvinvoight.cpp
 OBJECTS_PHYSICS = physics/physics.o physics/physics_base.o physics/stiffness.o physics/stiffness_and_fracture.o  physics/void_form.o physics/weibull_distributed_stiffness.o physics/stiffness_with_imposed_deformation.o physics/fracturecriterion.o physics/mohrcoulomb.o physics/vonmises.o physics/maxstrain.o physics/diffusion.o physics/dual_behaviour.o physics/radialstiffnessgradient.o  physics/linearstiffnessgradient.o physics/ruptureenergy.o physics/kelvinvoight.o
 
+SOURCE_UTILITIES = utilities/granulo.cpp utilities/pid.cpp utilities/placement.cpp
+OBJECT_UTILITIES = utilities/granulo.o utilities/pid.o utilities/placement.o
+
 SOURCE_FILTERS = filters/voxelfilter.cpp filters/voxelporefilter.cpp
 OBJECTS_FILTERS = filters/voxelfilter.o filters/voxelporefilter.o
 
@@ -38,8 +41,8 @@ OBJECTS_FUNCTIONS = polynomial/vm_function_matrix.o polynomial/vm_token.o polyno
 SOURCE_SPARSE = sparse/sparse_matrix.cpp sparse/sparse_vector.cpp
 OBJECTS_SPARSE = sparse/sparse_matrix.o sparse/sparse_vector.o
 
-SOURCE_MAIN_2D =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main.cpp matrixops.cpp utilities/granulo.cpp utilities/placement.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
-OBJECTS_MAIN_2D =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main.o matrixops.o utilities/granulo.o utilities/placement.o ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+SOURCE_MAIN_2D =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main.cpp matrixops.cpp ${SOURCE_UTILITIES} ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_2D =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main.o matrixops.o ${OBJECT_UTILITIES} ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_2D = tryit
 
 # TARGET_MAIN = steph main_simple 
@@ -66,8 +69,8 @@ SOURCE_MAIN_JEROME =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} u
 OBJECTS_MAIN_JEROME =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} utilities/granulo.o samplingcriterion.o main_jerome.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_JEROME = statistique
 
-SOURCE_MAIN =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS}  samplingcriterion.cpp   main_3d.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE} ${SOURCE_FILTERS} utilities/granulo.cpp utilities/placement.cpp
-OBJECTS_MAIN =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_3d.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE} ${OBJECTS_FILTERS} utilities/granulo.o utilities/placement.o
+SOURCE_MAIN =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS}  samplingcriterion.cpp   main_3d.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE} ${SOURCE_FILTERS} ${SOURCE_UTILITIES}
+OBJECTS_MAIN =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_3d.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE} ${OBJECTS_FILTERS} ${OBJECT_UTILITIES}
 TARGET_MAIN = tryit_3d
 
 SOURCE_MAIN_3D_DIFFUSION =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS}  samplingcriterion.cpp   main_3d_diffusion.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE} ${SOURCE_FILTERS}

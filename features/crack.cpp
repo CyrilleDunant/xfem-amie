@@ -2232,36 +2232,19 @@ void Crack::EnrichmentMap::EnrichmentMap::update ( std::vector<DelaunayTriangle 
 	{
 		if ( ( *my_triangles ) [i]->getBehaviour()->type != VOID_BEHAVIOUR )
 		{
-
 			if ( props[ ( *my_triangles ) [i]->first->id].getType() == VOID_ENRICHMENT )
 			{
 				props[ ( *my_triangles ) [i]->first->id] = EnrichmentData ( start++, SPLIT_ENRICHMENT ) ;
 			}
-			else if(props[ ( *my_triangles ) [i]->first->id].getType() != SINGULAR_ENRICHMENT)
-			{
-				std::cout << "oops !" << std::endl ;
-				( *my_triangles ) [i]->print() ;
-				myself->print() ;
-			}
+
 			if ( props[ ( *my_triangles ) [i]->second->id].getType() == VOID_ENRICHMENT )
 			{
 				props[ ( *my_triangles ) [i]->second->id] = EnrichmentData ( start++, SPLIT_ENRICHMENT ) ;
 			}
-			else if(props[ ( *my_triangles ) [i]->second->id].getType() != SINGULAR_ENRICHMENT)
-			{
-				std::cout << "oops !" << std::endl ;
-				( *my_triangles ) [i]->print() ;
-				myself->print() ;
-			}
+
 			if ( props[ ( *my_triangles ) [i]->third->id].getType() == VOID_ENRICHMENT )
 			{
 				props[ ( *my_triangles ) [i]->third->id] = EnrichmentData ( start++, SPLIT_ENRICHMENT ) ;
-			}
-			else if(props[ ( *my_triangles ) [i]->third->id].getType() != SINGULAR_ENRICHMENT)
-			{
-				std::cout << "oops !" << std::endl ;
-				( *my_triangles ) [i]->print() ;
-				myself->print() ;
 			}
 		}
 	}
