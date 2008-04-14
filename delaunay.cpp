@@ -2312,7 +2312,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  8;
+		size_t numberOfRefinements =  6;
 		
 		VirtualMachine vm ;
 
@@ -2326,24 +2326,38 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			{
 				double error = 0 ;
 				Function x = tri[j]->getXTransform() ;
+				x.compile() ;
 				Function y = tri[j]->getYTransform() ;
+				y.compile() ;
+				GaussPointArray gplin = tri[j]->getGaussPoints() ;
+				tri[j]->setOrder(QUADTREE_REFINED) ;
+				GaussPointArray gpquad = tri[j]->getGaussPoints() ;
+				tri[j]->setOrder(LINEAR) ;
+				for(size_t m = 0 ; m < gplin.gaussPoints.size() ; m++)
+				{
+					gplin.gaussPoints[m].first.set(vm.eval(x, gplin.gaussPoints[m].first),
+					                               vm.eval(y, gplin.gaussPoints[m].first)
+					                              ) ;
+				}
+				
+				for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
+				{
+					gpquad.gaussPoints[m].first.set(vm.eval(x, gpquad.gaussPoints[m].first),
+					                                vm.eval(y, gpquad.gaussPoints[m].first)
+					                              ) ;
+				}
+				
 				for(size_t k = 0 ; k <  getEnrichmentFunctions().size() ; k++)
 				{
-					GaussPointArray gplin = tri[j]->getGaussPoints() ;
-					tri[j]->setOrder(QUADTREE_REFINED) ;
-					GaussPointArray gpquad = tri[j]->getGaussPoints() ;
-					tri[j]->setOrder(LINEAR) ;
+
 					double linInt = 0 ;
 					for(size_t m = 0 ; m < gplin.gaussPoints.size() ; m++)
 					{
-						double dx = vm.deval(getEnrichmentFunction(k), XI,
-						                  vm.eval(x, gplin.gaussPoints[m].first), 
-						                  vm.eval(y, gplin.gaussPoints[m].first)
-						                 ) ;
-						double dy = vm.deval(getEnrichmentFunction(k), ETA,
-						                     vm.eval(x, gplin.gaussPoints[m].first), 
-						                     vm.eval(y, gplin.gaussPoints[m].first)
-						                    ) ;
+	
+						double dx = vm.deval(getEnrichmentFunction(k),
+						                     XI,gplin.gaussPoints[m].first) ;
+						double dy = vm.deval(getEnrichmentFunction(k),
+						                     ETA,gplin.gaussPoints[m].first) ;
 						linInt += sqrt(dx*dx+dy*dy) ;
 
 					}
@@ -2351,15 +2365,10 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 					double quadInt = 0 ;
 					for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
 					{
-						
-						double dx = vm.deval(getEnrichmentFunction(k), XI,
-						                     vm.eval(x, gpquad.gaussPoints[m].first), 
-						                     vm.eval(y, gpquad.gaussPoints[m].first)
-						                    ) ;
-						double dy = vm.deval(getEnrichmentFunction(k), ETA,
-						                     vm.eval(x, gpquad.gaussPoints[m].first), 
-						                     vm.eval(y, gpquad.gaussPoints[m].first)
-						                    ) ;
+						double dx = vm.deval(getEnrichmentFunction(k),
+						                     XI,gpquad.gaussPoints[m].first) ;
+						double dy = vm.deval(getEnrichmentFunction(k),
+						                     ETA,gpquad.gaussPoints[m].first) ;
 						quadInt += sqrt(dx*dx+dy*dy) ;
 					}
 					quadInt /=gpquad.gaussPoints.size() ;
