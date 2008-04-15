@@ -79,6 +79,8 @@ public:
 	Function(const char *f) ;
 	Function(const Line & l, Function x, Function y) ;
 	Function(const Point & p, Function x, Function y) ;
+	Function(double a, Function x, Function y) ;
+	Function(double a,const Point & p,  Function x, Function y) ;
 	Function(const std::string &f) ;
 	Function(const std::valarray< std::valarray<Matrix> > & coeffs, bool diff = true) ;
 	Function(const std::valarray<Matrix> & coeffs, bool diff = true) ;

@@ -1141,14 +1141,8 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 			Function x = e->getXTransform() ;
 			Function y = e->getYTransform() ;
-			double rotatedSingularityX = singularity.x*cos ( angle ) + singularity.y*sin ( angle ) ;
-			double rotatedSingularityY = -singularity.x*sin ( angle ) + singularity.y*cos ( angle ) ;
-			Function rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
-			Function rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
-			Function x_ = x - singularity.x ;
-			Function y_ = y - singularity.y ;
-			Function theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-			Function r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
+			Function theta(angle, singularity, x, y);
+			Function r(singularity, x, y);
 
 			Function f0 = f_sqrt ( r ) *f_sin ( theta/2 );
 			Function f1 = f_sqrt ( r ) *f_cos ( theta/2 );
@@ -1242,12 +1236,8 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 					x = elem->getXTransform() ;
 					y = elem->getYTransform() ;
-					rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
-					rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
-					x_ = x - singularity.x ;
-					y_ = y - singularity.y ;
-					theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-					r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
+					theta = Function(angle, singularity, x, y);
+					r = Function(singularity, x, y);
 
 					f0 = f_sqrt ( r ) *f_sin ( theta/2 );
 					f1 = f_sqrt ( r ) *f_cos ( theta/2 );
@@ -1433,14 +1423,9 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 			Function x = e->getXTransform() ;
 			Function y = e->getYTransform() ;
-			double rotatedSingularityX = singularity.x*cos ( angle ) + singularity.y*sin ( angle ) ;
-			double rotatedSingularityY = -singularity.x*sin ( angle ) + singularity.y*cos ( angle ) ;
-			Function rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
-			Function rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
-			Function x_ = x - singularity.x ;
-			Function y_ = y - singularity.y ;
-			Function theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-			Function r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
+
+			Function theta = Function(angle, singularity, x, y);
+			Function r = Function(singularity, x, y);
 
 			Function f0 = f_sqrt ( r ) *f_sin ( theta/2 );
 			Function f1 = f_sqrt ( r ) *f_cos ( theta/2 );
@@ -1501,12 +1486,9 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 				x = elem->getXTransform() ;
 				y = elem->getYTransform() ;
-				rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
-				rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
-				x_ = x - singularity.x ;
-				y_ = y - singularity.y ;
-				theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-				r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
+
+				theta = Function(angle, singularity, x, y);
+				r = Function(singularity, x, y);
 
 				f0 = f_sqrt ( r ) *f_sin ( theta/2 );
 				f1 = f_sqrt ( r ) *f_cos ( theta/2 );

@@ -46,6 +46,8 @@ typedef enum
 	TOKEN_PROJECTION,
 	TOKEN_SIGNED_DISTANCE,
 	TOKEN_POINT_DISTANCE_OPERATOR,
+	TOKEN_ROTATION_OPERATOR,
+	TOKEN_ANGLE_OPERATOR,
 	TOKEN_POINT_SQUARE_DISTANCE_OPERATOR,
 	TOKEN_X,
 	TOKEN_Y,
@@ -457,6 +459,58 @@ public:
 	virtual std::string print() const
 	{
 		return std::string("pointDistBinOp") ;
+	}
+} ;
+
+class RotationBinaryOperatorToken : public Token
+{
+	double angle ;
+public:
+	RotationBinaryOperatorToken(double a ) : Token(false, std::make_pair(std::make_pair(TOKEN_ROTATION_OPERATOR, 0), (double)(0))), angle(a)
+	{
+	}
+	
+	virtual void eval(Context & context) const
+	{
+		
+		double x = context.memory.stack[context.memory.top_pos] ;
+		double y =  context.memory.stack[context.memory.top_pos-1] ;
+		
+		context.memory.stack[context.memory.top_pos] = x*cos(angle) + y*sin(angle) ;
+		context.memory.stack[context.memory.top_pos-1] = -x*sin(angle) + y*cos(angle) ;
+
+	}
+	virtual ~RotationBinaryOperatorToken() { };
+	virtual std::string print() const
+	{
+		return std::string("rotate") ;
+	}
+} ;
+
+class AngleBinaryOperatorToken : public Token
+{
+	double angle ;
+	Point pivot ;
+public:
+	AngleBinaryOperatorToken(double a, Point p ) : Token(false, std::make_pair(std::make_pair(TOKEN_ANGLE_OPERATOR, 0), (double)(0))), angle(a), pivot(p.x*cos(a)+p.y*sin(a), -p.x*sin(a)+p.y*cos(a))
+	{
+	}
+	
+	virtual void eval(Context & context) const
+	{
+		
+		double x = context.memory.stack[context.memory.top_pos] ;
+		double y =  context.memory.stack[context.memory.top_pos-1] ;
+		double x_t = x*cos(angle) + y*sin(angle) ;
+		double y_t = -x*sin(angle) + y*cos(angle) ;
+		context.memory.pop_back() ;
+		context.memory.stack[context.memory.top_pos] = atan2(x_t-pivot.x, y_t-pivot.y) ;
+
+	}
+	virtual ~AngleBinaryOperatorToken() { };
+	virtual std::string print() const
+	{
+		return std::string("angle") ;
 	}
 } ;
 

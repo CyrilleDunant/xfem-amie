@@ -925,6 +925,28 @@ Function::Function(const Point & l, Function x, Function y) : derivative(2), byt
 	byteCode[byteCode.size()-1] = RefCountedToken(new PointDistanceBinaryOperatorToken(l)) ;
 }
 
+Function::Function(double a, Function x, Function y) : derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
+{
+	this->dofID =-1 ;
+	this->ptID =-1 ;
+	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
+		byteCode[i] = y.getByteCode()[i] ;
+	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new RotationBinaryOperatorToken(a)) ;
+}
+
+Function::Function(double a,const Point & p,  Function x, Function y): derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
+{
+	this->dofID =-1 ;
+	this->ptID =-1 ;
+	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
+		byteCode[i] = y.getByteCode()[i] ;
+	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new AngleBinaryOperatorToken(a,p)) ;
+}
+
 Function::Function( Geometry * g, Function x, Function y) : derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
 {
 	this->dofID =-1 ;
