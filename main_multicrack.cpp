@@ -170,7 +170,7 @@ void step()
   //  int nsteps = 1;// number of steps between two clicks on the opengl thing
   bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  size_t max_growth_steps = 20;
+  size_t max_growth_steps = 5;
   size_t countit = 0;
   while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
@@ -1348,7 +1348,7 @@ int main(int argc, char *argv[])
 
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
 	
-	crack[0]->setParams(0.00025,.75,0.0) ;// set params
+	crack[0]->setParams(0.00035,1.,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
@@ -1358,10 +1358,10 @@ int main(int argc, char *argv[])
 	ptset2[0] = new Point(0.009, .00215) ;//start of crack
 	ptset2[1] = new Point(0.011, .00215) ;//end of crack
 
-		crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
+	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
 
-		crack[1]->setParams(0.00075,.25,0.0) ;// set params
-		F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
+	crack[1]->setParams(0.00035,1.,0.0) ;// set params
+	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
 	std::vector<Inclusion *> inclusions ;
@@ -1390,7 +1390,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(64) ;
+	F.sample(128) ;
 	//	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 

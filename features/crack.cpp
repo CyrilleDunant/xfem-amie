@@ -1416,9 +1416,9 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			}
 
 			std::vector<Point> hint ;
+			Line cutting(singularity, Point(cos(angle), sin(angle))) ;
 
-
-			std::vector<Point> intersec = dynamic_cast<SegmentedLine *> ( this )->intersection ( dynamic_cast<Triangle *> ( e ) ) ;
+			std::vector<Point> intersec = cutting.intersection ( dynamic_cast<Triangle *> ( e ) ) ;
 
 
 			if ( intersec.size() == 2 )
@@ -1666,12 +1666,14 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-	while( disk.size() < 16)
+
+	if(disk.size() == 1)
 	{
-		c.setRadius(c.getRadius()*2.) ;
+		setInfluenceRadius(disk[0]->getRadius()) ;
+		c.setRadius(disk[0]->getRadius()) ;
 		disk = dtree->conflicts ( &c ) ;
 	}
-
+	
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
 
 
@@ -1772,11 +1774,13 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-	while( disk.size() < 16)
+	if(disk.size() == 1)
 	{
-		c.setRadius(c.getRadius()*2.) ;
+		setInfluenceRadius(disk[0]->getRadius()) ;
+		c.setRadius(disk[0]->getRadius()) ;
 		disk = dtree->conflicts ( &c ) ;
 	}
+	
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
 
 

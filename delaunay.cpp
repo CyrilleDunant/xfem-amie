@@ -2312,15 +2312,17 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements =  3;
+		size_t numberOfRefinements =  6;
 		
 		VirtualMachine vm ;
-
+		
+		double e_0 = 1 ;
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
+			double current_error = 0 ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 				tri[j]->refresh(&father) ;
-			std::vector<double> sorted ;
+
 			std::vector<double> unsorted ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
@@ -2354,25 +2356,27 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 					double quadInt = linInt ;
 					for(size_t m = 0 ; m < 3 ; m++)
 					{
-						double dx = vm.deval(getEnrichmentFunction(k),
+						dx = vm.deval(getEnrichmentFunction(k),
 						                     XI,gpquad.gaussPoints[m].first) ;
-						double dy = vm.deval(getEnrichmentFunction(k),
+						dy = vm.deval(getEnrichmentFunction(k),
 						                     ETA,gpquad.gaussPoints[m].first) ;
 						quadInt += sqrt(dx*dx+dy*dy) ;
 					}
 					quadInt *= .25 ;
 					error = std::max(error, std::abs(quadInt-linInt)) ;
 				}
+				error *= tri[j]->area() ;
 				unsorted.push_back(error) ;
-				sorted.push_back(error) ;
+				current_error = std::max(current_error,error);
 			}
 			
-			std::sort(sorted.begin(), sorted.end()) ;
-			
-			if(sorted.back() < 1e-4)
+			if(current_error < 1e-6*e_0)
 			{
 				break ;
 			}
+			
+			if(i == 0)
+				e_0 = current_error ;
 			
 			std::vector<DelaunayTriangle *> newTris ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
@@ -2380,18 +2384,24 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				bool tooNear = false ;
 				for(size_t k = 0 ; k < to_add.size() ; k++)
 				{
-					if(squareDist2D(tri[j]->getCenter(), to_add[k]) < 4.*default_derivation_delta*default_derivation_delta)
+					if(squareDist2D(tri[j]->getCenter(), to_add[k]) 
+					   < 4.*default_derivation_delta*default_derivation_delta)
 					{
 						tooNear = true ;
 						break ;
 					}
 				}
-				if(unsorted[j] >= sorted[.75*sorted.size()]  && !tooNear)
+				if(unsorted[j] >= 1e-6*e_0  && !tooNear)
 				{
-					std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q = quad(tri[j]) ;
+					std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q =
+						quad(tri[j]) ;
 					newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
-					pointsToCleanup.insert(pointsToCleanup.end(),q.second.begin(), q.second.end()) ;
-					triangleToCleanup.insert(triangleToCleanup.end(), q.first.begin(), q.first.end()) ;
+					pointsToCleanup.insert(pointsToCleanup.end(),
+					                       q.second.begin(), 
+					                       q.second.end()) ;
+					triangleToCleanup.insert(triangleToCleanup.end(), 
+					                         q.first.begin(), 
+					                         q.first.end()) ;
 				}
 				else if (!tooNear)
 					newTris.push_back(tri[j]) ;
