@@ -1666,7 +1666,7 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-	while( disk.size() < 8)
+	while( disk.size() < 16)
 	{
 		c.setRadius(c.getRadius()*2.) ;
 		disk = dtree->conflicts ( &c ) ;
@@ -1772,7 +1772,7 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
-	while( disk.size() < 8)
+	while( disk.size() < 16)
 	{
 		c.setRadius(c.getRadius()*2.) ;
 		disk = dtree->conflicts ( &c ) ;
@@ -1897,7 +1897,7 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( this->boundary ) ;
 	Circle c0(*static_cast<Circle *>(boundary)) ;
 	disk = dtree->conflicts (&c0) ;
-	while( disk.size() < 8)
+	while( disk.size() < 16)
 	{
 		c0.setRadius(c0.getRadius()*2.) ;
 		disk = dtree->conflicts ( &c0 ) ;
@@ -1941,16 +1941,20 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 					Point currentDir ( current->getBoundingPoint ( j ).x-getHead()->x, current->getBoundingPoint ( j ).y-getHead()->y ) ;
 					if ( ( currentDir*lastDir ) > 0 )
 					{
-						Vector principalStresses = current->getState().getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
-						double maxPrincipalStressCurrent = 1./std::abs ( principalStresses[0] );
+						Vector principalStresses = current->getState().getPrincipalStresses( 
+							current->getBoundingPoint ( j ) ) ;
+						double maxPrincipalStressCurrent = 1./std::abs(
+							principalStresses[0] );
 						if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
 							maxPrincipalStressCurrent = 1000 ;
 	
 						if ( currentDir.norm() > 1e-8 )
 						{
-							aangle += current->getState().getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
+							aangle += current->getState().getPrincipalAngle (
+								current->getBoundingPoint ( j ) ) ;
 							acount++ ;
-							direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
+							direction += ( currentDir/currentDir.norm() )
+								*maxPrincipalStressCurrent ;
 							count += maxPrincipalStressCurrent ;
 						}
 					}
@@ -1981,17 +1985,12 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 			}
 			else
 			{
-				direction.set ( stepLength*cos ( aangle + M_PI*.25), stepLength*sin ( aangle + M_PI*.25) ) ;
+				direction.set ( stepLength*cos ( aangle + M_PI*.25), 
+				                stepLength*sin ( aangle + M_PI*.25) ) ;
 	
 				if ( ( direction*lastDir ) < 0 )
-					direction.set ( stepLength*cos ( aangle+M_PI + M_PI*.25), stepLength*sin ( aangle+M_PI + M_PI*.25) ) ;
-	
-				// 		Point currentDir(getHead()->x-getBoundingPoint(1).x, getHead()->y-getBoundingPoint(1).y) ;
-				// 		double angle = headElem->getState().getPrincipalAngle(headElem->getCenter()+currentDir/currentDir.norm()*(stepLength/100)) ;
-				// 		direction = Point(stepLength*cos(angle),stepLength*sin(angle)) ;
-				//
-				// 		if((direction*currentDir) < 0)
-				// 			direction = Point(stepLength*cos(angle+M_PI), stepLength*sin(angle+M_PI)) ;
+					direction.set ( stepLength*cos ( aangle+M_PI + M_PI*.25), 
+					                stepLength*sin ( aangle+M_PI + M_PI*.25) ) ;
 	
 				std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
 				newPoints[0] = new Point ( getHead()->x+direction.x, getHead()->y+direction.y ) ;
@@ -2015,7 +2014,7 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 // 	Circle atTail ( infRad, this->boundary2->getCenter() ) ;
 	Circle c(*static_cast<Circle *>(boundary2)) ;
 	disk = dtree->conflicts (&c) ;
-	while( disk.size() < 8)
+	while( disk.size() < 16)
 	{
 		c.setRadius(c.getRadius()*2.) ;
 		disk = dtree->conflicts ( &c ) ;
@@ -2060,11 +2059,13 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 				for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
 				{
 	
-					Point currentDir ( current->getBoundingPoint ( j ).x-getTail()->x, current->getBoundingPoint ( j ).y-getTail()->y ) ;
+					Point currentDir ( current->getBoundingPoint ( j ).x-getTail()->x,
+					                   current->getBoundingPoint ( j ).y-getTail()->y ) ;
 	
 					if ( ( currentDir*lastDir ) > 0 )
 					{
-						Vector principalStresses = current->getState().getPrincipalStresses ( current->getBoundingPoint ( j ) ) ;
+						Vector principalStresses = current->getState().getPrincipalStresses (
+							current->getBoundingPoint ( j ) ) ;
 						double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
 	
 						if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -2072,9 +2073,11 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 	
 						if ( currentDir.norm() > 1e-8 )
 						{
-							aangle += current->getState().getPrincipalAngle ( current->getBoundingPoint ( j ) ) ;
+							aangle += current->getState().getPrincipalAngle (
+								current->getBoundingPoint ( j ) ) ;
 							acount++ ;
-							direction += ( currentDir/currentDir.norm() ) *maxPrincipalStressCurrent ;
+							direction += ( currentDir/currentDir.norm() )
+								*maxPrincipalStressCurrent ;
 							count += maxPrincipalStressCurrent ;
 						}
 					}
@@ -2106,24 +2109,21 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 			else
 			{
 	
-				direction.set ( stepLength*cos ( aangle+ M_PI*.25), stepLength*sin ( aangle + M_PI*.25) ) ;
+				direction.set ( stepLength*cos ( aangle+ M_PI*.25), 
+				                stepLength*sin ( aangle + M_PI*.25) ) ;
 	
 				if ( ( direction*lastDir ) < 0 )
-					direction.set ( stepLength*cos ( aangle+M_PI + M_PI*.25), stepLength*sin ( aangle+M_PI + M_PI*.25) ) ;
-	
-				// 		Point currentDir(getTail()->x-getBoundingPoint(getBoundingPoints().size()-2).x, getTail()->y-getBoundingPoint(getBoundingPoints().size()-2).y) ;
-				// 		double angle = tailElem->getState().getPrincipalAngle(tailElem->getCenter()+currentDir/currentDir.norm()*(stepLength/100)) ;
-				// 		direction = Point(stepLength*cos(angle), stepLength*sin(angle)) ;
-				//
-				// 		if((direction*currentDir) < 0)
-				// 			direction = Point(stepLength*cos(angle+M_PI), stepLength*sin(angle+M_PI)) ;
+					direction.set ( stepLength*cos ( aangle+M_PI + M_PI*.25), 
+					                stepLength*sin ( aangle+M_PI + M_PI*.25) ) ;
+
 	
 				std::valarray<Point *> newPoints ( boundingPoints.size() +1 ) ;
 				for ( size_t i = 0 ; i < boundingPoints.size() ; i++ )
 				{
 					newPoints[i] = boundingPoints[i] ;
 				}
-				newPoints[boundingPoints.size() ] = new Point ( getTail()->x+direction.x, getTail()->y+direction.y ) ;
+				newPoints[boundingPoints.size() ] = new Point ( getTail()->x+direction.x,
+					getTail()->y+direction.y ) ;
 				setBoundingPoints ( newPoints ) ;
 				setInfluenceRadius ( infRad ) ;
 			}

@@ -117,7 +117,7 @@ Vector angle(0) ;
 
 double nu = 0.3 ;
 double E_agg = 589000000 ;//softest
-double E_paste = 120000000 ;//stiff
+double E_paste = 2e11 ;//stiff
 double E_stiff = E_agg*10 ;//stiffer
 double E_soft = E_agg/10; //stiffest
 
@@ -149,23 +149,15 @@ void setBC()
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		  {
-		    //		  if(std::abs(triangles[k]->getBoundingPoint(c).x + .080) < bctol)// left boundary
-		    //{
-		    //	featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
-		    //}
-		    if(std::abs(triangles[k]->getBoundingPoint(c).y - .300) < bctol)// top boundary			
+
+		    if(std::abs(triangles[k]->getBoundingPoint(c).y - .00500) < bctol)// top boundary			
 		      {
-			featureTree->getAssembly()->setPointAlong( ETA,0.010 ,triangles[k]->getBoundingPoint(c).id) ;
+			featureTree->getAssembly()->setPointAlong( ETA,0.0001 ,triangles[k]->getBoundingPoint(c).id) ;
 		      }
-		    if(std::abs(triangles[k]->getBoundingPoint(c).y + .300) < bctol)// bottom boundary			
+		    if(std::abs(triangles[k]->getBoundingPoint(c).y + .00500) < bctol)// bottom boundary			
 		      {
 			featureTree->getAssembly()->setPoint(0,0,triangles[k]->getBoundingPoint(c).id) ;
 		      }			
-		    //		    if ( (std::abs(triangles[k]->getBoundingPoint(c).y + .300) < bctol) && (std::abs(triangles[k]->getBoundingPoint(c).x + .080) < bctol) )// bottom left point
-		    //{
-		    //featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-		    //featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-		    //}
 
 		  }
 	}
@@ -213,7 +205,7 @@ void step()
     }// end while loop to check crack interaction
 
   // Prints the crack geo to a file for each crack
-  if ((cracks_did_not_touch == false) || (countit <= max_growth_steps)) // if cracks touched or finished steps
+  if (cracks_did_not_touch == false) // if cracks touched
     {
       std::cout << "** Cracks touched exporting file **" << endl;	
       // Print the state of the cracks to a file  
@@ -1324,8 +1316,8 @@ int main(int argc, char *argv[])
 	m0_soft[1][0] = E_soft/(1-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1-nu*nu) ; m0_soft[1][2] = 0 ; 
 	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1-nu*nu)*(1.-nu)/2. ; 
 
-	double width = 0.160;
-	double height = 0.600;
+	double width = 0.02;
+	double height = 0.01;
 	Sample sample(NULL, width, height, 0, 0) ;
 	
 	FeatureTree F(&sample) ;
@@ -1335,7 +1327,7 @@ int main(int argc, char *argv[])
 	std::cout << "Defining the two cracks" << std::endl;
 	// Define a crack
 	double S = 0.030;
-	double H = S/10;
+	double H = S;
 	double a1 = 0.020;
 	double a2 = a1;
 	double x_10 = -S/2-a1;
@@ -1349,31 +1341,32 @@ int main(int argc, char *argv[])
 	// ADD FIRST CRACK
 	std::valarray<Point *> ptset1(2) ;//point set for crack
 	std::cout << "coucou1" << std::endl;
-	ptset1[0] = new Point(x_10, y_10) ;//start of crack
-	ptset1[1] = new Point(x_11, y_11) ;//end of crack
+	ptset1[0] = new Point(-0.011, -.00215) ;//start of crack
+	ptset1[1] = new Point(-0.009, -.00215) ;//end of crack
 	std::cout << "coucou2" << std::endl;
 
 
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
 	
-	crack[0]->setParams(0.01,.25,0.0) ;// set params
+	crack[0]->setParams(0.00025,.75,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
 
 	// ADD SECOND CRACK
 	std::valarray<Point *> ptset2(2) ;//point set for crack
-	ptset2[0] = new Point(x_20, y_20) ;//start of crack
-	ptset2[1] = new Point(x_21, y_21) ;//end of crack
+	ptset2[0] = new Point(0.009, .00215) ;//start of crack
+	ptset2[1] = new Point(0.011, .00215) ;//end of crack
 
 		crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
 
-		crack[1]->setParams(0.01,.25,0.0) ;// set params
+		crack[1]->setParams(0.00075,.25,0.0) ;// set params
 		F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
 	std::vector<Inclusion *> inclusions ;
-
+	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
+	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 	std::vector<Pore *> pores;
 
 	// Generate inclusions following Bolomey granulometry
@@ -1395,52 +1388,9 @@ int main(int argc, char *argv[])
 	Point center6 = (center5 + Point(0.0,0.005));
 
 
-	//	inclusions.push_back(new Inclusion(radius1, center1));
-	//inclusions.push_back(new Inclusion(radius2, center2));
-	//inclusions.push_back(new Inclusion(radius3, center3));
-	//	inclusions.push_back(new Inclusion(radius4, center4));
-	//	inclusions.push_back(new Inclusion(radius5, center5));
-	//	inclusions.push_back(new Inclusion(radius6, center6));
-
-	//	F.sample(56) ;
-
-
-	//inclusions = GranuloBolome(totalMass, density, BOLOME_A)(Dmax, pmin);
-	//	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
-	// Places inclusions
-
-
-	//	int nAgg = 0 ;
-	//inclusions = placement(.04, .04, inclusions, &nAgg, 512);
-
-
-	// Define random inclusions and pores
-	//	size_t number = 20;
-	//double fraction = 0.5;
-	//	std::pair< inclusions, pores > generateInclusionsAndPores(number, fraction, m0_agg, sample, FeatureTree)
-
-
-	  // Set material properties for inclusions
-	//	for(size_t i = 0 ; i < inclusions.size() ; i++)
-	//{
-	    //	    if (i==0) 	    
-	    //inclusions[i]->setBehaviour(new Stiffness(m0_soft)) ;
-	    //		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,2000000)) ;
-	    //else if (i==5)
-	    // inclusions[i]->setBehaviour(new Stiffness(m0_soft)) ;
-	    //else
-	//    inclusions[i]->setBehaviour(new Stiffness(m0_stiff)) ;
-	//	    F.addFeature(&sample,inclusions[i]) ;
-	// }
-
-	// Adds a stiff inclusion
-	//	inclusions[inclusions.size()
-
-
-
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
+	F.sample(64) ;
 	//	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 
