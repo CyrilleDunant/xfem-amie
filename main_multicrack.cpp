@@ -1162,7 +1162,7 @@ void Display(void)
 		glEndList() ;
 		
 		
-		glNewList(  DISPLAY_LIST_ELEMENTS,  GL_COMPILE ) ;
+		glNewList( DISPLAY_LIST_ELEMENTS,  GL_COMPILE ) ;
 		glColor3f(1, 1, 1) ;
 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
@@ -1191,7 +1191,7 @@ void Display(void)
 		
 		
 		glNewList(  DISPLAY_LIST_CRACK,  GL_COMPILE ) ;
-		glLineWidth(4) ;
+
 		for(size_t k  = 0 ; k < crack.size() ; k++)
 		{
 			glColor3f(1, 0, 0) ;
@@ -1390,9 +1390,9 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
+	F.sample(64) ;
 	//	F.sample(128) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
 

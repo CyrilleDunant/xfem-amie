@@ -1969,6 +1969,18 @@ Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	return ret ;
 }
 
+double xTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+{
+	double ret = 0;
+	
+	VirtualMachine vm ;
+	for(size_t i = 0 ; i < points.size() ; i++)
+	{
+		ret += vm.eval(basis[i], p)*points[i]->x ;
+	}
+	return ret ;
+}
+
 Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret ;
@@ -2000,6 +2012,18 @@ Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	return ret ;
 }
 
+double yTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+{
+	double ret = 0;
+	
+	VirtualMachine vm ;
+	for(size_t i = 0 ; i < points.size() ; i++)
+	{
+		ret += vm.eval(basis[i], p)*points[i]->y ;
+	}
+	return ret ;
+}
+
 Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret ;
@@ -2024,6 +2048,18 @@ Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	ret.getDerivatives()[2] = der_z ;
 
 	
+	return ret ;
+}
+
+double zTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+{
+	double ret = 0;
+	
+	VirtualMachine vm ;
+	for(size_t i = 0 ; i < points.size() ; i++)
+	{
+		ret += vm.eval(basis[i], p)*points[i]->z ;
+	}
 	return ret ;
 }
 
@@ -2053,6 +2089,18 @@ Function TTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	ret.getDerivatives()[3] = der_t ;
 	
 	
+	return ret ;
+}
+
+double tTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+{
+	double ret = 0;
+	
+	VirtualMachine vm ;
+	for(size_t i = 0 ; i < points.size() ; i++)
+	{
+		ret += vm.eval(basis[i], p)*points[i]->t ;
+	}
 	return ret ;
 }
 

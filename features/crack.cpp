@@ -1136,7 +1136,7 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 
 			hint.push_back ( intersectionTransformed ) ;
-			hint.push_back ( intersectionBisTransformed ) ;
+// 			hint.push_back ( intersectionBisTransformed ) ;
 			hint.push_back ( singularityTransformed ) ;
 
 			Function x = e->getXTransform() ;

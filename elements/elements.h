@@ -19,9 +19,13 @@
 #include "../elements/integrable_entity.h"
 
 Mu::Function XTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
+double xTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
 Mu::Function YTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
+double yTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
 Mu::Function ZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
+double zTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
 Mu::Function TTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
+double tTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
 Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
 Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
 Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
