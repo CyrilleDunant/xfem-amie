@@ -11,6 +11,7 @@
 //
 
 #include "vm_token.h"
+#include "../elements/elements.h"
 
 using namespace Mu ;
 
@@ -81,3 +82,43 @@ double negativity(const double t)
 {
 	return t < 0 ;
 } 
+
+
+
+Transform2DToken::Transform2DToken(ElementarySurface * g ) : Token(false, std::make_pair(std::make_pair(TOKEN_2D_TRANSFORM, 0),
+	(double)(0))), e(g)
+{
+}
+
+void Transform2DToken::eval(Context & context) const
+{
+	Point p = coordinateTransform(Point(context.x,context.y), e->getBoundingPoints(), e->getShapeFunctions()) ;
+	context.memory.push_back(p.y);
+	context.memory.push_back(p.x) ;
+}
+Transform2DToken::~Transform2DToken() { };
+std::string Transform2DToken::print() const
+{
+	return std::string("transform2D") ;
+}
+
+
+
+Transform3DToken::Transform3DToken(ElementaryVolume * g ) : Token(false, std::make_pair(std::make_pair(TOKEN_3D_TRANSFORM, 0),
+	(double)(0))), e(g)
+{
+}
+
+void Transform3DToken::eval(Context & context) const
+{
+	Point p = coordinateTransform(Point(context.x,context.y,context.z), e->getBoundingPoints(), e->getShapeFunctions()) ;
+	context.memory.push_back(p.z) ;
+	context.memory.push_back(p.y) ;
+	context.memory.push_back(p.x) ;
+}
+Transform3DToken::~Transform3DToken() { };
+std::string Transform3DToken::print() const
+{
+	return std::string("transform3D") ;
+}
+

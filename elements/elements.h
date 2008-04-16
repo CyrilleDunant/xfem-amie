@@ -26,6 +26,7 @@ Mu::Function ZTransform(const std::valarray<Mu::Point*> & points ,const std::val
 double zTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
 Mu::Function TTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
 double tTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
+Mu::Point coordinateTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
 Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
 Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
 Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;

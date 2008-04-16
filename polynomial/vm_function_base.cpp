@@ -859,10 +859,10 @@ Function::Function(const Segment s, const Function & x, const Function & y, Posi
 			this->dofID =-1 ;
 			this->ptID =-1 ;
 			
-			for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
-				byteCode[i] = x.getByteCode()[i] ;
 			for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
-				byteCode[i+x.getByteCode().size()] = y.getByteCode()[i] ;
+				byteCode[i] = y.getByteCode()[i] ;
+			for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+				byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
 			
 			byteCode[byteCode.size()-1] = RefCountedToken(new PositionOperatorToken(s)) ;
 			
@@ -906,22 +906,34 @@ Function::Function(const Line & l, Function x, Function y) : derivative(2), byte
 {
 	this->dofID =-1 ;
 	this->ptID =-1 ;
-	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
-		byteCode[i] = x.getByteCode()[i] ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
-		byteCode[i+x.getByteCode().size()] = y.getByteCode()[i] ;
+		byteCode[i] = y.getByteCode()[i] ;
+	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new LineDistanceOperatorToken(l)) ;
+}
+
+Function::Function(const Line & l, ElementarySurface * s) : derivative(2), byteCode(2), e_diff(false)
+{
+	byteCode[byteCode.size()-2] = RefCountedToken(new Transform2DToken(s)) ;
 	byteCode[byteCode.size()-1] = RefCountedToken(new LineDistanceOperatorToken(l)) ;
 }
 
 
 Function::Function(const Point & l, Function x, Function y) : derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
 {
-	this->dofID =-1 ;
-	this->ptID =-1 ;
+	this->dofID = -1 ;
+	this->ptID  = -1 ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
 		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new PointDistanceBinaryOperatorToken(l)) ;
+}
+
+Function::Function(const Point & l,  ElementarySurface * s) : derivative(2), byteCode(2), e_diff(false)
+{
+	byteCode[byteCode.size()-2] = RefCountedToken(new Transform2DToken(s)) ;
 	byteCode[byteCode.size()-1] = RefCountedToken(new PointDistanceBinaryOperatorToken(l)) ;
 }
 
@@ -936,6 +948,12 @@ Function::Function(double a, Function x, Function y) : derivative(2), byteCode(x
 	byteCode[byteCode.size()-1] = RefCountedToken(new RotationBinaryOperatorToken(a)) ;
 }
 
+Function::Function(double a,  ElementarySurface * s) : derivative(2), byteCode(2), e_diff(false)
+{
+	byteCode[byteCode.size()-2] = RefCountedToken(new Transform2DToken(s)) ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new RotationBinaryOperatorToken(a)) ;
+}
+
 Function::Function(double a,const Point & p,  Function x, Function y): derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
 {
 	this->dofID =-1 ;
@@ -944,6 +962,12 @@ Function::Function(double a,const Point & p,  Function x, Function y): derivativ
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
 		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new AngleBinaryOperatorToken(a,p)) ;
+}
+
+Function::Function(double a,const Point & p,   ElementarySurface * s): derivative(2), byteCode(2), e_diff(false)
+{
+	byteCode[byteCode.size()-2] = RefCountedToken(new Transform2DToken(s)) ;
 	byteCode[byteCode.size()-1] = RefCountedToken(new AngleBinaryOperatorToken(a,p)) ;
 }
 
@@ -958,6 +982,12 @@ Function::Function( Geometry * g, Function x, Function y) : derivative(2), byteC
 	byteCode[byteCode.size()-1] = RefCountedToken(new DomainBinaryOperatorToken(g)) ;
 }
 
+Function::Function( Geometry * g, ElementarySurface * s) : derivative(2), byteCode(2), e_diff(false)
+{
+	byteCode[byteCode.size()-2] = RefCountedToken(new Transform2DToken(s)) ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new DomainBinaryOperatorToken(g)) ;
+}
+
 Function::Function(const std::vector<Segment> s , const Function & x, const Function & y, PositionTokenType t) :  derivative(2) , byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
 {
 	switch(t)
@@ -966,15 +996,44 @@ Function::Function(const std::vector<Segment> s , const Function & x, const Func
 		{
 			this->dofID =-1 ;
 			this->ptID =-1 ;
-			for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
-				byteCode[i] = x.getByteCode()[i] ;
 			for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
-				byteCode[i+x.getByteCode().size()] = y.getByteCode()[i] ;
+				byteCode[i] = y.getByteCode()[i] ;
+			for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+				byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
 			
 			byteCode[byteCode.size()-1] = RefCountedToken(new PositionOperatorToken(s)) ;
 			
 			derivative[XI] = Function() ;
 			derivative[ETA] = Function() ;
+			
+			break ;
+		}
+	case PROJECTION_TOKEN :
+		{
+			derivative.resize(0) ;
+			this->dofID =-1 ;
+			this->ptID =-1 ;
+			byteCode.resize(s.size()+s.size()-1) ;
+			for(size_t i = 0 ; i < s.size() ; i++)
+			{
+				byteCode[i] = RefCountedToken(new ProjectionToken(s[i])) ;
+			}
+			for(size_t i = s.size() ; i < byteCode.size() ; i++)
+				byteCode[i] = RefCountedToken(new PlusOperatorToken()) ;
+			
+			break ;
+		}
+	}
+}
+
+Function::Function(const std::vector<Segment> s , ElementarySurface * u, PositionTokenType t) :  derivative(2) , byteCode(2), e_diff(false)
+{
+	switch(t)
+	{
+	case POSITION_TOKEN :
+		{
+			byteCode[byteCode.size()-1] = RefCountedToken(new Transform2DToken(u)) ;
+			byteCode[byteCode.size()-1] = RefCountedToken(new PositionOperatorToken(s)) ;
 			
 			break ;
 		}

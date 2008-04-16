@@ -115,6 +115,8 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 
+Vector g_count(0) ;
+
 double nu = 0.3 ;
 double E_agg = 589000000 ;//softest
 double E_paste = 2e11 ;//stiff
@@ -170,7 +172,7 @@ void step()
   //  int nsteps = 1;// number of steps between two clicks on the opengl thing
   bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  size_t max_growth_steps = 5;
+  size_t max_growth_steps = 25;
   size_t countit = 0;
   while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
@@ -250,7 +252,7 @@ void step()
 	epsilon12.resize(sigma.size()/3) ;
 	vonMises.resize(sigma.size()/3) ;
 	angle.resize(sigma.size()/3) ;
-	
+	g_count.resize(sigma.size()/3) ;
 	std::cout << "unknowns :" << x.size() << std::endl ;
 	
 	if(crack.size() > 0)
@@ -321,60 +323,66 @@ void step()
 				if(triangles[k]->getBehaviour()->param[0][0] < E_min)
 					E_min = triangles[k]->getBehaviour()->param[0][0] ;
 			}
-				
-			sigma11[k*npoints] = sigma[k*npoints*3];
-			sigma22[k*npoints] = sigma[k*npoints*3+1];
-			sigma12[k*npoints] = sigma[k*npoints*3+2];
-			sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-			sigma22[k*npoints+1] = sigma[k*npoints*3+4];
-			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-			sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-			sigma22[k*npoints+2] = sigma[k*npoints*3+7];
-			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
+			
+			g_count[k*npoints]++ ;
+			g_count[k*npoints+1]++ ;
+			g_count[k*npoints+2]++ ;
+			sigma11[k*npoints] += sigma[k*npoints*3];
+			sigma22[k*npoints] += sigma[k*npoints*3+1];
+			sigma12[k*npoints] += sigma[k*npoints*3+2];
+			sigma11[k*npoints+1] += sigma[k*npoints*3+3];
+			sigma22[k*npoints+1] += sigma[k*npoints*3+4];
+			sigma12[k*npoints+1] += sigma[k*npoints*3+5];
+			sigma11[k*npoints+2] += sigma[k*npoints*3+6];
+			sigma22[k*npoints+2] += sigma[k*npoints*3+7];
+			sigma12[k*npoints+2] += sigma[k*npoints*3+8];
 			
 			if(npoints >3)
 			{
-				sigma11[k*npoints+3] = sigma[k*npoints*3+9];
-				sigma22[k*npoints+3] = sigma[k*npoints*3+10];
-				sigma12[k*npoints+3] = sigma[k*npoints*3+11];
-				sigma11[k*npoints+4] = sigma[k*npoints*3+12];
-				sigma22[k*npoints+4] = sigma[k*npoints*3+13];
-				sigma12[k*npoints+4] = sigma[k*npoints*3+14];
-				sigma11[k*npoints+5] = sigma[k*npoints*3+15];
-				sigma22[k*npoints+5] = sigma[k*npoints*3+16];
-				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
+				g_count[k*npoints+3]++ ;
+				g_count[k*npoints+4]++ ;
+				g_count[k*npoints+5]++ ;
+				sigma11[k*npoints+3] += sigma[k*npoints*3+9];
+				sigma22[k*npoints+3] += sigma[k*npoints*3+10];
+				sigma12[k*npoints+3] += sigma[k*npoints*3+11];
+				sigma11[k*npoints+4] += sigma[k*npoints*3+12];
+				sigma22[k*npoints+4] += sigma[k*npoints*3+13];
+				sigma12[k*npoints+4] += sigma[k*npoints*3+14];
+				sigma11[k*npoints+5] += sigma[k*npoints*3+15];
+				sigma22[k*npoints+5] += sigma[k*npoints*3+16];
+				sigma12[k*npoints+5] += sigma[k*npoints*3+17];
 			}
 			
-			epsilon11[k*npoints] = epsilon[k*npoints*3];
-			epsilon22[k*npoints] = epsilon[k*npoints*3+1];
-			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-			epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-			epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
-			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-			epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-			epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
-			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
+			epsilon11[k*npoints] += epsilon[k*npoints*3];
+			epsilon22[k*npoints] += epsilon[k*npoints*3+1];
+			epsilon12[k*npoints] += epsilon[k*npoints*3+2];
+			epsilon11[k*npoints+1] += epsilon[k*npoints*3+3];
+			epsilon22[k*npoints+1] += epsilon[k*npoints*3+4];
+			epsilon12[k*npoints+1] += epsilon[k*npoints*3+5];
+			epsilon11[k*npoints+2] += epsilon[k*npoints*3+6];
+			epsilon22[k*npoints+2] += epsilon[k*npoints*3+7];
+			epsilon12[k*npoints+2] += epsilon[k*npoints*3+8];
 			
 			if(npoints > 3)
 			{
-				epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
-				epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
-				epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
-				epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
-				epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
-				epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
-				epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
-				epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
-				epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
+				epsilon11[k*npoints+3] += epsilon[k*npoints*3+9];
+				epsilon22[k*npoints+3] += epsilon[k*npoints*3+10];
+				epsilon12[k*npoints+3] += epsilon[k*npoints*3+11];
+				epsilon11[k*npoints+4] += epsilon[k*npoints*3+12];
+				epsilon22[k*npoints+4] += epsilon[k*npoints*3+13];
+				epsilon12[k*npoints+4] += epsilon[k*npoints*3+14];
+				epsilon11[k*npoints+5] += epsilon[k*npoints*3+15];
+				epsilon22[k*npoints+5] += epsilon[k*npoints*3+16];
+				epsilon12[k*npoints+5] += epsilon[k*npoints*3+17];
 			}  
 			
 			for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
 			{
 				Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
-				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
+				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  += sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 
 				double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
-				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
+				angle[k*triangles[k]->getBoundingPoints().size()+l]  += agl ;
 			}
 			
 			double ar = triangles[k]->area() ;
@@ -391,87 +399,98 @@ void step()
 		}
 		else
 		{
-			sigma11[k*npoints] = 0 ;
-			sigma22[k*npoints] = 0 ;
-			sigma12[k*npoints] = 0 ;
-			sigma11[k*npoints+1] = 0 ;
-			sigma22[k*npoints+1] = 0 ;
-			sigma12[k*npoints+1] = 0 ;
-			sigma11[k*npoints+2] = 0 ;
-			sigma22[k*npoints+2] = 0 ;
-			sigma12[k*npoints+2] = 0 ;
+			sigma11[k*npoints] += 0 ;
+			sigma22[k*npoints] += 0 ;
+			sigma12[k*npoints] += 0 ;
+			sigma11[k*npoints+1] += 0 ;
+			sigma22[k*npoints+1] += 0 ;
+			sigma12[k*npoints+1] += 0 ;
+			sigma11[k*npoints+2] += 0 ;
+			sigma22[k*npoints+2] += 0 ;
+			sigma12[k*npoints+2] += 0 ;
 			
 			if(npoints >3)
 			{
-				sigma11[k*npoints+3] = 0 ;
-				sigma22[k*npoints+3] = 0 ;
-				sigma12[k*npoints+3] = 0 ;
-				sigma11[k*npoints+4] = 0 ;
-				sigma22[k*npoints+4] = 0 ;
-				sigma12[k*npoints+4] = 0 ;
-				sigma11[k*npoints+5] = 0 ;
-				sigma22[k*npoints+5] = 0 ;
-				sigma12[k*npoints+5] =0 ;
+				sigma11[k*npoints+3] += 0 ;
+				sigma22[k*npoints+3] += 0 ;
+				sigma12[k*npoints+3] += 0 ;
+				sigma11[k*npoints+4] += 0 ;
+				sigma22[k*npoints+4] += 0 ;
+				sigma12[k*npoints+4] += 0 ;
+				sigma11[k*npoints+5] += 0 ;
+				sigma22[k*npoints+5] += 0 ;
+				sigma12[k*npoints+5] += 0 ;
 			}
 			
-			epsilon11[k*npoints] = 0 ;
-			epsilon22[k*npoints] = 0 ;
-			epsilon12[k*npoints] = 0 ;
-			epsilon11[k*npoints+1] = 0 ;
-			epsilon22[k*npoints+1] = 0 ;
-			epsilon12[k*npoints+1] = 0 ;
-			epsilon11[k*npoints+2] = 0 ;
-			epsilon22[k*npoints+2] = 0 ;
-			epsilon12[k*npoints+2] = 0 ;
+			epsilon11[k*npoints] += 0 ;
+			epsilon22[k*npoints] += 0 ;
+			epsilon12[k*npoints] += 0 ;
+			epsilon11[k*npoints+1] += 0 ;
+			epsilon22[k*npoints+1] += 0 ;
+			epsilon12[k*npoints+1] += 0 ;
+			epsilon11[k*npoints+2] += 0 ;
+			epsilon22[k*npoints+2] += 0 ;
+			epsilon12[k*npoints+2] += 0 ;
 			
 			if(npoints > 3)
 			{
-				epsilon11[k*npoints+3] = 0 ;
-				epsilon22[k*npoints+3] = 0 ;
-				epsilon12[k*npoints+3] =0 ;
-				epsilon11[k*npoints+4] = 0 ;
-				epsilon22[k*npoints+4] = 0 ;
-				epsilon12[k*npoints+4] =0 ;
-				epsilon11[k*npoints+5] = 0 ;
-				epsilon22[k*npoints+5] =0 ;
-				epsilon12[k*npoints+5] = 0 ;
+				epsilon11[k*npoints+3] += 0 ;
+				epsilon22[k*npoints+3] += 0 ;
+				epsilon12[k*npoints+3] += 0 ;
+				epsilon11[k*npoints+4] += 0 ;
+				epsilon22[k*npoints+4] += 0 ;
+				epsilon12[k*npoints+4] += 0 ;
+				epsilon11[k*npoints+5] += 0 ;
+				epsilon22[k*npoints+5] += 0 ;
+				epsilon12[k*npoints+5] += 0 ;
 			}  
 			
 			for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
 			{
-				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
-				angle[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
+				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  += 0 ;
+				angle[k*triangles[k]->getBoundingPoints().size()+l]  += 0 ;
 			}
 		}
 	}
-		
 	
-		std::cout << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
-		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
-		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
-		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
-		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
-		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
-		
-		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-		
-		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
-		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
-		
-		std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+	for(size_t i = 0 ; i < epsilon11.size() ; i++)
+	{
+		sigma11[i] /= g_count[i] ;
+		sigma22[i] /= g_count[i] ;
+		sigma12[i] /= g_count[i] ;
+		epsilon11[i] /= g_count[i] ;
+		epsilon22[i] /= g_count[i] ;
+		epsilon12[i] /= g_count[i] ;
+		vonMises[i]  /= g_count[i] ;
+		angle[i]  /= g_count[i] ;
+	}
+	
+	std::cout << std::endl ;
+	std::cout << "max value :" << x_max << std::endl ;
+	std::cout << "min value :" << x_min << std::endl ;
+	std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
+	std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
+	std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
+	std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
+	std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
+	std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
+	
+	std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
+	std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
+	std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
+	std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
+	std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
+	std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+	
+	std::cout << "max von Mises :" << vonMises.max() << std::endl ;
+	std::cout << "min von Mises :" << vonMises.min() << std::endl ;
+	
+	std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
+	std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
+	std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
+	std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
+	std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+	std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
 
 }
@@ -1348,7 +1367,7 @@ int main(int argc, char *argv[])
 
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
 	
-	crack[0]->setParams(0.00035,1.,0.0) ;// set params
+	crack[0]->setParams(0.00015,1.,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
@@ -1360,7 +1379,7 @@ int main(int argc, char *argv[])
 
 	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
 
-	crack[1]->setParams(0.00035,1.,0.0) ;// set params
+	crack[1]->setParams(0.00015,1.,0.0) ;// set params
 	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
@@ -1392,7 +1411,7 @@ int main(int argc, char *argv[])
 
 	F.sample(64) ;
 	//	F.sample(128) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
 

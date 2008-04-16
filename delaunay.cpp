@@ -2277,6 +2277,8 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		to_add.push_back(Point(0,0)) ;
 		to_add.push_back(Point(1,0)) ;
 		TriElement father(LINEAR) ;
+		for(size_t i = 0 ; i < father.getShapeFunctions().size() ; i++)
+			father.getShapeFunction(i).compile() ;
 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
 		{
 			
@@ -2313,64 +2315,62 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
 		size_t numberOfRefinements =  4;
+		double tol = 1e-6 ;
 		
 		VirtualMachine vm ;
 		
 		double e_0 = 1 ;
+		std::vector<bool> pass(tri.size(), false) ;
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
 			double current_error = 0 ;
-			for(size_t j = 0 ; j < tri.size() ; j++)
-				tri[j]->refresh(&father) ;
+// 			for(size_t j = 0 ; j < tri.size() ; j++)
+// 				tri[j]->refresh(&father) ;
 
 			std::vector<double> unsorted ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				double error = 0 ;
-				Function x = tri[j]->getXTransform() ;
-				x.compile() ;
-				Function y = tri[j]->getYTransform() ;
-				y.compile() ;
-				
-				tri[j]->setOrder(QUADTREE_REFINED) ;
-				GaussPointArray gpquad = tri[j]->getGaussPoints() ;
-				tri[j]->setOrder(LINEAR) ;
-
-				for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
+				if(!pass[j])
 				{
-					gpquad.gaussPoints[m].first.set(vm.eval(x, gpquad.gaussPoints[m].first),
-					                                vm.eval(y, gpquad.gaussPoints[m].first)
-					                              ) ;
-				}
-				
-				for(size_t k = 0 ; k <  getEnrichmentFunctions().size() ; k++)
-				{
+					double error = 0 ;
 
-
-					double dx = vm.deval(getEnrichmentFunction(k),
-					                     XI,gpquad.gaussPoints[3].first) ;
-					double dy = vm.deval(getEnrichmentFunction(k),
-					                     ETA,gpquad.gaussPoints[3].first) ;
-					double linInt = sqrt(dx*dx+dy*dy) ;
-
-					double quadInt = linInt ;
-					for(size_t m = 0 ; m < 3 ; m++)
+					tri[j]->setOrder(QUADTREE_REFINED) ;
+					GaussPointArray gpquad = tri[j]->getGaussPoints() ;
+					tri[j]->setOrder(LINEAR) ;
+	
+					for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
 					{
-						dx = vm.deval(getEnrichmentFunction(k),
-						                     XI,gpquad.gaussPoints[m].first) ;
-						dy = vm.deval(getEnrichmentFunction(k),
-						                     ETA,gpquad.gaussPoints[m].first) ;
-						quadInt += sqrt(dx*dx+dy*dy) ;
+						gpquad.gaussPoints[m].first = coordinateTransform(gpquad.gaussPoints[m].first,
+							tri[j]->getBoundingPoints(),
+							father.getShapeFunctions() ) ;
 					}
-					quadInt *= .25 ;
-					error = std::max(error, std::abs(quadInt-linInt)) ;
+					
+					for(size_t k = 0 ; k <  getEnrichmentFunctions().size()/3 ; k++)
+					{
+	
+						Vector val = vm.eval(getEnrichmentFunction(k),gpquad) ;
+						double cval = val[3] ;
+	
+						double extval = 0 ;
+						for(size_t m = 0 ; m < 3 ; m++)
+						{
+							extval +=  val[m] ;
+						}
+						extval /= 3. ;
+						if(std::abs(std::max(cval,extval)) > 1e-12)
+							error = std::max(error, std::abs(cval-extval)/std::max(cval,extval)) ;
+					}
+					error *= tri[j]->area() ;
+					unsorted.push_back(error) ;
+					current_error = std::max(current_error,error);
 				}
-				error *= tri[j]->area() ;
-				unsorted.push_back(error) ;
-				current_error = std::max(current_error,error);
+				else
+				{
+					unsorted.push_back(0) ;
+				}
 			}
-			
-			if(current_error <= 1e-4*e_0)
+// 			std::cout << current_error << "  "<< tri.size() << std::endl ;
+			if(current_error <= tol*e_0)
 			{
 				break ;
 			}
@@ -2379,34 +2379,52 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				e_0 = current_error ;
 			
 			std::vector<DelaunayTriangle *> newTris ;
+			std::vector<bool> newPass ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				bool tooNear = false ;
-				for(size_t k = 0 ; k < to_add.size() ; k++)
+				if(!pass[j])
 				{
-					if(squareDist2D(tri[j]->getCenter(), to_add[k]) 
-					   < 4.*default_derivation_delta*default_derivation_delta)
+					bool tooNear = false ;
+					for(size_t k = 0 ; k < to_add.size() ; k++)
 					{
-						tooNear = true ;
-						break ;
+						if(squareDist2D(tri[j]->getCenter(), to_add[k]) 
+						< 4.*default_derivation_delta*default_derivation_delta)
+						{
+							tooNear = true ;
+							break ;
+						}
+					}
+					if(unsorted[j] >= tol*e_0  && !tooNear)
+					{
+						std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q =
+							quad(tri[j]) ;
+						newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
+						newPass.push_back(false) ;
+						newPass.push_back(false) ;
+						newPass.push_back(false) ;
+						newPass.push_back(false) ;
+						pointsToCleanup.insert(pointsToCleanup.end(),
+								q.second.begin(), 
+								q.second.end()) ;
+						triangleToCleanup.insert(triangleToCleanup.end(), 
+									q.first.begin(), 
+									q.first.end()) ;
+					}
+					else if (!tooNear)
+					{
+						newTris.push_back(tri[j]) ;
+						newPass.push_back(true) ;
 					}
 				}
-				if(unsorted[j] >= 1e-4*e_0  && !tooNear)
+				else
 				{
-					std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q =
-						quad(tri[j]) ;
-					newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
-					pointsToCleanup.insert(pointsToCleanup.end(),
-					                       q.second.begin(), 
-					                       q.second.end()) ;
-					triangleToCleanup.insert(triangleToCleanup.end(), 
-					                         q.first.begin(), 
-					                         q.first.end()) ;
-				}
-				else if (!tooNear)
 					newTris.push_back(tri[j]) ;
+					newPass.push_back(true) ;
+				}
 			}
+
 			tri = newTris ;
+			pass = newPass ;
 		}
 		
 		for(size_t i = 0 ; i < tri.size() ; i++)

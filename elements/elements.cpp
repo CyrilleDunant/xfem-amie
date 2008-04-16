@@ -2104,6 +2104,22 @@ double tTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	return ret ;
 }
 
+Point coordinateTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+{
+	Point ret;
+	
+	VirtualMachine vm ;
+	for(size_t i = 0 ; i < points.size() ; i++)
+	{
+		double v = vm.eval(basis[i], p) ;
+		ret.x += v*points[i]->x ;
+		ret.y += v*points[i]->y ;
+		ret.z += v*points[i]->z ;
+		ret.t += v*points[i]->t ;
+	}
+	return ret ;
+}
+
 Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v)
 {
 	switch(v)

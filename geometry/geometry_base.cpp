@@ -2618,7 +2618,7 @@ double squareDist(const  Point &v1, const Point & v2)
 	r[1] = y*y ;
 	r[2] = z*z ;
 	r[3] = t*t ;
-	std::sort(&r[0], &r[4]) ;
+// 	std::sort(&r[0], &r[4]) ;
 	return r[0]+r[1] +r[2]+r[3] ;
 	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
 }
@@ -2634,7 +2634,7 @@ double squareDist(const Point *v1, const Point *v2)
 	r[1] = y*y ;
 	r[2] = z*z ;
 	r[3] = t*t ;
-	std::sort(&r[0], &r[4]) ;
+// 	std::sort(&r[0], &r[4]) ;
 	return r[0]+r[1] +r[2]+r[3] ;
 	return fma(x,x, fma(y,y, fma(z, z, t*t))) ;
 }
@@ -2665,7 +2665,7 @@ double squareDist3D(const  Point &v1, const Point & v2)
 	r[0] = x*x ;
 	r[1] = y*y ;
 	r[2] = z*z ;
-	std::sort(&r[0], &r[3]) ;
+// 	std::sort(&r[0], &r[3]) ;
 	return  r[0]+r[1]+r[2] ;
 }
 
@@ -2679,7 +2679,7 @@ double squareDist3D(const Point *v1, const Point *v2)
 	r[0] = x*x ;
 	r[1] = y*y ;
 	r[2] = z*z ;
-	std::sort(&r[0], &r[3]) ;
+// 	std::sort(&r[0], &r[3]) ;
 	return  r[0]+r[1] +r[2] ;
 }
 

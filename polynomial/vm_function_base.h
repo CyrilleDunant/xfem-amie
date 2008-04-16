@@ -78,19 +78,27 @@ public:
 	Function(const Function &) ;
 	Function(const char *f) ;
 	Function(const Line & l, Function x, Function y) ;
+	Function(const Line & l, ElementarySurface * s) ;
 	Function(const Point & p, Function x, Function y) ;
+	Function(const Point & p, ElementarySurface * s) ;
+	Function(double a, ElementarySurface * s) ;
 	Function(double a, Function x, Function y) ;
 	Function(double a,const Point & p,  Function x, Function y) ;
+	Function(double a,const Point & p,  ElementarySurface * s) ;
 	Function(const std::string &f) ;
 	Function(const std::valarray< std::valarray<Matrix> > & coeffs, bool diff = true) ;
 	Function(const std::valarray<Matrix> & coeffs, bool diff = true) ;
 	Function(const Matrix & coeffs, bool diff = true) ;
 	Function(const std::valarray<double> & coeffs, bool diff = true) ;
+
 	Function(const Segment s, const Function & x, const Function & y, PositionTokenType = POSITION_TOKEN) ;
+	Function(const Segment s,  ElementarySurface * s, PositionTokenType = POSITION_TOKEN) ;
 	Function(const std::vector<Segment> s, const Function & x, const Function & y,PositionTokenType = POSITION_TOKEN) ;
+	Function(const std::vector<Segment> s, ElementarySurface * s,PositionTokenType = POSITION_TOKEN) ;
 	Function(const ByteCode & b_0, const ByteCode & b_1) ;
 	Function(Geometry * g) ;
 	Function(Geometry * g, Function x, Function y) ;
+	Function(Geometry * g, ElementarySurface * s) ;
 
 public:
 	Function(const ByteCode &b_0, const ByteCode &b_1, RefCountedToken op, const bool diff = false); 

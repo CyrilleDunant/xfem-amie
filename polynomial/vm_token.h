@@ -27,6 +27,8 @@ double negativity(const double t) ;
 namespace Mu
 {
 
+struct ElementarySurface ;
+struct ElementaryVolume ;
 typedef double (*unaryFunctionPointer)(const double) ;
 typedef double (*binaryFunctionPointer)(const double, double) ;
 typedef double (*trinaryFunctionPointer)(const double, double, double) ;
@@ -45,6 +47,8 @@ typedef enum
 	TOKEN_READ_VARIABLE,
 	TOKEN_PROJECTION,
 	TOKEN_SIGNED_DISTANCE,
+	TOKEN_2D_TRANSFORM,
+	TOKEN_3D_TRANSFORM,
 	TOKEN_POINT_DISTANCE_OPERATOR,
 	TOKEN_ROTATION_OPERATOR,
 	TOKEN_ANGLE_OPERATOR,
@@ -306,11 +310,11 @@ public:
 	virtual void eval(Context & context) const
 	{
 		
-		Point test(context.memory.stack[context.memory.top_pos-1], context.memory.stack[context.memory.top_pos]) ;
-	    context.memory.pop_back() ;
+		Point test(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+	    	context.memory.pop_back() ;
 	
 		
-		context.memory.stack[context.memory.top_pos] =  dist(test,l.projection(test));
+		context.memory.stack[context.memory.top_pos] =  sqrt(squareDist2D(test,l.projection(test)));
 	}
 	
 	virtual ~LineDistanceOperatorToken() { };
@@ -355,8 +359,8 @@ public:
 		}
 		
 
-		Point test(context.memory.stack[context.memory.top_pos-1], context.memory.stack[context.memory.top_pos]) ;
-	    context.memory.pop_back() ;
+		Point test(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		context.memory.pop_back() ;
 		
 		int intersections = 0 ;
 		for(size_t i = 0 ; i < s.size() ; i++)
@@ -374,9 +378,9 @@ public:
 		}
 		
 		if((intersections % 2)  != 0)
-			context.memory.stack[context.memory.top_pos] = 1;
+			context.memory.stack[context.memory.top_pos] =  1 ;
 		else
-			context.memory.stack[context.memory.top_pos] =  -1;
+			context.memory.stack[context.memory.top_pos] = -1 ;
 
 	}
 	
@@ -437,6 +441,29 @@ public:
 	}
 } ;
 
+class Transform2DToken : public Token
+{
+
+	ElementarySurface * e ;
+public:
+	Transform2DToken(ElementarySurface * g ) ;
+	
+	virtual void eval(Context & context) const;
+	virtual ~Transform2DToken() ;
+	virtual std::string print() const;
+} ;
+
+class Transform3DToken : public Token
+{
+	ElementaryVolume * e ;
+public:
+	Transform3DToken(ElementaryVolume * g ) ;
+	
+	virtual void eval(Context & context) const;
+	virtual ~Transform3DToken() ;
+	virtual std::string print() const;
+} ;
+
 class PointDistanceBinaryOperatorToken : public Token
 {
 	Point base ;
@@ -452,7 +479,7 @@ public:
 		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
 		context.memory.pop_back() ;
 
-		context.memory.stack[context.memory.top_pos] = dist(p, base) ;
+		context.memory.stack[context.memory.top_pos] = sqrt(squareDist2D(p, base)) ;
 
 	}
 	virtual ~PointDistanceBinaryOperatorToken() { };
@@ -464,9 +491,10 @@ public:
 
 class RotationBinaryOperatorToken : public Token
 {
-	double angle ;
+	double cangle ;
+	double sangle ;
 public:
-	RotationBinaryOperatorToken(double a ) : Token(false, std::make_pair(std::make_pair(TOKEN_ROTATION_OPERATOR, 0), (double)(0))), angle(a)
+	RotationBinaryOperatorToken(double a ) : Token(false, std::make_pair(std::make_pair(TOKEN_ROTATION_OPERATOR, 0), (double)(0))), cangle(cos(a)), sangle(sin(a))
 	{
 	}
 	
@@ -475,9 +503,8 @@ public:
 		
 		double x = context.memory.stack[context.memory.top_pos] ;
 		double y =  context.memory.stack[context.memory.top_pos-1] ;
-		
-		context.memory.stack[context.memory.top_pos] = x*cos(angle) + y*sin(angle) ;
-		context.memory.stack[context.memory.top_pos-1] = -x*sin(angle) + y*cos(angle) ;
+		context.memory.stack[context.memory.top_pos] = x*cangle + y*sangle ;
+		context.memory.stack[context.memory.top_pos-1] = -x*sangle + y*cangle ;
 
 	}
 	virtual ~RotationBinaryOperatorToken() { };
@@ -489,10 +516,11 @@ public:
 
 class AngleBinaryOperatorToken : public Token
 {
-	double angle ;
+	double cangle ;
+	double sangle ;
 	Point pivot ;
 public:
-	AngleBinaryOperatorToken(double a, Point p ) : Token(false, std::make_pair(std::make_pair(TOKEN_ANGLE_OPERATOR, 0), (double)(0))), angle(a), pivot(p.x*cos(a)+p.y*sin(a), -p.x*sin(a)+p.y*cos(a))
+	AngleBinaryOperatorToken(double a, Point p ) : Token(false, std::make_pair(std::make_pair(TOKEN_ANGLE_OPERATOR, 0), (double)(0))), cangle(cos(a)), sangle(sin(a)), pivot(p.x*cos(a)+p.y*sin(a), -p.x*sin(a)+p.y*cos(a))
 	{
 	}
 	
@@ -501,10 +529,10 @@ public:
 		
 		double x = context.memory.stack[context.memory.top_pos] ;
 		double y =  context.memory.stack[context.memory.top_pos-1] ;
-		double x_t = x*cos(angle) + y*sin(angle) ;
-		double y_t = -x*sin(angle) + y*cos(angle) ;
+		double x_t = x*cangle + y*sangle ;
+		double y_t = -x*sangle + y*cangle ;
 		context.memory.pop_back() ;
-		context.memory.stack[context.memory.top_pos] = atan2(x_t-pivot.x, y_t-pivot.y) ;
+		context.memory.stack[context.memory.top_pos] = atan2(y_t-pivot.y, x_t-pivot.x) ;
 
 	}
 	virtual ~AngleBinaryOperatorToken() { };
