@@ -476,9 +476,8 @@ public:
 	virtual void eval(Context & context) const
 	{
 		
-		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		Point p(context.memory.stack[context.memory.top_pos-1], context.memory.stack[context.memory.top_pos]) ;
 		context.memory.pop_back() ;
-
 		context.memory.stack[context.memory.top_pos] = sqrt(squareDist2D(p, base)) ;
 
 	}
@@ -520,15 +519,15 @@ class AngleBinaryOperatorToken : public Token
 	double sangle ;
 	Point pivot ;
 public:
-	AngleBinaryOperatorToken(double a, Point p ) : Token(false, std::make_pair(std::make_pair(TOKEN_ANGLE_OPERATOR, 0), (double)(0))), cangle(cos(a)), sangle(sin(a)), pivot(p.x*cos(a)+p.y*sin(a), -p.x*sin(a)+p.y*cos(a))
+	AngleBinaryOperatorToken(double a, const Point & p ) : Token(false, std::make_pair(std::make_pair(TOKEN_ANGLE_OPERATOR, 0), (double)(0))), cangle(cos(a)), sangle(sin(a)), pivot(p.x*cos(a)+p.y*sin(a), -p.x*sin(a)+p.y*cos(a))
 	{
 	}
 	
 	virtual void eval(Context & context) const
 	{
 		
-		double x = context.memory.stack[context.memory.top_pos] ;
-		double y =  context.memory.stack[context.memory.top_pos-1] ;
+		double x = context.memory.stack[context.memory.top_pos-1] ;
+		double y =  context.memory.stack[context.memory.top_pos] ;
 		double x_t = x*cangle + y*sangle ;
 		double y_t = -x*sangle + y*cangle ;
 		context.memory.pop_back() ;

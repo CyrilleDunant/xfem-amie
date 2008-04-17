@@ -292,7 +292,7 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 25 ;
+	size_t nit = 10 ;
 	size_t ntries = 25;
 
 	for(size_t i = 0 ; i < nit ; i++)
@@ -1709,7 +1709,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0;
-	int inclusionNumber = 6000 ;
+	int inclusionNumber = 3000 ;
 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	if(inclusionNumber)
@@ -1761,15 +1761,23 @@ int main(int argc, char *argv[])
 		if(inclusions[i]->getRadius()-itzSize*.5 > 0)
 			radii.push_back(inclusions[i]->getRadius()-itzSize*.5) ;
 		behavs.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+		
 		behavs.push_back(new WeibullDistributedStiffness(m0_paste*.5, 40000*.5)) ;
-
+// 		behavs.push_back(new RadialStiffnessGradient(E_paste*.5, 
+// 		                                             nu, 
+// 		                                             inclusions[i]->getRadius()-itzSize*.75,  
+// 		                                             E_paste, 
+// 		                                             nu, 
+// 		                                             inclusions[i]->getRadius()-itzSize*.5,
+// 		                                             inclusions[i]->getCenter()
+// 		                                            )) ;
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
-		F.addFeature(pore1,newinc) ;
+// 		F.addFeature(pore1,newinc) ;
 		
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 		F.addFeature(pore1,inclusions[i]) ;
+		F.addFeature(pore1,inclusions[i]) ;
 // 		F.addFeature(pore1,new Pore(inclusions[i]->getRadius()-itzSize*.75, inclusions[i]->getCenter())) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1784,7 +1792,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(600) ;
 
 	F.setOrder(LINEAR) ;
 

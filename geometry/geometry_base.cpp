@@ -2152,10 +2152,9 @@ bool Segment::intersects(const Geometry *g) const
 	{
 	case CIRCLE:
 		{
-			return !intersection(g).empty() ;
-// 			Line l(f, vec) ;
-// 			
-// 			return squareDist(l.projection(g->getCenter()), *g->getCenter()) < g->getRadius()*g->getRadius() ;
+// 			return !intersection(g).empty() ;
+			Line l(f, vec) ;
+			return ((!g->in(f) && !g->in(s)) && squareDist(l.projection(g->getCenter()), g->getCenter()) < g->getRadius()*g->getRadius()) || (g->in(f) && !g->in(s)) || (!g->in(f) && g->in(s));
 // 			
 			double a = vec.sqNorm() ;
 			double b = (f.x-g->getCenter().x)*2.*vec.x + (f.y-g->getCenter().y)*2.*vec.y ;
@@ -2228,22 +2227,23 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		{
 			std::vector<Point> ret ;
 			
-			Segment s0(g->getBoundingPoint(0), g->getBoundingPoint(g->getBoundingPoints().size()/4)) ;
+			std::vector<Point> bbox = g->getBoundingBox() ;
+			Segment s0(bbox[0], bbox[1]) ;
 			
 			if(s0.intersects(*this))
 				ret.push_back( s0.intersection(*this)) ;
 			
-			Segment s1(g->getBoundingPoint(g->getBoundingPoints().size()/4), g->getBoundingPoint(2*g->getBoundingPoints().size()/4)) ;
+			Segment s1(bbox[1], bbox[2]) ;
 			
 			if(s1.intersects(*this))
 				ret.push_back( s1.intersection(*this)) ;
 			
-			Segment s2(g->getBoundingPoint(2*g->getBoundingPoints().size()/4), g->getBoundingPoint(3*g->getBoundingPoints().size()/4)) ;
+			Segment s2( bbox[2],  bbox[3]) ;
 			
 			if(s2.intersects(*this))
 				ret.push_back( s2.intersection(*this)) ;
 			
-			Segment s3(g->getBoundingPoint(3*g->getBoundingPoints().size()/4), g->getBoundingPoint(0)) ;
+			Segment s3(bbox[3],bbox[0]) ;
 			
 			if(s3.intersects(*this))
 				ret.push_back( s3.intersection(*this)) ;
@@ -2255,40 +2255,83 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case CIRCLE:
 		{
-			std::vector<Point> ret ;
-			double r_2 = g->getRadius()*g->getRadius() ;
-			double sx_cx = s.x-g->getCenter().x ;
-			double sy_cy = s.y-g->getCenter().y ;
+			if(g->in(f) && g->in(s))
+				return std::vector<Point>(0) ;
 			
-			double a = vec.x*vec.x + vec.y*vec.y ;
-			double b = sx_cx*2.*vec.x + sy_cy*2.*vec.y ;
-			double c = sx_cx*sx_cx +sy_cy*sy_cy-r_2 ;
-		
-			double delta = b*b - 4.*a*c ;
-
-			if(std::abs(delta) < POINT_TOLERANCE)
+			if(g->in(f) && !g->in(s) || !g->in(f) && g->in(s))
 			{
-
-				Point A(s+vec*(-b/(2.*a))) ;
-				if(on(A) && std::abs(squareDist2D(g->getCenter(), A) - r_2) < POINT_TOLERANCE)
-					ret.push_back(A) ;
-				return ret ;
-			}
-			else if (delta > 0)
-			{
-
-				Point A(s+vec*(-b + sqrt(delta))/(2.*a)) ;
-				if(on(A)&& std::abs(squareDist2D(g->getCenter(), A) - r_2) < POINT_TOLERANCE)
-					ret.push_back(A) ;
-				Point B(s+vec*(-b - sqrt(delta))/(2.*a)) ;
-				if(on(B)&& std::abs(squareDist2D(g->getCenter(), B) - r_2) < POINT_TOLERANCE)
-					ret.push_back(B) ;
-				return ret ;
+				Line l(f, vec) ;
+				Point proj = l.projection(g->getCenter()) ;
+				double d = sqrt(squareDist2D(f, f) - squareDist2D(proj, g->getCenter())) ;
+				Point unitVector = vec/vec.norm() ;
+				Point candidate = proj + unitVector*d ;
+				if(on(candidate))
+				{
+					std::vector<Point> ret ;
+					ret.push_back(candidate) ;
+					return ret ;
+				}
+				else
+				{
+					std::vector<Point> ret ;
+					ret.push_back(proj - unitVector*d) ;
+					return ret ;
+				}
+				
 			}
 			else
 			{
-				return std::vector<Point>(0) ;
+				std::vector<Point> ret ;
+				Line l(f, vec) ;
+				Point proj = l.projection(g->getCenter()) ;
+				double dd = squareDist2D(f, f) - squareDist2D(proj, g->getCenter()) ;
+				if(dd < 0)
+					return ret ;
+				
+				double d = sqrt(dd) ;
+				Point unitVector = vec/vec.norm() ;
+				Point candidateA = proj + unitVector*d ;
+				Point candidateB = proj + unitVector*d ;
+				if(on(candidateA))
+					ret.push_back(candidateA) ;
+				if(on(candidateB))
+					ret.push_back(candidateB) ;
+				
+				return ret ;
 			}
+			
+// 			std::vector<Point> ret ;
+// 			double r_2 = g->getRadius()*g->getRadius() ;
+// 			double sx_cx = s.x-g->getCenter().x ;
+// 			double sy_cy = s.y-g->getCenter().y ;
+// 			
+// 			double a = vec.x*vec.x + vec.y*vec.y ;
+// 			double b = sx_cx*2.*vec.x + sy_cy*2.*vec.y ;
+// 			double c = sx_cx*sx_cx + sy_cy*sy_cy - r_2 ;
+// 		
+// 			double delta = b*b - 4.*a*c ;
+// 
+// 			if(std::abs(delta) < POINT_TOLERANCE)
+// 			{
+// 				Point A(s+vec*(-b/(2.*a))) ;
+// 				if(on(A) && std::abs(squareDist2D(g->getCenter(), A) - r_2) < POINT_TOLERANCE)
+// 					ret.push_back(A) ;
+// 				return ret ;
+// 			}
+// 			else if (delta > 0)
+// 			{
+// 				Point A(s+vec*(-b + sqrt(delta))/(2.*a)) ;
+// 				if(on(A)&& std::abs(squareDist2D(g->getCenter(), A) - r_2) < POINT_TOLERANCE)
+// 					ret.push_back(A) ;
+// 				Point B(s+vec*(-b - sqrt(delta))/(2.*a)) ;
+// 				if(on(B)&& std::abs(squareDist2D(g->getCenter(), B) - r_2) < POINT_TOLERANCE)
+// 					ret.push_back(B) ;
+// 				return ret ;
+// 			}
+// 			else
+// 			{
+// 				return std::vector<Point>(0) ;
+// 			}
 		}
 	case SEGMENTED_LINE:
 		{

@@ -172,7 +172,7 @@ void step()
   //  int nsteps = 1;// number of steps between two clicks on the opengl thing
   bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  size_t max_growth_steps = 25;
+  size_t max_growth_steps = 2;
   size_t countit = 0;
   while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
@@ -327,53 +327,53 @@ void step()
 			g_count[k*npoints]++ ;
 			g_count[k*npoints+1]++ ;
 			g_count[k*npoints+2]++ ;
-			sigma11[k*npoints] += sigma[k*npoints*3];
-			sigma22[k*npoints] += sigma[k*npoints*3+1];
-			sigma12[k*npoints] += sigma[k*npoints*3+2];
-			sigma11[k*npoints+1] += sigma[k*npoints*3+3];
-			sigma22[k*npoints+1] += sigma[k*npoints*3+4];
-			sigma12[k*npoints+1] += sigma[k*npoints*3+5];
-			sigma11[k*npoints+2] += sigma[k*npoints*3+6];
-			sigma22[k*npoints+2] += sigma[k*npoints*3+7];
-			sigma12[k*npoints+2] += sigma[k*npoints*3+8];
+			sigma11[k*npoints] = sigma[k*npoints*3];
+			sigma22[k*npoints] = sigma[k*npoints*3+1];
+			sigma12[k*npoints] = sigma[k*npoints*3+2];
+			sigma11[k*npoints+1] = sigma[k*npoints*3+3];
+			sigma22[k*npoints+1] = sigma[k*npoints*3+4];
+			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
+			sigma11[k*npoints+2] = sigma[k*npoints*3+6];
+			sigma22[k*npoints+2] = sigma[k*npoints*3+7];
+			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
 			
 			if(npoints >3)
 			{
 				g_count[k*npoints+3]++ ;
 				g_count[k*npoints+4]++ ;
 				g_count[k*npoints+5]++ ;
-				sigma11[k*npoints+3] += sigma[k*npoints*3+9];
-				sigma22[k*npoints+3] += sigma[k*npoints*3+10];
-				sigma12[k*npoints+3] += sigma[k*npoints*3+11];
-				sigma11[k*npoints+4] += sigma[k*npoints*3+12];
-				sigma22[k*npoints+4] += sigma[k*npoints*3+13];
-				sigma12[k*npoints+4] += sigma[k*npoints*3+14];
-				sigma11[k*npoints+5] += sigma[k*npoints*3+15];
-				sigma22[k*npoints+5] += sigma[k*npoints*3+16];
-				sigma12[k*npoints+5] += sigma[k*npoints*3+17];
+				sigma11[k*npoints+3] = sigma[k*npoints*3+9];
+				sigma22[k*npoints+3] = sigma[k*npoints*3+10];
+				sigma12[k*npoints+3] = sigma[k*npoints*3+11];
+				sigma11[k*npoints+4] = sigma[k*npoints*3+12];
+				sigma22[k*npoints+4] = sigma[k*npoints*3+13];
+				sigma12[k*npoints+4] = sigma[k*npoints*3+14];
+				sigma11[k*npoints+5] = sigma[k*npoints*3+15];
+				sigma22[k*npoints+5] = sigma[k*npoints*3+16];
+				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
 			}
 			
-			epsilon11[k*npoints] += epsilon[k*npoints*3];
-			epsilon22[k*npoints] += epsilon[k*npoints*3+1];
-			epsilon12[k*npoints] += epsilon[k*npoints*3+2];
-			epsilon11[k*npoints+1] += epsilon[k*npoints*3+3];
-			epsilon22[k*npoints+1] += epsilon[k*npoints*3+4];
-			epsilon12[k*npoints+1] += epsilon[k*npoints*3+5];
-			epsilon11[k*npoints+2] += epsilon[k*npoints*3+6];
-			epsilon22[k*npoints+2] += epsilon[k*npoints*3+7];
-			epsilon12[k*npoints+2] += epsilon[k*npoints*3+8];
+			epsilon11[k*npoints] = epsilon[k*npoints*3];
+			epsilon22[k*npoints] = epsilon[k*npoints*3+1];
+			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
+			epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
+			epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
+			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
+			epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
+			epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
+			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
 			
 			if(npoints > 3)
 			{
-				epsilon11[k*npoints+3] += epsilon[k*npoints*3+9];
-				epsilon22[k*npoints+3] += epsilon[k*npoints*3+10];
-				epsilon12[k*npoints+3] += epsilon[k*npoints*3+11];
-				epsilon11[k*npoints+4] += epsilon[k*npoints*3+12];
-				epsilon22[k*npoints+4] += epsilon[k*npoints*3+13];
-				epsilon12[k*npoints+4] += epsilon[k*npoints*3+14];
-				epsilon11[k*npoints+5] += epsilon[k*npoints*3+15];
-				epsilon22[k*npoints+5] += epsilon[k*npoints*3+16];
-				epsilon12[k*npoints+5] += epsilon[k*npoints*3+17];
+				epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
+				epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
+				epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
+				epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
+				epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
+				epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
+				epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
+				epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
+				epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
 			}  
 			
 			for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
@@ -453,17 +453,17 @@ void step()
 		}
 	}
 	
-	for(size_t i = 0 ; i < epsilon11.size() ; i++)
-	{
-		sigma11[i] /= g_count[i] ;
-		sigma22[i] /= g_count[i] ;
-		sigma12[i] /= g_count[i] ;
-		epsilon11[i] /= g_count[i] ;
-		epsilon22[i] /= g_count[i] ;
-		epsilon12[i] /= g_count[i] ;
-		vonMises[i]  /= g_count[i] ;
-		angle[i]  /= g_count[i] ;
-	}
+// 	for(size_t i = 0 ; i < epsilon11.size() ; i++)
+// 	{
+// 		sigma11[i] /= g_count[i] ;
+// 		sigma22[i] /= g_count[i] ;
+// 		sigma12[i] /= g_count[i] ;
+// 		epsilon11[i] /= g_count[i] ;
+// 		epsilon22[i] /= g_count[i] ;
+// 		epsilon12[i] /= g_count[i] ;
+// 		vonMises[i]  /= g_count[i] ;
+// 		angle[i]  /= g_count[i] ;
+// 	}
 	
 	std::cout << std::endl ;
 	std::cout << "max value :" << x_max << std::endl ;
@@ -1367,25 +1367,25 @@ int main(int argc, char *argv[])
 
 	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
 	
-	crack[0]->setParams(0.00015,1.,0.0) ;// set params
+	crack[0]->setParams(0.00075,1.,0.0) ;// set params
 	std::cout << "coucou3" << std::endl;
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
 
-	// ADD SECOND CRACK
-	std::valarray<Point *> ptset2(2) ;//point set for crack
-	ptset2[0] = new Point(0.009, .00215) ;//start of crack
-	ptset2[1] = new Point(0.011, .00215) ;//end of crack
-
-	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
-
-	crack[1]->setParams(0.00015,1.,0.0) ;// set params
-	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
+// 	// ADD SECOND CRACK
+// 	std::valarray<Point *> ptset2(2) ;//point set for crack
+// 	ptset2[0] = new Point(0.009, .00215) ;//start of crack
+// 	ptset2[1] = new Point(0.011, .00215) ;//end of crack
+// 
+// 	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
+// 
+// 	crack[1]->setParams(0.00075,1.,0.0) ;// set params
+// 	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
 	std::vector<Inclusion *> inclusions ;
-	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
+// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
+// 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 	std::vector<Pore *> pores;
 
 	// Generate inclusions following Bolomey granulometry
@@ -1409,9 +1409,9 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(64) ;
+	F.sample(128) ;
 	//	F.sample(128) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
 

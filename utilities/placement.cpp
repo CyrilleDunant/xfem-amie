@@ -94,9 +94,14 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			tries++ ;
 			Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
 			inclusions[i]->setCenter(newCentre) ;
-			while(!box->in(inclusions[i]->getCenter()) || !box->intersection(inclusions[i]).empty() )
+			while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 			{
-				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+				Point newCentre(
+				                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
+				                 -(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
+				                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
+				                 -(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
+				               ) ;
 				inclusions[i]->setCenter(newCentre) ;
 			}
 
@@ -105,11 +110,21 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			while(!grid.add(inclusions[i]) && tries < triesMax)
 			{
 				tries++ ;
-				Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+				Point newCentre(
+				                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
+				                 - (longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
+				                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
+				                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
+				               ) ;
 				inclusions[i]->setCenter(newCentre) ;
-				while(!box->in(inclusions[i]->getCenter()) || !box->intersection(inclusions[i]).empty() )
+				while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
 				{
-					Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+					Point newCentre(
+					                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
+					                 - (longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
+					                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
+					                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
+					               ) ;
 					inclusions[i]->setCenter(newCentre) ;
 				}
 			}

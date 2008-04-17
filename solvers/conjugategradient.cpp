@@ -27,7 +27,7 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 // 	if(maxit > 0)
 // 		Maxit = maxit ;
 // 	else
-		Maxit = b.size()*.75 ;
+		Maxit = b.size()*.85 ;
 	
 	bool cleanup = false ;
 	
@@ -75,7 +75,7 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	
 	//****************************************
 	
-	while((std::abs(last_rho)> std::abs(rho_0)*eps*eps || std::abs(last_rho) > 1e-20) && nit < Maxit )
+	while((std::abs(last_rho)> std::abs(rho_0)*eps*eps || std::abs(last_rho) > 1e-22) && nit < Maxit )
 	{
 		P->precondition(r,z) ;
 		
