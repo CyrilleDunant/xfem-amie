@@ -2154,7 +2154,15 @@ bool Segment::intersects(const Geometry *g) const
 		{
 // 			return !intersection(g).empty() ;
 			Line l(f, vec) ;
-			return ((!g->in(f) && !g->in(s)) && squareDist(l.projection(g->getCenter()), g->getCenter()) < g->getRadius()*g->getRadius()) || (g->in(f) && !g->in(s)) || (!g->in(f) && g->in(s));
+			Point proj = l.projection(g->getCenter()) ;
+			if(g->in(f) && g->in(s))
+				return false ;
+			if(!g->in(f) && !g->in(s) && g->in(proj) && on(proj))
+				return true ;
+			if((g->in(f) && !g->in(s)) || (!g->in(f) && g->in(s)))
+				return true ;
+			
+			return false ;
 // 			
 			double a = vec.sqNorm() ;
 			double b = (f.x-g->getCenter().x)*2.*vec.x + (f.y-g->getCenter().y)*2.*vec.y ;
