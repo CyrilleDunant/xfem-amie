@@ -1490,10 +1490,10 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 				theta = Function(angle, singularity, x, y);
 				r = Function(singularity, x, y);
 
-				f0 = f_sqrt ( r ) *f_sin ( theta/2 );
-				f1 = f_sqrt ( r ) *f_cos ( theta/2 );
-				f2 = f_sqrt ( r ) *f_sin ( theta/2 ) *f_cos ( theta );
-				f3 = f_sqrt ( r ) *f_cos ( theta/2 ) *f_cos ( theta );
+				f0 = f_sqrt ( r ) * f_sin ( theta/2 );
+				f1 = f_sqrt ( r ) * f_cos ( theta/2 );
+				f2 = f_sqrt ( r ) * f_sin ( theta/2 ) *f_cos ( theta );
+				f3 = f_sqrt ( r ) * f_cos ( theta/2 ) *f_cos ( theta );
 
 
 				pointsGlobal.clear() ;

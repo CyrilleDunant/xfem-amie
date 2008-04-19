@@ -1762,22 +1762,23 @@ int main(int argc, char *argv[])
 			radii.push_back(inclusions[i]->getRadius()-itzSize*.5) ;
 		behavs.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
 		
-		behavs.push_back(new WeibullDistributedStiffness(m0_paste*.5, 40000*.5)) ;
-// 		behavs.push_back(new RadialStiffnessGradient(E_paste*.5, 
-// 		                                             nu, 
-// 		                                             inclusions[i]->getRadius()-itzSize*.75,  
-// 		                                             E_paste, 
-// 		                                             nu, 
-// 		                                             inclusions[i]->getRadius()-itzSize*.5,
-// 		                                             inclusions[i]->getCenter()
-// 		                                            )) ;
+// 		behavs.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
+// 		behavs.push_back(new WeibullDistributedStiffness(m0_paste*.5, 40000*.5)) ;
+		behavs.push_back(new RadialStiffnessGradient(E_paste*.5, 
+		                                             nu, 
+		                                             inclusions[i]->getRadius()-itzSize*.75,  
+		                                             E_paste, 
+		                                             nu, 
+		                                             inclusions[i]->getRadius()-itzSize*.5,
+		                                             inclusions[i]->getCenter()
+		                                            )) ;
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
-// 		F.addFeature(pore1,newinc) ;
+		F.addFeature(pore1,newinc) ;
 		
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-		F.addFeature(pore1,inclusions[i]) ;
+// 		F.addFeature(pore1,inclusions[i]) ;
 // 		F.addFeature(pore1,new Pore(inclusions[i]->getRadius()-itzSize*.75, inclusions[i]->getCenter())) ;
 		placed_area += inclusions[i]->area() ;
 	}

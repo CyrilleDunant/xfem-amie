@@ -2289,7 +2289,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 				{
 					if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j), 
 					                to_add[k]) 
-					   < 4.*default_derivation_delta*default_derivation_delta)
+					   < 2.*default_derivation_delta*default_derivation_delta)
 					{
 						go = false ;
 						break ;
@@ -2314,8 +2314,8 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements = 2;
-		double tol = 1e-6 ;
+		size_t numberOfRefinements = 8;
+		double tol = 1e-3 ;
 		
 		VirtualMachine vm ;
 		
@@ -2348,7 +2348,11 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 					for(size_t k = 0 ; k <  getEnrichmentFunctions().size()/3 ; k++)
 					{
 	
-						Vector val = vm.eval(getEnrichmentFunction(k),gpquad) ;
+						Vector valx = vm.deval(getEnrichmentFunction(k),XI, gpquad) ;
+						Vector valy = vm.deval(getEnrichmentFunction(k),ETA, gpquad) ;
+						Vector val(4) ;
+						for(size_t i = 0 ; i < 4  ;i++)
+							val[i] = sqrt(valx[i]*valx[i] + valy[i]*valy[i]) ;
 						double cval = val[3] ;
 	
 						double extval = 0 ;
@@ -2360,7 +2364,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 						if(std::abs(std::max(cval,extval)) > 1e-12)
 							error = std::max(error, std::abs(cval-extval)/std::max(cval,extval)) ;
 					}
-					unsorted.push_back(error) ;
+					unsorted.push_back(error*tri[j]->area()) ;
 					current_error = std::max(current_error,error);
 				}
 				else
@@ -2387,7 +2391,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 					for(size_t k = 0 ; k < to_add.size() ; k++)
 					{
 						if(squareDist2D(tri[j]->getCenter(), to_add[k]) 
-						< 4.*default_derivation_delta*default_derivation_delta)
+						< 2.*default_derivation_delta*default_derivation_delta)
 						{
 							tooNear = true ;
 							break ;

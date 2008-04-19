@@ -378,9 +378,9 @@ public:
 		}
 		
 		if((intersections % 2)  != 0)
-			context.memory.stack[context.memory.top_pos] =  1 ;
+			context.memory.stack[context.memory.top_pos] =  -1 ;
 		else
-			context.memory.stack[context.memory.top_pos] = -1 ;
+			context.memory.stack[context.memory.top_pos] = 1 ;
 
 	}
 	
@@ -468,15 +468,14 @@ class PointDistanceBinaryOperatorToken : public Token
 {
 	Point base ;
 public:
-	PointDistanceBinaryOperatorToken(const Point & p ) : Token(false, std::make_pair(std::make_pair(TOKEN_POINT_DISTANCE_OPERATOR, 0), (double)(0)))
+	PointDistanceBinaryOperatorToken(const Point & p ) : Token(false, std::make_pair(std::make_pair(TOKEN_POINT_DISTANCE_OPERATOR, 0), (double)(0))), base(p)
 	{
-		base = p ;
 	}
 	
 	virtual void eval(Context & context) const
 	{
 		
-		Point p(context.memory.stack[context.memory.top_pos-1], context.memory.stack[context.memory.top_pos]) ;
+		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
 		context.memory.pop_back() ;
 		context.memory.stack[context.memory.top_pos] = sqrt(squareDist2D(p, base)) ;
 
@@ -526,8 +525,8 @@ public:
 	virtual void eval(Context & context) const
 	{
 		
-		double x = context.memory.stack[context.memory.top_pos-1] ;
-		double y =  context.memory.stack[context.memory.top_pos] ;
+		double x = context.memory.stack[context.memory.top_pos] ;
+		double y =  context.memory.stack[context.memory.top_pos-1] ;
 		double x_t = x*cangle + y*sangle ;
 		double y_t = -x*sangle + y*cangle ;
 		context.memory.pop_back() ;

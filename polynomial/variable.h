@@ -10,7 +10,7 @@
 namespace Mu
 {
 
-const double default_derivation_delta= 1e-8 ;
+const double default_derivation_delta= 1e-10 ;
 
 /** Possible variables. This is used as an index for arrays of powers, or as an argument to certain constructors. A special value of -1 is devoted to ONE as a special case of onstant variable.
  */

@@ -1372,15 +1372,15 @@ int main(int argc, char *argv[])
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	std::cout << "crack 1 done" << std::endl;
 
-// 	// ADD SECOND CRACK
-// 	std::valarray<Point *> ptset2(2) ;//point set for crack
-// 	ptset2[0] = new Point(0.009, .00215) ;//start of crack
-// 	ptset2[1] = new Point(0.011, .00215) ;//end of crack
-// 
-// 	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
-// 
-// 	crack[1]->setParams(0.00075,1.,0.0) ;// set params
-// 	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
+	// ADD SECOND CRACK
+	std::valarray<Point *> ptset2(2) ;//point set for crack
+	ptset2[0] = new Point(0.009, .00215) ;//start of crack
+	ptset2[1] = new Point(0.011, .00215) ;//end of crack
+
+	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
+
+	crack[1]->setParams(0.00075,1.,0.0) ;// set params
+	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 	std::cout << "crack 2 done" << std::endl;	
 	// Define inclusions and pores
 	std::vector<Inclusion *> inclusions ;
@@ -1409,7 +1409,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
+	F.sample(256) ;
 	//	F.sample(128) ;
 	F.setOrder(QUADRATIC) ;
 
