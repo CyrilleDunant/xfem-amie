@@ -1120,7 +1120,10 @@ SegmentedLine::SegmentedLine(const std::valarray<Point *> & points) : NonConvexG
 {
 	gType = SEGMENTED_LINE ;
 	
-	this->center = *points[points.size()/2] ;
+	if(points[points.size()/2])
+		this->center = *points[points.size()/2] ;
+	else
+		this->center = Point() ;
 	this->boundingPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 		boundingPoints[i] = points[i] ;

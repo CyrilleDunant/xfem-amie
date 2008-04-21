@@ -9,12 +9,11 @@
 
 using namespace Mu ;
 
-BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : EnrichmentFeature(father), SegmentedLine(std::valarray<Point * >(0))
+BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : EnrichmentFeature(father), SegmentedLine(std::valarray<Point * >(2))
 {
-	std::valarray<Point * > newBranch ( 2 ) ;
-	newBranch[0] = a ;
-	newBranch[1] = b ;
-	branches.push_back ( new SegmentedLine ( newBranch ) ) ;
+	boundingPoints[0] = a ;
+	boundingPoints[1] = b ;
+	this->SegmentedLine::center = *a ;
 
 	if(father->in(*a))
 		tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
@@ -22,6 +21,8 @@ BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : Enrichment
 		tips.push_back(std::make_pair(b, atan2(b->y-a->y, b->x-a->x))) ;
 
 	changed = false ;
+
+	enrichementRadius = 0.00075 ;
 	
 }
 
@@ -30,17 +31,19 @@ bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
 	return a.first == b ;
 }
 
-BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), SegmentedLine(std::valarray<Point * >(0))
+BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), SegmentedLine(std::valarray<Point * >(2))
 {
-	std::valarray<Point * > newBranch ( 2 ) ;
-	newBranch[0] = a ;
-	newBranch[1] = b ;
-	branches.push_back ( new SegmentedLine ( newBranch ) ) ;
+	boundingPoints[0] = a ;
+	boundingPoints[1] = b ;
+	this->SegmentedLine::center = *a ;
+	branches.push_back ( this ) ;
 
 	tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
 	tips.push_back(std::make_pair(b, atan2(b->y-a->y, b->x-a->x))) ;
 
 	changed = false ;
+
+	enrichementRadius = 0.00075 ;
 }
 
 void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
@@ -93,6 +96,7 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 		            &branchToExtend->getBoundingPoints() [newBP.size()-1],
 		            &newBP[1] ) ;
 		newBP[0] = newTip0 ;
+		branchToExtend->setBoundingPoints(newBP) ;
 		forkComponent1[0] = newBP[0] ;
 		forkComponent1[1] = newBP[1] ;
 		forkComponent1[2] = newBP[2] ;
@@ -107,6 +111,7 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 		            &branchToExtend->getBoundingPoints() [newBP.size()-1],
 		            &newBP[0] ) ;
 		newBP[newBP.size()-1] = newTip0 ;
+		branchToExtend->setBoundingPoints(newBP) ;
 		forkComponent1[0] = newBP[newBP.size()-3] ;
 		forkComponent1[1] = newBP[newBP.size()-2] ;
 		forkComponent1[2] = newBP[newBP.size()-1] ;
@@ -119,6 +124,241 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 	forks.push_back ( new SegmentedLine ( forkComponent1 ) ) ;
 	forks.push_back ( new SegmentedLine ( forkComponent2 ) ) ;
 
+}
+
+double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> & tip, const DelaunayTree * dtree)
+{
+	double acount = 0 ;
+	double aangle = 0 ;
+		
+	Point lastDir( cos(tip.second) , sin(tip.second)) ;
+	
+	Circle c(enrichementRadius, *(tip.first)) ;
+	std::vector<DelaunayTriangle*> disk = dtree->conflicts (&c) ;
+	std::vector<DelaunayTriangle*> tris ;
+	while( disk.size() < 16)
+	{
+		c.setRadius(c.getRadius()*2.) ;
+		disk = dtree->conflicts ( &c ) ;
+	}
+
+
+	DelaunayTriangle * tailElem = NULL;
+	for ( size_t i = 0 ; i < disk.size() ; i++ )
+	{
+		
+		if ( !disk[i]->in ( *getTail() )
+		     && (!Line(*tip.first, lastDir).intersects(disk[i]->getPrimitive())
+				|| c.in(disk[i]->getCenter()))
+			)
+		{
+			tris.push_back ( disk[i] ) ;
+		}
+		else if ( disk[i]->in ( *tip.first ) )
+		{
+			tailElem = disk[i] ;
+		}
+	}
+	
+	if ( !tris.empty() )
+	{
+		
+		for ( size_t i = 0 ; i < tris.size() ; i++ )
+		{
+			
+			DelaunayTriangle * current = tris[i] ;
+			
+			for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
+			{
+				
+				Point currentDir ( current->getBoundingPoint ( j ).x-tip.first->x,
+				                   current->getBoundingPoint ( j ).y-tip.first->y ) ;
+				
+				if ( ( currentDir*lastDir ) > 0 )
+				{
+					Vector principalStresses = current->getState().getPrincipalStresses (
+						current->getBoundingPoint ( j ) ) ;
+					double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
+					
+					if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
+						maxPrincipalStressCurrent = 1000 ;
+					
+					if ( currentDir.norm() > 1e-8 )
+					{
+						aangle += current->getState().getPrincipalAngle (
+							current->getBoundingPoint ( j ) ) ;
+						acount++ ;
+					}
+				}
+			}
+		}
+	}
+	
+	if ( acount )
+		aangle /= acount ;
+	aangle += M_PI*.25 ;
+	if(std::abs(aangle-tip.second) > M_PI*.5)
+		aangle += M_PI ;
+	return aangle ;
+}
+
+
+std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, const DelaunayTree * dtree )
+{
+	Point direction ( cos(tip.second), sin(tip.second)) ;
+	Segment tipSegment ( *(tip.first) , direction) ;
+	Circle c ( enrichementRadius, *(tip.first) ) ;
+	
+	
+	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
+	std::vector<DelaunayTriangle *> ring ;
+	if(disk.size() == 1)
+	{
+		setInfluenceRadius(disk[0]->getRadius()) ;
+		c.setRadius(disk[0]->getRadius()) ;
+		disk = dtree->conflicts ( &c ) ;
+	}
+	
+	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
+	
+	
+	for ( size_t j = 0 ; j < disk.size() ; j++ )
+	{
+		Triangle * t = dynamic_cast<Triangle *> ( disk[j] ) ;
+		if ( t->intersects ( &c ) )
+		{
+			ring.push_back ( disk[j] ) ;
+			
+			Segment A ( *disk[j]->first, *disk[j]->second ) ;
+			Segment B ( *disk[j]->third, *disk[j]->first ) ;
+			Segment C ( *disk[j]->second, *disk[j]->third ) ;
+			
+			if ( tipSegment.intersects ( t ) )
+			{
+				
+				if ( A.intersects ( &c ) && B.intersects ( &c ) && !c.in ( C.midPoint() ) )
+				{
+					Point ipoint = C.intersection ( tipSegment ) ;
+					gamma.push_back ( std::make_pair ( new Segment ( *disk[j]->third, ipoint ),disk[j] ) ) ;
+					gamma.push_back ( std::make_pair ( new Segment ( *disk[j]->second, ipoint ),disk[j] ) ) ;
+				}
+				if ( B.intersects ( &c ) && C.intersects ( &c ) && !c.in ( A.midPoint() ) )
+				{
+					Point ipoint = A.intersection ( tipSegment ) ;
+					gamma.push_back ( std::make_pair ( new Segment ( *disk[j]->first, ipoint ),disk[j] ) ) ;
+					gamma.push_back ( std::make_pair ( new Segment ( *disk[j]->second, ipoint ),disk[j] ) ) ;
+				}
+				if ( C.intersects ( &c ) && A.intersects ( &c ) && !c.in ( B.midPoint() ) )
+				{
+					Point ipoint = B.intersection ( tipSegment ) ;
+					gamma.push_back ( std::make_pair ( new Segment ( *disk[j]->third, ipoint ), disk[j] ) ) ;
+					gamma.push_back ( std::make_pair ( new Segment ( *disk[j]->first, ipoint ),disk[j] ) ) ;
+				}
+			}
+			else
+			{
+				if ( A.intersects ( &c ) && B.intersects ( &c ) && !c.in ( C.midPoint() ) )
+					gamma.push_back ( std::make_pair ( new Segment ( C.first(), C.second() ), disk[j] ) ) ;
+				if ( B.intersects ( &c ) && C.intersects ( &c ) && !c.in ( A.midPoint() ) )
+					gamma.push_back ( std::make_pair ( new Segment ( A.first(), A.second() ), disk[j] ) ) ;
+				if ( C.intersects ( &c ) && A.intersects ( &c ) && !c.in ( B.midPoint() ) )
+					gamma.push_back ( std::make_pair ( new Segment ( B.first(), B.second() ), disk[j] ) ) ;
+			}
+		}
+	}
+	
+	double freeEnergy0 = 0 ;
+	double freeEnergy1 = 0 ;
+	
+	for ( size_t j = 0 ; j < gamma.size() ; j++ )
+	{
+		if ( gamma[j].second->getBehaviour()->type != VOID_BEHAVIOUR )
+		{
+			// 		FunctionMatrix displacements = gamma[j].second->getState().getDisplacementFunction() ;
+			std::vector<std::pair<Point, double> > gaussPoints = gamma[j].first->getGaussPoints() ;
+			gaussPoints.push_back ( std::make_pair ( gamma[j].first->midPoint(), ( double ) 1 ) );
+			Point n = gamma[j].first->normal ( gamma[j].second->getCenter() ) ;
+			
+			
+			Point ln = gamma[j].second->inLocalCoordinates ( n ) ;
+			Vector stepLengthal ( 2 ) ; stepLengthal[0] = n.x ; stepLengthal[1] = n.y ;
+			Vector d ( 2 ) ; d[0] = -n.y ;   d[1] = n.x ;
+			double ilocal0 = 0 ;
+			double ilocal1 = 0 ;
+			
+			Point localVector = gamma[j].second->inLocalCoordinates ( tipSegment.vector() ) ;
+			Point localNormal ( -localVector.y, localVector.x ) ;
+			
+			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
+			{
+				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
+				Matrix sigma = gamma[j].second->getState().getStressMatrix ( localGaussPoint,true ) ;
+				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
+				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
+				
+				Vector T = sigma * stepLengthal ;
+				
+				
+				ilocal0 += ( 0.5*sigma_epsilon*stepLengthal[0] - ( T[0]*epsilon[0][0] + T[1]*epsilon[0][1] ) ) *gaussPoints[k].second  ;
+				ilocal1 += ( 0.5*sigma_epsilon*stepLengthal[1] - ( T[0]*epsilon[0][1] + T[1]*epsilon[1][1] ) ) *gaussPoints[k].second;
+				
+			}
+			freeEnergy0 += ilocal0*gamma[j].first->norm() ;
+			freeEnergy1 += ilocal1*gamma[j].first->norm() ;
+		}
+	}
+	return std::make_pair ( freeEnergy0, freeEnergy1 ) ;
+}
+
+
+void BranchedCrack::grow( Point* fromTip, Point* newTip)
+{
+	for(std::vector<std::pair<Point *, double> >::iterator i = tips.begin() ; i !=tips.end() ; ++i)
+	{
+		if(i->first == fromTip)
+		{
+			tips.erase(i) ;
+			break ;
+		}
+	}
+	tips.push_back ( std::make_pair(newTip, atan2(newTip->y-fromTip->y, newTip->x-fromTip->x)) ) ;
+	
+	SegmentedLine * branchToExtend = NULL ;
+	bool fromHead = false ;
+	for ( size_t i = 0 ; i < branches.size() ; i++ )
+	{
+		if ( branches[i]->getHead() == fromTip )
+		{
+			branchToExtend = branches[i] ;
+			fromHead = true ;
+			break ;
+		}
+		
+		if ( branches[i]->getTail() == fromTip )
+		{
+			branchToExtend = branches[i] ;
+			break ;
+		}
+	}
+
+	
+	std::valarray<Point *> newBP ( branchToExtend->getBoundingPoints().size() +1 ) ;
+	if ( fromHead )
+	{
+		std::copy ( &branchToExtend->getBoundingPoints() [0],
+		            &branchToExtend->getBoundingPoints() [newBP.size()-1],
+		            &newBP[1] ) ;
+		newBP[0] = newTip ;
+		
+	}
+	else
+	{
+		std::copy ( &branchToExtend->getBoundingPoints() [0],
+		            &branchToExtend->getBoundingPoints() [newBP.size()-1],
+		            &newBP[0] ) ;
+		newBP[newBP.size()-1] = newTip ;
+	}
+	branchToExtend->setBoundingPoints(newBP) ;
 }
 
 void BranchedCrack::merge ( BranchedCrack & newSet)
@@ -309,17 +549,17 @@ void BranchedCrack::enrichTips(size_t & startid, DelaunayTree * dt)
 {
 	for(size_t i =  0 ; i < tips.size() ; i++)
 	{
-		enrichTip(startid, dt, tips[i], 0.) ;
+		enrichTip(startid, dt, tips[i]) ;
 	}
 }
 
-void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pair<Point *, double> & tip, double angle)
+void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pair<Point *, double> & tip)
 {
-	Circle epsilon(enrichementRadius, *tip.first) ;
+	Circle epsilon(enrichementRadius, Point(*(tip.first))) ;
 	std::vector<DelaunayTriangle *> triangles = dt->conflicts(&epsilon) ;
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
-	
+	double angle = tip.second ;
 	std::valarray<Function> shapefunc(3) ;
 	Matrix xi(2,2) ; xi[1][0] = 1 ;
 	Matrix eta(2,2) ; eta[0][1] = 1 ;
@@ -547,15 +787,15 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f  ) ;
 
-		if(done.find(e->first) == done.end())
+		if(done.find(e->second) == done.end())
 		{
-			done[e->first] = startid ;
+			done[e->second] = startid ;
 			usedId = startid ;
 			startid++ ;
 		}
 		else
 		{
-			usedId = done[e->first] ;
+			usedId = done[e->second] ;
 		}
 		f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
 		f.setIntegrationHint ( hint ) ;
@@ -563,7 +803,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f  ) ;
 
-		if(done.find(e->first) == done.end())
+		if(done.find(e->third) == done.end())
 		{
 			done[e->first] = startid ;
 			usedId = startid ;
@@ -571,7 +811,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 		}
 		else
 		{
-			usedId = done[e->first] ;
+			usedId = done[e->third] ;
 		}
 		f = shapefunc[2]* ( s - vm.eval ( s, Point ( 1,0 ) ) ) ;
 
@@ -583,7 +823,8 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 		std::vector<DelaunayTriangle *> toEnrichAlso ;
 		for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
 		{
-			if ( e->getNeighbourhood(j)->isAlive() && !line->intersects(static_cast<Triangle *>(e)))
+			if ( e->getNeighbourhood(j)->isAlive() 
+				&& !line->intersects(static_cast<Triangle *>(e->getNeighbourhood(j))))
 				toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
 		}
 
@@ -693,9 +934,21 @@ void BranchedCrack::computeCenter()
 	}
 }
 
-std::vector<DelaunayTriangle*> BranchedCrack::getTriangles(DelaunayTree*)
+std::vector<DelaunayTriangle*> BranchedCrack::getTriangles(DelaunayTree* dt)
 {
-	return std::vector<DelaunayTriangle*>() ;
+	
+	std::vector<DelaunayTriangle*> ret ;
+
+	for(size_t i = 0 ; i < branches.size() ; i++)
+	{
+		std::vector<DelaunayTriangle*> tris = dt->conflicts(branches[i]) ;
+		ret.insert(ret.end(), tris.begin(), tris.end()) ;
+	}
+	
+	std::sort(ret.begin(), ret.end()) ;
+	ret.erase(std::unique(ret.begin(), ret.end()), ret.end()) ;
+	
+	return ret ;
 }
 
 std::vector<DelaunayTetrahedron*> BranchedCrack::getTetrahedrons(DelaunayTree_3D*)
@@ -818,9 +1071,26 @@ bool BranchedCrack::enrichmentTarget(DelaunayTriangle* tri)
 		|| enrichmentMap.find(std::make_pair(tri, tri->third)) != enrichmentMap.end() ;
 }
 
-void BranchedCrack::step(double, Vector*, const DelaunayTree*)
+void BranchedCrack::step(double dt, Vector*, const DelaunayTree* dtree)
 {
+	changed = true ;
+	std::vector<Point *> tipsToGrow ; 
+	std::vector<double> angles ; 
+	for(size_t i = 0 ; i < tips.size() ; i++)
+	{
+		std::pair<double, double> energy  = computeJIntegralAtTip(tips[i], dtree);
+		if(energy.first*energy.first + energy.second*energy.second > 0)
+		{
+			tipsToGrow.push_back(tips[i].first) ;
+			angles.push_back(propagationAngleFromTip(tips[i], dtree)) ;
+		}
+	}
 	
+	for(size_t i = 0 ; i < tipsToGrow.size() ; i++)
+	{
+		grow(tipsToGrow[i], new Point(tipsToGrow[i]->x+enrichementRadius*.5*cos(angles[i]),
+		                              tipsToGrow[i]->y+enrichementRadius*.5* sin(angles[i]))) ;
+	}
 }
 
 void BranchedCrack::snap(DelaunayTree*)
@@ -1871,9 +2141,6 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 	changed = false ;
 
 // 	return ;
-
-	double norm = .00025 ;
-
 	std::pair<double, double> headJ = computeJIntegralAtHead ( dt, dtree ) ;
 	Vector J ( 2 ) ; J[0] = headJ.first ; J[1] = headJ.second ;
 	std::cout << "at head : " << J[0] << ", " << J[1] << std::endl ;

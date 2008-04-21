@@ -38,7 +38,7 @@ protected:
 	std::vector<SegmentedLine * > forks ;
 	
 	void enrichTips(size_t &, DelaunayTree * dt) ;
-	void enrichTip(size_t &, DelaunayTree * dt, const std::pair<Point *, double> & tip, double angle) ;
+	void enrichTip(size_t &, DelaunayTree * dt, const std::pair<Point *, double> & tip) ;
 
 	void enrichForks(size_t &, DelaunayTree * dt) ;
 	void enrichBranches(size_t &, DelaunayTree * dt) ;
@@ -56,7 +56,8 @@ protected:
 	
 	double enrichementRadius ;
 	bool changed ;
-
+	double propagationAngleFromTip(const std::pair<Point *, double> & tip, const DelaunayTree * dtree) ;
+	std::pair<double, double> computeJIntegralAtTip ( std::pair<Point *, double> & tip, const DelaunayTree * dtree ) ;
 	std::set<Point *> donePoints ;
 	
 public:
@@ -109,6 +110,14 @@ public:
 	 */
 	void merge(BranchedCrack & newSet) ;
 
+	/** Grow the crack from the given tip, provided the new tip.
+	 * The growing operation will expand the original branch.
+	 *
+	 * @param fromTip the original tip, which will be removed
+	 * @param newTip first new tip, used to extend the affected branch
+	 */
+	void grow( Point* fromTip, Point* newTip) ;
+	
 	/** Is this crack still existing.
 	 * This is useful to know if the crack has already been merged.
 	 * 

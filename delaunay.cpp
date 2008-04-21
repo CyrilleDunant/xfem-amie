@@ -2314,7 +2314,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri = dt->getTriangles(false) ;
 		std::vector<Point *> pointsToCleanup ;
 		std::vector<DelaunayTriangle *> triangleToCleanup;
-		size_t numberOfRefinements = 8;
+		size_t numberOfRefinements = 2;
 		double tol = 1e-3 ;
 		
 		VirtualMachine vm ;
@@ -2358,12 +2358,14 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 						double extval = 0 ;
 						for(size_t m = 0 ; m < 3 ; m++)
 						{
-							extval +=  val[m] ;
+							extval +=  sqrt(valx[m]*valx[m]+valy[m]*valy[m]) ;
 						}
 						extval /= 3. ;
 						if(std::abs(std::max(cval,extval)) > 1e-12)
 							error = std::max(error, std::abs(cval-extval)/std::max(cval,extval)) ;
 					}
+					if(error == 0)
+						break ;
 					unsorted.push_back(error*tri[j]->area()) ;
 					current_error = std::max(current_error,error);
 				}

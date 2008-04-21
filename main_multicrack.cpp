@@ -81,7 +81,7 @@ FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
 DelaunayTree *dt ; //(pts) ;
-std::vector<Crack *> crack ;
+std::vector<BranchedCrack *> crack ;
 
 double E_min = 10;
 double E_max = 0;
@@ -154,7 +154,7 @@ void setBC()
 
 		    if(std::abs(triangles[k]->getBoundingPoint(c).y - .00500) < bctol)// top boundary			
 		      {
-			featureTree->getAssembly()->setPointAlong( ETA,0.0001 ,triangles[k]->getBoundingPoint(c).id) ;
+			featureTree->getAssembly()->setPoint( 0,0.0001 ,triangles[k]->getBoundingPoint(c).id) ;
 		      }
 		    if(std::abs(triangles[k]->getBoundingPoint(c).y + .00500) < bctol)// bottom boundary			
 		      {
@@ -216,11 +216,11 @@ void step()
       filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
       filestr << "Crack vertices" << std::endl;
       filestr << "x" << " " << "y" << std::endl ;
-      for(size_t l = 0 ; l < crack.size() ; l++)
-	{
-	  filestr << "Crack number " << l << std::endl ;
-	  crack[l]->printFile(filename);
-	}
+//       for(size_t l = 0 ; l < crack.size() ; l++)
+// 	{
+// 	  filestr << "Crack number " << l << std::endl ;
+// 	  crack[l]->printFile(filename);
+// 	}
       
     }
   
@@ -256,11 +256,11 @@ void step()
 	std::cout << "unknowns :" << x.size() << std::endl ;
 	
 	if(crack.size() > 0)
-		tris__ = crack[0]->getIntersectingTriangles(dt) ;
+		tris__ = crack[0]->getTriangles(dt) ;
 	
 	for(size_t k = 1 ; k < crack.size() ; k++)
 	{
-		std::vector<DelaunayTriangle *> temp = crack[k]->getIntersectingTriangles(dt) ;
+		std::vector<DelaunayTriangle *> temp = crack[k]->getTriangles(dt) ;
 		if(tris__.empty())
 			tris__ = temp ;
 		else if(!temp.empty())
@@ -1358,34 +1358,16 @@ int main(int argc, char *argv[])
 	double x_21 = S/2+a2;
 	double y_21 = H;
 	// ADD FIRST CRACK
-	std::valarray<Point *> ptset1(2) ;//point set for crack
-	std::cout << "coucou1" << std::endl;
-	ptset1[0] = new Point(-0.011, -.00215) ;//start of crack
-	ptset1[1] = new Point(-0.009, -.00215) ;//end of crack
-	std::cout << "coucou2" << std::endl;
+	//add crack to list of cracks
 
-
-	crack.push_back(new Crack(ptset1, 0.02)) ;//add crack to list of cracks
-	
-	crack[0]->setParams(0.00075,1.,0.0) ;// set params
-	std::cout << "coucou3" << std::endl;
+	crack.push_back(new BranchedCrack(new Point(-0.011, -.00215), new Point(-0.009, -.00215)));
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
-	std::cout << "crack 1 done" << std::endl;
-
-	// ADD SECOND CRACK
-	std::valarray<Point *> ptset2(2) ;//point set for crack
-	ptset2[0] = new Point(0.009, .00215) ;//start of crack
-	ptset2[1] = new Point(0.011, .00215) ;//end of crack
-
-	crack.push_back(new Crack(ptset2, 0.02)) ;//add crack to list of cracks
-
-	crack[1]->setParams(0.00075,1.,0.0) ;// set params
+	//add crack to list of cracks
+	crack.push_back(new BranchedCrack(new Point(0.011, .00215), new Point(0.009, .00215))) ;
 	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
-	std::cout << "crack 2 done" << std::endl;	
-	// Define inclusions and pores
-	std::vector<Inclusion *> inclusions ;
-// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-// 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
+
+	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
+	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 	std::vector<Pore *> pores;
 
 	// Generate inclusions following Bolomey granulometry
@@ -1409,9 +1391,9 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(256) ;
+	F.sample(128) ;
 	//	F.sample(128) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
 
