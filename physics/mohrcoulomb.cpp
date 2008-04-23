@@ -26,6 +26,9 @@ MohrCoulomb::~MohrCoulomb()
 
 double MohrCoulomb::grade(const ElementState &s) const 
 {
+	if(s.getParent()->getBehaviour()->fractured())
+		return 0 ;
+
 	Vector pstress = s.getPrincipalStresses(Point(1./3., 1./3.), true) ;
 	double maxStress = pstress.max();
 	double minStress = pstress.min();
@@ -44,6 +47,9 @@ double MohrCoulomb::grade(const ElementState &s) const
 
 bool MohrCoulomb::met(const ElementState & s) 
 {
+	if(s.getParent()->getBehaviour()->fractured())
+		return false ;
+
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
@@ -55,7 +61,7 @@ bool MohrCoulomb::met(const ElementState & s)
 		
 		if(cache.empty())
 		{
-			Circle epsilon(0.0005,testedTri->getCenter()) ;
+			Circle epsilon(0.001,testedTri->getCenter()) ;
 			cache = testedTri->tree->conflicts(&epsilon);
 		}
 

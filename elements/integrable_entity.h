@@ -229,7 +229,6 @@ public:
 	virtual Function & getEnrichmentFunction(size_t i) = 0;	
 	virtual Order getOrder() const  = 0 ;
 	
-// 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const = 0;
 	virtual const std::vector< size_t > getDofIds() const = 0;
 	
 	virtual Form * getBehaviour() const = 0;

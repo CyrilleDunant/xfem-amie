@@ -15,12 +15,14 @@
 
 #include "physics_base.h"
 #include "fracturecriterion.h"
+#include "lineardamage.h"
 
 namespace Mu
 {
 
 	struct StiffnessAndFracture : public LinearForm
 	{
+		LinearDamage dfunc ;
 		double previousDamage ;
 		FractureCriterion * criterion ;
 		bool frac ;

@@ -18,7 +18,7 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1) 
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1, .000001)
 {
 	criterion = crit ;
 	frac = false ;
@@ -47,7 +47,7 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 		v.push_back(ZETA);
 	
 	VirtualMachine vm ;
-	return vm.ieval(Gradient(p_i) * (param*(1.-damage)) * Gradient(p_j, true), e,v) ;
+	return vm.ieval(Gradient(p_i) * dfunc.apply(param) * Gradient(p_j, true), e,v) ;
 }
 
 Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -58,7 +58,7 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 	if(param.size() == 36)
 		v.push_back(ZETA);
 	
-	return VirtualMachine().ieval(Gradient(p_i) * (param*(1.-damage)) * Gradient(p_j, true), gp, Jinv,v) ;
+	return VirtualMachine().ieval(Gradient(p_i) * dfunc.apply(param) * Gradient(p_j, true), gp, Jinv,v) ;
 }
 
 
@@ -73,14 +73,19 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 
 	if(!frac && criterion->met(currentState) )
 	{
+		dfunc.step(currentState) ;
 		previousDamage = damage ;
 		
-		damage += .05/**currentState.getParent()->area()*1000000.*/ ;
-		change = true ;
-		if(damage > .5)
+		Vector state = dfunc.damageState() ;
+		damage = 0 ;
+		for(size_t i = 0 ; i < state.size() ; i++)
+			damage += state[i] ;
+		change = true ;//std::abs(damage-previousDamage) > 1e-12 ;
+		if(damage > 2.9)
 		{
+			std::cout << "crack !" << std::endl ;
 			frac = true ;
-			damage = .9999 ;
+// 			damage = .9999 ;
 // 			param[0][1] = 0 ;param[0][1] = 0 ;
 // 			param[2][2] *= 0.0001 ;
 // 			this->type = VOID_BEHAVIOUR ;
@@ -113,6 +118,6 @@ Vector StiffnessAndFracture::getForces(const ElementState & s, const Function & 
 
 Matrix StiffnessAndFracture::getTensor(const Point & p) const
 {
-	return param*(1.-damage) ;
+	return dfunc.apply(param) ;
 }
 

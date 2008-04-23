@@ -2318,7 +2318,9 @@ bool FeatureTree::step(double dt)
 				volume += elements[i]->area() ;
 				
 				elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
-				if(elements[i]->getBehaviour()->changed() && elements[i]->getBehaviour()->fractured())
+
+				if(elements[i]->getBehaviour()->changed() 
+					&& elements[i]->getBehaviour()->fractured())
 				{
 					fracturedCount++ ;
 					needAssembly = true ;
