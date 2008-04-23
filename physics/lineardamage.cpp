@@ -29,16 +29,6 @@ void LinearDamage::step(ElementState & s)
 {
 	Vector pstrain = s.getPrincipalStresses(s.getParent()->getCenter()) ;
 	
-	double fact = s.getParent()->area()/thresholdDensity ;
-	if(fact>1)
-	{
-		fact = 1 ;
-	}
-	if(fact<.1)
-	{
-		fact = .1 ;
-	}
-
 	bool inCompression = false ;
 	for(size_t i = 0 ; i < state.size()-1 ; i++)
 	{
@@ -55,7 +45,7 @@ void LinearDamage::step(ElementState & s)
 
 	if(inCompression)
 	{
-		state[state.size()-1] += .15*fact ;
+		state[state.size()-1] += .15 ;
 		state[state.size()-1] = std::min(.999, state[state.size()-1]) ;
 	}
 // 	else
@@ -63,9 +53,9 @@ void LinearDamage::step(ElementState & s)
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
 			if(sum > 1e-12)
-				state[i] += .05*std::abs(pstrain[i])/sum*fact ;
+				state[i] += .05*std::abs(pstrain[i])/sum ;
 			else
-				state[i] += .05*fact ;
+				state[i] += .05 ;
 			state[i] = std::min(.999, state[i]) ;
 		}
 // 	}
