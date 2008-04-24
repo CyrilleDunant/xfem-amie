@@ -14,7 +14,7 @@
 namespace Mu {
 
 LinearDamage::LinearDamage(int numDof, double threshold)
- : state(numDof + 1),thresholdDensity(threshold)
+ : state(numDof + 1),strainLimit(threshold)
 {
 	isNull = false ;
 	state = 0 ;
@@ -28,16 +28,10 @@ const Vector & LinearDamage::damageState() const
 void LinearDamage::step(ElementState & s)
 {
 	Vector pstrain = s.getPrincipalStresses(s.getParent()->getCenter()) ;
+	Vector strain = s.getStrain(s.getParent()->getCenter()) ;
 	
-	bool inCompression = false ;
-	for(size_t i = 0 ; i < state.size()-1 ; i++)
-	{
-		if(pstrain[i] < 0)
-		{
-			inCompression = true ;
-			break ;
-		}
-	}
+	bool inCompression = pstrain.min() < 0 && std::abs(pstrain.min()) > pstrain.max() ;
+	bool strainBroken = strain.max() > strainLimit ;
 
 	double sum = 0 ;
 	for(size_t i = 0 ; i < pstrain.size() ; i++)
@@ -45,20 +39,28 @@ void LinearDamage::step(ElementState & s)
 
 	if(inCompression)
 	{
-		state[state.size()-1] += .15 ;
-		state[state.size()-1] = std::min(.999, state[state.size()-1]) ;
+		std::cout << "crunch..." << std::endl ;
+		state[state.size()-1] += std::max(.01, state[state.size()-1]) ;
+		state[state.size()-1] = std::min(.9999, state[state.size()-1]) ;
 	}
-// 	else
-// 	{
+	else if (!strainBroken)
+	{
+		std::cout << "crack..." << std::endl ;
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
 			if(sum > 1e-12)
-				state[i] += .05*std::abs(pstrain[i])/sum ;
+				state[i] += std::max(.01, state[i])*std::abs(pstrain[i])/sum ;
 			else
-				state[i] += .05 ;
-			state[i] = std::min(.999, state[i]) ;
+				state[i] += .9 ;
+			state[i] = std::min(.9999, state[i]) ;
 		}
-// 	}
+	}
+	else if (strainBroken)
+	{
+		std::cout << "crack!" << std::endl ;
+		for(size_t i = 0 ; i < state.size() ; i++)
+			state[i] = .9999 ;
+	}
 }
 
 Matrix LinearDamage::apply(const Matrix & m) const

@@ -18,7 +18,7 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1, .000001)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1, 1e-4)/*dfunc(rig.numRows()-1)*/
 {
 	criterion = crit ;
 	frac = false ;
@@ -81,7 +81,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 		for(size_t i = 0 ; i < state.size() ; i++)
 			damage += state[i] ;
 		change = true ;//std::abs(damage-previousDamage) > 1e-12 ;
-		if(damage > 2.9)
+		if(damage > .9)
 		{
 			std::cout << "crack !" << std::endl ;
 			frac = true ;

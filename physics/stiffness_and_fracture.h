@@ -16,6 +16,7 @@
 #include "physics_base.h"
 #include "fracturecriterion.h"
 #include "lineardamage.h"
+#include "isotropiclineardamage.h"
 
 namespace Mu
 {
@@ -23,6 +24,7 @@ namespace Mu
 	struct StiffnessAndFracture : public LinearForm
 	{
 		LinearDamage dfunc ;
+// 		IsotropicLinearDamage dfunc ;
 		double previousDamage ;
 		FractureCriterion * criterion ;
 		bool frac ;

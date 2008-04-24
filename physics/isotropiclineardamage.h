@@ -1,5 +1,5 @@
 //
-// C++ Interface: lineardamage
+// C++ Interface: isotropiclineardamage
 //
 // Description: 
 //
@@ -9,8 +9,8 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#ifndef MULINEARDAMAGE_H
-#define MULINEARDAMAGE_H
+#ifndef MU_ISOTROPIC_LINEARDAMAGE_H
+#define MU_ISOTROPIC_LINEARDAMAGE_H
 
 #include "damagemodel.h"
 
@@ -19,15 +19,14 @@ namespace Mu {
 /**
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
-class LinearDamage : public DamageModel
+class IsotropicLinearDamage : public DamageModel
 {
 protected:
 	Vector state ;
-	double strainLimit ;
 public:
-	LinearDamage(int numDof, double threshold) ;
+	IsotropicLinearDamage(int numDof) ;
 
-	virtual ~LinearDamage();
+	virtual ~IsotropicLinearDamage();
 
 	virtual const Vector & damageState() const ;
 	virtual void step(ElementState & s) ;
