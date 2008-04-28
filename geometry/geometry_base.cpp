@@ -2155,6 +2155,7 @@ bool Segment::intersects(const Geometry *g) const
 // 			return !intersection(g).empty() ;
 			Line l(f, vec) ;
 			Point proj = l.projection(g->getCenter()) ;
+
 			if(g->in(f) && g->in(s))
 				return false ;
 			if(!g->in(f) && !g->in(s) && g->in(proj) && on(proj))
@@ -2464,7 +2465,7 @@ bool Segment::on(const Point &p) const
 	if(!isAligned(p, f, s))
 		return false ;
 
-	double lambda = -1 ;
+	double lambda = 1 ;
 	if(std::abs(vec.x) > POINT_TOLERANCE)
 	{
 		lambda = (s.x-p.x)/vec.x ;
@@ -2476,7 +2477,7 @@ bool Segment::on(const Point &p) const
 	else
 		return false ;
 	
-	return lambda > -POINT_TOLERANCE && lambda < 1.+POINT_TOLERANCE ;
+	return lambda < POINT_TOLERANCE && lambda > -1.-POINT_TOLERANCE ;
 }
 
 void Segment::setFirst(const Point & p) 
