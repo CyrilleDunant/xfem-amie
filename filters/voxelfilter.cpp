@@ -87,6 +87,10 @@ void VoxelFilter::read(const char * filename)
 	index = 0 ;
 
 	TetrahedralElement * father = new TetrahedralElement(LINEAR) ;
+	for(size_t i = 0 ; i < 4 ; i++)
+	{
+		father->getShapeFunction(i).compile() ;
+	}
 	for( int i = 0 ; i < r ; i++)
 	{
 		for( int j = 0 ; j < c ; j++)
@@ -113,76 +117,29 @@ void VoxelFilter::read(const char * filename)
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
 					LinearForm * behaviour = behaviourMap[behaviourKey] ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(behaviour) ;
 					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[2], corner[3], corner[6], NULL) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(behaviour) ;
 					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[4], corner[6], corner[7], NULL) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(behaviour) ;
 					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[1], corner[4], corner[7], NULL) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(behaviour) ;
 					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[1], corner[3], corner[7], NULL) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
-// 					for(size_t l = 0 ; l < 8 ; l++)
-// 						corner[l]->print() ;
-// 					
-// 					for(size_t l = 0 ; l < 8 ; l++)
-// 						(*elems.rbegin())->inLocalCoordinates(*corner[l]).print() ;
-// 						
-// 					for(size_t l = 0 ; l < 8 ; l++)
-// 					{
-// 						for(size_t m = 0 ; m < 8 ; m++)
-// 						{
-// 							std::cout << VirtualMachine().eval((*elems.rbegin())->getShapeFunction(m), (*elems.rbegin())->inLocalCoordinates(*corner[l])) << "  " << std::flush ;
-// 						}
-// 						
-// 						std::cout << std::endl ;
-// 					}
-// 					for(size_t l = 0 ; l < 8 ; l++)
-// 					{
-// 						std::cout << l << " :: " <<  VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), -1,-1,-1) << " " <<
-// 							VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), -1,-1,1) << " " <<
-// 							VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), -1,1,-1) << " " <<
-// 							VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), -1,1,1) << " " <<
-// 							VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), 1,-1,-1) << " " <<
-// 							VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), 1,-1,1) << " " <<
-// 							VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), 1,1,-1) << " " <<
-// 							VirtualMachine().eval((*elems.rbegin())->getShapeFunction(l), 1,1,1) << " " << std::endl ;
-// 					}
-// 					exit(0) ;
+					elems.back()->setBehaviour(behaviour) ;
+
 				}
 				
 			}
-			
-// 			for( int k = 3*s/4 ; k < s ; k++)
-// 			{
-// 				if(!file.eof())
-// 				{
-// 					int behaviourKey ;
-// 					file >> behaviourKey ;
-// 				}
-// 			}
-			
+
 		}
-		
-// 		for( int j = 3*c/4 ; j < c ; j++)
-// 		{
-// 			for( int k = 0 ; k < s ; k++)
-// 			{
-// 				if(!file.eof())
-// 				{
-// 					int behaviourKey ;
-// 					file >> behaviourKey ;
-// 				}
-// 			}
-// 		}
 		
 	}
 	

@@ -83,7 +83,6 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 		change = true ;//std::abs(damage-previousDamage) > 1e-12 ;
 		if(damage > .9)
 		{
-			std::cout << "crack !" << std::endl ;
 			frac = true ;
 // 			damage = .9999 ;
 // 			param[0][1] = 0 ;param[0][1] = 0 ;

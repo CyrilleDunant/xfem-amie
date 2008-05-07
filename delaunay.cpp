@@ -48,7 +48,7 @@ bool DelaunayTriangle::isConflicting(const Geometry * g) const
 	return g->in(*first) 
 		|| g->in(*second) 
 		|| g->in(*third) 
-		|| inCircumCircle(g->getCenter()) 
+		|| in(g->getCenter()) 
 		|| g->intersects(getPrimitive()) ;
 	
 }

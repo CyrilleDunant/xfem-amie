@@ -39,13 +39,11 @@ void LinearDamage::step(ElementState & s)
 
 	if(inCompression)
 	{
-		std::cout << "crunch..." << std::endl ;
 		state[state.size()-1] += std::max(.01, state[state.size()-1]) ;
 		state[state.size()-1] = std::min(.9999, state[state.size()-1]) ;
 	}
 	else if (!strainBroken)
 	{
-		std::cout << "crack..." << std::endl ;
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
 			if(sum > 1e-12)
@@ -57,7 +55,6 @@ void LinearDamage::step(ElementState & s)
 	}
 	else if (strainBroken)
 	{
-		std::cout << "crack!" << std::endl ;
 		for(size_t i = 0 ; i < state.size() ; i++)
 			state[i] = .9999 ;
 	}
