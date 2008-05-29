@@ -53,6 +53,7 @@ typedef enum
 	TOKEN_ROTATION_OPERATOR,
 	TOKEN_ANGLE_OPERATOR,
 	TOKEN_POINT_SQUARE_DISTANCE_OPERATOR,
+	TOKEN_LINE_OF_SIGHT_OPERATOR,
 	TOKEN_X,
 	TOKEN_Y,
 	TOKEN_Z,
@@ -562,6 +563,31 @@ public:
 	virtual std::string print() const
 	{
 		return std::string("pointSqDistBinOp") ;
+	}
+} ;
+
+class LineOfSightOperatorToken : public Token
+{
+	Point base ;
+	Geometry * obstruction ;
+public:
+	LineOfSightOperatorToken(const Point & p,  Geometry * o) : Token(false, std::make_pair(std::make_pair(TOKEN_LINE_OF_SIGHT_OPERATOR, 0), (double)(0))), base(p), obstruction(o)
+	{
+	}
+	
+	virtual void eval(Context & context) const
+	{
+		
+		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		
+
+		context.memory.stack[context.memory.top_pos] = Segment(base, p).intersects(obstruction) ;
+
+	}
+	virtual ~LineOfSightOperatorToken() { };
+	virtual std::string print() const
+	{
+		return std::string("lineOfSightOp") ;
 	}
 } ;
 

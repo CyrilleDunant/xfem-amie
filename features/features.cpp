@@ -643,6 +643,8 @@ void FeatureTree::stitch()
 					this->dtree->addSharedNodes(3,3,2) ;
 					break ;
 				}
+			default:
+				break ;
 				
 			}
 			stitched  = true ;	
@@ -2265,6 +2267,44 @@ bool FeatureTree::meshChanged() const
 bool FeatureTree::enrichmentChanged() const
 {
 	return enrichmentChange ;
+}
+
+void FeatureTree::elasticStep()
+{
+	Vector lastx(K->getDisplacements()) ;
+	this->K->clear() ;
+	assemble() ;
+
+	this->K->cgsolve(lastx) ;
+	if(is2D())
+	{
+		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		
+		//this will update the state of all elements. This is necessary as 
+		//the behaviour updates might depend on the global state of the 
+		//simulation.
+		std::cerr << " stepping through elements... " << std::flush ;
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{	
+			if(i%1000 == 0)
+				std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
+			elements[i]->step(0., &K->getDisplacements()) ;
+		}
+		std::cerr << " ...done" << std::endl ;
+
+		
+	}
+	else if(is3D())
+	{
+		
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getTetrahedrons() ;
+		
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{	
+			elements[i]->step(0., &K->getDisplacements()) ;
+		}
+	}
+	
 }
 
 bool FeatureTree::step(double dt)

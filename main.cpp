@@ -90,7 +90,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.1e-07 ;
-double delta_displacement =  0.1e-11 ;
+double delta_displacement =  0.2e-7 ;
 double displacement_tolerance = 0.01*delta_displacement ; 
 double softeningFactor = 1. ;
 
@@ -140,31 +140,10 @@ double aggregateArea = 0;
 
 void computeDisplacement()
 {
-// 	x.resize(featureTree->getDisplacements().size()) ;
-// 	x = featureTree->getDisplacements() ;
-// 	Circle c(.0001, 0., 0.02) ;
-// 	std::vector<DelaunayTriangle *> t = featureTree->getDelaunayTree()->conflicts(&c) ;
-// 	std::vector<int> indices ;
-// 	for(size_t i = 0 ; i < t.size() ; i++)
-// 	{
-// 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
-// 		{
-// 			indices.push_back(t[i]->getBoundingPoint(c).id) ;
-// 		}
-// 	}
-// 	
-// 	std::sort(indices.begin(), indices.end()) ;
-// 	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
-// 	displacement = 0 ;
-// 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
-// 	{
-// 		displacement+=x[(*i)*2.+1]/(e-indices.begin()) ;
-// 	}
-	
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
-	Circle c0(.0001, 0.002, -0.02) ;
-	std::vector<DelaunayTriangle *> t = featureTree->getDelaunayTree()->conflicts(&c0) ;
+	Circle c(.0001, 0., 0.02) ;
+	std::vector<DelaunayTriangle *> t = featureTree->getDelaunayTree()->conflicts(&c) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
 	{
@@ -176,31 +155,52 @@ void computeDisplacement()
 	
 	std::sort(indices.begin(), indices.end()) ;
 	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
-	double displacement0 = 0 ;
+	displacement = 0 ;
 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
 	{
-		displacement0+=x[(*i)*2.+1]/(e-indices.begin()) ;
-	}
-
-	Circle c1(.0001, -0.002, -0.02) ;
-	t = featureTree->getDelaunayTree()->conflicts(&c1) ;
-	indices.clear() ;
-	for(size_t i = 0 ; i < t.size() ; i++)
-	{
-		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
-		{
-			indices.push_back(t[i]->getBoundingPoint(c).id) ;
-		}
+		displacement+=x[(*i)*2.+1]/(e-indices.begin()) ;
 	}
 	
-	std::sort(indices.begin(), indices.end()) ;
-	e = std::unique(indices.begin(), indices.end()) ;
-	double displacement1 = 0 ;
-	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
-	{
-		displacement1+=x[(*i)*2.+1]/(e-indices.begin()) ;
-	}
-	displacement = displacement1-displacement0 ;
+// 	x.resize(featureTree->getDisplacements().size()) ;
+// 	x = featureTree->getDisplacements() ;
+// 	Circle c0(.0001, 0.001, -0.02) ;
+// 	std::vector<DelaunayTriangle *> t = featureTree->getDelaunayTree()->conflicts(&c0) ;
+// 	std::vector<int> indices ;
+// 	for(size_t i = 0 ; i < t.size() ; i++)
+// 	{
+// 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
+// 		{
+// 			indices.push_back(t[i]->getBoundingPoint(c).id) ;
+// 		}
+// 	}
+// 	
+// 	std::sort(indices.begin(), indices.end()) ;
+// 	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+// 	double displacement0 = 0 ;
+// 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+// 	{
+// 		displacement0+=x[(*i)*2.+1]/(e-indices.begin()) ;
+// 	}
+// 
+// 	Circle c1(.0001, -0.001, -0.02) ;
+// 	t = featureTree->getDelaunayTree()->conflicts(&c1) ;
+// 	indices.clear() ;
+// 	for(size_t i = 0 ; i < t.size() ; i++)
+// 	{
+// 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
+// 		{
+// 			indices.push_back(t[i]->getBoundingPoint(c).id) ;
+// 		}
+// 	}
+// 	
+// 	std::sort(indices.begin(), indices.end()) ;
+// 	e = std::unique(indices.begin(), indices.end()) ;
+// 	double displacement1 = 0 ;
+// 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+// 	{
+// 		displacement1+=x[(*i)*2.+1]/(e-indices.begin()) ;
+// 	}
+// 	displacement = displacement1-displacement0 ;
 }
 
 double pidUpdate()
@@ -213,7 +213,7 @@ double pidUpdate()
 	double error = prescribedDisplacement-displacement ;
 	derror =  error-preverror ;
 	ierror += (error+preverror)*.5 ;
-	double K_p = 1500000000000. ;
+	double K_p = 100000000. ;
 	
 	if(load_displacement.size() > 2 && std::abs(load_displacement.back().second) > 1e-12 && std::abs(load_displacement[2].second) > 1e-12)
 	{
@@ -225,8 +225,8 @@ double pidUpdate()
 	softeningFactor = std::min(1., softeningFactor) ;
 	K_p *= softeningFactor ;
 	load = /*apriori_command +*/ K_p*error + K_p*ierror+ K_p* .5 *derror;
-	if(load > 0)
-		load = -load ;
+// 	if(load > 0)
+// 		load = -load ;
 // 	if(std::abs(error) > std::abs(preverror) && std::abs(load) > std::abs(currentLoad))
 // 	{
 // 		std::cout << "windup ! Resetting integral" << std::endl ;
@@ -400,7 +400,7 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 20 ;
+	size_t nit = 2 ;
 	size_t ntries = 25;
 
 	for(size_t i = 0 ; i < nit ; i++)
@@ -460,7 +460,7 @@ void step()
 		
 		saved_load_displacement.push_back(load_displacement.back()) ;
 		load_displacement = saved_load_displacement ;
-		prescribedDisplacement += delta_displacement ;
+		prescribedDisplacement -= delta_displacement ;
 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
@@ -1825,15 +1825,15 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0;
-	int inclusionNumber = 0 ;
-	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*.25, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
+	int inclusionNumber = 256 ;
+	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*0.25, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	if(inclusionNumber)
-		itzSize = .5*inclusions.back()->getRadius() ;
+		itzSize = inclusions[inclusions.size()/2]->getRadius() ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		delete inclusions[i] ;
 
-	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
+	inclusions = GranuloBolome(4.79263e-07*0.25, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
@@ -1868,8 +1868,14 @@ int main(int argc, char *argv[])
 	Inclusion * pore1 = new Inclusion(0.001, 0, 0.02) ;
 	pore1->setBehaviour(new Stiffness(m0_paste)) ;
 	F.addFeature(pore0,pore1) ;
-	TriangularPore * pore2 = new TriangularPore(Point(0, -0.018), Point(-0.001, -0.021), Point(0.001, -0.021)) ;
+	Inclusion * pore2 = new Inclusion(0.0001, -0.001, -0.02) ;
+	pore2->setBehaviour(new Stiffness(m0_paste)) ;
+	Inclusion * pore3 = new Inclusion(0.0001, 0.001, -0.02) ;
+	pore3->setBehaviour(new Stiffness(m0_paste)) ;
 	F.addFeature(pore1,pore2) ;
+	F.addFeature(pore2,pore3) ;
+	TriangularPore * pore4 = new TriangularPore(Point(0, -0.018), Point(-0.001, -0.021), Point(0.001, -0.021)) ;
+	F.addFeature(pore3,pore4) ;
 	for(size_t i = 0 ; i < inclusions.size(); i++)
 	{
 		std::vector<double> radii ;
@@ -1878,13 +1884,16 @@ int main(int argc, char *argv[])
 			radii.push_back(inclusions[i]->getRadius()-itzSize*.75) ;
 		if(inclusions[i]->getRadius()-itzSize*.5 > 0)
 			radii.push_back(inclusions[i]->getRadius()-itzSize*.5) ;
-		behavs.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+// 		behavs.push_back(new WeibullDistributedStiffness(m0_agg,80000)) ;
+		behavs.push_back(new StiffnessAndFracture(m0_agg, new MohrCoulomb(80000, -80000*8))) ;
 // 		behavs.push_back(new WeibullDistributedStiffness(m0_paste*.5, 40000*.5)) ;
 // 		behavs.push_back(new WeibullDistributedStiffness(m0_paste, 40000)) ;
-		behavs.push_back(new RadialStiffnessGradient(.5*E_paste, nu, inclusions[i]->getRadius()-itzSize*.75, 
-		                                             E_paste, nu, inclusions[i]->getRadius()-itzSize*.5,
-		                                             inclusions[i]->getCenter()
-		                                            )) ;
+		RadialStiffnessGradient * b = new RadialStiffnessGradient(.5*E_paste, nu, inclusions[i]->getRadius()-itzSize*.75, 
+			E_paste, nu, inclusions[i]->getRadius()-itzSize*.5,
+			inclusions[i]->getCenter()
+			) ;
+		b->setFractureCriterion(new MohrCoulomb(40000*.5, -40000*4)) ;
+		behavs.push_back(b) ;
 
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
@@ -1907,7 +1916,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(64) ;
+	F.sample(32) ;
 
 	F.setOrder(LINEAR) ;
 

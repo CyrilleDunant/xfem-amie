@@ -12,7 +12,12 @@
 namespace Mu
 {
 
-
+/** Expansive zone. 
+ * This enrichement feature will introduce a 
+ * soft discontinuity in the mesh, as well as 
+ * attribute an imposed-strain elastic behaviour
+ * to the material contained within
+*/
 class ExpansiveZone :  public EnrichmentInclusion
 {
 

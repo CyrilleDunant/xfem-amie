@@ -14,7 +14,7 @@
 
 using namespace Mu ;
 
-RadialStiffnessGradient::RadialStiffnessGradient(double E_int, double nu_int, double rint, double E_ext, double nu_ext, double rext, Point c) : LinearForm(Matrix(3,3), false, true, 2), paramAlt(3,3), r_ext(rext), r_int(rint), dr(r_ext-r_int), centre(c)
+RadialStiffnessGradient::RadialStiffnessGradient(double E_int, double nu_int, double rint, double E_ext, double nu_ext, double rext, Point c) : LinearForm(Matrix(3,3), false, true, 2), paramAlt(3,3), r_ext(rext), r_int(rint), dr(r_ext-r_int), centre(c), dfunc(2, 1e-4)
 {
 
 	param[0][0] = E_int/(1-nu_int*nu_int) ; param[0][1] =E_int/(1-nu_int*nu_int)*nu_int ; param[0][2] = 0 ;
@@ -84,15 +84,20 @@ void RadialStiffnessGradient::step(double timestep, ElementState & currentState)
 
 	if(!frac && criterion->met(currentState) )
 	{
+		dfunc.step(currentState) ;
 		previousDamage = damage ;
 		
-		damage += .1 ;
-
-		change = true ;
-		if(damage > .5)
+		Vector state = dfunc.damageState() ;
+		damage = 0 ;
+		for(size_t i = 0 ; i < state.size() ; i++)
+			damage += state[i] ;
+		change = true ;//std::abs(damage-previousDamage) > 1e-12 ;
+		if(damage > .9)
 		{
 			frac = true ;
-			damage = .9999 ;
+// 			damage = .9999 ;
+// 			param[0][1] = 0 ;param[0][1] = 0 ;
+// 			param[2][2] *= 0.0001 ;
 // 			this->type = VOID_BEHAVIOUR ;
 		}
 	}
@@ -115,7 +120,7 @@ Matrix RadialStiffnessGradient::getTensor(const Point & p) const
 	
 	FunctionMatrix C(3,3) ;
 	Matrix dE = (paramAlt-param)/dr ;
-
+	Matrix d(3,3) ;
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
 		for(size_t j = 0 ; j < 3 ; j++)
@@ -126,7 +131,7 @@ Matrix RadialStiffnessGradient::getTensor(const Point & p) const
 		}
 	}
 	
-	return vm.eval(C, p.x, p.y) ;
+	return dfunc.apply(vm.eval(C, p.x, p.y)) ;
 }
 
 Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -138,11 +143,14 @@ Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j
 	v.push_back(ETA);
 
 	Matrix dE = (paramAlt-param)/dr ;
+	Matrix d(3,3) ;
+	d.array() = 1 ;
+	d = dfunc.apply(d) ;
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
 		for(size_t j = 0 ; j < 3 ; j++)
 		{
-			C[i][j] =  r*dE[i][j] + param[i][j];
+			C[i][j] =  r*dE[i][j]*d[i][j] + param[i][j]*d[i][j];
 		}
 	}
 	

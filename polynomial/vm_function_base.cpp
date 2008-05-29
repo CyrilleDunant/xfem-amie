@@ -982,6 +982,17 @@ Function::Function( Geometry * g, Function x, Function y) : derivative(2), byteC
 	byteCode[byteCode.size()-1] = RefCountedToken(new DomainBinaryOperatorToken(g)) ;
 }
 
+Function::Function(const Point & p , Geometry * g, const Function & x, const Function & y): derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false)
+{
+	this->dofID =-1 ;
+	this->ptID =-1 ;
+	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
+		byteCode[i] = y.getByteCode()[i] ;
+	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
+	byteCode[byteCode.size()-1] = RefCountedToken(new LineOfSightOperatorToken(p, g)) ;
+}
+
 Function::Function( Geometry * g, ElementarySurface * s) : derivative(2), byteCode(2), e_diff(false)
 {
 	byteCode[byteCode.size()-2] = RefCountedToken(new Transform2DToken(s)) ;

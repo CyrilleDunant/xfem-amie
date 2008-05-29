@@ -96,6 +96,7 @@ public:
 	Function(const std::vector<Segment> s, const Function & x, const Function & y,PositionTokenType = POSITION_TOKEN) ;
 	Function(const std::vector<Segment> s, ElementarySurface * s,PositionTokenType = POSITION_TOKEN) ;
 	Function(const ByteCode & b_0, const ByteCode & b_1) ;
+	Function(const Point & p , Geometry * g, const Function & x, const Function & y) ;
 	Function(Geometry * g) ;
 	Function(Geometry * g, Function x, Function y) ;
 	Function(Geometry * g, ElementarySurface * s) ;

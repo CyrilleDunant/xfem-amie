@@ -12,7 +12,13 @@
 namespace Mu
 {
 
-
+/** Enrich the mesh to simulate a circular inclusion.
+ * This enrichment feature will add a soft discontinuity 
+ * enrichment to the elements it crosses. If the inclusion
+ * is smaller than, or fully contained by an element,
+ * The enrichment will still be performed, yielding a 
+ * composite field within the element.
+ */
 class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
 {
 protected:

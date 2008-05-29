@@ -15,6 +15,7 @@
 
 #include "physics_base.h"
 #include "fracturecriterion.h"
+#include "lineardamage.h"
 
 namespace Mu
 {
@@ -35,7 +36,7 @@ public:
 	double sigmaRupt ;
 	double init ;
 	double damage ;
-
+	LinearDamage dfunc ;
 	Point centre ;
 
 	RadialStiffnessGradient(double E_int, double nu_int, double rint, double E_ext, double nu_ext, double rext, Point c) ;

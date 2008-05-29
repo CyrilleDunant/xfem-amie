@@ -636,7 +636,8 @@ public:
 	
 	bool step(double dt) ;
 	void stepBack() ;
-	
+	void elasticStep() ;
+
 	std::deque<std::pair<Point *, Feature *> >::iterator  begin() ;
 	std::deque<std::pair<Point *, Feature *> >::iterator end() ;
 	
