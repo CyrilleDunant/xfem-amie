@@ -36,7 +36,7 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt);
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree_3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void computeCenter()
 	{
@@ -78,7 +78,7 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt);
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree_3D * dt) ;
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) ;
 	
 	virtual void computeCenter()
 	{

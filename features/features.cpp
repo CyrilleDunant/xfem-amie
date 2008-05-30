@@ -264,7 +264,7 @@ DelaunayTree * FeatureTree::getDelaunayTree()
 	return this->dtree ;
 }
 
-DelaunayTree_3D * FeatureTree::getDelaunayTree3D()
+DelaunayTree3D * FeatureTree::getDelaunayTree3D()
 {
 	if(this->dtree3D == NULL)
 		this->generateElements() ;
@@ -823,6 +823,8 @@ void FeatureTree::stitch()
 					this->dtree3D->addSharedNodes(3,3,2) ;
 					break ;
 				}
+			default:
+				break ;
 				
 			}
 			stitched = true ;
@@ -2901,7 +2903,7 @@ void FeatureTree::generateElements( size_t correctionSteps)
 		meshPoints.push_front(std::make_pair(new Point(bbox[6]), tree[0])) ;
 		
 		
-		this->dtree3D = new DelaunayTree_3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
+		this->dtree3D = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
 
 		this->dtree3D->insert(meshPoints[4].first) ;
 		this->dtree3D->insert(meshPoints[5].first) ;
@@ -3057,7 +3059,7 @@ std::vector<DelaunayTriangle *> Feature::getBoundingTriangles( DelaunayTree * dt
 
 }
 
-std::vector<DelaunayTetrahedron *> Feature::getBoundingTetrahedrons( DelaunayTree_3D * dt)
+std::vector<DelaunayTetrahedron *> Feature::getBoundingTetrahedrons( DelaunayTree3D * dt)
 {
 	std::vector<DelaunayTetrahedron *> tri = dt->conflicts(dynamic_cast<Geometry *>(this)) ;
 	

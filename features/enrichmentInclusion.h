@@ -40,7 +40,7 @@ public:
 	virtual bool inBoundary(const Point *v) const ;
 	
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree_3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) ;
 	

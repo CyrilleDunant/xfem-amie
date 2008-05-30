@@ -30,7 +30,7 @@ public:
 	
 	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
 	
-	virtual std::vector<Mu::DelaunayTetrahedron*> getTetrahedrons(Mu::DelaunayTree_3D*) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
+	virtual std::vector<Mu::DelaunayTetrahedron*> getTetrahedrons(Mu::DelaunayTree3D*) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
 	
 	virtual void print() const
 	{

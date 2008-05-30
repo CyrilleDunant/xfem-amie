@@ -282,7 +282,7 @@ std::vector<DelaunayTriangle *> VirtualLayer::getTriangles( DelaunayTree * dt)  
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron *> VirtualLayer::getTetrahedrons( DelaunayTree_3D * dt)  {
+std::vector<DelaunayTetrahedron *> VirtualLayer::getTetrahedrons( DelaunayTree3D * dt)  {
 	return std::vector<DelaunayTetrahedron *>(0)  ;
 }
 

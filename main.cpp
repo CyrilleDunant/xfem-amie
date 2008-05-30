@@ -90,7 +90,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.1e-07 ;
-double delta_displacement =  0.2e-7 ;
+double delta_displacement =  0.2e-6 ;
 double displacement_tolerance = 0.01*delta_displacement ; 
 double softeningFactor = 1. ;
 
@@ -400,7 +400,7 @@ void step()
 {
 	
 	size_t nsteps = 64;
-	size_t nit = 2 ;
+	size_t nit = 20 ;
 	size_t ntries = 25;
 
 	for(size_t i = 0 ; i < nit ; i++)
@@ -448,11 +448,13 @@ void step()
 			}
 			if(std::abs(error) > 1)
 			{
-				tries = ntries ;
 				break ;
 			}
 
-			std::cout << error << ", "<< load << ", "<< displacement << std::endl ;
+			if(ntries%10 == 0)
+				std::cout << "\n" << error << ", "<< load << ", "<< displacement << std::endl ;
+			else
+				std::cout << "." << std::flush ;
 
 			setBC() ;
 		}
@@ -1825,15 +1827,15 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0;
-	int inclusionNumber = 256 ;
-	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*0.25, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
+	int inclusionNumber = 1024 ;
+	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*0.125, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	if(inclusionNumber)
 		itzSize = inclusions[inclusions.size()/2]->getRadius() ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		delete inclusions[i] ;
 
-	inclusions = GranuloBolome(4.79263e-07*0.25, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
+	inclusions = GranuloBolome(4.79263e-07*0.125, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)

@@ -52,7 +52,7 @@ std::vector<double> sizered;
 std::vector<DelaunayTetrahedron *> myTets ;
 std::vector<HexahedralElement *> myHexs ;
 std::vector<Point *> points ;
-DelaunayTree_3D *dt ;
+DelaunayTree3D *dt ;
 GLint xangle = 0;
 GLint yangle = 0;
 GLint zangle = 0;

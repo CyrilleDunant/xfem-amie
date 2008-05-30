@@ -64,7 +64,7 @@ std::vector<DelaunayTriangle *> Inclusion3D::getTriangles( DelaunayTree * dt)  {
 	return std::vector<DelaunayTriangle *> (0) ;
 }
 	
-std::vector<DelaunayTetrahedron *> Inclusion3D::getTetrahedrons( DelaunayTree_3D * dt)  {
+std::vector<DelaunayTetrahedron *> Inclusion3D::getTetrahedrons( DelaunayTree3D * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
 	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(this->boundary) ;
@@ -172,7 +172,7 @@ std::vector<DelaunayTriangle *> VirtualInclusion3D::getTriangles( DelaunayTree *
 	return std::vector<DelaunayTriangle *> (0) ;
 }
 
-std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getTetrahedrons( DelaunayTree_3D * dt)  {
+std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getTetrahedrons( DelaunayTree3D * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
 	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(dynamic_cast<Sphere *>(this)) ;

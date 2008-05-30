@@ -176,9 +176,9 @@ public:
 	 * @return the vector of triangles satisfying the condition center \f$ \in \f$ Feature. 
 	 */
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  = 0;
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(DelaunayTree_3D * dt)  = 0;
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(DelaunayTree3D * dt)  = 0;
 	virtual std::vector<DelaunayTriangle *> getBoundingTriangles( DelaunayTree * dt) ;
-	virtual std::vector<DelaunayTetrahedron *> getBoundingTetrahedrons(DelaunayTree_3D * dt) ;
+	virtual std::vector<DelaunayTetrahedron *> getBoundingTetrahedrons(DelaunayTree3D * dt) ;
 	
 	/** Check for interaction.
 	 * 
@@ -300,6 +300,30 @@ public:
 	
 	virtual bool moved() const = 0;
 	
+} ;
+
+struct BoundaryCondition
+{	
+	std::vector<LagrangeMultiplierType> condition;
+	std::vector<double> data ;
+	virtual void apply(Assembly * a, DelaunayTree * t) const = 0 ;
+	virtual void apply(Assembly * a, DelaunayTree3D * t) const = 0 ;
+} ;
+
+struct ProjectionDefinedBoundaryCondition : public BoundaryCondition
+{
+	Point direction ;
+
+	virtual void apply(Assembly * a, DelaunayTree * t) const ;
+	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
+} ;
+
+struct GeometryDefinedBoundaryCondition : public BoundaryCondition
+{
+	Geometry * domain ;
+
+	virtual void apply(Assembly * a, DelaunayTree * t) const ;
+	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;
 
 class Pixel
@@ -460,7 +484,7 @@ protected:
 	 * projected. No operations should add midpoints before meshing is complete.
 	 */
 	DelaunayTree * dtree ;
-	DelaunayTree_3D * dtree3D ;
+	DelaunayTree3D * dtree3D ;
 	
 	TetrahedralElement *father3D  ;
 	TriElement *father2D  ;
@@ -638,7 +662,7 @@ public:
 	void stepBack() ;
 	void elasticStep() ;
 
-	std::deque<std::pair<Point *, Feature *> >::iterator  begin() ;
+	std::deque<std::pair<Point *, Feature *> >::iterator begin() ;
 	std::deque<std::pair<Point *, Feature *> >::iterator end() ;
 	
 	Assembly * getAssembly() ;
@@ -653,7 +677,7 @@ public:
 	void insert(Point * p ) ;
 	
 	DelaunayTree * getDelaunayTree() ;
-	DelaunayTree_3D * getDelaunayTree3D() ;
+	DelaunayTree3D * getDelaunayTree3D() ;
 	
 	bool inRoot(const Point &p) const ;
 	

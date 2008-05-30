@@ -65,7 +65,7 @@ std::vector<DelaunayTriangle *> Pore3D::getTriangles( DelaunayTree * dt){
 	return std::vector<DelaunayTriangle *>(0) ;
 }
 
-std::vector<DelaunayTetrahedron *> Pore3D::getTetrahedrons( DelaunayTree_3D * dt){
+std::vector<DelaunayTetrahedron *> Pore3D::getTetrahedrons( DelaunayTree3D * dt){
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
 	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(this->boundary) ;

@@ -17,7 +17,7 @@
 
 using namespace Mu ;
 
-DelaunayTreeItem_3D::DelaunayTreeItem_3D( DelaunayTree_3D *t, DelaunayTreeItem_3D * father,  const Point * c) : stepson(0), neighbour(0), son(0)
+DelaunayTreeItem_3D::DelaunayTreeItem_3D( DelaunayTree3D *t, DelaunayTreeItem_3D * father,  const Point * c) : stepson(0), neighbour(0), son(0)
 {
 	tree = t ;
 	this->stepfather = NULL ;
@@ -202,7 +202,7 @@ void Star_3D::updateNeighbourhood()
 }
 
 
-void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement * father)
+void DelaunayTree3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement * father)
 {
 	std::vector<DelaunayTetrahedron *> tri = getTetrahedrons() ;
 	
@@ -362,7 +362,7 @@ void DelaunayTree_3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, 
 	}
 }
 
-void DelaunayTree_3D::refresh(const TetrahedralElement *father)
+void DelaunayTree3D::refresh(const TetrahedralElement *father)
 {
 	for(size_t i = 0 ; i < this->tree.size() ; i++)
 	{
@@ -374,7 +374,7 @@ void DelaunayTree_3D::refresh(const TetrahedralElement *father)
 	}
 }
 
-size_t DelaunayTree_3D::numPoints() const
+size_t DelaunayTree3D::numPoints() const
 {
 	return this->global_counter ;
 }
@@ -735,7 +735,7 @@ void DelaunayTetrahedron::kill(const Point * p)
 	getInPoints().resize(0) ;
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree_3D *t, DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point * c) : TetrahedralElement(p0, p1, p2, p3), DelaunayTreeItem_3D(t, father, c)
+DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree3D *t, DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point * c) : TetrahedralElement(p0, p1, p2, p3), DelaunayTreeItem_3D(t, father, c)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -754,7 +754,7 @@ DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree_3D *t, DelaunayTreeItem_3D
 	assert(fourth->id> -1);
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree_3D * t, DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem_3D(t, father, c)
+DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree3D * t, DelaunayTreeItem_3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem_3D(t, father, c)
 {
 	
 	first = &getBoundingPoint(0) ;
@@ -1349,7 +1349,7 @@ void DelaunayTetrahedron::print() const
 // 	(*eps)[first->id*2+1]+=(*eps)[first->id*2+1] ;
 // }
 
-DelaunayDemiSpace::DelaunayDemiSpace(DelaunayTree_3D * t, DelaunayTreeItem_3D * father,  Point  * _one,  Point  * _two, Point  * _three, Point  * p,  Point * c) : DelaunayTreeItem_3D(t, father, c)
+DelaunayDemiSpace::DelaunayDemiSpace(DelaunayTree3D * t, DelaunayTreeItem_3D * father,  Point  * _one,  Point  * _two, Point  * _three, Point  * p,  Point * c) : DelaunayTreeItem_3D(t, father, c)
 {
 	second  = _two ;
 	first = _one ;
@@ -1472,7 +1472,7 @@ void updateNeighbours(std::vector<DelaunayTreeItem_3D *> * t)
 	}
 } 
 
-DelaunayRoot_3D::DelaunayRoot_3D(DelaunayTree_3D *t, Point * p0, Point * p1, Point * p2, Point * p3) : DelaunayTreeItem_3D(t, NULL, NULL)
+DelaunayRoot_3D::DelaunayRoot_3D(DelaunayTree3D *t, Point * p0, Point * p1, Point * p2, Point * p3) : DelaunayTreeItem_3D(t, NULL, NULL)
 {
 	isSpace = false ;
 	isTetrahedron =false ;
@@ -1607,7 +1607,7 @@ const Point * Star_3D::getEdge(size_t i) const
 	return this->edge[i] ;
 }
 
-DelaunayTree_3D::DelaunayTree_3D(Point * p0, Point *p1, Point *p2, Point *p3)
+DelaunayTree3D::DelaunayTree3D(Point * p0, Point *p1, Point *p2, Point *p3)
 {
 	neighbourhood = false ;
 	global_counter = 4;
@@ -1621,7 +1621,7 @@ DelaunayTree_3D::DelaunayTree_3D(Point * p0, Point *p1, Point *p2, Point *p3)
 	
 }
 	
-DelaunayTree_3D::~DelaunayTree_3D() 
+DelaunayTree3D::~DelaunayTree3D() 
 { 
 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
 	{
@@ -1632,7 +1632,7 @@ DelaunayTree_3D::~DelaunayTree_3D()
 }
 
 
-void DelaunayTree_3D::insert(Point *p)
+void DelaunayTree3D::insert(Point *p)
 {
 	std::vector<DelaunayTreeItem_3D *> cons = this->conflicts(p) ;
 	neighbourhood = false ;
@@ -1781,7 +1781,7 @@ Star_3D::~Star_3D()
 		cleanup[i]->visited = false ;
 }
 
-std::vector<DelaunayTreeItem_3D *> DelaunayTree_3D::conflicts( const Point *p) const
+std::vector<DelaunayTreeItem_3D *> DelaunayTree3D::conflicts( const Point *p) const
 {
 	std::vector<DelaunayTreeItem_3D *> ret  ;
 	
@@ -1819,7 +1819,7 @@ void DelaunayTetrahedron::refresh(const TetrahedralElement * father)
 // 	this->computeCenter() ;
 }
 
-std::vector<DelaunayTetrahedron *> DelaunayTree_3D::conflicts( const Geometry *g) const
+std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g) const
 {
 	std::pair< std::vector<DelaunayTetrahedron *>,std::vector<DelaunayTreeItem_3D *> > cons ;
 	this->tree[0]->conflicts(cons, g) ;
@@ -1860,7 +1860,7 @@ std::vector<DelaunayTetrahedron *> DelaunayTree_3D::conflicts( const Geometry *g
 	return ret ;
 }
 
-std::vector<DelaunayDemiSpace *>  DelaunayTree_3D::getConvexHull()
+std::vector<DelaunayDemiSpace *>  DelaunayTree3D::getConvexHull()
 {
 	std::vector<DelaunayDemiSpace *> ret ;
 	
@@ -1873,7 +1873,7 @@ std::vector<DelaunayDemiSpace *>  DelaunayTree_3D::getConvexHull()
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool buildNeighbourhood ) 
+std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildNeighbourhood ) 
 {
 	std::vector<DelaunayTetrahedron *> ret;
 	//std::cout<<tree.size();
@@ -1953,7 +1953,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree_3D::getTetrahedrons( bool build
 	return ret ;
 }
 
-void DelaunayTree_3D::print() const
+void DelaunayTree3D::print() const
 {
 	size_t alive = 0 ;
 	std::cout << "we have a total of " << tree.size() << " elements" << std::endl ;
@@ -2041,7 +2041,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 		}
 		
 		to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-		DelaunayTree_3D dt(&to_add[0], &to_add[1], &to_add[2],&to_add[3]) ;
+		DelaunayTree3D dt(&to_add[0], &to_add[1], &to_add[2],&to_add[3]) ;
 		for(size_t i = 4 ; i < to_add.size() ; i++)
 		{
 			dt.insert(&to_add[i]) ;
@@ -2241,7 +2241,7 @@ std::vector<std::vector<Matrix> > DelaunayTetrahedron::getElementaryMatrix() con
 	}
 	
 	to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-	DelaunayTree_3D dt(&to_add[0], &to_add[1], &to_add[2], &to_add[4]) ;
+	DelaunayTree3D dt(&to_add[0], &to_add[1], &to_add[2], &to_add[4]) ;
 	for(size_t i = 4 ; i < to_add.size() ; i++)
 	{
 		dt.insert(&to_add[i]) ;
@@ -2505,7 +2505,7 @@ GaussPointArray DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
 		}
 
 		to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-		DelaunayTree_3D dt(&to_add[0], &to_add[1], &to_add[2],&to_add[3] ) ;
+		DelaunayTree3D dt(&to_add[0], &to_add[1], &to_add[2],&to_add[3] ) ;
 		for(size_t i = 4 ; i < to_add.size() ; i++)
 		{
 			dt.insert(&to_add[i]) ;

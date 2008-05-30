@@ -28,7 +28,7 @@ namespace Mu
 
 class Star_3D ;
 class DelaunayTetrahedron ;
-class DelaunayTree_3D ;
+class DelaunayTree3D ;
 
 /*! Base class of the delaunay tree. 
 
@@ -47,7 +47,7 @@ protected:
 public:
 	unsigned int index ;
 	bool erased ;
-	DelaunayTree_3D * tree ;
+	DelaunayTree3D * tree ;
 	DelaunayTreeItem_3D * father ; //!< Item destroyed by the insertion of the creator point.
 	DelaunayTreeItem_3D * stepfather ; //!< Still-alive neighbour of the father.
 	
@@ -69,7 +69,7 @@ public:
 	/*! \a father is the father. Needed for the maintenance of the tree.
 		\a c is the Creator Point. It is useful when building neighbourhood relationships. Also, it allowfor the removal of elements from the tree.
 	 */
-	DelaunayTreeItem_3D( DelaunayTree_3D *tree, DelaunayTreeItem_3D * father, const Point * c) ;
+	DelaunayTreeItem_3D( DelaunayTree3D *tree, DelaunayTreeItem_3D * father, const Point * c) ;
 	
 	virtual ~DelaunayTreeItem_3D() ;
 	
@@ -132,8 +132,8 @@ public:
 	
 	GEO_DERIVED_OBJECT(Tetrahedron) ;
 	
-	DelaunayTetrahedron(DelaunayTree_3D *tree,  DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,  Point * c) ;
-	DelaunayTetrahedron(DelaunayTree_3D *tree,  DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,   
+	DelaunayTetrahedron(DelaunayTree3D *tree,  DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,  Point * c) ;
+	DelaunayTetrahedron(DelaunayTree3D *tree,  DelaunayTreeItem_3D * father,   Point *p0,   Point *p1,   Point *p2, Point *p3,   
 	                     Point *p4,   Point *p5,   Point *p6, Point *p7,
 	                     Point * c) ;
 	DelaunayTetrahedron() ;
@@ -195,7 +195,7 @@ public:
 	
 public:
 	
-	DelaunayDemiSpace(DelaunayTree_3D *tree,  DelaunayTreeItem_3D * father,   Point  * _one,   Point  * _two, Point  * _three,   Point  * p,   Point * c) ;
+	DelaunayDemiSpace(DelaunayTree3D *tree,  DelaunayTreeItem_3D * father,   Point  * _one,   Point  * _two, Point  * _three,   Point  * p,   Point * c) ;
 	
 	virtual ~DelaunayDemiSpace() ;
 	
@@ -263,7 +263,7 @@ public:
 class DelaunayRoot_3D : public DelaunayTreeItem_3D
 {
 public:
-	DelaunayRoot_3D(DelaunayTree_3D *tree, Point * p0,  Point * p1,  Point * p2, Point * p3) ;
+	DelaunayRoot_3D(DelaunayTree3D *tree, Point * p0,  Point * p1,  Point * p2, Point * p3) ;
 	
 	bool isVertex(const Point *p) const ;
 	
@@ -314,7 +314,7 @@ public:
 } ;
 //changed
 
-class DelaunayTree_3D 
+class DelaunayTree3D 
 {
 friend class FeatureTree ;
 friend class Geometry ;
@@ -328,9 +328,9 @@ public:
 	std::vector<DelaunayTreeItem_3D *> tree ;
 	std::vector<DelaunayDemiSpace *> space ;
 	
-	DelaunayTree_3D ( Point * p0,  Point *p1,  Point *p2, Point *p3) ;
+	DelaunayTree3D ( Point * p0,  Point *p1,  Point *p2, Point *p3) ;
 	
-	virtual ~DelaunayTree_3D() ;
+	virtual ~DelaunayTree3D() ;
 	
 	void insert( Point *p) ;
 	void insert( Segment *s) ;

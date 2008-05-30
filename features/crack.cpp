@@ -951,7 +951,7 @@ std::vector<DelaunayTriangle*> BranchedCrack::getTriangles(DelaunayTree* dt)
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron*> BranchedCrack::getTetrahedrons(DelaunayTree_3D*)
+std::vector<DelaunayTetrahedron*> BranchedCrack::getTetrahedrons(DelaunayTree3D*)
 {
 	return std::vector<DelaunayTetrahedron*>() ;
 }

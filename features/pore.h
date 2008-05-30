@@ -34,7 +34,7 @@ public:
 	
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
 	
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree_3D * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
 	
 	virtual Point * pointAfter(size_t i) ;
 	
@@ -79,7 +79,7 @@ public:
 	
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
 	
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree_3D * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
 	
 	virtual Point * pointAfter(size_t i) ;
 	
