@@ -818,10 +818,10 @@ GaussPointArray TetrahedralElement::genGaussPoints() const
 	size_t ordre=0 ;
 	if(order == LINEAR || order == LINEAR_TIME_LINEAR)
 		ordre = 1 ;
-	else if(order == LINEAR_TIME_QUADRATIC)
-		ordre = 2 ;
-	else if (order == CUBIC || order == QUADRATIC || order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR)
-		ordre = 5 ;
+// 	else if(order == LINEAR_TIME_QUADRATIC)
+// 		ordre = 2 ;
+// 	else if (order == CUBIC || order == QUADRATIC || order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR)
+// 		ordre = 5 ;
 	else
 		ordre = 10 ;
 	
@@ -839,7 +839,7 @@ GaussPointArray TetrahedralElement::genGaussPoints() const
 		fin[3] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667), 0.45) ;
 		fin[4] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5), 0.45) ;
 	}
-	else if(order == LINEAR_TIME_LINEAR )
+/*	else if(order == LINEAR_TIME_LINEAR )
 	{
 		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), 0.1666666666666667*2.) ;
 	}
@@ -855,8 +855,8 @@ GaussPointArray TetrahedralElement::genGaussPoints() const
 		fin[2] = std::pair<Point, double>(Point(0.5, 0.166666666666666666667, 0.166666666666666666667), 0.3) ;
 		fin[3] = std::pair<Point, double>(Point(0.16666666666666666667, 0.5, 0.166666666666667), 0.3) ;
 		fin[4] = std::pair<Point, double>(Point(0.16666666666666666667, 0.1666666666666666667, 0.5), 0.3) ;
-	}
-	else if (order == CUBIC_TIME_QUADRATIC || order == QUADRATIC_TIME_QUADRATIC )
+	}*/
+	else /*if (order == CUBIC_TIME_QUADRATIC || order == QUADRATIC_TIME_QUADRATIC )*/
 	{
 		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,-0.577350269189626), -0.133333333333333) ;
 		fin[1] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.166666666666667,-0.577350269189626), 0.075) ;
@@ -869,11 +869,11 @@ GaussPointArray TetrahedralElement::genGaussPoints() const
 		fin[8] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667, 0.577350269189626), 0.075) ;
 		fin[9] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5, 0.577350269189626), 0.075) ;
 	}
-	else
-	{
-		std::cout << "this set of Gauss points is not implemented" << std::endl ;
-		assert(false) ;
-	}
+// 	else
+// 	{
+// 		std::cout << "this set of Gauss points is not implemented" << std::endl ;
+// 		assert(false) ;
+// 	}
 	
 	if( moved)
 	{
@@ -886,7 +886,12 @@ GaussPointArray TetrahedralElement::genGaussPoints() const
 	{
 		double j = 0. ;
 		if(getBoundingPoints().size() != shapefunc->size())
-			j = TetrahedralElement(LINEAR).jacobianAtPoint(Point(.25, .25, .25)) ;
+		{
+			if(order < CONSTANT_TIME_LINEAR)
+				j = TetrahedralElement(LINEAR).jacobianAtPoint(Point(.25, .25, .25)) ;
+			else
+				j = TetrahedralElement(LINEAR).jacobianAtPoint(Point(.25, .25, .25))*2. ;
+		}
 		else
 			j = jacobianAtPoint(Point(.25, .25, .25)) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
@@ -1581,12 +1586,12 @@ double ElementaryVolume::jacobianAtPoint(const Point & p) const
 // 		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
 // 		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
 // 		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
-// 		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
+		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
 		
 		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; J0[0][3] = 0; 
 		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ; J0[1][3] = 0;
 		J0[2][0] = xdzeta ; J0[2][1] = ydzeta ; J0[2][2] = zdzeta ; J0[2][3] = 0;
-		J0[3][0] = 0 ; J0[3][1] = 0 ; J0[3][2] = 0 ; J0[3][3] = 1;
+		J0[3][0] = 0 ; J0[3][1] = 0 ; J0[3][2] = 0 ; J0[3][3] = tdtheta;
 		
 		return det(J0) ;
 	}

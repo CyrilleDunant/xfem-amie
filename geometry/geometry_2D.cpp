@@ -755,14 +755,14 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 	for (size_t i = 0 ; i < numberOfPointsAlongY; i++)
 	{
 // 		double randx=((2.*random()/(RAND_MAX+1.0))-1.)*0.15*(size_x/numberOfPointsAlongX) ;
-		double randy=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
+		double randy= 0 ;//((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == 0 || i == numberOfPointsAlongY-1)
 			randy = 0 ;
 		boundingPoints[i] = new Point(center.x-0.5*size_x, center.y + 0.5*size_y - i*distanceBetweenPointsAlongY+ randy) ;
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX ; i++)
 	{
-			double randx=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
+			double randx= 0 ;//((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongX-1)
 			randx = 0 ;
 		boundingPoints[numberOfPointsAlongY+i-1] = new Point( center.x-0.5*size_x+i*distanceBetweenPointsAlongX+ randx, 
@@ -770,7 +770,7 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongY ; i++)
 	{
-		double randy=((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
+		double randy= 0 ;//((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongY-1)
 			randy = 0 ;
 		boundingPoints[numberOfPointsAlongX+numberOfPointsAlongY+i-2] = new Point(center.x+0.5*size_x,
@@ -778,7 +778,7 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX-1 ; i++)
 	{
-		double randx= ((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
+		double randx=  0 ;//((2.*random()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		assert(2*numberOfPointsAlongY+numberOfPointsAlongX+i-3< num_points) ;
 		boundingPoints[2*numberOfPointsAlongY+numberOfPointsAlongX+i-3] = new Point(
 			center.x + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,

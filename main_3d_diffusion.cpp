@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <fstream>
 
 #include <time.h> 
 #define DEBUG 
@@ -183,7 +184,7 @@ void computeDisplayList()
 			
 			double r, g, b ;
 			
-// 		HSV2RGB(&r, &g, &b, 360.-350.-340.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
+// 		HSV2RGB(&r, &g, &b, 360.-180.-180.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
 // 		glColor4f (r,g,b, .3);
 			
 		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -202,50 +203,50 @@ void computeDisplayList()
 // 			HSV2RGB(&r, &g, &b, 180.-180.*(myTets[i]->getBehaviour()->param[0][0]-mins)/(maxs-mins), 1., 1.) ;
 // 			glColor4f (r,g,b, .3);
 			
-			HSV2RGB(&r, &g, &b, 350.-340.*((*sigma)[i*6]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
+// 			HSV2RGB(&r, &g, &b, 180.-180.*((*sigma)[i*10]-min)/(max-min), 1., 1.) ;
+// 			glColor4f (r,g,b, .3);
 			
 			glBegin(GL_LINES);
 			
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1);
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
 
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1 );
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1) ;
 
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1 );
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
 
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1);
 
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
 
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1 );
-			HSV2RGB(&r, &g, &b, 350.-340.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
 			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
 
@@ -394,111 +395,13 @@ void mouse(int button, int state, int x, int y)
 
 int main(int argc, char *argv[])
 {
-
-	Matrix base(4,4) ;
-
-	         //CaO                  SiO2                    Fe2O3                   Al2O3
-	/*C3S  =*/ base[0][0] = 4.0710 ;  base[0][1] = -7.6024 ;  base[0][2] = -1.4297 ;  base[0][3] = -6.7187 ;
-	/*C2S  =*/ base[1][0] = -3.0710 ; base[1][1] = 8.6024 ;   base[1][2] = 1.0785 ;   base[1][3] = 5.0683 ;
-	/*C3A  =*/ base[2][0] = 0 ;       base[2][1] = 0 ;        base[2][2] = -1.6920 ;  base[2][3] = 2.6504 ;
-	/*C4AF =*/ base[3][0] = 0 ;       base[3][1] = 0 ;        base[3][2] = 3.0432 ;   base[3][3] = 0 ;
-
-// 	base = inverse4x4Matrix(base) ;
-	Vector input(4) ;
-
-	input[0] = 92.5 ;
-	input[1] = 6.5 ;
-	input[2] = .7 ;
-	input[3] = .3 ;
-
-	std::map<std::pair<std::pair<int, int>, std::pair<int, int> >, int > world ;
-
-	std::cout << "building..." << std::endl ;
-
-	size_t size = 100 ;
-	
-	std::cout << "...done" << std::endl ;
-	for(size_t i = 0 ; i < 10000000 ; i++)
-	{
-		Vector inputThis(input) ;
-
-		//noisify
-		for(size_t j = 0 ; j < 4 ; j++)
-		{
-			double noise = 2.*((double)random()/(double)RAND_MAX)-1. ;
-			noise*=20 ;
-
-			inputThis[j]+=noise ;
-		}
-
-		//renormalise
-		double norm = inputThis[0] + inputThis[1] + inputThis[2] + inputThis[3] ;
-		inputThis /= norm ;
-		inputThis *= 100. ;
-		//compute
-		inputThis=base*inputThis ;
-
-		
-		if(inputThis.min() >= 0 && inputThis.max() <=100)
-		{
-			double norm = inputThis[0] + inputThis[1] + inputThis[2] + inputThis[3] ;
-			inputThis /= norm ;
-
-			if(world.find(std::make_pair(std::make_pair(round(size*inputThis[0]),
-			                                            round(size*inputThis[1])),
-			                             std::make_pair(round(size*inputThis[2]),
-			                                            round(size*inputThis[3])))) != world.end())
-				world[std::make_pair(std::make_pair(round(size*inputThis[0]),
-				                                    round(size*inputThis[1])),
-				                     std::make_pair(round(size*inputThis[2]),
-				                                    round(size*inputThis[3])))]++ ;
-			else
-				world[std::make_pair(std::make_pair(round(size*inputThis[0]),
-				                                    round(size*inputThis[1])),
-				                     std::make_pair(round(size*inputThis[2]),
-				                                    round(size*inputThis[3])))] = 1 ;
-			
-		}
-	}
-
-	Vector inputThis(input) ;
-	inputThis=base*inputThis;
-
-	for(size_t j = 0 ; j < 4 ; j++)
-	{
-		std::cout << inputThis[j] << std::endl ;
-	}
-
-	std::cout << std::endl ;
-	
-	int x = 0 ; int y = 0 ; int z = 0 ; int t = 0 ;
-
-	int M = world.begin()->second ;
-
-	for(std::map<std::pair<std::pair<int, int>, std::pair<int, int> >, int >::const_iterator i = world.begin() ; i !=world.end() ; ++i )
-	{
-		if(i->second > M)
-		{
-			x = i->first.first.first ;
-			y = i->first.first.second ;
-			z = i->first.second.first ;
-			t = i->first.second.second ;
-			M = i->second ;
-		}
-	}
-
-	std::cout << (double)x*(100./size) << std::endl ;
-	std::cout << (double)y*(100./size) << std::endl ;
-	std::cout << (double)z*(100./size) << std::endl ;
-	std::cout << (double)t*(100./size) << std::endl ;
-	return 0 ;
 	
 	Matrix diffusionMatrix(3,3) ;
 
 	
-	diffusionMatrix[0][0] =100;
-	diffusionMatrix[1][1] =100;
-	diffusionMatrix[2][2] =100;
+	diffusionMatrix[0][0] =1000;
+	diffusionMatrix[1][1] =1000;
+	diffusionMatrix[2][2] =1000;
 
 // 	diffusionMatrix[0][0] =2;    	diffusionMatrix[0][1] =7;    	diffusionMatrix[0][2] =0;
 // 	diffusionMatrix[1][0] =5;    	diffusionMatrix[1][1] =4;    	diffusionMatrix[1][2] =8;
@@ -519,26 +422,42 @@ int main(int argc, char *argv[])
 	//5   "
 	
 
-	Sample3D * sample = new Sample3D(100, 20, 20, 50, 10, 10) ;
+	Sample3D * sample = new Sample3D(100, 100, 100, 50, 50, 50) ;
 	sample->setBehaviour(new Diffusion(diffusionMatrix)) ;
-
-	Inclusion3D * inc = new Inclusion3D(8, 30, 10, 10) ;
-	inc->setBehaviour(new Diffusion(diffusionMatrix*.015)) ;
-	
 	FeatureTree ft(sample) ;
-	ft.addFeature(sample,inc) ;
+	
+	std::ifstream file("InputFiles/Small/porein01.csv") ;		
+	char comma ;
+	int dummy ;
+	double r ;
+	double xx ;
+	double y ;
+	double z ;
+	file >> dummy >> comma >> r >> comma >> xx >> comma >> y >> comma >> z ;
+	Pore3D * lastPore = new Pore3D(r, xx, y, z) ;
+	ft.addFeature(sample,lastPore) ;
+	while(!file.eof())
+	{
+		file >> dummy >> comma >> r >> comma >> xx >> comma >> y >> comma >> z ;
+		Pore3D * newPore = new Pore3D(r, xx, y, z) ;
+		ft.addFeature(lastPore, newPore) ;
+		lastPore = newPore ;
+	}
+	
+	
 
 	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
 
-	ft.sample(512) ;
+	ft.sample(128) ;
 	
-	ft.generateElements(4) ;
+	ft.generateElements() ;
 
 	std::vector<DelaunayTetrahedron *> elems = ft.getTetrahedrons() ;
 
-	
+	std::set<Point *> points ;
 	for(size_t i = 0 ; i < elems.size() ; i++)
 	{
+		
 		if(i% 100 == 0)
 		{
 			std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
@@ -546,37 +465,35 @@ int main(int argc, char *argv[])
 		
 		for(size_t j = 0 ; j < elems[i]->getBoundingPoints().size() ; j++)
 		{
-			ft.getAssembly()->setPoint(0., elems[i]->getBoundingPoint(j).id) ;
+			points.insert(&elems[i]->getBoundingPoint(j)) ;
 		}
 	}
 
+	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
+	{
+		
+		ft.getAssembly()->setPoint(0., (*i)->id) ;
+
+	}
 	ft.step(0.1) ;
 
 // 	x = &ft.getAssembly()->getDisplacements() ;
 
-	for(size_t i = 0 ; i < elems.size() ; i++)
+	
+	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
 	{
-		if(i% 100 == 0)
+		if((*i)->t == -1 )
 		{
-			std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
+			ft.getAssembly()->setPoint(0, (*i)->id) ;
 		}
-		
-		for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
+		else if((*i)->x  == 0  && (*i)->t == 1)
 		{
-// 			if(std::abs(elems[i]->getBoundingPoint(j).x - 8)  < 0.0001)
-// 			{
-// 				ft.getAssembly()->setPoint(0, elems[i]->getBoundingPoint(j).id) ;
-// 			}
-			/*else*/ if(elems[i]->getBoundingPoint(j).t == -1 )
-			{
-				ft.getAssembly()->setPoint(0, elems[i]->getBoundingPoint(j).id) ;
-			}
-			else if(elems[i]->getBoundingPoint(j).x  == 0  && elems[i]->getBoundingPoint(j).t == 1)
-			{
-				ft.getAssembly()->setPoint(.5, elems[i]->getBoundingPoint(j).id) ;
-			}
-
+			ft.getAssembly()->setPoint(.5, (*i)->id) ;
 		}
+// 		else if((*i)->x  == 100 )
+// 		{
+// 			ft.getAssembly()->setPoint(0, (*i)->id) ;
+// 		}
 		
 	}
 
@@ -592,40 +509,40 @@ int main(int argc, char *argv[])
 // 	}
 
 
-	for(size_t timestep = 0 ; timestep < 4 ; timestep++)
+	for(size_t timestep = 0 ; timestep < 0 ; timestep++)
 	{
-// 		x = &ft.getAssembly()->getDisplacements() ;
+		x = &ft.getAssembly()->getDisplacements() ;
 
+
+		std::set<Point *> source ;
+		std::set<std::pair<Point *, Point *> > init ;
 		for(size_t i = 0 ; i < elems.size() ; i++)
 		{
-			if(i% 100 == 0)
+			for(size_t j = 0 ; j < elems[i]->getBoundingPoints().size() ; j++)
 			{
-				std::cout << "\r seting BC : elem " << i << "/" << elems.size() << std::flush ;
-			}
-
-			for(size_t j = 0 ;j < elems[i]->getBoundingPoints().size() ; j++)
-			{
-
-// 				if(elems[i]->getBoundingPoint(j).x == 8  )
-// 				{
-// 					ft.getAssembly()->setPoint(0,elems[i]->getBoundingPoint(j).id) ;
-// 				}
-				/*else*/ if(elems[i]->getBoundingPoint(j).x == 0 )
+				if(elems[i]->getBoundingPoint(j).x == 0 )
 				{
-					ft.getAssembly()->setPoint(.5,elems[i]->getBoundingPoint(j).id) ;
+					source.insert(&elems[i]->getBoundingPoint(j)) ;
 				}
 				else if(elems[i]->getBoundingPoint(j).t == -1)
 				{
-// 					ft.getAssembly()->setPoint((*x)[elems[i]->getBoundingPoint(j+10).id],elems[i]->getBoundingPoint(j).id) ;
+					init.insert(std::make_pair(&elems[i]->getBoundingPoint(j), &elems[i]->getBoundingPoint(j+10))) ;
 				}
 			}
-
+		}
+		
+		for(std::set<Point *>::iterator i = source.begin() ; i != source.end() ; ++i)
+			ft.getAssembly()->setPoint(.5,(*i)->id) ;
+		
+		for(std::set<std::pair<Point *, Point *> >::iterator i = init.begin() ; i != init.end() ; ++i)
+		{
+			ft.getAssembly()->setPoint((*x)[(*i).second->id],(*i).first->id) ;
 		}
 
 		ft.step(0.1) ;
 	}
 
-// 	x =  &ft.getAssembly()->getDisplacements() ;
+	x =  &ft.getAssembly()->getDisplacements() ;
 
 // 	for(size_t i = 0 ; i < elems.size() ; i++)
 // 	{
@@ -638,6 +555,7 @@ int main(int argc, char *argv[])
 // 	}
 
 	myTets =  elems ;
+
 	sigma = new Vector(myTets.size()*10) ;
 	
 	int count = 0 ;
@@ -651,11 +569,10 @@ int main(int argc, char *argv[])
 		{
 			count++;
 
-// 			for(size_t j = 0 ; j < 10 ;j++)
 			for(size_t j = 10 ; j < 20 ;j++)
 			{
 				
-// 				(*sigma)[i*10+j-10] = (*x)[elems[i]->getBoundingPoint(j).id] ;
+				(*sigma)[i*10+j-10] = (*x)[elems[i]->getBoundingPoint(j).id] ;
 			}
 		}
 		else

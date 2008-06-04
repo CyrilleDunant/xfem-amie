@@ -95,10 +95,20 @@ public:
 	{
 		return id < m.getId() ;
 	}
+
+	bool operator < (const int & m) const
+	{
+		return id < m ;
+	}
 	
 	bool operator == (const LagrangeMultiplier & m) const
 	{
 		return id == m.getId() ;
+	}
+
+	bool operator == (const int & m) const
+	{
+		return id == m ;
 	}
 	
 	void print() const
@@ -155,7 +165,7 @@ protected:
 	CoordinateIndexedIncompleteSparseMatrix * nonLinearPartialMatrix ;
 	std::map<std::pair<size_t, size_t>, double > * boundaryMatrix ;
 	
-	void make_final() ;
+	bool make_final() ;
 	
 	
 	size_t multiplier_offset ;

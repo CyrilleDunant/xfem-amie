@@ -35,7 +35,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditionne
 	
 	Vector invDiag(r.size()) ;
 	
-	if(rho < epsilon)
+	if(std::abs(rho) < epsilon*epsilon)
 		return true ;
 	
 	Vector p(r) ;
@@ -108,7 +108,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditionne
 		r = s- t*omega ;
 		rho_ = rho ;
 
-		if(	verbose && nit%60 == 0)
+		if(verbose && nit%60 == 0)
 		{
 // 			r = b - A*x ;
 			std::cerr << "\r iteration : " << nit << " error :"<< rho  << "             "<< std::flush ;

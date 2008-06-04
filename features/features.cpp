@@ -1801,6 +1801,7 @@ void FeatureTree::assemble()
 		vars.push_back(XI) ;
 		vars.push_back(ETA) ;
 		vars.push_back(ZETA) ;
+		vars.push_back(TIME_VARIABLE) ;
 		father3D->getShapeFunction(k).preCalculate(father3D->getGaussPoints(), vars) ;
 	}
 	

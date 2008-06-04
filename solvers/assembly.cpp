@@ -387,6 +387,10 @@ void Assembly::setBoundaryConditions()
 	}
 	
 	std::sort(multipliers.begin(), multipliers.end()) ;
+	std::valarray<int> multiplierIds(multipliers.size()) ;
+	for(size_t i = 0 ; i < multiplierIds.size() ; i++)
+		multiplierIds[i] = multipliers[i].getId() ;
+
 	
 	std::cerr << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
 	
@@ -397,11 +401,11 @@ void Assembly::setBoundaryConditions()
 
 		int array_index = coordinateIndexedMatrix->accumulated_row_size[k] ;
 
-		std::vector<LagrangeMultiplier>::iterator start_multiplier = std::find_if(multipliers.begin(), multipliers.end(),MultiplierHasIdSupEq(coordinateIndexedMatrix->column_index[array_index])) ;
+		int * start_multiplier = std::lower_bound(&multiplierIds[0], &multiplierIds[multiplierIds.size()], coordinateIndexedMatrix->column_index[array_index]) ;
 
-		int start_m = start_multiplier-multipliers.begin() ;
+		int start_m = start_multiplier-&multiplierIds[0] ;
 		
-		for(int m = 0/*start_m*/ ;  m < (int)multipliers.size() ; m++)
+		for(int m = start_m ;  m < (int)multipliers.size() ; m++)
 		{
 			int id = multipliers[m].getId() ;
 			if(multipliers[m].type != SET_FORCE_XI 
@@ -452,8 +456,10 @@ void Assembly::setBoundaryConditions()
 
 }
 
-void Assembly::make_final()
+bool Assembly::make_final()
 {
+	bool symmetric = true ;
+	
 	if (has3Dims == false)
 	{
 		if( element2d.empty())
@@ -545,6 +551,7 @@ void Assembly::make_final()
 			this->displacements = 0 ;
 		}
 		
+		
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			if(i%100 == 0)
@@ -552,6 +559,23 @@ void Assembly::make_final()
 			
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
 			std::vector<std::vector<Matrix > > mother  = element2d[i]->getElementaryMatrix();
+			
+			if(i == 0)
+			{
+				for(size_t j = 0 ; j < ids.size() ;j++)
+				{
+					for(size_t k = 0 ; k < ids.size() ;k++)
+					{
+						for(size_t n = 0 ; n < ndof ; n++)
+						{
+							for(size_t m = 0 ; m < ndof ; m++)
+							{
+								symmetric = symmetric && std::abs(mother[j][k][n][m] - mother[k][j][m][n]) < std::max(std::abs(mother[j][k][n][m]),std::abs(mother[k][j][m][n]))*1e-8 ;
+							}
+						}
+					}
+				}
+			}
 			
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
@@ -621,87 +645,105 @@ void Assembly::make_final()
 			}
 		}
 			
-			size_t max = map->rbegin()->first +1;
-			size_t realDofs = max ;
-			for(size_t i = 0 ; i < multipliers.size() ; i++)
+		size_t max = map->rbegin()->first +1;
+		size_t realDofs = max ;
+		for(size_t i = 0 ; i < multipliers.size() ; i++)
+		{
+			if(multipliers[i].type == GENERAL)
 			{
-				if(multipliers[i].type == GENERAL)
+				std::valarray<unsigned int> ids = multipliers[i].getDofIds() ;
+				for(size_t j = 0 ; j< ids.size() ;j++)
 				{
-					std::valarray<unsigned int> ids = multipliers[i].getDofIds() ;
-					for(size_t j = 0 ; j< ids.size() ;j++)
-					{
-						map->insert(std::make_pair( ids[j], multipliers[i].getId())) ;
-						map->insert(std::make_pair( multipliers[i].getId(), ids[j])) ;
-					}
-					max++ ;
+					map->insert(std::make_pair( ids[j], multipliers[i].getId())) ;
+					map->insert(std::make_pair( multipliers[i].getId(), ids[j])) ;
 				}
+				max++ ;
 			}
-			
-	//filling eventual gaps
-			for(size_t i = 0 ; i < realDofs ; i++)
-			{
-				map->insert(std::make_pair(i,i)) ;
-			}
-			
-			size_t total_num_dof = map->rbegin()->first+1 ;
-			nonLinearExternalForces.resize(total_num_dof, 0.) ;
-			std::valarray<unsigned int> row_length((unsigned int)0, total_num_dof) ;
-			std::valarray<unsigned int> column_index((unsigned int)0, map->size()) ;
-			size_t current = 0 ;
-			for(std::set<std::pair<unsigned int, unsigned int> >::const_iterator i = map->begin() ; i != map->end() ; ++i)
-			{
+		}
 		
-				
-				row_length[i->first]++ ;
-				column_index[current] = i->second ;
-				current++ ;
-			}
-			delete map ;
-			this->coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index) ;
-			this->displacements.resize(max, 0.) ;
-			std::cerr << " ...done" << std::endl ;
-			for(size_t i = 0 ; i < element3d.size() ; i++)
+//filling eventual gaps
+		for(size_t i = 0 ; i < realDofs ; i++)
+		{
+			map->insert(std::make_pair(i,i)) ;
+		}
+		
+		size_t total_num_dof = map->rbegin()->first+1 ;
+		nonLinearExternalForces.resize(total_num_dof, 0.) ;
+		std::valarray<unsigned int> row_length((unsigned int)0, total_num_dof) ;
+		std::valarray<unsigned int> column_index((unsigned int)0, map->size()) ;
+		size_t current = 0 ;
+		for(std::set<std::pair<unsigned int, unsigned int> >::const_iterator i = map->begin() ; i != map->end() ; ++i)
+		{
+	
+			
+			row_length[i->first]++ ;
+			column_index[current] = i->second ;
+			current++ ;
+		}
+		delete map ;
+		this->coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index) ;
+		this->displacements.resize(max, 0.) ;
+		std::cerr << " ...done" << std::endl ;
+		for(size_t i = 0 ; i < element3d.size() ; i++)
+		{
+			if(i%1000 == 0)
+				std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
+			
+			std::vector<size_t> ids = element3d[i]->getDofIds() ;
+			std::vector<std::vector<Matrix > > mother  = element3d[i]->getElementaryMatrix();
+			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
-				if(i%1000 == 0)
-					std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
-				
-				std::vector<size_t> ids = element3d[i]->getDofIds() ;
-				std::vector<std::vector<Matrix > > mother  = element3d[i]->getElementaryMatrix();
+				ids[j] *= ndof ;
+			}
+			
+			if(i == 0)
+			{
 				for(size_t j = 0 ; j < ids.size() ;j++)
 				{
-					ids[j] *= ndof ;
-				}
-				
-				for(size_t j = 0 ; j < ids.size() ;j++)
-				{
-
-					for(size_t l = 0 ; l < ndof  ; l++)
+					for(size_t k = 0 ; k < ids.size() ;k++)
 					{
-						for(size_t m = 0 ; m < ndof  ; m++)
+						for(size_t n = 0 ; n < ndof ; n++)
 						{
-							getMatrix()[ids[j]+l][ids[j]+m] += mother[j][j][l][m] ;
-						}
-					}
-					
-					for(size_t k = j+1 ; k < ids.size() ;k++)
-					{
-						for(size_t l = 0 ; l < ndof  ; l++)
-						{
-							for(size_t m = 0 ; m < ndof  ; m++)
+							for(size_t m = 0 ; m < ndof ; m++)
 							{
-								getMatrix()[ids[j]+l][ids[k]+m] += mother[j][k][l][m] ;
-								getMatrix()[ids[k]+l][ids[j]+m] += mother[k][j][l][m] ;
+								symmetric = symmetric && std::abs(mother[j][k][n][m] - mother[k][j][m][n]) < std::max(mother[j][k][n][m],mother[k][j][m][n])*1e-8 ;
 							}
 						}
 					}
 				}
 			}
 			
-			std::cerr << " ...done" << std::endl ;
+			for(size_t j = 0 ; j < ids.size() ;j++)
+			{
+
+				for(size_t l = 0 ; l < ndof  ; l++)
+				{
+					for(size_t m = 0 ; m < ndof  ; m++)
+					{
+						getMatrix()[ids[j]+l][ids[j]+m] += mother[j][j][l][m] ;
+					}
+				}
+				
+				for(size_t k = j+1 ; k < ids.size() ;k++)
+				{
+					for(size_t l = 0 ; l < ndof  ; l++)
+					{
+						for(size_t m = 0 ; m < ndof  ; m++)
+						{
+							getMatrix()[ids[j]+l][ids[k]+m] += mother[j][k][l][m] ;
+							getMatrix()[ids[k]+l][ids[j]+m] += mother[k][j][l][m] ;
+						}
+					}
+				}
+			}
+		}
+		
+		std::cerr << " ...done" << std::endl ;
 			
 		setBoundaryConditions() ;
+	}
 	
-}
+	return symmetric ;
 }
 
 CoordinateIndexedSparseMatrix & Assembly::getMatrix()
@@ -756,12 +798,12 @@ void Assembly::setPoint(double ex, size_t id)
 {		
 	Vector c(2) ;
 	std::valarray<unsigned int> i(2) ;
-	if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id)) == multipliers.end() )
-	{
+// 	if(multipliers.empty() || !std::binary_search(multipliers.begin(), multipliers.end(), id) )
+// 	{
 		multipliers.push_back(LagrangeMultiplier(i,c, ex, id)) ;
-		multipliers.rbegin()->type = SET_ALONG_XI ;
-	}
-	
+		multipliers.back().type = SET_ALONG_XI ;
+// 	}
+// 	std::stable_sort(multipliers.begin(), multipliers.end()) ;
 	return ;
 }
 
@@ -772,13 +814,13 @@ void Assembly::setPoint(double ex, double ey, size_t id)
 	if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end() )
 	{
 		multipliers.push_back(LagrangeMultiplier(i,c, ex, id*2)) ;
-		multipliers.rbegin()->type = SET_ALONG_XI ;
+		multipliers.back().type = SET_ALONG_XI ;
 	}
 	
 	if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
 	{
 		multipliers.push_back(LagrangeMultiplier(i,c, ey, id*2+1)) ;
-		multipliers.rbegin()->type = SET_ALONG_ETA ;
+		multipliers.back().type = SET_ALONG_ETA ;
 
 	}
 
@@ -795,17 +837,17 @@ void Assembly::setPoint(double ex, double ey, double ez, size_t id)
 	if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) == multipliers.end())
 	{
 		multipliers.push_back(LagrangeMultiplier(i,c, ex, id*3)) ;
-		multipliers.rbegin()->type = SET_ALONG_XI ;
+		multipliers.back().type = SET_ALONG_XI ;
 	}
 	if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) == multipliers.end())
 	{
 		multipliers.push_back(LagrangeMultiplier(i,c, ey, id*3+1)) ;
-		multipliers.rbegin()->type = SET_ALONG_ETA ;
+		multipliers.back().type = SET_ALONG_ETA ;
 	}
 	if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) == multipliers.end())
 	{
 		multipliers.push_back(LagrangeMultiplier(i,c, ez, id*3+2)) ;
-		multipliers.rbegin()->type = SET_ALONG_ZETA ;
+		multipliers.back().type = SET_ALONG_ZETA ;
 	}
 	return ;
 }
@@ -1026,20 +1068,27 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 
 bool Assembly::cgsolve(Vector x0, size_t maxit) 
 {
+	bool sym = true ;
+	bool ret = true ;
 	if(this->coordinateIndexedMatrix == NULL)
-		make_final() ;
+		sym = make_final() ;
 	
-// 	print() ;
-// 	BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-	ConjugateGradientWithSecant cg(this) ;
-	bool ret = cg.solve() ;
-// 	bool ret = cg.solve(displacements, NULL,1e-22, -1, true) ;
-	displacements.resize(cg.x.size()) ;
-	displacements = cg.x ;
-
-// 		displacements = BiConjugateGradientStabilized(getMatrix(), externalForces).solve(displacements, NULL,1e-22, -1, true) ;
-// 		displacements = ConjugateGradient(getMatrix(), externalForces).solve(x0, NULL,1e-12, 16000, true) ;
-
+	if(sym)
+	{
+		std::cerr << "symmetrical problem" << std::endl ;
+		ConjugateGradientWithSecant cg(this) ;
+		ret = cg.solve() ;
+		displacements.resize(cg.x.size()) ;
+		displacements = cg.x ;
+	}
+	else
+	{
+		std::cerr << "non-symmetrical problem" << std::endl ;
+		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
+		ret = cg.solve(displacements, NULL,1e-22, -1, true) ;
+		displacements.resize(cg.x.size()) ;
+		displacements = cg.x ;
+	}
 	return ret ;
 	
 }

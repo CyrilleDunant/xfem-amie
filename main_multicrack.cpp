@@ -172,7 +172,7 @@ void step()
   //  int nsteps = 1;// number of steps between two clicks on the opengl thing
   bool cracks_did_not_touch = true;
   // for(size_t i = 0 ; i < nsteps ; i++)
-  size_t max_growth_steps = 2;
+  size_t max_growth_steps = 1;
   size_t countit = 0;
   while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
     {
@@ -1360,14 +1360,14 @@ int main(int argc, char *argv[])
 	// ADD FIRST CRACK
 	//add crack to list of cracks
 
-	crack.push_back(new BranchedCrack(new Point(-0.011, -.00215), new Point(-0.009, -.00215)));
+	crack.push_back(new BranchedCrack(new Point(-0.011, 0.00001/*-.00215*/), new Point(-0.009, 0.00001/*-.00215*/)));
 	F.addFeature(&sample, crack[0]) ; //add the crack to the feature tree
 	//add crack to list of cracks
-	crack.push_back(new BranchedCrack(new Point(0.011, .00215), new Point(0.009, .00215))) ;
+	crack.push_back(new BranchedCrack(new Point(0.011, 0.00001/*.00215*/), new Point(0.009, 0.00001/*.00215*/))) ;
 	F.addFeature(&sample, crack[1]) ; //add the crack to the feature tree
 
-	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
+// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
+// 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 	std::vector<Pore *> pores;
 
 	// Generate inclusions following Bolomey granulometry
@@ -1393,7 +1393,7 @@ int main(int argc, char *argv[])
 
 	F.sample(128) ;
 	//	F.sample(128) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
 

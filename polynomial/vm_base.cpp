@@ -573,7 +573,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 			}
 		case TIME_VARIABLE : 
 			{
-				return (eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-eps, u, v, w))/(eps*2.) ;
+				return (eval(f, x, y, z, t+eps, u, v, w) - eval(f, x, y, z, t-eps, u, v, w))/(2.*eps) ;
 			}
 		case U_VARIABLE:
 			{
