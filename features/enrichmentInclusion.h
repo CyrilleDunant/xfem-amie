@@ -18,6 +18,10 @@ namespace Mu
  * is smaller than, or fully contained by an element,
  * The enrichment will still be performed, yielding a 
  * composite field within the element.
+ * 
+ * This Inclusion will set no behaviour in the elements
+ * thus derived classes should be used for actual simulation
+ * see for example expansiveZone.h
  */
 class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
 {

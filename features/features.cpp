@@ -1518,6 +1518,54 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 			}
 		}
 	}
+	else
+	{
+		for(int i = tree.size()-1 ; i >=0  ; i--)
+		{
+			if (!tree[i]->isEnrichmentFeature && tree[i]->in(t->getCenter()))
+			{
+				
+				
+				bool notInChildren  = true ;
+				
+				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
+				
+				for(size_t j = 0 ; j < descendants.size() ; j++)
+				{
+					if(!descendants[j]->isEnrichmentFeature && descendants[j]->in(t->getCenter()))
+					{
+						notInChildren = false ;
+						break ;
+					}
+				}
+				
+				if(notInChildren)
+				{
+					if(tree[i]->getBehaviour(t->getCenter())->timeDependent())
+					{
+						if( !tree[i]->getBehaviour(t->getCenter())->spaceDependent())
+							return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
+						else
+						{
+							Form * b = tree[i]->getBehaviour(t->getCenter())->getCopy() ;
+							b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+							return b ;
+						}
+					}
+					else if(!tree[i]->getBehaviour(t->getCenter())->spaceDependent())
+						return tree[i]->getBehaviour(t->getCenter())->getCopy() ;
+					else
+					{
+						Form * b = tree[i]->getBehaviour(t->getCenter())->getCopy() ;
+						b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+						return b ;
+					}
+					
+					return tree[i]->getBehaviour(t->getCenter())->getCopy() ;
+				}
+			}
+		}
+	}
 	
 	if(tree[0]->getBehaviour(t->getCenter())->timeDependent())
 	{
@@ -2815,6 +2863,31 @@ void FeatureTree::generateElements( size_t correctionSteps)
 			}
 		}
 	}
+
+	for(size_t i = 1 ;  i < tree.size() ; i++)
+	{
+		if(!tree[i]->isEnrichmentFeature)
+		{
+			std::vector<Point> inter = tree[0]->intersection(tree[i]) ;
+			for(size_t k = 0 ;  k < inter.size() ; k++)
+			{
+				Point * going_in = new Point(inter[k]) ;
+
+				if(inRoot(*going_in))
+				{
+					++count ;
+					meshPoints.push_back(std::make_pair(going_in, tree[i])) ;
+				}
+				else
+					delete going_in ;
+
+				if(count%100 == 0)
+					std::cerr << "\r adding intersection points... " << count << std::flush ;
+			}
+
+		}
+	}
+	
 	count = 0 ;
 	std::cerr << " ...done." << std::endl ;
 	
@@ -3140,6 +3213,7 @@ void Voxel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) cons
 
 bool Voxel::coOccur(const Geometry * inc) const
 {
+
 	return inc->in(tlf) 
 		|| inc->in(trf) 
 		|| inc->in(brf) 
@@ -3156,6 +3230,12 @@ bool Voxel::coOccur(const Geometry * inc) const
 		|| in(inc->getCenter()+Point(-inc->getRadius(), 0, -inc->getRadius())) 
 		|| in(inc->getCenter()+Point(0,inc->getRadius(), -inc->getRadius())) 
 		|| in(inc->getCenter()+Point(0,-inc->getRadius(), -inc->getRadius()))
+		|| in(inc->getCenter()+Point(inc->getRadius(),inc->getRadius(), inc->getRadius())) 
+		|| in(inc->getCenter()+Point(inc->getRadius(),inc->getRadius(), -inc->getRadius())) 
+		|| in(inc->getCenter()+Point(inc->getRadius(), -inc->getRadius(), inc->getRadius()))
+		|| in(inc->getCenter()+Point(inc->getRadius(), -inc->getRadius(), -inc->getRadius())) 
+		|| in(inc->getCenter()+Point(-inc->getRadius(),inc->getRadius(), inc->getRadius())) 
+		|| in(inc->getCenter()+Point(-inc->getRadius(),-inc->getRadius(), -inc->getRadius()))
 		|| in(inc->getCenter());
 }
 
@@ -3771,6 +3851,28 @@ std::vector<Feature *> Grid3D::coOccur(const Geometry * geo) const
 	double endZ =  startZ+2.*geo->getRadius();
 	int endK = std::min(endZ/psize + 2, (double)lengthZ);
 	
+
+	if(geo->getGeometryType() == TETRAHEDRON)
+	{
+		const Tetrahedron * t = dynamic_cast<const Tetrahedron *>(geo) ;
+		startX = .5*x + t->getCircumCenter()->x-t->getRadius()*1.1 ;
+		startI = std::max(0., startX/psize - 2) ;
+		
+		endX =  startX+2.2*geo->getRadius();
+		endI = std::min(endX/psize + 2, (double)lengthX);
+		
+		startY = .5*y + t->getCircumCenter()->y-t->getRadius()*1.1 ;
+		startJ = std::max(0., startY/psize - 2) ;
+		
+		endY =  startY+2.2*t->getRadius();
+		endJ = std::min(endY/psize + 2, (double)lengthY);
+		
+		startZ = .5*z + t->getCircumCenter()->z-t->getRadius()*1.1 ;
+		startK = std::max(0., startZ/psize - 2) ;
+		
+		endZ =  startZ+2.2*t->getRadius();
+		endK = std::min(endZ/psize + 2, (double)lengthZ);
+	}
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -3794,29 +3896,29 @@ std::vector<Feature *> Grid3D::coOccur(const Geometry * geo) const
 std::vector<Feature *> Grid3D::coOccur(const Point & p) const 
 {
 	std::vector<Feature *> ret ;
-	double startX = .5*x + p.x-.05*x ;
-	int startI = std::max(0., startX/psize - 2) ;
-	
-	double endX =  startX+.05*x;
-	int endI = std::min(endX/psize + 2, (double)lengthX);
-	
-	double startY = .5*y + p.y-.05*y ;
-	int startJ = std::max(0., startY/psize - 2) ;
-	
-	double endY =  startY+.05*y;
-	int endJ = std::min(endY/psize + 2, (double)lengthY);
-	
-	double startZ = .5*z + p.z-.05*z ;
-	int startK = std::max(0., startZ/psize - 2) ;
-	
-	double endZ =  startZ+.05*z;
-	int endK = std::min(endZ/psize + 2, (double)lengthZ);
-	
-	for(int i = startI ; i < endI ; i++)
+// 	double startX = .5*x + p.x-.05*x ;
+// 	int startI = std::max(0., startX/psize - 2) ;
+// 	
+// 	double endX =  startX+.1*x;
+// 	int endI = std::min(endX/psize + 2, (double)lengthX);
+// 	
+// 	double startY = .5*y + p.y-.05*y ;
+// 	int startJ = std::max(0., startY/psize - 2) ;
+// 	
+// 	double endY =  startY+.1*y;
+// 	int endJ = std::min(endY/psize + 2, (double)lengthY);
+// 	
+// 	double startZ = .5*z + p.z-.05*z ;
+// 	int startK = std::max(0., startZ/psize - 2) ;
+// 	
+// 	double endZ =  startZ+.1*z;
+// 	int endK = std::min(endZ/psize + 2, (double)lengthZ);
+// 	
+	for(int i = std::max(p.x/psize, 0.) ; i < std::min((size_t)(p.x/psize+1),pixels.size()) ; i++)
 	{
-		for(int j = startJ ; j < endJ ; j++)
+		for(int j = std::max(p.y/psize,0.) ; j < std::min((size_t)(p.y/psize+1),pixels[i].size()) ; j++)
 		{
-			for(int k = startK ; k < endK ; k++)
+			for(int k = std::max(p.z/psize,0.) ; k <std::min((size_t)(p.z/psize+1),pixels[i][j].size()) ; k++)
 			{
 				if(pixels[i][j][k]->coOccur(p))
 				{

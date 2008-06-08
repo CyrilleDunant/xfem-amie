@@ -94,13 +94,13 @@ Point * Pore3D::pointAfter(size_t i) {
 void Pore3D::sample(size_t n) {
 	this->Sphere::sampleSurface(2*n) ;
 	
-	size_t numberOfRadii = static_cast<size_t>(sqrt(std::max(4*n, (size_t)27))) ;
-	double r = sqrt(radius) ;
-	double radiusExt = (r + (r*(2)/(double)numberOfRadii) ) ;
-	
-	delete this->boundary ;
-	
-	this->boundary = new Sphere(radiusExt, getCenter()) ;
+// 	size_t numberOfRadii = static_cast<size_t>(sqrt(std::max(4*n, (size_t)27))) ;
+// 	double r = sqrt(radius) ;
+// 	double radiusExt = (r + (r*(2)/(double)numberOfRadii) ) ;
+// 	
+// 	delete this->boundary ;
+// 	
+// 	this->boundary = new Sphere(radiusExt, getCenter()) ;
 	
 // 	this->Sphere::sampleBoundingSurface(4*n) ;/*BoundingSurface ;*/
 // 	this->Sphere::sampleSurface(n/4) ;

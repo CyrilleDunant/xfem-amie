@@ -1021,7 +1021,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = (size_t)round(3.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
+					size_t num_points = (size_t)round(8.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1050,7 +1050,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = (size_t)round(3.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ; ;
+					size_t num_points = (size_t)round(8.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ; ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1073,7 +1073,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = (size_t)round(3.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
+					size_t num_points = (size_t)round(8.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
 					C.sampleSurface(num_points) ;
 					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
@@ -1104,7 +1104,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = (size_t)round(3.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
+					size_t num_points = (size_t)round(8.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1134,7 +1134,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = (size_t)round(3.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
+					size_t num_points = (size_t)round(8.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1163,7 +1163,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = (size_t)round(3.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
+					size_t num_points = (size_t)round(8.*sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{

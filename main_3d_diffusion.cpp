@@ -325,7 +325,7 @@ void reshape (int w, int h)
 	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
-	gluPerspective(45.0, (GLfloat) w/(GLfloat) h, 1., 40);
+	gluPerspective(45.0, (GLfloat) w/(GLfloat) h, 1., 120);
 }
  
 void keyboard (unsigned char key, int x, int y)
@@ -426,7 +426,7 @@ int main(int argc, char *argv[])
 	sample->setBehaviour(new Diffusion(diffusionMatrix)) ;
 	FeatureTree ft(sample) ;
 	
-	std::ifstream file("InputFiles/Small/porein01.csv") ;		
+	std::ifstream file("InputFiles/Small/porein30.csv") ;		
 	char comma ;
 	int dummy ;
 	double r ;
@@ -439,16 +439,48 @@ int main(int argc, char *argv[])
 	while(!file.eof())
 	{
 		file >> dummy >> comma >> r >> comma >> xx >> comma >> y >> comma >> z ;
+		std::cout << dummy << ", " << r << ", " << xx << ", " << y << ", " << z << std::endl ;
 		Pore3D * newPore = new Pore3D(r, xx, y, z) ;
 		ft.addFeature(lastPore, newPore) ;
 		lastPore = newPore ;
+		
+		if(!sample->in(lastPore->getCenter() + Point(lastPore->getRadius(), 0, 0)))
+		{
+			Pore3D * newPore = new Pore3D(r, xx-100, y, z) ;
+			ft.addFeature(lastPore, newPore) ;
+		}
+		if(!sample->in(lastPore->getCenter() + Point(-lastPore->getRadius(), 0, 0)))
+		{
+			Pore3D * newPore = new Pore3D(r, xx+100, y, z) ;
+			ft.addFeature(lastPore, newPore) ;
+		}
+		if(!sample->in(lastPore->getCenter() + Point(0,lastPore->getRadius() , 0)))
+		{
+			Pore3D * newPore = new Pore3D(r, xx, y-100, z) ;
+			ft.addFeature(lastPore, newPore) ;
+		}
+		if(!sample->in(lastPore->getCenter() + Point(0,-lastPore->getRadius() , 0)))
+		{
+			Pore3D * newPore = new Pore3D(r, xx, y+100, z) ;
+			ft.addFeature(lastPore, newPore) ;
+		}
+		if(!sample->in(lastPore->getCenter() + Point(0, 0, lastPore->getRadius())))
+		{
+			Pore3D * newPore = new Pore3D(r, xx, y, z-100) ;
+			ft.addFeature(lastPore, newPore) ;
+		}
+		if(!sample->in(lastPore->getCenter() + Point(0,0 ,-lastPore->getRadius() )))
+		{
+			Pore3D * newPore = new Pore3D(r, xx, y, z+100) ;
+			ft.addFeature(lastPore, newPore) ;
+		}
 	}
 	
-	
+// 	ft.addFeature(sample,new Pore3D(60, 50, 50, 50)) ;
 
 	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
 
-	ft.sample(128) ;
+	ft.sample(2048) ;
 	
 	ft.generateElements() ;
 
@@ -468,15 +500,15 @@ int main(int argc, char *argv[])
 			points.insert(&elems[i]->getBoundingPoint(j)) ;
 		}
 	}
-
-	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
-	{
-		
-		ft.getAssembly()->setPoint(0., (*i)->id) ;
-
-	}
-	ft.step(0.1) ;
-
+// 
+// 	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
+// 	{
+// 		
+// 		ft.getAssembly()->setPoint(0., (*i)->id) ;
+// 
+// 	}
+// 	ft.step(0.1) ;
+// 
 // 	x = &ft.getAssembly()->getDisplacements() ;
 
 	
@@ -490,24 +522,9 @@ int main(int argc, char *argv[])
 		{
 			ft.getAssembly()->setPoint(.5, (*i)->id) ;
 		}
-// 		else if((*i)->x  == 100 )
-// 		{
-// 			ft.getAssembly()->setPoint(0, (*i)->id) ;
-// 		}
-		
 	}
 
 	ft.step(0.1) ;
-
-// 	ft.getAssembly()->print() ;
-
-// 	x = &ft.getAssembly()->getDisplacements() ;
-
-// 	for(size_t i = 0 ; i < x->size() ; i++)
-// 	{
-// 		std::cout << (*x)[i] << std::endl ;
-// 	}
-
 
 	for(size_t timestep = 0 ; timestep < 0 ; timestep++)
 	{
@@ -526,7 +543,8 @@ int main(int argc, char *argv[])
 				}
 				else if(elems[i]->getBoundingPoint(j).t == -1)
 				{
-					init.insert(std::make_pair(&elems[i]->getBoundingPoint(j), &elems[i]->getBoundingPoint(j+10))) ;
+					init.insert(std::make_pair(&elems[i]->getBoundingPoint(j),
+					                           &elems[i]->getBoundingPoint(j+10))) ;
 				}
 			}
 		}
