@@ -61,7 +61,7 @@ bool MohrCoulomb::met(const ElementState & s)
 		
 		if(cache.empty())
 		{
-			Circle epsilon(0.01,testedTri->getCenter()) ;
+			Circle epsilon(0.002,testedTri->getCenter()) ;
 			cache = testedTri->tree->conflicts(&epsilon);
 		}
 

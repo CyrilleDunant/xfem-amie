@@ -45,6 +45,10 @@ SOURCE_MAIN_2D =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} sampl
 OBJECTS_MAIN_2D =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main.o matrixops.o ${OBJECT_UTILITIES} ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
 TARGET_MAIN_2D = tryit
 
+SOURCE_MAIN_RAG =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_rag.cpp matrixops.cpp ${SOURCE_UTILITIES} ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
+OBJECTS_MAIN_RAG =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_rag.o matrixops.o ${OBJECT_UTILITIES} ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
+TARGET_MAIN_RAG = tryit_rag
+
 # TARGET_MAIN = steph main_simple 
 SOURCE_MAIN_SIMPLE =  ${SOURCE_FUNCTIONS} ${SOURCE_PHYSICS} ${SOURCE_ELEMENTS} samplingcriterion.cpp  main_simple.cpp matrixops.cpp ${SOURCE_NEW_GEO}  ${SOURCE_SOLVERS} configuration.cpp ${SOURCE_FEATURE} delaunay_3d.cpp delaunay.cpp ${SOURCE_SPARSE}
 OBJECTS_MAIN_SIMPLE =  ${OBJECTS_FUNCTIONS} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS}   samplingcriterion.o main_simple.o matrixops.o  ${OBJECTS_NEW_GEO} ${OBJECTS_SOLVERS} configuration.o ${OBJECTS_FEATURE} delaunay_3d.o delaunay.o ${OBJECTS_SPARSE}
@@ -110,6 +114,9 @@ ${TARGET_MAIN_DIFFUSION}: ${OBJECTS_MAIN_DIFFUSION}
 ${TARGET_MAIN_2D}: ${OBJECTS_MAIN_2D}
 	${CXX} ${LDFLAGS} -o $@ $+ 
 
+${TARGET_MAIN_RAG}: ${OBJECTS_MAIN_RAG}
+	${CXX} ${LDFLAGS} -o $@ $+ 
+
 ${TARGET_MAIN_SIMPLE}: ${OBJECTS_MAIN_SIMPLE}
 	${CXX} ${LDFLAGS} -o $@ $+ 
 
@@ -150,6 +157,9 @@ depend_main_3d_diffusion: Makefile
 depend_main_2d: Makefile 
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_2D} > $@
 
+depend_main_rag: Makefile 
+	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_RAG} > $@
+
 depend_main_diffusion: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_2D} > $@
 
@@ -181,7 +191,7 @@ depend_main_kill: Makefile
 	${CXX} -MM ${CXXFLAGS} ${SOURCE_MAIN_KILL} > $@
 
 clean:
-	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${TARGET_MAIN_3D_DIFFUSION} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} ${OBJECTS_FILTERS} utilities/granulo.o depend_main  depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome depend_main_simple depend_main_kill depend_main_multicrack 
+	rm -f ${OBJECTS_MAIN} ${TARGET_MAIN} ${OBJECTS_MAIN_2D} ${TARGET_MAIN_2D} ${OBJECTS_MAIN_RAG} ${TARGET_MAIN_RAG} ${TARGET_MAIN_3D_DIFFUSION} ${OBJECTS_AMOR_3D} ${TARGET_AMOR_3D}  ${OBJECTS_elasticity_c3s} ${TARGET_elasticity_c3s} ${OBJECTS_periodic_c3s} ${TARGET_periodic_c3s} ${OBJECTS_viscoelasticity_c3s} ${TARGET_viscoelasticity_c3s} ${OBJECTS_NEW_GEO} ${OBJECTS_FEATURE} ${OBJECTS_PHYSICS} ${OBJECTS_ELEMENTS} ${OBJECTS_SOLVERS} ${OBJECTS_SPARSE} ${OBJECTS_FILTERS} utilities/granulo.o depend_main  depend_main_2d depend_main_rag depend_amor depend_elasticity_c3s depend_periodic_c3s depend_viscoelasticity_c3s  depend_main_jerome depend_main_simple depend_main_kill depend_main_multicrack  
 
 include depend_main
 include depend_main_3d_diffusion
@@ -195,3 +205,5 @@ include depend_main_2d
 include depend_main_simple
 include depend_main_multicrack
 include depend_main_kill
+include depend_main_rag
+include depend_main_2d

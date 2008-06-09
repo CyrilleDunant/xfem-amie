@@ -140,11 +140,11 @@ void setBC()
 			{
 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
+			if(triangles[k]->getBoundingPoint(c).x < -.0199 && triangles[k]->getBoundingPoint(c).y > 0.0199)
 			{
 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
 			}
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x > .0199)
 			{
 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
 			}
@@ -1564,11 +1564,37 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	std::vector<Inclusion *> inclusions ;
-	inclusions = GranuloBolome(0.0012, 1, BOLOME_D)(.002, .5);
-// 	inclusions = GranuloBolome(.35, 25000, BOLOME_A)(.004, .2);
+	double itzSize = 0;
+	int inclusionNumber = 1 ;
+	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*0.25, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
+
+	if(inclusionNumber)
+		itzSize = inclusions[inclusions.size()/2]->getRadius() ;
+	for(size_t i = 0; i < inclusions.size() ; i++)
+		delete inclusions[i] ;
+
+	inclusions = GranuloBolome(4.79263e-07*0.125, 1, BOLOME_D)(.002, .0001, inclusionNumber, 0./*itzSize*/);
+
+	std::vector<Feature *> feats ;
+	for(size_t i = 0; i < inclusions.size() ; i++)
+		feats.push_back(inclusions[i]) ;
 
 	int nAgg = 0 ;
+	feats=placement(sample.getPrimitive(), feats, &nAgg, 64000);
+
+	double volume = 0 ;
+	for(size_t i = 0 ; i < feats.size() ; i++)
+		volume += feats[i]->area() ;
+	if(!feats.empty())
+		std::cout << "largest r = " << feats.back()->getRadius() 
+		<< ", smallest r =" << feats.front()->getRadius() 
+		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
+
+	inclusions.clear() ;
+	for(size_t i = 0; i < feats.size() ; i++)
+		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
+
+	
 	inclusions=placement(.04, .04, inclusions, &nAgg, 32);
 
 	double placed_area = 0 ;
@@ -1594,7 +1620,7 @@ int main(int argc, char *argv[])
 
 	zones = generateExpansiveZones(1, inclusions, F) ;
 
-	F.sample(400) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 

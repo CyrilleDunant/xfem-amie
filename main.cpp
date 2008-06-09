@@ -1844,7 +1844,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0;
-	int inclusionNumber = 0 ;
+	int inclusionNumber = 1 ;
 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*0.125, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
 
 	if(inclusionNumber)
@@ -1916,11 +1916,11 @@ int main(int argc, char *argv[])
 
 		LayeredInclusion * newinc = new LayeredInclusion(radii, inclusions[i]->getCenter()) ;
 		newinc->setBehaviours(behavs) ;
-		F.addFeature(pore1,newinc) ;
+// 		F.addFeature(pore1,newinc) ;
 		
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000)) ;
-// 		F.addFeature(pore1,inclusions[i]) ;
+		F.addFeature(pore1,inclusions[i]) ;
 // 		F.addFeature(pore1,new Pore(inclusions[i]->getRadius()-itzSize*.75, inclusions[i]->getCenter())) ;
 		placed_area += inclusions[i]->area() ;
 	}
@@ -1933,7 +1933,7 @@ int main(int argc, char *argv[])
 		std::cout << "placed area = " <<  placed_area << std::endl ;
 	}
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
-// 	zones = generateExpansiveZones(3, inclusions, F) ;
+	zones = generateExpansiveZones(1, inclusions, F) ;
 
 	F.sample(128) ;
 
