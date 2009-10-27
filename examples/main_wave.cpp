@@ -12,9 +12,12 @@
 #include "../features/inclusion.h"
 #include "../features/sample3d.h"
 #include "../features/sample.h"
+#include "../features/vibratingcircularmembrane.h"
 #include "../mesher/delaunay_3d.h"
 #include "../filters/voxelporefilter.h"
 #include "../physics/void_form.h"
+#include "../physics/wave.h"
+#include "../polynomial/vm_base.h"
 
 #include <cmath>
 #include <typeinfo>
@@ -28,6 +31,7 @@
 #include <ctime>
 #include <iostream>
 #include <fstream>
+#include <valarray>
 
 #include <time.h> 
 #define DEBUG 
@@ -51,8 +55,10 @@ double factor = 0.5 ;
 
 std::vector<double> sizered;
 std::vector<DelaunayTetrahedron *> myTets ;
+std::vector<DelaunayTriangle *> myTris ;
 std::vector<HexahedralElement *> myHexs ;
 std::vector<Point *> points ;
+FeatureTree *FT ;
 DelaunayTree3D *dt ;
 GLint xangle = 0;
 GLint yangle = 0;
@@ -67,6 +73,7 @@ Vector * sigma ;
 
 std::vector<Point *> pts ;
 
+int tstep = 0 ;
 
 std::pair<Matrix,Matrix> arnoldi(const Matrix & A)
 {
@@ -163,9 +170,19 @@ void computeDisplayList()
 	glEnable(GL_DEPTH_TEST);
 	glNewList(1,GL_COMPILE) ;
 // 	myTets= dt->getTetrahedrons() ;
-	double min = sigma->min() ;
-	double max = sigma->max() ;
-	for(size_t i = 0 ; i < myTets.size(); i++)
+	double min = 0 ;
+	double max = 0 ;
+	for(size_t i = 0 ; i < myTris.size(); i++)
+	{
+		for(size_t j = 6 ; j < 9 ; j++)
+		{
+			double v = (*x)[myTris[i]->getBoundingPoint(j).id] ;
+			if(min > v) min = v ;
+			if(max < v) max = v ;
+		}
+	}
+
+	for(size_t i = 0 ; i < myTris.size(); i++)
 	{
 
 // 		if(dist(*myTets[i]->getCenter(), cen) <1.8 || 
@@ -187,7 +204,7 @@ void computeDisplayList()
 // 		HSV2RGB(&r, &g, &b, 360.-180.-180.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
 // 		glColor4f (r,g,b, .3);
 			
-		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		if(myTris[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
 // 			glColor3f (0,0,0);
 			
@@ -208,47 +225,26 @@ void computeDisplayList()
 			
 			glBegin(GL_LINES);
 			
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTris[i]->getBoundingPoint(6).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1);
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTris[i]->first->x*.1 + 5, myTris[i]->first->y*.1 + 5, (*x)[myTris[i]->getBoundingPoint(6).id]*.1);
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTris[i]->getBoundingPoint(7).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
+			glVertex3f(myTris[i]->second->x*.1 + 5, myTris[i]->second->y*.1 + 5, (*x)[myTris[i]->getBoundingPoint(7).id]*.1 );
 
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTris[i]->getBoundingPoint(6).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1 );
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTris[i]->first->x*.1 + 5, myTris[i]->first->y*.1 + 5, (*x)[myTris[i]->getBoundingPoint(6).id]*.1 );
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTris[i]->getBoundingPoint(8).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1) ;
+			glVertex3f(myTris[i]->third->x*.1 + 5, myTris[i]->third->y*.1 + 5, (*x)[myTris[i]->getBoundingPoint(8).id]*.1) ;
 
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(0+10).id]-min)/(max-min), 1., 1.) ;
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTris[i]->getBoundingPoint(8).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->first->x*.1, myTets[i]->first->y*.1, myTets[i]->first->z*.1 );
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
+			glVertex3f(myTris[i]->third->x*.1 + 5, myTris[i]->third->y*.1 + 5, (*x)[myTris[i]->getBoundingPoint(8).id]*.1 );
+			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTris[i]->getBoundingPoint(7).id]-min)/(max-min), 1., 1.) ;
 			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
-
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1);
-
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(2+10).id]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->second->x*.1, myTets[i]->second->y*.1, myTets[i]->second->z*.1 );
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
-
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(4+10).id]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->third->x*.1, myTets[i]->third->y*.1, myTets[i]->third->z*.1 );
-			HSV2RGB(&r, &g, &b, 180.-180.*((*x)[myTets[i]->getBoundingPoint(6+10).id]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
-			glVertex3f(myTets[i]->fourth->x*.1, myTets[i]->fourth->y*.1, myTets[i]->fourth->z*.1);
+			glVertex3f(myTris[i]->second->x*.1 + 5, myTris[i]->second->y*.1 + 5, (*x)[myTris[i]->getBoundingPoint(7).id]*.1);
 
 
 			glEnd();
@@ -328,7 +324,7 @@ void reshape (int w, int h)
 	gluPerspective(45.0, (GLfloat) w/(GLfloat) h, 1., 120);
 }
  
-void keyboard (unsigned char key, int x, int y)
+void keyboard (unsigned char key, int x_, int y_)
    {
   	switch (key) {
 
@@ -357,6 +353,58 @@ void keyboard (unsigned char key, int x, int y)
 		  	max_x -=0.1 ;
 		  	break;
 	  	}
+  	case 's':
+	  	{
+			for(size_t t = 0 ; t < 10 ; t++)
+			{
+				x = &(FT->getAssembly()->getDisplacements()) ;
+				
+				std::set<Point *> source ;
+				std::set<Point *> border ;
+				std::set<std::pair<Point *, Point *> > init ;
+				for(size_t i = 0 ; i < myTris.size() ; i++)
+				{
+					for(size_t j = 0 ; j < myTris[i]->getBoundingPoints().size() ; j++)
+					{
+						if(std::abs(sqrt((myTris[i]->getBoundingPoint(j).x)*(myTris[i]->getBoundingPoint(j).x)+(myTris[i]->getBoundingPoint(j).y)*(myTris[i]->getBoundingPoint(j).y)) - 50) < 1e-8)
+						{
+							border.insert(&myTris[i]->getBoundingPoint(j)) ;
+						}
+						else if(myTris[i]->getBoundingPoint(j).x == 0 
+							&& myTris[i]->getBoundingPoint(j).y == 0 
+							&& myTris[i]->getBoundingPoint(j).t == 1)
+						{
+							source.insert(&myTris[i]->getBoundingPoint(j)) ;
+						}
+						else if(myTris[i]->getBoundingPoint(j).t == -1 || myTris[i]->getBoundingPoint(j).t == 0)
+						{
+							init.insert(std::make_pair(&myTris[i]->getBoundingPoint(j),
+										  &myTris[i]->getBoundingPoint(j+3))) ;
+						}
+					}
+				}
+				
+				for(std::set<Point *>::iterator i = source.begin() ; i != source.end() ; ++i)
+				{
+					FT->getAssembly()->setPoint(10.*sin(2.*M_PI*(double)(tstep+1)/100.),(*i)->id) ;
+				}
+// 				for(std::set<Point *>::iterator i = border.begin() ; i != border.end() ; ++i)
+// 					FT->getAssembly()->setPoint(0,(*i)->id) ;
+				
+				for(std::set<std::pair<Point *, Point *> >::iterator i = init.begin() ; i != init.end() ; ++i)
+				{
+					FT->getAssembly()->setPoint((*x)[(*i).second->id],(*i).first->id) ;
+				}
+				
+				FT->step(0.1) ;
+				x =  &(FT->getAssembly()->getDisplacements()) ;
+				tstep++ ;
+			}
+// 		  	FT->getAssembly()->print() ;
+		  	computeDisplayList() ;
+	  	}
+	  	
+	  	
 	default:
   		break;
   	}
@@ -396,74 +444,27 @@ void mouse(int button, int state, int x, int y)
 int main(int argc, char *argv[])
 {
 	
-	Matrix diffusionMatrix(3,3) ;
+	Matrix diffusionMatrix(2,2) ;
 
-	diffusionMatrix[0][0] =100;
-	diffusionMatrix[1][1] =100;
-	diffusionMatrix[2][2] =100;
-
-
-	Sample3D * sample = new Sample3D(100, 100, 100, 50, 50, 50) ;
-	sample->setBehaviour(new Diffusion(diffusionMatrix)) ;
-	FeatureTree ft(sample) ;
 	
-// 	std::ifstream file("InputFiles/1000Part/porein20.csv") ;		
-// 	char comma ;
-// 	int dummy ;
-// 	double r ;
-// 	double xx ;
-// 	double y ;
-// 	double z ;
-// 	file >> dummy >> comma >> r >> comma >> xx >> comma >> y >> comma >> z ;
-// 	Pore3D * lastPore = new Pore3D(r, xx, y, z) ;
-// 	/*Pore3D*/
-// 	ft.addFeature(sample,lastPore) ;
-// 	while(!file.eof())
-// 	{
-// 		file >> dummy >> comma >> r >> comma >> xx >> comma >> y >> comma >> z ;
-// // 		std::cout << dummy << ", " << r << ", " << xx << ", " << y << ", " << z << std::endl ;
-// 		Pore3D * newPore = new Pore3D(r, xx, y, z) ;
-// 		ft.addFeature(lastPore, newPore) ;
-// 		Pore3D * originalPore = newPore;
-// 		/*VirtualInclusion3D*/
-// 		if(!sample->in(originalPore->getCenter() + Point(originalPore->getRadius(), 0, 0)))
-// 		{
-// 			Pore3D * newPore = new Pore3D(r, xx-100, y, z) ;
-// 			ft.addFeature(lastPore, newPore) ;
-// 			lastPore = newPore ;
-// 		}
-// 		if(!sample->in(originalPore->getCenter() + Point(-originalPore->getRadius(), 0, 0)))
-// 		{
-// 			Pore3D * newPore = new Pore3D(r, xx+100, y, z) ;
-// 			ft.addFeature(lastPore, newPore) ;
-// 		}
-// 		if(!sample->in(originalPore->getCenter() + Point(0,originalPore->getRadius() , 0)))
-// 		{
-// 			Pore3D * newPore = new Pore3D(r, xx, y-100, z) ;
-// 			ft.addFeature(lastPore, newPore) ;
-// 		}
-// 		if(!sample->in(originalPore->getCenter() + Point(0,-originalPore->getRadius() , 0)))
-// 		{
-// 			Pore3D * newPore = new Pore3D(r, xx, y+100, z) ;
-// 			ft.addFeature(lastPore, newPore) ;
-// 		}
-// 		if(!sample->in(originalPore->getCenter() + Point(0, 0, originalPore->getRadius())))
-// 		{
-// 			Pore3D * newPore = new Pore3D(r, xx, y, z-100) ;
-// 			ft.addFeature(lastPore, newPore) ;
-// 		}
-// 		if(!sample->in(originalPore->getCenter() + Point(0,0 ,-originalPore->getRadius() )))
-// 		{
-// 			Pore3D * newPore = new Pore3D(r, xx, y, z+100) ;
-// 			ft.addFeature(lastPore, newPore) ;
-// 		}
-// 	}
-// 	
-	ft.addFeature(sample,new Pore3D(25, 50, 50, 50)) ;
-	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
+	diffusionMatrix[0][0] = 50;
+	diffusionMatrix[1][1] = 50;
+
+	Sample * base = new Sample(NULL, 200, 200, 0, 0) ;
+	base->setBehaviour(new VoidForm()) ;
+	Inclusion * sample = new Inclusion(80, 0, 0) ;
+	sample->setBehaviour(new Wave(diffusionMatrix)) ;
+	FeatureTree ft(base) ;
+	ft.addFeature(base, sample) ;
+// 	ft.addFeature(base, new VibratingMembrane(sample,50, 0, 0, diffusionMatrix)) ;
+
+
 	ft.sample(512) ;
-	ft.generateElements(0, true) ;
-	std::vector<DelaunayTetrahedron *> elems = ft.getTetrahedrons() ;
+	ft.setOrder(LINEAR_TIME_QUADRATIC) ;
+	ft.generateElements(0, false) ;
+	
+
+	std::vector<DelaunayTriangle *> elems = ft.getTriangles() ;
 
 	std::set<Point *> points ;
 	for(size_t i = 0 ; i < elems.size() ; i++)
@@ -479,7 +480,6 @@ int main(int argc, char *argv[])
 			points.insert(&elems[i]->getBoundingPoint(j)) ;
 		}
 	}
-	std::cout << " ...done." << std::endl ;
 // 
 // 	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
 // 	{
@@ -494,43 +494,59 @@ int main(int argc, char *argv[])
 	
 	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
 	{
-		if(std::abs((*i)->t  +1) < 1e-6)
+		if(std::abs(sqrt(((*i)->x)*((*i)->x)+((*i)->y)*((*i)->y)) - 50) < 1e-8)
 		{
 			ft.getAssembly()->setPoint(0, (*i)->id) ;
 		}
-		else if(std::abs((*i)->x ) < 1e-6 && std::abs((*i)->t  - 1) < 1e-6)
+		else if((*i)->x  == 0  && (*i)->y == 0 && (*i)->t == -1)
 		{
-			ft.getAssembly()->setPoint(.5, (*i)->id) ;
+			ft.getAssembly()->setPoint(100.*sin(M_PI*(double)0/10), (*i)->id) ;
+		}
+		else if((*i)->x  == 0  && (*i)->y == 0 && (*i)->t == 1)
+		{
+			ft.getAssembly()->setPoint(100.*sin(M_PI*(double)0/10), (*i)->id) ;
 		}
 	}
 
 	ft.step(0.1) ;
+	FT = &ft ;
 
-	for(size_t timestep = 0 ; timestep < 50 ; timestep++)
+// 	ft.getAssembly()->print() ;
+
+	for(size_t timestep = 2 ; timestep < 0 ; timestep++)
 	{
 		x = &ft.getAssembly()->getDisplacements() ;
 
 
 		std::set<Point *> source ;
+		std::set<Point *> border ;
 		std::set<std::pair<Point *, Point *> > init ;
 		for(size_t i = 0 ; i < elems.size() ; i++)
 		{
 			for(size_t j = 0 ; j < elems[i]->getBoundingPoints().size() ; j++)
 			{
-				if(elems[i]->getBoundingPoint(j).x == 0 )
+				if(std::abs(sqrt((elems[i]->getBoundingPoint(j).x)*(elems[i]->getBoundingPoint(j).x)+(elems[i]->getBoundingPoint(j).y)*(elems[i]->getBoundingPoint(j).y)) - 50) < 1e-8)
+				{
+					border.insert(&elems[i]->getBoundingPoint(j)) ;
+				}
+				else if(elems[i]->getBoundingPoint(j).x == 0 
+				   && elems[i]->getBoundingPoint(j).y == 0 
+				   && elems[i]->getBoundingPoint(j).t == 1)
 				{
 					source.insert(&elems[i]->getBoundingPoint(j)) ;
 				}
 				else if(elems[i]->getBoundingPoint(j).t == -1)
 				{
 					init.insert(std::make_pair(&elems[i]->getBoundingPoint(j),
-					                           &elems[i]->getBoundingPoint(j+10))) ;
+					                           &elems[i]->getBoundingPoint(j+3))) ;
 				}
 			}
 		}
 		
 		for(std::set<Point *>::iterator i = source.begin() ; i != source.end() ; ++i)
-			ft.getAssembly()->setPoint(.5,(*i)->id) ;
+			ft.getAssembly()->setPoint(100.*sin(M_PI*(double)timestep/10),(*i)->id) ;
+		for(std::set<Point *>::iterator i = border.begin() ; i != border.end() ; ++i)
+			ft.getAssembly()->setPoint(0,(*i)->id) ;
 		
 		for(std::set<std::pair<Point *, Point *> >::iterator i = init.begin() ; i != init.end() ; ++i)
 		{
@@ -552,32 +568,32 @@ int main(int argc, char *argv[])
 // 		}
 // 	}
 
-	myTets =  elems ;
+	myTris =  elems ;
 
-	sigma = new Vector(myTets.size()*10) ;
+	sigma = new Vector(myTris.size()*3) ;
 	
 	int count = 0 ;
-	for(size_t i = 0 ; i < myTets.size(); i++)
+	for(size_t i = 0 ; i < myTris.size(); i++)
 	{
 		if(i%1000 == 0)
-			std::cout << "\r getting strains ..." << i+1 << "/" << myTets.size() << std::flush ;
+			std::cout << "\r getting strains ..." << i+1 << "/" << myTris.size() << std::flush ;
 
 
-		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
+		if(myTris[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
 		{
 			count++;
 
-			for(size_t j = 10 ; j < 20 ;j++)
+			for(size_t j = 6 ; j < 9 ;j++)
 			{
 				
-				(*sigma)[i*10+j-10] = (*x)[elems[i]->getBoundingPoint(j).id] ;
+				(*sigma)[i*3+j-6] = (*x)[elems[i]->getBoundingPoint(j).id] ;
 			}
 		}
 		else
 		{
-			for(size_t j = 0 ; j < 10 ;j++)
+			for(size_t j = 0 ; j < 3 ;j++)
 			{
-				(*sigma)[i*10+j] = 0 ;
+				(*sigma)[i*3+j] = 0 ;
 			}
 		}
 		
