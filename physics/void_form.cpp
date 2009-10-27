@@ -29,10 +29,8 @@ Matrix VoidForm::apply(const Function & p_i, const Function & p_j,const Integrab
 	return ret ; 
 }
 
-Matrix VoidForm::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+void VoidForm::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	Matrix ret ;
-	return ret ; 
 }
 
 void VoidForm::step(double timestep, const ElementState & currentState) 
@@ -57,8 +55,7 @@ Form * VoidForm::getCopy() const
 	return new VoidForm(*this) ;
 }
 
-Vector VoidForm::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+void VoidForm::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	return Vector(0) ;
 }
 

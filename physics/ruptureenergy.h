@@ -17,9 +17,8 @@
 
 namespace Mu {
 
-/**
+/** \brief This FractureCriterion is met when a certain (elastic) Energy density is reached
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
-	The Mohr-Coulomb is met when one of the principal stresses is below or above the prescribed limits 
 	
 */
 class RuptureEnergy : public FractureCriterion
@@ -30,13 +29,22 @@ public:
 
 	double energy ;
 
+/** \brief Constructor. Set the threshold energy density
+*
+* @param energy Threshold energy density
+*/
 	RuptureEnergy(double energy);
 
 	virtual ~RuptureEnergy();
 
-	virtual bool met(const ElementState & s)  ;
-
+/** \brief return a copy of this fracture criterion*/
 	virtual FractureCriterion * getCopy() const;
+
+/** \brief Return the normalised distance to the fracture surface.
+*
+* The distance is computed thus: \f$ 1 - \frac{E_c A_e}{\int_e \sigma \epsilon de} \f$
+* @param s ElementState to consider
+*/
 	virtual double grade(const ElementState &s) const  ;
 };
 

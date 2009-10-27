@@ -10,7 +10,7 @@
 //
 //
 #include "vonmises.h"
-#include "../delaunay.h"
+#include "../mesher/delaunay.h"
 namespace Mu {
 
 VonMises::VonMises(double thresh) : threshold(thresh)
@@ -36,50 +36,9 @@ double VonMises::grade(const ElementState &s) const
 	}
 }
 
-bool VonMises::met(const ElementState & s)
-{
-	DelaunayTriangle * tested = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
-	if(tested)
-	{
-		std::vector<DelaunayTriangle *> neighbourhood ;
-		for(size_t i = 0 ; i< tested->neighbourhood.size() ; i++)
-			neighbourhood.push_back(tested->getNeighbourhood(i)) ;
-		
-		double maxNeighbourhoodScore = 0 ;
-		if(!neighbourhood.empty())
-		{
-			for(size_t i = 0 ; i< neighbourhood.size() ; i++)
-			{
-				if(neighbourhood[i]->getBehaviour()->getFractureCriterion())
-					maxNeighbourhoodScore = std::max(maxNeighbourhoodScore, neighbourhood[i]->getBehaviour()->getFractureCriterion()->grade(neighbourhood[i]->getState())) ;
-			}
-		}
-		
-		double score = grade(s) ;
-		if( score > 0 )
-		{
-			if(score > maxNeighbourhoodScore)
-			{
-				return true ;
-			}
-		}
-
-		return false ;
-	}
-	else
-	{
-		std::cout << " criterion not implemented for this kind of element" << std::endl ;
-		return false ;
-	}
-	
-	//shut up the compiler
-	return false ;
-	
-}
-
 FractureCriterion * VonMises::getCopy() const
 {
-	return new VonMises(*this) ;
+	return new VonMises(threshold) ;
 }
 
 }

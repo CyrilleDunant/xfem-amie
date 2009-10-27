@@ -10,36 +10,48 @@
 //
 //
 
-#ifndef __STIFFNESS_WITH_DEF
-#define __STIFFNESS_WITH_DEF
+#ifndef __STIFFNESS_WITH_VARIABLE_DEF_AND_FRAC
+#define __STIFFNESS_WITH_VARIABLE_DEF_AND_FRAC
 
 #include "physics_base.h"
+#include "isotropiclineardamage.h"
+#include "fracturecriterion.h"
 
 namespace Mu
 {
 
 	
-	/** \brief A linear elastic law with an imposed strain
+	/** \brief A linear Elastic Law
 	*
 	* The field param is the Cauchy-Green Strain Tensor
-	* The imposed deformation are given as a vector
+	* The imposed deformation are given as a vector and grow with time
+	* A fracture criterion can be set
 	*/
-	struct StiffnessWithImposedDeformation : public LinearForm
+	struct StiffnessWithVariableImposedDeformationAndFracture : public LinearForm
 	{
-		std::vector<Variable> v ;
 		Vector imposed ;
 		Function x ;
 		Function y ;
+		IsotropicLinearDamage dfunc ;
+		double previousDamage ;
+		FractureCriterion * criterion ;
+		bool frac ;
+		bool change ; 
+		double sigmaRupt ;
+		double init ;
+		double damage ;
+		std::vector<Variable> v ;
 		/** \brief Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
-		* @param imposedDef Imposed deformation
+		* @param imposedDef Vector of the original imposed deformations
+		* @param criterion FractureCriterion to use.
 		*/
-		StiffnessWithImposedDeformation(const Matrix & rig, Vector imposedDef) ;
+		StiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * criterion) ;
 		
-		virtual ~StiffnessWithImposedDeformation() ;
+		virtual ~StiffnessWithVariableImposedDeformationAndFracture() ;
 		
-		/** \brief Apply the law.
+		/** \brief  Apply the law.
 		* 
 		* @param p_i first basis polynomial.
 		* @param p_j second basis polynomial.
@@ -47,7 +59,7 @@ namespace Mu
 		*/
 		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
 		
-		/** Apply the law.
+		/** \brief  Apply the law.
 		* @param p_i first basis polynomial.
 		* @param p_j second basis polynomial.
 		* @param gp integration points
@@ -58,18 +70,24 @@ namespace Mu
 		*/
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 		
-		/** \brief return false */
+		/** \brief return true is the damage model has reached the breaking point.*/
 		virtual bool fractured() const ;
+
+		/** \brief return true if the damage state has changed*/
+		virtual bool changed() const ;
 		
-		/** \brief Return a copy of this Behaviour*/
+		/** \brief return a copy of the bahaviour, including a copy of the fracture criterion and damage state.*/
 		virtual Form * getCopy() const ;
 		
-		/** \brief return true*/
+		/** \brief return true */
 		virtual bool hasInducedForces() const ;
-		
-		/** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
-		virtual Vector getImposedStress(const Point & p) const ;
 
+		/** \brief return the imposed strain vector * the CG tensor. */
+		virtual Vector getImposedStress(const Point & p) const ;
+		
+		/** \brief Increment the loading. The loading is increased by the timestep*a random value between 0 and 1 .*/
+		virtual void step(double timestep, ElementState & currentState) ;
+		
 		/** \brief Return the virtual force resulting of the imposed stress
 		* 
 		* @param ElementState to consider 

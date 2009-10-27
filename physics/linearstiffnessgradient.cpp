@@ -17,6 +17,8 @@ using namespace Mu ;
 LinearStiffnessGradient::LinearStiffnessGradient(double E_int, double nu_int, double E_ext, double nu_ext, Point l, Point r) : LinearForm(Matrix(3,3), false, true, 2), paramAlt(3,3), left(l), right(r)
 {
 
+	v.push_back(XI);
+	v.push_back(ETA);
 	param[0][0] = E_int/(1.-nu_int*nu_int) ; param[0][1] =E_int/(1.-nu_int*nu_int)*nu_int ; param[0][2] = 0 ;
 	param[1][0] = E_int/(1.-nu_int*nu_int)*nu_int ; param[1][1] = E_int/(1.-nu_int*nu_int) ; param[1][2] = 0 ; 
 	param[2][0] = 0 ; param[2][1] = 0 ; param[2][2] = E_int/(1-nu_int*nu_int)*(1.-nu_int)/2. ; 
@@ -35,7 +37,7 @@ void LinearStiffnessGradient::transform(const Function & x, const Function & y)
 	Function r(right, x, y) ;
 	double t = dist(left, right) ;
 	t *=t ;
-	s = (l*l-r*r+t)/(2.*t) ;
+	s = .5 + f_sqrt(2.-(2./t)*l*l) ;
 }
 
 Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
@@ -43,9 +45,6 @@ Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j
 	VirtualMachine vm ;
 	
 	FunctionMatrix C(3,3) ;
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
 
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
@@ -76,17 +75,13 @@ Matrix LinearStiffnessGradient::getTensor(const Point & p) const
 			C[i][j] = s*paramAlt[i][j] - (s-1.)*param[i][j];
 		}
 	}
-	
 	return vm.eval(C, p.x, p.y) ;
 }
 
-Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+void LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 	
 	FunctionMatrix C(3,3) ;
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
 
 	for(size_t i = 0 ; i < 3 ; i++)
 	{
@@ -97,7 +92,7 @@ Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j
 		}
 	}
 	
-	return VirtualMachine().ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv,v) ;
+	vm->ieval(Gradient(p_i) * C * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
 Form * LinearStiffnessGradient::getCopy() const 
@@ -105,7 +100,6 @@ Form * LinearStiffnessGradient::getCopy() const
 	return new LinearStiffnessGradient(*this) ;
 }
 
-Vector LinearStiffnessGradient::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+void LinearStiffnessGradient::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	return Vector(0) ;
 }

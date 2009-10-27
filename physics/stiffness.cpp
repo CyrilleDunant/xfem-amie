@@ -16,30 +16,26 @@ using namespace Mu ;
 
 Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.numRows()/3+1) 
 {
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() > 9)
+		v.push_back(ZETA);
 } ;
 
 Stiffness::~Stiffness() { } ;
 
 Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() > 9)
-		v.push_back(ZETA);
-	
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
 
-Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+void Stiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() > 9)
-		v.push_back(ZETA);
-
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
+// std::cout << "a--" << std::endl ;
+// Jinv[0].print() ;
+// std::cout << "--b" << std::endl ;
+	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v, ret) ;
+// 	ret.print() ;
 }
 
 bool Stiffness::fractured() const
@@ -52,8 +48,7 @@ Form * Stiffness::getCopy() const
 	return new Stiffness(*this) ;
 }
 
-Vector Stiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+void Stiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	return Vector(0) ;
 }
 

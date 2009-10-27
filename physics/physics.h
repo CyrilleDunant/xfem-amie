@@ -20,44 +20,44 @@ namespace Mu
 
 
 
-class Diffusion2D :public LinearForm
-{
-public:
-
-	double c ;
-	
-	double alpha ;
-	double tau   ;
-	
-	Diffusion2D(double capacity, double conductivityX, double conductivityY) ;
-	
-	virtual ~Diffusion2D() ;
-	
-	
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
-	
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv) const;
-	
-	virtual void step(double timestep, ElementState * currentState) ;
-	
-	/** Check for fracture state
-	 *
-	 * @return true if the element is fractured
-	 */
-	virtual bool fractured() const;
-	
-	
-	/** get Copy of the behaviour
-	 *
-	 * @return pointer to the copy. Caller is responsible for cleaning memory
-	 */
-	virtual Form * getCopy() const ;
-
-	virtual bool hasInducedForces() const ;
-	
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv) const ;
-	
-} ;
+// class Diffusion2D :public LinearForm
+// {
+// public:
+// 
+// 	double c ;
+// 	
+// 	double alpha ;
+// 	double tau   ;
+// 	
+// 	Diffusion2D(double capacity, double conductivityX, double conductivityY) ;
+// 	
+// 	virtual ~Diffusion2D() ;
+// 	
+// 	
+// 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
+// 	
+// 	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv, Matrix & ret) const;
+// 	
+// 	virtual void step(double timestep, ElementState * currentState) ;
+// 	
+// 	/** Check for fracture state
+// 	 *
+// 	 * @return true if the element is fractured
+// 	 */
+// 	virtual bool fractured() const;
+// 	
+// 	
+// 	/** get Copy of the behaviour
+// 	 *
+// 	 * @return pointer to the copy. Caller is responsible for cleaning memory
+// 	 */
+// 	virtual Form * getCopy() const ;
+// 
+// 	virtual bool hasInducedForces() const ;
+// 	
+// 	virtual void getForces(const ElementState & s, const Function & p_i, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+// 	
+// } ;
 
 class TwoDCohesiveForces : public NonLinearForm
 {
@@ -78,13 +78,13 @@ public:
 	
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
 	
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	
 	virtual bool hasInducedForces() const ;
 	
 	virtual bool hasInducedMatrix() const ;
 	
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 
 	virtual void step(double timestep, ElementState & currentState) ;
 
@@ -104,7 +104,8 @@ struct NonLinearStiffness : public NonLinearForm
 	 * 
 	 * @param p_i first basis polynomial.
 	 * @param p_j second basis polynomial.
-	 * @return symbolic matrix resulting of \f$ \nabla H^T K \nabla H \f$.
+	 * @param e IntegrableEntity on which to perform the integration
+	 * @return matrix resulting of the integration of \f$ \nabla H^T K \nabla H \f$.
 	 */
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
 	
@@ -112,10 +113,10 @@ struct NonLinearStiffness : public NonLinearForm
 	
 	virtual bool hasInducedMatrix() const ;
 	
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
+	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
 	
 	
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 
 	
 	virtual bool isActive() const ;
@@ -142,10 +143,10 @@ struct ViscoElasticity: public LinearForm
 	
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
 	
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
+	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
 	/** \todo remove usage of previousState. complement state instead*/
 	virtual void step(double timestep, ElementState & currentState);
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
+	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const;
 	
 	virtual bool hasInducedForces();
 	

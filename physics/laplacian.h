@@ -10,34 +10,34 @@
 //
 //
 
-#ifndef __DIFFUSION_H_
-#define __DIFFUSION_H_
+#ifndef __LAPLACIAN_H_
+#define __LAPLACIAN_H_
 
 #include "physics_base.h"
 
 namespace Mu
 {
 
-	/** \brief A linear Diffusion Law
+	/** \brief A simple Laplacian
 	* The field param is the diffusion matrix
 	*/
-	struct Diffusion : public LinearForm
+	struct Laplacian : public LinearForm
 	{
 		std::vector<Variable> v ;
 		/** \brief Constructor
 		* 
 		* @param rig Complete expression of the diffusion Tensor
 		*/
-		Diffusion(const Matrix & rig) ;
+		Laplacian(const Matrix & rig) ;
 		
-		virtual ~Diffusion() ;
+		virtual ~Laplacian() ;
 		
 		/** \brief Apply the law.
 		* 
 		* @param p_i first basis function.
 		* @param p_j second basis function.
 		* @param e Element in which to apply the law.
-		* @return matrix resulting of the integration of \f$ \nabla \cdot p_i^T K \nabla \cdot p_j + \dot{p_i}p_j \f$.
+		* @return matrix resulting of the integration of \f$ \nabla \cdot p_i^T K \nabla \cdot p_j \f$.
 		*/
 		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const; 
 		

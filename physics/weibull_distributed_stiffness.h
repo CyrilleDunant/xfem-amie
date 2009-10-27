@@ -18,16 +18,19 @@
 namespace Mu
 {
 
-	/** A linear Elastic Law
+	/** \brief A linear Elastic Law
 	* The field param is the Cauchy-Green Strain Tensor
 	* Actual tensors are distributed around the prescribed value following a Weibull distribution
 	*/
 	struct WeibullDistributedStiffness : public LinearForm
 	{
+		std::vector<Variable> v ;
+		double variability ;
 		double criterion ;
 		/** Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
+		* @param cri stress limit for the Mohr - Coulomb criterion to use
 		*/
 		WeibullDistributedStiffness(const Matrix & rig, double cri)  ;
 		
@@ -41,13 +44,29 @@ namespace Mu
 		*/
 		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
 		
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	/** \brief Apply the behaviour
+		* This overloaded apply() is more efficient and is designed to minimise allocating and dealocating memory.
+		* This method  is never used, however, because the behaviour only serves as a template for copying
+		* 
+		* @param p_i first shape function.
+		* @param p_j second shape function.
+		* @param gp Set of gauss points for numerical integration
+		* @param Jinv inverse jacobian matrices at the gauss points
+		* @param ret matrix in which to sore the results
+		* @param vm pointer to the virtual machine dedicated for the computation
+		*/
+		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 		
 		virtual bool fractured() const ;
-		
+
+		/** \brief return a StifnessAndFracture Behaviour
+		*
+		* The parameters for the copy are determined randomly using a Weibull distribution. As this behaviour is spaceDependant, only the copies are used in elements
+		*/
 		virtual Form * getCopy() const ;
 		
-		virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+		/** \brief return an empty Vector*/
+		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
 	} ;
 

@@ -16,6 +16,10 @@ using namespace Mu ;
 
 StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & rig, Vector imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
 {
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 36)
+		v.push_back(ZETA);
 	this->time_d = false ;
 } ;
 
@@ -23,25 +27,12 @@ StiffnessWithImposedDeformation::~StiffnessWithImposedDeformation() { } ;
 
 Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() == 36)
-		v.push_back(ZETA);
-	
-	
 	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
 }
-Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+
+void StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() == 36)
-		v.push_back(ZETA);
-	
-	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v) ;
+	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
 bool StiffnessWithImposedDeformation::fractured() const
@@ -59,15 +50,13 @@ bool StiffnessWithImposedDeformation::hasInducedForces() const
 	return true ; 
 } 
 
-Vector StiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p) const
 {
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() == 36)
-		v.push_back(ZETA);
-	
-	
-	return VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv,v) ;
+	return (param * imposed) ;
+}
+
+void StiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
+{
+	f = VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv,v) ;
 }
 

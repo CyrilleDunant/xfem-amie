@@ -27,6 +27,7 @@ const Vector & LinearDamage::damageState() const
 
 void LinearDamage::step(ElementState & s)
 {
+	double maxD = .9999 ;
 	Vector pstrain = s.getPrincipalStresses(s.getParent()->getCenter()) ;
 	Vector strain = s.getStrain(s.getParent()->getCenter()) ;
 	
@@ -39,24 +40,24 @@ void LinearDamage::step(ElementState & s)
 
 	if(inCompression)
 	{
-		state[state.size()-1] += std::max(.01, state[state.size()-1]) ;
-		state[state.size()-1] = std::min(.9999, state[state.size()-1]) ;
+		state[state.size()-1] += 5e-5*maxD/sqrt(s.getParent()->area()) ;
+		state[state.size()-1] = .5 ;
 	}
 	else if (!strainBroken)
 	{
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
 			if(sum > 1e-12)
-				state[i] += std::max(.01, state[i])*std::abs(pstrain[i])/sum ;
+				state[i] += 5e-5*maxD/sqrt(s.getParent()->area())*std::abs(pstrain[i])/sum ;
 			else
-				state[i] += .9 ;
-			state[i] = std::min(.9999, state[i]) ;
+				state[i] += 5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] = std::min(maxD, state[i]) ;
 		}
 	}
 	else if (strainBroken)
 	{
 		for(size_t i = 0 ; i < state.size() ; i++)
-			state[i] = .9999 ;
+			state[i] = maxD ;
 	}
 }
 
@@ -64,17 +65,30 @@ Matrix LinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
 	
-	for(size_t i = 0 ; i < m.numRows() ;i++)
+	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
 	{
 		for(size_t j = 0 ; j < m.numCols() ;j++)
 		{
-			ret[i][j] *= 1.-sqrt((state[i])*(state[j])) ;
+			ret[i][j] *= 1.-(state[0]) ;
+		}
+	}
+
+	for(size_t i = (m.numRows()+1)/2 ; i < m.numRows() ;i++)
+	{
+		for(size_t j = 0 ; j < m.numCols() ;j++)
+		{
+			ret[i][j] *= 1.-(state[i]) ;
 		}
 	}
 
 	return ret ;
 }
 
+
+bool LinearDamage::fractured() const
+{
+	return state.max() >= .999999 ;
+}
 
 LinearDamage::~LinearDamage()
 {

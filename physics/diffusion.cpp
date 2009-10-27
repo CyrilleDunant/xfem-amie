@@ -16,6 +16,13 @@ using namespace Mu ;
 
 Diffusion::Diffusion(const Matrix & rig) : LinearForm(rig, false, false, 1) 
 {
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 9)
+		v.push_back(ZETA);
+	
+	v.push_back(TIME_VARIABLE);
+
 } ;
 
 Diffusion::~Diffusion() { } ;
@@ -23,35 +30,16 @@ Diffusion::~Diffusion() { } ;
 Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
 	Matrix ret(1,1) ;
-	
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() == 9)
-		v.push_back(ZETA);
-	
-	v.push_back(TIME_VARIABLE);
-	
+
 	ret[0][0] = VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e, v) +  VirtualMachine().ieval(Differential(p_j, TIME_VARIABLE)*p_i, e,v) ;
 	return ret ;
 }
 
-Matrix Diffusion::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+void Diffusion::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine *vm) const
 {
-	VirtualMachine vm ;
-	Matrix ret(1,1) ;
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() == 9)
-		v.push_back(ZETA);
-	
-	v.push_back(TIME_VARIABLE);
+	ret[0][0] = vm->ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
+		+ vm->ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
 
-	ret[0][0] = vm.ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
-		+ vm.ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
-
-	return ret ;
 }
 
 bool Diffusion::fractured() const
@@ -64,8 +52,7 @@ Form * Diffusion::getCopy() const
 	return new Diffusion(*this) ;
 }
 
-Vector Diffusion::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+void Diffusion::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	return Vector(0) ;
 }
 

@@ -1,34 +1,37 @@
-#ifndef __DUAL_BEHAVIOUR_H_
-#define __DUAL_BEHAVIOUR_H_
+#ifndef __TRIPLE_BEHAVIOUR_H_
+#define __TRIPLE_BEHAVIOUR_H_
 
 #include "physics.h"
 
 namespace Mu
 {
 
-/** \brief A Geometry determined dual behaviour.
- * Each Gauss point used is attributed a behaviour depending on whether it lies in or out a given Geometry
+/** \brief A Geometry determined triple behaviour.
+ * Each Gauss point used is attributed a behaviour depending on whether it lies with respect with two concentric geometries determining three domains
  */
-class BimaterialInterface : public LinearForm
+class TrimaterialInterface : public LinearForm
 {
 public:
 	Geometry * inGeometry ;
+	Geometry * outGeometry ;
 	Form * inBehaviour ;
+	Form * midBehaviour ;
 	Form * outBehaviour ;
 		
 	Function xtransform ;
 	Function ytransform ;
-	Function ztransform ;
 	
-	/** \brief Constructor, set the Behaviour s and the delimiting Geometry
+	/** \brief Constructor, set the Behaviour s and the delimiting Geometry s
 	 * 
 	 * @param in Geometry
+	 * @param out Geometry
 	 * @param inbehaviour 
+	 * @param midbehaviour
 	 * @param outbehaviour 
 	 */
-	BimaterialInterface(Geometry * in, Form * inbehaviour, Form * outbehaviour);
+	TrimaterialInterface(Geometry * in,Geometry * out, Form * inbehaviour, Form * midbehaviour, Form * outbehaviour);
 	
-	virtual ~BimaterialInterface();
+	virtual ~TrimaterialInterface();
 	
 	/** \brief Set the coordinate transformation functions to use to determin whether a point expressed in the local coordinates of an element lies in or out the Geometry
 	 * 
@@ -36,14 +39,6 @@ public:
 	 * @param y y transformation
 	 */
 	virtual void transform(const Function & x, const Function & y) ;
-
-	/** \brief Set the coordinate transformation functions to use to determin whether a point expressed in the local coordinates of an element lies in or out the Geometry
-	 * 
-	 * @param x x transformation
-	 * @param y y transformation
-	 * @param z z transformation
-	 */
-	virtual void transform(const Function & x, const Function & y, const Function & z) ;
 	
 	/** \brief return the linear factor of the behaviour corresponding to the position given
 	 * 
@@ -87,20 +82,20 @@ public:
 	 */
 	virtual bool hasInducedForces() const ;
 	
-	/** \brief Check for fracture state
+	/** Check for fracture state
 	 *
 	 * @return true if the element is fractured
 	 */
 	virtual bool fractured() const ;
 	
-	/** \brief get a copy of the behaviour
-	 * This will create a new Bimateral behaviour, with a copy of both the members.
+	/** get Copy of the behaviour
+	 *
 	 * @return pointer to the copy. Caller is responsible fior cleaning memory
 	 */
 	virtual Form * getCopy() const ;
 
-	/** \brief Time-step the behaviour
-	* This will step both be behaviours
+	/** \brief Time-step the behaviours
+	* This will step all the behaviours
 	* @param timestep delta-time of the step.
 	* @param currentState State of the element in which the behaviour is time-stepped
 	*/

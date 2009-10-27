@@ -13,7 +13,7 @@
 #ifndef __PHYSICS_BASE__H_
 #define __PHYSICS_BASE__H_
 
-#include "../matrixops.h"
+#include "../utilities/matrixops.h"
 #include "../polynomial/vm_base.h"
 #include "../geometry/geometry_base.h"
 #include "../geometry/geometry_2D.h"
