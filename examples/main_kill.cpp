@@ -169,7 +169,7 @@ std::pair<std::vector<Feature * >, std::vector<Pore * > > generateInclusionsAndP
 	
 	std::vector<Form *> bs ;
 	bs.push_back(new Stiffness(*tensor)) ;
-	bs.push_back(new Stiffness(*tensor*.01)) ;
+	bs.push_back(new Stiffness(*tensor*.25*.0065)) ;
 	std::vector<double> r ;
 	r.push_back(radius) ;
 	r.push_back(radius*1.05) ;
