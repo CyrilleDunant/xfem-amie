@@ -146,9 +146,9 @@ void VoxelPoreFilter::read(const char * filename)
 		{
 			for( int k = 0 ; k < s+1 ; k++)
 			{
-				double xr = ((double)random()/RAND_MAX*2.-1.)*(.05*10./r) ;
-				double yr = ((double)random()/RAND_MAX*2.-1.)*(.05*10./c) ;
-				double zr = ((double)random()/RAND_MAX*2.-1.)*(.05*10./s) ;
+				double xr = ((double)rand()/RAND_MAX*2.-1.)*(.05*10./r) ;
+				double yr = ((double)rand()/RAND_MAX*2.-1.)*(.05*10./c) ;
+				double zr = ((double)rand()/RAND_MAX*2.-1.)*(.05*10./s) ;
 // 				if(i == 0 || i == r || j == 0 || j== c || k == 0 || k == s)
 // 				{
 					xr = 0 ;
@@ -168,9 +168,9 @@ void VoxelPoreFilter::read(const char * filename)
 		{
 			for( int k = 0 ; k < s+1 ; k++)
 			{
-				double xr = ((double)random()/RAND_MAX*2.-1.)*(.05*10./r) ;
-				double yr = ((double)random()/RAND_MAX*2.-1.)*(.05*10./c) ;
-				double zr = ((double)random()/RAND_MAX*2.-1.)*(.05*10./s) ;
+				double xr = ((double)rand()/RAND_MAX*2.-1.)*(.05*10./r) ;
+				double yr = ((double)rand()/RAND_MAX*2.-1.)*(.05*10./c) ;
+				double zr = ((double)rand()/RAND_MAX*2.-1.)*(.05*10./s) ;
 // 				if(i == 0 || i == r || j == 0 || j== c || k == 0 || k == s)
 // 				{
 					xr = 0 ;
@@ -189,12 +189,7 @@ void VoxelPoreFilter::read(const char * filename)
 	index = 0 ;
 
 	TetrahedralElement * father = new TetrahedralElement(LINEAR_TIME_LINEAR) ;
-	
-	for(size_t j = 0 ; j < father->getShapeFunctions().size()  ; j++)
-	{
-		father->getShapeFunction(j).compile() ;
-	}
-		
+	father->compileAndPrecalculate() ;
 	
 	std::vector<std::vector<std::vector<int> > > phase ;
 	

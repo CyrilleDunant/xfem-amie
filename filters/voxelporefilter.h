@@ -17,11 +17,11 @@
 #include <set>
 
 #include "../elements/elements.h"
-#include "../delaunay_3d.h"
+#include "../mesher/delaunay_3d.h"
 
 namespace Mu {
 
-/**
+/** \brief Read voxel information from µic. All voxels with value 0 will be used to form a pore network
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
 class VoxelPoreFilter{
@@ -58,14 +58,21 @@ public:
 	LinearForm * behaviour ;
 	virtual ~VoxelPoreFilter();
 	
+/** \brief read The file containing the voxel information*/
 	void read(const char * filename) ;
 	
 	int poreIndex ;
 	
+/** \brief return the points forming the mesh*/
 	std::vector<Point *> & getPoints() ;
+
+/** \brief return the elements forming the mesh*/
 	std::vector<DelaunayTetrahedron *> & getElements() ;
 	
+/** \brief return the points forming the mesh*/
 	const std::vector<Point *> & getPoints() const ;
+
+/** \brief return the elements forming the mesh*/
 	const std::vector<DelaunayTetrahedron *> & getElements() const ;
 
 };

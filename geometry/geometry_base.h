@@ -5,7 +5,14 @@
 
 #ifndef __GEOMETRY_BASE_H_
 #define __GEOMETRY_BASE_H_
-#include "../matrixops.h"
+#include "../utilities/matrixops.h"
+
+#ifdef HAVE_SSE3
+#include <pmmintrin.h>
+#endif
+#ifdef HAVE_SSE4
+#include <smmintrin.h>
+#endif
 
 #include <map>
 
@@ -17,6 +24,10 @@ virtual PointArray & getBoundingPoints()       \
 {                                                          \
 	return this->__geo_type__::getBoundingPoints() ;       \
 }                                                          \
+virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points)  const   \
+{                                                           \
+	return this->__geo_type__::getSamplingBoundingPoints(num_points) ; \
+}                                                           \
 virtual GeometryType getGeometryType() const               \
 {                                                          \
 return this->__geo_type__::gType ;                         \
@@ -128,6 +139,18 @@ return this->__geo_type__::volume() ;                      \
 const __geo_type__ * getPrimitive() const                         \
 {                                                          \
 return dynamic_cast<const __geo_type__ *>(this) ;                 \
+}                                                                 \
+__geo_type__ * getPrimitive()                          \
+{                                                          \
+return dynamic_cast<__geo_type__ *>(this) ;                 \
+}                                                                 \
+virtual size_t & timePlanes()                         \
+{                                                          \
+ return this->__geo_type__::timePlanes() ;                 \
+}                                                                 \
+virtual size_t timePlanes() const                         \
+{                                                          \
+return this->__geo_type__::timePlanes() ;                 \
 }
 
 namespace Mu
@@ -150,7 +173,8 @@ typedef enum
 	TETRAHEDRON = 16,
 	HEXAHEDRON = 17,
 	SPHERE = 18,
-	LAYERED_SPHERE = 19
+	LAYERED_SPHERE = 19,
+	REGULAR_OCTAHEDRON
 } GeometryType ;
 
 typedef enum
@@ -164,17 +188,61 @@ typedef enum
 class Segment ;
 class ConvexPolygon ;
 
+/** \brief Four dimensionnal point. Storage of the coordinates makes use of the processors's vector extensions*/
 struct Point
 {
-	double x ;
-	double y ;
-	double z ;
-	double t ;
+	#ifdef HAVE_SSE3
+	union
+	{
+		__m128d vecxy ;
+		struct
+		{
+	#endif
+			double x ;
+			double y ;
+	#ifdef HAVE_SSE3
+		} ;
+	};
+	union
+	{
+		__m128d veczt ;
+		struct
+		{
+	#endif
+			double z ;
+			double t ;
+	#ifdef HAVE_SSE3
+		} ;
+	};
+	#endif
+	/** \brief ID of the point, useful for mesh indexing*/
 	int id ;
+	/** \brief default constructor, coordiantes are nil, and id is -1 */
 	Point();
+	/** \brief initialise x and y values
+	*
+	* @param x
+	* @param y
+	*/
 	Point(double x, double y) ;
+	
+	/** \brief initialise x, y and z values
+	*
+	* @param x
+	* @param y
+	* @param z
+	*/
 	Point(double x, double y, double z) ;
+	/** \brief initialise x, y, z and t values
+	*
+	* @param x
+	* @param y
+	* @param z
+	* @param t
+	*/
 	Point(double x, double y, double z, double t) ;
+	
+	/** \brief copy-constructor.*/
 	Point(const Point & p) ;
 	
 	void setX(double v) ;
@@ -187,7 +255,6 @@ struct Point
 	void set(double v, double vv, double vvv, double vvvv) ;
 	void set(const Point & p) ;
 	void set(const Point * p) ;
-	
 	
 	/** Robust point comparator.
 	 * 
@@ -223,9 +290,17 @@ struct Point
 	Point operator+(const Vector &p) const ;
 	Point operator/(const double p) const ;
 	Point operator*(const double p) const ;
+	
+	/** \brief dot-product*/
 	double operator*(const Point &p) const ;
+	
+	/** \brief dot-product*/
 	double operator*(const Vector &p) const ;
+	
+	/** \brief cross-product*/
 	Point operator^(const Point &p) const ;
+	
+	/** \brief cross-product*/
 	Point operator^(const Vector &p) const ;
 	
 	void operator+=(const Point &p) ;
@@ -234,39 +309,119 @@ struct Point
 		x *= d ; 
 		y *= d ; 
 		z *= d ; 
+		t *= d ; 
 	}
 	
 	void operator*=(const Matrix & m){
-		Vector vec(3) ;
-		vec[0] = x ; vec[1] = y ; vec[2] = z ; 
-		vec = vec*m ;
-		
-		x = vec[0] ; y = vec[1] ; z = vec[2] ;
+		if(m.numCols() == 3)
+		{
+			Vector vec(3) ;
+			vec[0] = x ; vec[1] = y ; vec[2] = z ; 
+			vec = vec*m ;
+			
+			x = vec[0] ; y = vec[1] ; z = vec[2] ;
+		}
+		else if(m.numCols() == 4)
+		{
+			Vector vec(4) ;
+			vec[0] = x ; vec[1] = y ; vec[2] = z ; vec[3] = t ; 
+			vec = vec*m ;
+			
+			x = vec[0] ; y = vec[1] ; z = vec[2] ;  t = vec[3] ;
+		}
+	}
+
+	Point operator* (const Matrix & m) const {
+		if(m.numCols() == 3)
+		{
+			Vector vec(3) ;
+			vec[0] = x ; vec[1] = y ; vec[2] = z ; 
+			vec = vec*m ;
+			return Point(vec[0], vec[1], vec[2]) ;
+		}
+		else if(m.numCols() == 4)
+		{
+			Vector vec(4) ;
+			vec[0] = x ; vec[1] = y ; vec[2] = z ; vec[3] = t ; 
+			vec = vec*m ;
+			
+			return Point(vec[0], vec[1], vec[2], vec[3]) ;
+		}
 	}
 	void operator/=(const double d) {
-		x /= d ; 
-		y /= d ; 
-		z /= d ; 
+		double inv = 1./d ;
+		x *= inv ; 
+		y *= inv ; 
+		z *= inv ; 
+		t *= inv ; 
 	}
 	
 	/** Returns the norm of the Vector. The norm is simply
-	 * \f$ \sqrt{x^2 + y^2} \f$.
+	 * \f$ \sqrt{x^2 + y^2 + z^2 + t^2} \f$.
 	 * 
 	 * @return the norm of the vector, 
 	 */
 	double norm() const;
+	
+	/** Returns the sqare norm of the Vector. The norm is simply
+	 * \f$ x^2 + y^2 + z^2 + t^2 \f$.
+	 * 
+	 * @return the square norm of the vector, 
+	 */
 	double sqNorm() const;
+	
+	/** \brief print point coords and id*/
 	void print() const  ;
+	
+	/** \brief return atan2(y, x)*/
 	double angle() const ;
+	
+	/** \brief access x, y, z or t*/
 	double & operator[](size_t i) ;
+	
+	/** \brief access x, y, z or t*/
 	double operator[](size_t i) const ;
 	
 	
 } ;
 
+/** \brief light class for 3D triangle-line intersection computation*/
+struct TriPoint
+{
+	Point normal ;
+
+	std::valarray<const Point *> point ;
+	std::vector<TriPoint *> neighbour ;
+	
+	/** \brief constructor from three points */
+	TriPoint(const Point * p0, const Point * p1, const Point * p2) : point(3) 
+	{
+		point[0] = p0 ;
+		point[1] = p1 ;
+		point[2] = p2 ;
+		normal = (*p0-*p1)^(*p2-*p1) ;
+	}
+	
+	/** \brief return area of the triangle*/
+	double area() const
+	{
+		return .5*((*point[0]-*point[1])^(*point[2]-*point[1])).norm() ;
+	}
+
+	/** \brief return true is the argument is in*/
+	bool in(const Point & p) const ;
+	
+	Point projection(const Point & p) const ;
+
+};
+
 
 typedef  std::valarray<Point *> PointArray;
 
+/** \brief Basic interface for a geometrical object.
+* 
+* A geometrical object is defined by a set of points, in and out discrimination and intersection and projection operators
+*/
 class Geometry 
 {
 protected:
@@ -279,6 +434,7 @@ protected:
 	virtual void computeCenter() = 0;
 	
 	GeometryType gType ;
+	size_t time_planes ;
 	
 public:
 	
@@ -286,41 +442,95 @@ public:
 	Geometry(size_t numPoints) ;
 	virtual ~Geometry() ;
 	
+	/** \brief Acessor get the bounding points of the geometry*/
 	virtual const PointArray & getBoundingPoints() const = 0;
+	
+	/** \brief Acessor get the bounding points of the geometry*/
 	virtual PointArray & getBoundingPoints() = 0;
+	
+	/** \brief Acessor get the ith bounding point of the geometry*/
 	virtual const Point & getBoundingPoint(size_t i) const = 0;
+	
+	/** \brief Acessor get the ith bounding point of the geometry*/
 	virtual Point & getBoundingPoint(size_t i)  = 0;
+	
+	/** \brief Acessor get the inside points of the geometry*/
 	virtual const PointArray & getInPoints() const ;
+	
+	/** \brief Acessor get the inside points of the geometry*/
 	virtual PointArray & getInPoints() ;
+	
+	/** \brief Acessor get the ith inside point of the geometry*/
 	virtual const Point & getInPoint(size_t i) const ;
+	
+	/** \brief Acessor get the ith inside point of the geometry*/
 	virtual Point & getInPoint(size_t i);
+	
+	/** \brief Acessor set the ith bounding point of the geometry*/
 	virtual void setBoundingPoint(size_t i, Point * p) = 0;
+	
+	/** \brief Acessor set all bounding poinst of the geometry*/
 	virtual void setBoundingPoints(const PointArray & nb) = 0;
+	
+	/** \brief Acessor set all inside poinst of the geometry*/
 	virtual void setInPoints(PointArray nb) {inPoints.resize(nb.size()) ; inPoints=nb ; }
+	
+	/** \brief Acessor get the ith point of the geometry*/
 	virtual const Point & getPoint(size_t i) const = 0;
+	
+	/** \brief Acessor get the ith point of the geometry*/
 	virtual Point & getPoint(size_t i)  = 0;
+	
+	/** \brief Acessor get the center of the geometry*/
 	virtual const Point & getCenter() const ;
+	
+	/** \brief Acessor get the center of the geometry*/
 	virtual Point & getCenter() ;
+	
+	/** \brief Project the argument on the geometry*/
 	virtual void project(Point *) const = 0;
+	
+	/** \brief Set a new center for the geometry*/
 	virtual void setCenter(const Point & newCenter) ;
 	
+	/** \brief Return the geometry type*/
 	virtual GeometryType getGeometryType() const ;
 	
+	/** \brief Return the circumscribing radius*/
 	virtual double getRadius() const = 0;
 	
+	/** \brief Sample the bounding surface with a given number of sampling points. the points are stored as boundingPoints*/
 	virtual void sampleBoundingSurface(size_t num_points) = 0 ;
+
+	/** \brief Return points sampling the bounding surface*/
+	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const = 0 ;
+	
+	/** \brief Sample the bounding surface and the surface of the Geometry. The points are stored as inpoints and bounding points */
 	virtual void sampleSurface(size_t num_points) = 0 ;
+	
+	/** \brief Return true  if the argument is in the geometry*/
 	virtual bool in(const Point & p)const  = 0;
 	
+	/** \brief Return the total number of points stored as inpoints and boundingpoints*/
 	virtual size_t size() const = 0 ;
+	
+	/** \brief Area of the Geometry*/
 	virtual double area() const = 0;
+	
+	/** \brief Volume of the Geometry*/
 	virtual double volume() const = 0;
+	
+	/** \brief Return the number of sides of the geometry. This only makes sense if the geometry is a polyhedron, or polygon*/
 	virtual size_t sides() const { return 3 ; }
 	
+	/** \brief return true if this geometry intersects with the argument*/
 	virtual bool intersects(const Geometry *) const ;
+	
+	/** \brief return the intersection points between this geometry and the argument*/
 	virtual std::vector<Point> intersection(const Geometry *) const ;
-	/** Get the bounding box. 
-     * The points are topLeft, topRight, bottomRight, bottomLeft or in 3D:
+	
+	/** \brief Get the bounding box. 
+   * The points are topLeft, topRight, bottomRight, bottomLeft or in 3D:
 	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z+0.5*size_z) ;
 	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z-0.5*size_z) ;
 	 * center.x+0.5*size_x, center.y-0.5*size_y, center.z+0.5*size_z) ;
@@ -332,36 +542,133 @@ public:
 	 */
 	virtual std::vector<Point> getBoundingBox() const = 0;
 	
+	/** \brief Return the number of space dimensions of the geometry (2 or 3)*/
 	virtual SpaceDimensionality spaceDimensions() const = 0 ;
+
+	/** \brief Return the number of time slices present in this geometry*/
+	virtual size_t timePlanes() const ;
+	virtual size_t & timePlanes() ;
 } ;
 
+/** \brief Line used for intersection computation. It also provides a projection method*/
 class Line
 {
 protected:
 	Point p ;
 	Point v ;
 public:
+	/** \brief Constructor. The line is constructed from a point through which it passes and a direction*/
 	Line(const Point & origin, const Point & vector) ;
+	
+	/** \brief Constructor. Build the line as the prolongation of a Segment.*/
 	Line(const Segment & base) ;
+	
+	/** \brief Constructor. build the line as the parallel to a given line and a point to pass through*/
 	Line(const Line & l, const Point & through) ;
+	
+	/** \brief default constructor, Lines passing through 0,0 and with direction (1, 0)*/
 	Line() ;
 	
+	/** \brief return true if this lines intersects with the argument*/
 	bool intersects(const Line &l) const;
+	
+	/** \brief return true if this line intersects with the argument*/
 	bool intersects(const Segment &s) const;
+	
+	/** \brief return true if this line intersects with the argument*/
 	bool intersects(const Geometry *g) const;
+
+	/** \brief return true if this line intersects with the argument*/
+	bool intersects(const TriPoint &g) const;
+	
+	/** \brief return true if the argument lies on this Line*/
 	bool on(const Point &p) const;
 	
+	/** \brief Return the set of intersection Point s between this line and the argument*/
 	std::vector<Point> intersection(const Geometry * g) const ;
-	Point intersection(const Line &l) const;
-	Point intersection(const Segment &l) const;
 	
+	/** \brief Return the intersection point between this Line and the argument. 
+	 *A Point will always be returned, so the user should first check whether the lines intersect*/
+	Point intersection(const Line &l) const;
+	
+	/** \brief Return the intersection point between this Line and the argument. 
+	 *A Point will always be returned, so the user should first check whether the line and segment intersect*/
+	Point intersection(const Segment &l) const;
+
+	/** \brief Return the intersection point between this Line and the argument. 
+	 *A Point will always be returned, so the user should first check whether the line and segment intersect*/
+	std::vector<Point> intersection(const TriPoint &l) const;
+	
+	/** \brief return the direction vector*/
 	const Point & vector() const ;
+	
+	/** \brief return the origin point*/
 	const Point & origin() const ;
 	
+	/** \brief Return the projection of the argument on this line*/
 	Point projection(const Point &p ) const ;
 	
 };
 
+/** \brief Helper class used to compute intersection between geometries in three dimensions*/
+class Plane
+{
+protected:
+	Point p ;
+	Point v ;
+public:
+	
+	/** \brief Contructor. construct a plane from a point and a normal vector.*/
+	Plane(const Point & origin, const Point & vector) ;
+	
+	/** \brief Return true if this plane intersects the argument*/
+	bool intersects(const Line &l) const;
+	
+	/** \brief Return true if this plane intersects the argument*/
+	bool intersects(const Segment &s) const;
+	
+	/** \brief Return true if this plane intersects the argument*/
+	bool intersects(const Geometry *g) const;
+	
+	/** \brief return true if this plane intersects thr argument. Two parallel planes will intersect.*/
+	bool intersects(const Plane &) const;
+	
+	/** \brief Return true if the argument is on the plane*/
+	bool on(const Point &p) const;
+	
+	/** \brief return the set of intersection points with the argument Geometry.*/
+	std::vector<Point> intersection(const Geometry * g) const ;
+	
+	/** \brief return the intersection point with the argument.
+	*
+	* This function will always return a point so the user should first check for the existence of the intersection, using interscts()
+	*/
+	Point intersection(const Line &l) const;
+	
+	/** \brief return the intersection point with the argument.
+	*
+	* This function will always return a point so the user should first check for the existence of the intersection, using interscts()
+	*/
+	Point intersection(const Segment &l) const;
+	
+	/** \brief return the intersection Line with the argument.
+	*
+	* This function will always return a point so the user should first check for the existence of the intersection, using interscts()
+	*/
+	Line intersection(const Plane &) const ;
+	
+	/** \brief return the normal vector*/
+	const Point & vector() const ;
+	
+	/** \brief return the origin*/
+	const Point & origin() const ;
+	
+	/** \brief return the projected point from the argument on the plane*/
+	Point projection(const Point &p ) const ;
+	
+};
+
+/** \brief Helper class used to compute geometry-geometry intersections*/
 class Segment
 {
 protected:
@@ -371,44 +678,104 @@ protected:
 	Point vec ;
 	
 public:
+	
+	/** \brief Constructor. construct a segment from two endpoints*/
 	Segment(const Point & p0, const  Point & p1) ;
+	
+	/** \brief Default Constructor, return a segment (0,0), (1,0)*/
 	Segment() ;
 	virtual ~Segment() ;
 	
+	/** \brief return true if this Segment intersects the argument*/
 	bool intersects(const Line &l) const;
+	
+	/** \brief return true if this Segment intersects the argument*/
 	bool intersects(const Segment &s) const;
+	
+	/** \brief return true if this Segment intersects the argument*/
 	bool intersects(const Geometry *g) const;
+	
+	/** \brief return true if this Segment intersects the argument*/
+	bool intersects(const TriPoint *g) const;
+	
+	/** \brief return true if the argument is on the segment*/
 	bool on(const Point &p) const;
 	
+	/** \brief Accessor, set the first point*/
 	void setFirst(const Point & p) ;
+	
+	/** \brief Accessor, set the first point*/
 	void setFirst(double x, double y) ;
+	
+	/** \brief Accessor, set the second point*/
 	void setSecond(const Point & p) ;
+	
+	/** \brief Accessor, set the second point*/
 	void setSecond(double x, double y) ;
+	
+	/** \brief Accessor, set the endpoints */
 	void set(const Point & p0,const  Point & p1) ;
+	
+	/** \brief Accessor, set the endpoints */
 	void set(double x0, double y0, double x1, double y1) ;
+	
+	/** \brief Return a normal to the segment.*/
 	Point normal() const ;
+	
+	/** \brief Return a normal to the segment. The argument gives the "inside" of the Segment*/
 	Point normal(const Point & inside) const ;
 	
 	void print() const ;
 	
+	/** \brief return the first Point*/
 	const Point & first() const;
+	
+	/** \brief return the second Point*/
 	const Point & second() const;
 	
-	/** midpoint of the segment. is recalculated if the endpoints change.*/
+	/** \brief midpoint of the segment. is recalculated if the endpoints change.*/
 	const Point & midPoint() const;
+	/** \brief Vector obtained by computing first - second.*/
 	const Point & vector() const ;
+	
+	/** \brief return the norm of the Segment*/
 	double norm() const ;
 	
+	/** \brief return the projected point to the segment. This point will be one of the endpoint, 
+	* if the original point is not in the infinite band defined by the segment
+	*/
 	Point project(const Point & p) const ;
+	
+	/** \brief return the intersection between the segment and the line. This always return a point, 
+	 * so the user should check whether line and segment intersect
+	 */
 	Point intersection(const Line &l) const;
+	
+		/** \brief return the intersection between the segment and the line. This always return a point, 
+	 * so the user should check whether segments intersect
+	 */
 	Point intersection(const Segment &l) const;
+	
+		/** \brief segment-secment intersection, with the segment segment defined by the arguments
+	 */
 	bool intersects(const Point & a, const Point & b) const ;
+
+	/** \brief segment-triangle intersection
+	 */
+	bool intersects(const TriPoint & a) const ;
+	
+	/** \brief Return the intersection between this segment and the Argument. */
 	std::vector<Point> intersection(const Geometry * g) const;
 	
+	/** \brief segment-triangle intersection
+	 */
+	std::vector<Point> intersection(const TriPoint & a) const ;
+
+	/** \brief Return two Gauss points*/
 	std::vector<std::pair<Point, double> > getGaussPoints() const ;
 } ;
 
-
+/** \brief basic container for Geometry: the Pointset. it contains an algorithm to compute the convex hull.*/
 class PointSet
 {
 protected:
@@ -416,7 +783,11 @@ protected:
 	size_t chullEndPos ;
 	
 public:
+	
+	/** \brief default constructor. creates an empty pointset*/
 	PointSet() ;
+	
+	/** \brief Construct a pointset with a given size*/
 	PointSet(size_t npoints) ;
 	
 	virtual ~PointSet()
@@ -429,15 +800,32 @@ public:
 		}
 
 	}
+	
+	/** \brief accessor return the x coordinate of the ith point of the pointset*/
 	double x(size_t i);
+	
+	/** \brief accessor return the y coordinate of the ith point of the pointset*/
 	double y(size_t i) ;
+	
+	/** \brief accessor return the z coordinate of the ith point of the pointset*/
 	double z(size_t i) ;
 	
+	/** \brief accessor set the x coordinate of the ith point of the pointset*/
 	void setX(size_t i, double v);
+	
+	/** \brief accessor set the y coordinate of the ith point of the pointset*/
 	void setY(size_t i, double v) ;
+	
+	/** \brief accessor set the z coordinate of the ith point of the pointset*/
 	void setZ(size_t i, double v) ;
+	
+	/** \brief Accessor, set the ith point of the set*/
 	void set(size_t i, Point *p);
+	
+	/** \brief Accessor, set the x, y coordinates of the ith point*/
 	void set(size_t i, double x, double y) ;
+	
+	/** \brief Acessor, set the x, y, z coordinates of the ith point*/
 	void set(size_t i, double x, double y, double z) ;
 	
 	Point * operator[](size_t i) ;
@@ -543,6 +931,7 @@ public:
 	
 };
 
+/** \brief Class defining the interface for a non-convex Geometry */
 class NonConvexGeometry : public PointSet, public Geometry
 {
 protected:
@@ -550,68 +939,114 @@ protected:
 	std::vector<size_t> stopPos ;
 	
 public:
+	
+	/** \brief Default constructor, create empty Geometry*/
 	NonConvexGeometry() ;
+	
+	/** \brief Constructor, create Geometry with @param numPoints uninitialised points*/
 	NonConvexGeometry(size_t numPoints) ;
+	
+	/** \brief Constructor, create a Geometry from an array of Points*/
 	NonConvexGeometry(const PointArray & p) ;
 	virtual ~NonConvexGeometry() { } ;
 	
+	/** \brief Accessor, return the bounding Points. */
 	virtual const std::valarray<Point * > & getBoundingPoints() const ;
+	
+	/** \brief Accessor, return the bounding Points*/
 	virtual std::valarray<Point * > & getBoundingPoints() ;
+
+	/** \brief Accessor, return the ith Bounding Point*/
 	virtual const Point & getBoundingPoint(size_t i) const ;
+	
+	/** \brief Accessor, return the ith Bounding Point*/
 	virtual Point & getBoundingPoint(size_t i) ;
+	
+	/** \brief Accessor, return the ith Point*/
 	virtual const Point & getPoint(size_t i) const ;
+	
+	/** \brief Accessor, return the ith Point*/
 	virtual Point & getPoint(size_t i) ;
 	
+	/** \brief Accessor, set the ith Bounding Point*/
 	virtual void setBoundingPoint(size_t i, Point * p) ;
+	
+	/** \brief Accessor, set the Bounding Points*/
 	virtual void setBoundingPoints(const PointArray & nb) ;
+	
+	/** \brief Return the total number of Points*/
 	virtual size_t size() const ;
+	
+	/** \brief return the Area */
 	virtual double area() const = 0;
 	
+	/** \brief projection operator*/
 	virtual void project(Point *) const = 0;
 	
 } ;
 
-
+/** \brief Convex Polygon, defined from a Pointset*/
 class ConvexPolygon : public PointSet
 {
 public:
+	/** \brief Constructor. Create npoints uninitialised points*/
 	ConvexPolygon(size_t npoints) ;
+	
+	/** \brief Constructor. Construct from a pointset*/
 	ConvexPolygon(const PointSet * po) ;
 	virtual ~ConvexPolygon() { } ;
 	
+	/** \brief return true if the argument is in the Polygon*/
 	virtual bool in(const Point & p) const;
+	
+	/** \brief return true is the points are trigonometrically oriented*/
 	virtual bool isTrigoOriented()  const ;
 } ;
 
-
-
+/** \brief General convex Geometry.*/
 class ConvexGeometry :  public ConvexPolygon, public Geometry
 {
 public:
+	
+	/** \brief default constructor. Create empty geometry */
 	ConvexGeometry() ;
+	
+	/** \brief Constructor. Create npoints uninitialised points*/
 	ConvexGeometry(size_t numPoints) ;
 	virtual ~ConvexGeometry() { } ;
 	
+	/** \brief Accessor, return the bounding Points. */
 	virtual const PointArray & getBoundingPoints() const ;
+	
+	/** \brief Accessor, return the bounding Points. */
 	virtual PointArray & getBoundingPoints();
+	
+	/** \brief Accessor, return the ith Bounding Point*/
 	virtual const Point & getBoundingPoint(size_t i) const ;
+	
+	/** \brief Accessor, return the ith Bounding Point*/
 	virtual Point & getBoundingPoint(size_t i) ;
 	
+	/** \brief Accessor, set the ith Bounding Point*/
 	virtual void setBoundingPoint(size_t i, Point * p) ;
+	
+	/** \brief Accessor, set the Bounding Points*/
 	virtual void setBoundingPoints(const PointArray & nb) ;
 	
-	virtual void sampleBoundingSurface(size_t num_points) = 0 ;
-	virtual void sampleSurface(size_t num_points) = 0 ;
+	/** \brief accessor, return the ith point*/
 	virtual const Point & getPoint(size_t i) const ;
+	
+	/** \brief accessor, return the ith point*/
 	virtual Point & getPoint(size_t i)  ;
+	
+	/** \brief Return the total number of points*/
 	virtual size_t size() const ;
 	virtual double area() const = 0;
 	virtual void project(Point *) const = 0;
 	
 } ;
 
-
-
+/** \brief Helper class. sample-able circle given a normal and a center in 3-space*/
 class OrientableCircle : public ConvexGeometry
 {
 protected:
@@ -621,28 +1056,45 @@ protected:
 	
 public:
 	
-	
+	/** \brief Construct a Circle from a center, a radius and a normal*/
 	OrientableCircle(double radius,double x, double y, double z, Point normal ) ;
 	
+	/** \brief Construct a Circle from a center, a radius and a normal*/
 	OrientableCircle(double radius,const Point * p0, Point normal ) ;
 	
+	/** \brief Construct a Circle from a center, a radius and a normal*/
 	OrientableCircle(double radius,const Point p0, Point normal ) ; 
 	
+	/** \brief default circle, the trigonometric circle*/
 	OrientableCircle() ; 
 	
 	virtual ~OrientableCircle() { } ;
 	
+	/** \brief Get points sampling the circle boundary*/
+	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const;
+	
+	/** \brief Sample the circle boundary*/
 	virtual void sampleBoundingSurface(size_t num_points) ;
 	
+	/** \brief sample the circle surface*/
 	virtual void sampleSurface(size_t num_points);
+	
+	/** \brief return true if the argument lies in the circle*/
 	virtual bool in(const Point & v) const ;
 	
+	/** \brief return the area of the circle*/
 	virtual double area() const ;
+	
+	/** \brief return 0*/
 	virtual double volume() const ;
 	
+	/** \brief Project the argument on the circle boundary*/
 	virtual void project(Point * p) const;
 	
+	/** \brief do nothing */
 	virtual void computeCenter() ;
+	
+	/** \brief return the radius*/
 	virtual double getRadius() const ;
 	
 	virtual SpaceDimensionality spaceDimensions() const
@@ -650,15 +1102,17 @@ public:
 		return SPACE_THREE_DIMENSIONAL ;
 	}
 	
+	/** \brief Return empty vector*/
 	virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ;}
 } ;
 
 
 } ;
 
+/** \brief Return the triproduct of the three arguments (A ^ B * C)*/
 double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) ;
 
-/** Check the alignment of three points.
+/** \brief Check the alignment of three points.
  * 
  * @param test first point.
  * @param f0 second point.
@@ -667,15 +1121,7 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
  */
 bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)  ;
 
-// bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)
-// {
-// 
-// 	Mu::Point a(test-f0) ;
-// 	Mu::Point b(test-f1) ;
-// 	return std::abs((a^b).z) < Mu::POINT_TOLERANCE ;
-// 	return ( std::abs((f2.x-test.x)*((f1.y-test.y)*(f0.z-test.z) - (f0.y-test.y)*(f1.z-test.z))-(f2.y-test.y)*((f1.x-test.x)*(f0.z-test.z) - (f0.x-test.x)*(f1.z-test.z))+(f2.z-test.z)*((f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y))) < Mu::POINT_TOLERANCE) ;
-// } ;
-/** Check the alignment of three points.
+/** \brief Check the alignment of three points.
  * 
  * @param test first point.
  * @param f0 second point.
@@ -684,21 +1130,25 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
  */
 bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  ;
 
+/** \brief return true if the four points are coplanar*/
 bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
+
+/** \brief return true if the four points are coplanar*/
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 
+/** \brief Compute a value increasing with decreasing coplanarity of the points*/
 double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+
+/** \brief Compute a value increasing with decreasing coplanarity of the points*/
 double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
 
+/** \brief Compute a value increasing with decreasing coplanarity of the points*/
 double signedCoplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+
+/** \brief Compute a value increasing with decreasing coplanarity of the points*/
 double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
 
-// inline bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1, const Mu::Point *f2)  
-// {
-// 	return ( std::abs((f2->x-test->x)*((f1->y-test->y)*(f0->z-test->z) - (f0->y-test->y)*(f1->z-test->z))-(f2->y-test->y)*((f1->x-test->x)*(f0->z-test->z) - (f0->x-test->x)*(f1->z-test->z))+(f2->z-test->z)*((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y))) < Mu::POINT_TOLERANCE) ;
-// } ;
-
-/** Test if a point is in a triangle defined by three points.
+/**  \brief Test if a point is in a triangle defined by three points.
  * 
  * @param test point to test.
  * @param p0 vertex 0.
@@ -708,7 +1158,7 @@ double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::P
  */
 bool isInTriangle(const Mu::Point &test, const Mu::Point &p0, const Mu::Point &p1, const Mu::Point &p2)  ;
 
-/** Test wether two points lie on the same demi-plane.
+/**  \brief Test wether two points lie on the same demi-plane.
  * 
  * @param test first point to test.
  * @param witness second point to test.
@@ -717,12 +1167,41 @@ bool isInTriangle(const Mu::Point &test, const Mu::Point &p0, const Mu::Point &p
  * @return true if both points are on the same side of the demi-plane.
  */
 bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1)  ;
+
+/**  \brief Test wether two points lie on the same demi-plane.
+ * 
+ * @param test first point to test.
+ * @param witness second point to test.
+ * @param f0 first point defining the plane boundary.
+ * @param f1 second point defining the plane boundary.
+ * @return true if both points are on the same side of the demi-plane.
+ */
 bool isOnTheSameSide(const Mu::Point *test, const Mu::Point *witness, const Mu::Point *f0, const Mu::Point *f1)  ;
+
+/**  \brief Test wether two points lie on the same demi-space.
+ * 
+ * @param test first point to test.
+ * @param witness second point to test.
+ * @param f0 first point defining the plane boundary.
+ * @param f1 second point defining the plane boundary.
+  * @param f1 third point defining the plane boundary.
+ * @return true if both points are on the same side of the demi-plane.
+ */
 bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  ;
+
+/**  \brief Test wether two points lie on the same demi-space.
+ * 
+ * @param test first point to test.
+ * @param witness second point to test.
+ * @param f0 first point defining the plane boundary.
+ * @param f1 second point defining the plane boundary.
+ * @param f1 third point defining the plane boundary.
+ * @return true if both points are on the same side of the demi-plane.
+ */
 bool isOnTheSameSide(const Mu::Point * test, const Mu::Point * witness, const Mu::Point * f0, const Mu::Point * f1, const Mu::Point * f2)  ;
 //bool isAligned(const Point test, const Point f0, const Point f1)  ;
 
-/**Return the distance between two points
+/** \brief Return the distance between two points
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -730,7 +1209,7 @@ bool isOnTheSameSide(const Mu::Point * test, const Mu::Point * witness, const Mu
  */
 double dist(const Mu::Point &v1, const Mu::Point &v2) ;
 
-/**Return the distance between two points
+/** \brief Return the distance between two points
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -738,14 +1217,14 @@ double dist(const Mu::Point &v1, const Mu::Point &v2) ;
  */
 double dist(const Mu::Point * v1, const Mu::Point * v2) ;
 
-/** Return the convex hull of a set of points.
+/** \brief Return the convex hull of a set of points.
  * 
  * @param points 
  * @return a convex polygon (all boundary points anti-cockwise-ordered).
  */
 Mu::ConvexPolygon* convexHull(const std::vector<Mu::Point> * points) ;
 
-
+/** \brief Functor for point comparison in STL containers */
 struct PointLessThan
 {
 	bool operator()(Mu::Point * p1, Mu::Point *p2)
@@ -754,8 +1233,7 @@ struct PointLessThan
 	}
 } ;
 
-
-/**Return the square distance between two points
+/** \brief Return the square distance between two points
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -763,7 +1241,7 @@ struct PointLessThan
  */
 double squareDist(const Mu::Point &v1, const Mu::Point &v2) ;
 
-/**Return the square distance between two points
+/** \brief Return the square distance between two points
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -771,7 +1249,7 @@ double squareDist(const Mu::Point &v1, const Mu::Point &v2) ;
  */
 double squareDist(const Mu::Point *v1, const Mu::Point *v2) ;
 
-/**Return the square distance between two points, 2D case
+/** \brief Return the square distance between two points, 2D case
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -779,7 +1257,7 @@ double squareDist(const Mu::Point *v1, const Mu::Point *v2) ;
  */
 double squareDist2D(const Mu::Point &v1, const Mu::Point &v2) ;
 
-/**Return the square distance between two points, 2D case
+/** \brief Return the square distance between two points, 2D case
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -787,7 +1265,7 @@ double squareDist2D(const Mu::Point &v1, const Mu::Point &v2) ;
  */
 double squareDist2D(const Mu::Point *v1, const Mu::Point *v2) ;
 
-/**Return the square distance between two points, 2D case
+/** \brief Return the square distance between two points, 2D case
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -797,7 +1275,7 @@ double squareDist3D(const Mu::Point &v1, const Mu::Point &v2) ;
 
 double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C) ;
 
-/**Return the square distance between two points, 2D case
+/** \brief Return the square distance between two points, 2D case
  * 
  * @param v1 first point.
  * @param v2 second point.
@@ -805,6 +1283,7 @@ double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C) ;
  */
 double squareDist3D(const Mu::Point *v1, const Mu::Point *v2) ;
 
+/** \brief Functor for point comparison in STL containers */
 struct PointEqTol
 {
 	double tol ;
@@ -812,6 +1291,24 @@ struct PointEqTol
 	bool operator()(const Mu::Point & m, const Mu::Point & p)
 	{
 		return squareDist(m,p) < tol ;
+	}
+} ;
+
+/** \brief Functor for point comparison in STL containers */
+struct PointLess_Than_x
+{
+	bool operator()(const Mu::Point & p1, const Mu::Point & p2) const
+	{
+		return p1.x < p2.x ;
+	}
+} ;
+
+/** \brief Functor for point comparison in STL containers */
+struct PointLess_Than_y
+{
+	bool operator()(const Mu::Point & p1, const Mu::Point & p2) const
+	{
+		return p1.y < p2.y ;
 	}
 } ;
 

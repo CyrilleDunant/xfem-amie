@@ -3,8 +3,228 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "geometry_3D.h"
+#include "geometry_2D.h"
 
 using namespace Mu ;
+
+
+
+RegularOctahedron::RegularOctahedron(double s, double x, double y, double z) : ConvexGeometry(6), length(s)
+{
+	this->gType = REGULAR_OCTAHEDRON ;
+	getCenter().set(x, y, z) ;
+	//the four points of the basis are
+	boundingPoints[0] = new Point(x-s*.5, y/*-s*.5*/, z) ;
+	boundingPoints[1] = new Point(x/*-s*.5*/, y+s*.5, z) ;
+	boundingPoints[2] = new Point(x+s*.5, y/*+s*.5*/, z) ;
+	boundingPoints[3] = new Point(x/*+s*.5*/, y-s*.5, z) ;
+	//the two points are
+	boundingPoints[4] = new Point(x, y, z+s*0.70711) ;
+	boundingPoints[5] = new Point(x, y, z-s*0.70711) ;
+
+}
+	
+RegularOctahedron::RegularOctahedron(double s, Point c) : ConvexGeometry(6), length(s)
+{
+	this->gType = REGULAR_OCTAHEDRON ;
+	getCenter().set(c) ;
+	//the four points of the basis are
+	boundingPoints[0] = new Point(c.x-s*.5, c.y/*-s*.5*/, c.z) ;
+	boundingPoints[1] = new Point(c.x/*-s*.5*/, c.y+s*.5, c.z) ;
+	boundingPoints[2] = new Point(c.x+s*.5, c.y/*+s*.5*/, c.z) ;
+	boundingPoints[3] = new Point(c.x/*+s*.5*/, c.y-s*.5, c.z) ;
+	//the two points are
+	boundingPoints[4] = new Point(c.x, c.y, c.z+s*0.70711) ;
+	boundingPoints[5] = new Point(c.x, c.y, c.z-s*0.70711) ;
+}
+
+	
+void RegularOctahedron::sampleBoundingSurface(size_t num_points)
+{
+	std::vector<Point> samplingPoints = getSamplingBoundingPoints( num_points) ;
+		
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+	{
+		delete boundingPoints[i] ;
+	}
+	
+	this->boundingPoints.resize(samplingPoints.size()) ;
+	for(size_t i = 0 ; i < samplingPoints.size() ; i++)
+		boundingPoints[i] = new Point(samplingPoints[i]) ;
+}
+
+std::vector<Point> RegularOctahedron::getSamplingBoundingPoints(size_t num_points) const
+{
+	size_t pointsOnEquator = (size_t)round(pow(num_points, 0.33333333)*6.) ;
+	Rectangle(length, length, getCenter().x, getCenter().y) ;
+	std::vector<Point> samplingPoints ;
+	std::vector<Point> newPoints = Rectangle(length, length, getCenter().x, getCenter().y).getSamplingBoundingPoints(pointsOnEquator) ;
+	size_t realPointsOnEquator = newPoints.size() ;
+	
+	Matrix rot(3,3) ;
+	rot[0][0] = cos(M_PI*.25) ;rot[0][1] = sin(M_PI*.25) ;
+	rot[1][0] = -sin(M_PI*.25) ;rot[1][1] = cos(M_PI*.25) ;
+	rot[2][2] = 1 ;
+	for(size_t i = 0 ; i < newPoints.size() ;i++)
+	{
+		newPoints[i] -= Point(center.x, center.y) ;
+		newPoints[i] *= rot ;
+		newPoints[i] += Point(center.x, center.y) ;
+		newPoints[i].z = center.z ; 
+	}
+	
+	samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+	int iterations = 1 ;
+	while(true)
+	{
+		double factor = (double)(realPointsOnEquator-2.*iterations)/(double)realPointsOnEquator ;
+		if(factor < 0)
+			break ;
+		iterations++ ;
+	}
+	double totalIterations = iterations ;
+	iterations = 1 ;
+	
+	while(newPoints.size() >= 4)
+	{
+		double factor = (totalIterations-iterations)/totalIterations ;
+		if(factor <= 0)
+			break ;
+		newPoints = Rectangle(length*factor, length*factor, getCenter().x, getCenter().y).getSamplingBoundingPoints(realPointsOnEquator-2.*iterations) ;
+		double sq2 = 0.70711 ;
+		for(size_t i = 0 ; i < newPoints.size() ;i++)
+		{
+			newPoints[i] -= Point(center.x, center.y) ;
+			newPoints[i] *= rot ;
+			newPoints[i] += Point(center.x, center.y) ;
+			newPoints[i].z = getCenter().z +sq2*length*(1.-factor); 
+		}
+		samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+		
+		for(size_t i = 0 ; i < newPoints.size() ;i++)
+		{
+			newPoints[i].z = getCenter().z -sq2*length*(1.-factor); 
+		}
+		samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+		
+		iterations++ ;
+	}
+	samplingPoints.push_back(*boundingPoints[4]) ;
+	samplingPoints.push_back(*boundingPoints[5]) ;
+	
+	return samplingPoints ;
+}
+
+void RegularOctahedron::sampleSurface(size_t num_points)
+{
+// 	for(size_t i = 0 ; i < 30 ; i++)
+// 	{
+// 		std::cout << getSamplingBoundingPoints(i).size() << std::endl ;
+// 	}
+// 	exit(0) ;
+	if(boundingPoints.size() == 6)
+		sampleBoundingSurface(num_points) ;
+	
+	int realPointsOnEquator = Rectangle(length, length, getCenter().x, getCenter().y).getSamplingBoundingPoints(round(sqrt(num_points))).size() ;
+	int iterations = 1 ;
+	while(true)
+	{
+		double factor = (double)(realPointsOnEquator-1.*iterations)/(double)realPointsOnEquator ;
+		if(factor < 0)
+			break ;
+		iterations++ ;
+	}
+	
+	size_t numberOfShells = round(iterations) ;
+	iterations = 1 ;
+	std::vector<Point> samplingPoints ;
+
+	for(size_t i = 0 ; i < numberOfShells ; i++)
+	{
+		double factor = (double)(numberOfShells-1.*iterations)/(double)numberOfShells ;
+		if(factor <= 0)
+			break ;
+		std::vector<Point> newPoints = RegularOctahedron(length*factor, getCenter()).getSamplingBoundingPoints(num_points*factor) ;
+		samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+		if(newPoints.size() <= 6)
+			break ;
+		
+		iterations++ ;
+	}
+	
+	this->inPoints.resize(samplingPoints.size()) ;
+	for(size_t i = 0 ; i < samplingPoints.size() ; i++)
+		inPoints[i] = new Point(samplingPoints[i]) ;
+	
+}
+
+bool RegularOctahedron::in(const Point &p) const
+{
+// 	return true ;
+	Matrix rot(3,3) ;
+	rot[0][0] = cos(-M_PI*.25) ;rot[0][1] = sin(-M_PI*.25) ;
+	rot[1][0] = -sin(-M_PI*.25) ;rot[1][1] = cos(-M_PI*.25) ;
+	rot[2][2] = 1 ;
+
+	Point v = p ;//*rot ;
+	v -=center ;
+	v*=rot ;
+	v+=center ;
+	if(abs(v.x-center.x) > length)
+		return false ;
+	if(abs(v.y-center.y) > length)
+		return false ;
+	Point v_(v.x, v.z) ;
+	if(!Triangle(Point(getCenter().x-.5*length, center.z), Point(getCenter().x+.5*length, getCenter().z), Point(getCenter().x, getCenter().z+0.70711*length)).in(v_) && !Triangle(Point(getCenter().x-.5*length, getCenter().z), Point(getCenter().x+.5*length, getCenter().z), Point(getCenter().x, getCenter().z-0.70711*length)).in(v_))
+		return false ;
+	
+	v_.set(v.y, v.z) ;
+	if(!Triangle(Point(getCenter().y-.5*length, getCenter().z), Point(getCenter().y+.5*length, getCenter().z), Point(getCenter().y, getCenter().z+0.70711*length)).in(v_) && !Triangle(Point(getCenter().y-.5*length, getCenter().z), Point(getCenter().y+.5*length, getCenter().z), Point(getCenter().y, getCenter().z-0.70711*length)).in(v_))
+		return false ;
+	
+	return true;
+	
+}
+	
+double RegularOctahedron::area() const
+{
+	return 2.*sqrt(3.)*length*length ;
+}
+
+double RegularOctahedron::volume() const
+{
+	return sqrt(2.)/3.*length*length*length ;
+}
+		
+void RegularOctahedron::project(Point * p) const
+{
+}
+
+void RegularOctahedron::computeCenter()
+{
+}
+
+double RegularOctahedron::getRadius() const 
+{
+	return .5*sqrt(2)*length ;
+}
+	
+	
+std::vector<Point> RegularOctahedron::getBoundingBox() const
+{
+	std::vector<Point> ret ;
+	ret.push_back(Point(getCenter().x+0.5*length, getCenter().y+0.5*length, getCenter().z+0.5*length)) ;
+	ret.push_back(Point(getCenter().x+0.5*length, getCenter().y+0.5*length, getCenter().z-0.5*length)) ;
+	ret.push_back(Point(getCenter().x+0.5*length, getCenter().y-0.5*length, getCenter().z+0.5*length)) ;
+	ret.push_back(Point(getCenter().x+0.5*length, getCenter().y-0.5*length, getCenter().z-0.5*length)) ;
+	ret.push_back(Point(getCenter().x-0.5*length, getCenter().y+0.5*length, getCenter().z+0.5*length)) ;
+	ret.push_back(Point(getCenter().x-0.5*length, getCenter().y+0.5*length, getCenter().z-0.5*length)) ;
+	ret.push_back(Point(getCenter().x-0.5*length, getCenter().y-0.5*length, getCenter().z+0.5*length)) ;
+	ret.push_back(Point(getCenter().x-0.5*length, getCenter().y-0.5*length, getCenter().z-0.5*length)) ;
+	return ret ;
+}
+	
+
 
 Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): ConvexGeometry(4)
 {
@@ -67,20 +287,18 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point *
 	computeCenter() ;	
 }
 
-
-Tetrahedron::Tetrahedron(Point p0, Point p1, Point p2, Point p3): ConvexGeometry(4)
+Tetrahedron::Tetrahedron(const Point &p0, const Point &p1, const Point &p2, const Point &p3): ConvexGeometry(4)
 {
 	gType = TETRAHEDRON ;
 	
 	this->boundingPoints.resize(4) ;
-	boundingPoints[0] = &p0 ;
-	boundingPoints[1] = &p1 ;
-	boundingPoints[2] = &p2 ;
-	boundingPoints[3] = &p3 ;
+	boundingPoints[0] = new Point(p0) ;
+	boundingPoints[1] = new Point(p1) ;
+	boundingPoints[2] = new Point(p2) ;
+	boundingPoints[3] = new Point(p3) ;
 	if(this->volume() < 0 )
 	{
-		boundingPoints[0] = &p1; 
-		boundingPoints[1] = &p0;
+		std::swap(boundingPoints[0], boundingPoints[1]) ;
 	}
 	computeCircumCenter() ;
 	Vector r(4) ;
@@ -113,6 +331,11 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 	sqradius = r[0] ;
 	radius = sqrt(sqradius);
 	computeCenter() ;	
+}
+
+std::vector<Point> Tetrahedron::getSamplingBoundingPoints(size_t num_points) const
+{
+	return std::vector<Point>() ;
 }
 
 void Tetrahedron::sampleBoundingSurface(size_t num_points)
@@ -187,10 +410,10 @@ double Tetrahedron::area() const
 	Segment s1(getBoundingPoint(2), getBoundingPoint(0)) ;
 	Segment s2(getBoundingPoint(3), getBoundingPoint(0)) ;
 	
-	return 0.5*(((s0.vector())^(s1.vector())).norm()+
-	             ((s0.vector())^(s2.vector())).norm()+
-	             ((s1.vector())^(s2.vector())).norm()+
-	             ((s1.vector()-s0.vector())^(s2.vector())-s0.vector()).norm());
+	return 0.5*(((s0.vector()^s1.vector())).norm()+
+	             ((s0.vector()^s2.vector())).norm()+
+	             ((s1.vector()^s2.vector())).norm()+
+	             (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
 }
 
 double Tetrahedron::volume() const
@@ -257,38 +480,7 @@ void Tetrahedron::computeCircumCenter()
 
 bool Tetrahedron::inCircumSphere(const Point & p) const
 {
-	if(p.x > circumCenter.x+1.01*radius)
-		return false ;
-	if(p.x < circumCenter.x-1.01*radius)
-		return false ;
-	if(p.y > circumCenter.y+1.01*radius)
-		return false ;
-	if(p.y < circumCenter.y-1.01*radius)
-		return false ;
-	if(p.z > circumCenter.z+1.01*radius)
-		return false ;
-	if(p.z < circumCenter.z-1.01*radius)
-		return false ;
-	if(squareDist3D(circumCenter, p) < .99*sqradius)
-		return true ;
-	
-	double delta = sqrt(POINT_TOLERANCE) ;
-	Point a(p) ; a.x += 2.*delta ; a.y += 2.*delta ; a.z += 2.*delta ;
-	Point b(p) ; b.x += 2.*delta ; b.y += 2.*delta ; b.z -= 2.*delta ;
-	Point c(p) ; c.x += 2.*delta ; c.y -= 2.*delta ; c.z += 2.*delta ;
-	Point d(p) ; d.x += 2.*delta ; d.y -= 2.*delta ; d.z -= 2.*delta ;
-	Point e(p) ; e.x -= 2.*delta ; e.y += 2.*delta ; e.z += 2.*delta ;
-	Point f(p) ; f.x -= 2.*delta ; f.y += 2.*delta ; f.z -= 2.*delta ;
-	Point g(p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; g.z += 2.*delta ;
-	Point h(p) ; h.x -= 2.*delta ; h.y -= 2.*delta ; h.z -= 2.*delta ;
-	return  squareDist3D(circumCenter, a) < sqradius 
-		&&  squareDist3D(circumCenter, b) < sqradius
-		&&  squareDist3D(circumCenter, c) < sqradius
-		&&  squareDist3D(circumCenter, d) < sqradius
-		&&  squareDist3D(circumCenter, e) < sqradius
-		&&  squareDist3D(circumCenter, f) < sqradius
-		&&  squareDist3D(circumCenter, g) < sqradius
-		&&  squareDist3D(circumCenter, h) < sqradius;
+	return inCircumSphere(&p) ;
 }
 
 bool Tetrahedron::inCircumSphere(const Point *p) const
@@ -305,32 +497,15 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 		return false ;
 	if(p->z < circumCenter.z-1.01*radius)
 		return false ;
-	if(squareDist3D(&circumCenter, p) < .99*sqradius)
-		return true ;
 	
-	double delta = sqrt(POINT_TOLERANCE) ;
-	Point a(*p) ; a.x += 2.*delta ; a.y += 2.*delta ; a.z += 2.*delta ;
-	Point b(*p) ; b.x += 2.*delta ; b.y += 2.*delta ; b.z -= 2.*delta ;
-	Point c(*p) ; c.x += 2.*delta ; c.y -= 2.*delta ; c.z += 2.*delta ;
-	Point d(*p) ; d.x += 2.*delta ; d.y -= 2.*delta ; d.z -= 2.*delta ;
-	Point e(*p) ; e.x -= 2.*delta ; e.y += 2.*delta ; e.z += 2.*delta ;
-	Point f(*p) ; f.x -= 2.*delta ; f.y += 2.*delta ; f.z -= 2.*delta ;
-	Point g(*p) ; g.x -= 2.*delta ; g.y -= 2.*delta ; g.z += 2.*delta ;
-	Point h(*p) ; h.x -= 2.*delta ; h.y -= 2.*delta ; h.z -= 2.*delta ;
-	return  squareDist3D(circumCenter, a) < sqradius 
-		&&  squareDist3D(circumCenter, b) < sqradius
-		&&  squareDist3D(circumCenter, c) < sqradius
-		&&  squareDist3D(circumCenter, d) < sqradius
-		&&  squareDist3D(circumCenter, e) < sqradius
-		&&  squareDist3D(circumCenter, f) < sqradius
-		&&  squareDist3D(circumCenter, g) < sqradius
-		&&  squareDist3D(circumCenter, h) < sqradius;
-// 	return   fma(x,x,fma(y,y,z*z)) < sqradius*(1. - 4.*POINT_TOLERANCE);
+	double d = dist(&circumCenter, p) ;
+
+	return  d-radius < -1e-8 ;
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)
 {
-	gType =HEXAHEDRON;
+	gType = HEXAHEDRON;
 	
 	std::vector<Point *> pts ;
 	pts.push_back(p0) ;
@@ -366,7 +541,6 @@ double Hexahedron::getYSize() const
 {
 	return this->size_y ;
 }
-
 
 double Hexahedron::getZSize() const
 {
@@ -423,7 +597,26 @@ Hexahedron::Hexahedron(double x, double y, double z, double originX, double orig
 	size_x = x ;
 	size_y = y ;
 	size_z = z ;
+}
+
+Hexahedron::Hexahedron(double x, double y, double z, const Point & c)
+{
+	gType =HEXAHEDRON  ;
+	this->boundingPoints.resize(8) ;
+	boundingPoints[0] = new Point(c.x -0.5*x, c.y-0.5*y, c.z-0.5*z) ;
+	boundingPoints[1] = new Point(c.x -0.5*x, c.y-0.5*y, c.z+0.5*z) ;
+	boundingPoints[2] = new Point(c.x -0.5*x, c.y+0.5*y, c.z-0.5*z) ;
+	boundingPoints[3] = new Point(c.x -0.5*x, c.y+0.5*y, c.z+0.5*z) ;
+	boundingPoints[4] = new Point(c.x +0.5*x, c.y-0.5*y, c.z-0.5*z) ;
+	boundingPoints[5] = new Point(c.x +0.5*x, c.y-0.5*y, c.z+0.5*z) ;
+	boundingPoints[6] = new Point(c.x +0.5*x, c.y+0.5*y, c.z-0.5*z) ;
+	boundingPoints[7] = new Point(c.x +0.5*x, c.y+0.5*y, c.z+0.5*z) ;
 	
+	this->center = c ;
+	
+	size_x = x ;
+	size_y = y ;
+	size_z = z ;
 }
 
 Hexahedron::Hexahedron()
@@ -454,14 +647,14 @@ Hexahedron::Hexahedron()
 	size_z = 2 ;
 }
 
-void Hexahedron::sampleBoundingSurface(size_t num_points)
+std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) const
 {
 	std::vector<Point> points ;
 	
 	Point point000(*boundingPoints[0]) ;
 	
 	Point point111(*boundingPoints[7]) ;
-
+	
 	size_t numPointsPerDirection = std::max(static_cast<size_t>(ceil(pow((double)num_points, 1./3.))),(size_t)2) ;
 	
 	std::vector<double> ds ;
@@ -469,10 +662,10 @@ void Hexahedron::sampleBoundingSurface(size_t num_points)
 	for(size_t i = 0 ; i < numPointsPerDirection ; i++)
 	{
 		double v = (static_cast<double>(i)/static_cast<double>(numPointsPerDirection-1)) ;
-
+		
 		ds.push_back(v) ;
 	}
-
+	
 	for(size_t i = 0 ; i < numPointsPerDirection ; i++)
 	{
 		for(size_t j = 0 ; j < numPointsPerDirection ; j++)
@@ -530,6 +723,15 @@ void Hexahedron::sampleBoundingSurface(size_t num_points)
 	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
 	points.erase(e, points.end()) ;
 	
+	return points ;
+}
+
+void Hexahedron::sampleBoundingSurface(size_t num_points)
+{
+	std::vector<Point> points = getSamplingBoundingPoints(num_points);
+	for (size_t i = 0 ; i < boundingPoints.size() ; i++)
+		delete boundingPoints[i] ;
+
 	this->boundingPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
@@ -559,7 +761,7 @@ void Hexahedron::sampleSurface(size_t num_points)
 	Point point111_(*boundingPoints[7]) ;
 	
 	size_t factor = 4 ;
-	
+
 	if(this->boundingPoints.size() == 8)
 	{
 		sampleBoundingSurface(num_points*factor) ;
@@ -580,19 +782,22 @@ void Hexahedron::sampleSurface(size_t num_points)
 		point111 += center ;
 		
 		std::vector<double> ds ;
-		
-		for(int i = 0 ; i < numPointsPerDirection ; i++)
+		ds.push_back(0) ;
+		for(int i = 1 ; i < numPointsPerDirection-1 ; i++)
 		{
 			double v = (static_cast<double>(i)/static_cast<double>(numPointsPerDirection-1)) ;
 			
 			ds.push_back(v) ;
 		}
-		
+		ds.push_back(1) ;
+
 		for(int i = 0 ; i < numPointsPerDirection ; i++)
 		{
 			for(int j = 0 ; j < numPointsPerDirection ; j++)
 			{
-				points.push_back(Point(point000.x, point111.y*ds[i]+point000.y*(1.-ds[i]), point111.z*ds[j]+point000.z*(1.-ds[j]))) ;
+				points.push_back(Point(point000.x, 
+				                       point111.y*ds[i]+point000.y*(1.-ds[i]), 
+				                       point111.z*ds[j]+point000.z*(1.-ds[j]))) ;
 			}
 		}
 		
@@ -644,7 +849,6 @@ void Hexahedron::sampleSurface(size_t num_points)
 		numPointsPerDirection -= 2 ;
 		
 	}
-	
 	std::sort(points.begin(), points.end()) ;
 	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
 	points.erase(e, points.end()) ;
@@ -652,7 +856,11 @@ void Hexahedron::sampleSurface(size_t num_points)
 	this->inPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		inPoints[i] = new Point(points[i]) ;
+		Point randomize(.2*std::min(size_z, std::min(size_x, size_y))/numPointsPerDirectionOnBoundary*(double)rand()/RAND_MAX,
+		                .2*std::min(size_z, std::min(size_x, size_y))/numPointsPerDirectionOnBoundary*(double)rand()/RAND_MAX,
+		                .2*std::min(size_z, std::min(size_x, size_y))/numPointsPerDirectionOnBoundary*(double)rand()/RAND_MAX
+		               ) ;
+		inPoints[i] = new Point(points[i]+randomize) ;
 	}
 	
 }
@@ -666,7 +874,6 @@ bool Hexahedron::in(const Point & v) const
 		v.z >= (center.z- size_z/2. ) &&
 		v.z <= (center.z+ size_z/2. ) ;
 }
-
 
 double Hexahedron::area() const
 {
@@ -700,7 +907,7 @@ void Hexahedron::project(Point * p) const
 }
 
 Sphere::Sphere(double r,double x, double y, double z ) : radius(r), sqradius(r*r)
-{  
+{
 	center = Point(x,y,z) ;
 	gType = SPHERE ;
 }
@@ -754,7 +961,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	               r + center.z) ;
 	
 	
-	size_t numPointsPerDirection = static_cast<size_t>(pow((double)0.5*num_points, 1./3.)) ;
+	size_t numPointsPerDirection = static_cast<size_t>(pow((double)0.25*num_points, 1./3.)) ;
 	//face [000] [010] [001]
 	
 	std::vector<double> ds ;
@@ -832,44 +1039,10 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 		project(&points[i],r) ;
 	}
 	
-// 	for(size_t i = 0 ; i < points.size() ; i++)
-// 		std::cout << points[i].x << ", " << points[i].y << ", " << points[i].z << std::endl ;
-	
 	std::sort(points.begin(), points.end()) ;
 	e = std::unique(points.begin(), points.end()) ;
 	if(e != points.end())
 		points.erase(e, points.end()) ;
-	
-// 	std::cout << " which gives " << points.size() << " points to start with, ending with " << num_points << " points " << std::endl ;
-	
-// 	double rxangle = (double)random()/(double)(RAND_MAX+1)*2.*M_PI ;
-// 	double ryangle = (double)random()/(double)(RAND_MAX+1)*2.*M_PI ;
-// 	double rzangle = (double)random()/(double)(RAND_MAX+1)*2.*M_PI ;
-// 	
-// 	Matrix rot(3,3) ; 
-// 	Matrix rotx(3,3) ;
-// 	rotx[0][0] = 1 ; rotx[0][1] = 0 ;  rotx[0][2] = 0 ;
-// 	rotx[1][0] = 0 ; rotx[1][1] = cos(rxangle) ;  rotx[1][2] = sin(rxangle) ;
-// 	rotx[2][0] = 0 ; rotx[2][1] = -sin(rxangle) ;  rotx[2][2] = cos(rxangle) ;
-// 	
-// 	Matrix roty(3,3) ; 
-// 	roty[0][0] = cos(ryangle) ; roty[0][1] = 0 ;  roty[0][2] = sin(ryangle) ;
-// 	roty[1][0] = 0 ; roty[1][1] =  1;  roty[1][2] =  0;
-// 	roty[2][0] = -sin(ryangle) ; roty[2][1] = 0 ;  roty[2][2] = cos(ryangle) ;
-// 	Matrix rotz(3,3) ; 
-// 	rotz[0][0] = cos(rzangle) ; rotz[0][1] = sin(rzangle) ;  rotz[0][2] = 0 ;
-// 	rotz[1][0] = -sin(rzangle) ; rotz[1][1] =  cos(rzangle);  rotz[1][2] =  0;
-// 	rotz[2][0] = 0; rotz[2][1] = 0 ;  rotz[2][2] = 1 ;
-// 	
-// 	rot = rotx*roty*rotz ;
-// 	
-// 	for(size_t  i = 0 ; i < points.size() ; ++i)
-// 	{
-// 		points[i]-=center ;
-// 		points[i] *=rot ;
-// 		points[i]+=center ;
-// // 		project(&points[i],r) ;
-// 	}
 	
 	smooth(points, r) ;
 	
@@ -877,11 +1050,10 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	return points ;
 }
 
-
 void Sphere::smooth(std::vector<Point> & points,double r) const
 {
 	std::valarray<Point> speeds(/*Point(), */points.size()) ;
-	for(size_t i = 0 ; i < 80 ; i++)
+	for(size_t i = 0 ; i < 20 ; i++)
 	{
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -890,7 +1062,7 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 				if(points[j] != points[k])
 				{
 					Point vec = points[j]-points[k] ;
-					vec /= vec.sqNorm() ;
+					vec *= 1./vec.sqNorm() ;
 
 					speeds[j] += vec ;
 					speeds[k] -= vec ;
@@ -915,6 +1087,11 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 // 	}
 }
 
+std::vector<Point> Sphere::getSamplingBoundingPoints(size_t num_points) const
+{
+	return getSamplingPointsOnSphere(num_points, radius) ;
+}
+
 void Sphere::sampleBoundingSurface(size_t num_points)
 {	
 	std::vector<Point> points = getSamplingPointsOnSphere(num_points, radius) ;
@@ -930,19 +1107,21 @@ void Sphere::sampleBoundingSurface(size_t num_points)
 
 void Sphere::sampleSurface(size_t num_points) 
 {
+	if(num_points < 1)
+		return ;
+
 	if(this->boundingPoints.size() == 0)
-		sampleBoundingSurface(std::max((size_t)(num_points)*4, (size_t)40)) ;
+		sampleBoundingSurface(num_points*4) ;
 	
 	std::vector<Point> points ;
-	size_t numPointsOnSurface = std::max(num_points*4, (size_t)40) ;
-	size_t numberOfRadii = static_cast<size_t>(round(sqrt(numPointsOnSurface)/2)) ;
-	
-// 	 ; //this->boundingPoints.size() ;
+
+	size_t numPointsOnSurface = boundingPoints.size() ;
+	size_t numberOfRadii = static_cast<size_t>(round(sqrt(numPointsOnSurface/6))) ;
 	
 	for(size_t i = 0 ; i < numberOfRadii ; i++)
 	{
-		double r = sqrt(radius)*((double)(numberOfRadii-i-1)/(double)numberOfRadii) ;
-		num_points = (size_t)((double)numPointsOnSurface*(r/radius));
+		double r = radius*((double)(numberOfRadii-i-1)/(double)numberOfRadii) ;
+		num_points = (size_t)((double)numPointsOnSurface*((r*r)/(radius*radius)));
 		if(num_points < 8 )
 			break ;
 		
@@ -950,7 +1129,7 @@ void Sphere::sampleSurface(size_t num_points)
 		
 		for(size_t j = 0 ; j < newPoints.size() ; j++)
 		{
-// 			double r = ((double)random()/(double)(RAND_MAX+1)*2. -1.)*.0005*(sqrt(radius)/(double)(numberOfRadii+1)) ;
+// 			double r = ((double)rand()/(double)(RAND_MAX+1)*2. -1.)*.0005*(sqrt(radius)/(double)(numberOfRadii+1)) ;
 // 			Point dr = (newPoints[j] - center)*r ;
 			points.push_back(newPoints[j]/*+ dr*/) ;
 		}
@@ -997,17 +1176,14 @@ void Sphere::project(Point * p) const
 	//x = r sin(theta) cos(phi)
 	//y = r sin(theta) sin(phi)
 	//z = r cos(theta)
-	
-	if(squareDist(p, &center ) < POINT_TOLERANCE)
+	int id = p->id ;
+	if(squareDist3D(p, &center ) < POINT_TOLERANCE)
 		return ;
 	
 	Point p_prime = *p-center ;
-	p_prime /= p_prime.norm() ;
-	p_prime = center+p_prime*radius ;
-	p->x = p_prime.x ;
-	p->y = p_prime.y ;
-	p->z = p_prime.z ;
-	
+	p_prime *= radius/p_prime.norm() ;
+	*p = center+p_prime ;
+	p->id = id ;
 	return ;
 	
 // 	double r = sqrt(radius) ;
@@ -1023,17 +1199,14 @@ void Sphere::project(Point * p, double r) const
 	//x = r sin(theta) cos(phi)
 	//y = r sin(theta) sin(phi)
 	//z = r cos(theta)
-	
-	if(squareDist(*p, center ) < POINT_TOLERANCE)
+	int id = p->id ;
+	if(squareDist3D(*p, center ) < POINT_TOLERANCE)
 		return ;
 	
 	Point p_prime = *p-center ;
-	p_prime /= p_prime.norm() ;
-	p_prime = center+p_prime*r ;
-	p->x = p_prime.x ;
-	p->y = p_prime.y ;
-	p->z = p_prime.z ;
-
+	p_prime *= r/p_prime.norm() ;
+	*p = center+p_prime ;
+	p->id = id ;
 	return ;
 
 }
@@ -1066,17 +1239,16 @@ void Sphere::setRadius(double newr)
 	this->radius = newr ;
 }
 
-
 void TriangulatedSurface::addPoint(Point * p)
 {
-	Point * nearest = boundary[0] ;
+	const Point * nearest = boundary[0] ;
 	for(size_t i = 0 ; i < boundary.size() ; i++)
 	{
 		
 	}
 }
 
-TriangulatedSurface::TriangulatedSurface(Point * p0, Point * p1, Point * p2)
+TriangulatedSurface::TriangulatedSurface(const Point * p0, const Point * p1, const Point * p2)
 {
 	mesh.push_back(TriPoint(p0, p1, p2)) ;
 	boundary.push_back(p0) ;

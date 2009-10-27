@@ -1,0 +1,2 @@
+set(FunctionSource  scalarfield.cpp vm_base.cpp vm_function_base.cpp vm_function_matrix.cpp  vm_refcount_token.cpp  vm_token.h scalarfield.h vm_base.h vm_function_base.h vm_function_matrix.h  vm_refcount_token.h  vm_token.h )
+add_library (AmieFunctions ${FunctionSource})

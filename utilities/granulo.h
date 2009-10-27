@@ -39,7 +39,7 @@ public:
 	Granulo() ;
 	virtual ~Granulo() { } ;
 
-	virtual std::vector <Inclusion *> operator()(double ,double);
+	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
 } ;
 
 class GranuloBolome : public Granulo
