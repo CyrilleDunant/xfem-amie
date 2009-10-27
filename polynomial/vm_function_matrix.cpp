@@ -60,7 +60,7 @@ FunctionMatrix & FunctionMatrix::operator*=(const double d)
 	return *this ;
 }
 
-FunctionMatrix FunctionMatrix::operator*(const Function d) const
+FunctionMatrix FunctionMatrix::operator*(const Function & d) const
 {
 	FunctionMatrix ret(*this) ;
 	ret*=d ;
@@ -76,14 +76,14 @@ FunctionMatrix FunctionMatrix::operator*(const double d) const
 	return ret ;
 }
 
-FunctionMatrix FunctionMatrix::operator/(const Function d) const
+FunctionMatrix FunctionMatrix::operator/(const Function & d) const
 {
 	FunctionMatrix ret(*this) ;
 	ret /=d ;
 	return ret ;
 }
 
-FunctionMatrix &FunctionMatrix::operator/=(Function d)
+FunctionMatrix &FunctionMatrix::operator/=(const Function & d)
 {
 	(*v) /=d ;
 	return *this ;
@@ -123,6 +123,18 @@ FunctionMatrix &FunctionMatrix::operator +=(const FunctionMatrix &m)
 	return *this ;
 }
 
+FunctionMatrix &FunctionMatrix::operator +=(const Matrix &m)
+{
+	for(size_t i = 0 ; i < numRows() ; i++)
+	{
+			for(size_t j = 0 ; j < numCols() ; j++)
+		{
+			(*this)[i][j] += m[i][j] ;
+		}
+	}
+	return *this ;
+}
+
 FunctionMatrix FunctionMatrix::operator +(const  FunctionMatrix &m) const
 {
 	FunctionMatrix ret(*this) ;
@@ -156,30 +168,6 @@ FunctionMatrix FunctionMatrix::d(const Variable vv) const
 	}
 	return ret ;
 }
-
-// bool FunctionMatrix::operator ==(const FunctionMatrix &m)
-// {
-// 	if(v->size() != m.array().size())
-// 		return false ;
-// 	
-// 	for(size_t i = 0 ; i < v->size() ; i++)
-// 		if((*v)[i] != m.array()[i])
-// 			return false ;
-// 	
-// 	return true ;
-// }
-// 
-// bool FunctionMatrix::operator !=(const FunctionMatrix &m)
-// {
-// 	if(v->size() != m.array().size())
-// 		return true ;
-// 	else
-// 		for(size_t i = 0 ; i < v->size() ; i++)
-// 			if((*v)[i] != m.array()[i])
-// 				return true ;
-// 	
-// 	return false ;
-// }
 
 FunctionMatrix::FunctionMatrix(const FunctionMatrix& m) : r(m.numRows()), c( m.numCols())
 {
@@ -236,7 +224,7 @@ Mu::FunctionMatrix inverse2x2FunctionMatrix(const Mu::FunctionMatrix s)
 	if(s[0][0].getByteCode().size() == 0 || s[1][1].getByteCode().size() == 0)
 	{
 		Mu::Matrix swap(2,2) ; swap[0][0] = 0 ; swap[0][1] = 1 ; swap[1][0] = 1 ; swap[1][1] = 0 ;
-		Mu::FunctionMatrix s_ = s*swap ;
+		Mu::FunctionMatrix s_ ( s*swap );
 		
 		Mu::FunctionMatrix ret(2,2) ;
 		Mu::Function r1 = Mu::Function("1")/s_[0][0] ;
@@ -289,7 +277,7 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
 				{
 					if(!m_[j][i].getByteCode().size() == 0 )
 					{
-						Mu::Matrix temp = swapMatrix(i,j, 3) ;
+						Mu::Matrix temp(swapMatrix(i,j, 3)) ;
 						swap.push_back(temp) ;
 						m_ = m_* temp ;
 					}

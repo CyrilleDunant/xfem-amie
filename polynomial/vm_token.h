@@ -16,13 +16,18 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-
+#ifdef HAVE_TR1
+#include <tr1/cmath>
+#endif
 #include "variable.h"
 #include "../geometry/geometry_base.h"
+#include "../geometry/geometry_2D.h"
+
 
 double sign(const double t) ;
 double positivity(const double t) ;
 double negativity(const double t) ;
+double interpolate(const double a, const double b) ;
 
 namespace Mu
 {
@@ -46,14 +51,18 @@ typedef enum
 	TOKEN_WRITE_VARIABLE,
 	TOKEN_READ_VARIABLE,
 	TOKEN_PROJECTION,
+	TOKEN_PROJECTION_OPERATOR,
 	TOKEN_SIGNED_DISTANCE,
 	TOKEN_2D_TRANSFORM,
 	TOKEN_3D_TRANSFORM,
 	TOKEN_POINT_DISTANCE_OPERATOR,
+	TOKEN_POINT_DISTANCE_TRI_OPERATOR,
 	TOKEN_ROTATION_OPERATOR,
 	TOKEN_ANGLE_OPERATOR,
 	TOKEN_POINT_SQUARE_DISTANCE_OPERATOR,
 	TOKEN_LINE_OF_SIGHT_OPERATOR,
+	TOKEN_CURVILINEAR_X_OPERATOR,
+	TOKEN_CURVILINEAR_Y_OPERATOR,
 	TOKEN_X,
 	TOKEN_Y,
 	TOKEN_Z,
@@ -61,6 +70,13 @@ typedef enum
 	TOKEN_U,
 	TOKEN_V,
 	TOKEN_W,
+	TOKEN_M_X,
+	TOKEN_M_Y,
+	TOKEN_M_Z,
+	TOKEN_M_T,
+	TOKEN_M_U,
+	TOKEN_M_V,
+	TOKEN_M_W,
 	TOKEN_VARIABLE,
 	TOKEN_UNARY_FUNCTION,
 	TOKEN_BINARY_FUNCTION,
@@ -82,7 +98,13 @@ typedef enum
 	TOKEN_NEGATIVITY,
 	TOKEN_LOG,
 	TOKEN_SQRT,
+	TOKEN_BESSEL,
 	TOKEN_ATAN2,
+	TOKEN_INTERPOLATE,
+	TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_2D,
+	TOKEN_MULTIPLE_INTERPOLATE_FROM_BOTTOM_2D,
+	TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_3D,
+	TOKEN_MULTIPLE_INTERPOLATE_FROM_BOTTOM_3D,
 	TOKEN_X_POWER_AND_MULTIPLY,
 	TOKEN_Y_POWER_AND_MULTIPLY,
 	TOKEN_Z_POWER_AND_MULTIPLY,
@@ -125,75 +147,241 @@ typedef enum
 	TOKEN_READ_MULTIPLY_CONST,
 	TOKEN_READ_DIVIDE_CONST,
 	TOKEN_CONST_DIVIDE_READ,
-	TOKEN_READ_POWER_CONST,
-	
+	TOKEN_READ_POWER_CONST
 } TokenTypeId ;
 
 typedef std::pair<std::pair<TokenTypeId, short unsigned int>, double> TokenType ;
 
+/** \brief Memory structure for the VirtualMachine. It provides a stack and a heap.
+*/
 struct Memory
 {
-	Vector stack;
-	Vector heap ;
-	int top_pos ;
-	Memory() : stack(0., 64), heap(0., 256), top_pos(-1)
+	double stack[64];
+	double heap[256] ;
+	double * top_pos ;
+	double * prev_top_pos ;
+
+	/** \brief Constructor. Initialises stack and heap to 0.
+	 * 
+	 */
+	Memory() : top_pos(&stack[0]), prev_top_pos(&stack[0]-1)
 	{
 	} ;
 	
+	~Memory() { } ;
+
+	/** \brief Number of used positions in the stack
+	 * 
+	 * @return  Number of used positions in the stack
+	 */
 	size_t size() const
 	{
-		return top_pos+1 ;
+		return top_pos-&stack[0]+1 ;
 	}
 	
+	/** \brief Return the ith value stored in the stack
+	 * 
+	 * @param i index
+	 * @return referenced value
+	 */
 	double & operator[](const size_t i)
 	{
-// 		if(i > 31)
-// 			std::cout << "stack overflow !" << std::endl ;
 		return stack[i] ;
 	}
-	
+		
+	/** \brief Return the ith value stored in the stack
+	 * 
+	 * @param i index
+	 * @return referenced value
+	 */
 	const double & operator[](const size_t i) const
 	{
-// 		if(i > 31)
-// 			std::cout << "stack overflow !" << std::endl ;
 		return stack[i] ;
 	}
 	
-	void push_back(const double & a)
+	/** \brief Push a value on the stack
+	 * 
+	 * @param a values to push
+	 */
+	void push_back(double a)
 	{
 // 		if(top_pos > 30)
 // 			std::cout << "stack overflow !" << std::endl ;
-		stack[++top_pos] = a ;
+		++top_pos ;
+		++prev_top_pos ;
+		(*top_pos)= a ;
+		
 	}
+
+	/** \brief pop the last value of the stack
+	 * 
+	 */
 	void pop_back()
 	{
-		top_pos-- ;
+		--top_pos ;
+		--prev_top_pos ;
 	}
 	
+	/** \brief reset stack to its original values and positions
+	 * 
+	 */
 	void reset()
 	{
-		top_pos = -1 ;
+		top_pos = &stack[0] ;
+		prev_top_pos =  top_pos-1 ;
 	}
 } ;
 
+/** \brief Context for the evaluation of a token. Contains a Memory and the values for the function arguments */
 struct Context
 {
-	Memory &memory; 
-	const double & x ; 
-	const double & y ; 
-	const double & z ;
-	const double & t ; 
-	const double & u ; 
-	const double & v ; 
-	const double & w ;
-	Context(Memory &stack_, const double & x_, const double & y_ = 0, const double & z_ = 0, const double & t_ = 0, const double & u_ = 0, const double & v_ = 0, const double & w_ = 0) : memory(stack_), x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(w_) { } ;
+	Memory memory; 
+	double x ; 
+	double y ; 
+	double z ;
+	double t ; 
+	double u ; 
+	double v ; 
+	double w ;
+
+	/** \brief Constructor, initialises the argument values
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 * @param z_ 
+	 * @param t_ 
+	 * @param u_ 
+	 * @param v_ 
+	 * @param w_ 
+	 */
+	Context(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(w_) { } ;
+
+	/** \brief Constructor, initialises the argument values. arguments not set are 0
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 * @param z_ 
+	 * @param t_ 
+	 * @param u_ 
+	 * @param v_ 
+	 */
+	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_, const double & v_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(0) { } ;
+
+	/** \brief Constructor, initialises the argument values. arguments not set are 0
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 * @param z_ 
+	 * @param t_ 
+	 * @param u_ 
+	 */
+	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_) : x(x_), y(y_), z(z_), t(t_), u(u_), v(0), w(0) { } ;
+
+	/** \brief Constructor, initialises the argument values. arguments not set are 0
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 * @param z_ 
+	 * @param t_ 
+	 */
+	Context(const double & x_, const double & y_, const double & z_, const double & t_) : x(x_), y(y_), z(z_), t(t_), u(0), v(0), w(0) { } ;
+
+	/** \brief Constructor, initialises the argument values. arguments not set are 0
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 * @param z_ 
+	 */
+	Context(const double & x_, const double & y_, const double & z_) : x(x_), y(y_), z(z_), t(0), u(0), v(0), w(0) { } ;
+
+	/** \brief Constructor, initialises the argument values. arguments not set are 0
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 */
+	Context(const double & x_, const double & y_) : x(x_), y(y_), z(0), t(0), u(0), v(0), w(0) { } ;
+
+	/** \brief Constructor, initialises the argument values. arguments not set are 0
+	 * 
+	 * @param x_ 
+	 */
+	Context(const double & x_) : x(x_), y(0), z(0), t(0), u(0), v(0), w(0) { } ;
+
+	/** \brief Constructor, initialises the arguments to 0
+	 * 
+	 */
+	Context() : x(0), y(0), z(0), t(0), u(0), v(0), w(0) { } ;
+
+	/** \brief Sets the argument values.
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 * @param z_ 
+	 * @param t_ 
+	 * @param u_ 
+	 * @param v_ 
+	 * @param w_ 
+	 */
+	void set(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ )
+	{
+		x = x_; 
+		y = y_;
+		z = z_;
+		t = t_; 
+		u = u_; 
+		v = v_; 
+		w = w_;
+	}
+
+	/** \brief Sets the argument values. Arguments not set are kept.
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 * @param z_ 
+	 * @param t_ 
+	 * @param u_ 
+	 * @param v_ 
+	 * @param w_ 
+	 */
+	void set(const double & x_, const double & y_, const double & z_ )
+	{
+		x = x_; 
+		y = y_;
+		z = z_;
+	}
+
+	/** \brief Sets the argument values. Arguments not set are kept.
+	 * 
+	 * @param x_ 
+	 * @param y_ 
+	 */
+	void set(const double & x_, const double & y_)
+	{
+		x = x_; 
+		y = y_;
+	}
+
+	/** \brief Sets the argument values. Arguments not set are kept.
+	 * 
+	 * @param x_ 
+	 */
+	void set(const double & x_)
+	{
+		x = x_; 
+	}
 } ;
 
+/** \brief Bytecode Token for the constitutions of Functions. A token operates on a stack and heap given arguments*/
 class Token
 {
 public:
 	
 	
+	/** \brief Constructor. The Type of the Token contains three values: the Enum defining the type, and two values which can be used for the evaluation.
+	 * 
+	 * @param null true is token represents putting 0 on the stack
+	 * @param t type.
+	 */
 	Token(bool null = false, TokenType t =  std::make_pair(std::make_pair(TOKEN,0),(double)(0))) : isNull(null), type(t) { ; };
 	
 	virtual ~Token() { } ;
@@ -206,6 +394,7 @@ public:
 	const TokenType type ;
 } ;
 
+/** \brief Put a constant on the stack */
 class ConstantToken : public Token
 {
 	
@@ -229,6 +418,7 @@ public:
 	
 } ;
 
+/** \brief Put a 0 on the stack */
 class NullToken : public Token
 {
 public:
@@ -246,6 +436,7 @@ public:
 	}
 } ;
 
+/** \brief Put -1 or 1 on the stack depending on whether we are within or without a domain delimited by a set of Segment s */
 class PositionToken : public Token
 {
 	std::vector<Segment> s ;
@@ -286,11 +477,11 @@ public:
 			}
 		}
 		
-		context.memory.stack[context.memory.top_pos] =  (intersections & 1) * 2 - 1;
+		*context.memory.top_pos =  (intersections & 1) * 2 - 1;
 // 		if(intersections%2 == 1)
-// 		    context.memory.stack[context.memory.top_pos] = -1 ;
+// 		    *context.memory.top_pos = -1 ;
 // 		else
-// 		    context.memory.stack[context.memory.top_pos] = 1 ;
+// 		    *context.memory.top_pos = 1 ;
 	}
 	
 	virtual ~PositionToken();
@@ -300,6 +491,33 @@ public:
 	}
 } ;
 
+/** \brief Put the distance of a point to an origin along a segmented line*/
+class CurvilinearXOperatorToken : public Token
+{
+	const SegmentedLine * line ;
+	bool origin ;
+public:
+	CurvilinearXOperatorToken(const SegmentedLine * l, bool fromHead) ;
+	
+	virtual void eval(Context & context) const;
+	virtual std::string print() const;
+	
+} ;
+
+/** \brief Put the height of a point to an origin along a segmented line*/
+class CurvilinearYOperatorToken: public Token
+{
+	const SegmentedLine * line ;
+	bool origin ;
+public:
+	CurvilinearYOperatorToken(const SegmentedLine * l, bool fromHead) ;
+	
+	virtual void eval(Context & context) const;
+	virtual std::string print() const;
+	
+} ;
+
+/** \brief Put the distance between a point defined by the two last positions on the stack and its projection on a Line on the stack. */
 class LineDistanceOperatorToken : public Token
 {
 	Line l ;
@@ -311,11 +529,11 @@ public:
 	virtual void eval(Context & context) const
 	{
 		
-		Point test(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		Point test(*context.memory.top_pos, *context.memory.prev_top_pos) ;
 	    	context.memory.pop_back() ;
 	
 		
-		context.memory.stack[context.memory.top_pos] =  sqrt(squareDist2D(test,l.projection(test)));
+		*context.memory.top_pos =  sqrt(squareDist2D(test,l.projection(test)));
 	}
 	
 	virtual ~LineDistanceOperatorToken() { };
@@ -325,73 +543,23 @@ public:
 	}
 } ;
 
+/** \brief Put the distance between a point defined by the arguments and its projection on a Line on the stack. */
 class PositionOperatorToken : public Token
 {
 	std::vector<Segment> s ;
 	Point w ;
 public:
-	PositionOperatorToken(Segment s_ ) : Token(false, std::make_pair(std::make_pair(TOKEN_POSITION_OPERATOR, 0), (double)(0)))
-	{
-		Point vector(-s_.vector().y, s_.vector().x) ;
-		w= s_.midPoint()+vector*1000. ;
-		s.push_back(s_)  ;
-	}
+	PositionOperatorToken(Segment s_ ) ;
 	
-	PositionOperatorToken(std::vector<Segment> s_ ) : Token(false)
-	{
-		
-		for(size_t i = 0 ; i < s_.size() ; i++)
-		{
-
-			s.push_back(s_[i])  ;
-		}
-		
-		Point vector(-s[0].vector().y, s[0].vector().x) ;
-		w= s[0].midPoint()+vector*100. ;
-	}
+	PositionOperatorToken(std::vector<Segment> s_ ) ;
 	
-	virtual void eval(Context & context) const
-	{
-		if(s.empty())
-		{
-			context.memory.pop_back() ;
-			context.memory.stack[context.memory.top_pos] = 0 ;
-			return ;
-		}
-		
-
-		Point test(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
-		context.memory.pop_back() ;
-		
-		int intersections = 0 ;
-		for(size_t i = 0 ; i < s.size() ; i++)
-		{
-			if(s[i].on(test))
-			{
-				context.memory.stack[context.memory.top_pos] = 0 ;
-				return ;
-			}
-			if(s[i].intersects(test, w))
-			{
-				intersections++ ;
-			}
-			
-		}
-		
-		if((intersections % 2)  != 0)
-			context.memory.stack[context.memory.top_pos] =  -1 ;
-		else
-			context.memory.stack[context.memory.top_pos] = 1 ;
-
-	}
+	virtual void eval(Context & context) const;
 	
-	virtual ~PositionOperatorToken() { };
-	virtual std::string print() const
-	{
-		return std::string("position") ;
-	}
+	virtual ~PositionOperatorToken();
+	virtual std::string print() const;
 } ;
 
+/** \brief Put 1 on the stack if Point taken from context is in the given Geometry, -1 otherwise */
 class DomainToken : public Token
 {
 	const Geometry* geo ;
@@ -416,24 +584,24 @@ public:
 	}
 } ;
 
+/** \brief Put -1 point defined by the two last positions on the stack lies outside a given Geometry, 1 otherwise. */
 class DomainBinaryOperatorToken : public Token
 {
 	const Geometry* geo ;
 public:
-	DomainBinaryOperatorToken(const Geometry * g ) : Token(false, std::make_pair(std::make_pair(TOKEN_DOMAIN, 0), (double)(0)))
+	DomainBinaryOperatorToken(const Geometry * g ) : Token(false, std::make_pair(std::make_pair(TOKEN_DOMAIN, 0), (double)(0))), geo(g)
 	{
-		geo = g ;
 	}
 	
 	virtual void eval(Context & context) const
 	{
 		
-		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		Point p(*context.memory.top_pos, *context.memory.prev_top_pos) ;
 		context.memory.pop_back() ;
 		if(geo->in(p))
-			context.memory.stack[context.memory.top_pos] = 1 ;
+			*context.memory.top_pos = 1 ;
 		else
-			context.memory.stack[context.memory.top_pos] = -1 ;
+			*context.memory.top_pos = -1 ;
 	}
 	virtual ~DomainBinaryOperatorToken() { };
 	virtual std::string print() const
@@ -442,43 +610,47 @@ public:
 	}
 } ;
 
+/** \brief Put on the stack two values corresponding to the transformation defined by a surface element, using the arguments as the original position. */
 class Transform2DToken : public Token
 {
 
-	ElementarySurface * e ;
+	const ElementarySurface * e ;
 public:
-	Transform2DToken(ElementarySurface * g ) ;
+	Transform2DToken(const ElementarySurface * g ) ;
 	
 	virtual void eval(Context & context) const;
 	virtual ~Transform2DToken() ;
 	virtual std::string print() const;
 } ;
 
+/** \brief Put on the stack three values corresponding to the transformation defined by a volume element, using the arguments as the original position. */
 class Transform3DToken : public Token
 {
-	ElementaryVolume * e ;
+	const ElementaryVolume * e ;
 public:
-	Transform3DToken(ElementaryVolume * g ) ;
+	Transform3DToken(const ElementaryVolume * g ) ;
 	
 	virtual void eval(Context & context) const;
 	virtual ~Transform3DToken() ;
 	virtual std::string print() const;
 } ;
 
+/** \brief Put on the stack the distance between a point defined by the last positions on the stack and a stored position. */
 class PointDistanceBinaryOperatorToken : public Token
 {
-	Point base ;
+	double x0 ;
+	double y0 ;
 public:
-	PointDistanceBinaryOperatorToken(const Point & p ) : Token(false, std::make_pair(std::make_pair(TOKEN_POINT_DISTANCE_OPERATOR, 0), (double)(0))), base(p)
+	PointDistanceBinaryOperatorToken(const Point & p ) : Token(false, std::make_pair(std::make_pair(TOKEN_POINT_DISTANCE_OPERATOR, 0), (double)(0))), x0(p.x), y0(p.y)
 	{
 	}
 	
 	virtual void eval(Context & context) const
 	{
-		
-		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		double x = *context.memory.top_pos-x0 ;
+		double y = *context.memory.prev_top_pos-y0 ;
 		context.memory.pop_back() ;
-		context.memory.stack[context.memory.top_pos] = sqrt(squareDist2D(p, base)) ;
+		*context.memory.top_pos = sqrt(x*x+y*y) ;
 
 	}
 	virtual ~PointDistanceBinaryOperatorToken() { };
@@ -488,6 +660,35 @@ public:
 	}
 } ;
 
+/** \brief Put on the stack the distance between a point defined by the last positions on the stack and a stored position. */
+class PointDistanceTrinaryOperatorToken : public Token
+{
+	double x0 ;
+	double y0 ;
+	double z0 ;
+public:
+	PointDistanceTrinaryOperatorToken(const Point & p ) : Token(false, std::make_pair(std::make_pair(TOKEN_POINT_DISTANCE_TRI_OPERATOR, 0), (double)(0))), x0(p.x), y0(p.y), z0(p.z)
+	{
+	}
+	
+	virtual void eval(Context & context) const
+	{
+		double x = *context.memory.top_pos-x0 ;
+		double y = *context.memory.prev_top_pos-y0 ;
+		double z = *(context.memory.prev_top_pos-1)-z0 ;
+		context.memory.pop_back() ;
+		context.memory.pop_back() ;
+		*context.memory.top_pos = sqrt(x*x+y*y+z*z) ;
+
+	}
+	virtual ~PointDistanceTrinaryOperatorToken() { };
+	virtual std::string print() const
+	{
+		return std::string("pointDistTrinOp") ;
+	}
+} ;
+
+/** \brief Put on the stack the two coordinates of a transformed point defined by the last positions on the stack given a rotation. */
 class RotationBinaryOperatorToken : public Token
 {
 	double cangle ;
@@ -500,10 +701,10 @@ public:
 	virtual void eval(Context & context) const
 	{
 		
-		double x = context.memory.stack[context.memory.top_pos] ;
-		double y =  context.memory.stack[context.memory.top_pos-1] ;
-		context.memory.stack[context.memory.top_pos] = x*cangle + y*sangle ;
-		context.memory.stack[context.memory.top_pos-1] = -x*sangle + y*cangle ;
+		double x = *context.memory.top_pos ;
+		double y =  *context.memory.prev_top_pos ;
+		*context.memory.top_pos = x*cangle + y*sangle ;
+		*context.memory.prev_top_pos = -x*sangle + y*cangle ;
 
 	}
 	virtual ~RotationBinaryOperatorToken() { };
@@ -513,6 +714,7 @@ public:
 	}
 } ;
 
+/** \brief Put on the stack the angle between a point defined by the last positions on the stack and a stored position. */
 class AngleBinaryOperatorToken : public Token
 {
 	double cangle ;
@@ -526,12 +728,12 @@ public:
 	virtual void eval(Context & context) const
 	{
 		
-		double x = context.memory.stack[context.memory.top_pos] ;
-		double y =  context.memory.stack[context.memory.top_pos-1] ;
+		double x = *context.memory.top_pos ;
+		double y =  *context.memory.prev_top_pos ;
 		double x_t = x*cangle + y*sangle ;
 		double y_t = -x*sangle + y*cangle ;
 		context.memory.pop_back() ;
-		context.memory.stack[context.memory.top_pos] = atan2(y_t-pivot.y, x_t-pivot.x) ;
+		*context.memory.top_pos = atan2(y_t-pivot.y, x_t-pivot.x) ;
 
 	}
 	virtual ~AngleBinaryOperatorToken() { };
@@ -541,6 +743,7 @@ public:
 	}
 } ;
 
+/** \brief Put on the stack squared distance between a point defined by the last two positions on the stack and a tored position */
 class PointSquareDistanceBinaryOperatorToken : public Token
 {
 	Point base ;
@@ -553,10 +756,10 @@ public:
 	virtual void eval(Context & context) const
 	{
 		
-		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		Point p(*context.memory.top_pos, *context.memory.prev_top_pos) ;
 		context.memory.pop_back() ;
 
-		context.memory.stack[context.memory.top_pos] = squareDist2D(p, base) ;
+		*context.memory.top_pos = squareDist2D(p, base) ;
 
 	}
 	virtual ~PointSquareDistanceBinaryOperatorToken() { };
@@ -566,22 +769,23 @@ public:
 	}
 } ;
 
+/** \brief Put 1 one the stack if a point defined by the two last positions on the stack is not visible from a stored position given an obstructing Geometry, 0 otherwise. */
 class LineOfSightOperatorToken : public Token
 {
 	Point base ;
-	Geometry * obstruction ;
+	const Geometry * obstruction ;
 public:
-	LineOfSightOperatorToken(const Point & p,  Geometry * o) : Token(false, std::make_pair(std::make_pair(TOKEN_LINE_OF_SIGHT_OPERATOR, 0), (double)(0))), base(p), obstruction(o)
+	LineOfSightOperatorToken(const Point & p,  const Geometry * o) : Token(false, std::make_pair(std::make_pair(TOKEN_LINE_OF_SIGHT_OPERATOR, 0), (double)(0))), base(p), obstruction(o)
 	{
 	}
 	
 	virtual void eval(Context & context) const
 	{
 		
-		Point p(context.memory.stack[context.memory.top_pos], context.memory.stack[context.memory.top_pos-1]) ;
+		Point p(*context.memory.top_pos, *context.memory.prev_top_pos) ;
 		
 
-		context.memory.stack[context.memory.top_pos] = Segment(base, p).intersects(obstruction) ;
+		*context.memory.top_pos = Segment(base, p).intersects(obstruction) ;
 
 	}
 	virtual ~LineOfSightOperatorToken() { };
@@ -591,6 +795,7 @@ public:
 	}
 } ;
 
+/** \brief put on the stack a value stored in the heap. */
 class ReadHeapVariableToken : public Token
 {
 
@@ -610,6 +815,7 @@ public:
 	}
 } ;
 
+/** \brief set a heap value */
 class SetHeapVariableToken : public Token
 {
 
@@ -619,7 +825,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.heap[type.first.second] = context.memory.stack[context.memory.top_pos] ;
+	    context.memory.heap[type.first.second] = *context.memory.top_pos ;
 	    context.memory.pop_back() ;
 	}
 	
@@ -631,19 +837,19 @@ public:
 	}
 } ;
 
+/** \brief put on the stack the distance between a point defined by the arguments and its projection on a stored Segment */
 class ProjectionToken : public Token
 {
-	Point normal ;
+	Segment s ;
 public:
-	ProjectionToken(Segment s_ ) : Token(false, std::make_pair(std::make_pair(TOKEN_PROJECTION, 0),(double)(0)))
-	
+	ProjectionToken(Segment s_ ) : Token(false, std::make_pair(std::make_pair(TOKEN_PROJECTION, 0),(double)(0))), s(s_)
 	{
-		normal = Point(-s_.vector().y, s_.vector().x) ;
 	}
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.push_back(Point(context.x, context.y, context.z) * normal) ;
+		
+	    context.memory.push_back(dist(Point(context.x, context.y, context.z), s.project(Point(context.x, context.y, context.z)))) ;
 	}
 	virtual ~ProjectionToken();
 	virtual std::string print() const
@@ -652,6 +858,33 @@ public:
 	}
 } ;
 
+/** \brief put on the stack the distance between a point defined by the two last positions on the Stack and its projection on a stored Segment */
+class ProjectionBinaryOperatorToken : public Token
+{
+	const Geometry * g ;
+public:
+	ProjectionBinaryOperatorToken(const Geometry * s_ ) : Token(false, std::make_pair(std::make_pair(TOKEN_PROJECTION_OPERATOR, 0),(double)(0))), g(s_)
+	{
+	}
+	
+	virtual void eval(Context & context) const
+	{
+		Point p(*context.memory.top_pos, *context.memory.prev_top_pos) ;
+		Point p_(p) ;
+		g->project(&p_) ;
+		context.memory.pop_back() ;
+
+		*context.memory.top_pos = sqrt(squareDist2D(p, p_)) ;
+
+	}
+	virtual ~ProjectionBinaryOperatorToken() { };
+	virtual std::string print() const
+	{
+		return std::string("projection") ;
+	}
+} ;
+
+/** \brief put on the stack the value of the x argument */
 class XToken : public Token
 {
 public:
@@ -661,6 +894,18 @@ public:
 	virtual std::string print() const { return std::string("x") ;}
 } ;
 
+/** \brief put on the stack minus the value of the x argument */
+
+class XMToken : public Token
+{
+public:
+	XMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_X, 0),(double)(0))) { };
+	virtual void eval(Context & context) const {context.memory.push_back(-context.x) ;}
+	virtual ~XMToken(){ };
+	virtual std::string print() const { return std::string("-x") ;}
+} ;
+
+/** \brief put on the stack the value of the y argument */
 class YToken : public Token
 {
 public:
@@ -670,6 +915,17 @@ public:
 	virtual std::string print() const { return std::string("y") ;}
 } ;
 
+/** \brief put on the stack minus the value of the y argument */
+class YMToken : public Token
+{
+public:
+	YMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_Y, 0),(double)(0))) { };
+	virtual void eval(Context & context) const {context.memory.push_back(-context.y) ;}
+	virtual ~YMToken(){ };
+	virtual std::string print() const { return std::string("-y") ;}
+} ;
+
+/** \brief put on the stack the value of the z argument */
 class ZToken : public Token
 {
 public:
@@ -679,6 +935,17 @@ public:
 	virtual std::string print() const { return std::string("z") ;}
 } ;
 
+/** \brief put on the stack minus the value of the z argument */
+class ZMToken : public Token
+{
+public:
+	ZMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_Z, 0),(double)(0))) { };
+	virtual void eval(Context & context) const {context.memory.push_back(-context.z) ;}
+	virtual ~ZMToken(){ };
+	virtual std::string print() const { return std::string("-z") ;}
+} ;
+
+/** \brief put on the stack the value of the t argument */
 class TToken : public Token
 {
 public:
@@ -688,6 +955,17 @@ public:
 	virtual std::string print() const { return std::string("t") ;}
 } ;
 
+/** \brief put on the stack minus the value of the t argument */
+class TMToken : public Token
+{
+public:
+	TMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_T, 0),(double)(0))) { };
+	virtual void eval(Context & context) const {context.memory.push_back(-context.t) ;}
+	virtual ~TMToken(){ };
+	virtual std::string print() const { return std::string("-t") ;}
+} ;
+
+/** \brief put on the stack the value of the u argument */
 class UToken : public Token
 {
 public:
@@ -697,6 +975,18 @@ public:
 	virtual std::string print() const { return std::string("u") ;}
 } ;
 
+
+/** \brief put on the stack minus the value of the u argument */
+class UMToken : public Token
+{
+public:
+	UMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_U, 0),(double)(0))) { };
+	virtual void eval(Context & context) const {context.memory.push_back(-context.u) ;}
+	virtual ~UMToken(){ };
+	virtual std::string print() const { return std::string("-u") ;}
+} ;
+
+/** \brief put on the stack the value of the v argument */
 class VToken : public Token
 {
 public:
@@ -706,6 +996,17 @@ public:
 	virtual std::string print() const { return std::string("v") ;}
 } ;
 
+/** \brief put on the stack minus the value of the v argument */
+class VMToken : public Token
+{
+public:
+	VMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_V, 0),(double)(0))) { };
+	virtual void eval(Context & context) const {context.memory.push_back(-context.v) ;}
+	virtual ~VMToken(){ };
+	virtual std::string print() const { return std::string("-v") ;}
+} ;
+
+/** \brief put on the stack the value of the w argument */
 class WToken : public Token
 {
 public:
@@ -715,6 +1016,17 @@ public:
 	virtual std::string print() const { return std::string("w") ;}
 } ;
 
+/** \brief put on the stack minus the value of the e argument */
+class WMToken : public Token
+{
+public:
+	WMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_W, 0),(double)(0))) { };
+	virtual void eval(Context & context) const {context.memory.push_back(-context.w) ;}
+	virtual ~WMToken(){ };
+	virtual std::string print() const { return std::string("-w") ;}
+} ;
+
+/** \brief put on the stack an argument value, defined by the stored variable */
 class VariableToken : public Token
 {
 protected:
@@ -819,6 +1131,7 @@ public:
 	}
 } ;
 
+/** \brief Apply unary function on the last value of the stack */
 class UnaryFunctionToken : public Token
 {
 protected:
@@ -829,7 +1142,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = fctPtr(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = fctPtr(*context.memory.top_pos) ;
 	}
 	
 	virtual ~UnaryFunctionToken() ;
@@ -840,6 +1153,7 @@ public:
 	}
 } ;
 
+/** \brief Apply binary function on the two last values of the stack */
 class BinaryFunctionToken : public Token
 {
 protected:
@@ -850,10 +1164,10 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double new_val_0 = context.memory.stack[context.memory.top_pos-1] ;
-		double new_val_1 = context.memory.stack[context.memory.top_pos] ;
+		double new_val_0 = *context.memory.prev_top_pos ;
+		double new_val_1 = *context.memory.top_pos ;
 	    context.memory.pop_back() ;
-	    context.memory.stack[context.memory.top_pos] = fctPtr(new_val_0, new_val_1) ;
+	    *context.memory.top_pos = fctPtr(new_val_0, new_val_1) ;
 	}
 	
 	virtual ~BinaryFunctionToken() ;
@@ -864,24 +1178,20 @@ public:
 	}
 } ;
 
+/** \brief Take the cos of the last value of the stack */
 class CosToken : public Token
 {
 public:
-	CosToken() : Token(false, std::make_pair(std::make_pair(TOKEN_COS, 0),(double)(0))) { };
+	CosToken() ;
 	
-	virtual void eval(Context & context) const
-	{
-	    context.memory.stack[context.memory.top_pos] = cos(context.memory.stack[context.memory.top_pos]) ;
-	}
+	virtual void eval(Context & context) const ;
 	
-	virtual ~CosToken() {} ;
+	virtual ~CosToken() ;
 	
-	virtual std::string print() const
-	{
-		return std::string("cos")  ;
-	}
+	virtual std::string print() const ;
 } ;
 
+/** \brief Take the abs of the last value of the stack */
 class AbsToken : public Token
 {
 public:
@@ -889,7 +1199,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		context.memory.stack[context.memory.top_pos] = std::abs(context.memory.stack[context.memory.top_pos]) ;
+		*context.memory.top_pos = std::abs(*context.memory.top_pos) ;
 	}
 	
 	virtual ~AbsToken() {} ;
@@ -900,6 +1210,7 @@ public:
 	}
 } ;
 
+/** \brief Take the tan of the last value of the stack */
 class TanToken : public Token
 {
 public:
@@ -907,7 +1218,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = tan(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = tan(*context.memory.top_pos) ;
 	}
 	
 	virtual ~TanToken() {} ;
@@ -918,24 +1229,20 @@ public:
 	}
 } ;
 
+/** \brief Take the sin of the last value of the stack */
 class SinToken : public Token
 {
 public:
-	SinToken() : Token(false, std::make_pair(std::make_pair(TOKEN_SIN, 0),(double)(0)) ) { };
+	SinToken() ;
 	
-	virtual void eval(Context & context) const
-	{
-	    context.memory.stack[context.memory.top_pos] = sin(context.memory.stack[context.memory.top_pos]) ;
-	}
+	virtual void eval(Context & context) const ;
 	
-	virtual ~SinToken() {} ;
+	virtual ~SinToken()  ;
 	
-	virtual std::string print() const
-	{
-		return std::string("sin")  ;
-	}
+	virtual std::string print() const ;
 } ;
 
+/** \brief Take the exp of the last value of the stack */
 class ExpToken : public Token
 {
 public:
@@ -943,7 +1250,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = exp(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = exp(*context.memory.top_pos) ;
 	}
 	
 	virtual ~ExpToken() {} ;
@@ -954,6 +1261,7 @@ public:
 	}
 } ;
 
+/** \brief Take the sign of the last value of the stack */
 class SignFunctionToken : public Token
 {
 public:
@@ -961,7 +1269,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = sign(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = sign(*context.memory.top_pos) ;
 	}
 	
 	virtual ~SignFunctionToken() {} ;
@@ -972,6 +1280,7 @@ public:
 	}
 } ;
 
+/** \brief Put one if the last value of the stack is positive, 0 otherwise*/
 class PositivityFunctionToken : public Token
 {
 public:
@@ -979,11 +1288,11 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double s = sign(context.memory.stack[context.memory.top_pos]) ;
+		double s = sign(*context.memory.top_pos) ;
 		if(s > 0)
-			context.memory.stack[context.memory.top_pos] = 1 ;
+			*context.memory.top_pos = 1 ;
 		else
-			context.memory.stack[context.memory.top_pos] = 0 ;
+			*context.memory.top_pos = 0 ;
 	}
 	
 	virtual ~PositivityFunctionToken() {} ;
@@ -994,6 +1303,7 @@ public:
 	}
 } ;
 
+/** \brief Put one if the last value of the stack is negative, 0 otherwise*/
 class NegativityFunctionToken : public Token
 {
 public:
@@ -1001,11 +1311,11 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double s = sign(context.memory.stack[context.memory.top_pos]) ;
+		double s = sign(*context.memory.top_pos) ;
 		if(s < 0)
-	    	context.memory.stack[context.memory.top_pos] = 1 ;
+	    	*context.memory.top_pos = 1 ;
 		else
-			context.memory.stack[context.memory.top_pos] = 0 ;
+			*context.memory.top_pos = 0 ;
 	}
 	
 	virtual ~NegativityFunctionToken() {} ;
@@ -1016,6 +1326,7 @@ public:
 	}
 } ;
 
+/** \brief Take the log of the last value of the stack */
 class LogToken : public Token
 {
 public:
@@ -1023,7 +1334,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = log(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = log(*context.memory.top_pos) ;
 	}
 	
 	virtual ~LogToken() {} ;
@@ -1034,6 +1345,7 @@ public:
 	}
 } ;
 
+/** \brief Take the cosh of the last value of the stack */
 class CoshToken : public Token
 {
 public:
@@ -1041,7 +1353,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = cosh(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = cosh(*context.memory.top_pos) ;
 	}
 	
 	virtual ~CoshToken() {} ;
@@ -1052,6 +1364,7 @@ public:
 	}
 } ;
 
+/** \brief Take the sinh of the last value of the stack */
 class SinhToken : public Token
 {
 public:
@@ -1059,7 +1372,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = sinh(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = sinh(*context.memory.top_pos) ;
 	}
 	
 	virtual ~SinhToken() {} ;
@@ -1070,6 +1383,7 @@ public:
 	}
 } ;
 
+/** \brief Take the tanh of the last value of the stack */
 class TanhToken : public Token
 {
 public:
@@ -1077,7 +1391,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = tanhl(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = tanhl(*context.memory.top_pos) ;
 	}
 	
 	virtual ~TanhToken() {} ;
@@ -1088,6 +1402,7 @@ public:
 	}
 } ;
 
+/** \brief Take the sqrt of the last value of the stack */
 class SqrtToken : public Token
 {
 public:
@@ -1095,7 +1410,7 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-	    context.memory.stack[context.memory.top_pos] = sqrt(context.memory.stack[context.memory.top_pos]) ;
+	    *context.memory.top_pos = sqrt(*context.memory.top_pos) ;
 	}
 	
 	virtual ~SqrtToken() {} ;
@@ -1106,26 +1421,372 @@ public:
 	}
 } ;
 
-class Atan2Token : public Token
+/** \brief Take the Bessel function of the last value of the stack */
+class BesselToken : public Token
 {
 public:
-	Atan2Token() : Token(false, std::make_pair(std::make_pair(TOKEN_ATAN2, 0),(double)(0)))  { };
+	BesselToken(int i) : Token(false, std::make_pair(std::make_pair(TOKEN_BESSEL, i),(double)(0))) { };
 	
 	virtual void eval(Context & context) const
 	{
-		double new_val = atan2(context.memory.stack[context.memory.top_pos-1], context.memory.stack[context.memory.top_pos]) ;
-	    context.memory.pop_back() ;
-	    context.memory.stack[context.memory.top_pos] = new_val ;
+		if(std::abs(*context.memory.top_pos) > 1e-8)
+#ifdef HAVE_TR1
+			*context.memory.top_pos = std::tr1::cyl_bessel_j(type.first.second, *context.memory.top_pos) ;
+#else
+			*context.memory.top_pos = 0 ;
+#endif
+		else
+			*context.memory.top_pos = (type.first.second == 0) ;
 	}
 	
-	virtual ~Atan2Token() {} ;
+	virtual ~BesselToken() {} ;
 	
 	virtual std::string print() const
 	{
-		return std::string("atan2")  ;
+		return std::string("bessel")  ;
 	}
 } ;
 
+/** \brief Take the atan2 function of the last two values of the stack */
+class Atan2Token : public Token
+{
+public:
+	Atan2Token() ;
+	
+	virtual void eval(Context & context) const ;
+	
+	virtual ~Atan2Token() ;
+	
+	virtual std::string print() const ;
+} ;
+
+/** \brief Interpolate between the last two values on the stack given the x argument */
+class InterpolationToken : public Token
+{
+public:
+	InterpolationToken() : Token(false, std::make_pair(std::make_pair(TOKEN_INTERPOLATE, 0),(double)(0)))  { };
+	
+	virtual void eval(Context & context) const
+	{
+		double new_val = interpolate(*context.memory.top_pos, *context.memory.prev_top_pos) ;
+	    context.memory.pop_back() ;
+	    *context.memory.top_pos = new_val ;
+	}
+	
+	virtual ~InterpolationToken() {} ;
+	
+	virtual std::string print() const
+	{
+		return std::string("interpolate")  ;
+	}
+} ;
+
+/** \brief Return the normalised distance between n geometries, starting from outside. Use the last two values on the stack.*/
+class MultipleInterpolationFromTopToken2D : public Token
+{
+	std::vector<Geometry *> geos ;
+public:
+	MultipleInterpolationFromTopToken2D() : Token(false, std::make_pair(std::make_pair(TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_2D, 0),(double)(0)))  { };
+	
+	virtual void eval(Context & context) const
+	{
+		Point test(*context.memory.top_pos, *context.memory.prev_top_pos) ;
+		context.memory.pop_back() ;
+		Geometry * lastIn = NULL ;
+		Geometry * previousIn = NULL ;
+		Geometry * lastOut = NULL ;
+		Geometry * previousOut = NULL ;
+		for(std::vector<Geometry *>::const_iterator i = geos.begin() ; i != geos.end() ; ++i)
+		{
+			if((*i)->in(test))
+			{
+				if(lastIn)
+					previousIn = lastIn ;
+				lastIn = *i ;
+			}
+			else
+			{
+				if(lastOut)
+					previousOut = lastOut ;
+				lastOut = *i ;
+			}
+		}
+		
+		if(lastOut == NULL) // I am in all geometries.
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ;
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+			
+		}
+		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+			
+		}
+		else if(previousOut != NULL) // I am between 2 geometries
+		{
+			Point p0(test) ;
+			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+		}
+		else if(!geos.empty()) // I am outside the only geometry
+		{
+			Point p0(test) ;
+			lastOut->project(&p0) ;
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+		}
+		else // there is nothing
+		{
+			*context.memory.top_pos = 0 ;
+		}
+	}
+	
+	virtual ~MultipleInterpolationFromTopToken2D() {} ;
+	
+	virtual std::string print() const
+	{
+		return std::string("multiple interpolate from top")  ;
+	}
+} ;
+
+/** \brief Return the normalised distance between n geometries, starting from inside, use the last two values on the stack.*/
+class MultipleInterpolationFromBottomToken2D : public Token
+{
+	std::vector<Geometry *> geos ;
+public:
+	MultipleInterpolationFromBottomToken2D() : Token(false, std::make_pair(std::make_pair(TOKEN_MULTIPLE_INTERPOLATE_FROM_BOTTOM_2D, 0),(double)(0)))  { };
+	
+	virtual void eval(Context & context) const
+	{
+		Point test(*context.memory.top_pos, *context.memory.prev_top_pos);
+		context.memory.pop_back() ;
+		Geometry * lastIn = NULL ;
+		Geometry * previousIn = NULL ;
+		Geometry * lastOut = NULL ;
+		Geometry * previousOut = NULL ;
+		for(std::vector<Geometry *>::const_reverse_iterator i = geos.rbegin() ; i != geos.rend() ; ++i)
+		{
+			if((*i)->in(test))
+			{
+				if(lastIn)
+					previousIn = lastIn ;
+				lastIn = *i ;
+			}
+			else
+			{
+				if(lastOut)
+					previousOut = lastOut ;
+				lastOut = *i ;
+			}
+		}
+		
+		if(lastOut == NULL) // I am in all geometries.
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ;
+			
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+			
+		}
+		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+			
+		}
+		else if(previousOut != NULL) // I am between 2 geometries
+		{
+			Point p0(test) ;
+			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+		}
+		else if(!geos.empty()) // I am outside the only geometry
+		{
+			Point p0(test) ;
+			lastOut->project(&p0) ;
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+		}
+		else // there is nothing
+		{
+			*context.memory.top_pos = 0 ;
+		}
+	}
+	
+	virtual ~MultipleInterpolationFromBottomToken2D() {} ;
+	
+	virtual std::string print() const
+	{
+		return std::string("multiple interpolate from bottom")  ;
+	}
+} ;
+
+/** \brief Return the normalised distance between n geometries, starting from outside. Use the last three values on the stack.*/
+class MultipleInterpolationFromTopToken3D : public Token
+{
+	std::vector<Geometry *> geos ;
+public:
+	MultipleInterpolationFromTopToken3D() : Token(false, std::make_pair(std::make_pair(TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_3D, 0),(double)(0)))  { };
+	
+	virtual void eval(Context & context) const
+	{
+		Point test(*context.memory.top_pos, *context.memory.prev_top_pos) ;
+		
+		context.memory.pop_back() ;
+		context.memory.pop_back() ;
+		Geometry * lastIn = NULL ;
+		Geometry * previousIn = NULL ;
+		Geometry * lastOut = NULL ;
+		Geometry * previousOut = NULL ;
+		for(std::vector<Geometry *>::const_iterator i = geos.begin() ; i != geos.end() ; ++i)
+		{
+			if((*i)->in(test))
+			{
+				if(lastIn)
+					previousIn = lastIn ;
+				lastIn = *i ;
+			}
+			else
+			{
+				if(lastOut)
+					previousOut = lastOut ;
+				lastOut = *i ;
+			}
+		}
+		
+		if(lastOut == NULL) // I am in all geometries.
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ;
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+			
+		}
+		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+			
+		}
+		else if(previousOut != NULL) // I am between 2 geometries
+		{
+			Point p0(test) ;
+			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+		}
+		else if(!geos.empty()) // I am outside the only geometry
+		{
+			Point p0(test) ;
+			lastOut->project(&p0) ;
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+		}
+		else // there is nothing
+		{
+			*context.memory.top_pos = 0 ;
+		}
+	}
+	
+	virtual ~MultipleInterpolationFromTopToken3D() {} ;
+	
+	virtual std::string print() const
+	{
+		return std::string("multiple interpolate from top")  ;
+	}
+} ;
+
+/** \brief Return the normalised distance between n geometries, starting from inside. Use the last three values on the stack.*/
+class MultipleInterpolationFromBottomToken3D : public Token
+{
+	std::vector<Geometry *> geos ;
+public:
+	MultipleInterpolationFromBottomToken3D() : Token(false, std::make_pair(std::make_pair(TOKEN_MULTIPLE_INTERPOLATE_FROM_BOTTOM_3D, 0),(double)(0)))  { };
+	
+	virtual void eval(Context & context) const
+	{
+		Point test(*context.memory.top_pos, *context.memory.prev_top_pos, *(context.memory.top_pos-2)) ;
+		context.memory.pop_back() ;
+		context.memory.pop_back() ;
+		
+		Geometry * lastIn = NULL ;
+		Geometry * previousIn = NULL ;
+		Geometry * lastOut = NULL ;
+		Geometry * previousOut = NULL ;
+		for(std::vector<Geometry *>::const_reverse_iterator i = geos.rbegin() ; i != geos.rend() ; ++i)
+		{
+			if((*i)->in(test))
+			{
+				if(lastIn)
+					previousIn = lastIn ;
+				lastIn = *i ;
+			}
+			else
+			{
+				if(lastOut)
+					previousOut = lastOut ;
+				lastOut = *i ;
+			}
+		}
+		
+		if(lastOut == NULL) // I am in all geometries.
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ;
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+			
+		}
+		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		{
+			Point p0(test) ;
+			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+			
+		}
+		else if(previousOut != NULL) // I am between 2 geometries
+		{
+			Point p0(test) ;
+			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
+			Point p1(test) ;
+			lastOut->project(&p1) ; double dout = sqrt(squareDist2D(test, p1)) ;
+			*context.memory.top_pos = interpolate(din, dout) ;
+		}
+		else if(!geos.empty()) // I am outside the only geometry
+		{
+			Point p0(test) ;
+			lastOut->project(&p0) ;
+			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
+		}
+		else // there is nothing
+		{
+			*context.memory.top_pos = 0 ;
+		}
+	}
+	
+	virtual ~MultipleInterpolationFromBottomToken3D() {} ;
+	
+	virtual std::string print() const
+	{
+		return std::string("multiple interpolate from bottom")  ;
+	}
+} ;
+
+/** \brief Add the last two values on the stack*/
 class PlusOperatorToken : public Token
 {
 public:
@@ -1133,9 +1794,8 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double new_val = context.memory.stack[context.memory.top_pos-1]+context.memory.stack[context.memory.top_pos] ;
-	    context.memory.pop_back() ;
-	    context.memory.stack[context.memory.top_pos] = new_val ;
+	    *context.memory.prev_top_pos += *context.memory.top_pos ;
+		 context.memory.pop_back() ;
 	}
 	
 	virtual ~PlusOperatorToken() ;
@@ -1146,6 +1806,7 @@ public:
 	}
 } ;
 
+/** \brief Substract the last two values on the stack*/
 class MinusOperatorToken : public Token
 {
 public:
@@ -1153,9 +1814,8 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double new_val = context.memory.stack[context.memory.top_pos-1]-context.memory.stack[context.memory.top_pos] ;
-	    context.memory.pop_back() ;
-	    context.memory.stack[context.memory.top_pos] = new_val ;
+		*context.memory.prev_top_pos -= *context.memory.top_pos ; 
+		context.memory.pop_back() ;
 	}
 	
 	virtual ~MinusOperatorToken() ;
@@ -1166,6 +1826,7 @@ public:
 	}
 } ;
 
+/** \brief Multiply the last two values on the stack*/
 class TimesOperatorToken : public Token
 {
 public:
@@ -1173,9 +1834,8 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double new_val = context.memory.stack[context.memory.top_pos-1] * context.memory.stack[context.memory.top_pos] ;
-	    context.memory.pop_back() ;
-	    context.memory.stack[context.memory.top_pos] = new_val ;
+		*context.memory.prev_top_pos *= *context.memory.top_pos ;
+		context.memory.pop_back() ;
 	}
 	
 	virtual ~TimesOperatorToken() ;
@@ -1186,6 +1846,7 @@ public:
 	}
 } ;
 
+/** \brief Divide the last two values on the stack*/
 class DivideOperatorToken : public Token
 {
 public:
@@ -1193,9 +1854,10 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double new_val = context.memory.stack[context.memory.top_pos-1] / context.memory.stack[context.memory.top_pos];
-	    context.memory.pop_back() ;
-	    context.memory.stack[context.memory.top_pos] = new_val ;
+		*context.memory.prev_top_pos = 
+			*context.memory.prev_top_pos 
+			/ *context.memory.top_pos; ;
+		context.memory.pop_back() ;
 	}
 	
 	virtual ~DivideOperatorToken() ;
@@ -1206,6 +1868,7 @@ public:
 	}
 } ;
 
+/** \brief take the last value of the stack power of the second-to-last value of the stack.*/
 class PowerOperatorToken : public Token
 {
 public:
@@ -1213,13 +1876,13 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double val = context.memory.stack[context.memory.top_pos-1] ;
-		size_t pow = static_cast<size_t>(context.memory.stack[context.memory.top_pos]) -1;
+		double val = *context.memory.prev_top_pos ;
+		size_t pow = static_cast<size_t>(*context.memory.top_pos) -1;
 	    context.memory.pop_back() ;
-	    context.memory.stack[context.memory.top_pos] = val ;
+	    *context.memory.top_pos = val ;
 		for(size_t i = 0 ; i < pow ; ++i)
 		{
-		    context.memory.stack[context.memory.top_pos] *= val;
+		    *context.memory.top_pos *= val;
 		}
 	}
 	
@@ -1231,7 +1894,7 @@ public:
 	}
 } ;
 
-
+/** \brief put the x argument to the nth power on the stack*/
 class XPowerConstToken: public Token
 {
 public:
@@ -1257,6 +1920,7 @@ public:
 	}
 } ;
 
+/** \brief put the y argument to the nth power on the stack*/
 class YPowerConstToken: public Token
 {
 public:
@@ -1283,6 +1947,7 @@ public:
 	}
 } ;
 
+/** \brief put the z argument to the nth power on the stack*/
 class ZPowerConstToken: public Token
 {
 public:
@@ -1309,6 +1974,7 @@ public:
 	}
 } ;
 
+/** \brief put the t argument to the nth power on the stack*/
 class TPowerConstToken: public Token
 {
 public:
@@ -1335,6 +2001,7 @@ public:
 	}
 } ;
 
+/** \brief put the nth power of a value read on the heap on the stack*/
 class ReadPowerConstToken: public Token
 {
 public:
@@ -1362,6 +2029,7 @@ public:
 	}
 } ;
 
+/** \brief Add a double to a value read on the heap*/
 class AddReadAndConstToken: public Token
 {
 public:
@@ -1381,6 +2049,7 @@ public:
 	}
 } ;
 
+/** \brief Add two values read on the heap*/
 class AddReadAndReadToken: public Token
 {
 protected:
@@ -1402,6 +2071,7 @@ public:
 	}
 } ;
 
+/** \brief Multiply two values read on the heap*/
 class MultiplyReadAndReadToken: public Token
 {
 protected:
@@ -1423,6 +2093,7 @@ public:
 	}
 } ;
 
+/** \brief Add a value read on the heap to the x argument*/
 class AddXAndConstToken: public Token
 {
 public:
@@ -1442,7 +2113,7 @@ public:
 	}
 } ;
 
-
+/** \brief Add a value read on the heap to the y argument*/
 class AddYAndConstToken: public Token
 {
 public:
@@ -1462,6 +2133,7 @@ public:
 	}
 } ;
 
+/** \brief Add a value read on the heap to the z argument*/
 class AddZAndConstToken: public Token
 {
 public:
@@ -1481,6 +2153,7 @@ public:
 	}
 } ;
 
+/** \brief Add a value read on the heap to the t argument*/
 class AddTAndConstToken: public Token
 {
 public:
@@ -1500,7 +2173,7 @@ public:
 	}
 } ;
 	
-
+/** \brief Multiply a value read on the heap with a constant*/
 class MultiplyReadAndConstToken: public Token
 {
 public:
@@ -1520,6 +2193,7 @@ public:
 	}
 } ;
 
+/** \brief Multiply a value read on the heap with the x argument*/
 class MultiplyXAndConstToken: public Token
 {
 public:
@@ -1539,7 +2213,7 @@ public:
 	}
 } ;
 
-
+/** \brief Multiply a value read on the heap with the y argument*/
 class MultiplyYAndConstToken: public Token
 {
 public:
@@ -1559,6 +2233,7 @@ public:
 	}
 } ;
 
+/** \brief Multiply a value read on the heap with the z argument*/
 class MultiplyZAndConstToken: public Token
 {
 public:
@@ -1578,6 +2253,7 @@ public:
 	}
 } ;
 
+/** \brief Multiply a value read on the heap with the t argument*/
 class MultiplyTAndConstToken: public Token
 {
 public:
@@ -1597,6 +2273,7 @@ public:
 	}
 } ;
 
+/** \brief Substract to the x argument with a constant*/
 class SubstractXWithConstToken: public Token
 {
 public:
@@ -1616,7 +2293,7 @@ public:
 	}
 } ;
 
-
+/** \brief Substract to the y argument with a constant*/
 class SubstractYWithConstToken: public Token
 {
 public:
@@ -1636,6 +2313,7 @@ public:
 	}
 } ;
 
+/** \brief Substract to the z argument with a constant*/
 class SubstractZWithConstToken: public Token
 {
 public:
@@ -1655,6 +2333,7 @@ public:
 	}
 } ;
 
+/** \brief Substract to the t argument with a constant*/
 class SubstractTWithConstToken: public Token
 {
 public:
@@ -1674,6 +2353,7 @@ public:
 	}
 } ;
 
+/** \brief Substract to a constant with the x argument*/
 class SubstractConstWithXToken: public Token
 {
 public:
@@ -1693,7 +2373,7 @@ public:
 	}
 } ;
 
-
+/** \brief Substract to a constant with the y argument*/
 class SubstractConstWithYToken: public Token
 {
 public:
@@ -1713,6 +2393,7 @@ public:
 	}
 } ;
 
+/** \brief Substract to a constant with the t argument*/
 class SubstractConstWithTToken: public Token
 {
 public:
@@ -1732,6 +2413,7 @@ public:
 	}
 } ;
 
+/** \brief Substract to a constant with a value read on the heap*/
 class SubstractConstWithReadToken: public Token
 {
 public:
@@ -1751,6 +2433,7 @@ public:
 	}
 } ;
 
+/** \brief Substract to a value read on the heap with a constant*/
 class SubstractReadWithConstToken: public Token
 {
 public:
@@ -1770,6 +2453,7 @@ public:
 	}
 } ;
 
+/** \brief Substract a constant with a value read on the heap*/
 class DivideConstWithReadToken: public Token
 {
 public:
@@ -1789,6 +2473,7 @@ public:
 	}
 } ;
 
+/** \brief Substract a value read on the heap with a constant*/
 class DivideReadWithConstToken: public Token
 {
 public:
@@ -1808,6 +2493,7 @@ public:
 	}
 } ;
 
+/** \brief Substract a value read on the heap with the z argument*/
 class SubstractConstWithZToken: public Token
 {
 public:
@@ -1827,7 +2513,7 @@ public:
 	}
 } ;
 
-
+/** \brief Divide the x argument with a constant*/
 class DivideXWithConstToken: public Token
 {
 public:
@@ -1846,7 +2532,7 @@ public:
 	}
 } ;
 
-
+/** \brief Divide the y argument with a constant*/
 class DivideYWithConstToken: public Token
 {
 public:
@@ -1865,6 +2551,7 @@ public:
 	}
 } ;
 
+/** \brief Divide the z argument with a constant*/
 class DivideZWithConstToken: public Token
 {
 public:
@@ -1883,6 +2570,7 @@ public:
 	}
 } ;
 
+/** \brief Divide the t argument with a constant*/
 class DivideTWithConstToken: public Token
 {
 public:
@@ -1901,6 +2589,7 @@ public:
 	}
 } ;
 
+/** \brief Divide a constant with the x argument*/
 class DivideConstWithXToken: public Token
 {
 public:
@@ -1919,7 +2608,7 @@ public:
 	}
 } ;
 
-
+/** \brief Divide a constant with the y argument*/
 class DivideConstWithYToken: public Token
 {
 public:
@@ -1939,6 +2628,7 @@ public:
 	}
 } ;
 
+/** \brief Divide a constant with the z argument*/
 class DivideConstWithZToken: public Token
 {
 public:
@@ -1958,6 +2648,7 @@ public:
 	}
 } ;
 
+/** \brief Divide a constant with the t argument*/
 class DivideConstWithTToken: public Token
 {
 public:
@@ -1977,7 +2668,7 @@ public:
 	}
 } ;
 
-
+/** \brief take the nth power of the x argument and multiply with a constant*/
 class XPowerAndMultiplyToken: public Token
 {
 public:
@@ -2005,6 +2696,7 @@ public:
 	}
 } ;
 
+/** \brief take the nth power of the y argument and multiply with a constant*/
 class YPowerAndMultiplyToken: public Token
 {
 public:
@@ -2032,6 +2724,7 @@ public:
 	}
 } ;
 
+/** \brief take the nth power of the z argument and multiply with a constant*/
 class ZPowerAndMultiplyToken: public Token
 {
 public:
@@ -2059,6 +2752,7 @@ public:
 	}
 } ;
 
+/** \brief take the nth power of the t argument and multiply with a constant*/
 class TPowerAndMultiplyToken: public Token
 {
 public:
@@ -2087,6 +2781,7 @@ public:
 } ;
 
 
+/** \brief multiply the x and y arguments*/
 class XYConstToken: public Token
 {
 public:
@@ -2106,6 +2801,7 @@ public:
 	}
 } ;
 
+/** \brief multiply the x and z arguments*/
 class XZConstToken: public Token
 {
 public:
@@ -2125,6 +2821,7 @@ public:
 	}
 } ;
 
+/** \brief multiply the y and z arguments*/
 class YZConstToken: public Token
 {
 public:

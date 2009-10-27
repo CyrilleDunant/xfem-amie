@@ -11,7 +11,7 @@ namespace Mu
 typedef enum 
 {
 	ZERO_TO_ONE,
-		MIN_ONE_TO_ONE
+	MIN_ONE_TO_ONE
 } TypeRef;
 
 } ;
