@@ -4,8 +4,8 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#ifndef __ENR_INCLUSION_H__
-#define __ENR_INCLUSION_H__
+#ifndef __ENR_INCLUSION_3D_H__
+#define __ENR_INCLUSION_3D_H__
 
 #include "features.h"
 
@@ -24,31 +24,28 @@ namespace Mu
  * thus derived classes should be used for actual simulation
  * see for example expansiveZone.h
  */
-class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
+class EnrichmentInclusion3D :  public EnrichmentFeature,  public Sphere
 {
 protected:
 	bool updated ;
-	std::vector<DelaunayTriangle *> cache ;
+	std::vector<DelaunayTetrahedron *> cache ;
 public:
 
 /** \brief Constructor. Construct the inclusion from a supporting feature, a radius and center coordinates */
-	EnrichmentInclusion(Feature *father, double radius, double x, double y) ;
+	EnrichmentInclusion3D(Feature *father, double radius, double x, double y, double z) ;
 
 /** \brief Constructor. Construct the inclusion from a radius and center coordinates */
-	EnrichmentInclusion(double radius, double x, double y) ;
-	virtual ~EnrichmentInclusion() ;
+	EnrichmentInclusion3D(double radius, double x, double y, double z) ;
+	virtual ~EnrichmentInclusion3D() ;
 	
-/** \brief return true if the argument is cut by the circle*/
-	virtual bool enrichmentTarget(DelaunayTriangle * t) ;
+/** \brief return true if the argument is cut by the sphere*/
+	virtual bool enrichmentTarget(DelaunayTetrahedron * t) ;
 
 /** \brief Enrich elements cut by the feature*/
-	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
+	virtual void enrich(size_t &,  DelaunayTree3D * dtree) ;
 	
 /** \brief return false*/
 	virtual bool interacts(Feature * f) const ;
-
-/** \brief do nothing*/
-	virtual void snap(DelaunayTree * dtree) ;
 	
 /** \brief return false*/
 	virtual bool inBoundary(const Point v) const ;
@@ -56,15 +53,18 @@ public:
 /** \brief return false*/
 	virtual bool inBoundary(const Point *v) const ;
 	
-/** \brief return the list of elements cut by the feature*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
-
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
+
+/** \brief return the list of elements cut by the feature*/
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree3D * dt)  ;
 	
 /** \brief return list of elements cut by the feature*/
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) ;
+	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
 	
+/** \brief return list of elements cut by the feature*/
+	std::vector<DelaunayTetrahedron *> getIntersectingTetrahedrons( DelaunayTree3D * dt) ;
+
 /** \brief do nothing*/
 	virtual void setInfluenceRadius(double r) ;
 	
@@ -79,7 +79,7 @@ public:
 	
 	virtual void print() const
 	{
-		std::cout << "I am an enriched inclusion" << std::endl ;
+		std::cout << "I am an enriched inclusion 3D" << std::endl ;
 	}
 	
 /** \brief return false*/
@@ -91,7 +91,7 @@ public:
 // 	virtual void setSingularityHints(const Point & i, const Point & s, std::vector<Point> * hints) const ;
 	
 public:
-	GEO_DERIVED_OBJECT(Circle) ;
+	GEO_DERIVED_OBJECT(Sphere) ;
 	
 	
 	/** \brief Sample the surface. Does nothing.
@@ -112,7 +112,7 @@ public:
 	virtual bool moved() const ;
 
 /** \brief compute and cache the elements to enrich*/
-	void update(DelaunayTree * dtree) ;
+	void update(DelaunayTree3D * dtree) ;
 
 protected:
 	virtual void computeCenter() { };

@@ -304,7 +304,7 @@ void VirtualLayer::sample(size_t n)
 	this->boundary = new Circle(r, getCenter()) ;
 }
 
-Feature * VirtualLayer::getSource() const
+Feature * VirtualLayer::getSource()
 {
 	return source ;
 }

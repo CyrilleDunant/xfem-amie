@@ -91,6 +91,7 @@ void Inclusion::sample(size_t n)
 	this->sampleSurface(n) ;
 }
 
+
 std::vector<Geometry *> Inclusion::getRefinementZones(size_t level) const
 {
 	std::vector<Geometry *> ret ;

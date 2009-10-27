@@ -20,7 +20,7 @@ namespace Mu
 class Sample3D :  public Hexahedron,  public Feature
 {
 public:
-	/** Sample3D constructor.
+	/** \brief Sample3D constructor.
 	 * 
 	 * @param father father feature
 	 * @param x lenght
@@ -32,7 +32,7 @@ public:
 	 */
 	Sample3D(Feature *father, double x, double y, double z, double originX, double originY, double originZ) ;
 
-	/** Sample3D constructor.
+	/** \brief Sample3D constructor.
 	 *
 	 * The father feature is set to NULL.
 	 * 
@@ -45,12 +45,16 @@ public:
 	 */
 	Sample3D(double x, double y, double z,double originX, double originY, double originZ) ;
 	
+/** \brief return true if the boundary overlaps that of the argument*/
 	virtual bool interacts(Feature * f) const ;
 	
+/** \brief return empty list*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t) const { return std::vector<Geometry *>() ;}
 	
+/** \brief return empty list*/
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
 	
+/** \brief return all tets in mesh with at least a vertex in this Feature*/
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt)  ;
 	
 	virtual void computeCenter()
@@ -58,12 +62,15 @@ public:
 		return this->Hexahedron::computeCenter() ;
 	}
 	
+/** \brief do nothing */
 	virtual Point * pointAfter(size_t i) ;
 	
 	virtual void print() const
 	{
 		std::cout << "I am a sample" << std::endl ;
 	}
+
+/** \brief return false */
 	virtual bool isVoid( const Point & p) const {return false;}
 	
 public:

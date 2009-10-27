@@ -17,15 +17,15 @@ using namespace Mu ;
 Sample::Sample(Feature * father, double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Rectangle(x+.05, y+.05, originX, originY) ;
-	this->boundary2 = new Rectangle(x-.05, y-.05, originX, originY) ;
+	this->boundary = new Rectangle(x*1.01, y*1.01, originX, originY) ;
+	this->boundary2 = NULL ;//new Rectangle(x-.05, y-.05, originX, originY) ;
 }
 
 Sample::Sample( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Rectangle(x+.05, y+.05, originX, originY) ;
-	this->boundary2 = new Rectangle(x-.05, y-.05, originX, originY) ;
+	this->boundary = new Rectangle(x*1.01, y*1.01, originX, originY) ;
+	this->boundary2 = NULL ;//new Rectangle(x-.05, y-.05, originX, originY) ;
 }
 
 Point * Sample::pointAfter(size_t i)

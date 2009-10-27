@@ -2,39 +2,40 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 
-#include "expansiveZone.h"
+#include "expansiveRing.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
+#include "../physics/triple_behaviour.h"
 #include "../physics/dual_behaviour.h"
 
 using namespace Mu ;
 
-ExpansiveZone::ExpansiveZone(Feature *father, double radius, double x, double y, const Matrix & tensor, Vector def) : EnrichmentInclusion(father, radius, x, y),  imposedDef(def),cgTensor(tensor)
+ExpansiveRing::ExpansiveRing(Feature *father, double radius,double inradius, double x, double y, const Matrix & tensor, Vector def) : EnrichmentRing(father, radius, inradius, x, y),  imposedDef(def),cgTensor(tensor)
 {
 	
 }
 
-ExpansiveZone::~ExpansiveZone() {}
+ExpansiveRing::~ExpansiveRing() {}
 	
-const Circle * ExpansiveZone::getGeometry() const 
+const Circle * ExpansiveRing::getGeometry() const 
 {
 	return static_cast<const Circle *>(this) ;
 }
 
-Circle * ExpansiveZone::getGeometry() 
+Circle * ExpansiveRing::getGeometry() 
 {
 	return static_cast<Circle *>(this) ;
 }
 
-void ExpansiveZone::reset() 
+void ExpansiveRing::reset() 
 {
 	cache.clear() ;
 	updated = true ;
 }
 
-void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
+void ExpansiveRing::enrich(size_t & counter,  DelaunayTree * dtree)
 {
 
-	EnrichmentInclusion::enrich(counter, dtree) ;
+	EnrichmentRing::enrich(counter, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = cache ;
 
@@ -44,39 +45,43 @@ void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(this->intersects(static_cast<Triangle *>(disc[i])) )
+		if(this->intersection(static_cast<Triangle *>(disc[i])).size() == 2 || self.intersection(static_cast<Triangle *>(disc[i])).size() == 2)
 			ring.push_back(disc[i]) ;
-		else if(this->in(disc[i]->getCenter()))
+		else if(this->in(disc[i]->getCenter()) && !self.in(disc[i]->getCenter()) )
 			inDisc.push_back(disc[i]) ;
 	}
 	
-	std::set<DelaunayTriangle *> newInterface ;
+	std::set<DelaunayTriangle *> newInterfaced ;
+	std::set<DelaunayTriangle *> newExpansive ;
+	std::set<DelaunayTriangle *> newBiInterfaced ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
+		if(interfaced.find(ring[i]) == interfaced.end())
 		{
-			ring[i]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
-														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+			ring[i]->setBehaviour(new TrimaterialInterface(&self, static_cast<Circle *>(this),
+														ring[i]->getBehaviour()->getCopy(),new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														ring[i]->getBehaviour()->getCopy()
 														)) ;
 			ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
 		}
-		newInterface.insert(ring[i]) ;
+		
+		newInterfaced.insert(ring[i]) ;
 	}
 	
-	std::set<DelaunayTriangle *> newExpansive ;
+	
 	for(size_t i = 0 ; i < inDisc.size() ; i++)
 	{
-		if(expansive.find(inDisc[i]) == expansive.end())
+		if(expansive.find(ring[i]) == expansive.end())
+		{
 			inDisc[i]->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
+		}
 		
 		newExpansive.insert(inDisc[i]) ;
 	}
-	expansive = newExpansive ;
 	
 	if(disc.size() == 1)
 	{
-		if(bimateralInterfaced.find(disc[0]) == bimateralInterfaced.end())
+		if(biInterfaced.find(disc[0]) == biInterfaced.end())
 		{
 			disc[0]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
@@ -84,11 +89,14 @@ void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
 														)) ;
 			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;
 		}
-		newInterface.insert(disc[0]) ;
+		
+		newBiInterfaced.insert(disc[0]) ;
+		
 	}
 	
-	bimateralInterfaced = newInterface ;
-	
+	biInterfaced = newBiInterfaced ;
+	interfaced = newInterfaced ;
+	expansive = newExpansive ;
 }
 	
 

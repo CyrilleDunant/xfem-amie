@@ -16,7 +16,9 @@
 
 namespace Mu {
 
-/** Enrichment-generating behaviour interface.
+/** \brief Enrichment-generating behaviour interface.
+* 
+* Such a behaviour adds enrichments according to some law.
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
 class EnrichmentBehaviour{
@@ -24,7 +26,7 @@ public:
     EnrichmentBehaviour();
     ~EnrichmentBehaviour();
 
-	virtual std::vector<EnrichmentFeature *> step(double dt, DelaunayTree * dt) const = 0;
+	virtual std::vector<EnrichmentFeature *> step(double t, DelaunayTree * dt) const = 0;
 
 };
 

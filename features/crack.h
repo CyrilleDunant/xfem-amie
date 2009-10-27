@@ -19,7 +19,7 @@ namespace Mu
 
 
 
-/** Branching cracks
+/** \brief Branching cracks
  * Branches are all the segmented lines that form the non-overlaping structure of the crack. 
  * A branch contains no information on tips or bifurcations.
  * Tips are the singularities of the cracks. That is, all the branch ends that are not
@@ -52,7 +52,8 @@ protected:
 		LINE_ENRICHED
 	} EnrichementState;
 
-	std::map<std::pair<DelaunayTriangle *, Point *>, EnrichementState > enrichmentMap ;
+	std::set<DelaunayTriangle *> enrichmentMap ;
+	std::set<DelaunayTriangle *> tipEnrichmentMap ;
 	
 	double enrichementRadius ;
 	bool changed ;
@@ -62,7 +63,7 @@ protected:
 	
 public:
 	
-	/** Instantiate a branching crack.
+	/** \brief Instantiate a branching crack.
 	 *
 	 * The crack is instantiated as a segment, given two points.
 	 * 
@@ -72,7 +73,7 @@ public:
 	 */
 	BranchedCrack(Feature *father, Point * a, Point * b) ;
 
-	/** Instantiate a branching crack.
+	/** \brief Instantiate a branching crack.
 	 *
 	 * The crack is instantiated as a segment, given two points. There is no check of wheter the points lie within a given domain
 	 * therefore they are assumed to be tips.
@@ -82,17 +83,29 @@ public:
 	 */
 	BranchedCrack(Point * a, Point * b) ;
 
+/** \brief return the radius in which elements are enriched with tip enrichment around each tip*/
 	double getEnrichementRadius() const ;
+
+/** \brief return the vector of SegmentedLine representing the geometry of the crack*/
 	const std::vector<SegmentedLine *> & getBranches() const;
+
+/** \brief return the tips and their angle*/
 	const std::vector<std::pair<Point *, double> > & getTips() const;
+
+/** \brief return the set of SegmentedLine s representing the alternative paths to describe the crack geometry.*/
 	const std::vector<SegmentedLine * > & getForks() const;
 
+/** \brief return the vector of SegmentedLine representing the geometry of the crack*/
 	std::vector<SegmentedLine *> & getBranches();
+
+/** \brief return the tips and their angle*/
 	std::vector<std::pair<Point *, double> > & getTips();
+
+/** \brief return the vector of SegmentedLine representing the geometry of the crack*/
 	std::vector<SegmentedLine * > & getForks();
 	void setEnrichementRadius(double newRadius) ;
 
-	/** Branch the crack from the given tip, provided the two new tips.
+	/** \brief Branch the crack from the given tip, provided the two new tips.
 	 * The branching operation will create a new branch, expand the original branche and add a fork.
 	 *
 	 * @param fromTip the original tip, which will be removed
@@ -101,7 +114,7 @@ public:
 	 */
 	void branch(Point* fromTip, Point * newTip0, Point * newTip1 ) ;
 
-	/** Merge two branchedCracks.
+	/** \brief Merge two branchedCracks.
 	 * the merging will locate the nearest (segment, tip) couple from the (original, argument) cracks and create a new intersection point.
 	 * 
 	 * the affected branch will have an additional point at the intersection. A fork will be added, and all the branches, forks and tips from the target will be merged into this crack. The crack given as an argument will be emptied.
@@ -110,7 +123,7 @@ public:
 	 */
 	void merge(BranchedCrack & newSet) ;
 
-	/** Grow the crack from the given tip, provided the new tip.
+	/** \brief Grow the crack from the given tip, provided the new tip.
 	 * The growing operation will expand the original branch.
 	 *
 	 * @param fromTip the original tip, which will be removed
@@ -118,29 +131,60 @@ public:
 	 */
 	void grow( Point* fromTip, Point* newTip) ;
 	
-	/** Is this crack still existing.
+	/** \brief Is this crack still existing.
 	 * This is useful to know if the crack has already been merged.
 	 * 
 	 * @return false if there is at least a branch
 	 */
 	bool isEmpty() const ;
 
+/** \brief Enrich the elements contained in the argument which interact with the crack*/
 	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
 
 	virtual void computeCenter() ;
+
+/** \brief return the list of elements interacting with the crack*/
 	virtual std::vector<DelaunayTriangle*> getTriangles(DelaunayTree*) ;
+
+/** \brief return empty vector*/
 	virtual std::vector<DelaunayTetrahedron*> getTetrahedrons(DelaunayTree3D*) ;
+
+/** \brief Return fales*/
 	virtual bool interacts(Feature*) const ;
-	virtual Point* pointAfter(size_t) ;
+
+/** \brief insert a point in the main branch after its ith point.*/
+	virtual Point* pointAfter(size_t i) ;
+
+/** \brief Return the vector of geometries in which the mesh should be refined around this Feature*/
 	virtual std::vector<Mu::Geometry*> getRefinementZones(size_t) const ;
 	virtual void print() const ;
 	//	virtual void printFile(const std::string& filename) const;//SB
+
+/** \brief do nothing*/
 	virtual void sample(size_t) ;
+
+/** \brief return false*/
 	virtual bool isVoid(const Point&) const ;
+
+/** \brief return an empty vector*/
 	virtual std::vector<Point*> getSamplingPoints() const ;
+
+/** \brief return true if this element should be enriched by this crack*/
 	virtual bool enrichmentTarget(DelaunayTriangle*) ;
-	virtual void step(double, Vector*, const DelaunayTree*) ;
+
+/** \brief Grow this crack
+* 
+* @param dt timestep
+* @param v ignore
+* @param tree Element tree
+*
+*/
+	virtual void step(double dt , Vector* v, const DelaunayTree* tree) ;
+
+/** \brief Do nothing*/
 	virtual void snap(DelaunayTree*) ;
+
+/** \brief if the crack grew this simulation step, return true*/
 	virtual bool moved() const ;
 
 	virtual ~BranchedCrack() ;
@@ -150,6 +194,7 @@ public:
 	GEO_DERIVED_OBJECT(SegmentedLine) ;
 } ;
 
+/** \brief Crack class. Deprecated*/
 class Crack :  public EnrichmentFeature,  public SegmentedLine
 {
 	double stepLength ;
@@ -256,7 +301,7 @@ public:
 	GEO_DERIVED_OBJECT(SegmentedLine) ;
 	
 	
-	/** Sample the surface. Does nothing.
+	/** \brief Sample the surface. Does nothing.
 	 * 
 	 * This is necessary as we need to implement the interface. Of course, for a segmented line, it makes no sense.
 	 * 

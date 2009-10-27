@@ -147,8 +147,8 @@ TriangularPore::TriangularPore(Feature * father,const Point & a, const Point & b
 	this->behaviour = new VoidForm() ;
 	this->isEnrichmentFeature = false ;
 	Point va = a-getCenter() ;
-	Point vb = a-getCenter() ;
-	Point vc = a-getCenter() ;
+	Point vb = b-getCenter() ;
+	Point vc = c-getCenter() ;
 	this->boundary = new Triangle(a+va*0.03,b+vb*0.03,c+vc*0.03) ;
 	this->boundary2 = new Triangle(a-va*0.001,b-vb*0.001,c-vc*0.001) ;
 }
@@ -173,9 +173,15 @@ Point * TriangularPore::pointAfter(size_t i)
 
 void TriangularPore::sample(size_t n)
 {
-// 	delete this->boundary ;
-// 	this->boundary = new Circle(radius + radius/(0.25*n), this->Circle::getCenter()) ;
-	this->sampleBoundingSurface(n*3) ;
+	n = std::max(3*n, (size_t)32) ;
+
+	delete this->boundary ;
+	Point va = getBoundingPoint(0)-getCenter() ;
+	Point vb = getBoundingPoint(1)-getCenter() ;
+	Point vc = getBoundingPoint(2)-getCenter() ;
+	this->boundary = new Triangle(getBoundingPoint(0)+va/(.25*n),getBoundingPoint(1)+vb/(.25*n),getBoundingPoint(2)+vc/(.25*n)) ;
+
+	this->sampleSurface(3*n-1) ;
 }
 
 

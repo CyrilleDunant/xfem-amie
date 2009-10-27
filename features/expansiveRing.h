@@ -4,40 +4,42 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#ifndef __EXPANSIVE_ZONE_H__
-#define __EXPANSIVE_ZONE_H__
+#ifndef __EXPANSIVE_RING_H__
+#define __EXPANSIVE_RING_H__
 
-#include "enrichmentInclusion.h"
+#include "enrichmentRing.h"
 
 namespace Mu
 {
 
-/** \brief Expansive zone. 
- *
+/** \brief Expansive Ring. 
  * This enrichement feature will introduce a 
  * soft discontinuity in the mesh, as well as 
  * attribute an imposed-strain elastic behaviour
  * to the material contained within
 */
-class ExpansiveZone :  public EnrichmentInclusion
+class ExpansiveRing :  public EnrichmentRing
 {
-	std::set<DelaunayTriangle *> bimateralInterfaced ;
-	std::set<DelaunayTriangle *> expansive ;
+
 	Vector imposedDef ;
 	Matrix cgTensor ;
+	std::set<DelaunayTriangle *> interfaced ;
+	std::set<DelaunayTriangle *> expansive ;
+	std::set<DelaunayTriangle *> biInterfaced ;
 public:
 
-/** \brief Constructor. construct the zone
+/** \brief Constructor. construct the ring
 *
 * @param father supporting feature. This features behaviour is used for the bimaterial interfaces
 * @param radius External radius
+* @param inRadius Internal radius
 * @param x center x
 * @param y center y
 * @param cgTensor Stifness of the expensive material of the ring, This is the complete experssion of the CG stress tensor
 * @param deformation Vector of the imposed strain
 */
-	ExpansiveZone(Feature *father, double radius, double x, double y, const Matrix & cgTensor, Vector deformation) ;
-	virtual ~ExpansiveZone() ;
+	ExpansiveRing(Feature *father, double radius, double inradius, double x, double y, const Matrix & cgTensor, Vector deformation) ;
+	virtual ~ExpansiveRing() ;
 	
 /** \brief enrich elements and change their Behaviour if required*/
 	virtual void enrich(size_t &,  DelaunayTree * dtree) ;

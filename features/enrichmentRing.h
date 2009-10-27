@@ -4,15 +4,15 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#ifndef __ENR_INCLUSION_H__
-#define __ENR_INCLUSION_H__
+#ifndef __ENR_RING_H__
+#define __ENR_RING_H__
 
 #include "features.h"
 
 namespace Mu
 {
 
-/** \brief Enrich the mesh to simulate a circular inclusion.
+/** \brief Enrich the mesh to simulate a circular ring.
  *
  * This enrichment feature will add a soft discontinuity 
  * enrichment to the elements it crosses. If the inclusion
@@ -22,26 +22,41 @@ namespace Mu
  * 
  * This Inclusion will set no behaviour in the elements
  * thus derived classes should be used for actual simulation
- * see for example expansiveZone.h
+ * see for example expansiveRing.h
  */
-class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
+class EnrichmentRing :  public EnrichmentFeature,  public Circle
 {
 protected:
 	bool updated ;
+	Circle self ;
 	std::vector<DelaunayTriangle *> cache ;
 public:
 
-/** \brief Constructor. Construct the inclusion from a supporting feature, a radius and center coordinates */
-	EnrichmentInclusion(Feature *father, double radius, double x, double y) ;
+/** \brief Construct the enrichment ring from a supporting feature, two radii and center coordinates
+*
+* @param father supporting Feature, has no effect
+* @param radius external radius
+* @param inRadius internal radius
+* @param x center x
+* @param y center y 
+*/
+	EnrichmentRing(Feature *father, double radius, double inradius, double x, double y) ;
 
-/** \brief Constructor. Construct the inclusion from a radius and center coordinates */
-	EnrichmentInclusion(double radius, double x, double y) ;
-	virtual ~EnrichmentInclusion() ;
+/** \brief Construct the enrichment ring from two radii and center coordinates
+*
+* @param father supporting Feature, has no effect
+* @param radius external radius
+* @param inRadius internal radius
+* @param x center x
+* @param y center y 
+*/
+	EnrichmentRing(double radius, double inradius, double x, double y) ;
+	virtual ~EnrichmentRing() ;
 	
-/** \brief return true if the argument is cut by the circle*/
+/** \brief return true if the argument intersects one of the features*/
 	virtual bool enrichmentTarget(DelaunayTriangle * t) ;
 
-/** \brief Enrich elements cut by the feature*/
+/** \brief Enrich the elements cut with either of the two circles with a soft discontinuity*/
 	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
 	
 /** \brief return false*/
@@ -56,13 +71,13 @@ public:
 /** \brief return false*/
 	virtual bool inBoundary(const Point *v) const ;
 	
-/** \brief return the list of elements cut by the feature*/
+/** \brief return the triangles in the tree intersecting with either of the circles*/
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
 
 /** \brief return empty vector*/
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
-/** \brief return list of elements cut by the feature*/
+/** \brief return the triangles in the tree intersecting with either of the circles*/
 	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) ;
 	
 /** \brief do nothing*/
@@ -71,7 +86,7 @@ public:
 /** \brief return empty vector*/
 	virtual std::vector<Point *> getSamplingPoints() const { return std::vector<Point *>(0) ; }
 	
-/** \brief do nothing, return null*/
+/** \brief do nothing, return NULL*/
 	virtual Point * pointAfter(size_t i) { return NULL ; }
 	
 /** \brief return empty vector*/
@@ -85,8 +100,11 @@ public:
 /** \brief return false*/
 	virtual bool isVoid( const Point &) const {return false ;}
 
-/** \brief set the radius*/
+/** \brief set new external radius*/
 	virtual void setRadius(double newR) ;
+
+/** \brief set new internal radius*/
+	virtual void setInRadius(double newR) ;
 	
 // 	virtual void setSingularityHints(const Point & i, const Point & s, std::vector<Point> * hints) const ;
 	
@@ -96,8 +114,6 @@ public:
 	
 	/** \brief Sample the surface. Does nothing.
 	 * 
-	 * This is necessary as we need to implement the interface. Of course, for a segmented line, it makes no sense.
-	 * 
 	 * @param n 
 	 */
 	virtual void sample(size_t n)
@@ -105,14 +121,16 @@ public:
 		
 	}
 	
-/** \brief do nothing*/
+/** \brief do nothing */
 	virtual void step(double dt, std::valarray<double> *, const DelaunayTree * dtree);
-	
-/** \brief return true if the radius has changed*/
+
+/** \brief return true if either radii changed*/
 	virtual bool moved() const ;
 
-/** \brief compute and cache the elements to enrich*/
+/** \brief precompute and cache the elements intersected*/
 	void update(DelaunayTree * dtree) ;
+
+	double getInRadius() const ;
 
 protected:
 	virtual void computeCenter() { };

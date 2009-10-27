@@ -19,28 +19,28 @@ Pore3D::Pore3D(Feature *father, double r, double x, double y, double z) : Featur
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r*1.07, x, y,z) ;
+	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
 }
 
 Pore3D::Pore3D(Feature *father, double r, Point center) : Feature(father), Sphere(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r*1.07, center) ;
+	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 
 Pore3D::Pore3D(double r, double x, double y, double z): Feature(NULL), Sphere(r, x,y,z)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r*1.07, x,y,z) ;
+	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), x,y,z) ;
 }
 
 Pore3D::Pore3D(double r, Point center) : Feature(NULL), Sphere(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r*1.07, center) ;
+	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 
 bool Pore3D::interacts(Feature * f) const
@@ -92,7 +92,7 @@ Point * Pore3D::pointAfter(size_t i) {
 }
 
 void Pore3D::sample(size_t n) {
-	this->Sphere::sampleSurface(2*n) ;
+	this->Sphere::sampleSurface(4*n) ;
 	
 // 	size_t numberOfRadii = static_cast<size_t>(sqrt(std::max(4*n, (size_t)27))) ;
 // 	double r = sqrt(radius) ;

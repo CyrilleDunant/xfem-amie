@@ -33,15 +33,28 @@ bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
 
 BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), SegmentedLine(std::valarray<Point * >(2))
 {
-	boundingPoints[0] = a ;
-	boundingPoints[1] = b ;
-	this->SegmentedLine::center = *a ;
+	if(a->x < b->x)
+	{
+		boundingPoints[0] = a ;
+		boundingPoints[1] = b ;
+		this->SegmentedLine::center = *a ;
+	}
+	else
+	{
+		boundingPoints[0] = a ;
+		boundingPoints[1] = b ;
+		this->SegmentedLine::center = *b ;
+	}
 	branches.push_back ( this ) ;
 
-	tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
-	tips.push_back(std::make_pair(b, atan2(b->y-a->y, b->x-a->x))) ;
+	tips.push_back(std::make_pair(boundingPoints[0], atan2(boundingPoints[0]->y-boundingPoints[1]->y, boundingPoints[0]->x-boundingPoints[1]->x))) ;
+// 	if(std::abs(tips.back().second - M_PI) < std::numeric_limits<double>::epsilon())
+// 		tips.back().second = - M_PI ; 
+	tips.push_back(std::make_pair(boundingPoints[1], atan2(boundingPoints[1]->y-boundingPoints[0]->y, boundingPoints[1]->x-boundingPoints[0]->x))) ;
+// 	if(std::abs(tips.back().second - M_PI) < std::numeric_limits<double>::epsilon())
+// 		tips.back().second = - M_PI ; 
 
-	changed = false ;
+	changed = true ;
 
 	enrichementRadius = 0.00075 ;
 }
@@ -202,7 +215,6 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	return aangle ;
 }
 
-
 std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, const DelaunayTree * dtree )
 {
 	Point direction ( cos(tip.second), sin(tip.second)) ;
@@ -292,8 +304,8 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
 			{
 				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
-				Matrix sigma = gamma[j].second->getState().getStressMatrix ( localGaussPoint,true ) ;
-				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
+				Matrix sigma (gamma[j].second->getState().getStressMatrix ( localGaussPoint,true )) ;
+				Matrix epsilon (gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true )) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 				
 				Vector T = sigma * stepLengthal ;
@@ -310,7 +322,6 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 	return std::make_pair ( freeEnergy0, freeEnergy1 ) ;
 }
 
-
 void BranchedCrack::grow( Point* fromTip, Point* newTip)
 {
 	for(std::vector<std::pair<Point *, double> >::iterator i = tips.begin() ; i !=tips.end() ; ++i)
@@ -321,8 +332,7 @@ void BranchedCrack::grow( Point* fromTip, Point* newTip)
 			break ;
 		}
 	}
-	tips.push_back ( std::make_pair(newTip, atan2(newTip->y-fromTip->y, newTip->x-fromTip->x)) ) ;
-	
+
 	SegmentedLine * branchToExtend = NULL ;
 	bool fromHead = false ;
 	for ( size_t i = 0 ; i < branches.size() ; i++ )
@@ -340,6 +350,9 @@ void BranchedCrack::grow( Point* fromTip, Point* newTip)
 			break ;
 		}
 	}
+
+	std::vector<Point> inter = Circle(enrichementRadius, *newTip).intersection(branchToExtend) ;
+	tips.push_back ( std::make_pair(newTip, atan2(newTip->y-inter[0].y, newTip->x-inter[0].x)) ) ;
 
 	
 	std::valarray<Point *> newBP ( branchToExtend->getBoundingPoints().size() +1 ) ;
@@ -560,6 +573,7 @@ void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pa
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
 	double angle = tip.second ;
+	std::cout << angle << std::endl ;
 	std::valarray<Function> shapefunc(3) ;
 	Matrix xi(2,2) ; xi[1][0] = 1 ;
 	Matrix eta(2,2) ; eta[0][1] = 1 ;
@@ -576,47 +590,111 @@ void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pa
 	
 	for(size_t  i = 0 ; i < triangles.size() ; i++)
 	{
+		enrichmentMap.insert(triangles[i]) ;
+		
+		if(!triangles[i]->enrichmentUpdated)
+			triangles[i]->clearEnrichment(static_cast<SegmentedLine *>(this)) ;
+		triangles[i]->enrichmentUpdated = true ;
 		std::vector<Point> hint ;
 		Line crossing ( *tip.first, Point(cos(angle), sin(angle)) ) ;
-		std::vector<Point > completeIntersection = crossing.intersection ( static_cast<Triangle *>(triangles[i]) ) ;
-		
-		if(completeIntersection.size() == 2)
+		if(crossing.intersects(static_cast<Triangle *>(triangles[i])))
 		{
-			Point intersectionTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[0] ) ;
-			Point intersectionBisTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[1] ) ;
-			Point singularityTransformed = triangles[i]->inLocalCoordinates ( *tip.first );
+			std::vector<Point > completeIntersection = crossing.intersection ( static_cast<Triangle *>(triangles[i]) ) ;
 			
-			hint.push_back ( intersectionTransformed ) ;
-			hint.push_back ( intersectionBisTransformed ) ;
-			hint.push_back ( singularityTransformed ) ;
+			if(!completeIntersection.empty())
+			{
+				Point intersectionTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[0] ) ;
+				hint.push_back ( intersectionTransformed ) ;
+			}
+			
+			if(triangles[i]->in(*tip.first))
+			{
+				Point singularityTransformed = triangles[i]->inLocalCoordinates ( *tip.first );
+				hint.push_back ( singularityTransformed ) ;
+			}
+			
+			if(!completeIntersection.size() == 2)
+			{
+				Point intersectionBisTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[1] ) ;
+				hint.push_back ( intersectionBisTransformed ) ;
+			}
 		}
 		
 		
 		Function x = triangles[i]->getXTransform() ;
 		Function y = triangles[i]->getYTransform() ;
+
 		double rotatedSingularityX = tip.first->x*cos ( angle ) + tip.first->y*sin ( angle ) ;
-		double rotatedSingularityY = -tip.first->x*sin ( angle ) + tip.first->y*cos ( angle ) ;
+		double rotatedSingularityY = tip.first->y*cos ( angle ) - tip.first->x*sin ( angle ) ;
 		Function rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
-		Function rotatedY = x*sin ( -angle ) + y*cos ( angle ) ;
-		Function x_ = x - tip.first->x ;
-		Function y_ = y - tip.first->y ;
-		Function theta = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-		Function r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
+		Function rotatedY = y*cos ( angle ) - x*sin ( angle );
+		Function x_alt = x - tip.first->x ;
+		Function y_alt = y - tip.first->y ;
+
+		Function theta_alt = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
+		Function r_alt = f_sqrt ( (x_alt^2)  + (y_alt^2) );
+
+
+		Function x_ = f_curvilinear_x(getPrimitive(), (tip.first == getHead()), x, y) ; 
+		Function y_ = f_curvilinear_y(getPrimitive(), (tip.first == getHead()), x, y) ; 
+
+
+		Function theta = f_atan2 ( y_, x_ );
+		Function r = f_sqrt ( (x_^2)  + (y_^2) );
 		
-		Function f0 = f_sqrt ( r ) *f_sin ( theta/2 );
-		Function f1 = f_sqrt ( r ) *f_cos ( theta/2 );
-		Function f2 = f_sqrt ( r ) *f_sin ( theta/2 ) *f_cos ( theta );
-		Function f3 = f_sqrt ( r ) *f_cos ( theta/2 ) *f_cos ( theta );
+		Function f0 = f_sqrt ( r_alt ) *f_sin ( theta_alt/2 );
+		Function f1 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 );
+		Function f2 = f_sqrt ( r_alt ) *f_sin ( theta_alt/2 ) *f_sin ( theta_alt );
+		Function f3 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 ) *f_sin ( theta_alt );
+// 		Function f4 = f_sqrt ( r ) *f_sin ( theta/2 ) *f_sin ( theta * 2);
+// 		Function f5 = f_sqrt ( r ) *f_cos ( theta/2 ) *f_sin ( theta * 2);
+		
+
+// 		if(!triangles[i]->in(*tip.first) && getBoundingPoints().size() == 3)
+// 		{
+// 			for(double k = 0  ; k < 100 ; k++)
+// 			{
+// 				for(double l = 0  ; l < 100 ; l++)
+// 				{
+// 					if( k+l < 100 )
+// 						std::cout << vm.eval(theta, k/100., l/100.) << "  "<< std::flush ;
+// 					else
+// 						std::cout << "0  " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// // 			exit(0) ;
+// 		}
+// 
+// 		if(!triangles[i]->in(*tip.first) && getBoundingPoints().size() == 3)
+// 		{
+// 			for(double k = 0  ; k < 100 ; k++)
+// 			{
+// 				for(double l = 0  ; l < 100 ; l++)
+// 				{
+// 					if( k+l < 100 )
+// 						std::cout << vm.eval(r, k/100., l/100.) << "  " << std::flush ;
+// 					else
+// 						std::cout << "0  " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 			
+// 			exit(0) ;
+// 		}
 		
 		std::vector<Point *> currentPoint ;
 		currentPoint.push_back(triangles[i]->first) ;
 		currentPoint.push_back(triangles[i]->second) ;
 		currentPoint.push_back(triangles[i]->third) ;
 		
+		bool hinted = false ;
+		int pcount = 0 ;
 		for(size_t p = 0 ; p < 3 ;p++)
 		{
 			if(epsilon.in(*currentPoint[p]))
 			{
+				pcount++ ;
 				int usedId = 0 ;
 				if(done.find(currentPoint[p]) == done.end())
 				{
@@ -630,30 +708,43 @@ void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pa
 				}
 
 				Function f = shapefunc[p]* ( f0 - vm.eval ( f0, pointLocal[p] ) ) ;
-				f.setIntegrationHint ( hint ) ;
-				f.setPointID ( currentPoint[p]->id ) ;
+				if(!hinted)
+				{
+					f.setIntegrationHint ( hint ) ;
+					hinted = true ;
+				}
+				f.setPoint ( currentPoint[p]) ;
 				f.setDofID ( usedId ) ;
-				triangles[i]->setEnrichment (  f  ) ;
+				triangles[i]->setEnrichment (  f , static_cast<SegmentedLine *>(this)  ) ;
 				
 				f = shapefunc[p]* ( f1 - vm.eval ( f1, pointLocal[p] ) ) ;
-				f.setIntegrationHint ( hint ) ;
-				f.setPointID ( currentPoint[p]->id ) ;
+				f.setPoint ( currentPoint[p]) ;
 				f.setDofID ( usedId+1 ) ;
-				triangles[i]->setEnrichment ( f  ) ;
+				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 				
 				f = shapefunc[p]* ( f2 - vm.eval ( f2, pointLocal[p] ) ) ;
-				f.setIntegrationHint ( hint ) ;
-				f.setPointID ( currentPoint[p]->id ) ;
+				f.setPoint ( currentPoint[p]) ;
 				f.setDofID ( usedId+2 ) ;
-				triangles[i]->setEnrichment ( f  ) ;
+				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 				
 				f = shapefunc[p]* ( f3 - vm.eval ( f3, pointLocal[p] ) ) ;
-				f.setIntegrationHint ( hint ) ;
-				f.setPointID (currentPoint[p]->id ) ;
+				f.setPoint (currentPoint[p] ) ;
 				f.setDofID ( usedId+3 ) ;
-				triangles[i]->setEnrichment ( f  ) ;
+				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+				
+// 				f = shapefunc[p]* ( f4 - vm.eval ( f4, pointLocal[p] ) ) ;
+// 				f.setPoint ( currentPoint[p]) ;
+// 				f.setDofID ( usedId+4 ) ;
+// 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+// 				
+// 				f = shapefunc[p]* ( f5 - vm.eval ( f5, pointLocal[p] ) ) ;
+// 				f.setPoint (currentPoint[p] ) ;
+// 				f.setDofID ( usedId+5 ) ;
+// 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 			}
 		}
+		if(pcount == 3)
+			tipEnrichmentMap.insert(triangles[i]) ;
 		
 	}
 
@@ -688,9 +779,24 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 	
 	for ( size_t i = 0 ; i < tris.size() ; i++ )
 	{
+		while(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end() && i < tris.size())
+		{
+			i++ ;
+		}
+		if(i >= tris.size())
+			break ;
+		if(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end())
+			break ;
+		
+		
+		if(!tris[i]->enrichmentUpdated)
+			tris[i]->clearEnrichment(static_cast<SegmentedLine *>(this)) ;
+		
+		tris[i]->enrichmentUpdated = true ;
 		DelaunayTriangle *e = tris[i] ;
-
+		enrichmentMap.insert(e) ;
 		std::vector<Point> intersection ;
+		
 
 		for ( size_t j = 1 ; j < line->getBoundingPoints().size() ; j++ )
 		{
@@ -745,22 +851,12 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 			transformed.push_back ( e->inLocalCoordinates ( intersection[k] ) ) ;
 		}
 
-		if ( transformed.size() >2 )
+
+		for ( size_t k = 0 ; k < transformed.size() ; k++ )
 		{
-			hint.push_back ( transformed[0] ) ;
-			for ( size_t k = 1 ; k < transformed.size()-1 ; k++ )
-			{
-				hint.push_back ( transformed[k] ) ;
-			}
-			hint.push_back ( transformed[transformed.size()-1] ) ;
+			hint.push_back ( transformed[k] ) ;
 		}
-		else
-		{
-			for ( size_t k = 0 ; k < transformed.size() ; k++ )
-			{
-				hint.push_back ( transformed[k] ) ;
-			}
-		}
+		
 		std::vector<Segment> intersectingSegments ;
 		for ( size_t j = 1 ; j < this->getBoundingPoints().size() ; j++ )
 		{
@@ -783,9 +879,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 
 		Function f = shapefunc[0]* ( s - vm.eval ( s, Point ( 0,1 ) ) ) ;
 		f.setIntegrationHint ( hint ) ;
-		f.setPointID ( e->first->id ) ;
+		f.setPoint ( e->first ) ;
 		f.setDofID ( usedId ) ;
-		e->setEnrichment ( f  ) ;
+		e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 		if(done.find(e->second) == done.end())
 		{
@@ -798,10 +894,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 			usedId = done[e->second] ;
 		}
 		f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
-		f.setIntegrationHint ( hint ) ;
-		f.setPointID ( e->second->id ) ;
+		f.setPoint ( e->second ) ;
 		f.setDofID ( usedId ) ;
-		e->setEnrichment ( f  ) ;
+		e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 		if(done.find(e->third) == done.end())
 		{
@@ -815,10 +910,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 		}
 		f = shapefunc[2]* ( s - vm.eval ( s, Point ( 1,0 ) ) ) ;
 
-		f.setIntegrationHint ( hint ) ;
-		f.setPointID ( e->third->id ) ;
+		f.setPoint ( e->third ) ;
 		f.setDofID ( usedId ) ;
-		e->setEnrichment ( f  ) ;
+		e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 		std::vector<DelaunayTriangle *> toEnrichAlso ;
 		for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
@@ -831,7 +925,12 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 
 		for ( size_t j = 0 ; j < toEnrichAlso.size() ; j++ )
 		{
+			if(!toEnrichAlso[j]->enrichmentUpdated)
+				toEnrichAlso[j]->clearEnrichment( static_cast<SegmentedLine *>(this)) ;
+			toEnrichAlso[j]->enrichmentUpdated = true ;
+			
 			DelaunayTriangle * elem = toEnrichAlso[j] ;
+			enrichmentMap.insert(elem) ;
 
 			transformed.clear() ;
 
@@ -846,29 +945,25 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, con
 			if ( done.find(elem->first) != done.end())
 			{
 				Function f = shapefunc[0]* ( s_ - vm.eval ( s_, Point ( 0,1 ) ) ) ;
-				f.setIntegrationHint ( hint ) ;
-				f.setPointID ( elem->first->id ) ;
+				f.setPoint ( elem->first ) ;
 				f.setDofID ( done[elem->first] ) ;
-				elem->setEnrichment ( f ) ;
-
+				elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
+				
 			}
 
 			if (done.find(elem->second) != done.end())
 			{
 				Function f = shapefunc[1]* ( s_ - vm.eval ( s_, Point ( 0,0 ) ) ) ;
-				f.setIntegrationHint ( hint ) ;
-				f.setPointID ( elem->second->id ) ;
+				f.setPoint ( elem->second ) ;
 				f.setDofID ( done[elem->second] ) ;
-				elem->setEnrichment ( f ) ;
-
+				elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
 			}
 			if (done.find(elem->third) != done.end())
 			{
 				Function f = shapefunc[2]* ( s_ - vm.eval ( s_, Point ( 1,0 ) ) ) ;
-				f.setIntegrationHint ( hint ) ;
-				f.setPointID ( elem->third->id ) ;
+				f.setPoint ( elem->third ) ;
 				f.setDofID ( done[elem->third] ) ;
-				elem->setEnrichment ( f ) ;
+				elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
 			}
 		}
 	}
@@ -921,6 +1016,19 @@ bool BranchedCrack::isEmpty() const
 
 void BranchedCrack::enrich(size_t & counter,  DelaunayTree * dtree)
 {
+	std::vector<DelaunayTriangle *> toClear ;
+	for(std::set<DelaunayTriangle *>::iterator i = enrichmentMap.begin() ; i!=enrichmentMap.end() ; ++i)
+	{
+		toClear.push_back(*i) ;
+	}
+	
+	for(std::vector<DelaunayTriangle *>::iterator i = toClear.begin() ; i!=toClear.end() ; ++i)
+	{
+		(*i)->clearEnrichment(static_cast<SegmentedLine *>(this)) ;
+		(*i)->enrichmentUpdated = true;
+	}
+	enrichmentMap.clear() ;
+	tipEnrichmentMap.clear() ;
 	enrichTips(counter, dtree) ;	
 	enrichForks(counter, dtree) ;
 	enrichBranches(counter, dtree) ;
@@ -1066,14 +1174,12 @@ std::vector<Point*> BranchedCrack::getSamplingPoints() const
 
 bool BranchedCrack::enrichmentTarget(DelaunayTriangle* tri)
 {
-	return enrichmentMap.find(std::make_pair(tri, tri->first)) != enrichmentMap.end()
-		|| enrichmentMap.find(std::make_pair(tri, tri->second)) != enrichmentMap.end()
-		|| enrichmentMap.find(std::make_pair(tri, tri->third)) != enrichmentMap.end() ;
+	return enrichmentMap.find(tri) != enrichmentMap.end() ;
 }
 
 void BranchedCrack::step(double dt, Vector*, const DelaunayTree* dtree)
 {
-	changed = true ;
+	changed = false ;
 	std::vector<Point *> tipsToGrow ; 
 	std::vector<double> angles ; 
 	for(size_t i = 0 ; i < tips.size() ; i++)
@@ -1082,6 +1188,7 @@ void BranchedCrack::step(double dt, Vector*, const DelaunayTree* dtree)
 		if(energy.first*energy.first + energy.second*energy.second > 0)
 		{
 			tipsToGrow.push_back(tips[i].first) ;
+			changed = true ;
 			angles.push_back(propagationAngleFromTip(tips[i], dtree)) ;
 		}
 	}
@@ -1198,7 +1305,7 @@ Crack::Crack ( const std::valarray<Point *> & points, double radius ) : Enrichme
 	criticalJ = 0.0 ;
 }
 
-/**
+/** Crack constructor: the geometry is specified as well as the material parameters governing the groth of the crack.
 SB New constructor 
 @param radius enrichment radius for the crack tips
 @param gfac number such that the growth increment is gfac*enrichment radius
@@ -1225,6 +1332,7 @@ Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double r
 
 /**
 SB New constructor 
+@param points points forming the crack geometry
 @param radius enrichment radius for the crack tips
 @param gfac number such that the growth increment is gfac*enrichment radius
 @param critJ critical value of the J integral for propagation (Fracture toughness, in fact this is a material param...)
@@ -1262,7 +1370,7 @@ void Crack::setInfluenceRadius ( double r )
 
 /**
 SB to set the critical J, influence radius and crack growth increment per step
-@param radius enrichment radius for the crack tips
+@param r enrichment radius for the crack tips
 @param gfac number such that the growth increment is gfac*enrichment radius
 @param critJ critical value of the J integral for propagation (Fracture toughness, in fact this is a material param...)
 **/
@@ -1461,27 +1569,27 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 					Function f = shapefunc[j]* ( f0 - vm.eval ( f0, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointGlobal[j]->id ) ;
+					f.setPoint ( pointGlobal[j] ) ;
 					f.setDofID ( ids[0] ) ;
-					e->setEnrichment (f) ;
+					e->setEnrichment (f, static_cast<SegmentedLine *>(this)) ;
 
 					f = shapefunc[j]* ( f1 - vm.eval ( f1, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointGlobal[j]->id ) ;
+					f.setPoint ( pointGlobal[j] ) ;
 					f.setDofID ( ids[1] ) ;
-					e->setEnrichment (f) ;
+					e->setEnrichment (f, static_cast<SegmentedLine *>(this)) ;
 
 					f = shapefunc[j]* ( f2 - vm.eval ( f2, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointGlobal[j]->id ) ;
+					f.setPoint ( pointGlobal[j] ) ;
 					f.setDofID ( ids[2] ) ;
-					e->setEnrichment (f ) ;
+					e->setEnrichment (f , static_cast<SegmentedLine *>(this)) ;
 
 					f = shapefunc[j]* ( f3 - vm.eval ( f3, pointLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointGlobal[j]->id ) ;
+					f.setPoint ( pointGlobal[j] ) ;
 					f.setDofID ( ids[3] ) ;
-					e->setEnrichment (f ) ;
+					e->setEnrichment (f , static_cast<SegmentedLine *>(this)) ;
 
 				}
 			}
@@ -1528,27 +1636,27 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 							Function f = shapefunc[j]* ( f0 - vm.eval ( f0, pointLocal[j] ) ) ;
 							f.setIntegrationHint ( hint ) ;
-							f.setPointID ( pointGlobal[j]->id ) ;
+							f.setPoint ( pointGlobal[j] ) ;
 							f.setDofID ( ids[0] ) ;
-							elem->setEnrichment (f ) ;
+							elem->setEnrichment (f , static_cast<SegmentedLine *>(this)) ;
 
 							f = shapefunc[j]* ( f1 - vm.eval ( f1, pointLocal[j] ) ) ;
 							f.setIntegrationHint ( hint ) ;
-							f.setPointID ( pointGlobal[j]->id ) ;
+							f.setPoint ( pointGlobal[j] ) ;
 							f.setDofID ( ids[1] ) ;
-							elem->setEnrichment (f ) ;
+							elem->setEnrichment (f , static_cast<SegmentedLine *>(this)) ;
 
 							f = shapefunc[j]* ( f2 - vm.eval ( f2, pointLocal[j] ) ) ;
 							f.setIntegrationHint ( hint ) ;
-							f.setPointID ( pointGlobal[j]->id ) ;
+							f.setPoint ( pointGlobal[j] ) ;
 							f.setDofID ( ids[2] ) ;
-							elem->setEnrichment (f ) ;
+							elem->setEnrichment (f , static_cast<SegmentedLine *>(this)) ;
 
 							f = shapefunc[j]* ( f3 - vm.eval ( f3, pointLocal[j] ) ) ;
 							f.setIntegrationHint ( hint ) ;
-							f.setPointID ( pointGlobal[j]->id ) ;
+							f.setPoint ( pointGlobal[j] ) ;
 							f.setDofID ( ids[3] ) ;
-							elem->setEnrichment (f ) ;
+							elem->setEnrichment (f , static_cast<SegmentedLine *>(this)) ;
 
 						}
 					}
@@ -1589,23 +1697,23 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 			std::vector<size_t> ids = map.getEnrichment ( e->first->id ).getID() ;
 			Function f = shapefunc[0]* ( s - vm.eval ( s, Point ( 0,1 ) ) ) ;
 			f.setIntegrationHint ( hint ) ;
-			f.setPointID ( e->first->id ) ;
+			f.setPoint ( e->first ) ;
 			f.setDofID ( ids[0] ) ;
-			e->setEnrichment ( f  ) ;
+			e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 			ids = map.getEnrichment ( e->second->id ).getID() ;
 			f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
 			f.setIntegrationHint ( hint ) ;
-			f.setPointID ( e->second->id ) ;
+			f.setPoint ( e->second ) ;
 			f.setDofID ( ids[0] ) ;
-			e->setEnrichment ( f  ) ;
+			e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 			ids = map.getEnrichment ( e->third->id ).getID() ;
 			f = shapefunc[2]* ( s - vm.eval ( s, Point ( 1,0 ) ) ) ;
 			f.setIntegrationHint ( hint ) ;
-			f.setPointID ( e->third->id ) ;
+			f.setPoint ( e->third ) ;
 			f.setDofID ( ids[0] ) ;
-			e->setEnrichment ( f  ) ;
+			e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 			std::vector<DelaunayTriangle *> toEnrichAlso ;
 			for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
@@ -1627,9 +1735,9 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					std::vector<size_t> ids = map.getEnrichment ( elem->first->id ).getID() ;
 					Function f = shapefunc[0]* ( s_ - vm.eval ( s_, Point ( 0,1 ) ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( elem->first->id ) ;
+					f.setPoint ( elem->first ) ;
 					f.setDofID ( ids[0] ) ;
-					elem->setEnrichment ( f ) ;
+					elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
 
 				}
 
@@ -1640,9 +1748,9 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					Function f = shapefunc[1]* ( s_ - vm.eval ( s_, Point ( 0,0 ) ) ) ;
 
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( elem->second->id ) ;
+					f.setPoint ( elem->second ) ;
 					f.setDofID ( ids[0] ) ;
-					elem->setEnrichment ( f  ) ;
+					elem->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 				}
 				if ( e->isVertexByID ( elem->third ) &&
@@ -1651,9 +1759,9 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					std::vector<size_t> ids = map.getEnrichment ( elem->third->id ).getID() ;
 					Function f = shapefunc[2]* ( s_ - vm.eval ( s_, Point ( 1,0 ) ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( elem->third->id ) ;
+					f.setPoint ( elem->third ) ;
 					f.setDofID ( ids[0] ) ;
-					elem->setEnrichment ( f  ) ;
+					elem->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 				}
 			}
@@ -1717,27 +1825,27 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 					std::vector<size_t> ids = map.getEnrichment ( pointsGlobal[j]->id ).getID() ;
 					Function f = shapefunc[j]* ( f0 - vm.eval ( f0, pointsLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointsGlobal[j]->id ) ;
+					f.setPoint ( pointsGlobal[j] ) ;
 					f.setDofID ( ids[0] ) ;
-					e->setEnrichment ( f  ) ;
+					e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 					f = shapefunc[j]* ( f1 - vm.eval ( f1, pointsLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointsGlobal[j]->id ) ;
+					f.setPoint ( pointsGlobal[j] ) ;
 					f.setDofID ( ids[1] ) ;
-					e->setEnrichment (  f  ) ;
+					e->setEnrichment (  f , static_cast<SegmentedLine *>(this) ) ;
 
 					f = shapefunc[j]* ( f2 - vm.eval ( f2, pointsLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointsGlobal[j]->id ) ;
+					f.setPoint ( pointsGlobal[j] ) ;
 					f.setDofID ( ids[2] ) ;
-					e->setEnrichment (  f  ) ;
+					e->setEnrichment (  f , static_cast<SegmentedLine *>(this) ) ;
 
 					f = shapefunc[j]* ( f3 - vm.eval ( f3, pointsLocal[j] ) ) ;
 					f.setIntegrationHint ( hint ) ;
-					f.setPointID ( pointsGlobal[j]->id ) ;
+					f.setPoint ( pointsGlobal[j] ) ;
 					f.setDofID ( ids[3] ) ;
-					e->setEnrichment ( f  ) ;
+					e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 
 				}
 			}
@@ -1780,27 +1888,27 @@ void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
 
 						Function f = shapefunc[j]* ( f0 - vm.eval ( f0, pointsLocal[j] ) ) ;
 						f.setIntegrationHint ( hint ) ;
-						f.setPointID ( pointsGlobal[j]->id ) ;
+						f.setPoint ( pointsGlobal[j] ) ;
 						f.setDofID ( ids[0] ) ;
-						elem->setEnrichment (  f  ) ;
+						elem->setEnrichment (  f , static_cast<SegmentedLine *>(this) ) ;
 
 						f = shapefunc[j]* ( f1 - vm.eval ( f1, pointsLocal[j] ) ) ;
 						f.setIntegrationHint ( hint ) ;
-						f.setPointID ( pointsGlobal[j]->id ) ;
+						f.setPoint ( pointsGlobal[j] ) ;
 						f.setDofID ( ids[1] ) ;
-						elem->setEnrichment (  f  ) ;
+						elem->setEnrichment (  f , static_cast<SegmentedLine *>(this) ) ;
 
 						f = shapefunc[j]* ( f2 - vm.eval ( f2, pointsLocal[j] ) ) ;
 						f.setIntegrationHint ( hint ) ;
-						f.setPointID ( pointsGlobal[j]->id ) ;
+						f.setPoint ( pointsGlobal[j] ) ;
 						f.setDofID ( ids[2] ) ;
-						elem->setEnrichment (  f  ) ;
+						elem->setEnrichment (  f , static_cast<SegmentedLine *>(this) ) ;
 
 						f = shapefunc[j]* ( f3 - vm.eval ( f3, pointsLocal[j] ) ) ;
 						f.setIntegrationHint ( hint ) ;
-						f.setPointID ( pointsGlobal[j]->id ) ;
+						f.setPoint ( pointsGlobal[j] ) ;
 						f.setDofID ( ids[3] ) ;
-						elem->setEnrichment (  f  ) ;
+						elem->setEnrichment (  f , static_cast<SegmentedLine *>(this) ) ;
 					}
 				}
 			}
@@ -1998,8 +2106,8 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
 			{
 				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
-				Matrix sigma = gamma[j].second->getState().getStressMatrix ( localGaussPoint,true ) ;
-				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
+				Matrix sigma (gamma[j].second->getState().getStressMatrix ( localGaussPoint,true )) ;
+				Matrix epsilon (gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true )) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 
 				Vector T = sigma * stepLengthal ;
@@ -2106,8 +2214,8 @@ std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const Delau
 			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
 			{
 				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
-				Matrix sigma = gamma[j].second->getState().getStressMatrix ( localGaussPoint,true ) ;
-				Matrix epsilon = gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true ) ;
+				Matrix sigma (gamma[j].second->getState().getStressMatrix ( localGaussPoint,true )) ;
+				Matrix epsilon (gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true )) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 
 				Vector T = sigma * stepLengthal ;

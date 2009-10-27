@@ -16,7 +16,7 @@
 
 namespace Mu {
 
-/**
+/** \brief Initiate Enrichment cracks from a fatigue Law
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
 class CrackInitiation : public EnrichmentBehaviour
@@ -26,7 +26,8 @@ public:
 
     ~CrackInitiation();
 
-	virtual std::vector<EnrichmentFeature *> step(double dt, DelaunayTree * dt) const;
+/** \brief return the new cracks to add*/
+	virtual std::vector<EnrichmentFeature *> step(double t, DelaunayTree * dt) const;
 };
 
 }

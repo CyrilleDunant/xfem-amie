@@ -18,24 +18,64 @@
 namespace Mu
 {
 
+/** \brief Layered Inclusion */
 class LayeredInclusion :public LayeredCircle, virtual public CompositeFeature
 {
 protected:
 	std::vector<Form *> layeredBehaviour ;
 public:
+	/** \brief Construct an Inclusion.
+	 * 
+	 * @param father father of the current Feature 
+	 * @param radii radii of the circles to construct. Will be reordered.
+	 * @param originX global x coordinate of the center.
+	 * @param originY global y coordinate of the center.
+	 */
 	LayeredInclusion(Feature *father, std::vector<double> radii,double originX,double originY) ;
+
+	/** \brief Construct an Inclusion.
+	 * 
+	 * @param father father of the current Feature 
+	 * @param radii radii of the circles to construct. Will be reordered.
+	 * @param center center.
+	 */
 	LayeredInclusion(Feature *father,std::vector<double> radii, const Point center) ;
+
+	/** \brief Construct an Inclusion.
+	 * 
+	 * @param radii radii of the circles to construct. Will be reordered.
+	 * @param originX global x coordinate of the center.
+	 * @param originY global y coordinate of the center.
+	 */
 	LayeredInclusion(std::vector<double> radii,double originX,double originY) ;
+
+	/** \brief Construct an Inclusion.
+	 * 
+	 * @param radii radii of the circles to construct. Will be reordered.
+	 * @param center center.
+	 */
 	LayeredInclusion(std::vector<double> radii,const Point center) ;
+
+	/** \brief Construct an Inclusion.
+	 * 
+	 * @param r radius of the circle to construct.
+	 * @param center center.
+	 */
 	LayeredInclusion(double r,const Point center) ;
 	
+/** \brief do nothing*/
 	virtual void addSamplePoints(PointSet * po ) { };
 
+/** \brief return true if the boundary overlaps that of the argument*/
 	virtual bool interacts(Feature * f) const ;
 	
+/** \brief return refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
+/** \brief return all triangles in the mesh with at least one vertex in the outermose circle*/
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt);
+
+/** \brief return empty vector*/
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void computeCenter()
@@ -43,15 +83,21 @@ public:
 		return this->Circle::computeCenter() ;
 	}
 	
+/** \brief Do nothing*/
 	virtual Point * pointAfter(size_t i) ;
 	
 	virtual void print() const ;
 	
+/** \brief return false*/
 	virtual bool isVoid( const Point &) const {return false ;}
 
+/** \brief return the behaviour of the layer in which the argument lies*/
 	virtual Form * getBehaviour(const Point & p) ;
-// 	virtual Form * getBehaviour(const Point & p, bool final) ;
+
+/** \brief set all layers behaviour to the given Behaviour*/
 	virtual void setBehaviour(Form * b) ;
+
+/** \brief set the layer behaviour*/
 	virtual void setBehaviours(std::vector<Form *> b) ;
 
 
@@ -64,6 +110,7 @@ public:
 	
 } ;
 
+/** \brief Helper class for the LayeredInclusion*/
 class VirtualLayer :public Circle, virtual public VirtualFeature
 {
 	LayeredInclusion * source ;
@@ -96,11 +143,15 @@ public:
 	virtual bool inBoundary(const Point & v) const ;
 	virtual bool inBoundary(const Point *v) const ;
 
-	virtual Feature * getSource() const ;
+	virtual Feature * getSource() ;
 	
 	
 public:
 	
+	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const
+	{
+		return this->Circle::getSamplingBoundingPoints(num_points) ;
+	}
 	virtual const PointArray & getBoundingPoints() const 
 	{
 		return this->source->getBoundingPoints() ;
