@@ -23,7 +23,7 @@ bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const
 	{
 		x = x0 ;
 	}
-	
+// 	return true ;
 	size_t nit=0 ;
 	size_t Maxit ;
 	if(maxit > 0)
@@ -47,17 +47,17 @@ bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const
 				if(A.column_index[start_index+j] != i)
 					delta+=x[A.column_index[start_index+j]] * A.array[start_index+j] ;
 			}
-			double new_x_i = inverseDiagonal[i]*(b[i] - delta) ;
-			
-			
+			double new_x_i = 0 ;
+			new_x_i = (b[i] - delta)* inverseDiagonal[i] ;
+
 			err += std::abs(x[i]-new_x_i) ;
+			
 			x[i]=new_x_i ;
 		}
-		
-// 		if(nit%1000 == 0 && verbose)
-// 		{
-// 		std::cout << "error :"<< err <<", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-// 		}
+		if(nit%1000 == 0 && verbose)
+		{
+		std::cout << "error :"<< err <<", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+		}
 		
 		nit++ ;
 		
@@ -66,8 +66,8 @@ bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const
 	if(nit< Maxit)
 		return true ;
 	return false ;
-// 	if(verbose)
-// 		std::cout << "converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+	if(verbose)
+		std::cout << "converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 }
 
 

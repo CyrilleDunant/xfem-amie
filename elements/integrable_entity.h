@@ -51,8 +51,9 @@ struct Function ;
 struct DelaunayTriangle ;
 struct IntegrableEntity ;
 struct FractureCriterion ;
+struct VirtualMachine ;
 
-/** State of the element, allows easy extraction of the various fields
+/** \brief State of the element, allows easy extraction of the various fields
  * 
  */
 class ElementState
@@ -79,70 +80,159 @@ protected:
 	
 public:
 	
+	/** \brief Construct the state of the argument*/
 	ElementState(IntegrableEntity *) ;
+
+	/** \brief Copy-constructor*/
 	ElementState(const ElementState & e) :  displacements(e.getDisplacements()), 
 						enrichedDisplacements(e.getEnrichedDisplacements()), 
 						previousDisplacements(e.getDisplacements()), 
 						previousEnrichedDisplacements(e.getEnrichedDisplacements()), 
 						timePos(e.getTime()),
-						previousTimePos(e.getTime()-e.getDeltaTime())
-	{
-		parent = e.getParent() ;
-	}
+						previousTimePos(e.getTime()-e.getDeltaTime()), parent(e.getParent()) { } ;
 	
+/** \brief Return strain at given point*/
 	Vector getStrain(const Point & , bool local = false) const;
+
+/** \brief Return stress at given point*/
 	Vector getStress(const Point & , bool local = false) const;
+
+/** \brief Return stress at given point, ignoring enrichment functions*/
 	Vector getNonEnrichedStress(const Point & , bool local = false) const;
+
+/** \brief Return strain at given point, ignoring enrichment functions*/
 	Vector getNonEnrichedStrain(const Point & , bool local = false) const;
+
+/** \brief Return strain at given point, in matrix form*/
 	Matrix getStrainMatrix(const Point & , bool local = false) const;
+
+/** \brief Return stress at given point, in matrix form*/
 	Matrix getStressMatrix(const Point & , bool local = false) const;
+
+/** \brief Return strain at given point*/
 	Vector getStrain(const std::pair<Point, double> &  ) const;
+
+/** \brief Return stress at given point*/
 	Vector getStress(const std::pair<Point, double> &  ) const;
+
+/** \brief Return strain at given points*/
 	Vector getStrain(const std::valarray<Point *> &) const;
+
+/** \brief Return stress at given points*/
 	Vector getStress(const std::valarray<Point *> &) const;
+
+/** \brief Return stress at given points, ignoring enrichment functions*/
 	Vector getNonEnrichedStress(const std::valarray<Point *> &) const;
+
+/** \brief Return strain at given points, ignoring enrichment functions*/
 	Vector getNonEnrichedStrain(const std::valarray<Point *> &) const;
+
+/** \brief Return strain at given (Gauss) points*/
 	Vector getStrain(const std::valarray<std::pair<Point, double> > &p) const;
+
+/** \brief Return stress at given (Gauss) points*/
 	Vector getStress(const std::valarray<std::pair<Point, double> > &p) const;
+
+/** \brief Return stress at given (Gauss) points, ignoring enrichment functions*/
 	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p) const;
+
+/** \brief Return stress at given (Gauss) points, ignoring enrichment functions, given inverse jacobian matrices*/
 	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv) const;
+
+/** \brief Return strain at given (Gauss) points, ignoring enrichment functions*/
 	Vector getNonEnrichedStrain(const std::valarray<std::pair<Point, double> > & p) const;
+
+/** \brief Return strain at given (Gauss) points, ignoring enrichment functions, given inverse jacobian matrices*/
 	Vector getNonEnrichedStrain(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv) const;
+
+/** \brief return stress and strain at given points*/
 	std::pair<Vector, Vector > getStressAndStrain(const std::valarray<Point *> &) const;
+
+/** \brief return stress and strain at given (gauss) points*/
 	std::pair<Vector, Vector > getStressAndStrain( std::valarray<std::pair<Point, double> > & p) const;
 	
+/** \brief get Principal Stresses at given point*/
 	Vector getPrincipalStresses(const Point & , bool local = false) const ;
+
+/** \brief get Principal Stresses at given points*/
 	Vector getPrincipalStresses(const std::valarray<Point *> &) const ;
+
+/** \brief get Principal angle at given point*/
 	double getPrincipalAngle(const Point & p, bool local= false) const ;
+
+/** \brief get Principal angle at given points*/
 	Vector getPrincipalAngle(const std::valarray<Point *> & v) const;
 	
+/** \brief get symbolic expression of Stress, given he inverse Jacobian*/
 	FunctionMatrix getStressFunction(const Matrix &Jinv) const;
+
+/** \brief get symbolic expression of Strain, given he inverse Jacobian*/
 	FunctionMatrix getStrainFunction(const Matrix &Jinv) const;
+
+/** \brief get symbolic expression of displacement, given he inverse Jacobian*/
 	FunctionMatrix getDisplacementFunction() const;
 	
+/** \brief return maximum Von Mises Stress*/
 	double getMaximumVonMisesStress() const ;
 	
+/** \brief return displacement at point*/
 	Vector getDisplacements(const Point &, bool local = false) const;
+
+/** \brief return displacement at points*/
 	Vector getDisplacements(const std::valarray<Point> & p) const ;
+
+/** \brief return displacement at points*/
 	Vector getDisplacements(const std::vector<std::pair<Point, double> > & p ) const ;
+
+/** \brief return displacements at the nodes of the element*/
 	const Vector & getDisplacements() const;
+
+/** \brief Return the elastic energy of this element*/
+	double elasticEnergy() const ;
+
+/** \brief return displacements at the nodes of the element*/
 	Vector & getDisplacements() ;
 	
+/** \brief return previous displacements at point*/
 	Vector getPreviousDisplacements(const Point &) const;
+
+/** \brief return previous displacements at points*/
 	Vector getPreviousDisplacements(const std::valarray<Point> & p) const ;
+
+/** \brief return previous displacements at the nodes of the element*/
 	const Vector & getPreviousDisplacements() const;
+
+/** \brief return previous displacements at the nodes of the element*/
 	Vector & getPreviousDisplacements() ;
 	
+/** \brief return displacements two timesteps back at point*/
 	Vector  getPreviousPreviousDisplacements(const Point &) const;
+
+/** \brief return displacements two timesteps back at point*/
 	Vector getPreviousPreviousDisplacements(const std::valarray<Point> & p) const ;
+
+/** \brief return displacements two timesteps back at the nodes of the element*/
 	const Vector & getPreviousPreviousDisplacements() const;
+
+/** \brief return displacements two timesteps back at the nodes of the element*/
 	Vector & getPreviousPreviousDisplacements() ;
 	
+/** \brief get enriched displacements at the nodes of the element*/
 	const Vector & getEnrichedDisplacements() const;
+
+/** \brief get enriched displacements at the nodes of the element*/
 	Vector & getEnrichedDisplacements() ;
+
+/** \brief get previous enriched displacements at the nodes of the element*/
 	Vector & getPreviousEnrichedDisplacements() ;
+
+/** \brief get previous enriched displacements at the nodes of the element*/
 	const Vector & getPreviousEnrichedDisplacements() const;
+
+/** \brief get enriched displacements at the nodes of the element from two timesteps back*/
 	const Vector & getPreviousPreviousEnrichedDisplacements() const;
+
+/** \brief get enriched displacements at the nodes of the element from two timesteps back*/
 	Vector & getPreviousPreviousEnrichedDisplacements() ;
 	
 	void stepBack() ;
@@ -187,16 +277,22 @@ public:
 	
 } ;
 
-
+/** \brief container for a set of Gauss points*/
 struct GaussPointArray
 {
 	std::valarray< std::pair<Point, double> > gaussPoints ;
 	int id ;
 	GaussPointArray() : gaussPoints(std::make_pair(Point(), 1.),1), id(-2) { } ;
 	GaussPointArray(const std::valarray< std::pair<Point, double> > & array, int i): gaussPoints(array), id(i) { } ;
+	void operator = (const GaussPointArray & gp) 
+	{
+		gaussPoints.resize(gp.gaussPoints.size()) ; 
+		gaussPoints = gp.gaussPoints ; 
+		id = gp.id ;
+	}
 } ;
 
-/** Abstract class for the representation of elements
+/** \brief Abstract class for the representation of elements
  */
 class IntegrableEntity : public Geometry
 {
@@ -206,9 +302,12 @@ protected:
 	ElementState state ;
 	
 public:
+	bool enrichmentUpdated ;
+	bool behaviourUpdated ;
+	bool enrichmentFunctionsCompiled ;
 	
 	IntegrableEntity() ;
-	virtual Matrix getInverseJacobianMatrix(const Point &p) const = 0 ;
+	virtual void getInverseJacobianMatrix(const Point &p, Matrix & ret) const = 0 ;
 	virtual ~IntegrableEntity() { } ;
 	virtual const Point & getPoint(size_t i) const = 0 ;
 	virtual Point & getPoint(size_t i)  = 0 ;
@@ -217,26 +316,28 @@ public:
 	virtual double area() const { return 0 ; } 
 	virtual double volume() const { return 0 ; } 
 	
-	virtual const Function getXTransform() const = 0;
-	virtual const Function getYTransform() const = 0;
+	virtual Function getXTransform() const = 0;
+	virtual Function getYTransform() const = 0;
 
 	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
 	virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
-	virtual	std::vector< Function> & getEnrichmentFunctions() = 0 ;
+// 	virtual	std::vector< Function> & getEnrichmentFunctions() = 0 ;
 	virtual	const Function & getShapeFunction(size_t i) const = 0 ;
-	virtual	Function & getShapeFunction(size_t i)  = 0 ;
+// 	virtual	Function & getShapeFunction(size_t i)  = 0 ;
 	virtual const Function & getEnrichmentFunction(size_t i) const = 0;	
-	virtual Function & getEnrichmentFunction(size_t i) = 0;	
+// 	virtual Function & getEnrichmentFunction(size_t i) = 0;	
 	virtual Order getOrder() const  = 0 ;
 	
+	virtual void compileAndPrecalculate() = 0 ;
+	virtual void clearEnrichment(const Geometry * g) = 0 ;
 	virtual const std::vector< size_t > getDofIds() const = 0;
 	
 	virtual Form * getBehaviour() const = 0;
 	virtual NonLinearForm * getNonLinearBehaviour() const = 0;
-	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const  = 0 ;
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const  = 0 ;
-	virtual Vector getForces() const = 0 ;
-	virtual Vector getNonLinearForces() const = 0 ;
+	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix()  = 0 ;
+	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
+	virtual Vector getForces() = 0 ;
+	virtual Vector getNonLinearForces() = 0 ;
 	
 	virtual bool isMoved() const = 0 ;
 	virtual void print() const = 0;
@@ -246,7 +347,7 @@ public:
 	
 } ;
 
-/** A Form for DIM degrees of freedom.
+/** \brief A Form for DIM degrees of freedom.
  */
 class Form
 {
@@ -267,11 +368,11 @@ public:
 	 * 
 	 * @param p_i First form function
 	 * @param p_j Second Form Function
-	 * @param Jinv vector of the inverse jacobian matrices at the integration points
+	 * @param e The element in which the integration is performed
 	 * @return The vector of the symbolic matrices at the integration points
 	 */
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const = 0;
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
+	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 	
 	virtual bool timeDependent() const
 	{
@@ -296,14 +397,14 @@ public:
 	/** Step through time
 	 * 
 	 * @param timestep length of the timestep
-	 * @param variables variables affecting the next step.
+	 * @param currentState State of the element with this behaviour
 	 */
 	virtual void step(double timestep, ElementState & currentState) = 0;
 	virtual void updateElementState(double timestep, ElementState & currentState) const = 0;
 	
 	virtual bool fractured() const = 0 ;
 	virtual bool changed() const { return false ; } ;
-	virtual Vector getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const = 0 ;
+	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & v) const = 0 ;
 	
 	virtual Form * getCopy() const = 0 ;
 	virtual void stepBack() { }  ;
@@ -311,6 +412,11 @@ public:
 	virtual Matrix getTensor(const Point & p) const
 	{
 		return param ;
+	}
+
+	virtual Vector getImposedStress(const Point & p) const
+	{
+		return Vector(double(0), param.numCols()) ;
 	}
 	
 	virtual ~Form() { } ;

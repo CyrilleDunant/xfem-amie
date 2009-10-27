@@ -20,7 +20,7 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 	diagonal = new Vector(double(0), A.row_size.size()) ;
 	
 	size_t array_index = 0 ;
-	
+
 	for(size_t i = 0 ; i < A.row_size.size() ; i++)
 	{
 		for(size_t j =0 ; j < A.row_size[i] ; j++)
@@ -41,21 +41,24 @@ void  InverseLumpedDiagonal::precondition(const Vector &v, Vector & t) const
 	t=v*(*diagonal) ;
 }
 
-InverseDiagonal::InverseDiagonal(const CoordinateIndexedSparseMatrix &A)
+InverseDiagonal::InverseDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.inverseDiagonal())
 {
-	diagonal = new Vector(A.inverseDiagonal()) ;
-// 	for(size_t i = 0 ; i < diagonal->size() ; i++)
-// 	{
-// 		if ((*diagonal)[i] < 0)
-// 			(*diagonal)[i] = 1 ;
-// 	}
-// 	double fac = std::abs(*diagonal).max()/std::abs(*diagonal).min();
-// 	std::cout << "pseudo-C = " << fac << std::endl ;
+	double min = diagonal[0] ;
+	double max = diagonal[0] ;
+	for(size_t i = 1 ; i < diagonal.size() ; i++)
+	{
+		if(diagonal[i] < min)
+			min = diagonal[i] ;
+
+		if(diagonal[i] > max)
+			max = diagonal[i] ;
+	}
 }
 
 void  InverseDiagonal::precondition(const Vector &v, Vector & t) const
 {
-	t=v*(*diagonal) ;
+	for(size_t i = 0 ; i < t.size() ; i++)
+		t[i]=v[i]*diagonal[i] ;
 }
 
 InverseDiagonalSquared::InverseDiagonalSquared(const CoordinateIndexedSparseMatrix &A)
@@ -67,6 +70,10 @@ InverseDiagonalSquared::InverseDiagonalSquared(const CoordinateIndexedSparseMatr
 
 void InverseDiagonalSquared::precondition(const Vector &v, Vector & t) const
 {
-	t=v*(*diagonal) ;
+	double * ti = &t[0] ;
+	const double * vi = &v[0] ;
+	#pragma omp parallel for
+	for(int d = 0 ; d < diagonal->size() ; ++d)
+		*(ti++)=(*vi++)*(*diagonal)[d] ;
 }
 

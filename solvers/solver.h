@@ -20,7 +20,7 @@ namespace Mu {
 
 class Assembly ;
 
-	/**
+	/** \brief Generic interface for solvers
 		@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 		Generic interface for solvers
 	*/
@@ -31,11 +31,11 @@ class Assembly ;
 	
 		virtual ~Solver();
 		
-		virtual bool solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
+		virtual bool solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-9, const int maxit = -1, bool verbose = false)  = 0 ;
 	
 	};
 
-	/**
+	/**  \brief Generic interface for linear solvers
 		@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 	 * Generic interface for linear solvers. linear solvers 
 	 * do not require knowledge about assemblies, only the matrices.
@@ -47,10 +47,10 @@ class Assembly ;
 		const CoordinateIndexedSparseMatrix & A ;
 		Vector x ;
 		LinearSolver(const CoordinateIndexedSparseMatrix &, const Vector &) ;
-		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
+		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-9, const int maxit = -1, bool verbose = false)  = 0 ;
 	};
 	
-	/**
+	/**   \brief Generic interface for non-linear solvers
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 	 * Generic interface for non-linear solvers. NL solvers 
 	 * do require knowledge about assemblies, not only the matrices.
@@ -61,7 +61,7 @@ class Assembly ;
 		Vector x ;
 		virtual ~NonLinearSolver() { } ;
 		NonLinearSolver(Assembly * a) ;
-		virtual bool solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  = 0 ;
+		virtual bool solve(const Vector &x0 = Vector(0), const Preconditionner * precond = NULL, const double eps = 1e-9, const int maxit = -1, bool verbose = false)  = 0 ;
 	};
 
 } ;

@@ -47,10 +47,15 @@ class ElementarySurface : public IntegrableEntity
 protected:
 	std::valarray< Function > * shapefunc ;
 	std::vector< Function > enrichfunc ;
+	std::vector< Geometry *> enrichmentSource ;
 	Form * behaviour ;
 	NonLinearForm * nonlinbehaviour ;
+	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
+	GaussPointArray cachedGaussPoints ;
+	Vector cachedForces ;
+
 public:
-	
+
 	ElementarySurface(bool f = false) ;
 	virtual Function jacobian() const = 0;
 	virtual ~ElementarySurface() ;
@@ -67,32 +72,32 @@ public:
 	virtual const std::vector< size_t > getDofIds() const ;
 	
 	virtual const Function & getShapeFunction(size_t i) const ;
-	virtual Function & getShapeFunction(size_t i)  ;
+// 	virtual Function & getShapeFunction(size_t i)  ;
 	
 	virtual const Function & getEnrichmentFunction(size_t i) const ;
-	virtual Function & getEnrichmentFunction(size_t i) ;
+// 	virtual Function & getEnrichmentFunction(size_t i) ;
 	virtual const std::vector<Function>  & getEnrichmentFunctions() const ;
-	virtual std::vector<Function>  & getEnrichmentFunctions() ;
+// 	virtual std::vector<Function>  & getEnrichmentFunctions() ;
 	
-	virtual const Function getXTransform() const ;
-	virtual const Function getYTransform() const ;
-	virtual const Function getTTransform() const ;
-	const Function getdXTransform(Variable) const ;
-	const Function getdYTransform(Variable) const ;
-	const Function getdTTransform(Variable) const ;
-	const double getdXTransform(Variable, const Point p) const ;
-	const double getdYTransform(Variable, const Point p) const ;
-	const double getdTTransform(Variable, const Point p) const ;
+	virtual Function getXTransform() const ;
+	virtual Function getYTransform() const ;
+	virtual Function getTTransform() const ;
+	Function getdXTransform(Variable) const ;
+	Function getdYTransform(Variable) const ;
+	Function getdTTransform(Variable) const ;
+	double getdXTransform(Variable, const Point p) const ;
+	double getdYTransform(Variable, const Point p) const ;
+	double getdTTransform(Variable, const Point p) const ;
 	
-	void setEnrichment(const Function & p) ;
+	void setEnrichment(const Function & p, Geometry * g) ;
 	virtual Point inLocalCoordinates(const Point & p) const  = 0;
 	
-	virtual Matrix getInverseJacobianMatrix(const Point & p) const = 0 ;
+	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const = 0 ;
 	
-	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const = 0;
-	virtual Vector getForces() const { return Vector(0) ;}
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const = 0;
-	virtual Vector getNonLinearForces() const = 0 ;
+	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() = 0;
+	virtual Vector getForces() { return Vector(0) ;}
+	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  = 0;
+	virtual Vector getNonLinearForces() = 0 ;
 	
 	virtual const Point &  getPoint(size_t i) const = 0 ;
 	virtual  Point &  getPoint(size_t i)  = 0 ;
@@ -109,6 +114,9 @@ public:
 	
 	Order getOrder() const;
 	void setOrder(Order) ;
+
+	virtual void compileAndPrecalculate();
+	virtual void clearEnrichment(const Geometry * g) ;
 	
 } ;
 
@@ -132,15 +140,15 @@ public:
 	TriElement(Order order = LINEAR, bool father = true) ;
 	void refresh(const TriElement * parent) ;
 	
-	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const ;
+	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
 	
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix(Vector * state) const ;
+	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
 	
 	Function jacobian() const ;
 	
 	double  jacobianAtPoint(const Point p) const ;
 	
-	Matrix getInverseJacobianMatrix(const Point & p) const ;
+	void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
 	
 	GaussPointArray getGaussPoints() const;
 	
@@ -149,26 +157,73 @@ public:
 	virtual void print() const;
 	
 	virtual Point inLocalCoordinates(const Point &p) const ;
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const ;
+	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() ;
 	
-	virtual Vector getNonLinearForces() const ;
-	virtual const Function getXTransform() const ;
-	virtual const Function getYTransform() const ;
+	virtual Vector getNonLinearForces()  ;
+	virtual Function getXTransform() const ;
+	virtual Function getYTransform() const ;
 	
 } ;
 
+// class QuadElement : public ConvexGeometry, public ElementarySurface
+// {
+// protected :
+// 	
+// 	GaussPointArray genGaussPoints() const;
+// 	virtual void computeCenter();
+// 	
+// public:
+// 	
+// 	bool moved ;
+// 	
+// 	GEO_DERIVED_OBJECT(ConvexGeometry) ;
+// 	
+// 	QuadElement( Point * p0,  Point * p1,  Point * p2,  Point * p3, bool father = false) ;
+// 	
+// 	QuadElement(Order order = LINEAR, bool father = true) ;
+// 	void refresh(const QuadElement * parent) ;
+// 	
+// 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
+// 	
+// 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
+// 	
+// 	Function jacobian() const ;
+// 	
+// 	double  jacobianAtPoint(const Point p) const ;
+// 	
+// 	void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
+// 	
+// 	GaussPointArray getGaussPoints() const;
+// 	
+// 	virtual bool isMoved() const;
+// 	
+// 	virtual void print() const;
+// 	
+// 	virtual Point inLocalCoordinates(const Point &p) const ;
+// 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() ;
+// 	
+// 	virtual Vector getNonLinearForces()  ;
+// 	virtual Function getXTransform() const ;
+// 	virtual Function getYTransform() const ;
+// } ;
 
 class ElementaryVolume : public IntegrableEntity
 {
 protected:
 	std::valarray< Function > *shapefunc ;
 	std::vector< Function> enrichfunc ;
+	std::vector<Geometry *> enrichmentSource ;
 	virtual GaussPointArray genGaussPoints() const = 0 ;
 	Form * behaviour ;
 	Order order ;
 	NonLinearForm * nonlinbehaviour ;
 	
+	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
+	Vector cachedForces ;
+	GaussPointArray cachedGaussPoints ;
+
 public:
+
 	ElementaryVolume(bool f = false) ;
 	virtual Function jacobian() const ;
 	double jacobianAtPoint(const Point & p) const ;
@@ -180,39 +235,39 @@ public:
 	
 // 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const ;
 	virtual const std::vector< size_t > getDofIds() const ;
-	
+	virtual void clearElementaryMatrix() { } ;
 	virtual void print()  const = 0 ;
 	virtual GaussPointArray getGaussPoints() const { return genGaussPoints() ;}
-	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const = 0;
+	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() = 0;
 	virtual Form * getBehaviour() const ;
 	virtual void setBehaviour(Form *);
-	virtual Vector getForces() const { return Vector(0) ;}
+	virtual Vector getForces() { return Vector(0) ;}
 
 	virtual NonLinearForm * getNonLinearBehaviour() const ;
 	
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	virtual const Function & getShapeFunction(size_t i) const ;
-	virtual Function & getShapeFunction(size_t i)  ;
+// 	virtual Function & getShapeFunction(size_t i)  ;
 	virtual const Function & getEnrichmentFunction(size_t i) const  ;
-	virtual Function & getEnrichmentFunction(size_t i)  ;
+// 	virtual Function & getEnrichmentFunction(size_t i)  ;
 	virtual const std::vector< Function>  & getEnrichmentFunctions() const ;
-	virtual std::vector< Function>  & getEnrichmentFunctions() ;
-	virtual const Function getXTransform() const ;
-	virtual const Function getYTransform() const ;
-	virtual const Function getZTransform() const ;
-	virtual const Function getTTransform() const ;
-	virtual const Function getdXTransform(Variable v) const ;
-	virtual const Function getdYTransform(Variable v) const ;
-	virtual const Function getdZTransform(Variable v) const ;
-	virtual const Function getdTTransform(Variable v) const ;
-	virtual const double getdXTransform(Variable v, const Point & p) const ;
-	virtual const double getdYTransform(Variable v, const Point & p) const ;
-	virtual const double getdZTransform(Variable v, const Point & p) const ;
-	virtual const double getdTTransform(Variable v, const Point & p) const ;
+// 	virtual std::vector< Function>  & getEnrichmentFunctions() ;
+	virtual Function getXTransform() const ;
+	virtual Function getYTransform() const ;
+	virtual Function getZTransform() const ;
+	virtual Function getTTransform() const ;
+	virtual Function getdXTransform(Variable v) const ;
+	virtual Function getdYTransform(Variable v) const ;
+	virtual Function getdZTransform(Variable v) const ;
+	virtual Function getdTTransform(Variable v) const ;
+	virtual double getdXTransform(Variable v, const Point & p) const ;
+	virtual double getdYTransform(Variable v, const Point & p) const ;
+	virtual double getdZTransform(Variable v, const Point & p) const ;
+	virtual double getdTTransform(Variable v, const Point & p) const ;
 
-	virtual void setEnrichment(const Function &  p) ;
+	virtual void setEnrichment(const Function &  p, Geometry * g) ;
 	
-	virtual Matrix getInverseJacobianMatrix(const Point & p) const ;
+	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
 		
 	virtual const std::valarray< Point * > & getBoundingPoints() const = 0;
 	virtual std::valarray< Point * > & getBoundingPoints() = 0;
@@ -231,6 +286,8 @@ public:
 	virtual Order getOrder() const;
 	virtual void setOrder(Order) ;
 	
+	virtual void compileAndPrecalculate();
+	virtual void clearEnrichment(const Geometry * g) ;
 } ;
 
 
@@ -247,22 +304,22 @@ public:
 	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, Point * p4,  Point * p5,  Point * p6, Point * p7, bool father = false) ;
 	TetrahedralElement(Order order = LINEAR, bool father = true);
 	TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
-	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const ;
+	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
 	
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() const ;
+	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() ;
 	
-	virtual Vector getForces() const ;
+	virtual Vector getForces() ;
 	
-	virtual Vector getNonLinearForces() const ;
+	virtual Vector getNonLinearForces() ;
 	
 	void refresh(const TetrahedralElement * parent);
 
 	virtual void print() const;
 	virtual Point inLocalCoordinates(const Point & p) const ;
 
-	virtual const Function getXTransform() const ;
-	virtual const Function getYTransform() const ;
-	virtual const Function getZTransform() const ;
+	virtual Function getXTransform() const ;
+	virtual Function getYTransform() const ;
+	virtual Function getZTransform() const ;
 
 } ;
 
@@ -270,6 +327,7 @@ class HexahedralElement : public Hexahedron,  public ElementaryVolume
 {
 protected :
 	GaussPointArray genGaussPoints() const;
+	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
 	virtual void computeCenter();
 public:
 	std::vector<HexahedralElement *> neighbourhood ;
@@ -279,20 +337,20 @@ public:
 	HexahedralElement(Order order, bool f = true) ;
 	HexahedralElement(HexahedralElement * parent,Hexahedron * t);
 
-	virtual std::vector<std::vector<Matrix> > getElementaryMatrix() const ;
+	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
 
 	virtual Vector getForces() const ;
 
 	void refresh(const HexahedralElement * parent);
 	virtual void print()  const;
 	virtual Point inLocalCoordinates(const Point & p) const ;
-	virtual Vector getNonLinearForces() const;
-	virtual std::vector<std::vector<Mu::Matrix> > getNonLinearElementaryMatrix() const;
+	virtual Vector getNonLinearForces() ;
+	virtual std::vector<std::vector<Mu::Matrix> > getNonLinearElementaryMatrix() ;
 	bool visited ;
 
-	virtual const Function getXTransform() const ;
-	virtual const Function getYTransform() const ;
-	virtual const Function getZTransform() const ;
+	virtual Function getXTransform() const ;
+	virtual Function getYTransform() const ;
+	virtual Function getZTransform() const ;
 
 } ;
 

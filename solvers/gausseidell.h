@@ -17,7 +17,7 @@
 namespace Mu 
 {
 
-/**
+/** \brief Gauß-Seidell solver for symmetric systems
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 	This is an implementation of the classic Gauß-Seidell iteration
 */
@@ -25,7 +25,7 @@ struct GaussSeidel : public LinearSolver
 {
 	virtual ~GaussSeidel() { } ;
 	GaussSeidel(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) ;
-	virtual bool solve(const Vector &x0, const Preconditionner * precond= NULL, const double eps = 1e-12, const int maxit = -1, bool verbose = false)  ;
+	virtual bool solve(const Vector &x0, const Preconditionner * precond= NULL, const double eps = 1e-20, const int maxit = -1, bool verbose = false)  ;
 } ;
 
 } ;

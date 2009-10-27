@@ -14,6 +14,11 @@
 
 #include "conjugategradient.h"
 #include "inversediagonal.h"
+#include "tridiagonal.h"
+#include "gaussseidellstep.h"
+#include "incompletecholeskidecomposition.h"
+#include "eigenvalues.h"
+#include <limits>
 
 using namespace Mu ;
 
@@ -24,10 +29,11 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	size_t nit = 0  ;
 	size_t Maxit ;
 	const Preconditionner * P ;
+	InverseDiagonal P_alt(A) ;
 // 	if(maxit > 0)
 // 		Maxit = maxit ;
 // 	else
-		Maxit = b.size()*.85 ;
+		Maxit = b.size()*.15 ;
 	
 	bool cleanup = false ;
 	
@@ -37,22 +43,33 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	{
 		x = x0 ;
 	}
-	
+	else
+	{
+		x = 0 ;
+		for(size_t i = 0 ; i < std::min(b.size(), x0.size()) ; i++)
+			x[i] = x0[i] ;
+	}
+
+
 	if(precond == NULL)
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
 		P = new InverseDiagonal(A) ;
+// 		P = new TriDiagonal(A) ;
 // 		P = new NullPreconditionner() ;
+// 		P = new GaussSeidellStep(A) ;
 	}
 	else
 		P = precond ;	
 
-	Vector r = b-A*x ;
+	Vector r = A*x-b ;
 	double err = std::abs(r).max() ;
-	if (err < eps*eps)
+	r*=-1 ;
+
+	if (err < eps)
 	{
-		std::cerr << "b in : " << b.min() << ", " << b.max() << std::endl ;
+		std::cerr << "b in : " << b.min() << ", " << b.max() << ", err = "<< err << std::endl ;
 		if(cleanup)
 		{
 			delete P ;
@@ -61,47 +78,51 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	}
 	//*************************************
 	
+	int vsize = r.size() ;
 	Vector z(r) ;
 	P->precondition(r,z) ;
+	P_alt.precondition(r,z) ;
 	Vector p = z ;
 	Vector q = A*p ;
 	
-	double last_rho = std::inner_product(&r[0], &r[r.size()], &z[0], (double)(0)) ;
-	double alpha = last_rho/std::inner_product(&q[0],&q[q.size()] ,&p[0], (double)(0));
-	double rho_0 = last_rho ;
+	double last_rho = parallel_inner_product(&r[0], &z[0], vsize) ;
+	double alpha = last_rho/parallel_inner_product(&q[0], &p[0], vsize);
+
 	x += p*alpha ;
 	r -= q*alpha ;
-	err = std::abs(r).max() ;
 	
 	//****************************************
-	
-	while((std::abs(last_rho)> std::abs(rho_0)*eps*eps || std::abs(last_rho) > 1e-20) && nit < Maxit )
+	double neps = 1e-9 ;
+	while(std::abs(last_rho)> std::max(err*neps*neps, neps*neps) && nit < Maxit )
 	{
 		P->precondition(r,z) ;
+		P_alt.precondition(r,z) ;
 		
-		double rho = std::inner_product(&r[0], &r[r.size()], &z[0], 0.) ;
+		double rho = parallel_inner_product(&r[0], &z[0], vsize) ;
 		double beta = rho/last_rho ;
-		p = z + p*beta ;
-		q = A*p ;
-		
-		assert(std::inner_product(&q[0],&q[q.size()] ,&p[0], 0.) != 0) ;
-		
-		alpha = rho/std::inner_product(&q[0],&q[q.size()] ,&p[0], 0.);
+		p *=beta ;
+		p += z ;
+		assign(q, A*p) ;
+		alpha = rho/parallel_inner_product(&q[0], &p[0], vsize);
 		
 		r -= q*alpha ;
 		x += p*alpha ;
 		
-		if(	verbose && nit%100 == 0)
+		if(nit%64 == 0)
 		{
-			r = b-A*x ;
-			std::cerr << "\r iteration : " << nit << " error :"<< last_rho  << "             "<< std::flush ;
+			assign(r, A*x-b) ;
+			r *= -1 ;		
+		}
+		if(	verbose && nit%64 == 0)
+		{
+			std::cerr << "\r iteration : " << nit << " error :"<<  std::abs(rho)  << "             "<< std::flush ;
 		}
 		
 		last_rho = rho ;
 		nit++ ;
 		
 	}
-	r = b-A*x ;
+	assign(r,A*x-b) ;
 	err = std::abs(r).max() ;
 	
 	if(verbose)
@@ -117,6 +138,6 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 		delete P ;
 	}
 	
-	return (nit < Maxit) ;
+	return (err < eps) || (nit < Maxit) ;
 }
 

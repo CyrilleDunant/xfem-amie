@@ -18,7 +18,7 @@
 
 namespace Mu {
 
-/**
+/** \brief Preconditionner, perform a GS step
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
 struct GaussSeidellStep : public Preconditionner

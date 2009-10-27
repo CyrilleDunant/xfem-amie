@@ -11,10 +11,15 @@
 //
 
 #include "sparse_vector.h"
+#include <string.h> 
+#ifdef HAVE_SSE3
+#include <pmmintrin.h>
+#endif
 
 using namespace Mu ;
 
-SparseVector::SparseVector(Vector & v, std::valarray<unsigned int> & i , const size_t l , const size_t s) : val(v), idx(i), length(l), start(s)
+
+SparseVector::SparseVector(Vector & v, std::valarray<unsigned int> & i , const size_t l , const size_t s, const size_t ind, const size_t st) : val(v), idx(i), length(l), start(s), stride(st), index(ind)
 {
 	zero = 0 ;
 }
@@ -23,60 +28,77 @@ double SparseVector::operator [](size_t i) const
 {
 	unsigned int * __start__       = &idx[start] ;
 	unsigned int * __end__         = &idx[start+length] ;
-	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i) ;
+	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
 	unsigned int offset            = i_index_pointer - __start__ ;
-	
-	if(std::binary_search(__start__, __end__, i))
-		return val[start+offset] ;
+	unsigned int colLength = stride+stride%2 ;
+	if(std::binary_search(__start__, __end__, i/stride))
+		return val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] ;
 	
 	return 0 ;
-// 	for(size_t j = 0 ; j < length ; j++)
-// 	{
-// 		if((*(idx + j)) == i)
-// 			return (*(val + j)) ;
-// 		if((*(idx + j)) > i)
-// 			return 0 ;
-// 	}
-// 	return 0 ;
+
 }
 
 double & SparseVector::operator [](const size_t i) 
 {
+// 	std::cout << i << "  " << start << std::endl;
 	zero = 0 ;
 	unsigned int * __start__       = &idx[start] ;
 	unsigned int * __end__         = &idx[start+length] ;
-	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i) ;
+	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
 	unsigned int offset            = i_index_pointer - __start__ ;
-	
-	if(std::binary_search(__start__, __end__, i))
-		return val[start+offset] ;
+	unsigned int colLength = stride+stride%2 ;
+	if(std::binary_search(__start__, __end__, i/stride))
+		return val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] ;
 	
 	return zero ;
-// 	for(size_t j = 0 ; j < length ; j++)
-// 	{
-// 		if((*(idx + j)) == i)
-// 			return (*(val + j)) ;
-// 		if((*(idx + j)) > i)
-// 			return zero ;
-// 	}
-// 	return zero ;
+
 }
 
 
-double SparseVector::operator *(const Vector &v) const
+Vector SparseVector::operator *(const Vector &v) const
 {
-	double ret = 0 ;
-	for(size_t j = start ; j < length+start ; j++)
+	int colLength = stride + stride%2 ;
+	Vector ret(0., colLength) ;
+	#ifdef HAVE_SSE3
+	const __m128d * array_iterator = (const __m128d *)&val[start*colLength*stride] ;
+	for(unsigned int j = start ; j != length+start ; j++)
 	{
-		size_t index = idx[j] ;
-		ret += v[index]*val[j] ; 
+		for(int c = 0 ; c < stride ; c++)
+		{
+			__m128d vval =  _mm_set1_pd(v[idx[j]*stride+c]) ;
+			for(size_t i = 0 ; i != colLength ; i+=2)
+			{
+				_mm_store_pd(&ret[i], _mm_add_pd(_mm_load_pd(&ret[i]), _mm_mul_pd(*(array_iterator++), vval))) ;
+			}
+		}
 	}
+	#else
+	const double * array_iterator0 = &val[start*colLength*stride] ;
+	const double * array_iterator1 = &val[start*colLength*stride] ;
+	for(unsigned int j = start ; j != length+start ; j++)
+	{
+		for(size_t c = 0 ; c < stride ; c++)
+		{
+			double vval =  v[idx[j]*stride+c] ;
+			for(size_t i = 0 ; i != colLength ; i+=2)
+			{
+				ret[i] +=  *(array_iterator0) * vval ;
+				ret[i+1] +=  *(array_iterator1) * vval ;
+				array_iterator0 += 2 ;
+				array_iterator1 += 2 ;
+			}
+		}
+	}
+	#endif
 	return ret ;
 }
 
-double SparseVector::operator *(const SparseVector &v) const
+Matrix SparseVector::operator *(const SparseVector &v) const
 {
-	double ret = 0 ;
+	Matrix ret(stride, stride) ;
+	int colLength = stride+stride%2 ;
+	int blocksize = stride*colLength ;
+	
 	size_t i = 0 ; 
 	size_t j = 0 ; 
 	while(i < length && j < v.length)
@@ -87,18 +109,20 @@ double SparseVector::operator *(const SparseVector &v) const
 			i++ ;
 		else
 		{
-			ret += val[start + i] * v.val[v.start+ j] ;
+			int idx = 0 ;
+			for(size_t k = 0 ; k < stride ; k++)
+			{
+				for(size_t l = 0 ; l < stride ; l++)
+				{
+					ret[k][l] += val[start*blocksize+i*blocksize+colLength*k+l]*v.val[v.start*blocksize+j*blocksize + idx++] ;
+				}
+			}
 			i++ ;
 			j++ ;
 		}
 	}
 	return ret ;
-	
-// 	for(size_t j = 0 ; j < length ; j++)
-// 	{
-// 		ret += v[(*(idx + j))]*(*(val + j)) ; 
-// 	}
-// 	return ret ;
+
 }
 
 double innerProduct(const SparseVector & v0, const SparseVector & v1, const size_t end)
@@ -144,67 +168,6 @@ double innerProduct(const SparseVector & v0, const SparseVector & v1, const size
 	return ret ;
 }
 
-double innerProduct(const SparseVector & v0, const Vector & v1, const size_t end) 
-{
-	double ret = 0 ;
-	for(size_t j = v0.start ; v0.idx[j] < end /*&& j < v0.length*/ ; ++j)
-	{
-		ret += v1[v0.idx[j]]*v0.val[j] ; 
-	}
-	return ret ;
-}
-
-double innerProduct(const ConstSparseVector & v0, const Vector & v1, const size_t end) 
-{
-	double ret = 0 ;
-	for(size_t j =  v0.start; v0.idx[j] < end /*&& j < v0.length*/ ; ++j)
-	{
-		ret += v1[v0.idx[j]]*v0.val[j] ; 
-// 		ret += v1[v0.idx][j]*v0.val[j] ; 
-	}
-	return ret ;
-}
-
-// inline void innerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t end)
-// {
-// 	for(size_t j =  v0.start; v0.idx[j] < end ; ++j)
-// 	{
-// 		t += v1[v0.idx[j]]*v0.val[j] ; 
-// 	}
-// 	t+=toAdd ;
-// }
-
-double reverseInnerProduct(const SparseVector & v0, const Vector & v1, const size_t s) 
-{
-	double ret = 0 ;
-	for(size_t j = v0.length+v0.start-1 ; /*j >0 && */v0.idx[j] > s   ; --j)
-	{
-		ret += v1[v0.idx[j]]*v0.val[j] ; 
-	}
-	return ret ;
-}
-
-// inline void reverseInnerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t start)
-// {
-// 	for(size_t j = v0.length+v0.start-1 ; v0.idx[j] > start   ; --j)
-// 	{
-// 		t += v1[v0.idx[j]]*v0.val[j] ; 
-// 	}
-// 	t+=toAdd ;
-// }
-
-double reverseInnerProduct(const ConstSparseVector & v0, const Vector & v1, const size_t s) 
-{
-	double ret = 0 ;
-	
-	for(size_t j = v0.length+v0.start-1 ; v0.idx[j] > s ; --j)
-	{
-		ret += v1[v0.idx[j]]*v0.val[j] ; 
-// 		ret += v1[v0.idx][j]*v0.val[j] ; 
-	}
-	return ret ;
-}
-
 Vector SparseVector::operator +(const Vector &v) const
 {
 	Vector ret(v) ;
@@ -218,85 +181,145 @@ Vector SparseVector::operator +(const Vector &v) const
 }
 
 
-ConstSparseVector::ConstSparseVector(const Vector & v, const std::valarray<unsigned int> & i , const size_t l , const size_t s) : val(v), idx(i), length(l), start(s)
+ConstSparseVector::ConstSparseVector(const Vector & v, const std::valarray<unsigned int> & i , const size_t l , const size_t s, const size_t ind, const size_t st) : val(v), idx(i), length(l), start(s), stride(st), index(ind)
 {
 }
 
-// double ConstSparseVector::operator [](const size_t i) const
-// {
-// 	const size_t *i_index_pointer = std::lower_bound(&idx[start], &idx[std::min(start+length,idx.size())], i) ;
-// 	size_t offset = i_index_pointer - &idx[start] ;
-// 	if(i_index_pointer != &idx[std::min(start+length,idx.size())])
-// 		return (val[start+offset]) ;
-// 	
-// 	return 0 ;
-// // 	for(size_t j = 0 ; j < length ; j++)
-// // 	{
-// // 		if((*(idx + j)) == i)
-// // 			return (*(val + j)) ;
-// // 		if((*(idx + j)) > i)
-// // 			return 0 ;
-// // 	}
-// // 	return 0 ;
-// }
 
-double ConstSparseVector::operator *(const Vector &v) const
+Vector ConstSparseVector::operator *(const Vector &v) const
 {
-	double ret = 0 ;
-	
-	for(size_t j = start ; j < length+start ; j++)
+	if(stride == 2)
 	{
-		size_t index = idx[j] ;
-		ret += v[index]*val[j] ; 
+	#ifdef HAVE_SSE3
+		Vector ret(0., 2) ;
+		const __m128d * array_iterator = (__m128d*)&val[start*4] ;
+		const double * vec_iterator = &v[idx[start]*2] ;
+		for(unsigned int j = start ; j != length+start ; j++)
+		{
+			
+			_mm_store_pd(&ret[0],  _mm_add_pd( _mm_load_pd(&ret[0]), _mm_add_pd( _mm_mul_pd(*array_iterator,  _mm_set1_pd(*vec_iterator)), _mm_mul_pd(*(array_iterator+1), _mm_set1_pd(*(vec_iterator+1)))))) ;
+			array_iterator+=2 ;
+			if(j+1 == length+start)
+				break ;
+			vec_iterator += idx[j+1]*2-idx[j]*2 ;
+			
+		}
+	#else
+		Vector ret(0., 2) ;
+		const double * array_iterator0 = &val[start*4] ;
+		const double * array_iterator1 = &val[start*4+1] ;
+		const double * array_iterator2 = &val[start*4+2] ;
+		const double * array_iterator3 = &val[start*4+3] ;
+		for(unsigned int j = start ; j != length+start ; j++)
+		{
+			ret[0] += *array_iterator0*v[idx[j]*2]+*array_iterator2*v[idx[j]*2+1] ;
+			ret[1] += *array_iterator1*v[idx[j]*2]+*array_iterator3*v[idx[j]*2+1] ;
+			array_iterator0+=4 ;
+			array_iterator1+=4 ;
+			array_iterator2+=4 ;
+			array_iterator3+=4 ;
+		}
+	#endif
+		return ret ;
+	}
+	
+	const int colLength = stride + stride%2 ;
+	Vector ret(0., colLength) ;
+	#ifdef HAVE_SSE3
+	const __m128d * array_iterator = (__m128d*)&val[start*colLength*stride] ;
+	for(unsigned int j = start ; j != length+start ; j++)
+	{
+		for(size_t c = 0 ; c < stride ; c++)
+		{
+			const __m128d vval =  _mm_set1_pd(v[idx[j]*stride+c]) ;
+			for(int i = 0 ; i != colLength ; i+=2)
+			{
+				_mm_store_pd(&ret[i],  _mm_add_pd( _mm_load_pd(&ret[i]), _mm_mul_pd(*array_iterator, vval))) ;
+				array_iterator++ ;
+			}
+		}
+	}
+	#else
+	const double * array_iterator0 = &val[start*colLength*stride] ;
+	const double * array_iterator1 = &val[start*colLength*stride+1] ;
+	for(unsigned int j = start ; j != length+start ; j++)
+	{
+		for(size_t c = 0 ; c < stride ; c++)
+		{
+			const double vval =  v[idx[j]*stride+c] ;
+			for(size_t i = 0 ; i != colLength ; i+=2)
+			{
+				ret[i] += *array_iterator0 * vval ;
+				ret[i+1] += *array_iterator1 * vval ;
+				array_iterator0 += 2 ;
+				array_iterator1 += 2 ;
+			}
+		}
+	}
+	#endif
+	return ret ;
+
+}
+
+Matrix ConstSparseVector::operator *(const SparseVector& v) const
+{
+	Matrix ret(stride, stride) ;
+	int colLength = stride+stride%2 ;
+	int blocksize = stride*colLength ;
+	
+	size_t i = 0 ; 
+	size_t j = 0 ; 
+	while(i < length && j < v.length)
+	{
+		if(idx[start+i] > v.idx[v.start+ j])
+			j++ ;
+		else if(idx[start+i] < v.idx[v.start+ j])
+			i++ ;
+		else
+		{
+			int idx = 0 ;
+			for(size_t k = 0 ; k < stride ; k++)
+			{
+				for(size_t l = 0 ; l < stride ; l++)
+				{
+					ret[k][l] += val[start*blocksize+i*blocksize+colLength*k+l]*v.val[v.start*blocksize+j*blocksize + idx++] ;
+				}
+			}
+			i++ ;
+			j++ ;
+		}
 	}
 	return ret ;
-// 	double ret = 0 ;
-// 	for(size_t j = 0 ; j < length ; j++)
-// 	{
-// 		ret += v[(*(idx + j))]*(*(val + j)) ; 
-// 	}
-// 	return ret ;
-}
-
-double ConstSparseVector::operator *(const SparseVector& v) const
-{
-	double ret = 0 ;
-	size_t i = start ; 
-	size_t j = v.start ; 
-	while(i < length+start && j < v.length+v.start)
-	{
-
-		while(idx[i] > v.idx[j])
-			j++ ;
-
-		while(idx[i] < v.idx[j])
-			i++ ;
-		
-		ret += val[i] * v.val[j] ;
-		i++ ;
-		j++ ;
-	}
-	return ret ;
 	
 }
 
-double ConstSparseVector::operator *(const ConstSparseVector& v) const
+Matrix ConstSparseVector::operator *(const ConstSparseVector& v) const
 {
-	double ret = 0 ;
-	size_t i = start ; 
-	size_t j = v.start ; 
-	while(i < length+start && j < v.length+v.start)
+	Matrix ret(stride, stride) ;
+	int colLength = stride+stride%2 ;
+	int blocksize = stride*colLength ;
+	
+	size_t i = 0 ; 
+	size_t j = 0 ; 
+	while(i < length && j < v.length)
 	{
-		
-		while(idx[i] > v.idx[j])
+		if(idx[start+i] > v.idx[v.start+ j])
 			j++ ;
-		
-		while(idx[i] < v.idx[j])
+		else if(idx[start+i] < v.idx[v.start+ j])
 			i++ ;
-		
-		ret += val[i] * v.val[j] ;
-		i++ ;
-		j++ ;
+		else
+		{
+			int idx = 0 ;
+			for(size_t k = 0 ; k < stride ; k++)
+			{
+				for(size_t l = 0 ; l < stride ; l++)
+				{
+					ret[k][l] += val[start*blocksize+i*blocksize+colLength*k+l]*v.val[v.start*blocksize+j*blocksize + idx++] ;
+				}
+			}
+			i++ ;
+			j++ ;
+		}
 	}
 	return ret ;
 	
@@ -319,156 +342,8 @@ Vector ConstSparseVector::operator +(const Vector& v) const
 	}
 	
 	return ret ;
-// 	Vector ret(v) ;
-// 	
-// 	for(size_t j = 0 ; j < length ; j++)
-// 	{
-// 		ret[(*(idx + j))] += (*(val + j)) ; 
-// 	}
-// 	
-// 	return ret ;
-}
-	
 
-// struct BandSparseVector
-// {
-// public:
-// 	Vector & val ;
-// 	const size_t length ;
-// 	const size_t start ;
-// 	
-// 	double zero ;
-// 	
-// public:
-// 	BandSparseVector(Vector & v , const size_t l , const size_t s) ;
-// 	
-// 	double operator [](const size_t) const ;
-// 	double & operator [](const size_t) ;
-// 	double operator *(const Vector&) const ;
-// 	double operator *(const SparseVector&) const ;
-// 	Vector operator +(const Vector&) const ;
-// 	
-// } ;
-
-
-ConstBandSparseVector::ConstBandSparseVector(const Vector & v, const size_t l, const size_t s) : val(v), length(l), start(s) { };
-	
-double ConstBandSparseVector::operator [](const size_t i) const
-{
-	if(i < start || i >=start+length)
-		return 0 ;
-	else
-		return val[i-start] ;
-}
-double ConstBandSparseVector::operator *(const Vector& v) const
-{
-	double ret = 0 ;
-	
-	for(size_t i = 0 ;  i < length  ; i++)
-		ret+= v[i+start]*val[i] ;
-	
-	return ret ;
-}
-double ConstBandSparseVector::operator *(const SparseVector&v) const
-{
-	double ret = 0 ;
-	
-	size_t index = 0 ;
-	size_t sparse_index = v.idx[v.start]-start ;
-	
-	if(sparse_index >= start)
-	{
-		while( (sparse_index < start+length))
-		{
-			ret+= val[sparse_index]*v.val[index] ;
-			index++ ;
-			sparse_index = v.idx[v.start + index]-start ;
-		}
-	}
-	
-
-	return ret ;
 }
 
-double ConstBandSparseVector::operator *(const ConstSparseVector& v) const
-{
-	double ret = 0 ;
-	
-	size_t index = 0 ;
-	size_t sparse_index = v.idx[v.start] ;
-	
-	if(sparse_index >= start)
-	{
-		while( (sparse_index < start+length))
-		{
-			ret+= val[sparse_index-start]*v.val[index] ;
-			index++ ;
-			sparse_index = v.idx[v.start + index] ;
-		}
-	}
-	
-	
-	return ret ;
-}
-
-
-double ConstBandSparseVector::operator *(const ConstBandSparseVector& v) const
-{
-	double ret = 0 ;
-	
-	if(start < v.start)
-	{
-		if(v.start-start < length)
-			for (size_t i = v.start-start ; i< length ; i++)
-				ret += val[i]*v.val[i-v.start+start] ;
-	}
-	else
-	{
-		if(start-v.start < v.length)
-			for (size_t i = start-v.start ; i< v.length ; i++)
-				ret += val[i-start+v.start]*v.val[i] ;
-	}
-	return ret ;
-}
-
-double ConstBandSparseVector::operator *(const BandSparseVector& v) const
-{
-	double ret = 0 ;
-	
-	if(start < v.start)
-	{
-		size_t j = 0 ;
-		for (size_t i = v.start-start ; i< length ; i++ )
-		{
-			ret += val[i]*v.val[j] ;
-			j++ ;
-		}
-		
-	}
-	else
-	{
-		size_t j = 0 ;
-		for (size_t i = start-v.start ; i< v.length ; i++)
-		{
-			ret += val[j]*v.val[i] ;
-			j++ ;
-		}
-	}
-	return ret ;
-}
-
-Vector ConstBandSparseVector::operator +(const Vector& v) const
-{
-	Vector ret(v) ;
-	
-	for(size_t i = start ; i < start+length ; i++)
-	{
-		ret[i]+=v[i] ;
-	}
-	
-	return ret ;
-}
-
-	
 
 

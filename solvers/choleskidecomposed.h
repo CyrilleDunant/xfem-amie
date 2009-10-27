@@ -29,6 +29,7 @@
 namespace Mu 
 {
 
+/** \brief direct solver for lower-triangular system*/
 	struct LowerTriangular : public LinearSolver 
 	{
 		Vector d ;
@@ -37,6 +38,7 @@ namespace Mu
 		virtual bool solve(const Vector &x0, const Preconditionner * precond= NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
+/** \brief direct solver for upper-triangular system*/
 	struct UpperTriangular : public LinearSolver 
 	{
 		Vector d ;
@@ -45,6 +47,7 @@ namespace Mu
 		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
+/** \brief Direct Solver for Symmetric Systems. The Matrix is assumed to have been Cholesky-decomposed*/
 	struct CholeskiDecomposed : public LinearSolver
 	{
 		const Vector &d ;

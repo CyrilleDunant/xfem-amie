@@ -13,17 +13,19 @@
 
 #ifndef __PRECONDITIONNERS_H
 #define __PRECONDITIONNERS_H
-#include "../matrixops.h"
+#include "../utilities/matrixops.h"
 
 namespace Mu
 {
 	
+/** \brief Abstract preconditionner interface*/
 	struct Preconditionner
 	{
 		virtual ~Preconditionner() { } ;
 		virtual void precondition(const Vector &, Vector &) const = 0;
 	} ;
 	
+/** \brief Placeholder preconditionner, does nothing*/
 	struct NullPreconditionner : public Preconditionner
 	{
 		virtual ~NullPreconditionner() { } ;
