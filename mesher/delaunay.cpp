@@ -1780,7 +1780,7 @@ void DelaunayTree::insert(Point *p)
 		
 	if(cons.empty())
 	{
-// 		std::cerr << "Failed insertion : in nothing !" << std::endl ;
+// 		std::cout << "Failed insertion : in nothing !" << std::endl ;
 		return ;
 	}
 	
@@ -1790,7 +1790,7 @@ void DelaunayTree::insert(Point *p)
 	{
 		if(cons[i]->isVertex(p)) 
 		{
-// 			std::cerr << "Vertex collision !" << std::endl ;
+//			std::cerr << "Vertex collision !" << std::endl ;
 			return ;
 		}
 	}
@@ -1862,6 +1862,7 @@ void DelaunayTree::insert(Point *p)
 	delete hull ;
 	delete s ;
 	
+
 }
 
 

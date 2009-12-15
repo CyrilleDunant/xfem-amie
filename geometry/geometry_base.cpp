@@ -1012,7 +1012,7 @@ bool Geometry::intersects(const Geometry *g) const
 			Segment s1(box[1], box[2]) ;
 			Segment s2(box[2], box[3]) ;
 			Segment s3(box[3], box[0]) ;
-			
+
 			return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g);
 		}
 	case SEGMENTED_LINE:
@@ -1079,6 +1079,69 @@ bool Geometry::intersects(const Geometry *g) const
 				intersects = intersects || segs[i].intersects(this) ;
 			}
 			return intersects ;
+		}
+	case ELLIPSE:
+		{
+
+			std::vector<Segment> segs ;
+			bool isInSegments = false ;
+			
+			if(g->getGeometryType() == TRIANGLE)
+			{
+				segs.push_back(Segment(g->getBoundingPoint(0),
+				                       g->getBoundingPoint(g->getBoundingPoints().size()/3))) ;
+				segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/3),
+				                       g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
+				segs.push_back(Segment(g->getBoundingPoint(0),
+				                       g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
+				isInSegments = true ;
+			}
+			if(g->getGeometryType() == RECTANGLE)
+			{
+				segs.push_back(Segment(g->getBoundingPoint(0), g->getBoundingPoint(g->getBoundingPoints().size()/4))) ;
+				segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/4), g->getBoundingPoint(2*g->getBoundingPoints().size()/4))) ;
+				segs.push_back(Segment(g->getBoundingPoint(3*g->getBoundingPoints().size()/4), g->getBoundingPoint(2*g->getBoundingPoints().size()/4))) ;
+				segs.push_back(Segment(g->getBoundingPoint(0), g->getBoundingPoint(3*g->getBoundingPoints().size()/4))) ;
+				isInSegments = true ;
+			}
+			if(g->getGeometryType() == SEGMENTED_LINE)
+			{
+				for(size_t i = 0 ; i < g->getBoundingPoints().size()-1 ; i++)
+				{
+					segs.push_back(Segment(g->getBoundingPoint(i), g->getBoundingPoint(i+1))) ;
+				}
+				isInSegments = true ;
+			}
+			
+			if(isInSegments)
+			{
+				bool intersects = false ;
+				for(size_t i = 0 ; i < segs.size() ; i++)
+				{
+					intersects = intersects || segs[i].intersects(this) ;
+				}
+				return intersects ;
+			}
+
+			if(g->getGeometryType() == ELLIPSE)
+			{
+				Circle thiscircle(this->getRadius(), this->getCenter()) ;	
+				Circle othercircle(g->getRadius(), g->getCenter()) ;
+				Geometry * gcircle = &othercircle ;
+				return thiscircle.intersects(gcircle) ;
+			}
+
+/*			// this intersection is not complete and must be refined... later...
+			std::vector<Point> box = this->getBoundingBox() ;
+			Segment s0(box[0], box[1]) ;
+			Segment s1(box[1], box[2]) ;
+			Segment s2(box[2], box[3]) ;
+			Segment s3(box[3], box[0]) ;
+			
+			return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g);*/
+			Circle largecircle(this->getRadius(), this->getCenter()) ;
+			return largecircle.intersects(g) ;
+
 		}
 	case SPHERE:
 		{
@@ -1250,7 +1313,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 		}
 	case RECTANGLE:
 		{
-
 			std::vector<Point> box = this->getBoundingBox() ;
 			Segment s0(box[0], box[1]) ;
 			Segment s1(box[1], box[2]) ; 
@@ -1512,6 +1574,80 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				ret.insert(ret.end(), intersection.begin(), intersection.end()) ;
 			}
 			return ret ;
+		}
+	case ELLIPSE:
+		{
+
+			std::vector<Segment> segs ;
+			bool isInSegments = false ;
+			
+			if(g->getGeometryType() == TRIANGLE)
+			{
+				segs.push_back(Segment(g->getBoundingPoint(0),
+				                       g->getBoundingPoint(g->getBoundingPoints().size()/3))) ;
+				segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/3),
+				                       g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
+				segs.push_back(Segment(g->getBoundingPoint(0),
+				                       g->getBoundingPoint(2*g->getBoundingPoints().size()/3))) ;
+				isInSegments = true ;
+			}
+			if(g->getGeometryType() == RECTANGLE)
+			{
+				segs.push_back(Segment(g->getBoundingPoint(0), g->getBoundingPoint(g->getBoundingPoints().size()/4))) ;
+				segs.push_back(Segment(g->getBoundingPoint(g->getBoundingPoints().size()/4), g->getBoundingPoint(2*g->getBoundingPoints().size()/4))) ;
+				segs.push_back(Segment(g->getBoundingPoint(3*g->getBoundingPoints().size()/4), g->getBoundingPoint(2*g->getBoundingPoints().size()/4))) ;
+				segs.push_back(Segment(g->getBoundingPoint(0), g->getBoundingPoint(3*g->getBoundingPoints().size()/4))) ;
+				isInSegments = true ;
+			}
+			if(g->getGeometryType() == SEGMENTED_LINE)
+			{
+				for(size_t i = 0 ; i < g->getBoundingPoints().size()-1 ; i++)
+				{
+					segs.push_back(Segment(g->getBoundingPoint(i), g->getBoundingPoint(i+1))) ;
+				}
+				isInSegments = true ;
+			}
+			
+			if(isInSegments)
+			{
+				for(size_t i = 0 ; i < segs.size() ; i++)
+				{
+//					std::cout << "in Geometry::intersection" << std::endl ;
+//					segs[i].first().print() ;
+//					segs[i].second().print() ;
+//					std::cout << "in Segment::intersection" << std::endl ;
+					std::vector<Point> vtemp = segs[i].intersection(this) ;
+					for(size_t j = 0 ; j < vtemp.size() ; j++)
+						{
+//							vtemp[j].print() ;
+							ret.push_back(vtemp[j]) ;
+						}
+				}
+				return ret ;
+			}
+
+//			std::vector<Segment> segs ;
+			for(size_t i = 0 ; i < getBoundingPoints().size() - 1 ; i++)
+			{
+//				getBoundingPoint(i).print() ;
+				segs.push_back(Segment(getBoundingPoint(i),getBoundingPoint(i+1))) ;
+			}
+			segs.push_back(Segment(getBoundingPoint(getBoundingPoints().size()-1),getBoundingPoint(0))) ;
+			
+			for(size_t i = 0 ; i < segs.size() ; i++)
+			{
+				std::vector<Point>intersection = segs[i].intersection(g) ;
+//				segs[i].first().print() ;
+//				segs[i].second().print() ;
+				for(size_t j = 0 ; j < intersection.size() ; j++)
+				{
+//					intersection[j].print() ;
+					ret.push_back(intersection[j]) ;
+				}
+//				ret.insert(ret.end(), intersection.begin(), intersection.end()) ;
+			}
+			return ret ;
+
 		}
 	case SPHERE:
 		{
@@ -2647,6 +2783,33 @@ bool Line::intersects(const Geometry *g) const
 		{
 			return squareDist(projection(g->getCenter()), g->getCenter()) < g->getRadius()*g->getRadius() ;
 		}
+	case ELLIPSE:
+		{
+			double a = g->getRadius() ;
+			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
+			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
+			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
+			Point I = this->intersection(L) ;
+			double d = (g->getCenter() - I).norm() ;
+
+			if(abs(c) == 1)
+			{
+				double coordx = (this->origin() - g->getCenter()) * dynamic_cast<const Ellipse*>(g)->getMajorAxis() ;
+				// case: Line is too far away				
+				if(coordx > g->getRadius())
+					return false ; 
+				else
+					return true ;
+				}
+
+			c = c / sqrt(1 - c*c) ;
+			double A = (1 / (a*a) + (c*c) / (b*b)) ;
+			double B = 2*c*d/(b*b) ;
+			double C = (d*d) / (b*b) - 1 ;
+
+			double delta = B * B - 4 * A * C ;
+			return !(delta < 0) ;
+		}
 	case TRIANGLE:
 		{
 			bool ret = false ;
@@ -2736,6 +2899,74 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			}
 
 			return std::vector<Point>(0) ;
+		}
+	case ELLIPSE:
+		{
+			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
+			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
+			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
+			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
+			Point I = this->intersection(L) ;
+			I = g->getCenter() - I ;
+			double d = I.norm() ;
+			if((I ^ (dynamic_cast<const Ellipse*>(g)->getMajorAxis())).z < 0)
+				d = - d ;
+
+			double coordx = 0 ;
+			double coordy = 0 ;
+
+			// case: Line is parallel to minor axis
+			if(abs(c) == 1)
+			{
+				std::vector<Point> ret ;
+				coordx = (this->origin() - g->getCenter()) * dynamic_cast<const Ellipse*>(g)->getMajorAxis() ;
+				// case: Line is too far away				
+				if(coordx > g->getRadius())
+					return ret ; 
+				// case: Line is tangent
+				if(coordx == g->getRadius())
+					{ ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx) ; }
+				// any other case: get two points on ellipse
+				else
+				{
+					coordy = sqrt(b * b * ( 1 - (coordx * coordx) / (a * a))) ;
+					ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
+					ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx - dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
+				}
+				return ret ;
+			}
+
+//			std::cout << c <<  ";" << d << std::endl ;
+			c = c / sqrt(1 - c*c) ;
+			if((this->vector() * dynamic_cast<const Ellipse*>(g)->getMajorAxis()) < 0)
+				c = -c ;
+//			std::cout << c <<  ";" << d << std::endl ;
+
+			double A = (1 / (a*a) + (c*c) / (b*b)) ;
+			double B = 2*c*d/(b*b) ;
+			double C = (d*d) / (b*b) - 1 ;
+
+			double delta = B * B - 4 * A * C ;
+
+			if(delta == 0)
+			{
+				std::vector<Point> ret ;
+				coordx = - B / (2 * A) ;
+				coordy = c * coordx + d ;
+				ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
+				return ret ;
+			}
+			else if (delta > 0)
+			{
+				std::vector<Point> ret ;
+				coordx = - (B + sqrt(delta)) / (2 * A) ;
+				coordy = c * coordx + d ;
+				ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
+				coordx = - (B - sqrt(delta)) / (2 * A) ;
+				coordy = c * coordx + d ;
+				ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
+				return ret ;
+			}
 		}
 	case TRIANGLE:
 		{
@@ -2946,6 +3177,24 @@ bool Segment::intersects(const Geometry *g) const
 // 			double delta = b*b - 4*a*c ;
 			return b*b - 4.*a*c >= 0;
 		}
+	case ELLIPSE:
+		{
+//			vec.print() ;
+			Line l(f,s-f) ;
+			std::vector<Point> in = l.intersection(g) ;
+//			std::cout << in.size() << std::endl ;
+			if(in.size() == 0)
+				return false ;
+			for(size_t i = 0 ; i < in.size() ; i++)
+			{
+//				std::cout << isAligned(f,s,in[i]) <<  isAligned(f,in[i],s)  <<  isAligned(in[i],f,s)  << std::endl ;
+//				in[i].print() ;
+//				std::cout << this->on(in[i]) << std::endl ;
+				if(this->on(in[i]))
+					return true ;
+			}
+			return false ;
+		}
 	case TRIANGLE:
 		{
 			bool ret = false ;	
@@ -3145,6 +3394,29 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 				
 				return ret ;
 			}
+		}
+	case ELLIPSE:
+		{
+//			std::cout << "in Segment::intersection" << std::endl ;
+//			f.print() ;
+//			s.print() ;
+//			vec.print() ;
+//			(s-f).print() ;
+//			std::cout << " " << std::endl ;
+			Line l(f,s-f) ;
+//			l.origin().print() ;
+//			l.vector().print() ;
+			std::vector<Point> ret = l.intersection(g) ;
+//			if(ret.size() > 0)
+//				{f.print() ; s.print() ;}
+			for(size_t i = ret.size() ; i > 0 ; i--)
+			{
+//				ret[i-1].print() ;
+				if(!(this->on(ret[i-1])))
+					ret.erase(ret.begin()+i-1) ;
+			}
+			return ret ;
+
 		}
 	case SEGMENTED_LINE:
 		{
@@ -4113,63 +4385,68 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 		return true ;
 	
 	double c0 = std::abs(signedAlignement(test, f0, f1)) ;
+//	std::cout << c0 << std::endl ;
 	
 	double mdist = std::max(dist(f0, f1), std::max(dist(f0, test), dist(f1, test))) ;
+//	std::cout << mdist << std::endl ;
 
-	double delta = .5*POINT_TOLERANCE*mdist ;
+	double delta = .25*POINT_TOLERANCE*mdist ;
+//	std::cout <<delta << std::endl ;
 
+	Point a(test) ; a.x += delta ;
 	Point b(test) ; b.x += delta ; b.y += delta;
-	Point d(test) ; d.x += delta ; d.y -= delta; 
-	Point f(test) ; f.x -= delta ; f.y += delta; 
-	Point h(test) ; h.x -= delta ; h.y -= delta; 
+	Point c(test) ; c.y += delta;
+	Point d(test) ; d.x -= delta ; d.y += delta; 
+	Point e(test) ; e.x -= delta ;
+	Point f(test) ; f.x -= delta ; f.y -= delta; 
+	Point g(test) ; g.y -= delta;
+	Point h(test) ; h.x += delta ; h.y -= delta; 
 	
 
+//	old version
 	double c2 = std::abs(signedAlignement(b, f0, f1)) ;
 	double c4 = std::abs(signedAlignement(d, f0, f1)) ;
 	double c6 = std::abs(signedAlignement(f, f0, f1)) ;
 	double c8 = std::abs(signedAlignement(h, f0, f1)) ;
+//	std::cout << c0 << std::endl ;
+//	std::cout << c2 << std::endl ;
+//	std::cout << c4 << std::endl ;
+//	std::cout << c6 << std::endl ;
+//	std::cout << c8 << std::endl ;
+//	std::cout << 2.*POINT_TOLERANCE << std::endl ;
 	return c0 < 2.*POINT_TOLERANCE 
 		&& c2 < 2.*POINT_TOLERANCE 
 		&& c4 < 2.*POINT_TOLERANCE 
 		&& c6 < 2.*POINT_TOLERANCE 
 		&& c8 < 2.*POINT_TOLERANCE ;
-} ;
+/*	return c0 < POINT_TOLERANCE 
+		&& ((c2 < POINT_TOLERANCE && c8 < POINT_TOLERANCE ) 
+		|| (c4 < POINT_TOLERANCE && c6 < POINT_TOLERANCE )) ;
+        double c1 = signedAlignement(a, f0, f1) ;
+        double c2 = signedAlignement(b, f0, f1) ; 
+        double c3 = signedAlignement(c, f0, f1) ;
+        double c4 = signedAlignement(d, f0, f1) ;
+        double c5 = signedAlignement(e, f0, f1) ;
+        double c6 = signedAlignement(f, f0, f1) ; 
+        double c7 = signedAlignement(g, f0, f1) ;
+        double c8 = signedAlignement(h, f0, f1) ;
+        int posCount = (int)(c0 > 0) + (c1 > 0) + (c2 > 0) + (c3 > 0) + (c4 > 0) + (c5 > 0) + (c6 > 0) + (c7 > 0) + (c8 > 0) ;
+        int negCount = (int)(c0 < 0) + (c1 < 0) + (c2 < 0) + (c3 < 0) + (c4 < 0) + (c5 < 0) + (c6 < 0) + (c7 < 0) + (c8 < 0) ;
+        return  (c0 < 2.*POINT_TOLERANCE 
+                   || c1 < 2.*POINT_TOLERANCE 
+                   || c2 < 2.*POINT_TOLERANCE 
+                   || c3 < 2.*POINT_TOLERANCE 
+                   || c4 < 2.*POINT_TOLERANCE 
+                   || c5 < 2.*POINT_TOLERANCE 
+                   || c6 < 2.*POINT_TOLERANCE 
+                   || c7 < 2.*POINT_TOLERANCE 
+                   || c8 < 2.*POINT_TOLERANCE ) && (posCount) && (negCount) ;*/
+
+} 
 
 bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
 {
-// 	Line l(*f0, *f1-*f0) ;
-// 	return dist(*test, l.projection(*test)) < POINT_TOLERANCE ;
-// 	
-// 	test->print() ;
-// 	f0->print() ;
-// 	f1->print() ;
-// 	std::cout << dist(test, f0) << "  " << dist(test,f1) << "  " <<  dist(f1, f0) << std::endl ;;
-
-	if(*test == *f1 || *test == *f0)
-		return true ;
-
-// 	return  std::abs(dist(test, f0)+dist(test,f1) - dist(f1, f0)) < 20.*POINT_TOLERANCE ;
-
-	double c0 = std::abs(signedAlignement(*test, *f0, *f1)) ;
-	double mdist = std::max(dist(f0, f1), std::max(dist(f0, test), dist(f1, test))) ;
-
-	double delta = .5*POINT_TOLERANCE*mdist ;
-
-	Point b(*test) ; b.x += delta ; b.y += delta;
-	Point d(*test) ; d.x += delta ; d.y -= delta; 
-	Point f(*test) ; f.x -= delta ; f.y += delta; 
-	Point h(*test) ; h.x -= delta ; h.y -= delta; 
-	
-
-	double c2 = std::abs(signedAlignement(b, *f0, *f1)) ;
-	double c4 = std::abs(signedAlignement(d, *f0, *f1)) ;
-	double c6 = std::abs(signedAlignement(f, *f0, *f1)) ;
-	double c8 = std::abs(signedAlignement(h, *f0, *f1)) ;
-	return c0 < POINT_TOLERANCE 
-		&& c2 < POINT_TOLERANCE 
-		&& c4 < POINT_TOLERANCE 
-		&& c6 < POINT_TOLERANCE 
-		&& c8 < POINT_TOLERANCE ;
+	return isAligned(*test, *f0, *f1) ;
 } ;
 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  

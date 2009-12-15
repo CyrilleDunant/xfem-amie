@@ -155,6 +155,58 @@ public:
 	
 } ;
 
+/** \brief Circular inclusion*/
+class EllipsoidalInclusion :  virtual public Ellipse,   public Feature
+{
+public:
+	EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY, double axisX, double axisY) ;
+
+	EllipsoidalInclusion(Feature *father, double a, double b, const Point center, const Point axis) ;
+
+	EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY) ;
+
+	EllipsoidalInclusion(Feature *father, double a, double b, const Point center) ;
+
+	EllipsoidalInclusion(double a, double b, double originX, double originY, double axisX, double axisY) ;
+
+	EllipsoidalInclusion(double a, double b, double originX, double originY) ;
+
+	EllipsoidalInclusion(double a, double b, const Point center, const Point axis) ;
+	
+	EllipsoidalInclusion(double a, double b, const Point center) ;
+
+	virtual void addSamplePoints(PointSet * po ) { };
+
+	virtual bool interacts(Feature * f) const ;
+	
+	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
+	
+	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
+
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	
+	virtual void computeCenter()
+	{
+		return this->Ellipse::computeCenter() ;
+	}
+	
+	virtual Point * pointAfter(size_t i) ;
+	
+	virtual void print() const
+	{
+		std::cout << "I am an ellipsoidal inclusion" << std::endl ;
+	}
+	
+	virtual bool isVoid( const Point &) const {return false ;}
+	
+	
+public:
+	
+	GEO_DERIVED_OBJECT(Ellipse) ;
+
+	virtual void sample(size_t n) ;
+	
+} ;
 
 
 

@@ -14,6 +14,8 @@
 #include <vector>
 #include "../features/inclusion.h"
 #include "../features/inclusion3d.h"
+#include "../geometry/geometry_base.h"
+
 
 namespace Mu
 {
@@ -40,6 +42,8 @@ public:
 	virtual ~Granulo() { } ;
 
 	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
+
+	virtual std::vector <EllipsoidalInclusion *> operator()(bool, double , double, double rfactor = 0.8, int inclusionNumber = 8000, double itzSize = 15e-6);
 } ;
 
 class GranuloBolome : public Granulo

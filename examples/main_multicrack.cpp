@@ -1416,9 +1416,9 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+ 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
+//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
 // 	crack.push_back(new BranchedCrack(new Point(-0.02, -.00215), new Point(-0.009, -.00215)));
@@ -1432,7 +1432,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	Inclusion * inc1 = new Inclusion(0.002, 0, 0) ;
+	std::cout << "waiting of second radius input (between 0 ans 0.002)" << std::endl ;
+	double b = 0.001 ;
+	std::cin >> b ;
+	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, b, 0, 0) ;
 // 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
@@ -1467,7 +1470,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(32) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

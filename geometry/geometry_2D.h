@@ -1,4 +1,5 @@
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses)
 //
 // Copyright: See COPYING file that comes with this distribution
 
@@ -437,6 +438,150 @@ public:
 	
 	virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ;}
 } ;	
+
+/** \brief Ellipse defined from a center, two radii and the main direction, in the XY plane*/
+class Ellipse : public ConvexGeometry
+{
+protected:
+	
+	double majorradius ;
+	double minorradius ;
+	double sqradius ;
+	double excentricity ;
+	Point majoraxis ;
+	virtual void computeCenter() ;
+	
+public:
+	/** \brief Construct an ellipse.
+	 * 
+	 * @param a major radius of the ellipse to construct.
+	 * @param b minor radius of the ellipse to construct.	 
+	 * @param originX global x coordinate of the center.
+	 * @param originY global y coordinate of the center.
+	 * @param axisX global x coordinate of the main axis direction.
+	 * @param axisY global y coordinate of the main axis direction.
+	 */
+	Ellipse(double a, double b, double originX, double originY, double axisX, double axisY) ;
+	
+	/** \brief Construct an ellipse. This constructor is provided for convenience and a copy of the point is made and storder in the internal points.
+	 * 
+	 * @param a major radius of the ellipse to construct.
+	 * @param b minor radius of the ellipse to construct.	 
+	 * @param center Center of the ellipse.
+	 * @param axis Axis direction of the ellipse.
+	 */
+	Ellipse(double a, double b, const Point *center, const Point *axis) ; 
+	
+	/** \brief Construct an ellipse.
+	 * 
+	 * @param a major radius of the ellipse to construct.
+	 * @param b minor radius of the ellipse to construct.	 
+	 * @param center Center of the ellipse.
+	 * @param axis Axis direction of the ellipse.
+	 */
+	Ellipse(double a, double b, const Point center, const Point axis) ; 
+	
+	Ellipse(double a, double b, const Point center) ; 
+
+	Ellipse(double a, double b, double x, double y) ; 
+
+	Ellipse(const Ellipse &e) ;
+
+	virtual ~Ellipse() { } ;
+	
+	/** \brief Computes a * b and store the result in sqradius
+	 *
+	 */
+	virtual void setSqRadius() {this->sqradius = majorradius * minorradius ;} ;
+	virtual void setExcentricity() {this->excentricity = sqrt(1 - ((minorradius * minorradius) / (majorradius * majorradius))) ; } ;
+	virtual double getExcentricity() const {return excentricity ; } ;
+	virtual double getParameter() const {return majorradius * (1 - excentricity*excentricity) ; } ;
+	virtual double getAxisAngle() ;
+	virtual Point getFocus(bool dir) const ;
+	virtual const std::pair<Point, Point> getBothFocus() ;
+	virtual Point getMinorAxis() const ;
+	virtual void setAxis(Point newaxis) ;
+	virtual const double getRadiusOnEllipse(double theta) ;
+	virtual double radius() const ;
+	virtual double getSquareRadius() const ;
+	virtual double getRadius() const ;
+	virtual std::vector<Point> getBoundingBox() const ;
+	virtual Point toSmallCircle(Point p) const ;
+	virtual Point getTangentDirection(double theta) ;
+	virtual std::vector<Point> getSampleBoundingPointsOnArc(size_t num_points, double alpha, double beta) const ;
+	virtual double getRadiusOnEllipseFromFocus(double theta, bool dir) const ;
+
+
+
+	/** \brief Sample the bounding Surface.
+	 * 
+	 * num_points Points are placed equidistantly on the surface. The first point is placed at \f$ \theta = 0 \f$.
+	 * 
+	 * @param num_points points to place on the surface.
+	 */
+	virtual void sampleBoundingSurface(size_t num_points) ;
+	
+	/** \brief return set of points sampling the bounding surface*/
+	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+	
+//	/** \brief return set of points sampling the bounding surface, given two angles (in radians)*/
+//	virtual std::vector<Point> getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const ;
+	
+	/** \brief Sample the disc.
+	 * 
+	 * Points are placed in concentric circles, rotated from half the base angle each time. The spacing of the circle is so calculated as to have triangles as nearly equilateral as a regular spacing would allow.
+	 * 
+	 * @param num_points number of points <b>on the boundary</b>.
+	 */
+	virtual void sampleSurface(size_t num_points) ;
+	virtual bool in(const Point &v) const ;
+	
+	/** \brief Return the ellipse major radius.
+	 * 
+	 * @return the major radius.
+	 */
+	virtual double getMajorRadius() const { return majorradius ; } ;
+
+	/** \brief Return the ellipse minor radius.
+	 * 
+	 * @return the minor radius.
+	 */
+	virtual double getMinorRadius() const ;
+
+	virtual Point getMajorAxis() const ;
+	/** \brief Calculate the area.
+	 * 
+	 * Using the usual \f$ \pi a b \f$.
+	 * 
+	 * @return the area.
+	 */
+	virtual double area() const ;
+	
+	/** \brief return 0*/
+	virtual double volume() const { return 0 ;} 
+
+	virtual void setRadius(double newa, double newb);
+		
+	/** \brief Project the point on the ellipse.
+	 * 
+	 * @param  p Point to project.
+	 */
+	Point project(Point p) const;
+
+	virtual void project(Point * p) const /*{return ; }*/ ;
+	
+	virtual SpaceDimensionality spaceDimensions() const
+	{
+		return SPACE_TWO_DIMENSIONAL ;
+	}
+	
+//	virtual std::vector<Point> getBoundingBox() const ;
+	
+	const Ellipse * getGeometry() const ;
+	
+	Ellipse * getGeometry() ;
+	
+} ;
 
 } ;
 

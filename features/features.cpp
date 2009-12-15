@@ -941,6 +941,7 @@ void FeatureTree::sample(size_t n)
 		tree[0]->sample(2*n) ;
 		for(size_t i  = 1 ; i < this->tree.size() ; i ++)
 		{
+//			std::cout << i << std::endl ;
 			double shape_factor = (sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
 			size_t npoints = std::max((size_t)((double)n*sqrt(tree[i]->area()/(total_area*shape_factor))),(size_t)8) ;
 			if(npoints < n)
@@ -2887,6 +2888,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		}
 	}
 	
+
 	std::cerr << "...done" << std::endl ;
 	
 	size_t count  = 0 ;
@@ -2993,6 +2995,9 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 // 	std::random_shuffle(meshPoints.begin(),meshPoints.begin()+bpcount) ;
 // 	std::random_shuffle(meshPoints.begin()+bpcount, meshPoints.end()) ;
 	
+//	for(size_t i = 0 ; i < meshPoints.size() ; i++)
+//		meshPoints[i].first->print() ;
+
 	if(is2D())
 	{	
 		additionalPoints.push_back(new Point(bbox[0])) ;
@@ -3010,8 +3015,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+4 ; i != meshPoints.end(); ++i)
 		{
-			if( (i - meshPoints.begin())%1000 == 0)
-				std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size() << std::flush ;
+//			if( (i - meshPoints.begin())%1000 == 0)
+//				std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size() << std::flush ;
 			
 			++count ;
 			
@@ -3025,7 +3030,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			}
 		}
 		
-		std::cerr << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
+//		std::cerr << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
 		
 		bool correct = false ;
 		int tries = correctionSteps ;

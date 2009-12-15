@@ -1,5 +1,6 @@
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
 // Author: Ruzena Chamrova <ruzena.chamrova@epfl.ch>, (C) 2007
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses)
 //
 // Copyright: See COPYING file that comes with this distribution
 
@@ -174,7 +175,8 @@ typedef enum
 	HEXAHEDRON = 17,
 	SPHERE = 18,
 	LAYERED_SPHERE = 19,
-	REGULAR_OCTAHEDRON
+	REGULAR_OCTAHEDRON,
+	ELLIPSE
 } GeometryType ;
 
 typedef enum
@@ -548,6 +550,7 @@ public:
 	/** \brief Return the number of time slices present in this geometry*/
 	virtual size_t timePlanes() const ;
 	virtual size_t & timePlanes() ;
+
 } ;
 
 /** \brief Line used for intersection computation. It also provides a projection method*/

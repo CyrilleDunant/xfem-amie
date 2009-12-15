@@ -140,8 +140,8 @@ TriangularInclusion::TriangularInclusion(Feature * father,const Point & a, const
 {
 	this->isEnrichmentFeature = false ;
 	Point va = a-getCenter() ;
-	Point vb = a-getCenter() ;
-	Point vc = a-getCenter() ;
+	Point vb = b-getCenter() ;
+	Point vc = c-getCenter() ;
 	this->boundary = new Triangle(a+va*0.02,b+vb*0.02,c+vc*0.02) ;
 	this->boundary2 = new Triangle(a-va*0.02,b-vb*0.02,c-vc*0.02) ;
 }
@@ -195,5 +195,141 @@ bool TriangularInclusion::interacts(Feature * f) const
 		if(f->inBoundary((*i)))
 			return true ;
 	return false ;
-
 }
+
+EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY, double axisX, double axisY) : Ellipse(a,b,originX,originY,axisX,axisY), Feature(father)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, axisX, axisY) ;
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, axisX, axisY) ;
+}
+
+EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY) : Ellipse(a,b,originX,originY), Feature(father)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
+}
+
+EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, const Point center, const Point axis) : Ellipse(a,b,center,axis), Feature(father)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, axis) ;
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, axis) ;
+}
+
+EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, const Point center) : Ellipse(a,b,center), Feature(father)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, this->Ellipse::getMajorAxis());
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, this->Ellipse::getMajorAxis()) ;
+}
+
+EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, double originX, double originY, double axisX, double axisY) : Ellipse(a,b,originX,originY,axisX,axisY), Feature(NULL)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, axisX, axisY) ;
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, axisX, axisY) ;
+}
+
+EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, double originX, double originY) : Ellipse(a,b,originX,originY), Feature(NULL)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
+}
+
+EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, const Point center, const Point axis)  : Ellipse(a,b,center,axis), Feature(NULL)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, axis) ;
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, axis) ;
+}
+	
+EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, const Point center)  : Ellipse(a,b,center), Feature(NULL)
+{
+	this->isEnrichmentFeature = false ;
+	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, this->Ellipse::getMajorAxis()) ;
+	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, this->Ellipse::getMajorAxis()) ;
+}
+
+bool EllipsoidalInclusion::interacts(Feature * f) const
+{
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
+		if(f->inBoundary((*i)))
+			return true ;
+	return false ;
+}
+	
+std::vector<Geometry *> EllipsoidalInclusion::getRefinementZones(size_t level) const
+{
+	std::vector<Geometry *> ret ;
+	if(level > 0)
+		ret.push_back(new Ellipse(getRadius() * 2., this->Ellipse::getMinorRadius(), this->Ellipse::getCenter(),this->Ellipse::getMajorAxis())) ;
+	if(level > 1)
+		ret.push_back(new Ellipse(getRadius() * 1.5, this->Ellipse::getMinorRadius(), this->Ellipse::getCenter(),this->Ellipse::getMajorAxis())) ;
+	if(level > 2)
+		ret.push_back(new Ellipse(getRadius() * 1.1, this->Ellipse::getMinorRadius(), this->Ellipse::getCenter(),this->Ellipse::getMajorAxis())) ;
+	return ret ;
+}
+	
+std::vector<DelaunayTriangle *> EllipsoidalInclusion::getTriangles( DelaunayTree * dt) 
+{
+	std::vector<DelaunayTriangle *>ret;
+	
+	std::vector<DelaunayTriangle *>temp = dt->conflicts(this->boundary) ;
+	
+	for(size_t i = 0 ; i < temp.size() ; i++)
+	{
+		bool inChild = false ;
+		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
+		{
+			if(this->getChild(j)->in(temp[i]->getCenter()))
+			{
+				inChild = true ; 
+				break ;
+			}
+		}
+		if(this->boundary->in(temp[i]->getCenter()) && inChild == false)
+			ret.push_back(temp[i]) ;
+	}
+	return ret ;
+}
+
+Point * EllipsoidalInclusion::pointAfter(size_t i)
+{
+	Point bi = getBoundingPoint(i) ;
+	bi = bi - this->Ellipse::getCenter() ;
+	Point bip = getBoundingPoint((i+1)%this->boundingPoints.size()) ;
+	bip = bip - this->Ellipse::getCenter() ;
+	double theta_i = atan2(bi * this->Ellipse::getMinorAxis(), bi * this->Ellipse::getMajorAxis()) ;
+	double theta_ip = atan2(bip * this->Ellipse::getMinorAxis(), bip * this->Ellipse::getMajorAxis()) ;
+//	double theta_i = atan2((boundingPoints[i] - this->Ellipse::getCenter()) * this->Ellipse::getMinorAxis(), (boundingPoints[i] - this->Ellipse::getCenter()) * this->Ellipse::getMajorAxis()) ;
+//	double theta_ip = atan2((boundingPoints[(i+1)%this->boundingPoints.size()]-this->Ellipse::getCenter()) * this->Ellipse::getMinorAxis(), (boundingPoints[(i+1)%this->boundingPoints.size()]-this->Ellipse::getCenter()) * this->Ellipse::getMajorAxis()) ;
+	double theta = 0.5*theta_i + 0.5*theta_ip ;
+	
+	Point * to_insert = new Point(this->Ellipse::getCenter() + this->Ellipse::getMajorAxis() * (cos(theta)*this->Ellipse::getMajorRadius()) + this->Ellipse::getMinorAxis() * (cos(theta)*this->Ellipse::getMinorRadius())) ;
+	std::valarray<Point *> temp(this->boundingPoints.size()+1) ;
+	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
+	temp[i+1] = to_insert ;
+	std::copy(&boundingPoints[i+1], &boundingPoints[this->boundingPoints.size()], &temp[i+2]) ;
+	this->boundingPoints.resize(temp.size()) ;
+	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
+	return to_insert ;
+}
+
+void EllipsoidalInclusion::sample(size_t n)
+{
+	delete this->boundary ;
+	double numberOfRings =round((double)n/(2. * M_PI )) ;
+	double a = getRadius()*(1.+ .6/(numberOfRings+1)) ;
+	double b = this->Ellipse::getMinorRadius()*(1.+ .6/(numberOfRings+1)) ;
+	Point axis = this->Ellipse::getMajorAxis() ;
+	this->boundary = new Ellipse(a, b, getCenter(), axis) ;
+	this->sampleSurface(n) ;
+
+//	std::cout << "number of points => " << n << std::endl ;
+//	std::cout << "sample ellipsoidal inclusion => done" << std::endl ;
+}
+
+

@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 	{
 		F.addFeature(&sample, feats[i]) ;
 		feats[i]->setBehaviour(new Stiffness(m0*4)) ;
-		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
+//		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
 	}
 // 	Inclusion3D inc(1, -1.5,0,0) ;
 // 	F.addFeature(&sample, &inc) ;
