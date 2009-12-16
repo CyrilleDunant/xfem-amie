@@ -128,14 +128,14 @@ std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, double rayon_g
 //		std::cout << sfactor << std::endl ;
 	}
 
-        double masse_granulat =pow(( densite*rayon_granulat*rayon_granulat*(1/sfactor)*M_PI), .666666666666666); // masse plus plus gros granulat
+        double masse_granulat =pow(( densite*rayon[i]->area()), .666666666666666); // masse plus plus gros granulat
 //        std::cout<<"m granulat  " << masse_granulat<<std::endl;
         if (masse_granulat > masseInitiale)
         {
             std::cerr<<"La masse du granultat pese plus que la masse totale!"<<std::endl;
             return rayon ;
         }
-        double volume = rayon_granulat*rayon_granulat*(1/sfactor)*M_PI; // volume du plus gros granulat
+        double volume = rayon[i]->area() ; // volume du plus gros granulat
         //std::cout<<"V granulat  " <<volume<<std::endl;
 
         if (rayon_granulat<=0.51)

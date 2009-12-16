@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
 
 	std::cout << 2. * POINT_TOLERANCE << std::endl ;
 
-	// test for intersection
+	// test for intersection*/
 	Point origin(0.0,0.0) ;
 	Point axisX(1,0) ;
 	Point axisY(0,1) ;
@@ -548,12 +548,12 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < intersy.size() ; i++)
 		intersy[i].print() ;
 
-	std::cout << "origin on (-2,-2)-(1,1) ?" << std::endl ;
+*/	std::cout << "origin on (-2,-2)-(1,1) ?" << std::endl ;
 	Segment segtest(origin + axisX + axisY, origin - axisX - axisY) ;
 	segtest.first().print() ;
 	segtest.second().print() ;
 	origin.print() ;
-	std::cout << segtest.on(origin) << std::endl ;/*
+	std::cout << isAligned(origin,segtest.first(),segtest.second()) << std::endl ;/*
 
 	Segment seghorone(origin,origin + axisX) ;
 	Segment segverfive(origin,origin + axisY * 5) ;

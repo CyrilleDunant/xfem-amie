@@ -1437,7 +1437,7 @@ int main(int argc, char *argv[])
 	int nAgg = 50 ;
 	std::cout << "number of inclusions?" << std::endl ;
 	std::cin >> nAgg ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.002, 0.001, 0.75, 0.026)(true, 0.001/3, 0.0001, 0.333, nAgg) ;
+	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.001, 0.75, 0.026)(true, 0.001/3, 0.0001, 0.333, nAgg) ;
 
 	std::ofstream off ;
 	off.open("granulo.txt", ios::out) ;

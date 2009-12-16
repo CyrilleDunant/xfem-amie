@@ -1,5 +1,6 @@
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
 // Author: Ruzena Chamrova <ruzena.chamrova@epfl.ch>, (C) 2007
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses)
 //
 // Copyright: See COPYING file that comes with this distribution
 
@@ -1082,6 +1083,9 @@ bool Geometry::intersects(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
+
+			if(g->getRadius() < this->getRadius())
+				return g->intersects(this) ;
 
 			std::vector<Segment> segs ;
 			bool isInSegments = false ;
@@ -4381,33 +4385,45 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 // 	Line l(f0, f1-f0) ;
 // 	return dist(test, l.projection(test)) < POINT_TOLERANCE ;
 // 	
+	Point centre = (test+f0+f1)/3 ;
+	Point f0_(f0-centre) ;
+	Point f1_(f1-centre) ;
+	Point test_(test-centre) ;
+	double scale = 100.*std::max(std::max(f0_.norm(), f1_.norm()), test_.norm()) ;
+	f0_ /=scale ;
+	f1_ /=scale ;
+	test_ /=scale ;
 	if(test == f1 || test == f0)
 		return true ;
-	
-	double c0 = std::abs(signedAlignement(test, f0, f1)) ;
+	if(std::abs((f0 - test) * (f1 - test)) < POINT_TOLERANCE)
+		return false ;
+
+
+
+	double c0 = std::abs(signedAlignement(test_, f0_, f1_)) ;
 //	std::cout << c0 << std::endl ;
 	
-	double mdist = std::max(dist(f0, f1), std::max(dist(f0, test), dist(f1, test))) ;
+	double mdist = std::max(dist(f0_, f1_), std::max(dist(f0_, test_), dist(f1_, test_))) ;
 //	std::cout << mdist << std::endl ;
 
 	double delta = .25*POINT_TOLERANCE*mdist ;
 //	std::cout <<delta << std::endl ;
 
-	Point a(test) ; a.x += delta ;
-	Point b(test) ; b.x += delta ; b.y += delta;
-	Point c(test) ; c.y += delta;
-	Point d(test) ; d.x -= delta ; d.y += delta; 
-	Point e(test) ; e.x -= delta ;
-	Point f(test) ; f.x -= delta ; f.y -= delta; 
-	Point g(test) ; g.y -= delta;
-	Point h(test) ; h.x += delta ; h.y -= delta; 
+	Point a(test_) ; a.x += delta ;
+	Point b(test_) ; b.x += delta ; b.y += delta;
+	Point c(test_) ; c.y += delta;
+	Point d(test_) ; d.x -= delta ; d.y += delta; 
+	Point e(test_) ; e.x -= delta ;
+	Point f(test_) ; f.x -= delta ; f.y -= delta; 
+	Point g(test_) ; g.y -= delta;
+	Point h(test_) ; h.x += delta ; h.y -= delta; 
 	
 
 //	old version
-	double c2 = std::abs(signedAlignement(b, f0, f1)) ;
-	double c4 = std::abs(signedAlignement(d, f0, f1)) ;
-	double c6 = std::abs(signedAlignement(f, f0, f1)) ;
-	double c8 = std::abs(signedAlignement(h, f0, f1)) ;
+	double c2 = std::abs(signedAlignement(b, f0_, f1_)) ;
+	double c4 = std::abs(signedAlignement(d, f0_, f1_)) ;
+	double c6 = std::abs(signedAlignement(f, f0_, f1_)) ;
+	double c8 = std::abs(signedAlignement(h, f0_, f1_)) ;
 //	std::cout << c0 << std::endl ;
 //	std::cout << c2 << std::endl ;
 //	std::cout << c4 << std::endl ;

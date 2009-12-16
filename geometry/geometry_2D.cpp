@@ -1,4 +1,5 @@
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+// Authors: 	Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+//		Alain Giorla <alain.giorla@epfl.ch>, (C) 2009
 //
 // Copyright: See COPYING file that comes with this distribution
 
@@ -398,7 +399,7 @@ void Triangle::computeCenter()
 	
 	this->center = this->center/this->size() ;
 }
-// 
+
 double Triangle::getRadius() const
 {
 	return radius ;
@@ -1669,10 +1670,10 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 	Point lastlastpoint = center + majoraxis * (majorradius * cos(-angle)) + minoraxis * (minorradius * sin(-angle)) ;
 	double criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
 
-	ret.push_back(lastpoint) ;
+//	ret.push_back(lastpoint) ;
 	int n_iter = 0 ;
 
-	for (size_t i = 1 ; i< num_points ; i++)
+	for (size_t i = 0 ; i< num_points + 1 ; i++)
 	{
 		n_iter = 0 ;
 		while(((criteria > angle) || (criteria < angle * redfactor)) && n_iter < 20)
@@ -1805,12 +1806,12 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 void Ellipse::sampleSurface (size_t num_points)
 {
 	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(2*num_points*getMajorRadius()/getMinorRadius()) ;
+		this->sampleBoundingSurface(7*num_points*pow(getMajorRadius()/getMinorRadius(),0.666)/4) ;
 	sampled = true ;
 
 	size_t ring = num_points / (2 * M_PI) ;
-	if(ring < 2)
-		ring = 2 ;
+//	if(ring < 2)
+//		ring = 2 ;
 /*	std::vector<double> vangle(boundingPoints.size()) ;
 	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 		vangle[i] = (boundingPoints[i])->angle() - majoraxis.angle() ;
@@ -1832,14 +1833,14 @@ void Ellipse::sampleSurface (size_t num_points)
 
 	for(size_t j = 0 ; j < ring ; j++)
 	{
-		for(size_t i = 0 ; i < getBoundingPoints().size() / (j + 1) ; i++)
+		newb = getMinorRadius() * (ring - j) / (ring + 1) ;
+		newa = getMinorRadius() * (ring - j) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - j - 1) / (ring) ;
+		newalist.push_back(newa) ;
+		for(size_t i = 0 ; i < getBoundingPoints().size() / (4 * (j + 1)) ; i++)
 		{
-			newb = getMinorRadius() * (ring - j) / (ring + 1) ;
-			newa = getMinorRadius() * (ring - j) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - j - 1) / (ring) ;
-			newalist.push_back(newa) ;
 			temp.push_back(new Point(center + 
-						getMajorAxis() * ((getBoundingPoint(i * (j + 1)) - center) * getMajorAxis()) * newa / getMajorRadius() +
-						getMinorAxis() * ((getBoundingPoint(i * (j + 1)) - center) * getMinorAxis()) * newb / getMinorRadius())) ;
+						getMajorAxis() * ((getBoundingPoint(i * (4 * (j + 1))) - center) * getMajorAxis()) * newa / getMajorRadius() +
+						getMinorAxis() * ((getBoundingPoint(i * (4 * (j + 1))) - center) * getMinorAxis()) * newb / getMinorRadius())) ;
 		}
 	}
 /*	double r = sqrt(majorradius * minorradius) ;
@@ -1867,9 +1868,9 @@ void Ellipse::sampleSurface (size_t num_points)
 	}*/
 	
 	int toadd = 1 ;
-	if(getMinorRadius() / getMajorRadius() < 0.5)
+	if(getMinorRadius() / getMajorRadius() < 0.5)// || ring==1)
 	{	
-		toadd = 1 + 2 * (newalist.size() - 1) ;
+		toadd = 1 + 4 * (newalist.size() - 1) ;
 //		std::cout << "add more points inside" << std::endl ;
 	}
 	inPoints.resize(temp.size() + toadd) ;
@@ -1878,8 +1879,10 @@ void Ellipse::sampleSurface (size_t num_points)
 	{
 		for(size_t j = 0 ; j < newalist.size() - 1 ; j++)
 		{
-			inPoints[1 + j] = new Point(center + getMajorAxis() * (newalist[j] + newalist[j + 1] * 3) / 4) ;
-			inPoints[newalist.size() + j] = new Point(center - getMajorAxis() * (newalist[j] + newalist[j + 1] * 3) / 4) ;
+			inPoints[1 + j] = new Point(center + getMajorAxis() * (newalist[j] + newalist[j + 1] * 2) / 3) ;
+			inPoints[newalist.size() + j] = new Point(center + getMajorAxis() * (newalist[j] * 2 + newalist[j + 1]) / 3) ;
+			inPoints[newalist.size() * 2 + j - 1] = new Point(center - getMajorAxis() * (newalist[j] + newalist[j + 1] * 2) / 3) ;
+			inPoints[newalist.size() * 3 + j - 2] = new Point(center - getMajorAxis() * (newalist[j] * 2 + newalist[j + 1]) / 3) ;
 		}
 	}
 	for(size_t i = 0 ; i < temp.size() ; i++)

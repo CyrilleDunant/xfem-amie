@@ -155,34 +155,59 @@ public:
 	
 } ;
 
-/** \brief Circular inclusion*/
+/** \brief Ellipsoidal inclusion*/
 class EllipsoidalInclusion :  virtual public Ellipse,   public Feature
 {
 public:
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors)
+*
+* @param father father feature
+*/
 	EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY, double axisX, double axisY) ;
 
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors)
+*
+* @param father father feature
+*/
 	EllipsoidalInclusion(Feature *father, double a, double b, const Point center, const Point axis) ;
 
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors)
+*
+* @param father father feature
+*/
 	EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY) ;
 
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors)
+*
+* @param father father feature
+*/
 	EllipsoidalInclusion(Feature *father, double a, double b, const Point center) ;
 
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
 	EllipsoidalInclusion(double a, double b, double originX, double originY, double axisX, double axisY) ;
 
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
 	EllipsoidalInclusion(double a, double b, double originX, double originY) ;
 
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
 	EllipsoidalInclusion(double a, double b, const Point center, const Point axis) ;
 	
+/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
 	EllipsoidalInclusion(double a, double b, const Point center) ;
 
+/** \brief Do nothing*/
 	virtual void addSamplePoints(PointSet * po ) { };
 
+/** \brief return true if the boundary overlaps that of the argument*/
 	virtual bool interacts(Feature * f) const ;
 	
+/** \brief get list of refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
+/** \brief return all triangles in mesh with at least a vertex in this Feature*/
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
 
+/** \brief return empty vector*/
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void computeCenter()
@@ -197,6 +222,7 @@ public:
 		std::cout << "I am an ellipsoidal inclusion" << std::endl ;
 	}
 	
+/** \brief return false */
 	virtual bool isVoid( const Point &) const {return false ;}
 	
 	
