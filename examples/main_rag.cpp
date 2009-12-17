@@ -698,6 +698,79 @@ void step()
 	<< std::endl ;
 }
 
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
+{
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	double nu_incompressible = .499997 ;
+	
+	double E = percent*E_csh ;
+	double nu = nu_csh ; //nu_incompressible ;
+	
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
+	aggregateArea = 0 ;
+	double radius = 0.0000005 ;
+	Vector a(double(0), 3) ;
+	a[0] = 0.5 ;
+	a[1] = 0.5 ;
+	a[2] = 0.00 ;
+	
+	std::vector<ExpansiveZone *> zonesToPlace ;
+	
+	for(size_t i = 0 ; i < n ; i++)
+	{
+		Point pos(((double)rand()/RAND_MAX-.5)*(sample.width()-radius*60),((double)rand()/RAND_MAX-.5)*(sample.height()-radius*60)) ;
+		bool alone  = true ;
+		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
+		{
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			{
+				alone = false ;
+				break ;
+			}
+		}
+		if (alone)
+			zonesToPlace.push_back(new ExpansiveZone(incs[i], radius, pos.x, pos.y, m0, a)) ;
+		else
+			i-- ;
+	}
+	std::map<Inclusion *, int> zonesPerIncs ; 
+	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
+	{
+		bool placed = false ;
+		for(int j = 0 ; j < incs.size() ; j++)
+		{
+			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60)
+			{
+				zonesPerIncs[incs[j]]++ ; ;
+				F.addFeature(incs[j],zonesToPlace[i]) ;
+				ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
+				placed = true ;
+				break ;
+			}
+		}
+		if(!placed)
+			delete zonesToPlace[i] ;
+	}
+	
+	int count = 0 ;
+	for(std::map<Inclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	{
+		aggregateArea+= i->first->area() ;
+		count+= i->second ;
+		std::cout << aggregateArea << "  " << count << std::endl ;
+	}
+	
+	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
+	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+	return ret ;	
+}
+
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
 	double E_csh = 31e9 ;
