@@ -12,6 +12,7 @@
 #include "../physics/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/vonmises.h"
+#include "../physics/spatially_distributed_stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -1016,7 +1017,7 @@ void Display(void)
 				glBegin(GL_TRIANGLE_FAN);
 				
 				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(start)) ;
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max/500-E_min), 1., 1.) ;
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
@@ -1025,7 +1026,7 @@ void Display(void)
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(k)) ;
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max/500-E_min), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1432,14 +1433,20 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	std::cout << "waiting of second radius input (between 0 ans 0.002)" << std::endl ;
-	double b = 0.001 ;
-	std::cin >> b ;
-	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, b, 0, 0) ;
+
+	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, 0.001, 0, 0) ;
 // 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
-	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
+// 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-	F.addFeature(&sample, inc1) ;
+// 	F.addFeature(&sample, inc1) ;
+	
+	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001) ;
+	inc1->setBehaviour(stiff) ;
+//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
+// 	F.addFeature(&sample, inc0) ;
+	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.0003) ;
+	F.addFeature(&sample, itz) ;
+	F.addFeature(itz, inc1) ;
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;

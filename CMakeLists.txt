@@ -47,6 +47,7 @@ physics/physics_base.cpp
 physics/physics.cpp 
 physics/radialstiffnessgradient.cpp 
 physics/ruptureenergy.cpp 
+physics/spatially_distributed_stiffness.cpp
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
 physics/stiffness_with_imposed_deformation.cpp 

@@ -564,7 +564,7 @@ public:
 	 * @param theta angle (in radians)
 	 * @return the radius
 	 */
-	virtual const double getRadiusOnEllipse(double theta) ;
+	virtual double getRadiusOnEllipse(double theta) const ;
 
 	/** \brief Returns the ellipse major radius.
 	 *

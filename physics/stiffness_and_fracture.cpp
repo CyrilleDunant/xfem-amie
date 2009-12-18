@@ -20,9 +20,9 @@ using namespace Mu ;
 
 StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),/*dfunc(rig.numRows()-1, 1e-4)*/dfunc(rig.numRows()-1), eps(0.0002)
 {
-	dfunc.setNeighbourhoodRadius(30) ;
+	dfunc.setNeighbourhoodRadius(eps) ;
 	criterion = crit ;
-	crit->setNeighbourhoodRadius(30) ;
+	crit->setNeighbourhoodRadius(eps) ;
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;

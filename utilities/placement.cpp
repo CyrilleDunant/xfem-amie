@@ -94,7 +94,8 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			tries++ ;
 			Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
 			inclusions[i]->setCenter(newCentre) ;
-			while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
+			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
 			{
 				Point newCentre(
 				                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
@@ -103,6 +104,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 				                 -(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
 				               ) ;
 				inclusions[i]->setCenter(newCentre) ;
+				bbox = inclusions[i]->getBoundingBox() ;
 			}
 
 			inclusions[i]->setCenter(inclusions[i]->getCenter()- offset) ;
@@ -117,7 +119,8 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 				                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
 				               ) ;
 				inclusions[i]->setCenter(newCentre) ;
-				while(!box->in(inclusions[i]->getCenter()) || box->intersects(inclusions[i]) )
+				bbox = inclusions[i]->getBoundingBox() ;
+				while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
 				{
 					Point newCentre(
 					                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
@@ -126,6 +129,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 					                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
 					               ) ;
 					inclusions[i]->setCenter(newCentre) ;
+					bbox = inclusions[i]->getBoundingBox() ;
 				}
 			}
 			

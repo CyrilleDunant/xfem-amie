@@ -11,6 +11,7 @@
 //
 
 #include "inclusion.h"
+#include "../physics/spatially_distributed_stiffness.h"
 
 using namespace Mu ;
 
@@ -331,5 +332,30 @@ void EllipsoidalInclusion::sample(size_t n)
 //	std::cout << "number of points => " << n << std::endl ;
 //	std::cout << "sample ellipsoidal inclusion => done" << std::endl ;
 }
+
+ITZFeature::ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l) : NullGeometry(g->getCenter()), VirtualFeature(father)
+{
+	behaviour = new SpatiallyDistributedStiffness(m,p,l) ;
+	source = g ;
+	length = l ;
+	this->isEnrichmentFeature = false ;
+}
+
+bool ITZFeature::in(const Point & p) const
+{
+	Point temp(p) ;
+	getSource()->project(&temp) ;
+	return ((squareDist2D(p,temp) < getLength() * getLength()) || getSource()->in(p)) ;
+}
+
+Form * ITZFeature::getBehaviour( const Point & p)
+{
+	Point p_(p) ;
+	getSource()->project(&p_) ;
+	double d = dist(p, p_) ;
+	static_cast<SpatiallyDistributedStiffness *>(behaviour)->setDistance(d) ;
+	return this->behaviour ;
+}
+
 
 

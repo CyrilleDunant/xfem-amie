@@ -45,6 +45,7 @@ FractureCriterion::~FractureCriterion()
 void FractureCriterion::setNeighbourhoodRadius(double r)
 {
 	eps = r ;
+	cache.clear() ;
 }
 
 bool FractureCriterion::met(const ElementState &s)

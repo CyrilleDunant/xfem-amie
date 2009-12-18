@@ -234,9 +234,42 @@ public:
 	
 } ;
 
+/** \brief Interface Transition Zone*/
+class ITZFeature : public NullGeometry, public VirtualFeature
+{
+protected:
+	double length ;
+	Feature * source ;
+	virtual void computeCenter() {} ;
+
+public:
+	ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l) ;
+
+	virtual void print() {} ;
+	virtual Form * getBehaviour( const Point & p ) ;
+	virtual Feature * getSource() {return source ; } ;
+	virtual const Feature * getSource() const {return source ; } ;
+	virtual bool in( const Point &) const ;
+
+	double getLength() const {return length ; } ;
+	void setLength(double l) {length = l ;} ;
+
+	virtual std::vector<DelaunayTriangle*> getTriangles(Mu::DelaunayTree*) { return std::vector<Mu::DelaunayTriangle*>() ;}
+	
+	virtual std::vector<DelaunayTetrahedron*> getTetrahedrons(Mu::DelaunayTree3D*) {return std::vector<Mu::DelaunayTetrahedron*>() ;}
+ 	virtual bool interacts(Mu::Feature*) const {return false ;}
+	virtual Point* pointAfter(size_t) {return NULL ;}
+	virtual std::vector<Mu::Geometry*> getRefinementZones(size_t) const {return std::vector<Mu::Geometry*>() ;}
+	virtual void print() const {std::cout << "ITZ !" << std::endl;}
+	virtual void sample(size_t) {} ;
+	virtual bool isVoid(const Mu::Point&) const {return false ;}
+
+public:
+
+        NULL_GEOMETRY_DERIVED_OBJECT() ;
 
 
-
+} ;
 
 
 

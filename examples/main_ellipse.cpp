@@ -12,6 +12,7 @@
 #include "../physics/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/vonmises.h"
+#include "../physics/spatially_distributed_stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -1018,7 +1019,7 @@ void Display(void)
 				glBegin(GL_TRIANGLE_FAN);
 				
 				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(start)) ;
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max/500-E_min), 1., 1.) ;
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
@@ -1027,7 +1028,7 @@ void Display(void)
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(k)) ;
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max/500-E_min), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1418,7 +1419,8 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
- 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+
+//	sample.setBehaviour(new Stiffness(m0_paste)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
@@ -1438,12 +1440,21 @@ int main(int argc, char *argv[])
 	std::cout << "number of inclusions?" << std::endl ;
 	std::cin >> nAgg ;
 	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.001, 0.75, 0.026)(true, 0.001/3, 0.0001, 0.333, nAgg) ;
+	double itzsize = inc.back()->getRadius() ;
 
-	std::ofstream off ;
-	off.open("granulo.txt", ios::out) ;
+	sample.setBehaviour(new SpatiallyDistributedStiffness(m0_paste, m0_paste, itzsize)) ;
+
+//	std::ofstream off ;
+//	off.open("granulo.txt", ios::out) ;
+//	for(size_t i = 0 ; i < inc.size() ; i++)
+//		off << inc[i]->getRadius() << " , " << inc[i]->getMinorRadius() << " ; " << std::endl ;
+//	off.close() ;
+
 	for(size_t i = 0 ; i < inc.size() ; i++)
-		off << inc[i]->getRadius() << " , " << inc[i]->getMinorRadius() << " ; " << std::endl ;
-	off.close() ;
+	{
+		if(std::abs(std::cos(inc[i]->getMajorAxis().angle())) > sqrt(2)/2)
+			inc[i]->setAxis(inc[i]->getMinorAxis()) ;
+	}
 	
 //	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, 0.001, 0, 0) ;
 // 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
@@ -1458,6 +1469,8 @@ int main(int argc, char *argv[])
 
 	feats=placement(sample.getPrimitive(), feats, &nAgg, 640000);
 
+	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,itzsize) ;
+	vector<Feature *> itzfeatures ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
 		if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
@@ -1466,9 +1479,12 @@ int main(int argc, char *argv[])
 			std::cout << "last inclusion placed => " << i << std::endl ;
 			return 1 ;
 		}
-		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
+		inc[i]->setBehaviour(stiff) ;
+//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-		F.addFeature(&sample, inc[i]) ;
+		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.1,itzsize*10)) ;
+		F.addFeature(&sample, itzfeatures[i]) ;
+		F.addFeature(itzfeatures[i], inc[i]) ;
 	}
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;

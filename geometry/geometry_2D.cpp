@@ -259,9 +259,23 @@ void OrientedRectangle::project(Point * p) const
 
 bool OrientedRectangle::in(const Point &p) const
 {
-	return ConvexPolygon::in(p) ;
+	
+	bool in = false ;
+	
+	for (size_t i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
+	{
+		if (
+			(((boundingPoints[i]->y <= p.y ) 
+				&& (p.y<boundingPoints[j]->y)) 
+				|| ((boundingPoints[j]->y <= p.y) 
+				&& (p.y<boundingPoints[i]->y))) 
+				&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
+			in = !in;
+	}
+	
+	return in ;
+	
 }
-
 std::vector<Point> OrientedRectangle::getSamplingBoundingPoints(size_t num_points) const 
 {
 	std::vector<Point> ret ;
@@ -567,16 +581,23 @@ void Triangle::project(Point * p) const
 
 bool Triangle::in(const Point &p) const
 {
-	return ConvexPolygon::in(p) ;
-	Segment s0(getBoundingPoint(0), getBoundingPoint(getBoundingPoints().size()/3)) ;
-	Segment s1(getBoundingPoint(getBoundingPoints().size()/3), getBoundingPoint(2*getBoundingPoints().size()/3)) ;
-	Segment s2(getBoundingPoint(0), getBoundingPoint(2*getBoundingPoints().size()/3)) ;
 	
-	Segment test(p, getCenter()) ; 
+	bool in = false ;
 	
-	return !(s0.intersects(test) || s1.intersects(test)|| s2.intersects(test)) ;
+	for (size_t i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
+	{
+		if (
+			(((boundingPoints[i]->y <= p.y ) 
+				&& (p.y<boundingPoints[j]->y)) 
+				|| ((boundingPoints[j]->y <= p.y) 
+				&& (p.y<boundingPoints[i]->y))) 
+				&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
+			in = !in;
+	}
+	
+	return in ;
+	
 }
-
 
 std::vector<Point> Triangle::getSamplingBoundingPoints(size_t num_points) const
 {
@@ -1603,18 +1624,28 @@ void Ellipse::project(Point * p) const
 		p->y = center.y + majorradius*majoraxis.y ;
 	}
 
-	Segment seg(center, *p) ;
+	double theta = p->angle() - getMajorAxis().angle() ;
+	double r = getRadiusOnEllipse(theta) ;
+	Point proj(p->x, p->y) ;
+	
+	proj = center + (proj - getCenter()) * r / ((proj - getCenter()).norm()) ;
+	
+	p->x = proj.x ;
+	p->y = proj.y ;
+	
+/*	Segment seg(center, *p) ;
 
 	Point proj = center - majoraxis * (seg.vector()*majoraxis) * (majorradius/seg.vector().norm()) - minoraxis * (seg.vector()*minoraxis) * (minorradius/seg.vector().norm()) ;
 
-	p->x = proj.x ;
-	p->y = proj.y ;
+	
+	p->x = center.x + r * majoraxis.x ;
+	p->y = center.y + r * majoraxis.y ;*/
 	
 	return ;
 	
 }
 
-const double Ellipse::getRadiusOnEllipse(double theta)
+double Ellipse::getRadiusOnEllipse(double theta) const
 {
 	double r = (sqradius / sqrt(pow(minorradius * cos(theta), 2) + pow(majorradius * sin(theta), 2))) ;
 	return r ; 
@@ -1719,8 +1750,11 @@ double Ellipse::getSquareRadius() const
 Point Ellipse::toSmallCircle(Point p) const
 {
 	Point tsc(p - center) ;
+	tsc.print() ;
 	double tscmajor = tsc * majoraxis * minorradius / majorradius ;
+	std::cout << tscmajor << std::endl ;
 	double tscminor = tsc * getMinorAxis() ;
+	std::cout << tscminor << std::endl ;
 	return center + majoraxis * tscmajor + getMinorAxis() * tscminor ;
 }
 
@@ -1738,11 +1772,12 @@ Point Ellipse::getTangentDirection(double theta)
 
 bool Ellipse::in(const Point &p) const 
 { 
-//	bool in = false
-	
-	Point proj = toSmallCircle(p) ;
-
-	return ((proj - center).norm() < (minorradius)) ; 
+//	std::cout << "in Ellipse::in()" << std::endl ;
+	double theta = (p - center).angle() - majoraxis.angle() ;
+	double dist = getRadiusOnEllipse(theta) ;
+//	std::cout << dist << std::endl ;
+//	std::cout << squareDist2D(p, center) << std::endl ;
+	return (squareDist2D(p, center) < dist * dist) ; 
 }
 
 std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, double alpha, double beta) const 

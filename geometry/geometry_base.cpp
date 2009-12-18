@@ -1083,9 +1083,9 @@ bool Geometry::intersects(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
-
 			if(g->getRadius() < this->getRadius())
 				return g->intersects(this) ;
+
 
 			std::vector<Segment> segs ;
 			bool isInSegments = false ;
@@ -1127,24 +1127,27 @@ bool Geometry::intersects(const Geometry *g) const
 				return intersects ;
 			}
 
-			if(g->getGeometryType() == ELLIPSE)
+			if(g->getGeometryType() == ELLIPSE && (g->in(this->getCenter()) || this->in(g->getCenter())))
+				return true ;
+
+/*			if(g->getGeometryType() == ELLIPSE)
 			{
 				Circle thiscircle(this->getRadius(), this->getCenter()) ;	
 				Circle othercircle(g->getRadius(), g->getCenter()) ;
 				Geometry * gcircle = &othercircle ;
 				return thiscircle.intersects(gcircle) ;
-			}
+			}*/
 
-/*			// this intersection is not complete and must be refined... later...
+			// this intersection is not complete and must be refined... later...
 			std::vector<Point> box = this->getBoundingBox() ;
 			Segment s0(box[0], box[1]) ;
 			Segment s1(box[1], box[2]) ;
 			Segment s2(box[2], box[3]) ;
 			Segment s3(box[3], box[0]) ;
 			
-			return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g);*/
-			Circle largecircle(this->getRadius(), this->getCenter()) ;
-			return largecircle.intersects(g) ;
+			return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g) ;
+/*			Circle largecircle(this->getRadius(), this->getCenter()) ;
+			return largecircle.intersects(g) ;*/
 
 		}
 	case SPHERE:
@@ -2005,6 +2008,47 @@ ConvexGeometry::ConvexGeometry(size_t s) : ConvexPolygon(s)
 {
 }
 
+bool ConvexGeometry::intersects(const Geometry * g) const
+{
+	Point inbetween = (this->getCenter() + g->getCenter()) * 0.5 ;
+	Point thispoint(this->getCenter()) ;
+	double tempdist = 1. / (inbetween - this->getCenter()).norm() ;
+	double maxrad = 1.1 * std::max(this->getRadius(), g->getRadius()) ;
+	thispoint.x = thispoint.x - (inbetween - this->getCenter()).y * tempdist * maxrad * 2 + inbetween.x ;
+	thispoint.y = thispoint.y + (inbetween - this->getCenter()).x * tempdist * maxrad * 2+ inbetween.y ;
+	Point nextpoint(thispoint) ;
+	g->project(&nextpoint) ;
+	if(this->in(nextpoint))
+		return true ;
+	double lastdist = 0. ;
+	double thisdist = squareDist2D(thispoint,nextpoint) ;
+	bool isthis = true ;
+	while(std::abs(lastdist - thisdist) > POINT_TOLERANCE)
+	{
+//		if(isthis)
+//			this->project(&nextpoint) ;
+//		else
+//			g->project(&nextpoint) ;
+		lastdist = thisdist ;
+		thispoint = nextpoint ;
+		if(isthis)
+		{
+			g->project(&nextpoint) ;
+			if(this->in(nextpoint))
+				return true ;
+		}
+		else
+		{
+			this->project(&nextpoint) ;
+			if(g->in(nextpoint))
+				return true ;
+		}
+		thisdist = squareDist2D(thispoint,nextpoint) ;
+		isthis = !isthis ;
+	}
+	return (thisdist < POINT_TOLERANCE) ;
+}
+
 const Point & Geometry::getCenter() const
 {
 	return this->center;
@@ -2162,13 +2206,13 @@ ConvexPolygon * PointSet::convexHull() const
 }
 
 
-bool PointSet::in(const Point & p)  const 
+/*bool PointSet::in(const Point & p)  const 
 {
 	ConvexPolygon * hull = convexHull() ;
 	bool ret = hull->in(p) ;
 	delete hull ;
 	return ret ;
-}
+}*/
 
 size_t PointSet::size() const
 { 
@@ -2560,7 +2604,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 }
 
 
-bool ConvexPolygon::in(const Point & p) const 
+/*bool ConvexPolygon::in(const Point & p) const 
 {
 	
 	bool in = false ;
@@ -2578,7 +2622,7 @@ bool ConvexPolygon::in(const Point & p) const
 	
 	return in ;
 	
-}
+}*/
 
 
 bool ConvexPolygon::isTrigoOriented()  const
@@ -4382,14 +4426,12 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
 
 bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
 {
-// 	Line l(f0, f1-f0) ;
-// 	return dist(test, l.projection(test)) < POINT_TOLERANCE ;
-// 	
-	Point centre = (test+f0+f1)/3 ;
+
+	Point centre = (test+f0+f1)*.3333333333333333333333333 ;
 	Point f0_(f0-centre) ;
 	Point f1_(f1-centre) ;
 	Point test_(test-centre) ;
-	double scale = 100.*std::max(std::max(f0_.norm(), f1_.norm()), test_.norm()) ;
+	double scale = 100.*sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
 	f0_ /=scale ;
 	f1_ /=scale ;
 	test_ /=scale ;
@@ -4398,65 +4440,33 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	if(std::abs((f0 - test) * (f1 - test)) < POINT_TOLERANCE)
 		return false ;
 
-
-
-	double c0 = std::abs(signedAlignement(test_, f0_, f1_)) ;
-//	std::cout << c0 << std::endl ;
+	if (std::abs(signedAlignement(test_, f0_, f1_)) >= 2.*POINT_TOLERANCE)
+		return false ;
 	
-	double mdist = std::max(dist(f0_, f1_), std::max(dist(f0_, test_), dist(f1_, test_))) ;
-//	std::cout << mdist << std::endl ;
+	double mdist = sqrt(std::max(squareDist2D(f0_, f1_), std::max(squareDist2D(f0_, test_), squareDist2D(f1_, test_)))) ;
 
 	double delta = .25*POINT_TOLERANCE*mdist ;
-//	std::cout <<delta << std::endl ;
 
-	Point a(test_) ; a.x += delta ;
+//	Point a(test_) ; a.x += delta ;
 	Point b(test_) ; b.x += delta ; b.y += delta;
-	Point c(test_) ; c.y += delta;
+//	Point c(test_) ; c.y += delta;
 	Point d(test_) ; d.x -= delta ; d.y += delta; 
-	Point e(test_) ; e.x -= delta ;
+//	Point e(test_) ; e.x -= delta ;
 	Point f(test_) ; f.x -= delta ; f.y -= delta; 
-	Point g(test_) ; g.y -= delta;
+//	Point g(test_) ; g.y -= delta;
 	Point h(test_) ; h.x += delta ; h.y -= delta; 
 	
 
-//	old version
-	double c2 = std::abs(signedAlignement(b, f0_, f1_)) ;
-	double c4 = std::abs(signedAlignement(d, f0_, f1_)) ;
-	double c6 = std::abs(signedAlignement(f, f0_, f1_)) ;
-	double c8 = std::abs(signedAlignement(h, f0_, f1_)) ;
-//	std::cout << c0 << std::endl ;
-//	std::cout << c2 << std::endl ;
-//	std::cout << c4 << std::endl ;
-//	std::cout << c6 << std::endl ;
-//	std::cout << c8 << std::endl ;
-//	std::cout << 2.*POINT_TOLERANCE << std::endl ;
-	return c0 < 2.*POINT_TOLERANCE 
-		&& c2 < 2.*POINT_TOLERANCE 
-		&& c4 < 2.*POINT_TOLERANCE 
-		&& c6 < 2.*POINT_TOLERANCE 
-		&& c8 < 2.*POINT_TOLERANCE ;
-/*	return c0 < POINT_TOLERANCE 
-		&& ((c2 < POINT_TOLERANCE && c8 < POINT_TOLERANCE ) 
-		|| (c4 < POINT_TOLERANCE && c6 < POINT_TOLERANCE )) ;
-        double c1 = signedAlignement(a, f0, f1) ;
-        double c2 = signedAlignement(b, f0, f1) ; 
-        double c3 = signedAlignement(c, f0, f1) ;
-        double c4 = signedAlignement(d, f0, f1) ;
-        double c5 = signedAlignement(e, f0, f1) ;
-        double c6 = signedAlignement(f, f0, f1) ; 
-        double c7 = signedAlignement(g, f0, f1) ;
-        double c8 = signedAlignement(h, f0, f1) ;
-        int posCount = (int)(c0 > 0) + (c1 > 0) + (c2 > 0) + (c3 > 0) + (c4 > 0) + (c5 > 0) + (c6 > 0) + (c7 > 0) + (c8 > 0) ;
-        int negCount = (int)(c0 < 0) + (c1 < 0) + (c2 < 0) + (c3 < 0) + (c4 < 0) + (c5 < 0) + (c6 < 0) + (c7 < 0) + (c8 < 0) ;
-        return  (c0 < 2.*POINT_TOLERANCE 
-                   || c1 < 2.*POINT_TOLERANCE 
-                   || c2 < 2.*POINT_TOLERANCE 
-                   || c3 < 2.*POINT_TOLERANCE 
-                   || c4 < 2.*POINT_TOLERANCE 
-                   || c5 < 2.*POINT_TOLERANCE 
-                   || c6 < 2.*POINT_TOLERANCE 
-                   || c7 < 2.*POINT_TOLERANCE 
-                   || c8 < 2.*POINT_TOLERANCE ) && (posCount) && (negCount) ;*/
+	if(std::abs(signedAlignement(b, f0_, f1_)) >= 2.*POINT_TOLERANCE)
+		return false ;
+
+	if(std::abs(signedAlignement(d, f0_, f1_)) >= 2.*POINT_TOLERANCE)
+		return false ;
+	if(std::abs(signedAlignement(f, f0_, f1_)) >= 2.*POINT_TOLERANCE)
+		return false ;
+	if(std::abs(signedAlignement(h, f0_, f1_))  >= 2.*POINT_TOLERANCE)
+		return false ;
+	return true ;
 
 } 
 
@@ -4547,3 +4557,36 @@ double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C)
 	return (A.y*B.z - A.z*B.y)*C.x + (A.z*B.x - A.x*B.z)*C.y + (A.x*B.y - A.y*B.x)*C.z ;
 }
 
+NullGeometry::NullGeometry()
+{
+	gType = NULL_GEOMETRY ;
+	this->center = Point(0,0) ;
+}
+
+NullGeometry::NullGeometry(Point p)
+{
+	gType = NULL_GEOMETRY ;
+	this->center = p ;
+}
+
+NullGeometry::NullGeometry(double x, double y)
+{
+	gType = NULL_GEOMETRY ;
+	this->center = Point(x,y) ;
+}
+
+NullGeometry::NullGeometry(Geometry * g)
+{
+	gType = NULL_GEOMETRY ;
+	this->center = g->getCenter() ;
+}
+
+std::vector<Point> NullGeometry::getBoundingBox() const 
+{
+	std::vector<Point> ret ;
+	ret.push_back(getCenter()) ;
+	ret.push_back(getCenter()) ;
+	ret.push_back(getCenter()) ;
+	ret.push_back(getCenter()) ;
+	return ret ;
+}

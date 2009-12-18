@@ -2416,12 +2416,12 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		std::vector<DelaunayTriangle *> tri ;
 		std::vector<bool> pass ;
 		int passNum = 0;
-		double J = jacobianAtPoint(Point(1./3., 1./3.)) ;
+		double J = jacobianAtPoint(Point(1./3., 1./3.)) * 4 ;
 		double lastError = 10 ;
 		size_t maxGradientIndex = 0 ;
 		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
 		
-		double ndivs = 30 ;
+/*		double ndivs = 30 ;
 		for(double k = 0  ; k < ndivs ; k++)
 		{
 			for(double l = 0  ; l < ndivs ; l++)
@@ -2443,7 +2443,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 			gp.id = -1 ;
 		}
-		return gp ;
+		return gp ;*/
 
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;

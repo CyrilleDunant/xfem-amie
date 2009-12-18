@@ -4349,7 +4349,7 @@ void Grid::forceAdd(Feature * inc)
 	
 	double endY =  startY+2.*inc->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)lengthY);
-	
+
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -4389,43 +4389,4 @@ bool Grid::add(Feature * inc)
 	
 	return true ;
 	
-	bool ret = true ;
-	std::vector<Pixel *> cleanup ;
-	
-	double startX = -c.x + inc->getCenter().x-inc->getRadius() ;
-	int startI = std::max(0., startX/psize - 2) ;
-	
-	double endX =  startX+2.*inc->getRadius();
-	int endI = std::min(endX/psize + 2, (double)lengthX);
-	
-	double startY = -c.y + inc->getCenter().y-inc->getRadius() ;
-	int startJ = std::max(0., startY/psize - 2) ;
-	
-	double endY =  startY+2.*inc->getRadius();
-	int endJ = std::min(endY/psize + 2, (double)lengthY);
-	
-	for(int i = startI ; i < endI ; i++)
-	{
-		for(int j = startJ ; j < endJ ; j++)
-		{
-			if(pixels[i][j]->coOccur(inc))
-			{
-				if(pixels[i][j]->add(inc))
-				{
-					cleanup.push_back(pixels[i][j]) ;
-				}
-				else
-				{
-					for(size_t k = 0 ; k < cleanup.size() ; k++)
-					{
-						cleanup[k]->remove(inc) ;
-					}
-					return false ;
-				}
-			}
-		}
-		
-	}
-	
-	return ret ;
 }

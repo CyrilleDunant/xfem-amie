@@ -1,6 +1,6 @@
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
 // Author: Ruzena Chamrova <ruzena.chamrova@epfl.ch>, (C) 2007
-// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses)
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses, level set)
 //
 // Copyright: See COPYING file that comes with this distribution
 
@@ -153,6 +153,141 @@ virtual size_t timePlanes() const                         \
 {                                                          \
 return this->__geo_type__::timePlanes() ;                 \
 }
+
+#define NULL_GEOMETRY_DERIVED_OBJECT()    virtual const PointArray & getBoundingPoints() const \
+{                                                          \
+	return this->NullGeometry::getBoundingPoints() ;       \
+}                                                          \
+virtual PointArray & getBoundingPoints()       \
+{                                                          \
+	return this->NullGeometry::getBoundingPoints() ;       \
+}                                                          \
+virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points)  const   \
+{                                                           \
+	return this->NullGeometry::getSamplingBoundingPoints(num_points) ; \
+}                                                           \
+virtual GeometryType getGeometryType() const               \
+{                                                          \
+return this->NullGeometry::gType ;                         \
+}                                                          \
+virtual const Point & getBoundingPoint(size_t i) const     \
+{                                                          \
+return this->NullGeometry::getBoundingPoint(i) ;           \
+}                                                          \
+virtual Point & getBoundingPoint(size_t i)                 \
+{                                                          \
+return this->NullGeometry::getBoundingPoint(i) ;           \
+}                                                          \
+virtual std::vector<Point> getBoundingBox() const          \
+{                                                          \
+return this->NullGeometry::getBoundingBox() ;              \
+}                                                          \
+virtual void setBoundingPoint(size_t i, Point * p)         \
+{                                                          \
+	this->NullGeometry::setBoundingPoint(i,p) ;            \
+}                                                          \
+virtual void setBoundingPoints(const PointArray & nb)\
+{                                                          \
+	this->NullGeometry::setBoundingPoints(nb) ;            \
+}                                                          \
+virtual void setInPoints(const PointArray & nb)      \
+{                                                          \
+	this->NullGeometry::setInPoints(nb) ;                  \
+}                                                          \
+virtual void project(Point * p) const                      \
+{                                                          \
+this->NullGeometry::project(p) ;                           \
+}                                                          \
+virtual double getRadius() const                           \
+{                                                          \
+return this->NullGeometry::getRadius() ;                   \
+}                                                          \
+virtual void sampleBoundingSurface(size_t n)               \
+{                                                          \
+this->NullGeometry::sampleBoundingSurface(n) ;             \
+}                                                          \
+virtual void sampleSurface(size_t n)                       \
+{                                                          \
+this->NullGeometry::sampleSurface(n) ;                     \
+}                                                          \
+virtual SpaceDimensionality spaceDimensions() const        \
+{                                                          \
+return this->NullGeometry::spaceDimensions() ;             \
+}                                                          \
+virtual bool intersects(const Geometry * g) const          \
+{                                                          \
+return this->NullGeometry::intersects(g) ;                 \
+}                                                          \
+virtual std::vector<Point> intersection(const Geometry * g) const          \
+{                                                          \
+return this->NullGeometry::intersection(g) ;               \
+}                                                          \
+const Point & getPoint(size_t i) const                     \
+{                                                          \
+return this->NullGeometry::getPoint(i) ;                   \
+}                                                          \
+Point & getPoint(size_t i)                                 \
+{                                                          \
+return this->NullGeometry::getPoint(i) ;                   \
+}                                                          \
+virtual const Point &  getInPoint(size_t i) const          \
+{                                                          \
+return this->NullGeometry::getInPoint(i) ;                 \
+}                                                          \
+virtual Point &  getInPoint(size_t i)                      \
+{                                                          \
+return this->NullGeometry::getInPoint(i) ;                 \
+}                                                          \
+virtual const std::valarray<Mu::Point*> & getInPoints() const    \
+{                                                          \
+return this->NullGeometry::getInPoints() ;                 \
+}                                                          \
+virtual  std::valarray<Mu::Point*> & getInPoints()     \
+{                                                          \
+return this->NullGeometry::getInPoints() ;                 \
+}                                                          \
+virtual size_t size() const                                \
+{                                                          \
+return this->NullGeometry::size() ;                        \
+}                                                          \
+virtual size_t sides() const                               \
+{                                                          \
+return this->NullGeometry::sides() ;                       \
+}                                                          \
+virtual Point & getCenter()                                 \
+{                                                          \
+return this->NullGeometry::getCenter() ;                   \
+}                                                          \
+virtual const Point & getCenter() const                     \
+{                                                          \
+		return this->NullGeometry::getCenter() ;           \
+}                                                          \
+virtual double area() const                                \
+{                                                          \
+return this->NullGeometry::area() ;                        \
+}                                                          \
+virtual double volume() const                              \
+{                                                          \
+return this->NullGeometry::volume() ;                      \
+}                                                          \
+const NullGeometry * getPrimitive() const                         \
+{                                                          \
+return dynamic_cast<const NullGeometry *>(this) ;                 \
+}                                                                 \
+NullGeometry * getPrimitive()                          \
+{                                                          \
+return dynamic_cast<NullGeometry *>(this) ;                 \
+}                                                                 \
+virtual size_t & timePlanes()                         \
+{                                                          \
+ return this->NullGeometry::timePlanes() ;                 \
+}                                                                 \
+virtual size_t timePlanes() const                         \
+{                                                          \
+return this->NullGeometry::timePlanes() ;                 \
+}
+
+
 
 namespace Mu
 {
@@ -836,7 +971,7 @@ public:
 	Point * getPoint(size_t i) const;
 	Point * getPoint(size_t i) ;
 	
-	virtual bool in(const Point & p) const ;
+//	virtual bool in(const Point & p) const ;
 	virtual size_t size() const;
 	
 	void removePoint(size_t index) ;
@@ -1000,7 +1135,7 @@ public:
 	virtual ~ConvexPolygon() { } ;
 	
 	/** \brief return true if the argument is in the Polygon*/
-	virtual bool in(const Point & p) const;
+//	virtual bool in(const Point & p) const;
 	
 	/** \brief return true is the points are trigonometrically oriented*/
 	virtual bool isTrigoOriented()  const ;
@@ -1046,6 +1181,7 @@ public:
 	virtual size_t size() const ;
 	virtual double area() const = 0;
 	virtual void project(Point *) const = 0;
+	virtual bool intersects(const Geometry * g) const ;
 	
 } ;
 
@@ -1107,6 +1243,57 @@ public:
 	
 	/** \brief Return empty vector*/
 	virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ;}
+} ;
+
+class NullGeometry : public ConvexGeometry
+{
+  public:
+  
+	NullGeometry() ;
+	NullGeometry(Point p) ;
+	NullGeometry(double x, double y) ;
+	NullGeometry(Geometry * g) ;
+
+	virtual ~NullGeometry() { } ;
+
+	virtual SpaceDimensionality spaceDimensions() const
+	{
+		return SPACE_TWO_DIMENSIONAL ;
+	}
+//	virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ; } ;
+//	virtual const PointArray & getBoundingPoints() const { return PointArray(0) ; } ;
+//	virtual PointArray & getBoundingPoints() { return PointArray(0) ; } ;
+//	virtual const Point & getBoundingPoint(size_t i) const {return center ; } ;
+//	virtual Point & getBoundingPoint(size_t i)  {return center ; } ;
+//	virtual const PointArray & getInPoints() const {return center ; } ;
+//	virtual PointArray & getInPoints() {return PointArray(0) ; } ;
+//	virtual const Point & getInPoint(size_t i) const {return center ; } ;
+//	virtual Point & getInPoint(size_t i) {return center ; } ;
+//	virtual void setBoundingPoint(size_t i, Point * p) { } ;
+//	virtual void setBoundingPoints(const PointArray & nb) { } ;
+//	virtual void setInPoints(PointArray nb) { } ;
+//	virtual const Point & getPoint(size_t i) const {return center ; } ;
+//	virtual Point & getPoint(size_t i)  {return center ; } ;
+	virtual const Point & getCenter() const {return center ; };
+	virtual Point & getCenter() {return center ; } ;
+	virtual void project(Point *) const { } ;
+	virtual void setCenter(const Point & newCenter) {this->center = newCenter ; } ;
+	virtual GeometryType getGeometryType() const {return NULL_GEOMETRY ; } ;
+	virtual double getRadius() const {return 0 ; } ;
+	virtual void sampleBoundingSurface(size_t num_points) { } ;
+	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const {return std::vector<Point>(0) ; } ;
+	virtual void sampleSurface(size_t num_points) { } ;
+	virtual bool in(const Point & p)const {return false ; } ;
+	virtual size_t size() const {return 0 ; } ;
+	virtual double area() const {return 0 ; } ;
+	virtual double volume() const {return 0 ; } ;
+	virtual size_t sides() const {return 0 ; } ;
+	virtual bool intersects(const Geometry *) const {return false ; } ;
+	virtual std::vector<Point> intersection(const Geometry *) const {return std::vector<Point>(0) ; } ;
+	virtual std::vector<Point> getBoundingBox() const ;
+//	virtual size_t timePlanes() const {return 1 ; } ;
+//	virtual size_t & timePlanes() {return 1 ; } ;
+
 } ;
 
 

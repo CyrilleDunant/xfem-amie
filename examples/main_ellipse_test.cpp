@@ -504,9 +504,19 @@ int main(int argc, char *argv[])
 	Point origin(0.0,0.0) ;
 	Point axisX(1,0) ;
 	Point axisY(0,1) ;
-/*	Ellipse ethree(5,2,origin,axisX) ;
+	Ellipse ethree(6,2,origin,axisX) ;
+	Point endpoint(6,0) ;
+	std::cout << ethree.in(endpoint) << std::endl ;
+/*	Ellipse efour(6,2,origin + axisY * 5,axisX) ;
+	ethree.getCenter().print() ;
+	(ethree.getCenter() + ethree.getMinorAxis() * ethree.getMinorRadius()).print() ;
+	(efour.getCenter() - efour.getMinorAxis() * efour.getMinorRadius()).print() ;
+	efour.getCenter().print() ;
 	Geometry * geom ;
 	geom = &ethree ;
+
+	bool interethreefour = efour.intersects(geom) ;
+	std::cout << interethreefour << std::endl ;
 
 	Line horone(origin + axisY,axisX) ;
 	Line horthree(origin + axisY * 3,axisX) ;
@@ -548,12 +558,12 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < intersy.size() ; i++)
 		intersy[i].print() ;
 
-*/	std::cout << "origin on (-2,-2)-(1,1) ?" << std::endl ;
+	std::cout << "origin on (-2,-2)-(1,1) ?" << std::endl ;
 	Segment segtest(origin + axisX + axisY, origin - axisX - axisY) ;
 	segtest.first().print() ;
 	segtest.second().print() ;
 	origin.print() ;
-	std::cout << isAligned(origin,segtest.first(),segtest.second()) << std::endl ;/*
+	std::cout << isAligned(origin,segtest.first(),segtest.second()) << std::endl ;
 
 	Segment seghorone(origin,origin + axisX) ;
 	Segment segverfive(origin,origin + axisY * 5) ;
