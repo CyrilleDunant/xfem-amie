@@ -1389,6 +1389,7 @@ int main(int argc, char *argv[])
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
+	m0_paste = m0_paste*10 ;
 
 	// Material behaviour of the fibres
 	Matrix m0_agg(3,3) ;
@@ -1436,13 +1437,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	int nAgg = 50 ;
-	std::cout << "number of inclusions?" << std::endl ;
-	std::cin >> nAgg ;
+	int nAgg = 4 ;
+// 	std::cout << "number of inclusions?" << std::endl ;
+// 	std::cin >> nAgg ;
 	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.001, 0.75, 0.026)(true, 0.001/3, 0.0001, 0.333, nAgg) ;
-	double itzsize = inc.back()->getRadius() ;
+	double itzsize = 0.0001 ;
+	std::cout << itzsize << std::endl ;
 
-	sample.setBehaviour(new SpatiallyDistributedStiffness(m0_paste, m0_paste, itzsize)) ;
+	sample.setBehaviour(new SpatiallyDistributedStiffness(m0_paste, m0_paste, itzsize,3,0)) ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 
 //	std::ofstream off ;
 //	off.open("granulo.txt", ios::out) ;
@@ -1450,11 +1453,11 @@ int main(int argc, char *argv[])
 //		off << inc[i]->getRadius() << " , " << inc[i]->getMinorRadius() << " ; " << std::endl ;
 //	off.close() ;
 
-	for(size_t i = 0 ; i < inc.size() ; i++)
-	{
-		if(std::abs(std::cos(inc[i]->getMajorAxis().angle())) > sqrt(2)/2)
-			inc[i]->setAxis(inc[i]->getMinorAxis()) ;
-	}
+//	for(size_t i = 0 ; i < inc.size() ; i++)
+//	{
+//		if(std::abs(std::cos(inc[i]->getMajorAxis().angle())) > sqrt(2)/2)
+//			inc[i]->setAxis(inc[i]->getMinorAxis()) ;
+//	}
 	
 //	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, 0.001, 0, 0) ;
 // 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
@@ -1469,22 +1472,35 @@ int main(int argc, char *argv[])
 
 	feats=placement(sample.getPrimitive(), feats, &nAgg, 640000);
 
-	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,itzsize) ;
 	vector<Feature *> itzfeatures ;
-	for(size_t i = 0 ; i < inc.size() ; i++)
+	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,0,0) ;
+	inc[0]->setBehaviour(stiff) ;
+//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
+// 	F.addFeature(&sample, inc0) ;
+	itzfeatures.push_back(new ITZFeature(&sample,inc[0],m0_paste,m0_paste*0.5,itzsize,2.5,0)) ;
+	F.addFeature(&sample, itzfeatures[0]) ;
+	for(size_t i = 1 ; i < inc.size() ; i++)
 	{
+//		std::cout << i << std::endl ;
+//		inc[i]->getMajorAxis().print() ;
 		if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
 		{
 			std::cout << "fail to place all inclusions" << std::endl ;
 			std::cout << "last inclusion placed => " << i << std::endl ;
 			return 1 ;
 		}
+		SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,0,0) ;
 		inc[i]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.1,itzsize*10)) ;
-		F.addFeature(&sample, itzfeatures[i]) ;
-		F.addFeature(itzfeatures[i], inc[i]) ;
+		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.5,itzsize,2.5,0)) ;
+		F.addFeature(itzfeatures[i-1], itzfeatures[i]) ;
+//		F.addFeature(itzfeatures[i],inc[i]) ;
+	}
+	F.addFeature(itzfeatures[inc.size()-1], inc[0]) ;
+	for(size_t i = 1 ; i < inc.size() ; i++)
+	{
+		F.addFeature(inc[i-1], inc[i]) ;
 	}
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;

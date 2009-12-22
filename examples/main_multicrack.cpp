@@ -1440,11 +1440,11 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 	
-	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001) ;
+	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
 	inc1->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.0003) ;
+	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
 	F.addFeature(&sample, itz) ;
 	F.addFeature(itz, inc1) ;
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;

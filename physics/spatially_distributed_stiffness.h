@@ -33,13 +33,15 @@ namespace Mu
 		Matrix pore ;
 		double length ;
 		double distance ;
+		double criteriona ;
+		double criterionb ;
 
 		/** Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param inc inclusion vector
 		*/
-		SpatiallyDistributedStiffness(const Matrix & rig, const Matrix & pore, double l)  ;
+		SpatiallyDistributedStiffness(const Matrix & rig, const Matrix & pore, double l, double ca, double cb)  ;
 		
 		virtual ~SpatiallyDistributedStiffness();
 		
@@ -76,7 +78,7 @@ namespace Mu
 		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
 
-		void setDistance(double d) {distance = d ; } ;
+		void setDistance(double d) ;
 	} ;
 
 } ;

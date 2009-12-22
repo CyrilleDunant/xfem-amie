@@ -532,7 +532,7 @@ public:
 	 *
 	 * @return the angle (in radians)
 	 */
-	virtual double getAxisAngle() ;
+	virtual double getAxisAngle() const ;
 
 	/** \brief Returns one of the ellipse focus
 	 *
@@ -595,14 +595,14 @@ public:
 	 * @param the point to project
 	 * @return the point in the new coordinates
 	 */
-	virtual Point toSmallCircle(Point p) const ;
+	virtual Point toSmallCircle(Point p, Point origin, bool b) const ;
 
 	/** \brief Returns the ellipse tangent as a function of the angle with the major axis
 	 *
 	 * @param angle with the ellipse major radius (in radians)
 	 * @return direction of the ellipse tangent
 	 */
-	virtual Point getTangentDirection(double theta) ;
+	virtual Point getTangentDirection(double theta) const ;
 
 	/** \brief Returns bounding points on arc (defined by two angles)
 	 *

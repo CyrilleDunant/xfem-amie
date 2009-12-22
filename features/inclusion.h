@@ -14,6 +14,7 @@
 #define __INCLUSION_H__
 
 #include "features.h"
+#include "../geometry/level_set.h" 
 
 namespace Mu
 {
@@ -235,7 +236,7 @@ public:
 } ;
 
 /** \brief Interface Transition Zone*/
-class ITZFeature : public NullGeometry, public VirtualFeature
+class ITZFeature : public LevelSet, public VirtualFeature
 {
 protected:
 	double length ;
@@ -243,7 +244,7 @@ protected:
 	virtual void computeCenter() {} ;
 
 public:
-	ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l) ;
+	ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l,double ca, double cb) ;
 
 	virtual void print() {} ;
 	virtual Form * getBehaviour( const Point & p ) ;
@@ -266,7 +267,7 @@ public:
 
 public:
 
-        NULL_GEOMETRY_DERIVED_OBJECT() ;
+        LEVEL_SET_DERIVED_OBJECT() ;
 
 
 } ;

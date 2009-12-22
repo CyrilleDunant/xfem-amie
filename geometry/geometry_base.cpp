@@ -9,6 +9,7 @@
 #include <iomanip>
 
 #include "../mesher/delaunay.h"
+#include "../polynomial/vm_function_base.h"
 
 using namespace Mu ;
 
@@ -1083,6 +1084,7 @@ bool Geometry::intersects(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
+//			std::cout << "ellipse" << std::endl ;
 			if(g->getRadius() < this->getRadius())
 				return g->intersects(this) ;
 
@@ -2008,8 +2010,9 @@ ConvexGeometry::ConvexGeometry(size_t s) : ConvexPolygon(s)
 {
 }
 
-bool ConvexGeometry::intersects(const Geometry * g) const
+/*bool ConvexGeometry::intersects(const Geometry * g) const
 {
+	std::cout << "convex" << std::endl ;
 	Point inbetween = (this->getCenter() + g->getCenter()) * 0.5 ;
 	Point thispoint(this->getCenter()) ;
 	double tempdist = 1. / (inbetween - this->getCenter()).norm() ;
@@ -2047,7 +2050,7 @@ bool ConvexGeometry::intersects(const Geometry * g) const
 		isthis = !isthis ;
 	}
 	return (thisdist < POINT_TOLERANCE) ;
-}
+}*/
 
 const Point & Geometry::getCenter() const
 {
@@ -4555,38 +4558,4 @@ double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C)
 	Point temp(A^B) ;
 	return temp*C ;
 	return (A.y*B.z - A.z*B.y)*C.x + (A.z*B.x - A.x*B.z)*C.y + (A.x*B.y - A.y*B.x)*C.z ;
-}
-
-NullGeometry::NullGeometry()
-{
-	gType = NULL_GEOMETRY ;
-	this->center = Point(0,0) ;
-}
-
-NullGeometry::NullGeometry(Point p)
-{
-	gType = NULL_GEOMETRY ;
-	this->center = p ;
-}
-
-NullGeometry::NullGeometry(double x, double y)
-{
-	gType = NULL_GEOMETRY ;
-	this->center = Point(x,y) ;
-}
-
-NullGeometry::NullGeometry(Geometry * g)
-{
-	gType = NULL_GEOMETRY ;
-	this->center = g->getCenter() ;
-}
-
-std::vector<Point> NullGeometry::getBoundingBox() const 
-{
-	std::vector<Point> ret ;
-	ret.push_back(getCenter()) ;
-	ret.push_back(getCenter()) ;
-	ret.push_back(getCenter()) ;
-	ret.push_back(getCenter()) ;
-	return ret ;
 }

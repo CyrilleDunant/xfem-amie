@@ -12,6 +12,7 @@
 
 #include "inclusion.h"
 #include "../physics/spatially_distributed_stiffness.h"
+#include "../polynomial/vm_base.h"
 
 using namespace Mu ;
 
@@ -333,9 +334,9 @@ void EllipsoidalInclusion::sample(size_t n)
 //	std::cout << "sample ellipsoidal inclusion => done" << std::endl ;
 }
 
-ITZFeature::ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l) : NullGeometry(g->getCenter()), VirtualFeature(father)
+ITZFeature::ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l, double ca,double cb) : LevelSet(g), VirtualFeature(father)
 {
-	behaviour = new SpatiallyDistributedStiffness(m,p,l) ;
+	behaviour = new SpatiallyDistributedStiffness(m,p,l,ca,cb) ;
 	source = g ;
 	length = l ;
 	this->isEnrichmentFeature = false ;
@@ -343,17 +344,88 @@ ITZFeature::ITZFeature(Feature *father, Feature * g, const Matrix & m, const Mat
 
 bool ITZFeature::in(const Point & p) const
 {
-	Point temp(p) ;
-	getSource()->project(&temp) ;
-	return ((squareDist2D(p,temp) < getLength() * getLength()) || getSource()->in(p)) ;
+  
+	if(std::sqrt((squareDist2D(p,source->getCenter()))) > (source->getRadius()+getLength()))
+	  return false ;
+  	double alpha = dynamic_cast<Ellipse *>(source)->getMajorAxis().angle() ;
+	Point prot((p-source->getCenter()).x*cos(-alpha)-(p-source->getCenter()).y*sin(-alpha), 
+		   +(p-source->getCenter()).x*sin(-alpha)+(p-source->getCenter()).y*cos(-alpha)) ;
+	
+	Function x("x") ;
+	Function y("y") ;
+	x = x/(dynamic_cast<Ellipse *>(source)->getMajorRadius()+getLength()) ;
+	y = y/(dynamic_cast<Ellipse *>(source)->getMinorRadius()+getLength()) ;
+	Function ellipse = (x^2)+(y^2) - 1 ;
+	
+	double dx = VirtualMachine().eval(ellipse, prot) ;
+	return dx < 0 ;
+	
+// 	Point temp(p) ;
+// 	getSource()->project(&temp) ;
+// /*	if((p-temp).norm() < getLength())
+// 	  std::cout << getSource()->in(p) << std::endl ;*/
+// 	return (((p - temp).norm() < getLength()) && !getSource()->in(p)) ;
 }
 
 Form * ITZFeature::getBehaviour( const Point & p)
 {
-	Point p_(p) ;
-	getSource()->project(&p_) ;
-	double d = dist(p, p_) ;
-	static_cast<SpatiallyDistributedStiffness *>(behaviour)->setDistance(d) ;
+	double alpha = dynamic_cast<Ellipse *>(source)->getMajorAxis().angle() ;
+	Point prot((p-source->getCenter()).x*cos(-alpha)-(p-source->getCenter()).y*sin(-alpha), 
+		   +(p-source->getCenter()).x*sin(-alpha)+(p-source->getCenter()).y*cos(-alpha)) ;
+	
+	Function x("x") ;
+	Function y("y") ;
+	x = x/dynamic_cast<Ellipse *>(source)->getMajorRadius() ;
+	y = y/dynamic_cast<Ellipse *>(source)->getMinorRadius() ;
+	Function ellipse = (x^2)+(y^2) - 1 ;
+	
+	
+	double dx = VirtualMachine().eval(ellipse, prot) ;
+	
+	Ellipse ell(dynamic_cast<Ellipse *>(source)->getMajorRadius(),
+		    dynamic_cast<Ellipse *>(source)->getMinorRadius(),
+		    0,0,1,0) ;
+	double theta = prot.angle() ;
+	Point pell(std::cos(theta),std::sin(theta)) ;
+	double r = ell.getRadiusOnEllipse(theta) ;
+	Point ptry = pell * r ;
+	double dist = squareDist2D(ptry,prot) ;
+
+	int signn = + 1 ;
+	double thetan = theta + 0.01 ;
+	Point pelln(std::cos(thetan),std::sin(thetan)) ;
+	double rn = ell.getRadiusOnEllipse(thetan) ;
+	Point ptryn = pelln * rn ;
+	double distn = squareDist2D(ptryn,prot) ;
+	if(distn > dist)
+	{
+	  signn = - 1 ;
+	  thetan = theta - 0.001 ;
+	  pelln.x = std::cos(thetan) ;
+	  pelln.y = std::sin(thetan) ;
+	  rn = ell.getRadiusOnEllipse(thetan) ;
+	  ptryn = pelln * rn ;
+	  distn = squareDist2D(ptryn,prot) ;
+	}
+	int i = 0 ;
+	
+	while(distn < dist)
+	{
+	  i++ ;
+	  dist = distn ;
+	  thetan = thetan + signn * 0.01 ;
+	  pelln.x = std::cos(thetan) ;
+	  pelln.y = std::sin(thetan) ;
+	  rn = ell.getRadiusOnEllipse(thetan) ;
+	  ptryn = pelln * rn ;
+	  distn = squareDist2D(ptryn,prot) ;
+	}
+		
+//	if(dx>0)
+//	  std::cout << sqrt((distn+dist)/2) << " ; " << getLength() << std::endl ;
+	
+	static_cast<SpatiallyDistributedStiffness *>(behaviour)->setDistance(sqrt((distn+dist)/2)) ;
+	
 	return this->behaviour ;
 }
 

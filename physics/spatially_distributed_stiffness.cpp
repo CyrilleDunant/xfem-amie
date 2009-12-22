@@ -15,10 +15,13 @@
 #include "mohrcoulomb.h"
 #include "maxstrain.h"
 #include "ruptureenergy.h"
+#include "stiffness_and_fracture.h"
+#include "vonmises.h"
+#include "mohrcoulomb.h"
 
 using namespace Mu ;
 
-SpatiallyDistributedStiffness::SpatiallyDistributedStiffness(const Matrix & rig, const Matrix & pore, double l) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.2), pore(pore)
+SpatiallyDistributedStiffness::SpatiallyDistributedStiffness(const Matrix & rig, const Matrix & pore, double l,double ca, double cb) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.2), pore(pore)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -27,6 +30,8 @@ SpatiallyDistributedStiffness::SpatiallyDistributedStiffness(const Matrix & rig,
 
 	length = l ;
 	distance = l ;
+	criteriona = ca ;
+	criterionb = cb ;
 } ;
 
 SpatiallyDistributedStiffness::~SpatiallyDistributedStiffness() { } ;
@@ -49,11 +54,17 @@ bool SpatiallyDistributedStiffness::fractured() const
 Form * SpatiallyDistributedStiffness::getCopy() const 
 {
 	double randomVar = (double)rand()/(double)RAND_MAX ;
-	randomVar = 1.*pow(-log(randomVar),.5) ;
+//	randomVar = 1.*pow(-log(randomVar),.5) ;
 	Matrix newTensor (param*(1.-variability)+param*randomVar*variability) ;
+	randomVar = (double)rand()/(double)RAND_MAX ;
+	double crita = criteriona*(1.-variability)+criteriona*randomVar*variability ;
+	double critb = criterionb*(1.-variability)+criterionb*randomVar*variability ;
 	newTensor = pore + (newTensor - pore) * distance / length ;
 //	if(randomVar > 0.5)
-		return new Stiffness(newTensor) ;
+	if(criteriona > 0)
+	  return new StiffnessAndFracture(newTensor, new MohrCoulomb(crita,critb)) ;
+	return new Stiffness(newTensor) ;	
+//	return new Stiffness(pore) ;
 //	return new Stiffness(/*pore*(1.-variability)+*/pore/**randomVar*variability*/) ;
 }
 
@@ -62,3 +73,8 @@ void SpatiallyDistributedStiffness::getForces(const ElementState & s, const Func
 {
 }
 
+void SpatiallyDistributedStiffness::setDistance(double d)
+{
+//  std::cout << d << std::endl ;
+  distance = d;
+}

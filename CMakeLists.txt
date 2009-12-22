@@ -31,6 +31,7 @@ filters/voxelporefilter.cpp
 geometry/geometry_2D.cpp 
 geometry/geometry_3D.cpp 
 geometry/geometry_base.cpp 
+geometry/level_set.cpp
 mesher/delaunay_3d.cpp 
 mesher/delaunay.cpp 
 physics/diffusion.cpp 
