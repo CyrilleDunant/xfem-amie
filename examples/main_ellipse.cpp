@@ -128,8 +128,8 @@ Vector fracCrit(0) ;
 Vector g_count(0) ;
 
 double nu = 0.3 ;
-double E_agg = 589.;//softest
-double E_paste = E_agg/4. ;//stiff
+double E_agg = 58.9e9 ;
+double E_paste = 12e9 ;
 double E_stiff = E_agg*10. ;//stiffer
 double E_soft = E_agg/10.; //stiffest
 
@@ -141,7 +141,39 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
+int totit = 5 ;
+
 std::vector<double> energy ;
+
+
+std::string itoa(int value, int base) {
+
+	enum { kMaxDigits = 35 };
+	std::string buf;
+	buf.reserve( kMaxDigits ); // Pre-allocate enough space.
+
+	// check that the base if valid
+	if (base < 2 || base > 16) return buf;
+
+	int quotient = value;
+	
+	
+	// Translating number to string with base:
+	do {
+		buf += "0123456789abcdef"[ std::abs( quotient % base ) ];
+		quotient /= base;
+	} while ( quotient );
+	
+	// Append the negative sign for base 10
+	if ( value < 0 && base == 10) buf += '-';
+	
+	std::reverse( buf.begin(), buf.end() );
+	
+	return buf;
+	
+}
+
+
 
 void setBC()
 {
@@ -482,6 +514,59 @@ void step()
 			}
 		}
 	
+		std::string filename("triangles") ;
+		filename.append(itoa(totit++, 10)) ;
+		std::cout << filename << std::endl ;
+		std::fstream outfile  ;
+		outfile.open(filename.c_str(), std::ios::out) ;
+		
+		outfile << "TRIANGLES" << std::endl ;
+		outfile << triangles.size() << std::endl ;
+		outfile << 3 << std::endl ;
+		outfile << 8 << std::endl ;
+		
+		for(size_t j = 0 ; j < triangles.size() ;j++)
+		{
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
+			}
+
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  epsilon11[j*3+l] << " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  epsilon22[j*3+l] << " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<   epsilon12[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma11[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma22[j*3+l]<< " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma12[j*3+l] << " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << vonMises[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
+			}
+			outfile << "\n" ;
+		}
+		
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
 		std::cout << "min value :" << x_min << std::endl ;
@@ -1437,14 +1522,14 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	int nAgg = 4 ;
+	int nAgg = 6000 ;
 // 	std::cout << "number of inclusions?" << std::endl ;
 // 	std::cin >> nAgg ;
 	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.001, 0.75, 0.026)(true, 0.001/3, 0.0001, 0.333, nAgg) ;
 	double itzsize = 0.0001 ;
 	std::cout << itzsize << std::endl ;
 
-	sample.setBehaviour(new SpatiallyDistributedStiffness(m0_paste, m0_paste, itzsize,3,0)) ;
+	sample.setBehaviour(new SpatiallyDistributedStiffness(m0_paste, m0_paste, itzsize,13500000,-8*13500000)) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 
 //	std::ofstream off ;
@@ -1473,11 +1558,11 @@ int main(int argc, char *argv[])
 	feats=placement(sample.getPrimitive(), feats, &nAgg, 640000);
 
 	vector<Feature *> itzfeatures ;
-	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,0,0) ;
+	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
 	inc[0]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-	itzfeatures.push_back(new ITZFeature(&sample,inc[0],m0_paste,m0_paste*0.5,itzsize,2.5,0)) ;
+	itzfeatures.push_back(new ITZFeature(&sample,inc[0],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
 	F.addFeature(&sample, itzfeatures[0]) ;
 	for(size_t i = 1 ; i < inc.size() ; i++)
 	{
@@ -1489,11 +1574,11 @@ int main(int argc, char *argv[])
 			std::cout << "last inclusion placed => " << i << std::endl ;
 			return 1 ;
 		}
-		SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,0,0) ;
+		SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
 		inc[i]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.5,itzsize,2.5,0)) ;
+		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
 		F.addFeature(itzfeatures[i-1], itzfeatures[i]) ;
 //		F.addFeature(itzfeatures[i],inc[i]) ;
 	}
@@ -1532,7 +1617,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(256) ;
+	F.sample(2048) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
