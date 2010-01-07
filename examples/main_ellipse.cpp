@@ -1529,7 +1529,7 @@ int main(int argc, char *argv[])
 	double itzsize = 0.0001 ;
 	std::cout << itzsize << std::endl ;
 
-	sample.setBehaviour(new SpatiallyDistributedStiffness(m0_paste, m0_paste, itzsize,13500000,-8*13500000)) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 
 //	std::ofstream off ;
@@ -1557,14 +1557,15 @@ int main(int argc, char *argv[])
 
 	feats=placement(sample.getPrimitive(), feats, &nAgg, 640000);
 
-	vector<Feature *> itzfeatures ;
-	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
-	inc[0]->setBehaviour(stiff) ;
+//	vector<Feature *> itzfeatures ;
+//	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
+	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
+//	inc[0]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-	itzfeatures.push_back(new ITZFeature(&sample,inc[0],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
-	F.addFeature(&sample, itzfeatures[0]) ;
-	for(size_t i = 1 ; i < inc.size() ; i++)
+//	itzfeatures.push_back(new ITZFeature(&sample,inc[0],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
+//	F.addFeature(&sample, itzfeatures[0]) ;
+	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
 //		std::cout << i << std::endl ;
 //		inc[i]->getMajorAxis().print() ;
@@ -1574,19 +1575,20 @@ int main(int argc, char *argv[])
 			std::cout << "last inclusion placed => " << i << std::endl ;
 			return 1 ;
 		}
-		SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
+//		SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
 		inc[i]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
-		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
-		F.addFeature(itzfeatures[i-1], itzfeatures[i]) ;
+//		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
+//		F.addFeature(itzfeatures[i-1], itzfeatures[i]) ;
 //		F.addFeature(itzfeatures[i],inc[i]) ;
+		F.addFeature(&sample, inc[i]) ;
 	}
-	F.addFeature(itzfeatures[inc.size()-1], inc[0]) ;
+/*	F.addFeature(itzfeatures[inc.size()-1], inc[0]) ;
 	for(size_t i = 1 ; i < inc.size() ; i++)
 	{
 		F.addFeature(inc[i-1], inc[i]) ;
-	}
+	}*/
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
@@ -1597,7 +1599,7 @@ int main(int argc, char *argv[])
 // F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.002, -0.002) , Point( -0.001, -0.002), Point( -0.0015, 0.002) )) ;
-	std::vector<Pore *> pores;
+/*	std::vector<Pore *> pores;
 
 	double totalMass = 0.25;
 	double density = 25000;
@@ -1615,7 +1617,7 @@ int main(int argc, char *argv[])
 	Point center6 = (center5 + Point(0.0,0.005));
 
 
-	Circle cercle(.5, 0,0) ;
+	Circle cercle(.5, 0,0) ;*/
 
 	F.sample(2048) ;
 	F.setOrder(LINEAR) ;
