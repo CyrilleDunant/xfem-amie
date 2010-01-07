@@ -1529,8 +1529,8 @@ int main(int argc, char *argv[])
 	double itzsize = 0.0001 ;
 	std::cout << itzsize << std::endl ;
 
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
-// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
+ 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 
 //	std::ofstream off ;
 //	off.open("granulo.txt", ios::out) ;
@@ -1559,7 +1559,8 @@ int main(int argc, char *argv[])
 
 //	vector<Feature *> itzfeatures ;
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
-	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
+//	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
+	Stiffness * stiff = new Stiffness(m0_paste*10);
 //	inc[0]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
