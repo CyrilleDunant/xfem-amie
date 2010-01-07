@@ -1522,15 +1522,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	int nAgg = 6000 ;
+	int nAgg = 5000 ;
 // 	std::cout << "number of inclusions?" << std::endl ;
 // 	std::cin >> nAgg ;
 	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.001, 0.75, 0.026)(true, 0.001/3, 0.0001, 0.333, nAgg) ;
 	double itzsize = 0.0001 ;
 	std::cout << itzsize << std::endl ;
 
-//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
- 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 
 //	std::ofstream off ;
 //	off.open("granulo.txt", ios::out) ;
@@ -1620,7 +1620,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;*/
 
-	F.sample(2048) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
