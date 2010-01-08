@@ -2400,7 +2400,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		return cachedGaussPoints ;
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 8;
+	size_t numberOfRefinements = 4;
 	
 	double tol = 1e-6 ;
 	double position_tol = 4.*POINT_TOLERANCE ;

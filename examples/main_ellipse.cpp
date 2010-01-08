@@ -1522,7 +1522,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	int nAgg = 5000 ;
+	int nAgg = 6000 ;
 // 	std::cout << "number of inclusions?" << std::endl ;
 // 	std::cin >> nAgg ;
 	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.001, 0.75, 0.026)(true, 0.001/3, 0.0001, 0.333, nAgg) ;
@@ -1559,8 +1559,8 @@ int main(int argc, char *argv[])
 
 //	vector<Feature *> itzfeatures ;
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
-//	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
-	Stiffness * stiff = new Stiffness(m0_paste*10);
+	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
+//	Stiffness * stiff = new Stiffness(m0_paste*10);
 //	inc[0]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
@@ -1636,7 +1636,7 @@ int main(int argc, char *argv[])
 
 	step() ;
 	
-	glutInit(&argc, argv) ;	
+/*	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
@@ -1676,7 +1676,7 @@ int main(int argc, char *argv[])
 	glShadeModel(GL_SMOOTH);
 	
 	glutDisplayFunc(Display) ;
-	glutMainLoop() ;
+	glutMainLoop() ;*/
 	
 // 	delete dt ;
 	
