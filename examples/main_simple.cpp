@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 	
 
 	double itzSize = 0.00001;
-			int inclusionNumber = 3200 ;
+			int inclusionNumber = 20 ;
 
 			std::vector<Inclusion3D *> inclusions = GranuloBolome(0.0000384, 1, BOLOME_D)(true, .002, .0001, inclusionNumber, itzSize);
 
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
 	sample.setBehaviour(new Stiffness(m0)) ;
 
-	F.sample(2048) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	step() ;

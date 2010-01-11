@@ -2496,7 +2496,6 @@ Vector DelaunayTetrahedron::getForces() const
 	Vector f(0., 3) ;
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-
 		behaviour->getForces(this->getState(), getShapeFunction(i) ,gp, Jinv, f) ;
 		
 		forces[i*3]+=f[0];

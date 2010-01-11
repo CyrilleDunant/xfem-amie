@@ -340,6 +340,7 @@ void Assembly::setBoundaryConditions()
 		}
 	}
 	
+	std::cout << std::endl << element3d.size() << std::endl ;
 	
 	for(size_t i = 0 ; i < element3d.size() ; i++)
 	{
@@ -797,7 +798,6 @@ bool Assembly::make_final()
 // 			element3d[i]->clearElementaryMatrix() ;
 		}
 		getMatrix().stride =  ndof;
-		element3d.clear() ;
 		std::cerr << " ...done" << std::endl ;
 			
 		setBoundaryConditions() ;

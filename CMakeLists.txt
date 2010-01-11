@@ -216,6 +216,9 @@ target_link_libraries( rag_simple Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_F
 add_executable(ellipse_test examples/main_ellipse_test.cpp )
 target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
+add_executable(thermal_expansion examples/main_thermalexpansion.cpp )
+target_link_libraries( thermal_expansion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+
 add_executable(ellipse examples/main_ellipse.cpp )
 target_link_libraries( ellipse Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
