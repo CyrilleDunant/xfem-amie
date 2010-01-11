@@ -1413,7 +1413,7 @@ Ellipse::Ellipse(double a, double b, double x,double y)
 {
 	gType = ELLIPSE ;
 	this->center = Point(x, y) ;
-	double angle = ((double)rand()/(double)RAND_MAX)*2.*M_PI ;
+	double angle = (((double)rand()/(double)RAND_MAX)-0.5)*M_PI/2 ;
 //	std::cout << axisX << " ; " << axisY << std::endl ;
 	majoraxis = Point(cos(angle), sin(angle)) ;
 
@@ -2096,8 +2096,8 @@ std::vector<Point> Ellipse::getBoundingBox() const
 	
 	bbox[0] = center + majoraxis * majorradius + minoraxis * minorradius ;
 	bbox[1] = center + majoraxis * majorradius - minoraxis * minorradius ;
-	bbox[2] = center - majoraxis * majorradius + minoraxis * minorradius ;
-	bbox[3] = center - majoraxis * majorradius - minoraxis * minorradius ;
+	bbox[2] = center - majoraxis * majorradius - minoraxis * minorradius ;
+	bbox[3] = center - majoraxis * majorradius + minoraxis * minorradius ;
 
 	return bbox ;
 }

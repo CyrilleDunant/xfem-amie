@@ -86,7 +86,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		double longueurX = std::abs(boundingBox[2].x-boundingBox[0].x);
 		double longueurY = std::abs(boundingBox[0].y-boundingBox[2].y);
 		std::cout << longueurX << ", " << longueurY << std::endl ;
-		Grid grid(longueurX, longueurY, 1, Point()) ;
+		Grid grid(longueurX, longueurY, 1, box->getCenter()) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
 		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
@@ -132,6 +132,9 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 					bbox = inclusions[i]->getBoundingBox() ;
 				}
 			}
+			
+			if(tries==triesMax)
+				std::cout << "triesmax" << std::endl ;
 			
 			if(tries< triesMax)
 			{

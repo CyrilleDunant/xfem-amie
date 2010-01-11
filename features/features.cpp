@@ -4256,6 +4256,7 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	}
 	
 	psize = std::max(x/lengthX, y/lengthY);
+	std::cout << lengthX << ";" << lengthY << std::endl ;
 	for(size_t i = 0 ; i < lengthX ; i++)
 	{
 		for(size_t j = 0 ; j < lengthY ; j++)
@@ -4280,7 +4281,7 @@ std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
 	
 	double endY =  startY+2.*geo->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)lengthY);
-	
+		
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -4381,10 +4382,16 @@ Grid Grid::getGrid(int div) const
 bool Grid::add(Feature * inc)
 {
 	std::vector<Feature *> toTest = coOccur(inc);
+	std::cout << toTest.size() << std::endl ;
+	inc->getCenter().print() ;
 	for(size_t i = 0 ; i < toTest.size() ; i++)
+	{
+		toTest[i]->getCenter().print() ;
+//		std::cout << inc->intersects(toTest[i]) ;
 		if(inc->intersects(toTest[i]))
 			return false ;
-	
+	}
+//	std::cout << std::endl ;
 	forceAdd(inc) ;
 	
 	return true ;

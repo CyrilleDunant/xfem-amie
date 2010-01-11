@@ -1522,10 +1522,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	int nAgg = 5000 ;
+	int nAgg = 50 ;
 // 	std::cout << "number of inclusions?" << std::endl ;
 // 	std::cin >> nAgg ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.001, 0.75, 0.026)(true, 0.001/2, 0.0001, 0.5, nAgg) ;
+	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.0025, 0.75, 0.026)(true, 0.001/2, 0.0001, 0.5, nAgg) ;
 	double itzsize = 0.0001 ;
 	std::cout << itzsize << std::endl ;
 
@@ -1620,7 +1620,7 @@ int main(int argc, char *argv[])
 
 	Circle cercle(.5, 0,0) ;*/
 
-	F.sample(2048) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
@@ -1636,7 +1636,7 @@ int main(int argc, char *argv[])
 
 	step() ;
 	
-/*	glutInit(&argc, argv) ;	
+	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
@@ -1676,7 +1676,7 @@ int main(int argc, char *argv[])
 	glShadeModel(GL_SMOOTH);
 	
 	glutDisplayFunc(Display) ;
-	glutMainLoop() ;*/
+	glutMainLoop() ;
 	
 // 	delete dt ;
 	

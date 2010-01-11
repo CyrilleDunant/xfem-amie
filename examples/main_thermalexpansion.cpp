@@ -121,27 +121,6 @@ Vector fracCrit(0) ;
 
 Vector g_count(0) ;
 
-Vector paste_prop(3) ;
-Vector similipaste_prop(3) ;
-Vector quartz_prop(3) ;
-Vector limestone_prop(3) ;
-
-paste_prop[0] = 9.69 ;
-paste_prop[1] = 25 ;
-paste_prop[2] = 0.22 ;
-
-similipaste_prop[0] = 4.34 ;
-similipaste_prop[1] = 25 ;
-similipaste_prop[2] = 0.22 ;
-
-quartz_prop[0] = 11.38 ;
-quartz_prop[1] = 70 ;
-quartz_prop[2] = 0.2 ;
-
-limestone_prop[0] = 4.34 ;
-limestone_prop[1] = 50 ;
-limestone_prop[2] = 0.22 ;
-
 double temperature = 50 ;
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
@@ -246,14 +225,13 @@ void step()
   
 
 		timepos+= 0.0001 ;
-		double da = 0 ;
 
 		triangles = featureTree->getTriangles() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 
 		dt = featureTree->getDelaunayTree() ;
-			sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
+		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
 		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
@@ -580,145 +558,88 @@ Matrix buildStiffnessMatrix(Vector p)
 
 std::vector<Inclusion *> buildInclusion(int nInc, double pInc)
 {
-	std::vector<Inclusion *> inc(nInc) ;
-	double radius = std::sqrt(pInc / (nInc * 3.1415926)) ;
+	std::vector<Inclusion *> inc ;
+	double radius = std::sqrt(pInc / (nInc * nInc * 3.1415926)) ;
+	std::cout << radius << std::endl ;
+	double dist = (1 - nInc * radius * 2) / (nInc + 1) ;
+	std::cout << dist << std::endl ;
 	for(int i = 0 ; i < nInc ; i++)
 	{
-		inc.push_back(new Inclusion(radius,0,0)) ;
+		for(int j = 0 ; j < nInc ; j++)
+		{
+			inc.push_back(new Inclusion(radius,(i +1) * dist + radius * (2 * i + 1),(j +1) * dist  + radius * (2 * j + 1))) ;
+//			std::cout << (i +1) * dist + radius * (2 * i + 1) << ";" << (j +1) * dist  + radius * (2 * j + 1) << std::endl ;
+		}
 	}
 	return inc ;
 }
 
 
-int main(int argc, char *argv[])
+void thermalDeformation(Vector matrixProp, Vector inclusionProp, int nInc, double pInc)
 {
-	Matrix m0_paste = buildStiffnessMatrix(paste_prop) ;
-	Matrix m0_smilipaste = buildStiffnessMatrix(similipaste_prop) ;
-	Matrix m0_quartz = buildStiffnessMatrix(quartz_prop) ;
-	Matrix m0_limestone = buildStiffnessMatrix(limestone_prop) ;
-    
 	double width = 1. ;
 	double height = 1. ;
-	Sample sample(NULL, width, height, 0, 0) ;
-	
+	Sample sample(NULL, width, height, 0.5, 0.5) ;	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 	
-	Vector inclusionDef(3) ;
-	Vector pasteDef(3) ;
-
-	StiffnessWithImposedDeformation * thermalStiffPaste = new StiffnessWithImposedDeformation(m0_paste,pasteDef) ;
- 	sample.setBehaviour(thermalStiffPaste) ;
-
-	Inclusion * inc0 = new Inclusion(0.001, 0.000, 0.000) ;
-
+	Matrix mK = buildStiffnessMatrix(matrixProp) ;
+	Matrix iK = buildStiffnessMatrix(inclusionProp) ;
+	double mA = matrixProp[0] * 1e-6 ;
+	double iA = inclusionProp[0] * 1e-6 ;
 	
-	StiffnessWithImposedDeformation * thermalStiff = new StiffnessWithImposedDeformation(m0_agg,thermalDeformation) ;
-//	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, 0.001, 0, 0) ;
-	inc0->setBehaviour(thermalStiff) ;
-//	inc1->setBehaviour(thermalStiff) ;
-// 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
-// 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-// 	F.addFeature(&sample, inc0) ;
-// 	F.addFeature(&sample, inc1) ;
+	Vector mDef(3) ;
+	mDef[0] = mA * temperature ;
+	mDef[1] = mA * temperature ;
+	mDef[2] = 0 ;
+	Vector iDef(3) ;
+	iDef[0] = iA * temperature ;
+	iDef[1] = iA * temperature ;
+	iDef[2] = 0 ;
 	
-//	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
-//	inc1->setBehaviour(stiff) ;
-//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
- 	F.addFeature(&sample, inc0) ;
-// 	F.addFeature(&sample, inc1) ;
-//	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
-//	F.addFeature(&sample, itz) ;
-//	F.addFeature(itz, inc1) ;
-// 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
-// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-// 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
-// 	F.addFeature(&sample, new TriangularPore(Point( 0.011,  0.002) , Point( 0.011, 0.0023), Point( 0.009, 0.00215) )) ;
-
-// F.addFeature(&sample, new TriangularPore(Point( -0.009, -0.002) , Point( -0.008, -0.002), Point( -0.007, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.0047, -0.002) , Point( -0.0057, -0.002), Point( -0.0067, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.002, -0.002) , Point( -0.001, -0.002), Point( -0.0015, 0.002) )) ;
-/*	std::vector<Pore *> pores;
-
-	double totalMass = 0.25;
-	double density = 25000;
-	double Dmax = 0.005;
-	double pmin = 0.999;
-	// Generates inclusion geometry
-	double radius1 = 0.004; 	double radius2 = 0.04/5;
-	double radius3 = 0.04/5; double radius4 = 0.04/10;
-	double radius5 = 0.04/20;  double radius6 = 0.04/20;
-	Point center1 = Point(0.0,-0.01);
-	Point center2 = Point(0.02,0.02);
-	Point center3 = Point(-0.02,-0.02);
-	Point center4 = (center2 + center1)/2;
-	Point center5 = (center1 + Point(0.0,0.01));
-	Point center6 = (center5 + Point(0.0,0.005));
-
-
-	Circle cercle(.5, 0,0) ;*/
-
+	StiffnessWithImposedDeformation * mTDef = new StiffnessWithImposedDeformation(mK,mDef) ;
+	StiffnessWithImposedDeformation * iTDef = new StiffnessWithImposedDeformation(iK,iDef) ;
+	
+	std::vector<Inclusion *> inc = buildInclusion(nInc,pInc) ;
+	
+	sample.setBehaviour(mTDef) ;
+	for(int i = 0 ; i < inc.size() ; i++)
+	{
+		  inc[i]->setBehaviour(iTDef) ;
+		  F.addFeature(&sample, inc[i]) ;
+	}
 	F.sample(256) ;
 	F.setOrder(LINEAR) ;
-
 	F.generateElements() ;
-// 	F.refine(3) ;
-
-	
-	//	F.generateElements(0) ;
-// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
-	
-//	for(size_t j = 0 ; j < crack.size() ; j++)
-	//	crack[j]->setInfluenceRadius(0.02) ;
-// 	
-
 	step() ;
 	
-/*	glutInit(&argc, argv) ;	
-	glutInitDisplayMode(GLUT_RGBA) ;
-	glutInitWindowSize(600, 600) ;
-	glutReshapeFunc(reshape) ;
-	glutCreateWindow("coucou !") ;
-	
-	int submenu = glutCreateMenu(Menu) ;
-	
-	glutAddMenuEntry(" Displacements ", ID_DISP);
-	glutAddMenuEntry(" Strain (s) xx ", ID_STRAIN_XX);
-	glutAddMenuEntry(" Strain (s) yy ", ID_STRAIN_YY);
-	glutAddMenuEntry(" Strain (s) xy ", ID_STRAIN_XY);
-	glutAddMenuEntry(" Stress (e) xx ", ID_STRESS_XX);
-	glutAddMenuEntry(" Stress (e) yy ", ID_STRESS_YY);
-	glutAddMenuEntry(" Stress (e) xy ", ID_STRESS_XY);
-	glutAddMenuEntry(" Elements      ", ID_ELEM);
-	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
-	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
-	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
-	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
-	glutAddMenuEntry(" Frac Crit     ", ID_FRAC_CRIT);
-	
-	glutCreateMenu(Menu) ;
+}
 
- 	glutAddMenuEntry(" Step          ", ID_NEXT);
-	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
-	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
-	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
-	glutAddMenuEntry(" Amplify       ", ID_AMPLIFY);
-	glutAddMenuEntry(" Deamplify     ", ID_DEAMPLIFY);
-	glutAddSubMenu(  " Display       ", submenu);
-	glutAddMenuEntry(" Quit          ", ID_QUIT) ;
-	
-	
-	glutAttachMenu(GLUT_RIGHT_BUTTON) ;
-	
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glShadeModel(GL_SMOOTH);
-	
-	glutDisplayFunc(Display) ;
-	glutMainLoop() ;*/
-	
-// 	delete dt ;
+
+int main(int argc, char *argv[])
+{
+	Vector paste_prop(3) ;
+	Vector similipaste_prop(3) ;
+	Vector quartz_prop(3) ;
+	Vector limestone_prop(3) ;
+
+	paste_prop[0] = 9.69 ;
+	paste_prop[1] = 25 ;
+	paste_prop[2] = 0.22 ;
+
+	similipaste_prop[0] = 4.34 ;
+	similipaste_prop[1] = 25 ;
+	similipaste_prop[2] = 0.22 ;
+
+	quartz_prop[0] = 11.38 ;
+	quartz_prop[1] = 70 ;
+	quartz_prop[2] = 0.2 ;
+
+	limestone_prop[0] = 4.34 ;
+	limestone_prop[1] = 50 ;
+	limestone_prop[2] = 0.22 ;
+    
+	thermalDeformation(paste_prop,similipaste_prop,50,0.75) ;
 	
 	return 0 ;
 }

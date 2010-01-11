@@ -1086,8 +1086,10 @@ bool Geometry::intersects(const Geometry *g) const
 		{
 //			std::cout << "ellipse" << std::endl ;
 			if(g->getRadius() < this->getRadius())
+			{  
+//				std::cout << g->intersects(this) << std::endl ;
 				return g->intersects(this) ;
-
+			}
 
 			std::vector<Segment> segs ;
 			bool isInSegments = false ;
