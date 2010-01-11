@@ -1496,7 +1496,7 @@ int main(int argc, char *argv[])
 
 	double width = 0.02;
 	double height = 0.01;
-	Sample sample(NULL, width, height, 0, 0) ;
+	Sample sample(NULL, width, height, 0.01, 0.005) ;
 	
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
@@ -1522,15 +1522,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	int nAgg = 50 ;
+	int nAgg = 1 ;
 // 	std::cout << "number of inclusions?" << std::endl ;
 // 	std::cin >> nAgg ;
 	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.0025, 0.75, 0.026)(true, 0.001/2, 0.0001, 0.5, nAgg) ;
 	double itzsize = 0.0001 ;
 	std::cout << itzsize << std::endl ;
 
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
-// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
+ 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 
 //	std::ofstream off ;
 //	off.open("granulo.txt", ios::out) ;
@@ -1559,8 +1559,8 @@ int main(int argc, char *argv[])
 
 //	vector<Feature *> itzfeatures ;
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
-	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
-//	Stiffness * stiff = new Stiffness(m0_paste*10);
+//	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
+	Stiffness * stiff = new Stiffness(m0_paste*10);
 //	inc[0]->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;

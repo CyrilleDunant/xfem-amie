@@ -4255,8 +4255,8 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)NULL,lengthY)) ;
 	}
 	
-	psize = std::max(x/lengthX, y/lengthY);
-	std::cout << lengthX << ";" << lengthY << std::endl ;
+	psize = std::max(std::abs(x/lengthX), std::abs(y/lengthY));
+	
 	for(size_t i = 0 ; i < lengthX ; i++)
 	{
 		for(size_t j = 0 ; j < lengthY ; j++)
@@ -4278,10 +4278,9 @@ std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
 	
 	double startY = y*.5-c.y + geo->getCenter().y-geo->getRadius() ;
 	int startJ = std::max(0., startY/psize - 2) ;
-	
+		
 	double endY =  startY+2.*geo->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)lengthY);
-		
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
