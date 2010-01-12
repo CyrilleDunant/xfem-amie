@@ -1017,6 +1017,8 @@ void step()
 	<< damaged_volume[i]  << "   " 
 	<< std::endl ;
 }
+
+
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
 {
 	double E_csh = 31e9 ;
@@ -1968,8 +1970,8 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	int nAgg = 50 ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.3, 0.25, 0.75, 0.026)(true, 0.1/2, 0.01, 0.5, nAgg) ;
+	int nAgg = 6000 ;
+	std::vector<EllipsoidalInclusion *> inc = Granulo(0.3, 0.15, 0.75, 0.026)(true, 0.2/2, 0.01, 0.5, nAgg) ;
 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 //	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	std::vector<Feature *> feats ;
@@ -1996,7 +1998,7 @@ int main(int argc, char *argv[])
 	zones = generateExpansiveZonesHomogeneously(20,inc,F) ;
 	
 	
-	F.sample(256) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
