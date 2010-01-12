@@ -566,12 +566,6 @@ public:
 	 */
 	virtual double getRadiusOnEllipse(double theta) const ;
 
-	/** \brief Returns the ellipse major radius.
-	 *
-	 * @return the ellipse major radius
-	 */
-	virtual double radius() const ;
-
 	/** \brief Returns a times b.
 	 *
 	 * @return the ellipse major radius

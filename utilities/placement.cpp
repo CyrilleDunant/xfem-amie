@@ -130,7 +130,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 					bbox = inclusions[i]->getBoundingBox() ;
 				}
 			}
-			
+
 			if(tries==triesMax)
 				std::cout << "triesmax" << std::endl ;
 			
@@ -138,7 +138,6 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			{
 				if(i%100 == 0)
 					std::cout << "\rplaced " << i << " particles" << std::flush ;
-				inclusions[i]->setCenter(inclusions[i]->getCenter() + offset) ;
 				ret.push_back(inclusions[i]) ;
 				volume += inclusions[i]->area() ;
 				tries = 0 ;

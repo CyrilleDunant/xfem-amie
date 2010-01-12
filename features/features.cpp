@@ -3793,6 +3793,7 @@ void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc)
 	}
 	
 	std::vector<Feature *> ret ;
+
 	
 	if(pixels.size())
 	{
@@ -4381,11 +4382,12 @@ Grid Grid::getGrid(int div) const
 bool Grid::add(Feature * inc)
 {
 	std::vector<Feature *> toTest = coOccur(inc);
-	std::cout << toTest.size() << std::endl ;
-	inc->getCenter().print() ;
+//	std::cout << toTest.size() << std::endl ;
+//	c.print() ;
+//	inc->getCenter().print() ;
 	for(size_t i = 0 ; i < toTest.size() ; i++)
 	{
-		toTest[i]->getCenter().print() ;
+//		toTest[i]->getCenter().print() ;
 //		std::cout << inc->intersects(toTest[i]) ;
 		if(inc->intersects(toTest[i]))
 			return false ;

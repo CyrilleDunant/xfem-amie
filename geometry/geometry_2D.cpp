@@ -1894,11 +1894,6 @@ double Ellipse::area() const
 	return M_PI * majorradius * minorradius ;
 }
 
-double Ellipse::radius() const
-{
-	return majorradius ;
-}
-
 double Ellipse::getSquareRadius() const
 {
 	return sqradius ;
