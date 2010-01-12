@@ -1971,7 +1971,7 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	int nAgg = 4000 ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.3, 0.15, 0.75, 0.026)(true, 0.2/2, 0.01, 0.5, nAgg) ;
+	std::vector<EllipsoidalInclusion *> inc = Granulo(0.3, 0.15, 0.75, 0.026)(false, 0.2/2, 0.01, 0.5, nAgg) ;
 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 //	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	std::vector<Feature *> feats ;
