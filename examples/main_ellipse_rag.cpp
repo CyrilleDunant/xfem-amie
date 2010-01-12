@@ -97,7 +97,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.00 ;
-double percent = 0.10 ;
+double percent = 0.70 ;
 double placed_area = 0 ;
 
 bool firstRun = true ;
