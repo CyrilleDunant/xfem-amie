@@ -576,9 +576,9 @@ void setBC()
 void step()
 {
 
-	int nsteps = 2;
-	int nstepstot = 4;
-	int maxtries = 20 ;
+	int nsteps = 20;
+	int nstepstot = 40;
+	int maxtries = 200 ;
 	int tries = 0 ;
 	
 // 	fastForward(4, 10) ;
