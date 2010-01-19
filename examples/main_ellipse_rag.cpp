@@ -108,9 +108,9 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
 
-double width = 0.4;
-double height = 1.0;
-Sample sample(NULL, width, height, 0, 0.5) ;
+double width = 0.01;
+double height = 0.04;
+Sample sample(NULL, width, height, 0, 0.02) ;
 	
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -1971,7 +1971,7 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	int nAgg = 4000 ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.3, 0.15, 0.75, 0.026)(false, 0.2/2, 0.01, 0.5, nAgg) ;
+	std::vector<EllipsoidalInclusion *> inc = Granulo(0.05, 0.1, 0.75, 0.026)(false, 0.00025, 0.01, 0.5, nAgg) ;
 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 //	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	std::vector<Feature *> feats ;
@@ -1980,6 +1980,7 @@ int main(int argc, char *argv[])
 	inc.clear() ;
 	for(size_t i = 0; i < feats.size() ; i++)
 		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
+	std::cout << width*height << std::endl ;
 	feats=placement(sample.getPrimitive(), feats, &nAgg, 640000);
 	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
 //	Stiffness * stiff = new Stiffness(m0_agg*10) ;
@@ -2002,50 +2003,50 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
-	step() ;
-	
-	glutInit(&argc, argv) ;	
-	glutInitDisplayMode(GLUT_RGBA) ;
-	glutInitWindowSize(600, 600) ;
-	glutReshapeFunc(reshape) ;
-	glutCreateWindow("coucou !") ;
-	
-	int submenu = glutCreateMenu(Menu) ;
-	
-	glutAddMenuEntry(" Displacements ", ID_DISP);
-	glutAddMenuEntry(" Strain (s) xx ", ID_STRAIN_XX);
-	glutAddMenuEntry(" Strain (s) yy ", ID_STRAIN_YY);
-	glutAddMenuEntry(" Strain (s) xy ", ID_STRAIN_XY);
-	glutAddMenuEntry(" Stress (e) xx ", ID_STRESS_XX);
-	glutAddMenuEntry(" Stress (e) yy ", ID_STRESS_YY);
-	glutAddMenuEntry(" Stress (e) xy ", ID_STRESS_XY);
-	glutAddMenuEntry(" Elements      ", ID_ELEM);
-	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
-	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
-	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
-	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
-	glutAddMenuEntry(" Frac Crit     ", ID_FRAC_CRIT);
-	
-	glutCreateMenu(Menu) ;
-
- 	glutAddMenuEntry(" Step          ", ID_NEXT);
-	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
-	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
-	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
-	glutAddMenuEntry(" Amplify       ", ID_AMPLIFY);
-	glutAddMenuEntry(" Deamplify     ", ID_DEAMPLIFY);
-	glutAddSubMenu(  " Display       ", submenu);
-	glutAddMenuEntry(" Quit          ", ID_QUIT) ;
-	
-	
-	glutAttachMenu(GLUT_RIGHT_BUTTON) ;
-	
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glShadeModel(GL_SMOOTH);
-	
-	glutDisplayFunc(Display) ;
-	glutMainLoop() ;
+// 	step() ;
 // 	
+// 	glutInit(&argc, argv) ;	
+// 	glutInitDisplayMode(GLUT_RGBA) ;
+// 	glutInitWindowSize(600, 600) ;
+// 	glutReshapeFunc(reshape) ;
+// 	glutCreateWindow("coucou !") ;
+// 	
+// 	int submenu = glutCreateMenu(Menu) ;
+// 	
+// 	glutAddMenuEntry(" Displacements ", ID_DISP);
+// 	glutAddMenuEntry(" Strain (s) xx ", ID_STRAIN_XX);
+// 	glutAddMenuEntry(" Strain (s) yy ", ID_STRAIN_YY);
+// 	glutAddMenuEntry(" Strain (s) xy ", ID_STRAIN_XY);
+// 	glutAddMenuEntry(" Stress (e) xx ", ID_STRESS_XX);
+// 	glutAddMenuEntry(" Stress (e) yy ", ID_STRESS_YY);
+// 	glutAddMenuEntry(" Stress (e) xy ", ID_STRESS_XY);
+// 	glutAddMenuEntry(" Elements      ", ID_ELEM);
+// 	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
+// 	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
+// 	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
+// 	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
+// 	glutAddMenuEntry(" Frac Crit     ", ID_FRAC_CRIT);
+// 	
+// 	glutCreateMenu(Menu) ;
+// 
+//  	glutAddMenuEntry(" Step          ", ID_NEXT);
+// 	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
+// 	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
+// 	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
+// 	glutAddMenuEntry(" Amplify       ", ID_AMPLIFY);
+// 	glutAddMenuEntry(" Deamplify     ", ID_DEAMPLIFY);
+// 	glutAddSubMenu(  " Display       ", submenu);
+// 	glutAddMenuEntry(" Quit          ", ID_QUIT) ;
+// 	
+// 	
+// 	glutAttachMenu(GLUT_RIGHT_BUTTON) ;
+// 	
+// 	glClearColor(0.0, 0.0, 0.0, 0.0);
+// 	glShadeModel(GL_SMOOTH);
+// 	
+// 	glutDisplayFunc(Display) ;
+// 	glutMainLoop() ;
+// // 	
 // 	delete dt ;
 	
 	return 0 ;

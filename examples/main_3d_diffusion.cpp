@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
 // 	
 	ft.addFeature(sample,new Pore3D(25, 50, 50, 50)) ;
 	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
-	ft.sample(512) ;
+	ft.sample(256) ;
 	ft.generateElements(0, true) ;
 	std::vector<DelaunayTetrahedron *> elems = ft.getTetrahedrons() ;
 

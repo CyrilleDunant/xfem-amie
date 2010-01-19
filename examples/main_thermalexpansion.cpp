@@ -121,7 +121,11 @@ Vector fracCrit(0) ;
 
 Vector g_count(0) ;
 
-double temperature = 50 ;
+double width = 1. ;
+double height = 1. ;
+Sample sample(NULL, width, height, 0.5, 0.5) ;	
+
+//double temperature = 50 ;
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 200 ;
@@ -130,6 +134,9 @@ bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
+
+std::string outfilename("results") ;
+std::fstream outresultfile ;
 
 
 int totit = 5 ;
@@ -172,8 +179,16 @@ void setBC()
 }
 
 
-void step()
+Vector step(int nInc)
 {
+	
+  
+	double avg_e_xx = 0;
+	double avg_e_yy = 0;
+	double avg_e_xy = 0;
+	double avg_s_xx = 0;
+	double avg_s_yy = 0;
+	double avg_s_xy = 0;
 	
 	bool cracks_did_not_touch = true;
 	size_t max_growth_steps = 1;
@@ -181,6 +196,7 @@ void step()
 	
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
 	{
+	  
 		countit++;
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
 		setBC() ;
@@ -268,13 +284,14 @@ void step()
 		int npoints = triangles[0]->getBoundingPoints().size() ;
 	
 		double area = 0 ;
-		double avg_e_xx = 0;
-		double avg_e_yy = 0;
-		double avg_e_xy = 0;
-		double avg_s_xx = 0;
-		double avg_s_yy = 0;
-		double avg_s_xy = 0;
-		double e_xx = 0 ;
+		avg_e_xx = 0;
+		avg_e_yy = 0;
+		avg_e_xy = 0;
+		avg_s_xx = 0;
+		avg_s_yy = 0;
+		avg_s_xy = 0;
+		double e_xx_max = 0 ;
+		double e_xx_min = 0 ;
 		double ex_count = 0 ;
 		double enr = 0 ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
@@ -305,10 +322,17 @@ void step()
 						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).x > 0.0799)
+					if(triangles[k]->getBoundingPoint(p).x > sample.width()*.9999)
 					{
-						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
-						ex_count++ ;
+						if(e_xx_max < x[triangles[k]->getBoundingPoint(p).id*2])
+							e_xx_max=x[triangles[k]->getBoundingPoint(p).id*2] ;
+// 						ex_count++ ;
+					}
+					if(triangles[k]->getBoundingPoint(p).x < sample.width()*.0001)
+					{
+						if(e_xx_min > x[triangles[k]->getBoundingPoint(p).id*2])
+							e_xx_min=x[triangles[k]->getBoundingPoint(p).id*2] ;
+// 						ex_count++ ;
 					}
 				}
 				area += triangles[k]->area() ;
@@ -454,7 +478,7 @@ void step()
 				}
 			}
 		}
-	
+		
 		std::string filename("triangles") ;
 		filename.append(itoa(totit++, 10)) ;
 		std::cout << filename << std::endl ;
@@ -537,12 +561,33 @@ void step()
 			
 		std::cout << "energy index :" << enr << std::endl ;
 		energy.push_back(enr) ;
-
+		
 		if(limit < 2)
 			break ;
+		
 	}
 	for(size_t i = 0 ; i < energy.size() ; i++)
 		std::cout << energy[i] << std::endl ;
+	
+/*	std::vector<Point *> c ;
+	Inclusion * inc_ ;
+	double radius = featureTree->getFeature(1)->getRadius() ;
+	for(int i=1 ; i < (nInc * nInc) + 1 ; i++)
+	{
+		inc_ = featureTree->getFeature(i) ;
+		c = inc_->getBoundingPoints() ;
+	}*/
+	
+	
+	
+	Vector results(6) ;
+	results[0] = avg_e_xx ;
+	results[1] = avg_e_xy ;
+	results[2] = avg_e_yy ;
+	results[3] = avg_s_xx ;
+	results[4] = avg_s_xy ;
+	results[5] = avg_s_yy ;
+	return results ;
 }
 
 Matrix buildStiffnessMatrix(Vector p)
@@ -575,11 +620,9 @@ std::vector<Inclusion *> buildInclusion(int nInc, double pInc)
 }
 
 
-void thermalDeformation(Vector matrixProp, Vector inclusionProp, int nInc, double pInc)
+Vector thermalDeformation(Vector matrixProp, Vector inclusionProp, int nInc, double pInc, double temperature)
 {
-	double width = 1. ;
-	double height = 1. ;
-	Sample sample(NULL, width, height, 0.5, 0.5) ;	
+	Vector result(6) ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 	
@@ -608,16 +651,21 @@ void thermalDeformation(Vector matrixProp, Vector inclusionProp, int nInc, doubl
 		  inc[i]->setBehaviour(iTDef) ;
 		  F.addFeature(&sample, inc[i]) ;
 	}
-	F.sample(256) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
-	step() ;
-	
+	result = step(nInc) ;
+	return result ;
+		
 }
 
 
 int main(int argc, char *argv[])
 {
+  
+	outresultfile.open(outfilename.c_str(), std::ios::out) ;
+	Vector exp(6) ;
+	
 	Vector paste_prop(3) ;
 	Vector similipaste_prop(3) ;
 	Vector quartz_prop(3) ;
@@ -639,7 +687,77 @@ int main(int argc, char *argv[])
 	limestone_prop[1] = 50 ;
 	limestone_prop[2] = 0.22 ;
     
-	thermalDeformation(paste_prop,similipaste_prop,50,0.75) ;
-	
+	exp = thermalDeformation(paste_prop,similipaste_prop,1,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,3,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,10,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,33,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,1,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,3,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,10,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,quartz_prop,33,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+ 	exp = thermalDeformation(paste_prop,limestone_prop,1,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,3,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,10,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,limestone_prop,33,0.75,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,1,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,3,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,10,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,similipaste_prop,33,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,1,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,3,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,10,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,quartz_prop,33,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,1,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,3,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,10,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,limestone_prop,33,0.5,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,1,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,3,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,similipaste_prop,10,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,similipaste_prop,33,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,1,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,3,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,quartz_prop,10,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,quartz_prop,33,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,1,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,3,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
+	exp = thermalDeformation(paste_prop,limestone_prop,10,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;	
+	exp = thermalDeformation(paste_prop,limestone_prop,33,0.25,50) ;
+	outresultfile << exp[0] << " ; " << exp[1] << " ; " << exp[2] << " ; " << exp[3] << " ; " << exp[4] << " ; " << exp[5] << "\n" ;
 	return 0 ;
 }
