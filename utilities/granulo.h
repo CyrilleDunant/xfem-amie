@@ -43,7 +43,7 @@ public:
 
 	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
 
-	virtual std::vector <EllipsoidalInclusion *> operator()(bool, double , double, double rfactor = 0.8, int inclusionNumber = 8000, double itzSize = 15e-6);
+	virtual std::vector <EllipsoidalInclusion *> operator()(bool, Point *, double , double, double rfactor = 0.8, int inclusionNumber = 8000, double itzSize = 15e-6);
 } ;
 
 class GranuloBolome : public Granulo

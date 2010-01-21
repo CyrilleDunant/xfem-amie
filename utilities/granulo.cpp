@@ -101,7 +101,7 @@ std::vector <Inclusion *> Granulo::operator()(double rayon_granulat, double pour
 
 }
 
-std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, double rayon_granulat, double pourcentMasseMin, double rfactor, int inclusionNumber , double itzSize)
+std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, Point * biais, double rayon_granulat, double pourcentMasseMin, double rfactor, int inclusionNumber , double itzSize)
 {
     std::vector<EllipsoidalInclusion *> rayon;
 
@@ -114,18 +114,24 @@ std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, double rayon_g
     double pourcentInitial=1.-exp(-c*pow(rayon_granulat,n));//calcul la constante pour que le diamètre initiale corresponde à un pourcentage de 1.
 
 // 	rayon.push_back(rayon_granulat);
-    rayon.push_back( new EllipsoidalInclusion(rayon_granulat/sfactor, rayon_granulat,0., 0.)) ;
+    rayon.push_back( new EllipsoidalInclusion(rayon_granulat/sfactor, rayon_granulat,0., 0.,biais->x,biais->y)) ;
 	std::cout << rayon_granulat << std::endl ;
 //    std::cout<< "n°"<<"masse granulat" << "  " <<"rayon granulat"<<"  " <<"volume granulat" << "  "<<"pourcent masse" <<"   "<<"masse restante"<<std::endl;
     double volumeGranulatsPasPlaces =0;
     double alea = 0.1 ;
+    Point b_(biais->x, biais->y) ;
     while (pourcentMasse>pourcentMasseMin && i < inclusionNumber)
     {
 	if(ell)
 	{
 		alea = (double)rand()/(double)RAND_MAX ;
 		sfactor = (rfactor + (1 - rfactor) * alea) ; // * alea ;
-//		std::cout << sfactor << std::endl ;
+		alea = (double)rand()/(double)RAND_MAX ;
+		b_.setX(biais->x + 0.3 * alea - 0.15) ;
+		alea = (double)rand()/(double)RAND_MAX ;
+		b_.setY(biais->y + 0.3 * alea - 0.15) ;		
+		//std::cout << b_.x << " " << b_.y << std::endl ;
+		//std::cout << sfactor << std::endl ;
 	}
 
         double masse_granulat =pow(( densite*rayon[i]->area()), .666666666666666); // masse plus plus gros granulat
@@ -158,7 +164,7 @@ std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, double rayon_g
 //        if (rayon_granulat<0.07)
   //          return rayon;
 // 		rayon.push_back(rayon_granulat);
-        rayon.push_back(new EllipsoidalInclusion(rayon_granulat/sfactor,rayon_granulat, 0., 0.)) ;
+        rayon.push_back(new EllipsoidalInclusion(rayon_granulat/sfactor,rayon_granulat, 0., 0.,b_.x,b_.y)) ;
 // 		std::cout << "rayon granulat reste  "<<rayon[i]->getRadius() << std::endl<<std::endl;
 
         i++;

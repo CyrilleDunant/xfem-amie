@@ -634,11 +634,11 @@ Vector thermalDeformation(Vector matrixProp, Vector inclusionProp, int nInc, dou
 	Vector mDef(3) ;
 	mDef[0] = mA * temperature ;
 	mDef[1] = mA * temperature ;
-	mDef[2] = 0 ;
+	mDef[2] = mA * temperature ;
 	Vector iDef(3) ;
 	iDef[0] = iA * temperature ;
 	iDef[1] = iA * temperature ;
-	iDef[2] = 0 ;
+	iDef[2] = iA * temperature ;
 	
 	StiffnessWithImposedDeformation * mTDef = new StiffnessWithImposedDeformation(mK,mDef) ;
 	StiffnessWithImposedDeformation * iTDef = new StiffnessWithImposedDeformation(iK,iDef) ;

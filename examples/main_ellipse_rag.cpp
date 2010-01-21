@@ -108,7 +108,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
 
-double width = 0.01;
+double width = 0.04;
 double height = 0.04;
 Sample sample(NULL, width, height, 0, 0.02) ;
 	
@@ -991,21 +991,27 @@ void step()
 			if (tries >= maxtries)
 				break ;
 		}
+		
+	std::string outfilename("outresultfile") ;
+	outfilename.append(itoa(totit++, 10)) ;
+	std::fstream outfilestream  ;
+	outfilestream.open(outfilename.c_str(), std::ios::out) ;
+		
 	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
-		std::cout << expansion_reaction[i].first << "   " 
-		<< expansion_reaction[i].second << "   " 
-		<< expansion_stress_xx[i].first << "   " 
-		<< expansion_stress_xx[i].second << "   " 
-		<< expansion_stress_yy[i].first << "   " 
-		<< expansion_stress_yy[i].second << "   " 
-		<< apparent_extension[i]  << "   " 
-		<< cracked_volume[i]  << "   " 
-		<< damaged_volume[i]  << "   " 
-		<< std::endl ;
+		outfilestream << expansion_reaction[i].first << ",   " 
+		<< expansion_reaction[i].second << ",   " 
+		<< expansion_stress_xx[i].first << ",   " 
+		<< expansion_stress_xx[i].second << ",   " 
+		<< expansion_stress_yy[i].first << ",   " 
+		<< expansion_stress_yy[i].second << ",   " 
+		<< apparent_extension[i]  << ",   " 
+		<< cracked_volume[i]  << ",   " 
+		<< damaged_volume[i]  << ";   " 
+		<< "\n" ;
 
 	}
 
-	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
+/*	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
 	std::cout << expansion_reaction[i].first << "   " 
 	<< expansion_reaction[i].second << "   " 
 	<< expansion_stress_xx[i].first << "   " 
@@ -1015,7 +1021,7 @@ void step()
 	<< apparent_extension[i]  << "   " 
 	<< cracked_volume[i]  << "   " 
 	<< damaged_volume[i]  << "   " 
-	<< std::endl ;
+	<< std::endl ;*/
 }
 
 
@@ -1957,6 +1963,10 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
+  
+	string axisdir(argv[1]) ;
+	std::cout << axisdir << std::endl ;
+  
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
@@ -1970,8 +1980,20 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	int nAgg = 4000 ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.05, 0.1, 0.75, 0.026)(false, 0.00025, 0.01, 0.5, nAgg) ;
+	int nAgg = 1 ;
+	std::vector<EllipsoidalInclusion *> inc = Granulo(0.1, 0.0115, 0.75, 0.026)(true, new Point(1,1), 0.001, 0.01, 0.5, nAgg) ;
+	nAgg = 6000 ;
+	if(axisdir.compare("x") == 0)
+	{
+		inc = Granulo(0.1, 0.0115, 0.75, 0.026)(true, new Point(1,0), 0.001, 0.01, 0.5, nAgg) ;
+		std::cout << "main direction = x" << std::endl ;
+	} else {
+		if(axisdir.compare("y") == 0)
+		{
+			inc = Granulo(0.1, 0.0115, 0.75, 0.026)(true, new Point(0,1), 0.001, 0.01, 0.5, nAgg) ;
+			std::cout << "main direction = y" << std::endl ;
+		}
+	}
 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 //	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	std::vector<Feature *> feats ;
@@ -1994,6 +2016,7 @@ int main(int argc, char *argv[])
 		}
 		inc[i]->setBehaviour(stiff) ;
 		F.addFeature(&sample, inc[i]) ;
+//		inc[i]->getMajorAxis().print() ;
 	}
 	
 	zones = generateExpansiveZonesHomogeneously(20,inc,F) ;
@@ -2003,7 +2026,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
-// 	step() ;
+ 	step() ;
 // 	
 // 	glutInit(&argc, argv) ;	
 // 	glutInitDisplayMode(GLUT_RGBA) ;

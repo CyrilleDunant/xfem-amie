@@ -1525,7 +1525,7 @@ int main(int argc, char *argv[])
 	int nAgg = 1 ;
 // 	std::cout << "number of inclusions?" << std::endl ;
 // 	std::cin >> nAgg ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.0025, 0.75, 0.026)(true, 0.001/2, 0.0001, 0.5, nAgg) ;
+	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.0025, 0.75, 0.026)(true, new Point(1,0), 0.001/2, 0.0001, 0.5, nAgg) ;
 	double itzsize = 0.0001 ;
 	std::cout << itzsize << std::endl ;
 
