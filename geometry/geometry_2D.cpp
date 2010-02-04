@@ -1994,10 +1994,17 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 void Ellipse::sampleSurface (size_t num_points)
 {
 	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(7*num_points*pow(getMajorRadius()/getMinorRadius(),0.666)/4) ;
+		this->sampleBoundingSurface(6*num_points*pow(getMajorRadius()/getMinorRadius(),0.666)/4) ;
 	sampled = true ;
 
-	size_t ring = num_points / (2 * M_PI) ;
+	size_t ring = 1 + num_points / (3 * M_PI / 2) ;
+	if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
+	{	
+		if(ring < 3)
+			ring = 3 ;
+//		std::cout << "add more points inside" << std::endl ;
+	}
+
 //	if(ring < 2)
 //		ring = 2 ;
 /*	std::vector<double> vangle(boundingPoints.size()) ;
@@ -2019,16 +2026,36 @@ void Ellipse::sampleSurface (size_t num_points)
 	std::vector<double> newalist ;
 	newalist.push_back(getMajorRadius()) ;
 
+	int factor = 1 ;
+//	if(getMinorRadius() / getMajorRadius() < 0.7071)// || ring==1)
+//	{	
+//		factor = 1 ;
+//		std::cout << "add more points inside" << std::endl ;
+//	}
+
+	newb = getMinorRadius() * (ring) / (ring + 1) ;
+	newa = getMinorRadius() * (ring) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - 1) / (ring) ;
+
+	if(newb/newa < 0.7071)
+		ring = ring + 1 ;
+
+
 	for(size_t j = 0 ; j < ring ; j++)
 	{
 		newb = getMinorRadius() * (ring - j) / (ring + 1) ;
 		newa = getMinorRadius() * (ring - j) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - j - 1) / (ring) ;
 		newalist.push_back(newa) ;
-		for(size_t i = 0 ; i < getBoundingPoints().size() / (4 * (j + 1)) ; i++)
+		for(size_t i = 0 ; i < getBoundingPoints().size() / (factor * (j + 1)) ; i++)
 		{
 			temp.push_back(new Point(center + 
-						getMajorAxis() * ((getBoundingPoint(i * (4 * (j + 1))) - center) * getMajorAxis()) * newa / getMajorRadius() +
-						getMinorAxis() * ((getBoundingPoint(i * (4 * (j + 1))) - center) * getMinorAxis()) * newb / getMinorRadius())) ;
+						getMajorAxis() * ((getBoundingPoint(i * (factor * (j + 1))) - center) * getMajorAxis()) * newa / getMajorRadius() +
+						getMinorAxis() * ((getBoundingPoint(i * (factor * (j + 1))) - center) * getMinorAxis()) * newb / getMinorRadius())) ;
+		}
+		if(factor == 2)
+		{
+			factor = 1 ;
+		} else {
+			factor = 1 ;
 		}
 	}
 /*	double r = sqrt(majorradius * minorradius) ;

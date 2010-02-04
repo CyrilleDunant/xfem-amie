@@ -1417,7 +1417,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
- 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+ 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 500000)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
@@ -1440,13 +1440,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 	
-	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
+//	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
+	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste*4, 500000) ;
 	inc1->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
 	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
-	F.addFeature(&sample, itz) ;
-	F.addFeature(itz, inc1) ;
+//	F.addFeature(&sample, itz) ;
+//	F.addFeature(itz, inc1) ;
+	F.addFeature(&sample, inc1) ;
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;

@@ -252,3 +252,106 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		
 }
 
+std::vector<Mu::EllipsoidalInclusion *> Mu::placement_with_rotation(const Geometry * box, std::vector<EllipsoidalInclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax) 
+{
+	int tries = 0 ;
+	int changeAxis = 0 ;
+	int hasBeenChanged = 0 ;
+
+	double volume = 0 ;
+	std::vector<EllipsoidalInclusion *> ret ;
+	
+	std::cout << "placing..." << std::endl ;
+	Point offset = box->getCenter() ;
+	std::vector<Point> boundingBox = box->getBoundingBox() ;
+	double longueurX = std::abs(boundingBox[2].x-boundingBox[0].x);
+	double longueurY = std::abs(boundingBox[0].y-boundingBox[2].y);
+	std::cout << longueurX << ", " << longueurY << std::endl ;
+	Grid grid(longueurX, longueurY, 10, box->getCenter()) ;
+	longueurX*=1.2 ;
+	longueurY*=1.2 ;
+	for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
+	{
+		tries++ ;
+		Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+		inclusions[i]->Ellipse::setCenter(newCentre) ;
+		std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+		{
+			Point newCentre(
+			                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
+			                 -(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
+			                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
+			                 -(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
+			               ) ;
+			inclusions[i]->Ellipse::setCenter(newCentre) ;
+			bbox = inclusions[i]->getBoundingBox() ;
+		}
+		while(!grid.add(inclusions[i]) && tries < triesMax)
+		{
+			tries++ ;
+			changeAxis++ ;
+			Point newCentre(
+			                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
+			                 - (longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
+			                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
+			                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
+			               ) ;
+			inclusions[i]->Ellipse::setCenter(newCentre) ;
+			if(changeAxis > triesMax/5)
+			{
+				Point newAxis((double)rand()/(double)RAND_MAX,(double)rand()/(double)RAND_MAX) ;
+				inclusions[i] = new EllipsoidalInclusion(inclusions[i]->getMajorRadius(),
+									inclusions[i]->getMinorRadius(),
+									newCentre,newAxis) ;
+				changeAxis = 0 ;
+				std::cout <<i << " => Axis has been changed" << std::endl ;
+				hasBeenChanged++ ;
+			}
+			bbox = inclusions[i]->getBoundingBox() ;
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+			{
+				changeAxis++ ;
+				Point newCentre(
+				                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
+				                 - (longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
+				                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
+				                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
+				               ) ;
+				inclusions[i]->Ellipse::setCenter(newCentre) ;
+				if(changeAxis > triesMax/5)
+				{
+					Point newAxis((double)rand()/(double)RAND_MAX,(double)rand()/(double)RAND_MAX) ;
+					inclusions[i] = new EllipsoidalInclusion(inclusions[i]->getMajorRadius(),
+										inclusions[i]->getMinorRadius(),
+										newCentre,newAxis) ;
+					changeAxis = 0 ;
+					std::cout << i << " => Axis has been changed" << std::endl ;
+					hasBeenChanged++ ;
+				}
+				bbox = inclusions[i]->getBoundingBox() ;
+			}
+		}
+		if(tries==triesMax)
+		std::cout << "triesmax" << std::endl ;
+		
+		if(tries< triesMax)
+		{
+			if(i%100 == 0)
+				std::cout << "\rplaced " << i << " particles" << std::flush ;
+			ret.push_back(inclusions[i]) ;
+			volume += inclusions[i]->area() ;
+			tries = 0 ;
+			changeAxis = 0 ;
+		}
+		else
+			break ;
+	}
+	
+	std::cout << "\n placed aggregate volume = " << volume << std::endl ;
+	std::cout << hasBeenChanged << " aggregates have been rotated from initial major axis" << std::endl ;
+	
+	return ret ;
+}
+
+

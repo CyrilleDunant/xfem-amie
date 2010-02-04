@@ -13,7 +13,9 @@
 #include <cmath>
 #include <vector>
 #include "granulo.h"
-#include <iostream>
+#include <iostream>  // I/O 
+#include <fstream>   // file I/O
+#include <iomanip>   // format manipulation
 #include "placement.h"
 #include "../geometry/geometry_base.h"
 
@@ -464,6 +466,155 @@ std::vector <Inclusion3D *> GranuloBolome::operator()(bool,double rayonGranulatM
     std::cout<<"volumeAgg "<<v<<std::endl;
     std::cout << rayon.size() << " particles" << std::endl ;
     return  rayon;
+
+}
+
+GranuloFromFile::GranuloFromFile(std::string fname, std::vector<double> coef, double mm, double kg)
+{
+	filename = fname ;
+	double tot = 0 ;
+	for(int i=0 ; i < coef.size() ; i++)
+		tot += coef[i] ;
+	if(tot == 0)
+		tot = 1 ;
+	std::vector<double> coef_good ;
+	for(int i=0 ; i < coef.size() ; i++)
+		coef_good.push_back(coef[i]/tot) ;
+
+	char tsz [256] ;
+	char tm [256] ;
+	double temp_mass = 0 ;
+
+	std::ifstream granuloreader  ;
+	granuloreader.open(filename.c_str(), std::ios::in) ;	
+	while(!granuloreader.eof())
+	{
+		temp_mass = 0 ;
+		granuloreader >> tsz ;
+		size.push_back(atof(tsz)*mm) ;
+		for(int i=0 ; i < coef_good.size() ; i++)
+		{
+			granuloreader >> tm ;
+			temp_mass += coef_good[i]*atof(tm)*kg ;
+		}
+		mass.push_back(temp_mass) ;
+	}
+
+	granuloreader.close() ;
+	size.pop_back() ;
+	mass.pop_back() ;
+
+	while(mass[1]<0.0001)	
+	{
+		size.erase(size.begin()) ;
+		mass.erase(mass.begin()) ;
+	}
+	int i = mass.size() ;
+	while(mass[i-1]<0.0001)	
+	{
+		size.pop_back() ;
+		mass.pop_back() ;
+		i = mass.size() ;
+	}
+	mass.erase(mass.begin()) ;
+	std::cout << size.size() << " ; " << mass.size() << std::endl ;
+}
+
+std::vector<Inclusion *> GranuloFromFile::getCircleInclusion(double density, int n_agg, double area)
+{
+	double mass_goal = density * pow(area,1.5) ;
+	double mass_tot = 0 ;
+	for(int i = 0 ; i < mass.size() ; i++)
+		mass_tot += mass[i] ;
+	for(int i = 0 ; i < mass.size() ; i++)
+		mass[i] = mass[i] * mass_goal / mass_tot ;	
+	double first_mass = (4/3)*M_PI*size[0]*size[0]*size[0] ;
+	for(int i = 1 ; i < mass.size() ; i++)
+		mass[i] = mass[i] * first_mass / mass[0] ;
+	mass[0] = first_mass ;
+	double radius = 0 ;
+	double placedMass = 0 ;
+	double placedMassIteration = 0 ;
+//	std::vector<std::vector<Inclusion *> > inc_full ;
+	std::vector<double> i_full ;
+	std::vector<Inclusion *> inc ;
+	int i_agg = 0 ;
+	for(int i = 0 ; i < mass.size() ; i++)
+	{
+		int i_iter = 0 ;
+//		std::vector<Inclusion *> inc_iter ;
+		placedMassIteration = 0 ;
+		while(placedMassIteration < mass[i])
+		{
+			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
+//			inc_iter.push_back(new Inclusion(radius,0,0)) ;
+			placedMassIteration += (4/3)*M_PI*radius*radius*radius*density ;
+			i_iter++ ;
+			i_agg++ ;
+		}
+		placedMass += placedMassIteration ;
+//		inc_full.push_back(inc_iter) ;
+		i_full.push_back(i_iter) ;
+		std::cout << i << " ; " << i_iter << " ; " << placedMassIteration << "/" << mass[i] << std::endl ;
+	}
+	double n_norm = 0 ;
+	for(int i = 0 ; i < i_full.size() ; i++)
+		n_norm += pow(i_full[i], 0.333333) ;
+	double factor = (double) n_agg / (double) n_norm ;
+	for(int i = 0 ; i < mass.size() ; i++)
+	{
+		int n_iter = pow(i_full[i], 0.333333) * factor ;
+		if(n_iter < 1)
+			n_iter = 1 ;
+		for(int j = 0 ; j < n_iter ; j++)
+		{
+			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
+			inc.push_back(new Inclusion(radius,0,0)) ;
+		}		
+		std::cout << n_iter << std::endl ;
+	}
+	while(inc.size() < n_agg)
+	{
+		std::cout << "here" << std::endl ;
+		radius = size[size.size()] + ((double)rand()/(double)RAND_MAX) * (size[size.size() - 1] - size[size.size()]) ;
+		inc.push_back(new Inclusion(radius,0,0)) ;
+	}
+	double area_tot = 0 ;
+	for(int i = 0 ; i < inc.size() ; i++)
+		area_tot += M_PI*(inc[i]->getRadius())*(inc[i]->getRadius()) ;
+	std::cout << "area for " << n_agg << " inclusions => " << area_tot << " (goal = " << area << " )" << std::endl ;
+	while(area_tot > area * 1.01)
+	{
+		area_tot = 0 ;
+		int n_rand = (inc.size() - 1) * (double)rand() / (double) RAND_MAX ;
+		inc.erase(inc.begin()+n_rand) ;		
+		for(int i = 0 ; i < inc.size() ; i++)
+			area_tot += M_PI*(inc[i]->getRadius())*(inc[i]->getRadius()) ;
+	}
+	std::cout << inc.size() << " inclusions placed over " << n_agg << std::endl ;
+	return inc ;
+}
+
+void GranuloFromFile::resize(double newSize)
+{
+	double logNewSize = log10(newSize) ;
+	double logMaxSize = log10(size[0]) ;
+	double logThisSize = 0 ;
+	size[0] = newSize ;
+//	double thisRadius = newSize ;
+//	double thisUnitMass = 0 ;
+//	int thisUnit = 0 ;
+	for(int i = 0 ; i < mass.size() ; i++)
+	{
+		logThisSize = log10(size[i+1]) ;
+//		thisRadius = 0.5 * (size[i] + size[i+1]) ;
+//		thisUnitMass = (4/3) * M_PI * thisRadius * thisRadius * thisRadius ;
+//		thisUnit = mass[i] / thisUnitMass ;
+		size[i+1] = pow(10,logNewSize - logMaxSize + logThisSize) ;
+//		thisRadius = 0.5 * (size[i] + size[i+1]) ;
+//		thisUnitMass = (4/3) * M_PI * thisRadius * thisRadius * thisRadius ;
+//		mass[i] = thisUnit * thisUnitMass ;
+	}
 
 }
 

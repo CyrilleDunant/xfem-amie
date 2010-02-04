@@ -55,11 +55,13 @@ Form * SpatiallyDistributedStiffness::getCopy() const
 {
 	double randomVar = (double)rand()/(double)RAND_MAX ;
 //	randomVar = 1.*pow(-log(randomVar),.5) ;
-	Matrix newTensor (param*(1.-variability)+param*randomVar*variability) ;
+	Matrix newTensor (param*(1.-variability)+param*randomVar*variability*2) ;
 	randomVar = (double)rand()/(double)RAND_MAX ;
-	double crita = criteriona*(1.-variability)+criteriona*randomVar*variability ;
-	double critb = criterionb*(1.-variability)+criterionb*randomVar*variability ;
-	newTensor = pore + (newTensor - pore) * distance / length ;
+	Matrix por (pore*(1.-variability)+pore*randomVar*variability*2) ;
+	randomVar = (double)rand()/(double)RAND_MAX ;
+	double crita = criteriona*(1.-variability)+criteriona*randomVar*variability*2 ;
+	double critb = criterionb*(1.-variability)+criterionb*randomVar*variability*2 ;
+	newTensor = por + (newTensor - por) * distance / length ;
 //	if(randomVar > 0.5)
 	if(criteriona > 0)
 	  return new StiffnessAndFracture(newTensor, new MohrCoulomb(crita,critb)) ;

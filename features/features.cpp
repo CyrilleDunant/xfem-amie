@@ -3189,7 +3189,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	}
 }
 
-
 BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, const std::vector<double> & d) : condition(t), data(d) { } ;
 
 

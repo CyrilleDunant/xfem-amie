@@ -60,5 +60,21 @@ public:
 	virtual ~GranuloBolome() { } ;
 } ;
 
+class GranuloFromFile
+{
+private:
+	std::string filename;
+	std::vector<double> mass ;
+	std::vector<double> size ;
+
+public:
+	GranuloFromFile(std::string fname, std::vector<double>, double, double) ;
+	void resize(double) ;
+	std::vector<Inclusion *> getCircleInclusion(double,int,double) ;
+//	std::vector<EllispoidalInclusion *> getEllipsoidalInclusion() ;
+} ;
+
+
+
 }
 
