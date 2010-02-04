@@ -1994,14 +1994,13 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 void Ellipse::sampleSurface (size_t num_points)
 {
 	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(6*num_points*pow(getMajorRadius()/getMinorRadius(),0.666)/4) ;
+		this->sampleBoundingSurface(13*num_points*pow(getMajorRadius()/getMinorRadius(),0.666666)/8) ;
 	sampled = true ;
 
 	size_t ring = 1 + num_points / (3 * M_PI / 2) ;
 	if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
 	{	
-		if(ring < 3)
-			ring = 3 ;
+		ring++ ;
 //		std::cout << "add more points inside" << std::endl ;
 	}
 
@@ -2055,7 +2054,7 @@ void Ellipse::sampleSurface (size_t num_points)
 		{
 			factor = 1 ;
 		} else {
-			factor = 1 ;
+			factor = 2 ;
 		}
 	}
 /*	double r = sqrt(majorradius * minorradius) ;

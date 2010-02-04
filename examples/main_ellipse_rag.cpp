@@ -1195,6 +1195,7 @@ std::vector<EllipsoidalInclusion *> sortByMajorRadius(std::vector<EllipsoidalInc
 
 std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile)
 {
+	std::cout << "importing ellipses from file... " << ellipsefile << std::endl ; 
 	std::vector<EllipsoidalInclusion *> inc ;
 	std::fstream ellipsein ;
 	ellipsein.open(ellipsefile.c_str(),std::ios::in) ;
@@ -1223,6 +1224,7 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile)
 	}
 	return inc ;
 	ellipsein.close() ;
+	std::cout << inc.size() << " ellipses imported" << std::endl ;
 }
 
 
@@ -1263,8 +1265,8 @@ int main(int argc, char *argv[])
 	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist) ;
 
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
-//	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
+//	sample.setBehaviour(new Stiffness(m0_paste)) ;
 //	std::vector<Feature *> feats ;
 //	for(size_t i = 0; i < inc.size() ; i++)
 //		feats.push_back(inc[i]) ;
@@ -1288,8 +1290,8 @@ int main(int argc, char *argv[])
 //	for(size_t i = 0; i < feats.size() ; i++)
 //		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
-//	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
-	Stiffness * stiff = new Stiffness(m0_agg) ;
+	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+//	Stiffness * stiff = new Stiffness(m0_agg) ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
 		if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
