@@ -1304,10 +1304,10 @@ int main(int argc, char *argv[])
 		placed_area += inc[i]->area() ;
 	}
 	
-	zones = generateExpansiveZonesHomogeneously(200,inc,F) ;
+	zones = generateExpansiveZonesHomogeneously(40000,inc,F) ;
 	
 	
-	F.sample(256) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
