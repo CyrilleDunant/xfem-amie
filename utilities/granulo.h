@@ -71,7 +71,7 @@ public:
 	GranuloFromFile(std::string fname, std::vector<double>, double, double) ;
 	void resize(double) ;
 	std::vector<Inclusion *> getCircleInclusion(double,int,double) ;
-//	std::vector<EllispoidalInclusion *> getEllipsoidalInclusion() ;
+	std::vector<EllipsoidalInclusion *> getEllipsoidalInclusion(double,int,double) ;
 } ;
 
 

@@ -517,7 +517,6 @@ GranuloFromFile::GranuloFromFile(std::string fname, std::vector<double> coef, do
 		i = mass.size() ;
 	}
 	mass.erase(mass.begin()) ;
-	std::cout << size.size() << " ; " << mass.size() << std::endl ;
 }
 
 std::vector<Inclusion *> GranuloFromFile::getCircleInclusion(double density, int n_agg, double area)
@@ -555,7 +554,6 @@ std::vector<Inclusion *> GranuloFromFile::getCircleInclusion(double density, int
 		placedMass += placedMassIteration ;
 //		inc_full.push_back(inc_iter) ;
 		i_full.push_back(i_iter) ;
-		std::cout << i << " ; " << i_iter << " ; " << placedMassIteration << "/" << mass[i] << std::endl ;
 	}
 	double n_norm = 0 ;
 	for(int i = 0 ; i < i_full.size() ; i++)
@@ -571,11 +569,9 @@ std::vector<Inclusion *> GranuloFromFile::getCircleInclusion(double density, int
 			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
 			inc.push_back(new Inclusion(radius,0,0)) ;
 		}		
-		std::cout << n_iter << std::endl ;
 	}
 	while(inc.size() < n_agg)
 	{
-		std::cout << "here" << std::endl ;
 		radius = size[size.size()] + ((double)rand()/(double)RAND_MAX) * (size[size.size() - 1] - size[size.size()]) ;
 		inc.push_back(new Inclusion(radius,0,0)) ;
 	}
@@ -583,7 +579,7 @@ std::vector<Inclusion *> GranuloFromFile::getCircleInclusion(double density, int
 	for(int i = 0 ; i < inc.size() ; i++)
 		area_tot += M_PI*(inc[i]->getRadius())*(inc[i]->getRadius()) ;
 	std::cout << "area for " << n_agg << " inclusions => " << area_tot << " (goal = " << area << " )" << std::endl ;
-	while(area_tot > area * 1.01)
+	while(area_tot > area * 1.0001)
 	{
 		area_tot = 0 ;
 		int n_rand = (inc.size() - 1) * (double)rand() / (double) RAND_MAX ;
@@ -591,7 +587,7 @@ std::vector<Inclusion *> GranuloFromFile::getCircleInclusion(double density, int
 		for(int i = 0 ; i < inc.size() ; i++)
 			area_tot += M_PI*(inc[i]->getRadius())*(inc[i]->getRadius()) ;
 	}
-	std::cout << inc.size() << " inclusions placed over " << n_agg << std::endl ;
+	std::cout << inc.size() << " inclusions created over " << n_agg << std::endl ;
 	return inc ;
 }
 
@@ -617,4 +613,85 @@ void GranuloFromFile::resize(double newSize)
 	}
 
 }
+
+std::vector<EllipsoidalInclusion *> GranuloFromFile::getEllipsoidalInclusion(double density, int n_agg, double area)
+{
+	double mass_goal = density * pow(area,1.5) ;
+	double mass_tot = 0 ;
+	for(int i = 0 ; i < mass.size() ; i++)
+		mass_tot += mass[i] ;
+	for(int i = 0 ; i < mass.size() ; i++)
+		mass[i] = mass[i] * mass_goal / mass_tot ;	
+	double first_mass = (4/3)*M_PI*size[0]*size[0]*size[0] ;
+	for(int i = 1 ; i < mass.size() ; i++)
+		mass[i] = mass[i] * first_mass / mass[0] ;
+	mass[0] = first_mass ;
+	double radius = 0 ;
+	double largeradius = 0 ;
+	double placedMass = 0 ;
+	double placedMassIteration = 0 ;
+	double ay = 0 ;
+//	std::vector<std::vector<Inclusion *> > inc_full ;
+	std::vector<double> i_full ;
+	std::vector<EllipsoidalInclusion *> inc ;
+	int i_agg = 0 ;
+	for(int i = 0 ; i < mass.size() ; i++)
+	{
+		int i_iter = 0 ;
+//		std::vector<Inclusion *> inc_iter ;
+		placedMassIteration = 0 ;
+		while(placedMassIteration < mass[i])
+		{
+			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
+			largeradius = radius * (1 + (double)rand()/(double)RAND_MAX) ;
+//			inc_iter.push_back(new Inclusion(radius,0,0)) ;
+			placedMassIteration += (4/3)*M_PI*radius*radius*largeradius*density ;
+			i_iter++ ;
+			i_agg++ ;
+		}
+		placedMass += placedMassIteration ;
+//		inc_full.push_back(inc_iter) ;
+		i_full.push_back(i_iter) ;
+	}
+	double n_norm = 0 ;
+	for(int i = 0 ; i < i_full.size() ; i++)
+		n_norm += pow(i_full[i], 0.333333) ;
+	double factor = (double) n_agg / (double) n_norm ;
+	for(int i = 0 ; i < mass.size() ; i++)
+	{
+		int n_iter = pow(i_full[i], 0.333333) * factor ;
+		if(n_iter < 1)
+			n_iter = 1 ;
+		for(int j = 0 ; j < n_iter ; j++)
+		{
+			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
+			largeradius = radius * (1 + (double)rand()/(double)RAND_MAX) ;
+			ay = 0.25 - 0.5 * (double)rand()/(double)RAND_MAX ;
+			inc.push_back(new EllipsoidalInclusion(largeradius,radius,0,0,1,ay)) ;
+		}		
+		std::cout << i << ";" << n_iter << std::endl ;
+	}
+	while(inc.size() < n_agg)
+	{
+		radius = size[size.size()] + ((double)rand()/(double)RAND_MAX) * (size[size.size() - 1] - size[size.size()]) ;
+		largeradius = radius * (1 + (double)rand()/(double)RAND_MAX) ;
+		ay = 0.25 - 0.5 * (double)rand()/(double)RAND_MAX ;
+		inc.push_back(new EllipsoidalInclusion(largeradius,radius,0,0,1,ay)) ;
+	}
+	double area_tot = 0 ;
+	for(int i = 0 ; i < inc.size() ; i++)
+		area_tot += M_PI*(inc[i]->getMajorRadius())*(inc[i]->getMinorRadius()) ;
+	std::cout << "area for " << n_agg << " inclusions => " << area_tot << " (goal = " << area << " )" << std::endl ;
+	while(area_tot > area * 1.0001)
+	{
+		area_tot = 0 ;
+		int n_rand = (inc.size() - 1) * (double)rand() / (double) RAND_MAX ;
+		inc.erase(inc.begin()+n_rand) ;		
+		for(int i = 0 ; i < inc.size() ; i++)
+			area_tot += M_PI*(inc[i]->getMajorRadius())*(inc[i]->getMinorRadius()) ;
+	}
+	std::cout << inc.size() << " inclusions created over " << n_agg << std::endl ;
+	return inc ;
+}
+
 

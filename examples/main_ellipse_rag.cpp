@@ -1164,27 +1164,70 @@ std::vector<EllipsoidalInclusion *> circleToEllipse(std::vector<Inclusion *> cir
 	return ellipse ;
 }
 
+std::vector<EllipsoidalInclusion *> sortByMajorRadius(std::vector<EllipsoidalInclusion *> unsorted)
+{
+	std::vector<EllipsoidalInclusion *> ret ;
+	std::vector<bool> sorted ;
+	for(int i = 0 ; i < unsorted.size() ; i++)
+		sorted.push_back(true) ;
+	int done = 0 ;
+	while(done<unsorted.size())
+	{
+		int j = 0 ;
+		double radius = 0 ;
+		for(int i = 0 ; i < unsorted.size() ; i++)
+		{
+			if(sorted[i])
+			{
+				if(unsorted[i]->getMajorRadius() > radius)
+				{
+					radius = unsorted[i]->getMajorRadius() ;
+					j = i ;
+				}
+			}
+		}
+		sorted[j] = false ;
+		ret.push_back(unsorted[j]) ;
+		done = ret.size() ;
+	}
+	return ret ;
+}
+
+std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile)
+{
+	std::vector<EllipsoidalInclusion *> inc ;
+	std::fstream ellipsein ;
+	ellipsein.open(ellipsefile.c_str(),std::ios::in) ;
+	double a ;
+	double b ;
+	double cx ;
+	double cy ;
+	double ax ;
+	double ay ;
+	char buff [256] ;
+	while(!ellipsein.eof())
+	{
+		ellipsein >> buff ;
+		a = atof(buff) ;
+		ellipsein >> buff ;
+		b = atof(buff) ;
+		ellipsein >> buff ;
+		cx = atof(buff) ;
+		ellipsein >> buff ;
+		cy = atof(buff) ;
+		ellipsein >> buff ;
+		ax = atof(buff) ;
+		ellipsein >> buff ;
+		ay = atof(buff) ;
+		inc.push_back(new EllipsoidalInclusion(a,b,cx,cy,ax,ay)) ;
+	}
+	return inc ;
+	ellipsein.close() ;
+}
 
 
 int main(int argc, char *argv[])
 {
-  	std::vector<double> columns ;
-	columns.push_back(0.35) ;
-	columns.push_back(0.3) ;
-	columns.push_back(0.35) ;
-	columns.push_back(0.) ;
-	GranuloFromFile tgranulo("granulo_true.txt",columns,0.001,0.35) ;
-	tgranulo.resize(0.002) ;
-	std::vector<Inclusion *> test = tgranulo.getCircleInclusion(2.3,10000,0.00112) ;
-	std::cout << "max radius => " << test[0]->getRadius() << std::endl ;
-	double area_test = 0 ;
-	for(int i = 0 ; i < test.size() ; i++)
-	{
-		area_test += test[i]->area() ;
-	}
-	std::cout << area_test << std::endl ;
-	return 0 ;	
-	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
@@ -1198,22 +1241,50 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	double itzSize = 0.00005;
-	int inclusionNumber = 6000 ;
-	double masseInitiale = 0.368;
-	double densite = 0.23 ;
-	std::vector<Inclusion *> inc_temp = GranuloBolome(masseInitiale, densite, BOLOME_A)(.002, 0.000001, inclusionNumber, itzSize);
-	std::vector<EllipsoidalInclusion *> inc = circleToEllipse(inc_temp) ;	
+/*  	std::vector<double> columns ;
+	columns.push_back(0.05) ;
+	columns.push_back(0.5) ;
+	columns.push_back(0.45) ;
+	columns.push_back(0.) ;
+	GranuloFromFile tgranulo("granulo_true.txt",columns,0.001,1) ;
+	tgranulo.resize(0.0005) ;
+	std::vector<EllipsoidalInclusion *> test = tgranulo.getEllipsoidalInclusion(2.3,10000,0.00128) ;
+	std::vector<EllipsoidalInclusion *> inc = sortByMajorRadius(test) ;
+	double area_test = 0 ;
+	for(int i = 0 ; i < inc.size() ; i++)
+	{
+		if(i%100 == 0)		
+			std::cout << inc[i]->getMajorAxis().y << "     " ;
+		area_test += inc[i]->area() ;
+	}
+	std::cout << area_test << " (" << (100*area_test/0.0016) << "%)" << std::endl ;*/
+
+	std::string ellipselist = "ellipse_6913.txt" ;
+	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist) ;
 
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 //	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
 	sample.setBehaviour(new Stiffness(m0_paste)) ;
-	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inc.size() ; i++)
-		feats.push_back(inc[i]) ;
+//	std::vector<Feature *> feats ;
+//	for(size_t i = 0; i < inc.size() ; i++)
+//		feats.push_back(inc[i]) ;
 //	inc.clear() ;
-	std::cout << width*height << std::endl ;
-	inc=placement_with_rotation(sample.getPrimitive(), inc, &inclusionNumber, 640000);
+//	std::cout << width*height << std::endl ;
+//	int n_agg = inc.size() ;
+//	inc=placement_with_rotation(sample.getPrimitive(), inc, &n_agg, 640000);
+
+/*	std::string ellipsefile = "ellipse_placed_sorted_9999" ;
+	std::fstream ellipseout ;
+	ellipseout.open(ellipsefile.c_str(), std::ios::out) ;
+	for(int i = 0 ; i < inc.size() ; i++)
+	{
+		ellipseout << inc[i]->getMajorRadius() << "    " ;
+		ellipseout << inc[i]->getMinorRadius() << "    " ;
+		ellipseout << inc[i]->getCenter().x << "    " ;
+		ellipseout << inc[i]->getCenter().y << "    " ;
+		ellipseout << inc[i]->getMajorAxis().x << "    " ;
+		ellipseout << inc[i]->getMajorAxis().y << "\n" ;
+	}*/
 //	for(size_t i = 0; i < feats.size() ; i++)
 //		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
@@ -1240,7 +1311,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
-// 	stepOLD() ;
+ 	stepOLD() ;
  	
 // 	delete dt ;*/
 	
