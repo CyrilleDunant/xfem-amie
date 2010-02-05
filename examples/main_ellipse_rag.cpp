@@ -1093,7 +1093,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		Point pos(((double)rand()/RAND_MAX-.5)*(sample.width()-radius*60),((double)rand()/RAND_MAX)*(sample.height()-radius*60)) ;
+		Point pos(((double)rand()/RAND_MAX)*(sample.width()-radius*60),((double)rand()/RAND_MAX)*(sample.height()-radius*60)) ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
@@ -1244,13 +1244,13 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 /*  	std::vector<double> columns ;
-	columns.push_back(0.05) ;
-	columns.push_back(0.5) ;
-	columns.push_back(0.45) ;
+	columns.push_back(0.) ;
+	columns.push_back(0.48) ;
+	columns.push_back(0.52) ;
 	columns.push_back(0.) ;
 	GranuloFromFile tgranulo("granulo_true.txt",columns,0.001,1) ;
 	tgranulo.resize(0.0005) ;
-	std::vector<EllipsoidalInclusion *> test = tgranulo.getEllipsoidalInclusion(2.3,10000,0.00128) ;
+	std::vector<EllipsoidalInclusion *> test = tgranulo.getEllipsoidalInclusion(2.3,10000,0.00112) ;
 	std::vector<EllipsoidalInclusion *> inc = sortByMajorRadius(test) ;
 	double area_test = 0 ;
 	for(int i = 0 ; i < inc.size() ; i++)
@@ -1267,15 +1267,17 @@ int main(int argc, char *argv[])
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
 //	sample.setBehaviour(new Stiffness(m0_paste)) ;
-//	std::vector<Feature *> feats ;
-//	for(size_t i = 0; i < inc.size() ; i++)
-//		feats.push_back(inc[i]) ;
-//	inc.clear() ;
+	std::vector<Feature *> feats ;
+	for(size_t i = 0; i < inc.size() ; i++)
+		feats.push_back(inc[i]) ;
+	inc.clear() ;
 //	std::cout << width*height << std::endl ;
-//	int n_agg = inc.size() ;
-//	inc=placement_with_rotation(sample.getPrimitive(), inc, &n_agg, 640000);
+	int n_agg = feats.size() ;
+	feats=placement(sample.getPrimitive(), feats, &n_agg, 640000);
+	for(size_t i = 0; i < feats.size() ; i++)
+		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
 
-/*	std::string ellipsefile = "ellipse_placed_sorted_9999" ;
+	std::string ellipsefile = "ellipse_placed_sorted_9999" ;
 	std::fstream ellipseout ;
 	ellipseout.open(ellipsefile.c_str(), std::ios::out) ;
 	for(int i = 0 ; i < inc.size() ; i++)
@@ -1286,9 +1288,8 @@ int main(int argc, char *argv[])
 		ellipseout << inc[i]->getCenter().y << "    " ;
 		ellipseout << inc[i]->getMajorAxis().x << "    " ;
 		ellipseout << inc[i]->getMajorAxis().y << "\n" ;
-	}*/
-//	for(size_t i = 0; i < feats.size() ; i++)
-//		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
+	}
+	return 0 ;	
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
 	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
 //	Stiffness * stiff = new Stiffness(m0_agg) ;
