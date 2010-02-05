@@ -1267,29 +1267,29 @@ int main(int argc, char *argv[])
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
 //	sample.setBehaviour(new Stiffness(m0_paste)) ;
-	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inc.size() ; i++)
-		feats.push_back(inc[i]) ;
-	inc.clear() ;
+//	std::vector<Feature *> feats ;
+//	for(size_t i = 0; i < inc.size() ; i++)
+//		feats.push_back(inc[i]) ;
+//	inc.clear() ;
 //	std::cout << width*height << std::endl ;
-	int n_agg = feats.size() ;
-	feats=placement(sample.getPrimitive(), feats, &n_agg, 640000);
-	for(size_t i = 0; i < feats.size() ; i++)
-		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
-
-	std::string ellipsefile = "ellipse_placed_sorted_9999" ;
-	std::fstream ellipseout ;
-	ellipseout.open(ellipsefile.c_str(), std::ios::out) ;
-	for(int i = 0 ; i < inc.size() ; i++)
-	{
-		ellipseout << inc[i]->getMajorRadius() << "    " ;
-		ellipseout << inc[i]->getMinorRadius() << "    " ;
-		ellipseout << inc[i]->getCenter().x << "    " ;
-		ellipseout << inc[i]->getCenter().y << "    " ;
-		ellipseout << inc[i]->getMajorAxis().x << "    " ;
-		ellipseout << inc[i]->getMajorAxis().y << "\n" ;
-	}
-	return 0 ;	
+//	int n_agg = feats.size() ;
+//	feats=placement(sample.getPrimitive(), feats, &n_agg, 640000);
+//	for(size_t i = 0; i < feats.size() ; i++)
+//		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
+//
+//	std::string ellipsefile = "ellipse_placed_sorted_9999" ;
+//	std::fstream ellipseout ;
+//	ellipseout.open(ellipsefile.c_str(), std::ios::out) ;
+//	for(int i = 0 ; i < inc.size() ; i++)
+//	{
+//		ellipseout << inc[i]->getMajorRadius() << "    " ;
+//		ellipseout << inc[i]->getMinorRadius() << "    " ;
+//		ellipseout << inc[i]->getCenter().x << "    " ;
+//		ellipseout << inc[i]->getCenter().y << "    " ;
+//		ellipseout << inc[i]->getMajorAxis().x << "    " ;
+//		ellipseout << inc[i]->getMajorAxis().y << "\n" ;
+//	}
+//	return 0 ;	
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
 	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
 //	Stiffness * stiff = new Stiffness(m0_agg) ;
