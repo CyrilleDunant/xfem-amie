@@ -1446,9 +1446,9 @@ int main(int argc, char *argv[])
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
 	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
-//	F.addFeature(&sample, itz) ;
-//	F.addFeature(itz, inc1) ;
-	F.addFeature(&sample, inc1) ;
+	F.addFeature(&sample, itz) ;
+	F.addFeature(itz, inc1) ;
+// 	F.addFeature(&sample, inc1) ;
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;

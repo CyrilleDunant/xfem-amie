@@ -339,9 +339,7 @@ void Assembly::setBoundaryConditions()
 			}
 		}
 	}
-	
-	std::cout << std::endl << element3d.size() << std::endl ;
-	
+		
 	for(size_t i = 0 ; i < element3d.size() ; i++)
 	{
 		if(i%1000 == 0)
