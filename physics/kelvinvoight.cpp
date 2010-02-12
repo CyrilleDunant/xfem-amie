@@ -26,10 +26,10 @@ KelvinVoight::~KelvinVoight() { } ;
 
 Matrix KelvinVoight::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
- /** \TODO implement GDtMtGD ieval in VirtualMachine */
 	VirtualMachine vm ;
 	return vm.ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) 
-   /* +    vm.ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), e,v)*/;
+  +     vm.ieval(GradientDot(p_i) * eta * Gradient(p_j, true), e,v)
+  +     vm.ieval(Gradient(p_i) * eta * GradientDot(p_j, true), e,v) ;
 }
 
 void KelvinVoight::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
@@ -40,13 +40,10 @@ void KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gauss
 	Matrix temp1(ret) ;
 	Matrix temp2(ret) ;
 	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
-// 	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp);
 	vm->ieval(GradientDot(p_i) * eta * Gradient(p_j, true), gp, Jinv,v,temp);
 	vm->ieval(Gradient(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp1);
-/*	vm->print(p_i) ;
-	vm->print(p_j) */;
+
 	ret += temp+temp1;
-// 	ret.print() ;
 }
 
 bool KelvinVoight::fractured() const

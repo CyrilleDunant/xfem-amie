@@ -365,6 +365,24 @@ Gradient is the usual \f$ \nabla \otimes \f$ operator.
 */
 	void ieval(const GtFMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
+/** \brief Overloaded function to compute the integral of a GradientDot times a Matrix times a Gradient over the IntegrableEntity e, with variables defined by vars.
+Gradient is the usual \f$ \nabla\otimes \f$ operator.
+@param f GDtMtG to integrate.
+@param e IntegrableEntity on which to integrate
+@param vars std::vector of space Variable s
+*/
+	Matrix ieval(const GDtMtG & f, const IntegrableEntity * e , const std::vector<Variable> & vars) ;
+
+	
+	
+/** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a GradientDot over the IntegrableEntity e, with variables defined by vars.
+Gradient is the usual \f$ \nabla\otimes \f$ operator.
+@param f GtMtGD to integrate.
+@param e IntegrableEntity on which to integrate
+@param vars std::vector of space Variable s
+*/
+	Matrix ieval(const GtMtGD & f, const IntegrableEntity * e , const std::vector<Variable> & vars) ;
+
 /** \brief Overloaded function to compute the integral of a GradientDot times a FunctionMatrix times a GradientDot using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
  * The result is stored in ret. The version of the function can be used to minimise initialisation of memory.
  * GradientDot is the operator \f$ \dot{\nabla}\otimes(\cdot) \f$ operator.

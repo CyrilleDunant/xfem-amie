@@ -2081,6 +2081,28 @@ Matrix VirtualMachine::ieval(const GDtMtG & f, const GaussPointArray &gp, const 
 	return ret ;
 }
 
+Matrix VirtualMachine::ieval(const GDtMtG & f, const IntegrableEntity * e , const std::vector<Variable> & vars)
+{
+	GaussPointArray gp = e->getGaussPoints() ;
+	std::valarray<Matrix> Jinv(Matrix(), gp.gaussPoints.size()) ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+	}
+	
+	std::valarray<Matrix> B = gdeval(f.first.f, Jinv, vars, gp, f.first.transpose) ;
+	std::valarray<Matrix> B_ = geval(f.third.f, Jinv, vars, gp, f.third.transpose) ;
+
+	Matrix ret( (Matrix)(B[0]*f.second*B_[0])*gp.gaussPoints[0].second) ;
+
+	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
+	{
+		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
+	}
+	
+	return ret ;
+}
+
 void VirtualMachine::ieval(const GDtMtG & f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
 {
 	std::valarray<Matrix> B = gdeval(f.first.f, Jinv, vars, gp, f.first.transpose) ;
@@ -2097,6 +2119,28 @@ void VirtualMachine::ieval(const GDtMtG & f, const GaussPointArray &gp, const st
 
 Matrix VirtualMachine::ieval(const GtMtGD & f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars)
 {
+	std::valarray<Matrix> B = geval(f.first.f, Jinv, vars, gp, f.first.transpose) ;
+	std::valarray<Matrix> B_ = gdeval(f.third.f, Jinv, vars, gp, f.third.transpose) ;
+
+	Matrix ret( (Matrix)(B[0]*f.second*B_[0])*gp.gaussPoints[0].second) ;
+
+	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
+	{
+		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
+	}
+	
+	return ret ;
+}
+
+
+Matrix VirtualMachine::ieval(const GtMtGD & f, const IntegrableEntity * e , const std::vector<Variable> & vars)
+{
+	GaussPointArray gp = e->getGaussPoints() ;
+	std::valarray<Matrix> Jinv(Matrix(), gp.gaussPoints.size()) ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+	}
 	std::valarray<Matrix> B = geval(f.first.f, Jinv, vars, gp, f.first.transpose) ;
 	std::valarray<Matrix> B_ = gdeval(f.third.f, Jinv, vars, gp, f.third.transpose) ;
 
