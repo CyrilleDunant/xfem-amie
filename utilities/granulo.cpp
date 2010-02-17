@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <vector>
+#include <cstring>
 #include "granulo.h"
 #include <iostream>  // I/O 
 #include <fstream>   // file I/O
@@ -469,229 +470,130 @@ std::vector <Inclusion3D *> GranuloBolome::operator()(bool,double rayonGranulatM
 
 }
 
-GranuloFromFile::GranuloFromFile(std::string fname, std::vector<double> coef, double mm, double kg)
+GranuloFromFile::GranuloFromFile(std::string fname, std::vector<std::string> columns)
 {
-	filename = fname ;
-	double tot = 0 ;
-	for(int i=0 ; i < coef.size() ; i++)
-		tot += coef[i] ;
-	if(tot == 0)
-		tot = 1 ;
-	std::vector<double> coef_good ;
-	for(int i=0 ; i < coef.size() ; i++)
-		coef_good.push_back(coef[i]/tot) ;
+    std::cout << "importing file: " << fname << std::endl ;
+    this->filename = fname ;
+    for(int i = 0 ; i < columns.size() ; i++)
+        this->fields.push_back(columns[i]) ;
 
-	char tsz [256] ;
-	char tm [256] ;
-	double temp_mass = 0 ;
-
-	std::ifstream granuloreader  ;
-	granuloreader.open(filename.c_str(), std::ios::in) ;	
-	while(!granuloreader.eof())
-	{
-		temp_mass = 0 ;
-		granuloreader >> tsz ;
-		size.push_back(atof(tsz)*mm) ;
-		for(int i=0 ; i < coef_good.size() ; i++)
-		{
-			granuloreader >> tm ;
-			temp_mass += coef_good[i]*atof(tm)*kg ;
-		}
-		mass.push_back(temp_mass) ;
-	}
-
-	granuloreader.close() ;
-	size.pop_back() ;
-	mass.pop_back() ;
-
-	while(mass[1]<0.0001)	
-	{
-		size.erase(size.begin()) ;
-		mass.erase(mass.begin()) ;
-	}
-	int i = mass.size() ;
-	while(mass[i-1]<0.0001)	
-	{
-		size.pop_back() ;
-		mass.pop_back() ;
-		i = mass.size() ;
-	}
-	mass.erase(mass.begin()) ;
+    std::fstream filereader ;
+    filereader.open(this->filename.c_str(),std::ios::in) ;
+    char buff [256] ;
+    while(!filereader.eof())
+    {
+        filereader >> buff ;
+        this->values.push_back(atof(buff)) ;
+    }
+    filereader.close() ;
+    std::cout << "done..." << std::endl ;
 }
 
-std::vector<Inclusion *> GranuloFromFile::getCircleInclusion(double density, int n_agg, double area)
+const bool GranuloFromFile::verifyField(std::vector<std::string> columns)
 {
-	double mass_goal = density * pow(area,1.5) ;
-	double mass_tot = 0 ;
-	for(int i = 0 ; i < mass.size() ; i++)
-		mass_tot += mass[i] ;
-	for(int i = 0 ; i < mass.size() ; i++)
-		mass[i] = mass[i] * mass_goal / mass_tot ;	
-	double first_mass = (4/3)*M_PI*size[0]*size[0]*size[0] ;
-	for(int i = 1 ; i < mass.size() ; i++)
-		mass[i] = mass[i] * first_mass / mass[0] ;
-	mass[0] = first_mass ;
-	double radius = 0 ;
-	double placedMass = 0 ;
-	double placedMassIteration = 0 ;
-//	std::vector<std::vector<Inclusion *> > inc_full ;
-	std::vector<double> i_full ;
-	std::vector<Inclusion *> inc ;
-	int i_agg = 0 ;
-	for(int i = 0 ; i < mass.size() ; i++)
-	{
-		int i_iter = 0 ;
-//		std::vector<Inclusion *> inc_iter ;
-		placedMassIteration = 0 ;
-		while(placedMassIteration < mass[i])
-		{
-			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
-//			inc_iter.push_back(new Inclusion(radius,0,0)) ;
-			placedMassIteration += (4/3)*M_PI*radius*radius*radius*density ;
-			i_iter++ ;
-			i_agg++ ;
-		}
-		placedMass += placedMassIteration ;
-//		inc_full.push_back(inc_iter) ;
-		i_full.push_back(i_iter) ;
-	}
-	double n_norm = 0 ;
-	for(int i = 0 ; i < i_full.size() ; i++)
-		n_norm += pow(i_full[i], 0.333333) ;
-	double factor = (double) n_agg / (double) n_norm ;
-	for(int i = 0 ; i < mass.size() ; i++)
-	{
-		int n_iter = pow(i_full[i], 0.333333) * factor ;
-		if(n_iter < 1)
-			n_iter = 1 ;
-		for(int j = 0 ; j < n_iter ; j++)
-		{
-			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
-			inc.push_back(new Inclusion(radius,0,0)) ;
-		}		
-	}
-	while(inc.size() < n_agg)
-	{
-		radius = size[size.size()] + ((double)rand()/(double)RAND_MAX) * (size[size.size() - 1] - size[size.size()]) ;
-		inc.push_back(new Inclusion(radius,0,0)) ;
-	}
-	double area_tot = 0 ;
-	for(int i = 0 ; i < inc.size() ; i++)
-		area_tot += M_PI*(inc[i]->getRadius())*(inc[i]->getRadius()) ;
-	std::cout << "area for " << n_agg << " inclusions => " << area_tot << " (goal = " << area << " )" << std::endl ;
-	while(area_tot > area * 1.0001)
-	{
-		area_tot = 0 ;
-		int n_rand = (inc.size() - 1) * (double)rand() / (double) RAND_MAX ;
-		inc.erase(inc.begin()+n_rand) ;		
-		for(int i = 0 ; i < inc.size() ; i++)
-			area_tot += M_PI*(inc[i]->getRadius())*(inc[i]->getRadius()) ;
-	}
-	std::cout << inc.size() << " inclusions created over " << n_agg << std::endl ;
-	return inc ;
+    for(int i = 0 ; i < columns.size() ; i++)
+    {
+        if(this->getFieldNumber(columns[i]) == -1)
+            return false ;
+    }
+    return true ;
 }
 
-void GranuloFromFile::resize(double newSize)
+const int GranuloFromFile::getFieldNumber(std::string column)
 {
-	double logNewSize = log10(newSize) ;
-	double logMaxSize = log10(size[0]) ;
-	double logThisSize = 0 ;
-	size[0] = newSize ;
-//	double thisRadius = newSize ;
-//	double thisUnitMass = 0 ;
-//	int thisUnit = 0 ;
-	for(int i = 0 ; i < mass.size() ; i++)
-	{
-		logThisSize = log10(size[i+1]) ;
-//		thisRadius = 0.5 * (size[i] + size[i+1]) ;
-//		thisUnitMass = (4/3) * M_PI * thisRadius * thisRadius * thisRadius ;
-//		thisUnit = mass[i] / thisUnitMass ;
-		size[i+1] = pow(10,logNewSize - logMaxSize + logThisSize) ;
-//		thisRadius = 0.5 * (size[i] + size[i+1]) ;
-//		thisUnitMass = (4/3) * M_PI * thisRadius * thisRadius * thisRadius ;
-//		mass[i] = thisUnit * thisUnitMass ;
-	}
-
+        for(int j = 0 ; j < this->fields.size() ; j++)
+        {
+            if(strcmp(column.c_str(),fields[j].c_str()) == 0)
+            {
+                return j ;
+            }
+        }
+    std::cerr << "error: field not found" << std::endl ;
+    return -1 ;
 }
 
-std::vector<EllipsoidalInclusion *> GranuloFromFile::getEllipsoidalInclusion(double density, int n_agg, double area)
+std::vector<double> GranuloFromFile::getFieldValues(std::string column)
 {
-	double mass_goal = density * pow(area,1.5) ;
-	double mass_tot = 0 ;
-	for(int i = 0 ; i < mass.size() ; i++)
-		mass_tot += mass[i] ;
-	for(int i = 0 ; i < mass.size() ; i++)
-		mass[i] = mass[i] * mass_goal / mass_tot ;	
-	double first_mass = (4/3)*M_PI*size[0]*size[0]*size[0] ;
-	for(int i = 1 ; i < mass.size() ; i++)
-		mass[i] = mass[i] * first_mass / mass[0] ;
-	mass[0] = first_mass ;
-	double radius = 0 ;
-	double largeradius = 0 ;
-	double placedMass = 0 ;
-	double placedMassIteration = 0 ;
-	double ay = 0 ;
-//	std::vector<std::vector<Inclusion *> > inc_full ;
-	std::vector<double> i_full ;
-	std::vector<EllipsoidalInclusion *> inc ;
-	int i_agg = 0 ;
-	for(int i = 0 ; i < mass.size() ; i++)
-	{
-		int i_iter = 0 ;
-//		std::vector<Inclusion *> inc_iter ;
-		placedMassIteration = 0 ;
-		while(placedMassIteration < mass[i])
-		{
-			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
-			largeradius = radius * (1 + (double)rand()/(double)RAND_MAX) ;
-//			inc_iter.push_back(new Inclusion(radius,0,0)) ;
-			placedMassIteration += (4/3)*M_PI*radius*radius*largeradius*density ;
-			i_iter++ ;
-			i_agg++ ;
-		}
-		placedMass += placedMassIteration ;
-//		inc_full.push_back(inc_iter) ;
-		i_full.push_back(i_iter) ;
-	}
-	double n_norm = 0 ;
-	for(int i = 0 ; i < i_full.size() ; i++)
-		n_norm += pow(i_full[i], 0.333333) ;
-	double factor = (double) n_agg / (double) n_norm ;
-	for(int i = 0 ; i < mass.size() ; i++)
-	{
-		int n_iter = pow(i_full[i], 0.333333) * factor ;
-		if(n_iter < 1)
-			n_iter = 1 ;
-		for(int j = 0 ; j < n_iter ; j++)
-		{
-			radius = size[i+1] + ((double)rand()/(double)RAND_MAX) * (size[i] - size[i+1]) ;
-			largeradius = radius * (1 + (double)rand()/(double)RAND_MAX) ;
-			ay = 0.25 - 0.5 * (double)rand()/(double)RAND_MAX ;
-			inc.push_back(new EllipsoidalInclusion(largeradius,radius,0,0,1,ay)) ;
-		}		
-		std::cout << i << ";" << n_iter << std::endl ;
-	}
-	while(inc.size() < n_agg)
-	{
-		radius = size[size.size()] + ((double)rand()/(double)RAND_MAX) * (size[size.size() - 1] - size[size.size()]) ;
-		largeradius = radius * (1 + (double)rand()/(double)RAND_MAX) ;
-		ay = 0.25 - 0.5 * (double)rand()/(double)RAND_MAX ;
-		inc.push_back(new EllipsoidalInclusion(largeradius,radius,0,0,1,ay)) ;
-	}
-	double area_tot = 0 ;
-	for(int i = 0 ; i < inc.size() ; i++)
-		area_tot += M_PI*(inc[i]->getMajorRadius())*(inc[i]->getMinorRadius()) ;
-	std::cout << "area for " << n_agg << " inclusions => " << area_tot << " (goal = " << area << " )" << std::endl ;
-	while(area_tot > area * 1.0001)
-	{
-		area_tot = 0 ;
-		int n_rand = (inc.size() - 1) * (double)rand() / (double) RAND_MAX ;
-		inc.erase(inc.begin()+n_rand) ;		
-		for(int i = 0 ; i < inc.size() ; i++)
-			area_tot += M_PI*(inc[i]->getMajorRadius())*(inc[i]->getMinorRadius()) ;
-	}
-	std::cout << inc.size() << " inclusions created over " << n_agg << std::endl ;
-	return inc ;
+    std::vector<double> val ;
+    int f = this->getFieldNumber(column) ;
+    if(f > -1)
+        val = this->getFieldValues(f) ;
+    return val ;
 }
 
+std::vector<double> GranuloFromFile::getFieldValues(int f)
+{
+    std::vector<double> val ;
+    int nv = this->values.size() ;
+    int nf = this->fields.size() ;
+    int i = 0 ;
+    while(i * nf < nv)
+    {
+        val.push_back(values[i * nf + f]) ;
+        i++ ;
+    }
+    return val ;
+}
 
+std::vector<Feature *> GranuloFromFile::getFeatures(int type, int ninc)
+{
+    std::vector<Feature *> inc ;
+    std::vector<std::string> columns ;
+    switch(type)
+    {
+        case 0:
+            // inclusions
+            columns.push_back("radius") ;
+            columns.push_back("center_x") ;
+            columns.push_back("center_y") ;
+            break ;
+        case 1:
+            // inclusions 3D
+            columns.push_back("radius") ;
+            columns.push_back("center_x") ;
+            columns.push_back("center_y") ;
+            columns.push_back("center_z") ;
+            break ;
+        case 2:
+            // ellipses
+            columns.push_back("radius_a") ;
+            columns.push_back("radius_b") ;
+            columns.push_back("center_x") ;
+            columns.push_back("center_y") ;
+            columns.push_back("axis_x") ;
+            columns.push_back("axis_y") ;
+            break ;
+    }
+    std::vector< std::vector<double> > fieldvalues ;
+    std::cout << "extracting columns" ;
+    for(int i = 0 ; i < columns.size() ; i++)
+    {
+        std::cout << " ... " << columns[i] ;
+        std::vector<double> val = this->getFieldValues(columns[i]) ;
+        fieldvalues.push_back(val) ;
+    }
+    std::cout << std::endl ;
+    switch(type)
+    {
+        case 0:
+            // inclusions
+            std::cout << "creating inclusions..." << std::endl ;
+            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+                inc.push_back(new Inclusion(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i])) ;
+            break ;
+        case 1:
+            // inclusions 3D
+            std::cout << "creating 3D inclusions..." << std::endl ;
+            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+                inc.push_back(new Inclusion3D(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i], fieldvalues[3][i])) ;
+            break ;
+        case 2:
+            // ellipses
+            std::cout << "creating ellipses..." << std::endl ;
+            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+                inc.push_back(new EllipsoidalInclusion(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i], fieldvalues[3][i], fieldvalues[4][i], fieldvalues[5][i])) ;
+            break ;
+    }
+    inc.pop_back() ;
+    return inc ;
+}

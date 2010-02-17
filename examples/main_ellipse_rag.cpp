@@ -108,9 +108,9 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
 
-double width = 0.04;
-double height = 0.04;
-Sample sample(NULL, width, height, 0.02, 0.02) ;
+double width = 0.07;
+double height = 0.07;
+Sample sample(NULL, width, height, 0.035, 0.035) ;
 	
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -806,9 +806,9 @@ void stepOLD()
 					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
 					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
 					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
-					avg_Emodulus_xx += ar*(epsilon11[k*npoints+l]/npoints)/(sigma11[k*npoints+l]/npoints) ;
-					avg_Emodulus_yy += ar*(epsilon22[k*npoints+l]/npoints)/(sigma22[k*npoints+l]/npoints) ;
-					avg_Emodulus_xy += ar*(epsilon12[k*npoints+l]/npoints)/(sigma12[k*npoints+l]/npoints) ;
+					avg_Emodulus_xx += ar*(sigma11[k*npoints+l]/npoints)/(epsilon11[k*npoints+l]/npoints) ;
+					avg_Emodulus_yy += ar*(sigma22[k*npoints+l]/npoints)/(epsilon22[k*npoints+l]/npoints) ;
+					avg_Emodulus_xy += ar*(sigma12[k*npoints+l]/npoints)/(epsilon12[k*npoints+l]/npoints) ;
 				}
 				
 				if(triangles[k]->getEnrichmentFunctions().size() == 0)
@@ -1132,7 +1132,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;
-		std::cout << aggregateArea << "  " << count << std::endl ;
+//		std::cout << aggregateArea << "  " << count << std::endl ;
 	}
 	
 	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
@@ -1193,7 +1193,7 @@ std::vector<EllipsoidalInclusion *> sortByMajorRadius(std::vector<EllipsoidalInc
 	return ret ;
 }
 
-std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile)
+std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, int nell)
 {
 	std::cout << "importing ellipses from file... " << ellipsefile << std::endl ; 
 	std::vector<EllipsoidalInclusion *> inc ;
@@ -1206,8 +1206,10 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile)
 	double ax ;
 	double ay ;
 	char buff [256] ;
-	while(!ellipsein.eof())
+	int nimp = 0 ;
+	while(!ellipsein.eof() && nimp < nell)
 	{
+		nimp++ ;
 		ellipsein >> buff ;
 		a = atof(buff) ;
 		ellipsein >> buff ;
@@ -1222,9 +1224,10 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile)
 		ay = atof(buff) ;
 		inc.push_back(new EllipsoidalInclusion(a,b,cx,cy,ax,ay)) ;
 	}
-	return inc ;
 	ellipsein.close() ;
+	inc.pop_back() ;
 	std::cout << inc.size() << " ellipses imported" << std::endl ;
+	return inc ;
 }
 
 
@@ -1261,8 +1264,10 @@ int main(int argc, char *argv[])
 	}
 	std::cout << area_test << " (" << (100*area_test/0.0016) << "%)" << std::endl ;*/
 
-	std::string ellipselist = "ellipse_6913.txt" ;
-	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist) ;
+	std::string ellipselist = "ellipse_good.txt" ;
+	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,9000) ;
+
+
 
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
@@ -1307,14 +1312,18 @@ int main(int argc, char *argv[])
 		placed_area += inc[i]->area() ;
 	}
 	
-	zones = generateExpansiveZonesHomogeneously(40000,inc,F) ;
-	
+        zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
 	
 	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
+        F.generateElements() ;
 
- 	stepOLD() ;
+	std::cout << " => " << F.getTriangles().size() << std::endl ;
+
+// 	stepOLD() ;
+        step() ;
+
+//	dt->print() ;
  	
 // 	delete dt ;*/
 	

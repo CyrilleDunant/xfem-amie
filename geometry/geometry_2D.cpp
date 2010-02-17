@@ -2025,7 +2025,9 @@ void Ellipse::sampleSurface (size_t num_points)
 	std::vector<double> newalist ;
 	newalist.push_back(getMajorRadius()) ;
 
-	int factor = 1 ;
+        int factor = 2 ;
+        int jfactor = 0 ;
+        bool jchange = false ;
 //	if(getMinorRadius() / getMajorRadius() < 0.7071)// || ring==1)
 //	{	
 //		factor = 1 ;
@@ -2044,17 +2046,22 @@ void Ellipse::sampleSurface (size_t num_points)
 		newb = getMinorRadius() * (ring - j) / (ring + 1) ;
 		newa = getMinorRadius() * (ring - j) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - j - 1) / (ring) ;
 		newalist.push_back(newa) ;
-		for(size_t i = 0 ; i < getBoundingPoints().size() / (factor * (j + 1)) ; i++)
+                for(size_t i = 0 ; i < getBoundingPoints().size() / (factor * (jfactor + 1)) ; i++)
 		{
 			temp.push_back(new Point(center + 
-						getMajorAxis() * ((getBoundingPoint(i * (factor * (j + 1))) - center) * getMajorAxis()) * newa / getMajorRadius() +
-						getMinorAxis() * ((getBoundingPoint(i * (factor * (j + 1))) - center) * getMinorAxis()) * newb / getMinorRadius())) ;
+                                                getMajorAxis() * ((getBoundingPoint(i * (factor * (jfactor + 1))) - center) * getMajorAxis()) * newa / getMajorRadius() +
+                                                getMinorAxis() * ((getBoundingPoint(i * (factor * (jfactor + 1))) - center) * getMinorAxis()) * newb / getMinorRadius())) ;
 		}
+                if(jchange)
+                {
+                    jfactor++ ;
+                }
+                jchange != jchange ;
 		if(factor == 2)
 		{
 			factor = 1 ;
 		} else {
-			factor = 2 ;
+//			factor = 2 ;
 		}
 	}
 /*	double r = sqrt(majorradius * minorradius) ;

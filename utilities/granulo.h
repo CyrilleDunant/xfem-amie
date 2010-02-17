@@ -64,14 +64,17 @@ class GranuloFromFile
 {
 private:
 	std::string filename;
-	std::vector<double> mass ;
-	std::vector<double> size ;
+	std::vector<std::string> fields;
+	std::vector<double> values ;
 
 public:
-	GranuloFromFile(std::string fname, std::vector<double>, double, double) ;
-	void resize(double) ;
-	std::vector<Inclusion *> getCircleInclusion(double,int,double) ;
-	std::vector<EllipsoidalInclusion *> getEllipsoidalInclusion(double,int,double) ;
+	GranuloFromFile(std::string fname, std::vector<std::string> columns) ;
+	const int numberOfField() {return this->fields.size() ; } ;
+	const bool verifyField(std::vector<std::string> columns) ;
+	const int getFieldNumber(std::string column) ;
+	std::vector<double> getFieldValues(std::string column) ;
+	std::vector<double> getFieldValues(int) ;
+	std::vector<Feature *> getFeatures(int type, int ninc) ;
 } ;
 
 
