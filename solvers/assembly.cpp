@@ -565,6 +565,7 @@ bool Assembly::make_final()
 					std::valarray<unsigned int> ids = multipliers[i].getDofIds() ;
 					for(size_t j = 0 ; j< ids.size() ;j++)
 					{
+						multipliers[i].id = max ;
 						map->insert(std::make_pair( ids[j], multipliers[i].getId())) ;
 						map->insert(std::make_pair( multipliers[i].getId(), ids[j])) ;
 					}
@@ -979,26 +980,28 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 {
 	std::valarray<unsigned int> i(2) ;
 	Vector c(2) ;
-	if(true || !has3Dims)
+	if(!has3Dims)
 	{
 		switch(v)
 		{
 		case XI:
 			{
-// 				if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end())
-// 				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
-					multipliers.back().type = SET_FORCE_XI ;
-// 				}
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
+
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
+				multipliers.back().type = SET_FORCE_XI ;
 				break ;
 			}
 		case ETA:
 			{
-// 				if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
-// 				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
-					multipliers.back().type = SET_FORCE_ETA ;
-// 				}
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
+				
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
+				multipliers.back().type = SET_FORCE_ETA ;
 				break ;
 			}
 		default:
@@ -1013,18 +1016,27 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 		{
 		case XI:
 			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
 				multipliers.rbegin()->type = SET_FORCE_XI ;
 				break ;
 			}
 		case ETA:
 			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
 				multipliers.rbegin()->type = SET_FORCE_ETA ;
 				break ;
 			}
 		case ZETA:
 			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
 				multipliers.rbegin()->type = SET_FORCE_ZETA ;
 				break ;
@@ -1036,6 +1048,105 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 		}
 	}
 	return ;
+}
+void Assembly::addForceOn(Variable v, double val, size_t id)
+{
+	std::valarray<unsigned int> i(2) ;
+	Vector c(2) ;
+	if(!has3Dims)
+	{
+		switch(v)
+		{
+		case XI:
+			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
+				if(!multipliers.empty() && duplicate != multipliers.end())
+				{
+					val += duplicate->value ;
+					
+					multipliers.erase(duplicate) ;
+				}
+
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
+				multipliers.back().type = SET_FORCE_XI ;
+				break ;
+			}
+		case ETA:
+			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
+				if(!multipliers.empty() && duplicate != multipliers.end())
+				{
+					val += duplicate->value ;
+					multipliers.erase(duplicate) ;
+				}
+				
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
+				multipliers.back().type = SET_FORCE_ETA ;
+				break ;
+			}
+		default:
+			{
+				break ;
+			}
+		}
+	}
+	else
+	{
+		switch(v)
+		{
+		case XI:
+			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+				{
+					val += (*duplicate).value ;
+					multipliers.erase(duplicate) ;
+				}
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
+				multipliers.rbegin()->type = SET_FORCE_XI ;
+				break ;
+			}
+		case ETA:
+			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+				{
+					val += (*duplicate).value ;
+					multipliers.erase(duplicate) ;
+				}
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
+				multipliers.rbegin()->type = SET_FORCE_ETA ;
+				break ;
+			}
+		case ZETA:
+			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+				{
+					val += (*duplicate).value ;
+					multipliers.erase(duplicate) ;
+				}
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
+				multipliers.rbegin()->type = SET_FORCE_ZETA ;
+				break ;
+			}
+		default:
+			{
+				break ;
+			}
+		}
+	}
+	return ;
+}
+
+void Assembly::addMultiplier(const LagrangeMultiplier & l)
+{
+	std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(l.getId())) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end() || duplicate->getId() == -1))
+	{
+		multipliers.erase(duplicate) ;
+	}
+	multipliers.push_back(l) ;
 }
 
 void Assembly::setPointAlong(Variable v, double val, size_t id) 

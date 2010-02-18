@@ -315,6 +315,35 @@ typedef enum
 	LEVEL_SET
 } GeometryType ;
 
+/** \brief defines the possible vertices, axes and faces of a bounding box */
+typedef enum
+{
+  TOP,
+  LEFT,
+  BOTTOM,
+  RIGHT,
+  FRONT,
+  BACK,
+  TOP_LEFT,
+  TOP_RIGHT,
+  BOTTOM_LEFT,
+  BOTTOM_RIGHT,
+  FRONT_LEFT,
+  FRONT_RIGHT,
+  BACK_LEFT,
+  BACK_RIGHT,
+  FRONT_TOP,
+  FRONT_BOTTOM,
+  TOP_LEFT_FRONT,
+  TOP_LEFT_BACK,
+  BOTTOM_LEFT_FRONT,
+  BOTTOM_LEFT_BACK,
+  TOP_RIGHT_FRONT,
+  TOP_RIGHT_BACK,
+  BOTTOM_RIGHT_FRONT,
+  BOTTOM_RIGHT_BACK
+} BoundingBoxPosition ;
+
 typedef enum
 {
 	SPACE_ONE_DIMENSIONAL,
@@ -543,7 +572,7 @@ struct TriPoint
 	/** \brief return area of the triangle*/
 	double area() const
 	{
-		return .5*((*point[0]-*point[1])^(*point[2]-*point[1])).norm() ;
+		return .5*normal.norm() ;
 	}
 
 	/** \brief return true is the argument is in*/

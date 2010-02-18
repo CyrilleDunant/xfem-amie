@@ -24,6 +24,7 @@ static const size_t DEFAULT_POINTNUMBER = 1000 ;
 
 namespace Mu
 {
+  
 /** \brief Feature.
  * 
  * a feature is the essential unit of description of a given test setup. A feature can be the sample itself, 
@@ -257,7 +258,7 @@ public:
 	
 } ;
 
-/** \brief Class which induces behaviou in elements but does not affect the constitution of the mesh*/
+/** \brief Class which induces behaviour in elements but does not affect the constitution of the mesh*/
 class VirtualFeature : virtual public Feature
 {
 public:
@@ -340,15 +341,17 @@ public:
 	
 } ;
 
-/** \brief Abstract boundary condition object for usage in multigrid solver. Work in Progress*/
+/** \brief Abstract boundary condition object for usage in multigrid solver. Work in Progress
+ * 
+*/
 class BoundaryCondition
 {	
 protected:
 	LagrangeMultiplierType condition;
-	std::vector<double> data ;
+	double data ;
 
 public:
-	BoundaryCondition(LagrangeMultiplierType t, const std::vector<double> & d) ;
+	BoundaryCondition(LagrangeMultiplierType t, const double & d) ;
 	virtual void apply(Assembly * a, DelaunayTree * t) const = 0 ;
 	virtual void apply(Assembly * a, DelaunayTree3D * t) const = 0 ;
 } ;
@@ -361,7 +364,19 @@ private:
 	Point from ;
 
 public:
-	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const std::vector<double> & d,const Point & direction, const Point & from) ;
+	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const double & d,const Point & direction, const Point & from) ;
+	virtual void apply(Assembly * a, DelaunayTree * t) const ;
+	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
+} ;
+
+/** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
+class BoundingBoxDefinedBoundaryCondition : public BoundaryCondition
+{
+private:
+	BoundingBoxPosition pos ;
+	
+public:
+	BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d = 0 ) ;
 	virtual void apply(Assembly * a, DelaunayTree * t) const ;
 	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;
@@ -373,7 +388,7 @@ private:
 	Geometry * domain ;
 
 public:
-	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, const std::vector<double> & d, Geometry * source) ;
+	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, const double & d, Geometry * source) ;
 	virtual void apply(Assembly * a, DelaunayTree * t) const ;
 	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;
@@ -656,6 +671,8 @@ class FeatureTree
 {
 	
 protected:
+	
+	std::vector< BoundaryCondition * > boundaryCondition ;
 	/** \brief Contains all the features. */
 	std::vector<Feature *> tree ;
 
@@ -740,12 +757,29 @@ public:
 	Point * checkElement( const DelaunayTriangle * t ) const ;
 	Feature * getFeatForTetra( const DelaunayTetrahedron * t ) const;
 
+	/** \brief The solver converged at the last step.
+	* This condition checks whether a numerical solution was found. If false, this means the solver diverged, or 
+	* could not find a solution with the prescribed precision in the given maximum number of iteration
+	*/
 	bool solverConverged() const ;
+	
+	/** \brief At least an element changed behaviour.
+	* This typically occurs when an element is damaged, or a virtual feature changed its geometry.
+	*/
 	bool meshChanged() const ;
+	
+	/** \brief At least an enrichment feature changed its geometry/behaviour
+	* This typically occurs when a crack grows
+	*/
 	bool enrichmentChanged() const ;
 
 	double crackedVolume ;
 	double damagedVolume ;
+	
+public:
+	
+	void addBoundaryCondition(BoundaryCondition * bc) ;
+	void removeBoundaryCondition(BoundaryCondition * bc) ;
 	
 public:
 	

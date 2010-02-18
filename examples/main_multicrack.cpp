@@ -141,61 +141,6 @@ double aggregateArea = 0;
 
 std::vector<double> energy ;
 
-void setBC()
-{
-  //if (/*un truc géométrique pour choper les bons points*/)
-       //l'assemblage sur lequel on fout les BC
-       //featureTree->getAssembly()->
-       // au choix
-       //* setPoint(x,y, point.id)
-       //* setPointAlong({XI, ETA}, x, point.id)
-       //* setForceOn({XI, ETA}, f, point.id)
-       //* setForce(fx, fy, point.id)
-       //* setPeriodic(point.id, point2.id)
-
-	triangles = featureTree->getTriangles() ;
-	double bctol  = 1e-6;
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-			if(triangles[k]->getBoundingPoint(c).t < 0)
-			{
-				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			else
-			{
-				if(std::abs(triangles[k]->getBoundingPoint(c).y - .00500) < bctol 
-				&& (std::abs(triangles[k]->getBoundingPoint(c).x - .01) < bctol /*|| std::abs(triangles[k]->getBoundingPoint(c).x + .01) < bctol */))
-				{
-					featureTree->getAssembly()->setPoint( 0,0.001 ,triangles[k]->getBoundingPoint(c).id) ;
-				}
-// 				else if(std::abs(triangles[k]->getBoundingPoint(c).y + .00500) < bctol 
-// 				&& (std::abs(triangles[k]->getBoundingPoint(c).x - .01) < bctol || std::abs(triangles[k]->getBoundingPoint(c).x + .01) < bctol ))
-// 				{
-// 					featureTree->getAssembly()->setPoint( 0,-0.001 ,triangles[k]->getBoundingPoint(c).id) ;
-// 				}
-				else if(std::abs(triangles[k]->getBoundingPoint(c).y - .00500) < bctol)// top boundary			
-				{
-					featureTree->getAssembly()->setPointAlong( ETA,0.001 ,triangles[k]->getBoundingPoint(c).id) ;
-				}
-				else if(std::abs(triangles[k]->getBoundingPoint(c).y + .00500) < bctol)// bottom boundary			
-				{
-					featureTree->getAssembly()->setPointAlong( ETA,-0.001 ,triangles[k]->getBoundingPoint(c).id) ;
-				}
-				else if(std::abs(triangles[k]->getBoundingPoint(c).x - .0100) < bctol)// top boundary			
-				{
-					featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-				}
-				else if(std::abs(triangles[k]->getBoundingPoint(c).x + .0100) < bctol)// bottom boundary			
-				{
-					featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-				}
-			}
-		}
-	}
-}
-
 void step()
 {
 	
@@ -207,14 +152,12 @@ void step()
 	{
 		countit++;
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
-		setBC() ;
       
 		int limit = 0 ;
 		while(!featureTree->step(timepos) && limit < 50)//as long as we can update the features
 		{
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
-			setBC() ;
 			limit++ ;
 	  // check if the two cracks did not touch
 			cracks_did_not_touch = true;
@@ -1386,7 +1329,7 @@ int main(int argc, char *argv[])
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
+	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = .99*E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
 
 	// Material behaviour of the fibres
 	Matrix m0_agg(3,3) ;
@@ -1417,7 +1360,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
- 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 500000)) ;
+ 	sample.setBehaviour(new /*WeibullDistributed*/Stiffness(m0_paste/*, 500000*/)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
@@ -1441,13 +1384,13 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, inc1) ;
 	
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
-	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste*4, 500000) ;
+	/*WeibullDistributed*/Stiffness * stiff = new /*WeibullDistributed*/Stiffness(m0_paste*4/*, 500000*/) ;
 	inc1->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-// 	F.addFeature(&sample, inc0) ;
-	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
-	F.addFeature(&sample, itz) ;
-	F.addFeature(itz, inc1) ;
+// 	F.addFeature(&sample, inc1) ;
+//  	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
+// 	F.addFeature(&sample, itz) ;
+// 	F.addFeature(itz, inc1) ;
 // 	F.addFeature(&sample, inc1) ;
 // 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
@@ -1476,10 +1419,14 @@ int main(int argc, char *argv[])
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
 
-
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, 10)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(256) ;
+	F.sample(8) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

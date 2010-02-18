@@ -68,6 +68,9 @@ typedef enum
 	SET_FORCE_XI,
 	SET_FORCE_ETA,
 	SET_FORCE_ZETA,
+	SET_STRESS_XI,
+	SET_STRESS_ETA,
+	SET_STRESS_ZETA,
 } LagrangeMultiplierType ;
 
 /** \brief Abstract representation of a Boundary condition. Can be an actual Lagrange Multiplier, or a hint for set displacements or forces.*/
@@ -328,7 +331,24 @@ public:
 	 * @param val intensity of the force
 	 */
 	void setForceOn(Variable var, double val, size_t id) ;
+	
+	/** Apply a force on given node. The force specified is added to the already applied force (if any).
+	 * @param var Variable (XI, ETA, or ZETA) along which force is applied 
+	 * @param id ID of the node 
+	 * @param val intensity of the force
+	 */
+	void addForceOn(Variable var, double val, size_t id) ;
+	
+	/** Apply a force on given node (1D)
+	 * @param id ID of the node 
+	 * @param val intensity of the force
+	 */
 	void setForceOn(double val, size_t id) ;
+	
+	/**Add a Lagrange Multiplier to the problem
+	 * @param l Multiplier to add
+	 */
+	void addMultiplier(const LagrangeMultiplier & l) ;
 
 /** \brief set boundary condition. Point with ID id has 0 displacement along prescribed axis*/
 	void fixPoint(size_t id, Mu::Variable v) ;
