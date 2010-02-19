@@ -1280,7 +1280,7 @@ int main(int argc, char *argv[])
             inc.push_back(static_cast<EllipsoidalInclusion *>(feat[i])) ;
 
         std::cout << inc.size() << std::endl ;
-        inc[inc.size() - 1]->getCenter().print() ;
+        inc[inc.size() - 1]->getMajorAxis().print() ;
 
         return 0 ;
 
