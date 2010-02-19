@@ -125,6 +125,6 @@ Form * WeibullStiffnessWithVariableImposedDeformationAndFracture::getCopy() cons
 
 void WeibullStiffnessWithVariableImposedDeformationAndFracture::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	f = VirtualMachine().ieval(Gradient(p_i,true) * ( (param * damage) * imposed), gp, Jinv,v) ;
+	f = VirtualMachine().ieval(Gradient(p_i) * ( (param * damage) * imposed), gp, Jinv,v) ;
 }
 

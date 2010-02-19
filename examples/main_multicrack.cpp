@@ -1387,7 +1387,7 @@ int main(int argc, char *argv[])
 	/*WeibullDistributed*/Stiffness * stiff = new /*WeibullDistributed*/Stiffness(m0_paste*4/*, 500000*/) ;
 	inc1->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-// 	F.addFeature(&sample, inc1) ;
+	F.addFeature(&sample, inc1) ;
 //  	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
 // 	F.addFeature(&sample, itz) ;
 // 	F.addFeature(itz, inc1) ;
@@ -1419,15 +1419,17 @@ int main(int argc, char *argv[])
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, 10)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI_ETA , TOP, -10)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(8) ;
-	F.setOrder(LINEAR) ;
+	F.sample(128) ;
+	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
 // 	F.refine(3) ;

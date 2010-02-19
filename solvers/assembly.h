@@ -70,7 +70,10 @@ typedef enum
 	SET_FORCE_ZETA,
 	SET_STRESS_XI,
 	SET_STRESS_ETA,
+	SET_STRESS_XI_ETA,
 	SET_STRESS_ZETA,
+	SET_STRESS_XI_ZETA,
+	SET_STRESS_ETA_ZETA,
 } LagrangeMultiplierType ;
 
 /** \brief Abstract representation of a Boundary condition. Can be an actual Lagrange Multiplier, or a hint for set displacements or forces.*/

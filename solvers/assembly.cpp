@@ -502,8 +502,9 @@ void Assembly::setBoundaryConditions()
 				|| multipliers[i].type == SET_FORCE_ETA
 				|| multipliers[i].type == SET_FORCE_ZETA)
 		{
-			this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ; 
+			this->externalForces[multipliers[i].getId()] = multipliers[i].getValue() ; 
 		}
+
 	}
 
 	multipliers.clear() ;
@@ -1079,7 +1080,6 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 					val += duplicate->value ;
 					multipliers.erase(duplicate) ;
 				}
-				
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
 				multipliers.back().type = SET_FORCE_ETA ;
 				break ;

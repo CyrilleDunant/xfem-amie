@@ -109,6 +109,6 @@ Form * StiffnessWithVariableImposedDeformationAndFracture::getCopy() const
 
 void StiffnessWithVariableImposedDeformationAndFracture::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	f = VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv,v) ;
+	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 }
 

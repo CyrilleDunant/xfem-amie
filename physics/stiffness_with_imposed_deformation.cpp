@@ -57,6 +57,6 @@ Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p) const
 
 void StiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	f = VirtualMachine().ieval(Gradient(p_i,true) * (param * imposed), gp, Jinv,v) ;
+	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 }
 

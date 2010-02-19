@@ -161,8 +161,9 @@ void Feature::setBehaviour(Form * f)
 
 BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d) :BoundaryCondition(t, d), pos(pos) {} ;
 
-void apply2DBC(const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
+void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
+	
 	for(size_t i = 0 ; i < id.size() ; i++)
 	{
 		switch(condition)
@@ -188,163 +189,101 @@ void apply2DBC(const std::vector<Point> & id, LagrangeMultiplierType condition, 
 			case SET_FORCE_ETA:
 				a->setForceOn(ETA, data, id[i].id) ;
 				break ;
-			default:
-				break;
-		}
-	}
-	
-	if(id.size() >= 2)
-	{
-		std::pair<Point, Point> extrema ;
-		std::vector<Point> notExtrema ; 
-		double d =dist(id[0],id[1]) ;
-		extrema.first = id[0] ; extrema.second = id[1] ; 
-		double detrexma0 = 0 ;
-		double detrexma1 = 0 ;
-		std::vector<std::pair<Point, Point> > segments ;
-		for(size_t i = 0 ; i < id.size() ; ++i)
-		{
-			for(size_t j = i+1 ; j < id.size() ; ++j)
-			{
-				double dtemp = dist(id[i],id[j]) ;
-				if(dtemp > d)
-				{
-					d = dtemp ;
-					extrema.first = id[i] ; extrema.second = id[j] ; 
-				}
-
-				if(extrema.first.id != id[i].id && extrema.second.id != id[i].id)
-				{
-					bool nothere = true ;
-					for(size_t k = 0 ; k < notExtrema.size() ; ++k)
-					{
-						if(notExtrema[i].id == id[i].id)
-						{
-							nothere = false ;
-							break ;
-						}
-					}
-					if(nothere)
-						notExtrema.push_back(id[i]) ;
-				}
-				
-				if(extrema.first.id != id[j].id && extrema.second.id != id[j].id)
-				{
-					bool nothere = true ;
-					for(size_t k = 0 ; k < notExtrema.size() ; ++k)
-					{
-						if(notExtrema[i].id == id[j].id)
-						{
-							nothere = false ;
-							break ;
-						}
-					}
-					if(nothere)
-						notExtrema.push_back(id[j]) ;
-				}
-			}
-		}
-		
-		if(notExtrema.empty())
-			segments.push_back(extrema) ;
-		
-		while(!notExtrema.empty())
-		{
-			detrexma0 = dist(extrema.first, notExtrema[0]) ;
-			detrexma1 = dist(extrema.first, notExtrema[0]) ;
-			segments.push_back(std::make_pair(extrema.first, notExtrema[0])) ;
-			segments.push_back(std::make_pair(extrema.second, notExtrema[0])) ;
-			if(notExtrema.size() == 1)
-				break ;
-			for(int i = 1 ; i < notExtrema.size() ; ++i)
-			{
-				double detrexma0trial = dist(segments[0].first, notExtrema[i]) ;
-				double detrexma1trial = dist(segments[1].first, notExtrema[i]) ;
-				if(detrexma0trial < detrexma0)
-				{
-					detrexma0 = detrexma0trial ;
-					segments[0].second = notExtrema[i] ;
-				}
-				if(detrexma1trial < detrexma1)
-				{
-					detrexma1 = detrexma1trial ;
-					segments[1].second = notExtrema[i] ;
-				}
-			}
-			
-			d = dist(notExtrema[0],notExtrema[1]) ;
-			extrema.first = notExtrema[0] ; extrema.second = notExtrema[1] ; 
-			std::vector<Point> newNotExtrema ; 
-			
-			for(size_t i = 0 ; i < notExtrema.size() ; ++i)
-			{
-				for(size_t j = i+1 ; j < notExtrema.size() ; ++j)
-				{
-					double dtemp = dist(notExtrema[i],notExtrema[j]) ;
-					if(dtemp > d)
-					{
-						d = dtemp ;
-						extrema.first = notExtrema[i] ; extrema.second = notExtrema[j] ; 
-					}
-
-					if(extrema.first.id != notExtrema[i].id && extrema.second.id != notExtrema[i].id)
-					{
-						bool nothere = true ;
-						for(size_t k = 0 ; k < newNotExtrema.size() ; ++k)
-						{
-							if(newNotExtrema[i].id == notExtrema[i].id)
-							{
-								nothere = false ;
-								break ;
-							}
-						}
-						if(nothere)
-							newNotExtrema.push_back(notExtrema[i]) ;
-					}
-					
-					if(extrema.first.id != notExtrema[j].id && extrema.second.id != notExtrema[j].id)
-					{
-						bool nothere = true ;
-						for(size_t k = 0 ; k < newNotExtrema.size() ; ++k)
-						{
-							if(newNotExtrema[i].id == notExtrema[j].id)
-							{
-								nothere = false ;
-								break ;
-							}
-						}
-						if(nothere)
-							newNotExtrema.push_back(notExtrema[j]) ;
-					}
-				}
-			}
-			
-			notExtrema = newNotExtrema ;
-		}
-	
-		switch(condition)
-		{
 			case SET_STRESS_XI:
 			{
-				for(size_t i = 0 ; i < segments.size() ; ++i)
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
 				{
-					double segd = dist(segments[i].first, segments[i].second) ;
-					a->addForceOn(XI, data*segd, segments[i].first.id) ;
-					a->addForceOn(XI, data*segd, segments[i].second.id) ;
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
 				}
-				break ;
+				std::vector<Variable> v(2) ;
+				v[0] = XI ; v[1] = ETA ;
+				Vector imposed(2) ;
+				imposed[0] = data ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+				}
+				return ;
 			}
 			case SET_STRESS_ETA:
 			{
-				for(size_t i = 0 ; i < segments.size() ; ++i)
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
 				{
-					double segd = dist(segments[i].first, segments[i].second) ;
-					a->addForceOn(ETA, data*segd, segments[i].first.id) ;
-					a->addForceOn(ETA, data*segd, segments[i].second.id) ;
-					std::cout << segments[i].first.id << ", " <<  segments[i].second.id << std::endl ;
-					
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
 				}
-				break ;
+				std::vector<Variable> v(2) ;
+				v[0] = XI ; v[1] = ETA ;
+				Vector imposed(3) ;
+				imposed[0] = 0 ;
+				imposed[1] = data ;
+				imposed[2] = 0 ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+				}
+				return ;
+			}
+			case SET_STRESS_XI_ETA:
+			{
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
+				{
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
+				}
+				std::vector<Variable> v(2) ;
+				v[0] = XI ; v[1] = ETA ;
+				Vector imposed(3) ;
+				imposed[0] = 0 ;
+				imposed[1] = 0 ;
+				imposed[2] = data ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+				}
+				return ;
 			}
 			default:
 				break;
@@ -352,7 +291,7 @@ void apply2DBC(const std::vector<Point> & id, LagrangeMultiplierType condition, 
 	}
 }
 
-void apply3DBC(const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
+void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
 	for(size_t i = 0 ; i < id.size() ; i++)
 	{
@@ -388,44 +327,221 @@ void apply3DBC(const std::vector<Point> & id, LagrangeMultiplierType condition, 
 			case SET_FORCE_ZETA:
 				a->setForceOn(ZETA, data, id[i].id) ;
 				break ;
-			default:
-				break;
-		}
-	}
-	
-	if(id.size() >= 3)
-	{
-		double d = TriPoint(&id[0],&id[1],&id[2]).area() ;
-		for(size_t i = 1 ; i < id.size() ; ++i)
-		{
-			for(size_t j = i ; j < id.size() ; ++j)
-			{
-				for(size_t k = j ; k < id.size() ; ++k)
-				{
-					d = std::max(d, TriPoint(&id[i],&id[j],&id[k]).area()) ;
-				}
-			}
-		}
-		d /= id.size() ;
-		switch(condition)
-		{
 			case SET_STRESS_XI:
 			{
-				for(size_t i = 0 ; i < id.size() ; ++i)
-					a->addForceOn(XI, data*d, id[i].id) ;
-				break ;
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
+				{
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
+				}
+				std::vector<Variable> v(3) ;
+				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				Vector imposed(6) ;
+				imposed[0] = data ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				imposed[3] = 0 ;
+				imposed[4] = 0 ;
+				imposed[5] = 0 ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+					a->addForceOn(ZETA,forces[2], id[i].id) ;
+				}
+				return ;
 			}
 			case SET_STRESS_ETA:
 			{
-				for(size_t i = 0 ; i < id.size() ; ++i)
-					a->addForceOn(ETA, data*d, id[i].id) ;
-				break ;
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
+				{
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
+				}
+				std::vector<Variable> v(3) ;
+				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				Vector imposed(6) ;
+				imposed[0] = 0 ;
+				imposed[1] = data ;
+				imposed[2] = 0 ;
+				imposed[3] = 0 ;
+				imposed[4] = 0 ;
+				imposed[5] = 0 ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+					a->addForceOn(ZETA,forces[2], id[i].id) ;
+				}
+				return ;
 			}
 			case SET_STRESS_ZETA:
 			{
-				for(size_t i = 0 ; i < id.size() ; ++i)
-					a->addForceOn(ZETA, data*d, id[i].id) ;
-				break ;
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
+				{
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
+				}
+				std::vector<Variable> v(3) ;
+				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				Vector imposed(6) ;
+				imposed[0] = 0 ;
+				imposed[1] = 0 ;
+				imposed[2] = data ;
+				imposed[3] = 0 ;
+				imposed[4] = 0 ;
+				imposed[5] = 0 ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+					a->addForceOn(ZETA,forces[2], id[i].id) ;
+				}
+				return ;
+			}
+			case SET_STRESS_XI_ETA:
+			{
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
+				{
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
+				}
+				std::vector<Variable> v(3) ;
+				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				Vector imposed(6) ;
+				imposed[0] = 0 ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				imposed[3] = data ;
+				imposed[4] = 0 ;
+				imposed[5] = 0 ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+					a->addForceOn(ZETA,forces[2], id[i].id) ;
+				}
+				return ;
+			}
+			case SET_STRESS_XI_ZETA:
+			{
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
+				{
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
+				}
+				std::vector<Variable> v(3) ;
+				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				Vector imposed(6) ;
+				imposed[0] = 0 ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				imposed[3] = 0 ;
+				imposed[4] = data ;
+				imposed[5] = 0 ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+					a->addForceOn(ZETA,forces[2], id[i].id) ;
+				}
+				return ;
+			}
+			case SET_STRESS_ETA_ZETA:
+			{
+				std::vector<Function> shapeFunctions ;
+				for(size_t j = 0 ; j < id.size() ; j++)
+				{
+					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					{
+						if(id[j].id == e->getBoundingPoint(i).id)
+							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+					}
+				}
+				std::vector<Variable> v(3) ;
+				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				Vector imposed(6) ;
+				imposed[0] = 0 ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				imposed[3] = 0 ;
+				imposed[4] = 0 ;
+				imposed[5] = data ;
+				GaussPointArray gp = e->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+				}
+				
+				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
+				{
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i].id) ;
+					a->addForceOn(ETA,forces[1], id[i].id) ;
+					a->addForceOn(ZETA,forces[2], id[i].id) ;
+				}
+				return ;
 			}
 			default:
 				break;
@@ -471,7 +587,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -487,7 +603,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -503,7 +619,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -519,7 +635,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -535,7 +651,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -551,7 +667,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -567,7 +683,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -583,7 +699,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply2DBC(id, condition, data, a) ;
+				apply2DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -637,7 +753,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -653,7 +769,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -669,7 +785,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -685,7 +801,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -701,7 +817,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -717,7 +833,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -733,7 +849,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -749,7 +865,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -765,7 +881,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -781,7 +897,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -797,7 +913,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -813,7 +929,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -829,7 +945,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -845,7 +961,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -861,7 +977,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -877,7 +993,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -895,7 +1011,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -913,7 +1029,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -931,7 +1047,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -949,7 +1065,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -967,7 +1083,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -985,7 +1101,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -1003,7 +1119,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
@@ -1021,7 +1137,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 						id.push_back(elements[i]->getBoundingPoint(j)) ;
 					}
 				}
-				apply3DBC(id, condition, data, a) ;
+				apply3DBC(elements[i], id, condition, data, a) ;
 			}
 			break ;
 		}
