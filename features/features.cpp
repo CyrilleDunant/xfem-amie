@@ -163,7 +163,8 @@ BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(Lagrang
 
 void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
-	
+	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
+		return ;
 	for(size_t i = 0 ; i < id.size() ; i++)
 	{
 		switch(condition)
@@ -293,6 +294,8 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 
 void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
+	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
+		return ;
 	for(size_t i = 0 ; i < id.size() ; i++)
 	{
 		switch(condition)
@@ -548,6 +551,50 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 		}
 	}
 }
+
+GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d) : BoundaryCondition(t, d), domain(source) { };
+
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
+{
+	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	double tol = domain->getRadius()*.0001 ;
+	
+
+	for(size_t i = 0 ; i < elements.size() ; ++i)
+	{
+		std::vector<Point> id  ;
+		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+		{
+			Circle c(tol, elements[i]->getBoundingPoint(j)) ; 
+			if(domain->intersects(&c))
+			{
+				id.push_back(elements[i]->getBoundingPoint(j)) ;
+			}
+		}
+		apply2DBC(elements[i], id, condition, data, a) ;
+	}
+}
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const
+{
+	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	double tol = domain->getRadius()*.0001 ;
+	
+
+	for(size_t i = 0 ; i < elements.size() ; ++i)
+	{
+		std::vector<Point> id  ;
+		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+		{
+			Sphere c(tol, elements[i]->getBoundingPoint(j)) ; 
+			if(domain->intersects(&c))
+			{
+				id.push_back(elements[i]->getBoundingPoint(j)) ;
+			}
+		}
+		apply3DBC(elements[i], id, condition, data, a) ;
+	}
+}
+
 
 void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
 {
@@ -4198,52 +4245,64 @@ BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, const double & d)
 
 
 
-ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const double & d, const Point & dir, const Point & f) : BoundaryCondition(t,d), direction(dir), from(f) { }
+ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const Point & dir, double d) : BoundaryCondition(t,d), direction(dir) { }
 
 void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
 {
 	std::vector<DelaunayTriangle *> tris = t->getTriangles() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)
 	{
+		DelaunayTreeItem * VoidNeighbour ;
 		bool border = false ;
 		for(size_t j = 0 ; j < tris[i]->neighbour.size() ; j++)
 		{
-			border = border || tris[i]->getNeighbour(j)->isPlane ;
+			bool voidNeighbour = (tris[i]->getNeighbour(j)->isTriangle 
+			                    && dynamic_cast<DelaunayTriangle *>(tris[i]->getNeighbour(j))->getBehaviour()->type == VOID_BEHAVIOUR) ;
+			border = border || tris[i]->getNeighbour(j)->isPlane
+			                || voidNeighbour ;
+			if(voidNeighbour)
+				VoidNeighbour = tris[i]->getNeighbour(j) ;
+			if(tris[i]->getNeighbour(j)->isPlane)
+				VoidNeighbour = tris[i]->getNeighbour(j) ;
 		}
+		
+		if(tris[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+			border = false ;
 		
 		if(border)
 		{
-			Segment ray((tris[i]->getCircumCenter()), (tris[i]->getCircumCenter())-direction*(2.*tris[i]->getRadius())) ;
-			for(size_t j = 0 ; j < tris[i]->getBoundingPoints().size() ; j++)
+			Segment ray((tris[i]->getCenter()), (tris[i]->getCenter())-direction*(tris[i]->getRadius())) ;
+			bool isOnTheRightSide = true ;
+			for(size_t j = 0 ; j < tris[i]->neighbour.size() ; j++)
 			{
-				Segment side(tris[i]->getBoundingPoint(j), tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size())) ;
-				if(side.intersects(ray))
+				if(tris[i]->getNeighbour(j)->isTriangle && !(dynamic_cast<DelaunayTriangle *>(tris[i]->getNeighbour(j))->getBehaviour()->type == VOID_BEHAVIOUR))
 				{
-					if(condition == SET_ALONG_XI)
+					isOnTheRightSide = isOnTheRightSide && !(ray.intersects(dynamic_cast<Triangle *>(tris[i]->getNeighbour(j)))) ;
+				}
+			}
+			
+			if(isOnTheRightSide)
+			{
+				std::vector<Point> id ;
+				for(size_t j = 0 ; j < tris[i]->getBoundingPoints().size() ; j++)
+				{
+					
+					Segment side(tris[i]->getBoundingPoint(j), tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size())) ;
+					if(side.intersects(ray))
 					{
-						a->setPointAlong(XI, data, tris[i]->getBoundingPoint(j).id) ;
-						a->setPointAlong(XI, data, tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size()).id) ;
+						id.push_back(tris[i]->getBoundingPoint(j)) ;
+						id.push_back(tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size())) ;
 					}
-					if(condition == SET_ALONG_ETA)
-					{
-						a->setPointAlong(ETA, data, tris[i]->getBoundingPoint(j).id) ;
-						a->setPointAlong(ETA, data, tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size()).id) ;
-					}
-					if(condition == SET_FORCE_XI)
-					{
-						a->setForceOn(XI, data, tris[i]->getBoundingPoint(j).id) ;
-						a->setForceOn(XI, data, tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size()).id) ;
-					}
-					if(condition == SET_FORCE_ETA)
-					{
-						a->setForceOn(ETA, data, tris[i]->getBoundingPoint(j).id) ;
-						a->setForceOn(ETA, data, tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size()).id) ;
-					}
+				}
+				if(!id.empty())
+				{
+					apply2DBC(tris[i], id, condition, data, a) ;
 				}
 			}
 		}
 	}
 }
+
 void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const
 {
 	std::vector<DelaunayTetrahedron *> tris = t->getTetrahedrons() ;
@@ -4257,56 +4316,25 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)
 				space.push_back(static_cast<DelaunayDemiSpace *>(tris[i]->getNeighbour(j))) ;
 			}
 		}
-		
+		std::vector<Point> id ;
 		for(size_t s = 0 ; s < space.size() ; s++)
 		{
-			Segment ray(*tris[i]->getCircumCenter(), *tris[i]->getCircumCenter()-direction*2.*tris[i]->getRadius()) ;
+			Segment ray(tris[i]->getCenter(), tris[i]->getCenter()-direction*2.*tris[i]->getRadius()) ;
 			std::vector<Point *> points = space[s]->commonSurface(tris[i]) ;
 			TriPoint surf(points[0], points[1], points[2]) ;
-			for(size_t j = 4 ; j < tris[i]->getBoundingPoints().size() ; j++)
+			for(size_t j = 3 ; j < tris[i]->getBoundingPoints().size() ; j++)
 			{
 				if(isCoplanar(*points[0], *points[1], *points[2], tris[i]->getBoundingPoint(j)))
 					points.push_back(&tris[i]->getBoundingPoint(j)) ;
 			}
 			
-			if(ray.intersects(&surf))
+			if(ray.intersects(&surf) && !points.empty())
 			{
 				for(size_t j = 0 ; j < points.size() ; j++)
-				{
-	
-					if(condition == SET_ALONG_XI)
-					{
-						a->setPointAlong(XI, data, points[j]->id) ;
-						a->setPointAlong(XI, data, points[(j+1)%tris[i]->getBoundingPoints().size()]->id) ;
-					}
-					if(condition == SET_ALONG_ETA)
-					{
-						a->setPointAlong(ETA, data, points[j]->id) ;
-						a->setPointAlong(ETA, data, points[(j+1)%tris[i]->getBoundingPoints().size()]->id) ;
-					}
-					if(condition == SET_ALONG_ZETA)
-					{
-						a->setPointAlong(ZETA, data, points[j]->id) ;
-						a->setPointAlong(ZETA, data, points[(j+1)%tris[i]->getBoundingPoints().size()]->id) ;
-					}
-					if(condition == SET_FORCE_XI)
-					{
-						a->setForceOn(XI, data, points[j]->id) ;
-						a->setForceOn(XI, data, points[(j+1)%tris[i]->getBoundingPoints().size()]->id) ;
-					}
-					if(condition == SET_FORCE_ETA)
-					{
-						a->setForceOn(ETA, data, points[j]->id) ;
-						a->setForceOn(ETA, data, points[(j+1)%tris[i]->getBoundingPoints().size()]->id) ;
-					}
-					if(condition == SET_FORCE_ZETA)
-					{
-						a->setForceOn(ZETA, data, points[j]->id) ;
-						a->setForceOn(ZETA, data, points[(j+1)%tris[i]->getBoundingPoints().size()]->id) ;
-					}
-				}
+					id.push_back(*points[j]) ;
 			}
 		}
+		apply3DBC(tris[i], id, condition, data, a) ;
 	}
 }
 

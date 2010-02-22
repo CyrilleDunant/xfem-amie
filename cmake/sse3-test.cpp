@@ -1,6 +1,7 @@
-#include <pmmintrin.h>
+#include <x86intrin.h>
 #include <iostream>
 #include <limits>
+#include <cmath>
 
 typedef union 
 {

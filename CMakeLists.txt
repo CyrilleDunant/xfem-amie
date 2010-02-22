@@ -91,7 +91,7 @@ utilities/samplingcriterion.cpp
 )
 
 find_package(GLUT)
-#find_package(OpenMP)
+find_package(OpenMP)
 
 message (STATUS "checking for C++ TR1 extensions")
 try_run (TR1_TEST_EXITCODE TR1_TEST_COMPILED
@@ -115,7 +115,9 @@ endif(TR1_TEST_COMPILED)
 
 CHECK_CXX_COMPILER_FLAG(-ftree-vectorize COMPILER_HAS_VECTORISER )
 CHECK_CXX_COMPILER_FLAG(-floop-strip-mine COMPILER_HAS_LOOP_INTERCHANGE )
-CHECK_CXX_COMPILER_FLAG(-msse4.1 COMPILER_HAS_SSE4 )
+CHECK_CXX_COMPILER_FLAG(-msse4a COMPILER_HAS_SSE4A )
+CHECK_CXX_COMPILER_FLAG(-msse4.1 COMPILER_HAS_SSE41 )
+CHECK_CXX_COMPILER_FLAG(-msse4.2 COMPILER_HAS_SSE42 )
 CHECK_CXX_COMPILER_FLAG(-msse3 COMPILER_HAS_SSE3 )
 
  if(COMPILER_HAS_SSE3)
@@ -135,24 +137,60 @@ CHECK_CXX_COMPILER_FLAG(-msse3 COMPILER_HAS_SSE3 )
  		set (SSE3_FOUND 0)
  	endif (SSE3_TEST_EXITCODE EQUAL 0)
  
-# 	if(COMPILER_HAS_SSE4)
-# 		add_definitions("-msse4.1")
-# 		try_run (SSE4_TEST_EXITCODE SSE4_TEST_COMPILED
-# 			${CMAKE_BINARY_DIR}
-# 			${PROJECT_SOURCE_DIR}/cmake/sse4-test.cpp
-# 			COMPILE_DEFINITIONS "-msse4.1"
-# 		)
-# 
-#		if (SSE4_TEST_EXITCODE EQUAL 0)
-# 			message (STATUS "  SSE4 found")
-# 			set (SSE4_FOUND 1)
-# 			add_definitions(-DHAVE_SSE4)
-# 		else (SSE4_TEST_EXITCODE EQUAL 1)
-# 			message (STATUS "  SSE4 not found")
-# 			set (SSE4_FOUND 0)
-# 		endif (SSE4_TEST_EXITCODE EQUAL 0)
-# 
-# 	endif(COMPILER_HAS_SSE4)
+	if(COMPILER_HAS_SSE4A)
+		add_definitions("-msse4a")
+		try_run (SSE4_TEST_EXITCODE SSE4_TEST_COMPILED
+			${CMAKE_BINARY_DIR}
+			${PROJECT_SOURCE_DIR}/cmake/sse4-test.cpp
+			COMPILE_DEFINITIONS "-msse4a"
+		)
+
+		if (SSE4_TEST_EXITCODE EQUAL 0)
+			message (STATUS "  SSE 4a found")
+			set (SSE4_FOUND 1)
+			add_definitions(-DHAVE_SSE4)
+		else (SSE4_TEST_EXITCODE EQUAL 1)
+			message (STATUS "  SSE 4a not found")
+			set (SSE4_FOUND 0)
+		endif (SSE4_TEST_EXITCODE EQUAL 0)
+
+	endif(COMPILER_HAS_SSE4A)
+	if(COMPILER_HAS_SSE41)
+		add_definitions("-msse4.1")
+		try_run (SSE4_TEST_EXITCODE SSE4_TEST_COMPILED
+			${CMAKE_BINARY_DIR}
+			${PROJECT_SOURCE_DIR}/cmake/sse4-test.cpp
+			COMPILE_DEFINITIONS "-msse4.1"
+		)
+
+		if (SSE4_TEST_EXITCODE EQUAL 0)
+			message (STATUS "  SSE 4.1 found")
+			set (SSE4_FOUND 1)
+			add_definitions(-DHAVE_SSE4)
+		else (SSE4_TEST_EXITCODE EQUAL 1)
+			message (STATUS "  SSE 4.1 not found")
+			set (SSE4_FOUND 0)
+		endif (SSE4_TEST_EXITCODE EQUAL 0)
+
+	endif(COMPILER_HAS_SSE41)
+	if(COMPILER_HAS_SSE42)
+		add_definitions("-msse4.2")
+		try_run (SSE4_TEST_EXITCODE SSE4_TEST_COMPILED
+			${CMAKE_BINARY_DIR}
+			${PROJECT_SOURCE_DIR}/cmake/sse4-test.cpp
+			COMPILE_DEFINITIONS "-msse4.2"
+		)
+
+		if (SSE4_TEST_EXITCODE EQUAL 0)
+			message (STATUS "  SSE 4.2 found")
+			set (SSE4_FOUND 1)
+			add_definitions(-DHAVE_SSE4)
+		else (SSE4_TEST_EXITCODE EQUAL 1)
+			message (STATUS "  SSE 4.2 not found")
+			set (SSE4_FOUND 0)
+		endif (SSE4_TEST_EXITCODE EQUAL 0)
+
+	endif(COMPILER_HAS_SSE42)
  endif(COMPILER_HAS_SSE3)
 
 if(COMPILER_HAS_VECTORISER)
@@ -163,13 +201,13 @@ if(COMPILER_HAS_LOOP_INTERCHANGE)
 	add_definitions(-floop-strip-mine -floop-block -floop-interchange)
 endif(COMPILER_HAS_LOOP_INTERCHANGE)
 
-# if(OPENMP_FOUND)
-# 	CHECK_CXX_COMPILER_FLAG(-pthread COMPILER_HAS_PTHREAD )
-# 	if(COMPILER_HAS_PTHREAD)
-# 		add_definitions(${OpenMP_CXX_FLAGS} "-DHAVE_OPENMP")
-# 		set(OMP_LINK_FLAGS "-pthread -lgomp")
-# 	endif(COMPILER_HAS_PTHREAD)
-# endif(OPENMP_FOUND)
+if(OPENMP_FOUND)
+	CHECK_CXX_COMPILER_FLAG(-pthread COMPILER_HAS_PTHREAD )
+	if(COMPILER_HAS_PTHREAD)
+		add_definitions(${OpenMP_CXX_FLAGS} "-DHAVE_OPENMP")
+		set(OMP_LINK_FLAGS "-pthread -lgomp")
+	endif(COMPILER_HAS_PTHREAD)
+endif(OPENMP_FOUND)
 
 add_definitions(-g3 -Wall -fno-exceptions -O3 -DNDEBUG)
 

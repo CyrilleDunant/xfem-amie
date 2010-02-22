@@ -81,10 +81,10 @@ void Point::print() const
 double Point::norm() const
 {
 #ifdef HAVE_SSE4
-	vecdouble r0,r1 ;
+	vecdouble r0 ;
 	r0.vec = _mm_dp_pd(vecxy, vecxy, 61) ;
-	r1.vec = _mm_dp_pd(veczt, veczt, 62) ;
-	return sqrt(r0.val[0]+ r1.val[1]);
+	r0.vec += _mm_dp_pd(veczt, veczt, 62) ;
+	return sqrt(r0.val[0]+ r0.val[1]);
 #elif defined HAVE_SSE3
 	vecdouble rzt ;
 	rzt.vec = _mm_add_pd(_mm_mul_pd(veczt, veczt), _mm_mul_pd(vecxy, vecxy)) ;
@@ -97,10 +97,10 @@ double Point::norm() const
 double Point::sqNorm() const
 {
 #ifdef HAVE_SSE4
-	vecdouble r0,r1 ;
+	vecdouble r0 ;
 	r0.vec = _mm_dp_pd(vecxy, vecxy, 61) ;
-	r1.vec = _mm_dp_pd(veczt, veczt, 62) ;
-	return r0.val[0]+ r1.val[1];
+	r0.vec += _mm_dp_pd(veczt, veczt, 62) ;	
+	return r0.val[0]+ r0.val[1];
 #elif HAVE_SSE3
 	vecdouble rzt ;
 	rzt.vec = _mm_add_pd(_mm_mul_pd(veczt, veczt), _mm_mul_pd(vecxy, vecxy)) ;
@@ -149,6 +149,7 @@ void Point::set(const Point * p)
 	x = p->x ; y = p->y ; z = p->z ; t = p->t ;
 	#endif
 }
+
 
 void Point::set(double v, double vv)
 {
@@ -389,9 +390,9 @@ double Point::operator*(const Point &p) const
 #ifdef HAVE_SSE4
 	vecdouble r ;
 	r.vec = _mm_dp_pd(p.vecxy, vecxy, 61) ;
-	r.vec = _mm_dp_pd(p.veczt, veczt, 62) ;
+	r.vec += _mm_dp_pd(p.veczt, veczt, 62) ;
 	return r.val[0] + r.val[1];
-#elif  HAVE_SSE3
+#elif defined HAVE_SSE3
 	vecdouble r ;
 	r.vec = _mm_add_pd(_mm_mul_pd(p.vecxy, vecxy), _mm_mul_pd(p.veczt, veczt)) ;
 	return r.val[0] + r.val[1];
@@ -399,6 +400,8 @@ double Point::operator*(const Point &p) const
 	return p.x*x+p.y*y+p.z*z+p.t*t ;
 	
 }
+
+
 
 double Point::operator*(const Vector &p) const
 {
@@ -415,22 +418,13 @@ Point Point::operator^(const Point &p) const
 {
 	Point ret ;
 
-#ifdef  HAVE_SSE3
-	vecdouble r ;
-	r.vec = _mm_sub_pd(_mm_mul_pd(vecxy, _mm_setr_pd(p.z, p.x)),_mm_mul_pd( _mm_setr_pd(z, x), p.vecxy)) ;
-	ret.x = y*p.z - z*p.y ;
-	ret.y = -r.val[0] ;
-	ret.z = -r.val[1] ;
-#else 
 	ret.x = y*p.z - z*p.y ; //fma(y,p.z,  -z*p.y) ;
 	ret.y = z*p.x - x*p.z ;//fma(z,p.x , -x*p.z) ;
 	ret.z = x*p.y - y*p.x ; //fma(x,p.y , -y*p.x) ;
-#endif
 	
 	ret.id = std::max(id, p.id) ;
 	return ret ;
 }
-
 
 Point Point::operator^(const Vector &p) const
 {
@@ -3927,9 +3921,9 @@ double dist(const Point & v1, const Point & v2)
 	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
 	r.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-	r.vec = _mm_dp_pd(temp, temp, 62) ;
+	r.vec += _mm_dp_pd(temp, temp, 62) ;
 	return sqrt(r.val[0]+ r.val[1] );
-#elif HAVE_SSE3
+#elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;
 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
@@ -3954,9 +3948,9 @@ double dist(const Point * v1, const Point * v2)
 	temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
 	r.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-	r.vec = _mm_dp_pd(temp, temp, 62) ;
+	r.vec += _mm_dp_pd(temp, temp, 62) ;
 	return sqrt(r.val[0]+ r.val[1] );
-#elif HAVE_SSE3
+#elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;
 	rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
@@ -3983,9 +3977,9 @@ double squareDist(const  Point &v1, const Point & v2)
 	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
 	r.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-	r.vec = _mm_dp_pd(temp, temp, 62) ;
+	r.vec += _mm_dp_pd(temp, temp, 62) ;
 	return r.val[0]+ r.val[1] ;
-#elif HAVE_SSE3
+#elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;
 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
@@ -4010,9 +4004,9 @@ double squareDist(const Point *v1, const Point *v2)
 	temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
 	r.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-	r.vec = _mm_dp_pd(temp, temp, 62) ;
+	r.vec += _mm_dp_pd(temp, temp, 62) ;
 	return r.val[0]+ r.val[1];
-#elif HAVE_SSE3
+#elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;
 	rzt.vec = _mm_sub_pd(v1->veczt, v2->veczt) ;
@@ -4037,7 +4031,7 @@ double squareDist2D(const  Point &v1, const Point & v2)
 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
 	r.vec = _mm_dp_pd(temp, temp, 61) ;
 	return r.val[0] ;
-#elif HAVE_SSE3
+#elif defined HAVE_SSE3
 	vecdouble rzt ;
 	rzt.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
@@ -4073,12 +4067,12 @@ double squareDist3D(const  Point &v1, const Point & v2)
 {
 #ifdef HAVE_SSE4
 	__m128d temp ;
-	vecdouble r0, r1 ;
+	vecdouble r0 ;
 	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
 	r0.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-	r1.vec = _mm_dp_pd(temp, temp, 62) ;
-	return r0.val[0]+ r1.val[1] ;
+	r0.vec += _mm_dp_pd(temp, temp, 62) ;
+	return r0.val[0]+ r0.val[1] ;
 #elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;
@@ -4101,12 +4095,12 @@ double squareDist3D(const Point *v1, const Point *v2)
 {
 #ifdef HAVE_SSE4
 	__m128d temp ;
-	vecdouble r0,r1 ;
+	vecdouble r0 ;
 	temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
 	r0.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-	r1.vec = _mm_dp_pd(temp, temp, 62) ;
-	return r0.val[0]+ r1.val[1] ;
+	r0.vec += _mm_dp_pd(temp, temp, 62) ;
+	return r0.val[0]+ r0.val[1] ;
 #elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;

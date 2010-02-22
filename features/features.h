@@ -341,7 +341,7 @@ public:
 	
 } ;
 
-/** \brief Abstract boundary condition object for usage in multigrid solver. Work in Progress
+/** \brief Abstract boundary condition object for usage in multigrid solver.
  * 
 */
 class BoundaryCondition
@@ -361,15 +361,14 @@ class ProjectionDefinedBoundaryCondition : public BoundaryCondition
 {
 private:
 	Point direction ;
-	Point from ;
 
 public:
-	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const double & d,const Point & direction, const Point & from) ;
+	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, double d = 0) ;
 	virtual void apply(Assembly * a, DelaunayTree * t) const ;
 	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;
 
-/** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
+/** \brief Boundary condition object for usage in multigrid solver.*/
 class BoundingBoxDefinedBoundaryCondition : public BoundaryCondition
 {
 private:
@@ -381,14 +380,14 @@ public:
 	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;
 
-/** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
+/** \brief Boundary condition object for usage in multigrid solver*/
 class GeometryDefinedBoundaryCondition : public BoundaryCondition
 {
 private:
 	Geometry * domain ;
 
 public:
-	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, const double & d, Geometry * source) ;
+	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0) ;
 	virtual void apply(Assembly * a, DelaunayTree * t) const ;
 	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;
@@ -401,7 +400,7 @@ private:
 	Point from ;
 	Point direction ;
 public:
-	GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, const std::vector<double> & d, Geometry * source, const Point & from,  const Point & direction ) ;
+	GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, double d = 0 ) ;
 	virtual void apply(Assembly * a, DelaunayTree * t) const ;
 	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;

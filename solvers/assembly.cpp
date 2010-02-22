@@ -858,11 +858,11 @@ void Assembly::setPoint(double ex, size_t id)
 {		
 	Vector c(2) ;
 	std::valarray<unsigned int> i(2) ;
-	if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id)) == multipliers.end() )
-	{
-		multipliers.push_back(LagrangeMultiplier(i,c, ex, id)) ;
-		multipliers.back().type = SET_ALONG_XI ;
-	}
+	std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
+	multipliers.push_back(LagrangeMultiplier(i,c, ex, id)) ;
+	multipliers.back().type = SET_ALONG_XI ;
 
 }
 
@@ -871,17 +871,20 @@ void Assembly::setPoint(double ex, double ey, size_t id)
 	set2D() ;
 	Vector c(2) ;
 	std::valarray<unsigned int> i(2) ;
-	if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end() )
-	{
-		multipliers.push_back(LagrangeMultiplier(i,c, ex, id*2)) ;
-		multipliers.back().type = SET_ALONG_XI ;
-	}
+	std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
+
+	multipliers.push_back(LagrangeMultiplier(i,c, ex, id*2)) ;
+	multipliers.back().type = SET_ALONG_XI ;
+
+	duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
 	
-	if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
-	{
-		multipliers.push_back(LagrangeMultiplier(i,c, ey, id*2+1)) ;
-		multipliers.back().type = SET_ALONG_ETA ;
-	}
+	multipliers.push_back(LagrangeMultiplier(i,c, ey, id*2+1)) ;
+	multipliers.back().type = SET_ALONG_ETA ;
+
 
 
 	return ;
@@ -893,22 +896,26 @@ void Assembly::setPoint(double ex, double ey, double ez, size_t id)
 	set3D() ;
 	std::valarray<unsigned int> i(2) ;
 	
-	if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) == multipliers.end())
-	{
-		multipliers.push_back(LagrangeMultiplier(i,c, ex, id*3)) ;
-		multipliers.back().type = SET_ALONG_XI ;
-	}
-	if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) == multipliers.end())
-	{
-		multipliers.push_back(LagrangeMultiplier(i,c, ey, id*3+1)) ;
-		multipliers.back().type = SET_ALONG_ETA ;
-	}
-	if(std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) == multipliers.end())
-	{
-		multipliers.push_back(LagrangeMultiplier(i,c, ez, id*3+2)) ;
-		multipliers.back().type = SET_ALONG_ZETA ;
-	}
-	return ;
+	std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
+	
+	multipliers.push_back(LagrangeMultiplier(i,c, ex, id*3)) ;
+	multipliers.back().type = SET_ALONG_XI ;
+	
+	duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
+	
+	multipliers.push_back(LagrangeMultiplier(i,c, ey, id*3+1)) ;
+	multipliers.back().type = SET_ALONG_ETA ;
+	
+	duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
+	
+	multipliers.push_back(LagrangeMultiplier(i,c, ez, id*3+2)) ;
+	multipliers.back().type = SET_ALONG_ZETA ;
 }
 
 void Assembly::setPeriodicPoint(size_t id0, size_t id1)
@@ -1160,20 +1167,24 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 		{
 			case XI:
 			{
-				if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) == multipliers.end() )
-				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
-					multipliers.back().type = SET_ALONG_XI ;
-				}
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
+
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
+				multipliers.back().type = SET_ALONG_XI ;
+	
 				break ;
 			}
 			case ETA:
 			{
-				if(multipliers.empty() ||std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) == multipliers.end())
-				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
-					multipliers.back().type = SET_ALONG_ETA ;
-				}
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
+
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
+				multipliers.back().type = SET_ALONG_ETA ;
+
 				break ;
 			}
 		default:
@@ -1186,28 +1197,37 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 	{
 		switch(v)
 		{
-		case XI:
-			if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) == multipliers.end() )
+			case XI:
 			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
+
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
 				multipliers.back().type = SET_ALONG_XI ;
 				break ;
 			}
-		case ETA:
-			if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) == multipliers.end() )
+			case ETA:
 			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
+				
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
 				multipliers.back().type = SET_ALONG_ETA ;
 				break ;
 			}
-		case ZETA:
-			if(multipliers.empty() || std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) == multipliers.end() )
+			case ZETA:
 			{
+				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
+				if(!(multipliers.empty() || duplicate == multipliers.end()))
+					multipliers.erase(duplicate) ;
+				
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
 				multipliers.back().type = SET_ALONG_ETA ;
 				break ;
 			}
-		default:
+			default:
 			{
 				break ;
 			}

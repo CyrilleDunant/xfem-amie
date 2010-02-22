@@ -1351,13 +1351,15 @@ int main(int argc, char *argv[])
 
 	double width = 0.02;
 	double height = 0.01;
-	Sample sample(NULL, width, height, 0, 0) ;
-	
+	Sample base(NULL, height*3, height*3, 0, 0) ;
+	Inclusion sample(NULL, height, 0, 0) ;//sample() ;
+	base.setBehaviour(new VoidForm()) ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
 	d[2][2] = .1*E_paste ;
-	FeatureTree F(&sample) ;
+	FeatureTree F(&base) ;
+	F.addFeature(&base, &sample) ;
 	featureTree = &F ;
 
  	sample.setBehaviour(new /*WeibullDistributed*/Stiffness(m0_paste/*, 500000*/)) ;
@@ -1419,16 +1421,24 @@ int main(int argc, char *argv[])
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
 
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI_ETA , TOP, -10)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
+	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
+	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
+	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
+
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_XI , Point(1, -1), -0.001)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , BOTTOM, 10)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
+	F.sample(512) ;
 	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
