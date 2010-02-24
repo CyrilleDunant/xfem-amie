@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project(AMIE)
 include(CheckCXXCompilerFlag)
 include (CheckCXXSourceCompiles)
-#include(FindOpenMP)
+include(FindOpenMP)
 include(FindGLUT)
 
 set(ALL_SRC 
@@ -201,15 +201,29 @@ if(COMPILER_HAS_LOOP_INTERCHANGE)
 	add_definitions(-floop-strip-mine -floop-block -floop-interchange)
 endif(COMPILER_HAS_LOOP_INTERCHANGE)
 
+# openMP is terrible with g++ (as of 4.4). Unfortunately, icc pretends it is g++
+if(DISABLE_OPENMP EQUAL 1)
+	set (OPENMP_FOUND 0) 
+	message (STATUS "  Disabling OpenMP")
+endif(DISABLE_OPENMP EQUAL 1)
+
 if(OPENMP_FOUND)
 	CHECK_CXX_COMPILER_FLAG(-pthread COMPILER_HAS_PTHREAD )
-	if(COMPILER_HAS_PTHREAD)
+# 	if(COMPILER_HAS_PTHREAD AND CMAKE_COMPILER_IS_GNUCXX)
 		add_definitions(${OpenMP_CXX_FLAGS} "-DHAVE_OPENMP")
-		set(OMP_LINK_FLAGS "-pthread -lgomp")
-	endif(COMPILER_HAS_PTHREAD)
+# 		set(OMP_LINK_FLAGS "-pthread -lgomp")
+# 	else()
+		set(OMP_LINK_FLAGS ${OpenMP_CXX_FLAGS})
+# 	endif()
 endif(OPENMP_FOUND)
 
-add_definitions(-g3 -Wall -fno-exceptions -O3 -DNDEBUG)
+if(DEBUG_BUILD EQUAL 1)
+	add_definitions(-g3 -fno-exceptions -O0 -DNDEBUG -march=native)
+	message (STATUS "  Debug Build")
+else()
+	add_definitions(-g3 -fno-exceptions -O3 -DNDEBUG -march=native)
+	message (STATUS "  Optimised Build")
+endif(DEBUG_BUILD EQUAL 1)
 
 #if we are under windows, we'll assume freeglut...
 if(CMAKE_HOST_WIN32)

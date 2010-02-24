@@ -585,15 +585,18 @@ bool Triangle::in(const Point &p) const
 	
 	bool in = false ;
 	
-	for (size_t i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
+	for (int i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
 	{
-		if (
-			(((boundingPoints[i]->y <= p.y ) 
-				&& (p.y<boundingPoints[j]->y)) 
-				|| ((boundingPoints[j]->y <= p.y) 
-				&& (p.y<boundingPoints[i]->y))) 
-				&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
-			in = !in;
+		if( std::abs(boundingPoints[j]->y - boundingPoints[i]->y) > POINT_TOLERANCE)
+		{
+			if (
+				(((boundingPoints[i]->y <= p.y ) 
+					&& (p.y < boundingPoints[j]->y)) 
+					|| ((boundingPoints[j]->y <= p.y) 
+					&& (p.y < boundingPoints[i]->y))) 
+					&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
+				in = !in;
+		}
 	}
 	
 	return in ;
@@ -688,7 +691,6 @@ void Triangle::sampleSurface(size_t num_points)
 			newPoints.push_back(getBoundingPoint(i+1)*(1.-fact) + getBoundingPoint(end_i-1-i)*fact+Point(xrand, yrand)) ;
 		}
 	}
-	
 	this->inPoints.resize(newPoints.size()) ;
 	
 	for(size_t i = 0 ; i < inPoints.size() ; i++)

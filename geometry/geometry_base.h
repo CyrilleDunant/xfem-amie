@@ -514,6 +514,8 @@ struct Point
 			
 			return Point(vec[0], vec[1], vec[2], vec[3]) ;
 		}
+		
+		return Point() ;
 	}
 	void operator/=(const double d) {
 		double inv = 1./d ;

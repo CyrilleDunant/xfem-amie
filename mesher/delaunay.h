@@ -107,6 +107,8 @@ public:
 	virtual void conflicts(std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > &,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
 	virtual void conflicts(std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > &, const Geometry *g) ;
 	virtual void conflicts(std::pair<std::vector<Point *>, std::vector<DelaunayTreeItem *> > &, const Segment *s) ;
+	std::vector<DelaunayTreeItem *> flatConflicts(std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > & ret, const Geometry *g) ;
+	std::vector<DelaunayTreeItem *> flatConflicts(std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> >& ret,const Point *p) ;
 	virtual void print() const { } ;
 	
 	virtual bool in( const Point & p) const  = 0;

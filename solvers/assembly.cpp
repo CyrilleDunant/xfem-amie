@@ -1269,15 +1269,15 @@ bool Assembly::cgsolve(Vector x0, size_t maxit)
 	if(sym )
 	{
 		std::cerr << "symmetrical problem" << std::endl ;
-// 		timeval time0, time1 ;
-// 		gettimeofday(&time0, NULL);
+		timeval time0, time1 ;
+		gettimeofday(&time0, NULL);
 
 		ConjugateGradientWithSecant cg(this) ;
 		ret = cg.solve(x0) ;
 
-// 		gettimeofday(&time1, NULL);
-// 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-// 		std::cout << "Time to solve (µs) " << delta << std::endl ;
+		gettimeofday(&time1, NULL);
+		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+		std::cerr << "Time to solve (µs) " << delta << std::endl ;
 		displacements.resize(cg.x.size()) ;
 		displacements = cg.x ;
 // 		GaussSeidel cg(getMatrix(), externalForces) ;

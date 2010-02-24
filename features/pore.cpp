@@ -122,9 +122,7 @@ std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 std::vector<DelaunayTriangle *> TriangularPore::getTriangles( DelaunayTree * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
-	
 	std::vector<DelaunayTriangle *> temp = dt->conflicts(this->boundary) ;
-	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;

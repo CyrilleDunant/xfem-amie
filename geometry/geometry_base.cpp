@@ -174,6 +174,7 @@ void Point::set(double v, double vv, double vvv, double vvvv)
 
 bool Point::operator==(const Point &p) const
 {
+	return dist(p, *this) < POINT_TOLERANCE ;
 	
 	if(std::abs(p.x-x) > 2.*POINT_TOLERANCE)
 		return false ;

@@ -380,6 +380,20 @@ public:
 	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
 } ;
 
+/** \brief Boundary condition object for usage in multigrid solver.*/
+class BoundingBoxAndRestrictionDefinedBoundaryCondition : public BoundaryCondition
+{
+private:
+	BoundingBoxPosition pos ;
+	double xmin, xmax, ymin, ymax, zmin, zmax ;
+	
+public:
+	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, double d = 0 ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double d = 0 ) ;
+	virtual void apply(Assembly * a, DelaunayTree * t) const ;
+	virtual void apply(Assembly * a, DelaunayTree3D * t)  const ;
+} ;
+
 /** \brief Boundary condition object for usage in multigrid solver*/
 class GeometryDefinedBoundaryCondition : public BoundaryCondition
 {
@@ -409,7 +423,7 @@ public:
 class Pixel
 {
 protected:
-	std::vector<Feature *> features ;
+	std::vector<Geometry *> features ;
 	Point tl ;
 	Point tr ;
 	Point bl ;
@@ -433,10 +447,10 @@ public:
 	Pixel(double x, double y, double s) ;
 
 	/** \brief return features stored in this pixel*/
-	const std::vector<Feature *> & getFeatures() const;
+	const std::vector<Geometry *> & getFeatures() const;
 	
 	/** \brief return features stored in this pixel*/
-	std::vector<Feature *> & getFeatures();
+	std::vector<Geometry *> & getFeatures();
 	
 	/** \brief return true if the argument lies in the pixel*/
 	bool in(const Point & p) const;
@@ -453,7 +467,7 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Geometry to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Feature *>& ret, const Geometry * inc) const ;
+	void coOccuringFeatures(std::vector<Geometry *>& ret, const Geometry * inc) const ;
 
 	/** \brief Given a Point, return a list of stored Feature pointers in which the point lies
 *
@@ -461,16 +475,16 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Point to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Feature *>& ret , const Point & p) const ;
+	void coOccuringFeatures(std::vector<Geometry *>& ret , const Point & p) const ;
 
 /** \brief remove the argument from the Feature list*/
-	void remove(Feature * inc);
+	void remove(Geometry * inc);
 	
 /** \brief add the argument to the Feature list if it does not overlap with another already present Feature*/
-	bool add(Feature * inc);
+	bool add(Geometry * inc);
 
 /** \brief add the argument to the Feature list unconditionnally*/
-	void forceAdd(Feature * inc) ;
+	void forceAdd(Geometry * inc) ;
 
 	void print() const ;
 
@@ -481,7 +495,7 @@ public:
 class Voxel
 {
 protected:
-	std::vector<Feature *> features ;
+	std::vector<Geometry *> features ;
 	Point tlf ;
 	Point trf ;
 	Point blf ;
@@ -513,10 +527,10 @@ public:
 	~Voxel();
 
 	/** \brief return features stored in this voxel*/
-	const std::vector<Feature *> & getFeatures() const;
+	const std::vector<Geometry *> & getFeatures() const;
 	
 	/** \brief return features stored in this voxel*/
-	std::vector<Feature *> & getFeatures();
+	std::vector<Geometry *> & getFeatures();
 	
 	/** \brief return true if the argument lies in the voxel*/
 	bool in(const Point & p) const;
@@ -533,7 +547,7 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Geometry to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Feature *>&, const Geometry * inc) const ;
+	void coOccuringFeatures(std::vector<Geometry *>&, const Geometry * inc) const ;
 
 	/** \brief Given a Point, return a list of stored Feature pointers in which the point lies
 *
@@ -541,16 +555,16 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Point to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Feature *>&, const Point & p) const ;
+	void coOccuringFeatures(std::vector<Geometry *>&, const Point & p) const ;
 
 /** \brief remove the argument from the Feature list*/
-	void remove(Feature * inc);
+	void remove(Geometry * inc);
 	
 /** \brief add the argument to the Feature list if it does not overlap with another already present Feature*/
-	bool add(Feature * inc);
+	bool add(Geometry * inc);
 
 /** \brief add the argument to the Feature list unconditionnally*/
-	void forceAdd(Feature * inc) ;
+	void forceAdd(Geometry * inc) ;
 
 	void print() const ;
 	
@@ -564,7 +578,7 @@ public:
 class Grid
 {
 protected:
-	std::valarray< std::valarray<Pixel *> > pixels;
+	
 	double x ;
 	double y ;
 	Point c ;
@@ -573,7 +587,7 @@ protected:
 	
 	double psize ;
 public:
-		
+	std::valarray< std::valarray<Pixel *> > pixels;
 /** \brief Copnstruct a grid from a size, an initial number of divisions and a center
 *
 * @param sizeX Length of the access grid
@@ -590,16 +604,16 @@ public:
 * @param inc Feature to add
 * @return true if insertion was successful
 */
-	bool add(Feature * inc);
+	bool add(Geometry * inc);
 
 /** \brief Add a Feature unconditionnally*/
-	void forceAdd(Feature * inc) ;
+	void forceAdd(Geometry * inc) ;
 
 /** \brief Return the lis of Features overlapping the argument*/
-	std::vector<Feature *> coOccur(const Geometry * geo) const ;
+	std::vector<Geometry *> coOccur(const Geometry * geo) const ;
 
 /** \brief Return the list of Features containing the argument*/
-	std::vector<Feature *> coOccur(const Point & p) const ;
+	std::vector<Geometry *> coOccur(const Point & p) const ;
 
 /** \brief Get a new grid, given a number of divisions*/
 	Grid getGrid(int div) const;
@@ -642,16 +656,16 @@ public:
 * @param inc Feature to add
 * @return true if insertion was successful
 */
-	bool add(Feature * inc);
+	bool add(Geometry * inc);
 
 /** \brief Add a Feature unconditionnally*/
-	void forceAdd(Feature * inc) ;
+	void forceAdd(Geometry * inc) ;
 
 /** \brief Return the lis of Features overlapping the argument*/
-	std::vector<Feature *> coOccur(const Geometry * geo) const ;
+	std::vector<Geometry *> coOccur(const Geometry * geo) const ;
 
 /** \brief Return the list of Features containing the argument*/
-	std::vector<Feature *> coOccur(const Point & p) const;
+	std::vector<Geometry *> coOccur(const Point & p) const;
 	double fraction() const ;
 
 /** \brief Get a new grid, given a number of divisions*/

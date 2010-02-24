@@ -46,7 +46,7 @@ std::vector<Inclusion *> Mu::placement(double longueurX, double longueurY, std::
 
 		inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2.;
 		inclusions[i]->getCenter().y = chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2.;
-		while(!grid.add(inclusions[i]) && tries < triesMax)
+		while(!grid.add(inclusions[i]->getPrimitive()) && tries < triesMax)
 		{
 			tries++ ;
 			inclusions[i]->getCenter().x = chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2.;
@@ -287,7 +287,7 @@ std::vector<Mu::EllipsoidalInclusion *> Mu::placement_with_rotation(const Geomet
 			inclusions[i]->Ellipse::setCenter(newCentre) ;
 			bbox = inclusions[i]->getBoundingBox() ;
 		}
-		while(!grid.add(inclusions[i]) && tries < triesMax)
+		while(!grid.add(inclusions[i]->getPrimitive()) && tries < triesMax)
 		{
 			tries++ ;
 			changeAxis++ ;

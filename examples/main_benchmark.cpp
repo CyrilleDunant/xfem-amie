@@ -1456,18 +1456,19 @@ int main(int argc, char *argv[])
 // 		feats[i]->setBehaviour(new Laplacian(d1)) ;
 // 		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
 	}
-	samplers.setBehaviour(new WeibullDistributedStiffness(m0,0.1)) ;
+	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
+	
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	Vector a(6.,0) ;
 // 	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100/*166.11322368308294*/, 200, 200, 200, m1, a) ;
 	Inclusion3D * inc0 = new Inclusion3D(100/*166.11322368308294*/, 200, 200, 200) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
-	inc0->setBehaviour(new WeibullDistributedStiffness(m1,0.4)) ;
+	inc0->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 // 	F.addFeature(&samplers, inc) ;
 	F.addFeature(&samplers, inc0) ;
 	F.sample(2048) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
 	step() ;
 

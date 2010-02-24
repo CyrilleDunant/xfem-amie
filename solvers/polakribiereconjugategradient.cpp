@@ -13,6 +13,7 @@
 
 #include "polakribiereconjugategradient.h"
 #include "inversediagonal.h"
+#include <limits>
 
 using namespace Mu ;
 

@@ -41,9 +41,9 @@ void IsotropicLinearDamage::step(ElementState & s)
 // 	if(inCompression)
 // 		maxD = -.9999 ;
 	if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-		state[0] += 0.1 ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+		state[0] += 0.01 ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
 	else
-		state[0] += 0.1 ; //5e-5*maxD/sqrt(s.getParent()->volume()) ;
+		state[0] += 0.01 ; //5e-5*maxD/sqrt(s.getParent()->volume()) ;
 // 	std::cout << 1e-5*maxD/sqrt(s.getParent()->area()) << std::endl ;
 // 	if(!inCompression)
 		state[0] = std::min(maxD, state[0]) ;

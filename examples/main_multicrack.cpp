@@ -126,7 +126,7 @@ Vector fracCrit(0) ;
 Vector g_count(0) ;
 
 double nu = 0.3 ;
-double E_agg = 589.;//softest
+double E_agg = 30000.;//softest
 double E_paste = E_agg/4. ;//stiff
 double E_stiff = E_agg*10. ;//stiffer
 double E_soft = E_agg/10.; //stiffest
@@ -154,8 +154,10 @@ void step()
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
       
 		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 50)//as long as we can update the features
+		while(!featureTree->step(timepos) && limit < 400)//as long as we can update the features
 		{
+			featureTree->getAssembly()->print() ;
+			exit(0) ;
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
@@ -424,8 +426,10 @@ void step()
 		}
 	
 		std::cout << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
+		std::cout << "max value x :" << x_max << std::endl ;
+		std::cout << "min value x :" << x_min << std::endl ;
+		std::cout << "max value y :" << y_max << std::endl ;
+		std::cout << "min value y :" << y_min << std::endl ;
 		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
 		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
 		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
@@ -1349,20 +1353,18 @@ int main(int argc, char *argv[])
 	m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1.-nu*nu) ; m0_soft[1][2] = 0 ; 
 	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
 
-	double width = 0.02;
-	double height = 0.01;
-	Sample base(NULL, height*3, height*3, 0, 0) ;
-	Inclusion sample(NULL, height, 0, 0) ;//sample() ;
-	base.setBehaviour(new VoidForm()) ;
+	double width = 0.05;
+	double height = 0.0370;
+	Sample sample(NULL, width , height, 0, 0) ;//sample() ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
 	d[2][2] = .1*E_paste ;
-	FeatureTree F(&base) ;
-	F.addFeature(&base, &sample) ;
+	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
- 	sample.setBehaviour(new /*WeibullDistributed*/Stiffness(m0_paste/*, 500000*/)) ;
+ 	sample.setBehaviour(new /*WeibullDistributed*/Stiffness(m0_paste/*, 30*/)) ;
+	
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
@@ -1379,17 +1381,20 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 // 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
 
-	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, 0.001, 0, 0) ;
+	Inclusion * inc1 = new Inclusion(0.004, 0.025, -0.0185) ;
+	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
 // 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 	
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
-	/*WeibullDistributed*/Stiffness * stiff = new /*WeibullDistributed*/Stiffness(m0_paste*4/*, 500000*/) ;
+	/*WeibullDistributed*/Stiffness * stiff = new /*WeibullDistributed*/Stiffness(m0_paste/*, 500000*/) ;
 	inc1->setBehaviour(stiff) ;
+	inc2->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-	F.addFeature(&sample, inc1) ;
+// 	F.addFeature(&sample, inc1) ;
+// 	F.addFeature(&sample, inc2) ;
 //  	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
 // 	F.addFeature(&sample, itz) ;
 // 	F.addFeature(itz, inc1) ;
@@ -1399,7 +1404,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
 // 	F.addFeature(&sample, new TriangularPore(Point( 0.011,  0.002) , Point( 0.011, 0.0023), Point( 0.009, 0.00215) )) ;
 
-// F.addFeature(&sample, new TriangularPore(Point( -0.009, -0.002) , Point( -0.008, -0.002), Point( -0.007, 0.002) )) ;
+F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025, -0.0185), Point( 0.025, -0.0185) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.0047, -0.002) , Point( -0.0057, -0.002), Point( -0.0067, 0.002) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
@@ -1420,25 +1425,27 @@ int main(int argc, char *argv[])
 	Point center4 = (center2 + center1)/2;
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
-
+	double stress = 200 ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
-	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
-	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
-	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
 
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_XI , Point(1, -1), -0.001)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , BOTTOM, 10)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -0.025, -0.0175, -10, 10, -stress)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 	
 	Circle cercle(.5, 0,0) ;
 
 	F.sample(512) ;
+	
 	F.setOrder(QUADRATIC) ;
 
 	F.generateElements() ;
@@ -1453,6 +1460,7 @@ int main(int argc, char *argv[])
 // 	
 
 	step() ;
+	
 	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;

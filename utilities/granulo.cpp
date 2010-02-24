@@ -489,7 +489,7 @@ GranuloFromFile::GranuloFromFile(std::string fname, std::vector<std::string> col
     std::cout << "done..." << std::endl ;
 }
 
-const bool GranuloFromFile::verifyField(std::vector<std::string> columns)
+bool GranuloFromFile::verifyField(std::vector<std::string> columns)
 {
     for(int i = 0 ; i < columns.size() ; i++)
     {
@@ -499,7 +499,7 @@ const bool GranuloFromFile::verifyField(std::vector<std::string> columns)
     return true ;
 }
 
-const int GranuloFromFile::getFieldNumber(std::string column)
+int GranuloFromFile::getFieldNumber(std::string column)
 {
         for(int j = 0 ; j < this->fields.size() ; j++)
         {

@@ -159,7 +159,17 @@ void Feature::setBehaviour(Form * f)
 
 
 
-BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d) :BoundaryCondition(t, d), pos(pos) {} ;
+BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d) :BoundaryCondition(t, d), pos(pos) { } ;
+
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d) : BoundaryCondition(t, d), pos(pos),  xmin(xm), xmax(xp), ymin(ym), ymax(yp), zmin(zm), zmax(zp)
+{
+
+}
+
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double d): BoundaryCondition(t, d), pos(pos),  xmin(xm), xmax(xp), ymin(ym), ymax(yp), zmin(0), zmax(0)
+{
+
+}
 
 void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
@@ -203,7 +213,7 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				}
 				std::vector<Variable> v(2) ;
 				v[0] = XI ; v[1] = ETA ;
-				Vector imposed(2) ;
+				Vector imposed(3) ;
 				imposed[0] = data ;
 				imposed[1] = 0 ;
 				imposed[2] = 0 ;
@@ -595,7 +605,206 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  
 	}
 }
 
-
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
+{
+	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	double minx = elements.front()->getBoundingPoint(0).x ;
+	double miny = elements.front()->getBoundingPoint(0).y ;
+	double maxx = elements.front()->getBoundingPoint(0).x ;
+	double maxy = elements.front()->getBoundingPoint(0).y ; 
+	for(size_t i = 0 ; i < elements.size() ; ++i)
+	{
+		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+		{
+			if(elements[i]->getBoundingPoint(j).x < minx)
+				minx = elements[i]->getBoundingPoint(j).x ;
+			if(elements[i]->getBoundingPoint(j).x > maxx)
+				maxx = elements[i]->getBoundingPoint(j).x ;
+			if(elements[i]->getBoundingPoint(j).y < miny)
+				miny = elements[i]->getBoundingPoint(j).y ;
+			if(elements[i]->getBoundingPoint(j).y > maxy)
+				maxy = elements[i]->getBoundingPoint(j).y ;
+		}
+	}
+	
+	double tol = std::min(maxx-minx, maxy-miny)*.0001 ;
+	
+	switch(pos)
+	{
+		case TOP:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol 
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply2DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
 void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
@@ -756,6 +965,615 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 		}
 	}
 }
+
+						
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const 
+{
+	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	double minx = elements.front()->getBoundingPoint(0).x ;
+	double miny = elements.front()->getBoundingPoint(0).y ;
+	double minz = elements.front()->getBoundingPoint(0).z ;
+	double maxx = elements.front()->getBoundingPoint(0).x ;
+	double maxy = elements.front()->getBoundingPoint(0).y ; 
+	double maxz = elements.front()->getBoundingPoint(0).z ; 
+	for(size_t i = 0 ; i < elements.size() ; ++i)
+	{
+		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+		{
+			if(elements[i]->getBoundingPoint(j).x < minx)
+				minx = elements[i]->getBoundingPoint(j).x ;
+			if(elements[i]->getBoundingPoint(j).x > maxx)
+				maxx = elements[i]->getBoundingPoint(j).x ;
+			if(elements[i]->getBoundingPoint(j).y < miny)
+				miny = elements[i]->getBoundingPoint(j).y ;
+			if(elements[i]->getBoundingPoint(j).y > maxy)
+				maxy = elements[i]->getBoundingPoint(j).y ;
+			if(elements[i]->getBoundingPoint(j).y < minz)
+				minz = elements[i]->getBoundingPoint(j).z ;
+			if(elements[i]->getBoundingPoint(j).y > maxz)
+				maxz = elements[i]->getBoundingPoint(j).z ;
+		}
+	}
+	
+	double tol = std::min(std::min(maxx-minx, maxy-miny), maxz-minz)*.0001 ;
+	
+	switch(pos)
+	{
+		case TOP:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case FRONT_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case FRONT_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BACK_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BACK_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case FRONT_TOP:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case FRONT_BOTTOM:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_LEFT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_LEFT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_LEFT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_LEFT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_RIGHT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case TOP_RIGHT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_RIGHT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		case BOTTOM_RIGHT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				std::vector<Point> id  ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+						&& elements[i]->getBoundingPoint(j).x >= xmin 
+						&& elements[i]->getBoundingPoint(j).x <= xmax
+						&& elements[i]->getBoundingPoint(j).y >= ymin 
+						&& elements[i]->getBoundingPoint(j).y <= ymax
+						&& elements[i]->getBoundingPoint(j).z >= zmin
+						&& elements[i]->getBoundingPoint(j).z <= zmax
+						)
+					{
+						id.push_back(elements[i]->getBoundingPoint(j)) ;
+					}
+				}
+				apply3DBC(elements[i], id, condition, data, a) ;
+			}
+			break ;
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
+
 void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
@@ -1481,20 +2299,79 @@ void FeatureTree::renumber()
 				(*i)->getBoundingPoint(j).id = -1 ;
 			}
 		}
+// 		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+// 		{
+// 			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
+// 			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
+// 			{
+// 				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+// 				{
+// 					if(tri->getBoundingPoint(j).id == -1)
+// 						tri->getBoundingPoint(j).id = count++ ;
+// 				}
+// 			}
+// 		}
 		
 		
+		Grid tmpgrid =this->grid->getGrid(std::max(triangles.size()/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
 		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+			tmpgrid.forceAdd((*i)->getPrimitive()) ;
+		
+		std::vector<Geometry *> sortedElements ;
+		std::set<Geometry *> boundaryElements ;
+		std::set<Geometry *> placedElements ;
+		for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
 		{
-			if((*i)->getBehaviour()->type != VOID_BEHAVIOUR)
+			for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
 			{
-				for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
+				for(size_t k = 0 ; k < tmpgrid.pixels[i][j]->getFeatures().size() ; ++k)
 				{
-					if((*i)->getBoundingPoint(j).id == -1)
-						(*i)->getBoundingPoint(j).id = count++ ;
+					if(placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k]) == placedElements.end()) 
+					{
+						placedElements.insert(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+						sortedElements.push_back(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+					}
+					else
+					{
+// 						boundaryElements.insert(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+					}
+				}
+				
+			}
+		}
+		
+		for( std::set< Geometry* >::iterator i = boundaryElements.begin() ; i !=boundaryElements.end() ; i++)
+		{
+			std::vector<Geometry *>::iterator e = std::find(sortedElements.begin(), sortedElements.end(), *i) ;
+			if(e != sortedElements.end())
+				sortedElements.erase(e) ;
+		}
+		
+		for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
+		{
+			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
+			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+				{
+					if(tri->getBoundingPoint(j).id == -1)
+						tri->getBoundingPoint(j).id = count++ ;
 				}
 			}
 		}
 
+		for(std::set<Geometry *>::iterator i = boundaryElements.begin() ; i != boundaryElements.end() ; ++i)
+		{
+			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
+			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+				{
+					if(tri->getBoundingPoint(j).id == -1)
+						tri->getBoundingPoint(j).id = count++ ;
+				}
+			}
+		}
 		
 		this->dtree->global_counter = count ;
 		
@@ -1656,8 +2533,9 @@ void FeatureTree::stitch()
 	
 					for(size_t i = 0 ; i < triangles.size() ; i++)
 					{
-						if(true /*|| triangles[i]->Triangle::intersects(tree[j]->getPrimitive())*/)
+						if(triangles[i]->getPrimitive()->intersects(tree[j]))
 						{
+							
 							Point proj_0(*triangles[i]->first) ;
 							tree[j]->project(&proj_0) ;
 							Point proj_1(*triangles[i]->second) ;
@@ -1673,7 +2551,7 @@ void FeatureTree::stitch()
 								changed = false ;
 								Point test = triangles[i]->getBoundingPoint(1) ;
 								tree[j]->project(&test) ;
-								if (inRoot(test)/* && triangles[i]->in(test)*/)
+								if (inRoot(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(1)) ;
 									if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -1697,7 +2575,7 @@ void FeatureTree::stitch()
 								changed = false ;								
 								Point test = triangles[i]->getBoundingPoint(3) ;
 								tree[j]->project(&test) ;
-								if (inRoot(test)/* && triangles[i]->in(test)*/)
+								if (inRoot(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(3)) ;
 									if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -1721,7 +2599,7 @@ void FeatureTree::stitch()
 								changed = false ;								
 								Point test = triangles[i]->getBoundingPoint(5) ;
 								tree[j]->project(&test) ;
-								if (inRoot(test)/* && triangles[i]->in(test)*/)
+								if (inRoot(test))
 								{
 									tree[j]->project(&triangles[i]->getBoundingPoint(5)) ;
 									if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -1754,6 +2632,7 @@ void FeatureTree::stitch()
 				}
 			}
 		}
+		
 	}
 	else if (is3D())
 	{
@@ -2408,7 +3287,11 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 			return new VoidForm() ;
 		}
 	
-	std::vector<Feature *> targets = grid->coOccur(static_cast<const Triangle *>(t)) ;
+	std::vector<Geometry *> targetstmp = grid->coOccur(t->getPrimitive()) ;
+	std::vector<Feature *> targets ;
+	for(size_t i = 0 ; i < targetstmp.size() ; i++)
+		targets.push_back(dynamic_cast<Feature *>(targetstmp[i]) ) ;
+		
 	if(!targets.empty())
 	{
 		
@@ -2497,7 +3380,11 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 // 			return new VoidForm() ;
 // 		}
 	
-	std::vector<Feature *> targets = grid3d->coOccur(t->getCenter()) ;
+	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getCenter()) ;
+	std::vector<Feature *> targets  ;
+	for(size_t i = 0 ; i < targetstmp.size() ; ++i)
+		targets.push_back(dynamic_cast<Feature *>(targetstmp[i])) ;
+	
 	if(!targets.empty())
 	{
 		for(int i = targets.size()-1 ; i >=0  ; i--)
@@ -3788,14 +4675,18 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				bool isIn = false ;
 				
+				std::vector<Geometry *> potentialFeaturestmp  ;
 				std::vector<Feature *> potentialFeatures ;
-				
+	
 				if(tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					potentialFeatures = grid->coOccur(tree[i]->getBoundingPoint(j)) ;
+					potentialFeaturestmp = grid->coOccur(tree[i]->getBoundingPoint(j)) ;
 				else
 				{
-					potentialFeatures = grid3d->coOccur(tree[i]->getBoundingPoint(j)) ;
+					potentialFeaturestmp = grid3d->coOccur(tree[i]->getBoundingPoint(j)) ;
 				}
+				
+				for(size_t l = 0 ; l < potentialFeaturestmp.size() ; l++)
+					potentialFeatures.push_back(dynamic_cast<Feature *>(potentialFeaturestmp[l]) ) ;
 				
 				std::vector<Feature *> potentialChildren ;
 				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
@@ -3859,11 +4750,16 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			for(size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++)
 			{
 				bool isIn = false ;
-				std::vector<Feature *> potentialFeatures  ;
+				std::vector<Geometry *> potentialFeaturestmp  ;
 				if(tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					potentialFeatures = grid->coOccur(tree[i]->getInPoint(j)) ;
+					potentialFeaturestmp = grid->coOccur(tree[i]->getInPoint(j)) ;
 				else
-					potentialFeatures = grid3d->coOccur(tree[i]->getInPoint(j)) ;
+					potentialFeaturestmp = grid3d->coOccur(tree[i]->getInPoint(j)) ;
+				
+				std::vector<Feature *> potentialFeatures ;
+				for(size_t k = 0 ; k < potentialFeaturestmp.size() ; ++k)
+					potentialFeatures.push_back(dynamic_cast<Feature *>(potentialFeaturestmp[k])) ;
+				
 				std::vector<Feature *> potentialChildren ;
 				
 				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
@@ -3951,13 +4847,19 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		{
 			if(!tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature)
 			{
-				std::vector<Feature *> coOccuringFeatures ;
+				std::vector<Geometry *> coOccuringFeaturestmp ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
 
 				if(is3D())
-					coOccuringFeatures = grid3d->coOccur(tree[i]) ;
+					coOccuringFeaturestmp = grid3d->coOccur(tree[i]) ;
 				else
-					coOccuringFeatures = grid->coOccur(tree[i]) ;
+					coOccuringFeaturestmp = grid->coOccur(tree[i]) ;
+				
+				std::vector<Feature *> coOccuringFeatures ;
+				
+				for(size_t k = 0 ; k < coOccuringFeaturestmp.size() ; k++)
+					coOccuringFeatures.push_back(dynamic_cast<Feature *>(coOccuringFeaturestmp[k])) ;
+				
 				for(size_t j  = 0 ; j < coOccuringFeatures.size() ; j++)
 				{
 					if(!coOccuringFeatures[j]->isEnrichmentFeature 
@@ -4034,7 +4936,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	}
 	count = 0 ;
 	std::cerr << " ...done." << std::endl ;
-	
+
 	//let us make sure we have no overlap
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
@@ -4064,11 +4966,10 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			
 		this->dtree = new DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first) ;
 		this->dtree->insert(meshPoints[3].first) ;
-		
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+4 ; i != meshPoints.end(); ++i)
 		{
-//			if( (i - meshPoints.begin())%1000 == 0)
-//				std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size() << std::flush ;
+			if( (i - meshPoints.begin())%1000 == 0)
+				std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size() << std::flush ;
 			
 			++count ;
 			
@@ -4082,7 +4983,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			}
 		}
 		
-//		std::cerr << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
+		std::cerr << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
 		
 		bool correct = false ;
 		int tries = correctionSteps ;
@@ -4430,12 +5331,12 @@ Voxel::Voxel(double x, double y, double z ,double s) : tlf(x-s*.5, y+s*.5, z+s*.
 {
 }
 
-const std::vector<Feature *> & Voxel::getFeatures() const
+const std::vector<Geometry *> & Voxel::getFeatures() const
 {
 	return this->features ;
 }
 
-std::vector<Feature *> & Voxel::getFeatures()
+std::vector<Geometry *> & Voxel::getFeatures()
 {
 	return this->features ;
 }
@@ -4445,7 +5346,7 @@ bool Voxel::in(const Point & p) const
 	return (p.x >= tlf.x)  && (p.x <= brf.x) && (p.y >= brf.y) && (p.y <= tlf.y) && (p.z >= brb.z) && (p.z <= tlf.z);
 }
 
-void Voxel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc) const
+void Voxel::coOccuringFeatures(std::vector<Geometry *> &f , const Geometry * inc) const
 {
 	if(pixels.empty())
 	{
@@ -4462,7 +5363,7 @@ void Voxel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc)
 	}
 }
 
-void Voxel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) const
+void Voxel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) const
 {
 	if(pixels.empty())
 	{
@@ -4470,7 +5371,7 @@ void Voxel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) cons
 		return ;
 	}
 	
-	std::vector<Feature *> ret ;
+	std::vector<Geometry *> ret ;
 	
 	for(size_t i = 0 ; i < 8 ; i++)
 	{
@@ -4508,10 +5409,10 @@ bool Voxel::coOccur(const Geometry * inc) const
 		|| in(inc->getCenter());
 }
 
-void Voxel::remove(Feature * inc)
+void Voxel::remove(Geometry * inc)
 {
 
-	std::vector<Feature *>::iterator e = std::find(features.begin(), features.end(), inc) ;
+	std::vector<Geometry *>::iterator e = std::find(features.begin(), features.end(), inc) ;
 	if(e != features.end())
 		features.erase(e) ;
 	
@@ -4563,7 +5464,7 @@ void Voxel::refine()
 	features.clear() ;
 }
 
-bool Voxel::add(Feature * inc)
+bool Voxel::add(Geometry * inc)
 {
 	
 	if(filled)
@@ -4620,7 +5521,7 @@ bool Voxel::add(Feature * inc)
 	}
 }
 
-void Voxel::forceAdd(Feature * inc)
+void Voxel::forceAdd(Geometry * inc)
 {
 	if(pixels.empty())
 		this->features.push_back(inc) ;
@@ -4655,8 +5556,8 @@ void Voxel::forceAdd(Feature * inc)
 
 void Voxel::print() const
 {
-	for(size_t i = 0 ; i < features.size() ; i++)
-		features[i]->print() ;
+// 	for(size_t i = 0 ; i < features.size() ; i++)
+// 		features[i]->print() ;
 }
 
 Voxel::~Voxel()
@@ -4707,12 +5608,12 @@ Pixel::Pixel() : pixels(0)
 
 Pixel::Pixel(double x, double y, double s) : tl(x-s*.5, y+s*.5), tr(x+s*.5, y+s*.5), bl(x-s*.5, y-s*.5), br(x+s*.5, y-s*.5), filled(false) {} ;
 
-const std::vector<Feature *> & Pixel::getFeatures() const
+const std::vector<Geometry *> & Pixel::getFeatures() const
 {
 	return this->features ;
 }
 
-std::vector<Feature *> & Pixel::getFeatures()
+std::vector<Geometry *> & Pixel::getFeatures()
 {
 	return this->features ;
 }
@@ -4772,9 +5673,9 @@ bool Pixel::coOccur(const Point & p) const
 	return p.x > tl.x &&  p.x < tr.x && p.y > bl.y &&  p.y < tl.y ;
 }
 
-void Pixel::remove(Feature * inc)
+void Pixel::remove(Geometry * inc)
 {
-	std::vector<Feature *>::iterator e = std::find(features.begin(), features.end(), inc) ;
+	std::vector<Geometry *>::iterator e = std::find(features.begin(), features.end(), inc) ;
 	if(e != features.end())
 		features.erase(e) ;
 	
@@ -4816,7 +5717,7 @@ int Pixel::computeFillFactor() const
 	return count ;
 }
 
-void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc) const
+void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Geometry * inc) const
 {
 	if(!pixels.size() && !features.empty())
 	{
@@ -4824,7 +5725,7 @@ void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc)
 		return ;
 	}
 	
-	std::vector<Feature *> ret ;
+	std::vector<Geometry *> ret ;
 
 	
 	if(pixels.size())
@@ -4839,7 +5740,7 @@ void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Geometry * inc)
 	}
 }
 
-void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) const
+void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) const
 {
 	if(!pixels.size() && !features.empty())
 	{
@@ -4847,7 +5748,7 @@ void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) cons
 		return ;
 	}
 	
-	std::vector<Feature *> ret ;
+	std::vector<Geometry *> ret ;
 	
 	if(pixels.size())
 	{
@@ -4861,7 +5762,7 @@ void Pixel::coOccuringFeatures(std::vector<Feature *> &f , const Point & p) cons
 	}
 }
 
-bool Pixel::add(Feature * inc)
+bool Pixel::add(Geometry * inc)
 {
 	if(filled)
 		return false;
@@ -4910,7 +5811,7 @@ bool Pixel::add(Feature * inc)
 	}
 }
 
-void Pixel::forceAdd(Feature * inc)
+void Pixel::forceAdd(Geometry * inc)
 {	
 	this->features.push_back(inc) ;
 	
@@ -4934,8 +5835,8 @@ void Pixel::forceAdd(Feature * inc)
 
 void Pixel::print() const
 {
-	for(size_t i = 0 ; i < features.size() ; i++)
-		features[i]->print() ;
+// 	for(size_t i = 0 ; i < features.size() ; i++)
+// 		features[i]->print() ;
 }
 
 Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div, const Point & center ): x(std::abs(sizeX)), y(std::abs(sizeY)) , z(std::abs(sizeZ)), c(center)
@@ -5004,7 +5905,7 @@ Point Grid3D::randomFreeCenter() const
 Grid3D Grid3D::getGrid(int div) const
 {
 	Hexahedron all(x, y, z, c) ;
-	std::vector<Feature *> features = coOccur(&all) ;
+	std::vector<Geometry *> features = coOccur(&all) ;
 	Grid3D ret(x,y, z,div,c) ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 	{
@@ -5038,10 +5939,10 @@ double Grid3D::fraction() const
 	return (double)dirtyCounter/(lengthX*lengthY*lengthZ) ;
 }
 
-bool Grid3D::add(Feature * inc)
+bool Grid3D::add(Geometry * inc)
 {
 	
-	std::vector<Feature *> toTest = coOccur(inc);
+	std::vector<Geometry *> toTest = coOccur(inc);
 	for(size_t i = 0 ; i < toTest.size() ; i++)
 		if(inc->intersects(toTest[i]))
 			return false ;
@@ -5102,7 +6003,7 @@ bool Grid3D::add(Feature * inc)
 // 	return ret ;
 }
 
-void Grid3D::forceAdd(Feature * inc)
+void Grid3D::forceAdd(Geometry * inc)
 {
 	double startX = .5*x-c.x + inc->getCenter().x-inc->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
@@ -5144,9 +6045,9 @@ void Grid3D::forceAdd(Feature * inc)
 
 }
 
-std::vector<Feature *> Grid3D::coOccur(const Geometry * geo) const
+std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 {
-	std::vector<Feature *> ret ;
+	std::vector<Geometry *> ret ;
 	double startX = .5*x-c.x + geo->getCenter().x-geo->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
@@ -5204,21 +6105,21 @@ std::vector<Feature *> Grid3D::coOccur(const Geometry * geo) const
 					foundPixel = true ;
 					pixels[i][j][k]->coOccuringFeatures(ret,geo) ;
 					std::stable_sort(ret.begin(), ret.end());
-					std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+					std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 				}
 			}
 		}
 	}
 	
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
 
-std::vector<Feature *> Grid3D::coOccur(const Point & p) const 
+std::vector<Geometry *> Grid3D::coOccur(const Point & p) const 
 {
-	std::vector<Feature *> ret ;
+	std::vector<Geometry *> ret ;
 // 	double startX = .5*x + p.x-.05*x ;
 // 	int startI = std::max(0., startX/psize - 2) ;
 // 	
@@ -5256,7 +6157,7 @@ std::vector<Feature *> Grid3D::coOccur(const Point & p) const
 	}
 	
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
@@ -5300,9 +6201,9 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	}
 }
 
-std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
+std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 {
-	std::vector<Feature *> ret ;
+	std::vector<Geometry *> ret ;
 	double startX = x*.5-c.x + geo->getCenter().x-geo->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
@@ -5322,22 +6223,22 @@ std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
 			{
 				pixels[i][j]->coOccuringFeatures(ret,geo) ;
 				std::stable_sort(ret.begin(), ret.end());
-				std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+				std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 				ret.erase(e, ret.end()) ;
 			}
 		}
 	}
 
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
 
- std::vector<Feature *> Grid::coOccur(const Point & p) const 
+ std::vector<Geometry *> Grid::coOccur(const Point & p) const 
 {
 
-	std::vector<Feature *> ret ;
+	std::vector<Geometry *> ret ;
 	double startX = x*.5-c.x + p.x ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
@@ -5362,13 +6263,13 @@ std::vector<Feature *> Grid::coOccur(const Geometry * geo) const
 	}
 	
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Feature *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
 
 
-void Grid::forceAdd(Feature * inc)
+void Grid::forceAdd(Geometry * inc)
 {
 	
 	double startX = x*.5-c.x + inc->getCenter().x-inc->getRadius() ;
@@ -5401,7 +6302,7 @@ void Grid::forceAdd(Feature * inc)
 Grid Grid::getGrid(int div) const
 {
 	Rectangle all(x, y, c) ;
-	std::vector<Feature *> features = coOccur(&all) ;
+	std::vector<Geometry *> features = coOccur(&all) ;
 	Grid ret(x,y,div,c) ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 	{
@@ -5411,9 +6312,9 @@ Grid Grid::getGrid(int div) const
 	return ret ;
 }
 
-bool Grid::add(Feature * inc)
+bool Grid::add(Geometry * inc)
 {
-	std::vector<Feature *> toTest = coOccur(inc);
+	std::vector<Geometry *> toTest = coOccur(inc);
 //	std::cout << toTest.size() << std::endl ;
 //	c.print() ;
 //	inc->getCenter().print() ;

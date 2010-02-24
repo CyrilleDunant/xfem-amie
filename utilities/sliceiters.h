@@ -103,7 +103,7 @@ Cslice_iter(std::valarray<T> *vv, std::slice ss) : v(vv), s(ss), curr(0) { }
 
 template < class T > bool operator==(const Cslice_iter<T> &p, const Cslice_iter<T> &q)
 {
-	return p.curr==q.curr && p.s.stride()==q.s.stride() && p.s.start() == q.s.start() ;
+	return p.curr == q.curr && p.s.stride() == q.s.stride() && p.s.start() == q.s.start() ;
 }
 
 template < class T > bool operator!=(const Cslice_iter<T> &p, const Cslice_iter<T> &q)
