@@ -28,6 +28,13 @@ typedef enum
 	BOLOME_D
 } TypeGranulo;
 
+typedef enum
+{
+	CIRCLE_INCLUSION,
+	SPHERE_INCLUSION,
+	ELLIPSE_INCLUSION
+} TypeInclusion;
+
 class Granulo
 {	
 private:
@@ -74,7 +81,7 @@ public:
 	int getFieldNumber(std::string column) ;
 	std::vector<double> getFieldValues(std::string column) ;
 	std::vector<double> getFieldValues(int) ;
-	std::vector<Feature *> getFeatures(int type, int ninc) ;
+	std::vector<Feature *> getFeatures(TypeInclusion type, int ninc) ;
 } ;
 
 

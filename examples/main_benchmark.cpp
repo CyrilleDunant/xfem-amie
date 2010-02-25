@@ -162,84 +162,6 @@ int count = 0 ;
 double aggregateArea = 0;
 
 
-void setBC()
-{
-  std::cout << "setting boundary conditions..." << std::endl ;
-  tets = featureTree->getTetrahedrons() ;
-  
-	double bctol = 0.0001; // tolerance used to identify points where to impose bcs  
-	double left = 0 ;
-	double bottom = 0 ;
-	double front = 0 ;
-	double right = 0.150 ;
-	double top = 0.150 ;
-	double back = 0.150 ;
-	std::cout << tets.size() << std::endl ;
-	for(size_t k = 0 ; k < tets.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < tets[k]->getBoundingPoints().size() ; c++ )
-		{
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).y - (left)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).z - (left)) < bctol)
-// 				)
-// 			{
-// 				featureTree->getAssembly()->setPoint( -50, 0, 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-			if( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) || (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol)
-				|| (std::abs(tets[k]->getBoundingPoint(c).y - (front)) < bctol) || (std::abs(tets[k]->getBoundingPoint(c).y - (back)) < bctol)
-				|| (std::abs(tets[k]->getBoundingPoint(c).z - (top)) < bctol) || (std::abs(tets[k]->getBoundingPoint(c).z - (bottom)) < bctol))
-			{
-				featureTree->getAssembly()->setPointAlong(XI, tets[k]->getBoundingPoint(c).x, tets[k]->getBoundingPoint(c).id) ;
-			}
-//			else if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) )
-//			{
-//				featureTree->getAssembly()->setPoint( XI, 0,0, tets[k]->getBoundingPoint(c).id) ;
-//			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).y - (right)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).z - (right)) < bctol)
-// 				)
-// 			{
-// 				featureTree->getAssembly()->setPoint( 50, 0, 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).y - (right)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).y - (left)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).z - (right)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ZETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).z - (left)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ZETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-		}
-
-// 		for(size_t c = 0 ;  c < tets[k]->getBoundingPoints().size() ; c++ )
-// 		{
-// /*		  	if ( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) &&  (std::abs(tets[k]->getBoundingPoint(c).z - (top)) < bctol)&&  (std::abs(tets[k]->getBoundingPoint(c).y - (top)) < bctol))
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			else */if ( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPoint( 10, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			else if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			
-// 		}
-	}
-}
-
 void step()
 {
 	
@@ -254,7 +176,6 @@ void step()
 		size_t tries = 0;
 		while(go_on && tries < 50)
 		{
-			setBC() ;
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 			std::cout << "." << std::flush ;
@@ -1424,7 +1345,7 @@ int main(int argc, char *argv[])
 	fields.push_back("center_z") ;
 	fields.push_back("radius") ;
 	GranuloFromFile gff("sphere_2024.txt",fields) ;
-	std::vector<Inclusion3D *> inclusions = gff.getInclusion3D(2025) ;
+	std::vector<Feature *> inclusions = gff.getFeatures(SPHERE_INCLUSION, 2024) ;
 
 	Stiffness * smatrix = new Stiffness(m0) ;
 	sample.setBehaviour(new Stiffness(m0)) ;
@@ -1441,7 +1362,12 @@ int main(int argc, char *argv[])
 	F.sample(512) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
-
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, FRONT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
 	step() ;
 
 

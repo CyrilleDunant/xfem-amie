@@ -1404,7 +1404,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
 // 	F.addFeature(&sample, new TriangularPore(Point( 0.011,  0.002) , Point( 0.011, 0.0023), Point( 0.009, 0.00215) )) ;
 
-F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025, -0.0185), Point( 0.025, -0.0185) )) ;
+	F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025, -0.0185), Point( 0.025, -0.0185) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.0047, -0.002) , Point( -0.0057, -0.002), Point( -0.0067, 0.002) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;

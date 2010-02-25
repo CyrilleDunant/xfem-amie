@@ -1274,7 +1274,7 @@ int main(int argc, char *argv[])
         field.push_back("axis_y") ;
 
         GranuloFromFile gff(ellipselist,field) ;
-        std::vector<Feature *> feat = gff.getFeatures(2,9000) ;
+        std::vector<Feature *> feat = gff.getFeatures(ELLIPSE_INCLUSION,9000) ;
         std::vector<EllipsoidalInclusion *> inc ;
         for(int i = 0 ; i < feat.size() ; i++)
             inc.push_back(static_cast<EllipsoidalInclusion *>(feat[i])) ;

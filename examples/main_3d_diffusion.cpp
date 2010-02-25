@@ -414,7 +414,7 @@ int main(int argc, char *argv[])
         col.push_back("radius") ;
         GranuloFromFile gff("sphere_2024.txt",col) ;
 
-        std::vector<Feature *> feat = gff.getFeatures(1,2025) ;
+        std::vector<Feature *> feat = gff.getFeatures(SPHERE_INCLUSION,2025) ;
         std::vector<Inclusion3D *> inclusions ;
         for(int i = 0 ; i < feat.size() ; i++)
             inclusions.push_back(static_cast<Inclusion3D *>(feat[i])) ;
