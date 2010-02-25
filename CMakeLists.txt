@@ -3,13 +3,13 @@ project(AMIE)
 include(CheckCXXCompilerFlag)
 include (CheckCXXSourceCompiles)
 find_package(OpenMP)
-if( FindOpenMP_FOUND EQUAL 1 )
+if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
 endif( OpenMP_FOUND EQUAL 1 )
 find_package(GLUT)
-if( FindGLUT_FOUND EQUAL 1 )
+if( GLUT_FOUND EQUAL 1 )
 include(GLUT)
-endif( FindGLUT_FOUND EQUAL 1 )
+endif( GLUT_FOUND EQUAL 1 )
 
 set(ALL_SRC 
 elements/elements.cpp 
