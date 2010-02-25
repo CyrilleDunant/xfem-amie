@@ -113,7 +113,7 @@ GLint xangle = 0;
 GLint yangle = 0;
 GLint zangle = 0;
 
-double timepos = 0.00 ;
+double timepos = 0.0001 ;
 
 bool firstRun = true ;
 
@@ -164,14 +164,17 @@ double aggregateArea = 0;
 
 void setBC()
 {
-  
+  std::cout << "setting boundary conditions..." << std::endl ;
   tets = featureTree->getTetrahedrons() ;
   
 	double bctol = 0.0001; // tolerance used to identify points where to impose bcs  
 	double left = 0 ;
 	double bottom = 0 ;
-	double right = 400 ;
-	double top = 400 ;
+	double front = 0 ;
+	double right = 0.150 ;
+	double top = 0.150 ;
+	double back = 0.150 ;
+	std::cout << tets.size() << std::endl ;
 	for(size_t k = 0 ; k < tets.size() ;k++)
 	{
 		for(size_t c = 0 ;  c < tets[k]->getBoundingPoints().size() ; c++ )
@@ -183,14 +186,16 @@ void setBC()
 // 			{
 // 				featureTree->getAssembly()->setPoint( -50, 0, 0, tets[k]->getBoundingPoint(c).id) ;
 // 			}
-			if( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) )
+			if( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) || (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol)
+				|| (std::abs(tets[k]->getBoundingPoint(c).y - (front)) < bctol) || (std::abs(tets[k]->getBoundingPoint(c).y - (back)) < bctol)
+				|| (std::abs(tets[k]->getBoundingPoint(c).z - (top)) < bctol) || (std::abs(tets[k]->getBoundingPoint(c).z - (bottom)) < bctol))
 			{
-				featureTree->getAssembly()->setPoint( -50, 0, 0,tets[k]->getBoundingPoint(c).id) ;
+				featureTree->getAssembly()->setPointAlong(XI, tets[k]->getBoundingPoint(c).x, tets[k]->getBoundingPoint(c).id) ;
 			}
-			else if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) )
-			{
-				featureTree->getAssembly()->setPoint( 50, 0,0, tets[k]->getBoundingPoint(c).id) ;
-			}
+//			else if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) )
+//			{
+//				featureTree->getAssembly()->setPoint( XI, 0,0, tets[k]->getBoundingPoint(c).id) ;
+//			}
 // 			if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) 
 // 				&& (std::abs(tets[k]->getBoundingPoint(c).y - (right)) < bctol) 
 // 				&& (std::abs(tets[k]->getBoundingPoint(c).z - (right)) < bctol)
@@ -1385,18 +1390,13 @@ void processMouseActiveMotion(int x, int y) {
 
 int main(int argc, char *argv[])
 {
+	Sample3D sample(NULL, 0.15,0.15,0.15,0.075,0.075,0.075) ;
+
+	FeatureTree F(&sample) ;
+	featureTree = &F ;
+
 	double nu = 0.2 ;
 	double E = 1 ;
-
-	Sample3D sample(NULL, 0.04,0.04,0.04,0.02,0.02,0.02) ;
-	Sample3D samplers(NULL, 400,400,400,200,200,200) ;
-
-	FeatureTree F(&samplers) ;
-	featureTree = &F ;
-	Matrix d0(3,3) ;
-	d0[0][0] = 1 ;
-	d0[1][1] = 1 ;
-	d0[2][2] = 1 ;
 
 	Matrix m0(6,6) ;
 	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
@@ -1408,7 +1408,7 @@ int main(int argc, char *argv[])
 	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
 
 	nu = 0.2 ;
-	E = 4 ;
+	E = 1e-8 ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1418,62 +1418,34 @@ int main(int argc, char *argv[])
 	m1[5][5] = 0.5 - nu ;
 	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
 
-	Matrix d1(3,3) ;
-	d1[0][0] = 1e2 ;
-	d1[1][1] = 1e2 ;
-	d1[2][2] = 1e2 ;
+	std::vector<std::string> fields ;
+	fields.push_back("center_x") ;
+	fields.push_back("center_y") ;
+	fields.push_back("center_z") ;
+	fields.push_back("radius") ;
+	GranuloFromFile gff("sphere_2024.txt",fields) ;
+	std::vector<Inclusion3D *> inclusions = gff.getInclusion3D(2025) ;
 
-	double itzSize = 0.000001;
-	int inclusionNumber = 0 ; //48000*2 ;
-
-	std::vector<Inclusion3D *> inclusions = GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
-
-// 	if(inclusionNumber)
-// 		itzSize = inclusions[inclusions.size()-1]->getRadius() ;
-// 	for(size_t i = 0; i < inclusions.size() ; i++)
-// 		delete inclusions[i] ;
-// 
-// 	inclusions = GranuloBolome(3.84e-05/1.8, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
-
-	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inclusions.size() ; i++)
-		feats.push_back(inclusions[i]) ;
-
-	int nAgg = 6000 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg, 60000);
-	
-	MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
-	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
-	Stiffness * s = new Stiffness(m0) ;
-	Stiffness * ss = new Stiffness(m1) ;
-	for(size_t i = 0 ; i < feats.size() ; i++)
+	Stiffness * smatrix = new Stiffness(m0) ;
+	sample.setBehaviour(new Stiffness(m0)) ;
+	Stiffness * sinclusion = new Stiffness(m1) ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-		feats[i]->setCenter(feats[i]->getCenter()*10000.);
-		dynamic_cast<Inclusion3D *>(feats[i])->setRadius(feats[i]->getRadius()*10000.)  ;
-		F.addFeature(&samplers, feats[i]) ;
-		feats[i]->setBehaviour(ss) ;
-// 		feats[i]->setBehaviour(new VoidForm()) ;
-// 		feats[i]->setBehaviour(new Laplacian(d1)) ;
-// 		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
+//		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000) ;
+//		static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*1000) ;
+		inclusions[i]->setBehaviour(new Stiffness(m1)) ;
+		F.addFeature(&sample, inclusions[i]) ;
 	}
-	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
+	std::cout << inclusions[0]->getRadius() << std::endl ;
 	
-// 	samplers.setBehaviour(new Laplacian(d0)) ;
-	Vector a(6.,0) ;
-// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100/*166.11322368308294*/, 200, 200, 200, m1, a) ;
-	Inclusion3D * inc0 = new Inclusion3D(100/*166.11322368308294*/, 200, 200, 200) ;
-// 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
-	inc0->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
-// 	inc0->setBehaviour(new Laplacian(d1)) ;
-// 	F.addFeature(&samplers, inc) ;
-	F.addFeature(&samplers, inc0) ;
-	F.sample(2048) ;
-	F.setOrder(QUADRATIC) ;
+	F.sample(512) ;
+	F.setOrder(LINEAR) ;
 	F.generateElements() ;
+
 	step() ;
 
 
-	glutInit(&argc, argv) ;	
+/*	glutInit(&argc, argv) ;	
 	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
@@ -1520,7 +1492,7 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(Display) ;
 	glutMainLoop() ;
 	
-// 	delete dt ;
+// 	delete dt ;*/
 	
 	return 0 ;
 }

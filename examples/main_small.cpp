@@ -1446,6 +1446,7 @@ int main(int argc, char *argv[])
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
 	Stiffness * s = new Stiffness(m0) ;
 	Stiffness * ss = new Stiffness(m1) ;
+	std::cout << feats.size() << std::endl ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		feats[i]->setCenter(feats[i]->getCenter()*10000.);
