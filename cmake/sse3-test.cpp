@@ -1,4 +1,4 @@
-#include <x86intrin.h>
+#include <emmintrin.h>
 #include <iostream>
 #include <limits>
 #include <cmath>
