@@ -3,9 +3,9 @@ project(AMIE)
 include(CheckCXXCompilerFlag)
 include (CheckCXXSourceCompiles)
 
-if(DISABLE_OPENMP EQUAL 0)
+if(NOT (DISABLE_OPENMP EQUAL 1) )
 	include(FindOpenMP)
-endif(DISABLE_OPENMP EQUAL 0)
+endif(NOT (DISABLE_OPENMP EQUAL 1))
 include(FindGLUT)
 
 set(ALL_SRC 
