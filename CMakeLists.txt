@@ -2,10 +2,10 @@ cmake_minimum_required (VERSION 2.6)
 project(AMIE)
 include(CheckCXXCompilerFlag)
 include (CheckCXXSourceCompiles)
-
-if(NOT (DISABLE_OPENMP EQUAL 1) )
+find_package(OpenMP)
+if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
-endif(NOT (DISABLE_OPENMP EQUAL 1))
+endif( OpenMP_FOUND EQUAL 1 )
 include(FindGLUT)
 
 set(ALL_SRC 
