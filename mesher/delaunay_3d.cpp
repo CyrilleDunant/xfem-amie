@@ -582,6 +582,133 @@ void DelaunayTreeItem3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>,
 }
 
 
+std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > & ret, const Geometry *g)
+{
+	std::vector<DelaunayTreeItem3D *> toTest ;
+	if(visited())
+	{
+		return toTest ;
+	}
+	visited() = true ;
+	
+	ret.second.push_back(this) ;
+	
+	
+	if(
+	    !inCircumSphere(g->getCenter()) 
+	    && 
+	    (
+	      (!g->in(*first) 
+	      && !g->in(*second) 
+	      && !g->in(*third) 
+	      && !g->in(*fourth) 
+	       && isTetrahedron() )
+	      || 
+	      ( 
+	        g->in(*fourth) 
+	        && isSpace() 
+	      )
+	    ) 
+	  )
+	{
+		return toTest ;
+	}
+	
+	for (size_t i  = 0 ;  i < stepson.size() ; i++)
+	{
+		if( !getStepson(i)->visited() 
+		    && 
+		    !(
+		          !getStepson(i)->inCircumSphere(g->getCenter()) 
+		          && 
+		          (
+		            (!g->in(*getStepson(i)->first) 
+		            && !g->in(*getStepson(i)->second) 
+		            && !g->in(*getStepson(i)->third) 
+		            && !g->in(*getStepson(i)->fourth) 
+		            && getStepson(i)->isTetrahedron() 
+		            ) 
+		            || 
+		            ( 
+		              g->in(*getStepson(i)->fourth) 
+		              && getStepson(i)->isSpace() 
+		            )
+		          )
+		        )
+		  )
+		{
+			toTest.push_back(getStepson(i)) ;
+		}
+	}
+	
+	for (size_t i  = 0 ;  i < son.size() ; i++)
+	{
+		if( 
+		    !getSon(i)->visited() 
+		    && 
+		    !(
+		       !getSon(i)->inCircumSphere(g->getCenter()) 
+		       && 
+		       (
+		         (!g->in(*getSon(i)->first) 
+		          && !g->in(*getSon(i)->second) 
+		          && !g->in(*getSon(i)->third) 
+		          && !g->in(*getSon(i)->fourth) 
+		          && getSon(i)->isTetrahedron()
+		         ) 
+		         || 
+		         ( 
+		           g->in(*getSon(i)->fourth) 
+		           && getSon(i)->isSpace() 
+		         )
+		       )
+		     )
+		  )
+		{
+			toTest.push_back(getSon(i)) ;
+		}
+	}
+	
+	if(isAlive() && isTetrahedron())
+	{
+		ret.first.push_back(static_cast<DelaunayTetrahedron *>(this)) ;
+	}
+	
+	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
+	{
+		if( 
+		    !getNeighbour(i)->visited() 
+		    && 
+		    !(
+		       !getNeighbour(i)->inCircumSphere(g->getCenter()) 
+		       && 
+		       (
+		         (
+		           !g->in(*getNeighbour(i)->first) 
+		           && !g->in(*getNeighbour(i)->second) 
+		           && !g->in(*getNeighbour(i)->third) 
+		           && !g->in(*getNeighbour(i)->fourth) 
+		           && getNeighbour(i)->isTetrahedron()  
+		         )
+		         || 
+		         ( 
+		           g->in(*getNeighbour(i)->fourth) 
+		           && getNeighbour(i)->isSpace() 
+		         )
+		       )
+		     )
+		  )
+		{
+			toTest.push_back(getNeighbour(i)) ;
+		}
+	}
+	
+	return toTest ;
+}
+
+
+ 
+ 
  void DelaunayTreeItem3D::conflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > & ret, const Point *p)
 {
 
@@ -632,6 +759,58 @@ void DelaunayTreeItem3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>,
 	
 
 }
+
+ std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > & ret, const Point *p)
+{
+	std::vector<DelaunayTreeItem3D *> toTest ;
+	if(visited())
+	{
+		return toTest ;
+	}
+	visited() = true ;
+	
+	ret.second.push_back(this) ;
+	for (size_t i  = 0 ;  i < stepson.size() ; i++)
+	{
+		if( (!getStepson(i)->visited() && getStepson(i)->inCircumSphere(*p)) ) 
+		{
+			toTest.push_back(getStepson(i)) ;
+		}
+	}
+	
+	for (size_t i  = 0 ;  i < son.size() ; i++)
+	{
+
+		if( (!getSon(i)->visited() && getSon(i)->inCircumSphere(*p)))
+		{
+			toTest.push_back(getSon(i)) ;
+		}
+	}
+	
+	if(!inCircumSphere(*p))
+	{
+		return toTest ;
+	}
+	
+	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
+	{
+		
+		if( (!getNeighbour(i)->visited() && getNeighbour(i)->inCircumSphere(*p)))
+		{
+			toTest.push_back(getNeighbour(i)) ;
+		}
+	}
+	
+
+
+	if(isAlive())
+	{
+		ret.first.push_back(this) ;
+	}
+	
+	return toTest ;
+}
+
 
 void DelaunayTreeItem3D::removeNeighbour(DelaunayTreeItem3D * t)
 {
@@ -1622,16 +1801,37 @@ void DelaunayRoot3D::insert(std::vector<DelaunayTreeItem3D *>& ret, Point *p, St
 
 void DelaunayRoot3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > & ret, const Geometry *g)
 {
-
 	visited() = true ;
 	
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-		getSon(i)->conflicts(temp,g) ;
+		std::vector<DelaunayTreeItem3D *> toTest = getSon(i)->flatConflicts(temp,g) ;
+		while(!toTest.empty())
+		{
+			std::vector<DelaunayTreeItem3D *> tempToTest ;
+			for(size_t j  = 0 ;  j < toTest.size() ; j++)
+			{
+				std::vector<DelaunayTreeItem3D *> temp0 = toTest[j]->flatConflicts(temp,g) ;
+				tempToTest.insert(tempToTest.end(), temp0.begin(), temp0.end()) ;
+			}
+			
+			toTest = tempToTest ;
+		}
+		
 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
 	}
+	
+// 	visited() = true ;
+// 	
+// 	for (size_t i  = 0 ;  i < son.size() ; i++)
+// 	{
+// 		std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > temp  ;
+// 		getSon(i)->conflicts(temp,g) ;
+// 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
+// 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
+// 	}
 	
 }
 
@@ -1644,12 +1844,34 @@ void DelaunayRoot3D::conflicts(std::pair< std::vector<DelaunayTreeItem3D *>, std
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-		getSon(i)->conflicts(temp, p) ;
+		std::vector<DelaunayTreeItem3D *> toTest = getSon(i)->flatConflicts(temp,p) ;
+		while(!toTest.empty())
+		{
+			std::vector<DelaunayTreeItem3D *> tempToTest ;
+			for(size_t j  = 0 ;  j < toTest.size() ; j++)
+			{
+				std::vector<DelaunayTreeItem3D *> temp0 = toTest[j]->flatConflicts(temp,p) ;
+				tempToTest.insert(tempToTest.end(), temp0.begin(), temp0.end()) ;
+			}
+			
+			toTest = tempToTest ;
+		}
+		
 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
 	}
-	
-	return  ;
+		
+// 	visited() = true ;
+// 	
+// 	for (size_t i  = 0 ;  i < son.size() ; i++)
+// 	{
+// 		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
+// 		getSon(i)->conflicts(temp, p) ;
+// 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
+// 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
+// 	}
+// 	
+// 	return  ;
 }
 
 Star3D::Star3D(std::vector<DelaunayTreeItem3D *> *t, const Point *p) :  treeitem(*t), creator(p)

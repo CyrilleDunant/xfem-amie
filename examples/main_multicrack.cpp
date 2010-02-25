@@ -156,8 +156,8 @@ void step()
 		int limit = 0 ;
 		while(!featureTree->step(timepos) && limit < 400)//as long as we can update the features
 		{
-			featureTree->getAssembly()->print() ;
-			exit(0) ;
+// 			featureTree->getAssembly()->print() ;
+// 			exit(0) ;
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
@@ -1363,7 +1363,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
- 	sample.setBehaviour(new /*WeibullDistributed*/Stiffness(m0_paste/*, 30*/)) ;
+ 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 30)) ;
 	
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
@@ -1389,7 +1389,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, inc1) ;
 	
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
-	/*WeibullDistributed*/Stiffness * stiff = new /*WeibullDistributed*/Stiffness(m0_paste/*, 500000*/) ;
+	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste, 500000) ;
 	inc1->setBehaviour(stiff) ;
 	inc2->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
@@ -1446,7 +1446,7 @@ F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025,
 
 	F.sample(512) ;
 	
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
 // 	F.refine(3) ;
