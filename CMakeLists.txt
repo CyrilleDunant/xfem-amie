@@ -2,11 +2,14 @@ cmake_minimum_required (VERSION 2.6)
 project(AMIE)
 include(CheckCXXCompilerFlag)
 include (CheckCXXSourceCompiles)
-find_package(OpenMP)
-if( OpenMP_FOUND EQUAL 1 )
+find_package(FindOpenMP)
+if( FindOpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
-endif( OpenMP_FOUND EQUAL 1 )
+endif( FindOpenMP_FOUND EQUAL 1 )
+find_package(FindGLUT)
+if( FindGLUT_FOUND EQUAL 1 )
 include(FindGLUT)
+endif( FindGLUT_FOUND EQUAL 1 )
 
 set(ALL_SRC 
 elements/elements.cpp 
