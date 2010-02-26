@@ -791,6 +791,9 @@ public:
 	/** \brief Contructor. construct a plane from a point and a normal vector.*/
 	Plane(const Point & origin, const Point & vector) ;
 	
+	/** \brief Contructor. construct a plane from three points*/
+	Plane(const Point & a, const Point & b, const Point &c) ;
+	
 	/** \brief Return true if this plane intersects the argument*/
 	bool intersects(const Line &l) const;
 	
@@ -867,6 +870,9 @@ public:
 	
 	/** \brief return true if this Segment intersects the argument*/
 	bool intersects(const TriPoint *g) const;
+	
+	/** \brief return true if this Segment intersects the argument*/
+	bool intersects(const Plane &g) const;
 	
 	/** \brief return true if the argument is on the segment*/
 	bool on(const Point &p) const;

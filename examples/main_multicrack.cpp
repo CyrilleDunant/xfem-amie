@@ -964,7 +964,7 @@ void Display(void)
 				glBegin(GL_TRIANGLE_FAN);
 				
 				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(start)) ;
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-0)/(E_max-0), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
@@ -973,7 +973,7 @@ void Display(void)
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(k)) ;
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-0)/(E_max-0), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1444,7 +1444,7 @@ int main(int argc, char *argv[])
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(512) ;
+	F.sample(16) ;
 	
 	F.setOrder(LINEAR) ;
 

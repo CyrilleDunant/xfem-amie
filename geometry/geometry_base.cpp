@@ -567,6 +567,10 @@ Plane::Plane(const Point & origin, const Point & vector) : p(origin), v(vector)
 {
 }
 
+Plane::Plane(const Point & a, const Point & b, const Point & c) : p(a), v(b^c)
+{
+}
+
 bool Plane::intersects(const Line &l) const
 {
 	double d = p*v ;
@@ -3197,6 +3201,12 @@ bool Segment::intersects(const Line & l) const
 	
 	Vector fac = m * vv ;
 	return fac[0] < 1 && fac[0] > 0 ;
+	
+}
+
+bool Segment::intersects(const Plane & l) const
+{
+		return l.intersects(*this) ;
 	
 }
 

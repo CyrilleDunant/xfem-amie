@@ -5153,7 +5153,7 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) c
 	std::vector<DelaunayTriangle *> tris = t->getTriangles() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)
 	{
-		DelaunayTreeItem * VoidNeighbour ;
+		DelaunayTreeItem * VoidItem ;
 		bool border = false ;
 		for(size_t j = 0 ; j < tris[i]->neighbour.size() ; j++)
 		{
@@ -5162,9 +5162,9 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) c
 			border = border || tris[i]->getNeighbour(j)->isPlane
 			                || voidNeighbour ;
 			if(voidNeighbour)
-				VoidNeighbour = tris[i]->getNeighbour(j) ;
+				VoidItem = tris[i]->getNeighbour(j) ;
 			if(tris[i]->getNeighbour(j)->isPlane)
-				VoidNeighbour = tris[i]->getNeighbour(j) ;
+				VoidItem = tris[i]->getNeighbour(j) ;
 		}
 		
 		if(tris[i]->getBehaviour()->type == VOID_BEHAVIOUR)
@@ -5172,15 +5172,10 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) c
 		
 		if(border)
 		{
+			std::pair<Point *, Point*> commonSurface = tris[i]->commonEdge(VoidItem) ;
+			
 			Segment ray((tris[i]->getCenter()), (tris[i]->getCenter())-direction*(tris[i]->getRadius())) ;
-			bool isOnTheRightSide = true ;
-			for(size_t j = 0 ; j < tris[i]->neighbour.size() ; j++)
-			{
-				if(tris[i]->getNeighbour(j)->isTriangle && !(dynamic_cast<DelaunayTriangle *>(tris[i]->getNeighbour(j))->getBehaviour()->type == VOID_BEHAVIOUR))
-				{
-					isOnTheRightSide = isOnTheRightSide && !(ray.intersects(dynamic_cast<Triangle *>(tris[i]->getNeighbour(j)))) ;
-				}
-			}
+			bool isOnTheRightSide = ray.intersects(Segment(*commonSurface.first, *commonSurface.second)) ;
 			
 			if(isOnTheRightSide)
 			{
@@ -5188,7 +5183,7 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) c
 				for(size_t j = 0 ; j < tris[i]->getBoundingPoints().size() ; j++)
 				{
 					
-					Segment side(tris[i]->getBoundingPoint(j), tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size())) ;
+					Line side(tris[i]->getBoundingPoint(j), tris[i]->getBoundingPoint(j)-tris[i]->getBoundingPoint((j+1)%tris[i]->getBoundingPoints().size())) ;
 					if(side.intersects(ray))
 					{
 						id.push_back(tris[i]->getBoundingPoint(j)) ;
@@ -5222,14 +5217,14 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)
 		{
 			Segment ray(tris[i]->getCenter(), tris[i]->getCenter()-direction*2.*tris[i]->getRadius()) ;
 			std::vector<Point *> points = space[s]->commonSurface(tris[i]) ;
-			TriPoint surf(points[0], points[1], points[2]) ;
+			Plane surf(*points[0], *points[1], *points[2]) ;
 			for(size_t j = 3 ; j < tris[i]->getBoundingPoints().size() ; j++)
 			{
 				if(isCoplanar(*points[0], *points[1], *points[2], tris[i]->getBoundingPoint(j)))
 					points.push_back(&tris[i]->getBoundingPoint(j)) ;
 			}
 			
-			if(ray.intersects(&surf) && !points.empty())
+			if(surf.intersects(ray) && !points.empty())
 			{
 				for(size_t j = 0 ; j < points.size() ; j++)
 					id.push_back(*points[j]) ;
