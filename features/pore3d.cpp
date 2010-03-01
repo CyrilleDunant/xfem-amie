@@ -61,14 +61,14 @@ std::vector<Geometry *> Pore3D::getRefinementZones(size_t level) const
 }
 
 
-std::vector<DelaunayTriangle *> Pore3D::getTriangles( DelaunayTree * dt){
+std::vector<DelaunayTriangle *> Pore3D::getElements( Mesh<DelaunayTriangle> * dt){
 	return std::vector<DelaunayTriangle *>(0) ;
 }
 
-std::vector<DelaunayTetrahedron *> Pore3D::getTetrahedrons( DelaunayTree3D * dt){
+std::vector<DelaunayTetrahedron *> Pore3D::getElements( Mesh<DelaunayTetrahedron> * dt){
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->boundary) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

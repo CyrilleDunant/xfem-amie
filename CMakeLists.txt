@@ -14,6 +14,7 @@ endif( GLUT_FOUND EQUAL 1 )
 set(ALL_SRC 
 elements/elements.cpp 
 elements/integrable_entity.cpp 
+features/feature_base.cpp
 features/crack.cpp 
 features/crackinitiation.cpp 
 features/enrichmentbehaviour.cpp 

@@ -71,7 +71,6 @@ using namespace Mu ;
 
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
-DelaunayTree *dt ; //(pts) ;
 std::vector<bool> cracked ;
 std::vector<Crack *> crack ;
 
@@ -287,7 +286,6 @@ void step()
 	std::cout << "\r iteration " << "100/100 ... done" << std::endl ;
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
-	dt = featureTree->getDelaunayTree() ;
 	sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
@@ -311,11 +309,11 @@ void step()
 	std::cout << "unknowns :" << x.size() << std::endl ;
 	
 	if(crack.size() > 0)
-		tris__ = crack[0]->getIntersectingTriangles(dt) ;
+		tris__ = crack[0]->getIntersectingTriangles(featureTree->get2DMesh()) ;
 	
 	for(size_t k = 1 ; k < crack.size() ; k++)
 	{
-		std::vector<DelaunayTriangle *> temp = crack[k]->getIntersectingTriangles(dt) ;
+		std::vector<DelaunayTriangle *> temp = crack[k]->getIntersectingTriangles(featureTree->get2DMesh()) ;
 		if(tris__.empty())
 			tris__ = temp ;
 		else if(!temp.empty())

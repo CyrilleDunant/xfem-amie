@@ -75,7 +75,6 @@ using namespace Mu ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
-DelaunayTree *dt ; //(pts) ;
 std::vector<Crack *> crack ;
 
 double E_min = 10;
@@ -292,7 +291,6 @@ void step()
 	
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		dt = featureTree->getDelaunayTree() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		

@@ -34,19 +34,19 @@ bool Sample3D::interacts(Feature * f) const {
 	return false ;
 }
 		
-std::vector<DelaunayTriangle *> Sample3D::getTriangles( DelaunayTree * dt)
+std::vector<DelaunayTriangle *> Sample3D::getElements( Mesh<DelaunayTriangle> * dt)
 {
 	return std::vector<DelaunayTriangle *>(0) ;
 }
 	
-std::vector<DelaunayTetrahedron *> Sample3D::getTetrahedrons( DelaunayTree3D * dt)
+std::vector<DelaunayTetrahedron *> Sample3D::getElements( Mesh<DelaunayTetrahedron> * dt)
 {
 	std::vector<DelaunayTetrahedron *> ret ;
 	std::vector<DelaunayTetrahedron *> temp ;
 	if(this->m_f == NULL)
-		temp = dt->getTetrahedrons() ;
+		temp = dt->getElements() ;
 	else
-		temp = dt->conflicts(dynamic_cast<const Hexahedron *>(this->boundary)) ;
+		temp = dt->getConflictingElements(dynamic_cast<const Hexahedron *>(this->boundary)) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

@@ -87,7 +87,6 @@ using namespace std;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
-DelaunayTree *dt ; //(pts) ;
 std::vector<BranchedCrack *> crack ;
 
 double E_min = 10;
@@ -154,7 +153,7 @@ void step()
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
       
 		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 800)//as long as we can update the features
+		while(!featureTree->step(timepos) && limit < 20)//as long as we can update the features
 		{
 // 			if(limit == 1)
 // 			{
@@ -203,8 +202,7 @@ void step()
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 
-		dt = featureTree->getDelaunayTree() ;
-			sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
+		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
 		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
@@ -226,11 +224,11 @@ void step()
 		std::cout << "unknowns :" << x.size() << std::endl ;
 		
 		if(crack.size() > 0)
-			tris__ = crack[0]->getTriangles(dt) ;
+			tris__ = crack[0]->getElements(featureTree->get2DMesh()) ;
 		
 		for(size_t k = 1 ; k < crack.size() ; k++)
 		{
-			std::vector<DelaunayTriangle *> temp = crack[k]->getTriangles(dt) ;
+			std::vector<DelaunayTriangle *> temp = crack[k]->getElements(featureTree->get2DMesh()) ;
 			if(tris__.empty())
 				tris__ = temp ;
 			else if(!temp.empty())
@@ -1447,10 +1445,9 @@ int main(int argc, char *argv[])
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
-	
-	F.setOrder(LINEAR) ;
+	F.sample(32) ;
 
+	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 // 	F.refine(3) ;
 

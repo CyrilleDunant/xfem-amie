@@ -13,11 +13,11 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> Pore::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> Pore::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *> ret;
 	
-	std::vector<DelaunayTriangle *> temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->boundary) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -119,10 +119,10 @@ std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 }
 
 
-std::vector<DelaunayTriangle *> TriangularPore::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> TriangularPore::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
-	std::vector<DelaunayTriangle *> temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->boundary) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;

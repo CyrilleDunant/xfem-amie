@@ -139,7 +139,7 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 
 }
 
-double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> & tip, const DelaunayTree * dtree)
+double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree)
 {
 	double acount = 0 ;
 	double aangle = 0 ;
@@ -147,12 +147,12 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	Point lastDir( cos(tip.second) , sin(tip.second)) ;
 	
 	Circle c(enrichementRadius, *(tip.first)) ;
-	std::vector<DelaunayTriangle*> disk = dtree->conflicts (&c) ;
+	std::vector<DelaunayTriangle*> disk = dtree->getConflictingElements (&c) ;
 	std::vector<DelaunayTriangle*> tris ;
 	while( disk.size() < 16)
 	{
 		c.setRadius(c.getRadius()*2.) ;
-		disk = dtree->conflicts ( &c ) ;
+		disk = dtree->getConflictingElements ( &c ) ;
 	}
 
 
@@ -215,20 +215,20 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	return aangle ;
 }
 
-std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, const DelaunayTree * dtree )
+std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree )
 {
 	Point direction ( cos(tip.second), sin(tip.second)) ;
 	Segment tipSegment ( *(tip.first) , direction) ;
 	Circle c ( enrichementRadius, *(tip.first) ) ;
 	
 	
-	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
+	std::vector<DelaunayTriangle *> disk = dtree->getConflictingElements ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
 	if(disk.size() == 1)
 	{
 		setInfluenceRadius(disk[0]->getRadius()) ;
 		c.setRadius(disk[0]->getRadius()) ;
-		disk = dtree->conflicts ( &c ) ;
+		disk = dtree->getConflictingElements ( &c ) ;
 	}
 	
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
@@ -558,7 +558,7 @@ const std::vector<SegmentedLine *> & BranchedCrack::getBranches() const
 	return branches ;
 }
 
-void BranchedCrack::enrichTips(size_t & startid, DelaunayTree * dt)
+void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle> * dt)
 {
 	for(size_t i =  0 ; i < tips.size() ; i++)
 	{
@@ -566,10 +566,10 @@ void BranchedCrack::enrichTips(size_t & startid, DelaunayTree * dt)
 	}
 }
 
-void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pair<Point *, double> & tip)
+void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle> * dt, const std::pair<Point *, double> & tip)
 {
 	Circle epsilon(enrichementRadius, Point(*(tip.first))) ;
-	std::vector<DelaunayTriangle *> triangles = dt->conflicts(&epsilon) ;
+	std::vector<DelaunayTriangle *> triangles = dt->getConflictingElements(&epsilon) ;
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
 	double angle = tip.second ;
@@ -754,7 +754,7 @@ void BranchedCrack::enrichTip(size_t & startid, DelaunayTree * dt, const std::pa
 	}
 }
 
-void BranchedCrack::enrichForks(size_t & startid, DelaunayTree * dt)
+void BranchedCrack::enrichForks(size_t & startid, Mesh<DelaunayTriangle> * dt)
 {
 	for(size_t i =  0 ; i < forks.size() ; i++)
 	{
@@ -762,7 +762,7 @@ void BranchedCrack::enrichForks(size_t & startid, DelaunayTree * dt)
 	}
 }
 
-void BranchedCrack::enrichBranches(size_t & startid, DelaunayTree * dt)
+void BranchedCrack::enrichBranches(size_t & startid, Mesh<DelaunayTriangle> * dt)
 {
 	for(size_t i =  0 ; i < branches.size() ; i++)
 	{
@@ -770,9 +770,9 @@ void BranchedCrack::enrichBranches(size_t & startid, DelaunayTree * dt)
 	}
 }
 
-void BranchedCrack::enrichSegmentedLine(size_t & startid, DelaunayTree * dt, const SegmentedLine * line)
+void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle> * dt, const SegmentedLine * line)
 {
-	std::vector<DelaunayTriangle *> tris = dt->conflicts(line) ;
+	std::vector<DelaunayTriangle *> tris = dt->getConflictingElements(line) ;
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
 	VirtualMachine vm ;
 	std::map<Point *, size_t> done ;
@@ -1014,7 +1014,7 @@ bool BranchedCrack::isEmpty() const
 	return branches.empty() ;
 }
 
-void BranchedCrack::enrich(size_t & counter,  DelaunayTree * dtree)
+void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle> * dtree)
 {
 	std::vector<DelaunayTriangle *> toClear ;
 	for(std::set<DelaunayTriangle *>::iterator i = enrichmentMap.begin() ; i!=enrichmentMap.end() ; ++i)
@@ -1042,14 +1042,14 @@ void BranchedCrack::computeCenter()
 	}
 }
 
-std::vector<DelaunayTriangle*> BranchedCrack::getTriangles(DelaunayTree* dt)
+std::vector<DelaunayTriangle*> BranchedCrack::getElements(Mesh<DelaunayTriangle>* dt)
 {
 	
 	std::vector<DelaunayTriangle*> ret ;
 
 	for(size_t i = 0 ; i < branches.size() ; i++)
 	{
-		std::vector<DelaunayTriangle*> tris = dt->conflicts(branches[i]) ;
+		std::vector<DelaunayTriangle*> tris = dt->getConflictingElements(branches[i]) ;
 		ret.insert(ret.end(), tris.begin(), tris.end()) ;
 	}
 	
@@ -1059,7 +1059,7 @@ std::vector<DelaunayTriangle*> BranchedCrack::getTriangles(DelaunayTree* dt)
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron*> BranchedCrack::getTetrahedrons(DelaunayTree3D*)
+std::vector<DelaunayTetrahedron*> BranchedCrack::getElements(Mesh<DelaunayTetrahedron>*)
 {
 	return std::vector<DelaunayTetrahedron*>() ;
 }
@@ -1177,7 +1177,7 @@ bool BranchedCrack::enrichmentTarget(DelaunayTriangle* tri)
 	return enrichmentMap.find(tri) != enrichmentMap.end() ;
 }
 
-void BranchedCrack::step(double dt, Vector*, const DelaunayTree* dtree)
+void BranchedCrack::step(double dt, Vector*, Mesh<DelaunayTriangle> * dtree)
 {
 	changed = false ;
 	std::vector<Point *> tipsToGrow ; 
@@ -1200,7 +1200,7 @@ void BranchedCrack::step(double dt, Vector*, const DelaunayTree* dtree)
 	}
 }
 
-void BranchedCrack::snap(DelaunayTree*)
+void BranchedCrack::snap(Mesh<DelaunayTriangle>*)
 {
 	
 }
@@ -1239,20 +1239,20 @@ std::vector<Geometry *> Crack::getRefinementZones ( size_t level ) const
 	return ret ;
 }
 
-std::vector<DelaunayTriangle *> Crack::getTriangles ( DelaunayTree * dt )
+std::vector<DelaunayTriangle *> Crack::getElements ( Mesh<DelaunayTriangle> * dt )
 {
 	std::vector<DelaunayTriangle *> vec  ;
 	std::vector<DelaunayTriangle *> visited ;
 
-	vec = dt->conflicts(this->getPrimitive()) ;
+	vec = dt->getConflictingElements(this->getPrimitive()) ;
 
-	std::vector<DelaunayTriangle *> inhead  = dt->conflicts ( boundary ) ;
+	std::vector<DelaunayTriangle *> inhead  = dt->getConflictingElements ( boundary ) ;
 	for ( size_t i = 0 ; i< inhead.size() ; i++ )
 	{
 		vec.push_back ( inhead[i] ) ;
 	}
 
-	inhead  = dt->conflicts ( boundary2 ) ;
+	inhead  = dt->getConflictingElements ( boundary2 ) ;
 
 	for ( size_t i = 0 ; i< inhead.size() ; i++ )
 	{
@@ -1265,9 +1265,9 @@ std::vector<DelaunayTriangle *> Crack::getTriangles ( DelaunayTree * dt )
 	return vec ;
 }
 
-std::vector<DelaunayTriangle *> Crack::getIntersectingTriangles ( DelaunayTree * dt )
+std::vector<DelaunayTriangle *> Crack::getIntersectingTriangles ( Mesh<DelaunayTriangle> * dt )
 {
-	return dt->conflicts(this->getPrimitive()) ;
+	return dt->getConflictingElements(this->getPrimitive()) ;
 }
 
 Crack::Crack ( Feature * father, const std::valarray<Point *> & points, double radius ) : EnrichmentFeature ( father ), SegmentedLine ( points )
@@ -1403,9 +1403,9 @@ bool Crack::enrichmentTarget ( DelaunayTriangle * t )
 	return false ;
 }
 
-void Crack::enrich ( size_t & counter, DelaunayTree * dtree )
+void Crack::enrich ( size_t & counter, Mesh<DelaunayTriangle> * dtree )
 {
-	std::vector<DelaunayTriangle *> tris = this->getTriangles ( dtree ) ;
+	std::vector<DelaunayTriangle *> tris = this->getElements ( dtree ) ;
 	if ( tris.size() < 2 )
 	{
 		std::cout << "crack too small, cowardly discarding" << std::endl ;
@@ -2018,20 +2018,20 @@ void Crack::EnrichmentData::setType ( EnrichmentType t )
 	type = t ;
 }
 
-std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const DelaunayTree * dtree )
+std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, Mesh<DelaunayTriangle> * dtree )
 {
 	Point direction ( *getHead()- getBoundingPoint ( 1 ) ) ;
 	Segment tip ( *getHead() , getBoundingPoint ( 1 ) ) ;
 	Circle c ( boundary->getRadius()*1.5, boundary->getCenter() ) ;
 
-	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
+	std::vector<DelaunayTriangle *> disk = dtree->getConflictingElements ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
 
 	if(disk.size() == 1)
 	{
 		setInfluenceRadius(disk[0]->getRadius()) ;
 		c.setRadius(disk[0]->getRadius()) ;
-		disk = dtree->conflicts ( &c ) ;
+		disk = dtree->getConflictingElements ( &c ) ;
 	}
 	
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
@@ -2125,20 +2125,20 @@ std::pair<double, double> Crack::computeJIntegralAtHead ( double dt, const Delau
 	return std::make_pair ( freeEnergy0, freeEnergy1 ) ;
 }
 
-std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, const DelaunayTree * dtree )
+std::pair<double, double> Crack::computeJIntegralAtTail ( double dt, Mesh<DelaunayTriangle> * dtree )
 {
 	Point direction ( *getTail()- getBoundingPoint ( getBoundingPoints().size()-2 ) ) ;
 	Segment tip ( *getTail() , getBoundingPoint ( getBoundingPoints().size()-2 ) ) ;
 	Circle c ( boundary2->getRadius()*1.5, boundary2->getCenter() ) ;
 
 
-	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( &c ) ;
+	std::vector<DelaunayTriangle *> disk = dtree->getConflictingElements ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
 	if(disk.size() == 1)
 	{
 		setInfluenceRadius(disk[0]->getRadius()) ;
 		c.setRadius(disk[0]->getRadius()) ;
-		disk = dtree->conflicts ( &c ) ;
+		disk = dtree->getConflictingElements ( &c ) ;
 	}
 	
 	std::vector<std::pair<Segment *, DelaunayTriangle *> > gamma ;
@@ -2243,7 +2243,7 @@ double Crack::getCriticalJ() const
 	return criticalJ ;
 }
 
-void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree )
+void Crack::step( double dt, std::valarray<double> *, Mesh<DelaunayTriangle> * dtree )
 {
 
 	changed = false ;
@@ -2255,13 +2255,13 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 	std::cout << "J angle is " << atan2 ( J[1], J[0] ) << std::endl ;
 
 // 	Circle atHead ( infRad, this->boundary->getCenter() ) ;
-	std::vector<DelaunayTriangle *> disk = dtree->conflicts ( this->boundary ) ;
+	std::vector<DelaunayTriangle *> disk = dtree->getConflictingElements ( this->boundary ) ;
 	Circle c0(*static_cast<Circle *>(boundary)) ;
-	disk = dtree->conflicts (&c0) ;
+	disk = dtree->getConflictingElements (&c0) ;
 	while( disk.size() < 16)
 	{
 		c0.setRadius(c0.getRadius()*2.) ;
-		disk = dtree->conflicts ( &c0 ) ;
+		disk = dtree->getConflictingElements ( &c0 ) ;
 	}
 	std::vector<DelaunayTriangle *> tris ;
 	Point direction ;
@@ -2374,11 +2374,11 @@ void Crack::step( double dt, std::valarray<double> *, const DelaunayTree * dtree
 
 // 	Circle atTail ( infRad, this->boundary2->getCenter() ) ;
 	Circle c(*static_cast<Circle *>(boundary2)) ;
-	disk = dtree->conflicts (&c) ;
+	disk = dtree->getConflictingElements (&c) ;
 	while( disk.size() < 16)
 	{
 		c.setRadius(c.getRadius()*2.) ;
-		disk = dtree->conflicts ( &c ) ;
+		disk = dtree->getConflictingElements ( &c ) ;
 	}
 	tris.clear() ;
 	if(sqrt(J[0]*J[0] + J[1]*J[1]) >= criticalJ)
@@ -2620,9 +2620,9 @@ Crack::EnrichmentData Crack::EnrichmentMap::getEnrichment ( size_t p )
 }
 
 
-void Crack::snap ( DelaunayTree * dtree )
+void Crack::snap ( Mesh<DelaunayTriangle> * dtree )
 {
-	std::vector<DelaunayTreeItem *> targets = dtree->conflicts ( this->getHead() ) ;
+	std::vector<DelaunayTriangle *> targets = dtree->getConflictingElements ( this->getHead() ) ;
 
 	std::map<double, Point *> positions ;
 
@@ -2630,14 +2630,14 @@ void Crack::snap ( DelaunayTree * dtree )
 	{
 		if ( targets[i]->isTriangle )
 		{
-			DelaunayTriangle * t =  dynamic_cast<DelaunayTriangle *> ( targets[i] ) ;
+			DelaunayTriangle * t =  targets[i];
 			positions[dist ( *getHead(), t->getCenter() ) ] = &t->getCenter() ;
 		}
 	}
 	if ( !positions.empty() )
 		this->getHead()->set ( positions.begin()->second->x, positions.begin()->second->y ) ;
 
-	targets = dtree->conflicts ( this->getTail() ) ;
+	targets = dtree->getConflictingElements ( this->getTail() ) ;
 
 	positions.clear() ;
 

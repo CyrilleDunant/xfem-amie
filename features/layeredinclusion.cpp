@@ -15,11 +15,11 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> LayeredInclusion::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> LayeredInclusion::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->boundary) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -260,10 +260,10 @@ std::vector<Geometry *> VirtualLayer::getRefinementZones(size_t level) const
 	return ret ;
 }
 
-std::vector<DelaunayTriangle *> VirtualLayer::getTriangles( DelaunayTree * dt)  { 
+std::vector<DelaunayTriangle *> VirtualLayer::getElements( Mesh<DelaunayTriangle> * dt)  { 
 	std::vector<DelaunayTriangle *> ret  ;
 	
-	std::vector<DelaunayTriangle *> temp = dt->conflicts(dynamic_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(dynamic_cast<Circle *>(this)) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -282,7 +282,7 @@ std::vector<DelaunayTriangle *> VirtualLayer::getTriangles( DelaunayTree * dt)  
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron *> VirtualLayer::getTetrahedrons( DelaunayTree3D * dt)  {
+std::vector<DelaunayTetrahedron *> VirtualLayer::getElements( Mesh<DelaunayTetrahedron> * dt)  {
 	return std::vector<DelaunayTetrahedron *>(0)  ;
 }
 

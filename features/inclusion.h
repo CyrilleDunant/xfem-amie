@@ -65,10 +65,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return all triangles in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt)  ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void computeCenter()
 	{
@@ -127,10 +127,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return all triangles in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt)  ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void computeCenter()
 	{
@@ -206,10 +206,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return all triangles in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt)  ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void computeCenter()
 	{

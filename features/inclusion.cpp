@@ -16,11 +16,11 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> Inclusion::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->boundary) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -115,11 +115,11 @@ bool Inclusion::interacts(Feature * f) const
 }
 
 
-std::vector<DelaunayTriangle *> TriangularInclusion::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> TriangularInclusion::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
 	
-	std::vector<DelaunayTriangle *>  temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTriangle *>  temp = dt->getConflictingElements(this->boundary) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -275,11 +275,11 @@ std::vector<Geometry *> EllipsoidalInclusion::getRefinementZones(size_t level) c
 	return ret ;
 }
 	
-std::vector<DelaunayTriangle *> EllipsoidalInclusion::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->boundary) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

@@ -37,12 +37,12 @@ protected:
 	std::vector<std::pair<Point *, double> > tips ;
 	std::vector<SegmentedLine * > forks ;
 	
-	void enrichTips(size_t &, DelaunayTree * dt) ;
-	void enrichTip(size_t &, DelaunayTree * dt, const std::pair<Point *, double> & tip) ;
+	void enrichTips(size_t &, Mesh<DelaunayTriangle> * dt) ;
+	void enrichTip(size_t &, Mesh<DelaunayTriangle> * dt, const std::pair<Point *, double> & tip) ;
 
-	void enrichForks(size_t &, DelaunayTree * dt) ;
-	void enrichBranches(size_t &, DelaunayTree * dt) ;
-	void enrichSegmentedLine(size_t &, DelaunayTree * dt, const SegmentedLine * line) ;
+	void enrichForks(size_t &, Mesh<DelaunayTriangle> * dt) ;
+	void enrichBranches(size_t &, Mesh<DelaunayTriangle> * dt) ;
+	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle> * dt, const SegmentedLine * line) ;
 	
 	typedef enum
 	{
@@ -57,8 +57,8 @@ protected:
 	
 	double enrichementRadius ;
 	bool changed ;
-	double propagationAngleFromTip(const std::pair<Point *, double> & tip, const DelaunayTree * dtree) ;
-	std::pair<double, double> computeJIntegralAtTip ( std::pair<Point *, double> & tip, const DelaunayTree * dtree ) ;
+	double propagationAngleFromTip(const std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree) ;
+	std::pair<double, double> computeJIntegralAtTip ( std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree ) ;
 	std::set<Point *> donePoints ;
 	
 public:
@@ -139,15 +139,15 @@ public:
 	bool isEmpty() const ;
 
 /** \brief Enrich the elements contained in the argument which interact with the crack*/
-	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
+	virtual void enrich(size_t &,  Mesh<DelaunayTriangle> * dtree) ;
 
 	virtual void computeCenter() ;
 
 /** \brief return the list of elements interacting with the crack*/
-	virtual std::vector<DelaunayTriangle*> getTriangles(DelaunayTree*) ;
+	virtual std::vector<DelaunayTriangle*> getElements(Mesh<DelaunayTriangle>*) ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron*> getTetrahedrons(DelaunayTree3D*) ;
+	virtual std::vector<DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron>*) ;
 
 /** \brief Return fales*/
 	virtual bool interacts(Feature*) const ;
@@ -179,10 +179,10 @@ public:
 * @param tree Element tree
 *
 */
-	virtual void step(double dt , Vector* v, const DelaunayTree* tree) ;
+	virtual void step(double dt , Vector* v, Mesh<DelaunayTriangle>* tree) ;
 
 /** \brief Do nothing*/
-	virtual void snap(DelaunayTree*) ;
+	virtual void snap(Mesh<DelaunayTriangle>*) ;
 
 /** \brief if the crack grew this simulation step, return true*/
 	virtual bool moved() const ;
@@ -263,22 +263,22 @@ public:
 	virtual ~Crack() ;
 	
 	virtual bool enrichmentTarget(DelaunayTriangle * t) ;
-	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
+	virtual void enrich(size_t &,  Mesh<DelaunayTriangle> * dtree) ;
 	
 	virtual bool interacts(Feature * f) const ;
-	virtual void snap(DelaunayTree * dtree) ;
+	virtual void snap(Mesh<DelaunayTriangle> * dtree) ;
 	
 	virtual bool inBoundary(const Point & v) const ;
 	virtual bool inBoundary(const Point *v) const ;
 	
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt)  ;
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	void setCriticalJ(double newJ) ;
 
 	double getCriticalJ() const ;
 
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) ;
+	std::vector<DelaunayTriangle *> getIntersectingTriangles( Mesh<DelaunayTriangle> * dt) ;
 	
 	virtual void setInfluenceRadius(double r) ;
 	// SB	
@@ -312,14 +312,14 @@ public:
 		this->sampleSurface(n) ;
 	}
 	
-	virtual void step(double dt, std::valarray<double> *, const DelaunayTree * dtree);
+	virtual void step(double dt, std::valarray<double> *, Mesh<DelaunayTriangle> * dtree);
 	
 	virtual bool moved() const ;
 
 protected:
 	virtual void computeCenter() { };
-	std::pair<double, double> computeJIntegralAtHead(double dt, const DelaunayTree * dtree) ;
-	std::pair<double, double> computeJIntegralAtTail(double dt, const DelaunayTree * dtree) ;
+	std::pair<double, double> computeJIntegralAtHead(double dt, Mesh<DelaunayTriangle> * dtree) ;
+	std::pair<double, double> computeJIntegralAtTail(double dt, Mesh<DelaunayTriangle> * dtree) ;
 	
 	bool changed ;
 } ;

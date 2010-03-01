@@ -95,7 +95,6 @@ int viewangle2 = 0 ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTetrahedron *> tets ;
 std::vector<bool> cracked ;
-DelaunayTree *dt ; //(pts) ;
 std::vector<Crack *> crack ;
 
 double E_min = 10;
@@ -186,10 +185,9 @@ void step()
 		std::cout << " " << tries << " tries." << std::endl ;
 		timepos+= 0.0001 ;
 		
-		tets= featureTree->getDelaunayTree3D()->getTetrahedrons() ;
+		tets= featureTree->getTetrahedrons() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		dt = featureTree->getDelaunayTree() ;
 
 		std::pair<Vector, Vector > sigma_epsilon ;
 		sigma_epsilon.first.resize(24*tets.size()) ;

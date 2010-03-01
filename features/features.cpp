@@ -13,151 +13,8 @@
 #endif
 
 
+
 using namespace Mu ;
-
-
-void Feature::setBoundary(Geometry * g)
-{
-	delete boundary ;
-	this->boundary = g ;
-}
-
-Geometry * Feature::getBoundary()
-{
-	return this->boundary ;
-}
-
-const Geometry * Feature::getBoundary() const
-{
-	return this->boundary ;
-}
-
-Feature::Feature(Feature * father)
-{
-	this->isEnrichmentFeature = false ;
-	this->isCompositeFeature = false ;
-	this->isVirtualFeature = false ;
-		
-	this->behaviour = new VoidForm() ;
-
-	
-	m_f = father ;
-	if(father != NULL)
-		father->addChild(this) ;
-	infRad = DEFAULT_BOUNDARY ;
-	this->boundary = NULL ;
-	this->boundary2 = NULL ;
-}
-
-Feature::Feature()
-{
-	this->isEnrichmentFeature = false ;
-	this->isCompositeFeature = false ;
-	this->isVirtualFeature = false ;
-
-	this->behaviour = new VoidForm() ;
-	
-	m_f = NULL ;
-	infRad = DEFAULT_BOUNDARY ;
-	this->boundary = NULL ;
-	this->boundary2 = NULL ;
-}
-
-Feature::Feature(Feature *father, Geometry * b) 
-{ 
-	boundary = b ; 
-	m_f = father ; 
-	this->isEnrichmentFeature = false ;
-	this->isCompositeFeature = false ;
-	this->isVirtualFeature = false ;
-
-	this->behaviour = new VoidForm() ;
-	
-	if(father != NULL)
-		father->addChild(this) ;
-	
-	infRad = DEFAULT_BOUNDARY ;
-	this->boundary2 = NULL ;
-}
-
- bool Feature::inBoundary(const Point & v) const 
-{
-	bool ret(false) ;
-	if(boundary)
-		ret = getBoundary()->in(v) ;
-
-	for(size_t i = 0 ;  i < this->m_c.size() ; i++)
-		ret = ret || m_c[i]->inBoundary(v) ;
-	
-	return ret ;
-}
-
-
-std::vector<Point *> Feature::doubleSurfaceSampling()
-{
-	std::vector<Point *> ret ;
-	std::valarray<Point *> newboundingPoints(this->getBoundingPoints().size()*2) ;
-	for(size_t i = 0 ; i < this->getBoundingPoints().size()-1 ; i++)
-	{
-		newboundingPoints[i*2] = &getBoundingPoint(i) ;
-		newboundingPoints[i*2+1] = new Point(getBoundingPoint(i)*0.5 + getBoundingPoint(i+1)*0.5) ;
-		this->project(newboundingPoints[i*2+1]) ;
-		newboundingPoints[i*2+1]->id = -1 ;
-		ret.push_back(newboundingPoints[i*2+1]) ;
-	}
-	
-	newboundingPoints[(getBoundingPoints().size()-1)*2] = &getBoundingPoint(getBoundingPoints().size()-1) ;
-	newboundingPoints[getBoundingPoints().size()*2-1] = new Point(getBoundingPoint(getBoundingPoints().size()-1)*0.5 + getBoundingPoint(0)*0.5) ;
-	newboundingPoints[getBoundingPoints().size()*2-1]->id = -1 ;
-	this->project(newboundingPoints[getBoundingPoints().size()*2-1]) ;
-	ret.push_back(newboundingPoints[getBoundingPoints().size()*2-1]) ;
-	
-	dynamic_cast<Geometry *>(this)->setBoundingPoints(newboundingPoints) ;
-	
-	return ret ;
-}
-
-bool Feature::inBoundary(const Point *v) const
-{
-	bool ret = boundary->in(*v) ;
-	for(size_t i = 0 ;  i < this->m_c.size() ; i++)
-		ret =  ret || m_c[i]->inBoundary(v) ;
-	
-	return ret ;
-}
-
-bool Feature::inBoundaryLayer(const Point *v) const
-{
-
-	if(boundary2)
-		return  boundary->in(*v) && !(boundary2->in(*v)) ;
-	else
-		return boundary->in(*v) ;
-
-}
-
-void  Feature::addChild(Feature *f)
-{
-	if(std::find(m_c.begin(), m_c.end(), f) == m_c.end())
-	{
-		m_c.push_back(f) ;
-	}
-}
-
-void  Feature::removeChild(Feature *f)
-{
-	std::vector<Feature *>::iterator c = std::find(m_c.begin(), m_c.end(), f) ;
-	if(c != m_c.end())
-		m_c.erase(c) ;
-}
-
-void Feature::setBehaviour(Form * f)
-{
-	delete this->behaviour ;
-	this->behaviour = f ;
-}
-
-
 
 BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d) :BoundaryCondition(t, d), pos(pos) { } ;
 
@@ -564,7 +421,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 
 GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d) : BoundaryCondition(t, d), domain(source) { };
 
-void GeometryDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	double tol = domain->getRadius()*.0001 ;
@@ -584,7 +441,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) con
 		apply2DBC(elements[i], id, condition, data, a) ;
 	}
 }
-void GeometryDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double tol = domain->getRadius()*.0001 ;
@@ -605,7 +462,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  
 	}
 }
 
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -805,7 +662,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Dela
 		}
 	}
 }
-void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
+void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -967,7 +824,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) 
 }
 
 						
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const 
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -1574,7 +1431,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Dela
 	}
 }
 
-void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const 
+void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -2013,93 +1870,15 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t
 	}
 }
 
-Form * Feature::getBehaviour( const Point & p)
-{
-	return this->behaviour ;
-}
 
-Feature * Feature::getChild(size_t i) const
-{
-	return m_c[i] ;
-}
-
-const std::vector<Feature *> & Feature::getChildren() const
-{
-	return m_c ;
-}
-
-std::vector<Feature *> & Feature::getChildren()
-{
-	return m_c ;
-}
-
-std::vector<Feature *> Feature::getDescendants() const
-{
-	std::vector<Feature *> childrenToCheck = m_c ;
-	std::vector<Feature *> ret ;
-	
-	while(!childrenToCheck.empty())
-	{
-		std::vector<Feature *> newChildren ;
-		
-		for(size_t i = 0 ; i< childrenToCheck.size() ;i++)
-		{
-			ret.push_back(childrenToCheck[i]) ;
-			newChildren.insert(newChildren.end(), childrenToCheck[i]->getChildren().begin(), childrenToCheck[i]->getChildren().end()) ;
-		}
-		
-		childrenToCheck = newChildren ;
-	}
-	
-	return ret ;
-}
-
-void  Feature::setFather(Feature *f)
-{
-	m_f = f ;
-}
-
- void Feature::setInfluenceRadius(double r)
-{
-	infRad = r ;
-}
-
-CompositeFeature::~CompositeFeature()
-{
-	for(size_t i = 0 ; i < components.size() ; i++)
-		delete components[i] ;
-}
-
-std::vector<VirtualFeature *> & CompositeFeature::getComponents()
-{
-	return components ;
-}
-
-const std::vector<VirtualFeature *> & CompositeFeature::getComponents() const
-{
-	return components ;
-}
-
-Feature::~Feature() 
-{ 
-// 	for(size_t i = 0 ; i < this->boundary->size() ; i++)
-// 		delete this->boundary->getPoint(i) ;
-	
-	delete this->boundary ;
-	delete this->boundary2 ;
-	
-	delete this->behaviour ;
-}
-
-
-DelaunayTree * FeatureTree::getDelaunayTree()
+Mesh<DelaunayTriangle> * FeatureTree::get2DMesh()
 {
 	if(this->dtree == NULL && this->dtree3D == NULL)
 		this->generateElements() ;
 	return this->dtree ;
 }
 
-DelaunayTree3D * FeatureTree::getDelaunayTree3D()
+Mesh<DelaunayTetrahedron> * FeatureTree::get3DMesh()
 {
 	if(this->dtree3D == NULL && this->dtree == NULL)
 		this->generateElements() ;
@@ -2109,9 +1888,9 @@ DelaunayTree3D * FeatureTree::getDelaunayTree3D()
 std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles(Feature * f )
 {
 	if(f == NULL)
-		return tree[0]->getBoundingTriangles(dtree) ;
+		return tree[0]->getBoundingElements(dtree) ;
 	else
-		return f->getBoundingTriangles(dtree) ;
+		return f->getBoundingElements(dtree) ;
 }
 
 FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
@@ -2288,7 +2067,7 @@ void FeatureTree::renumber()
 
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> triangles = this->dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 		size_t count = 0 ;
 		std::cerr << " renumbering... " << std::flush ;
 
@@ -2373,14 +2152,14 @@ void FeatureTree::renumber()
 			}
 		}
 		
-		this->dtree->global_counter = count ;
+		this->dtree->getLastNodeId() = count ;
 		
 		std::cerr << count*2 << " ...done " << std::endl ;
 
 	}
 	else if (is3D())
 	{
-		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 		size_t count = 0 ;
 		std::cerr << " renumbering... " << std::flush ;
 		
@@ -2404,7 +2183,7 @@ void FeatureTree::renumber()
 				}
 			}
 		}
-		this->dtree3D->global_counter = count ;
+		this->dtree3D->getLastNodeId() = count ;
 		
 		std::cerr << count*3 << " ...done " << std::endl ;
 	}
@@ -2428,100 +2207,8 @@ void FeatureTree::stitch()
 	{
 		if((int)elemOrder-1 > 0 )
 		{
-			switch(elemOrder)
-			{
-			case CONSTANT:
-				{
-					break ;
-				}
-			case LINEAR:
-				{
-					break ;
-				}
-			case QUADRATIC:
-				{
-					this->dtree->addSharedNodes(1,1,0) ;
-					break ;
-				}
-			case CUBIC:
-				{
-					this->dtree->addSharedNodes(2,1,0) ;
-					break ;
-				}
-			case QUADRIC:
-				{
-					this->dtree->addSharedNodes(3,1,0) ;
-					break ;
-				}
-			case QUINTIC:
-				{
-					this->dtree->addSharedNodes(3,1,0) ;
-					break ;
-				}
-			case CONSTANT_TIME_LINEAR:
-				{
-					this->dtree->addSharedNodes(0,2,2) ;
-					break ;
-				}
-			case CONSTANT_TIME_QUADRATIC:
-				{
-					this->dtree->addSharedNodes(0,3,2) ;
-					break ;
-				}
-			case LINEAR_TIME_LINEAR:
-				{
-					this->dtree->addSharedNodes(0,2,2) ;
-					break ;
-				}
-			case LINEAR_TIME_QUADRATIC:
-				{
-					this->dtree->addSharedNodes(0,3,2) ;
-					break ;
-				}
-			case QUADRATIC_TIME_LINEAR:
-				{
-					this->dtree->addSharedNodes(1,2,2) ;
-					break ;
-				}
-			case QUADRATIC_TIME_QUADRATIC:
-				{
-					this->dtree->addSharedNodes(1,3,2) ;
-					break ;
-				}
-			case CUBIC_TIME_LINEAR:
-				{
-					this->dtree->addSharedNodes(2,2,2) ;
-					break ;
-				}
-			case CUBIC_TIME_QUADRATIC:
-				{
-					this->dtree->addSharedNodes(2,3,2) ;
-					break ;
-				}
-			case QUADRIC_TIME_LINEAR:
-				{
-					this->dtree->addSharedNodes(3,2,2) ;
-					break ;
-				}
-			case QUADRIC_TIME_QUADRATIC:
-				{
-					this->dtree->addSharedNodes(3,3,2) ;
-					break ;
-				}
-			case QUINTIC_TIME_LINEAR:
-				{
-					this->dtree->addSharedNodes(3,2,2) ;
-					break ;
-				}
-			case QUINTIC_TIME_QUADRATIC:
-				{
-					this->dtree->addSharedNodes(3,3,2) ;
-					break ;
-				}
-			default:
-				break ;
-				
-			}
+			dtree->setElementOrder(elemOrder) ;
+			
 			stitched  = true ;	
 // 			return ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
@@ -2529,7 +2216,7 @@ void FeatureTree::stitch()
 				if(!tree[j]->isEnrichmentFeature)
 				{
 					
-					std::vector<DelaunayTriangle *> triangles = this->tree[j]->getTriangles(dtree) ;
+					std::vector<DelaunayTriangle *> triangles = this->tree[j]->getElements(dtree) ;
 	
 					for(size_t i = 0 ; i < triangles.size() ; i++)
 					{
@@ -2638,104 +2325,11 @@ void FeatureTree::stitch()
 	{
 		if((int)elemOrder-1 > 0 )
 		{
+			dtree3D->setElementOrder(elemOrder) ;
 			
-			switch(elemOrder)
-			{
-			case CONSTANT:
-				{
-					break ;
-				}
-			case LINEAR:
-				{
-					break ;
-				}
-			case QUADRATIC:
-				{
-					this->dtree3D->addSharedNodes(1,1,0) ;
-					break ;
-				}
-			case CUBIC:
-				{
-					this->dtree3D->addSharedNodes(2,1,0) ;
-					break ;
-				}
-			case QUADRIC:
-				{
-					this->dtree3D->addSharedNodes(3,1,0) ;
-					break ;
-				}
-			case QUINTIC:
-				{
-					this->dtree3D->addSharedNodes(3,1,0) ;
-					break ;
-				}
-			case CONSTANT_TIME_LINEAR:
-				{
-					this->dtree3D->addSharedNodes(0,2,2) ;
-					break ;
-				}
-			case CONSTANT_TIME_QUADRATIC:
-				{
-					this->dtree3D->addSharedNodes(0,3,2) ;
-					break ;
-				}
-			case LINEAR_TIME_LINEAR:
-				{
-					this->dtree3D->addSharedNodes(0,2,2) ;
-					break ;
-				}
-			case LINEAR_TIME_QUADRATIC:
-				{
-					this->dtree3D->addSharedNodes(0,3,2) ;
-					break ;
-				}
-			case QUADRATIC_TIME_LINEAR:
-				{
-					this->dtree3D->addSharedNodes(1,2,2) ;
-					break ;
-				}
-			case QUADRATIC_TIME_QUADRATIC:
-				{
-					this->dtree3D->addSharedNodes(1,3,2) ;
-					break ;
-				}
-			case CUBIC_TIME_LINEAR:
-				{
-					this->dtree3D->addSharedNodes(2,2,2) ;
-					break ;
-				}
-			case CUBIC_TIME_QUADRATIC:
-				{
-					this->dtree3D->addSharedNodes(2,3,2) ;
-					break ;
-				}
-			case QUADRIC_TIME_LINEAR:
-				{
-					this->dtree3D->addSharedNodes(3,2,2) ;
-					break ;
-				}
-			case QUADRIC_TIME_QUADRATIC:
-				{
-					this->dtree3D->addSharedNodes(3,3,2) ;
-					break ;
-				}
-			case QUINTIC_TIME_LINEAR:
-				{
-					this->dtree3D->addSharedNodes(3,2,2) ;
-					break ;
-				}
-			case QUINTIC_TIME_QUADRATIC:
-				{
-					this->dtree3D->addSharedNodes(3,3,2) ;
-					break ;
-				}
-			default:
-				break ;
-				
-			}
 			stitched = true ;
 			return ;
-			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
+			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
 				if(!tree[j]->isEnrichmentFeature)
@@ -2918,7 +2512,7 @@ void FeatureTree::refine(size_t nit, SamplingCriterion *cri)
 	for(size_t t = 0 ; t < 512 ; t++)
 	{
 		bool corrected = false ;
-		std::vector <DelaunayTriangle *> triangles  =  dtree->getTriangles(true) ;
+		std::vector <DelaunayTriangle *> triangles  =  dtree->getElements() ;
 		
 		int count = 0 ;
 		for(size_t j = 0;  j < triangles.size() ; j++)
@@ -2991,7 +2585,7 @@ void FeatureTree::refine( size_t level )
 
 				
 					std::vector<Point> toAdd ;
-					std::vector<DelaunayTetrahedron *>  tet = this->dtree3D->conflicts(zonesVec[i].first[j]) ;
+					std::vector<DelaunayTetrahedron *>  tet = this->dtree3D->getConflictingElements(zonesVec[i].first[j]) ;
 	// 			std::vector<DelaunayTriangle *>  * tri_in = this->getBoundingTriangles(zonesVec[i].second) ;
 				
 					for(size_t k = 0 ; k < tet.size() ; k++)
@@ -3176,7 +2770,7 @@ void FeatureTree::refine( size_t level )
 			
 			std::vector<Point> toAdd ;
 
-			std::vector<DelaunayTriangle *>  tri = this->dtree->conflicts(zonesVec[i].first[j]) ;
+			std::vector<DelaunayTriangle *>  tri = this->dtree->getConflictingElements(zonesVec[i].first[j]) ;
 // 			std::vector<DelaunayTriangle *>  * tri_in = this->getBoundingTriangles(zonesVec[i].second) ;
 			
 			for(size_t k = 0 ; k < tri.size() ; k++)
@@ -3266,10 +2860,6 @@ void FeatureTree::refine( size_t level )
 	}
 }
 
-Feature * Feature::getFather() const
-{
-	return this->m_f ;
-}
 
 Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 {
@@ -3752,18 +3342,14 @@ void FeatureTree::setElementBehaviours()
 {
 	if(this->dtree3D == NULL && this->dtree !=NULL)
 	{
-		std::vector<DelaunayTriangle *> triangles = this->dtree->getTriangles() ;
-			
-		std::cerr << " refreshing..." << std::flush ;
-		this->dtree->refresh(father2D) ;
-		std::cerr << " ...done" << std::endl ;
+		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 				
 		std::cerr << " setting behaviours..." << std::flush ;
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... triangle " << i << "/" << triangles.size() << std::flush ;
-			
+			triangles[i]->refresh(father2D) ;
 			if(!triangles[i]->getBehaviour())
 				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 			
@@ -3774,18 +3360,14 @@ void FeatureTree::setElementBehaviours()
 	}
 	else
 	{
-		std::cerr << " refreshing..." << std::flush ;
-		this->dtree3D->refresh(father3D) ;
-		std::cerr << " ...done" << std::endl ;
-				
-		std::vector<DelaunayTetrahedron *> tetrahedrons = this->dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> tetrahedrons = this->dtree3D->getElements() ;
 		
 		std::cerr << " setting behaviours..." << std::flush ;
 		for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
 		{
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... tet " << i << "/" << tetrahedrons.size() << std::flush ;
-			
+			tetrahedrons[i]->refresh(father3D) ;
 			if(!tetrahedrons[i]->getBehaviour())
 				tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
 		}
@@ -3847,9 +3429,9 @@ void FeatureTree::assemble()
 	
 	size_t en_counter =  0 ;
 	if(dtree3D)
-		en_counter =  this->dtree3D->global_counter ;
+		en_counter =  this->dtree3D->getLastNodeId() ;
 	else
-		en_counter =  this->dtree->global_counter ;
+		en_counter =  this->dtree->getLastNodeId() ;
 	
 	std::cerr << " enriching..." << std::flush ;		
 	
@@ -3857,12 +3439,12 @@ void FeatureTree::assemble()
 	{
 		if(this->dtree3D == NULL && this->dtree !=NULL)
 		{
-			en_counter = this->dtree->global_counter ;
+			en_counter = this->dtree->getLastNodeId() ;
 			initializeElements() ;
 		}
 		else
 		{
-			en_counter = this->dtree3D->global_counter ;
+			en_counter = this->dtree3D->getLastNodeId() ;
 			initializeElements() ;
 
 		}
@@ -3899,7 +3481,7 @@ void FeatureTree::assemble()
 	
 	if(this->dtree != NULL)
 	{
-		triangles = this->dtree->getTriangles() ;
+		triangles = this->dtree->getElements() ;
 		
 		for(size_t j = 0 ; j < triangles.size() ; j++)
 		{
@@ -3915,7 +3497,7 @@ void FeatureTree::assemble()
 	}
 	else
 	{
-		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 		
 		for(size_t j = 0 ; j < tets.size() ; j++)
 		{
@@ -3944,7 +3526,7 @@ std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
 {
 	std::vector<DelaunayTriangle> copy ;
 	
-	std::vector<DelaunayTriangle *> tris = dtree->getTriangles() ;
+	std::vector<DelaunayTriangle *> tris = dtree->getElements() ;
 	
 	for(size_t i = 0 ; i < tris.size() ; i++)
 	{
@@ -3961,7 +3543,7 @@ Vector FeatureTree::stressFromDisplacements() const
 	
 	if(dtree != NULL)
 	{
-		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		Vector stress(0.f, 3*3*elements.size()) ;
 	
 		for(size_t i  = 0 ; i < elements.size() ; i++)
@@ -4017,7 +3599,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
 {
 	if(dtree != NULL)
 	{
-		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		std::pair<Vector , Vector > stress_strain(Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size()), Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size())) ;
 		for(size_t i  = 0 ; i < elements.size() ; i++)
 		{
@@ -4043,7 +3625,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
 	}
 	else
 	{
-		std::vector<DelaunayTetrahedron *> tets = dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		std::pair<Vector , Vector > stress_strain(Vector(0.f, 4*6*tets.size()), Vector(0.f, 4*6*tets.size())) ;
 		
 		for(size_t i  = 0 ; i < tets.size() ; i++)
@@ -4101,7 +3683,7 @@ Vector FeatureTree::strainFromDisplacements() const
 {
 	if(dtree != NULL)
 	{
-		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		Vector strain(0.f, 3*3*elements.size()) ;
 		
 		for(size_t i  = 0 ; i < elements.size() ; i++)
@@ -4209,7 +3791,7 @@ void FeatureTree::stepBack()
 {
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{	
@@ -4221,7 +3803,7 @@ void FeatureTree::stepBack()
 	}
 	else
 	{
-		std::vector<DelaunayTetrahedron *> elements = dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
 		
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{	
@@ -4257,7 +3839,7 @@ void FeatureTree::elasticStep()
 	this->K->cgsolve(lastx) ;
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		
 		//this will update the state of all elements. This is necessary as 
 		//the behaviour updates might depend on the global state of the 
@@ -4276,7 +3858,7 @@ void FeatureTree::elasticStep()
 	else if(is3D())
 	{
 		
-		std::vector<DelaunayTetrahedron *> elements = dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
 		std::cerr << " stepping through elements... " << std::flush ;
 		
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -4320,7 +3902,7 @@ bool FeatureTree::step(double dt)
 
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> elements = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		
 		double volume = 0;	
 		crackedVolume = 0 ;	
@@ -4391,7 +3973,7 @@ bool FeatureTree::step(double dt)
 	else if(is3D())
 	{
 		
-		std::vector<DelaunayTetrahedron *> elements = dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
 		
 		//this will update the state of all elements. This is necessary as 
 		//the behaviour updates might depend on the global state of the 
@@ -4467,7 +4049,7 @@ double FeatureTree::getMaximumDisplacement() const
 {
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> tri = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> tri = dtree->getElements() ;
 		
 		double max = 0 ;
 		
@@ -4481,7 +4063,7 @@ double FeatureTree::getMaximumDisplacement() const
 	}
 	else if(is3D())
 	{
-		std::vector<DelaunayTetrahedron *> tets = dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		
 		double max = 0 ;
 		
@@ -4501,7 +4083,7 @@ double FeatureTree::getMinimumDisplacement() const
 {
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> tri = dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> tri = dtree->getElements() ;
 		
 		double max = 0 ;
 		
@@ -4515,7 +4097,7 @@ double FeatureTree::getMinimumDisplacement() const
 	}
 	else if(is3D())
 	{
-		std::vector<DelaunayTetrahedron *> tets = dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		
 		double max = 0 ;
 		
@@ -4577,25 +4159,13 @@ bool FeatureTree::is2D() const
 
 void FeatureTree::initializeElements() 
 {
-	if(this->dtree3D == NULL && this->dtree !=NULL)
-	{
-		std::cerr << " refreshing..." << std::flush ;
-		this->dtree->refresh(father2D) ;
-		std::cerr << " ...done" << std::endl ;
-	}
-	else if(this->dtree3D != NULL && this->dtree ==NULL)
-	{
-		std::cerr << " refreshing..." << std::flush ;
-		this->dtree3D->refresh(father3D) ;
-		std::cerr << " ...done" << std::endl ;
-	}
-	
 	if(dtree)
 	{
-		std::vector<DelaunayTriangle *> triangles = this->dtree->getTriangles() ;
+		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 		std::cout << " initialising..." ;
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
+			triangles[i]->refresh(father2D);
 			if(i%1000 == 0)
 				std::cout << "\r initialising... element " << i << "/" << triangles.size() << std::flush ;
 			triangles[i]->getState().initialize() ;
@@ -4605,10 +4175,11 @@ void FeatureTree::initializeElements()
 	
 	if(dtree3D)
 	{
-		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getTetrahedrons() ;
+		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 		std::cout << " initialising..." ;
 		for(size_t i = 0 ; i < tets.size() ;i++)
 		{
+			tets[i]->refresh(father3D);
 			if(i%1000 == 0)
 				std::cout << "\r initialising... element " << i << "/" << tets.size() << std::flush ;
 			tets[i]->getState().initialize() ;
@@ -4990,7 +4561,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		
 		while(!correct && tries)
 		{
-			std::vector< DelaunayTriangle * > tets = dtree->getTriangles();
+			std::vector< DelaunayTriangle * > tets = dtree->getElements();
 			std::vector< Point *> to_insert ;
 			
 			for(size_t i = 0 ; i < tets.size() ;i++)
@@ -5060,7 +4631,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+8 ; i != this->meshPoints.end(); ++i)
 		{
 			if((i - meshPoints.begin())%1000 == 0)
-				std::cerr << "\r generating tetrahedrons... point " << ++count*1000 << "/" << meshPoints.size()-8 << " tets: "<< dtree3D->tree.size() <<  std::flush ;
+				std::cerr << "\r generating tetrahedrons... point " << ++count*1000 << "/" << meshPoints.size()-8 <<  std::flush ;
 			if(*i->first != bbox[0] &&
 			   *i->first != bbox[1] &&
 			   *i->first != bbox[2] &&
@@ -5099,7 +4670,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		
 		while(!correct && tries)
 		{
-			std::vector< DelaunayTetrahedron * > tets = dtree3D->getTetrahedrons();
+			std::vector< DelaunayTetrahedron * > tets = dtree3D->getElements();
 			std::vector< Point *> to_insert ;
 			
 			for(size_t i = 0 ; i < tets.size() ;i++)
@@ -5148,9 +4719,9 @@ BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, const double & d)
 
 ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const Point & dir, double d) : BoundaryCondition(t,d), direction(dir) { }
 
-void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) const
+void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
 {
-	std::vector<DelaunayTriangle *> tris = t->getTriangles() ;
+	std::vector<DelaunayTriangle *> tris = t->getElements() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)
 	{
 		DelaunayTreeItem * VoidItem ;
@@ -5199,9 +4770,9 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree * t) c
 	}
 }
 
-void ProjectionDefinedBoundaryCondition::apply(Assembly * a, DelaunayTree3D * t)  const
+void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const
 {
-	std::vector<DelaunayTetrahedron *> tris = t->getTetrahedrons() ;
+	std::vector<DelaunayTetrahedron *> tris = t->getElements() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)
 	{
 		std::vector<DelaunayDemiSpace *> space ;
@@ -5251,7 +4822,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getTriangles()
 		if(!renumbered)
 			renumber() ;
 
-		return dtree->getTriangles() ;
+		return dtree->getElements() ;
 	}
 	else
 		return std::vector<DelaunayTriangle *>(0) ;
@@ -5277,43 +4848,12 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getTetrahedrons()
 		if(!elements3D.empty())
 			return elements3D ;
 		
-		return dtree3D->getTetrahedrons() ;
+		return dtree3D->getElements() ;
 	}
 	else
 		return std::vector<DelaunayTetrahedron *>(0) ;
 }
 
-std::vector<DelaunayTriangle *> Feature::getBoundingTriangles( DelaunayTree * dt)
-{
-	std::vector<DelaunayTriangle *> tri = dt->conflicts(dynamic_cast<Geometry *>(this)) ;
-	
-	std::vector<DelaunayTriangle *> ret  ;
-	
-	for(size_t i = 0 ; i < tri.size() ; i++)
-	{
-		if(tri[i]->Triangle::intersects(dynamic_cast<Geometry *>(this)))
-			ret.push_back(tri[i]) ;
-	}
-	
-	return ret ;
-
-}
-
-std::vector<DelaunayTetrahedron *> Feature::getBoundingTetrahedrons( DelaunayTree3D * dt)
-{
-	std::vector<DelaunayTetrahedron *> tri = dt->conflicts(dynamic_cast<Geometry *>(this)) ;
-	
-	std::vector<DelaunayTetrahedron *> ret  ;
-	
-	for(size_t i = 0 ; i < tri.size() ; i++)
-	{
-		if(tri[i]->Tetrahedron::intersects(dynamic_cast<Geometry *>(this)))
-			ret.push_back(tri[i]) ;
-	}
-	
-	return ret ;
-	
-}
 
 
 

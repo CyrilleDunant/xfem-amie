@@ -340,7 +340,8 @@ protected:
 		return conflicts(g) ;
 	}
 public:
-
+	size_t & getLastNodeId() {return global_counter ;};
+	const size_t & getLastNodeId() const {return global_counter ;}  ;
 	std::vector<DelaunayTreeItem3D *> tree ;
 	std::vector<DelaunayDemiSpace *> space ;
 	
@@ -388,6 +389,7 @@ public:
 	
 	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = NULL) ; 
 	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2, const TetrahedralElement * father = NULL) ;
+	virtual void setElementOrder(Order elemOrder) ;
 	
 	void refresh(const TetrahedralElement *father) ;
 	

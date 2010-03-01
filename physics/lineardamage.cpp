@@ -31,7 +31,7 @@ void LinearDamage::step(ElementState & s)
 	Vector pstrain = s.getPrincipalStresses(s.getParent()->getCenter()) ;
 	Vector strain = s.getStrain(s.getParent()->getCenter()) ;
 	
-	bool inCompression = pstrain.min() < 0 && std::abs(pstrain.min()) > pstrain.max() ;
+	bool inCompression = pstrain.min() < 0 && std::abs(pstrain.min()) > std::abs(pstrain.max()) ;
 
 	double sum = 0 ;
 	for(size_t i = 0 ; i < pstrain.size() ; i++)
@@ -39,9 +39,10 @@ void LinearDamage::step(ElementState & s)
 
 	if(inCompression)
 	{
+		double snorm = sqrt((pstrain*pstrain).sum()) ;
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
-			state[i] += .05*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] += .005*std::abs(pstrain[i])/snorm ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
 			state[i] = std::min(maxD, state[i]) ;
 		}
 		state[state.size()-1] += .1 ;
@@ -51,7 +52,7 @@ void LinearDamage::step(ElementState & s)
 	{
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
-			state[i] += .1*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] += .01*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
 			state[i] = std::min(maxD, state[i]) ;
 		}
 	}

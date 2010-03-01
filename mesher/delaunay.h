@@ -343,6 +343,8 @@ public:
 	
 public:
 
+	size_t & getLastNodeId() {return global_counter ;};
+	const size_t & getLastNodeId() const {return global_counter ;}  ;
 	std::vector<DelaunayTreeItem *> tree ;
 	std::vector<DelaunayDemiPlane *> plane ;
 	
@@ -398,6 +400,7 @@ public:
 	std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) ;
 	
 	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = NULL) ; 
+	virtual void setElementOrder(Order elemOrder) ;
 	void refresh(TriElement *father) ;
 	
 	size_t numPoints() const;

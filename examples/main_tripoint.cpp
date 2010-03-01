@@ -86,7 +86,6 @@ using namespace Mu ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
-DelaunayTree *dt ; //(pts) ;
 std::vector<Crack *> crack ;
 
 double E_min = 10;
@@ -153,7 +152,7 @@ void computeDisplacement()
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	Circle C(.000001, -0.0025, -0.05) ;
-	std::vector<DelaunayTriangle *> t = featureTree->getDelaunayTree()->conflicts(&C) ;
+	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
 	{
@@ -173,7 +172,7 @@ void computeDisplacement()
 	}
 
 	Circle C0(.000001, 0.0025, -0.05) ;
-	std::vector<DelaunayTriangle *> t0 = featureTree->getDelaunayTree()->conflicts(&C) ;
+	std::vector<DelaunayTriangle *> t0 = featureTree->get2DMesh()->getConflictingElements(&C) ;
 	std::vector<int> indices0 ;
 	for(size_t i = 0 ; i < t0.size() ; i++)
 	{
@@ -363,7 +362,6 @@ void step()
 
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		dt = featureTree->getDelaunayTree() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		
@@ -387,11 +385,11 @@ void step()
 		std::cout << "unknowns :" << x.size() << std::endl ;
 		
 		if(crack.size() > 0)
-			tris__ = crack[0]->getIntersectingTriangles(dt) ;
+			tris__ = crack[0]->getIntersectingTriangles(featureTree->get2DMesh()) ;
 		
 		for(size_t k = 1 ; k < crack.size() ; k++)
 		{
-			std::vector<DelaunayTriangle *> temp = crack[k]->getIntersectingTriangles(dt) ;
+			std::vector<DelaunayTriangle *> temp = crack[k]->getIntersectingTriangles(featureTree->get2DMesh()) ;
 			if(tris__.empty())
 				tris__ = temp ;
 			else if(!temp.empty())

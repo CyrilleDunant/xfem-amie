@@ -30,7 +30,6 @@ using namespace Mu ;
 
 FeatureTree * featureTree ;
 std::vector<DelaunayTetrahedron *> triangles ;
-DelaunayTree3D *dt ; //(pts) ;
 
 double timepos = 0.1 ;
 bool firstRun = true ;
@@ -107,9 +106,8 @@ void step()
 // 		timepos+= 0.01 ;
 	}
 	std::cout << "\r iteration " << "2/2 ... done" << std::endl ;
-	x.resize(featureTree->getDelaunayTree3D()->numPoints()*3) ;
+	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
-	dt = featureTree->getDelaunayTree3D() ;
 	sigma.resize(triangles.size()*6*4) ;
 
 	epsilon.resize(triangles.size()*6*4) ;

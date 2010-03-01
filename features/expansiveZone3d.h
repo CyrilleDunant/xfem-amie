@@ -50,7 +50,8 @@ public:
 	
 	void reset() ;
 
-	virtual std::vector<Mu::DelaunayTetrahedron*> getTetrahedrons(Mu::DelaunayTree3D*) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
+	virtual std::vector<Mu::DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron>*) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
+	virtual std::vector<Mu::DelaunayTriangle*> getElements(Mesh<DelaunayTriangle>*) { return std::vector<Mu::DelaunayTriangle*>() ;}
 	
 public:
 	GEO_DERIVED_OBJECT(Sphere) ;

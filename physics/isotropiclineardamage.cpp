@@ -59,7 +59,7 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 
 bool IsotropicLinearDamage::fractured() const 
 {
-	return state[0] >= .8 ;
+	return state[0] >= .9 ;
 }
 
 

@@ -59,7 +59,6 @@ std::vector<DelaunayTriangle *> myTris ;
 std::vector<HexahedralElement *> myHexs ;
 std::vector<Point *> points ;
 FeatureTree *FT ;
-DelaunayTree3D *dt ;
 GLint xangle = 0;
 GLint yangle = 0;
 GLint zangle = 0;

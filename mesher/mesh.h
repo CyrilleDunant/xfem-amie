@@ -16,6 +16,8 @@ namespace Mu
 			virtual std::vector<ETYPE *> getElements() = 0;
 			virtual std::vector<ETYPE *> getConflictingElements(const Point  * p) = 0;
 			virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) = 0;
+			virtual void setElementOrder(Order o) = 0;
+			virtual void insert(Point *) = 0 ;
 			template <class ETARGETTYPE>
 			Vector project(const Mesh<ETARGETTYPE> * mesh, const Vector & displacements) const
 			{
@@ -88,6 +90,10 @@ namespace Mu
 				
 				return  projection ;
 			} ;
+	
+			virtual size_t & getLastNodeId() = 0;
+			virtual const size_t & getLastNodeId() const = 0;
+			
 	} ;
 } ;
 

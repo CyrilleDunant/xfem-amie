@@ -84,7 +84,6 @@ using namespace std;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
-DelaunayTree *dt ; //(pts) ;
 std::vector<BranchedCrack *> crack ;
 
 double E_min = 10;
@@ -274,8 +273,7 @@ void setBC()
  		x.resize(featureTree->getDisplacements().size()) ;
  		x = featureTree->getDisplacements() ;
  
- 		dt = featureTree->getDelaunayTree() ;
- 			sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
+ 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
  		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
  	
  		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
@@ -297,11 +295,11 @@ void setBC()
  		std::cout << "unknowns :" << x.size() << std::endl ;
  		
  		if(crack.size() > 0)
- 			tris__ = crack[0]->getTriangles(dt) ;
+ 			tris__ = crack[0]->getElements(featureTree->get2DMesh()) ;
  		
  		for(size_t k = 1 ; k < crack.size() ; k++)
  		{
- 			std::vector<DelaunayTriangle *> temp = crack[k]->getTriangles(dt) ;
+ 			std::vector<DelaunayTriangle *> temp = crack[k]->getElements(featureTree->get2DMesh()) ;
  			if(tris__.empty())
  				tris__ = temp ;
  			else if(!temp.empty())
@@ -628,7 +626,6 @@ void stepOLD()
 	
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		dt = featureTree->getDelaunayTree() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		

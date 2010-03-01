@@ -40,14 +40,14 @@ Point * Sample::pointAfter(size_t i)
 	return to_insert ;
 }
 
-std::vector<DelaunayTriangle *> Sample::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> Sample::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *>  ret ;
 	std::vector<DelaunayTriangle *>  temp ;
 	if(this->m_f == NULL)
-		temp = dt->getTriangles() ;
+		temp = dt->getElements() ;
 	else
-		temp = dt->conflicts(dynamic_cast<const Rectangle *>(this->boundary)) ;
+		temp = dt->getConflictingElements(this->boundary) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
