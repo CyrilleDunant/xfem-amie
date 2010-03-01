@@ -14,9 +14,9 @@
 #define __STIFFNESS_AND_FRACTURE_H
 
 #include "physics_base.h"
-#include "fracturecriterion.h"
-#include "lineardamage.h"
-#include "isotropiclineardamage.h"
+#include "fracturecriteria/fracturecriterion.h"
+#include "damagemodels/lineardamage.h"
+#include "damagemodels/isotropiclineardamage.h"
 
 namespace Mu
 {

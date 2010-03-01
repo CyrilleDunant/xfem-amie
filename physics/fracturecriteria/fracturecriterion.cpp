@@ -10,8 +10,8 @@
 //
 //
 #include "fracturecriterion.h"
-#include "../mesher/delaunay.h"
-#include "../mesher/delaunay_3d.h"
+#include "../../mesher/delaunay.h"
+#include "../../mesher/delaunay_3d.h"
 namespace Mu {
 
 FractureCriterion::FractureCriterion() : eps(.0005)

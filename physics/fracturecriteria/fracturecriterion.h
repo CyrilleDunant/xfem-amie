@@ -12,7 +12,7 @@
 #ifndef MUFRACTURECRITERION_H
 #define MUFRACTURECRITERION_H
 
-#include "../elements/integrable_entity.h"
+#include "../../elements/integrable_entity.h"
 
 namespace Mu {
 
