@@ -27,8 +27,8 @@ namespace Mu
 	*/
 	struct StiffnessAndFracture : public LinearForm
 	{
-// 		LinearDamage dfunc ;
-		IsotropicLinearDamage dfunc ;
+		LinearDamage dfunc ;
+// 		IsotropicLinearDamage dfunc ;
 		double eps ;
 		double previousPreviousDamage ;
 		double intermediateDamage ;

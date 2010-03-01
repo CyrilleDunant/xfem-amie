@@ -1404,7 +1404,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			if(!intersection.empty())
 				ret.push_back(intersection.back()) ;
 
-			std::stable_sort(ret.begin(), ret.end()) ;
+			std::sort(ret.begin(), ret.end()) ;
 			std::vector<Point>:: iterator e = std::unique(ret.begin(), ret.end()) ;
 			ret.erase(e, ret.end()) ;
 			

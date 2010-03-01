@@ -154,10 +154,13 @@ void step()
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
       
 		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 400)//as long as we can update the features
+		while(!featureTree->step(timepos) && limit < 800)//as long as we can update the features
 		{
-// 			featureTree->getAssembly()->print() ;
-// 			exit(0) ;
+// 			if(limit == 1)
+// 			{
+// 				featureTree->getAssembly()->print() ;
+// 				exit(0) ;
+// 			}
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
@@ -964,7 +967,7 @@ void Display(void)
 				glBegin(GL_TRIANGLE_FAN);
 				
 				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(start)) ;
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-0)/(E_max-0), 1., 1.) ;
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[2][2]-0)/(E_max-0), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
@@ -973,7 +976,7 @@ void Display(void)
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(k)) ;
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-0)/(E_max-0), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[2][2]-0)/(E_max-0), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1355,7 +1358,7 @@ int main(int argc, char *argv[])
 
 	double width = 0.05;
 	double height = 0.0370;
-	Sample sample(NULL, width , height, 0, 0) ;//sample() ;
+	Sample sample(NULL, height , height, 0, 0) ;//sample() ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
@@ -1363,9 +1366,9 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
- 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 30)) ;
+//  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 	
-// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(50./8, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
@@ -1379,19 +1382,19 @@ int main(int argc, char *argv[])
 	Vector def(3) ; 
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-// 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
+	Inclusion * inc0 = new Inclusion(0.005, width/2, -height/2) ;
 
-	Inclusion * inc1 = new Inclusion(0.004, 0.025, -0.0185) ;
-	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
-// 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
+// 	Inclusion * inc1 = new Inclusion(0.004, 0.025, -0.0185) ;
+// 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
+	inc0->setBehaviour(new Stiffness(m0_paste*.9)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 	
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
-	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste, 500000) ;
-	inc1->setBehaviour(stiff) ;
-	inc2->setBehaviour(stiff) ;
+// 	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste, 450000) ;
+// 	inc1->setBehaviour(stiff) ;
+// 	inc2->setBehaviour(stiff) ;
 //		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
 // 	F.addFeature(&sample, inc1) ;
 // 	F.addFeature(&sample, inc2) ;
@@ -1404,7 +1407,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
 // 	F.addFeature(&sample, new TriangularPore(Point( 0.011,  0.002) , Point( 0.011, 0.0023), Point( 0.009, 0.00215) )) ;
 
-	F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025, -0.0185), Point( 0.025, -0.0185) )) ;
+// 	F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025, -0.0185), Point( 0.025, -0.0185) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.0047, -0.002) , Point( -0.0057, -0.002), Point( -0.0067, 0.002) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
@@ -1425,26 +1428,26 @@ int main(int argc, char *argv[])
 	Point center4 = (center2 + center1)/2;
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
-	double stress = 200 ;
+	double stress = 50 ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
 
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_XI , Point(1, -1), -0.001)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -0.025, -0.0175, -10, 10, -stress)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
+	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(16) ;
+	F.sample(128) ;
 	
 	F.setOrder(LINEAR) ;
 

@@ -23,6 +23,7 @@
 #include <set>
 #include <iostream>
 #include <bitset>
+#include "mesh.h"
 
 namespace Mu
 {
@@ -311,7 +312,7 @@ public:
 //changed
 
 /** \brief Mesh container. provides log n search facilities*/
-class DelaunayTree3D 
+class DelaunayTree3D :public Mesh<DelaunayTetrahedron>
 {
 friend class FeatureTree ;
 friend class Geometry ;
@@ -320,6 +321,24 @@ protected:
 	size_t global_counter ;
 	bool neighbourhood ;
 	std::vector<Point *> additionalPoints ;
+	
+	public:
+	virtual std::vector< DelaunayTetrahedron* > getElements() {return getTetrahedrons() ;};
+	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Mu::Point* p)
+	{
+		std::vector< DelaunayTreeItem3D* > targets = conflicts(p) ;
+		std::vector<DelaunayTetrahedron*> ret ;
+		for(size_t i = 0 ; i < targets.size() ; i++)
+		{
+			if(targets[i]->isAlive() && targets[i]->isTetrahedron() && !targets[i]->isDeadTetrahedron() )
+				ret.push_back(static_cast< DelaunayTetrahedron *> (targets[i])) ;
+		}
+		return ret ;
+	};
+	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Geometry* g)
+	{
+		return conflicts(g) ;
+	}
 public:
 
 	std::vector<DelaunayTreeItem3D *> tree ;

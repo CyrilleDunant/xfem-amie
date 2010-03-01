@@ -16,6 +16,7 @@
 #include "../geometry/geometry_2D.h"
 #include "../utilities/samplingcriterion.h"
 #include "../elements/elements.h"
+#include "mesh.h"
 #include <vector>
 #include <complex>
 #include <list>
@@ -312,7 +313,7 @@ public:
 } ;
 
 /** \brief Mesh container. provides log n search facilities*/
-class DelaunayTree 
+class DelaunayTree : public Mesh<DelaunayTriangle>
 {
 friend class FeatureTree ;
 friend class Geometry ;
@@ -321,6 +322,25 @@ protected:
 	size_t global_counter ;
 	bool neighbourhood ;
 	std::vector<Point * > additionalPoints ;
+	
+public:
+	virtual std::vector< DelaunayTriangle* > getElements() {return getTriangles() ;};
+	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Mu::Point* p)
+	{
+		std::vector< DelaunayTreeItem* > targets = conflicts(p) ;
+		std::vector<DelaunayTriangle*> ret ;
+		for(size_t i = 0 ; i < targets.size() ; i++)
+		{
+			if(targets[i]->isAlive() && targets[i]->isTriangle && !targets[i]->isDeadTriangle )
+				ret.push_back(static_cast< DelaunayTriangle *> (targets[i])) ;
+		}
+		return ret ;
+	};
+	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Geometry* g)
+	{
+		return conflicts(g) ;
+	}
+	
 public:
 
 	std::vector<DelaunayTreeItem *> tree ;

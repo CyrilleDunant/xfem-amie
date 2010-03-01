@@ -502,7 +502,7 @@ Vector & Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVe
 	}
 	gettimeofday(&time1, NULL);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cout << (2.*c.co.sm.array.size()+c.ve.size())/delta << std::endl ;
+	std::cerr << (2.*c.co.sm.array.size()+c.ve.size())/delta << std::endl ;
 	return ret ;
 } ;
 

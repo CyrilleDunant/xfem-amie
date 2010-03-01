@@ -54,12 +54,6 @@ public:
 	 */
 	virtual Matrix apply(const Matrix & m) const;
 
-	/** \brief set the neighbourhood in which to consider other elements to check for failure.
-		* 
-		* @param r new radius
-		*/
-	virtual void setNeighbourhoodRadius(double r) ;
-
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const  ;

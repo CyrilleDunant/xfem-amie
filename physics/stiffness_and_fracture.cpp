@@ -18,9 +18,8 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),/*dfunc(rig.numRows()-1, 1e-4)*/dfunc(rig.numRows()-1), eps(0.002)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1)/*dfunc(rig.numRows()-1)*/, eps(0.02)
 {
-	dfunc.setNeighbourhoodRadius(eps) ;
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
 	frac = false ;
@@ -59,21 +58,6 @@ Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, c
 
 void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
-// 	FunctionMatrix m(param.numRows(), param.numCols()) ;
-// 	m += param ;
-// 	Matrix sol(3, 3) ;
-// 	Vector dam(3) ;
-// 	// at t = -1 damage is previousDamage
-// 	sol[0][0] = 1 ; sol[0][1] = -1 ; sol[0][2] = 1 ; dam[0] = previousDamage ;
-// 	// at t = 0 damage is intermediateDamage
-// 	sol[1][0] = 0 ; sol[1][1] = 0 ; sol[1][2] = 1 ; dam[1] = intermediateDamage ;
-// 	// at t = 1 damage is damage
-// 	sol[2][0] = 1 ; sol[2][1] = 1 ; sol[2][2] = 1 ; dam[2] = damage ;
-// 
-// 	Vector coeffs = inverse3x3Matrix(dam)*sol ;
-
-// 	Function d = 1.-(Function("t")+1)*(damage-previousDamage)*.5+previousDamage ;
-// 	m*=d ;
 	vm->ieval(Gradient(p_i) * dfunc.apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
 }
 

@@ -18,7 +18,7 @@
 
 using namespace Mu ;
 
-WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, double cri) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.2)
+WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, double cri) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.1)
 {
 	v.push_back(XI);
 	v.push_back(ETA);

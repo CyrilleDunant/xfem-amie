@@ -530,11 +530,10 @@ bool Assembly::make_final()
 		}
 		
 		ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		
+		size_t max ;
 		if(!coordinateIndexedMatrix)
 		{
 			
-	
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
 			
 			for(size_t i = 0 ; i < element2d.size() ; i++)
@@ -557,7 +556,7 @@ bool Assembly::make_final()
 				}
 			}
 			
-			size_t max = map->rbegin()->first +1;
+			max = map->rbegin()->first +1;
 			size_t realDofs = max ;
 			for(size_t i = 0 ; i < multipliers.size() ; i++)
 			{
@@ -602,36 +601,20 @@ bool Assembly::make_final()
 				this->displacements = 0 ;
 			}
 		}
+		else
+		{
+			max = this->coordinateIndexedMatrix->accumulated_row_size.size() ;
+		}
 		
 		coordinateIndexedMatrix->array = 0 ;
-		
+		double dmax = 0 ;
+		double vmax = 0 ;
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			if(i%1000 == 0)
 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 			
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
-			if(i == 0)
-			{
-				for(size_t j = 0 ; j < ids.size() ;j++)
-				{
-					for(size_t k = 0 ; k < ids.size() ;k++)
-					{
-						for(size_t n = 0 ; n < ndof ; n++)
-						{
-							for(size_t m = 0 ; m < ndof ; m++)
-							{
-								if(std::max(std::abs(element2d[i]->getElementaryMatrix()[j][k][n][m]),
-								            std::abs(element2d[i]->getElementaryMatrix()[k][j][m][n])) > 1e-6)
-									symmetric = symmetric && std::abs(element2d[i]->getElementaryMatrix()[j][k][n][m] -
-									                                  element2d[i]->getElementaryMatrix()[k][j][m][n])/
-													std::max(std::abs(element2d[i]->getElementaryMatrix()[j][k][n][m]),
-															std::abs(element2d[i]->getElementaryMatrix()[k][j][m][n])) < 1e-5 ;
-							}
-						}
-					}
-				}
-			}
 			
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
@@ -656,7 +639,16 @@ bool Assembly::make_final()
 				}
 			}
 		}
+		for(size_t i = 0 ; i < max ; i++)
+		{
+			for(size_t j = 0 ; j < max ; j++)
+			{
+				dmax = std::max(dmax,std::abs(getMatrix()[i][j]-getMatrix()[j][i])) ;
+				vmax = std::max(vmax, std::max(std::abs(getMatrix()[i][j]), std::abs(getMatrix()[j][i]))) ;
+			}
+		}
 		
+		symmetric = dmax/vmax < 1e-12 ;
 		std::cerr << " ...done" << std::endl ;
 		getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		setBoundaryConditions() ;
@@ -671,7 +663,7 @@ bool Assembly::make_final()
 			return 0 ;
 		}
 				
-
+		size_t max ;
 		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		if(!coordinateIndexedMatrix)
 		{
@@ -697,7 +689,7 @@ bool Assembly::make_final()
 				}
 			}
 				
-			size_t max = map->rbegin()->first +1;
+			max = map->rbegin()->first +1;
 			size_t realDofs = max ;
 			for(size_t i = 0 ; i < multipliers.size() ; i++)
 			{
@@ -735,9 +727,14 @@ bool Assembly::make_final()
 			this->displacements.resize(max, 0.) ;
 			std::cerr << " ...done" << std::endl ;
 		}
+		else
+		{
+			max = this->coordinateIndexedMatrix->accumulated_row_size.size() ;
+		}
 		
 		coordinateIndexedMatrix->array = 0 ;
-		
+		double dmax = 0 ;
+		double vmax = 0 ;
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			if(i%1000 == 0)
@@ -748,27 +745,6 @@ bool Assembly::make_final()
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
 				ids[j] *= ndof ;
-			}
-			
-			if(i == 0)
-			{
-				for(size_t j = 0 ; j < ids.size() ;j++)
-				{
-					for(size_t k = 0 ; k < ids.size() ;k++)
-					{
-						for(size_t n = 0 ; n < ndof ; n++)
-						{
-							for(size_t m = 0 ; m < ndof ; m++)
-							{
-								if(symmetric && std::max(std::abs(mother[j][k][n][m]),
-										std::abs(mother[k][j][m][n])) > 1e-10)
-										symmetric = symmetric && std::abs(mother[j][k][n][m] -
-														mother[k][j][m][n])/
-										std::max(std::abs(mother[j][k][n][m]),std::abs(mother[k][j][m][n])) < 1e-8 ;
-							}
-						}
-					}
-				}
 			}
 			
 			for(size_t j = 0 ; j < ids.size() ;j++)
@@ -794,15 +770,25 @@ bool Assembly::make_final()
 					}
 				}
 			}
-
+			symmetric = dmax < 1e-6 ;
 // 			element3d[i]->clearElementaryMatrix() ;
 		}
+		for(size_t i = 0 ; i < max ; i++)
+		{
+			for(size_t j = i+1 ; j < max ; j++)
+			{
+				dmax = std::max(dmax,std::abs(getMatrix()[i][j]-getMatrix()[j][i])) ;
+				vmax = std::max(vmax, std::max(std::abs(getMatrix()[i][j]), std::abs(getMatrix()[j][i]))) ;
+			}
+		}
+		
+		symmetric = dmax/vmax < 1e-12 ;
 		getMatrix().stride =  ndof;
 		std::cerr << " ...done" << std::endl ;
 			
 		setBoundaryConditions() ;
 	}
-	
+// 	std::cerr << smallestEigenValue(getMatrix()) << std::endl;
 	return symmetric ;
 }
 
@@ -1266,7 +1252,7 @@ bool Assembly::cgsolve(Vector x0, size_t maxit)
 // 		std::cout << "largest eigenvalue = " << lambda_max << std::endl ;
 // 		std::cout << "smallest eigenvalue = " << lambda_min << std::endl ;
 // 	std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
-	if(sym )
+	if(sym)
 	{
 		std::cerr << "symmetrical problem" << std::endl ;
 		timeval time0, time1 ;

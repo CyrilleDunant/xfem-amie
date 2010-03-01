@@ -1715,14 +1715,14 @@ void DelaunayRoot::insert(std::vector<DelaunayTreeItem *> & ret,Point *p, Star *
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp  ;
-		std::vector<DelaunayTreeItem *> toTest = getSon(i)->flatConflicts(temp,g) ;
+		std::vector<std::vector<DelaunayTreeItem *> > toTest ; toTest.push_back( getSon(i)->flatConflicts(temp,g)) ;
 		while(!toTest.empty())
 		{
-			std::vector<DelaunayTreeItem *> tempToTest ;
+			std::vector<std::vector<DelaunayTreeItem *> > tempToTest ;
 			for(size_t j  = 0 ;  j < toTest.size() ; j++)
 			{
-				std::vector<DelaunayTreeItem *> temp0 = toTest[j]->flatConflicts(temp,g) ;
-				tempToTest.insert(tempToTest.end(), temp0.begin(), temp0.end()) ;
+				for(size_t k  = 0 ;  k < toTest[j].size() ; k++)
+					tempToTest.push_back(toTest[j][k]->flatConflicts(temp,g)) ;
 			}
 			
 			toTest = tempToTest ;

@@ -13,8 +13,8 @@
 
 namespace Mu {
 
-LinearDamage::LinearDamage(int numDof, double threshold)
- : state(numDof + 1),strainLimit(threshold)
+LinearDamage::LinearDamage(int numDof)
+ : state(numDof + 1)
 {
 	isNull = false ;
 	state = 0 ;
@@ -32,7 +32,6 @@ void LinearDamage::step(ElementState & s)
 	Vector strain = s.getStrain(s.getParent()->getCenter()) ;
 	
 	bool inCompression = pstrain.min() < 0 && std::abs(pstrain.min()) > pstrain.max() ;
-	bool strainBroken = strain.max() > strainLimit ;
 
 	double sum = 0 ;
 	for(size_t i = 0 ; i < pstrain.size() ; i++)
@@ -40,31 +39,30 @@ void LinearDamage::step(ElementState & s)
 
 	if(inCompression)
 	{
-		state[state.size()-1] += 5e-5*maxD/sqrt(s.getParent()->area()) ;
-		state[state.size()-1] = .5 ;
+		for(size_t i = 0 ; i < state.size()-1 ; i++)
+		{
+			state[i] += .05*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] = std::min(maxD, state[i]) ;
+		}
+		state[state.size()-1] += .1 ;
+		state[state.size()-1] = std::min(maxD, state[state.size()-1]) ;
 	}
-	else if (!strainBroken)
+	else/* if (!strainBroken)*/
 	{
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
-			if(sum > 1e-12)
-				state[i] += 5e-5*maxD/sqrt(s.getParent()->area())*std::abs(pstrain[i])/sum ;
-			else
-				state[i] += 5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] += .1*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
 			state[i] = std::min(maxD, state[i]) ;
 		}
 	}
-	else if (strainBroken)
-	{
-		for(size_t i = 0 ; i < state.size() ; i++)
-			state[i] = maxD ;
-	}
+
 }
 
 Matrix LinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
 	
+	//this is a silly way of distinguishing between 2D and 3D
 	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
 	{
 		for(size_t j = 0 ; j < m.numCols() ;j++)
@@ -87,7 +85,7 @@ Matrix LinearDamage::apply(const Matrix & m) const
 
 bool LinearDamage::fractured() const
 {
-	return state.max() >= .999999 ;
+	return state.max() >= .85 ;
 }
 
 LinearDamage::~LinearDamage()

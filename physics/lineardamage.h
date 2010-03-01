@@ -24,7 +24,6 @@ class LinearDamage : public DamageModel
 {
 protected:
 	Vector state ;
-	double strainLimit ;
 public:
 
 	/** \brief Constructor, set the number of degrees of freedom and a strain limit for failure
@@ -32,7 +31,7 @@ public:
 	 * @param numDof 
 	 * @param threshold 
 	 */
-	LinearDamage(int numDof, double threshold) ;
+	LinearDamage(int numDof) ;
 
 	virtual ~LinearDamage();
 
@@ -62,6 +61,7 @@ public:
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const ;
+	
 };
 
 }

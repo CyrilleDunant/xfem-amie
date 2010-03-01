@@ -14,7 +14,7 @@
 namespace Mu {
 
 IsotropicLinearDamage::IsotropicLinearDamage(int numDof)
- : state(1), eps(0.01)
+ : state(1)
 {
 	state[0] = 0 ;
 	isNull = false ;
@@ -23,11 +23,6 @@ IsotropicLinearDamage::IsotropicLinearDamage(int numDof)
 const Vector & IsotropicLinearDamage::damageState() const
 {
 	return state ;
-}
-
-void IsotropicLinearDamage::setNeighbourhoodRadius(double r)
-{
-	eps = r ;
 }
 
 void IsotropicLinearDamage::step(ElementState & s)
