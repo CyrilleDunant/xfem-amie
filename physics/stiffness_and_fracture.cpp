@@ -12,8 +12,8 @@
 
 #include "stiffness_and_fracture.h"
 #include "../mesher/delaunay.h"
-#include "ruptureenergy.h"
-#include "mohrcoulomb.h"
+#include "fracturecriteria/ruptureenergy.h"
+#include "fracturecriteria/mohrcoulomb.h"
 
 using namespace Mu ;
 

@@ -12,12 +12,12 @@
 
 #include "spatially_distributed_stiffness.h"
 #include "physics.h"
-#include "mohrcoulomb.h"
-#include "maxstrain.h"
-#include "ruptureenergy.h"
+#include "fracturecriteria/mohrcoulomb.h"
+#include "fracturecriteria/maxstrain.h"
+#include "fracturecriteria/ruptureenergy.h"
+#include "fracturecriteria/vonmises.h"
 #include "stiffness_and_fracture.h"
-#include "vonmises.h"
-#include "mohrcoulomb.h"
+
 
 using namespace Mu ;
 

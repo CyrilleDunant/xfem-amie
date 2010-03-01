@@ -10,7 +10,6 @@
 //
 //
 #include "vonmises.h"
-#include "../mesher/delaunay.h"
 namespace Mu {
 
 VonMises::VonMises(double thresh) : threshold(thresh)

@@ -14,8 +14,8 @@
 #define __RADIAL_STIFF_GRADIENT
 
 #include "physics_base.h"
-#include "fracturecriterion.h"
-#include "lineardamage.h"
+#include "fracturecriteria/fracturecriterion.h"
+#include "damagemodels/lineardamage.h"
 
 namespace Mu
 {

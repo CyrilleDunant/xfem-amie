@@ -13,8 +13,8 @@
 #ifndef __DAMAGE_MODEL_H__
 #define __DAMAGE_MODEL_H__
 
-#include "../elements/integrable_entity.h"
-#include "../utilities/matrixops.h"
+#include "../../elements/integrable_entity.h"
+#include "../../utilities/matrixops.h"
 
 namespace Mu
 {

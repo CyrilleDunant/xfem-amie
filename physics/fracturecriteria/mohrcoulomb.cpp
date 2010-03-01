@@ -10,7 +10,6 @@
 //
 //
 #include "mohrcoulomb.h"
-#include "../mesher/delaunay.h"
 
 namespace Mu {
 

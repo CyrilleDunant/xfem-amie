@@ -14,8 +14,8 @@
 #define __STIFFNESS_WITH_VARIABLE_DEF_AND_FRAC
 
 #include "physics_base.h"
-#include "isotropiclineardamage.h"
-#include "fracturecriterion.h"
+#include "damagemodels/isotropiclineardamage.h"
+#include "fracturecriteria/fracturecriterion.h"
 
 namespace Mu
 {

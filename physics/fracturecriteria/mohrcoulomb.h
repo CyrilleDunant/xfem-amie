@@ -13,7 +13,6 @@
 #define MUMOHRCOULOMB_H
 
 #include "fracturecriterion.h"
-#include "../mesher/delaunay_3d.h"
 
 namespace Mu {
 

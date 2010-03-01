@@ -10,7 +10,6 @@
 //
 //
 #include "ruptureenergy.h"
-#include "../mesher/delaunay.h"
 
 namespace Mu {
 

@@ -12,9 +12,9 @@
 
 #include "weibull_distributed_stiffness.h"
 #include "physics.h"
-#include "mohrcoulomb.h"
-#include "maxstrain.h"
-#include "ruptureenergy.h"
+#include "fracturecriteria/mohrcoulomb.h"
+#include "fracturecriteria/maxstrain.h"
+#include "fracturecriteria/ruptureenergy.h"
 
 using namespace Mu ;
 

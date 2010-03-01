@@ -13,7 +13,7 @@
 #define MAX_STRAIN_H__
 
 #include "fracturecriterion.h"
-#include "../mesher/delaunay_3d.h"
+#include "../../mesher/delaunay_3d.h"
 
 namespace Mu {
 

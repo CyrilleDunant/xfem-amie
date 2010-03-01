@@ -14,9 +14,9 @@
 #define __WEI_STIFFNESS_WITH_VARIABLE_DEF_AND_FRAC
 
 #include "physics_base.h"
-#include "isotropiclineardamage.h"
-#include "fracturecriterion.h"
-#include "mohrcoulomb.h"
+#include "damagemodels/isotropiclineardamage.h"
+#include "fracturecriteria/fracturecriterion.h"
+#include "fracturecriteria/mohrcoulomb.h"
 #include "stiffness_with_variable_imposed_deformation_and_fracture.h"
 
 namespace Mu
