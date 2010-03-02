@@ -237,9 +237,14 @@ void step()
 		double ex_count = 0 ;
 		double xavg = 0 ;
 		
+		double n_void = 0 ;
+
 		for(size_t k = 0 ; k < tets.size() ; k++)
 		{
 			
+			if(tets[k]->getBehaviour()->type == VOID_BEHAVIOUR )
+				n_void++ ;
+
 			if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				
@@ -417,6 +422,8 @@ void step()
 		std::cout << "average epsilon12 : " << avg_e_xy/volume << std::endl ;
 		std::cout << "average epsilon13 : " << avg_e_xz/volume << std::endl ;
 		std::cout << "average epsilon23 : " << avg_e_yz/volume << std::endl ;
+		std::cout << "number of void tetrahedrons : " << n_void << "/" << tets.size() << std::endl ;
+		std::cout << "volume of non-void tetrahedrons : " << volume << std::endl ;
 		
 	}
 
@@ -1323,11 +1330,11 @@ int main(int argc, char *argv[])
 	double maxx = 0.15 ;
 	double maxy = 0.15 ;
 	double maxz = 0.15 ;
-	double minx = 0. ;
-	double miny = 0. ;
-	double minz = 0. ;
+	double minx = 0 ;//-0.025 ;
+	double miny = 0 ;//-0.025 ;
+	double minz = 0 ;//-0.025 ;
 
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
+/*	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		double r = static_cast<Sphere *>(inclusions[i])->getRadius() ;
 		Point ppp = static_cast<Sphere *>(inclusions[i])->getCenter() ;
@@ -1351,7 +1358,7 @@ int main(int argc, char *argv[])
 
 	maxx = 0.15 + (maxx - 0.15) * 1.01 ;
 	maxy = 0.15 + (maxy - 0.15) * 1.01 ;
-	maxz = 0.15 + (maxz - 0.15) * 1.01 ;
+	maxz = 0.15 + (maxz - 0.15) * 1.01 ;*/
 
 	std::cout << minx << ";" << maxx << std::endl ;
 	std::cout << miny << ";" << maxy << std::endl ;
@@ -1388,13 +1395,17 @@ int main(int argc, char *argv[])
 //	Stiffness * smatrix = new Stiffness(m0) ;
 	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
+	double v = 0 ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*1) ;
 		static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*1) ;
 		inclusions[i]->setBehaviour(new Stiffness(m1)) ;
 		F.addFeature(&sample, inclusions[i]) ;
+		v += static_cast<Sphere *>(inclusions[i])->volume() ;
 	}
+
+	std::cout << "aggregate volume : " << v << std::endl ;
 
 /*	std::cout << "checking for intersections..." << std::endl ;
 	for(size_t i = 1 ; i < inclusions.size() ; i++)
@@ -1425,13 +1436,15 @@ int main(int argc, char *argv[])
 		}
 	}*/
 
-	
+	F.defineMeshingBox() ;
 
-	F.sample(1024) ;
+	std::cout << "meshing box defined" << std::endl ;
+
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 10)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, FRONT)) ;

@@ -2037,17 +2037,19 @@ void FeatureTree::defineMeshingBox()
 	double h = 0 ;
 	double d = 0 ;
 
+	tree[0]->print() ;
+
 	if(!is3D())
 	{
-		w = static_cast<Rectangle *>(static_cast<Geometry *>(tree[0]))->width() ;
-		h = static_cast<Rectangle *>(static_cast<Geometry *>(tree[0]))->height() ;
+		w = static_cast<Rectangle *>(static_cast<Sample *>(tree[0]))->width() ;
+		h = static_cast<Rectangle *>(static_cast<Sample *>(tree[0]))->height() ;
 	}
 
 	if(is3D())
 	{
-		w = static_cast<Hexahedron *>(static_cast<Geometry *>(tree[0]))->getXSize() ;
-		h = static_cast<Hexahedron *>(static_cast<Geometry *>(tree[0]))->getYSize() ;
-		d = static_cast<Hexahedron *>(static_cast<Geometry *>(tree[0]))->getZSize() ;
+		w = static_cast<Hexahedron *>(static_cast<Sample3D *>(tree[0]))->getXSize() ;
+		h = static_cast<Hexahedron *>(static_cast<Sample3D *>(tree[0]))->getYSize() ;
+		d = static_cast<Hexahedron *>(static_cast<Sample3D *>(tree[0]))->getZSize() ;
 	}
 
 	Point box_initial_size(w,h,d) ;
@@ -2067,6 +2069,8 @@ void FeatureTree::defineMeshingBox()
 	max_dimension.y += h/2 ;
 	max_dimension.z += d/2 ;
 	Point max_initial_dimension(max_dimension) ;
+
+	std::cout << "got initial dimension" << std::endl ;
 
 	double r = 0 ;
 	bool change = false ;
@@ -2125,27 +2129,29 @@ void FeatureTree::defineMeshingBox()
 	// modify the box to be sure to be outside of any feature
 	box_size = box_initial_size + (box_size - box_initial_size) * 1.001 ;
 
+	box_size.print() ;
+
 	// define the box
 	if(!is3D())
 	{
-		Sample meshingBox(NULL, box_size.x, box_size.y, c_initial.x, c_initial.y) ;
+		Sample * meshingBox = new Sample(NULL, box_size.x, box_size.y, c_initial.x, c_initial.y) ;
 		std::vector<Feature *> oldtree ;
 		for(size_t i = 0 ; i < tree.size() ; i++)
 			oldtree.push_back(tree[i]) ;
 		tree.clear() ;
-		tree.push_back(&meshingBox) ;
+		tree.push_back(meshingBox) ;
 		for(size_t i = 0 ; i < oldtree.size() ; i++)
 			tree.push_back(oldtree[i]) ;
 	}
 
 	if(is3D())
 	{
-		Sample3D meshingBox3D(NULL, box_size.x, box_size.y, box_size.z, c_initial.x, c_initial.y, c_initial.z) ;
+		Sample3D * meshingBox3D = new Sample3D(NULL, box_size.x, box_size.y, box_size.z, c_initial.x, c_initial.y, c_initial.z) ;
 		std::vector<Feature *> oldtree ;
 		for(size_t i = 0 ; i < tree.size() ; i++)
 			oldtree.push_back(tree[i]) ;
 		tree.clear() ;
-		tree.push_back(&meshingBox3D) ;
+		tree.push_back(meshingBox3D) ;
 		for(size_t i = 0 ; i < oldtree.size() ; i++)
 			tree.push_back(oldtree[i]) ;
 	}
@@ -2157,8 +2163,13 @@ void FeatureTree::defineMeshingBox()
 	for(size_t i = 1 ; i < tree.size() ; i++)
 	{
 		if(tree[i]->getFather() == NULL)
+		{
 			tree[i]->setFather(tree[0]) ;
+			std::cout << i << std::endl ;
+		}
 	}
+
+	tree[0]->setBehaviour(new VoidForm()) ;
 
 	return ;	
 }
@@ -2343,6 +2354,8 @@ void FeatureTree::renumber()
 
 bool FeatureTree::inRoot(const Point &p) const
 {
+//	if(hasMeshingBox)
+//		return this->tree[1]->in(p) ;
 	return this->tree[0]->in(p) ;
 }
 
@@ -2623,7 +2636,6 @@ void FeatureTree::sample(size_t n)
 	}
 	else if (is3D())
 	{
-		std::cerr << " 3D features..." << std::flush ;
 		double total_area = tree[0]->area() ;
 // 		total_area *= tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius()) ;
 		tree[0]->sample(n) ;
@@ -3011,6 +3023,9 @@ void FeatureTree::refine( size_t level )
 
 Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 {
+	int root_box = 0 ;
+	if(hasMeshingBox)
+		root_box = 1 ;
 
 	if(!inRoot(t->getCenter())) 
 		return new VoidForm() ;
@@ -3082,32 +3097,36 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 	}
 
 	
-	if(tree[0]->getBehaviour(t->getCenter())->timeDependent())
+	if(tree[root_box]->getBehaviour(t->getCenter())->timeDependent())
 	{
-		if( !tree[0]->getBehaviour(t->getCenter())->spaceDependent())
-			return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+		if( !tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
+			return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 		else
 		{
-			Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+			Form * b = tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 			b->transform(t->getXTransform(), t->getYTransform()) ;
 			return b ;
 		}
 	}
-	else if(!tree[0]->getBehaviour(t->getCenter())->spaceDependent())
-		return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+	else if(!tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
+		return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 	else
 	{
-		Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+		Form * b = tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 		b->transform(t->getXTransform(), t->getYTransform()) ;
 		return b ;
 	}
 	
-	return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+	return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 
 }
 
 Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 {
+	int root_box = 0 ;
+	if(hasMeshingBox)
+		root_box = 1 ;
+
 	
 	if(!inRoot(t->getCenter())) 
 		return new VoidForm() ;
@@ -3220,27 +3239,27 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 		}
 	}
 	
-	if(tree[0]->getBehaviour(t->getCenter())->timeDependent())
+	if(tree[root_box]->getBehaviour(t->getCenter())->timeDependent())
 	{
-		if( !tree[0]->getBehaviour(t->getCenter())->spaceDependent())
-			return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+		if( !tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
+			return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 		else
 		{
-			Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+			Form * b = tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 			b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 			return b ;
 		}
 	}
-	else if(!tree[0]->getBehaviour(t->getCenter())->spaceDependent())
-		return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+	else if(!tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
+		return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 	else
 	{
-		Form * b = tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+		Form * b = tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 		b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 		return b ;
 	}
 	
-	return tree[0]->getBehaviour(t->getCenter())->getCopy() ;
+	return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 
 }
 
@@ -3488,6 +3507,7 @@ Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 
 void FeatureTree::setElementBehaviours()
 {
+	double n_void ;
 	if(this->dtree3D == NULL && this->dtree !=NULL)
 	{
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
@@ -3502,9 +3522,12 @@ void FeatureTree::setElementBehaviours()
 			{
 				if(!triangles[i]->getBehaviour())
 					triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
+				if(triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+					n_void++ ;
 			} else {
 				if(!triangles[i]->getBehaviour())
 					triangles[i]->setBehaviour(new VoidForm()) ;
+				n_void++ ;
 			}		
 		}
 		std::cerr << " ...done" << std::endl ;
@@ -3525,15 +3548,19 @@ void FeatureTree::setElementBehaviours()
 			{
 				if(!tetrahedrons[i]->getBehaviour())
 					tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
+				if(tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+					n_void++ ;
 			} else {
 				if(!tetrahedrons[i]->getBehaviour())
 					tetrahedrons[i]->setBehaviour(new VoidForm()) ;
+				n_void++ ;
 			}
 		}
 		
 		std::cerr << " ...done" << std::endl ;
 		
 		setBehaviours = true ;
+		std::cout << "number of void tetrahedrons : " << n_void << "/" << tetrahedrons.size() << std::endl ;
 	}
 }
 
@@ -4679,7 +4706,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
 	meshPoints.erase(e, meshPoints.end()) ;
 
-	std::srand(0) ;
+	std::srand(1000) ;
 
 	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
