@@ -12,7 +12,7 @@
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
 #include "../features/inclusion3d.h"
-#include "../physics/mohrcoulomb.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 

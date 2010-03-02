@@ -9,7 +9,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics.h"
-#include "../physics/mohrcoulomb.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/layeredinclusion.h"

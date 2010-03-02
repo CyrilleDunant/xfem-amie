@@ -8,9 +8,9 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics.h"
-#include "../physics/mohrcoulomb.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/laplacian.h"
-#include "../physics/ruptureenergy.h"
+#include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
@@ -1465,7 +1465,7 @@ int main(int argc, char *argv[])
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 // 	F.addFeature(&samplers, inc) ;
 	F.addFeature(&samplers, inc0) ;
-	F.sample(2048) ;
+	F.sample(3000) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	step() ;

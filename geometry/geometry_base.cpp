@@ -4493,7 +4493,7 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point f1_(f1-centre) ;
 	Point f2_(f2-centre) ;
 	Point test_(test-centre) ;
-	double scale = 100.*sqrt(std::max(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()),f2_.sqNorm())) ;
+	double scale = 1.*sqrt(std::max(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()),f2_.sqNorm())) ;
 	f0_ /=scale ;
 	f1_ /=scale ;
 	f2_ /=scale ;
@@ -4506,11 +4506,11 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	if(test == f2)
 		return true ;
 	
-	Mu::Point A(f1) ; A -= f0 ;
-	Mu::Point B(f2) ; B -= f1 ;
-	Mu::Point C(f2) ; C -= test ;
+	Mu::Point A(f1_) ; A -= f0_ ;
+	Mu::Point B(f2_) ; B -= f1_ ;
+	Mu::Point C(f2_) ; C -= test_ ;
 
-	double c0 = signedCoplanarity(test, f0, f1, f2) ;
+	double c0 = signedCoplanarity(test_, f0_, f1_, f2_) ;
 	double c02 = c0*c0 ;
 	if(c02 > 8.*std::numeric_limits<double>::epsilon()*A.sqNorm())
 		return false ;
@@ -4523,11 +4523,11 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point normal = A^B ;
 	normal /= normal.norm()*4.*sqrt(std::numeric_limits<double>::epsilon()) ;
 	
-	Point a(test) ; a += normal ;
-	Point b(test) ; b -= normal ;
+	Point a(test_) ; a += normal ;
+	Point b(test_) ; b -= normal ;
 
-	double c1 = signedCoplanarity(a, f0, f1, f2) ;
-	double c2 = signedCoplanarity(b, f0, f1, f2) ;
+	double c1 = signedCoplanarity(a, f0_, f1_, f2_) ;
+	double c2 = signedCoplanarity(b, f0_, f1_, f2_) ;
 
 // 	if(c0 > 0)
 // 		return c1 < 0 || c2 < 0 ;

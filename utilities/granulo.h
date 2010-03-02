@@ -82,6 +82,7 @@ public:
 	std::vector<double> getFieldValues(std::string column) ;
 	std::vector<double> getFieldValues(int) ;
 	std::vector<Feature *> getFeatures(TypeInclusion type, int ninc) ;
+	std::vector<Inclusion3D *> getInclusion3D(int ninc) ;
 } ;
 
 

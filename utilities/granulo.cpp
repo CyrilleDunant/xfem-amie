@@ -599,3 +599,26 @@ std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc
     inc.pop_back() ;
     return inc ;
 }
+
+std::vector<Inclusion3D *> GranuloFromFile::getInclusion3D(int ninc)
+{
+    std::vector<Inclusion3D *> inc ;
+    std::vector<std::string> columns ;
+            columns.push_back("radius") ;
+            columns.push_back("center_x") ;
+            columns.push_back("center_y") ;
+            columns.push_back("center_z") ;
+    std::vector< std::vector<double> > fieldvalues ;
+    std::cout << "extracting columns" ;
+    for(int i = 0 ; i < columns.size() ; i++)
+    {
+        std::cout << " ... " << columns[i] ;
+        std::vector<double> val = this->getFieldValues(columns[i]) ;
+        fieldvalues.push_back(val) ;
+    }
+            std::cout << "creating 3D inclusions..." << std::endl ;
+            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+                inc.push_back(new Inclusion3D(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i], fieldvalues[3][i])) ;
+    inc.pop_back() ;
+    return inc ;
+}

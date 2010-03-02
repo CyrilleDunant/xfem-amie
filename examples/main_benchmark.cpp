@@ -8,9 +8,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics.h"
-#include "../physics/mohrcoulomb.h"
 #include "../physics/laplacian.h"
-#include "../physics/ruptureenergy.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
@@ -1309,7 +1307,55 @@ void processMouseActiveMotion(int x, int y) {
 
 int main(int argc, char *argv[])
 {
-	Sample3D sample(NULL, 0.15,0.15,0.15,0.075,0.075,0.075) ;
+	std::vector<std::string> fields ;
+	fields.push_back("center_x") ;
+	fields.push_back("center_y") ;
+	fields.push_back("center_z") ;
+	fields.push_back("radius") ;
+	GranuloFromFile gff("sphere_2024.txt",fields) ;
+	std::vector<Feature *> feat = gff.getFeatures(SPHERE_INCLUSION, 2024) ;
+	std::vector<Inclusion3D *> inclusions ;
+	for(size_t i = 0 ; i < feat.size() ; i++)
+		inclusions.push_back(static_cast<Inclusion3D *>(feat[i])) ;
+
+	double maxx = 0.15 ;
+	double maxy = 0.15 ;
+	double maxz = 0.15 ;
+	double minx = 0. ;
+	double miny = 0. ;
+	double minz = 0. ;
+
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	{
+		double r = static_cast<Sphere *>(inclusions[i])->getRadius() ;
+		Point ppp = static_cast<Sphere *>(inclusions[i])->getCenter() ;
+		if(ppp.x + r > maxx)
+			maxx = ppp.x+r ;
+		if(ppp.x - r < minx)
+			minx = ppp.x-r ;
+		if(ppp.y + r > maxy)
+			maxy = ppp.y+r ;
+		if(ppp.y - r < miny)
+			miny = ppp.y-r ;
+		if(ppp.z + r > maxz)
+			maxz = ppp.z+r ;
+		if(ppp.z - r < minz)
+			minz = ppp.z-r ;
+	}
+
+	minx = minx * 1.01 ;
+	miny = miny * 1.01 ;
+	minz = minz * 1.01 ;
+
+	maxx = 0.15 + (maxx - 0.15) * 1.01 ;
+	maxy = 0.15 + (maxy - 0.15) * 1.01 ;
+	maxz = 0.15 + (maxz - 0.15) * 1.01 ;
+
+	std::cout << minx << ";" << maxx << std::endl ;
+	std::cout << miny << ";" << maxy << std::endl ;
+	std::cout << minz << ";" << maxz << std::endl ;
+
+	Sample3D sample(NULL, maxx-minx, maxy-miny, maxz-minz,0.0750,0.0750,0.0750) ;
 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
@@ -1337,27 +1383,48 @@ int main(int argc, char *argv[])
 	m1[5][5] = 0.5 - nu ;
 	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
 
-	std::vector<std::string> fields ;
-	fields.push_back("center_x") ;
-	fields.push_back("center_y") ;
-	fields.push_back("center_z") ;
-	fields.push_back("radius") ;
-	GranuloFromFile gff("sphere_2024.txt",fields) ;
-	std::vector<Feature *> inclusions = gff.getFeatures(SPHERE_INCLUSION, 2024) ;
-
-	Stiffness * smatrix = new Stiffness(m0) ;
+//	Stiffness * smatrix = new Stiffness(m0) ;
 	sample.setBehaviour(new Stiffness(m0)) ;
-	Stiffness * sinclusion = new Stiffness(m1) ;
+//	Stiffness * sinclusion = new Stiffness(m1) ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-//		inclusions[i]->setRadius(inclusions[i]->getRadius()*1000) ;
-//		static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*1000) ;
+		static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*1) ;
+		static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*1) ;
 		inclusions[i]->setBehaviour(new Stiffness(m1)) ;
 		F.addFeature(&sample, inclusions[i]) ;
 	}
-	std::cout << inclusions[0]->getRadius() << std::endl ;
+
+/*	std::cout << "checking for intersections..." << std::endl ;
+	for(size_t i = 1 ; i < inclusions.size() ; i++)
+	{
+		if(i%100 == 0)
+			std::cout << i << "/" << inclusions.size() << std::endl ;
+		for(size_t j = 0 ; j < i ; j++)
+		{
+			if(static_cast<Sphere *>(inclusions[i])->intersects(static_cast<Sphere *>(inclusions[j])))
+				std::cout << i << ";" << j << std::endl ;
+		}
+	}
+
+	std::cout << "checking for distance..." << std::endl ;
+	for(size_t i = 1 ; i < inclusions.size() ; i++)
+	{
+		if(i%100 == 0)
+			std::cout << i << "/" << inclusions.size() << std::endl ;
+		for(size_t j = 0 ; j < i ; j++)
+		{
+			Point ci = static_cast<Sphere *>(inclusions[i])->getCenter() ;
+			Point cj = static_cast<Sphere *>(inclusions[j])->getCenter() ;
+			double ri = static_cast<Sphere *>(inclusions[i])->getRadius() ;
+			double rj = static_cast<Sphere *>(inclusions[i])->getRadius() ;
+			double d = dist(ci,cj) - ri - rj ;
+			if(d*d < 100000*POINT_TOLERANCE)
+				std::cout << i << ";" << j << std::endl ;
+		}
+	}*/
+
 	
-	F.sample(512) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -1)) ;

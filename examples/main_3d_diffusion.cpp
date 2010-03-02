@@ -15,7 +15,6 @@
 #include "../mesher/delaunay_3d.h"
 #include "../filters/voxelporefilter.h"
 #include "../physics/void_form.h"
-#include "../utilities/granulo.h" 
 
 #include <cmath>
 #include <typeinfo>
@@ -398,29 +397,14 @@ int main(int argc, char *argv[])
 	
 	Matrix diffusionMatrix(3,3) ;
 
-	diffusionMatrix[0][0] =1;
-	diffusionMatrix[1][1] =1;
-	diffusionMatrix[2][2] =1;
+	diffusionMatrix[0][0] =100;
+	diffusionMatrix[1][1] =100;
+	diffusionMatrix[2][2] =100;
 
 
-	Sample3D sample(0.15, 0.15, 0.15, 0.075, 0.075, 0.075) ;
-	sample.setBehaviour(new Diffusion(diffusionMatrix)) ;
-
-        std::vector<std::string> col ;
-        col.push_back("center_x") ;
-        col.push_back("center_y") ;
-        col.push_back("center_z") ;
-        col.push_back("radius") ;
-        GranuloFromFile gff("sphere_2024.txt",col) ;
-
-        std::vector<Feature *> feat = gff.getFeatures(SPHERE_INCLUSION,2025) ;
-        std::vector<Inclusion3D *> inclusions ;
-        for(int i = 0 ; i < feat.size() ; i++)
-            inclusions.push_back(static_cast<Inclusion3D *>(feat[i])) ;
-
-        feat.clear() ;
-
-	FeatureTree ft(&sample) ;
+	Sample3D * sample = new Sample3D(100, 100, 100, 50, 50, 50) ;
+	sample->setBehaviour(new Diffusion(diffusionMatrix)) ;
+	FeatureTree ft(sample) ;
 	
 // 	std::ifstream file("InputFiles/1000Part/porein20.csv") ;		
 // 	char comma ;
@@ -474,14 +458,7 @@ int main(int argc, char *argv[])
 // 		}
 // 	}
 // 	
-
-//	ft.addFeature(sample,new Pore3D(25, 50, 50, 50)) ;
-	for(int i = 0 ; i < inclusions.size() ; i++)
-	{
-		inclusions[i]->setBehaviour(new Diffusion(diffusionMatrix * 0.01)) ;
-		ft.addFeature(&sample, inclusions[i]) ;
-	}
-
+	ft.addFeature(sample,new Pore3D(25, 50, 50, 50)) ;
 	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
 	ft.sample(256) ;
 	ft.generateElements(0, true) ;
@@ -513,99 +490,46 @@ int main(int argc, char *argv[])
 // 
 // 	x = &ft.getAssembly()->getDisplacements() ;
 
-	int tt0 = 0 ;
-	int tt1 = 0 ;
 	
 	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
 	{
 		if(std::abs((*i)->t  +1) < 1e-6)
 		{
 			ft.getAssembly()->setPoint(0, (*i)->id) ;
-			tt0++;
 		}
-		else if(std::abs((*i)->t  - 1) < 1e-6)
+		else if(std::abs((*i)->x ) < 1e-6 && std::abs((*i)->t  - 1) < 1e-6)
 		{
-//std::abs((*i)->x ) < 1e-6 && 
-			double xtemp = 10. * (*i)->x ;
-			if(std::abs((*i)->x ) < 1e-6)
-				ft.getAssembly()->setPoint(0., (*i)->id) ;
-			if(std::abs((*i)->y ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, (*i)->id) ;
-			if(std::abs((*i)->z ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, (*i)->id) ;
-			if(std::abs((*i)->x - 0.15 ) < 1e-6)
-				ft.getAssembly()->setPoint(1.5, (*i)->id) ;
-			if(std::abs((*i)->y - 0.15 ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, (*i)->id) ;
-			if(std::abs((*i)->z - 0.15 ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, (*i)->id) ;
-				
-			tt1++ ;
+			ft.getAssembly()->setPoint(.5, (*i)->id) ;
 		}
 	}
 
-	std::cout << tt0 << " <-> " << tt1 << std::endl ;
-
 	ft.step(0.1) ;
 
-	std::cout << "hey you!" << std::endl ;
-
-	for(size_t timestep = 0 ; timestep < 3 ; timestep++)
+	for(size_t timestep = 0 ; timestep < 50 ; timestep++)
 	{
 		x = &ft.getAssembly()->getDisplacements() ;
 
 
 		std::set<Point *> source ;
-		std::set<Point *> cold ;
 		std::set<std::pair<Point *, Point *> > init ;
-		std::cout << elems.size() << std::endl ;
-		std::cout << "hey you!" << std::endl ;
 		for(size_t i = 0 ; i < elems.size() ; i++)
 		{
 			for(size_t j = 0 ; j < elems[i]->getBoundingPoints().size() ; j++)
 			{
-/*				if(elems[i]->getBoundingPoint(j).x < 1e-6 )
+				if(elems[i]->getBoundingPoint(j).x == 0 )
 				{
 					source.insert(&elems[i]->getBoundingPoint(j)) ;
 				}
-				if(0.15 - elems[i]->getBoundingPoint(j).x < 1e-6 )
+				else if(elems[i]->getBoundingPoint(j).t == -1)
 				{
-					cold.insert(&elems[i]->getBoundingPoint(j)) ;
-				}
-				else if(elems[i]->getBoundingPoint(j).t +1 < 1e-6)
-				{
-					int nextj = j + 1 ;
-					if(j < elems[i]->getBoundingPoints().size() - 1)
-						nextj = 0 ;					
-
 					init.insert(std::make_pair(&elems[i]->getBoundingPoint(j),
 					                           &elems[i]->getBoundingPoint(j+10))) ;
-				}*/
-			Point * bp = &(elems[i]->getBoundingPoint(j)) ;
-			double xtemp = 10. * bp->x ;
-			if(std::abs(bp->x ) < 1e-6)
-				ft.getAssembly()->setPoint(0., bp->id) ;
-			if(std::abs(bp->y ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, bp->id) ;
-			if(std::abs(bp->z ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, bp->id) ;
-			if(std::abs(bp->x - 0.15 ) < 1e-6)
-				ft.getAssembly()->setPoint(1.5, bp->id) ;
-			if(std::abs(bp->y - 0.15 ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, bp->id) ;
-			if(std::abs(bp->z - 0.15 ) < 1e-6)
-				ft.getAssembly()->setPoint(xtemp, bp->id) ;
-
+				}
 			}
 		}
-
-		std::cout << "hey you!" << std::endl ;
 		
 		for(std::set<Point *>::iterator i = source.begin() ; i != source.end() ; ++i)
-			ft.getAssembly()->setPoint(10,(*i)->id) ;
-		
-		for(std::set<Point *>::iterator i = cold.begin() ; i != cold.end() ; ++i)
-			ft.getAssembly()->setPoint(0,(*i)->id) ;
+			ft.getAssembly()->setPoint(.5,(*i)->id) ;
 		
 		for(std::set<std::pair<Point *, Point *> >::iterator i = init.begin() ; i != init.end() ; ++i)
 		{

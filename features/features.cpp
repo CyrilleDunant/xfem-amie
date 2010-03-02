@@ -3392,8 +3392,9 @@ void FeatureTree::assemble()
 	father2D->compileAndPrecalculate() ;
 	
 	if( this->dtree == NULL && this->dtree3D == NULL)
+	{
 		this->generateElements() ;
-	
+	}	
 	 
 	if(!initialized)
 	{
@@ -3876,10 +3877,13 @@ bool FeatureTree::step(double dt)
 {
 	Vector lastx(K->getDisplacements()) ;
 	bool ret = true ;
+
 	if(enrichmentChange)
 		this->K->clear() ;
 
+
 	assemble() ;
+
 	for(size_t i = 0 ; i < boundaryCondition.size() ; ++i)
 	{
 		if(dtree)
@@ -3891,6 +3895,7 @@ bool FeatureTree::step(double dt)
 	needAssembly = true ;
 	
 	meshChange = false ;
+
 	if(solverConvergence)
 		solverConvergence = this->K->cgsolve(lastx) ;
 	else
@@ -4412,7 +4417,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 	size_t count  = 0 ;
 
-	if(computeIntersections)
+/*	if(computeIntersections)
 	{
 		for(size_t i = 1 ;  i < tree.size() ; i++)
 		{
@@ -4506,7 +4511,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		}
 	}
 	count = 0 ;
-	std::cerr << " ...done." << std::endl ;
+	std::cerr << " ...done." << std::endl ;*/
 
 	//let us make sure we have no overlap
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
@@ -4514,6 +4519,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
 	meshPoints.erase(e, meshPoints.end()) ;
+
+	std::srand(0) ;
 
 	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
@@ -4626,7 +4633,19 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		assert(meshPoints[1].first->id > -1 ) ;
 		assert(meshPoints[2].first->id > -1 ) ;
 		assert(meshPoints[3].first->id > -1 ) ;
-		
+
+		std::pair<std::vector<int>,std::vector<int> > pb ;
+		for(size_t i = 0 ; i < meshPoints.size() ; i++)
+		{
+			if(meshPoints[i].first == NULL)
+				pb.first.push_back(i) ;
+			if(meshPoints[i].second == NULL)
+				pb.second.push_back(i) ;
+		}
+		std::cout << pb.first.size() << " NULL points in mesh" << std::endl ;
+		std::cout << pb.second.size() << " points associated to a NULL feature in mesh" << std::endl ;
+
+				
 		
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+8 ; i != this->meshPoints.end(); ++i)
 		{
@@ -4650,6 +4669,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			}
 		}
 		
+		std::cout << "before?????" << std::endl ;
+
 		for(size_t k  =  0 ; k <  enrichmentFeature.size() ; k++)
 		{
 			std::vector<Point *> pts = dynamic_cast<EnrichmentFeature *>(enrichmentFeature[k])->getSamplingPoints() ;
@@ -4672,7 +4693,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		{
 			std::vector< DelaunayTetrahedron * > tets = dtree3D->getElements();
 			std::vector< Point *> to_insert ;
-			
+
 			for(size_t i = 0 ; i < tets.size() ;i++)
 			{
 				Point *test = checkElement(tets[i]);
@@ -4708,7 +4729,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			
 		}
 		std::cerr << " ...done."<< std::endl ;
-// 		dtree3D->purge() ;
+//		dtree3D->purge() ;
 		
 	}
 }

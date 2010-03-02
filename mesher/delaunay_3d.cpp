@@ -213,6 +213,14 @@ void Star3D::updateNeighbourhood()
 
 	}
 	
+//	std::cout << items.size() << ";" ;
+
+	if(items.size() == 0)
+	{
+//		std::cout << "no element in star neighbourhood - i woul like to skip but i am not sure if i can" << std::endl ;
+		return ;
+	}
+
 	std::vector<DelaunayTreeItem3D *> & tree = items[0]->tree->tree ;
 	bool goOn = true ;
 	while(goOn)
@@ -268,6 +276,9 @@ void Star3D::updateNeighbourhood()
 				break ;
 		}
 	}
+
+//	std::cout << items.size() << ";" ;
+
 	for(std::vector<DelaunayTreeItem3D *>::iterator i = items.begin() ; i != items.end() ;++i)
 	{
 		for(std::vector<DelaunayTreeItem3D *>::iterator j = i+1 ; j != items.end() ;++j)
@@ -444,8 +455,25 @@ void DelaunayTree3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 
 void DelaunayTree3D::refresh(const TetrahedralElement *father)
 {
+	std::cout << "debug - assemble - setelementbehaviour - refresh" << std::endl ;
+	std::cout << this->tree.size() << std::endl ;
+	std::vector<int> pb ;
 	for(size_t i = 0 ; i < this->tree.size() ; i++)
 	{
+		if(this->tree[i] == NULL)
+			pb.push_back(i) ;
+	}
+	std::cout << pb.size() << " NULL elements in tree" << std::endl ;
+	for(size_t i = pb.size() ; i > 0 ; i--)
+	{
+		this->tree.erase(this->tree.begin()+pb[i-1]) ;
+	}
+	std::cout << this->tree.size() << std::endl ;
+
+	for(size_t i = 0 ; i < this->tree.size() ; i++)
+	{
+		if(this->tree[i] == NULL)
+			std::cout << "NULL element in tree" << std::endl ;
 		if(this->tree[i]->isAlive() && this->tree[i]->isTetrahedron())
 		{
 			static_cast<DelaunayTetrahedron *>(this->tree[i])->refresh(father) ;
@@ -1561,23 +1589,58 @@ bool DelaunayTreeItem3D::isDuplicate(const DelaunayTreeItem3D * t) const
 
 void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem3D *> & ret, Point *p,  Star3D* s)
 {
-
+//	std::cout << "debug - insert" << std::endl ;
 	if (visited())
 		return ;
+
+//	std::cout << "debug - insert" << std::endl ;
+	bool disp = true ;
 	
+	if(neighbour.size() == 0)
+		disp = true ;
+
+//	std::cout << "debug - insert" << std::endl ;
+	if(disp) {
+
+		for(size_t i = 0 ; i < 4 ; i++)
+		{
+			if(neighbour[i] > tree->tree.size())
+			{
+				std::cout << "  ------------  I am doomed!  ------------  " ;
+				return ;
+			}
+		}
+	}
+//	std::cout << "debug - insert" << std::endl ;
+//	if(neighbour.size() < 4)
+//	{
+//		std::cout << "wrong neighbourhood size" << std::endl ;
+//		return ;
+//	}
+
 	visited() = true ;
-	
+
+//	std::cout << "debug - insert" << std::endl ;
 	for (size_t i = 0 ; i < 4 ; i++)
 	{
+//		std::cout << "debug - insert - loop" << std::endl ;
+//		std::cout << i << ";" ;
 		bool ins =  !getNeighbour(i)->visited() && !getNeighbour(i)->inCircumSphere(*p);
 		
 		if (ins)
 		{
 			
+//			std::cout << "debug - insert - loop - if - if" << std::endl ;
 			std::vector< Point*> pp = this->commonSurface(getNeighbour(i)) ;
+
+			if(pp.size() != 3)
+			{
+//				std::cout << "invalid common surface - skip" << std::endl ;
+				return ;
+			}
+
 			if(Tetrahedron(*p, *pp[0], *pp[1], *pp[2]).volume() > POINT_TOLERANCE)
 			{
-
 				DelaunayTetrahedron *ss = new DelaunayTetrahedron(this->tree, this, p, pp[0], pp[1],pp[2], p) ;
 
 				addSon(ss) ;
@@ -1660,7 +1723,7 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem3D *> & ret, Point *
 		return ;
 	
 	visited() = true ;
-	
+
 	for(size_t i = 0 ; i <neighbour.size() ; i++)
 	{
 		std::vector< Point*> pp = getNeighbour(i)->commonSurface(this) ;
@@ -1950,9 +2013,17 @@ DelaunayTree3D::~DelaunayTree3D()
 
 void DelaunayTree3D::insert(Point *p)
 {
+	bool mydebug = false ;
+	
+	if(mydebug)
+		std::cout << "debug --- ah ah ah ah --- ah ah ah --- debug" << std::endl ;
+
 	std::vector<DelaunayTreeItem3D *> cons = this->conflicts(p) ;
 	neighbourhood = false ;
-	
+
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
 		if(cons[i]->isVertex(p)) 
@@ -1962,23 +2033,66 @@ void DelaunayTree3D::insert(Point *p)
 		}
 	}
 	
+
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	p->id = this->global_counter ;
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	this->global_counter++ ;
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	Star3D * s = new Star3D(&cons, p) ;
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	std::vector<DelaunayTreeItem3D *> ret ;
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
+	if(s == NULL)
+		std::cout << "I am doomed!" << std::endl ;
+
+//	std::cout << cons.size() << ";" ;
+
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
-		std::vector<DelaunayTreeItem3D *> temp ;
-		cons[i]->insert(temp,p, s) ;
-		ret.insert(ret.end(), temp.begin(), temp.end()) ;
+//		std::cout << i << ";" ;
+		if(cons[i] == NULL)
+		{
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << "NULL element here" << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+		} else {
+			std::vector<DelaunayTreeItem3D *> temp ;
+			cons[i]->insert(temp,p, s) ;
+			ret.insert(ret.end(), temp.begin(), temp.end()) ;
+		}
 	}
 
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	s->updateNeighbourhood() ;
-	
+
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	bool weGotSpaces = false ;
 	
 	for(size_t i = 0 ; i < ret.size() ; i++)
@@ -1987,6 +2101,9 @@ void DelaunayTree3D::insert(Point *p)
 		
 	}
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	for(size_t j = 0 ; j< ret.size() ; j++)
 	{
 		if(ret[j]->isAlive() && ret[j]->isSpace() )
@@ -1996,6 +2113,9 @@ void DelaunayTree3D::insert(Point *p)
 		}
 	}
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	if(weGotSpaces)
 	{
 		for(size_t k = 0 ; k< space.size()-1 ; k++)
@@ -2007,6 +2127,9 @@ void DelaunayTree3D::insert(Point *p)
 		}
 	}
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	for (size_t l=0; l< ret.size(); l++)
 	{	
 		for (size_t k=0; k< space.size(); k++)
@@ -2015,10 +2138,16 @@ void DelaunayTree3D::insert(Point *p)
 		}
 	}
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
 		cons[i]->kill(p) ;
 	}
+
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
 
 	bool correct = true ;
 	
@@ -2054,6 +2183,9 @@ void DelaunayTree3D::insert(Point *p)
 		}
 	}
 	
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	for(std::vector<DelaunayDemiSpace *>::iterator i = space.begin() ; i != space.end() ; i++)
 	{
 		if(!(*i)->isAlive())
@@ -2063,19 +2195,43 @@ void DelaunayTree3D::insert(Point *p)
 		}
 	}
 
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 	if(!correct)
 		std::cout << "inconsistent state, will crash soon" <<std::endl ;	
 	
+//	std::cout << cons.size() << ";" ;
+
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
-		if(!cons[i]->isAlive() &&cons[i]->isTetrahedron() && !cons[i]->isDeadTetrahedron())
+	
+		if(cons[i] == NULL)
 		{
-			DelaunayDeadTetrahedron* dt = new DelaunayDeadTetrahedron(static_cast<DelaunayTetrahedron *>(cons[i])) ;
-			dt->clearVisited() ;
-			tree[cons[i]->index] = dt ;
-			delete cons[i] ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << "NULL element here" << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+		} else {
+			if(!cons[i]->isAlive() &&cons[i]->isTetrahedron() && !cons[i]->isDeadTetrahedron())
+			{
+				DelaunayDeadTetrahedron* dt = new DelaunayDeadTetrahedron(static_cast<DelaunayTetrahedron *>(cons[i])) ;
+				dt->clearVisited() ;
+				tree[cons[i]->index] = dt ;
+				delete cons[i] ;
+			}
 		}
 	}
+	if(mydebug)
+		std::cout << "debug" << std::endl ;
+
 // // 	
 	delete s ;
 // 	print() ;

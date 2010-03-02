@@ -8,10 +8,10 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics.h"
-#include "../physics/mohrcoulomb.h"
-#include "../physics/ruptureenergy.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
-#include "../physics/vonmises.h"
+#include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
@@ -216,7 +216,7 @@ void setBC()
 
  void step()
  {
- 	
+ 	/*
  	bool cracks_did_not_touch = true;
  	size_t max_growth_steps = 1;
  	size_t countit = 0;	
@@ -584,12 +584,12 @@ void setBC()
  			break ;
  	}
  	for(size_t i = 0 ; i < energy.size() ; i++)
- 		std::cout << energy[i] << std::endl ;
+ 		std::cout << energy[i] << std::endl ;*/
  }
 
 void stepOLD()
 {
-
+/*
 	int nsteps = 5;
 	int nstepstot = 10;
 	int maxtries = 20 ;
@@ -677,7 +677,7 @@ void stepOLD()
 		
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
-	/*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
+	//		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;
 			bool in = false ;
 			for(size_t m = 0 ; m < tris__.size() ; m++)
 			{
