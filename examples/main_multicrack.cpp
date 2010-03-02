@@ -1354,8 +1354,8 @@ int main(int argc, char *argv[])
 	m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1.-nu*nu) ; m0_soft[1][2] = 0 ; 
 	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
 
-	double width = 0.05;
-	double height = 0.0370;
+	double width = 0.04;
+	double height = 0.04;
 	Sample sample(NULL, height , height, 0, 0) ;//sample() ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
@@ -1365,8 +1365,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
-	
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(50./8, -50))) ;
+	sample.setBehaviour(new Stiffness(m0_paste)) ;	
+//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(50./8, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
@@ -1380,13 +1380,13 @@ int main(int argc, char *argv[])
 	Vector def(3) ; 
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	Inclusion * inc0 = new Inclusion(0.005, width/2, -height/2) ;
+	Inclusion * inc0 = new Inclusion(0.02, 0.01, 0.01) ;
 
 // 	Inclusion * inc1 = new Inclusion(0.004, 0.025, -0.0185) ;
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
 	inc0->setBehaviour(new Stiffness(m0_paste*.9)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-// 	F.addFeature(&sample, inc0) ;
+ 	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 	
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
@@ -1445,7 +1445,9 @@ int main(int argc, char *argv[])
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(32) ;
+	F.defineMeshingBox() ;
+
+	F.sample(512) ;
 
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
