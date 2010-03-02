@@ -7,6 +7,8 @@
 #include "features.h"
 #include "crackinitiation.h"
 #include "layeredinclusion.h"
+#include "sample.h"
+#include "sample3d.h"
 #include "../physics/void_form.h"
 #ifdef HAVE_OPENMP
 #include <omp.h>
@@ -1921,6 +1923,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	this->needAssembly = true ;
 	this->initialized = false ;
 	this->setBehaviours = false ;
+	this->hasMeshingBox = false ;
 	meshChange = true ;
 	solverConvergence = false ;
 	enrichmentChange = true ;
@@ -2013,6 +2016,151 @@ void FeatureTree::addFeature(Feature * father, Feature * f)
 		father->addChild(f) ;
 	this->tree.push_back(f) ;
 
+}
+
+void FeatureTree::defineMeshingBox()
+{
+	if(tree.empty())
+	{
+		std::cerr << "warning: unable to define meshing box: no features in tree" << std::endl ;
+		return ;
+	}
+	
+	if(this->hasMeshingBox)
+	{
+		std::cerr << "warning: meshing box already defined" << std::endl ;
+		return ;
+	}
+
+	// get initial dimension
+	double w = 0 ;
+	double h = 0 ;
+	double d = 0 ;
+
+	if(!is3D())
+	{
+		w = static_cast<Rectangle *>(static_cast<Geometry *>(tree[0]))->width() ;
+		h = static_cast<Rectangle *>(static_cast<Geometry *>(tree[0]))->height() ;
+	}
+
+	if(is3D())
+	{
+		w = static_cast<Hexahedron *>(static_cast<Geometry *>(tree[0]))->getXSize() ;
+		h = static_cast<Hexahedron *>(static_cast<Geometry *>(tree[0]))->getYSize() ;
+		d = static_cast<Hexahedron *>(static_cast<Geometry *>(tree[0]))->getZSize() ;
+	}
+
+	Point box_initial_size(w,h,d) ;
+
+	Point c = tree[0]->getCenter() ;
+	Point c_initial(c) ;
+
+	Point min_dimension(c) ;
+	Point max_dimension(c) ;
+
+	min_dimension.x -= w/2 ;
+	min_dimension.y -= h/2 ;
+	min_dimension.z -= d/2 ;
+	Point min_initial_dimension(min_dimension) ;
+
+	max_dimension.x += w/2 ;
+	max_dimension.y += h/2 ;
+	max_dimension.z += d/2 ;
+	Point max_initial_dimension(max_dimension) ;
+
+	double r = 0 ;
+	bool change = false ;
+
+	// loop on all feature to check if the feature is outside
+	for(size_t i = 1 ; i < tree.size() ; i++)
+	{
+		r = static_cast<Geometry *>(tree[i])->getRadius() ;
+		c = static_cast<Geometry *>(tree[i])->getCenter() ;
+		
+		if(c.x + r > max_dimension.x)
+		{
+			max_dimension.x = c.x + r ;
+			change = true ;
+		}
+		if(c.x - r < min_dimension.x)
+		{
+			min_dimension.x = c.x - r ;
+			change = true ;
+		}
+		if(c.y + r > max_dimension.y)
+		{
+			max_dimension.y = c.y + r ;
+			change = true ;
+		}
+		if(c.y - r < min_dimension[0])
+		{
+			min_dimension.y = c.z - r ;
+			change = true ;
+		}
+		if(is3D())
+		{
+			if(c.z + r > max_dimension.z)
+			{
+				max_dimension.z = c.z + r ;
+				change = true ;
+			}
+			if(c.z - r < min_dimension.z)
+			{
+				min_dimension.z = c.z - r ;
+				change = true ;
+			}
+		}
+	}
+
+	if(!change)
+	{
+		std::cerr << "no need for meshing box... skip" << std::endl ;
+		return ;
+	}
+
+	Point box_size( 2*std::max(std::abs(min_dimension.x - c_initial.x),std::abs(max_dimension.x - c_initial.x)), 
+			2*std::max(std::abs(min_dimension.y - c_initial.y),std::abs(max_dimension.y - c_initial.y)),
+			2*std::max(std::abs(min_dimension.z - c_initial.z),std::abs(max_dimension.z - c_initial.z))) ;
+
+	// modify the box to be sure to be outside of any feature
+	box_size = box_initial_size + (box_size - box_initial_size) * 1.001 ;
+
+	// define the box
+	if(!is3D())
+	{
+		Sample meshingBox(NULL, box_size.x, box_size.y, c_initial.x, c_initial.y) ;
+		std::vector<Feature *> oldtree ;
+		for(size_t i = 0 ; i < tree.size() ; i++)
+			oldtree.push_back(tree[i]) ;
+		tree.clear() ;
+		tree.push_back(&meshingBox) ;
+		for(size_t i = 0 ; i < oldtree.size() ; i++)
+			tree.push_back(oldtree[i]) ;
+	}
+
+	if(is3D())
+	{
+		Sample3D meshingBox3D(NULL, box_size.x, box_size.y, box_size.z, c_initial.x, c_initial.y, c_initial.z) ;
+		std::vector<Feature *> oldtree ;
+		for(size_t i = 0 ; i < tree.size() ; i++)
+			oldtree.push_back(tree[i]) ;
+		tree.clear() ;
+		tree.push_back(&meshingBox3D) ;
+		for(size_t i = 0 ; i < oldtree.size() ; i++)
+			tree.push_back(oldtree[i]) ;
+	}
+
+	// change hasMeshingBox tag
+	this->hasMeshingBox = true ;
+
+	// for all features, define the meshing box as the father feature if the feature has no father
+	for(size_t i = 1 ; i < tree.size() ; i++)
+	{
+		if(tree[i]->getFather() == NULL)
+			tree[i]->setFather(tree[0]) ;
+	}
+
+	return ;	
 }
 
 FeatureTree::~FeatureTree()
@@ -3350,9 +3498,14 @@ void FeatureTree::setElementBehaviours()
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... triangle " << i << "/" << triangles.size() << std::flush ;
 			triangles[i]->refresh(father2D) ;
-			if(!triangles[i]->getBehaviour())
-				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
-			
+			if((this->hasMeshingBox && tree[1]->in(triangles[i]->getCenter())) || !this->hasMeshingBox )
+			{
+				if(!triangles[i]->getBehaviour())
+					triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
+			} else {
+				if(!triangles[i]->getBehaviour())
+					triangles[i]->setBehaviour(new VoidForm()) ;
+			}		
 		}
 		std::cerr << " ...done" << std::endl ;
 		
@@ -3368,8 +3521,14 @@ void FeatureTree::setElementBehaviours()
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... tet " << i << "/" << tetrahedrons.size() << std::flush ;
 			tetrahedrons[i]->refresh(father3D) ;
-			if(!tetrahedrons[i]->getBehaviour())
-				tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
+			if((this->hasMeshingBox && tree[1]->in(tetrahedrons[i]->getCenter())) || !this->hasMeshingBox )
+			{
+				if(!tetrahedrons[i]->getBehaviour())
+					tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
+			} else {
+				if(!tetrahedrons[i]->getBehaviour())
+					tetrahedrons[i]->setBehaviour(new VoidForm()) ;
+			}
 		}
 		
 		std::cerr << " ...done" << std::endl ;

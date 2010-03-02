@@ -5,7 +5,7 @@
 //
 
 #include "integrable_entity.h"
-#include "../physics/fracturecriterion.h"
+#include "../physics/fracturecriteria/fracturecriterion.h"
 
 using namespace Mu ;
 

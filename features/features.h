@@ -141,6 +141,7 @@ protected:
 	bool solverConvergence ;
 	bool enrichmentChange ;
 	bool setBehaviours ;
+	bool hasMeshingBox ;
 	
 	/** \brief  List of points used for the mesh.
 	 * Each point is associated with the feature from whose discretiation it was generated.
@@ -247,6 +248,9 @@ public:
 	 * @param t daughter feature.
 	 */
 	void addFeature(Feature *father, Feature * t) ;
+
+	/** \brief Add a larger box to improve meshing. */
+	void defineMeshingBox() ;
 
 	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
 	Vector getDisplacements() const ;
