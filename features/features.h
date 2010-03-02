@@ -287,6 +287,13 @@ public:
 	void refine(size_t level) ;
 	
 	
+	/** \brief  Return true if the physics is modified by the BC
+	 * 
+	 * For example, if damage will occur, cracks will grow, etc.
+	 * 
+	 */
+	bool stable(double dt) ;
+
 	/** \brief  Set the constitutive law of the given feature.
 	 * 
 	 * <b>Beware!</b> this function <i>deletes</i> the previous tensor. Make sure is is not in use by another feature. 

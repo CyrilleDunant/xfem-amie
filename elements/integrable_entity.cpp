@@ -41,9 +41,60 @@ ElementState & IntegrableEntity::getState()
 
 void ElementState::stepBack()
 {
-	ElementState * current = this ;
-	*this = history[history.size()-1] ;
-	delete current ;
+	if(!history.empty())
+	{
+		*this = history.back() ;
+		history.pop_back() ;
+	}
+}
+
+ElementState & ElementState::operator =(const ElementState &s)
+{
+	displacements.resize(s.getDisplacements().size()) ; displacements = s.getDisplacements() ;
+	enrichedDisplacements.resize(s.getEnrichedDisplacements().size()) ; 
+	enrichedDisplacements  = s.getEnrichedDisplacements();
+	
+	previousDisplacements.resize(s.getPreviousDisplacements().size()) ; 
+	previousDisplacements = s.getPreviousDisplacements() ;
+	previousEnrichedDisplacements.resize(s.getPreviousEnrichedDisplacements().size()) ; 
+	previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
+	
+	previousPreviousDisplacements.resize(s.getPreviousPreviousDisplacements().size()) ; 
+	previousPreviousDisplacements = s.getPreviousPreviousDisplacements() ;
+	previousPreviousEnrichedDisplacements.resize(s.getPreviousPreviousEnrichedDisplacements().size()) ; 
+	previousPreviousEnrichedDisplacements = s.getPreviousPreviousEnrichedDisplacements() ;
+	buffer.resize(s.getBuffer().size()) ; buffer = s.getBuffer() ;
+	
+	timePos = s.getTime();
+	previousTimePos = s.getTime()-s.getDeltaTime();
+	previousPreviousTimePos = s.getTime()-2*s.getDeltaTime();
+	
+	parent = s.getParent();
+	return *this ;
+}
+
+ElementState::ElementState(const ElementState &s)
+{
+	displacements.resize(s.getDisplacements().size()) ; displacements = s.getDisplacements() ;
+	enrichedDisplacements.resize(s.getEnrichedDisplacements().size()) ; 
+	enrichedDisplacements  = s.getEnrichedDisplacements();
+	
+	previousDisplacements.resize(s.getPreviousDisplacements().size()) ; 
+	previousDisplacements = s.getPreviousDisplacements() ;
+	previousEnrichedDisplacements.resize(s.getPreviousEnrichedDisplacements().size()) ; 
+	previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
+	
+	previousPreviousDisplacements.resize(s.getPreviousPreviousDisplacements().size()) ; 
+	previousPreviousDisplacements = s.getPreviousPreviousDisplacements() ;
+	previousPreviousEnrichedDisplacements.resize(s.getPreviousPreviousEnrichedDisplacements().size()) ; 
+	previousPreviousEnrichedDisplacements = s.getPreviousPreviousEnrichedDisplacements() ;
+	buffer.resize(s.getBuffer().size()) ; buffer = s.getBuffer() ;
+	
+	timePos = s.getTime();
+	previousTimePos = s.getTime()-s.getDeltaTime();
+	previousPreviousTimePos = s.getTime()-2*s.getDeltaTime();
+	
+	parent = s.getParent();
 }
 
 Vector & ElementState::getPreviousEnrichedDisplacements() 

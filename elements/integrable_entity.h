@@ -82,14 +82,10 @@ public:
 	
 	/** \brief Construct the state of the argument*/
 	ElementState(IntegrableEntity *) ;
-
 	/** \brief Copy-constructor*/
-	ElementState(const ElementState & e) :  displacements(e.getDisplacements()), 
-						enrichedDisplacements(e.getEnrichedDisplacements()), 
-						previousDisplacements(e.getDisplacements()), 
-						previousEnrichedDisplacements(e.getEnrichedDisplacements()), 
-						timePos(e.getTime()),
-						previousTimePos(e.getTime()-e.getDeltaTime()), parent(e.getParent()) { } ;
+	ElementState(const ElementState &s) ;
+						
+	ElementState & operator =(const ElementState &) ;
 	
 /** \brief Return strain at given point*/
 	Vector getStrain(const Point & , bool local = false) const;

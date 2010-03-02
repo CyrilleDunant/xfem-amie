@@ -46,6 +46,7 @@
 #define ID_NEXT100 3
 #define ID_NEXT1000 4
 #define ID_NEXT 2
+#define ID_BACK -2
 #define ID_NEXT_TIME 0
 #define ID_REFINE 8
 #define ID_AMPLIFY 9
@@ -153,7 +154,7 @@ void step()
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
       
 		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 20)//as long as we can update the features
+		while(!featureTree->step(timepos) && limit < 1)//as long as we can update the features
 		{
 // 			if(limit == 1)
 // 			{
@@ -539,6 +540,12 @@ void Menu(int selection)
 			dlist = false ;
 			break ;
 		}
+	case ID_BACK:
+	{
+		featureTree->stepBack() ;
+		dlist = false ;
+		break ;
+	}
 	case ID_NEXT_TIME:
 		{
 			timepos +=0.0001 ;
@@ -1442,7 +1449,7 @@ int main(int argc, char *argv[])
 	Point center4 = (center2 + center1)/2;
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
-	double stress = 50 ;
+	double stress = 55 ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
@@ -1452,18 +1459,18 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
 	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_RIGHT)) ;
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(256) ;
+	F.sample(16) ;
 
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
 // 	F.refine(3) ;
 
@@ -1503,6 +1510,7 @@ int main(int argc, char *argv[])
 	glutCreateMenu(Menu) ;
 
  	glutAddMenuEntry(" Step          ", ID_NEXT);
+	glutAddMenuEntry(" StepBack      ", ID_BACK);
 	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
 	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
 	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);

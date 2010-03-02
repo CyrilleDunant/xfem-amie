@@ -4172,6 +4172,27 @@ bool FeatureTree::step(double dt)
 	
 }
 
+bool FeatureTree::stable(double dt)
+{
+	bool needAssemblyinit = needAssembly ;
+	bool meshChangeinit = meshChange ;
+	bool enrichmentChangeinit = enrichmentChange ;
+	double crackedVolumeinit = crackedVolume ;	
+	double damagedVolumeinit = damagedVolume ;
+
+	bool stab = step(dt) ;
+	stepBack() ;
+	
+	needAssembly = needAssemblyinit ;
+	meshChange = meshChangeinit ;
+	enrichmentChange = enrichmentChangeinit ;
+	crackedVolume = crackedVolumeinit ;	
+	damagedVolume = damagedVolumeinit ;
+	
+	return stab ;
+}
+
+
 double FeatureTree::getMaximumDisplacement() const
 {
 	if(is2D())
