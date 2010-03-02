@@ -247,7 +247,9 @@ public:
 	 * @param father Parent feature.
 	 * @param t daughter feature.
 	 */
-	void addFeature(Feature *father, Feature * t) ;
+	void addFeature(Feature *father, Feature * f) ;
+
+	void addNewRoot(Feature *father, Feature * f) ; 
 
 	/** \brief Add a larger box to improve meshing. */
 	void defineMeshingBox() ;

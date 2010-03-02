@@ -2018,6 +2018,52 @@ void FeatureTree::addFeature(Feature * father, Feature * f)
 
 }
 
+void FeatureTree::addNewRoot(Feature * father, Feature * f)
+{
+	if(father != NULL)
+	{
+		this->addFeature(father, f) ;
+		std::cout << "warning: invalid root inserted" << std::endl ;
+		return ;
+	}
+	
+	if(!tree.empty() && f->spaceDimensions() == SPACE_TWO_DIMENSIONAL && !f->isEnrichmentFeature)
+		grid->forceAdd(f) ;
+	else if(!tree.empty()&& !f->isEnrichmentFeature)
+		grid3d->forceAdd(f) ;
+	
+	if( f->isCompositeFeature && father && !father->isCompositeFeature)
+	{
+		std::vector<VirtualFeature *> pile = dynamic_cast<CompositeFeature *>(f)->getComponents();
+		f->setFather(father) ;
+		if(father != NULL)
+			father->addChild(f) ;
+		this->tree.push_back(f) ;
+		addFeature(f, pile[0]) ;
+		for(size_t i = 0 ; i < pile.size()-1 ; i++)
+		{
+			addFeature(pile[i], pile[i+1]) ;
+		}
+		return ;
+		
+	}
+	
+	for(size_t i = 0 ; i < this->tree.size() ; i++)
+	{
+		if(this->tree[i]->getFather() == NULL)
+		{
+			this->tree[i]->setFather(f) ;
+			f->addChild(this->tree[i]) ;
+		}
+	}
+
+	f->setFather(father) ;
+	if(father != NULL)
+		father->addChild(f) ;
+	this->tree.insert(this->tree.begin(),f) ;
+
+}
+
 void FeatureTree::defineMeshingBox()
 {
 	if(tree.empty())
@@ -2135,32 +2181,38 @@ void FeatureTree::defineMeshingBox()
 	if(!is3D())
 	{
 		Sample * meshingBox = new Sample(NULL, box_size.x, box_size.y, c_initial.x, c_initial.y) ;
-		std::vector<Feature *> oldtree ;
-		for(size_t i = 0 ; i < tree.size() ; i++)
-			oldtree.push_back(tree[i]) ;
-		tree.clear() ;
-		tree.push_back(meshingBox) ;
-		for(size_t i = 0 ; i < oldtree.size() ; i++)
-			tree.push_back(oldtree[i]) ;
+//		std::vector<Feature *> oldtree ;
+//		for(size_t i = 0 ; i < tree.size() ; i++)
+//			oldtree.push_back(tree[i]) ;
+//		tree.clear() ;
+//		tree.push_back(meshingBox) ;
+//		for(size_t i = 0 ; i < oldtree.size() ; i++)
+//			tree.push_back(oldtree[i]) ;
+		meshingBox->setBehaviour(new VoidForm()) ;
+//		tree.insert(tree.begin(),meshingBox) ;
+		this->addNewRoot(NULL,meshingBox) ;
 	}
 
 	if(is3D())
 	{
 		Sample3D * meshingBox3D = new Sample3D(NULL, box_size.x, box_size.y, box_size.z, c_initial.x, c_initial.y, c_initial.z) ;
-		std::vector<Feature *> oldtree ;
-		for(size_t i = 0 ; i < tree.size() ; i++)
-			oldtree.push_back(tree[i]) ;
-		tree.clear() ;
-		tree.push_back(meshingBox3D) ;
-		for(size_t i = 0 ; i < oldtree.size() ; i++)
-			tree.push_back(oldtree[i]) ;
+		meshingBox3D->setBehaviour(new VoidForm()) ;
+//		tree.insert(tree.begin(),meshingBox3D) ;
+		this->addNewRoot(NULL,meshingBox3D) ;
+//		std::vector<Feature *> oldtree ;
+//		for(size_t i = 0 ; i < tree.size() ; i++)
+//			oldtree.push_back(tree[i]) ;
+//		tree.clear() ;
+//		tree.push_back(meshingBox3D) ;
+//		for(size_t i = 0 ; i < oldtree.size() ; i++)
+//			tree.push_back(oldtree[i]) ;
 	}
 
 	// change hasMeshingBox tag
 	this->hasMeshingBox = true ;
 
 	// for all features, define the meshing box as the father feature if the feature has no father
-	for(size_t i = 1 ; i < tree.size() ; i++)
+/*	for(size_t i = 1 ; i < tree.size() ; i++)
 	{
 		if(tree[i]->getFather() == NULL)
 		{
@@ -2169,7 +2221,7 @@ void FeatureTree::defineMeshingBox()
 		}
 	}
 
-	tree[0]->setBehaviour(new VoidForm()) ;
+	tree[0]->setBehaviour(new VoidForm()) ;*/
 
 	return ;	
 }
@@ -4383,6 +4435,9 @@ void FeatureTree::initializeElements()
 
 void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersections) 
 {
+	int root_box = 0 ;
+	if(hasMeshingBox)
+		root_box = 1 ;
 
 	std::valarray<Point> bbox(8) ;
 	double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
