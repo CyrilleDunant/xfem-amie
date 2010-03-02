@@ -4576,7 +4576,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 	size_t count  = 0 ;
 
-/*	if(computeIntersections)
+	if(computeIntersections)
 	{
 		for(size_t i = 1 ;  i < tree.size() ; i++)
 		{
@@ -4670,7 +4670,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		}
 	}
 	count = 0 ;
-	std::cerr << " ...done." << std::endl ;*/
+	std::cerr << " ...done." << std::endl ;
 
 	//let us make sure we have no overlap
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
@@ -4801,8 +4801,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			if(meshPoints[i].second == NULL)
 				pb.second.push_back(i) ;
 		}
-		std::cout << pb.first.size() << " NULL points in mesh" << std::endl ;
-		std::cout << pb.second.size() << " points associated to a NULL feature in mesh" << std::endl ;
 
 				
 		
@@ -4828,8 +4826,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			}
 		}
 		
-		std::cout << "before?????" << std::endl ;
-
 		for(size_t k  =  0 ; k <  enrichmentFeature.size() ; k++)
 		{
 			std::vector<Point *> pts = dynamic_cast<EnrichmentFeature *>(enrichmentFeature[k])->getSamplingPoints() ;

@@ -1425,7 +1425,7 @@ int main(int argc, char *argv[])
 
 	
 
-	F.sample(256) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -1)) ;
