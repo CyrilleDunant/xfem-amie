@@ -11,7 +11,10 @@ namespace Mu
 	{
 	protected:
 		std::vector<DelaunayTriangle *> triangles ;
+		std::vector<Point *> points ;
 		Grid grid ;
+		void addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep) ;
+		int global_counter ;
 	public:
 		StructuredMesh(double sizeX, double sizeY, int div, const Point & center ) ;
 		virtual ~StructuredMesh() ;
@@ -20,6 +23,7 @@ namespace Mu
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g);
 		virtual void setElementOrder(Order o);
 		virtual void insert(Point *) ;
+		
 	} ;
 }
 
