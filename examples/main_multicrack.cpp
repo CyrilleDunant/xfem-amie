@@ -1381,8 +1381,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;	
-//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(50./8, -50))) ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;	
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(50./8, -50))) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
@@ -1402,7 +1402,7 @@ int main(int argc, char *argv[])
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
 	inc0->setBehaviour(new Stiffness(m0_paste*.9)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
- 	F.addFeature(&sample, inc0) ;
+//  	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 	
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
@@ -1452,7 +1452,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
 	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
@@ -1461,7 +1461,7 @@ int main(int argc, char *argv[])
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(512) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;

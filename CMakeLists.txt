@@ -41,6 +41,7 @@ geometry/geometry_base.cpp
 geometry/level_set.cpp
 mesher/delaunay_3d.cpp 
 mesher/delaunay.cpp 
+mesher/structuredmesh.cpp 
 physics/damagemodels/isotropiclineardamage.cpp 
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
