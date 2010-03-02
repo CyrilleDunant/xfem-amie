@@ -63,6 +63,8 @@ Matrix LinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
 	
+	if(fractured())
+		return m*0.0001	;
 	//this is a silly way of distinguishing between 2D and 3D
 	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
 	{

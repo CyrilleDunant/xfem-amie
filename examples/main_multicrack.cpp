@@ -1223,6 +1223,22 @@ void Display(void)
 				}
 				glEnd();
 			}
+			else
+			{
+				glColor3f(0, 0, 1) ;
+
+				
+				glBegin(GL_LINE_LOOP);
+				for(size_t k = start ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				{
+					double vx = x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
+					
+				}
+				glEnd();
+			}
 			
 			glColor3f(1, 1, 1) ;
 		}
@@ -1444,8 +1460,6 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 	
 	Circle cercle(.5, 0,0) ;
-
-	F.defineMeshingBox() ;
 
 	F.sample(512) ;
 

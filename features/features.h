@@ -249,7 +249,7 @@ public:
 	 */
 	void addFeature(Feature *father, Feature * f) ;
 
-	void addNewRoot(Feature *father, Feature * f) ; 
+	void addNewRoot(Feature *newRoot) ; 
 
 	/** \brief Add a larger box to improve meshing. */
 	void defineMeshingBox() ;

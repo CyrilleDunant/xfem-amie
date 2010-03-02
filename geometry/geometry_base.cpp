@@ -1323,6 +1323,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 		}
 	case RECTANGLE:
 		{
+			
 			std::vector<Point> box = this->getBoundingBox() ;
 			Segment s0(box[0], box[1]) ;
 			Segment s1(box[1], box[2]) ; 
@@ -1344,15 +1345,15 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				return intersection ;
 			}
 			std::vector<Point> intersection = s0.intersection(g) ;
-			
+			if(intersection.size() == 1)
+				intersection = Line(s0.first(), s0.vector()).intersection(g);
 			double perimetre = s0.norm()+s1.norm()+s2.norm()+s3.norm() ;
-			
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
 				ret.push_back(intersection[i]) ;
 				
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round(4.*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;
@@ -1361,13 +1362,14 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(!intersection.empty())
 				ret.push_back(intersection.back()) ;
-
 			intersection = s1.intersection(g) ;
+			if(intersection.size() == 1)
+				intersection = Line(s1.first(), s1.vector()).intersection(g);
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
 				ret.push_back(intersection[i]) ;
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round(4.*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;
@@ -1375,13 +1377,14 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(!intersection.empty())
 				ret.push_back(intersection.back()) ;
-
 			intersection = s2.intersection(g) ;
+			if(intersection.size() == 1)
+				intersection = Line(s2.first(), s2.vector()).intersection(g);
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
 				ret.push_back(intersection[i]) ;
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round(4.*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;
@@ -1389,13 +1392,14 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(!intersection.empty())
 				ret.push_back(intersection.back()) ;
-
 			intersection = s3.intersection(g) ;
+			if(intersection.size() == 1)
+				intersection = Line(s3.first(), s3.vector()).intersection(g);
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
 				ret.push_back(intersection[i]) ;
 				double l = dist(intersection[i], intersection[i+1]) ;
-				size_t jmax = (size_t)round((double)4*g->getBoundingPoints().size()*(l/perimetre)) ;
+				size_t jmax = (size_t)round(4.*g->getBoundingPoints().size()*(l/perimetre)) ;
 				for(size_t j = 1 ; j < jmax ; j++ )
 				{
 					ret.push_back(intersection[i]*(double)(jmax-j)/(double)(jmax)+intersection[i+1]*(double)(j)/(double)(jmax)) ;
@@ -1403,11 +1407,9 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(!intersection.empty())
 				ret.push_back(intersection.back()) ;
-
 			std::sort(ret.begin(), ret.end()) ;
 			std::vector<Point>:: iterator e = std::unique(ret.begin(), ret.end()) ;
 			ret.erase(e, ret.end()) ;
-			
 			return ret ;
 		}
 	case SEGMENTED_LINE:
@@ -1426,7 +1428,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 		}
 	case CIRCLE:
 		{
-			
 			if(g->getGeometryType() == CIRCLE)
 			{
 				double r = getRadius() ;
@@ -2932,8 +2933,8 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 	case CIRCLE:
 		{
 			double a = v.sqNorm() ;
-			double b = p.x*v.x + p.y*v.y ;
-			double c = p.sqNorm()-g->getRadius()*g->getRadius() ;
+			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y)*2. ;
+			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)+(p.y-g->getCenter().y)*(p.y-g->getCenter().y)-g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4*a*c ;
 			
 			if(delta == 0)
