@@ -17,15 +17,11 @@ using namespace Mu ;
 Sample::Sample(Feature * father, double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Rectangle(x*1.01, y*1.01, originX, originY) ;
-	this->boundary2 = NULL ;//new Rectangle(x-.05, y-.05, originX, originY) ;
 }
 
 Sample::Sample( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Rectangle(x*1.01, y*1.01, originX, originY) ;
-	this->boundary2 = NULL ;//new Rectangle(x-.05, y-.05, originX, originY) ;
 }
 
 Point * Sample::pointAfter(size_t i)
@@ -47,7 +43,7 @@ std::vector<DelaunayTriangle *> Sample::getElements( Mesh<DelaunayTriangle> * dt
 	if(this->m_f == NULL)
 		temp = dt->getElements() ;
 	else
-		temp = dt->getConflictingElements(this->boundary) ;
+		temp = dt->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -67,10 +63,10 @@ std::vector<DelaunayTriangle *> Sample::getElements( Mesh<DelaunayTriangle> * dt
 	return ret ;
 }
 
-bool Sample::interacts(Feature * f) const
+bool Sample::interacts(Feature * f, double d) const
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-		if(f->inBoundary((*i)))
+		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
 }

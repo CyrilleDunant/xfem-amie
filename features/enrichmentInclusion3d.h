@@ -45,13 +45,10 @@ public:
 	virtual void enrich(size_t &,  DelaunayTree3D * dtree) ;
 	
 /** \brief return false*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief return false*/
-	virtual bool inBoundary(const Point v) const ;
-
-/** \brief return false*/
-	virtual bool inBoundary(const Point *v) const ;
+	virtual bool inBoundary(const Point & v) const ;
 	
 /** \brief return empty vector*/
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt) {return std::vector<DelaunayTriangle *>(0) ;} 

@@ -20,7 +20,7 @@ std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle> *
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->boundary) ;
+	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -33,7 +33,7 @@ std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle> *
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) && inChild == false)
+		if(this->in(temp[i]->getCenter()) && inChild == false)
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
@@ -42,29 +42,21 @@ std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle> *
 Inclusion::Inclusion(Feature * father,double r, double x, double y) : Circle(r, x, y ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Circle(r+r*0.1, x, y) ;
-	this->boundary2 = new Circle(r-r*0.1, x, y) ;
 }
 
 Inclusion::Inclusion(Feature * father,double r, Point center) : Circle(r, center ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Circle(r+r*0.1, center) ;
-	this->boundary2 = new Circle(r-r*0.1, center) ;
 }
 
 Inclusion::Inclusion(double r, double x, double y) : Circle(r, x, y), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Circle(r+r*0.1, x, y) ;
-	this->boundary2 = new Circle(r-r*0.1, x, y) ;
 }
 
 Inclusion::Inclusion(double r, Point center) : Circle(r, center),  Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Circle(r+r*0.1, center) ;
-	this->boundary2 = new Circle(r-r*0.1, center) ;
 }
 
 Point * Inclusion::pointAfter(size_t i)
@@ -86,10 +78,6 @@ Point * Inclusion::pointAfter(size_t i)
 
 void Inclusion::sample(size_t n)
 {
-	delete this->boundary ;
-	double numberOfRings =round((double)n/(2. * M_PI )) ;
-	double r = getRadius()*(1.+ .6/(numberOfRings+1)) ;
-	this->boundary = new Circle(r, getCenter()) ;
 	this->sampleSurface(n) ;
 }
 
@@ -106,10 +94,10 @@ std::vector<Geometry *> Inclusion::getRefinementZones(size_t level) const
 	return ret ;
 }
 
-bool Inclusion::interacts(Feature * f) const
+bool Inclusion::interacts(Feature * f, double d) const
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-		if(f->inBoundary((*i)))
+		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
 }
@@ -119,7 +107,7 @@ std::vector<DelaunayTriangle *> TriangularInclusion::getElements( Mesh<DelaunayT
 {
 	std::vector<DelaunayTriangle *> ret ;
 	
-	std::vector<DelaunayTriangle *>  temp = dt->getConflictingElements(this->boundary) ;
+	std::vector<DelaunayTriangle *>  temp = dt->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -132,7 +120,7 @@ std::vector<DelaunayTriangle *> TriangularInclusion::getElements( Mesh<DelaunayT
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) && inChild == false)
+		if(this->in(temp[i]->getCenter()) && inChild == false)
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
@@ -141,21 +129,12 @@ std::vector<DelaunayTriangle *> TriangularInclusion::getElements( Mesh<DelaunayT
 TriangularInclusion::TriangularInclusion(Feature * father,const Point & a, const Point & b, const Point & c) : Triangle(a, b, c), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	Point va = a-getCenter() ;
-	Point vb = b-getCenter() ;
-	Point vc = c-getCenter() ;
-	this->boundary = new Triangle(a+va*0.02,b+vb*0.02,c+vc*0.02) ;
-	this->boundary2 = new Triangle(a-va*0.02,b-vb*0.02,c-vc*0.02) ;
+
 }
 
 TriangularInclusion::TriangularInclusion(const Point & a, const Point & b, const Point & c) : Triangle(a, b, c), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	Point va = a-getCenter() ;
-	Point vb = b-getCenter() ;
-	Point vc = c-getCenter() ;
-	this->boundary = new Triangle(a+va*0.02,b+vb*0.02,c+vc*0.02) ;
-	this->boundary2 = new Triangle(a-va*0.02,b-vb*0.02,c-vc*0.02) ;
 }
 
 
@@ -191,10 +170,10 @@ std::vector<Geometry *> TriangularInclusion::getRefinementZones(size_t level) co
 	return ret ;
 }
 
-bool TriangularInclusion::interacts(Feature * f) const
+bool TriangularInclusion::interacts(Feature * f, double d) const
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-		if(f->inBoundary((*i)))
+		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
 }
@@ -202,63 +181,47 @@ bool TriangularInclusion::interacts(Feature * f) const
 EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY, double axisX, double axisY) : Ellipse(a,b,originX,originY,axisX,axisY), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, axisX, axisY) ;
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, axisX, axisY) ;
 }
 
 EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY) : Ellipse(a,b,originX,originY), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
 }
 
 EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, const Point center, const Point axis) : Ellipse(a,b,center,axis), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, axis) ;
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, axis) ;
 }
 
 EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, double a, double b, const Point center) : Ellipse(a,b,center), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, this->Ellipse::getMajorAxis());
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, this->Ellipse::getMajorAxis()) ;
 }
 
 EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, double originX, double originY, double axisX, double axisY) : Ellipse(a,b,originX,originY,axisX,axisY), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, axisX, axisY) ;
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, axisX, axisY) ;
 }
 
 EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, double originX, double originY) : Ellipse(a,b,originX,originY), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, originX, originY, this->Ellipse::getMajorAxis().x, this->Ellipse::getMajorAxis().y) ;
 }
 
 EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, const Point center, const Point axis)  : Ellipse(a,b,center,axis), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, axis) ;
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, axis) ;
 }
 	
 EllipsoidalInclusion::EllipsoidalInclusion(double a, double b, const Point center)  : Ellipse(a,b,center), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Ellipse(a+a*0.1,b+b*0.1, center, this->Ellipse::getMajorAxis()) ;
-	this->boundary2 = new Ellipse(a-a*0.1,b-b*0.1, center, this->Ellipse::getMajorAxis()) ;
 }
 
-bool EllipsoidalInclusion::interacts(Feature * f) const
+bool EllipsoidalInclusion::interacts(Feature * f, double d) const
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-		if(f->inBoundary((*i)))
+		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
 }
@@ -279,7 +242,7 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements( Mesh<Delaunay
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->boundary) ;
+	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -292,7 +255,7 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements( Mesh<Delaunay
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) && inChild == false)
+		if(this->in(temp[i]->getCenter()) && inChild == false)
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
@@ -322,12 +285,6 @@ Point * EllipsoidalInclusion::pointAfter(size_t i)
 
 void EllipsoidalInclusion::sample(size_t n)
 {
-	delete this->boundary ;
-	double numberOfRings =round((double)n/(2. * M_PI )) ;
-	double a = getRadius()*(1.+ .6/(numberOfRings+1)) ;
-	double b = this->Ellipse::getMinorRadius()*(1.+ .6/(numberOfRings+1)) ;
-	Point axis = this->Ellipse::getMajorAxis() ;
-	this->boundary = new Ellipse(a, b, getCenter(), axis) ;
 	this->sampleSurface(n) ;
 
 //	std::cout << "number of points => " << n << std::endl ;

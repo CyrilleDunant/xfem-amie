@@ -59,7 +59,7 @@ public:
 	virtual void addSamplePoints(PointSet * po ) { };
 	
 /** \brief return true if the boundary overlaps that of the argument*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief get list of refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t) const ;
@@ -125,7 +125,7 @@ public:
 	virtual void addSamplePoints(PointSet * po ) { };
 	
 /** \brief return true if the boundary overlaps that of the argument*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief get list of refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t) const ;

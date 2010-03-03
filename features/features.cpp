@@ -2700,6 +2700,12 @@ void FeatureTree::refine(size_t nit, SamplingCriterion *cri)
 
 void FeatureTree::refine( size_t level )
 {
+	double pointDensity = 0 ; 
+	if(is2D())
+		pointDensity = .6*sqrt(tree[0]->area())/meshPoints.size() ;
+	else
+		pointDensity = .6*pow(tree[0]->volume(), 1./3.)/meshPoints.size() ;
+	
 	if(this->dtree == NULL && this->dtree3D == NULL)
 		this->generateElements() ;
 	
@@ -2765,27 +2771,27 @@ void FeatureTree::refine( size_t level )
 						{
 							if(!zonesVec[i].second->getFather()->getChild(l)->isEnrichmentFeature )
 							{
-								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p0))
+								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p0, pointDensity))
 								{
 									count_0++ ;
 								}
-								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p1))
+								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p1, pointDensity))
 								{
 									count_1++ ;
 								}
-								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p1))
+								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p1, pointDensity))
 								{
 									count_2++ ;
 								}
-								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p2))
+								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p2, pointDensity))
 								{
 									count_2++ ;
 								}
-								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p3))
+								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p3, pointDensity))
 								{
 									count_3++ ;
 								}
-								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p4))
+								if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p4, pointDensity))
 								{
 									count_4++ ;
 								}
@@ -2795,17 +2801,17 @@ void FeatureTree::refine( size_t level )
 						
 	// 					for(size_t m = 0 ; m < enrichmentFeature.size() ; m++)
 	// 					{
-	// 						if(enrichmentFeature[m]->inBoundary(&p0))
+	// 						if(enrichmentFeature[m]->inBoundary(p0))
 	// 							count_0++ ;
-	// 						if(enrichmentFeature[m]->inBoundary(&p1))
+	// 						if(enrichmentFeature[m]->inBoundary(p1))
 	// 							count_1++ ;
-	// 						if(enrichmentFeature[m]->inBoundary(&p2))
+	// 						if(enrichmentFeature[m]->inBoundary(p2))
 	// 							count_2++ ;
-	// 						if(enrichmentFeature[m]->inBoundary(&p3))
+	// 						if(enrichmentFeature[m]->inBoundary(p3))
 	// 							count_3++ ;
-	// 						if(enrichmentFeature[m]->inBoundary(&p4))
+	// 						if(enrichmentFeature[m]->inBoundary(p4))
 	// 							count_4++ ;
-	// 						if(enrichmentFeature[m]->inBoundary(&p5))
+	// 						if(enrichmentFeature[m]->inBoundary(p5))
 	// 							count_5++ ;
 	// 					}
 						
@@ -2895,7 +2901,7 @@ void FeatureTree::refine( size_t level )
 						bool yes =true ;
 						for(size_t l = 0 ; l < enrichmentFeature.size() ; l++)
 						{
-							if(enrichmentFeature[l]->inBoundary(sample[k]))
+							if(enrichmentFeature[l]->inBoundary(*sample[k], pointDensity))
 							{
 								yes = false ;
 								break ;
@@ -2903,7 +2909,7 @@ void FeatureTree::refine( size_t level )
 						}
 						for(size_t l = 0 ; l < zonesVec[i].second->getChildren().size() ; l++)
 						{
-							if(zonesVec[i].second->getChild(l)->inBoundary(sample[k]))
+							if(zonesVec[i].second->getChild(l)->inBoundary(*sample[k], pointDensity))
 							{
 								yes = false ;
 								break ;
@@ -2946,15 +2952,15 @@ void FeatureTree::refine( size_t level )
 					{
 						if(!zonesVec[i].second->getFather()->getChild(l)->isEnrichmentFeature )
 						{
-							if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p0))
+							if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p0, pointDensity))
 							{
 								count_0++ ;
 							}
-							if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p1))
+							if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p1, pointDensity))
 							{
 								count_1++ ;
 							}
-							if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(&p1))
+							if(zonesVec[i].second->getFather()->getChild(l)->inBoundary(p1, pointDensity))
 							{
 								count_2++ ;
 							}
@@ -2965,11 +2971,11 @@ void FeatureTree::refine( size_t level )
 			
 				for(size_t m = 0 ; m < enrichmentFeature.size() ; m++)
 				{
-					if(enrichmentFeature[m]->inBoundary(&p0))
+					if(enrichmentFeature[m]->inBoundary(p0, pointDensity))
 						count_0++ ;
-					if(enrichmentFeature[m]->inBoundary(&p1))
+					if(enrichmentFeature[m]->inBoundary(p1, pointDensity))
 						count_1++ ;
-					if(enrichmentFeature[m]->inBoundary(&p2))
+					if(enrichmentFeature[m]->inBoundary(p2, pointDensity))
 						count_2++ ;
 				}
 				
@@ -3255,6 +3261,11 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 
 Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 {
+	double pointDensity = 0 ; 
+	if(is2D())
+		pointDensity = .6*sqrt(tree[0]->area())/meshPoints.size() ;
+	else
+		pointDensity = .6*pow(tree[0]->volume(), 1./3.)/meshPoints.size() ;
 	
 	if(!inRoot(t->getCenter())) 
 		return NULL;
@@ -3287,10 +3298,10 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 				
 				size_t count_in = 0 ;
 				
-				count_in += tree[i]->inBoundary(t->first) ;
-				count_in += tree[i]->inBoundary(t->second) ;
-				count_in += tree[i]->inBoundary(t->third) ;
-				count_in += tree[i]->inBoundary(t->fourth) ;
+				count_in += tree[i]->inBoundary(*t->first, pointDensity) ;
+				count_in += tree[i]->inBoundary(*t->second, pointDensity) ;
+				count_in += tree[i]->inBoundary(*t->third, pointDensity) ;
+				count_in += tree[i]->inBoundary(*t->fourth, pointDensity) ;
 				
 				if(count_in == 4 && tree[i]->in(t->getCenter()))
 				{
@@ -3329,6 +3340,11 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 
 Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
 {
+	double pointDensity = 0 ; 
+	if(is2D())
+		pointDensity = .6*sqrt(tree[0]->area())/meshPoints.size() ;
+	else
+		pointDensity = .6*pow(tree[0]->volume(), 1./3.)/meshPoints.size() ;
 	
 	if(!inRoot(t->getCenter())) 
 		return NULL;
@@ -3359,9 +3375,9 @@ Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
 				
 				size_t count_in = 0 ;
 				
-				count_in += tree[i]->inBoundary(t->first) ;
-				count_in += tree[i]->inBoundary(t->second) ;
-				count_in += tree[i]->inBoundary(t->third) ;
+				count_in += tree[i]->inBoundary(*t->first, pointDensity) ;
+				count_in += tree[i]->inBoundary(*t->second, pointDensity) ;
+				count_in += tree[i]->inBoundary(*t->third, pointDensity) ;
 				
 				if(count_in == 3 && tree[i]->in(t->getCenter()))
 				{
@@ -3869,6 +3885,12 @@ Assembly * FeatureTree::getAssembly()
 
 void FeatureTree::insert(Point * p )
 {
+	double pointDensity = 0 ; 
+	if(is2D())
+		pointDensity = .6*sqrt(tree[0]->area())/meshPoints.size() ;
+	else
+		pointDensity = .6*pow(tree[0]->volume(), 1./3.)/meshPoints.size() ;
+	
 	Feature * mother = NULL;
 	
 	for(size_t i  = 0 ; i < this->tree.size() ; i ++)
@@ -3895,7 +3917,7 @@ void FeatureTree::insert(Point * p )
 	
 	for(size_t k  =  0 ; k <  mother->getChildren().size() && yes; k++)
 	{
-		if( mother->getChild(k)->inBoundary(p))
+		if( mother->getChild(k)->inBoundary(*p, pointDensity))
 			yes = false ;
 	}
 	
@@ -4340,7 +4362,12 @@ void FeatureTree::initializeElements()
 
 void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersections) 
 {
-
+	double pointDensity = 0 ; 
+	if(is2D())
+		pointDensity = .3*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
+	else
+		pointDensity = .3*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), 1./3.) ;
+	
 	std::valarray<Point> bbox(8) ;
 	double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
 
@@ -4418,12 +4445,12 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
 				{
 					if((!potentialChildren[k]->isVirtualFeature 
-					    && potentialChildren[k]->getBoundary()->in(tree[i]->getBoundingPoint(j))) 
+					    && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)) 
 					   || (potentialChildren[k]->isVirtualFeature 
 					       && tree[i]->isVirtualFeature 
 					       && (dynamic_cast<VirtualFeature *>(potentialChildren[k])->getSource() 
 					           != dynamic_cast<VirtualFeature *>(tree[i])->getSource())
-					       && potentialChildren[k]->getBoundary()->in(tree[i]->getBoundingPoint(j))
+					       && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)
 					      )
 					   || (potentialChildren[k]->isVirtualFeature 
 					       && potentialChildren[k]->in(tree[i]->getBoundingPoint(j)))
@@ -4476,7 +4503,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					if(
 					    (
 					      !potentialChildren[k]->isVirtualFeature 
-					      && potentialChildren[k]->getBoundary()->in(tree[i]->getInPoint(j))
+					      && potentialChildren[k]->inBoundary(tree[i]->getInPoint(j), pointDensity)
 					    ) 
 					   || 
 					    (
@@ -4488,7 +4515,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					          dynamic_cast<VirtualFeature *>(potentialChildren[k])->getSource() 
 					          != dynamic_cast<VirtualFeature *>(tree[i])->getSource()
 					        )
-					        && potentialChildren[k]->getBoundary()->in(tree[i]->getInPoint(j))
+					        && potentialChildren[k]->inBoundary(tree[i]->getInPoint(j), pointDensity)
 					      )
 					      || 
 					      (
@@ -4505,6 +4532,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				
 				if(i != 0 && !inRoot(tree[i]->getInPoint(j)))
+					isIn = true ;
+				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getInPoint(j), pointDensity))
 					isIn = true ;
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getInPoint(j)))
 					isIn = true ;
@@ -4556,7 +4585,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 							bool indescendants = false ;
 							for(size_t l = 0 ; l < descendants.size() ; l++)
 							{
-								if(descendants[l]->inBoundary(inter[k]))
+								if(descendants[l]->inBoundary(inter[k], pointDensity))
 								{
 									indescendants = true ;
 									break ;
@@ -4593,7 +4622,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					bool indescendants = false ;
 					for(size_t l = 0 ; l < descendants.size() ; l++)
 					{
-						if(descendants[l]->inBoundary(inter[k]))
+						if(descendants[l]->inBoundary(inter[k], pointDensity))
 						{
 							indescendants = true ;
 							break ;

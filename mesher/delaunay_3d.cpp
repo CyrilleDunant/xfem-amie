@@ -1910,7 +1910,7 @@ Star3D::Star3D(std::vector<DelaunayTreeItem3D *> *t, const Point *p) :  treeitem
 		}
 	}
 	std::sort(edge.begin(), edge.end()) ;
-	edge.erase(unique(edge.begin(), edge.end()), edge.end()) ;
+	edge.erase(std::unique(edge.begin(), edge.end()), edge.end()) ;
 }
 	
 size_t Star3D::size()

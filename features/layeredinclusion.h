@@ -67,7 +67,7 @@ public:
 	virtual void addSamplePoints(PointSet * po ) { };
 
 /** \brief return true if the boundary overlaps that of the argument*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief return refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
@@ -120,7 +120,7 @@ public:
 	virtual ~VirtualLayer() { } ;
 	virtual void addSamplePoints(PointSet * po ) { };
 
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
@@ -139,9 +139,6 @@ public:
 	virtual Form * getBehaviour(const Point & p) ;
 
 	virtual bool isVoid( const Point &) const {return false ;}
-
-	virtual bool inBoundary(const Point & v) const ;
-	virtual bool inBoundary(const Point *v) const ;
 
 	virtual Feature * getSource() ;
 	

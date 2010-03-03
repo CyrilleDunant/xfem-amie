@@ -59,7 +59,7 @@ public:
 	virtual void addSamplePoints(PointSet * po ) { };
 
 /** \brief return true if the boundary overlaps that of the argument*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief get list of refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
@@ -121,7 +121,7 @@ public:
 	virtual void addSamplePoints(PointSet * po ) { };
 
 /** \brief return true if the boundary overlaps that of the argument*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief get list of refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
@@ -200,7 +200,7 @@ public:
 	virtual void addSamplePoints(PointSet * po ) { };
 
 /** \brief return true if the boundary overlaps that of the argument*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief get list of refinement zones*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
@@ -258,7 +258,7 @@ public:
 	virtual std::vector<DelaunayTriangle*> getTriangles(Mu::DelaunayTree*) { return std::vector<Mu::DelaunayTriangle*>() ;}
 	
 	virtual std::vector<DelaunayTetrahedron*> getTetrahedrons(Mu::DelaunayTree3D*) {return std::vector<Mu::DelaunayTetrahedron*>() ;}
- 	virtual bool interacts(Mu::Feature*) const {return false ;}
+ 	virtual bool interacts(Mu::Feature*, double) const {return false ;}
 	virtual Point* pointAfter(size_t) {return NULL ;}
 	virtual std::vector<Mu::Geometry*> getRefinementZones(size_t) const {return std::vector<Mu::Geometry*>() ;}
 	virtual void print() const {std::cout << "ITZ !" << std::endl;}

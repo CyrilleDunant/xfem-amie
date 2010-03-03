@@ -42,7 +42,7 @@ public:
 	Sample(double x, double y, double originX, double originY) ;
 
 /** \brief return true if the boundary overlaps that of the argument*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 	
 /** \brief return empty list*/
 	virtual std::vector<Geometry *> getRefinementZones(size_t) const { return std::vector<Geometry *>() ;}

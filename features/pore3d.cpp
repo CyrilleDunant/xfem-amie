@@ -19,33 +19,32 @@ Pore3D::Pore3D(Feature *father, double r, double x, double y, double z) : Featur
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
 }
 
 Pore3D::Pore3D(Feature *father, double r, Point center) : Feature(father), Sphere(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 
 Pore3D::Pore3D(double r, double x, double y, double z): Feature(NULL), Sphere(r, x,y,z)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), x,y,z) ;
 }
 
 Pore3D::Pore3D(double r, Point center) : Feature(NULL), Sphere(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 
-bool Pore3D::interacts(Feature * f) const
+bool Pore3D::interacts(Feature * f, double d) const
 {
-	return this->boundary->intersects(f->getBoundary()) ;
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
+		if(f->inBoundary(*(*i), d))
+			return true ;
+	return false ;
 }
 	
 std::vector<Geometry *> Pore3D::getRefinementZones(size_t level) const
@@ -68,7 +67,7 @@ std::vector<DelaunayTriangle *> Pore3D::getElements( Mesh<DelaunayTriangle> * dt
 std::vector<DelaunayTetrahedron *> Pore3D::getElements( Mesh<DelaunayTetrahedron> * dt){
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->boundary) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -81,7 +80,7 @@ std::vector<DelaunayTetrahedron *> Pore3D::getElements( Mesh<DelaunayTetrahedron
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) || inChild )
+		if(this->in(temp[i]->getCenter()) || inChild )
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;

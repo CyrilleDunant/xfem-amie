@@ -18,18 +18,16 @@ using namespace Mu ;
 Sample3D::Sample3D(Feature *father, double x, double y, double z, double originX, double originY, double originZ) : Hexahedron(x, y, z, originX, originY, originZ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Hexahedron(x*1.02, y*1.02, z*1.02, originX, originY, originZ) ;
 }
 	
 Sample3D::Sample3D(double x, double y, double z,double originX, double originY, double originZ): Hexahedron(x, y, z, originX, originY, originZ), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Hexahedron(x*1.02, y*1.02, z*1.02, originX, originY, originZ) ;
 }
 	
-bool Sample3D::interacts(Feature * f) const {
+bool Sample3D::interacts(Feature * f, double d) const {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-		if(f->inBoundary((*i)))
+		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
 }
@@ -46,7 +44,7 @@ std::vector<DelaunayTetrahedron *> Sample3D::getElements( Mesh<DelaunayTetrahedr
 	if(this->m_f == NULL)
 		temp = dt->getElements() ;
 	else
-		temp = dt->getConflictingElements(dynamic_cast<const Hexahedron *>(this->boundary)) ;
+		temp = dt->getConflictingElements(dynamic_cast<const Hexahedron *>(this->getPrimitive())) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

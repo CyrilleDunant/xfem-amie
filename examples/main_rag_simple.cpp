@@ -77,7 +77,6 @@ using namespace Mu ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
-std::vector<Crack *> crack ;
 
 double E_min = 10;
 double E_max = 0;
@@ -227,19 +226,6 @@ void step()
 		angle.resize(sigma.size()/3) ;
 		
 		std::cout << "unknowns :" << x.size() << std::endl ;
-		
-		if(crack.size() > 0)
-			tris__ = crack[0]->getIntersectingTriangles(featureTree->get2DMesh()) ;
-		
-		for(size_t k = 1 ; k < crack.size() ; k++)
-		{
-			std::vector<DelaunayTriangle *> temp = crack[k]->getIntersectingTriangles(featureTree->get2DMesh()) ;
-			if(tris__.empty())
-				tris__ = temp ;
-			else if(!temp.empty())
-				tris__.insert(tris__.end(), temp.begin(), temp.end() ) ;
-		}
-		cracked.clear() ;
 		
 		int npoints = triangles[0]->getBoundingPoints().size() ;
 		
@@ -579,61 +565,6 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 	std::cout << "initial Reacted Area = " << M_PI*0.000001*0.000001*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
 	return ret ;	
 }
-
-std::vector<Crack *> generateCracks(size_t n)
-{
-	std::vector<Crack *> ret ;
-	std::vector<Circle *> pos ;
-	size_t nit = 0 ;
-	for(size_t j =0 ; j < n && nit < 2048; j++)
-	{
-		nit++ ;
-		double radius = 0.1 + 0.5*rand()/RAND_MAX;
-		
-		Point center = Point(
-		                      (2.*rand()/RAND_MAX-1.),
-		                      (2.*rand()/RAND_MAX-1.)
-		                    )*(3. - .2*radius ) ; 
-
-		
-		bool alone  = true ;
-		
-		for(size_t k = 0 ; k < pos.size() ; k++ )
-		{
-			if (squareDist(center, pos[k]->getCenter()) <
-			    (radius+pos[k]->getRadius()+0.05)*(radius+pos[k]->getRadius()+0.05))
-			{
-				alone = false ;
-				break ;
-			}
-		}
-		if (alone)
-		{
-			pos.push_back(new Circle(radius, center)) ;
-		}
-		else
-			j-- ;
-		
-// 		pos.push_back(new Circle(radius, center)) ;
-
-	}
-	
-	for(size_t j = 0 ; j < pos.size() ; j++)
-	{
-		std::valarray<Point *> ptset1(2) ;
-		double angle = (2.*rand()/RAND_MAX-1.)*M_PI ;
-		double x_0 = pos[j]->getCenter().x + pos[j]->getRadius()*cos(angle);
-		double y_0 = pos[j]->getCenter().y + pos[j]->getRadius()*sin(angle);
-		double x_1 = pos[j]->getCenter().x + pos[j]->getRadius()*cos(angle+M_PI) ;
-		double y_1 = pos[j]->getCenter().y + pos[j]->getRadius()*sin(angle+M_PI);
-		
-		ptset1[0] = new Point(x_0, y_0) ;
-		ptset1[1] = new Point(x_1, y_1) ;
-		ret.push_back(new Crack(ptset1, 0.02)) ;
-	}
-	std::cout << "placed " << ret.size() << " cracks" << std::endl ;
-	return ret ;
-} ;
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, Matrix * tensor, Feature * father, FeatureTree * F)
 {
@@ -1425,43 +1356,43 @@ void Display(void)
 		
 		glNewList(  DISPLAY_LIST_CRACK,  GL_COMPILE ) ;
 		glLineWidth(4) ;
-		for(size_t k  = 0 ; k < crack.size() ; k++)
-		{
-			glColor3f(1, 0, 0) ;
-// 			for(unsigned int j=0 ; j< tris__.size() ; j++ )
+// 		for(size_t k  = 0 ; k < crack.size() ; k++)
+// 		{
+// 			glColor3f(1, 0, 0) ;
+// // 			for(unsigned int j=0 ; j< tris__.size() ; j++ )
+// // 			{
+// // 				glBegin(GL_LINE_LOOP);
+// // 				double vx = x[tris__[j]->first->id*2]; 
+// // 				double vy = x[tris__[j]->first->id*2+1]; 
+// // 				
+// // 				glVertex2f( double(tris__[j]->first->x/*+ vx*/) ,
+// // 				            double(tris__[j]->first->y/*+ vy*/) );
+// // 				
+// // 				vx = x[tris__[j]->second->id*2]; 
+// // 				vy = x[tris__[j]->second->id*2+1]; 
+// // 				
+// // 				glVertex2f( double(tris__[j]->second->x/*+ vx*/) ,
+// // 				            double(tris__[j]->second->y/*+ vy*/) );
+// // 				
+// // 				vx = x[tris__[j]->third->id*2]; 
+// // 				vy = x[tris__[j]->third->id*2+1]; 
+// // 				
+// // 				glVertex2f( double(tris__[j]->third->x/*+ vx*/) ,
+// // 				            double(tris__[j]->third->y/*+ vy*/) );
+// // 				glEnd();
+// // 			}
+// // 			
+// // 			glColor3f(0, 1, 1) ;
+// 			glBegin(GL_LINES) ;
+// 			for(size_t j=0 ; j< crack[k]->getBoundingPoints().size()-1 ; j++ )
 // 			{
-// 				glBegin(GL_LINE_LOOP);
-// 				double vx = x[tris__[j]->first->id*2]; 
-// 				double vy = x[tris__[j]->first->id*2+1]; 
-// 				
-// 				glVertex2f( double(tris__[j]->first->x/*+ vx*/) ,
-// 				            double(tris__[j]->first->y/*+ vy*/) );
-// 				
-// 				vx = x[tris__[j]->second->id*2]; 
-// 				vy = x[tris__[j]->second->id*2+1]; 
-// 				
-// 				glVertex2f( double(tris__[j]->second->x/*+ vx*/) ,
-// 				            double(tris__[j]->second->y/*+ vy*/) );
-// 				
-// 				vx = x[tris__[j]->third->id*2]; 
-// 				vy = x[tris__[j]->third->id*2+1]; 
-// 				
-// 				glVertex2f( double(tris__[j]->third->x/*+ vx*/) ,
-// 				            double(tris__[j]->third->y/*+ vy*/) );
-// 				glEnd();
+// 				glVertex2f( double(crack[k]->getBoundingPoint(j).x) ,
+// 				            double(crack[k]->getBoundingPoint(j).y) );
+// 				glVertex2f( double(crack[k]->getBoundingPoint(j+1).x) ,
+// 				            double(crack[k]->getBoundingPoint(j+1).y) );
 // 			}
-// 			
-// 			glColor3f(0, 1, 1) ;
-			glBegin(GL_LINES) ;
-			for(size_t j=0 ; j< crack[k]->getBoundingPoints().size()-1 ; j++ )
-			{
-				glVertex2f( double(crack[k]->getBoundingPoint(j).x) ,
-				            double(crack[k]->getBoundingPoint(j).y) );
-				glVertex2f( double(crack[k]->getBoundingPoint(j+1).x) ,
-				            double(crack[k]->getBoundingPoint(j+1).y) );
-			}
-			glEnd();
-		}
+// 			glEnd();
+// 		}
 		
 // 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
 // 		{
@@ -1645,8 +1576,6 @@ int main(int argc, char *argv[])
 
 	F.generateElements(0) ;
 	
-	for(size_t j = 0 ; j < crack.size() ; j++)
-		crack[j]->setInfluenceRadius(0.03) ;
 // 	
 	step() ;
 	

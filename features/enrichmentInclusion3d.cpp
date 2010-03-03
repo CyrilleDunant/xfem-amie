@@ -348,10 +348,9 @@ void EnrichmentInclusion3D::enrich(size_t & counter,  DelaunayTree3D * dtree)
 
 }
 	
-bool EnrichmentInclusion3D::interacts(Feature * f) const { return false ;}
+bool EnrichmentInclusion3D::interacts(Feature * f, double d) const { return false ;}
 	
-bool EnrichmentInclusion3D::inBoundary(const Point v) const {return false ; }
-bool EnrichmentInclusion3D::inBoundary(const Point *v) const { return false ;}
+bool EnrichmentInclusion3D::inBoundary(const Point & v) const {return false ; }
 	
 std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getTetrahedrons( const DelaunayTree3D * dt) 
 { 

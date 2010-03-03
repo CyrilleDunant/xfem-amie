@@ -44,6 +44,8 @@ protected:
 	void enrichBranches(size_t &, Mesh<DelaunayTriangle> * dt) ;
 	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle> * dt, const SegmentedLine * line) ;
 	
+	double influenceRadius ;
+	
 	typedef enum
 	{
 		NOT_ENRICHED,
@@ -150,7 +152,7 @@ public:
 	virtual std::vector<DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron>*) ;
 
 /** \brief Return fales*/
-	virtual bool interacts(Feature*) const ;
+	virtual bool interacts(Feature*, double) const ;
 
 /** \brief insert a point in the main branch after its ith point.*/
 	virtual Point* pointAfter(size_t i) ;
@@ -192,136 +194,6 @@ public:
 	
 public:
 	GEO_DERIVED_OBJECT(SegmentedLine) ;
-} ;
-
-/** \brief Crack class. Deprecated*/
-class Crack :  public EnrichmentFeature,  public SegmentedLine
-{
-	double stepLength ;
-	double criticalJ ;
-	typedef enum
-	{
-		VOID_ENRICHMENT, 
-		SPLIT_ENRICHMENT,
-		MULTI_SPLIT_ENRICHEMENT,
-		SINGULAR_ENRICHMENT,
-		KINKS_ENRICHMENT,
-		HEAD_ENRICHMENT,
-		TAIL_ENRICHMENT,
-		HEAD_AND_TAIL_ENRICHMENT,
-		DONE_ENRICHMENT
-	} EnrichmentType ;
-	
-	class EnrichmentData
-	{
-	protected:
-		std::vector<size_t> iD ;
-		EnrichmentType type ;
-		std::map<std::pair<std::pair<int, int>, int >, bool> state ;
-	public:
-		EnrichmentData(std::vector<size_t> id, EnrichmentType t) ;
-		EnrichmentData(size_t id, EnrichmentType t) ;
-		EnrichmentData() ;
-		std::vector< std::pair<Point *, Function> > getEnrichment(const DelaunayTriangle *, const std::vector<Segment>) ;
-		
-		std::vector<size_t> getID() const ;
-		void setID(const std::vector<size_t>) ;
-		
-		EnrichmentType getType() const ;
-		void setType(EnrichmentType)  ;
-		
-		bool enriched(DelaunayTriangle *)  ;
-		void setEnriched(DelaunayTriangle *,bool) ;
-		
-		bool operator !=(const EnrichmentData & e) const { return e.getType() != type ;}
-	} ;
-	
-	class EnrichmentMap
-	{
-	protected:
-		std::map<size_t, EnrichmentData> props ;
-	public:
-		EnrichmentMap() ;
-		EnrichmentData getEnrichment( size_t) ;
-		
-		void update(std::vector<DelaunayTriangle *> * my_triangles, Crack * myself, size_t &start) ;
-		
-		bool inMap(size_t) const ;
-		
-	} ;
-	
-	EnrichmentMap map ;
-	
-public:
-
-	Crack(Feature *father, const std::valarray<Point *> &points, double radius) ;
-	Crack(const std::valarray<Point *> &points, double radius) ;
-	// SB
-	Crack ( Feature * father, const std::valarray<Point *> & points, double radius, double gfa, double critJ );
-	Crack ( const std::valarray<Point *> & points, double radius, double gfac, double critJ );
-	//end SB
-	virtual ~Crack() ;
-	
-	virtual bool enrichmentTarget(DelaunayTriangle * t) ;
-	virtual void enrich(size_t &,  Mesh<DelaunayTriangle> * dtree) ;
-	
-	virtual bool interacts(Feature * f) const ;
-	virtual void snap(Mesh<DelaunayTriangle> * dtree) ;
-	
-	virtual bool inBoundary(const Point & v) const ;
-	virtual bool inBoundary(const Point *v) const ;
-	
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt)  ;
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
-	
-	void setCriticalJ(double newJ) ;
-
-	double getCriticalJ() const ;
-
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( Mesh<DelaunayTriangle> * dt) ;
-	
-	virtual void setInfluenceRadius(double r) ;
-	// SB	
-	virtual void setParams ( double r, double gfac, double critJ);
-	  // end SB
-	virtual std::vector<Point *> getSamplingPoints() const ;
-	
-	virtual Point * pointAfter(size_t i) ;
-	
-	virtual std::vector<Geometry *> getRefinementZones( size_t level) const ;
-	
-	virtual void print() const ;
-	virtual void printFile(const std::string& filename) const;//SB
-	
-	virtual bool isVoid( const Point &) const {return false ;}
-	
-// 	virtual void setSingularityHints(const Point & i, const Point & s, std::vector<Point> * hints) const ;
-	
-public:
-	GEO_DERIVED_OBJECT(SegmentedLine) ;
-	
-	
-	/** \brief Sample the surface. Does nothing.
-	 * 
-	 * This is necessary as we need to implement the interface. Of course, for a segmented line, it makes no sense.
-	 * 
-	 * @param n 
-	 */
-	virtual void sample(size_t n)
-	{
-		this->sampleSurface(n) ;
-	}
-	
-	virtual void step(double dt, std::valarray<double> *, Mesh<DelaunayTriangle> * dtree);
-	
-	virtual bool moved() const ;
-
-protected:
-	virtual void computeCenter() { };
-	std::pair<double, double> computeJIntegralAtHead(double dt, Mesh<DelaunayTriangle> * dtree) ;
-	std::pair<double, double> computeJIntegralAtTail(double dt, Mesh<DelaunayTriangle> * dtree) ;
-	
-	bool changed ;
 } ;
 
 

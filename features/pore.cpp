@@ -17,7 +17,7 @@ std::vector<DelaunayTriangle *> Pore::getElements( Mesh<DelaunayTriangle> * dt)
 {
 	std::vector<DelaunayTriangle *> ret;
 	
-	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->boundary) ;
+	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -30,7 +30,7 @@ std::vector<DelaunayTriangle *> Pore::getElements( Mesh<DelaunayTriangle> * dt)
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) && inChild == false)
+		if(this->in(temp[i]->getCenter()) && inChild == false)
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
@@ -40,45 +40,36 @@ Pore::Pore(Feature *father, double r, double x, double y): Feature(father), Circ
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Circle(r+r*0.07, x, y) ;
 }
 
 Pore::Pore(Feature *father, double r, Point center): Feature(father), Circle(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Circle(r+r*0.07, center) ;
 }
 
 Pore::Pore(double r, double x, double y) : Feature(NULL), Circle(r, x, y)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Circle(r+r*0.07, x, y) ;
 }
 
 Pore::Pore(double r, Point center) :  Feature(NULL), Circle(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Circle(r+r*0.07, center) ;
 }
 
-bool Pore::interacts(Feature * f) const 
+bool Pore::interacts(Feature * f, double d) const 
 {
-	return this->boundary->intersects(f->getBoundary()) ;
-// 	for(Point ** i =this->begin() ; i < this->end() ; i++)
-// 		if(f->inBoundary((*i)))
-// 			return true ;
-// 	return false ;
+	for(PointSet::const_iterator i = this->begin() ; i != this->end() ; i++)
+		if(f->inBoundary(*(*i), d))
+			return true ;
+	return false ;
 }	
 
 void Pore::sample(size_t n)
 {
-	delete this->boundary ;
-	double numberOfRings =round((double)n/(2. * M_PI )) ;
-	double r = getRadius()*(1. + .6/(numberOfRings+1)) ;
-	this->boundary = new Circle(r, this->getCenter()) ;
 	this->Circle::sampleSurface(n) ;
 // 	this->Circle::sampleBoundingSurface(n) ;
 // 	this->inPoints->resize(1) ;
@@ -122,7 +113,7 @@ std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 std::vector<DelaunayTriangle *> TriangularPore::getElements( Mesh<DelaunayTriangle> * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
-	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->boundary) ;
+	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->getPrimitive()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;
@@ -134,7 +125,7 @@ std::vector<DelaunayTriangle *> TriangularPore::getElements( Mesh<DelaunayTriang
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) && inChild == false)
+		if(this->in(temp[i]->getCenter()) && inChild == false)
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
@@ -144,22 +135,12 @@ TriangularPore::TriangularPore(Feature * father,const Point & a, const Point & b
 {
 	this->behaviour = new VoidForm() ;
 	this->isEnrichmentFeature = false ;
-	Point va = a-getCenter() ;
-	Point vb = b-getCenter() ;
-	Point vc = c-getCenter() ;
-	this->boundary = new Triangle(a+va*0.03,b+vb*0.03,c+vc*0.03) ;
-	this->boundary2 = new Triangle(a-va*0.001,b-vb*0.001,c-vc*0.001) ;
 }
 
 TriangularPore::TriangularPore(const Point & a, const Point & b, const Point & c) : Feature(NULL) ,Triangle(a, b, c)
 {
 	this->behaviour = new VoidForm() ;
 	this->isEnrichmentFeature = false ;
-	Point va = a-getCenter() ;
-	Point vb = b-getCenter() ;
-	Point vc = c-getCenter() ;
-	this->boundary = new Triangle(a+va*0.03,b+vb*0.03,c+vc*0.03) ;
-	this->boundary2 = new Triangle(a-va*0.001,b-vb*0.001,c-vc*0.001) ;
 }
 
 
@@ -172,12 +153,6 @@ Point * TriangularPore::pointAfter(size_t i)
 void TriangularPore::sample(size_t n)
 {
 	n = std::max(3*n, (size_t)32) ;
-
-	delete this->boundary ;
-	Point va = getBoundingPoint(0)-getCenter() ;
-	Point vb = getBoundingPoint(1)-getCenter() ;
-	Point vc = getBoundingPoint(2)-getCenter() ;
-	this->boundary = new Triangle(getBoundingPoint(0)+va/(.25*n),getBoundingPoint(1)+vb/(.25*n),getBoundingPoint(2)+vc/(.25*n)) ;
 
 	this->sampleSurface(3*n-1) ;
 }
@@ -202,10 +177,10 @@ std::vector<Geometry *> TriangularPore::getRefinementZones(size_t level) const
 	return ret ;
 }
 
-bool TriangularPore::interacts(Feature * f) const
+bool TriangularPore::interacts(Feature * f, double d) const
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-		if(f->inBoundary((*i)))
+		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
 

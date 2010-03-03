@@ -6,22 +6,6 @@
 using namespace Mu ;
 
 
-void Feature::setBoundary(Geometry * g)
-{
-	delete boundary ;
-	this->boundary = g ;
-}
-
-Geometry * Feature::getBoundary()
-{
-	return this->boundary ;
-}
-
-const Geometry * Feature::getBoundary() const
-{
-	return this->boundary ;
-}
-
 Feature::Feature(Feature * father)
 {
 	this->isEnrichmentFeature = false ;
@@ -34,9 +18,7 @@ Feature::Feature(Feature * father)
 	m_f = father ;
 	if(father != NULL)
 		father->addChild(this) ;
-	infRad = DEFAULT_BOUNDARY ;
-	this->boundary = NULL ;
-	this->boundary2 = NULL ;
+
 }
 
 Feature::Feature()
@@ -48,40 +30,7 @@ Feature::Feature()
 	this->behaviour = new VoidForm() ;
 	
 	m_f = NULL ;
-	infRad = DEFAULT_BOUNDARY ;
-	this->boundary = NULL ;
-	this->boundary2 = NULL ;
 }
-
-Feature::Feature(Feature *father, Geometry * b) 
-{ 
-	boundary = b ; 
-	m_f = father ; 
-	this->isEnrichmentFeature = false ;
-	this->isCompositeFeature = false ;
-	this->isVirtualFeature = false ;
-
-	this->behaviour = new VoidForm() ;
-	
-	if(father != NULL)
-		father->addChild(this) ;
-	
-	infRad = DEFAULT_BOUNDARY ;
-	this->boundary2 = NULL ;
-}
-
- bool Feature::inBoundary(const Point & v) const 
-{
-	bool ret(false) ;
-	if(boundary)
-		ret = getBoundary()->in(v) ;
-
-	for(size_t i = 0 ;  i < this->m_c.size() ; i++)
-		ret = ret || m_c[i]->inBoundary(v) ;
-	
-	return ret ;
-}
-
 
 std::vector<Point *> Feature::doubleSurfaceSampling()
 {
@@ -105,25 +54,6 @@ std::vector<Point *> Feature::doubleSurfaceSampling()
 	dynamic_cast<Geometry *>(this)->setBoundingPoints(newboundingPoints) ;
 	
 	return ret ;
-}
-
-bool Feature::inBoundary(const Point *v) const
-{
-	bool ret = boundary->in(*v) ;
-	for(size_t i = 0 ;  i < this->m_c.size() ; i++)
-		ret =  ret || m_c[i]->inBoundary(v) ;
-	
-	return ret ;
-}
-
-bool Feature::inBoundaryLayer(const Point *v) const
-{
-
-	if(boundary2)
-		return  boundary->in(*v) && !(boundary2->in(*v)) ;
-	else
-		return boundary->in(*v) ;
-
 }
 
 void  Feature::addChild(Feature *f)
@@ -167,6 +97,22 @@ std::vector<Feature *> & Feature::getChildren()
 	return m_c ;
 }
 
+bool Feature::inBoundary(const Point &p, double d) const 
+{
+	Point proj(p) ;
+	project(&proj) ;
+	
+	return dist(proj, p) < d || in(p);
+}
+
+bool Feature::onBoundary(const Point &p, double d) const 
+{
+	Point proj(p) ;
+	project(&proj) ;
+	
+	return dist(proj, p) < d ;
+}
+
 std::vector<Feature *> Feature::getDescendants() const
 {
 	std::vector<Feature *> childrenToCheck = m_c ;
@@ -193,10 +139,6 @@ void  Feature::setFather(Feature *f)
 	m_f = f ;
 }
 
- void Feature::setInfluenceRadius(double r)
-{
-	infRad = r ;
-}
 
 CompositeFeature::~CompositeFeature()
 {
@@ -224,9 +166,6 @@ Feature::~Feature()
 { 
 // 	for(size_t i = 0 ; i < this->boundary->size() ; i++)
 // 		delete this->boundary->getPoint(i) ;
-	
-	delete this->boundary ;
-	delete this->boundary2 ;
 	
 	delete this->behaviour ;
 }

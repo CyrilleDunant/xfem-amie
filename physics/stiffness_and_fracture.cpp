@@ -64,7 +64,9 @@ void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, con
 
 void StiffnessAndFracture::stepBack()
 {
+	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
+	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
 }
 
@@ -75,26 +77,17 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	if(!frac && criterion->met(currentState) )
 	{
 		
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *=.9 ;
 		dfunc.step(currentState) ;
 		if(timestep > 0)
 		{
+			previousPreviousDamage.resize(previousDamage.size()) ;
 			previousPreviousDamage = previousDamage ;
+			previousDamage.resize(damage.size()) ;
 			previousDamage = damage ;
 		}
-		Vector state = dfunc.damageState() ;
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal /=1.-damage ;
-		damage = 0 ;
-		for(size_t i = 0 ; i < state.size() ; i++)
-			damage += state[i] ;
-
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *=1.-damage ;
-// 		double deltadamage = damage-previousDamage ;
-// 		
-// 		if(damage < .1)
-// 			dynamic_cast<MohrCoulomb *>(criterion)->upVal += (previousDamage/damage)*.1*23. ;
-// 		else if (damage > .3)
-// 			dynamic_cast<MohrCoulomb *>(criterion)->upVal *=0.9 ;
+		Vector d = dfunc.damageState() ;
+		damage.resize(d.size()) ;
+		damage = d ;
 
 		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;

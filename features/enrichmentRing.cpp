@@ -302,7 +302,7 @@ void EnrichmentRing::enrich(size_t & counter,  DelaunayTree * dtree)
 	}
 }
 	
-bool EnrichmentRing::interacts(Feature * f) const { return false ;}
+bool EnrichmentRing::interacts(Feature * f, double d) const { return false ;}
 void EnrichmentRing::snap(DelaunayTree * dtree) {}
 	
 bool EnrichmentRing::inBoundary(const Point v) const {return false ; }

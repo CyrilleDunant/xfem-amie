@@ -60,7 +60,7 @@ public:
 	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
 	
 /** \brief return false*/
-	virtual bool interacts(Feature * f) const ;
+	virtual bool interacts(Feature * f, double d) const ;
 
 /** \brief do nothing*/
 	virtual void snap(DelaunayTree * dtree) ;

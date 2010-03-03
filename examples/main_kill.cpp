@@ -72,7 +72,6 @@ using namespace Mu ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
-std::vector<Crack *> crack ;
 
 double E_min = 10;
 double E_max = 0;
@@ -308,18 +307,6 @@ void step()
 	
 	std::cout << "unknowns :" << x.size() << std::endl ;
 	
-	if(crack.size() > 0)
-		tris__ = crack[0]->getIntersectingTriangles(featureTree->get2DMesh()) ;
-	
-	for(size_t k = 1 ; k < crack.size() ; k++)
-	{
-		std::vector<DelaunayTriangle *> temp = crack[k]->getIntersectingTriangles(featureTree->get2DMesh()) ;
-		if(tris__.empty())
-			tris__ = temp ;
-		else if(!temp.empty())
-			tris__.insert(tris__.end(), temp.begin(), temp.end() ) ;
-	}
-	cracked.clear() ;
 	
 	int npoints = triangles[0]->getBoundingPoints().size() ;
 	
@@ -1208,43 +1195,43 @@ void Display(void)
 				
 				glNewList(  DISPLAY_LIST_CRACK,  GL_COMPILE ) ;
 				glLineWidth(4) ;
-				for(size_t k  = 0 ; k < crack.size() ; k++)
-				{
-					glColor3f(1, 0, 0) ;
-					// 			for(unsigned int j=0 ; j< tris__.size() ; j++ )
-					// 			{
-						// 				glBegin(GL_LINE_LOOP);
-						// 				double vx = x[tris__[j]->first->id*2]; 
-						// 				double vy = x[tris__[j]->first->id*2+1]; 
-						// 				
-						// 				glVertex2f( double(tris__[j]->first->x/*+ vx*/) ,
-						// 				            double(tris__[j]->first->y/*+ vy*/) );
-						// 				
-						// 				vx = x[tris__[j]->second->id*2]; 
-						// 				vy = x[tris__[j]->second->id*2+1]; 
-						// 				
-						// 				glVertex2f( double(tris__[j]->second->x/*+ vx*/) ,
-						// 				            double(tris__[j]->second->y/*+ vy*/) );
-						// 				
-						// 				vx = x[tris__[j]->third->id*2]; 
-						// 				vy = x[tris__[j]->third->id*2+1]; 
-						// 				
-						// 				glVertex2f( double(tris__[j]->third->x/*+ vx*/) ,
-						// 				            double(tris__[j]->third->y/*+ vy*/) );
-						// 				glEnd();
-						// 			}
-						// 			
-						// 			glColor3f(0, 1, 1) ;
-						glBegin(GL_LINES) ;
-						for(size_t j=0 ; j< crack[k]->getBoundingPoints().size()-1 ; j++ )
-						{
-							glVertex2f( double(crack[k]->getBoundingPoint(j).x) ,
-													double(crack[k]->getBoundingPoint(j).y) );
-													glVertex2f( double(crack[k]->getBoundingPoint(j+1).x) ,
-																			double(crack[k]->getBoundingPoint(j+1).y) );
-						}
-						glEnd();
-				}
+// 				for(size_t k  = 0 ; k < crack.size() ; k++)
+// 				{
+// 					glColor3f(1, 0, 0) ;
+// 					// 			for(unsigned int j=0 ; j< tris__.size() ; j++ )
+// 					// 			{
+// 						// 				glBegin(GL_LINE_LOOP);
+// 						// 				double vx = x[tris__[j]->first->id*2]; 
+// 						// 				double vy = x[tris__[j]->first->id*2+1]; 
+// 						// 				
+// 						// 				glVertex2f( double(tris__[j]->first->x/*+ vx*/) ,
+// 						// 				            double(tris__[j]->first->y/*+ vy*/) );
+// 						// 				
+// 						// 				vx = x[tris__[j]->second->id*2]; 
+// 						// 				vy = x[tris__[j]->second->id*2+1]; 
+// 						// 				
+// 						// 				glVertex2f( double(tris__[j]->second->x/*+ vx*/) ,
+// 						// 				            double(tris__[j]->second->y/*+ vy*/) );
+// 						// 				
+// 						// 				vx = x[tris__[j]->third->id*2]; 
+// 						// 				vy = x[tris__[j]->third->id*2+1]; 
+// 						// 				
+// 						// 				glVertex2f( double(tris__[j]->third->x/*+ vx*/) ,
+// 						// 				            double(tris__[j]->third->y/*+ vy*/) );
+// 						// 				glEnd();
+// 						// 			}
+// 						// 			
+// 						// 			glColor3f(0, 1, 1) ;
+// 						glBegin(GL_LINES) ;
+// // 						for(size_t j=0 ; j< crack[k]->getBoundingPoints().size()-1 ; j++ )
+// // 						{
+// // 							glVertex2f( double(crack[k]->getBoundingPoint(j).x) ,
+// // 													double(crack[k]->getBoundingPoint(j).y) );
+// // 													glVertex2f( double(crack[k]->getBoundingPoint(j+1).x) ,
+// // 																			double(crack[k]->getBoundingPoint(j+1).y) );
+// // 						}
+// 						glEnd();
+// 				}
 				
 				// 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
 				// 		{

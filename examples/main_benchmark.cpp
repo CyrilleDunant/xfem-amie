@@ -95,7 +95,6 @@ int viewangle2 = 0 ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTetrahedron *> tets ;
 std::vector<bool> cracked ;
-std::vector<Crack *> crack ;
 
 double E_min = 10;
 double E_max = 0;

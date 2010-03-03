@@ -30,16 +30,16 @@ namespace Mu
 		LinearDamage dfunc ;
 // 		IsotropicLinearDamage dfunc ;
 		double eps ;
-		double previousPreviousDamage ;
-		double intermediateDamage ;
-		double previousDamage ;
+		Vector previousPreviousDamage ;
+		Vector intermediateDamage ;
+		Vector previousDamage ;
 		int count ;
 		FractureCriterion * criterion ;
 		bool frac ;
 		bool change ; 
 		double sigmaRupt ;
 		double init ;
-		double damage ;
+		Vector damage ;
 		std::vector<Variable> v ;
 
 		/** \brief Constructor

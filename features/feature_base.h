@@ -23,21 +23,6 @@ namespace Mu
 class Feature : public Geometry
 {
 protected:
-	/** \brief Boundary for the sampling of the feature.
-	 *
-	 * This boundary is necessary, as the triangulation wich would allow for finer control does 
-	 * not exist at the sampling stage. As most features are convex, if a distance is kept between 
-	 * the points of the parent and the points of the children, the boundaries of the actual
-	 * geometry defining the sample will automatically be respected by Delaunay triangulation:
-	 * Delaunay keeps convex sets.
-	 * 
-	 */
-	Geometry * boundary ;
-	Geometry * boundary2 ;
-	
-	/** \brief Influence radius. deprecated.
-	 */
-	double infRad ;
 	
 	/** \brief Children of the feature.
 	 * 
@@ -81,32 +66,9 @@ public:
 	Feature(Feature *father, Geometry * b) ;
 	
 	virtual ~Feature() ;
-	
-	virtual void setBoundary(Geometry * g) ;
-	virtual const Geometry * getBoundary() const ;
-	virtual Geometry * getBoundary() ;
-
-	/** \brief Is Point in boundary?
-	 * 
-	 * @param v  point to check. 
-	 * @return   true if in boundary, or in boundary of one of the descendants.
-	 */
-	virtual bool inBoundary(const Point & v) const ;
-	
-	 /** \brief Is Point in boundary?
-	 * 
-	 * @param v  point to check. 
-	 * @return   true if in boundary, or in boundary of one of the descendants.
-	 */
-	virtual bool inBoundary(const Point *v) const ;
-	
-	/** \brief If the feature contains an internal frontier, return true if the argument is in the boundary, but out of the interanl frontier*/
-	virtual bool inBoundaryLayer(const Point *v) const ;
 	 
-	/** \brief Sets Influence radius.
-	 */
-	virtual void setInfluenceRadius(double r) ;
-	 
+	bool inBoundary(const Point &p, double d) const ;
+	bool onBoundary(const Point &p, double d) const ;
 	
 	/** \brief Set the Behaviour
 	 * 
@@ -195,7 +157,7 @@ public:
 	 * @param f Feature for which to check for the interaction.
 	 * @return true if interacting.
 	 */
-	virtual bool interacts(Feature * f) const = 0;
+	virtual bool interacts(Feature * f, double d) const = 0;
 	
 	
 	/** \brief Insert a point on the bounding surface of the feature.

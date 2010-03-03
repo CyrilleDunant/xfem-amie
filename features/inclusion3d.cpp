@@ -16,35 +16,27 @@ using namespace Mu ;
 Inclusion3D::Inclusion3D(Feature *father, double r, double x, double y, double z) : Sphere(r, x, y,z ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r + std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
-	this->boundary2 = new Sphere(r - std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
 }
 	
 Inclusion3D::Inclusion3D(Feature *father, double r,  Point center) : Sphere(r, center ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r+ std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
-	this->boundary2 = new Sphere(r - std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 	
 Inclusion3D::Inclusion3D(double r, double x, double y, double z) : Sphere(r, x,y,z ), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r+ std::max(r*.1, 10.*POINT_TOLERANCE), x,y,z) ;
-	this->boundary2 = new Sphere(r - std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
 }
 	
 Inclusion3D::Inclusion3D(double r, Point center) : Sphere(r,center ), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new Sphere(r+ std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
-	this->boundary2 = new Sphere(r - std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 	
-bool Inclusion3D::interacts(Feature * f) const 	
+bool Inclusion3D::interacts(Feature * f, double d) const 	
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-	if(f->inBoundary((*i)))
+	if(f->inBoundary(*(*i), d))
 		return true ;
 return false ;
 }
@@ -68,7 +60,7 @@ std::vector<DelaunayTriangle *> Inclusion3D::getElements( Mesh<DelaunayTriangle>
 std::vector<DelaunayTetrahedron *> Inclusion3D::getElements( Mesh<DelaunayTetrahedron> * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->boundary) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -81,7 +73,7 @@ std::vector<DelaunayTetrahedron *> Inclusion3D::getElements( Mesh<DelaunayTetrah
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) || inChild )
+		if(this->in(temp[i]->getCenter()) || inChild )
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
@@ -100,35 +92,27 @@ void Inclusion3D::sample(size_t n)
 OctahedralInclusion::OctahedralInclusion(Feature *father, double r, double x, double y, double z) :RegularOctahedron(r, x, y,z ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new RegularOctahedron(r + std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
-	this->boundary2 = new RegularOctahedron(r - std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
 }
 
 OctahedralInclusion::OctahedralInclusion(Feature *father, double r,  Point center):RegularOctahedron(r, center ), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new RegularOctahedron(r+ std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
-	this->boundary2 = new RegularOctahedron(r - std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 
 OctahedralInclusion::OctahedralInclusion(double r, double x, double y, double z) : RegularOctahedron(r, x,y,z ), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new RegularOctahedron(r+ std::max(r*.1, 10.*POINT_TOLERANCE), x,y,z) ;
-	this->boundary2 = new RegularOctahedron(r - std::max(r*.1, 10.*POINT_TOLERANCE), x, y,z) ;
 }
 
 OctahedralInclusion::OctahedralInclusion(double r, Point center) : RegularOctahedron(r,center ), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-	this->boundary = new RegularOctahedron(r+ std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
-	this->boundary2 = new RegularOctahedron(r - std::max(r*.1, 10.*POINT_TOLERANCE), center) ;
 }
 	
-bool OctahedralInclusion::interacts(Feature * f) const 
+bool OctahedralInclusion::interacts(Feature * f, double d) const 
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-	if(f->inBoundary((*i)))
+	if(f->inBoundary(*(*i), d))
 		return true ;
 return false ;
 }
@@ -154,7 +138,7 @@ std::vector<DelaunayTetrahedron *> OctahedralInclusion::getTetrahedrons( Delauna
 {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(this->boundary) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -167,7 +151,7 @@ std::vector<DelaunayTetrahedron *> OctahedralInclusion::getTetrahedrons( Delauna
 				break ;
 			}
 		}
-		if(this->boundary->in(temp[i]->getCenter()) || inChild )
+		if(in(temp[i]->getCenter()) || inChild )
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
@@ -190,37 +174,29 @@ VirtualInclusion3D::VirtualInclusion3D(Feature *father, double r, double x, doub
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = NULL ; //new Sphere(r*1.07, x, y,z) ;
-	this->boundary2 =  NULL ; //new Sphere(r*0.93, x, y,z) ;
 }
 
 VirtualInclusion3D::VirtualInclusion3D(Feature *father, double r,  Point center) : Sphere(r, center ), VirtualFeature(father)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary =  NULL ; //new Sphere(r*1.07, center) ;
-	this->boundary2 =  NULL ; //new Sphere(r*0.93, center) ;
 }
 
 VirtualInclusion3D::VirtualInclusion3D(double r, double x, double y, double z) : Sphere(r, x,y,z ), VirtualFeature(NULL)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary =  NULL ; //new Sphere(r*1.02, x,y,z) ;
-	this->boundary2 =  NULL ; //new Sphere(r*0.93, x, y,z) ;
 }
 
 VirtualInclusion3D::VirtualInclusion3D(double r, Point center) : Sphere(r,center ), VirtualFeature(NULL)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
-	this->boundary = new Sphere(r*1.02, center) ;
-	this->boundary2 = new Sphere(r*0.93, center) ;
 }
 
-bool VirtualInclusion3D::interacts(Feature * f) const 	{
+bool VirtualInclusion3D::interacts(Feature * f, double d) const 	{
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
-		if(f->inBoundary((*i)))
+		if(f->inBoundary(*(*i), d))
 			return true ;
 	return false ;
 }
