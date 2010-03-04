@@ -30,6 +30,7 @@ public:
 	 * @return a Vector
 	 */
 	virtual const Vector & damageState() const = 0 ;
+	virtual Vector & damageState() = 0 ;
 
 	/** \brief Increment the damage from the current state of the element considered
 	 * 

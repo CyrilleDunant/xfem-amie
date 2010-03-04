@@ -901,9 +901,27 @@ std::vector<Point> Hexahedron::getBoundingBox() const
 
 void Hexahedron::project(Point * p) const
 {
-//! \todo make it do something
+	std::vector<Point> bbox = getBoundingBox() ;
 	
-	return ;
+	Plane p0(bbox[0], bbox[1], bbox[2]) ;
+	Plane p1(bbox[5], bbox[6], bbox[6]) ;
+	Plane p2(bbox[0], bbox[1], bbox[4]) ;
+	Plane p3(bbox[2], bbox[3], bbox[6]) ;
+	Plane p4(bbox[0], bbox[2], bbox[4]) ;
+	Plane p5(bbox[1], bbox[3], bbox[5]) ;
+	
+	std::map<double, Point> targets ;
+	targets[dist(p0.projection(*p), *p)] = p0.projection(*p) ;
+	targets[dist(p1.projection(*p), *p)] = p1.projection(*p) ;
+	targets[dist(p2.projection(*p), *p)] = p2.projection(*p) ;
+	targets[dist(p3.projection(*p), *p)] = p3.projection(*p) ;
+	targets[dist(p4.projection(*p), *p)] = p4.projection(*p) ;
+	targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ;
+	for(size_t i = 0 ; i < 8 ; i++)
+		targets[dist(*p, bbox[i])] = bbox[i] ;
+	targets[dist(*p, bbox[0])] = bbox[0] ;
+	
+	*p = targets.begin()->second ;
 }
 
 Sphere::Sphere(double r,double x, double y, double z ) : radius(r), sqradius(r*r)

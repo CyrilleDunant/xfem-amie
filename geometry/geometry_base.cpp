@@ -969,7 +969,6 @@ Point Plane::projection(const Point &p ) const
 }
 
 
-
 const std::valarray<Point* > & Geometry::getInPoints() const
 {
 	return inPoints ;
@@ -1180,6 +1179,7 @@ bool Geometry::intersects(const Geometry *g) const
 			if(g->getGeometryType() == HEXAHEDRON)
 			{
 				std::vector<Point> bbox = g->getBoundingBox() ;
+				
 				if(g->in(getCenter()))
 					return (getCenter().x+getRadius() < bbox[7].x) ||
 				         (getCenter().x-getRadius() > bbox[0].x)    ||
@@ -1187,8 +1187,7 @@ bool Geometry::intersects(const Geometry *g) const
 				         (getCenter().y-getRadius() > bbox[0].y)    ||
 				         (getCenter().z+getRadius() < bbox[7].z)    ||
 					     (getCenter().z-getRadius() > bbox[0].z)     ;
-
-				if(!g->in(getCenter()))
+				else
 					return (getCenter().x+getRadius() > bbox[0].x) ||
 					  (getCenter().x-getRadius() < bbox[7].x)    ||
 					  (getCenter().y+getRadius() > bbox[0].y)    ||
@@ -1302,7 +1301,6 @@ bool Geometry::intersects(const Geometry *g) const
 std::vector<Point> Geometry::intersection(const Geometry * g) const
 {
 	std::vector<Point> ret ;
-
 	switch(getGeometryType())
 	{
 	case TRIANGLE :
@@ -1346,7 +1344,12 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			std::vector<Point> intersection = s0.intersection(g) ;
 			if(intersection.size() == 1)
-				intersection = Line(s0.first(), s0.vector()).intersection(g);
+			{
+				if(!g->in(s0.first()))
+					intersection.push_back(s0.second()) ;
+				else
+					intersection.push_back(s0.first()) ;
+			}
 			double perimetre = s0.norm()+s1.norm()+s2.norm()+s3.norm() ;
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
@@ -1364,7 +1367,12 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				ret.push_back(intersection.back()) ;
 			intersection = s1.intersection(g) ;
 			if(intersection.size() == 1)
-				intersection = Line(s1.first(), s1.vector()).intersection(g);
+			{
+				if(!g->in(s1.first()))
+					intersection.push_back(s1.second()) ;
+				else
+					intersection.push_back(s1.first()) ;
+			}
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
 				ret.push_back(intersection[i]) ;
@@ -1379,7 +1387,13 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				ret.push_back(intersection.back()) ;
 			intersection = s2.intersection(g) ;
 			if(intersection.size() == 1)
-				intersection = Line(s2.first(), s2.vector()).intersection(g);
+			{
+				if(!g->in(s2.first()))
+					intersection.push_back(s2.second()) ;
+				else
+					intersection.push_back(s2.first()) ;
+			}
+			
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
 				ret.push_back(intersection[i]) ;
@@ -1394,7 +1408,12 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				ret.push_back(intersection.back()) ;
 			intersection = s3.intersection(g) ;
 			if(intersection.size() == 1)
-				intersection = Line(s3.first(), s3.vector()).intersection(g);
+			{
+				if(!g->in(s3.first()))
+					intersection.push_back(s3.second()) ;
+				else
+					intersection.push_back(s3.first()) ;
+			}
 			for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
 			{
 				ret.push_back(intersection[i]) ;
@@ -1991,7 +2010,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 		}
 	case HEXAHEDRON:
 		{
-
+			
 			if(g->getGeometryType() == SPHERE)
 				return g->intersection(this) ;
 		}
@@ -4494,7 +4513,7 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point f1_(f1-centre) ;
 	Point f2_(f2-centre) ;
 	Point test_(test-centre) ;
-	double scale = 1.*sqrt(std::max(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()),f2_.sqNorm())) ;
+	double scale = 100.*sqrt(std::max(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()),f2_.sqNorm())) ;
 	f0_ /=scale ;
 	f1_ /=scale ;
 	f2_ /=scale ;

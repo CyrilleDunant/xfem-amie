@@ -25,6 +25,12 @@ const Vector & IsotropicLinearDamage::damageState() const
 	return state ;
 }
 
+Vector & IsotropicLinearDamage::damageState()
+{
+	return state ;
+}
+
+
 void IsotropicLinearDamage::step(ElementState & s)
 {
 	double maxD = .9999 ; //1- 0.0000005/s.getParent()->area() ;

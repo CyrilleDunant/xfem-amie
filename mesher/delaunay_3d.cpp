@@ -213,6 +213,9 @@ void Star3D::updateNeighbourhood()
 
 	}
 	
+	if(items.empty())
+		return ;
+	
 	std::vector<DelaunayTreeItem3D *> & tree = items[0]->tree->tree ;
 	bool goOn = true ;
 	while(goOn)

@@ -66,6 +66,7 @@ void StiffnessAndFracture::stepBack()
 {
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
+	dfunc.damageState() = damage ;
 	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
 }

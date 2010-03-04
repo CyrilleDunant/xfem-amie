@@ -38,6 +38,7 @@ public:
 	 * @return single-element Vector in which is stored the scaling factor
 	 */
 	virtual const Vector & damageState() const ;
+	virtual Vector & damageState() ;
 
 	/** \brief Increment the damage
 	 * 

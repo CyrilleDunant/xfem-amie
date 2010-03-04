@@ -1468,9 +1468,9 @@ int main(int argc, char *argv[])
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(256) ;
+	F.sample(512) ;
 
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 // 	F.refine(3) ;
 

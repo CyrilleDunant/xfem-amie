@@ -25,6 +25,11 @@ const Vector & LinearDamage::damageState() const
 	return state ;
 }
 
+
+Vector & LinearDamage::damageState() 
+{
+	return state ;
+}
 void LinearDamage::step(ElementState & s)
 {
 	double maxD = .9999 ;

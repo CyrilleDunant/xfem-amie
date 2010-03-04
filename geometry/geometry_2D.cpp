@@ -813,43 +813,23 @@ void Rectangle::project(Point * p) const
 	Line l(getCenter(), *p) ;
 	
 	Segment A(topLeft, bottomLeft) ;
-	if(l.intersects(A))
-	{
-		Point inter = l.intersection(A) ;
-		p->x = inter.x ;
-		p->y = inter.y ;
-		return ;
-	}
 	
 	Segment B(topLeft, topRight) ;
 	
-	if(l.intersects(B))
-	{
-		Point inter = l.intersection(B) ;
-		p->x = inter.x ;
-		p->y = inter.y ;
-		return ;
-	}
-	
 	Segment C(topRight, bottomRight) ;
-	
-	if(l.intersects(C))
-	{
-		Point inter = l.intersection(C) ;
-		p->x = inter.x ;
-		p->y = inter.y ;
-		return ;
-	}
-	
+
 	Segment D(bottomRight, bottomLeft) ;
-	
-	if(l.intersects(D))
-	{
-		Point inter = l.intersection(D) ;
-		p->x = inter.x ;
-		p->y = inter.y ;
-		return ;
-	}
+
+	std::map<double, Point> tries ;
+	Point p0 = A.project(*p) ;
+	Point p1 = B.project(*p) ;
+	Point p2 = C.project(*p) ;
+	Point p3 = D.project(*p) ;
+	tries[dist(p, &p0)] = p0 ;
+	tries[dist(p, &p1)] = p1 ;
+	tries[dist(p, &p2)] = p2 ;
+	tries[dist(p, &p3)] = p3 ;
+	*p = tries.begin()->second ;
 }
 
 std::vector<Point> Rectangle::getSamplingBoundingPoints(size_t num_points) const

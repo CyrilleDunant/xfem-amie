@@ -1363,7 +1363,7 @@ int main(int argc, char *argv[])
 	std::cout << miny << ";" << maxy << std::endl ;
 	std::cout << minz << ";" << maxz << std::endl ;
 
-	Sample3D sample(NULL, maxx-minx, maxy-miny, maxz-minz,0.0750,0.0750,0.0750) ;
+	Sample3D sample(NULL, maxx-minx, maxy-miny, maxz-minz,7.5,7.5,7.5) ;
 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
@@ -1395,7 +1395,7 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 	double v = 0 ;
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	for(size_t i = 0 ; i < 0 ; i++)
 	{
 		static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*1) ;
 		static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*1) ;
@@ -1435,11 +1435,7 @@ int main(int argc, char *argv[])
 		}
 	}*/
 
-	F.defineMeshingBox() ;
-
-	std::cout << "meshing box defined" << std::endl ;
-
-	F.sample(256) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0)) ;
@@ -1451,7 +1447,7 @@ int main(int argc, char *argv[])
 	step() ;
 
 
-/*	glutInit(&argc, argv) ;	
+	glutInit(&argc, argv) ;	
 	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
@@ -1498,7 +1494,7 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(Display) ;
 	glutMainLoop() ;
 	
-// 	delete dt ;*/
+// 	delete dt ;
 	
 	return 0 ;
 }

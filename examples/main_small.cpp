@@ -159,80 +159,6 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-
-void setBC()
-{
-  
-  tets = featureTree->getTetrahedrons() ;
-  
-	double bctol = 0.0001; // tolerance used to identify points where to impose bcs  
-	double left = 0 ;
-	double bottom = 0 ;
-	double right = 400 ;
-	double top = 400 ;
-	for(size_t k = 0 ; k < tets.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < tets[k]->getBoundingPoints().size() ; c++ )
-		{
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).y - (left)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).z - (left)) < bctol)
-// 				)
-// 			{
-// 				featureTree->getAssembly()->setPoint( -50, 0, 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-			if( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) )
-			{
-				featureTree->getAssembly()->setPoint( -50, 0, 0,tets[k]->getBoundingPoint(c).id) ;
-			}
-			else if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) )
-			{
-				featureTree->getAssembly()->setPoint( 50, 0,0, tets[k]->getBoundingPoint(c).id) ;
-			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).y - (right)) < bctol) 
-// 				&& (std::abs(tets[k]->getBoundingPoint(c).z - (right)) < bctol)
-// 				)
-// 			{
-// 				featureTree->getAssembly()->setPoint( 50, 0, 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).y - (right)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).y - (left)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).z - (right)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ZETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			if ( (std::abs(tets[k]->getBoundingPoint(c).z - (left)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ZETA,0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-		}
-
-// 		for(size_t c = 0 ;  c < tets[k]->getBoundingPoints().size() ; c++ )
-// 		{
-// /*		  	if ( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) &&  (std::abs(tets[k]->getBoundingPoint(c).z - (top)) < bctol)&&  (std::abs(tets[k]->getBoundingPoint(c).y - (top)) < bctol))
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			else */if ( (std::abs(tets[k]->getBoundingPoint(c).x - (left)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPoint( 10, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			else if ( (std::abs(tets[k]->getBoundingPoint(c).x - (right)) < bctol) )
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0, tets[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			
-// 		}
-	}
-}
-
 void step()
 {
 	
@@ -247,7 +173,6 @@ void step()
 		size_t tries = 0;
 		while(go_on && tries < 50)
 		{
-			setBC() ;
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 			std::cout << "." << std::flush ;
@@ -1454,17 +1379,23 @@ int main(int argc, char *argv[])
 // 		feats[i]->setBehaviour(new Laplacian(d1)) ;
 // 		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
 	}
-	samplers.setBehaviour(new WeibullDistributedStiffness(m0,0.1)) ;
+	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	Vector a(6.,0) ;
 // 	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100/*166.11322368308294*/, 200, 200, 200, m1, a) ;
-	Inclusion3D * inc0 = new Inclusion3D(100/*166.11322368308294*/, 200, 200, 200) ;
+	Inclusion3D * inc0 = new Inclusion3D(100/*166.11322368308294*/, 00, 00, 00) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
-	inc0->setBehaviour(new WeibullDistributedStiffness(m1,0.4)) ;
+	inc0->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 // 	F.addFeature(&samplers, inc) ;
 	F.addFeature(&samplers, inc0) ;
-	F.sample(3000) ;
+	F.sample(256) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, 10)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	step() ;

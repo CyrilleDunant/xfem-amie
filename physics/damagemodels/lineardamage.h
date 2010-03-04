@@ -40,6 +40,7 @@ public:
 	 * @return two-element damage state
 	 */
 	virtual const Vector & damageState() const ;
+	virtual Vector & damageState() ;
 
 	/** \brief Increment the damage. 
 	 * The formula used for the increment varies depending on whether the element is 
