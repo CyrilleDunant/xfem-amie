@@ -73,21 +73,7 @@ bool Voxel::coOccur(const Geometry * inc) const
 		|| inc->in(trb) 
 		|| inc->in(brb) 
 		|| inc->in(blb) 
-		|| in(inc->getCenter()+Point(inc->getRadius(), 0, inc->getRadius()))
-		|| in(inc->getCenter()+Point(-inc->getRadius(), 0, inc->getRadius())) 
-		|| in(inc->getCenter()+Point(0,inc->getRadius(), inc->getRadius())) 
-		|| in(inc->getCenter()+Point(0,-inc->getRadius(), inc->getRadius())) 
-		|| in(inc->getCenter()+Point(inc->getRadius(), 0, -inc->getRadius()))
-		|| in(inc->getCenter()+Point(-inc->getRadius(), 0, -inc->getRadius())) 
-		|| in(inc->getCenter()+Point(0,inc->getRadius(), -inc->getRadius())) 
-		|| in(inc->getCenter()+Point(0,-inc->getRadius(), -inc->getRadius()))
-		|| in(inc->getCenter()+Point(inc->getRadius(),inc->getRadius(), inc->getRadius())) 
-		|| in(inc->getCenter()+Point(inc->getRadius(),inc->getRadius(), -inc->getRadius())) 
-		|| in(inc->getCenter()+Point(inc->getRadius(), -inc->getRadius(), inc->getRadius()))
-		|| in(inc->getCenter()+Point(inc->getRadius(), -inc->getRadius(), -inc->getRadius())) 
-		|| in(inc->getCenter()+Point(-inc->getRadius(),inc->getRadius(), inc->getRadius())) 
-		|| in(inc->getCenter()+Point(-inc->getRadius(),-inc->getRadius(), -inc->getRadius()))
-		|| in(inc->getCenter());
+		|| Hexahedron(tlf.x-brb.x, tlf.y-brb.y, tlf.z-brb.z, (tlf.x+brb.x)*.5, (tlf.y+brb.y)*.5, (tlf.z+brb.z)*.5).intersects(inc);
 }
 
 void Voxel::remove(Geometry * inc)
@@ -711,12 +697,6 @@ void Grid3D::forceAdd(Geometry * inc)
 		{
 			for(int k = startK ; k < endK ; k++)
 			{
-// 	for(int i = 0 ; i < lengthX ; i++)
-// 	{
-// 		for(int j = 0 ; j < lengthY ; j++)
-// 		{
-// 			for(int k = 0 ; k < lengthZ ; k++)
-// 			{
 				if(pixels[i][j][k]->coOccur(inc))
 				{
 					pixels[i][j][k]->forceAdd(inc) ;

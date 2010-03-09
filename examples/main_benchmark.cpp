@@ -1460,12 +1460,12 @@ int main(int argc, char *argv[])
 	if(!inclusions.empty())
 	{
 		F.addFeature(&sample, inclusions[0]) ;
-		for(size_t i = 1 ; i < 10 /*inclusions.size()*/ ; i++)
+		for(size_t i = 1 ; i < inclusions.size() ; i++)
 		{
 			static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*scale) ;
 			static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*scale) ;
 			inclusions[i]->setBehaviour(new Stiffness(m1)) ;
-			F.addFeature(&sample, inclusions[i]) ;
+			F.addFeature(inclusions[i-1], inclusions[i]) ;
 			v += static_cast<Sphere *>(inclusions[i])->volume() ;
 		}
 	}
@@ -1476,7 +1476,7 @@ int main(int argc, char *argv[])
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(2048) ;
+	F.sample(2048*4) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -100)) ;

@@ -1913,7 +1913,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	if(is3D())
 		grid3d =new Grid3D(first->getBoundingBox()[7].x-first->getBoundingBox()[0].x,
 		                   first->getBoundingBox()[7].y-first->getBoundingBox()[0].y,
-		                   first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 100, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		                   first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 1, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -2055,7 +2055,6 @@ void FeatureTree::addNewRoot(Feature * newRoot)
 
 void FeatureTree::defineMeshingBox()
 {
-	return ;
 	if(tree.empty())
 	{
 		std::cerr << "warning: unable to define meshing box: no features in tree" << std::endl ;
@@ -4527,7 +4526,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					}
 				}
 				
-				
+// 				std::cout << i << "  " ; tree[i]->getInPoint(j).print() ;
 				if(i != 0 && !inRoot(tree[i]->getInPoint(j)))
 					isIn = true ;
 				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getInPoint(j)))

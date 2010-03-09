@@ -1026,10 +1026,17 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	
 	std::vector<double> ds ;
 	
-	for(size_t i = 0 ; i < numPointsPerDirection ; i++)
+	if(numPointsPerDirection > 1)
 	{
-		double v = (static_cast<double>(i)/static_cast<double>(numPointsPerDirection-1)) ;
-		ds.push_back(v) ;
+		for(size_t i = 0 ; i < numPointsPerDirection ; i++)
+		{
+			double v = (static_cast<double>(i)/static_cast<double>(numPointsPerDirection-1)) ;
+			ds.push_back(v) ;
+		}
+	}
+	else
+	{
+		ds.push_back(1) ;
 	}
 	
 	for(size_t i = 0 ; i < numPointsPerDirection ; i++)
@@ -1119,10 +1126,17 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 		{
 			for(size_t k = j+1 ; k < points.size() ; k++)
 			{
-				if(points[j] != points[k])
+				if(squareDist3D( points[j], points[k]) > 128.*POINT_TOLERANCE*POINT_TOLERANCE)
 				{
 					Point vec = points[j]-points[k] ;
 					vec *= 1./vec.sqNorm() ;
+
+					speeds[j] += vec ;
+					speeds[k] -= vec ;
+				}
+				else
+				{
+					Point vec(1,0,0) ;
 
 					speeds[j] += vec ;
 					speeds[k] -= vec ;
@@ -1234,7 +1248,7 @@ double Sphere::volume() const
 void Sphere::project(Point * p) const
 {
 
-	if(squareDist3D(p, &center ) < POINT_TOLERANCE)
+	if(squareDist3D(p, &center ) < POINT_TOLERANCE*POINT_TOLERANCE)
 	{
 		p->x +=getRadius() ;
 		return ;
@@ -1260,7 +1274,10 @@ void Sphere::project(Point * p, double r) const
 	//z = r cos(theta)
 	int id = p->id ;
 	if(squareDist3D(*p, center ) < POINT_TOLERANCE)
+	{
+		p->x =+ r ;
 		return ;
+	}
 	
 	Point p_prime = *p-center ;
 	p_prime *= r/p_prime.norm() ;
