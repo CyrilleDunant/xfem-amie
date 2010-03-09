@@ -1560,23 +1560,6 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-// 	std::valarray<double> usual(1., 10000000) ;
-// 	BlockFullVector vec(usual) ;
-// 	double acc1(0) ;
-// 	double acc2(0) ;
-// // 	for(size_t i = 0 ; i < 1000 ; i++)
-// // 			acc1 += std::inner_product(&usual[0], &usual[10000000],&usual[0] , double(0)) ;
-// // 	std::cout <<  acc1 << std::endl ;
-// // omp_set_num_threads(4) ;
-// // size_t chunksize = 1000/4 ;
-// // #pragma omp parallel for schedule(static,chunksize) \
-// //   reduction(+:acc2)
-// 	for(size_t i = 0 ; i < 1000 ; i++)
-// 			acc2 +=  vec*vec ;
-// 	std::cout << acc2 << std::endl ;
-// return 0 ;
-// 	srandom(time(NULL)) ;
-
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 

@@ -202,7 +202,7 @@ int main(int argc, char **argv)
 		std::cout<<"plus petit granulat généré " << inclusions.back()->getRadius() <<std::endl;
 
 
-		srand(time(NULL)); //change la fonction rand en fonction du temps
+// 		srand(time(NULL)); //change la fonction rand en fonction du temps
 		
 
 

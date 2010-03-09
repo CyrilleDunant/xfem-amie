@@ -1906,14 +1906,14 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 
 	if(is2D())
 		grid = new Grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x,
-		                first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 1,
+		                first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 100,
 		                Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
 		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
 		                     )) ;
 	if(is3D())
 		grid3d =new Grid3D(first->getBoundingBox()[7].x-first->getBoundingBox()[0].x,
 		                   first->getBoundingBox()[7].y-first->getBoundingBox()[0].y,
-		                   first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 1, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		                   first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 100, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -2055,6 +2055,7 @@ void FeatureTree::addNewRoot(Feature * newRoot)
 
 void FeatureTree::defineMeshingBox()
 {
+	return ;
 	if(tree.empty())
 	{
 		std::cerr << "warning: unable to define meshing box: no features in tree" << std::endl ;
@@ -2148,7 +2149,7 @@ void FeatureTree::defineMeshingBox()
 
 	if(is3D())
 	{
-		Sample3D * meshingBox3D = new Sample3D(NULL, w_act*1.1, h_act*1.1, d_act*1.1, c.x, c.y, c.z) ;
+		Sample3D * meshingBox3D = new Sample3D(NULL, w_act*1.2, h_act*1.2, d_act*1.2, c.x, c.y, c.z) ;
 		meshingBox3D->setBehaviour(new VoidForm()) ;
 		this->addNewRoot(meshingBox3D) ;
 	}
@@ -2222,26 +2223,13 @@ void FeatureTree::renumber()
 				(*i)->getBoundingPoint(j).id = -1 ;
 			}
 		}
-// 		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
-// 		{
-// 			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
-// 			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
-// 			{
-// 				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
-// 				{
-// 					if(tri->getBoundingPoint(j).id == -1)
-// 						tri->getBoundingPoint(j).id = count++ ;
-// 				}
-// 			}
-// 		}
+
 		
-		
-		Grid tmpgrid =this->grid->getGrid(std::max(triangles.size()/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
+		Grid tmpgrid =this->grid->getGrid(std::max((size_t)round(sqrt(triangles.size()))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
 		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
 			tmpgrid.forceAdd((*i)->getPrimitive()) ;
 		
 		std::vector<Geometry *> sortedElements ;
-		std::set<Geometry *> boundaryElements ;
 		std::set<Geometry *> placedElements ;
 		for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
 		{
@@ -2254,36 +2242,12 @@ void FeatureTree::renumber()
 						placedElements.insert(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
 						sortedElements.push_back(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
 					}
-					else
-					{
-// 						boundaryElements.insert(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
-					}
 				}
 				
 			}
 		}
 		
-		for( std::set< Geometry* >::iterator i = boundaryElements.begin() ; i !=boundaryElements.end() ; i++)
-		{
-			std::vector<Geometry *>::iterator e = std::find(sortedElements.begin(), sortedElements.end(), *i) ;
-			if(e != sortedElements.end())
-				sortedElements.erase(e) ;
-		}
-		
 		for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
-		{
-			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
-			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
-			{
-				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
-				{
-					if(tri->getBoundingPoint(j).id == -1)
-						tri->getBoundingPoint(j).id = count++ ;
-				}
-			}
-		}
-
-		for(std::set<Geometry *>::iterator i = boundaryElements.begin() ; i != boundaryElements.end() ; ++i)
 		{
 			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
 			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -2306,7 +2270,7 @@ void FeatureTree::renumber()
 		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 		size_t count = 0 ;
 		std::cerr << " renumbering... " << std::flush ;
-		
+
 		for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
 		{
 			for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
@@ -2314,22 +2278,54 @@ void FeatureTree::renumber()
 				(*i)->getBoundingPoint(j).id = -1 ;
 			}
 		}
-		
 
+		
+		Grid3D tmpgrid =this->grid3d->getGrid(std::max(((size_t)round(pow(tets.size(), .333333)))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
 		for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
 		{
-			if((*i)->getBehaviour()->type != VOID_BEHAVIOUR)
+			tmpgrid.forceAdd((*i)->getPrimitive()) ;
+		}
+		
+		std::vector<Geometry *> sortedElements ;
+		std::set<Geometry *> placedElements ;
+		for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
+		{
+			
+			for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
 			{
-				for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
+				for(size_t k = 0 ; k < tmpgrid.pixels[i][j].size() ; ++k)
 				{
-					if((*i)->getBoundingPoint(j).id == -1)
-						(*i)->getBoundingPoint(j).id = count++ ;
+					for(size_t l = 0 ; l < tmpgrid.pixels[i][j][k]->getFeatures().size() ; ++l)
+					{
+						if(placedElements.find( tmpgrid.pixels[i][j][k]->getFeatures()[l]) == placedElements.end()) 
+						{
+							placedElements.insert(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
+							sortedElements.push_back(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
+						}
+					}
 				}
 			}
 		}
+		
+		
+		for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
+		{
+			DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *>(*i) ;
+			if(tet && tet->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < tet->getBoundingPoints().size() ; j++)
+				{
+					if(tet->getBoundingPoint(j).id == -1)
+						tet->getBoundingPoint(j).id = count++ ;
+				}
+			}
+		}
+		
 		this->dtree3D->getLastNodeId() = count ;
 		
 		std::cerr << count*3 << " ...done " << std::endl ;
+
+
 	}
 	
 	renumbered = true ;
@@ -2613,58 +2609,47 @@ void FeatureTree::sample(size_t n)
 		double total_area = tree[0]->area() ;
 		if(hasMeshingBox)
 		{
-			tree[0]->sample(n/4) ;
-			tree[1]->sample(2*n) ;
+			tree[0]->sample(n*tree[0]->area()/tree[1]->area()*.5) ;
+			tree[1]->sample(n) ;
 		}
 		else
 		{
-			tree[0]->sample(2*n) ;
+			tree[0]->sample(n) ;
 		}
-		for(size_t i  = 1 ; i < this->tree.size() ; i ++)
+		for(size_t i  = 1+hasMeshingBox ; i < this->tree.size() ; i ++)
 		{
-//			std::cout << i << std::endl ;
 			double shape_factor = (sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
-			size_t npoints = std::max((size_t)((double)n*sqrt(tree[i]->area()/(total_area*shape_factor))),(size_t)8) ;
-			if(npoints < n)
+			size_t npoints = (size_t)((double)n*sqrt(tree[i]->area()/(total_area*shape_factor))) ;
+			if(npoints > 8)
 				tree[i]->sample(npoints) ;
 		}
 	}
 	else if (is3D())
 	{
 		double total_area = tree[0]->area() ;
-			if(hasMeshingBox)
+		if(hasMeshingBox)
 		{
-			tree[0]->sample(n/4) ;
-			tree[1]->sample(2*n) ;
+			
+			tree[0]->sample(n*tree[0]->area()/tree[1]->area()*.175) ;
+			tree[1]->sample(n*2.) ;
 		}
 		else
 		{
-			tree[0]->sample(2*n) ;
+			tree[0]->sample(n) ;
 		}
 // 		total_area *= tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius()) ;
 		int count = 0 ;
-#ifdef HAVE_OPENMP
-		omp_set_num_threads(8) ;
-#endif
 #pragma omp parallel for
-		for(int i  = 1 ; i < (int)tree.size() ; i++)
+		for(int i  = 1+hasMeshingBox ; i < (int)tree.size() ; i++)
 		{
-// 			if(i%100 == 0)
-			
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
-			if(inRoot(this->tree[i]->getCenter()))
-			{
-				double a =pow(tree[i]->area()/total_area, .7) ;
-				tree[i]->sample(a*n) ;
-				count++ ;
-				
-			}
-			else
-			{
-				double a =tree[i]->area() ;
-				tree[i]->sample(a*n) ;
-				count++ ;
-			}
+			
+			double shape_factor = pow(tree[i]->volume()/(3*.25*M_PI*tree[i]->getRadius()*tree[i]->getRadius()*tree[i]->getRadius()), .7);
+			size_t npoints = (size_t)((double)n*tree[i]->area()/(total_area*shape_factor)) ;
+			
+			if(npoints > 14)
+				tree[i]->sample(npoints) ;
+
 		}
 		std::cerr << "...done" << std::endl ;
 	}
@@ -3349,8 +3334,6 @@ Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
 	return NULL;
 }
 
-
-
 Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
 {
 	double pointDensity = 0 ; 
@@ -3424,7 +3407,6 @@ Point * FeatureTree::checkElement( const DelaunayTriangle * t ) const
 	}
 	return NULL;
 }
-
 
 Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 {
@@ -3671,7 +3653,6 @@ void FeatureTree::assemble()
 		std::cerr << " ...done." << std::endl ;
 	}
 }
-
 
 std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
 {
@@ -3942,7 +3923,6 @@ void FeatureTree::insert(Point * p )
 			this->dtree3D->insert(p) ;
 	}
 }
-
 
 void FeatureTree::stepBack()
 {
@@ -4226,7 +4206,6 @@ bool FeatureTree::stable(double dt)
 	return stab ;
 }
 
-
 double FeatureTree::getMaximumDisplacement() const
 {
 	if(is2D())
@@ -4310,7 +4289,6 @@ std::deque<std::pair<Point *, Feature *> >::iterator FeatureTree::end()
 	return this->meshPoints.end() ;
 }
 
-
 void FeatureTree::print() const
 {
 	printForFeature(tree[0]);
@@ -4376,10 +4354,10 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 {
 	double pointDensity = 0 ; 
 	if(is2D())
-		pointDensity = .6*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
+		pointDensity = .7*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
 	else
-		pointDensity = 1.2*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), 1./3.) ;
-	
+		pointDensity = .7*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
+	std::cout << pointDensity << std::endl ;
 	std::valarray<Point> bbox(8) ;
 	double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
 
@@ -4430,13 +4408,12 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			std::stable_sort(descendants.begin(), descendants.end()) ;
 			for(size_t j  =  0 ; j <  tree[i]->getBoundingPoints().size() ; j++)
 			{
-				
 				bool isIn = false ;
 				
 				std::vector<Geometry *> potentialFeaturestmp  ;
 				std::vector<Feature *> potentialFeatures ;
 	
-				if(tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				if(is2D())
 					potentialFeaturestmp = grid->coOccur(tree[i]->getBoundingPoint(j)) ;
 				else
 				{
@@ -4445,7 +4422,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				for(size_t l = 0 ; l < potentialFeaturestmp.size() ; l++)
 					potentialFeatures.push_back(dynamic_cast<Feature *>(potentialFeaturestmp[l]) ) ;
-				
 				std::vector<Feature *> potentialChildren ;
 				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
 				{
@@ -4476,8 +4452,17 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 				if(i != 0 && !inRoot(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
+				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getBoundingPoint(j)))
+					isIn = true ;
+				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+					isIn = true ;
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
+				
+				if(hasMeshingBox && i == 0)
+				{
+					isIn = tree[1]->inBoundary(tree[0]->getBoundingPoint(j), pointDensity) ;
+				}
 				
 				if(!isIn)
 				{
@@ -4492,7 +4477,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			{
 				bool isIn = false ;
 				std::vector<Geometry *> potentialFeaturestmp  ;
-				if(tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				if(is2D())
 					potentialFeaturestmp = grid->coOccur(tree[i]->getInPoint(j)) ;
 				else
 					potentialFeaturestmp = grid3d->coOccur(tree[i]->getInPoint(j)) ;
@@ -4545,11 +4530,19 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				if(i != 0 && !inRoot(tree[i]->getInPoint(j)))
 					isIn = true ;
+				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getInPoint(j)))
+					isIn = true ;
 				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getInPoint(j), pointDensity))
 					isIn = true ;
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getInPoint(j)))
 					isIn = true ;
 					
+				
+				if(hasMeshingBox && i == 0)
+				{
+					isIn = tree[1]->inBoundary(tree[i]->getInPoint(j), pointDensity) ;
+				}
+				
 				if(!isIn)
 				{
 					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getInPoint(j), tree[i])) ;	
@@ -4658,8 +4651,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 		}
 	}
+	std::cerr << "\r adding intersection points... " << count << " ...done." << std::endl ;
 	count = 0 ;
-	std::cerr << " ...done." << std::endl ;
 
 	//let us make sure we have no overlap
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
@@ -4668,7 +4661,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
 	meshPoints.erase(e, meshPoints.end()) ;
 
-	std::srand(1000) ;
+// 	std::srand(1000) ;
 
 	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
@@ -4770,7 +4763,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-3], tree[0])) ;
 		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-2], tree[0])) ;
 		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-1], tree[0])) ;
-			
+		
 		this->dtree3D = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
 		this->dtree3D->insert(meshPoints[4].first) ;
 		this->dtree3D->insert(meshPoints[5].first) ;
@@ -4790,9 +4783,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			if(meshPoints[i].second == NULL)
 				pb.second.push_back(i) ;
 		}
-
-				
-		
+		std::vector<Point *> toInsert ;
 		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+8 ; i != this->meshPoints.end(); ++i)
 		{
 			if((i - meshPoints.begin())%1000 == 0)
@@ -4811,9 +4802,40 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				if(i->first->id == -1)
 				{
 					std::cout << "insertion failed" << std::endl ;
+					toInsert.push_back(i->first) ;
 				}
 			}
 		}
+// 		int delta = 1 ;
+// 		while(!toInsert.empty() && delta > 0)
+// 		{
+// 			std::random_shuffle(toInsert.begin(), toInsert.end()) ;
+// 			std::vector<Point *> newToInsert ;
+// 			for( std::vector<Point *>::iterator i = toInsert.begin() ; i != toInsert.end(); ++i)
+// 			{
+// 				if((i - toInsert.begin())%1000 == 0)
+// 					std::cerr << "\r generating tetrahedrons... point " << ++count*1000 << "/" << toInsert.size() <<  std::flush ;
+// 				if(**i != bbox[0] &&
+// 				**i != bbox[1] &&
+// 				**i != bbox[2] &&
+// 				**i != bbox[3] &&
+// 				**i != bbox[4] &&
+// 				**i != bbox[5] &&
+// 				**i != bbox[6] &&
+// 				**i != bbox[7]
+// 				)
+// 				{
+// 					dtree3D->insert(*i) ; 
+// 					if((*i)->id == -1)
+// 					{
+// // 						std::cout << "insertion failed" << std::endl ;
+// 						newToInsert.push_back(*i) ;
+// 					}
+// 				}
+// 			}
+// 			delta = toInsert.size()-newToInsert.size() ;
+// 			toInsert = newToInsert ;
+// 		}
 		
 		for(size_t k  =  0 ; k <  enrichmentFeature.size() ; k++)
 		{

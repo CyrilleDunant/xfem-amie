@@ -110,7 +110,7 @@ public:
 	virtual std::vector< Point*> commonSurface(const DelaunayTreeItem3D *t) const  = 0; //!< What is the common edge with this item. returns a null pair if none
 	
 	virtual bool inCircumSphere(const Point &p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
-	//newly aded
+	virtual bool onCircumSphere(const Point &p) const = 0 ;
 	virtual bool isNeighbour( const DelaunayTreeItem3D *) const = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,  Star3D *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
 	virtual  void conflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > &,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
@@ -160,6 +160,7 @@ public:
 	 * @return true if we are in the triangle's CircumCircle and false if we are on or outside. 
 	 */
 	bool inCircumSphere(const Point & p) const ;
+	bool onCircumSphere(const Point & p) const ;
 	bool isNeighbour( const DelaunayTreeItem3D * t) const ;
 	void kill(const Point * p) ;
 	void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
@@ -207,6 +208,7 @@ public:
 	 */
 	
 	bool inCircumSphere(const Point & p) const ;
+	bool onCircumSphere(const Point & p) const ;
 	bool isNeighbour( const DelaunayTreeItem3D * t) const ;
 	bool isVertex(const Point *p) const ;
 	
@@ -243,6 +245,7 @@ public:
 	std::vector< Point*> commonSurface(const DelaunayTreeItem3D * t) const ;	
 
 	bool inCircumSphere(const Point & p) const ;
+	bool onCircumSphere(const Point & p) const ;
 	bool isNeighbour( const DelaunayTreeItem3D * t) const ;
 	bool isVertex(const Point *p) const ;
 	bool isVertexByID(const Point *p) const ;
@@ -266,6 +269,7 @@ public:
 	bool isVertex(const Point *p) const ;
 	
 	bool inCircumSphere(const Point & p) const ;
+	bool onCircumSphere(const Point & p) const ;
 			
 	std::vector< Point*> commonSurface(const DelaunayTreeItem3D *t) const ; //!< What is the common edge with this item. returns a null pair if none
 	

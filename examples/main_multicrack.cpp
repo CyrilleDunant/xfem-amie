@@ -1389,7 +1389,7 @@ int main(int argc, char *argv[])
 
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;	
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(50./8, -50))) ;
+	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
@@ -1470,7 +1470,7 @@ int main(int argc, char *argv[])
 
 	F.sample(512) ;
 
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
 // 	F.refine(3) ;
 

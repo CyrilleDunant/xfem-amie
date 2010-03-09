@@ -474,8 +474,7 @@ Vector & Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVe
 {
 	ret = 0 ;
 	int end = c.co.sm.row_size.size() ; 
-// 	int chunk = end/2 ;
-// 	omp_set_num_threads(2) ;
+
 #pragma omp parallel for
 	for (int i = 0 ; i <end ; i++)
 	{

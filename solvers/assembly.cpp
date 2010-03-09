@@ -615,7 +615,7 @@ bool Assembly::make_final()
 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 			
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
-			
+			Matrix test(ids.size()*ndof, ids.size()*ndof) ;
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
 				for(size_t n = 0 ; n < ndof ; n++)
@@ -634,20 +634,23 @@ bool Assembly::make_final()
 						{
 							getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += element2d[i]->getElementaryMatrix()[j][k][n][m] ;
 							getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += element2d[i]->getElementaryMatrix()[k][j][n][m] ;
+							test[j*ndof+n][k*ndof+m] = element2d[i]->getElementaryMatrix()[j][k][n][m] ;
+							test[k*ndof+n][j*ndof+m] = element2d[i]->getElementaryMatrix()[k][j][n][m] ;
 						}
 					}
 				}
 			}
-		}
-		for(size_t i = 0 ; i < max ; i++)
-		{
-			for(size_t j = 0 ; j < max ; j++)
+			
+			for(size_t j = 0 ; j < test.numRows() ;j++)
 			{
-				dmax = std::max(dmax,std::abs(getMatrix()[i][j]-getMatrix()[j][i])) ;
-				vmax = std::max(vmax, std::max(std::abs(getMatrix()[i][j]), std::abs(getMatrix()[j][i]))) ;
+				for(size_t k = j+1 ; k < test.numCols() ;k++)
+				{
+					dmax = std::max(dmax,std::abs(test[j][k] - test[k][j]));
+					vmax = std::max(vmax, std::max(std::abs(test[j][k]), std::abs(test[k][j]))) ;
+				}
 			}
 		}
-		
+
 		symmetric = dmax/vmax < 1e-12 ;
 		std::cerr << " ...done" << std::endl ;
 		getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -746,7 +749,7 @@ bool Assembly::make_final()
 			{
 				ids[j] *= ndof ;
 			}
-			
+			Matrix test(ids.size()*ndof, ids.size()*ndof) ;
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
 
@@ -766,22 +769,23 @@ bool Assembly::make_final()
 						{
 							getMatrix()[ids[j]+l][ids[k]+m] += mother[j][k][l][m] ;
 							getMatrix()[ids[k]+l][ids[j]+m] += mother[k][j][l][m] ;
+							test[j*ndof+l][k*ndof+m] = mother[j][k][l][m] ;
+							test[k*ndof+l][j*ndof+m] = mother[k][j][l][m] ;
 						}
 					}
 				}
 			}
-			symmetric = dmax < 1e-6 ;
-// 			element3d[i]->clearElementaryMatrix() ;
-		}
-		for(size_t i = 0 ; i < max ; i++)
-		{
-			for(size_t j = i+1 ; j < max ; j++)
+			for(size_t j = 0 ; j < test.numRows() ;j++)
 			{
-				dmax = std::max(dmax,std::abs(getMatrix()[i][j]-getMatrix()[j][i])) ;
-				vmax = std::max(vmax, std::max(std::abs(getMatrix()[i][j]), std::abs(getMatrix()[j][i]))) ;
+				for(size_t k = j+1 ; k < test.numCols() ;k++)
+				{
+					dmax = std::max(dmax,std::abs(test[j][k] - test[k][j]));
+					vmax = std::max(vmax, std::max(std::abs(test[j][k]), std::abs(test[k][j]))) ;
+				}
 			}
 		}
-		
+
+// 		
 		symmetric = dmax/vmax < 1e-12 ;
 		getMatrix().stride =  ndof;
 		std::cerr << " ...done" << std::endl ;

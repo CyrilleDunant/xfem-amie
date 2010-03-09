@@ -217,19 +217,21 @@ void Star::updateNeighbourhood()
 							) ;
 					(*j)->father->son.resize((*j)->father->son.size()-1);
 					std::copy(newSons.begin(), newSons.end(), &(*j)->father->son[0] ) ;
-
-					std::vector<unsigned int> newStepsons;
-					newStepsons.insert(newStepsons.end(), 
-							&(*j)->stepfather->stepson[0],
-							&(*j)->stepfather->stepson[(*j)->stepfather->stepson.size()]) ;
-					newStepsons.erase(std::find(
-								newStepsons.begin(), 
-								newStepsons.end(), 
-								(*j)->index
-								)
-							) ;
-					(*j)->stepfather->stepson.resize((*j)->stepfather->stepson.size()-1);
-					std::copy( newStepsons.begin(), newStepsons.end(),&(*j)->stepfather->stepson[0]) ;
+					if((*j)->stepfather)
+					{
+						std::vector<unsigned int> newStepsons;
+						newStepsons.insert(newStepsons.end(), 
+								&(*j)->stepfather->stepson[0],
+								&(*j)->stepfather->stepson[(*j)->stepfather->stepson.size()]) ;
+						newStepsons.erase(std::find(
+									newStepsons.begin(), 
+									newStepsons.end(), 
+									(*j)->index
+									)
+								) ;
+						(*j)->stepfather->stepson.resize((*j)->stepfather->stepson.size()-1);
+						std::copy( newStepsons.begin(), newStepsons.end(),&(*j)->stepfather->stepson[0]) ;
+					}
 					goOn = true ;
 					items.erase(j) ;
 					break ;
@@ -1075,6 +1077,8 @@ void DelaunayTreeItem::removeStepson(DelaunayTreeItem * t)
 		std::copy(e+1, &stepson[stepson.size()], &newstepson[e-&stepson[0]]) ;
 		stepson.resize(stepson.size()-1) ;
 		stepson = newstepson ;
+		if(newstepson.size() == 0)
+			t->stepfather = NULL ;
 	}
 }
 

@@ -214,7 +214,7 @@ public:
 class Grid3D
 {
 protected:
-	std::valarray<std::valarray< std::valarray<Voxel *> > > pixels;
+	
 	std::vector<Voxel *> unfilledpixel ;
 	double x ;
 	double y ;
@@ -227,7 +227,7 @@ protected:
 	double psize ;
 	int dirtyCounter ;
 public:
-		
+	std::valarray<std::valarray< std::valarray<Voxel *> > > pixels;
 /** \brief Copnstruct a grid from a size, an initial number of divisions and a center
 *
 * @param sizeX Length of the access grid

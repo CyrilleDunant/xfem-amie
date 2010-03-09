@@ -178,8 +178,8 @@ bool Voxel::add(Geometry * inc)
 		
 		this->features.push_back(inc) ;
 		
-		if(features.size() > 64 )
-			refine() ;
+// 		if(features.size() > 64 )
+// 			refine() ;
 		
 		return true;
 	}
@@ -229,10 +229,10 @@ void Voxel::forceAdd(Geometry * inc)
 		}
 	}
 	
-	if(features.size() > 64 )
-	{
-		refine() ;
-	}
+// 	if(features.size() > 64 )
+// 	{
+// 		refine() ;
+// 	}
 }
 
 void Voxel::print() const
@@ -250,7 +250,7 @@ Voxel::~Voxel()
 
 bool Voxel::coOccur(const Point & p) const
 {
-	return p.x > tlf.x &&  p.x < trf.x && p.y > blf.y &&  p.y < tlf.y && p.z > blb.z &&  p.z < tlf.z;
+	return p.x >= tlf.x &&  p.x <= trf.x && p.y >= blf.y &&  p.y <= tlf.y && p.z >= blb.z &&  p.z <= tlf.z;
 }
 
 int Voxel::computeFillFactor() const
@@ -476,8 +476,8 @@ bool Pixel::add(Geometry * inc)
 		}
 		this->features.push_back(inc) ;
 		
-		if(features.size() > 32 )
-			refine() ;
+// 		if(features.size() > 32 )
+// 			refine() ;
 		
 		return true;
 	}
@@ -508,10 +508,10 @@ void Pixel::forceAdd(Geometry * inc)
 	
 
 	
-	if(!filled && features.size() > 32 )
-	{
-		refine() ;
-	}
+// 	if(!filled && features.size() > 32 )
+// 	{
+// 		refine() ;
+// 	}
 }
 
 void Pixel::print() const
@@ -802,6 +802,44 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 std::vector<Geometry *> Grid3D::coOccur(const Point & p) const 
 {
 	std::vector<Geometry *> ret ;
+	double startX = x*.5-c.x + p.x ;
+	int startI = std::max(0., startX/psize - 2) ;
+	
+	double endX =  startX+.05*x;
+	int endI = std::min(endX/psize + 2, (double)lengthX);
+	
+	double startY = y*.5-c.y + p.y ;
+	int startJ = std::max(0., startY/psize - 2) ;
+	
+	double endY =  startY+.05*y;
+	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	
+	double startZ = z*.5-c.z + p.z ;
+	int startK = std::max(0., startZ/psize - 2) ;
+	
+	double endZ =  startZ+.05*z;
+	int endK = std::min(endZ/psize + 2, (double)lengthZ);
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			for(int k = startK ; k < endK ; k++)
+			{
+				if(pixels[i][j][k]->coOccur(p))
+				{
+					pixels[i][j][k]->coOccuringFeatures(ret,p) ;
+				}
+			}
+		}
+	}
+	
+	std::stable_sort(ret.begin(), ret.end());
+	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	ret.erase(e, ret.end()) ;
+	return ret ;
+	
+	
+// 	std::vector<Geometry *> ret ;
 // 	double startX = .5*x + p.x-.05*x ;
 // 	int startI = std::max(0., startX/psize - 2) ;
 // 	
@@ -820,28 +858,29 @@ std::vector<Geometry *> Grid3D::coOccur(const Point & p) const
 // 	double endZ =  startZ+.1*z;
 // 	int endK = std::min(endZ/psize + 2, (double)lengthZ);
 // 	
-	for(int i = std::max((p.x-c.x-psize)/psize, 0.) ; i < std::min((int)((p.x-c.x+psize)/psize+1),(int)pixels.size()) ; i++)
-	{
-		for(int j = std::max((p.y-c.y-psize)/psize,0.) ; 
-		    j < std::min((int)((p.y-c.y+psize)/psize+1),(int)pixels[i].size()) ; 
-		    j++)
-		{
-			for(int k = std::max((p.z-c.z-psize)/psize,0.) ; 
-			    k <std::min((int)((p.z-c.z+psize)/psize+1),(int)pixels[i][j].size()) ;
-			    k++)
-			{
-				if(pixels[i][j][k]->coOccur(p))
-				{
-					pixels[i][j][k]->coOccuringFeatures(ret,p) ;
-				}
-			}
-		}
-	}
-	
-	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
-	ret.erase(e, ret.end()) ;
-	return ret ;
+// 	for(int i = std::max((p.x-c.x-psize)/psize, 0.) ; i < std::min((int)((p.x-c.x+psize)/psize+1)*2,(int)pixels.size()) ; i++)
+// 	{
+// 		for(int j = std::max((p.y-c.y-psize)/psize,0.) ; 
+// 		    j < std::min((int)((p.y-c.y+psize)/psize+1),(int)pixels[i].size()) ; 
+// 		    j++)
+// 		{
+// 			for(int k = std::max((p.z-c.z-psize)/psize,0.) ; 
+// 			    k <std::min((int)((p.z-c.z+psize)/psize+1),(int)pixels[i][j].size()) ;
+// 			    k++)
+// 			{
+// 				std::cout << i << ", " << j << ", " << k << std::endl ;
+// 				if(pixels[i][j][k]->coOccur(p))
+// 				{
+// 					pixels[i][j][k]->coOccuringFeatures(ret,p) ;
+// 				}
+// 			}
+// 		}
+// 	}
+// 	
+// 	std::stable_sort(ret.begin(), ret.end());
+// 	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+// 	ret.erase(e, ret.end()) ;
+// 	return ret ;
 }
 
 Grid::~Grid()

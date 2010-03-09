@@ -360,16 +360,44 @@ double Tetrahedron::getRadius() const
 
 std::vector<Point> Tetrahedron::getBoundingBox() const
 {
+	
+	double min_x_0 = 0, min_y_0 = 0, max_x_0 = 0, max_y_0 = 0, max_z_0 = 0, min_z_0 = 0;
+	min_y_0 = getBoundingPoint(0).y ;
+	max_y_0 = getBoundingPoint(0).y ;
+	min_x_0 = getBoundingPoint(0).x ;
+	max_x_0 = getBoundingPoint(0).x ;
+	min_z_0 = getBoundingPoint(0).z ;
+	max_z_0 = getBoundingPoint(0).z ;
+	
+	for(size_t k  =  1 ; k <  getBoundingPoints().size() ; k++)
+	{
+		if(getBoundingPoint(k).y < min_y_0)
+			min_y_0 = getBoundingPoint(k).y ;
+		if(getBoundingPoint(k).y > max_y_0)
+			max_y_0 = getBoundingPoint(k).y ;
+		
+		if(getBoundingPoint(k).x < min_x_0)
+			min_x_0 = getBoundingPoint(k).x ;
+		if(getBoundingPoint(k).x > max_x_0)
+			max_x_0 = getBoundingPoint(k).x ;
+		
+		if(getBoundingPoint(k).z < min_z_0)
+			min_z_0 = getBoundingPoint(k).z ;
+		if(getBoundingPoint(k).z > max_z_0)
+			max_z_0 = getBoundingPoint(k).z ;
+	}
+				
+	
 	double r = getRadius() ;
 	std::vector<Point> ret ;
-	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y+0.5*r, circumCenter.z+0.5*r)) ;
-	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y+0.5*r, circumCenter.z-0.5*r)) ;
-	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y-0.5*r, circumCenter.z+0.5*r)) ;
-	ret.push_back(Point(circumCenter.x+0.5*r, circumCenter.y-0.5*r, circumCenter.z-0.5*r)) ;
-	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y+0.5*r, circumCenter.z+0.5*r)) ;
-	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y+0.5*r, circumCenter.z-0.5*r)) ;
-	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y-0.5*r, circumCenter.z+0.5*r)) ;
-	ret.push_back(Point(circumCenter.x-0.5*r, circumCenter.y-0.5*r, circumCenter.z-0.5*r)) ;
+	ret.push_back(Point(max_x_0, max_y_0, max_z_0)) ;
+	ret.push_back(Point(max_x_0, max_y_0, min_z_0)) ;
+	ret.push_back(Point(max_x_0, min_y_0, max_z_0)) ;
+	ret.push_back(Point(max_x_0, min_y_0, min_z_0)) ;
+	ret.push_back(Point(min_x_0, max_y_0, max_z_0)) ;
+	ret.push_back(Point(min_x_0, max_y_0, min_z_0)) ;
+	ret.push_back(Point(min_x_0, min_y_0, max_z_0)) ;
+	ret.push_back(Point(min_x_0, min_y_0, min_z_0)) ;
 	return ret ;
 }
 
@@ -387,6 +415,13 @@ void Tetrahedron::sampleSurface(size_t num_points)
 bool Tetrahedron::in(const Point & v) const
 {
 	Point  pg=(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
+	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
+	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
+	TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+	TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+	Segment s(pg,v) ;
+	
+	return s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3) ;
 	
 	double alpha;
 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
@@ -500,7 +535,7 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	
 	double d = dist(&circumCenter, p) ;
 
-	return  d-radius < -1e-8 ;
+	return  d-radius < POINT_TOLERANCE ;
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)
@@ -867,12 +902,12 @@ void Hexahedron::sampleSurface(size_t num_points)
 
 bool Hexahedron::in(const Point & v) const
 {
-	return v.x >= (center.x- size_x/2.) &&
-		v.x <= (center.x+ size_x/2. ) &&
-		v.y >= (center.y- size_y/2. ) &&
-		v.y <= (center.y+ size_y/2. ) &&
-		v.z >= (center.z- size_z/2. ) &&
-		v.z <= (center.z+ size_z/2. ) ;
+	return v.x >= (center.x- size_x*.5) &&
+		v.x <= (center.x+ size_x*.5 ) &&
+		v.y >= (center.y- size_y*.5 ) &&
+		v.y <= (center.y+ size_y*.5 ) &&
+		v.z >= (center.z- size_z*.5 ) &&
+		v.z <= (center.z+ size_z*.5 ) ;
 }
 
 double Hexahedron::area() const
@@ -919,8 +954,15 @@ void Hexahedron::project(Point * p) const
 	targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ;
 	for(size_t i = 0 ; i < 8 ; i++)
 		targets[dist(*p, bbox[i])] = bbox[i] ;
-	targets[dist(*p, bbox[0])] = bbox[0] ;
 	
+	for(std::map<double, Point>::iterator i = targets.begin() ; i!=targets.end() ; ++i)
+	{
+		if(in(i->second))
+		{
+			*p = i->second ;
+			return ;
+		}
+	}
 	*p = targets.begin()->second ;
 }
 
@@ -1164,19 +1206,19 @@ void Sphere::sampleSurface(size_t num_points)
 
 bool Sphere::in(const Point & v) const 
 { 
-	if(v.x < center.x-getRadius())
-		return false ;
-	if(v.x > center.x+getRadius())
-		return false ;
-	if(v.y < center.y-getRadius())
-		return false ;
-	if(v.y > center.y+getRadius())
-		return false ;
-	if(v.z < center.z-getRadius())
-		return false ;
-	if(v.z > center.z+getRadius())
-		return false ;
-	return squareDist3D(v, center ) < this->sqradius + POINT_TOLERANCE;
+// 	if(v.x < center.x-getRadius())
+// 		return false ;
+// 	if(v.x > center.x+getRadius())
+// 		return false ;
+// 	if(v.y < center.y-getRadius())
+// 		return false ;
+// 	if(v.y > center.y+getRadius())
+// 		return false ;
+// 	if(v.z < center.z-getRadius())
+// 		return false ;
+// 	if(v.z > center.z+getRadius())
+// 		return false ;
+	return squareDist3D(v, getCenter()) < getRadius()*getRadius() + POINT_TOLERANCE;
 }
 
 double Sphere::area() const
@@ -1191,25 +1233,24 @@ double Sphere::volume() const
 
 void Sphere::project(Point * p) const
 {
-	//x = r sin(theta) cos(phi)
-	//y = r sin(theta) sin(phi)
-	//z = r cos(theta)
-	int id = p->id ;
+
 	if(squareDist3D(p, &center ) < POINT_TOLERANCE)
+	{
+		p->x +=getRadius() ;
 		return ;
+	}
 	
-	Point p_prime = *p-center ;
-	p_prime *= radius/p_prime.norm() ;
-	*p = center+p_prime ;
-	p->id = id ;
+	Line l(*p, *p-getCenter()) ;
+	
+	std::vector<Point> inter = l.intersection(this) ;
+	if(dist(inter[0], *p) < dist(inter[1], *p))
+	{
+		*p = inter[0] ;
+		return ;
+	}
+	*p = inter[1] ;
 	return ;
 	
-// 	double r = sqrt(radius) ;
-// 	double theta = acos(p_prime.z/p_prime.norm()) ;
-// 	double phi = atan2(p_prime.y, p_prime.x) ;
-// 	p->x = r*sin(theta)*cos(phi) +center.x;
-// 	p->y = r*sin(theta)*sin(phi) +center.y;
-// 	p->z = r*cos(theta) +center.z;
 }
 
 void Sphere::project(Point * p, double r) const

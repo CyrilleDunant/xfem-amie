@@ -225,10 +225,10 @@ if(OPENMP_FOUND)
 endif(OPENMP_FOUND)
 
 if(DEBUG_BUILD EQUAL 1)
-	add_definitions(-g3 -fno-exceptions -O0 -DNDEBUG -march=native)
+	add_definitions(-g3 -fno-exceptions -O0 -DNDEBUG -march=native -funroll-loops)
 	message (STATUS "  Debug Build")
 else()
-	add_definitions(-g3 -fno-exceptions -O3 -DNDEBUG -march=native)
+	add_definitions(-g3 -fno-exceptions -O3 -DNDEBUG -march=native -parallel -funroll-loops)
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
 
