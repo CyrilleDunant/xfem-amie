@@ -763,7 +763,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 
 void Hexahedron::sampleBoundingSurface(size_t num_points)
 {
-	std::vector<Point> points = getSamplingBoundingPoints(num_points);
+	std::vector<Point> points = getSamplingBoundingPoints(4*num_points);
 	for (size_t i = 0 ; i < boundingPoints.size() ; i++)
 		delete boundingPoints[i] ;
 
@@ -785,8 +785,7 @@ void Hexahedron::computeCenter()
 
 double Hexahedron::getRadius() const
 {
-	//! \todo make it do something
-	return 0 ;
+	return dist(getCenter(), getCenter()+Point(size_x, size_y, size_z)*.5) ;
 }
 
 void Hexahedron::sampleSurface(size_t num_points)
@@ -1257,6 +1256,11 @@ void Sphere::project(Point * p) const
 	Line l(*p, *p-getCenter()) ;
 	
 	std::vector<Point> inter = l.intersection(this) ;
+	if(inter.empty())
+	{
+		p->print() ;
+		getCenter().print() ;
+	}
 	if(dist(inter[0], *p) < dist(inter[1], *p))
 	{
 		*p = inter[0] ;
@@ -1273,7 +1277,7 @@ void Sphere::project(Point * p, double r) const
 	//y = r sin(theta) sin(phi)
 	//z = r cos(theta)
 	int id = p->id ;
-	if(squareDist3D(*p, center ) < POINT_TOLERANCE)
+	if(squareDist3D(*p, center ) < POINT_TOLERANCE*POINT_TOLERANCE)
 	{
 		p->x =+ r ;
 		return ;
