@@ -73,7 +73,7 @@ bool Voxel::coOccur(const Geometry * inc) const
 		|| inc->in(trb) 
 		|| inc->in(brb) 
 		|| inc->in(blb) 
-		|| Hexahedron(tlf.x-brb.x, tlf.y-brb.y, tlf.z-brb.z, (tlf.x+brb.x)*.5, (tlf.y+brb.y)*.5, (tlf.z+brb.z)*.5).intersects(inc);
+		|| Hexahedron(tlf.x-brb.x, tlf.y-brb.y, tlf.z-brb.z, (tlf.x+brb.x)*.5, (tlf.y+brb.y)*.5, (tlf.z+brb.z)*.5).intersects(inc) || in(inc->getCenter());
 }
 
 void Voxel::remove(Geometry * inc)

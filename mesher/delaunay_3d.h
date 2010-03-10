@@ -107,24 +107,24 @@ public:
 	
 	virtual bool isVertex(const Point *p) const = 0 ; //!< Test. Is this point \a p isVertex ?
 
-	virtual std::vector< Point*> commonSurface(const DelaunayTreeItem3D *t) const  = 0; //!< What is the common edge with this item. returns a null pair if none
+	virtual std::vector< Point*> commonSurface(DelaunayTreeItem3D *t)  = 0; //!< What is the common edge with this item. returns a null pair if none
 	
 	virtual bool inCircumSphere(const Point &p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
 	virtual bool onCircumSphere(const Point &p) const = 0 ;
-	virtual bool isNeighbour( const DelaunayTreeItem3D *) const = 0 ;  //!< Test. Are we a neighbour ?
+	virtual bool isNeighbour( DelaunayTreeItem3D *) = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,  Star3D *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
 	virtual  void conflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > &,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
 	virtual  void conflicts(std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > &, const Geometry *g) ;
-	std::vector<DelaunayTreeItem3D *> flatConflicts(std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > & ret, const Geometry *g) ;
-	std::vector<DelaunayTreeItem3D *> flatConflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> >& ret,const Point *p) ;
+	virtual std::vector<DelaunayTreeItem3D *> flatConflicts(std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > & ret, const Geometry *g) ;
+	virtual std::vector<DelaunayTreeItem3D *> flatConflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> >& ret,const Point *p) ;
 
 	virtual void print() const = 0 ;
 
 	virtual bool in( const Point & p) const  = 0;
 	
-	size_t numberOfCommonVertices(const DelaunayTreeItem3D * s) const;
+	size_t numberOfCommonVertices(const DelaunayTreeItem3D * s);
 	
-	bool isDuplicate(const DelaunayTreeItem3D * t) const ;
+	bool isDuplicate( DelaunayTreeItem3D * t) ;
 	
 } ;
 
@@ -147,11 +147,11 @@ public:
 	
 	virtual ~DelaunayTetrahedron() ;
 
-	bool isVertex(const Point * p) const ;
+	virtual bool isVertex(const Point * p) const ;
 	bool isVertexByID(const Point * p) const ;
 	bool hasVertexByID(const std::valarray<Point *> * p) const ;
 	
-	std::vector< Point*> commonSurface(const DelaunayTreeItem3D * t) const ;
+	virtual std::vector< Point*> commonSurface(DelaunayTreeItem3D * t) ;
 
 	
 	/** Check for point location.
@@ -159,14 +159,14 @@ public:
 	 * @param p Point to check.
 	 * @return true if we are in the triangle's CircumCircle and false if we are on or outside. 
 	 */
-	bool inCircumSphere(const Point & p) const ;
-	bool onCircumSphere(const Point & p) const ;
-	bool isNeighbour( const DelaunayTreeItem3D * t) const ;
-	void kill(const Point * p) ;
-	void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
+	virtual bool inCircumSphere(const Point & p) const ;
+	virtual bool onCircumSphere(const Point & p) const ;
+	virtual bool isNeighbour( DelaunayTreeItem3D * t) ;
+	virtual void kill(const Point * p) ;
+	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
 	std::vector<Point *> getIntegrationHints() const ;
 
-	void print() const;
+	virtual void print() const;
 
 	void refresh(const TetrahedralElement *) ;
 	
@@ -200,17 +200,17 @@ public:
 	
 	virtual ~DelaunayDemiSpace() ;
 	
-	std::vector< Point*> commonSurface(const DelaunayTreeItem3D * t) const ;	
+	virtual std::vector< Point*> commonSurface(DelaunayTreeItem3D * t)  ;	
 	/** Check for point location.
 	 * 
 	 * @param p Point to check.
 	 * @return true if we are in the demi plane, false if we are outside or on the limit.
 	 */
 	
-	bool inCircumSphere(const Point & p) const ;
-	bool onCircumSphere(const Point & p) const ;
-	bool isNeighbour( const DelaunayTreeItem3D * t) const ;
-	bool isVertex(const Point *p) const ;
+	virtual bool inCircumSphere(const Point & p) const ;
+	virtual bool onCircumSphere(const Point & p) const ;
+	virtual bool isNeighbour( DelaunayTreeItem3D * t) ;
+	virtual bool isVertex(const Point *p) const ;
 	
 	void merge(DelaunayDemiSpace * p) ;//!< ????
 	
@@ -218,13 +218,13 @@ public:
 	
 	void insert(std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) ;
 	
-	bool in( const Point & p) const
+	virtual bool in( const Point & p) const
 	{
 		return isOnTheSameSide( &p, third, first, second, fourth) ;
 	}
 
 
-	void print() const;
+	virtual void print() const;
 
 } ;
 
@@ -242,17 +242,17 @@ public:
 	
 	virtual ~DelaunayDeadTetrahedron() ;
 	
-	std::vector< Point*> commonSurface(const DelaunayTreeItem3D * t) const ;	
+	virtual std::vector< Point*> commonSurface(DelaunayTreeItem3D * t) ;	
 
-	bool inCircumSphere(const Point & p) const ;
-	bool onCircumSphere(const Point & p) const ;
-	bool isNeighbour( const DelaunayTreeItem3D * t) const ;
-	bool isVertex(const Point *p) const ;
-	bool isVertexByID(const Point *p) const ;
+	virtual bool inCircumSphere(const Point & p) const ;
+	virtual bool onCircumSphere(const Point & p) const ;
+	virtual bool isNeighbour( DelaunayTreeItem3D * t) ;
+	virtual bool isVertex(const Point *p) const ;
+	bool isVertexByID(const Point *p) ;
 	
-	void insert(std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) { };
+	virtual void insert(std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) { };
 	
-	bool in( const Point & p) const;
+	virtual bool in( const Point & p) const;
 
 	void print() const;
 
@@ -266,24 +266,24 @@ class DelaunayRoot3D : public DelaunayTreeItem3D
 public:
 	DelaunayRoot3D(DelaunayTree3D *tree, Point * p0,  Point * p1,  Point * p2, Point * p3) ;
 	
-	bool isVertex(const Point *p) const ;
+	virtual bool isVertex(const Point *p) const ;
 	
-	bool inCircumSphere(const Point & p) const ;
-	bool onCircumSphere(const Point & p) const ;
+	virtual bool inCircumSphere(const Point & p) const ;
+	virtual bool onCircumSphere(const Point & p) const ;
 			
-	std::vector< Point*> commonSurface(const DelaunayTreeItem3D *t) const ; //!< What is the common edge with this item. returns a null pair if none
+	virtual std::vector< Point*> commonSurface(DelaunayTreeItem3D *t) ; //!< What is the common edge with this item. returns a null pair if none
 	
-	bool isNeighbour( const DelaunayTreeItem3D *) const { return false ; } 
+	virtual bool isNeighbour( DelaunayTreeItem3D *) { return false ; } 
 	
-	void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
+	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
 	
-	void conflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > &, const Point *p )  ;
+	virtual void conflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > &, const Point *p )  ;
 	
-	void conflicts( std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > &, const Geometry *g)  ;
+	virtual void conflicts( std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > &, const Geometry *g)  ;
 
-	void print() const ;
+	virtual void print() const ;
 
-	bool in( const Point & p) const
+	virtual bool in( const Point & p) const
 	{
 		return true ;
 	}

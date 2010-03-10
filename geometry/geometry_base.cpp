@@ -1192,9 +1192,11 @@ bool Geometry::intersects(const Geometry *g) const
 			}
 			if(g->getGeometryType() == HEXAHEDRON)
 			{
-				Point proj(g->getCenter()) ;
-				project(&proj) ;
-				return g->in(proj) ;
+				Point proj0(g->getCenter()) ;
+				project(&proj0) ;
+				Point proj1(getCenter()) ;
+				g->project(&proj1) ;
+				return g->in(proj0) || in(proj1) ;
 			}
 			if(g->getGeometryType() == TETRAHEDRON)
 			{
@@ -1739,7 +1741,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1768,7 +1770,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1791,7 +1793,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
 					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
@@ -1822,7 +1824,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1852,7 +1854,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1881,7 +1883,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
@@ -1900,6 +1902,25 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					{
 						if(g->in(C.getInPoint(i)) && in(C.getInPoint(i)))
 							ret.push_back(C.getInPoint(i)) ;
+					}
+				}
+				bool haveDuplicates = true ;
+				while(haveDuplicates)
+				{
+					haveDuplicates = false ;
+					for(size_t i  = 0 ; i < ret.size() ; i++)
+					{
+						for(size_t j  = i+1 ; j < ret.size() ; j++)
+						{
+							if(ret[i] == ret[j])
+							{
+								haveDuplicates = true ;
+								ret.erase(ret.begin()+j) ;
+								break ;
+							}
+						}
+						if(haveDuplicates)
+							break ;
 					}
 				}
 			}
@@ -4251,24 +4272,48 @@ OrientableCircle::OrientableCircle(double r,double x, double y, double z, Point 
 {
 	gType = ORIENTABLE_CIRCLE ;
 	this->center = Point(x,y,z) ;
-	this->normal = n/ sqrt(n.x*n.x+n.y*n.y+n.z*n.z) ;
-	this->radius = r ;
+	if(n.norm() > POINT_TOLERANCE)
+	{
+		this->normal = n/n.norm() ;
+		this->radius = r ;
+	}
+	else
+	{
+		this->radius = 0 ;
+		normal = Point(1, 0, 0) ;
+	}
 }
 
-OrientableCircle::OrientableCircle(double r,const Point * p0, Point normal ) 
+OrientableCircle::OrientableCircle(double r,const Point * p0, Point n ) 
 {
 	gType = ORIENTABLE_CIRCLE ;
 	this->center = *p0 ;
-	this->normal = normal/normal.norm() ;
-	this->radius = r ;
+	if(n.norm() > POINT_TOLERANCE)
+	{
+		this->normal = n/n.norm() ;
+		this->radius = r ;
+	}
+	else
+	{
+		this->radius = 0 ;
+		normal = Point(1, 0, 0) ;
+	}
 }
 
-OrientableCircle::OrientableCircle(double r,const Point p0, Point normal ) 
+OrientableCircle::OrientableCircle(double r,const Point p0, Point n ) 
 {
 	gType = ORIENTABLE_CIRCLE ;
 	this->center = p0 ;
-	this->normal = normal/normal.norm() ;
-	this->radius = r ;
+	if(n.norm() > POINT_TOLERANCE)
+	{
+		this->normal = n/n.norm() ;
+		this->radius = r ;
+	}
+	else
+	{
+		this->radius = 0 ;
+		normal = Point(1, 0, 0) ;
+	}
 }
 
 OrientableCircle::OrientableCircle()
@@ -4283,6 +4328,9 @@ OrientableCircle::OrientableCircle()
 std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points) const
 {
 	Vector start(3) ; start[0] = -normal.y*radius ;  start[1] = normal.x*radius ;  start[2] = 0 ; 
+	std::vector<Point> ret ;
+	if(num_points == 0)
+		return ret ;
 	
 	if(std::abs(start[0]) < POINT_TOLERANCE && std::abs(start[1]) < POINT_TOLERANCE && std::abs(start[2]))
 	{
@@ -4309,7 +4357,7 @@ std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points
 	R[1][0] = 2.*(q2*q1 + q0*q3) ; R[1][1] = (q0*q0 - q1*q1 + q2*q2 - q3*q3) ; R[1][2] = 2.*(q2*q3 - q0*q1) ;
 	R[2][0] = 2.*(q3*q1 - q0*q2) ; R[2][1] = 2.*(q3*q2 + q0*q1) ; R[2][2] = (q0*q0 - q1*q1 - q2*q2 + q3*q3) ;
 	
-	std::vector<Point> ret ;
+	
 	for(size_t i = 0 ; i < num_points ; i++)
 	{
 		start=R*start ;
@@ -4323,6 +4371,8 @@ std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points
 
 void OrientableCircle::sampleBoundingSurface(size_t num_points)
 {
+	if(num_points == 0)
+		return ;
 // 	std::cout << "sample OC" << std::endl ;
 	
 	Vector start(3) ; start[0] = -normal.y*radius ;  start[1] = normal.x*radius ;  start[2] = 0 ; 
@@ -4365,6 +4415,9 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
 
 void OrientableCircle::sampleSurface(size_t num_points)
 {
+	if(num_points == 0)
+		return ;
+	
 	sampleBoundingSurface(num_points) ;
 	
 	std::vector<Point> toAdd ;

@@ -2130,12 +2130,16 @@ void FeatureTree::defineMeshingBox()
 	Point c(max_x+min_x, max_y+min_y, max_z+min_z) ; c *= .5 ;
 
 	double r = 0 ;
-	bool change = std::max(std::max(std::abs(w-w_act), std::abs(h-h_act)),std::abs(d-d_act)) > POINT_TOLERANCE;
+	bool change = std::max(std::max(w_act-w, h_act-h),d_act-d) > POINT_TOLERANCE;
 
 	if(!change)
 	{
 		std::cerr << "no need for meshing box... skip" << std::endl ;
 		return ;
+	}
+	else
+	{
+		std::cerr << "meshing box defined with max delta length " << std::max(std::max(std::abs(w-w_act), std::abs(h-h_act)),std::abs(d-d_act))<< std::endl ;
 	}
 
 	// define the box
@@ -2615,36 +2619,37 @@ void FeatureTree::sample(size_t n)
 		{
 			tree[0]->sample(n) ;
 		}
-		for(size_t i  = 1+hasMeshingBox ; i < this->tree.size() ; i ++)
+		for(size_t i  = 1+hasMeshingBox ; i < this->tree.size() ; i++)
 		{
 			double shape_factor = (sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
 			size_t npoints = (size_t)((double)n*sqrt(tree[i]->area()/(total_area*shape_factor))) ;
+
 			if(npoints > 8)
 				tree[i]->sample(npoints) ;
 		}
 	}
 	else if (is3D())
 	{
-		double total_area = tree[0]->area() ;
 		if(hasMeshingBox)
 		{
 			
-			tree[0]->sample(n*tree[0]->area()/tree[1]->area()*.175) ;
-			tree[1]->sample(n*2.) ;
+			tree[0]->sample(n) ;
+			tree[1]->sample(n*4.) ;
 		}
 		else
 		{
 			tree[0]->sample(n) ;
 		}
-// 		total_area *= tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius()) ;
+		double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius()) ;
 		int count = 0 ;
 #pragma omp parallel for
 		for(int i  = 1+hasMeshingBox ; i < (int)tree.size() ; i++)
 		{
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 			
-			double shape_factor = pow(tree[i]->volume()/(3*.25*M_PI*tree[i]->getRadius()*tree[i]->getRadius()*tree[i]->getRadius()), .7);
-			size_t npoints = (size_t)((double)n*tree[i]->area()/(total_area*shape_factor)) ;
+			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
+			size_t npoints = (size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
+			
 			
 			if(npoints > 14)
 				tree[i]->sample(npoints) ;
@@ -4356,6 +4361,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		pointDensity = .7*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
 	else
 		pointDensity = .7*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
+	
 	std::cout << pointDensity << std::endl ;
 	std::valarray<Point> bbox(8) ;
 	double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
@@ -4443,25 +4449,28 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					       && potentialChildren[k]->in(tree[i]->getBoundingPoint(j)))
 					  )
 					{
+						if(potentialChildren[k]!= tree[1])
+						{
 						isIn = true ;
 						break ;
+						}
 					}
 				}
 				
 
 				if(i != 0 && !inRoot(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
-				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getBoundingPoint(j)))
-					isIn = true ;
+// 				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getBoundingPoint(j)))
+// 					isIn = true ;
 				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
 					isIn = true ;
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
-				
-				if(hasMeshingBox && i == 0)
-				{
-					isIn = tree[1]->inBoundary(tree[0]->getBoundingPoint(j), pointDensity) ;
-				}
+
+// 				if(hasMeshingBox && i == 0)
+// 				{
+// 					isIn = tree[1]->inBoundary(tree[0]->getBoundingPoint(j), pointDensity) ;
+// 				}
 				
 				if(!isIn)
 				{
@@ -4521,26 +4530,27 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					    )
 					  )
 					{
+						if(potentialChildren[k]!= tree[1])
+						{
 						isIn = true ;
 						break ;
+						}
 					}
 				}
 				
-// 				std::cout << i << "  " ; tree[i]->getInPoint(j).print() ;
 				if(i != 0 && !inRoot(tree[i]->getInPoint(j)))
 					isIn = true ;
-				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getInPoint(j)))
-					isIn = true ;
+// 				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getInPoint(j)))
+// 					isIn = true ;
 				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getInPoint(j), pointDensity))
 					isIn = true ;
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getInPoint(j)))
 					isIn = true ;
 					
-				
-				if(hasMeshingBox && i == 0)
-				{
-					isIn = tree[1]->inBoundary(tree[i]->getInPoint(j), pointDensity) ;
-				}
+// 				if(hasMeshingBox && i == 0)
+// 				{
+// 					isIn = tree[1]->inBoundary(tree[i]->getInPoint(j), pointDensity) ;
+// 				}
 				
 				if(!isIn)
 				{
@@ -4557,7 +4567,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 	size_t count  = 0 ;
 
-	if(true)
+	if(false)
 	{
 		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
 		{

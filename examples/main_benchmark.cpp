@@ -966,7 +966,7 @@ void Display(void)
 					double c2 ;
 					double c3 ;
 					
-					if(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01)
+					if(true) //std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->first->id*3]; 
@@ -992,7 +992,7 @@ void Display(void)
 						glEnd() ;
 					}
 					
-					if(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
+					if(true) //(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->first->id*3]; 
@@ -1018,7 +1018,7 @@ void Display(void)
 						glEnd() ;
 					}
 					
-					if(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
+					if(true) //(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->first->id*3]; 
@@ -1044,7 +1044,7 @@ void Display(void)
 						glEnd() ;
 					}
 					
-					if(std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
+					if(true) //(std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->third->id*3]; 
@@ -1426,7 +1426,7 @@ int main(int argc, char *argv[])
 	std::cout << minz << ";" << maxz << std::endl ;
 
 	double scale = 500/0.15 ;
-	Sample3D sample(NULL, (maxx-minx)*scale, (maxy-miny)*scale, (maxz-minz)*scale,(0.075)*scale,(0.075)*scale,(0.075)*scale) ;
+	Sample3D sample(NULL, 1.4*(maxx-minx)*scale, 1.4*(maxy-miny)*scale, 1.4*(maxz-minz)*scale,(0.075)*scale,(0.075)*scale,(0.075)*scale) ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
@@ -1459,24 +1459,24 @@ int main(int argc, char *argv[])
 	double v = 0 ;
 	if(!inclusions.empty())
 	{
-		F.addFeature(&sample, inclusions[0]) ;
-		for(size_t i = 1 ; i < inclusions.size() ; i++)
+// 		F.addFeature(&sample, inclusions[0]) ;
+		for(size_t i = 0 ; i < 1000/*inclusions.size()*/ ; i++)
 		{
 			static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*scale) ;
 			static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*scale) ;
 			inclusions[i]->setBehaviour(new Stiffness(m1)) ;
-			F.addFeature(inclusions[i-1], inclusions[i]) ;
+			F.addFeature(&sample, inclusions[i]) ;
 			v += static_cast<Sphere *>(inclusions[i])->volume() ;
 		}
 	}
 
-// 	Inclusion3D * inc = new Inclusion3D(100, 500, 250, 250) ;
+// 	Inclusion3D * inc = new Inclusion3D(100, 500, 500, 500) ;
 // 	inc->setBehaviour(new Stiffness(m1)) ;
 // 	F.addFeature(&sample, inc) ;
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(2048*4) ;
+	F.sample(2048*8) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -100)) ;
