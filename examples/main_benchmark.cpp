@@ -1373,8 +1373,8 @@ int main(int argc, char *argv[])
 // dt.insert(new Point(0, 0, 0)) ;
 // dt.insert( new Point(497.7976374532, 3.4932919645137, 306.2095113991)) ;
 // dt.insert(new Point(499.59174232694, 3.9847811333998, 183.24226882653)) ;
-	
-
+// 	
+// 
 // 	return 0 ;
 	
 	std::vector<std::string> fields ;

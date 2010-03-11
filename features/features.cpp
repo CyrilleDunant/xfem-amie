@@ -2055,6 +2055,7 @@ void FeatureTree::addNewRoot(Feature * newRoot)
 
 void FeatureTree::defineMeshingBox()
 {
+	return ;
 	if(tree.empty())
 	{
 		std::cerr << "warning: unable to define meshing box: no features in tree" << std::endl ;
@@ -2634,7 +2635,7 @@ void FeatureTree::sample(size_t n)
 		{
 			
 			tree[0]->sample(n) ;
-			tree[1]->sample(n*4.) ;
+// 			tree[1]->sample(n*4.) ;
 		}
 		else
 		{
@@ -2648,7 +2649,7 @@ void FeatureTree::sample(size_t n)
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 			
 			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
-			size_t npoints = (size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
+			size_t npoints = .075*(size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
 			
 			
 			if(npoints > 14)
@@ -4449,15 +4450,14 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					       && potentialChildren[k]->in(tree[i]->getBoundingPoint(j)))
 					  )
 					{
-						if(potentialChildren[k]!= tree[1])
+						if(potentialChildren[k]->getBoundingPoints().size())
 						{
-						isIn = true ;
-						break ;
+							isIn = true ;
+							break ;
 						}
 					}
 				}
 				
-
 				if(i != 0 && !inRoot(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
 // 				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getBoundingPoint(j)))
@@ -4530,10 +4530,10 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					    )
 					  )
 					{
-						if(potentialChildren[k]!= tree[1])
+						if(potentialChildren[k]->getBoundingPoints().size())
 						{
-						isIn = true ;
-						break ;
+							isIn = true ;
+							break ;
 						}
 					}
 				}
@@ -4666,16 +4666,50 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	//let us make sure we have no overlap
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
-	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
+	if(is3D())
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
 	meshPoints.erase(e, meshPoints.end()) ;
+	if(is3D())
+	{
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
+		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
+		meshPoints.erase(e, meshPoints.end()) ;
+	}
+	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
+	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
+	if(is3D())
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;	
+	e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
+	meshPoints.erase(e, meshPoints.end()) ;
+	if(is3D())
+	{
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
+		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
+		meshPoints.erase(e, meshPoints.end()) ;
+		
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
+		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
+		meshPoints.erase(e, meshPoints.end()) ;
+		
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
+		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
+		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
+		meshPoints.erase(e, meshPoints.end()) ;
+	}
+	
 
 // 	std::srand(1000) ;
 
 	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
-// 	std::random_shuffle(meshPoints.begin(),meshPoints.begin()+bpcount) ;
-// 	std::random_shuffle(meshPoints.begin()+bpcount, meshPoints.end()) ;
 	
 //	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 //		meshPoints[i].first->print() ;

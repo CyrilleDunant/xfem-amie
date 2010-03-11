@@ -40,9 +40,16 @@ class DelaunayTreeItem3D
 {
 	
 protected:
-	std::bitset<6> state ;
-	std::bitset<6>::reference dead() ;
+	bool m_dead ;
+	bool m_isSpace ;
+	bool m_isTetrahedron ;
+	bool m_isDeadTetrahedron ;
+	bool m_visited ;
+	bool m_erased ;
+// 	std::bitset<6> state ;
+// 	std::bitset<6>::reference dead() ;
 	bool dead() const ;
+	bool & dead() ;
 public:
 	const Point * killer ; //!< Point killer.
 	const Point * creator ; //!< Point creator.
@@ -58,11 +65,16 @@ public:
 	Point * fourth ; //!<  Defining point. Function differs if item is a triangle or point.
 	
 	
-	std::bitset<6>::reference isSpace() ;
-	std::bitset<6>::reference isTetrahedron() ;
-	std::bitset<6>::reference isDeadTetrahedron() ;
-	std::bitset<6>::reference visited() ;//!< Marker. Useful not to lose ourselves isVertex the tree.
-	std::bitset<6>::reference erased() ;
+// 	std::bitset<6>::reference isSpace() ;
+// 	std::bitset<6>::reference isTetrahedron() ;
+// 	std::bitset<6>::reference isDeadTetrahedron() ;
+//	std::bitset<6>::reference visited() ;//!< Marker. Useful not to lose ourselves isVertex the tree.
+// 	std::bitset<6>::reference erased() ;
+	bool & isSpace() ;
+	bool & isTetrahedron() ;
+	bool & isDeadTetrahedron() ;
+	bool & visited() ;//!< Marker. Useful not to lose ourselves isVertex the tree.
+	bool & erased()  ;
 	bool isSpace() const;
 	bool isTetrahedron() const;
 	bool isDeadTetrahedron() const;
