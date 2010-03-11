@@ -118,7 +118,7 @@ DelaunayTreeItem3D::~DelaunayTreeItem3D()
 }
 	
 
-size_t DelaunayTreeItem3D::numberOfCommonVertices(const DelaunayTreeItem3D * s)
+size_t DelaunayTreeItem3D::numberOfCommonVertices(const DelaunayTreeItem3D * s) const
 {
 	if(this->isTetrahedron() && s->isTetrahedron())
 	{
@@ -1302,7 +1302,7 @@ bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
 	return  0 < d-radius*radius < 1e-16 ;
 }
 
-bool DelaunayDeadTetrahedron::isNeighbour( DelaunayTreeItem3D * t)
+bool DelaunayDeadTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
 {
 	size_t cv = this->numberOfCommonVertices(t) ;
 
@@ -1470,12 +1470,9 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 {
 	if(isAlive() && p != this && p->isAlive())
 	{
-		if( (first == p->first && second == p->second && third == p->third) || 
-		    (first == p->first && second == p->third && third == p->second) || 
-		    (first == p->second && second == p->third && third == p->first)|| 
-		    (first == p->second && second == p->first && third == p->third)|| 
-		    (first == p->third && second == p->first && third == p->second)||
-		    (first == p->third && second == p->second && third == p->first  ))
+		if( std::binary_search(&first, &first+3, p->first) && 
+		    std::binary_search(&first, &first+3, p->second) && 
+		    std::binary_search(&first, &first+3, p->third) )
 		{
 			for(size_t i = 0 ; i <  p->neighbour.size() ; i++)
 			{
@@ -1562,7 +1559,7 @@ bool DelaunayTetrahedron::onCircumSphere(const Point &p) const
 }
 
 
-bool DelaunayTetrahedron::isNeighbour( DelaunayTreeItem3D * t) 
+bool DelaunayTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
 {
 	size_t cv = numberOfCommonVertices(t) ;
 
@@ -1570,18 +1567,67 @@ bool DelaunayTetrahedron::isNeighbour( DelaunayTreeItem3D * t)
 
 }
 
-bool DelaunayTreeItem3D::isDuplicate( DelaunayTreeItem3D * t)
+bool DelaunayTreeItem3D::isDuplicate( const DelaunayTreeItem3D * t) const
 {
 
-	if(t==this)
+	if(t == this)
 		return false;
 	
-	if(!isTetrahedron())
-		return false ;
-	if(!t->isTetrahedron())
+	if(!isTetrahedron() || isDeadTetrahedron())
 		return false ;
 	
-	return numberOfCommonVertices(t) == 4 ;	
+	if(!t->isTetrahedron() || t->isDeadTetrahedron())
+		return false ;
+// 	static_cast<const DelaunayTetrahedron *>(t)->getCenter().print() ;
+// 	static_cast<const DelaunayTetrahedron *>(this)->getCenter().print() ;
+	if(static_cast<const DelaunayTetrahedron *>(t)->getCenter() != static_cast<const DelaunayTetrahedron *>(this)->getCenter())
+		return false ;
+	
+// 	if(*static_cast<const DelaunayTetrahedron *>(t)->getCircumCenter() != *static_cast<const DelaunayTetrahedron *>(this)->getCircumCenter())
+// 		return false ;
+	
+	
+// 	if(std::find(&first, &first+4, t->first) == &first+4)
+// 	{
+// 		return false ;
+// 	}
+// 	if(std::find(&first, &first+4, t->second) == &first+4)
+// 	{
+// 		return false ;
+// 	}
+// 	if(std::find(&first, &first+4, t->third) == &first+4)
+// 	{
+// 		return false ;
+// 	}
+// 	if(std::find(&first, &first+4, t->fourth) == &first+4)
+// 	{
+// 		return false ;
+// 	}
+// 
+//         return true ;
+
+	
+	
+	if(!std::binary_search(&first, &first+4, t->first))
+	{
+		return false ;
+	}
+	if(!std::binary_search(&first, &first+4, t->second))
+	{
+		return false ;
+	}
+	if(!std::binary_search(&first, &first+4, t->third))
+	{
+		return false ;
+	}
+	if(!std::binary_search(&first, &first+4, t->fourth))
+	{
+		return false ;
+	}
+
+	return true ;
+	
+// 	return numberOfCommonVertices(t) == 4 ;	
 }
 
 
@@ -1676,7 +1722,7 @@ bool DelaunayDemiSpace::onCircumSphere(const Point & p) const
 
 	
 
-bool  DelaunayDemiSpace::isNeighbour(DelaunayTreeItem3D * t)  
+bool  DelaunayDemiSpace::isNeighbour(const DelaunayTreeItem3D * t)  const 
 {
 	if(t->isTetrahedron())
 	{
@@ -1767,7 +1813,7 @@ void updateNeighbours(std::vector<DelaunayTreeItem3D *> * t)
 DelaunayRoot3D::DelaunayRoot3D(DelaunayTree3D *t, Point * p0, Point * p1, Point * p2, Point * p3) : DelaunayTreeItem3D(t, NULL, NULL)
 {
 	isSpace() = false ;
-	isTetrahedron() =false ;
+	isTetrahedron() = false ;
 	isDeadTetrahedron() =false ;
 	this->father = -1 ;
 	DelaunayTetrahedron *tet = new DelaunayTetrahedron(t, this, p0, p1, p2, p3, NULL) ;
