@@ -1716,6 +1716,11 @@ bool DelaunayDemiSpace::onCircumSphere(const Point & p) const
 
 bool  DelaunayDemiSpace::isNeighbour(const DelaunayTreeItem3D * t)  const 
 {
+	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t->index) !=  &neighbour[neighbour.size()])
+		return true ;
+	if(std::find(&t->neighbour[0], &t->neighbour[t->neighbour.size()],index) !=  &t->neighbour[t->neighbour.size()])
+		return true ;
+	
 	if(t->isTetrahedron())
 	{
 		return t->isNeighbour(this) ;
@@ -1786,9 +1791,24 @@ void makeNeighbours(DelaunayTreeItem3D *t0, DelaunayTreeItem3D *t1 )
 	{
 		return ;
 	}
+	if(std::find(&t0->neighbour[0], &t0->neighbour[t0->neighbour.size()],t1->index) ==  &t0->neighbour[t0->neighbour.size()])
+	{
+		std::valarray<unsigned int>  newneighbours(t0->neighbour.size()+1) ;
+		std::copy(&t0->neighbour[0], &t0->neighbour[t0->neighbour.size()], &newneighbours[0]) ;
+		newneighbours[t0->neighbour.size()] = t1->index ;
+		t0->neighbour.resize(t0->neighbour.size()+1) ;
+		t0->neighbour = newneighbours ;
+	}
 	
-	t0->addNeighbour(t1) ;
-	t1->addNeighbour(t0) ;
+	if(std::find(&t1->neighbour[0], &t1->neighbour[t1->neighbour.size()],t0->index) ==  &t1->neighbour[t1->neighbour.size()])
+	{
+		std::valarray<unsigned int>  newneighbours(t1->neighbour.size()+1) ;
+		std::copy(&t1->neighbour[0], &t1->neighbour[t1->neighbour.size()], &newneighbours[0]) ;
+		newneighbours[t1->neighbour.size()] = t0->index ;
+		t1->neighbour.resize(t1->neighbour.size()+1) ;
+		t1->neighbour = newneighbours ;
+	}
+
 } 
 
 void updateNeighbours(std::vector<DelaunayTreeItem3D *> * t)
