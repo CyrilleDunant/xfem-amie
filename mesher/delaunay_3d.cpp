@@ -1578,35 +1578,12 @@ bool DelaunayTreeItem3D::isDuplicate( const DelaunayTreeItem3D * t) const
 	
 	if(!t->isTetrahedron() || t->isDeadTetrahedron())
 		return false ;
-// 	static_cast<const DelaunayTetrahedron *>(t)->getCenter().print() ;
-// 	static_cast<const DelaunayTetrahedron *>(this)->getCenter().print() ;
-	if(static_cast<const DelaunayTetrahedron *>(t)->getCenter() != static_cast<const DelaunayTetrahedron *>(this)->getCenter())
+
+	if(squareDist3D( static_cast<const DelaunayTetrahedron *>(t)->getCenter(), static_cast<const DelaunayTetrahedron *>(this)->getCenter() ) > POINT_TOLERANCE)
 		return false ;
 	
-// 	if(*static_cast<const DelaunayTetrahedron *>(t)->getCircumCenter() != *static_cast<const DelaunayTetrahedron *>(this)->getCircumCenter())
-// 		return false ;
-	
-	
-// 	if(std::find(&first, &first+4, t->first) == &first+4)
-// 	{
-// 		return false ;
-// 	}
-// 	if(std::find(&first, &first+4, t->second) == &first+4)
-// 	{
-// 		return false ;
-// 	}
-// 	if(std::find(&first, &first+4, t->third) == &first+4)
-// 	{
-// 		return false ;
-// 	}
-// 	if(std::find(&first, &first+4, t->fourth) == &first+4)
-// 	{
-// 		return false ;
-// 	}
-// 
-//         return true ;
-
-	
+	if(squareDist3D( static_cast<const DelaunayTetrahedron *>(t)->getCircumCenter() ,static_cast<const DelaunayTetrahedron *>(this)->getCircumCenter() )  > POINT_TOLERANCE)
+		return false ;
 	
 	if(!std::binary_search(&first, &first+4, t->first))
 	{
@@ -1626,8 +1603,6 @@ bool DelaunayTreeItem3D::isDuplicate( const DelaunayTreeItem3D * t) const
 	}
 
 	return true ;
-	
-// 	return numberOfCommonVertices(t) == 4 ;	
 }
 
 
