@@ -4589,9 +4589,9 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	if(test == f2)
 		return true ;
 	
-	Mu::Point A(f1_) ; A -= f0_ ;
-	Mu::Point B(f2_) ; B -= f1_ ;
-	Mu::Point C(f2_) ; C -= test_ ;
+	Mu::Point A(f1_-f0_) ;
+	Mu::Point B(f2_-f0_) ; 
+	Mu::Point C(f2_-test_) ;
 
 	double c0 = signedCoplanarity(test_, f0_, f1_, f2_) ;
 	double c02 = c0*c0 ;
@@ -4632,9 +4632,9 @@ double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *
 double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
 {
 
-	Mu::Point A(f0) ; A -= f1 ;
-	Mu::Point B(f2) ; B -= f1 ; 
-	Mu::Point C(f2) ; C -= test ; 
+	Mu::Point A(f0-f1) ;
+	Mu::Point B(f2-f1) ;
+	Mu::Point C(f2-test) ;
 
 	return  std::abs(triProduct(A, B, C))  ;
 } ;
@@ -4642,9 +4642,9 @@ double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &
 double signedCoplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
 {
 
-	Mu::Point A(f0) ; A -= f1 ;
-	Mu::Point B(f2) ; B -= f1 ; 
-	Mu::Point C(f2) ; C -= test ; 
+	Mu::Point A(f0-f1) ;
+	Mu::Point B(f2-f1) ; 
+	Mu::Point C(f2-test) ; 
 
 	return  triProduct(A, B, C)  ;
 } ;
@@ -4656,7 +4656,5 @@ double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::P
 
 double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C)
 {
-	Point temp(A^B) ;
-	return temp*C ;
-	return (A.y*B.z - A.z*B.y)*C.x + (A.z*B.x - A.x*B.z)*C.y + (A.x*B.y - A.y*B.x)*C.z ;
+	return (A^B)*C ;
 }

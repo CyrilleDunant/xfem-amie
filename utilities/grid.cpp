@@ -164,8 +164,8 @@ bool Voxel::add(Geometry * inc)
 		
 		this->features.push_back(inc) ;
 		
-// 		if(features.size() > 64 )
-// 			refine() ;
+		if(features.size() > 64 )
+			refine() ;
 		
 		return true;
 	}
@@ -215,10 +215,10 @@ void Voxel::forceAdd(Geometry * inc)
 		}
 	}
 	
-// 	if(features.size() > 64 )
-// 	{
-// 		refine() ;
-// 	}
+	if(features.size() > 64 )
+	{
+		refine() ;
+	}
 }
 
 void Voxel::print() const
@@ -462,8 +462,8 @@ bool Pixel::add(Geometry * inc)
 		}
 		this->features.push_back(inc) ;
 		
-// 		if(features.size() > 32 )
-// 			refine() ;
+		if(features.size() > 32 )
+			refine() ;
 		
 		return true;
 	}
@@ -494,10 +494,10 @@ void Pixel::forceAdd(Geometry * inc)
 	
 
 	
-// 	if(!filled && features.size() > 32 )
-// 	{
-// 		refine() ;
-// 	}
+	if(!filled && features.size() > 32 )
+	{
+		refine() ;
+	}
 }
 
 void Pixel::print() const
@@ -756,8 +756,9 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 		for(int j = startJ ; j < endJ ; j++)
 		{
 			for(int k = startK ; k < endK ; k++)
+			{
 // 	for(int i = 0 ; i < lengthX ; i++)
-	{
+// 	{
 // 		for(int j = 0 ; j < lengthY ; j++)
 // 		{
 // 			for(int k = 0 ; k < lengthZ ; k++)
@@ -817,50 +818,7 @@ std::vector<Geometry *> Grid3D::coOccur(const Point & p) const
 	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
-	
-	
-// 	std::vector<Geometry *> ret ;
-// 	double startX = .5*x + p.x-.05*x ;
-// 	int startI = std::max(0., startX/psize - 2) ;
-// 	
-// 	double endX =  startX+.1*x;
-// 	int endI = std::min(endX/psize + 2, (double)lengthX);
-// 	
-// 	double startY = .5*y + p.y-.05*y ;
-// 	int startJ = std::max(0., startY/psize - 2) ;
-// 	
-// 	double endY =  startY+.1*y;
-// 	int endJ = std::min(endY/psize + 2, (double)lengthY);
-// 	
-// 	double startZ = .5*z + p.z-.05*z ;
-// 	int startK = std::max(0., startZ/psize - 2) ;
-// 	
-// 	double endZ =  startZ+.1*z;
-// 	int endK = std::min(endZ/psize + 2, (double)lengthZ);
-// 	
-// 	for(int i = std::max((p.x-c.x-psize)/psize, 0.) ; i < std::min((int)((p.x-c.x+psize)/psize+1)*2,(int)pixels.size()) ; i++)
-// 	{
-// 		for(int j = std::max((p.y-c.y-psize)/psize,0.) ; 
-// 		    j < std::min((int)((p.y-c.y+psize)/psize+1),(int)pixels[i].size()) ; 
-// 		    j++)
-// 		{
-// 			for(int k = std::max((p.z-c.z-psize)/psize,0.) ; 
-// 			    k <std::min((int)((p.z-c.z+psize)/psize+1),(int)pixels[i][j].size()) ;
-// 			    k++)
-// 			{
-// 				std::cout << i << ", " << j << ", " << k << std::endl ;
-// 				if(pixels[i][j][k]->coOccur(p))
-// 				{
-// 					pixels[i][j][k]->coOccuringFeatures(ret,p) ;
-// 				}
-// 			}
-// 		}
-// 	}
-// 	
-// 	std::stable_sort(ret.begin(), ret.end());
-// 	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
-// 	ret.erase(e, ret.end()) ;
-// 	return ret ;
+
 }
 
 Grid::~Grid()
@@ -1016,17 +974,13 @@ Grid Grid::getGrid(int div) const
 bool Grid::add(Geometry * inc)
 {
 	std::vector<Geometry *> toTest = coOccur(inc);
-//	std::cout << toTest.size() << std::endl ;
-//	c.print() ;
-//	inc->getCenter().print() ;
+
 	for(size_t i = 0 ; i < toTest.size() ; i++)
 	{
-//		toTest[i]->getCenter().print() ;
-//		std::cout << inc->intersects(toTest[i]) ;
+
 		if(inc->intersects(toTest[i]))
 			return false ;
 	}
-//	std::cout << std::endl ;
 	forceAdd(inc) ;
 	
 	return true ;

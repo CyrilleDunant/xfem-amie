@@ -601,12 +601,11 @@ void DelaunayTreeItem3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>,
 }
 
 
-std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > & ret, const Geometry *g)
+void DelaunayTreeItem3D::flatConflicts(std::vector<DelaunayTreeItem3D *> & toTest,  std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > & ret, const Geometry *g)
 {
-	std::vector<DelaunayTreeItem3D *> toTest ;
 	if(visited())
 	{
-		return toTest ;
+		return ;
 	}
 	visited() = true ;
 	
@@ -630,7 +629,7 @@ std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<st
 	    ) 
 	  )
 	{
-		return toTest ;
+		return ;
 	}
 	
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
@@ -721,8 +720,6 @@ std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<st
 			toTest.push_back(getNeighbour(i)) ;
 		}
 	}
-	
-	return toTest ;
 }
 
 
@@ -779,12 +776,11 @@ std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<st
 
 }
 
- std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > & ret, const Point *p)
+ void DelaunayTreeItem3D::flatConflicts( std::vector<DelaunayTreeItem3D *> & toTest, std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > & ret, const Point *p)
 {
-	std::vector<DelaunayTreeItem3D *> toTest ;
 	if(visited())
 	{
-		return toTest ;
+		return ;
 	}
 	visited() = true ;
 	
@@ -808,7 +804,7 @@ std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<st
 	
 	if(!inCircumSphere(*p))
 	{
-		return toTest ;
+		return ;
 	}
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
@@ -826,8 +822,6 @@ std::vector<DelaunayTreeItem3D *> DelaunayTreeItem3D::flatConflicts(std::pair<st
 	{
 		ret.first.push_back(this) ;
 	}
-	
-	return toTest ;
 }
 
 
@@ -1573,10 +1567,12 @@ bool DelaunayTetrahedron::onCircumSphere(const Point &p) const
 
 bool DelaunayTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
 {
-	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t->index) !=  &neighbour[neighbour.size()])
-		return true ;
-	if(std::find(&t->neighbour[0], &t->neighbour[t->neighbour.size()],index) !=  &t->neighbour[t->neighbour.size()])
-		return true ;
+	for(size_t i = 0 ; i < neighbour.size() ; i++)
+		if(neighbour[i] == t->index) 
+			return true ;
+	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
+		if(t->neighbour[i] == index)
+			return true ;
 
 	size_t cv = numberOfCommonVertices(t) ;
 
@@ -1902,14 +1898,14 @@ void DelaunayRoot3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>, std
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-		std::vector<DelaunayTreeItem3D *> toTest = getSon(i)->flatConflicts(temp,g) ;
+		std::vector<DelaunayTreeItem3D *> toTest ;
+		getSon(i)->flatConflicts(toTest, temp,g) ;
 		while(!toTest.empty())
 		{
 			std::vector<DelaunayTreeItem3D *> tempToTest ;
 			for(size_t j  = 0 ;  j < toTest.size() ; j++)
 			{
-				std::vector<DelaunayTreeItem3D *> temp0 = toTest[j]->flatConflicts(temp,g) ;
-				tempToTest.insert(tempToTest.end(), temp0.begin(), temp0.end()) ;
+				toTest[j]->flatConflicts(tempToTest, temp,g) ;
 			}
 			
 			toTest = tempToTest ;
@@ -1940,14 +1936,14 @@ void DelaunayRoot3D::conflicts(std::pair< std::vector<DelaunayTreeItem3D *>, std
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-		std::vector<DelaunayTreeItem3D *> toTest = getSon(i)->flatConflicts(temp,p) ;
+		std::vector<DelaunayTreeItem3D *> toTest ;
+		getSon(i)->flatConflicts(toTest, temp,p) ;
 		while(!toTest.empty())
 		{
 			std::vector<DelaunayTreeItem3D *> tempToTest ;
 			for(size_t j  = 0 ;  j < toTest.size() ; j++)
 			{
-				std::vector<DelaunayTreeItem3D *> temp0 = toTest[j]->flatConflicts(temp,p) ;
-				tempToTest.insert(tempToTest.end(), temp0.begin(), temp0.end()) ;
+				toTest[j]->flatConflicts(tempToTest, temp,p) ;
 			}
 			
 			toTest = tempToTest ;

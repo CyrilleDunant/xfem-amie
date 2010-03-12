@@ -1898,7 +1898,6 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles(Feature * f )
 FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 {
 
-
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
 	if(first)
@@ -1906,14 +1905,14 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 
 	if(is2D())
 		grid = new Grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x,
-		                first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 100,
+		                first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 10,
 		                Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
 		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
 		                     )) ;
 	if(is3D())
-		grid3d =new Grid3D(first->getBoundingBox()[7].x-first->getBoundingBox()[0].x,
-		                   first->getBoundingBox()[7].y-first->getBoundingBox()[0].y,
-		                   first->getBoundingBox()[7].z-first->getBoundingBox()[0].z, 1, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		grid3d =new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x),
+		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y),
+		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z), 10, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -2656,7 +2655,7 @@ void FeatureTree::sample(size_t n)
 				tree[i]->sample(npoints) ;
 
 		}
-		std::cerr << "...done" << std::endl ;
+		std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << " ...done" << std::endl ;
 	}
 }
 
@@ -4362,8 +4361,9 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		pointDensity = .7*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
 	else
 		pointDensity = .7*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
-	
-	std::cout << pointDensity << std::endl ;
+		
+	std::cout << "space meshed with " << pointDensity << " points per unit length"<< std::endl ;
+
 	std::valarray<Point> bbox(8) ;
 	double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
 
@@ -4433,7 +4433,9 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				{
 					if(!potentialFeatures[l]->isEnrichmentFeature 
 						&& std::binary_search(descendants.begin(), descendants.end(), potentialFeatures[l]))
+					{
 						potentialChildren.push_back(potentialFeatures[l]) ;
+					}
 				}
 				
 				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
@@ -4467,10 +4469,10 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
 
-// 				if(hasMeshingBox && i == 0)
-// 				{
-// 					isIn = tree[1]->inBoundary(tree[0]->getBoundingPoint(j), pointDensity) ;
-// 				}
+				if(i != 0 && tree[0]->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				{
+					isIn = true ;
+				}
 				
 				if(!isIn)
 				{
@@ -4547,10 +4549,10 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getInPoint(j)))
 					isIn = true ;
 					
-// 				if(hasMeshingBox && i == 0)
-// 				{
-// 					isIn = tree[1]->inBoundary(tree[i]->getInPoint(j), pointDensity) ;
-// 				}
+				if(i != 0 && tree[0]->onBoundary(tree[i]->getInPoint(j), pointDensity))
+				{
+					isIn = true ;
+				}
 				
 				if(!isIn)
 				{
@@ -4567,7 +4569,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 	size_t count  = 0 ;
 
-	if(false)
+	if(true)
 	{
 		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
 		{
@@ -4628,10 +4630,11 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
 		{
-			if(!tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[hasMeshingBox]->intersects(tree[i]))
+			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[hasMeshingBox]->intersects(tree[i]))
 			{
 				std::vector<Point> inter = tree[hasMeshingBox]->intersection(tree[i]) ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
+				std::vector<Feature *> fatherdescendants = tree[hasMeshingBox]->getDescendants() ;
 				for(size_t k = 0 ;  k < inter.size() ; k++)
 				{
 					bool indescendants = false ;
@@ -4643,8 +4646,29 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 							break ;
 						}
 					}
-					
-					if(!indescendants)
+					for(size_t l = 0 ; l < fatherdescendants.size() ; l++)
+					{
+						if(fatherdescendants[l] != tree[i] && fatherdescendants[l]->inBoundary(inter[k], pointDensity) && fatherdescendants[l]->getBoundingPoints().size() )
+						{
+							indescendants = true ;
+							break ;
+						}
+					}
+					Point proj(inter[k]) ;
+					Point proj0(proj+Point(2.*pointDensity, 0, 0)) ;
+					Point proj1(proj+Point(-2.*pointDensity, 0, 0)) ;
+					Point proj2(proj+Point(0, 2.*pointDensity, 0)) ;
+					Point proj3(proj+Point(0, -2.*pointDensity, 0)) ;
+					Point proj4(proj+Point(0, 0, 2.*pointDensity)) ;
+					Point proj5(proj+Point(0, 0, -2.*pointDensity)) ;
+
+					bool tooClose = (tree[hasMeshingBox]->inBoundary(proj0,pointDensity) 
+					+ tree[hasMeshingBox]->inBoundary(proj1,pointDensity)
+					+ tree[hasMeshingBox]->inBoundary(proj2,pointDensity)
+					+ tree[hasMeshingBox]->inBoundary(proj3,pointDensity)
+					+ tree[hasMeshingBox]->inBoundary(proj4,pointDensity)
+					+ tree[hasMeshingBox]->inBoundary(proj5,pointDensity) ) < 5;
+					if(!indescendants && dist(proj, inter[k]) < POINT_TOLERANCE && inRoot(inter[k]) && !tooClose)
 					{
 						Point *p = new Point(inter[k]) ;
 						additionalPoints.push_back(p) ;
@@ -4670,41 +4694,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
 	meshPoints.erase(e, meshPoints.end()) ;
-	if(is3D())
-	{
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
-		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
-		meshPoints.erase(e, meshPoints.end()) ;
-	}
-	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
-	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
-	if(is3D())
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;	
-	e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
-	meshPoints.erase(e, meshPoints.end()) ;
-	if(is3D())
-	{
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
-		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
-		meshPoints.erase(e, meshPoints.end()) ;
-		
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
-		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
-		meshPoints.erase(e, meshPoints.end()) ;
-		
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
-		e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
-		meshPoints.erase(e, meshPoints.end()) ;
-	}
-	
 
 // 	std::srand(1000) ;
 

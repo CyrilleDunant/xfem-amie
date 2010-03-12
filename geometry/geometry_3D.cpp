@@ -1231,7 +1231,7 @@ bool Sphere::in(const Point & v) const
 // 		return false ;
 // 	if(v.z > center.z+getRadius())
 // 		return false ;
-	return squareDist3D(v, getCenter()) < getRadius()*getRadius() + POINT_TOLERANCE;
+	return squareDist3D(v, getCenter()) < sqradius + POINT_TOLERANCE;
 }
 
 double Sphere::area() const

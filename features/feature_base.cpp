@@ -101,7 +101,6 @@ bool Feature::inBoundary(const Point &p, double d) const
 {
 	Point proj(p) ;
 	project(&proj) ;
-	
 	return dist(proj, p) < d || in(p);
 }
 
