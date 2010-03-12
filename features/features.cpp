@@ -1912,7 +1912,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	if(is3D())
 		grid3d =new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x),
 		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y),
-		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z), 10, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z), 100, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -2634,10 +2634,11 @@ void FeatureTree::sample(size_t n)
 		{
 			
 			tree[0]->sample(n) ;
-// 			tree[1]->sample(n*4.) ;
+			tree[1]->sample(n*4.) ;
 		}
 		else
 		{
+			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
 			tree[0]->sample(n) ;
 		}
 		double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius()) ;
@@ -4655,13 +4656,14 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 						}
 					}
 					Point proj(inter[k]) ;
-					Point proj0(proj+Point(2.*pointDensity, 0, 0)) ;
-					Point proj1(proj+Point(-2.*pointDensity, 0, 0)) ;
-					Point proj2(proj+Point(0, 2.*pointDensity, 0)) ;
-					Point proj3(proj+Point(0, -2.*pointDensity, 0)) ;
-					Point proj4(proj+Point(0, 0, 2.*pointDensity)) ;
-					Point proj5(proj+Point(0, 0, -2.*pointDensity)) ;
-
+					tree[hasMeshingBox]->project(&proj) ;
+					Point proj0(inter[k]+Point(2.*pointDensity, 0, 0)) ;
+					Point proj1(inter[k]+Point(-2.*pointDensity, 0, 0)) ;
+					Point proj2(inter[k]+Point(0, 2.*pointDensity, 0)) ;
+					Point proj3(inter[k]+Point(0, -2.*pointDensity, 0)) ;
+					Point proj4(inter[k]+Point(0, 0, 2.*pointDensity)) ;
+					Point proj5(inter[k]+Point(0, 0, -2.*pointDensity)) ;
+					
 					bool tooClose = (tree[hasMeshingBox]->inBoundary(proj0,pointDensity) 
 					+ tree[hasMeshingBox]->inBoundary(proj1,pointDensity)
 					+ tree[hasMeshingBox]->inBoundary(proj2,pointDensity)

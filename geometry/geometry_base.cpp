@@ -565,10 +565,12 @@ double Point::operator[](size_t i) const
 
 Plane::Plane(const Point & origin, const Point & vector) : p(origin), v(vector)
 {
+	v /= v.norm() ;
 }
 
-Plane::Plane(const Point & a, const Point & b, const Point & c) : p(a), v(b^c)
+Plane::Plane(const Point & a, const Point & b, const Point & c) : p(a), v((b-a)^(c-a))
 {
+	v /= v.norm() ;
 }
 
 bool Plane::intersects(const Line &l) const
@@ -865,33 +867,45 @@ std::vector<Point> Plane::intersection(const Geometry * g) const
 Point Plane::intersection(const Line &l) const
 {
 	double lambda = 0  ;
-	if(l.origin().x*l.vector().x)
+	double c = p*v ;
+	if(std::abs(v*(l.origin() + l.vector() - p )) < POINT_TOLERANCE)
 	{
-		lambda = ( v.x * p.x - v.x*l.origin().x ) / (l.origin().x*l.vector().x) ;
+		return l.origin() ;
+	}
+	else if(std::abs(v*l.vector()) >= POINT_TOLERANCE)
+	{
+		lambda = -(v*(l.origin()-p))/(v*l.vector()) ;
 		return l.origin() + l.vector()*lambda ;
 	}
-	else if (l.origin().y*l.vector().y)
-	{
-		lambda = ( v.y * p.y - v.y*l.origin().y ) / (l.origin().y*l.vector().y) ;
-		return l.origin() + l.vector()*lambda ;
-	}
-	else
-		return Point() ;
+	return Point() ;
 	
-	double d = p*v ;
-	double numerator = d - l.origin()*v ;
-	double denominator = l.vector()*v ;
-	
-	// segment is in the plane
-	if(std::abs(numerator) < POINT_TOLERANCE && std::abs(denominator) < POINT_TOLERANCE)
-		return p ;
-	
-	//there is no intersection, but we need to return something
-	return p ;
-	
-	// the intersection exists and is unique
-	double t = numerator/denominator ;
-	return l.origin()+l.vector()*t ;
+// 	if(std::abs(l.origin().x*l.vector().x) > POINT_TOLERANCE)
+// 	{
+// 		lambda = ( v.x * p.x - v.x*l.origin().x ) / (l.origin().x*l.vector().x) ;
+// 		return l.origin() + l.vector()*lambda ;
+// 	}
+// 	else if (std::abs(l.origin().y*l.vector().y) > POINT_TOLERANCE)
+// 	{
+// 		lambda = ( v.y * p.y - v.y*l.origin().y ) / (l.origin().y*l.vector().y) ;
+// 		return l.origin() + l.vector()*lambda ;
+// 	}
+// 	else
+// 		return Point() ;
+// 	
+// 	double d = p*v ;
+// 	double numerator = d - l.origin()*v ;
+// 	double denominator = l.vector()*v ;
+// 	
+// 	// segment is in the plane
+// 	if(std::abs(numerator) < POINT_TOLERANCE && std::abs(denominator) < POINT_TOLERANCE)
+// 		return p ;
+// 	
+// 	//there is no intersection, but we need to return something
+// 	return p ;
+// 	
+// 	// the intersection exists and is unique
+// 	double t = numerator/denominator ;
+// 	return l.origin()+l.vector()*t ;
 
 }
 
@@ -977,9 +991,9 @@ const Point & Plane::origin() const
 	return p ;
 }
 
-Point Plane::projection(const Point &p ) const 
+Point Plane::projection(const Point &toProject ) const 
 {
-	return intersection(Line(p, v)) ;
+	return intersection(Line(toProject, v)) ;
 }
 
 

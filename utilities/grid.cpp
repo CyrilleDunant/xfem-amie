@@ -691,6 +691,7 @@ void Grid3D::forceAdd(Geometry * inc)
 	double endZ =  startZ+2.*inc->getRadius();
 	int endK = std::min(endZ/psize + 2, (double)lengthZ);
 	std::vector<Voxel *> cleanup ;
+	
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -800,6 +801,7 @@ std::vector<Geometry *> Grid3D::coOccur(const Point & p) const
 	
 	double endZ =  startZ+.05*z;
 	int endK = std::min(endZ/psize + 2, (double)lengthZ);
+	
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)

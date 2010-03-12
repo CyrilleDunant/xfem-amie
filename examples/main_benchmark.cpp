@@ -1460,7 +1460,7 @@ int main(int argc, char *argv[])
 	if(!inclusions.empty())
 	{
 // 		F.addFeature(&sample, inclusions[0]) ;
-		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		for(size_t i = 0 ; i < 10 /*inclusions.size() */; i++)
 		{
 			static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*scale) ;
 			static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*scale) ;

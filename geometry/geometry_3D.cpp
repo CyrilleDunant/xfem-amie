@@ -938,19 +938,19 @@ void Hexahedron::project(Point * p) const
 	std::vector<Point> bbox = getBoundingBox() ;
 	
 	Plane p0(bbox[0], bbox[1], bbox[2]) ;
-	Plane p1(bbox[5], bbox[6], bbox[6]) ;
+	Plane p1(bbox[4], bbox[5], bbox[6]) ;
 	Plane p2(bbox[0], bbox[1], bbox[4]) ;
 	Plane p3(bbox[2], bbox[3], bbox[6]) ;
 	Plane p4(bbox[0], bbox[2], bbox[4]) ;
 	Plane p5(bbox[1], bbox[3], bbox[5]) ;
 	
 	std::map<double, Point> targets ;
-	targets[dist(p0.projection(*p), *p)] = p0.projection(*p) ;
-	targets[dist(p1.projection(*p), *p)] = p1.projection(*p) ;
-	targets[dist(p2.projection(*p), *p)] = p2.projection(*p) ;
-	targets[dist(p3.projection(*p), *p)] = p3.projection(*p) ;
-	targets[dist(p4.projection(*p), *p)] = p4.projection(*p) ;
-	targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ;
+	targets[dist(p0.projection(*p), *p)] = p0.projection(*p) ;// std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
+	targets[dist(p1.projection(*p), *p)] = p1.projection(*p) ;// std::cout << bbox[4].x << " 2 : ";p1.projection(*p).print() ;
+	targets[dist(p2.projection(*p), *p)] = p2.projection(*p) ;// std::cout << bbox[0].y << " 3 : ";p2.projection(*p).print() ;
+	targets[dist(p3.projection(*p), *p)] = p3.projection(*p) ;// std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
+	targets[dist(p4.projection(*p), *p)] = p4.projection(*p) ;// std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
+	targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ;// std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
 	for(size_t i = 0 ; i < 8 ; i++)
 		targets[dist(*p, bbox[i])] = bbox[i] ;
 	
