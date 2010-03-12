@@ -77,11 +77,68 @@ std::vector<DelaunayTriangle *> StructuredMesh::getElements()
 std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Point  * p) 
 {
 	std::vector<DelaunayTriangle *> ret ;
+	double startX = grid.getX()*.5-grid.getCenter().x + p->x ;
+	int startI = std::max(0., startX/grid.getPixelSize() - 2) ;
+	
+	double endX =  startX+.05*grid.getX();
+	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.getLengthX());
+	
+	double startY = grid.getY()*.5-grid.getCenter().y + p->y ;
+	int startJ = std::max(0., startY/grid.getPixelSize() - 2) ;
+	
+	double endY =  startY+.05*grid.getY();
+	int endJ = std::min(endY/grid.getPixelSize() + 2, (double)grid.getLengthY());
+	
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			if(triangles[i*2*grid.getLengthX()+j*2]->in(*p))
+				ret.push_back(triangles[i*2*grid.getLengthX()+j*2]) ;
+			
+			if(triangles[i*2*grid.getLengthX()+j*2+1]->in(*p))
+				ret.push_back(triangles[i*2*grid.getLengthX()+j*2+1]) ;
+		}
+	}
+	
+	std::stable_sort(ret.begin(), ret.end());
+	std::vector<DelaunayTriangle *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	ret.erase(e, ret.end()) ;
 	return ret ;
 }
-std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geometry * g) 
+std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geometry * geo) 
 {
 	std::vector<DelaunayTriangle *> ret ;
+	double startX = grid.getX()*.5-grid.getCenter().x + geo->getCenter().x-geo->getRadius() ;
+	int startI = std::max(0., startX/grid.getPixelSize() - 2) ;
+	
+	double endX =  startX+2.*geo->getRadius();
+	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.getLengthX());
+	
+	double startY = grid.getY()*.5-grid.getCenter().y + geo->getCenter().y-geo->getRadius() ;
+	int startJ = std::max(0., startY/grid.getPixelSize() - 2) ;
+		
+	double endY =  startY+2.*geo->getRadius();
+	int endJ = std::min(endY/grid.getPixelSize() + 2, (double)grid.getLengthY());
+	for(int i = startI ; i < endI ; i++)
+	{
+		for(int j = startJ ; j < endJ ; j++)
+		{
+			if(triangles[i*2*grid.getLengthX()+j*2]->intersects(geo) 
+				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2]->first)
+				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2]->second)
+				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2]->third)
+				)
+				ret.push_back(triangles[i*2*grid.getLengthX()+j*2]) ;
+			
+			if(triangles[i*2*grid.getLengthX()+j*2+1]->intersects(geo) 
+				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2+1]->first)
+				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2+1]->second)
+				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2+1]->third)
+				)
+				ret.push_back(triangles[i*2*grid.getLengthX()+j*2+1]) ;
+		}
+	}
 	return ret ;
 }
 void StructuredMesh::setElementOrder(Order o)

@@ -1,4 +1,5 @@
 #include "grid.h"
+#include <set>
 
 using namespace Mu ;
 
@@ -164,9 +165,9 @@ bool Voxel::add(Geometry * inc)
 		
 		this->features.push_back(inc) ;
 		
-		if(features.size() > 64 )
-			refine() ;
-		
+// 		if(features.size() > 64 )
+// 			refine() ;
+// 		
 		return true;
 	}
 	else
@@ -215,10 +216,10 @@ void Voxel::forceAdd(Geometry * inc)
 		}
 	}
 	
-	if(features.size() > 64 )
-	{
-		refine() ;
-	}
+// 	if(features.size() > 64 )
+// 	{
+// 		refine() ;
+// 	}
 }
 
 void Voxel::print() const
@@ -462,8 +463,8 @@ bool Pixel::add(Geometry * inc)
 		}
 		this->features.push_back(inc) ;
 		
-		if(features.size() > 32 )
-			refine() ;
+// 		if(features.size() > 32 )
+// 			refine() ;
 		
 		return true;
 	}
@@ -494,10 +495,10 @@ void Pixel::forceAdd(Geometry * inc)
 	
 
 	
-	if(!filled && features.size() > 32 )
-	{
-		refine() ;
-	}
+// 	if(!filled && features.size() > 32 )
+// 	{
+// 		refine() ;
+// 	}
 }
 
 void Pixel::print() const
@@ -768,8 +769,6 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 				{
 					foundPixel = true ;
 					pixels[i][j][k]->coOccuringFeatures(ret,geo) ;
-					std::stable_sort(ret.begin(), ret.end());
-					std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
 				}
 			}
 		}
@@ -898,7 +897,6 @@ std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 
  std::vector<Geometry *> Grid::coOccur(const Point & p) const 
 {
-
 	std::vector<Geometry *> ret ;
 	double startX = x*.5-c.x + p.x ;
 	int startI = std::max(0., startX/psize - 2) ;

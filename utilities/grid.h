@@ -173,7 +173,7 @@ protected:
 	double x ;
 	double y ;
 	Point c ;
-	size_t lengthX ;
+	size_t lengthX ; 
 	size_t lengthY ;
 	
 	double psize ;
@@ -189,7 +189,12 @@ public:
 	Grid(double sizeX, double sizeY, int div, const Point & center );
 	
 	~Grid() ;
-
+	size_t getLengthX() const {return lengthX ;} ;
+	size_t getLengthY() const {return lengthY ;} ;
+	double getPixelSize() const {return psize ;} ;
+	double getX() const {return x ;} ;
+	double getY() const {return y ;} ;
+	const Point & getCenter() const {return c ;} ;
 /** \brief Add a Feature if it does not overlap with another allready present Feature
 *
 * @param inc Feature to add

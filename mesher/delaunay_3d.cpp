@@ -211,8 +211,8 @@ void Star3D::updateNeighbourhood()
 		return ;
 	
 	std::vector<DelaunayTreeItem3D *> & tree = items[0]->tree->tree ;
-
-	for(size_t i = 0 ; i < end ; ++i)
+	int dcount = 0 ;
+	for(size_t i = 0 ; i < 0 /*end */; ++i)
 	{
 		if(items[i]->isAlive())
 		{
@@ -222,6 +222,7 @@ void Star3D::updateNeighbourhood()
 				DelaunayTreeItem3D * jj = items[j] ;
 				if(jj->isAlive() && ii->isDuplicate(jj) )
 				{
+					dcount++ ;
 					for(size_t k = 0 ; k < jj->neighbour.size() ; k++)
 					{
 						if(jj->neighbour.size() != 4 && ii->neighbour.size() != 4)
@@ -261,7 +262,7 @@ void Star3D::updateNeighbourhood()
 			}
 		}
 	}
-
+// 	std::cout << "\n" << dcount << std::endl ;
 	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = items.begin() ; i != e+1 ;++i)
 	{
 		if(!(*i)->isSpace() && (*i)->isAlive())
@@ -272,7 +273,7 @@ void Star3D::updateNeighbourhood()
 				DelaunayTreeItem3D * jj = *j ;
 				if(jj->isAlive() && !ii->erased() && !jj->erased() && !jj->isSpace() && ii->neighbour.size() != 4 && jj->neighbour.size() != 4 )
 				{
-					makeNeighbours((*i), (*j)) ;
+					makeNeighbours(ii, jj) ;
 				}
 			}
 		}
