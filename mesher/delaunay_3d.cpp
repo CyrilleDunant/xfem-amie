@@ -211,63 +211,63 @@ void Star3D::updateNeighbourhood()
 		return ;
 	
 	std::vector<DelaunayTreeItem3D *> & tree = items[0]->tree->tree ;
-	int dcount = 0 ;
-	for(size_t i = 0 ; i < 0 /*end */; ++i)
-	{
-		if(items[i]->isAlive())
-		{
-			for(size_t j = i+1 ; j < end ; ++j)
-			{
-				DelaunayTreeItem3D * ii = items[i] ;
-				DelaunayTreeItem3D * jj = items[j] ;
-				if(jj->isAlive() && ii->isDuplicate(jj) )
-				{
-					dcount++ ;
-					for(size_t k = 0 ; k < jj->neighbour.size() ; k++)
-					{
-						if(jj->neighbour.size() != 4 && ii->neighbour.size() != 4)
-							makeNeighbours(jj->getNeighbour(k), ii) ;
-					}
-					
-					jj->kill(creator) ;
-					jj->erased() = true ;
-					std::valarray<unsigned int> newSons(tree[jj->father]->son.size()-1);
-					bool found = 0 ;
-					for(size_t k = 0 ; k < tree[jj->father]->son.size() ; k++)
-					{
-						if(tree[jj->father]->son[k] == jj->index)
-							found = true ;
-						else
-							newSons[k-found] = tree[jj->father]->son[k] ;
-						
-					}
-					tree[jj->father]->son.resize(newSons.size()-1);
-					tree[jj->father]->son = newSons;
-					if(jj->stepfather != -1)
-					{
-						std::valarray<unsigned int> newStepsons(tree[jj->stepfather]->stepson.size()-1);
-						bool found = 0 ;
-						for(size_t k = 0 ; k < tree[jj->stepfather]->stepson.size() ; k++)
-						{
-							if(tree[jj->stepfather]->stepson[k] == jj->index)
-								found = true ;
-							else
-								newStepsons[k-found] = tree[jj->stepfather]->stepson[k] ;
-							
-						}
-						tree[jj->stepfather]->stepson.resize(newStepsons.size());
-						tree[jj->stepfather]->stepson =  newStepsons;
-					}
-				}
-			}
-		}
-	}
+// 	int dcount = 0 ;
+// 	for(size_t i = 0 ; i < end; ++i)
+// 	{
+// 		if(items[i]->isAlive())
+// 		{
+// 			for(size_t j = i+1 ; j < end ; ++j)
+// 			{
+// 				DelaunayTreeItem3D * ii = items[i] ;
+// 				DelaunayTreeItem3D * jj = items[j] ;
+// 				if(jj->isAlive() && ii->isDuplicate(jj) )
+// 				{
+// 					dcount++ ;
+// 					for(size_t k = 0 ; k < jj->neighbour.size() ; k++)
+// 					{
+// 						if(jj->neighbour.size() != 4 && ii->neighbour.size() != 4)
+// 							makeNeighbours(jj->getNeighbour(k), ii) ;
+// 					}
+// 					
+// 					jj->kill(creator) ;
+// 					jj->erased() = true ;
+// 					std::valarray<unsigned int> newSons(tree[jj->father]->son.size()-1);
+// 					bool found = 0 ;
+// 					for(size_t k = 0 ; k < tree[jj->father]->son.size() ; k++)
+// 					{
+// 						if(tree[jj->father]->son[k] == jj->index)
+// 							found = true ;
+// 						else
+// 							newSons[k-found] = tree[jj->father]->son[k] ;
+// 						
+// 					}
+// 					tree[jj->father]->son.resize(newSons.size()-1);
+// 					tree[jj->father]->son = newSons;
+// 					if(jj->stepfather != -1)
+// 					{
+// 						std::valarray<unsigned int> newStepsons(tree[jj->stepfather]->stepson.size()-1);
+// 						bool found = 0 ;
+// 						for(size_t k = 0 ; k < tree[jj->stepfather]->stepson.size() ; k++)
+// 						{
+// 							if(tree[jj->stepfather]->stepson[k] == jj->index)
+// 								found = true ;
+// 							else
+// 								newStepsons[k-found] = tree[jj->stepfather]->stepson[k] ;
+// 							
+// 						}
+// 						tree[jj->stepfather]->stepson.resize(newStepsons.size());
+// 						tree[jj->stepfather]->stepson =  newStepsons;
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
 // 	std::cout << "\n" << dcount << std::endl ;
-	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = items.begin() ; i != e+1 ;++i)
+	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = items.begin() ; i != e+1 && i != items.end();++i)
 	{
 		if(!(*i)->isSpace() && (*i)->isAlive())
 		{
-			for(std::vector<DelaunayTreeItem3D *>::const_iterator j = i+1 ; j != e+1 ;++j)
+			for(std::vector<DelaunayTreeItem3D *>::const_iterator j = i+1 ; j != e+1 && j != items.end();++j)
 			{
 				DelaunayTreeItem3D * ii = *i ;
 				DelaunayTreeItem3D * jj = *j ;
@@ -1568,6 +1568,7 @@ bool DelaunayTetrahedron::onCircumSphere(const Point &p) const
 
 bool DelaunayTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
 {
+
 	for(size_t i = 0 ; i < neighbour.size() ; i++)
 		if(neighbour[i] == t->index) 
 			return true ;
@@ -1713,14 +1714,20 @@ bool DelaunayDemiSpace::onCircumSphere(const Point & p) const
 
 bool  DelaunayDemiSpace::isNeighbour(const DelaunayTreeItem3D * t)  const 
 {
-	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t->index) !=  &neighbour[neighbour.size()])
-		return true ;
-	if(std::find(&t->neighbour[0], &t->neighbour[t->neighbour.size()],index) !=  &t->neighbour[t->neighbour.size()])
-		return true ;
+	for(size_t i = 0 ; i < neighbour.size() ; i++)
+		if(neighbour[i] == t->index) 
+			return true ;
+	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
+		if(t->neighbour[i] == index)
+			return true ;
+// 	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t->index) !=  &neighbour[neighbour.size()])
+// 		return true ;
+// 	if(std::find(&t->neighbour[0], &t->neighbour[t->neighbour.size()],index) !=  &t->neighbour[t->neighbour.size()])
+// 		return true ;
 	
 	if(t->isTetrahedron())
 	{
-		return t->isNeighbour(this) ;
+		return numberOfCommonVertices(t) == 3;
 	}
 
 	return numberOfCommonVertices(t) >=2 ;
@@ -2072,9 +2079,7 @@ void DelaunayTree3D::insert(Point *p)
 			ret.insert(ret.end(), temp.begin(), temp.end()) ;
 		}
 	}
-
 	s->updateNeighbourhood() ;
-
 	bool weGotSpaces = false ;
 	
 	for(size_t i = 0 ; i < ret.size() ; i++)

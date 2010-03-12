@@ -4361,7 +4361,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	if(is2D())
 		pointDensity = .7*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
 	else
-		pointDensity = .7*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
+		pointDensity = .0125*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
 		
 	std::cout << "space meshed with " << pointDensity << " points per unit length"<< std::endl ;
 
@@ -4657,12 +4657,12 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					}
 					Point proj(inter[k]) ;
 					tree[hasMeshingBox]->project(&proj) ;
-					Point proj0(inter[k]+Point(2.*pointDensity, 0, 0)) ;
-					Point proj1(inter[k]+Point(-2.*pointDensity, 0, 0)) ;
-					Point proj2(inter[k]+Point(0, 2.*pointDensity, 0)) ;
-					Point proj3(inter[k]+Point(0, -2.*pointDensity, 0)) ;
-					Point proj4(inter[k]+Point(0, 0, 2.*pointDensity)) ;
-					Point proj5(inter[k]+Point(0, 0, -2.*pointDensity)) ;
+					Point proj0(inter[k]+Point(1.2*pointDensity, 0, 0)) ;
+					Point proj1(inter[k]+Point(-1.2*pointDensity, 0, 0)) ;
+					Point proj2(inter[k]+Point(0, 1.2*pointDensity, 0)) ;
+					Point proj3(inter[k]+Point(0, -1.2*pointDensity, 0)) ;
+					Point proj4(inter[k]+Point(0, 0, 1.2*pointDensity)) ;
+					Point proj5(inter[k]+Point(0, 0, -1.2*pointDensity)) ;
 					
 					bool tooClose = (tree[hasMeshingBox]->inBoundary(proj0,pointDensity) 
 					+ tree[hasMeshingBox]->inBoundary(proj1,pointDensity)
@@ -4670,6 +4670,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					+ tree[hasMeshingBox]->inBoundary(proj3,pointDensity)
 					+ tree[hasMeshingBox]->inBoundary(proj4,pointDensity)
 					+ tree[hasMeshingBox]->inBoundary(proj5,pointDensity) ) < 5;
+					// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
 					if(!indescendants && dist(proj, inter[k]) < POINT_TOLERANCE && inRoot(inter[k]) && !tooClose)
 					{
 						Point *p = new Point(inter[k]) ;

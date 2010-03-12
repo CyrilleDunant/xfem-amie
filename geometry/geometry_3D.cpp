@@ -943,6 +943,18 @@ void Hexahedron::project(Point * p) const
 	Plane p3(bbox[2], bbox[3], bbox[6]) ;
 	Plane p4(bbox[0], bbox[2], bbox[4]) ;
 	Plane p5(bbox[1], bbox[3], bbox[5]) ;
+	Line l0(bbox[0], bbox[1]-bbox[0]) ;
+	Line l1(bbox[2], bbox[2]-bbox[3]) ;
+	Line l2(bbox[4], bbox[4]-bbox[5]) ;
+	Line l3(bbox[6], bbox[6]-bbox[7]) ;
+	Line l4(bbox[0], bbox[2]-bbox[0]) ;
+	Line l5(bbox[1], bbox[1]-bbox[3]) ;
+	Line l6(bbox[4], bbox[4]-bbox[6]) ;
+	Line l7(bbox[5], bbox[5]-bbox[7]) ;
+	Line l8(bbox[0], bbox[0]-bbox[4]) ;
+	Line l9(bbox[1], bbox[1]-bbox[5]) ;
+	Line l10(bbox[2], bbox[2]-bbox[6]) ;
+	Line l11(bbox[3], bbox[3]-bbox[7]) ;
 	
 	std::map<double, Point> targets ;
 	targets[dist(p0.projection(*p), *p)] = p0.projection(*p) ;// std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
@@ -951,6 +963,18 @@ void Hexahedron::project(Point * p) const
 	targets[dist(p3.projection(*p), *p)] = p3.projection(*p) ;// std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
 	targets[dist(p4.projection(*p), *p)] = p4.projection(*p) ;// std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
 	targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ;// std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
+	targets[dist(l0.projection(*p), *p)] = l0.projection(*p) ;// std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
+	targets[dist(l1.projection(*p), *p)] = l1.projection(*p) ;// std::cout << bbox[4].x << " 2 : ";p1.projection(*p).print() ;
+	targets[dist(l2.projection(*p), *p)] = l2.projection(*p) ;// std::cout << bbox[0].y << " 3 : ";p2.projection(*p).print() ;
+	targets[dist(l3.projection(*p), *p)] = l3.projection(*p) ;// std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
+	targets[dist(l4.projection(*p), *p)] = l4.projection(*p) ;// std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
+	targets[dist(l5.projection(*p), *p)] = l5.projection(*p) ;// std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
+	targets[dist(l6.projection(*p), *p)] = l6.projection(*p) ;// std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
+	targets[dist(l7.projection(*p), *p)] = l7.projection(*p) ;// std::cout << bbox[4].x << " 2 : ";p1.projection(*p).print() ;
+	targets[dist(l8.projection(*p), *p)] = l8.projection(*p) ;// std::cout << bbox[0].y << " 3 : ";p2.projection(*p).print() ;
+	targets[dist(l9.projection(*p), *p)] = l9.projection(*p) ;// std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
+	targets[dist(l10.projection(*p), *p)] = l10.projection(*p) ;// std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
+	targets[dist(l11.projection(*p), *p)] = l11.projection(*p) ;// std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
 	for(size_t i = 0 ; i < 8 ; i++)
 		targets[dist(*p, bbox[i])] = bbox[i] ;
 	
@@ -1256,7 +1280,7 @@ void Sphere::project(Point * p) const
 	Line l(*p, *p-getCenter()) ;
 	
 	std::vector<Point> inter = l.intersection(this) ;
-	if(inter.empty())
+	if(inter.empty() || inter.size() == 1)
 	{
 		p->print() ;
 		getCenter().print() ;
