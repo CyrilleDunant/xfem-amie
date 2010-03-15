@@ -184,33 +184,46 @@ size_t DelaunayTreeItem3D::numberOfCommonVertices(const DelaunayTreeItem3D * s) 
 
 void Star3D::updateNeighbourhood()
 {
-		
-	std::vector<DelaunayTreeItem3D *> items ;
+	int count = 0 ;
+	int soncount = 0 ;
+	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	{
+		count += (*i)->son.size() + (*i)->stepson.size() + (*i)->neighbour.size() ;
+		soncount += (*i)->son.size() ;
+	}
+	std::valarray<DelaunayTreeItem3D *> items(count) ;
+	count = 0 ;
 	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
 	{	
 		for(size_t j = 0 ; j < (*i)->son.size() ; j++)
 		{
-			items.push_back((*i)->getSon(j)) ;
+			items[count++] = (*i)->getSon(j) ;
 		}
+		
+	}
+	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	{	
 		for(size_t j = 0 ; j < (*i)->stepson.size() ; j++)
 		{
-			items.push_back((*i)->getStepson(j)) ;
+			if((*i)->getStepson(j)->isAlive()&& ((*i)->getStepson(j)->onCircumSphere(*creator) || (*i)->getStepson(j)->inCircumSphere(*creator)))
+				items[count++] = (*i)->getStepson(j) ;
 		}
 		for(size_t j = 0 ; j < (*i)->neighbour.size() ; j++)
 		{
-			items.push_back((*i)->getNeighbour(j)) ;
+			if((*i)->getNeighbour(j)->isAlive() && ((*i)->getNeighbour(j)->onCircumSphere(*creator) || (*i)->getNeighbour(j)->inCircumSphere(*creator))) ;
+				items[count++] = (*i)->getNeighbour(j) ;
 		}
 		
 	}
 	
-	std::sort(items.begin(), items.end()) ;
-	std::vector<DelaunayTreeItem3D *>::iterator e = std::unique(items.begin(), items.end()) ;
-	size_t end =  e-items.begin() ;
+	std::sort(&items[soncount], &items[count]) ;
+	DelaunayTreeItem3D ** e = std::unique(&items[0], &items[count]) ;
+	size_t end =  e-&items[0] ;
 	
-	if(items.empty())
+	if(!items.size())
 		return ;
-	
-	std::vector<DelaunayTreeItem3D *> & tree = items[0]->tree->tree ;
+// 	std::cout << end << std::endl ;
+// 	std::vector<DelaunayTreeItem3D *> & tree = items[0]->tree->tree ;
 // 	int dcount = 0 ;
 // 	for(size_t i = 0 ; i < end; ++i)
 // 	{
@@ -263,17 +276,44 @@ void Star3D::updateNeighbourhood()
 // 		}
 // 	}
 // 	std::cout << "\n" << dcount << std::endl ;
-	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = items.begin() ; i != e+1 && i != items.end();++i)
+	for(DelaunayTreeItem3D ** i = &items[0] ; i != e+1 && i != &items[count] ; ++i)
 	{
-		if(!(*i)->isSpace() && (*i)->isAlive())
+		if(!(*i)->isSpace())
 		{
-			for(std::vector<DelaunayTreeItem3D *>::const_iterator j = i+1 ; j != e+1 && j != items.end();++j)
+			DelaunayTreeItem3D * ii = *i ;
+			size_t ins = ii->neighbour.size() ;
+			if(ins != 4 )
 			{
-				DelaunayTreeItem3D * ii = *i ;
-				DelaunayTreeItem3D * jj = *j ;
-				if(jj->isAlive() && !ii->erased() && !jj->erased() && !jj->isSpace() && ii->neighbour.size() != 4 && jj->neighbour.size() != 4 )
+				for(DelaunayTreeItem3D ** j = i+1 ; j != e+1 && j != &items[count] ; ++j)
 				{
-					makeNeighbours(ii, jj) ;
+					
+					DelaunayTreeItem3D * jj = *j ;
+
+					size_t jns = jj->neighbour.size() ;
+					if(!jj->isSpace() && ii->numberOfCommonVertices(jj) == 3 && jns != 4)
+					{
+						
+						if(std::find(&ii->neighbour[0], &ii->neighbour[ins],jj->index) ==  &ii->neighbour[ins])
+						{
+							std::valarray<unsigned int>  newneighbours(ins+1) ;
+							std::copy(&ii->neighbour[0], &ii->neighbour[ins], &newneighbours[0]) ;
+							newneighbours[ins] = jj->index ;
+							ii->neighbour.resize(ins+1) ;
+							ii->neighbour = newneighbours ;
+						}
+						
+						if(std::find(&jj->neighbour[0], &jj->neighbour[jns],ii->index) ==  &jj->neighbour[jns])
+						{
+							std::valarray<unsigned int>  newneighbours(jns+1) ;
+							std::copy(&jj->neighbour[0], &jj->neighbour[jns], &newneighbours[0]) ;
+							newneighbours[jns] = ii->index ;
+							jj->neighbour.resize(jns+1) ;
+							jj->neighbour = newneighbours ;
+						}
+						ins = ii->neighbour.size() ;
+						if(ins == 4)
+							break ;
+					}
 				}
 			}
 		}
@@ -1273,17 +1313,17 @@ std::vector< Point*> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D 
 
 bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 {
-	if(p.x > x+1.01*radius)
+	if(p.x > x+1.0001*radius)
 		return false ;
-	if(p.x < x-1.01*radius)
+	if(p.x < x-1.0001*radius)
 		return false ;
-	if(p.y > y+1.01*radius)
+	if(p.y > y+1.0001*radius)
 		return false ;
-	if(p.y < y-1.01*radius)
+	if(p.y < y-1.0001*radius)
 		return false ;
-	if(p.z > z+1.01*radius)
+	if(p.z > z+1.0001*radius)
 		return false ;
-	if(p.z < z-1.01*radius)
+	if(p.z < z-1.0001*radius)
 		return false ;
 	
 	double d = squareDist3D(Point(x, y, z), p) ;
@@ -1292,17 +1332,17 @@ bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 
 bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
 {
-	if(p.x > x+1.01*radius)
+	if(p.x > x+1.0001*radius)
 		return false ;
-	if(p.x < x-1.01*radius)
+	if(p.x < x-1.0001*radius)
 		return false ;
-	if(p.y > y+1.01*radius)
+	if(p.y > y+1.0001*radius)
 		return false ;
-	if(p.y < y-1.01*radius)
+	if(p.y < y-1.0001*radius)
 		return false ;
-	if(p.z > z+1.01*radius)
+	if(p.z > z+1.0001*radius)
 		return false ;
-	if(p.z < z-1.01*radius)
+	if(p.z < z-1.0001*radius)
 		return false ;
 	
 	double d = squareDist3D(Point(x, y, z), p) ;
@@ -1529,17 +1569,17 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 
 bool DelaunayTetrahedron::inCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.01*radius)
+	if(p.x > circumCenter.x+1.0001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.01*radius)
+	if(p.x < circumCenter.x-1.0001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.01*radius)
+	if(p.y > circumCenter.y+1.0001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.01*radius)
+	if(p.y < circumCenter.y-1.0001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.01*radius)
+	if(p.z > circumCenter.z+1.0001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.01*radius)
+	if(p.z < circumCenter.z-1.0001*radius)
 		return false ;
 	
 	double d = dist(circumCenter, p) ;
@@ -1548,17 +1588,17 @@ bool DelaunayTetrahedron::inCircumSphere(const Point &p) const
 
 bool DelaunayTetrahedron::onCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.01*radius)
+	if(p.x > circumCenter.x+1.0001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.01*radius)
+	if(p.x < circumCenter.x-1.0001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.01*radius)
+	if(p.y > circumCenter.y+1.0001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.01*radius)
+	if(p.y < circumCenter.y-1.0001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.01*radius)
+	if(p.z > circumCenter.z+1.0001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.01*radius)
+	if(p.z < circumCenter.z-1.0001*radius)
 		return false ;
 	
 	double d = dist(*getCircumCenter(), p) ;
@@ -1939,39 +1979,39 @@ void DelaunayRoot3D::conflicts(std::pair<std::vector<DelaunayTetrahedron *>, std
 void DelaunayRoot3D::conflicts(std::pair< std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > & ret, const Point *p)
 {
 
-	visited() = true ;
-	
-	for (size_t i  = 0 ;  i < son.size() ; i++)
-	{
-		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-		std::vector<DelaunayTreeItem3D *> toTest ;
-		getSon(i)->flatConflicts(toTest, temp,p) ;
-		while(!toTest.empty())
-		{
-			std::vector<DelaunayTreeItem3D *> tempToTest ;
-			for(size_t j  = 0 ;  j < toTest.size() ; j++)
-			{
-				toTest[j]->flatConflicts(tempToTest, temp,p) ;
-			}
-			
-			toTest = tempToTest ;
-		}
-		
-		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
-		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
-	}
-		
 // 	visited() = true ;
 // 	
 // 	for (size_t i  = 0 ;  i < son.size() ; i++)
 // 	{
 // 		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-// 		getSon(i)->conflicts(temp, p) ;
+// 		std::vector<DelaunayTreeItem3D *> toTest ;
+// 		getSon(i)->flatConflicts(toTest, temp,p) ;
+// 		while(!toTest.empty())
+// 		{
+// 			std::vector<DelaunayTreeItem3D *> tempToTest ;
+// 			for(size_t j  = 0 ;  j < toTest.size() ; j++)
+// 			{
+// 				toTest[j]->flatConflicts(tempToTest, temp,p) ;
+// 			}
+// 			
+// 			toTest = tempToTest ;
+// 		}
+// 		
 // 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
 // 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
 // 	}
-// 	
-// 	return  ;
+		
+	visited() = true ;
+	
+	for (size_t i  = 0 ;  i < son.size() ; i++)
+	{
+		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
+		getSon(i)->conflicts(temp, p) ;
+		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
+		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
+	}
+	
+	return  ;
 }
 
 Star3D::Star3D(std::vector<DelaunayTreeItem3D *> *t, const Point *p) :  treeitem(*t), creator(p)
