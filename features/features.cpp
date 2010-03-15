@@ -1904,15 +1904,18 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 		this->addFeature(NULL, first) ;
 
 	if(is2D())
-		grid = new Grid(first->getBoundingBox()[1].x-first->getBoundingBox()[0].x,
-		                first->getBoundingBox()[1].y-first->getBoundingBox()[2].y, 10,
+		grid = new Grid((first->getBoundingBox()[1].x-first->getBoundingBox()[0].x)*1.1,
+		                (first->getBoundingBox()[1].y-first->getBoundingBox()[2].y)*1.1, 100,
 		                Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
 		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
 		                     )) ;
+							Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
+		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
+		                     ).print() ; 
 	if(is3D())
-		grid3d =new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x),
-		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y),
-		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z), 100, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		grid3d =new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x)*1.1,
+		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y)*1.1,
+		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, 100, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -2650,7 +2653,6 @@ void FeatureTree::sample(size_t n)
 			
 			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 			size_t npoints = .075*(size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
-			
 			
 			if(npoints > 14)
 				tree[i]->sample(npoints) ;
@@ -4429,6 +4431,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				for(size_t l = 0 ; l < potentialFeaturestmp.size() ; l++)
 					potentialFeatures.push_back(dynamic_cast<Feature *>(potentialFeaturestmp[l]) ) ;
+				
 				std::vector<Feature *> potentialChildren ;
 				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
 				{
@@ -4441,6 +4444,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
 				{
+					
 					if((!potentialChildren[k]->isVirtualFeature 
 					    && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)) 
 					   || (potentialChildren[k]->isVirtualFeature 
@@ -4570,7 +4574,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 	size_t count  = 0 ;
 
-	if(true)
+	if(computeIntersections)
 	{
 		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
 		{
@@ -4631,7 +4635,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
 		{
-			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[hasMeshingBox]->intersects(tree[i]))
+			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature /*&& tree[hasMeshingBox]->intersects(tree[i])*/)
 			{
 				std::vector<Point> inter = tree[hasMeshingBox]->intersection(tree[i]) ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
@@ -4655,23 +4659,39 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 							break ;
 						}
 					}
+					
 					Point proj(inter[k]) ;
 					tree[hasMeshingBox]->project(&proj) ;
-					Point proj0(inter[k]+Point(1.2*pointDensity, 0, 0)) ;
-					Point proj1(inter[k]+Point(-1.2*pointDensity, 0, 0)) ;
-					Point proj2(inter[k]+Point(0, 1.2*pointDensity, 0)) ;
-					Point proj3(inter[k]+Point(0, -1.2*pointDensity, 0)) ;
-					Point proj4(inter[k]+Point(0, 0, 1.2*pointDensity)) ;
-					Point proj5(inter[k]+Point(0, 0, -1.2*pointDensity)) ;
+					Point proj0(inter[k]+Point(0.1*pointDensity, 0, 0)) ;
+					Point proj1(inter[k]+Point(-0.1*pointDensity, 0, 0)) ;
+					Point proj2(inter[k]+Point(0, 0.1*pointDensity, 0)) ;
+					Point proj3(inter[k]+Point(0, -0.1*pointDensity, 0)) ;
+					Point proj4(inter[k]+Point(0, 0, 0.1*pointDensity)) ;
+					Point proj5(inter[k]+Point(0, 0, -0.1*pointDensity)) ;
 					
-					bool tooClose = (tree[hasMeshingBox]->inBoundary(proj0,pointDensity) 
-					+ tree[hasMeshingBox]->inBoundary(proj1,pointDensity)
-					+ tree[hasMeshingBox]->inBoundary(proj2,pointDensity)
-					+ tree[hasMeshingBox]->inBoundary(proj3,pointDensity)
-					+ tree[hasMeshingBox]->inBoundary(proj4,pointDensity)
-					+ tree[hasMeshingBox]->inBoundary(proj5,pointDensity) ) < 5;
+					int position = tree[hasMeshingBox]->in(proj0) 
+					+ tree[hasMeshingBox]->in(proj1)
+					+ tree[hasMeshingBox]->in(proj2)
+					+ tree[hasMeshingBox]->in(proj3)
+					+ tree[hasMeshingBox]->in(proj4)
+					+ tree[hasMeshingBox]->in(proj5) ;
+					bool onSurface = (position == 5) ;
+					bool onEdge = (position == 4) ;
+					bool onVertex = (position == 3) ;
+					proj0= (inter[k]+Point(pointDensity, 0, 0)) ;
+					proj1= (inter[k]+Point(-pointDensity, 0, 0)) ;
+					proj2= (inter[k]+Point(0, pointDensity, 0)) ;
+					proj3= (inter[k]+Point(0, -pointDensity, 0)) ;
+					proj4= (inter[k]+Point(0, 0, pointDensity)) ;
+					proj5= (inter[k]+Point(0, 0, -pointDensity)) ;
+					int tooClose =  tree[hasMeshingBox]->in(proj0) 
+					+ tree[hasMeshingBox]->in(proj1)
+					+ tree[hasMeshingBox]->in(proj2)
+					+ tree[hasMeshingBox]->in(proj3)
+					+ tree[hasMeshingBox]->in(proj4)
+					+ tree[hasMeshingBox]->in(proj5) ;
 					// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-					if(!indescendants && dist(proj, inter[k]) < POINT_TOLERANCE && inRoot(inter[k]) && !tooClose)
+					if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || onEdge || onVertex))
 					{
 						Point *p = new Point(inter[k]) ;
 						additionalPoints.push_back(p) ;

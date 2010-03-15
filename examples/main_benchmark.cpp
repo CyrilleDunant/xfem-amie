@@ -1470,13 +1470,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-// 	Inclusion3D * inc = new Inclusion3D(100, 500, 500, 500) ;
+// 	Inclusion3D * inc = new Inclusion3D(100, 500, 0, 0) ;
 // 	inc->setBehaviour(new Stiffness(m1)) ;
 // 	F.addFeature(&sample, inc) ;
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(2048*2) ;
+	F.sample(2048*16) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -100)) ;

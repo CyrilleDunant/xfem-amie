@@ -901,12 +901,12 @@ void Hexahedron::sampleSurface(size_t num_points)
 
 bool Hexahedron::in(const Point & v) const
 {
-	return v.x >= (center.x- size_x*.5) &&
-		v.x <= (center.x+ size_x*.5 ) &&
-		v.y >= (center.y- size_y*.5 ) &&
-		v.y <= (center.y+ size_y*.5 ) &&
-		v.z >= (center.z- size_z*.5 ) &&
-		v.z <= (center.z+ size_z*.5 ) ;
+	return v.x >= (center.x - size_x*.5 - POINT_TOLERANCE) &&
+		   v.x <= (center.x + size_x*.5 + POINT_TOLERANCE) &&
+		   v.y >= (center.y - size_y*.5 - POINT_TOLERANCE) &&
+		   v.y <= (center.y + size_y*.5 + POINT_TOLERANCE) &&
+		   v.z >= (center.z - size_z*.5 - POINT_TOLERANCE) &&
+		   v.z <= (center.z + size_z*.5 + POINT_TOLERANCE) ;
 }
 
 double Hexahedron::area() const
@@ -1243,19 +1243,19 @@ void Sphere::sampleSurface(size_t num_points)
 
 bool Sphere::in(const Point & v) const 
 { 
-// 	if(v.x < center.x-getRadius())
-// 		return false ;
-// 	if(v.x > center.x+getRadius())
-// 		return false ;
-// 	if(v.y < center.y-getRadius())
-// 		return false ;
-// 	if(v.y > center.y+getRadius())
-// 		return false ;
-// 	if(v.z < center.z-getRadius())
-// 		return false ;
-// 	if(v.z > center.z+getRadius())
-// 		return false ;
-	return squareDist3D(v, getCenter()) < sqradius + POINT_TOLERANCE;
+	if(v.x < center.x-1.0001*getRadius())
+		return false ;
+	if(v.x > center.x+1.0001*getRadius())
+		return false ;
+	if(v.y < center.y-1.0001*getRadius())
+		return false ;
+	if(v.y > center.y+1.0001*getRadius())
+		return false ;
+	if(v.z < center.z-1.0001*getRadius())
+		return false ;
+	if(v.z > center.z+1.0001*getRadius())
+		return false ;
+	return squareDist3D(v, getCenter()) < sqradius + 2.*radius*POINT_TOLERANCE + POINT_TOLERANCE*POINT_TOLERANCE;
 }
 
 double Sphere::area() const
@@ -1285,7 +1285,7 @@ void Sphere::project(Point * p) const
 		p->print() ;
 		getCenter().print() ;
 	}
-	if(dist(inter[0], *p) < dist(inter[1], *p))
+	if(squareDist3D(inter[0], *p) < squareDist3D(inter[1], *p))
 	{
 		*p = inter[0] ;
 		return ;

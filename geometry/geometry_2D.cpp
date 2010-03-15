@@ -955,8 +955,8 @@ void Rectangle::sampleSurface(size_t num_points)
 		{
 			for(size_t j = 0 ; j < this->numberOfPointsAlongY-2 ; j++)
 			{	
-				double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_x/numberOfPointsAlongX) ;
-				double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
+				double randx= 0 ; //((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_x/numberOfPointsAlongX) ;
+				double randy= 0 ; //((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 				
 				inPoints[i*(numberOfPointsAlongY-2)+j] = new Point(center.x - 0.5*size_x + (double)(i+1)*distanceBetweenPointsAlongX+randx,
 					center.y - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+ randy) ;

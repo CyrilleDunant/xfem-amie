@@ -1,3 +1,4 @@
+
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
 // Author: Ruzena Chamrova <ruzena.chamrova@epfl.ch>, (C) 2007
 // Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses)
@@ -1327,10 +1328,10 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 		{
 			
 			std::vector<Point> box = this->getBoundingBox() ;
-			Segment s0(box[0], box[1]) ;
+			Segment s0(box[0], box[1]) ; 
 			Segment s1(box[1], box[2]) ; 
 			Segment s2(box[2], box[3]) ; 
-			Segment s3(box[3], box[0]) ;
+			Segment s3(box[3], box[0]) ; 
 			if(g->getGeometryType() == RECTANGLE)
 			{
 				std::vector<Point> intersection = s0.intersection(g) ;
@@ -1430,6 +1431,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(!intersection.empty())
 				ret.push_back(intersection.back()) ;
+			
 			std::sort(ret.begin(), ret.end()) ;
 			std::vector<Point>:: iterator e = std::unique(ret.begin(), ret.end()) ;
 			ret.erase(e, ret.end()) ;
@@ -1685,6 +1687,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 		}
 	case SPHERE:
 		{
+			
 			if(g->getGeometryType() == SPHERE)
 			{
 				double dc = dist(getCenter(), g->getCenter()) ;
@@ -1722,6 +1725,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(g->getGeometryType() == HEXAHEDRON)
 			{
+// 				return ret ;
 				std::vector<Point> bbox = g->getBoundingBox() ;
 				double maxx =  bbox[0].x ;
 				double minx =  bbox[0].x ;
@@ -1747,7 +1751,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				}
 				
 				
-				if(std::abs(center.x - minx) <= getRadius())
+				
+				if(std::abs(center.x - minx) < getRadius())
 				{
 					double d = std::abs(center.x - minx) ;
 					Point v(-1,0,0) ;
@@ -1756,25 +1761,34 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
 					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					
 					C.sampleSurface(num_points) ;
+					
+					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
+					planeCircle.sampleSurface(num_points) ;
+					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().y, g->getCenter().z) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
+					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
+					{
+						Point candidate(minx, planeIntersection[i].x, planeIntersection[i].y) ;
+// 						if(g->in(candidate) && in(candidate))
+							ret.push_back(candidate) ;
+					}
+					
+					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
 						if(g->in(C.getBoundingPoint(i)) && in(C.getBoundingPoint(i)))
-							ret.push_back(C.getBoundingPoint(i)) ;					
-						else if(C.getBoundingPoint(i).y > maxy)
-							ret.push_back(Point(C.getBoundingPoint(i).x, maxy, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).y < miny)
-							ret.push_back(Point(C.getBoundingPoint(i).x, miny,C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).z > maxz)
-							ret.push_back(Point(C.getBoundingPoint(i).x, C.getBoundingPoint(i).y, maxz)) ;
-						else if(C.getBoundingPoint(i).z < minz)
-							ret.push_back(Point(C.getBoundingPoint(i).x, C.getBoundingPoint(i).y, minz)) ;
+							ret.push_back(C.getBoundingPoint(i)) ;
+	
 					}
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
 						if(g->in(C.getInPoint(i)) && in(C.getInPoint(i)))
 							ret.push_back(C.getInPoint(i)) ;
 					}
+
 				}
 				if(std::abs(center.x - maxx) < getRadius())
 				{
@@ -1786,6 +1800,20 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					
 					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
+					
+					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
+					planeCircle.sampleSurface(num_points) ;
+					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().y, g->getCenter().z) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
+					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
+					{
+						
+						Point candidate(maxx, planeIntersection[i].x, planeIntersection[i].y) ;
+// 						if(g->in(candidate) && in(candidate))
+							ret.push_back(candidate) ;
+					}
+					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
 						if(g->in(C.getBoundingPoint(i)) && in(C.getBoundingPoint(i)))
@@ -1798,7 +1826,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
-				
 				if(std::abs(center.y - miny) < getRadius())
 				{
 					double d = std::abs(center.y - miny) ;
@@ -1810,20 +1837,24 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
 					
+					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
+					planeCircle.sampleSurface(num_points) ;
+					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().x, g->getCenter().z) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
+					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
+					{
+						Point candidate(planeIntersection[i].x, miny, planeIntersection[i].y) ;
+// 						if(g->in(candidate) && in(candidate))
+							ret.push_back(candidate) ;
+					}
+					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
 						if(g->in(C.getBoundingPoint(i)) && in(C.getBoundingPoint(i)))
 							ret.push_back(C.getBoundingPoint(i)) ;
-						else if(C.getBoundingPoint(i).x > maxx)
-							ret.push_back(Point(maxx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).x < minx)
-							ret.push_back(Point(minx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).z > maxz)
-							ret.push_back(Point(C.getBoundingPoint(i).x, C.getBoundingPoint(i).y, maxz)) ;
-						else if(C.getBoundingPoint(i).z < minz)
-							ret.push_back(Point(C.getBoundingPoint(i).x, C.getBoundingPoint(i).y, minz)) ;
+	
 					}
-					
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
 						if(g->in(C.getInPoint(i)) && in(C.getInPoint(i)))
@@ -1840,18 +1871,24 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					
 					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
+					
+					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
+					planeCircle.sampleSurface(num_points) ;
+					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().x, g->getCenter().z) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
+					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
+					{
+						Point candidate(planeIntersection[i].x, maxy, planeIntersection[i].y) ;
+// 						if(g->in(candidate) && in(candidate))
+							ret.push_back(candidate) ;
+					}
+					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
 						if(g->in(C.getBoundingPoint(i)) && in(C.getBoundingPoint(i)))
 							ret.push_back(C.getBoundingPoint(i)) ;
-						else if(C.getBoundingPoint(i).x > maxx)
-							ret.push_back(Point(maxx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).x < minx)
-							ret.push_back(Point(minx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).z > maxz)
-							ret.push_back(Point(C.getBoundingPoint(i).x,  C.getBoundingPoint(i).y,maxz)) ;
-						else if(C.getBoundingPoint(i).z < minz)
-							ret.push_back(Point(C.getBoundingPoint(i).x,  C.getBoundingPoint(i).y,minz)) ;
+	
 					}
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
@@ -1859,7 +1896,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
-				
 				if(std::abs(center.z - minz) < getRadius())
 				{
 					double d = std::abs(center.z - minz) ;
@@ -1870,18 +1906,24 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					
 					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
+					
+					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
+					planeCircle.sampleSurface(num_points) ;
+					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().x, g->getCenter().y) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
+					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
+					{
+						Point candidate(planeIntersection[i].x, planeIntersection[i].y, minz) ;
+// 						if(g->in(candidate) && in(candidate))
+							ret.push_back(candidate) ;
+					}
+					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
 						if(g->in(C.getBoundingPoint(i)) && in(C.getBoundingPoint(i)))
 							ret.push_back(C.getBoundingPoint(i)) ;
-						else if(C.getBoundingPoint(i).x > maxx)
-							ret.push_back(Point(maxx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).x < minx)
-							ret.push_back(Point(minx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).y > maxy)
-							ret.push_back(Point(C.getBoundingPoint(i).x, maxy, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).y < miny)
-							ret.push_back(Point(C.getBoundingPoint(i).x, miny, C.getBoundingPoint(i).z)) ;
+	
 					}
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
@@ -1899,18 +1941,24 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					
 					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					C.sampleSurface(num_points) ;
+					
+					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
+					planeCircle.sampleSurface(num_points) ;
+					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().x, g->getCenter().y) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
+					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
+					{
+						Point candidate(planeIntersection[i].x, planeIntersection[i].y, maxz) ;
+// 						if(g->in(candidate) && in(candidate))
+							ret.push_back(candidate) ;
+					}
+					
 					for(size_t i = 0 ;  i < C.getBoundingPoints().size() ; i++)
 					{
 						if(g->in(C.getBoundingPoint(i)) && in(C.getBoundingPoint(i)))
 							ret.push_back(C.getBoundingPoint(i)) ;
-						else if(C.getBoundingPoint(i).x > maxx)
-							ret.push_back(Point(maxx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).x < minx)
-							ret.push_back(Point(minx,C.getBoundingPoint(i).y, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).y > maxy)
-							ret.push_back(Point(C.getBoundingPoint(i).x, maxy, C.getBoundingPoint(i).z)) ;
-						else if(C.getBoundingPoint(i).y < miny)
-							ret.push_back(Point(C.getBoundingPoint(i).x, miny, C.getBoundingPoint(i).z)) ;
+	
 					}
 					for(size_t i = 0 ;  i < C.getInPoints().size() ; i++)
 					{
@@ -1918,6 +1966,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
+				
 				bool haveDuplicates = true ;
 				while(haveDuplicates)
 				{
@@ -1926,13 +1975,14 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					{
 						for(size_t j  = i+1 ; j < ret.size() ; j++)
 						{
-							if(ret[i] == ret[j])
+							if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
 							{
 								haveDuplicates = true ;
 								ret.erase(ret.begin()+j) ;
 								break ;
 							}
 						}
+						
 						if(haveDuplicates)
 							break ;
 					}
@@ -2974,18 +3024,20 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 	{
 	case CIRCLE:
 		{
-			double a = v.sqNorm() ;
+			double a = v.x*v.x+v.y*v.y ;
 			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y)*2. ;
-			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)+(p.y-g->getCenter().y)*(p.y-g->getCenter().y)-g->getRadius()*g->getRadius() ;
+			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
+			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
+			          -g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4*a*c ;
 			
-			if(delta == 0)
+			if(std::abs(delta) < POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
 				ret.push_back(p+v*(-b/(2.*a))) ;
 				return ret ;
 			}
-			else if (delta > 0)
+			else if (delta >= POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
 				ret.push_back(p+v*((-b + sqrt(delta))/(2.*a))) ;
@@ -3122,16 +3174,19 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 		{
 			double a = v.sqNorm() ;
 			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y + (p.z-g->getCenter().z)*v.z)*2. ;
-			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)+(p.y-g->getCenter().y)*(p.y-g->getCenter().y)+(p.z-g->getCenter().z)*(p.z-g->getCenter().z)-g->getRadius()*g->getRadius() ;
+			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
+			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
+			          +(p.z-g->getCenter().z)*(p.z-g->getCenter().z)
+			          -g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4*a*c ;
 			
-			if(delta == 0)
+			if(std::abs(delta) < POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
 				ret.push_back(p+v*(-b/(2.*a))) ;
 				return ret ;
 			}
-			else if (delta > 0)
+			else if (delta >= POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
 				ret.push_back(p+v*((-b + sqrt(delta))/(2.*a))) ;
@@ -3467,56 +3522,24 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case CIRCLE:
 		{
-			if(g->in(f) && g->in(s))
-				return std::vector<Point>(0) ;
+			std::vector<Point> ret ;
+
+			std::vector<Point> candidates = Line(f, vec).intersection(g) ;
 			
-			if((g->in(f) && !g->in(s)) || (!g->in(f) && g->in(s)))
-			{
-				Line l(f, vec) ;
-				Point proj = l.projection(g->getCenter()) ;
-				double d = sqrt(g->getRadius()*g->getRadius() - squareDist2D(proj, g->getCenter())) ;
-				Point unitVector = vec/vec.norm() ;
-				Point candidate = proj + unitVector*d ;
-				if(on(candidate))
-				{
-					std::vector<Point> ret ;
-					ret.push_back(candidate) ;
-					return ret ;
-				}
-				else
-				{
-					std::vector<Point> ret ;
-					ret.push_back(proj - unitVector*d) ;
-					return ret ;
-				}
-				
-			}
-			else
-			{
-				std::vector<Point> ret ;
-				Line l(f, vec) ;
-				Point proj = l.projection(g->getCenter()) ;
-				double dd = g->getRadius()*g->getRadius() - squareDist2D(proj, g->getCenter()) ;
-				if(dd < 0)
-					return ret ;
-				
-				double d = sqrt(dd) ;
-				Point unitVector = vec/vec.norm() ;
-				Point candidateA = proj + unitVector*d ;
-				Point pa(candidateA) ; g->project(&pa) ;
-				Point candidateB = proj - unitVector*d ;
-				Point pb(candidateB) ; g->project(&pb) ;
-// 				if(dist(candidateA, pa) < POINT_TOLERANCE)
-// 					ret.push_back(candidateA) ;
-// 				if(dist(candidateB, pb) < POINT_TOLERANCE)
-// 					ret.push_back(candidateB) ;
-				if(on(candidateA))
-					ret.push_back(candidateA) ;
-				if(on(candidateB))
-					ret.push_back(candidateB) ;
-				
+			if(candidates.empty())
 				return ret ;
+			if(on(candidates[0]))
+			{
+				ret.push_back(candidates[0]) ;
 			}
+			if(candidates.size() == 1)
+				return ret ;
+			if(on(candidates[1]))
+			{
+				ret.push_back(candidates[1]) ;
+			}
+			return ret ;
+
 		}
 	case ELLIPSE:
 		{
@@ -3678,15 +3701,22 @@ bool Segment::on(const Point &p) const
 // 		std::cout << "plof " << std::flush ;	
 
 		if(s.x < f.x)
-			return (s.x <= p.x) && (p.x <= f.x) ;
-		return (f.x <= p.x) && (p.x <= s.x) ;
+			return (s.x < p.x + POINT_TOLERANCE) && (p.x < f.x + POINT_TOLERANCE) ;
+		return (f.x < p.x + POINT_TOLERANCE) && (p.x < s.x + POINT_TOLERANCE) ;
 	}
 	else if(std::abs(vec.y) > 100.*POINT_TOLERANCE)
 	{
 // 		std::cout << "pluf" << std::endl ;
 		if(s.y < f.y)
-			return (s.y <= p.y) && (p.y <= f.y) ;
-		return (f.y <= p.y) && (p.y <= s.y) ;
+			return (s.y < p.y + POINT_TOLERANCE) && (p.y < f.y + POINT_TOLERANCE) ;
+		return (f.y < p.y + POINT_TOLERANCE) && (p.y < s.y + POINT_TOLERANCE) ;
+	}
+	else if(std::abs(vec.z) > 100.*POINT_TOLERANCE)
+	{
+// 		std::cout << "pluf" << std::endl ;
+		if(s.z < f.z)
+			return (s.z < p.z + POINT_TOLERANCE) && (p.z < f.z + POINT_TOLERANCE) ;
+		return (f.z < p.z + POINT_TOLERANCE) && (p.z < s.z + POINT_TOLERANCE) ;
 	}
 
 	return false ;
@@ -4527,7 +4557,14 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
 {
 	Point a(f1) ; a -= test ;
 	Point b(f0) ; b -= test ;
-	return (a^b).z ;
+	
+	Point n(a^b) ; 
+	double d = n.norm() ;
+	if(d  < POINT_TOLERANCE)
+		return 0 ;
+	n /= d ;
+	
+	return (a^b)*n ;
 // 	return (f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y);
 }
 
@@ -4550,7 +4587,7 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	if (std::abs(signedAlignement(test_, f0_, f1_)) >= 2.*POINT_TOLERANCE)
 		return false ;
 	
-	double mdist = sqrt(std::max(squareDist2D(f0_, f1_), std::max(squareDist2D(f0_, test_), squareDist2D(f1_, test_)))) ;
+	double mdist = sqrt(std::max(squareDist3D(f0_, f1_), std::max(squareDist3D(f0_, test_), squareDist3D(f1_, test_)))) ;
 
 	double delta = .25*POINT_TOLERANCE*mdist ;
 

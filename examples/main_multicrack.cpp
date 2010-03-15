@@ -132,7 +132,7 @@ double E_stiff = E_agg*10. ;//stiffer
 double E_soft = E_agg/10.; //stiffest
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
-double factor = 200 ;
+double factor = .01 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
 bool dlist = false ;
@@ -1377,9 +1377,9 @@ int main(int argc, char *argv[])
 	m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1.-nu*nu) ; m0_soft[1][2] = 0 ; 
 	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
 
-	double width = 0.04;
-	double height = 0.04;
-	Sample sample(NULL, height , height, 0, 0) ;//sample() ;
+	double width = 500;
+	double height = 500;
+	Sample sample(NULL, height , height, 250, 250) ;//sample() ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
@@ -1403,7 +1403,7 @@ int main(int argc, char *argv[])
 	Vector def(3) ; 
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	Inclusion * inc0 = new Inclusion(0.02, 0.01, 0.01) ;
+	Inclusion * inc0 = new Inclusion(100, 0, 0) ;
 
 // 	Inclusion * inc1 = new Inclusion(0.004, 0.025, -0.0185) ;
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
@@ -1468,7 +1468,7 @@ int main(int argc, char *argv[])
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(512) ;
+	F.sample(100) ;
 
 	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;

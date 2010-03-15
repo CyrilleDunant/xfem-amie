@@ -101,7 +101,7 @@ bool Feature::inBoundary(const Point &p, double d) const
 {
 	Point proj(p) ;
 	project(&proj) ;
-	return dist(proj, p) < d || in(p);
+	return (squareDist3D(proj, p) < d*d) || in(p);
 }
 
 bool Feature::onBoundary(const Point &p, double d) const 
@@ -109,7 +109,7 @@ bool Feature::onBoundary(const Point &p, double d) const
 	Point proj(p) ;
 	project(&proj) ;
 	
-	return dist(proj, p) < d ;
+	return (squareDist3D(proj, p) < d*d) ;
 }
 
 std::vector<Feature *> Feature::getDescendants() const

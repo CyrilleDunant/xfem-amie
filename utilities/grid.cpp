@@ -678,19 +678,19 @@ void Grid3D::forceAdd(Geometry * inc)
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+2.*inc->getRadius();
-	int endI = std::min(endX/psize + 2, (double)lengthX);
+	int endI = std::min(endX/psize + 2, (double)pixels.size());
 	
 	double startY = .5*y-c.y + inc->getCenter().y-inc->getRadius() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 	
 	double endY =  startY+2.*inc->getRadius();
-	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	int endJ = std::min(endY/psize + 2, (double)pixels[0].size());
 	
 	double startZ = .5*z-c.z + inc->getCenter().z-inc->getRadius() ;
 	int startK = std::max(0., startZ/psize - 2) ;
 	
 	double endZ =  startZ+2.*inc->getRadius();
-	int endK = std::min(endZ/psize + 2, (double)lengthZ);
+	int endK = std::min(endZ/psize + 2, (double)pixels[0][0].size());
 	std::vector<Voxel *> cleanup ;
 	
 	for(int i = startI ; i < endI ; i++)
@@ -716,19 +716,19 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+2.*geo->getRadius();
-	int endI = std::min(endX/psize + 2, (double)lengthX);
+	int endI = std::min(endX/psize + 2, (double)pixels.size());
 	
 	double startY = .5*y-c.y + geo->getCenter().y-geo->getRadius() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 	
 	double endY =  startY+2.*geo->getRadius();
-	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	int endJ = std::min(endY/psize + 2, (double)pixels[0].size());
 	
 	double startZ = .5*z-c.z + geo->getCenter().z-geo->getRadius() ;
 	int startK = std::max(0., startZ/psize - 2) ;
 	
 	double endZ =  startZ+2.*geo->getRadius();
-	int endK = std::min(endZ/psize + 2, (double)lengthZ);
+	int endK = std::min(endZ/psize + 2, (double)pixels[0][0].size());
 
 	if(geo->getGeometryType() == TETRAHEDRON)
 	{
@@ -737,19 +737,19 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 		startI = std::max(0., startX/psize - 2) ;
 		
 		endX =  startX+2.2*geo->getRadius();
-		endI = std::min(endX/psize + 2, (double)lengthX);
+		endI = std::min(endX/psize + 2, (double)pixels.size());
 		
 		startY = .5*y + t->getCircumCenter()->y-t->getRadius()*1.1 ;
 		startJ = std::max(0., startY/psize - 2) ;
 		
 		endY =  startY+2.2*t->getRadius();
-		endJ = std::min(endY/psize + 2, (double)lengthY);
+		endJ = std::min(endY/psize + 2, (double)pixels[0].size());
 		
 		startZ = .5*z + t->getCircumCenter()->z-t->getRadius()*1.1 ;
 		startK = std::max(0., startZ/psize - 2) ;
 		
 		endZ =  startZ+2.2*t->getRadius();
-		endK = std::min(endZ/psize + 2, (double)lengthZ);
+		endK = std::min(endZ/psize + 2, (double)pixels[0][0].size());
 	}
 	
 	bool foundPixel = false ;
