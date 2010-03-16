@@ -2652,7 +2652,7 @@ void FeatureTree::sample(size_t n)
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 			
 			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
-			size_t npoints = .075*(size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
+			size_t npoints = .15*(size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
 			
 			if(npoints > 14)
 				tree[i]->sample(npoints) ;
@@ -4363,7 +4363,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	if(is2D())
 		pointDensity = .7*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
 	else
-		pointDensity = .35*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
+		pointDensity = .7*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
 		
 	std::cout << "space meshed with " << pointDensity << " points per unit length"<< std::endl ;
 
@@ -4662,12 +4662,12 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					
 					Point proj(inter[k]) ;
 					tree[hasMeshingBox]->project(&proj) ;
-					Point proj0(inter[k]+Point(0.1*pointDensity, 0, 0)) ;
-					Point proj1(inter[k]+Point(-0.1*pointDensity, 0, 0)) ;
-					Point proj2(inter[k]+Point(0, 0.1*pointDensity, 0)) ;
-					Point proj3(inter[k]+Point(0, -0.1*pointDensity, 0)) ;
-					Point proj4(inter[k]+Point(0, 0, 0.1*pointDensity)) ;
-					Point proj5(inter[k]+Point(0, 0, -0.1*pointDensity)) ;
+					Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
+					Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
+					Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
+					Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
+					Point proj4(inter[k]+Point(0, 0, 2.*POINT_TOLERANCE)) ;
+					Point proj5(inter[k]+Point(0, 0, -2.*POINT_TOLERANCE)) ;
 					
 					int position = tree[hasMeshingBox]->in(proj0) 
 					+ tree[hasMeshingBox]->in(proj1)
@@ -4691,7 +4691,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					+ tree[hasMeshingBox]->in(proj4)
 					+ tree[hasMeshingBox]->in(proj5) ;
 					// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-					if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || onEdge || onVertex))
+					if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
 					{
 						Point *p = new Point(inter[k]) ;
 						additionalPoints.push_back(p) ;

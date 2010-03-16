@@ -754,7 +754,7 @@ std::vector<Point> Plane::intersection(const Geometry * g) const
 			OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 			
 			size_t num_points = std::max((int)round(23.*sqrt(g->getBoundingPoints().size())*radiusOfIntersection/g->getRadius()), 8 ) ;
-			C.sampleSurface(num_points) ;
+			C.sampleSurface(2*num_points) ;
 			
 			return C.getSamplingBoundingPoints(num_points) ;
 			
@@ -1760,14 +1760,14 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
 					
-					C.sampleSurface(num_points) ;
+					C.sampleSurface(2*num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
-					planeCircle.sampleSurface(num_points) ;
+					planeCircle.sampleSurface(2*num_points) ;
 					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().y, g->getCenter().z) ;
-					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
@@ -1798,13 +1798,13 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(num_points) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					C.sampleSurface(2*num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
-					planeCircle.sampleSurface(num_points) ;
+					planeCircle.sampleSurface(2*num_points) ;
 					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().y, g->getCenter().z) ;
-					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
@@ -1834,13 +1834,13 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(num_points) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					C.sampleSurface(2*num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
-					planeCircle.sampleSurface(num_points) ;
+					planeCircle.sampleSurface(num_points/2) ;
 					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().x, g->getCenter().z) ;
-					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
@@ -1869,13 +1869,13 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(num_points) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					C.sampleSurface(2*num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
-					planeCircle.sampleSurface(num_points) ;
+					planeCircle.sampleSurface(2*num_points) ;
 					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().x, g->getCenter().z) ;
-					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
@@ -1904,13 +1904,13 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(num_points) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					C.sampleSurface(2*num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
-					planeCircle.sampleSurface(num_points) ;
+					planeCircle.sampleSurface(2*num_points) ;
 					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().x, g->getCenter().y) ;
-					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
@@ -1939,13 +1939,13 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(8.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(num_points) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					C.sampleSurface(2*num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
-					planeCircle.sampleSurface(num_points) ;
+					planeCircle.sampleSurface(2*num_points) ;
 					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().x, g->getCenter().y) ;
-					planeRect.sampleSurface(g->getBoundingPoints().size()) ;
+					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
