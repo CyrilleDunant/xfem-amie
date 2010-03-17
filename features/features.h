@@ -249,11 +249,6 @@ public:
 	 */
 	void addFeature(Feature *father, Feature * f) ;
 
-	void addNewRoot(Feature *newRoot) ; 
-
-	/** \brief Add a larger box to improve meshing. */
-	void defineMeshingBox() ;
-
 	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
 	Vector getDisplacements() const ;
 	
