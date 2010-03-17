@@ -103,7 +103,7 @@ double displacement_tolerance = 0.05*delta_displacement ;
 double softeningFactor = 1. ;
 
 double percent = 0.01 ;
-double load = 0 ;
+double load = -10 ;
 double displacement  = 0 ;
 double prescribedDisplacement = 0;
 double derror = 0 ;
@@ -282,81 +282,95 @@ void step()
 	size_t nsteps = 64;
 	size_t nit = 2 ;
 	size_t ntries = 64;
-	size_t dsteps = 50 ;
-	for(size_t i = 0 ; i < nit ; i++)
+	size_t dsteps = 5 ;
+	std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
+	while(true)
 	{
-		setBC() ;
 		size_t tries = 0 ;
 		size_t dit = 0 ;
 		bool go_on = true ;
 		bool no_convergence = true ;
-		std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
+// 		
 		bool damage = false ;
-		do
-		{
-			dit = 0;
-			go_on = true ;
-			while(go_on && dit < dsteps)
-			{
-				dit++ ;
-				featureTree->step(timepos) ;
-// 				featureTree->getAssembly()->print() ;
-				go_on = featureTree->solverConverged() 
-					&&  (
-						featureTree->meshChanged() 
-						|| featureTree->enrichmentChanged()
-						);
 
-				if(!featureTree->solverConverged())
-				{
-					i = nit ;
-					tries = ntries ;
-					std::cout << "no convergence" << std::endl ;
-					break ;
-				}
-				computeDisplacement() ;
-				load_displacement.push_back(std::make_pair(load, displacement)) ;
-				if(go_on)
-				{
-					damage = true ;
-				}
-				setBC() ;
-			}
-			if(damage)
+		dit = 0;
+		go_on = true ;
+		while(go_on && dit < dsteps)
+		{
+			setBC() ;
+			dit++ ;
+			featureTree->step(timepos) ;
+			go_on = featureTree->solverConverged() 
+				&&  (
+					featureTree->meshChanged() 
+					|| featureTree->enrichmentChanged()
+					);
+
+			if(!featureTree->solverConverged())
 			{
-// 				prescribedDisplacement = displacement ;
-// 				displacement = 0 ;
-// 				load = 0 ;
-// 				ierror = 0 ;
-// 				preverror = 0 ;
+				tries = ntries ;
+				std::cout << "no convergence" << std::endl ;
+				break ;
 			}
-			pidUpdate() ;
-			if(damage)
+			if(go_on)
 			{
+				damage = true ;
+			}
+		}
+		bool stable = !damage ;
+		double topLoad = load*1.5 ;
+		double currenLoad = load ;
+		double bottomLoad = load*.5 ;
+		while(!stable)
+		{
+			stable = true ;
+			load = bottomLoad ;
+			setBC() ;
+			bool stableAtLow = featureTree->stable(.1) ;
+			while(!stableAtLow)
+			{
+				bottomLoad *= .5 ;
+				load = bottomLoad ;
 				setBC() ;
-				damage = false ;
+				stableAtLow = featureTree->stable(.1) ;
 			}
 			
-			tries++ ;
+			while(std::abs(topLoad-bottomLoad) > 1e-6)
+			{
+				load = (topLoad+bottomLoad)*.5 ;
+				setBC() ;
+				if(featureTree->stable(.1)) // equilibrium load is between current and topLoad
+				{
+					bottomLoad = (topLoad+bottomLoad)*.5 ;
+				}
+				else // equilibrium load is between current and bottomLoad
+				{
+					topLoad = (topLoad+bottomLoad)*.5 ;
+				}
 
-			if(std::abs(displacement-prescribedDisplacement) < displacement_tolerance)
-				no_convergence = false ;
-
-			if(tries > ntries)
-				break ;
-// 			std::cout << tries << "  "<< displacement << "  "<<  load << "             "<< std::endl ;
-		} while (no_convergence) ;
-		
-		std::cout << " " << tries << " tries." << std::endl ;
-		
+			}
+		}
+		computeDisplacement() ;
+		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 0.5e-6 
+			&& std::abs(load_displacement.back().first - load) < 50))
+		{
+// 			std::cout << "o" << std::flush ;
+			std::cout <<  std::abs(load_displacement.back().second - displacement) << "   " << std::abs(load_displacement.back().first - load) << std::endl ;
+		}
+		else
+		{
+			std::cout << "." << std::flush ;
+			if(!load_displacement.empty())
+				std::cout <<  load_displacement.back().second << " : "<<  displacement << std::flush ;
+			load_displacement.push_back(std::make_pair(load, displacement)) ;
+			load -=1000 ;
+			break ;
+		}
+		load -=1000 ;
+	}
+	std::cout << std::endl ;
 		saved_load_displacement.push_back(load_displacement.back()) ;
 		load_displacement = saved_load_displacement ;
-
-		if(!damage)
-		{
-			prescribedDisplacement -= delta_displacement ;
-// 			ierror = 0 ;
-		}
 // 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
 
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -626,7 +640,7 @@ void step()
 		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
 		double reactedArea = 0 ;
 			
-		if (tries < ntries)
+// 		if (tries < ntries)
 			for(size_t z = 0 ; z < zones.size() ; z++)
 			{
 				zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
@@ -636,14 +650,14 @@ void step()
 		
 		std::cout << "reacted Area : " << reactedArea << std::endl ;
 		
-		if (tries < ntries)
-		{
+// 		if (tries < ntries)
+// 		{
 			expansion_reaction.push_back(std::make_pair(reactedArea, avg_e_xx/area)) ;
 			expansion_stress.push_back(std::make_pair(avg_e_xx_nogel/nogel_area, avg_s_xx_nogel/nogel_area)) ;
-		}
+// 		}
 		
-		if (tries >= ntries)
-			break ;
+// 		if (tries >= ntries)
+// 			break ;
 
 	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
 		std::cout << expansion_reaction[i].first << "   " 
@@ -653,7 +667,6 @@ void step()
 		<< load_displacement[i].first << "   " 
 		<< load_displacement[i].second << "   " 
 		<< std::endl ;
-	}
 
 }
 
@@ -1619,7 +1632,7 @@ int main(int argc, char *argv[])
 	
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000000)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
 // 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(40000, -40000*8))) ;
 	Inclusion * pore = new Inclusion(0.02, 0.2, -0.05) ;
 	pore->setBehaviour(new Stiffness(m0_paste)) ;
@@ -1633,7 +1646,7 @@ int main(int argc, char *argv[])
 	Inclusion * pore2 = new Inclusion(0.001, 0.04, 0.05) ;
 	pore2->setBehaviour(new Stiffness(m0_paste)) ;
 	Inclusion * pore3 = new Inclusion(0.0025, 0., 0.05) ;
-	pore3->setBehaviour(new WeibullDistributedStiffness(m0_paste, 40000000)) ;
+	pore3->setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
 	F.addFeature(&sample,pore1) ;
 	F.addFeature(&sample,pore2) ;
 	F.addFeature(&sample,pore3) ;
@@ -1645,19 +1658,19 @@ int main(int argc, char *argv[])
 // 	F.addFeature(pore2,pore3) ;
 // 	TriangularPore * pore4 = new TriangularPore(Point(0, -0.018), Point(-0.001, -0.021), Point(0.001, -0.021)) ;
 	inclusions[0]->setRadius(inclusions[0]->getRadius()-itzSize*.75) ;
-	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000000)) ;
-	F.addFeature(&sample,inclusions[0]) ;
-	for(size_t i = 1 ; i < inclusions.size(); i++)
-	{
-
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
-		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000000)) ;
-		F.addFeature(inclusions[i-1],inclusions[i]) ;
-		placed_area += inclusions[i]->area() ;
-	}	
+	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,800000)) ;
+// 	F.addFeature(&sample,inclusions[0]) ;
+// 	for(size_t i = 1 ; i < inclusions.size(); i++)
+// 	{
+// 
+// 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
+// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000000)) ;
+// 		F.addFeature(inclusions[i-1],inclusions[i]) ;
+// 		placed_area += inclusions[i]->area() ;
+// 	}	
 	Sample notch(.005, .07, 0, -.045) ;
 	notch.setBehaviour(new VoidForm()) ;
-	F.addFeature(inclusions.back(),&notch) ;
+	F.addFeature(&sample,&notch) ;
 
 	if(!inclusions.empty())
 	{
@@ -1668,7 +1681,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(64) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

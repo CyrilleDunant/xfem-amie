@@ -25,10 +25,10 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
-	previousDamage = 0 ;
-	intermediateDamage = 0 ;
+	previousDamage.resize(dfunc.damageState().size()) ; previousDamage =0 ;
+	intermediateDamage.resize(dfunc.damageState().size()) ;intermediateDamage = 0 ;
 	count = 0 ;
-	previousPreviousDamage = 0 ;
+	previousPreviousDamage.resize(dfunc.damageState().size()) ;previousPreviousDamage = 0 ;
 	damage = 0 ;
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -79,13 +79,13 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	{
 		
 		dfunc.step(currentState) ;
-		if(timestep > 0)
-		{
+// 		if(timestep > 0)
+// 		{
 			previousPreviousDamage.resize(previousDamage.size()) ;
 			previousPreviousDamage = previousDamage ;
 			previousDamage.resize(damage.size()) ;
 			previousDamage = damage ;
-		}
+// 		}
 		Vector d = dfunc.damageState() ;
 		damage.resize(d.size()) ;
 		damage = d ;

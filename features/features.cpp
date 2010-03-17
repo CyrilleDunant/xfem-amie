@@ -2057,6 +2057,7 @@ void FeatureTree::addNewRoot(Feature * newRoot)
 
 void FeatureTree::defineMeshingBox()
 {
+	return ;
 	if(tree.empty())
 	{
 		std::cerr << "warning: unable to define meshing box: no features in tree" << std::endl ;
@@ -5120,7 +5121,7 @@ void FeatureTree::shuffleMeshPoints()
 	size_t np = shuffled.size() /2 ;
 	if(is2D())
 	{
-		np =  (std::pow(np, 0.5) +1 ;
+		np =  std::pow(np, 0.5) +1 ;
 		Grid * shufflingGrid = new Grid(static_cast<Sample *>(tree[0])->width()*1.01,static_cast<Sample *>(tree[0])->height()*1.01,np,tree[0]->getCenter()) ;
 		while(meshPoints.size() < shuffled.size())
 		{
@@ -5198,7 +5199,7 @@ void FeatureTree::shuffleMeshPoints()
 						{
 							iy = 0 ;
 							iz++ ;
-							if(iz == shufflingGrid->getLengthY())
+							if(iz == shufflingGrid->getLengthZ())
 								iz = 0 ;
 						}
 					}

@@ -1457,18 +1457,18 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 	double v = 0 ;
-	if(!inclusions.empty())
-	{
-// 		F.addFeature(&sample, inclusions[0]) ;
-		for(size_t i = 0 ; i < 100/*inclusions.size()*/; i++)
-		{
-			static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*scale) ;
-			static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*scale) ;
-			inclusions[i]->setBehaviour(new Stiffness(m1)) ;
-			F.addFeature(&sample, inclusions[i]) ;
-			v += static_cast<Sphere *>(inclusions[i])->volume() ;
-		}
-	}
+// 	if(!inclusions.empty())
+// 	{
+// // 		F.addFeature(&sample, inclusions[0]) ;
+// 		for(size_t i = 0 ; i < 1000/*inclusions.size()*/; i++)
+// 		{
+// 			static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*scale) ;
+// 			static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*scale) ;
+// 			inclusions[i]->setBehaviour(new Stiffness(m1)) ;
+// 			F.addFeature(&sample, inclusions[i]) ;
+// 			v += static_cast<Sphere *>(inclusions[i])->volume() ;
+// 		}
+// 	}
 
 // 	Inclusion3D * inc = new Inclusion3D(100, 500, 0, 0) ;
 // 	inc->setBehaviour(new Stiffness(m1)) ;
@@ -1476,7 +1476,7 @@ int main(int argc, char *argv[])
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(2048*16) ;
+	F.sample(2048) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -100)) ;

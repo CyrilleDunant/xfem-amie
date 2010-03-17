@@ -3870,7 +3870,8 @@ Vector & ElementState::getBuffer()
 
 void ElementState::step(double dt, Vector * d)
 {
-	history.pop_back() ;
+	if(!history.empty())
+		history.pop_back() ;
 	history.push_back(ElementState(*this)) ;
 	
 	if(parent->getBehaviour()->type != VOID_BEHAVIOUR)

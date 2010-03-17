@@ -1609,12 +1609,12 @@ bool DelaunayTetrahedron::onCircumSphere(const Point &p) const
 bool DelaunayTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
 {
 
-	for(size_t i = 0 ; i < neighbour.size() ; i++)
-		if(neighbour[i] == t->index) 
-			return true ;
-	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
-		if(t->neighbour[i] == index)
-			return true ;
+// 	for(size_t i = 0 ; i < neighbour.size() ; i++)
+// 		if(neighbour[i] == t->index) 
+// 			return true ;
+// 	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
+// 		if(t->neighbour[i] == index)
+// 			return true ;
 
 	size_t cv = numberOfCommonVertices(t) ;
 
@@ -1754,12 +1754,12 @@ bool DelaunayDemiSpace::onCircumSphere(const Point & p) const
 
 bool  DelaunayDemiSpace::isNeighbour(const DelaunayTreeItem3D * t)  const 
 {
-	for(size_t i = 0 ; i < neighbour.size() ; i++)
-		if(neighbour[i] == t->index) 
-			return true ;
-	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
-		if(t->neighbour[i] == index)
-			return true ;
+// 	for(size_t i = 0 ; i < neighbour.size() ; i++)
+// 		if(neighbour[i] == t->index) 
+// 			return true ;
+// 	for(size_t i = 0 ; i < t->neighbour.size() ; i++)
+// 		if(t->neighbour[i] == index)
+// 			return true ;
 // 	if(std::find(&neighbour[0], &neighbour[neighbour.size()],t->index) !=  &neighbour[neighbour.size()])
 // 		return true ;
 // 	if(std::find(&t->neighbour[0], &t->neighbour[t->neighbour.size()],index) !=  &t->neighbour[t->neighbour.size()])
