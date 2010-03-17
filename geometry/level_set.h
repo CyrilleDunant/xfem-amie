@@ -28,7 +28,7 @@ class LevelSet : public Geometry
   
   protected:
     
-	Function signedDistance ;
+	std::vector<Function> distanceFunction ;
 	Geometry * source ;
 	PointArray boundingPoints ;
 	
@@ -38,6 +38,8 @@ class LevelSet : public Geometry
 	LevelSet(Point p) ;
 	LevelSet(double x, double y) ;
 	LevelSet(Geometry * g) ;
+	LevelSet(Function f) ;
+	LevelSet(std::vector<Function> f) ;
 
 	virtual ~LevelSet() { } ;
 

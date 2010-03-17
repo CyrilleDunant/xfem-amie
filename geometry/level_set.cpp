@@ -41,6 +41,19 @@ LevelSet::LevelSet(Geometry * g)
 //	this->signedDistance = new Function(g->getCenter()) ;
 }
 
+LevelSet::LevelSet(Function f)
+{
+	gType = LEVEL_SET ;
+	distanceFunction.push_back(f) ;
+}
+
+LevelSet::LevelSet(std::vector<Function> f)
+{
+	gType = LEVEL_SET ;
+	for(size_t i = 0 ; i < f.size() ; i++)
+		distanceFunction.push_back(f[i]) ;
+}
+
 std::vector<Point> LevelSet::getBoundingBox() const 
 {
 	std::vector<Point> ret ;

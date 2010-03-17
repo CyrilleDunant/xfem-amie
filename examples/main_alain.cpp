@@ -15,6 +15,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../utilities/xml.h" 
 
 #include <fstream>
 
@@ -238,6 +239,15 @@ int main(int argc, char *argv[])
 	m0[4][4] = 0.5 - nu ;
 	m0[5][5] = 0.5 - nu ;
 	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+
+	XMLTree * xml = new XMLTree("stiffness",m0) ;
+	xml->printInFile("hello") ;
+
+	XMLTree * imp = importXMLFile("hello.xml") ;
+	imp->print(true) ;
+
+	return 0 ;
+
 	
 	// define ITZ size
 	double itzSize = 0.00001;

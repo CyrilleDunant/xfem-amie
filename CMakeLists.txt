@@ -95,6 +95,7 @@ utilities/parser.cpp
 utilities/pid.cpp
 utilities/placement.cpp
 utilities/samplingcriterion.cpp
+utilities/xml.cpp
 )
 
 find_package(GLUT)
