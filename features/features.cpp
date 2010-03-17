@@ -2057,7 +2057,6 @@ void FeatureTree::addNewRoot(Feature * newRoot)
 
 void FeatureTree::defineMeshingBox()
 {
-	return ;
 	if(tree.empty())
 	{
 		std::cerr << "warning: unable to define meshing box: no features in tree" << std::endl ;
@@ -2142,7 +2141,7 @@ void FeatureTree::defineMeshingBox()
 	}
 	else
 	{
-		std::cerr << "meshing box defined with max delta length " << std::max(std::max(std::abs(w-w_act), std::abs(h-h_act)),std::abs(d-d_act))<< std::endl ;
+		std::cout << "meshing box defined with max delta length " << std::max(std::max(std::abs(w-w_act), std::abs(h-h_act)),std::abs(d-d_act))<< std::endl ;
 	}
 
 	// define the box
@@ -2606,7 +2605,7 @@ void FeatureTree::stitch()
 void FeatureTree::sample(size_t n)
 {
 	int initialTreeSize = tree.size() ;
-	defineMeshingBox() ;
+	this->defineMeshingBox() ;
 	int finalTreeSize = tree.size() ;
 	
 	if(is2D())
@@ -4722,6 +4721,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
+	shuffleMeshPoints() ;
 	
 //	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 //		meshPoints[i].first->print() ;
@@ -5096,7 +5096,119 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getTetrahedrons()
 		return std::vector<DelaunayTetrahedron *>(0) ;
 }
 
+void FeatureTree::shuffleMeshPoints()
+{
+	std::cout << "shuffling mesh points... " ;
 
+	std::deque<std::pair<Point *, Feature * > > shuffled ;
+	for(size_t i = 0 ; i < meshPoints.size() ; i++)
+		shuffled.push_back(meshPoints[i]) ;
+	while(meshPoints.size() > 0)
+		meshPoints.pop_back() ;
+	std::random_shuffle(shuffled.begin(),shuffled.end()) ;
+
+	std::vector<bool> visited ;
+	for(size_t i = 0 ; i < shuffled.size() ; i++)
+		visited.push_back(true) ;
+
+	size_t ix = 0 ;
+	size_t iy = 0 ;
+	size_t iz = 0 ;
+
+	size_t p = 0 ;
+
+	size_t np = shuffled.size() /2 ;
+	if(is2D())
+	{
+		np =  (std::pow(np, 0.5) +1 ;
+		Grid * shufflingGrid = new Grid(static_cast<Sample *>(tree[0])->width()*1.01,static_cast<Sample *>(tree[0])->height()*1.01,np,tree[0]->getCenter()) ;
+		while(meshPoints.size() < shuffled.size())
+		{
+			Point ptest(shuffled[p].first->x,shuffled[p].first->y) ;
+			if((visited[p]) && (shufflingGrid->pixels[ix][iy]->coOccur(ptest)))
+			{
+				visited[p] = false ;
+				meshPoints.push_back(shuffled[p]) ;
+				ix++ ;
+				if(ix == shufflingGrid->getLengthX())
+				{
+					ix = 0 ;
+					iy++ ;
+					if(iy == shufflingGrid->getLengthY())
+						iy = 0 ;
+				}
+				p = 0 ;
+			} else {
+				p++ ;
+				if (p == shuffled.size())
+				{
+					p = 0 ;
+					ix++ ;
+					if(ix == shufflingGrid->getLengthX())
+					{
+						ix = 0 ;
+						iy++ ;
+						if(iy == shufflingGrid->getLengthY())
+							iy = 0 ;
+					}
+//					shufflingGrid->pixels[ix][iy]->print() ;
+				}
+			}
+		}
+		delete shufflingGrid ;
+	}	
+	if(is3D())
+	{
+		np = std::pow(np, 0.3333333) +1 ;
+		Grid3D * shufflingGrid = new Grid3D(static_cast<Sample3D *>(tree[0])->getXSize()*1.01,
+						    static_cast<Sample3D *>(tree[0])->getYSize()*1.01,
+						    static_cast<Sample3D *>(tree[0])->getZSize()*1.01,np,tree[0]->getCenter()) ;
+		while(meshPoints.size() < shuffled.size())
+		{
+			Point ptest(shuffled[p].first->x,shuffled[p].first->y,shuffled[p].first->z) ;
+			if((visited[p]) && (shufflingGrid->pixels[ix][iy][iz]->coOccur(ptest)))
+			{
+				visited[p] = false ;
+				meshPoints.push_back(shuffled[p]) ;
+				ix++ ;
+				if(ix == shufflingGrid->getLengthX())
+				{
+					ix = 0 ;
+					iy++ ;
+					if(iy == shufflingGrid->getLengthY())
+					{
+						iy = 0 ;
+						iz++ ;
+						if(iz == shufflingGrid->getLengthY())
+							iz = 0 ;
+					}
+				}
+				p = 0 ;
+			} else {
+				p++ ;
+				if (p == shuffled.size())
+				{
+					p = 0 ;
+					ix++ ;
+					if(ix == shufflingGrid->getLengthX())
+					{
+						ix = 0 ;
+						iy++ ;
+						if(iy == shufflingGrid->getLengthY())
+						{
+							iy = 0 ;
+							iz++ ;
+							if(iz == shufflingGrid->getLengthY())
+								iz = 0 ;
+						}
+					}
+				}
+			}
+		}
+	}
+	std::cout << "done... " << std::endl ;
+	
+}
 
 
 

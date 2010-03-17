@@ -503,6 +503,10 @@ void Pixel::forceAdd(Geometry * inc)
 
 void Pixel::print() const
 {
+	tl.print() ;
+	tr.print() ;
+	bl.print() ;
+	br.print() ;
 // 	for(size_t i = 0 ; i < features.size() ; i++)
 // 		features[i]->print() ;
 }

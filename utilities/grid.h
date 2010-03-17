@@ -246,6 +246,14 @@ public:
 /** \brief Return a Point contained in no allready placed Feature in the grid*/
 	Point randomFreeCenter() const ;
 	~Grid3D() ;
+	size_t getLengthX() const {return lengthX ;} ;
+	size_t getLengthY() const {return lengthY ;} ;
+	size_t getLengthZ() const {return lengthZ ;} ;
+	double getPixelSize() const {return psize ;} ;
+	double getX() const {return x ;} ;
+	double getY() const {return y ;} ;
+	double getZ() const {return z ;} ;
+	const Point & getCenter() const {return c ;} ;
 
 /** \brief Add a Feature if it does not overlap with another allready present Feature
 *

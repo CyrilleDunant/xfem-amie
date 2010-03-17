@@ -1976,7 +1976,8 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 void Ellipse::sampleSurface (size_t num_points)
 {
 	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(13*num_points*pow(getMajorRadius()/getMinorRadius(),0.666666)/8) ;
+//		this->sampleBoundingSurface(13*num_points*pow(getMajorRadius()/getMinorRadius(),0.666666)/8) ;
+		this->sampleBoundingSurface(num_points * 2 / 3) ;
 	sampled = true ;
 
 	size_t ring = 1 + num_points / (3 * M_PI / 2) ;
@@ -2037,14 +2038,12 @@ void Ellipse::sampleSurface (size_t num_points)
                 if(jchange)
                 {
                     jfactor++ ;
-                }
-                jchange != jchange ;
-		if(factor == 2)
-		{
-			factor = 1 ;
-		} else {
-//			factor = 2 ;
 		}
+                jchange != jchange ;
+		if(j > 4)
+			jchange = true ;
+		
+		factor = 2 ;
 	}
 /*	double r = sqrt(majorradius * minorradius) ;
 	double x = majorradius * sqrt(r*r - minorradius*minorradius) / sqrt(majorradius*majorradius - minorradius*minorradius) ;
@@ -2073,7 +2072,7 @@ void Ellipse::sampleSurface (size_t num_points)
 	int toadd = 1 ;
 	if(getMinorRadius() / getMajorRadius() < 0.5)// || ring==1)
 	{	
-		toadd = 1 + 4 * (newalist.size() - 1) ;
+		toadd = 1 + 4 * (std::min((int) newalist.size(),4) - 1) ;
 //		std::cout << "add more points inside" << std::endl ;
 	}
 	inPoints.resize(temp.size() + toadd) ;

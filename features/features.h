@@ -25,7 +25,7 @@
 
 namespace Mu
 {
-  
+
 /** \brief Abstract boundary condition object for usage in multigrid solver.
  * 
 */
@@ -285,6 +285,8 @@ public:
 	 * 
 	 */
 	void refine(size_t level) ;
+
+	void shuffleMeshPoints() ;
 	
 	
 	/** \brief  Return true if the physics is modified by the BC

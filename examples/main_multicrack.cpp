@@ -1379,7 +1379,7 @@ int main(int argc, char *argv[])
 
 	double width = 500;
 	double height = 500;
-	Sample sample(NULL, height , height, 250, 250) ;//sample() ;
+	Sample sample(NULL, height , height, 0, 0) ;//sample() ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
@@ -1403,11 +1403,12 @@ int main(int argc, char *argv[])
 	Vector def(3) ; 
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	Inclusion * inc0 = new Inclusion(100, 0, 0) ;
+	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 
-// 	Inclusion * inc1 = new Inclusion(0.004, 0.025, -0.0185) ;
+ 	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
-	inc0->setBehaviour(new Stiffness(m0_paste*.9)) ;
+	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
+	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
  	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
@@ -1450,16 +1451,16 @@ int main(int argc, char *argv[])
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
 	double stress = 55 ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
 
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_XI , Point(1, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
-	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
+//	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
@@ -1470,7 +1471,7 @@ int main(int argc, char *argv[])
 
 	F.sample(100) ;
 
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 // 	F.refine(3) ;
 
