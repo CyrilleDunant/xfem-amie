@@ -283,58 +283,61 @@ void step()
 	size_t nit = 2 ;
 	size_t ntries = 64;
 	size_t dsteps = 5 ;
+	size_t tries = 0 ;
+	size_t dit = 0 ;
 	std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
 	while(true)
 	{
-		size_t tries = 0 ;
-		size_t dit = 0 ;
+		tries++ ;
 		bool go_on = true ;
 		bool no_convergence = true ;
-// 		
 		bool damage = false ;
 
 		dit = 0;
 		go_on = true ;
-		while(go_on && dit < dsteps)
+		setBC() ;
+		while(featureTree->stable(.1))
+		{
+			load *= 1.1 ;
+			setBC() ;
+		}
+		std::cout << load << ":: "<< std::flush ;
+		while(dit < dsteps)
 		{
 			setBC() ;
 			dit++ ;
 			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() 
-				&&  (
-					featureTree->meshChanged() 
-					|| featureTree->enrichmentChanged()
-					);
-
+			if(featureTree->meshChanged())
+				std::cout << "+" << std::flush ;
+			else
+			{
+				std::cout << "." << std::endl ;
+				break ;
+			}
 			if(!featureTree->solverConverged())
 			{
 				tries = ntries ;
 				std::cout << "no convergence" << std::endl ;
 				break ;
 			}
-			if(go_on)
-			{
-				damage = true ;
-			}
 		}
-		bool stable = !damage ;
-		double topLoad = load*1.5 ;
-		double currenLoad = load ;
-		double bottomLoad = load*.5 ;
-		while(!stable)
+		double topLoad = load ;
+		double currenLoad = load*.95 ;
+		double bottomLoad = load*.9 ;
+		setBC() ;
+		if(!featureTree->stable(.1))
 		{
-			stable = true ;
 			load = bottomLoad ;
 			setBC() ;
 			bool stableAtLow = featureTree->stable(.1) ;
 			while(!stableAtLow)
 			{
-				bottomLoad *= .5 ;
+				bottomLoad *= .9 ;
 				load = bottomLoad ;
 				setBC() ;
 				stableAtLow = featureTree->stable(.1) ;
 			}
-			
+			std::cout << "\nbisecting : " << bottomLoad << "  "<< topLoad << std::endl ;
 			while(std::abs(topLoad-bottomLoad) > 1e-6)
 			{
 				load = (topLoad+bottomLoad)*.5 ;
@@ -347,15 +350,42 @@ void step()
 				{
 					topLoad = (topLoad+bottomLoad)*.5 ;
 				}
-
+				
+				load = bottomLoad ;
+				setBC() ;
+				stableAtLow = featureTree->stable(.1) ;
+				while(!stableAtLow)
+				{
+					bottomLoad *= .9 ;
+					load = bottomLoad ;
+					setBC() ;
+					stableAtLow = featureTree->stable(.1) ;
+				}
+				
 			}
+			load = bottomLoad ;
+			setBC() ;
+			std::cout << "done      : " << bottomLoad << " :: "<< featureTree->stable(.1)<<std::endl ;
+			
 		}
+		
+		setBC() ;
+		featureTree->step(timepos) ;
+		x.resize(featureTree->getDisplacements().size()) ;
+		x = featureTree->getDisplacements() ;
 		computeDisplacement() ;
-		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 0.5e-6 
-			&& std::abs(load_displacement.back().first - load) < 50))
+		if(tries > ntries)
+		{
+			load_displacement.push_back(std::make_pair(load, displacement)) ;
+			break ;
+		}
+		
+		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 0.5e-6 )
+			&& (std::abs(load_displacement.back().first - load) < 50))
 		{
 // 			std::cout << "o" << std::flush ;
-			std::cout <<  std::abs(load_displacement.back().second - displacement) << "   " << std::abs(load_displacement.back().first - load) << std::endl ;
+			std::cout <<  tries << "   " << std::abs(load_displacement.back().second - displacement) << "   " << std::abs(load_displacement.back().first - load) << "   "<< featureTree->damagedVolume << std::endl ;
+			load -=1000 ;
 		}
 		else
 		{
@@ -366,7 +396,9 @@ void step()
 			load -=1000 ;
 			break ;
 		}
-		load -=1000 ;
+		
+		
+
 	}
 	std::cout << std::endl ;
 		saved_load_displacement.push_back(load_displacement.back()) ;

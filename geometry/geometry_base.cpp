@@ -3024,7 +3024,8 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 	{
 	case CIRCLE:
 		{
-			double a = v.x*v.x+v.y*v.y ;
+			
+			double a = v.sqNorm() ;
 			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y)*2. ;
 			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
 			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
@@ -3046,6 +3047,29 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			}
 
 			return std::vector<Point>(0) ;
+
+// 			double a = v.x*v.x+v.y*v.y ;
+// 			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y)*2. ;
+// 			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
+// 			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
+// 			          -g->getRadius()*g->getRadius() ;
+// 			double delta = b*b - 4.*a*c ;
+// 			
+// 			if(std::abs(delta) < POINT_TOLERANCE)
+// 			{
+// 				std::vector<Point> ret ;
+// 				ret.push_back(p+v*(-b/(2.*a))) ;
+// 				return ret ;
+// 			}
+// 			else if (delta >= POINT_TOLERANCE)
+// 			{
+// 				std::vector<Point> ret ;
+// 				ret.push_back(p+v*((-b + sqrt(delta))/(2.*a))) ;
+// 				ret.push_back(p+v*((-b - sqrt(delta))/(2.*a))) ;
+// 				return ret ;
+// 			}
+// 
+// 			return std::vector<Point>(0) ;
 		}
 	case ELLIPSE:
 		{
@@ -3225,10 +3249,11 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 Point Line::projection(const Point &m ) const
 {
 // 	m.print() ;
-	Point d = v/v.norm() ;
-	Point w = m-p ;
-	Point dir = d*(w*d) ;
-	return p+dir ;
+// 	Point d = v/v.norm() ;
+// 	Point w = m-p ;
+// 	Point dir = d*(w*d) ;
+	double lambda = -0.5*(v*v)/((p-m)*v) ;
+	return p+v*lambda ;
 // 	double nu = (-v.x-v.y-v.z+v.x*m.x+v.y*m.y+v.z*m.z)/(v.x*v.x+v.y*v.y+v.z*v.z) ;
 // 	Point can0 = p+v*nu ;
 // 	Point can1 = p-v*nu ;
@@ -3337,23 +3362,10 @@ bool Segment::intersects(const Geometry *g) const
 	case CIRCLE:
 		{
 // 			return !intersection(g).empty() ;
-// 			print() ;
-			Line l(f, vec) ;
-			Point proj = l.projection(g->getCenter()) ;
-			if(g->in(f) && g->in(s))
-				return false ;
-			if(!g->in(f) && !g->in(s) && g->in(proj) && on(proj))
-				return true ;
-			if((g->in(f) && !g->in(s)) || (!g->in(f) && g->in(s)))
-				return true ;
+			Point proj(g->getCenter()) ;
+			proj = project(proj) ;
+			return squareDist2D(proj, g->getCenter()) < g->getRadius()*g->getRadius() ;
 			
-			return false ;
-// 			
-			double a = vec.sqNorm() ;
-			double b = -(s.x-g->getCenter().x)*2.*vec.x - (s.y-g->getCenter().y)*2.*vec.y ;
-			double c = (s.x-g->getCenter().x)*(s.x-g->getCenter().x) + (s.y-g->getCenter().y)*(s.y-g->getCenter().y)-g->getRadius()*g->getRadius() ;
-// 			double delta = b*b - 4*a*c ;
-			return b*b - 4.*a*c >= 0;
 		}
 	case ELLIPSE:
 		{
@@ -3365,9 +3377,6 @@ bool Segment::intersects(const Geometry *g) const
 				return false ;
 			for(size_t i = 0 ; i < in.size() ; i++)
 			{
-//				std::cout << isAligned(f,s,in[i]) <<  isAligned(f,in[i],s)  <<  isAligned(in[i],f,s)  << std::endl ;
-//				in[i].print() ;
-//				std::cout << this->on(in[i]) << std::endl ;
 				if(this->on(in[i]))
 					return true ;
 			}
@@ -3456,19 +3465,6 @@ bool Segment::intersects(const TriPoint *g) const
 
 	return tuv.max() <=1 && tuv.min() >= 0 &&tuv[1] +tuv[2] <= 1  ;
 
-// 	Plane p(*g->point[0], g->normal) ;
-// 	Line l(f, vec) ;
-// 	if(p.intersects(l))
-// 	{
-// 		Point i = p.intersection(l) ;
-// 		Point v0(*g->point[0] - f) ;
-// 		Point v1(*g->point[1] - f) ;
-// 		Point n = v0^v1 ;
-// 		n /= n.norm() ;
-// 		if((i*n-f*n) >= 0)
-// 			return true ;
-// 	}
-// 	return false ;
 }
 
 std::vector<Point> Segment::intersection(const Geometry *g) const
@@ -3657,14 +3653,17 @@ Point Segment::project(const Point & p) const
 {
 	if(isAligned(f, s, p))
 	{
-		double d = squareDist3D(f, s) ;
-		if( squareDist3D(f, p) < d && squareDist2D(s, p) < d )
+		double d  =squareDist3D(f, s) ;
+		if( squareDist3D(f, p) < d && squareDist3D(s, p) < d )
 			return p ;
-		else if(squareDist3D(f, p) < squareDist2D(s, p))
+		
+		
+		if(squareDist3D(f, p) < squareDist3D(s, p))
 			return f ;
 
 		return s ;
 	}
+	
 	Line l(s, Point(vec.x, vec.y)) ;
 	
 	Point candidate = l.projection(p) ;

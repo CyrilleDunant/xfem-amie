@@ -1026,23 +1026,27 @@ std::vector<Point> Circle::getBoundingBox() const
 }
 
 void Circle::project(Point * p) const
-{	
-  
-	if(*p == center)
+{
+	if(squareDist2D(p, &center ) < POINT_TOLERANCE*POINT_TOLERANCE)
 	{
-		p->x = center.x + getRadius() ;
-		p->y = center.y ;
+		p->x +=getRadius() ;
+		return ;
 	}
 	
-	Segment seg(center, *p) ;
+	Line l(*p, *p-getCenter()) ;
 	
-	Point proj = center - seg.vector()*(radius/seg.vector().norm()) ;
-	
-	p->x = proj.x ;
-	p->y = proj.y ;
-	
-	return ;
-	
+	std::vector<Point> inter = l.intersection(this) ;
+	if(inter.empty() || inter.size() == 1)
+	{
+		p->print() ;
+		getCenter().print() ;
+	}
+	if(squareDist3D(inter[0], *p) < squareDist3D(inter[1], *p))
+	{
+		*p = inter[0] ;
+		return ;
+	}
+	*p = inter[1] ;
 }
 
 std::vector<Point> Circle::getSamplingBoundingPoints(size_t num_points) const

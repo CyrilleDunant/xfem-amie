@@ -25,6 +25,7 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
+	previouschange = false ;
 	previousDamage.resize(dfunc.damageState().size()) ; previousDamage =0 ;
 	intermediateDamage.resize(dfunc.damageState().size()) ;intermediateDamage = 0 ;
 	count = 0 ;
@@ -64,15 +65,18 @@ void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, con
 
 void StiffnessAndFracture::stepBack()
 {
+	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
 	dfunc.damageState() = damage ;
+	frac = dfunc.fractured() ;
 	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
 }
 
 void StiffnessAndFracture::step(double timestep, ElementState & currentState) 
 {
+	previouschange = change ;
 	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
 	if(!frac && criterion->met(currentState) )
@@ -104,7 +108,7 @@ bool StiffnessAndFracture::changed() const
 
 bool StiffnessAndFracture::fractured() const
 {
-	return frac;
+	return dfunc.fractured() ;
 }
 
 Form * StiffnessAndFracture::getCopy() const 

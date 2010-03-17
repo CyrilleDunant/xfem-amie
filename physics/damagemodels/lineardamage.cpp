@@ -57,7 +57,7 @@ void LinearDamage::step(ElementState & s)
 	{
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
-			state[i] += .01*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] += .5 ; //*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
 			state[i] = std::min(maxD, state[i]) ;
 		}
 	}

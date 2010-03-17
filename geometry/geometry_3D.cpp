@@ -1291,8 +1291,6 @@ void Sphere::project(Point * p) const
 		return ;
 	}
 	*p = inter[1] ;
-	return ;
-	
 }
 
 void Sphere::project(Point * p, double r) const

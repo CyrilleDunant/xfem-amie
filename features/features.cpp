@@ -2605,9 +2605,9 @@ void FeatureTree::stitch()
 
 void FeatureTree::sample(size_t n)
 {
-	int initialTreeSize = tree.size() ;
-	this->defineMeshingBox() ;
-	int finalTreeSize = tree.size() ;
+// 	int initialTreeSize = tree.size() ;
+// 	this->defineMeshingBox() ;
+// 	int finalTreeSize = tree.size() ;
 	
 	if(is2D())
 	{
@@ -4036,7 +4036,6 @@ bool FeatureTree::step(double dt)
 	}
 	
 	needAssembly = true ;
-	
 	meshChange = false ;
 
 	if(solverConvergence)
@@ -4200,11 +4199,10 @@ bool FeatureTree::stable(double dt)
 	bool enrichmentChangeinit = enrichmentChange ;
 	double crackedVolumeinit = crackedVolume ;	
 	double damagedVolumeinit = damagedVolume ;
-
 	bool stab = step(dt) ;
-	stepBack() ;
-	
-	needAssembly = needAssemblyinit ;
+	if(meshChanged() && solverConverged())
+		stepBack() ;
+	needAssembly = true ;
 	meshChange = meshChangeinit ;
 	enrichmentChange = enrichmentChangeinit ;
 	crackedVolume = crackedVolumeinit ;	
@@ -4597,8 +4595,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				{
 					if(!coOccuringFeatures[j]->isEnrichmentFeature 
 					   && !coOccuringFeatures[j]->isVirtualFeature 
-// 					   && tree[i] != coOccuringFeatures[j] 
-					   /*&& tree[i]->intersects(coOccuringFeatures[j])*/)
+					   && tree[i] != coOccuringFeatures[j] 
+					   && tree[i]->intersects(coOccuringFeatures[j]))
 					{
 						std::vector<Point> inter = tree[i]->intersection(coOccuringFeatures[j]) ;
 						for(size_t k = 0 ;  k < inter.size() ; k++)
@@ -4635,7 +4633,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
 		{
-			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature /*&& tree[hasMeshingBox]->intersects(tree[i])*/)
+			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[hasMeshingBox]->intersects(tree[i]))
 			{
 				std::vector<Point> inter = tree[hasMeshingBox]->intersection(tree[i]) ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
@@ -5099,13 +5097,14 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getTetrahedrons()
 
 void FeatureTree::shuffleMeshPoints()
 {
+	return ;
 	std::cout << "shuffling mesh points... " ;
-
 	std::deque<std::pair<Point *, Feature * > > shuffled ;
 	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 		shuffled.push_back(meshPoints[i]) ;
-	while(meshPoints.size() > 0)
-		meshPoints.pop_back() ;
+
+	meshPoints.clear() ;
+	
 	std::random_shuffle(shuffled.begin(),shuffled.end()) ;
 
 	std::vector<bool> visited ;
@@ -5118,10 +5117,10 @@ void FeatureTree::shuffleMeshPoints()
 
 	size_t p = 0 ;
 
-	size_t np = shuffled.size() /2 ;
+	size_t np = shuffled.size() / 2 ;
 	if(is2D())
 	{
-		np =  std::pow(np, 0.5) +1 ;
+		np =  std::pow(np, 0.5) + 1 ;
 		Grid * shufflingGrid = new Grid(static_cast<Sample *>(tree[0])->width()*1.01,static_cast<Sample *>(tree[0])->height()*1.01,np,tree[0]->getCenter()) ;
 		while(meshPoints.size() < shuffled.size())
 		{
