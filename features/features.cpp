@@ -1909,9 +1909,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 		                Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
 		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
 		                     )) ;
-							Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
-		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
-		                     ).print() ; 
+ 
 	if(is3D())
 		grid3d =new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x)*1.1,
 		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y)*1.1,
@@ -3418,6 +3416,7 @@ void FeatureTree::assemble()
 
 			initializeElements() ;
 		}
+		initialized =true ;
 	}
 	
 	size_t en_counter =  0 ;
@@ -3500,13 +3499,8 @@ void FeatureTree::assemble()
 				if(j%1000 == 0)
 					std::cerr << "\r assembling stiffness matrix... tetrahedron " << j+1 << "/" << tets.size() << std::flush ;
 				
-// 				for(size_t k = 0 ; k < tets[j]->getEnrichmentFunctions().size() ; k++)
-// 				{
-// 					tets[j]->getEnrichmentFunction(k).compile() ;
-// 				}
 				tets[j]->refresh(father3D) ;
 				K->add(tets[j]) ;
-// 				elements3D.push_back(tets[j]) ;
 			}
 		}
 		
@@ -3903,7 +3897,6 @@ bool FeatureTree::step(double dt)
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
-		
 		double volume = 0;	
 		crackedVolume = 0 ;	
 		damagedVolume = 0 ;	

@@ -81,24 +81,19 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	currentState.getParent()->behaviourUpdated = false ;
 	if(!frac && criterion->met(currentState) )
 	{
-		
 		dfunc.step(currentState) ;
-// 		if(timestep > 0)
-// 		{
-			previousPreviousDamage.resize(previousDamage.size()) ;
-			previousPreviousDamage = previousDamage ;
-			previousDamage.resize(damage.size()) ;
-			previousDamage = damage ;
-// 		}
-		Vector d = dfunc.damageState() ;
-		damage.resize(d.size()) ;
-		damage = d ;
-
 		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;
 		frac = dfunc.fractured() ;
 	}
+	previousPreviousDamage.resize(previousDamage.size()) ;
+	previousPreviousDamage = previousDamage ;
+	previousDamage.resize(damage.size()) ;
+	previousDamage = damage ;
 
+	Vector d = dfunc.damageState() ;
+	damage.resize(d.size()) ;
+	damage = d ;
 }
 
 bool StiffnessAndFracture::changed() const

@@ -285,6 +285,8 @@ void step()
 	size_t dsteps = 5 ;
 	size_t tries = 0 ;
 	size_t dit = 0 ;
+	for(size_t v = 0 ; v < nsteps ; v++)
+	{
 	std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
 	while(true)
 	{
@@ -337,7 +339,6 @@ void step()
 				setBC() ;
 				stableAtLow = featureTree->stable(.1) ;
 			}
-			std::cout << "\nbisecting : " << bottomLoad << "  "<< topLoad << std::endl ;
 			while(std::abs(topLoad-bottomLoad) > 1e-6)
 			{
 				load = (topLoad+bottomLoad)*.5 ;
@@ -365,11 +366,8 @@ void step()
 			}
 			load = bottomLoad ;
 			setBC() ;
-			std::cout << "done      : " << bottomLoad << " :: "<< featureTree->stable(.1)<<std::endl ;
-			
 		}
 		
-		setBC() ;
 		featureTree->step(timepos) ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
@@ -690,7 +688,7 @@ void step()
 		
 // 		if (tries >= ntries)
 // 			break ;
-
+	}
 	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
 		std::cout << expansion_reaction[i].first << "   " 
 		<< expansion_reaction[i].second << "   " 
@@ -1673,15 +1671,15 @@ int main(int argc, char *argv[])
 	pore0->setBehaviour(new Stiffness(m0_paste)) ;
 	F.addFeature(pore,pore0) ;
 	
-	Inclusion * pore1 = new Inclusion(0.001, -0.04, 0.05) ;
-	pore1->setBehaviour(new Stiffness(m0_paste)) ;
-	Inclusion * pore2 = new Inclusion(0.001, 0.04, 0.05) ;
-	pore2->setBehaviour(new Stiffness(m0_paste)) ;
-	Inclusion * pore3 = new Inclusion(0.0025, 0., 0.05) ;
-	pore3->setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
-	F.addFeature(&sample,pore1) ;
-	F.addFeature(&sample,pore2) ;
-	F.addFeature(&sample,pore3) ;
+// 	Inclusion * pore1 = new Inclusion(0.001, -0.04, 0.05) ;
+// 	pore1->setBehaviour(new Stiffness(m0_paste)) ;
+// 	Inclusion * pore2 = new Inclusion(0.001, 0.04, 0.05) ;
+// 	pore2->setBehaviour(new Stiffness(m0_paste)) ;
+// 	Inclusion * pore3 = new Inclusion(0.0025, 0., 0.05) ;
+// 	pore3->setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
+// 	F.addFeature(&sample,pore1) ;
+// 	F.addFeature(&sample,pore2) ;
+// 	F.addFeature(&sample,pore3) ;
 // 	Inclusion * pore2 = new Inclusion(0.0001, -0.001, -0.02) ;
 // 	pore2->setBehaviour(new Stiffness(m0_paste)) ;
 // 	Inclusion * pore3 = new Inclusion(0.0001, 0.001, -0.02) ;
@@ -1713,7 +1711,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(64) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
