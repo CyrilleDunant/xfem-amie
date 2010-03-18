@@ -463,7 +463,6 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 		apply3DBC(elements[i], id, condition, data, a) ;
 	}
 }
-
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
@@ -473,19 +472,21 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 	double maxy = elements.front()->getBoundingPoint(0).y ; 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
-		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+		if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
-			if(elements[i]->getBoundingPoint(j).x < minx)
-				minx = elements[i]->getBoundingPoint(j).x ;
-			if(elements[i]->getBoundingPoint(j).x > maxx)
-				maxx = elements[i]->getBoundingPoint(j).x ;
-			if(elements[i]->getBoundingPoint(j).y < miny)
-				miny = elements[i]->getBoundingPoint(j).y ;
-			if(elements[i]->getBoundingPoint(j).y > maxy)
-				maxy = elements[i]->getBoundingPoint(j).y ;
+			for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+			{
+				if(elements[i]->getBoundingPoint(j).x < minx)
+					minx = elements[i]->getBoundingPoint(j).x ;
+				if(elements[i]->getBoundingPoint(j).x > maxx)
+					maxx = elements[i]->getBoundingPoint(j).x ;
+				if(elements[i]->getBoundingPoint(j).y < miny)
+					miny = elements[i]->getBoundingPoint(j).y ;
+				if(elements[i]->getBoundingPoint(j).y > maxy)
+					maxy = elements[i]->getBoundingPoint(j).y ;
+			}
 		}
 	}
-	
 	double tol = std::min(maxx-minx, maxy-miny)*.0001 ;
 	
 	switch(pos)
@@ -673,16 +674,19 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 	double maxy = elements.front()->getBoundingPoint(0).y ; 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
-		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+		if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
-			if(elements[i]->getBoundingPoint(j).x < minx)
-				minx = elements[i]->getBoundingPoint(j).x ;
-			if(elements[i]->getBoundingPoint(j).x > maxx)
-				maxx = elements[i]->getBoundingPoint(j).x ;
-			if(elements[i]->getBoundingPoint(j).y < miny)
-				miny = elements[i]->getBoundingPoint(j).y ;
-			if(elements[i]->getBoundingPoint(j).y > maxy)
-				maxy = elements[i]->getBoundingPoint(j).y ;
+			for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+			{
+				if(elements[i]->getBoundingPoint(j).x < minx)
+					minx = elements[i]->getBoundingPoint(j).x ;
+				if(elements[i]->getBoundingPoint(j).x > maxx)
+					maxx = elements[i]->getBoundingPoint(j).x ;
+				if(elements[i]->getBoundingPoint(j).y < miny)
+					miny = elements[i]->getBoundingPoint(j).y ;
+				if(elements[i]->getBoundingPoint(j).y > maxy)
+					maxy = elements[i]->getBoundingPoint(j).y ;
+			}
 		}
 	}
 	
@@ -2466,9 +2470,9 @@ void FeatureTree::sample(size_t n)
 		for(size_t i  = 1 ; i < this->tree.size() ; i++)
 		{
 			double shape_factor = (sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
-			size_t npoints = (size_t)((double)n*sqrt(tree[i]->area()/(total_area*shape_factor))) ;
+			size_t npoints = (size_t)std::max((double)n*sqrt(tree[i]->area()/(total_area*shape_factor)), 9.) ;
 
-			if(npoints > 8)
+			if(npoints >= 8 && !tree[i]->isVirtualFeature)
 				tree[i]->sample(npoints) ;
 		}
 	}
@@ -2488,7 +2492,7 @@ void FeatureTree::sample(size_t n)
 			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 			size_t npoints = .15*(size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
 			
-			if(npoints > 14)
+			if(npoints > 14 && !tree[i]->isVirtualFeature)
 				tree[i]->sample(npoints) ;
 
 		}
@@ -4262,9 +4266,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					           != dynamic_cast<VirtualFeature *>(tree[i])->getSource())
 					       && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)
 					      )
-					   || (potentialChildren[k]->isVirtualFeature 
-					       && potentialChildren[k]->in(tree[i]->getBoundingPoint(j)))
-					  )
+					   )
 					{
 						if(potentialChildren[k]->getBoundingPoints().size())
 						{
@@ -4325,7 +4327,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					      && potentialChildren[k]->inBoundary(tree[i]->getInPoint(j), pointDensity)
 					    ) 
 					   || 
-					    (
 					      (
 					        potentialChildren[k]->isVirtualFeature 
 					        && tree[i]->isVirtualFeature 
@@ -4336,12 +4337,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					        )
 					        && potentialChildren[k]->inBoundary(tree[i]->getInPoint(j), pointDensity)
 					      )
-					      || 
-					      (
-					        potentialChildren[k]->isVirtualFeature 
-					        && potentialChildren[k]->in(tree[i]->getInPoint(j))
-					      )
-					    )
 					  )
 					{
 						if(potentialChildren[k]->getBoundingPoints().size())
@@ -4412,7 +4407,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 							bool indescendants = false ;
 							for(size_t l = 0 ; l < descendants.size() ; l++)
 							{
-								if(descendants[l]->inBoundary(inter[k], pointDensity))
+								if(!descendants[l]->isVirtualFeature && descendants[l]->inBoundary(inter[k], pointDensity))
 								{
 									indescendants = true ;
 									break ;
@@ -4458,7 +4453,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					}
 					for(size_t l = 0 ; l < fatherdescendants.size() ; l++)
 					{
-						if(fatherdescendants[l] != tree[i] && fatherdescendants[l]->inBoundary(inter[k], pointDensity) && fatherdescendants[l]->getBoundingPoints().size() )
+						if(fatherdescendants[l] != tree[i] && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->inBoundary(inter[k], pointDensity) && fatherdescendants[l]->getBoundingPoints().size() )
 						{
 							indescendants = true ;
 							break ;

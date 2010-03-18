@@ -83,6 +83,9 @@
 
 using namespace Mu ;
 
+
+
+
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
@@ -103,7 +106,6 @@ double displacement_tolerance = 0.05*delta_displacement ;
 double softeningFactor = 1. ;
 
 double percent = 0.01 ;
-double load = -10 ;
 double displacement  = 0 ;
 double prescribedDisplacement = 0;
 double derror = 0 ;
@@ -137,7 +139,7 @@ Vector angle(0) ;
 double nu = 0.2 ;
 double E_agg = 58.9e9 ;
 double E_paste = 12e9 ;
-
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.005, .005, -10, 10, -10.) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 200 ;
 MinimumAngle cri(M_PI/6.) ;
@@ -193,93 +195,10 @@ void computeDisplacement()
 displacement = displacement-displacement0 ;
 }
 
-double pidUpdate()
-{
-	double currentLoad = load ;
-// 	if(load_displacement.size() > 2 && std::abs(load_displacement.back().second) > 1e-15)
-// 		apriori_command = load_displacement.back().first
-// 		/ load_displacement.back().second
-// 				* prescribedDisplacement ;
-	double error = prescribedDisplacement-displacement ;
-	derror =  error-preverror ;
-	ierror += (error+preverror)*.5 ;
-	double K_p = 400000000 ;
-	load = K_p*error + .5*K_p*ierror+ K_p* .5 *derror;
-	if(load > 0)
-		load = -1e-7 ;
-
-	preverror = error ;
-
-	return error ;
-}
-
-void setBC()
-{
-	triangles = featureTree->getTriangles() ;
-	std::vector<size_t > xlow ;
-	std::vector<size_t > xhigh ;
-	std::vector<size_t > yhl ;
-	std::vector<size_t > cornerLeft ;
-	std::vector<size_t > cornerRight ;
-
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-			if (std::abs(triangles[k]->getBoundingPoint(c).x-.2) < 0.001
-				&& triangles[k]->getBoundingPoint(c).y < -.04999 && !triangles[k]->getBehaviour()->fractured() )
-			{
-				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
-			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x+.2) < 0.001
-					&& triangles[k]->getBoundingPoint(c).y < -.04999 && !triangles[k]->getBehaviour()->fractured())
-			{
-				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
-			}
-			else if(std::abs(triangles[k]->getBoundingPoint(c).x) -.040 < 0.00001
-				&& triangles[k]->getBoundingPoint(c).y > .04999)
-			{
-				yhl.push_back(triangles[k]->getBoundingPoint(c).id);
-			}
-		}
-	}
-	
-	std::sort(xlow.begin(), xlow.end()) ;
-	std::vector<size_t>::iterator e = std::unique(xlow.begin(), xlow.end()) ;
-	xlow.erase(e, xlow.end()) ;
-	std::sort(xhigh.begin(), xhigh.end()) ;
-	e = std::unique(xhigh.begin(), xhigh.end()) ;
-	xhigh.erase(e, xhigh.end()) ;
-	std::sort(yhl.begin(), yhl.end()) ;
-	e = std::unique(yhl.begin(), yhl.end()) ;
-	yhl.erase(e, yhl.end()) ;
-	std::sort(cornerLeft.begin(), cornerLeft.end()) ;
-	e = std::unique(cornerLeft.begin(), cornerLeft.end()) ;
-	cornerLeft.erase(e, cornerLeft.end()) ;
-	std::sort(cornerRight.begin(), cornerRight.end()) ;
-	e = std::unique(cornerRight.begin(), cornerRight.end()) ;
-	cornerRight.erase(e, cornerRight.end()) ;
-
-	for(size_t i = 0 ; i < xlow.size() ; i++)
-	{
-		featureTree->getAssembly()->setPoint(0,0,xlow[i]) ;
-	}
-	for(size_t i = 0 ; i < xhigh.size() ; i++)
-	{
-		featureTree->getAssembly()->setPoint(0,0,xhigh[i]) ;
-	}
-	for(size_t i = 0 ; i < yhl.size() ; i++)
-	{
-		featureTree->getAssembly()->setPointAlong(XI,0,yhl[i]) ;
-		featureTree->getAssembly()->setForceOn(ETA,load/yhl.size() ,yhl[i]) ;
-	}
-
-}
-
 void step()
 {
 	
-	size_t nsteps = 64;
+	size_t nsteps = 1;
 	size_t nit = 2 ;
 	size_t ntries = 64;
 	size_t dsteps = 1 ;
@@ -297,16 +216,14 @@ void step()
 
 		dit = 0;
 		go_on = true ;
-		setBC() ;
+
 		while(featureTree->stable(.1))
 		{
-			load *= 1.1 ;
-			setBC() ;
+			load->setData(load->getData()* 1.1) ;
 		}
-		std::cout << load << ":: "<< std::flush ;
+		std::cout << load->getData() << ":: "<< std::flush ;
 		while(dit < dsteps)
 		{
-			setBC() ;
 			dit++ ;
 			featureTree->step(timepos) ;
 			if(featureTree->meshChanged())
@@ -325,26 +242,23 @@ void step()
 		}
 // 		if(featureTree->solverConverged())
 // 		{
-			double topLoad = load ;
-			double currenLoad = load*.95 ;
-			double bottomLoad = load*.9 ;
-			setBC() ;
+			double topLoad = load->getData() ;
+			double currenLoad = load->getData()*.95 ;
+			double bottomLoad = load->getData()*.9 ;
 			if(!featureTree->stable(.1))
 			{
-				load = bottomLoad ;
-				setBC() ;
+				load->setData(bottomLoad) ;
+
 				bool stableAtLow = featureTree->stable(.1) ;
 				while(!stableAtLow)
 				{
 					bottomLoad *= .9 ;
-					load = bottomLoad ;
-					setBC() ;
+					load->setData(bottomLoad) ;
 					stableAtLow = featureTree->stable(.1) ;
 				}
 				while(std::abs(topLoad-bottomLoad) > 1e-6)
 				{
-					load = (topLoad+bottomLoad)*.5 ;
-					setBC() ;
+					load->setData((topLoad+bottomLoad)*.5) ;
 					if(featureTree->stable(.1)) // equilibrium load is between current and topLoad
 					{
 						bottomLoad = (topLoad+bottomLoad)*.5 ;
@@ -354,20 +268,17 @@ void step()
 						topLoad = (topLoad+bottomLoad)*.5 ;
 					}
 					
-					load = bottomLoad ;
-					setBC() ;
+					load->setData(bottomLoad) ;
 					stableAtLow = featureTree->stable(.1) ;
 					while(!stableAtLow)
 					{
 						bottomLoad *= .9 ;
-						load = bottomLoad ;
-						setBC() ;
+						load->setData(bottomLoad) ;
 						stableAtLow = featureTree->stable(.1) ;
 					}
 					
 				}
-				load = bottomLoad ;
-				setBC() ;
+				load->setData(bottomLoad) ;
 			}
 			
 			featureTree->step(timepos) ;
@@ -377,24 +288,24 @@ void step()
 		computeDisplacement() ;
 		if(tries > ntries)
 		{
-			load_displacement.push_back(std::make_pair(load, displacement)) ;
+			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
 			break ;
 		}
 		
 		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 0.5e-6 )
-			&& (std::abs(load_displacement.back().first - load) < 50))
+			&& (std::abs(load_displacement.back().first - load->getData()) < 50))
 		{
 // 			std::cout << "o" << std::flush ;
-			std::cout <<  tries << "   " << std::abs(load_displacement.back().second - displacement) << "   " << std::abs(load_displacement.back().first - load) << "   "<< featureTree->damagedVolume << std::endl ;
-			load -=1000 ;
+			std::cout <<  tries << "   " << std::abs(load_displacement.back().second - displacement) << "   " << std::abs(load_displacement.back().first - load->getData()) << "   "<< featureTree->damagedVolume << std::endl ;
+			load->setData(load->getData()-100000) ;
 		}
 		else
 		{
 			std::cout << "." << std::flush ;
 			if(!load_displacement.empty())
 				std::cout <<  load_displacement.back().second << " : "<<  displacement << std::flush ;
-			load_displacement.push_back(std::make_pair(load, displacement)) ;
-			load -=1000 ;
+			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
+			load->setData(load->getData()-100000) ;
 			break ;
 		}
 		
@@ -1621,8 +1532,8 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.44, 0.1,0,0) ;
-	Mu::Rectangle box( 0.01, 0.04,0,0) ;
+	Sample sample(NULL, 0.44, 0.11,0,-0.005) ;
+	Mu::Rectangle box( 0.01, 0.045,0,0) ;
 	
 // return 0 ; 
 	FeatureTree F(&sample) ;
@@ -1665,31 +1576,9 @@ int main(int argc, char *argv[])
 	
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(40000, -40000*8))) ;
-	Inclusion * pore = new Inclusion(0.01, 0.2, -0.05) ;
-	pore->setBehaviour(new Stiffness(m0_paste)) ;
-	F.addFeature(&sample,pore) ;
-	Inclusion * pore0 = new Inclusion(0.01, -0.2, -0.05) ;
-	pore0->setBehaviour(new Stiffness(m0_paste)) ;
-	F.addFeature(pore,pore0) ;
-	
-// 	Inclusion * pore1 = new Inclusion(0.001, -0.04, 0.05) ;
-// 	pore1->setBehaviour(new Stiffness(m0_paste)) ;
-// 	Inclusion * pore2 = new Inclusion(0.001, 0.04, 0.05) ;
-// 	pore2->setBehaviour(new Stiffness(m0_paste)) ;
-// 	Inclusion * pore3 = new Inclusion(0.0025, 0., 0.05) ;
-// 	pore3->setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
-// 	F.addFeature(&sample,pore1) ;
-// 	F.addFeature(&sample,pore2) ;
-// 	F.addFeature(&sample,pore3) ;
-// 	Inclusion * pore2 = new Inclusion(0.0001, -0.001, -0.02) ;
-// 	pore2->setBehaviour(new Stiffness(m0_paste)) ;
-// 	Inclusion * pore3 = new Inclusion(0.0001, 0.001, -0.02) ;
-// 	pore3->setBehaviour(new Stiffness(m0_paste)) ;
-// 	F.addFeature(pore1,pore2) ;
-// 	F.addFeature(pore2,pore3) ;
-// 	TriangularPore * pore4 = new TriangularPore(Point(0, -0.018), Point(-0.001, -0.021), Point(0.001, -0.021)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
+// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(40000, -40000*8))) ;
+
 	inclusions[0]->setRadius(inclusions[0]->getRadius()-itzSize*.75) ;
 	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,800000)) ;
 // 	F.addFeature(&sample,inclusions[0]) ;
@@ -1700,11 +1589,28 @@ int main(int argc, char *argv[])
 // 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000000)) ;
 // 		F.addFeature(inclusions[i-1],inclusions[i]) ;
 // 		placed_area += inclusions[i]->area() ;
-// 	}	
+// 	}
+
+	F.addBoundaryCondition(load) ;
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2075, -0.2025, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2075, -0.2025, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2025, 0.2075,  -10, 10) );
+	
 	Sample notch(.005, .07, 0, -.045) ;
 	notch.setBehaviour(new VoidForm()) ;
 	F.addFeature(&sample,&notch) ;
-
+	Sample base(.38, .01, 0, -.055) ;
+	base.setBehaviour(new VoidForm()) ;
+	F.addFeature(&sample,&base) ;
+	Sample * pore = new Sample(0.03, 0.01, -0.205, -.055) ;
+	pore->setBehaviour(new Stiffness(m0_paste*500)) ;
+	pore->isVirtualFeature = true ;
+	F.addFeature(&sample,pore) ;
+	Sample * pore0 = new Sample(0.03, 0.01, 0.205, -.055) ;
+	pore0->setBehaviour(new Stiffness(m0_paste*500)) ;
+	pore0->isVirtualFeature = true ;
+	F.addFeature(pore,pore0) ;
+	
 	if(!inclusions.empty())
 	{
 		std::cout << "largest inclusion with r = " << inclusions.front()->getRadius() << std::endl ;
@@ -1718,7 +1624,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
-
+	triangles = F.getTriangles() ;
 // 	
 	step() ;
 	

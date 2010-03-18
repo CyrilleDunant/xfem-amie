@@ -39,6 +39,8 @@ public:
 	BoundaryCondition(LagrangeMultiplierType t, const double & d) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle> * t) const = 0 ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron> * t) const = 0 ;
+	void setData(double newval) { data = newval ;}
+	double getData() const { return data ;}
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
