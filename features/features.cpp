@@ -1922,7 +1922,6 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	this->needAssembly = true ;
 	this->initialized = false ;
 	this->setBehaviours = false ;
-	this->hasMeshingBox = false ;
 	meshChange = true ;
 	solverConvergence = false ;
 	enrichmentChange = true ;
@@ -2208,7 +2207,7 @@ void FeatureTree::stitch()
 			
 			stitched  = true ;	
 // 			return ;
-			for(size_t j = 1+hasMeshingBox ; j < this->tree.size() ; j++)
+			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
 				if(!tree[j]->isEnrichmentFeature)
 				{
@@ -2456,24 +2455,15 @@ void FeatureTree::stitch()
 
 void FeatureTree::sample(size_t n)
 {
-// 	int initialTreeSize = tree.size() ;
-// 	this->defineMeshingBox() ;
-// 	int finalTreeSize = tree.size() ;
 	
 	if(is2D())
 	{
 		std::cerr << "2D features" << std::endl ;
 		double total_area = tree[0]->area() ;
-		if(hasMeshingBox)
-		{
-			tree[0]->sample(n*tree[0]->area()/tree[1]->area()*.5) ;
-			tree[1]->sample(n) ;
-		}
-		else
-		{
-			tree[0]->sample(n) ;
-		}
-		for(size_t i  = 1+hasMeshingBox ; i < this->tree.size() ; i++)
+
+		tree[0]->sample(n) ;
+
+		for(size_t i  = 1 ; i < this->tree.size() ; i++)
 		{
 			double shape_factor = (sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
 			size_t npoints = (size_t)((double)n*sqrt(tree[i]->area()/(total_area*shape_factor))) ;
@@ -2484,21 +2474,14 @@ void FeatureTree::sample(size_t n)
 	}
 	else if (is3D())
 	{
-		if(hasMeshingBox)
-		{
-			
-			tree[0]->sample(n) ;
-			tree[1]->sample(n*4.) ;
-		}
-		else
-		{
-			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
-			tree[0]->sample(n) ;
-		}
+
+		std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
+		tree[0]->sample(n) ;
+
 		double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius()) ;
 		int count = 0 ;
 #pragma omp parallel for
-		for(int i  = 1+hasMeshingBox ; i < (int)tree.size() ; i++)
+		for(int i  = 1 ; i < (int)tree.size() ; i++)
 		{
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 			
@@ -2876,8 +2859,6 @@ void FeatureTree::refine( size_t level )
 Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 {
 	int root_box = 0 ;
-	if(hasMeshingBox)
-		root_box = 1 ;
 
 	if(!inRoot(t->getCenter())) 
 		return new VoidForm() ;
@@ -2976,8 +2957,6 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 Form * FeatureTree::getElementBehaviour(const DelaunayTetrahedron * t) const
 {
 	int root_box = 0 ;
-	if(hasMeshingBox)
-		root_box = 1 ;
 
 	
 	if(!inRoot(t->getCenter())) 
@@ -3313,7 +3292,7 @@ Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 void FeatureTree::setElementBehaviours()
 {
 	double n_void ;
-	if(this->dtree3D == NULL && this->dtree !=NULL)
+	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 				
@@ -3323,17 +3302,10 @@ void FeatureTree::setElementBehaviours()
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... triangle " << i << "/" << triangles.size() << std::flush ;
 			triangles[i]->refresh(father2D) ;
-			if((this->hasMeshingBox && tree[1]->in(triangles[i]->getCenter())) || !this->hasMeshingBox )
-			{
-				if(!triangles[i]->getBehaviour())
-					triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
-				if(triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-					n_void++ ;
-			} else {
-				if(!triangles[i]->getBehaviour())
-					triangles[i]->setBehaviour(new VoidForm()) ;
-				n_void++ ;
-			}		
+
+			if(!triangles[i]->getBehaviour())
+				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
+			n_void++ ;
 		}
 		std::cerr << " ...done" << std::endl ;
 		
@@ -3349,17 +3321,10 @@ void FeatureTree::setElementBehaviours()
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... tet " << i << "/" << tetrahedrons.size() << std::flush ;
 			tetrahedrons[i]->refresh(father3D) ;
-			if((this->hasMeshingBox && tree[1]->in(tetrahedrons[i]->getCenter())) || !this->hasMeshingBox )
-			{
-				if(!tetrahedrons[i]->getBehaviour())
-					tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
-				if(tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-					n_void++ ;
-			} else {
-				if(!tetrahedrons[i]->getBehaviour())
-					tetrahedrons[i]->setBehaviour(new VoidForm()) ;
-				n_void++ ;
-			}
+
+			if(!tetrahedrons[i]->getBehaviour())
+				tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
+			n_void++ ;
 		}
 		
 		std::cerr << " ...done" << std::endl ;
@@ -4205,9 +4170,9 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 {
 	double pointDensity = 0 ; 
 	if(is2D())
-		pointDensity = .7*sqrt(tree[hasMeshingBox]->area()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size())) ;
+		pointDensity = .7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
 	else
-		pointDensity = .7*pow(tree[hasMeshingBox]->volume()/(tree[hasMeshingBox]->getBoundingPoints().size()+tree[hasMeshingBox]->getInPoints().size()), .33333333333) ;
+		pointDensity = .7*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
 		
 	std::cout << "space meshed with " << pointDensity << " points per unit length"<< std::endl ;
 
@@ -4311,8 +4276,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				if(i != 0 && !inRoot(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
-// 				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getBoundingPoint(j)))
-// 					isIn = true ;
 				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
 					isIn = true ;
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
@@ -4391,8 +4354,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				if(i != 0 && !inRoot(tree[i]->getInPoint(j)))
 					isIn = true ;
-// 				if(hasMeshingBox && i > 1 && !tree[1]->in(tree[i]->getInPoint(j)))
-// 					isIn = true ;
 				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getInPoint(j), pointDensity))
 					isIn = true ;
 				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getInPoint(j)))
@@ -4420,7 +4381,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 	if(computeIntersections)
 	{
-		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
+		for(size_t i = 1 ;  i < tree.size() ; i++)
 		{
 			if(!tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature)
 			{
@@ -4477,13 +4438,13 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 			}
 		}
 
-		for(size_t i = 1+hasMeshingBox ;  i < tree.size() ; i++)
+		for(size_t i = 1 ;  i < tree.size() ; i++)
 		{
-			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[hasMeshingBox]->intersects(tree[i]))
+			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[0]->intersects(tree[i]))
 			{
-				std::vector<Point> inter = tree[hasMeshingBox]->intersection(tree[i]) ;
+				std::vector<Point> inter = tree[0]->intersection(tree[i]) ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
-				std::vector<Feature *> fatherdescendants = tree[hasMeshingBox]->getDescendants() ;
+				std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
 				for(size_t k = 0 ;  k < inter.size() ; k++)
 				{
 					bool indescendants = false ;
@@ -4505,7 +4466,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					}
 					
 					Point proj(inter[k]) ;
-					tree[hasMeshingBox]->project(&proj) ;
+					tree[0]->project(&proj) ;
 					Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
 					Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
 					Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
@@ -4513,12 +4474,12 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					Point proj4(inter[k]+Point(0, 0, 2.*POINT_TOLERANCE)) ;
 					Point proj5(inter[k]+Point(0, 0, -2.*POINT_TOLERANCE)) ;
 					
-					int position = tree[hasMeshingBox]->in(proj0) 
-					+ tree[hasMeshingBox]->in(proj1)
-					+ tree[hasMeshingBox]->in(proj2)
-					+ tree[hasMeshingBox]->in(proj3)
-					+ tree[hasMeshingBox]->in(proj4)
-					+ tree[hasMeshingBox]->in(proj5) ;
+					int position = tree[0]->in(proj0) 
+					+ tree[0]->in(proj1)
+					+ tree[0]->in(proj2)
+					+ tree[0]->in(proj3)
+					+ tree[0]->in(proj4)
+					+ tree[0]->in(proj5) ;
 					bool onSurface = (position == 5) ;
 					bool onEdge = (position == 4) ;
 					bool onVertex = (position == 3) ;
@@ -4528,12 +4489,12 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					proj3= (inter[k]+Point(0, -pointDensity, 0)) ;
 					proj4= (inter[k]+Point(0, 0, pointDensity)) ;
 					proj5= (inter[k]+Point(0, 0, -pointDensity)) ;
-					int tooClose =  tree[hasMeshingBox]->in(proj0) 
-					+ tree[hasMeshingBox]->in(proj1)
-					+ tree[hasMeshingBox]->in(proj2)
-					+ tree[hasMeshingBox]->in(proj3)
-					+ tree[hasMeshingBox]->in(proj4)
-					+ tree[hasMeshingBox]->in(proj5) ;
+					int tooClose =  tree[0]->in(proj0) 
+					+ tree[0]->in(proj1)
+					+ tree[0]->in(proj2)
+					+ tree[0]->in(proj3)
+					+ tree[0]->in(proj4)
+					+ tree[0]->in(proj5) ;
 					// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
 					if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
 					{

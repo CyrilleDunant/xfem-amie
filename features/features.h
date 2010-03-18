@@ -141,7 +141,6 @@ protected:
 	bool solverConvergence ;
 	bool enrichmentChange ;
 	bool setBehaviours ;
-	bool hasMeshingBox ;
 	
 	/** \brief  List of points used for the mesh.
 	 * Each point is associated with the feature from whose discretiation it was generated.

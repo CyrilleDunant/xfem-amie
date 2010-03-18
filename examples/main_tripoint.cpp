@@ -226,12 +226,12 @@ void setBC()
 	{
 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
 		{
-			if (std::abs(triangles[k]->getBoundingPoint(c).x-.2) < 0.000001 
+			if (std::abs(triangles[k]->getBoundingPoint(c).x-.2) < 0.001
 				&& triangles[k]->getBoundingPoint(c).y < -.04999 && !triangles[k]->getBehaviour()->fractured() )
 			{
 				xlow.push_back(triangles[k]->getBoundingPoint(c).id);
 			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x+.2) < 0.000001
+			else if (std::abs(triangles[k]->getBoundingPoint(c).x+.2) < 0.001
 					&& triangles[k]->getBoundingPoint(c).y < -.04999 && !triangles[k]->getBehaviour()->fractured())
 			{
 				xhigh.push_back(triangles[k]->getBoundingPoint(c).id);
@@ -282,7 +282,7 @@ void step()
 	size_t nsteps = 64;
 	size_t nit = 2 ;
 	size_t ntries = 64;
-	size_t dsteps = 5 ;
+	size_t dsteps = 1 ;
 	size_t tries = 0 ;
 	size_t dit = 0 ;
 	for(size_t v = 0 ; v < nsteps ; v++)
@@ -323,38 +323,17 @@ void step()
 				break ;
 			}
 		}
-		double topLoad = load ;
-		double currenLoad = load*.95 ;
-		double bottomLoad = load*.9 ;
-		setBC() ;
-		if(!featureTree->stable(.1))
-		{
-			load = bottomLoad ;
+// 		if(featureTree->solverConverged())
+// 		{
+			double topLoad = load ;
+			double currenLoad = load*.95 ;
+			double bottomLoad = load*.9 ;
 			setBC() ;
-			bool stableAtLow = featureTree->stable(.1) ;
-			while(!stableAtLow)
+			if(!featureTree->stable(.1))
 			{
-				bottomLoad *= .9 ;
 				load = bottomLoad ;
 				setBC() ;
-				stableAtLow = featureTree->stable(.1) ;
-			}
-			while(std::abs(topLoad-bottomLoad) > 1e-6)
-			{
-				load = (topLoad+bottomLoad)*.5 ;
-				setBC() ;
-				if(featureTree->stable(.1)) // equilibrium load is between current and topLoad
-				{
-					bottomLoad = (topLoad+bottomLoad)*.5 ;
-				}
-				else // equilibrium load is between current and bottomLoad
-				{
-					topLoad = (topLoad+bottomLoad)*.5 ;
-				}
-				
-				load = bottomLoad ;
-				setBC() ;
-				stableAtLow = featureTree->stable(.1) ;
+				bool stableAtLow = featureTree->stable(.1) ;
 				while(!stableAtLow)
 				{
 					bottomLoad *= .9 ;
@@ -362,13 +341,37 @@ void step()
 					setBC() ;
 					stableAtLow = featureTree->stable(.1) ;
 				}
-				
+				while(std::abs(topLoad-bottomLoad) > 1e-6)
+				{
+					load = (topLoad+bottomLoad)*.5 ;
+					setBC() ;
+					if(featureTree->stable(.1)) // equilibrium load is between current and topLoad
+					{
+						bottomLoad = (topLoad+bottomLoad)*.5 ;
+					}
+					else // equilibrium load is between current and bottomLoad
+					{
+						topLoad = (topLoad+bottomLoad)*.5 ;
+					}
+					
+					load = bottomLoad ;
+					setBC() ;
+					stableAtLow = featureTree->stable(.1) ;
+					while(!stableAtLow)
+					{
+						bottomLoad *= .9 ;
+						load = bottomLoad ;
+						setBC() ;
+						stableAtLow = featureTree->stable(.1) ;
+					}
+					
+				}
+				load = bottomLoad ;
+				setBC() ;
 			}
-			load = bottomLoad ;
-			setBC() ;
-		}
-		
-		featureTree->step(timepos) ;
+			
+			featureTree->step(timepos) ;
+// 		}
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		computeDisplacement() ;
@@ -1486,8 +1489,8 @@ void Display(void)
 				glBegin(GL_LINE_LOOP);
 				for(size_t k = 0 ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
-					double vx = x[triangles[j]->getBoundingPoint(k).id*2]; 
-					double vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					double vx = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
 					
@@ -1662,12 +1665,12 @@ int main(int argc, char *argv[])
 	
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
-// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(40000, -40000*8))) ;
-	Inclusion * pore = new Inclusion(0.02, 0.2, -0.05) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(40000, -40000*8))) ;
+	Inclusion * pore = new Inclusion(0.01, 0.2, -0.05) ;
 	pore->setBehaviour(new Stiffness(m0_paste)) ;
 	F.addFeature(&sample,pore) ;
-	Inclusion * pore0 = new Inclusion(0.02, -0.2, -0.05) ;
+	Inclusion * pore0 = new Inclusion(0.01, -0.2, -0.05) ;
 	pore0->setBehaviour(new Stiffness(m0_paste)) ;
 	F.addFeature(pore,pore0) ;
 	
@@ -1711,7 +1714,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(64) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
