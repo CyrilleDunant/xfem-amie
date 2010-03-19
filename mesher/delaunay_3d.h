@@ -355,6 +355,8 @@ protected:
 	{
 		return conflicts(g) ;
 	}
+	
+	std::vector<DelaunayTreeItem3D *> tree ;
 public:
 	size_t & getLastNodeId() {return global_counter ;};
 	const size_t & getLastNodeId() const {return global_counter ;}  ;
@@ -364,6 +366,8 @@ public:
 	
 	virtual ~DelaunayTree3D() ;
 	
+	virtual std::vector<DelaunayTreeItem3D *> & getTree() { return tree ;}
+	virtual const std::vector<DelaunayTreeItem3D *> & getTree() const { return tree ;}
 	void insert( Point *p) ;
 	void insert( Segment *s) ;
 	

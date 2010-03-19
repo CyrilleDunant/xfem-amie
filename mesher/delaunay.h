@@ -322,6 +322,7 @@ protected:
 	size_t global_counter ;
 	bool neighbourhood ;
 	std::vector<Point * > additionalPoints ;
+	std::vector<DelaunayTreeItem *> tree ;
 	
 public:
 	virtual std::vector< DelaunayTriangle* > getElements() {return getTriangles() ;};
@@ -340,12 +341,12 @@ public:
 	{
 		return conflicts(g) ;
 	}
-	
+	virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}
+	virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}
 public:
 
 	size_t & getLastNodeId() {return global_counter ;};
 	const size_t & getLastNodeId() const {return global_counter ;}  ;
-	std::vector<DelaunayTreeItem *> tree ;
 	std::vector<DelaunayDemiPlane *> plane ;
 	
 	DelaunayTree( Point * p0,  Point *p1,  Point *p2) ;

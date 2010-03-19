@@ -40,10 +40,10 @@ DelaunayTreeItem3D::DelaunayTreeItem3D( Mesh<DelaunayTetrahedron, DelaunayTreeIt
 	this->third = NULL ;
 	this->fourth = NULL ;
 	index = 0 ;
-	if(tree)
+	if(t)
 	{
-		index = tree->tree.size() ;
-		tree->tree.push_back(this) ;
+		index = t->getTree().size() ;
+		t->getTree().push_back(this) ;
 	}
 }
 
@@ -934,22 +934,22 @@ void DelaunayTetrahedron::addNeighbourhood(DelaunayTetrahedron * t)
 
 DelaunayTetrahedron * DelaunayTetrahedron::getNeighbourhood(size_t i) const
 {
-	return static_cast<DelaunayTetrahedron *>(tree->tree[neighbourhood[i]]) ;
+	return static_cast<DelaunayTetrahedron *>(tree->getTree()[neighbourhood[i]]) ;
 }
 
 DelaunayTreeItem3D * DelaunayTreeItem3D::getNeighbour(size_t i) const
 {
-	return tree->tree[neighbour[i]] ;
+	return tree->getTree()[neighbour[i]] ;
 }
 
 DelaunayTreeItem3D * DelaunayTreeItem3D::getSon(size_t i) const
 {
-	return tree->tree[son[i]] ;
+	return tree->getTree()[son[i]] ;
 }
 
 DelaunayTreeItem3D * DelaunayTreeItem3D::getStepson(size_t i) const
 {
-	return tree->tree[stepson[i]] ;
+	return tree->getTree()[stepson[i]] ;
 }
 
 
@@ -1030,7 +1030,7 @@ void DelaunayTreeItem3D::removeStepson(DelaunayTreeItem3D * t)
 void DelaunayTreeItem3D::setStepfather(DelaunayTreeItem3D * s)
 {
 	if(stepfather != -1)
-		tree->tree[stepfather]->removeStepson(this) ;
+		tree->getTree()[stepfather]->removeStepson(this) ;
 	stepfather = s->index ;
 	addNeighbour(s) ;
 }
@@ -1038,7 +1038,7 @@ void DelaunayTreeItem3D::setStepfather(DelaunayTreeItem3D * s)
 void DelaunayTreeItem3D::setFather(DelaunayTreeItem3D * s)
 {
 	if(father != -1)
-		tree->tree[father]->removeSon(this) ;
+		tree->getTree()[father]->removeSon(this) ;
 	father = s->index ;
 }
 	
@@ -1560,7 +1560,7 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 				this->addNeighbour(p->getStepson(i)) ;
 				p->getStepson(i)->addNeighbour(this) ;
 			}
-			tree->tree[p->father]->addSon(this) ;
+			tree->getTree()[p->father]->addSon(this) ;
 			p->addSon(this) ;
 			p->kill(first) ;
 		}

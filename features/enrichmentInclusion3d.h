@@ -42,7 +42,7 @@ public:
 	virtual bool enrichmentTarget(DelaunayTetrahedron * t) ;
 
 /** \brief Enrich elements cut by the feature*/
-	virtual void enrich(size_t &,  DelaunayTree3D * dtree) ;
+	virtual void enrich(size_t& counter, Mu::Mesh< Mu::DelaunayTetrahedron, Mu::DelaunayTreeItem3D >* dtree) ;
 	
 /** \brief return false*/
 	virtual bool interacts(Feature * f, double d) const ;
@@ -54,13 +54,13 @@ public:
 	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
 
 /** \brief return the list of elements cut by the feature*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree3D * dt)  ;
+	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* dt)  ;
 	
 /** \brief return list of elements cut by the feature*/
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
+	std::vector<DelaunayTriangle *> getIntersectingTriangles( Mesh< DelaunayTriangle, DelaunayTreeItem > * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
 	
 /** \brief return list of elements cut by the feature*/
-	std::vector<DelaunayTetrahedron *> getIntersectingTetrahedrons( DelaunayTree3D * dt) ;
+	std::vector<DelaunayTetrahedron *> getIntersectingTetrahedrons( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > * dt) ;
 
 /** \brief do nothing*/
 	virtual void setInfluenceRadius(double r) ;
@@ -109,7 +109,7 @@ public:
 	virtual bool moved() const ;
 
 /** \brief compute and cache the elements to enrich*/
-	void update(DelaunayTree3D * dtree) ;
+	void update(Mu::Mesh< Mu::DelaunayTetrahedron, Mu::DelaunayTreeItem3D >* dtree) ;
 
 protected:
 	virtual void computeCenter() { };

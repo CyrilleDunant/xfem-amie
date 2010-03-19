@@ -11,7 +11,8 @@ namespace Mu
 	class Mesh
 	{
 		public:
-			std::vector<EABSTRACTTYPE *> tree ;
+			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
+			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
 		
 		public:
 			Mesh() {} ;

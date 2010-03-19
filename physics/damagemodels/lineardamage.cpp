@@ -41,13 +41,13 @@ void LinearDamage::step(ElementState & s)
 	double sum = 0 ;
 	for(size_t i = 0 ; i < pstrain.size() ; i++)
 		sum+=std::abs(pstrain[i]) ;
-
+	double snorm = sqrt((pstrain*pstrain).sum()) ;
 	if(inCompression)
 	{
-		double snorm = sqrt((pstrain*pstrain).sum()) ;
+		
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
-			state[i] += .005*std::abs(pstrain[i])/snorm ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] += 5e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; // ;
 			state[i] = std::min(maxD, state[i]) ;
 		}
 		state[state.size()-1] += .1 ;
@@ -57,7 +57,7 @@ void LinearDamage::step(ElementState & s)
 	{
 		for(size_t i = 0 ; i < state.size()-1 ; i++)
 		{
-			state[i] += .5 ; //*std::abs(pstrain[i])/std::abs(pstrain).sum() ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] += 5e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
 			state[i] = std::min(maxD, state[i]) ;
 		}
 	}

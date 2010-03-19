@@ -201,7 +201,7 @@ void step()
 	size_t nsteps = 1;
 	size_t nit = 2 ;
 	size_t ntries = 64;
-	size_t dsteps = 1 ;
+	size_t dsteps = 5 ;
 	size_t tries = 0 ;
 	size_t dit = 0 ;
 	for(size_t v = 0 ; v < nsteps ; v++)
@@ -1592,9 +1592,9 @@ int main(int argc, char *argv[])
 // 	}
 
 	F.addBoundaryCondition(load) ;
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2075, -0.2025, -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2075, -0.2025, -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2025, 0.2075,  -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2055, -0.2045, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2055, -0.2045, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2045, 0.2055,  -10, 10) );
 	
 	Sample notch(.005, .07, 0, -.045) ;
 	notch.setBehaviour(new VoidForm()) ;
@@ -1620,7 +1620,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(256) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

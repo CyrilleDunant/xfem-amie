@@ -27,7 +27,7 @@ bool EnrichmentInclusion3D::enrichmentTarget(DelaunayTetrahedron * t)
 		return false ;
 }
 
-void EnrichmentInclusion3D::update(DelaunayTree3D * dtree)
+void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * dtree)
 {
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
@@ -35,16 +35,15 @@ void EnrichmentInclusion3D::update(DelaunayTree3D * dtree)
 			cache[i]->clearEnrichment(getPrimitive()) ;
 		cache[i]->enrichmentUpdated = true ;
 	}
-	cache = dtree->conflicts(getPrimitive()) ;
+	cache = dtree->getConflictingElements(getPrimitive()) ;
 	if(cache.empty())
 	{
-		std::vector<DelaunayTreeItem3D *> candidates = dtree->conflicts(&getCenter()) ;
+		std::vector<DelaunayTetrahedron *> candidates = dtree->getConflictingElements(&getCenter()) ;
 		for(size_t i = 0 ; i < candidates.size() ; i++)
 		{
-			DelaunayTetrahedron * t = dynamic_cast<DelaunayTetrahedron *>(candidates[i]) ;
-			if(t && (t->in(getCenter()) || this->intersects(t->getPrimitive())) )
+			if((candidates[i]->in(getCenter()) || this->intersects(candidates[i]->getPrimitive())) )
 			{
-				cache.push_back(t) ;
+				cache.push_back(candidates[i]) ;
 				break ;
 			}
 		}
@@ -60,7 +59,7 @@ void EnrichmentInclusion3D::update(DelaunayTree3D * dtree)
 		std::cout << "cache empty !" << std::endl ;
 }
 
-void EnrichmentInclusion3D::enrich(size_t & counter,  DelaunayTree3D * dtree)
+void EnrichmentInclusion3D::enrich(size_t & counter,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree)
 {
 	counter++ ;
 	if(updated)
@@ -352,15 +351,15 @@ bool EnrichmentInclusion3D::interacts(Feature * f, double d) const { return fals
 	
 bool EnrichmentInclusion3D::inBoundary(const Point & v) const {return false ; }
 	
-std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getTetrahedrons( const DelaunayTree3D * dt) 
+std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getTetrahedrons( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) 
 { 
-	return dt->conflicts(getPrimitive()) ;
+	return dt->getConflictingElements(getPrimitive()) ;
 }
 	
-std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getIntersectingTetrahedrons( DelaunayTree3D * dt)
+std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getIntersectingTetrahedrons( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTetrahedron *> disc = dt->conflicts(getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> disc = dt->getConflictingElements(getPrimitive()) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTetrahedron *> ring ;

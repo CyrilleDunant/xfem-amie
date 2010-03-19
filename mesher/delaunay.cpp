@@ -19,9 +19,8 @@
 
 using namespace Mu ;
 
-DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), son(0)
+DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), son(0), tree(t)
 {
-	tree = t ;
 	this->stepfather = NULL ;
 	this->father = father;
 	this->m_c  = c ;
@@ -37,10 +36,10 @@ DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t
 	this->third = NULL ;
 
 	index = 0 ;
-	if(tree)
+	if(t)
 	{
-		index = tree->tree.size() ;
-		tree->tree.push_back(this) ;
+		index = t->getTree().size() ;
+		t->getTree().push_back(this) ;
 	}
 }
 	
@@ -1008,22 +1007,22 @@ void DelaunayTriangle::addNeighbourhood(DelaunayTriangle * t)
 
 DelaunayTriangle * DelaunayTriangle::getNeighbourhood(size_t i) const
 {
-	return static_cast<DelaunayTriangle *>(tree->tree[neighbourhood[i]]) ;
+	return static_cast<DelaunayTriangle *>(tree->getTree()[neighbourhood[i]]) ;
 }
 
 DelaunayTreeItem * DelaunayTreeItem::getNeighbour(size_t i) const
 {
-	return tree->tree[neighbour[i]] ;
+	return tree->getTree()[neighbour[i]] ;
 }
 
 DelaunayTreeItem * DelaunayTreeItem::getSon(size_t i) const
 {
-	return tree->tree[son[i]] ;
+	return tree->getTree()[son[i]] ;
 }
 
 DelaunayTreeItem * DelaunayTreeItem::getStepson(size_t i) const
 {
-	return tree->tree[stepson[i]] ;
+	return tree->getTree()[stepson[i]] ;
 }
 
 void DelaunayTreeItem::addStepson(DelaunayTreeItem * s)
@@ -2147,7 +2146,7 @@ void DelaunayTree::insert(Point *p)
 std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 {
 	std::pair< std::vector<DelaunayTreeItem *>,std::vector<DelaunayTreeItem *> > cons ;
-	this->tree[0]->conflicts(cons,p) ;
+	tree[0]->conflicts(cons,p) ;
 	
 	for(size_t i = 0 ; i < plane.size() ; i++)
 	{
@@ -2196,7 +2195,7 @@ std::vector<Point *> DelaunayTree::conflicts( const Segment *s) const
 {
 	std::pair< std::vector<Point *>,std::vector<DelaunayTreeItem *> > cons;
 	
-	this->tree[0]->conflicts(cons,s) ;
+	tree[0]->conflicts(cons,s) ;
 	
 	for(size_t i = 0 ; i < plane.size() ; i++)
 	{
@@ -2242,7 +2241,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 // 	std::vector<DelaunayTriangle *> ret ;
 	std::pair< std::vector<DelaunayTriangle *>,std::vector<DelaunayTreeItem *> > cons ;
 	if(!tree.empty())
-		this->tree[0]->conflicts(cons, g) ;
+		tree[0]->conflicts(cons, g) ;
 	
 	for(size_t i = 0 ; i < plane.size() ; i++)
 	{

@@ -14,6 +14,7 @@ namespace Mu
 		Grid grid ;
 		void addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep) ;
 		size_t global_counter ;
+		std::vector <DelaunayTreeItem *> tree ;
 	public:
 		StructuredMesh(double sizeX, double sizeY, int div, const Point & center ) ;
 		virtual ~StructuredMesh() ;
@@ -24,6 +25,8 @@ namespace Mu
 		virtual void insert(Point *) ;
 		virtual size_t & getLastNodeId();
 		virtual const size_t & getLastNodeId() const;
+		virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}
+		virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}
 		
 	} ;
 }
