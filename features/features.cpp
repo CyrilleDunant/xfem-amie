@@ -423,7 +423,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 
 GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d) : BoundaryCondition(t, d), domain(source) { };
 
-void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	double tol = domain->getRadius()*.0001 ;
@@ -443,7 +443,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle
 		apply2DBC(elements[i], id, condition, data, a) ;
 	}
 }
-void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double tol = domain->getRadius()*.0001 ;
@@ -463,7 +463,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 		apply3DBC(elements[i], id, condition, data, a) ;
 	}
 }
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -665,7 +665,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		}
 	}
 }
-void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
+void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -830,7 +830,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 }
 
 						
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const 
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -1437,7 +1437,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 	}
 }
 
-void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const 
+void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -1877,14 +1877,14 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 }
 
 
-Mesh<DelaunayTriangle> * FeatureTree::get2DMesh()
+Mesh<DelaunayTriangle, DelaunayTreeItem> * FeatureTree::get2DMesh()
 {
 	if(this->dtree == NULL && this->dtree3D == NULL)
 		this->generateElements() ;
 	return this->dtree ;
 }
 
-Mesh<DelaunayTetrahedron> * FeatureTree::get3DMesh()
+Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * FeatureTree::get3DMesh()
 {
 	if(this->dtree3D == NULL && this->dtree == NULL)
 		this->generateElements() ;
@@ -4139,6 +4139,8 @@ bool FeatureTree::is2D() const
 
 void FeatureTree::initializeElements() 
 {
+	if(initialized)
+		return ;
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
@@ -4210,6 +4212,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	bbox[6] = Point(max_x, max_y, min_z) ;
 	bbox[7] = Point(max_x, max_y, max_z) ;
 
+// 	dtree = new StructuredMesh((max_x-min_x), (max_y-min_y), 50, Point((max_x+min_x)*.5, (max_y+min_y)*.5 )) ;
+// 	return ;
 	std::vector<Feature *> enrichmentFeature ;
 	for(size_t i  = 0 ; i < this->tree.size() ; i++)
 	{
@@ -4762,7 +4766,7 @@ BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, const double & d)
 
 ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const Point & dir, double d) : BoundaryCondition(t,d), direction(dir) { }
 
-void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle> * t) const
+void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
 {
 	std::vector<DelaunayTriangle *> tris = t->getElements() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)
@@ -4813,7 +4817,7 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriang
 	}
 }
 
-void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const
+void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const
 {
 	std::vector<DelaunayTetrahedron *> tris = t->getElements() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)

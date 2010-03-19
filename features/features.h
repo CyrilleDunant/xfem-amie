@@ -11,6 +11,7 @@
 #include "../elements/elements.h" 
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
+#include "../mesher/structuredmesh.h"
 #include "../utilities/samplingcriterion.h"
 #include "../utilities/grid.h"
 #include "../solvers/assembly.h"
@@ -37,8 +38,8 @@ protected:
 
 public:
 	BoundaryCondition(LagrangeMultiplierType t, const double & d) ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTriangle> * t) const = 0 ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron> * t) const = 0 ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const = 0 ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) const = 0 ;
 	void setData(double newval) { data = newval ;}
 	double getData() const { return data ;}
 } ;
@@ -51,8 +52,8 @@ private:
 
 public:
 	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, double d = 0) ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTriangle> * t) const ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver.*/
@@ -63,8 +64,8 @@ private:
 	
 public:
 	BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d = 0 ) ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTriangle> * t) const ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver.*/
@@ -77,8 +78,8 @@ private:
 public:
 	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, double d = 0 ) ;
 	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double d = 0 ) ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTriangle> * t) const ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver*/
@@ -89,8 +90,8 @@ private:
 
 public:
 	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0) ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTriangle> * t) const ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
@@ -102,8 +103,8 @@ private:
 	Point direction ;
 public:
 	GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, double d = 0 ) ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTriangle> * t) const ;
-	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron> * t)  const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
 } ;
 
 
@@ -133,8 +134,8 @@ protected:
 	 * The mesh is generated with linear triangles, and when it is final, midpoints are added and 
 	 * projected. No operations should add midpoints before meshing is complete.
 	 */
-	Mesh<DelaunayTriangle> * dtree ;
-	Mesh<DelaunayTetrahedron> * dtree3D ;
+	Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree ;
+	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree3D ;
 	
 	TetrahedralElement *father3D  ;
 	TriElement *father2D  ;
@@ -372,10 +373,10 @@ public:
 	void insert(Point * p ) ;
 	
 /** \brief return the 2D mesh*/
-	Mesh<DelaunayTriangle> * get2DMesh() ;
+	Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() ;
 
 /** \brief return the 3D mesh*/
-	Mesh<DelaunayTetrahedron> * get3DMesh() ;
+	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() ;
 	
 /** \brief Return true id the argument lies in the root feature*/
 	bool inRoot(const Point &p) const ;

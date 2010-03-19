@@ -27,14 +27,14 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		if(!cache.empty())
 			return ;
 		Circle epsilon(eps,testedTri->getCenter()) ;
-		cache = testedTri->tree->conflicts(&epsilon);
+		cache = testedTri->tree->getConflictingElements(&epsilon);
 	}
 	else if(testedTet)
 	{
 		if(!cache3d.empty())
 			return ;
 		Sphere epsilon(eps,testedTet->getCenter()) ;
-		cache3d = testedTet->tree->conflicts(&epsilon);
+		cache3d = testedTet->tree->getConflictingElements(&epsilon);
 	}
 }
 
@@ -62,14 +62,14 @@ bool FractureCriterion::met(const ElementState &s)
 		if(cache.empty())
 		{
 			Circle epsilon(eps,testedTri->getCenter()) ;
-			std::vector<DelaunayTriangle *> tris = testedTri->tree->getTriangles() ;
+			std::vector<DelaunayTriangle *> tris = testedTri->tree->getElements() ;
 			std::vector<bool> vis(tris.size()) ;
 			for(size_t i = 0 ; i != tris.size() ; ++i)
 			{
 				vis[i] = tris[i]->visited ;
 				tris[i]->clearVisited() ;
 			}
-			cache = testedTri->tree->conflicts(&epsilon);
+			cache = testedTri->tree->getConflictingElements(&epsilon);
 			for(size_t i = 0 ; i != tris.size() ; ++i)
 			{
 				tris[i]->visited = vis[i];
@@ -137,7 +137,7 @@ bool FractureCriterion::met(const ElementState &s)
 		if(cache3d.empty())
 		{
 			Sphere epsilon(0.0002,testedTet->getCenter()) ;
-			cache3d = testedTet->tree->conflicts(&epsilon);
+			cache3d = testedTet->tree->getConflictingElements(&epsilon);
 		}
 
 		double maxNeighbourhoodScore = 0 ;

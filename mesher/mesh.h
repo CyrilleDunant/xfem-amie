@@ -7,9 +7,12 @@
 
 namespace Mu
 {
-	template <class ETYPE>
+	template <class ETYPE, class EABSTRACTTYPE>
 	class Mesh
 	{
+		public:
+			std::vector<EABSTRACTTYPE *> tree ;
+		
 		public:
 			Mesh() {} ;
 			virtual ~Mesh() {} ;
@@ -19,7 +22,7 @@ namespace Mu
 			virtual void setElementOrder(Order o) = 0;
 			virtual void insert(Point *) = 0 ;
 			template <class ETARGETTYPE>
-			Vector project(const Mesh<ETARGETTYPE> * mesh, const Vector & displacements) const
+			Vector project(const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, const Vector & displacements) const
 			{
 				std::vector<ETYPE *> selfElements = getElements() ;
 				std::vector<ETARGETTYPE *> sourceElements = mesh->getElements() ;
@@ -93,7 +96,6 @@ namespace Mu
 	
 			virtual size_t & getLastNodeId() = 0;
 			virtual const size_t & getLastNodeId() const = 0;
-			
 	} ;
 } ;
 

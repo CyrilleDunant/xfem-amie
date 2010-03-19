@@ -19,7 +19,7 @@
 
 using namespace Mu ;
 
-DelaunayTreeItem::DelaunayTreeItem( DelaunayTree * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), son(0)
+DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), son(0)
 {
 	tree = t ;
 	this->stepfather = NULL ;
@@ -1118,7 +1118,7 @@ void DelaunayTreeItem::clearVisited()
 	visited = false ;
 }
 
-DelaunayTriangle::DelaunayTriangle(DelaunayTree *t, DelaunayTreeItem * father,  Point *p0,  Point *p1, Point *p2,  Point * c) : TriElement(p0, p1, p2), DelaunayTreeItem(t, father, c)
+DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point *p0,  Point *p1, Point *p2,  Point * c) : TriElement(p0, p1, p2), DelaunayTreeItem(t, father, c)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -1561,7 +1561,7 @@ void DelaunayTriangle::print() const
 // 	(*eps)[first->id*2+1]+=(*eps)[first->id*2+1] ;
 // }
 
-DelaunayDemiPlane::DelaunayDemiPlane(DelaunayTree *t, DelaunayTreeItem * father,  Point  * _begin,  Point  * _end,  Point  * p,  Point * c) : DelaunayTreeItem(t, father, c)
+DelaunayDemiPlane::DelaunayDemiPlane(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point  * _begin,  Point  * _end,  Point  * p,  Point * c) : DelaunayTreeItem(t, father, c)
 {
 	second  = _end ;
 	first = _begin ;
@@ -1744,7 +1744,7 @@ void updateNeighbours(std::vector<DelaunayTreeItem *> * t)
 	}
 } 
 
-DelaunayRoot::DelaunayRoot(DelaunayTree *tt, Point * p0, Point * p1, Point * p2) : DelaunayTreeItem(tt, NULL, NULL)
+DelaunayRoot::DelaunayRoot(Mesh<DelaunayTriangle, DelaunayTreeItem> *tt, Point * p0, Point * p1, Point * p2) : DelaunayTreeItem(tt, NULL, NULL)
 {
 	isPlane = false ;
 	isTriangle =false ;

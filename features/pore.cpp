@@ -13,7 +13,7 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> Pore::getElements( Mesh<DelaunayTriangle> * dt) 
+std::vector<DelaunayTriangle *> Pore::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 {
 	std::vector<DelaunayTriangle *> ret;
 	
@@ -110,7 +110,7 @@ std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 }
 
 
-std::vector<DelaunayTriangle *> TriangularPore::getElements( Mesh<DelaunayTriangle> * dt) 
+std::vector<DelaunayTriangle *> TriangularPore::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
 	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->getPrimitive()) ;

@@ -48,10 +48,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t) const { return std::vector<Geometry *>() ;}
 	
 /** \brief return all triangles in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
 	
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
 	
 	virtual void computeCenter()
 	{

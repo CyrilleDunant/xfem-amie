@@ -32,12 +32,12 @@ bool Sample3D::interacts(Feature * f, double d) const {
 	return false ;
 }
 		
-std::vector<DelaunayTriangle *> Sample3D::getElements( Mesh<DelaunayTriangle> * dt)
+std::vector<DelaunayTriangle *> Sample3D::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)
 {
 	return std::vector<DelaunayTriangle *>(0) ;
 }
 	
-std::vector<DelaunayTetrahedron *> Sample3D::getElements( Mesh<DelaunayTetrahedron> * dt)
+std::vector<DelaunayTetrahedron *> Sample3D::getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)
 {
 	std::vector<DelaunayTetrahedron *> ret ;
 	std::vector<DelaunayTetrahedron *> temp ;

@@ -15,7 +15,7 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> LayeredInclusion::getElements( Mesh<DelaunayTriangle> * dt) 
+std::vector<DelaunayTriangle *> LayeredInclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
@@ -224,7 +224,7 @@ std::vector<Geometry *> VirtualLayer::getRefinementZones(size_t level) const
 	return ret ;
 }
 
-std::vector<DelaunayTriangle *> VirtualLayer::getElements( Mesh<DelaunayTriangle> * dt)  { 
+std::vector<DelaunayTriangle *> VirtualLayer::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  { 
 	std::vector<DelaunayTriangle *> ret  ;
 	
 	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(dynamic_cast<Circle *>(this)) ;
@@ -246,7 +246,7 @@ std::vector<DelaunayTriangle *> VirtualLayer::getElements( Mesh<DelaunayTriangle
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron *> VirtualLayer::getElements( Mesh<DelaunayTetrahedron> * dt)  {
+std::vector<DelaunayTetrahedron *> VirtualLayer::getElements( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * dt)  {
 	return std::vector<DelaunayTetrahedron *>(0)  ;
 }
 

@@ -1,3 +1,4 @@
+
 #include "feature_base.h"
 #include "../physics/void_form.h"
 #include "../mesher/delaunay.h"
@@ -169,7 +170,7 @@ Feature::~Feature()
 	delete this->behaviour ;
 }
 
-std::vector<DelaunayTriangle *> Feature::getBoundingElements( Mesh<DelaunayTriangle> * dt)
+std::vector<DelaunayTriangle *> Feature::getBoundingElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)
 {
 	std::vector<DelaunayTriangle *> tri = dt->getConflictingElements(dynamic_cast<Geometry *>(this)) ;
 	
@@ -185,7 +186,7 @@ std::vector<DelaunayTriangle *> Feature::getBoundingElements( Mesh<DelaunayTrian
 
 }
 
-std::vector<DelaunayTetrahedron *> Feature::getBoundingElements( Mesh<DelaunayTetrahedron> * dt)
+std::vector<DelaunayTetrahedron *> Feature::getBoundingElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)
 {
 	std::vector<DelaunayTetrahedron *> tri = dt->getConflictingElements(dynamic_cast<Geometry *>(this)) ;
 	

@@ -18,7 +18,7 @@
 
 using namespace Mu ;
 
-DelaunayTreeItem3D::DelaunayTreeItem3D( DelaunayTree3D *t, DelaunayTreeItem3D * father,  const Point * c) : stepson(0), neighbour(0), son(0)
+DelaunayTreeItem3D::DelaunayTreeItem3D( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t, DelaunayTreeItem3D * father,  const Point * c) : stepson(0), neighbour(0), son(0)
 {
 	tree = t ;
 	this->stepfather = -1 ;
@@ -1058,7 +1058,7 @@ void DelaunayTetrahedron::kill(const Point * p)
 	getInPoints().resize(0) ;
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree3D *t, DelaunayTreeItem3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point * c) : TetrahedralElement(p0, p1, p2, p3), DelaunayTreeItem3D(t, father, c)
+DelaunayTetrahedron::DelaunayTetrahedron(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t, DelaunayTreeItem3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point * c) : TetrahedralElement(p0, p1, p2, p3), DelaunayTreeItem3D(t, father, c)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -1079,7 +1079,7 @@ DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree3D *t, DelaunayTreeItem3D *
 	assert(fourth->id> -1);
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron(DelaunayTree3D * t, DelaunayTreeItem3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem3D(t, father, c)
+DelaunayTetrahedron::DelaunayTetrahedron(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, DelaunayTreeItem3D * father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7,Point * c) : TetrahedralElement(p0, p1, p2, p3, p4, p5, p6, p7), DelaunayTreeItem3D(t, father, c)
 {
 	
 	first = &getBoundingPoint(0) ;
@@ -1709,7 +1709,7 @@ void DelaunayTetrahedron::print() const
 // 	(*eps)[first->id*2+1]+=(*eps)[first->id*2+1] ;
 // }
 
-DelaunayDemiSpace::DelaunayDemiSpace(DelaunayTree3D * t, DelaunayTreeItem3D * father,  Point  * _one,  Point  * _two, Point  * _three, Point  * p,  Point * c) : DelaunayTreeItem3D(t, father, c)
+DelaunayDemiSpace::DelaunayDemiSpace(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, DelaunayTreeItem3D * father,  Point  * _one,  Point  * _two, Point  * _three, Point  * p,  Point * c) : DelaunayTreeItem3D(t, father, c)
 {
 	second  = _two ;
 	first = _one ;
@@ -1866,7 +1866,7 @@ void updateNeighbours(std::vector<DelaunayTreeItem3D *> * t)
 	}
 } 
 
-DelaunayRoot3D::DelaunayRoot3D(DelaunayTree3D *t, Point * p0, Point * p1, Point * p2, Point * p3) : DelaunayTreeItem3D(t, NULL, NULL)
+DelaunayRoot3D::DelaunayRoot3D(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t, Point * p0, Point * p1, Point * p2, Point * p3) : DelaunayTreeItem3D(t, NULL, NULL)
 {
 	isSpace() = false ;
 	isTetrahedron() = false ;

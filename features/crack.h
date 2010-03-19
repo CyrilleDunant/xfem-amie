@@ -37,12 +37,12 @@ protected:
 	std::vector<std::pair<Point *, double> > tips ;
 	std::vector<SegmentedLine * > forks ;
 	
-	void enrichTips(size_t &, Mesh<DelaunayTriangle> * dt) ;
-	void enrichTip(size_t &, Mesh<DelaunayTriangle> * dt, const std::pair<Point *, double> & tip) ;
+	void enrichTips(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
+	void enrichTip(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip) ;
 
-	void enrichForks(size_t &, Mesh<DelaunayTriangle> * dt) ;
-	void enrichBranches(size_t &, Mesh<DelaunayTriangle> * dt) ;
-	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle> * dt, const SegmentedLine * line) ;
+	void enrichForks(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
+	void enrichBranches(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
+	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const SegmentedLine * line) ;
 	
 	double influenceRadius ;
 	
@@ -59,8 +59,8 @@ protected:
 	
 	double enrichementRadius ;
 	bool changed ;
-	double propagationAngleFromTip(const std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree) ;
-	std::pair<double, double> computeJIntegralAtTip ( std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree ) ;
+	double propagationAngleFromTip(const std::pair< Mu::Point*, double >& tip, Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree) ;
+	std::pair<double, double> computeJIntegralAtTip ( std::pair< Mu::Point*, double >& tip, Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree ) ;
 	std::set<Point *> donePoints ;
 	
 public:
@@ -141,15 +141,15 @@ public:
 	bool isEmpty() const ;
 
 /** \brief Enrich the elements contained in the argument which interact with the crack*/
-	virtual void enrich(size_t &,  Mesh<DelaunayTriangle> * dtree) ;
+	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
 	virtual void computeCenter() ;
 
 /** \brief return the list of elements interacting with the crack*/
-	virtual std::vector<DelaunayTriangle*> getElements(Mesh<DelaunayTriangle>*) ;
+	virtual std::vector<DelaunayTriangle*> getElements(Mesh<DelaunayTriangle, DelaunayTreeItem>*) ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron>*) ;
+	virtual std::vector<DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>*) ;
 
 /** \brief Return fales*/
 	virtual bool interacts(Feature*, double) const ;
@@ -181,10 +181,10 @@ public:
 * @param tree Element tree
 *
 */
-	virtual void step(double dt , Vector* v, Mesh<DelaunayTriangle>* tree) ;
+	virtual void step(double dt , Vector* v, Mesh<DelaunayTriangle, DelaunayTreeItem>* tree) ;
 
 /** \brief Do nothing*/
-	virtual void snap(Mesh<DelaunayTriangle>*) ;
+	virtual void snap(Mesh<DelaunayTriangle, DelaunayTreeItem>*) ;
 
 /** \brief if the crack grew this simulation step, return true*/
 	virtual bool moved() const ;

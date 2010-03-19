@@ -47,7 +47,7 @@ protected:
 public:	
 
 	unsigned int index ;
-	DelaunayTree * tree ;
+	Mesh<DelaunayTriangle, DelaunayTreeItem> * tree ;
 	DelaunayTreeItem * father ; //!< Item destroyed by the insertion of the creator point.
 	DelaunayTreeItem * stepfather ; //!< Still-alive neighbour of the father.
 	
@@ -72,7 +72,7 @@ public:
 	/*! \a father is the father. Needed for the maintenance of the tree.
 		\a c is the Creator Point. It is useful when building neighbourhood relationships. Also, it allowfor the removal of elements from the tree.
 	 */
-	DelaunayTreeItem( DelaunayTree *tree, DelaunayTreeItem * father, const Point * c) ;
+	DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> *tree, DelaunayTreeItem * father, const Point * c) ;
 	
 	virtual ~DelaunayTreeItem() ;
 	
@@ -134,7 +134,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Triangle) ;
 	
-	DelaunayTriangle( DelaunayTree *tree, DelaunayTreeItem * father,   Point *p0,   Point *p1,   Point *p2,  Point * c) ;
+	DelaunayTriangle( Mesh<DelaunayTriangle, DelaunayTreeItem> *tree, DelaunayTreeItem * father,   Point *p0,   Point *p1,   Point *p2,  Point * c) ;
 	DelaunayTriangle() ;
 	
 	
@@ -188,7 +188,7 @@ protected:
 	double direction ;//!< test vector. Precalculated for performace reasons
 public:
 	
-	DelaunayDemiPlane( DelaunayTree * tree, DelaunayTreeItem * father,   Point  * _begin,   Point  * _end,    Point  * p,   Point * c) ;
+	DelaunayDemiPlane( Mesh<DelaunayTriangle, DelaunayTreeItem> * tree, DelaunayTreeItem * father,   Point  * _begin,   Point  * _end,    Point  * p,   Point * c) ;
 	
 	virtual ~DelaunayDemiPlane() ;
 	
@@ -228,7 +228,7 @@ public:
 class DelaunayRoot :  public DelaunayTreeItem
 {
 public:
-	DelaunayRoot( DelaunayTree * tree, Point * p0,  Point * p1,  Point * p2) ;
+	DelaunayRoot( Mesh<DelaunayTriangle, DelaunayTreeItem> * tree, Point * p0,  Point * p1,  Point * p2) ;
 	
 	virtual ~DelaunayRoot() { };
 	
@@ -313,7 +313,7 @@ public:
 } ;
 
 /** \brief Mesh container. provides log n search facilities*/
-class DelaunayTree : public Mesh<DelaunayTriangle>
+class DelaunayTree : public Mesh<DelaunayTriangle, DelaunayTreeItem>
 {
 friend class FeatureTree ;
 friend class Geometry ;

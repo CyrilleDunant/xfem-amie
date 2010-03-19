@@ -138,7 +138,7 @@ Vector angle(0) ;
 
 double nu = 0.2 ;
 double E_agg = 58.9e9 ;
-double E_paste = 12e9 ;
+double E_paste = 37e9 ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.005, .005, -10, 10, -10.) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 200 ;
@@ -217,10 +217,10 @@ void step()
 		dit = 0;
 		go_on = true ;
 
-		while(featureTree->stable(.1))
-		{
-			load->setData(load->getData()* 1.1) ;
-		}
+// 		while(featureTree->stable(.1))
+// 		{
+// 			load->setData(load->getData()* 1.1) ;
+// 		}
 		std::cout << load->getData() << ":: "<< std::flush ;
 		while(dit < dsteps)
 		{
@@ -1576,8 +1576,8 @@ int main(int argc, char *argv[])
 	
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 400000)) ;
-// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(40000, -40000*8))) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(37000, -37000*8))) ;
 
 	inclusions[0]->setRadius(inclusions[0]->getRadius()-itzSize*.75) ;
 	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,800000)) ;
@@ -1603,11 +1603,11 @@ int main(int argc, char *argv[])
 	base.setBehaviour(new VoidForm()) ;
 	F.addFeature(&sample,&base) ;
 	Sample * pore = new Sample(0.03, 0.01, -0.205, -.055) ;
-	pore->setBehaviour(new Stiffness(m0_paste*500)) ;
+	pore->setBehaviour(new Stiffness(m0_paste*5)) ;
 	pore->isVirtualFeature = true ;
 	F.addFeature(&sample,pore) ;
 	Sample * pore0 = new Sample(0.03, 0.01, 0.205, -.055) ;
-	pore0->setBehaviour(new Stiffness(m0_paste*500)) ;
+	pore0->setBehaviour(new Stiffness(m0_paste*5)) ;
 	pore0->isVirtualFeature = true ;
 	F.addFeature(pore,pore0) ;
 	
@@ -1620,7 +1620,7 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(3, inclusions, F) ;
 
-	F.sample(64) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

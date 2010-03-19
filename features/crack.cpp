@@ -139,7 +139,7 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 
 }
 
-double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree)
+double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> & tip, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	double acount = 0 ;
 	double aangle = 0 ;
@@ -215,7 +215,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	return aangle ;
 }
 
-std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, Mesh<DelaunayTriangle> * dtree )
+std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree )
 {
 	Point direction ( cos(tip.second), sin(tip.second)) ;
 	Segment tipSegment ( *(tip.first) , direction) ;
@@ -558,7 +558,7 @@ const std::vector<SegmentedLine *> & BranchedCrack::getBranches() const
 	return branches ;
 }
 
-void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle> * dt)
+void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt)
 {
 	for(size_t i =  0 ; i < tips.size() ; i++)
 	{
@@ -566,7 +566,7 @@ void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle> * dt)
 	}
 }
 
-void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle> * dt, const std::pair<Point *, double> & tip)
+void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip)
 {
 	Circle epsilon(enrichementRadius, Point(*(tip.first))) ;
 	std::vector<DelaunayTriangle *> triangles = dt->getConflictingElements(&epsilon) ;
@@ -754,7 +754,7 @@ void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle> * dt, con
 	}
 }
 
-void BranchedCrack::enrichForks(size_t & startid, Mesh<DelaunayTriangle> * dt)
+void BranchedCrack::enrichForks(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt)
 {
 	for(size_t i =  0 ; i < forks.size() ; i++)
 	{
@@ -762,7 +762,7 @@ void BranchedCrack::enrichForks(size_t & startid, Mesh<DelaunayTriangle> * dt)
 	}
 }
 
-void BranchedCrack::enrichBranches(size_t & startid, Mesh<DelaunayTriangle> * dt)
+void BranchedCrack::enrichBranches(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt)
 {
 	for(size_t i =  0 ; i < branches.size() ; i++)
 	{
@@ -770,7 +770,7 @@ void BranchedCrack::enrichBranches(size_t & startid, Mesh<DelaunayTriangle> * dt
 	}
 }
 
-void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle> * dt, const SegmentedLine * line)
+void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line)
 {
 	std::vector<DelaunayTriangle *> tris = dt->getConflictingElements(line) ;
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
@@ -1014,7 +1014,7 @@ bool BranchedCrack::isEmpty() const
 	return branches.empty() ;
 }
 
-void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle> * dtree)
+void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle,DelaunayTreeItem> * dtree)
 {
 	std::vector<DelaunayTriangle *> toClear ;
 	for(std::set<DelaunayTriangle *>::iterator i = enrichmentMap.begin() ; i!=enrichmentMap.end() ; ++i)
@@ -1042,7 +1042,7 @@ void BranchedCrack::computeCenter()
 	}
 }
 
-std::vector<DelaunayTriangle*> BranchedCrack::getElements(Mesh<DelaunayTriangle>* dt)
+std::vector<DelaunayTriangle*> BranchedCrack::getElements(Mesh<DelaunayTriangle,DelaunayTreeItem>* dt)
 {
 	
 	std::vector<DelaunayTriangle*> ret ;
@@ -1059,7 +1059,7 @@ std::vector<DelaunayTriangle*> BranchedCrack::getElements(Mesh<DelaunayTriangle>
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron*> BranchedCrack::getElements(Mesh<DelaunayTetrahedron>*)
+std::vector<DelaunayTetrahedron*> BranchedCrack::getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>*)
 {
 	return std::vector<DelaunayTetrahedron*>() ;
 }
@@ -1177,7 +1177,7 @@ bool BranchedCrack::enrichmentTarget(DelaunayTriangle* tri)
 	return enrichmentMap.find(tri) != enrichmentMap.end() ;
 }
 
-void BranchedCrack::step(double dt, Vector*, Mesh<DelaunayTriangle> * dtree)
+void BranchedCrack::step(double dt, Vector*, Mesh<DelaunayTriangle,DelaunayTreeItem> * dtree)
 {
 	changed = false ;
 	std::vector<Point *> tipsToGrow ; 
@@ -1200,7 +1200,7 @@ void BranchedCrack::step(double dt, Vector*, Mesh<DelaunayTriangle> * dtree)
 	}
 }
 
-void BranchedCrack::snap(Mesh<DelaunayTriangle>*)
+void BranchedCrack::snap(Mesh<DelaunayTriangle,DelaunayTreeItem>*)
 {
 	
 }

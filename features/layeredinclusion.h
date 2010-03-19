@@ -73,10 +73,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return all triangles in the mesh with at least one vertex in the outermose circle*/
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt);
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt);
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void computeCenter()
 	{
@@ -124,8 +124,8 @@ public:
 	
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt);
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt) ;
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt);
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) ;
 	
 	virtual void computeCenter()
 	{

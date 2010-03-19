@@ -4,6 +4,9 @@
 #include "../geometry/geometry_2D.h"
 #include "../elements/integrable_entity.h"
 #include "../mesher/mesh.h"
+#include "../mesher/delaunay.h"
+#include "../mesher/delaunay_3d.h"
+
 
 namespace Mu
 {
@@ -141,14 +144,14 @@ public:
 	 * @param dt the DelaunayTree from which to get the triangles.
 	 * @return the vector of triangles satisfying the condition center \f$ \in \f$ Feature. 
 	 */
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle> * dt)  = 0;
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron> * dt)  = 0;
+	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  = 0;
+	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  = 0;
 
 /** \brief return triangles intersecting the feature*/
-	virtual std::vector<DelaunayTriangle *> getBoundingElements( Mesh<DelaunayTriangle> * dt) ;
+	virtual std::vector<DelaunayTriangle *> getBoundingElements( Mu::Mesh< Mu::DelaunayTriangle, DelaunayTreeItem >* dt) ;
 
 /** \brief return tetrahedrons intersecting the feature*/
-	virtual std::vector<DelaunayTetrahedron *> getBoundingElements(Mesh<DelaunayTetrahedron> * dt) ;
+	virtual std::vector<DelaunayTetrahedron *> getBoundingElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) ;
 	
 	/** \brief Check for interaction.
 	 * 
@@ -271,19 +274,19 @@ public:
 	virtual bool enrichmentTarget(DelaunayTetrahedron * t) { return false ;};
 
 	/** \brief enrich the mesh*/
-	virtual void enrich(size_t & , Mesh<DelaunayTriangle> * dtree) { } ;
+	virtual void enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) { } ;
 
 	/** \brief enrich the mesh*/
-	virtual void enrich(size_t & , Mesh<DelaunayTetrahedron> * dtree) { } ;
+	virtual void enrich(size_t & , Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { } ;
 	
 	/** \brief update enrichment geometry*/
-	virtual void step(double dt, Vector *, const Mesh<DelaunayTriangle> * dtree) { };
+	virtual void step(double dt, Vector *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) { };
 
 	/** \brief update enrichment geometry*/
-	virtual void step(double dt, Vector *, const Mesh<DelaunayTetrahedron> * dtree) { };
+	virtual void step(double dt, Vector *, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { };
 	
-	virtual void snap(Mesh<DelaunayTriangle> * dtree) { } ;
-	virtual void snap(Mesh<DelaunayTetrahedron> * dtree) { } ;
+	virtual void snap(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) { } ;
+	virtual void snap(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { } ;
 	
 	/** \brief return true if enrichment geometry has changed*/
 	virtual bool moved() const = 0;

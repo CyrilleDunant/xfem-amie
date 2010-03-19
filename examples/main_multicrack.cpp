@@ -27,11 +27,6 @@
 
 #include <fstream>
 
-
-
-
-
-
 #include <cmath>
 #include <typeinfo>
 #include <limits>
@@ -1222,8 +1217,8 @@ void Display(void)
 				glBegin(GL_LINE_LOOP);
 				for(size_t k = start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
-					double vx = x[triangles[j]->getBoundingPoint(k).id*2]; 
-					double vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					double vx = 0 ; //x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy =  0 ; //x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
 					
@@ -1238,8 +1233,8 @@ void Display(void)
 				glBegin(GL_LINE_LOOP);
 				for(size_t k = start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
-					double vx = x[triangles[j]->getBoundingPoint(k).id*2]; 
-					double vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					double vx =  0 ; //x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy =  0 ; //x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
 					

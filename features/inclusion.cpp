@@ -16,7 +16,7 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle> * dt) 
+std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
@@ -103,7 +103,7 @@ bool Inclusion::interacts(Feature * f, double d) const
 }
 
 
-std::vector<DelaunayTriangle *> TriangularInclusion::getElements( Mesh<DelaunayTriangle> * dt) 
+std::vector<DelaunayTriangle *> TriangularInclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
 	
@@ -238,7 +238,7 @@ std::vector<Geometry *> EllipsoidalInclusion::getRefinementZones(size_t level) c
 	return ret ;
 }
 	
-std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements( Mesh<DelaunayTriangle> * dt) 
+std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	

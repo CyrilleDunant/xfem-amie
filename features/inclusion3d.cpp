@@ -53,11 +53,11 @@ std::vector<Geometry *> Inclusion3D::getRefinementZones(size_t level) const
 	return ret ;
 }
 
-std::vector<DelaunayTriangle *> Inclusion3D::getElements( Mesh<DelaunayTriangle> * dt)  { 
+std::vector<DelaunayTriangle *> Inclusion3D::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  { 
 	return std::vector<DelaunayTriangle *> (0) ;
 }
 	
-std::vector<DelaunayTetrahedron *> Inclusion3D::getElements( Mesh<DelaunayTetrahedron> * dt)  {
+std::vector<DelaunayTetrahedron *> Inclusion3D::getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
 	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->getPrimitive()) ;

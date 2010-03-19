@@ -7,9 +7,9 @@ StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point 
 	global_counter = 0 ;
 	for(size_t i = 0 ; i < grid.pixels.size()+1 ; i++)
 	{
-		for(size_t j = 0 ; j < grid.pixels[i].size()+1 ; j++)
+		for(size_t j = 0 ; j < grid.pixels[0].size()+1 ; j++)
 		{
-			points.push_back(new Point((center.x-sizeX*.5)*i/(grid.pixels.size()+1), (center.x-sizeX*.5)*j/(grid.pixels[i].size()+1))) ;
+			points.push_back(new Point(center.x-sizeX*.5 +(sizeX)*i/(grid.pixels.size()+1), (center.y-sizeY*.5) + (sizeY)*j/(grid.pixels[0].size()+1))) ;
 			points.back()->id = global_counter++ ;
 		}
 	}
@@ -18,8 +18,8 @@ StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point 
 	{
 		for(size_t j = 0 ; j < grid.pixels[i].size() ; j++)
 		{
-			triangles.push_back(new DelaunayTriangle(NULL,NULL, points[(grid.pixels[i].size()+1)*i+j], points[(grid.pixels[i].size()+1)*i+j+1], points[(grid.pixels[i].size()+1)*(i+1)+j+1], NULL)) ;
-			triangles.push_back(new DelaunayTriangle(NULL,NULL, points[(grid.pixels[i].size()+1)*i+j], points[(grid.pixels[i].size()+1)*(i+1)+j], points[(grid.pixels[i].size()+1)*(i+1)+j+1], NULL)) ;
+			new DelaunayTriangle(this,NULL, points[(grid.pixels[i].size()+1)*i+j], points[(grid.pixels[i].size()+1)*i+j+1], points[(grid.pixels[i].size()+1)*(i+1)+j+1], NULL) ;
+			new DelaunayTriangle(this,NULL, points[(grid.pixels[i].size()+1)*i+j], points[(grid.pixels[i].size()+1)*(i+1)+j], points[(grid.pixels[i].size()+1)*(i+1)+j+1], NULL) ;
 		}
 	}
 	
@@ -41,8 +41,8 @@ StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point 
 			std::vector<DelaunayTriangle *> tris ;
 			for(size_t k = 0 ; k < idx.size() ; k++)
 			{
-				tris.push_back(triangles[idx[k]*2]) ;
-				tris.push_back(triangles[idx[k]*2+1]) ;
+				tris.push_back(static_cast<DelaunayTriangle *>(tree[idx[k]*2])) ;
+				tris.push_back(static_cast<DelaunayTriangle *>(tree[idx[k]*2+1])) ;
 			}
 			
 			for(size_t k = 0 ; k < tris.size() ; k++)
@@ -62,16 +62,30 @@ StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point 
 	}
 	
 }
+
+size_t & StructuredMesh::getLastNodeId()
+{
+	return global_counter ;
+}
+const size_t & StructuredMesh::getLastNodeId() const
+{
+	return global_counter ;
+}
+
+
 StructuredMesh::~StructuredMesh() 
 {
 	for(size_t i = 0 ; i < points.size() ; i++)
 		delete points[i] ;
 	
-	for(size_t i = 0 ; i < triangles.size() ; i++)
-		delete triangles[i] ;
+	for(size_t i = 0 ; i < tree.size() ; i++)
+		delete tree[i] ;
 }
 std::vector<DelaunayTriangle *> StructuredMesh::getElements()
 {
+	std::vector<DelaunayTriangle *> triangles ;
+	for(size_t i = 0 ; i < tree.size() ; i++)
+		triangles.push_back( static_cast<DelaunayTriangle *>(tree[i])) ;
 	return triangles ;
 }
 std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Point  * p) 
@@ -93,11 +107,11 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 	{
 		for(int j = startJ ; j < endJ ; j++)
 		{
-			if(triangles[i*2*grid.getLengthX()+j*2]->in(*p))
-				ret.push_back(triangles[i*2*grid.getLengthX()+j*2]) ;
+			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2])->in(*p))
+				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2])) ;
 			
-			if(triangles[i*2*grid.getLengthX()+j*2+1]->in(*p))
-				ret.push_back(triangles[i*2*grid.getLengthX()+j*2+1]) ;
+			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2+1])->in(*p))
+				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2+1])) ;
 		}
 	}
 	
@@ -124,19 +138,19 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geo
 	{
 		for(int j = startJ ; j < endJ ; j++)
 		{
-			if(triangles[i*2*grid.getLengthX()+j*2]->intersects(geo) 
-				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2]->first)
-				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2]->second)
-				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2]->third)
+			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->intersects(geo) 
+				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->first)
+				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->second)
+				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->third)
 				)
-				ret.push_back(triangles[i*2*grid.getLengthX()+j*2]) ;
+				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])) ;
 			
-			if(triangles[i*2*grid.getLengthX()+j*2+1]->intersects(geo) 
-				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2+1]->first)
-				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2+1]->second)
-				|| geo->in(*triangles[i*2*grid.getLengthX()+j*2+1]->third)
+			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->intersects(geo) 
+				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->first)
+				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->second)
+				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->third)
 				)
-				ret.push_back(triangles[i*2*grid.getLengthX()+j*2+1]) ;
+				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])) ;
 		}
 	}
 	return ret ;
@@ -245,7 +259,7 @@ void StructuredMesh::insert(Point *)
 void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep)
 {
 
-	for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+	for(std::vector<DelaunayTreeItem *>::iterator i = tree.begin() ; i != tree.end() ; ++i)
 	{
 		
 		(*i)->visited = true ;
@@ -259,8 +273,8 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 		{
 			for(size_t side = 0 ; side < 3 ; side++)
 			{
-				Point a((*i)->getBoundingPoint(side)) ;
-				Point b((*i)->getBoundingPoint((side+1)%3)) ;
+				Point a(static_cast<DelaunayTriangle *>(*i)->getBoundingPoint(side)) ;
+				Point b(static_cast<DelaunayTriangle *>(*i)->getBoundingPoint((side+1)%3)) ;
 				
 				if(time_planes> 1)
 				{
@@ -273,22 +287,22 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 					Point proto = a*(1.-fraction) + b*fraction ;
 					Point * foundPoint = NULL ;
 					
-					for(size_t j = 0 ; j< (*i)->getBoundingPoints().size() ; j++)
+					for(size_t j = 0 ; j< static_cast<DelaunayTriangle *>(*i)->getBoundingPoints().size() ; j++)
 					{
-						if((*i)->getBoundingPoint(j) == proto)
+						if(static_cast<DelaunayTriangle *>(*i)->getBoundingPoint(j) == proto)
 						{
-							foundPoint = &(*i)->getBoundingPoint(j) ;
+							foundPoint = &static_cast<DelaunayTriangle *>(*i)->getBoundingPoint(j) ;
 							break ;
 						}
 					}
 					
 					if(!foundPoint)
 					{
-						for(size_t j = 0 ; j < (*i)->neighbourhood.size() ; j++)
+						for(size_t j = 0 ; j < static_cast<DelaunayTriangle *>(*i)->neighbourhood.size() ; j++)
 						{
-							if((*i)->getNeighbourhood(j)->visited)
+							if(static_cast<DelaunayTriangle *>(*i)->getNeighbourhood(j)->visited)
 							{
-								DelaunayTriangle * n = (*i)->getNeighbourhood(j) ;
+								DelaunayTriangle * n = static_cast<DelaunayTriangle *>(*i)->getNeighbourhood(j) ;
 								for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
 								{
 									if(n->getBoundingPoint(k) == proto)
@@ -323,11 +337,11 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 			}
 		}
 		
-		(*i)->setBoundingPoints(newPoints) ;
+		static_cast<DelaunayTriangle *>(*i)->setBoundingPoints(newPoints) ;
 	}
 			
 	
-	for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+	for(std::vector<DelaunayTreeItem *>::iterator i = tree.begin() ; i != tree.end() ; ++i)
 	{
 		(*i)->clearVisited() ;
 	}

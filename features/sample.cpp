@@ -36,7 +36,7 @@ Point * Sample::pointAfter(size_t i)
 	return to_insert ;
 }
 
-std::vector<DelaunayTriangle *> Sample::getElements( Mesh<DelaunayTriangle> * dt) 
+std::vector<DelaunayTriangle *> Sample::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 {
 	std::vector<DelaunayTriangle *>  ret ;
 	std::vector<DelaunayTriangle *>  temp ;
