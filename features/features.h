@@ -82,6 +82,18 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
 } ;
 
+class BoundingBoxNearestNodeDefinedBoundaryCondition : public BoundaryCondition
+{
+private:
+	BoundingBoxPosition pos ;
+	Point nearest ;
+	
+public:
+	BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point nearest, double d = 0 ) ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
+} ;
+
 /** \brief Boundary condition object for usage in multigrid solver*/
 class GeometryDefinedBoundaryCondition : public BoundaryCondition
 {

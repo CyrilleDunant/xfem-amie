@@ -33,25 +33,10 @@ Vector & IsotropicLinearDamage::damageState()
 
 void IsotropicLinearDamage::step(ElementState & s)
 {
-	double maxD = .9999 ; //1- 0.0000005/s.getParent()->area() ;
-// 	Vector pstrain = s.getPrincipalStresses(s.getParent()->getCenter()) ;
-// 	Vector strain = s.getStrain(s.getParent()->getCenter()) ;
-	
-// 	bool inCompression = pstrain.min() < 0 && std::abs(pstrain.min()) > pstrain.max() ;
-// 	
-// 	if(inCompression)
-// 		maxD = -.9999 ;
-	if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-		state[0] += 0.1 ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
-	else
-		state[0] += 0.1 ; //5e-5*maxD/sqrt(s.getParent()->volume()) ;
-// 	std::cout << 1e-5*maxD/sqrt(s.getParent()->area()) << std::endl ;
-// 	if(!inCompression)
-		state[0] = std::min(maxD, state[0]) ;
-// 	else
-// 		state[0] = std::max(maxD, state[0]) ;
-// 	if(s.getStrain(s.getParent()->getBoundingPoints()).max() > .5)
-// 		state[0] = maxD ;
+	double maxD = .999999 ; 
+
+	state[0] += .1 ; 
+	state[0] = std::min(maxD, state[0]) ;
 
 }
 

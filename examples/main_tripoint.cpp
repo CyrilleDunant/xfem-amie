@@ -139,9 +139,9 @@ Vector angle(0) ;
 double nu = 0.2 ;
 double E_agg = 58.9e9 ;
 double E_paste = 37e9 ;
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.005, .005, -10, 10, -10.) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.015, .015, -10, 10, -10.) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
-double factor = 200 ;
+double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
 bool dlist = false ;
@@ -198,10 +198,10 @@ displacement = displacement-displacement0 ;
 void step()
 {
 	
-	size_t nsteps = 1;
+	size_t nsteps = 64 ; //16*10;
 	size_t nit = 2 ;
-	size_t ntries = 64;
-	size_t dsteps = 5 ;
+	size_t ntries = 1;
+	size_t dsteps = 1 ;
 	size_t tries = 0 ;
 	size_t dit = 0 ;
 	for(size_t v = 0 ; v < nsteps ; v++)
@@ -217,11 +217,11 @@ void step()
 		dit = 0;
 		go_on = true ;
 
-// 		while(featureTree->stable(.1))
-// 		{
-// 			load->setData(load->getData()* 1.1) ;
-// 		}
-		std::cout << load->getData() << ":: "<< std::flush ;
+		while(featureTree->stable(.1))
+		{
+			load->setData(load->getData()* 2) ;
+		}
+		std::cout << v << "  "<< load->getData()+100000 << ":: "<< std::flush ;
 		while(dit < dsteps)
 		{
 			dit++ ;
@@ -252,32 +252,37 @@ void step()
 				bool stableAtLow = featureTree->stable(.1) ;
 				while(!stableAtLow)
 				{
-					bottomLoad *= .9 ;
+					bottomLoad *= .5 ;
 					load->setData(bottomLoad) ;
 					stableAtLow = featureTree->stable(.1) ;
 				}
-				while(std::abs(topLoad-bottomLoad) > 1e-6)
+				double pcount = 1 ;
+				double mcount = 1 ;
+				do
 				{
-					load->setData((topLoad+bottomLoad)*.5) ;
+					double startLoad = (topLoad*pcount+bottomLoad*mcount)/(mcount+pcount) ;
+					load->setData((topLoad*pcount+bottomLoad*mcount)/(mcount+pcount)) ;
 					if(featureTree->stable(.1)) // equilibrium load is between current and topLoad
 					{
-						bottomLoad = (topLoad+bottomLoad)*.5 ;
+						bottomLoad = load->getData() ;
+						pcount++ ;
 					}
 					else // equilibrium load is between current and bottomLoad
 					{
-						topLoad = (topLoad+bottomLoad)*.5 ;
+						topLoad = load->getData() ;
+						mcount++ ;
 					}
 					
 					load->setData(bottomLoad) ;
 					stableAtLow = featureTree->stable(.1) ;
 					while(!stableAtLow)
 					{
-						bottomLoad *= .9 ;
+						bottomLoad *= .5 ;
 						load->setData(bottomLoad) ;
 						stableAtLow = featureTree->stable(.1) ;
 					}
-					
-				}
+				} while(std::abs(bottomLoad-topLoad) > 10) ;
+				
 				load->setData(bottomLoad) ;
 			}
 			
@@ -289,11 +294,13 @@ void step()
 		if(tries > ntries)
 		{
 			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
+			tries = 0 ;
+			load->setData(load->getData()-100000) ;
 			break ;
 		}
 		
-		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 0.5e-6 )
-			&& (std::abs(load_displacement.back().first - load->getData()) < 50))
+		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 1e-8 )
+			&& (std::abs(load_displacement.back().first - load->getData()) < 1000))
 		{
 // 			std::cout << "o" << std::flush ;
 			std::cout <<  tries << "   " << std::abs(load_displacement.back().second - displacement) << "   " << std::abs(load_displacement.back().first - load->getData()) << "   "<< featureTree->damagedVolume << std::endl ;
@@ -306,6 +313,7 @@ void step()
 				std::cout <<  load_displacement.back().second << " : "<<  displacement << std::flush ;
 			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
 			load->setData(load->getData()-100000) ;
+			tries = 0 ;
 			break ;
 		}
 		
@@ -315,6 +323,7 @@ void step()
 	std::cout << std::endl ;
 		saved_load_displacement.push_back(load_displacement.back()) ;
 		load_displacement = saved_load_displacement ;
+	
 // 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
 
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -339,7 +348,7 @@ void step()
 		vonMises.resize(sigma.size()/3) ;
 		angle.resize(sigma.size()/3) ;
 		
-		std::cout << "unknowns :" << x.size() << std::endl ;
+		std::cerr << "unknowns :" << x.size() << std::endl ;
 		
 		
 		int npoints = triangles[0]->getBoundingPoints().size() ;
@@ -544,41 +553,41 @@ void step()
 		}
 		
 	
-		std::cout << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
-		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
-		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
-		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
-		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
-		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
+		std::cerr << std::endl ;
+		std::cerr << "max value :" << x_max << std::endl ;
+		std::cerr << "min value :" << x_min << std::endl ;
+		std::cerr << "max sigma11 :" << sigma11.max() << std::endl ;
+		std::cerr << "min sigma11 :" << sigma11.min() << std::endl ;
+		std::cerr << "max sigma12 :" << sigma12.max() << std::endl ;
+		std::cerr << "min sigma12 :" << sigma12.min() << std::endl ;
+		std::cerr << "max sigma22 :" << sigma22.max() << std::endl ;
+		std::cerr << "min sigma22 :" << sigma22.min() << std::endl ;
 		
-		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+		std::cerr << "max epsilon11 :" << epsilon11.max() << std::endl ;
+		std::cerr << "min epsilon11 :" << epsilon11.min() << std::endl ;
+		std::cerr << "max epsilon12 :" << epsilon12.max() << std::endl ;
+		std::cerr << "min epsilon12 :" << epsilon12.min() << std::endl ;
+		std::cerr << "max epsilon22 :" << epsilon22.max() << std::endl ;
+		std::cerr << "min epsilon22 :" << epsilon22.min() << std::endl ;
 		
-		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
-		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
+		std::cerr << "max von Mises :" << vonMises.max() << std::endl ;
+		std::cerr << "min von Mises :" << vonMises.min() << std::endl ;
 		
-		std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		std::cerr << "average sigma11 : " << avg_s_xx/area << std::endl ;
+		std::cerr << "average sigma22 : " << avg_s_yy/area << std::endl ;
+		std::cerr << "average sigma12 : " << avg_s_xy/area << std::endl ;
+		std::cerr << "average epsilon11 : " << avg_e_xx/area << std::endl ;
+		std::cerr << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+		std::cerr << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
-		std::cout << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
-		std::cout << "average sigma22 (no gel): " << avg_s_yy_nogel/nogel_area << std::endl ;
-		std::cout << "average sigma12 (no gel): " << avg_s_xy_nogel/nogel_area << std::endl ;
-		std::cout << "average epsilon11 (no gel): " << avg_e_xx_nogel/nogel_area << std::endl ;
-		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
-		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
+		std::cerr << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
+		std::cerr << "average sigma22 (no gel): " << avg_s_yy_nogel/nogel_area << std::endl ;
+		std::cerr << "average sigma12 (no gel): " << avg_s_xy_nogel/nogel_area << std::endl ;
+		std::cerr << "average epsilon11 (no gel): " << avg_e_xx_nogel/nogel_area << std::endl ;
+		std::cerr << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
+		std::cerr << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
 		
-		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
+		std::cerr << "apparent extension " << e_xx/ex_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
 		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
@@ -592,7 +601,7 @@ void step()
 				reactedArea += zones[z].first->area() ;
 			}
 		
-		std::cout << "reacted Area : " << reactedArea << std::endl ;
+		std::cerr << "reacted Area : " << reactedArea << std::endl ;
 		
 // 		if (tries < ntries)
 // 		{
@@ -1532,7 +1541,7 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.44, 0.11,0,-0.005) ;
+	Sample sample(NULL, 0.44, 0.12,0,0) ;
 	Mu::Rectangle box( 0.01, 0.045,0,0) ;
 	
 // return 0 ; 
@@ -1577,7 +1586,7 @@ int main(int argc, char *argv[])
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
 // 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(37000, -37000*8))) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(37000, -37000*10))) ;
 
 	inclusions[0]->setRadius(inclusions[0]->getRadius()-itzSize*.75) ;
 	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,800000)) ;
@@ -1592,24 +1601,36 @@ int main(int argc, char *argv[])
 // 	}
 
 	F.addBoundaryCondition(load) ;
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2055, -0.2045, -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2055, -0.2045, -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2045, 0.2055,  -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-0.205, -0.6) ));
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-0.205, -0.6) ));
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM,Point(0.205, -0.6) ));
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2075, -0.2025, -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2075, -0.2025, -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2025, 0.2075,  -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2095, -0.2005, -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
 	
 	Sample notch(.005, .07, 0, -.045) ;
 	notch.setBehaviour(new VoidForm()) ;
 	F.addFeature(&sample,&notch) ;
+	
+	
+	Sample base0(0.45, .01, 0, .055) ;
+	base0.setBehaviour(new VoidForm()) ;
+	F.addFeature(&sample,&base0) ;
+	Sample * pore1 = new Sample(0.03, 0.01, 0, .055) ;
+	pore1->setBehaviour(new Stiffness(m0_paste*.25)) ;
+	F.addFeature(&base0,pore1) ;
+	
+	Sample * pore = new Sample(0.44, 0.01, 0, -.055) ;
+	pore->setBehaviour(new Stiffness(m0_paste*5)) ;
 	Sample base(.38, .01, 0, -.055) ;
 	base.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,&base) ;
-	Sample * pore = new Sample(0.03, 0.01, -0.205, -.055) ;
-	pore->setBehaviour(new Stiffness(m0_paste*5)) ;
-	pore->isVirtualFeature = true ;
 	F.addFeature(&sample,pore) ;
-	Sample * pore0 = new Sample(0.03, 0.01, 0.205, -.055) ;
-	pore0->setBehaviour(new Stiffness(m0_paste*5)) ;
-	pore0->isVirtualFeature = true ;
-	F.addFeature(pore,pore0) ;
+// 	pore->isVirtualFeature = true ;
+	F.addFeature(&sample,&base) ;
+
 	
 	if(!inclusions.empty())
 	{

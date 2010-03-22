@@ -18,7 +18,7 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1)/*dfunc(rig.numRows()-1)*/, eps(0.02)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1)/*dfunc(rig.numRows()-1)*/, eps(0.2)
 {
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
@@ -65,11 +65,17 @@ void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, con
 
 void StiffnessAndFracture::stepBack()
 {
+// 	if(change)
+// 	{
+// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal /= .95 ;
+// 		dynamic_cast<MohrCoulomb *>(criterion)->downVal /= .95 ;
+// 	}
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
 	dfunc.damageState() = damage ;
 	frac = dfunc.fractured() ;
+
 	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
 }
@@ -81,7 +87,10 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	currentState.getParent()->behaviourUpdated = false ;
 	if(!frac && criterion->met(currentState) )
 	{
+		
 		dfunc.step(currentState) ;
+// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
+// 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
 		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;
 		frac = dfunc.fractured() ;

@@ -32,7 +32,7 @@ Vector & LinearDamage::damageState()
 }
 void LinearDamage::step(ElementState & s)
 {
-	double maxD = .9999 ;
+	double maxD = .99999 ;
 	Vector pstrain = s.getPrincipalStresses(s.getParent()->getCenter()) ;
 	Vector strain = s.getStrain(s.getParent()->getCenter()) ;
 	
@@ -42,26 +42,27 @@ void LinearDamage::step(ElementState & s)
 	for(size_t i = 0 ; i < pstrain.size() ; i++)
 		sum+=std::abs(pstrain[i]) ;
 	double snorm = sqrt((pstrain*pstrain).sum()) ;
+// 	std::cout << sum << " -> " << std::flush ;
 	if(inCompression)
 	{
 		
-		for(size_t i = 0 ; i < state.size()-1 ; i++)
-		{
-			state[i] += 5e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; // ;
-			state[i] = std::min(maxD, state[i]) ;
-		}
-		state[state.size()-1] += .1 ;
+// 		for(size_t i = 0 ; i < state.size()-1 ; i++)
+// 		{
+// 			state[i] += .1; //25e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; // ;
+// 			state[i] = std::min(maxD, state[i]) ;
+// 		}
+		state[state.size()-1] += .1 ; //25e-5*(maxD/sqrt(s.getParent()->area())) ;
 		state[state.size()-1] = std::min(maxD, state[state.size()-1]) ;
 	}
 	else/* if (!strainBroken)*/
 	{
-		for(size_t i = 0 ; i < state.size()-1 ; i++)
+		for(size_t i = 0 ; i < state.size() ; i++)
 		{
-			state[i] += 5e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] += .1; //25e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
 			state[i] = std::min(maxD, state[i]) ;
 		}
 	}
-
+// 	std::cout << state.sum() << std::flush ;
 }
 
 Matrix LinearDamage::apply(const Matrix & m) const
@@ -93,7 +94,7 @@ Matrix LinearDamage::apply(const Matrix & m) const
 
 bool LinearDamage::fractured() const
 {
-	return state.max() >= .85 ;
+	return state.max() >= .95 ;
 }
 
 LinearDamage::~LinearDamage()

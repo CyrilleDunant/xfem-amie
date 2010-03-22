@@ -25,6 +25,9 @@ BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefi
 
 }
 
+BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, double d ) : BoundaryCondition(t, d), pos(pos), nearest(p) {} ;
+
+
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double d): BoundaryCondition(t, d), pos(pos),  xmin(xm), xmax(xp), ymin(ym), ymax(yp), zmin(0), zmax(0)
 {
 
@@ -420,6 +423,642 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 		}
 	}
 }
+
+void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const 
+{
+	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	double minx = elements.front()->getBoundingPoint(0).x ;
+	double miny = elements.front()->getBoundingPoint(0).y ;
+	double maxx = elements.front()->getBoundingPoint(0).x ;
+	double maxy = elements.front()->getBoundingPoint(0).y ; 
+	for(size_t i = 0 ; i < elements.size() ; ++i)
+	{
+		if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		{
+			for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+			{
+				if(elements[i]->getBoundingPoint(j).x < minx)
+					minx = elements[i]->getBoundingPoint(j).x ;
+				if(elements[i]->getBoundingPoint(j).x > maxx)
+					maxx = elements[i]->getBoundingPoint(j).x ;
+				if(elements[i]->getBoundingPoint(j).y < miny)
+					miny = elements[i]->getBoundingPoint(j).y ;
+				if(elements[i]->getBoundingPoint(j).y > maxy)
+					maxy = elements[i]->getBoundingPoint(j).y ;
+			}
+		}
+	}
+	double tol = std::min(maxx-minx, maxy-miny)*.0001 ;
+	std::map<double, std::pair<Point, ElementarySurface*> > id  ;
+	switch(pos)
+	{
+		case TOP:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol )
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply2DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
+
+void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
+{
+	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	double minx = elements.front()->getBoundingPoint(0).x ;
+	double miny = elements.front()->getBoundingPoint(0).y ;
+	double minz = elements.front()->getBoundingPoint(0).z ;
+	double maxx = elements.front()->getBoundingPoint(0).x ;
+	double maxy = elements.front()->getBoundingPoint(0).y ; 
+	double maxz = elements.front()->getBoundingPoint(0).z ; 
+	for(size_t i = 0 ; i < elements.size() ; ++i)
+	{
+		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+		{
+			if(elements[i]->getBoundingPoint(j).x < minx)
+				minx = elements[i]->getBoundingPoint(j).x ;
+			if(elements[i]->getBoundingPoint(j).x > maxx)
+				maxx = elements[i]->getBoundingPoint(j).x ;
+			if(elements[i]->getBoundingPoint(j).y < miny)
+				miny = elements[i]->getBoundingPoint(j).y ;
+			if(elements[i]->getBoundingPoint(j).y > maxy)
+				maxy = elements[i]->getBoundingPoint(j).y ;
+			if(elements[i]->getBoundingPoint(j).y < minz)
+				minz = elements[i]->getBoundingPoint(j).z ;
+			if(elements[i]->getBoundingPoint(j).y > maxz)
+				maxz = elements[i]->getBoundingPoint(j).z ;
+		}
+	}
+	
+	double tol = std::min(std::min(maxx-minx, maxy-miny), maxz-minz)*.0001 ;
+	std::map<double, std::pair<Point, ElementaryVolume *> > id  ;
+	switch(pos)
+	{
+		case TOP:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case FRONT_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case FRONT_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BACK_LEFT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BACK_RIGHT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case FRONT_TOP:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case FRONT_BOTTOM:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_LEFT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_LEFT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_LEFT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_LEFT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_RIGHT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case TOP_RIGHT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_RIGHT_FRONT:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		case BOTTOM_RIGHT_BACK:
+		{
+			for(size_t i = 0 ; i < elements.size() ; ++i)
+			{
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
+					{
+						id[dist(elements[i]->getBoundingPoint(j), nearest)] = std::make_pair(elements[i]->getBoundingPoint(j), elements[i]) ;
+					}
+				}
+			}
+			std::vector<Point> target ;
+			target.push_back(id.begin()->second.first) ;
+			apply3DBC(id.begin()->second.second, target, condition, data, a) ;
+			break ;
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
+
 
 GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d) : BoundaryCondition(t, d), domain(source) { };
 
@@ -829,7 +1468,6 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 	}
 }
 
-						
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
@@ -4176,7 +4814,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 {
 	double pointDensity = 0 ; 
 	if(is2D())
-		pointDensity = .7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
+		pointDensity = .07*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
 	else
 		pointDensity = .7*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
 		
@@ -4282,16 +4920,32 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				
 				if(i != 0 && !inRoot(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
-				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
-					isIn = true ;
-				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
+				if(!isIn && tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
 
-				if(i != 0 && tree[0]->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				if(!isIn && i != 0 && tree[0]->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
 				{
-					isIn = true ;
+					Point proj(tree[i]->getBoundingPoint(j)) ;
+					tree[0]->project(&proj) ;
+					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
+						isIn = true ;
+					else
+					{
+						isIn = false ;
+					}
 				}
 				
+				if(!isIn && tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				{
+					Point proj(tree[i]->getBoundingPoint(j)) ;
+					tree[i]->getFather()->project(&proj) ;
+					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
+						isIn = true ;
+					else
+					{
+						isIn = false ;
+					}
+				}
 				if(!isIn)
 				{
 					bpcount++ ;
@@ -4464,43 +5118,85 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 						}
 					}
 					
-					Point proj(inter[k]) ;
-					tree[0]->project(&proj) ;
-					Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
-					Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
-					Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
-					Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
-					Point proj4(inter[k]+Point(0, 0, 2.*POINT_TOLERANCE)) ;
-					Point proj5(inter[k]+Point(0, 0, -2.*POINT_TOLERANCE)) ;
-					
-					int position = tree[0]->in(proj0) 
-					+ tree[0]->in(proj1)
-					+ tree[0]->in(proj2)
-					+ tree[0]->in(proj3)
-					+ tree[0]->in(proj4)
-					+ tree[0]->in(proj5) ;
-					bool onSurface = (position == 5) ;
-					bool onEdge = (position == 4) ;
-					bool onVertex = (position == 3) ;
-					proj0= (inter[k]+Point(pointDensity, 0, 0)) ;
-					proj1= (inter[k]+Point(-pointDensity, 0, 0)) ;
-					proj2= (inter[k]+Point(0, pointDensity, 0)) ;
-					proj3= (inter[k]+Point(0, -pointDensity, 0)) ;
-					proj4= (inter[k]+Point(0, 0, pointDensity)) ;
-					proj5= (inter[k]+Point(0, 0, -pointDensity)) ;
-					int tooClose =  tree[0]->in(proj0) 
-					+ tree[0]->in(proj1)
-					+ tree[0]->in(proj2)
-					+ tree[0]->in(proj3)
-					+ tree[0]->in(proj4)
-					+ tree[0]->in(proj5) ;
-					// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-					if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
+					if(is3D())
 					{
-						Point *p = new Point(inter[k]) ;
-						additionalPoints.push_back(p) ;
-						++count ;
-						meshPoints.push_back(std::make_pair(p, tree[i])) ;
+					
+						Point proj(inter[k]) ;
+						tree[0]->project(&proj) ;
+						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
+						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
+						Point proj4(inter[k]+Point(0, 0, 2.*POINT_TOLERANCE)) ;
+						Point proj5(inter[k]+Point(0, 0, -2.*POINT_TOLERANCE)) ;
+						
+						int position = tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3)
+						+ tree[0]->in(proj4)
+						+ tree[0]->in(proj5) ;
+						
+						bool onSurface = (position == 5) ;
+						bool onEdge = (position == 4) ;
+						bool onVertex = (position == 3) ;
+						proj0= (inter[k]+Point(pointDensity, 0, 0)) ;
+						proj1= (inter[k]+Point(-pointDensity, 0, 0)) ;
+						proj2= (inter[k]+Point(0, pointDensity, 0)) ;
+						proj3= (inter[k]+Point(0, -pointDensity, 0)) ;
+						proj4= (inter[k]+Point(0, 0, pointDensity)) ;
+						proj5= (inter[k]+Point(0, 0, -pointDensity)) ;
+						int tooClose =  tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3)
+						+ tree[0]->in(proj4)
+						+ tree[0]->in(proj5) ;
+
+						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
+						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
+						{
+							Point *p = new Point(inter[k]) ;
+							additionalPoints.push_back(p) ;
+							++count ;
+							meshPoints.push_back(std::make_pair(p, tree[i])) ;
+						}
+					}
+					else
+					{
+						Point proj(inter[k]) ;
+						tree[0]->project(&proj) ;
+						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
+						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
+
+						
+						int position = tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3);
+						
+						bool onEdge = (position == 3) ;
+						bool onVertex = (position == 2) ;
+						proj0= (inter[k]+Point(pointDensity, 0, 0)) ;
+						proj1= (inter[k]+Point(-pointDensity, 0, 0)) ;
+						proj2= (inter[k]+Point(0, pointDensity, 0)) ;
+						proj3= (inter[k]+Point(0, -pointDensity, 0)) ;
+
+						int tooClose =  tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3);
+
+						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
+						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */( (onEdge && tooClose == 3) || onVertex))
+						{
+							Point *p = new Point(inter[k]) ;
+							additionalPoints.push_back(p) ;
+							++count ;
+							meshPoints.push_back(std::make_pair(p, tree[i])) ;
+						}
 					}
 
 				}
