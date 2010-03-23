@@ -1399,10 +1399,27 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 	Inclusion * inc0 = new Inclusion(100, -200, 1) ;
+	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
+
+	XMLTree * test = inc0->toXML() ;
+	test->print(true) ;
+	std::cout << std::endl ;
+	Circle c(test->getChild(0)) ;
+	c.toXML()->print(true) ;
+	std::cout << std::endl ;
+	XMLTree * c0 = test->getChild(1) ;
+	c0->print(true) ;
+	std::cout << std::endl ;
+	XMLTree * c1 = c0->getChild(0) ;
+	c1->print(true) ;
+	std::cout << std::endl ;
+	Matrix mtest = c1->buildMatrix().second;
+	XMLTree * x = new XMLTree("test",mtest) ;
+	x->print(true) ;
+	return 0 ;
 
  	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
-	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
 	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
  	F.addFeature(&sample, inc0) ;

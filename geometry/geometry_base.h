@@ -7,6 +7,7 @@
 #ifndef __GEOMETRY_BASE_H_
 #define __GEOMETRY_BASE_H_
 #include "../utilities/matrixops.h"
+#include "../utilities/xml.h"
 
 #ifdef HAVE_SSE3
 #include <pmmintrin.h>
@@ -411,6 +412,15 @@ struct Point
 	
 	/** \brief copy-constructor.*/
 	Point(const Point & p) ;
+
+	/** \brief constructor from a XML tree item*/
+	Point(XMLTree * xml) ;
+
+	/** \brief export to XML.
+	* Data structure is <point><vector> 4 x y z t </vector><id> id </id></point>
+	*/
+	XMLTree * toXML() ;
+
 	
 	void setX(double v) ;
 	void setY(double v) ;
@@ -610,6 +620,8 @@ public:
 	Geometry() ;
 	Geometry(size_t numPoints) ;
 	virtual ~Geometry() ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Acessor get the bounding points of the geometry*/
 	virtual const PointArray & getBoundingPoints() const = 0;
@@ -1074,6 +1086,7 @@ public:
 	/// Nurb constructor
 	Nurb(std::vector<Point> controlPoint, std::vector<double> weight, std::vector<double> knot);
 
+	virtual XMLTree * toXML() {return new XMLTree("nurb") ; } ;
 	/// Compute degree of the nurb based on the knowledge of the size of knot vector and number of control points
 	int computeDegree(const std::vector<double> &vec,const std::vector<Point> &Pv);
 	
@@ -1171,6 +1184,8 @@ public:
 	/** \brief Constructor. Construct from a pointset*/
 	ConvexPolygon(const PointSet * po) ;
 	virtual ~ConvexPolygon() { } ;
+
+	virtual XMLTree * toXML() {return new XMLTree("convex polygon") ; } ;
 	
 	/** \brief return true if the argument is in the Polygon*/
 //	virtual bool in(const Point & p) const;
@@ -1246,7 +1261,9 @@ public:
 	OrientableCircle() ; 
 	
 	virtual ~OrientableCircle() { } ;
-	
+
+	virtual XMLTree * toXML() ;
+
 	/** \brief Get points sampling the circle boundary*/
 	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const;
 	

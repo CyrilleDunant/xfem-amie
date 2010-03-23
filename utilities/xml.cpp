@@ -11,7 +11,6 @@
 //
 
 #include "xml.h"
-#include "../features/features.h"
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -102,7 +101,6 @@ XMLTree::XMLTree(std::string d, std::pair<double, double> p)
 
 	this->addChild(pr) ;
 }
-
 
 void XMLTree::addChild(XMLTree * item)
 {
@@ -342,12 +340,12 @@ std::pair<bool, std::vector<double> > XMLTree::buildVector()
 	std::vector<double> val ;
 	if(this->match("vector"))
 	{
-		if(this->nFields() > 0)
+		if(this->nFields() > 1)
 		{
 			size_t s = (size_t) fields[0] ;
 			if(s == this->nFields() -1)
 				found = true ;
-			for(size_t i = 0 ; i < s && i < this->nFields() ; i++)
+			for(size_t i = 1 ; i < s+1 && i < this->nFields() ; i++)
 				val.push_back(fields[i]) ;
 		}
 	}
@@ -360,13 +358,13 @@ std::pair<bool, Matrix> XMLTree::buildMatrix()
 	Matrix m(1,1) ;
 	if(this->match("matrix"))
 	{
-		if(this->nChildren() > 2)
+		if(this->nFields() > 2)
 		{
 			size_t r = fields[0] ;
 			size_t c = fields[1] ;
 			if(r*c == this->nFields() -2)
 				found = true ;
-			Matrix m(r,c) ;
+			m.resize(r,c) ;
 			for(size_t i = 0 ; i < r ; i++)
 			{
 				for(size_t j = 0 ; j < c ; j++)

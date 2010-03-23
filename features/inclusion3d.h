@@ -14,6 +14,7 @@
 #define __INCLUSION3D_H__
 
 #include "features.h"
+#include "../utilities/xml.h"
 
 namespace Mu
 {
@@ -58,6 +59,8 @@ public:
 */
 	Inclusion3D(double radius, Point center) ;
 	
+	virtual XMLTree * toXML() ;
+
 /** \brief do nothing */
 	virtual void addSamplePoints(PointSet * po ) { };
 	

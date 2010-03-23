@@ -3,6 +3,7 @@
 #include "../geometry/geometry_base.h"
 #include "../geometry/geometry_2D.h"
 #include "../elements/integrable_entity.h"
+#include "../utilities/xml.h"
 #include "../mesher/mesh.h"
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
@@ -69,6 +70,8 @@ public:
 	Feature(Feature *father, Geometry * b) ;
 	
 	virtual ~Feature() ;
+
+	virtual XMLTree * toXML() ;
 	 
 	bool inBoundary(const Point &p, double d) const ;
 	bool onBoundary(const Point &p, double d) const ;

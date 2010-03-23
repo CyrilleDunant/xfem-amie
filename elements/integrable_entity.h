@@ -10,6 +10,7 @@
 #include "../geometry/geometry_base.h"
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
+#include "../utilities/xml.h"
 
 namespace Mu
 {
@@ -369,6 +370,8 @@ public:
 	 */
 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const = 0;
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
+
+	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
 	
 	virtual bool timeDependent() const
 	{
@@ -396,6 +399,7 @@ public:
 	 * @param currentState State of the element with this behaviour
 	 */
 	virtual void step(double timestep, ElementState & currentState) = 0;
+	virtual void artificialDamageStep(double d) = 0 ;
 	virtual void updateElementState(double timestep, ElementState & currentState) const = 0;
 	
 	virtual bool fractured() const = 0 ;

@@ -29,6 +29,12 @@ void LinearForm::step(double timestep, ElementState & s)
 
 }
 
+void LinearForm::artificialDamageStep(double d)
+{
+
+}
+
+
 void LinearForm::updateElementState(double timestep, ElementState & s) const
 {
 	if( type == VOID_BEHAVIOUR)
@@ -116,6 +122,12 @@ void NonLinearForm::setIntegrationHints(std::vector<Point> h)
 void NonLinearForm::step(double timestep, ElementState & s)
 {
 }
+
+void NonLinearForm::artificialDamageStep(double d)
+{
+
+}
+
 
 bool NonLinearForm::fractured() const 
 {

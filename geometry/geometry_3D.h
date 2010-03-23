@@ -38,6 +38,8 @@ public:
 	Tetrahedron() ; 
 	
 	virtual ~Tetrahedron() { } ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Sample The bounding surface.
 	 * 
@@ -118,6 +120,9 @@ public:
 	Hexahedron() ; 
 	
 	virtual ~Hexahedron() { } ;
+
+	virtual XMLTree * toXML() ;
+
 	
 	/** \brief Sample The bounding surface.
 	 * 
@@ -183,6 +188,9 @@ public:
 	RegularOctahedron(double size, Point c) ; 
 
 	virtual ~RegularOctahedron() { } ;
+
+	virtual XMLTree * toXML() {return new XMLTree("regular octahedron") ; } ;
+
 	
 	/** \brief Sample The bounding surface.
 	 * 
@@ -290,8 +298,12 @@ public:
 	
 /** \brief default constructor, build sphere of radius 1 and center (0,0,0)*/
 	Sphere() ; 
+
+	Sphere(XMLTree * xml) ;
 	
 	virtual ~Sphere() { } ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Sample The bounding surface.
 	 * 

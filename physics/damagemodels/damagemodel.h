@@ -38,6 +38,12 @@ public:
 	 */
 	virtual void step(ElementState & s) = 0 ;
 
+	/** \brief Increment the damage from an external value
+	 * 
+	 * @param d damage
+	 */
+	virtual void artificialDamageStep(double d) = 0 ;
+
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const = 0 ;
@@ -78,6 +84,12 @@ public:
 	 * @param s ElementState
 	 */
 	virtual void step(ElementState & s) { } ;
+
+	/** \brief Do nothing
+	 * 
+	 * @param d damage
+	 */
+	virtual void artificialStep(double d) { } ;
 
 	/** \brief return a copy of the Matrix given as argument
 	 * 

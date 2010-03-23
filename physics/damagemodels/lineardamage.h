@@ -42,6 +42,13 @@ public:
 	virtual const Vector & damageState() const ;
 	virtual Vector & damageState() ;
 
+
+	/** \brief Increment the damage from an external value.
+	 * 
+	 * @param d damage
+	 */
+	virtual void artificialDamageStep(double d) ;
+
 	/** \brief Increment the damage. 
 	 * The formula used for the increment varies depending on whether the element is 
 	 * in tension or compression. Once it has been determined whether we are in tension or 

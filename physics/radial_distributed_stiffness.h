@@ -1,5 +1,5 @@
 //
-// C++ Interface: stiffness
+// C++ Interface: RadialDistributedStiffness
 //
 // Description: 
 //
@@ -10,10 +10,12 @@
 //
 //
 
-#ifndef __STIFFNESS_H_
-#define __STIFFNESS_H_
+#ifndef __RADIAL_DISTRIBUTED_RadialDistributedStiffness_H_
+#define __RADIAL_DISTRIBUTED_RadialDistributedStiffness_H_
 
 #include "physics_base.h"
+#include "../features/inclusion.h"
+#include "../utilities/xml.h"
 
 namespace Mu
 {
@@ -21,18 +23,25 @@ namespace Mu
 	/** \brief A linear Elastic Law
 	* The field param is the Cauchy-Green Strain Tensor
 	*/
-	struct Stiffness : public LinearForm
+	struct RadialDistributedStiffness : public LinearForm
 	{
+		std::vector<std::pair<double, Matrix> > stiff ;
+		double angle ;
+
 		std::vector<Variable> v ;
 		/** \brief Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		*/
-		Stiffness(const Matrix & rig) ;
-		
-		virtual ~Stiffness() ;
+		RadialDistributedStiffness(std::vector<std::pair<double, Matrix> > rig) ;
 
-		virtual XMLTree * toXML() { return new XMLTree("stiffness",param) ; } ;
+		RadialDistributedStiffness(XMLTree * xml) ;
+		
+		virtual ~RadialDistributedStiffness() ;
+
+		virtual XMLTree * toXML() ;
+
+		void setAngle(double a) ;
 		
 		/** \brief Apply the law.
 		* 
@@ -64,6 +73,18 @@ namespace Mu
 		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
 	} ;
+
+	class RadialInclusion : public Inclusion
+	{
+		public:
+			RadialInclusion(Feature * f, double r, Point c) ;
+			RadialInclusion(Feature * f, double r, double x, double y) ;
+			RadialInclusion(double r, Point c) ;
+			RadialInclusion(double r, double x, double y) ;
+			RadialInclusion(XMLTree * xml) ;
+
+			virtual Form * getBehaviour( const Point & p ) ;		
+	} ;	
 
 } ;
 

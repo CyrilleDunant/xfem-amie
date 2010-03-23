@@ -65,6 +65,14 @@ void LinearDamage::step(ElementState & s)
 // 	std::cout << state.sum() << std::flush ;
 }
 
+void LinearDamage::artificialDamageStep(double d)
+{
+	for(size_t i = 0 ; i < state.size() -1 ; i++)
+		state[i] = std::min(state[i]+d,0.9999) ;
+}
+
+
+
 Matrix LinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;

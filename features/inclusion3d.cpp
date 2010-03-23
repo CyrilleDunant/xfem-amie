@@ -10,6 +10,8 @@
 //
 //
 #include "inclusion3d.h"
+#include "../utilities/xml.h"
+
 
 using namespace Mu ;
 
@@ -32,7 +34,18 @@ Inclusion3D::Inclusion3D(double r, Point center) : Sphere(r,center ), Feature(NU
 {
 	this->isEnrichmentFeature = false ;
 }
-	
+
+XMLTree * Inclusion3D::toXML()
+{
+	XMLTree * inc = new XMLTree("inclusion3d") ;
+	XMLTree * geom = new XMLTree("geometry") ;
+	XMLTree * c = static_cast<Sphere *>(this)->toXML() ;
+	geom->addChild(c) ;
+	inc->addChild(geom) ;
+	return inc ;
+}
+
+
 bool Inclusion3D::interacts(Feature * f, double d) const 	
 {
 	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)

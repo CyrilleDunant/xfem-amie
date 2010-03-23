@@ -57,6 +57,14 @@ std::vector<Point *> Feature::doubleSurfaceSampling()
 	return ret ;
 }
 
+XMLTree * Feature::toXML()
+{
+	XMLTree * feat = new XMLTree("feature") ;
+	feat->addChild(static_cast<Geometry *>(this)->toXML()) ;
+	return feat ;
+}
+
+
 void  Feature::addChild(Feature *f)
 {
 	if(std::find(m_c.begin(), m_c.end(), f) == m_c.end())

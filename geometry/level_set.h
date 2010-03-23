@@ -79,6 +79,7 @@ class LevelSet : public Geometry
 	virtual bool intersects(const Geometry *) const {return false ; } ;
 	virtual std::vector<Point> intersection(const Geometry *) const {return std::vector<Point>(0) ; } ;
 	virtual std::vector<Point> getBoundingBox() const ;
+	virtual XMLTree * toXML() {return new XMLTree("level set") ; } ;
 //	virtual size_t timePlanes() const {return 1 ; } ;
 //	virtual size_t & timePlanes() {return 1 ; } ;
 

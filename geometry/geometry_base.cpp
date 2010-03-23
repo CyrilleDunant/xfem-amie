@@ -6,6 +6,7 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "geometry_base.h"
+//#include "../utilities/xml.h"
 #include <limits>
 #include <iomanip>
 
@@ -69,6 +70,42 @@ Point::Point(double x_, double y_, double z_, double t_): id(-1)
 	x= x_ ; y = y_ ; z = z_ ; t = t_ ;
 	#endif
 }
+
+Point::Point(XMLTree * xml)
+{
+	id = -1 ;
+	x = 0 ;
+	y = 0 ;
+	z = 0 ;
+	t = 0 ;
+	if(xml->match("point"))
+	{
+		std::pair<bool, std::vector<double> > coord = xml->getChild(0)->buildVector() ;
+		if(coord.first && (coord.second.size() > 3))
+		{
+			x = coord.second[0] ;
+			y = coord.second[1] ;
+			z = coord.second[2] ;
+			t = coord.second[3] ;
+		}
+		std::pair<bool, double> id_ = xml->getChild(1)->buildDouble() ;
+		if(id_.first)
+			id = id_.second ;
+	}
+}
+
+XMLTree * Point::toXML()
+{
+	Vector coord(4) ;
+	coord[0] = x; 
+	coord[1] = y; 
+	coord[2] = z; 
+	coord[3] = t; 
+	XMLTree * xml = new XMLTree("point",coord) ;
+	xml->addChild(new XMLTree("id",id)) ;
+	return xml ;
+}
+
 
 void Point::print() const
 {
@@ -444,6 +481,99 @@ PointSet::PointSet() : boundingPoints(0)
 	this->chullEndPos = 0;
 }
 
+XMLTree * Geometry::toXML()
+{
+	XMLTree * geom = new XMLTree("geometry") ;
+	switch(gType)
+	{
+		case NULL_GEOMETRY: //done
+		{
+			geom->addChild(new XMLTree("null")) ;
+			break;
+		}
+		case CIRCLE:
+		{
+			geom->addChild(static_cast<Circle *>(this)->toXML()) ;
+			break;
+		}
+		case LAYERED_CIRCLE:
+		{
+			geom->addChild(static_cast<LayeredCircle *>(this)->toXML()) ;
+			break;
+		}
+		case TRIANGLE: //done
+		{
+			geom->addChild(static_cast<Triangle *>(this)->toXML()) ;
+			break;
+		}
+		case RECTANGLE: //done
+		{
+			geom->addChild(static_cast<Rectangle *>(this)->toXML()) ;
+			break;
+		}
+		case PARALLELOGRAMME:
+		{
+			geom->addChild(new XMLTree("parallelogramme")) ;
+			break;
+		}
+		case CONVEX_POLYGON: //done
+		{
+			geom->addChild(new XMLTree("convex polygon")) ;
+			break;
+		}
+		case SEGMENTED_LINE:
+		{
+			geom->addChild(static_cast<SegmentedLine *>(this)->toXML()) ;
+			break;
+		}
+		case ORIENTABLE_CIRCLE: //done
+		{
+			geom->addChild(static_cast<OrientableCircle *>(this)->toXML()) ;
+			break;
+		}
+		case CLOSED_NURB: //done
+		{
+			geom->addChild(new XMLTree("nurb")) ;
+			break;
+		}
+		case TETRAHEDRON:
+		{
+			geom->addChild(static_cast<Tetrahedron *>(this)->toXML()) ;
+			break;
+		}
+		case HEXAHEDRON:
+		{
+			geom->addChild(static_cast<Hexahedron *>(this)->toXML()) ;
+			break;
+		}
+		case SPHERE:
+		{
+			geom->addChild(static_cast<Sphere *>(this)->toXML()) ;
+			break;
+		}
+		case LAYERED_SPHERE:
+		{
+			geom->addChild(new XMLTree("layered sphere")) ;
+			break;
+		}
+		case REGULAR_OCTAHEDRON:
+		{
+			geom->addChild(static_cast<RegularOctahedron *>(this)->toXML()) ;
+			break;
+		}
+		case ELLIPSE:
+		{
+			geom->addChild(static_cast<Ellipse *>(this)->toXML()) ;
+			break;
+		}
+		case LEVEL_SET:
+		{
+			geom->addChild(new XMLTree("level set")) ;
+			break;
+		}
+
+	}
+}
 
 std::vector<Point> Geometry::getBoundingBox() const
 {
@@ -4366,6 +4496,20 @@ OrientableCircle::OrientableCircle()
 	this->normal = Point(0,0,1) ;
 	this->radius = 1 ;
 }
+
+XMLTree * OrientableCircle::toXML()
+{
+	XMLTree * circle = new XMLTree("circle") ;
+	XMLTree * c = new XMLTree("center") ;
+	c->addChild(this->getCenter().toXML()) ;
+	XMLTree * n = new XMLTree("normal") ;
+	n->addChild(normal.toXML()) ;
+	circle->addChild(c) ;
+	circle->addChild(n) ;
+	circle->addChild(new XMLTree("radius",radius)) ;
+	return circle ;
+}
+
 
 
 std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points) const

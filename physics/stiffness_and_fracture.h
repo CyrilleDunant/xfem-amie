@@ -81,6 +81,8 @@ namespace Mu
 		*/
 		virtual void step(double timestep, ElementState & currentState) ;
 		
+		virtual void artificialDamageStep(double d) ;
+
 		/** \brief Check for fracture state
 		*
 		* @return true if the element is fractured

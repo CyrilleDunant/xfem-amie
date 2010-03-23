@@ -101,6 +101,25 @@ void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double time
 	}
 }
 
+void WeibullStiffnessWithVariableImposedDeformationAndFracture::artificialDamageStep(double d)
+{
+	dfunc.artificialDamageStep(d) ;
+	previousDamage = damage ;
+		
+	Vector state = dfunc.damageState() ;
+	damage = 0 ;
+	for(size_t i = 0 ; i < state.size() ; i++)
+		damage += state[i] ;
+	change = true ;//std::abs(damage-previousDamage) > 1e-12 ;
+	if(damage > .9)
+		frac = true ;
+
+	if(frac)
+		imposed = 0 ;
+
+}
+
+
 bool WeibullStiffnessWithVariableImposedDeformationAndFracture::changed() const
 {
 	return change ;

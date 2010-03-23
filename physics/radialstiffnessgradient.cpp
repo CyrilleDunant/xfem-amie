@@ -104,6 +104,28 @@ void RadialStiffnessGradient::step(double timestep, ElementState & currentState)
 
 }
 
+void RadialStiffnessGradient::artificialDamageStep(double d)
+{
+	if(criterion == NULL)
+		return ;
+
+	change = false ;
+
+	dfunc.artificialDamageStep(d) ;
+	previousDamage = damage ;
+
+	Vector state = dfunc.damageState() ;
+	damage = 0 ;
+	for(size_t i = 0 ; i < state.size() ; i++)
+		damage += state[i] ;
+
+	change = true ;
+	if(damage > .9)
+		frac = true ;
+
+}
+
+
 bool RadialStiffnessGradient::changed() const
 {
 	return change ;

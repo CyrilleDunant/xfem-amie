@@ -40,6 +40,12 @@ void IsotropicLinearDamage::step(ElementState & s)
 
 }
 
+void IsotropicLinearDamage::artificialDamageStep(double d)
+{
+	state[0] = std::min(state[0]+d,0.9999) ;
+}
+
+
 Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;

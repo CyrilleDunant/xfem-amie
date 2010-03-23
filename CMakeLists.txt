@@ -54,6 +54,7 @@ physics/kelvinvoight.cpp
 physics/fracturecriteria/maxstrain.cpp 
 physics/fracturecriteria/mohrcoulomb.cpp 
 physics/fracturecriteria/ruptureenergy.cpp 
+physics/radial_distributed_stiffness.cpp
 physics/spatially_distributed_stiffness.cpp
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
@@ -287,6 +288,9 @@ target_link_libraries( benchmark Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FL
 
 add_executable(rag_ellipse examples/main_ellipse_rag.cpp )
 target_link_libraries( rag_ellipse Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+
+add_executable(iterative examples/main_iterative.cpp )
+target_link_libraries( iterative Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(simple examples/main_simple.cpp )
 target_link_libraries( simple Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)

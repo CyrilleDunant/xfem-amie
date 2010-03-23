@@ -333,6 +333,16 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 	computeCenter() ;	
 }
 
+XMLTree * Tetrahedron::toXML()
+{
+	XMLTree * tet = new XMLTree("tetrahedron") ;
+	tet->addChild(boundingPoints[0]->toXML()) ;
+	tet->addChild(boundingPoints[1]->toXML()) ;
+	tet->addChild(boundingPoints[2]->toXML()) ;
+	tet->addChild(boundingPoints[3]->toXML()) ;
+	return tet ;	
+}
+
 std::vector<Point> Tetrahedron::getSamplingBoundingPoints(size_t num_points) const
 {
 	return std::vector<Point>() ;
@@ -566,6 +576,21 @@ Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p
 	this->size_z = std::abs(boundingPoints[7]->z - boundingPoints[0]->z);
 	
 }
+
+XMLTree * Hexahedron::toXML()
+{
+	XMLTree * hex = new XMLTree("hexahedron") ;
+	hex->addChild(boundingPoints[0]->toXML()) ;
+	hex->addChild(boundingPoints[1]->toXML()) ;
+	hex->addChild(boundingPoints[2]->toXML()) ;
+	hex->addChild(boundingPoints[3]->toXML()) ;
+	hex->addChild(boundingPoints[4]->toXML()) ;
+	hex->addChild(boundingPoints[5]->toXML()) ;
+	hex->addChild(boundingPoints[6]->toXML()) ;
+	hex->addChild(boundingPoints[7]->toXML()) ;
+	return hex ;	
+}
+
 
 double Hexahedron::getXSize() const 
 {
@@ -1006,7 +1031,34 @@ Sphere::Sphere(double r,const Point p0 ) :radius(r) , sqradius(r*r)
 	center = Point(p0) ; 
 	gType = SPHERE ;
 }
-		
+
+Sphere::Sphere(XMLTree * xml)
+{
+	gType = SPHERE ;
+	this->center = Point(0,0,0) ;
+	this->radius = 1 ; 
+
+	if(xml->match("sphere"))
+	{
+		this->center = Point(xml->getChild(0)->getChild(0)) ;
+		this->radius = xml->getChild(1)->buildDouble().second ;
+	}
+
+	this->sqradius = this->radius * this->radius ;
+
+}
+
+
+XMLTree * Sphere::toXML()
+{
+	XMLTree * sph = new XMLTree("sphere") ;
+	XMLTree * c = new XMLTree("center") ;
+	c->addChild(this->getCenter().toXML()) ;
+	sph->addChild(c) ;
+	sph->addChild(new XMLTree("radius",radius)) ;
+	return sph ;	
+}
+
 std::vector<Point> Sphere::getBoundingBox() const
 {
 	double r = getRadius() ;

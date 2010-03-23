@@ -13,6 +13,8 @@
 #include "inclusion.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../polynomial/vm_base.h"
+#include "../utilities/xml.h"
+
 
 using namespace Mu ;
 
@@ -57,6 +59,27 @@ Inclusion::Inclusion(double r, double x, double y) : Circle(r, x, y), Feature(NU
 Inclusion::Inclusion(double r, Point center) : Circle(r, center),  Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
+}
+
+Inclusion::Inclusion(Circle c) : Circle(c.getRadius(), c.getCenter()), Feature(NULL)
+{
+	this->isEnrichmentFeature = false ;
+}
+
+Inclusion::Inclusion(XMLTree *  xml) : Circle(xml->getChild(0)), Feature(NULL)
+{
+	this->isEnrichmentFeature = false ;
+}
+
+
+XMLTree * Inclusion::toXML()
+{
+	XMLTree * inc = new XMLTree("inclusion") ;
+	XMLTree * c = this->Circle::toXML() ;
+	XMLTree * b = behaviour->toXML() ;
+	inc->addChild(c) ;
+	inc->addChild(b) ;
+	return inc ;
 }
 
 Point * Inclusion::pointAfter(size_t i)

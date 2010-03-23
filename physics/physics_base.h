@@ -28,6 +28,8 @@ namespace Mu
 	public:
 		LinearForm(const Matrix & p, bool t = false, bool s = false, size_t numdof = 0 ) ;
 		
+		virtual XMLTree * toXML() {return new XMLTree("linear form") ; } ;
+
 		virtual ~LinearForm()  ;
 		
 		virtual bool fractured() const ; 
@@ -35,6 +37,8 @@ namespace Mu
 		virtual Form * getCopy() const = 0 ;
 		
 		virtual void step(double timestep, ElementState & s) ;
+
+		virtual void artificialDamageStep(double d) ;
 		
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		
@@ -59,6 +63,8 @@ namespace Mu
 		virtual void setIntegrationHints(std::vector<Point> h) ;
 		
 		virtual void step(double timestep, ElementState & s) ;
+
+		virtual void artificialDamageStep(double d) ;
 		
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		

@@ -87,6 +87,8 @@ namespace Mu
 		
 		/** \brief Increment the loading. The loading is increased by the timestep*a random value between 0 and 1 .*/
 		virtual void step(double timestep, ElementState & currentState) ;
+
+		virtual void artificialDamageStep(double d) ;
 		
 		/** \brief Return the virtual force resulting of the imposed stress
 		* 

@@ -31,7 +31,11 @@ public:
 	
 	/** \brief Construct a Triangle from three points*/
 	Triangle( Point *p0,  Point *p1,  Point *p2) ;
+
+	Triangle(XMLTree * xml) ;
 	virtual ~Triangle() { } ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Return true if the argument lies in the Circumcenter of this triangle*/
 	virtual bool inCircumCircle(const Point & p) const ;
@@ -107,7 +111,12 @@ public:
 	
 	/** \brief Default constructor. build rectangle from (-1,-1) to (1,1)*/
 	Rectangle() ;
+
+	Rectangle(XMLTree * xml) ;
+
 	virtual ~Rectangle() { } ;
+
+	virtual XMLTree * toXML() ;
 
 	/** \brief Sample the bounding surface with a given number of sampling points. the points are stored as boundingPoints*/
 	virtual void sampleBoundingSurface(size_t num_points) ;
@@ -175,6 +184,8 @@ public:
 	/** \brief construct a Rectangle from four points. The points will be assumed to be planar*/
 	OrientedRectangle( const Point *p0,  const Point *p1,  const Point *p2,  const Point *p3) ;
 	virtual ~OrientedRectangle() { } ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Return true if the argument is in the circumcircle*/
 	virtual bool inCircumCircle(const Point p) const ;
@@ -249,6 +260,8 @@ public:
 	 */
 	Circle(double r, const Point *center) ; 
 	
+	Circle(XMLTree * xml) ;
+	
 	/** \brief Construct a circle.
 	 * 
 	 * @param r radius of the circle to construct.
@@ -256,6 +269,8 @@ public:
 	 */
 	Circle(double r, const Point center) ; 
 	virtual ~Circle() { } ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Sample the bounding Surface.
 	 * 
@@ -353,6 +368,8 @@ public:
 	 */
 	LayeredCircle(double r, const Point center) ; 
 	virtual ~LayeredCircle() { } ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Sample the disc.
 	 * 
@@ -381,6 +398,9 @@ protected:
 public:
 	SegmentedLine(const std::valarray<Point *> & points) ;
 	virtual ~SegmentedLine() { };
+
+	virtual XMLTree * toXML() {return new XMLTree("segmented line") ; } ;
+
 	
 	/** \brief Sample The bounding surface.
 	 * 
@@ -505,6 +525,8 @@ public:
 	Ellipse(const Ellipse &e) ;
 
 	virtual ~Ellipse() { } ;
+
+	virtual XMLTree * toXML() ;
 	
 	/** \brief Computes a * b and store the result in sqradius
 	 *

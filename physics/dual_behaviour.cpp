@@ -286,6 +286,13 @@ void BimaterialInterface::step(double timestep, ElementState & currentState)
 	outBehaviour->step(timestep, currentState) ;
 }
 
+void BimaterialInterface::artificialDamageStep(double d)
+{
+	inBehaviour->artificialDamageStep(d) ;
+	outBehaviour->artificialDamageStep(d) ;
+}
+
+
 bool BimaterialInterface::hasInducedForces() const
 {
 	return inBehaviour->hasInducedForces() || outBehaviour->hasInducedForces() ;

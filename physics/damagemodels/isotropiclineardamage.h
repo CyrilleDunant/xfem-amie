@@ -47,6 +47,12 @@ public:
 	 */
 	virtual void step(ElementState & s) ;
 
+	/** \brief Increment the damage from an external value.
+	 * 
+	 * @param d damage
+	 */
+	virtual void artificialDamageStep(double d) ;
+
 	/** \brief compute the new stifness matrix after damage
 	 * 
 	 * \f$ K' = K(1-d) \f$

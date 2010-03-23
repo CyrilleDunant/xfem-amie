@@ -105,6 +105,26 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	damage = d ;
 }
 
+void StiffnessAndFracture::artificialDamageStep(double d)
+{
+	previouschange = change ;
+	change = false ;
+
+	dfunc.artificialDamageStep(d) ;
+	change = true ;
+	frac = dfunc.fractured() ;
+	previousPreviousDamage.resize(previousDamage.size()) ;
+	previousPreviousDamage = previousDamage ;
+	previousDamage.resize(damage.size()) ;
+	previousDamage = damage ;
+
+	Vector d_ = dfunc.damageState() ;
+	damage.resize(d_.size()) ;
+	damage = d ;
+}
+
+
+
 bool StiffnessAndFracture::changed() const
 {
 	return change ;

@@ -65,6 +65,57 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 	
 }
 
+Triangle::Triangle(XMLTree * xml)
+{
+	gType = TRIANGLE ;
+	assert(this->size() == 3) ;
+	
+	Point p0(0,1) ;
+	Point p1(0,0) ;
+	Point p2(1,0) ;
+
+	boundingPoints[0] = new Point(0, 1) ;
+	boundingPoints[1] = new Point(0, 0) ;
+	boundingPoints[2] = new Point(1, 0) ;
+
+	if(xml->match("triangle"))
+	{
+		p0 = Point(xml->getChild(0)) ;
+		p1 = Point(xml->getChild(1)) ;
+		p2 = Point(xml->getChild(2)) ;
+
+		boundingPoints[0] = new Point(p0) ;
+		boundingPoints[1] = new Point(p1) ;
+		boundingPoints[2] = new Point(p2) ;
+	}
+	
+	computeCenter() ;
+	computeCircumCenter() ;
+
+	if((p0.z == p1.z)  && (p0.z == p2.z) &&  (p0.z == 0))
+	{
+		if(!this->in(this->getCenter()))
+		{
+			assert(false) ;
+		}
+	}
+	
+	radius = sqrt((squareDist2D(p1, circumCenter)+ squareDist2D(p0, circumCenter))/2.);
+	sqradius = radius*radius ;
+	
+}
+
+
+XMLTree * Triangle::toXML()
+{
+	XMLTree * tri = new XMLTree("triangle") ;
+	tri->addChild(boundingPoints[0]->toXML()) ;
+	tri->addChild(boundingPoints[1]->toXML()) ;
+	tri->addChild(boundingPoints[2]->toXML()) ;
+	return tri ;
+}
+
+
 OrientedRectangle::OrientedRectangle() : ConvexGeometry(4)
 {
 	gType =PARALLELOGRAMME;
@@ -143,6 +194,16 @@ OrientedRectangle::OrientedRectangle( const Point *p0,  const Point *p1,  const 
 	
 	radius = (squareDist2D(*p1, circumCenter) + squareDist2D(*p0, circumCenter) + squareDist2D(*p2, circumCenter)+squareDist2D(*p3, circumCenter))/4.;
 	
+}
+
+XMLTree * OrientedRectangle::toXML()
+{
+	XMLTree * rect = new XMLTree("oriented rectangle") ;
+	rect->addChild(boundingPoints[0]->toXML()) ;
+	rect->addChild(boundingPoints[1]->toXML()) ;
+	rect->addChild(boundingPoints[2]->toXML()) ;
+	rect->addChild(boundingPoints[3]->toXML()) ;
+	return rect ;
 }
 
 
@@ -752,6 +813,46 @@ Rectangle::Rectangle() :  ConvexGeometry(4), size_y(2), size_x(2)
 	
 }
 
+Rectangle::Rectangle(XMLTree * xml) : ConvexGeometry(4)
+{
+	gType = RECTANGLE ;
+	this->center = Point(0,0) ; 
+	topLeft = Point(-1, 1) ;
+	topRight = Point(1, 1) ;
+	bottomRight = Point(1, -1) ;
+	bottomLeft = Point(-1, -1) ;
+
+	if(xml->match("rectangle")) ;
+	{
+		this->center = Point(xml->getChild(0)->getChild(0)) ;
+		size_x = xml->getChild(1)->buildDouble().second ;
+		size_y = xml->getChild(2)->buildDouble().second ;
+		topLeft = Point(center.x-0.5*size_x, center.y+0.5*size_y) ;
+		topRight = Point(center.x+0.5*size_x, center.y+0.5*size_y) ;
+		bottomRight = Point(center.x+0.5*size_x, center.y-0.5*size_y) ;
+		bottomLeft =  Point(center.x-0.5*size_x, center.y-0.5*size_y) ;
+	}
+
+	boundingPoints[0] = new Point(topLeft) ;
+	boundingPoints[1] = new Point(topRight) ;
+	boundingPoints[2] = new Point(bottomRight) ;
+	boundingPoints[3] = new Point(bottomLeft) ;
+
+}
+
+
+XMLTree * Rectangle::toXML()
+{
+	XMLTree * rect = new XMLTree("rectangle") ;
+	XMLTree * c = new XMLTree("center") ;
+	c->addChild(this->getCenter().toXML()) ;
+	rect->addChild(c) ;
+	rect->addChild(new XMLTree("x",size_x)) ;
+	rect->addChild(new XMLTree("y",size_y)) ;
+	return rect ;
+}
+
+
 std::vector<Point> Rectangle::getBoundingBox() const
 {
 	std::vector<Point> box ;
@@ -989,6 +1090,33 @@ Circle::Circle(double r, const Point center)
 	this->sqradius = r*r ;
 }
 
+Circle::Circle(XMLTree * xml)
+{
+	gType = CIRCLE ;
+	this->center = Point(0,0) ;
+	this->radius = 1 ; 
+
+	if(xml->match("circle"))
+	{
+		this->center = Point(xml->getChild(0)->getChild(0)) ;
+		this->radius = xml->getChild(1)->buildDouble().second ;
+	}
+
+	this->sqradius = this->radius * this->radius ;
+}
+
+
+XMLTree * Circle::toXML()
+{
+	XMLTree * cir = new XMLTree("circle") ;
+	XMLTree * c = new XMLTree("center") ;
+	c->addChild(this->getCenter().toXML()) ;
+	cir->addChild(c) ;
+	cir->addChild(new XMLTree("radius",radius)) ;
+	return cir ;
+}
+
+
 void Circle::setRadius(double newr)
 {
 	double ratio = newr/(radius) ;
@@ -1199,6 +1327,18 @@ LayeredCircle::LayeredCircle(double r, const Point center) : Circle(r, center)
 {
 	radiuses.push_back(r) ;
 }
+
+XMLTree * LayeredCircle::toXML()
+{
+	XMLTree * circle = new XMLTree("layered circle") ;
+	XMLTree * c = new XMLTree("center") ;
+	c->addChild(this->getCenter().toXML()) ;
+	circle->addChild(c) ;
+	circle->addChild(new XMLTree("radius",radiuses)) ;
+	return circle ;
+}
+
+
 
 void LayeredCircle::sampleSurface(size_t num_points)
 {
@@ -1470,6 +1610,21 @@ Ellipse::Ellipse(const Ellipse &e)
 	this->minorradius = e.getMinorRadius() ;
 	this->setSqRadius() ;
 }
+
+XMLTree * Ellipse::toXML()
+{
+	XMLTree * ell = new XMLTree("ellipse") ;
+	XMLTree * c = new XMLTree("center") ;
+	c->addChild(this->getCenter().toXML()) ;
+	XMLTree * ax = new XMLTree("axis") ;
+	ax->addChild(this->getMajorAxis().toXML()) ;
+	ell->addChild(c) ;
+	ell->addChild(ax) ;
+	ell->addChild(new XMLTree("ra",majorradius)) ;
+	ell->addChild(new XMLTree("rb",minorradius)) ;
+	return ell ;
+}
+
 
 double Ellipse::getAxisAngle() const
 {

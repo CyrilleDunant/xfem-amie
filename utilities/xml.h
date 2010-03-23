@@ -13,8 +13,7 @@
 #ifndef __XML_H__
 #define __XML_H__
 
-#include "../features/features.h"
-#include "../geometry/geometry_base.h"
+#include "matrixops.h"
 #include <string>
 #include <sstream>
 

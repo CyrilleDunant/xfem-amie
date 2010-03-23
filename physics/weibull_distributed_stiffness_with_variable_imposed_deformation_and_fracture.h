@@ -86,6 +86,8 @@ namespace Mu
 		virtual bool hasInducedForces() const ;
 		
 		virtual void step(double timestep, ElementState & currentState) ;
+
+		virtual void artificialDamageStep(double d) ;
 		
 		/** \brief Return the virtual force resulting of the imposed stress
 		* 

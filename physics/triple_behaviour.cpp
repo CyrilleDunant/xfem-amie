@@ -382,6 +382,14 @@ void TrimaterialInterface::step(double timestep, ElementState & currentState)
 	outBehaviour->step(timestep, currentState) ;
 }
 
+void TrimaterialInterface::artificialDamageStep(double d)
+{
+	inBehaviour->artificialDamageStep(d) ;
+	midBehaviour->artificialDamageStep(d) ;
+	outBehaviour->artificialDamageStep(d) ;
+}
+
+
 bool TrimaterialInterface::hasInducedForces() const
 {
 	return inBehaviour->hasInducedForces() || outBehaviour->hasInducedForces()|| midBehaviour->hasInducedForces() ;
