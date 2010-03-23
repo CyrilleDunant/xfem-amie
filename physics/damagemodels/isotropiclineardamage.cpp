@@ -35,7 +35,7 @@ void IsotropicLinearDamage::step(ElementState & s)
 {
 	double maxD = .999999 ; 
 
-	state[0] += .1 ; 
+	state[0] += .025 ; 
 	state[0] = std::min(maxD, state[0]) ;
 
 }

@@ -13,6 +13,7 @@
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
+#include "../physics/homogeneised_behaviour.h"
 
 
 
@@ -2515,18 +2516,24 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 }
 
 
-Mesh<DelaunayTriangle, DelaunayTreeItem> * FeatureTree::get2DMesh()
+Mesh<DelaunayTriangle, DelaunayTreeItem> * FeatureTree::get2DMesh(int g)
 {
 	if(this->dtree == NULL && this->dtree3D == NULL)
 		this->generateElements() ;
-	return this->dtree ;
+	if(g == -1)
+		return this->dtree ;
+	else
+		return coarseTrees[g] ;
 }
 
-Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * FeatureTree::get3DMesh()
+Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * FeatureTree::get3DMesh(int g)
 {
 	if(this->dtree3D == NULL && this->dtree == NULL)
 		this->generateElements() ;
-	return this->dtree3D ;
+	if(g == -1)
+		return this->dtree3D ;
+	else
+		return coarseTrees3D[g] ;
 }
 
 std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles(Feature * f )
@@ -2569,6 +2576,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	enrichmentChange = true ;
 
 	K = new Assembly() ;
+	coarseAssemblies.push_back(new Assembly()) ;
 	if(is2D())
 		K->set2D() ;
 	else
@@ -2667,7 +2675,13 @@ FeatureTree::~FeatureTree()
 	delete this->dtree ;
 	delete this->dtree3D ;
 	delete this->K ;
-
+	for(size_t i = 0 ; i < coarseTrees.size() ;i++)
+		delete coarseTrees[i] ;
+	for(size_t i = 0 ; i < coarseTrees3D.size() ;i++)
+		delete coarseTrees3D[i] ;
+	for(size_t i = 0 ; i < coarseAssemblies.size() ;i++)
+		delete coarseAssemblies[i] ;
+	
  	for(size_t i = 0 ; i < additionalPoints.size() ; i++)
 		delete additionalPoints[i] ;
 	
@@ -2846,6 +2860,8 @@ void FeatureTree::stitch()
 		if((int)elemOrder-1 > 0 )
 		{
 			dtree->setElementOrder(elemOrder) ;
+			for(size_t j = 0 ; j < coarseTrees.size() ; j++)
+				coarseTrees[j]->setElementOrder(elemOrder) ;
 			
 			stitched  = true ;	
 // 			return ;
@@ -3951,6 +3967,19 @@ void FeatureTree::setElementBehaviours()
 		}
 		std::cerr << " ...done" << std::endl ;
 		
+		for(size_t i = 0 ; i < coarseTrees.size() ; i++)
+		{
+			
+			triangles = coarseTrees[i]->getElements() ;
+			for(size_t j = 0 ; j < triangles.size() ;j++)
+			{
+				if (j%1000 == 0)
+					std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << triangles.size() << std::flush ;
+				triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
+			}
+			std::cerr << " ...done" << std::endl ;
+		}
+		
 		setBehaviours = true ;
 	}
 	else
@@ -4077,7 +4106,7 @@ void FeatureTree::assemble()
 	
 	
 	this->numdofs = en_counter ;
-	
+
 	if(this->dtree != NULL)
 	{
 		triangles = this->dtree->getElements() ;
@@ -4093,6 +4122,24 @@ void FeatureTree::assemble()
 			}
 		}
 		std::cerr << " ...done." << std::endl ;
+		
+		for(size_t i =  0 ; i < coarseTrees.size() ; i++)
+		{
+			triangles = coarseTrees[i]->getElements() ;
+		
+			for(size_t j = 0 ; j < triangles.size() ; j++)
+			{
+				if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+				{
+
+					std::cerr << "\r assembling stiffness matrix... grid " << i << " triangle " << j+1 << "/" << triangles.size() << std::flush ;
+					triangles[j]->refresh(father2D) ;
+					coarseAssemblies[i]->add(triangles[j]) ;
+				}
+			}
+			std::cerr << " ...done." << std::endl ;
+		}
+		
 	}
 	else
 	{
@@ -4183,16 +4230,22 @@ Vector FeatureTree::stressFromDisplacements() const
 	}
 }
 
-Vector FeatureTree::getDisplacements() const
+Vector FeatureTree::getDisplacements(int g) const
 {
-	return K->getDisplacements() ;
+	if(g == -1)
+		return K->getDisplacements() ;
+	else
+		return coarseAssemblies[g]->getDisplacements() ;
 }
 
-std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
+
+std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 {
 	if(dtree != NULL)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		if(g != -1)
+			elements = coarseTrees[g]->getElements() ;
 		std::pair<Vector , Vector > stress_strain(Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size()), Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size())) ;
 		for(size_t i  = 0 ; i < elements.size() ; i++)
 		{
@@ -4219,6 +4272,8 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain()
 	else
 	{
 		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
+		if(g != -1)
+			tets = coarseTrees3D[g]->getElements() ;
 		std::pair<Vector , Vector > stress_strain(Vector(0.f, 4*6*tets.size()), Vector(0.f, 4*6*tets.size())) ;
 		
 		for(size_t i  = 0 ; i < tets.size() ; i++)
@@ -4476,7 +4531,13 @@ bool FeatureTree::step(double dt)
 	bool ret = true ;
 
 	if(enrichmentChange)
+	{
 		this->K->clear() ;
+		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+		{
+			coarseAssemblies[j]->clear() ;
+		}
+	}
 
 
 	assemble() ;
@@ -4484,7 +4545,13 @@ bool FeatureTree::step(double dt)
 	for(size_t i = 0 ; i < boundaryCondition.size() ; ++i)
 	{
 		if(dtree)
+		{
 			boundaryCondition[i]->apply(K, dtree) ;
+			for(size_t j = 0 ; j < coarseTrees.size() ;j++)
+			{
+				boundaryCondition[i]->apply(coarseAssemblies[j], coarseTrees[j]) ;
+			}
+		}
 		if(dtree3D)
 			boundaryCondition[i]->apply(K, dtree3D) ;
 	}
@@ -4493,14 +4560,23 @@ bool FeatureTree::step(double dt)
 	meshChange = false ;
 
 	if(solverConvergence)
-		solverConvergence = this->K->cgsolve(lastx) ;
+	{
+		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+		{
+			coarseAssemblies[j]->cgsolve() ;
+		}
+		solverConvergence = this->K->cgsolve(coarseTrees[0]->project(dtree, coarseAssemblies[0]->getDisplacements())) ;
+	}
 	else
 	{
 		lastx = 0 ;
-		solverConvergence = this->K->cgsolve(lastx) ;
+		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+		{
+			coarseAssemblies[j]->cgsolve() ;
+		}
+		solverConvergence = this->K->cgsolve(coarseTrees[0]->project(dtree, coarseAssemblies[0]->getDisplacements())) ;
 	}
 	enrichmentChange = false ;
-
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
@@ -4518,8 +4594,24 @@ bool FeatureTree::step(double dt)
 			elements[i]->step(dt, &K->getDisplacements()) ;
 		}
 		std::cerr << " ...done" << std::endl ;
-		int fracturedCount = 0 ;
 		
+		for(size_t j = 0 ; j < coarseTrees.size() ;j++)
+		{
+			std::cerr << " stepping through elements... grid " << j << std::flush ;
+			elements = coarseTrees[j]->getElements() ;
+			for(size_t i = 0 ; i < elements.size() ;i++)
+			{	
+				if(i%1000 == 0)
+					std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
+				elements[i]->step(dt, &coarseAssemblies[j]->getDisplacements()) ;
+				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+					elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+			}
+			std::cerr << " ...done" << std::endl ;
+		}
+		elements = dtree->getElements() ;
+		int fracturedCount = 0 ;
+
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{	
 			if(i%1000 == 0)
@@ -4550,6 +4642,7 @@ bool FeatureTree::step(double dt)
 			}
 			else if (elements[i]->getBehaviour()->fractured())
 				crackedVolume +=  elements[i]->area() ;
+			
 		}
 		std::cerr << " ...done" << std::endl ;
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -4791,6 +4884,17 @@ void FeatureTree::initializeElements()
 			triangles[i]->getState().initialize() ;
 		}
 		std::cout << "\r initialising... element " << triangles.size() << "/" << triangles.size() << std::endl ;
+		
+		for(size_t i = 0 ; i < coarseTrees.size() ; i++)
+		{
+			triangles = coarseTrees[i]->getElements() ;
+			
+			for(size_t j = 0 ; j < triangles.size() ;j++)
+			{
+				triangles[j]->refresh(father2D);
+				triangles[j]->getState().initialize() ;
+			}
+		}
 	}
 	
 	if(is3D())
@@ -4852,6 +4956,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 // 	dtree = new StructuredMesh((max_x-min_x), (max_y-min_y), 50, Point((max_x+min_x)*.5, (max_y+min_y)*.5 )) ;
 // 	return ;
+	
 	std::vector<Feature *> enrichmentFeature ;
 	for(size_t i  = 0 ; i < this->tree.size() ; i++)
 	{
@@ -5029,7 +5134,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	}
 	
 	std::cerr << "...done" << std::endl ;
-	
+	coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), round(sqrt(basepoints)/4.), Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
 	size_t count  = 0 ;
 
 	if(computeIntersections)
@@ -5549,7 +5654,7 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrah
 }
 
 
-std::vector<DelaunayTriangle *> FeatureTree::getTriangles()
+std::vector<DelaunayTriangle *> FeatureTree::getTriangles(int g)
 {
 	if(dtree == NULL && dtree3D == NULL)
 		this->generateElements() ;
@@ -5564,14 +5669,16 @@ std::vector<DelaunayTriangle *> FeatureTree::getTriangles()
 		
 		if(!renumbered)
 			renumber() ;
-
-		return dtree->getElements() ;
+		if(g == -1)
+			return dtree->getElements() ;
+		else
+			return coarseTrees[g]->getElements() ;
 	}
 	else
 		return std::vector<DelaunayTriangle *>(0) ;
 }
 
-std::vector<DelaunayTetrahedron *> FeatureTree::getTetrahedrons()
+std::vector<DelaunayTetrahedron *> FeatureTree::getTetrahedrons(int g)
 {
 	if(dtree3D == NULL && dtree == NULL)
 		this->generateElements() ;
@@ -5588,8 +5695,10 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getTetrahedrons()
 		if(!renumbered)
 			renumber() ;
 		
-		if(!elements3D.empty())
-			return elements3D ;
+		if(g == -1)
+			return dtree3D->getElements() ;
+		else
+			return coarseTrees3D[g]->getElements() ;
 		
 		return dtree3D->getElements() ;
 	}

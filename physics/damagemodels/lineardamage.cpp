@@ -71,8 +71,6 @@ void LinearDamage::artificialDamageStep(double d)
 		state[i] = std::min(state[i]+d,0.9999) ;
 }
 
-
-
 Matrix LinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;

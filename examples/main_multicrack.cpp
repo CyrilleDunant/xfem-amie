@@ -194,14 +194,14 @@ void step()
 		timepos+= 0.0001 ;
 		double da = 0 ;
 
-		triangles = featureTree->getTriangles() ;
-		x.resize(featureTree->getDisplacements().size()) ;
-		x = featureTree->getDisplacements() ;
+		triangles = featureTree->getTriangles(0) ;
+		x.resize(featureTree->getDisplacements(0).size()) ;
+		x = featureTree->getDisplacements(0) ;
 
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(0) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
@@ -1416,7 +1416,7 @@ int main(int argc, char *argv[])
 	Matrix mtest = c1->buildMatrix().second;
 	XMLTree * x = new XMLTree("test",mtest) ;
 	x->print(true) ;
-	return 0 ;
+// 	return 0 ;
 
  	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
@@ -1483,12 +1483,12 @@ int main(int argc, char *argv[])
 
 	F.sample(256) ;
 
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
 // 	F.refine(3) ;
 
 	
-	///	F.generateElements(0) ;
+//	F.generateElements(0) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	
 //	for(size_t j = 0 ; j < crack.size() ; j++)

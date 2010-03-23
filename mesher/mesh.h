@@ -23,16 +23,16 @@ namespace Mu
 			virtual void setElementOrder(Order o) = 0;
 			virtual void insert(Point *) = 0 ;
 			template <class ETARGETTYPE>
-			Vector project(const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, const Vector & displacements) const
+			Vector project(Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, const Vector & displacements)
 			{
 				std::vector<ETYPE *> selfElements = getElements() ;
 				std::vector<ETARGETTYPE *> sourceElements = mesh->getElements() ;
 				int pointCount = 0 ;
-				int idCount = 0 ;
+				size_t idCount = 0 ;
 				for(size_t i = 0 ; i < sourceElements.size() ; i++)
 				{
 					for(size_t j = 0 ; j = sourceElements[i]->getBoundingPoints().size() ; j++)
-						pointCount = std::max(pointCount, sourceElements[i]->getBoundingPoint(j)) ;
+						pointCount = std::max(pointCount, sourceElements[i]->getBoundingPoint(j).id) ;
 					for(size_t j = 0 ; j = sourceElements[i]->getDofIds().size() ; j++)
 						idCount = std::max(idCount, sourceElements[i]->getDofIds()[j]) ;
 				}
@@ -52,7 +52,7 @@ namespace Mu
 				{
 					for(size_t j = 0 ; j = selfElements[i]->getBoundingPoints().size() ; j++)
 					{
-						std::vector<ETARGETTYPE *> targets = mesh->conflicts(&selfElements[i]->getBoundingPoint(j)) ;
+						std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(&selfElements[i]->getBoundingPoint(j)) ;
 						std::vector<Point *> coincidentPoints ;
 						std::vector<ETARGETTYPE *> coincidentElements ;
 						for(size_t k = 0 ; k = targets.size() ; k++)
@@ -72,7 +72,7 @@ namespace Mu
 							for(size_t k = 0 ; k = coincidentElements.size() ; k++)
 							{
 								
-								disps += coincidentElements[k]->getDisplacements(selfElements[i]->getBoundingPoint(j))/coincidentPoints.size() ;
+								disps += coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j))*(double)(1./coincidentPoints.size()) ;
 							}
 							for(size_t k = 0 ; k < numDofs ; k++)
 								projection[selfElements[i]->getBoundingPoint(j).id+k] = disps[k] ;
@@ -82,7 +82,7 @@ namespace Mu
 							Vector disps(numDofs) ;
 							for(size_t k = 0 ; k = coincidentElements.size() ; k++)
 							{
-								disps += coincidentElements[k]->getDisplacements(selfElements[i]->getBoundingPoint(j))/coincidentElements.size() ;
+								disps += coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j))*(double)(1./coincidentElements.size()) ;
 							}
 							for(size_t k = 0 ; k < numDofs ; k++)
 								projection[selfElements[i]->getBoundingPoint(j).id+k] = disps[k] ;

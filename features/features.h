@@ -142,6 +142,9 @@ protected:
 	Grid * grid ;
 	Grid3D * grid3d ;
 	
+	std::vector<Mesh<DelaunayTriangle, DelaunayTreeItem> *> coarseTrees ;
+	std::vector<Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *> coarseTrees3D ;
+	
 	/** \brief  Contains the mesh in the form of a delaunay tree. 
 	 * The mesh is generated with linear triangles, and when it is final, midpoints are added and 
 	 * projected. No operations should add midpoints before meshing is complete.
@@ -170,6 +173,7 @@ protected:
 	/** \brief  Assembly used for the generation of the stiffness matrix and the solving of the problem.
 	 */
 	Assembly * K ;
+	std::vector<Assembly *> coarseAssemblies ;
 	
 	//Assembly2D
 	/** \brief  Order to which Elements should be brought once all operations are accomplished.
@@ -264,7 +268,8 @@ public:
 	void addFeature(Feature *father, Feature * f) ;
 
 	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
-	Vector getDisplacements() const ;
+	
+	Vector getDisplacements(int grid = -1) const ;
 	
 	/** \brief  Generate the sample points for all the features. The features are passed a sampling 
 	 * argument proportionnal to their area compared with the area of the root feature. 
@@ -345,7 +350,7 @@ public:
 	std::pair<Vector , Vector > getStressAndStrain(const std::vector<DelaunayTetrahedron *> &) ;
 
 /** \brief Return the stress and strain of the elements of the current mesh*/
-	std::pair<Vector , Vector > getStressAndStrain() ;
+	std::pair<Vector , Vector > getStressAndStrain(int grid = -1) ;
 	
 	size_t numPoints() const ;
 	
@@ -367,10 +372,10 @@ public:
 	Assembly * getAssembly() ;
 
 /** \brief return the triangles of the mesh*/
-	std::vector<DelaunayTriangle *> getTriangles();
+	std::vector<DelaunayTriangle *> getTriangles(int grid = -1);
 
 /** \brief return the tetrahedrons of the mesh*/
-	std::vector<DelaunayTetrahedron *> getTetrahedrons() ;
+	std::vector<DelaunayTetrahedron *> getTetrahedrons(int grid = -1) ;
 		
 /** \brief return the triangles lying next to a mesh border*/
 	std::vector<DelaunayTriangle *> getBoundingTriangles(Feature * f = NULL) ;	
@@ -385,10 +390,10 @@ public:
 	void insert(Point * p ) ;
 	
 /** \brief return the 2D mesh*/
-	Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() ;
+	Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh(int grid = -1) ;
 
 /** \brief return the 3D mesh*/
-	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() ;
+	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh(int grid = -1) ;
 	
 /** \brief Return true id the argument lies in the root feature*/
 	bool inRoot(const Point &p) const ;

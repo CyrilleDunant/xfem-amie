@@ -14,50 +14,70 @@
 
 using namespace Mu ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), false, false, 1) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL) 
+HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), false, false, 2) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL) 
 {
 	std::vector<DelaunayTriangle *> source = mesh2d->getConflictingElements(self->getPrimitive()) ;
 	//simple averaging
 	double totalArea = 0 ;
-	param = Matrix(source[0]->getBehaviour()->param.numRows(), source[0]->getBehaviour()->param.numCols()) ;
 	for(size_t i = 0 ; i < source.size() ; i++)
 	{
-		time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
-		space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
-		
-		double area = source[i]->area() ;
-		totalArea += area ;
-		
-		GaussPointArray gp = source[i]->getGaussPoints() ;
-		for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+		if(source[i]->getBehaviour() && source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
-			param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / area ;
+			param = Matrix(source[i]->getBehaviour()->param.numRows(), source[i]->getBehaviour()->param.numCols()) ;
+			break ;
 		}
 	}
 	
+	for(size_t i = 0 ; i < source.size() ; i++)
+	{
+		if(source[i]->getBehaviour())
+		{
+			time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
+			space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
+			
+			double area = source[i]->area() ;
+			totalArea += area ;
+			
+			GaussPointArray gp = source[i]->getGaussPoints() ;
+			for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+			{
+				param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / area ;
+			}
+		}
+	}
 	param /= totalArea ;
 	v.push_back(XI);
 	v.push_back(ETA);
 } ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 1), mesh2d(NULL), self2d(NULL), mesh3d(mesh3d), self3d(self) 
+HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 3), mesh2d(NULL), self2d(NULL), mesh3d(mesh3d), self3d(self) 
 {
 	std::vector<DelaunayTetrahedron *> source = mesh3d->getConflictingElements(self->getPrimitive()) ;
 	//simple averaging
 	double totalVolume = 0 ;
-	param = Matrix(source[0]->getBehaviour()->param.numRows(), source[0]->getBehaviour()->param.numCols()) ;
 	for(size_t i = 0 ; i < source.size() ; i++)
 	{
-		time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
-		space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
-		
-		double volume = source[i]->area() ;
-		totalVolume += volume ;
-		
-		GaussPointArray gp = source[i]->getGaussPoints() ;
-		for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+		if(source[i]->getBehaviour() && source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
-			param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / volume ;
+			param = Matrix(source[i]->getBehaviour()->param.numRows(), source[i]->getBehaviour()->param.numCols()) ;
+			break ;
+		}
+	}
+	for(size_t i = 0 ; i < source.size() ; i++)
+	{
+		if(source[i]->getBehaviour())
+		{
+			time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
+			space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
+			
+			double volume = source[i]->area() ;
+			totalVolume += volume ;
+			
+			GaussPointArray gp = source[i]->getGaussPoints() ;
+			for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+			{
+				param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / volume ;
+			}
 		}
 	}
 	
@@ -86,24 +106,26 @@ void HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, co
 
 void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 {
-	if(currentState.getParent()->spaceDimensions() == 2)
+	if(self2d)
 	{
 		std::vector<DelaunayTriangle *> source = mesh2d->getConflictingElements(self2d->getPrimitive()) ;
 		//simple averaging
 		double totalArea = 0 ;
-		param = Matrix(source[0]->getBehaviour()->param.numRows(), source[0]->getBehaviour()->param.numCols()) ;
 		for(size_t i = 0 ; i < source.size() ; i++)
 		{
-			time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
-			space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
-			
-			double area = source[i]->area() ;
-			totalArea += area ;
-			
-			GaussPointArray gp = source[i]->getGaussPoints() ;
-			for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+			if(source[i]->getBehaviour())
 			{
-				param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / area ;
+				time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
+				space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
+				
+				double area = source[i]->area() ;
+				totalArea += area ;
+				
+				GaussPointArray gp = source[i]->getGaussPoints() ;
+				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				{
+					param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / area ;
+				}
 			}
 		}
 		
@@ -114,19 +136,21 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 		std::vector<DelaunayTetrahedron *> source = mesh3d->getConflictingElements(self3d->getPrimitive()) ;
 		//simple averaging
 		double totalVolume = 0 ;
-		param = Matrix(source[0]->getBehaviour()->param.numRows(), source[0]->getBehaviour()->param.numCols()) ;
 		for(size_t i = 0 ; i < source.size() ; i++)
 		{
-			time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
-			space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
-			
-			double volume = source[i]->area() ;
-			totalVolume += volume ;
-			
-			GaussPointArray gp = source[i]->getGaussPoints() ;
-			for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+			if(source[i]->getBehaviour())
 			{
-				param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / volume ;
+				time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
+				space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
+				
+				double volume = source[i]->area() ;
+				totalVolume += volume ;
+				
+				GaussPointArray gp = source[i]->getGaussPoints() ;
+				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				{
+					param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / volume ;
+				}
 			}
 		}
 		
