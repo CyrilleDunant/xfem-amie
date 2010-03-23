@@ -56,6 +56,7 @@ physics/fracturecriteria/mohrcoulomb.cpp
 physics/fracturecriteria/ruptureenergy.cpp 
 physics/radial_distributed_stiffness.cpp
 physics/spatially_distributed_stiffness.cpp
+physics/homogeneised_behaviour.cpp 
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
 physics/stiffness_with_imposed_deformation.cpp 
