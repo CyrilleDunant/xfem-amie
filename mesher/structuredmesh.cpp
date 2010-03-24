@@ -2,7 +2,7 @@
 
 using namespace Mu ;
 
-StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point & center ): grid( sizeX+POINT_TOLERANCE,  sizeY+POINT_TOLERANCE,  div, center)
+StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point & center ): grid( sizeX,  sizeY,  div, center)
 {
 	global_counter = 0 ;
 	for(size_t i = 0 ; i < grid.pixels.size()+1 ; i++)
@@ -135,18 +135,19 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geo
 		
 	double endY =  startY+2.*geo->getRadius();
 	int endJ = std::min(endY/grid.getPixelSize() + 2, (double)grid.pixels[0].size());
-// 	for(int i = startI ; i < endI ; i++)
-// 	{
-// 		for(int j = startJ ; j < endJ ; j++)
-// 		{
-	for(int i = 0 ; i < grid.pixels.size() ; i++)
+	for(int i = startI ; i < endI ; i++)
 	{
-		for(int j = 0 ; j < grid.pixels[0].size() ; j++)
+		for(int j = startJ ; j < endJ ; j++)
 		{
+// 	for(int i = 0 ; i < grid.pixels.size() ; i++)
+// 	{
+// 		for(int j = 0 ; j < grid.pixels[0].size() ; j++)
+// 		{
 			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->intersects(geo) 
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->first)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->second)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->third)
+				|| geo->in(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->getCenter())
 				|| static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->in(geo->getCenter())
 				)
 				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])) ;
@@ -155,6 +156,7 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geo
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->first)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->second)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->third)
+				|| geo->in(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->getCenter())
 				|| static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->in(geo->getCenter())
 				)
 				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])) ;

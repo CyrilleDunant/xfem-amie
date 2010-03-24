@@ -4833,9 +4833,8 @@ bool FeatureTree::step(double dt)
 		
 		if(!coarseAssemblies.empty())
 			solverConvergence = K->cgsolve(dtree->project(coarseTrees.back())) ;
-		
-		solverConvergence = K->cgsolve() ;
-		K->getDisplacements() = dtree->project(coarseTrees.back()) ;
+		else
+			solverConvergence = K->cgsolve() ;
 		
 	}
 	enrichmentChange = false ;
@@ -5206,7 +5205,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 {
 	double pointDensity = 0 ; 
 	if(is2D())
-		pointDensity = .07*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
+		pointDensity = .7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
 	else
 		pointDensity = .7*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
 		
@@ -5420,12 +5419,12 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 	std::cerr << "...done" << std::endl ;
 	
-	int ndivs = round(sqrt(basepoints)/8) ;
-	while( ndivs > 8)
+	int ndivs = round(sqrt(basepoints)/2) ;
+	while( ndivs > 10)
 	{
 		coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), ndivs, Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
 		coarseAssemblies.push_back(new Assembly()) ;
-		ndivs /= 8 ;
+		ndivs /= 2 ;
 	}
 	std::reverse(coarseTrees.begin(), coarseTrees.end()) ;
 	std::reverse(coarseAssemblies.begin(), coarseAssemblies.end()) ;

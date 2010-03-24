@@ -643,19 +643,24 @@ void Triangle::project(Point * p) const
 
 bool Triangle::in(const Point &p) const
 {
-	
+// 	Circle test(1024.*POINT_TOLERANCE, p) ;
+// 	
+// 	return test.intersects(this) ;
 	bool in = false ;
 	
 	for (int i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
 	{
-		if( std::abs(boundingPoints[j]->y - boundingPoints[i]->y) > POINT_TOLERANCE)
+		if( std::abs(boundingPoints[j]->y - boundingPoints[i]->y) > 2.*POINT_TOLERANCE)
 		{
 			if (
-				(((boundingPoints[i]->y < p.y +POINT_TOLERANCE) 
-					&& (p.y-POINT_TOLERANCE < boundingPoints[j]->y)) 
-					|| ((boundingPoints[j]->y < p.y+POINT_TOLERANCE) 
-					&& (p.y-POINT_TOLERANCE < boundingPoints[i]->y))) 
-					&& (p.x-POINT_TOLERANCE < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
+				(((boundingPoints[i]->y < p.y + 2.*POINT_TOLERANCE) 
+					&& (p.y-2.*POINT_TOLERANCE < boundingPoints[j]->y)) 
+					|| ((boundingPoints[j]->y < p.y+2.*POINT_TOLERANCE) 
+					&& (p.y < boundingPoints[i]->y+2.*POINT_TOLERANCE))) 
+					&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) 
+					 * (p.y - boundingPoints[i]->y) 
+					 / (boundingPoints[j]->y - boundingPoints[i]->y) 
+					 + boundingPoints[i]->x + 2.*POINT_TOLERANCE))
 				in = !in;
 		}
 	}

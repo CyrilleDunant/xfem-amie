@@ -49,41 +49,39 @@ namespace Mu
 				{
 					if(selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
+// 						Circle c(4.*selfElements[i]->getRadius(), selfElements[i]->getCenter()) ;
+						std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(selfElements[i]->getPrimitive()) ;
+						if(targets.empty())
+						{
+							Circle c(selfElements[i]->getRadius()*1.1, selfElements[i]->getCenter()) ;
+							targets =  mesh->getConflictingElements(&c) ;
+							if(targets.empty())
+							{
+								std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(&selfElements[i]->getCenter()) ;
+							}
+						}
 						for(size_t j = 0 ; j < selfElements[i]->getBoundingPoints().size() ; j++)
 						{
-							std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(&selfElements[i]->getBoundingPoint(j)) ;
+							
 							std::vector<Point *> coincidentPoints ;
 							std::vector<ETARGETTYPE *> coincidentElements ;
+
 							for(size_t k = 0 ; k < targets.size() ; k++)
 							{
 								for(size_t l = 0 ; l < targets[k]->getBoundingPoints().size() ; l++)
 								{
+									Point proj(selfElements[i]->getBoundingPoint(j)) ; 
+									targets[k]->project(&proj) ;
 									if(selfElements[i]->getBoundingPoint(j) == targets[k]->getBoundingPoint(l))
 										coincidentPoints.push_back(&(targets[k]->getBoundingPoint(l))) ;
-									if(targets[k]->in(selfElements[i]->getBoundingPoint(j)) && targets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+									if((targets[k]->in(selfElements[i]->getBoundingPoint(j))
+										|| squareDist2D(proj, selfElements[i]->getBoundingPoint(j)) < POINT_TOLERANCE) 
+										&& targets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 										coincidentElements.push_back(targets[k]) ;
 								}
 							}
 							if(coincidentElements.empty())
-							{
-								Circle c(selfElements[i]->getRadius(), selfElements[i]->getBoundingPoint(j)) ;
-								targets = mesh->getConflictingElements(&c) ;
-								for(size_t k = 0 ; k < targets.size() ; k++)
-								{
-									for(size_t l = 0 ; l < targets[k]->getBoundingPoints().size() ; l++)
-									{
-										Point proj(selfElements[i]->getBoundingPoint(j)) ; 
-										targets[k]->project(&proj) ;
-										
-										if(selfElements[i]->getBoundingPoint(j) == targets[k]->getBoundingPoint(l))
-											coincidentPoints.push_back(&(targets[k]->getBoundingPoint(l))) ;
-										if((targets[k]->in(selfElements[i]->getBoundingPoint(j)) 
-											|| squareDist2D(proj, selfElements[i]->getBoundingPoint(j)) < POINT_TOLERANCE*POINT_TOLERANCE)
-											&& targets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-											coincidentElements.push_back(targets[k]) ;
-									}
-								}
-							}
+								std::cout << "aie" << std::endl ;
 							if(!coincidentPoints.empty())
 							{
 								Vector disps(numDofs) ;
