@@ -2576,7 +2576,6 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	enrichmentChange = true ;
 
 	K = new Assembly() ;
-	coarseAssemblies.push_back(new Assembly()) ;
 	if(is2D())
 		K->set2D() ;
 	else
@@ -2838,6 +2837,123 @@ void FeatureTree::renumber()
 		std::cerr << count*3 << " ...done " << std::endl ;
 
 
+	}
+	
+	
+	for(size_t g = 0 ; g < coarseTrees.size() ; g++)
+	{
+		std::vector<DelaunayTriangle *> triangles = coarseTrees[g]->getElements() ;
+		size_t count = 0 ;
+		std::cerr << " renumbering... " << std::flush ;
+
+		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+		{
+			for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
+			{
+				(*i)->getBoundingPoint(j).id = -1 ;
+			}
+		}
+
+		
+		Grid tmpgrid =this->grid->getGrid(std::max((size_t)round(sqrt(triangles.size()))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
+		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+			tmpgrid.forceAdd((*i)->getPrimitive()) ;
+		
+		std::vector<Geometry *> sortedElements ;
+		std::set<Geometry *> placedElements ;
+		for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
+		{
+			for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
+			{
+				for(size_t k = 0 ; k < tmpgrid.pixels[i][j]->getFeatures().size() ; ++k)
+				{
+					if(placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k]) == placedElements.end()) 
+					{
+						placedElements.insert(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+						sortedElements.push_back(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+					}
+				}
+				
+			}
+		}
+		
+		for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
+		{
+			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
+			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+				{
+					if(tri->getBoundingPoint(j).id == -1)
+						tri->getBoundingPoint(j).id = count++ ;
+				}
+			}
+		}
+		
+		coarseTrees[g]->getLastNodeId() = count ;
+		
+		std::cerr << count*2 << " ...done " << std::endl ;
+	}
+	
+	for(size_t g = 0 ; g < coarseTrees3D.size() ; g++)
+	{
+		std::vector<DelaunayTetrahedron *> tets = coarseTrees3D[g]->getElements() ;
+		size_t count = 0 ;
+		std::cerr << " renumbering... " << std::flush ;
+
+		for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
+		{
+			for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
+			{
+				(*i)->getBoundingPoint(j).id = -1 ;
+			}
+		}
+
+		
+		Grid3D tmpgrid =this->grid3d->getGrid(std::max(((size_t)round(pow(tets.size(), .333333)))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
+		for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
+		{
+			tmpgrid.forceAdd((*i)->getPrimitive()) ;
+		}
+		
+		std::vector<Geometry *> sortedElements ;
+		std::set<Geometry *> placedElements ;
+		for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
+		{
+			
+			for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
+			{
+				for(size_t k = 0 ; k < tmpgrid.pixels[i][j].size() ; ++k)
+				{
+					for(size_t l = 0 ; l < tmpgrid.pixels[i][j][k]->getFeatures().size() ; ++l)
+					{
+						if(placedElements.find( tmpgrid.pixels[i][j][k]->getFeatures()[l]) == placedElements.end()) 
+						{
+							placedElements.insert(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
+							sortedElements.push_back(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
+						}
+					}
+				}
+			}
+		}
+		
+		
+		for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
+		{
+			DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *>(*i) ;
+			if(tet && tet->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < tet->getBoundingPoints().size() ; j++)
+				{
+					if(tet->getBoundingPoint(j).id == -1)
+						tet->getBoundingPoint(j).id = count++ ;
+				}
+			}
+		}
+		
+		coarseTrees3D[g]->getLastNodeId() = count ;
+		
+		std::cerr << count*3 << " ...done " << std::endl ;
 	}
 	
 	renumbered = true ;
@@ -3998,6 +4114,19 @@ void FeatureTree::setElementBehaviours()
 			n_void++ ;
 		}
 		
+			for(size_t i = 0 ; i < coarseTrees3D.size() ; i++)
+			{
+				
+				tetrahedrons = coarseTrees3D[i]->getElements() ;
+				for(size_t j = 0 ; j < tetrahedrons.size() ;j++)
+				{
+					if (j%1000 == 0)
+						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << tetrahedrons.size() << std::flush ;
+					tetrahedrons[j]->setBehaviour(new HomogeneisedBehaviour(dtree3D, tetrahedrons[j])) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+			}
+		
 		std::cerr << " ...done" << std::endl ;
 		
 		setBehaviours = true ;
@@ -4539,7 +4668,6 @@ bool FeatureTree::step(double dt)
 		}
 	}
 
-
 	assemble() ;
 
 	for(size_t i = 0 ; i < boundaryCondition.size() ; ++i)
@@ -4561,20 +4689,154 @@ bool FeatureTree::step(double dt)
 
 	if(solverConvergence)
 	{
-		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+		if(!coarseAssemblies.empty())
 		{
-			coarseAssemblies[j]->cgsolve() ;
+			if(is2D())
+				coarseAssemblies[0]->cgsolve(coarseTrees[0]->project(dtree)) ;
+			else
+				coarseAssemblies[0]->cgsolve(coarseTrees3D[0]->project(dtree3D)) ;
+			
+			if(is2D())
+			{
+				std::cerr << " stepping through elements... grid " << 0 << std::flush ;
+				std::vector<DelaunayTriangle *> elements = coarseTrees[0]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << 0 <<", elements... " << i << "/" << elements.size() << std::flush ;
+					elements[i]->step(dt, &coarseAssemblies[0]->getDisplacements()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+
+			}
+			else if(is3D())
+			{
+				std::cerr << " stepping through elements... grid " << 0 << std::flush ;
+				std::vector<DelaunayTetrahedron *> elements = coarseTrees3D[0]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << 0 <<", elements... " << i << "/" << elements.size() << std::flush ;
+					elements[i]->step(dt, &coarseAssemblies[0]->getDisplacements()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+
+			}
+		
 		}
-		solverConvergence = this->K->cgsolve(coarseTrees[0]->project(dtree, coarseAssemblies[0]->getDisplacements())) ;
+		for(size_t j = 1 ; j < coarseAssemblies.size() ;j++)
+		{
+			coarseAssemblies[j]->cgsolve(coarseTrees[j]->project(coarseTrees[j-1])) ;
+			if(is2D())
+			{
+				std::cerr << " stepping through elements... grid " << j << std::flush ;
+				std::vector<DelaunayTriangle *> elements = coarseTrees[j]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
+					elements[i]->step(dt, &coarseAssemblies[j]->getDisplacements()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+
+			}
+			else if(is3D())
+			{
+				std::cerr << " stepping through elements... grid " << j << std::flush ;
+				std::vector<DelaunayTetrahedron *> elements = coarseTrees3D[j]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
+					elements[i]->step(dt, &coarseAssemblies[j]->getDisplacements()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+
+			}
+		}
+
+		if(!coarseAssemblies.empty())
+			solverConvergence = K->cgsolve(dtree->project(coarseTrees.back())) ;
+		else
+			solverConvergence = K->cgsolve(lastx) ;
 	}
 	else
 	{
 		lastx = 0 ;
-		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+		if(!coarseAssemblies.empty())
 		{
-			coarseAssemblies[j]->cgsolve() ;
+			coarseAssemblies[0]->cgsolve() ;
+
+			if(is2D())
+			{
+				std::cerr << " stepping through elements... grid " << 0 << std::flush ;
+				std::vector<DelaunayTriangle *> elements = coarseTrees[0]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << 0 <<", elements... " << i << "/" << elements.size() << std::flush ;
+					elements[i]->step(dt, &coarseAssemblies[0]->getDisplacements()) ;
+					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+						elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+			}
+			else if(is3D())
+			{
+				std::cerr << " stepping through elements... grid " << 0 << std::flush ;
+				std::vector<DelaunayTetrahedron *> elements = coarseTrees3D[0]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << 0 <<", elements... " << i << "/" << elements.size() << std::flush ;
+					elements[i]->step(dt, &coarseAssemblies[0]->getDisplacements()) ;
+					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+						elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+			}
+			
+			for(size_t j = 1 ; j < coarseAssemblies.size() ;j++)
+			{
+				coarseAssemblies[j]->cgsolve(coarseTrees[j]->project(coarseTrees[j-1])) ;
+				if(is2D())
+				{
+					std::cerr << " stepping through elements... grid " << j << std::flush ;
+					std::vector<DelaunayTriangle *> elements = coarseTrees[j]->getElements() ;
+					for(size_t i = 0 ; i < elements.size() ;i++)
+					{	
+						if(i%1000 == 0)
+							std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
+						elements[i]->step(dt, &coarseAssemblies[j]->getDisplacements()) ;
+						if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+							elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+					}
+					std::cerr << " ...done" << std::endl ;
+				}
+				else if(is3D())
+				{
+					std::cerr << " stepping through elements... grid " << j << std::flush ;
+					std::vector<DelaunayTetrahedron *> elements = coarseTrees3D[j]->getElements() ;
+					for(size_t i = 0 ; i < elements.size() ;i++)
+					{	
+						if(i%1000 == 0)
+							std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
+						elements[i]->step(dt, &coarseAssemblies[j]->getDisplacements()) ;
+						if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+							elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+					}
+					std::cerr << " ...done" << std::endl ;
+				}
+			
+			}
 		}
-		solverConvergence = this->K->cgsolve(coarseTrees[0]->project(dtree, coarseAssemblies[0]->getDisplacements())) ;
+		
+		if(!coarseAssemblies.empty())
+			solverConvergence = K->cgsolve(dtree->project(coarseTrees.back())) ;
+		
+		solverConvergence = K->cgsolve() ;
+		K->getDisplacements() = dtree->project(coarseTrees.back()) ;
+		
 	}
 	enrichmentChange = false ;
 	if(is2D())
@@ -4595,21 +4857,6 @@ bool FeatureTree::step(double dt)
 		}
 		std::cerr << " ...done" << std::endl ;
 		
-		for(size_t j = 0 ; j < coarseTrees.size() ;j++)
-		{
-			std::cerr << " stepping through elements... grid " << j << std::flush ;
-			elements = coarseTrees[j]->getElements() ;
-			for(size_t i = 0 ; i < elements.size() ;i++)
-			{	
-				if(i%1000 == 0)
-					std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
-				elements[i]->step(dt, &coarseAssemblies[j]->getDisplacements()) ;
-				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
-					elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
-			}
-			std::cerr << " ...done" << std::endl ;
-		}
-		elements = dtree->getElements() ;
 		int fracturedCount = 0 ;
 
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -4734,6 +4981,47 @@ bool FeatureTree::step(double dt)
 			}
 		}
 	}
+	
+	if(meshChange)
+	{
+		if(is2D())
+		{
+
+			for(size_t j = 0 ; j < coarseTrees.size() ;j++)
+			{
+				std::cerr << " stepping through elements... grid " << j << std::flush ;
+				std::vector<DelaunayTriangle *> elements = coarseTrees[j]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
+					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+						elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+			}
+			
+			
+		}
+		else if(is3D())
+		{
+			
+			for(size_t j = 0 ; j < coarseTrees3D.size() ;j++)
+			{
+				std::cerr << " stepping through elements... grid " << j << std::flush ;
+				std::vector<DelaunayTetrahedron *> elements = coarseTrees3D[j]->getElements() ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%1000 == 0)
+						std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
+					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+						elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
+				}
+				std::cerr << " ...done" << std::endl ;
+			}
+		}
+	}
+	
 	return ret ;
 	
 }
@@ -4954,9 +5242,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	bbox[6] = Point(max_x, max_y, min_z) ;
 	bbox[7] = Point(max_x, max_y, max_z) ;
 
-// 	dtree = new StructuredMesh((max_x-min_x), (max_y-min_y), 50, Point((max_x+min_x)*.5, (max_y+min_y)*.5 )) ;
-// 	return ;
-	
 	std::vector<Feature *> enrichmentFeature ;
 	for(size_t i  = 0 ; i < this->tree.size() ; i++)
 	{
@@ -5134,7 +5419,17 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	}
 	
 	std::cerr << "...done" << std::endl ;
-	coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), round(sqrt(basepoints)/4.), Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
+	
+	int ndivs = round(sqrt(basepoints)/8) ;
+	while( ndivs > 8)
+	{
+		coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), ndivs, Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
+		coarseAssemblies.push_back(new Assembly()) ;
+		ndivs /= 8 ;
+	}
+	std::reverse(coarseTrees.begin(), coarseTrees.end()) ;
+	std::reverse(coarseAssemblies.begin(), coarseAssemblies.end()) ;
+	
 	size_t count  = 0 ;
 
 	if(computeIntersections)

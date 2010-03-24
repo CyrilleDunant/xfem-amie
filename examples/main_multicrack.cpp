@@ -194,14 +194,14 @@ void step()
 		timepos+= 0.0001 ;
 		double da = 0 ;
 
-		triangles = featureTree->getTriangles(0) ;
-		x.resize(featureTree->getDisplacements(0).size()) ;
-		x = featureTree->getDisplacements(0) ;
+		triangles = featureTree->getTriangles(2) ;
+		x.resize(featureTree->getDisplacements(2).size()) ;
+		x = featureTree->getDisplacements(2) ;
 
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(0) ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(2) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;

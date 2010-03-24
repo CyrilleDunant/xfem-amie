@@ -305,3 +305,7 @@ target_link_libraries( visco Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS}
 add_executable( wave examples/main_wave.cpp )
 target_link_libraries( wave Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
+add_executable( cyrille_test examples/main_cyrille.cpp )
+target_link_libraries( cyrille_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+
+

@@ -35,17 +35,31 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 			time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
 			space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
 			
-			double area = source[i]->area() ;
-			totalArea += area ;
+// 			double area = source[i]->area() ;
+// 			totalArea += area ;
 			
 			GaussPointArray gp = source[i]->getGaussPoints() ;
-			for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+			if(source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / area ;
+				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				{
+					param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second  ;
+					totalArea += gp.gaussPoints[j].second ;
+				}
+			}
+			else
+			{
+				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				{
+					totalArea += gp.gaussPoints[j].second ;
+				}
 			}
 		}
 	}
-	param /= totalArea ;
+	if(param.isNull())
+		type = VOID_BEHAVIOUR ;
+	else
+		param /= totalArea ;
 	v.push_back(XI);
 	v.push_back(ETA);
 } ;
@@ -70,18 +84,30 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 			time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
 			space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
 			
-			double volume = source[i]->area() ;
-			totalVolume += volume ;
-			
 			GaussPointArray gp = source[i]->getGaussPoints() ;
-			for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+			if(source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / volume ;
+				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				{
+					param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second ;
+					totalVolume += gp.gaussPoints[j].second ;
+				}
+			}
+			else
+			{
+				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				{
+					totalVolume += gp.gaussPoints[j].second ;
+				}
 			}
 		}
 	}
 	
-	param /= totalVolume ;
+	if(param.isNull())
+		type = VOID_BEHAVIOUR ;
+	else
+		param /= totalVolume ;
+	
 	
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -106,6 +132,8 @@ void HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, co
 
 void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 {
+	if(type == VOID_BEHAVIOUR)
+		return ;
 	if(self2d)
 	{
 		std::vector<DelaunayTriangle *> source = mesh2d->getConflictingElements(self2d->getPrimitive()) ;
@@ -118,13 +146,22 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 				time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
 				space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
 				
-				double area = source[i]->area() ;
-				totalArea += area ;
 				
 				GaussPointArray gp = source[i]->getGaussPoints() ;
-				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				if(source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / area ;
+					for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+					{
+						param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second  ;
+						totalArea += gp.gaussPoints[j].second ;
+					}
+				}
+				else
+				{
+					for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+					{
+						totalArea += gp.gaussPoints[j].second ;
+					}
 				}
 			}
 		}
@@ -143,23 +180,33 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 				time_d = time_d || source[i]->getBehaviour()->timeDependent() ;
 				space_d = space_d || source[i]->getBehaviour()->spaceDependent() ;
 				
-				double volume = source[i]->area() ;
-				totalVolume += volume ;
-				
 				GaussPointArray gp = source[i]->getGaussPoints() ;
-				for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+				if(source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second / volume ;
+					for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+					{
+						param += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second ;
+						totalVolume += gp.gaussPoints[j].second ;
+					}
+				}
+				else
+				{
+					for(size_t j = 0 ; j < gp.gaussPoints.size() ; j++)
+					{
+						totalVolume += gp.gaussPoints[j].second ;
+					}
 				}
 			}
 		}
-		
+
 		param /= totalVolume ;
 	}
 }
 
 void HomogeneisedBehaviour::stepBack()
 {
+	if(type == VOID_BEHAVIOUR)
+		return ;
 	if(self2d)
 	{
 		std::vector<DelaunayTriangle *> source = mesh2d->getConflictingElements(self2d->getPrimitive()) ;

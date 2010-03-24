@@ -23,72 +23,91 @@ namespace Mu
 			virtual void setElementOrder(Order o) = 0;
 			virtual void insert(Point *) = 0 ;
 			template <class ETARGETTYPE>
-			Vector project(Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, const Vector & displacements)
+			/** \brief Return the displacements in source mesh projected on current mesh. 
+			*/
+			Vector project(Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh)
 			{
 				std::vector<ETYPE *> selfElements = getElements() ;
 				std::vector<ETARGETTYPE *> sourceElements = mesh->getElements() ;
 				int pointCount = 0 ;
 				size_t idCount = 0 ;
-				for(size_t i = 0 ; i < sourceElements.size() ; i++)
-				{
-					for(size_t j = 0 ; j = sourceElements[i]->getBoundingPoints().size() ; j++)
-						pointCount = std::max(pointCount, sourceElements[i]->getBoundingPoint(j).id) ;
-					for(size_t j = 0 ; j = sourceElements[i]->getDofIds().size() ; j++)
-						idCount = std::max(idCount, sourceElements[i]->getDofIds()[j]) ;
-				}
-				
-				int numDofs = displacements.size()/idCount ;
-				
-				std::vector<Point *> pointsToProject ;
+				size_t numDofs = 0 ;
 				for(size_t i = 0 ; i < selfElements.size() ; i++)
 				{
-					for(size_t j = 0 ; j = selfElements[i]->getBoundingPoints().size() ; j++)
-						pointsToProject.push_back(&selfElements[i]->getBoundingPoint(j)) ;
-				}
-				
-				Vector projection(numDofs*pointsToProject.size()) ;
-				
-				for(size_t i = 0 ; i < selfElements.size() ; i++)
-				{
-					for(size_t j = 0 ; j = selfElements[i]->getBoundingPoints().size() ; j++)
+					if(selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
-						std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(&selfElements[i]->getBoundingPoint(j)) ;
-						std::vector<Point *> coincidentPoints ;
-						std::vector<ETARGETTYPE *> coincidentElements ;
-						for(size_t k = 0 ; k = targets.size() ; k++)
+						numDofs = std::max(selfElements[i]->getBehaviour()->getNumberOfDegreesOfFreedom(),numDofs) ;
+						if(numDofs)
+							break ;
+					}
+				}
+				
+				Vector projection(numDofs*getLastNodeId()) ;
+				projection = 0 ;
+				
+				for(size_t i = 0 ; i < selfElements.size() ; i++)
+				{
+					if(selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+					{
+						for(size_t j = 0 ; j < selfElements[i]->getBoundingPoints().size() ; j++)
 						{
-							for(size_t l = 0 ; l = targets[k]->getBoundingPoints().size() ; l++)
+							std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(&selfElements[i]->getBoundingPoint(j)) ;
+							std::vector<Point *> coincidentPoints ;
+							std::vector<ETARGETTYPE *> coincidentElements ;
+							for(size_t k = 0 ; k < targets.size() ; k++)
 							{
-								if(selfElements[i]->getBoundingPoint(j) == targets[k]->getBoundingPoint(l))
-									coincidentPoints.push_back(&(targets[k]->getBoundingPoint(l))) ;
-								if(targets[k]->in(selfElements[i]->getBoundingPoint(j)))
-									coincidentElements.push_back(targets[k]) ;
+								for(size_t l = 0 ; l < targets[k]->getBoundingPoints().size() ; l++)
+								{
+									if(selfElements[i]->getBoundingPoint(j) == targets[k]->getBoundingPoint(l))
+										coincidentPoints.push_back(&(targets[k]->getBoundingPoint(l))) ;
+									if(targets[k]->in(selfElements[i]->getBoundingPoint(j)) && targets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+										coincidentElements.push_back(targets[k]) ;
+								}
 							}
-						}
-						
-						if(!coincidentPoints.empty())
-						{
-							Vector disps(numDofs) ;
-							for(size_t k = 0 ; k = coincidentElements.size() ; k++)
+							if(coincidentElements.empty())
 							{
+								Circle c(selfElements[i]->getRadius(), selfElements[i]->getBoundingPoint(j)) ;
+								targets = mesh->getConflictingElements(&c) ;
+								for(size_t k = 0 ; k < targets.size() ; k++)
+								{
+									for(size_t l = 0 ; l < targets[k]->getBoundingPoints().size() ; l++)
+									{
+										Point proj(selfElements[i]->getBoundingPoint(j)) ; 
+										targets[k]->project(&proj) ;
+										
+										if(selfElements[i]->getBoundingPoint(j) == targets[k]->getBoundingPoint(l))
+											coincidentPoints.push_back(&(targets[k]->getBoundingPoint(l))) ;
+										if((targets[k]->in(selfElements[i]->getBoundingPoint(j)) 
+											|| squareDist2D(proj, selfElements[i]->getBoundingPoint(j)) < POINT_TOLERANCE*POINT_TOLERANCE)
+											&& targets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+											coincidentElements.push_back(targets[k]) ;
+									}
+								}
+							}
+							if(!coincidentPoints.empty())
+							{
+								Vector disps(numDofs) ;
+								for(size_t k = 0 ; k < coincidentElements.size() ; k++)
+								{
+									
+									disps = coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j)) ;
+								}
+								for(size_t k = 0 ; k < numDofs ; k++)
+									projection[selfElements[i]->getBoundingPoint(j).id*numDofs+k] = disps[k] ;
+							}
+							else
+							{
+								Vector disps(numDofs) ;
+								for(size_t k = 0 ; k < coincidentElements.size() ; k++)
+								{
+									disps = coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j)) ;
+								}
+								for(size_t k = 0 ; k < numDofs ; k++)
+									projection[selfElements[i]->getBoundingPoint(j).id*numDofs+k] = disps[k] ;
 								
-								disps += coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j))*(double)(1./coincidentPoints.size()) ;
 							}
-							for(size_t k = 0 ; k < numDofs ; k++)
-								projection[selfElements[i]->getBoundingPoint(j).id+k] = disps[k] ;
-						}
-						else
-						{
-							Vector disps(numDofs) ;
-							for(size_t k = 0 ; k = coincidentElements.size() ; k++)
-							{
-								disps += coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j))*(double)(1./coincidentElements.size()) ;
-							}
-							for(size_t k = 0 ; k < numDofs ; k++)
-								projection[selfElements[i]->getBoundingPoint(j).id+k] = disps[k] ;
 							
 						}
-						
 					}
 				}
 				

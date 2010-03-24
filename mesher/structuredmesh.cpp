@@ -2,26 +2,27 @@
 
 using namespace Mu ;
 
-StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point & center ): grid( sizeX,  sizeY,  div, center)
+StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point & center ): grid( sizeX+POINT_TOLERANCE,  sizeY+POINT_TOLERANCE,  div, center)
 {
 	global_counter = 0 ;
 	for(size_t i = 0 ; i < grid.pixels.size()+1 ; i++)
 	{
 		for(size_t j = 0 ; j < grid.pixels[0].size()+1 ; j++)
 		{
-			points.push_back(new Point(center.x-sizeX*.5 +(sizeX)*i/(grid.pixels.size()+1), (center.y-sizeY*.5) + (sizeY)*j/(grid.pixels[0].size()+1))) ;
+			points.push_back(new Point(center.x-sizeX*.5 +(sizeX)*i/(grid.pixels.size()), (center.y-sizeY*.5) + (sizeY)*j/(grid.pixels[0].size()))) ;
 			points.back()->id = global_counter++ ;
 		}
 	}
 	
 	for(size_t i = 0 ; i < grid.pixels.size() ; i++)
 	{
-		for(size_t j = 0 ; j < grid.pixels[i].size() ; j++)
+		for(size_t j = 0 ; j < grid.pixels[0].size() ; j++)
 		{
-			new DelaunayTriangle(this,NULL, points[(grid.pixels[i].size()+1)*i+j], points[(grid.pixels[i].size()+1)*i+j+1], points[(grid.pixels[i].size()+1)*(i+1)+j+1], NULL) ;
-			new DelaunayTriangle(this,NULL, points[(grid.pixels[i].size()+1)*i+j], points[(grid.pixels[i].size()+1)*(i+1)+j], points[(grid.pixels[i].size()+1)*(i+1)+j+1], NULL) ;
+			new DelaunayTriangle(this,NULL, points[(grid.pixels[0].size()+1)*i+j], points[(grid.pixels[0].size()+1)*i+j+1], points[(grid.pixels[0].size()+1)*(i+1)+j+1], NULL) ;
+			new DelaunayTriangle(this,NULL, points[(grid.pixels[0].size()+1)*i+j], points[(grid.pixels[0].size()+1)*(i+1)+j], points[(grid.pixels[0].size()+1)*(i+1)+j+1], NULL) ;
 		}
 	}
+	
 	
 	for(size_t i = 1 ; i < grid.pixels.size()-1 ; i++)
 	{
@@ -95,23 +96,23 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 	int startI = std::max(0., startX/grid.getPixelSize() - 2) ;
 	
 	double endX =  startX+.05*grid.getX();
-	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.getLengthX());
+	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.pixels.size());
 	
 	double startY = grid.getY()*.5-grid.getCenter().y + p->y ;
 	int startJ = std::max(0., startY/grid.getPixelSize() - 2) ;
 	
 	double endY =  startY+.05*grid.getY();
-	int endJ = std::min(endY/grid.getPixelSize() + 2, (double)grid.getLengthY());
+	int endJ = std::min(endY/grid.getPixelSize() + 2, (double)grid.pixels[0].size());
 	
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
 		{
-			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2])->in(*p))
-				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2])) ;
+			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->in(*p))
+				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])) ;
 			
-			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2+1])->in(*p))
-				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.getLengthX()+j*2+1])) ;
+			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->in(*p))
+				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])) ;
 		}
 	}
 	
@@ -127,21 +128,26 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geo
 	int startI = std::max(0., startX/grid.getPixelSize() - 2) ;
 	
 	double endX =  startX+2.*geo->getRadius();
-	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.getLengthX());
+	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.pixels.size());
 	
 	double startY = grid.getY()*.5-grid.getCenter().y + geo->getCenter().y-geo->getRadius() ;
 	int startJ = std::max(0., startY/grid.getPixelSize() - 2) ;
 		
 	double endY =  startY+2.*geo->getRadius();
-	int endJ = std::min(endY/grid.getPixelSize() + 2, (double)grid.getLengthY());
-	for(int i = startI ; i < endI ; i++)
+	int endJ = std::min(endY/grid.getPixelSize() + 2, (double)grid.pixels[0].size());
+// 	for(int i = startI ; i < endI ; i++)
+// 	{
+// 		for(int j = startJ ; j < endJ ; j++)
+// 		{
+	for(int i = 0 ; i < grid.pixels.size() ; i++)
 	{
-		for(int j = startJ ; j < endJ ; j++)
+		for(int j = 0 ; j < grid.pixels[0].size() ; j++)
 		{
 			if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->intersects(geo) 
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->first)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->second)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2]->third)
+				|| static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->in(geo->getCenter())
 				)
 				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])) ;
 			
@@ -149,6 +155,7 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geo
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->first)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->second)
 				|| geo->in(*tree[i*2*grid.pixels[0].size()+j*2+1]->third)
+				|| static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->in(geo->getCenter())
 				)
 				ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])) ;
 		}

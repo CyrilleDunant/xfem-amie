@@ -7,32 +7,25 @@
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/radialstiffnessgradient.h"
 #include "../physics/physics.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
+#include "../physics/kelvinvoight.h"
+#include "../physics/fracturecriteria/vonmises.h"
+#include "../physics/spatially_distributed_stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
-#include "../features/layeredinclusion.h"
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
 #include "../features/enrichmentInclusion.h"
+#include "../features/expansiveZone.h"
 #include "../mesher/delaunay_3d.h"
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 
 #include <fstream>
-#ifdef HAVE_SSE3
-#include <pmmintrin.h>
-#endif
-#ifdef HAVE_SSE4
-#include <smmintrin.h>
-#endif
-#ifdef HAVE_OPENMP
-#include <omp.h>
-#endif
 
 #include <cmath>
 #include <typeinfo>
@@ -48,6 +41,7 @@
 #define ID_NEXT100 3
 #define ID_NEXT1000 4
 #define ID_NEXT 2
+#define ID_BACK -2
 #define ID_NEXT_TIME 0
 #define ID_REFINE 8
 #define ID_AMPLIFY 9
@@ -65,6 +59,7 @@
 #define ID_VON_MISES 20
 #define ID_ANGLE 22
 #define ID_ENRICHMENT 21
+#define ID_FRAC_CRIT 23
 
 #define DISPLAY_LIST_DISPLACEMENT 1
 #define DISPLAY_LIST_ELEMENTS 2
@@ -80,15 +75,15 @@
 #define DISPLAY_LIST_ANGLE 23
 #define DISPLAY_LIST_ENRICHMENT 12
 #define DISPLAY_LIST_STIFFNESS_DARK 24
+#define DISPLAY_LIST_FRAC_CRIT 25
 
 using namespace Mu ;
-
-
-
+using namespace std;
 
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
+std::vector<BranchedCrack *> crack ;
 
 double E_min = 10;
 double E_max = 0;
@@ -99,29 +94,15 @@ double y_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 
-double timepos = 0.05e-07 ;
+double timepos = 0.00 ;
 
-double delta_displacement =  1e-5 ;
-double displacement_tolerance = 0.05*delta_displacement ; 
-double softeningFactor = 1. ;
-
-double percent = 0.01 ;
-double displacement  = 0 ;
-double prescribedDisplacement = 0;
-double derror = 0 ;
-double ierror = 0 ;
-double preverror = 0 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
-double apriori_command = 0 ;
+
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
-
-std::vector<std::pair<double, double> > expansion_reaction ;
-std::vector<std::pair<double, double> > expansion_stress ;
-std::vector<std::pair<double, double> > load_displacement ;
 
 Vector b(0) ;
 Vector x(0) ;
@@ -135,204 +116,91 @@ Vector epsilon22(0) ;
 Vector epsilon12(0) ; 
 Vector vonMises(0) ; 
 Vector angle(0) ; 
+Vector fracCrit(0) ;
 
-double nu = 0.2 ;
-double E_agg = 58.9e9 ;
-double E_paste = 37e9 ;
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.015, .015, -10, 10, -10.) ;
+Vector g_count(0) ;
+
+double nu = 0.3 ;
+double E_agg = 30000.;//softest
+double E_paste = E_agg/4. ;//stiff
+double E_stiff = E_agg*10. ;//stiffer
+double E_soft = E_agg/10.; //stiffest
+
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
-double factor = 25 ;
+double factor = .01 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-void computeDisplacement()
-{
-	x.resize(featureTree->getDisplacements().size()) ;
-	x = featureTree->getDisplacements() ;
-	Circle C(.000001, -0.0025, -0.05) ;
-	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
-	std::vector<int> indices ;
-	for(size_t i = 0 ; i < t.size() ; i++)
-	{
-		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
-		{
-		if(C.in(t[i]->getBoundingPoint(c)))
-			indices.push_back(t[i]->getBoundingPoint(c).id) ;
-		}
-	}
-	
-	std::sort(indices.begin(), indices.end()) ;
-	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
-	displacement = 0 ;
-	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
-	{
-		displacement+=x[(*i)*2.]/(e-indices.begin()) ;
-	}
-
-	Circle C0(.000001, 0.0025, -0.05) ;
-	std::vector<DelaunayTriangle *> t0 = featureTree->get2DMesh()->getConflictingElements(&C) ;
-	std::vector<int> indices0 ;
-	for(size_t i = 0 ; i < t0.size() ; i++)
-	{
-		for(size_t c = 0 ;  c < t0[i]->getBoundingPoints().size() ; c++ )
-		{
-		if(C0.in(t0[i]->getBoundingPoint(c)))
-			indices0.push_back(t0[i]->getBoundingPoint(c).id) ;
-		}
-	}
-	
-	std::sort(indices0.begin(), indices0.end()) ;
-	std::vector<int>::iterator e0 = std::unique(indices0.begin(), indices0.end()) ;
-	double displacement0 = 0 ;
-	for(std::vector<int>::iterator i = indices0.begin() ; i != e0 ; i++)
-	{
-		displacement0+=x[(*i)*2.]/(e0-indices0.begin()) ;
-	}
-
-displacement = displacement-displacement0 ;
-}
+std::vector<double> energy ;
 
 void step()
 {
 	
-	size_t nsteps = 64 ; //16*10;
-	size_t nit = 2 ;
-	size_t ntries = 1;
-	size_t dsteps = 1 ;
-	size_t tries = 0 ;
-	size_t dit = 0 ;
-	for(size_t v = 0 ; v < nsteps ; v++)
-	{
-	std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
-	while(true)
-	{
-		tries++ ;
-		bool go_on = true ;
-		bool no_convergence = true ;
-		bool damage = false ;
-
-		dit = 0;
-		go_on = true ;
-
-		while(featureTree->stable(.1))
-		{
-			load->setData(load->getData()* 2) ;
-		}
-		std::cout << v << "  "<< load->getData()+100000 << ":: "<< std::flush ;
-		while(dit < dsteps)
-		{
-			dit++ ;
-			featureTree->step(timepos) ;
-			if(featureTree->meshChanged())
-				std::cout << "+" << std::flush ;
-			else
-			{
-				std::cout << "." << std::endl ;
-				break ;
-			}
-			if(!featureTree->solverConverged())
-			{
-				tries = ntries ;
-				std::cout << "no convergence" << std::endl ;
-				break ;
-			}
-		}
-// 		if(featureTree->solverConverged())
-// 		{
-			double topLoad = load->getData() ;
-			double currenLoad = load->getData()*.95 ;
-			double bottomLoad = load->getData()*.9 ;
-			if(!featureTree->stable(.1))
-			{
-				load->setData(bottomLoad) ;
-
-				bool stableAtLow = featureTree->stable(.1) ;
-				while(!stableAtLow)
-				{
-					bottomLoad *= .5 ;
-					load->setData(bottomLoad) ;
-					stableAtLow = featureTree->stable(.1) ;
-				}
-				double pcount = 1 ;
-				double mcount = 1 ;
-				do
-				{
-					double startLoad = (topLoad*pcount+bottomLoad*mcount)/(mcount+pcount) ;
-					load->setData((topLoad*pcount+bottomLoad*mcount)/(mcount+pcount)) ;
-					if(featureTree->stable(.1)) // equilibrium load is between current and topLoad
-					{
-						bottomLoad = load->getData() ;
-						pcount++ ;
-					}
-					else // equilibrium load is between current and bottomLoad
-					{
-						topLoad = load->getData() ;
-						mcount++ ;
-					}
-					
-					load->setData(bottomLoad) ;
-					stableAtLow = featureTree->stable(.1) ;
-					while(!stableAtLow)
-					{
-						bottomLoad *= .5 ;
-						load->setData(bottomLoad) ;
-						stableAtLow = featureTree->stable(.1) ;
-					}
-				} while(std::abs(bottomLoad-topLoad) > 10) ;
-				
-				load->setData(bottomLoad) ;
-			}
-			
-			featureTree->step(timepos) ;
-// 		}
-		x.resize(featureTree->getDisplacements().size()) ;
-		x = featureTree->getDisplacements() ;
-		computeDisplacement() ;
-		if(tries > ntries)
-		{
-			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
-			tries = 0 ;
-			load->setData(load->getData()-100000) ;
-			break ;
-		}
-		
-		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 1e-8 )
-			&& (std::abs(load_displacement.back().first - load->getData()) < 1000))
-		{
-// 			std::cout << "o" << std::flush ;
-			std::cout <<  tries << "   " << std::abs(load_displacement.back().second - displacement) << "   " << std::abs(load_displacement.back().first - load->getData()) << "   "<< featureTree->damagedVolume << std::endl ;
-			load->setData(load->getData()-100000) ;
-		}
-		else
-		{
-			std::cout << "." << std::flush ;
-			if(!load_displacement.empty())
-				std::cout <<  load_displacement.back().second << " : "<<  displacement << std::flush ;
-			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
-			load->setData(load->getData()-100000) ;
-			tries = 0 ;
-			break ;
-		}
-		
-		
-
-	}
-	std::cout << std::endl ;
-		saved_load_displacement.push_back(load_displacement.back()) ;
-		load_displacement = saved_load_displacement ;
+	bool cracks_did_not_touch = true;
+	size_t max_growth_steps = 1;
+	size_t countit = 0;	
 	
-// 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
+	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
+	{
+		countit++;
+		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
+      
+		int limit = 0 ;
+		while(!featureTree->step(timepos) && limit < 1)//as long as we can update the features
+		{
+// 			if(limit == 1)
+// 			{
+// 				featureTree->getAssembly()->print() ;
+// 				exit(0) ;
+// 			}
+			std::cout << "." << std::flush ;
+// 			timepos-= 0.0001 ;
+			limit++ ;
+	  // check if the two cracks did not touch
+			cracks_did_not_touch = true;
+			for(size_t j = 0 ; j < crack.size() ; j++)
+			{
+				for(size_t k = j+1 ; k < crack.size() ; k++)
+				{
+		  
+					if (static_cast<SegmentedLine *>(crack[j])->intersects(static_cast<SegmentedLine *>(crack[k])))
+					{
+						cracks_did_not_touch = false;
+						break;
+					}
+		  //Circle headj(radius, crack[j]->getHead());
+		  
+		  //	      head0.intersects(crack[1]);
+				}
+			}
+		}
+	
+  // Prints the crack geo to a file for each crack
+		if (cracks_did_not_touch == false) // if cracks touched
+		{
+			std::cout << "** Cracks touched exporting file **" << endl;	
+				// Print the state of the cracks to a file  
+				std::string filename = "crackGeo.txt";
+				fstream filestr;
+				filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
+				filestr << "Crack vertices" << std::endl;
+				filestr << "x" << " " << "y" << std::endl ; 
+		}
+  
 
+		timepos+= 0.0001 ;
+		double da = 0 ;
+
+		triangles = featureTree->getTriangles() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
+
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		
-	// 	sigma = F.strainFromDisplacements() ;
-	// 	epsilon = F.stressFromDisplacements() ;
+	
 		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
@@ -347,12 +215,25 @@ void step()
 		epsilon12.resize(sigma.size()/3) ;
 		vonMises.resize(sigma.size()/3) ;
 		angle.resize(sigma.size()/3) ;
+		fracCrit.resize(sigma.size()/3) ;
+		g_count.resize(sigma.size()/3) ;
+		std::cout << "unknowns :" << x.size() << std::endl ;
 		
-		std::cerr << "unknowns :" << x.size() << std::endl ;
+		if(crack.size() > 0)
+			tris__ = crack[0]->getElements(featureTree->get2DMesh()) ;
 		
+		for(size_t k = 1 ; k < crack.size() ; k++)
+		{
+			std::vector<DelaunayTriangle *> temp = crack[k]->getElements(featureTree->get2DMesh()) ;
+			if(tris__.empty())
+				tris__ = temp ;
+			else if(!temp.empty())
+				tris__.insert(tris__.end(), temp.begin(), temp.end() ) ;
+		}
+		cracked.clear() ;
 		
 		int npoints = triangles[0]->getBoundingPoints().size() ;
-		
+	
 		double area = 0 ;
 		double avg_e_xx = 0;
 		double avg_e_yy = 0;
@@ -362,17 +243,9 @@ void step()
 		double avg_s_xy = 0;
 		double e_xx = 0 ;
 		double ex_count = 0 ;
-		double avg_e_xx_nogel = 0;
-		double avg_e_yy_nogel = 0;
-		double avg_e_xy_nogel = 0;
-		double avg_s_xx_nogel = 0;
-		double avg_s_yy_nogel = 0;
-		double avg_s_xy_nogel = 0;
-		double nogel_area = 0 ;
-		
+		double enr = 0 ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
-	/*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
 			bool in = false ;
 			for(size_t m = 0 ; m < tris__.size() ; m++)
 			{
@@ -383,10 +256,10 @@ void step()
 				}
 			}
 			cracked.push_back(in) ;
-			
-			
-			
-			if(!in /*&& !triangles[k]->getBehaviour()->fractured()*/)
+		
+		
+		
+			if(!in && !triangles[k]->getBehaviour()->fractured() && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
@@ -413,7 +286,10 @@ void step()
 					if(triangles[k]->getBehaviour()->param[0][0] < E_min)
 						E_min = triangles[k]->getBehaviour()->param[0][0] ;
 				}
-					
+				
+				g_count[k*npoints]++ ;
+				g_count[k*npoints+1]++ ;
+				g_count[k*npoints+2]++ ;
 				sigma11[k*npoints] = sigma[k*npoints*3];
 				sigma22[k*npoints] = sigma[k*npoints*3+1];
 				sigma12[k*npoints] = sigma[k*npoints*3+2];
@@ -426,6 +302,9 @@ void step()
 				
 				if(npoints >3)
 				{
+					g_count[k*npoints+3]++ ;
+					g_count[k*npoints+4]++ ;
+					g_count[k*npoints+5]++ ;
 					sigma11[k*npoints+3] = sigma[k*npoints*3+9];
 					sigma22[k*npoints+3] = sigma[k*npoints*3+10];
 					sigma12[k*npoints+3] = sigma[k*npoints*3+11];
@@ -460,17 +339,23 @@ void step()
 					epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
 				}  
 				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
+				for(size_t l = 0 ; l < npoints ; l++)
 				{
 					Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
+					vonMises[k*npoints+l]  += sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 	
 					double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
+					angle[k*npoints+l]  += agl ;
+					if(triangles[k]->getBehaviour()->getFractureCriterion())
+					{
+						fracCrit[k*npoints+l] = triangles[k]->getBehaviour()->getFractureCriterion()->grade(triangles[k]->getState()) ;
+						enr += triangles[k]->getState().elasticEnergy() ;
+					}
 				}
+	
 				
 				double ar = triangles[k]->area() ;
-				for(int l = 0 ; l < npoints ;l++)
+				for(size_t l = 0 ; l < npoints ;l++)
 				{
 					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
 					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
@@ -479,200 +364,101 @@ void step()
 					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
 					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
 				}
-				
-				if(triangles[k]->getEnrichmentFunctions().size() == 0)
-				{
-					for(int l = 0 ; l < npoints ;l++)
-					{
-						avg_e_xx_nogel += (epsilon11[k*npoints+l]/npoints)*ar;
-						avg_e_yy_nogel += (epsilon22[k*npoints+l]/npoints)*ar;
-						avg_e_xy_nogel += (epsilon12[k*npoints+l]/npoints)*ar;
-						avg_s_xx_nogel += (sigma11[k*npoints+l]/npoints)*ar;
-						avg_s_yy_nogel += (sigma22[k*npoints+l]/npoints)*ar;
-						avg_s_xy_nogel += (sigma12[k*npoints+l]/npoints)*ar;
-						
-					}
-					nogel_area+= ar ;
-				}
-
+	
 			}
 			else
 			{
-				sigma11[k*npoints] = 0 ;
-				sigma22[k*npoints] = 0 ;
-				sigma12[k*npoints] = 0 ;
-				sigma11[k*npoints+1] = 0 ;
-				sigma22[k*npoints+1] = 0 ;
-				sigma12[k*npoints+1] = 0 ;
-				sigma11[k*npoints+2] = 0 ;
-				sigma22[k*npoints+2] = 0 ;
-				sigma12[k*npoints+2] = 0 ;
+				sigma11[k*npoints] += 0 ;
+				sigma22[k*npoints] += 0 ;
+				sigma12[k*npoints] += 0 ;
+				sigma11[k*npoints+1] += 0 ;
+				sigma22[k*npoints+1] += 0 ;
+				sigma12[k*npoints+1] += 0 ;
+				sigma11[k*npoints+2] += 0 ;
+				sigma22[k*npoints+2] += 0 ;
+				sigma12[k*npoints+2] += 0 ;
 				
 				if(npoints >3)
 				{
-					sigma11[k*npoints+3] = 0 ;
-					sigma22[k*npoints+3] = 0 ;
-					sigma12[k*npoints+3] = 0 ;
-					sigma11[k*npoints+4] = 0 ;
-					sigma22[k*npoints+4] = 0 ;
-					sigma12[k*npoints+4] = 0 ;
-					sigma11[k*npoints+5] = 0 ;
-					sigma22[k*npoints+5] = 0 ;
-					sigma12[k*npoints+5] =0 ;
+					sigma11[k*npoints+3] += 0 ;
+					sigma22[k*npoints+3] += 0 ;
+					sigma12[k*npoints+3] += 0 ;
+					sigma11[k*npoints+4] += 0 ;
+					sigma22[k*npoints+4] += 0 ;
+					sigma12[k*npoints+4] += 0 ;
+					sigma11[k*npoints+5] += 0 ;
+					sigma22[k*npoints+5] += 0 ;
+					sigma12[k*npoints+5] += 0 ;
 				}
 				
-				epsilon11[k*npoints] = 0 ;
-				epsilon22[k*npoints] = 0 ;
-				epsilon12[k*npoints] = 0 ;
-				epsilon11[k*npoints+1] = 0 ;
-				epsilon22[k*npoints+1] = 0 ;
-				epsilon12[k*npoints+1] = 0 ;
-				epsilon11[k*npoints+2] = 0 ;
-				epsilon22[k*npoints+2] = 0 ;
-				epsilon12[k*npoints+2] = 0 ;
+				epsilon11[k*npoints] += 0 ;
+				epsilon22[k*npoints] += 0 ;
+				epsilon12[k*npoints] += 0 ;
+				epsilon11[k*npoints+1] += 0 ;
+				epsilon22[k*npoints+1] += 0 ;
+				epsilon12[k*npoints+1] += 0 ;
+				epsilon11[k*npoints+2] += 0 ;
+				epsilon22[k*npoints+2] += 0 ;
+				epsilon12[k*npoints+2] += 0 ;
 				
 				if(npoints > 3)
 				{
-					epsilon11[k*npoints+3] = 0 ;
-					epsilon22[k*npoints+3] = 0 ;
-					epsilon12[k*npoints+3] =0 ;
-					epsilon11[k*npoints+4] = 0 ;
-					epsilon22[k*npoints+4] = 0 ;
-					epsilon12[k*npoints+4] =0 ;
-					epsilon11[k*npoints+5] = 0 ;
-					epsilon22[k*npoints+5] =0 ;
-					epsilon12[k*npoints+5] = 0 ;
+					epsilon11[k*npoints+3] += 0 ;
+					epsilon22[k*npoints+3] += 0 ;
+					epsilon12[k*npoints+3] += 0 ;
+					epsilon11[k*npoints+4] += 0 ;
+					epsilon22[k*npoints+4] += 0 ;
+					epsilon12[k*npoints+4] += 0 ;
+					epsilon11[k*npoints+5] += 0 ;
+					epsilon22[k*npoints+5] += 0 ;
+					epsilon12[k*npoints+5] += 0 ;
 				}  
 				
 				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
 				{
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
+					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  += 0 ;
+					angle[k*triangles[k]->getBoundingPoints().size()+l]  += 0 ;
 				}
 			}
 		}
-		
 	
-		std::cerr << std::endl ;
-		std::cerr << "max value :" << x_max << std::endl ;
-		std::cerr << "min value :" << x_min << std::endl ;
-		std::cerr << "max sigma11 :" << sigma11.max() << std::endl ;
-		std::cerr << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cerr << "max sigma12 :" << sigma12.max() << std::endl ;
-		std::cerr << "min sigma12 :" << sigma12.min() << std::endl ;
-		std::cerr << "max sigma22 :" << sigma22.max() << std::endl ;
-		std::cerr << "min sigma22 :" << sigma22.min() << std::endl ;
+		std::cout << std::endl ;
+		std::cout << "max value x :" << x_max << std::endl ;
+		std::cout << "min value x :" << x_min << std::endl ;
+		std::cout << "max value y :" << y_max << std::endl ;
+		std::cout << "min value y :" << y_min << std::endl ;
+		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
+		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
+		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
+		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
+		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
+		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
 		
-		std::cerr << "max epsilon11 :" << epsilon11.max() << std::endl ;
-		std::cerr << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cerr << "max epsilon12 :" << epsilon12.max() << std::endl ;
-		std::cerr << "min epsilon12 :" << epsilon12.min() << std::endl ;
-		std::cerr << "max epsilon22 :" << epsilon22.max() << std::endl ;
-		std::cerr << "min epsilon22 :" << epsilon22.min() << std::endl ;
+		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
+		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
+		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
+		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
+		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
+		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
 		
-		std::cerr << "max von Mises :" << vonMises.max() << std::endl ;
-		std::cerr << "min von Mises :" << vonMises.min() << std::endl ;
+		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
+		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 		
-		std::cerr << "average sigma11 : " << avg_s_xx/area << std::endl ;
-		std::cerr << "average sigma22 : " << avg_s_yy/area << std::endl ;
-		std::cerr << "average sigma12 : " << avg_s_xy/area << std::endl ;
-		std::cerr << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-		std::cerr << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-		std::cerr << "average epsilon12 : " << avg_e_xy/area << std::endl ;
-		
-		std::cerr << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
-		std::cerr << "average sigma22 (no gel): " << avg_s_yy_nogel/nogel_area << std::endl ;
-		std::cerr << "average sigma12 (no gel): " << avg_s_xy_nogel/nogel_area << std::endl ;
-		std::cerr << "average epsilon11 (no gel): " << avg_e_xx_nogel/nogel_area << std::endl ;
-		std::cerr << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
-		std::cerr << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
-		
-		std::cerr << "apparent extension " << e_xx/ex_count << std::endl ;
-		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
-		
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
-		double reactedArea = 0 ;
+		std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
+		std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
+		std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
+		std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
+		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 			
-// 		if (tries < ntries)
-			for(size_t z = 0 ; z < zones.size() ; z++)
-			{
-				zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
-		// 		zones[z].first->reset() ;
-				reactedArea += zones[z].first->area() ;
-			}
-		
-		std::cerr << "reacted Area : " << reactedArea << std::endl ;
-		
-// 		if (tries < ntries)
-// 		{
-			expansion_reaction.push_back(std::make_pair(reactedArea, avg_e_xx/area)) ;
-			expansion_stress.push_back(std::make_pair(avg_e_xx_nogel/nogel_area, avg_s_xx_nogel/nogel_area)) ;
-// 		}
-		
-// 		if (tries >= ntries)
-// 			break ;
-	}
-	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
-		std::cout << expansion_reaction[i].first << "   " 
-		<< expansion_reaction[i].second << "   " 
-		<< expansion_stress[i].first << "   " 
-		<< expansion_stress[i].second << "   " 
-		<< load_displacement[i].first << "   " 
-		<< load_displacement[i].second << "   " 
-		<< std::endl ;
+		std::cout << "energy index :" << enr << std::endl ;
+		energy.push_back(enr) ;
 
-}
-
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
-{
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	double nu_incompressible = 0.499924 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh*percent+nu_incompressible*(1.-percent) ;
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
-	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
-	aggregateArea = 0 ;
-	for(size_t i = 0 ; i < incs.size() ; i++)
-	{
-		aggregateArea += incs[i]->area() ;
-		for(int j = 0 ; j < n ; j++)
-		{
-			double radius = 0.000001 ;
-			double rangle = (2.*rand()/RAND_MAX-1.)*M_PI ;
-			double rradius = (double)rand()/RAND_MAX*(incs[i]->getRadius()-2.*radius*64) ;
-			Point center = incs[i]->getCenter()+Point(rradius*cos(rangle), rradius*sin(rangle)) ; 
-			
-			bool alone  = true ;
-			
-			for(size_t k = 0 ; k < ret.size() ; k++ )
-			{
-				if (squareDist(center, ret[k].first->Circle::getCenter()) < 2.*(2.*radius)*(2.*radius)*64*64)
-				{
-					alone = false ;
-					break ;
-				}
-			}
-			if (alone)
-			{
-				Vector a(double(0), 3) ;
-				a[0] = .2 ;
-				a[1] = .2 ;
-				a[2] = 0.00 ;
-				
-				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
-				ret.push_back(std::make_pair(z, incs[i])) ;
-				F.addFeature(incs[i],z) ; 
-			}
-		}
+		if(limit < 2)
+			break ;
 	}
-	std::cout << "initial Reacted Area = " << M_PI*0.000001*0.000001*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
-	return ret ;	
+	for(size_t i = 0 ; i < energy.size() ; i++)
+		std::cout << energy[i] << std::endl ;
 }
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
@@ -749,10 +535,15 @@ void Menu(int selection)
 			dlist = false ;
 			break ;
 		}
+	case ID_BACK:
+	{
+		featureTree->stepBack() ;
+		dlist = false ;
+		break ;
+	}
 	case ID_NEXT_TIME:
 		{
 			timepos +=0.0001 ;
-			break ;
 		}
 	case ID_DISP : 
 		{
@@ -814,6 +605,11 @@ void Menu(int selection)
 			current_list = DISPLAY_LIST_ENRICHMENT ;
 			break ;
 		}
+	case ID_FRAC_CRIT: 
+		{
+			current_list = DISPLAY_LIST_FRAC_CRIT ;
+			break ;
+		}
 
 	case ID_QUIT : exit(0) ;
 		
@@ -830,43 +626,10 @@ void Menu(int selection)
 		
 	case ID_AMPLIFY :
 		{
-			x *= 10 ;
+			x *= 1.5 ;
 // 			sigma11 *= 1.5 ;
 // 			sigma22 *= 1.5 ;
 // 			sigma12 *= 1.5 ;
-			
-			for(size_t k = 0 ; k < triangles.size() ; k++)
-			{
-/*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
-				bool in = false ;
-				for(size_t m = 0 ; m < tris__.size() ; m++)
-				{
-					if(triangles[k] == tris__[m])
-					{
-						in = true ;
-						break ;
-					}
-				}
-				cracked.push_back(in) ;
-				
-				
-				
-				if(!in && !triangles[k]->getBehaviour()->fractured())
-				{
-					
-					for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
-					{
-						if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-							x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-						if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-							x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-						if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					}
-				}
-			}
 			dlist = false ;
 			break ;
 		}
@@ -918,10 +681,19 @@ void Display(void)
 // 			y_max = x[k*2+1] ;
 // 		}
 // 	}
-	
+	int start = 0 ;
+	for (unsigned int j=0 ; j< triangles.size() ; j++ )
+	{
+		if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+		{
+			int timePlanes = triangles[j]->timePlanes() ;
+			start = ((triangles[j]->getBoundingPoints().size()-1)*(timePlanes-1))/timePlanes ;
+			break ;
+		}
+	}
+
 	if(!dlist)
 	{
-		
 		
 		glNewList( DISPLAY_LIST_DISPLACEMENT,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
@@ -933,16 +705,16 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->getBoundingPoint(0).id*2]; 
-				double vy = x[triangles[j]->getBoundingPoint(0).id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min)))*300., 1., 1. ) ;
 				glColor3f(c1, c2, c3) ;
 				
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = start+1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -974,15 +746,15 @@ void Display(void)
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma11[j*triangles[j]->getBoundingPoints().size()]-sigma11_min)/(sigma11_max-sigma11_min), 1., 1.) ;
 				
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = start+1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1010,16 +782,16 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vonMises[j*triangles[j]->getBoundingPoints().size()]-vonMises_min)/(vonMises_max-vonMises_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1047,21 +819,57 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(angle[j*triangles[j]->getBoundingPoints().size()]-angle_min)/(angle_max-angle_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
 				
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
 					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(angle[j*triangles[j]->getBoundingPoints().size()+k]-angle_min)/(angle_max-angle_min), 1., 1.) ;
+					glColor3f(c1, c2, c3) ;
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
+					
+				}
+				glEnd() ;
+			}
+		}
+		glEndList() ;
+
+		double crit_max = fracCrit.max() ;
+		double crit_min = fracCrit.min() ;
+		glNewList(  DISPLAY_LIST_FRAC_CRIT,  GL_COMPILE ) ;
+		for (unsigned int j=0 ; j< triangles.size() ; j++ )
+		{
+			
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			{
+				double c1 ;
+				double c2 ;
+				double c3 ;
+				
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
+				
+				glBegin(GL_TRIANGLE_FAN);
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()]-crit_min)/(crit_max-crit_min), 1., 1.) ;
+				glColor3f(c1, c2, c3) ;
+				
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
+				
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				{
+					vx = x[triangles[j]->getBoundingPoint(k).id*2];
+					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()+k]-crit_min)/(crit_max-crit_min), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1084,15 +892,15 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma22[j*triangles[j]->getBoundingPoints().size()]-sigma22_min)/(sigma22_max-sigma22_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1120,15 +928,15 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(sigma12[j*triangles[j]->getBoundingPoints().size()]-sigma12_min)/(sigma12_max-sigma12_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1153,22 +961,22 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				
-				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(0)) ;
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
+				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(start)) ;
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[2][2]-0)/(E_max-0), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(k)) ;
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[2][2]-0)/(E_max-0), 1., 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1188,17 +996,17 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				
-				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(0)) ;
+				Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(start)) ;
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min), 1., .2) ;
 				glColor3f(c1, c2, c3) ;
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1225,15 +1033,15 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(epsilon11[j*triangles[j]->getBoundingPoints().size()]-epsilon11_min)/(epsilon11_max-epsilon11_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1262,15 +1070,15 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(epsilon22[j*triangles[j]->getBoundingPoints().size()]-epsilon22_min)/(epsilon22_max-epsilon22_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1299,15 +1107,15 @@ void Display(void)
 				double c2 ;
 				double c3 ;
 				
-				double vx = x[triangles[j]->first->id*2]; 
-				double vy = x[triangles[j]->first->id*2+1]; 
+				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(epsilon12[j*triangles[j]->getBoundingPoints().size()]-epsilon12_min)/(epsilon12_max-epsilon12_min), 1., 1.) ;
 				glColor3f(c1, c2, c3) ;
-				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
 				
-				for(size_t k = 1 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = 1+start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
@@ -1395,7 +1203,7 @@ void Display(void)
 		glEndList() ;
 		
 		
-		glNewList(  DISPLAY_LIST_ELEMENTS,  GL_COMPILE ) ;
+		glNewList( DISPLAY_LIST_ELEMENTS,  GL_COMPILE ) ;
 		glColor3f(1, 1, 1) ;
 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
@@ -1407,10 +1215,26 @@ void Display(void)
 					glColor3f(1, 1, 1) ;
 				
 				glBegin(GL_LINE_LOOP);
-				for(size_t k = 0 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				for(size_t k = start ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
-					double vx = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2]; 
-					double vy = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					double vx = 0 ; //x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy =  0 ; //x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
+					
+				}
+				glEnd();
+			}
+			else
+			{
+				glColor3f(0, 0, 1) ;
+
+				
+				glBegin(GL_LINE_LOOP);
+				for(size_t k = start ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				{
+					double vx =  0 ; //x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy =  0 ; //x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
 					
@@ -1424,44 +1248,44 @@ void Display(void)
 		
 		
 		glNewList(  DISPLAY_LIST_CRACK,  GL_COMPILE ) ;
-		glLineWidth(4) ;
-// 		for(size_t k  = 0 ; k < crack.size() ; k++)
-// 		{
-// 			glColor3f(1, 0, 0) ;
-// // 			for(unsigned int j=0 ; j< tris__.size() ; j++ )
-// // 			{
-// // 				glBegin(GL_LINE_LOOP);
-// // 				double vx = x[tris__[j]->first->id*2]; 
-// // 				double vy = x[tris__[j]->first->id*2+1]; 
-// // 				
-// // 				glVertex2f( double(tris__[j]->first->x/*+ vx*/) ,
-// // 				            double(tris__[j]->first->y/*+ vy*/) );
-// // 				
-// // 				vx = x[tris__[j]->second->id*2]; 
-// // 				vy = x[tris__[j]->second->id*2+1]; 
-// // 				
-// // 				glVertex2f( double(tris__[j]->second->x/*+ vx*/) ,
-// // 				            double(tris__[j]->second->y/*+ vy*/) );
-// // 				
-// // 				vx = x[tris__[j]->third->id*2]; 
-// // 				vy = x[tris__[j]->third->id*2+1]; 
-// // 				
-// // 				glVertex2f( double(tris__[j]->third->x/*+ vx*/) ,
-// // 				            double(tris__[j]->third->y/*+ vy*/) );
-// // 				glEnd();
-// // 			}
-// // 			
-// // 			glColor3f(0, 1, 1) ;
-// 			glBegin(GL_LINES) ;
-// 			for(size_t j=0 ; j< crack[k]->getBoundingPoints().size()-1 ; j++ )
+
+		for(size_t k  = 0 ; k < crack.size() ; k++)
+		{
+			glColor3f(1, 0, 0) ;
+// 			for(unsigned int j=0 ; j< tris__.size() ; j++ )
 // 			{
-// 				glVertex2f( double(crack[k]->getBoundingPoint(j).x) ,
-// 				            double(crack[k]->getBoundingPoint(j).y) );
-// 				glVertex2f( double(crack[k]->getBoundingPoint(j+1).x) ,
-// 				            double(crack[k]->getBoundingPoint(j+1).y) );
+// 				glBegin(GL_LINE_LOOP);
+// 				double vx = x[tris__[j]->first->id*2]; 
+// 				double vy = x[tris__[j]->first->id*2+1]; 
+// 				
+// 				glVertex2f( double(tris__[j]->first->x/*+ vx*/) ,
+// 				            double(tris__[j]->first->y/*+ vy*/) );
+// 				
+// 				vx = x[tris__[j]->second->id*2]; 
+// 				vy = x[tris__[j]->second->id*2+1]; 
+// 				
+// 				glVertex2f( double(tris__[j]->second->x/*+ vx*/) ,
+// 				            double(tris__[j]->second->y/*+ vy*/) );
+// 				
+// 				vx = x[tris__[j]->third->id*2]; 
+// 				vy = x[tris__[j]->third->id*2+1]; 
+// 				
+// 				glVertex2f( double(tris__[j]->third->x/*+ vx*/) ,
+// 				            double(tris__[j]->third->y/*+ vy*/) );
+// 				glEnd();
 // 			}
-// 			glEnd();
-// 		}
+// 			
+// 			glColor3f(0, 1, 1) ;
+			glBegin(GL_LINES) ;
+			for(size_t j=0 ; j< crack[k]->getBoundingPoints().size()-1 ; j++ )
+			{
+				glVertex2f( double(crack[k]->getBoundingPoint(j).x) ,
+				            double(crack[k]->getBoundingPoint(j).y) );
+				glVertex2f( double(crack[k]->getBoundingPoint(j+1).x) ,
+				            double(crack[k]->getBoundingPoint(j+1).y) );
+			}
+			glEnd();
+		}
 		
 // 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
 // 		{
@@ -1515,8 +1339,6 @@ void Display(void)
 // 			glCallList(DISPLAY_LIST_CRACK) ;
 		
 		glColor3f(1, 1, 1) ;
-		
-		
 	}
 	glColor3f(1, 0, 0) ;
 	glFlush();
@@ -1526,128 +1348,155 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
+  // Material behaviour of the matrix
+	Matrix m0_paste(3,3) ;
+	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
+	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
+	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = .99*E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
+
+	// Material behaviour of the fibres
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
 	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
-	
-	Matrix m0_dest(3,3) ;
-	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =0 ; m0_agg[0][2] = 0 ;
-	m0_agg[1][0] = 0 ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
-	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = 1 ; 
-	
-	Matrix m0_paste(3,3) ;
-	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.44, 0.12,0,0) ;
-	Mu::Rectangle box( 0.01, 0.045,0,0) ;
-	
-// return 0 ; 
+	// Material behaviour for the "very" stiff inclusion
+	Matrix m0_stiff(3,3) ;
+	m0_stiff[0][0] = E_stiff/(1.-nu*nu) ; m0_stiff[0][1] =E_stiff/(1.-nu*nu)*nu ; m0_stiff[0][2] = 0 ;
+	m0_stiff[1][0] = E_stiff/(1.-nu*nu)*nu ; m0_stiff[1][1] = E_stiff/(1.-nu*nu) ; m0_stiff[1][2] = 0 ; 
+	m0_stiff[2][0] = 0 ; m0_stiff[2][1] = 0 ; m0_stiff[2][2] = E_stiff/(1.-nu*nu)*(1.-nu)/2. ; 
+
+	// Material behaviour for the "very" soft inclusion
+	Matrix m0_soft(3,3) ;
+	m0_soft[0][0] = E_soft/(1.-nu*nu) ; m0_soft[0][1] =E_soft/(1.-nu*nu)*nu ; m0_soft[0][2] = 0 ;
+	m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1.-nu*nu) ; m0_soft[1][2] = 0 ; 
+	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
+
+	double width = 500;
+	double height = 500;
+	Sample sample(NULL, height , height, 0, 0) ;//sample() ;
+	Matrix d(3,3) ;
+	d[0][0] = .1*E_paste ;
+	d[1][1] = .1*E_paste ;
+	d[2][2] = .1*E_paste ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
+//  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;	
+	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
+//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
+// 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
-	double itzSize = 0.00001;
-	int inclusionNumber = 1000 ;
-	Mu::Rectangle zone(0.04, 0.1, 0,0) ;
+// 	crack.push_back(new BranchedCrack(new Point(-0.02, -.00215), new Point(-0.009, -.00215)));
+// 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
+// 	crack.back()->setEnrichementRadius(.0005) ;
+	//add crack to list of cracks
+// 	crack.push_back(new BranchedCrack(new Point(0.011,.00215), new Point(0.009, 0.00215))) ;
+// 	crack.back()->setEnrichementRadius(.0005) ;
+// 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
+	Vector def(3) ; 
+// 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
+// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
+	Inclusion * inc0 = new Inclusion(100, -200, 1) ;
+	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
+
+	XMLTree * test = inc0->toXML() ;
+	test->print(true) ;
+	std::cout << std::endl ;
+	Circle c(test->getChild(0)) ;
+	c.toXML()->print(true) ;
+	std::cout << std::endl ;
+	XMLTree * c0 = test->getChild(1) ;
+	c0->print(true) ;
+	std::cout << std::endl ;
+	XMLTree * c1 = c0->getChild(0) ;
+	c1->print(true) ;
+	std::cout << std::endl ;
+	Matrix mtest = c1->buildMatrix().second;
+	XMLTree * x = new XMLTree("test",mtest) ;
+	x->print(true) ;
+// 	return 0 ;
+
+ 	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
+// 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
+	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
+// 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
+ 	F.addFeature(&sample, inc0) ;
+// 	F.addFeature(&sample, inc1) ;
+//	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
+// 	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste, 450000) ;
+// 	inc1->setBehaviour(stiff) ;
+// 	inc2->setBehaviour(stiff) ;
+//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
+// 	F.addFeature(&sample, inc1) ;
+// 	F.addFeature(&sample, inc2) ;
+//  	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
+// 	F.addFeature(&sample, itz) ;
+// 	F.addFeature(itz, inc1) ;
+// 	F.addFeature(&sample, inc1) ;
+// 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
+// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
+// 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
+// 	F.addFeature(&sample, new TriangularPore(Point( 0.011,  0.002) , Point( 0.011, 0.0023), Point( 0.009, 0.00215) )) ;
+
+// 	F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025, -0.0185), Point( 0.025, -0.0185) )) ;
+// F.addFeature(&sample, new TriangularPore(Point( -0.0047, -0.002) , Point( -0.0057, -0.002), Point( -0.0067, 0.002) )) ;
+// F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
+// F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
+// F.addFeature(&sample, new TriangularPore(Point( -0.002, -0.002) , Point( -0.001, -0.002), Point( -0.0015, 0.002) )) ;
+	std::vector<Pore *> pores;
+
+	double totalMass = 0.25;
+	double density = 25000;
+	double Dmax = 0.005;
+	double pmin = 0.999;
+	// Generates inclusion geometry
+	double radius1 = 0.004; 	double radius2 = 0.04/5;
+	double radius3 = 0.04/5; double radius4 = 0.04/10;
+	double radius5 = 0.04/20;  double radius6 = 0.04/20;
+	Point center1 = Point(0.0,-0.01);
+	Point center2 = Point(0.02,0.02);
+	Point center3 = Point(-0.02,-0.02);
+	Point center4 = (center2 + center1)/2;
+	Point center5 = (center1 + Point(0.0,0.01));
+	Point center6 = (center5 + Point(0.0,0.005));
+	double stress = 55 ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
+
+// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_XI , Point(1, -1), -0.001)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
+//	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	
-	double masseInitiale = .0000037;
-	double densite = 1.;
-	std::vector<Inclusion *> inclusions = GranuloBolome(masseInitiale, densite, BOLOME_A)(.008, .0001, inclusionNumber, itzSize);//GranuloBolome(4.79263e-07, 1, BOLOME_D)(.002, .0001, inclusionNumber, itzSize);
-
-	if(inclusionNumber)
-		itzSize = inclusions[inclusions.size()-1]->getRadius() ;
-	for(size_t i = 0; i < inclusions.size() ; i++)
-		delete inclusions[i] ;
-
-	inclusions = GranuloBolome(masseInitiale, densite, BOLOME_A)(.008, .0001, inclusionNumber, itzSize);
-
-	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inclusions.size() ; i++)
-		feats.push_back(inclusions[i]) ;
-
-	int nAgg = 0 ;
-	feats=placement(&zone, feats, &nAgg, 64000);
-
-	double volume = 0 ;
-	for(size_t i = 0 ; i < feats.size() ; i++)
-		volume += feats[i]->area() ;
-	if(!feats.empty())
-		std::cout << "largest r = " << feats.back()->getRadius() 
-		<< ", smallest r =" << feats.front()->getRadius() 
-		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
-// 	feats=placement(new Circle(.01, 0,0), feats, &nAgg, 32000);
-	inclusions.clear() ;
-	for(size_t i = 0; i < feats.size() ; i++)
-		inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_RIGHT)) ;
 	
-	std::cout << "incs : " << inclusions.size() << std::endl ;
-	double placed_area = 0 ;
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(37000, -37000*10))) ;
+	Circle cercle(.5, 0,0) ;
 
-	inclusions[0]->setRadius(inclusions[0]->getRadius()-itzSize*.75) ;
-	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,800000)) ;
-// 	F.addFeature(&sample,inclusions[0]) ;
-// 	for(size_t i = 1 ; i < inclusions.size(); i++)
-// 	{
-// 
-// 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize*.75) ;
-// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,80000000)) ;
-// 		F.addFeature(inclusions[i-1],inclusions[i]) ;
-// 		placed_area += inclusions[i]->area() ;
-// 	}
+	F.sample(512) ;
 
-	F.addBoundaryCondition(load) ;
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-0.205, -0.6) ));
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-0.205, -0.6) ));
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM,Point(0.205, -0.6) ));
-// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2075, -0.2025, -10, 10) );
-// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2075, -0.2025, -10, 10) );
-// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2025, 0.2075,  -10, 10) );
-// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2095, -0.2005, -10, 10) );
-// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
-// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
-	
-	Sample notch(.005, .07, 0, -.045) ;
-	notch.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,&notch) ;
-	
-	
-	Sample base0(0.45, .01, 0, .055) ;
-	base0.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,&base0) ;
-	Sample * pore1 = new Sample(0.03, 0.01, 0, .055) ;
-	pore1->setBehaviour(new Stiffness(m0_paste*.25)) ;
-	F.addFeature(&base0,pore1) ;
-	
-	Sample * pore = new Sample(0.44, 0.01, 0, -.055) ;
-	pore->setBehaviour(new Stiffness(m0_paste*5)) ;
-	Sample base(.38, .01, 0, -.055) ;
-	base.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,pore) ;
-// 	pore->isVirtualFeature = true ;
-	F.addFeature(&sample,&base) ;
+	F.setOrder(QUADRATIC) ;
+	F.generateElements() ;
+// 	F.refine(3) ;
 
 	
-	if(!inclusions.empty())
-	{
-		std::cout << "largest inclusion with r = " << inclusions.front()->getRadius() << std::endl ;
-		std::cout << "smallest inclusion with r = " << inclusions.back()->getRadius() << std::endl ;
-		std::cout << "placed area = " <<  placed_area << std::endl ;
-	}
-// 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
-// 	zones = generateExpansiveZones(3, inclusions, F) ;
-
-	F.sample(32) ;
-	F.setOrder(LINEAR) ;
-	F.generateElements(0, true) ;
+//	F.generateElements(0) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
-	triangles = F.getTriangles() ;
+	
+//	for(size_t j = 0 ; j < crack.size() ; j++)
+	//	crack[j]->setInfluenceRadius(0.02) ;
 // 	
+
 	step() ;
+	
 	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
@@ -1669,10 +1518,12 @@ int main(int argc, char *argv[])
 	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
 	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
 	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
+	glutAddMenuEntry(" Frac Crit     ", ID_FRAC_CRIT);
 	
 	glutCreateMenu(Menu) ;
 
  	glutAddMenuEntry(" Step          ", ID_NEXT);
+	glutAddMenuEntry(" StepBack      ", ID_BACK);
 	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
 	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
 	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
