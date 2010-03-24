@@ -43,10 +43,10 @@ class Assembly ;
 	struct LinearSolver : public Solver
 	{
 		virtual ~LinearSolver() { } ;
-		const Vector & b ;
+		Vector & b ;
 		const CoordinateIndexedSparseMatrix & A ;
 		Vector x ;
-		LinearSolver(const CoordinateIndexedSparseMatrix &, const Vector &) ;
+		LinearSolver(const CoordinateIndexedSparseMatrix &, Vector &) ;
 		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-9, const int maxit = -1, bool verbose = false)  = 0 ;
 	};
 	

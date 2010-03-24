@@ -198,7 +198,7 @@ displacement = displacement-displacement0 ;
 void step()
 {
 	
-	size_t nsteps = 64 ; //16*10;
+	size_t nsteps = 1 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 1;
 	size_t dsteps = 1 ;

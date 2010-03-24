@@ -489,9 +489,9 @@ Vector & Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVe
 {
 	ret = 0 ;
 	int end = c.co.sm.row_size.size() ; 
-	timeval time0, time1 ;
-	gettimeofday(&time0, NULL);
-	int chunk = end/2 ;
+// 	timeval time0, time1 ;
+// 	gettimeofday(&time0, NULL);
+// 	int chunk = end/2 ;
 #pragma omp parallel for
 	for (int i = 0 ; i <end ; i++)
 	{
@@ -499,9 +499,9 @@ Vector & Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVe
 		for(int j = i*c.co.sm.stride ; j < i*c.co.sm.stride+c.co.sm.stride ; j++)
 			ret[j] = temp[j-i*c.co.sm.stride] - c.ve[j];
 	}
-	gettimeofday(&time1, NULL);
-	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cerr << (2.*c.co.sm.array.size()+c.ve.size())/delta << std::endl ;
+// 	gettimeofday(&time1, NULL);
+// 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+// 	std::cerr << (2.*c.co.sm.array.size()+c.ve.size())/delta << std::endl ;
 	return ret ;
 } ;
 

@@ -13,7 +13,7 @@
 
 namespace Mu {
 
-GaussSeidel::GaussSeidel(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) { };
+GaussSeidel::GaussSeidel(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { };
 
 bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {

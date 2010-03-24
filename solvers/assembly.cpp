@@ -796,6 +796,25 @@ bool Assembly::make_final()
 	return symmetric ;
 }
 
+bool Assembly::mgprepare()
+{
+	bool sym = make_final() ;
+	return sym ;
+}
+
+bool Assembly::mgsolve(LinearSolver * mg, Vector x0, int Maxit)
+{
+
+	std::cerr << "symmetrical problem" << std::endl ;
+
+	bool ret = mg->solve(x0) ;
+
+	displacements.resize(mg->x.size()) ;
+	displacements = mg->x ;
+
+	return ret ;
+}
+
 CoordinateIndexedSparseMatrix & Assembly::getMatrix()
 {
 	return *this->coordinateIndexedMatrix ;
@@ -1245,7 +1264,7 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 	return ret ;
 }
 
-bool Assembly::cgsolve(Vector x0, size_t maxit) 
+bool Assembly::cgsolve(Vector x0, int maxit) 
 {
 	bool sym = true ;
 	bool ret = true ;

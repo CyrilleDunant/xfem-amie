@@ -80,8 +80,6 @@ namespace Mu
 										coincidentElements.push_back(targets[k]) ;
 								}
 							}
-							if(coincidentElements.empty())
-								std::cout << "aie" << std::endl ;
 							if(!coincidentPoints.empty())
 							{
 								Vector disps(numDofs) ;

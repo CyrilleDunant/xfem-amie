@@ -22,7 +22,7 @@
 
 using namespace Mu ;
 
-ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) { };
+ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { };
 
 bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
@@ -30,9 +30,9 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	size_t Maxit ;
 	const Preconditionner * P ;
 	InverseDiagonal P_alt(A) ;
-// 	if(maxit > 0)
-// 		Maxit = maxit ;
-// 	else
+	if(maxit != -1)
+		Maxit = maxit ;
+	else
 		Maxit = b.size() ;
 	
 	bool cleanup = false ;
@@ -138,6 +138,6 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 		delete P ;
 	}
 	
-	return (err < eps) || (nit < Maxit) ;
+	return (err < eps)  ;
 }
 

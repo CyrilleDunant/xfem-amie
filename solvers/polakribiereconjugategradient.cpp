@@ -29,7 +29,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, const Preconditionner 
 	size_t k = 0 ;
 	size_t i = 0 ;
 	const CoordinateIndexedSparseMatrix &A = assembly->getMatrix() ;
-	const Vector & b = assembly->getForces() ;
+	Vector & b = assembly->getForces() ;
 	Vector & y = assembly->getDisplacements();
 	bool nl = assembly->nonLinearStep() ;
 
@@ -38,7 +38,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, const Preconditionner 
 	{
 		std::cerr << "Linear problem, falling back to linear CG" << std::endl;
 		ConjugateGradient cg(assembly->getMatrix(), b) ;
-		bool ret =  cg.solve(x0, NULL,eps, b.size()/8, true) ;
+		bool ret =  cg.solve(x0, NULL,eps, -1, true) ;
 		x.resize(cg.x.size())  ;
 		x = cg.x ;
 		return ret ;

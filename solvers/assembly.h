@@ -25,30 +25,12 @@
 #include "../physics/physics.h"
 #include "../sparse/sparse_matrix.h"
 
+
 namespace Mu
 {
 
+class LinearSolver ;
 
-// class Assembly
-// {
-// protected:
-// 	std::map< std::pair<size_t, size_t>, double > morseMatrix ;
-// 	std::vector<std::vector<double > > mother ;
-// 	bool cached ;
-// 	Form *l ;
-// 	
-// public:
-// 	Assembly( Form *w) ;
-// 	
-// 	virtual ~Assembly() ;
-// 	
-// 	void operator +=(const ElementarySurface * e) ;
-// 	
-// 	Matrix finalise() const ;
-// 	
-// 	void print() const ;
-// 	
-// } ;
 
 typedef enum 
 {
@@ -262,7 +244,12 @@ public:
 	bool solve(Vector x, size_t maxit = 1000, const bool verbose = false) ;
 
 /** \brief Solve linear system using Preconditionned Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
-	bool cgsolve(Vector x0 = Vector(0), size_t maxit = 10000) ;
+	bool cgsolve(Vector x0 = Vector(0), int maxit = -1) ;
+	
+/** \brief Solve linear system using provided solver*/
+
+	bool mgprepare() ;
+	bool mgsolve(LinearSolver * mg, Vector x0 = Vector(0), int maxit = -1) ;
 
 /** \brief Solve linear system using Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
 	bool cgnpsolve(Vector b, size_t maxit) ;

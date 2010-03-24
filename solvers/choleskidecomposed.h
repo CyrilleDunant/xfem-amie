@@ -34,7 +34,7 @@ namespace Mu
 	{
 		Vector d ;
 		virtual ~LowerTriangular() { } ;
-		LowerTriangular(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) ;
+		LowerTriangular(const CoordinateIndexedSparseMatrix &A_, Vector &b_) ;
 		virtual bool solve(const Vector &x0, const Preconditionner * precond= NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
@@ -43,7 +43,7 @@ namespace Mu
 	{
 		Vector d ;
 		virtual ~UpperTriangular() { } ;
-		UpperTriangular(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) ;
+		UpperTriangular(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
 		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
@@ -53,7 +53,7 @@ namespace Mu
 		const Vector &d ;
 		Vector y ;
 		virtual ~CholeskiDecomposed() { } ;
-		CholeskiDecomposed(const CoordinateIndexedSparseMatrix &A_, const Vector &b_, const Vector &d_) ;
+		CholeskiDecomposed(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_, const Vector& d_) ;
 		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	};
 
