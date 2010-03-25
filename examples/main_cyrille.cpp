@@ -1422,7 +1422,7 @@ int main(int argc, char *argv[])
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
 	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
- 	F.addFeature(&sample, inc0) ;
+//  	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
 // 	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste, 450000) ;

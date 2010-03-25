@@ -31,7 +31,7 @@ public:
 	 * @param numDof 
 	 * @param threshold 
 	 */
-	LinearDamage(int numDof) ;
+	LinearDamage(int numDof, double characteristicRadius) ;
 
 	virtual ~LinearDamage();
 

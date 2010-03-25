@@ -22,9 +22,30 @@ namespace Mu
 /** \brief Damage model interface */
 class DamageModel
 {
+protected:
+	double characteristicRadius ;
+	double thresholdDamageDensity ;
+	double damageDensityIncrement ;
+	double fraction ;
 public:
-	DamageModel() { isNull = true ; } ;
-
+	DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
+	{ 
+		isNull = true ; 
+		thresholdDamageDensity = .2 ;
+		damageDensityIncrement = .1 ;
+		fraction = -1 ;
+	} ;
+	
+	void setThresholdDamageDensity(double d)
+	{
+		thresholdDamageDensity = d ;
+	}
+	
+	void setDamageDensityIncrement(double d)
+	{
+		damageDensityIncrement = d ;
+	}
+	
 	/** \brief Return a vector of values describing the damage stage of the material
 	 * 
 	 * @return a Vector
@@ -71,7 +92,7 @@ protected:
 	Vector state ;
 public:
 
-	NullDamage() : state(0) { } ;
+	NullDamage() : DamageModel(0), state(0) { } ;
 
 	/** \brief Return an empty vector
 	 * 

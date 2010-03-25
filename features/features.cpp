@@ -4700,9 +4700,15 @@ bool FeatureTree::step(double dt)
 		if(false && !coarseAssemblies.empty())
 		{
 			if(is2D())
-				coarseAssemblies[0]->cgsolve(coarseTrees[0]->project(dtree)) ;
+			{
+				coarseTrees[0]->project(dtree, coarseAssemblies[0]->getDisplacements()) ;
+				coarseAssemblies[0]->cgsolve(coarseAssemblies[0]->getDisplacements()) ;
+			}
 			else
-				coarseAssemblies[0]->cgsolve(coarseTrees3D[0]->project(dtree3D)) ;
+			{
+				coarseTrees3D[0]->project(dtree3D, coarseAssemblies[0]->getDisplacements()) ;
+				coarseAssemblies[0]->cgsolve(coarseAssemblies[0]->getDisplacements()) ;
+			}
 			
 			if(is2D())
 			{
@@ -4734,7 +4740,8 @@ bool FeatureTree::step(double dt)
 		}
 		for(size_t j = 1 ; j < coarseAssemblies.size() ;j++)
 		{
-			coarseAssemblies[j]->cgsolve(coarseTrees[j]->project(coarseTrees[j-1])) ;
+			coarseTrees[j]->project(coarseTrees[j-1], coarseAssemblies[j]->getDisplacements());
+			coarseAssemblies[j]->cgsolve(coarseAssemblies[j]->getDisplacements()) ;
 			if(is2D())
 			{
 				std::cerr << " stepping through elements... grid " << j << std::flush ;
@@ -4764,14 +4771,19 @@ bool FeatureTree::step(double dt)
 		}
 
 		if(false && !coarseAssemblies.empty())
-			solverConvergence = K->cgsolve(dtree->project(coarseTrees.back())) ;
+		{
+			dtree->project(coarseTrees.back(), K->getDisplacements()) ;
+			solverConvergence = K->cgsolve(K->getDisplacements()) ;
+		}
 		else
+		{
 			solverConvergence = K->cgsolve(lastx) ;
+		}
 	}
 	else
 	{
 		lastx = 0 ;
-		if(false && !coarseAssemblies.empty())
+		if(/*false &&  */!coarseAssemblies.empty())
 		{
 			coarseAssemblies[0]->cgsolve() ;
 
@@ -4802,7 +4814,8 @@ bool FeatureTree::step(double dt)
 			
 			for(size_t j = 1 ; j < coarseAssemblies.size() ;j++)
 			{
-				coarseAssemblies[j]->cgsolve(coarseTrees[j]->project(coarseTrees[j-1])) ;
+				coarseTrees[j]->project(coarseTrees[j-1], coarseAssemblies[j]->getDisplacements()) ;
+				coarseAssemblies[j]->cgsolve(coarseAssemblies[j]->getDisplacements()) ;
 				if(is2D())
 				{
 					std::cerr << " stepping through elements... grid " << j << std::flush ;
@@ -4831,7 +4844,7 @@ bool FeatureTree::step(double dt)
 			}
 		}
 		
-		if(false && !coarseAssemblies.empty())
+		if(/*false && */!coarseAssemblies.empty())
 		{
 			K->mgprepare() ;
 			MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> * mg 
@@ -4990,7 +5003,7 @@ bool FeatureTree::step(double dt)
 		}
 	}
 	
-	if(meshChange)
+	if(/*false && */meshChange)
 	{
 		if(is2D())
 		{
@@ -5429,7 +5442,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	std::cerr << "...done" << std::endl ;
 	
 	int ndivs = round(sqrt(basepoints)/4) ;
-	while( ndivs > 10)
+	while( ndivs > 4)
 	{
 		coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), ndivs, Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
 		coarseAssemblies.push_back(new Assembly()) ;

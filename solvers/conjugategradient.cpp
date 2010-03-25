@@ -127,7 +127,7 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	
 	if(verbose)
 	{
-		if(nit < Maxit)
+		if(nit <= Maxit)
 			std::cerr << "\n converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
 			std::cerr << "\n did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
@@ -138,6 +138,6 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 		delete P ;
 	}
 	
-	return (err < eps)  ;
+	return err < std::max(eps*neps, neps) || nit < Maxit ;
 }
 

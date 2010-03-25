@@ -13,8 +13,8 @@
 
 namespace Mu {
 
-LinearDamage::LinearDamage(int numDof)
- : state(numDof + 1)
+LinearDamage::LinearDamage(int numDof, double characteristicRadius)
+ : DamageModel(characteristicRadius), state(numDof + 1)
 {
 	isNull = false ;
 	state = 0 ;
@@ -32,7 +32,21 @@ Vector & LinearDamage::damageState()
 }
 void LinearDamage::step(ElementState & s)
 {
-	double maxD = .99999 ;
+	if(fraction < 0)
+	{
+		double volume ;
+		if(s.getParent()->spaceDimensions() == 2)
+			volume = s.getParent()->area() ;
+		else
+			volume = s.getParent()->volume() ;
+		
+		double charVolume ;
+		if(s.getParent()->spaceDimensions() == 2)
+			charVolume = M_PI*characteristicRadius*characteristicRadius ;
+		else
+			charVolume = 4./3*M_PI*characteristicRadius*characteristicRadius*characteristicRadius ;
+		fraction = volume/charVolume ;
+	}
 	Vector pstrain = s.getPrincipalStresses(s.getParent()->getCenter()) ;
 	Vector strain = s.getStrain(s.getParent()->getCenter()) ;
 	
@@ -51,15 +65,15 @@ void LinearDamage::step(ElementState & s)
 // 			state[i] += .1; //25e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; // ;
 // 			state[i] = std::min(maxD, state[i]) ;
 // 		}
-		state[state.size()-1] += .1 ; //25e-5*(maxD/sqrt(s.getParent()->area())) ;
-		state[state.size()-1] = std::min(maxD, state[state.size()-1]) ;
+		state[state.size()-1] += damageDensityIncrement*fraction ; //25e-5*(maxD/sqrt(s.getParent()->area())) ;
+		state[state.size()-1] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[state.size()-1]) ;
 	}
 	else/* if (!strainBroken)*/
 	{
 		for(size_t i = 0 ; i < state.size() ; i++)
 		{
-			state[i] += .1; //25e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
-			state[i] = std::min(maxD, state[i]) ;
+			state[i] += damageDensityIncrement*fraction; //25e-5*(maxD/sqrt(s.getParent()->area()))*(std::abs(pstrain[i])/snorm) ; //5e-5*maxD/sqrt(s.getParent()->area()) ;
+			state[i] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[i]) ;
 		}
 	}
 // 	std::cout << state.sum() << std::flush ;
@@ -100,7 +114,7 @@ Matrix LinearDamage::apply(const Matrix & m) const
 
 bool LinearDamage::fractured() const
 {
-	return state.max() >= .95 ;
+	return state.max() >= thresholdDamageDensity/fraction ;
 }
 
 LinearDamage::~LinearDamage()

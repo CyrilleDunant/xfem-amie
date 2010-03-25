@@ -13,8 +13,8 @@
 
 namespace Mu {
 
-IsotropicLinearDamage::IsotropicLinearDamage(int numDof)
- : state(1)
+IsotropicLinearDamage::IsotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius),
+ state(1)
 {
 	state[0] = 0 ;
 	isNull = false ;
@@ -33,10 +33,24 @@ Vector & IsotropicLinearDamage::damageState()
 
 void IsotropicLinearDamage::step(ElementState & s)
 {
-	double maxD = .999999 ; 
-
-	state[0] += .025 ; 
-	state[0] = std::min(maxD, state[0]) ;
+	if(fraction < 0)
+	{
+		double volume ;
+		if(s.getParent()->spaceDimensions() == 2)
+			volume = s.getParent()->area() ;
+		else
+			volume = s.getParent()->volume() ;
+		
+		double charVolume ;
+		if(s.getParent()->spaceDimensions() == 2)
+			charVolume = M_PI*characteristicRadius*characteristicRadius ;
+		else
+			charVolume = 4./3*M_PI*characteristicRadius*characteristicRadius*characteristicRadius ;
+		fraction = volume/charVolume ;
+	}
+	
+	state[0] += damageDensityIncrement*fraction ; 
+	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
 
 }
 
@@ -56,7 +70,7 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 
 bool IsotropicLinearDamage::fractured() const 
 {
-	return state[0] >= .9 ;
+	return state[0] >= thresholdDamageDensity/fraction ;
 }
 
 

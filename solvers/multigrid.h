@@ -15,6 +15,7 @@
 
 #include "solver.h"
 #include "conjugategradient.h"
+#include "inversediagonal.h"
 
 namespace Mu 
 {
@@ -34,6 +35,7 @@ namespace Mu
 			LinearSolver * subsolver = NULL;
 			int Maxit = maxit ;
 
+			InverseDiagonal * p0 =new InverseDiagonal(A) ;
 			ConjugateGradient cg0(A, b) ;
 			if(x0.size() == b.size())
 			{
@@ -48,7 +50,7 @@ namespace Mu
 			
 			if(maxit == -1)
 				Maxit = x.size() ;
-			cg0.solve(x, NULL, 1e-10, 1, false) ;
+			cg0.solve(x, p0, 1e-10, 0, false) ;
 			x = cg0.x ;
 			Vector r0 = A*x-b ;
 			int nit = 0 ;
@@ -56,51 +58,70 @@ namespace Mu
 			//mesh0 refresh elements with r0 ;
 			std::vector<ETYPE *> elements0 = mesh0->getElements() ;
 			for(size_t i = 0 ; i < elements0.size() ; i++)
-				elements0[i]->step(0., &r0) ;
-			Vector r1 = mesh1->project(mesh0) ;
+				elements0[i]->step(1., &r0) ;
+			Vector r1(A1.row_size.size()*A1.stride) ;
+			mesh1->project(mesh0, r1) ;
 
 			
 			//if last grid
 			subsolver = new ConjugateGradient(A1, r1) ;
-			subsolver->solve(r1, NULL, 1e-10, -1, false) ;
+
+			InverseDiagonal * p1 =new InverseDiagonal(A1) ;
+			subsolver->solve(r1, p1, 1e-10, -1, false) ;
 
 			//mesh1 refresh elements with r1
 			std::vector<ETYPE *> elements1 = mesh1->getElements() ;
 			for(size_t i = 0 ; i < elements1.size() ; i++)
-				elements1[i]->step(0., &subsolver->x) ;
-			x -= mesh0->project(mesh1) ;
+				elements1[i]->step(1., &subsolver->x) ;
+			mesh0->project(mesh1, r0) ;
+			x -= r0 ;
 
 			//iterate once
 			bool coarseConverged = false ;
 			while(nit < Maxit)
 			{
 				
-				std::cout << nit++ << std::endl;
-				bool solve = cg0.solve(x, NULL, 1e-10, 1, false) ;
+				std::cout  << std::endl;
+				bool solve = cg0.solve(x, p0, 1e-10, 0, false) ;
 				x = cg0.x ;
 				if(solve)
 				{
 					delete subsolver ;
 					return true ;
 				}
-				if(!coarseConverged)
+				if( !coarseConverged)
 				{
 					r0 = A*x-b ;
-					std::cout << "err = " << std::abs(r0).max()  << std::endl ;
+					std::cout << nit++<< ", err = " << std::abs(r0).max()  << std::endl ;
 					//mesh0 refresh elements with r ;
-					elements0 = mesh0->getElements() ;
+
 					for(size_t i = 0 ; i < elements0.size() ; i++)
-						elements0[i]->step(0., &r0) ;
-					r1 = mesh0->project(mesh1) ;
+						elements0[i]->step(1., &r0) ;
+					mesh1->project(mesh0, r1) ;
 					subsolver->b = r1 ;
-					subsolver->solve(subsolver->x, NULL, 1e-10, -1, false) ;
-					if(std::abs(subsolver->x).max() < 1e-10)
+					subsolver->solve(subsolver->x, p1, 1e-10, -1, false) ;
+					if(std::abs(subsolver->x).max() < 1e-8)
 						coarseConverged = true ;
 					//mesh1 refresh elements with r1
-					elements1 = mesh1->getElements() ;
+
 					for(size_t i = 0 ; i < elements1.size() ; i++)
-						elements1[i]->step(0., &subsolver->x) ;
-					x -= mesh0->project(mesh1) ;
+						elements1[i]->step(1., &subsolver->x) ;
+					mesh0->project(mesh1, r0) ;
+					std::cout << "err = " << std::abs(r0).max()  << std::endl ;
+					x -= r0 ;
+				}
+				else
+				{
+					std::cout << nit++ << std::endl;
+					bool solve = cg0.solve(x, p0, 1e-10, -1, true) ;
+					x = cg0.x ;
+					if(solve)
+					{
+						delete subsolver ;
+						delete p0 ;
+						delete p1 ;
+						return true ;
+					}
 				}
 			}
 			delete subsolver ;

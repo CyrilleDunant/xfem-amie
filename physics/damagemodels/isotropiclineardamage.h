@@ -29,7 +29,7 @@ public:
 	 * 
 	 * @param numDof number of degrees of freedom
 	 */
-	IsotropicLinearDamage(int numDof) ;
+	IsotropicLinearDamage(int numDof, double characteristicRadius) ;
 
 	virtual ~IsotropicLinearDamage();
 
