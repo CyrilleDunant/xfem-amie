@@ -1388,112 +1388,28 @@ int main(int argc, char *argv[])
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
-// 	crack.push_back(new BranchedCrack(new Point(-0.02, -.00215), new Point(-0.009, -.00215)));
-// 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
-// 	crack.back()->setEnrichementRadius(.0005) ;
-	//add crack to list of cracks
-// 	crack.push_back(new BranchedCrack(new Point(0.011,.00215), new Point(0.009, 0.00215))) ;
-// 	crack.back()->setEnrichementRadius(.0005) ;
-// 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
-	Vector def(3) ; 
-// 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
-// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
 	Inclusion * inc0 = new Inclusion(100, -200, 1) ;
 	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
 
-	XMLTree * test = inc0->toXML() ;
-	test->print(true) ;
-	std::cout << std::endl ;
-	Circle c(test->getChild(0)) ;
-	c.toXML()->print(true) ;
-	std::cout << std::endl ;
-	XMLTree * c0 = test->getChild(1) ;
-	c0->print(true) ;
-	std::cout << std::endl ;
-	XMLTree * c1 = c0->getChild(0) ;
-	c1->print(true) ;
-	std::cout << std::endl ;
-	Matrix mtest = c1->buildMatrix().second;
-	XMLTree * x = new XMLTree("test",mtest) ;
-	x->print(true) ;
-// 	return 0 ;
 
- 	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
-// 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
-	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
-// 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-//  	F.addFeature(&sample, inc0) ;
-// 	F.addFeature(&sample, inc1) ;
-//	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
-// 	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste, 450000) ;
-// 	inc1->setBehaviour(stiff) ;
-// 	inc2->setBehaviour(stiff) ;
-//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-// 	F.addFeature(&sample, inc1) ;
-// 	F.addFeature(&sample, inc2) ;
-//  	ITZFeature * itz = new ITZFeature(&sample,inc1,m0_paste,m0_paste*0.5,0.00080,0,0) ;
-// 	F.addFeature(&sample, itz) ;
-// 	F.addFeature(itz, inc1) ;
-// 	F.addFeature(&sample, inc1) ;
-// 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
-// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-// 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
-// 	F.addFeature(&sample, new TriangularPore(Point( 0.011,  0.002) , Point( 0.011, 0.0023), Point( 0.009, 0.00215) )) ;
+	F.addFeature(&sample, inc0) ;
 
-// 	F.addFeature(&sample, new TriangularPore(Point( -0.025, 0.0135) , Point( -0.025, -0.0185), Point( 0.025, -0.0185) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.0047, -0.002) , Point( -0.0057, -0.002), Point( -0.0067, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.002, -0.002) , Point( -0.001, -0.002), Point( -0.0015, 0.002) )) ;
 	std::vector<Pore *> pores;
 
-	double totalMass = 0.25;
-	double density = 25000;
-	double Dmax = 0.005;
-	double pmin = 0.999;
-	// Generates inclusion geometry
-	double radius1 = 0.004; 	double radius2 = 0.04/5;
-	double radius3 = 0.04/5; double radius4 = 0.04/10;
-	double radius5 = 0.04/20;  double radius6 = 0.04/20;
-	Point center1 = Point(0.0,-0.01);
-	Point center2 = Point(0.02,0.02);
-	Point center3 = Point(-0.02,-0.02);
-	Point center4 = (center2 + center1)/2;
-	Point center5 = (center1 + Point(0.0,0.01));
-	Point center6 = (center5 + Point(0.0,0.005));
-	double stress = 55 ;
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
-// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
-// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
-// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
 
-// 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_XI , Point(1, -1), -0.001)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
-//	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
+
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
+
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_RIGHT)) ;
+
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(1024) ;
+	F.sample(128) ;
 
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
-// 	F.refine(3) ;
-
-	
-//	F.generateElements(0) ;
-// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
-	
-//	for(size_t j = 0 ; j < crack.size() ; j++)
-	//	crack[j]->setInfluenceRadius(0.02) ;
-// 	
 
 	step() ;
 	

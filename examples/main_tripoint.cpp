@@ -217,10 +217,10 @@ void step()
 		dit = 0;
 		go_on = true ;
 
-		while(featureTree->stable(.1))
-		{
-			load->setData(load->getData()* 2) ;
-		}
+// 		while(featureTree->stable(.1))
+// 		{
+// 			load->setData(load->getData()* 2) ;
+// 		}
 		std::cout << v << "  "<< load->getData()+100000 << ":: "<< std::flush ;
 		while(dit < dsteps)
 		{
@@ -1586,7 +1586,7 @@ int main(int argc, char *argv[])
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
 // 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(37000, -37000*10))) ;
+	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
 	inclusions[0]->setRadius(inclusions[0]->getRadius()-itzSize*.75) ;
 	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,800000)) ;
@@ -1611,25 +1611,28 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
 	
-	Sample notch(.005, .07, 0, -.045) ;
-	notch.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,&notch) ;
+
 	
 	
-	Sample base0(0.45, .01, 0, .055) ;
+	Sample base0(0.44, .01, 0, .055) ;
 	base0.setBehaviour(new VoidForm()) ;
 	F.addFeature(&sample,&base0) ;
 	Sample * pore1 = new Sample(0.03, 0.01, 0, .055) ;
 	pore1->setBehaviour(new Stiffness(m0_paste*.25)) ;
 	F.addFeature(&base0,pore1) ;
 	
-	Sample * pore = new Sample(0.44, 0.01, 0, -.055) ;
-	pore->setBehaviour(new Stiffness(m0_paste*5)) ;
+	Sample pore(0.44, 0.01, 0, -.055) ;
+	pore.setBehaviour(new Stiffness(m0_paste*5)) ;
 	Sample base(.38, .01, 0, -.055) ;
-	base.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,pore) ;
+	base.setBehaviour(new VoidForm()) ;	
+	Sample notch(.005, .07, 0, -.045) ;
+	notch.setBehaviour(new VoidForm()) ;
+	F.addFeature(&sample,&notch) ;
+	F.addFeature(&sample,&pore) ;
+	F.addFeature(&pore,&base) ;
+	
 // 	pore->isVirtualFeature = true ;
-	F.addFeature(&sample,&base) ;
+	
 
 	
 	if(!inclusions.empty())

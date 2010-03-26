@@ -54,49 +54,54 @@ namespace Mu
 					{
 						if(selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 						{
-							std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(selfElements[i]->getPrimitive()) ;
-							if(targets.empty())
+							std::vector<ETARGETTYPE *> targets ; 
+							for(size_t j = 0 ; j < selfElements[i]->getBoundingPoints().size() ; j++)
+							{
+								std::vector<ETARGETTYPE *> temp = mesh->getConflictingElements(&selfElements[i]->getBoundingPoint(j)) ;
+								for(size_t k = 0 ; k < temp.size() ; k++)
+								{
+									if(temp[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+										targets.push_back(temp[k]) ;
+								}
+							}
+							if(!targets.empty())
+							{
+								std::sort(targets.begin(), targets.end()) ;
+								__gnu_cxx::__normal_iterator<ETARGETTYPE **, std::vector<ETARGETTYPE *, std::allocator<ETARGETTYPE *> > > e = std::unique(targets.begin(), targets.end()) ;
+								targets.erase(e,targets.end()) ;
+							}
+							else
 							{
 								Circle c(selfElements[i]->getRadius()*1.1, selfElements[i]->getCenter()) ;
 								targets =  mesh->getConflictingElements(&c) ;
 								if(targets.empty())
 								{
-									std::vector<ETARGETTYPE *> targets = mesh->getConflictingElements(&selfElements[i]->getCenter()) ;
+									targets = mesh->getConflictingElements(&selfElements[i]->getCenter()) ;
 								}
 							}
 							
 							projectionCache[selfElements[i]] = targets ;
+							if(targets.empty())
+							{
+								selfElements[i]->print() ;
+								exit(0) ;
+							}
 							for(size_t j = 0 ; j < selfElements[i]->getBoundingPoints().size() ; j++)
 							{
-								std::vector<ETARGETTYPE *> coincidentElements ;
-
+								std::map<double, ETARGETTYPE *> coincidentElements;
 								for(size_t k = 0 ; k < targets.size() ; k++)
 								{
-									for(size_t l = 0 ; l < targets[k]->getBoundingPoints().size() ; l++)
-									{
-										Point proj(selfElements[i]->getBoundingPoint(j)) ; 
-										targets[k]->project(&proj) ;
-
-										if((targets[k]->in(selfElements[i]->getBoundingPoint(j))
-											|| squareDist2D(proj, selfElements[i]->getBoundingPoint(j)) < POINT_TOLERANCE) 
-											&& targets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-											coincidentElements.push_back(targets[k]) ;
-									}
+									coincidentElements[squareDist2D(selfElements[i]->getBoundingPoint(j), targets[k]->getCenter())] = targets[k] ;
 								}
 
-								Vector disps(numDofs) ;
-								for(size_t k = 0 ; k < coincidentElements.size() ; k++)
-								{
-									disps = coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j)) ;
-								}
+								Vector disps = coincidentElements.begin()->second->getState().getDisplacements(selfElements[i]->getBoundingPoint(j)) ;
+
 								for(size_t k = 0 ; k < numDofs ; k++)
 									projection[selfElements[i]->getBoundingPoint(j).id*numDofs+k] = disps[k] ;
-								
-								
+
 							}
 						}
 					}
-					
 					
 					cache[mesh] = projectionCache ;
 				}
@@ -113,7 +118,6 @@ namespace Mu
 								break ;
 						}
 					}
-					
 					projection = 0 ;
 					Vector disps(numDofs) ;
 					for(size_t i = 0 ; i < selfElements.size() ; i++)
@@ -127,30 +131,28 @@ namespace Mu
 								if(std::abs(std::accumulate(&projection[selfElements[i]->getBoundingPoint(j).id*numDofs], 
 									               &projection[selfElements[i]->getBoundingPoint(j).id*numDofs+numDofs], 0.)) < std::numeric_limits<double>::epsilon())
 								{
-									std::vector<Point *> coincidentPoints ;
-									std::vector<ETARGETTYPE *> coincidentElements ;
-
-									for(size_t k = 0 ; k < targets.size() ; k++)
+									for(size_t j = 0 ; j < selfElements[i]->getBoundingPoints().size() ; j++)
 									{
-										for(size_t l = 0 ; l < targets[k]->getBoundingPoints().size() ; l++)
+										std::map<double, ETARGETTYPE *> coincidentElements;
+										for(size_t k = 0 ; k < targets.size() ; k++)
 										{
-											Point proj(selfElements[i]->getBoundingPoint(j)) ; 
-											targets[k]->project(&proj) ;
-											if((targets[k]->in(selfElements[i]->getBoundingPoint(j))
-												|| squareDist2D(proj, selfElements[i]->getBoundingPoint(j)) < POINT_TOLERANCE) 
-												&& targets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-												coincidentElements.push_back(targets[k]) ;
+											if(targets[k]->in(selfElements[i]->getBoundingPoint(j)))
+												coincidentElements[squareDist2D(selfElements[i]->getBoundingPoint(j), targets[k]->getCenter())] = targets[k] ;
 										}
-									}
 
-									
-									for(size_t k = 0 ; k < coincidentElements.size() ; k++)
-									{
-										disps = coincidentElements[k]->getState().getDisplacements(selfElements[i]->getBoundingPoint(j)) ;
+										if(coincidentElements.empty() || !coincidentElements.begin()->second->in(selfElements[i]->getBoundingPoint(j)))
+										{
+											selfElements[i]->getBoundingPoint(j).print() ;
+											for(size_t k = 0 ; k < targets.size() ; k++)
+												targets[k]->print() ;
+											
+											exit(0) ;
+										}
+										disps = coincidentElements.begin()->second->getState().getDisplacements(selfElements[i]->getBoundingPoint(j)) ;
+										for(size_t k = 0 ; k < numDofs ; k++)
+											projection[selfElements[i]->getBoundingPoint(j).id*numDofs+k] = disps[k] ;
+
 									}
-									for(size_t k = 0 ; k < numDofs ; k++)
-										projection[selfElements[i]->getBoundingPoint(j).id*numDofs+k] = disps[k] ;
-									
 								}
 							}
 						}

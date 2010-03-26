@@ -50,7 +50,7 @@ namespace Mu
 			
 			if(maxit == -1)
 				Maxit = x.size() ;
-			cg0.solve(x, p0, 1e-10, 0, false) ;
+			cg0.solve(x, p0, 1e-10, 2, false) ;
 			x = cg0.x ;
 			Vector r0 = A*x-b ;
 			int nit = 0 ;
@@ -67,7 +67,7 @@ namespace Mu
 			subsolver = new ConjugateGradient(A1, r1) ;
 
 			InverseDiagonal * p1 =new InverseDiagonal(A1) ;
-			subsolver->solve(r1, p1, 1e-10, -1, false) ;
+			subsolver->solve(r1, p1, 1e-10, -1, true) ;
 
 			//mesh1 refresh elements with r1
 			std::vector<ETYPE *> elements1 = mesh1->getElements() ;
@@ -81,12 +81,13 @@ namespace Mu
 			while(nit < Maxit)
 			{
 				
-				std::cout  << std::endl;
-				bool solve = cg0.solve(x, p0, 1e-10, 0, false) ;
+				bool solve = cg0.solve(x, p0, 1e-10, 2, false) ;
 				x = cg0.x ;
 				if(solve)
 				{
 					delete subsolver ;
+					delete p0 ;
+					delete p1 ;
 					return true ;
 				}
 				if( !coarseConverged)
@@ -99,7 +100,7 @@ namespace Mu
 						elements0[i]->step(1., &r0) ;
 					mesh1->project(mesh0, r1) ;
 					subsolver->b = r1 ;
-					subsolver->solve(subsolver->x, p1, 1e-10, -1, false) ;
+					subsolver->solve(subsolver->x, p1, 1e-10, -1, true) ;
 					if(std::abs(subsolver->x).max() < 1e-8)
 						coarseConverged = true ;
 					//mesh1 refresh elements with r1

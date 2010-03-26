@@ -643,9 +643,22 @@ void Triangle::project(Point * p) const
 
 bool Triangle::in(const Point &p) const
 {
-// 	Circle test(1024.*POINT_TOLERANCE, p) ;
-// 	
-// 	return test.intersects(this) ;
+	bool isAPoint = false ;
+	for (int i = 0; i <  boundingPoints.size(); i++)
+	{
+		if(p == *boundingPoints[i])
+		{
+			isAPoint = true ;
+			break ;
+		}
+	}
+	
+	Point proj(p) ; project(&proj) ;
+	bool isOnSurface = dist(p, proj) < POINT_TOLERANCE ;
+	
+	Segment s(p, getCenter()) ;
+	return !s.intersects(this) || isAPoint || isOnSurface;
+		
 	bool in = false ;
 	
 	for (int i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
@@ -1061,8 +1074,8 @@ void Rectangle::sampleSurface(size_t num_points)
 		{
 			for(size_t j = 0 ; j < this->numberOfPointsAlongY-2 ; j++)
 			{	
-				double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_x/numberOfPointsAlongX) ;
-				double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
+				double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.1*(size_x/numberOfPointsAlongX) ;
+				double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.1*(size_y/numberOfPointsAlongY) ;
 				
 				inPoints[i*(numberOfPointsAlongY-2)+j] = new Point(center.x - 0.5*size_x + (double)(i+1)*distanceBetweenPointsAlongX+randx,
 					center.y - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+ randy) ;

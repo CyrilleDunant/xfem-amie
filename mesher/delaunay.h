@@ -103,6 +103,7 @@ public:
 	virtual std::pair< Point*,  Point*> nearestEdge(const Point & p) const = 0;  //!< What is the nearest edge from this point \a p.
 	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const  = 0; //!< What is the common edge with this item. returns a null pair if none.
 	virtual bool inCircumCircle(const Point & p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
+	virtual bool onCircumCircle(const Point &p) const = 0 ;
 	virtual bool isNeighbour( const DelaunayTreeItem *) const = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
 	virtual void conflicts(std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > &,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
@@ -153,6 +154,7 @@ public:
 	 * @return true if we are in the triangle's CircumCircle and false if we are on or outside. 
 	 */
 	virtual bool inCircumCircle(const Point & p) const ;
+	virtual bool onCircumCircle(const Point &p) const ;
 	virtual bool isNeighbour( const DelaunayTreeItem * t) const;
 	
 	void insert( std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
@@ -201,6 +203,7 @@ public:
 	 * @return true if we are in the demi plane, false if we are outside or on the limit.
 	 */
 	virtual bool inCircumCircle(const Point & p) const ;
+	virtual bool onCircumCircle(const Point &p) const  ;
 	virtual bool isNeighbour( const DelaunayTreeItem * t) const;
 	virtual bool isVertex(const Point *p) const ;
 	
@@ -235,6 +238,7 @@ public:
 	virtual bool isVertex(const Point *p) const ;
 	
 	virtual bool inCircumCircle(const Point & p) const ;
+	virtual bool onCircumCircle(const Point &p) const ;
 
 	virtual std::pair< Point*,  Point*> nearestEdge(const Point& p) const ;
 	
@@ -266,6 +270,7 @@ class Star
 protected:
 	std::vector<const Point *> edge ;
 	std::vector<DelaunayTreeItem *> treeitem ;
+	const Point * creator ;
 	
 public:
 	Star(std::vector<DelaunayTreeItem *> *t, const Point *p) ;
@@ -295,6 +300,7 @@ public:
 	virtual std::pair< Point*,  Point*> nearestEdge(const Point& p) const ;
 
 	bool inCircumCircle(const Point & p) const ;
+	virtual bool onCircumCircle(const Point &p) const;
 	bool isNeighbour( const DelaunayTreeItem * t) const ;
 	bool isVertex(const Point *p) const ;
 	bool isVertexByID(const Point *p) const ;

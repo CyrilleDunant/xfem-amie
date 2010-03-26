@@ -92,7 +92,7 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	r -= q*alpha ;
 	
 	//****************************************
-	double neps = 1e-9 ;
+	double neps = eps ;
 	while(std::abs(last_rho)> std::max(err*neps*neps, neps*neps) && nit < Maxit )
 	{
 		P->precondition(r,z) ;

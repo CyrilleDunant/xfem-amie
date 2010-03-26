@@ -1476,7 +1476,7 @@ int main(int argc, char *argv[])
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(2048) ;
+	F.sample(32) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -100)) ;
