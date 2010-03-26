@@ -70,6 +70,8 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 
 bool IsotropicLinearDamage::fractured() const 
 {
+	if(fraction < 0)
+		return false ;
 	return state[0] >= thresholdDamageDensity/fraction ;
 }
 

@@ -5227,9 +5227,9 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 {
 	double pointDensity = 0 ; 
 	if(is2D())
-		pointDensity = 1.7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
+		pointDensity = 0 ; //.7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
 	else
-		pointDensity = 1.7*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
+		pointDensity = .7*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
 		
 	std::cout << "space meshed with " << pointDensity << " points per unit length"<< std::endl ;
 
@@ -5333,17 +5333,18 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 					isIn = true ;
 				if(!isIn && tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
-
+				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+					isIn = true ;
 				if(!isIn && i != 0 && tree[0]->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
 				{
-					Point proj(tree[i]->getBoundingPoint(j)) ;
-					tree[0]->project(&proj) ;
-					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
+// 					Point proj(tree[i]->getBoundingPoint(j)) ;
+// 					tree[0]->project(&proj) ;
+// 					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
 						isIn = true ;
-					else
-					{
-						isIn = false ;
-					}
+// 					else
+// 					{
+// 						isIn = false ;
+// 					}
 				}
 				
 				if(!isIn && tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
@@ -5618,7 +5619,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 						+ tree[0]->in(proj3);
 
 						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */( (onEdge && tooClose == 3) || onVertex))
+						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && inRoot(inter[k]) && ( (onEdge && tooClose == 3) || onVertex))
 						{
 							Point *p = new Point(inter[k]) ;
 							additionalPoints.push_back(p) ;
@@ -5644,7 +5645,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	if(is3D())
 		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
-	meshPoints.erase(e, meshPoints.end()) ;
+// 	meshPoints.erase(e, meshPoints.end()) ;
 
 // 	std::srand(1000) ;
 

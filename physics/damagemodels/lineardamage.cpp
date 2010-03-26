@@ -114,6 +114,8 @@ Matrix LinearDamage::apply(const Matrix & m) const
 
 bool LinearDamage::fractured() const
 {
+	if (fraction < 0)
+		return false ;
 	return state.max() >= thresholdDamageDensity/fraction ;
 }
 

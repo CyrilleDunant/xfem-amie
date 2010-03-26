@@ -1388,7 +1388,7 @@ int main(int argc, char *argv[])
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
-	Inclusion * inc0 = new Inclusion(100, -200, 1) ;
+	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
 
 
@@ -1397,19 +1397,22 @@ int main(int argc, char *argv[])
 	std::vector<Pore *> pores;
 
 
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
-
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
 	
+	Segment seg0(Point(-0.22, -0.06), Point(-0.22, 0.06)) ;
+	Segment seg1(Point(0.22, -0.05), Point(-0.22, -0.05)) ;
+	std::cout << seg0.intersects(seg1) << std::endl ;
+	seg0.intersection(seg1).print() ;
+	return 0 ;
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(128) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
+	F.generateElements(0, true) ;
 
 	step() ;
 	

@@ -928,9 +928,6 @@ double Rectangle::height() const
 
 void Rectangle::project(Point * p) const
 {
-	
-	Line l(getCenter(), *p) ;
-	
 	Segment A(topLeft, bottomLeft) ;
 	
 	Segment B(topLeft, topRight) ;

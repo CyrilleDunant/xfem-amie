@@ -217,10 +217,10 @@ void step()
 		dit = 0;
 		go_on = true ;
 
-// 		while(featureTree->stable(.1))
-// 		{
-// 			load->setData(load->getData()* 2) ;
-// 		}
+		while(featureTree->stable(.1))
+		{
+			load->setData(load->getData()* 2) ;
+		}
 		std::cout << v << "  "<< load->getData()+100000 << ":: "<< std::flush ;
 		while(dit < dsteps)
 		{
@@ -1417,6 +1417,20 @@ void Display(void)
 				}
 				glEnd();
 			}
+			else
+			{
+				glColor3f(0, 0, 1) ;
+				glBegin(GL_LINE_LOOP);
+				for(size_t k = 0 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				{
+					double vx = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
+					
+				}
+				glEnd();
+			}
 			
 			glColor3f(1, 1, 1) ;
 		}
@@ -1586,7 +1600,7 @@ int main(int argc, char *argv[])
 	std::cout << "incs : " << inclusions.size() << std::endl ;
 	double placed_area = 0 ;
 // 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
+	sample.setBehaviour(new VoidForm() ) ;
 
 	inclusions[0]->setRadius(inclusions[0]->getRadius()-itzSize*.75) ;
 	inclusions[0]->setBehaviour(new WeibullDistributedStiffness(m0_agg,800000)) ;
@@ -1611,29 +1625,22 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
 	
-
+	Sample concrete(NULL, 0.44, 0.10,0,0) ;                      concrete.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(37000, -37000*10))) ;
+	Sample topsupport(0.03, 0.01-POINT_TOLERANCE, 0, .055) ;     topsupport.setBehaviour(new Stiffness(m0_paste*.25)) ;
+	Sample baseleft(0.03, 0.01-POINT_TOLERANCE, -0.205, -.055) ; baseleft.setBehaviour(new Stiffness(m0_paste*5)) ;
+	Sample baseright(0.03, 0.01-POINT_TOLERANCE, 0.205, -.055) ; baseright.setBehaviour(new Stiffness(m0_paste*5)) ;
+	Sample notch(.005, .07, 0, -.045) ;                          notch.setBehaviour(new VoidForm()) ;
 	
+	F.addFeature(&sample,&topsupport) ;
+	F.addFeature(&topsupport,&concrete) ;
+	F.addFeature(&concrete,&notch) ;
 	
-	Sample base0(0.44, .01, 0, .055) ;
-	base0.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,&base0) ;
-	Sample * pore1 = new Sample(0.03, 0.01, 0, .055) ;
-	pore1->setBehaviour(new Stiffness(m0_paste*.25)) ;
-	F.addFeature(&base0,pore1) ;
-	
-	Sample pore(0.44, 0.01, 0, -.055) ;
-	pore.setBehaviour(new Stiffness(m0_paste*5)) ;
-	Sample base(.38, .01, 0, -.055) ;
-	base.setBehaviour(new VoidForm()) ;	
-	Sample notch(.005, .07, 0, -.045) ;
-	notch.setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample,&notch) ;
-	F.addFeature(&sample,&pore) ;
-	F.addFeature(&pore,&base) ;
+	F.addFeature(&concrete,&baseleft) ;
+	F.addFeature(&concrete,&baseright) ;
+// 	F.addFeature(&concrete,&notch) ;
 	
 // 	pore->isVirtualFeature = true ;
 	
-
 	
 	if(!inclusions.empty())
 	{
