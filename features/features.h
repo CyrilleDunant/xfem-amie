@@ -120,7 +120,6 @@ public:
 } ;
 
 
-
 /** \brief Container for the features defining the setup.
  * 
  * The feature tree is responsible for all global operations: meshing, matrix assembly, 

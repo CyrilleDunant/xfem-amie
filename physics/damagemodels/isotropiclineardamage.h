@@ -53,6 +53,15 @@ public:
 	 */
 	virtual void artificialDamageStep(double d) ;
 
+	/** \brief returns 0 */
+	virtual Vector getPreviousDamage() {return Vector(0) ; } ;
+
+	/** \brief returns 0 */
+	virtual Vector getPreviousPreviousDamage() {return Vector(0) ; } ;
+
+	/** \brief Do nothing */
+	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { } ;
+
 	/** \brief compute the new stifness matrix after damage
 	 * 
 	 * \f$ K' = K(1-d) \f$

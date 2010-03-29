@@ -49,6 +49,15 @@ public:
 	 */
 	virtual void artificialDamageStep(double d) ;
 
+	/** \brief returns 0 */
+	virtual Vector getPreviousDamage() {return Vector(0) ; } ;
+
+	/** \brief returns 0 */
+	virtual Vector getPreviousPreviousDamage() {return Vector(0) ; } ;
+
+	/** \brief Do nothing */
+	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { } ;
+
 	/** \brief Increment the damage. 
 	 * The formula used for the increment varies depending on whether the element is 
 	 * in tension or compression. Once it has been determined whether we are in tension or 

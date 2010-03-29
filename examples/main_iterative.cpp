@@ -118,10 +118,111 @@ double aggregateVolume = 0;
 std::vector<double> energy ;
 double percent = 0.7 ;
 
+Matrix makeStiffnessMatrix(Vector E, double nu)
+{
+	Matrix m(6,6) ;
+	m[0][0] = 1. - nu ; m[0][1] = nu ; m[0][2] = nu ;
+	m[1][0] = nu ; m[1][1] = 1. - nu ; m[1][2] = nu ;
+	m[2][0] = nu ; m[2][1] = nu ; m[2][2] = 1. - nu ;
+	m[3][3] = 0.5 - nu ;
+	m[4][4] = 0.5 - nu ;
+	m[5][5] = 0.5 - nu ;
+	m *= 1/((1.+nu)*(1.-2.*nu)) ;
+
+	for(int i = 0 ; i < 3 ; i++)
+	{
+		for(int j = 0 ; j < 3 ; j++)
+			m[i][j] *= E[i] ;
+		m[i+3][i+3] *= E[i] ;
+	}
+
+	return m ;
+}
+
+std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones(int n, std::vector<Inclusion3D * > & incs , FeatureTree & F)
+{
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	
+	Vector csh(3) ;
+	csh[0] = percent*E_csh ;
+	csh[1] = percent*E_csh ;
+	csh[2] = percent*E_csh ;
+	
+	Matrix m_csh = makeStiffnessMatrix(csh,nu_csh) ;
+	
+	std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > ret ;
+	aggregateVolume = 0 ;
+	double radius = 0.5 ;
+	for(size_t i = 0 ; i < incs.size() ; i++)
+	{
+		aggregateVolume += incs[i]->volume() ;
+		for(int j = 0 ; j < n ; j++)
+		{
+				
+			Point pos((2.*rand()/RAND_MAX-1.),(2.*rand()/RAND_MAX-1.),(2.*rand()/RAND_MAX-1.)) ;
+			pos /= pos.norm() ;
+			pos *= (2.*rand()/RAND_MAX-1.)*(incs[i]->getRadius() - 3.) ;
+			Point center = incs[i]->getCenter()+pos ; 
+			
+			bool alone  = true ;
+			
+			for(size_t k = 0 ; k < ret.size() ; k++ )
+			{
+				if (squareDist(center, ret[k].first->Sphere::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+				{
+					alone = false ;
+					break ;
+				}
+			}
+			if (alone)
+			{
+				Vector a(double(0), 3) ;
+				a[0] = 0.5 ;
+				a[1] = 0.5 ;
+				a[2] = 0.5 ;
+				
+				ExpansiveZone3D * z = new ExpansiveZone3D(incs[i], radius, center.x, center.y, center.z, m_csh, a) ;
+				ret.push_back(std::make_pair(z, incs[i])) ;
+			}
+		}
+	}
+
+	for(size_t i = 0 ; i < ret.size() ; i++)
+	{
+		ret[i].first->setRadius(radius) ;
+		F.addFeature(ret[i].second, ret[i].first) ;
+	}
+	std::cout << "initial Reacted Area = " << 4/3*M_PI*radius*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
+	std::cout << "Reactive aggregate Area = " << aggregateVolume << std::endl ;
+	return ret ;	
+}
+
+
+
 double uni_directional_step(int dir)
 {
-	featureTree->step(0.00) ;
-	
+	bool go_on = true ;
+	int tries = 0 ;
+	int maxtries = 200 ;
+
+	while(go_on && tries < maxtries)
+	{
+		featureTree->step(0.00) ;
+		go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
+		tries++ ;
+	}
+
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << tries << " iterations before convergence" << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+
 	tets= featureTree->getTetrahedrons() ;
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
@@ -329,8 +430,7 @@ Vector tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, std::vec
 		inc.push_back(static_cast<Inclusion3D *>(feats[i])) ;
 	feats.clear() ;
 
-	for(size_t i = 0 ; i < inc.size() ; i++)
-		inc[i]->getCenter().print() ;
+	int n_zones = 10 * (int) box_dim ;
 
 	for(int dir = 0 ; dir < 3 ; dir++)
 	{
@@ -339,30 +439,37 @@ Vector tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, std::vec
 		for(size_t i = 0 ; i < inc.size() ; i++)
 			F.addFeature(&box,inc[i]) ;
 
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, FRONT)) ;
+		std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > zones = generateExpansiveZones(n_zones, inc , F) ;
 
 		switch(dir)
 		{
 			case 0:
 			{
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 100)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 				break ;
 			}
 			case 1:
 			{
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM,0)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,100)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
 				break ;
 			}
 			case 2:
 			{
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, FRONT)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT,0)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BACK)) ;
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, BACK,100)) ;
 				break ;
 			}
@@ -379,86 +486,6 @@ Vector tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, std::vec
 	}
 	
 	return Young ;	
-}
-
-Matrix makeStiffnessMatrix(Vector E, double nu)
-{
-	Matrix m(6,6) ;
-	m[0][0] = 1. - nu ; m[0][1] = nu ; m[0][2] = nu ;
-	m[1][0] = nu ; m[1][1] = 1. - nu ; m[1][2] = nu ;
-	m[2][0] = nu ; m[2][1] = nu ; m[2][2] = 1. - nu ;
-	m[3][3] = 0.5 - nu ;
-	m[4][4] = 0.5 - nu ;
-	m[5][5] = 0.5 - nu ;
-	m *= 1/((1.+nu)*(1.-2.*nu)) ;
-
-	for(int i = 0 ; i < 3 ; i++)
-	{
-		for(int j = 0 ; j < 3 ; j++)
-			m[i][j] *= E[i] ;
-		m[i+3][i+3] *= E[i] ;
-	}
-
-	return m ;
-}
-
-std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones(int n, std::vector<Inclusion3D * > & incs , FeatureTree & F)
-{
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	
-	Vector csh(3) ;
-	csh[0] = percent*E_csh ;
-	csh[1] = percent*E_csh ;
-	csh[2] = percent*E_csh ;
-	
-	Matrix m_csh = makeStiffnessMatrix(csh,nu_csh) ;
-	
-	std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > ret ;
-	aggregateVolume = 0 ;
-	double radius = 0.000005 ;
-	for(size_t i = 0 ; i < incs.size() ; i++)
-	{
-		aggregateVolume += incs[i]->volume() ;
-		for(int j = 0 ; j < n ; j++)
-		{
-				
-			Point pos((2.*rand()/RAND_MAX-1.),(2.*rand()/RAND_MAX-1.),(2.*rand()/RAND_MAX-1.)) ;
-			pos /= pos.norm() ;
-			pos *= (2.*rand()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.00003) ;
-			Point center = incs[i]->getCenter()+pos ; 
-			
-			bool alone  = true ;
-			
-			for(size_t k = 0 ; k < ret.size() ; k++ )
-			{
-				if (squareDist(center, ret[k].first->Sphere::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
-				{
-					alone = false ;
-					break ;
-				}
-			}
-			if (alone)
-			{
-				Vector a(double(0), 3) ;
-				a[0] = 0.5 ;
-				a[1] = 0.5 ;
-				a[2] = 0.5 ;
-				
-				ExpansiveZone3D * z = new ExpansiveZone3D(incs[i], radius, center.x, center.y, center.z, m_csh, a) ;
-				ret.push_back(std::make_pair(z, incs[i])) ;
-			}
-		}
-	}
-
-	for(size_t i = 0 ; i < ret.size() ; i++)
-	{
-		ret[i].first->setRadius(radius) ;
-		F.addFeature(ret[i].second, ret[i].first) ;
-	}
-	std::cout << "initial Reacted Area = " << 4/3*M_PI*radius*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
-	std::cout << "Reactive aggregate Area = " << aggregateVolume << std::endl ;
-	return ret ;	
 }
 
 int main(int argc, char *argv[])

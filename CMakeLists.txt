@@ -93,6 +93,7 @@ sparse/sparse_vector.cpp
 utilities/configuration.cpp
 utilities/grid.cpp
 utilities/granulo.cpp
+utilities/homogenizer.cpp
 utilities/matrixops.cpp
 utilities/parser.cpp
 utilities/pid.cpp

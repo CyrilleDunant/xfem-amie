@@ -88,6 +88,15 @@ namespace Mu
 		/** \brief Increment the loading. The loading is increased by the timestep*a random value between 0 and 1 .*/
 		virtual void step(double timestep, ElementState & currentState) ;
 
+		/** \brief returns 0 */
+		virtual Vector getPreviousDamage() ;
+	
+		/** \brief returns 0 */
+		virtual Vector getPreviousPreviousDamage() {return Vector(0) ; } ;
+	
+		/** \brief Do nothing */
+		virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { previousDamage = std::min(damage,previous[0]) ; } ;
+
 		virtual void artificialDamageStep(double d) ;
 		
 		/** \brief Return the virtual force resulting of the imposed stress

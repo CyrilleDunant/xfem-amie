@@ -123,6 +123,32 @@ void StiffnessAndFracture::artificialDamageStep(double d)
 	damage = d ;
 }
 
+void StiffnessAndFracture::artificialPreviousDamage(Vector previous, Vector previousprevious)
+{
+	previousDamage.resize(damage.size()) ;
+	if(previous.size() < previousDamage.size())
+	{
+		for(size_t i = 0 ; i < previous.size() ; i++)
+			previousDamage[i] = std::min(damage[i],previous[i]) ;
+		for(size_t j = previous.size() ; j < previousDamage.size() ; j++)
+			previousDamage[j] = std::min(damage[j],previous[previous.size() - 1]) ;
+	} else {
+		for(size_t i = 0 ; i < previousDamage.size() ; i++)
+			previousDamage[i] = std::min(damage[i],previous[i]) ;
+	}
+	previousPreviousDamage.resize(damage.size()) ;
+	if(previousprevious.size() < previousPreviousDamage.size())
+	{
+		for(size_t i = 0 ; i < previousprevious.size() ; i++)
+			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
+		for(size_t j = previous.size() ; j < previousPreviousDamage.size() ; j++)
+			previousPreviousDamage[j] = std::min(previousDamage[j],previousprevious[previousprevious.size() - 1]) ;
+	} else {
+		for(size_t i = 0 ; i < previousPreviousDamage.size() ; i++)
+			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
+	}
+}
+
 
 
 bool StiffnessAndFracture::changed() const

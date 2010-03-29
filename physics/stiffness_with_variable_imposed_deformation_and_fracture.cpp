@@ -85,6 +85,14 @@ void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, E
 	change = currentState.getParent()->behaviourUpdated  ;
 }
 
+Vector StiffnessWithVariableImposedDeformationAndFracture::getPreviousDamage()
+{
+	Vector previous(1) ;
+	previous[0] = previousDamage ;
+	return previous ;
+}
+
+
 void StiffnessWithVariableImposedDeformationAndFracture::artificialDamageStep(double d)
 {
 	previousDamage = damage ;

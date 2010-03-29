@@ -65,6 +65,15 @@ public:
 	 */
 	virtual void artificialDamageStep(double d) = 0 ;
 
+	/** \brief Get previous damage value (if stored in the model) */
+	virtual Vector getPreviousDamage() = 0 ;
+
+	/** \brief Get previous previous damage value (if stored in the model) */
+	virtual Vector getPreviousPreviousDamage() = 0 ;
+
+	/** \brief Impose previous and previous previous damage (if stored in the model) */
+	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) = 0 ;
+
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const = 0 ;
@@ -111,6 +120,15 @@ public:
 	 * @param d damage
 	 */
 	virtual void artificialStep(double d) { } ;
+
+	/** \brief returns 0 */
+	virtual Vector getPreviousDamage() {return Vector(0) ; } ;
+
+	/** \brief returns 0 */
+	virtual Vector getPreviousPreviousDamage() {return Vector(0) ; } ;
+
+	/** \brief Do nothing */
+	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { } ;
 
 	/** \brief return a copy of the Matrix given as argument
 	 * 

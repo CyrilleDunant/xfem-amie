@@ -119,6 +119,14 @@ void WeibullStiffnessWithVariableImposedDeformationAndFracture::artificialDamage
 
 }
 
+Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getPreviousDamage()
+{
+	Vector previous(1) ;
+	previous[0] = previousDamage ;
+	return previous ;
+}
+
+
 
 bool WeibullStiffnessWithVariableImposedDeformationAndFracture::changed() const
 {

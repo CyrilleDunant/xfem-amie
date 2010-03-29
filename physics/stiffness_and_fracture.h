@@ -81,7 +81,17 @@ namespace Mu
 		*/
 		virtual void step(double timestep, ElementState & currentState) ;
 		
+		/** Artificial damage step */
 		virtual void artificialDamageStep(double d) ;
+
+		/** \brief returns the previous damage */
+		virtual Vector getPreviousDamage() {return previousDamage ; } ;
+
+		/** \brief returns the previous previous damage */
+		virtual Vector getPreviousPreviousDamage() {return previousPreviousDamage ; } ;
+
+		/** \brief Impose previous and previous previous damage */
+		virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) ;
 
 		/** \brief Check for fracture state
 		*
