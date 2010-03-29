@@ -51,6 +51,7 @@ physics/fracturecriteria/fracturecriterion.cpp
 physics/linearstiffnessgradient.cpp
 physics/radialstiffnessgradient.cpp
 physics/kelvinvoight.cpp
+physics/fracturecriteria/artificialfracture.cpp
 physics/fracturecriteria/maxstrain.cpp 
 physics/fracturecriteria/mohrcoulomb.cpp 
 physics/fracturecriteria/ruptureenergy.cpp 
