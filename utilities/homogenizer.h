@@ -10,9 +10,7 @@
 //
 //
 
-#include <iostream>
-#include <vector>
-
+#include "xml.h"
 
 namespace Mu
 {
@@ -52,6 +50,9 @@ public:
 	/** \brief Generalized Inclusion-Matrix isotropic elastic homogenization */
 	SimpleMaterial(HomogenizationScheme scheme, std::vector<std::pair<double,SimpleMaterial *> > inclusions, SimpleMaterial * matrix) ;
 
+	/** \brief Import from xml item*/
+	SimpleMaterial(XMLTree * xml) ;
+
 	/** \brief Get Young modulus and Poisson ratio*/
 	std::pair<double,double> getEnu() {return Young_Poisson ; } ;
 
@@ -69,6 +70,9 @@ public:
 
 	/** \brief Compute the relative difference between the Young modulus of the two materials*/
 	double relativeDifference(SimpleMaterial * mat) ;
+
+	/** \brief XML export*/
+	XMLTree * toXML() ;
 } ;
 
 

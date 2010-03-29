@@ -163,6 +163,28 @@ SimpleMaterial::SimpleMaterial(HomogenizationScheme scheme, std::vector<std::pai
 	Young_Poisson = homogenized->getEnu() ;
 }
 
+SimpleMaterial::SimpleMaterial(XMLTree * xml)
+{
+	std::pair<bool,double> E ;
+	E.first = false ;
+	std::pair<bool,double> nu ;
+	nu.first = false ;
+	if(xml->match("material"))
+	{
+		if(xml->nChildren() > 1)
+		{
+			if(xml->getChild(0)->match("young"))
+				E = xml->getChild(0)->buildDouble() ;
+			if(xml->getChild(1)->match("poisson"))
+				nu = xml->getChild(0)->buildDouble() ;
+		}
+	}
+	if(E.first && E.second)
+		Young_Poisson = std::make_pair(E.second,nu.second) ;
+	else
+		Young_Poisson = kmu2Enu(std::make_pair(0.,0.)) ;
+}
+
 void SimpleMaterial::add(SimpleMaterial * mat)
 {
 	double k = this->getkmu().first + mat->getkmu().first ;
@@ -189,6 +211,14 @@ double SimpleMaterial::relativeDifference(SimpleMaterial * mat)
 	if(diff < 0)
 		diff *= -1 ;
 	return diff ;
+}
+
+XMLTree * SimpleMaterial::toXML()
+{
+	XMLTree * mat = new XMLTree("material") ;
+	mat->addChild(new XMLTree("young",Young_Poisson.first)) ;
+	mat->addChild(new XMLTree("poisson",Young_Poisson.second)) ;
+	return mat ;
 }
 
 std::pair<double,double> Enu2kmu(std::pair<double,double> E_nu)
