@@ -10,6 +10,22 @@
 
 using namespace Mu ;
 
+NonLinearStiffness::NonLinearStiffness(Function f, double n) 
+{
+	E = f ;
+	nu = n ;
+	this->time_d = false ;
+	this->type = NON_LINEAR ;
+	FunctionMatrix m0(3,3) ;
+	VirtualMachine vm ;
+	
+	m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = Function() ;
+	m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = Function() ; 
+	m0[2][0] = Function() ; m0[2][1] = Function() ; m0[2][2] = E/(1-nu*nu)*(1.-nu)/2. ; 
+	
+	param = vm.eval(m0, Point(0.333333333, 0.3333333333)) ;
+}
+
 
 NonLinearStiffness::NonLinearStiffness(Function f, double n, IntegrableEntity * p) : parent(p) 
 {
@@ -28,6 +44,11 @@ NonLinearStiffness::NonLinearStiffness(Function f, double n, IntegrableEntity * 
 }
 
 NonLinearStiffness::~NonLinearStiffness() { } ;
+
+void NonLinearStiffness::setParent(IntegrableEntity * p)
+{
+	parent = p;
+}
 
 Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
@@ -490,6 +511,7 @@ Form * ViscoElasticity::getCopy() const
 {
 	return new ViscoElasticity(*this) ;
 }
+
 
 
 

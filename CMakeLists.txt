@@ -51,12 +51,12 @@ physics/fracturecriteria/fracturecriterion.cpp
 physics/linearstiffnessgradient.cpp
 physics/radialstiffnessgradient.cpp
 physics/kelvinvoight.cpp
-physics/fracturecriteria/artificialfracture.cpp
 physics/fracturecriteria/maxstrain.cpp 
 physics/fracturecriteria/mohrcoulomb.cpp 
 physics/fracturecriteria/ruptureenergy.cpp 
 physics/radial_distributed_stiffness.cpp
 physics/spatially_distributed_stiffness.cpp
+physics/stress_defined_stiffness.cpp
 physics/homogeneised_behaviour.cpp 
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
@@ -65,6 +65,7 @@ physics/stiffness_with_imposed_deformation_and_fracture.cpp
 physics/stiffness_with_variable_imposed_deformation_and_fracture.cpp 
 physics/stiffness_with_variable_imposed_deformation.cpp 
 physics/physics_base.cpp
+physics/physics.cpp
 physics/triple_behaviour.cpp 
 physics/void_form.cpp 
 physics/wave.cpp 

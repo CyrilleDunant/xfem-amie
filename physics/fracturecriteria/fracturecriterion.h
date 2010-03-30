@@ -26,6 +26,7 @@ class DelaunayTetrahedron ;
 	*/
 	class FractureCriterion
 	{
+	protected:
 		std::vector<DelaunayTriangle *> cache ;
 		std::vector<DelaunayTetrahedron *> cache3d ;
 		double eps ;

@@ -93,9 +93,11 @@ public:
 
 struct NonLinearStiffness : public NonLinearForm
 {
+	NonLinearStiffness(Function f, double n, IntegrableEntity * parent) ;
+	NonLinearStiffness(Function f, double n) ;
+
 	Function E ;
 	double nu ;
-	NonLinearStiffness(Function f, double n, IntegrableEntity * parent) ;
 	IntegrableEntity * parent ;
 	
 	virtual ~NonLinearStiffness() ;
@@ -118,6 +120,7 @@ struct NonLinearStiffness : public NonLinearForm
 	
 	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 
+	virtual void setParent(IntegrableEntity * p) ; 
 	
 	virtual bool isActive() const ;
 	
