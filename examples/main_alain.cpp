@@ -1390,9 +1390,9 @@ int main(int argc, char *argv[])
 
 	Function x("x") ;
 	Function y("y") ;
-	Function young_fstress(E_stiff*(1 + (-0.99)* f_exp((-1)*(x+y)/100))) ;
+	Function young_fstress(E_stiff*(1 + (-0.99)* f_exp((-1)*f_abs((x+y))/100))) ;
 
-	inc0->setBehaviour(new StressDefinedStiffness(young_fstress,0.2,true)) ;
+	inc0->setBehaviour(new StressDefinedStiffness(young_fstress,0.2,SPACE_TWO_DIMENSIONAL)) ;
 
  	F.addFeature(&sample, inc0) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, -100)) ;

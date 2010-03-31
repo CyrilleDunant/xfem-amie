@@ -52,7 +52,8 @@ physics/linearstiffnessgradient.cpp
 physics/radialstiffnessgradient.cpp
 physics/kelvinvoight.cpp
 physics/fracturecriteria/maxstrain.cpp 
-physics/fracturecriteria/mohrcoulomb.cpp 
+physics/fracturecriteria/mohrcoulomb.cpp
+physics/non_linear_stiffness.cpp 
 physics/fracturecriteria/ruptureenergy.cpp 
 physics/radial_distributed_stiffness.cpp
 physics/spatially_distributed_stiffness.cpp
