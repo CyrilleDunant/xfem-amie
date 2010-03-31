@@ -38,6 +38,7 @@ struct StressDefinedStiffness : public NonLinearStiffness
 	
 	virtual Form * getCopy() const ;
 	
+	virtual bool fractured() const ;
 
 } ;
 

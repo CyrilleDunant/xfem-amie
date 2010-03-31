@@ -4,7 +4,7 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 
-#include "stress_defined_stiffness.h"
+#include "stress_defined_stiffness_with_imposed_deformation.h"
 #include "non_linear_stiffness.h"
 #include "../mesher/delaunay.h" 
 #include "../polynomial/vm_base.h" 
@@ -12,89 +12,42 @@
 using namespace Mu ;
 
 
-
-
-StressDefinedStiffness::StressDefinedStiffness(Function f, double n, IntegrableEntity * parent) : NonLinearStiffness(f,n,parent)
+StressDefinedStiffnessWithImposedDeformation::StressDefinedStiffnessWithImposedDeformation(Function f, double n, Function defIso, IntegrableEntity * parent) : StressDefinedStiffness(f,n,parent), imposedX(defIso), imposedY(defIso), imposedZ(defIso)
 {
-	VirtualMachine vm ;
-
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-	{
-		FunctionMatrix m0(3,3) ;
-	
-		m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = Function() ;
-		m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = Function() ; 
-		m0[2][0] = Function() ; m0[2][1] = Function() ; m0[2][2] = E/(1-nu*nu)*(1.-nu)/2. ; 
-	
-		param = vm.eval(m0, Point(0., 0.)) ;
-
-		num_dof = 2 ;
-	}
-
-	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-	{
-		FunctionMatrix m1(6,6) ;
-	
-		double divNu = 1./((1.+nu)*(1.-2.*nu)) ;
-
-		m1[0][0] = E*(1-nu)*divNu ; m1[0][1] = E*nu*divNu ; m1[0][2] = E*nu*divNu ; m1[0][3] = Function() ; m1[0][4] = Function() ; m1[0][5] = Function() ;
-		m1[1][0] = E*nu*divNu ; m1[1][1] = E*(1-nu)*divNu ; m1[1][2] = E*nu*divNu ; m1[1][3] = Function() ; m1[1][4] = Function() ; m1[1][5] = Function() ;
-		m1[2][0] = E*nu*divNu ; m1[2][1] = E*nu*divNu ; m1[2][2] = E*(1-nu)*divNu ; m1[2][3] = Function() ; m1[2][4] = Function() ; m1[2][5] = Function() ;
-		m1[3][0] = Function() ; m1[3][1] = Function() ; m1[3][2] = Function() ; m1[3][3] = E*(0.5-nu)*0.99*divNu ; m1[3][4] = Function() ; m1[3][5] = Function() ;
-		m1[4][0] = Function() ; m1[4][1] = Function() ; m1[4][2] = Function() ; m1[4][3] = Function() ; m1[4][4] = E*(0.5-nu)*0.99*divNu ; m1[4][5] = Function() ;
-		m1[5][0] = Function() ; m1[5][1] = Function() ; m1[5][2] = Function() ; m1[5][3] = Function() ; m1[5][4] = Function() ; m1[5][5] = E*(0.5-nu)*0.99*divNu ;
-
-		param = vm.eval(m1, Point(0., 0., 0.)) ;
-
-		num_dof = 3 ;
-	}
+		imposedZ = Function("0") ;
 
 }
 
-
-StressDefinedStiffness::StressDefinedStiffness(Function f, double n, SpaceDimensionality dim) : NonLinearStiffness(f,n,dim)
+StressDefinedStiffnessWithImposedDeformation::StressDefinedStiffnessWithImposedDeformation(Function f, double n, Function defIso, SpaceDimensionality dim) : StressDefinedStiffness(f,n,dim), imposedX(defIso), imposedY(defIso), imposedZ(defIso)
 {
-	VirtualMachine vm ;
-
 	if(dim == SPACE_TWO_DIMENSIONAL)
-	{
-		FunctionMatrix m0(3,3) ;
-	
-		m0[0][0] = E/(1-nu*nu) ; m0[0][1] =E/(1-nu*nu)*nu ; m0[0][2] = Function() ;
-		m0[1][0] = E/(1-nu*nu)*nu ; m0[1][1] = E/(1-nu*nu) ; m0[1][2] = Function() ; 
-		m0[2][0] = Function() ; m0[2][1] = Function() ; m0[2][2] = E/(1-nu*nu)*(1.-nu)/2. ; 
-	
-		param = vm.eval(m0, Point(0., 0.)) ;
-		num_dof = 2 ;
-	}
-	else
-	{
-		FunctionMatrix m1(6,6) ;
-	
-		double divNu = 1./((1.+nu)*(1.-2.*nu)) ;
+		imposedZ = Function("0") ;
 
-		m1[0][0] = E*(1-nu)*divNu ; m1[0][1] = E*nu*divNu ; m1[0][2] = E*nu*divNu ; m1[0][3] = Function() ; m1[0][4] = Function() ; m1[0][5] = Function() ;
-		m1[1][0] = E*nu*divNu ; m1[1][1] = E*(1-nu)*divNu ; m1[1][2] = E*nu*divNu ; m1[1][3] = Function() ; m1[1][4] = Function() ; m1[1][5] = Function() ;
-		m1[2][0] = E*nu*divNu ; m1[2][1] = E*nu*divNu ; m1[2][2] = E*(1-nu)*divNu ; m1[2][3] = Function() ; m1[2][4] = Function() ; m1[2][5] = Function() ;
-		m1[3][0] = Function() ; m1[3][1] = Function() ; m1[3][2] = Function() ; m1[3][3] = E*(0.5-nu)*0.99*divNu ; m1[3][4] = Function() ; m1[3][5] = Function() ;
-		m1[4][0] = Function() ; m1[4][1] = Function() ; m1[4][2] = Function() ; m1[4][3] = Function() ; m1[4][4] = E*(0.5-nu)*0.99*divNu ; m1[4][5] = Function() ;
-		m1[5][0] = Function() ; m1[5][1] = Function() ; m1[5][2] = Function() ; m1[5][3] = Function() ; m1[5][4] = Function() ; m1[5][5] = E*(0.5-nu)*0.99*divNu ;
+}
 
-		num_dof = 3 ;
-
-		param = vm.eval(m1, Point(0., 0., 0.)) ;
-
-	}
+StressDefinedStiffnessWithImposedDeformation::StressDefinedStiffnessWithImposedDeformation(Function f, double n, Function defX, Function defY, Function defZ, IntegrableEntity * parent) : StressDefinedStiffness(f,n,parent), imposedX(defX), imposedY(defY), imposedZ(defZ)
+{
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+		imposedZ = Function("0") ;
 
 }
 
 
-StressDefinedStiffness::~StressDefinedStiffness()
+StressDefinedStiffnessWithImposedDeformation::StressDefinedStiffnessWithImposedDeformation(Function f, double n, Function defX, Function defY, Function defZ, SpaceDimensionality dim) : StressDefinedStiffness(f,n,dim), imposedX(defX), imposedY(defY), imposedZ(defZ)
+{
+	if(dim == SPACE_TWO_DIMENSIONAL)
+		imposedZ = Function("0") ;
+
+}
+
+
+StressDefinedStiffnessWithImposedDeformation::~StressDefinedStiffnessWithImposedDeformation()
 {
 
 }
 
-Matrix StressDefinedStiffness::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
+Matrix StressDefinedStiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
 {
 	VirtualMachine vm ;
 	GaussPointArray gp = e->getGaussPoints() ;
@@ -144,7 +97,7 @@ Matrix StressDefinedStiffness::apply(const Function & p_i, const Function & p_j,
 
 }
 
-void StressDefinedStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+void StressDefinedStiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 	
 	double E_ = 0;
@@ -194,7 +147,7 @@ void StressDefinedStiffness::apply(const Function & p_i, const Function & p_j, c
 	}
 }
 
-void StressDefinedStiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
+void StressDefinedStiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
 	Vector stress = s.getStress(gp.gaussPoints) ; 
 
@@ -207,59 +160,91 @@ void StressDefinedStiffness::getForces(const ElementState & s, const Function & 
 	f = VirtualMachine().ieval(Gradient(p_i, true)*stress, gp, Jinv,v) ;
 }
 
-bool StressDefinedStiffness::isActive() const 
+bool StressDefinedStiffnessWithImposedDeformation::isActive() const 
 {
 
 	GaussPointArray gp = parent->getGaussPoints() ;
 	
 	double E_ = 0;
+	Vector def(3) ;
 	VirtualMachine vm ;
 	
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		Vector stress = parent->getState().getStress(gp.gaussPoints[i].first) ;
 		if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+		{
 			E_ += vm.eval(E, stress[0],stress[1])*gp.gaussPoints[i].second ;
+			def[0] += vm.eval(imposedX,stress[0])*gp.gaussPoints[i].second ;
+			def[1] += vm.eval(imposedY,stress[1])*gp.gaussPoints[i].second ;
+		}
 		else
+		{
 			E_ += vm.eval(E, stress[0],stress[1],stress[2])*gp.gaussPoints[i].second ;
+			def[0] += vm.eval(imposedX,stress[0])*gp.gaussPoints[i].second ;
+			def[1] += vm.eval(imposedY,stress[1])*gp.gaussPoints[i].second ;
+			def[2] += vm.eval(imposedZ,stress[2])*gp.gaussPoints[i].second ;
+		}
 	}
 	
-	return E_ > 1e-6 ;
+	return (E_ > 1e-6 || (std::max(std::abs(def[0]),std::max(std::abs(def[1]),std::abs(def[2])))) > 1e-6) ;
 }
 
-Form * StressDefinedStiffness::getCopy() const 
+Form * StressDefinedStiffnessWithImposedDeformation::getCopy() const 
 {
-	return new StressDefinedStiffness(*this) ;
+	return new StressDefinedStiffnessWithImposedDeformation(*this) ;
 }
 
-bool StressDefinedStiffness::fractured() const
+bool StressDefinedStiffnessWithImposedDeformation::hasInducedForces() const
 {
-	double E_ = 0;
+	return true ;
+}
+
+Vector StressDefinedStiffnessWithImposedDeformation::getImposedStress(const Point & p) const
+{
 	GaussPointArray gp = parent->getGaussPoints() ;
+	
+	double E_ = 0;
 	VirtualMachine vm ;
-
-
+	
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 	{
+		Vector def(3) ;
+		Matrix m0(3,3) ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 		{
-			Vector stress = parent->getState().getStress(gp.gaussPoints[i].first,false) ;
+			Vector stress = parent->getState().getStress(gp.gaussPoints[i].first) ;
 			E_ += vm.eval(E, stress[0],stress[1])*gp.gaussPoints[i].second ;
-			
+			def[0] += vm.eval(imposedX,stress[0])*gp.gaussPoints[i].second ;
+			def[1] += vm.eval(imposedY,stress[1])*gp.gaussPoints[i].second ;
 		}
-		E_ /= (1-nu*nu) ;
+		m0[0][0] = E_/(1-nu*nu) ; m0[0][1] =E_/(1-nu*nu)*nu ; m0[0][2] = 0 ;
+		m0[1][0] = E_/(1-nu*nu)*nu ; m0[1][1] = E_/(1-nu*nu) ; m0[1][2] = 0 ; 
+		m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E_/(1-nu*nu)*(1.-nu)/2. ; 
+
+		return m0*def ;
 	} else {
+		Vector def3d(3) ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 		{
 			Vector stress3d = parent->getState().getStress(gp.gaussPoints[i].first) ;
 			E_ += vm.eval(E, stress3d[0],stress3d[1],stress3d[2])*gp.gaussPoints[i].second ;
+			def3d[0] += vm.eval(imposedX,stress3d[0])*gp.gaussPoints[i].second ;
+			def3d[1] += vm.eval(imposedY,stress3d[1])*gp.gaussPoints[i].second ;
+			def3d[2] += vm.eval(imposedZ,stress3d[2])*gp.gaussPoints[i].second ;
 		}
-		E_ *= (1. - nu)/((1.+nu)*(1.-2.*nu)) ;
+		Matrix m1(6,6) ;
+		m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
+		m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
+		m1[2][0] = nu ; m1[2][1] = nu ; m1[2][2] = 1. - nu ;
+		m1[3][3] = (0.5 - nu)*.99 ;
+		m1[4][4] = (0.5 - nu)*.99 ;
+		m1[5][5] = (0.5 - nu)*.99 ;
+		m1 *= E_/((1.+nu)*(1.-2.*nu)) ;
+		return m1*def3d ;
 	}
-
-	return (E_ / param[0][0] < 0.2) ;
-
 }
+
 
 
 

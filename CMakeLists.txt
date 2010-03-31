@@ -58,6 +58,7 @@ physics/fracturecriteria/ruptureenergy.cpp
 physics/radial_distributed_stiffness.cpp
 physics/spatially_distributed_stiffness.cpp
 physics/stress_defined_stiffness.cpp
+physics/stress_defined_stiffness_with_imposed_deformation.cpp
 physics/homogeneised_behaviour.cpp 
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
