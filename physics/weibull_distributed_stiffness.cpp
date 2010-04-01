@@ -11,7 +11,9 @@
 //
 
 #include "weibull_distributed_stiffness.h"
-#include "physics.h"
+#include "physics_base.h"
+#include "stiffness.h"
+#include "stiffness_and_fracture.h"
 #include "fracturecriteria/mohrcoulomb.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/ruptureenergy.h"

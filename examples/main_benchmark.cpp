@@ -7,7 +7,7 @@
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/physics.h"
+#include "../physics/physics_base.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/laplacian.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
@@ -24,6 +24,7 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../physics/stiffness.h"
 #include <sys/time.h>
 
 #include <fstream>

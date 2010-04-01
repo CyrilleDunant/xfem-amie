@@ -10,6 +10,8 @@
 //
 //
 #include "pore.h"
+#include "../physics/physics_base.h"
+#include "../physics/void_form.h"
 
 using namespace Mu ;
 

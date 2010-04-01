@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include "../utilities/parser.h"
-#include "../physics/physics.h"
+#include "../physics/physics_base.h"
 #include "../solvers/assembly.h"
 #include "../elements/elements.h"
 #include "../polynomial/variable.h"

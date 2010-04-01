@@ -15,6 +15,7 @@
 #include "../mesher/delaunay_3d.h"
 #include "../filters/voxelporefilter.h"
 #include "../physics/void_form.h"
+#include "../physics/diffusion.h"
 
 #include <cmath>
 #include <typeinfo>

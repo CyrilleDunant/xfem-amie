@@ -7,7 +7,7 @@
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/physics.h"
+#include "../physics/physics_base.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"

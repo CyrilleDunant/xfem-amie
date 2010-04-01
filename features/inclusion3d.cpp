@@ -10,6 +10,8 @@
 //
 //
 #include "inclusion3d.h"
+#include "../physics/physics_base.h"
+#include "../physics/void_form.h"
 #include "../utilities/xml.h"
 
 

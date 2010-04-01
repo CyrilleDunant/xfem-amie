@@ -14,7 +14,7 @@
 
 #include "../geometry/geometry_3D.h"
 #include "../geometry/geometry_2D.h"
-#include "../physics/physics.h"
+#include "../physics/physics_base.h"
 #include "../polynomial/vm_base.h"
 #include "../elements/integrable_entity.h"
 

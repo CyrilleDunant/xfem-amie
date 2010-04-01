@@ -1,7 +1,7 @@
 #ifndef __TRIPLE_BEHAVIOUR_H_
 #define __TRIPLE_BEHAVIOUR_H_
 
-#include "physics.h"
+#include "physics_base.h"
 
 namespace Mu
 {

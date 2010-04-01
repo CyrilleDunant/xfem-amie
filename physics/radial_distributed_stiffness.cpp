@@ -12,6 +12,8 @@
 
 #include "radial_distributed_stiffness.h"
 #include "../utilities/xml.h"
+#include "physics_base.h"
+#include "stiffness.h"
 
 
 using namespace Mu ;

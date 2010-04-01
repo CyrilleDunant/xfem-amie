@@ -22,7 +22,7 @@
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
 #include "../elements/elements.h"
-#include "../physics/physics.h"
+#include "../physics/physics_base.h"
 #include "../sparse/sparse_matrix.h"
 
 

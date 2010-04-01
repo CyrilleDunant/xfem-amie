@@ -1,7 +1,7 @@
 #ifndef __DUAL_BEHAVIOUR_H_
 #define __DUAL_BEHAVIOUR_H_
 
-#include "physics.h"
+#include "physics_base.h"
 
 namespace Mu
 {

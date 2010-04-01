@@ -13,6 +13,7 @@
 #include "../mesher/delaunay_3d.h"
 #include "../filters/voxelfilter.h"
 #include "../physics/void_form.h"
+#include "../physics/stiffness.h"
 
 #include <cmath>
 #include <typeinfo>

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <limits>
+#include <set>
 #include "../elements/integrable_entity.h"
 
 namespace Mu
