@@ -1047,7 +1047,6 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 		boundingPoints[2*numberOfPointsAlongY+numberOfPointsAlongX+i-3] = new Point(
 			center.x + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
 			center.y + 0.5*size_y) ;
-		
 	}
 }
 
@@ -1170,7 +1169,7 @@ std::vector<Point> Circle::getBoundingBox() const
 
 void Circle::project(Point * p) const
 {
-	if(squareDist2D(p, &center ) < POINT_TOLERANCE*POINT_TOLERANCE)
+	if(squareDist2D(p, &getCenter() ) < POINT_TOLERANCE*POINT_TOLERANCE)
 	{
 		p->x +=getRadius() ;
 		return ;

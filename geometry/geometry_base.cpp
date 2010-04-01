@@ -110,10 +110,10 @@ XMLTree * Point::toXML()
 void Point::print() const
 {
 	std::cout << " ( id = " << id << std::flush ;
-	std::cout << " ; "<< std::setprecision(14) << x << std::flush ;
-	std::cout << "; " << std::setprecision(14)<< y << std::flush ;
-	std::cout << "; " << std::setprecision(14)<< z << std::flush ;
-	std::cout << "; " << std::setprecision(14)<< t << ") " << std::endl;
+	std::cout << " ; "<< std::setprecision(16) << x << std::flush ;
+	std::cout << "; " << std::setprecision(16)<< y << std::flush ;
+	std::cout << "; " << std::setprecision(16)<< z << std::flush ;
+	std::cout << "; " << std::setprecision(16)<< t << ") " << std::endl;
 }
 
 double Point::norm() const
@@ -212,7 +212,7 @@ void Point::set(double v, double vv, double vvv, double vvvv)
 
 bool Point::operator==(const Point &p) const
 {
-	return dist(p, *this) < POINT_TOLERANCE ;
+	
 	
 	if(std::abs(p.x-x) > 2.*POINT_TOLERANCE)
 		return false ;
@@ -222,31 +222,45 @@ bool Point::operator==(const Point &p) const
 		return false ;
 	if(std::abs(p.t-t) > 2.*POINT_TOLERANCE)
 		return false ;
+	double pnorm = p.norm() ;
+	double tnorm = norm() ;
+	if(pnorm < POINT_TOLERANCE && tnorm < POINT_TOLERANCE)
+		return true ;
+	return dist(p, *this) < POINT_TOLERANCE ;
+// 	Point mid = (p+ *this)*.5 ;
+// 	double d =  std::max(p.norm(), norm()) ;
+// 	if(d < POINT_TOLERANCE)
+// 		return true ;
+// 	return dist((p-mid)/d, (*this-mid)/d) <= POINT_TOLERANCE ;
 	
-	double delta = POINT_TOLERANCE ;
-	Point a(p) ; a.x += delta ; a.y += delta ; a.z += delta ;
-	Point b(p) ; b.x += delta ; b.y += delta; b.z -= delta ;
-	Point c(p) ; c.x += delta ; c.y -= delta; c.z += delta ;
-	Point d(p) ; d.x += delta ; d.y -= delta; d.z -= delta ;
-	Point e(p) ; e.x -= delta ; e.y += delta; e.z += delta ;
-	Point f(p) ; f.x -= delta ; f.y += delta; f.z -= delta ;
-	Point g(p) ; g.x -= delta ; g.y -= delta; g.z += delta ;
-	Point h(p) ; h.x -= delta ; h.y -= delta; h.z -= delta ;
-
-	return squareDist( &p, this) < POINT_TOLERANCE*POINT_TOLERANCE 
-		|| squareDist( &a, this) < POINT_TOLERANCE*POINT_TOLERANCE
-		|| squareDist( &b, this) < POINT_TOLERANCE*POINT_TOLERANCE
-		|| squareDist( &c, this) < POINT_TOLERANCE*POINT_TOLERANCE
-		|| squareDist( &d, this) < POINT_TOLERANCE*POINT_TOLERANCE
-		|| squareDist( &e, this) < POINT_TOLERANCE*POINT_TOLERANCE
-		|| squareDist( &f, this) < POINT_TOLERANCE*POINT_TOLERANCE
-		|| squareDist( &g, this) < POINT_TOLERANCE*POINT_TOLERANCE
-		|| squareDist( &h, this) < POINT_TOLERANCE*POINT_TOLERANCE ;
+// 	double delta = POINT_TOLERANCE ;
+// 	Point a(p) ; a.x += delta ; a.y += delta ; a.z += delta ;
+// 	Point b(p) ; b.x += delta ; b.y += delta; b.z -= delta ;
+// 	Point c(p) ; c.x += delta ; c.y -= delta; c.z += delta ;
+// 	Point d(p) ; d.x += delta ; d.y -= delta; d.z -= delta ;
+// 	Point e(p) ; e.x -= delta ; e.y += delta; e.z += delta ;
+// 	Point f(p) ; f.x -= delta ; f.y += delta; f.z -= delta ;
+// 	Point g(p) ; g.x -= delta ; g.y -= delta; g.z += delta ;
+// 	Point h(p) ; h.x -= delta ; h.y -= delta; h.z -= delta ;
+// 
+// 	return squareDist( &p, this) < POINT_TOLERANCE*POINT_TOLERANCE 
+// 		|| squareDist( &a, this) < POINT_TOLERANCE*POINT_TOLERANCE
+// 		|| squareDist( &b, this) < POINT_TOLERANCE*POINT_TOLERANCE
+// 		|| squareDist( &c, this) < POINT_TOLERANCE*POINT_TOLERANCE
+// 		|| squareDist( &d, this) < POINT_TOLERANCE*POINT_TOLERANCE
+// 		|| squareDist( &e, this) < POINT_TOLERANCE*POINT_TOLERANCE
+// 		|| squareDist( &f, this) < POINT_TOLERANCE*POINT_TOLERANCE
+// 		|| squareDist( &g, this) < POINT_TOLERANCE*POINT_TOLERANCE
+// 		|| squareDist( &h, this) < POINT_TOLERANCE*POINT_TOLERANCE ;
 }
 
 bool Point::operator!=(const Point & p) const
 {
-	return !(*this == p) ;
+	double pnorm = p.norm() ;
+	double tnorm = norm() ;
+	if(pnorm <= POINT_TOLERANCE && tnorm <= POINT_TOLERANCE)
+		return false ;
+	return dist(p, *this) >= POINT_TOLERANCE ;
 }
 
 Point Point::operator-(const Point &p) const

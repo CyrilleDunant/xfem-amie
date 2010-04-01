@@ -82,11 +82,13 @@ public:
 	 */
 	virtual void setBehaviour(Form * b) ;
 	
-	/** \brief Get the Cauchy-Green Strain Tensor.
+	/** \brief Get the Behaviour
 	 * 
-	 * @return the Cauchy-Green Strain tensor.
+	 * @return the Behaviour
 	 */
 	virtual Form * getBehaviour( const Point & p ) ;
+	
+	virtual Form * getBehaviour() ;
 	
 	/** \brief Add a child to the feature.
 	 * 

@@ -91,6 +91,11 @@ Form * Feature::getBehaviour( const Point & p)
 	return this->behaviour ;
 }
 
+Form * Feature::getBehaviour()
+{
+	return this->behaviour ;
+}
+
 Feature * Feature::getChild(size_t i) const
 {
 	return m_c[i] ;

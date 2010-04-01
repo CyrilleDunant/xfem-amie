@@ -2151,6 +2151,9 @@ void DelaunayTree::insert(Point *p)
 	{
 		if(cons[i]->isVertex(p)) 
 		{
+			cons[i]->print() ;
+			p->print() ;
+			exit(0) ;
 			std::cerr << "Vertex collision !" << std::endl ;
 			return ;
 		}

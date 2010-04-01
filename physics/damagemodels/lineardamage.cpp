@@ -35,13 +35,13 @@ void LinearDamage::step(ElementState & s)
 	if(fraction < 0)
 	{
 		double volume ;
-		if(s.getParent()->spaceDimensions() == 2)
+		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 			volume = s.getParent()->area() ;
 		else
 			volume = s.getParent()->volume() ;
 		
 		double charVolume ;
-		if(s.getParent()->spaceDimensions() == 2)
+		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 			charVolume = M_PI*characteristicRadius*characteristicRadius ;
 		else
 			charVolume = 4./3*M_PI*characteristicRadius*characteristicRadius*characteristicRadius ;

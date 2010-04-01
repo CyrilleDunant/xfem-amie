@@ -802,18 +802,7 @@ bool Assembly::mgprepare()
 	return sym ;
 }
 
-bool Assembly::mgsolve(LinearSolver * mg, Vector x0, int Maxit)
-{
 
-	std::cerr << "symmetrical problem" << std::endl ;
-
-	bool ret = mg->solve(x0) ;
-
-	displacements.resize(mg->x.size()) ;
-	displacements = mg->x ;
-
-	return ret ;
-}
 
 CoordinateIndexedSparseMatrix & Assembly::getMatrix()
 {
@@ -1286,9 +1275,10 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-		std::cerr << "Time to solve (µs) " << delta << std::endl ;
+		std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 		displacements.resize(cg.x.size()) ;
 		displacements = cg.x ;
+		
 // 		GaussSeidel cg(getMatrix(), externalForces) ;
 // 		ret = cg.solve(x0) ;
 // 		displacements.resize(cg.x.size()) ;
@@ -1305,7 +1295,7 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-		std::cout << "Time to solve (µs) " << delta << std::endl ;
+		std::cout << "Time to solve (s) " << delta/1e6 << std::endl ;
 		displacements.resize(cg.x.size()) ;
 		displacements = cg.x ;
 	}
@@ -1313,6 +1303,21 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 	
 }
 
+bool Assembly::mgsolve(LinearSolver * mg, Vector x0, int Maxit)
+{
+
+	std::cerr << "symmetrical problem" << std::endl ;
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
+	bool ret = mg->solve(x0) ;
+	gettimeofday(&time1, NULL);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
+	displacements.resize(mg->x.size()) ;
+	displacements = mg->x ;
+
+	return ret ;
+}
 
 void Assembly::fix()
 {

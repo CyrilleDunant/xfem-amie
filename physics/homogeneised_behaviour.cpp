@@ -60,6 +60,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 		type = VOID_BEHAVIOUR ;
 	else
 		param /= totalArea ;
+	param[2][2] /= .9 ;
 	v.push_back(XI);
 	v.push_back(ETA);
 } ;
@@ -108,7 +109,9 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 	else
 		param /= totalVolume ;
 	
-	
+	param[3][3] /= .9 ;
+	param[4][4] /= .9 ;
+	param[5][5] /= .9 ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(ZETA);

@@ -1390,28 +1390,15 @@ int main(int argc, char *argv[])
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
-
-
-	F.addFeature(&sample, inc0) ;
-
-	std::vector<Pore *> pores;
-
+// 	F.addFeature(&sample, inc0) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
+	F.sample(2048) ;
 	
-	Segment seg0(Point(-0.22, -0.06), Point(-0.22, 0.06)) ;
-	Segment seg1(Point(0.22, -0.05), Point(-0.22, -0.05)) ;
-	std::cout << seg0.intersects(seg1) << std::endl ;
-	seg0.intersection(seg1).print() ;
-	return 0 ;
-	Circle cercle(.5, 0,0) ;
-
-	F.sample(256) ;
-
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements(0, true) ;
 
 	step() ;

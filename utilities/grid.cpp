@@ -237,7 +237,12 @@ Voxel::~Voxel()
 
 bool Voxel::coOccur(const Point & p) const
 {
-	return p.x >= tlf.x &&  p.x <= trf.x && p.y >= blf.y &&  p.y <= tlf.y && p.z >= blb.z &&  p.z <= tlf.z;
+	return p.x >= tlf.x-POINT_TOLERANCE 
+	   &&  p.x <= trf.x+POINT_TOLERANCE 
+	   &&  p.y >= blf.y-POINT_TOLERANCE 
+	   &&  p.y <= tlf.y+POINT_TOLERANCE 
+	   &&  p.z >= blb.z-POINT_TOLERANCE 
+	   &&  p.z <= tlf.z+POINT_TOLERANCE;
 }
 
 int Voxel::computeFillFactor() const
@@ -338,7 +343,10 @@ bool Pixel::coOccur(const Geometry * inc) const
 
 bool Pixel::coOccur(const Point & p) const
 {
-	return p.x > tl.x &&  p.x < tr.x && p.y > bl.y &&  p.y < tl.y ;
+	return p.x >= tl.x - POINT_TOLERANCE 
+	   &&  p.x <= tr.x + POINT_TOLERANCE 
+	   &&  p.y >= bl.y - POINT_TOLERANCE 
+	   &&  p.y <= tl.y + POINT_TOLERANCE ;
 }
 
 void Pixel::remove(Geometry * inc)

@@ -45,6 +45,11 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	}
 	else
 	{
+		if(x0.size())
+		{
+			std::cout << "ouch" << std::endl ;
+			exit(0) ;
+		}
 		x = 0 ;
 		for(size_t i = 0 ; i < std::min(b.size(), x0.size()) ; i++)
 			x[i] = x0[i] ;
@@ -69,7 +74,8 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 
 	if (err < eps)
 	{
-		std::cerr << "b in : " << b.min() << ", " << b.max() << ", err = "<< err << std::endl ;
+		if(verbose)
+			std::cerr << "b in : " << b.min() << ", " << b.max() << ", err = "<< err << std::endl ;
 		if(cleanup)
 		{
 			delete P ;
@@ -93,7 +99,20 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	
 	//****************************************
 	double neps = eps ;
-	while(std::abs(last_rho)> std::max(err*neps*neps, neps*neps) && nit < Maxit )
+	assign(r, A*x-b) ;
+	r *= -1 ;	
+	err = std::abs(r).max() ;
+	if (err < eps)
+	{
+		if(verbose)
+			std::cerr << "b in : " << b.min() << ", " << b.max() << ", err = "<< err << std::endl ;
+		if(cleanup)
+		{
+			delete P ;
+		}
+		return true ;
+	}
+	while(std::abs(last_rho)> eps*eps && nit < Maxit )
 	{
 		P->precondition(r,z) ;
 		P_alt.precondition(r,z) ;
@@ -138,6 +157,6 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 		delete P ;
 	}
 	
-	return err < std::max(eps*neps, neps) || nit < Maxit ;
+	return err < eps && nit < Maxit ;
 }
 

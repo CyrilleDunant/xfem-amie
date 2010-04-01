@@ -18,11 +18,13 @@ GaussSeidel::GaussSeidel(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :L
 bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	double err=10 ;
-	
+	x.resize(b.size()) ;
 	if(x0.size() == b.size())
 	{
 		x = x0 ;
 	}
+	else
+		x = 0 ;
 // 	return true ;
 	size_t nit=0 ;
 	size_t Maxit ;
@@ -34,29 +36,27 @@ bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const
 // 	double omega = 1 ;
 	
 	Vector inverseDiagonal = A.inverseDiagonal() ;
-	
+	int stride =A.stride ;
+	Vector xprev = x ;
 	while((err > eps) && nit<Maxit)
 	{
-		err = 0 ;
 		for(size_t i = 0 ; i < x.size() ; i++)
 		{
 			double delta = 0 ;
-			size_t start_index = A.accumulated_row_size[i] ;
-			for(size_t j = 0 ; j < A.row_size[i] ;j++)
+			for(size_t j = 0 ; j < x.size() ; j++)
 			{
-				if(A.column_index[start_index+j] != i)
-					delta+=x[A.column_index[start_index+j]] * A.array[start_index+j] ;
+				if( i != j)
+					delta += x[j]*A[i][j] ;
 			}
-			double new_x_i = 0 ;
-			new_x_i = (b[i] - delta)* inverseDiagonal[i] ;
-
-			err += std::abs(x[i]-new_x_i) ;
 			
-			x[i]=new_x_i ;
+			x[i] = (b[i] - delta) * inverseDiagonal[i] ;
 		}
+		
+		err = std::abs(x-xprev).max() ;
+		xprev = x ;
 		if(nit%1000 == 0 && verbose)
 		{
-		std::cout << "error :"<< err <<", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+			std::cout << "error :"<< err <<", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		}
 		
 		nit++ ;

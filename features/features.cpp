@@ -4092,7 +4092,15 @@ void FeatureTree::setElementBehaviours()
 			{
 				if (j%1000 == 0)
 					std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << triangles.size() << std::flush ;
-				triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
+				std::vector<Geometry * > coocuring ;
+				if(tree.size() > 1)
+					coocuring = grid->coOccur(triangles[j]->getPrimitive()) ;
+				if(coocuring.size() == 1)
+					triangles[j]->setBehaviour(static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
+				else if (tree.size() == 1)
+					triangles[j]->setBehaviour(tree[0]->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
+				else
+					triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
 			}
 			std::cerr << " ...done" << std::endl ;
 		}
@@ -4701,12 +4709,12 @@ bool FeatureTree::step(double dt)
 		{
 			if(is2D())
 			{
-				coarseTrees[0]->project(dtree, coarseAssemblies[0]->getDisplacements()) ;
+				coarseTrees[0]->project(dtree, coarseAssemblies[0]->getDisplacements(), K->getDisplacements()) ;
 				coarseAssemblies[0]->cgsolve(coarseAssemblies[0]->getDisplacements()) ;
 			}
 			else
 			{
-				coarseTrees3D[0]->project(dtree3D, coarseAssemblies[0]->getDisplacements()) ;
+				coarseTrees3D[0]->project(dtree3D, coarseAssemblies[0]->getDisplacements(), K->getDisplacements()) ;
 				coarseAssemblies[0]->cgsolve(coarseAssemblies[0]->getDisplacements()) ;
 			}
 			
@@ -4738,7 +4746,7 @@ bool FeatureTree::step(double dt)
 			}
 			for(size_t j = 1 ; j < coarseAssemblies.size() ;j++)
 			{
-				coarseTrees[j]->project(coarseTrees[j-1], coarseAssemblies[j]->getDisplacements());
+				coarseTrees[j]->project(coarseTrees[j-1], coarseAssemblies[j]->getDisplacements(), coarseAssemblies[j-1]->getDisplacements());
 				coarseAssemblies[j]->cgsolve(coarseAssemblies[j]->getDisplacements()) ;
 				if(is2D())
 				{
@@ -4772,7 +4780,7 @@ bool FeatureTree::step(double dt)
 
 		if(useMultigrid && !coarseAssemblies.empty())
 		{
-			dtree->project(coarseTrees.back(), K->getDisplacements()) ;
+			dtree->project(coarseTrees.back(), K->getDisplacements(), coarseAssemblies.back()->getDisplacements()) ;
 			solverConvergence = K->cgsolve(K->getDisplacements()) ;
 		}
 		else
@@ -4814,7 +4822,7 @@ bool FeatureTree::step(double dt)
 			
 			for(size_t j = 1 ; j < coarseAssemblies.size() ;j++)
 			{
-				coarseTrees[j]->project(coarseTrees[j-1], coarseAssemblies[j]->getDisplacements()) ;
+				coarseTrees[j]->project(coarseTrees[j-1], coarseAssemblies[j]->getDisplacements(), coarseAssemblies[j-1]->getDisplacements()) ;
 				coarseAssemblies[j]->cgsolve(coarseAssemblies[j]->getDisplacements()) ;
 				if(is2D())
 				{
@@ -4847,16 +4855,22 @@ bool FeatureTree::step(double dt)
 		if(useMultigrid && !coarseAssemblies.empty())
 		{
 			K->mgprepare() ;
+			std::vector<const CoordinateIndexedSparseMatrix *> coarseMatrices ;
+			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+				coarseMatrices.push_back(&coarseAssemblies[j]->getMatrix()) ;
 			MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> * mg 
 			= new MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem> , DelaunayTriangle>(K->getMatrix(), 
-																						coarseAssemblies.back()->getMatrix(),
+																						coarseMatrices,
 																						dtree, 
-																						coarseTrees.back(), 
+																						coarseTrees, 
 																						K->getForces()) ;
+			dtree->project(coarseTrees.back(), lastx, coarseAssemblies.back()->getDisplacements()) ;
 			solverConvergence = K->mgsolve(mg, lastx) ;
 		}
 		else
 			solverConvergence = K->cgsolve() ;
+		
+// 		dtree->project(coarseTrees.front(), K->getDisplacements(), coarseAssemblies.front()->getDisplacements()) ;
 		
 	}
 	enrichmentChange = false ;
@@ -5227,7 +5241,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 {
 	double pointDensity = 0 ; 
 	if(is2D())
-		pointDensity = 0 ; //.7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
+		pointDensity = .7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
 	else
 		pointDensity = .7*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
 		
@@ -5255,12 +5269,19 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	}
 
 	bbox[0] = Point(min_x, min_y, min_z) ;
+	
 	bbox[1] = Point(min_x, min_y, max_z) ;
+	
 	bbox[2] = Point(min_x, max_y, min_z) ;
+	
 	bbox[3] = Point(min_x, max_y, max_z) ;
+	
 	bbox[4] = Point(max_x, min_y, min_z) ;
+	
 	bbox[5] = Point(max_x, min_y, max_z) ;
+	
 	bbox[6] = Point(max_x, max_y, min_z) ;
+	
 	bbox[7] = Point(max_x, max_y, max_z) ;
 
 	std::vector<Feature *> enrichmentFeature ;
@@ -5347,6 +5368,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 // 					}
 				}
 				
+
+				
 				if(!isIn && tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
 				{
 					Point proj(tree[i]->getBoundingPoint(j)) ;
@@ -5360,6 +5383,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 				}
 				if(!isIn)
 				{
+					if(tree[i]->getBoundingPoint(j) == Point(-250, 0))
+						std::cout << i << " found" << std::endl ;
 					bpcount++ ;
 					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getBoundingPoint(j), this->tree[i])) ;
 					if(i == 0)
@@ -5444,20 +5469,19 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	
 	if(is2D())
 	{
-		int ndivs = round(sqrt(basepoints)/2) ;
-		while( ndivs > 4)
+		//this approach maximises the number of coincident points between the coarse grids.
+		int ndivs = 4 ;
+		while( ndivs < round(sqrt(basepoints)/2))
 		{
 			coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), ndivs, Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
 			coarseAssemblies.push_back(new Assembly()) ;
-			ndivs /= 2 ;
+			ndivs *= 2 ;
 		}
-		std::reverse(coarseTrees.begin(), coarseTrees.end()) ;
 	}
 	else
 	{
 		
 	}
-	std::reverse(coarseAssemblies.begin(), coarseAssemblies.end()) ;
 	
 	size_t count  = 0 ;
 
@@ -5640,11 +5664,11 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	count = 0 ;
 
 	//let us make sure we have no overlap
-	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
-	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
-	if(is3D())
-		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
-	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
+// 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
+// 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
+// 	if(is3D())
+// 		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
+// 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
 // 	meshPoints.erase(e, meshPoints.end()) ;
 
 // 	std::srand(1000) ;
