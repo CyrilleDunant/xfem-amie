@@ -245,6 +245,8 @@ public:
 	
 	void addBoundaryCondition(BoundaryCondition * bc) ;
 	void removeBoundaryCondition(BoundaryCondition * bc) ;
+	void resetBoundaryConditions() {  boundaryCondition.clear() ; } ;
+	
 	
 public:
 	
@@ -300,7 +302,7 @@ public:
 	void refine(size_t level) ;
 
 	void shuffleMeshPoints() ;
-	
+
 	
 	/** \brief  Return true if the physics is modified by the BC
 	 * 

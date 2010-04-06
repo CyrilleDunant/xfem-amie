@@ -25,6 +25,7 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../utilities/homogenizer.h"
 
 #include <fstream>
 
@@ -201,7 +202,7 @@ std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones
 
 
 
-double uni_directional_step(int dir)
+std::pair<double, double> uni_directional_step(int dir)
 {
 	bool go_on = true ;
 	int tries = 0 ;
@@ -214,15 +215,7 @@ double uni_directional_step(int dir)
 		tries++ ;
 	}
 
-	std::cout << std::endl ;
-	std::cout << std::endl ;
-	std::cout << std::endl ;
-	std::cout << std::endl ;
 	std::cout << tries << " iterations before convergence" << std::endl ;
-	std::cout << std::endl ;
-	std::cout << std::endl ;
-	std::cout << std::endl ;
-	std::cout << std::endl ;
 
 	tets= featureTree->getTetrahedrons() ;
 	x.resize(featureTree->getDisplacements().size()) ;
@@ -391,30 +384,52 @@ double uni_directional_step(int dir)
 		}
 	}
 	
+	double Exx = avg_s_xx/avg_e_xx ;
+	double Eyy = avg_s_yy/avg_e_yy ;
+	double Ezz = avg_s_zz/avg_e_zz ;
+
+	double nuxx = std::sqrt(avg_e_yy*avg_e_yy+avg_e_zz*avg_e_zz)/(std::sqrt(2)*(avg_e_xx)) ;
+	double nuyy = std::sqrt(avg_e_xx*avg_e_xx+avg_e_zz*avg_e_zz)/(std::sqrt(2)*(avg_e_yy)) ;
+	double nuzz = std::sqrt(avg_e_xx*avg_e_xx+avg_e_yy*avg_e_yy)/(std::sqrt(2)*(avg_e_zz)) ;
+
+	std::pair<double, double> Enu ;
+	Enu.first = -1 ;
+	Enu.second = -1 ;
+
 	switch(dir)
 	{
 		case 0:
-			return avg_s_xx/avg_e_xx ;
+		{
+			Enu = std::make_pair(Exx,nuxx) ;
+			break ;
+		}
 		case 1:
-			return avg_s_yy/avg_e_yy ;
+		{
+			Enu = std::make_pair(Eyy,nuyy) ;
+			break ;
+		}
 		case 2:
-			return avg_s_zz/avg_e_zz ;
+		{
+			Enu = std::make_pair(Ezz,nuzz) ;
+			break ;
+		}
 	}
-	std::cout << "unknwon direction" << std::endl ;
-	return -1 ;
+	return Enu ;
 }
 
-Vector tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, std::vector<double> radius)
+Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double radius, size_t n_agg)
 {
-	Vector Young(3) ;
+	std::pair<double,double> Enu_xx ;
+	std::pair<double,double> Enu_yy ;
+	std::pair<double,double> Enu_zz ;
 
 	Sample3D box(NULL, box_dim , box_dim, box_dim, 0, 0, 0) ;
 	box.setBehaviour(new Stiffness(m_mat)) ;
 
 	std::vector<Inclusion3D *> inc ;
-	for(size_t i = 0 ; i < radius.size() ; i++)
+	for(size_t i = 0 ; i < n_agg ; i++)
 	{
-		inc.push_back(new Inclusion3D(radius[i],0,0,0)) ;
+		inc.push_back(new Inclusion3D(radius,0,0,0)) ;
 		inc[i]->setBehaviour(new Stiffness(m_inc)) ;
 	}
 
@@ -423,9 +438,9 @@ Vector tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, std::vec
 		feats.push_back(inc[i]) ;
 	inc.clear() ;
 
-	int n_agg = (int) radius.size() ;
+	int nAgg = n_agg ;
 
-	feats = placement(box.getPrimitive(), feats, &n_agg, n_agg * 1000);
+	feats = placement(box.getPrimitive(), feats, &nAgg, nAgg * 1000);
 
 	for(size_t i = 0; i < feats.size() ; i++)
 		inc.push_back(static_cast<Inclusion3D *>(feats[i])) ;
@@ -440,38 +455,38 @@ Vector tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, std::vec
 		for(size_t i = 0 ; i < inc.size() ; i++)
 			F.addFeature(&box,inc[i]) ;
 
-		std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > zones = generateExpansiveZones(n_zones, inc , F) ;
-
+//		std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > zones = generateExpansiveZones(n_zones, inc , F) ;
+		F.resetBoundaryConditions() ;
 		switch(dir)
 		{
 			case 0:
 			{
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 100)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 				break ;
 			}
 			case 1:
 			{
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM,0)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,100)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
 				break ;
 			}
 			case 2:
 			{
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, FRONT)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT,0)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BACK)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, BACK,100)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BACK)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, BACK,0)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
+//				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, FRONT)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, 100)) ;
 				break ;
 			}
 		}
@@ -481,43 +496,68 @@ Vector tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, std::vec
 		F.setOrder(LINEAR) ;
 		F.generateElements() ;
 	
-		Young[dir] = uni_directional_step(dir) ;
-		std::cout << Young[dir] << std::endl ;
+		std::pair<double,double> Enu = uni_directional_step(dir) ;
+		std::cout << Enu.first << ";" << Enu.second << std::endl ;
+		switch(dir)
+		{
+			case 0 :
+			{
+				Enu_xx = Enu ;
+				break ;
+			}
+			case 1 :
+			{
+				Enu_yy = Enu ;
+				break ;
+			}
+			case 2 :
+			{
+				Enu_zz = Enu ;
+				break ;
+			}
+		}
 
 	}
+	double nu = Enu_xx.second + Enu_yy.second + Enu_zz.second ;
+	nu /= 3 ;
+
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << nu << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+
+	Vector Young(3) ;
+	Young[0] = Enu_xx.first ;
+	Young[1] = Enu_yy.first ;
+	Young[2] = Enu_zz.first ;
 	
-	return Young ;	
+	return makeStiffnessMatrix(Young, nu) ;	
 }
 
 int main(int argc, char *argv[])
 {
-	double agg_fraction = 0.2 ;
+	double agg_fraction = 0.7 ;
 
-	std::vector<std::vector<double> > radius ;
-	std::vector<double> r0 ;
-	std::vector<double> r1 ;
-	for(int i = 1 ; i < 5 ; i++)
-	{
-		for(int j = 0 ; j < i ; j++)
-			r0.push_back(100 / (i*i)) ;
-	}
-	r1.push_back(250) ;
-	radius.push_back(r0) ;
-	radius.push_back(r1) ;
+	std::vector<std::pair<double, double > > radius ;
+	radius.push_back(std::make_pair(53, 3.5)) ;
+	radius.push_back(std::make_pair(63, 4.7-3.5)) ;
+	radius.push_back(std::make_pair(100, 7.1-4.7)) ;
+	radius.push_back(std::make_pair(160, 10.0-7.1)) ;
+	radius.push_back(std::make_pair(250, 14.1-10.0)) ;
+	radius.push_back(std::make_pair(400, 22.1-14.1)) ;
+	radius.push_back(std::make_pair(630, 34.1-22.1)) ;
+	radius.push_back(std::make_pair(1000, 49.0-34.1)) ;
+	radius.push_back(std::make_pair(1600, 64.2-49.0)) ;
+	radius.push_back(std::make_pair(2500, 80.5-64.2)) ;
+	radius.push_back(std::make_pair(4000, 97.8-80.5)) ;
+	radius.push_back(std::make_pair(5000, 100.0-97.8)) ;
 
 	double agg_volume = 0 ;
-	std::vector<double> agg_volume_by_class ;
 	for(size_t i = 0 ; i < radius.size() ; i++)
-	{
-		agg_volume = 0 ;
-		for(size_t j = 0 ; j < radius[i].size() ; j++)
-			agg_volume += radius[i][j]*radius[i][j]*radius[i][j] ;
-		agg_volume *= 4/3 * M_PI ;
-		agg_volume_by_class.push_back(agg_volume) ;
-	}
-	agg_volume = 0 ;
-	for(size_t i = 0 ; i < agg_volume_by_class.size() ; i++)
-		agg_volume += agg_volume_by_class[i] ;
+		agg_volume += radius[i].second ;
 
 	double total_volume = agg_volume / agg_fraction ;
 	double cement_volume = total_volume - agg_volume ;
@@ -527,26 +567,58 @@ int main(int argc, char *argv[])
 	cement[1] = 25*1e9 ;
 	cement[2] = 25*1e9 ;
 
+	Matrix stiff_cem = makeStiffnessMatrix(cement, 0.2) ;
+	SimpleMaterial sm_cem(25*1e9, 0.2) ;
+
 	Vector aggregates(3) ;
 	aggregates[0] = 70*1e9 ;
 	aggregates[1] = 70*1e9 ;
 	aggregates[2] = 70*1e9 ;
 
+	Matrix stiff_agg = makeStiffnessMatrix(aggregates, 0.2) ;
+	SimpleMaterial sm_agg(70*1e9, 0.2) ;
+
 	double iter_volume = cement_volume ;
 
-	std::vector<Vector> homogenized ;
-	homogenized.push_back(cement) ;
+	std::vector<Matrix> stiff_hom ;
+	stiff_hom.push_back(stiff_cem) ;
 
 	for(size_t i = 0 ; i < radius.size() ; i++)
 	{
-		iter_volume += agg_volume_by_class[i] ;
+
+		std::cout << std::endl ;
+		std::cout << std::endl ;
+		std::cout << std::endl ;
+		std::cout << i << std::endl ;
+		std::cout << std::endl ;
+		std::cout << std::endl ;
+		std::cout << std::endl ;
+
+		iter_volume += radius[i].second ;
 		double box_dim = std::pow(iter_volume, 0.33333333) ;
 		std::cout << box_dim << std::endl ;
 
-		Vector hom = tri_directional_step(box_dim,makeStiffnessMatrix(homogenized.back(),0.2),makeStiffnessMatrix(aggregates,0.2),radius[i]) ;
+		size_t n_agg = 50  ;
+		double this_agg_volume = radius[i].first*radius[i].first*radius[i].first ;
+		this_agg_volume *= 4/3 * M_PI * n_agg ;
+		double this_iter_volume = iter_volume * this_agg_volume / radius[i].second ;
 
-		homogenized.push_back(hom) ;
+//		std::cout << std::endl ;
+//		std::cout << radius[i].second/iter_volume << std::endl ;
+//		std::cout << this_agg_volume/this_iter_volume << std::endl ;
+
+		box_dim = std::pow(this_iter_volume, 0.33333333) ;
+		std::cout << box_dim << std::endl ;
+		std::cout << std::endl ;
+		
+
+		Matrix hom = tri_directional_step(box_dim,stiff_hom.back(),stiff_agg,radius[i].first,n_agg) ;
+
+		stiff_hom.push_back(hom) ;
 	}
+
+	SimpleMaterial hom(MORI_TANAKA, std::make_pair(0.7, new SimpleMaterial(70*1e9,0.2)), new SimpleMaterial(25*1e9,0.2)) ;
+	std:: cout << hom.getE() << ";" << hom.getnu() << std::endl ;
 	
 	return 0 ;
 }

@@ -12,7 +12,10 @@
 
 #include "homogenizer.h"
 
-using namespace Mu ;
+namespace Mu
+{
+
+
 
 SimpleMaterial::SimpleMaterial(double E, double nu)
 {
@@ -179,11 +182,18 @@ SimpleMaterial::SimpleMaterial(XMLTree * xml)
 				nu = xml->getChild(0)->buildDouble() ;
 		}
 	}
-	if(E.first && E.second)
+	if(E.first && nu.first)
 		Young_Poisson = std::make_pair(E.second,nu.second) ;
 	else
 		Young_Poisson = kmu2Enu(std::make_pair(0.,0.)) ;
 }
+
+std::pair<double, double> SimpleMaterial::getkmu() 
+{
+	std::pair<double, double> kmu = Enu2kmu(Young_Poisson) ; 
+	return kmu ;
+}
+
 
 void SimpleMaterial::add(SimpleMaterial * mat)
 {
@@ -221,6 +231,7 @@ XMLTree * SimpleMaterial::toXML()
 	return mat ;
 }
 
+
 std::pair<double,double> Enu2kmu(std::pair<double,double> E_nu)
 {
 	double E = E_nu.first ;
@@ -228,7 +239,7 @@ std::pair<double,double> Enu2kmu(std::pair<double,double> E_nu)
 	double k = E / (3*(1-2*nu)) ;
 	double mu = E / (2*(1+nu)) ;
 	return std::make_pair(k,mu) ;
-}
+} ;
 
 std::pair<double,double> kmu2Enu(std::pair<double,double> k_mu)
 {
@@ -237,7 +248,8 @@ std::pair<double,double> kmu2Enu(std::pair<double,double> k_mu)
 	double E = 9*k*mu / (3*k+mu) ;
 	double nu = (3*k-2*mu) / (6*k+2*mu) ;
 	return std::make_pair(E,nu) ;
-}
+} ;
 
+}
 
 

@@ -23,9 +23,6 @@ typedef enum
 	SELF_CONSISTENT,
 } HomogenizationScheme ;
 
-std::pair<double,double> Enu2kmu(std::pair<double,double> E_nu) ;
-std::pair<double,double> kmu2Enu(std::pair<double,double> k_mu) ;
-
 class SimpleMaterial
 {
 protected:
@@ -56,8 +53,20 @@ public:
 	/** \brief Get Young modulus and Poisson ratio*/
 	std::pair<double,double> getEnu() {return Young_Poisson ; } ;
 
+	/** \brief Get Young modulus and Poisson ratio*/
+	double getE() {return Young_Poisson.first ; } ;
+
+	/** \brief Get Young modulus and Poisson ratio*/
+	double getnu() {return Young_Poisson.second ; } ;
+
 	/** \brief Get bulk and shear modulus*/
-	std::pair<double, double> getkmu() {return Enu2kmu(Young_Poisson) ; } ;
+	std::pair<double, double> getkmu() ;
+
+	/** \brief Get bulk and shear modulus*/
+//	double getk() {return Enu2kmu(Young_Poisson).first ; } ;
+
+	/** \brief Get bulk and shear modulus*/
+//	double getmu() {return Enu2kmu(Young_Poisson).second ; } ;
 
 	/** \brief Add the bulk and shear modulus of two materials*/
 	void add(SimpleMaterial * mat) ;
@@ -74,6 +83,10 @@ public:
 	/** \brief XML export*/
 	XMLTree * toXML() ;
 } ;
+
+std::pair<double,double> Enu2kmu(std::pair<double,double> E_nu) ;
+std::pair<double,double> kmu2Enu(std::pair<double,double> k_mu) ;
+
 
 
 
