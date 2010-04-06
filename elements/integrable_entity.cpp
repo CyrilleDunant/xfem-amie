@@ -2604,8 +2604,63 @@ Vector & ElementState::getDisplacements()
 	return this->displacements ;
 }
 
-Vector ElementState::getDisplacements(const Point & p, bool local) const
+Vector ElementState::getDisplacements(const Point & p, bool local, bool fast, const Vector * source) const
 {
+	if (fast)
+	{
+		if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
+		{
+			Vector ret(0., 2) ;
+			Vector d(0., parent->getBoundingPoints().size()) ;
+			double rr = 2.*parent->getRadius() ;
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				d[j] = dist(p, parent->getBoundingPoint(j)) ;
+				if(d[j] < POINT_TOLERANCE)
+				{
+					ret[0] += (*source)[ parent->getBoundingPoint(j).id*2] ;
+					ret[1] += (*source)[ parent->getBoundingPoint(j).id*2+1] ;
+					return ret ;
+				}
+			}
+			double sd = d.sum() ;
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				double w = (sd-d[j])/(sd*(parent->getBoundingPoints().size()-1)) ;
+				ret[0] += w*(*source)[ parent->getBoundingPoint(j).id*2] ;
+				ret[1] += w*(*source)[ parent->getBoundingPoint(j).id*2+1] ;
+			}
+			return ret ;
+		}
+		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3)
+		{
+			Vector ret(0., 3) ;
+			Vector d(0., parent->getBoundingPoints().size()) ;
+			double rr = 2.*parent->getRadius() ;
+			double t = 0 ;
+			
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				d[j] = dist(p, parent->getBoundingPoint(j)) ;
+				if(d[j] < POINT_TOLERANCE)
+				{
+					ret[0] += (*source)[ parent->getBoundingPoint(j).id*3] ;
+					ret[1] += (*source)[ parent->getBoundingPoint(j).id*3+1] ;
+					ret[2] += (*source)[ parent->getBoundingPoint(j).id*3+2] ;
+					return ret ;
+				}
+			}
+			double sd = d.sum() ;
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				double w = (sd-d[j])/(sd*(parent->getBoundingPoints().size()-1)) ;
+				ret[0] += w*(*source)[parent->getBoundingPoint(j).id*3] ;
+				ret[1] += w*(*source)[parent->getBoundingPoint(j).id*3+1] ;
+				ret[2] += w*(*source)[parent->getBoundingPoint(j).id*3+2] ;
+			}
+			return ret ;
+		}
+	}
 	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
 	{
 		Vector ret(0., 2) ;

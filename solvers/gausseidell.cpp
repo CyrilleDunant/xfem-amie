@@ -31,7 +31,7 @@ bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const
 	if(maxit > 0)
 		Maxit = maxit ;
 	else
-		Maxit = 2*b.size() ;
+		Maxit = 2000*b.size() ;
 	
 // 	double omega = 1 ;
 	
@@ -40,16 +40,15 @@ bool GaussSeidel::solve(const Vector &x0, const Preconditionner * precond, const
 	Vector xprev = x ;
 	while((err > eps) && nit<Maxit)
 	{
-		for(size_t i = 0 ; i < x.size() ; i++)
+		for(size_t i = 0 ; i < x.size() ; i+=stride)
 		{
-			double delta = 0 ;
-			for(size_t j = 0 ; j < x.size() ; j++)
+			Vector delta = A[i]*x ;
+			for(size_t j = 0 ; j < delta.size() ; j++)
 			{
-				if( i != j)
-					delta += x[j]*A[i][j] ;
+				delta[j] -= x[i+j]/inverseDiagonal[i] ;
+				x[i+j] = (b[i+j] - delta[j]) * inverseDiagonal[i+j] ;
 			}
 			
-			x[i] = (b[i] - delta) * inverseDiagonal[i] ;
 		}
 		
 		err = std::abs(x-xprev).max() ;

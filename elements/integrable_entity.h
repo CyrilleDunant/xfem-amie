@@ -173,7 +173,7 @@ public:
 	double getMaximumVonMisesStress() const ;
 	
 /** \brief return displacement at point*/
-	Vector getDisplacements(const Point &, bool local = false) const;
+	Vector getDisplacements(const Point &, bool local = false, bool fast = false, const Vector * source = NULL) const;
 
 /** \brief return displacement at points*/
 	Vector getDisplacements(const std::valarray<Point> & p) const ;

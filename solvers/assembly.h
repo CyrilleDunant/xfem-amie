@@ -30,6 +30,7 @@ namespace Mu
 {
 
 class LinearSolver ;
+class Preconditionner ;
 
 
 typedef enum 
@@ -249,7 +250,7 @@ public:
 /** \brief Solve linear system using provided solver*/
 
 	bool mgprepare() ;
-	bool mgsolve(LinearSolver * mg, Vector x0 = Vector(0), int maxit = -1) ;
+	bool mgsolve(LinearSolver * mg, Vector x0 = Vector(0), Preconditionner * pg = NULL, int maxit = -1) ;
 
 /** \brief Solve linear system using Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
 	bool cgnpsolve(Vector b, size_t maxit) ;

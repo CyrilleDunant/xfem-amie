@@ -216,7 +216,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					}
 				}
 				std::vector<Variable> v(3) ;
-				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				v[0] = XI ; v[1] = ETA ; v[2] = ZETA ;
 				Vector imposed(6) ;
 				imposed[0] = data ;
 				imposed[1] = 0 ;
@@ -252,7 +252,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					}
 				}
 				std::vector<Variable> v(3) ;
-				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				v[0] = XI ; v[1] = ETA ; v[2] = ZETA ;
 				Vector imposed(6) ;
 				imposed[0] = 0 ;
 				imposed[1] = data ;
@@ -288,7 +288,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					}
 				}
 				std::vector<Variable> v(3) ;
-				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				v[0] = XI ; v[1] = ETA ; v[2] = ZETA ;
 				Vector imposed(6) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -324,7 +324,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					}
 				}
 				std::vector<Variable> v(3) ;
-				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				v[0] = XI ; v[1] = ETA ; v[2] = ZETA ;
 				Vector imposed(6) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -360,7 +360,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					}
 				}
 				std::vector<Variable> v(3) ;
-				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				v[0] = XI ; v[1] = ETA ; v[2] = ZETA ;
 				Vector imposed(6) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -396,7 +396,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					}
 				}
 				std::vector<Variable> v(3) ;
-				v[0] = XI ; v[1] = ETA ; v[1] = ZETA ;
+				v[0] = XI ; v[1] = ETA ; v[2] = ZETA ;
 				Vector imposed(6) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -2547,7 +2547,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles(Feature * f )
 
 FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 {
-
+	useMultigrid = false ;
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
 	if(first)
@@ -2555,7 +2555,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 
 	if(is2D())
 		grid = new Grid((first->getBoundingBox()[1].x-first->getBoundingBox()[0].x)*1.1,
-		                (first->getBoundingBox()[1].y-first->getBoundingBox()[2].y)*1.1, 100,
+		                (first->getBoundingBox()[1].y-first->getBoundingBox()[2].y)*1.1, 10,
 		                Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
 		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
 		                     )) ;
@@ -2563,7 +2563,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	if(is3D())
 		grid3d =new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x)*1.1,
 		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y)*1.1,
-		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, 100, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, 10, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -3249,7 +3249,7 @@ void FeatureTree::sample(size_t n)
 	}
 	else if (is3D())
 	{
-
+		std::cout << n << std::endl ;
 		std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
 		tree[0]->sample(n) ;
 
@@ -4095,9 +4095,14 @@ void FeatureTree::setElementBehaviours()
 				std::vector<Geometry * > coocuring ;
 				if(tree.size() > 1)
 					coocuring = grid->coOccur(triangles[j]->getPrimitive()) ;
-				if(coocuring.size() == 1)
-					triangles[j]->setBehaviour(static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
-				else if (tree.size() == 1)
+				if(coocuring.size() == 1 && !static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->spaceDependent())
+				{
+					if(coocuring[0]->in(*triangles[j]->first) && coocuring[0]->in(*triangles[j]->second) && coocuring[0]->in(*triangles[j]->third))
+						triangles[j]->setBehaviour(static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
+					else
+						triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
+				}
+				else if (tree.size() == 1 && !tree[0]->getBehaviour(triangles[j]->getCenter())->spaceDependent())
 					triangles[j]->setBehaviour(tree[0]->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
 				else
 					triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
@@ -4674,7 +4679,6 @@ bool FeatureTree::step(double dt)
 {
 	Vector lastx(K->getDisplacements()) ;
 	bool ret = true ;
-	bool useMultigrid = false ;
 	if(enrichmentChange)
 	{
 		this->K->clear() ;
@@ -4858,14 +4862,13 @@ bool FeatureTree::step(double dt)
 			std::vector<const CoordinateIndexedSparseMatrix *> coarseMatrices ;
 			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
 				coarseMatrices.push_back(&coarseAssemblies[j]->getMatrix()) ;
-			MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> * mg 
-			= new MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem> , DelaunayTriangle>(K->getMatrix(), 
+			MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> mg(K->getMatrix(), 
 																						coarseMatrices,
 																						dtree, 
 																						coarseTrees, 
 																						K->getForces()) ;
 			dtree->project(coarseTrees.back(), lastx, coarseAssemblies.back()->getDisplacements()) ;
-			solverConvergence = K->mgsolve(mg, lastx) ;
+			solverConvergence = K->mgsolve(&mg, lastx) ;
 		}
 		else
 			solverConvergence = K->cgsolve() ;
@@ -5675,7 +5678,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
-	shuffleMeshPoints() ;
+// 	shuffleMeshPoints() ;
 	
 //	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 //		meshPoints[i].first->print() ;

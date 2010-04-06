@@ -27,7 +27,7 @@ struct GaussSeidellStep : public Preconditionner
 	const CoordinateIndexedSparseMatrix & A ;
 	virtual ~GaussSeidellStep() { } ;
 	GaussSeidellStep(const CoordinateIndexedSparseMatrix &A) ;
-	virtual void precondition(Vector &v,Vector &) const ;
+	virtual void precondition(const Vector& v, Vector& t) const ;
 
 };
 

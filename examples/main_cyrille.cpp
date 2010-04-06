@@ -194,15 +194,16 @@ void step()
 
 		timepos+= 0.0001 ;
 		double da = 0 ;
+		int grid = -1 ;
 
-		triangles = featureTree->getTriangles() ;
-		x.resize(featureTree->getDisplacements().size()) ;
-		x = featureTree->getDisplacements() ;
+		triangles = featureTree->getTriangles(grid) ;
+		x.resize(featureTree->getDisplacements(grid).size()) ;
+		x = featureTree->getDisplacements(grid) ;
 
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(grid) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
@@ -1384,21 +1385,24 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
-// 	sample.setBehaviour(new Stiffness(m0_paste)) ;	
-	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
+	sample.setBehaviour(new Stiffness(m0_paste)) ;	
+// 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
-// 	F.addFeature(&sample, inc0) ;
+	F.addFeature(&sample, inc0) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
-	F.sample(2048) ;
-	
+
+	F.sample(1024) ;
+	F.useMultigrid = true ;
 	F.setOrder(QUADRATIC) ;
 	F.generateElements(0, true) ;
 

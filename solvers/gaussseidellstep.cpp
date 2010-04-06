@@ -16,9 +16,11 @@ namespace Mu {
 
 GaussSeidellStep::GaussSeidellStep(const CoordinateIndexedSparseMatrix &A_) : A(A_) { };
 
-void GaussSeidellStep::precondition(Vector& v, Vector& t) const
+void GaussSeidellStep::precondition(const Vector& v, Vector& t) const
 {
-	GaussSeidel gs(A, v) ;
+	
+	GaussSeidel gs(A, t) ;
+	gs.b = v ;
 	gs.solve(v, NULL, 0, 4, false) ;
 	t = gs.x ;
 }

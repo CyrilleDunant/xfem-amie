@@ -1238,6 +1238,9 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 
 void Assembly::fixPoint(size_t id, Mu::Variable v)
 {
+	std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
 	setPointAlong(v, 0, id) ;
 }
 
@@ -1303,13 +1306,13 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 	
 }
 
-bool Assembly::mgsolve(LinearSolver * mg, Vector x0, int Maxit)
+bool Assembly::mgsolve(LinearSolver * mg, Vector x0, Preconditionner *pg, int Maxit)
 {
 
 	std::cerr << "symmetrical problem" << std::endl ;
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
-	bool ret = mg->solve(x0) ;
+	bool ret = mg->solve(x0, pg, 1e-8, -1, true) ;
 	gettimeofday(&time1, NULL);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;

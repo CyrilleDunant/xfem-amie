@@ -21,9 +21,15 @@ namespace Mu
 /** \brief preconditionned Conjugate Gradient for symmetric systems*/
 	struct ConjugateGradient : public LinearSolver
 	{
-		virtual ~ConjugateGradient() { } ;
+		Vector r ;
+		Vector z ;
+		Vector p ;
+		Vector q ;
+		bool cleanup ;
+		const Preconditionner * P ;
+		virtual ~ConjugateGradient() { if(cleanup) delete P ;} ;
 		ConjugateGradient(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
-		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  ;
+		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-7, const int maxit = -1, bool verbose = false)  ;
 	} ;
 
 } ;

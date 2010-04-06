@@ -240,6 +240,7 @@ public:
 
 	double crackedVolume ;
 	double damagedVolume ;
+	bool useMultigrid;
 	
 public:
 	

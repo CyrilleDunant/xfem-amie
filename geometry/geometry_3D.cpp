@@ -739,7 +739,18 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 	{
 		for(size_t j = 0 ; j < numPointsPerDirection ; j++)
 		{
-			points.push_back(Point(point111.x*ds[i]+point000.x*(1.-ds[i]), point111.y*ds[j]+point000.y*(1.-ds[j]),point000.z)) ;
+			Point candidate(point111.x*ds[i]+point000.x*(1.-ds[i]), point111.y*ds[j]+point000.y*(1.-ds[j]),point000.z) ;
+			bool in = false ;
+			for(size_t k = 0 ; k < points.size() ; k++)
+			{
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				{
+					in = true ;
+					break ;
+				}
+			}
+			if(!in)
+				points.push_back(candidate) ;
 		}
 	}
 	
@@ -748,7 +759,18 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 	{
 		for(size_t j = 0 ; j < numPointsPerDirection ; j++)
 		{	
-			points.push_back(Point(point111.x*ds[i]+point000.x*(1.-ds[i]),point000.y, point111.z*ds[j]+point000.z*(1.-ds[j]))) ;
+			Point candidate(point111.x*ds[i]+point000.x*(1.-ds[i]),point000.y, point111.z*ds[j]+point000.z*(1.-ds[j])) ;
+			bool in = false ;
+			for(size_t k = 0 ; k < points.size() ; k++)
+			{
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				{
+					in = true ;
+					break ;
+				}
+			}
+			if(!in)
+				points.push_back(candidate) ;
 		}
 	}
 	
@@ -757,7 +779,18 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 	{
 		for(size_t j = 0 ; j < numPointsPerDirection ; j++)
 		{
-			points.push_back(Point(point000.x*ds[i]+point111.x*(1.-ds[i]), point111.y*ds[j]+point000.y*(1.-ds[j]), point111.z)) ;
+			Point candidate(point000.x*ds[i]+point111.x*(1.-ds[i]), point111.y*ds[j]+point000.y*(1.-ds[j]), point111.z) ;
+			bool in = false ;
+			for(size_t k = 0 ; k < points.size() ; k++)
+			{
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				{
+					in = true ;
+					break ;
+				}
+			}
+			if(!in)
+				points.push_back(candidate) ;
 		}
 	}
 	
@@ -766,7 +799,18 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 	{
 		for(size_t j = 0 ; j < numPointsPerDirection ; j++)
 		{
-			points.push_back(Point(point111.x, point111.y*ds[i]+point000.y*(1.-ds[i]), point111.z*ds[j]+point000.z*(1.-ds[j]))) ;
+			Point candidate(point111.x, point111.y*ds[i]+point000.y*(1.-ds[i]), point111.z*ds[j]+point000.z*(1.-ds[j])) ;
+			bool in = false ;
+			for(size_t k = 0 ; k < points.size() ; k++)
+			{
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				{
+					in = true ;
+					break ;
+				}
+			}
+			if(!in)
+				points.push_back(candidate) ;
 		}
 	}
 	
@@ -775,14 +819,21 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 	{
 		for(size_t j = 0 ; j < numPointsPerDirection ; j++)
 		{
-			points.push_back(Point(point111.x*(1.-ds[i])+point000.x*ds[i], point111.y, point111.z*ds[j]+point000.z*(1.-ds[j]))) ;
+			Point candidate(point111.x*(1.-ds[i])+point000.x*ds[i], point111.y, point111.z*ds[j]+point000.z*(1.-ds[j])) ;
+			bool in = false ;
+			for(size_t k = 0 ; k < points.size() ; k++)
+			{
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				{
+					in = true ;
+					break ;
+				}
+			}
+			if(!in)
+				points.push_back(candidate) ;
 		}
 	}
-	
-	std::sort(points.begin(), points.end()) ;
-	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
-	points.erase(e, points.end()) ;
-	
+		
 	return points ;
 }
 

@@ -1378,16 +1378,16 @@ int main(int argc, char *argv[])
 // 
 // 	return 0 ;
 	
-	std::vector<std::string> fields ;
-	fields.push_back("center_x") ;
-	fields.push_back("center_y") ;
-	fields.push_back("center_z") ;
-	fields.push_back("radius") ;
-	GranuloFromFile gff("sphere_2024.txt",fields) ;
-	std::vector<Feature *> feat = gff.getFeatures(SPHERE_INCLUSION, 2024) ;
-	std::vector<Inclusion3D *> inclusions ;
-	for(size_t i = 0 ; i < feat.size() ; i++)
-		inclusions.push_back(static_cast<Inclusion3D *>(feat[i])) ;
+// 	std::vector<std::string> fields ;
+// 	fields.push_back("center_x") ;
+// 	fields.push_back("center_y") ;
+// 	fields.push_back("center_z") ;
+// 	fields.push_back("radius") ;
+// 	GranuloFromFile gff("sphere_2024.txt",fields) ;
+// 	std::vector<Feature *> feat = gff.getFeatures(SPHERE_INCLUSION, 2024) ;
+// 	std::vector<Inclusion3D *> inclusions ;
+// 	for(size_t i = 0 ; i < feat.size() ; i++)
+// 		inclusions.push_back(static_cast<Inclusion3D *>(feat[i])) ;
 
 	double maxx = 0.15 ;
 	double maxy = 0.15 ;
@@ -1422,17 +1422,19 @@ int main(int argc, char *argv[])
 	maxy = 0.15 + (maxy - 0.15) * 1.01 ;
 	maxz = 0.15 + (maxz - 0.15) * 1.01 ;*/
 
-	std::cout << minx << ";" << maxx << std::endl ;
-	std::cout << miny << ";" << maxy << std::endl ;
-	std::cout << minz << ";" << maxz << std::endl ;
+// 	std::cout << minx << ";" << maxx << std::endl ;
+// 	std::cout << miny << ";" << maxy << std::endl ;
+// 	std::cout << minz << ";" << maxz << std::endl ;
 
-	double scale = 500/0.15 ;
-	Sample3D sample(NULL, 1.0*(maxx-minx)*scale, 1.0*(maxy-miny)*scale, 1.0*(maxz-minz)*scale,(0.075)*scale,(0.075)*scale,(0.075)*scale) ;
+	double scale = 5000 ;
+	Sample3D sample(NULL, 0.01905*scale, 0.0762*scale, 0.0762*scale ,0.01905*scale*.5/*+0.0762*4.*scale*.5*/, 0.0762*scale*.5, 0.0762*scale*.5) ;
+	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
+
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 	double nu = 0.2 ;
-	double E = 1 ;
+	double E = 250e9 ;
 
 	Matrix m0(6,6) ;
 	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
@@ -1471,21 +1473,47 @@ int main(int argc, char *argv[])
 // 		}
 // 	}
 
-	Inclusion3D * inc = new Inclusion3D(100, 500, 0, 0) ;
-	inc->setBehaviour(new Stiffness(m1)) ;
-	F.addFeature(&sample, inc) ;
+// 	Inclusion3D * inc = new Inclusion3D(100, 500, 0, 0) ;
+// 	inc->setBehaviour(new Stiffness(m1)) ;
+// 	F.addFeature(&sample, inc) ;
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(32) ;
+	F.sample(4096*8) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, -100)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 100)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
+
+	double rad = 0.0074 ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 2e6)) ;
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 
+																				 -100*scale, 
+																				  100*scale, 
+																				 -rad*scale+0.0762*scale*.5, 
+																				  rad*scale+0.0762*scale*.5, 
+																				 -rad*scale+0.0762*scale*.5, 
+																				  rad*scale+0.0762*scale*.5, 
+																				 0)) ;
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_ALONG_ETA, LEFT, 
+																				 -100*scale, 
+																				  100*scale, 
+																				 -rad*scale+0.0762*scale*.5, 
+																				 rad*scale+0.0762*scale*.5, 
+																				 -rad*scale+0.0762*scale*.5, 
+																				 rad*scale+0.0762*scale*.5, 
+																				 0)) ;
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_ALONG_ZETA, LEFT, 
+																				 -100*scale, 
+																				  100*scale, 
+																				 -rad*scale+0.0762*scale*.5,
+																				  rad*scale+0.0762*scale*.5, 
+																				 -rad*scale+0.0762*scale*.5, 
+																				  rad*scale+0.0762*scale*.5, 
+																				 0)) ;
+	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 	step() ;
 
 

@@ -30,7 +30,7 @@ namespace Mu
 			template <class ETARGETTYPE>
 			/** \brief Return the displacements in source mesh projected on current mesh. 
 			*/
-			void project(Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source)
+			void project(Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
 			{
 				typedef typename std::map<Point *, ETARGETTYPE * >::const_iterator MapIterator ;
 				typedef typename std::vector<ETARGETTYPE *>::const_iterator VecIterator ;
@@ -101,10 +101,33 @@ namespace Mu
 							if(targets[k]->in(*(*i)) || dist(proj, *(*i)) < POINT_TOLERANCE)
 								coincidentElements[dist(*(*i), targets[k]->getCenter())] = targets[k] ;
 						}
+						
 						if(!coincidentElements.empty())
 						{
-							Vector disps = coincidentElements.begin()->second->getState().getDisplacements(*(*i)) ;
+							Vector disps = coincidentElements.begin()->second->getState().getDisplacements(*(*i), false, fast, &source) ;
 							projectionCache[(*i)] = coincidentElements.begin()->second ;
+							
+							for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++)
+							{
+								if(coincidentElements.begin()->second->getBoundingPoint(j) == *(*i))
+								{
+									projectionPointCache[(*i)] = &coincidentElements.begin()->second->getBoundingPoint(j) ;
+									break ;
+								}
+							}
+							
+							if(projectionPointCache[(*i)] && source.size())
+							{
+								projectionCache.erase(projectionCache.find(*i)) ;
+								for(size_t k = 0 ; k < numDofs ; k++)
+									disps[k] = source[projectionPointCache[(*i)]->id*numDofs+k] ;
+							}
+							else
+							{
+								projectionPointCache.erase(projectionPointCache.find(*i)) ;
+								disps = coincidentElements.begin()->second->getState().getDisplacements(*(*i), false, fast, &source) ;
+							}
+							
 							for(size_t k = 0 ; k < numDofs ; k++)
 								projection[(*i)->id*numDofs+k] = disps[k] ;
 						}
@@ -130,12 +153,14 @@ namespace Mu
 							
 							if(projectionPointCache[(*i)] && source.size())
 							{
+								projectionCache.erase(projectionCache.find(*i)) ;
 								for(size_t k = 0 ; k < numDofs ; k++)
 									disps[k] = source[projectionPointCache[(*i)]->id*numDofs+k] ;
 							}
 							else
 							{
-								disps = coincidentElements.begin()->second->getState().getDisplacements(*(*i)) ;
+								projectionPointCache.erase(projectionPointCache.find(*i)) ;
+								disps = coincidentElements.begin()->second->getState().getDisplacements(*(*i), false, fast, &source) ;
 							}
 							
 							for(size_t k = 0 ; k < numDofs ; k++)
@@ -148,7 +173,6 @@ namespace Mu
 				}
 				else
 				{
-
 					std::vector<ETYPE *> selfElements = getElements() ;
 					size_t numDofs = 0 ;
 					for(size_t i = 0 ; i < selfElements.size() ; i++)
@@ -160,27 +184,27 @@ namespace Mu
 								break ;
 						}
 					}
+					
 					projection = 0 ;
 					Vector disps(numDofs) ;
-					MapIterator i = cache[mesh].begin(); 
-					std::map<Point*, Point*>::const_iterator j = pointcache[mesh].begin();
-					for(  ; i != cache[mesh].end() ;)
+					
+					for( MapIterator i = cache[mesh].begin() ; i != cache[mesh].end() ; ++i)
 					{
-						Vector disps(numDofs) ;
-						if(j->second && source.size())
-						{
-							for(size_t k = 0 ; k < numDofs ; k++)
-								disps[k] = source[j->second->id*numDofs+k] ;
-						}
-						else
-						{
-							disps = i->second->getState().getDisplacements(*i->first) ;
-						}
+						disps = i->second->getState().getDisplacements(*i->first, false, fast, &source) ;
+
 						for(size_t k = 0 ; k < numDofs ; k++)
 							projection[i->first->id*numDofs+k] = disps[k] ;
 						
-						++j ;
-						++i ;
+						
+					}
+					for(  std::map<Point*, Point*>::const_iterator j = pointcache[mesh].begin() ; j != pointcache[mesh].end() ; ++j)
+					{
+						for(size_t k = 0 ; k < numDofs ; k++)
+							disps[k] = source[j->second->id*numDofs+k] ;
+
+						for(size_t k = 0 ; k < numDofs ; k++)
+							projection[j->first->id*numDofs+k] = disps[k] ;
+						
 					}
 					
 // 					for(size_t i = 0 ; i < selfElements.size() ; i++)

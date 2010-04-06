@@ -93,6 +93,7 @@ solvers/polakribiereconjugategradient.cpp
 solvers/preconditionners.cpp
 solvers/solver.cpp
 solvers/multigrid.cpp
+solvers/multigridstep.cpp
 solvers/tridiagonal.cpp
 sparse/sparse_matrix.cpp
 sparse/sparse_vector.cpp
