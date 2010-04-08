@@ -131,11 +131,14 @@ Matrix makeStiffnessMatrix(Vector E, double nu)
 	m[5][5] = 0.5 - nu ;
 	m *= 1/((1.+nu)*(1.-2.*nu)) ;
 
+	double E_ = E[0]+E[1]+E[2] ;
+	E_ /= 3 ;
+
 	for(int i = 0 ; i < 3 ; i++)
 	{
 		for(int j = 0 ; j < 3 ; j++)
-			m[i][j] *= E[i] ;
-		m[i+3][i+3] *= E[i] ;
+			m[i][j] *= E_ ;
+		m[i+3][i+3] *= E_ ;
 	}
 
 	return m ;
@@ -392,6 +395,20 @@ std::pair<double, double> uni_directional_step(int dir)
 	double nuyy = std::sqrt(avg_e_xx*avg_e_xx+avg_e_zz*avg_e_zz)/(std::sqrt(2)*(avg_e_yy)) ;
 	double nuzz = std::sqrt(avg_e_xx*avg_e_xx+avg_e_yy*avg_e_yy)/(std::sqrt(2)*(avg_e_zz)) ;
 
+	if(nuxx > 1 || nuyy > 1 || nuzz > 1)
+	{
+		std::cout << std::endl ;
+		std::cout << "sigma" << std::endl ;
+		std::cout << avg_s_xx << std::endl ;
+		std::cout << avg_s_yy << std::endl ;
+		std::cout << avg_s_zz << std::endl ;
+		std::cout << "epsilon" << std::endl ;
+		std::cout << avg_e_xx << std::endl ;
+		std::cout << avg_e_yy << std::endl ;
+		std::cout << avg_e_zz << std::endl ;
+		std::cout << std::endl ;
+	}
+
 	std::pair<double, double> Enu ;
 	Enu.first = -1 ;
 	Enu.second = -1 ;
@@ -417,7 +434,7 @@ std::pair<double, double> uni_directional_step(int dir)
 	return Enu ;
 }
 
-Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double radius, size_t n_agg)
+Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double radius, size_t n_agg, double disp)
 {
 	std::pair<double,double> Enu_xx ;
 	std::pair<double,double> Enu_yy ;
@@ -464,7 +481,7 @@ Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double r
 				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 100)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, disp)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 				break ;
@@ -472,10 +489,10 @@ Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double r
 			case 1:
 			{
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM,0)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,100)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
 				break ;
 			}
@@ -483,15 +500,15 @@ Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double r
 			{
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BACK)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, BACK,0)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, BACK, 0)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 //				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, FRONT)) ;
-				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, 100)) ;
+				F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, disp)) ;
 				break ;
 			}
 		}
 	
-		F.sample(256) ;
+		F.sample(16000) ;
 	
 		F.setOrder(LINEAR) ;
 		F.generateElements() ;
@@ -524,6 +541,7 @@ Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double r
 	std::cout << std::endl ;
 	std::cout << std::endl ;
 	std::cout << std::endl ;
+	std::cout << (Enu_xx.first + Enu_yy.first + Enu_zz.first)/3 << std::endl ;
 	std::cout << nu << std::endl ;
 	std::cout << std::endl ;
 	std::cout << std::endl ;
@@ -555,28 +573,35 @@ int main(int argc, char *argv[])
 	radius.push_back(std::make_pair(4000, 97.8-80.5)) ;
 	radius.push_back(std::make_pair(5000, 100.0-97.8)) ;
 
-	double agg_volume = 0 ;
+	double agg_mass = 0 ;
 	for(size_t i = 0 ; i < radius.size() ; i++)
-		agg_volume += radius[i].second ;
+		agg_mass += radius[i].second ;
+	double total_mass = agg_mass / agg_fraction ;
+	double cem_mass = total_mass - agg_mass ;
 
-	double total_volume = agg_volume / agg_fraction ;
-	double cement_volume = total_volume - agg_volume ;
+	double agg_volume = agg_mass/2.2 ;
+	double cement_volume = cem_mass/3.1 ;
+
+	double total_volume = agg_volume + cement_volume ;
+	double vfraction = agg_volume / total_volume ;
+	std::cout << vfraction << std::endl ;
+//	double cement_volume = total_volume - agg_volume ;
 
 	Vector cement(3) ;
-	cement[0] = 25*1e9 ;
-	cement[1] = 25*1e9 ;
-	cement[2] = 25*1e9 ;
+	cement[0] = 25 ;
+	cement[1] = 25 ;
+	cement[2] = 25 ;
 
 	Matrix stiff_cem = makeStiffnessMatrix(cement, 0.2) ;
-	SimpleMaterial sm_cem(25*1e9, 0.2) ;
+	SimpleMaterial sm_cem(25, 0.2) ;
 
 	Vector aggregates(3) ;
-	aggregates[0] = 70*1e9 ;
-	aggregates[1] = 70*1e9 ;
-	aggregates[2] = 70*1e9 ;
+	aggregates[0] = 70 ;
+	aggregates[1] = 70 ;
+	aggregates[2] = 70 ;
 
 	Matrix stiff_agg = makeStiffnessMatrix(aggregates, 0.2) ;
-	SimpleMaterial sm_agg(70*1e9, 0.2) ;
+	SimpleMaterial sm_agg(70, 0.2) ;
 
 	double iter_volume = cement_volume ;
 
@@ -594,31 +619,87 @@ int main(int argc, char *argv[])
 		std::cout << std::endl ;
 		std::cout << std::endl ;
 
-		iter_volume += radius[i].second ;
+		iter_volume += radius[i].second/2.2 ;
 		double box_dim = std::pow(iter_volume, 0.33333333) ;
 		std::cout << box_dim << std::endl ;
 
-		size_t n_agg = 50  ;
+		size_t n_agg = 150  ;
 		double this_agg_volume = radius[i].first*radius[i].first*radius[i].first ;
 		this_agg_volume *= 4/3 * M_PI * n_agg ;
-		double this_iter_volume = iter_volume * this_agg_volume / radius[i].second ;
+		double this_iter_volume = iter_volume * this_agg_volume * 2.2 / radius[i].second ;
 
 //		std::cout << std::endl ;
 //		std::cout << radius[i].second/iter_volume << std::endl ;
 //		std::cout << this_agg_volume/this_iter_volume << std::endl ;
 
 		box_dim = std::pow(this_iter_volume, 0.33333333) ;
-		std::cout << box_dim << std::endl ;
+		double effective_radius = radius[i].first ;
+
+		while(box_dim > 1000)
+		{
+			if(box_dim / effective_radius > 10 || n_agg==1)
+				effective_radius *= 0.75 ;
+			else
+			{
+				n_agg *= 9 ;
+				n_agg /= 10 ;
+				if(n_agg == 0)
+				{
+					n_agg = 1 ;
+				}
+			}
+			this_agg_volume = effective_radius*effective_radius*effective_radius ;
+			this_agg_volume *= 4/3 * M_PI * n_agg ;
+			this_iter_volume = iter_volume * this_agg_volume * 2.2 / radius[i].second ;
+			box_dim = std::pow(this_iter_volume, 0.33333333) ;
+		}
+
+		double disp = std::min(effective_radius, box_dim/(10)) ;
+
+		std::cout << box_dim << ";" << effective_radius << ";" << disp << std::endl ;
 		std::cout << std::endl ;
 		
 
-		Matrix hom = tri_directional_step(box_dim,stiff_hom.back(),stiff_agg,radius[i].first,n_agg) ;
+		Matrix hom = tri_directional_step(box_dim,stiff_hom.back(),stiff_agg,effective_radius,n_agg, disp) ;
 
 		stiff_hom.push_back(hom) ;
 	}
 
-	SimpleMaterial hom(MORI_TANAKA, std::make_pair(0.7, new SimpleMaterial(70*1e9,0.2)), new SimpleMaterial(25*1e9,0.2)) ;
-	std:: cout << hom.getE() << ";" << hom.getnu() << std::endl ;
+	Matrix hom_final = stiff_hom.back() ;
+
+	double nu_final = hom_final[0][1] / (hom_final[0][0] + hom_final[0][1]) ;
+	double Exx_final = hom_final[0][0] * (1+nu_final)*(1-2*nu_final) /(1 - nu_final) ;
+	double Eyy_final = hom_final[0][0] * (1+nu_final)*(1-2*nu_final) /(1 - nu_final) ;
+	double Ezz_final = hom_final[0][0] * (1+nu_final)*(1-2*nu_final) /(1 - nu_final) ;
+
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << Exx_final << ";" << Eyy_final << ";" << Ezz_final << ";" << nu_final << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+
+
+	std::cout << std::endl ;
+	std::cout << "Incremental" << std::endl ;
+	SimpleMaterial hom_inc(INCREMENTAL, std::make_pair(vfraction, new SimpleMaterial(70,0.2)), new SimpleMaterial(25,0.2)) ;
+	std:: cout << hom_inc.getE() << ";" << hom_inc.getnu() << std::endl ;
+	std::cout << std::endl ;
+	
+	std::cout << std::endl ;
+	std::cout << "Mori-Tanaka" << std::endl ;
+	SimpleMaterial hom_mt(MORI_TANAKA, std::make_pair(vfraction, new SimpleMaterial(70,0.2)), new SimpleMaterial(25,0.2)) ;
+	std:: cout << hom_mt.getE() << ";" << hom_mt.getnu() << std::endl ;
+	std::cout << std::endl ;
+
+	std::cout << std::endl ;
+	std::cout << "Self-Consistent" << std::endl ;
+	SimpleMaterial hom_sc(SELF_CONSISTENT, std::make_pair(vfraction, new SimpleMaterial(70,0.2)), new SimpleMaterial(25,0.2)) ;
+	std:: cout << hom_sc.getE() << ";" << hom_sc.getnu() << std::endl ;
+	std::cout << std::endl ;
 	
 	return 0 ;
 }

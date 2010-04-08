@@ -62,8 +62,8 @@ SimpleMaterial::SimpleMaterial(HomogenizationScheme scheme, std::pair<double,Sim
 		}
 		case INCREMENTAL:
 		{
-			double alpha = 1e-4 ;
-			double dalpha = 1e-4 ;
+			double alpha = 1e-6 ;
+			double dalpha = 1e-6 ;
 			SimpleMaterial * incremental = new SimpleMaterial(matrix) ;
 			while(alpha < f_inc)
 			{
@@ -78,7 +78,7 @@ SimpleMaterial::SimpleMaterial(HomogenizationScheme scheme, std::pair<double,Sim
 		}
 		case MORI_TANAKA:
 		{
-			double Sk = (4*mu_mat) / (3*mu_mat) ;
+			double Sk = (4*mu_mat) / (3*k_mat) ;
 			double Smu = (3 + 2*Sk) / (2 + 3*Sk) ;
 			double K = k_inc / k_mat ;
 			double Mu = mu_inc / mu_mat ;
@@ -133,9 +133,15 @@ SimpleMaterial::SimpleMaterial(HomogenizationScheme scheme, std::vector<std::pai
 			double f_mat = 1 ;
 			for(size_t i = 0 ; i < inclusions.size() ; i++)
 				f_mat -= inclusions[i].first ;
+			if(f_mat < 1e-9)
+				f_mat = 1e-9 ;
 			homogenized->multiply(f_mat) ;
 			for(size_t i = 0 ; i < inclusions.size() ; i++)
-				homogenized->add(new SimpleMaterial(MORI_TANAKA, inclusions[i], matrix)) ;
+			{
+				SimpleMaterial * mt = new SimpleMaterial(MORI_TANAKA, inclusions[i], matrix) ;
+				mt->multiply(inclusions[i].first) ;
+				homogenized->add(mt) ;
+			}
 			break;
 		}
 		case SELF_CONSISTENT:
@@ -145,8 +151,8 @@ SimpleMaterial::SimpleMaterial(HomogenizationScheme scheme, std::vector<std::pai
 			double f_mat = 1 ;
 			for(size_t i = 0 ; i < inclusions.size() ; i++)
 			{
-				k_min = std::min(k_min, inclusions[i].second->getkmu().first) ;
-				mu_min = std::min(mu_min, inclusions[i].second->getkmu().second) ;
+				k_min = std::max(k_min, inclusions[i].second->getkmu().first) ;
+				mu_min = std::max(mu_min, inclusions[i].second->getkmu().second) ;
 				f_mat -= inclusions[i].first ;
 			}
 			SimpleMaterial * sc_mat = new SimpleMaterial(kmu2Enu(std::make_pair(k_min,mu_min))) ;
@@ -220,6 +226,7 @@ double SimpleMaterial::relativeDifference(SimpleMaterial * mat)
 	double diff = (Young_Poisson.first - mat->getEnu().first) / Young_Poisson.first ;
 	if(diff < 0)
 		diff *= -1 ;
+	
 	return diff ;
 }
 

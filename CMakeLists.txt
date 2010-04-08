@@ -64,6 +64,7 @@ physics/stiffness_and_fracture.cpp
 physics/stiffness.cpp 
 physics/stiffness_with_imposed_deformation.cpp 
 physics/stiffness_with_imposed_deformation_and_fracture.cpp 
+physics/stiffness_with_time_dependent_imposed_deformation.cpp
 physics/stiffness_with_variable_imposed_deformation_and_fracture.cpp 
 physics/stiffness_with_variable_imposed_deformation.cpp 
 physics/physics_base.cpp
