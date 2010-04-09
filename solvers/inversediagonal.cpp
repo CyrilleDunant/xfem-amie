@@ -14,48 +14,41 @@
 
 using namespace Mu ;
 
-
 InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix &A)
 {
-	diagonal = new Vector(double(0), A.row_size.size()) ;
+	diagonal = new Vector(0., A.row_size.size()*(A.stride+A.stride%2)) ;
+	Vector eye(1., A.row_size.size()*(A.stride+A.stride%2)) ;
 	
 	size_t array_index = 0 ;
 
-	for(size_t i = 0 ; i < A.row_size.size() ; i++)
+	for(size_t i = 0 ; i < diagonal->size() ; i += (A.stride+A.stride%2) )
 	{
-		for(size_t j =0 ; j < A.row_size[i] ; j++)
-		{
-			(*diagonal)[i] += A.array[array_index] ;
-			array_index++ ;
-		}
-		
-// 		if(std::abs((*diagonal)[i]) > 1e-12)
-		(*diagonal)[i] = 1./(*diagonal)[i] ;
-// 		else
-// 			(*diagonal)[i] = 1000 ;
+		Vector v = A[i]*eye ;
+		for(size_t j = 0 ; j < (A.stride+A.stride%2) ; j++)
+			(*diagonal)[i+j] = 1./v[j] ;
 	}
 }
 
-void  InverseLumpedDiagonal::precondition(const Vector &v, Vector & t) const
+void  InverseLumpedDiagonal::precondition(const Vector &v, Vector & t) 
 {
 	t=v*(*diagonal) ;
 }
 
 InverseDiagonal::InverseDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.inverseDiagonal())
 {
-	double min = diagonal[0] ;
-	double max = diagonal[0] ;
-	for(size_t i = 1 ; i < diagonal.size() ; i++)
-	{
-		if(diagonal[i] < min)
-			min = diagonal[i] ;
-
-		if(diagonal[i] > max)
-			max = diagonal[i] ;
-	}
+// 	double min = diagonal[0] ;
+// 	double max = diagonal[0] ;
+// 	for(size_t i = 1 ; i < diagonal.size() ; i++)
+// 	{
+// 		if(diagonal[i] < min)
+// 			min = diagonal[i] ;
+// 
+// 		if(diagonal[i] > max)
+// 			max = diagonal[i] ;
+// 	}
 }
 
-void  InverseDiagonal::precondition(const Vector &v, Vector & t) const
+void  InverseDiagonal::precondition(const Vector &v, Vector & t) 
 {
 	for(size_t i = 0 ; i < t.size() ; i++)
 		t[i]=v[i]*diagonal[i] ;
@@ -68,7 +61,7 @@ InverseDiagonalSquared::InverseDiagonalSquared(const CoordinateIndexedSparseMatr
 // 	std::cout << "pseudo-C = " << fac << std::endl ;
 }
 
-void InverseDiagonalSquared::precondition(const Vector &v, Vector & t) const
+void InverseDiagonalSquared::precondition(const Vector &v, Vector & t) 
 {
 	double * ti = &t[0] ;
 	const double * vi = &v[0] ;

@@ -340,7 +340,7 @@ protected:
 	
 	public:
 	virtual std::vector< DelaunayTetrahedron* > getElements() {return getTetrahedrons() ;};
-	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Mu::Point* p)
+	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Mu::Point* p) const
 	{
 		std::vector< DelaunayTreeItem3D* > targets = conflicts(p) ;
 		std::vector<DelaunayTetrahedron*> ret ;
@@ -351,7 +351,7 @@ protected:
 		}
 		return ret ;
 	};
-	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Geometry* g)
+	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Geometry* g) const
 	{
 		return conflicts(g) ;
 	}

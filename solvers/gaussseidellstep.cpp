@@ -10,18 +10,16 @@
 //
 //
 #include "gaussseidellstep.h"
-#include "gausseidell.h"
 
 namespace Mu {
 
-GaussSeidellStep::GaussSeidellStep(const CoordinateIndexedSparseMatrix &A_) : A(A_) { };
+GaussSeidellStep::GaussSeidellStep(const CoordinateIndexedSparseMatrix &A_) : b(0., A_.row_size.size()*(A_.stride+A_.stride%2)), gs(A_, b) { };
 
-void GaussSeidellStep::precondition(const Vector& v, Vector& t) const
+void GaussSeidellStep::precondition(const Vector& v, Vector& t) 
 {
-	
-	GaussSeidel gs(A, t) ;
+
 	gs.b = v ;
-	gs.solve(v, NULL, 0, 4, false) ;
+	gs.solve(v, NULL, 0, 1, false) ;
 	t = gs.x ;
 }
 

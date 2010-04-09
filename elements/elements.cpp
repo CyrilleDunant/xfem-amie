@@ -144,7 +144,7 @@ void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
 	this->nonlinbehaviour = f ;
 }
 
-void ElementarySurface::step(double dt, Vector *displacements)
+void ElementarySurface::step(double dt, const Vector * displacements)
 {
 	getState().step(dt, displacements) ;
 	getBehaviour()->updateElementState(dt, getState()) ;
@@ -156,7 +156,7 @@ void ElementarySurface::stepBack()
 	getBehaviour()->stepBack() ;
 }
 
-void ElementarySurface::nonLinearStep(double dt, Vector *displacements)
+void ElementarySurface::nonLinearStep(double dt, const Vector *displacements)
 {
 	getState().step(dt, displacements) ;
 	
@@ -164,7 +164,7 @@ void ElementarySurface::nonLinearStep(double dt, Vector *displacements)
 		getNonLinearBehaviour()->step(dt,getState()) ;
 }
 
-void ElementaryVolume::step(double dt, Vector *displacements)
+void ElementaryVolume::step(double dt, const Vector *displacements)
 {
 	getState().step(dt, displacements) ;
 	getBehaviour()->updateElementState(dt, getState()) ;
@@ -176,7 +176,7 @@ void ElementaryVolume::stepBack()
 	getBehaviour()->stepBack() ;
 }
 
-void ElementaryVolume::nonLinearStep(double dt, Vector *displacements)
+void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
 {
 	
 	this->state.step(dt, displacements) ;

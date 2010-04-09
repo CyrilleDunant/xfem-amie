@@ -70,6 +70,7 @@ Assembly::Assembly()
 	multiplier_offset = 0 ;
 	this->displacements.resize(0) ;
 	this->externalForces.resize(0) ;
+	this->naturalBoundaryConditionForces.resize(0) ;
 	this->boundaryMatrix = NULL ;
 	has3Dims = true ;
 // 	multiplier_offset = 2 ;//bookmark...chk if =3
@@ -89,6 +90,14 @@ Vector & Assembly::getForces()
 		make_final() ;
 	
 	return this->externalForces ;
+}
+
+Vector & Assembly::getNaturalBoundaryConditionForces()
+{
+	if(this->coordinateIndexedMatrix == NULL)
+		make_final() ;
+	
+	return this->naturalBoundaryConditionForces ;
 }
 
 Vector & Assembly::getNonLinearForces()
@@ -311,6 +320,8 @@ void Assembly::setBoundaryConditions()
 
 	this->externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
 	this->externalForces = 0 ;
+	this->naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
+	this->naturalBoundaryConditionForces = 0 ;
 	this->nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
 	this->nonLinearExternalForces = 0 ;
 	
@@ -424,13 +435,13 @@ void Assembly::setBoundaryConditions()
 								{
 									double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
 									this->externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
+									this->naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
 									val = 0 ;
 								}
 							}
 						}
 						else
 						{
-							externalForces[id] = multipliers[p].getValue() ;
 							for(int n = 0 ; n < stride ; n++)
 							{
 								if((columnBlockIndex*stride+n) == id)
@@ -465,6 +476,7 @@ void Assembly::setBoundaryConditions()
 								{
 									double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
 									this->externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
+									this->naturalBoundaryConditionForces[lineBlockIndex*stride+m]  -= multipliers[p].getValue()*val ;
 									val = 0 ;
 								}
 							}
@@ -1274,7 +1286,7 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 		gettimeofday(&time0, NULL);
 
 		ConjugateGradientWithSecant cg(this) ;
-		ret = cg.solve(x0) ;
+		ret = cg.solve(x0, NULL, 5e-8, -1, false) ;
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

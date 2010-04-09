@@ -14,6 +14,7 @@
 
 #include "preconditionners.h"
 #include "../sparse/sparse_matrix.h"
+#include "gausseidell.h"
 
 
 namespace Mu {
@@ -23,11 +24,11 @@ namespace Mu {
 */
 struct GaussSeidellStep : public Preconditionner
 {
-
-	const CoordinateIndexedSparseMatrix & A ;
+	Vector b ;
+	GaussSeidel gs ;
 	virtual ~GaussSeidellStep() { } ;
 	GaussSeidellStep(const CoordinateIndexedSparseMatrix &A) ;
-	virtual void precondition(const Vector& v, Vector& t) const ;
+	virtual void precondition(const Vector& v, Vector& t)  ;
 
 };
 

@@ -14,6 +14,8 @@
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/void_form.h"
+#include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -96,7 +98,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.00 ;
-
+int grid = -1 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -194,8 +196,7 @@ void step()
 
 		timepos+= 0.0001 ;
 		double da = 0 ;
-		int grid = -1 ;
-
+		
 		triangles = featureTree->getTriangles(grid) ;
 		x.resize(featureTree->getDisplacements(grid).size()) ;
 		x = featureTree->getDisplacements(grid) ;
@@ -1391,19 +1392,22 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
-	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
+// 	inc0->setBehaviour(new Stiffness(m0_paste*100)) ;
+	inc0->setBehaviour(new VoidForm()) ;
 	F.addFeature(&sample, inc0) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 
-	F.sample(1024) ;
-	F.useMultigrid = true ;
-	F.setOrder(QUADRATIC) ;
+	F.sample(128) ;
+	F.useMultigrid = false ;
+	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 
 	step() ;

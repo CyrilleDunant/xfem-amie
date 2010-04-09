@@ -15,6 +15,7 @@
 #endif
 #include "../physics/homogeneised_behaviour.h"
 #include "../solvers/multigrid.h"
+#include "../solvers/multigridstep.h"
 
 
 
@@ -2974,9 +2975,11 @@ void FeatureTree::stitch()
 	size_t pd = 0 ;
 	if(is2D())
 	{
+
 		if((int)elemOrder-1 > 0 )
 		{
 			dtree->setElementOrder(elemOrder) ;
+			
 			for(size_t j = 0 ; j < coarseTrees.size() ; j++)
 				coarseTrees[j]->setElementOrder(elemOrder) ;
 			
@@ -4077,7 +4080,6 @@ void FeatureTree::setElementBehaviours()
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... triangle " << i << "/" << triangles.size() << std::flush ;
 			triangles[i]->refresh(father2D) ;
-
 			if(!triangles[i]->getBehaviour())
 				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 			n_void++ ;
@@ -4092,6 +4094,7 @@ void FeatureTree::setElementBehaviours()
 			{
 				if (j%1000 == 0)
 					std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << triangles.size() << std::flush ;
+				triangles[j]->refresh(father2D) ;
 				std::vector<Geometry * > coocuring ;
 				if(tree.size() > 1)
 					coocuring = grid->coOccur(triangles[j]->getPrimitive()) ;
@@ -4121,8 +4124,8 @@ void FeatureTree::setElementBehaviours()
 		{
 			if (i%1000 == 0)
 				std::cerr << "\r setting behaviours... tet " << i << "/" << tetrahedrons.size() << std::flush ;
+			
 			tetrahedrons[i]->refresh(father3D) ;
-
 			if(!tetrahedrons[i]->getBehaviour())
 				tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
 			n_void++ ;
@@ -4134,6 +4137,7 @@ void FeatureTree::setElementBehaviours()
 				tetrahedrons = coarseTrees3D[i]->getElements() ;
 				for(size_t j = 0 ; j < tetrahedrons.size() ;j++)
 				{
+					tetrahedrons[j]->refresh(father3D) ;
 					if (j%1000 == 0)
 						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << tetrahedrons.size() << std::flush ;
 					tetrahedrons[j]->setBehaviour(new HomogeneisedBehaviour(dtree3D, tetrahedrons[j])) ;
@@ -4258,7 +4262,6 @@ void FeatureTree::assemble()
 		{
 			if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-
 				std::cerr << "\r assembling stiffness matrix... triangle " << j+1 << "/" << triangles.size() << std::flush ;
 				triangles[j]->refresh(father2D) ;
 				K->add(triangles[j]) ;
@@ -4855,25 +4858,32 @@ bool FeatureTree::step(double dt)
 			
 			}
 		}
-		
-		if(useMultigrid && !coarseAssemblies.empty())
-		{
-			K->mgprepare() ;
-			std::vector<const CoordinateIndexedSparseMatrix *> coarseMatrices ;
-			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
-				coarseMatrices.push_back(&coarseAssemblies[j]->getMatrix()) ;
-			MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> mg(K->getMatrix(), 
-																						coarseMatrices,
-																						dtree, 
-																						coarseTrees, 
-																						K->getForces()) ;
-			dtree->project(coarseTrees.back(), lastx, coarseAssemblies.back()->getDisplacements()) ;
-			solverConvergence = K->mgsolve(&mg, lastx) ;
-		}
-		else
+	
+// 		if(useMultigrid && !coarseAssemblies.empty())
+// 		{
+// 			
+// 			K->mgprepare() ;
+// 			std::vector<const CoordinateIndexedSparseMatrix *> coarseMatrices ;
+// 			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+// 				coarseMatrices.push_back(&coarseAssemblies[j]->getMatrix()) ;
+// 
+// 			dtree->project(coarseTrees.back(), lastx, coarseAssemblies.back()->getDisplacements()) ;
+// 			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+// 			{
+// 				ConjugateGradient cg(K->getMatrix(), K->getForces()) ;
+// 				MultiGridStep<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> mgs(dtree, 
+// 																						 coarseTrees[j], 
+// 																						 &K->getMatrix(), 
+// 																						 coarseMatrices[j], coarseAssemblies[j]->getForces()) ;
+// 				solverConvergence = K->mgsolve(&cg, lastx, &mgs) ;
+// 			}
+// 			
+// 			
+// 		}
+// 		else
 			solverConvergence = K->cgsolve() ;
 		
-// 		dtree->project(coarseTrees.front(), K->getDisplacements(), coarseAssemblies.front()->getDisplacements()) ;
+// 		dtree->project(coarseTrees[3], K->getDisplacements(), coarseAssemblies[3]->getDisplacements(), false) ;
 		
 	}
 	enrichmentChange = false ;
@@ -5473,8 +5483,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 	if(is2D())
 	{
 		//this approach maximises the number of coincident points between the coarse grids.
-		int ndivs = 4 ;
-		while( ndivs < round(sqrt(basepoints)/2))
+		int ndivs = 1/*std::max(tree[0]->getBoundingPoints().size()/8)*/ ;
+		while( ndivs*ndivs < meshPoints.size()/2)
 		{
 			coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), ndivs, Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
 			coarseAssemblies.push_back(new Assembly()) ;
@@ -5678,7 +5688,7 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
-// 	shuffleMeshPoints() ;
+	shuffleMeshPoints() ;
 	
 //	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 //		meshPoints[i].first->print() ;

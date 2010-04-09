@@ -175,6 +175,9 @@ public:
 /** \brief return displacement at point*/
 	Vector getDisplacements(const Point &, bool local = false, bool fast = false, const Vector * source = NULL) const;
 
+/** \brief return the linear interpolating factors for the displacement field at the given point*/
+	Vector ElementState::getInterpolatingFactors(const Point & p, bool local = false) const ;
+	
 /** \brief return displacement at points*/
 	Vector getDisplacements(const std::valarray<Point> & p) const ;
 
@@ -257,7 +260,7 @@ public:
 	Vector getAcceleration(const std::valarray<Point> & p) const ;
 	Vector getAcceleration() const ;
 	
-	void step(double dt, Vector * ) ;
+	void step(double dt, const Vector* d ) ;
 	
 	double getTime() const ;
 	double getDeltaTime() const ;

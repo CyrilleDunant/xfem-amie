@@ -22,14 +22,14 @@ namespace Mu
 	struct Preconditionner
 	{
 		virtual ~Preconditionner() { } ;
-		virtual void precondition(const Vector &, Vector &) const = 0;
+		virtual void precondition(const Vector &, Vector &) = 0;
 	} ;
 	
 /** \brief Placeholder preconditionner, does nothing*/
 	struct NullPreconditionner : public Preconditionner
 	{
 		virtual ~NullPreconditionner() { } ;
-		virtual void precondition(const Vector &v, Vector &) const ;
+		virtual void precondition(const Vector &v, Vector &)  ;
 	} ;
 
 

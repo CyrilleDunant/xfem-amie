@@ -22,17 +22,15 @@
 
 using namespace Mu ;
 
-ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), r(b_.size()),z(b_.size()),p(b_.size()) ,q(b_.size()), cleanup(false), P(NULL) { };
+ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), r(b_.size()),z(b_.size()),p(b_.size()) ,q(b_.size()), cleanup(false), P(NULL), nit(0) { };
 
-bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
+bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-	size_t nit = 0  ;
 	size_t Maxit ;
 	if(maxit != -1)
 		Maxit = maxit ;
 	else
-		Maxit = b.size()/4 ;
-
+		Maxit = b.size() ;
 	if(x0.size() == b.size())
 	{
 		x = x0 ;
@@ -91,19 +89,20 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 	x += p*alpha ;
 	r -= q*alpha ;
 	nit++ ;
+	int n = 0 ;
 	//****************************************
-	double neps = eps ;
+	double neps = 1e-6 ;
 	assign(r, A*x-b) ;
 	r *= -1 ;	
 	err = std::abs(r).max() ;
 	if (err < eps)
 	{
-// 		if(verbose)
+		if(verbose)
 			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 
 		return true ;
 	}
-	while(sqrt(std::abs(last_rho))> eps && nit < Maxit )
+	while(sqrt(last_rho)> neps && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		
@@ -116,30 +115,44 @@ bool ConjugateGradient::solve(const Vector &x0, const Preconditionner * precond,
 		
 		r -= q*alpha ;
 		x += p*alpha ;
-		
-		if(nit%64 == 0)
+		n++ ;
+		if(n%64 == 0)
 		{
 			assign(r, A*x-b) ;
 			r *= -1 ;		
 		}
 		if(	verbose && nit%64 == 0)
 		{
-			std::cerr << "\r CG "<< p.size() << " iteration : " << nit << " error :"<<  sqrt(std::abs(rho))  << "             "<< std::flush ;
+			std::cerr << /*"\r CG "<< p.size() << " iteration : " << nit << " error :"<<*/  sqrt(std::abs(rho))  /*<< "             "*/<< std::endl /*std::flush*/ ;
 		}
-		
+// 		if(	verbose )
+// 		{
+// 			Vector rr = A*x-b ;
+// 			for(size_t i = 0 ; i < rr.size() ; i++)
+// 			{
+// 				std::cerr << rr[i] << "  " << std::flush ;
+// 			}
+// 			std::cerr << std::endl ;
+// 		}
+// 		if(	verbose )
+// 		{
+// 			Vector rr = A*x-b ;
+// 			double e = sqrt( parallel_inner_product(&rr[0], &rr[0], vsize)) ;
+// 			std::cerr <<e << std::endl ;
+// 		}
 		last_rho = rho ;
 		nit++ ;
 		
 	}
 	assign(r,A*x-b) ;
-	err = std::abs(r).max() ;
+	err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	
 	if(verbose)
 	{
 		if(nit <= Maxit)
 			std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
-			std::cerr << "\n CG " << p.size() << "did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 	
 	

@@ -25,7 +25,7 @@ namespace Mu
 		Vector diagonal ;
 		virtual ~InverseDiagonal() {  ;}
 		InverseDiagonal(const CoordinateIndexedSparseMatrix &A) ;
-		virtual void precondition(const Vector &v,Vector &) const ;
+		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;
 	
 	/** \brief Preconditionner: inverse lumped diagonal*/
@@ -34,7 +34,7 @@ namespace Mu
 		Vector * diagonal ;
 		virtual ~InverseLumpedDiagonal() { delete diagonal ; }
 		InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix &A) ;
-		virtual void precondition(const Vector &v,Vector &) const ;
+		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;
 	
 	/** \brief Preconditionner: inverse diagonal squared*/
@@ -43,7 +43,7 @@ namespace Mu
 		Vector * diagonal ;
 		virtual ~InverseDiagonalSquared() { delete diagonal ; }
 		InverseDiagonalSquared(const CoordinateIndexedSparseMatrix &A) ;
-		virtual void precondition(const Vector &v,Vector &) const ;
+		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;
 
 } ;

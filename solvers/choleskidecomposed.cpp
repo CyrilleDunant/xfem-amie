@@ -16,7 +16,7 @@ using namespace Mu ;
 
 LowerTriangular::LowerTriangular(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), d(A_.inverseDiagonal()) { };
 
-bool LowerTriangular::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
+bool LowerTriangular::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	x = 0 ;
 	for(size_t i = 0 ; i < x.size() ; i++)
@@ -34,7 +34,7 @@ bool LowerTriangular::solve(const Vector &x0, const Preconditionner * precond, c
 
 UpperTriangular::UpperTriangular(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) , d(A_.inverseDiagonal()){ };
 
-bool UpperTriangular::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
+bool UpperTriangular::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	x = 0 ;
 	for(size_t i = x.size() ; i > 0 ; i--)
@@ -53,7 +53,7 @@ bool UpperTriangular::solve(const Vector &x0, const Preconditionner * precond, c
 CholeskiDecomposed::CholeskiDecomposed(const CoordinateIndexedSparseMatrix &A_, Vector &b_,const Vector &d_) :LinearSolver(A_, b_), d(d_), y(0., A_.row_size.size())
 {};
 
-bool CholeskiDecomposed::solve(const Vector &x0, const Preconditionner * precond, const double eps, const int maxit, bool verbose)
+bool CholeskiDecomposed::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	x = 0 ;
 	y = 0 ;

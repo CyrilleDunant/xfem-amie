@@ -30,16 +30,22 @@ namespace Mu
 		Vector r0 ;
 		Vector r1 ;
 		ConjugateGradient * cg0 ;
+		GaussSeidel * gs0 ;
 		LinearSolver * subsolver ;
+		bool coarseSolved ;
+		std::vector<ETYPE *> elements0 ;
+		std::vector<ETYPE *> elements1 ;
 		virtual ~MultiGrid() 
 		{ 
 			delete cg0 ;
+			delete gs0 ;
 			delete subsolver ;
 		} ;
 		MultiGrid(const CoordinateIndexedSparseMatrix & A0, const std::vector<const CoordinateIndexedSparseMatrix *> & A1, MESH_T * mesh0, const std::vector<MESH_T *> & mesh1, Vector & f) : LinearSolver(A0, f), A1(A1), mesh0(mesh0), mesh1(mesh1), r0(b.size()), r1(A1.back()->row_size.size()*A1.back()->stride)  
 		{ 
 			cg0 = new ConjugateGradient(A0, f) ;
-			
+			gs0 = new GaussSeidel(A0, f) ;
+			coarseSolved = false ;
 			if(mesh1.size() == 1)
 			{
 				subsolver = new ConjugateGradient(*A1.back(), r1) ;
@@ -50,10 +56,14 @@ namespace Mu
 				std::vector<MESH_T *> mesh1copy(mesh1.begin(), mesh1.end()-1) ;
 				subsolver = new MultiGrid<MESH_T, ETYPE>(*(A1.back()), A1copy, mesh1.back(), mesh1copy, r1) ;
 			}
+			elements0 = mesh0->getElements() ;
+			elements1 = mesh1.back()->getElements() ;
+
 		};
 		
-		virtual bool solve(const Vector &x0, const Preconditionner * precond = NULL, const double eps = 1e-8, const int maxit = -1, bool verbose = true)
+		virtual bool solve(const Vector &x0, Preconditionner * precond = NULL, const double eps = 5e-8, const int maxit = -1, bool verbose = true)
 		{
+			
 			if(mesh1.empty())
 			{
 				std::cout << "No Coarse grids, falling back to CG" << std::endl ;
@@ -62,18 +72,14 @@ namespace Mu
 				return solve ;
 				
 			}
-// 			GaussSeidel cg0(A, b) ;
-			double smoothingFactor = 1.1 ;
-			int smoothingSteps = -1 ;
+
+			double smoothingFactor = 1 ;
+			int smoothingSteps = 4 ;
 			
 			int Maxit = maxit ;
 			int nit = 0 ;
 			if(maxit == -1)
 				Maxit = x.size() ;
-			
-// 			
-			std::vector<ETYPE *> elements0 = mesh0->getElements() ;
-			std::vector<ETYPE *> elements1 = mesh1.back()->getElements() ;
 
 			
 			if(x0.size() == b.size())
@@ -94,21 +100,18 @@ namespace Mu
 			
 
 			
-			bool coarseSolved = false ;
+			
 			while(nit < Maxit )
 			{
-				int toto ;
 
 				nit++ ;
 				if(!coarseSolved)
 				{
-					if(nit%10 == 0)
-						std::cout << A1.size() << " " << nit << ", err = " << std::abs(r0).max() << std::endl ;
-					
 					cg0->solve(x, NULL, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
 					x = cg0->x ;
 					assign(r0, A*x-b) ;
-					
+					if(verbose && nit%10 == 0)
+						std::cout << A1.size() << "  "<< std::abs(r0).max() << "  " << eps  << std::endl ;
 					if(std::abs(r0).max() < eps)
 					{
 
@@ -118,27 +121,40 @@ namespace Mu
 						return true ;
 					}
 					
-// 					if(verbose)
-						
 
 					//restrict
-					mesh1.back()->project(mesh0, r1, r0, true) ;
+					for(size_t i = 0 ; i < elements0.size() ; i++)
+						elements0[i]->step(1., &r0) ;
+					mesh1.back()->project(mesh0, r1, r0, false) ;
 					
 					//V iteration
 					subsolver->b = r1 ;
+					subsolver->x = 0 ;
 					subsolver->solve(subsolver->x, NULL, eps, -1, false) ;
 						
 					//extend
-					mesh0->project(mesh1.back(), r0, subsolver->x, true) ;
-					x -= r0 ;					
-					
+					for(size_t i = 0 ; i < elements1.size() ; i++)
+						elements1[i]->step(1., &subsolver->x) ;
+					mesh0->project(mesh1.back(), r0, subsolver->x, false) ;
+					x -= r0 ;
+// 					gs0->solve(x, NULL, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
+// 					x = gs0->x ;
 					if(std::abs(subsolver->x).max() < eps)
+					{
 						coarseSolved = true ;
+						std::cout << "Grid " << A1.size()-1 << " converged." << std::endl ;
+					}
+					else
+					{
+						std::cout << A1.size()-1 << " not converged... " << std::flush ;
+					}
+					
+					
 				}
 				else
 				{
 					// finish computation on fine grid ;
-					bool solved = cg0->solve(x, NULL, eps, Maxit-nit, verbose) ;
+					bool solved = cg0->solve(x, NULL, eps, -1, verbose) ;
 					x = cg0->x ;
 					
 					if(solved)

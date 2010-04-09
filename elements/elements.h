@@ -108,9 +108,9 @@ public:
 	virtual NonLinearForm * getNonLinearBehaviour() const;
 	void setNonLinearBehaviour(NonLinearForm * f) ;
 	
-	void step(double dt, Vector * displacements) ;
+	void step(double dt, const Vector * displacements) ;
 	void stepBack() ;
-	void nonLinearStep(double dt, Vector *displacements) ;
+	void nonLinearStep(double dt, const Vector * displacements) ;
 	
 	Order getOrder() const;
 	void setOrder(Order) ;
@@ -279,9 +279,9 @@ public:
 	virtual Point &  getPoint(size_t i) = 0 ;
 		
 	
-	virtual void step(double dt, Vector * displacements) ;
+	virtual void step(double dt, const Vector * displacements) ;
 	virtual void stepBack() ;
-	virtual void nonLinearStep(double dt, Vector *displacements) ;
+	virtual void nonLinearStep(double dt, const Vector *displacements) ;
 	
 	virtual Order getOrder() const;
 	virtual void setOrder(Order) ;

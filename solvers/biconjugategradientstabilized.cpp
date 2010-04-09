@@ -4,9 +4,9 @@ using namespace Mu ;
 
 BiConjugateGradientStabilized::BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { }
 
-bool BiConjugateGradientStabilized::solve(const Vector &x0, const Preconditionner * precond, const double epsilon , const int maxit , bool verbose )
+bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * precond, const double epsilon , const int maxit , bool verbose )
 {
-	const Preconditionner * P ;
+	Preconditionner * P ;
 
 	
 	bool cleanup = false ;

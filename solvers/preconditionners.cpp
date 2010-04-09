@@ -14,7 +14,7 @@
 
 using namespace Mu ;
 
-void NullPreconditionner::precondition(const Vector &v, Vector &t) const
+void NullPreconditionner::precondition(const Vector &v, Vector &t) 
 {
 	
 }

@@ -179,6 +179,7 @@ protected:
 	bool has3Dims ; 
 
 	Vector externalForces ;
+	Vector naturalBoundaryConditionForces ;
 	Vector displacements ;
 	Vector nonLinearExternalForces ;
 	CoordinateIndexedSparseMatrix * coordinateIndexedMatrix ;
@@ -266,6 +267,9 @@ public:
 
 /** \brief return right-and-side vector*/
 	Vector & getForces() ;
+
+/** \brief return virtual forces which come from imposed displacements BCs*/
+	Vector & getNaturalBoundaryConditionForces() ;
 
 /** \brief return right-and-side vector*/
 	Vector & getNonLinearForces() ;
