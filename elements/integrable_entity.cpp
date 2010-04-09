@@ -2652,6 +2652,9 @@ Vector ElementState::getInterpolatingFactors(const Point & p, bool local) const
 		
 		return ret;
 	}
+	
+	Vector ret(0., 1) ;
+	return ret ;
 }
 
 Vector ElementState::getDisplacements(const Point & p, bool local, bool fast, const Vector * source) const

@@ -126,11 +126,14 @@ namespace Mu
 							{
 								projectionPointCache.erase(projectionPointCache.find(*i)) ;
 								disps = 0 ;
-								for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
+								if(coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
-									double d = projectionCache[(*i)].second[j] ;
-									for(size_t k = 0 ; k < numDofs ; k++)
-										disps[k] += source[coincidentElements.begin()->second->getBoundingPoint(j).id*numDofs+k]*d ;
+									for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
+									{
+										double d = projectionCache[(*i)].second[j] ;
+										for(size_t k = 0 ; k < numDofs ; k++)
+											disps[k] += source[coincidentElements.begin()->second->getBoundingPoint(j).id*numDofs+k]*d ;
+									}
 								}
 							}
 							
@@ -167,11 +170,14 @@ namespace Mu
 							{
 								projectionPointCache.erase(projectionPointCache.find(*i)) ;
 								disps = 0 ;
-								for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
+								if(coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
-									double d = projectionCache[(*i)].second[j] ;
-									for(size_t k = 0 ; k < numDofs ; k++)
-										disps[k] += source[coincidentElements.begin()->second->getBoundingPoint(j).id*numDofs+k]*d ;
+									for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
+									{
+										double d = projectionCache[(*i)].second[j] ;
+										for(size_t k = 0 ; k < numDofs ; k++)
+											disps[k] += source[coincidentElements.begin()->second->getBoundingPoint(j).id*numDofs+k]*d ;
+									}
 								}
 							}
 							
@@ -203,11 +209,14 @@ namespace Mu
 					for( MapIterator i = cache[mesh].begin() ; i != cache[mesh].end() ; ++i)
 					{
 						disps = 0 ;
-						for(size_t j = 0 ; j < i->second.first->getBoundingPoints().size() ; j++)
+						if(i->second.first->getBehaviour()->type != VOID_BEHAVIOUR)
 						{
-							double d = i->second.second[j] ;
-							for(size_t k = 0 ; k < numDofs ; k++)
-								disps[k] += source[i->second.first->getBoundingPoint(j).id*numDofs+k]*d ;
+							for(size_t j = 0 ; j < i->second.first->getBoundingPoints().size() ; j++)
+							{
+								double d = i->second.second[j] ;
+								for(size_t k = 0 ; k < numDofs ; k++)
+									disps[k] += source[i->second.first->getBoundingPoint(j).id*numDofs+k]*d ;
+							}
 						}
 						for(size_t k = 0 ; k < numDofs ; k++)
 							projection[i->first->id*numDofs+k] = disps[k] ;
