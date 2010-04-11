@@ -105,7 +105,7 @@ namespace Mu
 						if(!coincidentElements.empty())
 						{
 							Vector disps = coincidentElements.begin()->second->getState().getDisplacements(*(*i), false, fast, &source) ;
-							projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i))) ;
+							projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i), false)) ;
 							
 							for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++)
 							{
@@ -149,7 +149,7 @@ namespace Mu
 								coincidentElements[dist(proj, *(*i))] = targets[k] ;
 							}
 							Vector disps(numDofs); 
-							projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i))) ;
+							projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i), false)) ;
 							
 							for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++)
 							{
