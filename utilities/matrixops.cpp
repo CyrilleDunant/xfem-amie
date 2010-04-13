@@ -384,9 +384,9 @@ void invert6x6Matrix(Mu::Matrix &s)
 	Matrix r6 = inverse3x3Matrix(r5) ;
 	s01 = r3*r6 ;
 	s10 = r6*r2 ;
-	double r7 = r3*s10 ;
+	Matrix r7 = r3*s10 ;
 	s00 = r1-r7 ;
-	s11 = -r6 ;
+	s11 = r6*-1 ;
 	
 	for(size_t i = 0 ; i < 3 ;i++)
 	{
