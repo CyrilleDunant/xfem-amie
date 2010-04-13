@@ -91,7 +91,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	nit++ ;
 	int n = 0 ;
 	//****************************************
-	double neps = 1e-6 ;
+	
 	assign(r, A*x-b) ;
 	r *= -1 ;	
 	err = std::abs(r).max() ;
@@ -102,7 +102,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
 		return true ;
 	}
-	while(sqrt(last_rho)> neps && n < Maxit )
+	double neps = std::max(err*eps, eps) ;
+	while(sqrt(last_rho)> eps && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		
@@ -138,8 +139,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 		{
 // 			Vector rr = A*x-b ;
 // 			double e = sqrt( parallel_inner_product(&rr[0], &rr[0], vsize)) ;
-// 			std::cerr <<e << std::endl ;
+// 			std::cerr << e << " vs " << sqrt(rho) << std::endl ;
 // 		}
+		
 		last_rho = rho ;
 		nit++ ;
 		

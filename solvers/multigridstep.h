@@ -88,18 +88,19 @@ struct MultiGridStep : public Preconditionner
 		if(true)
 		{
 			//restrict
-			for(size_t i = 0 ; i < elements0.size() ; i++)
-				elements0[i]->step(1., &v) ;
+// 			for(size_t i = 0 ; i < elements0.size() ; i++)
+// 				elements0[i]->step(1., &v) ;
 			mesh1->project(mesh0, v1, v, false) ;
 			
 			//V iteration
 			subsolver->b = -v1;
 			subsolver->x = 0 ;
-			subsolver->solve(subsolver->x, NULL, 1e-8, -1, false) ;
+			subsolver->solve(subsolver->x, NULL, 1e-9, -1, false) ;
+			subsolver->nit = 0 ;
 			
 			//extend
-			for(size_t i = 0 ; i < elements1.size() ; i++)
-				elements1[i]->step(1., &subsolver->x) ;
+// 			for(size_t i = 0 ; i < elements1.size() ; i++)
+// 				elements1[i]->step(1., &subsolver->x) ;
 			mesh0->project(mesh1, t, subsolver->x, false) ;
 
 			t = vorig-t ;

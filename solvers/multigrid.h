@@ -110,7 +110,7 @@ namespace Mu
 					cg0->solve(x, NULL, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
 					x = cg0->x ;
 					assign(r0, A*x-b) ;
-					r0 = -r0 ,
+					r0 = -r0 ;
 					if(verbose && nit%10 == 0)
 						std::cout << A1.size() << "  "<< std::abs(r0).max() << "  " << eps  << std::endl ;
 					if(std::abs(r0).max() < eps)

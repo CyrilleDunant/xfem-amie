@@ -13,7 +13,7 @@ namespace Mu
 	class Mesh
 	{
 		protected:
-			std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, std::pair<ETYPE *, Vector> > > cache ;
+			std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, std::pair<ETYPE *, std::vector<double> > > > cache ;
 			std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, Point * > > pointcache ;
 		public:
 			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
@@ -32,11 +32,11 @@ namespace Mu
 			*/
 			void project(const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
 			{
-				typedef typename std::map<Point *, std::pair<ETARGETTYPE *, Vector> >::const_iterator MapIterator ;
+				typedef typename std::map<Point *, std::pair<ETARGETTYPE *, std::vector<double> > >::const_iterator MapIterator ;
 				typedef typename std::vector<ETARGETTYPE *>::const_iterator VecIterator ;
 				if(cache.find(mesh) == cache.end())
 				{
-					std::map<Point *, std::pair<ETYPE *, Vector> > projectionCache ;
+					std::map<Point *, std::pair<ETYPE *, std::vector<double> > > projectionCache ;
 					std::map<Point *, Point * > projectionPointCache ;
 					std::vector<ETYPE *> selfElements = getElements() ;
 					int pointCount = 0 ;
@@ -104,7 +104,7 @@ namespace Mu
 						
 						if(!coincidentElements.empty())
 						{
-							Vector disps = coincidentElements.begin()->second->getState().getDisplacements(*(*i), false, fast, &source) ;
+							Vector disps(0., numDofs) ;
 							projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i), false)) ;
 							
 							for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++)
@@ -125,14 +125,14 @@ namespace Mu
 							else
 							{
 								projectionPointCache.erase(projectionPointCache.find(*i)) ;
-								disps = 0 ;
 								if(coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
 									for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
 									{
+										int id = coincidentElements.begin()->second->getBoundingPoint(j).id ;
 										double d = projectionCache[(*i)].second[j] ;
 										for(size_t k = 0 ; k < numDofs ; k++)
-											disps[k] += source[coincidentElements.begin()->second->getBoundingPoint(j).id*numDofs+k]*d ;
+											disps[k] += source[id*numDofs+k]*d ;
 									}
 								}
 							}
@@ -148,7 +148,7 @@ namespace Mu
 								targets[k]->project(&proj) ;
 								coincidentElements[dist(proj, *(*i))] = targets[k] ;
 							}
-							Vector disps(numDofs); 
+							Vector disps(0., numDofs); 
 							projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i), false)) ;
 							
 							for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++)
@@ -163,20 +163,21 @@ namespace Mu
 							if(projectionPointCache[(*i)] && source.size())
 							{
 								projectionCache.erase(projectionCache.find(*i)) ;
+								int id = projectionPointCache[(*i)]->id ;
 								for(size_t k = 0 ; k < numDofs ; k++)
-									disps[k] = source[projectionPointCache[(*i)]->id*numDofs+k] ;
+									disps[k] = source[id*numDofs+k] ;
 							}
 							else
 							{
 								projectionPointCache.erase(projectionPointCache.find(*i)) ;
-								disps = 0 ;
 								if(coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
 									for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
 									{
 										double d = projectionCache[(*i)].second[j] ;
+										int id = coincidentElements.begin()->second->getBoundingPoint(j).id ;
 										for(size_t k = 0 ; k < numDofs ; k++)
-											disps[k] += source[coincidentElements.begin()->second->getBoundingPoint(j).id*numDofs+k]*d ;
+											disps[k] += source[id*numDofs+k]*d ;
 									}
 								}
 							}
@@ -204,7 +205,7 @@ namespace Mu
 					}
 					
 					projection = 0 ;
-					Vector disps(numDofs) ;
+					Vector disps(0.,numDofs) ;
 					
 					for( MapIterator i = cache[mesh].begin() ; i != cache[mesh].end() ; ++i)
 					{
@@ -214,22 +215,21 @@ namespace Mu
 							for(size_t j = 0 ; j < i->second.first->getBoundingPoints().size() ; j++)
 							{
 								double d = i->second.second[j] ;
+								int id = i->second.first->getBoundingPoint(j).id ;
 								for(size_t k = 0 ; k < numDofs ; k++)
-									disps[k] += source[i->second.first->getBoundingPoint(j).id*numDofs+k]*d ;
+									disps[k] += source[id*numDofs+k]*d ;
 							}
 						}
 						for(size_t k = 0 ; k < numDofs ; k++)
 							projection[i->first->id*numDofs+k] = disps[k] ;
 						
-						
 					}
+					
 					for(  std::map<Point*, Point*>::const_iterator j = pointcache[mesh].begin() ; j != pointcache[mesh].end() ; ++j)
 					{
-						for(size_t k = 0 ; k < numDofs ; k++)
-							disps[k] = source[j->second->id*numDofs+k] ;
 
 						for(size_t k = 0 ; k < numDofs ; k++)
-							projection[j->first->id*numDofs+k] = disps[k] ;
+							projection[j->first->id*numDofs+k] = source[j->second->id*numDofs+k] ;
 						
 					}
 					

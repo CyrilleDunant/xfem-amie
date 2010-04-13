@@ -2604,57 +2604,29 @@ Vector & ElementState::getDisplacements()
 	return this->displacements ;
 }
 
-Vector ElementState::getInterpolatingFactors(const Point & p, bool local) const
+std::vector<double> ElementState::getInterpolatingFactors(const Point & p, bool local) const
 {
-	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
-	{
-		Vector ret(0., (parent->getBoundingPoints().size()+parent->getEnrichmentFunctions().size())) ;
-		VirtualMachine vm ;
-		Point p_ = p ;
-		
-		if(!local)
-			p_ = parent->inLocalCoordinates(p) ;
-		
-		for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
-		{
-			double f =  vm.eval(parent->getShapeFunction(j), p_) ;
-			ret[j] = f ;
-		}
-		
-		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
-		{
-			double f = vm.eval(parent->getEnrichmentFunction(j), p_) ;
-			ret[j+parent->getBoundingPoints().size()] = f ;
-		}
+
+	std::vector<double> ret(parent->getBoundingPoints().size()+parent->getEnrichmentFunctions().size()) ;
+	VirtualMachine vm ;
+	Point p_ = p ;
 	
-		return ret;
-	}
-	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3)
+	if(!local)
+		p_ = parent->inLocalCoordinates(p) ;
+	
+	for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 	{
-		Vector ret(0., 3*(parent->getBoundingPoints().size()+parent->getEnrichmentFunctions().size())) ;
-		VirtualMachine vm ;
-		Point p_ = p ;
-		
-		if(!local)
-			p_ = parent->inLocalCoordinates(p) ;
-		
-		for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
-		{
-			double f =  vm.eval(parent->getShapeFunction(j), p_) ;
-			ret[j] = f;
-		}
-		
-		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
-		{
-			double f = vm.eval(parent->getEnrichmentFunction(j), p_) ;
-			ret[j+parent->getBoundingPoints().size()] = f ;
-		}
-		
-		return ret;
+		double f =  vm.eval(parent->getShapeFunction(j), p_) ;
+		ret[j] = f ;
 	}
 	
-	Vector ret(0., 1) ;
-	return ret ;
+	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+	{
+		double f = vm.eval(parent->getEnrichmentFunction(j), p_) ;
+		ret[j+parent->getBoundingPoints().size()] = f ;
+	}
+
+	return ret;
 }
 
 Vector ElementState::getDisplacements(const Point & p, bool local, bool fast, const Vector * source) const
