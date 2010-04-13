@@ -369,6 +369,61 @@ void invert2x2Matrix(Mu::Matrix &s)
 
 }
 
+void invert6x6Matrix(Mu::Matrix &s)
+{
+	Matrix s00(3,0,0,s) ;
+	Matrix s01(3,0,3,s) ;
+	Matrix s10(3,3,0,s) ;
+	Matrix s11(3,3,3,s) ;
+	
+	Matrix r1 = inverse3x3Matrix(s00) ;
+	Matrix r2 = s10 * r1 ;
+	Matrix r3 = r1* s01 ;
+	Matrix r4 = s10 * r3 ;
+	Matrix r5 = r4 - s11 ;
+	Matrix r6 = inverse3x3Matrix(r5) ;
+	s01 = r3*r6 ;
+	s10 = r6*r2 ;
+	double r7 = r3*s10 ;
+	s00 = r1-r7 ;
+	s11 = -r6 ;
+	
+	for(size_t i = 0 ; i < 3 ;i++)
+	{
+		for(size_t j = 0 ; j < 3 ;i++)
+		{
+			s[i][j] = s00[i][j] ;
+		}
+	}
+	for(size_t i = 0 ; i < 3 ;i++)
+	{
+		for(size_t j = 0 ; j < 3 ;i++)
+		{
+			s[i+3][j] = s10[i][j] ;
+		}
+	}
+	for(size_t i = 0 ; i < 3 ;i++)
+	{
+		for(size_t j = 0 ; j < 3 ;i++)
+		{
+			s[i][j+3] = s01[i][j] ;
+		}
+	}
+	for(size_t i = 0 ; i < 3 ;i++)
+	{
+		for(size_t j = 0 ; j < 3 ;i++)
+		{
+			s[i+3][j+3] = s11[i][j] ;
+		}
+	}
+}
+
+Matrix inverse6x6Matrix(Mu::Matrix &s)
+{
+	Matrix ret(s) ;
+	invert6x6Matrix(ret);
+	return ret ;
+}
 
 Mu::Matrix inverse3x3Matrix(const Mu::Matrix & m)
 {

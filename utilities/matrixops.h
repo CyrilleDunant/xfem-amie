@@ -425,6 +425,12 @@ void invert3x3Matrix(Mu::Matrix & m) ;
 /** \brief 4x4 matrix inversion*/
 Mu::Matrix inverse4x4Matrix(const Mu::Matrix &s) ;
 
+/** \brief 6x6 matrix inversion*/
+Mu::Matrix inverse6x6Matrix(const Mu::Matrix &s) ;
+
+/** \brief in-place 6x6 matrix inversion*/
+void invert6x6Matrix(Mu::Matrix & m) ;
+
 /** \brief compute the determinant of a Matrix, slow*/
 double det(const Mu::Matrix &s) ;
 
