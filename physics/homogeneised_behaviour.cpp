@@ -16,6 +16,7 @@ using namespace Mu ;
 
 HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), false, false, 2) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL) 
 {
+	Circle c(self->getRadius()*2, self->getCircumCenter()) ;
 	std::vector<DelaunayTriangle *> source = mesh2d->getConflictingElements(self->getPrimitive()) ;
 	//simple averaging
 	double totalArea = 0 ;
@@ -60,7 +61,6 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 		type = VOID_BEHAVIOUR ;
 	else
 		param /= totalArea ;
-	param[2][2] /= .9 ;
 	v.push_back(XI);
 	v.push_back(ETA);
 } ;

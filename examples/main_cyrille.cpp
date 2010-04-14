@@ -98,7 +98,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.00 ;
-int grid = -1 ;
+int grid = 6 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;

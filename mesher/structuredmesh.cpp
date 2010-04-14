@@ -135,13 +135,13 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geometry * geo) const
 {
 	std::vector<DelaunayTriangle *> ret ;
-	double startX = grid.getX()*.5-grid.getCenter().x + geo->getCenter().x-geo->getRadius() ;
+	double startX = grid.getX()*.5-grid.getCenter().x + geo->getCenter().x-2.*geo->getRadius() ;
 	int startI = std::max(0., startX/grid.getPixelSize() - 2) ;
 	
 	double endX =  startX+2.*geo->getRadius();
 	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.pixels.size());
 	
-	double startY = grid.getY()*.5-grid.getCenter().y + geo->getCenter().y-geo->getRadius() ;
+	double startY = grid.getY()*.5-grid.getCenter().y + geo->getCenter().y-2.*geo->getRadius() ;
 	int startJ = std::max(0., startY/grid.getPixelSize() - 2) ;
 		
 	double endY =  startY+2.*geo->getRadius();

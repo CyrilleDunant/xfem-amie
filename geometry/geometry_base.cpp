@@ -3953,27 +3953,7 @@ bool Segment::on(const Point &p) const
 	if(!isAligned(p, f, s))
 		return false ;
 
-	if(std::abs(vec.x) > 0)
-	{
-
-		if(s.x < f.x)
-			return (s.x < p.x + POINT_TOLERANCE) && (p.x < f.x + POINT_TOLERANCE) ;
-		return (f.x < p.x + POINT_TOLERANCE) && (p.x < s.x + POINT_TOLERANCE) ;
-	}
-	else if(std::abs(vec.y) > 0)
-	{
-		if(s.y < f.y)
-			return (s.y < p.y + POINT_TOLERANCE) && (p.y < f.y + POINT_TOLERANCE) ;
-		return (f.y < p.y + POINT_TOLERANCE) && (p.y < s.y + POINT_TOLERANCE) ;
-	}
-	else if(std::abs(vec.z) > 0)
-	{
-		if(s.z < f.z)
-			return (s.z < p.z + POINT_TOLERANCE) && (p.z < f.z + POINT_TOLERANCE) ;
-		return (f.z < p.z + POINT_TOLERANCE) && (p.z < s.z + POINT_TOLERANCE) ;
-	}
-
-	return false ;
+	return std::abs(dist(s, p)+dist(f, p) - dist(f, s)) < 2.*POINT_TOLERANCE ;
 	
 }
 
