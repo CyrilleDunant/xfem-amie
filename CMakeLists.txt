@@ -64,7 +64,7 @@ physics/stiffness_and_fracture.cpp
 physics/stiffness.cpp 
 physics/stiffness_with_imposed_deformation.cpp 
 physics/stiffness_with_imposed_deformation_and_fracture.cpp 
-physics/stiffness_with_time_dependent_imposed_deformation.cpp
+physics/stiffness_with_kinetics_imposed_deformation.cpp
 physics/stiffness_with_variable_imposed_deformation_and_fracture.cpp 
 physics/stiffness_with_variable_imposed_deformation.cpp 
 physics/physics_base.cpp
@@ -75,6 +75,9 @@ physics/void_form.cpp
 physics/wave.cpp 
 physics/weibull_distributed_stiffness.cpp 
 physics/weibull_distributed_stiffness_with_variable_imposed_deformation_and_fracture.cpp 
+physics/homogenization/elastic_homogenization.cpp
+physics/homogenization/properties_base.cpp
+physics/homogenization/scheme_base.cpp
 polynomial/scalarfield.cpp 
 polynomial/vm_base.cpp 
 polynomial/vm_function_base.cpp 

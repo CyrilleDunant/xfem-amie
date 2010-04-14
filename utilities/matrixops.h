@@ -8,8 +8,8 @@
 #define __MATRIXOPS_H__
 
 #include <valarray>
-#include "sliceiters.h"
 #include <iostream>
+#include "sliceiters.h"
 #include <vector>
 #include <numeric>
 
@@ -84,6 +84,9 @@ public:
 	
 	/** \brief copy-constructor */
 	Matrix(const Matrix&) ;
+
+	/** \brief constructor from a vector<vector<double> > */
+	Matrix(const std::vector<std::vector<double> > & vv) ;
 
 	virtual ~Matrix() { if(cleanup)delete v; }
 
@@ -181,7 +184,7 @@ public:
 	
 	bool operator ==(const Matrix &m) ;
 	bool operator !=(const Matrix &m) ;
-	
+
 	/** \brief Return the array of values, stored in row-major fashion*/
 	Vector &array() {return *v ;}
 	
@@ -443,3 +446,4 @@ Mu::Matrix log(const Mu::Matrix&, size_t order) ;
 
 
 # endif  // __MATRIXOPS_H__
+

@@ -70,6 +70,20 @@ Matrix::Matrix(size_t i, size_t j, const Matrix & m)
 	}
 }
 
+Matrix::Matrix(const std::vector<std::vector<double> > & vv)
+{
+	r = vv.size() ;
+	c = vv[0].size() ;
+	v = new Vector(r*c) ;
+	for(size_t i = 0 ; i < vv.size() ; i++)
+	{
+		for(size_t j = 0 ; j < std::min(vv[0].size(), vv[i].size()) ; j++)
+		{
+			(*v)[i*r+j] = vv[i][j] ;
+		}
+	}
+}
+
 double& Matrix::operator()(size_t x, size_t y)
 {
 	return row(x)[y] ;
@@ -376,6 +390,35 @@ void invert6x6Matrix(Mu::Matrix &s)
 	Matrix s10(3,3,0,s) ;
 	Matrix s11(3,3,3,s) ;
 	
+	if(true)
+	{
+		Mu::Matrix ret(6,6) ;
+	
+	
+		double deti = det(s) ;
+	
+		ret[0][0] =  det(Matrix(0,0,s)) ; ret[0][1] = -det(Matrix(1,0,s)) ; ret[0][2] =  det(Matrix(2,0,s)) ;
+		ret[0][3] = -det(Matrix(3,0,s)) ; ret[0][4] =  det(Matrix(4,0,s)) ; ret[0][5] = -det(Matrix(5,0,s)) ;
+		
+		ret[1][0] = -det(Matrix(0,1,s)) ; ret[1][1] =  det(Matrix(1,1,s)) ; ret[1][2] = -det(Matrix(2,1,s)) ;
+		ret[1][3] =  det(Matrix(3,1,s)) ; ret[1][4] = -det(Matrix(4,1,s)) ; ret[1][5] =  det(Matrix(5,1,s)) ;
+
+		ret[2][0] =  det(Matrix(0,2,s)) ; ret[2][1] = -det(Matrix(1,2,s)) ; ret[2][2] =  det(Matrix(2,2,s)) ;
+		ret[2][3] = -det(Matrix(3,2,s)) ; ret[2][4] =  det(Matrix(4,2,s)) ; ret[2][5] = -det(Matrix(5,2,s)) ;
+
+		ret[3][0] = -det(Matrix(0,3,s)) ; ret[3][1] =  det(Matrix(1,3,s)) ; ret[3][2] = -det(Matrix(2,3,s)) ;
+		ret[3][3] =  det(Matrix(3,3,s)) ; ret[3][4] = -det(Matrix(4,3,s)) ; ret[3][5] =  det(Matrix(5,3,s)) ;
+		
+		ret[4][0] =  det(Matrix(0,4,s)) ; ret[4][1] = -det(Matrix(1,4,s)) ; ret[4][2] =  det(Matrix(2,4,s)) ;
+		ret[4][3] = -det(Matrix(3,4,s)) ; ret[4][4] =  det(Matrix(4,4,s)) ; ret[4][5] = -det(Matrix(5,4,s)) ;
+
+		ret[5][0] = -det(Matrix(0,5,s)) ; ret[5][1] =  det(Matrix(1,5,s)) ; ret[5][2] = -det(Matrix(2,5,s)) ; 
+		ret[5][3] =  det(Matrix(3,5,s)) ; ret[5][4] = -det(Matrix(5,4,s)) ; ret[5][5] =  det(Matrix(5,5,s)) ;
+	
+		s = ret/deti ;
+		return ;
+	}
+
 	Matrix r1 = inverse3x3Matrix(s00) ;
 	Matrix r2 = s10 * r1 ;
 	Matrix r3 = r1* s01 ;
@@ -390,28 +433,28 @@ void invert6x6Matrix(Mu::Matrix &s)
 	
 	for(size_t i = 0 ; i < 3 ;i++)
 	{
-		for(size_t j = 0 ; j < 3 ;i++)
+		for(size_t j = 0 ; j < 3 ;j++)
 		{
 			s[i][j] = s00[i][j] ;
 		}
 	}
 	for(size_t i = 0 ; i < 3 ;i++)
 	{
-		for(size_t j = 0 ; j < 3 ;i++)
+		for(size_t j = 0 ; j < 3 ;j++)
 		{
 			s[i+3][j] = s10[i][j] ;
 		}
 	}
 	for(size_t i = 0 ; i < 3 ;i++)
 	{
-		for(size_t j = 0 ; j < 3 ;i++)
+		for(size_t j = 0 ; j < 3 ;j++)
 		{
 			s[i][j+3] = s01[i][j] ;
 		}
 	}
 	for(size_t i = 0 ; i < 3 ;i++)
 	{
-		for(size_t j = 0 ; j < 3 ;i++)
+		for(size_t j = 0 ; j < 3 ;j++)
 		{
 			s[i+3][j+3] = s11[i][j] ;
 		}
@@ -549,6 +592,27 @@ double det(const Mu::Matrix &s)
 			}
 			
 			return ret ;
+		}
+		case 5:
+		{
+			double ret = 0 ;
+			
+			for(size_t i = 0 ;  i < 1  ; i++)
+			{
+				for(size_t j = 0 ;  j< 5  ; j++)
+				{
+					double sig = 1 ;
+					for(size_t k = 0 ; k < (i+j)%2 ; k++)
+						sig*=-1 ;
+					
+					Matrix mat(i,j,s) ;
+					
+					ret= fma(sig*s[i][j],det(mat), ret) ;
+				}
+			}
+//			std::cout << ret << std::endl ;			
+			return ret ;
+
 		}
 	default:
 		{

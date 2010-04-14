@@ -14,6 +14,7 @@
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/stiffness.h"
 #include "../physics/spatially_distributed_stiffness.h"
+#include "../physics/homogenization/elastic_homogenization.h"
 #include "../features/pore.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
@@ -25,7 +26,6 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
-#include "../utilities/homogenizer.h"
 
 #include <fstream>
 
@@ -593,7 +593,7 @@ int main(int argc, char *argv[])
 	cement[2] = 25 ;
 
 	Matrix stiff_cem = makeStiffnessMatrix(cement, 0.2) ;
-	SimpleMaterial sm_cem(25, 0.2) ;
+//	SimpleMaterial sm_cem(25, 0.2) ;
 
 	Vector aggregates(3) ;
 	aggregates[0] = 70 ;
@@ -601,14 +601,14 @@ int main(int argc, char *argv[])
 	aggregates[2] = 70 ;
 
 	Matrix stiff_agg = makeStiffnessMatrix(aggregates, 0.2) ;
-	SimpleMaterial sm_agg(70, 0.2) ;
+//	SimpleMaterial sm_agg(70, 0.2) ;
 
 	double iter_volume = cement_volume ;
 
 	std::vector<Matrix> stiff_hom ;
 	stiff_hom.push_back(stiff_cem) ;
 
-	for(size_t i = 0 ; i < radius.size() ; i++)
+/*	for(size_t i = 0 ; i < radius.size() ; i++)
 	{
 
 		std::cout << std::endl ;
@@ -680,26 +680,51 @@ int main(int argc, char *argv[])
 	std::cout << std::endl ;
 	std::cout << std::endl ;
 	std::cout << std::endl ;
-	std::cout << std::endl ;
+	std::cout << std::endl ;*/
 
 
-	std::cout << std::endl ;
-	std::cout << "Incremental" << std::endl ;
-	SimpleMaterial hom_inc(INCREMENTAL, std::make_pair(vfraction, new SimpleMaterial(70,0.2)), new SimpleMaterial(25,0.2)) ;
-	std:: cout << hom_inc.getE() << ";" << hom_inc.getnu() << std::endl ;
-	std::cout << std::endl ;
+//	std::cout << std::endl ;
+//	std::cout << "Incremental" << std::endl ;
+//	SimpleMaterial hom_inc(INCREMENTAL, std::make_pair(vfraction, new SimpleMaterial(70,0.2)), new SimpleMaterial(25,0.2)) ;
+//	std:: cout << hom_inc.getE() << ";" << hom_inc.getnu() << std::endl ;
+//	std::cout << std::endl ;
+
+
+	Properties cem_Enu(HOOKE,std::make_pair(25,0.2)) ;
+	Properties agg_Enu(HOOKE,std::make_pair(70,0.2)) ;
+
+	Properties cem_frac(FRACTION,0.24) ;
+	Properties agg_frac(FRACTION,0.76) ;
+
+	Material m_cement(cem_frac) ;
+	Material m_aggregates(agg_frac) ;
+
+	std::pair<bool,Properties> cem_test = cem_Enu.convert(BULK_SHEAR) ;
+	std::pair<bool,Properties> agg_test = agg_Enu.convert(BULK_SHEAR) ;
 	
-	std::cout << std::endl ;
-	std::cout << "Mori-Tanaka" << std::endl ;
-	SimpleMaterial hom_mt(MORI_TANAKA, std::make_pair(vfraction, new SimpleMaterial(70,0.2)), new SimpleMaterial(25,0.2)) ;
-	std:: cout << hom_mt.getE() << ";" << hom_mt.getnu() << std::endl ;
-	std::cout << std::endl ;
+	if(cem_test.first)
+	{
+		m_cement.push_back(cem_test.second) ;
+		if(agg_test.first)
+		{
+			m_aggregates.push_back(agg_test.second) ;
+			std::vector<Material> mat ;
+			mat.push_back(m_cement) ;
+			mat.push_back(m_aggregates) ;
+			std::pair<bool, Material> hom_mt = GeneralizedSelfConsistent().apply(mat) ;
+			std::pair<bool, Properties> conv_mt = hom_mt.second[0].convert(HOOKE) ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << "SELF-CONSISTENT" << std::endl ;
+			std::cout << conv_mt.second.getValue(0) << ";" << conv_mt.second.getValue(1) << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+		} else {
+			std::cout << "agg shit" <<std::endl ;
+		}
+	} else {
+		std::cout << "shit..." << std::endl ;
+	}
 
-	std::cout << std::endl ;
-	std::cout << "Self-Consistent" << std::endl ;
-	SimpleMaterial hom_sc(SELF_CONSISTENT, std::make_pair(vfraction, new SimpleMaterial(70,0.2)), new SimpleMaterial(25,0.2)) ;
-	std:: cout << hom_sc.getE() << ";" << hom_sc.getnu() << std::endl ;
-	std::cout << std::endl ;
-	
 	return 0 ;
 }
