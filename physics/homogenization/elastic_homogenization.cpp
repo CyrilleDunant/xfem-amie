@@ -407,8 +407,8 @@ Vector GeneralizedSelfConsistent::processData(const Matrix & data)
 	while(error > 1e-6)
 	{
 		error = 1. ;
-		Vector dk(data.numCols()) ;
-		Vector dmu(data.numCols()) ;
+		Vector dk(data.numRows()) ;
+		Vector dmu(data.numRows()) ;
 
 		Matrix iscm(2,3) ;
 		iscm[0][0] = 1. - data[0][0] ;
