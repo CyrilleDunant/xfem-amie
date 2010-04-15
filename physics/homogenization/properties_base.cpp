@@ -427,6 +427,38 @@ size_t Material::getBulkShear()
 	}
 }
 
+bool Material::equals(Material m,PropertiesType p) const
+{
+	size_t it = this->getFirstIndex(p) ;
+	size_t im = m.getFirstIndex(p) ;
+//	std::cout << it << ";" << im << std::endl ;
+	if(it+1 > 0 && im+1 > 0)
+	{
+//		std::cout << "here" << std::endl ;
+		if((*this)[it].getNVal() == m[im].getNVal())
+		{
+//			std::cout << "here" << std::endl ;
+			bool v = true ;
+			for(size_t i = 0 ; i < m[im].getNVal() ; i++)
+				v &= (std::abs((*this)[it].getValue(i) - m[im].getValue(i)) < 1e-6) ;
+			return v ;
+		}
+	}
+	return false ;
+}
+
+void Material::combine(Material m, PropertiesType p)
+{
+	for(size_t i = 0 ; i < this->size() ; i++)
+	{
+		if((*this)[i].getPropertiesType() == p)
+		{
+			size_t im = getFirstIndex(p) ;
+			for(size_t j = 0 ; j < (*this)[i].getNVal() ; j++)
+				(*this)[i].setValue(j,m[im].getValue(j)) ;
+		}
+	}
+}
 
 
 

@@ -187,6 +187,7 @@ void HomogeneisedBehaviour::homogenize()
 	double f = 0 ;
 	for(size_t i = 0 ; i < mat.size() ; i++)
 		f += mat[i][0].getValue(0) ;
+//	std::cout << f << std::endl ;
 	for(size_t i = 0 ; i < mat.size() ; i++)
 		mat[i][0].setValue(0,mat[i][0].getValue(0)/f) ;
 	std::pair<bool,Material> hom = scheme.apply(mat) ;
@@ -197,6 +198,11 @@ void HomogeneisedBehaviour::homogenize()
 			param = param_hom.second ;
 	}
 
+//	std::cout << std::endl ;
+//	std::cout << std::endl ;
+//	param.print() ;
+//	std::cout << std::endl ;
+//	std::cout << std::endl ;
 	
 }
 

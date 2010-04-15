@@ -691,11 +691,12 @@ int main(int argc, char *argv[])
 //	std::cout << std::endl ;
 
 
-	Properties cem_Enu(HOOKE,std::make_pair(25,0.2)) ;
+	for(size_t i = 1 ; i < 99 ; i++) {
+	Properties cem_Enu(HOOKE,std::make_pair(1e-9,0.2)) ;
 	Properties agg_Enu(HOOKE,std::make_pair(70,0.2)) ;
 
-	Properties cem_frac(FRACTION,0.24) ;
-	Properties agg_frac(FRACTION,0.76) ;
+	Properties cem_frac(FRACTION,(double) i/99.) ;
+	Properties agg_frac(FRACTION,1. - cem_frac.getValue(0)) ;
 
 	Material m_cement(cem_frac) ;
 	Material m_aggregates(agg_frac) ;
@@ -712,21 +713,21 @@ int main(int argc, char *argv[])
 			std::vector<Material> mat ;
 			mat.push_back(m_cement) ;
 			mat.push_back(m_aggregates) ;
-			std::pair<bool, Material> hom_mt = HillBounds().apply(mat) ;
-//			std::pair<bool, Properties> conv_u = hom_mt.second[0].convert(HOOKE) ;
+			std::pair<bool, Material> hom_mt = GeneralizedSelfConsistent().apply(mat) ;
+			std::pair<bool, Properties> conv_u = hom_mt.second[0].convert(HOOKE) ;
 //			std::pair<bool, Properties> conv_l = hom_mt.second[1].convert(HOOKE) ;
-			std::cout << std::endl ;
-			std::cout << std::endl ;
-			std::cout << "UPPER BOUNDS" << std::endl ;
-			std::cout << hom_mt.second[0].getValue(0) << ";" << hom_mt.second[0].getValue(1) << std::endl ;
-			std::cout << std::endl ;
-			std::cout << std::endl ;
-			std::cout << std::endl ;
-			std::cout << std::endl ;
-			std::cout << "LOWER BOUNDS" << std::endl ;
-			std::cout << hom_mt.second[1].getValue(0) << ";" << hom_mt.second[1].getValue(1) << std::endl ;
-			std::cout << std::endl ;
-			std::cout << std::endl ;
+//			std::cout << std::endl ;
+//			std::cout << std::endl ;
+//			std::cout << "UPPER BOUNDS" << std::endl ;
+			std::cout << conv_u.second.getValue(0) << /*";" << conv_u.second[0].getValue(1) <<*/ std::endl ;
+//			std::cout << std::endl ;
+//			std::cout << std::endl ;
+//			std::cout << std::endl ;
+//			std::cout << std::endl ;
+//			std::cout << "LOWER BOUNDS" << std::endl ;
+//			std::cout << hom_mt.second[1].getValue(0) << ";" << hom_mt.second[1].getValue(1) << std::endl ;
+//			std::cout << std::endl ;
+//			std::cout << std::endl ;
 //			Properties voigt("BULK_SHEAR",
 
 
@@ -735,6 +736,7 @@ int main(int argc, char *argv[])
 		}
 	} else {
 		std::cout << "shit..." << std::endl ;
+	}
 	}
 
 	return 0 ;

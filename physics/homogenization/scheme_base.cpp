@@ -211,7 +211,6 @@ Matrix HomogenizationScheme::getRawData(const std::vector<Material> & mat)
 	return data ;
 }
 
-
 std::pair<bool, Material> HomogenizationScheme::apply(const std::vector<Material> & mat)
 {
 	bool v = true ;
@@ -224,8 +223,28 @@ std::pair<bool, Material> HomogenizationScheme::apply(const std::vector<Material
 	if(!v)
 		return std::make_pair(v, mat[0]) ;
 
+	std::vector<Material> mat_reduced ;
+	for(size_t i = 0 ; i < mat.size() ; i++)
+	{
+		size_t combine = -1 ;
+		for(size_t j = 0 ; j < mat_reduced.size() ; j++)
+		{
+			for(size_t k = 0 ; k < output.size() ; k++)
+			{
+				if(mat[i].equals(mat_reduced[j],output[k]))
+					combine = j ;
+			}
+		}
+		if(combine+1 > 0)
+			mat_reduced[combine].combine(mat[i],input[0]) ;
+		else
+			mat_reduced.push_back(mat[i]) ;
+	}
 
-	Matrix raw = getRawData(mat) ;
+
+	Matrix raw = getRawData(mat_reduced) ;
+
+//	raw.print() ;
 
 	Vector processed = processData(raw) ;
 

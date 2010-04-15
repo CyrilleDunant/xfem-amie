@@ -108,6 +108,8 @@ public:
 	size_t getHooke() ;
 	/* return the position of the BULK_SHEAR properties (creates it if needed and possible) */
 	size_t getBulkShear() ;
+	bool equals(Material m, PropertiesType p) const ;
+	void combine(Material m, PropertiesType p) ;
 
 } ;
 
