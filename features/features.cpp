@@ -4859,28 +4859,30 @@ bool FeatureTree::step(double dt)
 			}
 		}
 	
- 		if(useMultigrid && !coarseAssemblies.empty())
- 		{
- 			
- 			K->mgprepare() ;
- 			std::vector<const CoordinateIndexedSparseMatrix *> coarseMatrices ;
- 			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
- 				coarseMatrices.push_back(&coarseAssemblies[j]->getMatrix()) ;
+		if(useMultigrid && !coarseAssemblies.empty())
+		{
+			
+			K->mgprepare() ;
+			std::vector<const CoordinateIndexedSparseMatrix *> coarseMatrices ;
+			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+				coarseMatrices.push_back(&coarseAssemblies[j]->getMatrix()) ;
  
- 			dtree->project(coarseTrees.back(), lastx, coarseAssemblies.back()->getDisplacements()) ;
- 			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
- 			{
- 				ConjugateGradient cg(K->getMatrix(), K->getForces()) ;
- 				MultiGridStep<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> mgs(dtree, 
- 																						 coarseTrees[j], 
- 																						 &K->getMatrix(), 
- 																						 coarseMatrices[j], coarseAssemblies[j]->getForces()) ;
- 				solverConvergence = K->mgsolve(&cg, lastx, &mgs) ;
- 			}
- 			
- 			
- 		}
- 		else
+			dtree->project(coarseTrees.back(), lastx, coarseAssemblies.back()->getDisplacements()) ;
+// 			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+// 			{
+// 				ConjugateGradient cg(K->getMatrix(), K->getForces()) ;
+// 				MultiGridStep<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> mgs(dtree, 
+// 																						 coarseTrees[j], 
+// 																						 &K->getMatrix(), 
+// 																						 coarseMatrices[j], coarseAssemblies[j]->getForces()) ;
+				MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> mg(K->getMatrix(), coarseMatrices, dtree, coarseTrees, K->getForces()) ;
+//  				solverConvergence = K->mgsolve(&cg, lastx, &mgs) ;
+				solverConvergence = K->mgsolve(&mg, lastx, NULL) ;
+// 			}
+			
+			
+		}
+		else
 			solverConvergence = K->cgsolve() ;
 		
 // 		dtree->project(coarseTrees[3], K->getDisplacements(), coarseAssemblies[3]->getDisplacements(), false) ;

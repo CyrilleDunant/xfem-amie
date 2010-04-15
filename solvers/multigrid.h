@@ -43,9 +43,9 @@ namespace Mu
 		} ;
 		MultiGrid(const CoordinateIndexedSparseMatrix & A0, const std::vector<const CoordinateIndexedSparseMatrix *> & A1, MESH_T * mesh0, const std::vector<MESH_T *> & mesh1, Vector & f) : LinearSolver(A0, f), A1(A1), mesh0(mesh0), mesh1(mesh1), r0(b.size()), r1(A1.back()->row_size.size()*A1.back()->stride)  
 		{ 
+			coarseSolved = false ;
 			cg0 = new ConjugateGradient(A0, f) ;
 			gs0 = new GaussSeidel(A0, f) ;
-			coarseSolved = false ;
 			if(mesh1.size() == 1)
 			{
 				subsolver = new ConjugateGradient(*A1.back(), r1) ;
@@ -73,8 +73,8 @@ namespace Mu
 				
 			}
 
-			double smoothingFactor = 1 ;
-			int smoothingSteps = 4 ;
+			double smoothingFactor = 0 ;
+			int smoothingSteps = 10 ;
 			
 			int Maxit = maxit ;
 			int nit = 0 ;
@@ -116,7 +116,7 @@ namespace Mu
 					if(std::abs(r0).max() < eps)
 					{
 
-						if(verbose)
+						if(true)
 							std::cout << "Grid " << A1.size() << " solved in " << nit << " iterations, err = "<< std::abs(r0).max() << std::endl  ;
 
 						return true ;
@@ -124,8 +124,6 @@ namespace Mu
 					
 
 					//restrict
-					for(size_t i = 0 ; i < elements0.size() ; i++)
-						elements0[i]->step(1., &r0) ;
 					mesh1.back()->project(mesh0, r1, r0, false) ;
 					
 					//V iteration
@@ -134,12 +132,9 @@ namespace Mu
 					subsolver->solve(subsolver->x, NULL, eps, -1, false) ;
 						
 					//extend
-					for(size_t i = 0 ; i < elements1.size() ; i++)
-						elements1[i]->step(1., &subsolver->x) ;
 					mesh0->project(mesh1.back(), r0, subsolver->x, false) ;
 					x -= r0 ;
-// 					gs0->solve(x, NULL, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
-// 					x = gs0->x ;
+
 					if(std::abs(subsolver->x).max() < eps)
 					{
 						coarseSolved = true ;
@@ -150,24 +145,25 @@ namespace Mu
 						std::cout << A1.size()-1 << " not converged... " << std::flush ;
 					}
 					
-					
+					cg0->solve(x, NULL, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
+					x = cg0->x ;
 				}
 				else
 				{
 					// finish computation on fine grid ;
 					bool solved = cg0->solve(x, NULL, eps, -1, verbose) ;
 					x = cg0->x ;
-					
+// 					coarseSolved = false ;
 					if(solved)
 					{
-						if(verbose)
+						if(true)
 							std::cout << "Grid " << A1.size() << " solved in " << nit << " iterations, err = "<< eps << std::endl  ;
 						
 						return true ;
 					}
 					else
 					{
-						if(verbose)
+						if(true)
 							std::cout << "Grid " << A1.size() << " not solved in " << nit << " iterations, err = "<< std::abs((Vector)(A*x-b)).max() << std::endl  ;
 						
 						return false ;
