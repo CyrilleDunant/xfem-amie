@@ -11,6 +11,7 @@
 //
 
 #include "properties_base.h"
+#include "elastic_homogenization.h"
 
 using namespace Mu ;
 
@@ -29,6 +30,8 @@ size_t Mu::standardNVal(Mu::PropertiesType p)
 			return 2 ;
 		case(BULK_SHEAR):
 			return 2 ;
+		case(EXPANSION):
+			return 1 ;
 	}
 	return 0 ;
 }
@@ -47,6 +50,8 @@ bool Mu::conversionPossible(Mu::PropertiesType p1, Mu::PropertiesType p2)
 			return (p1 == ABSTRACT || p1 == HOOKE || p1 == BULK_SHEAR) ;
 		case BULK_SHEAR:
 			return (p1 == ABSTRACT || p1 == HOOKE || p1 == BULK_SHEAR) ;
+		case EXPANSION:
+			return (p1 == ABSTRACT || p1 == EXPANSION) ;
 	}
 	return false ;
 }
@@ -234,6 +239,8 @@ std::pair<bool, Properties> Properties::convert(PropertiesType p_out)
 					return std::make_pair(false, Properties()) ;
 				case BULK_SHEAR:
 					return std::make_pair(false, Properties()) ;
+				case EXPANSION:
+					return std::make_pair(false, Properties()) ;
 			}
 		}
 		case HOOKE:
@@ -261,6 +268,8 @@ std::pair<bool, Properties> Properties::convert(PropertiesType p_out)
 					double nu = (3*k-2*mu) / (6*k+2*mu) ;
 					return std::make_pair(true, Properties(HOOKE, std::make_pair(E,nu))) ;
 				}	
+				case EXPANSION:
+					return std::make_pair(false, Properties()) ;
 			}
 		}
 		case BULK_SHEAR:
@@ -288,10 +297,24 @@ std::pair<bool, Properties> Properties::convert(PropertiesType p_out)
 				}
 				case BULK_SHEAR:
 					return std::make_pair(true, Properties(*this)) ;
+				case EXPANSION:
+					return std::make_pair(false, Properties()) ;
 			}
 		}
 	}
 }
+
+std::pair<bool,Matrix> Properties::getCauchyGreen(SpaceDimensionality dim) const
+{
+	if(pType == HOOKE || pType == BULK_SHEAR)
+	{
+		Matrix cg = cauchyGreen(std::make_pair(values[0],values[1]),pType == HOOKE, dim) ;
+		return std::make_pair(true,cg) ;
+	}
+	Matrix cg = cauchyGreen(std::make_pair(1e-9,0.2),true,dim) ;
+	return std::make_pair(false,cg) ;
+}
+
 
 void Properties::print()
 {
@@ -321,6 +344,11 @@ void Properties::print()
 		{
 			std::cout << "BULK SHEAR" << std::endl ;
 			break ;
+		}
+		case EXPANSION:
+		{
+			std::cout << "EXPANSION COEFFICIENT" << std::endl ;
+			break;
 		}
 	}
 	for(size_t i = 0 ; i < nVal ; i++)

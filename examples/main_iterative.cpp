@@ -15,6 +15,7 @@
 #include "../physics/stiffness.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/homogenization/elastic_homogenization.h"
+#include "../physics/homogenization/elastic_bounds.h"
 #include "../features/pore.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
@@ -711,14 +712,24 @@ int main(int argc, char *argv[])
 			std::vector<Material> mat ;
 			mat.push_back(m_cement) ;
 			mat.push_back(m_aggregates) ;
-			std::pair<bool, Material> hom_mt = GeneralizedSelfConsistent().apply(mat) ;
-			std::pair<bool, Properties> conv_mt = hom_mt.second[0].convert(HOOKE) ;
+			std::pair<bool, Material> hom_mt = HillBounds().apply(mat) ;
+//			std::pair<bool, Properties> conv_u = hom_mt.second[0].convert(HOOKE) ;
+//			std::pair<bool, Properties> conv_l = hom_mt.second[1].convert(HOOKE) ;
 			std::cout << std::endl ;
 			std::cout << std::endl ;
-			std::cout << "SELF-CONSISTENT" << std::endl ;
-			std::cout << conv_mt.second.getValue(0) << ";" << conv_mt.second.getValue(1) << std::endl ;
+			std::cout << "UPPER BOUNDS" << std::endl ;
+			std::cout << hom_mt.second[0].getValue(0) << ";" << hom_mt.second[0].getValue(1) << std::endl ;
 			std::cout << std::endl ;
 			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+			std::cout << "LOWER BOUNDS" << std::endl ;
+			std::cout << hom_mt.second[1].getValue(0) << ";" << hom_mt.second[1].getValue(1) << std::endl ;
+			std::cout << std::endl ;
+			std::cout << std::endl ;
+//			Properties voigt("BULK_SHEAR",
+
+
 		} else {
 			std::cout << "agg shit" <<std::endl ;
 		}

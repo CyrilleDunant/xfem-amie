@@ -14,6 +14,7 @@
 #define PROPERTIES_BASE_H
 
 #include "../../utilities/matrixops.h"
+#include "../../geometry/geometry_base.h"
 
 
 namespace Mu
@@ -27,6 +28,7 @@ typedef enum
 	FRACTION,
 	HOOKE,
 	BULK_SHEAR,
+	EXPANSION,
 } PropertiesType ;
 
 /* \brief returns the standard number of value for a specific type */
@@ -80,7 +82,9 @@ public:
 	/* \brief returns all values*/
 	const Vector & getValues() const {return values ; } ;
 	/* \brief returns the type of the item*/
+	void setValue(size_t i, double d) {values[i] = d ; } ;
 	PropertiesType getPropertiesType() const {return pType ; } ;
+	std::pair<bool,Matrix> getCauchyGreen(SpaceDimensionality dim) const ;
 
 	/* \brief converts to another type. Returns false and a VOID_PROP item if conversion is impossible*/
 	std::pair<bool, Properties> convert(PropertiesType p_out) ;

@@ -14,6 +14,7 @@
 #define __HOMOGENEISED_H_
 
 #include "physics_base.h"
+#include "homogenization/elastic_homogenization.h"
 #include "../mesher/mesh.h"
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
@@ -26,11 +27,15 @@ namespace Mu
 	*/
 	struct HomogeneisedBehaviour : public LinearForm
 	{
+		
 		Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d ;
 		DelaunayTriangle * self2d ;
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d ;
 		DelaunayTetrahedron * self3d ;
 		std::vector<Variable> v ;
+		GeneralizedSelfConsistent scheme ;
+		std::vector<DelaunayTriangle *> source ;
+		std::vector<DelaunayTetrahedron *> source3d ;
 		/** \brief Constructor
 		* 
 		* @param mesh2d The 2D mesh for 2D homogeneisation
@@ -71,6 +76,9 @@ namespace Mu
 		
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
+
+		/** \brief Homogenizes the elastic behaviour*/
+		void homogenize() ;
 		
 		/** \brief Return a 0-length Vector*/
 		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;

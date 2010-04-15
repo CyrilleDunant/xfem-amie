@@ -276,6 +276,11 @@ MeanSeries::MeanSeries() : HomogenizationScheme(-1,FRACTION,ABSTRACT)
 	input.push_back(ABSTRACT) ;
 }
 
+MeanSeries::MeanSeries(PropertiesType p) : HomogenizationScheme(-1,FRACTION,p)
+{
+	input.push_back(p) ;
+}
+
 Vector MeanSeries::processData(const Matrix & data) 
 {
 	Vector mean(data.numCols()-1) ;
@@ -297,6 +302,11 @@ MeanParallel::MeanParallel() : HomogenizationScheme(-1,FRACTION,ABSTRACT)
 	input.push_back(ABSTRACT) ;
 }
 
+MeanParallel::MeanParallel(PropertiesType p) : HomogenizationScheme(-1,FRACTION,p)
+{
+	input.push_back(p) ;
+}
+
 Vector MeanParallel::processData(const Matrix & data) 
 {
 	Vector mean(data.numCols()-1) ;
@@ -305,7 +315,7 @@ Vector MeanParallel::processData(const Matrix & data)
 		for(size_t i = 0 ; i < data.numRows() ; i++)
 		{
 			for(size_t j = 1 ; j < data.numCols() ; j++)
-				mean[j-1] += data[i][0] * data[i][j] ;
+				mean[j-1] += data[i][0] / data[i][j] ;
 		}
 		for(size_t i = 0 ; i < mean.size() ; i++)
 			mean[i] = 1 / mean[i] ;

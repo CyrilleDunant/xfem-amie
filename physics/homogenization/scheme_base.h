@@ -57,6 +57,7 @@ class MeanSeries : public HomogenizationScheme
 {
 public:
 	MeanSeries() ;
+	MeanSeries(PropertiesType p) ;
 	virtual Vector processData(const Matrix & data) ;
 } ;
 
@@ -65,6 +66,7 @@ class MeanParallel : public HomogenizationScheme
 {
 public:
 	MeanParallel() ;
+	MeanParallel(PropertiesType p) ;
 	virtual Vector processData(const Matrix & data) ;
 } ;
 
