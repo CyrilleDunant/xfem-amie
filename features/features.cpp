@@ -2841,121 +2841,123 @@ void FeatureTree::renumber()
 
 	}
 	
-	
-	for(size_t g = 0 ; g < coarseTrees.size() ; g++)
+	if(useMultigrid)
 	{
-		std::vector<DelaunayTriangle *> triangles = coarseTrees[g]->getElements() ;
-		size_t count = 0 ;
-		std::cerr << " renumbering... " << std::flush ;
-
-		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+		for(size_t g = 0 ; g < coarseTrees.size() ; g++)
 		{
-			for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
-			{
-				(*i)->getBoundingPoint(j).id = -1 ;
-			}
-		}
+			std::vector<DelaunayTriangle *> triangles = coarseTrees[g]->getElements() ;
+			size_t count = 0 ;
+			std::cerr << " renumbering... " << std::flush ;
 
-		
-		Grid tmpgrid =this->grid->getGrid(std::max((size_t)round(sqrt(triangles.size()))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
-		for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
-			tmpgrid.forceAdd((*i)->getPrimitive()) ;
-		
-		std::vector<Geometry *> sortedElements ;
-		std::set<Geometry *> placedElements ;
-		for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
-		{
-			for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
+			for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
 			{
-				for(size_t k = 0 ; k < tmpgrid.pixels[i][j]->getFeatures().size() ; ++k)
+				for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
 				{
-					if(placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k]) == placedElements.end()) 
+					(*i)->getBoundingPoint(j).id = -1 ;
+				}
+			}
+
+			
+			Grid tmpgrid =this->grid->getGrid(std::max((size_t)round(sqrt(triangles.size()))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
+			for(std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i)
+				tmpgrid.forceAdd((*i)->getPrimitive()) ;
+			
+			std::vector<Geometry *> sortedElements ;
+			std::set<Geometry *> placedElements ;
+			for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
+			{
+				for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
+				{
+					for(size_t k = 0 ; k < tmpgrid.pixels[i][j]->getFeatures().size() ; ++k)
 					{
-						placedElements.insert(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
-						sortedElements.push_back(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+						if(placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k]) == placedElements.end()) 
+						{
+							placedElements.insert(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+							sortedElements.push_back(tmpgrid.pixels[i][j]->getFeatures()[k]) ;
+						}
+					}
+					
+				}
+			}
+			
+			for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
+			{
+				DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
+				if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
+				{
+					for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+					{
+						if(tri->getBoundingPoint(j).id == -1)
+							tri->getBoundingPoint(j).id = count++ ;
 					}
 				}
-				
 			}
+			
+			coarseTrees[g]->getLastNodeId() = count ;
+			
+			std::cerr << count*2 << " ...done " << std::endl ;
 		}
 		
-		for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
+		for(size_t g = 0 ; g < coarseTrees3D.size() ; g++)
 		{
-			DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(*i) ;
-			if(tri && tri->getBehaviour()->type != VOID_BEHAVIOUR)
+			std::vector<DelaunayTetrahedron *> tets = coarseTrees3D[g]->getElements() ;
+			size_t count = 0 ;
+			std::cerr << " renumbering... " << std::flush ;
+
+			for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
 			{
-				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+				for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
 				{
-					if(tri->getBoundingPoint(j).id == -1)
-						tri->getBoundingPoint(j).id = count++ ;
+					(*i)->getBoundingPoint(j).id = -1 ;
 				}
 			}
-		}
-		
-		coarseTrees[g]->getLastNodeId() = count ;
-		
-		std::cerr << count*2 << " ...done " << std::endl ;
-	}
-	
-	for(size_t g = 0 ; g < coarseTrees3D.size() ; g++)
-	{
-		std::vector<DelaunayTetrahedron *> tets = coarseTrees3D[g]->getElements() ;
-		size_t count = 0 ;
-		std::cerr << " renumbering... " << std::flush ;
 
-		for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
-		{
-			for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
-			{
-				(*i)->getBoundingPoint(j).id = -1 ;
-			}
-		}
-
-		
-		Grid3D tmpgrid =this->grid3d->getGrid(std::max(((size_t)round(pow(tets.size(), .333333)))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
-		for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
-		{
-			tmpgrid.forceAdd((*i)->getPrimitive()) ;
-		}
-		
-		std::vector<Geometry *> sortedElements ;
-		std::set<Geometry *> placedElements ;
-		for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
-		{
 			
-			for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
+			Grid3D tmpgrid =this->grid3d->getGrid(std::max(((size_t)round(pow(tets.size(), .333333)))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
+			for(std::vector<DelaunayTetrahedron *>::iterator i = tets.begin() ; i != tets.end() ; ++i)
 			{
-				for(size_t k = 0 ; k < tmpgrid.pixels[i][j].size() ; ++k)
+				tmpgrid.forceAdd((*i)->getPrimitive()) ;
+			}
+			
+			std::vector<Geometry *> sortedElements ;
+			std::set<Geometry *> placedElements ;
+			for(size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i)
+			{
+				
+				for(size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j)
 				{
-					for(size_t l = 0 ; l < tmpgrid.pixels[i][j][k]->getFeatures().size() ; ++l)
+					for(size_t k = 0 ; k < tmpgrid.pixels[i][j].size() ; ++k)
 					{
-						if(placedElements.find( tmpgrid.pixels[i][j][k]->getFeatures()[l]) == placedElements.end()) 
+						for(size_t l = 0 ; l < tmpgrid.pixels[i][j][k]->getFeatures().size() ; ++l)
 						{
-							placedElements.insert(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
-							sortedElements.push_back(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
+							if(placedElements.find( tmpgrid.pixels[i][j][k]->getFeatures()[l]) == placedElements.end()) 
+							{
+								placedElements.insert(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
+								sortedElements.push_back(tmpgrid.pixels[i][j][k]->getFeatures()[l]) ;
+							}
 						}
 					}
 				}
 			}
-		}
-		
-		
-		for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
-		{
-			DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *>(*i) ;
-			if(tet && tet->getBehaviour()->type != VOID_BEHAVIOUR)
+			
+			
+			for(std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i)
 			{
-				for(size_t j = 0 ; j < tet->getBoundingPoints().size() ; j++)
+				DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *>(*i) ;
+				if(tet && tet->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					if(tet->getBoundingPoint(j).id == -1)
-						tet->getBoundingPoint(j).id = count++ ;
+					for(size_t j = 0 ; j < tet->getBoundingPoints().size() ; j++)
+					{
+						if(tet->getBoundingPoint(j).id == -1)
+							tet->getBoundingPoint(j).id = count++ ;
+					}
 				}
 			}
+			
+			coarseTrees3D[g]->getLastNodeId() = count ;
+			
+			std::cerr << count*3 << " ...done " << std::endl ;
 		}
-		
-		coarseTrees3D[g]->getLastNodeId() = count ;
-		
-		std::cerr << count*3 << " ...done " << std::endl ;
 	}
 	
 	renumbered = true ;
@@ -4086,31 +4088,34 @@ void FeatureTree::setElementBehaviours()
 		}
 		std::cerr << " ...done" << std::endl ;
 		
-		for(size_t i = 0 ; i < coarseTrees.size() ; i++)
+		if(useMultigrid)
 		{
-			
-			triangles = coarseTrees[i]->getElements() ;
-			for(size_t j = 0 ; j < triangles.size() ;j++)
+			for(size_t i = 0 ; i < coarseTrees.size() ; i++)
 			{
-				if (j%1000 == 0)
-					std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << triangles.size() << std::flush ;
-				triangles[j]->refresh(father2D) ;
-				std::vector<Geometry * > coocuring ;
-				if(tree.size() > 1)
-					coocuring = grid->coOccur(triangles[j]->getPrimitive()) ;
-				if(coocuring.size() == 1 && !static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->spaceDependent())
+				
+				triangles = coarseTrees[i]->getElements() ;
+				for(size_t j = 0 ; j < triangles.size() ;j++)
 				{
-					if(coocuring[0]->in(*triangles[j]->first) && coocuring[0]->in(*triangles[j]->second) && coocuring[0]->in(*triangles[j]->third))
-						triangles[j]->setBehaviour(static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
+					if (j%1000 == 0)
+						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << triangles.size() << std::flush ;
+					triangles[j]->refresh(father2D) ;
+					std::vector<Geometry * > coocuring ;
+					if(tree.size() > 1)
+						coocuring = grid->coOccur(triangles[j]->getPrimitive()) ;
+					if(coocuring.size() == 1 && !static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->spaceDependent())
+					{
+						if(coocuring[0]->in(*triangles[j]->first) && coocuring[0]->in(*triangles[j]->second) && coocuring[0]->in(*triangles[j]->third))
+							triangles[j]->setBehaviour(static_cast<Feature *>(coocuring[0])->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
+						else
+							triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
+					}
+					else if (tree.size() == 1 && !tree[0]->getBehaviour(triangles[j]->getCenter())->spaceDependent())
+						triangles[j]->setBehaviour(tree[0]->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
 					else
 						triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
 				}
-				else if (tree.size() == 1 && !tree[0]->getBehaviour(triangles[j]->getCenter())->spaceDependent())
-					triangles[j]->setBehaviour(tree[0]->getBehaviour(triangles[j]->getCenter())->getCopy()) ;
-				else
-					triangles[j]->setBehaviour(new HomogeneisedBehaviour(dtree, triangles[j])) ;
+				std::cerr << " ...done" << std::endl ;
 			}
-			std::cerr << " ...done" << std::endl ;
 		}
 		
 		setBehaviours = true ;
@@ -4130,7 +4135,8 @@ void FeatureTree::setElementBehaviours()
 				tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
 			n_void++ ;
 		}
-		
+		if(useMultigrid)
+		{
 			for(size_t i = 0 ; i < coarseTrees3D.size() ; i++)
 			{
 				
@@ -4144,7 +4150,7 @@ void FeatureTree::setElementBehaviours()
 				}
 				std::cerr << " ...done" << std::endl ;
 			}
-		
+		}
 		std::cerr << " ...done" << std::endl ;
 		
 		setBehaviours = true ;
@@ -4210,7 +4216,7 @@ void FeatureTree::assemble()
 	
 	std::cerr << " enriching..." << std::flush ;		
 	
-	if(enrichmentChange)
+	if(enrichmentChanged())
 	{
 		if(this->dtree3D == NULL && this->dtree !=NULL)
 		{
@@ -4268,22 +4274,24 @@ void FeatureTree::assemble()
 			}
 		}
 		std::cerr << " ...done." << std::endl ;
-		
-		for(size_t i =  0 ; i < coarseTrees.size() ; i++)
+		if(useMultigrid)
 		{
-			triangles = coarseTrees[i]->getElements() ;
-		
-			for(size_t j = 0 ; j < triangles.size() ; j++)
+			for(size_t i =  0 ; i < coarseTrees.size() ; i++)
 			{
-				if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+				triangles = coarseTrees[i]->getElements() ;
+			
+				for(size_t j = 0 ; j < triangles.size() ; j++)
 				{
+					if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+					{
 
-					std::cerr << "\r assembling stiffness matrix... grid " << i << " triangle " << j+1 << "/" << triangles.size() << std::flush ;
-					triangles[j]->refresh(father2D) ;
-					coarseAssemblies[i]->add(triangles[j]) ;
+						std::cerr << "\r assembling stiffness matrix... grid " << i << " triangle " << j+1 << "/" << triangles.size() << std::flush ;
+						triangles[j]->refresh(father2D) ;
+						coarseAssemblies[i]->add(triangles[j]) ;
+					}
 				}
+				std::cerr << " ...done." << std::endl ;
 			}
-			std::cerr << " ...done." << std::endl ;
 		}
 		
 	}
@@ -5222,15 +5230,17 @@ void FeatureTree::initializeElements()
 			triangles[i]->getState().initialize() ;
 		}
 		std::cout << "\r initialising... element " << triangles.size() << "/" << triangles.size() << std::endl ;
-		
-		for(size_t i = 0 ; i < coarseTrees.size() ; i++)
+		if(useMultigrid)
 		{
-			triangles = coarseTrees[i]->getElements() ;
-			
-			for(size_t j = 0 ; j < triangles.size() ;j++)
+			for(size_t i = 0 ; i < coarseTrees.size() ; i++)
 			{
-				triangles[j]->refresh(father2D);
-				triangles[j]->getState().initialize() ;
+				triangles = coarseTrees[i]->getElements() ;
+				
+				for(size_t j = 0 ; j < triangles.size() ;j++)
+				{
+					triangles[j]->refresh(father2D);
+					triangles[j]->getState().initialize() ;
+				}
 			}
 		}
 	}

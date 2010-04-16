@@ -1392,8 +1392,8 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
-// 	inc0->setBehaviour(new Stiffness(m0_paste*100)) ;
-	inc0->setBehaviour(new VoidForm()) ;
+	inc0->setBehaviour(new Stiffness(m0_paste*100)) ;
+// 	inc0->setBehaviour(new VoidForm()) ;
 	F.addFeature(&sample, inc0) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;

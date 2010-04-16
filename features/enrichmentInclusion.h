@@ -42,7 +42,7 @@ public:
 	virtual bool enrichmentTarget(DelaunayTriangle * t) ;
 
 /** \brief Enrich elements cut by the feature*/
-	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
+	virtual void enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 	
 /** \brief return false*/
 	virtual bool interacts(Feature * f, double d) const ;
@@ -112,7 +112,7 @@ public:
 	virtual bool moved() const ;
 
 /** \brief compute and cache the elements to enrich*/
-	void update(DelaunayTree * dtree) ;
+	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
 protected:
 	virtual void computeCenter() { };

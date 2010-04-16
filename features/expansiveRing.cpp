@@ -32,7 +32,7 @@ void ExpansiveRing::reset()
 	updated = true ;
 }
 
-void ExpansiveRing::enrich(size_t & counter,  DelaunayTree * dtree)
+void ExpansiveRing::enrich(size_t & counter,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 
 	EnrichmentRing::enrich(counter, dtree) ;

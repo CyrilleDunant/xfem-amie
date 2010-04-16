@@ -23,7 +23,7 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 	return t->intersects(getPrimitive()) ;
 }
 
-void EnrichmentInclusion::update(DelaunayTree * dtree)
+void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
@@ -31,13 +31,13 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 			cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
 		cache[i]->enrichmentUpdated = true ;
 	}
-	cache = dtree->conflicts(getPrimitive()) ;
+	cache = dtree->getConflictingElements(getPrimitive()) ;
 	if(cache.empty())
 	{
-		std::vector<DelaunayTreeItem *> candidates = dtree->conflicts(&getCenter()) ;
+		std::vector<DelaunayTriangle *> candidates = dtree->getConflictingElements(&getCenter()) ;
 		for(size_t i = 0 ; i < candidates.size() ; i++)
 		{
-			if(candidates[i]->isTriangle && static_cast<DelaunayTriangle *>(candidates[i])->in(getCenter()))
+			if(candidates[i]->isTriangle && candidates[i]->in(getCenter()))
 			{
 				cache.push_back(static_cast<DelaunayTriangle *>(candidates[i])) ;
 				break ;
@@ -55,13 +55,12 @@ void EnrichmentInclusion::update(DelaunayTree * dtree)
 		std::cout << "cache empty !" << std::endl ;
 }
 
-void EnrichmentInclusion::enrich(size_t & counter,  DelaunayTree * dtree)
+void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	counter++ ;
 	if(updated)
 		update(dtree) ;
 	updated = false ;
-
 	
 	const std::vector<DelaunayTriangle *> & disc  = cache;
 // 	if(disc.size() < 6)

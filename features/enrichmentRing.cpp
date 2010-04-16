@@ -23,7 +23,7 @@ bool EnrichmentRing::enrichmentTarget(DelaunayTriangle * t)
 	return t->intersects(getPrimitive())||t->intersects(&self)  ;
 }
 
-void EnrichmentRing::update(DelaunayTree * dtree)
+void EnrichmentRing::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
@@ -31,17 +31,17 @@ void EnrichmentRing::update(DelaunayTree * dtree)
 			cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
 		cache[i]->enrichmentUpdated = true ;
 	}
-	cache = dtree->conflicts(getPrimitive()) ;
-	std::vector<DelaunayTriangle *> inElements = dtree->conflicts(&self) ;
+	cache = dtree->getConflictingElements(getPrimitive()) ;
+	std::vector<DelaunayTriangle *> inElements = dtree->getConflictingElements(&self) ;
 	cache.insert(cache.end(), inElements.begin(), inElements.end()) ;
 	if(cache.empty())
 	{
-		std::vector<DelaunayTreeItem *> candidates = dtree->conflicts(&getCenter()) ;
+		std::vector<DelaunayTriangle *> candidates = dtree->getConflictingElements(&getCenter()) ;
 		for(size_t i = 0 ; i < candidates.size() ; i++)
 		{
-			if(candidates[i]->isTriangle && static_cast<DelaunayTriangle *>(candidates[i])->in(getCenter()))
+			if(candidates[i]->isTriangle && candidates[i]->in(getCenter()))
 			{
-				cache.push_back(static_cast<DelaunayTriangle *>(candidates[i])) ;
+				cache.push_back(candidates[i]) ;
 				break ;
 			}
 		}
@@ -56,7 +56,7 @@ void EnrichmentRing::update(DelaunayTree * dtree)
 		std::cout << "cache empty !" << std::endl ;
 }
 
-void EnrichmentRing::enrich(size_t & counter,  DelaunayTree * dtree)
+void EnrichmentRing::enrich(size_t & counter,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 // 	counter++ ;
 	if(updated)
@@ -308,15 +308,15 @@ void EnrichmentRing::snap(DelaunayTree * dtree) {}
 bool EnrichmentRing::inBoundary(const Point v) const {return false ; }
 bool EnrichmentRing::inBoundary(const Point *v) const { return false ;}
 	
-std::vector<DelaunayTriangle *> EnrichmentRing::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> EnrichmentRing::getTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
 { 
-	return dt->conflicts(static_cast<Circle *>(this)) ;
+	return dt->getConflictingElements(static_cast<Circle *>(this)) ;
 }
 	
-std::vector<DelaunayTriangle *> EnrichmentRing::getIntersectingTriangles( DelaunayTree * dt)
+std::vector<DelaunayTriangle *> EnrichmentRing::getIntersectingTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dt->conflicts(static_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> disc = dt->getConflictingElements(static_cast<Circle *>(this)) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
@@ -337,7 +337,7 @@ std::vector<Geometry *> EnrichmentRing::getRefinementZones( size_t level) const
 	return std::vector<Geometry *>(0) ;
 }
 	
-void EnrichmentRing::step(double dt, std::valarray<double> *, const DelaunayTree * dtree) {}
+void EnrichmentRing::step(double dt, std::valarray<double> *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) {}
 	
 bool EnrichmentRing::moved() const { return updated ;}
 

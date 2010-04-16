@@ -31,9 +31,8 @@ void ExpansiveZone::reset()
 	updated = true ;
 }
 
-void ExpansiveZone::enrich(size_t & counter,  DelaunayTree * dtree)
+void ExpansiveZone::enrich(size_t & counter , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-
 	EnrichmentInclusion::enrich(counter, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = cache ;

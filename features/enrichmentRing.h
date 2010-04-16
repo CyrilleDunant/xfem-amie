@@ -57,7 +57,7 @@ public:
 	virtual bool enrichmentTarget(DelaunayTriangle * t) ;
 
 /** \brief Enrich the elements cut with either of the two circles with a soft discontinuity*/
-	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
+	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 	
 /** \brief return false*/
 	virtual bool interacts(Feature * f, double d) const ;
@@ -72,13 +72,13 @@ public:
 	virtual bool inBoundary(const Point *v) const ;
 	
 /** \brief return the triangles in the tree intersecting with either of the circles*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
 
 /** \brief return empty vector*/
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 /** \brief return the triangles in the tree intersecting with either of the circles*/
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( DelaunayTree * dt) ;
+	std::vector<DelaunayTriangle *> getIntersectingTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
 	
 /** \brief do nothing*/
 	virtual void setInfluenceRadius(double r) ;
@@ -122,13 +122,13 @@ public:
 	}
 	
 /** \brief do nothing */
-	virtual void step(double dt, std::valarray<double> *, const DelaunayTree * dtree);
+	virtual void step(double dt, std::valarray<double> *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree);
 
 /** \brief return true if either radii changed*/
 	virtual bool moved() const ;
 
 /** \brief precompute and cache the elements intersected*/
-	void update(DelaunayTree * dtree) ;
+	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
 	double getInRadius() const ;
 

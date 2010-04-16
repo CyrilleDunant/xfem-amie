@@ -11,6 +11,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
+#include "../physics/stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -255,9 +256,9 @@ void setBC()
 void step()
 {
 
-	int nsteps = 20;
-	int nstepstot = 40;
-	int maxtries = 200 ;
+	int nsteps = 1;
+	int nstepstot = 1;
+	int maxtries = 2 ;
 	int tries = 0 ;
 	
 // 	fastForward(4, 10) ;
@@ -1747,7 +1748,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0.00005;
-	int inclusionNumber = 8000 ;
+	int inclusionNumber = 20 ;
 // 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 // 
@@ -1781,12 +1782,12 @@ int main(int argc, char *argv[])
 		<< ", smallest r =" << feats.back()->getRadius() 
 		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 13500000)) ;
+	sample.setBehaviour(new /*WeibullDistributed*/Stiffness(m0_paste/*, 13500000*/)) ;
 
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-		WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+		/*WeibullDistributed*/Stiffness * stiff = new /*WeibullDistributed*/Stiffness(m0_agg/*,57000000*/) ;
 // 		stiff->variability = .5 ;
 		inclusions[i]->setBehaviour(stiff) ;
 		F.addFeature(&sample,inclusions[i]) ;
@@ -1802,9 +1803,9 @@ int main(int argc, char *argv[])
 	}
 	Circle cercle(.5, 0,0) ;
 
-	zones = generateExpansiveZones(20, inclusions, F) ;
+	zones = generateExpansiveZonesHomogeneously(2000, inclusions, F) ;
 
-	F.sample(1200) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
 
