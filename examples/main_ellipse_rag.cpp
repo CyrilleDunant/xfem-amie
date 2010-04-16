@@ -14,6 +14,7 @@
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/weibull_distributed_stiffness.h"
+#include "../physics/stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -590,10 +591,10 @@ void setBC()
 
 void stepOLD()
 {
-/*
-	int nsteps = 5;
-	int nstepstot = 10;
-	int maxtries = 20 ;
+
+	int nsteps = 1;
+	int nstepstot = 1;
+	int maxtries = 2 ;
 	int tries = 0 ;
 	
 // 	fastForward(4, 10) ;
@@ -605,7 +606,7 @@ void stepOLD()
 		bool go_on = true ;
 		while(go_on && tries < maxtries)
 		{
-			setBC() ;
+//			setBC() ;
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 			std::cout << "." << std::flush ;
@@ -1263,13 +1264,13 @@ int main(int argc, char *argv[])
 	std::cout << area_test << " (" << (100*area_test/0.0016) << "%)" << std::endl ;*/
 
 	std::string ellipselist = "ellipse_good.txt" ;
-	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,9000) ;
+	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,2) ;
 
 
 
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
-//	sample.setBehaviour(new Stiffness(m0_paste)) ;
+//	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
+	sample.setBehaviour(new Stiffness(m0_paste)) ;
 //	std::vector<Feature *> feats ;
 //	for(size_t i = 0; i < inc.size() ; i++)
 //		feats.push_back(inc[i]) ;
@@ -1294,32 +1295,46 @@ int main(int argc, char *argv[])
 //	}
 //	return 0 ;	
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
-	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
-//	Stiffness * stiff = new Stiffness(m0_agg) ;
+//	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+	Stiffness * stiff = new Stiffness(m0_agg) ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
-		if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
+		bool alone = true ;
+		for(size_t j = 0 ; j < i ; j++)
 		{
-			std::cout << "fail to place all inclusions" << std::endl ;
-			std::cout << "last inclusion placed => " << i << std::endl ;
-			return 1 ;
+			if(inc[i]->intersects(inc[j]->getPrimitive()))
+			{
+				std::cout << "intersection " << i << ";" << j << std::endl ; 
+				alone = false ;
+			}
 		}
-		inc[i]->setBehaviour(stiff) ;
-		F.addFeature(&sample, inc[i]) ;
+		if(alone)
+		{
+			if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
+			{
+				std::cout << "fail to place all inclusions" << std::endl ;
+				std::cout << "last inclusion placed => " << i << std::endl ;
+				return 1 ;
+			}
+			inc[i]->setBehaviour(stiff) ;
+//			F.addFeature(&sample, inc[i]) ;
 //		inc[i]->getMajorAxis().print() ;
-		placed_area += inc[i]->area() ;
-	}
+			placed_area += inc[i]->area() ;
+		}
+	}	
+//        zones = generateExpansiveZonesHomogeneously(20,inc,F) ;
 	
-        zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
-	
-	F.sample(1024) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+
+	F.sample(512) ;
 	F.setOrder(LINEAR) ;
         F.generateElements() ;
 
-	std::cout << " => " << F.getTriangles().size() << std::endl ;
+//	std::cout << " => " << F.getTriangles().size() << std::endl ;
 
-// 	stepOLD() ;
-        step() ;
+ 	stepOLD() ;
+//        step() ;
 
 //	dt->print() ;
  	

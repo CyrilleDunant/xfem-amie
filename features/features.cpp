@@ -430,6 +430,11 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const 
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	if(elements.empty())
+	{
+		std::cout << "no elements in assembly" << std::endl ;
+		return ;
+	}
 	double minx = elements.front()->getBoundingPoint(0).x ;
 	double miny = elements.front()->getBoundingPoint(0).y ;
 	double maxx = elements.front()->getBoundingPoint(0).x ;
@@ -602,6 +607,11 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	if(elements.empty())
+	{
+		std::cout << "no elements in assembly" << std::endl ;
+		return ;
+	}
 	double minx = elements.front()->getBoundingPoint(0).x ;
 	double miny = elements.front()->getBoundingPoint(0).y ;
 	double minz = elements.front()->getBoundingPoint(0).z ;
@@ -1108,6 +1118,11 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	if(elements.empty())
+	{
+		std::cout << "no elements in assembly" << std::endl ;
+		return ;
+	}
 	double minx = elements.front()->getBoundingPoint(0).x ;
 	double miny = elements.front()->getBoundingPoint(0).y ;
 	double maxx = elements.front()->getBoundingPoint(0).x ;
@@ -1310,6 +1325,11 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	if(elements.empty())
+	{
+		std::cout << "no elements in assembly" << std::endl ;
+		return ;
+	}
 	double minx = elements.front()->getBoundingPoint(0).x ;
 	double miny = elements.front()->getBoundingPoint(0).y ;
 	double maxx = elements.front()->getBoundingPoint(0).x ;

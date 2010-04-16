@@ -2266,6 +2266,7 @@ void Ellipse::sampleSurface (size_t num_points)
 	//std::cout << "we have " << num_points << " sample points" << std::endl ;
 }
 
+
 double Ellipse::getRadius() const
 {
 	return majorradius ;
