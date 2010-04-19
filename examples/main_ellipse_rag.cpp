@@ -1265,7 +1265,7 @@ int main(int argc, char *argv[])
 	std::cout << area_test << " (" << (100*area_test/0.0016) << "%)" << std::endl ;*/
 
 	std::string ellipselist = "ellipse_good.txt" ;
-	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,9000) ;
+	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,2) ;
 
 
 
@@ -1323,9 +1323,9 @@ int main(int argc, char *argv[])
 			placed_area += inc[i]->area() ;
 		}
 	}	
-        zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
+//        zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
 	
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0.01)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 
 	F.sample(1024) ;

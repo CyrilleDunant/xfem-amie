@@ -3669,7 +3669,6 @@ Form * FeatureTree::getElementBehaviour(const DelaunayTriangle * t) const
 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
 		if( t->getBoundingPoint(i).id == -1)
 		{
-			t->getCenter().print() ;
 			return new VoidForm() ;
 		}
 	

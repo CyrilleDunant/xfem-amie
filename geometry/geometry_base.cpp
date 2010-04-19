@@ -1829,24 +1829,17 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			{
 				for(size_t i = 0 ; i < segs.size() ; i++)
 				{
-//					std::cout << "in Geometry::intersection" << std::endl ;
-//					segs[i].first().print() ;
-//					segs[i].second().print() ;
-//					std::cout << "in Segment::intersection" << std::endl ;
 					std::vector<Point> vtemp = segs[i].intersection(this) ;
 					for(size_t j = 0 ; j < vtemp.size() ; j++)
 						{
-//							vtemp[j].print() ;
 							ret.push_back(vtemp[j]) ;
 						}
 				}
 				return ret ;
 			}
 
-//			std::vector<Segment> segs ;
 			for(size_t i = 0 ; i < getBoundingPoints().size() - 1 ; i++)
 			{
-//				getBoundingPoint(i).print() ;
 				segs.push_back(Segment(getBoundingPoint(i),getBoundingPoint(i+1))) ;
 			}
 			segs.push_back(Segment(getBoundingPoint(getBoundingPoints().size()-1),getBoundingPoint(0))) ;
@@ -1854,8 +1847,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			for(size_t i = 0 ; i < segs.size() ; i++)
 			{
 				std::vector<Point>intersection = segs[i].intersection(g) ;
-//				segs[i].first().print() ;
-//				segs[i].second().print() ;
 				for(size_t j = 0 ; j < intersection.size() ; j++)
 				{
 //					intersection[j].print() ;
@@ -1906,7 +1897,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(g->getGeometryType() == HEXAHEDRON)
 			{
-// 				return ret ;
 				std::vector<Point> bbox = g->getBoundingBox() ;
 				double maxx =  bbox[0].x ;
 				double minx =  bbox[0].x ;
@@ -1953,7 +1943,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
 						Point candidate(minx, planeIntersection[i].x, planeIntersection[i].y) ;
-// 						if(g->in(candidate) && in(candidate))
+ 						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
 					
@@ -1991,7 +1981,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					{
 						
 						Point candidate(maxx, planeIntersection[i].x, planeIntersection[i].y) ;
-// 						if(g->in(candidate) && in(candidate))
+ 						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
 					
@@ -2026,7 +2016,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
 						Point candidate(planeIntersection[i].x, miny, planeIntersection[i].y) ;
-// 						if(g->in(candidate) && in(candidate))
+						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
 					
@@ -2061,7 +2051,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
 						Point candidate(planeIntersection[i].x, maxy, planeIntersection[i].y) ;
-// 						if(g->in(candidate) && in(candidate))
+						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
 					
@@ -2096,7 +2086,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
 						Point candidate(planeIntersection[i].x, planeIntersection[i].y, minz) ;
-// 						if(g->in(candidate) && in(candidate))
+						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
 					
@@ -2131,7 +2121,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
 						Point candidate(planeIntersection[i].x, planeIntersection[i].y, maxz) ;
-// 						if(g->in(candidate) && in(candidate))
+						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
 					
@@ -2219,42 +2209,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				Plane p2(*t2.point[0], t2.normal) ;
 				Plane p3(*t3.point[0], t3.normal) ;
 				
-// 				if(p0.intersects(this))
-// 				{
-// 					std::vector<Point> inter = p0.intersection(this) ;
-// 					for(size_t i = 0 ; i < inter.size() ; i++)
-// 					{
-// 						if(t0.in(inter[i]))
-// 							ret.push_back(inter[i]) ;
-// 					}
-// 				}
-// 				if(p1.intersects(this))
-// 				{
-// 					std::vector<Point> inter = p1.intersection(this) ;
-// 					for(size_t i = 0 ; i < inter.size() ; i++)
-// 					{
-// 						if(t1.in(inter[i]))
-// 							ret.push_back(inter[i]) ;
-// 					}
-// 				}
-// 				if(p2.intersects(this))
-// 				{
-// 					std::vector<Point> inter = p2.intersection(this) ;
-// 					for(size_t i = 0 ; i < inter.size() ; i++)
-// 					{
-// 						if(t2.in(inter[i]))
-// 							ret.push_back(inter[i]) ;
-// 					}
-// 				}
-// 				if(p3.intersects(this))
-// 				{
-// 					std::vector<Point> inter = p3.intersection(this) ;
-// 					for(size_t i = 0 ; i < inter.size() ; i++)
-// 					{
-// 						if(t3.in(inter[i]))
-// 							ret.push_back(inter[i]) ;
-// 					}
-// 				}
 			}
 			return ret ;
 		}
@@ -2284,48 +2238,6 @@ ConvexGeometry::ConvexGeometry(): ConvexPolygon((size_t)0)
 ConvexGeometry::ConvexGeometry(size_t s) : ConvexPolygon(s)
 {
 }
-
-/*bool ConvexGeometry::intersects(const Geometry * g) const
-{
-	std::cout << "convex" << std::endl ;
-	Point inbetween = (this->getCenter() + g->getCenter()) * 0.5 ;
-	Point thispoint(this->getCenter()) ;
-	double tempdist = 1. / (inbetween - this->getCenter()).norm() ;
-	double maxrad = 1.1 * std::max(this->getRadius(), g->getRadius()) ;
-	thispoint.x = thispoint.x - (inbetween - this->getCenter()).y * tempdist * maxrad * 2 + inbetween.x ;
-	thispoint.y = thispoint.y + (inbetween - this->getCenter()).x * tempdist * maxrad * 2+ inbetween.y ;
-	Point nextpoint(thispoint) ;
-	g->project(&nextpoint) ;
-	if(this->in(nextpoint))
-		return true ;
-	double lastdist = 0. ;
-	double thisdist = squareDist2D(thispoint,nextpoint) ;
-	bool isthis = true ;
-	while(std::abs(lastdist - thisdist) > POINT_TOLERANCE)
-	{
-//		if(isthis)
-//			this->project(&nextpoint) ;
-//		else
-//			g->project(&nextpoint) ;
-		lastdist = thisdist ;
-		thispoint = nextpoint ;
-		if(isthis)
-		{
-			g->project(&nextpoint) ;
-			if(this->in(nextpoint))
-				return true ;
-		}
-		else
-		{
-			this->project(&nextpoint) ;
-			if(g->in(nextpoint))
-				return true ;
-		}
-		thisdist = squareDist2D(thispoint,nextpoint) ;
-		isthis = !isthis ;
-	}
-	return (thisdist < POINT_TOLERANCE) ;
-}*/
 
 const Point & Geometry::getCenter() const
 {
@@ -2467,7 +2379,6 @@ PointSet::iterator PointSet::end()
 
 ConvexPolygon * PointSet::convexHull() const
 {
-		//!have we allready done that ?
 	
 	if(this->chullEndPos != 0 )
 	{
@@ -2477,20 +2388,10 @@ ConvexPolygon * PointSet::convexHull() const
 	}
 	
 	ConvexPolygon *ret = new ConvexPolygon(this) ;
-// 	chullEndPos = ret->size() ;
 	
 	return ret ;
 	
 }
-
-
-/*bool PointSet::in(const Point & p)  const 
-{
-	ConvexPolygon * hull = convexHull() ;
-	bool ret = hull->in(p) ;
-	delete hull ;
-	return ret ;
-}*/
 
 size_t PointSet::size() const
 { 
@@ -2511,7 +2412,6 @@ Point PointSet::computeCenter() const
 void PointSet::removePoint(size_t index)
 {
 	std::valarray<Point *> n(size()-1) ;
-	//std::copy((*this)[0], (*this)[index-1], (*n)[0]) ;
 	for (size_t i = 0 ; i < index ; i++)
 	{
 		n[i] = boundingPoints[i] ;
@@ -2639,88 +2539,6 @@ WeightedPoint WeightedPoint::operator/(const double p) const
 	return WeightedPoint(x/p, y/p, z/p, w/p);
 }
 
-// WeightedPoint::WeightedPoint() 
-// {
-// 	bas = Point();
-// 	wei = 1;
-// }
-// 
-// WeightedPoint::WeightedPoint(Point P, double w) 
-// {
-// 	bas = Point(P.x,P.y,P.z);
-// 	wei = w;
-// }
-// 
-// void WeightedPoint::print() const 
-// {
-// 	std::cout << " ( id = " << bas.id << " ; "<< bas.x << ", " << bas.y << ", "<< bas.z << ", "<< wei <<") " << std::endl ;
-// }
-// 
-// WeightedPoint WeightedPoint::operator+(const WeightedPoint &wP) const
-// {
-// 	
-// 	WeightedPoint ret((*this)) ;
-// 	ret.bas += wP.bas ; 
-// 	ret.wei += wP.wei ; 
-// 	return ret ;
-// }
-// 
-// WeightedPoint WeightedPoint::operator*(const double p)  const
-// {
-// 	WeightedPoint ret((*this)) ;
-// 	ret.bas *= p ;
-// 	ret.wei *= p ; 
-// 	return ret ; 
-// }
-
-// Point Nurb::pointOnNurb(double u)
-// {
-// 	size_t i = 0;
-// 
-// 	while (u >= knot[i]) 
-// 		++i;
-// 
-// 	size_t leftBound = i - 1;
-// 	
-// 	size_t numberOfCycles, knotMultiplicity  = 0;
-// 
-// 	if ( u == knot[leftBound] )
-// 	{
-// 		knotMultiplicity = count(knot.begin(),knot.end(),u);
-// 		numberOfCycles = degree - knotMultiplicity;
-// 	}
-// 	else numberOfCycles = degree;
-// 
-// 	size_t r = leftBound - knotMultiplicity + 1;
-// 
-// 	std::valarray<WeightedPoint> originalWPoint(controlPoint.size());
-// 	for (size_t i = 0; i != originalWPoint.size(); ++i)
-// 	{	
-// 		originalWPoint[i] = WeightedPoint(controlPoint[i]*weight[i],weight[i]);
-// 	}
-// 
-//  	double coeff = 0;
-// 	std::valarray<WeightedPoint> generatedWPoint(originalWPoint.size());
-// 	for (size_t j = 1; j <= numberOfCycles; ++j)
-// 	{
-// 		for (size_t k = leftBound - degree + j; k != r ; ++k)
-// 		{
-// 			coeff = ( u - knot[k] ) / ( knot[k+1+degree-j] - knot[k] );	
-// 			generatedWPoint[k] = originalWPoint[k-1] * ( 1 - coeff) + originalWPoint[k] *coeff;
-// 		}
-// 		
-// 
-// 		for (size_t p = 0; p != originalWPoint.size(); ++p)
-// 		{
-// 			originalWPoint[p]=generatedWPoint[p];
-// 		}
-// 	}
-// 	
-// 	Point resultPoint = originalWPoint[r - 1].getPoint() / originalWPoint[r - 1].getWeight();
-// 	resultPoint.print();
-//  	return resultPoint;
-// }
-
 Point Nurb::pointOnNurb(double u)
 {
 	size_t i = 0;
@@ -2749,7 +2567,6 @@ Point Nurb::pointOnNurb(double u)
 
  	double coeff = 0;
 	std::valarray<WeightedPoint> generatedWPoint(originalWPoint.size());
-// 	std::valarray<WeightedPoint> forSubdivision(2*numberOfCycles-1);
 	for (size_t j = 1; j <= numberOfCycles; ++j)
 	{
 		for (size_t k = leftBound - degree + j; k != r ; ++k)
@@ -2770,14 +2587,6 @@ Point Nurb::pointOnNurb(double u)
  	return resultPoint;
 }
 
-// Nurb::Point intersection(const Line *l) const
-// {
-// double epsilon = 0;
-// while (epsilon > 1e-08) 
-// {
-/*
-}*/
-
 Geometry::Geometry(): inPoints(0),gType(NULL_GEOMETRY)
 {
 	sampled = false ;
@@ -2793,11 +2602,6 @@ GeometryType Geometry::getGeometryType() const
 {
 	return gType ;
 }
-
-// ConvexPolygon::ConvexPolygon()
-// {
-// 	std::cout << "calling default ConvexPolygon constructor" << std::endl ;
-// }
 
 ConvexPolygon::ConvexPolygon(size_t npoints) : PointSet(npoints)
 {
@@ -2880,27 +2684,6 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 	delete points ;
 	std::copy(temphull.begin(), temphull.end(),this->begin()) ;
 }
-
-
-/*bool ConvexPolygon::in(const Point & p) const 
-{
-	
-	bool in = false ;
-	
-	for (size_t i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
-	{
-		if (
-			(((boundingPoints[i]->y <= p.y ) 
-				&& (p.y<boundingPoints[j]->y)) 
-				|| ((boundingPoints[j]->y <= p.y) 
-				&& (p.y<boundingPoints[i]->y))) 
-				&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
-			in = !in;
-	}
-	
-	return in ;
-	
-}*/
 
 
 bool ConvexPolygon::isTrigoOriented()  const
@@ -3034,15 +2817,6 @@ Point Line::intersection(const Line &l) const
 
 	return p + v*fac[0];
 	
-// 	double t = 0;
-// 	if(v.x != 0 && v.y != 0)
-// 		t = ((p.y - l->origin()->y) + v.y/v.x * (p.x - l->origin()->x)) / (v.x/v.y - l->vector()->y) ;
-// 	else if (v.x == 0)
-// 		t = ( p.x - l->origin()->x ) / l->vector()->x ;
-// 	else if (v.y == 0)
-// 		t = ( p.y - l->origin()->y ) / l->vector()->y ;
-// 	
-// 	return (*l->origin()) + (*l->vector())*t ;
 }
 
 Point Line::intersection(const Segment &s) const
@@ -3229,28 +3003,6 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 
 			return std::vector<Point>(0) ;
 
-// 			double a = v.x*v.x+v.y*v.y ;
-// 			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y)*2. ;
-// 			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
-// 			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
-// 			          -g->getRadius()*g->getRadius() ;
-// 			double delta = b*b - 4.*a*c ;
-// 			
-// 			if(std::abs(delta) < POINT_TOLERANCE)
-// 			{
-// 				std::vector<Point> ret ;
-// 				ret.push_back(p+v*(-b/(2.*a))) ;
-// 				return ret ;
-// 			}
-// 			else if (delta >= POINT_TOLERANCE)
-// 			{
-// 				std::vector<Point> ret ;
-// 				ret.push_back(p+v*((-b + sqrt(delta))/(2.*a))) ;
-// 				ret.push_back(p+v*((-b - sqrt(delta))/(2.*a))) ;
-// 				return ret ;
-// 			}
-// 
-// 			return std::vector<Point>(0) ;
 		}
 	case ELLIPSE:
 		{
@@ -3288,11 +3040,9 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 				return ret ;
 			}
 
-//			std::cout << c <<  ";" << d << std::endl ;
 			c = c / sqrt(1 - c*c) ;
 			if((this->vector() * dynamic_cast<const Ellipse*>(g)->getMajorAxis()) < 0)
 				c = -c ;
-//			std::cout << c <<  ";" << d << std::endl ;
 
 			double A = (1 / (a*a) + (c*c) / (b*b)) ;
 			double B = 2*c*d/(b*b) ;
@@ -3401,23 +3151,6 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 
 			return std::vector<Point>(0) ;
 			
-			/*
-			Point center(g->getCenter()) ;
-			double uc = v*g->getCenter() ;
-			double delta = uc*uc - v.sqNorm()*g->getCenter().sqNorm() - g->getRadius()*g->getRadius() ;
-			if(delta == 0)
-			{
-				std::vector<Point> ret ;
-				ret.push_back(p + v * uc) ;
-				return ret ;
-			}
-			else if (delta > 0)
-			{
-				std::vector<Point> ret ;
-				ret.push_back(p + v * (uc + sqrt(delta))) ;
-				ret.push_back(p + v * (uc - sqrt(delta))) ;
-				return ret ;
-			}*/
 		}
 	default:
 	{
@@ -3431,23 +3164,10 @@ Point Line::projection(const Point &m ) const
 {
 	if(on(m))
 		return m ;
-// 	m.print() ;
-// 	Point d = v/v.norm() ;
-// 	Point w = m-p ;
-// 	Point dir = d*(w*d) ;
 	Point n0 = v^(m-p) ;
 	Point n = n0^v ;
 	Line line(m, n) ;
 	return line.intersection(*this) ;
-// 	double nu = (-v.x-v.y-v.z+v.x*m.x+v.y*m.y+v.z*m.z)/(v.x*v.x+v.y*v.y+v.z*v.z) ;
-// 	Point can0 = p+v*nu ;
-// 	Point can1 = p-v*nu ;
-// // 	can0.print() ;
-// // 	can1.print() ;
-// 	if(squareDist3D(m, can0) < squareDist3D(m, can1))
-// 		return can0 ;
-// 	
-// 	return can1 ;
 }
 
 Point Segment::normal() const
@@ -3516,8 +3236,6 @@ bool Segment::intersects(const Line & l) const
 {
 	if (std::abs(-vec.x*l.vector().y+l.vector().x*vec.y) <= std::numeric_limits<double>::epsilon())
 		return false ;
-// 	if (-vec.x * l.vector().y + vec.y * l.vector().x == 0)
-// 		return false ;
 	
 	Matrix m(2,2) ;
 	Vector vv(2) ;
@@ -3546,7 +3264,6 @@ bool Segment::intersects(const Geometry *g) const
 	{
 	case CIRCLE:
 		{
-// 			return !intersection(g).empty() ;
 			Point proj(g->getCenter()) ;
 			proj = project(proj) ;
 			return squareDist2D(proj, g->getCenter()) < g->getRadius()*g->getRadius() ;
@@ -3554,10 +3271,8 @@ bool Segment::intersects(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
-//			vec.print() ;
 			Line l(f,s-f) ;
 			std::vector<Point> in = l.intersection(g) ;
-//			std::cout << in.size() << std::endl ;
 			if(in.size() == 0)
 				return false ;
 			for(size_t i = 0 ; i < in.size() ; i++)
@@ -3801,21 +3516,10 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
-//			std::cout << "in Segment::intersection" << std::endl ;
-//			f.print() ;
-//			s.print() ;
-//			vec.print() ;
-//			(s-f).print() ;
-//			std::cout << " " << std::endl ;
 			Line l(f,s-f) ;
-//			l.origin().print() ;
-//			l.vector().print() ;
 			std::vector<Point> ret = l.intersection(g) ;
-//			if(ret.size() > 0)
-//				{f.print() ; s.print() ;}
 			for(size_t i = ret.size() ; i > 0 ; i--)
 			{
-//				ret[i-1].print() ;
 				if(!(this->on(ret[i-1])))
 					ret.erase(ret.begin()+i-1) ;
 			}
@@ -3913,19 +3617,6 @@ bool Segment::intersects(const Segment & l) const
 
 Point Segment::project(const Point & p) const
 {
-// 	if(isAligned(f, s, p))
-// 	{
-// 		double d  = squareDist3D(f, s) ;
-// 		if( squareDist3D(f, p) < d && squareDist3D(s, p) < d )
-// 			return p ;
-// 		
-// 		
-// 		if(squareDist3D(f, p) < squareDist3D(s, p))
-// 			return f ;
-// 
-// 		return s ;
-// 	}
-// 	
 	Line l(s, vec) ;
 	
 	Point candidate = l.projection(p) ;
@@ -4112,46 +3803,6 @@ bool Segment::intersects(const TriPoint &g) const
 	Vector tuv = inverse3x3Matrix(mat)*vec ;
 
 	return tuv.max() <=1 && tuv.min() >= 0 &&tuv[1] +tuv[2] <= 1  ;
-/*
-	Point u = *s.point[1]-*s.point[0] ;
-	Point v = *s.point[2]-*s.point[0] ;
-	double a = -(s.normal*(f-*s.point[0])) ;
-	double b = v*s.normal ;
-	if(b < POINT_TOLERANCE)
-	{
-		if(abs(a) > POINT_TOLERANCE)
-			return false ;
-		
-		Triangle t(*s.point[0], *s.point[1], *s.point[2]) ;
-		return this->intersects(&t) ;
-	}
-	
-	double r = a/b ;
-	
-	if(r < 0 || r > 1)
-		return false ;
-	
-	Point planeIntersection = f+v*r ;
-	
-	double uu = u*u ;
-	double uv = u*v ;
-	double vv = v*v ;
-	Point w = planeIntersection - *s.point[0] ;
-	double wu = w*u ;
-	double wv = w*v ;
-	double d = uv*uv-uu*vv ;
-	
-	double q = (uv*wv - vv*wu) / d;
-	
-	if(q < 0. || q > 1.)
-		return false ;
-	
-	double t = (uv * wu - uu * wv) / d;
-	
-	if (t < 0. || (q + t) > 1.) 
-		return false;
-	
-	return true;*/
 }
 
 Point Segment::intersection(const Segment &l) const                                                                                                                 
@@ -4666,7 +4317,6 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
 {
 	if(num_points == 0)
 		return ;
-// 	std::cout << "sample OC" << std::endl ;
 	
 	Vector start(3) ; start[0] = -normal.y*radius ;  start[1] = normal.x*radius ;  start[2] = 0 ; 
 	
@@ -4814,7 +4464,6 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
 	n /= d ;
 	
 	return (a^b)*n ;
-// 	return (f1.x-test.x)*(f0.y-test.y) - (f0.x-test.x)*(f1.y-test.y);
 }
 
 bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
@@ -4824,10 +4473,10 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	Point f0_(f0-centre) ;
 	Point f1_(f1-centre) ;
 	Point test_(test-centre) ;
-	double scale = 10000.*sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
-	f0_ /=scale ;
-	f1_ /=scale ;
-	test_ /=scale ;
+	double scale = 1000./sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
+	f0_ *=scale ;
+	f1_ *=scale ;
+	test_ *=scale ;
 	if(test == f1 || test == f0)
 		return true ;
 	if(std::abs((f0 - test) * (f1 - test)) < POINT_TOLERANCE)
@@ -4912,13 +4561,6 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	double c1 = signedCoplanarity(a, f0_, f1_, f2_) ;
 	double c2 = signedCoplanarity(b, f0_, f1_, f2_) ;
 
-// 	if(c0 > 0)
-// 		return c1 < 0 || c2 < 0 ;
-// 	if(c0 < 0)
-// 		return c1 > 0 || c2 > 0 ;
-// 	
-// 	return true ;
-// 	
 	bool positive = c0 > 0 || c1 > 0 || c2 > 0 ;
 	bool negative = c0 < 0 || c1 < 0 || c2 < 0 ;
 	return  positive && negative ;
