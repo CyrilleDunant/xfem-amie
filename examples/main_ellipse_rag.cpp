@@ -109,9 +109,9 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
 
-double width = 0.07;
-double height = 0.07;
-Sample sample(NULL, width, height, 0.035, 0.035) ;
+double width = 700;
+double height = 700;
+Sample sample(NULL, width, height, 350, 350) ;
 	
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -1222,7 +1222,7 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, i
 		ax = atof(buff) ;
 		ellipsein >> buff ;
 		ay = atof(buff) ;
-		inc.push_back(new EllipsoidalInclusion(a,b,cx,cy,ax,ay)) ;
+		inc.push_back(new EllipsoidalInclusion(a*10000,b*10000,cx*10000,cy*10000,ax,ay)) ;
 	}
 	ellipsein.close() ;
 	inc.pop_back() ;
