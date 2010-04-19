@@ -109,9 +109,9 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
 
-double width = 700;
-double height = 700;
-Sample sample(NULL, width, height, 350, 350) ;
+double width = 0.07;
+double height = 0.07;
+Sample sample(NULL, width, height, width/2, height/2) ;
 	
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -1222,7 +1222,7 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, i
 		ax = atof(buff) ;
 		ellipsein >> buff ;
 		ay = atof(buff) ;
-		inc.push_back(new EllipsoidalInclusion(a*10000,b*10000,cx*10000,cy*10000,ax,ay)) ;
+		inc.push_back(new EllipsoidalInclusion(a,b,cx,cy,ax,ay)) ;
 	}
 	ellipsein.close() ;
 	inc.pop_back() ;
@@ -1265,13 +1265,13 @@ int main(int argc, char *argv[])
 	std::cout << area_test << " (" << (100*area_test/0.0016) << "%)" << std::endl ;*/
 
 	std::string ellipselist = "ellipse_good.txt" ;
-	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,2) ;
+	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,9000) ;
 
 
 
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
-//	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
+//	sample.setBehaviour(new Stiffness(m0_paste)) ;
 //	std::vector<Feature *> feats ;
 //	for(size_t i = 0; i < inc.size() ; i++)
 //		feats.push_back(inc[i]) ;
@@ -1296,8 +1296,8 @@ int main(int argc, char *argv[])
 //	}
 //	return 0 ;	
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
-//	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
-	Stiffness * stiff = new Stiffness(m0_agg) ;
+	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+//	Stiffness * stiff = new Stiffness(m0_agg) ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
 		bool alone = true ;
@@ -1323,12 +1323,12 @@ int main(int argc, char *argv[])
 			placed_area += inc[i]->area() ;
 		}
 	}	
-//        zones = generateExpansiveZonesHomogeneously(20,inc,F) ;
+        zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0.01)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 
-	F.sample(32) ;
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
         F.generateElements() ;
 
@@ -1338,6 +1338,8 @@ int main(int argc, char *argv[])
 //        step() ;
 
 //	dt->print() ;
+
+//	std::cout << "exiting now... don't worry about the segfault..." << std::endl ;
  	
 // 	delete dt ;*/
 	
