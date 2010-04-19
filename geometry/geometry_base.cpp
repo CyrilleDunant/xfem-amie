@@ -4473,7 +4473,7 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	Point f0_(f0-centre) ;
 	Point f1_(f1-centre) ;
 	Point test_(test-centre) ;
-	double scale = 1000./sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
+	double scale = 0.001/sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
 	f0_ *=scale ;
 	f1_ *=scale ;
 	test_ *=scale ;
@@ -4525,11 +4525,11 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point f1_(f1-centre) ;
 	Point f2_(f2-centre) ;
 	Point test_(test-centre) ;
-	double scale = 100.*sqrt(std::max(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()),f2_.sqNorm())) ;
-	f0_ /=scale ;
-	f1_ /=scale ;
-	f2_ /=scale ;
-	test_ /=scale ;
+	double scale = 0.001/sqrt(std::max(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()),f2_.sqNorm())) ;
+	f0_ *=scale ;
+	f1_ *=scale ;
+	f2_ *=scale ;
+	test_ *=scale ;
 	
 	if(test == f1)
 		return true ;
