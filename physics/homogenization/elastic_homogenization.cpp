@@ -465,13 +465,13 @@ Vector GeneralizedSelfConsistent::processData(const Matrix & data)
 			double Ak = (kmt-khom)/(ki-khom)/fi ;
 			double Amu = (mumt-muhom)/(mui-muhom)/fi ;
 			
-			dk[i] = fi*(ki-km)*Ak/(fi*Ak+(1-fi)*Akm) ;
-			dmu[i] = fi*(mui-mum)*Amu/(fi*Amu+(1-fi)*Amum) ;
+			dk[i] = fi*(ki-km)*Ak/(fi*Ak+(1.-fi)*Akm) ;
+			dmu[i] = fi*(mui-mum)*Amu/(fi*Amu+(1.-fi)*Amum) ;
 
 		}
 
-		next_hom[1] = 0 ;
-		next_hom[2] = 0 ;
+		next_hom[1] = 0. ;
+		next_hom[2] = 0. ;
 
 		for(size_t i = 0 ; i < dk.size() ; i++)
 		{

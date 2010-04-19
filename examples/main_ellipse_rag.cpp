@@ -626,6 +626,7 @@ void stepOLD()
 		timepos+= 0.0001 ;
 	
 	
+		triangles = featureTree->getTriangles() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
@@ -1317,14 +1318,14 @@ int main(int argc, char *argv[])
 				return 1 ;
 			}
 			inc[i]->setBehaviour(stiff) ;
-//			F.addFeature(&sample, inc[i]) ;
+			F.addFeature(&sample, inc[i]) ;
 //		inc[i]->getMajorAxis().print() ;
 			placed_area += inc[i]->area() ;
 		}
 	}	
 //        zones = generateExpansiveZonesHomogeneously(20,inc,F) ;
 	
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0.01)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 
 	F.sample(512) ;

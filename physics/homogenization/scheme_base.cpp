@@ -246,7 +246,15 @@ std::pair<bool, Material> HomogenizationScheme::apply(const std::vector<Material
 
 //	raw.print() ;
 
+/*	for(size_t i = 0 ; i < raw.numRows() ; i++)
+		std::cout << raw[i][0] << ";" ;
+	std::cout << "   =>    " ; */
+
 	Vector processed = processData(raw) ;
+
+/*	for(size_t i = 0 ; i < processed.size() ; i++)
+		std::cout << processed[i] << ";" ;
+	std::cout << std::endl ;*/
 
 	Material m_out ;
 	size_t count = 0 ;

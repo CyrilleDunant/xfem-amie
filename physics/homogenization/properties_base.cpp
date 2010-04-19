@@ -455,7 +455,7 @@ void Material::combine(Material m, PropertiesType p)
 		{
 			size_t im = getFirstIndex(p) ;
 			for(size_t j = 0 ; j < (*this)[i].getNVal() ; j++)
-				(*this)[i].setValue(j,m[im].getValue(j)) ;
+				(*this)[i].setValue(j,m[im].getValue(j)+(*this)[i].getValue(i)) ;
 		}
 	}
 }
