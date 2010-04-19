@@ -983,7 +983,8 @@ public:
 
 		for(size_t i = 0 ; i < this->boundingPoints.size() ; i++)
 		{
-
+			if(boundingPoints[i]->id == 0)
+				  boundingPoints[i]->print() ;
 			delete boundingPoints[i] ;
 		}
 

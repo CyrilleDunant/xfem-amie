@@ -1328,7 +1328,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0.01)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 
-	F.sample(512) ;
+	F.sample(32) ;
 	F.setOrder(LINEAR) ;
         F.generateElements() ;
 

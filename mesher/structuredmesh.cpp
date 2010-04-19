@@ -82,11 +82,23 @@ const size_t & StructuredMesh::getLastNodeId() const
 
 StructuredMesh::~StructuredMesh() 
 {
+	std::valarray<Point *> nularray(0) ;
+	for(size_t i = 0 ;  i < this->tree.size() ; i++)
+	{
+
+		DelaunayTriangle * t = static_cast<DelaunayTriangle *>(tree[i]) ;
+			
+		t->setBoundingPoints(nularray) ;
+	}
+	
+	for(size_t i = 0 ;  i < this->tree.size() ; i++)
+	{
+		delete this->tree[i] ;
+	}
+
 	for(size_t i = 0 ; i < points.size() ; i++)
 		delete points[i] ;
 	
-	for(size_t i = 0 ; i < tree.size() ; i++)
-		delete tree[i] ;
 }
 std::vector<DelaunayTriangle *> StructuredMesh::getElements()
 {
