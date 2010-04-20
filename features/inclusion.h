@@ -171,37 +171,19 @@ public:
 *
 * @param father father feature
 */
-	EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY, double axisX, double axisY) ;
+	EllipsoidalInclusion(Feature *father, Point center, Point a, Point b) ;
 
 /** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors)
 *
 * @param father father feature
 */
-	EllipsoidalInclusion(Feature *father, double a, double b, const Point center, const Point axis) ;
-
-/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors)
-*
-* @param father father feature
-*/
-	EllipsoidalInclusion(Feature *father, double a, double b, double originX, double originY) ;
-
-/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors)
-*
-* @param father father feature
-*/
-	EllipsoidalInclusion(Feature *father, double a, double b, const Point center) ;
+	EllipsoidalInclusion(Feature *father, Point center, Point a, double b) ;
 
 /** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
-	EllipsoidalInclusion(double a, double b, double originX, double originY, double axisX, double axisY) ;
+	EllipsoidalInclusion(Point center, Point a, Point b) ;
 
 /** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
-	EllipsoidalInclusion(double a, double b, double originX, double originY) ;
-
-/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
-	EllipsoidalInclusion(double a, double b, const Point center, const Point axis) ;
-	
-/** \brief construct an ellipsoidal inclusion (see Ellipse class for Ellipse constructors) */
-	EllipsoidalInclusion(double a, double b, const Point center) ;
+	EllipsoidalInclusion(Point center, Point a, double b) ;
 
 /** \brief Do nothing*/
 	virtual void addSamplePoints(PointSet * po ) { };

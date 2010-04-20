@@ -5438,7 +5438,9 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 			for(size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++)
 			{
-				bool isIn = false ;
+//                            if(i>0)
+//                                tree[i]->getInPoint(j).print() ;
+                            bool isIn = false ;
 				std::vector<Geometry *> potentialFeaturestmp  ;
 				if(is2D())
 					potentialFeaturestmp = grid->coOccur(tree[i]->getInPoint(j)) ;

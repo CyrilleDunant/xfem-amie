@@ -1151,7 +1151,7 @@ std::vector<EllipsoidalInclusion *> circleToEllipse(std::vector<Inclusion *> cir
 		alea_radius = 1 / (1 + (double)rand()/((double)RAND_MAX)) ;
 		alea_dir = 0.25 - (double)rand()/((double)RAND_MAX) / 2 ;
 		newaxis.setY(alea_dir) ;
-		ellipse.push_back(new EllipsoidalInclusion(circle[i]->getRadius(), alea_radius*circle[i]->getRadius(), newcenter, newaxis)) ;
+		ellipse.push_back(new EllipsoidalInclusion(newcenter,newaxis*circle[i]->getRadius(),alea_radius)) ;
 		if(i<100)
 		{
 			std::cout << ellipse[i]->getMajorRadius() << " ; " << ellipse[i]->getMinorRadius() << std::endl ;
@@ -1220,7 +1220,11 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, i
 		ax = atof(buff) ;
 		ellipsein >> buff ;
 		ay = atof(buff) ;
-		inc.push_back(new EllipsoidalInclusion(a,b,cx,cy,ax,ay)) ;
+		Point C(cx,cy) ;
+		Point A(ax,ay) ;
+		A *= a ;
+		double B = b/a ;
+		inc.push_back(new EllipsoidalInclusion(C,A,B)) ;
 	}
 	ellipsein.close() ;
 	inc.pop_back() ;

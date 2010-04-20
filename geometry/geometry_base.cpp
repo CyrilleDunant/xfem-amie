@@ -1257,10 +1257,8 @@ bool Geometry::intersects(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
-//			std::cout << "ellipse" << std::endl ;
 			if(g->getRadius() < this->getRadius())
 			{  
-//				std::cout << g->intersects(this) << std::endl ;
 				return g->intersects(this) ;
 			}
 
@@ -1307,26 +1305,20 @@ bool Geometry::intersects(const Geometry *g) const
 			if(g->getGeometryType() == ELLIPSE && (g->in(this->getCenter()) || this->in(g->getCenter())))
 				return true ;
 
-/*			if(g->getGeometryType() == ELLIPSE)
-			{
-				Circle thiscircle(this->getRadius(), this->getCenter()) ;	
-				Circle othercircle(g->getRadius(), g->getCenter()) ;
-				Geometry * gcircle = &othercircle ;
-				return thiscircle.intersects(gcircle) ;
-			}*/
+			std::vector<Point> box ;
+                        for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
+                            box.push_back(this->getBoundingPoint(i)) ;
+                        bool intersects = false ;
+                        for(size_t i = 0 ; i < box.size()-1 ; i++) {
+                            Segment seg(box[i],box[i+1]) ;
+                            intersects = intersects || seg.intersects(g) ;
+                        }
+                        Segment seg(box[box.size()-1],box[0]) ;
+                        intersects = intersects || seg.intersects(g) ;
 
-			// this intersection is not complete and must be refined... later...
-			std::vector<Point> box = this->getBoundingBox() ;
-			Segment s0(box[0], box[1]) ;
-			Segment s1(box[1], box[2]) ;
-			Segment s2(box[2], box[3]) ;
-			Segment s3(box[3], box[0]) ;
-			
-			return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g) ;
-/*			Circle largecircle(this->getRadius(), this->getCenter()) ;
-			return largecircle.intersects(g) ;*/
+                        return intersects ;
 
-		}
+        }
 	case SPHERE:
 		{
 			if(g->getGeometryType() == SPHERE)
@@ -2885,30 +2877,30 @@ bool Line::intersects(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
-			double a = g->getRadius() ;
-			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
-			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
-			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
-			Point I = this->intersection(L) ;
-			double d = (g->getCenter() - I).norm() ;
-
-			if(abs(c) == 1)
-			{
-				double coordx = (this->origin() - g->getCenter()) * dynamic_cast<const Ellipse*>(g)->getMajorAxis() ;
-				// case: Line is too far away				
-				if(coordx > g->getRadius())
-					return false ; 
-				else
-					return true ;
-				}
-
-			c = c / sqrt(1 - c*c) ;
-			double A = (1 / (a*a) + (c*c) / (b*b)) ;
-			double B = 2*c*d/(b*b) ;
-			double C = (d*d) / (b*b) - 1 ;
-
-			double delta = B * B - 4 * A * C ;
-			return !(delta < 0) ;
+                    Point c = this->projection(g->getCenter()) ;
+                    return dynamic_cast<const Ellipse*>(g)->in(c) ;
+//			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
+//			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
+//			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
+//
+//			if(std::abs(c - 1) < POINT_TOLERANCE)
+//			{
+//                            Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMajorAxis()) ;
+//                            Point I = this->intersection(L) ;
+//                            return g->in(I) ;
+//			}
+//
+//			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
+//			Point I = this->intersection(L) ;
+//			double d = (g->getCenter() - I).norm() ;
+//
+//			c = c / sqrt(1. - c*c) ;
+//			double A = (1. / (a*a) + (c*c) / (b*b)) ;
+//			double B = 2.*c*d/(b*b) ;
+//			double C = (d*d) / (b*b) - 1. ;
+//
+//			double delta = B * B - 4 * A * C ;
+//			return !(delta < 0) ;
 		}
 	case TRIANGLE:
 		{
@@ -3009,63 +3001,64 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
 			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
 			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
-			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
-			Point I = this->intersection(L) ;
-			I = g->getCenter() - I ;
-			double d = I.norm() ;
-			if((I ^ (dynamic_cast<const Ellipse*>(g)->getMajorAxis())).z < 0)
-				d = - d ;
-
-			double coordx = 0 ;
-			double coordy = 0 ;
+			double coordx = 0. ;
+			double coordy = 0. ;
 
 			// case: Line is parallel to minor axis
-			if(abs(c) == 1)
+			if(std::abs(c-1.) < POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
 				coordx = (this->origin() - g->getCenter()) * dynamic_cast<const Ellipse*>(g)->getMajorAxis() ;
+                                coordx /= (a*a) ;
 				// case: Line is too far away				
-				if(coordx > g->getRadius())
+				if(std::abs(coordx) > 1.0)
 					return ret ; 
 				// case: Line is tangent
-				if(coordx == g->getRadius())
-					{ ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx) ; }
+				if(std::abs(coordx - 1.0) < POINT_TOLERANCE)
+					{ ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis()) ; }
 				// any other case: get two points on ellipse
 				else
 				{
-					coordy = sqrt(b * b * ( 1 - (coordx * coordx) / (a * a))) ;
+					coordy = sqrt(1.0 - (coordx * coordx)) ;
 					ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
 					ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx - dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
 				}
 				return ret ;
 			}
 
+			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
+			Point I = this->intersection(L) - g->getCenter() ;
+			double d = I.norm() ;
+			if((I ^ (dynamic_cast<const Ellipse*>(g)->getMajorAxis())).z < 0)
+				d = - d ;
+
+
 			c = c / sqrt(1 - c*c) ;
 			if((this->vector() * dynamic_cast<const Ellipse*>(g)->getMajorAxis()) < 0)
 				c = -c ;
 
-			double A = (1 / (a*a) + (c*c) / (b*b)) ;
-			double B = 2*c*d/(b*b) ;
-			double C = (d*d) / (b*b) - 1 ;
+			double A = (1. / (a*a) + (c*c) / (b*b)) ;
+			double B = 2.*c*d/(b*b) ;
+			double C = (d*d) / (b*b) - 1. ;
 
-			double delta = B * B - 4 * A * C ;
+			double delta = B * B - 4. * A * C ;
 
-			if(delta == 0)
+			if(std::abs(delta) < POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
-				coordx = - B / (2 * A) ;
-				coordy = c * coordx + d ;
+				coordx = - B / (2. * A) / a;
+				coordy = (c * coordx + d) / b ;
 				ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
 				return ret ;
 			}
 			else if (delta > 0)
 			{
 				std::vector<Point> ret ;
-				coordx = - (B + sqrt(delta)) / (2 * A) ;
-				coordy = c * coordx + d ;
+				coordx = - (B + sqrt(delta)) / (2 * A) / a ;
+				coordy = (c * coordx + d) / b ;
 				ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
-				coordx = - (B - sqrt(delta)) / (2 * A) ;
-				coordy = c * coordx + d ;
+				coordx = - (B - sqrt(delta)) / (2 * A) / a ;
+				coordy = (c * coordx + d) / b ;
 				ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
 				return ret ;
 			}
@@ -4473,7 +4466,7 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	Point f0_(f0-centre) ;
 	Point f1_(f1-centre) ;
 	Point test_(test-centre) ;
-	double scale = 0.001/sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
+	double scale = 1./sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
 	f0_ *=scale ;
 	f1_ *=scale ;
 	test_ *=scale ;

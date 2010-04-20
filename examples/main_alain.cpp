@@ -1385,21 +1385,29 @@ int main(int argc, char *argv[])
 
 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 
-	Inclusion * inc0 = new Inclusion(100, -200, 1) ;
-	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
+//	Inclusion * inc0 = new Inclusion(100, -200, 1) ;
+//	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
 
-	Function x("x") ;
-	Function y("y") ;
-	Function young_fstress(E_stiff*(1 + (-0.99)* f_exp((-1)*f_abs((x+y))/100))) ;
+//	Function x("x") ;
+//	Function y("y") ;
+//	Function young_fstress(E_stiff*(1 + (-0.99)* f_exp((-1)*f_abs((x+y))/100))) ;
 
-	inc0->setBehaviour(new StressDefinedStiffness(young_fstress,0.2,SPACE_TWO_DIMENSIONAL)) ;
+//	inc0->setBehaviour(new StressDefinedStiffness(young_fstress,0.2,SPACE_TWO_DIMENSIONAL)) ;
+
+	Point c(0,0) ;
+	Point a(2*0.75,1*0.25) ;
+	double b = 0.75 ;
+
+	EllipsoidalInclusion * inc0 = new EllipsoidalInclusion(c,a,b) ;
+	inc0->setBehaviour(new Stiffness(m0_agg)) ;
+
 
  	F.addFeature(&sample, inc0) ;
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, -100)) ;
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, -100)) ;
+//  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA , BOTTOM)) ;
-	F.sample(256) ;
+ //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA , BOTTOM)) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;

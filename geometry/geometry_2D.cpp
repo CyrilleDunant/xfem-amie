@@ -1532,312 +1532,148 @@ bool SegmentedLine::in(const Point & v) const
 	return false ;
 }
 
-Ellipse::Ellipse(double a, double b, double originX,double originY, double axisX, double axisY)
+
+Ellipse::Ellipse(Point center, Point a, Point b) : majorAxis(a), minorAxis(b)
 {
 	gType = ELLIPSE ;
-	this->center = Point(originX, originY) ;
-	double axisNorm = sqrt(axisX*axisX + axisY*axisY) ;
-	if(axisNorm==0)
-	{
-		this->majoraxis = Point(1,0) ;
-	} else {
-		this->majoraxis = Point(axisX/axisNorm, axisY/axisNorm) ;
-	}
-	this->majorradius = std::max(a,b) ;
-	this->minorradius = std::min(a,b) ;
-	this->setSqRadius() ;
-	this->setExcentricity() ;
+        this->center = center ;
 }
 
-Ellipse::Ellipse(double a, double b, double x,double y)
+Ellipse::Ellipse(Point center, Point a, double b) : majorAxis(a)
 {
 	gType = ELLIPSE ;
-	this->center = Point(x, y) ;
-	double angle = (((double)rand()/(double)RAND_MAX)-0.5)*M_PI/2 ;
-//	std::cout << axisX << " ; " << axisY << std::endl ;
-	majoraxis = Point(cos(angle), sin(angle)) ;
-
-	this->majorradius = std::max(a,b) ;
-	this->minorradius = std::min(a,b) ;
-	this->setSqRadius() ;
-	this->setExcentricity() ;
+	double b_ = std::min(std::abs(b), 1.) ;
+	this->minorAxis = Point(-a.y*b, a.x*b) ;
+        this->center = center ;
 }
 
-Ellipse::Ellipse(double a, double b, const Point *center, const Point *axis)
+
+Ellipse::Ellipse(Point center, double a, double b)
 {
 	gType = ELLIPSE ;
-	this->center = Point(*center) ;
-	if(axis->norm()==0)
-	{
-		this->majoraxis = Point(1,0) ;
-	} else {
-		this->majoraxis.x = (1./axis->norm()) * axis->x ;
-		this->majoraxis.y = (1./axis->norm()) * axis->y ;
-	}
-	this->majorradius = std::max(a,b) ;
-	this->minorradius = std::min(a,b) ;
-	this->setSqRadius() ;
+        this->center = center ;
+	double dir_x = (double) rand() / (double) RAND_MAX ;
+	double dir_y = (double) rand() / (double) RAND_MAX ;
+	double a_ = std::max(std::abs(a),std::abs(b)) ;
+	double b_ = std::min(std::abs(a),std::abs(b)) ;
+	this->majorAxis = Point(a_*dir_x,a_*dir_y) ;
+	this->minorAxis = Point(-b_*dir_y,b_*dir_x) ;
+	this->majorAxis /= (dir_x*dir_x + dir_y*dir_y) ;
+	this->minorAxis /= (dir_x*dir_x + dir_y*dir_y) ;
 }
 
-Ellipse::Ellipse(double a, double b, const Point center, const Point axis)
-{
-	gType = ELLIPSE ;
-	this->center = Point(center) ;
-	if(axis.norm()==0)
-	{
-		this->majoraxis = Point(1,0) ;
-	} else {
-		this->majoraxis.x = (1./axis.norm()) * axis.x ;
-		this->majoraxis.y = (1./axis.norm()) * axis.y ;
-	}
-	this->majorradius = std::max(a,b) ;
-	this->minorradius = std::min(a,b) ;
-	this->setSqRadius() ;
-}
-
-Ellipse::Ellipse(double a, double b, const Point center)
-{
-	gType = ELLIPSE ;
-	this->center = Point(center) ;
-	double axisX = (double)rand()/(double)RAND_MAX ;
-	double axisY = (double)rand()/(double)RAND_MAX ;
-//	std::cout << axisX << " ; " << axisY << std::endl ;
-	Point axis(axisX,axisY) ;
-	if(axis.norm()==0)
-	{
-		this->majoraxis = Point(1,0) ;
-	} else {
-		this->majoraxis.x = (1./axis.norm()) * axis.x ;
-		this->majoraxis.y = (1./axis.norm()) * axis.y ;
-	}
-	this->majorradius = std::max(a,b) ;
-	this->minorradius = std::min(a,b) ;
-	this->setSqRadius() ;
-}
-
-Ellipse::Ellipse(const Ellipse &e)
-{
-	gType = ELLIPSE ;
-	this->center = e.getCenter() ;
-	this->majoraxis = e.getMajorAxis() ;
-	this->majorradius = e.getMajorRadius() ; 
-	this->minorradius = e.getMinorRadius() ;
-	this->setSqRadius() ;
-}
 
 XMLTree * Ellipse::toXML()
 {
 	XMLTree * ell = new XMLTree("ellipse") ;
 	XMLTree * c = new XMLTree("center") ;
 	c->addChild(this->getCenter().toXML()) ;
-	XMLTree * ax = new XMLTree("axis") ;
-	ax->addChild(this->getMajorAxis().toXML()) ;
+//	XMLTree * ax = new XMLTree("major_axis") ;
+//	ax->addChild(this->getMajorAxis().toXML()) ;
+//	XMLTree * ax_ = new XMLTree("minor_axis") ;
+//	ax_->addChild(this->getMinorAxis().toXML()) ;
 	ell->addChild(c) ;
-	ell->addChild(ax) ;
-	ell->addChild(new XMLTree("ra",majorradius)) ;
-	ell->addChild(new XMLTree("rb",minorradius)) ;
+//	ell->addChild(ax) ;
+//	ell->addChild(ax_) ;
 	return ell ;
 }
 
 
-double Ellipse::getAxisAngle() const
-{
-	// normally, axis is a normalized vector, so that sin(theta) = axis.y and cos(theta) = axis.x
-/*	double theta = 0 ;
-	if (majoraxis.x>0)
-	{
-		theta = asin(majoraxis.y) ;
-	} else {
-		theta = asin(-majoraxis.y) ;
-	}*/
-	return majoraxis.angle() ;	
-}
-
-Point Ellipse::getFocus(bool dir) const
+const Point Ellipse::getFocus(bool dir) const
 {
 	int dirsign = 1 ;
 	if(dir)
 		{ dirsign = - 1 ; }
-	Point focus(center + majoraxis * (excentricity * majorradius * dirsign)) ;
+	Point focus(center + majorAxis * (getExcentricity() * dirsign)) ;
 	return focus ;
 }
 
-const std::pair<Point, Point> Ellipse::getBothFocus()
+const std::pair<Point, Point> Ellipse::getBothFocus() const 
 {
 	std::pair<Point, Point> focus(getFocus(true),getFocus(false)) ;
 	return focus ;
-}
-
-Point Ellipse::getMinorAxis() const
-{
-	return Point (-majoraxis.y, majoraxis.x) ;
-}
-
-void Ellipse::setRadius(double newa, double newb)
-{
-	double ratioa = newa/(majorradius) ;
-	double ratiob = newb/(minorradius) ;
-
-	Point minoraxis = this->getMinorAxis() ;
-	Point inlocalreferencial(center) ;
-	double inlocalreferencialmajor = 1. ;
-	double inlocalreferencialminor = 0. ;
-
-	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-	{
-		inlocalreferencial = getBoundingPoint(i) - center ;
-		inlocalreferencialmajor = this->majoraxis * inlocalreferencial ;
-		inlocalreferencialminor = minoraxis * inlocalreferencial ;
-		inlocalreferencial = (this->majoraxis) * (inlocalreferencialmajor * ratioa) ;
-		inlocalreferencial = inlocalreferencial + minoraxis * (inlocalreferencialminor * ratiob) ;
-		getBoundingPoint(i) = center + inlocalreferencial ;
-	}
-	
-	for(size_t i = 0 ; i < getInPoints().size() ; i++)
-	{
-		inlocalreferencial = getInPoint(i) - center ;
-		inlocalreferencialmajor = this->majoraxis * inlocalreferencial ;
-		inlocalreferencialminor = minoraxis * inlocalreferencial ;
-		inlocalreferencial = (this->majoraxis) * (inlocalreferencialmajor * ratioa) ;
-		inlocalreferencial = inlocalreferencial + minoraxis * (inlocalreferencialminor * ratiob) ;
-		getInPoint(i) = center + inlocalreferencial ;
-	}
-
-
-	if (newa<newb) 
-	{
-		this->majorradius = newb ;
-		this->minorradius = newa ;
-		this->majoraxis = getMinorAxis() ;
-	} else {
-		this->majorradius = newa ;
-		this->minorradius = newb ;
-	}
-	this->setSqRadius() ;
-}
-
-void Ellipse::setAxis(Point newaxis)
-{
-	Point minoraxis = this->getMinorAxis() ;
-	Point normnewaxis(newaxis/newaxis.norm()) ;
-	Point orthoaxis(normnewaxis.y, normnewaxis.x) ;
-	Point inlocalreferencial(center) ;
-	Point rotinlocalreferencial(center) ;
-	double inlocalreferencialmajor = 1. ;
-	double inlocalreferencialminor = 0. ;
-
-	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-	{
-		inlocalreferencial = (getBoundingPoint(i) - center) ;
-		inlocalreferencialmajor = (inlocalreferencial * majoraxis) ;
-		inlocalreferencialminor = (inlocalreferencial * minoraxis) ;
-		rotinlocalreferencial = (normnewaxis * inlocalreferencialmajor) + (orthoaxis * inlocalreferencialminor) ;
-		getBoundingPoint(i) = center + rotinlocalreferencial ;
-	}
-	for(size_t i = 0 ; i < getInPoints().size() ; i++)
-	{
-		inlocalreferencial = (getInPoint(i) - center) ;
-		inlocalreferencialmajor = (inlocalreferencial * majoraxis) ;
-		inlocalreferencialminor = (inlocalreferencial * minoraxis) ;
-		rotinlocalreferencial = (normnewaxis * inlocalreferencialmajor) + (orthoaxis * inlocalreferencialminor) ;
-		getInPoint(i) = center + rotinlocalreferencial ;
-	}
-	
-	this->majoraxis = normnewaxis ;
 }
 
 void Ellipse::computeCenter()
 {
 }
 
+
+const Point Ellipse::getPointOnEllipse(double theta) const
+{
+    Point p(center) ;
+    p += getMajorAxis() * std::cos(theta) ;
+    p += getMinorAxis() * std::sin(theta) ;
+    return p ;
+}
+
+
 Point Ellipse::project(Point p) const
 {	
-
-	Point minoraxis = this->getMinorAxis() ;
-	Point proj(p) ;
 	if(p == center)
 	{
-		proj.x = center.x + majorradius*majoraxis.x ;
-		proj.y = center.y + majorradius*majoraxis.y ;
+		return p+majorAxis ;
 	} else {
-		Segment seg(center, p) ;
-		proj = center - majoraxis * (seg.vector()*majoraxis) * (majorradius/seg.vector().norm()) - minoraxis * (seg.vector()*minoraxis) * (minorradius/seg.vector().norm()) ;
+		Point proj = Point(p) ;
+		project(proj) ;
+		return proj ;
 	}	
-//	p->x = proj.x ;
-//	p->y = proj.y ;
-	
-	return proj ;
-	
 }
 
 void Ellipse::project(Point * p) const
-{ 
-	double alpha = majoraxis.angle() ;
-	Point prot((*p-center).x*cos(-alpha)-(*p-center).y*sin(-alpha), 
-		   +(*p-center).x*sin(-alpha)+(*p-center).y*cos(-alpha)) ;
-	
-
-	Ellipse ell(getMajorRadius(),
-		    getMinorRadius(),
-		    0,0,1,0) ;
-	double theta = prot.angle() ;
-	Point pell(std::cos(theta),std::sin(theta)) ;
-	double r = ell.getRadiusOnEllipse(theta) ;
-	Point ptry = pell * r ;
-	double dist = squareDist2D(ptry,prot) ;
-
-	int signn = + 1 ;
-	double thetan = theta + 0.1 ;
-	Point pelln(std::cos(thetan),std::sin(thetan)) ;
-	double rn = ell.getRadiusOnEllipse(thetan) ;
-	Point ptryn = pelln * rn ;
-	double distn = squareDist2D(ptryn,prot) ;
-	if(distn > dist)
-	{
-	  signn = - 1 ;
-	  thetan = theta - 0.1 ;
-	  pelln.x = std::cos(thetan) ;
-	  pelln.y = std::sin(thetan) ;
-	  rn = ell.getRadiusOnEllipse(thetan) ;
-	  ptryn = pelln * rn ;
-	  distn = squareDist2D(ptryn,prot) ;
-	}
-	int i = 0 ;
-	
-	while(distn < dist)
-	{
-	  i++ ;
-	  dist = distn ;
-	  thetan = thetan + signn * 0.1 ;
-	  pelln.x = std::cos(thetan) ;
-	  pelln.y = std::sin(thetan) ;
-	  rn = ell.getRadiusOnEllipse(thetan) ;
-	  ptryn = pelln * rn ;
-	  distn = squareDist2D(ptryn,prot) ;
-	}
-	
-	p->x = center.x + ptryn.x*cos(alpha) - ptryn.y*sin(alpha) ;
-	p->y = center.y + ptryn.x*sin(alpha) + ptryn.y*cos(alpha) ;
-
-	
-	return ;
-	
-}
-
-double Ellipse::getRadiusOnEllipse(double theta) const
 {
-	double r = (sqradius / sqrt(pow(minorradius * cos(theta), 2) + pow(majorradius * sin(theta), 2))) ;
-	return r ; 
-}
+    Point test(p->x,p->y) ;
+        if(test == center) {
+            p->x += getMinorAxis().x ;
+            p->y += getMinorAxis().y ;
+        } else {
+            double alpha = majorAxis.angle() ;
+            Point prot((*p-center).x*cos(-alpha)-(*p-center).y*sin(-alpha),
+                       +(*p-center).x*sin(-alpha)+(*p-center).y*cos(-alpha)) ;
 
-double Ellipse::getRadiusOnEllipseFromFocus(double theta, bool dir) const
-{
-	int f = 1 ;
-	if(!dir)
-		f = -1 ;
-	return getParameter() / (1 + f * getExcentricity() * cos(theta)) ;
-}
+            Point c_(0.,0.) ;
+            Point a_(getMajorRadius(),0.) ;
+            Point b_(0.,getMinorRadius()) ;
+            Ellipse ell(c_,a_,b_) ;
 
+            Function x("x") ;
+            Function y("y") ;
+
+            Function dist_p_ell(x*x - x*2*prot.x + prot.x*prot.x + y*y - y*2*prot.y + prot.y*prot.y) ;
+ 
+            double dtheta = 0.01 ;
+
+            double theta_n = prot.angle() - dtheta ;
+            double theta_p = prot.angle() ;
+            double theta_q = prot.angle() + dtheta ;
+
+            double dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
+            double dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
+            double dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+
+            while(dist_p > std::min(dist_n,std::min(dist_p,dist_q))) {
+                if(dist_n < dist_q) {
+                    theta_n -= dtheta ;
+                    theta_p -= dtheta ;
+                    theta_q -= dtheta ;
+                    dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
+                    dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
+                    dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+                } else {
+                    theta_n += dtheta ;
+                    theta_p += dtheta ;
+                    theta_q += dtheta ;
+                    dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
+                    dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
+                    dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+                }
+            }
+
+            p->x = this->getPointOnEllipse(theta_p).x ;
+            p->y = this->getPointOnEllipse(theta_p).y ;
+
+        }
+}
 
 std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 {
@@ -1848,12 +1684,75 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 	double thisangle = angle ;
 	double lastangle = 0. ;
 	double redfactor = 0.8 ; // factor for angle decrease < 1
-	Point minoraxis = getMinorAxis() ;
 
 
-	Point thispoint = center + majoraxis * (majorradius * cos(angle)) + minoraxis * (minorradius * sin(angle)) ;
-	Point lastpoint = center + majoraxis * majorradius ;
-	Point lastlastpoint = center + majoraxis * (majorradius * cos(-angle)) + minoraxis * (minorradius * sin(-angle)) ;
+	Point thispoint = getPointOnEllipse(angle) ;
+	Point lastpoint = getPointOnEllipse(lastangle) ;
+	Point lastlastpoint = getPointOnEllipse(-angle) ;
+	double criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
+
+	int n_iter = 0 ;
+
+	for (size_t i = 0 ; i< num_points ; i++)
+	{
+		n_iter = 0 ;
+		while(((criteria > angle) || (criteria < angle * redfactor)) && n_iter < 20)
+		{
+			if(criteria > angle)
+				{ thisangle = lastangle + (thisangle - lastangle) * redfactor ; }
+			else
+				{ thisangle = lastangle + (thisangle - lastangle) / redfactor ; }
+			thispoint = getPointOnEllipse(thisangle) ;
+			criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
+			n_iter++ ;
+		}
+
+		ret.push_back(thispoint) ;
+
+		lastlastpoint = lastpoint ;
+		lastpoint = thispoint ;
+		
+		lastangle = thisangle ;
+		thisangle += angle ;
+		
+		thispoint = getPointOnEllipse(thisangle) ;
+	}
+	
+	return ret ;
+}
+
+Function Ellipse::getEllipseFormFunction() const
+{
+    double alpha = majorAxis.angle() ;
+    Function x("x") ;
+    Function y("y") ;
+    Function x_((x-center.x)*cos(-alpha)-(y-center.y)*sin(-alpha)) ;
+    Function y_((x-center.x)*sin(-alpha)+(y-center.y)*cos(-alpha)) ;
+    Function ellipse(x_*x_/(getMajorRadius()*getMajorRadius()) + y_*y_/(getMinorRadius()*getMinorRadius()) - 1) ;
+
+    return ellipse ;
+}
+
+bool Ellipse::in(const Point &p) const 
+{ 
+    Function ellipse = this->getEllipseFormFunction() ;
+    return VirtualMachine().eval(ellipse,p) < 0 ;
+}
+
+std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, double alpha, double beta) const 
+{
+	std::vector<Point> ret ;
+
+	double angle = (beta-alpha) * M_PI / num_points ;
+
+	double thisangle = alpha + angle ;
+	double lastangle = alpha ;
+	double redfactor = 0.8 ; // factor for angle decrease < 1
+
+
+	Point thispoint = getPointOnEllipse(angle) ;
+	Point lastpoint = getPointOnEllipse(lastangle) ;
+	Point lastlastpoint = getPointOnEllipse(alpha-angle) ;
 	double criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
 
 	int n_iter = 0 ;
@@ -1867,7 +1766,7 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 				{ thisangle = lastangle + (thisangle - lastangle) * redfactor ; }
 			else
 				{ thisangle = lastangle + (thisangle - lastangle) / redfactor ; }
-			thispoint = center + majoraxis * (majorradius * cos(thisangle)) + minoraxis * (minorradius * sin(thisangle)) ;
+			thispoint = getPointOnEllipse(thisangle) ;
 			criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
 			n_iter++ ;
 		}
@@ -1876,97 +1775,14 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 
 		lastlastpoint = lastpoint ;
 		lastpoint = thispoint ;
-		
+
 		lastangle = thisangle ;
 		thisangle += angle ;
-		
-		thispoint = center + majoraxis * (majorradius * cos(thisangle)) + minoraxis * (minorradius * sin(thisangle)) ;
+
+		thispoint = getPointOnEllipse(thisangle) ;
 	}
-	
+
 	return ret ;
-}
-
-double Ellipse::area() const
-{
-	return M_PI * majorradius * minorradius ;
-}
-
-double Ellipse::getSquareRadius() const
-{
-	return sqradius ;
-}
-
-Point Ellipse::toSmallCircle(Point p, Point origin, bool b) const
-{
-	Point tsc(p - origin) ;
-	double tscmajor = tsc * majoraxis * minorradius / majorradius ;
-	double tscminor = tsc * getMinorAxis() ;
-	if(!b)
-	  tscmajor = tsc * majoraxis * majorradius / minorradius ;
-	return origin + majoraxis * tscmajor + getMinorAxis() * tscminor ;
-}
-
-Point Ellipse::getTangentDirection(double theta) const
-{
-	double alpha = this->getAxisAngle() ;
-	
-	double tangentx = - majorradius * sin(theta) ;
-	double tangenty = minorradius * cos(theta) ;
-
-	Point tangent(tangentx * cos(alpha) + tangenty * sin(alpha), - tangentx * sin(alpha) + tangenty * cos(alpha)) ;
-
-	return tangent ;
-}
-
-bool Ellipse::in(const Point &p) const 
-{ 
-	double theta = (p - center).angle() - majoraxis.angle() ;
-	double dist = getRadiusOnEllipse(theta) ;
-	return (squareDist2D(p, center) < dist * dist) ; 
-}
-
-std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, double alpha, double beta) const 
-{
-	std::vector<Point> ret ;
-
-	double angle = (beta - alpha) / (num_points) ;
-	double thisangle = alpha + angle ;
-	double lastangle = alpha ;
-	double redfactor = 0.8 ; // factor for angle decrease < 1
-	Point minoraxis = getMinorAxis() ;
-	
-	Point thispoint = center + majoraxis * (majorradius * cos(thisangle)) + minoraxis * (minorradius * sin(thisangle)) ;
-	Point lastpoint = center + majoraxis * (majorradius * cos(lastangle)) + minoraxis * (minorradius * sin(lastangle)) ;
-	Point lastlastpoint = center + majoraxis * (majorradius * cos(lastangle-angle)) + minoraxis * (minorradius * sin(lastangle-angle)) ;
-	double criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
-
-//	ret.push_back(lastpoint) ;
-
-	for (size_t i = 1 ; i< num_points + 1 ; i++)
-	{
-		while((criteria > angle) || (criteria < angle * redfactor))
-		{
-			if(criteria > angle)
-				{ thisangle = lastangle + (thisangle - lastangle) * redfactor ; }
-			else
-				{ thisangle = lastangle + (thisangle - lastangle) / redfactor ; }
-			thispoint = center + majoraxis * (majorradius * cos(thisangle)) + minoraxis * (minorradius * sin(thisangle)) ;
-			criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
-		}
-
-		ret.push_back(thispoint) ;
-
-		lastlastpoint = lastpoint ;
-		lastpoint = thispoint ;
-		
-		lastangle = thisangle ;
-		thisangle += angle ;
-		
-		thispoint = center + majoraxis * (majorradius * cos(thisangle)) + minoraxis * (minorradius * sin(thisangle)) ;
-	}
-	
-	return ret ;
-
 
 }
 
@@ -1985,107 +1801,85 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 
 void Ellipse::sampleSurface (size_t num_points)
 {
+        inPoints.resize(1) ;
+        inPoints[0] = new Point(center) ;
+
+        size_t n = num_points ;
+        n *= (size_t) round(5.*pow(getMajorRadius()/getMinorRadius(),0.66666667)/8.) ;
+
 	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(13*num_points*pow(getMajorRadius()/getMinorRadius(),0.666666)/8) ;
-//		this->sampleBoundingSurface(num_points * 2 / 3) ;
+		this->sampleBoundingSurface(n) ;
 	sampled = true ;
 
-	size_t ring = 1 + num_points / (3 * M_PI / 2) ;
-	if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
-	{	
+	size_t ring = 1 + n / (2*M_PI) ;
+
+        if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
 		ring++ ;
-	}
 
-	std::vector<Point*> temp ;
-	double newb = getMinorRadius() ;
-	double newa = getMajorRadius() ;
-	std::vector<double> newalist ;
-	newalist.push_back(getMajorRadius()) ;
+        std::vector<double> newa ;
+        std::vector<double> newb ;
+        std::vector<size_t> newn ;
 
-        int factor = 2 ;
-        int jfactor = 0 ;
-        bool jchange = false ;
+        double minn = (double) n * std::pow(0.7,(double) ring) ;
+        minn = std::max(minn,6.) ;
 
-	newb = getMinorRadius() * (ring) / (ring + 1) ;
-	newa = getMinorRadius() * (ring) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - 1) / (ring) ;
+        for(size_t i = 0 ; i < ring ; i++) {
+            newa.push_back(getMinorRadius() * (ring - i) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - i - 1) / (ring)) ;
+            newb.push_back(getMinorRadius() * (ring - i) / (ring + 1) ) ;
+            newn.push_back(n - (size_t) ((double)n - minn)*(double) (i+1) / (double) (ring+1)) ;
+        }
 
-	if(newb/newa < 0.7071)
-		ring = ring + 1 ;
+        for(size_t i = 0 ; i < newa.size() ; i++) {
+            Ellipse elln(center,getMajorAxis()*newa[i]/getMajorRadius(),getMinorAxis()*newb[i]/getMinorRadius()) ;
+            std::vector<Point> pn = elln.getSamplingBoundingPoints(newn[i]) ;
+            PointArray inTemp(0) ;
+            inTemp.resize(inPoints.size()) ;
+            for(size_t j = 0 ; j < inPoints.size() ; j++)
+                inTemp[j] = inPoints[j] ;
+            inPoints.resize(inPoints.size()+pn.size()) ;
+            for(size_t j = 0 ; j < inTemp.size() ; j++)
+                inPoints[j] = inTemp[j] ;
+            for(size_t j = 0 ; j < pn.size() ; j++)
+            {
+                inPoints[j+inTemp.size()] = new Point(pn[j]) ;
+            }
+        }
 
 
-	for(size_t j = 0 ; j < ring ; j++)
-	{
-		newb = getMinorRadius() * (ring - j) / (ring + 1) ;
-		newa = getMinorRadius() * (ring - j) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - j - 1) / (ring) ;
-		newalist.push_back(newa) ;
-                for(size_t i = 0 ; i < getBoundingPoints().size() / (factor * (jfactor + 1)) ; i++)
-		{
-			temp.push_back(new Point(center + 
-                                                getMajorAxis() * ((getBoundingPoint(i * (factor * (jfactor + 1))) - center) * getMajorAxis()) * newa / getMajorRadius() +
-                                                getMinorAxis() * ((getBoundingPoint(i * (factor * (jfactor + 1))) - center) * getMinorAxis()) * newb / getMinorRadius())) ;
-		}
-                if(jchange)
-                {
-                    jfactor++ ;
-		}
-                jchange != jchange ;
-		if(j > 4)
-			jchange = true ;
-		
-		factor = 2 ;
-	}
-	
-	int toadd = 1 ;
-	if(getMinorRadius() / getMajorRadius() < 0.5)// || ring==1)
-	{	
-		toadd = 1 + 4 * (std::min((int) newalist.size(),4) - 1) ;
-	}
-	inPoints.resize(temp.size() + toadd) ;
-	inPoints[0] = new Point(center) ;
-	if(toadd > 1)
-	{
-		for(size_t j = 0 ; j < newalist.size() - 1 ; j++)
-		{
-			inPoints[1 + j] = new Point(center + getMajorAxis() * (newalist[j] + newalist[j + 1] * 2) / 3) ;
-			inPoints[newalist.size() + j] = new Point(center + getMajorAxis() * (newalist[j] * 2 + newalist[j + 1]) / 3) ;
-			inPoints[newalist.size() * 2 + j - 1] = new Point(center - getMajorAxis() * (newalist[j] + newalist[j + 1] * 2) / 3) ;
-			inPoints[newalist.size() * 3 + j - 2] = new Point(center - getMajorAxis() * (newalist[j] * 2 + newalist[j + 1]) / 3) ;
-		}
-	}
-	for(size_t i = 0 ; i < temp.size() ; i++)
-		inPoints[i+toadd] = temp[i] ;
+
 }
 
-
-double Ellipse::getRadius() const
+Ellipse Ellipse::getEllipseInLocalCoordinates() const
 {
-	return majorradius ;
+    Point c(center) ;
+    Point a(getMajorRadius(), 0.) ;
+    Point b(0.,getMinorRadius()) ;
+
+    return Ellipse(c,a,b) ;
+
 }
+
+Point Ellipse::toLocalCoordinates(Point p) const
+{
+            double alpha = majorAxis.angle() ;
+            Point prot((p-center).x*cos(-alpha)-(p-center).y*sin(-alpha),
+                       +(p-center).x*sin(-alpha)+(p-center).y*cos(-alpha)) ;
+            return prot ;
+}
+
+
+
 
 std::vector<Point> Ellipse::getBoundingBox() const
 {
 	std::vector<Point> bbox(4) ;
-	Point minoraxis = this->getMinorAxis() ;
 	
-	bbox[0] = center + majoraxis * majorradius + minoraxis * minorradius ;
-	bbox[1] = center + majoraxis * majorradius - minoraxis * minorradius ;
-	bbox[2] = center - majoraxis * majorradius - minoraxis * minorradius ;
-	bbox[3] = center - majoraxis * majorradius + minoraxis * minorradius ;
+	bbox[0] = center + getMajorAxis() + getMinorAxis() ;
+	bbox[1] = center + getMajorAxis() - getMinorAxis() ;
+	bbox[2] = center - getMajorAxis() - getMinorAxis() ;
+	bbox[3] = center - getMajorAxis() + getMinorAxis() ;
 
 	return bbox ;
 }
-
-double Ellipse::getMinorRadius() const
-{
-	return minorradius ;
-}
-
-Point Ellipse::getMajorAxis() const
-{
-	return majoraxis ;
-}
-
-
-
 
 

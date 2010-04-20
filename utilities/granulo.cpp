@@ -117,7 +117,7 @@ std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, Point * biais,
     double pourcentInitial=1.-exp(-c*pow(rayon_granulat,n));//calcul la constante pour que le diamètre initiale corresponde à un pourcentage de 1.
 
 // 	rayon.push_back(rayon_granulat);
-    rayon.push_back( new EllipsoidalInclusion(rayon_granulat/sfactor, rayon_granulat,0., 0.,biais->x,biais->y)) ;
+    rayon.push_back( new EllipsoidalInclusion(Point(0.,0.),Point(biais->x,biais->y)*rayon_granulat,sfactor)) ;
 	std::cout << rayon_granulat << std::endl ;
 //    std::cout<< "n°"<<"masse granulat" << "  " <<"rayon granulat"<<"  " <<"volume granulat" << "  "<<"pourcent masse" <<"   "<<"masse restante"<<std::endl;
     double volumeGranulatsPasPlaces =0;
@@ -167,7 +167,7 @@ std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, Point * biais,
 //        if (rayon_granulat<0.07)
   //          return rayon;
 // 		rayon.push_back(rayon_granulat);
-        rayon.push_back(new EllipsoidalInclusion(rayon_granulat/sfactor,rayon_granulat, 0., 0.,b_.x,b_.y)) ;
+        rayon.push_back(new EllipsoidalInclusion(Point(0.,0.),Point(b_.x,b_.y),sfactor)) ;
 // 		std::cout << "rayon granulat reste  "<<rayon[i]->getRadius() << std::endl<<std::endl;
 
         i++;
@@ -591,7 +591,13 @@ std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc
             // ellipses
             std::cout << "creating ellipses..." << std::endl ;
             for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
-                inc.push_back(new EllipsoidalInclusion(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i], fieldvalues[3][i], fieldvalues[4][i], fieldvalues[5][i])) ;
+            {
+                Point center(fieldvalues[2][i], fieldvalues[3][i]) ;
+                Point a(fieldvalues[4][i], fieldvalues[5][i]) ;
+                a *= fieldvalues[0][i] ;
+                double b = fieldvalues[1][i]/fieldvalues[0][i] ;
+                inc.push_back(new EllipsoidalInclusion(center,a,b)) ;
+            }
             break ;
 		default:
 			break;

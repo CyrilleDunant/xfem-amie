@@ -71,7 +71,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 
 	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
 	
-	if(disc.size() < 2) // special case for really small inclusions
+	if(disc.size() == 1) // special case for really small inclusions
 	{
 		for(size_t i = 0 ; i < disc.size() ; i++)
 		{

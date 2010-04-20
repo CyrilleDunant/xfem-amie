@@ -298,7 +298,7 @@ std::vector<Mu::EllipsoidalInclusion *> Mu::placement_with_rotation(const Geomet
 			                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
 			               ) ;
 			inclusions[i]->Ellipse::setCenter(newCentre) ;
-			if(changeAxis > triesMax/5)
+/*			if(changeAxis > triesMax/5)
 			{
 				Point newAxis((double)rand()/(double)RAND_MAX,(double)rand()/(double)RAND_MAX) ;
 				inclusions[i] = new EllipsoidalInclusion(inclusions[i]->getMajorRadius(),
@@ -307,7 +307,7 @@ std::vector<Mu::EllipsoidalInclusion *> Mu::placement_with_rotation(const Geomet
 				changeAxis = 0 ;
 				std::cout <<i << " => Axis has been changed" << std::endl ;
 				hasBeenChanged++ ;
-			}
+			}*/
 			bbox = inclusions[i]->getBoundingBox() ;
 			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
 			{
@@ -319,7 +319,7 @@ std::vector<Mu::EllipsoidalInclusion *> Mu::placement_with_rotation(const Geomet
 				                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
 				               ) ;
 				inclusions[i]->Ellipse::setCenter(newCentre) ;
-				if(changeAxis > triesMax/5)
+/*				if(changeAxis > triesMax/5)
 				{
 					Point newAxis((double)rand()/(double)RAND_MAX,(double)rand()/(double)RAND_MAX) ;
 					inclusions[i] = new EllipsoidalInclusion(inclusions[i]->getMajorRadius(),
@@ -328,7 +328,7 @@ std::vector<Mu::EllipsoidalInclusion *> Mu::placement_with_rotation(const Geomet
 					changeAxis = 0 ;
 					std::cout << i << " => Axis has been changed" << std::endl ;
 					hasBeenChanged++ ;
-				}
+				}*/
 				bbox = inclusions[i]->getBoundingBox() ;
 			}
 		}

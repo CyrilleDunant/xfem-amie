@@ -98,7 +98,7 @@ double x_min = 0 ;
 double y_min = 0 ;
 
 double timepos = 0.00 ;
-int grid = 2 ;
+int grid = -1 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -1405,8 +1405,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 
-	F.sample(256) ;
-	F.useMultigrid = true ;
+	F.sample(1024) ;
+	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 

@@ -11,6 +11,8 @@
 namespace Mu
 {
 
+class Function ;
+
 /** \brief Triangle lying in 2-space.*/
 class Triangle : public ConvexGeometry
 {
@@ -464,59 +466,15 @@ class Ellipse : public ConvexGeometry
 {
 protected:
 	
-	double majorradius ;
-	double minorradius ;
-	double sqradius ;
-	double excentricity ;
-	Point majoraxis ;
+	Point majorAxis ;
+	Point minorAxis ;
 	virtual void computeCenter() ;
 	
 public:
-	/** \brief Construct an ellipse.
-	 * 
-	 * @param a major radius of the ellipse to construct.
-	 * @param b minor radius of the ellipse to construct.	 
-	 * @param originX global x coordinate of the center.
-	 * @param originY global y coordinate of the center.
-	 * @param axisX global x coordinate of the main axis direction.
-	 * @param axisY global y coordinate of the main axis direction.
-	 */
-	Ellipse(double a, double b, double originX, double originY, double axisX, double axisY) ;
-	
-	/** \brief Construct an ellipse. This constructor is provided for convenience and a copy of the point is made and storder in the internal points.
-	 * 
-	 * @param a major radius of the ellipse to construct.
-	 * @param b minor radius of the ellipse to construct.	 
-	 * @param center Center of the ellipse.
-	 * @param axis Axis direction of the ellipse.
-	 */
-	Ellipse(double a, double b, const Point *center, const Point *axis) ; 
-	
-	/** \brief Construct an ellipse.
-	 * 
-	 * @param a major radius of the ellipse to construct.
-	 * @param b minor radius of the ellipse to construct.	 
-	 * @param center Center of the ellipse.
-	 * @param axis Axis direction of the ellipse.
-	 */
-	Ellipse(double a, double b, const Point center, const Point axis) ; 
-	
-	/** \brief Construct an ellipse with a random axis direction.
-	 * 
-	 * @param a major radius of the ellipse to construct.
-	 * @param b minor radius of the ellipse to construct.	 
-	 * @param center Center of the ellipse.
-	 */
-	Ellipse(double a, double b, const Point center) ; 
+	Ellipse(Point center, Point a, Point b) ;
+	Ellipse(Point center, Point a, double param) ;
+	Ellipse(Point center, double a, double b) ;
 
-	/** \brief Construct an ellipse with a random axis direction.
-	 * 
-	 * @param a major radius of the ellipse to construct.
-	 * @param b minor radius of the ellipse to construct.	 
-	 * @param originX global x coordinate of the center.
-	 * @param originY global y coordinate of the center.
-	 */
-	Ellipse(double a, double b, double x, double y) ; 
 
 	/** \brief Copy an ellipse.
 	 * 
@@ -528,97 +486,87 @@ public:
 
 	virtual XMLTree * toXML() ;
 	
-	/** \brief Computes a * b and store the result in sqradius
-	 *
-	 */
-	virtual void setSqRadius() {this->sqradius = majorradius * minorradius ;} ;
 
-	/** \brief Computes the ellipse excentricity
-	 *
-	 */
-	virtual void setExcentricity() {this->excentricity = sqrt(1 - ((minorradius * minorradius) / (majorradius * majorradius))) ; } ;
+	/** \brief Get the norm of the major radius */
+	const double getMajorRadius() const {return majorAxis.norm() ; } ;
 
-	/** \brief Returns the ellipse excentricity
-	 *
-	 * @return the ellipse excentricity
-	 */
-	virtual double getExcentricity() const {return excentricity ; } ;
+	/** \brief Get the norm of the minor radius */
+	const double getMinorRadius() const {return minorAxis.norm() ; } ;
 
-	/** \brief Returns the ellipse polar parameter
+	/** \brief Computes the ellipse excentricity as sqrt(1-b^2/a^2)
+	 * @return the excentricty
+	 */
+	const double getExcentricity() const { return  sqrt(1 - ((getMinorRadius() * getMinorRadius()) / (getMajorRadius() * getMajorRadius()))) ; } ;
+
+	/** \brief Returns the ellipse polar parameter as a*(1-e^2) where e is the excentricity
 	 *
 	 * @return the ellipse polar parameter
 	 */
-	virtual double getParameter() const {return majorradius * (1 - excentricity*excentricity) ; } ;
+	const double getParameter() const {return getMajorRadius() * (1 - getExcentricity()*getExcentricity()) ; } ;
 
 	/** \brief Returns the ellipse main axis angle with the (Ox) axis
 	 *
 	 * @return the angle (in radians)
 	 */
-	virtual double getAxisAngle() const ;
+	const double getMajorAxisAngle() const {return majorAxis.angle() ; } ;
+
+	/** \brief Returns the ellipse minor axis angle with the (Ox) axis
+	 *
+	 * @return the angle (in radians)
+	 */
+	const double getMinorAxisAngle() const {return minorAxis.angle() ; } ;
 
 	/** \brief Returns one of the ellipse focus
 	 *
 	 * @param dir the direction of the focus along the main axis
 	 * @return the focus
 	 */
-	virtual Point getFocus(bool dir) const ;
+	const Point getFocus(bool dir) const ;
 
 	/** \brief Returns both ellipse foci
 	 *
 	 * @return the foci as a pair of points, First point is the focus in the same direction as the main axis. Second point is the focus in the opposite direction.
 	 */
-	virtual const std::pair<Point, Point> getBothFocus() ;
+	const std::pair<Point, Point> getBothFocus() const ;
 
 	/** \brief Returns the ellipse minor axis
 	 *
 	 * @return the minor radius as a normalized unit-vector.
 	 */
-	virtual Point getMinorAxis() const ;
+	const Point getMinorAxis() const { return minorAxis ; } ;
 
-	/** \brief Changes the main axis
+	/** \brief Returns the ellipse minor axis
 	 *
-	 * @param newaxis the new axis direction
+	 * @return the minor radius as a normalized unit-vector.
 	 */
-	virtual void setAxis(Point newaxis) ;
+	const Point getMajorAxis() const { return majorAxis ; } ;
 
-	/** \brief Returns the radius from the ellipse center as a function of the angle with the main axis.
-	 *
-	 * @param theta angle (in radians)
-	 * @return the radius
-	 */
-	virtual double getRadiusOnEllipse(double theta) const ;
+	const Point getPointOnEllipse(double theta) const ;
+
+	Function getEllipseFormFunction() const ;
+
+	Ellipse getEllipseInLocalCoordinates() const ;
+
+	Point toLocalCoordinates(Point p) const ;
+
 
 	/** \brief Returns a times b.
 	 *
 	 * @return the ellipse major radius
 	 */
-	virtual double getSquareRadius() const ;
+	virtual double getSquareRadius() const {return getMajorRadius() * getMinorRadius() ; };
 
 	/** \brief Returns the ellipse major radius.
 	 *
 	 * @return the ellipse major radius
 	 */
-	virtual double getRadius() const ;
+	virtual double getRadius() const {return getMajorRadius() ; } ;
 
 	/** \brief Returns the rectangle containing the ellipse
 	 *
 	 * @return the points of the rectangle
 	 */
 	virtual std::vector<Point> getBoundingBox() const ;
-
-	/** \brief Projects a point in local coordinates, so that the ellipse is transformed into a circle with a radius equal to the ellipse minor radius. This tranformation does not change the angles. Essentially, this is an homothety along the major axis, while coordinate along the minor axis is unchanged.
-	 *
-	 * @param the point to project
-	 * @return the point in the new coordinates
-	 */
-	virtual Point toSmallCircle(Point p, Point origin, bool b) const ;
-
-	/** \brief Returns the ellipse tangent as a function of the angle with the major axis
-	 *
-	 * @param angle with the ellipse major radius (in radians)
-	 * @return direction of the ellipse tangent
-	 */
-	virtual Point getTangentDirection(double theta) const ;
 
 	/** \brief Returns bounding points on arc (defined by two angles)
 	 *
@@ -628,16 +576,6 @@ public:
 	 * @return set of bounding points
 	 */
 	virtual std::vector<Point> getSampleBoundingPointsOnArc(size_t num_points, double alpha, double beta) const ;
-
-	/** \brief Returns the radius from one of the ellipse focus as a function of the angle with the main axis (standard polar definition of the ellipse)
-	 *
-	 * @param theta angle (in radians)
-	 * @param dir direction of the focus along the major axis
-	 * @return the radius
-	 */
-	virtual double getRadiusOnEllipseFromFocus(double theta, bool dir) const ;
-
-
 
 	/** \brief Sample the bounding Surface.
 	 * 
@@ -662,42 +600,17 @@ public:
 	virtual void sampleSurface(size_t num_points) ;
 	virtual bool in(const Point &v) const ;
 	
-	/** \brief Return the ellipse major radius.
-	 * 
-	 * @return the major radius.
-	 */
-	virtual double getMajorRadius() const { return majorradius ; } ;
-
-	/** \brief Return the ellipse minor radius.
-	 * 
-	 * @return the minor radius.
-	 */
-	virtual double getMinorRadius() const ;
-
-	/** \brief Return the ellipse major axis.
-	 * 
-	 * @return the major axis.
-	 */
-	virtual Point getMajorAxis() const ;
-
 	/** \brief Calculate the area.
 	 * 
 	 * Using the usual \f$ \pi a b \f$.
 	 * 
 	 * @return the area.
 	 */
-	virtual double area() const ;
+	virtual double area() const {return M_PI * getMajorRadius() * getMinorRadius() ; } ;
 	
 	/** \brief return 0*/
 	virtual double volume() const { return 0 ;} 
 
-	/** \brief Changes the two ellipse radii
-	 * 
-	 * @param newa the new major radius
-	 * @param newb the new minor radius
-	 */
-	virtual void setRadius(double newa, double newb);
-		
 	/** \brief Project the point on the ellipse.
 	 * 
 	 * @param  p Point to project.
