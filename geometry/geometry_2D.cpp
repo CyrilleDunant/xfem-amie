@@ -1859,7 +1859,7 @@ Ellipse Ellipse::getEllipseInLocalCoordinates() const
 
 }
 
-Point Ellipse::toLocalCoordinates(Point p) const
+Point Ellipse::toLocalCoordinates(const Point & p) const
 {
             double alpha = majorAxis.angle() ;
             Point prot((p-center).x*cos(-alpha)-(p-center).y*sin(-alpha),

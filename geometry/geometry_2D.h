@@ -488,33 +488,33 @@ public:
 	
 
 	/** \brief Get the norm of the major radius */
-	const double getMajorRadius() const {return majorAxis.norm() ; } ;
+	double getMajorRadius() const {return majorAxis.norm() ; } ;
 
 	/** \brief Get the norm of the minor radius */
-	const double getMinorRadius() const {return minorAxis.norm() ; } ;
+	double getMinorRadius() const {return minorAxis.norm() ; } ;
 
 	/** \brief Computes the ellipse excentricity as sqrt(1-b^2/a^2)
 	 * @return the excentricty
 	 */
-	const double getExcentricity() const { return  sqrt(1 - ((getMinorRadius() * getMinorRadius()) / (getMajorRadius() * getMajorRadius()))) ; } ;
+	double getExcentricity() const { return  sqrt(1 - ((getMinorRadius() * getMinorRadius()) / (getMajorRadius() * getMajorRadius()))) ; } ;
 
 	/** \brief Returns the ellipse polar parameter as a*(1-e^2) where e is the excentricity
 	 *
 	 * @return the ellipse polar parameter
 	 */
-	const double getParameter() const {return getMajorRadius() * (1 - getExcentricity()*getExcentricity()) ; } ;
+	double getParameter() const {return getMajorRadius() * (1 - getExcentricity()*getExcentricity()) ; } ;
 
 	/** \brief Returns the ellipse main axis angle with the (Ox) axis
 	 *
 	 * @return the angle (in radians)
 	 */
-	const double getMajorAxisAngle() const {return majorAxis.angle() ; } ;
+	double getMajorAxisAngle() const {return majorAxis.angle() ; } ;
 
 	/** \brief Returns the ellipse minor axis angle with the (Ox) axis
 	 *
 	 * @return the angle (in radians)
 	 */
-	const double getMinorAxisAngle() const {return minorAxis.angle() ; } ;
+	double getMinorAxisAngle() const {return minorAxis.angle() ; } ;
 
 	/** \brief Returns one of the ellipse focus
 	 *
@@ -533,13 +533,13 @@ public:
 	 *
 	 * @return the minor radius as a normalized unit-vector.
 	 */
-	const Point getMinorAxis() const { return minorAxis ; } ;
+	const Point & getMinorAxis() const { return minorAxis ; } ;
 
 	/** \brief Returns the ellipse minor axis
 	 *
 	 * @return the minor radius as a normalized unit-vector.
 	 */
-	const Point getMajorAxis() const { return majorAxis ; } ;
+	const Point & getMajorAxis() const { return majorAxis ; } ;
 
 	const Point getPointOnEllipse(double theta) const ;
 
@@ -547,7 +547,7 @@ public:
 
 	Ellipse getEllipseInLocalCoordinates() const ;
 
-	Point toLocalCoordinates(Point p) const ;
+	Point toLocalCoordinates(const Point & p) const ;
 
 
 	/** \brief Returns a times b.
