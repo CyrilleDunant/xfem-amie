@@ -2998,7 +2998,98 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 		}
 	case ELLIPSE:
 		{
+			std::vector<Point> ret ;
+			if(!this->intersects(g))
+				return ret ;
+
+			Point C(g->getCenter()) ;
+			Point A(dynamic_cast<const Ellipse*>(g)->getMajorAxis()) ;
+			Point B(dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
+
+
+			// vector in local coordinates
+			Point D(this->vector() * A, this->vector() * B) ;
+			// project ellipse->center on line			
+			Point proj(this->projection(C)) ;
+			// turn the result of the projection into local coordinates
+			Point o((proj-C)*A, (proj-C)*B) ;
+
 			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
+			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
+
+			if(std::abs(D.x) < 100*POINT_TOLERANCE)
+			{
+				// case line parallel to minor axis
+				double coordx = o.x ;
+				double coordy = b * sqrt(1. - (coordx*coordx) / (a*a)) ;
+
+				ret.push_back(C+A*coordx+B*coordy) ;
+				ret.push_back(C+A*coordx-B*coordy) ;
+				return ret ;
+			}
+			
+			if(std::abs(D.y) < 100*POINT_TOLERANCE)
+			{
+				// case line parallel to major axis
+				double coordy = o.y ;
+				double coordx = a * sqrt(1. - (coordy*coordy) / (b*b)) ;
+
+				ret.push_back(C+A*coordx+B*coordy) ;
+				ret.push_back(C-A*coordx+B*coordy) ;
+				return ret ;
+			}
+
+			Line tLine(o,D) ;
+			Line minorAxis(Point(0.,0.),B) ;
+
+			// use the intersection between this and the ellipse minor axis ;
+			o = tLine.intersection(minorAxis) ;
+
+			// line in local coordinates: y = p x + q 
+			double p = D.y / D.x ;
+			double q = o.y ;
+	
+			// (b2 + p2 a2) x2 + (2 a2 p q) x + a2 q2 - a2 b2 = 0
+			double Ua = b*b + p*p * a*a ;
+			double Ub = 2. * a*a * p * q ;
+			double Uc = a*a * q*q - a*a * b*b ;
+
+			double delta = Ub * Ub - 4. * Ua * Uc ;
+
+			if(std::abs(delta) < POINT_TOLERANCE)
+			{
+				double coordx = - Ub / (2 * Ua) ;
+				double coordy = p * coordx + q ;
+
+				coordx /= a ;
+				coordy /= b ;
+
+				ret.push_back(C+A*coordx+B*coordy) ;
+			}
+
+			if(delta > POINT_TOLERANCE)
+			{
+				double coordx = - (Ub - sqrt(delta)) / (2 * Ua) ;
+				double coordy = p * coordx + q ;
+
+				coordx /= a ;
+				coordy /= b ;
+
+				ret.push_back(C+A*coordx+B*coordy) ;
+
+				coordx = - (Ub + sqrt(delta)) / (2 * Ua) ;
+				coordy = p * coordx + q ;
+
+				coordx /= a ;
+				coordy /= b ;
+
+				ret.push_back(C+A*coordx+B*coordy) ;
+			}
+			return ret ;
+
+
+			
+/*			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
 			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
 			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
 			double coordx = 0. ;
@@ -3061,7 +3152,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 				coordy = (c * coordx + d) / b ;
 				ret.push_back(g->getCenter() + dynamic_cast<const Ellipse*>(g)->getMajorAxis() * coordx + dynamic_cast<const Ellipse*>(g)->getMinorAxis() * coordy) ;
 				return ret ;
-			}
+			}*/
 		}
 	case TRIANGLE:
 		{

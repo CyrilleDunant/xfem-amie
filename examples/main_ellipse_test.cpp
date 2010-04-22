@@ -1235,155 +1235,49 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, i
 
 int main(int argc, char *argv[])
 {
-	Matrix m0_paste(3,3) ;
-	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
+	Ellipse ell(Point(-1.,-1.0),Point(2.,1.),0.5) ;
+	Line l(Point(-1.5,-2.0),Point(0.5,1.0)) ;
 
-	Matrix m0_agg(3,3) ;
-	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
-	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
-	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
-
-	FeatureTree F(&sample) ;
-	featureTree = &F ;
-
-/*  	std::vector<double> columns ;
-	columns.push_back(0.) ;
-	columns.push_back(0.48) ;
-	columns.push_back(0.52) ;
-	columns.push_back(0.) ;
-	GranuloFromFile tgranulo("granulo_true.txt",columns,0.001,1) ;
-	tgranulo.resize(0.0005) ;
-	std::vector<EllipsoidalInclusion *> test = tgranulo.getEllipsoidalInclusion(2.3,10000,0.00112) ;
-	std::vector<EllipsoidalInclusion *> inc = sortByMajorRadius(test) ;
-	double area_test = 0 ;
-	for(int i = 0 ; i < inc.size() ; i++)
+/*	double theta = 0. ;
+	double dtheta = 0.1 ;
+	while(theta < 2*M_PI)
 	{
-		if(i%100 == 0)		
-			std::cout << inc[i]->getMajorAxis().y << "     " ;
-		area_test += inc[i]->area() ;
+		ell.getPointOnEllipse(theta).print() ;
+		theta += dtheta ;
 	}
-	std::cout << area_test << " (" << (100*area_test/0.0016) << "%)" << std::endl ;*/
+	return 0 ;*/
 
-        std::string ellipselist = "ellipse_good.txt" ;
-        std::vector< std::string> field ;
-        field.push_back("radius_a") ;
-        field.push_back("radius_b") ;
-        field.push_back("center_x") ;
-        field.push_back("center_y") ;
-        field.push_back("axis_x") ;
-        field.push_back("axis_y") ;
-
-        GranuloFromFile gff(ellipselist,field) ;
-        std::vector<Feature *> feat = gff.getFeatures(ELLIPSE_INCLUSION,9000) ;
-        std::vector<EllipsoidalInclusion *> inc ;
-        for(int i = 0 ; i < feat.size() ; i++)
-            inc.push_back(static_cast<EllipsoidalInclusion *>(feat[i])) ;
-
-        std::cout << inc.size() << std::endl ;
-        inc[inc.size() - 1]->getMajorAxis().print() ;
-
-        return 0 ;
-
-//        std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,9000) ;
+	ell.getCenter().print() ;
+	ell.getMajorAxis().print() ;
+	ell.getMinorAxis().print() ;
 
 
+	l.origin().print() ;
+	l.vector().print() ;
 
-//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
-//	sample.setBehaviour(new Stiffness(m0_paste)) ;
-//	std::vector<Feature *> feats ;
-//	for(size_t i = 0; i < inc.size() ; i++)
-//		feats.push_back(inc[i]) ;
-//	inc.clear() ;
-//	std::cout << width*height << std::endl ;
-//	int n_agg = feats.size() ;
-//	feats=placement(sample.getPrimitive(), feats, &n_agg, 640000);
-//	for(size_t i = 0; i < feats.size() ; i++)
-//		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
-//
-//	std::string ellipsefile = "ellipse_placed_sorted_9999" ;
-//	std::fstream ellipseout ;
-//	ellipseout.open(ellipsefile.c_str(), std::ios::out) ;
-//	for(int i = 0 ; i < inc.size() ; i++)
-//	{
-//		ellipseout << inc[i]->getMajorRadius() << "    " ;
-//		ellipseout << inc[i]->getMinorRadius() << "    " ;
-//		ellipseout << inc[i]->getCenter().x << "    " ;
-//		ellipseout << inc[i]->getCenter().y << "    " ;
-//		ellipseout << inc[i]->getMajorAxis().x << "    " ;
-//		ellipseout << inc[i]->getMajorAxis().y << "\n" ;
-//	}
-//	return 0 ;	
-//	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
-//	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
-//	Stiffness * stiff = new Stiffness(m0_agg) ;
-        for(size_t i = 0 ; i < inc.size() ; i++)
+/*	std::vector<Point> test ;
+	test.push_back(Point(0.0,0.0)) ;
+	test.push_back(Point(2.0,0.0)) ;
+	test.push_back(Point(0.0,1.0)) ;
+	test.push_back(Point(0.5,-0.5)) ;
+	test.push_back(Point(3.0,2.0)) ;
+	for(size_t i = 0 ; i < test.size() ; i++)
 	{
-		if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
-		{
-			std::cout << "fail to place all inclusions" << std::endl ;
-			std::cout << "last inclusion placed => " << i << std::endl ;
-			return 1 ;
-		}
-//		inc[i]->setBehaviour(stiff) ;
-		F.addFeature(&sample, inc[i]) ;
-//		inc[i]->getMajorAxis().print() ;
-		placed_area += inc[i]->area() ;
-	}
-	
-//	zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
-	
-	F.sample(1024) ;
-/*        int totest = 0 ;
-        int ptoadd = 0 ;
-        for(size_t i = 0 ; i < inc.size() ; i++)
-        {
-            if(i%100 == 0)
-                std::cout << "ellipse... " << i << std::endl ;
-            for(size_t j = 0 ; j < inc.size() ; j++)
-            {
-                if(j != i)
-                {
-                    if(dist(inc[i]->getCenter(),inc[j]->getCenter()) < inc[i]->getMajorRadius()+inc[j]->getMajorRadius())
-                    {
-                       totest++ ;
-                       for(size_t k = 0 ; k < inc[i]->getBoundingPoints().size() - 1 ; k++)
-                       {
-                           Point fpoint(inc[i]->getBoundingPoint(k)) ;
-                           Point spoint(inc[i]->getBoundingPoint(k+1)) ;
-                           Circle ctest(dist(fpoint,spoint),fpoint * 0.5 + spoint * 0.5) ;
-                           for(size_t l = 0 ; l < inc[j]->getBoundingPoints().size() ; l++)
-                           {
-                               Point testpoint(inc[j]->getBoundingPoint(l)) ;
-                               if(ctest.in(testpoint))
-                               {
-                                   PointArray pa = inc[i]->getInPoints() ;
-                                   pa.resize(pa.size()+1) ;
-                                   pa[pa.size()-1] = new Point(inc[i]->getCenter() + (ctest.getCenter() - inc[i]->getCenter()) * 0.95) ;
-                                   inc[i]->setInPoints(pa) ;
-                                   ptoadd++ ;
-                               }
-                           }
-                       }
-                    }
-                }
-            }
-        }
-        std::cout << totest << " ellipse tested... " << ptoadd << " points inserted" << std::endl ;*/
-        F.setOrder(LINEAR) ;
-        F.generateElements() ;
+		if(ell.in(test[i]))
+			std::cout << "in => " ;
+		else
+			std::cout << "out => " ;
+		test[i].print() ;
+	}	
 
-	std::cout << " => " << F.getTriangles().size() << std::endl ;
-        return 0 ;
+	return 0 ;*/
 
- 	stepOLD() ;
-//	step() ;
+	std::vector<Point> inter = l.intersection(&ell) ;
+	for(size_t i = 0 ; i < inter.size() ; i++)
+		inter[i].print() ;
+	if(inter.size() == 0)
+		std::cout << "no intersection" << std::endl ;
 
-//	dt->print() ;
- 	
-// 	delete dt ;*/
 	
 	return 0 ;
 }

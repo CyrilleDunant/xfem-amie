@@ -5285,9 +5285,9 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 {
 	double pointDensity = 0 ; 
 	if(is2D())
-		pointDensity = .7*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
+		pointDensity = .2*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
 	else
-		pointDensity = .7*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
+		pointDensity = .2*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
 		
 	std::cout << "space meshed with " << pointDensity << " points per unit length"<< std::endl ;
 

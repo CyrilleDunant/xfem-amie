@@ -146,31 +146,22 @@ int totit = 5 ;
 std::vector<double> energy ;
 
 
+
 std::string itoa(int value, int base) {
 
 	enum { kMaxDigits = 35 };
 	std::string buf;
-	buf.reserve( kMaxDigits ); // Pre-allocate enough space.
-
-	// check that the base if valid
+	buf.reserve( kMaxDigits );
 	if (base < 2 || base > 16) return buf;
-
 	int quotient = value;
-	
-	
-	// Translating number to string with base:
 	do {
 		buf += "0123456789abcdef"[ std::abs( quotient % base ) ];
 		quotient /= base;
 	} while ( quotient );
-	
-	// Append the negative sign for base 10
 	if ( value < 0 && base == 10) buf += '-';
-	
 	std::reverse( buf.begin(), buf.end() );
-	
 	return buf;
-	
+
 }
 
 
@@ -248,7 +239,8 @@ void step()
 		{
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
-			setBC() ;
+//			setBC() ;
+			triangles = featureTree->getTriangles() ;
 			limit++ ;
 	  // check if the two cracks did not touch
 			cracks_did_not_touch = true;
@@ -1465,173 +1457,223 @@ void Display(void)
 	glutSwapBuffers();
 }
 
+std::vector<EllipsoidalInclusion *> circleToEllipse(std::vector<Inclusion *> circle, double biais)
+{
+	std::vector<EllipsoidalInclusion *> ellipse ;
+	double alea_radius = 1 ;
+	double alea_dir = 0 ;
+	Point newcenter(0.2,0.2) ;
+	Point newaxis(1,0) ;
+	double ellipse_area = 0 ;
+	for(int i = 0 ; i < circle.size() ; i++)
+	{
+//                std::cout << circle[i]->getRadius()/10 << ";" ;
+		alea_radius = 1 / (1 + (double)rand()/((double)RAND_MAX)) ;
+		alea_dir = biais * (1 - 2*(double)rand()/((double)RAND_MAX)) ;
+		newaxis.setY(alea_dir) ;
+                newaxis /= newaxis.norm() ;
+		ellipse.push_back(new EllipsoidalInclusion(newcenter,newaxis*circle[i]->getRadius(),alea_radius)) ;
+		ellipse_area += ellipse[i]->area() ;
+	}
+	std::cout << "\n" << ellipse_area << "\n" << std::endl ;
+	return ellipse ;
+}
+
+std::vector<EllipsoidalInclusion *> sortByMajorRadius(std::vector<EllipsoidalInclusion *> unsorted)
+{
+	std::vector<EllipsoidalInclusion *> ret ;
+	std::vector<bool> sorted ;
+	for(int i = 0 ; i < unsorted.size() ; i++)
+		sorted.push_back(true) ;
+	int done = 0 ;
+	while(done<unsorted.size())
+	{
+		int j = 0 ;
+		double radius = 0 ;
+		for(int i = 0 ; i < unsorted.size() ; i++)
+		{
+			if(sorted[i])
+			{
+				if(unsorted[i]->getMajorRadius() > radius)
+				{
+					radius = unsorted[i]->getMajorRadius() ;
+					j = i ;
+				}
+			}
+		}
+		sorted[j] = false ;
+		ret.push_back(unsorted[j]) ;
+		done = ret.size() ;
+	}
+	return ret ;
+}
+
+std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, int nell)
+{
+	std::cout << "importing ellipses from file... " << ellipsefile << std::endl ;
+	std::vector<EllipsoidalInclusion *> inc ;
+	std::fstream ellipsein ;
+	ellipsein.open(ellipsefile.c_str(),std::ios::in) ;
+	double cx ;
+	double cy ;
+	double ax ;
+	double ay ;
+        double bx ;
+        double by ;
+	char buff [256] ;
+	int nimp = 0 ;
+	while(!ellipsein.eof() && nimp < nell)
+	{
+		nimp++ ;
+		ellipsein >> buff ;
+		cx = atof(buff) ;
+		ellipsein >> buff ;
+		cy = atof(buff) ;
+		ellipsein >> buff ;
+		ax = atof(buff) ;
+		ellipsein >> buff ;
+		ay = atof(buff) ;
+		ellipsein >> buff ;
+		bx = atof(buff) ;
+		ellipsein >> buff ;
+		by = atof(buff) ;
+		Point C(cx,cy) ;
+		Point A(ax,ay) ;
+		Point B(bx,by) ;
+		inc.push_back(new EllipsoidalInclusion(C,A,B)) ;
+	}
+	ellipsein.close() ;
+	inc.pop_back() ;
+	std::cout << inc.size() << " ellipses imported" << std::endl ;
+	return inc ;
+}
+
+
+
 int main(int argc, char *argv[])
 {
+	int biais = atof(argv[1]) ;
 
-  // Material behaviour of the matrix
-	Matrix m0_paste(3,3) ;
-	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
-	m0_paste = m0_paste*10 ;
 
-	// Material behaviour of the fibres
-	Matrix m0_agg(3,3) ;
-	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
-	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
-	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
+        Sample box(NULL, 0.04,0.04, 0.02, 0.02) ;
 
-	// Material behaviour for the "very" stiff inclusion
-	Matrix m0_stiff(3,3) ;
-	m0_stiff[0][0] = E_stiff/(1.-nu*nu) ; m0_stiff[0][1] =E_stiff/(1.-nu*nu)*nu ; m0_stiff[0][2] = 0 ;
-	m0_stiff[1][0] = E_stiff/(1.-nu*nu)*nu ; m0_stiff[1][1] = E_stiff/(1.-nu*nu) ; m0_stiff[1][2] = 0 ; 
-	m0_stiff[2][0] = 0 ; m0_stiff[2][1] = 0 ; m0_stiff[2][2] = E_stiff/(1.-nu*nu)*(1.-nu)/2. ; 
-
-	// Material behaviour for the "very" soft inclusion
-	Matrix m0_soft(3,3) ;
-	m0_soft[0][0] = E_soft/(1.-nu*nu) ; m0_soft[0][1] =E_soft/(1.-nu*nu)*nu ; m0_soft[0][2] = 0 ;
-	m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1.-nu*nu) ; m0_soft[1][2] = 0 ; 
-	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
-
-	double width = 0.02;
-	double height = 0.01;
-	Sample sample(NULL, width, height, 0.01, 0.005) ;
-	
-	Matrix d(3,3) ;
-	d[0][0] = .1*E_paste ;
-	d[1][1] = .1*E_paste ;
-	d[2][2] = .1*E_paste ;
-	FeatureTree F(&sample) ;
+	FeatureTree F(&box) ;
 	featureTree = &F ;
 
+/*	std::vector<Inclusion *> inclusions = GranuloBolome(0.000000743, 1., BOLOME_D)(.00025, .00001, 8000, 0.00005);
+        std::vector<EllipsoidalInclusion *> ellipses = circleToEllipse(inclusions,biais) ;
+        ellipses = sortByMajorRadius(ellipses) ;
 
-//	sample.setBehaviour(new Stiffness(m0_paste)) ;
-// 	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(25, -50))) ;
-//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
-// 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
+        std::vector<Feature *> feats ;
+        for(size_t i = 0 ; i < ellipses.size() ; i++) {
+            feats.push_back(static_cast<Feature *>(ellipses[i])) ;
+        }
+        ellipses.clear() ;
 
-// 	crack.push_back(new BranchedCrack(new Point(-0.02, -.00215), new Point(-0.009, -.00215)));
-// 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
-// 	crack.back()->setEnrichementRadius(.0005) ;
-	//add crack to list of cracks
-// 	crack.push_back(new BranchedCrack(new Point(0.011,.00215), new Point(0.009, 0.00215))) ;
-// 	crack.back()->setEnrichementRadius(.0005) ;
-// 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
-	Vector def(3) ; 
-// 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
-// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-// 	Inclusion * inc0 = new Inclusion(0.0027, 0.007, -0.002) ;
-	int nAgg = 1 ;
-// 	std::cout << "number of inclusions?" << std::endl ;
-// 	std::cin >> nAgg ;
-	std::vector<EllipsoidalInclusion *> inc = Granulo(0.003, 0.0025, 0.75, 0.026)(true, new Point(1,0), 0.001/2, 0.0001, 0.5, nAgg) ;
-	double itzsize = 0.0001 ;
-	std::cout << itzsize << std::endl ;
-
-//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
- 	sample.setBehaviour(new Stiffness(m0_paste)) ;
-
-//	std::ofstream off ;
-//	off.open("granulo.txt", ios::out) ;
-//	for(size_t i = 0 ; i < inc.size() ; i++)
-//		off << inc[i]->getRadius() << " , " << inc[i]->getMinorRadius() << " ; " << std::endl ;
-//	off.close() ;
-
-//	for(size_t i = 0 ; i < inc.size() ; i++)
-//	{
-//		if(std::abs(std::cos(inc[i]->getMajorAxis().angle())) > sqrt(2)/2)
-//			inc[i]->setAxis(inc[i]->getMinorAxis()) ;
-//	}
-	
-//	EllipsoidalInclusion * inc1 = new EllipsoidalInclusion(0.002, 0.001, 0, 0) ;
-// 	inc0->setBehaviour(new Stiffness(m0_paste)) ;
-	std::vector<Feature *> feats ;
-	for(size_t i = 1; i < inc.size() ; i++)
-		feats.push_back(inc[i]) ;
+        int nAgg = 1 ;
+        feats=placement(box.getPrimitive(), feats, &nAgg, 10000);
 
 
-	inc.clear() ;
-	for(size_t i = 0; i < feats.size() ; i++)
-		inc.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
+        Grid grid(box.getPrimitive()->getRadius()*2, box.getPrimitive()->getRadius()*2, 100, box.getCenter()) ;
 
-	feats=placement(sample.getPrimitive(), feats, &nAgg, 640000);
+        std::cout << "checking for intersection... takes some time..." << std::endl ;
+        for(size_t i = 0 ; i < feats.size() ; i++) {
+            ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
+            if(!grid.add(ellipses[i]->getPrimitive()))
+                std::cout << i << std::endl ;
+        }
 
-//	vector<Feature *> itzfeatures ;
-//	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
-//	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_paste*10,new MohrCoulomb(57000000,-8*57000000));
-	Stiffness * stiff = new Stiffness(m0_paste*10);
-//	inc[0]->setBehaviour(stiff) ;
-//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-// 	F.addFeature(&sample, inc0) ;
-//	itzfeatures.push_back(new ITZFeature(&sample,inc[0],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
-//	F.addFeature(&sample, itzfeatures[0]) ;
-	for(size_t i = 0 ; i < inc.size() ; i++)
+	std::string ellipsefile = "ellipse_" ;
+        double bcent = biais * 100 ;
+
+        std::string bstring = itoa((int) bcent, 10) ;
+        ellipsefile.append(bstring) ;
+
+	std::fstream ellipseout ;
+	ellipseout.open(ellipsefile.c_str(), std::ios::out) ;
+	for(int i = 0 ; i < ellipses.size() ; i++)
 	{
-//		std::cout << i << std::endl ;
-//		inc[i]->getMajorAxis().print() ;
-		if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
-		{
-			std::cout << "fail to place all inclusions" << std::endl ;
-			std::cout << "last inclusion placed => " << i << std::endl ;
-			return 1 ;
-		}
-//		SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*10, m0_paste*10,itzsize,57000000,-8*57000000) ;
-		inc[i]->setBehaviour(stiff) ;
-//		inc[i]->setBehaviour(new Stiffness(m0_paste*1000.)) ;
-// 	F.addFeature(&sample, inc0) ;
-//		itzfeatures.push_back(new ITZFeature(&sample,inc[i],m0_paste,m0_paste*0.5,itzsize,10000000,-8*10000000)) ;
-//		F.addFeature(itzfeatures[i-1], itzfeatures[i]) ;
-//		F.addFeature(itzfeatures[i],inc[i]) ;
-		F.addFeature(&sample, inc[i]) ;
+		ellipseout << ellipses[i]->getCenter().x << "    " ;
+		ellipseout << ellipses[i]->getCenter().y << "    " ;
+		ellipseout << ellipses[i]->getMajorAxis().x << "    " ;
+		ellipseout << ellipses[i]->getMajorAxis().y << "    " ;
+		ellipseout << ellipses[i]->getMinorAxis().x << "    " ;
+		ellipseout << ellipses[i]->getMinorAxis().y << "\n" ;
 	}
-/*	F.addFeature(itzfeatures[inc.size()-1], inc[0]) ;
-	for(size_t i = 1 ; i < inc.size() ; i++)
+
+        return 0 ;*/
+
+	std::string ellipsefile = "ellipse_" ;
+        std::string bstring = itoa(biais,10) ;
+        ellipsefile.append(bstring) ;
+
+        std::vector<EllipsoidalInclusion *> ellipses = importEllipseList(ellipsefile,10000) ;
+
+	for(size_t i = 0 ; i < ellipses.size() ; i++)
+		ellipses[i]->sampleBoundingSurface(40) ;
+
+/*	std::cout << "checking for intersection... again" << std::endl ;
+	std::vector<std::pair<size_t, size_t> > inter ;
+	for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
-		F.addFeature(inc[i-1], inc[i]) ;
-	}*/
-// 	F.addFeature(&sample, new Pore(0.002, 0.007, -0.002)) ;
-// 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-// 	F.addFeature(&sample, new TriangularPore(Point(-0.011, -0.002) , Point(-0.011,-0.0023), Point(-0.009,-0.00215) )) ;
-// 	F.addFeature(&sample, new TriangularPore(Point( 0.011,  0.002) , Point( 0.011, 0.0023), Point( 0.009, 0.00215) )) ;
+		if(i%100 == 0)
+			std::cout << i << " => " ;
+		for(size_t j = 0 ; j < i ; j++)
+		{
+			if(j%100 == 0 && i%100 == 0)
+				std::cout << j << " ; " ;
+//			std::cout << j << std::endl ;
+			if((ellipses[i]->getPrimitive()->intersection(ellipses[j]->getPrimitive())).size() > 0)
+				inter.push_back(std::make_pair(i,j)) ;
+		}
+		if(i%100 == 0)
+			std::cout << inter.size() << " intersections found so far..." << std::endl ;
+	}
+	for(size_t n = 0 ; n < inter.size() ; n++)
+	{
+		size_t i = inter[n].first ;
+		size_t j = inter[n].second ;
+		std::cout << "----" << std::endl ;
+		std::cout << ellipses[i]->getMajorRadius() + ellipses[i]->getCenter().x << ";";
+		std::cout << - ellipses[i]->getMajorRadius() + ellipses[i]->getCenter().x << std::endl ;
+		std::cout << ellipses[i]->getMajorRadius() + ellipses[i]->getCenter().y << ";" ;
+		std::cout << - ellipses[i]->getMajorRadius() + ellipses[i]->getCenter().y << std::endl ;
+		std::cout << ellipses[j]->getMajorRadius() + ellipses[j]->getCenter().x << ";" ;
+		std::cout << - ellipses[j]->getMajorRadius() + ellipses[j]->getCenter().x << std::endl ;
+		std::cout << ellipses[j]->getMajorRadius() + ellipses[j]->getCenter().y << ";" ;
+		std::cout << - ellipses[j]->getMajorRadius() + ellipses[j]->getCenter().y << std::endl ;
+	}
+//		std::cout << inter[i].first << ";" << inter[i].second << std::endl ;
 
-// F.addFeature(&sample, new TriangularPore(Point( -0.009, -0.002) , Point( -0.008, -0.002), Point( -0.007, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.0047, -0.002) , Point( -0.0057, -0.002), Point( -0.0067, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
-// F.addFeature(&sample, new TriangularPore(Point( -0.002, -0.002) , Point( -0.001, -0.002), Point( -0.0015, 0.002) )) ;
-/*	std::vector<Pore *> pores;
-
-	double totalMass = 0.25;
-	double density = 25000;
-	double Dmax = 0.005;
-	double pmin = 0.999;
-	// Generates inclusion geometry
-	double radius1 = 0.004; 	double radius2 = 0.04/5;
-	double radius3 = 0.04/5; double radius4 = 0.04/10;
-	double radius5 = 0.04/20;  double radius6 = 0.04/20;
-	Point center1 = Point(0.0,-0.01);
-	Point center2 = Point(0.02,0.02);
-	Point center3 = Point(-0.02,-0.02);
-	Point center4 = (center2 + center1)/2;
-	Point center5 = (center1 + Point(0.0,0.01));
-	Point center6 = (center5 + Point(0.0,0.005));
+	return 0 ;*/
 
 
-	Circle cercle(.5, 0,0) ;*/
+        double E_agg = 70. ;
+        double E_paste = 25. ;
+        double nu = 0.2 ;
+        Matrix m0_agg(3,3) ;
+	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
+	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ;
+	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ;
 
-	F.sample(256) ;
+	Matrix m0_paste(3,3) ;
+	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
+	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ;
+	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ;
+
+        box.setBehaviour(new Stiffness(m0_paste)) ;
+        for(size_t i = 0 ; i < ellipses.size() ; i++) {
+            F.addFeature(&box,ellipses[i]) ;
+            ellipses[i]->setBehaviour(new Stiffness(m0_agg)) ;
+        }
+
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.005)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+
+	F.sample(512) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
-// 	F.refine(3) ;
-
-	
-	///	F.generateElements(0) ;
-// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
-	
-//	for(size_t j = 0 ; j < crack.size() ; j++)
-	//	crack[j]->setInfluenceRadius(0.02) ;
-// 	
 
 	step() ;
 	
