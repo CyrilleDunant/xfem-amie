@@ -25,6 +25,7 @@ features/expansiveRing.cpp
 features/expansiveZone3d.cpp 
 features/expansiveZone.cpp 
 features/features.cpp 
+features/growingExpansiveZone.cpp
 features/inclusion3d.cpp 
 features/inclusion.cpp 
 features/layeredinclusion.cpp 

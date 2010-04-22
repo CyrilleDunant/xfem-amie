@@ -1612,7 +1612,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < ellipses.size() ; i++)
 		ellipses[i]->sampleBoundingSurface(40) ;
 
-/*	std::cout << "checking for intersection... again" << std::endl ;
+	std::cout << "checking for intersection... again" << std::endl ;
 	std::vector<std::pair<size_t, size_t> > inter ;
 	for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
@@ -1645,7 +1645,7 @@ int main(int argc, char *argv[])
 	}
 //		std::cout << inter[i].first << ";" << inter[i].second << std::endl ;
 
-	return 0 ;*/
+	return 0 ;
 
 
         double E_agg = 70. ;
