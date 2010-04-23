@@ -109,8 +109,8 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
 
-double width = 0.07;
-double height = 0.07;
+double width = 0.04;
+double height = 0.04;
 Sample sample(NULL, width, height, width/2, height/2) ;
 	
 std::vector<std::pair<double, double> > expansion_reaction ;
@@ -592,9 +592,9 @@ void setBC()
 void stepOLD()
 {
 
-	int nsteps = 1;
-	int nstepstot = 1;
-	int maxtries = 2 ;
+	int nsteps = 5;
+	int nstepstot = 10;
+	int maxtries = 200 ;
 	int tries = 0 ;
 	
 // 	fastForward(4, 10) ;
@@ -1073,7 +1073,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	double nu_csh = .28 ;
 //	double nu_incompressible = .499997 ;
 	
-	double E = 1*E_csh ;
+	double E = 1.*E_csh ;
 	double nu = nu_csh ; //nu_incompressible ;
 	
 	Matrix m0(3,3) ;
@@ -1104,7 +1104,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(incs[i], radius, pos.x, pos.y, m0, a)) ;
+			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
 		else
 			i-- ;
 	}
@@ -1199,21 +1199,17 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, i
 	std::vector<EllipsoidalInclusion *> inc ;
 	std::fstream ellipsein ;
 	ellipsein.open(ellipsefile.c_str(),std::ios::in) ;
-	double a ;
-	double b ;
 	double cx ;
 	double cy ;
 	double ax ;
 	double ay ;
+	double bx ;
+	double by ;
 	char buff [256] ;
 	int nimp = 0 ;
 	while(!ellipsein.eof() && nimp < nell)
 	{
 		nimp++ ;
-		ellipsein >> buff ;
-		a = atof(buff) ;
-		ellipsein >> buff ;
-		b = atof(buff) ;
 		ellipsein >> buff ;
 		cx = atof(buff) ;
 		ellipsein >> buff ;
@@ -1222,10 +1218,13 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, i
 		ax = atof(buff) ;
 		ellipsein >> buff ;
 		ay = atof(buff) ;
+		ellipsein >> buff ;
+		bx = atof(buff) ;
+		ellipsein >> buff ;
+		by = atof(buff) ;
 		Point C(cx,cy) ;
 		Point A(ax,ay) ;
-		A *= a ;
-		double B = b/a ;
+		Point B(bx,by) ;
 		inc.push_back(new EllipsoidalInclusion(C,A,B)) ;
 	}
 	ellipsein.close() ;
@@ -1237,6 +1236,10 @@ std::vector<EllipsoidalInclusion *> importEllipseList(std::string ellipsefile, i
 
 int main(int argc, char *argv[])
 {
+
+	int biais = atof(argv[1]) ;
+
+
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
@@ -1268,8 +1271,12 @@ int main(int argc, char *argv[])
 	}
 	std::cout << area_test << " (" << (100*area_test/0.0016) << "%)" << std::endl ;*/
 
-	std::string ellipselist = "ellipse_good.txt" ;
-	std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipselist,2) ;
+	std::string ellipsefile = "ellipse_" ;
+        std::string bstring = itoa(biais,10) ;
+        ellipsefile.append(bstring) ;
+
+        std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipsefile,10000) ;
+
 
 
 
@@ -1304,35 +1311,19 @@ int main(int argc, char *argv[])
 //	Stiffness * stiff = new Stiffness(m0_agg) ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
-		bool alone = true ;
-		for(size_t j = 0 ; j < i ; j++)
-		{
-			if(inc[i]->intersects(inc[j]->getPrimitive()))
-			{
-				std::cout << "intersection " << i << ";" << j << std::endl ; 
-				alone = false ;
-			}
-		}
-		if(alone)
-		{
-			if(inc[i]->getCenter().x == 0 && inc[i]->getCenter().y == 0)
-			{
-				std::cout << "fail to place all inclusions" << std::endl ;
-				std::cout << "last inclusion placed => " << i << std::endl ;
-				return 1 ;
-			}
-			inc[i]->setBehaviour(stiff) ;
-			F.addFeature(&sample, inc[i]) ;
+		inc[i]->setBehaviour(stiff) ;
+		F.addFeature(&sample, inc[i]) ;
 //		inc[i]->getMajorAxis().print() ;
-			placed_area += inc[i]->area() ;
-		}
+		placed_area += inc[i]->area() ;
 	}	
-//        zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
+	zones = generateExpansiveZonesHomogeneously(15000,inc,F) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0.01)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
 
-	F.sample(256) ;
+	F.sample(512) ;
 	F.setOrder(LINEAR) ;
         F.generateElements() ;
 
