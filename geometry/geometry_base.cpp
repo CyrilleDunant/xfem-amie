@@ -4553,47 +4553,46 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
 bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
 {
 
-	Point centre = (test+f0+f1)*.3333333333333333333333333 ;
+	if(test == f1 || test == f0)
+		return true ;
+//	if(std::abs((f0 - test) * (f1 - test)) < POINT_TOLERANCE)
+//		return false ;
+
+	Point centre ;
+//	Point centre = (test+f0+f1)*.3333333333333333333333333 ;
 	Point f0_(f0-centre) ;
 	Point f1_(f1-centre) ;
 	Point test_(test-centre) ;
-	double scale = 1./sqrt(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm())) ;
-	f0_ *=scale ;
-	f1_ *=scale ;
-	test_ *=scale ;
-	if(test == f1 || test == f0)
-		return true ;
-	if(std::abs((f0 - test) * (f1 - test)) < POINT_TOLERANCE)
-		return false ;
+	double scale = 0.1/(std::max(std::max(f0_.norm(), f1_.norm()), test_.norm())) ;
+	f0_   *= scale ;
+	f1_   *= scale ;
+	test_ *= scale ;
+//	if (std::abs(signedAlignement(test_, f0_, f1_)) > 2.*POINT_TOLERANCE)
+//		return false ;
 
-	if (std::abs(signedAlignement(test_, f0_, f1_)) >= 2.*POINT_TOLERANCE)
-		return false ;
+	Point a(f0_-f1_) ;
+	Point b(f0_-test_) ;
+	Point c(f1_-test_) ;
+
+	double na = a.norm() ;
+	double nb = b.norm() ;
+	double nc = c.norm() ;
 	
-	double mdist = sqrt(std::max(squareDist3D(f0_, f1_), std::max(squareDist3D(f0_, test_), squareDist3D(f1_, test_)))) ;
-
-	double delta = .25*POINT_TOLERANCE*mdist ;
-
-//	Point a(test_) ; a.x += delta ;
-	Point b(test_) ; b.x += delta ; b.y += delta;
-//	Point c(test_) ; c.y += delta;
-	Point d(test_) ; d.x -= delta ; d.y += delta; 
-//	Point e(test_) ; e.x -= delta ;
-	Point f(test_) ; f.x -= delta ; f.y -= delta; 
-//	Point g(test_) ; g.y -= delta;
-	Point h(test_) ; h.x += delta ; h.y -= delta; 
-	
-
-	if(std::abs(signedAlignement(b, f0_, f1_)) >= 2.*POINT_TOLERANCE)
-		return false ;
-
-	if(std::abs(signedAlignement(d, f0_, f1_)) >= 2.*POINT_TOLERANCE)
-		return false ;
-	if(std::abs(signedAlignement(f, f0_, f1_)) >= 2.*POINT_TOLERANCE)
-		return false ;
-	if(std::abs(signedAlignement(h, f0_, f1_))  >= 2.*POINT_TOLERANCE)
-		return false ;
-	return true ;
-
+	if(na >= nb && na >= nc)
+	{
+		Line l(f0_,(f1_-f0_)/na) ;
+		Sphere s(POINT_TOLERANCE, test_) ;
+		return l.intersects(&s) ;
+	}
+	if(nb >= na && nb >= nc)
+	{
+		Line l(f0_,(test_-f0_)/nb) ;
+		Sphere s(POINT_TOLERANCE, f1_) ;
+		return l.intersects(&s) ;
+	}
+	Line l(f1_,(test_-f1_)/nc) ;
+	Sphere s(POINT_TOLERANCE, f0_) ;
+	return l.intersects(&s) ;
 } 
 
 bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
