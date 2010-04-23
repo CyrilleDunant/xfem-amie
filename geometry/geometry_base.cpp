@@ -2951,9 +2951,14 @@ bool Line::intersects(const Geometry *g) const
 		}
 	case SPHERE:
 		{
-			Point center(g->getCenter()) ;
-			double uc = v*g->getCenter() ;
-			double delta = uc*uc - v.sqNorm()*g->getCenter().sqNorm() - g->getRadius()*g->getRadius() ;
+			double a = v.sqNorm() ;
+			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y + (p.z-g->getCenter().z)*v.z)*2. ;
+			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
+			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
+			          +(p.z-g->getCenter().z)*(p.z-g->getCenter().z)
+			          -g->getRadius()*g->getRadius() ;
+			double delta = b*b - 4*a*c ;
+			
 			return delta >= 0 ;
 		}
 	default:
@@ -4558,12 +4563,12 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 //	if(std::abs((f0 - test) * (f1 - test)) < POINT_TOLERANCE)
 //		return false ;
 
-	Point centre ;
-//	Point centre = (test+f0+f1)*.3333333333333333333333333 ;
+//	Point centre ;
+	Point centre = (test+f0+f1)*.3333333333333333333333333 ;
 	Point f0_(f0-centre) ;
 	Point f1_(f1-centre) ;
 	Point test_(test-centre) ;
-	double scale = 0.1/(std::max(std::max(f0_.norm(), f1_.norm()), test_.norm())) ;
+	double scale = sqrt(POINT_TOLERANCE)/(std::max(std::max(f0_.norm(), f1_.norm()), test_.norm())) ;
 	f0_   *= scale ;
 	f1_   *= scale ;
 	test_ *= scale ;
@@ -4581,17 +4586,17 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	if(na >= nb && na >= nc)
 	{
 		Line l(f0_,(f1_-f0_)/na) ;
-		Sphere s(POINT_TOLERANCE, test_) ;
+		Sphere s(1.*POINT_TOLERANCE, test_) ;
 		return l.intersects(&s) ;
 	}
 	if(nb >= na && nb >= nc)
 	{
 		Line l(f0_,(test_-f0_)/nb) ;
-		Sphere s(POINT_TOLERANCE, f1_) ;
+		Sphere s(1.*POINT_TOLERANCE, f1_) ;
 		return l.intersects(&s) ;
 	}
 	Line l(f1_,(test_-f1_)/nc) ;
-	Sphere s(POINT_TOLERANCE, f0_) ;
+	Sphere s(1.*POINT_TOLERANCE, f0_) ;
 	return l.intersects(&s) ;
 } 
 

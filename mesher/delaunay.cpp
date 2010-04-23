@@ -1593,19 +1593,7 @@ void DelaunayTriangle::insert(std::vector<DelaunayTreeItem *> &ret, Point *p,  S
 		if (!getNeighbour(i)->visited && (!getNeighbour(i)->inCircumCircle(*p) || getNeighbour(i)->onCircumCircle(*p)))
 		{
 			std::pair< Point*,  Point*> pp = this->commonEdge(getNeighbour(i)) ;
-                        Point a(*p) ;
-                        Point b(*pp.first) ;
-                        Point c(*pp.second) ;
-                        Point o = (a+b+c)*0.3333333333333333 ;
-                        a -= o ;
-                        b -= o ;
-                        c -= o ;
-                	double scale = 1000./sqrt(std::max(std::max(a.sqNorm(), b.sqNorm()), c.sqNorm())) ;
-                        a *=scale ;
-                        b *=scale ;
-                        c *=scale ;
 			if(!isAligned(p,pp.first,pp.second))
-//			if(Triangle(a,b,c).area() > POINT_TOLERANCE)
 			{
 				DelaunayTriangle *ss = new DelaunayTriangle(this->tree, this, p, pp.first, pp.second, p) ;
 				addSon(ss) ;
