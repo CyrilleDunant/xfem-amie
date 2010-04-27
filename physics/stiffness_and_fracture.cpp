@@ -18,7 +18,7 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1, .01)/*dfunc(rig.numRows()-1)*/, eps(0.002)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1, .01)/*dfunc(rig.numRows()-1)*/, eps(eps)
 {
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
@@ -39,6 +39,12 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	}
 // 	v.push_back(TIME_VARIABLE);
 } ;
+
+void StiffnessAndFracture::setNeighbourhoodRadius(double d)
+{
+	criterion->setNeighbourhoodRadius(d);
+	eps = d ;
+}
 
 StiffnessAndFracture::~StiffnessAndFracture() 
 { 
@@ -87,7 +93,6 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	currentState.getParent()->behaviourUpdated = false ;
 	if(!frac && criterion->met(currentState) )
 	{
-		
 		dfunc.step(currentState) ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
@@ -163,8 +168,11 @@ bool StiffnessAndFracture::fractured() const
 
 Form * StiffnessAndFracture::getCopy() const 
 {
-	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy()) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), eps) ;
 	copy->damage = damage ;
+	copy->dfunc.setCharacteristicRadius(dfunc.getCharacteristicRadius());
+	copy->dfunc.setDamageDensityIncrement(dfunc.getDamageDensityIncrement());
+	copy->dfunc.setThresholdDamageDensity(dfunc.getThresholdDamageDensity());
 	return copy ;
 }
 

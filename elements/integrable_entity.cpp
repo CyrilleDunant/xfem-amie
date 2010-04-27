@@ -4110,6 +4110,52 @@ Vector ElementState::getPrincipalStresses(const Point & p, bool local ) const
 	}
 }
 
+Vector ElementState::getPrincipalStrains(const Point & p, bool local ) const
+{
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		Vector strains = getStrain(p,local) ;
+	
+// 		if(parent->getBehaviour()->hasInducedForces())
+// 			stresses -= parent->getBehaviour()->getImposedStrains(p) ;
+		Vector lprincipal(2) ;
+		lprincipal[0] = (strains[0]+strains[1])/2. + 
+			sqrt(
+				(strains[0]-strains[1])*(strains[0]-strains[1])/4. + 
+				(strains[2]*strains[2])
+				) ;
+		lprincipal[1] = (strains[0]+strains[1])/2. - 
+			sqrt(
+				(strains[0]-strains[1])*(strains[0]-strains[1])/4. + 
+				(strains[2]*strains[2])
+				) ;
+		
+
+		return lprincipal ;
+	}
+	else
+	{
+		Matrix strains = getStrainMatrix(p,local) ;
+		Matrix I(3,3) ; I[0][0] = 1 ; I[1][1] = 1 ; I[2][2] = 1 ;
+		double m = (strains[0][0] + strains[1][1] + strains[2][2])/3. ;
+		Matrix Am = strains-I*m ;
+		double q = det(Am)/2. ;
+		double r = std::inner_product(&Am.array()[0], &Am.array()[9],&Am.array()[0],  double(0.))/6. ;
+		double phi = atan2(sqrt(r*r*r-q*q),q)/3. ;
+		if(r*r*r-q*q < 1e-12)
+			phi = atan(0)/3. ;
+		
+		if(phi < 0)
+			phi+= M_PI ;
+		
+		Vector lprincipal(3) ;
+		lprincipal[0] = m+2.*sqrt(r)*cos(phi) ;
+		lprincipal[1] = m-sqrt(r)*(cos(phi)+sqrt(3)*sin(phi)) ;
+		lprincipal[2] = m-sqrt(r)*(cos(phi)-sqrt(3)*sin(phi)) ;
+		return lprincipal ;
+	}
+}
+
 double ElementState::elasticEnergy() const
 {
 	GaussPointArray gp = parent->getGaussPoints() ;
@@ -4129,6 +4175,31 @@ double ElementState::elasticEnergy() const
 	}
 	return e ;
 
+}
+
+Vector ElementState::getPrincipalStrains(const std::valarray<Point *> & v) const
+{
+	Vector strains = getStrain(v) ;
+	Vector principal(2*v.size()) ;
+	
+	for(size_t i = 0 ; i < v.size() ; i++)
+	{
+		Vector lprincipal(2) ;
+		lprincipal[0] = (strains[i*3]+strains[i*3+1])/2. +
+			sqrt(
+			      (strains[i*3]-strains[i*3+1])*(strains[i*3]-strains[i*3+1])/4. +
+			      strains[i*3+2]*strains[i*3+2]*4.
+			    ) ;
+		lprincipal[1] = (strains[i*3]+strains[i*3+1])/2. -
+			sqrt(
+			      (strains[i*3]-strains[i*3+1])*(strains[i*3]-strains[i*3+1])/4. +
+			      strains[i*3+2]*strains[i*3+2]*4.
+			    ) ;
+		principal[i*2] = lprincipal[0] ;
+		principal[i*2+1] = lprincipal[1] ;
+	}
+	
+	return principal ;
 }
 
 Vector ElementState::getPrincipalStresses(const std::valarray<Point *> & v) const

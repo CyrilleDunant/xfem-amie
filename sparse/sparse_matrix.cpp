@@ -457,9 +457,9 @@ CompositeSparseMatrixTimesVec::operator const Vector() const
 	
 	for (size_t i = 0 ; i < sm.sm.row_size.size(); i++)
 	{
-		Vector temp = sm.sm[i*sm.sm.stride]*ve +sm.ism[i*sm.sm.stride]*ve;
+		Vector temp = sm.sm[i*sm.sm.stride]*ve;
 		for(size_t j = i*sm.sm.stride ; j < i*sm.sm.stride+sm.sm.stride ; j++)
-			ret[j] = temp[j-i*sm.sm.stride];
+			ret[j] = temp[j-i*sm.sm.stride]+(sm.ism[i*sm.sm.stride+j-i*sm.sm.stride]*ve)[0];
 	}
 	
 	return ret ;

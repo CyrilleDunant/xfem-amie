@@ -44,11 +44,13 @@ mesher/delaunay_3d.cpp
 mesher/delaunay.cpp 
 mesher/structuredmesh.cpp 
 physics/damagemodels/isotropiclineardamage.cpp 
+physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
 physics/diffusion.cpp 
 physics/dual_behaviour.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 
+physics/fracturecriteria/limitstrains.cpp 
 physics/linearstiffnessgradient.cpp
 physics/radialstiffnessgradient.cpp
 physics/kelvinvoight.cpp

@@ -154,6 +154,12 @@ public:
 /** \brief get Principal Stresses at given points*/
 	Vector getPrincipalStresses(const std::valarray<Point *> &) const ;
 
+/** \brief get Principal Strains at given point*/
+	Vector getPrincipalStrains(const Point & p, bool local = false) const ;
+	
+/** \brief get Principal Strains at given points*/
+	Vector getPrincipalStrains(const std::valarray<Point *> &) const ;
+	
 /** \brief get Principal angle at given point*/
 	double getPrincipalAngle(const Point & p, bool local= false) const ;
 

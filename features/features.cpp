@@ -4405,7 +4405,7 @@ Vector FeatureTree::stressFromDisplacements() const
 
 Vector FeatureTree::getDisplacements(int g) const
 {
-	if(g == -1)
+	if(g == -1 || !useMultigrid)
 		return K->getDisplacements() ;
 	else if(coarseAssemblies.size() > g)
 		return coarseAssemblies[g]->getDisplacements() ;
@@ -4421,11 +4421,13 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 	if(dtree != NULL)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
-		if(g != -1 && coarseTrees.size() > g)
-			elements = coarseTrees[g]->getElements() ;
-		else if(g != -1 && !coarseTrees.empty())
-			elements = coarseTrees.back()->getElements() ;
-		
+		if(useMultigrid)
+		{
+			if(g != -1 && coarseTrees.size() > g)
+				elements = coarseTrees[g]->getElements() ;
+			else if(g != -1 && !coarseTrees.empty())
+				elements = coarseTrees.back()->getElements() ;
+		}
 		std::pair<Vector , Vector > stress_strain(Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size()), Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size())) ;
 		for(size_t i  = 0 ; i < elements.size() ; i++)
 		{
@@ -4712,9 +4714,12 @@ bool FeatureTree::step(double dt)
 	if(enrichmentChange)
 	{
 		this->K->clear() ;
-		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+		if(useMultigrid)
 		{
-			coarseAssemblies[j]->clear() ;
+			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+			{
+				coarseAssemblies[j]->clear() ;
+			}
 		}
 	}
 
@@ -4725,9 +4730,12 @@ bool FeatureTree::step(double dt)
 		if(dtree)
 		{
 			boundaryCondition[i]->apply(K, dtree) ;
-			for(size_t j = 0 ; j < coarseTrees.size() ;j++)
+			if(useMultigrid)
 			{
-				boundaryCondition[i]->apply(coarseAssemblies[j], coarseTrees[j]) ;
+				for(size_t j = 0 ; j < coarseTrees.size() ;j++)
+				{
+					boundaryCondition[i]->apply(coarseAssemblies[j], coarseTrees[j]) ;
+				}
 			}
 		}
 		if(dtree3D)

@@ -9,29 +9,29 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#include "isotropiclineardamage.h"
+#include "strainbrokenisotropiclineardamage.h"
 
 namespace Mu {
 
-IsotropicLinearDamage::IsotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius),
- state(1)
+StrainBrokenIsotropicLinearDamage::StrainBrokenIsotropicLinearDamage(int numDof, double characteristicRadius, double limitStrain) : DamageModel(characteristicRadius),
+ state(1), limitStrain(limitStrain)
 {
 	state[0] = 0 ;
 	isNull = false ;
 }
 
-const Vector & IsotropicLinearDamage::damageState() const
+const Vector & StrainBrokenIsotropicLinearDamage::damageState() const
 {
 	return state ;
 }
 
-Vector & IsotropicLinearDamage::damageState()
+Vector & StrainBrokenIsotropicLinearDamage::damageState()
 {
 	return state ;
 }
 
 
-void IsotropicLinearDamage::step(ElementState & s)
+void StrainBrokenIsotropicLinearDamage::step(ElementState & s)
 {
 	if(fraction < 0)
 	{
@@ -47,22 +47,24 @@ void IsotropicLinearDamage::step(ElementState & s)
 		else
 			charVolume = 4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius ;
 		fraction = volume/charVolume ;
-		if(fraction > 1)
-			std::cout << "elements too large for damage characteristic radius!" << std::endl ;
 		fraction = std::min(fraction, 1.) ;
+	}
+	if(s.getPrincipalStrains(s.getParent()->getCenter()).max() > limitStrain)
+	{
+		state[0] = thresholdDamageDensity/fraction+POINT_TOLERANCE ;
 	}
 	state[0] += damageDensityIncrement*fraction ; 
 	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
 
 }
 
-void IsotropicLinearDamage::artificialDamageStep(double d)
+void StrainBrokenIsotropicLinearDamage::artificialDamageStep(double d)
 {
 	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE) ;
 }
 
 
-Matrix IsotropicLinearDamage::apply(const Matrix & m) const
+Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
 
@@ -72,7 +74,7 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 }
 
 
-bool IsotropicLinearDamage::fractured() const 
+bool StrainBrokenIsotropicLinearDamage::fractured() const 
 {
 	if(fraction < 0)
 		return false ;
@@ -80,7 +82,7 @@ bool IsotropicLinearDamage::fractured() const
 }
 
 
-IsotropicLinearDamage::~IsotropicLinearDamage()
+StrainBrokenIsotropicLinearDamage::~StrainBrokenIsotropicLinearDamage()
 {
 }
 

@@ -4568,7 +4568,7 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	Point f0_(f0-centre) ;
 	Point f1_(f1-centre) ;
 	Point test_(test-centre) ;
-	double scale = sqrt(POINT_TOLERANCE)/(std::max(std::max(f0_.norm(), f1_.norm()), test_.norm())) ;
+	double scale = sqrt(4.*POINT_TOLERANCE)/(std::max(std::max(f0_.norm(), f1_.norm()), test_.norm())) ;
 	f0_   *= scale ;
 	f1_   *= scale ;
 	test_ *= scale ;

@@ -36,9 +36,28 @@ public:
 		fraction = -1 ;
 	} ;
 	
+	double getThresholdDamageDensity() const
+	{
+		return thresholdDamageDensity ;
+	}
+	
+	double getCharacteristicRadius() const
+	{
+		return characteristicRadius ;
+	}
+	
+	double getDamageDensityIncrement() const
+	{
+		return damageDensityIncrement ;
+	}
 	void setThresholdDamageDensity(double d)
 	{
 		thresholdDamageDensity = d ;
+	}
+	
+	void setCharacteristicRadius(double d)
+	{
+		characteristicRadius = d ;
 	}
 	
 	void setDamageDensityIncrement(double d)

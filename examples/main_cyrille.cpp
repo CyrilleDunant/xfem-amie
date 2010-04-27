@@ -12,10 +12,12 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/fracturecriteria/vonmises.h"
+#include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/stiffness.h"
 #include "../physics/void_form.h"
 #include "../physics/weibull_distributed_stiffness.h"
+#include "../physics/stiffness_and_fracture.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -93,7 +95,8 @@ double E_max = 0;
 
 double x_max = 0 ;
 double y_max = 0 ;
-
+double disp = 0 ;
+BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
 double x_min = 0 ;
 double y_min = 0 ;
 
@@ -152,46 +155,14 @@ void step()
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
       
 		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 1)//as long as we can update the features
+		while(!featureTree->step(timepos) && limit < 2000)//as long as we can update the features
 		{
-// 			if(limit == 1)
-// 			{
-// 				featureTree->getAssembly()->print() ;
-// 				exit(0) ;
-// 			}
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
-	  // check if the two cracks did not touch
-			cracks_did_not_touch = true;
-			for(size_t j = 0 ; j < crack.size() ; j++)
-			{
-				for(size_t k = j+1 ; k < crack.size() ; k++)
-				{
-		  
-					if (static_cast<SegmentedLine *>(crack[j])->intersects(static_cast<SegmentedLine *>(crack[k])))
-					{
-						cracks_did_not_touch = false;
-						break;
-					}
-		  //Circle headj(radius, crack[j]->getHead());
-		  
-		  //	      head0.intersects(crack[1]);
-				}
-			}
 		}
 	
-  // Prints the crack geo to a file for each crack
-		if (cracks_did_not_touch == false) // if cracks touched
-		{
-			std::cout << "** Cracks touched exporting file **" << endl;	
-				// Print the state of the cracks to a file  
-				std::string filename = "crackGeo.txt";
-				fstream filestr;
-				filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
-				filestr << "Crack vertices" << std::endl;
-				filestr << "x" << " " << "y" << std::endl ; 
-		}
+
   
 
 		timepos+= 0.0001 ;
@@ -262,7 +233,7 @@ void step()
 		
 		
 		
-			if(!in && !triangles[k]->getBehaviour()->fractured() && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+			if(triangles[k]->getBehaviour() && !in && !triangles[k]->getBehaviour()->fractured() && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
@@ -534,13 +505,14 @@ void Menu(int selection)
 	{
 	case ID_NEXT:
 		{
+			imposeddisp->setData(imposeddisp->getData()+1);
 			step() ;
 			dlist = false ;
 			break ;
 		}
 	case ID_BACK:
 	{
-		featureTree->stepBack() ;
+		step() ;
 		dlist = false ;
 		break ;
 	}
@@ -1386,26 +1358,31 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;	
-// 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
+// 	sample.setBehaviour(new PseudoPlastic(m0_paste, new MohrCoulomb(10./8, -10), new IsotropicLinearDamage(2, .01))) ;
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10./8, -50), 200) ;
+	saf->dfunc.setCharacteristicRadius(10) ;
+	saf->dfunc.setThresholdDamageDensity(.999);
+	saf->dfunc.setDamageDensityIncrement(.1);
+	sample.setBehaviour(saf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
-	inc0->setBehaviour(new Stiffness(m0_paste*100)) ;
+// 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
-	F.addFeature(&sample, inc0) ;
+	inc0->setBehaviour(new Stiffness(m0_paste*2.)) ;
+// 	F.addFeature(&sample, inc0) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -1)) ;
+	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 
-	F.sample(1024) ;
+	F.sample(256) ;
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
@@ -1438,7 +1415,7 @@ int main(int argc, char *argv[])
 	glutCreateMenu(Menu) ;
 
  	glutAddMenuEntry(" Step          ", ID_NEXT);
-	glutAddMenuEntry(" StepBack      ", ID_BACK);
+	glutAddMenuEntry(" Go on         ", ID_BACK);
 	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
 	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
 	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
@@ -1457,6 +1434,7 @@ int main(int argc, char *argv[])
 	glutMainLoop() ;
 	
 // 	delete dt ;
+	delete saf ;
 	
 	return 0 ;
 }

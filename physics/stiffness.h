@@ -14,6 +14,8 @@
 #define __STIFFNESS_H_
 
 #include "physics_base.h"
+#include "fracturecriteria/fracturecriterion.h"
+#include "damagemodels/damagemodel.h"
 
 namespace Mu
 {
@@ -65,6 +67,69 @@ namespace Mu
 		
 	} ;
 
+	
+	/** \brief A linear pseudo-plastic law.
+	* The behaviour is updated when step is called and the secant stifness is computed as a function  of the strain
+	*/
+	struct PseudoPlastic : public LinearForm
+	{
+		std::vector<Variable> v ;
+		FractureCriterion * crit ;
+		DamageModel * damagemodel ;
+		double alpha ;
+		bool change ;
+		/** \brief Constructor
+		* 
+		* @param rig Complete expression of the Cauchy-Green Strain Tensor
+		*/
+		PseudoPlastic(const Matrix & rig, FractureCriterion * crit, DamageModel * damagemodel) ;
+		
+		virtual ~PseudoPlastic() ;
+
+		virtual XMLTree * toXML() { return new XMLTree("pseudoplastic",param) ; } ;
+		
+		/** \brief Apply the law.
+		* 
+		* @param p_i first basis polynomial.
+		* @param p_j second basis polynomial.
+		* @return symbolic matrix resulting of \f$ \nabla H^T K \nabla H \f$.
+		*/
+		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const; 
+		
+		/** \brief Apply the law.
+		 *
+		 * The matrix is computed as: \f$ \nabla^T h_i K \nabla h_j \f$
+		 * @param p_i first basis polynomial.
+		 * @param p_j second basis polynomial.
+		 * @param gp Gauss Points used for the quadrature
+		 * @param Jinv Inverse Jacobian Matrices corresponding to the gauss points
+		 * @param ret Matrix to store the result
+		 * @param vm virtualMachine to use to compute the result
+		 */
+		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+		
+		/** \brief update behaviour
+		*
+		* @param timestep elapsed time
+		* @param currentState state of the element
+		* 
+		*/
+		virtual void step(double timestep, ElementState & currentState) ;
+		
+		virtual bool changed() const ;
+		virtual Matrix getTensor(const Point & p) const ;
+		
+		/** \brief Return false.*/
+		virtual bool fractured() const ;
+		
+		/** \brief Return a copy of the behaviour*/
+		virtual Form * getCopy() const ;
+		
+		/** \brief Return a 0-length Vector*/
+		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+		
+	} ;
+	
 } ;
 
 #endif
