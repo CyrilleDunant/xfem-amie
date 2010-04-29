@@ -108,6 +108,7 @@ sparse/sparse_matrix.cpp
 sparse/sparse_vector.cpp
 utilities/configuration.cpp
 utilities/grid.cpp
+utilities/optimizer.cpp
 utilities/granulo.cpp
 utilities/matrixops.cpp
 utilities/parser.cpp

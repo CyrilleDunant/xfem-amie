@@ -8,6 +8,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics_base.h"
+#include "../utilities/optimizer.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
@@ -155,13 +156,13 @@ void step()
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
       
 		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 2000)//as long as we can update the features
+		while(!featureTree->step(timepos) && limit < 20000)//as long as we can update the features
 		{
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
 		}
-	
+		std::cout << " " << limit << std::endl ;
 
   
 
@@ -1322,7 +1323,21 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-
+	std::vector<double> val;
+	val.push_back(1) ;
+// 	val.push_back(1) ;
+	std::vector<std::pair<double, double> > bounds ;
+	bounds.push_back(std::make_pair(-1, 1)) ;
+// 	bounds.push_back(std::make_pair(0., 4)) ;
+	Function test("x 2 ^") ;
+	
+	GeneticAlgorithmOptimizer ga(val, bounds, test) ;
+	
+	std::cout << ga.optimize(1e-12, 10000, 1000) << std::endl ;
+	std::cout << ga.getValues()[0] << " " << ga.getValues()[1] <<std::endl ;
+	
+	return 0 ;
+	
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1360,9 +1375,9 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 // 	sample.setBehaviour(new PseudoPlastic(m0_paste, new MohrCoulomb(10./8, -10), new IsotropicLinearDamage(2, .01))) ;
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10./8, -50), 200) ;
-	saf->dfunc.setCharacteristicRadius(10) ;
+	saf->dfunc.setCharacteristicRadius(50) ;
 	saf->dfunc.setThresholdDamageDensity(.999);
-	saf->dfunc.setDamageDensityIncrement(.1);
+	saf->dfunc.setDamageDensityIncrement(.5);
 	sample.setBehaviour(saf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
@@ -1382,7 +1397,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 
-	F.sample(256) ;
+	F.sample(128) ;
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
@@ -1394,7 +1409,7 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
-	glutCreateWindow("coucou !") ;
+	glutCreateWindow("50 - .5 !") ;
 	
 	int submenu = glutCreateMenu(Menu) ;
 	

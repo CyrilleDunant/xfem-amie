@@ -192,6 +192,10 @@ const RefCountedToken Function::toToken(const std::string str) const
 	{
 		return new ExpToken() ;
 	}
+	else if(str.c_str() == std::string("abs"))
+	{
+		return new AbsToken() ;
+	}
 	else if(str.c_str() == std::string("log"))
 	{
 		return new LogToken() ;
