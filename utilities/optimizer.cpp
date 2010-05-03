@@ -126,6 +126,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 			i++ ;
 			i = std::min(i, (int)sorted.size()-1) ;
 		}
+		std::cout << sorted.begin()->first << std::endl ; 
 		individuals = newindividuals ;
 		llindividuals = newllindividuals ;
 		

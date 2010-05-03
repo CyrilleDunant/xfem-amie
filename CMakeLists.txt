@@ -23,6 +23,7 @@ features/enrichmentInclusion.cpp
 features/enrichmentRing.cpp 
 features/expansiveRing.cpp 
 features/expansiveZone3d.cpp 
+features/boundarycondition.cpp 
 features/expansiveZone.cpp 
 features/features.cpp 
 features/growingExpansiveZone.cpp

@@ -1323,20 +1323,20 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-	std::vector<double> val;
-	val.push_back(1) ;
-// 	val.push_back(1) ;
-	std::vector<std::pair<double, double> > bounds ;
-	bounds.push_back(std::make_pair(-1, 1)) ;
-// 	bounds.push_back(std::make_pair(0., 4)) ;
-	Function test("x 2 ^") ;
-	
-	GeneticAlgorithmOptimizer ga(val, bounds, test) ;
-	
-	std::cout << ga.optimize(1e-12, 10000, 1000) << std::endl ;
-	std::cout << ga.getValues()[0] << " " << ga.getValues()[1] <<std::endl ;
-	
-	return 0 ;
+// 	std::vector<double> val;
+// 	val.push_back(0) ;
+// 	val.push_back(0) ;
+// 	std::vector<std::pair<double, double> > bounds ;
+// 	bounds.push_back(std::make_pair(-2, 2)) ;
+// 	bounds.push_back(std::make_pair(-2, 2)) ;
+// 	Function test("1 x - 2 ^ y x 2 ^ - 2 ^ 100 * +") ;
+// 	
+// 	GeneticAlgorithmOptimizer ga(val, bounds, test) ;
+// 	
+// 	std::cout << ga.optimize(1e-12, 10000, 1000) << std::endl ;
+// 	std::cout << ga.getValues()[0] << " " << ga.getValues()[1] <<std::endl ;
+// 	
+// 	return 0 ;
 	
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
@@ -1375,9 +1375,9 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 // 	sample.setBehaviour(new PseudoPlastic(m0_paste, new MohrCoulomb(10./8, -10), new IsotropicLinearDamage(2, .01))) ;
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10./8, -50), 200) ;
-	saf->dfunc.setCharacteristicRadius(50) ;
+	saf->dfunc.setCharacteristicRadius(200) ;
 	saf->dfunc.setThresholdDamageDensity(.999);
-	saf->dfunc.setDamageDensityIncrement(.5);
+	saf->dfunc.setDamageDensityIncrement(.2);
 	sample.setBehaviour(saf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
@@ -1409,7 +1409,7 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
-	glutCreateWindow("50 - .5 !") ;
+	glutCreateWindow("200 - .2 !") ;
 	
 	int submenu = glutCreateMenu(Menu) ;
 	
