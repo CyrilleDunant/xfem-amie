@@ -64,7 +64,12 @@ The constructor created and initialises the stack
 @param v coordinate at which to evaluate.
 @param w coordinate at which to evaluate.
 */
-	double eval(const Function &f, const double x = 0, const double y = 0, const double z = 0 ,const double t = 0, const double u = 0, const double v = 0, const double w = 0) ;
+double eval(const Function &f, const double x = 0, const double y = 0, const double z = 0 ,const double t = 0, const double u = 0, const double v = 0, const double w = 0) ;
+
+/** \brief Evaluate Function f at (x, y, z, t, u, v, w). 
+ Further set the value of the named variables in the vector.
+*/
+double eval(const Function &f, std::vector<std::pair<std::string, double> > vars,const double x = 0, const double y = 0, const double z = 0 ,const double t = 0, const double u = 0, const double v = 0, const double w = 0) ;
 
 
 /** \brief Evaluate std::vector\<RefCountedToken\> f at (x, y, z, t, u, v, w). 

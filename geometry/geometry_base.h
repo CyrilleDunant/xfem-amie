@@ -863,6 +863,13 @@ protected:
 	Point vec ;
 	
 public:
+	double * getFirstX() {return &f.x ;}
+	double * getFirstY() {return &f.y ;}
+	double * getFirstZ() {return &f.z ;}
+	double * getSecondX() {return &s.x ;}
+	double * getSecondY() {return &s.y ;}
+	double * getSecondZ() {return &s.z ;}
+public:
 	
 	/** \brief Constructor. construct a segment from two endpoints*/
 	Segment(const Point & p0, const  Point & p1) ;

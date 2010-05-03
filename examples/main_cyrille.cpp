@@ -182,6 +182,8 @@ void step()
 		epsilon.resize(sigma_epsilon.second.size()) ;
 		epsilon = sigma_epsilon.second ;
 		
+		Vector avgdisplacement(2) ;
+		double avgdisplacementarea(0) ;
 		sigma11.resize(sigma.size()/3) ;
 		sigma22.resize(sigma.size()/3) ;
 		sigma12.resize(sigma.size()/3) ;
@@ -233,7 +235,13 @@ void step()
 			cracked.push_back(in) ;
 		
 		
-		
+			if(triangles[k]->getBehaviour() && !in && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				avgdisplacement += triangles[k]->getState().getAverageDisplacement()*triangles[k]->area() ;
+				avgdisplacementarea += triangles[k]->area() ;
+			}
+			
+			
 			if(triangles[k]->getBehaviour() && !in && !triangles[k]->getBehaviour()->fractured() && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				
@@ -396,11 +404,14 @@ void step()
 				}
 			}
 		}
-	
+		avgdisplacement /= avgdisplacementarea ;
+		
 		std::cout << std::endl ;
 		std::cout << "max value x :" << x_max << std::endl ;
+		std::cout << "mean value x :" << avgdisplacement[0] << std::endl ;
 		std::cout << "min value x :" << x_min << std::endl ;
 		std::cout << "max value y :" << y_max << std::endl ;
+		std::cout << "mean value y :" << avgdisplacement[1] << std::endl ;
 		std::cout << "min value y :" << y_min << std::endl ;
 		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
 		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
@@ -1335,8 +1346,14 @@ int main(int argc, char *argv[])
 // 	
 // 	std::cout << ga.optimize(1e-12, 10000, 1000) << std::endl ;
 // 	std::cout << ga.getValues()[0] << " " << ga.getValues()[1] <<std::endl ;
-// 	
-// 	return 0 ;
+
+	Function test("toto 2 + tata +") ;
+	VirtualMachine().print(test);
+	std::vector<std::pair<std::string, double> > vars ;
+	vars.push_back(std::make_pair("toto", 2)) ;
+	vars.push_back(std::make_pair("tata", 2)) ;
+	std::cout << VirtualMachine().eval(test, vars) << std::endl;
+	return 0 ;
 	
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
@@ -1375,7 +1392,7 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 // 	sample.setBehaviour(new PseudoPlastic(m0_paste, new MohrCoulomb(10./8, -10), new IsotropicLinearDamage(2, .01))) ;
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10./8, -50), 200) ;
-	saf->dfunc.setCharacteristicRadius(200) ;
+	saf->dfunc.setCharacteristicRadius(100) ;
 	saf->dfunc.setThresholdDamageDensity(.999);
 	saf->dfunc.setDamageDensityIncrement(.2);
 	sample.setBehaviour(saf) ;
@@ -1409,7 +1426,7 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
-	glutCreateWindow("200 - .2 !") ;
+	glutCreateWindow("100 - .2 !") ;
 	
 	int submenu = glutCreateMenu(Menu) ;
 	

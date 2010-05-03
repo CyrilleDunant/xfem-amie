@@ -179,12 +179,6 @@ ConstantToken::~ConstantToken() { } ;
 
 NullToken::~NullToken() { }
 
-VariableToken::VariableToken(const Variable v, bool nul) :Token(nul, std::make_pair(std::make_pair(TOKEN_VARIABLE, 0),(double)(0))), var(v)
-{
-};
-
-VariableToken::~VariableToken() { } ;
-
 PositionToken::~PositionToken() { } ;
 
 DomainToken::~DomainToken() { } ;

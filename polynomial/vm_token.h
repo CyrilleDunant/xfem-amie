@@ -32,6 +32,9 @@ double interpolate(const double a, const double b) ;
 namespace Mu
 {
 
+template<class ETYPE, class EABSTRACTTYPE>
+struct Mesh ;
+
 struct ElementarySurface ;
 struct ElementaryVolume ;
 typedef double (*unaryFunctionPointer)(const double) ;
@@ -77,7 +80,7 @@ typedef enum
 	TOKEN_M_U,
 	TOKEN_M_V,
 	TOKEN_M_W,
-	TOKEN_VARIABLE,
+	TOKEN_NAMED,
 	TOKEN_UNARY_FUNCTION,
 	TOKEN_BINARY_FUNCTION,
 	TOKEN_PLUS,
@@ -85,6 +88,7 @@ typedef enum
 	TOKEN_TIMES,
 	TOKEN_DIVIDES,
 	TOKEN_POWER,
+	TOKEN_EQUALS,
 	TOKEN_ABS,
 	TOKEN_COS,
 	TOKEN_SIN,
@@ -147,7 +151,10 @@ typedef enum
 	TOKEN_READ_MULTIPLY_CONST,
 	TOKEN_READ_DIVIDE_CONST,
 	TOKEN_CONST_DIVIDE_READ,
-	TOKEN_READ_POWER_CONST
+	TOKEN_READ_POWER_CONST,
+	TOKEN_MESH_DISPLACEMENT_FIELD_X,
+	TOKEN_MESH_DISPLACEMENT_FIELD_Y,
+	TOKEN_MESH_DISPLACEMENT_FIELD_Z
 } TokenTypeId ;
 
 typedef std::pair<std::pair<TokenTypeId, short unsigned int>, double> TokenType ;
@@ -158,6 +165,9 @@ struct Memory
 {
 	double stack[64];
 	double heap[256] ;
+	std::map<std::string, double *> variables ;
+	std::vector<double *> variable_register ;
+	std::string current_variable ;
 	double * top_pos ;
 	double * prev_top_pos ;
 
@@ -168,7 +178,11 @@ struct Memory
 	{
 	} ;
 	
-	~Memory() { } ;
+	~Memory() 
+	{ 
+		for(size_t i = 0 ; i < variable_register.size() ; i++)
+			delete variable_register[i] ;
+	} ;
 
 	/** \brief Number of used positions in the stack
 	 * 
@@ -229,6 +243,21 @@ struct Memory
 	{
 		top_pos = &stack[0] ;
 		prev_top_pos =  top_pos-1 ;
+		for(std::map<std::string, double *>::iterator i = variables.begin(); i!= variables.end() ; i++)
+			*i->second = 0 ;
+	}
+	
+	void setNamedVariable(std::string name, double val)
+	{
+		if(variables.find(name) != variables.end() )
+		{
+			*variables[name] = val ;
+		}
+		else
+		{
+			variable_register.push_back(new double(val));
+			variables[name] = variable_register.back() ;
+		}
 	}
 } ;
 
@@ -254,7 +283,16 @@ struct Context
 	 * @param v_ 
 	 * @param w_ 
 	 */
-	Context(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(w_) { } ;
+	Context(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(w_) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
@@ -265,7 +303,16 @@ struct Context
 	 * @param u_ 
 	 * @param v_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_, const double & v_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(0) { } ;
+	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_, const double & v_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(0) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
@@ -275,7 +322,16 @@ struct Context
 	 * @param t_ 
 	 * @param u_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_) : x(x_), y(y_), z(z_), t(t_), u(u_), v(0), w(0) { } ;
+	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_) : x(x_), y(y_), z(z_), t(t_), u(u_), v(0), w(0) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
@@ -284,7 +340,16 @@ struct Context
 	 * @param z_ 
 	 * @param t_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_, const double & t_) : x(x_), y(y_), z(z_), t(t_), u(0), v(0), w(0) { } ;
+	Context(const double & x_, const double & y_, const double & z_, const double & t_) : x(x_), y(y_), z(z_), t(t_), u(0), v(0), w(0) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
@@ -292,25 +357,61 @@ struct Context
 	 * @param y_ 
 	 * @param z_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_) : x(x_), y(y_), z(z_), t(0), u(0), v(0), w(0) { } ;
+	Context(const double & x_, const double & y_, const double & z_) : x(x_), y(y_), z(z_), t(0), u(0), v(0), w(0) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
 	 * @param x_ 
 	 * @param y_ 
 	 */
-	Context(const double & x_, const double & y_) : x(x_), y(y_), z(0), t(0), u(0), v(0), w(0) { } ;
+	Context(const double & x_, const double & y_) : x(x_), y(y_), z(0), t(0), u(0), v(0), w(0) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
 	 * @param x_ 
 	 */
-	Context(const double & x_) : x(x_), y(0), z(0), t(0), u(0), v(0), w(0) { } ;
+	Context(const double & x_) : x(x_), y(0), z(0), t(0), u(0), v(0), w(0) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Constructor, initialises the arguments to 0
 	 * 
 	 */
-	Context() : x(0), y(0), z(0), t(0), u(0), v(0), w(0) { } ;
+	Context() : x(0), y(0), z(0), t(0), u(0), v(0), w(0) 
+	{ 
+		memory.variables["x"] = &x ;
+		memory.variables["y"] = &y ;
+		memory.variables["z"] = &z ;
+		memory.variables["t"] = &t ;
+		memory.variables["u"] = &u ;
+		memory.variables["v"] = &v ;
+		memory.variables["w"] = &w ;
+	} ;
 
 	/** \brief Sets the argument values.
 	 * 
@@ -688,6 +789,111 @@ public:
 	}
 } ;
 
+/** \brief return the x displacement if (x, y, z) lies in the mesh, else return 0 */
+template<class ETYPE, class EABSTRACTTYPE>
+class MeshXDisplacementToken : public Token
+{
+	Mesh<ETYPE, EABSTRACTTYPE> * mesh ;
+public:
+	MeshXDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_X, 0), mesh(mesh)
+	{ }
+	
+	virtual void eval(Context & context) const
+	{
+		Point where(context.x, context.y, context.z) ;
+		std::vector<ETYPE *> elements  = mesh->getConflictingElements(&where) ;
+		ETYPE * target = NULL;
+		for(size_t i = 0 ; i < elements.size() ;  i++)
+		{
+			if(elements[i]->in(where))
+			{
+				target = elements[i] ;
+				break ;
+			}
+			
+		}
+		double x = target->getState().getDisplacements(where)[0] ;
+		
+		*context.memory.push_back(x) ;
+
+	}
+	virtual ~MeshXDisplacementToken() { };
+	virtual std::string print() const
+	{
+		return std::string("mesh x displacement field") ;
+	}
+} ;
+
+/** \brief return the y displacement if (x, y, z) lies in the mesh, else return 0 */
+template<class ETYPE, class EABSTRACTTYPE>
+class MeshYDisplacementToken : public Token
+{
+	Mesh<ETYPE, EABSTRACTTYPE> * mesh ;
+public:
+	MeshYDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_Y, 0), mesh(mesh)
+	{ }
+	
+	virtual void eval(Context & context) const
+	{
+		Point where(context.x, context.y, context.z) ;
+		std::vector<ETYPE *> elements  = mesh->getConflictingElements(&where) ;
+		ETYPE * target = NULL;
+		for(size_t i = 0 ; i < elements.size() ;  i++)
+		{
+			if(elements[i]->in(where))
+			{
+				target = elements[i] ;
+				break ;
+			}
+			
+		}
+		double x = target->getState().getDisplacements(where)[1] ;
+		
+		*context.memory.push_back(x) ;
+
+	}
+	virtual ~MeshYDisplacementToken() { };
+	virtual std::string print() const
+	{
+		return std::string("mesh y displacement field") ;
+	}
+} ;
+
+/** \brief return the y displacement if (x, y, z) lies in the mesh, else return 0 */
+template<class ETYPE, class EABSTRACTTYPE>
+class MeshZDisplacementToken : public Token
+{
+	Mesh<ETYPE, EABSTRACTTYPE> * mesh ;
+public:
+	MeshZDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_Z, 0), mesh(mesh)
+	{ }
+	
+	virtual void eval(Context & context) const
+	{
+		Point where(context.x, context.y, context.z) ;
+		std::vector<ETYPE *> elements  = mesh->getConflictingElements(&where) ;
+		ETYPE * target = NULL;
+		for(size_t i = 0 ; i < elements.size() ;  i++)
+		{
+			if(elements[i]->in(where))
+			{
+				target = elements[i] ;
+				break ;
+			}
+			
+		}
+		double x = target->getState().getDisplacements(where)[2] ;
+		
+		*context.memory.push_back(x) ;
+
+	}
+	virtual ~MeshYDisplacementToken() { };
+	virtual std::string print() const
+	{
+		return std::string("mesh z displacement field") ;
+	}
+} ;
+
 /** \brief Put on the stack the two coordinates of a transformed point defined by the last positions on the stack given a rotation. */
 class RotationBinaryOperatorToken : public Token
 {
@@ -889,7 +1095,7 @@ class XToken : public Token
 {
 public:
 	XToken() : Token(false, std::make_pair(std::make_pair(TOKEN_X, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(context.x) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(context.x) ; context.memory.current_variable = std::string("x") ;}
 	virtual ~XToken(){ };
 	virtual std::string print() const { return std::string("x") ;}
 } ;
@@ -900,7 +1106,7 @@ class XMToken : public Token
 {
 public:
 	XMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_X, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(-context.x) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(-context.x) ;context.memory.current_variable = std::string("x") ;}
 	virtual ~XMToken(){ };
 	virtual std::string print() const { return std::string("-x") ;}
 } ;
@@ -910,7 +1116,7 @@ class YToken : public Token
 {
 public:
 	YToken() : Token(false, std::make_pair(std::make_pair(TOKEN_Y, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(context.y) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(context.y) ;context.memory.current_variable = std::string("y") ;}
 	virtual ~YToken(){ };
 	virtual std::string print() const { return std::string("y") ;}
 } ;
@@ -920,7 +1126,7 @@ class YMToken : public Token
 {
 public:
 	YMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_Y, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(-context.y) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(-context.y) ;context.memory.current_variable = std::string("y") ;}
 	virtual ~YMToken(){ };
 	virtual std::string print() const { return std::string("-y") ;}
 } ;
@@ -930,7 +1136,7 @@ class ZToken : public Token
 {
 public:
 	ZToken() : Token(false, std::make_pair(std::make_pair(TOKEN_Z, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(context.z) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(context.z) ;context.memory.current_variable = std::string("z") ;}
 	virtual ~ZToken(){ };
 	virtual std::string print() const { return std::string("z") ;}
 } ;
@@ -940,7 +1146,7 @@ class ZMToken : public Token
 {
 public:
 	ZMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_Z, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(-context.z) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(-context.z) ;context.memory.current_variable = std::string("z") ;}
 	virtual ~ZMToken(){ };
 	virtual std::string print() const { return std::string("-z") ;}
 } ;
@@ -950,7 +1156,7 @@ class TToken : public Token
 {
 public:
 	TToken() : Token(false, std::make_pair(std::make_pair(TOKEN_T, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(context.t) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(context.t) ;context.memory.current_variable = std::string("t") ;}
 	virtual ~TToken(){ };
 	virtual std::string print() const { return std::string("t") ;}
 } ;
@@ -960,7 +1166,7 @@ class TMToken : public Token
 {
 public:
 	TMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_T, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(-context.t) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(-context.t) ;context.memory.current_variable = std::string("t") ;}
 	virtual ~TMToken(){ };
 	virtual std::string print() const { return std::string("-t") ;}
 } ;
@@ -970,7 +1176,7 @@ class UToken : public Token
 {
 public:
 	UToken() : Token(false, std::make_pair(std::make_pair(TOKEN_U, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(context.u) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(context.u) ;context.memory.current_variable = std::string("u") ;}
 	virtual ~UToken(){ };
 	virtual std::string print() const { return std::string("u") ;}
 } ;
@@ -981,7 +1187,7 @@ class UMToken : public Token
 {
 public:
 	UMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_U, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(-context.u) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(-context.u) ;context.memory.current_variable = std::string("u") ;}
 	virtual ~UMToken(){ };
 	virtual std::string print() const { return std::string("-u") ;}
 } ;
@@ -991,7 +1197,7 @@ class VToken : public Token
 {
 public:
 	VToken() : Token(false, std::make_pair(std::make_pair(TOKEN_V, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(context.v) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(context.v) ;context.memory.current_variable = std::string("v") ;}
 	virtual ~VToken(){ };
 	virtual std::string print() const { return std::string("v") ;}
 } ;
@@ -1001,7 +1207,7 @@ class VMToken : public Token
 {
 public:
 	VMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_V, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(-context.v) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(-context.v) ;context.memory.current_variable = std::string("v") ;}
 	virtual ~VMToken(){ };
 	virtual std::string print() const { return std::string("-v") ;}
 } ;
@@ -1011,7 +1217,7 @@ class WToken : public Token
 {
 public:
 	WToken() : Token(false, std::make_pair(std::make_pair(TOKEN_W, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(context.w) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(context.w) ;context.memory.current_variable = std::string("w") ;}
 	virtual ~WToken(){ };
 	virtual std::string print() const { return std::string("w") ;}
 } ;
@@ -1021,114 +1227,32 @@ class WMToken : public Token
 {
 public:
 	WMToken() : Token(false, std::make_pair(std::make_pair(TOKEN_M_W, 0),(double)(0))) { };
-	virtual void eval(Context & context) const {context.memory.push_back(-context.w) ;}
+	virtual void eval(Context & context) const {context.memory.push_back(-context.w) ;context.memory.current_variable = std::string("w") ;}
 	virtual ~WMToken(){ };
 	virtual std::string print() const { return std::string("-w") ;}
 } ;
 
-/** \brief put on the stack an argument value, defined by the stored variable */
-class VariableToken : public Token
+class NamedToken :public Token
 {
-protected:
-	const Variable var ;
 public:
-	VariableToken(const Variable var , bool nul = false);
-	
-	virtual void eval(Context & context) const {
-	double v ;
-	switch (var)
+	std::string name ;
+public:
+	NamedToken(const std::string & name ) : Token(false, std::make_pair(std::make_pair(TOKEN_NAMED, 0),(double)(0))), name(name) { };
+	virtual void eval(Context & context) const 
 	{
-	case ONE:
+
+		if(context.memory.variables.find(name) == context.memory.variables.end())
 		{
-			v = 1 ;
-			break ;
-		}
-	case XI:
-		{
-			v = context.x ;
-			break ;
-		}
-	case ETA:
-		{
-			v = context.y ;
-			break ;
-		}
-	case ZETA:
-		{
-			v = context.z ;
-			break ;
-		}
-	case TIME_VARIABLE:
-		{
-			v = 1 ;
-			break ;
-		}
-	case U_VARIABLE:
-		{
-			v = context.u ;
-			break ;
-		}
-	case V_VARIABLE:
-		{
-			v = context.v ;
-			break ;
-		}
-	case W_VARIABLE:
-		{
-			v = context.w ;
-			break ;
-		}
-	default:
-		{
-			v = 1 ;
-			break ;
-		}
-	}
-    context.memory.push_back(v) ;
-}
-	
-	virtual ~VariableToken();
-	
-	virtual std::string print() const
-	{
-		switch(var)
-		{
-		case ONE:
-			{
-				return (std::string("1")) ;
-			}
-		case XI:
-			{
-				return (std::string("x")) ;
-			}
-		case ETA:
-			{
-				return (std::string("y")) ;
-			}
-		case ZETA:
-			{
-				return (std::string("z")) ;
-			}
-		case TIME_VARIABLE:
-			{
-				return (std::string("t")) ;
-			}
-		case U_VARIABLE:
-			{
-				return (std::string("u")) ;
-			}
-		case V_VARIABLE:
-			{
-				return (std::string("v")) ;
-			}
-		case W_VARIABLE:
-			{
-				return (std::string("w")) ;
-			}
+			context.memory.variable_register.push_back(new double(0)) ;
+			context.memory.variables[name] = context.memory.variable_register.back() ;
 		}
 		
-		return std::string("") ;
+		context.memory.push_back(*context.memory.variables[name]) ;
+		context.memory.current_variable = name ;
+		
 	}
+	virtual ~NamedToken(){ };
+	virtual std::string print() const { return name ;}
 } ;
 
 /** \brief Apply unary function on the last value of the stack */
@@ -1803,6 +1927,27 @@ public:
 	virtual std::string print() const
 	{
 		return std::string("+")  ;
+	}
+} ;
+
+class EqualsToken : public Token
+{
+public:
+	EqualsToken(): Token(false, std::make_pair(std::make_pair(TOKEN_EQUALS,0), 0)) { } ;
+	
+	virtual void eval(Context & context) const
+	{
+		
+	    *context.memory.variables[context.memory.current_variable] = *context.memory.top_pos ;
+		 context.memory.pop_back() ;
+		 context.memory.pop_back() ;
+	}
+	
+	virtual ~EqualsToken() { };
+	
+	virtual std::string print() const
+	{
+		return std::string("=")  ;
 	}
 } ;
 

@@ -3,13 +3,16 @@
 
 #include <vector>
 #include <complex>
+#include "../geometry/geometry_base.h"
 #include "../polynomial/vm_base.h"
 
 namespace Mu
 {
-class GeneticAlgorithmOptimizer
+class GeneticAlgorithmOptimizer 
 {
 protected:
+	friend class Segment ;
+	friend class Geometry ;
 	std::vector<double> vars ;
 	std::vector<std::pair<double, double> > bounds ; 
 	std::vector<double *> lowLevelVars ;

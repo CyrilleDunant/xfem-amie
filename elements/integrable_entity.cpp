@@ -24,6 +24,9 @@ IntegrableEntity::IntegrableEntity() : state(this)
 	
 }
 
+
+
+
 const Vector & ElementState::getPreviousEnrichedDisplacements() const
 {
 	return this->previousEnrichedDisplacements ;
@@ -127,6 +130,23 @@ const Vector & ElementState::getPreviousPreviousDisplacements() const
 	return this->previousPreviousDisplacements ;
 }
 
+Vector ElementState::getAverageDisplacement() const
+{
+	FunctionMatrix disps = getDisplacementFunction() ;
+	Matrix ret = VirtualMachine().ieval(disps, getParent()) ;
+	Vector v(ret.numRows()) ;
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		for(size_t i = 0 ;  i < v.size() ; i++)
+			v[i] = ret[i][0]/parent->area() ;
+	}
+	else
+	{
+		for(size_t i = 0 ;  i < v.size() ; i++)
+			v[i] = ret[i][0]/parent->volume() ;
+	}
+	return v ;
+}
 
 Vector & ElementState::getPreviousPreviousDisplacements() 
 {

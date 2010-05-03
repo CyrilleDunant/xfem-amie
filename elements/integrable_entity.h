@@ -175,6 +175,9 @@ public:
 /** \brief get symbolic expression of displacement, given he inverse Jacobian*/
 	FunctionMatrix getDisplacementFunction() const;
 	
+/** \brief get average desplacements over the element*/
+	Vector getAverageDisplacement() const ;
+	
 /** \brief return maximum Von Mises Stress*/
 	double getMaximumVonMisesStress() const ;
 	

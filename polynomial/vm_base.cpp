@@ -28,6 +28,24 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 	return  *stack.memory.top_pos ;
 }
 
+double VirtualMachine::eval(const Function &f, std::vector<std::pair<std::string, double> > vars, const double x, const double y, const double z, const double t, const double u, const double v, const double w) 
+{
+	stack.memory.reset() ;
+	for(size_t i = 0 ; i < vars.size() ; i++)
+		stack.memory.setNamedVariable(vars[i].first, vars[i].second);
+	
+	stack.set(x, y, z, t, u, v, w) ;
+// 	Context context(stack, x, y, z, t, u, v, w) ;
+	
+	for(size_t i = 0 ; i < f.size()  ; ++i)
+		f.tokenEval(i,stack) ;
+
+// 	if(std::abs(stack[0]) < 1e-6)
+// 		return 0 ;
+		
+	return  *stack.memory.top_pos ;
+}
+
 Vector VirtualMachine::eval(const Function &f, const GaussPointArray &gp)
 {
 	if(f.precalculated(gp))

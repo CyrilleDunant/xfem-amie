@@ -290,7 +290,7 @@ public:
 public:
 
 	/** \brief Construct a function from two bytecodes and a token. 
-	 * This is typically usefull to create a function from an operation between two functions
+	 * This is typically useful to create a function from an operation between two functions
 	 * 
 	 * @param b_0 first ByteCode
 	 * @param b_1 second ByteCode
@@ -300,7 +300,7 @@ public:
 	Function(const ByteCode &b_0, const ByteCode &b_1, RefCountedToken op, const bool diff = false); 
 
 	/** \brief Construct a function from a bytecodes and a double  and a token. 
-	 * This is typically usefull to create a function from an operation between a function and a double
+	 * This is typically useful to create a function from an operation between a function and a double
 	 * 
 	 * @param b_0 first ByteCode
 	 * @param a scalar
@@ -311,13 +311,31 @@ public:
 
 
 	/** \brief Construct a function from a bytecodes and a double  and a token. 
-	 * This is typically usefull to create a function from an operation between a function and a double
+	 * This is typically useful to create a function from an operation between a function and a double
 	 * @param a scalar
 	 * @param b_0 first ByteCode
 	 * @param op operator linking the two functions
 	 * @param diff compute the differential 
 	 */
 	Function(const double a, const ByteCode &b_0,  RefCountedToken op, const bool diff= false) ;
+	
+	template<class ETYPE, class EABSTRACTTYPE>
+	Function(Mesh<ETYPE, EABSTRACTTYPE>  * mesh, Variable v):  derivative(2)  , byteCode(1), e_diff(true), compiled(false)
+{
+
+			this->dofID =-1 ;
+			this->ptID = NULL ;
+			if(v == XI)
+				byteCode[0] = RefCountedToken(new MeshXDisplacementToken(mesh)) ;
+			if(v == ETA)
+				byteCode[0] = RefCountedToken(new MeshYDisplacementToken(mesh)) ;
+			if(v == ZETA)
+				byteCode[0] = RefCountedToken(new MeshZDisplacementToken(mesh)) ;
+			
+			derivative[XI] = Function() ;
+			derivative[ETA] = Function() ;
+	
+}
 	
 	virtual ~Function()  ;
 	

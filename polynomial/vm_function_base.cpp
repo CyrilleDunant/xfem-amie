@@ -168,101 +168,105 @@ const RefCountedToken Function::toToken(const std::string str) const
 	{
 		return new SinToken() ;
 	}
-	else if(str.c_str() == std::string("cos"))
+	else if(str == std::string("cos"))
 	{
 		return new CosToken() ;
 	}
-	else if(str.c_str() == std::string("tan"))
+	else if(str == std::string("tan"))
 	{
 		return new TanToken() ;
 	}
-	else if(str.c_str() == std::string("sinh"))
+	else if(str == std::string("sinh"))
 	{
 		return new SinhToken() ;
 	}
-	else if(str.c_str() == std::string("cosh"))
+	else if(str == std::string("cosh"))
 	{
 		return new CoshToken() ;
 	}
-	else if(str.c_str() == std::string("tanh"))
+	else if(str == std::string("tanh"))
 	{
 		return new TanhToken() ;
 	}
-	else if(str.c_str() == std::string("exp"))
+	else if(str == std::string("exp"))
 	{
 		return new ExpToken() ;
 	}
-	else if(str.c_str() == std::string("abs"))
+	else if(str == std::string("abs"))
 	{
 		return new AbsToken() ;
 	}
-	else if(str.c_str() == std::string("log"))
+	else if(str == std::string("log"))
 	{
 		return new LogToken() ;
 	}
-	else if(str.c_str() == std::string("sqrt"))
+	else if(str == std::string("sqrt"))
 	{
 		return new SqrtToken() ;
 	}
-	else if(str.c_str() == std::string("sign"))
+	else if(str == std::string("sign"))
 	{
 		return new SignFunctionToken() ;
 	}
-	else if(str.c_str() == std::string("atan2"))
+	else if(str == std::string("atan2"))
 	{
 		return new Atan2Token() ;
 	}
-	else if(str.c_str() == std::string("+"))
+	else if(str == std::string("+"))
 	{
 		return new PlusOperatorToken() ;
 	}
-	else if(str.c_str() == std::string("-"))
+	else if(str == std::string("-"))
 	{
 		return new MinusOperatorToken() ;
 	}
-	else if(str.c_str() == std::string("*"))
+	else if(str == std::string("*"))
 	{
 		return new TimesOperatorToken() ;
 	}
-	else if(str.c_str() == std::string("/"))
+	else if(str == std::string("/"))
 	{
 		return new DivideOperatorToken() ;
 	}
-	else if(str.c_str() == std::string("^"))
+	else if(str == std::string("^"))
 	{
 		return new PowerOperatorToken() ;
 	}
-	else if(str.c_str() == std::string("x"))
+	else if(str == std::string("="))
+	{
+		return new EqualsToken() ;
+	}
+	else if(str == std::string("x"))
 	{
 		return new XToken() ;
 	}
-	else if(str.c_str() == std::string("y"))
+	else if(str == std::string("y"))
 	{
 		return new YToken();
 	}
-	else if(str.c_str() == std::string("z"))
+	else if(str == std::string("z"))
 	{
 		return new ZToken() ;
 	}
-	else if(str.c_str() == std::string("t"))
+	else if(str == std::string("t"))
 	{
 		return new TToken() ;
 	}
-	else if(str.c_str() == std::string("u"))
+	else if(str == std::string("u"))
 	{
 		return new UToken();
 	}
-	else if(str.c_str() == std::string("v"))
+	else if(str == std::string("v"))
 	{
 		return new VToken() ;
 	}
-	else if(str.c_str() == std::string("w"))
+	else if(str == std::string("w"))
 	{
 		return new WToken() ;
 	}
 	else
 	{
-		return NULL ;
+		return new NamedToken(str) ;
 	}
 }
 	
@@ -2273,7 +2277,7 @@ void Function::compile()
 					if(bytecode[subexpressionEnd-2]->type.first.first == TOKEN_CONSTANT 
 					   || bytecode[subexpressionEnd-2]->type.first.first >= TOKEN_X_POWER_AND_MULTIPLY
 					   || (bytecode[subexpressionEnd-2]->type.first.first >= TOKEN_X 
-					       && bytecode[subexpressionEnd-2]->type.first.first <=TOKEN_VARIABLE)
+					       && bytecode[subexpressionEnd-2]->type.first.first <=TOKEN_NAMED)
 					  )
 					{
 						newByteCode.push_back(bytecode[subexpressionEnd-2]) ;
