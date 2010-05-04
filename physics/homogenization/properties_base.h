@@ -23,12 +23,15 @@ namespace Mu
 
 typedef enum
 {
-	VOID_PROP,
-	ABSTRACT,
-	FRACTION,
-	HOOKE,
-	BULK_SHEAR,
-	EXPANSION,
+	VOID_PROP, // nothing
+	ABSTRACT, // anything
+	FRACTION, // volume fraction
+	HOOKE, // E and nu
+	BULK_SHEAR, // k and mu
+	EXPANSION, // alpha
+	CRACK_DENSITY, // number of cracks
+	ELLIPSE_SHAPE, // a and b
+	SHAPE, // area and perimeter
 } PropertiesType ;
 
 /* \brief returns the standard number of value for a specific type */

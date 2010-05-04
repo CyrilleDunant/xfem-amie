@@ -32,6 +32,12 @@ size_t Mu::standardNVal(Mu::PropertiesType p)
 			return 2 ;
 		case(EXPANSION):
 			return 1 ;
+		case(CRACK_DENSITY):
+			return 1 ;
+		case(ELLIPSE_SHAPE):
+			return 2 ;
+		case(SHAPE):
+			return 2 ;
 	}
 	return 0 ;
 }
@@ -52,6 +58,12 @@ bool Mu::conversionPossible(Mu::PropertiesType p1, Mu::PropertiesType p2)
 			return (p1 == ABSTRACT || p1 == HOOKE || p1 == BULK_SHEAR) ;
 		case EXPANSION:
 			return (p1 == ABSTRACT || p1 == EXPANSION) ;
+		case CRACK_DENSITY:
+			return (p1 == ABSTRACT || p1 == CRACK_DENSITY) ;
+		case ELLIPSE_SHAPE:
+			return (p1 == ABSTRACT || p1 == ELLIPSE_SHAPE) ;
+		case SHAPE:
+			return (p1 == ABSTRACT || p1 == ELLIPSE_SHAPE || p1 == SHAPE) ;
 	}
 	return false ;
 }
@@ -241,6 +253,10 @@ std::pair<bool, Properties> Properties::convert(PropertiesType p_out)
 					return std::make_pair(false, Properties()) ;
 				case EXPANSION:
 					return std::make_pair(false, Properties()) ;
+				case CRACK_DENSITY:
+					return std::make_pair(false, Properties()) ;
+				case ELLIPSE_SHAPE:
+					return std::make_pair(false, Properties()) ;
 			}
 		}
 		case HOOKE:
@@ -270,6 +286,10 @@ std::pair<bool, Properties> Properties::convert(PropertiesType p_out)
 				}	
 				case EXPANSION:
 					return std::make_pair(false, Properties()) ;
+				case CRACK_DENSITY:
+					return std::make_pair(false, Properties()) ;
+				case ELLIPSE_SHAPE:
+					return std::make_pair(false, Properties()) ;
 			}
 		}
 		case BULK_SHEAR:
@@ -298,6 +318,10 @@ std::pair<bool, Properties> Properties::convert(PropertiesType p_out)
 				case BULK_SHEAR:
 					return std::make_pair(true, Properties(*this)) ;
 				case EXPANSION:
+					return std::make_pair(false, Properties()) ;
+				case CRACK_DENSITY:
+					return std::make_pair(false, Properties()) ;
+				case ELLIPSE_SHAPE:
 					return std::make_pair(false, Properties()) ;
 			}
 		}
@@ -349,6 +373,15 @@ void Properties::print()
 		{
 			std::cout << "EXPANSION COEFFICIENT" << std::endl ;
 			break;
+		}
+		case CRACK_DENSITY:
+		{
+			std::cout << "CRACK DENSITY" << std::endl ;
+			break;
+		}
+		case ELLIPSE_SHAPE:
+		{
+			std::cout << "ELLIPSE PARAMETERS" << std::endl ;
 		}
 	}
 	for(size_t i = 0 ; i < nVal ; i++)
