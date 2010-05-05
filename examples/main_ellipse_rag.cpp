@@ -26,6 +26,7 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../utilities/itoa.h"
 
 #include <iostream>  // I/O 
 #include <fstream>   // file I/O
@@ -155,26 +156,6 @@ double aggregateArea = 0;
 int totit = 5 ;
 
 std::vector<double> energy ;
-
-
-std::string itoa(int value, int base) {
-
-	enum { kMaxDigits = 35 };
-	std::string buf;
-	buf.reserve( kMaxDigits ); 
-	if (base < 2 || base > 16) return buf;
-	int quotient = value;
-	do {
-		buf += "0123456789abcdef"[ std::abs( quotient % base ) ];
-		quotient /= base;
-	} while ( quotient );
-	if ( value < 0 && base == 10) buf += '-';	
-	std::reverse( buf.begin(), buf.end() );
-	return buf;
-	
-}
-
-
 
 void setBC()
 {

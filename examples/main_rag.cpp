@@ -1,4 +1,5 @@
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2010
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -20,6 +21,7 @@
 #include "../features/enrichmentInclusion.h"
 #include "../mesher/delaunay_3d.h"
 #include "../solvers/assembly.h"
+#include "../utilities/itoa.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 
@@ -137,33 +139,6 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-
-std::string itoa(int value, int base) {
-
-	enum { kMaxDigits = 35 };
-	std::string buf;
-	buf.reserve( kMaxDigits ); // Pre-allocate enough space.
-
-	// check that the base if valid
-	if (base < 2 || base > 16) return buf;
-
-	int quotient = value;
-	
-	
-	// Translating number to string with base:
-	do {
-		buf += "0123456789abcdef"[ std::abs( quotient % base ) ];
-		quotient /= base;
-	} while ( quotient );
-	
-	// Append the negative sign for base 10
-	if ( value < 0 && base == 10) buf += '-';
-	
-	std::reverse( buf.begin(), buf.end() );
-	
-	return buf;
-	
-}
 
 void fastForward (int steps, int nstepstot)
 {

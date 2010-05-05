@@ -34,8 +34,6 @@ std::vector<DelaunayTriangle *> triangles ;
 int nombreGranulatsPlaces;
 
 
-
-
 void reshape(int width, int height) {
 
 	// Set the new viewport size

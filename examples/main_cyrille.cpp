@@ -406,6 +406,8 @@ void step()
 		}
 		avgdisplacement /= avgdisplacementarea ;
 		
+		
+		
 		std::cout << std::endl ;
 		std::cout << "max value x :" << x_max << std::endl ;
 		std::cout << "mean value x :" << avgdisplacement[0] << std::endl ;
@@ -1418,8 +1420,7 @@ int main(int argc, char *argv[])
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
-Function func(F.get2DMesh(), XI) ;
-std::cout << VirtualMachine().eval(func, 0.) << std::endl;
+
 	step() ;
 	
 	
