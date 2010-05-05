@@ -1347,13 +1347,13 @@ int main(int argc, char *argv[])
 // 	std::cout << ga.optimize(1e-12, 10000, 1000) << std::endl ;
 // 	std::cout << ga.getValues()[0] << " " << ga.getValues()[1] <<std::endl ;
 
-	Function test("toto 2 + tata +") ;
-	VirtualMachine().print(test);
-	std::vector<std::pair<std::string, double> > vars ;
-	vars.push_back(std::make_pair("toto", 2)) ;
-	vars.push_back(std::make_pair("tata", 2)) ;
-	std::cout << VirtualMachine().eval(test, vars) << std::endl;
-	return 0 ;
+// 	Function test("toto 2 + tata +") ;
+// 	VirtualMachine().print(test);
+// 	std::vector<std::pair<std::string, double> > vars ;
+// 	vars.push_back(std::make_pair("toto", 2)) ;
+// 	vars.push_back(std::make_pair("tata", 2)) ;
+// 	std::cout << VirtualMachine().eval(test, vars) << std::endl;
+// 	return 0 ;
 	
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
@@ -1418,7 +1418,8 @@ int main(int argc, char *argv[])
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
-
+Function func(F.get2DMesh(), XI) ;
+std::cout << VirtualMachine().eval(func, 0.) << std::endl;
 	step() ;
 	
 	

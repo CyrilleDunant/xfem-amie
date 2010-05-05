@@ -321,21 +321,21 @@ public:
 	
 	template<class ETYPE, class EABSTRACTTYPE>
 	Function(Mesh<ETYPE, EABSTRACTTYPE>  * mesh, Variable v):  derivative(2)  , byteCode(1), e_diff(true), compiled(false)
-{
+	{
 
 			this->dofID =-1 ;
 			this->ptID = NULL ;
 			if(v == XI)
-				byteCode[0] = RefCountedToken(new MeshXDisplacementToken(mesh)) ;
+				byteCode[0] = RefCountedToken(new MeshXDisplacementToken<ETYPE, EABSTRACTTYPE>(mesh)) ;
 			if(v == ETA)
-				byteCode[0] = RefCountedToken(new MeshYDisplacementToken(mesh)) ;
+				byteCode[0] = RefCountedToken(new MeshYDisplacementToken<ETYPE, EABSTRACTTYPE>(mesh)) ;
 			if(v == ZETA)
-				byteCode[0] = RefCountedToken(new MeshZDisplacementToken(mesh)) ;
+				byteCode[0] = RefCountedToken(new MeshZDisplacementToken<ETYPE, EABSTRACTTYPE>(mesh)) ;
 			
 			derivative[XI] = Function() ;
 			derivative[ETA] = Function() ;
 	
-}
+	}
 	
 	virtual ~Function()  ;
 	

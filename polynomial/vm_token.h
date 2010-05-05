@@ -795,7 +795,17 @@ class MeshXDisplacementToken : public Token
 {
 	Mesh<ETYPE, EABSTRACTTYPE> * mesh ;
 public:
-	MeshXDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_X, 0), mesh(mesh)
+	MeshXDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, 
+																		std::make_pair
+																		(
+																			std::make_pair
+																			(
+																				TOKEN_MESH_DISPLACEMENT_FIELD_X, 
+																				0
+																			), 
+																			0.
+																		)
+																		), mesh(mesh)
 	{ }
 	
 	virtual void eval(Context & context) const
@@ -814,7 +824,7 @@ public:
 		}
 		double x = target->getState().getDisplacements(where)[0] ;
 		
-		*context.memory.push_back(x) ;
+		context.memory.push_back(x) ;
 
 	}
 	virtual ~MeshXDisplacementToken() { };
@@ -830,7 +840,7 @@ class MeshYDisplacementToken : public Token
 {
 	Mesh<ETYPE, EABSTRACTTYPE> * mesh ;
 public:
-	MeshYDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_Y, 0), mesh(mesh)
+	MeshYDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_Y, 0), 0.)), mesh(mesh)
 	{ }
 	
 	virtual void eval(Context & context) const
@@ -849,7 +859,7 @@ public:
 		}
 		double x = target->getState().getDisplacements(where)[1] ;
 		
-		*context.memory.push_back(x) ;
+		context.memory.push_back(x) ;
 
 	}
 	virtual ~MeshYDisplacementToken() { };
@@ -865,7 +875,7 @@ class MeshZDisplacementToken : public Token
 {
 	Mesh<ETYPE, EABSTRACTTYPE> * mesh ;
 public:
-	MeshZDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_Z, 0), mesh(mesh)
+	MeshZDisplacementToken(Mesh<ETYPE, EABSTRACTTYPE> * mesh ) : Token(false, std::make_pair(std::make_pair(TOKEN_MESH_DISPLACEMENT_FIELD_Z, 0), 0.)), mesh(mesh)
 	{ }
 	
 	virtual void eval(Context & context) const
@@ -884,10 +894,10 @@ public:
 		}
 		double x = target->getState().getDisplacements(where)[2] ;
 		
-		*context.memory.push_back(x) ;
+		context.memory.push_back(x) ;
 
 	}
-	virtual ~MeshYDisplacementToken() { };
+	virtual ~MeshZDisplacementToken() { };
 	virtual std::string print() const
 	{
 		return std::string("mesh z displacement field") ;
