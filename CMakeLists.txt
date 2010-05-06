@@ -116,6 +116,7 @@ utilities/matrixops.cpp
 utilities/parser.cpp
 utilities/pid.cpp
 utilities/placement.cpp
+utilities/random.cpp
 utilities/samplingcriterion.cpp
 utilities/xml.cpp
 )

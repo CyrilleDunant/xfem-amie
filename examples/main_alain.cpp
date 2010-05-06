@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 	Vector epsilon(57) ;
 	Vector bulkx(57) ;
 	Vector shearx(57) ;
+	Vector epsilonx(57) ;
 
 	for(int i = 1 ; i < epsilon.size() ; i++)
 	{
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
 	shearx[0] = kmu.getValue(1) ;
 
 	Properties eps(CRACK_DENSITY,0.) ;
+	Properties ell(ELLIPSE_SHAPE,std::make_pair(1.,0.75)) ;
 
 	for(int i = 1 ; i < epsilon.size() ; i++)
 	{
@@ -47,16 +49,18 @@ int main(int argc, char *argv[])
 
 		Material agg(kmu) ;
 		agg.push_back(eps) ;
+		agg.push_back(ell) ;
 
 		std::vector<Material> mat ;
 		mat.push_back(agg) ;
 
-		Material agg_cracked = SimplifiedBenHahaScheme().apply(mat).second ;
+		Material agg_cracked = BudianskyScheme().apply(mat).second ;
 
 		bulkx[i] = agg_cracked[0].getValue(0) ;
 		shearx[i] = agg_cracked[0].getValue(1) ;
+		epsilonx[i] = agg_cracked[1].getValue(0) ;
 
-		std::cout << i << ";" << epsilon[i] << ";" << bulkx[i] << ";" << shearx[i] << std::endl ;
+		std::cout << i << ";" << epsilonx[i] << ";" << bulkx[i] << ";" << shearx[i] << std::endl ;
 
 	}
 	
