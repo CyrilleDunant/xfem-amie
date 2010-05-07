@@ -11,743 +11,310 @@
 //
 
 #include "properties_base.h"
-#include "elastic_homogenization.h"
+#include "converter.h"
 
 using namespace Mu ;
 
-
-size_t Mu::standardNVal(Mu::PropertiesType p)
-{
-	switch(p)
-	{
-		case(VOID_PROP):
-			return 0 ;
-		case(ABSTRACT):
-			return -1 ;
-		case(FRACTION):
-			return 1 ;
-		case(HOOKE):
-			return 2 ;
-		case(BULK_SHEAR):
-			return 2 ;
-		case(EXPANSION):
-			return 1 ;
-		case(CRACK_DENSITY):
-			return 1 ;
-		case(ELLIPSE_SHAPE):
-			return 2 ;
-		case(SHAPE):
-			return 2 ;
-	}
-	return 0 ;
-}
-
-bool Mu::conversionPossible(Mu::PropertiesType p1, Mu::PropertiesType p2)
-{
-	switch(p2)
-	{
-		case VOID_PROP:
-			return true ;
-		case ABSTRACT:
-			return true ;
-		case FRACTION:
-			return (p1 == ABSTRACT || p1 == FRACTION) ;
-		case HOOKE:
-			return (p1 == ABSTRACT || p1 == HOOKE || p1 == BULK_SHEAR) ;
-		case BULK_SHEAR:
-			return (p1 == ABSTRACT || p1 == HOOKE || p1 == BULK_SHEAR) ;
-		case EXPANSION:
-			return (p1 == ABSTRACT || p1 == EXPANSION) ;
-		case CRACK_DENSITY:
-			return (p1 == ABSTRACT || p1 == CRACK_DENSITY) ;
-		case ELLIPSE_SHAPE:
-			return (p1 == ABSTRACT || p1 == ELLIPSE_SHAPE) ;
-		case SHAPE:
-			return (p1 == ABSTRACT || p1 == ELLIPSE_SHAPE || p1 == SHAPE) ;
-	}
-	return false ;
-}
-
 Properties::Properties()
 {
-	pType = VOID_PROP ;
-	nVal = 0 ;
+	ptag = TAG_NULL ;
+	p = 0. ;
 }
-
 Properties::Properties(double v)
 {
-	pType = ABSTRACT ;
-	values.resize(1) ;
-	values[0] = v ;
-	nVal = 1 ;
+	ptag = TAG_UNIVERSAL ;
+	p = v ;
 }
-
-Properties::Properties(const std::pair<double, double> & v)
+Properties::Properties(Tag t, double v)
 {
-	pType = ABSTRACT ;
-	values.resize(2) ;
-	values[0] = (v.first) ;
-	values[1] = (v.second) ;
-	nVal = 2 ;
+	ptag = t ;
+	p = v ;
 }
-
-Properties::Properties(const std::vector<double> & v)
+Properties::Properties(const Properties & prop)
 {
-	pType = ABSTRACT ;
-	values.resize(v.size()) ;
-	for(size_t i = 0 ; i < v.size() ; i++)
-		values[i]=(v[i]) ;
-	nVal = values.size() ;
+	ptag = prop.tag() ;
+	p = prop.val() ;
 }
-
-Properties::Properties(const Vector & v)
-{
-	pType = ABSTRACT ;
-	values.resize(v.size()) ;
-	for(size_t i = 0 ; i < v.size() ; i++)
-		values[i]=(v[i]) ;
-	nVal = values.size() ;
-}
-
-Properties::Properties(PropertiesType p, double v)
-{
-	pType = p ;
-	nVal = standardNVal(p) ;
-	if(nVal != 0)
-	{
-		if(nVal+1 > 0)
-		{
-			values.resize(nVal) ;
-		} else {
-			values.resize(1) ;
-		}
-		values[0] = v ;
-	} else {
-		values.resize(0) ;
-	}
-}
-
-Properties::Properties(PropertiesType p, const std::pair<double, double> & v)
-{
-	pType = p ;
-	nVal = standardNVal(p) ;
-	if(nVal != 0)
-	{
-		if(nVal+1 > 0)
-		{
-			values.resize(nVal) ;
-		} else {
-			values.resize(2) ;
-		}
-		values[0] = (v.first) ;
-		if(values.size()>1)
-			values[1] = (v.second) ;
-	} else {
-		values.resize(0) ;
-	}
-}
-
-Properties::Properties(PropertiesType p, const std::vector<double> & v)
-{
-	pType = p ;
-	nVal = standardNVal(p) ;
-	if(nVal+1 == 0)
-		nVal = v.size() ;
-	values.resize(nVal) ;
-	for(size_t i = 0 ; i < std::min(v.size(),nVal) ; i++)
-		values[i] = (v[i]) ;
-	nVal = values.size() ;
-}
-
-Properties::Properties(PropertiesType p, const Vector & v)
-{
-	pType = p ;
-	nVal = standardNVal(p) ;
-	if(nVal+1 == 0)
-		nVal = v.size() ;
-	values.resize(nVal) ;
-	for(size_t i = 0 ; i < std::min(v.size(),nVal) ; i++)
-		values[i] = (v[i]) ;
-	nVal = values.size() ;
-}
-
-Properties::Properties(PropertiesType p, const Matrix & m)
-{
-	pType = p ;
-	nVal = standardNVal(p) ;
-	if(nVal+1 == 0)
-	{
-		nVal = m.array().size() ;
-	}
-	values.resize(nVal) ;
-	for(size_t i = 0 ; i < values.size() ; i++)
-		values[i] = (m.array())[i] ;
-	if(p == HOOKE || p == BULK_SHEAR)
-	{
-		double E = 0 ;
-		double nu = 0 ;
-		if(m.size() == 9)
-		{
-			nu = m[0][0]/m[0][1] ;
-			E = m[0][0] * (1-nu*nu) ;
-		}
-		if(m.size() == 36) ;
-		{
-			nu = m[0][1] / (m[0][0]+m[0][1]) ;
-			E = m[0][0] * ((1.+nu)*(1.-2.*nu)) / (1.-nu) ;
-		}
-		switch(p)
-		{
-			case HOOKE:
-			{
-				values[0] = E ;
-				values[1] = nu ;
-				break;
-			}
-			case BULK_SHEAR:
-			{
-				values[0] = E / (3*(1-2*nu)) ;
-				values[1] = E / (2*(1+nu)) ;
-				break;
-			}
-		}
-	}
-}
-
-
-Properties::Properties(const Properties & p)
-{
-	pType = p.getPropertiesType() ;
-	values.resize(p.getValues().size()) ;
-	for(size_t i = 0 ; i < p.getNVal() ; i++)
-		values[i]=(p.getValue(i)) ;
-	nVal = values.size() ;
-}
-
-std::pair<bool, Properties> Properties::convert(PropertiesType p_out)
-{
-	switch(p_out)
-	{
-		case VOID_PROP:
-			return std::make_pair(true, Properties()) ;
-		case ABSTRACT:
-			return std::make_pair(true, Properties(values)) ;
-		case FRACTION:
-		{
-			switch(pType)
-			{
-				case VOID_PROP:
-					return std::make_pair(false, Properties()) ;
-				case ABSTRACT:
-				{
-					if(nVal > 0)
-						return std::make_pair(true, Properties(FRACTION, values[0])) ;
-					else
-						return std::make_pair(false, Properties()) ;
-				}
-				case FRACTION:
-					return std::make_pair(true, Properties(*this)) ;
-				case HOOKE:
-					return std::make_pair(false, Properties()) ;
-				case BULK_SHEAR:
-					return std::make_pair(false, Properties()) ;
-				case EXPANSION:
-					return std::make_pair(false, Properties()) ;
-				case CRACK_DENSITY:
-					return std::make_pair(false, Properties()) ;
-				case ELLIPSE_SHAPE:
-					return std::make_pair(false, Properties()) ;
-			}
-		}
-		case HOOKE:
-		{
-			switch(pType)
-			{
-				case VOID_PROP:
-					return std::make_pair(false, Properties()) ;
-				case ABSTRACT:
-				{
-					if(nVal > 1)
-						return std::make_pair(true, Properties(HOOKE, std::make_pair(values[0],values[1]))) ;
-					else
-						return std::make_pair(false, Properties()) ;
-				}
-				case FRACTION:
-					return std::make_pair(false, Properties()) ;
-				case HOOKE:
-					return std::make_pair(true, Properties(*this)) ;
-				case BULK_SHEAR:
-				{
-					double k = values[0] ;
-					double mu = values[1] ;
-					double E = 9*k*mu / (3*k+mu) ;
-					double nu = (3*k-2*mu) / (6*k+2*mu) ;
-					return std::make_pair(true, Properties(HOOKE, std::make_pair(E,nu))) ;
-				}	
-				case EXPANSION:
-					return std::make_pair(false, Properties()) ;
-				case CRACK_DENSITY:
-					return std::make_pair(false, Properties()) ;
-				case ELLIPSE_SHAPE:
-					return std::make_pair(false, Properties()) ;
-			}
-		}
-		case BULK_SHEAR:
-		{
-			switch(pType)
-			{
-				case VOID_PROP:
-					return std::make_pair(false, Properties()) ;
-				case ABSTRACT:
-				{
-					if(nVal > 1)
-						return std::make_pair(true, Properties(BULK_SHEAR, std::make_pair(values[0],values[1]))) ;
-					else
-						return std::make_pair(false, Properties()) ;
-				}
-				case FRACTION:
-					return std::make_pair(false, Properties()) ;
-				case HOOKE:
-				{
-					double E = values[0] ;
-					double nu = values[1] ;
-					double k = E / (3*(1-2*nu)) ;
-					double mu = E / (2*(1+nu)) ;
-					return std::make_pair(true, Properties(BULK_SHEAR, std::make_pair(k,mu))) ;
-				}
-				case BULK_SHEAR:
-					return std::make_pair(true, Properties(*this)) ;
-				case EXPANSION:
-					return std::make_pair(false, Properties()) ;
-				case CRACK_DENSITY:
-					return std::make_pair(false, Properties()) ;
-				case ELLIPSE_SHAPE:
-					return std::make_pair(false, Properties()) ;
-			}
-		}
-	}
-}
-
-std::pair<bool,Matrix> Properties::getCauchyGreen(SpaceDimensionality dim) const
-{
-	if(pType == HOOKE || pType == BULK_SHEAR)
-	{
-		Matrix cg = cauchyGreen(std::make_pair(values[0],values[1]),pType == HOOKE, dim) ;
-		return std::make_pair(true,cg) ;
-	}
-	Matrix cg = cauchyGreen(std::make_pair(1e-9,0.2),true,dim) ;
-	return std::make_pair(false,cg) ;
-}
-
 
 void Properties::print()
 {
-	switch(pType)
+	switch(ptag)
 	{
-		case VOID_PROP:
-		{
-			std::cout << "VOID PROPERTIES" << std::endl ;
-			break ;
-		}
-		case ABSTRACT:
-		{
-			std::cout << "ABSTRACT" << std::endl ;
-			break ;
-		}
-		case FRACTION:
-		{
-			std::cout << "FRACTION" << std::endl ;
-			break ;
-		}
-		case HOOKE:
-		{
-			std::cout << "HOOKE" << std::endl ;
-			break ;
-		}
-		case BULK_SHEAR:
-		{
-			std::cout << "BULK SHEAR" << std::endl ;
-			break ;
-		}
-		case EXPANSION:
-		{
-			std::cout << "EXPANSION COEFFICIENT" << std::endl ;
-			break;
-		}
-		case CRACK_DENSITY:
-		{
-			std::cout << "CRACK DENSITY" << std::endl ;
-			break;
-		}
-		case ELLIPSE_SHAPE:
-		{
-			std::cout << "ELLIPSE PARAMETERS" << std::endl ;
-		}
+	case TAG_NULL:
+		std::cout << "NULL PROPERTIES" << std::endl ;
+		break;
+	case TAG_UNIVERSAL:
+		std::cout << "UNDEFINED PROPERTIES = " ;
+		break;
+	case TAG_VOLUME:
+		std::cout << "VOLUME = " ;
+		break;			
+	case TAG_VOLUME_FRACTION: 
+		std::cout << "VOLUME FRACTION = " ; 
+		break;			
+	case TAG_VOLUME_TOTAL:
+		std::cout << "VOLUME TOTAL = " ; 
+		break;			
+	case TAG_MASS:
+		std::cout << "MASS = " ;
+		break;			
+	case TAG_MASS_FRACTION:
+		std::cout << "MASS FRACTION = " ; 
+		break;			
+	case TAG_MASS_TOTAL:
+		std::cout << "MASS TOTAL = " ; 
+		break;			
+	case TAG_DENSITY:
+		std::cout << "DENSITY = " ; 
+		break;			
+	case TAG_YOUNG_MODULUS:
+		std::cout << "YOUNG MODULUS = " ; 
+		break;			
+	case TAG_POISSON_RATIO:
+		std::cout << "POISSON RATIO = " ; 
+		break;			
+	case TAG_BULK_MODULUS:
+		std::cout << "BULK MODULUS = " ; 
+		break;			
+	case TAG_SHEAR_MODULUS:
+		std::cout << "SHEAR MODULUS = " ; 
+		break;			
+	case TAG_EXPANSION_COEFFICIENT: 
+		std::cout << "EXPANSION COEFFICIENT = " ; 
+		break;			
+	case TAG_CRACK_DENSITY: 
+		std::cout << "CRACK DENSITY = " ;
+		break;			
+	case TAG_ELLIPSE_A:
+		std::cout << "ELLIPSE MAJOR RADIUS = " ; 
+		break;			
+	case TAG_ELLIPSE_B:
+		std::cout << "ELLIPSE MINOR RADIUS = " ;
+		break;			
+	case TAG_AREA:
+		std::cout << "AREA = " ;
+		break;			
+	case TAG_PERIMETER:
+		std::cout << "PERIMETER = " ;
+		break;			
+	case TAG_ELLIPSE_FIRST_COMPLETE_INTEGRAL:
+		std::cout << "ELLIPTIC FIRST COMPLETE INTEGRAL = " ;
+		break;			
+	case TAG_ELLIPSE_SECOND_COMPLETE_INTEGRAL:
+		std::cout << "ELLIPTIC SECOND COMPLETE INTEGRAL = " ; 
+		break;			
+	case TAG_CIRCLE_RADIUS:
+		std::cout << "CIRCLE RADIUS = " ;
+		break;			
+
 	}
-	for(size_t i = 0 ; i < nVal ; i++)
-		std::cout << values[i] << ";" ; 
-	
-	std::cout << std::endl ;
+	if(!isNull())
+		std::cout << p << std::endl ;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 Material::Material()
 {
-}
 
+}
 Material::Material(const Properties & p)
 {
 	push_back(p) ;
 }
-
 Material::Material(const std::vector<Properties> & p)
 {
 	for(size_t i = 0 ; i < p.size() ; i++)
 		push_back(p[i]) ;
 }
-
-size_t Material::getFirstIndex(PropertiesType p) const
+Material::Material(const Matrix & cauchy)
 {
-	for(size_t i = 0 ; i < this->size() ; i++)
-	{
-		if((*this)[i].getPropertiesType() == p)
-			return i ;
-	}
-	return -1 ;
-}
+	double E = 0. ;
+	double nu = 0. ;
+	double k = 0. ;
+	double mu = 0. ;
 
+	double A = cauchy[0][0] ;
+	double B = cauchy[0][1] ;
 
-size_t Material::getHooke()
-{
-	size_t i = getFirstIndex(HOOKE) ;
-	if((i+1) > 0)
-		return i ;
-	i = getFirstIndex(BULK_SHEAR) ;
-	if((i+1) > 0)
+	if(cauchy.size() > 9)
 	{
-		Properties bulk((*this)[i]) ;
-		std::pair<bool, Properties> hooke = bulk.convert(HOOKE) ;
-		if(hooke.first)
-		{
-			this->push_back(hooke.second) ;
-			return (this->size() -1) ;
-		} else {
-			return -1 ;
-		}
+		nu = B / (A+B) ;
+		E = (1.+nu)*(1.-2.*nu)*B/nu ;
 	} else {
-		return -1 ;
+		nu = B / A ;
+		E = A * (1.-nu*nu) ;
 	}
+
+	GeneralConverter conv(TAG_UNIVERSAL) ;
+
+	k = conv.getBulkModulus(E,nu) ;
+	mu = conv.getShearModulus(E,nu) ;
+
+	if(conv.isOK())
+	{
+		push_back(Properties(TAG_YOUNG_MODULUS,E)) ;
+		push_back(Properties(TAG_POISSON_RATIO,nu)) ;
+		push_back(Properties(TAG_BULK_MODULUS,k)) ;
+		push_back(Properties(TAG_SHEAR_MODULUS,mu)) ;
+	}
+
 }
 
-size_t Material::getBulkShear()
+std::vector<size_t> Material::getIndex(Tag t) const
 {
-	size_t i = getFirstIndex(BULK_SHEAR) ;
-	if((i+1) > 0)
-		return i ;
-	i = getFirstIndex(HOOKE) ;
-	if((i+1) > 0)
+	std::vector<size_t> index ;
+	for(size_t i = 0 ; i < size() ; i++)
 	{
-		Properties hooke((*this)[i]) ;
-		std::pair<bool, Properties> bulk = hooke.convert(BULK_SHEAR) ;
-		if(bulk.first)
-		{
-			this->push_back(bulk.second) ;
-			return (this->size() -1) ;
-		} else {
-			return -1 ;
-		}
-	} else {
-		return -1 ;
+		if((*this)[i].is(t))
+			index.push_back(i) ;
 	}
+	return index ;
 }
 
-bool Material::equals(Material m,PropertiesType p) const
+size_t Material::getIndex(Tag t, size_t i) const
 {
-	size_t it = this->getFirstIndex(p) ;
-	size_t im = m.getFirstIndex(p) ;
-//	std::cout << it << ";" << im << std::endl ;
-	if(it+1 > 0 && im+1 > 0)
+	std::vector<size_t> index = getIndex(t) ;
+	if(index.size() == 0)
+		return -1 ;
+	if(i+1 == 0 || i+1 > index.size())
+		return index[index.size()-1] ;
+
+	return index[i] ;
+}
+bool Material::replace(Properties p)
+{
+	if(isSet(p.tag()))
+		return false ;
+
+	for(size_t i = 0 ; i < size() ; i++)
 	{
-//		std::cout << "here" << std::endl ;
-		if((*this)[it].getNVal() == m[im].getNVal())
-		{
-//			std::cout << "here" << std::endl ;
-			bool v = true ;
-			for(size_t i = 0 ; i < m[im].getNVal() ; i++)
-				v &= (std::abs((*this)[it].getValue(i) - m[im].getValue(i)) < 1e-6) ;
-			return v ;
-		}
+		if((*this)[i].is(p.tag()))
+			(*this)[i].kill() ;
+	}
+	push_back(p) ;
+	return true ;
+}
+
+bool Material::replaceForce(Properties p)
+{
+	if(replace(p))
+		return true ;
+
+	for(size_t i = 0 ; i < size() ; i++)
+	{
+		if((*this)[i].is(p.tag()))
+			(*this)[i].kill() ;
+	}
+	push_back(p) ;
+	return false ;
+	
+}
+
+bool Material::isSet(Tag t) const
+{
+	for(size_t i = 0 ; i < tagset.size() ; i++)
+	{
+		if(tagset[i] == t)
+			return true ;
 	}
 	return false ;
 }
 
-void Material::combine(Material m, PropertiesType p)
+bool Material::set(Tag t)
 {
-	for(size_t i = 0 ; i < this->size() ; i++)
+	if(isSet(t))
+		return true ;
+
+	if(getIndex(t).size() == 0)
+		return false ;
+
+	tagset.push_back(t) ;
+	return true ;
+}
+
+bool Material::set(Tag t, size_t i)
+{
+	if((*this)[i].is(t))
 	{
-		if((*this)[i].getPropertiesType() == p)
+		set(t) ;
+		for(int j = 0 ; j < size() ; j++)
 		{
-			size_t im = getFirstIndex(p) ;
-			for(size_t j = 0 ; j < (*this)[i].getNVal() ; j++)
-				(*this)[i].setValue(j,m[im].getValue(j)+(*this)[i].getValue(i)) ;
+			if((*this)[j].is(t) && (j != i))
+				(*this)[j].kill() ; 
 		}
+		return true ;
 	}
+	return false ;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-SimpleMaterial::SimpleMaterial(double E, double nu)
+bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 {
-	Young_Poisson = std::make_pair(E,nu) ;
-}
-
-SimpleMaterial::SimpleMaterial(std::pair<double,double> E_nu)
-{
-	Young_Poisson = E_nu ;
-}
-
-SimpleMaterial::SimpleMaterial(SimpleMaterial & mat)
-{
-	Young_Poisson = mat.getEnu() ;
-}
-
-SimpleMaterial::SimpleMaterial(SimpleMaterial * mat)
-{
-	Young_Poisson = mat->getEnu() ;
-}
-
-SimpleMaterial::SimpleMaterial(HomogenizationScheme scheme, std::pair<double,SimpleMaterial *> inclusions, SimpleMaterial * matrix)
-{
-	std::pair<double,double> k_mu_inc = inclusions.second->getkmu() ;
-	double f_inc = inclusions.first ;
-	double k_inc = k_mu_inc.first ;
-	double mu_inc = k_mu_inc.second ;
-
-	std::pair<double,double> k_mu_mat = matrix->getkmu() ;
-	double f_mat = 1 - f_inc ;
-	double k_mat = k_mu_mat.first ;
-	double mu_mat = k_mu_mat.second ;
-
-	double k_hom = k_mat ;
-	double mu_hom = mu_mat ;
-
-	switch(scheme)
+	bool success = true ;
+	for(size_t i = 0 ; i < compare.size() && success ; i++)
 	{
-		case DILUTED:
-		{
-			k_hom += f_inc * (k_inc - k_mat) * (3*k_mat + 4*mu_mat) / (3*k_inc + 4*mu_mat) ;
-			mu_hom += f_inc * (mu_inc - mu_mat) * (5*mu_mat*(3*k_mat + 4*mu_mat)) / (mu_mat*(9*k_mat + 8*mu_mat) + 6*mu_inc*(k_mat + 2*mu_mat)) ;
-			break;
-		}
-		case INCREMENTAL:
-		{
-			double alpha = 1e-6 ;
-			double dalpha = 1e-6 ;
-			SimpleMaterial * incremental = new SimpleMaterial(matrix) ;
-			while(alpha < f_inc)
-			{
-				incremental = new SimpleMaterial(DILUTED, std::make_pair(dalpha,inclusions.second), incremental) ;
-				alpha += dalpha ;
-			}
-			incremental = new SimpleMaterial(DILUTED, std::make_pair(f_inc - (alpha-dalpha), inclusions.second), incremental) ;
-			std::pair<double,double> k_mu_hom = incremental->getkmu() ;
-			k_hom = k_mu_hom.first ;
-			mu_hom = k_mu_hom.second ;
-			break;
-		}
-		case MORI_TANAKA:
-		{
-			double Sk = (4*mu_mat) / (3*k_mat) ;
-			double Smu = (3 + 2*Sk) / (2 + 3*Sk) ;
-			double K = k_inc / k_mat ;
-			double Mu = mu_inc / mu_mat ;
-			k_hom *= (K/Sk + 1 + f_inc*(K-1)) ;
-			k_hom /= (1 + (K + f_inc*(1-K))/Sk) ;
-			mu_hom *= (Mu/Smu + 1 + f_inc*(Mu-1)) ;
-			mu_hom /= (1 + (Mu + f_inc*(1-Mu))/Smu) ;
-			break;
-		}
-		case SELF_CONSISTENT:
-		{
-			double k_min = std::min(k_inc,k_mat) ;
-			double mu_min = std::min(mu_inc,mu_mat) ;
-			SimpleMaterial * sc_mat = new SimpleMaterial(kmu2Enu(std::make_pair(k_min,mu_min))) ;
-			std::vector<std::pair<double, SimpleMaterial *> > sc_inc ;
-			sc_inc.push_back(std::make_pair(f_inc,inclusions.second)) ;
-			sc_inc.push_back(std::make_pair(f_mat,matrix)) ;
-			SimpleMaterial * next_sc_mat = new SimpleMaterial(MORI_TANAKA,sc_inc,sc_mat) ;
-			while(next_sc_mat->relativeDifference(sc_mat) > 1e-4)
-			{
-				sc_mat = new SimpleMaterial(next_sc_mat) ;
-				next_sc_mat = new SimpleMaterial(MORI_TANAKA,sc_inc,sc_mat) ;
-			}
-			std::pair<double,double> k_mu_hom = next_sc_mat->getkmu() ;
-			k_hom = k_mu_hom.first ;
-			mu_hom = k_mu_hom.second ;
-			break;
-		}
-	}
-	Young_Poisson = kmu2Enu(std::make_pair(k_hom,mu_hom)) ;
-}
+		size_t thisi = this->getIndex(compare[i],-1) ;
+		size_t otheri = m.getIndex(compare[i],-1) ;
+		if((thisi+1)*(otheri+1) == 0)
+			success = false ;
 
-SimpleMaterial::SimpleMaterial(HomogenizationScheme scheme, std::vector<std::pair<double,SimpleMaterial *> > inclusions, SimpleMaterial * matrix)
-{
-	SimpleMaterial * homogenized = new SimpleMaterial(matrix) ;
-	switch(scheme)
+		if(std::abs((*this)[thisi].val() - m[otheri].val()) > 1e-6)
+			success = false ;
+
+	}
+	if(success)
 	{
-		case DILUTED:
-		{
-			for(size_t i = 0 ; i < inclusions.size() ; i++)
-				homogenized = new SimpleMaterial(DILUTED, inclusions[i], homogenized) ;
-			break;
-		}
-		case INCREMENTAL:
-		{
-			for(size_t i = 0 ; i < inclusions.size() ; i++)
-				homogenized = new SimpleMaterial(INCREMENTAL, inclusions[i], homogenized) ;
-			break;
-		}
-		case MORI_TANAKA:
-		{
-			double f_mat = 1 ;
-			for(size_t i = 0 ; i < inclusions.size() ; i++)
-				f_mat -= inclusions[i].first ;
-			if(f_mat < 1e-9)
-				f_mat = 1e-9 ;
-			homogenized->multiply(f_mat) ;
-			for(size_t i = 0 ; i < inclusions.size() ; i++)
-			{
-				SimpleMaterial * mt = new SimpleMaterial(MORI_TANAKA, inclusions[i], matrix) ;
-				mt->multiply(inclusions[i].first) ;
-				homogenized->add(mt) ;
-			}
-			break;
-		}
-		case SELF_CONSISTENT:
-		{
-			double k_min = matrix->getkmu().first ;
-			double mu_min = matrix->getkmu().second ;
-			double f_mat = 1 ;
-			for(size_t i = 0 ; i < inclusions.size() ; i++)
-			{
-				k_min = std::max(k_min, inclusions[i].second->getkmu().first) ;
-				mu_min = std::max(mu_min, inclusions[i].second->getkmu().second) ;
-				f_mat -= inclusions[i].first ;
-			}
-			SimpleMaterial * sc_mat = new SimpleMaterial(kmu2Enu(std::make_pair(k_min,mu_min))) ;
-			std::vector<std::pair<double, SimpleMaterial *> > sc_inc ;
-			for(size_t i = 0 ; i < inclusions.size() ; i++)
-				sc_inc.push_back(inclusions[i]) ;
-			sc_inc.push_back(std::make_pair(f_mat,matrix)) ;
-			homogenized = new SimpleMaterial(MORI_TANAKA,sc_inc,sc_mat) ;
-			while(homogenized->relativeDifference(sc_mat) > 1e-4)
-			{
-				sc_mat = new SimpleMaterial(homogenized) ;
-				homogenized = new SimpleMaterial(MORI_TANAKA,sc_inc,sc_mat) ;
-			}
-			break;
-		}
+		size_t thisi = this->getIndex(combine, -1) ;
+		size_t otheri = m.getIndex(combine, -1) ;
+		if((thisi+1)*(otheri+1) == 0)
+			success = false ;
+		else
+			(*this)[thisi].set((*this)[thisi].val() + m[otheri].val()) ;
 	}
-	Young_Poisson = homogenized->getEnu() ;
+
+	return success ;
 }
 
-SimpleMaterial::SimpleMaterial(XMLTree * xml)
+bool Material::findMissing(std::vector<Tag> t)
 {
-	std::pair<bool,double> E ;
-	E.first = false ;
-	std::pair<bool,double> nu ;
-	nu.first = false ;
-	if(xml->match("material"))
-	{
-		if(xml->nChildren() > 1)
-		{
-			if(xml->getChild(0)->match("young"))
-				E = xml->getChild(0)->buildDouble() ;
-			if(xml->getChild(1)->match("poisson"))
-				nu = xml->getChild(0)->buildDouble() ;
-		}
-	}
-	if(E.first && nu.first)
-		Young_Poisson = std::make_pair(E.second,nu.second) ;
-	else
-		Young_Poisson = kmu2Enu(std::make_pair(0.,0.)) ;
+	bool found = true ;
+	for(int i = 0 ; i < t.size() ; i++)
+		found = found && findMissing(t[i]) ;
+	return found ;
 }
 
-std::pair<double, double> SimpleMaterial::getkmu() 
+bool Material::findMissing(Tag t)
 {
-	std::pair<double, double> kmu = Enu2kmu(Young_Poisson) ; 
-	return kmu ;
+//	Properties dummy(t,0.) ;
+//	dummy.print() ;
+
+	if(getIndex(t).size() > 0)
+		return true ;
+
+	GeneralConverter conv(t) ;
+	std::vector<Material> mat ;
+	mat.push_back((*this)) ;
+	std::vector<Properties> prop = conv.homogenize(mat) ;
+//	prop[0].print() ;
+//	conv.print() ;
+	if(conv.isOK())
+		this->push_back(prop[0]) ;
+	return conv.isOK() ;
 }
 
-
-VOID_PROP SimpleMaterial::add(SimpleMaterial * mat)
+void Material::print()
 {
-	double k = this->getkmu().first + mat->getkmu().first ;
-	double mu = this->getkmu().second + mat->getkmu().second ;
-	Young_Poisson = kmu2Enu(std::make_pair(k,mu)) ;
+	for(size_t i = 0 ; i < size() ; i++)
+		(*this)[i].print() ;
 }
-VOID_PROP SimpleMaterial::add(SimpleMaterial * mat, double f)
-{
-	double k = this->getkmu().first + f * mat->getkmu().first ;
-	double mu = this->getkmu().second + f * mat->getkmu().second ;
-	Young_Poisson = kmu2Enu(std::make_pair(k,mu)) ;
-}
-
-VOID_PROP SimpleMaterial::multiply(double f) 
-{
-	double k = f * this->getkmu().first ;
-	double mu = f * this->getkmu().second ;
-	Young_Poisson = kmu2Enu(std::make_pair(k,mu)) ;
-}
-
-double SimpleMaterial::relativeDifference(SimpleMaterial * mat)
-{
-	double diff = (Young_Poisson.first - mat->getEnu().first) / Young_Poisson.first ;
-	if(diff < 0)
-		diff *= -1 ;
-	
-	return diff ;
-}
-
-XMLTree * SimpleMaterial::toXML()
-{
-	XMLTree * mat = new XMLTree("material") ;
-	mat->addChild(new XMLTree("young",Young_Poisson.first)) ;
-	mat->addChild(new XMLTree("poisson",Young_Poisson.second)) ;
-	return mat ;
-}
-
-
-std::pair<double,double> Enu2kmu(std::pair<double,double> E_nu)
-{
-	double E = E_nu.first ;
-	double nu = E_nu.second ;
-	double k = E / (3*(1-2*nu)) ;
-	double mu = E / (2*(1+nu)) ;
-	return std::make_pair(k,mu) ;
-} ;
-
-std::pair<double,double> kmu2Enu(std::pair<double,double> k_mu)
-{
-	double k = k_mu.first ;
-	double mu = k_mu.second ;
-	double E = 9*k*mu / (3*k+mu) ;
-	double nu = (3*k-2*mu) / (6*k+2*mu) ;
-	return std::make_pair(E,nu) ;
-} ;*/
-
-
 
 

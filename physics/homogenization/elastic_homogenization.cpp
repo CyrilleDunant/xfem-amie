@@ -59,9 +59,14 @@ Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionalit
 
 
 
-ElasticHomogenizationScheme::ElasticHomogenizationScheme(size_t i) : HomogenizationScheme(i, FRACTION, BULK_SHEAR)
+ElasticHomogenizationScheme::ElasticHomogenizationScheme(size_t i) : Scheme(i)
 {
-	input.push_back(BULK_SHEAR) ;
+	input.push_back(TAG_VOLUME_FRACTION) ;
+	input.push_back(TAG_BULK_MODULUS) ;
+	input.push_back(TAG_SHEAR_MODULUS) ;
+
+	output.push_back(TAG_BULK_MODULUS) ;
+	output.push_back(TAG_SHEAR_MODULUS) ;
 }
 
 
@@ -72,7 +77,7 @@ DilutedScheme::DilutedScheme() : ElasticHomogenizationScheme(2)
 {
 }
 
-Vector DilutedScheme::processData(const Matrix & data)
+Vector DilutedScheme::process(const Matrix & data)
 {
 	double k_mat = data[0][1] ;
 	double mu_mat = data[0][2] ;
@@ -99,7 +104,7 @@ GeneralizedDilutedScheme::GeneralizedDilutedScheme() : ElasticHomogenizationSche
 {
 }
 
-Vector GeneralizedDilutedScheme::processData(const Matrix & data)
+Vector GeneralizedDilutedScheme::process(const Matrix & data)
 {
 	double k_mat = data[0][1] ;
 	double mu_mat = data[0][2] ;
@@ -130,7 +135,7 @@ IncrementalScheme::IncrementalScheme(double d) : ElasticHomogenizationScheme(2)
 	dalpha = d;
 }
 
-Vector IncrementalScheme::processData(const Matrix & data)
+Vector IncrementalScheme::process(const Matrix & data)
 {
 	double k_mat = data[0][1] ;
 	double mu_mat = data[0][2] ;
@@ -170,7 +175,7 @@ MoriTanaka::MoriTanaka() : ElasticHomogenizationScheme(2)
 {
 }
 
-Vector MoriTanaka::processData(const Matrix & data)
+Vector MoriTanaka::process(const Matrix & data)
 {
 	double k_mat = data[0][1] ;
 	double mu_mat = data[0][2] ;
@@ -205,7 +210,7 @@ GeneralizedMoriTanaka::GeneralizedMoriTanaka() : ElasticHomogenizationScheme(-1)
 {
 }
 
-Vector GeneralizedMoriTanaka::processData(const Matrix & data)
+Vector GeneralizedMoriTanaka::process(const Matrix & data)
 {
 	double k_mat = data[0][1] ;
 	double mu_mat = data[0][2] ;
@@ -224,7 +229,7 @@ Vector GeneralizedMoriTanaka::processData(const Matrix & data)
 		idata[1][2] = data[i][2] ;
 		idata[0][0] = 1 - idata[1][0] ;
 		Vector mt_res(2) ;
-		mt_res = MoriTanaka().processData(idata) ;
+		mt_res = MoriTanaka().process(idata) ;
 
 		k_hom += data[i][0] * (mt_res[0]) ;
 		mu_hom += data[i][0] * (mt_res[1]) ;
@@ -243,7 +248,7 @@ SelfConsistent::SelfConsistent() : ElasticHomogenizationScheme(2)
 {
 }
 
-Vector SelfConsistent::processData(const Matrix & data)
+Vector SelfConsistent::process(const Matrix & data)
 {
 	double & f_mat = data[0][0] ;
 	double & k_mat = data[0][1] ;
@@ -304,74 +309,19 @@ Vector SelfConsistent::processData(const Matrix & data)
 
 	while(error > 1e-6)
 	{
-		gmt_mat = MoriTanaka().processData(data_mat) ;
-		gmt_inc = MoriTanaka().processData(data_inc) ;
-
-//		std::cout << k_mat_mt-k_mat_hom << ";" << k_mat-k_mat_hom << std::endl ;
-//		std::cout << k_inc_mt-k_inc_hom << ";" << k_inc-k_inc_hom << std::endl ;
+		gmt_mat = MoriTanaka().process(data_mat) ;
+		gmt_inc = MoriTanaka().process(data_inc) ;
 
 		Ak_mat_mt = (k_mat_mt-k_mat_hom)/(k_mat-k_mat_hom) /f_mat ;
 		Ak_inc_mt = (k_inc_mt-k_inc_hom)/(k_inc-k_inc_hom) /f_inc ;
 
-//		std::cout << Ak_mat_mt << ";" << Ak_inc_mt << std::endl ;
-
 		Amu_mat_mt = (mu_mat_mt-mu_mat_hom)/(mu_mat-mu_mat_hom) /f_mat ;
 		Amu_inc_mt = (mu_inc_mt-mu_inc_hom)/(mu_inc-mu_inc_hom) /f_inc ;
-
-//		std::cout << Amu_mat_mt << ";" << Amu_inc_mt << std::endl ;
 
 		double ksc = k_mat + f_inc*(k_inc-k_mat)*Ak_inc_mt/(f_inc*Ak_inc_mt+f_mat*Ak_mat_mt) ;
 		double musc = mu_mat + f_inc*(mu_inc-mu_mat)*Amu_inc_mt/(f_inc*Amu_inc_mt+f_mat*Amu_mat_mt) ;
 
-
-/*		Matrix c_mat_hom = cauchyGreen(std::make_pair(k_mat_hom,mu_mat_hom),false,SPACE_THREE_DIMENSIONAL) ;
-		Matrix c_mat_mat = cauchyGreen(std::make_pair(k_mat,mu_mat),false,SPACE_THREE_DIMENSIONAL) ;
-		Matrix c_mat_mt = cauchyGreen(std::make_pair(k_mat_mt,mu_mat_mt),false,SPACE_THREE_DIMENSIONAL) ;
-
-		Matrix delta_c_mat = c_mat_mat - c_mat_hom ;
-		invert6x6Matrix(delta_c_mat) ;
-
-		Matrix A_mat_mt = delta_c_mat * ((c_mat_mt-c_mat_hom) * (1./f_mat)) ;
-
-		Matrix c_inc_hom = cauchyGreen(std::make_pair(k_inc_hom,mu_inc_hom),false,SPACE_THREE_DIMENSIONAL) ;
-		Matrix c_inc_inc = cauchyGreen(std::make_pair(k_inc,mu_inc),false,SPACE_THREE_DIMENSIONAL) ;
-		Matrix c_inc_mt = cauchyGreen(std::make_pair(k_inc_mt,mu_inc_mt),false,SPACE_THREE_DIMENSIONAL) ;
-
-		Matrix delta_c_inc = c_inc_inc - c_inc_hom ;
-		invert6x6Matrix(delta_c_inc) ;
-
-		Matrix A_inc_mt = delta_c_inc * ((c_inc_mt-c_inc_hom) * (1./f_inc)) ;
-
-		Matrix A_semi_sc = A_inc_mt * f_inc + A_mat_mt * f_mat ;
-		Matrix test(A_semi_sc) ;
-		A_semi_sc.print() ;
-		invert6x6Matrix(A_semi_sc) ;
-
-		A_semi_sc.print() ;
-
-		((Matrix)(test*A_semi_sc)).print() ;
-
-		Matrix c_sc = c_mat_mat + (c_inc_inc - c_mat_mat) * (A_mat_mt * (A_semi_sc * f_inc)) ;
-
-		Properties prop_sc(BULK_SHEAR,c_sc) ;
-
-		double ksc = prop_sc.getValue(0) ;
-		double musc = prop_sc.getValue(1) ;*/
-
 		error = std::max(std::abs(k_mat_hom - ksc)/k_mat_hom,std::abs(mu_mat_hom - musc)/mu_mat_hom) ;
-
-/*		error = std::max(std::abs(gmt_mat[0]-gmt_inc[0])/gmt_mat[0], std::abs(gmt_mat[1]-gmt_inc[1])/gmt_mat[1]) ;
-		error = 1e-8 ;
-		error = std::max(error,std::abs(data_mat[0][1]-gmt_mat[0])/data_mat[0][1]) ;
-		std::cout << error << std::endl ;
-		error = std::max(error,std::abs(data_mat[0][2]-gmt_mat[1])/data_mat[0][2]) ;
-		std::cout << error << std::endl ;
-		error = std::max(error,std::abs(data_inc[0][1]-gmt_inc[0])/data_inc[0][1]) ;
-		std::cout << error << std::endl ;
-		error = std::max(error,std::abs(data_inc[0][2]-gmt_inc[1])/data_inc[0][2]) ;*/
-		std::cout << error << std::endl ;
-		std::cout << ksc << ";" << musc << std::endl ;
-		std::cout << "--------------------" << std::endl ;
 
 		k_mat_hom = ksc ;
 		k_inc_hom = ksc ;
@@ -394,10 +344,16 @@ GeneralizedSelfConsistent::GeneralizedSelfConsistent() : ElasticHomogenizationSc
 {
 }
 
-Vector GeneralizedSelfConsistent::processData(const Matrix & data)
+Vector GeneralizedSelfConsistent::process(const Matrix & data)
 {
 	Vector kmu_mean(2) ;
-	kmu_mean = MeanSeries().processData(data) ;
+	std::vector<Tag> avg ;
+	avg.push_back(TAG_BULK_MODULUS) ;
+	avg.push_back(TAG_SHEAR_MODULUS) ;
+	MeanScheme mean(true,true,avg) ;
+	kmu_mean = mean.process(data) ;
+	if(!mean.isOK())	
+		s = STATUS_BAD_HOMOGENIZATION ;
 	Vector hom(3) ;
 	hom[1] = kmu_mean[0] ;
 	hom[2] = kmu_mean[1] ;
@@ -418,7 +374,7 @@ Vector GeneralizedSelfConsistent::processData(const Matrix & data)
 		iscm[1][1] = data[0][1] ;
 		iscm[1][2] = data[0][2] ;
 		Vector resm_mt(2) ;
-		resm_mt = MoriTanaka().processData(iscm) ;
+		resm_mt = MoriTanaka().process(iscm) ;
 
 		double fm = iscm[1][0] ;
 
@@ -449,7 +405,7 @@ Vector GeneralizedSelfConsistent::processData(const Matrix & data)
 			isc[1][2] = data[i][2] ;
 
 			Vector res_mt(2) ;
-			res_mt = MoriTanaka().processData(isc) ;
+			res_mt = MoriTanaka().process(isc) ;
 
 			double fi = isc[1][0] ;
 
@@ -480,10 +436,6 @@ Vector GeneralizedSelfConsistent::processData(const Matrix & data)
 		}
 
 		error = std::max(std::abs(hom[1]-next_hom[1])/hom[1],std::abs(hom[2]-next_hom[2])/hom[2]) ;
-//		std::cout << error << std::endl ;
-//		std::cout << hom[1] << ";" << hom[2] << std::endl ;
-//		std::cout << next_hom[1] << ";" << next_hom[2] << std::endl ;
-//		std::cout << "--------------------" << std::endl ;
 
 		hom = next_hom ;
 

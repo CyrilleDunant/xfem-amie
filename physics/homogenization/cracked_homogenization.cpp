@@ -11,29 +11,32 @@
 //
 
 #include "cracked_homogenization.h"
+#include "manager.h"
 
 namespace Mu
 {
 
-
-
-
-
-
-CrackedHomogenizationScheme::CrackedHomogenizationScheme() : HomogenizationScheme(1, BULK_SHEAR)
+CrackedHomogenizationScheme::CrackedHomogenizationScheme() : Scheme(1)
 {
-	input.push_back(CRACK_DENSITY) ;
-	input.push_back(ELLIPSE_SHAPE) ;
-	output.push_back(CRACK_DENSITY) ;
+	input.push_back(TAG_BULK_MODULUS) ;
+	input.push_back(TAG_SHEAR_MODULUS) ;
+	input.push_back(TAG_CRACK_DENSITY) ;
+
+	output.push_back(TAG_BULK_MODULUS) ;
+	output.push_back(TAG_SHEAR_MODULUS) ;
 }
 
 
 
 BudianskyScheme::BudianskyScheme() : CrackedHomogenizationScheme()
 {
+	input.push_back(TAG_ELLIPSE_A) ;
+	input.push_back(TAG_ELLIPSE_B) ;
+
+	output.push_back(TAG_CRACK_DENSITY) ;
 }
 
-Vector BudianskyScheme::processData(const Matrix & data)
+Vector BudianskyScheme::process(const Matrix & data)
 {
 	double bulk = data[0][0] ;
 	double shear = data[0][1] ;
@@ -41,53 +44,21 @@ Vector BudianskyScheme::processData(const Matrix & data)
 	double a = data[0][3] ;
 	double b = data[0][4] ;
 
-	double k = sqrt(1. - (b*b)/(a*a)) ;
-	double k1 = b/a ;
+	Matrix ellipse(1,2) ;
+	ellipse[0][0] = a ;
+	ellipse[0][1] = b ;
 
+	GeometryManager man(ELLIPSE) ;
 
-	// compute E(k) and K(k) 
-	double elliptic_first = 1. ;
-	double elliptic_second = 1. ;
-
-	if(std::abs(k) < 1e-6)
-	{
-		elliptic_second = M_PI/2. ;
-		elliptic_first = M_PI/2. ;
-	}
-
-	if(std::abs(k-1) > 1e-6)
-	{
-		double error = 1 ;
-		int n = 1 ;
-		while(error > 1e-6)
-		{
-			double last = elliptic_second ;
-			int f2n = 2*n - 1 ;
-			int q = f2n - 2 ;
-			while(q > 1)
-			{
-				f2n *= q ;
-				q -= 2 ;
-			}
-			int f2d = 2*n ;
-			q = f2d - 2 ;
-			while(q > 1)
-			{
-				f2d *= q ;
-				q -= 2 ;
-			}
-			elliptic_first += ((double) f2n/(double) f2d)*((double) f2n/(double) f2d) * pow(k,(double)2*n) / (2*n-1) ;
-			elliptic_second -= ((double) f2n/(double) f2d)*((double) f2n/(double) f2d) * pow(k,(double)2*n) / (2*n-1) ;
-			error = std::abs(elliptic_second - last) ;
-		}
-		elliptic_first *= M_PI/2. ;
-		elliptic_second *= M_PI/2. ;
-	}
-
-	double area = M_PI * a * b ;
-	double perimeter = 4. * a * elliptic_second ;
-
+	Vector param_ellipse = man.processEllipse(ellipse) ;
+	double perimeter = param_ellipse[0] ;
+	double area = param_ellipse[1] ;
+	double elliptic_first = param_ellipse[2] ;
+	double elliptic_second = param_ellipse[3] ;
 	
+	double k1 = simpleDivision(b,a) ;
+	double k = simpleSquareRoot(1. - k1*k1);
+
 	double epsilon = 2.*nc / M_PI * area*area / perimeter ;
 
 	double nu = (3.*bulk-2.*shear) / (6.*bulk+2.*shear) ;
@@ -117,13 +88,6 @@ Vector BudianskyScheme::processData(const Matrix & data)
 
 
 
-/*	double kmat = data[0][1] ;
-	double amat = data[0][3] ;
-	
-	double finc = data[0][0] ;
-	double kinc = data[0][1] ;
-	double ainc = data[0][3] ;*/
-	
 	Vector processed(3) ;
 	processed[0] = bulkx ;
 	processed[1] = shearx ;
@@ -134,11 +98,10 @@ Vector BudianskyScheme::processData(const Matrix & data)
 
 SimplifiedBenHahaScheme::SimplifiedBenHahaScheme() : CrackedHomogenizationScheme()
 {
-	input.pop_back() ;
-	output.pop_back() ;
+
 }
 
-Vector SimplifiedBenHahaScheme::processData(const Matrix & data)
+Vector SimplifiedBenHahaScheme::process(const Matrix & data)
 {
 	double bulk = data[0][0] ;
 	double shear = data[0][1] ;

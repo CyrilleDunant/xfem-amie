@@ -11,7 +11,11 @@
 //
 
 #include "homogeneised_behaviour.h"
+#include "../geometry/geometry_base.h" 
 #include "homogenization/elastic_homogenization.h"
+#include "homogenization/properties_base.h"
+#include "homogenization/scheme_base.h"
+#include "homogenization/converter.h"
 
 using namespace Mu ;
 
@@ -117,6 +121,9 @@ void HomogeneisedBehaviour::getForces(const ElementState & s, const Function & p
 void HomogeneisedBehaviour::homogenize()
 {
 	std::vector<Material> mat ;
+	std::vector<Tag> bulkshear ;
+	bulkshear.push_back(TAG_BULK_MODULUS) ;
+	bulkshear.push_back(TAG_SHEAR_MODULUS) ;
 	double totalArea ;
 	if(self2d)
 	{
@@ -137,15 +144,35 @@ void HomogeneisedBehaviour::homogenize()
 						param_gp += source[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second  ;
 						area_gp += gp.gaussPoints[j].second ;
 					}
-					mat.push_back(Material(Properties(FRACTION,source[i]->area()))) ;
-					mat[i].push_back(Properties(BULK_SHEAR,param_gp / area_gp)) ;
+					Material thismat(param_gp/area_gp) ;
+					thismat.push_back(Properties(TAG_VOLUME,source[i]->area())) ;
+					if(mat.size() == 0)
+						mat.push_back(thismat) ;
+					else 
+					{
+						bool combined = false ;
+						for(size_t j = 0 ; j < mat.size() ; j++)
+							combined = (combined || mat[j].combine(thismat,bulkshear,TAG_VOLUME)) ;
+						if(!combined)
+							mat.push_back(thismat) ;
+					}
 					totalArea += source[i]->area() ;
 				}
 				else
 				{
-					mat.push_back(Material(Properties(FRACTION,source[i]->area()))) ;
-					mat[i].push_back(Properties(HOOKE,std::make_pair(1e-9,0.2))) ;
-					mat[i].push_back(mat[i][1].convert(BULK_SHEAR).second) ;
+					Material thismat(Properties(TAG_VOLUME, source[i]->area())) ;
+					thismat.push_back(Properties(TAG_BULK_MODULUS, 1e-9)) ;
+					thismat.push_back(Properties(TAG_SHEAR_MODULUS, 1e-9)) ;
+					if(mat.size() == 0)
+						mat.push_back(thismat) ;
+					else 
+					{
+						bool combined = false ;
+						for(size_t j = 0 ; j < mat.size() ; j++)
+							combined = (combined || mat[j].combine(thismat,bulkshear,TAG_VOLUME)) ;
+						if(!combined)
+							mat.push_back(thismat) ;
+					}
 					totalArea += source[i]->area() ;
 				}
 			}
@@ -168,15 +195,35 @@ void HomogeneisedBehaviour::homogenize()
 						param_gp += source3d[i]->getBehaviour()->getTensor(gp.gaussPoints[j].first) * gp.gaussPoints[j].second  ;
 						area_gp += gp.gaussPoints[j].second ;
 					}
-					mat.push_back(Material(Properties(FRACTION,source3d[i]->volume()))) ;
-					mat[i].push_back(Properties(BULK_SHEAR,param_gp / area_gp)) ;
+					Material thismat(param_gp/area_gp) ;
+					thismat.push_back(Properties(TAG_VOLUME,source3d[i]->volume())) ;
+					if(mat.size() == 0)
+						mat.push_back(thismat) ;
+					else 
+					{
+						bool combined = false ;
+						for(size_t j = 0 ; j < mat.size() ; j++)
+							combined = (combined || mat[j].combine(thismat,bulkshear,TAG_VOLUME)) ;
+						if(!combined)
+							mat.push_back(thismat) ;
+					}
 					totalArea += source3d[i]->volume() ;
 				}
 				else
 				{
-					mat.push_back(Material(Properties(FRACTION,source3d[i]->volume()))) ;
-					mat[i].push_back(Properties(HOOKE,std::make_pair(1e-9,0.2))) ;
-					mat[i].push_back(mat[i][1].convert(BULK_SHEAR).second) ;
+					Material thismat(Properties(TAG_VOLUME, source3d[i]->volume())) ;
+					thismat.push_back(Properties(TAG_BULK_MODULUS, 1e-9)) ;
+					thismat.push_back(Properties(TAG_SHEAR_MODULUS, 1e-9)) ;
+					if(mat.size() == 0)
+						mat.push_back(thismat) ;
+					else 
+					{
+						bool combined = false ;
+						for(size_t j = 0 ; j < mat.size() ; j++)
+							combined = (combined || mat[j].combine(thismat,bulkshear,TAG_VOLUME)) ;
+						if(!combined)
+							mat.push_back(thismat) ;
+					}
 					totalArea += source3d[i]->volume() ;
 				}
 			}
@@ -186,23 +233,43 @@ void HomogeneisedBehaviour::homogenize()
 
 	double f = 0 ;
 	for(size_t i = 0 ; i < mat.size() ; i++)
-		f += mat[i][0].getValue(0) ;
-//	std::cout << f << std::endl ;
-	for(size_t i = 0 ; i < mat.size() ; i++)
-		mat[i][0].setValue(0,mat[i][0].getValue(0)/f) ;
-	std::pair<bool,Material> hom = scheme.apply(mat) ;
-	if(hom.first)
 	{
-		std::pair<bool,Matrix> param_hom = hom.second[0].getCauchyGreen(SPACE_TWO_DIMENSIONAL) ;
-		if(param_hom.first)
-			param = param_hom.second ;
+		size_t j = mat[i].getIndex(TAG_VOLUME,-1) ;
+		if(j+1 > 0)
+			f += mat[i][j].val() ;
 	}
 
-//	std::cout << std::endl ;
-//	std::cout << std::endl ;
-//	param.print() ;
-//	std::cout << std::endl ;
-//	std::cout << std::endl ;
+	GeneralConverter conv(TAG_VOLUME_FRACTION) ;
+	std::vector<Properties> frac ;
+	std::vector<Material> mati ;
+	for(size_t i = 0 ; i < mat.size() ; i++)
+	{
+		mati.clear() ;
+		conv.reset() ;
+		mat[i].push_back(Properties(TAG_VOLUME_TOTAL,f)) ;
+		mati.push_back(mat[i]) ;
+		frac = conv.homogenize(mati) ;
+		if(conv.isOK())
+			mat[i].push_back(frac[0]) ;
+	}
+
+	std::vector<Properties> hom = scheme.homogenize(mat) ;
+	Material mhom(hom) ;
+	size_t nk = mhom.getIndex(TAG_BULK_MODULUS,-1) ;
+	size_t nmu = mhom.getIndex(TAG_SHEAR_MODULUS,-1) ;
+	if(scheme.isOK() && (nk+1)*(nmu+1) > 0) ;
+	{
+		if(self2d)
+			param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_TWO_DIMENSIONAL) ;
+		else
+			param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_TWO_DIMENSIONAL) ;
+	}
+
+	std::cout << std::endl ;
+	std::cout << std::endl ;
+	param.print() ;
+	std::cout << std::endl ;
+	std::cout << std::endl ;
 	
 }
 

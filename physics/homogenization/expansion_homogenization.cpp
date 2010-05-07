@@ -20,10 +20,14 @@ namespace Mu
 
 
 
-ExpansionHomogenizationScheme::ExpansionHomogenizationScheme(size_t i) : HomogenizationScheme(i, FRACTION, EXPANSION)
+ExpansionHomogenizationScheme::ExpansionHomogenizationScheme(size_t i) : Scheme(i)
 {
-	input.push_back(BULK_SHEAR) ;
-	input.push_back(EXPANSION) ;
+	input.push_back(TAG_VOLUME_FRACTION) ;
+	input.push_back(TAG_BULK_MODULUS) ;
+	input.push_back(TAG_SHEAR_MODULUS) ;
+	input.push_back(TAG_EXPANSION_COEFFICIENT) ;
+
+	output.push_back(TAG_EXPANSION_COEFFICIENT) ;
 }
 
 

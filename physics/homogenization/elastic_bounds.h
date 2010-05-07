@@ -22,7 +22,7 @@ namespace Mu
 {
 
 /* \brief void elastic scheme (returns the matrix properties)*/
-class ElasticBoundsScheme : public HomogenizationScheme
+class ElasticBoundsScheme : public Scheme
 {
 public:
 	/* \brief constructor 

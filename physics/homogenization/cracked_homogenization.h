@@ -20,7 +20,7 @@ namespace Mu
 {
 
 /* \brief void expansion homogenization scheme (returns the matrix expansion coefficient)*/
-class CrackedHomogenizationScheme : public HomogenizationScheme
+class CrackedHomogenizationScheme : public Scheme
 {
 public:
 	/* \brief constructor 
@@ -34,7 +34,7 @@ class BudianskyScheme : public CrackedHomogenizationScheme
 {
 public:
 	BudianskyScheme() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 
@@ -42,7 +42,7 @@ class SimplifiedBenHahaScheme : public CrackedHomogenizationScheme
 {
 public:
 	SimplifiedBenHahaScheme() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 

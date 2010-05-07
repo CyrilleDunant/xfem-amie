@@ -1,7 +1,7 @@
 //
 // C++ Interface: random generator
 //
-// Description: 
+// Description: simple random generator, using the c++ standard rand() function
 //
 //
 // Author: Alain Giorla
@@ -19,7 +19,11 @@ namespace Mu
 {
 
 
-
+/** \brief RandomNumber generator
+* This class provides a quick access to various random distributions, by 
+* using the standard c++ rand() function. When a RandomNumber object is instantiated
+* the seed of the pseudo-random suite is reset according to the local time machine.
+*/
 class RandomNumber
 {
 protected:
@@ -34,7 +38,7 @@ public:
 	double uniform(double a) {return a*uniform() ; } ;
 	double uniform(double a, double b) {return a + (b-a)*uniform() ; } ;
 
-	int dice(int faces) {return (int) uniform((double) faces) + 1 ; } ;
+	int dice(int faces) {return (int) uniform((double) faces) ; } ;
 
 	double triangular() {return uniform() + uniform() ; } ;
 	double triangular(double a) {return a * triangular() ; } ;

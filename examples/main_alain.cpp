@@ -20,22 +20,43 @@
 #include <time.h> 
 #define DEBUG 
 
+using namespace Mu ;
 
 int main(int argc, char *argv[])
 {
 
-	Vector epsilon(57) ;
-	Vector bulkx(57) ;
-	Vector shearx(57) ;
-	Vector epsilonx(57) ;
+	Vector epsilon(100) ;
+	Vector bulkx(100) ;
+	Vector shearx(100) ;
+	Vector epsilonx(100) ;
 
 	for(int i = 1 ; i < epsilon.size() ; i++)
 	{
 		epsilon[i] = 0.01*i ;
 	}
 
-	Properties enu(HOOKE, std::make_pair(70.,0.2)) ;
-	Properties kmu = enu.convert(BULK_SHEAR).second ;
+	Material agg ;
+	agg.push_back(Properties(TAG_YOUNG_MODULUS,70.)) ;
+	agg.push_back(Properties(TAG_POISSON_RATIO,0.2)) ;
+
+	agg.push_back(Properties(TAG_ELLIPSE_A,1.)) ;
+	agg.push_back(Properties(TAG_ELLIPSE_B,0.75)) ;
+
+	agg.push_back(Properties(TAG_CRACK_DENSITY,0.01)) ;
+
+	BudianskyScheme bud ;
+	agg.findMissing(bud.inputList()) ;
+
+	agg.print() ;
+
+	Material agg_cracked(bud.homogenize(agg)) ;
+
+	std::cout << "---------" << std::endl ;
+
+	agg_cracked.print() ;
+
+
+/*
 
 	bulkx[0] = kmu.getValue(0) ;
 	shearx[0] = kmu.getValue(1) ;
@@ -62,7 +83,7 @@ int main(int argc, char *argv[])
 
 		std::cout << i << ";" << epsilonx[i] << ";" << bulkx[i] << ";" << shearx[i] << std::endl ;
 
-	}
+	}*/
 	
 	return 0 ;
 }

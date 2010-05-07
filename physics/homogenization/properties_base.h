@@ -14,8 +14,6 @@
 #define PROPERTIES_BASE_H
 
 #include "../../utilities/matrixops.h"
-#include "../../geometry/geometry_base.h"
-
 
 namespace Mu
 {
@@ -23,97 +21,86 @@ namespace Mu
 
 typedef enum
 {
-	VOID_PROP, // nothing
-	ABSTRACT, // anything
-	FRACTION, // volume fraction
-	HOOKE, // E and nu
-	BULK_SHEAR, // k and mu
-	EXPANSION, // alpha
-	CRACK_DENSITY, // number of cracks
-	ELLIPSE_SHAPE, // a and b
-	SHAPE, // area and perimeter
-} PropertiesType ;
+	TAG_NULL, 
+	TAG_UNIVERSAL, 
+	TAG_VOLUME,	
+	TAG_VOLUME_FRACTION, 
+	TAG_VOLUME_TOTAL,
+	TAG_MASS,
+	TAG_MASS_FRACTION,
+	TAG_MASS_TOTAL,
+	TAG_DENSITY,
+	TAG_YOUNG_MODULUS,
+	TAG_POISSON_RATIO,
+	TAG_BULK_MODULUS,	
+	TAG_SHEAR_MODULUS,
+	TAG_EXPANSION_COEFFICIENT, 
+	TAG_CRACK_DENSITY, 
+	TAG_ELLIPSE_A,
+	TAG_ELLIPSE_B,
+	TAG_AREA,
+	TAG_PERIMETER,
+	TAG_ELLIPSE_FIRST_COMPLETE_INTEGRAL,
+	TAG_ELLIPSE_SECOND_COMPLETE_INTEGRAL,
+	TAG_CIRCLE_RADIUS,
+} Tag ;
 
-/* \brief returns the standard number of value for a specific type */
-size_t standardNVal(Mu::PropertiesType p) ;
-/* \brief returns if the conversion is possible between p1 and p2*/
-bool conversionPossible(Mu::PropertiesType p1, Mu::PropertiesType p2) ;
-
-/* \brief Properties item are a vector (values) specified by a type
-* The number of values in the vector is given by the type.
-* VOID_PROP: void properties item (no values inside)
-* ABSTRACT: generic properties item, any number of values
-* FRACTION: used for mass or volume fraction of phases in the composite material (1 value)
-* HOOKE: Young Modulus and Poisson Ratio (2 values). Can be converted to BULK_SHEAR
-* BULK_SHEAR: Bulk Modulus and Shear Modulus (2 values). Can be converted to HOOKE
-*/
 class Properties
 {
 protected:
-	PropertiesType pType ;
-	size_t nVal ;
-	Vector values ;
+	Tag ptag ;
+	double p ;
 
 public:
 	/* \brief default constructor for a VOID_PROP properties item*/
 	Properties() ;
 	/* \brief constructor for an ABSTRACT properties item */
 	Properties(double v) ;
-	/* \brief constructor for an ABSTRACT properties item */
-	Properties(const std::pair<double, double> & v) ;
-	/* \brief constructor for an ABSTRACT properties item */
-	Properties(const std::vector<double> & v) ;
-	/* \brief constructor for an ABSTRACT properties item */
-	Properties(const Vector & v) ;
 	/* \brief constructor for an specific properties item */
-	Properties(PropertiesType p, double v) ;
-	/* \brief constructor for an specific properties item */
-	Properties(PropertiesType p, const std::pair<double, double> & v) ;
-	/* \brief constructor for an specific properties item */
-	Properties(PropertiesType p, const std::vector<double> & v) ;
-	/* \brief constructor for an specific properties item */
-	Properties(PropertiesType p, const Vector & v) ;
-	/* \brief constructor for a specific properties item from a matrix. Can convert Cauchy-Green matrixes into E-nu or k-mu variables */
-	Properties(PropertiesType p, const Matrix & m) ;
+	Properties(Tag p, double v) ;
 	/* \brief copy constructor */
 	Properties(const Properties & p) ;
 
-	/* \brief returns the actual number of values in the properties item*/
-	size_t getNVal() const {return nVal ; } ;
-	/* \brief returns the ith value*/
-	double getValue(size_t i) const {return values[i] ; } ;
-	/* \brief returns all values*/
-	const Vector & getValues() const {return values ; } ;
-	/* \brief returns the type of the item*/
-	void setValue(size_t i, double d) {values[i] = d ; } ;
-	PropertiesType getPropertiesType() const {return pType ; } ;
-	std::pair<bool,Matrix> getCauchyGreen(SpaceDimensionality dim) const ;
+	double val() const {return p ; } ;
+	Tag tag() const {return ptag ; } ;
+	bool is(Tag t) const {return ptag == t ; } ;
+	void kill() {ptag = TAG_NULL ; } ;
+	bool isNull() const {return ptag == TAG_NULL ; } ;
 
-	/* \brief converts to another type. Returns false and a VOID_PROP item if conversion is impossible*/
-	std::pair<bool, Properties> convert(PropertiesType p_out) ;
+	void set(Tag t) {ptag = t ; } ;
+	void set(double v) {p = v ; } ;
 
 	void print() ;
-
 } ;
 
 
 /* \brief vector of Properties */
 class Material : public std::vector<Properties>
 {
+protected:
+	std::vector<Tag> tagset ;
+
 public:
 	Material() ;
 	Material(const Properties & p) ;
 	Material(const std::vector<Properties> & p) ;
+	Material(const Matrix & cauchy) ;
 
-	/*  */
-	size_t getFirstIndex(PropertiesType p) const ;
-	/* return the position of the HOOKE properties (creates it if needed and possible) */
-	size_t getHooke() ;
-	/* return the position of the BULK_SHEAR properties (creates it if needed and possible) */
-	size_t getBulkShear() ;
-	bool equals(Material m, PropertiesType p) const ;
-	void combine(Material m, PropertiesType p) ;
+	std::vector<size_t> getIndex(Tag t) const ;
+	size_t getIndex(Tag t, size_t i) const ;
 
+	bool replace(Properties p) ;
+	bool replaceForce(Properties p) ;
+	bool isSet(Tag t) const ;
+	bool set(Tag t) ;
+	bool set(Tag t, size_t i) ;
+
+	bool combine(Material m, std::vector<Tag> compare, Tag combine) ;
+
+	bool findMissing(std::vector<Tag> t) ;
+	bool findMissing(Tag t) ;
+
+	void print() ;
 } ;
 
 

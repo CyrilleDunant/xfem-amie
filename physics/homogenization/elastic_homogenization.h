@@ -24,7 +24,7 @@ namespace Mu
 Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim) ;
 
 /* \brief void elastic scheme (returns the matrix properties)*/
-class ElasticHomogenizationScheme : public HomogenizationScheme
+class ElasticHomogenizationScheme : public Scheme
 {
 public:
 	/* \brief constructor 
@@ -38,7 +38,7 @@ class DilutedScheme : public ElasticHomogenizationScheme
 {
 public:
 	DilutedScheme() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 
@@ -47,7 +47,7 @@ class GeneralizedDilutedScheme : public ElasticHomogenizationScheme
 {
 public:
 	GeneralizedDilutedScheme() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 } ;
 
 
@@ -58,7 +58,7 @@ protected:
 	double dalpha ;
 public:
 	IncrementalScheme(double d) ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 } ;
 
 
@@ -68,7 +68,7 @@ class MoriTanaka : public ElasticHomogenizationScheme
 {
 public:
 	MoriTanaka() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 
@@ -77,7 +77,7 @@ class GeneralizedMoriTanaka : public ElasticHomogenizationScheme
 {
 public:
 	GeneralizedMoriTanaka() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 
@@ -87,7 +87,7 @@ class SelfConsistent : public ElasticHomogenizationScheme
 {
 public:
 	SelfConsistent() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 
@@ -96,7 +96,7 @@ class GeneralizedSelfConsistent : public ElasticHomogenizationScheme
 {
 public:
 	GeneralizedSelfConsistent() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 
 } ;

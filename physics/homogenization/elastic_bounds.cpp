@@ -20,10 +20,16 @@ namespace Mu
 
 
 
-ElasticBoundsScheme::ElasticBoundsScheme(size_t i) : HomogenizationScheme(i, FRACTION, BULK_SHEAR)
+ElasticBoundsScheme::ElasticBoundsScheme(size_t i) : Scheme(i)
 {
-	input.push_back(BULK_SHEAR) ;
-	output.push_back(BULK_SHEAR) ;
+	input.push_back(TAG_VOLUME_FRACTION) ;
+	input.push_back(TAG_BULK_MODULUS) ;
+	input.push_back(TAG_SHEAR_MODULUS) ;
+
+	output.push_back(TAG_BULK_MODULUS) ;
+	output.push_back(TAG_SHEAR_MODULUS) ;
+	output.push_back(TAG_BULK_MODULUS) ;
+	output.push_back(TAG_SHEAR_MODULUS) ;
 }
 
 
@@ -34,8 +40,13 @@ HillBounds::HillBounds() : ElasticBoundsScheme(2)
 
 Vector HillBounds::processData(const Matrix & data)
 {
-	Vector upper = MeanSeries(BULK_SHEAR).processData(data) ;
-	Vector lower = MeanParallel(BULK_SHEAR).processData(data) ;
+	std::vector<Tag> avg ;
+	avg.push_back(TAG_BULK_MODULUS) ;
+	avg.push_back(TAG_SHEAR_MODULUS) ;
+	MeanScheme p(true, true, avg) ;
+	MeanScheme s(true, false, avg) ;
+	Vector upper = p.process(data) ;
+	Vector lower = s.process(data) ;
 
 	Vector processed(data.numCols()*2-2) ;
 	for(size_t i = 0 ; i < upper.size() ; i++)

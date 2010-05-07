@@ -20,7 +20,7 @@ namespace Mu
 {
 
 /* \brief void expansion homogenization scheme (returns the matrix expansion coefficient)*/
-class ExpansionHomogenizationScheme : public HomogenizationScheme
+class ExpansionHomogenizationScheme : public Scheme
 {
 public:
 	/* \brief constructor 

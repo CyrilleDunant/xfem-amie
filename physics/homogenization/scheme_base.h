@@ -19,61 +19,80 @@
 namespace Mu
 {
 
+typedef enum
+{
+	STATUS_RESET,
+	STATUS_OK,
+	STATUS_MATERIAL_NOT_FOUND,
+	STATUS_PROPERTIES_NOT_FOUND,
+	STATUS_BAD_HOMOGENIZATION,
+} Status ;
+
+
 /* Default homogenization scheme. The actual schemes are inherited from this class*/
-class HomogenizationScheme
+class Scheme
 {
 protected:
-	size_t nPhases ;
-	std::vector<PropertiesType> input ;
-	std::vector<PropertiesType> output ;
+	Status s ;
+	size_t p ;
+	std::vector<Tag> input ;
+	std::vector<Tag> output ;
 
 public:
+	Scheme(size_t n) ;
 	/* \brief constructor, using a single input, output is the same*/
-	HomogenizationScheme(size_t n, PropertiesType in) ;
+	Scheme(size_t n, Tag in) ;
 	/* \brief constructor, using a single input and a different output*/
-	HomogenizationScheme(size_t n, PropertiesType in, PropertiesType out) ;
+	Scheme(size_t n, Tag in, Tag out) ;
 	/* \brief constructor, using a set of different input (output are the same)*/
-	HomogenizationScheme(size_t n, std::vector<PropertiesType> & in) ;
+	Scheme(size_t n, std::vector<Tag> & in) ;
 	/* \brief constructor, using a set of different input, and another set of different output*/
-	HomogenizationScheme(size_t n, std::vector<PropertiesType> & in, std::vector<PropertiesType> & out) ;
+	Scheme(size_t n, std::vector<Tag> & in, std::vector<Tag> & out) ;
 
-	/* \brief verifies that the scheme can be applied to the material*/
-	virtual bool verify(const Material & mat) ;
-	/* \brief returns the position of the input properties in the material*/
-	virtual std::vector<std::vector<size_t> > getAllPositions(const std::vector<Material> & mat) ;
-	/* \brief get the number of materials and the number of unknown*/
-	virtual std::vector<size_t> getSchemeSize(const std::vector<Material> & mat) ;
-	/* \brief get all data as a matrix */
-	virtual Matrix getRawData(const std::vector<Material> & mat) ;
-	/* \brief extracts the data, applies the scheme, and the returns the data as a new material*/
-	virtual std::pair<bool, Material> apply(const std::vector<Material> & mat) ;
-	/* \brief applies the model (here, returns the first material). This method is the only thing that should be overrided when creating a new model */
-	virtual Vector processData(const Matrix & data) ;
+	virtual bool isOK() const {return s == STATUS_OK ; } ;
+	virtual Status const status() {return s ; } ;
+	virtual void reset() {s = STATUS_RESET ; } ;
+	virtual bool check(bool r) ;
+
+	virtual std::vector<Tag> inputList() {return input ; } ;
+	virtual std::vector<Tag> outputList() {return input ; } ;
+
+	virtual std::vector<Properties> homogenize(const std::vector<Material> & mat) ;
+	virtual std::vector<Properties> homogenize(const Material & mat) ;
+	virtual Vector process(const Matrix & data) ;
+
+	virtual bool equalsZero(double x) ;
+	virtual bool lessThanZero(double x) ;
+	virtual double simpleSquareRoot(double square) ;
+	virtual double simpleDivision(double num, double denom) ;
+
+	virtual void print() ;
+
 } ;
 
 
-/* \brief standard serial means of a set of data*/
-class MeanSeries : public HomogenizationScheme
+
+
+class MeanScheme : public Scheme
 {
+protected:
+	bool parallel ;
+
 public:
-	MeanSeries() ;
-	MeanSeries(PropertiesType p) ;
-	virtual Vector processData(const Matrix & data) ;
-} ;
+	MeanScheme(bool volume, bool parallel, Tag t) ;
+	MeanScheme(bool volume, bool parallel, std::vector<Tag> t) ;
 
-/* \brief standard parallel means of a set of data*/
-class MeanParallel : public HomogenizationScheme
-{
-public:
-	MeanParallel() ;
-	MeanParallel(PropertiesType p) ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
+	virtual Vector processParallel(const Matrix & data) ;
+
+	
 } ;
 
 
 
 
 } ;
+
 
 #endif // SCHEME
 

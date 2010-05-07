@@ -691,7 +691,7 @@ int main(int argc, char *argv[])
 //	std::cout << std::endl ;
 
 
-	for(size_t i = 1 ; i < 99 ; i++) {
+/*	for(size_t i = 1 ; i < 99 ; i++) {
 	Properties cem_Enu(HOOKE,std::make_pair(1e-9,0.2)) ;
 	Properties agg_Enu(HOOKE,std::make_pair(70,0.2)) ;
 
@@ -719,7 +719,7 @@ int main(int argc, char *argv[])
 //			std::cout << std::endl ;
 //			std::cout << std::endl ;
 //			std::cout << "UPPER BOUNDS" << std::endl ;
-			std::cout << conv_u.second.getValue(0) << /*";" << conv_u.second[0].getValue(1) <<*/ std::endl ;
+			std::cout << conv_u.second.getValue(0) << /*";" << conv_u.second[0].getValue(1) <<*/ //std::endl ;
 //			std::cout << std::endl ;
 //			std::cout << std::endl ;
 //			std::cout << std::endl ;
@@ -731,13 +731,13 @@ int main(int argc, char *argv[])
 //			Properties voigt("BULK_SHEAR",
 
 
-		} else {
+/*		} else {
 			std::cout << "agg shit" <<std::endl ;
 		}
 	} else {
 		std::cout << "shit..." << std::endl ;
 	}
-	}
+	}*/
 
 	return 0 ;
 }
