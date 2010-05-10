@@ -55,6 +55,14 @@ public:
 
 } ;
 
+class AdditionConverter : public Scheme
+{
+public:
+	AdditionConverter(Tag t) ;
+
+	virtual Vector process(const Matrix & data) ;
+} ;
+
 
 
 

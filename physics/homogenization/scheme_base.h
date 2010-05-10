@@ -59,6 +59,7 @@ public:
 
 	virtual std::vector<Properties> homogenize(const std::vector<Material> & mat) ;
 	virtual std::vector<Properties> homogenize(const Material & mat) ;
+	virtual std::vector<Properties> homogenize(const Material & m1, const Material & m2) ;
 	virtual Vector process(const Matrix & data) ;
 
 	virtual bool equalsZero(double x) ;

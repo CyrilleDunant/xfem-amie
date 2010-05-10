@@ -3,6 +3,8 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "enrichmentInclusion.h"
+#include "inclusion.h"
+#include "../physics/homogeneised_behaviour.h"
 
 using namespace Mu ;
 
@@ -73,7 +75,22 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 	
 	if(disc.size() == 1) // special case for really small inclusions
 	{
-		for(size_t i = 0 ; i < disc.size() ; i++)
+		std::vector<Point> corner = disc[0]->getSamplingBoundingPoints(3) ;
+
+		TriangularInclusion * tri = new TriangularInclusion(corner[0],corner[1],corner[2]) ;
+		tri->setBehaviour(disc[0]->getBehaviour()) ;
+
+		FeatureTree local(tri) ;
+		local.addFeature(tri, this) ;
+		local.sample(10) ;
+
+		Mesh<DelaunayTriangle, DelaunayTreeItem> * localmesh = local.get2DMesh(-1) ;
+
+		disc[0]->setBehaviour(new HomogeneisedBehaviour(localmesh, disc[0])) ;
+
+		return ;
+
+/*		for(size_t i = 0 ; i < disc.size() ; i++)
 		{
 			std::vector<Point> samplingPoints = static_cast<Circle *>(this)->getSamplingBoundingPoints(8) ;
 	
@@ -176,7 +193,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 			}
 			
 		}
-		return ;
+		return ;*/
 	}
 
 	//then we select those that are cut by the circle

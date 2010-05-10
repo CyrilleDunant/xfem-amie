@@ -36,7 +36,7 @@ class HillBounds : public ElasticBoundsScheme
 {
 public:
 	HillBounds() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 

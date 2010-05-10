@@ -36,17 +36,19 @@ HashinScheme::HashinScheme() : ExpansionHomogenizationScheme(2)
 {
 }
 
-Vector HashinScheme::processData(const Matrix & data)
+Vector HashinScheme::process(const Matrix & data)
 {
 	double kmat = data[0][1] ;
 	double amat = data[0][3] ;
 	
-	double finc = data[0][0] ;
-	double kinc = data[0][1] ;
-	double ainc = data[0][3] ;
+	double finc = data[1][0] ;
+	double kinc = data[1][1] ;
+	double ainc = data[1][3] ;
 	
 	Vector processed(1) ;
 	processed[0] = amat + 2*finc*kinc*(ainc-amat) / (kmat+kinc+finc*(kinc-kmat)) ;
+
+//	std::cout << amat << ";" << ainc << ";" << 2*finc*kinc*(ainc-amat) << ";" << (kmat+kinc+finc*(kinc-kmat)) << std::endl ;
 	
 	return processed ;
 }

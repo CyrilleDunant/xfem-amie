@@ -34,7 +34,7 @@ class HashinScheme : public ExpansionHomogenizationScheme
 {
 public:
 	HashinScheme() ;
-	virtual Vector processData(const Matrix & data) ;
+	virtual Vector process(const Matrix & data) ;
 
 } ;
 

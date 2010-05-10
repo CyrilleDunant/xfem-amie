@@ -45,6 +45,13 @@ typedef enum
 	TAG_CIRCLE_RADIUS,
 } Tag ;
 
+typedef enum
+{
+	MAT_DUMMY,
+	MAT_AGGREGATE,
+	MAT_CEMENT,
+} PredefinedMaterial ;
+
 class Properties
 {
 protected:
@@ -82,12 +89,14 @@ protected:
 
 public:
 	Material() ;
+	Material(PredefinedMaterial mat) ;
 	Material(const Properties & p) ;
 	Material(const std::vector<Properties> & p) ;
 	Material(const Matrix & cauchy) ;
 
 	std::vector<size_t> getIndex(Tag t) const ;
 	size_t getIndex(Tag t, size_t i) const ;
+	double val(Tag t, size_t i) const ;
 
 	bool replace(Properties p) ;
 	bool replaceForce(Properties p) ;
@@ -96,6 +105,7 @@ public:
 	bool set(Tag t, size_t i) ;
 
 	bool combine(Material m, std::vector<Tag> compare, Tag combine) ;
+	bool merge(Material m) ;
 
 	bool findMissing(std::vector<Tag> t) ;
 	bool findMissing(Tag t) ;

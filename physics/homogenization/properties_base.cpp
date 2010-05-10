@@ -12,6 +12,7 @@
 
 #include "properties_base.h"
 #include "converter.h"
+#include "elastic_homogenization.h"
 
 using namespace Mu ;
 
@@ -127,6 +128,28 @@ Material::Material()
 {
 
 }
+Material::Material(PredefinedMaterial mat)
+{
+	switch(mat)
+	{
+	case MAT_DUMMY:
+		push_back(Properties(TAG_YOUNG_MODULUS,1.)) ;
+		push_back(Properties(TAG_POISSON_RATIO,0.2)) ;
+		push_back(Properties(TAG_DENSITY,1.)) ;
+		break;
+	case MAT_AGGREGATE:
+		push_back(Properties(TAG_YOUNG_MODULUS,60.)) ;
+		push_back(Properties(TAG_POISSON_RATIO,0.2)) ;
+		push_back(Properties(TAG_DENSITY,2.7)) ;
+		break;
+	case MAT_CEMENT:
+		push_back(Properties(TAG_YOUNG_MODULUS,14.)) ;
+		push_back(Properties(TAG_POISSON_RATIO,0.2)) ;
+		push_back(Properties(TAG_DENSITY,1.5)) ;
+		break;
+	}
+//	this->print() ;
+}
 Material::Material(const Properties & p)
 {
 	push_back(p) ;
@@ -191,6 +214,15 @@ size_t Material::getIndex(Tag t, size_t i) const
 
 	return index[i] ;
 }
+
+double Material::val(Tag t, size_t i) const
+{
+	size_t j = getIndex(t,i) ;
+	if(j+1 == 0)
+		return -1 ;
+	return (*this)[j].val() ;
+}
+
 bool Material::replace(Properties p)
 {
 	if(isSet(p.tag()))
@@ -284,10 +316,18 @@ bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 	return success ;
 }
 
+bool Material::merge(Material m)
+{
+	bool success = true ;
+	for(size_t i = 0 ; i < m.size() ; i++)
+		success &= replace(m[i]) ;
+	return success ;
+}
+
 bool Material::findMissing(std::vector<Tag> t)
 {
 	bool found = true ;
-	for(int i = 0 ; i < t.size() ; i++)
+	for(size_t i = 0 ; i < t.size() ; i++)
 		found = found && findMissing(t[i]) ;
 	return found ;
 }
@@ -301,13 +341,14 @@ bool Material::findMissing(Tag t)
 		return true ;
 
 	GeneralConverter conv(t) ;
-	std::vector<Material> mat ;
-	mat.push_back((*this)) ;
-	std::vector<Properties> prop = conv.homogenize(mat) ;
+	std::vector<Properties> prop = conv.homogenize(*this) ;
 //	prop[0].print() ;
 //	conv.print() ;
 	if(conv.isOK())
+	{
+//		prop[0].print() ;
 		this->push_back(prop[0]) ;
+	}
 	return conv.isOK() ;
 }
 

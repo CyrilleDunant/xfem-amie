@@ -85,6 +85,7 @@ physics/homogenization/elastic_bounds.cpp
 physics/homogenization/elastic_homogenization.cpp
 physics/homogenization/expansion_homogenization.cpp
 physics/homogenization/manager.cpp
+physics/homogenization/octave_manager.cpp
 physics/homogenization/properties_base.cpp
 physics/homogenization/scheme_base.cpp
 polynomial/scalarfield.cpp 

@@ -174,24 +174,17 @@ double GeneralConverter::getEllipseFirstCompleteIntegral(double a, double b)
 	double elliptic_first = 1. ;
 	double error = 1. ;
 	int n = 1 ;
-	while(error > 1e-6)
+	while(error > 1e-9)
 	{
 		double last = elliptic_first ;
-		int f2n = 2*n - 1 ;
-		int q = f2n - 2 ;
+		double fact = 0.5 ;
+		unsigned long q = 2*n - 1 ;
 		while(q > 1)
 		{
-			f2n *= q ;
+			fact *= (double) q / (double) (q+1) ;
 			q -= 2 ;
 		}
-		int f2d = 2*n ;
-		q = f2d - 2 ;
-		while(q > 1)
-		{
-			f2d *= q ;
-			q -= 2 ;
-		}
-		double fact = ((double) f2n/(double) f2d)*((double) f2n/(double) f2d) ;
+		fact *= fact ;
 		elliptic_first += fact * pow(k,(double)2*n) ;
 		error = std::abs(elliptic_first - last) ;
 		n++ ;
@@ -220,21 +213,14 @@ double GeneralConverter::getEllipseSecondCompleteIntegral(double a, double b)
 	while(error > 1e-6)
 	{
 		double last = elliptic_second ;
-		int f2n = 2*n - 1 ;
-		int q = f2n - 2 ;
+		double fact = 0.5 ;
+		unsigned long q = 2*n - 1 ;
 		while(q > 1)
 		{
-			f2n *= q ;
+			fact *= (double) q / (double) (q+1) ;
 			q -= 2 ;
 		}
-		int f2d = 2*n ;
-		q = f2d - 2 ;
-		while(q > 1)
-		{
-			f2d *= q ;
-			q -= 2 ;
-		}
-		double fact = ((double) f2n/(double) f2d)*((double) f2n/(double) f2d) ;
+		fact *= fact ;
 		elliptic_second -= fact * pow(k,(double)2*n) / (2*n-1) ;
 		error = std::abs(elliptic_second - last) ;
 		n++ ;
@@ -245,6 +231,31 @@ double GeneralConverter::getEllipseSecondCompleteIntegral(double a, double b)
 
 }
 
+
+
+
+AdditionConverter::AdditionConverter(Tag t) : Scheme(-1,t)
+{
+	if(t == TAG_MASS_TOTAL)
+	{
+		input.clear() ;
+		input.push_back(TAG_MASS) ;
+	}
+	if(t == TAG_VOLUME_TOTAL)
+	{
+		input.clear() ;
+		input.push_back(TAG_VOLUME) ;
+	}
+	
+}
+
+Vector AdditionConverter::process(const Matrix & data)
+{
+	Vector processed(1) ;
+	for(size_t i = 0 ; i < data.size() ; i++)
+		processed[0] += data[i][0] ;
+	return processed ;
+}
 
 
 

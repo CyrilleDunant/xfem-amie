@@ -38,7 +38,7 @@ HillBounds::HillBounds() : ElasticBoundsScheme(2)
 {
 }
 
-Vector HillBounds::processData(const Matrix & data)
+Vector HillBounds::process(const Matrix & data)
 {
 	std::vector<Tag> avg ;
 	avg.push_back(TAG_BULK_MODULUS) ;

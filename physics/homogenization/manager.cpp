@@ -94,5 +94,3 @@ Vector GeometryManager::processEllipse(const Matrix & data)
 
 
 
-
-

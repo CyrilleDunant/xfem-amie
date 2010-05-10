@@ -55,7 +55,7 @@ Vector BudianskyScheme::process(const Matrix & data)
 	double area = param_ellipse[1] ;
 	double elliptic_first = param_ellipse[2] ;
 	double elliptic_second = param_ellipse[3] ;
-	
+
 	double k1 = simpleDivision(b,a) ;
 	double k = simpleSquareRoot(1. - k1*k1);
 
@@ -66,15 +66,14 @@ Vector BudianskyScheme::process(const Matrix & data)
 	
 	double A = (k1*k1*elliptic_first - elliptic_second) ;
 	double B = k1*k1*(elliptic_second - elliptic_first) ;
-	A /= (k*k*elliptic_second) ;
-	B /= (k*k*elliptic_second) ;
 
 	double epsilonx = 1 ;
 	double Tx = 2. ;
+	double kEk = k*k*elliptic_second ;
 	while(std::abs(epsilon - epsilonx)/epsilon > 1e-6 && nux > 1e-6)
 	{
 		nux -= 1e-6 ;
-		Tx = 1. / (1. + A * nux) + 1. / (1. + B * nux) ;
+		Tx = kEk * ( 1. / (kEk + A * nux) + 1. / (kEk + B * nux)) ;
 		epsilonx = 45. * (nu - nux) ;
 		epsilonx /= 8. * (1. - nux*nux) ;
 		epsilonx /= (2.*(1.+3.*nu) - (1.-2.*nu)*Tx) ;
@@ -146,10 +145,9 @@ Vector SimplifiedBenHahaScheme::process(const Matrix & data)
 	double shearx = shear ;
 	shearx -= shear * 32./45.*(1. - nux) * nc ;
 
-	Vector processed(3) ;
+	Vector processed(2) ;
 	processed[0] = bulkx ;
 	processed[1] = shearx ;
-	processed[2] = nc ;
 	
 	return processed ;
 

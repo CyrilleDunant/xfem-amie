@@ -92,7 +92,7 @@ std::vector<Properties> Scheme::homogenize(const std::vector<Material> & mat)
 		}
 	}
 
-	Vector processed = process(data) ;
+	Vector processed = this->process(data) ;
 
 	if(s == STATUS_RESET)
 	{
@@ -118,12 +118,20 @@ std::vector<Properties> Scheme::homogenize(const Material & mat)
 {
 	std::vector<Material> m ;
 	m.push_back(mat) ;
-	return homogenize(m) ;
+	return this->homogenize(m) ;
 }
 
+std::vector<Properties> Scheme::homogenize(const Material & m1, const Material & m2)
+{
+	std::vector<Material> m ;
+	m.push_back(m1) ;
+	m.push_back(m2) ;
+	return this->homogenize(m) ;
+}
 
 Vector Scheme::process(const Matrix & data)
 {
+	std::cout << "no!" << std::endl ;
 	Vector processed(output.size()) ;
 	return processed ;
 }
