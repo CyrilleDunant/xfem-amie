@@ -573,7 +573,6 @@ void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle,DelaunayTr
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
 	double angle = tip.second ;
-	std::cout << angle << std::endl ;
 	std::valarray<Function> shapefunc(3) ;
 	Matrix xi(2,2) ; xi[1][0] = 1 ;
 	Matrix eta(2,2) ; eta[0][1] = 1 ;
@@ -773,6 +772,7 @@ void BranchedCrack::enrichBranches(size_t & startid, Mesh<DelaunayTriangle,Delau
 void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line)
 {
 	std::vector<DelaunayTriangle *> tris = dt->getConflictingElements(line) ;
+		
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
 	VirtualMachine vm ;
 	std::map<Point *, size_t> done ;

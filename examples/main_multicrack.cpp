@@ -1390,9 +1390,9 @@ int main(int argc, char *argv[])
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
-// 	crack.push_back(new BranchedCrack(new Point(-0.02, -.00215), new Point(-0.009, -.00215)));
-// 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
-// 	crack.back()->setEnrichementRadius(.0005) ;
+	crack.push_back(new BranchedCrack(new Point(-300, 0), new Point(-200, 0)));
+	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
+	crack.back()->setEnrichementRadius(1) ;
 	//add crack to list of cracks
 // 	crack.push_back(new BranchedCrack(new Point(0.011,.00215), new Point(0.009, 0.00215))) ;
 // 	crack.back()->setEnrichementRadius(.0005) ;

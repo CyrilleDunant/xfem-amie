@@ -33,6 +33,7 @@ namespace Mu
 {
 
 struct MtM ;
+struct MtV ;
 struct MtMtM ;
 
 /** \brief Full matrix class*/
@@ -374,7 +375,7 @@ inline const Vector matrix_vector_multiply(const Mu::Matrix &m, const Vector &v 
 {
 	assert(m.numRows() == v.size()) ;
 	
-	Vector ret(v.size()) ;
+	Vector ret(m.numRows()) ;
 	
 	for(size_t i = 0 ; i < m.numRows() ; i++)
 	{
@@ -386,21 +387,21 @@ inline const Vector matrix_vector_multiply(const Mu::Matrix &m, const Vector &v 
 }
 
 /** \brief Perform a Vector-Matrix multiplication*/
-inline const Vector operator*(const Vector &v , const Mu::Matrix &m )
+inline Vector operator*(const Vector &v , const Mu::Matrix &m )
 {
 	assert(m.numCols() == v.size()) ;
 	
-	Vector ret(v.size()) ;
+	Vector ret(m.numCols()) ;
 	
 	for(size_t i = 0 ; i < m.numCols() ; i++)
 	{
-
 		const Mu::Cslice_iter<double>& ri = m.column(i) ;
 		ret[i] = std::inner_product(ri, ri.end(), &v[0], (double)(0) ) ;
 	}
 	return ret ;
 
 }
+
 
 /** \brief Return a matrix, the multiplication by which is equivalent to swapping two lines
 *

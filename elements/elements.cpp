@@ -1582,7 +1582,6 @@ void ElementarySurface::compileAndPrecalculate()
 		std::vector<Variable> vars ;
 		vars.push_back(XI) ;
 		vars.push_back(ETA) ;
-		vars.push_back(ZETA) ;
 		if(order > CONSTANT_TIME_LINEAR)
 			vars.push_back(TIME_VARIABLE) ;
 		(*shapefunc)[k].preCalculate(getGaussPoints(), vars) ;
@@ -2807,50 +2806,6 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 	}
 }
 
-// GaussPointArray QuadElement::genGaussPoints() const
-// {
-// 	size_t ordre=0 ;
-// 	if(order <= LINEAR)
-// 		ordre = 1 ;
-// 	else if (order <= CUBIC)
-// 		ordre = 2 ;
-// 	else if (order <= QUINTIC)
-// 		ordre = 3 ;
-// 	
-// 	std::valarray< std::pair<Point, double> > fin(ordre);
-// 	
-// 	if(order <= LINEAR)
-// 	{
-// 		fin[0] = std::pair<Point, double>(Point(0, 0, 0), 2.0) ;
-// 	}
-// 	else if (order <= CUBIC)
-// 	{
-// 		fin[0] = std::pair<Point, double>(Point(0.577350269189626,0.577350269189626  ), 0.5) ;
-// 		fin[1] = std::pair<Point, double>(Point(0.577350269189626,-0.577350269189626 ), 0.5) ;
-// 		fin[2] = std::pair<Point, double>(Point(-0.577350269189626,0.577350269189626  ), 0.5) ;
-// 		fin[3] = std::pair<Point, double>(Point(-0.577350269189626,-0.577350269189626 ), 0.5) ;
-// 	}
-// 	else if (order <= QUINTIC)
-// 	{
-// 		assert(false) ;
-// 	}
-// 	else
-// 	{
-// 		assert(false) ;
-// 	}
-// // 	Function  J = this->jacobian() ;
-// // 	
-// // 	VirtualMachine vm ;
-// 	for(size_t i = 0 ; i < fin.size() ; i++)
-// 	{
-// 		fin[i].second*= jacobianAtPoint(fin[i].first) ;
-// 	}
-// 	
-// 	
-// 	return GaussPointArray(fin, order) ;
-// }
-
-
 GaussPointArray HexahedralElement::genGaussPoints() const
 {
 	size_t ordre=0 ;
@@ -2902,75 +2857,6 @@ void HexahedralElement::computeCenter()
 {
 	this->Hexahedron::computeCenter() ;
 }
-
-// void QuadElement::computeCenter()
-// {
-// 	this->ConvexGeometry::computeCenter() ;
-// }
-
-// QuadElement( Point * p0,  Point * p1,  Point * p2,  Point * p3)
-// {
-// 	this->order =  parent->getOrder() ;
-// 	visited = false ;
-// 	
-// 	this->shapefunc = parent->shapefunc ;
-// 	
-// 	for(size_t i =  0  ; i < this->size() ; i++)
-// 	{
-// 		delete &this->getPoint(i) ;
-// 	}
-// 	
-// 	this->ConvexGeometry::center = t->getCenter() ;
-// 	
-// 	this->getInPoints().resize(t->getInPoints().size()) ;
-// 	this->getBoundingPoints().resize(t->getBoundingPoints().size()) ;
-// 	
-// 	std::copy(&t->getInPoints()[0], &t->getInPoints()[t->getInPoints().size()],&this->getInPoints()[0] ) ;
-// 	std::copy(&t->getBoundingPoints()[0], &t->getBoundingPoints()[t->getBoundingPoints().size()],&this->getBoundingPoints()[0] ) ;
-// 	
-// }
-
-// QuadElement::QuadElement(Order order, bool father) : ElementarySurface( f)
-// {
-// 	this->order = order ;
-// 	visited = false ;
-// 	
-// 	if(order == LINEAR)
-// 	{
-// 		
-// 		this->Hexahedron::sampleSurface(4) ;
-// 		shapefunc = new std::valarray<Function>(4) ;
-// 
-// 			//0
-// 		(*shapefunc)[0] = Function("1 x 0.5 * - 1 y 0.5 * - *") ;
-// 			//1
-// 		(*shapefunc)[1] = Function("1 x 0.5 * - y 0.5 * *") ;
-// 			//2
-// 		(*shapefunc)[2] = Function("x 0.5 * y 0.5 * *") ;
-// 			//3
-// 		(*shapefunc)[3] = Function("x 0.5 * 1 y 0.5 * - *") ;
-// 
-// 		
-// 		
-// 	}
-// 	else if(order == QUADRATIC)
-// 	{
-// 		assert(false) ;
-// 	}
-// 	else
-// 	{
-// 		assert(false) ;
-// 	}
-// 	
-// 	this->size_x  = 2 ;
-// 	this->size_y  = 2 ;
-// }
-
-// void QuadElement::refresh(const QuadElement * parent)
-// {
-// 	this->order =  parent->getOrder() ;
-// 	this->shapefunc = parent->shapefunc ;
-// }
 
 HexahedralElement::HexahedralElement(Order order, bool f ) : ElementaryVolume( f)
 {

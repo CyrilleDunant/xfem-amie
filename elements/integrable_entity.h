@@ -186,6 +186,12 @@ public:
 
 /** \brief return the linear interpolating factors for the displacement field at the given point*/
 	std::vector<double> getInterpolatingFactors(const Point & p, bool local = false) const ;
+
+/** \brief return the linear enrichment interpolating factors for the displacement field at the given point*/
+	std::vector<double> getEnrichedInterpolatingFactors(const Point & p, bool local = false) const ;
+	
+/** \brief return the linear non-enrichment interpolating factors for the displacement field at the given point*/
+	std::vector<double> getNonEnrichedInterpolatingFactors(const Point & p, bool local = false) const ;
 	
 /** \brief return displacement at points*/
 	Vector getDisplacements(const std::valarray<Point> & p) const ;

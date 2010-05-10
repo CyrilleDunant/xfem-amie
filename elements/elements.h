@@ -165,48 +165,6 @@ public:
 	
 } ;
 
-// class QuadElement : public ConvexGeometry, public ElementarySurface
-// {
-// protected :
-// 	
-// 	GaussPointArray genGaussPoints() const;
-// 	virtual void computeCenter();
-// 	
-// public:
-// 	
-// 	bool moved ;
-// 	
-// 	GEO_DERIVED_OBJECT(ConvexGeometry) ;
-// 	
-// 	QuadElement( Point * p0,  Point * p1,  Point * p2,  Point * p3, bool father = false) ;
-// 	
-// 	QuadElement(Order order = LINEAR, bool father = true) ;
-// 	void refresh(const QuadElement * parent) ;
-// 	
-// 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
-// 	
-// 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
-// 	
-// 	Function jacobian() const ;
-// 	
-// 	double  jacobianAtPoint(const Point p) const ;
-// 	
-// 	void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
-// 	
-// 	GaussPointArray getGaussPoints() const;
-// 	
-// 	virtual bool isMoved() const;
-// 	
-// 	virtual void print() const;
-// 	
-// 	virtual Point inLocalCoordinates(const Point &p) const ;
-// 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() ;
-// 	
-// 	virtual Vector getNonLinearForces()  ;
-// 	virtual Function getXTransform() const ;
-// 	virtual Function getYTransform() const ;
-// } ;
-
 class ElementaryVolume : public IntegrableEntity
 {
 protected:

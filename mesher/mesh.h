@@ -237,6 +237,13 @@ namespace Mu
 			
 			} ;
 	
+			template <class ETARGETTYPE>
+			/** \brief Return the displacements in source mesh projected on current mesh. 
+			*/
+			void leastSquareProject(const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
+			{
+				
+			}
 			virtual size_t & getLastNodeId() = 0;
 			virtual const size_t & getLastNodeId() const = 0;
 	} ;

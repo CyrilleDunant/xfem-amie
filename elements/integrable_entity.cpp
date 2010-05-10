@@ -24,9 +24,6 @@ IntegrableEntity::IntegrableEntity() : state(this)
 	
 }
 
-
-
-
 const Vector & ElementState::getPreviousEnrichedDisplacements() const
 {
 	return this->previousEnrichedDisplacements ;
@@ -2624,26 +2621,56 @@ Vector & ElementState::getDisplacements()
 	return this->displacements ;
 }
 
+std::vector<double> ElementState::getEnrichedInterpolatingFactors(const Point & p, bool local) const
+{
+
+	std::vector<double> ret(parent->getEnrichmentFunctions().size()) ;
+	VirtualMachine vm ;
+	Point p_ = p ;
+	if(!local)
+		p_ = parent->inLocalCoordinates(p) ;
+
+	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+	{
+		ret[j] = vm.eval(parent->getEnrichmentFunction(j), p_) ;
+	}
+
+	return ret;
+}
+
+std::vector<double> ElementState::getNonEnrichedInterpolatingFactors(const Point & p, bool local) const
+{
+
+	std::vector<double> ret(parent->getBoundingPoints().size()) ;
+	VirtualMachine vm ;
+	Point p_ = p ;
+	if(!local)
+		p_ = parent->inLocalCoordinates(p) ;
+	for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+	{
+		ret[j] = vm.eval(parent->getShapeFunction(j), p_) ;
+	}
+	
+	return ret;
+}
+
 std::vector<double> ElementState::getInterpolatingFactors(const Point & p, bool local) const
 {
 
 	std::vector<double> ret(parent->getBoundingPoints().size()+parent->getEnrichmentFunctions().size()) ;
 	VirtualMachine vm ;
 	Point p_ = p ;
-	
 	if(!local)
 		p_ = parent->inLocalCoordinates(p) ;
-	
+
 	for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 	{
-		double f =  vm.eval(parent->getShapeFunction(j), p_) ;
-		ret[j] = f ;
+		ret[j] = vm.eval(parent->getShapeFunction(j), p_) ;
 	}
-	
+
 	for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 	{
-		double f = vm.eval(parent->getEnrichmentFunction(j), p_) ;
-		ret[j+parent->getBoundingPoints().size()] = f ;
+		ret[j+parent->getBoundingPoints().size()] = vm.eval(parent->getEnrichmentFunction(j), p_) ;
 	}
 
 	return ret;
