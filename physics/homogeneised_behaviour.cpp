@@ -231,30 +231,18 @@ void HomogeneisedBehaviour::homogenize()
 
 	}
 
-	double f = 0 ;
+	GeneralConverter fraction(TAG_VOLUME_FRACTION) ;
+	AdditionConverter total(TAG_VOLUME_TOTAL) ;
+
 	for(size_t i = 0 ; i < mat.size() ; i++)
 	{
-		size_t j = mat[i].getIndex(TAG_VOLUME,-1) ;
-		if(j+1 > 0)
-			f += mat[i][j].val() ;
+		fraction.reset() ;
+		total.reset() ;
+		mat[i].merge(total.homogenize(mat)) ;
+		mat[i].merge(fraction.homogenize(mat[i])) ;
 	}
 
-	GeneralConverter conv(TAG_VOLUME_FRACTION) ;
-	std::vector<Properties> frac ;
-	std::vector<Material> mati ;
-	for(size_t i = 0 ; i < mat.size() ; i++)
-	{
-		mati.clear() ;
-		conv.reset() ;
-		mat[i].push_back(Properties(TAG_VOLUME_TOTAL,f)) ;
-		mati.push_back(mat[i]) ;
-		frac = conv.homogenize(mati) ;
-		if(conv.isOK())
-			mat[i].push_back(frac[0]) ;
-	}
-
-	std::vector<Properties> hom = scheme.homogenize(mat) ;
-	Material mhom(hom) ;
+	Material mhom(scheme.homogenize(mat)) ;
 	size_t nk = mhom.getIndex(TAG_BULK_MODULUS,-1) ;
 	size_t nmu = mhom.getIndex(TAG_SHEAR_MODULUS,-1) ;
 	if(scheme.isOK() && (nk+1)*(nmu+1) > 0) ;
@@ -265,11 +253,11 @@ void HomogeneisedBehaviour::homogenize()
 			param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_TWO_DIMENSIONAL) ;
 	}
 
-	std::cout << std::endl ;
+/*	std::cout << std::endl ;
 	std::cout << std::endl ;
 	param.print() ;
 	std::cout << std::endl ;
-	std::cout << std::endl ;
+	std::cout << std::endl ;*/
 	
 }
 

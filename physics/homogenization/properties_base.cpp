@@ -183,7 +183,7 @@ Material::Material(const Matrix & cauchy)
 	k = conv.getBulkModulus(E,nu) ;
 	mu = conv.getShearModulus(E,nu) ;
 
-	if(conv.isOK())
+	if(conv.isOK() || conv.status() == STATUS_RESET)
 	{
 		push_back(Properties(TAG_YOUNG_MODULUS,E)) ;
 		push_back(Properties(TAG_POISSON_RATIO,nu)) ;
@@ -296,6 +296,7 @@ bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 	{
 		size_t thisi = this->getIndex(compare[i],-1) ;
 		size_t otheri = m.getIndex(compare[i],-1) ;
+
 		if((thisi+1)*(otheri+1) == 0)
 			success = false ;
 
