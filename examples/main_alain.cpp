@@ -27,7 +27,7 @@ using namespace Mu ;
 
 int main(int argc, char *argv[])
 {
-	BudianskyScheme crack ;
+	BudianskyDryCrackScheme crack ;
 	MoriTanaka elastic ;
 	HashinScheme alpha ;
 	GeneralConverter young(TAG_YOUNG_MODULUS) ;

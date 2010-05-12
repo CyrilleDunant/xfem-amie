@@ -352,8 +352,11 @@ Vector GeneralizedSelfConsistent::process(const Matrix & data)
 	avg.push_back(TAG_SHEAR_MODULUS) ;
 	MeanScheme mean(true,true,avg) ;
 	kmu_mean = mean.process(data) ;
-	if(!mean.isOK())	
+	if(!mean.isOK())
+	{
+		mean.print() ;
 		s = STATUS_BAD_HOMOGENIZATION ;
+	}
 	Vector hom(3) ;
 	hom[1] = kmu_mean[0] ;
 	hom[2] = kmu_mean[1] ;

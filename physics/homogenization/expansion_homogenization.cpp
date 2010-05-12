@@ -54,6 +54,60 @@ Vector HashinScheme::process(const Matrix & data)
 }
 
 
+SantScheme::SantScheme() : ExpansionHomogenizationScheme(2)
+{
+	input.clear() ;
+	input.push_back(TAG_VOLUME_FRACTION) ;
+	input.push_back(TAG_YOUNG_MODULUS) ;
+	input.push_back(TAG_POISSON_RATIO) ;
+	input.push_back(TAG_EXPANSION_COEFFICIENT) ;
+
+	output.clear() ;
+	output.push_back(TAG_STRAIN) ;
+	output.push_back(TAG_STRAIN) ;
+}
+
+Vector SantScheme::process(const Matrix & data)
+{
+	double fmat = data[0][0] ;
+	double Emat = data[0][1] ;
+	double nmat = data[0][2] ;
+	double amat = data[0][3] ;
+
+	double finc = data[1][0] ;
+	double Einc = data[1][1] ;
+	double ninc = data[1][2] ;
+	double ainc = data[1][3] ;
+
+	double c = 1./finc ;
+
+	double misfit = ainc - amat ;
+
+	double ph = 2.*(1.-2.*ninc)*(Emat/Einc)*(c-1.) ;
+	ph += c+2. + nmat*(c-4.) ;
+	ph = simpleDivision(1.,ph) ;
+	ph *= 2.*(c-1.)*Emat ;	
+	ph *= misfit ;
+
+	double sigmamatr = ph ;
+	double sigmamatt = -ph * (2.*finc+1.)/2./(1.-finc) ;
+
+	double epsilonmat = sigmamatt - nmat*(sigmamatr+sigmamatt) ;
+	epsilonmat /= Emat ;
+	epsilonmat -= amat ;
+
+	double epsiloninc = (1.-2.*ninc)*ph ;
+	epsiloninc /= Einc ;
+	epsiloninc -= ainc ;
+
+	Vector processed(2) ;
+	processed[0] = epsilonmat ;
+	processed[1] = epsiloninc ;
+
+	return processed ;
+}
+
+
 
 
 

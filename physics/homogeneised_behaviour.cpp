@@ -242,22 +242,33 @@ void HomogeneisedBehaviour::homogenize()
 		mat[i].merge(fraction.homogenize(mat[i])) ;
 	}
 
-	Material mhom(scheme.homogenize(mat)) ;
-	size_t nk = mhom.getIndex(TAG_BULK_MODULUS,-1) ;
-	size_t nmu = mhom.getIndex(TAG_SHEAR_MODULUS,-1) ;
-	if(scheme.isOK() && (nk+1)*(nmu+1) > 0) ;
+//	std::cout << mat.size() << std::endl ;
+	if(mat.size() == 1)
 	{
 		if(self2d)
-			param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_TWO_DIMENSIONAL) ;
+			param = cauchyGreen(std::make_pair(mat[0].val(TAG_BULK_MODULUS,-1),mat[0].val(TAG_SHEAR_MODULUS,-1)),false,SPACE_TWO_DIMENSIONAL) ;
 		else
-			param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_TWO_DIMENSIONAL) ;
+			param = cauchyGreen(std::make_pair(mat[0].val(TAG_BULK_MODULUS,-1),mat[0].val(TAG_SHEAR_MODULUS,-1)),false,SPACE_THREE_DIMENSIONAL) ;
+	} else {
+		scheme.reset() ;
+		Material mhom(scheme.homogenize(mat)) ;
+		int nk = mhom.getIndex(TAG_BULK_MODULUS,-1) ;
+		int nmu = mhom.getIndex(TAG_SHEAR_MODULUS,-1) ;
+		if(scheme.isOK() && (nk+1)*(nmu+1) > 0)
+		{
+			if(self2d)
+				param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_TWO_DIMENSIONAL) ;
+			else
+				param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_THREE_DIMENSIONAL) ;
+		} else {
+			scheme.print() ;
+		}
 	}
-
-/*	std::cout << std::endl ;
-	std::cout << std::endl ;
-	param.print() ;
-	std::cout << std::endl ;
-	std::cout << std::endl ;*/
+//	std::cout << std::endl ;
+//	std::cout << std::endl ;
+//	param.print() ;
+//	std::cout << std::endl ;
+//	std::cout << std::endl ;*/
 	
 }
 

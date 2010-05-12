@@ -29,11 +29,32 @@ public:
 	CrackedHomogenizationScheme() ;
 } ;
 
-/* \brief Diluted scheme. This scheme is only valid for small fractions */
-class BudianskyScheme : public CrackedHomogenizationScheme
+class ExpansionDefinedCrackScheme : public CrackedHomogenizationScheme
+{
+protected:
+	double threshold ;
+	double k ;
+	double m ;
+public:
+	ExpansionDefinedCrackScheme(double t, double k, double m) ;
+	virtual Vector process(const Matrix & data) ;
+} ;
+
+class AbouChakraCrackScheme : public CrackedHomogenizationScheme
 {
 public:
-	BudianskyScheme() ;
+	AbouChakraCrackScheme() ;
+	virtual Vector process(const Matrix & data) ;
+} ;
+
+
+
+
+/* \brief Diluted scheme. This scheme is only valid for small fractions */
+class BudianskyDryCrackScheme : public CrackedHomogenizationScheme
+{
+public:
+	BudianskyDryCrackScheme() ;
 	virtual Vector process(const Matrix & data) ;
 
 } ;

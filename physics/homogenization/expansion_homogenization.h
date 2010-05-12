@@ -38,6 +38,13 @@ public:
 
 } ;
 
+class SantScheme : public ExpansionHomogenizationScheme
+{
+public:
+	SantScheme() ;
+	virtual Vector process(const Matrix & data) ;
+} ;
+
 
 
 } ;

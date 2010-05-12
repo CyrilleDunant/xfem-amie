@@ -34,8 +34,12 @@ typedef enum
 	TAG_POISSON_RATIO,
 	TAG_BULK_MODULUS,	
 	TAG_SHEAR_MODULUS,
+	TAG_LAME_COEFFICIENT,
+	TAG_STRAIN,
+	TAG_STRESS,
 	TAG_EXPANSION_COEFFICIENT, 
 	TAG_CRACK_DENSITY, 
+	TAG_CRACK_LENGTH,
 	TAG_ELLIPSE_A,
 	TAG_ELLIPSE_B,
 	TAG_AREA,
@@ -94,15 +98,15 @@ public:
 	Material(const std::vector<Properties> & p) ;
 	Material(const Matrix & cauchy) ;
 
-	std::vector<size_t> getIndex(Tag t) const ;
-	size_t getIndex(Tag t, size_t i) const ;
-	double val(Tag t, size_t i) const ;
+	std::vector<int> getIndex(Tag t) const ;
+	int getIndex(Tag t, int i) const ;
+	double val(Tag t, int i) const ;
 
 	bool replace(Properties p) ;
 	bool replaceForce(Properties p) ;
 	bool isSet(Tag t) const ;
 	bool set(Tag t) ;
-	bool set(Tag t, size_t i) ;
+	bool set(Tag t, int i) ;
 
 	bool combine(Material m, std::vector<Tag> compare, Tag combine) ;
 	bool merge(Material m) ;

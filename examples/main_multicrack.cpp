@@ -196,14 +196,14 @@ void step()
 		timepos+= 0.0001 ;
 		double da = 0 ;
 
-		triangles = featureTree->getTriangles(2) ;
-		x.resize(featureTree->getDisplacements(2).size()) ;
-		x = featureTree->getDisplacements(2) ;
+		triangles = featureTree->getTriangles(-1) ;
+		x.resize(featureTree->getDisplacements(-1).size()) ;
+		x = featureTree->getDisplacements(-1) ;
 
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(2) ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(-1) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
@@ -1390,9 +1390,9 @@ int main(int argc, char *argv[])
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 
-	crack.push_back(new BranchedCrack(new Point(-300, 0), new Point(-200, 0)));
-	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
-	crack.back()->setEnrichementRadius(1) ;
+//	crack.push_back(new BranchedCrack(new Point(-300, 0), new Point(-200, 0)));
+//	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
+//	crack.back()->setEnrichementRadius(1) ;
 	//add crack to list of cracks
 // 	crack.push_back(new BranchedCrack(new Point(0.011,.00215), new Point(0.009, 0.00215))) ;
 // 	crack.back()->setEnrichementRadius(.0005) ;
@@ -1400,10 +1400,10 @@ int main(int argc, char *argv[])
 	Vector def(3) ; 
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	Inclusion * inc0 = new Inclusion(100, -200, 1) ;
+	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
 
-	XMLTree * test = inc0->toXML() ;
+/*	XMLTree * test = inc0->toXML() ;
 	test->print(true) ;
 	std::cout << std::endl ;
 	Circle c(test->getChild(0)) ;
@@ -1417,7 +1417,7 @@ int main(int argc, char *argv[])
 	std::cout << std::endl ;
 	Matrix mtest = c1->buildMatrix().second;
 	XMLTree * x = new XMLTree("test",mtest) ;
-	x->print(true) ;
+	x->print(true) ;*/
 // 	return 0 ;
 
  	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
@@ -1483,7 +1483,9 @@ int main(int argc, char *argv[])
 	
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(256) ;
+	F.useMultigrid = true ;
+
+	F.sample(64) ;
 
 	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;

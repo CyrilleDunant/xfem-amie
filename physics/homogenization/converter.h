@@ -49,6 +49,7 @@ public:
 	virtual double getPoissonRatio(double k, double mu) {return simpleDivision(3.*k-2.*mu, 6.*k+2.*mu) ; } ;
 	virtual double getBulkModulus(double E, double nu) {return simpleDivision(E, 3.*(1.-2.*nu)) ; } ;
 	virtual double getShearModulus(double E, double nu) {return simpleDivision(E, 2.*(1.+nu)) ; } ;
+	virtual double getLameCoefficient(double E, double nu) {return simpleDivision(E*nu , (1.+nu)*(1.-2.*nu)) ; } ;
 
 	virtual double getEllipseFirstCompleteIntegral(double a, double b) ;
 	virtual double getEllipseSecondCompleteIntegral(double a, double b) ;

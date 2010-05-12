@@ -193,20 +193,20 @@ Material::Material(const Matrix & cauchy)
 
 }
 
-std::vector<size_t> Material::getIndex(Tag t) const
+std::vector<int> Material::getIndex(Tag t) const
 {
-	std::vector<size_t> index ;
+	std::vector<int> index ;
 	for(size_t i = 0 ; i < size() ; i++)
 	{
 		if((*this)[i].is(t))
-			index.push_back(i) ;
+			index.push_back((int) i) ;
 	}
 	return index ;
 }
 
-size_t Material::getIndex(Tag t, size_t i) const
+int Material::getIndex(Tag t, int i) const
 {
-	std::vector<size_t> index = getIndex(t) ;
+	std::vector<int> index = getIndex(t) ;
 	if(index.size() == 0)
 		return -1 ;
 	if(i+1 == 0 || i+1 > index.size())
@@ -215,9 +215,9 @@ size_t Material::getIndex(Tag t, size_t i) const
 	return index[i] ;
 }
 
-double Material::val(Tag t, size_t i) const
+double Material::val(Tag t, int i) const
 {
-	size_t j = getIndex(t,i) ;
+	int j = getIndex(t,i) ;
 	if(j+1 == 0)
 		return -1 ;
 	return (*this)[j].val() ;
@@ -274,14 +274,14 @@ bool Material::set(Tag t)
 	return true ;
 }
 
-bool Material::set(Tag t, size_t i)
+bool Material::set(Tag t, int i)
 {
 	if((*this)[i].is(t))
 	{
 		set(t) ;
-		for(int j = 0 ; j < size() ; j++)
+		for(size_t j = 0 ; j < size() ; j++)
 		{
-			if((*this)[j].is(t) && (j != i))
+			if((*this)[j].is(t) && (j != (size_t) i))
 				(*this)[j].kill() ; 
 		}
 		return true ;
@@ -294,8 +294,8 @@ bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 	bool success = true ;
 	for(size_t i = 0 ; i < compare.size() && success ; i++)
 	{
-		size_t thisi = this->getIndex(compare[i],-1) ;
-		size_t otheri = m.getIndex(compare[i],-1) ;
+		int thisi = this->getIndex(compare[i],-1) ;
+		int otheri = m.getIndex(compare[i],-1) ;
 
 		if((thisi+1)*(otheri+1) == 0)
 			success = false ;
@@ -306,8 +306,8 @@ bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 	}
 	if(success)
 	{
-		size_t thisi = this->getIndex(combine, -1) ;
-		size_t otheri = m.getIndex(combine, -1) ;
+		int thisi = this->getIndex(combine, -1) ;
+		int otheri = m.getIndex(combine, -1) ;
 		if((thisi+1)*(otheri+1) == 0)
 			success = false ;
 		else

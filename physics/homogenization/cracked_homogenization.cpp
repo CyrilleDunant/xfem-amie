@@ -12,6 +12,7 @@
 
 #include "cracked_homogenization.h"
 #include "manager.h"
+#include "converter.h"
 
 namespace Mu
 {
@@ -28,7 +29,54 @@ CrackedHomogenizationScheme::CrackedHomogenizationScheme() : Scheme(1)
 
 
 
-BudianskyScheme::BudianskyScheme() : CrackedHomogenizationScheme()
+ExpansionDefinedCrackScheme::ExpansionDefinedCrackScheme(double t, double k, double m) : CrackedHomogenizationScheme(), threshold(t), k(k), m(m)
+{
+	input.pop_back() ;
+	input.push_back(TAG_EXPANSION_COEFFICIENT) ;
+}
+
+Vector ExpansionDefinedCrackScheme::process(const Matrix & data) 
+{
+	double bulk = data[0][0] ;
+	double shear = data[0][1] ;
+	double epsilon = data[0][2] ;
+
+	double damage = k*16./9.*std::pow(1.-simpleDivision(threshold,epsilon),m) ;
+
+	Vector processed(2) ;
+	processed[0] = bulk * (1.-damage) ;
+	processed[1] = shear * (1.-damage) ;
+	return processed ;
+}
+
+
+AbouChakraCrackScheme::AbouChakraCrackScheme() : CrackedHomogenizationScheme()
+{
+
+}
+
+Vector AbouChakraCrackScheme::process(const Matrix & data)
+{
+	double bulk = data[0][0] ;
+	double shear = data[0][1] ;
+	double d = data[0][2] ;
+
+	GeneralConverter poisson(TAG_POISSON_RATIO) ;
+	double nu = poisson.getPoissonRatio(bulk,shear) ;
+
+	double bulkd = bulk * (1. - (48.*d*(1.-nu*nu)) / (27.*(1.-2.*nu) + 16.*d*(1.+nu)*(1.+nu))) ;
+	double sheard = shear * (1. - (480.*d*(1.-nu)*(5.-nu)) / (675.*(2.-nu) + 64.*d*(4.-5.*nu)*(5.-nu))) ;
+
+	Vector processed(2) ;
+	processed[0] = bulkd ;
+	processed[1] = sheard ;
+
+	return processed ;
+}
+
+
+
+BudianskyDryCrackScheme::BudianskyDryCrackScheme() : CrackedHomogenizationScheme()
 {
 	input.push_back(TAG_ELLIPSE_A) ;
 	input.push_back(TAG_ELLIPSE_B) ;
@@ -36,7 +84,7 @@ BudianskyScheme::BudianskyScheme() : CrackedHomogenizationScheme()
 	output.push_back(TAG_CRACK_DENSITY) ;
 }
 
-Vector BudianskyScheme::process(const Matrix & data)
+Vector BudianskyDryCrackScheme::process(const Matrix & data)
 {
 	double bulk = data[0][0] ;
 	double shear = data[0][1] ;

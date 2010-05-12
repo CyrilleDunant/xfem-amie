@@ -49,7 +49,7 @@ public:
 	/* \brief constructor, using a set of different input, and another set of different output*/
 	Scheme(size_t n, std::vector<Tag> & in, std::vector<Tag> & out) ;
 
-	virtual bool isOK() const {return s == STATUS_OK ; } ;
+	virtual bool isOK() const {return s == STATUS_OK || s == STATUS_RESET; } ;
 	virtual Status const status() {return s ; } ;
 	virtual void reset() {s = STATUS_RESET ; } ;
 	virtual bool check(bool r) ;
