@@ -18,23 +18,23 @@
 #include "../polynomial/vm_base.h"
 #include "../elements/integrable_entity.h"
 
-Mu::Function XTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
-double xTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function YTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
-double yTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function ZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
-double zTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function TTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis) ;
-double tTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Point coordinateTransform(const Mu::Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
-double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
-double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
-double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
+Mu::Function XTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
+double xTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
+Mu::Function YTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
+double yTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
+Mu::Function ZTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
+double zTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
+Mu::Function TTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
+double tTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
+Mu::Point coordinateTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
+Mu::Function dXTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
+Mu::Function dYTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
+Mu::Function dZTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
+Mu::Function dTTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
+double dXTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
+double dYTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
+double dZTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
+double dTTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
 
 namespace Mu
 {
@@ -116,7 +116,7 @@ public:
 	void setOrder(Order) ;
 
 	virtual void compileAndPrecalculate();
-	virtual void clearEnrichment(const Geometry * g) ;
+	virtual std::vector<size_t> clearEnrichment(const Geometry * g) ;
 	
 } ;
 
@@ -227,12 +227,12 @@ public:
 	
 	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
 		
-	virtual const std::valarray< Point * > & getBoundingPoints() const = 0;
-	virtual std::valarray< Point * > & getBoundingPoints() = 0;
+	virtual const PointArray & getBoundingPoints() const = 0;
+	virtual PointArray & getBoundingPoints() = 0;
 	virtual const Point & getBoundingPoint(size_t i) const = 0;
 	virtual Point & getBoundingPoint(size_t i) = 0;
-	virtual const std::valarray< Point * > & getInPoints() const = 0;
-	virtual std::valarray< Point * > & getInPoints() = 0;
+	virtual const PointArray & getInPoints() const = 0;
+	virtual PointArray & getInPoints() = 0;
 	virtual const Point &  getPoint(size_t i) const = 0 ;
 	virtual Point &  getPoint(size_t i) = 0 ;
 		
@@ -245,7 +245,7 @@ public:
 	virtual void setOrder(Order) ;
 	
 	virtual void compileAndPrecalculate();
-	virtual void clearEnrichment(const Geometry * g) ;
+	virtual std::vector<size_t> clearEnrichment(const Geometry * g) ;
 } ;
 
 

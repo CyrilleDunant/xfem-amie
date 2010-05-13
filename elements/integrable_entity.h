@@ -113,16 +113,16 @@ public:
 	Vector getStress(const std::pair<Point, double> &  ) const;
 
 /** \brief Return strain at given points*/
-	Vector getStrain(const std::valarray<Point *> &) const;
+	Vector getStrain(const Mu::PointArray &) const;
 
 /** \brief Return stress at given points*/
-	Vector getStress(const std::valarray<Point *> &) const;
+	Vector getStress(const Mu::PointArray &) const;
 
 /** \brief Return stress at given points, ignoring enrichment functions*/
-	Vector getNonEnrichedStress(const std::valarray<Point *> &) const;
+	Vector getNonEnrichedStress(const Mu::PointArray &) const;
 
 /** \brief Return strain at given points, ignoring enrichment functions*/
-	Vector getNonEnrichedStrain(const std::valarray<Point *> &) const;
+	Vector getNonEnrichedStrain(const Mu::PointArray &) const;
 
 /** \brief Return strain at given (Gauss) points*/
 	Vector getStrain(const std::valarray<std::pair<Point, double> > &p) const;
@@ -143,7 +143,7 @@ public:
 	Vector getNonEnrichedStrain(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv) const;
 
 /** \brief return stress and strain at given points*/
-	std::pair<Vector, Vector > getStressAndStrain(const std::valarray<Point *> &) const;
+	std::pair<Vector, Vector > getStressAndStrain(const Mu::PointArray &) const;
 
 /** \brief return stress and strain at given (gauss) points*/
 	std::pair<Vector, Vector > getStressAndStrain( std::valarray<std::pair<Point, double> > & p) const;
@@ -152,19 +152,19 @@ public:
 	Vector getPrincipalStresses(const Point & , bool local = false) const ;
 
 /** \brief get Principal Stresses at given points*/
-	Vector getPrincipalStresses(const std::valarray<Point *> &) const ;
+	Vector getPrincipalStresses(const Mu::PointArray &) const ;
 
 /** \brief get Principal Strains at given point*/
 	Vector getPrincipalStrains(const Point & p, bool local = false) const ;
 	
 /** \brief get Principal Strains at given points*/
-	Vector getPrincipalStrains(const std::valarray<Point *> &) const ;
+	Vector getPrincipalStrains(const Mu::PointArray &) const ;
 	
 /** \brief get Principal angle at given point*/
 	double getPrincipalAngle(const Point & p, bool local= false) const ;
 
 /** \brief get Principal angle at given points*/
-	Vector getPrincipalAngle(const std::valarray<Point *> & v) const;
+	Vector getPrincipalAngle(const Mu::PointArray & v) const;
 	
 /** \brief get symbolic expression of Stress, given he inverse Jacobian*/
 	FunctionMatrix getStressFunction(const Matrix &Jinv) const;
@@ -256,11 +256,11 @@ public:
 	Vector getDeltaStress(const Point & ) const;
 	Vector getDeltaStrain(const std::pair<Point, double> &  ) const;
 	Vector getDeltaStress(const std::pair<Point, double> &  ) const;
-	Vector getDeltaStrain(const std::valarray<Point *> &) const;
-	Vector getDeltaStress(const std::valarray<Point *> &) const;
+	Vector getDeltaStrain(const Mu::PointArray &) const;
+	Vector getDeltaStress(const Mu::PointArray &) const;
 	Vector getDeltaStrain(const std::valarray<std::pair<Point, double> > & p) const;
 	Vector getDeltaStress(const std::valarray<std::pair<Point, double> > & p) const;
-	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const std::valarray<Point *> &) const;
+	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const Mu::PointArray &) const;
 	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const std::valarray<std::pair<Point, double> > & p) const;
 	
 	Vector getDeltaDisplacements(const Point &) const;
@@ -344,7 +344,7 @@ public:
 	virtual Order getOrder() const  = 0 ;
 	
 	virtual void compileAndPrecalculate() = 0 ;
-	virtual void clearEnrichment(const Geometry * g) = 0 ;
+	virtual std::vector<size_t> clearEnrichment(const Geometry * g) = 0 ;
 	virtual const std::vector< size_t > getDofIds() const = 0;
 	
 	virtual Form * getBehaviour() const = 0;

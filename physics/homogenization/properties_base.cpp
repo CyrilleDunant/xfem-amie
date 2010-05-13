@@ -208,7 +208,7 @@ int Material::getIndex(Tag t, int i) const
 {
 	std::vector<int> index = getIndex(t) ;
 	if(index.size() == 0)
-		return -1 ;
+		return 0 ;
 	if(i+1 == 0 || i+1 > index.size())
 		return index[index.size()-1] ;
 
@@ -219,7 +219,7 @@ double Material::val(Tag t, int i) const
 {
 	int j = getIndex(t,i) ;
 	if(j+1 == 0)
-		return -1 ;
+		return 0 ;
 	return (*this)[j].val() ;
 }
 

@@ -30,7 +30,7 @@ public:
 	/* \brief constructor 
 	* @param i the number of phases (-1 for infinite)
 	*/
-	ElasticHomogenizationScheme(size_t i) ;
+	ElasticHomogenizationScheme(int i) ;
 } ;
 
 /* \brief Diluted scheme. This scheme is only valid for small fractions */

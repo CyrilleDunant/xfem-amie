@@ -1429,10 +1429,10 @@ void ElementarySurface::setEnrichment( const Function & p, Geometry * g)
 	bool unique = true ;
 	for(size_t i = 0 ;  i < enrichfunc.size() ; i++)
 	{
+		
 		if (getEnrichmentFunction(i).getDofID() == p.getDofID())
 		{
 			unique = false ;
-			break ;
 		}
 	}
 	if(unique)
@@ -1464,36 +1464,6 @@ const std::vector<Function> & ElementarySurface::getEnrichmentFunctions() const
 {
 	return this->enrichfunc;
 }
-
-// std::vector<Function> & ElementarySurface::getEnrichmentFunctions()
-// {
-// 	return this->enrichfunc;
-// }
-
-// const std::vector<Function> ElementarySurface::getEnrichment(size_t i) const
-// {
-// 	std::vector<Function> ret ;
-// 	for(size_t j = 0 ; j < enrichfunc.size() ; j++)
-// 	{
-// 		if(enrichfunc[j].first == i)
-// 			ret.push_back(enrichfunc[j].second) ;
-// 	}
-// 	
-// 	return ret ;
-// }
-// 
-// 
-// std::vector<Function> ElementarySurface::getEnrichment(size_t i) 
-// {
-// 	std::vector<Function> ret ;
-// 	for(size_t j = 0 ; j < enrichfunc.size() ; j++)
-// 	{
-// 		if(enrichfunc[j].first == i)
-// 			ret.push_back(enrichfunc[j].second) ;
-// 	}
-// 	
-// 	return ret ;
-// }
 
 
 Point TetrahedralElement::inLocalCoordinates(const Point & p) const
@@ -1654,8 +1624,9 @@ double ElementaryVolume::getdTTransform(Variable v, const Point & p) const
 	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
-void ElementaryVolume::clearEnrichment(const Geometry * g)
+std::vector<size_t> ElementaryVolume::clearEnrichment(const Geometry * g)
 {
+	std::vector<size_t> ret ;
 	std::vector<Function> newFunc ;
 	std::vector<Geometry *> newSource ;
 
@@ -1663,33 +1634,42 @@ void ElementaryVolume::clearEnrichment(const Geometry * g)
 	{
 		if(enrichmentSource[i] != g)
 		{
+			
 			newFunc.push_back(enrichfunc[i]) ;
 			newSource.push_back(enrichmentSource[i]) ;
 		}
+		else
+			ret.push_back(enrichfunc[i].getDofID());
 	}
 
 	enrichfunc = newFunc ;
 	enrichmentSource = newSource ;
+	
+	return ret ;
 }
 
-void ElementarySurface::clearEnrichment(const Geometry * g)
+std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 {
-	bool removed = true ;
-	while(removed)
+	std::vector<size_t> ret ;
+	std::vector<Function> newFunc ;
+	std::vector<Geometry *> newSource ;
+
+	for(size_t i = 0 ; i < enrichmentSource.size() ; i++)
 	{
-		removed = false ;
-		for(size_t i = 0 ; i < enrichmentSource.size() ; i++)
+		if(enrichmentSource[i] != g)
 		{
 			
-			if(enrichmentSource[i] == g)
-			{
-				enrichmentSource.erase(enrichmentSource.begin()+i) ;
-				enrichfunc.erase(enrichfunc.begin()+i) ;
-				removed = true ;
-				break ;
-			}
+			newFunc.push_back(enrichfunc[i]) ;
+			newSource.push_back(enrichmentSource[i]) ;
 		}
+		else
+			ret.push_back(enrichfunc[i].getDofID());
 	}
+	enrichfunc.clear() ;
+	enrichfunc = newFunc ;
+	enrichmentSource = newSource ;
+	
+	return ret ;
 }
 
 ElementaryVolume::ElementaryVolume(bool f )  : isFather(f)

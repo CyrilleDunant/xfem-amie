@@ -57,7 +57,7 @@ public:
 	void setMeasures(const Vector &m)  { measures = m; } ;
 	
 	double optimize();
-	
+	Vector getApproximation() const ;
 	void setParameterValue(int i, double v) ;
 	
 	const Vector & getParameters() const { return parameters ; } ;

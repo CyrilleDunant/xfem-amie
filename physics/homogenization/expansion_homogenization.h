@@ -26,7 +26,7 @@ public:
 	/* \brief constructor 
 	* @param i the number of phases (-1 for infinite)
 	*/
-	ExpansionHomogenizationScheme(size_t i) ;
+	ExpansionHomogenizationScheme(int i) ;
 } ;
 
 /* \brief Diluted scheme. This scheme is only valid for small fractions */

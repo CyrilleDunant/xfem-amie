@@ -20,7 +20,7 @@ namespace Mu
 
 
 
-ElasticBoundsScheme::ElasticBoundsScheme(size_t i) : Scheme(i)
+ElasticBoundsScheme::ElasticBoundsScheme(int i) : Scheme(i)
 {
 	input.push_back(TAG_VOLUME_FRACTION) ;
 	input.push_back(TAG_BULK_MODULUS) ;

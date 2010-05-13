@@ -457,7 +457,9 @@ public:
 	 */
 	void setPoint(Point * p) ;
 	
-	/** \brief Copy-constructor
+	/** \brief Copy-constructor. This operator conserves the id of the lvalue function. 
+	 * Therefore, it can have strange side effects for example when copying std::vectors of functions, such as not 
+	 * overwriting the ids as would be expected.
 	 * 
 	 * @param f source
 	 * @return self

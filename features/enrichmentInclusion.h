@@ -29,6 +29,7 @@ class EnrichmentInclusion :  public EnrichmentFeature,  public Circle
 protected:
 	bool updated ;
 	std::vector<DelaunayTriangle *> cache ;
+	std::set<size_t> freeIds ;
 public:
 
 /** \brief Constructor. Construct the inclusion from a supporting feature, a radius and center coordinates */

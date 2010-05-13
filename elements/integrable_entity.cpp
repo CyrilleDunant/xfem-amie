@@ -273,7 +273,7 @@ double ElementState::getMaximumVonMisesStress() const
 		}
 		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
-			std::valarray<Point *> pts(4) ;
+			Mu::PointArray pts(4) ;
 			pts[0] = &parent->getBoundingPoint(0) ;
 			pts[1] = &parent->getBoundingPoint(1) ;
 			pts[2] = &parent->getBoundingPoint(2) ;
@@ -313,7 +313,7 @@ double ElementState::getMaximumVonMisesStress() const
 		}
 		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
-			std::valarray<Point *> pts(4) ;
+			Mu::PointArray pts(4) ;
 			pts[0] = &parent->getBoundingPoint(0) ;
 			pts[1] = &parent->getBoundingPoint(2) ;
 			pts[2] = &parent->getBoundingPoint(4) ;
@@ -1045,7 +1045,7 @@ Vector ElementState::getStress(const std::pair<Point, double> & p) const
 	return getStress(p.first) ;
 }
 
-Vector ElementState::getNonEnrichedStress(const std::valarray<Point *> & pts) const
+Vector ElementState::getNonEnrichedStress(const Mu::PointArray & pts) const
 {
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
 	{
@@ -1228,7 +1228,7 @@ Vector ElementState::getNonEnrichedStress(const std::valarray<Point *> & pts) co
 	return Vector(0., sz*pts.size()) ;
 }
 
-Vector ElementState::getNonEnrichedStrain(const std::valarray<Point *> & pts) const
+Vector ElementState::getNonEnrichedStrain(const Mu::PointArray & pts) const
 {
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
 	{
@@ -2071,7 +2071,7 @@ Vector ElementState::getNonEnrichedStrain(const std::valarray<std::pair<Point,do
 }
 
 
-Vector ElementState::getStress(const std::valarray<Point *> & pts) const
+Vector ElementState::getStress(const Mu::PointArray & pts) const
 {
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
 	{
@@ -2358,7 +2358,7 @@ Vector ElementState::getStress(const std::valarray<std::pair<Point, double> > & 
 	return Vector(0., sz*p.size()) ;
 }
 
-Vector ElementState::getStrain(const std::valarray<Point *> & pts) const
+Vector ElementState::getStrain(const Mu::PointArray & pts) const
 {
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
 	{
@@ -3245,7 +3245,7 @@ Vector ElementState::getPreviousPreviousDisplacements(const std::valarray<Point>
 
 
 
-std::pair<Vector, Vector > ElementState::getStressAndStrain(const std::valarray<Point *> & pts) const
+std::pair<Vector, Vector > ElementState::getStressAndStrain(const Mu::PointArray & pts) const
 {
 	
 	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
@@ -3466,7 +3466,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain(const std::valarray<
 
 std::pair<Vector, Vector > ElementState::getStressAndStrain( std::valarray<std::pair<Point, double> > & p) const
 {
-	std::valarray<Point *> pts(p.size()) ;
+	Mu::PointArray pts(p.size()) ;
 	for(size_t i = 0 ; i < p.size() ; i++)
 	{
 		pts[i] = &p[i].first ;
@@ -3647,7 +3647,7 @@ Vector ElementState::getDeltaStress(const std::pair<Point, double> & p) const
 	return getDeltaStress(p.first) ;
 }
 
-Vector ElementState::getDeltaStress(const std::valarray<Point *> & pts) const
+Vector ElementState::getDeltaStress(const Mu::PointArray & pts) const
 {
 	if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
 	{
@@ -3729,7 +3729,7 @@ Vector ElementState::getDeltaStress(const std::valarray<std::pair<Point, double>
 	return pts ;
 }
 
-Vector ElementState::getDeltaStrain(const std::valarray<Point *> & pts) const
+Vector ElementState::getDeltaStrain(const Mu::PointArray & pts) const
 {
 	if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
 	{
@@ -3876,7 +3876,7 @@ Vector ElementState::getDeltaDisplacements(const std::valarray<Point> & p) const
 	return ret;
 }
 
-std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain(const std::valarray<Point *> & pts) const
+std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain(const Mu::PointArray & pts) const
 {
 	
 	if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
@@ -3952,13 +3952,16 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain(const std:
 
 std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const std::valarray<std::pair<Point, double> > & p) const
 {
-	std::valarray< Point *> pts(p.size()) ;
+	 Mu::PointArray pts(p.size()) ;
 	for(size_t i = 0 ; i < p.size() ; i++)
 	{
-		pts[i] = const_cast<Point *>(&p[i].first) ;
+		pts[i] = new Point(p[i].first) ;
 	}
+	std::pair<Vector, Vector > ret = getDeltaStressAndDeltaStrain(pts) ;
+	for(size_t i = 0 ; i < p.size() ; i++)
+		delete pts[i] ;
 	
-	return getDeltaStressAndDeltaStrain(pts) ;
+	return ret ;
 }
 
 void ElementState::initialize()
@@ -4090,7 +4093,7 @@ double ElementState::getPrincipalAngle(const Point & p, bool local) const
 	return 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) ;
 }
 
-Vector ElementState::getPrincipalAngle(const std::valarray<Point *> & v) const
+Vector ElementState::getPrincipalAngle(const Mu::PointArray & v) const
 {
 	Vector stresses = getStress(v) ;
 	Vector principal(v.size()) ;
@@ -4224,7 +4227,7 @@ double ElementState::elasticEnergy() const
 
 }
 
-Vector ElementState::getPrincipalStrains(const std::valarray<Point *> & v) const
+Vector ElementState::getPrincipalStrains(const Mu::PointArray & v) const
 {
 	Vector strains = getStrain(v) ;
 	Vector principal(2*v.size()) ;
@@ -4249,7 +4252,7 @@ Vector ElementState::getPrincipalStrains(const std::valarray<Point *> & v) const
 	return principal ;
 }
 
-Vector ElementState::getPrincipalStresses(const std::valarray<Point *> & v) const
+Vector ElementState::getPrincipalStresses(const Mu::PointArray& v) const
 {
 	Vector stresses = getStress(v) ;
 	Vector principal(2*v.size()) ;

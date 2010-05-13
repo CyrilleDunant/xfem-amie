@@ -18,7 +18,7 @@ namespace Mu
 
 RandomNumber::RandomNumber() 
 {
-	reset() ;
+// 	reset() ;
 }
 
 double RandomNumber::normal() 

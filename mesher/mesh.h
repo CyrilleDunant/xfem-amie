@@ -247,6 +247,66 @@ namespace Mu
 			virtual size_t & getLastNodeId() = 0;
 			virtual const size_t & getLastNodeId() const = 0;
 	} ;
+	
+	template<class ETYPE, class EABSTRACTTYPE>
+	class SingleElementMesh : public Mesh<ETYPE, EABSTRACTTYPE>
+	{
+	protected:
+		ETYPE * element ;
+		std::vector<EABSTRACTTYPE *> tree ;
+		std::map<int *, int> trans ; 
+		size_t global_counter ;
+	public:
+		SingleElementMesh(const ETYPE * element) : element(element), global_counter(0)
+		{
+			tree.push_back(element) ;
+			for(size_t i = 0 ; i < element.getBoundingPoints().size() ; ++i)
+			{
+				trans[& (element.getBoundingPoint(i).id)] = global_counter ;
+				global_counter++ ;
+			}
+		} ;
+		
+		virtual ~SingleElementMesh() {} ;
+		virtual std::vector<ETYPE *> getElements() 
+		{
+			std::vector<ETYPE *> ret ; 
+			ret.push_back(element) ; 
+			return ret ; 
+		}
+		virtual std::vector<ETYPE *> getConflictingElements(const Point  * p) const
+		{
+			std::vector<ETYPE *> ret ; 
+			if(element->in(*p))	
+			{
+				ret.push_back(element) ; 
+			}
+			return ret ; 
+		}
+		virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g)
+		{
+			std::vector<ETYPE *> ret ; 
+			if(element->intersects(g) || g->in(element->getCenter()) || element->in(g->getCenter()))
+				ret.push_back(element) ; 
+			
+			return ret ; 
+		}
+		/** Does nothing as this is a special-purpose mesh*/
+		virtual void setElementOrder(Order o)
+		{
+		}
+		
+		/** Does nothing as this is a special-purpose mesh*/
+		virtual void insert(Point *)
+		{
+		}
+		
+		virtual size_t & getLastNodeId() { return global_counter ; }
+		virtual const size_t & getLastNodeId() const { return global_counter ; }
+		
+		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
+		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }
+	} ;
 } ;
 
 

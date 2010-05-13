@@ -34,20 +34,20 @@ class Scheme
 {
 protected:
 	Status s ;
-	size_t p ;
+	int p ;
 	std::vector<Tag> input ;
 	std::vector<Tag> output ;
 
 public:
-	Scheme(size_t n) ;
+	Scheme(int n) ;
 	/* \brief constructor, using a single input, output is the same*/
-	Scheme(size_t n, Tag in) ;
+	Scheme(int n, Tag in) ;
 	/* \brief constructor, using a single input and a different output*/
-	Scheme(size_t n, Tag in, Tag out) ;
+	Scheme(int n, Tag in, Tag out) ;
 	/* \brief constructor, using a set of different input (output are the same)*/
-	Scheme(size_t n, std::vector<Tag> & in) ;
+	Scheme(int n, std::vector<Tag> & in) ;
 	/* \brief constructor, using a set of different input, and another set of different output*/
-	Scheme(size_t n, std::vector<Tag> & in, std::vector<Tag> & out) ;
+	Scheme(int n, std::vector<Tag> & in, std::vector<Tag> & out) ;
 
 	virtual bool isOK() const {return s == STATUS_OK || s == STATUS_RESET; } ;
 	virtual Status const status() {return s ; } ;

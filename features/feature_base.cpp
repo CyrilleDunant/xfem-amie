@@ -36,13 +36,14 @@ Feature::Feature()
 std::vector<Point *> Feature::doubleSurfaceSampling()
 {
 	std::vector<Point *> ret ;
-	std::valarray<Point *> newboundingPoints(this->getBoundingPoints().size()*2) ;
+	Mu::PointArray newboundingPoints(this->getBoundingPoints().size()*2) ;
 	for(size_t i = 0 ; i < this->getBoundingPoints().size()-1 ; i++)
 	{
 		newboundingPoints[i*2] = &getBoundingPoint(i) ;
-		newboundingPoints[i*2+1] = new Point(getBoundingPoint(i)*0.5 + getBoundingPoint(i+1)*0.5) ;
-		this->project(newboundingPoints[i*2+1]) ;
-		newboundingPoints[i*2+1]->id = -1 ;
+		Point * p = new Point(getBoundingPoint(i)*0.5 + getBoundingPoint(i+1)*0.5) ;
+		this->project(p) ;
+		p->id = -1 ;
+		newboundingPoints[i*2+1] = p ;
 		ret.push_back(newboundingPoints[i*2+1]) ;
 	}
 	

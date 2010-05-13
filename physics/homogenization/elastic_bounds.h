@@ -28,7 +28,7 @@ public:
 	/* \brief constructor 
 	* @param i the number of phases (-1 for infinite)
 	*/
-	ElasticBoundsScheme(size_t i) ;
+	ElasticBoundsScheme(int i) ;
 } ;
 
 /* \brief Diluted scheme. This scheme is only valid for small fractions */

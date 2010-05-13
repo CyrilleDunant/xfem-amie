@@ -196,13 +196,13 @@ public:
 	
 	virtual void print() const = 0 ;
 	
-	virtual const std::valarray<Point *> & getBoundingPoints() const = 0 ;
-	virtual std::valarray<Point *> & getBoundingPoints() = 0 ;
+	virtual const Mu::PointArray & getBoundingPoints() const = 0 ;
+	virtual Mu::PointArray & getBoundingPoints() = 0 ;
 	virtual std::vector<Point *> doubleSurfaceSampling() ;
 	virtual const Point & getBoundingPoint(size_t) const = 0 ;
 	virtual Point & getBoundingPoint(size_t)  = 0 ;
-	virtual std::valarray<Point *> & getInPoints() = 0 ;
-	virtual const std::valarray<Point *> & getInPoints() const = 0 ;
+	virtual Mu::PointArray & getInPoints() = 0 ;
+	virtual const Mu::PointArray & getInPoints() const = 0 ;
 	virtual const Point & getInPoint(size_t) const = 0 ;
 	virtual Point & getInPoint(size_t) = 0 ;
 	virtual bool in( const Point & ) const = 0 ;

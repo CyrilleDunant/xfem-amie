@@ -106,11 +106,11 @@ virtual Point &  getInPoint(size_t i)                      \
 {                                                          \
 return this->__geo_type__::getInPoint(i) ;                 \
 }                                                          \
-virtual const std::valarray<Mu::Point*> & getInPoints() const    \
+virtual const PointArray & getInPoints() const    \
 {                                                          \
 return this->__geo_type__::getInPoints() ;                 \
 }                                                          \
-virtual  std::valarray<Mu::Point*> & getInPoints()     \
+virtual  PointArray & getInPoints()     \
 {                                                          \
 return this->__geo_type__::getInPoints() ;                 \
 }                                                          \
@@ -239,11 +239,11 @@ virtual Point &  getInPoint(size_t i)                      \
 {                                                          \
 return this->LevelSet::getInPoint(i) ;                 \
 }                                                          \
-virtual const std::valarray<Mu::Point*> & getInPoints() const    \
+virtual const PointArray & getInPoints() const    \
 {                                                          \
 return this->LevelSet::getInPoints() ;                 \
 }                                                          \
-virtual  std::valarray<Mu::Point*> & getInPoints()     \
+virtual  PointArray & getInPoints()     \
 {                                                          \
 return this->LevelSet::getInPoints() ;                 \
 }                                                          \
@@ -569,7 +569,7 @@ struct TriPoint
 {
 	Point normal ;
 
-	std::valarray<const Point *> point ;
+	std::valarray<Point const *> point ;
 	std::vector<TriPoint *> neighbour ;
 	
 	/** \brief constructor from three points */
@@ -1146,10 +1146,10 @@ public:
 	virtual ~NonConvexGeometry() { } ;
 	
 	/** \brief Accessor, return the bounding Points. */
-	virtual const std::valarray<Point * > & getBoundingPoints() const ;
+	virtual const PointArray & getBoundingPoints() const ;
 	
 	/** \brief Accessor, return the bounding Points*/
-	virtual std::valarray<Point * > & getBoundingPoints() ;
+	virtual PointArray & getBoundingPoints() ;
 
 	/** \brief Accessor, return the ith Bounding Point*/
 	virtual const Point & getBoundingPoint(size_t i) const ;

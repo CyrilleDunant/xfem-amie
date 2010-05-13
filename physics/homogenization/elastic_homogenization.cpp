@@ -59,7 +59,7 @@ Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionalit
 
 
 
-ElasticHomogenizationScheme::ElasticHomogenizationScheme(size_t i) : Scheme(i)
+ElasticHomogenizationScheme::ElasticHomogenizationScheme(int i) : Scheme(i)
 {
 	input.push_back(TAG_VOLUME_FRACTION) ;
 	input.push_back(TAG_BULK_MODULUS) ;

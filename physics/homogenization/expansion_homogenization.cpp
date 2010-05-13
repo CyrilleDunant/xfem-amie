@@ -20,7 +20,7 @@ namespace Mu
 
 
 
-ExpansionHomogenizationScheme::ExpansionHomogenizationScheme(size_t i) : Scheme(i)
+ExpansionHomogenizationScheme::ExpansionHomogenizationScheme(int i) : Scheme(i)
 {
 	input.push_back(TAG_VOLUME_FRACTION) ;
 	input.push_back(TAG_BULK_MODULUS) ;

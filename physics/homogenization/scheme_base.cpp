@@ -17,13 +17,13 @@ using namespace Mu ;
 
 
 
-Scheme::Scheme(size_t n)
+Scheme::Scheme(int n)
 {
 	s = STATUS_RESET ;
 	p = n ;
 }
 
-Scheme::Scheme(size_t n, Tag in)
+Scheme::Scheme(int n, Tag in)
 {
 	s = STATUS_RESET ;
 	p = n ;
@@ -31,7 +31,7 @@ Scheme::Scheme(size_t n, Tag in)
 	output.push_back(in) ;
 }
 
-Scheme::Scheme(size_t n, Tag in, Tag out)
+Scheme::Scheme(int n, Tag in, Tag out)
 {
 	s = STATUS_RESET ;
 	p = n ;
@@ -39,7 +39,7 @@ Scheme::Scheme(size_t n, Tag in, Tag out)
 	output.push_back(out) ;
 }
 
-Scheme::Scheme(size_t n, std::vector<Tag> & in)
+Scheme::Scheme(int n, std::vector<Tag> & in)
 {
 	s = STATUS_RESET ;
 	p = n ;
@@ -50,7 +50,7 @@ Scheme::Scheme(size_t n, std::vector<Tag> & in)
 	}
 }
 
-Scheme::Scheme(size_t n, std::vector<Tag> & in, std::vector<Tag> & out)
+Scheme::Scheme(int n, std::vector< Tag >& in, std::vector< Tag >& out)
 {
 	s = STATUS_RESET ;
 	p = n ;
@@ -200,23 +200,6 @@ void Scheme::print()
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 MeanScheme::MeanScheme(bool v, bool p, Tag t) : Scheme(-1)
 {
 	parallel = p ;
@@ -233,7 +216,7 @@ MeanScheme::MeanScheme(bool v, bool p, Tag t) : Scheme(-1)
 
 }
 
-MeanScheme::MeanScheme(bool v, bool parallel, std::vector<Tag> t) : Scheme(-1)
+MeanScheme::MeanScheme(bool v, bool p, std::vector<Tag> t) : Scheme(-1)
 {
 	parallel = p ;
 
@@ -280,7 +263,7 @@ Vector MeanScheme::processParallel(const Matrix & data)
 	Vector processed(output.size()) ;
 	double ftot = 0. ;
 
-	for(size_t i = 0 ; i < data.size() ; i++)
+	for(size_t i = 0 ; i < data.numRows() ; i++)
 	{
 		ftot += data[i][0] ;
 		for(size_t j = 0 ; j < processed.size() ; j++)

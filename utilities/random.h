@@ -49,7 +49,7 @@ public:
 
 	double normal() ;
 	double normal(double a, double b) { return a + sqrt(b) * normal() ; } ;
-	double lognormal(double a, double b) { std::exp(a + b * normal()) ; };
+	double lognormal(double a, double b) { return std::exp(a + b * normal()) ; };
 
 	double logistic(double a, double b) ;
 

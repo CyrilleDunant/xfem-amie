@@ -1,17 +1,10 @@
 
 #include "optimizer.h"
+#include "random.h"
 #include "itoa.h"
 
 namespace Mu
 {
-
-double normalRand(double mean, double var)
-{
-	double m = (double)rand()/(double)(RAND_MAX);
-	double c = (double)rand()/(double)(RAND_MAX);
-	return (sqrt(-2.*log(m))*cos(2.*M_PI*c))*var+mean ;
-
-}
 	
 GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double> vars, std::vector<std::pair<double, double> >  bounds, std::vector<double *> lowLevelVars, std::vector<std::pair<double, double> >  lowLevelbounds, const Function & objectiveFunction) : vars(vars), bounds(bounds), lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL)
 {
@@ -106,6 +99,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 	std::map<double, std::vector<std::vector<double> > > sorted ;
 	while (err > eps && it < maxit )
 	{
+		sorted.clear();
 		//evaluate
 		for(size_t i = 0 ; i < population ; i++)
 		{
@@ -153,7 +147,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 				{
 					double sigma = err*(namedVarsBounds[j].second-namedVarsBounds[j].first)/population*factor ;
 					sigma = std::min(sigma, (bounds[j].second-bounds[j].first)/2) ;
-					newindividuals.back()[j] = normalRand(newindividuals.back()[j], sigma) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
+					newindividuals.back()[j] = RandomNumber().normal(newindividuals.back()[j], sigma) ; //newindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(bounds[j].second-bounds[j].first)*random()/RAND_MAX ;
 					newindividuals.back()[j] = std::max(newindividuals.back()[j], bounds[j].first) ;
 					newindividuals.back()[j] = std::min(newindividuals.back()[j], bounds[j].second) ;
 				}
@@ -161,7 +155,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 				{
 					double sigma = err*(namedVarsBounds[j].second-namedVarsBounds[j].first)/population*factor ;
 					sigma = std::min(sigma, (namedVarsBounds[j].second-namedVarsBounds[j].first)/2) ;
-					newnindividuals.back()[j] = normalRand(newnindividuals.back()[j], sigma) ;//newnindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(namedVarsBounds[j].second-namedVarsBounds[j].first)*random()/RAND_MAX ;
+					newnindividuals.back()[j] = RandomNumber().normal(newnindividuals.back()[j], sigma) ;//newnindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(namedVarsBounds[j].second-namedVarsBounds[j].first)*random()/RAND_MAX ;
 					newnindividuals.back()[j] = std::max(newnindividuals.back()[j], namedVarsBounds[j].first) ;
 					newnindividuals.back()[j] = std::min(newnindividuals.back()[j], namedVarsBounds[j].second) ;
 				}
@@ -169,7 +163,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 				{
 					double sigma = err*(lowLevelbounds[j].second-lowLevelbounds[j].first)/population*factor ;
 					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)/2) ;
-					newllindividuals.back()[j] = normalRand(newllindividuals.back()[j], sigma) ;//newllindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(lowLevelbounds[j].second-lowLevelbounds[j].first)*random()/RAND_MAX ;
+					newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;//newllindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(lowLevelbounds[j].second-lowLevelbounds[j].first)*random()/RAND_MAX ;
 					newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
 					newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;
 				}
@@ -214,7 +208,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		std::vector<double> newllindividual ;
 		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
 		{
-			newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*random()/RAND_MAX + lowLevelbounds[j].first);
+			newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first);
 		}
 		llindividuals.push_back(newllindividual);
 	}
@@ -223,69 +217,84 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 	std::map<double, std::vector<double> > sorted ;
 	while (err > eps && it < maxit )
 	{
+		sorted.clear();
 		//evaluate
 		for(size_t i = 0 ; i < population ; i++)
 		{
 			for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
+			{
 				*lowLevelVars[j] = llindividuals[i][j] ;
+			}
+			
 			double llf = lowLevelFunction() ;
-			sorted[llf] = llindividuals[i] ;
+			if(!isnan(llf))
+				sorted[llf] = llindividuals[i] ;
 		}
 		
 		std::vector< std::vector<double> > newllindividuals ;
 				
 		//reproduce - elite individuals are kept
-		for(size_t i = 0 ; i < std::min((int)(population*elitism), (int)sorted.size()) ; i++)
+		for(size_t i = 0 ; i < std::max(1, (int)round(elitism*population)) ; i++)
 		{
 			std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-			for(size_t j = 0 ; j < i ; j++)
+			std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+			iterend-- ;
+			for(size_t j = 0 ; j < i && iter != iterend ; j++)
 				iter++ ;
 			newllindividuals.push_back(iter->second);
 		}
 		
 		//reproduce - the rest fills the available slots and mutates
 		int i = 0 ;
-		while( newllindividuals.size() < llindividuals.size())
+		while( newllindividuals.size() != llindividuals.size())
 		{
-			for(size_t n = 0 ; n < 4 && newllindividuals.size() <= llindividuals.size(); n++)
+			double test = RandomNumber().uniform() ;
+			if(sorted.size() && test >= (double)i/((double)sorted.size()))
 			{
 				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-				for(size_t j = 0 ; j < i ; j++)
+				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+				iterend-- ;
+				for(size_t j = 0 ; j < i  && iter != iterend; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
-				double factor = 0.85;
 
 				for(size_t j = 0 ; j < newllindividuals.back().size() ; j++)
 				{
-					double sigma = err*(lowLevelbounds[j].second-lowLevelbounds[j].first)/population*factor ;
+					double sigma = err*(lowLevelbounds[j].second-lowLevelbounds[j].first)*factor ;
 					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)/2) ;
-					newllindividuals.back()[j] = normalRand(newllindividuals.back()[j], sigma) ;//newllindividuals.back()[j]*(1.-err*population*.5) + err*population*.5*(lowLevelbounds[j].second-lowLevelbounds[j].first)*random()/RAND_MAX ;
+					newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;
 					newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
 					newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;
 				}
+				
 			}
-			
+			else
+			{
+				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
+				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+				iterend-- ;
+				for(size_t j = 0 ; j < i && iter != iterend ; j++)
+					iter++ ;
+				newllindividuals.push_back(iter->second);
+			}
 			i++ ;
-			i = std::min(i, (int)sorted.size()-1) ;
+			if(i >= sorted.size())
+				i = 0 ;
 		}
-// 		std::cout << sorted.begin()->first << std::endl ; 
-
+	
 		llindividuals = newllindividuals ;
 		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
 			*lowLevelVars[j] = sorted.begin()->second[j] ;
 		//iterate
 		it++ ;
 		err = sorted.begin()->first ;
-		std::cout << getValues()[0].first << " " << getValues()[0].second <<std::endl ;
-		std::cout << getValues()[1].first << " " << getValues()[1].second <<std::endl ;
-		std::cout << getValues()[2].first << " " << getValues()[2].second <<std::endl ;
-		std::cout << getValues()[3].first << " " << getValues()[3].second <<std::endl ;
-		std::cout << err << std::endl ;
+
+		std::cout << err <<  std::endl ;
 	}
 	std::cout << it << std::endl;
 
-	for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
-		*lowLevelVars[i] = sorted.begin()->second[i] ;
+// 	for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
+// 		*lowLevelVars[i] = sorted.begin()->second[i] ;
 	
 	return err ;
 }
@@ -333,6 +342,21 @@ LeastSquaresApproximation::LeastSquaresApproximation(const Vector & measures, co
 	
 }
 
+Vector LeastSquaresApproximation::getApproximation() const 
+{
+	Vector ret(linearModel.numCols()) ;
+	for(size_t i = 0 ; i < linearModel.numCols() ; ++i)
+	{
+		ret[i] = 0 ;
+		for(size_t j = 0 ; j < linearModel.numRows() ; ++j)
+		{
+			ret[i] += linearModel[j][i]*parameters[j] ;
+		}
+	}
+	
+	return ret ;
+}
+
 void LeastSquaresApproximation::setParameterValue(int i, double v)
 {
 	for(size_t j = 0 ; j < linearModel.numCols() ; j++)
@@ -363,6 +387,7 @@ double LeastSquaresApproximation::optimize()
 	}
 	
 	Vector lb0 = linearModel*measures ;
+	parameters = 0 ;
 	parameters = solveSystem(X0tX0, lb0, parameters) ;
 
 	return std::abs((Vector)(X0tX0*parameters)-lb0).max() ;

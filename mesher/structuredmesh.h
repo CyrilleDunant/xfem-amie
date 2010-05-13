@@ -10,7 +10,7 @@ namespace Mu
 	class StructuredMesh : public Mesh<DelaunayTriangle, DelaunayTreeItem>
 	{
 	protected:
-		std::vector<Point *> points ;
+		std::vector< Point *> points ;
 		Grid grid ;
 		void addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep) ;
 		size_t global_counter ;

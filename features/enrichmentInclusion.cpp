@@ -27,10 +27,15 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
+	freeIds.clear();
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		if(!cache[i]->enrichmentUpdated)
-			cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+		{
+			std::vector<size_t> idpts = cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+			for(size_t j = 0 ; j < idpts.size() ; j++)
+				freeIds.insert(idpts[j]) ;
+		}
 		cache[i]->enrichmentUpdated = true ;
 	}
 	cache = dtree->getConflictingElements(getPrimitive()) ;
@@ -49,7 +54,11 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		if(!cache[i]->enrichmentUpdated)
-			cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+		{
+			std::vector<size_t> idpts = cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+			for(size_t j = 0 ; j < idpts.size() ; j++)
+				freeIds.insert(idpts[j]) ;
+		}
 		cache[i]->enrichmentUpdated = true ;
 
 	}
@@ -225,7 +234,13 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 	
 	for(size_t i = 0 ; i< points.size() ; i++)
 	{
-		dofId[points[i]] = counter++ ;
+		if(freeIds.empty())
+			dofId[points[i]] = counter++ ;
+		else
+		{
+			dofId[points[i]] = *freeIds.begin() ;
+			freeIds.erase(freeIds.begin()) ;
+		}
 	}
 	
 	//now, we will start the enrichment itself

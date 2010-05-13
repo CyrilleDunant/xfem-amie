@@ -36,6 +36,7 @@ protected:
 	std::vector<SegmentedLine *> branches ;
 	std::vector<std::pair<Point *, double> > tips ;
 	std::vector<SegmentedLine * > forks ;
+	std::set<size_t> freeIds ;
 	
 	void enrichTips(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
 	void enrichTip(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip) ;
