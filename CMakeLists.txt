@@ -48,6 +48,7 @@ physics/damagemodels/isotropiclineardamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
+physics/mad.cpp 
 physics/diffusion.cpp 
 physics/dual_behaviour.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 

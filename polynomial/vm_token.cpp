@@ -282,7 +282,7 @@ double interpolate(const double a, const double b)
 PositionOperatorToken::PositionOperatorToken(Segment s_ ) : Token(false, std::make_pair(std::make_pair(TOKEN_POSITION_OPERATOR, 0), (double)(0)))
 {
 	Point vector(-s_.vector().y, s_.vector().x) ;
-	w= s_.midPoint()+vector*1000. ;
+	w= s_.midPoint()+vector*0.00001 ;
 	s.push_back(s_)  ;
 }
 
@@ -296,7 +296,7 @@ PositionOperatorToken::PositionOperatorToken(std::vector<Segment> s_ ) : Token(f
 	}
 	
 	Point vector(-s[0].vector().y, s[0].vector().x) ;
-	w= s[0].midPoint()+vector*100. ;
+	w= s[0].midPoint()+vector*0.00001 ;
 }
 
 void PositionOperatorToken::eval(Context & context) const

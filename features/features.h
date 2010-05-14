@@ -115,7 +115,8 @@ public:
 	 */
 	void assemble() ;
 
-
+	const std::vector<Feature *> & getFeatures() const {return tree ;}
+	
 	void print() const;
 	void printForFeature(const Feature *f) const;
 	

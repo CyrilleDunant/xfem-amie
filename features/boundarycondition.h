@@ -84,7 +84,7 @@ public:
 /** \brief Boundary condition object for usage in multigrid solver*/
 class GeometryDefinedBoundaryCondition : public BoundaryCondition
 {
-private:
+protected:
 	Geometry * domain ;
 
 public:
@@ -105,6 +105,22 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
 } ;
+
+
+/** \brief Boundary condition for MAD: take the displacement field on the border of an element, and apply it to the mesh.*/
+class ElementDefinedBoundaryCondition : public BoundaryCondition
+{
+	protected:
+		ElementarySurface * surface ;
+		ElementaryVolume * volume ;
+	public:
+		ElementDefinedBoundaryCondition(ElementarySurface * surface) ;
+		ElementDefinedBoundaryCondition(ElementaryVolume * volume) ;
+		virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const ;
+		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const ;
+} ;
+
+
 } ;
 
 #endif

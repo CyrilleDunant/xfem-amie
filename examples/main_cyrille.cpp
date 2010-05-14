@@ -147,7 +147,10 @@ int count = 0 ;
 double aggregateArea = 0;
 
 std::vector<double> energy ;
-StructuredMesh mesh(sample.width(), sample.height(), 1, sample.getCenter()) ;
+SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElementMesh<DelaunayTriangle, DelaunayTreeItem>(new DelaunayTriangle(NULL, NULL, 
+																	  new Point(sample.getCenter().x - sample.width(), sample.getCenter().y - sample.height()), 
+																	  new Point(sample.getCenter().x - sample.width(), sample.getCenter().y + sample.height()), 
+																	  new Point(sample.getCenter().x + sample.width(), sample.getCenter().y + sample.height()), NULL)) ;
 Point *pa = new Point(sample.getCenter().x - sample.width()*0.505, sample.getCenter().y) ;
 Point *pb = new Point(sample.getCenter().x + sample.width()*0.505, sample.getCenter().y) ;
 Point *pc = new Point(sample.getCenter().x, sample.getCenter().y - sample.height()*0.505) ;
@@ -155,7 +158,7 @@ Point *pd = new Point(sample.getCenter().x, sample.getCenter().y + sample.height
 BranchedCrack * crack0 = new BranchedCrack(pa, pb) ;
 BranchedCrack * crack1 = new BranchedCrack(pc, pd) ;
 
-std::vector<DelaunayTriangle *> supertris = mesh.getElements() ;
+std::vector<DelaunayTriangle *> supertris = mesh->getElements() ;
 
 std::set<Point *> points0 ;
 std::vector<Point> localpoints0 ;
@@ -185,16 +188,12 @@ void enrichedEquivalentElements()
 	supertris[0]->setBehaviour(new HomogeneisedBehaviour(featureTree->get2DMesh(), supertris[0])) ;
 	supertris[0]->getState().initialize() ;
 	supertris[0]->refresh(father) ;
-	supertris[1]->kill(&supertris[1]->getCenter()) ;
 	for(int k = 0 ; k < supertris[0]->getBoundingPoints().size() ; k++)
 		supertris[0]->getBoundingPoint(k).id = k ;
-	mesh.getLastNodeId() =  supertris[0]->getBoundingPoints().size();
+	mesh->getLastNodeId() =  supertris[0]->getBoundingPoints().size();
 	
-// 	supertris[1]->setBehaviour(new HomogeneisedBehaviour(featureTree->get2DMesh(), supertris[1])) ;
-// 	supertris[1]->getState().initialize() ;
-// 	supertris[1]->refresh(father) ;
-	crack0->enrich(mesh.getLastNodeId(), &mesh);
-	crack1->enrich(mesh.getLastNodeId(), &mesh);
+	crack0->enrich(mesh->getLastNodeId(), mesh);
+	crack1->enrich(mesh->getLastNodeId(), mesh);
 	
 	for(size_t i = 0 ; i < triangles.size() ; i++)
 	{
@@ -203,26 +202,18 @@ void enrichedEquivalentElements()
 
 			for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
 			{
-				if(!supertris[1]->in(triangles[i]->getBoundingPoint(j)))
+				Point test(triangles[i]->getBoundingPoint(j)) ;
+				supertris[0]->project(&test) ;
+				if(supertris[0]->in(triangles[i]->getBoundingPoint(j)) || dist(test, triangles[i]->getBoundingPoint(j)) < POINT_TOLERANCE)
 				{
 					points0.insert(&triangles[i]->getBoundingPoint(j)) ;
 				}
-// 				else
-// 				{
-// 					points1.insert(&triangles[i]->getBoundingPoint(j)) ;
-// 				}
-				
 				for(int k = 0 ; k < supertris[0]->getBoundingPoints().size() ; k++)
 				{
 					if( supertris[0]->getBoundingPoint(k) == triangles[i]->getBoundingPoint(j))
 						coincidentPoints[&supertris[0]->getBoundingPoint(k)] = &triangles[i]->getBoundingPoint(j) ;
 				}
 				
-// 				for(int k = 0 ; k < supertris[1]->getBoundingPoints().size() ; k++)
-// 				{
-// 					if( supertris[1]->getBoundingPoint(k) == triangles[i]->getBoundingPoint(j))
-// 						coincidentPoints[&supertris[1]->getBoundingPoint(k)] = &triangles[i]->getBoundingPoint(j) ;
-// 				}
 				
 			}
 		}
@@ -230,7 +221,6 @@ void enrichedEquivalentElements()
 	
 	std::cout << "...done." << std::endl ;
 	std::vector< size_t > ids0 = supertris[0]->getDofIds() ;
-// 	std::vector< size_t > ids1 = supertris[1]->getDofIds() ;
 
 	
 	for(size_t j = 0 ; j < ids0.size() ; j++)
@@ -238,13 +228,7 @@ void enrichedEquivalentElements()
 		idsall.insert(ids0[j]) ;
 		trans0[j] = ids0[j] ;
 	}
-	
-// 	for(size_t j = 0 ; j < ids1.size() ; j++)
-// 	{
-// 		idsall.insert(ids1[j]) ;
-// 		trans1[j] = ids1[j] ;
-// 	}
-	
+
 	Matrix X0(idsall.size(), points0.size()+points1.size()+coincidentPoints.size()) ;
 	
 	std::cout << coincidentPoints.size() << " coincident points." << std::endl ;
@@ -267,20 +251,7 @@ void enrichedEquivalentElements()
 		}
 		indexj++ ;
 	}
-// 	for(std::set<Point *>::const_iterator i = points1.begin() ; i != points1.end() ; i++)
-// 	{
-// 		localpoints1.push_back(supertris[1]->inLocalCoordinates(*(*i)));
-// 		origXdisps0[indexj] = x[(*i)->id*2] ;
-// 		origYdisps0[indexj] = x[(*i)->id*2+1] ;
-// 		std::vector<double> interp = supertris[1]->getState().getInterpolatingFactors(*(*i), false) ;
-// 		
-// 		for(size_t j = 0 ; j < interp.size() ; j++)
-// 		{
-// 			X0[trans1[j]][indexj] = interp[j] ;
-// 		}
-// 		indexj++ ;
-// 	}
-	
+
 	int l = 0 ;
 	for(std::map<Point *,  Point *>::iterator i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
 	{
@@ -296,8 +267,8 @@ void enrichedEquivalentElements()
 
 double distanceBetweenMeshes()
 {
-	crack0->enrich(mesh.getLastNodeId(), &mesh);
-	crack1->enrich(mesh.getLastNodeId(), &mesh);
+	crack0->enrich(mesh->getLastNodeId(), mesh);
+	crack1->enrich(mesh->getLastNodeId(), mesh);
 	
 	int indexj = 0 ;
 	int psize = supertris[0]->getBoundingPoints().size() ;
@@ -310,16 +281,6 @@ double distanceBetweenMeshes()
 		}
 		indexj++ ;
 	}
-// 	for(std::vector<Point>::const_iterator i = localpoints1.begin() ; i != localpoints1.end() ; i++)
-// 	{
-// 		std::vector<double> interp = supertris[1]->getState().getEnrichedInterpolatingFactors(*i, true) ;
-// 		for(size_t j = 0 ; j < interp.size() ; j++)
-// 		{
-// 			ls0->setLinearModel(trans1[psize + j], indexj, interp[j]);
-// 		}
-// 		indexj++ ;
-// 	}
-	
 
 	ls0->setMeasures(origXdisps0) ;
 	ls0->optimize() ;
@@ -345,26 +306,11 @@ double distanceBetweenMeshes()
 		}
 
 		indexj++ ;
-		distancex += sqrt((dispx-x[(*i)->id*2])*(dispx-x[(*i)->id*2])) ;
-		distancey += sqrt((dispy-x[(*i)->id*2+1])*(dispy-x[(*i)->id*2+1])) ;
+		distancex = std::max(distancex, sqrt((dispx-x[(*i)->id*2])*(dispx-x[(*i)->id*2]))) ;
+		distancey = std::max(distancey, sqrt((dispy-x[(*i)->id*2+1])*(dispy-x[(*i)->id*2+1]))) ;
 	}
-	
-// 	for(std::set<Point *>::const_iterator i = points1.begin() ; i != points1.end() ; i++)
-// 	{
-// 		double dispx = 0 ;
-// 		double dispy = 0 ;
-// 		for(size_t j = 0 ; j < ls0->getLinearModel().numRows() ; j++)
-// 		{
-// 			dispx += ls0->getLinearModel()[j][indexj]*x0disp[j] ;
-// 			dispy += ls0->getLinearModel()[j][indexj]*y0disp[j] ;
-// 		}
-// 
-// 		indexj++ ;
-// 		distancex += sqrt((dispx-x[(*i)->id*2])*(dispx-x[(*i)->id*2])) ;
-// 		distancey += sqrt((dispy-x[(*i)->id*2+1])*(dispy-x[(*i)->id*2+1])) ;
-// 	}
-	
-	return (distancex+distancey)/(points0.size()+points1.size()+1);
+
+	return (distancex*distancey)/*/(points0.size()+points1.size()+1)*/;
 }
 
 void optimize()
@@ -384,17 +330,24 @@ void optimize()
 	limits.push_back(std::make_pair(sample.getCenter().x-sample.width()/2.1, sample.getCenter().x+sample.width()/2.1)) ;
 	
 	GeneticAlgorithmOptimizer ga( vars, limits, &distanceBetweenMeshes) ;
-	ga.optimize(0.0001, 10, 200,  .1, .1) ;
+	ga.optimize(0.0001, 50, 350,  .1, .1) ;
 
 	pa->y = ga.getValues()[0].second ;
 	pb->y = ga.getValues()[1].second ;
 	pc->x = ga.getValues()[2].second ;
 	pd->x = ga.getValues()[3].second ;
-	crack0->enrich(mesh.getLastNodeId(), &mesh);
-	crack1->enrich(mesh.getLastNodeId(), &mesh);
+	crack0->enrich(mesh->getLastNodeId(), mesh);
+	crack1->enrich(mesh->getLastNodeId(), mesh);
 	
-	for(size_t i = 0 ; i < supertris[0]->getEnrichmentFunctions().size() ; i++)
-		VirtualMachine.print(supertris[0]->getEnrichmentFunction[i]);
+	int indexj = 0 ;
+// 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
+// 	{
+// 		std::cout << (*i)->x << "  " << (*i)->y << "  " << VirtualMachine().eval(supertris[0]->getEnrichmentFunction(3), localpoints0[indexj]) << std::endl;
+// 		indexj++ ;
+// 	}
+// 	exit (0) ;
+// 	for(size_t i = 0 ; i < supertris[0]->getEnrichmentFunctions().size() ; i++)
+// 		VirtualMachine().print(supertris[0]->getEnrichmentFunction(i));
 	
 	crack0->print();
 	crack1->print();
@@ -408,13 +361,7 @@ void optimize()
 	ls0->optimize() ;
 	Vector dispy = ls0->getApproximation() ;
 	
-	int indexj = 0 ;
 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
-	{
-		std::cout << (*i)->x << "  " << (*i)->y << "  " << x[(*i)->id*2] << "  "<< x[(*i)->id*2+1] << "  " << dispx[indexj] << "  " << dispy[indexj] << std::endl;
-		indexj++ ;
-	}
-	for(std::set<Point *>::const_iterator i = points1.begin() ; i != points1.end() ; i++)
 	{
 		std::cout << (*i)->x << "  " << (*i)->y << "  " << x[(*i)->id*2] << "  "<< x[(*i)->id*2+1] << "  " << dispx[indexj] << "  " << dispy[indexj] << std::endl;
 		indexj++ ;
@@ -1705,22 +1652,22 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(saf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
-// 	F.addFeature(&sample, new Pore(20, -155, 155) );
-// 	F.addFeature(&sample, new Pore(20, -85, 85) );
-// 	F.addFeature(&sample, new Pore(20, 0, 0) );
-// 	F.addFeature(&sample, new Pore(20, 85, -85) );
-// 	F.addFeature(&sample, new Pore(20, 155, -155) );
-	
-// 	F.addFeature(&sample, new Pore(20, -155, -155) );
-// 	F.addFeature(&sample, new Pore(20, -85, -85) );
-// 	F.addFeature(&sample, new Pore(20, 85, 85) );
-// 	F.addFeature(&sample, new Pore(20, 155, 155) );
-
-	F.addFeature(&sample, new Pore(20, -155, 0) );
-	F.addFeature(&sample, new Pore(20, -85, 0) );
+	F.addFeature(&sample, new Pore(20, -155, 155) );
+	F.addFeature(&sample, new Pore(20, -85, 85) );
 	F.addFeature(&sample, new Pore(20, 0, 0) );
-	F.addFeature(&sample, new Pore(20, 85, -0) );
-	F.addFeature(&sample, new Pore(20, 155, -0) );
+	F.addFeature(&sample, new Pore(20, 85, -85) );
+	F.addFeature(&sample, new Pore(20, 155, -155) );
+	
+	F.addFeature(&sample, new Pore(20, -155, -155) );
+	F.addFeature(&sample, new Pore(20, -85, -85) );
+	F.addFeature(&sample, new Pore(20, 85, 85) );
+	F.addFeature(&sample, new Pore(20, 155, 155) );
+
+// 	F.addFeature(&sample, new Pore(20, -155, 0) );
+// 	F.addFeature(&sample, new Pore(20, -85, 0) );
+// 	F.addFeature(&sample, new Pore(20, 0, 0) );
+// 	F.addFeature(&sample, new Pore(20, 85, -0) );
+// 	F.addFeature(&sample, new Pore(20, 155, -0) );
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
@@ -1737,7 +1684,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 
-	F.sample(512) ;
+	F.sample(256) ;
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

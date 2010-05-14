@@ -257,12 +257,14 @@ namespace Mu
 		std::map<int *, int> trans ; 
 		size_t global_counter ;
 	public:
-		SingleElementMesh(const ETYPE * element) : element(element), global_counter(0)
+		SingleElementMesh(ETYPE * element) : element(element), global_counter(0)
 		{
 			tree.push_back(element) ;
-			for(size_t i = 0 ; i < element.getBoundingPoints().size() ; ++i)
+			for(size_t i = 0 ; i < element->getBoundingPoints().size() ; ++i)
 			{
-				trans[& (element.getBoundingPoint(i).id)] = global_counter ;
+				if(element->getBoundingPoint(i).id < 0)
+					element->getBoundingPoint(i).id = global_counter ;
+				trans[& (element->getBoundingPoint(i).id)] = global_counter ;
 				global_counter++ ;
 			}
 		} ;
@@ -283,7 +285,7 @@ namespace Mu
 			}
 			return ret ; 
 		}
-		virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g)
+		virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) const
 		{
 			std::vector<ETYPE *> ret ; 
 			if(element->intersects(g) || g->in(element->getCenter()) || element->in(g->getCenter()))

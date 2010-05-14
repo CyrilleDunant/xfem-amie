@@ -229,6 +229,12 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			double llf = lowLevelFunction() ;
 			if(!isnan(llf))
 				sorted[llf] = llindividuals[i] ;
+			else if(i > 0)
+			{
+				for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
+					llindividuals[i][j] = (lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first;
+				i-- ;
+			}
 		}
 		
 		std::vector< std::vector<double> > newllindividuals ;
@@ -238,10 +244,12 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		{
 			std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
 			std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
-			iterend-- ;
+			if(iter != iterend)
+				iterend-- ;
 			for(size_t j = 0 ; j < i && iter != iterend ; j++)
 				iter++ ;
-			newllindividuals.push_back(iter->second);
+			if(iter != iterend)
+				newllindividuals.push_back(iter->second);
 		}
 		
 		//reproduce - the rest fills the available slots and mutates
@@ -272,10 +280,12 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			{
 				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
 				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
-				iterend-- ;
+				if(iter != iterend)
+					iterend-- ;
 				for(size_t j = 0 ; j < i && iter != iterend ; j++)
 					iter++ ;
-				newllindividuals.push_back(iter->second);
+				if(iter != iterend)
+					newllindividuals.push_back(iter->second);
 			}
 			i++ ;
 			if(i >= sorted.size())

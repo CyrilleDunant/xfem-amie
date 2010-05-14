@@ -19,6 +19,19 @@ BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefi
 
 }
 
+
+
+ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition(ElementarySurface * surface) : BoundaryCondition(GENERAL, 0), surface(surface), volume(NULL)
+{
+} 
+
+ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition(ElementaryVolume * volume) : BoundaryCondition(GENERAL, 0), surface(NULL), volume(volume)
+{
+} 
+
+
+
+
 void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
 	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
@@ -409,6 +422,71 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 		}
 	}
 }
+
+void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
+{
+	if(volume)
+		return ;
+	
+	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	std::set<Point *> points ;
+	
+	for(size_t i = 0 ; i < elements.size() ; i++)
+	{
+		for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+		{
+			Point test(elements[i]->getBoundingPoint(j)) ;
+			surface->project(&test);
+			if(dist(test, elements[i]->getBoundingPoint(j)) < POINT_TOLERANCE)
+				points.insert(&elements[i]->getBoundingPoint(j)) ;
+		}
+	}
+	
+	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; i++)
+	{
+		Point local = surface->inLocalCoordinates(*(*i)) ;
+		std::vector<Point> p ; p.push_back(local);
+		
+		Vector disps = surface->getState().getDisplacements(local, true) ;
+		a->setPointAlong(XI, disps[0], (*i)->id) ;
+		a->setPointAlong(ETA, disps[1], (*i)->id) ;
+
+	}
+	
+};
+
+void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) const
+{
+	if(surface)
+		return ;
+	
+	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	std::set<Point *> points ;
+	
+	for(size_t i = 0 ; i < elements.size() ; i++)
+	{
+		for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+		{
+			Point test(elements[i]->getBoundingPoint(j)) ;
+			volume->project(&test);
+			if(dist(test, elements[i]->getBoundingPoint(j)) < POINT_TOLERANCE)
+				points.insert(&elements[i]->getBoundingPoint(j)) ;
+		}
+	}
+	
+	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; i++)
+	{
+		Point local = volume->inLocalCoordinates(*(*i)) ;
+		std::vector<Point> p ; p.push_back(local);
+		
+		Vector disps = volume->getState().getDisplacements(local, true) ;
+		a->setPointAlong(XI, disps[0], (*i)->id) ;
+		a->setPointAlong(ETA, disps[1], (*i)->id) ;
+		a->setPointAlong(ZETA, disps[2], (*i)->id) ;
+	}
+};
+
+
 
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const 
 {
