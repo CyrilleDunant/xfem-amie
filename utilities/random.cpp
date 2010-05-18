@@ -65,10 +65,46 @@ double RandomNumber::erlang(double a, int b)
 }
 
 
+
+
+
+
+RandomGenerator::RandomGenerator()
+{
+	n = 1 ;
+	max = (long) (std::pow(2,31) - 1) ;
+	step = (long) (std::pow(7,5)) ;
+	reset() ;
+}
+
+RandomGenerator::RandomGenerator(long seed)
+{
+	n = seed ;
+	max = (long) (std::pow(2,31) - 1) ;
+	step = (long) (std::pow(7,5)) ;
+}
+
+RandomGenerator::RandomGenerator(long seed, long m, long s)
+{
+	n = seed ;
+	setMax(m) ;
+	setStep(s) ;
+}
+
+
+double RandomGenerator::uniform()
+{
+	n *= step ;
+	n = n%max ;
+	if(n==0)
+		n = 1 ;
+	return (double) (n/max) ;
 }
 
 
 
+
+}
 
 
 

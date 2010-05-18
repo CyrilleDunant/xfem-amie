@@ -60,7 +60,7 @@ SantScheme::SantScheme() : ExpansionHomogenizationScheme(2)
 	input.push_back(TAG_VOLUME_FRACTION) ;
 	input.push_back(TAG_YOUNG_MODULUS) ;
 	input.push_back(TAG_POISSON_RATIO) ;
-	input.push_back(TAG_EXPANSION_COEFFICIENT) ;
+	input.push_back(TAG_STRAIN) ;
 
 	output.clear() ;
 	output.push_back(TAG_STRAIN) ;
