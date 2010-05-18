@@ -19,16 +19,18 @@
 namespace Mu
 {
 
-/* \brief void expansion homogenization scheme (returns the matrix expansion coefficient)*/
+/**
+* These schemes computes the mechanical properties of a single cracked material, according to the crack density
+*/
 class CrackedHomogenizationScheme : public Scheme
 {
 public:
-	/* \brief constructor 
-	* @param i the number of phases (-1 for infinite)
-	*/
 	CrackedHomogenizationScheme() ;
 } ;
 
+/**
+* This simple scheme uses an empyrical curve for the evolution of damage as a function of expansion
+*/
 class ExpansionDefinedCrackScheme : public CrackedHomogenizationScheme
 {
 protected:
@@ -50,7 +52,7 @@ public:
 
 
 
-/* \brief Diluted scheme. This scheme is only valid for small fractions */
+/* \brief Budiansky dry crack scheme */
 class BudianskyDryCrackScheme : public CrackedHomogenizationScheme
 {
 public:
@@ -59,6 +61,9 @@ public:
 
 } ;
 
+/**
+* Simplified Budiansky scheme as defined in Ben Haha thesis
+*/
 class SimplifiedBenHahaScheme : public CrackedHomogenizationScheme
 {
 public:

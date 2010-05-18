@@ -21,17 +21,20 @@
 namespace Mu
 {
 
-/* \brief void elastic scheme (returns the matrix properties)*/
+/**
+* An ElasticBoundsScheme is equivalent to an ElasticHomogenizationScheme, but it returns the
+* upper bounds for the mechanical properties (index 0 and 1) and the lower bounds (index 2 and 3)
+*/
 class ElasticBoundsScheme : public Scheme
 {
 public:
-	/* \brief constructor 
-	* @param i the number of phases (-1 for infinite)
-	*/
 	ElasticBoundsScheme(int i) ;
 } ;
 
-/* \brief Diluted scheme. This scheme is only valid for small fractions */
+/**
+* These bounds consist in a mean scheme in series and in parallel. They are
+* wide bounds.
+*/
 class HillBounds : public ElasticBoundsScheme
 {
 public:

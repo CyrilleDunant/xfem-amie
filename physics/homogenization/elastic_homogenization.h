@@ -20,20 +20,25 @@
 namespace Mu
 {
 
-/* \brief builds a CauchyGreen tensor from the YoungModulus/PoissonRatio (or BulkLModulus/ShearModulus), in 2D or in 3D*/
+/**
+* \brief builds a CauchyGreen tensor from the YoungModulus/PoissonRatio (or BulkLModulus/ShearModulus), in 2D or in 3D
+*/
 Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim) ;
 
-/* \brief void elastic scheme (returns the matrix properties)*/
+/**
+* Abstract elastic scheme (returns the composite bulk (index 0) and shear moduli (index 1).
+* When an homogenization scheme represents a matrix-inclusion morphology, the matrix is always 
+* the first material detected.
+*/
 class ElasticHomogenizationScheme : public Scheme
 {
 public:
-	/* \brief constructor 
-	* @param i the number of phases (-1 for infinite)
-	*/
 	ElasticHomogenizationScheme(int i) ;
 } ;
 
-/* \brief Diluted scheme. This scheme is only valid for small fractions */
+/**
+* Diluted scheme. This scheme is only valid for small fractions of inclusions
+*/
 class DilutedScheme : public ElasticHomogenizationScheme
 {
 public:
@@ -42,7 +47,10 @@ public:
 
 } ;
 
-/* \brief Generalized diluted scheme. This scheme is only valid for small fractions of inclusions */
+/**
+* Generalization of the diluted scheme to any number of inclusions.
+* This scheme is only valid for small fractions of inclusions
+*/
 class GeneralizedDilutedScheme : public ElasticHomogenizationScheme
 {
 public:
@@ -51,10 +59,15 @@ public:
 } ;
 
 
-/* \brief Standard bi-phasic incremental scheme */
+/** 
+* Standard bi-phasic incremental scheme 
+*/
 class IncrementalScheme : public ElasticHomogenizationScheme
 {
 protected:
+	/**
+	* \brief fraction increment
+	*/
 	double dalpha ;
 public:
 	IncrementalScheme(double d) ;
@@ -63,7 +76,9 @@ public:
 
 
 
-/* \brief standard bi-phasic Mori-Tanaka elastic homogenization scheme */
+/**
+* standard bi-phasic Mori-Tanaka elastic homogenization scheme 
+*/
 class MoriTanaka : public ElasticHomogenizationScheme
 {
 public:
@@ -72,7 +87,9 @@ public:
 
 } ;
 
-/* \brief Mori-Tanaka elastic homogenization scheme generalized to n-phases material */
+/**
+* Mori-Tanaka elastic homogenization scheme generalized to n-phases material
+*/
 class GeneralizedMoriTanaka : public ElasticHomogenizationScheme
 {
 public:
@@ -82,7 +99,9 @@ public:
 } ;
 
 
-/* \brief Self-Consistent elastic homogenization scheme for bi-phasic material */
+/**
+* Self-Consistent elastic homogenization scheme for bi-phasic material 
+*/
 class SelfConsistent : public ElasticHomogenizationScheme
 {
 public:
@@ -91,7 +110,9 @@ public:
 
 } ;
 
-/* \brief Self-Consistent elastic homogenization scheme generalized for n-phases material */
+/**
+* Self-Consistent elastic homogenization scheme generalized for n-phases material
+*/
 class GeneralizedSelfConsistent : public ElasticHomogenizationScheme
 {
 public:

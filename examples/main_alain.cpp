@@ -27,7 +27,11 @@ using namespace Mu ;
 
 int main(int argc, char *argv[])
 {
-	BudianskyDryCrackScheme crack ;
+
+	
+
+
+/*	BudianskyDryCrackScheme crack ;
 	MoriTanaka elastic ;
 	HashinScheme alpha ;
 	GeneralConverter young(TAG_YOUNG_MODULUS) ;
@@ -129,7 +133,7 @@ int main(int argc, char *argv[])
 	result.writePlot("R","X",1) ;
 	result.writePlot("R","E",2) ;
 
-	result.close() ;
+	result.close() ;*/
 
 	return 0 ;
 }

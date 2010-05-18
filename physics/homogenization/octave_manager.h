@@ -19,6 +19,9 @@
 namespace Mu
 {
 
+/**
+* Helper class to write files that the can be launched in octave (or similar softwares)
+*/
 class OctaveManager : public std::fstream
 {
 protected:

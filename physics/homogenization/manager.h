@@ -21,6 +21,11 @@
 namespace Mu
 {
 
+/**
+* The GeometryManager will give some information about a geometry (like the perimeter or the area)
+* from knowing basic information (like the radius for a circle or the shape factor for an ellipse)
+* Currently supported: circle, ellipse
+*/
 class GeometryManager : public Scheme
 {
 protected:

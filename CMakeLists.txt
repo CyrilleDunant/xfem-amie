@@ -84,6 +84,7 @@ physics/homogenization/converter.cpp
 physics/homogenization/cracked_homogenization.cpp
 physics/homogenization/elastic_bounds.cpp
 physics/homogenization/elastic_homogenization.cpp
+physics/homogenization/expansion_bounds.cpp
 physics/homogenization/expansion_homogenization.cpp
 physics/homogenization/manager.cpp
 physics/homogenization/octave_manager.cpp

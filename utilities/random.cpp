@@ -91,6 +91,30 @@ RandomGenerator::RandomGenerator(long seed, long m, long s)
 	setStep(s) ;
 }
 
+void RandomGenerator::reset()
+{
+	n = time(0) ;
+	if(n < 1)
+		n = 1 ; 
+}
+
+void RandomGenerator::reset(long seed)
+{
+	if(seed > 0)
+		n = seed ;
+}
+
+void RandomGenerator::setMax(long m)
+{
+	if(m > 0)
+		max = m ;
+}
+
+void RandomGenerator::setStep(long s)
+{
+	if(s > 0 && s%max != 0)
+		step = s ;
+}
 
 double RandomGenerator::uniform()
 {
@@ -100,6 +124,7 @@ double RandomGenerator::uniform()
 		n = 1 ;
 	return (double) (n/max) ;
 }
+
 
 
 

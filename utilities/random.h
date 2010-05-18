@@ -136,14 +136,14 @@ public:
 	RandomGenerator(long seed) ;
 	RandomGenerator(long seed, long m, long s) ;
 
-	virtual void reset() { n = std::max(1,(int) time(0)) ; } ;
-	virtual void reset(int seed) { n = std::max(1,seed) ; } ;
+	virtual void reset() ;
+	virtual void reset(long seed) ;
 	virtual double uniform() ;
 
 	long getMax() {return max ; }
 	long getStep() {return step ; }
-	void setMax(long m) {max = std::max(1,(int) m) ; } ;
-	void setStep(long s) {step = std::max(1,(int) s) ; } ;
+	void setMax(long m) ;
+	void setStep(long s) ;
 
 } ;
 

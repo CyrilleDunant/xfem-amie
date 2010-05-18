@@ -32,11 +32,11 @@ ExpansionHomogenizationScheme::ExpansionHomogenizationScheme(int i) : Scheme(i)
 
 
 
-HashinScheme::HashinScheme() : ExpansionHomogenizationScheme(2)
+HobbsScheme::HobbsScheme() : ExpansionHomogenizationScheme(2)
 {
 }
 
-Vector HashinScheme::process(const Matrix & data)
+Vector HobbsScheme::process(const Matrix & data)
 {
 	double kmat = data[0][1] ;
 	double amat = data[0][3] ;
@@ -48,10 +48,85 @@ Vector HashinScheme::process(const Matrix & data)
 	Vector processed(1) ;
 	processed[0] = amat + 2*finc*kinc*(ainc-amat) / (kmat+kinc+finc*(kinc-kmat)) ;
 
-//	std::cout << amat << ";" << ainc << ";" << 2*finc*kinc*(ainc-amat) << ";" << (kmat+kinc+finc*(kinc-kmat)) << std::endl ;
-	
 	return processed ;
 }
+
+
+TurnerScheme::TurnerScheme() : ExpansionHomogenizationScheme(2)
+{
+}
+
+Vector TurnerScheme::process(const Matrix & data)
+{
+	double fmat = data[0][0] ;
+	double kmat = data[0][1] ;
+	double amat = data[0][3] ;
+	
+	double finc = data[1][0] ;
+	double kinc = data[1][1] ;
+	double ainc = data[1][3] ;
+	
+	Vector processed(1) ;
+	processed[0] = (amat*kmat*fmat + ainc*kinc*finc) / (kmat*fmat + kinc*finc) ;
+
+	return processed ;
+}
+
+
+KernerScheme::KernerScheme() : ExpansionHomogenizationScheme(2)
+{
+}
+
+Vector KernerScheme::process(const Matrix & data)
+{
+	double fmat = data[0][0] ;
+	double kmat = data[0][1] ;
+	double mumat= data[0][2] ;
+	double amat = data[0][3] ;
+	
+	double finc = data[1][0] ;
+	double kinc = data[1][1] ;
+	double ainc = data[1][3] ;
+	
+	Vector processed(1) ;
+	processed[0] = amat*fmat + ainc*finc ;
+	processed[0] += (fmat*finc)*(ainc - amat)*(kinc-kmat)/(kmat*fmat+kinc*finc+3*kmat*kinc/(4*mumat)) ;
+
+	return processed ;
+}
+
+HirschScheme::HirschScheme() : ExpansionHomogenizationScheme(2)
+{
+
+}
+
+void HirschScheme::addScheme(ExpansionHomogenizationScheme exp, double p)
+{
+	expansion.push_back(exp) ;
+	probability.push_back(p) ;
+	double tot = 0 ;
+	for(size_t i = 0 ; i < probability.size() ; i++)
+		tot += probability[i] ;
+	for(size_t i = 0 ; i < probability.size() ; i++)
+		probability[i] /= tot ;
+}
+
+Vector HirschScheme::process(const Matrix & data) 
+{
+	Vector processed(1) ;
+	for(size_t i = 0 ; i < expansion.size() ; i++)
+	{
+		Vector exp = expansion[i].process(data) ;
+		processed[0] += exp[0]*probability[i] ;
+	}
+	return processed ;
+}
+
+
+
+
+
+
 
 
 SantScheme::SantScheme() : ExpansionHomogenizationScheme(2)
