@@ -52,8 +52,26 @@ double MohrCoulomb::grade(const ElementState &s) const
 
 		return 1. - std::abs(downVal/minStress) ;
 	}
+	
+	double s0 = -1. + std::abs(maxStress/upVal);
+	double s1 = -1. + std::abs(minStress/downVal) ;
+	
+	if(minStress > 0)
+	{
+		return s0 ;
+	}
+	
+	if(maxStress < 0)
+	{
+		return s1 ;
+	}
+	
 
-	return 0 ;
+	
+	if(std::abs(s0) > std::abs(s1))
+		return s0 ;
+
+	return s1;
 }
 
 FractureCriterion * MohrCoulomb::getCopy() const

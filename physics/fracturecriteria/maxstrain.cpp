@@ -30,7 +30,7 @@ double MaximumStrain::grade(const ElementState &s) const
 	if(maxStrain > upVal)
 		return 1.-std::abs(upVal/maxStrain) ;
 	else
-		return 0 ;
+		return -1.+ std::abs(maxStrain/upVal);
 	
 }
 

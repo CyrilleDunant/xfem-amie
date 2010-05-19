@@ -3919,12 +3919,12 @@ Point Segment::intersection(const Segment &l) const
 	m[0][0] = vec.x ; m[0][1] = -l.vector().x ;                                                                                                                  
 	m[1][0] = vec.y ; m[1][1] = -l.vector().y ;                                                                                                                  
                                                                                                                                                               
-	v[0] = l.first().x - f.x ; v[1] = l.first().y - f.y ;                                                                                                        
+	v[0] = l.second().x - s.x ; v[1] = l.second().y - s.y ;                                                                                                        
                                                                                                                                                               
 	invert2x2Matrix(m) ;                                                                                                                                         
                                                                                                                                                               
 	Vector fac = m * v ;  
-	return f + vec*fac[0];
+	return s + vec*fac[0];
 }
 
 std::vector<Point> Segment::intersection(const TriPoint &g) const

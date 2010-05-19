@@ -80,7 +80,7 @@ bool FractureCriterion::met(const ElementState &s)
 		
 		double score = grade(s) ;
 		
-		if (score == 0)
+		if (score <= 0)
 		{
 			testedTri->visited = true ;
 			return false ;
@@ -127,7 +127,7 @@ bool FractureCriterion::met(const ElementState &s)
 		
 		double score = grade(s) ;
 		
-		if (score == 0)
+		if (score <= 0)
 		{
 			testedTet->visited() = true ;
 			return false ;

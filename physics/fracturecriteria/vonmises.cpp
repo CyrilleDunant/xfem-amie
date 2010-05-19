@@ -1,3 +1,4 @@
+
 //
 // C++ Implementation: vonmises
 //
@@ -31,7 +32,7 @@ double VonMises::grade(const ElementState &s) const
 	}
 	else 
 	{
-		return 0 ;
+		return -1.+ std::abs(maxStress/threshold);
 	}
 }
 

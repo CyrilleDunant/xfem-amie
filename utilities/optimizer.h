@@ -58,9 +58,10 @@ public:
 	
 	double optimize();
 	Vector getApproximation() const ;
-	void setParameterValue(int i, double v) ;
+// 	void setParameterValue(int i, double v) ;
 	
 	const Vector & getParameters() const { return parameters ; } ;
+    void printParameters() const;
 	
 	
 } ;

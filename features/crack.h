@@ -44,6 +44,7 @@ protected:
 	void enrichForks(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
 	void enrichBranches(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
 	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const SegmentedLine * line) ;
+	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const SegmentedLine * line, const Point *) ;
 	
 	double influenceRadius ;
 	
@@ -116,6 +117,14 @@ public:
 	 * @param newTip1 second new tip. forms the new branch with the original tip
 	 */
 	void branch(Point* fromTip, Point * newTip0, Point * newTip1 ) ;
+	
+	/** \brief Branch the crack from the given tip, provided the two new tips.
+	 * The branching operation will create a new branch, expand the original branche and add n forks.
+	 *
+	 * @param fromTip the original tip, which will be removed
+	 * @param newTips first new tip, used to extend the affected branch
+	 */
+	void branch(Point* fromTip, const std::vector<Point *> & newTip) ;
 
 	/** \brief Merge two branchedCracks.
 	 * the merging will locate the nearest (segment, tip) couple from the (original, argument) cracks and create a new intersection point.

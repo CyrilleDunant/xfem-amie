@@ -45,9 +45,9 @@ class DelaunayTetrahedron ;
 
 		/** \brief Return a normalised distance to the fracture surface, 
 		 * 
-		 * The returned value lies between 0 and 1
+		 * The returned value lies between -1 and 1
 		 * @param  ElementState to consider
-		 * @return a value between 0 and 1
+		 * @return a value between -1 and 1
 		 */
 		virtual double grade(const ElementState & s) const = 0 ;
 		

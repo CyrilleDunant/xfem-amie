@@ -43,7 +43,7 @@ double RuptureEnergy::grade(const ElementState &s) const
 	}
 	else 
 	{
-		return 0 ;
+		return -1.+ std::abs(enr/energy);
 	}
 }
 

@@ -1042,7 +1042,7 @@ Matrix ElementState::getStrainMatrix(const Point & p, bool local) const
 
 Vector ElementState::getStress(const std::pair<Point, double> & p) const
 {
-	return getStress(p.first) ;
+	return getStress(p.first, true) ;
 }
 
 Vector ElementState::getNonEnrichedStress(const Mu::PointArray & pts) const
@@ -2341,7 +2341,7 @@ Vector ElementState::getStress(const std::valarray<std::pair<Point, double> > & 
 		Vector pts(6*p.size()) ;
 		for(size_t i = 0 ; i < p.size() ; i++)
 		{
-			Vector str = getStress(p[i].first) ;
+			Vector str = getStress(p[i].first, true) ;
 			for(size_t j = 0 ; j < 6 ; j++)
 			{
 				pts[i*6+j] = str[j] ;

@@ -221,19 +221,23 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		//evaluate
 		for(size_t i = 0 ; i < population ; i++)
 		{
-			for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
-			{
-				*lowLevelVars[j] = llindividuals[i][j] ;
-			}
-			
-			double llf = lowLevelFunction() ;
-			if(!isnan(llf))
-				sorted[llf] = llindividuals[i] ;
-			else if(i > 0)
+			while(true)
 			{
 				for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
+				{
+					*lowLevelVars[j] = llindividuals[i][j] ;
+				}
+				
+				double llf = lowLevelFunction() ;
+				if(!isnan(llf))
+				{
+					sorted[llf] = llindividuals[i] ;
+					break ;
+				}
+				
+				for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
 					llindividuals[i][j] = (lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first;
-				i-- ;
+				
 			}
 		}
 		
@@ -244,12 +248,12 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		{
 			std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
 			std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
-			if(iter != iterend)
-				iterend-- ;
+			if(iter == iterend)
+				break ;
 			for(size_t j = 0 ; j < i && iter != iterend ; j++)
 				iter++ ;
-			if(iter != iterend)
-				newllindividuals.push_back(iter->second);
+			
+			newllindividuals.push_back(iter->second);
 		}
 		
 		//reproduce - the rest fills the available slots and mutates
@@ -261,7 +265,6 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			{
 				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
 				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
-				iterend-- ;
 				for(size_t j = 0 ; j < i  && iter != iterend; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
@@ -269,7 +272,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 				for(size_t j = 0 ; j < newllindividuals.back().size() ; j++)
 				{
 					double sigma = err*(lowLevelbounds[j].second-lowLevelbounds[j].first)*factor ;
-					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)/2) ;
+					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)*.5) ;
 					newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;
 					newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
 					newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;
@@ -280,8 +283,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			{
 				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
 				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
-				if(iter != iterend)
-					iterend-- ;
+
 				for(size_t j = 0 ; j < i && iter != iterend ; j++)
 					iter++ ;
 				if(iter != iterend)
@@ -291,10 +293,17 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			if(i >= sorted.size())
 				i = 0 ;
 		}
-	
+
 		llindividuals = newllindividuals ;
 		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
 			*lowLevelVars[j] = sorted.begin()->second[j] ;
+		
+		// we call the function, because it might have some border effects
+		lowLevelFunction() ;
+		
+		
+		for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
+			std::cout << *lowLevelVars[i] << ", "<< std::flush ;
 		//iterate
 		it++ ;
 		err = sorted.begin()->first ;
@@ -367,20 +376,27 @@ Vector LeastSquaresApproximation::getApproximation() const
 	return ret ;
 }
 
-void LeastSquaresApproximation::setParameterValue(int i, double v)
+void LeastSquaresApproximation::printParameters() const
 {
-	for(size_t j = 0 ; j < linearModel.numCols() ; j++)
-	{
-		if(i == j)
-			linearModel[i][j] = 1 ;
-		else
-		{
-			linearModel[i][j] = 0 ;
-		}
-	}
 	
-	linearModelChanged = true ;
+	for(size_t i = 0 ; i < parameters.size() ; i++)
+		std::cout << parameters[i] << std::endl ;
 }
+
+// void LeastSquaresApproximation::setParameterValue(int i, double v)
+// {
+// 	for(size_t j = 0 ; j < linearModel.numCols() ; j++)
+// 	{
+// 		if(i == j)
+// 			linearModel[i][j] = 1 ;
+// 		else
+// 		{
+// 			linearModel[i][j] = 0 ;
+// 		}
+// 	}
+// 	
+// 	linearModelChanged = true ;
+// }
 
 void LeastSquaresApproximation::setLinearModel(int i, int j, double v)
 {

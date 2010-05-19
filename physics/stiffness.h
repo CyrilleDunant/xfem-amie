@@ -77,12 +77,16 @@ namespace Mu
 		FractureCriterion * crit ;
 		DamageModel * damagemodel ;
 		double alpha ;
+		double lastDamage ;
 		bool change ;
+		bool frac ;
 		/** \brief Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		*/
 		PseudoPlastic(const Matrix & rig, FractureCriterion * crit, DamageModel * damagemodel) ;
+		
+		void fixLastDamage() ;
 		
 		virtual ~PseudoPlastic() ;
 
