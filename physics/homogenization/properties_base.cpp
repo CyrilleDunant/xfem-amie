@@ -37,6 +37,62 @@ Properties::Properties(const Properties & prop)
 	p = prop.val() ;
 }
 
+void Properties::set(std::string s)
+{
+	set(TAG_NULL) ;
+	if(s.compare("UNIVERSAL") == 0)
+		set(TAG_UNIVERSAL) ; 
+	if(s.compare("VOLUME") == 0)
+		set(TAG_VOLUME) ;
+	if(s.compare("VOLUME_FRACTION") == 0)
+		set(TAG_VOLUME_FRACTION) ;
+	if(s.compare("VOLUME_TOTAL") == 0)
+		set(TAG_VOLUME_TOTAL) ;
+	if(s.compare("MASS") == 0)
+		set(TAG_MASS) ;
+	if(s.compare("MASS_FRACTION") == 0)
+		set(TAG_MASS_FRACTION) ;
+	if(s.compare("MASS_TOTAL") == 0)
+		set(TAG_MASS_TOTAL) ;
+	if(s.compare("DENSITY") == 0)
+		set(TAG_DENSITY) ;
+	if(s.compare("YOUNG_MODULUS") == 0)
+		set(TAG_YOUNG_MODULUS) ;
+	if(s.compare("POISSON_RATIO") == 0)
+		set(TAG_POISSON_RATIO) ;
+	if(s.compare("BULK_MODULUS") == 0)
+		set(TAG_BULK_MODULUS) ;	
+	if(s.compare("SHEAR_MODULUS") == 0)
+		set(TAG_SHEAR_MODULUS) ;
+	if(s.compare("LAME_COEFFICIENT") == 0)
+		set(TAG_LAME_COEFFICIENT) ;
+	if(s.compare("STRAIN") == 0)
+		set(TAG_STRAIN) ;
+	if(s.compare("STRESS") == 0)
+		set(TAG_STRESS) ;
+	if(s.compare("EXPANSION_COEFFICIENT") == 0)
+		set(TAG_EXPANSION_COEFFICIENT) ; 
+	if(s.compare("CRACK_DENSITY") == 0)
+		set(TAG_CRACK_DENSITY) ;
+	if(s.compare("CRACK_LENGTH") == 0)
+		set(TAG_CRACK_LENGTH) ;
+	if(s.compare("ELLIPSE_A") == 0)
+		set(TAG_ELLIPSE_A) ;
+	if(s.compare("ELLIPSE_B") == 0)
+		set(TAG_ELLIPSE_B) ;
+	if(s.compare("AREA") == 0)
+		set(TAG_AREA) ;
+	if(s.compare("PERIMETER") == 0)
+		set(TAG_PERIMETER) ;
+	if(s.compare("ELLIPSE_FIRST_COMPLETE_INTEGRAL") == 0)
+		set(TAG_ELLIPSE_FIRST_COMPLETE_INTEGRAL) ;
+	if(s.compare("ELLIPSE_SECOND_COMPLETE_INTEGRAL") == 0)
+		set(TAG_ELLIPSE_SECOND_COMPLETE_INTEGRAL) ;
+	if(s.compare("CIRCLE_RADIUS") == 0)
+		set(TAG_CIRCLE_RADIUS) ;
+}
+
+
 void Properties::print()
 {
 	switch(ptag)
@@ -113,6 +169,11 @@ void Properties::print()
 		std::cout << p << std::endl ;
 }
 
+void Properties::print(std::string indent)
+{
+	std::cout << indent ;
+	print() ;
+}
 
 
 
@@ -126,10 +187,18 @@ void Properties::print()
 
 Material::Material()
 {
+	name = "MAT" ;
 
 }
+Material::Material(std::string n)
+{
+	name = n ;
+}
+
 Material::Material(PredefinedMaterial mat)
 {
+	name = "MAT" ;
+
 	switch(mat)
 	{
 	case MAT_DUMMY:
@@ -152,15 +221,21 @@ Material::Material(PredefinedMaterial mat)
 }
 Material::Material(const Properties & p)
 {
+	name = "MAT" ;
+
 	push_back(p) ;
 }
 Material::Material(const std::vector<Properties> & p)
 {
+	name = "MAT" ;
+
 	for(size_t i = 0 ; i < p.size() ; i++)
 		push_back(p[i]) ;
 }
 Material::Material(const Matrix & cauchy)
 {
+	name = "MAT" ;
+
 	double E = 0. ;
 	double nu = 0. ;
 	double k = 0. ;
@@ -355,8 +430,86 @@ bool Material::findMissing(Tag t)
 
 void Material::print()
 {
+	std::cout << "---- " << name << " ----" << std::endl ;
 	for(size_t i = 0 ; i < size() ; i++)
 		(*this)[i].print() ;
+	for(size_t i = 0 ; i < phases.size() ; i++)
+		phases[i].print("|") ;
+}
+
+void Material::print(std::string indent)
+{
+	std::cout << indent << "---- " << name << " ----" << std::endl ;
+	for(size_t i = 0 ; i < size() ; i++)
+		(*this)[i].print(indent) ;
+	for(size_t i = 0 ; i < phases.size() ; i++)
+		phases[i].print(indent+indent) ;
+}
+
+Material Material::operator*(std::string s)
+{
+	double f = 0. ;
+	bool go_on = true ;
+	int i = 0 ;
+	double dec = 1. ;
+	Properties prop ;
+	while(go_on)
+	{
+		char c = s.at(i) ;
+		bool valid = false ;
+
+		if(c == '0' ||
+		   c == '1' ||
+		   c == '2' ||
+		   c == '3' ||
+		   c == '4' ||
+		   c == '5' ||
+		   c == '6' ||
+		   c == '7' ||
+		   c == '8' ||
+		   c == '9')
+		{
+			if(dec < 1.)
+			{
+				f += dec * atoi(&c) ;
+				dec *= 0.1 ;
+			} else {
+				f = f*10 + atoi(&c) ;
+			}
+			valid = true ;
+		}
+
+		if(c == '.')
+		{
+			dec = 0.1 ;
+			valid = true ;
+		}
+
+		if(c == '_')
+		{
+			std::string tag = s.substr(i+1) ;
+			prop.set(tag) ;
+			prop.set(f) ;
+			valid = false ;
+		}
+
+		go_on = valid ;
+		i++ ;
+		if(i+1 > (int) s.length())
+			go_on = false ;
+
+	}
+
+	replace(prop) ;
+
+	return (*this) ;
+
+}
+
+Material Material::operator+(Material m)
+{
+	phases.push_back(m) ;
+	return (*this) ;
 }
 
 

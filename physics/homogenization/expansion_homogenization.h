@@ -82,6 +82,18 @@ public:
 } ;
 
 /**
+* Self-consistent scheme using the three-layers sphere approach, the third layer being the
+* homogenized material. This scheme uses 3 phases: the matrix, the inclusion, and the homogenized
+* material.
+*/
+class SelfConsistentSiderisScheme : public ExpansionHomogenizationScheme
+{
+public:
+	SelfConsistentSiderisScheme() ;
+	virtual Vector process(const Matrix & data) ;
+} ;
+
+/**
 * This scheme returns the strain in the inclusion and in the matrix for a bi-phasic composite.
 * It does not give an equivalent expansion coefficient.
 */
@@ -89,6 +101,22 @@ class SantScheme : public ExpansionHomogenizationScheme
 {
 public:
 	SantScheme() ;
+	virtual Vector process(const Matrix & data) ;
+} ;
+
+class MultiLayerExpansion : public ExpansionHomogenizationScheme
+{
+protected:
+	double epsilon ;
+public:
+	MultiLayerExpansion(double eps) ;
+	virtual Vector process(const Matrix & data) ;
+} ;
+
+class SelfConsistentMultiLayerExpansion : public MultiLayerExpansion
+{
+public:
+	SelfConsistentMultiLayerExpansion(double eps) ;
 	virtual Vector process(const Matrix & data) ;
 } ;
 

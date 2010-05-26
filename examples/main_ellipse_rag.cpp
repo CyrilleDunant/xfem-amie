@@ -1297,7 +1297,7 @@ int main(int argc, char *argv[])
 //		inc[i]->getMajorAxis().print() ;
 		placed_area += inc[i]->area() ;
 	}	
-	zones = generateExpansiveZonesHomogeneously(15000,inc,F) ;
+	zones = generateExpansiveZonesHomogeneously(10000,inc,F) ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;

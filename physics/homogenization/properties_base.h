@@ -91,9 +91,11 @@ public:
 	void set(Tag t) {ptag = t ; } ;
 	/* \brief changes the value of the property */
 	void set(double v) {p = v ; } ;
+	void set(std::string s) ;
 
 	/* \brief print the property */
 	void print() ;
+	void print(std::string indent) ;
 } ;
 
 
@@ -104,11 +106,14 @@ public:
 class Material : public std::vector<Properties>
 {
 protected:
+	std::string name ;
 	std::vector<Tag> tagset ;
+	std::vector<Material> phases ;
 
 public:
 	/* \brief simple constructor */
 	Material() ;
+	Material(std::string n) ;
 	/* \brief simple constructor from a pre-defined material */
 	Material(PredefinedMaterial mat) ;
 	/* \brief simple constructor from a core property*/
@@ -134,6 +139,7 @@ public:
 	* in tagset, the replacement fails.
 	*/ 
 	bool replace(Properties p) ;
+	void add(Tag t, double val) {this->push_back(Properties(t,val)) ; } ;
 	/* \brief as replace, but force the replacement even if the tag for p is set in the material */
 	bool replaceForce(Properties p) ;
 	/* \brief checks if a specific tag is set*/
@@ -153,13 +159,21 @@ public:
 	*/
 	bool merge(Material m) ;
 
+	void rename(std::string n) {name = n ; } ;
+
 	/* \brief tries to find missing values for all tags t if possible */
 	bool findMissing(std::vector<Tag> t) ;
 	/* \brief tries to find a value for the missing tag t, using a GeneralConverter */
 	bool findMissing(Tag t) ;
 
+	Material operator*(std::string s) ;
+	Material operator+(Material m) ;
+	double operator()(Tag t) {return val(t,-1) ; };
+	double operator()(Tag t, double d) {replace(Properties(t,d)) ; } ;
+
 	/* \brief prints all the material properties*/
 	void print() ;
+	void print(std::string indent) ;
 } ;
 
 
