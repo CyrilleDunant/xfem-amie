@@ -83,6 +83,7 @@ std::vector<Properties> Scheme::homogenize(const std::vector<Material> & mat)
 		for(int j = 0 ; j < input.size() ; j++)
 		{
 			size_t k = mat[i].getIndex(input[j],-1) ;
+			std::cout << k << std::endl ;
 			if(k+1 == 0)
 			{
 				s = STATUS_PROPERTIES_NOT_FOUND ;
@@ -131,7 +132,6 @@ std::vector<Properties> Scheme::homogenize(const Material & m1, const Material &
 
 Vector Scheme::process(const Matrix & data)
 {
-	std::cout << "no!" << std::endl ;
 	Vector processed(output.size()) ;
 	return processed ;
 }

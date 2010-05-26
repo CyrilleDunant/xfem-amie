@@ -11,6 +11,7 @@
 //
 
 #include "properties_base.h"
+#include "scheme_base.h"
 #include "converter.h"
 #include "elastic_homogenization.h"
 
@@ -283,7 +284,7 @@ int Material::getIndex(Tag t, int i) const
 {
 	std::vector<int> index = getIndex(t) ;
 	if(index.size() == 0)
-		return 0 ;
+		return -1 ;
 	if(i+1 == 0 || i+1 > index.size())
 		return index[index.size()-1] ;
 
@@ -443,7 +444,7 @@ void Material::print(std::string indent)
 	for(size_t i = 0 ; i < size() ; i++)
 		(*this)[i].print(indent) ;
 	for(size_t i = 0 ; i < phases.size() ; i++)
-		phases[i].print(indent+indent) ;
+		phases[i].print(indent.append(indent)) ;
 }
 
 Material Material::operator*(std::string s)
@@ -512,4 +513,9 @@ Material Material::operator+(Material m)
 	return (*this) ;
 }
 
-
+bool Material::build(Scheme * s)
+{
+	merge(s->homogenize(phases)) ;
+	s->print() ;
+	return s->isOK() ;
+}

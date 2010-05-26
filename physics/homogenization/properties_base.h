@@ -99,6 +99,8 @@ public:
 } ;
 
 
+class Scheme ;
+
 /**
 * A material is simply a vector of properties. It is possible to fix some properties to a specific
 * value with the tagset attribute. Each tag defined in the tagset will not be changed unless forced to.
@@ -174,6 +176,10 @@ public:
 	/* \brief prints all the material properties*/
 	void print() ;
 	void print(std::string indent) ;
+
+	bool build(Scheme * s) ;
+
+
 } ;
 
 

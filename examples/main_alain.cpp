@@ -33,15 +33,15 @@ int main(int argc, char *argv[])
 	Material unhydrated("UNHYDRATED") ;
 	Material water("WATER") ;
 
-	unhydrated.add(TAG_DENSITY,3.1) ;
-	water.add(TAG_DENSITY,1.) ;
+	MeanScheme density(false,true,TAG_DENSITY) ;
 
 	Material cement("CEMENT") ;
-	cement = cement + water*"0.6_MASS" + unhydrated*"1.2_MASS" ;
-	cement*"14._YOUNG_MODULUS" ;
+	cement = cement + water*"0.6_MASS"*"1._DENSITY" + unhydrated*"1.2_MASS"*"3.1_DENSITY" ;
+	cement = cement * "14._YOUNG_MODULUS" * "0.2_POISSON_RATIO" ;
+	cement.build(&density) ;
 	cement.print() ;
 
-/*	MeanScheme density(false,true,TAG_DENSITY) ;
+/*
 	GeneralConverter volume(TAG_VOLUME) ;
 	GeneralConverter fraction(TAG_VOLUME_FRACTION) ;
 	AdditionConverter volume_total(TAG_VOLUME) ;
