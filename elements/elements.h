@@ -47,7 +47,7 @@ class ElementarySurface : public IntegrableEntity
 protected:
 	std::valarray< Function > * shapefunc ;
 	std::vector< Function > enrichfunc ;
-	std::vector< Geometry *> enrichmentSource ;
+	std::vector< const Geometry *> enrichmentSource ;
 	Form * behaviour ;
 	NonLinearForm * nonlinbehaviour ;
 	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
@@ -89,7 +89,7 @@ public:
 	double getdYTransform(Variable, const Point p) const ;
 	double getdTTransform(Variable, const Point p) const ;
 	
-	void setEnrichment(const Function & p, Geometry * g) ;
+	void setEnrichment(const Function & p, const Geometry * g) ;
 	virtual Point inLocalCoordinates(const Point & p) const  = 0;
 	
 	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const = 0 ;

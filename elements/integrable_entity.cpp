@@ -2643,7 +2643,7 @@ std::vector<double> ElementState::getNonEnrichedInterpolatingFactors(const Point
 
 	std::vector<double> ret(parent->getBoundingPoints().size()) ;
 	VirtualMachine vm ;
-	Point p_ = p ;
+	Point p_(p) ;
 	if(!local)
 		p_ = parent->inLocalCoordinates(p) ;
 	for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)

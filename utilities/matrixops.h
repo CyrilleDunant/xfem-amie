@@ -91,7 +91,11 @@ public:
 
 	virtual ~Matrix() { if(cleanup)delete v; }
 
-	/** \brief Copy-constructor*/
+	/** \brief Copy-constructor.
+	* If the matrix is not yet initialised, initialise to the source matrix values. Else do 
+	* a simple copy. Because this involves copying valarrays, if the matrices have
+	* different dimensions, the result will be undefined.
+	*/
 	Matrix &operator=(const Matrix &m);
 	
 	/** \brief Return the number of elements in the matrix*/

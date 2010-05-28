@@ -88,6 +88,8 @@ Function & Function::operator=(const Function &f)
 		this->e_diff = false ;
 	}
 	compiled = f.compiled ;
+	iPoint.clear();
+	iPoint = f.getIntegrationHint() ;
 	return *this ;
 }
 
@@ -1574,13 +1576,14 @@ const std::vector< Point > & Function::getIntegrationHint() const
 	return iPoint ;
 }
 
-Point Function::getIntegrationHint(size_t i) const
+const Point & Function::getIntegrationHint(size_t i) const
 {
 	return iPoint[i] ;
 }
 
 void Function::setIntegrationHint(const std::vector< Point > v)
 {
+	iPoint.clear() ;
 	iPoint = v ;
 }
 

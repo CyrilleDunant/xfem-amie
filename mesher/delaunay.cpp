@@ -1171,7 +1171,7 @@ void DelaunayTreeItem::clearVisited()
 	visited = false ;
 }
 
-DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point *p0,  Point *p1, Point *p2,  Point * c) : TriElement(p0, p1, p2), DelaunayTreeItem(t, father, c)
+DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point *p0,  Point *p1, Point *p2,  Point * c) : TriElement(p0, p1, p2), DelaunayTreeItem(t, father, c), neighbourhood(0)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -1187,7 +1187,7 @@ DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, 
 	cachedGPs = NULL ;
 }
 
-DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(NULL, NULL, NULL)
+DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(NULL, NULL, NULL), neighbourhood(0)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -2751,14 +2751,9 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 				}
 			}
 			
-			if(go /*&& f.in(getEnrichmentFunction(i).getIntegrationHint(j))*/
-			  )
+			if(go)
 			{
-				to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j))) ;
-				if(to_add.back()->x < 0)
-					to_add.back()->x = 0 ;
-				if(to_add.back()->y < 0)
-					to_add.back()->y = 0 ;
+				to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j).x, getEnrichmentFunction(i).getIntegrationHint(j).y)) ;
 			}
 		}
 	}
@@ -2772,7 +2767,7 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		return cachedGaussPoints ;
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 4;
+	size_t numberOfRefinements = 2;
 	
 	double tol = 1e-6 ;
 	double position_tol = 4.*POINT_TOLERANCE ;
@@ -2793,29 +2788,30 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 		size_t maxGradientIndex = 0 ;
 		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
 		
-/*		double ndivs = 30 ;
-		for(double k = 0  ; k < ndivs ; k++)
-		{
-			for(double l = 0  ; l < ndivs ; l++)
-			{
-				if( k+l < ndivs )
-					gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
-			}
-		}
-		double a = area() ; 
-		for(size_t i =0 ; i < gp_alternative.size() ; i++)
-		{
-			gp_alternative[i].second = 0.25*a/gp_alternative.size() ;
-		}
-		
-		if(gp.gaussPoints.size() < gp_alternative.size())
-		{
-			
-			gp.gaussPoints.resize(gp_alternative.size()) ;
-			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-			gp.id = -1 ;
-		}
-		return gp ;*/
+// 		double ndivs = 30 ;
+// 		for(double k = 0  ; k < ndivs ; k++)
+// 		{
+// 			for(double l = 0  ; l < ndivs ; l++)
+// 			{
+// 				if( k+l < ndivs )
+// 					gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
+// 			}
+// 		}
+// 		double a = area() ; 
+// 		for(size_t i =0 ; i < gp_alternative.size() ; i++)
+// 		{
+// 			gp_alternative[i].second = 0.25*a/gp_alternative.size() ;
+// 		}
+// 		
+// 		if(gp.gaussPoints.size() < gp_alternative.size())
+// 		{
+// 			
+// 			gp.gaussPoints.resize(gp_alternative.size()) ;
+// 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
+// 			gp.id = -1 ;
+// 		}
+// 		std::cout << "plaf" << std::endl ;
+// 		return gp ;
 
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;

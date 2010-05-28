@@ -92,9 +92,7 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 
 void PseudoPlastic::step(double timestep, ElementState & currentState)
 {
-	change = false ;
-	if(!crit->met(currentState))
-		return ;
+
 	double volume ;
 	if(currentState.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 		volume = currentState.getParent()->area() ;

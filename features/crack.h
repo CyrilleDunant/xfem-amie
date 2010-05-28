@@ -57,6 +57,7 @@ protected:
 	} EnrichementState;
 
 	std::set<DelaunayTriangle *> enrichmentMap ;
+	std::set<DelaunayTriangle *> forkEnrichmentMap ;
 	std::set<DelaunayTriangle *> tipEnrichmentMap ;
 	
 	double enrichementRadius ;

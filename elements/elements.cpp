@@ -1424,7 +1424,7 @@ double ElementarySurface::getdTTransform(Variable v, const Point p) const
 	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
-void ElementarySurface::setEnrichment( const Function & p, Geometry * g)
+void ElementarySurface::setEnrichment( const Function & p, const Geometry * g)
 {
 	bool unique = true ;
 	for(size_t i = 0 ;  i < enrichfunc.size() ; i++)
@@ -1652,7 +1652,7 @@ std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 {
 	std::vector<size_t> ret ;
 	std::vector<Function> newFunc ;
-	std::vector<Geometry *> newSource ;
+	std::vector<const Geometry *> newSource ;
 
 	for(size_t i = 0 ; i < enrichmentSource.size() ; i++)
 	{

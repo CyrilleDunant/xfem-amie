@@ -36,6 +36,22 @@ Point::Point(const Point & p)
 }
 #endif
 
+#ifdef HAVE_SSE3
+Point& Point::operator = (const Point & p)
+{
+	vecxy = p.vecxy;
+	veczt = p.veczt; 
+	id = p.id;
+	return *this ;
+}
+#else
+Point& Point::operator = (const Point & p)
+{
+	x = p.x ; y = p.y ; z = p.z ; t = p.t ; id = p.id ;
+	return *this ;
+}
+#endif
+
 double Point::angle() const
 {
 	return atan2(y,x) ;

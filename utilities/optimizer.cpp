@@ -214,6 +214,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 	}
 	
 	double err = eps*100 ;
+	double err0 = eps*100 ;
 	std::map<double, std::vector<double> > sorted ;
 	while (err > eps && it < maxit )
 	{
@@ -244,15 +245,14 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		std::vector< std::vector<double> > newllindividuals ;
 				
 		//reproduce - elite individuals are kept
-		for(size_t i = 0 ; i < std::max(1, (int)round(elitism*population)) ; i++)
+		for(int i = 0 ; i < std::max(1, (int)round(elitism*population)) ; i++)
 		{
 			std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
 			std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
 			if(iter == iterend)
 				break ;
-			for(size_t j = 0 ; j < i && iter != iterend ; j++)
+			for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
 				iter++ ;
-			
 			newllindividuals.push_back(iter->second);
 		}
 		
@@ -265,13 +265,13 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			{
 				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
 				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
-				for(size_t j = 0 ; j < i  && iter != iterend; j++)
+				for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
 
 				for(size_t j = 0 ; j < newllindividuals.back().size() ; j++)
 				{
-					double sigma = err*(lowLevelbounds[j].second-lowLevelbounds[j].first)*factor ;
+					double sigma = (lowLevelbounds[j].second-lowLevelbounds[j].first)*factor/err0 ;
 					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)*.5) ;
 					newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;
 					newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
@@ -305,10 +305,11 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
 			std::cout << *lowLevelVars[i] << ", "<< std::flush ;
 		//iterate
-		it++ ;
 		err = sorted.begin()->first ;
-
+		if(it == 0)
+			err0 = err ;
 		std::cout << err <<  std::endl ;
+		it++ ;
 	}
 	std::cout << it << std::endl;
 
@@ -354,8 +355,14 @@ std::vector<std::pair<std::string, double> > GeneticAlgorithmOptimizer::getValue
 	return ret ;
 }
 
+LeastSquaresApproximation::~LeastSquaresApproximation()
+{
+	delete Q ;
+}
+
 LeastSquaresApproximation::LeastSquaresApproximation(const Vector & measures, const Matrix & linearModel) : measures(measures), linearModel(linearModel), linearModelChanged(true), X0t(linearModel.numCols(), linearModel.numRows()), X0tX0(linearModel.numRows(), linearModel.numRows()), parameters(0., linearModel.numRows())
 {
+	Q = NULL ;
 	X0t   = linearModel.transpose() ;
 	X0tX0 = linearModel*X0t ;
 	
@@ -376,6 +383,8 @@ Vector LeastSquaresApproximation::getApproximation() const
 	return ret ;
 }
 
+
+
 void LeastSquaresApproximation::printParameters() const
 {
 	
@@ -383,20 +392,17 @@ void LeastSquaresApproximation::printParameters() const
 		std::cout << parameters[i] << std::endl ;
 }
 
-// void LeastSquaresApproximation::setParameterValue(int i, double v)
-// {
-// 	for(size_t j = 0 ; j < linearModel.numCols() ; j++)
-// 	{
-// 		if(i == j)
-// 			linearModel[i][j] = 1 ;
-// 		else
-// 		{
-// 			linearModel[i][j] = 0 ;
-// 		}
-// 	}
-// 	
-// 	linearModelChanged = true ;
-// }
+void LeastSquaresApproximation::setParameterValue(size_t i, double v)
+{
+	fixedValues.push_back(std::make_pair(i, v));
+}
+
+void LeastSquaresApproximation::clearParameterValues()
+{
+	fixedValues.clear();
+	delete Q ;
+	Q = NULL ;
+}
 
 void LeastSquaresApproximation::setLinearModel(int i, int j, double v)
 {
@@ -406,16 +412,105 @@ void LeastSquaresApproximation::setLinearModel(int i, int j, double v)
 
 double LeastSquaresApproximation::optimize()
 {
-	if(linearModelChanged)
+	Matrix * A = NULL;
+	Vector consts(fixedValues.size()) ;
+	for(int i = 0 ; i < consts.size() ; i++)
+		consts[i] = fixedValues[i].second ;
+	
+	if(!fixedValues.empty())
 	{
-		X0t = linearModel.transpose() ;
-		X0tX0 = linearModel*X0t ;
+		//setting the constrained values.
+		delete Q ;
+		Q = new Matrix(parameters.size(), parameters.size()) ;
+		
+		//The Q matrix is the line-swap matrix which puts all
+		//the constrained values together
+		//first, it is initialised to the identity.
+		for( int i = 0 ; i < parameters.size() ; i++ )
+		{
+			(*Q)[i][i] = 1 ;
+		}
+		Matrix B(parameters.size(), fixedValues.size()) ;
+		for( int i = 0 ; i < fixedValues.size() ; i++ )
+		{
+			B[fixedValues[i].first][fixedValues[i].first] = 1 ;
+		}
+		
+		//the lines are swapped as we find new constraints
+		int c = 0 ;
+		for( int i = 0 ; i < fixedValues.size() ; i++ )
+		{
+			(*Q)[fixedValues[i].first][fixedValues[i].first] = 0 ;
+			(*Q)[fixedValues[i].first][c] = 1 ;
+			(*Q)[c][c] = 0 ;
+			(*Q)[c][fixedValues[i].first] = 1 ;
+			c++ ;
+		}
+		
+		// The problem changes and becomes:
+		A = new Matrix((*Q)*linearModel) ;
+		Matrix A1(fixedValues.size(), linearModel.numCols() ) ;
+		for(int i = 0 ; i < fixedValues.size() ; i++)
+		{
+			for(int j = 0 ; j < linearModel.numCols() ; j++)
+			{
+				A1[i][j] = (*A)[i][j] ;
+			}
+		}
+		
+		Matrix A2(linearModel.numRows()-fixedValues.size(), linearModel.numCols() ) ;
+		for(int i = 0 ; i < linearModel.numRows()-fixedValues.size() ; i++)
+		{
+			for(int j = 0 ; j < linearModel.numCols() ; j++)
+			{
+				A2[i][j] = (*A)[i+fixedValues.size()][j] ;
+			}
+		}
+		
+		measures = measures-consts*A1 ;
+		linearModel.resize(A2.numRows(), A2.numCols()); 
+		linearModel = A2 ;
+		parameters.resize(A2.numRows());
+		linearModelChanged = true ;
 	}
 	
+	
+	if(linearModelChanged)
+	{
+		X0t.resize(linearModel.numCols(), linearModel.numRows());
+		X0t = linearModel.transpose() ;
+		X0tX0.resize(linearModel.numRows(), linearModel.numRows());
+		X0tX0 = linearModel*X0t ;
+	}
 	Vector lb0 = linearModel*measures ;
 	parameters = 0 ;
 	parameters = solveSystem(X0tX0, lb0, parameters) ;
 
+	if(Q)
+	{
+		Vector newp(parameters.size()+consts.size()) ;
+		for(int i = 0 ; i < consts.size() ; i++)
+			newp[i] = consts[i] ;
+		for(int i = 0 ; i < parameters.size() ; i++)
+			newp[i+consts.size()] = parameters[i] ;
+		
+// 		std::cout << "---" << std::endl ;
+// 		for(size_t i = 0 ; i <  newp.size() ; i++)
+// 			std::cout << newp[i] << std::endl ;
+		newp = newp*(*Q) ;
+// 		for(size_t i = 0 ; i <  newp.size() ; i++)
+// 			std::cout << newp[i] << std::endl ;
+// 		std::cout << "---" << std::endl ;
+		parameters.resize(newp.size());
+		parameters = newp;
+		linearModel.resize(A->numRows(), A->numCols()) ;
+		linearModel = *A ;
+		X0t = linearModel.transpose() ;
+		X0tX0.resize(A->numRows(), A->numRows());
+		X0tX0 = linearModel*X0t ;
+		delete A ;
+	}
+	
 	return std::abs((Vector)(X0tX0*parameters)-lb0).max() ;
 	linearModelChanged = false ;
 }

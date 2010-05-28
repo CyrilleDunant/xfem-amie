@@ -414,7 +414,7 @@ public:
 	 * @param  i index of the Point to return
 	 * @return the ith point to use for sub-tesselation for integration
 	 */
-	Point  getIntegrationHint(size_t i) const ;
+	const Point & getIntegrationHint(size_t i) const ;
 
 
 	/** \brief Set the integration hints: the set of points to use for sub-tesselation for integration

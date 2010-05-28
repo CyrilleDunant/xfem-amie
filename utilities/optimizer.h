@@ -44,21 +44,31 @@ protected:
 	Matrix linearModel ;
 	Vector parameters ;
 	
+	std::vector<std::pair<size_t, double> > fixedValues ;
+	
 	bool linearModelChanged ;
 	Matrix X0t ;
 	Matrix X0tX0 ;
+	Matrix * Q ;
 public:
 	
 	LeastSquaresApproximation(const Vector & measures, const Matrix & linearModel) ;
+	~LeastSquaresApproximation() ;
+	
 	
 	void setLinearModel(int i, int j, double v) ;
 	const Matrix & getLinearModel() const { return linearModel ;} ;
 	const Vector & getMeasures() const { return measures ; } ;
-	void setMeasures(const Vector &m)  { measures = m; } ;
+	void setMeasures(const Vector &m)  
+	{ 
+		measures.resize(m.size()) ;
+		measures = m; 
+	} ;
 	
 	double optimize();
 	Vector getApproximation() const ;
-// 	void setParameterValue(int i, double v) ;
+	void setParameterValue(size_t i, double v) ;
+	void clearParameterValues() ;
 	
 	const Vector & getParameters() const { return parameters ; } ;
     void printParameters() const;

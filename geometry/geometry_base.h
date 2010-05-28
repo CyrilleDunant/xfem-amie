@@ -412,6 +412,8 @@ struct Point
 	
 	/** \brief copy-constructor.*/
 	Point(const Point & p) ;
+	
+	Point& operator = (const Point & p) ;
 
 	/** \brief constructor from a XML tree item*/
 	Point(XMLTree * xml) ;

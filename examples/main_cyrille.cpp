@@ -98,7 +98,7 @@ double E_max = 0;
 
 double x_max = 0 ;
 double y_max = 0 ;
-double disp = 0 ;
+double disp = 0.001 ;
 BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
 double width = 500;
 double height = 500;
@@ -161,7 +161,6 @@ BranchedCrack * crack0 = new BranchedCrack(pa, pi) ;
 std::vector<DelaunayTriangle *> supertris = mesh->getElements() ;
 
 std::set<Point *> points0 ;
-std::vector<Point> localpoints0 ;
 
 LeastSquaresApproximation * ls0 ;
 LeastSquaresApproximation * ls1 ;
@@ -217,23 +216,34 @@ void enrichedEquivalentElements()
 				for(int k = 0 ; k < supertris[0]->getBoundingPoints().size() ; k++)
 				{
 					if( supertris[0]->getBoundingPoint(k) == triangles[i]->getBoundingPoint(j))
+					{
 						coincidentPoints[&supertris[0]->getBoundingPoint(k)] = &triangles[i]->getBoundingPoint(j) ;
+						points0.insert(&triangles[i]->getBoundingPoint(j)) ;
+					}
 				}
 				
 				
 			}
 		}
 	}
-	
 	std::cout << "...done." << std::endl ;
-	
+	std::cout << "found " << coincidentPoints.size() << " coincident points" << std::endl ;
+}
+
+void setLSBoundaryConditions(LeastSquaresApproximation * ls, int xy)
+{
+	ls->clearParameterValues();
+	for(std::map<Point *,  Point *>::iterator i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
+	{
+		ls->setParameterValue(i->first->id, x[i->second->id*2+xy]);
+	}
 }
 
 void setupLeastSquares()
 {
 	trans0.clear();
 	idsall.clear();
-	std::vector< size_t > ids0 = supertris[0]->getDofIds() ;
+	std::vector< size_t > ids0 (supertris[0]->getState().getInterpolatingFactors(supertris[0]->getCenter(), false).size()) ; //= supertris[0]->getDofIds() ;
 	for(size_t j = 0 ; j < ids0.size() ; j++)
 	{
 		trans0[j] = j ;
@@ -247,7 +257,6 @@ void setupLeastSquares()
 	int indexj = 0 ;
 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
 	{
-		localpoints0.push_back(supertris[0]->inLocalCoordinates(*(*i)));
 		origXdisps0[indexj] = x[(*i)->id*2] ;
 		origYdisps0[indexj] = x[(*i)->id*2+1] ;
 		std::vector<double> interp = supertris[0]->getState().getInterpolatingFactors(*(*i), false) ;
@@ -258,53 +267,32 @@ void setupLeastSquares()
 		}
 		indexj++ ;
 	}
-
-	int l = 0 ;
-	for(std::map<Point *,  Point *>::iterator i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
-	{
-		X0[i->first->id][ points0.size()+l] =  1. ;
-		for(int j = 0; j < points0.size() ; ++j)
-			X0[i->first->id][j] = 0 ;
-		origXdisps0[points0.size()+l]  =  x[i->second->id*2] ;
-		origYdisps0[points0.size()+l]  =  x[i->second->id*2+1] ;
-		l++ ;
-	}
 	
 	delete ls0 ;
 	ls0 = new LeastSquaresApproximation(origXdisps0, X0) ;
 }
 
+
 double distanceBetweenMeshes()
 {
-	
-	Segment ab(*pa, *pb) ;
-	Segment cd(*pc, *pd) ;
-	Point inter = ab.intersection(cd) ;
-	pi->x = inter.x ;
-	pi->y = inter.y ;
-	
+// 	Segment ab(*pa, *pb) ;
+// 	Segment cd(*pc, *pd) ;
+// 	Point inter = ab.intersection(cd) ;
+// 	inter.print();
+// 	pi->x = inter.x ;
+// 	pi->y = inter.y ;
 	crack0->enrich(mesh->getLastNodeId(), mesh);
 	setupLeastSquares() ;
-	int l = 0 ;
-	for(std::map<Point *,  Point *>::iterator i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
-	{
-		ls0->setLinearModel(i->first->id, points0.size()+l, 1.) ;
-		for(int j = 0; j < points0.size() ; ++j)
-			ls0->setLinearModel(i->first->id, j, 0) ;
-		origXdisps0[points0.size()+l]  = x[i->second->id*2] ;
-		origYdisps0[points0.size()+l]  = x[i->second->id*2+1] ;
-		l++ ;
-	}
-
+	setLSBoundaryConditions(ls0, 0);
 	ls0->setMeasures(origXdisps0) ;
 	ls0->optimize() ;
 	Vector x0disp = ls0->getParameters() ;
 	
+	setLSBoundaryConditions(ls0, 1);
 	ls0->setMeasures(origYdisps0) ;
 	ls0->optimize() ;
 	Vector y0disp = ls0->getParameters() ;
-
-		
+	
 	double distancex = 0;
 	double distancey = 0;
 	int indexj = 0 ;
@@ -320,11 +308,27 @@ double distanceBetweenMeshes()
 		}
 
 		indexj++ ;
-		distancex = std::max(distancex, std::abs(dispx-x[(*i)->id*2])) ;
-		distancey = std::max(distancey, std::abs(dispy-x[(*i)->id*2+1])) ;
+		if(!isnan(dispx))
+			distancex += std::abs(dispx-x[(*i)->id*2]) ;
+		else
+			distancex += 1e6 ;
+		if(!isnan(dispy))
+			distancey += std::abs(dispy-x[(*i)->id*2+1])  ;
+		else
+			distancey += 1e6 ;
 	}
-
-	return (distancex*distancey)/*/(points0.size()+1)*/;
+// 	indexj = 0 ;
+// 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
+// 	{
+// 		std::cout << (*i)->x << "  " << (*i)->y ;
+// 		for(size_t j = 0 ; j < supertris[0]->getEnrichmentFunctions().size() ; j++)
+// 			std::cout << "  " << VirtualMachine().eval(supertris[0]->getEnrichmentFunction(j), localpoints0[indexj]) << std::flush ;
+// 		std::cout << std::endl;
+// 		indexj++ ;
+// 	}
+// 	exit (0) ;
+// 	std::cout << (distancex*distancey)/(points0.size()+1) << std::endl ;
+	return (distancex+distancey)/points0.size();
 }
 
 void optimize()
@@ -336,20 +340,26 @@ void optimize()
 	vars.push_back( &pb->y) ;
 	vars.push_back( &pc->x) ;
 	vars.push_back( &pd->x) ;
+	vars.push_back( &pi->x) ;
+	vars.push_back( &pi->y) ;
 	
 	std::vector<std::pair<double, double> > limits ;
 	limits.push_back(std::make_pair(sample.getCenter().y-sample.height()/2.1, sample.getCenter().y+sample.height()/2.1)) ;
 	limits.push_back(std::make_pair(sample.getCenter().y-sample.height()/2.1, sample.getCenter().y+sample.height()/2.1)) ;
 	limits.push_back(std::make_pair(sample.getCenter().x-sample.width()/2.1, sample.getCenter().x+sample.width()/2.1)) ;
 	limits.push_back(std::make_pair(sample.getCenter().x-sample.width()/2.1, sample.getCenter().x+sample.width()/2.1)) ;
+	limits.push_back(std::make_pair(sample.getCenter().x-sample.width()/2, sample.getCenter().x+sample.width()/2)) ;
+	limits.push_back(std::make_pair(sample.getCenter().x-sample.height()/2, sample.getCenter().x+sample.height()/2)) ;
 	
 	GeneticAlgorithmOptimizer ga( vars, limits, &distanceBetweenMeshes) ;
-	ga.optimize(0.0001, 50, 350,  .1, .1) ;
+	ga.optimize(1e-12, 50, 100,  .1, .1) ;
 
 	pa->y = ga.getValues()[0].second ;
 	pb->y = ga.getValues()[1].second ;
 	pc->x = ga.getValues()[2].second ;
 	pd->x = ga.getValues()[3].second ;
+	pi->x = ga.getValues()[4].second ;
+	pi->y = ga.getValues()[5].second ;
 	crack0->enrich(mesh->getLastNodeId(), mesh);
 	
 	int indexj = 0 ;
@@ -364,11 +374,12 @@ void optimize()
 	
 	crack0->print();
 
-	
 	ls0->setMeasures(origXdisps0) ;
+	setLSBoundaryConditions(ls0, 0);
 	ls0->optimize() ;
 	Vector dispx = ls0->getApproximation() ;
 	ls0->setMeasures(origYdisps0) ;
+	setLSBoundaryConditions(ls0, 1);
 	ls0->optimize() ;
 	Vector dispy = ls0->getApproximation() ;
 	
@@ -386,8 +397,8 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 2000;
-	size_t max_limit = 2000 ;
+	size_t max_growth_steps = 1;
+	size_t max_limit = 1 ;
 	size_t countit = 0;	
 	int limit = 0 ;
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
@@ -634,7 +645,7 @@ void step()
 		}
 		avgdisplacement /= avgdisplacementarea ;
 		
-// 		optimize() ;
+		optimize() ;
 		
 		if(limit < max_limit)
 			imposeddisp->setData(imposeddisp->getData()+0.00001);
@@ -1669,9 +1680,10 @@ int main(int argc, char *argv[])
 	saf->dfunc.setCharacteristicRadius(cradius) ;
 	saf->dfunc.setThresholdDamageDensity(tdamage);
 	saf->dfunc.setDamageDensityIncrement(dincrement);
-// 	Stiffness * saf = new Stiffness(m0_paste) ;
-	sample.setBehaviour(saf) ;
+	Stiffness * sf = new Stiffness(m0_paste) ;
+// 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
+	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 // 	F.addFeature(&sample, new Pore(20, -155, 155) );
@@ -1685,11 +1697,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 85, 85) );
 // 	F.addFeature(&sample, new Pore(20, 155, 155) );
 
-// 	F.addFeature(&sample, new Pore(20, -155, 0) );
-// 	F.addFeature(&sample, new Pore(20, -85, 0) );
-// 	F.addFeature(&sample, new Pore(20, 0, 0) );
-// 	F.addFeature(&sample, new Pore(20, 85, -0) );
-// 	F.addFeature(&sample, new Pore(20, 155, -0) );
+	F.addFeature(&sample, new Pore(20, -200, 0) );
+	F.addFeature(&sample, new Pore(20, -150, 0) );
+	F.addFeature(&sample, new Pore(20, -100, 0) );
+	F.addFeature(&sample, new Pore(20, -50, 0) );
+	F.addFeature(&sample, new Pore(20, 0, 0) );
+	F.addFeature(&sample, new Pore(20, 50, -0) );
+	F.addFeature(&sample, new Pore(20, 100, -0) );
+	F.addFeature(&sample, new Pore(20, 150, -0) );
+	F.addFeature(&sample, new Pore(20, 200, -0) );
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
@@ -1698,15 +1714,23 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, inc0) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, -0)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, -20)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 20)) ;
 
-
-	F.sample(64) ;
+// 	std::vector<Point *> newTips ;
+// 	newTips.push_back(pb);
+// 	newTips.push_back(pc);
+// 	newTips.push_back(pd);
+// 
+// 	crack0->branch(pi, newTips);
+// 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
+// 	F.addFeature(&sample, crack0);
+	
+	F.sample(256) ;
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
@@ -1718,7 +1742,7 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
-	glutCreateWindow(".001 update !") ;
+	glutCreateWindow("pseudoplastic !") ;
 	
 	int submenu = glutCreateMenu(Menu) ;
 	

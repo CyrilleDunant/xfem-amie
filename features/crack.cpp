@@ -450,8 +450,7 @@ void BranchedCrack::grow( Point* fromTip, Point* newTip)
 		}
 	}
 
-	std::vector<Point> inter = Circle(enrichementRadius, *newTip).intersection(branchToExtend) ;
-	tips.push_back ( std::make_pair(newTip, atan2(newTip->y-inter[0].y, newTip->x-inter[0].x)) ) ;
+	tips.push_back ( std::make_pair(newTip, atan2(newTip->y-fromTip->y, newTip->x-fromTip->x)) ) ;
 
 	
 	std::valarray<Point *> newBP ( branchToExtend->getBoundingPoints().size() +1 ) ;
@@ -691,7 +690,7 @@ void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle,DelaunayTr
 		enrichmentMap.insert(triangles[i]) ;
 		
 		if(!triangles[i]->enrichmentUpdated)
-			triangles[i]->clearEnrichment(static_cast<SegmentedLine *>(this)) ;
+			triangles[i]->clearEnrichment(getPrimitive()) ;
 		triangles[i]->enrichmentUpdated = true ;
 		std::vector<Point> hint ;
 		Line crossing ( *tip.first, Point(cos(angle), sin(angle)) ) ;
@@ -883,6 +882,13 @@ void BranchedCrack::enrichBranches(size_t & startid, Mesh<DelaunayTriangle,Delau
 
 void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line)
 {
+	
+	std::vector<Segment> intersectingSegments ;
+	for ( size_t j = 1 ; j < line->getBoundingPoints().size() ; j++ )
+	{
+		intersectingSegments.push_back ( Segment ( line->getBoundingPoint ( j-1 ), line->getBoundingPoint ( j ) ) ) ;
+	}
+		
 	std::vector<DelaunayTriangle *> tris = dt->getConflictingElements(line) ;
 	
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
@@ -891,67 +897,36 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 	
 	for ( size_t i = 0 ; i < tris.size() ; i++ )
 	{
-		while(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end() && i < tris.size())
-		{
-			i++ ;
-		}
-		if(i >= tris.size())
-			break ;
 		if(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end())
-			break ;
+		{
+			continue ;
+		}
 		
+		if(forkEnrichmentMap.find(tris[i]) != forkEnrichmentMap.end())
+		{
+			continue ;
+		}
 		
 		if(!tris[i]->enrichmentUpdated)
-			tris[i]->clearEnrichment(static_cast<SegmentedLine *>(this)) ;
+			tris[i]->clearEnrichment(line) ;
 		
 		tris[i]->enrichmentUpdated = true ;
 		DelaunayTriangle *e = tris[i] ;
 		enrichmentMap.insert(e) ;
-		std::vector<Point> intersection ;
+		std::vector<Point> intersection = line->intersection ( e->getPrimitive() ) ;
 		
-
-		for ( size_t j = 1 ; j < line->getBoundingPoints().size() ; j++ )
+		for ( size_t j = 0 ; j < line->getBoundingPoints().size() ; j++ )
 		{
-			Segment test ( getBoundingPoint ( j-1 ), getBoundingPoint ( j ) ) ;
-
-			if ( test.intersects ( static_cast<Triangle *> ( e ) ) )
+			if(e->in(line->getBoundingPoint(j)))
 			{
-
-				//there is either one or two intersection points
-				std::vector<Point> temp_intersection = test.intersection ( static_cast<Triangle *> ( e ) ) ;
-
-
-				if ( temp_intersection.size() == 2 ) //we simply cross the element
-				{
-					if ( Segment ( temp_intersection[0], temp_intersection[1] ).vector() * test.vector() < 0 )
-					{
-						std::swap ( temp_intersection[0], temp_intersection[1] ) ;
-					}
-					intersection = temp_intersection ;
-
-				}
-				else //then there are kinks
-				{
-					intersection.push_back ( temp_intersection[0] ) ;
-					intersection.push_back ( getBoundingPoint ( j ) ) ;
-					for ( size_t k = j ; k < this->getBoundingPoints().size()-1 ; k++ )
-					{
-						Segment test_for_kink ( getBoundingPoint ( k ), getBoundingPoint ( k+1 ) ) ;
-
-						if ( !test_for_kink.intersects ( static_cast<Triangle *> ( e ) ) )
-						{
-							intersection.push_back ( getBoundingPoint ( k+1 ) ) ;
-						}
-						else
-						{
-							intersection.push_back ( test_for_kink.intersection ( static_cast<Triangle *> ( e ) ) [0] ) ;
-						}
-					}
-				}
+				intersection.push_back(line->getBoundingPoint(j));
 			}
 		}
 
-
+		if(intersection.empty())
+		{
+			continue ;
+		}
 // 			e->setNonLinearBehaviour( new TwoDCohesiveForces(e, dynamic_cast<SegmentedLine *>(this)) ) ;
 
 
@@ -961,19 +936,10 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 		for ( size_t k = 0 ; k < intersection.size() ; k++ )
 		{
 			transformed.push_back ( e->inLocalCoordinates ( intersection[k] ) ) ;
-		}
-
-
-		for ( size_t k = 0 ; k < transformed.size() ; k++ )
-		{
-			hint.push_back ( transformed[k] ) ;
+			hint.push_back ( transformed.back() ) ;
 		}
 		
-		std::vector<Segment> intersectingSegments ;
-		for ( size_t j = 1 ; j < this->getBoundingPoints().size() ; j++ )
-		{
-			intersectingSegments.push_back ( Segment ( getBoundingPoint ( j-1 ), getBoundingPoint ( j ) ) ) ;
-		}
+
 		Function s ( intersectingSegments, e->getXTransform(), e->getYTransform() ) ;
 
 		int usedId = 0 ;
@@ -1001,7 +967,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 		f.setIntegrationHint ( hint ) ;
 		f.setPoint ( e->first ) ;
 		f.setDofID ( usedId ) ;
-		e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+		e->setEnrichment ( f , getPrimitive() ) ;
 		
 		if(done.find(e->second) == done.end())
 		{
@@ -1025,7 +991,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 		f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
 		f.setPoint ( e->second ) ;
 		f.setDofID ( usedId ) ;
-		e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+		e->setEnrichment ( f , getPrimitive() ) ;
 
 		if(done.find(e->third) == done.end())
 		{
@@ -1050,7 +1016,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 
 		f.setPoint ( e->third ) ;
 		f.setDofID ( usedId ) ;
-		e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+		e->setEnrichment ( f , getPrimitive() ) ;
 
 		std::vector<DelaunayTriangle *> toEnrichAlso ;
 		for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
@@ -1083,25 +1049,29 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 			if ( done.find(elem->first) != done.end())
 			{
 				Function f = shapefunc[0]* ( s_ - vm.eval ( s_, Point ( 0,1 ) ) ) ;
+				f.setIntegrationHint(hint) ;
 				f.setPoint ( elem->first ) ;
 				f.setDofID ( done[elem->first] ) ;
-				elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
+				elem->setEnrichment ( f , getPrimitive()) ;
 				
 			}
 
 			if (done.find(elem->second) != done.end())
 			{
 				Function f = shapefunc[1]* ( s_ - vm.eval ( s_, Point ( 0,0 ) ) ) ;
+				f.setIntegrationHint(hint) ;
 				f.setPoint ( elem->second ) ;
 				f.setDofID ( done[elem->second] ) ;
-				elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
+				elem->setEnrichment ( f , getPrimitive()) ;
 			}
+			
 			if (done.find(elem->third) != done.end())
 			{
 				Function f = shapefunc[2]* ( s_ - vm.eval ( s_, Point ( 1,0 ) ) ) ;
+				f.setIntegrationHint(hint) ;
 				f.setPoint ( elem->third ) ;
 				f.setDofID ( done[elem->third] ) ;
-				elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
+				elem->setEnrichment ( f , getPrimitive()) ;
 			}
 		}
 	}
@@ -1116,75 +1086,71 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line, const Point * target)
 {
 	std::vector<DelaunayTriangle *> tris = dt->getConflictingElements(line) ;
+	std::vector<Segment> intersectingSegments ;
+	for ( size_t j = 1 ; j < line->getBoundingPoints().size() ; j++ )
+	{
+		intersectingSegments.push_back ( Segment ( line->getBoundingPoint ( j-1 ), line->getBoundingPoint ( j ) ) ) ;
+	}
 	
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
 	VirtualMachine vm ;
 	std::map<Point *, size_t> done ;
+	DelaunayTriangle * centralTriangle = NULL;
 	
 	for ( size_t i = 0 ; i < tris.size() ; i++ )
 	{
 		if(tris[i]->in(*target))
 		{
-			while(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end() && i < tris.size())
+			centralTriangle = tris[i] ;
+			break ;
+		}
+	}
+
+	for ( size_t i = 0 ; i < tris.size() ; i++ )
+	{
+		bool performEnrichment = tris[i]->in(*target) ;
+		if(centralTriangle)
+		{
+			for ( size_t j = 0 ; j < centralTriangle->neighbourhood.size() ; j++ )
 			{
-				i++ ;
+				if ( centralTriangle->getNeighbourhood(j)->isAlive() && centralTriangle->getNeighbourhood(j) == tris[i] )
+				{
+					performEnrichment = true ;
+					break ;
+				}
 			}
-			if(i >= tris.size())
-				break ;
+		}
+		else
+			performEnrichment = false ;
+		
+		if(performEnrichment)
+		{
+			
 			if(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end())
-				break ;
+			{
+				continue ;
+			}
 			
 			
 			if(!tris[i]->enrichmentUpdated)
-				tris[i]->clearEnrichment(static_cast<SegmentedLine *>(this)) ;
+				tris[i]->clearEnrichment(line) ;
 			
 			tris[i]->enrichmentUpdated = true ;
 			DelaunayTriangle *e = tris[i] ;
 			enrichmentMap.insert(e) ;
-			std::vector<Point> intersection ;
+			forkEnrichmentMap.insert(e) ;
+			std::vector<Point> intersection = line->intersection ( e->getPrimitive() ) ;
 			
-
-			for ( size_t j = 1 ; j < line->getBoundingPoints().size() ; j++ )
+			for ( size_t j = 0 ; j < line->getBoundingPoints().size() ; j++ )
 			{
-				Segment test ( getBoundingPoint ( j-1 ), getBoundingPoint ( j ) ) ;
-
-				if ( test.intersects ( static_cast<Triangle *> ( e ) ) )
+				if(e->in(line->getBoundingPoint(j)))
 				{
-
-					//there is either one or two intersection points
-					std::vector<Point> temp_intersection = test.intersection ( static_cast<Triangle *> ( e ) ) ;
-
-
-					if ( temp_intersection.size() == 2 ) //we simply cross the element
-					{
-						if ( Segment ( temp_intersection[0], temp_intersection[1] ).vector() * test.vector() < 0 )
-						{
-							std::swap ( temp_intersection[0], temp_intersection[1] ) ;
-						}
-						intersection = temp_intersection ;
-
-					}
-					else //then there are kinks
-					{
-						intersection.push_back ( temp_intersection[0] ) ;
-						intersection.push_back ( getBoundingPoint ( j ) ) ;
-						for ( size_t k = j ; k < this->getBoundingPoints().size()-1 ; k++ )
-						{
-							Segment test_for_kink ( getBoundingPoint ( k ), getBoundingPoint ( k+1 ) ) ;
-
-							if ( !test_for_kink.intersects ( static_cast<Triangle *> ( e ) ) )
-							{
-								intersection.push_back ( getBoundingPoint ( k+1 ) ) ;
-							}
-							else
-							{
-								intersection.push_back ( test_for_kink.intersection ( static_cast<Triangle *> ( e ) ) [0] ) ;
-							}
-						}
-					}
+					intersection.push_back(line->getBoundingPoint(j));
 				}
 			}
 
+			if(intersection.empty())
+				continue ;
 
 	// 			e->setNonLinearBehaviour( new TwoDCohesiveForces(e, dynamic_cast<SegmentedLine *>(this)) ) ;
 
@@ -1203,11 +1169,6 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 				hint.push_back ( transformed[k] ) ;
 			}
 			
-			std::vector<Segment> intersectingSegments ;
-			for ( size_t j = 1 ; j < this->getBoundingPoints().size() ; j++ )
-			{
-				intersectingSegments.push_back ( Segment ( getBoundingPoint ( j-1 ), getBoundingPoint ( j ) ) ) ;
-			}
 			Function s ( intersectingSegments, e->getXTransform(), e->getYTransform() ) ;
 
 			int usedId = 0 ;
@@ -1235,7 +1196,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 			f.setIntegrationHint ( hint ) ;
 			f.setPoint ( e->first ) ;
 			f.setDofID ( usedId ) ;
-			e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+			e->setEnrichment ( f , getPrimitive() ) ;
 			
 			if(done.find(e->second) == done.end())
 			{
@@ -1259,7 +1220,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 			f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
 			f.setPoint ( e->second ) ;
 			f.setDofID ( usedId ) ;
-			e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+			e->setEnrichment ( f , getPrimitive() ) ;
 
 			if(done.find(e->third) == done.end())
 			{
@@ -1284,13 +1245,13 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 
 			f.setPoint ( e->third ) ;
 			f.setDofID ( usedId ) ;
-			e->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+			e->setEnrichment ( f , getPrimitive() ) ;
 
 			std::vector<DelaunayTriangle *> toEnrichAlso ;
 			for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
 			{
 				if ( e->getNeighbourhood(j)->isAlive() 
-					&& !line->intersects(static_cast<Triangle *>(e->getNeighbourhood(j))))
+					&& !line->intersects(e->getNeighbourhood(j)->getPrimitive()))
 					toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
 			}
 
@@ -1298,7 +1259,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 			for ( size_t j = 0 ; j < toEnrichAlso.size() ; j++ )
 			{
 				if(!toEnrichAlso[j]->enrichmentUpdated)
-					toEnrichAlso[j]->clearEnrichment( static_cast<SegmentedLine *>(this)) ;
+					toEnrichAlso[j]->clearEnrichment( line) ;
 				toEnrichAlso[j]->enrichmentUpdated = true ;
 				
 				DelaunayTriangle * elem = toEnrichAlso[j] ;
@@ -1319,7 +1280,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 					Function f = shapefunc[0]* ( s_ - vm.eval ( s_, Point ( 0,1 ) ) ) ;
 					f.setPoint ( elem->first ) ;
 					f.setDofID ( done[elem->first] ) ;
-					elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
+					elem->setEnrichment ( f , getPrimitive()) ;
 					
 				}
 
@@ -1328,14 +1289,14 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 					Function f = shapefunc[1]* ( s_ - vm.eval ( s_, Point ( 0,0 ) ) ) ;
 					f.setPoint ( elem->second ) ;
 					f.setDofID ( done[elem->second] ) ;
-					elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
+					elem->setEnrichment ( f , getPrimitive()) ;
 				}
 				if (done.find(elem->third) != done.end())
 				{
 					Function f = shapefunc[2]* ( s_ - vm.eval ( s_, Point ( 1,0 ) ) ) ;
 					f.setPoint ( elem->third ) ;
 					f.setDofID ( done[elem->third] ) ;
-					elem->setEnrichment ( f , static_cast<SegmentedLine *>(this)) ;
+					elem->setEnrichment ( f , getPrimitive()) ;
 				}
 			}
 		}
@@ -1347,7 +1308,6 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 	}
 	
 }
-
 
 double BranchedCrack::getEnrichementRadius() const
 {
@@ -1408,6 +1368,7 @@ void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle,DelaunayTree
 	
 	enrichmentMap.clear() ;
 	tipEnrichmentMap.clear() ;
+	forkEnrichmentMap.clear() ;
 	enrichTips(counter, dtree) ;
 	enrichForks(counter, dtree) ;
 	enrichBranches(counter, dtree) ;
