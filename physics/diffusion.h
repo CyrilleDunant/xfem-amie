@@ -14,6 +14,7 @@
 #define __DIFFUSION_H_
 
 #include "physics_base.h"
+#include "homogenization/properties_base.h"
 
 namespace Mu
 {
@@ -74,6 +75,9 @@ namespace Mu
 		 */
 		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
+		virtual Material toMaterial() ;
+
+
 	} ;
 
 } ;

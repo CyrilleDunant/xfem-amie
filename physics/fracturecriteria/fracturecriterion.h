@@ -62,6 +62,8 @@ class DelaunayTetrahedron ;
 		 * @param r new radius
 		 */
 		virtual void setNeighbourhoodRadius(double r) ;
+
+		virtual Material toMaterial() ;
 	
 	};
 

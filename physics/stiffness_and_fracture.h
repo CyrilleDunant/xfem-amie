@@ -17,6 +17,7 @@
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/lineardamage.h"
 #include "damagemodels/isotropiclineardamage.h"
+#include "homogenization/properties_base.h"
 
 namespace Mu
 {
@@ -122,6 +123,8 @@ namespace Mu
 
 		/** \brief Acessor, return the stifness criterion in use*/
 		virtual FractureCriterion * getFractureCriterion() const ;
+
+		virtual Material toMaterial() ;
 		
 	} ;
 	

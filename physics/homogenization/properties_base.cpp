@@ -69,14 +69,30 @@ void Properties::set(std::string s)
 		set(TAG_LAME_COEFFICIENT) ;
 	if(s.compare("STRAIN") == 0)
 		set(TAG_STRAIN) ;
+	if(s.compare("MAX_STRAIN") == 0)
+		set(TAG_MAX_STRAIN) ;
+	if(s.compare("MAX_TENSILE_STRAIN") == 0)
+		set(TAG_MAX_TENSILE_STRAIN) ;
+	if(s.compare("MAX_COMPRESSIVE_STRAIN") == 0)
+		set(TAG_MAX_COMPRESSIVE_STRAIN) ;
 	if(s.compare("STRESS") == 0)
 		set(TAG_STRESS) ;
+	if(s.compare("MAX_STRESS") == 0)
+		set(TAG_MAX_STRESS) ;
+	if(s.compare("MAX_TENSILE_STRESS") == 0)
+		set(TAG_MAX_TENSILE_STRESS) ;
+	if(s.compare("MAX_COMPRESSIVE_STRESS") == 0)
+		set(TAG_MAX_COMPRESSIVE_STRESS) ;
 	if(s.compare("EXPANSION_COEFFICIENT") == 0)
 		set(TAG_EXPANSION_COEFFICIENT) ; 
+	if(s.compare("RUPTURE_ENERGY") == 0)
+		set(TAG_RUPTURE_ENERGY) ;
 	if(s.compare("CRACK_DENSITY") == 0)
 		set(TAG_CRACK_DENSITY) ;
 	if(s.compare("CRACK_LENGTH") == 0)
 		set(TAG_CRACK_LENGTH) ;
+	if(s.compare("DIFFUSION_COEFFICIENT") == 0)
+		set(TAG_DIFFUSION_COEFFICIENT) ;
 	if(s.compare("ELLIPSE_A") == 0)
 		set(TAG_ELLIPSE_A) ;
 	if(s.compare("ELLIPSE_B") == 0)
@@ -140,8 +156,35 @@ void Properties::print()
 	case TAG_EXPANSION_COEFFICIENT: 
 		std::cout << "EXPANSION COEFFICIENT = " ; 
 		break;			
+	case TAG_DIFFUSION_COEFFICIENT: 
+		std::cout << "DIFFUSION COEFFICIENT = " ; 
+		break;			
 	case TAG_CRACK_DENSITY: 
 		std::cout << "CRACK DENSITY = " ;
+		break;			
+	case TAG_STRAIN:
+		std::cout << "STRAIN = " ;
+		break;			
+	case TAG_MAX_STRAIN:
+		std::cout << "MAX_STRAIN = " ;
+		break;			
+	case TAG_MAX_TENSILE_STRAIN:
+		std::cout << "MAX_TENSILE_STRAIN = " ;
+		break;			
+	case TAG_MAX_COMPRESSIVE_STRAIN:
+		std::cout << "MAX_COMPRESSIVE_STRAIN = " ;
+		break;			
+	case TAG_STRESS:
+		std::cout << "STRESS = " ;
+		break;			
+	case TAG_MAX_STRESS:
+		std::cout << "MAX_STRESS = " ;
+		break;			
+	case TAG_MAX_TENSILE_STRESS:
+		std::cout << "MAX_TENSILE_STRESS = " ;
+		break;			
+	case TAG_MAX_COMPRESSIVE_STRESS:
+		std::cout << "MAX_COMPRESSIVE_STRESS = " ;
 		break;			
 	case TAG_ELLIPSE_A:
 		std::cout << "ELLIPSE MAJOR RADIUS = " ; 

@@ -46,6 +46,9 @@ public:
 * @param s ElementState to consider
 */
 	virtual double grade(const ElementState &s) const  ;
+
+
+	virtual Material toMaterial() ;
 };
 
 }

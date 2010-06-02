@@ -227,5 +227,12 @@ bool FractureCriterion::met(const ElementState &s)
 	//shut up the compiler
 	return false ;
 }
+
+Material FractureCriterion::toMaterial()
+{
+	Material mat ;
+	return mat ;
+}
+
 }
 

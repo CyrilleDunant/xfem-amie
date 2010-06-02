@@ -16,6 +16,7 @@
 #include "physics_base.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/damagemodel.h"
+#include "homogenization/properties_base.h"
 
 namespace Mu
 {
@@ -64,6 +65,8 @@ namespace Mu
 		
 		/** \brief Return a 0-length Vector*/
 		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+
+		virtual Material toMaterial() ;
 		
 	} ;
 

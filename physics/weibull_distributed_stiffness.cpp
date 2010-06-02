@@ -52,9 +52,9 @@ Form * WeibullDistributedStiffness::getCopy() const
 	double randomVar = (double)rand()/(double)RAND_MAX ;
 //	randomVar = 1.*pow(-log(randomVar),.5) ;
 	Matrix newTensor (param*(1.-variability)+param*randomVar*variability*2) ;
-	return new Stiffness/*AndFracture*/(newTensor/*, 
+	return new StiffnessAndFracture(newTensor, 
 		new MohrCoulomb(criterion*(1.-variability)+criterion*randomVar*variability,
-		 -8.*(criterion*(1.-variability)+criterion*randomVar*variability))*/) ;
+		 -8.*(criterion*(1.-variability)+criterion*randomVar*variability))) ;
 }
 
 

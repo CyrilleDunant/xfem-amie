@@ -44,6 +44,9 @@ public:
 	/** \brief Return a copy of this criterion
 	 */
 	virtual FractureCriterion * getCopy() const;
+
+	virtual Material toMaterial() ;
+
 };
 
 }

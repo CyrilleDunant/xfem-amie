@@ -45,6 +45,7 @@ public:
 */
 	virtual double grade(const ElementState &s) const  ;
 
+	virtual Material toMaterial() ;
 };
 
 }

@@ -39,4 +39,11 @@ FractureCriterion * MaximumStrain::getCopy() const
 	return new MaximumStrain(*this) ;
 }
 
+Material MaximumStrain::toMaterial()
+{
+	Material mat ;
+	mat(TAG_MAX_TENSILE_STRAIN, upVal) ;
+	return mat ;
+}
+
 }

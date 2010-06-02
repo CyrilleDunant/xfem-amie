@@ -41,4 +41,11 @@ FractureCriterion * VonMises::getCopy() const
 	return new VonMises(threshold) ;
 }
 
+Material VonMises::toMaterial()
+{
+	Material mat ;
+	mat(TAG_MAX_STRESS,threshold) ;
+	return mat ;
+}
+
 }

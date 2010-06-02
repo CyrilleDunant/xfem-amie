@@ -56,3 +56,10 @@ void Diffusion::getForces(const ElementState & s, const Function & p_i, const Ga
 {
 }
 
+Material Diffusion::toMaterial()
+{
+	Material mat ;
+	mat(TAG_DIFFUSION_COEFFICIENT,param[0][0]) ;
+	return mat ;
+}
+

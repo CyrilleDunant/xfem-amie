@@ -12,6 +12,7 @@
 
 #include "stiffness.h"
 
+
 using namespace Mu ;
 
 Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.numRows()/3+1) 
@@ -50,6 +51,12 @@ Form * Stiffness::getCopy() const
 
 void Stiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
+}
+
+Material Stiffness::toMaterial()
+{
+	Material mat(param) ;
+	return mat ;
 }
 
 
