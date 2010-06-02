@@ -489,9 +489,9 @@ const Point & Triangle::getCircumCenter() const
 std::vector<Point> Triangle::getBoundingBox() const
 {
 	std::vector<Point> box ;
-	box.push_back(getCircumCenter()+Point(getRadius(), -getRadius())) ;
-	box.push_back(getCircumCenter()+Point(getRadius(), getRadius())) ;
 	box.push_back(getCircumCenter()+Point(-getRadius(), getRadius())) ;
+	box.push_back(getCircumCenter()+Point(getRadius(), getRadius())) ;
+	box.push_back(getCircumCenter()+Point(getRadius(), -getRadius())) ;
 	box.push_back(getCircumCenter()+Point(-getRadius(), -getRadius())) ;
 	
 	return box ;

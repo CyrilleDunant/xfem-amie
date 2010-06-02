@@ -66,7 +66,7 @@ std::vector<Properties> Scheme::homogenize(const std::vector<Material> & mat)
 
 	std::vector<Properties> hom ;
 
-	size_t n = p ;
+	int n = p ;
 	if(n+1 == 0)
 		n = mat.size() ;
 
@@ -82,8 +82,7 @@ std::vector<Properties> Scheme::homogenize(const std::vector<Material> & mat)
 	{
 		for(int j = 0 ; j < input.size() ; j++)
 		{
-			size_t k = mat[i].getIndex(input[j],-1) ;
-			std::cout << k << std::endl ;
+			int k = mat[i].getIndex(input[j],-1) ;
 			if(k+1 == 0)
 			{
 				s = STATUS_PROPERTIES_NOT_FOUND ;
@@ -105,11 +104,11 @@ std::vector<Properties> Scheme::homogenize(const std::vector<Material> & mat)
 		}
 	}
 
-	size_t nout = output.size() ;
+	int nout = output.size() ;
 	if(processed.size() < output.size())
 		nout = processed.size() ;
 
-	for(size_t i = 0 ; i < nout ; i++)
+	for(int i = 0 ; i < nout ; i++)
 		hom.push_back(Properties(output[i],processed[i])) ;
 
 	return hom ;

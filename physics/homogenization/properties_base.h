@@ -80,7 +80,7 @@ public:
 	/* \brief returns the tag of the property */
 	Tag tag() const {return ptag ; } ;
 	/* \brief checks if the property is from a specific tag */
-	bool is(Tag t) const {return ptag == t ; } ;
+	bool is(Tag t) const {return (t == ptag) ; } ;
 	/* \brief changes the tag to NULL */
 	void kill() {ptag = TAG_NULL ; } ;
 	/* \brief checks if the property is NULL */
@@ -151,6 +151,8 @@ public:
 	/* \brief set a tag, conserve only the ith tagged property (i is the index, as defined for getIndex(Tag t, int i) */
 	bool set(Tag t, int i) ;
 
+	bool kill(Tag t) ;
+
 	/**
 	* Fuse two materials together if and only if they have the same properties on the compare tags. The values on the combine tag
 	* are added together
@@ -177,7 +179,15 @@ public:
 	void print() ;
 	void print(std::string indent) ;
 
-	bool build(Scheme * s) ;
+	bool build(Scheme * s, bool self) ;
+
+	void makeFraction(bool volume) ;
+
+	int nPhases() {return phases.size() ; } ;
+	Material child(int i) {return phases[i] ; } ;
+	void cleanComposite() {phases.clear() ; } ;
+
+	void divide(int i, std::vector<double> f, bool v) ;
 
 
 } ;

@@ -11,6 +11,7 @@
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
 #include "../utilities/xml.h"
+#include "../physics/homogenization/properties_base.h"
 
 namespace Mu
 {
@@ -390,6 +391,11 @@ public:
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
+	virtual Material toMaterial()
+	{
+		Material mat(param) ;
+		return mat ;
+	}
 	
 	virtual bool timeDependent() const
 	{

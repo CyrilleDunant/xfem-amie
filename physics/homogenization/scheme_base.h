@@ -71,6 +71,7 @@ public:
 	virtual void reset() {s = STATUS_RESET ; } ;
 	/* \brief checks if an error has occured, and then reset the status*/
 	virtual bool check(bool r) ;
+	virtual int phases() {return p ; } ;
 
 	/* \brief return the input list. This method is useful in cunjonction with Material::findMissing(std::vector<Tag> t) */
 	virtual std::vector<Tag> inputList() {return input ; } ;

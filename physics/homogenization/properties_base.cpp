@@ -429,13 +429,25 @@ bool Material::findMissing(Tag t)
 	return conv.isOK() ;
 }
 
+bool Material::kill(Tag t)
+{
+	for(size_t i = 0 ; i < size() ; i++)
+	{
+		if((*this)[i].is(t))
+			(*this)[i].kill() ;
+	}
+}
+
+
 void Material::print()
 {
+	std::cout << std::endl ;
 	std::cout << "---- " << name << " ----" << std::endl ;
 	for(size_t i = 0 ; i < size() ; i++)
 		(*this)[i].print() ;
 	for(size_t i = 0 ; i < phases.size() ; i++)
 		phases[i].print("|") ;
+	std::cout << std::endl ;
 }
 
 void Material::print(std::string indent)
@@ -444,7 +456,7 @@ void Material::print(std::string indent)
 	for(size_t i = 0 ; i < size() ; i++)
 		(*this)[i].print(indent) ;
 	for(size_t i = 0 ; i < phases.size() ; i++)
-		phases[i].print(indent.append(indent)) ;
+		phases[i].print(indent+indent.at(indent.length()-1)) ;
 }
 
 Material Material::operator*(std::string s)
@@ -513,9 +525,121 @@ Material Material::operator+(Material m)
 	return (*this) ;
 }
 
-bool Material::build(Scheme * s)
+bool Material::build(Scheme * s, bool self)
 {
-	merge(s->homogenize(phases)) ;
-	s->print() ;
+
+	if(self)
+	{
+		findMissing(s->inputList()) ;
+		merge(s->homogenize(*this)) ;
+	}
+	else
+	{
+		for(size_t i = 0 ; i < phases.size() ; i++)
+			phases[i].findMissing(s->inputList()) ;
+
+		if(s->phases() == 1)
+		{
+			for(size_t i = 0 ; i < phases.size() ; i++)
+				phases[i].build(s, true) ;
+		} else {
+			merge(s->homogenize(phases)) ;
+		}
+	}
 	return s->isOK() ;
 }
+
+void Material::makeFraction(bool volume)
+{
+	Tag base = TAG_MASS ;
+	Tag fraction = TAG_MASS_FRACTION ;
+	Tag total = TAG_MASS_TOTAL ;
+
+	if(volume)
+	{
+		base = TAG_VOLUME ;
+		fraction = TAG_VOLUME_FRACTION ;
+		total = TAG_VOLUME_TOTAL ;
+	}
+
+	if(getIndex(base).size() == 0)
+	{
+		bool exist = false ;
+
+		std::pair<double,double> known = std::make_pair(0.,0.) ;
+		std::pair<double,double> unknown = std::make_pair(0.,0.) ;
+	
+		for(size_t i = 0 ; i < phases.size() ; i++)
+		{
+			int b = phases[i].getIndex(base).size() ;
+			int f = phases[i].getIndex(fraction).size() ;
+
+			if(f*b > 0)
+			{
+				known.first += phases[i](base) ;
+				known.second += phases[i](fraction) ;
+			} else {
+				unknown.first += phases[i](base) ;
+				unknown.second += phases[i](fraction) ;
+			}
+		}
+
+		if(unknown.second == 1.)
+			return ;
+
+		if(known.second == 0.) {
+			known.first = unknown.first ;
+			known.second = 1.-unknown.second ;
+		}
+
+		replace(Properties(base,known.first/known.second)) ;		
+	}
+	
+	double b = val(base,-1) ;
+
+	if(b == 0.)
+		return ;
+
+	for(size_t i = 0 ; i < phases.size() ; i++)
+	{
+		if(phases[i].getIndex(total).size() == 0)
+			phases[i](total,b) ;
+
+		if(phases[i].getIndex(fraction).size() == 0)
+			phases[i](fraction,phases[i](base)/phases[i](total)) ;
+
+		if(phases[i].getIndex(base).size() == 0)
+			phases[i](base,phases[i](fraction)*phases[i](total)) ;
+
+	}
+
+
+
+}
+
+void Material::divide(int i, std::vector<double> f, bool v)
+{
+	Tag base = TAG_MASS ;
+	Tag fraction = TAG_MASS_FRACTION ;
+	Tag total = TAG_MASS_TOTAL ;
+	if(v)
+	{
+		base = TAG_VOLUME ;
+		fraction = TAG_VOLUME_FRACTION ;
+		total = TAG_VOLUME_TOTAL ;
+	}
+
+
+	double ff = phases[i](fraction) ;
+
+	for(size_t j = 1 ; j < f.size() ; j++)
+	{
+		phases.push_back(Material(phases[i])) ;
+		phases[phases.size()-1](fraction,ff*f[j]) ;
+		phases[phases.size()-1](base,phases[phases.size()-1](fraction)*phases[phases.size()-1](total)) ;
+	}
+	phases[i](fraction,ff*f[0]) ;
+	phases[i](base,phases[i](fraction)*phases[i](total)) ;
+}
+
+
