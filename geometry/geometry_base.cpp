@@ -3390,7 +3390,22 @@ bool Segment::intersects(const Geometry *g) const
 	case TRIANGLE:
 		{
 			bool ret = false ;	
-			
+
+			size_t end_i = g->getBoundingPoints().size()/3 ;
+			Point a(g->getBoundingPoint(0)) ;
+			Point b(g->getBoundingPoint(end_i)) ;
+			Point c(g->getBoundingPoint(end_i*2)) ;
+
+			if(this->on(a) || this->on(b) || this->on(c))
+				return true ;
+
+			Segment sa(a,b) ;
+			Segment sb(b,c) ;
+			Segment sc(c,a) ;
+
+			return sa.intersects(*this) || sb.intersects(*this) || sc.intersects(*this) ;
+
+
 			for(size_t i = 0 ; i <  g->getBoundingPoints().size() ;  i++)
 			{
 				Segment s(g->getBoundingPoint(i), g->getBoundingPoint((i+1)%g->getBoundingPoints().size())) ;

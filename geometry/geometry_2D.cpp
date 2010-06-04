@@ -638,6 +638,25 @@ void Triangle::project(Point * p) const
 			return ;
 		}
 	}
+
+	double r = this->getRadius() ;
+	Point reach = (*p - getCenter()) ;
+	Point trans = getCenter() + reach * (2.*r/reach.norm()) ;
+	Segment sec(getCenter(), trans) ;
+
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+	{
+		Segment seg(getBoundingPoint(i), getBoundingPoint((i+1)%boundingPoints.size())) ;
+		if(sec.intersects(seg))
+		{
+			Point t = sec.intersection(seg);
+			p->x = t.x ;
+			p->y = t.y ;
+			return ;
+		}
+	}
+
+	
 	
 }
 
@@ -655,6 +674,62 @@ bool Triangle::in(const Point &p) const
 	
 	Point proj(p) ; project(&proj) ;
 	bool isOnSurface = dist(p, proj) < POINT_TOLERANCE ;
+	
+	Segment s(p, getCenter()) ;
+	return !s.intersects(this) || isAPoint || isOnSurface;
+		
+	bool in = false ;
+	
+	for (int i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
+	{
+		if( std::abs(boundingPoints[j]->y - boundingPoints[i]->y) > 2.*POINT_TOLERANCE)
+		{
+			if (
+				(((boundingPoints[i]->y < p.y + 2.*POINT_TOLERANCE) 
+					&& (p.y-2.*POINT_TOLERANCE < boundingPoints[j]->y)) 
+					|| ((boundingPoints[j]->y < p.y+2.*POINT_TOLERANCE) 
+					&& (p.y < boundingPoints[i]->y+2.*POINT_TOLERANCE))) 
+					&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) 
+					 * (p.y - boundingPoints[i]->y) 
+					 / (boundingPoints[j]->y - boundingPoints[i]->y) 
+					 + boundingPoints[i]->x + 2.*POINT_TOLERANCE))
+				in = !in;
+		}
+	}
+	
+	return in ;
+	
+}
+
+bool Triangle::inVerbose(const Point &p) const
+{
+	bool isAPoint = false ;
+	for (int i = 0; i <  boundingPoints.size(); i++)
+	{
+		if(p == *boundingPoints[i])
+		{
+			isAPoint = true ;
+			break ;
+		}
+	}
+
+	if(isAPoint)
+		std::cout << "is a point" << std::endl ;
+	
+	Point proj(p) ; project(&proj) ;
+	bool isOnSurface = dist(p, proj) < POINT_TOLERANCE ;
+
+	if(isOnSurface)
+	{
+		std::cout << "is on surface" << std::endl ;
+		p.print() ;
+		proj.print() ;
+	}
+
+	if(this->in(p))
+	{
+		std::cout << "intersection" << std::endl ;
+	}
 	
 	Segment s(p, getCenter()) ;
 	return !s.intersects(this) || isAPoint || isOnSurface;
@@ -757,7 +832,7 @@ void Triangle::sampleSurface(size_t num_points)
 	
 	std::vector<Point> newPoints ;
 	
-	size_t end_i = 2*boundingPoints.size()/3 ;
+	size_t end_i = 3*boundingPoints.size()/3 ;
 	
 	for(int i = 0 ; i < (int)num_points/3-1 ; i++)
 	{
@@ -767,9 +842,11 @@ void Triangle::sampleSurface(size_t num_points)
 			double d = dist(getBoundingPoint(i+1), getBoundingPoint(end_i-1-i))*0.17/(i+1.) ;
 			double xrand = ((double)rand()/(double)(RAND_MAX)*2.-1.)*d ;
 			double yrand = ((double)rand()/(double)(RAND_MAX)*2.-1.)*d ;
-			newPoints.push_back(getBoundingPoint(i+1)*(1.-fact) + getBoundingPoint(end_i-1-i)*fact+Point(xrand, yrand)) ;
+			if(this->in(getBoundingPoint(i+1)*(1.-fact) + getBoundingPoint(end_i-1-i)*fact+Point(xrand, yrand)))
+				newPoints.push_back(getBoundingPoint(i+1)*(1.-fact) + getBoundingPoint(end_i-1-i)*fact+Point(xrand, yrand)) ;
 		}
 	}
+
 	this->inPoints.resize(newPoints.size()) ;
 	
 	for(size_t i = 0 ; i < inPoints.size() ; i++)
@@ -1284,6 +1361,9 @@ void Circle::sampleSurface(size_t num_points)
 	inPoints.resize(temp.size() + 1) ;
 	inPoints[0] = new Point(center) ;
 	std::copy(temp.begin(), temp.end(),&inPoints[1]) ;
+
+//	for(size_t i = 0 ; i < inPoints.size() ; i++)
+//		inPoints[i]->print() ;
 	//std::cout << "we have " << num_points << " sample points" << std::endl ;
 	
 }

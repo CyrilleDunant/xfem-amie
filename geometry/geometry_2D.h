@@ -59,6 +59,7 @@ public:
 	
 	/** \brief return true if the argument is in the triangle*/
 	virtual bool in(const Point & p) const ;
+	virtual bool inVerbose(const Point & p) const ;
 	
 	/** \brief return 3*/
 	virtual size_t sides() const { return 3 ; }
