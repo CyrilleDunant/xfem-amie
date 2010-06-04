@@ -62,6 +62,51 @@ public:
 	
 } ;
 
+/** \brief Material inclusion
+ *
+ * XFEM define inclusion with arbitrary behaviour
+*/
+class MaterialInclusion :  public EnrichmentInclusion
+{
+	std::set<DelaunayTriangle *> bimateralInterfaced ;
+	std::set<DelaunayTriangle *> internal ;
+	LinearForm * inclusionBehaviour ;
+public:
+
+/** \brief Constructor. construct the zone
+*
+* @param father supporting feature. This features behaviour is used for the bimaterial interfaces
+* @param radius External radius
+* @param x center x
+* @param y center y
+* @param inclusionBehaviour Inclusion behaviour
+*/
+	MaterialInclusion(Feature *father, double radius, double x, double y, LinearForm * inclusionBehaviour) ;
+	virtual ~MaterialInclusion() ;
+	
+/** \brief enrich elements and change their Behaviour if required*/
+	 virtual void enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree);
+	
+/** \brief return empty vector*/
+	virtual std::vector<Mu::DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>*) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
+	virtual std::vector<Mu::DelaunayTriangle*> getElements(Mesh<DelaunayTriangle, DelaunayTreeItem>*) { return std::vector<Mu::DelaunayTriangle*>() ;}
+	
+	virtual void print() const
+	{
+		std::cout << "I am a material inclusion" << std::endl ;
+	}
+	
+	void reset() ;
+	
+	const Circle * getGeometry() const ;
+
+	Circle * getGeometry() ;
+	
+public:
+	GEO_DERIVED_OBJECT(Circle) ;
+	
+} ;
+
 }
 
 #endif

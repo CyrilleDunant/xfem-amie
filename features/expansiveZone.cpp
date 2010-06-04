@@ -91,3 +91,88 @@ void ExpansiveZone::enrich(size_t & counter , Mesh<DelaunayTriangle, DelaunayTre
 }
 	
 
+
+MaterialInclusion::MaterialInclusion(Feature *father, double radius, double x, double y, LinearForm * inclusionBehaviour) : EnrichmentInclusion(father, radius, x, y),  inclusionBehaviour(inclusionBehaviour)
+{
+	
+}
+
+MaterialInclusion::~MaterialInclusion() {}
+	
+const Circle * MaterialInclusion::getGeometry() const 
+{
+	return static_cast<const Circle *>(this) ;
+}
+
+Circle * MaterialInclusion::getGeometry() 
+{
+	return static_cast<Circle *>(this) ;
+}
+
+void MaterialInclusion::reset() 
+{
+	cache.clear() ;
+	updated = true ;
+}
+
+void MaterialInclusion::enrich(size_t & counter , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+{
+	EnrichmentInclusion::enrich(counter, dtree) ;
+	//first we get All the triangles affected
+	std::vector<DelaunayTriangle *> disc = cache ;
+
+	//then we select those that are cut by the circle
+	std::vector<DelaunayTriangle *> ring ;
+	std::vector<DelaunayTriangle *> inDisc ;
+	
+	for(size_t i = 0 ; i < disc.size() ; i++)
+	{
+		if(this->intersects(static_cast<Triangle *>(disc[i])) )
+			ring.push_back(disc[i]) ;
+		else if(this->in(disc[i]->getCenter()))
+			inDisc.push_back(disc[i]) ;
+	}
+	
+	std::set<DelaunayTriangle *> newInterface ;
+	for(size_t i = 0 ; i < ring.size() ; i++)
+	{
+		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
+		{
+			ring[i]->setBehaviour(new BimaterialInterface(getPrimitive(),
+														inclusionBehaviour->getCopy(),
+														ring[i]->getBehaviour()->getCopy()
+														)) ;
+			ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
+		}
+		newInterface.insert(ring[i]) ;
+	}
+	
+	std::set<DelaunayTriangle *> newExpansive ;
+	for(size_t i = 0 ; i < inDisc.size() ; i++)
+	{
+		if(internal.find(inDisc[i]) == internal.end())
+			inDisc[i]->setBehaviour(inclusionBehaviour->getCopy()) ;
+		
+		newExpansive.insert(inDisc[i]) ;
+	}
+	internal = newExpansive ;
+	
+	if(disc.size() == 1)
+	{
+		if(bimateralInterfaced.find(disc[0]) == bimateralInterfaced.end())
+		{
+			disc[0]->setBehaviour(new BimaterialInterface(getPrimitive(),
+														inclusionBehaviour->getCopy(),
+														disc[0]->getBehaviour()->getCopy()
+														)) ;
+			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;
+		}
+		newInterface.insert(disc[0]) ;
+	}
+	
+	bimateralInterfaced = newInterface ;
+	
+}
+	
+
+
