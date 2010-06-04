@@ -32,14 +32,6 @@ namespace Mu
 		
 		virtual ~Wave() ;
 		
-		/** Apply the law.
-		* 
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @return  matrix resulting of \f$ \dot{H}\cdot \dot{H} - \nabla\cdot H^T K \nabla\cdot H \f$.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const; 
-		
 /** \brief Apply the behaviour
 	* This overloaded apply() is more efficient and is designed to minimise allocating and dealocating memory.
 	* return the matrix resulting of \f$ \dot{H}\cdot \dot{H} - \nabla\cdot H^T K \nabla\cdot H \f$.
@@ -58,9 +50,6 @@ namespace Mu
 		
 		/** \brief return a copy of the behaviour */
 		virtual Form * getCopy() const ;
-		
-		/** \brief return an empty Vector*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
 	} ;
 

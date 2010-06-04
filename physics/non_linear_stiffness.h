@@ -32,21 +32,11 @@ struct NonLinearStiffness : public NonLinearForm
 	
 	virtual ~NonLinearStiffness() ;
 	
-	/** Apply the law.
-	 * 
-	 * @param p_i first basis polynomial.
-	 * @param p_j second basis polynomial.
-	 * @param e IntegrableEntity on which to perform the integration
-	 * @return matrix resulting of the integration of \f$ \nabla H^T K \nabla H \f$.
-	 */
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
-	
 	virtual bool hasInducedForces() const;
 	
 	virtual bool hasInducedMatrix() const ;
 	
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
-	
 	
 	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 

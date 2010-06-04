@@ -64,11 +64,6 @@ namespace Mu
 		virtual XMLTree * toXML() { return new XMLTree("MultipleAggregatingDiscontinuities", param) ; } ;
 		
 		/** \brief Apply the law.
-		* The apparent stifness tensor is computed from a self-consistent scheme applied on the submesh.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const; 
-		
-		/** \brief Apply the law.
 			*
 			* The matrix is computed as: \f$ \nabla^T h_i K \nabla h_j \f$
 			* @param p_i first basis polynomial.
@@ -98,8 +93,8 @@ namespace Mu
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
 		
-		/** \brief Return a 0-length Vector*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+		std::vector<BoundaryCondition *> getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+
 	};
 } ;
 #endif // MAD_H

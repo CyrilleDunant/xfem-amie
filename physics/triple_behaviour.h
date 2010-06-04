@@ -55,15 +55,6 @@ public:
 	virtual Vector getImposedStress(const Point & p) const ;
 	
 /** \brief Apply the behaviour
-	* The result of the computation depends on the location of the Gauss points
-	* 
-	* @param p_i first shape function.
-	* @param p_j second shape function.
-	* @param e the IntegrableEntity to consider.
-	*/
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
-	
-/** \brief Apply the behaviour
 	* This overloaded apply() is more efficient and is designed to minimise allocating and dealocating memory.
 	* The result of the computation depends on the location of the Gauss points
 	* 
@@ -112,6 +103,7 @@ public:
 	 * @param v Vector in which to store the result
 	 */
 	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+	std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const; 
 	
 } ;
 

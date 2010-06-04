@@ -166,7 +166,7 @@ public:
 	virtual Vector getForces() ;
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  ;
 	virtual Vector getNonLinearForces() ;
-	virtual GaussPointArray getSubTriangulatedGaussPoints() const ;
+	virtual const GaussPointArray & getSubTriangulatedGaussPoints() ;
 
 	std::valarray<unsigned int> neighbourhood ;
 	DelaunayTriangle * getNeighbourhood(size_t i) const ;

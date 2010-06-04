@@ -2492,17 +2492,17 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 	std::vector<size_t > dofs = getDofIds() ;
 	if(moved)
 	{
-		Jinv.resize(cachedGaussPoints.gaussPoints.size()) ;
-		for(size_t i = 0 ; i < cachedGaussPoints.gaussPoints.size() ;  i++)
+		Jinv.resize(getGaussPoints().gaussPoints.size()) ;
+		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
-			getInverseJacobianMatrix( cachedGaussPoints.gaussPoints[i].first, Jinv[i]) ;
+			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 		}
 	}
 	else
 	{
 		Matrix J ;
 		getInverseJacobianMatrix(Point( .25, .25, .25), J ) ;
-		Jinv.resize(cachedGaussPoints.gaussPoints.size(),J) ;
+		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
 	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	
@@ -2739,7 +2739,7 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 	return mother ;
 }
 
-Vector DelaunayTetrahedron::getNonLinearForces() const
+Vector DelaunayTetrahedron::getNonLinearForces()
 {
 	std::vector<size_t> dofs = getDofIds() ;
 	Vector forces(dofs.size()*3) ;
@@ -2791,7 +2791,7 @@ Vector DelaunayTetrahedron::getNonLinearForces() const
 	return forces ;
 }
 
-Vector DelaunayTetrahedron::getForces() const
+Vector DelaunayTetrahedron::getForces()
 {
 	std::vector<size_t> dofs = getDofIds() ;
 	Vector forces(dofs.size()*3) ;
@@ -2930,7 +2930,7 @@ std::vector<Point *> DelaunayTetrahedron::getIntegrationHints() const
 }
 
 
-GaussPointArray DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
+const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 {
 	if(!enrichmentUpdated)
 		return cachedGaussPoints ;
@@ -2982,7 +2982,8 @@ GaussPointArray DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
 			gp.id = -1 ;
 		}
 		std::cout << "." << std::flush ;
-		return gp ;
+		cachedGaussPoints = gp ;
+		return cachedGaussPoints ;
 
 		DelaunayTree3D * dt = new DelaunayTree3D(to_add[0], to_add[1], to_add[2], to_add[3]) ;
 		if(to_add.size() > 5)
@@ -3174,7 +3175,8 @@ GaussPointArray DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
 		}
 	}
 // 	std::cout << gp.gaussPoints.size() << std::endl ;
-	return gp ;
+	cachedGaussPoints = gp ;
+	return cachedGaussPoints ;
 }
 
 void DelaunayTree3D::setElementOrder(Order elemOrder)

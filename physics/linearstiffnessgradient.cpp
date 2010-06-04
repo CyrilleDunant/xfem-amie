@@ -40,23 +40,6 @@ void LinearStiffnessGradient::transform(const Function & x, const Function & y)
 	s = .5 + f_sqrt(2.-(2./t)*l*l) ;
 }
 
-Matrix LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	VirtualMachine vm ;
-	
-	FunctionMatrix C(3,3) ;
-
-	for(size_t i = 0 ; i < 3 ; i++)
-	{
-		for(size_t j = 0 ; j < 3 ; j++)
-		{
-			C[i][j] = s*paramAlt[i][j] - (s-1.)*param[i][j];
-		}
-	}
-	
-	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), e,v) ;
-}
-
 bool LinearStiffnessGradient::fractured() const
 {
 	return false ;
@@ -100,6 +83,3 @@ Form * LinearStiffnessGradient::getCopy() const
 	return new LinearStiffnessGradient(*this) ;
 }
 
-void LinearStiffnessGradient::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-}

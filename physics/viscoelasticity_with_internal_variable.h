@@ -32,14 +32,12 @@ struct ViscoElasticity: public LinearForm
 	ViscoElasticity( double _tau_k, double _tau_g, Vector g, Vector k);
 	
 	virtual ~ViscoElasticity() ;
-	
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
-	
+		
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
 	/** \todo remove usage of previousState. complement state instead*/
 	virtual void step(double timestep, ElementState & currentState);
 	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const;
-	
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	virtual bool hasInducedForces();
 	
 	virtual Form * getCopy() const ;

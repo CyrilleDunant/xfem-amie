@@ -25,11 +25,6 @@ Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.num
 
 Stiffness::~Stiffness() { } ;
 
-Matrix Stiffness::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
-
 void Stiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 // std::cout << "a--" << std::endl ;
@@ -47,10 +42,6 @@ bool Stiffness::fractured() const
 Form * Stiffness::getCopy() const 
 {
 	return new Stiffness(*this) ;
-}
-
-void Stiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }
 
 Material Stiffness::toMaterial()
@@ -83,10 +74,6 @@ void PseudoPlastic::fixLastDamage()
 
 PseudoPlastic::~PseudoPlastic() { } ;
 
-Matrix PseudoPlastic::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * (param*alpha) * Gradient(p_j, true), e,v) ;
-}
 
 void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
@@ -164,10 +151,6 @@ bool PseudoPlastic::fractured() const
 Form * PseudoPlastic::getCopy() const 
 {
 	return new PseudoPlastic(*this) ;
-}
-
-void PseudoPlastic::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }
 
 

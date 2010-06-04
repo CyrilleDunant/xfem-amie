@@ -42,13 +42,6 @@ MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTr
 	homogenize() ;
 }
 
-/** \brief Apply the law.
-* The apparent stifness tensor is computed from a self-consistent scheme applied on the submesh.
-*/
-Matrix MultipleAggregatingDiscontinuities::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 /** \brief Apply the law.
 	*
@@ -235,3 +228,13 @@ void MultipleAggregatingDiscontinuities::homogenize()
 	
 }
 
+std::vector<BoundaryCondition * > MultipleAggregatingDiscontinuities::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	std::vector<BoundaryCondition * > ret ;
+	if(self2d)
+		ret.push_back(new ElementDefinedBoundaryCondition(self2d));
+	else
+		ret.push_back(new ElementDefinedBoundaryCondition(self3d));
+	
+	return ret ;
+}

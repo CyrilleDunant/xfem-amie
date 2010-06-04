@@ -44,26 +44,7 @@ void RadialStiffnessGradient::transform(const Function & x, const Function & y)
 	r.compile() ;
 }
 
-Matrix RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	VirtualMachine vm ;
-	
-	FunctionMatrix C(3,3) ;
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
 
-	for(size_t i = 0 ; i < 3 ; i++)
-	{
-		for(size_t j = 0 ; j < 3 ; j++)
-		{
-// 				double val =  (paramAlt[i][j] - param[i][j])/dr ;
-			C[i][j] = ((r-r_int)/dr)*paramAlt[i][j] - ((r-r_ext)/dr)*param[i][j];
-		}
-	}
-	
-	return vm.ieval(Gradient(p_i) * C * Gradient(p_j, true), e,v) ;
-}
 
 void RadialStiffnessGradient::stepBack()
 {
@@ -182,8 +163,4 @@ void RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j, 
 Form * RadialStiffnessGradient::getCopy() const 
 {
 	return new RadialStiffnessGradient(*this) ;
-}
-
-void RadialStiffnessGradient::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }

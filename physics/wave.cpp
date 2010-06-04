@@ -26,15 +26,6 @@ Wave::Wave(const Matrix & rig) : LinearForm(rig, false, false, 1)
 
 Wave::~Wave() { } ;
 
-Matrix Wave::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	Matrix ret(1,1) ;
-	
-	ret[0][0] = VirtualMachine().ieval(Differential(p_i, TIME_VARIABLE)*Differential(p_j, TIME_VARIABLE), e,v) 
-		- VirtualMachine().ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true), e, v) ;
-	return ret ;
-}
-
 void Wave::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
 
@@ -51,9 +42,5 @@ bool Wave::fractured() const
 Form * Wave::getCopy() const 
 {
 	return new Wave(*this) ;
-}
-
-void Wave::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }
 

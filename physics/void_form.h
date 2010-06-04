@@ -26,10 +26,7 @@ namespace Mu
 		VoidForm() ;
 		
 		Matrix constant ;
-		
-		/** \brief Return a null-matrix*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j,const IntegrableEntity *e)  const ;
-		
+
 		/** \brief Return a null Matrix*/
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine *vm) const ;
 		
@@ -50,10 +47,7 @@ namespace Mu
 		
 		/** \brief return another void form*/
 		virtual Form * getCopy() const ;
-		
-		/** \brief return an empty Vector*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-		
+
 	} ;
 
 

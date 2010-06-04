@@ -7,6 +7,7 @@
 #include "twod_cohesive_force.h"
 #include "../mesher/delaunay.h" 
 #include "../polynomial/vm_base.h" 
+#include "../features/boundarycondition.h"
 
 using namespace Mu ;
 
@@ -35,11 +36,6 @@ Form * TwoDCohesiveForces::getCopy() const
 
 TwoDCohesiveForces::~TwoDCohesiveForces() { } ;
 
-Matrix TwoDCohesiveForces::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return Matrix() ;
-}
-	
 void TwoDCohesiveForces::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
 }
@@ -99,6 +95,65 @@ void TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i,
 	}
 	
 
+}
+
+std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	
+
+	Vector 	f(2, 0.) ;
+	bool enrichedDof = !(p_i.getDofID() == -1) ;
+	
+	if(!enrichedDof)
+		return ;
+	
+
+	Vector apparentStress = source->getState().getNonEnrichedStress(gp.gaussPoints,Jinv) ; 
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		if(enrichedDof)
+		{
+			Vector stress(3) ;
+			for(size_t j = 0 ; j < 3 ; j++)
+				stress[j] = apparentStress[i*3+j] ;
+			std::vector<Variable> v ;
+			v.push_back(XI);
+			v.push_back(ETA);
+			
+			Matrix grad (VirtualMachine().geval(p_i, Jinv[i],v, gp.gaussPoints[i].first, true)) ;
+			Vector force = (Vector)(grad*stress) ;
+				
+			double normalAmplitude = force[0]*normals[0].x + force[1]*normals[0].y;
+			double tangeantAmplitude = -force[0]*normals[0].y + force[1]*normals[0].x;
+				
+			Vector normalForce(2) ;
+			normalForce[0] = normals[0].x*normalAmplitude ;
+			normalForce[1] = normals[0].y*normalAmplitude ;
+				
+			Vector tangeantForce(2) ;
+			tangeantForce[0] = -normals[0].y*tangeantAmplitude ;
+			tangeantForce[1] = normals[0].x*tangeantAmplitude ;
+
+			f += normalForce*gp.gaussPoints[i].second ;
+			f += tangeantForce*gp.gaussPoints[i].second ;
+			
+		}
+
+	}
+	
+	std::vector<BoundaryCondition * > ret ;
+	if(f.size() == 2)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[1]));
+	}
+	if(f.size() == 3)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[2]));
+	}
+	return ret ;
 }
 	
 void TwoDCohesiveForces::step(double timestep, ElementState & s) 

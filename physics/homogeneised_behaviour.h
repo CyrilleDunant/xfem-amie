@@ -52,14 +52,6 @@ namespace Mu
 		virtual ~HomogeneisedBehaviour() ;
 		
 		/** \brief Apply the law.
-		* 
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @return symbolic matrix resulting of \f$ \nabla H^T K \nabla H \f$.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const; 
-		
-		/** \brief Apply the law.
 		 *
 		 * The matrix is computed as: \f$ \nabla^T h_i K \nabla h_j \f$
 		 * @param p_i first basis polynomial.
@@ -79,10 +71,7 @@ namespace Mu
 
 		/** \brief Homogenizes the elastic behaviour*/
 		void homogenize() ;
-		
-		/** \brief Return a 0-length Vector*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-		
+
 		virtual void step(double timestep, ElementState & currentState) ;
 		virtual void stepBack() ;
 		

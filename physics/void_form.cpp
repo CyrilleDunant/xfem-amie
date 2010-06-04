@@ -22,13 +22,6 @@ VoidForm::VoidForm() : LinearForm(Matrix(1,1),false, false, 0 )
 	this->time_d = false ;
 }
 
-Matrix VoidForm::apply(const Function & p_i, const Function & p_j,const IntegrableEntity *e)  const
-{
-	
-	Matrix ret ;
-	return ret ; 
-}
-
 void VoidForm::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 }
@@ -53,9 +46,5 @@ VoidForm::~VoidForm() { } ;
 Form * VoidForm::getCopy() const 
 {
 	return new VoidForm(*this) ;
-}
-
-void VoidForm::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }
 

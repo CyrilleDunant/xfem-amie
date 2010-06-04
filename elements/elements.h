@@ -51,7 +51,6 @@ protected:
 	Form * behaviour ;
 	NonLinearForm * nonlinbehaviour ;
 	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
-	GaussPointArray cachedGaussPoints ;
 	Vector cachedForces ;
 
 public:
@@ -126,7 +125,8 @@ class TriElement : public Triangle, public ElementarySurface
 	
 protected :
 	
-	GaussPointArray genGaussPoints() const;
+	GaussPointArray cachedGaussPoints ;
+	const GaussPointArray & genGaussPoints();
 	virtual void computeCenter();
 	
 public:
@@ -150,7 +150,7 @@ public:
 	
 	void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
 	
-	GaussPointArray getGaussPoints() const;
+	const GaussPointArray & getGaussPoints();
 	
 	virtual bool isMoved() const;
 	
@@ -174,14 +174,13 @@ protected:
 	std::valarray< Function > *shapefunc ;
 	std::vector< Function> enrichfunc ;
 	std::vector<Geometry *> enrichmentSource ;
-	virtual GaussPointArray genGaussPoints() const = 0 ;
+	virtual const GaussPointArray & genGaussPoints()= 0 ;
 	Form * behaviour ;
 	Order order ;
 	NonLinearForm * nonlinbehaviour ;
 	
 	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
 	Vector cachedForces ;
-	GaussPointArray cachedGaussPoints ;
 
 public:
 
@@ -198,7 +197,8 @@ public:
 	virtual const std::vector< size_t > getDofIds() const ;
 	virtual void clearElementaryMatrix() { } ;
 	virtual void print()  const = 0 ;
-	virtual GaussPointArray getGaussPoints() const { return genGaussPoints() ;}
+	virtual const GaussPointArray & getGaussPoints() = 0 ;
+
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() = 0;
 	virtual Form * getBehaviour() const ;
 	virtual void setBehaviour(Form *);
@@ -255,7 +255,8 @@ public:
 class TetrahedralElement : public Tetrahedron,  public ElementaryVolume
 {
 protected :
-	GaussPointArray genGaussPoints() const;
+	GaussPointArray cachedGaussPoints ;
+	const GaussPointArray & genGaussPoints();
 	virtual void computeCenter();
 public:
 	bool moved;
@@ -284,13 +285,22 @@ public:
 	
     virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;};
     virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
+	
+	virtual const GaussPointArray & getGaussPoints()
+	{ 
+		if(cachedGaussPoints.gaussPoints.size() == 0)
+			return genGaussPoints() ;
+		else
+			return cachedGaussPoints ;
+	}
 
 } ;
 
 class HexahedralElement : public Hexahedron,  public ElementaryVolume
 {
 protected :
-	GaussPointArray genGaussPoints() const;
+	GaussPointArray cachedGaussPoints ;
+	const GaussPointArray & genGaussPoints() ;
 	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
 	virtual void computeCenter();
 public:
@@ -302,9 +312,15 @@ public:
 	HexahedralElement(HexahedralElement * parent,Hexahedron * t);
 
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
-
-	virtual Vector getForces() const ;
-
+	
+	virtual Vector getForces() ;
+	const GaussPointArray & getGaussPoints()
+	{
+		if(cachedGaussPoints.gaussPoints.size() == 0)
+			return genGaussPoints() ;
+		else
+			return cachedGaussPoints ;
+	}
 	void refresh(const HexahedralElement * parent);
 	virtual void print()  const;
 	virtual Point inLocalCoordinates(const Point & p) const ;

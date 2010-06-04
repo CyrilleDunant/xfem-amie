@@ -62,15 +62,6 @@ public:
 	 */
 	virtual void transform(const Function & x, const Function & y);
 	
-	/** \brief Apply the behaviour.
-	*
-		* The stiffness matrix is recomputed for each Gauss point using linear interpolation
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @param e IntegrableEntity on which to perform the integration.
-	 */
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
-	
 	/** \brief Return the stifness tensor at the point considered
 	*
 		* The stiffness matrix is recomputed for each Gauss point using linear interpolation
@@ -101,9 +92,7 @@ public:
 	 * @return pointer to the copy. Caller is responsible fior cleaning memory
 	 */
 	virtual Form * getCopy() const ;
-	
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-	
+		
 	/** \brief Check for fracture
 	* @param timestep elapsed time
 	* @param currentState state of the element

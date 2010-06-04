@@ -676,7 +676,7 @@ double VirtualMachine::ieval(const Function &f, const GaussPointArray &gp)
 	return ret ;
 }
 
-double VirtualMachine::ieval(const Function &f, const IntegrableEntity *e)
+double VirtualMachine::ieval(const Function &f, IntegrableEntity *e)
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
@@ -703,7 +703,7 @@ double VirtualMachine::ieval(const Function &f, const std::vector<std::pair<Segm
 }
 
 
-double VirtualMachine::ieval(Vector &f, const IntegrableEntity *e)
+double VirtualMachine::ieval(Vector &f, IntegrableEntity *e)
 {
 	GaussPointArray gp = e->getGaussPoints() ;
 	double ret = 0 ;
@@ -713,7 +713,7 @@ double VirtualMachine::ieval(Vector &f, const IntegrableEntity *e)
 	return ret ;
 }
 
-Matrix VirtualMachine::ieval(const FunctionMatrix &f, const IntegrableEntity *e)
+Matrix VirtualMachine::ieval(const FunctionMatrix &f, IntegrableEntity *e)
 {
 
 	Matrix ret(f.numRows(), f.numCols()) ;
@@ -729,7 +729,7 @@ Matrix VirtualMachine::ieval(const FunctionMatrix &f, const IntegrableEntity *e)
 	return ret ;
 }
 
-Matrix VirtualMachine::ieval(const FMtMtFM &f, const IntegrableEntity *e)
+Matrix VirtualMachine::ieval(const FMtMtFM &f, IntegrableEntity *e)
 {
 	Matrix a(ieval(f.first, e)) ;
 	
@@ -739,13 +739,13 @@ Matrix VirtualMachine::ieval(const FMtMtFM &f, const IntegrableEntity *e)
 }
 
 
-Matrix VirtualMachine::geval(const Function &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y, const double z, const double t, bool transpose)
+Matrix VirtualMachine::geval(const Function &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y, const double z, const double t, bool transpose)
 {
 	Matrix Jinv ; e->getInverseJacobianMatrix(Point(x,y,z,t), Jinv) ;
 	return geval(f, Jinv, vars, x, y, z,t, transpose) ;
 }
 
-Matrix VirtualMachine::geval(const Gradient &f, const IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double  y, const double z, const double t)
+Matrix VirtualMachine::geval(const Gradient &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double  y, const double z, const double t)
 {
 	return geval(f.f, e,vars, x, y, z,t, f.transpose) ;
 }
@@ -1727,13 +1727,13 @@ Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::ve
 	return Matrix(0,0) ;
 }
 
-Matrix VirtualMachine::gveval(const Function &f, const IntegrableEntity *e, const std::vector<Variable> & var, const double x, const double y, const double z, const double t, bool transpose)
+Matrix VirtualMachine::gveval(const Function &f, IntegrableEntity *e, const std::vector<Variable> & var, const double x, const double y, const double z, const double t, bool transpose)
 {
 	Matrix Jinv ;e->getInverseJacobianMatrix(Point(x,y,z,t), Jinv) ;
 	return gveval(f, Jinv, var, x, y, z,t , transpose) ;
 }
 
-Matrix VirtualMachine::gveval(const VectorGradient &f, const IntegrableEntity *e, const std::vector<Variable> & var, const double x, const double  y, const double z, const double t)
+Matrix VirtualMachine::gveval(const VectorGradient &f, IntegrableEntity *e, const std::vector<Variable> & var, const double x, const double  y, const double z, const double t)
 {
 	return gveval(f.f, e,var, x, y, z,t, f.transpose) ;
 }
@@ -1858,7 +1858,7 @@ Matrix VirtualMachine::gveval(const VectorGradient &f, const Matrix & m, const s
 }
 
 
-Matrix VirtualMachine::ieval(const GtM &f, const IntegrableEntity *e, const std::vector<Variable> & var)
+Matrix VirtualMachine::ieval(const GtM &f, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
@@ -1871,7 +1871,7 @@ Matrix VirtualMachine::ieval(const GtM &f, const IntegrableEntity *e, const std:
 	return B*f.second ;
 }
 
-Matrix VirtualMachine::ieval(const VGtM &f, const IntegrableEntity *e, const std::vector<Variable> & var)
+Matrix VirtualMachine::ieval(const VGtM &f, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
@@ -1886,7 +1886,7 @@ Matrix VirtualMachine::ieval(const VGtM &f, const IntegrableEntity *e, const std
 
 
 
-Matrix VirtualMachine::ieval(const GtMtG &f, const IntegrableEntity *e, const std::vector<Variable> & var)
+Matrix VirtualMachine::ieval(const GtMtG &f, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
@@ -1900,7 +1900,7 @@ Matrix VirtualMachine::ieval(const GtMtG &f, const IntegrableEntity *e, const st
 
 }
 
-double VirtualMachine::ieval(const VGtMtVG &f, const IntegrableEntity *e, const std::vector<Variable> & var)
+double VirtualMachine::ieval(const VGtMtVG &f, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
@@ -1953,7 +1953,7 @@ void VirtualMachine::ieval(const GtMtG &f, const GaussPointArray &gp, const std:
 }
 
 
-Matrix VirtualMachine::ieval( const DtGtMtG & d, const IntegrableEntity *e, const std::vector<Variable> & var)
+Matrix VirtualMachine::ieval( const DtGtMtG & d, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 	GaussPointArray gp = e->getGaussPoints() ;
 	std::valarray<Matrix> Jinv(Matrix(), gp.gaussPoints.size()) ;
@@ -2099,7 +2099,7 @@ Matrix VirtualMachine::ieval(const GDtMtG & f, const GaussPointArray &gp, const 
 	return ret ;
 }
 
-Matrix VirtualMachine::ieval(const GDtMtG & f, const IntegrableEntity * e , const std::vector<Variable> & vars)
+Matrix VirtualMachine::ieval(const GDtMtG & f, IntegrableEntity * e , const std::vector<Variable> & vars)
 {
 	GaussPointArray gp = e->getGaussPoints() ;
 	std::valarray<Matrix> Jinv(Matrix(), gp.gaussPoints.size()) ;
@@ -2151,7 +2151,7 @@ Matrix VirtualMachine::ieval(const GtMtGD & f, const GaussPointArray &gp, const 
 }
 
 
-Matrix VirtualMachine::ieval(const GtMtGD & f, const IntegrableEntity * e , const std::vector<Variable> & vars)
+Matrix VirtualMachine::ieval(const GtMtGD & f, IntegrableEntity * e , const std::vector<Variable> & vars)
 {
 	GaussPointArray gp = e->getGaussPoints() ;
 	std::valarray<Matrix> Jinv(Matrix(), gp.gaussPoints.size()) ;
@@ -2261,7 +2261,7 @@ double VirtualMachine::ieval(const VGtV &f, const GaussPointArray &gp, const std
 	return ret ;
 }
 
-std::vector<Point> VirtualMachine::allHints(const Function &f0, const Function &f1,const IntegrableEntity *e )
+std::vector<Point> VirtualMachine::allHints(const Function &f0, const Function &f1,IntegrableEntity *e )
 {
 	std::vector<Point> hints(0) ;
 	
@@ -2294,7 +2294,7 @@ std::vector<Point> VirtualMachine::allHints(const Function &f0, const Function &
 	return hints ;
 }
 
-std::vector<Point> VirtualMachine::allHints(const Function &f0,const IntegrableEntity *e )
+std::vector<Point> VirtualMachine::allHints(const Function &f0,IntegrableEntity *e )
 {
 	std::vector<Point> hints(0) ;
 	
@@ -2321,7 +2321,7 @@ std::vector<Point> VirtualMachine::allHints(const Function &f0,const IntegrableE
 	return hints ;
 }
 
-Matrix VirtualMachine::ieval(const GtFMtG &f, const IntegrableEntity *e, const std::vector<Variable> & var)
+Matrix VirtualMachine::ieval(const GtFMtG &f, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
@@ -2452,7 +2452,7 @@ double VirtualMachine::ieval(const DtD & d, const GaussPointArray &gp, const std
 
 }
 
-double VirtualMachine::ieval(const Differential & d, const IntegrableEntity *e, const std::vector<Variable> & var)
+double VirtualMachine::ieval(const Differential & d, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 	GaussPointArray gp = e->getGaussPoints() ;
 	double ret = 0 ;
@@ -2479,7 +2479,7 @@ double VirtualMachine::ieval(const Differential & d, const IntegrableEntity *e, 
 	return ret ;
 }
 
-double VirtualMachine::ieval(const DtF & d, const IntegrableEntity *e, const std::vector<Variable> & var)
+double VirtualMachine::ieval(const DtF & d, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 	GaussPointArray gp = e->getGaussPoints() ;
 	
@@ -2509,7 +2509,7 @@ double VirtualMachine::ieval(const DtF & d, const IntegrableEntity *e, const std
 	
 }
 
-double VirtualMachine::ieval(const DtD & d, const IntegrableEntity *e, const std::vector<Variable> & var)
+double VirtualMachine::ieval(const DtD & d, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 	GaussPointArray gp = e->getGaussPoints() ;
 	

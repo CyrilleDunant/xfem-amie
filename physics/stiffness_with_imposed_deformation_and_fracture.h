@@ -53,14 +53,6 @@ namespace Mu
 		
 		virtual ~StiffnessWithImposedDeformationAndFracture() ;
 		
-		/** \brief Apply the law.
-		* 
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @return symbolic matrix resulting of \f$ \nabla H^T K \nabla H \f$.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
-		
 		/** Apply the law.
 		* @param p_i first basis polynomial.
 		* @param p_j second basis polynomial.
@@ -94,7 +86,9 @@ namespace Mu
 		* @return \f$ \int\nabla^T p_i K \varepsilon_{imposed} \f$ 
 		*/
 		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-
+		
+		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+		
 		/** \brief Acessor, return the stifness criterion in use*/
 		virtual FractureCriterion * getFractureCriterion() const ;
 

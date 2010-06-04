@@ -95,61 +95,6 @@ void NonLinearStiffness::setParent(IntegrableEntity * p)
 	parent = p;
 }
 
-Matrix NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	VirtualMachine vm ;
-	GaussPointArray gp = e->getGaussPoints() ;
-	std::valarray<Point> pts(gp.gaussPoints.size()) ;
-	for(size_t i = 0; i < gp.gaussPoints.size() ; i++)
-		pts[i] = gp.gaussPoints[i].first ;
-	double E_ = 0;
-
-	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-	{
-		Vector displacements = e->getState().getDisplacements( pts) ;
-
-		Matrix m0(3,3) ;
-		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-			E_ += vm.eval(E, displacements[i*2],displacements[i*2+1])*gp.gaussPoints[i].second ;
-		
-		m0[0][0] = E_/(1-nu*nu) ; m0[0][1] =E_/(1-nu*nu)*nu ; m0[0][2] = 0 ;
-		m0[1][0] = E_/(1-nu*nu)*nu ; m0[1][1] = E_/(1-nu*nu) ; m0[1][2] = 0 ; 
-		m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E_/(1-nu*nu)*(1.-nu)/2. ; 
-
-		std::vector<Variable> v ;
-		v.push_back(XI);
-		v.push_back(ETA);
-		
-		return vm.ieval(Gradient(p_i) * m0 * Gradient(p_j, true), e,v) ;
-	}
-
-	Vector displacements3d = e->getState().getDisplacements( pts) ;
-
-
-	Matrix m1(6,6) ;
-	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-		E_ += vm.eval(E, displacements3d[i*3],displacements3d[i*3+1],displacements3d[i*3+2])*gp.gaussPoints[i].second ;
-	
-	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
-	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
-	m1[2][0] = nu ; m1[2][1] = nu ; m1[2][2] = 1. - nu ;
-	m1[3][3] = (0.5 - nu)*.99 ;
-	m1[4][4] = (0.5 - nu)*.99 ;
-	m1[5][5] = (0.5 - nu)*.99 ;
-	m1 *= E_/((1.+nu)*(1.-2.*nu)) ;
-
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	v.push_back(ZETA) ;	
-
-	return vm.ieval(Gradient(p_i) * m1 * Gradient(p_j, true), e,v) ;
-
-
-
-
-}
-
 bool NonLinearStiffness::hasInducedForces() const
 {
 	return true ;

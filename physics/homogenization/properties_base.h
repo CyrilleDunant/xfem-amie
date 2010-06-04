@@ -181,7 +181,7 @@ public:
 	Material operator*(std::string s) ;
 	Material operator+(Material m) ;
 	double operator()(Tag t) {return val(t,-1) ; };
-	double operator()(Tag t, double d) {replace(Properties(t,d)) ; } ;
+	double operator()(Tag t, double d) {replace(Properties(t,d)) ; return val(t,-1) ;} ;
 
 	/* \brief prints all the material properties*/
 	void print() ;

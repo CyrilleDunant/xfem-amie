@@ -1569,49 +1569,16 @@ double lly = 0 ;
 
 int main(int argc, char *argv[])
 {
-	Sample sm(0.07, 0.07, 0, 0) ;
-	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
-
-// 	std::vector<double * > val ;
-// 	val.push_back(&llx);
-// 	val.push_back(&lly);
-// 	std::vector<std::pair<double, double> > bounds ;
-// 	bounds.push_back(std::make_pair(-2, 2)) ;
-// 	bounds.push_back(std::make_pair(-2, 2)) ;
-// 	GeneticAlgorithmOptimizer ga(val, bounds, simpleObjective) ;
-// 	std::cout << ga.lowLevelOptimize(1e-12, 10000, 1000) << std::endl ;
-// 	std::cout << ga.getValues()[0].first << " " << ga.getValues()[0].second <<std::endl ;
-// 	std::cout << ga.getValues()[1].first << " " << ga.getValues()[1].second <<std::endl ;
-
-// 	std::vector<std::pair<std::string, double> > val;
-// 	val.push_back(std::make_pair("varx", 1.5)) ;
-// 	val.push_back(std::make_pair("vary", 1.2)) ;
-// 	std::vector<std::pair<double, double> > bounds ;
-// 	bounds.push_back(std::make_pair(-2, 2)) ;
-// 	bounds.push_back(std::make_pair(-2, 2)) ;
-// 	Function test("1 varx - 2 ^ vary varx 2 ^ - 2 ^ 100 * +") ;
-// 	std::cout << VirtualMachine().eval(test, val) << std::endl;
-// 	
-// 	GeneticAlgorithmOptimizer ga(val, bounds, test) ;
-// 	
-// 	for(double i = 0.1 ; i < 1.2 ; i+= 0.001)
+// 	Sample sm(0.07, 0.07, 0, 0) ;
+// 	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
+// 	for(int i = 0 ; i < incs.size() ; i++)
 // 	{
-// 		std::cout << i << "  ";
-// 		ga.optimize(1e-12, 10000, 1000, .1, i) ;
+// 		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
+// 		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.07);
+// 		incs[i]->setCenter(incs[i]->getCenter()* 500./0.07)  ;
+// 		F.addFeature(&sample, incs[i]);
 // 	}
-// 	
-// 	std::cout << ga.optimize(1e-12, 10000, 1000) << std::endl ;
-// 	std::cout << ga.getValues()[0].first << " " << ga.getValues()[0].second <<std::endl ;
-// 	std::cout << ga.getValues()[1].first << " " << ga.getValues()[1].second <<std::endl ;
 
-// 	Function test("toto 2 + tata +") ;
-// 	VirtualMachine().print(test);
-// 	std::vector<std::pair<std::string, double> > vars ;
-// 	vars.push_back(std::make_pair("toto", 2)) ;
-// 	vars.push_back(std::make_pair("tata", 2)) ;
-// 	std::cout << VirtualMachine().eval(test, vars) << std::endl;
-// 	return 0 ;
-	
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1659,13 +1626,7 @@ int main(int argc, char *argv[])
 	saf->dfunc.setThresholdDamageDensity(tdamage);
 	saf->dfunc.setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
-	for(int i = 0 ; i < incs.size() ; i++)
-	{
-		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
-		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.07);
-		incs[i]->setCenter(incs[i]->getCenter()* 500./0.07)  ;
-		F.addFeature(&sample, incs[i]);
-	}
+
 	
 // 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
@@ -1716,7 +1677,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(1024) ;
+	F.sample(256) ;
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

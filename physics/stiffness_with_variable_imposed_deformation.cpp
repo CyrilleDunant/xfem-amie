@@ -11,6 +11,7 @@
 //
 
 #include "stiffness_with_variable_imposed_deformation.h"
+#include "../features/boundarycondition.h"
 
 using namespace Mu ;
 
@@ -26,10 +27,6 @@ StiffnessWithVariableImposedDeformation::StiffnessWithVariableImposedDeformation
 
 StiffnessWithVariableImposedDeformation::~StiffnessWithVariableImposedDeformation() { } ;
 
-Matrix StiffnessWithVariableImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 void StiffnessWithVariableImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
 	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
@@ -65,5 +62,24 @@ Vector StiffnessWithVariableImposedDeformation::getImposedStress(const Point & p
 void StiffnessWithVariableImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
 	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
+}
+
+std::vector<BoundaryCondition * > StiffnessWithVariableImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	Vector f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
+	
+	std::vector<BoundaryCondition * > ret ;
+	if(f.size() == 2)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[1]));
+	}
+	if(f.size() == 3)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[2]));
+	}
+	return ret ;
 }
 

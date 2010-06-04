@@ -33,15 +33,6 @@ namespace Mu
 		
 		virtual ~Diffusion() ;
 		
-		/** \brief Apply the law.
-		* 
-		* @param p_i first basis function.
-		* @param p_j second basis function.
-		* @param e Element in which to apply the law.
-		* @return matrix resulting of the integration of \f$ \nabla \cdot p_i^T K \nabla \cdot p_j + \dot{p_i}p_j \f$.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const; 
-		
 	 /** \brief Apply the law.
 		 * 
 		 * @param p_i first basis function.
@@ -64,16 +55,6 @@ namespace Mu
 		 * @return a new Diffusion
 		 */
 		virtual Form * getCopy() const ;
-		
-		/** \brief Return an empty Vector
-		 * 
-		 * @param s ElementState
-		 * @param p_i basis function.
-		 * @param gp Gauss points to consider
-		 * @param Jinv Inverse Jacobian Matrices at the Gauss points
-		 * @param v Vector to store the result
-		 */
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
 		virtual Material toMaterial() ;
 

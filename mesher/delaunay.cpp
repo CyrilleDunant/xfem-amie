@@ -2529,17 +2529,17 @@ std::vector<std::vector<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	std::vector<size_t > dofs = getDofIds() ;
 	if(moved)
 	{
-		Jinv.resize(cachedGaussPoints.gaussPoints.size()) ;
-		for(size_t i = 0 ; i < cachedGaussPoints.gaussPoints.size() ;  i++)
+		Jinv.resize(getGaussPoints().gaussPoints.size()) ;
+		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
-			getInverseJacobianMatrix( cachedGaussPoints.gaussPoints[i].first, Jinv[i]) ;
+			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 		}
 	}
 	else
 	{
 		Matrix J ;
 		getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
-		Jinv.resize(cachedGaussPoints.gaussPoints.size(),J) ;
+		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
 	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	
@@ -2761,7 +2761,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 	return to_add ;
 }
 
-GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
+const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 {
 	if(!enrichmentUpdated)
 		return cachedGaussPoints ;
@@ -3010,7 +3010,9 @@ GaussPointArray DelaunayTriangle::getSubTriangulatedGaussPoints() const
 			gp.id = -1 ;
 		}
 	}
-	return gp ;
+	
+	cachedGaussPoints = gp ;
+	return cachedGaussPoints ;
 }
 
 

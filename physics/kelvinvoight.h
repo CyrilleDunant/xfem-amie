@@ -48,16 +48,6 @@ namespace Mu
 		virtual ~KelvinVoight() ;
 		
 		/** \brief Apply the law.
-		* 
-		* This method does not work because some overloaded functions are missing in the VirtualMachine.
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @param e IntegrableEntity on which to perform the integration.
-		* @return Matrix resulting of the integration of \f$ \nabla H^T K \nabla H + \dot{\nabla} H^T E \dot{\nabla} H \f$.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const; 
-		
-		/** \brief Apply the law.
 		 *
 		 * The matrix is computed as: \f$ \nabla^T h_i K \nabla h_j + \dot{\nabla}^T h_i E \dot{\nabla} h_j\f$
 		 * @param p_i first basis polynomial.
@@ -80,16 +70,6 @@ namespace Mu
 		 * @return a new KelvinVoight
 		 */
 		virtual Form * getCopy() const ;
-		
-		/** \brief return induced forces
-		 * 
-		 * @param s ElementState to consider
-		 * @param p_i first basis polynomial.
-		 * @param gp Gauss Points used for the quadrature
-		 * @param Jinv Inverse Jacobian Matrices corresponding to the gauss points
-		 * @param v Vector to store the result
-		 */
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
 		/** \brief return true*/
 		virtual bool changed() const ;

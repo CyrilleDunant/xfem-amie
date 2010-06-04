@@ -7,6 +7,7 @@
 #include "viscoelasticity_with_internal_variable.h"
 #include "../mesher/delaunay.h" 
 #include "../polynomial/vm_base.h" 
+#include "../features/boundarycondition.h"
 
 using namespace Mu ;
 
@@ -49,14 +50,6 @@ ViscoElasticity::ViscoElasticity( double _tau_k, double _tau_g, Vector g, Vector
 	
 ViscoElasticity::~ViscoElasticity() { } ;
 
-Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	v.push_back(ZETA);
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 void ViscoElasticity::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
@@ -222,6 +215,29 @@ void ViscoElasticity::getForces(const ElementState & s, const Function & p_i, co
 	v.push_back(ETA);
 	v.push_back(ZETA);
 	f =  VirtualMachine().ieval(Gradient(p_i, true)*average_delta_sigma, gp, Jinv,v) ;
+}
+
+std::vector<BoundaryCondition * > ViscoElasticity::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	v.push_back(ZETA);
+	Vector 	f =  VirtualMachine().ieval(Gradient(p_i, true)*average_delta_sigma, gp, Jinv,v) ;
+
+	std::vector<BoundaryCondition * > ret ;
+	if(f.size() == 2)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[1]));
+	}
+	if(f.size() == 3)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[2]));
+	}
+	return ret ;
 }
 
 bool ViscoElasticity::hasInducedForces()

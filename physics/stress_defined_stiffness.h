@@ -27,13 +27,11 @@ struct StressDefinedStiffness : public NonLinearStiffness
 	StressDefinedStiffness(Function f, double n, SpaceDimensionality dim) ;
 
 	virtual ~StressDefinedStiffness() ;
-
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
 	
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
 	
 	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-
+	std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	virtual bool isActive() const ;
 	
 	virtual Form * getCopy() const ;

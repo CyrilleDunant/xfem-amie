@@ -35,11 +35,7 @@ Form * TwoDCohesiveForces::getCopy() const
 
 TwoDCohesiveForces::~TwoDCohesiveForces() { } ;
 
-Matrix TwoDCohesiveForces::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return Matrix() ;
-}
-	
+
 void TwoDCohesiveForces::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
 }
@@ -182,14 +178,6 @@ ViscoElasticity::ViscoElasticity( double _tau_k, double _tau_g, Vector g, Vector
 	
 ViscoElasticity::~ViscoElasticity() { } ;
 
-Matrix ViscoElasticity::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	v.push_back(ZETA);
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 void ViscoElasticity::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {

@@ -474,11 +474,17 @@ bool Material::findMissing(Tag t)
 
 bool Material::kill(Tag t)
 {
+	bool ret = false ;
 	for(size_t i = 0 ; i < size() ; i++)
 	{
 		if((*this)[i].is(t))
+		{
+			ret = true ;
 			(*this)[i].kill() ;
+		}
 	}
+	
+	return ret ;
 }
 
 

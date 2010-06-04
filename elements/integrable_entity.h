@@ -11,7 +11,6 @@
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
 #include "../utilities/xml.h"
-// #include "../features/boundarycondition.h"
 #include "../physics/homogenization/properties_base.h"
 
 namespace Mu
@@ -20,6 +19,7 @@ namespace Mu
 class DelaunayTreeItem3D;
 class DelaunayTetrahedron;
 class DelaunayTreeItem;
+class Assembly ;
 
 typedef enum
 {
@@ -322,7 +322,7 @@ protected:
 	
 	Order order ;
 	ElementState state ;
-	
+	std::vector<BoundaryCondition *> boundaryConditionCache ;
 public:
 	bool enrichmentUpdated ;
 	bool behaviourUpdated ;
@@ -333,7 +333,7 @@ public:
 	virtual ~IntegrableEntity() { } ;
 	virtual const Point & getPoint(size_t i) const = 0 ;
 	virtual Point & getPoint(size_t i)  = 0 ;
-	virtual GaussPointArray getGaussPoints() const = 0 ;
+	virtual const GaussPointArray & getGaussPoints() = 0;
 	virtual Point inLocalCoordinates(const Point & p) const  = 0;
 	virtual double area() const { return 0 ; } 
 	virtual double volume() const { return 0 ; } 
@@ -360,6 +360,7 @@ public:
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
 	virtual Vector getForces() = 0 ;
 	virtual Vector getNonLinearForces() = 0 ;
+	virtual void applyBoundaryCondition(Assembly * a) ;
 	
 	virtual bool isMoved() const = 0 ;
 	virtual void print() const = 0;
@@ -396,7 +397,6 @@ public:
 	 * @param e The element in which the integration is performed
 	 * @return The vector of the symbolic matrices at the integration points
 	 */
-	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const = 0;
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
@@ -442,8 +442,8 @@ public:
 	
 	virtual bool fractured() const = 0 ;
 	virtual bool changed() const { return false ; } ;
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & v) const = 0 ;
-	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const { 
+	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & v) const { };
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const { 
 		return  std::vector<BoundaryCondition * >() ;
 	} ;
 	

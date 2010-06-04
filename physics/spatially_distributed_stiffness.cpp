@@ -37,11 +37,6 @@ SpatiallyDistributedStiffness::SpatiallyDistributedStiffness(const Matrix & rig,
 
 SpatiallyDistributedStiffness::~SpatiallyDistributedStiffness() { } ;
 
-Matrix SpatiallyDistributedStiffness::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
-
 void SpatiallyDistributedStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
 	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
@@ -69,11 +64,6 @@ Form * SpatiallyDistributedStiffness::getCopy() const
 	return new Stiffness(newTensor) ;	
 //	return new Stiffness(pore) ;
 //	return new Stiffness(/*pore*(1.-variability)+*/pore/**randomVar*variability*/) ;
-}
-
-
-void SpatiallyDistributedStiffness::getForces(const ElementState & s, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }
 
 void SpatiallyDistributedStiffness::setDistance(double d)

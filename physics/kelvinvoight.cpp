@@ -24,14 +24,6 @@ KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e) : LinearForm(ri
 
 KelvinVoight::~KelvinVoight() { } ;
 
-Matrix KelvinVoight::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	VirtualMachine vm ;
-	return vm.ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) 
-  +     vm.ieval(GradientDot(p_i) * eta * Gradient(p_j, true), e,v)
-  +     vm.ieval(Gradient(p_i) * eta * GradientDot(p_j, true), e,v) ;
-}
-
 void KelvinVoight::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 
@@ -61,7 +53,4 @@ Form * KelvinVoight::getCopy() const
 	return new KelvinVoight(*this) ;
 }
 
-void KelvinVoight::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-}
 

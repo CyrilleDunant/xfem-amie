@@ -11,6 +11,7 @@
 //
 
 #include "stiffness_with_kinetics_imposed_deformation.h"
+#include "../features/boundarycondition.h"
 
 using namespace Mu ;
 
@@ -24,11 +25,6 @@ StiffnessWithKineticsImposedDeformation::StiffnessWithKineticsImposedDeformation
 } ;
 
 StiffnessWithKineticsImposedDeformation::~StiffnessWithKineticsImposedDeformation() { } ;
-
-Matrix StiffnessWithKineticsImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 void StiffnessWithKineticsImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
@@ -69,4 +65,24 @@ void StiffnessWithKineticsImposedDeformation::getForces(const ElementState & s, 
 {
 	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 }
+
+std::vector<BoundaryCondition * > StiffnessWithKineticsImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	Vector f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
+	
+	std::vector<BoundaryCondition * > ret ;
+	if(f.size() == 2)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[1]));
+	}
+	if(f.size() == 3)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[2]));
+	}
+	return ret ;
+}
+
 

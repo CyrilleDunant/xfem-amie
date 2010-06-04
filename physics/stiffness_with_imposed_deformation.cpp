@@ -11,6 +11,7 @@
 //
 
 #include "stiffness_with_imposed_deformation.h"
+#include "../features/boundarycondition.h"
 
 using namespace Mu ;
 
@@ -24,11 +25,6 @@ StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & 
 } ;
 
 StiffnessWithImposedDeformation::~StiffnessWithImposedDeformation() { } ;
-
-Matrix StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 void StiffnessWithImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
@@ -58,5 +54,18 @@ Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p) const
 void StiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
 	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
+}
+
+std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	Vector f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
+	
+	std::vector<BoundaryCondition * > ret ;
+		std::vector<Variable> v ;
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(num_dof == 3)
+		v.push_back(ZETA) ;
+	return ret ;
 }
 

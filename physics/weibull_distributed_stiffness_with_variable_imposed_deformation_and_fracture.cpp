@@ -11,6 +11,7 @@
 //
 
 #include "weibull_distributed_stiffness_with_variable_imposed_deformation_and_fracture.h"
+#include "../features/boundarycondition.h"
 
 using namespace Mu ;
 
@@ -29,18 +30,6 @@ WeibullStiffnessWithVariableImposedDeformationAndFracture::WeibullStiffnessWithV
 } ;
 
 WeibullStiffnessWithVariableImposedDeformationAndFracture::~WeibullStiffnessWithVariableImposedDeformationAndFracture() { } ;
-
-Matrix WeibullStiffnessWithVariableImposedDeformationAndFracture::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() == 36)
-		v.push_back(ZETA);
-	
-	
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 void WeibullStiffnessWithVariableImposedDeformationAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
@@ -153,5 +142,24 @@ Form * WeibullStiffnessWithVariableImposedDeformationAndFracture::getCopy() cons
 void WeibullStiffnessWithVariableImposedDeformationAndFracture::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
 	f = VirtualMachine().ieval(Gradient(p_i) * ( (param * damage) * imposed), gp, Jinv,v) ;
+}
+
+std::vector<BoundaryCondition * > WeibullStiffnessWithVariableImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	Vector f = VirtualMachine().ieval(Gradient(p_i) * ( (param * damage) * imposed), gp, Jinv,v) ;
+	
+	std::vector<BoundaryCondition * > ret ;
+	if(f.size() == 2)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[1]));
+	}
+	if(f.size() == 3)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[2]));
+	}
+	return ret ;
 }
 

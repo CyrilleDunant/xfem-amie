@@ -185,10 +185,10 @@ public:
 	std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
 	void clearElementaryMatrix() ;
 	std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  ;
-	Vector getForces() const ;
-	Vector getNonLinearForces() const ;
+	Vector getForces() ;
+	Vector getNonLinearForces()  ;
 	
-	GaussPointArray getSubTriangulatedGaussPoints() const ;
+	const GaussPointArray & getSubTriangulatedGaussPoints()  ;
 	
 	std::valarray<unsigned int> neighbourhood ;
 	DelaunayTetrahedron * getNeighbourhood(size_t i) const ;

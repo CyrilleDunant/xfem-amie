@@ -29,10 +29,17 @@ ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition(ElementaryVolum
 {
 } 
 
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface , size_t id, double d ) : BoundaryCondition(t, d), id(id), surface(surface), volume(NULL)
+{
+	
+}
 
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface , size_t id, double d ) : BoundaryCondition(t, d), id(id), surface(NULL), volume(volume)
+{
+	
+}
 
-
-void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
+void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
 	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
 		return ;
@@ -44,22 +51,22 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				std::cout << "I don't know how to form a General Lagrange Multiplier from the data" << std::endl ;
 				break ;
 			case FIX_ALONG_XI:
-				a->setPointAlong(XI, 0, id[i].id) ;
+				a->setPointAlong(XI, 0, id[i]) ;
 				break ;
 			case SET_ALONG_XI:
-				a->setPointAlong(XI, data, id[i].id) ;
+				a->setPointAlong(XI, data, id[i]) ;
 				break ;
 			case FIX_ALONG_ETA:
-				a->setPointAlong(ETA, 0, id[i].id) ;
+				a->setPointAlong(ETA, 0, id[i]) ;
 				break ;
 			case SET_ALONG_ETA:
-				a->setPointAlong(ETA, data, id[i].id) ;
+				a->setPointAlong(ETA, data, id[i]) ;
 				break ;
 			case SET_FORCE_XI:
-				a->setForceOn(XI, data, id[i].id) ;
+				a->setForceOn(XI, data, id[i]) ;
 				break ;
 			case SET_FORCE_ETA:
-				a->setForceOn(ETA, data, id[i].id) ;
+				a->setForceOn(ETA, data, id[i]) ;
 				break ;
 			case SET_STRESS_XI:
 			{
@@ -68,7 +75,7 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -78,18 +85,17 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				imposed[0] = data ;
 				imposed[1] = 0 ;
 				imposed[2] = 0 ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
 				return ;
 			}
@@ -100,7 +106,7 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -110,18 +116,17 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				imposed[0] = 0 ;
 				imposed[1] = data ;
 				imposed[2] = 0 ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
 				return ;
 			}
@@ -132,7 +137,7 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -142,18 +147,17 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
 				imposed[2] = data ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
 				return ;
 			}
@@ -163,7 +167,7 @@ void apply2DBC(ElementarySurface *e,  std::vector<Point> & id, LagrangeMultiplie
 	}
 }
 
-void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
+void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
 	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
 		return ;
@@ -175,31 +179,31 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				std::cout << "I don't know how to form a General Lagrange Multiplier from the data" << std::endl ;
 				break ;
 			case FIX_ALONG_XI:
-				a->setPointAlong(XI, 0, id[i].id) ;
+				a->setPointAlong(XI, 0, id[i]) ;
 				break ;
 			case SET_ALONG_XI:
-				a->setPointAlong(XI, data, id[i].id) ;
+				a->setPointAlong(XI, data, id[i]) ;
 				break ;
 			case FIX_ALONG_ETA:
-				a->setPointAlong(ETA, 0, id[i].id) ;
+				a->setPointAlong(ETA, 0, id[i]) ;
 				break ;
 			case SET_ALONG_ETA:
-				a->setPointAlong(ETA, data, id[i].id) ;
+				a->setPointAlong(ETA, data, id[i]) ;
 				break ;
 			case FIX_ALONG_ZETA:
-				a->setPointAlong(ZETA, 0, id[i].id) ;
+				a->setPointAlong(ZETA, 0, id[i]) ;
 				break ;
 			case SET_ALONG_ZETA:
-				a->setPointAlong(ZETA, data, id[i].id) ;
+				a->setPointAlong(ZETA, data, id[i]) ;
 				break ;
 			case SET_FORCE_XI:
-				a->setForceOn(XI, data, id[i].id) ;
+				a->setForceOn(XI, data, id[i]) ;
 				break ;
 			case SET_FORCE_ETA:
-				a->setForceOn(ETA, data, id[i].id) ;
+				a->setForceOn(ETA, data, id[i]) ;
 				break ;
 			case SET_FORCE_ZETA:
-				a->setForceOn(ZETA, data, id[i].id) ;
+				a->setForceOn(ZETA, data, id[i]) ;
 				break ;
 			case SET_STRESS_XI:
 			{
@@ -208,7 +212,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -221,19 +225,18 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
-					a->addForceOn(ZETA,forces[2], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
+					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
 				return ;
 			}
@@ -244,7 +247,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -257,19 +260,18 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
-					a->addForceOn(ZETA,forces[2], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
+					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
 				return ;
 			}
@@ -280,7 +282,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -293,19 +295,18 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
-					a->addForceOn(ZETA,forces[2], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
+					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
 				return ;
 			}
@@ -316,7 +317,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -329,19 +330,18 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				imposed[3] = data ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
-					a->addForceOn(ZETA,forces[2], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
+					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
 				return ;
 			}
@@ -352,7 +352,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -365,19 +365,18 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				imposed[3] = 0 ;
 				imposed[4] = data ;
 				imposed[5] = 0 ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
-					a->addForceOn(ZETA,forces[2], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
+					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
 				return ;
 			}
@@ -388,7 +387,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				{
 					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 					{
-						if(id[j].id == e->getBoundingPoint(i).id)
+						if(id[j] == e->getBoundingPoint(i).id)
 							shapeFunctions.push_back(e->getShapeFunction(i)) ;
 					}
 				}
@@ -401,19 +400,18 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = data ;
-				GaussPointArray gp = e->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size()) ;
+				for(size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++)
 				{
-					e->getInverseJacobianMatrix(gp.gaussPoints[i].first, Jinv[i]) ;
+					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
-					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), gp, Jinv, v) ;
-					a->addForceOn(XI,forces[0], id[i].id) ;
-					a->addForceOn(ETA,forces[1], id[i].id) ;
-					a->addForceOn(ZETA,forces[2], id[i].id) ;
+					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i],true) * (imposed), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn(XI,forces[0], id[i]) ;
+					a->addForceOn(ETA,forces[1], id[i]) ;
+					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
 				return ;
 			}
@@ -423,7 +421,39 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 	}
 }
 
-void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
+
+void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
+{
+	std::vector<size_t> ids ;
+	for(size_t i = 0 ; i < id.size() ; i++)
+		ids.push_back(id[i].id);
+	apply2DBC(e, ids, condition, data, a) ;
+}
+
+void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a)
+{
+	std::vector<size_t> ids ;
+	for(size_t i = 0 ; i < id.size() ; i++)
+		ids.push_back(id[i].id);
+	apply3DBC(e, ids, condition, data, a) ;
+}
+
+
+
+void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
+{
+	std::vector<size_t> id_ ;
+	id_.push_back(id);
+	apply2DBC(surface, id_, condition, data, a) ;
+}
+void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
+{
+	std::vector<size_t> id_ ;
+	id_.push_back(id);
+	apply3DBC(volume, id_, condition, data, a) ;
+}
+
+void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
 	if(volume)
 		return ;
@@ -455,7 +485,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle,
 	
 };
 
-void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) const
+void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
 {
 	if(surface)
 		return ;
@@ -488,7 +518,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 
 
 
-void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const 
+void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)  
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	if(elements.empty())
@@ -665,7 +695,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 	}
 }
 
-void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
+void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	if(elements.empty())
@@ -1136,7 +1166,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 
 GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d) : BoundaryCondition(t, d), domain(source) { };
 
-void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	double tol = domain->getRadius()*.0001 ;
@@ -1156,7 +1186,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle
 		apply2DBC(elements[i], id, condition, data, a) ;
 	}
 }
-void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const
+void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double tol = domain->getRadius()*.0001 ;
@@ -1176,7 +1206,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 		apply3DBC(elements[i], id, condition, data, a) ;
 	}
 }
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	if(elements.empty())
@@ -1383,7 +1413,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		}
 	}
 }
-void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
+void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
 	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
 	if(elements.empty())
@@ -1552,7 +1582,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 	}
 }
 
-void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
+void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -2159,7 +2189,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 	}
 }
 
-void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const 
+void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
 	double minx = elements.front()->getBoundingPoint(0).x ;
@@ -2604,7 +2634,7 @@ BoundaryCondition::BoundaryCondition(LagrangeMultiplierType t, const double & d)
 
 ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t, const Point & dir, double d) : BoundaryCondition(t,d), direction(dir) { }
 
-void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) const
+void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
 	std::vector<DelaunayTriangle *> tris = t->getElements() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)
@@ -2655,7 +2685,7 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriang
 	}
 }
 
-void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  const
+void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
 {
 	std::vector<DelaunayTetrahedron *> tris = t->getElements() ;
 	for(size_t i = 0 ; i < tris.size() ; i++)

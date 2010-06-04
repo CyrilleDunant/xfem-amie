@@ -40,98 +40,6 @@ Matrix TrimaterialInterface::getTensor(const Point & p) const
 // 	return vm.eval(C, p.x, p.y) ;
 }
 
-Matrix TrimaterialInterface::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	VirtualMachine vm ;
-	GaussPointArray gp = e->getGaussPoints();
-	bool allin = true ;
-	bool allout = true ;
-	bool allmid = true ;
-	Vector x = vm.eval(xtransform,gp) ;
-	Vector y = vm.eval(ytransform,gp) ;
-	std::valarray<bool> inIn(false, x.size()) ;
-	std::valarray<bool> inMid(false, x.size()) ;
-	int inCount = 0;
-	int midCount = 0;
-	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-	{
-		if(inGeometry->in(Point(x[i],y[i])))
-		{
-			allout = false ;
-			allmid = false ;
-			inIn[i] = true ;
-			inCount++ ;
-		}
-		else if (outGeometry->in(Point(x[i],y[i])))
-		{
-			allout = false ;
-			inMid[i] = true ;
-			midCount++ ;
-		}
-		else
-		{
-			allmid = false ;
-			allin = false ;
-		}
-			
-	}
-	
-	if(allin)
-		return inBehaviour->apply(p_i, p_j, e) ;
-	else if(allout)
-		return outBehaviour->apply(p_i, p_j, e) ;
-	else if(allmid)
-		return midBehaviour->apply(p_i, p_j, e) ;
-
-	std::valarray<Matrix> Jinv(Matrix(), gp.gaussPoints.size()) ;
-	for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
-	{
-		e->getInverseJacobianMatrix( gp.gaussPoints[i].first, Jinv[i] ) ;
-	}
-
-	std::valarray<std::pair<Point, double> > inArray(inCount) ;
-	std::valarray<Matrix> inMatrixArray(inCount) ;
-	std::valarray<std::pair<Point, double> > midArray(midCount) ;
-	std::valarray<Matrix> midMatrixArray(midCount) ;
-	std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount-midCount) ;
-	std::valarray<Matrix> outMatrixArray(gp.gaussPoints.size()-inCount-midCount) ;
-	GaussPointArray gpIn(inArray, -1) ;
-	GaussPointArray gpMid(midArray, -1) ;
-	GaussPointArray gpOut(outArray, -1) ;
-	
-	int outIterator = 0;
-	int inIterator = 0 ;
-	int midIterator = 0 ;
-	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-	{
-		if(inIn[i])
-		{
-			inMatrixArray[inIterator] = Jinv[i] ;
-			gpIn.gaussPoints[inIterator++] = gp.gaussPoints[i] ;
-		}
-		else if(inMid[i])
-		{
-			midMatrixArray[midIterator] = Jinv[i] ;
-			gpMid.gaussPoints[midIterator++] = gp.gaussPoints[i] ;
-		}
-		else
-		{
-			outMatrixArray[outIterator] = Jinv[i] ;
-			gpOut.gaussPoints[outIterator++] = gp.gaussPoints[i] ;
-		}
-	}
-	
-	Matrix retIn(inBehaviour->getNumberOfDegreesOfFreedom(), inBehaviour->getNumberOfDegreesOfFreedom()) ;
-	Matrix retMid(midBehaviour->getNumberOfDegreesOfFreedom(), midBehaviour->getNumberOfDegreesOfFreedom()) ;
-	Matrix retOut(outBehaviour->getNumberOfDegreesOfFreedom(), outBehaviour->getNumberOfDegreesOfFreedom()) ;
-	inBehaviour->apply(p_i, p_j, gpIn, inMatrixArray, retIn, &vm) ;
-	midBehaviour->apply(p_i, p_j, gpMid, midMatrixArray, retMid, &vm) ;
-	outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray, retOut, &vm) ;
-
-	return retIn+retMid+retOut ;
-
-}
-
 Vector TrimaterialInterface::getImposedStress(const Point & p) const
 {
 	if(inGeometry->in(p))
@@ -373,6 +281,76 @@ void TrimaterialInterface::getForces(const ElementState & s, const Function & p_
 		outBehaviour->getForces(s, p_i, gpOut, outMatrixArray, f) ;
 		return ;
 	}
+}
+
+std::vector<BoundaryCondition * > TrimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	std::vector<BoundaryCondition * > ret ;
+
+	Vector x = VirtualMachine().eval(xtransform,gp) ;
+	Vector y = VirtualMachine().eval(ytransform,gp) ;
+	std::valarray<bool> inIn(false, x.size()) ;
+	std::valarray<bool> inMid(false, x.size()) ;
+	int inCount = 0;
+	int midCount = 0;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		Point test(x[i],y[i]) ;
+		if(inGeometry->in(test))
+		{
+			inIn[i] = true ;
+			inCount++ ;
+		}
+		else if (outGeometry->in(test))
+		{
+			inMid[i] = true ;
+			midCount++ ;
+		}
+		
+	}
+
+
+	std::valarray<std::pair<Point, double> > inArray(inCount) ;
+	std::valarray<Matrix> inMatrixArray(inCount) ;
+	std::valarray<std::pair<Point, double> > midArray(midCount) ;
+	std::valarray<Matrix> midMatrixArray(midCount) ;
+	std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount-midCount) ;
+	std::valarray<Matrix> outMatrixArray(gp.gaussPoints.size()-inCount-midCount) ;
+	GaussPointArray gpIn(inArray, -1) ;
+	GaussPointArray gpMid(midArray, -1) ;
+	GaussPointArray gpOut(outArray, -1) ;
+	
+	int outIterator = 0;
+	int inIterator = 0 ;
+	int midIterator = 0 ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		if(inIn[i])
+		{
+			inMatrixArray[inIterator] = Jinv[i] ;
+			gpIn.gaussPoints[inIterator++] = gp.gaussPoints[i] ;
+		}
+		else if(inMid[i])
+		{
+			midMatrixArray[midIterator] = Jinv[i] ;
+			gpMid.gaussPoints[midIterator++] = gp.gaussPoints[i] ;
+		}
+		else
+		{
+			outMatrixArray[outIterator] = Jinv[i] ;
+			gpOut.gaussPoints[outIterator++] = gp.gaussPoints[i] ;
+		}
+	}
+
+
+	std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
+	ret.insert(ret.end(), temp.begin(), temp.end()) ;
+	temp =midBehaviour->getBoundaryConditions(s,id, p_i, gpMid, midMatrixArray) ;
+	ret.insert(ret.end(), temp.begin(), temp.end()) ;
+	temp =outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
+	ret.insert(ret.end(), temp.begin(), temp.end()) ;
+
+	return ret ;
 }
 
 void TrimaterialInterface::step(double timestep, ElementState & currentState)

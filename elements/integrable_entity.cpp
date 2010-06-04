@@ -6,7 +6,8 @@
 
 #include "integrable_entity.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
-
+#include "../solvers/assembly.h"
+#include "../features/boundarycondition.h"
 using namespace Mu ;
 
 const Vector & ElementState::getEnrichedDisplacements() const
@@ -21,6 +22,42 @@ Vector & ElementState::getEnrichedDisplacements()
 
 IntegrableEntity::IntegrableEntity() : state(this)
 {
+	
+}
+
+void IntegrableEntity::applyBoundaryCondition(Assembly * a)
+{
+	if(getBehaviour()->changed())
+	{
+		boundaryConditionCache.clear();
+		std::valarray<Matrix> Jinv(getGaussPoints().gaussPoints.size()) ;
+
+		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
+		{
+			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+		}
+
+		
+		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+		{
+			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getBoundingPoint(i).id,  getShapeFunction(i), getGaussPoints(), Jinv) ;
+			boundaryConditionCache.insert(boundaryConditionCache.end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
+		}
+		
+		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+		{
+			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getEnrichmentFunction(i).getDofID(),  getShapeFunction(i), getGaussPoints(), Jinv) ;
+			boundaryConditionCache.insert(boundaryConditionCache.end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
+		}
+	}
+	
+	for(size_t i = 0 ; i < boundaryConditionCache.size() ; i++)
+	{
+		if(get2DMesh())
+			boundaryConditionCache[i]->apply(a, get2DMesh()) ;
+		else
+			boundaryConditionCache[i]->apply(a, get3DMesh()) ;
+	}
 	
 }
 

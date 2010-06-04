@@ -36,14 +36,6 @@ namespace Mu
 		
 		virtual ~WeibullDistributedStiffness();
 		
-		/** Apply the law.
-		* 
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @return symbolic matrix resulting of \f$ \nabla H^T K \nabla H \f$.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
-		
 	/** \brief Apply the behaviour
 		* This overloaded apply() is more efficient and is designed to minimise allocating and dealocating memory.
 		* This method  is never used, however, because the behaviour only serves as a template for copying
@@ -64,9 +56,6 @@ namespace Mu
 		* The parameters for the copy are determined randomly using a Weibull distribution. As this behaviour is spaceDependant, only the copies are used in elements
 		*/
 		virtual Form * getCopy() const ;
-		
-		/** \brief return an empty Vector*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		
 	} ;
 

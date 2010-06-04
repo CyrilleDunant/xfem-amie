@@ -75,10 +75,6 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 
 HomogeneisedBehaviour::~HomogeneisedBehaviour() { } ;
 
-Matrix HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 void HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
@@ -112,10 +108,6 @@ bool HomogeneisedBehaviour::fractured() const
 Form * HomogeneisedBehaviour::getCopy() const 
 {
 	return new HomogeneisedBehaviour(*this) ;
-}
-
-void HomogeneisedBehaviour::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }
 
 void HomogeneisedBehaviour::homogenize()

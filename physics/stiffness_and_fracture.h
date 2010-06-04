@@ -54,15 +54,6 @@ namespace Mu
 
 		virtual ~StiffnessAndFracture();
 		
-		/** Perform the integration
-		* 
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @param e element in which the integration is done.
-		* @return matrix resulting of \f$ \nabla H^T K \nabla H \f$.
-		*/
-		virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const ;
-		
 		/** Apply the law.
 		* @param p_i first basis polynomial.
 		* @param p_j second basis polynomial.
@@ -108,9 +99,6 @@ namespace Mu
 		* @return pointer to the copy. Caller is responsible for cleaning memory
 		*/
 		virtual Form * getCopy() const ;
-		
-		/** \brief return an empty vector.*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 
 		/** \brief return true if the damage state has been modfied*/
 		virtual bool changed() const ;

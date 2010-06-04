@@ -56,13 +56,6 @@ FractureCriterion * StiffnessAndFracture::getFractureCriterion() const
 	return criterion ;
 }
 
-Matrix StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-
-	VirtualMachine vm ;
-	return vm.ieval(Gradient(p_i) * dfunc.apply(param) * Gradient(p_j, true), e,v) ;
-}
-
 void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
 	vm->ieval(Gradient(p_i) * dfunc.apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
@@ -174,10 +167,6 @@ Form * StiffnessAndFracture::getCopy() const
 	copy->dfunc.setDamageDensityIncrement(dfunc.getDamageDensityIncrement());
 	copy->dfunc.setThresholdDamageDensity(dfunc.getThresholdDamageDensity());
 	return copy ;
-}
-
-void StiffnessAndFracture::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
 }
 
 Matrix StiffnessAndFracture::getTensor(const Point & p) const

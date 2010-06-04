@@ -25,10 +25,6 @@ StiffnessWithTimeDependentImposedDeformation::StiffnessWithTimeDependentImposedD
 
 StiffnessWithTimeDependentImposedDeformation::~StiffnessWithTimeDependentImposedDeformation() { } ;
 
-Matrix StiffnessWithTimeDependentImposedDeformation::apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const
-{
-	return VirtualMachine().ieval(Gradient(p_i) * param * Gradient(p_j, true), e,v) ;
-}
 
 void StiffnessWithTimeDependentImposedDeformation::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
@@ -71,4 +67,18 @@ void StiffnessWithTimeDependentImposedDeformation::getForces(const ElementState 
 {
 	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 }
+
+std::vector<BoundaryCondition * > StiffnessWithTimeDependentImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+	Vector f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
+	
+	std::vector<BoundaryCondition * > ret ;
+	ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, s.getParent(), id, f[0]);
+	ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, s.getParent(), id, f[1]);
+	if(f.size() == 3)
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, s.getParent(), id, f[2]);
+
+	return ret ;
+}
+
 
