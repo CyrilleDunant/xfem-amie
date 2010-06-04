@@ -15,16 +15,13 @@
 #include "../features/inclusion.h"
 namespace Mu
 {
-
-	std::vector<Mu::Inclusion *> placement(double longueurX, double longueurY, std::vector<Mu::Inclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax) ;
-	std::vector<Feature *> placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int triesMax) ;
-	std::vector<Mu::EllipsoidalInclusion *> placement_with_rotation(const Geometry * box, std::vector<EllipsoidalInclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax) ;
+	std::vector<Feature *> placement(const Mu::Geometry* box, std::vector< Mu::Feature* > inclusions, int* nombreGranulatsPlaces, int triesMax, bool verbose = true) ;
+	std::vector<Mu::EllipsoidalInclusion *> placement_with_rotation(const Mu::Geometry* box, std::vector< Mu::EllipsoidalInclusion* > inclusions, int* nombreGranulatsPlaces, int triesMax, bool verbose = true) ;
 // 	double masseInitiale;
 // 	double densite;
 
 
 	double chiffreAleatoire(double );
-	bool bord(double , double , double , double , double );
 } ;
 
 #endif

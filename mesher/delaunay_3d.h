@@ -195,6 +195,9 @@ public:
 	void addNeighbourhood(DelaunayTetrahedron * t) ;
 	void removeNeighbourhood(DelaunayTetrahedron *) ;
 	
+	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const {return NULL ; } ;
+	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const {return tree ; } ;
+	
 } ;
 //! \brief Demi-space in the tree, defined by three points and a control point out of the demi-space. 
 /*! The three first points form the frontier plane, whereas the last is chosen <em>outside</em> the demi-plane

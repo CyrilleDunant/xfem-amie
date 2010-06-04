@@ -48,9 +48,9 @@ public:
 	Granulo() ;
 	virtual ~Granulo() { } ;
 
-	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
+	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
 
-	virtual std::vector <EllipsoidalInclusion *> operator()(bool, Point *, double , double, double rfactor = 0.8, int inclusionNumber = 8000, double itzSize = 15e-6);
+	virtual std::vector <EllipsoidalInclusion *> operator()(bool, Point *, double , double, double rfactor = 0.8, int inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
 } ;
 
 class GranuloBolome : public Granulo
@@ -61,8 +61,8 @@ private:
 	double densite;
 public:
 	GranuloBolome(double , double , TypeGranulo t) ;
-	virtual std::vector <Inclusion *> operator()(double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
-	virtual std::vector <Inclusion3D *> operator()(bool, double , double, int inclusionNumber = 8000, double itzSize = 15e-6);
+	virtual std::vector <Inclusion *> operator()(double , double, double inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
+	virtual std::vector <Inclusion3D *> operator()(bool, double rayonGranulatMax, double pourcentMasseMin, double inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
 
 	virtual ~GranuloBolome() { } ;
 } ;

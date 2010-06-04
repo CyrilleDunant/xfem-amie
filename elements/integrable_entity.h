@@ -11,10 +11,15 @@
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
 #include "../utilities/xml.h"
+// #include "../features/boundarycondition.h"
 #include "../physics/homogenization/properties_base.h"
 
 namespace Mu
 {
+
+class DelaunayTreeItem3D;
+class DelaunayTetrahedron;
+class DelaunayTreeItem;
 
 typedef enum
 {
@@ -54,6 +59,7 @@ struct DelaunayTriangle ;
 struct IntegrableEntity ;
 struct FractureCriterion ;
 struct VirtualMachine ;
+struct BoundaryCondition ;
 
 /** \brief State of the element, allows easy extraction of the various fields
  * 
@@ -361,6 +367,9 @@ public:
 	virtual const ElementState & getState() const ;
 	virtual ElementState & getState() ;
 	
+	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const = 0 ;
+	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const = 0 ;
+	
 } ;
 
 /** \brief A Form for DIM degrees of freedom.
@@ -412,6 +421,11 @@ public:
 		return false ;
 	} ;
 	
+	virtual bool hasInducedBoundaryConditions() const
+	{
+		return false ;
+	} ;
+	
 	virtual size_t getNumberOfDegreesOfFreedom() const { return this->num_dof ; }
 	
 	virtual void transform(const Function & x, const Function & y) { } ;
@@ -429,6 +443,9 @@ public:
 	virtual bool fractured() const = 0 ;
 	virtual bool changed() const { return false ; } ;
 	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & v) const = 0 ;
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const { 
+		return  std::vector<BoundaryCondition * >() ;
+	} ;
 	
 	virtual Form * getCopy() const = 0 ;
 	virtual void stepBack() { }  ;

@@ -188,9 +188,9 @@ void enrichedEquivalentElements()
 	crack0->branch(pi, newTips);
 	std::cout << "setup equivalent elements...  " << std::flush ;
 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
-	TriElement * father = new TriElement(LINEAR) ;
+	TriElement * father = new TriElement(QUADRATIC) ;
 	father->compileAndPrecalculate() ;
-// 	mesh.setElementOrder(QUADRATIC);
+	mesh->setElementOrder(QUADRATIC);
 	supertris[0]->setBehaviour(new HomogeneisedBehaviour(featureTree->get2DMesh(), supertris[0])) ;
 	supertris[0]->getState().initialize() ;
 	supertris[0]->refresh(father) ;
@@ -275,12 +275,7 @@ void setupLeastSquares()
 
 double distanceBetweenMeshes()
 {
-// 	Segment ab(*pa, *pb) ;
-// 	Segment cd(*pc, *pd) ;
-// 	Point inter = ab.intersection(cd) ;
-// 	inter.print();
-// 	pi->x = inter.x ;
-// 	pi->y = inter.y ;
+
 	crack0->enrich(mesh->getLastNodeId(), mesh);
 	setupLeastSquares() ;
 	setLSBoundaryConditions(ls0, 0);
@@ -317,17 +312,7 @@ double distanceBetweenMeshes()
 		else
 			distancey += 1e6 ;
 	}
-// 	indexj = 0 ;
-// 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
-// 	{
-// 		std::cout << (*i)->x << "  " << (*i)->y ;
-// 		for(size_t j = 0 ; j < supertris[0]->getEnrichmentFunctions().size() ; j++)
-// 			std::cout << "  " << VirtualMachine().eval(supertris[0]->getEnrichmentFunction(j), localpoints0[indexj]) << std::flush ;
-// 		std::cout << std::endl;
-// 		indexj++ ;
-// 	}
-// 	exit (0) ;
-// 	std::cout << (distancex*distancey)/(points0.size()+1) << std::endl ;
+
 	return (distancex+distancey)/points0.size();
 }
 
@@ -352,7 +337,7 @@ void optimize()
 	limits.push_back(std::make_pair(sample.getCenter().x-sample.height()/2, sample.getCenter().x+sample.height()/2)) ;
 	
 	GeneticAlgorithmOptimizer ga( vars, limits, &distanceBetweenMeshes) ;
-	ga.optimize(1e-12, 50, 100,  .1, .1) ;
+	ga.optimize(1e-12, 60, 150,  .1, .1) ;
 
 	pa->y = ga.getValues()[0].second ;
 	pb->y = ga.getValues()[1].second ;
@@ -361,16 +346,6 @@ void optimize()
 	pi->x = ga.getValues()[4].second ;
 	pi->y = ga.getValues()[5].second ;
 	crack0->enrich(mesh->getLastNodeId(), mesh);
-	
-	int indexj = 0 ;
-// 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
-// 	{
-// 		std::cout << (*i)->x << "  " << (*i)->y << "  " << VirtualMachine().eval(supertris[0]->getEnrichmentFunction(3), localpoints0[indexj]) << std::endl;
-// 		indexj++ ;
-// 	}
-// 	exit (0) ;
-// 	for(size_t i = 0 ; i < supertris[0]->getEnrichmentFunctions().size() ; i++)
-// 		VirtualMachine().print(supertris[0]->getEnrichmentFunction(i));
 	
 	crack0->print();
 
@@ -384,7 +359,7 @@ void optimize()
 	Vector dispy = ls0->getApproximation() ;
 	
 	ls0->printParameters() ;
-	
+	int indexj = 0 ;
 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
 	{
 		std::cout << (*i)->x << "  " << (*i)->y << "  " << x[(*i)->id*2] << "  "<< x[(*i)->id*2+1] << "  " << dispx[indexj] << "  " << dispy[indexj] << std::endl;
@@ -417,7 +392,7 @@ void step()
 			std::cout << " " << limit << std::endl ;
 
 
-		timepos+= 0.0001 ;
+		timepos+= 0.01 ;
 		double da = 0 ;
 		
 		triangles = featureTree->getTriangles(grid) ;
@@ -645,7 +620,7 @@ void step()
 		}
 		avgdisplacement /= avgdisplacementarea ;
 		
-		optimize() ;
+// 		optimize() ;
 		
 		if(limit < max_limit)
 			imposeddisp->setData(imposeddisp->getData()+0.00001);
@@ -1594,6 +1569,9 @@ double lly = 0 ;
 
 int main(int argc, char *argv[])
 {
+	Sample sm(0.07, 0.07, 0, 0) ;
+	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
+
 // 	std::vector<double * > val ;
 // 	val.push_back(&llx);
 // 	val.push_back(&lly);
@@ -1681,6 +1659,14 @@ int main(int argc, char *argv[])
 	saf->dfunc.setThresholdDamageDensity(tdamage);
 	saf->dfunc.setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
+	for(int i = 0 ; i < incs.size() ; i++)
+	{
+		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
+		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.07);
+		incs[i]->setCenter(incs[i]->getCenter()* 500./0.07)  ;
+		F.addFeature(&sample, incs[i]);
+	}
+	
 // 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
 	sample.setBehaviour(sf) ;
@@ -1697,15 +1683,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 85, 85) );
 // 	F.addFeature(&sample, new Pore(20, 155, 155) );
 
-	F.addFeature(&sample, new Pore(20, -200, 0) );
-	F.addFeature(&sample, new Pore(20, -150, 0) );
-	F.addFeature(&sample, new Pore(20, -100, 0) );
-	F.addFeature(&sample, new Pore(20, -50, 0) );
-	F.addFeature(&sample, new Pore(20, 0, 0) );
-	F.addFeature(&sample, new Pore(20, 50, -0) );
-	F.addFeature(&sample, new Pore(20, 100, -0) );
-	F.addFeature(&sample, new Pore(20, 150, -0) );
-	F.addFeature(&sample, new Pore(20, 200, -0) );
+// 	F.addFeature(&sample, new Pore(20, -200, 0) );
+// 	F.addFeature(&sample, new Pore(20, -150, 0) );
+// 	F.addFeature(&sample, new Pore(20, -100, 0) );
+// 	F.addFeature(&sample, new Pore(20, -50, 0) );
+// 	F.addFeature(&sample, new Pore(20, 0, 0) );
+// 	F.addFeature(&sample, new Pore(20, 50, -0) );
+// 	F.addFeature(&sample, new Pore(20, 100, -0) );
+// 	F.addFeature(&sample, new Pore(20, 150, -0) );
+// 	F.addFeature(&sample, new Pore(20, 200, -0) );
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
@@ -1730,7 +1716,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(256) ;
+	F.sample(1024) ;
 	F.useMultigrid = false ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

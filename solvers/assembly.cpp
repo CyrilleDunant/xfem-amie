@@ -276,7 +276,7 @@ bool Assembly::nonLinearStep()
 			}
 		}
 		
-		if(element2d[i]->getNonLinearBehaviour() != NULL && element2d[i]->getNonLinearBehaviour()->hasInducedForces())
+		if(element2d[i]->getNonLinearBehaviour() != NULL && element2d[i]->getNonLinearBehaviour()->hasInducedBoundaryConditions())
 		{
 			if(element2d[i]->getNonLinearBehaviour()->isActive())
 			{

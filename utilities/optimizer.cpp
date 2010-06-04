@@ -6,20 +6,24 @@
 namespace Mu
 {
 	
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double> vars, std::vector<std::pair<double, double> >  bounds, std::vector<double *> lowLevelVars, std::vector<std::pair<double, double> >  lowLevelbounds, const Function & objectiveFunction) : vars(vars), bounds(bounds), lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double> vars, std::vector<std::pair<double, double> >  bounds, std::vector<double *> lowLevelVars, std::vector<std::pair<double, double> >  lowLevelbounds, const Function & objectiveFunction) : vars(vars), bounds(bounds), lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL), generator(NULL)
 {
 
 }
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<double> & vars, const std::vector<std::pair<double, double> >  & bounds, const Function & objectiveFunction): vars(vars), bounds(bounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<double> & vars, const std::vector<std::pair<double, double> >  & bounds, const Function & objectiveFunction): vars(vars), bounds(bounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL), generator(NULL)
 {
 	
 }
 
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, double (*lowLevelFunction)()) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(lowLevelFunction)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, double (*lowLevelFunction)()) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(lowLevelFunction), generator(NULL)
 {
 }
 
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<std::pair<std::string, double> > & nvars, const std::vector<std::pair<double, double> >  & nbounds, const Function & objectiveFunction) : namedVars(nvars), namedVarsBounds(nbounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, MicrostructureGenerator * generator) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(NULL), generator(generator)
+{
+}
+
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<std::pair<std::string, double> > & nvars, const std::vector<std::pair<double, double> >  & nbounds, const Function & objectiveFunction) : namedVars(nvars), namedVarsBounds(nbounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL), generator(NULL)
 {
 }
 
@@ -53,6 +57,9 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 {
 	if(lowLevelFunction)
 		return lowLevelOptimize(eps, Maxit, population, elitism, factor) ;
+	
+	if(generator)
+		return generatorOptimize(eps, Maxit, population, elitism, factor) ;
 	
 	int it = 0 ;
 	int maxit = Maxit ;
@@ -319,6 +326,135 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 	return err ;
 }
 
+double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int population, double elitism, double factor)
+{
+	int it = 0 ;
+	int maxit = Maxit ;
+	if(maxit < 0)
+		maxit = 100 ;
+	
+	if(population < 0)
+		population = 10 ;
+	
+	std::vector< std::vector<double> > llindividuals ;
+
+	for(size_t i = 0 ; i < population ; i++)
+	{
+		std::vector<double> newllindividual ;
+		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
+		{
+			newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first);
+		}
+		llindividuals.push_back(newllindividual);
+	}
+	
+	double err = eps*100 ;
+	double err0 = eps*100 ;
+	std::map<double, std::vector<double> > sorted ;
+	while (err > eps && it < maxit )
+	{
+		sorted.clear();
+		//evaluate
+		for(size_t i = 0 ; i < population ; i++)
+		{
+			while(true)
+			{
+				for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
+				{
+					*lowLevelVars[j] = llindividuals[i][j] ;
+				}
+				
+				double llf = generator->score() ;
+				if(!isnan(llf))
+				{
+					sorted[llf] = llindividuals[i] ;
+					break ;
+				}
+				
+				for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
+					llindividuals[i][j] = (lowLevelbounds[j].second-lowLevelbounds[j].first)*RandomNumber().uniform() + lowLevelbounds[j].first;
+				
+			}
+		}
+		
+		std::vector< std::vector<double> > newllindividuals ;
+				
+		//reproduce - elite individuals are kept
+		for(int i = 0 ; i < std::max(1, (int)round(elitism*population)) ; i++)
+		{
+			std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
+			std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+			if(iter == iterend)
+				break ;
+			for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
+				iter++ ;
+			newllindividuals.push_back(iter->second);
+		}
+		
+		//reproduce - the rest fills the available slots and mutates
+		int i = 0 ;
+		while( newllindividuals.size() != llindividuals.size())
+		{
+			double test = RandomNumber().uniform() ;
+			if(sorted.size() && test >= (double)i/((double)sorted.size()))
+			{
+				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
+				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+				for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
+					iter++ ;
+				newllindividuals.push_back(iter->second);
+
+				for(size_t j = 0 ; j < newllindividuals.back().size() ; j++)
+				{
+					double sigma = (lowLevelbounds[j].second-lowLevelbounds[j].first)*factor/err0 ;
+					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)*.5) ;
+					newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;
+					newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
+					newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;
+				}
+				
+			}
+			else
+			{
+				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
+				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+
+				for(size_t j = 0 ; j < i && iter != iterend ; j++)
+					iter++ ;
+				if(iter != iterend)
+					newllindividuals.push_back(iter->second);
+			}
+			i++ ;
+			if(i >= sorted.size())
+				i = 0 ;
+		}
+		
+		llindividuals = newllindividuals ;
+		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
+			*lowLevelVars[j] = sorted.begin()->second[j] ;
+
+		// we call the function, because it might have some border effects
+		generator->score() ;
+		generator->print() ;
+		
+		for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
+			std::cout << *lowLevelVars[i] << ", "<< std::flush ;
+		//iterate
+		err = sorted.begin()->first ;
+		if(it == 0)
+			err0 = err ;
+		std::cout << err <<  std::endl ;
+		it++ ;
+	}
+	std::cout << it << std::endl;
+
+// 	for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
+// 		*lowLevelVars[i] = sorted.begin()->second[i] ;
+	
+	return err ;
+}
+
+
 std::vector<std::pair<std::string, double> > GeneticAlgorithmOptimizer::getValues() const
 {
 	std::vector<std::pair<std::string, double> > ret ;
@@ -430,23 +566,25 @@ double LeastSquaresApproximation::optimize()
 		{
 			(*Q)[i][i] = 1 ;
 		}
-		Matrix B(parameters.size(), fixedValues.size()) ;
-		for( int i = 0 ; i < fixedValues.size() ; i++ )
-		{
-			B[fixedValues[i].first][fixedValues[i].first] = 1 ;
-		}
 		
 		//the lines are swapped as we find new constraints
 		int c = 0 ;
 		for( int i = 0 ; i < fixedValues.size() ; i++ )
 		{
-			(*Q)[fixedValues[i].first][fixedValues[i].first] = 0 ;
-			(*Q)[fixedValues[i].first][c] = 1 ;
-			(*Q)[c][c] = 0 ;
-			(*Q)[c][fixedValues[i].first] = 1 ;
+			Matrix S(parameters.size(), parameters.size()) ;
+			for( int j = 0 ; j < parameters.size() ; j++ )
+			{
+				S[j][j] = 1 ;
+			}
+			S[fixedValues[i].first][fixedValues[i].first] = 0 ;
+			S[fixedValues[i].first][c] = 1 ;
+			S[c][c] = 0 ;
+			S[c][fixedValues[i].first] = 1 ;
+			
+			*Q = S*(*Q) ;
 			c++ ;
 		}
-		
+// 		Q->print();
 		// The problem changes and becomes:
 		A = new Matrix((*Q)*linearModel) ;
 		Matrix A1(fixedValues.size(), linearModel.numCols() ) ;

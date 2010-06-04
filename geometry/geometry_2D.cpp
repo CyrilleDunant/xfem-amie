@@ -1228,22 +1228,24 @@ std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, con
 
 void Circle::sampleBoundingSurface(size_t num_points)
 {
-	getBoundingPoints().resize(num_points) ;
-	
+	boundingPoints.resize(num_points) ;
 	double angle = 2.*M_PI/ (num_points) ;
 	
 	for (size_t i = 0 ; i < num_points ; i++)
-	{		
+	{
 		double randa= 0;//((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.15*(M_PI/num_points) ;
-		getBoundingPoints()[i] = new Point(getRadius()*cos((double)i*angle) + getCenter().x, getRadius()*sin((double)i*angle+randa) + getCenter().y);
+		boundingPoints[i] = new Point(getRadius()*cos((double)i*angle) + getCenter().x, getRadius()*sin((double)i*angle+randa) + getCenter().y);
 // 		std::cout << "x = " << boundingPoints[i]->x() << ", y = " << boundingPoints[i]->y << std::endl ;
 	}
 }
 
 void Circle::sampleSurface(size_t num_points)
 {
+	if(num_points < 5)
+		return ;
+	
 	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(num_points) ;
+		sampleBoundingSurface(num_points) ;
 	sampled = true ;
 	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
 // 	if(numberOfRings > 0)
@@ -1274,6 +1276,9 @@ void Circle::sampleSurface(size_t num_points)
 		angle = 2.*M_PI/ (num_points) ;
 		
 		offset = 0.5*(2.*M_PI/ (num_points) -  2.*M_PI/ (num_points*1.1)) ;
+		
+		if(num_points < 5)
+			break ;
 	}
 	
 	inPoints.resize(temp.size() + 1) ;

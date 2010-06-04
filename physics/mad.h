@@ -1,6 +1,6 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    implementation of MAD for AMIE
+    Copyright (C) 2010  Cyrille Dunant
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "homogenization/elastic_homogenization.h"
 #include "homogenization/converter.h"
 #include "../utilities/optimizer.h"
+#include "../features/crack.h"
 
 namespace Mu
 {
@@ -43,6 +44,9 @@ namespace Mu
 		GeneralizedSelfConsistent scheme ;
 		ElementDefinedBoundaryCondition * bc ;
 		LeastSquaresApproximation * leastSquares ;
+		BranchedCrack * equivalentCrack ;
+		Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2D ;
+		
 		bool change ;
 		/** \brief Constructor
 		* 

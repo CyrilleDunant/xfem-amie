@@ -1,4 +1,4 @@
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2010
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -163,6 +163,9 @@ public:
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
 	
+    virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;}
+    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;}
+	
 } ;
 
 class ElementaryVolume : public IntegrableEntity
@@ -278,6 +281,9 @@ public:
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
 	virtual Function getZTransform() const ;
+	
+    virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;};
+    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
 
 } ;
 
@@ -309,6 +315,9 @@ public:
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
 	virtual Function getZTransform() const ;
+	
+	virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;};
+    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
 
 } ;
 

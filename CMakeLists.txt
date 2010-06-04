@@ -124,6 +124,7 @@ utilities/placement.cpp
 utilities/random.cpp
 utilities/samplingcriterion.cpp
 utilities/xml.cpp
+features/microstructuregenerator.cpp
 )
 
 find_package(GLUT)

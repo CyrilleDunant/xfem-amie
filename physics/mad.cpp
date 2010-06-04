@@ -22,7 +22,7 @@
 
 using namespace Mu ;
 
-MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTriangle * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(self), self3d(NULL), leastSquares(NULL)
+MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTriangle * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(self), self3d(NULL), leastSquares(NULL), equivalentCrack(NULL)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -31,7 +31,7 @@ MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTr
 	homogenize() ;
 }
 
-MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTetrahedron * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(NULL), self3d(self), leastSquares(NULL)
+MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTetrahedron * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(NULL), self3d(self), leastSquares(NULL), equivalentCrack(NULL)
 {
 	
 	v.push_back(XI);
@@ -67,8 +67,15 @@ void MultipleAggregatingDiscontinuities::apply(const Function & p_i, const Funct
 
 void MultipleAggregatingDiscontinuities::step(double timestep, ElementState & currentState)
 {
+
 	if(type == VOID_BEHAVIOUR)
 		return ;
+	
+	if(v.size() == 2)
+	{
+		if(equivalentCrack && currentState.getParent()->get2DMesh())
+			equivalentCrack->enrich(currentState.getParent()->get2DMesh()->getLastNodeId(), currentState.getParent()->get2DMesh());
+	}
 	
 	if(!crit->met(currentState))
 		return ;
@@ -227,3 +234,4 @@ void MultipleAggregatingDiscontinuities::homogenize()
 //	std::cout << std::endl ;*/
 	
 }
+

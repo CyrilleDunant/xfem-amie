@@ -177,6 +177,9 @@ public:
 	
 	virtual bool isConflicting(const Geometry * g) const ;
 	
+	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const {return tree ; } ;
+	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const {return NULL ; } ;
+	
 } ;
 
 

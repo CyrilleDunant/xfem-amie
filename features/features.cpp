@@ -751,9 +751,11 @@ void FeatureTree::sample(size_t n)
 		for(size_t i  = 1 ; i < this->tree.size() ; i++)
 		{
 			double shape_factor = (sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
-			size_t npoints = (size_t)std::max((double)n*sqrt(tree[i]->area()/(total_area*shape_factor)), 9.) ;
+			if(shape_factor < POINT_TOLERANCE)
+				continue ;
+			size_t npoints = std::max((size_t)round(sqrt(tree[i]->area()/(total_area*shape_factor))*n), (size_t)8) ;
 
-			if(npoints >= 8 && !tree[i]->isVirtualFeature)
+			if(npoints >= 8 && !tree[i]->isVirtualFeature && npoints < n)
 				tree[i]->sample(npoints) ;
 		}
 	}

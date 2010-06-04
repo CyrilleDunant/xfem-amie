@@ -5,9 +5,11 @@
 #include <complex>
 #include "../geometry/geometry_base.h"
 #include "../polynomial/vm_base.h"
+#include "../features/microstructuregenerator.h"
 
 namespace Mu
 {
+
 class GeneticAlgorithmOptimizer 
 {
 protected:
@@ -21,15 +23,21 @@ protected:
 	
 	Function objectiveFunction ;
 	double (*lowLevelFunction)() ;
+	MicrostructureGenerator * generator ;
 	
 	double applyFunction(const std::vector< double >& vals) const;
 	double lowLevelOptimize(double eps = 0.0001, int Maxit = -1, int population = -1, double elitism = .1, double factor = .65) ;
+	double generatorOptimize(double eps = 0.0001, int Maxit = -1, int population = -1, double elitism = .1, double factor = .65) ;
+	
 public:
 	GeneticAlgorithmOptimizer(std::vector<double> vars, std::vector<std::pair<double, double> >  bounds, std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, const Function & objectiveFunction) ;
 	
 	GeneticAlgorithmOptimizer(const std::vector<double> & vars, const std::vector<std::pair<double, double> >  & bounds, const Function & objectiveFunction) ;
 	
 	GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, double (*lowLevelFunction)()) ;
+	
+	GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, MicrostructureGenerator * generator) ;
+	
 	GeneticAlgorithmOptimizer(const std::vector<std::pair<std::string, double> > & nvars, const std::vector<std::pair<double, double> >  & nbounds, const Function & objectiveFunction) ;
 							  
 	double optimize(double eps = 0.0001, int Maxit = -1, int population = -1, double elitism = .1, double factor = .65) ;

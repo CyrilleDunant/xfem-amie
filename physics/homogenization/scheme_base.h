@@ -66,7 +66,7 @@ public:
 	/* \brief checks if an error has not occured */
 	virtual bool isOK() const {return s == STATUS_OK || s == STATUS_RESET; } ;
 	/* \brief get the current status of the scheme */
-	virtual Status const status() {return s ; } ;
+	virtual const Status &  status() const {return s ; } ;
 	/* \brief reset the status */
 	virtual void reset() {s = STATUS_RESET ; } ;
 	/* \brief checks if an error has occured, and then reset the status*/

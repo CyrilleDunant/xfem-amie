@@ -1,3 +1,23 @@
+/*
+    mesh abstract implementation for AMIE
+    Copyright (C) 2010  Cyrille Dunant
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+*/
+
 
 #ifndef MESH_H
 #define MESH_H
@@ -254,9 +274,106 @@ namespace Mu
 	protected:
 		ETYPE * element ;
 		std::vector<EABSTRACTTYPE *> tree ;
+		std::vector<Point *> points ;
 		std::map<int *, int> trans ; 
 		size_t global_counter ;
+		
+		
+		void addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep)
+		{
+			__gnu_cxx::__normal_iterator<EABSTRACTTYPE **, std::vector<EABSTRACTTYPE *> > i = tree.begin() ;
+			for( ; i != tree.end() ; ++i)
+			{
+				
+				(*i)->visited = true ;
+					
+				size_t nodes_per_plane = nodes_per_side*3+3 ;
+				
+				std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
+				std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
+				
+				for(size_t plane = 0 ; plane < time_planes ; plane++)
+				{
+					for(size_t side = 0 ; side < 3 ; side++)
+					{
+						Point a(static_cast<ETYPE *>(*i)->getBoundingPoint(side)) ;
+						Point b(static_cast<ETYPE *>(*i)->getBoundingPoint((side+1)%3)) ;
+						
+						if(time_planes> 1)
+						{
+							a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+							b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+						}
+						for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
+						{
+							double fraction = (double)(node)/((double)nodes_per_side+1) ;
+							Point proto = a*(1.-fraction) + b*fraction ;
+							Point * foundPoint = NULL ;
+							
+							for(size_t j = 0 ; j< static_cast<ETYPE *>(*i)->getBoundingPoints().size() ; j++)
+							{
+								if(static_cast<ETYPE *>(*i)->getBoundingPoint(j) == proto)
+								{
+									foundPoint = &static_cast<ETYPE *>(*i)->getBoundingPoint(j) ;
+									break ;
+								}
+							}
+							
+							if(!foundPoint)
+							{
+								for(size_t j = 0 ; j < static_cast<ETYPE *>(*i)->neighbourhood.size() ; j++)
+								{
+									if(static_cast<ETYPE *>(*i)->getNeighbourhood(j)->visited)
+									{
+										ETYPE * n = static_cast<ETYPE *>(*i)->getNeighbourhood(j) ;
+										for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
+										{
+											if(n->getBoundingPoint(k) == proto)
+											{
+												foundPoint = &n->getBoundingPoint(k) ;
+												break ;
+											}
+										}
+										
+										if(foundPoint)
+											break ;
+									}
+								}
+							}
+							
+							if(!done[nodes_per_plane*plane+side*(nodes_per_side+1)+node])
+							{
+								if(foundPoint)
+								{
+									newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = foundPoint ;
+								}
+								else
+								{
+									points.push_back(new Point(proto) ) ;
+									newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = points.back();
+									newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = global_counter++ ;
+								}
+								
+								done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
+							}
+						}
+					}
+				}
+				
+				static_cast<ETYPE *>(*i)->setBoundingPoints(newPoints) ;
+			}
+					
+			
+			for( i = tree.begin() ; i != tree.end() ; ++i)
+			{
+				(*i)->clearVisited() ;
+			}
+
+		}
+
+		
 	public:
+		
 		SingleElementMesh(ETYPE * element) : element(element), global_counter(0)
 		{
 			tree.push_back(element) ;
@@ -269,7 +386,11 @@ namespace Mu
 			}
 		} ;
 		
-		virtual ~SingleElementMesh() {} ;
+		virtual ~SingleElementMesh() 
+		{
+			for(int i = 0 ; i < points.size() ; i++)
+				delete points[i] ;
+		} ;
 		virtual std::vector<ETYPE *> getElements() 
 		{
 			std::vector<ETYPE *> ret ; 
@@ -296,6 +417,100 @@ namespace Mu
 		/** Does nothing as this is a special-purpose mesh*/
 		virtual void setElementOrder(Order o)
 		{
+			switch(o)
+			{
+			case CONSTANT:
+				{
+					break ;
+				}
+			case LINEAR:
+				{
+					break ;
+				}
+			case QUADRATIC:
+				{
+					addSharedNodes(1,1,0) ;
+					break ;
+				}
+			case CUBIC:
+				{
+					addSharedNodes(2,1,0) ;
+					break ;
+				}
+			case QUADRIC:
+				{
+					addSharedNodes(3,1,0) ;
+					break ;
+				}
+			case QUINTIC:
+				{
+					addSharedNodes(3,1,0) ;
+					break ;
+				}
+			case CONSTANT_TIME_LINEAR:
+				{
+					addSharedNodes(0,2,2) ;
+					break ;
+				}
+			case CONSTANT_TIME_QUADRATIC:
+				{
+					addSharedNodes(0,3,2) ;
+					break ;
+				}
+			case LINEAR_TIME_LINEAR:
+				{
+					addSharedNodes(0,2,2) ;
+					break ;
+				}
+			case LINEAR_TIME_QUADRATIC:
+				{
+					addSharedNodes(0,3,2) ;
+					break ;
+				}
+			case QUADRATIC_TIME_LINEAR:
+				{
+					addSharedNodes(1,2,2) ;
+					break ;
+				}
+			case QUADRATIC_TIME_QUADRATIC:
+				{
+					addSharedNodes(1,3,2) ;
+					break ;
+				}
+			case CUBIC_TIME_LINEAR:
+				{
+					addSharedNodes(2,2,2) ;
+					break ;
+				}
+			case CUBIC_TIME_QUADRATIC:
+				{
+					addSharedNodes(2,3,2) ;
+					break ;
+				}
+			case QUADRIC_TIME_LINEAR:
+				{
+					addSharedNodes(3,2,2) ;
+					break ;
+				}
+			case QUADRIC_TIME_QUADRATIC:
+				{
+					addSharedNodes(3,3,2) ;
+					break ;
+				}
+			case QUINTIC_TIME_LINEAR:
+				{
+					addSharedNodes(3,2,2) ;
+					break ;
+				}
+			case QUINTIC_TIME_QUADRATIC:
+				{
+					addSharedNodes(3,3,2) ;
+					break ;
+				}
+			default:
+				break ;
+				
+			}
 		}
 		
 		/** Does nothing as this is a special-purpose mesh*/
