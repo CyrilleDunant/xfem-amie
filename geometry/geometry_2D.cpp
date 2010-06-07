@@ -52,14 +52,6 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 	computeCircumCenter() ;
 	computeCenter() ;
 	
-	if((p0.z == p1.z)  && (p0.z == p2.z) &&  (p0.z == 0))
-	{
-		if(!this->in(this->getCenter()))
-		{
-			assert(false) ;
-		}
-	}
-	
 	radius = sqrt((squareDist2D(p1, circumCenter)+ squareDist2D(p0, circumCenter))/2.);
 	sqradius = radius*radius ;
 	
@@ -617,7 +609,7 @@ void Triangle::project(Point * p) const
 {
 	Segment s(getCenter(), *p) ;
 	
-	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
 		if(s.on(getBoundingPoint(i)) && !Segment(getBoundingPoint(i), *p).on(getCenter()))
 		{
@@ -627,7 +619,7 @@ void Triangle::project(Point * p) const
 		}
 	}
 	
-	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
 		Segment seg(getBoundingPoint(i), getBoundingPoint((i+1)%boundingPoints.size())) ;
 		if(s.intersects(seg))
@@ -639,12 +631,12 @@ void Triangle::project(Point * p) const
 		}
 	}
 
-	double r = this->getRadius() ;
+	double r = getRadius() ;
 	Point reach = (*p - getCenter()) ;
 	Point trans = getCenter() + reach * (2.*r/reach.norm()) ;
 	Segment sec(getCenter(), trans) ;
 
-	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
 		Segment seg(getBoundingPoint(i), getBoundingPoint((i+1)%boundingPoints.size())) ;
 		if(sec.intersects(seg))
@@ -663,9 +655,9 @@ void Triangle::project(Point * p) const
 bool Triangle::in(const Point &p) const
 {
 	bool isAPoint = false ;
-	for (int i = 0; i <  boundingPoints.size(); i++)
+	for (int i = 0; i <  getBoundingPoints().size(); i++)
 	{
-		if(p == *boundingPoints[i])
+		if(p == getBoundingPoint(i))
 		{
 			isAPoint = true ;
 			break ;
@@ -680,19 +672,19 @@ bool Triangle::in(const Point &p) const
 		
 	bool in = false ;
 	
-	for (int i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
+	for (int i = 0, j  =  getBoundingPoints().size()-1; i <  getBoundingPoints().size(); j = i++)
 	{
-		if( std::abs(boundingPoints[j]->y - boundingPoints[i]->y) > 2.*POINT_TOLERANCE)
+		if( std::abs(getBoundingPoint(j).y - getBoundingPoint(i).y) > 2.*POINT_TOLERANCE)
 		{
 			if (
-				(((boundingPoints[i]->y < p.y + 2.*POINT_TOLERANCE) 
+				(((getBoundingPoint(i).y < p.y + 2.*POINT_TOLERANCE) 
 					&& (p.y-2.*POINT_TOLERANCE < boundingPoints[j]->y)) 
-					|| ((boundingPoints[j]->y < p.y+2.*POINT_TOLERANCE) 
-					&& (p.y < boundingPoints[i]->y+2.*POINT_TOLERANCE))) 
-					&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) 
-					 * (p.y - boundingPoints[i]->y) 
-					 / (boundingPoints[j]->y - boundingPoints[i]->y) 
-					 + boundingPoints[i]->x + 2.*POINT_TOLERANCE))
+					|| ((getBoundingPoint(j).y < p.y+2.*POINT_TOLERANCE) 
+					&& (p.y < getBoundingPoint(i).y+2.*POINT_TOLERANCE))) 
+					&& (p.x < (getBoundingPoint(j).x - getBoundingPoint(i).x) 
+					 * (p.y - getBoundingPoint(i).y) 
+					 / (getBoundingPoint(j).y - getBoundingPoint(i).y) 
+					 + getBoundingPoint(i).x + 2.*POINT_TOLERANCE))
 				in = !in;
 		}
 	}
