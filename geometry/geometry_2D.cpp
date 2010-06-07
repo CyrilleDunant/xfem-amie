@@ -83,14 +83,6 @@ Triangle::Triangle(XMLTree * xml)
 	
 	computeCenter() ;
 	computeCircumCenter() ;
-
-	if((p0.z == p1.z)  && (p0.z == p2.z) &&  (p0.z == 0))
-	{
-		if(!this->in(this->getCenter()))
-		{
-			assert(false) ;
-		}
-	}
 	
 	radius = sqrt((squareDist2D(p1, circumCenter)+ squareDist2D(p0, circumCenter))/2.);
 	sqradius = radius*radius ;
@@ -175,14 +167,6 @@ OrientedRectangle::OrientedRectangle( const Point *p0,  const Point *p1,  const 
 	
 	computeCircumCenter() ;
 	computeCenter() ;
-	
-	if((p0->z == p1->z)  && (p0->z == p2->z) &&  (p0->z == 0))
-	{
-		if(!this->in(this->getCenter()))
-		{
-			assert(false) ;
-		}
-	}
 	
 	radius = (squareDist2D(*p1, circumCenter) + squareDist2D(*p0, circumCenter) + squareDist2D(*p2, circumCenter)+squareDist2D(*p3, circumCenter))/4.;
 	
@@ -443,15 +427,6 @@ Triangle::Triangle( Point *p0,  Point *p1,  Point *p2): ConvexGeometry(3)
 	
 	computeCircumCenter() ;
 	computeCenter() ;
-	
-	if((p0->z == p1->z)  && (p0->z == p2->z) &&  (p0->z == 0))
-	{
-		if(!this->in(this->getCenter()))
-		{
-			assert(false) ;
-		}
-		
-	}
 	
 	radius = (dist(p1, &circumCenter)+ dist(p0, &circumCenter))/2.;
 	sqradius = radius*radius ;
