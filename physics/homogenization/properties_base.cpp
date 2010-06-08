@@ -174,6 +174,9 @@ void Properties::print()
 	case TAG_MAX_COMPRESSIVE_STRAIN:
 		std::cout << "MAX_COMPRESSIVE_STRAIN = " ;
 		break;			
+	case TAG_IMPOSED_STRAIN:
+		std::cout << "IMPOSED_STRAIN = " ;
+		break;			
 	case TAG_STRESS:
 		std::cout << "STRESS = " ;
 		break;			
@@ -413,13 +416,10 @@ bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 	bool success = true ;
 	for(size_t i = 0 ; i < compare.size() && success ; i++)
 	{
-		int thisi = this->getIndex(compare[i],-1) ;
-		int otheri = m.getIndex(compare[i],-1) ;
+		double thisv = val(compare[i],-1) ;
+		double otherv = m.val(compare[i],-1) ;
 
-		if((thisi+1)*(otheri+1) == 0)
-			success = false ;
-
-		if(std::abs((*this)[thisi].val() - m[otheri].val()) > 1e-6)
+		if(std::abs((thisv - otherv)/thisv) > 1e-6)
 			success = false ;
 
 	}

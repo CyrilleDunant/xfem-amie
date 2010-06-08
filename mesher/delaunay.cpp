@@ -1,4 +1,3 @@
-//
 // C++ Implementation: delaunay
 //
 // Description: 

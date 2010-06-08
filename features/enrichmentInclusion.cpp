@@ -4,7 +4,10 @@
 
 #include "enrichmentInclusion.h"
 #include "inclusion.h"
+#include "sample.h"
 #include "../physics/homogeneised_behaviour.h"
+#include "../physics/stiffness.h"
+#include "../physics/void_form.h"
 
 using namespace Mu ;
 
@@ -84,18 +87,13 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 	
 	if(disc.size() == 1) // special case for really small inclusions
 	{
-		std::vector<Point> corner = disc[0]->getSamplingBoundingPoints(3) ;
 
-		TriangularInclusion * tri = new TriangularInclusion(corner[0],corner[1],corner[2]) ;
-		tri->setBehaviour(disc[0]->getBehaviour()) ;
+		Inclusion * circle = new Inclusion(this->getRadius(), this->getCenter()) ;
+		circle->setBehaviour(this->getBehaviour()->getCopy()) ;
+		std::vector<Feature *> feat ;
+		feat.push_back(circle) ;
 
-		FeatureTree local(tri) ;
-		local.addFeature(tri, this) ;
-		local.sample(10) ;
-
-		Mesh<DelaunayTriangle, DelaunayTreeItem> * localmesh = local.get2DMesh(-1) ;
-
-		disc[0]->setBehaviour(new HomogeneisedBehaviour(localmesh, disc[0])) ;
+		disc[0]->setBehaviour(new HomogeneisedBehaviour(feat, disc[0])) ;
 
 		return ;
 

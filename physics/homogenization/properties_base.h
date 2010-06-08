@@ -39,6 +39,7 @@ typedef enum
 	TAG_MAX_STRAIN,
 	TAG_MAX_TENSILE_STRAIN,
 	TAG_MAX_COMPRESSIVE_STRAIN,
+	TAG_IMPOSED_STRAIN,
 	TAG_STRESS,
 	TAG_MAX_STRESS,
 	TAG_MAX_TENSILE_STRESS,
@@ -196,7 +197,6 @@ public:
 	void cleanComposite() {phases.clear() ; } ;
 
 	void divide(int i, std::vector<double> f, bool v) ;
-
 
 } ;
 

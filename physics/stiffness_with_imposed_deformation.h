@@ -14,6 +14,7 @@
 #define __STIFFNESS_WITH_DEF
 
 #include "physics_base.h"
+#include "homogenization/properties_base.h" 
 
 namespace Mu
 {
@@ -62,6 +63,8 @@ namespace Mu
 
 		
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+
+		virtual Material toMaterial() ;
 		
 	} ;
 

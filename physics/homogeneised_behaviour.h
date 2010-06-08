@@ -13,6 +13,7 @@
 #ifndef __HOMOGENEISED_H_
 #define __HOMOGENEISED_H_
 
+
 #include "physics_base.h"
 #include "homogenization/elastic_homogenization.h"
 #include "../mesher/mesh.h"
@@ -21,13 +22,16 @@
 
 namespace Mu
 {
+	class Feature ;
+	class FeatureTree ;
 
 	/** \brief A linear Elastic Law
 	* The field param is the Cauchy-Green Strain Tensor
 	*/
 	struct HomogeneisedBehaviour : public LinearForm
 	{
-		
+		FeatureTree * subTree ;
+		Form * equivalent ;
 		Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d ;
 		DelaunayTriangle * self2d ;
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d ;
@@ -48,7 +52,11 @@ namespace Mu
 		* @param self The element in which the homogeneisation will occur
 		*/
 		HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) ;
-		
+
+		HomogeneisedBehaviour(FeatureTree * ft, DelaunayTriangle * self) ;
+		HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) ;
+
+
 		virtual ~HomogeneisedBehaviour() ;
 		
 		/** \brief Apply the law.
@@ -72,9 +80,18 @@ namespace Mu
 		/** \brief Homogenizes the elastic behaviour*/
 		void homogenize() ;
 
+		void refresh() ;
+
+//		void setFeatureTree(FeatureTree ft) {subTree = ft ; } ;
+
 		virtual void step(double timestep, ElementState & currentState) ;
 		virtual void stepBack() ;
-		
+
+		Material toMaterial() {return equivalent->toMaterial() ; } ;
+		Material homogenize(Material mat) ;
+
+		Form * getEquivalentBehaviour(Material mat) ;	
+
 	} ;
 
 } ;

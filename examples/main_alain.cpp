@@ -1359,11 +1359,11 @@ int main(int argc, char *argv[])
 	Point a(-50,-50) ;
 	Point b(50,0) ;
 	Point c(-50,50) ;
-	TriangularInclusion * tri = new TriangularInclusion(a,b,c) ;
+	TriangularInclusion * tri = new TriangularInclusion(a,c,b) ;
 	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 	F.addFeature(&sample, tri) ;
 
-	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
+	Inclusion * inc0 = new Inclusion(10, 0, 20) ;
 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*5, d)) ;
 	F.addFeature(tri, inc0) ;
 
@@ -1372,13 +1372,6 @@ int main(int argc, char *argv[])
 	F.generateElements() ;
 
 	step() ;
-	
-	for(size_t i = 0 ; i < triangles.size() ; i++)
-	{
-		Point c = triangles[i]->getCenter() ;
-		if(tri->in(c) && inc0->in(c))
-			tri->inVerbose(c) ;
-	}
 	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;

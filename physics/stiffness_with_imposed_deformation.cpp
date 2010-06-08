@@ -65,3 +65,10 @@ std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryCo
 	return ret ;
 }
 
+Material StiffnessWithImposedDeformation::toMaterial()
+{
+	Material mat(param) ;
+	mat(TAG_IMPOSED_STRAIN,imposed[0]) ;
+	return mat ;
+}
+
