@@ -42,11 +42,6 @@ Form * StiffnessWithVariableImposedDeformation::getCopy() const
 	return new StiffnessWithVariableImposedDeformation(*this) ;
 }
 
-bool StiffnessWithVariableImposedDeformation::hasInducedForces() const 
-{
-	return true ; 
-} 
-
 void StiffnessWithVariableImposedDeformation::step(double timestep, ElementState & currentState)
 {
 	double uniformRand = (double)rand()/(double)RAND_MAX ;
@@ -57,11 +52,6 @@ void StiffnessWithVariableImposedDeformation::step(double timestep, ElementState
 Vector StiffnessWithVariableImposedDeformation::getImposedStress(const Point & p) const
 {
 	return (param * imposed) ;
-}
-
-void StiffnessWithVariableImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 }
 
 std::vector<BoundaryCondition * > StiffnessWithVariableImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

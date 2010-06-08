@@ -41,11 +41,6 @@ Form * StiffnessWithKineticsImposedDeformation::getCopy() const
 	return new StiffnessWithKineticsImposedDeformation(*this) ;
 }
 
-bool StiffnessWithKineticsImposedDeformation::hasInducedForces() const 
-{
-	return true ; 
-} 
-
 Vector StiffnessWithKineticsImposedDeformation::getImposedStress(const Point & p) const
 {
 	return (param * imposed) ;
@@ -60,11 +55,6 @@ void StiffnessWithKineticsImposedDeformation::step(double timestep, ElementState
 	imposed *= fnext ;
 }
 
-
-void StiffnessWithKineticsImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
-}
 
 std::vector<BoundaryCondition * > StiffnessWithKineticsImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {

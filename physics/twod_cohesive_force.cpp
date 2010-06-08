@@ -105,7 +105,7 @@ std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions(cons
 	bool enrichedDof = !(p_i.getDofID() == -1) ;
 	
 	if(!enrichedDof)
-		return ;
+		return std::vector<BoundaryCondition * >();
 	
 
 	Vector apparentStress = source->getState().getNonEnrichedStress(gp.gaussPoints,Jinv) ; 

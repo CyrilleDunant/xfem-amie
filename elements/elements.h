@@ -94,7 +94,6 @@ public:
 	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const = 0 ;
 	
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() = 0;
-	virtual Vector getForces() { return Vector(0) ;}
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  = 0;
 	virtual Vector getNonLinearForces() = 0 ;
 	
@@ -202,7 +201,6 @@ public:
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() = 0;
 	virtual Form * getBehaviour() const ;
 	virtual void setBehaviour(Form *);
-	virtual Vector getForces() { return Vector(0) ;}
 
 	virtual NonLinearForm * getNonLinearBehaviour() const ;
 	
@@ -269,9 +267,7 @@ public:
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
 	
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() ;
-	
-	virtual Vector getForces() ;
-	
+		
 	virtual Vector getNonLinearForces() ;
 	
 	void refresh(const TetrahedralElement * parent);
@@ -313,7 +309,6 @@ public:
 
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
 	
-	virtual Vector getForces() ;
 	const GaussPointArray & getGaussPoints()
 	{
 		if(cachedGaussPoints.gaussPoints.size() == 0)

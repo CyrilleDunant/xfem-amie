@@ -98,7 +98,7 @@ double E_max = 0;
 
 double x_max = 0 ;
 double y_max = 0 ;
-double disp = 0.001 ;
+double disp = 0 ;
 BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
 double width = 500;
 double height = 500;
@@ -630,8 +630,8 @@ void step()
 				static_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
 		}
 		
-		if(countit%100 == 0)
-		{
+// 		if(countit%100 == 0)
+// 		{
 			std::cout << std::endl ;
 			std::cout << "max value x :" << x_max << std::endl ;
 			std::cout << "mean value x :" << avgdisplacement[0] << std::endl ;
@@ -664,7 +664,7 @@ void step()
 			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 				
 			std::cout << "energy index :" << enr << std::endl ;
-		}
+// 		}
 		energy.push_back(enr) ;
 
 	}
@@ -1663,10 +1663,10 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
 	F.addBoundaryCondition(imposeddisp) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, -0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, -20)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 20)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 0)) ;
 
 // 	std::vector<Point *> newTips ;
 // 	newTips.push_back(pb);
@@ -1679,7 +1679,7 @@ int main(int argc, char *argv[])
 	
 	F.sample(256) ;
 	F.useMultigrid = false ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements(0, true) ;
 
 	step() ;

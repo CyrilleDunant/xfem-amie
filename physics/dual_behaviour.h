@@ -72,12 +72,6 @@ public:
 	*/
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	
-	/** \brief Check if this behaviour induces internal forces
-	 * 
-	 * @return true if any of the two behaviour has induces forces
-	 */
-	virtual bool hasInducedForces() const ;
-	
 	/** \brief Check for fracture state
 	 *
 	 * @return true if the element is fractured
@@ -99,7 +93,8 @@ public:
 
 	virtual void artificialDamageStep(double d) ;
 	
-	/** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise
+
+		/** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise
 	 * 
 	 * @param s ElementState to consider
 	 * @param p_i shape function to consider
@@ -107,7 +102,7 @@ public:
 	 * @param Jinv Inverse Jacobian matrix to use at the Gauss Points
 	 * @param v Vector in which to store the result
 	 */
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+	std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const; 
 	
 } ;
 

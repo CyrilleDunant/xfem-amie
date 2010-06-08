@@ -38,12 +38,9 @@ struct StressDefinedStiffnessWithImposedDeformation : public StressDefinedStiffn
 	virtual ~StressDefinedStiffnessWithImposedDeformation() ;
 	
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
-
-	virtual bool hasInducedForces() const ;
 		
 	virtual Vector getImposedStress(const Point & p) const ;
 	
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 	std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	virtual bool isActive() const ;
 	

@@ -67,12 +67,6 @@ public:
 	*/
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	
-	/** \brief Check if this behaviour induces internal forces
-	 * 
-	 * @return true if any of the two behaviour has induces forces
-	 */
-	virtual bool hasInducedForces() const ;
-	
 	/** Check for fracture state
 	 *
 	 * @return true if the element is fractured
@@ -102,7 +96,6 @@ public:
 	 * @param Jinv Inverse Jacobian matrix to use at the Gauss Points
 	 * @param v Vector in which to store the result
 	 */
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 	std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const; 
 	
 } ;

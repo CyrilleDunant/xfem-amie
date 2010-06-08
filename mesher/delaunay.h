@@ -163,7 +163,6 @@ public:
 	virtual void refresh(const TriElement *) ;
 	
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
-	virtual Vector getForces() ;
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  ;
 	virtual Vector getNonLinearForces() ;
 	virtual const GaussPointArray & getSubTriangulatedGaussPoints() ;

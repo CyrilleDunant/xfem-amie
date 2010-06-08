@@ -2211,11 +2211,29 @@ bool FeatureTree::step(double dt)
 	}
 
 	assemble() ;
-
+	if(dtree)
+	{
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		for(size_t i = 0 ; i < elements.size() ; ++i)
+		{
+			elements[i]->applyBoundaryCondition(K) ;
+		}
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
+		
+		for(size_t i = 0 ; i < elements.size() ; ++i)
+		{
+			elements[i]->applyBoundaryCondition(K) ;
+		}
+		
+	}
 	for(size_t i = 0 ; i < boundaryCondition.size() ; ++i)
 	{
 		if(dtree)
 		{
+			
 			boundaryCondition[i]->apply(K, dtree) ;
 			if(useMultigrid)
 			{

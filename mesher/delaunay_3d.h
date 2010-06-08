@@ -185,7 +185,7 @@ public:
 	std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
 	void clearElementaryMatrix() ;
 	std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  ;
-	Vector getForces() ;
+// 	Vector getForces() ;
 	Vector getNonLinearForces()  ;
 	
 	const GaussPointArray & getSubTriangulatedGaussPoints()  ;

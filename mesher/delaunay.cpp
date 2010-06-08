@@ -3071,58 +3071,6 @@ Vector DelaunayTriangle::getNonLinearForces()
 	return forces ;
 }
 
-Vector DelaunayTriangle::getForces()
-{
-	if(!behaviourUpdated && !enrichmentUpdated && cachedForces.size() > 0)
-	{
-		return cachedForces ;
-	}
-	
-	if(enrichmentUpdated)
-		cachedGaussPoints = getSubTriangulatedGaussPoints() ;
-
-	size_t numdof = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	std::vector<size_t> dofs = getDofIds() ;
-	cachedForces.resize(dofs.size()*numdof, double(0)) ;
-	std::valarray<Matrix> Jinv ;
-
-	if(moved)
-	{
-		Jinv.resize( cachedGaussPoints.gaussPoints.size(), Matrix()) ;
-		for(size_t i = 0 ; i < cachedGaussPoints.gaussPoints.size() ;  i++)
-		{
-			getInverseJacobianMatrix( cachedGaussPoints.gaussPoints[i].first, Jinv[i] ) ;
-		}
-	}
-	else
-	{
-		Matrix J ;
-		getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
-
-		Jinv.resize(cachedGaussPoints.gaussPoints.size(), J) ;
-	}
-// 	
-	
-	Vector f(0., numdof) ;
-	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-	{
-		behaviour->getForces(this->getState(), getShapeFunction(i),cachedGaussPoints, Jinv, f) ;
-		for(size_t j = 0 ; j < numdof ; j++)
-			cachedForces[i*numdof+j]+=f[j];
-
-	}
-		
-	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-	{
-		behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,cachedGaussPoints, Jinv, f) ;
-		for(size_t j = 0 ; j < numdof ; j++)
-			cachedForces[(i+getShapeFunctions().size())*numdof+j]+=f[j];
-	}
-	enrichmentUpdated = false ;
-	behaviourUpdated = false ;
-	return cachedForces ;
-}
-
 DelaunayDeadTriangle::~DelaunayDeadTriangle() { }
 
 std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > Mu::quad(const DelaunayTriangle * t)

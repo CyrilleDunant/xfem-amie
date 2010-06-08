@@ -36,7 +36,7 @@ struct ViscoElasticity: public LinearForm
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
 	/** \todo remove usage of previousState. complement state instead*/
 	virtual void step(double timestep, ElementState & currentState);
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const;
+	virtual bool changed() {return true ;}
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	virtual bool hasInducedForces();
 	

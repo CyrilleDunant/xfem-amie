@@ -1357,11 +1357,6 @@ Function HexahedralElement::getZTransform() const
 	return ZTransform( this->getBoundingPoints(), HexahedralElement(getOrder()).getShapeFunctions()) ;
 }
 
-Vector TetrahedralElement::getForces() 
-{
-	return Vector(0) ;
-}
-
 Vector TetrahedralElement::getNonLinearForces() 
 {
 	return Vector(0) ;
@@ -1926,75 +1921,6 @@ std::vector<std::vector<Matrix> > & HexahedralElement::getElementaryMatrix()
 
 	}
 
-//const std::vector< std::pair<size_t, Function> >  ElementaryVolume::getEnrichmentFunctions() const
-//{
-//	return this->enrichfunc;
-//}
-
-// std::valarray< Point *> * ElementaryVolume::getBoundingPoints() const 
-// {
-// 	return this->getBoundingPoints() ;
-// }
-// 
-// std::valarray< Point *> * ElementaryVolume::getInPoints() const 
-// {
-// 	return this->getInPoints() ;
-// }
-
- Vector HexahedralElement::getForces() 
-	{
-
-		std::valarray<Matrix> Jinv ;
-		std::vector<size_t> dofs = getDofIds() ;
-		Vector forces (dofs.size()*3);
-/*	VirtualMachine vm ;*/
-		if(getEnrichmentFunctions().size() > 0)
-		{
-
-			Matrix J ; getInverseJacobianMatrix( getGaussPoints().gaussPoints[0].first, J ) ;
-			Jinv.resize(getGaussPoints().gaussPoints.size()) ;
-			
-			for(size_t i = 0 ; i <  getGaussPoints().gaussPoints.size() ;  i++)
-			{
-				Jinv[i] = J ;	
-			}
-		}
-		else
-		{
-			GaussPointArray gp_alt(cachedGaussPoints) ;
-			Matrix J ; getInverseJacobianMatrix(  getGaussPoints().gaussPoints[0].first, J ) ;
-			Jinv.resize( getGaussPoints().gaussPoints.size()) ;
-				
-			for(size_t i = 0 ; i <  getGaussPoints().gaussPoints.size() ;  i++)
-			{
-				Jinv[i] = J ;
-			}
-		}
-		Vector f(0., 3) ;
-		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-		{
-
-				behaviour->getForces(this->getState(), getShapeFunction(i), getGaussPoints(), Jinv, f) ;
-				
-				forces[i*3]+=f[0];
-				forces[i*3+1]+=f[1];
-				forces[i*3+2]+=f[2];
-		}
-
-		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-		{
-			behaviour->getForces(this->getState(), getEnrichmentFunction(i), getGaussPoints(), Jinv, f) ;
-			
-			forces[(i+getShapeFunctions().size())*3]+=f[0];
-			forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-			forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-		}
-
-		return forces ;
-
-	}
-
-
 
 
 const Function  & ElementaryVolume::getShapeFunction(size_t i) const
@@ -2002,11 +1928,6 @@ const Function  & ElementaryVolume::getShapeFunction(size_t i) const
 	return (*shapefunc)[i] ;
 }
 
-// Function & ElementaryVolume::getShapeFunction(size_t i) 
-// {
-// 	return (*shapefunc)[i] ;
-// }
-//const std::pair<size_t, Function> getEnrichmentFunction(size_t i) const ;
 
 void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 {

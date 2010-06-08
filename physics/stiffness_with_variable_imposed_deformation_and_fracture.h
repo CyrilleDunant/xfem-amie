@@ -71,9 +71,6 @@ namespace Mu
 		/** \brief return a copy of the bahaviour, including a copy of the fracture criterion and damage state.*/
 		virtual Form * getCopy() const ;
 		
-		/** \brief return true */
-		virtual bool hasInducedForces() const ;
-
 		/** \brief return the imposed strain vector * the CG tensor. */
 		virtual Vector getImposedStress(const Point & p) const ;
 		
@@ -91,16 +88,6 @@ namespace Mu
 
 		virtual void artificialDamageStep(double d) ;
 		
-		/** \brief Return the virtual force resulting of the imposed stress
-		* 
-		* @param ElementState to consider 
-		* @param p_i shape function to consider
-		* @param gp GaussPointArray to consider for the quadrature
-		* @param Jinv  inverse Jacobian matrix at the integration points
-		* @param Vector v Vector in which to store the results
-		* @return \f$ \int\nabla^T p_i K \varepsilon_{imposed} \f$ 
-		*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	} ;
 

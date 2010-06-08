@@ -322,7 +322,7 @@ protected:
 	
 	Order order ;
 	ElementState state ;
-	std::vector<BoundaryCondition *> boundaryConditionCache ;
+	std::vector<BoundaryCondition *> * boundaryConditionCache ;
 public:
 	bool enrichmentUpdated ;
 	bool behaviourUpdated ;
@@ -330,7 +330,7 @@ public:
 	
 	IntegrableEntity() ;
 	virtual void getInverseJacobianMatrix(const Point &p, Matrix & ret) const = 0 ;
-	virtual ~IntegrableEntity() { } ;
+	virtual ~IntegrableEntity() ;
 	virtual const Point & getPoint(size_t i) const = 0 ;
 	virtual Point & getPoint(size_t i)  = 0 ;
 	virtual const GaussPointArray & getGaussPoints() = 0;
@@ -358,7 +358,7 @@ public:
 	virtual NonLinearForm * getNonLinearBehaviour() const = 0;
 	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix()  = 0 ;
 	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
-	virtual Vector getForces() = 0 ;
+// 	virtual Vector getForces() = 0 ;
 	virtual Vector getNonLinearForces() = 0 ;
 	virtual void applyBoundaryCondition(Assembly * a) ;
 	

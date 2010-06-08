@@ -20,16 +20,24 @@ Vector & ElementState::getEnrichedDisplacements()
 	return this->enrichedDisplacements ;
 }
 
-IntegrableEntity::IntegrableEntity() : state(this)
+IntegrableEntity::IntegrableEntity() : state(this), boundaryConditionCache(NULL)
 {
 	
 }
 
 void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 {
-	if(getBehaviour()->changed())
+	if((getBehaviour()->changed() || boundaryConditionCache == NULL)&& getBehaviour()->type != VOID_BEHAVIOUR)
 	{
-		boundaryConditionCache.clear();
+		if(boundaryConditionCache)
+		{
+			for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
+				delete (*boundaryConditionCache)[i] ;
+		}
+		
+		delete boundaryConditionCache ;
+	
+		boundaryConditionCache = new std::vector<BoundaryCondition *>();
 		std::valarray<Matrix> Jinv(getGaussPoints().gaussPoints.size()) ;
 
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
@@ -41,24 +49,35 @@ void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getBoundingPoint(i).id,  getShapeFunction(i), getGaussPoints(), Jinv) ;
-			boundaryConditionCache.insert(boundaryConditionCache.end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
+			boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
 		}
 		
 		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getEnrichmentFunction(i).getDofID(),  getShapeFunction(i), getGaussPoints(), Jinv) ;
-			boundaryConditionCache.insert(boundaryConditionCache.end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
+			boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
 		}
 	}
 	
-	for(size_t i = 0 ; i < boundaryConditionCache.size() ; i++)
+	for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
 	{
 		if(get2DMesh())
-			boundaryConditionCache[i]->apply(a, get2DMesh()) ;
+			(*boundaryConditionCache)[i]->apply(a, get2DMesh()) ;
 		else
-			boundaryConditionCache[i]->apply(a, get3DMesh()) ;
+			(*boundaryConditionCache)[i]->apply(a, get3DMesh()) ;
 	}
 	
+}
+
+IntegrableEntity::~IntegrableEntity()
+{
+	if(boundaryConditionCache)
+	{
+		for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
+			delete (*boundaryConditionCache)[i] ;
+	}
+	
+	delete boundaryConditionCache ;
 }
 
 const Vector & ElementState::getPreviousEnrichedDisplacements() const

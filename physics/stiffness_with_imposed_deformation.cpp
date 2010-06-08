@@ -41,19 +41,9 @@ Form * StiffnessWithImposedDeformation::getCopy() const
 	return new StiffnessWithImposedDeformation(*this) ;
 }
 
-bool StiffnessWithImposedDeformation::hasInducedForces() const 
-{
-	return true ; 
-} 
-
 Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p) const
 {
 	return (param * imposed) ;
-}
-
-void StiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 }
 
 std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -61,11 +51,17 @@ std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryCo
 	Vector f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 	
 	std::vector<BoundaryCondition * > ret ;
-		std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(num_dof == 3)
-		v.push_back(ZETA) ;
+	if(f.size() == 2)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[1]));
+	}
+	if(f.size() == 3)
+	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()), id, f[2]));
+	}
 	return ret ;
 }
 

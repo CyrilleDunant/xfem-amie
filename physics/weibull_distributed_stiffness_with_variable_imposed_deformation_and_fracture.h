@@ -90,16 +90,6 @@ namespace Mu
 
 		virtual void artificialDamageStep(double d) ;
 		
-		/** \brief Return the virtual force resulting of the imposed stress
-		* 
-		* @param ElementState to consider 
-		* @param p_i shape function to consider
-		* @param gp GaussPointArray to consider for the quadrature
-		* @param Jinv  inverse Jacobian matrix at the integration points
-		* @param Vector v Vector in which to store the results
-		* @return \f$ \int\nabla^T p_i K \varepsilon_{imposed} \f$ 
-		*/
-		virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
 		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
 	} ;

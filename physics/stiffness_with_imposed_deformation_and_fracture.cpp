@@ -154,10 +154,6 @@ Form * StiffnessWithImposedDeformationAndFracture::getCopy() const
 	return copy ;
 }
 
-bool StiffnessWithImposedDeformationAndFracture::hasInducedForces() const 
-{
-	return true ; 
-} 
 
 Matrix StiffnessWithImposedDeformationAndFracture::getTensor(const Point & p) const
 {
@@ -188,9 +184,3 @@ std::vector<BoundaryCondition * > StiffnessWithImposedDeformationAndFracture::ge
 	}
 	return ret ;
 }
-
-void StiffnessWithImposedDeformationAndFracture::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
-}
-

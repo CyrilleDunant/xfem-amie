@@ -208,15 +208,6 @@ void ViscoElasticity::step(double timestep, ElementState & currentState)
 	}
 }
 	
-void ViscoElasticity::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const
-{
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	v.push_back(ZETA);
-	f =  VirtualMachine().ieval(Gradient(p_i, true)*average_delta_sigma, gp, Jinv,v) ;
-}
-
 std::vector<BoundaryCondition * > ViscoElasticity::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	std::vector<Variable> v ;

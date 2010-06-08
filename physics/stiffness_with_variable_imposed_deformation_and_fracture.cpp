@@ -37,11 +37,6 @@ void StiffnessWithVariableImposedDeformationAndFracture::apply(const Function & 
 	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
-bool StiffnessWithVariableImposedDeformationAndFracture::hasInducedForces() const 
-{
-	return true ; 
-} 
-
 void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState)
 {
 	if(!frac && criterion->met(currentState) )
@@ -125,11 +120,6 @@ Form * StiffnessWithVariableImposedDeformationAndFracture::getCopy() const
 	StiffnessWithVariableImposedDeformationAndFracture * copy = new StiffnessWithVariableImposedDeformationAndFracture(param, imposed, criterion->getCopy()) ;
 	copy->damage = damage ;
 	return copy ;
-}
-
-void StiffnessWithVariableImposedDeformationAndFracture::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-	f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;
 }
 
 std::vector<BoundaryCondition * > StiffnessWithVariableImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

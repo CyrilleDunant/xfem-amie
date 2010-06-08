@@ -326,55 +326,6 @@ void Assembly::setBoundaryConditions()
 	this->nonLinearExternalForces = 0 ;
 	
 	size_t ndofs = multiplier_offset ;
-// 	if(!element3d.empty())
-// 		ndofs = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-// 	else
-// 		ndofs = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	
-	std::cerr << " setting BCs... forces element " << 0 << "/" << std::max(element2d.size(),element3d.size()) << std::flush ;
-	for(size_t i = 0 ; i < element2d.size() ; i++)
-	{
-		if(i%1000 == 0)
-			std::cerr << "\r setting BCs... forces element " << i << "/" << element2d.size() << std::flush ;
-		std::vector<size_t> ids = element2d[i]->getDofIds() ;
-// 		std::vector<std::vector<Matrix > > mother  = element2d[i]->getElementaryMatrix();
-		if(element2d[i]->getBehaviour()->hasInducedForces())
-		{
-			Vector f = element2d[i]->getForces() ;
-			for(size_t j = 0 ; j < ids.size() ; j++)
-			{
-				for(size_t l = 0 ; l < ndofs  ; l++)
-				{
-					this->externalForces[ndofs*ids[j]+l] += f[ndofs*j+l] ;
-				}
-			}
-		}
-	}
-		
-	for(size_t i = 0 ; i < element3d.size() ; i++)
-	{
-		if(i%1000 == 0)
-			std::cerr << "\r setting BCs... forces element " << i << "/" << element3d.size() << std::flush ;
-		
-		std::vector<size_t> ids = element3d[i]->getDofIds() ;
-// 		std::vector<std::vector<Matrix > > mother  = element3d[i]->getElementaryMatrix();
-		
-		if(element3d[i]->getBehaviour()->hasInducedForces())
-		{
-			Vector f = element3d[i]->getForces() ;
-			
-			for(size_t j = 0 ; j < ids.size() ;j++)
-			{
-				for(size_t l = 0 ; l < ndofs  ; l++)
-				{
-					this->externalForces[ndofs*ids[j]+l] += f[ndofs*j+l] ;
-				}
-			}
-		}
-	}
-	
-	std::cerr << " ...done" << std::endl ;
-	
 
 	//we might have voids in the numbering...
 	for(size_t i = 0 ; i < coordinateIndexedMatrix->row_size.size() ; i++)
@@ -1005,21 +956,32 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 		case XI:
 			{
 				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
 
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
-				multipliers.back().type = SET_FORCE_XI ;
+				if(duplicate != multipliers.end())
+				{
+					
+					duplicate->value += val ;
+				}
+				else
+				{
+					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
+					multipliers.back().type = SET_FORCE_XI ;
+				}
 				break ;
 			}
 		case ETA:
 			{
 				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-				
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
-				multipliers.back().type = SET_FORCE_ETA ;
+
+				if(duplicate != multipliers.end())
+				{
+					duplicate->value += val ;
+				}
+				else
+				{
+					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
+					multipliers.back().type = SET_FORCE_ETA ;
+				}
 				break ;
 			}
 		default:
@@ -1035,28 +997,47 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 		case XI:
 			{
 				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
-				multipliers.rbegin()->type = SET_FORCE_XI ;
+
+				if(duplicate != multipliers.end())
+				{
+					duplicate->value += val ;
+				}
+				else
+				{
+					multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
+					multipliers.back().type = SET_FORCE_XI ;
+				}
 				break ;
 			}
 		case ETA:
 			{
 				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
-				multipliers.rbegin()->type = SET_FORCE_ETA ;
+
+				if(duplicate != multipliers.end())
+				{
+					duplicate->value += val ;
+				}
+				else
+				{
+					multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
+					multipliers.back().type = SET_FORCE_ETA ;
+				}
 				break ;
 			}
 		case ZETA:
 			{
 				std::vector<LagrangeMultiplier>::iterator duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
+
+				if(duplicate != multipliers.end())
+				{
+					duplicate->value += val ;
+				}
+				else
 				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
-				multipliers.rbegin()->type = SET_FORCE_ZETA ;
+				{
+					multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
+					multipliers.back().type = SET_FORCE_ZETA ;
+				}
 				break ;
 			}
 		default:
@@ -1120,7 +1101,7 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 					multipliers.erase(duplicate) ;
 				}
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
-				multipliers.rbegin()->type = SET_FORCE_XI ;
+				multipliers.back().type = SET_FORCE_XI ;
 				break ;
 			}
 		case ETA:
@@ -1132,7 +1113,7 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 					multipliers.erase(duplicate) ;
 				}
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
-				multipliers.rbegin()->type = SET_FORCE_ETA ;
+				multipliers.back().type = SET_FORCE_ETA ;
 				break ;
 			}
 		case ZETA:
@@ -1144,7 +1125,7 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 					multipliers.erase(duplicate) ;
 				}
 				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
-				multipliers.rbegin()->type = SET_FORCE_ZETA ;
+				multipliers.back().type = SET_FORCE_ZETA ;
 				break ;
 			}
 		default:

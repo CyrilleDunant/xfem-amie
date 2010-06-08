@@ -130,9 +130,10 @@ Form * BimaterialInterface::getCopy() const
 	return new BimaterialInterface(*this) ;
 }
 
-
-void BimaterialInterface::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
+std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
+	std::vector<BoundaryCondition * > ret ;
+
 	bool allin = true ;
 	bool allout = true ;
 	Vector x = VirtualMachine().eval(xtransform,gp) ;
@@ -154,18 +155,6 @@ void BimaterialInterface::getForces(const ElementState & s, const Function & p_i
 		}
 			
 	}
-
-	if(allin && inBehaviour->hasInducedForces())
-	{
-		inBehaviour->getForces(s, p_i, gp, Jinv, f) ; 
-		return ;
-	}
-	else if(allout && outBehaviour->hasInducedForces())
-	{
-		outBehaviour->getForces(s, p_i, gp, Jinv, f) ;
-		return ;
-	}
-
 	std::valarray<std::pair<Point, double> > inArray(inCount) ;
 	std::valarray<Matrix> inMatrixArray(inCount) ;
 	std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
@@ -191,24 +180,15 @@ void BimaterialInterface::getForces(const ElementState & s, const Function & p_i
 		}
 	}
 
-	if(inBehaviour->hasInducedForces() && outBehaviour->hasInducedForces())
-	{
-		Vector temp(f) ;
-		inBehaviour->getForces(s, p_i, gpIn, inMatrixArray, f) ;
-		outBehaviour->getForces(s, p_i, gpOut, outMatrixArray, temp) ;f += temp ;
-		return ;
-	}
-	else if(inBehaviour->hasInducedForces())
-	{
-		inBehaviour->getForces(s, p_i, gpIn, inMatrixArray, f) ;
-		return ;
-	}
-	else if(outBehaviour->hasInducedForces())
-	{
-		outBehaviour->getForces(s, p_i, gpOut, outMatrixArray, f) ;
-		return  ;
-	}
+
+	std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
+	ret.insert(ret.end(), temp.begin(), temp.end()) ;
+	temp =outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
+	ret.insert(ret.end(), temp.begin(), temp.end()) ;
+
+	return ret ;
 }
+
 
 void BimaterialInterface::step(double timestep, ElementState & currentState)
 {
@@ -223,10 +203,6 @@ void BimaterialInterface::artificialDamageStep(double d)
 }
 
 
-bool BimaterialInterface::hasInducedForces() const
-{
-	return inBehaviour->hasInducedForces() || outBehaviour->hasInducedForces() ;
-}
 
 
 

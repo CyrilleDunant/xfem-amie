@@ -99,21 +99,9 @@ void StressDefinedStiffnessWithImposedDeformation::apply(const Function & p_i, c
 	}
 }
 
-void StressDefinedStiffnessWithImposedDeformation::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
-{
-	Vector stress = s.getStress(gp.gaussPoints) ; 
-
-	std::vector<Variable> v ;
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(num_dof == 3)
-		v.push_back(ZETA) ;
-	
-	f = VirtualMachine().ieval(Gradient(p_i, true)*stress, gp, Jinv,v) ;
-}
-
 std::vector<BoundaryCondition * > StressDefinedStiffnessWithImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
+	#warning implementation wrong
 	Vector stress = s.getStress(gp.gaussPoints) ; 
 	std::vector<Variable> v ;
 	v.push_back(XI);
@@ -170,11 +158,6 @@ bool StressDefinedStiffnessWithImposedDeformation::isActive() const
 Form * StressDefinedStiffnessWithImposedDeformation::getCopy() const 
 {
 	return new StressDefinedStiffnessWithImposedDeformation(*this) ;
-}
-
-bool StressDefinedStiffnessWithImposedDeformation::hasInducedForces() const
-{
-	return true ;
 }
 
 Vector StressDefinedStiffnessWithImposedDeformation::getImposedStress(const Point & p) const

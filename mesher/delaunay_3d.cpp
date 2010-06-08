@@ -2772,7 +2772,7 @@ Vector DelaunayTetrahedron::getNonLinearForces()
 		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{
 
-				behaviour->getForces(this->getState(), getShapeFunction(i),gp, Jinv, f) ;
+				nonlinbehaviour->getForces(this->getState(), getShapeFunction(i),gp, Jinv, f) ;
 				
 				forces[i*3]+=f[0];
 				forces[i*3+1]+=f[1];
@@ -2787,52 +2787,6 @@ Vector DelaunayTetrahedron::getNonLinearForces()
 			forces[(i+getShapeFunctions().size())*3+1]+=f[1];
 			forces[(i+getShapeFunctions().size())*3+2]+=f[2];
 		}
-
-	return forces ;
-}
-
-Vector DelaunayTetrahedron::getForces()
-{
-	std::vector<size_t> dofs = getDofIds() ;
-	Vector forces(dofs.size()*3) ;
-	
-	std::valarray<Matrix> Jinv ;
-	GaussPointArray gp = getSubTriangulatedGaussPoints() ; 
-	
-	if(moved)
-	{
-		Jinv.resize(gp.gaussPoints.size(), Matrix()) ;
-		for(size_t i = 0 ; i < gp.gaussPoints.size() ;  i++)
-		{
-			getInverseJacobianMatrix( gp.gaussPoints[i].first, Jinv[i] ) ;
-		}
-	}
-	else
-	{
-		Matrix J ;
-		getInverseJacobianMatrix(Point( 1./4.,1./4., 1./4.), J );
-		Jinv.resize(gp.gaussPoints.size(), J) ;
-	}
-	
-	Vector f(0., 3) ;
-	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-	{
-		behaviour->getForces(this->getState(), getShapeFunction(i) ,gp, Jinv, f) ;
-		
-		forces[i*3]+=f[0];
-		forces[i*3+1]+=f[1];
-		forces[i*3+2]+=f[2];
-	}
-
-	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
-	{
-		behaviour->getForces(this->getState(), getEnrichmentFunction(i) ,gp, Jinv, f) ;
-		
-		forces[(i+getShapeFunctions().size())*3]+=f[0];
-		forces[(i+getShapeFunctions().size())*3+1]+=f[1];
-		forces[(i+getShapeFunctions().size())*3+2]+=f[2];
-	}
-
 
 	return forces ;
 }
