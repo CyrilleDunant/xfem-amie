@@ -1350,7 +1350,7 @@ int main(int argc, char *argv[])
 	d[0] = 0.5 ;
 	d[1] = 0.5 ;
 
-	Sample sample(NULL,200,200,0,0) ;
+	Sample sample(NULL,110,110,0,0) ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
@@ -1363,8 +1363,9 @@ int main(int argc, char *argv[])
 	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 	F.addFeature(&sample, tri) ;
 
-	Inclusion * inc0 = new Inclusion(10, 0, 20) ;
-	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*5, d)) ;
+// 	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
+// 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*5, d)) ;
+	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*5, d) ;
 	F.addFeature(tri, inc0) ;
 
 	F.sample(256) ;

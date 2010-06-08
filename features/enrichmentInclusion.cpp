@@ -25,7 +25,10 @@ EnrichmentInclusion::~EnrichmentInclusion() {}
 	
 bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 {
-	return t->intersects(getPrimitive()) ;
+	Segment s0(*t->first, *t->second) ;
+	Segment s1(*t->second, *t->third) ;
+	Segment s2(*t->third, *t->first) ;
+	return (s0.intersects(getPrimitive()) || s1.intersects(getPrimitive()) || s2.intersects(getPrimitive())) ;
 }
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
@@ -35,7 +38,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 	{
 		if(!cache[i]->enrichmentUpdated)
 		{
-			std::vector<size_t> idpts = cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+			std::vector<size_t> idpts = cache[i]->clearEnrichment(getPrimitive()) ;
 			for(size_t j = 0 ; j < idpts.size() ; j++)
 				freeIds.insert(idpts[j]) ;
 		}
@@ -58,7 +61,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 	{
 		if(!cache[i]->enrichmentUpdated)
 		{
-			std::vector<size_t> idpts = cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+			std::vector<size_t> idpts = cache[i]->clearEnrichment(getPrimitive()) ;
 			for(size_t j = 0 ; j < idpts.size() ; j++)
 				freeIds.insert(idpts[j]) ;
 		}
@@ -94,12 +97,11 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 		feat.push_back(circle) ;
 
 		disc[0]->setBehaviour(new HomogeneisedBehaviour(feat, disc[0])) ;
-
 		return ;
 
 /*		for(size_t i = 0 ; i < disc.size() ; i++)
 		{
-			std::vector<Point> samplingPoints = static_cast<Circle *>(this)->getSamplingBoundingPoints(8) ;
+			std::vector<Point> samplingPoints = getPrimitive()->getSamplingBoundingPoints(8) ;
 	
 			std::map<Point *, int> dofId ;
 			
@@ -128,21 +130,21 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 			f.setIntegrationHint(hint) ;
 			f.setPoint(disc[i]->first) ;
 			f.setDofID(dofId[disc[i]->first]) ;
-			disc[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+			disc[i]->setEnrichment(f, getPrimitive()) ;
 			
 				//enriching the second point
 			f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
 			f.setIntegrationHint(hint) ;
 			f.setPoint(disc[i]->second) ;
 			f.setDofID(dofId[disc[i]->second]) ;
-			disc[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+			disc[i]->setEnrichment(f, getPrimitive()) ;
 			
 				//enriching the third point
 			f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
 			f.setIntegrationHint(hint) ;
 			f.setPoint(disc[i]->third) ;
 			f.setDofID(dofId[disc[i]->third]) ;
-			disc[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+			disc[i]->setEnrichment(f, getPrimitive()) ;
 			
 			for(size_t j = 0 ; j < disc[i]->neighbourhood.size() ; j++)
 			{
@@ -150,7 +152,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 				if(!enrichmentTarget(t))
 				{
 					if(!t->enrichmentUpdated)
-						t->clearEnrichment( static_cast<Circle *>(this)) ;
+						t->clearEnrichment( getPrimitive()) ;
 					t->enrichmentUpdated = true ;
 					bool hinted = false ;
 					Function hat = 1- f_abs(Function(getCenter(), 
@@ -168,7 +170,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 						}
 						f.setPoint(t->first) ;
 						f.setDofID(dofId[t->first]) ;
-						t->setEnrichment(f, static_cast<Circle *>(this)) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
 					
 					if(dofId.find(t->second) != dofId.end())
@@ -181,7 +183,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 						}
 						f.setPoint(t->second) ;
 						f.setDofID(dofId[t->second]) ;
-						t->setEnrichment(f, static_cast<Circle *>(this)) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
 					
 					if(dofId.find(t->third) != dofId.end())
@@ -194,7 +196,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 						}
 						f.setPoint(t->third) ;
 						f.setDofID(dofId[t->third]) ;
-						t->setEnrichment(f, static_cast<Circle *>(this)) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
 				}
 			}
@@ -208,10 +210,15 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(this->intersects(static_cast<Triangle *>(disc[i])))
+		Segment s0(*disc[i]->first, *disc[i]->second) ;
+		Segment s1(*disc[i]->second, *disc[i]->third) ;
+		Segment s2(*disc[i]->third, *disc[i]->first) ;
+		if(!(getPrimitive()->in(*disc[i]->first) && getPrimitive()->in(*disc[i]->second) && getPrimitive()->in(*disc[i]->third)))
+		{
 			ring.push_back(disc[i]) ;
+		}
 	}
-	
+	std::cout << "ring.size() " << ring.size() << " disk.size()" << disc.size() << std::endl ;
 	//then we build a list of points to enrich
 	std::vector<Point *> points ;
 
@@ -292,26 +299,26 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 			f.setIntegrationHint(hint) ;
 			f.setPoint(a) ;
 			f.setDofID(dofId[a]) ;
-			ring[i]->setEnrichment( f, static_cast<Circle *>(this)) ;
+			ring[i]->setEnrichment( f, getPrimitive()) ;
 			
 			//enriching the second point
 			f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
 			f.setPoint(b) ;
 			f.setDofID(dofId[b]) ;
-			ring[i]->setEnrichment( f, static_cast<Circle *>(this)) ;
+			ring[i]->setEnrichment( f, getPrimitive()) ;
 			
 			//enriching the third point
 			f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
 			f.setPoint(c) ;
 			f.setDofID(dofId[c]) ;
-			ring[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+			ring[i]->setEnrichment(f, getPrimitive()) ;
 			for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 			{
 				DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
-				if(!enrichmentTarget(t))
+				if(std::find(ring.begin(), ring.end(), t) == ring.end())
 				{
 					if(!t->enrichmentUpdated)
-						t->clearEnrichment( static_cast<Circle *>(this)) ;
+						t->clearEnrichment( getPrimitive()) ;
 					t->enrichmentUpdated = true ;
 					bool hinted = false ;
 					Function hat = 1- f_abs(Function(getCenter(), 
@@ -329,7 +336,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 						}
 						f.setPoint(t->first) ;
 						f.setDofID(dofId[t->first]) ;
-						t->setEnrichment(f, static_cast<Circle *>(this)) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
 					
 					if(dofId.find(t->second) != dofId.end())
@@ -342,7 +349,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 						}
 						f.setPoint(t->second) ;
 						f.setDofID(dofId[t->second]) ;
-						t->setEnrichment(f, static_cast<Circle *>(this)) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
 					
 					if(dofId.find(t->third) != dofId.end())
@@ -355,7 +362,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 						}
 						f.setPoint(t->third) ;
 						f.setDofID(dofId[t->third]) ;
-						t->setEnrichment(f, static_cast<Circle *>(this)) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
 				}
 			}
@@ -373,20 +380,23 @@ bool EnrichmentInclusion::inBoundary(const Point *v) const { return false ;}
 	
 std::vector<DelaunayTriangle *> EnrichmentInclusion::getTriangles( DelaunayTree * dt) 
 { 
-	return dt->conflicts(static_cast<Circle *>(this)) ;
+	return dt->conflicts(getPrimitive()) ;
 }
 	
 std::vector<DelaunayTriangle *> EnrichmentInclusion::getIntersectingTriangles( DelaunayTree * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dt->conflicts(static_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> disc = dt->conflicts(getPrimitive()) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(this->intersects(static_cast<Triangle *>(disc[i])))
+		Segment s0(*disc[i]->first, *disc[i]->second) ;
+		Segment s1(*disc[i]->second, *disc[i]->third) ;
+		Segment s2(*disc[i]->third, *disc[i]->first) ;
+		if(s0.intersects(getPrimitive()) || s1.intersects(getPrimitive()) || s2.intersects(getPrimitive()))
 			ring.push_back(disc[i]) ;
 	}
 	

@@ -531,7 +531,7 @@ void step()
 		
 		for(size_t z = 0 ; z < zones.size() ; z++)
 		{
-			zones[z]->setRadius(zones[z]->getGeometry()->getRadius()+0.0001) ;
+			zones[z]->setRadius(zones[z]->getRadius()+0.0001) ;
 			reactedArea += zones[z]->area() ;
 			zones[z]->reset() ;
 		}

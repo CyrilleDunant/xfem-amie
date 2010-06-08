@@ -212,14 +212,14 @@ const std::vector< size_t > ElementarySurface::getDofIds() const
 		if(getBoundingPoint(i).id >= 0)
 			ret.push_back(getBoundingPoint(i).id) ;
 		else
-			std::cout << "negative ID, check numbering !" << std::endl ;
+			std::cout << "negative point ID, check numbering !" << std::endl ;
 	}
 	for (size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
 		if(getEnrichmentFunction(i).getDofID() >= 0)
 			ret.push_back(getEnrichmentFunction(i).getDofID()) ;
 		else
-			std::cout << "negative ID, check numbering !" << std::endl ;
+			std::cout << "negative enrichment ID, check numbering !" << std::endl ;
 	}
 	
 	return ret ;

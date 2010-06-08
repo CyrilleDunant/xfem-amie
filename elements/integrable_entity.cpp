@@ -27,7 +27,7 @@ IntegrableEntity::IntegrableEntity() : state(this), boundaryConditionCache(NULL)
 
 void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 {
-	if((getBehaviour()->changed() || boundaryConditionCache == NULL)&& getBehaviour()->type != VOID_BEHAVIOUR)
+	if((getBehaviour()->changed() || boundaryConditionCache == NULL) && getBehaviour()->type != VOID_BEHAVIOUR)
 	{
 		if(boundaryConditionCache)
 		{
@@ -58,13 +58,15 @@ void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 			boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
 		}
 	}
-	
-	for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
+	if(boundaryConditionCache)
 	{
-		if(get2DMesh())
-			(*boundaryConditionCache)[i]->apply(a, get2DMesh()) ;
-		else
-			(*boundaryConditionCache)[i]->apply(a, get3DMesh()) ;
+		for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
+		{
+			if(get2DMesh())
+				(*boundaryConditionCache)[i]->apply(a, get2DMesh()) ;
+			else
+				(*boundaryConditionCache)[i]->apply(a, get3DMesh()) ;
+		}
 	}
 	
 }

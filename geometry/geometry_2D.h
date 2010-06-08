@@ -336,10 +336,6 @@ public:
 	
 	virtual std::vector<Point> getBoundingBox() const ;
 	
-	const Circle * getGeometry() const ;
-	
-	Circle * getGeometry() ;
-	
 } ;
 
 /** \brief Set of concentric circles, from a center and a set of radii*/

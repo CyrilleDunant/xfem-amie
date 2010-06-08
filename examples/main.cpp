@@ -544,7 +544,7 @@ void step()
 		if (tries < ntries)
 			for(size_t z = 0 ; z < zones.size() ; z++)
 			{
-				zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
+				zones[z].first->setRadius(zones[z].first->getRadius()+delta_r) ;	
 		// 		zones[z].first->reset() ;
 				reactedArea += zones[z].first->area() ;
 			}

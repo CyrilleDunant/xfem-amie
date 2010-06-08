@@ -134,8 +134,6 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 {
 	std::vector<BoundaryCondition * > ret ;
 
-	bool allin = true ;
-	bool allout = true ;
 	Vector x = VirtualMachine().eval(xtransform,gp) ;
 	Vector y = VirtualMachine().eval(ytransform,gp) ;
 	Vector z = VirtualMachine().eval(ztransform,gp) ;
@@ -145,15 +143,9 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 	{
 		if(inGeometry->in(Point(x[i],y[i],z[i])))
 		{
-			allout = false ;
 			inIn[i] = true ;
 			inCount++ ;
 		}
-		else
-		{
-			allin = false ;
-		}
-			
 	}
 	std::valarray<std::pair<Point, double> > inArray(inCount) ;
 	std::valarray<Matrix> inMatrixArray(inCount) ;

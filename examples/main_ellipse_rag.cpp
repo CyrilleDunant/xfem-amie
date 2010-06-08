@@ -970,7 +970,7 @@ void stepOLD()
 			for(size_t z = 0 ; z < zones.size() ; z++)
 			{
 				
-				zones[z].first->setRadius(zones[z].first->getGeometry()->getRadius()+delta_r) ;	
+				zones[z].first->setRadius(zones[z].first->getRadius()+delta_r) ;	
 		// 		zones[z].first->reset() ;
 				if(zones[z].second == current)
 				{
@@ -985,7 +985,7 @@ void stepOLD()
 						for(size_t m = 0 ; m < current_number ; m++)
 						{
 							reactedArea -= zones[z-1-m].first->area() ;
-							zones[z-1-m].first->setRadius(zones[z].first->getGeometry()->getRadius()-delta_r) ;
+							zones[z-1-m].first->setRadius(zones[z].first->getRadius()-delta_r) ;
 							reactedArea += zones[z-1-m].first->area() ;
 						}
 					}

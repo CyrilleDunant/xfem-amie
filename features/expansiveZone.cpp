@@ -15,15 +15,6 @@ ExpansiveZone::ExpansiveZone(Feature *father, double radius, double x, double y,
 
 ExpansiveZone::~ExpansiveZone() {}
 	
-const Circle * ExpansiveZone::getGeometry() const 
-{
-	return static_cast<const Circle *>(this) ;
-}
-
-Circle * ExpansiveZone::getGeometry() 
-{
-	return static_cast<Circle *>(this) ;
-}
 
 void ExpansiveZone::reset() 
 {
@@ -55,7 +46,7 @@ void ExpansiveZone::enrich(size_t & counter , Mesh<DelaunayTriangle, DelaunayTre
 	{
 		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
 		{
-			ring[i]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
+			ring[i]->setBehaviour(new BimaterialInterface(getPrimitive(),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														ring[i]->getBehaviour()->getCopy()
 														)) ;
@@ -78,7 +69,7 @@ void ExpansiveZone::enrich(size_t & counter , Mesh<DelaunayTriangle, DelaunayTre
 	{
 		if(bimateralInterfaced.find(disc[0]) == bimateralInterfaced.end())
 		{
-			disc[0]->setBehaviour(new BimaterialInterface(static_cast<Circle *>(this),
+			disc[0]->setBehaviour(new BimaterialInterface(getPrimitive(),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														disc[0]->getBehaviour()->getCopy()
 														)) ;
@@ -99,16 +90,6 @@ MaterialInclusion::MaterialInclusion(Feature *father, double radius, double x, d
 }
 
 MaterialInclusion::~MaterialInclusion() {}
-	
-const Circle * MaterialInclusion::getGeometry() const 
-{
-	return static_cast<const Circle *>(this) ;
-}
-
-Circle * MaterialInclusion::getGeometry() 
-{
-	return static_cast<Circle *>(this) ;
-}
 
 void MaterialInclusion::reset() 
 {

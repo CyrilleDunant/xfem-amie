@@ -2809,8 +2809,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 // 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 // 			gp.id = -1 ;
 // 		}
-// 		std::cout << "plaf" << std::endl ;
-// 		return gp ;
+// 		cachedGaussPoints = gp ;
+// 		return cachedGaussPoints ;
 
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;

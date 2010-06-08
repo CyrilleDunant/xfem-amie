@@ -53,10 +53,6 @@ public:
 	
 	void reset() ;
 	
-	const Circle * getGeometry() const ;
-
-	Circle * getGeometry() ;
-	
 public:
 	GEO_DERIVED_OBJECT(Circle) ;
 	
@@ -97,10 +93,6 @@ public:
 	}
 	
 	void reset() ;
-	
-	const Circle * getGeometry() const ;
-
-	Circle * getGeometry() ;
 	
 public:
 	GEO_DERIVED_OBJECT(Circle) ;

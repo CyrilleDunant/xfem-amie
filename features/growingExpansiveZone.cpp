@@ -16,7 +16,7 @@ GrowingExpansiveZone::~GrowingExpansiveZone() {} ;
 
 void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-	if(this->getGeometry()->getRadius() >= POINT_TOLERANCE)
+	if(getRadius() >= POINT_TOLERANCE)
 	{
 		ExpansiveZone::enrich(counter,dtree) ;
 	}
@@ -25,7 +25,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
 void GrowingExpansiveZone::step(double dt, Vector *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-	double r = this->getGeometry()->getRadius() ;
+	double r = getRadius() ;
 
 	double previous_r = VirtualMachine().eval(growth, time_pos) ;
 	double dr = VirtualMachine().eval(growth,time_pos+dt) - previous_r;
