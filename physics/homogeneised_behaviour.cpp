@@ -340,11 +340,12 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 			{
 				double def = mat.child(i).val(TAG_IMPOSED_STRAIN,-1) ;
 				mat.add(TAG_EXPANSION_COEFFICIENT,def,i) ;
-			}			
+			}
 			mat.build(new HobbsScheme(), false) ;
 			mat.add(TAG_IMPOSED_STRAIN,mat(TAG_EXPANSION_COEFFICIENT)) ;
 		}
 
+		mat.print() ; 
 		return mat ;
 	}
 

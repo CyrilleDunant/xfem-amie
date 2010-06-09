@@ -468,6 +468,8 @@ bool Material::findMissing(Tag t)
 	{
 //		prop[0].print() ;
 		this->push_back(prop[0]) ;
+	} else {
+		this->push_back(Properties(t,0.)) ;
 	}
 	return conv.isOK() ;
 }
@@ -690,5 +692,6 @@ void Material::divide(int i, std::vector<double> f, bool v)
 	phases[i](fraction,ff*f[0]) ;
 	phases[i](base,phases[i](fraction)*phases[i](total)) ;
 }
+
 
 

@@ -100,6 +100,10 @@ GeneralConverter::GeneralConverter(Tag t) : UniversalConverter(t)
 		input.push_back(TAG_YOUNG_MODULUS) ;
 		input.push_back(TAG_POISSON_RATIO) ;
 		break;
+	case TAG_EXPANSION_COEFFICIENT:
+		input.clear() ;
+		input.push_back(TAG_IMPOSED_STRAIN) ;
+		break ;
 	case TAG_ELLIPSE_FIRST_COMPLETE_INTEGRAL:
 		input.clear() ;
 		input.push_back(TAG_ELLIPSE_A) ;
@@ -155,6 +159,9 @@ Vector GeneralConverter::process(const Matrix & data)
 	case TAG_LAME_COEFFICIENT:
 		processed[0] = getLameCoefficient(data[0][0],data[0][1]) ;
 		break;
+	case TAG_EXPANSION_COEFFICIENT:
+		processed[0] = data[0][0] ;
+		break ;
 	case TAG_ELLIPSE_FIRST_COMPLETE_INTEGRAL:
 		processed[0] = getEllipseFirstCompleteIntegral(data[0][0],data[0][1]) ;
 		break;
