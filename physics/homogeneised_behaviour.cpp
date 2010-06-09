@@ -11,15 +11,19 @@
 //
 
 #include "homogeneised_behaviour.h"
-#include "../geometry/geometry_base.h" 
-#include "homogenization/elastic_homogenization.h"
+#include "diffusion.h"
+#include "stiffness.h"
+#include "stiffness_with_imposed_deformation.h"
+#include "void_form.h"
 #include "homogenization/properties_base.h"
 #include "homogenization/scheme_base.h"
+#include "homogenization/elastic_homogenization.h"
+#include "homogenization/expansion_homogenization.h"
 #include "homogenization/converter.h"
 #include "../features/features.h"
 #include "../features/inclusion.h"
 #include "../features/sample.h"
-#include "void_form.h"
+#include "../geometry/geometry_base.h" 
 
 
 using namespace Mu ;
@@ -318,11 +322,105 @@ void HomogeneisedBehaviour::homogenize()
 
 Material HomogeneisedBehaviour::homogenize(Material mat)
 {
+	if(mat.nPhases() == 1)
+		return mat ;
+
+	mat.makeFraction(true) ;
+	if(mat.nPhases() == 2)
+	{
+		mat.build(new MoriTanaka(), false) ;
+
+		bool imp = false ;
+		for(size_t i = 0 ; i < mat.nPhases() ; i++)
+			 imp = imp || (mat.child(i).getIndex(TAG_IMPOSED_STRAIN,-1) > -1) ;
+
+		if(imp)
+		{
+			for(size_t i = 0 ; i < mat.nPhases() ; i++)
+			{
+				double def = mat.child(i).val(TAG_IMPOSED_STRAIN,-1) ;
+				mat.add(TAG_EXPANSION_COEFFICIENT,def,i) ;
+			}			
+			mat.build(new HobbsScheme(), false) ;
+			mat.add(TAG_IMPOSED_STRAIN,mat(TAG_EXPANSION_COEFFICIENT)) ;
+		}
+
+		return mat ;
+	}
+
+	mat.build(new GeneralizedSelfConsistent(), false) ;
 	return mat ;
 }
 
 Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat)
 {
+	bool stiff = false ;
+	bool diff = false ;
+	bool frac = false ;
+	bool imp = false ;
+
+	if(mat.getIndex(TAG_DIFFUSION_COEFFICIENT,-1) > -1)
+	{
+		if(self2d)
+		{
+			param = Matrix(2,2) ;
+			param[0][0] = mat(TAG_DIFFUSION_COEFFICIENT) ;
+			param[1][1] = mat(TAG_DIFFUSION_COEFFICIENT) ;
+		}
+		if(self3d)
+		{
+			param = Matrix(3,3) ;
+			param[0][0] = mat(TAG_DIFFUSION_COEFFICIENT) ;
+			param[1][1] = mat(TAG_DIFFUSION_COEFFICIENT) ;
+			param[2][2] = mat(TAG_DIFFUSION_COEFFICIENT) ;
+		}
+		diff = true ;
+		return new Diffusion(param) ;
+	}
+
+	if(mat.getIndex(TAG_YOUNG_MODULUS,-1) > -1 && mat.getIndex(TAG_POISSON_RATIO,-1) > -1)
+	{
+		if(self2d)
+			param = cauchyGreen(std::make_pair(mat(TAG_YOUNG_MODULUS),mat(TAG_POISSON_RATIO)),true,SPACE_TWO_DIMENSIONAL) ;
+		if(self3d)
+			param = cauchyGreen(std::make_pair(mat(TAG_YOUNG_MODULUS),mat(TAG_POISSON_RATIO)),true,SPACE_THREE_DIMENSIONAL) ;
+		stiff = true ;
+	} else {
+		if(mat.getIndex(TAG_BULK_MODULUS,-1) > -1 && mat.getIndex(TAG_SHEAR_MODULUS,-1) > -1)
+		{
+			if(self2d)
+				param = cauchyGreen(std::make_pair(mat(TAG_BULK_MODULUS),mat(TAG_SHEAR_MODULUS)),false,SPACE_TWO_DIMENSIONAL) ;
+			if(self3d)
+				param = cauchyGreen(std::make_pair(mat(TAG_BULK_MODULUS),mat(TAG_SHEAR_MODULUS)),false,SPACE_THREE_DIMENSIONAL) ;
+			stiff = true ;
+		} else {
+			std::cout << "warning: no mechanical behaviour detected!" << std::endl ;
+		}
+	}
+
+	Vector imposed(3) ;
+	if(self3d)
+		imposed.resize(6) ;
+	if(mat.getIndex(TAG_IMPOSED_STRAIN,-1) > -1)
+	{
+		imposed[0] = mat(TAG_IMPOSED_STRAIN) ;
+		imposed[1] = mat(TAG_IMPOSED_STRAIN) ;
+		if(imposed.size() == 6)
+			imposed[2] = mat(TAG_IMPOSED_STRAIN) ;
+		imp = true ;
+	}
+
+	if(stiff)
+	{
+		if(imp)
+			return new StiffnessWithImposedDeformation(param,imposed) ;
+
+		return new Stiffness(param) ;
+	}
+
+
+
+
 	return new VoidForm() ;
 }
 

@@ -194,6 +194,7 @@ public:
 
 	int nPhases() {return phases.size() ; } ;
 	Material child(int i) {return phases[i] ; } ;
+	void add(Tag t, double val, int i) {phases[i].add(t,val) ; } ;
 	void cleanComposite() {phases.clear() ; } ;
 
 	void divide(int i, std::vector<double> f, bool v) ;

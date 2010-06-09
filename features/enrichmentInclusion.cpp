@@ -96,7 +96,9 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 		std::vector<Feature *> feat ;
 		feat.push_back(circle) ;
 
-		disc[0]->setBehaviour(new HomogeneisedBehaviour(feat, disc[0])) ;
+		HomogeneisedBehaviour * hom = new HomogeneisedBehaviour(feat, disc[0]) ;
+
+		disc[0]->setBehaviour(hom->getCopy()) ;
 		return ;
 
 /*		for(size_t i = 0 ; i < disc.size() ; i++)
