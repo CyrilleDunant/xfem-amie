@@ -54,7 +54,7 @@ void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 		
 		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 		{
-			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getEnrichmentFunction(i).getDofID(),  getShapeFunction(i), getGaussPoints(), Jinv) ;
+			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getEnrichmentFunction(i).getDofID(),  getEnrichmentFunction(i), getGaussPoints(), Jinv) ;
 			boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
 		}
 	}

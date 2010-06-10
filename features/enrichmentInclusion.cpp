@@ -85,8 +85,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 // 		std::cout << "cowardly discarding" << std::endl ;
 // 		return ;
 // 	}
-
-	std::valarray<Function> shapefunc = TriElement(LINEAR).getShapeFunctions() ;
+	TriElement father(disc[0]->getOrder()) ;
 	
 	if(disc.size() == 1) // special case for really small inclusions
 	{
@@ -226,20 +225,19 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-		points.push_back(ring[i]->first) ;
-		points.push_back(ring[i]->second) ;
-		points.push_back(ring[i]->third) ;
+		for(size_t j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
+			points.push_back(&ring[i]->getBoundingPoint(j)) ;
 	}
 	
 	//we make the points in the list unique
-// 	std::stable_sort(points.begin(), points.end()) ;
+	std::stable_sort(points.begin(), points.end()) ;
 	std::vector<Point *>::iterator e = std::unique(points.begin(), points.end()) ;
 	points.erase(e, points.end()) ;
 	
 	//we build a map of the points and corresponding enrichment ids
 	std::map<Point *, int> dofId ;
 	
-	for(size_t i = 0 ; i< points.size() ; i++)
+	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		if(freeIds.empty())
 			dofId[points[i]] = counter++ ;
@@ -258,11 +256,6 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		std::vector<Point> triCircleIntersectionPoints = getPrimitive()->intersection(static_cast<Triangle *>(ring[i])) ;
-
-		//for convenience
-		Point *a = ring[i]->first ;
-		Point *b = ring[i]->second ;
-		Point *c = ring[i]->third ;
 
 		//if there are no intersection points we need not do anything
 		if(!triCircleIntersectionPoints.empty())
@@ -296,24 +289,15 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 			//finaly, we have the enrichment function
 			Function hat = 1- f_abs(position -radius)/radius;
 			
-			//enriching the first point
-			Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
-			f.setIntegrationHint(hint) ;
-			f.setPoint(a) ;
-			f.setDofID(dofId[a]) ;
-			ring[i]->setEnrichment( f, getPrimitive()) ;
+			for(int j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
+			{
+				Function f = father.getShapeFunction(j)*(hat - VirtualMachine().eval(hat, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
+				f.setIntegrationHint(hint) ;
+				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
+				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
+				ring[i]->setEnrichment( f, getPrimitive()) ;
+			}
 			
-			//enriching the second point
-			f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
-			f.setPoint(b) ;
-			f.setDofID(dofId[b]) ;
-			ring[i]->setEnrichment( f, getPrimitive()) ;
-			
-			//enriching the third point
-			f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
-			f.setPoint(c) ;
-			f.setDofID(dofId[c]) ;
-			ring[i]->setEnrichment(f, getPrimitive()) ;
 			for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 			{
 				DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
@@ -327,44 +311,24 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 					                                 t->getXTransform(), t->getYTransform()) -radius)/radius ;
 					std::vector<Point> hint;
 					hint.push_back(Point(1./3., 1./3.)) ;
-					
-					if(dofId.find(t->first) != dofId.end())
+					for(int k = 0 ; k < t->getBoundingPoints().size() ; k++)
 					{
-						Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
-						if(!hinted)
+						std::map<Point*, int>::const_iterator pt = dofId.find(&t->getBoundingPoint(k)) ;
+						if(pt != dofId.end())
 						{
-							f.setIntegrationHint(hint) ;
-							hinted = true ;
+							int delta = 0 ;
+							while( &t->getBoundingPoint(delta) != pt->first)
+								delta++ ;
+							Function f = father.getShapeFunction(delta)*(hat - VirtualMachine().eval(hat, t->inLocalCoordinates(t->getBoundingPoint(delta)))) ;
+							if(!hinted)
+							{
+								f.setIntegrationHint(hint) ;
+								hinted = true ;
+							}
+							f.setPoint(pt->first) ;
+							f.setDofID(dofId[pt->first]) ;
+							t->setEnrichment(f, getPrimitive()) ;
 						}
-						f.setPoint(t->first) ;
-						f.setDofID(dofId[t->first]) ;
-						t->setEnrichment(f, getPrimitive()) ;
-					}
-					
-					if(dofId.find(t->second) != dofId.end())
-					{
-						Function f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
-						if(!hinted)
-						{
-							f.setIntegrationHint(hint) ;
-							hinted = true ;
-						}
-						f.setPoint(t->second) ;
-						f.setDofID(dofId[t->second]) ;
-						t->setEnrichment(f, getPrimitive()) ;
-					}
-					
-					if(dofId.find(t->third) != dofId.end())
-					{
-						Function f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
-						if(!hinted)
-						{
-							f.setIntegrationHint(hint) ;
-							hinted = true ;
-						}
-						f.setPoint(t->third) ;
-						f.setDofID(dofId[t->third]) ;
-						t->setEnrichment(f, getPrimitive()) ;
 					}
 				}
 			}

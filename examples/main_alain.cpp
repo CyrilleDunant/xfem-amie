@@ -1367,9 +1367,10 @@ int main(int argc, char *argv[])
 // 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*5, d)) ;
 	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*5, d) ;
 	F.addFeature(tri, inc0) ;
-
-	F.sample(256) ;
-	F.setOrder(LINEAR) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.sample(128) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
 
 	step() ;
