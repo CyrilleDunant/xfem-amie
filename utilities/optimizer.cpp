@@ -569,22 +569,22 @@ double LeastSquaresApproximation::optimize()
 		
 		//the lines are swapped as we find new constraints
 		int c = 0 ;
+		Matrix S(parameters.size(), parameters.size()) ;
+		for( int j = 0 ; j < parameters.size() ; j++ )
+		{
+			S[j][j] = 1 ;
+		}
 		for( int i = 0 ; i < fixedValues.size() ; i++ )
 		{
-			Matrix S(parameters.size(), parameters.size()) ;
 			for( int j = 0 ; j < parameters.size() ; j++ )
 			{
-				S[j][j] = 1 ;
+				std::swap(S[fixedValues[i].first][j], S[c][j]);
 			}
-			S[fixedValues[i].first][fixedValues[i].first] = 0 ;
-			S[fixedValues[i].first][c] = 1 ;
-			S[c][c] = 0 ;
-			S[c][fixedValues[i].first] = 1 ;
-			
-			*Q = S*(*Q) ;
 			c++ ;
 		}
-// 		Q->print();
+		S *= *Q ;
+		(*Q) = S ;
+		
 		// The problem changes and becomes:
 		A = new Matrix((*Q)*linearModel) ;
 		Matrix A1(fixedValues.size(), linearModel.numCols() ) ;
