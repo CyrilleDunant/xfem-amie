@@ -664,7 +664,7 @@ void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle,DelaunayT
 	}
 }
 
-void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip)
+void BranchedCrack::enrichTip(size_t & , Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip)
 {
 	Circle epsilon(enrichementRadius, Point(*(tip.first))) ;
 	std::vector<DelaunayTriangle *> triangles = dt->getConflictingElements(&epsilon) ;
@@ -797,9 +797,9 @@ void BranchedCrack::enrichTip(size_t & startid, Mesh<DelaunayTriangle,DelaunayTr
 				{
 					if(freeIds.size() < 4)
 					{
-						done[currentPoint[p]] = startid ;
-						usedId = startid ;
-						startid+=4 ;
+						done[currentPoint[p]] = dt->getLastNodeId() ;
+						usedId = dt->getLastNodeId() ;
+						dt->getLastNodeId()+=4 ;
 					}
 					else
 					{
@@ -880,7 +880,7 @@ void BranchedCrack::enrichBranches(size_t & startid, Mesh<DelaunayTriangle,Delau
 	}
 }
 
-void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line)
+void BranchedCrack::enrichSegmentedLine(size_t & , Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line)
 {
 	
 	std::vector<Segment> intersectingSegments ;
@@ -947,9 +947,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 		{
 			if(freeIds.empty())
 			{
-				done[e->first] = startid ;
-				usedId = startid ;
-				startid++ ;
+				done[e->first] = dt->getLastNodeId() ;
+				usedId = dt->getLastNodeId() ;
+				dt->getLastNodeId()++ ;
 			}
 			else
 			{
@@ -973,9 +973,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 		{
 			if(freeIds.empty())
 			{
-				done[e->second] = startid ;
-				usedId = startid ;
-				startid++ ;
+				done[e->second] = dt->getLastNodeId() ;
+				usedId = dt->getLastNodeId() ;
+				dt->getLastNodeId()++ ;
 			}
 			else
 			{
@@ -997,9 +997,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 		{
 			if(freeIds.empty())
 			{
-				done[e->third] = startid ;
-				usedId = startid ;
-				startid++ ;
+				done[e->third] = dt->getLastNodeId() ;
+				usedId = dt->getLastNodeId() ;
+				dt->getLastNodeId()++ ;
 			}
 			else
 			{
@@ -1083,7 +1083,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 	
 }
 
-void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line, const Point * target)
+void BranchedCrack::enrichSegmentedLine(size_t & , Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const SegmentedLine * line, const Point * target)
 {
 	std::vector<DelaunayTriangle *> tris = dt->getConflictingElements(line) ;
 	std::vector<Segment> intersectingSegments ;
@@ -1176,9 +1176,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 			{
 				if(freeIds.empty())
 				{
-					done[e->first] = startid ;
-					usedId = startid ;
-					startid++ ;
+					done[e->first] = dt->getLastNodeId() ;
+					usedId = dt->getLastNodeId() ;
+					dt->getLastNodeId()++ ;
 				}
 				else
 				{
@@ -1202,9 +1202,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 			{
 				if(freeIds.empty())
 				{
-					done[e->second] = startid ;
-					usedId = startid ;
-					startid++ ;
+					done[e->second] = dt->getLastNodeId() ;
+					usedId = dt->getLastNodeId() ;
+					dt->getLastNodeId()++ ;
 				}
 				else
 				{
@@ -1226,9 +1226,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & startid, Mesh<DelaunayTriangle,
 			{
 				if(freeIds.empty())
 				{
-					done[e->third] = startid ;
-					usedId = startid ;
-					startid++ ;
+					done[e->third] = dt->getLastNodeId() ;
+					usedId = dt->getLastNodeId() ;
+					dt->getLastNodeId()++ ;
 				}
 				else
 				{

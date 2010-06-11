@@ -22,10 +22,10 @@ void ExpansiveZone::reset()
 	updated = true ;
 }
 
-void ExpansiveZone::enrich(size_t & counter , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+void ExpansiveZone::enrich(size_t &  , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	this->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
-	EnrichmentInclusion::enrich(counter, dtree) ;
+	EnrichmentInclusion::enrich(dtree->getLastNodeId(), dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = cache ;
 

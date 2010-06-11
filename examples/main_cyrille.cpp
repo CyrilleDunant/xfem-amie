@@ -196,7 +196,7 @@ void enrichedEquivalentElements()
 	supertris[0]->refresh(father) ;
 	for(int k = 0 ; k < supertris[0]->getBoundingPoints().size() ; k++)
 		supertris[0]->getBoundingPoint(k).id = k ;
-	mesh->getLastNodeId() =  supertris[0]->getBoundingPoints().size();
+	mesh->getLastNodeId()  =  supertris[0]->getBoundingPoints().size()+1;
 	
 	crack0->enrich(mesh->getLastNodeId(), mesh);
 	
@@ -620,7 +620,7 @@ void step()
 		}
 		avgdisplacement /= avgdisplacementarea ;
 		
-// 		optimize() ;
+		optimize() ;
 		
 		if(limit < max_limit)
 			imposeddisp->setData(imposeddisp->getData()+0.00001);
@@ -1639,10 +1639,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 85, -85) );
 // 	F.addFeature(&sample, new Pore(20, 155, -155) );
 // 	
-// 	F.addFeature(&sample, new Pore(20, -155, -155) );
-// 	F.addFeature(&sample, new Pore(20, -85, -85) );
-// 	F.addFeature(&sample, new Pore(20, 85, 85) );
-// 	F.addFeature(&sample, new Pore(20, 155, 155) );
+	F.addFeature(&sample, new Pore(20, -155, -155) );
+	F.addFeature(&sample, new Pore(20, -85, -85) );
+	F.addFeature(&sample, new Pore(20, 85, 85) );
+	F.addFeature(&sample, new Pore(20, 155, 155) );
 
 // 	F.addFeature(&sample, new Pore(20, -200, 0) );
 // 	F.addFeature(&sample, new Pore(20, -150, 0) );
@@ -1679,7 +1679,7 @@ int main(int argc, char *argv[])
 	
 	F.sample(256) ;
 	F.useMultigrid = false ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 
 	step() ;

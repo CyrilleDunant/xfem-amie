@@ -59,9 +59,8 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 		std::cout << "cache empty !" << std::endl ;
 }
 
-void EnrichmentInclusion3D::enrich(size_t & counter,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree)
+void EnrichmentInclusion3D::enrich(size_t & ,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree)
 {
-	counter++ ;
 	if(updated)
 		update(dtree) ;
 	updated = false ;
@@ -79,10 +78,10 @@ void EnrichmentInclusion3D::enrich(size_t & counter,  Mesh<DelaunayTetrahedron, 
 	
 			std::map<Point *, int> dofId ;
 			
-			dofId[disc[i]->first] = counter++ ;
-			dofId[disc[i]->second] = counter++ ;
-			dofId[disc[i]->third] = counter++ ;
-			dofId[disc[i]->fourth] = counter++ ;
+			dofId[disc[i]->first] = dtree->getLastNodeId()++ ;
+			dofId[disc[i]->second] = dtree->getLastNodeId()++ ;
+			dofId[disc[i]->third] = dtree->getLastNodeId()++ ;
+			dofId[disc[i]->fourth] = dtree->getLastNodeId()++ ;
 	
 			std::vector<Point> hint ;
 			for(size_t j = 0 ; j < 8 ; j++)
@@ -185,7 +184,7 @@ void EnrichmentInclusion3D::enrich(size_t & counter,  Mesh<DelaunayTetrahedron, 
 	
 	for(size_t i = 0 ; i< points.size() ; i++)
 	{
-		dofId[points[i]] = counter++ ;
+		dofId[points[i]] = dtree->getLastNodeId()++ ;
 	}
 	
 	//now, we will start the enrichment itself

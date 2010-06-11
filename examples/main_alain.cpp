@@ -1347,8 +1347,12 @@ int main(int argc, char *argv[])
 	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
 
 	Vector d(3) ;
-	d[0] = 0.5 ;
-	d[1] = 0.5 ;
+	d[0] = 0 ;
+	d[1] = 0 ;
+	
+	Vector e(3) ;
+	e[0] = .5 ;
+	e[1] = .5 ;
 
 	Sample sample(NULL,110,110,0,0) ;
 	FeatureTree F(&sample) ;
@@ -1360,16 +1364,16 @@ int main(int argc, char *argv[])
 	Point b(50,0) ;
 	Point c(-50,50) ;
 	TriangularInclusion * tri = new TriangularInclusion(a,c,b) ;
-	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
+// 	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 	F.addFeature(&sample, tri) ;
 
 // 	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
-// 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*5, d)) ;
-	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*5, d) ;
+	tri->setBehaviour(new StiffnessWithImposedDeformation(m0_paste, d)) ;
+	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*.5, e) ;
 	F.addFeature(tri, inc0) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.sample(128) ;
+	F.sample(256) ;
 	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
 

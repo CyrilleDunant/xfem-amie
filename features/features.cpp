@@ -1714,11 +1714,6 @@ void FeatureTree::assemble()
 		initialized =true ;
 	}
 	
-	size_t en_counter =  0 ;
-	if(dtree3D)
-		en_counter =  this->dtree3D->getLastNodeId() ;
-	else
-		en_counter =  this->dtree->getLastNodeId() ;
 	
 	std::cerr << " enriching..." << std::flush ;		
 	
@@ -1726,14 +1721,11 @@ void FeatureTree::assemble()
 	{
 		if(this->dtree3D == NULL && this->dtree !=NULL)
 		{
-			en_counter = this->dtree->getLastNodeId() ;
 			initializeElements() ;
 		}
 		else
 		{
-			en_counter = this->dtree3D->getLastNodeId() ;
 			initializeElements() ;
-
 		}
 		
 		for(size_t i = 1 ; i < this->tree.size() ; i++)
@@ -1742,7 +1734,7 @@ void FeatureTree::assemble()
 			{
 				if(this->tree[i]->isEnrichmentFeature && dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved())
 				{
-					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree3D) ;
+					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(dtree3D->getLastNodeId(), dtree3D) ;
 				}
 			
 				if(i%10 == 0)
@@ -1752,7 +1744,7 @@ void FeatureTree::assemble()
 			{
 				if(this->tree[i]->isEnrichmentFeature && dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved())
 				{
-					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(en_counter, this->dtree) ;
+					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(dtree->getLastNodeId(), dtree) ;
 				}
 			
 				if(i%10 == 0)
@@ -1763,12 +1755,10 @@ void FeatureTree::assemble()
 		std::cerr << " ...done" << std::endl ;
 	}
 	
-	
-	this->numdofs = en_counter ;
-
-	if(this->dtree != NULL)
+	if(dtree != NULL)
 	{
-		triangles = this->dtree->getElements() ;
+		numdofs = dtree->getLastNodeId() ;
+		triangles =dtree->getElements() ;
 		
 		for(size_t j = 0 ; j < triangles.size() ; j++)
 		{
@@ -1803,6 +1793,7 @@ void FeatureTree::assemble()
 	}
 	else
 	{
+		numdofs = dtree3D->getLastNodeId() ;
 		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 		
 		for(size_t j = 0 ; j < tets.size() ; j++)

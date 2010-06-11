@@ -72,9 +72,8 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		std::cout << "cache empty !" << std::endl ;
 }
 
-void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-	counter++ ;
 	if(updated)
 		update(dtree) ;
 	updated = false ;
@@ -100,110 +99,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 		disc[0]->setBehaviour(hom.getCopy()) ;
 		return ;
 
-/*		for(size_t i = 0 ; i < disc.size() ; i++)
-		{
-			std::vector<Point> samplingPoints = getPrimitive()->getSamplingBoundingPoints(8) ;
-	
-			std::map<Point *, int> dofId ;
-			
-			dofId[disc[i]->first] = counter++ ;
-			dofId[disc[i]->second] = counter++ ;
-			dofId[disc[i]->third] = counter++ ;
-	
-			std::vector<Point> hint ;
-			for(size_t j = 0 ; j < 8 ; j++)
-			{
-				hint.push_back(disc[i]->inLocalCoordinates(samplingPoints[j])) ;
-			}
-			
-						//we build the enrichment function, first, we get the transforms from the triangle
-			Function x = disc[i]->getXTransform() ;
-			Function y = disc[i]->getYTransform() ;
-			
-				//this function returns the distance to the centre
-			Function position(getCenter(), x, y) ;
-			
-				//finaly, we have the enrichment function
-			Function hat = 1-f_abs(position -radius)/radius;
-			
-				//enriching the first point
-			Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
-			f.setIntegrationHint(hint) ;
-			f.setPoint(disc[i]->first) ;
-			f.setDofID(dofId[disc[i]->first]) ;
-			disc[i]->setEnrichment(f, getPrimitive()) ;
-			
-				//enriching the second point
-			f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
-			f.setIntegrationHint(hint) ;
-			f.setPoint(disc[i]->second) ;
-			f.setDofID(dofId[disc[i]->second]) ;
-			disc[i]->setEnrichment(f, getPrimitive()) ;
-			
-				//enriching the third point
-			f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
-			f.setIntegrationHint(hint) ;
-			f.setPoint(disc[i]->third) ;
-			f.setDofID(dofId[disc[i]->third]) ;
-			disc[i]->setEnrichment(f, getPrimitive()) ;
-			
-			for(size_t j = 0 ; j < disc[i]->neighbourhood.size() ; j++)
-			{
-				DelaunayTriangle * t = disc[i]->getNeighbourhood(j) ;
-				if(!enrichmentTarget(t))
-				{
-					if(!t->enrichmentUpdated)
-						t->clearEnrichment( getPrimitive()) ;
-					t->enrichmentUpdated = true ;
-					bool hinted = false ;
-					Function hat = 1- f_abs(Function(getCenter(), 
-					                                 t->getXTransform(), t->getYTransform()) -radius)/radius ;
-					std::vector<Point> hint;
-					hint.push_back(Point(1./3., 1./3.)) ;
-					
-					if(dofId.find(t->first) != dofId.end())
-					{
-						Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
-						if(!hinted)
-						{
-							f.setIntegrationHint(hint) ;
-							hinted = true ;
-						}
-						f.setPoint(t->first) ;
-						f.setDofID(dofId[t->first]) ;
-						t->setEnrichment(f, getPrimitive()) ;
-					}
-					
-					if(dofId.find(t->second) != dofId.end())
-					{
-						Function f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
-						if(!hinted)
-						{
-							f.setIntegrationHint(hint) ;
-							hinted = true ;
-						}
-						f.setPoint(t->second) ;
-						f.setDofID(dofId[t->second]) ;
-						t->setEnrichment(f, getPrimitive()) ;
-					}
-					
-					if(dofId.find(t->third) != dofId.end())
-					{
-						Function f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
-						if(!hinted)
-						{
-							f.setIntegrationHint(hint) ;
-							hinted = true ;
-						}
-						f.setPoint(t->third) ;
-						f.setDofID(dofId[t->third]) ;
-						t->setEnrichment(f, getPrimitive()) ;
-					}
-				}
-			}
-			
-		}
-		return ;*/
+
 	}
 
 	//then we select those that are cut by the circle
@@ -240,7 +136,7 @@ void EnrichmentInclusion::enrich(size_t & counter, Mesh<DelaunayTriangle, Delaun
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		if(freeIds.empty())
-			dofId[points[i]] = counter++ ;
+			dofId[points[i]] = dtree->getLastNodeId()++ ;
 		else
 		{
 			dofId[points[i]] = *freeIds.begin() ;

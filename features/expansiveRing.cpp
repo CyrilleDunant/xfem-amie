@@ -32,10 +32,10 @@ void ExpansiveRing::reset()
 	updated = true ;
 }
 
-void ExpansiveRing::enrich(size_t & counter,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+void ExpansiveRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 
-	EnrichmentRing::enrich(counter, dtree) ;
+	EnrichmentRing::enrich(dtree->getLastNodeId(), dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = cache ;
 

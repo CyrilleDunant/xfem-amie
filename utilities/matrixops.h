@@ -343,20 +343,7 @@ inline void matrix_matrix_matrix_multiply_and_add(const Mu::Matrix &m0, const Mu
 }
 
 /** \brief Perform a Matrix-Matrix multiplication, and assign to already initialised matrix passed as further argument*/
-inline void matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1,  Mu::Matrix &ret)
-{
-	assert(m0.numCols() == m1.numRows()) ;
-// 		std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
-	for(size_t i = 0 ; i < m0.numRows() ; i++)
-	{
-		for(size_t j = 0 ; j < m1.numCols() ; j++)
-		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
-			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
-		}
-	}
-}
+inline void matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1,  Mu::Matrix &ret) ;
 
 /** \brief Perform a Matrix-Matrix multiplication, and add to already initialised matrix passed as further argument*/
 inline void matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1,  Mu::Matrix &ret)
