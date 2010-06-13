@@ -1070,7 +1070,7 @@ Function::Function(const std::vector<Segment> s , const Function & x, const Func
 	}
 }
 
-Function(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y)
+Function::Function(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y):  derivative(2) , byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
 	this->ptID = NULL ;
@@ -1084,7 +1084,6 @@ Function(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::
 	derivative[XI] = Function() ;
 	derivative[ETA] = Function() ;
 			
-			break ;
 }
 
 
