@@ -1070,6 +1070,24 @@ Function::Function(const std::vector<Segment> s , const Function & x, const Func
 	}
 }
 
+Function(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y)
+{
+	this->dofID =-1 ;
+	this->ptID = NULL ;
+	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
+		byteCode[i] = y.getByteCode()[i] ;
+	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
+		byteCode[i+y.getByteCode().size()] = x.getByteCode()[i] ;
+			
+	byteCode[byteCode.size()-1] = RefCountedToken(new InHomogeneousProjectionOperatorToken(inGeo, inProjector, outProjector)) ;
+			
+	derivative[XI] = Function() ;
+	derivative[ETA] = Function() ;
+			
+			break ;
+}
+
+
 Function f_curvilinear_x(const SegmentedLine * s, bool fromHead,   const Function &x, const Function &y)
 {
 	ByteCode byteCode(y.getByteCode().size() +x.getByteCode().size() + 1) ;

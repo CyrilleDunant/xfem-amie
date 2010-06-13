@@ -337,6 +337,10 @@ public:
 	
 	}
 	
+	/** \brief Construct a function doing barycentric interpolation from a set of segments and a boundary
+	 */
+	Function(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y) ;
+	
 	virtual ~Function()  ;
 	
 	/** \brief Check wether the function is nil

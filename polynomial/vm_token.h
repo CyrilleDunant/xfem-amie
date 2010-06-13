@@ -105,6 +105,7 @@ typedef enum
 	TOKEN_BESSEL,
 	TOKEN_ATAN2,
 	TOKEN_INTERPOLATE,
+	TOKEN_BOUNDARY_INHOMOGENEOUS_INTERPOLATION_BINARY_OPERATOR,
 	TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_2D,
 	TOKEN_MULTIPLE_INTERPOLATE_FROM_BOTTOM_2D,
 	TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_3D,
@@ -641,6 +642,80 @@ public:
 	virtual std::string print() const
 	{
 		return std::string("distToLine") ;
+	}
+} ;
+
+
+class InHomogeneousProjectionOperatorToken : public Token
+{
+	Geometry * inGeo ;
+	std::vector<Segment> inProjector ;
+	std::vector<Segment> outProjector ;
+public:
+	//by convention, the first point of each segment is assumed to be on the geometry
+	InHomogeneousProjectionOperatorToken(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector) : Token(false, std::make_pair(std::make_pair(TOKEN_BOUNDARY_INHOMOGENEOUS_INTERPOLATION_BINARY_OPERATOR, 0), (double)(0))), inGeo(inGeo), inProjector(inProjector), outProjector(outProjector)
+	{
+	}
+	
+	virtual void eval(Context & context) const
+	{
+		double res = 0;
+		Point test(*context.memory.top_pos, *context.memory.prev_top_pos) ;
+		context.memory.pop_back() ;
+		if(inGeo->in(test))
+		{
+			double totaldist ;
+			std::vector<double> dists ;
+			std::vector<Point> projs ;
+			for(size_t i = 0 ; i < inProjector.size() ; i++)
+			{
+				Point proj(test) ;
+				inProjector[i].project(proj) ;
+				projs.push_back(proj);
+				double d = dist(proj, test) ;
+				totaldist += d ;
+				dists.push_back(d);
+			}
+			
+			double renorm = 0 ;
+			for(size_t i = 0 ; i < inProjector.size() ; i++)
+			{
+				res += (totaldist-dists[i])*(dist(projs[i], inProjector[i].second())/inProjector[i].norm()) ;
+				renorm += totaldist-dists[i] ;
+			}
+			res /= renorm ;
+		}
+		else
+		{
+			double totaldist ;
+			std::vector<double> dists ;
+			std::vector<Point> projs ;
+			for(size_t i = 0 ; i < outProjector.size() ; i++)
+			{
+				Point proj(test) ;
+				outProjector[i].project(proj) ;
+				projs.push_back(proj);
+				double d = dist(proj, test) ;
+				totaldist += d ;
+				dists.push_back(d);
+			}
+			
+			double renorm = 0 ;
+			for(size_t i = 0 ; i < outProjector.size() ; i++)
+			{
+				res += (totaldist-dists[i])*(dist(projs[i], outProjector[i].second())/outProjector[i].norm()) ;
+				renorm += totaldist-dists[i] ;
+			}
+			res /= renorm ;
+		}
+		
+		*context.memory.top_pos =  res;
+	}
+	
+	virtual ~InHomogeneousProjectionOperatorToken() { };
+	virtual std::string print() const
+	{
+		return std::string("dist in Element") ;
 	}
 } ;
 
