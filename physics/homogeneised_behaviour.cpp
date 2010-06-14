@@ -46,8 +46,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 
 	homogenize() ;	
 
-	if(param.isNull())
-		type = VOID_BEHAVIOUR ;
+//	if(param.isNull())
+//		type = VOID_BEHAVIOUR ;
 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -92,8 +92,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 
 	homogenize() ;	
 
-	if(param.isNull())
-		type = VOID_BEHAVIOUR ;
+//	if(param.isNull())
+//		type = VOID_BEHAVIOUR ;
 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -117,8 +117,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 
 	homogenize() ;
 	
-	if(param.isNull())
-		type = VOID_BEHAVIOUR ;
+//	if(param.isNull())
+//		type = VOID_BEHAVIOUR ;
 //	else
 //		param /= totalVolume ;
 	
@@ -176,7 +176,8 @@ void HomogeneisedBehaviour::homogenize()
 	std::vector<Tag> bulkshear ;
 	bulkshear.push_back(TAG_BULK_MODULUS) ;
 	bulkshear.push_back(TAG_SHEAR_MODULUS) ;
-	double totalArea ;
+	double totalArea = 0. ;
+	std::cout << self2d->area() << std::endl ;
 	if(self2d)
 	{
 		for(size_t i = 0 ; i < source.size() ; i++)
@@ -196,7 +197,16 @@ void HomogeneisedBehaviour::homogenize()
 					{
 						bool combined = false ;
 						for(size_t j = 0 ; j < mat.nPhases() ; j++)
-							combined = (combined || mat.child(j).combine(thismat,bulkshear,TAG_VOLUME)) ;
+						{
+							Material tmp = mat.child(j) ;
+							combined = (combined || tmp.combine(thismat,bulkshear,TAG_VOLUME)) ;
+							if(combined)
+							{
+								mat = mat - (int) j ;
+								mat = mat + tmp ;
+								break ;
+							}
+						}
 						if(!combined)
 							mat = mat + thismat ;
 					}
@@ -204,6 +214,10 @@ void HomogeneisedBehaviour::homogenize()
 				}
 				else
 				{
+					size_t bp = source[i]->getBoundingPoints().size() ;
+					Point a = source[i]->getBoundingPoint(0) ;
+					Point b = source[i]->getBoundingPoint(bp/3) ;
+					Point c = source[i]->getBoundingPoint(bp*2/3) ;
 					Material thismat(Properties(TAG_VOLUME, source[i]->area())) ;
 					thismat(TAG_BULK_MODULUS, 1e-9) ;
 					thismat(TAG_SHEAR_MODULUS, 1e-9) ;
@@ -211,6 +225,7 @@ void HomogeneisedBehaviour::homogenize()
 						mat = mat + thismat ;
 					else 
 					{
+//						thismat.print() ;
 						bool combined = false ;
 						for(size_t j = 0 ; j < mat.nPhases() ; j++)
 							combined = (combined || mat.child(j).combine(thismat,bulkshear,TAG_VOLUME)) ;
@@ -218,7 +233,7 @@ void HomogeneisedBehaviour::homogenize()
 							mat = mat + thismat ;
 					}
 					totalArea += source[i]->area() ;
-				}
+				}	
 			}
 		}
 /*	} else {
@@ -275,6 +290,8 @@ void HomogeneisedBehaviour::homogenize()
 
 	}
 
+	std::cout << totalArea << std::endl ;
+
 	Material hom = homogenize(mat) ;
 	equivalent = getEquivalentBehaviour(hom) ;
 
@@ -323,11 +340,20 @@ void HomogeneisedBehaviour::homogenize()
 Material HomogeneisedBehaviour::homogenize(Material mat)
 {
 	if(mat.nPhases() == 1)
-		return mat ;
+	{
+//		mat.child(0).print() ;
+		return mat.child(0) ;
+	}
 
 	mat.makeFraction(true) ;
 	if(mat.nPhases() == 2)
 	{
+		if(mat.child(0).val(TAG_BULK_MODULUS,-1) < 1e-6)
+		{
+			Material tmp = mat.child(0) ;
+			mat = mat - 0 ;
+			mat = mat + tmp ;
+		}
 		mat.build(new MoriTanaka(), false) ;
 
 		bool imp = false ;
@@ -345,11 +371,12 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 			mat.add(TAG_IMPOSED_STRAIN,mat(TAG_EXPANSION_COEFFICIENT)) ;
 		}
 
-		mat.print() ; 
+//		mat.print() ; 
 		return mat ;
 	}
 
 	mat.build(new GeneralizedSelfConsistent(), false) ;
+//	mat.print() ;
 	return mat ;
 }
 
@@ -389,6 +416,8 @@ Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat)
 	} else {
 		if(mat.getIndex(TAG_BULK_MODULUS,-1) > -1 && mat.getIndex(TAG_SHEAR_MODULUS,-1) > -1)
 		{
+			if(mat(TAG_BULK_MODULUS) < 1e-6)
+				mat.print() ;
 			if(self2d)
 				param = cauchyGreen(std::make_pair(mat(TAG_BULK_MODULUS),mat(TAG_SHEAR_MODULUS)),false,SPACE_TWO_DIMENSIONAL) ;
 			if(self3d)

@@ -2770,7 +2770,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 	
 	double tol = 1e-6 ;
 	double position_tol = 4.*POINT_TOLERANCE ;
-	double infinity = .15 ;
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
 	{

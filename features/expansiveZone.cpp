@@ -64,6 +64,7 @@ void ExpansiveZone::enrich(size_t &  , Mesh<DelaunayTriangle, DelaunayTreeItem> 
 		newExpansive.insert(inDisc[i]) ;
 	}
 	expansive = newExpansive ;
+
 	
 	if(disc.size() == 1)
 	{
@@ -77,9 +78,7 @@ void ExpansiveZone::enrich(size_t &  , Mesh<DelaunayTriangle, DelaunayTreeItem> 
 		}
 		newInterface.insert(disc[0]) ;
 	}
-	
 	bimateralInterfaced = newInterface ;
-	
 }
 	
 

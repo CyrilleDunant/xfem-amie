@@ -430,7 +430,8 @@ bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 		if((thisi+1)*(otheri+1) == 0)
 			success = false ;
 		else
-			(*this)[thisi].set((*this)[thisi].val() + m[otheri].val()) ;
+			(*this)(combine,val(combine,-1)+m.val(combine,-1)) ;
+//[thisi].set((*this)[thisi].val() + m[otheri].val()) ;
 	}
 
 	return success ;
@@ -576,6 +577,21 @@ Material Material::operator+(Material m)
 	return (*this) ;
 }
 
+Material Material::operator-(int j)
+{
+	std::vector<Material> tmp ;
+	for(size_t i = 0 ; i < nPhases() ; i++)
+	{
+		if((int) i != j)
+			tmp.push_back(phases[i]) ;
+	}
+	phases.clear() ;
+	for(size_t i = 0 ; i < tmp.size() ; i++)
+		phases.push_back(tmp[i]) ;
+	return (*this) ;
+}
+
+
 bool Material::build(Scheme * s, bool self)
 {
 
@@ -597,6 +613,7 @@ bool Material::build(Scheme * s, bool self)
 			merge(s->homogenize(phases)) ;
 		}
 	}
+//	s->print() ;
 	return s->isOK() ;
 }
 

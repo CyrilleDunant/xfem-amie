@@ -181,6 +181,7 @@ public:
 
 	Material operator*(std::string s) ;
 	Material operator+(Material m) ;
+	Material operator-(int j) ;
 	double operator()(Tag t) {return val(t,-1) ; };
 	double operator()(Tag t, double d) {replace(Properties(t,d)) ; return val(t,-1) ;} ;
 

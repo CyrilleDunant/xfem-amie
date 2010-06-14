@@ -3230,6 +3230,8 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 //	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 //		meshPoints[i].first->print() ;
 
+	
+
 	if(is2D())
 	{	
 		additionalPoints.push_back(new Point(bbox[0])) ;

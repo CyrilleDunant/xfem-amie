@@ -692,7 +692,7 @@ int main(int argc, char *argv[])
 
 
 /*	for(size_t i = 1 ; i < 99 ; i++) {
-	Properties cem_Enu(HOOKE,std::make_pair(1e-9,0.2)) ;
+	Properties cem_Enu(HOOKE,std::make_pair(25,0.2)) ;
 	Properties agg_Enu(HOOKE,std::make_pair(70,0.2)) ;
 
 	Properties cem_frac(FRACTION,(double) i/99.) ;
@@ -713,7 +713,7 @@ int main(int argc, char *argv[])
 			std::vector<Material> mat ;
 			mat.push_back(m_cement) ;
 			mat.push_back(m_aggregates) ;
-			std::pair<bool, Material> hom_mt = GeneralizedSelfConsistent().apply(mat) ;
+			std::pair<bool, Material> hom_mt = MoriTanaka().apply(mat) ;
 			std::pair<bool, Properties> conv_u = hom_mt.second[0].convert(HOOKE) ;
 //			std::pair<bool, Properties> conv_l = hom_mt.second[1].convert(HOOKE) ;
 //			std::cout << std::endl ;

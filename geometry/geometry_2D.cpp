@@ -1863,7 +1863,7 @@ void Ellipse::sampleSurface (size_t num_points)
 		this->sampleBoundingSurface(n) ;
 	sampled = true ;
 
-	size_t ring = 1 + n / (2*M_PI) ;
+	size_t ring = n / (2*M_PI) ;
 
         if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
 		ring++ ;
@@ -1873,7 +1873,6 @@ void Ellipse::sampleSurface (size_t num_points)
         std::vector<size_t> newn ;
 
         double minn = (double) n * std::pow(0.7,(double) ring) ;
-        minn = std::max(minn,6.) ;
 
         for(size_t i = 0 ; i < ring ; i++) {
             newa.push_back(getMinorRadius() * (ring - i) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - i - 1) / (ring)) ;

@@ -952,7 +952,7 @@ void stepOLD()
 		
 		std::cout << "apparent extension on the X axis: " << e_xx_max-e_xx_min << std::endl ;
 		std::cout << "apparent extension on the Y axis: " << e_yy_max-e_yy_min << std::endl ;
-		std::cout << "anisotropy factor: " << (e_yy_max-e_yy_min)/e_xx_max-e_xx_min << std::endl ;
+		std::cout << "anisotropy factor: " << (e_yy_max-e_yy_min)/(e_xx_max-e_xx_min) << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		if (tries < maxtries)
 		{
@@ -1256,14 +1256,14 @@ int main(int argc, char *argv[])
         std::string bstring = itoa(biais,10) ;
         ellipsefile.append(bstring) ;
 
-        std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipsefile,10) ;
+        std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipsefile,8000) ;
 
 
 
 
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(13500000,-8*13500000))) ;
-//	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,13500000)) ;
+//	sample.setBehaviour(new Stiffness(m0_paste)) ;
 //	std::vector<Feature *> feats ;
 //	for(size_t i = 0; i < inc.size() ; i++)
 //		feats.push_back(inc[i]) ;
@@ -1288,8 +1288,8 @@ int main(int argc, char *argv[])
 //	}
 //	return 0 ;	
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
-//	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
-	Stiffness * stiff = new Stiffness(m0_agg) ;
+	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+//	Stiffness * stiff = new Stiffness(m0_agg) ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
 		inc[i]->setBehaviour(stiff) ;
@@ -1297,14 +1297,14 @@ int main(int argc, char *argv[])
 //		inc[i]->getMajorAxis().print() ;
 		placed_area += inc[i]->area() ;
 	}	
-	zones = generateExpansiveZonesHomogeneously(100,inc,F) ;
+	zones = generateExpansiveZonesHomogeneously(16000,inc,F) ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
 
-	F.sample(200) ;
+	F.sample(1200) ;
 	F.setOrder(LINEAR) ;
         F.generateElements() ;
 
