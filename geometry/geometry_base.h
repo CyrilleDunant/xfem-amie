@@ -656,7 +656,7 @@ public:
 	virtual void setBoundingPoints(const PointArray & nb) = 0;
 	
 	/** \brief Acessor set all inside poinst of the geometry*/
-	virtual void setInPoints(PointArray nb) {inPoints.resize(nb.size()) ; inPoints=nb ; }
+	virtual void setInPoints(const PointArray & nb) {inPoints.resize(nb.size()) ; inPoints=nb ; }
 	
 	/** \brief Acessor get the ith point of the geometry*/
 	virtual const Point & getPoint(size_t i) const = 0;
@@ -875,6 +875,9 @@ public:
 	
 	/** \brief Constructor. construct a segment from two endpoints*/
 	Segment(const Point & p0, const  Point & p1) ;
+	
+	Segment(const Segment & s) ;
+	Segment & operator =(const Segment &s) ;
 	
 	/** \brief Default Constructor, return a segment (0,0), (1,0)*/
 	Segment() ;

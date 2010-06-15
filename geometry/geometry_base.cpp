@@ -2693,6 +2693,22 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 	std::copy(temphull.begin(), temphull.end(),this->begin()) ;
 }
 
+Segment::Segment(const Segment & l)
+{
+	f = l.first() ;
+	s = l.second() ;
+	vec = l.vector() ;
+	mid = l.midPoint() ;
+}
+
+Segment& Segment::operator=(const Mu::Segment& l)
+{
+	f = l.first() ;
+	s = l.second() ;
+	vec = l.vector() ;
+	mid = l.midPoint() ;
+	return *this ;
+}
 
 bool ConvexPolygon::isTrigoOriented()  const
 {
@@ -2998,7 +3014,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
 			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
 			          -g->getRadius()*g->getRadius() ;
-			double delta = b*b - 4*a*c ;
+			double delta = b*b - 4.*a*c ;
 			
 			if (delta > 0)
 			{
@@ -3270,7 +3286,7 @@ Point Line::projection(const Point &m ) const
 	if(on(m))
 		return m ;
 	Point n0 = v^(m-p) ;
-	Point n = n0^v ;
+	Point n = v^n0 ;
 	Line line(m, n) ;
 	return line.intersection(*this) ;
 }
@@ -3620,12 +3636,15 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 			
 			if(candidates.empty())
 				return ret ;
+			
 			if(on(candidates[0]))
 			{
 				ret.push_back(candidates[0]) ;
 			}
+			
 			if(candidates.size() == 1)
 				return ret ;
+			
 			if(on(candidates[1]))
 			{
 				ret.push_back(candidates[1]) ;
@@ -3746,7 +3765,7 @@ Point Segment::project(const Point & p) const
 	}
 
 
-	if(squareDist3D(p, f) > squareDist3D(p, s))
+	if(squareDist3D(candidate, f) > squareDist3D(candidate, s))
 		return s ;
 
 	return f ;

@@ -58,7 +58,7 @@ class LevelSet : public Geometry
 	virtual Point & getInPoint(size_t i) {return center ; } ;
 	virtual void setBoundingPoint(size_t i, Point * p) { } ;
 	virtual void setBoundingPoints(const PointArray & nb) { } ;
-	virtual void setInPoints(PointArray nb) { } ;
+	virtual void setInPoints(const PointArray & nb) { } ;
 	virtual const Point & getPoint(size_t i) const {return center ; } ;
 	virtual Point & getPoint(size_t i)  {return center ; } ;
 	virtual Geometry * getSource() {return source ; } ;
