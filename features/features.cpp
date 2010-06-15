@@ -490,8 +490,11 @@ void FeatureTree::stitch()
 			for(size_t j = 0 ; j < coarseTrees.size() ; j++)
 				coarseTrees[j]->setElementOrder(elemOrder) ;
 			
-			stitched  = true ;	
-// 			return ;
+			stitched  = true ;
+			Point a (0.2, 0.2) ;
+			Point b (0.6, 0.2) ;
+			Point c (0.2, 0.6) ;
+			Point d (1./3., 1./3.) ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
 				if(!tree[j]->isEnrichmentFeature)
@@ -501,6 +504,7 @@ void FeatureTree::stitch()
 	
 					for(size_t i = 0 ; i < triangles.size() ; i++)
 					{
+						triangles[i]->refresh(father2D) ;
 						if(triangles[i]->getPrimitive()->intersects(tree[j]))
 						{
 							
@@ -521,17 +525,29 @@ void FeatureTree::stitch()
 								tree[j]->project(&test) ;
 								if (inRoot(test))
 								{
+									Point orig(triangles[i]->getBoundingPoint(1)) ;
 									tree[j]->project(&triangles[i]->getBoundingPoint(1)) ;
-									if(elemOrder >= CONSTANT_TIME_LINEAR)
-										tree[j]->project(&triangles[i]->getBoundingPoint(7)) ;
-									triangles[i]->moved = true ;
-									
-									for(size_t j = 0 ; j < 3 ; j++)
+									if(triangles[i]->jacobianAtPoint(a) > 0 && 
+									   triangles[i]->jacobianAtPoint(b) > 0 && 
+									   triangles[i]->jacobianAtPoint(c) > 0 && 
+									   triangles[i]->jacobianAtPoint(d) > 0
+										)
 									{
-										if(triangles[i]->getNeighbour(j)->isTriangle)
+										if(elemOrder >= CONSTANT_TIME_LINEAR)
+											tree[j]->project(&triangles[i]->getBoundingPoint(7)) ;
+										triangles[i]->moved = true ;
+										
+										for(size_t j = 0 ; j < 3 ; j++)
 										{
-											dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+											if(triangles[i]->getNeighbour(j)->isTriangle)
+											{
+												dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+											}
 										}
+									}
+									else
+									{
+										triangles[i]->getBoundingPoint(1) = orig ;
 									}
 								}
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
@@ -545,16 +561,28 @@ void FeatureTree::stitch()
 								tree[j]->project(&test) ;
 								if (inRoot(test))
 								{
+									Point orig(triangles[i]->getBoundingPoint(3)) ;
 									tree[j]->project(&triangles[i]->getBoundingPoint(3)) ;
-									if(elemOrder >= CONSTANT_TIME_LINEAR)
-										tree[j]->project(&triangles[i]->getBoundingPoint(9)) ;
-									triangles[i]->moved = true ;
-									for(size_t j = 0 ; j < 3 ; j++)
+									if(triangles[i]->jacobianAtPoint(a) > 0 && 
+									   triangles[i]->jacobianAtPoint(b) > 0 && 
+									   triangles[i]->jacobianAtPoint(c) > 0 && 
+									   triangles[i]->jacobianAtPoint(d) > 0
+										)
 									{
-										if(triangles[i]->getNeighbour(j)->isTriangle)
+										if(elemOrder >= CONSTANT_TIME_LINEAR)
+											tree[j]->project(&triangles[i]->getBoundingPoint(9)) ;
+										triangles[i]->moved = true ;
+										for(size_t j = 0 ; j < 3 ; j++)
 										{
-											dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+											if(triangles[i]->getNeighbour(j)->isTriangle)
+											{
+												dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+											}
 										}
+									}
+									else
+									{
+										triangles[i]->getBoundingPoint(3) = orig ;
 									}
 								}
 								
@@ -569,25 +597,28 @@ void FeatureTree::stitch()
 								tree[j]->project(&test) ;
 								if (inRoot(test))
 								{
+									Point orig(triangles[i]->getBoundingPoint(5)) ;
 									tree[j]->project(&triangles[i]->getBoundingPoint(5)) ;
-									if(elemOrder >= CONSTANT_TIME_LINEAR)
-										tree[j]->project(&triangles[i]->getBoundingPoint(11)) ;
-									triangles[i]->moved = true ;
-									for(size_t j = 0 ; j < 3 ; j++)
+									if(triangles[i]->jacobianAtPoint(a) > 0 && 
+									   triangles[i]->jacobianAtPoint(b) > 0 && 
+									   triangles[i]->jacobianAtPoint(c) > 0 && 
+									   triangles[i]->jacobianAtPoint(d) > 0
+										)
 									{
-										if(triangles[i]->getNeighbour(j)->isTriangle)
+										if(elemOrder >= CONSTANT_TIME_LINEAR)
+											tree[j]->project(&triangles[i]->getBoundingPoint(11)) ;
+										triangles[i]->moved = true ;
+										for(size_t j = 0 ; j < 3 ; j++)
 										{
-											dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+											if(triangles[i]->getNeighbour(j)->isTriangle)
+											{
+												dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+											}
 										}
 									}
-								
-		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(5)->x << ", " << (*triangles)[i]->getBoundingPoint(5)->y << std::endl ;
-									for(size_t j = 0 ; j < 3 ; j++)
+									else
 									{
-										if(triangles[i]->getNeighbour(j)->isTriangle)
-										{
-											dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
-										}
+										triangles[i]->getBoundingPoint(5) = orig ;
 									}
 								}
 							}
