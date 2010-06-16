@@ -3406,18 +3406,22 @@ bool Segment::intersects(const Geometry *g) const
 	case TRIANGLE:
 		{
 			bool ret = false ;	
+			std::vector<Point> pts ;
+			const Triangle * gt = dynamic_cast<const Triangle *>(g) ;
+	
+			for(size_t i = 0 ; i <  gt->getBoundingPoints().size() ;  i++)
+			{
+				if(std::abs(dist(gt->getCircumCenter(), gt->getBoundingPoint(i))-gt->getRadius()) < POINT_TOLERANCE)
+					pts.push_back(gt->getBoundingPoint(i));
+			}
 
-			size_t end_i = g->getBoundingPoints().size()/3 ;
-			Point a(g->getBoundingPoint(0)) ;
-			Point b(g->getBoundingPoint(end_i)) ;
-			Point c(g->getBoundingPoint(end_i*2)) ;
-
-			if(this->on(a) || this->on(b) || this->on(c))
+			if(this->on(pts[0]) || this->on(pts[1]) || this->on(pts[2]))
 				return true ;
 
-			Segment sa(a,b) ;
-			Segment sb(b,c) ;
-			Segment sc(c,a) ;
+			Segment sa(pts[0],pts[1]) ;
+			Segment sb(pts[1],pts[2]) ;
+			Segment sc(pts[2],pts[0]) ;
+			
 
 			return sa.intersects(*this) || sb.intersects(*this) || sc.intersects(*this) ;
 
