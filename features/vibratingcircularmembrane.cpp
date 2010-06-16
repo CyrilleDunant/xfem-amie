@@ -30,10 +30,10 @@ void VibratingMembrane::reset()
 	updated = true ;
 }
 
-void VibratingMembrane::enrich(size_t & counter,  DelaunayTree * dtree)
+void VibratingMembrane::enrich(size_t&, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
 	if(cache.empty())
-		cache = dtree->conflicts(getPrimitive()) ;
+		cache = dtree->getConflictingElements(getPrimitive()) ;
 
 	//we get a unique list of the points
 	std::map<Point *, int> done ;
@@ -83,8 +83,8 @@ void VibratingMembrane::enrich(size_t & counter,  DelaunayTree * dtree)
 			f.setPoint ( &cache[i]->getBoundingPoint(j) ) ;
 			if(done[currentPointer] == -1)
 			{
-				done[currentPointer] = counter ;
-				counter+=6 ;
+				done[currentPointer] = dtree->getLastNodeId() ;
+				 dtree->getLastNodeId()+=6 ;
 			}
 			f.setDofID ( done[cache[i]->first] ) ;
 			cache[i]->setEnrichment (  f , static_cast<Circle *>(this) ) ;

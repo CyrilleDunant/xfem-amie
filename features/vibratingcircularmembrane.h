@@ -27,7 +27,7 @@ public:
 	VibratingMembrane(Feature *father, double radius, double x, double y, Matrix cgTensor) ;
 	virtual ~VibratingMembrane() ;
 	
-	virtual void enrich(size_t &,  DelaunayTree * dtree) ;
+	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 	
 	virtual std::vector<Mu::DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
 	virtual std::vector<Mu::DelaunayTriangle*> getElements(Mesh<DelaunayTriangle, DelaunayTreeItem> *) { return std::vector<Mu::DelaunayTriangle*>() ;}

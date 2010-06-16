@@ -41,7 +41,7 @@ public:
 	virtual ~ExpansiveZone3D() ;
 	
 /** \brief enrich elements and change their Behaviour if required*/
-	virtual void enrich(size_t &,  DelaunayTree3D * dtree) ;
+	virtual void enrich(size_t &,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) ;
 	
 	virtual void print() const
 	{
