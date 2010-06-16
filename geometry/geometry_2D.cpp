@@ -589,7 +589,7 @@ void Triangle::project(Point * p) const
 	std::multimap<double, Point> pt ;
 	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
 	{
-		pt.insert(std::make_pair(std::abs(squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()), getBoundingPoint(i)));
+		pt.insert(std::make_pair(std::abs(squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
 	}
 	std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
 	ptend++ ; ptend++ ; ptend++ ;
@@ -666,7 +666,7 @@ bool Triangle::in(const Point &p) const
 	}
 	
 	Point proj(p) ; project(&proj) ;
-	bool isOnSurface = dist(p, proj) < POINT_TOLERANCE ;
+	bool isOnSurface = squareDist2D(p, proj) < POINT_TOLERANCE*POINT_TOLERANCE ;
 	
 	Segment s(p, getCenter()) ;
 	return !s.intersects(this) || isAPoint || isOnSurface;

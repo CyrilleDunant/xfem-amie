@@ -3410,7 +3410,9 @@ bool Segment::intersects(const Geometry *g) const
 			std::multimap<double, Point> pt ;
 			for(size_t i = 0 ; i < g->getBoundingPoints().size() ;  i++)
 			{
-				pt.insert(std::make_pair(std::abs(squareDist2D(dynamic_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()), g->getBoundingPoint(i)));
+				pt.insert(std::make_pair(
+				std::abs(
+				squareDist2D(dynamic_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()*g->getRadius()), g->getBoundingPoint(i)));
 			}
 			std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
 			ptend++ ; ptend++ ; ptend++ ;
@@ -3428,15 +3430,6 @@ bool Segment::intersects(const Geometry *g) const
 
 			return sa.intersects(*this) || sb.intersects(*this) || sc.intersects(*this) ;
 
-
-			for(size_t i = 0 ; i <  g->getBoundingPoints().size() ;  i++)
-			{
-				Segment s(g->getBoundingPoint(i), g->getBoundingPoint((i+1)%g->getBoundingPoints().size())) ;
-
-				ret = ret || s.intersects(*this) /*|| isAligned(g->getBoundingPoint(i), &f, &this->s)*/;
-			}
-			
-			return ret ;
 		}
 	case RECTANGLE:
 		{	
