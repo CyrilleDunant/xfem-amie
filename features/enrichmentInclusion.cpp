@@ -115,31 +115,33 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 			ring.push_back(disc[i]) ;
 		}
 	}
-	std::cout << "ring.size() " << ring.size() << " disk.size()" << disc.size() << std::endl ;
 	//then we build a list of points to enrich
-	std::vector<Point *> points ;
-
+	std::set<Point *> points ;
+	double minrad = getRadius()*2 ;
+	double maxrad = 0 ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		for(size_t j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
-			points.push_back(&ring[i]->getBoundingPoint(j)) ;
+		{
+			points.insert(&ring[i]->getBoundingPoint(j)) ;
+			minrad = std::min(minrad, dist(getCenter(), ring[i]->getBoundingPoint(j))) ;
+			maxrad = std::max(maxrad, dist(getCenter(), ring[i]->getBoundingPoint(j))) ;
+		}
 	}
-	
-	//we make the points in the list unique
-	std::stable_sort(points.begin(), points.end()) ;
-	std::vector<Point *>::iterator e = std::unique(points.begin(), points.end()) ;
-	points.erase(e, points.end()) ;
+	double del = std::min(std::abs(minrad-radius), std::abs(maxrad-radius)) ;
+	minrad = radius-del/4 ;
+	maxrad = radius+del/4 ;
 	
 	//we build a map of the points and corresponding enrichment ids
 	std::map<Point *, int> dofId ;
 	
-	for(size_t i = 0 ; i < points.size() ; i++)
+	for(std::set<Point * >::const_iterator i = points.begin() ; i != points.end() ; ++i)
 	{
 		if(freeIds.empty())
-			dofId[points[i]] = dtree->getLastNodeId()++ ;
+			dofId[*i] = dtree->getLastNodeId()++ ;
 		else
 		{
-			dofId[points[i]] = *freeIds.begin() ;
+			dofId[*i] = *freeIds.begin() ;
 			freeIds.erase(freeIds.begin()) ;
 		}
 	}
@@ -152,7 +154,47 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		std::vector<Point> triCircleIntersectionPoints = getPrimitive()->intersection(static_cast<Triangle *>(ring[i])) ;
-
+		std::vector<Segment> insegs ;
+		std::vector<Segment> outsegs ;
+		
+		if(getPrimitive()->in(*ring[i]->first) && !getPrimitive()->in(*ring[i]->second))
+		{
+			std::vector<Point> intersectors = Segment(*ring[i]->first, *ring[i]->second).intersection(getPrimitive()) ;
+			insegs.push_back(Segment(intersectors[0], *ring[i]->first));
+			outsegs.push_back(Segment(intersectors[0], *ring[i]->second));
+		}
+		if(!getPrimitive()->in(*ring[i]->first) && getPrimitive()->in(*ring[i]->second))
+		{
+			std::vector<Point> intersectors = Segment(*ring[i]->first, *ring[i]->second).intersection(getPrimitive()) ;
+			insegs.push_back(Segment(intersectors[0], *ring[i]->second));
+			outsegs.push_back(Segment(intersectors[0], *ring[i]->first));
+		}
+		if(getPrimitive()->in(*ring[i]->second) && !getPrimitive()->in(*ring[i]->third))
+		{
+			std::vector<Point> intersectors = Segment(*ring[i]->second, *ring[i]->third).intersection(getPrimitive()) ;
+			insegs.push_back(Segment(intersectors[0], *ring[i]->second));
+			outsegs.push_back(Segment(intersectors[0], *ring[i]->third));
+		}
+		if(!getPrimitive()->in(*ring[i]->second) && getPrimitive()->in(*ring[i]->third))
+		{
+			std::vector<Point> intersectors = Segment(*ring[i]->second, *ring[i]->third).intersection(getPrimitive()) ;
+			insegs.push_back(Segment(intersectors[0], *ring[i]->third));
+			outsegs.push_back(Segment(intersectors[0], *ring[i]->second));
+		}
+		if(getPrimitive()->in(*ring[i]->third) && !getPrimitive()->in(*ring[i]->first))
+		{
+			std::vector<Point> intersectors = Segment(*ring[i]->third, *ring[i]->first).intersection(getPrimitive()) ;
+			insegs.push_back(Segment(intersectors[0], *ring[i]->third));
+			outsegs.push_back(Segment(intersectors[0], *ring[i]->first));
+		}
+		if(!getPrimitive()->in(*ring[i]->third) && getPrimitive()->in(*ring[i]->first))
+		{
+			std::vector<Point> intersectors = Segment(*ring[i]->third, *ring[i]->first).intersection(getPrimitive()) ;
+			insegs.push_back(Segment(intersectors[0], *ring[i]->first));
+			outsegs.push_back(Segment(intersectors[0], *ring[i]->third));
+		}
+		
+			
 		//if there are no intersection points we need not do anything
 		if(!triCircleIntersectionPoints.empty())
 		{
@@ -182,9 +224,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 			//this function returns the distance to the centre
 			Function position(getCenter(), x, y) ;
 			
-			//finaly, we have the enrichment function
-			Function hat = 1- f_abs(position -radius)/radius;
-			
+			Function hat = 1-f_abs((radius - position)/(maxrad-minrad)) ;
 			for(int j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
 			{
 				Function f = father.getShapeFunction(j)*(hat - VirtualMachine().eval(hat, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
@@ -192,6 +232,8 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
 				ring[i]->setEnrichment( f, getPrimitive()) ;
+
+				
 			}
 			
 			for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
@@ -203,8 +245,9 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 						t->clearEnrichment( getPrimitive()) ;
 					t->enrichmentUpdated = true ;
 					bool hinted = false ;
-					Function hat = 1- f_abs(Function(getCenter(), 
-					                                 t->getXTransform(), t->getYTransform()) -radius)/radius ;
+					Function hat = 1-f_abs((radius - Function(getCenter(), 
+					                                 t->getXTransform(), t->getYTransform()))/(maxrad-minrad)) ;
+
 					std::vector<Point> hint;
 					hint.push_back(Point(1./3., 1./3.)) ;
 					for(int k = 0 ; k < t->getBoundingPoints().size() ; k++)
@@ -228,7 +271,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 					}
 				}
 			}
-		
+// 		
 		}
 	}
 
@@ -272,7 +315,7 @@ std::vector<Geometry *> EnrichmentInclusion::getRefinementZones( size_t level) c
 	return std::vector<Geometry *>(0) ;
 }
 	
-void EnrichmentInclusion::step(double dt, std::valarray<double> *, const DelaunayTree * dtree) {}
+void EnrichmentInclusion::step(double dt, std::valarray< double >*, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
 	
 bool EnrichmentInclusion::moved() const { return updated ;}
 
