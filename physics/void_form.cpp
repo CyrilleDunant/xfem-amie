@@ -26,7 +26,7 @@ void VoidForm::apply(const Function & p_i, const Function & p_j, const GaussPoin
 {
 }
 
-void VoidForm::step(double timestep, const ElementState & currentState) 
+void VoidForm::step(double timestep, ElementState & currentState) 
 {
 	
 }

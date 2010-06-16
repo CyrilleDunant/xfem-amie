@@ -116,8 +116,6 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	inBehaviour->apply(p_i, p_j, gpIn, inMatrixArray, retIn,vm) ; 
 	outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
 	ret += retIn ;
-		
-
 }
 
 bool BimaterialInterface::fractured() const
@@ -175,7 +173,7 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 
 	std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
-	temp =outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
+	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 
 	return ret ;
