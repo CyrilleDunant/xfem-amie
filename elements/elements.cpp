@@ -229,6 +229,9 @@ const std::vector< size_t > ElementarySurface::getDofIds() const
 
 const GaussPointArray & TriElement::genGaussPoints() 
 {
+	if(getCachedGaussPoints())
+		return *getCachedGaussPoints() ;
+	
 	size_t ordre = 0;
 	std::valarray< std::pair<Point, double> > fin ;
 	switch(order)
@@ -525,28 +528,25 @@ const GaussPointArray & TriElement::genGaussPoints()
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
-			fin[i].second*=jacobianAtPoint(fin[i].first);
-// 			std::cout << jacobianAtPoint(fin[i].first) << "  " << .5*area() << std::endl ;
+			double j = jacobianAtPoint(fin[i].first);
+			fin[i].second *= j;
+			if(j)
+				print() ;
 		}
 
 	}
 	else
 	{
-		double j = .5*area() ;
+		double j = area()*2. ;
 		
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second*=j;
 		}
 	}
-	cachedGaussPoints = GaussPointArray(fin, order) ;
-	return cachedGaussPoints ;
+	setCachedGaussPoints(new GaussPointArray(fin, order))  ;
+	return *getCachedGaussPoints() ;
 } ;
-
-void TriElement::computeCenter()
-{
-	this->Triangle::computeCenter() ;
-}
 
 
 TriElement::TriElement( Point * p0,  Point * p1,  Point * p2, bool father ) : Triangle(p0, p1, p2), ElementarySurface(father), moved(false) { this->order = LINEAR ; };
@@ -777,7 +777,7 @@ void TriElement::refresh(const TriElement * parent)
 	
 std::vector<std::vector<Matrix> > & TriElement::getElementaryMatrix() 
 {
-	return cachedElementaryMatrix ;
+	return dummy ;
 }
 
 std::vector<std::vector<Matrix> > TriElement::getNonLinearElementaryMatrix(Vector * state) 
@@ -799,7 +799,7 @@ Function TriElement::jacobian() const
 	
 }
 	
-double  TriElement::jacobianAtPoint(const Point p) const 
+double  TriElement::jacobianAtPoint(const Mu::Point& p) const 
 {
 	if(order < CONSTANT_TIME_LINEAR)
 	{
@@ -808,7 +808,7 @@ double  TriElement::jacobianAtPoint(const Point p) const
 		double xdeta = this->getdXTransform(ETA, p) ;
 		double ydeta = this->getdYTransform(ETA, p) ;
 		
-		return (ydeta*xdxi - ydxi*xdeta)*.25 ;
+		return ydeta*xdxi - ydxi*xdeta ;
 	}
 	else
 	{
@@ -891,8 +891,8 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 		factor = 2 ;
 	
 	Matrix S(3,3) ;
-	S[0][0] = this->getBoundingPoint(0).x ; S[0][1] = this->getBoundingPoint(factor).x ;  S[0][2] = this->getBoundingPoint(factor*2).x ; 
-	S[1][0] = this->getBoundingPoint(0).y ; S[1][1] = this->getBoundingPoint(factor).y ;  S[1][2] = this->getBoundingPoint(factor*2).y ; 
+	S[0][0] = getBoundingPoint(0).x ; S[0][1] = getBoundingPoint(factor).x ;  S[0][2] = getBoundingPoint(factor*2).x ; 
+	S[1][0] = getBoundingPoint(0).y ; S[1][1] = getBoundingPoint(factor).y ;  S[1][2] = getBoundingPoint(factor*2).y ; 
 	S[2][0] = 1 ; S[2][1] = 1 ;  S[2][2] = 1 ; 
 	
 	Vector v(3) ; 
@@ -920,6 +920,9 @@ Vector TriElement::getNonLinearForces()
 
 const GaussPointArray & TetrahedralElement::genGaussPoints() 
 {
+	if(getCachedGaussPoints())
+		return *getCachedGaussPoints() ;
+		
 	size_t ordre=0 ;
 	if(order == LINEAR || order == LINEAR_TIME_LINEAR)
 		ordre = 1 ;
@@ -996,13 +999,8 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 			fin[i].second*=j ;
 		}
 	}
-	cachedGaussPoints = GaussPointArray(fin, order) ;
-	return cachedGaussPoints ;
-}
-
-void TetrahedralElement::computeCenter()
-{
-	this->Tetrahedron::computeCenter() ;
+	setCachedGaussPoints( new GaussPointArray(fin, order)) ;
+	return *getCachedGaussPoints() ;
 }
 
 TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father ) : Tetrahedron(p0, p1, p2, p3), ElementaryVolume(father), moved(false) 
@@ -2703,6 +2701,9 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 
 const GaussPointArray & HexahedralElement::genGaussPoints()
 {
+	if(getCachedGaussPoints())
+		return *getCachedGaussPoints() ;
+	
 	size_t ordre=0 ;
 	if(order <= LINEAR)
 		ordre = 1 ;
@@ -2744,15 +2745,10 @@ const GaussPointArray & HexahedralElement::genGaussPoints()
 		fin[i].second*= jacobianAtPoint(fin[i].first) ;
 	}
 	
-	cachedGaussPoints = GaussPointArray(fin, order) ;
-	return cachedGaussPoints ;
+	setCachedGaussPoints(new GaussPointArray(fin, order)) ;
+	return *getCachedGaussPoints() ;
 }
 	
-void HexahedralElement::computeCenter()
-{
-	this->Hexahedron::computeCenter() ;
-}
-
 HexahedralElement::HexahedralElement(Order order, bool f ) : ElementaryVolume( f)
 {
 	setOrder(order) ;

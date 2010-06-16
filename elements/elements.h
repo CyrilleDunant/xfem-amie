@@ -44,14 +44,13 @@ class NonLinearForm ;
 
 class ElementarySurface : public IntegrableEntity
 {
+
 protected:
 	std::valarray< Function > * shapefunc ;
 	std::vector< Function > enrichfunc ;
 	std::vector< const Geometry *> enrichmentSource ;
 	Form * behaviour ;
 	NonLinearForm * nonlinbehaviour ;
-	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
-	Vector cachedForces ;
 
 public:
 
@@ -67,16 +66,12 @@ public:
 	
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 
-// 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const ;
 	virtual const std::vector< size_t > getDofIds() const ;
 	
 	virtual const Function & getShapeFunction(size_t i) const ;
-// 	virtual Function & getShapeFunction(size_t i)  ;
 	
 	virtual const Function & getEnrichmentFunction(size_t i) const ;
-// 	virtual Function & getEnrichmentFunction(size_t i) ;
 	virtual const std::vector<Function>  & getEnrichmentFunctions() const ;
-// 	virtual std::vector<Function>  & getEnrichmentFunctions() ;
 	
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
@@ -93,13 +88,8 @@ public:
 	
 	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const = 0 ;
 	
-	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() = 0;
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  = 0;
 	virtual Vector getNonLinearForces() = 0 ;
-	
-	virtual const Point &  getPoint(size_t i) const = 0 ;
-	virtual  Point &  getPoint(size_t i)  = 0 ;
-	
+		
 	virtual Form * getBehaviour() const ;
 	void setBehaviour(Form *);
 	
@@ -121,12 +111,11 @@ public:
 
 class TriElement : public Triangle, public ElementarySurface
 {
-	
+private:
+	std::vector<std::vector<Matrix> > dummy ;
 protected :
 	
-	GaussPointArray cachedGaussPoints ;
 	const GaussPointArray & genGaussPoints();
-	virtual void computeCenter();
 	
 public:
 	
@@ -145,7 +134,7 @@ public:
 	
 	Function jacobian() const ;
 	
-	double  jacobianAtPoint(const Point p) const ;
+	double  jacobianAtPoint(const Point & p) const ;
 	
 	void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
 	
@@ -253,9 +242,7 @@ public:
 class TetrahedralElement : public Tetrahedron,  public ElementaryVolume
 {
 protected :
-	GaussPointArray cachedGaussPoints ;
 	const GaussPointArray & genGaussPoints();
-	virtual void computeCenter();
 public:
 	bool moved;
 	GEO_DERIVED_OBJECT(Tetrahedron) ;
@@ -283,11 +270,8 @@ public:
     virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
 	
 	virtual const GaussPointArray & getGaussPoints()
-	{ 
-		if(cachedGaussPoints.gaussPoints.size() == 0)
-			return genGaussPoints() ;
-		else
-			return cachedGaussPoints ;
+	{
+		return genGaussPoints() ;
 	}
 
 } ;
@@ -295,10 +279,8 @@ public:
 class HexahedralElement : public Hexahedron,  public ElementaryVolume
 {
 protected :
-	GaussPointArray cachedGaussPoints ;
 	const GaussPointArray & genGaussPoints() ;
 	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
-	virtual void computeCenter();
 public:
 	std::vector<HexahedralElement *> neighbourhood ;
 // 	bool moved;
@@ -311,10 +293,7 @@ public:
 	
 	const GaussPointArray & getGaussPoints()
 	{
-		if(cachedGaussPoints.gaussPoints.size() == 0)
-			return genGaussPoints() ;
-		else
-			return cachedGaussPoints ;
+		return genGaussPoints() ;
 	}
 	void refresh(const HexahedralElement * parent);
 	virtual void print()  const;
