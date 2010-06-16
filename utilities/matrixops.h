@@ -310,7 +310,7 @@ inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, cons
 /** \brief Perform a Matrix-Matrix-Matrix multiplication, and assign to already initialised matrix passed as further argument*/
 inline void matrix_matrix_matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2, Mu::Matrix & ret )
 {
-	if(&m0 != &ret || &m1 == &ret || &m2 == &ret)
+	if(&m0 == &ret || &m1 == &ret || &m2 == &ret)
 	{
 		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
@@ -346,7 +346,7 @@ inline void matrix_matrix_matrix_multiply_and_assign(const Mu::Matrix &m0, const
 /** \brief Perform a Matrix-Matrix-Matrix multiplication, multiply with a factor and add to already initialised matrix passed as further argument*/
 inline void matrix_matrix_matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2, double f,  Mu::Matrix & ret )
 {
-	if(&m0 != &ret || &m1 == &ret || &m2 == &ret)
+	if(&m0 == &ret || &m1 == &ret || &m2 == &ret)
 	{
 		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
@@ -385,7 +385,7 @@ inline void matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1, 
 {
 	assert(m0.numCols() == m1.numRows()) ;
 // 	std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
-	if(&m0 != &ret || &m1 == &ret)
+	if(&m0 == &ret || &m1 == &ret)
 	{
 		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)

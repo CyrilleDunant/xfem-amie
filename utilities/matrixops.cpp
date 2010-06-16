@@ -45,7 +45,7 @@ Matrix::Matrix(size_t rl, size_t k, size_t l, const Matrix & m)
 inline void matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1,  Mu::Matrix &ret)
 {
 	assert(m0.numCols() == m1.numRows()) ;
-	if(&m0 != &ret || &m1 == &ret)
+	if(&m0 == &ret || &m1 == &ret)
 	{
 		Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
