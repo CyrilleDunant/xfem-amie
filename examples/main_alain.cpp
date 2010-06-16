@@ -1367,13 +1367,14 @@ int main(int argc, char *argv[])
 // 	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 	F.addFeature(&sample, tri) ;
 
-// 	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
+ 	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
 	tri->setBehaviour(new StiffnessWithImposedDeformation(m0_paste, d)) ;
-	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*.5, e) ;
+	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*.5, e)) ;
+//	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*.5, e) ;
 	F.addFeature(tri, inc0) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.sample(256) ;
+	F.sample(128) ;
 	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
 

@@ -3515,9 +3515,18 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		{
 			std::vector<Point> ret ;
 			
-			for(size_t i = 0 ; i <  g->getBoundingPoints().size() ;  i++)
+			std::vector<Point> pts ;
+			const Triangle * gt = dynamic_cast<const Triangle *>(g) ;
+	
+			for(size_t i = 0 ; i <  gt->getBoundingPoints().size() ;  i++)
 			{
-				Segment s(g->getBoundingPoint(i), g->getBoundingPoint((i+1)%g->getBoundingPoints().size())) ;
+				if(std::abs(dist(gt->getCircumCenter(), gt->getBoundingPoint(i))-gt->getRadius()) < POINT_TOLERANCE)
+					pts.push_back(gt->getBoundingPoint(i));
+			}
+			
+			for(size_t i = 0 ; i <  pts.size() ;  i++)
+			{
+				Segment s(pts[i], pts[(i+1)%pts.size()]) ;
 				if(s.intersects(*this))
 					ret.push_back( s.intersection(*this)) ;
 			}

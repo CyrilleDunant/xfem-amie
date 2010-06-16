@@ -584,44 +584,65 @@ void Triangle::project(Point * p) const
 {
 	Segment s(getCenter(), *p) ;
 	
-	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+	std::vector<Point> pts ;
+	
+	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
 	{
-		if(s.on(getBoundingPoint(i)) && !Segment(getBoundingPoint(i), *p).on(getCenter()))
-		{
-			p->x = getBoundingPoint(i).x ;
-			p->y = getBoundingPoint(i).y ;
-			return ;
-		}
+		if(std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius()) < POINT_TOLERANCE)
+			pts.push_back(getBoundingPoint(i));
 	}
 	
-	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-	{
-		Segment seg(getBoundingPoint(i), getBoundingPoint((i+1)%boundingPoints.size())) ;
-		if(s.intersects(seg))
-		{
-			Point t = s.intersection(seg);
-			p->x = t.x ;
-			p->y = t.y ;
-			return ;
-		}
-	}
-
-	double r = getRadius() ;
-	Point reach = (*p - getCenter()) ;
-	Point trans = getCenter() + reach * (2.*r/reach.norm()) ;
-	Segment sec(getCenter(), trans) ;
-
-	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-	{
-		Segment seg(getBoundingPoint(i), getBoundingPoint((i+1)%boundingPoints.size())) ;
-		if(sec.intersects(seg))
-		{
-			Point t = sec.intersection(seg);
-			p->x = t.x ;
-			p->y = t.y ;
-			return ;
-		}
-	}
+	Segment s0(pts[0], pts[1]) ;
+	Segment s1(pts[1], pts[2]) ;
+	Segment s2(pts[2], pts[0]) ;
+	std::map<double, Point> proj ;
+	Point p0 = s0.project(*p) ;
+	Point p1 = s1.project(*p) ;
+	Point p2 = s2.project(*p) ;
+	proj[dist(p0, *p)] = p0 ;
+	proj[dist(p1, *p)] = p1 ;
+	proj[dist(p2, *p)] = p2 ;
+	*p = proj.begin()->second ;
+	return ;
+	
+// 	for(size_t i = 0 ; i < pts.size() ; i++)
+// 	{
+// 		if(s.on(pts[i]) && !Segment(pts[i], *p).on(getCenter()))
+// 		{
+// 			p->x = getBoundingPoint(i).x ;
+// 			p->y = getBoundingPoint(i).y ;
+// 			return ;
+// 		}
+// 	}
+// 	
+// 	for(size_t i = 0 ; i < pts.size() ; i++)
+// 	{
+// 		Segment seg(pts[i], pts[(i+1)%pts.size()]) ;
+// 		if(s.intersects(seg))
+// 		{
+// 			Point t = s.intersection(seg);
+// 			p->x = t.x ;
+// 			p->y = t.y ;
+// 			return ;
+// 		}
+// 	}
+// 
+// 	double r = getRadius() ;
+// 	Point reach = (*p - getCenter()) ;
+// 	Point trans = getCenter() + reach * (2.*r/reach.norm()) ;
+// 	Segment sec(getCenter(), trans) ;
+// 
+// 	for(size_t i = 0 ; i < pts.size() ; i++)
+// 	{
+// 		Segment seg(pts[i], pts[(i+1)%pts.size()]) ;
+// 		if(sec.intersects(seg))
+// 		{
+// 			Point t = sec.intersection(seg);
+// 			p->x = t.x ;
+// 			p->y = t.y ;
+// 			return ;
+// 		}
+// 	}
 
 	
 	
@@ -645,26 +666,26 @@ bool Triangle::in(const Point &p) const
 	Segment s(p, getCenter()) ;
 	return !s.intersects(this) || isAPoint || isOnSurface;
 		
-	bool in = false ;
-	
-	for (int i = 0, j  =  getBoundingPoints().size()-1; i <  getBoundingPoints().size(); j = i++)
-	{
-		if( std::abs(getBoundingPoint(j).y - getBoundingPoint(i).y) > 2.*POINT_TOLERANCE)
-		{
-			if (
-				(((getBoundingPoint(i).y < p.y + 2.*POINT_TOLERANCE) 
-					&& (p.y-2.*POINT_TOLERANCE < boundingPoints[j]->y)) 
-					|| ((getBoundingPoint(j).y < p.y+2.*POINT_TOLERANCE) 
-					&& (p.y < getBoundingPoint(i).y+2.*POINT_TOLERANCE))) 
-					&& (p.x < (getBoundingPoint(j).x - getBoundingPoint(i).x) 
-					 * (p.y - getBoundingPoint(i).y) 
-					 / (getBoundingPoint(j).y - getBoundingPoint(i).y) 
-					 + getBoundingPoint(i).x + 2.*POINT_TOLERANCE))
-				in = !in;
-		}
-	}
-	
-	return in ;
+// 	bool in = false ;
+// 	
+// 	for (int i = 0, j  =  getBoundingPoints().size()-1; i <  getBoundingPoints().size(); j = i++)
+// 	{
+// 		if( std::abs(getBoundingPoint(j).y - getBoundingPoint(i).y) > 2.*POINT_TOLERANCE)
+// 		{
+// 			if (
+// 				(((getBoundingPoint(i).y < p.y + 2.*POINT_TOLERANCE) 
+// 					&& (p.y-2.*POINT_TOLERANCE < boundingPoints[j]->y)) 
+// 					|| ((getBoundingPoint(j).y < p.y+2.*POINT_TOLERANCE) 
+// 					&& (p.y < getBoundingPoint(i).y+2.*POINT_TOLERANCE))) 
+// 					&& (p.x < (getBoundingPoint(j).x - getBoundingPoint(i).x) 
+// 					 * (p.y - getBoundingPoint(i).y) 
+// 					 / (getBoundingPoint(j).y - getBoundingPoint(i).y) 
+// 					 + getBoundingPoint(i).x + 2.*POINT_TOLERANCE))
+// 				in = !in;
+// 		}
+// 	}
+// 	
+// 	return in ;
 	
 }
 
