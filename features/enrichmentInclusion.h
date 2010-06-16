@@ -116,7 +116,6 @@ public:
 	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
 protected:
-	virtual void computeCenter() { };
 	
 	bool changed ;
 } ;

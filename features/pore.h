@@ -73,11 +73,6 @@ public:
 /** \brief Do nothing*/
 	virtual Point * pointAfter(size_t i) ;
 	
-	virtual void computeCenter()
-	{
-		return this->Circle::computeCenter() ;
-	}
-	
 	virtual void print() const
 	{
 		std::cout << "I am a pore" << std::endl ;
@@ -137,11 +132,6 @@ public:
 	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
 	
 	virtual Point * pointAfter(size_t i) ;
-	
-	virtual void computeCenter()
-	{
-		return this->Triangle::computeCenter() ;
-	}
 	
 	virtual void print() const
 	{

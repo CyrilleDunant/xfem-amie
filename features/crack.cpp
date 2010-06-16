@@ -1374,14 +1374,6 @@ void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle,DelaunayTree
 	enrichBranches(counter, dtree) ;
 }
 
-void BranchedCrack::computeCenter()
-{
-	for(size_t i = 0 ; i < tips.size() ; i++)
-	{
-		SegmentedLine::center += *tips[i].first*(1./tips.size()) ;
-	}
-}
-
 std::vector<DelaunayTriangle*> BranchedCrack::getElements(Mesh<DelaunayTriangle,DelaunayTreeItem>* dt)
 {
 	

@@ -582,7 +582,6 @@ double Triangle::area() const
 
 void Triangle::project(Point * p) const
 {
-	print() ;
 	Segment s(getCenter(), *p) ;
 	if(dist(*p, getCircumCenter()) < POINT_TOLERANCE)
 		return ;

@@ -399,7 +399,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 							if((*i)->getNeighbourhood(j)->visited)
 							{
 								DelaunayTriangle * n = (*i)->getNeighbourhood(j) ;
-								for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
+								for(size_t k = 0 ; k < n->getBoundingPoints().size() ; k++)
 								{
 									if(n->getBoundingPoint(k) == proto)
 									{
@@ -424,7 +424,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 						{
 							additionalPoints.push_back(new Point(proto) ) ;
 							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = additionalPoints.back();
-							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = global_counter++ ;
+							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = getLastNodeId()++ ;
 						}
 						
 						done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
@@ -1183,7 +1183,6 @@ DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, 
 	assert(first->id > -1) ;
 	assert(second->id > -1) ;
 	assert(third->id > -1) ;
-	cachedGPs = NULL ;
 }
 
 DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(NULL, NULL, NULL), neighbourhood(0)
@@ -1194,7 +1193,6 @@ DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(NULL, NULL, NULL), neigh
 	
 	isPlane = false ;
 	isTriangle = true ;
-	cachedGPs = NULL ;
 }
 
 DelaunayDeadTriangle::DelaunayDeadTriangle( DelaunayTriangle * parent) : DelaunayTreeItem(*parent),
@@ -1346,7 +1344,6 @@ inline std::pair<Point*, Point*> DelaunayDeadTriangle::commonEdge(const Delaunay
 
 DelaunayTriangle::~DelaunayTriangle()
 {
-	delete cachedGPs ;
 	for(size_t i = 0 ; i <  cachedElementaryMatrix.size() ; i++)
 	{
 		cachedElementaryMatrix[i].clear() ;
@@ -1621,7 +1618,7 @@ bool DelaunayTriangle::isInNeighbourhood(const DelaunayTriangle * t) const
 
 void DelaunayTriangle::print() const
 {
-	for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
 		std::cerr << "(" << getBoundingPoint(i).x <<  ";" << getBoundingPoint(i).y <<") " ;
 	}
@@ -2521,7 +2518,7 @@ std::vector<std::vector<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			cachedElementaryMatrix[i].clear() ;
 		}
 		cachedElementaryMatrix.clear() ;
-		cachedGaussPoints = getSubTriangulatedGaussPoints() ;
+		getSubTriangulatedGaussPoints() ;
 	}
 	
 	std::valarray<Matrix> Jinv ;
@@ -2561,27 +2558,27 @@ std::vector<std::vector<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		 behaviour->apply(getShapeFunction(i), getShapeFunction(i),cachedGaussPoints, Jinv, cachedElementaryMatrix[i][i], &vm) ;
+		 behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 		
 		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			 behaviour->apply(getShapeFunction(i), getShapeFunction(j),cachedGaussPoints, Jinv,cachedElementaryMatrix[i][j], &vm) ;
-			 behaviour->apply(getShapeFunction(j), getShapeFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[j][i], &vm) ;
+			 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
+			 behaviour->apply(getShapeFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j][i], &vm) ;
 		}
 		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
 		{
-			 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),cachedGaussPoints, Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
-			 behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
+			 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
+			 behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
 		}
 	}
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
-		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		
 		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
 		{
-			 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),cachedGaussPoints, Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
-			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
+			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
 
@@ -2763,7 +2760,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 {
 	if(!enrichmentUpdated)
-		return cachedGaussPoints ;
+		return *getCachedGaussPoints() ;
 
 	GaussPointArray gp = getGaussPoints() ; 
 	size_t numberOfRefinements = 2;
@@ -2972,7 +2969,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 			{
 				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
-				gp_temp.gaussPoints[j].second *= jacobianAtPoint(gp_temp.gaussPoints[j].first)*2 ;
+				gp_temp.gaussPoints[j].second *= jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
 				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 			}
 		}
@@ -3002,8 +2999,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		}
 	}
 	
-	cachedGaussPoints = gp ;
-	return cachedGaussPoints ;
+	delete getCachedGaussPoints() ;
+	setCachedGaussPoints(new GaussPointArray(gp));
+	return *getCachedGaussPoints();
 }
 
 

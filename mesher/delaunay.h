@@ -129,7 +129,8 @@ public:
 */
 class DelaunayTriangle : virtual public TriElement, public DelaunayTreeItem
 {
-	std::valarray<std::pair<Point, double> > * cachedGPs ;
+	Vector cachedForces;
+	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
 	std::vector<Point * > getIntegrationHints() const ;
 public:
 	

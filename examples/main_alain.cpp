@@ -1326,7 +1326,7 @@ int main(int argc, char *argv[])
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = .99*E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
+	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
 
 	// Material behaviour of the fibres
 	Matrix m0_agg(3,3) ;
@@ -1364,19 +1364,21 @@ int main(int argc, char *argv[])
 	Point b(50,0) ;
 	Point c(-50,50) ;
 	TriangularInclusion * tri = new TriangularInclusion(a,c,b) ;
+// 	Sample * tri = new Sample(100, 30, 0, 0) ;
 // 	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
 	F.addFeature(&sample, tri) ;
 
- 	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
+// 	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
 	tri->setBehaviour(new StiffnessWithImposedDeformation(m0_paste, d)) ;
-	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*.5, e)) ;
-//	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*.5, e) ;
+// 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*.5, e)) ;
+	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*.5, e) ;
 	F.addFeature(tri, inc0) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, -10)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 	F.sample(128) ;
-	F.setOrder(QUADRATIC) ;
 	F.generateElements() ;
+	F.setOrder(QUADRATIC) ;
 
 	step() ;
 	

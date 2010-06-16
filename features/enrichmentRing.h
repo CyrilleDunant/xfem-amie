@@ -133,7 +133,6 @@ public:
 	double getInRadius() const ;
 
 protected:
-	virtual void computeCenter() { };
 	
 	bool changed ;
 } ;

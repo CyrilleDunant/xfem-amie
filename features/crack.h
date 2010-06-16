@@ -154,8 +154,6 @@ public:
 /** \brief Enrich the elements contained in the argument which interact with the crack*/
 	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
-	virtual void computeCenter() ;
-
 /** \brief return the list of elements interacting with the crack*/
 	virtual std::vector<DelaunayTriangle*> getElements(Mesh<DelaunayTriangle, DelaunayTreeItem>*) ;
 

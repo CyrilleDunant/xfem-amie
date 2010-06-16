@@ -76,11 +76,6 @@ public:
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
 	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  ;
 	
-	virtual void computeCenter()
-	{
-		return this->Sphere::computeCenter() ;
-	}
-	
 /** \brief do nothing */
 	virtual Point * pointAfter(size_t i) ;
 	
@@ -156,12 +151,7 @@ public:
 	
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt)  ;
-	
-	virtual void computeCenter()
-	{
-		return this->RegularOctahedron::computeCenter() ;
-	}
-	
+		
 /** \brief do nothing */
 	virtual Point * pointAfter(size_t i) ;
 	
@@ -236,12 +226,7 @@ public:
 	
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
 	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt)  ;
-	
-	virtual void computeCenter()
-	{
-		return this->Sphere::computeCenter() ;
-	}
-	
+		
 /** \brief return tthis*/
 	virtual Feature * getSource() ;
 

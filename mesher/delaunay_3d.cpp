@@ -2485,7 +2485,7 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 			cachedElementaryMatrix[i].clear() ;
 		}
 		cachedElementaryMatrix.clear() ;
-		cachedGaussPoints = getSubTriangulatedGaussPoints() ;
+		getSubTriangulatedGaussPoints() ;
 	}
 	
 	std::valarray<Matrix> Jinv ;
@@ -2525,27 +2525,27 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		 behaviour->apply(getShapeFunction(i), getShapeFunction(i),cachedGaussPoints, Jinv, cachedElementaryMatrix[i][i], &vm) ;
+		 behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 		
 		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			 behaviour->apply(getShapeFunction(i), getShapeFunction(j),cachedGaussPoints, Jinv,cachedElementaryMatrix[i][j], &vm) ;
-			 behaviour->apply(getShapeFunction(j), getShapeFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[j][i], &vm) ;
+			 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
+			 behaviour->apply(getShapeFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j][i], &vm) ;
 		}
 		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
 		{
-			 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),cachedGaussPoints, Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
-			 behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
+			 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
+			 behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
 		}
 	}
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
-		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		
 		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
 		{
-			 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),cachedGaussPoints, Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
-			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),cachedGaussPoints, Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
+			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
 
@@ -2887,7 +2887,7 @@ std::vector<Point *> DelaunayTetrahedron::getIntegrationHints() const
 const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 {
 	if(!enrichmentUpdated)
-		return cachedGaussPoints ;
+		return *getCachedGaussPoints() ;
 
 	GaussPointArray gp = getGaussPoints() ; 
 	size_t numberOfRefinements = 1;
@@ -2935,9 +2935,9 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 			gp.id = -1 ;
 		}
-		std::cout << "." << std::flush ;
-		cachedGaussPoints = gp ;
-		return cachedGaussPoints ;
+		delete getCachedGaussPoints() ;
+		setCachedGaussPoints(new GaussPointArray(gp)) ;
+		return *getCachedGaussPoints() ;
 
 		DelaunayTree3D * dt = new DelaunayTree3D(to_add[0], to_add[1], to_add[2], to_add[3]) ;
 		if(to_add.size() > 5)
@@ -3129,8 +3129,9 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		}
 	}
 // 	std::cout << gp.gaussPoints.size() << std::endl ;
-	cachedGaussPoints = gp ;
-	return cachedGaussPoints ;
+	delete getCachedGaussPoints() ;
+	setCachedGaussPoints( new GaussPointArray( gp)) ;
+	return *getCachedGaussPoints();
 }
 
 void DelaunayTree3D::setElementOrder(Order elemOrder)

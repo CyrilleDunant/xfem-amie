@@ -20,7 +20,7 @@ Vector & ElementState::getEnrichedDisplacements()
 	return this->enrichedDisplacements ;
 }
 
-IntegrableEntity::IntegrableEntity() : state(this), boundaryConditionCache(NULL)
+IntegrableEntity::IntegrableEntity() : state(this), boundaryConditionCache(NULL), cachedGps(NULL)
 {
 	
 }
@@ -80,6 +80,7 @@ IntegrableEntity::~IntegrableEntity()
 	}
 	
 	delete boundaryConditionCache ;
+	delete cachedGps ;
 }
 
 const Vector & ElementState::getPreviousEnrichedDisplacements() const

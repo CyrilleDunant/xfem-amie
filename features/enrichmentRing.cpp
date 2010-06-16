@@ -77,7 +77,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 	{
 		for(size_t i = 0 ; i < disc.size() ; i++)
 		{
-			std::vector<Point> samplingPoints = static_cast<Circle *>(this)->getSamplingBoundingPoints(8) ;
+			std::vector<Point> samplingPoints = getSamplingBoundingPoints(8) ;
 	
 			std::map<Point *, int> dofId ;
 			
@@ -106,21 +106,21 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 			f.setIntegrationHint(hint) ;
 			f.setPoint(disc[i]->first) ;
 			f.setDofID(dofId[disc[i]->first]) ;
-			disc[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+			disc[i]->setEnrichment(f, getPrimitive()) ;
 			
 				//enriching the second point
 			f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
 			f.setIntegrationHint(hint) ;
 			f.setPoint(disc[i]->second) ;
 			f.setDofID(dofId[disc[i]->second]) ;
-			disc[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+			disc[i]->setEnrichment(f, getPrimitive()) ;
 			
 				//enriching the third point
 			f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
 			f.setIntegrationHint(hint) ;
 			f.setPoint(disc[i]->third) ;
 			f.setDofID(dofId[disc[i]->third]) ;
-			disc[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+			disc[i]->setEnrichment(f, getPrimitive()) ;
 		}
 		return ;
 	}
@@ -228,26 +228,26 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 				f.setIntegrationHint(hint) ;
 				f.setPoint(a) ;
 				f.setDofID(dofId[a]) ;
-				ring[i]->setEnrichment( f, static_cast<Circle *>(this)) ;
+				ring[i]->setEnrichment( f, getPrimitive()) ;
 				
 				//enriching the second point
 				f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
 				f.setPoint(b) ;
 				f.setDofID(dofId[b]) ;
-				ring[i]->setEnrichment( f, static_cast<Circle *>(this)) ;
+				ring[i]->setEnrichment( f, getPrimitive()) ;
 				
 				//enriching the third point
 				f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
 				f.setPoint(c) ;
 				f.setDofID(dofId[c]) ;
-				ring[i]->setEnrichment(f, static_cast<Circle *>(this)) ;
+				ring[i]->setEnrichment(f, getPrimitive()) ;
 				for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 				{
 					DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 					if(!enrichmentTarget(t))
 					{
 						if(!t->enrichmentUpdated)
-							t->clearEnrichment(static_cast<Circle *>(this)) ;
+							t->clearEnrichment(getPrimitive()) ;
 						t->enrichmentUpdated = true ;
 						Function hat = 1- f_abs(Function(getCenter(), 
 										t->getXTransform(), t->getYTransform()) -radius)/radius ;

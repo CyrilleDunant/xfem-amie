@@ -112,8 +112,6 @@ public:
 	void update(Mu::Mesh< Mu::DelaunayTetrahedron, Mu::DelaunayTreeItem3D >* dtree) ;
 
 protected:
-	virtual void computeCenter() { };
-	
 	bool changed ;
 } ;
 

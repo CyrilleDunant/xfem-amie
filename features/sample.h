@@ -53,11 +53,6 @@ public:
 /** \brief return empty vector*/
 	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) { return std::vector<DelaunayTetrahedron *>(0) ; }
 	
-	virtual void computeCenter()
-	{
-		return this->Rectangle::computeCenter() ;
-	}
-	
 /** \brief do nothing */
 	virtual Point * pointAfter(size_t i) ;
 	

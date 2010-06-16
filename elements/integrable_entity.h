@@ -323,6 +323,9 @@ protected:
 	Order order ;
 	ElementState state ;
 	std::vector<BoundaryCondition *> * boundaryConditionCache ;
+	GaussPointArray * cachedGps ;
+	const GaussPointArray * getCachedGaussPoints() const {return cachedGps ;};
+	void setCachedGaussPoints(GaussPointArray * gp) { cachedGps = gp ;};
 public:
 	bool enrichmentUpdated ;
 	bool behaviourUpdated ;

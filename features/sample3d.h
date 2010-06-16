@@ -57,11 +57,6 @@ public:
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
 	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  ;
 	
-	virtual void computeCenter()
-	{
-		return this->Hexahedron::computeCenter() ;
-	}
-	
 /** \brief do nothing */
 	virtual Point * pointAfter(size_t i) ;
 	

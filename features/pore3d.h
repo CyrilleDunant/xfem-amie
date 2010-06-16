@@ -74,11 +74,6 @@ public:
 /** \brief do nothing*/
 	virtual Point * pointAfter(size_t i) ;
 	
-	virtual void computeCenter()
-	{
-		return this->Sphere::computeCenter() ;
-	}
-	
 	virtual void print() const
 	{
 		std::cout << "I am a pore" << std::endl ;
