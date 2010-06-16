@@ -590,7 +590,6 @@ void Triangle::project(Point * p) const
 	std::multimap<double, Point> pt ;
 	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
 	{
-		getBoundingPoint(i).print() ;
 		pt.insert(std::make_pair(std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius()), getBoundingPoint(i)));
 	}
 	std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
@@ -599,9 +598,7 @@ void Triangle::project(Point * p) const
 	for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
 	{
 		pts.push_back(i->second);
-		pts.back().print() ;
 	}
-	std::cout << "plouf " << pts.size() << std::endl ;
 	for(size_t i = 0 ; i < pts.size() ; i++)
 	{
 		if(s.on(pts[i]) && !Segment(pts[i], *p).on(getCenter()))
