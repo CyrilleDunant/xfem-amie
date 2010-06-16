@@ -657,60 +657,7 @@ public:
 	{
 	}
 	
-	virtual void eval(Context & context) const
-	{
-		double res = 0;
-		Point test(*context.memory.top_pos, *context.memory.prev_top_pos) ;
-		context.memory.pop_back() ;
-		if(inGeo->in(test))
-		{
-			double totaldist ;
-			std::vector<double> dists ;
-			std::vector<Point> projs ;
-			for(size_t i = 0 ; i < inProjector.size() ; i++)
-			{
-				Point proj(test) ;
-				inProjector[i].project(proj) ;
-				projs.push_back(proj);
-				double d = dist(proj, test) ;
-				totaldist += d ;
-				dists.push_back(d);
-			}
-			
-			double renorm = 0 ;
-			for(size_t i = 0 ; i < inProjector.size() ; i++)
-			{
-				res += (totaldist-dists[i])*(dist(projs[i], inProjector[i].second())/inProjector[i].norm()) ;
-				renorm += totaldist-dists[i] ;
-			}
-			res /= renorm ;
-		}
-		else
-		{
-			double totaldist ;
-			std::vector<double> dists ;
-			std::vector<Point> projs ;
-			for(size_t i = 0 ; i < outProjector.size() ; i++)
-			{
-				Point proj(test) ;
-				outProjector[i].project(proj) ;
-				projs.push_back(proj);
-				double d = dist(proj, test) ;
-				totaldist += d ;
-				dists.push_back(d);
-			}
-			
-			double renorm = 0 ;
-			for(size_t i = 0 ; i < outProjector.size() ; i++)
-			{
-				res += (totaldist-dists[i])*(dist(projs[i], outProjector[i].second())/outProjector[i].norm()) ;
-				renorm += totaldist-dists[i] ;
-			}
-			res /= renorm ;
-		}
-		
-		*context.memory.top_pos =  res;
-	}
+	virtual void eval(Context & context) const ;
 	
 	virtual ~InHomogeneousProjectionOperatorToken() { };
 	virtual std::string print() const

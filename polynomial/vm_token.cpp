@@ -23,6 +23,113 @@ CurvilinearXOperatorToken::CurvilinearXOperatorToken(const SegmentedLine * l, bo
 	{
 	} ;
 	
+
+void InHomogeneousProjectionOperatorToken::eval(Context & context) const
+{
+	double res = 0;
+	Point test(*context.memory.top_pos, *context.memory.prev_top_pos) ;
+	context.memory.pop_back() ;
+	Point gProj(test) ;
+	inGeo->project(&gProj);
+	if(inGeo->in(test))
+	{
+		double totaldist ;
+		std::vector<double> weight ;
+		std::vector<Point> projs ;
+		for(size_t i = 0 ; i < inProjector.size() ; i++)
+		{
+			Line l(inProjector[i].first(), inProjector[i].vector()) ;
+			
+			Point proj = l.projection(test) ;
+
+			projs.push_back(proj);
+			double d = dist(proj, test) ;
+			totaldist += d ;
+			weight.push_back(d);
+		}
+		projs.push_back(gProj);
+		double d = dist(gProj, test) ;
+		totaldist += d ;
+		weight.push_back(d);
+		
+		double maxn = 0 ;
+		double renorm = 0 ;
+		for(size_t i = 0 ; i < inProjector.size() ; i++)
+		{
+			double n = inProjector[i].norm() ;
+			if(weight[i] < POINT_TOLERANCE)
+			{
+				*context.memory.top_pos = dist(projs[i], inProjector[i].second())/n ;
+				return ;
+			}
+			maxn = std::max(maxn, n) ;
+			res += (1./weight[i])*dist(projs[i], inProjector[i].second())/n ;
+			renorm += 1./weight[i] ;
+		}
+		if(weight.back() < POINT_TOLERANCE)
+		{
+			*context.memory.top_pos = 1 ;
+			return ;
+		}
+		res += (1./weight.back())*(1.-dist(projs.back(), test)/inGeo->getRadius()) ;
+		renorm += 1./weight.back() ;
+		
+		if(renorm > POINT_TOLERANCE)
+			res /= renorm ;
+		else
+			res = 0 ;
+	}
+	else
+	{
+		double totaldist ;
+		std::vector<double> weight ;
+		std::vector<Point> projs ;
+		for(size_t i = 0 ; i < outProjector.size() ; i++)
+		{
+			Line l(outProjector[i].first(), outProjector[i].vector()) ;
+			Point proj = l.projection(test) ;
+			projs.push_back(proj);
+			double d = dist(proj, test) ;
+			totaldist += d ;
+			weight.push_back(d);
+		}
+		projs.push_back(gProj);
+		double d = dist(gProj, test) ;
+		totaldist += d ;
+		weight.push_back(d);
+		
+		double maxn = 0 ;
+		double renorm = 0 ;
+		for(size_t i = 0 ; i < outProjector.size() ; i++)
+		{
+			double n = outProjector[i].norm()  ;
+			if(weight[i] < POINT_TOLERANCE)
+			{
+				*context.memory.top_pos = dist(projs[i], outProjector[i].second())/n ;
+				return ;
+			}
+			maxn = std::max(maxn, n) ;
+			res += (1./weight[i])*dist(projs[i], outProjector[i].second())/n ;
+			renorm += 1./weight[i] ;
+		}
+		if(weight.back() < POINT_TOLERANCE)
+		{
+			*context.memory.top_pos = 1 ;
+			return ;
+		}
+		
+		res += (1./weight.back())*(1.-dist(projs.back(), test)/inGeo->getRadius()) ;
+		renorm += 1./weight.back() ;
+		
+		if(renorm > POINT_TOLERANCE)
+			res /= renorm ;
+		else
+			res = 0 ;
+	}
+	
+	*context.memory.top_pos =  res;
+}
+	
 void CurvilinearXOperatorToken::eval(Context & context) const
 {
 	Point p(*context.memory.top_pos, *context.memory.prev_top_pos) ;
