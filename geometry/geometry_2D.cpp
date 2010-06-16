@@ -592,6 +592,16 @@ void Triangle::project(Point * p) const
 			pts.push_back(getBoundingPoint(i));
 	}
 	
+	for(size_t i = 0 ; i < pts.size() ; i++)
+	{
+		if(s.on(pts[i]) && !Segment(pts[i], *p).on(getCenter()))
+		{
+			p->x = getBoundingPoint(i).x ;
+			p->y = getBoundingPoint(i).y ;
+			return ;
+		}
+	}
+	
 	Segment s0(pts[0], pts[1]) ;
 	Segment s1(pts[1], pts[2]) ;
 	Segment s2(pts[2], pts[0]) ;
@@ -605,15 +615,6 @@ void Triangle::project(Point * p) const
 	*p = proj.begin()->second ;
 	return ;
 	
-// 	for(size_t i = 0 ; i < pts.size() ; i++)
-// 	{
-// 		if(s.on(pts[i]) && !Segment(pts[i], *p).on(getCenter()))
-// 		{
-// 			p->x = getBoundingPoint(i).x ;
-// 			p->y = getBoundingPoint(i).y ;
-// 			return ;
-// 		}
-// 	}
 // 	
 // 	for(size_t i = 0 ; i < pts.size() ; i++)
 // 	{
