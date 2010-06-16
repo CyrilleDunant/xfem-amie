@@ -2481,26 +2481,23 @@ bool FeatureTree::step(double dt)
 		{	
 			if(i%1000 == 0)
 				std::cerr << "\r checking for fractures... " << i << "/" << elements.size() << std::flush ;
-			
 			if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 			{
 				volume += elements[i]->area() ;
 				
 				elements[i]->getBehaviour()->step(dt, elements[i]->getState()) ;
-				
 				if(elements[i]->getBehaviour()->changed())
 				{
 					needAssembly = true ;
 					meshChange = true ;
 					ret = false ;
 				}
-				
 				if(elements[i]->getBehaviour()->fractured())
 				{
 					fracturedCount++ ;
 					crackedVolume +=  elements[i]->area() ;
 				}
-				else if(std::abs(elements[i]->getBehaviour()->getTensor(Point(.3,.3))[0][0] - elements[i]->getBehaviour()->param[0][0]) > 1e-12*elements[i]->getBehaviour()->getTensor(Point(.3,.3))[0][0] )
+				else if(std::abs(elements[i]->getBehaviour()->getTensor(Point(1./3.,1./3.))[0][0] - elements[i]->getBehaviour()->param[0][0]) > 1e-12*elements[i]->getBehaviour()->getTensor(Point(1./3.,1./3.))[0][0] )
 				{
 					damagedVolume +=  elements[i]->area() ;
 				}

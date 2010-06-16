@@ -3410,7 +3410,7 @@ bool Segment::intersects(const Geometry *g) const
 			std::multimap<double, Point> pt ;
 			for(size_t i = 0 ; i < g->getBoundingPoints().size() ;  i++)
 			{
-				pt.insert(std::make_pair(std::abs(dist(dynamic_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()), g->getBoundingPoint(i)));
+				pt.insert(std::make_pair(std::abs(squareDist2D(dynamic_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()), g->getBoundingPoint(i)));
 			}
 			std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
 			ptend++ ; ptend++ ; ptend++ ;

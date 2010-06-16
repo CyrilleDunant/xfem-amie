@@ -2,7 +2,7 @@
 
 using namespace Mu ;
 
-TrimaterialInterface::TrimaterialInterface(Geometry * in,Geometry * out, Form * inbehaviour, Form * midbehaviour, Form * outbehaviour) : LinearForm(Matrix(), true, true, 2), inGeometry(in), outGeometry(out),inBehaviour(inbehaviour),midBehaviour(midbehaviour), outBehaviour(outbehaviour)  { }
+TrimaterialInterface::TrimaterialInterface(Geometry * in,Geometry * out, Form * inbehaviour, Form * midbehaviour, Form * outbehaviour) : LinearForm(Matrix(3,3), true, true, 2), inGeometry(in), outGeometry(out),inBehaviour(inbehaviour),midBehaviour(midbehaviour), outBehaviour(outbehaviour)  { }
 
 TrimaterialInterface::~TrimaterialInterface() { } ;
 

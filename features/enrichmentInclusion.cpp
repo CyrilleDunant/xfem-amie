@@ -110,7 +110,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 		Segment s0(*disc[i]->first, *disc[i]->second) ;
 		Segment s1(*disc[i]->second, *disc[i]->third) ;
 		Segment s2(*disc[i]->third, *disc[i]->first) ;
-		if(!(getPrimitive()->in(*disc[i]->first) && getPrimitive()->in(*disc[i]->second) && getPrimitive()->in(*disc[i]->third)))
+		if(!(getPrimitive()->in(*disc[i]->first) && getPrimitive()->in(*disc[i]->second) && getPrimitive()->in(*disc[i]->third)) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
 			ring.push_back(disc[i]) ;
 		}

@@ -20,6 +20,7 @@ EnrichmentRing::~EnrichmentRing() {}
 	
 bool EnrichmentRing::enrichmentTarget(DelaunayTriangle * t)
 {
+	return (!(getPrimitive()->in(*t->first) && getPrimitive()->in(*t->second) && getPrimitive()->in(*t->third)) || !(self.in(*t->first) && self.in(*t->second) && self.in(*t->third)) )&& t->getBehaviour()->type != VOID_BEHAVIOUR ;
 	return t->intersects(getPrimitive())||t->intersects(&self)  ;
 }
 
@@ -138,7 +139,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 		
 		for(size_t i = 0 ; i < disc.size() ; i++)
 		{
-			if(circles[h]->intersects(static_cast<Triangle *>(disc[i])))
+			if(!(circles[h]->in(*disc[i]->first) && circles[h]->in(*disc[i]->second) && circles[h]->in(*disc[i]->third)) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				ring.push_back(disc[i]) ;
 		}
 		
@@ -244,7 +245,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 				for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 				{
 					DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
-					if(!enrichmentTarget(t))
+					if((circles[h]->in(*disc[i]->first) && circles[h]->in(*disc[i]->second) && circles[h]->in(*disc[i]->third)) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
 						if(!t->enrichmentUpdated)
 							t->clearEnrichment(getPrimitive()) ;

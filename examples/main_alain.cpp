@@ -23,6 +23,8 @@
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
 #include "../features/enrichmentInclusion.h"
+#include "../features/expansiveRing.h"
+
 #include "../features/expansiveZone.h"
 #include "../mesher/delaunay_3d.h"
 #include "../solvers/assembly.h"
@@ -1358,25 +1360,32 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new VoidForm()) ;
+	sample.setBehaviour(new Stiffness(m0_paste)) ;
+// 	sample.setBehaviour(new VoidForm()) ;
 
 	Point a(-50,-50) ;
 	Point b(50,0) ;
 	Point c(-50,50) ;
-	TriangularInclusion * tri = new TriangularInclusion(a,c,b) ;
+	
 // 	Sample * tri = new Sample(100, 30, 0, 0) ;
 // 	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
-	F.addFeature(&sample, tri) ;
+// 	F.addFeature(&sample, tri) ;
 
-// 	Inclusion * inc0 = new Inclusion(10, 0, 0) ;
+	Inclusion * inc0 = new Inclusion(5, 0, 0) ;
+	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*.5, d)) ;
+	
+	TriangularInclusion * tri = new TriangularInclusion(a,c,b) ;
 	tri->setBehaviour(new StiffnessWithImposedDeformation(m0_paste, d)) ;
-// 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*.5, e)) ;
-	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*.5, e) ;
-	F.addFeature(tri, inc0) ;
+	
+// 	ExpansiveZone * inc0 = new ExpansiveZone(tri,10, 0, 0, m0_paste*.5, e) ;
+	ExpansiveRing * ring = new ExpansiveRing(inc0, 36, 34,  0, 0, m0_paste*.5, e) ;
+// 	F.addFeature(tri, inc0) ;
+// 	F.addFeature(inc0, ring) ;
+	F.addFeature(&sample, ring) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, -10)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.sample(128) ;
+	F.sample(256) ;
 	F.generateElements() ;
 	F.setOrder(QUADRATIC) ;
 

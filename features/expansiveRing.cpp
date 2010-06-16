@@ -45,9 +45,11 @@ void ExpansiveRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem> 
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(this->intersection(static_cast<Triangle *>(disc[i])).size() == 2 || self.intersection(static_cast<Triangle *>(disc[i])).size() == 2)
+		if((intersection(static_cast<Triangle *>(disc[i])).size() == 2 
+			|| self.intersection(static_cast<Triangle *>(disc[i])).size() == 2) 
+			&& disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			ring.push_back(disc[i]) ;
-		else if(this->in(disc[i]->getCenter()) && !self.in(disc[i]->getCenter()) )
+		else if(this->in(disc[i]->getCenter()) && !self.in(disc[i]->getCenter()) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			inDisc.push_back(disc[i]) ;
 	}
 	

@@ -108,9 +108,9 @@ void MaterialInclusion::enrich(size_t & counter , Mesh<DelaunayTriangle, Delauna
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(this->intersects(static_cast<Triangle *>(disc[i])) )
+		if(this->intersects(static_cast<Triangle *>(disc[i])) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			ring.push_back(disc[i]) ;
-		else if(this->in(disc[i]->getCenter()))
+		else if(this->in(disc[i]->getCenter())&& disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			inDisc.push_back(disc[i]) ;
 	}
 	
