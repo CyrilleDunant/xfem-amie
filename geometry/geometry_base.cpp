@@ -3407,13 +3407,16 @@ bool Segment::intersects(const Geometry *g) const
 		{
 			bool ret = false ;	
 			std::vector<Point> pts ;
-			const Triangle * gt = dynamic_cast<const Triangle *>(g) ;
-	
-			for(size_t i = 0 ; i <  gt->getBoundingPoints().size() ;  i++)
+			std::multimap<double, Point> pt ;
+			for(size_t i = 0 ; i < g->getBoundingPoints().size() ;  i++)
 			{
-				if(std::abs(dist(gt->getCircumCenter(), gt->getBoundingPoint(i))-gt->getRadius()) < POINT_TOLERANCE)
-					pts.push_back(gt->getBoundingPoint(i));
+				pt.insert(std::make_pair(std::abs(dist(static_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()), g->getBoundingPoint(i)));
 			}
+			std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
+			ptend++ ; ptend++ ; ptend++ ;
+	
+			for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
+				pts.push_back(i->second);
 
 			if(this->on(pts[0]) || this->on(pts[1]) || this->on(pts[2]))
 				return true ;

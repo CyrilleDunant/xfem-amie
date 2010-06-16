@@ -22,6 +22,9 @@
 {                                                          \
 	return this->__geo_type__::getBoundingPoints() ;       \
 }                                                          \
+protected:\
+virtual void computeCenter() {this->__geo_type__::computeCenter() ;}                                  \
+public:\
 virtual PointArray & getBoundingPoints()       \
 {                                                          \
 	return this->__geo_type__::getBoundingPoints() ;       \

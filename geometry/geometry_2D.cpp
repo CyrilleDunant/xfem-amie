@@ -582,19 +582,26 @@ double Triangle::area() const
 
 void Triangle::project(Point * p) const
 {
+	print() ;
 	Segment s(getCenter(), *p) ;
-	
+	if(dist(*p, getCircumCenter()) < POINT_TOLERANCE)
+		return ;
 	std::vector<Point> pts ;
-	std::map<double, Point> pt ;
+	std::multimap<double, Point> pt ;
 	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
 	{
-		pt[std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius())] = getBoundingPoint(i);
+		getBoundingPoint(i).print() ;
+		pt.insert(std::make_pair(std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius()), getBoundingPoint(i)));
 	}
-	std::map<double, Point>::const_iterator ptend = pt.begin() ;
+	std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
 	ptend++ ; ptend++ ; ptend++ ;
 	
-	for(std::map<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
+	for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
+	{
 		pts.push_back(i->second);
+		pts.back().print() ;
+	}
+	std::cout << "plouf " << pts.size() << std::endl ;
 	for(size_t i = 0 ; i < pts.size() ; i++)
 	{
 		if(s.on(pts[i]) && !Segment(pts[i], *p).on(getCenter()))
