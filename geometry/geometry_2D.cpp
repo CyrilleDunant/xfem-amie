@@ -585,13 +585,16 @@ void Triangle::project(Point * p) const
 	Segment s(getCenter(), *p) ;
 	
 	std::vector<Point> pts ;
-	
+	std::map<double, Point> pt ;
 	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
 	{
-		if(std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius()) < POINT_TOLERANCE)
-			pts.push_back(getBoundingPoint(i));
+		pt[std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius())] = getBoundingPoint(i);
 	}
+	std::map<double, Point>::const_iterator ptend = pt.begin() ;
+	ptend++ ; ptend++ ; ptend++ ;
 	
+	for(std::map<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
+		pts.push_back(i->second);
 	for(size_t i = 0 ; i < pts.size() ; i++)
 	{
 		if(s.on(pts[i]) && !Segment(pts[i], *p).on(getCenter()))
@@ -644,8 +647,6 @@ void Triangle::project(Point * p) const
 // 			return ;
 // 		}
 // 	}
-
-	
 	
 }
 
@@ -682,6 +683,36 @@ bool Triangle::in(const Point &p) const
 // 					 * (p.y - getBoundingPoint(i).y) 
 // 					 / (getBoundingPoint(j).y - getBoundingPoint(i).y) 
 // 					 + getBoundingPoint(i).x + 2.*POINT_TOLERANCE))
+// 				in = !in;
+// 		}
+// 	}
+// 	
+// 	return in ;
+// 	std::vector<Point> pts ;
+// 
+// 	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
+// 	{
+// 		if(std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius()) < POINT_TOLERANCE)
+// 			pts.push_back(getBoundingPoint(i));
+// 	}
+// 
+// 	Segment sa(pts[0],pts[1]) ;
+// 	Segment sb(pts[1],pts[2]) ;
+// 	Segment sc(pts[2],pts[0]) ;
+// 			
+// 	for (int i = 0, j  =  pts.size()-1; i <  pts.size(); j = i++)
+// 	{
+// 		if( std::abs(pts[j].y - pts[i].y) > 2.*POINT_TOLERANCE)
+// 		{
+// 			if (
+// 				(((pts[i].y < p.y + 2.*POINT_TOLERANCE) 
+// 					&& (p.y-2.*POINT_TOLERANCE < pts[j].y)) 
+// 					|| ((pts[j].y < p.y+2.*POINT_TOLERANCE) 
+// 					&& (p.y < pts[i].y+2.*POINT_TOLERANCE))) 
+// 					&& (p.x < (pts[j].x - pts[i].x) 
+// 					 * (p.y - pts[i].y) 
+// 					 / (pts[j].y - pts[i].y) 
+// 					 + pts[i].x + 2.*POINT_TOLERANCE))
 // 				in = !in;
 // 		}
 // 	}
