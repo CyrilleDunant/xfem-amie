@@ -2138,6 +2138,7 @@ void DelaunayTree::insert(Point *p)
 	if(cons.empty())
 	{
 		std::cout << "Failed insertion : in nothing !" << std::endl ;
+		exit(0) ;
 		return ;
 	}
 	
@@ -2740,7 +2741,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 			for(int k = 0 ; k < to_add.size()  ; k++ )
 			{
 				if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k]) 
-					< POINT_TOLERANCE*POINT_TOLERANCE)
+					< POINT_TOLERANCE)
 				{
 					go = false ;
 					break ;
@@ -2804,8 +2805,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 // 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 // 			gp.id = -1 ;
 // 		}
-// 		cachedGaussPoints = gp ;
-// 		return cachedGaussPoints ;
+// 		setCachedGaussPoints(new GaussPointArray(gp)) ;
+// 		return *getCachedGaussPoints() ;
 
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;

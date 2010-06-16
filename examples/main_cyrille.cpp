@@ -620,7 +620,7 @@ void step()
 		}
 		avgdisplacement /= avgdisplacementarea ;
 		
-		optimize() ;
+// 		optimize() ;
 		
 		if(limit < max_limit)
 			imposeddisp->setData(imposeddisp->getData()+0.00001);
@@ -1569,15 +1569,7 @@ double lly = 0 ;
 
 int main(int argc, char *argv[])
 {
-// 	Sample sm(0.07, 0.07, 0, 0) ;
-// 	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
-// 	for(int i = 0 ; i < incs.size() ; i++)
-// 	{
-// 		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
-// 		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.07);
-// 		incs[i]->setCenter(incs[i]->getCenter()* 500./0.07)  ;
-// 		F.addFeature(&sample, incs[i]);
-// 	}
+
 
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
@@ -1610,6 +1602,15 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
+	Sample sm(0.07, 0.07, 0, 0) ;
+	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
+	for(int i = 0 ; i < incs.size() ; i++)
+	{
+		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
+		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.07);
+		incs[i]->setCenter(incs[i]->getCenter()* 500./0.07)  ;
+		F.addFeature(&sample, incs[i]);
+	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
 	double cradius = 200 ;

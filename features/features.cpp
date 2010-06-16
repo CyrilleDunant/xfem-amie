@@ -1918,7 +1918,7 @@ Vector FeatureTree::stressFromDisplacements() const
 	}
 }
 
-Vector FeatureTree::getDisplacements(int g) const
+const Vector & FeatureTree::getDisplacements(int g) const
 {
 	if(g == -1 || !useMultigrid)
 		return K->getDisplacements() ;

@@ -238,10 +238,7 @@ bool Point::operator==(const Point &p) const
 		return false ;
 	if(std::abs(p.t-t) > 2.*POINT_TOLERANCE)
 		return false ;
-	double pnorm = p.norm() ;
-	double tnorm = norm() ;
-	if(pnorm < POINT_TOLERANCE && tnorm < POINT_TOLERANCE)
-		return true ;
+
 	return dist(p, *this) < POINT_TOLERANCE ;
 // 	Point mid = (p+ *this)*.5 ;
 // 	double d =  std::max(p.norm(), norm()) ;

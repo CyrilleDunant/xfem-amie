@@ -182,7 +182,7 @@ public:
 
 	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
 	
-	Vector getDisplacements(int grid = -1) const ;
+	const Vector & getDisplacements(int g = -1) const ;
 	
 	/** \brief  Generate the sample points for all the features. The features are passed a sampling 
 	 * argument proportionnal to their area compared with the area of the root feature. 

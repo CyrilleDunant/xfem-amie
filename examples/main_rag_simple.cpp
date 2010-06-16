@@ -151,16 +151,14 @@ void step()
 			tries++ ;
 		}
 		std::cout << " " << tries << " tries." << std::endl ;
-		
+		triangles = featureTree->getTriangles() ;
 // 		
 // 		
 		timepos+= 0.000001 ;
-	
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		
 	// 	sigma = F.strainFromDisplacements() ;
 	// 	epsilon = F.stressFromDisplacements() ;
 		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
@@ -168,7 +166,6 @@ void step()
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
 		epsilon = sigma_epsilon.second ;
-		
 		sigma11.resize(sigma.size()/3) ;
 		sigma22.resize(sigma.size()/3) ;
 		sigma12.resize(sigma.size()/3) ;
@@ -1463,7 +1460,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 20e-5;
-	int inclusionNumber = 100 ; // 10 100 500 1000 2000 4000
+	int inclusionNumber = 5 ; // 10 100 500 1000 2000 4000
 
 	double masseInitiale = .00000743;
 	double densite = 1.;
@@ -1524,9 +1521,10 @@ int main(int argc, char *argv[])
 	}
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 5e6)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5e6)) ;
-	F.sample(800) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
 
