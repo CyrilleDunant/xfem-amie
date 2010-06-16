@@ -517,7 +517,8 @@ void FeatureTree::stitch()
 							bool changed  = true;
 							
 							if(squareDist2D(&proj_0 , triangles[i]->first ) < POINT_TOLERANCE && 
-								squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE )
+								squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE && 
+								squareDist2D(&proj_2 , triangles[i]->third) > POINT_TOLERANCE)
 							{
 								count+=changed ; 
 								changed = false ;
@@ -553,7 +554,9 @@ void FeatureTree::stitch()
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
 							}
 							if(squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE && 
-								squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE )
+								squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE && 
+								squareDist2D(&proj_0 , triangles[i]->first) > POINT_TOLERANCE
+								)
 							{
 								count+=changed ; 
 								changed = false ;								
@@ -589,7 +592,9 @@ void FeatureTree::stitch()
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(3)->x << ", " << (*triangles)[i]->getBoundingPoint(3)->y << std::endl ;
 							}
 							if(squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE && 
-							   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE) 
+							   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE &&
+							   squareDist2D(&proj_1, triangles[i]->second) > POINT_TOLERANCE
+							   ) 
 							{
 								count+=changed ; 
 								changed = false ;								
