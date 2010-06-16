@@ -45,6 +45,25 @@ Matrix::Matrix(size_t rl, size_t k, size_t l, const Matrix & m)
 inline void matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1,  Mu::Matrix &ret)
 {
 	assert(m0.numCols() == m1.numRows()) ;
+	if(&m0 != &ret || &m1 == &ret)
+	{
+		Matrix r(ret.numRows(), ret.numCols()) ;
+		for(size_t i = 0 ; i < m0.numRows() ; i++)
+		{
+			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
+			for(size_t j = 0 ; j < m1.numCols() ; j++)
+			{
+				const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+
+				r[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
+				
+			}
+		}
+		ret = r ;
+		return ;
+	}
+	
+	
 // 		std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{

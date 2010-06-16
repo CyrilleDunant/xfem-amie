@@ -177,7 +177,6 @@ public:
 	Matrix operator /(double) const;
 	Matrix& operator /=(double) ;
 	Matrix& operator *=(const Matrix &m);
-// 	const Matrix& operator *(const Matrix &m) const ;
 	Matrix& operator +=(const Matrix &m) ;
 	Matrix& operator +=(const MtM &m) ;
 	Matrix& operator +=(const MtMtM &m) ;
@@ -311,6 +310,24 @@ inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, cons
 /** \brief Perform a Matrix-Matrix-Matrix multiplication, and assign to already initialised matrix passed as further argument*/
 inline void matrix_matrix_matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2, Mu::Matrix & ret )
 {
+	if(&m0 != &ret || &m1 == &ret || &m2 == &ret)
+	{
+		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
+		for(size_t i = 0 ; i < m0.numRows() ; i++)
+		{
+			for(size_t j = 0 ; j < m1.numCols() ; j++)
+			{
+				const Mu::Cslice_iter<double>& ri = m0.row(i) ;
+				const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+				double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
+				for(size_t k = 0 ; k < m2.numCols() ; k++)
+					r[i][k] += r_ij*m2[j][k] ;
+			}
+		}
+		ret = r ;
+		return ;
+	}
+	
 	ret.array() = 0 ;
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
@@ -329,6 +346,24 @@ inline void matrix_matrix_matrix_multiply_and_assign(const Mu::Matrix &m0, const
 /** \brief Perform a Matrix-Matrix-Matrix multiplication, multiply with a factor and add to already initialised matrix passed as further argument*/
 inline void matrix_matrix_matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2, double f,  Mu::Matrix & ret )
 {
+	if(&m0 != &ret || &m1 == &ret || &m2 == &ret)
+	{
+		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
+		for(size_t i = 0 ; i < m0.numRows() ; i++)
+		{
+			for(size_t j = 0 ; j < m1.numCols() ; j++)
+			{
+				const Mu::Cslice_iter<double>& ri = m0.row(i) ;
+				const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+				double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
+				for(size_t k = 0 ; k < m2.numCols() ; k++)
+					r[i][k] += r_ij*m2[j][k]*f ;
+			}
+		}
+		ret = r ;
+		return ;
+	}
+		
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
@@ -350,6 +385,23 @@ inline void matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1, 
 {
 	assert(m0.numCols() == m1.numRows()) ;
 // 	std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
+	if(&m0 != &ret || &m1 == &ret)
+	{
+		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
+		for(size_t i = 0 ; i < m0.numRows() ; i++)
+		{
+			for(size_t j = 0 ; j < m1.numCols() ; j++)
+			{
+				const Mu::Cslice_iter<double>& ri = m0.row(i) ;
+				const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+				r[i][j] += std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
+			}
+		}
+		ret = r ;
+		return ;
+	}
+	
+
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
