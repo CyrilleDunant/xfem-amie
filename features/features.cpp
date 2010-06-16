@@ -491,13 +491,14 @@ void FeatureTree::stitch()
 				coarseTrees[j]->setElementOrder(elemOrder) ;
 			
 			stitched  = true ;
+			
 			Point a (0.2, 0.2) ;
 			Point b (0.6, 0.2) ;
 			Point c (0.2, 0.6) ;
 			Point d (1./3., 1./3.) ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
-				if(!tree[j]->isEnrichmentFeature)
+				if(!tree[j]->isEnrichmentFeature && tree[j]->getGeometryType() != TRIANGLE && tree[j]->getGeometryType() != RECTANGLE)
 				{
 					
 					std::vector<DelaunayTriangle *> triangles = this->tree[j]->getElements(dtree) ;
@@ -518,7 +519,7 @@ void FeatureTree::stitch()
 							
 							if(squareDist2D(&proj_0 , triangles[i]->first ) < POINT_TOLERANCE && 
 								squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE && 
-								squareDist2D(&proj_2 , triangles[i]->third) > POINT_TOLERANCE)
+								squareDist2D(&proj_2 , triangles[i]->third) > 10.*POINT_TOLERANCE)
 							{
 								count+=changed ; 
 								changed = false ;
@@ -555,7 +556,7 @@ void FeatureTree::stitch()
 							}
 							if(squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE && 
 								squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE && 
-								squareDist2D(&proj_0 , triangles[i]->first) > POINT_TOLERANCE
+								squareDist2D(&proj_0 , triangles[i]->first) > 10.*POINT_TOLERANCE
 								)
 							{
 								count+=changed ; 
@@ -593,7 +594,7 @@ void FeatureTree::stitch()
 							}
 							if(squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE && 
 							   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE &&
-							   squareDist2D(&proj_1, triangles[i]->second) > POINT_TOLERANCE
+							   squareDist2D(&proj_1, triangles[i]->second) > 10.*POINT_TOLERANCE
 							   ) 
 							{
 								count+=changed ; 
