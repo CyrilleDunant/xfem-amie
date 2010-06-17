@@ -2782,31 +2782,33 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		double lastError = 10 ;
 		size_t maxGradientIndex = 0 ;
 		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
-		
-		double ndivs = 20 ;
-		for(double k = 0  ; k < ndivs ; k++)
+		if(to_add.size() == 0)
 		{
-			for(double l = 0  ; l < ndivs ; l++)
+			double ndivs = 30 ;
+			for(double k = 0  ; k < ndivs ; k++)
 			{
-				if( k+l < ndivs )
-					gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
+				for(double l = 0  ; l < ndivs ; l++)
+				{
+					if( k+l < ndivs )
+						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
+				}
 			}
-		}
-		double a = area() ; 
-		for(size_t i =0 ; i < gp_alternative.size() ; i++)
-		{
-			gp_alternative[i].second = 0.25*a/gp_alternative.size() ;
-		}
-		
-		if(gp.gaussPoints.size() < gp_alternative.size())
-		{
+			double a = area() ; 
+			for(size_t i =0 ; i < gp_alternative.size() ; i++)
+			{
+				gp_alternative[i].second = 0.25*a/gp_alternative.size() ;
+			}
 			
-			gp.gaussPoints.resize(gp_alternative.size()) ;
-			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-			gp.id = -1 ;
+			if(gp.gaussPoints.size() < gp_alternative.size())
+			{
+				
+				gp.gaussPoints.resize(gp_alternative.size()) ;
+				std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
+				gp.id = -1 ;
+			}
+			setCachedGaussPoints(new GaussPointArray(gp)) ;
+			return *getCachedGaussPoints() ;
 		}
-		setCachedGaussPoints(new GaussPointArray(gp)) ;
-		return *getCachedGaussPoints() ;
 
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;

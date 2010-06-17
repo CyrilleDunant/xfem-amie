@@ -174,7 +174,6 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 		{
 			dofId[points[i]] = dtree->getLastNodeId()++ ;
 		}
-		
 		//now, we will start the enrichment itself
 		
 	
@@ -190,7 +189,6 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 			Point *a = ring[i]->first ;
 			Point *b = ring[i]->second ;
 			Point *c = ring[i]->third ;
-	
 			//if there are no intersection points we need not do anything
 			if(!triCircleIntersectionPoints.empty())
 			{
@@ -201,7 +199,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 					double d = dist(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0]),triCircleIntersectionPoints[1]) ;
 					double dr = std::abs(getRadius()-self.getRadius()) ;
 					int numPoints = 2.*round(d/dr) ;
-					if(numPoints < 32)
+					if(dr > POINT_TOLERANCE && numPoints < 32)
 					{
 						hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 						std::vector<Point> pts = circles[h]->getSamplingBoundingPointsOnArc(numPoints,triCircleIntersectionPoints[0],triCircleIntersectionPoints[1]  ) ;
@@ -214,19 +212,8 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 						}
 						hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
 					}
-// 					else //the ring is too thin. There is no point to try and mesh it
-// 					{
-// 						std::cout << "ping" << std::endl ;
-// 						int ndivs = 10 ;
-// 						for(double k = 0  ; k < ndivs ; k++)
-// 						{
-// 							for(double l = 0  ; l < ndivs ; l++)
-// 							{
-// 								if( k+l < ndivs )
-// 									hint.push_back(Point(k/(ndivs-1), l/(ndivs-1))) ;
-// 							}
-// 						}
-// 					}
+					//else the ring is too thin. There is no point to try and mesh it
+
 				}
 				//we build the enrichment function, first, we get the transforms from the triangle
 				Function x = ring[i]->getXTransform() ;

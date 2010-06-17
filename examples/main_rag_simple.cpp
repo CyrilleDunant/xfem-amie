@@ -1482,13 +1482,13 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 
-	double itzSize = 20e-5;
-	int inclusionNumber = 100 ; // 10 100 500 1000 2000 4000
+	double itzSize = 4e-5;
+	int inclusionNumber = 5000 ; // 10 100 500 1000 2000 4000
 
 	double masseInitiale = .00000743;
 	double densite = 1.;
 // 	inclusions = GranuloBolome(masseInitiale, densite, BOLOME_A)(.008, .0001, inclusionNumber, itzSize);
-	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
+	inclusions = GranuloBolome(4.79263e-07/.47, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
@@ -1559,7 +1559,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5e6)) ;
-	F.sample(400) ;
+	F.sample(800) ;
 
 	F.setOrder(LINEAR) ;
 

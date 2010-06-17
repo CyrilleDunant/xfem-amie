@@ -1307,6 +1307,8 @@ std::vector<Point> Circle::getSamplingBoundingPoints(size_t num_points) const
 
 std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const
 {
+	if(num_points == 0)
+		return ;
 	std::vector<Point> ret ;
 	Point init(start) ;
 	project(&init) ;
