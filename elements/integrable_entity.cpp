@@ -27,7 +27,7 @@ IntegrableEntity::IntegrableEntity() : state(this), boundaryConditionCache(NULL)
 
 void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 {
-	if((getBehaviour()->changed() || boundaryConditionCache == NULL) && getBehaviour()->type != VOID_BEHAVIOUR)
+	if((getBehaviour()->changed() || boundaryConditionCache == NULL || enrichmentUpdated ) && getBehaviour()->type != VOID_BEHAVIOUR)
 	{
 		if(boundaryConditionCache)
 		{

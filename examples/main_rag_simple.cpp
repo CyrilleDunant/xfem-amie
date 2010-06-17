@@ -12,6 +12,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/stiffness_with_variable_imposed_deformation.h"
 #include "../physics/weibull_distributed_stiffness.h"
+#include "../physics/stiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -187,7 +188,9 @@ void step()
 		double avg_s_yy = 0;
 		double avg_s_xy = 0;
 		double e_xx = 0 ;
+		double e_yy = 0 ;
 		double ex_count = 0 ;
+		double ey_count = 0 ;
 		double avg_e_xx_nogel = 0;
 		double avg_e_yy_nogel = 0;
 		double avg_e_xy_nogel = 0;
@@ -229,6 +232,11 @@ void step()
 					{
 						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
 						ex_count++ ;
+					}
+					if(triangles[k]->getBoundingPoint(p).y > 0.0199)
+					{
+						e_yy+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+						ey_count++ ;
 					}
 				}
 				area += triangles[k]->area() ;
@@ -377,19 +385,27 @@ void step()
 				}
 			}
 		}
+		
 		double reactedArea = 0 ;
-		double final_radius = sqrt(.97)*inclusions[inclusions.size()/2]->getRadius() ;
-		double delta_radius = (inclusions[inclusions.size()/2]->getRadius()-final_radius)/nsteps ;
+		double final_radius = sqrt(.90)*0.001 ;
+		double delta_radius = 2e-5 ;/*(inclusions[inclusions.size()/2]->getRadius()-final_radius)/nsteps ;*/
 		for(size_t m = 0 ; m < reactionRims.size() ; m++)
 		{
-			double new_in_radius = std::max(reactionRims[m]->getInRadius()-delta_radius, delta_radius) ;
+			double new_in_radius = std::max(reactionRims[m]->getInRadius()-delta_radius, 0.) ;
 			double new_area = M_PI*(reactionRims[m]->getRadius()*reactionRims[m]->getRadius()-new_in_radius*new_in_radius) ;
-			double inc_area = M_PI*inclusions[m]->getRadius()*inclusions[m]->getRadius() ;
-			std::cout << new_area/inc_area << std::endl ;
-			if(new_area/inc_area < .15)
+			double inc_area = M_PI*reactionRims[m]->getRadius()*reactionRims[m]->getRadius() ;
+			std::cout << "..." << reactionRims[m]->getInRadius()<< " -> "<< new_in_radius << "..." << std::endl ;
+			if(new_in_radius >= 1e-6)
+			{
+				reactedArea += (reactionRims[m]->getRadius()*reactionRims[m]->getRadius() - new_in_radius*new_in_radius)*M_PI ;
 				reactionRims[m]->setInRadius(new_in_radius) ;
+			}
+			else
+			{
+				reactedArea += (reactionRims[m]->getRadius()*reactionRims[m]->getRadius() - reactionRims[m]->getInRadius()*reactionRims[m]->getInRadius())*M_PI ;
+			}
 			
-			reactedArea += (reactionRims[m]->getRadius()*reactionRims[m]->getRadius() - new_in_radius*new_in_radius)*M_PI ;
+			
 		}
 		
 		std::cout << std::endl ;
@@ -426,35 +442,42 @@ void step()
 		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
 		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
 		
-		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
+		std::cout << "apparent extension x" << e_xx/ex_count << std::endl ;
+		std::cout << "apparent extension y" << e_yy/ey_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
-		if (tries < 100)
+		if (tries < 10000)
 		{
 			expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
+			expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_yy/area)) ;
 			expansion_stress.push_back(std::make_pair((avg_e_xx_nogel+avg_e_yy_nogel)/(2.*nogel_area), (avg_s_xx_nogel+avg_s_yy_nogel)/(2.*nogel_area))) ;
 			apparent_extension.push_back(e_xx/ex_count) ;
+			apparent_extension.push_back(e_yy/ey_count) ;
 		}
 		
-		if (tries >= 100)
+		if (tries >= 10000)
 			break ;
 
-		for(size_t l = 0 ; l < expansion_reaction.size() ; l++)
-			std::cout << expansion_reaction[l].first << "   " 
-			<< expansion_reaction[l].second << "   " 
+		for(size_t l = 0 ; l < expansion_reaction.size()/2 ; l++)
+			std::cout << expansion_reaction[l*2].first << "   " 
+			<< expansion_reaction[l*2].second << "   " 
+			<< expansion_reaction[l*2+1].second << "   " 
 			<< expansion_stress[l].first << "   " 
 			<< expansion_stress[l].second << "   " 
-			<< apparent_extension[l]  << "   " 
+			<< apparent_extension[l*2]  << "   " 
+			<< apparent_extension[l*2+1]  << "   " 
 			<< std::endl ;
 	}
 	
-	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
-		std::cout << expansion_reaction[i].first << "   " 
-		<< expansion_reaction[i].second << "   " 
-		<< expansion_stress[i].first << "   " 
-		<< expansion_stress[i].second << "   " 
-		<< apparent_extension[i]  << "   " 
-		<< std::endl ;
+	for(size_t l = 0 ;l < expansion_reaction.size()/2 ; l++)
+			std::cout << expansion_reaction[l*2].first << "   " 
+			<< expansion_reaction[l*2].second << "   " 
+			<< expansion_reaction[l*2+1].second << "   " 
+			<< expansion_stress[l].first << "   " 
+			<< expansion_stress[l].second << "   " 
+			<< apparent_extension[l*2]  << "   " 
+			<< apparent_extension[l*2+1]  << "   " 
+			<< std::endl ;
 }
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
@@ -1460,7 +1483,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 20e-5;
-	int inclusionNumber = 5 ; // 10 100 500 1000 2000 4000
+	int inclusionNumber = 100 ; // 10 100 500 1000 2000 4000
 
 	double masseInitiale = .00000743;
 	double densite = 1.;
@@ -1487,17 +1510,20 @@ int main(int argc, char *argv[])
 		<< ", smallest r =" << feats.back()->getRadius() 
 		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 12500000)) ;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 12500000)) ;
+	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	Vector a(3) ;
 	a[0] = .5 ;
 	a[1] = .5 ;
 // 	ExpansiveRing er(&sample, .01, .0099, 0,0,  m0_paste, a) ;
 // 	F.addFeature(&sample,&er) ;
 	double reactedArea = 0 ;
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	std::random_shuffle(inclusions.begin(), inclusions.end());
+	for(size_t i = 0 ; i < inclusions.size()/10 ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000)) ;
+// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000)) ;
+		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
 		double rPlus = inclusions[i]->getRadius()+itzSize/120000. ;
 		double rMinus = inclusions[i]->getRadius()-itzSize/120000. ;
 		double cx = inclusions[i]->getCenter().x ;
@@ -1509,6 +1535,15 @@ int main(int argc, char *argv[])
 		F.addFeature(inclusions[i],reactionRims.back()) ;
 		placed_area += inclusions[i]->area() ;
 		reactedArea += (reactionRims.back()->getRadius()*reactionRims[i]->getRadius() - reactionRims.back()->getInRadius()*reactionRims.back()->getInRadius())*M_PI ;
+	}
+	for(size_t i = inclusions.size()/10 ; i < inclusions.size() ; i++)
+	{
+		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000)) ;
+		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
+// 		inclusions[i]->setBehaviour(new StiffnessWithVariableImposedDeformation(m0_agg, a)) ;
+		F.addFeature(&sample,inclusions[i]) ;
+		placed_area += inclusions[i]->area() ;
 	}
 
 	
@@ -1523,8 +1558,8 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5e6)) ;
-	F.sample(256) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5e6)) ;
+	F.sample(400) ;
 
 	F.setOrder(LINEAR) ;
 

@@ -44,7 +44,7 @@ Granulo::Granulo()//,double masseInitiale, double densite
 
 }
 
-std::vector <Inclusion *> Granulo::operator()(double rayon_granulat, double pourcentMasseMin, int inclusionNumber , double itzSize, bool verbose)
+std::vector <Inclusion *> Granulo::operator()(double rayon_granulat, double pourcentMasseMin, double inclusionNumber , double itzSize, bool verbose)
 {
     std::vector<Inclusion *> rayon;
 

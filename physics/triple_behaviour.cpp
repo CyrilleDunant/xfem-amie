@@ -47,6 +47,8 @@ Vector TrimaterialInterface::getImposedStress(const Point & p) const
 	return outBehaviour->getImposedStress(p) ;
 }
 
+bool TrimaterialInterface::changed() const { return false ;}
+
 void TrimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
 	bool allin = true ;
@@ -222,9 +224,9 @@ std::vector<BoundaryCondition * > TrimaterialInterface::getBoundaryConditions(co
 
 	std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
-	temp =midBehaviour->getBoundaryConditions(s,id, p_i, gpMid, midMatrixArray) ;
+	temp = midBehaviour->getBoundaryConditions(s,id, p_i, gpMid, midMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
-	temp =outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
+	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 
 	return ret ;

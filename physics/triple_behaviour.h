@@ -67,6 +67,8 @@ public:
 	*/
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	
+	virtual bool changed() const ;
+	
 	/** Check for fracture state
 	 *
 	 * @return true if the element is fractured

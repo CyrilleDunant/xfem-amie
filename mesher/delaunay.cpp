@@ -2740,7 +2740,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 			bool go = true ;
 			for(int k = 0 ; k < to_add.size()  ; k++ )
 			{
-				if(squareDist2D(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k]) 
+				if(dist(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k]) 
 					< POINT_TOLERANCE)
 				{
 					go = false ;
@@ -2783,30 +2783,30 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		size_t maxGradientIndex = 0 ;
 		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
 		
-// 		double ndivs = 30 ;
-// 		for(double k = 0  ; k < ndivs ; k++)
-// 		{
-// 			for(double l = 0  ; l < ndivs ; l++)
-// 			{
-// 				if( k+l < ndivs )
-// 					gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
-// 			}
-// 		}
-// 		double a = area() ; 
-// 		for(size_t i =0 ; i < gp_alternative.size() ; i++)
-// 		{
-// 			gp_alternative[i].second = 0.25*a/gp_alternative.size() ;
-// 		}
-// 		
-// 		if(gp.gaussPoints.size() < gp_alternative.size())
-// 		{
-// 			
-// 			gp.gaussPoints.resize(gp_alternative.size()) ;
-// 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-// 			gp.id = -1 ;
-// 		}
-// 		setCachedGaussPoints(new GaussPointArray(gp)) ;
-// 		return *getCachedGaussPoints() ;
+		double ndivs = 20 ;
+		for(double k = 0  ; k < ndivs ; k++)
+		{
+			for(double l = 0  ; l < ndivs ; l++)
+			{
+				if( k+l < ndivs )
+					gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
+			}
+		}
+		double a = area() ; 
+		for(size_t i =0 ; i < gp_alternative.size() ; i++)
+		{
+			gp_alternative[i].second = 0.25*a/gp_alternative.size() ;
+		}
+		
+		if(gp.gaussPoints.size() < gp_alternative.size())
+		{
+			
+			gp.gaussPoints.resize(gp_alternative.size()) ;
+			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
+			gp.id = -1 ;
+		}
+		setCachedGaussPoints(new GaussPointArray(gp)) ;
+		return *getCachedGaussPoints() ;
 
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;

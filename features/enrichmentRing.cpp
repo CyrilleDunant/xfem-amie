@@ -29,12 +29,18 @@ void EnrichmentRing::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		if(!cache[i]->enrichmentUpdated)
-			cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+		{
+			cache[i]->clearEnrichment(getPrimitive()) ;
+			cache[i]->clearEnrichment(&self) ;
+		}
 		cache[i]->enrichmentUpdated = true ;
 	}
 	cache = dtree->getConflictingElements(getPrimitive()) ;
 	std::vector<DelaunayTriangle *> inElements = dtree->getConflictingElements(&self) ;
 	cache.insert(cache.end(), inElements.begin(), inElements.end()) ;
+	std::sort(cache.begin(), cache.end()) ;
+	std::vector<DelaunayTriangle *>::iterator e = std::unique(cache.begin(), cache.end()) ;
+	cache.erase(e, cache.end()) ;
 	if(cache.empty())
 	{
 		std::vector<DelaunayTriangle *> candidates = dtree->getConflictingElements(&getCenter()) ;
@@ -50,7 +56,10 @@ void EnrichmentRing::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		if(!cache[i]->enrichmentUpdated)
-			cache[i]->clearEnrichment(static_cast<const Circle *>(this)) ;
+		{
+			cache[i]->clearEnrichment(getPrimitive()) ;
+			cache[i]->clearEnrichment(&self) ;
+		}
 		cache[i]->enrichmentUpdated = true ;
 	}
 	if(cache.empty())
@@ -130,7 +139,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 	//we build a list of the two circles:
 
 	std::vector<const Circle *> circles ;
-	circles.push_back(this->getPrimitive()) ;
+	circles.push_back(getPrimitive()) ;
 	circles.push_back(&self) ;
 	for(size_t h = 0 ; h < 2 ; h++)
 	{
@@ -192,18 +201,32 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 					double d = dist(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0]),triCircleIntersectionPoints[1]) ;
 					double dr = std::abs(getRadius()-self.getRadius()) ;
 					int numPoints = 2.*round(d/dr) ;
-					if(numPoints > 8)
-						numPoints = 8 ;
-					hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
-					std::vector<Point> pts = circles[h]->getSamplingBoundingPointsOnArc(numPoints,triCircleIntersectionPoints[0],triCircleIntersectionPoints[1]  ) ;
-					for(size_t k = 0 ; k < pts.size() ;k++)
+					if(numPoints < 32)
 					{
-						if(ring[i]->in(pts[k]))
+						hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
+						std::vector<Point> pts = circles[h]->getSamplingBoundingPointsOnArc(numPoints,triCircleIntersectionPoints[0],triCircleIntersectionPoints[1]  ) ;
+						for(size_t k = 0 ; k < pts.size() ;k++)
 						{
-							hint.push_back(ring[i]->inLocalCoordinates(pts[k])) ;
+							if(ring[i]->in(pts[k]))
+							{
+								hint.push_back(ring[i]->inLocalCoordinates(pts[k])) ;
+							}
 						}
+						hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
 					}
-					hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
+// 					else //the ring is too thin. There is no point to try and mesh it
+// 					{
+// 						std::cout << "ping" << std::endl ;
+// 						int ndivs = 10 ;
+// 						for(double k = 0  ; k < ndivs ; k++)
+// 						{
+// 							for(double l = 0  ; l < ndivs ; l++)
+// 							{
+// 								if( k+l < ndivs )
+// 									hint.push_back(Point(k/(ndivs-1), l/(ndivs-1))) ;
+// 							}
+// 						}
+// 					}
 				}
 				//we build the enrichment function, first, we get the transforms from the triangle
 				Function x = ring[i]->getXTransform() ;
@@ -212,8 +235,8 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 				Function position(getCenter(), x, y) ;
 				
 				//finaly, we have the enrichment function
-				Function hatOut = (1-f_abs(position -radius)/radius);
-				Function hatIn = (1-f_abs(position - getInRadius())/getInRadius());
+				Function hatOut = 1-f_abs(position -radius)/radius;
+				Function hatIn = 1-f_abs(position - getInRadius())/getInRadius();
 				Function hat ;
 
 				if(h == 0)
@@ -229,29 +252,43 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 				f.setIntegrationHint(hint) ;
 				f.setPoint(a) ;
 				f.setDofID(dofId[a]) ;
-				ring[i]->setEnrichment( f, getPrimitive()) ;
+				ring[i]->setEnrichment( f, circles[h]) ;
 				
 				//enriching the second point
 				f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,0))) ;
 				f.setPoint(b) ;
 				f.setDofID(dofId[b]) ;
-				ring[i]->setEnrichment( f, getPrimitive()) ;
+				ring[i]->setEnrichment( f, circles[h]) ;
 				
 				//enriching the third point
 				f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(1,0))) ;
 				f.setPoint(c) ;
 				f.setDofID(dofId[c]) ;
-				ring[i]->setEnrichment(f, getPrimitive()) ;
+				ring[i]->setEnrichment(f, circles[h]) ;
 				for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 				{
 					DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 					if((circles[h]->in(*disc[i]->first) && circles[h]->in(*disc[i]->second) && circles[h]->in(*disc[i]->third)) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
 						if(!t->enrichmentUpdated)
-							t->clearEnrichment(getPrimitive()) ;
+							t->clearEnrichment(circles[h]) ;
 						t->enrichmentUpdated = true ;
-						Function hat = 1- f_abs(Function(getCenter(), 
-										t->getXTransform(), t->getYTransform()) -radius)/radius ;
+						
+						Function hatOut = 1-f_abs(Function(getCenter(), 
+										t->getXTransform(), t->getYTransform()) -radius)/radius;
+						Function hatIn = 1-f_abs(Function(getCenter(), 
+										t->getXTransform(), t->getYTransform()) - getInRadius())/getInRadius();
+						Function hat ;
+
+						if(h == 0)
+						{
+							hat = hatOut  ;
+						}
+						else
+						{
+							hat = hatIn ;
+						}
+						
 						std::vector<Point> hint;
 						hint.push_back(Point(1./3., 1./3.)) ;
 						
@@ -267,7 +304,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 							}
 							f.setPoint(t->first) ;
 							f.setDofID(dofId[t->first]) ;
-							t->setEnrichment(f, static_cast<Circle *>(this)) ;
+							t->setEnrichment(f, circles[h]) ;
 						}
 						
 						if(dofId.find(t->second) != dofId.end())
@@ -280,7 +317,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 							}
 							f.setPoint(t->second) ;
 							f.setDofID(dofId[t->second]) ;
-							t->setEnrichment(f, static_cast<Circle *>(this)) ;
+							t->setEnrichment(f, circles[h]) ;
 						}
 						
 						if(dofId.find(t->third) != dofId.end())
@@ -293,7 +330,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 							}
 							f.setPoint(t->third) ;
 							f.setDofID(dofId[t->third]) ;
-							t->setEnrichment(f, static_cast<Circle *>(this)) ;
+							t->setEnrichment(f, circles[h]) ;
 						}
 					}
 				}
