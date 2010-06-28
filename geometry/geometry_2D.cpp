@@ -1981,7 +1981,35 @@ std::vector<Point> Ellipse::getBoundingBox() const
 {
 	std::vector<Point> bbox(4) ;
 
-	double step = 1e-3 ;
+	double a = getMajorRadius() ;
+	double b = getMinorRadius() ;
+	double alpha = getMajorAxis().angle() ;
+
+	double thetax1 = std::acos(std::sqrt((a*a*std::cos(alpha)*std::cos(alpha)) / (a*a*std::cos(alpha)*std::cos(alpha) + b*b*std::sin(alpha)*std::sin(alpha)))) ;
+	double thetax2 = std::acos(- std::sqrt((a*a*std::cos(alpha)*std::cos(alpha)) / (a*a*std::cos(alpha)*std::cos(alpha) + b*b*std::sin(alpha)*std::sin(alpha)))) ;
+	double thetay1 = std::asin(std::sqrt((b*b*std::cos(alpha)*std::cos(alpha)) / (b*b*std::cos(alpha)*std::cos(alpha) + a*a*std::sin(alpha)*std::sin(alpha)))) ;
+	double thetay2 = std::asin(- std::sqrt((b*b*std::cos(alpha)*std::cos(alpha)) / (b*b*std::cos(alpha)*std::cos(alpha) + a*a*std::sin(alpha)*std::sin(alpha)))) ;
+
+	double x1 = a*std::cos(alpha)*std::cos(thetax1) - b*std::sin(alpha)*std::sin(thetax1) ;
+	double x2 = a*std::cos(alpha)*std::cos(thetax2) - b*std::sin(alpha)*std::sin(thetax2) ;
+
+	double xmin = std::min(x1,x2) ;
+	double xmax = std::max(x1,x2) ;
+
+	double y1 = a*std::sin(alpha)*std::cos(thetay1) + b*std::cos(alpha)*std::sin(thetay1) ;
+	double y2 = a*std::sin(alpha)*std::cos(thetay2) + b*std::cos(alpha)*std::sin(thetay2) ;
+
+	double ymin = std::min(y1,y2) ;
+	double ymax = std::max(y1,y2) ;
+
+	bbox[0] = center + Point(xmax,ymax) ;
+	bbox[1] = center + Point(xmax,ymin) ;
+	bbox[2] = center + Point(xmin,ymin) ;
+	bbox[3] = center + Point(xmin,ymax) ;
+
+	return bbox ;
+
+/*	double step = 1e-3 ;
 	double theta = 0. ;
 
 	Point p = getPointOnEllipse(theta) ;
@@ -2017,7 +2045,7 @@ std::vector<Point> Ellipse::getBoundingBox() const
 	bbox[2] = center - getMajorAxis() - getMinorAxis() ;
 	bbox[3] = center - getMajorAxis() + getMinorAxis() ;
 
-	return bbox ;
+	return bbox ;*/
 }
 
 

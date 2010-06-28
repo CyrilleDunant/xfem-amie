@@ -1540,7 +1540,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	featureTree = &F ;
 
-/*	std::vector<Inclusion *> inclusions = GranuloBolome(0.000000743, 1., BOLOME_D)(.00025, .00001, 8000, 0.00005);
+	std::vector<Inclusion *> inclusions = GranuloBolome(0.000000743, 1., BOLOME_D)(.00025, .00001, 8000, 0.00005);
         std::vector<EllipsoidalInclusion *> ellipses = circleToEllipse(inclusions,((double) biais)/100.) ;
         ellipses = sortByMajorRadius(ellipses) ;
 
@@ -1554,16 +1554,16 @@ int main(int argc, char *argv[])
         feats=placement(box.getPrimitive(), feats, &nAgg, 10000);
 
 
-        Grid grid(box.getPrimitive()->getRadius()*2, box.getPrimitive()->getRadius()*2, 100, box.getCenter()) ;
+/*        Grid grid(box.getPrimitive()->getRadius()*2, box.getPrimitive()->getRadius()*2, 100, box.getCenter()) ;
 
-        std::cout << "checking for intersection... takes some time..." << std::endl ;
-        for(size_t i = 0 ; i < feats.size() ; i++) {
+        std::cout << "checking for intersection... takes some time..." << std::endl ;*/
+        for(size_t i = 0 ; i < 200 ; i++) {
             ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
-            if(!grid.add(ellipses[i]->getPrimitive()))
-                std::cout << i << std::endl ;
+ //           if(!grid.add(ellipses[i]->getPrimitive()))
+ //               std::cout << i << std::endl ;
         }
 
-	std::string ellipsefile = "ellipse_" ;
+/*	std::string ellipsefile = "ellipse_" ;
         double bcent = biais * 100 ;
 
         std::string bstring = itoa((int) biais, 10) ;
@@ -1581,7 +1581,7 @@ int main(int argc, char *argv[])
 		ellipseout << ellipses[i]->getMajorAxis().y << "    " ;
 		ellipseout << ellipses[i]->getMinorAxis().x << "    " ;
 		ellipseout << ellipses[i]->getMinorAxis().y << "\n" ;
-	}
+	}*/
 
 /*	Point O(0.,0.) ;
 	Point A(1.,0.) ;
@@ -1605,11 +1605,11 @@ int main(int argc, char *argv[])
 
         return 0 ;*/
 
-	std::string ellipsefile = "ellipse_" ;
+/*	std::string ellipsefile = "ellipse_" ;
         std::string bstring = itoa(biais,10) ;
         ellipsefile.append(bstring) ;
 
-        std::vector<EllipsoidalInclusion *> ellipses = importEllipseList(ellipsefile,6001) ;
+        std::vector<EllipsoidalInclusion *> ellipses = importEllipseList(ellipsefile,6001) ;*/
 
 /*	for(size_t i = 0 ; i < ellipses.size() ; i++)
 		ellipses[i]->sampleBoundingSurface(40) ;
