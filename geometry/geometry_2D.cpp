@@ -1307,9 +1307,9 @@ std::vector<Point> Circle::getSamplingBoundingPoints(size_t num_points) const
 
 std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const
 {
-	if(num_points == 0)
-		return ;
 	std::vector<Point> ret ;
+	if(num_points == 0)
+		return ret ;
 	Point init(start) ;
 	project(&init) ;
 	init -= getCenter() ;
@@ -1653,7 +1653,7 @@ Ellipse::Ellipse(Point center, Point a, double b) : majorAxis(a)
 {
 	gType = ELLIPSE ;
 	double b_ = std::min(std::abs(b), 1.) ;
-	this->minorAxis = Point(-a.y*b, a.x*b) ;
+	this->minorAxis = Point(-a.y*b_, a.x*b_) ;
         this->center = center ;
 }
 
@@ -1668,8 +1668,6 @@ Ellipse::Ellipse(Point center, double a, double b)
 	double b_ = std::min(std::abs(a),std::abs(b)) ;
 	this->majorAxis = Point(a_*dir_x,a_*dir_y) ;
 	this->minorAxis = Point(-b_*dir_y,b_*dir_x) ;
-	this->majorAxis /= (dir_x*dir_x + dir_y*dir_y) ;
-	this->minorAxis /= (dir_x*dir_x + dir_y*dir_y) ;
 }
 
 
@@ -1915,7 +1913,7 @@ void Ellipse::sampleSurface (size_t num_points)
         inPoints[0] = new Point(center) ;
 
         size_t n = num_points ;
-        n *= (size_t) round(5.*pow(getMajorRadius()/getMinorRadius(),0.66666667)/8.) ;
+        n = (size_t)  ((double) n * 7.*pow(getMajorRadius()/getMinorRadius(),0.66666667)/8.) ;
 
 	if(boundingPoints.size() == 0)
 		this->sampleBoundingSurface(n) ;
@@ -1982,6 +1980,37 @@ Point Ellipse::toLocalCoordinates(const Point & p) const
 std::vector<Point> Ellipse::getBoundingBox() const
 {
 	std::vector<Point> bbox(4) ;
+
+	double step = 1e-3 ;
+	double theta = 0. ;
+
+	Point p = getPointOnEllipse(theta) ;
+	double xmin = p.x ;
+	double xmax = p.x ;
+	double ymin = p.y ;
+	double ymax = p.y ;
+
+	while(2.*M_PI - theta > POINT_TOLERANCE)
+	{
+		theta += step ;
+		p = getPointOnEllipse(theta) ;
+		if(p.x < xmin)
+			xmin = p.x ;
+		if(p.x > xmax)
+			xmax = p.x ;
+		if(p.y < ymin)
+			ymin = p.y ;
+		if(p.y > ymax)
+			ymax = p.y ;
+	}
+
+	bbox[0] = Point(xmax, ymax) ;
+	bbox[1] = Point(xmax, ymin) ;
+	bbox[2] = Point(xmin, ymin) ;
+	bbox[3] = Point(xmin, ymax) ;
+
+	return bbox ;
+	
 	
 	bbox[0] = center + getMajorAxis() + getMinorAxis() ;
 	bbox[1] = center + getMajorAxis() - getMinorAxis() ;

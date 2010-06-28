@@ -212,7 +212,7 @@ void step()
 	{
 		countit++;
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
-		setBC() ;
+//		setBC() ;
       
 		int limit = 0 ;
 		while(!featureTree->step(timepos) && limit < 50)//as long as we can update the features
@@ -1440,7 +1440,7 @@ void Display(void)
 std::vector<EllipsoidalInclusion *> circleToEllipse(std::vector<Inclusion *> circle, double biais)
 {
 	std::vector<EllipsoidalInclusion *> ellipse ;
-	double alea_radius = 1 ;
+	double alea_radius = 0.5 ;
 	double alea_dir = 0 ;
 	Point newcenter(0.2,0.2) ;
 	Point newaxis(1,0) ;
@@ -1448,7 +1448,7 @@ std::vector<EllipsoidalInclusion *> circleToEllipse(std::vector<Inclusion *> cir
 	for(int i = 0 ; i < circle.size() ; i++)
 	{
 //                std::cout << circle[i]->getRadius()/10 << ";" ;
-		alea_radius = 1 / (1 + (double)rand()/((double)RAND_MAX)) ;
+//		alea_radius = 1. / 2 ;
 		alea_dir = biais * (1 - 2*(double)rand()/((double)RAND_MAX)) ;
 		newaxis.setY(alea_dir) ;
                 newaxis /= newaxis.norm() ;
@@ -1541,7 +1541,7 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 /*	std::vector<Inclusion *> inclusions = GranuloBolome(0.000000743, 1., BOLOME_D)(.00025, .00001, 8000, 0.00005);
-        std::vector<EllipsoidalInclusion *> ellipses = circleToEllipse(inclusions,biais) ;
+        std::vector<EllipsoidalInclusion *> ellipses = circleToEllipse(inclusions,((double) biais)/100.) ;
         ellipses = sortByMajorRadius(ellipses) ;
 
         std::vector<Feature *> feats ;
@@ -1566,8 +1566,10 @@ int main(int argc, char *argv[])
 	std::string ellipsefile = "ellipse_" ;
         double bcent = biais * 100 ;
 
-        std::string bstring = itoa((int) bcent, 10) ;
+        std::string bstring = itoa((int) biais, 10) ;
         ellipsefile.append(bstring) ;
+
+	std::cout << ellipsefile << std::endl ;
 
 	std::fstream ellipseout ;
 	ellipseout.open(ellipsefile.c_str(), std::ios::out) ;
@@ -1581,15 +1583,35 @@ int main(int argc, char *argv[])
 		ellipseout << ellipses[i]->getMinorAxis().y << "\n" ;
 	}
 
+/*	Point O(0.,0.) ;
+	Point A(1.,0.) ;
+	Point B(0.,0.5) ;
+
+	Point C(2.000000001,1.) ;
+
+	Ellipse E1(O,A,B) ;
+	Ellipse E2(C,A,B) ;
+
+	if(E1.intersects(&E2))
+		std::cout << "intersection" << std::endl ;
+
+	std::vector<Point> point = E1.getBoundingBox() ;
+	for(int i = 0 ; i < point.size() ; i++)
+		point[i].print() ;
+
+	point = E2.getBoundingBox() ;
+	for(int i = 0 ; i < point.size() ; i++)
+		point[i].print() ;
+
         return 0 ;*/
 
 	std::string ellipsefile = "ellipse_" ;
         std::string bstring = itoa(biais,10) ;
         ellipsefile.append(bstring) ;
 
-        std::vector<EllipsoidalInclusion *> ellipses = importEllipseList(ellipsefile,10000) ;
+        std::vector<EllipsoidalInclusion *> ellipses = importEllipseList(ellipsefile,6001) ;
 
-	for(size_t i = 0 ; i < ellipses.size() ; i++)
+/*	for(size_t i = 0 ; i < ellipses.size() ; i++)
 		ellipses[i]->sampleBoundingSurface(40) ;
 
 	std::cout << "checking for intersection... again" << std::endl ;
@@ -1625,11 +1647,11 @@ int main(int argc, char *argv[])
 	}
 //		std::cout << inter[i].first << ";" << inter[i].second << std::endl ;
 
-	return 0 ;
+//	return 0 ;*/
 
 
-        double E_agg = 70. ;
-        double E_paste = 25. ;
+        double E_agg = 70e9 ;
+        double E_paste = 25e9 ;
         double nu = 0.2 ;
         Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1647,17 +1669,17 @@ int main(int argc, char *argv[])
             ellipses[i]->setBehaviour(new Stiffness(m0_agg)) ;
         }
 
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.005)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.1)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
-	F.sample(512) ;
+	F.sample(500) ;
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;
 
 	step() ;
 	
-	glutInit(&argc, argv) ;	
+/*	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
@@ -1699,7 +1721,7 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(Display) ;
 	glutMainLoop() ;
 	
-// 	delete dt ;
+// 	delete dt ;*/
 	
 	return 0 ;
 }

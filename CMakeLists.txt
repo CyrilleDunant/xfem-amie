@@ -8,7 +8,9 @@ if( OpenMP_FOUND EQUAL 1 )
 endif( OpenMP_FOUND EQUAL 1 )
 find_package(GLUT)
 if( GLUT_FOUND EQUAL 1 )
-include(GLUT)
+	include(GLUT)
+else( GLUT_FOUND EQUAL 0 )
+	message( STATUS " GLUT not found " )
 endif( GLUT_FOUND EQUAL 1 )
 
 set(ALL_SRC 

@@ -15,6 +15,7 @@
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/stiffness_and_fracture.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -573,7 +574,7 @@ void setBC()
 void stepOLD()
 {
 
-	int nsteps = 5;
+	int nsteps = 1;
 	int nstepstot = 10;
 	int maxtries = 200 ;
 	int tries = 0 ;
@@ -1256,7 +1257,7 @@ int main(int argc, char *argv[])
         std::string bstring = itoa(biais,10) ;
         ellipsefile.append(bstring) ;
 
-        std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipsefile,8000) ;
+        std::vector<EllipsoidalInclusion *> inc = importEllipseList(ellipsefile,6000) ;
 
 
 
@@ -1288,8 +1289,8 @@ int main(int argc, char *argv[])
 //	}
 //	return 0 ;	
 //	StiffnessAndFracture * stiff = new StiffnessAndFracture(m0_agg, new MohrCoulomb(57000000,-8*57000000));
-	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
-//	Stiffness * stiff = new Stiffness(m0_agg) ;
+//	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+	Stiffness * stiff = new Stiffness(m0_agg*5) ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
 		inc[i]->setBehaviour(stiff) ;
@@ -1297,12 +1298,17 @@ int main(int argc, char *argv[])
 //		inc[i]->getMajorAxis().print() ;
 		placed_area += inc[i]->area() ;
 	}	
-	zones = generateExpansiveZonesHomogeneously(16000,inc,F) ;
+//	zones = generateExpansiveZonesHomogeneously(16000,inc,F) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, 0.2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, 0.2)) ;
 
 	F.sample(1200) ;
 	F.setOrder(LINEAR) ;

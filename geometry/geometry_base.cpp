@@ -1275,6 +1275,28 @@ bool Geometry::intersects(const Geometry *g) const
 				return g->intersects(this) ;
 			}
 
+			if(g->getGeometryType() == ELLIPSE)
+			{
+				std::vector<Point> thisbox = this->getBoundingBox() ;
+				std::vector<Point> otherbox = g->getBoundingBox() ;
+				thisbox.push_back(thisbox[0]) ;
+				otherbox.push_back(otherbox[0]) ;
+				for(size_t i = 0 ; i < 4 ; i++)
+				{
+					Segment thisseg(thisbox[i],thisbox[i+1]) ;
+					for(size_t j = 0 ; j < 4 ; j++)
+					{
+						Segment otherseg(otherbox[j],otherbox[j+1]) ;
+						if(thisseg.intersects(otherseg))
+						{
+//							std::cout << i << ";" << j << std::endl ;
+							return true ;
+						}
+					}
+				}
+				return false ;
+			}
+
 			std::vector<Segment> segs ;
 			bool isInSegments = false ;
 			
@@ -1321,6 +1343,8 @@ bool Geometry::intersects(const Geometry *g) const
 			std::vector<Point> box ;
                         for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
                             box.push_back(this->getBoundingPoint(i)) ;
+			if(box.size() == 0)
+				box = this->getBoundingBox() ;
                         bool intersects = false ;
                         for(size_t i = 0 ; i < box.size()-1 ; i++) {
                             Segment seg(box[i],box[i+1]) ;

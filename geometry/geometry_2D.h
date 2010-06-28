@@ -493,13 +493,13 @@ public:
 	/** \brief Computes the ellipse excentricity as sqrt(1-b^2/a^2)
 	 * @return the excentricty
 	 */
-	double getExcentricity() const { return  sqrt(1 - ((getMinorRadius() * getMinorRadius()) / (getMajorRadius() * getMajorRadius()))) ; } ;
+	double getExcentricity() const { return  sqrt(1. - ((getMinorRadius() * getMinorRadius()) / (getMajorRadius() * getMajorRadius()))) ; } ;
 
 	/** \brief Returns the ellipse polar parameter as a*(1-e^2) where e is the excentricity
 	 *
 	 * @return the ellipse polar parameter
 	 */
-	double getParameter() const {return getMajorRadius() * (1 - getExcentricity()*getExcentricity()) ; } ;
+	double getParameter() const {return getMajorRadius() * (1. - getExcentricity()*getExcentricity()) ; } ;
 
 	/** \brief Returns the ellipse main axis angle with the (Ox) axis
 	 *
