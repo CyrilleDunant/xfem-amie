@@ -1277,7 +1277,11 @@ bool Geometry::intersects(const Geometry *g) const
 
 			if(g->getGeometryType() == ELLIPSE)
 			{
-				std::vector<Point> thisbox = this->getBoundingBox() ;
+				Point C(this->getCenter()) ;
+				g->project(&C) ;
+				return this->in(C) ;
+
+/*				std::vector<Point> thisbox = this->getBoundingBox() ;
 				std::vector<Point> otherbox = g->getBoundingBox() ;
 				thisbox.push_back(thisbox[0]) ;
 				otherbox.push_back(otherbox[0]) ;
@@ -1294,7 +1298,7 @@ bool Geometry::intersects(const Geometry *g) const
 						}
 					}
 				}
-				return false ;
+				return false ;*/
 			}
 
 			std::vector<Segment> segs ;
@@ -1345,13 +1349,12 @@ bool Geometry::intersects(const Geometry *g) const
                             box.push_back(this->getBoundingPoint(i)) ;
 			if(box.size() == 0)
 				box = this->getBoundingBox() ;
+			box.push_back(box[0]) ;
                         bool intersects = false ;
                         for(size_t i = 0 ; i < box.size()-1 ; i++) {
                             Segment seg(box[i],box[i+1]) ;
                             intersects = intersects || seg.intersects(g) ;
                         }
-                        Segment seg(box[box.size()-1],box[0]) ;
-                        intersects = intersects || seg.intersects(g) ;
 
                         return intersects ;
 
@@ -3075,7 +3078,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
 			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
 
-			if(std::abs(D.x) < 100*POINT_TOLERANCE)
+			if(std::abs(D.x) < 100.*POINT_TOLERANCE)
 			{
 				// case line parallel to minor axis
 				double coordx = o.x ;
@@ -3086,7 +3089,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 				return ret ;
 			}
 			
-			if(std::abs(D.y) < 100*POINT_TOLERANCE)
+			if(std::abs(D.y) < 100.*POINT_TOLERANCE)
 			{
 				// case line parallel to major axis
 				double coordy = o.y ;

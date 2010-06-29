@@ -1557,7 +1557,7 @@ int main(int argc, char *argv[])
 /*        Grid grid(box.getPrimitive()->getRadius()*2, box.getPrimitive()->getRadius()*2, 100, box.getCenter()) ;
 
         std::cout << "checking for intersection... takes some time..." << std::endl ;*/
-        for(size_t i = 0 ; i < 200 ; i++) {
+        for(size_t i = 0 ; i < 2000 ; i++) {
             ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
  //           if(!grid.add(ellipses[i]->getPrimitive()))
  //               std::cout << i << std::endl ;

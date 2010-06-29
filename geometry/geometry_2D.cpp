@@ -1730,7 +1730,7 @@ Point Ellipse::project(Point p) const
 
 void Ellipse::project(Point * p) const
 {
-    Point test(p->x,p->y) ;
+    	Point test(p->x,p->y) ;
         if(test == center) {
             p->x += getMinorAxis().x ;
             p->y += getMinorAxis().y ;
@@ -1921,8 +1921,8 @@ void Ellipse::sampleSurface (size_t num_points)
 
 	size_t ring = n / (2*M_PI) ;
 
-        if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
-		ring++ ;
+//        if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
+//		ring++ ;
 
         std::vector<double> newa ;
         std::vector<double> newb ;
