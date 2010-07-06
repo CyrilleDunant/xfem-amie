@@ -1545,7 +1545,7 @@ int main(int argc, char *argv[])
         ellipses = sortByMajorRadius(ellipses) ;
 
         std::vector<Feature *> feats ;
-        for(size_t i = 0 ; i < ellipses.size() ; i++) {
+        for(size_t i = 0 ; i < 200 ; i++) {
             feats.push_back(static_cast<Feature *>(ellipses[i])) ;
         }
         ellipses.clear() ;

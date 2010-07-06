@@ -467,7 +467,9 @@ bool Pixel::add(Geometry * inc)
 		for(size_t i = 0 ; i < this->features.size() ; i++)
 		{
 			if(this->features[i]->intersects(inc))
+			{
 				return false;
+			}
 		}
 		this->features.push_back(inc) ;
 		

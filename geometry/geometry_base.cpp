@@ -1277,6 +1277,30 @@ bool Geometry::intersects(const Geometry *g) const
 
 			if(g->getGeometryType() == ELLIPSE)
 			{
+				Point onEllipse(g->getCenter()) ;
+				Point onLine =  dynamic_cast<const Ellipse*>(this)->project(onEllipse) ;
+				if(dynamic_cast<const Ellipse*>(g)->in(onLine))
+					return true ;
+				if((g->getCenter()-this->getCenter()).norm() > dynamic_cast<const Ellipse*>(g)->getMajorRadius()*2.1)
+					return false ;
+				Point onEllipse2(onEllipse) ;
+				onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+				int nnn = 0 ;
+				while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE)
+				{
+					onEllipse2 = onEllipse ;
+					onLine = dynamic_cast<const Ellipse*>(this)->project(onEllipse) ;
+					onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+	//				onLine.print() ;
+//					std::cout << nnn << "->" << (onEllipse-onEllipse2).norm() << std::endl ;
+					nnn++ ;
+				}
+				
+//				std::cout << (onLine-onEllipse).norm() << std::endl ;
+				
+				return (onLine-onEllipse).norm() < POINT_TOLERANCE*100. ;
+				
+				
 				Point C(this->getCenter()) ;
 				g->project(&C) ;
 				return this->in(C) ;
@@ -2932,31 +2956,52 @@ bool Line::intersects(const Geometry *g) const
 			return squareDist(projection(g->getCenter()), g->getCenter()) < g->getRadius()*g->getRadius() ;
 		}
 	case ELLIPSE:
-		{
-                    Point c = this->projection(g->getCenter()) ;
-                    return dynamic_cast<const Ellipse*>(g)->in(c) ;
-//			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
-//			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
-//			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
-//
-//			if(std::abs(c - 1) < POINT_TOLERANCE)
-//			{
-//                            Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMajorAxis()) ;
-//                            Point I = this->intersection(L) ;
-//                            return g->in(I) ;
-//			}
-//
-//			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
-//			Point I = this->intersection(L) ;
-//			double d = (g->getCenter() - I).norm() ;
-//
-//			c = c / sqrt(1. - c*c) ;
-//			double A = (1. / (a*a) + (c*c) / (b*b)) ;
-//			double B = 2.*c*d/(b*b) ;
-//			double C = (d*d) / (b*b) - 1. ;
-//
-//			double delta = B * B - 4 * A * C ;
-//			return !(delta < 0) ;
+		{			
+			Point onEllipse(g->getCenter()) ;
+			Point onLine = this->projection(onEllipse) ;
+			if(dynamic_cast<const Ellipse*>(g)->in(onLine))
+				return true ;
+			if((onEllipse-onLine).norm() > dynamic_cast<const Ellipse*>(g)->getMajorRadius()*1.1)
+				return false ;
+			Point onEllipse2(onEllipse) ;
+			onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+			int nnn = 0 ;
+			while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE)
+			{
+//				std::cout << nnn << "->" << (onEllipse-onEllipse2).norm() << std::endl ;
+				onEllipse2 = onEllipse ;
+				onLine = this->projection(onEllipse) ;
+				onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+//				onLine.print() ;
+				nnn++ ;
+			}
+			
+			return (onLine-onEllipse).norm() < POINT_TOLERANCE*100. ;
+			
+                    //Point c = this->projection(g->getCenter()) ;
+                    //return dynamic_cast<const Ellipse*>(g)->in(c) ;
+			double a = dynamic_cast<const Ellipse*>(g)->getMajorRadius() ;
+			double b = dynamic_cast<const Ellipse*>(g)->getMinorRadius() ;
+			double c = this->vector() * dynamic_cast<const Ellipse*>(g)->getMinorAxis() / (this->vector().norm() * dynamic_cast<const Ellipse*>(g)->getMinorAxis().norm()) ;
+
+			if(std::abs(c - 1.) < POINT_TOLERANCE)
+			{
+                            Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMajorAxis()) ;
+                            Point I = this->intersection(L) ;
+                            return g->in(I) ;
+			}
+
+			Line L(g->getCenter(),dynamic_cast<const Ellipse*>(g)->getMinorAxis()) ;
+			Point I = this->intersection(L) ;
+			double d = (g->getCenter() - I).norm() ;
+
+			c = c / sqrt(1. - c*c) ;
+			double A = (1. / (a*a) + (c*c) / (b*b)) ;
+			double B = 2.*c*d/(b*b) ;
+			double C = (d*d) / (b*b) - 1. ;
+
+			double delta = B * B - 4 * A * C ;
+			return !(delta < 0) ;
 		}
 	case TRIANGLE:
 		{
@@ -3062,6 +3107,73 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			std::vector<Point> ret ;
 			if(!this->intersects(g))
 				return ret ;
+
+			Point onEllipse(g->getCenter()) ;
+			Point onLine = this->projection(onEllipse) ;
+			Point onEllipse2(onEllipse) ;
+			onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+			int nnn = 0 ;
+			while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE)
+			{
+				onEllipse2 = onEllipse ;
+				onLine = this->projection(onEllipse) ;
+				onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+				nnn++ ;
+			}
+			
+			ret.push_back(onEllipse) ;
+			
+			double xfirst = (onEllipse - this->origin())*this->vector() ;
+			double dx = 0.1 ;
+			double xhere = xfirst ;
+			double xprev = xhere -dx ;
+			double xnext = xhere+dx ;
+			bool dir = false ;
+			while(!dir)
+			{
+				xprev = xhere-dx ;
+				Point prev = this->origin() + this->vector()*xprev ;
+				if(dynamic_cast<const Ellipse*>(g)->in(prev))
+				{
+					dir = true ;
+					dx = -dx ;
+				}
+				xnext = xhere+dx ;
+				Point next = this->origin() + this->vector()*xnext ;
+				if(dynamic_cast<const Ellipse*>(g)->in(next))
+				{
+					dir = true ;
+				}
+				dx = dx/10. ;
+				if(dx < POINT_TOLERANCE * 100.) {
+					// line is tangent
+					return ret ;
+				}
+			}
+			
+			xnext = xhere+dx ;
+			Point next = this->origin() + this->vector()*xnext ;
+			while(dynamic_cast<const Ellipse*>(g)->in(next))
+			{
+				next += this->vector()*dx ;
+			}
+			
+			onEllipse = (g->getCenter()) ;
+			onLine = next ;
+			onEllipse2 = (onEllipse) ;
+			onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+			nnn = 0 ;
+			while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE)
+			{
+				onEllipse2 = onEllipse ;
+				onLine = this->projection(onEllipse) ;
+				onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
+				nnn++ ;
+			}
+			
+			ret.push_back(onEllipse) ;
+			return ret ;
+
 
 			Point C(g->getCenter()) ;
 			Point A(dynamic_cast<const Ellipse*>(g)->getMajorAxis()) ;

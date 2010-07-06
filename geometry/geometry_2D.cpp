@@ -1718,27 +1718,68 @@ const Point Ellipse::getPointOnEllipse(double theta) const
 
 Point Ellipse::project(Point p) const
 {	
-	if(p == center)
+	if((p-center).norm() < POINT_TOLERANCE*100.)
 	{
-		return p+majorAxis ;
+		return p+getMajorAxis() ;
 	} else {
-		Point proj = Point(p) ;
+		Point * proj = new Point(p.x, p.y) ;
 		project(proj) ;
-		return proj ;
+		return *proj ;
 	}	
 }
 
 void Ellipse::project(Point * p) const
 {
+//		std::cout << "here too" << std::endl ;
     	Point test(p->x,p->y) ;
         if(test == center) {
             p->x += getMinorAxis().x ;
             p->y += getMinorAxis().y ;
+            std::cout << "center" << std::endl ;
+            return ;
         } else {
             double alpha = majorAxis.angle() ;
             Point prot((*p-center).x*cos(-alpha)-(*p-center).y*sin(-alpha),
                        +(*p-center).x*sin(-alpha)+(*p-center).y*cos(-alpha)) ;
+                       
+		Line majL(this->getCenter(), this->getMajorAxis()) ;
+		Line minL(this->getCenter(), this->getMinorAxis()) ;
 
+	    if(minL.on(test)) {
+	      // case point is colinear to minor axis
+		 Point A = center + getMinorAxis() ;
+		 Point B = center - getMinorAxis() ;
+		 Point pa(p->x-A.x,p->y-A.y)  ;
+		 Point pb(p->x-B.x,p->y-B.y)  ;
+		 if(pa.norm() < pb.norm()) {
+		      p->x = A.x ;
+		      p->y = A.y ;
+		      return ;
+		 } else {
+		      p->x = B.x ;
+		      p->y = B.y ;
+		      return ;
+		 }
+	    }
+		       
+	    if(majL.on(test)) {
+	      // case point is colinear to major axis
+		 Point C = center + getMajorAxis() ;
+		 Point D = center - getMajorAxis() ;
+		 Point pc(p->x-C.x,p->y-C.y)  ;
+		 Point pd(p->x-D.x,p->y-D.y)  ;
+		 if(pc.norm() < pd.norm()) {
+		      p->x = C.x ;
+		      p->y = C.y ;
+		      return ;
+		 } else {
+		      p->x = D.x ;
+		      p->y = D.y ;
+		      return ;
+		 }
+	    }
+	    
+	    		       
             Point c_(0.,0.) ;
             Point a_(getMajorRadius(),0.) ;
             Point b_(0.,getMinorRadius()) ;
@@ -1748,37 +1789,53 @@ void Ellipse::project(Point * p) const
             Function y("y") ;
 
             Function dist_p_ell(x*x - x*2*prot.x + prot.x*prot.x + y*y - y*2*prot.y + prot.y*prot.y) ;
- 
-            double dtheta = 0.01 ;
+            
+            double tmin = 0. ;
+            double tmax = M_PI * 2. ;
+            double found = tmin ;
+            double found2 = tmax ;
+            while(std::abs(found-found2)>POINT_TOLERANCE)
+            {
+            	double dtheta = (tmax - tmin) / 10. ;
+	            double theta_n = tmin - dtheta ;
+	            double theta_p = tmin ;
+	            double theta_q = tmin + dtheta ;
 
-            double theta_n = prot.angle() - dtheta ;
-            double theta_p = prot.angle() ;
-            double theta_q = prot.angle() + dtheta ;
+	            double dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
+	            double dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
+	            double dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+	
+	            while(dist_p > std::min(dist_n,std::min(dist_p,dist_q))) {
+	                if(dist_n < dist_q) {
+	                    theta_n -= dtheta ;
+	                    theta_p -= dtheta ;
+	                    theta_q -= dtheta ;
+	                    dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
+	                    dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
+	                    dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+	                } else {
+	                    theta_n += dtheta ;
+	                    theta_p += dtheta ;
+	                    theta_q += dtheta ;
+	                    dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
+	                    dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
+	                    dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+	                }
+	            }
+	            
+	            tmin = std::min(theta_n, theta_q) ;
+	            tmax = std::max(theta_n, theta_q) ;
+	            
+	            found2 = found ;
+	            found = theta_p ;
+//	            std::cout << found << std::endl ;
+	            
 
-            double dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
-            double dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
-            double dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+           	}
+            
+	        p->x = this->getPointOnEllipse(found).x ;
+	        p->y = this->getPointOnEllipse(found).y ;
 
-            while(dist_p > std::min(dist_n,std::min(dist_p,dist_q))) {
-                if(dist_n < dist_q) {
-                    theta_n -= dtheta ;
-                    theta_p -= dtheta ;
-                    theta_q -= dtheta ;
-                    dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
-                    dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
-                    dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
-                } else {
-                    theta_n += dtheta ;
-                    theta_p += dtheta ;
-                    theta_q += dtheta ;
-                    dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
-                    dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
-                    dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
-                }
-            }
-
-            p->x = this->getPointOnEllipse(theta_p).x ;
-            p->y = this->getPointOnEllipse(theta_p).y ;
 
         }
 }
