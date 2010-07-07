@@ -675,6 +675,17 @@ std::vector<EllipsoidalInclusion *> circlesToEllipses(std::vector<Inclusion *> i
 
 		ellipses.push_back(new EllipsoidalInclusion(inc[i]->getCenter(), axis*a, shape)) ;		
 	}
+
+	double area = 0. ;
+	for(size_t i = 0 ; i < ellipses.size() ; i++)
+		area += ellipses[i]->area() ;
+		
+	double circle = 0. ;
+	for(size_t i = 0 ; i < ellipses.size() ; i++)
+		circle += inc[i]->area() ;
+	
+	std::cout << circle << ";" << area << std::endl ;
+	
 	return ellipses ;
 }
 
@@ -707,10 +718,11 @@ int main(int argc, char *argv[])
 
 	int n = 200 ;
 	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
-
+	
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < ellipses.size() ; i++)
 		feats.push_back(ellipses[i]) ;
+//		feats.push_back(inclusions[i]) ;
 
 	ellipses.clear() ;
 	inclusions.clear() ;
@@ -718,8 +730,9 @@ int main(int argc, char *argv[])
 	int nAgg = 1 ;
 	feats=placement(sample.getPrimitive(), feats, &nAgg, 6400);
 
-	for(size_t i = 0; i < 200 ; i++)
+	for(size_t i = 0; i < feats.size() ; i++)
 	{
+//		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
 		ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
 //		ellipses[i]->getCenter().print() ;
 //		std::cout << ellipses[i]->getMajorAxis().angle() << std::endl ;//";" << ellipses[i]->getMinorAxis().norm() << std::endl ;
@@ -728,28 +741,23 @@ int main(int argc, char *argv[])
 
 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 
-	std::cout << "begin intersection check" << std::endl ;
 	for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
-		std::cout << i << std::endl ;
-		for(size_t j = 0 ; j < i ; j++)
-		{
-			if(dynamic_cast<Ellipse *>(ellipses[j])->intersects(dynamic_cast<Ellipse *>(ellipses[i])))
-				std::cout << i << ";" << j << ";" << "INTERSECTION" << std::endl ;
-		}
+//		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
+//		F.addFeature(&sample,inclusions[i]) ;
 		
 		ellipses[i]->setBehaviour(new Stiffness(m0_agg)) ;
 		F.addFeature(&sample,ellipses[i]) ;
-		placed_area += ellipses[i]->area() ;
+//		placed_area += ellipses[i]->area() ;
 	}
-	std::cout << "intersections checked" << std::endl ;
+
 //	zones = generateExpansiveZonesHomogeneously(2000, ellipses, F) ;
 
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0.1)) ;
 
-	F.sample(512) ;
+	F.sample(900) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 

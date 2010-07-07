@@ -5,6 +5,7 @@
 
 #include "geometry_2D.h"
 #include "../polynomial/vm_base.h"
+#include "../utilities/random.h"
 
 using namespace Mu ;
 
@@ -1649,6 +1650,14 @@ Ellipse::Ellipse(Point center, Point a, Point b) : majorAxis(a), minorAxis(b)
         this->center = center ;
 }
 
+Ellipse::Ellipse(Circle c)
+{
+	gType = ELLIPSE ;
+	this->center = c.getCenter() ;
+	majorAxis = Point(c.getRadius(),0.) ;
+	minorAxis = Point(0.,c.getRadius()) ;	
+}
+
 Ellipse::Ellipse(Point center, Point a, double b) : majorAxis(a)
 {
 	gType = ELLIPSE ;
@@ -1730,7 +1739,6 @@ Point Ellipse::project(Point p) const
 
 void Ellipse::project(Point * p) const
 {
-//		std::cout << "here too" << std::endl ;
     	Point test(p->x,p->y) ;
         if(test == center) {
             p->x += getMinorAxis().x ;
@@ -1779,7 +1787,7 @@ void Ellipse::project(Point * p) const
 		 }
 	    }
 	    
-	    		       
+	    	// else, we need brute force
             Point c_(0.,0.) ;
             Point a_(getMajorRadius(),0.) ;
             Point b_(0.,getMinorRadius()) ;
@@ -1794,12 +1802,14 @@ void Ellipse::project(Point * p) const
             double tmax = M_PI * 2. ;
             double found = tmin ;
             double found2 = tmax ;
-            while(std::abs(found-found2)>POINT_TOLERANCE)
+            int iter = 0 ;
+            while(std::abs(found-found2)>POINT_TOLERANCE*100. || iter < 8)
             {
+            	iter++ ;
             	double dtheta = (tmax - tmin) / 10. ;
-	            double theta_n = tmin - dtheta ;
-	            double theta_p = tmin ;
-	            double theta_q = tmin + dtheta ;
+	            double theta_n = (tmin + tmax)*0.5 - dtheta ;
+	            double theta_p = (tmin + tmax)*0.5 ;
+	            double theta_q = (tmin + tmax)*0.5 + dtheta ;
 
 	            double dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
 	            double dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
@@ -1827,28 +1837,27 @@ void Ellipse::project(Point * p) const
 	            tmax = std::max(theta_n, theta_q) ;
 	            
 	            found2 = found ;
-	            found = theta_p ;
-//	            std::cout << found << std::endl ;
-	            
-
+	            found = theta_p ;	            
            	}
+//           	std::cout << iter << std::endl ;
             
 	        p->x = this->getPointOnEllipse(found).x ;
 	        p->y = this->getPointOnEllipse(found).y ;
-
 
         }
 }
 
 std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 {
-	std::vector<Point> ret ;
+	std::vector<Point> ret ;	
 	
-	double angle = 2 * M_PI / num_points ;
+	double angle = 2. * M_PI / num_points ;	
 
 	double thisangle = angle ;
 	double lastangle = 0. ;
 	double redfactor = 0.8 ; // factor for angle decrease < 1
+	
+	ret.push_back(getPointOnEllipse(0.)) ;
 
 
 	Point thispoint = getPointOnEllipse(angle) ;
@@ -1857,8 +1866,11 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 	double criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
 
 	int n_iter = 0 ;
+	
+	
 
-	for (size_t i = 0 ; i< num_points ; i++)
+	bool accepted = true ;
+	while (accepted)
 	{
 		n_iter = 0 ;
 		while(((criteria > angle) || (criteria < angle * redfactor)) && n_iter < 20)
@@ -1866,13 +1878,17 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 			if(criteria > angle)
 				{ thisangle = lastangle + (thisangle - lastangle) * redfactor ; }
 			else
-				{ thisangle = lastangle + (thisangle - lastangle) / redfactor ; }
+				{ n_iter = 20 ; } //thisangle = lastangle + (thisangle - lastangle) / redfactor ; }
 			thispoint = getPointOnEllipse(thisangle) ;
 			criteria = acos (((lastpoint - lastlastpoint) * (thispoint - lastlastpoint) / ((lastpoint - lastlastpoint).norm() * (thispoint - lastlastpoint).norm()))) ;
 			n_iter++ ;
 		}
 
-		ret.push_back(thispoint) ;
+//		std::cout << thisangle << "-" ;
+		if(thisangle < 2.*M_PI)
+			ret.push_back(thispoint) ;
+		else
+			accepted = false ;
 
 		lastlastpoint = lastpoint ;
 		lastpoint = thispoint ;
@@ -1883,6 +1899,7 @@ std::vector<Point> Ellipse::getSamplingBoundingPoints(size_t num_points) const
 		thispoint = getPointOnEllipse(thisangle) ;
 	}
 	
+//	std::cout << num_points << ";" << ret.size() << std::endl ;
 	return ret ;
 }
 
@@ -1955,9 +1972,9 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 {
 	std::vector<Point> bound = this->getSamplingBoundingPoints(num_points) ;
 
-	getBoundingPoints().resize(num_points) ;
+	getBoundingPoints().resize(bound.size()) ;
 
-	for (size_t i = 0 ; i < num_points ; i++)
+	for (size_t i = 0 ; i < bound.size() ; i++)
 	{		
 		getBoundingPoints()[i] = new Point(bound[i]) ;
 	}
@@ -1968,29 +1985,43 @@ void Ellipse::sampleSurface (size_t num_points)
 {
         inPoints.resize(1) ;
         inPoints[0] = new Point(center) ;
+        
+	        size_t n = num_points ;
+	if(!sampled) {
+	        if(getMinorRadius() / getMajorRadius() < 0.75)
+	        	n = (size_t) ((double) n * 1.2) ;
+	
+	        if(getMinorRadius() / getMajorRadius() < 0.5)
+	        	n = (size_t) ((double) n * 1.2) ;
+	
+	        if(getMinorRadius() / getMajorRadius() < 0.25)
+	        		n = (size_t) ((double) n * 1.2) ;
+	        	
+		if(boundingPoints.size() == 0)
+			this->sampleBoundingSurface(n) ;
+		sampled = true ;
+	} else {
+		std::cout << "second sample avoided" << std::endl ;
+	}
+        
 
-        size_t n = num_points ;
-        n = (size_t)  ((double) n * 7.*pow(getMajorRadius()/getMinorRadius(),0.66666667)/8.) ;
+/*	size_t ring = (num_points / 5) - 1 ;
 
-	if(boundingPoints.size() == 0)
-		this->sampleBoundingSurface(n) ;
-	sampled = true ;
+        if(getMinorRadius() / getMajorRadius() < 0.5)
+			ring-- ;
 
-	size_t ring = n / (2*M_PI) ;
-
-//        if(getMinorRadius() / getMajorRadius() < 0.7071 || ring==1)
-//		ring++ ;
-
+	if(ring > 1) {
+		
         std::vector<double> newa ;
         std::vector<double> newb ;
         std::vector<size_t> newn ;
 
-        double minn = (double) n * std::pow(0.7,(double) ring) ;
+        double minn = (double) num_points * std::pow(0.7,(double) ring) ;
 
         for(size_t i = 0 ; i < ring ; i++) {
             newa.push_back(getMinorRadius() * (ring - i) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - i - 1) / (ring)) ;
             newb.push_back(getMinorRadius() * (ring - i) / (ring + 1) ) ;
-            newn.push_back(n - (size_t) ((double)n - minn)*(double) (i+1) / (double) (ring+1)) ;
+            newn.push_back(num_points - (size_t) ((double) num_points - minn)*(double) (i+1) / (double) (ring+1)) ;
         }
 
         for(size_t i = 0 ; i < newa.size() ; i++) {
@@ -2008,8 +2039,118 @@ void Ellipse::sampleSurface (size_t num_points)
                 inPoints[j+inTemp.size()] = new Point(pn[j]) ;
             }
         }
+       } else {
+       	if(ring == 1)
+       	{
+       		Ellipse elln(center, getMajorAxis() * 0.5, getMinorAxis() * 0.6666666) ;
+            std::vector<Point> pn = elln.getSamplingBoundingPoints(num_points / 3) ;
+            PointArray inTemp(0) ;
+            inTemp.resize(inPoints.size()) ;
+            for(size_t j = 0 ; j < inPoints.size() ; j++)
+                inTemp[j] = inPoints[j] ;
+            inPoints.resize(inPoints.size()+pn.size()) ;
+            for(size_t j = 0 ; j < inTemp.size() ; j++)
+                inPoints[j] = inTemp[j] ;
+            for(size_t j = 0 ; j < pn.size() ; j++)
+            {
+                inPoints[j+inTemp.size()] = new Point(pn[j]) ;
+            }
+       		
+      		}
+      	}*/
+       
+       // equivalent divisions for rectangle
+	
+	std::vector<Point> toAdd ;
+
+	double div = (3.*getMajorRadius() + 4.*getMinorRadius()) / (double) n ;
+		
+	
+	std::vector<int> NDIV ;	
+	
+	for(size_t i = 0 ; i < boundingPoints.size() / 2 ; i++)
+	{
 
 
+		Point A = getBoundingPoint(i) ;
+		Point B = getBoundingPoint(boundingPoints.size()-2-i) ;
+		
+		if(i == boundingPoints.size() -2 -i)
+		{
+			Point B = getBoundingPoint(boundingPoints.size()-1) ;		
+		}
+		
+		if((A-B).norm() > div * 1.5) 
+		{
+			int ndiv = (int) ((A-B).norm() / div) ;
+			int nndiv = ndiv ;
+			for(int j = 1 ; j < ndiv ; j++)
+			{
+				Point C = A + (B-A)*((double) j / (double) ndiv) ;
+				C.x = C.x + 0.05*div*RandomNumber().uniform(-1.,1.) ; 
+				C.y = C.y + 0.05*div*RandomNumber().uniform(-1.,1.) ;
+				if(in(C))
+				{
+					toAdd.push_back(C) ;
+				} else {
+					nndiv-- ;
+				}
+			} 
+			NDIV.push_back(nndiv) ;
+		} else {
+			NDIV.push_back(0) ;
+		}
+	}
+	
+/*	bool cross = true ;	
+	std::vector<Point> trueToAdd ;
+	int count = 0 ;
+		
+	for(size_t i = 0 ; i < NDIV.size()-1 ; i++)
+	{
+		bool cross = true ;
+		
+		if(NDIV[i+1] == 0)
+		{
+			for(int j = 0 ; j < NDIV[i] ; j++)
+				trueToAdd.push_back(toAdd[count+j]) ;
+		} else {
+			for(int j = 0 ; j < NDIV[i] ; j++)
+			{
+				if(j == NDIV[i]-1)
+					cross = true ;
+				
+				if(cross)
+				{
+					int k = NDIV[i+1] * j / NDIV[i] ;
+//					std::cout << count+j << "/" << count+NDIV[i]-1 << ";" << count+NDIV[i]+k <<  "/" << count+NDIV[i]+NDIV[i+1]-1 << std::endl ;
+					if(k > NDIV[i+1]-1)
+						k = NDIV[i+1]-1 ;
+					
+					Point middle(toAdd[count+j].x,toAdd[count+j].y) ;
+					middle.x += toAdd[count+NDIV[i]+k].x *0.25 ;
+					middle.y += toAdd[count+NDIV[i]+k].y *0.25;
+					middle.x /= 1.25 ;
+					middle.y /= 1.25 ;
+											
+					trueToAdd.push_back(middle) ;
+					cross = false ;
+				} else {
+					trueToAdd.push_back(toAdd[count+j]) ;
+					cross = true ;
+				}
+				
+	
+			}
+		}
+		count += NDIV[i] ;
+	}*/
+	
+	inPoints.resize(1+toAdd.size()) ;
+	for(size_t i = 0 ; i < toAdd.size() ; i++)
+		inPoints[i+1] = new Point(toAdd[i]) ;
+		
+	inPoints[0] = new Point(center) ;
 
 }
 
@@ -2039,6 +2180,14 @@ std::vector<Point> Ellipse::getBoundingBox() const
 	std::vector<Point> bbox(4) ;
 
 	double a = getMajorRadius() ;
+	bbox[0] = center + Point(a,a) ;
+	bbox[1] = center + Point(a,-a) ;
+	bbox[2] = center + Point(-a,-a) ;
+	bbox[3] = center + Point(-a,a) ;
+	
+	return bbox ;
+
+//	double a = getMajorRadius() ;
 	double b = getMinorRadius() ;
 	double alpha = getMajorAxis().angle() ;
 
@@ -2066,43 +2215,6 @@ std::vector<Point> Ellipse::getBoundingBox() const
 
 	return bbox ;
 
-/*	double step = 1e-3 ;
-	double theta = 0. ;
-
-	Point p = getPointOnEllipse(theta) ;
-	double xmin = p.x ;
-	double xmax = p.x ;
-	double ymin = p.y ;
-	double ymax = p.y ;
-
-	while(2.*M_PI - theta > POINT_TOLERANCE)
-	{
-		theta += step ;
-		p = getPointOnEllipse(theta) ;
-		if(p.x < xmin)
-			xmin = p.x ;
-		if(p.x > xmax)
-			xmax = p.x ;
-		if(p.y < ymin)
-			ymin = p.y ;
-		if(p.y > ymax)
-			ymax = p.y ;
-	}
-
-	bbox[0] = Point(xmax, ymax) ;
-	bbox[1] = Point(xmax, ymin) ;
-	bbox[2] = Point(xmin, ymin) ;
-	bbox[3] = Point(xmin, ymax) ;
-
-	return bbox ;
-	
-	
-	bbox[0] = center + getMajorAxis() + getMinorAxis() ;
-	bbox[1] = center + getMajorAxis() - getMinorAxis() ;
-	bbox[2] = center - getMajorAxis() - getMinorAxis() ;
-	bbox[3] = center - getMajorAxis() + getMinorAxis() ;
-
-	return bbox ;*/
 }
 
 

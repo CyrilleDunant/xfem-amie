@@ -5,6 +5,7 @@
 //
 
 #include "placement.h"
+#include "random.h"
 
 
 using namespace Mu ;
@@ -34,6 +35,8 @@ bool bord(double r, double longueurX, double longueurY, double x, double y)//fon
 std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int triesMax, bool verbose)
 {
 	int tries = 0 ;
+	
+	RandomNumber gen ;
 
 	double volume = 0 ;
 	std::vector<Feature *> ret ;
@@ -54,17 +57,14 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
 			tries++ ;
-			Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())-(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y) ;
+			double ix = longueurX - 2.1*inclusions[i]->getRadius() ;
+			double iy = longueurY - 2.1*inclusions[i]->getRadius() ;
+			Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 			inclusions[i]->setCenter(newCentre) ;
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
 			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
 			{
-				Point newCentre(
-				                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
-				                 -(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
-				                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
-				                 -(longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
-				               ) ;
+				Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 				inclusions[i]->setCenter(newCentre) ;
 				bbox = inclusions[i]->getBoundingBox() ;
 			}
@@ -72,22 +72,12 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			while(!grid.add(inclusions[i]) && tries < triesMax)
 			{
 				tries++ ;
-				Point newCentre(
-				                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
-				                 - (longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
-				                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
-				                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
-				               ) ;
+				Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 				inclusions[i]->setCenter(newCentre) ;
 				bbox = inclusions[i]->getBoundingBox() ;
 				while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
 				{
-					Point newCentre(
-					                 chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())
-					                 - (longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x,
-					                 chiffreAleatoire(longueurY-2.1*inclusions[i]->getRadius())
-					                 - (longueurY-2.1*inclusions[i]->getRadius())/2. + offset.y
-					               ) ;
+					Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 					inclusions[i]->setCenter(newCentre) ;
 					bbox = inclusions[i]->getBoundingBox() ;
 				}

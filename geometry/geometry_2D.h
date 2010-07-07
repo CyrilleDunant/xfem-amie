@@ -471,6 +471,7 @@ public:
 	Ellipse(Point center, Point a, Point b) ;
 	Ellipse(Point center, Point a, double param) ;
 	Ellipse(Point center, double a, double b) ;
+	Ellipse(Circle c) ;
 
 
 	/** \brief Copy an ellipse.
