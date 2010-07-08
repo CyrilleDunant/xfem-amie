@@ -2477,7 +2477,7 @@ bool FeatureTree::step(double dt)
 		std::cerr << " ...done" << std::endl ;
 		
 		int fracturedCount = 0 ;
-
+		int ccount = 0 ;
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{	
 			if(i%1000 == 0)
@@ -2491,6 +2491,7 @@ bool FeatureTree::step(double dt)
 				{
 					needAssembly = true ;
 					meshChange = true ;
+					ccount++ ;
 					ret = false ;
 				}
 				if(elements[i]->getBehaviour()->fractured())
@@ -2507,7 +2508,7 @@ bool FeatureTree::step(double dt)
 				crackedVolume +=  elements[i]->area() ;
 			
 		}
-		std::cerr << " ...done" << std::endl ;
+		std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;
 		for(size_t i = 0 ; i < elements.size() ;i++)
 			elements[i]->clearVisited() ;
 // 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;

@@ -100,8 +100,9 @@ namespace Mu
 			val.push_back(&massOfAggregates);
 			
 			std::vector<std::pair<double, double> > bounds ;
+			
 			bounds.push_back(std::make_pair(5000, 15000)) ;
-			bounds.push_back(std::make_pair(0.000000001, 0.000035)) ;
+			bounds.push_back(std::make_pair(6.9151e-06/16, 6.9151e-06*16)) ;
 			GeneticAlgorithmOptimizer ga(val, bounds, this) ;
 			ga.optimize(1e-4, 20, 10,  .1, .1) ;
 

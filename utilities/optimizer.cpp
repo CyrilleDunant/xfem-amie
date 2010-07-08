@@ -353,9 +353,8 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 	std::map<double, std::vector<double> > sorted ;
 	while (err > eps && it < maxit )
 	{
-		sorted.clear();
 		//evaluate
-		for(size_t i = 0 ; i < population ; i++)
+		for(size_t i = (it != 0)*(std::max(1, (int)round(elitism*population))-1) ; i < population ; i++)
 		{
 			while(true)
 			{
@@ -376,7 +375,11 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 				
 			}
 		}
-		
+		std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
+		for(size_t i = 0 ;  i < population && iter !=sorted.end() ; i++)
+			iter++ ;
+		if(it != 0)
+			sorted.erase(iter, sorted.end());
 		std::vector< std::vector<double> > newllindividuals ;
 				
 		//reproduce - elite individuals are kept
@@ -406,8 +409,8 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 
 				for(size_t j = 0 ; j < newllindividuals.back().size() ; j++)
 				{
-					double sigma = (lowLevelbounds[j].second-lowLevelbounds[j].first)*factor/err0 ;
-					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)*.5) ;
+					double sigma = (lowLevelbounds[j].second-lowLevelbounds[j].first)*.1 ;
+// 					sigma = std::min(sigma, (lowLevelbounds[j].second-lowLevelbounds[j].first)*.5) ;
 					newllindividuals.back()[j] = RandomNumber().normal(newllindividuals.back()[j], sigma) ;
 					newllindividuals.back()[j] = std::max(newllindividuals.back()[j], lowLevelbounds[j].first) ;
 					newllindividuals.back()[j] = std::min(newllindividuals.back()[j], lowLevelbounds[j].second) ;

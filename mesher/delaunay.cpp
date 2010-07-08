@@ -2784,7 +2784,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
 		if(to_add.size() == 0)
 		{
-			double ndivs = 30 ;
+			double ndivs = 50 ;
 			for(double k = 0  ; k < ndivs ; k++)
 			{
 				for(double l = 0  ; l < ndivs ; l++)
@@ -2793,10 +2793,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
 				}
 			}
+			
 			double a = area() ; 
 			for(size_t i =0 ; i < gp_alternative.size() ; i++)
 			{
-				gp_alternative[i].second = 0.25*a/gp_alternative.size() ;
+				gp_alternative[i].second = a/gp_alternative.size() ;
 			}
 			
 			if(gp.gaussPoints.size() < gp_alternative.size())

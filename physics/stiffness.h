@@ -70,8 +70,12 @@ namespace Mu
 		DamageModel * damagemodel ;
 		double alpha ;
 		double lastDamage ;
+		double lastCritUp ;
+		double lastCritDown ;
 		bool change ;
 		bool frac ;
+		bool fixedfrac ;
+		
 		/** \brief Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
@@ -106,6 +110,7 @@ namespace Mu
 		
 		virtual bool changed() const ;
 		virtual Matrix getTensor(const Point & p) const ;
+		virtual FractureCriterion * getFractureCriterion() const ;
 		
 		/** \brief Return false.*/
 		virtual bool fractured() const ;

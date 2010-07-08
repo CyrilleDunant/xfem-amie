@@ -22,6 +22,7 @@ namespace Mu {
 	*/
 	class VonMises : public FractureCriterion
 	{
+	public:
 		double threshold ;
 	public:
 	/** \brief Constructor 

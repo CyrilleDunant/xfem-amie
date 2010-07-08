@@ -64,6 +64,9 @@ class DelaunayTetrahedron ;
 		virtual void setNeighbourhoodRadius(double r) ;
 
 		virtual Material toMaterial() ;
+		
+		const std::vector<DelaunayTriangle *> & getCache() const { return cache ; } ;
+		const std::vector<DelaunayTetrahedron *> & getCache3d() const { return cache3d ; } ;
 	
 	};
 

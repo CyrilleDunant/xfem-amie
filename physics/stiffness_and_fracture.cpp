@@ -18,7 +18,7 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1),dfunc(rig.numRows()-1, .01)/*dfunc(rig.numRows()-1)*/, eps(eps)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), dfunc(rig.numRows()-1, eps)/*dfunc(rig.numRows()-1)*/, eps(eps)
 {
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;

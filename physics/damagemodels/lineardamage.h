@@ -79,6 +79,8 @@ public:
 		*/
 	virtual bool fractured() const ;
 	
+	virtual DamageModel * getCopy() const { return new LinearDamage(state.size()-1, getCharacteristicRadius()) ;}
+	
 };
 
 }

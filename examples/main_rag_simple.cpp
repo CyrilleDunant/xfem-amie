@@ -137,7 +137,7 @@ double aggregateArea = 0;
 void step()
 {
 	
-	int nsteps = 2;
+	int nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
@@ -406,6 +406,59 @@ void step()
 			}
 			
 			
+		}
+		
+		std::string filename("rag_simple_out") ;
+// 		filename.append(itoa(totit++, 10)) ;
+		std::cout << filename << std::endl ;
+		std::fstream outfile  ;
+		outfile.open(filename.c_str(), std::ios::out) ;
+		
+		outfile << "TRIANGLES" << std::endl ;
+		outfile << triangles.size() << std::endl ;
+		outfile << 3 << std::endl ;
+		outfile << 8 << std::endl ;
+		
+		for(size_t j = 0 ; j < triangles.size() ;j++)
+		{
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
+			}
+
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  epsilon11[j*3+l] << " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  epsilon22[j*3+l] << " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<   epsilon12[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma11[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma22[j*3+l]<< " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma12[j*3+l] << " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << vonMises[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
+			}
+			outfile << "\n" ;
 		}
 		
 		std::cout << std::endl ;
@@ -1510,8 +1563,8 @@ int main(int argc, char *argv[])
 		<< ", smallest r =" << feats.back()->getRadius() 
 		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
 
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 12500000)) ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 12500000)) ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	Vector a(3) ;
 	a[0] = .5 ;
 	a[1] = .5 ;
@@ -1519,33 +1572,41 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,&er) ;
 	double reactedArea = 0 ;
 	std::random_shuffle(inclusions.begin(), inclusions.end());
-	for(size_t i = 0 ; i < inclusions.size()/10 ; i++)
-	{
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+// 	for(size_t i = 0 ; i < inclusions.size()/10 ; i++)
+// 	{
+// 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
 // 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000)) ;
-		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
-		double rPlus = inclusions[i]->getRadius()+itzSize/120000. ;
-		double rMinus = inclusions[i]->getRadius()-itzSize/120000. ;
-		double cx = inclusions[i]->getCenter().x ;
-		double cy = inclusions[i]->getCenter().y ;
-		ExpansiveRing * er = new ExpansiveRing(&sample, rPlus, rMinus, cx, cy,  m0, a) ;
-		reactionRims.push_back(er) ;
-// 		inclusions[i]->setBehaviour(new StiffnessWithVariableImposedDeformation(m0_agg, a)) ;
-		F.addFeature(&sample,inclusions[i]) ;
-		F.addFeature(inclusions[i],reactionRims.back()) ;
-		placed_area += inclusions[i]->area() ;
-		reactedArea += (reactionRims.back()->getRadius()*reactionRims[i]->getRadius() - reactionRims.back()->getInRadius()*reactionRims.back()->getInRadius())*M_PI ;
-	}
-	for(size_t i = inclusions.size()/10 ; i < inclusions.size() ; i++)
-	{
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+// // 		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
+// 		double rPlus = inclusions[i]->getRadius()+itzSize/120000. ;
+// 		double rMinus = inclusions[i]->getRadius()-itzSize/120000. ;
+// 		double cx = inclusions[i]->getCenter().x ;
+// 		double cy = inclusions[i]->getCenter().y ;
+// 		ExpansiveRing * er = new ExpansiveRing(&sample, rPlus, rMinus, cx, cy,  m0, a) ;
+// 		reactionRims.push_back(er) ;
+// // 		inclusions[i]->setBehaviour(new StiffnessWithVariableImposedDeformation(m0_agg, a)) ;
+// 		F.addFeature(&sample,inclusions[i]) ;
+// 		F.addFeature(inclusions[i],reactionRims.back()) ;
+// 		placed_area += inclusions[i]->area() ;
+// 		reactedArea += (reactionRims.back()->getRadius()*reactionRims[i]->getRadius() - reactionRims.back()->getInRadius()*reactionRims.back()->getInRadius())*M_PI ;
+// 	}
+// 	for(size_t i = inclusions.size()/10 ; i < inclusions.size() ; i++)
+// 	{
+// 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
 // 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000)) ;
-		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
-// 		inclusions[i]->setBehaviour(new StiffnessWithVariableImposedDeformation(m0_agg, a)) ;
-		F.addFeature(&sample,inclusions[i]) ;
-		placed_area += inclusions[i]->area() ;
-	}
-
+// // 		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
+// // 		inclusions[i]->setBehaviour(new StiffnessWithVariableImposedDeformation(m0_agg, a)) ;
+// 		F.addFeature(&sample,inclusions[i]) ;
+// 		placed_area += inclusions[i]->area() ;
+// 	}
+	Inclusion * inc = new Inclusion(0.010, 0, 0) ;
+// 	inc->setBehaviour(new Stiffness(m0_agg)) ;
+	inc->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000)) ;
+	double rPlus = 0.010+itzSize ;
+	double rMinus = 0.009 ;
+	ExpansiveRing * er = new ExpansiveRing(&sample, rPlus, rMinus, 0, 0,  m0, a) ;
+	reactionRims.push_back(er) ;
+	F.addFeature(&sample,inc) ;
+	F.addFeature(inc,er) ;
 	
 	if(!inclusions.empty())
 	{
@@ -1558,8 +1619,8 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5e6)) ;
-	F.sample(800) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5e6)) ;
+	F.sample(256) ;
 
 	F.setOrder(LINEAR) ;
 

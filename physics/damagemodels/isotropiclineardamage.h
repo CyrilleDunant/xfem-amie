@@ -73,6 +73,8 @@ public:
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const  ;
+	
+	virtual DamageModel * getCopy() const { return new IsotropicLinearDamage(1, getCharacteristicRadius()) ;}
 };
 
 }

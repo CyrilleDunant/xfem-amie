@@ -11,6 +11,9 @@
 //
 
 #include "stiffness.h"
+#include "../mesher/delaunay.h"
+#include "fracturecriteria/vonmises.h"
+#include "fracturecriteria/mohrcoulomb.h"
 
 
 using namespace Mu ;
@@ -53,6 +56,8 @@ Material Stiffness::toMaterial()
 
 PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, FractureCriterion* crit, DamageModel * damagemodel): LinearForm(rig, false, true, rig.numRows()/3+1), crit(crit), damagemodel(damagemodel), alpha(1), change(true)
 {
+	lastCritUp = dynamic_cast<MohrCoulomb *>(crit)->upVal ;
+	lastCritDown = dynamic_cast<MohrCoulomb *>(crit)->downVal ;
 	lastDamage = alpha ;
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -60,6 +65,7 @@ PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, FractureCriterion* crit, Dam
 		v.push_back(ZETA);
 	
 	frac = false ;
+	fixedfrac = false ;
 }
 
 bool PseudoPlastic::changed() const
@@ -69,7 +75,10 @@ bool PseudoPlastic::changed() const
 
 void PseudoPlastic::fixLastDamage()
 {
+	lastCritUp = dynamic_cast<MohrCoulomb *>(crit)->upVal ;
+	lastCritDown = dynamic_cast<MohrCoulomb *>(crit)->downVal ;
 	lastDamage = alpha ;
+	fixedfrac = frac ;
 }
 
 PseudoPlastic::~PseudoPlastic() { } ;
@@ -86,61 +95,41 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 
 void PseudoPlastic::step(double timestep, ElementState & currentState)
 {
-
-	double volume ;
-	if(currentState.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-		volume = currentState.getParent()->area() ;
-	else
-		volume = currentState.getParent()->volume() ;
-		
-	double charVolume ;
-	if(currentState.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-		charVolume = M_PI*damagemodel->getCharacteristicRadius()*damagemodel->getCharacteristicRadius() ;
-	else
-		charVolume = 4./3.*M_PI*damagemodel->getCharacteristicRadius()*damagemodel->getCharacteristicRadius()*damagemodel->getCharacteristicRadius() ;
-	double fraction = volume/charVolume ;
-
-	
-	double score = crit->grade(currentState) ;
-	double palpha = lastDamage ;
-	double prevalpha = alpha ;
-	double dalpha = 1.-damagemodel->getThresholdDamageDensity()/fraction ;
-	dalpha = std::max(dalpha, 0.00001) ;
-// 	std::cout << dalpha << "  "<< alpha << "  "<< palpha << "  "<< score << std::endl ;
-	if(std::abs(palpha-dalpha) < POINT_TOLERANCE)
+	frac = fixedfrac ;
+	change = false ;
+	Vector p(1) ; p[0] = 1.-lastDamage ;
+	if(crit->met(currentState))
 	{
-		alpha = 0.00001 ;
-	}
-	else if( score > 1e-5)
-	{
-		while( std::abs(score) > 1e-5)
+// 		damagemodel->damageState() = p ;
+		currentState.getParent()->behaviourUpdated = true ;
+		double talpha = lastDamage ;
+		double balpha = 0.00001 ;
+		while(std::abs(crit->grade(currentState)) > 1e-5)
 		{
-			alpha = (palpha+dalpha)*.5 ;
-			score = crit->grade(currentState) ;
-			
-			if(score < 0)
-			{
-				dalpha = alpha ;
-			}
+			alpha = (talpha+balpha)*.5 ;
+			if(crit->grade(currentState) < 0)
+				balpha = alpha ;
 			else
-			{
-				palpha = alpha ;
-			}
-			
+				talpha = alpha ;
+// 			damagemodel->step(currentState);
+// 			alpha = 1.-damagemodel->damageState()[0] ;
+// 			frac = damagemodel->fractured() ;
 		}
+// 		if(frac)
+// 			alpha = 0.00001 ;
+		change = true ;
 	}
 	
-	if(alpha < 1.-damagemodel->getThresholdDamageDensity()/fraction)
-	{
-		alpha = 0.00001 ;
-		frac = true ;
-	}
-	change = std::abs(alpha - prevalpha) > POINT_TOLERANCE ;
 }
 
 Matrix PseudoPlastic::getTensor(const Point & p) const
 {
 	return (param*alpha) ;
+}
+
+FractureCriterion * PseudoPlastic::getFractureCriterion() const
+{
+	return crit ;
 }
 
 bool PseudoPlastic::fractured() const
@@ -150,7 +139,8 @@ bool PseudoPlastic::fractured() const
 
 Form * PseudoPlastic::getCopy() const 
 {
-	return new PseudoPlastic(*this) ;
+	return new PseudoPlastic(param, crit->getCopy(), damagemodel->getCopy()) ;
+	
 }
 
 

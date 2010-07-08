@@ -372,25 +372,26 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 1;
-	size_t max_limit = 1 ;
+	size_t max_growth_steps = 20;
+	size_t max_limit = 100 ;
 	size_t countit = 0;	
 	int limit = 0 ;
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
 	{
 		countit++;
-		if(countit%100 == 0)
-			std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
+// 		if(countit%100 == 0)
+// 			std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
 		limit = 0 ;
 		while(!featureTree->step(timepos) && limit < max_limit)//as long as we can update the features
 		{
-			std::cout << "." << std::flush ;
+// 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
 		}
-		if(limit || countit%100 == 0)
-			std::cout << " " << limit << std::endl ;
-
+// 		if(limit || countit%100 == 0)
+// 			std::cout << " " << limit << std::endl ;
+		if(limit < max_limit)
+			imposeddisp->setData(imposeddisp->getData()+0.0025);
 
 		timepos+= 0.01 ;
 		double da = 0 ;
@@ -420,8 +421,8 @@ void step()
 		angle.resize(sigma.size()/3) ;
 		fracCrit.resize(sigma.size()/3) ;
 		g_count.resize(sigma.size()/3) ;
-		if(countit%100 == 0)
-			std::cout << "unknowns :" << x.size() << std::endl ;
+// 		if(countit%100 == 0)
+// 			std::cout << "unknowns :" << x.size() << std::endl ;
 		
 		int npoints = triangles[0]->getBoundingPoints().size() ;
 	
@@ -622,54 +623,56 @@ void step()
 		
 // 		optimize() ;
 		
-		if(limit < max_limit)
-			imposeddisp->setData(imposeddisp->getData()+0.00001);
 		for(size_t i = 0 ; i < triangles.size() ; i++)
 		{
 			if(dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour()))
 				static_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
 		}
 		
-// 		if(countit%100 == 0)
-// 		{
+		if(countit < 2)
+		{
 			std::cout << std::endl ;
-			std::cout << "max value x :" << x_max << std::endl ;
-			std::cout << "mean value x :" << avgdisplacement[0] << std::endl ;
-			std::cout << "min value x :" << x_min << std::endl ;
-			std::cout << "max value y :" << y_max << std::endl ;
-			std::cout << "mean value y :" << avgdisplacement[1] << std::endl ;
-			std::cout << "min value y :" << y_min << std::endl ;
-			std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
-			std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-			std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
-			std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
-			std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
-			std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
+			std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;
+		}
+		if(limit < max_limit)
+		{
+			std::cout << " " << x_max 
+			 << " " << avgdisplacement[0]
+			 << " " << x_min 
+			 << " " << y_max 
+			 << " " << avgdisplacement[1] 
+			 << " " << y_min 
+			 << " " << sigma11.max() 
+			 << " " << sigma11.min() 
+			 << " " << sigma12.max() 
+			 << " " << sigma12.min() 
+			 << " " << sigma22.max() 
+			 << " " << sigma22.min() 
 			
-			std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-			std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-			std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-			std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-			std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-			std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+			 << " " << epsilon11.max()
+			 << " " << epsilon11.min()
+			 << " " << epsilon12.max()
+			 << " " << epsilon12.min()
+			 << " " << epsilon22.max()
+			 << " " << epsilon22.min()
 			
-			std::cout << "max von Mises :" << vonMises.max() << std::endl ;
-			std::cout << "min von Mises :" << vonMises.min() << std::endl ;
+			 << " " << vonMises.max() 
+			 << " " << vonMises.min() 
 			
-			std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
-			std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
-			std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
-			std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+			 << " " << avg_s_xx/area 
+			 << " " << avg_s_yy/area 
+			 << " " << avg_s_xy/area 
+			 << " " << avg_e_xx/area 
+			 << " " << avg_e_yy/area 
+			 << " " << avg_e_xy/area 
 				
-			std::cout << "energy index :" << enr << std::endl ;
-// 		}
+			<< " " << enr << std::endl ;
+		}
 		energy.push_back(enr) ;
 
 	}
-	for(size_t i = 0 ; i < energy.size() ; i++)
-		std::cout << energy[i] << std::endl ;
+// 	for(size_t i = 0 ; i < energy.size() ; i++)
+// 		std::cout << energy[i] << std::endl ;
 }
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
@@ -742,9 +745,10 @@ void Menu(int selection)
 	{
 	case ID_NEXT:
 		{
-			imposeddisp->setData(imposeddisp->getData()+0.5);
+// 			imposeddisp->setData(imposeddisp->getData()+0.025);
 			for(size_t i = 0 ; i < triangles.size() ; i++)
-				dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
+				if(dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour()))
+					dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
 			step() ;
 			dlist = false ;
 			break ;
@@ -1567,10 +1571,172 @@ double lly = 0 ;
 // 	return (1.-llx)*(1.-llx) + 100.*(lly-llx*llx)*(lly-llx*llx) ;
 // }
 
+
+struct Block
+{
+	Block()
+	{
+		series = rand()%2 ;
+		stiff = 1. ;
+	}
+	
+	Block(int nblocks)
+	{
+		int selfblocks = 1 ;
+		if(nblocks>1)
+			selfblocks = rand()%(nblocks)+1 ;
+		if(selfblocks > 1)
+		{
+			std::vector<int> subblocks(selfblocks) ;
+			for(int i = 0 ; i < selfblocks ; i++)
+			{
+				subblocks[i]++ ;
+				nblocks-- ;
+			}
+			
+			while(nblocks)
+			{
+				subblocks[rand()%selfblocks]++ ;
+				nblocks-- ;
+			}
+			for(int i = 0 ; i < selfblocks ; i++)
+			{
+				blocks.push_back(new Block(subblocks[i])) ;
+			}
+		}
+		else if(nblocks > 1)
+		{
+			blocks.push_back(new Block(nblocks)) ;
+		}
+		
+		series = rand()%2 ;
+		stiff = 1. ;
+	}
+	
+	~Block()
+	{
+		for(int i = 0 ; i < blocks.size() ; i++)
+			delete blocks[i] ;
+	}
+	std::vector<Block *> blocks ;
+	double stiff ;
+	bool series ;
+	double equivStifness() const
+	{
+		if(blocks.size() == 0)
+			return stiff ;
+		if(series)
+		{
+			double k = 0 ;
+			for(int i = 0 ; i < blocks.size() ; i++)
+			{
+				k += 1./blocks[i]->equivStifness() ;
+			}
+			
+			return 1./k ;
+		}
+		else
+		{
+			double k = 0 ;
+			for(int i = 0 ; i < blocks.size() ; i++)
+			{
+				k += blocks[i]->equivStifness() ;
+			}
+			
+			return k ;
+		}
+	}
+} ;
+
 int main(int argc, char *argv[])
 {
-
-
+// 	srand(1);
+// 	int dit = 128 ;
+// 	std::vector<double> parak(dit, 0.)  ;
+// 	std::vector<double> serik(dit, 0.)  ;
+// 	std::vector<double> actuk(dit, 0.)  ;
+// 	
+// 	for(int r = 0 ; r < 512 ; r++)
+// 	{
+// 		std::vector<double> pparak(parak)  ;
+// 		std::vector<double> pserik(serik)  ;
+// 		std::vector<double> pactuk(actuk)  ;
+// 		
+// 		int size = 9 ;
+// 		std::vector<double *> k(size) ;
+// 		int kit = 0 ;
+// 		Block real(size) ;
+// 		std::vector<Block *> tocheck = real.blocks ;
+// 		while(!tocheck.empty())
+// 		{
+// 			std::vector<Block *> newTocheck ;
+// 			for(int j = 0 ; j < tocheck.size() ; j ++)
+// 			{
+// 				if(tocheck[j]->blocks.size() == 0)
+// 				{
+// 					k[kit] = &tocheck[j]->stiff ;
+// 					kit++ ;
+// 				}
+// 				else
+// 					newTocheck.insert(newTocheck.end(), tocheck[j]->blocks.begin(), tocheck[j]->blocks.end()) ;
+// 			}
+// 			tocheck = newTocheck;
+// 		}
+// 		
+// 		double parak0 = 0 ;
+// 		double serik0 = 0 ;
+// 		double actuk0 = real.equivStifness() ;
+// 		double block = 0 ;
+// 		for(int i = 0 ; i < k.size() ; i++)
+// 		{
+// 			parak0+= *k[i] ;
+// 			serik0+=1./(*k[i]) ;
+// 
+// 		}
+// 
+// 		serik0 = 1./serik0 ;
+// 		for(int j=0 ; j< dit ; j++)
+// 		{
+// 			int idx = rand()%size ;
+// 			int tries = 0 ;
+// 			while(tries++ < 256)
+// 			{
+// 				if(*k[idx] < 0.02)
+// 					idx = rand()%size ;
+// 				else
+// 					break ;
+// 			}
+// 			if(tries > 255)
+// 				break ;
+// 			
+// 			*k[idx] = std::max(0.01, *k[idx]-0.2) ;
+// 
+// 			for(int i = 0 ; i < k.size() ; i++)
+// 			{
+// 				parak[j]+= *k[i] ;
+// 				serik[j]+=1./(*k[i]) ;
+// 			}
+// 
+// 			serik[j] = 1./serik[j] ;
+// 			actuk[j] = real.equivStifness() ;
+// 			if(r > 1)
+// 			{
+// 				serik[j] = serik[j]/serik0*(1./(r))+pserik[j]*((double)(r-1)/r) ;
+// 				actuk[j] = actuk[j]/actuk0*(1./(r))+pactuk[j]*((double)(r-1)/r) ;
+// 				parak[j] = parak[j]/parak0*(1./(r))+pparak[j]*((double)(r-1)/r) ;
+// 			}
+// 			else
+// 			{
+// 				serik[j] = serik[j]/serik0 ;
+// 				actuk[j] = actuk[j]/actuk0 ;
+// 				parak[j] = parak[j]/parak0 ;
+// 			}
+// 		}
+// 	}
+// 	for(int i = 0 ; i < dit ; i++)
+// 		std::cout << serik[i] << "  " << actuk[i] << "  "<< parak[i] << std::endl ;
+// 	
+// 	exit(0) ;
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1602,18 +1768,18 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	Sample sm(0.07, 0.07, 0, 0) ;
-	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
-	for(int i = 0 ; i < incs.size() ; i++)
-	{
-		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
-		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.07);
-		incs[i]->setCenter(incs[i]->getCenter()* 500./0.07)  ;
-		F.addFeature(&sample, incs[i]);
-	}
+	Sample sm(0.2, 0.2, 0, 0) ;
+// 	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
+// 	for(int i = 0 ; i < incs.size() ; i++)
+// 	{
+// 		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
+// 		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.2);
+// 		incs[i]->setCenter(incs[i]->getCenter()* 500./0.2)  ;
+// 		F.addFeature(&sample, incs[i]);
+// 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 200 ;
+	double cradius = 20 ;
 	double tdamage = .999 ;
 	double dincrement = .1 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
@@ -1622,6 +1788,7 @@ int main(int argc, char *argv[])
 	dfunc->setDamageDensityIncrement(dincrement);
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, new MohrCoulomb(10./8, -50), dfunc) ;
+	psp->crit->setNeighbourhoodRadius(cradius);
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10./8, -50), cradius) ;
 	saf->dfunc.setCharacteristicRadius(cradius) ;
 	saf->dfunc.setThresholdDamageDensity(tdamage);
@@ -1630,8 +1797,8 @@ int main(int argc, char *argv[])
 
 	
 // 	sample.setBehaviour(saf) ;
-// 	sample.setBehaviour(psp) ;
-	sample.setBehaviour(sf) ;
+	sample.setBehaviour(psp) ;
+// 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 // 	F.addFeature(&sample, new Pore(20, -155, 155) );
@@ -1640,20 +1807,20 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 85, -85) );
 // 	F.addFeature(&sample, new Pore(20, 155, -155) );
 // 	
-	F.addFeature(&sample, new Pore(20, -155, -155) );
-	F.addFeature(&sample, new Pore(20, -85, -85) );
-	F.addFeature(&sample, new Pore(20, 85, 85) );
-	F.addFeature(&sample, new Pore(20, 155, 155) );
+// 	F.addFeature(&sample, new Pore(20, -155, -155) );
+// 	F.addFeature(&sample, new Pore(20, -85, -85) );
+// 	F.addFeature(&sample, new Pore(20, 85, 85) );
+// 	F.addFeature(&sample, new Pore(20, 155, 155) );
 
-// 	F.addFeature(&sample, new Pore(20, -200, 0) );
-// 	F.addFeature(&sample, new Pore(20, -150, 0) );
-// 	F.addFeature(&sample, new Pore(20, -100, 0) );
-// 	F.addFeature(&sample, new Pore(20, -50, 0) );
-// 	F.addFeature(&sample, new Pore(20, 0, 0) );
-// 	F.addFeature(&sample, new Pore(20, 50, -0) );
-// 	F.addFeature(&sample, new Pore(20, 100, -0) );
-// 	F.addFeature(&sample, new Pore(20, 150, -0) );
-// 	F.addFeature(&sample, new Pore(20, 200, -0) );
+	F.addFeature(&sample, new Pore(20, -200, 0) );
+	F.addFeature(&sample, new Pore(20, -150, 0) );
+	F.addFeature(&sample, new Pore(20, -100, 0) );
+	F.addFeature(&sample, new Pore(20, -50, 0) );
+	F.addFeature(&sample, new Pore(20, 0, 0) );
+	F.addFeature(&sample, new Pore(20, 50, -0) );
+	F.addFeature(&sample, new Pore(20, 100, -0) );
+	F.addFeature(&sample, new Pore(20, 150, -0) );
+	F.addFeature(&sample, new Pore(20, 200, -0) );
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
@@ -1664,8 +1831,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
 	F.addBoundaryCondition(imposeddisp) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 0)) ;
 
@@ -1690,7 +1857,7 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
-	glutCreateWindow("pseudoplastic !") ;
+	glutCreateWindow("PSP !") ;
 	
 	int submenu = glutCreateMenu(Menu) ;
 	

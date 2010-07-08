@@ -104,6 +104,7 @@ public:
 	 */
 	virtual Matrix apply(const Matrix & m) const = 0 ;
 
+	virtual DamageModel * getCopy() const = 0 ;
 	/** \brief Modify the rigidity matrix according to the damage model function (for space-time behaviour)
 	 * 
 	 * @param m Matrix to modify
@@ -122,11 +123,12 @@ public:
 
 	NullDamage() : DamageModel(0), state(0) { } ;
 
-	/** \brief Return an empty vector
+	/** \brief Return the vector of variables describing the damage state
 	 * 
-	 * @return an empty vector
+	 * @return damage state vector
 	 */
 	virtual const Vector & damageState() const { return state ;} ;
+	virtual Vector & damageState() { return state ;} ;
 
 	/** \brief Do nothing
 	 * 
@@ -138,7 +140,7 @@ public:
 	 * 
 	 * @param d damage
 	 */
-	virtual void artificialStep(double d) { } ;
+	virtual void artificialDamageStep(double d) { } ;
 
 	/** \brief returns 0 */
 	virtual Vector getPreviousDamage() {return Vector(0) ; } ;
@@ -155,6 +157,10 @@ public:
 	 * @return m
 	 */
 	virtual Matrix apply(const Matrix & m) const {return m ;} ;
+	
+	virtual bool fractured() const {return false ; } ;
+	
+	virtual DamageModel * getCopy() const { return new NullDamage() ;}
 
 // 	virtual FunctionMatrix apply(const Matrix & m) const
 // 	{
