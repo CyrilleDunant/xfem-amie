@@ -96,7 +96,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(NULL, 0.07, 0.07, 0, 0) ;
+Sample sample(NULL, 0.04, 0.04, 0, 0) ;
 
 bool firstRun = true ;
 
@@ -714,9 +714,18 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.00005;
  	int inclusionNumber = 4096 ;
- 	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416, 1., BOLOME_D)(.0025, .1, inclusionNumber, itzSize);
+ 	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416*13/50, 1., BOLOME_D)(.00025, .1, inclusionNumber, itzSize);
 
-	int n = 200 ;
+	double aaa = 0. ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		aaa += inclusions[i]->area() ;
+	std::cout << std::endl ;
+	std::cout << inclusions[0]->getRadius() << std::endl ;
+	std::cout << aaa << "/" << sample.area() << std::endl ;
+	
+//	return 0 ;
+
+	int n = 4100 ;
 	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
 	
 	std::vector<Feature *> feats ;
@@ -728,7 +737,7 @@ int main(int argc, char *argv[])
 	inclusions.clear() ;
 
 	int nAgg = 1 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg, 6400);
+	feats=placement(sample.getPrimitive(), feats, &nAgg, 10000);
 
 	for(size_t i = 0; i < feats.size() ; i++)
 	{
@@ -757,7 +766,7 @@ int main(int argc, char *argv[])
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0.1)) ;
 
-	F.sample(900) ;
+	F.sample(200) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 

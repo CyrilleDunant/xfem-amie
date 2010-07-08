@@ -1989,13 +1989,13 @@ void Ellipse::sampleSurface (size_t num_points)
 	        size_t n = num_points ;
 	if(!sampled) {
 	        if(getMinorRadius() / getMajorRadius() < 0.75)
-	        	n = (size_t) ((double) n * 1.2) ;
+	        	n = (size_t) ((double) n * 1.25) ;
 	
 	        if(getMinorRadius() / getMajorRadius() < 0.5)
-	        	n = (size_t) ((double) n * 1.2) ;
+	        	n = (size_t) ((double) n * 1.25) ;
 	
 	        if(getMinorRadius() / getMajorRadius() < 0.25)
-	        		n = (size_t) ((double) n * 1.2) ;
+	        		n = (size_t) ((double) n * 1.5) ;
 	        	
 		if(boundingPoints.size() == 0)
 			this->sampleBoundingSurface(n) ;
@@ -2063,8 +2063,9 @@ void Ellipse::sampleSurface (size_t num_points)
 	
 	std::vector<Point> toAdd ;
 
-	double div = (3.*getMajorRadius() + 4.*getMinorRadius()) / (double) n ;
-		
+//	double div = (getMajorRadius() + 3.*getMinorRadius()) * (0.5 + 0.5*getMinorRadius()/getMajorRadius()) / (double) num_points ;
+//	double div = (4. * getMajorRadius() * getMinorRadius()) / (double) num_points ;	
+	double div = (4. * (getMajorRadius() + M_PI/4.*getMinorRadius())) / (double) num_points ;
 	
 	std::vector<int> NDIV ;	
 	
@@ -2083,6 +2084,8 @@ void Ellipse::sampleSurface (size_t num_points)
 		if((A-B).norm() > div * 1.5) 
 		{
 			int ndiv = (int) ((A-B).norm() / div) ;
+			if(ndiv==1)
+				ndiv++;
 			int nndiv = ndiv ;
 			for(int j = 1 ; j < ndiv ; j++)
 			{
@@ -2146,11 +2149,27 @@ void Ellipse::sampleSurface (size_t num_points)
 		count += NDIV[i] ;
 	}*/
 	
-	inPoints.resize(1+toAdd.size()) ;
-	for(size_t i = 0 ; i < toAdd.size() ; i++)
-		inPoints[i+1] = new Point(toAdd[i]) ;
-		
-	inPoints[0] = new Point(center) ;
+	bool addCenter = true ;
+	size_t ii = 0 ;
+	while(addCenter && ii < toAdd.size())
+	{
+		addCenter = (center - toAdd[ii]).norm() > div*0.1 ;
+		ii++ ;
+	}
+	
+	
+	if(addCenter)
+	{
+		inPoints.resize(1+toAdd.size()) ;
+		for(size_t i = 0 ; i < toAdd.size() ; i++)
+			inPoints[i+1] = new Point(toAdd[i]) ;
+			
+		inPoints[0] = new Point(center) ;
+	} else {
+		inPoints.resize(toAdd.size()) ;
+		for(size_t i = 0 ; i < toAdd.size() ; i++)
+			inPoints[i] = new Point(toAdd[i]) ;
+	}
 
 }
 
