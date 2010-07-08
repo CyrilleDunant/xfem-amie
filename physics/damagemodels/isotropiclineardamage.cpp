@@ -66,8 +66,8 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
 
-// 	if(fractured())
-// 		return ret*0.00001 ;
+	if(fractured())
+		return ret*0.00001 ;
 	return ret*(1.-state[0]) ;
 }
 
