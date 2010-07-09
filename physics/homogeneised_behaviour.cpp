@@ -71,8 +71,26 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		subTree->addFeature(tri, feats[i]) ;
+	
+	Material hom ;
+	
+	Material matrix = tri->getBehaviour()->toMaterial() ;
+	matrix(TAG_VOLUME,tri->area()) ;
 
-	subTree->sample(50) ;
+	hom = hom + matrix ;
+	
+	for(size_t i = 0 ; i < feats.size() ; i++)
+	{
+		Material inc = feats[i]->getBehaviour()->toMaterial() ;
+		inc(TAG_VOLUME,feats[i]->area()) ;
+		hom = hom + inc ;
+	}
+
+	Material eq = homogenize(hom) ;
+	equivalent = getEquivalentBehaviour(eq) ;
+
+
+/*	subTree->sample(50) ;
 	subTree->setOrder(LINEAR) ;
 	subTree->generateElements() ;
 	subTree->getTriangles(-1) ;
@@ -93,7 +111,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	homogenize() ;	
 
 //	if(param.isNull())
-//		type = VOID_BEHAVIOUR ;
+//		type = VOID_BEHAVIOUR ;*/
 
 	v.push_back(XI);
 	v.push_back(ETA);
