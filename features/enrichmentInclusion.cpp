@@ -4,6 +4,7 @@
 
 #include "enrichmentInclusion.h"
 #include "inclusion.h"
+#include "feature_base.h"
 #include "sample.h"
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/stiffness.h"
@@ -89,10 +90,15 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 	if(disc.size() == 1) // special case for really small inclusions
 	{
 
-		Inclusion * circle = new Inclusion(this->getRadius(), this->getCenter()) ;
-		circle->setBehaviour(this->getBehaviour()->getCopy()) ;
+		std::vector<Feature *> brother = this->getFather()->getChildren() ;
 		std::vector<Feature *> feat ;
-		feat.push_back(circle) ;
+		for(size_t i = 0 ; i < brother.size() ; i++)
+		{
+			if(disc[0]->in(brother[i]->getCenter()))
+				feat.push_back(brother[i]) ;
+		}
+		
+		std::cout << feat.size() << std::endl ;
 
 		HomogeneisedBehaviour hom(feat, disc[0]) ;
 

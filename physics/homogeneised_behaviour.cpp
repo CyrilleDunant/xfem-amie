@@ -31,7 +31,7 @@ using namespace Mu ;
 HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), false, false, 2) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL)
 {
 	source = mesh2d->getConflictingElements(self2d->getPrimitive()) ;
-	//simple averaging
+
 	double totalArea = 0 ;
 	for(size_t i = 0 ; i < source.size() ; i++)
 	{
@@ -45,9 +45,6 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 	}
 
 	homogenize() ;	
-
-//	if(param.isNull())
-//		type = VOID_BEHAVIOUR ;
 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -75,7 +72,10 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	Material hom ;
 	
 	Material matrix = tri->getBehaviour()->toMaterial() ;
-	matrix(TAG_VOLUME,tri->area()) ;
+	double fmat = tri->area() ;
+	for(size_t i = 0 ; i < feats.size() ; i++)
+		fmat -= feats[i]->area() ;
+	matrix(TAG_VOLUME,fmat) ;
 
 	hom = hom + matrix ;
 	
@@ -83,35 +83,12 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	{
 		Material inc = feats[i]->getBehaviour()->toMaterial() ;
 		inc(TAG_VOLUME,feats[i]->area()) ;
-		hom = hom + inc ;
 	}
+
+
 
 	Material eq = homogenize(hom) ;
 	equivalent = getEquivalentBehaviour(eq) ;
-
-
-/*	subTree->sample(50) ;
-	subTree->setOrder(LINEAR) ;
-	subTree->generateElements() ;
-	subTree->getTriangles(-1) ;
-	mesh2d = subTree->get2DMesh(-1) ;
-	source = mesh2d->getConflictingElements(self2d->getPrimitive()) ;
-	double totalArea = 0 ;
-	for(size_t i = 0 ; i < source.size() ; i++)
-	{
-		if(source[i]->getBehaviour() && source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-			Form * copy = source[i]->getBehaviour()->getCopy() ;
-			source[i]->setBehaviour(copy) ;
-			param = Matrix(source[i]->getBehaviour()->param.numRows(), source[i]->getBehaviour()->param.numCols()) ;
-			break ;
-		}
-	}
-
-	homogenize() ;	
-
-//	if(param.isNull())
-//		type = VOID_BEHAVIOUR ;*/
 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -122,7 +99,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 3), mesh2d(NULL), self2d(NULL), mesh3d(mesh3d), self3d(self)
 {
 	source3d = mesh3d->getConflictingElements(self->getPrimitive()) ;
-	//simple averaging
+
 	double totalVolume = 0 ;
 	for(size_t i = 0 ; i < source3d.size() ; i++)
 	{
@@ -135,14 +112,6 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 
 	homogenize() ;
 	
-//	if(param.isNull())
-//		type = VOID_BEHAVIOUR ;
-//	else
-//		param /= totalVolume ;
-	
-//	param[3][3] /= .9 ;
-//	param[4][4] /= .9 ;
-//	param[5][5] /= .9 ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(ZETA);
@@ -154,11 +123,6 @@ HomogeneisedBehaviour::~HomogeneisedBehaviour() { } ;
 void HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 	equivalent->apply(p_i,p_j,gp,Jinv,ret,vm) ;
-// std::cout << "a--" << std::endl ;
-// Jinv[0].print() ;
-// std::cout << "--b" << std::endl ;
-//	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v, ret) ;
-// 	ret.print() ;
 }
 
 void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
@@ -313,55 +277,13 @@ void HomogeneisedBehaviour::homogenize()
 	Material hom = homogenize(mat) ;
 	equivalent = getEquivalentBehaviour(hom) ;
 
-/*	GeneralConverter fraction(TAG_VOLUME_FRACTION) ;
-	AdditionConverter total(TAG_VOLUME_TOTAL) ;
-
-	for(size_t i = 0 ; i < mat.size() ; i++)
-	{
-		fraction.reset() ;
-		total.reset() ;
-		mat[i].merge(total.homogenize(mat)) ;
-		mat[i].merge(fraction.homogenize(mat[i])) ;
-	}
-
-//	std::cout << mat.size() << std::endl ;
-	if(mat.size() == 1)
-	{
-		if(self2d)
-			param = cauchyGreen(std::make_pair(mat[0].val(TAG_BULK_MODULUS,-1),mat[0].val(TAG_SHEAR_MODULUS,-1)),false,SPACE_TWO_DIMENSIONAL) ;
-		else
-			param = cauchyGreen(std::make_pair(mat[0].val(TAG_BULK_MODULUS,-1),mat[0].val(TAG_SHEAR_MODULUS,-1)),false,SPACE_THREE_DIMENSIONAL) ;
-	} else {
-		scheme.reset() ;
-		Material mhom(scheme.homogenize(mat)) ;
-		int nk = mhom.getIndex(TAG_BULK_MODULUS,-1) ;
-		int nmu = mhom.getIndex(TAG_SHEAR_MODULUS,-1) ;
-		if(scheme.isOK() && (nk+1)*(nmu+1) > 0)
-		{
-			if(self2d)
-				param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_TWO_DIMENSIONAL) ;
-			else
-				param = cauchyGreen(std::make_pair(mhom[nk].val(),mhom[nmu].val()),false,SPACE_THREE_DIMENSIONAL) ;
-		} else {
-			scheme.print() ;
-		}
-	}
-//	std::cout << std::endl ;
-//	std::cout << std::endl ;
-//	param.print() ;
-//	std::cout << std::endl ;
-//	std::cout << std::endl ;*/
-	
 }
 
 
 Material HomogeneisedBehaviour::homogenize(Material mat)
 {
 	if(mat.nPhases() == 1)
-	{
-//		mat.child(0).print() ;
 		return mat.child(0) ;
-	}
 
 	mat.makeFraction(true) ;
 	if(mat.nPhases() == 2)
@@ -389,12 +311,11 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 			mat.add(TAG_IMPOSED_STRAIN,mat(TAG_EXPANSION_COEFFICIENT)) ;
 		}
 
-//		mat.print() ; 
 		return mat ;
 	}
 
 	mat.build(new GeneralizedSelfConsistent(), false) ;
-//	mat.print() ;
+
 	return mat ;
 }
 

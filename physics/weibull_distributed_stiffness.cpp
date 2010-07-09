@@ -17,6 +17,7 @@
 #include "fracturecriteria/mohrcoulomb.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/ruptureenergy.h"
+#include "../utilities/random.h"
 
 using namespace Mu ;
 
@@ -44,12 +45,11 @@ bool WeibullDistributedStiffness::fractured() const
 
 Form * WeibullDistributedStiffness::getCopy() const 
 {
-	double randomVar = (double)rand()/(double)RAND_MAX ;
-	randomVar = 1.*pow(-log(randomVar),.5) ;
-	Matrix newTensor (param*(1.-variability)+param*randomVar*variability*2) ;
+	double weib = RandomNumber().weibull(variability*2.,0.5) ;
+	Matrix newTensor (param*(1.-variability+weib)) ;
 	return new StiffnessAndFracture(newTensor, 
-		new MohrCoulomb(criterion*(1.-variability)+criterion*randomVar*variability,
-		 -8.*(criterion*(1.-variability)+criterion*randomVar*variability))) ;
+		new MohrCoulomb(criterion*(1.-variability+weib),
+		 -8.*(criterion*(1.-variability+weib)))) ;
 }
 
 
