@@ -10,7 +10,7 @@ using namespace Mu ;
 
 ExpansiveZone::ExpansiveZone(Feature *father, double radius, double x, double y, const Matrix & tensor, Vector def) : EnrichmentInclusion(father, radius, x, y),  imposedDef(def),cgTensor(tensor)
 {
-	
+	setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;	
 }
 
 ExpansiveZone::~ExpansiveZone() {}

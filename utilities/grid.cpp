@@ -869,7 +869,7 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	{
 		for(size_t j = 0 ; j < lengthY ; j++)
 		{
-			pixels[i][j] = new Pixel(x*(double)(i)/(double)lengthX+psize*.5+center.x-.5*x,
+			this->pixels[i][j] = new Pixel(x*(double)(i)/(double)lengthX+psize*.5+center.x-.5*x,
 			                         y*(double)(j)/(double)lengthY+psize*.5+center.y-.5*y, psize) ;
 		}
 	}

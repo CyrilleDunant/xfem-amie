@@ -2065,7 +2065,7 @@ void Ellipse::sampleSurface (size_t num_points)
 
 //	double div = (getMajorRadius() + 3.*getMinorRadius()) * (0.5 + 0.5*getMinorRadius()/getMajorRadius()) / (double) num_points ;
 //	double div = (4. * getMajorRadius() * getMinorRadius()) / (double) num_points ;	
-	double div = (4. * (getMajorRadius() + M_PI/4.*getMinorRadius())) / (double) num_points ;
+	double div = 1.5*(4. * (getMajorRadius() + M_PI/4.*getMinorRadius())) / (double) num_points ;
 	
 	std::vector<int> NDIV ;	
 	
@@ -2090,8 +2090,8 @@ void Ellipse::sampleSurface (size_t num_points)
 			for(int j = 1 ; j < ndiv ; j++)
 			{
 				Point C = A + (B-A)*((double) j / (double) ndiv) ;
-				C.x = C.x + 0.05*div*RandomNumber().uniform(-1.,1.) ; 
-				C.y = C.y + 0.05*div*RandomNumber().uniform(-1.,1.) ;
+				C.x = C.x + 0.1*div*RandomNumber().uniform(-1.,1.) ; 
+				C.y = C.y + 0.1*div*RandomNumber().uniform(-1.,1.) ;
 				if(in(C))
 				{
 					toAdd.push_back(C) ;

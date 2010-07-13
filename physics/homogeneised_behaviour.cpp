@@ -83,6 +83,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	{
 		Material inc = feats[i]->getBehaviour()->toMaterial() ;
 		inc(TAG_VOLUME,feats[i]->area()) ;
+		hom = hom + inc ;
 	}
 
 

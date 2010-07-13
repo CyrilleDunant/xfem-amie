@@ -98,7 +98,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 				feat.push_back(brother[i]) ;
 		}
 		
-		std::cout << feat.size() << std::endl ;
+
 
 		HomogeneisedBehaviour hom(feat, disc[0]) ;
 

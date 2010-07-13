@@ -96,7 +96,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(NULL, 0.04, 0.04, 0, 0) ;
+Sample sample(NULL, 0.04, 0.04, 0.02, 0.02) ;
 
 bool firstRun = true ;
 
@@ -148,9 +148,9 @@ double spread ;
 void step()
 {
 
-	int nsteps = 1;
-	int nstepstot = 2;
-	int maxtries = 2 ;
+	int nsteps = 9;
+	int nstepstot = 10;
+	int maxtries = 200 ;
 	int tries = 0 ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
@@ -498,7 +498,7 @@ void step()
 		std::cout << "apparent extension " << e_xx_max-e_xx_min << std::endl ;
 
 
-/*		if (tries < maxtries)
+		if (tries < maxtries)
 		{
 			double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/(double)nstepstot ;
 			if(!featureTree->solverConverged())
@@ -551,7 +551,7 @@ void step()
 			
 			if (tries >= maxtries)
 				break ;
-		}*/
+		}
 	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
 		std::cout << expansion_reaction[i].first << "   " 
 		<< expansion_reaction[i].second << "   " 
@@ -581,6 +581,8 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
 {
+	RandomNumber gen ;
+  
 	double E_csh = 31e9 ;
 	double nu_csh = .28 ;
 //	double nu_incompressible = .499997 ;
@@ -605,7 +607,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		Point pos(((double)rand()/RAND_MAX)*(sample.width()-radius*60),((double)rand()/RAND_MAX)*(sample.height()-radius*60)) ;
+		Point pos(gen.uniform((sample.width()-radius*60)),gen.uniform(sample.height()-radius*60)) ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
@@ -617,16 +619,21 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 		}
 		if (alone)
 			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
-		else
-			i-- ;
+//		else
+//			i-- ;
 	}
+	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<EllipsoidalInclusion *, int> zonesPerIncs ; 
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getMinorRadius()-radius*60)
+			Point ax = incs[j]->getMajorAxis() * (1./incs[j]->getMajorRadius()) ;
+			double newa = incs[j]->getMajorRadius() - radius*60 ;
+			double newb = incs[j]->getMinorRadius() - radius*60 ;
+			Ellipse ell(incs[j]->getCenter(), ax*newa, newb/newa) ;
+			if(ell.in(zonesToPlace[i]->getCenter()))
 			{
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;
@@ -716,14 +723,6 @@ int main(int argc, char *argv[])
  	int inclusionNumber = 4096 ;
  	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416*13/50, 1., BOLOME_D)(.00025, .1, inclusionNumber, itzSize);
 
-	double aaa = 0. ;
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
-		aaa += inclusions[i]->area() ;
-	std::cout << std::endl ;
-	std::cout << inclusions[0]->getRadius() << std::endl ;
-	std::cout << aaa << "/" << sample.area() << std::endl ;
-	
-//	return 0 ;
 
 	int n = 4100 ;
 	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
@@ -748,25 +747,27 @@ int main(int argc, char *argv[])
 //		std::cout << "----" << std::endl ;
 	}
 
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,135000.)) ;
 
 	for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
 //		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
 //		F.addFeature(&sample,inclusions[i]) ;
 		
-		ellipses[i]->setBehaviour(new Stiffness(m0_agg)) ;
+		ellipses[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,570000.)) ;
 		F.addFeature(&sample,ellipses[i]) ;
-//		placed_area += ellipses[i]->area() ;
+		placed_area += ellipses[i]->area() ;
 	}
 
-//	zones = generateExpansiveZonesHomogeneously(2000, ellipses, F) ;
+	zones = generateExpansiveZonesHomogeneously(14000, ellipses, F) ;
 
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0.1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, 0.1)) ;
 
-	F.sample(200) ;
+	F.sample(1200) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
