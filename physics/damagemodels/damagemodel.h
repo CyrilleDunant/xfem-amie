@@ -28,6 +28,9 @@ protected:
 	double damageDensityIncrement ;
 	double fraction ;
 public:
+	
+	Vector state ;
+	
 	DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
 	{ 
 		isNull = true ; 
@@ -117,11 +120,9 @@ public:
 /** \brief Null damage model. A material with this damage model can never be damaged.*/
 class NullDamage : public DamageModel
 {
-protected:
-	Vector state ;
 public:
 
-	NullDamage() : DamageModel(0), state(0) { } ;
+	NullDamage() : DamageModel(0) { state.resize(0);} ;
 
 	/** \brief Return the vector of variables describing the damage state
 	 * 
