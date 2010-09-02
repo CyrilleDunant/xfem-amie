@@ -42,6 +42,7 @@ typedef enum
 	QUINTIC_TIME_LINEAR,
 	QUINTIC_TIME_QUADRATIC,
 	QUADTREE_REFINED,
+	REGULAR_GRID
 } Order ;
 
 typedef enum

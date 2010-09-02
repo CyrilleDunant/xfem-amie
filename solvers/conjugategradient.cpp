@@ -26,6 +26,7 @@ ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Ve
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
+	double realeps = 1e-10 ;
 	size_t Maxit ;
 	if(maxit != -1)
 		Maxit = maxit ;
@@ -65,13 +66,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	}
 
 	assign(r, A*x-b) ;
-	double err = std::abs(r).max() ;
+	double err0 = std::abs(r).max() ;
 	r*=-1 ;
 
-	if (err < eps)
+	if (err0 < realeps)
 	{
 		if(verbose)
-			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		return true ;
 	}
 	//*************************************
@@ -94,16 +95,17 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	
 	assign(r, A*x-b) ;
 	r *= -1 ;	
-	err = std::abs(r).max() ;
-	if (err < eps)
+	err0 = std::abs(r).max() ;
+	if (err0 < realeps)
 	{
 		if(verbose)
-			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 
 		return true ;
 	}
-	double neps = std::max(err*eps, eps) ;
-	while(sqrt(last_rho)> eps && n < Maxit )
+	err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
+	double neps = std::max(err0*realeps, realeps*realeps) ;
+	while(last_rho*last_rho> realeps*realeps && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		
@@ -120,11 +122,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		if(n%64 == 0)
 		{
 			assign(r, A*x-b) ;
-			r *= -1 ;		
+			r *= -1 ;
+			rho =  parallel_inner_product(&r[0], &r[0], vsize) ;
 		}
 		if(	verbose && nit%64 == 0)
 		{
-			std::cerr << /*"\r CG "<< p.size() << " iteration : " << nit << " error :"<<*/  sqrt(std::abs(rho))  /*<< "             "*/<< std::endl /*std::flush*/ ;
+			std::cerr << /*"\r CG "<< p.size() << " iteration : " << nit << " error :"<<*/  sqrt(rho*rho)  /*<< "             "*/<< std::endl /*std::flush*/ ;
 		}
 // 		if(	verbose )
 // 		{
@@ -147,17 +150,17 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		
 	}
 	assign(r,A*x-b) ;
-	err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
+	double err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	
 	if(verbose)
 	{
-		if(nit <= Maxit)
+		if(nit <= Maxit && last_rho*last_rho< realeps*realeps)
 			std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
 			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 	
 	
-	return nit < Maxit ;
+	return nit < Maxit && last_rho*last_rho< realeps*realeps;
 }
 

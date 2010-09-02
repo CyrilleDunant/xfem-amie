@@ -26,6 +26,8 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../utilities/itoa.h"
+
 
 #include <fstream>
 #ifdef HAVE_SSE3
@@ -224,126 +226,57 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 512 ; //16*10;
+	size_t nsteps = 300 ; //16*10;
 	size_t nit = 2 ;
-	size_t ntries = 1;
-	size_t dsteps = 1 ;
+	size_t ntries = 5;
+	size_t dsteps = 60 ;
 	size_t tries = 0 ;
 	size_t dit = 0 ;
+	int totit = 0 ;
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
-	std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
-	while(true)
-	{
-		tries++ ;
-		bool go_on = true ;
-		bool no_convergence = true ;
-		bool damage = false ;
-
-		dit = 0;
-		go_on = true ;
-
-		while(featureTree->stable(.1))
+		tries = 0 ;
+		std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
+		while(tries < ntries)
 		{
-			load->setData(load->getData()* 2) ;
-		}
-		while(dit < dsteps)
-		{
-			dit++ ;
-			featureTree->step(timepos) ;
-			
-// 			if(featureTree->meshChanged())
-// 				break ;
+			tries++ ;
+			bool go_on = true ;
+			bool no_convergence = true ;
+			bool damage = false ;
 
-		}
-// 		if(featureTree->solverConverged())
-// 		{
-			double topLoad = load->getData() ;
-			double currenLoad = load->getData()*.95 ;
-			double bottomLoad = load->getData()*.9 ;
-			if(!featureTree->stable(.1))
+			dit = 0;
+			go_on = true ;
+
+			while(go_on && dit < dsteps)
 			{
-				load->setData(bottomLoad) ;
-
-				bool stableAtLow = featureTree->stable(.1) ;
-				while(!stableAtLow)
-				{
-					bottomLoad *= .5 ;
-					load->setData(bottomLoad) ;
-					stableAtLow = featureTree->stable(.1) ;
-				}
-				double pcount = 1 ;
-				double mcount = 1 ;
-				do
-				{
-					double startLoad = (topLoad*pcount+bottomLoad*mcount)/(mcount+pcount) ;
-					load->setData((topLoad*pcount+bottomLoad*mcount)/(mcount+pcount)) ;
-					if(featureTree->stable(.1)) // equilibrium load is between current and topLoad
-					{
-						bottomLoad = load->getData() ;
-						pcount++ ;
-					}
-					else // equilibrium load is between current and bottomLoad
-					{
-						topLoad = load->getData() ;
-						mcount++ ;
-					}
-					
-					load->setData(bottomLoad) ;
-					stableAtLow = featureTree->stable(.1) ;
-					while(!stableAtLow)
-					{
-						bottomLoad *= .5 ;
-						load->setData(bottomLoad) ;
-						stableAtLow = featureTree->stable(.1) ;
-					}
-				} while(std::abs(bottomLoad-topLoad) > 10) ;
-				
-				load->setData(bottomLoad) ;
+				featureTree->step(timepos) ;
+				go_on = (featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged())) || (!featureTree->solverConverged() && featureTree->reuseDisplacements);
+				if(featureTree->solverConverged())
+					std::cout << "." << std::flush ;
+				else
+					std::cout << "x" << std::flush ;
+				if(tries%20 == 0)
+					std::cout << dit << std::flush ;
+				dit++ ;
 			}
-			
-			featureTree->step(timepos) ;
-// 		}
+			std::cout << ":" << std::endl ;
+
+			if(dit < dsteps)
+			{
+				load->setData(load->getData()-3.7e4) ;
+				break ;
+			}
+		}
+		
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		computeDisplacement() ;
-		if(tries > ntries)
-		{
-			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
-			tries = 0 ;
-			load->setData(load->getData()-100000) ;
-			break ;
-		}
-		
-		if(!load_displacement.empty() && (std::abs(load_displacement.back().second - displacement) < 1e-8 )
-			&& (std::abs(load_displacement.back().first - load->getData()) < 1000))
-		{
-// 			std::cout << "o" << std::flush ;
-			std::cout <<  load->getData() << " "<<  displacement << std::endl ;
-			load->setData(load->getData()-100000) ;
-		}
-		else
-		{
-// 			std::cout << "." << std::flush ;
-			if(!load_displacement.empty())
-				std::cout <<  load->getData() << " "<<  displacement << std::endl ;
-			load_displacement.push_back(std::make_pair(load->getData(), displacement)) ;
-			load->setData(load->getData()-100000) ;
-			tries = 0 ;
-			break ;
-		}
-		
-		
-
-	}
 // 	std::cout << std::endl ;
-		saved_load_displacement.push_back(load_displacement.back()) ;
+// 		saved_load_displacement.push_back(load_displacement.back()) ;
 		load_displacement = saved_load_displacement ;
 	
 // 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
 
-		x.resize(featureTree->getDisplacements().size()) ;
-		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		
@@ -385,7 +318,7 @@ void step()
 		double avg_s_yy_nogel = 0;
 		double avg_s_xy_nogel = 0;
 		double nogel_area = 0 ;
-		
+		int tsize = 0 ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 	/*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
@@ -402,28 +335,32 @@ void step()
 			
 			
 			
-			if(!in /*&& !triangles[k]->getBehaviour()->fractured()*/)
+			if(!in )
 			{
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 				{
-					if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).x > 0.0799)
+					if(!triangles[k]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
-						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
-						ex_count++ ;
+						if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
+							x_max = x[triangles[k]->getBoundingPoint(p).id*2];
+						if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
+							x_min = x[triangles[k]->getBoundingPoint(p).id*2];
+						if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
+							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
+						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
+							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
+						if(triangles[k]->getBoundingPoint(p).x > 0.0799)
+						{
+							e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
+							ex_count++ ;
+						}
 					}
 				}
 				area += triangles[k]->area() ;
 				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
+					tsize++ ;
 					if(triangles[k]->getBehaviour()->param[0][0] > E_max)
 						E_max = triangles[k]->getBehaviour()->param[0][0] ;
 					if(triangles[k]->getBehaviour()->param[0][0] < E_min)
@@ -569,41 +506,108 @@ void step()
 		}
 		
 	
-		std::cerr << std::endl ;
-		std::cerr << "max value :" << x_max << std::endl ;
-		std::cerr << "min value :" << x_min << std::endl ;
-		std::cerr << "max sigma11 :" << sigma11.max() << std::endl ;
-		std::cerr << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cerr << "max sigma12 :" << sigma12.max() << std::endl ;
-		std::cerr << "min sigma12 :" << sigma12.min() << std::endl ;
-		std::cerr << "max sigma22 :" << sigma22.max() << std::endl ;
-		std::cerr << "min sigma22 :" << sigma22.min() << std::endl ;
+		std::cout << std::endl ;
+		std::cout << "load :" << load->getData() << std::endl ;
+		std::cout << "max value :" << x_max << std::endl ;
+		std::cout << "min value :" << x_min << std::endl ;
+		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
+		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
+		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
+		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
+		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
+		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
 		
-		std::cerr << "max epsilon11 :" << epsilon11.max() << std::endl ;
-		std::cerr << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cerr << "max epsilon12 :" << epsilon12.max() << std::endl ;
-		std::cerr << "min epsilon12 :" << epsilon12.min() << std::endl ;
-		std::cerr << "max epsilon22 :" << epsilon22.max() << std::endl ;
-		std::cerr << "min epsilon22 :" << epsilon22.min() << std::endl ;
+		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
+		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
+		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
+		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
+		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
+		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
 		
-		std::cerr << "max von Mises :" << vonMises.max() << std::endl ;
-		std::cerr << "min von Mises :" << vonMises.min() << std::endl ;
+		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
+		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 		
-		std::cerr << "average sigma11 : " << avg_s_xx/area << std::endl ;
-		std::cerr << "average sigma22 : " << avg_s_yy/area << std::endl ;
-		std::cerr << "average sigma12 : " << avg_s_xy/area << std::endl ;
-		std::cerr << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-		std::cerr << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-		std::cerr << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
+		std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
+		std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
+		std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
+		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
-		std::cerr << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
-		std::cerr << "average sigma22 (no gel): " << avg_s_yy_nogel/nogel_area << std::endl ;
-		std::cerr << "average sigma12 (no gel): " << avg_s_xy_nogel/nogel_area << std::endl ;
-		std::cerr << "average epsilon11 (no gel): " << avg_e_xx_nogel/nogel_area << std::endl ;
-		std::cerr << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
-		std::cerr << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
+		std::cout << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
+		std::cout << "average sigma22 (no gel): " << avg_s_yy_nogel/nogel_area << std::endl ;
+		std::cout << "average sigma12 (no gel): " << avg_s_xy_nogel/nogel_area << std::endl ;
+		std::cout << "average epsilon11 (no gel): " << avg_e_xx_nogel/nogel_area << std::endl ;
+		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
+		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
 		
-		std::cerr << "apparent extension " << e_xx/ex_count << std::endl ;
+		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
+		
+		std::string filename("triangles") ;
+		filename.append(itoa(totit++, 10)) ;
+		std::cout << filename << std::endl ;
+		std::fstream outfile  ;
+		outfile.open(filename.c_str(), std::ios::out) ;
+		
+		outfile << "TRIANGLES" << std::endl ;
+		outfile << tsize << std::endl ;
+		outfile << 3 << std::endl ;
+		outfile << 10 << std::endl ;
+		
+		for(size_t j = 0 ; j < triangles.size() ;j++)
+		{
+			if(triangles[j]->getBehaviour()->type == VOID_BEHAVIOUR)
+				continue ;
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
+			}
+			
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << x[triangles[j]->getBoundingPoint(l).id*2] << " " ;
+			}
+			
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << x[triangles[j]->getBoundingPoint(l).id*2+1] << " ";
+			}
+
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  epsilon11[j*3+l] << " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  epsilon22[j*3+l] << " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<   epsilon12[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma11[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma22[j*3+l]<< " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  sigma12[j*3+l] << " ";
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile << vonMises[j*3+l]<< " " ;
+			}
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
+			}
+			outfile << "\n" ;
+		}
+		
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
 		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
@@ -628,7 +632,7 @@ void step()
 // 		if (tries >= ntries)
 // 			break ;
 	}
-	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
+	for(size_t i = 0 ; i < std::min(expansion_reaction.size(),load_displacement.size()) ; i++)
 		std::cout << expansion_reaction[i].first << "   " 
 		<< expansion_reaction[i].second << "   " 
 		<< expansion_stress[i].first << "   " 
@@ -1571,48 +1575,68 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.44, 0.12,0,0) ;
+	Sample sample(NULL, 3.9, 1.2+0.051*2,0,0) ;
 	
 
-	Sample concrete(NULL, 0.10, 0.10,0,0) ;                      concrete.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(37000, -37000*10))) ;
-	Sample topsupport(0.03, 0.01-POINT_TOLERANCE, 0, .055) ;     topsupport.setBehaviour(new Stiffness(m0_paste*.25)) ;
-	Sample baseleft(0.03, 0.01-POINT_TOLERANCE, -0.205, -.055) ; baseleft.setBehaviour(new Stiffness(m0_paste*5)) ;
-	Sample baseright(0.03, 0.01-POINT_TOLERANCE, 0.205, -.055) ; baseright.setBehaviour(new Stiffness(m0_paste*5)) ;
-	Sample notch(.005, .07, 0, -.045) ;                          notch.setBehaviour(new VoidForm()) ;
-	FeatureTree F(&concrete) ;
+// 	Sample concrete(NULL, 3.9, 1.2,0,0) ;                  concrete.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
+	Sample topsupport(0.3, 0.051, 0, 1.2*.5+0.051*.5) ;    
+	topsupport.setBehaviour(new Stiffness(m0_paste*5)) ;
+	Sample baseleft(0.15, 0.051, -1.7, -1.2*.5-0.051*.5) ; 
+	baseleft.setBehaviour(new Stiffness(m0_paste*5)) ;
+	Sample baseright(0.15, 0.051, 1.7, -1.2*.5-0.051*.5) ; 
+	baseright.setBehaviour(new Stiffness(m0_paste*5)) ;
+	Sample topleftvoid(3.9*.5-0.15, 0.051, (-3.9*.5+0.15)*.5-0.15, 1.2*.5+0.051*.5) ;     
+	topleftvoid.setBehaviour(new VoidForm()) ;
+	Sample toprightvoid(3.9*.5-0.15, 0.051, (+3.9*.5-0.15)*.5+0.15, 1.2*.5+0.051*.5) ;     
+	toprightvoid.setBehaviour(new VoidForm()) ;
+	Sample bottomcentervoid(1.7*2-0.15, 0.051, 0, -1.2*.5-0.051*.5) ;     
+	bottomcentervoid.setBehaviour(new VoidForm()) ;
+	Sample leftbottomvoid(3.9*.5-1.7-0.15*.5, 0.051,  -3.9*.5+(3.9*.5-1.7-0.15*.5)*.5,  -1.2*.5-0.051*.5) ;     
+	leftbottomvoid.setBehaviour(new VoidForm()) ;
+	Sample rightbottomvoid(3.9*.5-1.7-0.15*.5, 0.051, 3.9*.5-(3.9*.5-1.7-0.15*.5)*.5,  -1.2*.5-0.051*.5) ; 
+	rightbottomvoid.setBehaviour(new VoidForm()) ;    
+	Sample rebar(3.9-2*0.047, 0.051, 0,  -1.2*.5+0.064) ; 
+	rebar.setBehaviour(new Stiffness(m0_paste*.2)) ;    
+	
+	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	sample.setBehaviour(new VoidForm() ) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .5 ;
+// 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
 	F.addBoundaryCondition(load) ;
-// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-0.205, -0.6) ));
-// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-0.205, -0.6) ));
-// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM,Point(0.205, -0.6) ));
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) );
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT) );
-// // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2075, -0.2025, -10, 10) );
-// // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2075, -0.2025, -10, 10) );
-// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2025, 0.2075,  -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-1.7, -1.2*.5-0.051) ));
+// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(1.7, -1.2*.5-0.051) ));
+// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM,Point(1.7, -1.2*.5-0.051) ));
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) );
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -2, -1.5, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -2, -1.5, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.5, 2,  -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
 	
 
+	F.addFeature(&sample,&rebar) ;
+	F.addFeature(NULL,&topsupport) ;
+// 	F.addFeature(NULL,&concrete) ;
+	F.addFeature(NULL,&topleftvoid) ;
+	F.addFeature(NULL,&toprightvoid) ;
+	F.addFeature(NULL,&bottomcentervoid) ;
+	F.addFeature(NULL,&leftbottomvoid) ;
+	F.addFeature(NULL,&rightbottomvoid) ;
 	
-// 	F.addFeature(&sample,&topsupport) ;
-// 	F.addFeature(&topsupport,&concrete) ;
-// 	F.addFeature(&sample,&concrete) ;
-// 	F.addFeature(&concrete,&notch) ;
-	
-// 	F.addFeature(&concrete,&baseleft) ;
-// 	F.addFeature(&concrete,&baseright) ;
+	F.addFeature(NULL,&baseleft) ;
+	F.addFeature(NULL,&baseright) ;
 // 	F.addFeature(&concrete,&notch) ;
 	
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(48) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

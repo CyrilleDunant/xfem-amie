@@ -22,7 +22,7 @@ VonMises::~VonMises()
 {
 }
 
-double VonMises::grade(const ElementState &s) const
+double VonMises::grade(const ElementState &s)
 {
 	double maxStress = s.getMaximumVonMisesStress() ;
 

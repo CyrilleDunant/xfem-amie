@@ -18,9 +18,9 @@ namespace Mu
 		std::vector<Inclusion *> inclusions ;
 		
 		if(dmax == 0.004)
-			inclusions = GranuloBolome(massOfAggregates, 1, BOLOME_D)(dmax*.5, .0001, inclusionNumber, itzSize, false);
+			inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_D)(dmax*.5, .0001, inclusionNumber, itzSize, false);
 		else
-			inclusions = GranuloBolome(massOfAggregates, 1, BOLOME_A)(dmax*.5, .0001, inclusionNumber, itzSize, false);
+			inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_A)(dmax*.5, .0001, inclusionNumber, itzSize, false);
 
 		std::vector<Feature *> feats ;
 		for(size_t i = 0; i < inclusions.size() ; i++)
@@ -31,10 +31,13 @@ namespace Mu
 		
 		double volume = 0 ;
 		for(size_t i = 0 ; i < feats.size() ; i++)
+		{
+			inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
 			volume += feats[i]->area() ;
+		}
 		if(!feats.empty())
 		{
-			std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() 
+			std::cout << "mass = " << exp(massOfAggregates) << " n = " << feats.size() << ", largest r = " << feats.front()->getRadius() 
 			<< ", smallest r =" << feats.back()->getRadius() << ", ratio = " << feats.front()->getRadius()/feats.back()->getRadius()
 			<< ", filling = " << volume/sample->area()*100.<< "%"<< std::endl ; 
 		
@@ -44,7 +47,7 @@ namespace Mu
 			
 			for(int i = 0  ; i < inclusions.size() ; i++)
 				delete inclusions[i] ;
-			return 1./(currentMinToMax/minMaxRatio + currentFill/fill) ;
+			return 1./(.01*currentMinToMax/minMaxRatio + currentFill/fill) ;
 		}
 		else
 		{
@@ -85,7 +88,7 @@ namespace Mu
 		this->sample = sample ;
 		
 		
-		inclusionNumber = 8000 ;
+		inclusionNumber = 20000 ;
 		if(dmax == 0.004)
 			inclusionNumber = 4096 ;
 // 		for(int i = 2 ; i < 1000 ; i++)
@@ -93,25 +96,25 @@ namespace Mu
 			srand(0) ;
 // 			massOfAggregates = 10.*area*fill*(double)i/1000 ; // .00000743*.75 ;
 			if(dmax == 0.004)
-				massOfAggregates = 0.0000416 ;
+				massOfAggregates = log(0.0000416) ;
 
 			std::vector<double * > val ;
-			val.push_back(&inclusionNumber);
+// 			val.push_back(&inclusionNumber);
 			val.push_back(&massOfAggregates);
 			
 			std::vector<std::pair<double, double> > bounds ;
 			
-			bounds.push_back(std::make_pair(5000, 15000)) ;
-			bounds.push_back(std::make_pair(6.9151e-06/16, 6.9151e-06*16)) ;
+// 			bounds.push_back(std::make_pair(5000, 15000)) ;
+			bounds.push_back(std::make_pair(log(.1e-5), log(1e-4))) ;
 			GeneticAlgorithmOptimizer ga(val, bounds, this) ;
-			ga.optimize(1e-4, 20, 10,  .1, .1) ;
+			ga.optimize(1e-4, 200, 20,  .1, .1) ;
 
 			std::vector<Inclusion *> inclusions ;
 			
 			if(dmax == 0.004)
-				inclusions = GranuloBolome(massOfAggregates, 1, BOLOME_D)(dmax*.5, .000001, inclusionNumber, itzSize);
+				inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_D)(dmax*.5, .000001, inclusionNumber, itzSize);
 			else
-				inclusions = GranuloBolome(massOfAggregates, 1, BOLOME_A)(dmax*.5, .000001, inclusionNumber, itzSize);
+				inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_A)(dmax*.5, .000001, inclusionNumber, itzSize);
 
 			std::vector<Feature *> feats ;
 			for(size_t i = 0; i < inclusions.size() ; i++)

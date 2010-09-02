@@ -22,8 +22,6 @@ namespace Mu {
 */
 class LinearDamage : public DamageModel
 {
-protected:
-	Vector state ;
 public:
 
 	/** \brief Constructor, set the number of degrees of freedom and a strain limit for failure

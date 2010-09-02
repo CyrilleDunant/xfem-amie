@@ -34,14 +34,14 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-	freeIds.clear();
+	freeIds[dtree].clear();
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		if(!cache[i]->enrichmentUpdated)
 		{
 			std::vector<size_t> idpts = cache[i]->clearEnrichment(getPrimitive()) ;
 			for(size_t j = 0 ; j < idpts.size() ; j++)
-				freeIds.insert(idpts[j]) ;
+				freeIds[dtree].insert(idpts[j]) ;
 		}
 		cache[i]->enrichmentUpdated = true ;
 	}
@@ -64,7 +64,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		{
 			std::vector<size_t> idpts = cache[i]->clearEnrichment(getPrimitive()) ;
 			for(size_t j = 0 ; j < idpts.size() ; j++)
-				freeIds.insert(idpts[j]) ;
+				freeIds[dtree].insert(idpts[j]) ;
 		}
 		cache[i]->enrichmentUpdated = true ;
 
@@ -143,12 +143,12 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 	
 	for(std::set<Point * >::const_iterator i = points.begin() ; i != points.end() ; ++i)
 	{
-		if(freeIds.empty())
+		if(freeIds[dtree].empty())
 			dofId[*i] = dtree->getLastNodeId()++ ;
 		else
 		{
-			dofId[*i] = *freeIds.begin() ;
-			freeIds.erase(freeIds.begin()) ;
+			dofId[*i] = *freeIds[dtree].begin() ;
+			freeIds[dtree].erase(freeIds[dtree].begin()) ;
 		}
 	}
 	
@@ -323,10 +323,11 @@ std::vector<Geometry *> EnrichmentInclusion::getRefinementZones( size_t level) c
 	
 void EnrichmentInclusion::step(double dt, std::valarray< double >*, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
 	
-bool EnrichmentInclusion::moved() const { return updated ;}
+bool EnrichmentInclusion::moved() const {  return updated ;}
 
 void EnrichmentInclusion::setRadius(double newR)
 {
 	Circle::setRadius(newR) ;
 	updated = true ;
+//	std::cout << "updating radius" << std::endl ;
 }

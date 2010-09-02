@@ -325,6 +325,7 @@ Pixel::~Pixel()
 bool Pixel::coOccur(const Geometry * inc) const
 {
 	std::vector<Point> bbox = inc->getBoundingBox() ;
+	Rectangle test((tl.x+br.x)*.5, (tl.y+br.y)*.5, tr.x-bl.x, tr.y-bl.y) ;
 	return inc->in(tl) 
 		|| inc->in(tr) 
 		|| inc->in(br) 
@@ -338,7 +339,8 @@ bool Pixel::coOccur(const Geometry * inc) const
 		|| in(bbox[0])
 		|| in(bbox[1])
 		|| in(bbox[2]) 
-		|| in(bbox[3])  ;
+		|| in(bbox[3])  
+		|| test.intersects(inc);
 }
 
 bool Pixel::coOccur(const Point & p) const

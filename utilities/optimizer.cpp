@@ -310,7 +310,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		
 		
 		for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
-			std::cout << *lowLevelVars[i] << ", "<< std::flush ;
+			std::cout << *lowLevelVars[i] << " ("<<exp(*lowLevelVars[i]) << "), "<< std::flush ;
 		//iterate
 		err = sorted.begin()->first ;
 		if(it == 0)
@@ -441,7 +441,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 		generator->print() ;
 		
 		for(size_t i = 0 ; i < lowLevelVars.size() ; i++)
-			std::cout << *lowLevelVars[i] << ", "<< std::flush ;
+			std::cout << *lowLevelVars[i] << " ("<<exp(*lowLevelVars[i]) << "), "<< std::flush ;
 		//iterate
 		err = sorted.begin()->first ;
 		if(it == 0)

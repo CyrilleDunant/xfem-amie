@@ -13,9 +13,9 @@
 
 namespace Mu {
 
-LinearDamage::LinearDamage(int numDof, double characteristicRadius)
- : DamageModel(characteristicRadius), state(numDof + 1)
+LinearDamage::LinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
 {
+	state.resize(numDof + 1, 0.) ;
 	isNull = false ;
 	state = 0 ;
 }

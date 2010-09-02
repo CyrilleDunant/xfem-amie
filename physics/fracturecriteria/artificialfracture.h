@@ -43,7 +43,7 @@ class DelaunayTetrahedron ;
 		 * @param  ElementState to consider
 		 * @return a value between 0 and 1
 		 */
-		virtual double grade(const ElementState & s) const = 0 ;
+		virtual double grade(const ElementState & s) = 0 ;
 		
 		/** \brief Produce a copy of the fracture criterion
 		 * 

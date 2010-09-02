@@ -23,6 +23,9 @@ using namespace Mu ;
 
 WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, double cri) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.1)
 {
+	materialRadius = .001;
+	neighbourhoodRadius = .004 ;
+		
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() == 36)
@@ -45,11 +48,15 @@ bool WeibullDistributedStiffness::fractured() const
 
 Form * WeibullDistributedStiffness::getCopy() const 
 {
-	double weib = RandomNumber().weibull(variability*2.,0.5) ;
+	double weib = RandomNumber().weibull(variability,0.5) ;
 	Matrix newTensor (param*(1.-variability+weib)) ;
-	return new StiffnessAndFracture(newTensor, 
+	StiffnessAndFracture * ret = new StiffnessAndFracture(newTensor, 
 		new MohrCoulomb(criterion*(1.-variability+weib),
 		 -8.*(criterion*(1.-variability+weib)))) ;
+	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
+	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
+	ret->dfunc.setCharacteristicRadius(materialRadius);
+	return ret ;
 }
 
 

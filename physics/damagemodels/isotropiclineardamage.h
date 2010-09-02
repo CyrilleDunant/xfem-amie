@@ -22,7 +22,6 @@ namespace Mu {
 class IsotropicLinearDamage : public DamageModel
 {
 protected:
-	Vector state ;
 	double eps ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom

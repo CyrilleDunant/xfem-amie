@@ -23,7 +23,7 @@ MohrCoulomb::~MohrCoulomb()
 {
 }
 
-double MohrCoulomb::grade(const ElementState &s) const 
+double MohrCoulomb::grade(const ElementState &s) 
 {
 
 	if(s.getParent()->getBehaviour()->fractured())
@@ -39,18 +39,18 @@ double MohrCoulomb::grade(const ElementState &s) const
 	{
 		Vector pstress3 = s.getPrincipalStresses(Point(0, 0, 1), true) ;
 		maxStress = std::max(pstress3.max(),maxStress);
-		minStress = std::min(pstress3.min(), minStress);
+                minStress = std::min(pstress3.min(), minStress);
 	}
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
 	if( maxStress >= upVal )
 	{
+//            std::cout << upVal << ":" << maxStress << std::endl ;
 		return 1. - std::abs(upVal/maxStress) ;
 	}
 		
 	if( minStress <= downVal )
 	{
-
-		return 1. - std::abs(downVal/minStress) ;
+                return 1. - std::abs(downVal/minStress) ;
 	}
 	
 	double s0 = -1. + std::abs(maxStress/upVal);

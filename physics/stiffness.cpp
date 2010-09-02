@@ -75,8 +75,6 @@ bool PseudoPlastic::changed() const
 
 void PseudoPlastic::fixLastDamage()
 {
-	lastCritUp = dynamic_cast<MohrCoulomb *>(crit)->upVal ;
-	lastCritDown = dynamic_cast<MohrCoulomb *>(crit)->downVal ;
 	lastDamage = alpha ;
 	fixedfrac = frac ;
 }
@@ -100,21 +98,49 @@ void PseudoPlastic::step(double timestep, ElementState & currentState)
 	Vector p(1) ; p[0] = 1.-lastDamage ;
 	if(crit->met(currentState))
 	{
-// 		damagemodel->damageState() = p ;
+		damagemodel->damageState() = p ;
 		currentState.getParent()->behaviourUpdated = true ;
-		double talpha = lastDamage ;
-		double balpha = 0.00001 ;
-		while(std::abs(crit->grade(currentState)) > 1e-5)
+// 		double talpha = lastDamage ;
+// 		double balpha = 0.00001 ;
+		while(crit->grade(currentState) > 0)
 		{
-			alpha = (talpha+balpha)*.5 ;
-			if(crit->grade(currentState) < 0)
-				balpha = alpha ;
-			else
-				talpha = alpha ;
-// 			damagemodel->step(currentState);
-// 			alpha = 1.-damagemodel->damageState()[0] ;
-// 			frac = damagemodel->fractured() ;
+// 			alpha = (talpha+balpha)*.5 ;
+// 			if(crit->grade(currentState) < 0)
+// 				balpha = alpha ;
+// 			else
+// 				talpha = alpha ;
+			double deltaState = damagemodel->damageState()[0] ;
+			damagemodel->step(currentState);
+			
+			if(crit->grade(currentState) < -1e-6)
+			{
+				while(crit->grade(currentState) < -1e-6)
+				{
+					damagemodel->state[0]+= 5e-7 ;
+					alpha = 1.-damagemodel->damageState()[0] ;
+				}
+			}
+			deltaState = damagemodel->damageState()[0]-deltaState ;
+			
+// 			DelaunayTriangle * self = dynamic_cast<DelaunayTriangle *>(currentState.getParent()) ;
+// 			Circle c(damagemodel->getCharacteristicRadius()*2.,  self->getCenter()) ;
+// 			std::vector<DelaunayTriangle *> neighbourhood = self->tree->getConflictingElements(&c) ;
+// 			for(int i = 0 ; i < neighbourhood.size() ; i++)
+// 			{
+// 				if(dynamic_cast<PseudoPlastic *>(neighbourhood[i]->getBehaviour()))
+// 				{
+// 					double d = dist(self->getCenter(), neighbourhood[i]->getCenter()) ;
+// 					PseudoPlastic * psp = dynamic_cast<PseudoPlastic *>(neighbourhood[i]->getBehaviour()) ;
+// 					psp->damagemodel->state[0] += deltaState*exp(-d*d/(.25*damagemodel->getCharacteristicRadius()*damagemodel->getCharacteristicRadius())) ;
+// 					psp->alpha = 1.-psp->damagemodel->damageState()[0] ;
+// 				}
+// 			}
+			
+			alpha = 1.-damagemodel->damageState()[0] ;
+			frac = damagemodel->fractured() ;
 		}
+// 		alpha = balpha ;
+// 		std::cout << "c" << std::flush ;
 // 		if(frac)
 // 			alpha = 0.00001 ;
 		change = true ;

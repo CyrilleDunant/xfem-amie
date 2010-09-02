@@ -127,8 +127,8 @@ Vector fracCrit(0) ;
 Vector g_count(0) ;
 
 double nu = 0.3 ;
-double E_agg = 30000.;//softest
-double E_paste = E_agg/4. ;//stiff
+double E_agg = 4.*1e9;//softest
+double E_paste = 1.*1e9 ;//stiff
 double E_stiff = E_agg*10. ;//stiffer
 double E_soft = E_agg/10.; //stiffest
 
@@ -1323,12 +1323,21 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
+        double 	specific = atof(argv[1]) ;
+
+
+        Ellipse ell(Point(0.,0.), Point(specific,0.),0.5) ;
+        ell.sampleSurface(50);
+        return 0;
+
 
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
+
+        m0_paste.print() ;
 
 	// Material behaviour of the fibres
 	Matrix m0_agg(3,3) ;
@@ -1353,22 +1362,22 @@ int main(int argc, char *argv[])
 	d[1] = 0 ;
 	
 	Vector e(3) ;
-	e[0] = .5 ;
-	e[1] = .5 ;
+        e[0] = .1 ;
+        e[1] = .1 ;
 
 	Sample sample(NULL,110,110,0,0) ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
+        sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, e)) ;
 // 	sample.setBehaviour(new VoidForm()) ;
 
-	Point a(-50,-50) ;
+/*	Point a(-50,-50) ;
 	Point b(50,0) ;
 	Point c(-50,50) ;
 	
 // 	Sample * tri = new Sample(100, 30, 0, 0) ;
-// 	tri->setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(50./8, -50)*/)) ;
+// 	tri->setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(50./8, -50))) ;
 // 	F.addFeature(&sample, tri) ;
 
 	Inclusion * inc0 = new Inclusion(5, 0, 0) ;
@@ -1381,11 +1390,11 @@ int main(int argc, char *argv[])
 	ExpansiveRing * ring = new ExpansiveRing(inc0, 36, 34,  0, 0, m0_paste*.5, e) ;
 // 	F.addFeature(tri, inc0) ;
 // 	F.addFeature(inc0, ring) ;
-	F.addFeature(&sample, ring) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+        F.addFeature(&sample, ring) ;*/
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, -10)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.sample(400) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+        F.sample(200) ;
 	F.generateElements() ;
 	F.setOrder(QUADRATIC) ;
 

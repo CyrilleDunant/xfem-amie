@@ -39,7 +39,7 @@ public:
 	 * The distance is computed as: \f$ 1.-|\frac{Limit\; strain}{max\; Mises; strain\; in\; element}|  \f$
 	 * @param s ElementState to consider
 	*/
-	virtual double grade(const ElementState &s) const  ;
+	virtual double grade(const ElementState &s)  ;
  	
 	/** \brief Return a copy of this criterion
 	 */

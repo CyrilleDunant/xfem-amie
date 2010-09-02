@@ -30,6 +30,7 @@ class DelaunayTetrahedron ;
 		std::vector<DelaunayTriangle *> cache ;
 		std::vector<DelaunayTetrahedron *> cache3d ;
 		double eps ;
+		double physicalCharacteristicRadius ;
 	public:
 		FractureCriterion() ;
 		virtual void initialiseCache(const ElementState & s) ;
@@ -49,7 +50,7 @@ class DelaunayTetrahedron ;
 		 * @param  ElementState to consider
 		 * @return a value between -1 and 1
 		 */
-		virtual double grade(const ElementState & s) const = 0 ;
+		virtual double grade(const ElementState & s) = 0 ;
 		
 		/** \brief Produce a copy of the fracture criterion
 		 * 
@@ -63,6 +64,8 @@ class DelaunayTetrahedron ;
 		 */
 		virtual void setNeighbourhoodRadius(double r) ;
 
+		virtual void setMaterialCharacteristicRadius(double r) ;
+		
 		virtual Material toMaterial() ;
 		
 		const std::vector<DelaunayTriangle *> & getCache() const { return cache ; } ;

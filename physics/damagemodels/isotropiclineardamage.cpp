@@ -13,9 +13,9 @@
 
 namespace Mu {
 
-IsotropicLinearDamage::IsotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius),
- state(1)
+IsotropicLinearDamage::IsotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
 {
+	state.resize(1, 0.);
 	state[0] = 0 ;
 	isNull = false ;
 }
@@ -39,18 +39,21 @@ void IsotropicLinearDamage::step(ElementState & s)
 		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 			volume = s.getParent()->area() ;
 		else
-			volume = s.getParent()->volume() ;
+			volume = pow(s.getParent()->volume(), 2./3.) ;
 		
 		double charVolume ;
 		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 			charVolume = M_PI*characteristicRadius*characteristicRadius ;
 		else
-			charVolume = 4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius ;
+			charVolume = pow(4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius, 2./3.) ;
 		fraction = volume/charVolume ;
 		if(fraction > 1)
 			std::cout << "elements too large for damage characteristic radius!" << std::endl ;
 		fraction = std::min(fraction, 1.) ;
 	}
+	double E_2 = s.getParent()->getBehaviour()->param[0][0] ; E_2*=E_2 ;
+	double l_2 = s.getParent()->area() ; 
+	double maxincrement = (l_2*E_2-1.)/(l_2+l_2*E_2) ;
 	state[0] += damageDensityIncrement*fraction ; 
 	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
 

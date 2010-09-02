@@ -1267,7 +1267,7 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 		gettimeofday(&time0, NULL);
 
 		ConjugateGradientWithSecant cg(this) ;
-		ret = cg.solve(x0, NULL, 5e-8, -1, false) ;
+		ret = cg.solve(x0, NULL, 5e-9, -1, false) ;
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

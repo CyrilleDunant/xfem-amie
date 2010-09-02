@@ -35,7 +35,7 @@ public:
 	{ 
 		isNull = true ; 
 		thresholdDamageDensity = .2 ;
-		damageDensityIncrement = .1 ;
+		damageDensityIncrement = .2 ;
 		fraction = -1 ;
 	} ;
 	

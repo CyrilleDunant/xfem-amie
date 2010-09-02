@@ -23,7 +23,7 @@ MaximumStrain::~MaximumStrain()
 {
 }
 
-double MaximumStrain::grade(const ElementState &s) const
+double MaximumStrain::grade(const ElementState &s)
 {
 	Vector pstrain = s.getStrain(s.getParent()->getBoundingPoints()) ;
 	double maxStrain = pstrain.max();

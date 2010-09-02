@@ -2771,6 +2771,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
 	{
+		if(cachedGps->id == REGULAR_GRID)
+			return *getCachedGaussPoints() ;
+		
 		std::vector<std::pair<Point, double> > gp_alternative ;
 		VirtualMachine vm ;
 		std::vector<Point *> to_add = getIntegrationHints();
@@ -2782,24 +2785,22 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		double lastError = 10 ;
 		size_t maxGradientIndex = 0 ;
 		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
-		if(to_add.size() == 0)
+		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 50 ;
-			for(double k = 0  ; k < ndivs ; k++)
+			double ndivs = 128 ;
+			for(double k = 1  ; k < ndivs ; k++)
 			{
-				for(double l = 0  ; l < ndivs ; l++)
+				for(double l = 1  ; l < ndivs ; l++)
 				{
-					if( k+l < ndivs )
+					if( k/ndivs + l/ndivs < .5 )
 						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
 				}
 			}
 			
-			double a = area() ; 
-			for(size_t i =0 ; i < gp_alternative.size() ; i++)
+			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
 			{
-				gp_alternative[i].second = a/gp_alternative.size() ;
+				gp_alternative[i].second = jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
 			}
-			
 			if(gp.gaussPoints.size() < gp_alternative.size())
 			{
 				
@@ -2808,6 +2809,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 				gp.id = -1 ;
 			}
 			setCachedGaussPoints(new GaussPointArray(gp)) ;
+			cachedGps->id = REGULAR_GRID ;
 			return *getCachedGaussPoints() ;
 		}
 

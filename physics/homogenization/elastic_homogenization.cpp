@@ -363,20 +363,26 @@ Vector GeneralizedSelfConsistent::process(const Matrix & data)
 	Vector next_hom(3) ;
 	next_hom = hom ;
 	double error = 1. ;
+	int nit = 0 ;
+	Matrix iscm(2,3) ;		
+	Matrix isc(2,3) ;
+	Vector res_mt(2) ;
+	Vector resm_mt(2) ;
 	while(error > 1e-6)
 	{
 		error = 1. ;
 		Vector dk(data.numRows()) ;
 		Vector dmu(data.numRows()) ;
 
-		Matrix iscm(2,3) ;
+		iscm.array() = 0 ;
 		iscm[0][0] = 1. - data[0][0] ;
 		iscm[0][1] = hom[1] ;
 		iscm[0][2] = hom[2] ;
 		iscm[1][0] = data[0][0] ;
 		iscm[1][1] = data[0][1] ;
 		iscm[1][2] = data[0][2] ;
-		Vector resm_mt(2) ;
+		resm_mt = 0 ;
+		
 		resm_mt = MoriTanaka().process(iscm) ;
 
 		double fm = iscm[1][0] ;
@@ -398,8 +404,8 @@ Vector GeneralizedSelfConsistent::process(const Matrix & data)
 
 		for(size_t i = 1 ; i < data.numRows() ; i++)
 		{
-			Matrix isc(2,3) ;
-
+			isc.array() = 0 ;
+			res_mt = 0 ;
 			isc[0][0] = 1. - data[i][0] ;
 			isc[0][1] = hom[1] ;
 			isc[0][2] = hom[2] ;
@@ -407,7 +413,7 @@ Vector GeneralizedSelfConsistent::process(const Matrix & data)
 			isc[1][1] = data[i][1] ;
 			isc[1][2] = data[i][2] ;
 
-			Vector res_mt(2) ;
+			
 			res_mt = MoriTanaka().process(isc) ;
 
 			double fi = isc[1][0] ;

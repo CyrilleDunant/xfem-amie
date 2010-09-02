@@ -22,7 +22,6 @@ namespace Mu {
 class StrainBrokenIsotropicLinearDamage : public DamageModel
 {
 protected:
-	Vector state ;
 	double eps ;
 	double limitStrain ;
 public:

@@ -11,6 +11,7 @@
 #include "../utilities/optimizer.h"
 #include "../mesher/structuredmesh.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/fracturecriteria/vonmises.h"
@@ -372,7 +373,7 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 20;
+	size_t max_growth_steps = 3;
 	size_t max_limit = 100 ;
 	size_t countit = 0;	
 	int limit = 0 ;
@@ -1075,9 +1076,12 @@ void Display(void)
 				
 				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
 				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
-				
+				double s = 1. ;
+				if(fracCrit[j*triangles[j]->getBoundingPoints().size()] <= 0)
+					s = .2 ;
+					
 				glBegin(GL_TRIANGLE_FAN);
-				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()]-crit_min)/(crit_max-crit_min), 1., 1.) ;
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()]-crit_min)/(crit_max-crit_min), s, 1.) ;
 				glColor3f(c1, c2, c3) ;
 				
 				glVertex2f(double(triangles[j]->getBoundingPoint(start).x + vx) , double(triangles[j]->getBoundingPoint(start).y + vy) );
@@ -1087,7 +1091,7 @@ void Display(void)
 					vx = x[triangles[j]->getBoundingPoint(k).id*2];
 					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
-					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()+k]-crit_min)/(crit_max-crit_min), 1., 1.) ;
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()+k]-crit_min)/(crit_max-crit_min), s, 1.) ;
 					glColor3f(c1, c2, c3) ;
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
 					
@@ -1650,93 +1654,7 @@ struct Block
 
 int main(int argc, char *argv[])
 {
-// 	srand(1);
-// 	int dit = 128 ;
-// 	std::vector<double> parak(dit, 0.)  ;
-// 	std::vector<double> serik(dit, 0.)  ;
-// 	std::vector<double> actuk(dit, 0.)  ;
-// 	
-// 	for(int r = 0 ; r < 512 ; r++)
-// 	{
-// 		std::vector<double> pparak(parak)  ;
-// 		std::vector<double> pserik(serik)  ;
-// 		std::vector<double> pactuk(actuk)  ;
-// 		
-// 		int size = 9 ;
-// 		std::vector<double *> k(size) ;
-// 		int kit = 0 ;
-// 		Block real(size) ;
-// 		std::vector<Block *> tocheck = real.blocks ;
-// 		while(!tocheck.empty())
-// 		{
-// 			std::vector<Block *> newTocheck ;
-// 			for(int j = 0 ; j < tocheck.size() ; j ++)
-// 			{
-// 				if(tocheck[j]->blocks.size() == 0)
-// 				{
-// 					k[kit] = &tocheck[j]->stiff ;
-// 					kit++ ;
-// 				}
-// 				else
-// 					newTocheck.insert(newTocheck.end(), tocheck[j]->blocks.begin(), tocheck[j]->blocks.end()) ;
-// 			}
-// 			tocheck = newTocheck;
-// 		}
-// 		
-// 		double parak0 = 0 ;
-// 		double serik0 = 0 ;
-// 		double actuk0 = real.equivStifness() ;
-// 		double block = 0 ;
-// 		for(int i = 0 ; i < k.size() ; i++)
-// 		{
-// 			parak0+= *k[i] ;
-// 			serik0+=1./(*k[i]) ;
-// 
-// 		}
-// 
-// 		serik0 = 1./serik0 ;
-// 		for(int j=0 ; j< dit ; j++)
-// 		{
-// 			int idx = rand()%size ;
-// 			int tries = 0 ;
-// 			while(tries++ < 256)
-// 			{
-// 				if(*k[idx] < 0.02)
-// 					idx = rand()%size ;
-// 				else
-// 					break ;
-// 			}
-// 			if(tries > 255)
-// 				break ;
-// 			
-// 			*k[idx] = std::max(0.01, *k[idx]-0.2) ;
-// 
-// 			for(int i = 0 ; i < k.size() ; i++)
-// 			{
-// 				parak[j]+= *k[i] ;
-// 				serik[j]+=1./(*k[i]) ;
-// 			}
-// 
-// 			serik[j] = 1./serik[j] ;
-// 			actuk[j] = real.equivStifness() ;
-// 			if(r > 1)
-// 			{
-// 				serik[j] = serik[j]/serik0*(1./(r))+pserik[j]*((double)(r-1)/r) ;
-// 				actuk[j] = actuk[j]/actuk0*(1./(r))+pactuk[j]*((double)(r-1)/r) ;
-// 				parak[j] = parak[j]/parak0*(1./(r))+pparak[j]*((double)(r-1)/r) ;
-// 			}
-// 			else
-// 			{
-// 				serik[j] = serik[j]/serik0 ;
-// 				actuk[j] = actuk[j]/actuk0 ;
-// 				parak[j] = parak[j]/parak0 ;
-// 			}
-// 		}
-// 	}
-// 	for(int i = 0 ; i < dit ; i++)
-// 		std::cout << serik[i] << "  " << actuk[i] << "  "<< parak[i] << std::endl ;
-// 	
-// 	exit(0) ;
+
   // Material behaviour of the matrix
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1768,8 +1686,9 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	Sample sm(0.2, 0.2, 0, 0) ;
-// 	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00005, .72, 65).getFeatures(sm.getPrimitive()) ;
+	Sample sm(0.07, 0.07, 0, 0) ;
+	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00002, .72, 65).getFeatures(sm.getPrimitive()) ;
+	exit (0 );
 // 	for(int i = 0 ; i < incs.size() ; i++)
 // 	{
 // 		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
@@ -1779,7 +1698,8 @@ int main(int argc, char *argv[])
 // 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 20 ;
+	double cradius = 50 ;
+	double mradius = 20 ;
 	double tdamage = .999 ;
 	double dincrement = .1 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
@@ -1787,18 +1707,20 @@ int main(int argc, char *argv[])
 	dfunc->setThresholdDamageDensity(tdamage);
 	dfunc->setDamageDensityIncrement(dincrement);
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, new MohrCoulomb(10./8, -50), dfunc) ;
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, new NonLocalVonMises(10./8, cradius), dfunc) ;
 	psp->crit->setNeighbourhoodRadius(cradius);
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10./8, -50), cradius) ;
+	psp->crit->setMaterialCharacteristicRadius(mradius);
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(10./8), cradius) ;
 	saf->dfunc.setCharacteristicRadius(cradius) ;
+	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->dfunc.setThresholdDamageDensity(tdamage);
 	saf->dfunc.setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 	
 // 	sample.setBehaviour(saf) ;
-	sample.setBehaviour(psp) ;
-// 	sample.setBehaviour(sf) ;
+// 	sample.setBehaviour(psp) ;
+	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 // 	F.addFeature(&sample, new Pore(20, -155, 155) );
@@ -1845,8 +1767,8 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(256) ;
-	F.useMultigrid = false ;
+	F.sample(800) ;
+	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 

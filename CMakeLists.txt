@@ -6,12 +6,12 @@ find_package(OpenMP)
 if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
 endif( OpenMP_FOUND EQUAL 1 )
-find_package(GLUT)
-if( GLUT_FOUND EQUAL 1 )
-	include(GLUT)
-else( GLUT_FOUND EQUAL 0 )
-	message( STATUS " GLUT not found " )
-endif( GLUT_FOUND EQUAL 1 )
+#find_package(GLUT)
+#if( GLUT_FOUND EQUAL 1 )
+	include(FindGLUT)
+#else( GLUT_FOUND EQUAL 0 )
+#	message( STATUS " GLUT not found " )
+#endif( GLUT_FOUND EQUAL 1 )
 
 set(ALL_SRC 
 elements/elements.cpp 
@@ -50,6 +50,7 @@ physics/damagemodels/isotropiclineardamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
+physics/fracturecriteria/nonlocalvonmises.cpp 
 physics/mad.cpp 
 physics/diffusion.cpp 
 physics/dual_behaviour.cpp 
@@ -126,9 +127,6 @@ utilities/samplingcriterion.cpp
 utilities/xml.cpp
 features/microstructuregenerator.cpp
 )
-
-find_package(GLUT)
-find_package(OpenMP)
 
 message (STATUS "checking for C++ TR1 extensions")
 try_run (TR1_TEST_EXITCODE TR1_TEST_COMPILED
@@ -268,6 +266,8 @@ endif(DEBUG_BUILD EQUAL 1)
 if(CMAKE_HOST_WIN32)
 	set(GLUT_LIBRARY "-lfreeglut -lopengl32 -lglu32")
 endif(CMAKE_HOST_WIN32)
+
+message(${GLUT_LIBRARY})
 
 add_library (Amie ${ALL_SRC})
 

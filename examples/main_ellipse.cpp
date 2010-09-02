@@ -1557,7 +1557,7 @@ int main(int argc, char *argv[])
 /*        Grid grid(box.getPrimitive()->getRadius()*2, box.getPrimitive()->getRadius()*2, 100, box.getCenter()) ;
 
         std::cout << "checking for intersection... takes some time..." << std::endl ;*/
-        for(size_t i = 0 ; i < 2000 ; i++) {
+        for(size_t i = 0 ; i < feats.size() ; i++) {
             ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
  //           if(!grid.add(ellipses[i]->getPrimitive()))
  //               std::cout << i << std::endl ;
@@ -1668,6 +1668,12 @@ int main(int argc, char *argv[])
             F.addFeature(&box,ellipses[i]) ;
             ellipses[i]->setBehaviour(new Stiffness(m0_agg)) ;
         }
+        
+        Sample * test = &box ;
+        XMLTree * toXML = dynamic_cast<Rectangle *>(test)->toXML() ;
+	toXML->print(true) ;
+	
+	return 0 ;
 
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.1)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
