@@ -2771,7 +2771,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
 	{
-		if(cachedGps->id == REGULAR_GRID)
+		if(getCachedGaussPoints()->id == REGULAR_GRID)
 			return *getCachedGaussPoints() ;
 		
 		std::vector<std::pair<Point, double> > gp_alternative ;
@@ -2806,10 +2806,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 				
 				gp.gaussPoints.resize(gp_alternative.size()) ;
 				std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-				gp.id = -1 ;
+				gp.id = REGULAR_GRID ;
 			}
 			setCachedGaussPoints(new GaussPointArray(gp)) ;
-			cachedGps->id = REGULAR_GRID ;
 			return *getCachedGaussPoints() ;
 		}
 

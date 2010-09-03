@@ -751,7 +751,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 && incs[j]->getRadius() <= 0.001 && incs[j]->getRadius() > 0.000)
+			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 && incs[j]->getRadius() <= 0.002 && incs[j]->getRadius() > 0.001)
 			{
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;

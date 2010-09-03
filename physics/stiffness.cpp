@@ -101,21 +101,23 @@ void PseudoPlastic::step(double timestep, ElementState & currentState)
 	{
 		damagemodel->damageState() = p ;
 		currentState.getParent()->behaviourUpdated = true ;
-		double talpha = lastDamage ;
-		double balpha = 0.00001 ;
-		while(std::abs(localcrit->grade(currentState)) < 1e-5)
+		double balpha = lastDamage ;
+		double talpha = 0.00001 ;
+		if(localcrit->grade(currentState) > 0)
 		{
-			damagemodel->step(currentState);
-			change = true ;
-			alpha = (talpha+balpha)*.5 ;
-			if(crit->grade(currentState) < 0)
-				balpha = alpha ;
-			else
-				talpha = alpha ;
-			std::cout << alpha << std::endl ;
-			damagemodel->damageState()[0] = 1-balpha ;
-			
-			frac = damagemodel->fractured() ;
+			while(std::abs(localcrit->grade(currentState)) > 1e-5)
+			{
+				damagemodel->step(currentState);
+				change = true ;
+				alpha = (talpha+balpha)*.5 ;
+				damagemodel->damageState()[0] = 1-alpha ;
+				if(localcrit->grade(currentState) > 0)
+					balpha = alpha ;
+				else
+					talpha = alpha ;
+				
+				frac = damagemodel->fractured() ;
+			}
 		}
 // 		alpha = balpha ;
 // 		std::cout << "c" << std::flush ;

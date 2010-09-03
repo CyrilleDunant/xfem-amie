@@ -1699,7 +1699,7 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
 	double cradius = 50 ;
-	double mradius = 20 ;
+	double mradius = 5 ;
 	double tdamage = .999 ;
 	double dincrement = .1 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
@@ -1767,7 +1767,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(128) ;
+	F.sample(1024) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
