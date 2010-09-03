@@ -2787,7 +2787,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 128 ;
+			double ndivs = 64 ;
 			for(double k = 1  ; k < ndivs ; k++)
 			{
 				for(double l = 1  ; l < ndivs ; l++)

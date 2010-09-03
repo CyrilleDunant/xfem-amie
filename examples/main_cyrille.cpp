@@ -1687,8 +1687,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	Sample sm(0.07, 0.07, 0, 0) ;
-	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00002, .72, 65).getFeatures(sm.getPrimitive()) ;
-	exit (0 );
+// 	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00002, .72, 65).getFeatures(sm.getPrimitive()) ;
+// 	exit (0);
 // 	for(int i = 0 ; i < incs.size() ; i++)
 // 	{
 // 		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
@@ -1719,8 +1719,8 @@ int main(int argc, char *argv[])
 
 	
 // 	sample.setBehaviour(saf) ;
-// 	sample.setBehaviour(psp) ;
-	sample.setBehaviour(sf) ;
+	sample.setBehaviour(psp) ;
+// 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 // 	F.addFeature(&sample, new Pore(20, -155, 155) );

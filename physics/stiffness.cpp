@@ -56,8 +56,8 @@ Material Stiffness::toMaterial()
 
 PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, FractureCriterion* crit, DamageModel * damagemodel): LinearForm(rig, false, true, rig.numRows()/3+1), crit(crit), damagemodel(damagemodel), alpha(1), change(true)
 {
-	lastCritUp = dynamic_cast<MohrCoulomb *>(crit)->upVal ;
-	lastCritDown = dynamic_cast<MohrCoulomb *>(crit)->downVal ;
+// 	lastCritUp = dynamic_cast<MohrCoulomb *>(crit)->upVal ;
+// 	lastCritDown = dynamic_cast<MohrCoulomb *>(crit)->downVal ;
 	lastDamage = alpha ;
 	v.push_back(XI);
 	v.push_back(ETA);
