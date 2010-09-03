@@ -30,6 +30,7 @@ protected:
 public:
 	
 	Vector state ;
+	Vector previousstate ;
 	
 	DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
 	{ 
@@ -106,6 +107,8 @@ public:
 	 * @return a new Matrix
 	 */
 	virtual Matrix apply(const Matrix & m) const = 0 ;
+	
+	virtual Matrix applyPrevious(const Matrix & m) const = 0 ;
 
 	virtual DamageModel * getCopy() const = 0 ;
 	/** \brief Modify the rigidity matrix according to the damage model function (for space-time behaviour)
@@ -122,7 +125,7 @@ class NullDamage : public DamageModel
 {
 public:
 
-	NullDamage() : DamageModel(0) { state.resize(0);} ;
+	NullDamage() : DamageModel(0) { state.resize(0); previousstate.resize(0);} ;
 
 	/** \brief Return the vector of variables describing the damage state
 	 * 
@@ -158,6 +161,7 @@ public:
 	 * @return m
 	 */
 	virtual Matrix apply(const Matrix & m) const {return m ;} ;
+	virtual Matrix applyPrevious(const Matrix & m) const {return m ;} ;
 	
 	virtual bool fractured() const {return false ; } ;
 	

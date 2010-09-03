@@ -1790,9 +1790,9 @@ int main(int argc, char *argv[])
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius()-itzSize 
 		<< ", smallest r =" << feats.back()->getRadius()-itzSize << std::endl ; 
 
-// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 13500000)) ;
-// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .002 ;
-	sample.setBehaviour(new Stiffness(m0_paste)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 13500000)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .002 ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	if(restraintDepth > 0)
 	{
 		Sample * voidtop = new Sample(NULL, restraintDepth*.5,restraintDepth*.5, sample.getCenter().x-(sample.width()-restraintDepth)*.5-restraintDepth*.25, sample.getCenter().y+(sample.height()-restraintDepth)*.5+0.0025 ) ;
@@ -1831,8 +1831,8 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-// 		WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
-		Stiffness * stiff = new Stiffness(m0_agg) ;
+		WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+// 		Stiffness * stiff = new Stiffness(m0_agg) ;
 // 		stiff->variability = .5 ;
 		inclusions[i]->setBehaviour(stiff) ;
 		F.addFeature(&sample,inclusions[i]) ;

@@ -54,7 +54,7 @@ Material Stiffness::toMaterial()
 }
 
 
-PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, FractureCriterion* crit, DamageModel * damagemodel): LinearForm(rig, false, true, rig.numRows()/3+1), crit(crit), damagemodel(damagemodel), alpha(1), change(true)
+PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, FractureCriterion* crit, FractureCriterion* localcrit,  DamageModel * damagemodel): LinearForm(rig, false, true, rig.numRows()/3+1), crit(crit), localcrit(localcrit), damagemodel(damagemodel), alpha(1), change(true)
 {
 // 	lastCritUp = dynamic_cast<MohrCoulomb *>(crit)->upVal ;
 // 	lastCritDown = dynamic_cast<MohrCoulomb *>(crit)->downVal ;
@@ -93,6 +93,7 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 
 void PseudoPlastic::step(double timestep, ElementState & currentState)
 {
+	
 	frac = fixedfrac ;
 	change = false ;
 	Vector p(1) ; p[0] = 1.-lastDamage ;
@@ -100,50 +101,27 @@ void PseudoPlastic::step(double timestep, ElementState & currentState)
 	{
 		damagemodel->damageState() = p ;
 		currentState.getParent()->behaviourUpdated = true ;
-// 		double talpha = lastDamage ;
-// 		double balpha = 0.00001 ;
-		while(crit->grade(currentState) > 0)
+		double talpha = lastDamage ;
+		double balpha = 0.00001 ;
+		while(std::abs(localcrit->grade(currentState)) < 1e-5)
 		{
-// 			alpha = (talpha+balpha)*.5 ;
-// 			if(crit->grade(currentState) < 0)
-// 				balpha = alpha ;
-// 			else
-// 				talpha = alpha ;
-			double deltaState = damagemodel->damageState()[0] ;
 			damagemodel->step(currentState);
+			change = true ;
+			alpha = (talpha+balpha)*.5 ;
+			if(crit->grade(currentState) < 0)
+				balpha = alpha ;
+			else
+				talpha = alpha ;
+			std::cout << alpha << std::endl ;
+			damagemodel->damageState()[0] = 1-balpha ;
 			
-			if(crit->grade(currentState) < -1e-6)
-			{
-				while(crit->grade(currentState) < -1e-6)
-				{
-					damagemodel->state[0]+= 5e-7 ;
-					alpha = 1.-damagemodel->damageState()[0] ;
-				}
-			}
-			deltaState = damagemodel->damageState()[0]-deltaState ;
-			
-// 			DelaunayTriangle * self = dynamic_cast<DelaunayTriangle *>(currentState.getParent()) ;
-// 			Circle c(damagemodel->getCharacteristicRadius()*2.,  self->getCenter()) ;
-// 			std::vector<DelaunayTriangle *> neighbourhood = self->tree->getConflictingElements(&c) ;
-// 			for(int i = 0 ; i < neighbourhood.size() ; i++)
-// 			{
-// 				if(dynamic_cast<PseudoPlastic *>(neighbourhood[i]->getBehaviour()))
-// 				{
-// 					double d = dist(self->getCenter(), neighbourhood[i]->getCenter()) ;
-// 					PseudoPlastic * psp = dynamic_cast<PseudoPlastic *>(neighbourhood[i]->getBehaviour()) ;
-// 					psp->damagemodel->state[0] += deltaState*exp(-d*d/(.25*damagemodel->getCharacteristicRadius()*damagemodel->getCharacteristicRadius())) ;
-// 					psp->alpha = 1.-psp->damagemodel->damageState()[0] ;
-// 				}
-// 			}
-			
-			alpha = 1.-damagemodel->damageState()[0] ;
 			frac = damagemodel->fractured() ;
 		}
 // 		alpha = balpha ;
 // 		std::cout << "c" << std::flush ;
 // 		if(frac)
 // 			alpha = 0.00001 ;
-		change = true ;
+		
 	}
 	
 }
@@ -151,6 +129,11 @@ void PseudoPlastic::step(double timestep, ElementState & currentState)
 Matrix PseudoPlastic::getTensor(const Point & p) const
 {
 	return (param*alpha) ;
+}
+
+Matrix PseudoPlastic::getPreviousTensor(const Point & p) const
+{
+	return (param*lastDamage) ;
 }
 
 FractureCriterion * PseudoPlastic::getFractureCriterion() const
@@ -165,7 +148,7 @@ bool PseudoPlastic::fractured() const
 
 Form * PseudoPlastic::getCopy() const 
 {
-	return new PseudoPlastic(param, crit->getCopy(), damagemodel->getCopy()) ;
+	return new PseudoPlastic(param, crit->getCopy(),localcrit->getCopy(), damagemodel->getCopy()) ;
 	
 }
 

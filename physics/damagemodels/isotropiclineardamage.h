@@ -68,6 +68,8 @@ public:
 	 * @return the new Matrix
 	 */
 	virtual Matrix apply(const Matrix & m) const;
+	
+	virtual Matrix applyPrevious(const Matrix & m) const;
 
 	/** \brief return true is the element concerned is fractured 
 		*/

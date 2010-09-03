@@ -489,7 +489,7 @@ bool Assembly::make_final()
 		if( element2d.empty() && !coordinateIndexedMatrix)
 		{
 			std::cerr << "no elements in mesh !" << std::endl ;
-			exit(0) ;
+			return false ;
 		}
 		
 		ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -626,7 +626,7 @@ bool Assembly::make_final()
 		if(element3d.empty() && !coordinateIndexedMatrix)
 		{
 			std::cerr << "no elements in mesh !" << std::endl ;
-			return 0 ;
+			return false ;
 		}
 				
 		size_t max ;

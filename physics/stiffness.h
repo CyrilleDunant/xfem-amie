@@ -67,6 +67,7 @@ namespace Mu
 	{
 		std::vector<Variable> v ;
 		FractureCriterion * crit ;
+		FractureCriterion * localcrit ;
 		DamageModel * damagemodel ;
 		double alpha ;
 		double lastDamage ;
@@ -80,7 +81,7 @@ namespace Mu
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		*/
-		PseudoPlastic(const Matrix & rig, FractureCriterion * crit, DamageModel * damagemodel) ;
+		PseudoPlastic(const Matrix & rig, FractureCriterion * crit, FractureCriterion * localcrit,  DamageModel * damagemodel) ;
 		
 		void fixLastDamage() ;
 		
@@ -110,6 +111,7 @@ namespace Mu
 		
 		virtual bool changed() const ;
 		virtual Matrix getTensor(const Point & p) const ;
+		virtual Matrix getPreviousTensor(const Point & p) const ;
 		virtual FractureCriterion * getFractureCriterion() const ;
 		
 		/** \brief Return false.*/

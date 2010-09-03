@@ -32,6 +32,8 @@ Vector & LinearDamage::damageState()
 }
 void LinearDamage::step(ElementState & s)
 {
+	previousstate.resize(state.size());
+	previousstate = state ;
 	if(fraction < 0)
 	{
 		double volume ;
@@ -111,6 +113,31 @@ Matrix LinearDamage::apply(const Matrix & m) const
 	return ret ;
 }
 
+Matrix LinearDamage::applyPrevious(const Matrix & m) const
+{
+	Matrix ret(m) ;
+	
+	if(fractured())
+		return m*0.0001	;
+	//this is a silly way of distinguishing between 2D and 3D
+	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
+	{
+		for(size_t j = 0 ; j < m.numCols() ;j++)
+		{
+			ret[i][j] *= 1.-(previousstate[0]) ;
+		}
+	}
+
+	for(size_t i = (m.numRows()+1)/2 ; i < m.numRows() ;i++)
+	{
+		for(size_t j = 0 ; j < m.numCols() ;j++)
+		{
+			ret[i][j] *= 1.-(previousstate[i]) ;
+		}
+	}
+
+	return ret ;
+}
 
 bool LinearDamage::fractured() const
 {

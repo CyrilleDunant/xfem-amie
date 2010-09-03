@@ -373,7 +373,7 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 3;
+	size_t max_growth_steps = 10;
 	size_t max_limit = 100 ;
 	size_t countit = 0;	
 	int limit = 0 ;
@@ -385,14 +385,14 @@ void step()
 		limit = 0 ;
 		while(!featureTree->step(timepos) && limit < max_limit)//as long as we can update the features
 		{
-// 			std::cout << "." << std::flush ;
+			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
 		}
-// 		if(limit || countit%100 == 0)
-// 			std::cout << " " << limit << std::endl ;
+		if(limit || countit%100 == 0)
+			std::cout << " " << limit << std::endl ;
 		if(limit < max_limit)
-			imposeddisp->setData(imposeddisp->getData()+0.0025);
+			imposeddisp->setData(imposeddisp->getData()+0.01);
 
 		timepos+= 0.01 ;
 		double da = 0 ;
@@ -1707,7 +1707,7 @@ int main(int argc, char *argv[])
 	dfunc->setThresholdDamageDensity(tdamage);
 	dfunc->setDamageDensityIncrement(dincrement);
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, new NonLocalVonMises(10./8, cradius), dfunc) ;
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, new NonLocalVonMises(10./8, cradius), new VonMises(10./8), dfunc) ;
 	psp->crit->setNeighbourhoodRadius(cradius);
 	psp->crit->setMaterialCharacteristicRadius(mradius);
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(10./8), cradius) ;
@@ -1767,8 +1767,8 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(800) ;
-	F.useMultigrid = true ;
+	F.sample(128) ;
+// 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 

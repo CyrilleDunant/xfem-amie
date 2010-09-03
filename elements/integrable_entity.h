@@ -100,6 +100,9 @@ public:
 	Vector getStrain(const Point & , bool local = false) const;
 
 /** \brief Return stress at given point*/
+	Vector getPreviousStress(const Point & , bool local = false) const;
+	
+/** \brief Return stress at given point*/
 	Vector getStress(const Point & , bool local = false) const;
 
 /** \brief Return stress at given point, ignoring enrichment functions*/
@@ -112,6 +115,9 @@ public:
 	Matrix getStrainMatrix(const Point & , bool local = false) const;
 
 /** \brief Return stress at given point, in matrix form*/
+	Matrix getPreviousStressMatrix(const Point & p, bool local = false) const;
+	
+/** \brief Return stress at given point, in matrix form*/
 	Matrix getStressMatrix(const Point & , bool local = false) const;
 
 /** \brief Return strain at given point*/
@@ -123,6 +129,9 @@ public:
 /** \brief Return strain at given points*/
 	Vector getStrain(const Mu::PointArray &) const;
 
+/** \brief Return stress at given points*/
+	Vector getPreviousStress(const Mu::PointArray & v) const;
+	
 /** \brief Return stress at given points*/
 	Vector getStress(const Mu::PointArray &) const;
 
@@ -158,9 +167,15 @@ public:
 	
 /** \brief get Principal Stresses at given point*/
 	Vector getPrincipalStresses(const Point & , bool local = false) const ;
+	
+/** \brief get Principal Stresses at given point*/
+	Vector getPreviousPrincipalStresses(const Point & , bool local = false) const ;
 
 /** \brief get Principal Stresses at given points*/
 	Vector getPrincipalStresses(const Mu::PointArray &) const ;
+	
+/** \brief get Principal Stresses at given points*/
+	Vector getPreviousPrincipalStresses(const Mu::PointArray &) const ;
 
 /** \brief get Principal Strains at given point*/
 	Vector getPrincipalStrains(const Point & p, bool local = false) const ;
@@ -188,6 +203,9 @@ public:
 	
 /** \brief return maximum Von Mises Stress*/
 	double getMaximumVonMisesStress() const ;
+	
+/** \brief return maximum Von Mises Stress*/
+	double getPreviousMaximumVonMisesStress() const ;
 	
 /** \brief return displacement at point*/
 	Vector getDisplacements(const Point &, bool local = false, bool fast = false, const Vector * source = NULL) const;
@@ -455,6 +473,11 @@ public:
 	virtual void stepBack() { }  ;
 	
 	virtual Matrix getTensor(const Point & p) const
+	{
+		return param ;
+	}
+	
+	virtual Matrix getPreviousTensor(const Point & p) const
 	{
 		return param ;
 	}

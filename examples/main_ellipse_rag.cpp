@@ -515,7 +515,7 @@ void step()
 
 		std::cout << tries << std::endl ;
 
-                if (i >= 0)
+        if (true)
 		{
 			double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/(double)nstepstot ;
                         std::cout << "delta_r => " << delta_r << std::endl ;

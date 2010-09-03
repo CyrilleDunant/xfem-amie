@@ -33,6 +33,8 @@ Vector & IsotropicLinearDamage::damageState()
 
 void IsotropicLinearDamage::step(ElementState & s)
 {
+	previousstate.resize(state.size());
+	previousstate = state ;
 	if(fraction < 0)
 	{
 		double volume ;
@@ -74,6 +76,15 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 	return ret*(1.-state[0]) ;
 }
 
+
+Matrix IsotropicLinearDamage::applyPrevious(const Matrix & m) const
+{
+	Matrix ret(m) ;
+
+	if(fractured())
+		return ret*0.00001 ;
+	return ret*(1.-previousstate[0]) ;
+}
 
 bool IsotropicLinearDamage::fractured() const 
 {
