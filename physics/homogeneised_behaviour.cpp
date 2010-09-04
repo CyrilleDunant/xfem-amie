@@ -62,16 +62,16 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 {
 	std::vector<Point> corner = self->getSamplingBoundingPoints(3) ;
 
-	TriangularInclusion * tri = new TriangularInclusion(corner[0],corner[1],corner[2]) ;
-	tri->setBehaviour(self->getBehaviour()) ;
+	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
+	tri.setBehaviour(self->getBehaviour()) ;
 
 	for(size_t i = 0 ; i < feats.size() ; i++)
             ft.push_back(feats[i]) ;
 	
 	Material hom ;
 	
-	Material matrix = tri->getBehaviour()->toMaterial() ;
-	double fmat = tri->area() ;
+	Material matrix = tri.getBehaviour()->toMaterial() ;
+	double fmat = tri.area() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		fmat -= feats[i]->area() ;
 	matrix(TAG_VOLUME,fmat) ;
