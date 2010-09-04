@@ -150,6 +150,115 @@ public:
 
 
 
+struct RandomDistribution
+{
+	RandomNumber * rnd ;
+	
+	RandomDistribution() ;
+	
+	virtual RandomNumber * getRandomNumber() { return rnd ; } ;
+	virtual double draw() { return rnd->uniform() ; }
+} ;
+
+struct UniformDistribution : public RandomDistribution
+{
+	double a ;
+	double b ;
+	
+	UniformDistribution() ;
+	UniformDistribution(double x) ;
+	UniformDistribution(double x, double y) ;
+	
+	virtual double draw() { return rnd->uniform(a,b) ; }  
+} ;
+
+struct TriangularDistribution : public UniformDistribution
+{
+	TriangularDistribution() ;
+	TriangularDistribution(double x) ;
+	TriangularDistribution(double x, double y) ;
+  
+	virtual double draw() { return rnd->triangular(a,b) ; }
+} ;
+
+struct ExponentialDistribution : public RandomDistribution
+{
+	double a ;
+	
+	ExponentialDistribution(double x) ;
+	
+	virtual double draw() { return rnd->exponential(a) ; }
+} ;
+
+struct NormalDistribution : public UniformDistribution
+{
+	NormalDistribution() ;
+	NormalDistribution(double x, double y) ;
+	
+	virtual double draw() { return rnd->normal(a,b) ; }
+} ;
+
+struct LogNormalDistribution : public NormalDistribution
+{
+	LogNormalDistribution() ;
+	LogNormalDistribution(double x, double y) ;
+	
+	virtual double draw() { return rnd->lognormal(a,b) ; }
+} ;
+
+struct ExtremeValueDistribution : public NormalDistribution
+{
+	ExtremeValueDistribution(double x, double y) ;
+
+	virtual double draw() { return rnd->extreme_value(a,b) ; }
+} ;
+
+struct LogisticDistribution : public NormalDistribution
+{
+	LogisticDistribution(double x, double y) ;
+	
+	virtual double draw() { return rnd->logistic(a,b) ; }
+} ;
+
+struct CauchyDistribution : public NormalDistribution
+{
+	CauchyDistribution(double x, double y) ;
+	
+	virtual double draw() { return rnd->cauchy(a,b) ; }
+} ;
+
+struct Xhi2Distribution : public RandomDistribution
+{
+	int n ;
+	
+	Xhi2Distribution(int x) ;
+	
+	virtual double draw() { return rnd->xhi2(n) ; }
+} ;
+
+struct ErlangDistribution : public Xhi2Distribution
+{
+	double a ;
+	
+	ErlangDistribution(double x, int y) ;
+	
+	virtual double draw() { return rnd->erlang(a,n) ; }
+} ;
+
+struct ParetoDistribution : public NormalDistribution
+{
+	ParetoDistribution(double x, double y) ;
+	
+	virtual double draw() { return rnd->pareto(a,b) ; }
+} ;
+
+struct WeibullDistribution : public NormalDistribution
+{
+	WeibullDistribution(double x, double y) ;
+	
+	virtual double draw() { return rnd->weibull(a,b) ; }
+} ;
+
 
 
 

@@ -20,6 +20,8 @@
 namespace Mu
 {
 
+class Point ;
+  
 class XMLTree
 {
 protected:

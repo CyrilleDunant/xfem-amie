@@ -199,6 +199,8 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rmax, double pourcent
 
 	while (pourcentMasse > pourcentMasseMin)
     {
+		if(radius.size() >= inclusionNumber)
+			goto out ;
 // 		std::cout << pourcentMasse << "  " <<std::flush ;
 // 		std::cout << diameter << std::endl ;
         double aggregateMass = /*densite*M_PI*diameter*diameter*.25/(ratio*ratio) ;*/densite*(1./6.)*M_PI*diameter*diameter*diameter; 

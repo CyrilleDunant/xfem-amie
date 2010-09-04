@@ -126,6 +126,85 @@ double RandomGenerator::uniform()
 }
 
 
+RandomDistribution::RandomDistribution()
+{
+	rnd = new RandomNumber() ;
+}
+
+UniformDistribution::UniformDistribution() : RandomDistribution()
+{
+	a = 0. ;
+	b = 1. ;
+}
+UniformDistribution::UniformDistribution(double x) : RandomDistribution()
+{
+	a = 0. ;
+	b = x ;
+}
+UniformDistribution::UniformDistribution(double x, double y) : RandomDistribution()
+{
+	a = x ;
+	b = y ;
+}
+
+TriangularDistribution::TriangularDistribution() : UniformDistribution() 
+{
+}
+TriangularDistribution::TriangularDistribution(double x) : UniformDistribution(x)
+{
+}
+TriangularDistribution::TriangularDistribution(double x, double y) : UniformDistribution(x,y)
+{
+}
+
+ExponentialDistribution::ExponentialDistribution(double x) : RandomDistribution()
+{
+      a = x ;
+}
+
+ExtremeValueDistribution::ExtremeValueDistribution(double x, double y) : NormalDistribution(x,y)
+{
+}
+
+NormalDistribution::NormalDistribution() : UniformDistribution()
+{
+}
+NormalDistribution::NormalDistribution(double x, double y) : UniformDistribution(x,y)
+{
+}
+
+LogNormalDistribution::LogNormalDistribution() : NormalDistribution()
+{
+}
+LogNormalDistribution::LogNormalDistribution(double x, double y) : NormalDistribution(x,y)
+{
+}
+
+LogisticDistribution::LogisticDistribution(double x, double y) : NormalDistribution(x,y)
+{
+}
+
+CauchyDistribution::CauchyDistribution(double x, double y) : NormalDistribution(x,y)
+{
+}
+
+Xhi2Distribution::Xhi2Distribution(int x) : RandomDistribution()
+{
+      n = x ;
+}
+
+ErlangDistribution::ErlangDistribution(double x, int y) : Xhi2Distribution(y)
+{
+      a = x ;
+}
+
+ParetoDistribution::ParetoDistribution(double x, double y) : NormalDistribution(x,y)
+{
+}
+
+WeibullDistribution::WeibullDistribution(double x, double y) : NormalDistribution(x,y)
+{
+}
 
 
 

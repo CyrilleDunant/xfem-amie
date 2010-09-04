@@ -11,6 +11,7 @@
 //
 
 #include "xml.h"
+#include "../geometry/geometry_base.h"
 #include <cstring>
 #include <iostream>
 #include <fstream>
