@@ -62,6 +62,15 @@ XMLTree * Feature::toXML()
 {
 	XMLTree * feat = new XMLTree("feature") ;
 	feat->addChild(static_cast<Geometry *>(this)->toXML()) ;
+	feat->print(true) ;
+//	feat->addChild(getBehaviour()->toMaterial().toXML()) ;
+	for(size_t i = 0 ; i < m_c.size() ; i++)
+	{
+		Feature * fi = getChild(i) ;
+		fi->print() ;
+		XMLTree * testi = fi->toXML() ;
+		feat->addChild(testi) ;
+	}
 	return feat ;
 }
 

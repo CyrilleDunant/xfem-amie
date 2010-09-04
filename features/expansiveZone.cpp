@@ -28,7 +28,9 @@ void ExpansiveZone::enrich(size_t &  , Mesh<DelaunayTriangle, DelaunayTreeItem> 
 	EnrichmentInclusion::enrich(dtree->getLastNodeId(), dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = dtree->getConflictingElements(getPrimitive()) ;
-
+        if(disc.size() < 2)
+		return ;
+	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
 	std::vector<DelaunayTriangle *> inDisc ;

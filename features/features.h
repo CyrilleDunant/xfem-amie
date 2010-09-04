@@ -66,7 +66,6 @@ protected:
 
 	bool meshChange ;
 	bool solverConvergence ;
-	bool enrichmentChange ;
 	bool setBehaviours ;
 	
 	/** \brief  List of points used for the mesh.
@@ -99,6 +98,7 @@ protected:
 
 	void setElementBehaviours() ;
 public:
+	bool enrichmentChange ;
 		/** \brief  Generate the triangulation.
 	 * Once the sampling is done, the sampling points are fed into a Delaunay Triangulation algorithm, 
 	 * which generates the triangles. The mesh is still composed of 3 points triangles at this point.
@@ -128,6 +128,7 @@ public:
 	bool renumbered ;
 	bool needAssembly ;
 	bool initialized ;
+	bool reuseDisplacements ;
 	
 	Point * checkElement( const DelaunayTetrahedron * t ) const;
 	Point * checkElement( const DelaunayTriangle * t ) const ;
@@ -149,6 +150,7 @@ public:
 	*/
 	bool enrichmentChanged() const ;
 
+	double residualError ;
 	double crackedVolume ;
 	double damagedVolume ;
 	bool useMultigrid;
@@ -169,6 +171,9 @@ public:
 	 */
 	FeatureTree(Feature *first) ;
 	virtual ~FeatureTree() ;
+	
+	void dumpFeatures(std::string filename) ;
+	void importFeatures(std::string filename) ;
 	
 	/** \brief  Add feature as the daughter of another.
 	 * 
@@ -215,6 +220,7 @@ public:
 
 	void shuffleMeshPoints() ;
 
+	double getResidualError() const {return residualError ;}
 	
 	/** \brief  Return true if the physics is modified by the BC
 	 * 

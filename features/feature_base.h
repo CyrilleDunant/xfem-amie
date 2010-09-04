@@ -194,7 +194,7 @@ public:
 // 	virtual bool intersects(const Feature * f) const = 0;
 	
 	
-	virtual void print() const = 0 ;
+	virtual void print() const { std::cout << "i'm a feature" << std::endl ; } ;
 	
 	virtual const Mu::PointArray & getBoundingPoints() const = 0 ;
 	virtual Mu::PointArray & getBoundingPoints() = 0 ;
