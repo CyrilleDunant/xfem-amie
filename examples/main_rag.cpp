@@ -751,7 +751,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 && incs[j]->getRadius() <= 0.002 && incs[j]->getRadius() > 0.001)
+			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 /*&& incs[j]->getRadius() <= 0.002 && incs[j]->getRadius() > 0.001*/)
 			{
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;
@@ -1756,7 +1756,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0.000002;
-	int inclusionNumber = 20000 ;
+	int inclusionNumber = 1 ; //20000 ;
 // 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 // 
@@ -1849,8 +1849,8 @@ int main(int argc, char *argv[])
 	}
 	Circle cercle(.5, 0,0) ;
 
-	zones = generateExpansiveZonesHomogeneously(3000, inclusions, F) ;
-	F.sample(1024) ;
+	zones = generateExpansiveZonesHomogeneously(200/*3000*/, inclusions, F) ;
+	F.sample(128) ;
 	if(restraintDepth > 0)
 	{
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
