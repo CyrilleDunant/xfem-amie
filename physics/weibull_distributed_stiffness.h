@@ -24,6 +24,8 @@ namespace Mu
 	*/
 	struct WeibullDistributedStiffness : public LinearForm
 	{
+		double materialRadius ;
+		double neighbourhoodRadius ;
 		std::vector<Variable> v ;
 		double variability ;
 		double criterion ;
@@ -33,6 +35,9 @@ namespace Mu
 		* @param cri stress limit for the Mohr - Coulomb criterion to use
 		*/
 		WeibullDistributedStiffness(const Matrix & rig, double cri)  ;
+		
+		void setMaterialCharacteristicRadius(double r) {materialRadius = r ;} ;
+		void setNeighbourhoodRadius(double r) {neighbourhoodRadius = r ;}
 		
 		virtual ~WeibullDistributedStiffness();
 		

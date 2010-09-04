@@ -86,7 +86,27 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	currentState.getParent()->behaviourUpdated = false ;
 	if(!frac && criterion->met(currentState) )
 	{
+// 		double bottomStateVariable = dfunc.state[0] ;
 		dfunc.step(currentState) ;
+// 		if(criterion->grade(currentState) < 0)
+// 		{
+// 			double topStateVariable = dfunc.state[0] ;
+// 			
+// 			while(std::abs(criterion->grade(currentState)) > 1e-5)
+// 			{
+// 				double testStateVariable = (bottomStateVariable+topStateVariable)*.5 ;
+// 				dfunc.state[0] = testStateVariable ;
+// 				if(criterion->grade(currentState) < 0)
+// 				{
+// 					topStateVariable = testStateVariable ;
+// 				}
+// 				else
+// 				{
+// 					bottomStateVariable = testStateVariable ;
+// 				}
+// 			}
+// 		}
+			
 // 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
 		change = true ;
@@ -101,7 +121,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	Vector d = dfunc.damageState() ;
 	damage.resize(d.size()) ;
 	damage = d ;
-}
+    }
 
 void StiffnessAndFracture::artificialDamageStep(double d)
 {
