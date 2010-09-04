@@ -30,16 +30,16 @@ namespace Mu
 	*/
 	struct HomogeneisedBehaviour : public LinearForm
 	{
-		FeatureTree * subTree ;
 		Form * equivalent ;
 		Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d ;
 		DelaunayTriangle * self2d ;
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d ;
 		DelaunayTetrahedron * self3d ;
 		std::vector<Variable> v ;
-		GeneralizedSelfConsistent scheme ;
 		std::vector<DelaunayTriangle *> source ;
 		std::vector<DelaunayTetrahedron *> source3d ;
+                std::vector<Feature *> ft ;
+
 		/** \brief Constructor
 		* 
 		* @param mesh2d The 2D mesh for 2D homogeneisation
@@ -53,7 +53,6 @@ namespace Mu
 		*/
 		HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) ;
 
-		HomogeneisedBehaviour(FeatureTree * ft, DelaunayTriangle * self) ;
 		HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) ;
 
 
@@ -90,9 +89,14 @@ namespace Mu
 		Material toMaterial() {return equivalent->toMaterial() ; } ;
 		Material homogenize(Material mat) ;
 
+                virtual Vector getImposedStress(const Point & p) const ;
+
+                std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+
 		Form * getEquivalentBehaviour(Material mat) ;	
 
 	} ;
+
 
 } ;
 
