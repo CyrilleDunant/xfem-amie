@@ -36,7 +36,7 @@
 
 using namespace Mu ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
 {
 	source = mesh2d->getConflictingElements(self2d->getPrimitive()) ;
 
@@ -58,7 +58,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 	v.push_back(ETA);
 } ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh3d(NULL), self3d(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
 {
 	std::vector<Point> corner = self->getSamplingBoundingPoints(3) ;
 
@@ -189,6 +189,7 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 
 
         Material eq = homogenize(hom) ;
+	delete equivalent ;
         equivalent = getEquivalentBehaviour(eq) ;
 
         equivalent->step(timestep, currentState) ;

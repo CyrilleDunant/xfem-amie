@@ -2775,16 +2775,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			return *getCachedGaussPoints() ;
 		
 		std::vector<std::pair<Point, double> > gp_alternative ;
-		VirtualMachine vm ;
-		std::vector<Point *> to_add = getIntegrationHints();
-		std::vector<Point *> pointsToCleanup = to_add;
-		std::vector<DelaunayTriangle *> triangleToCleanup;
-		std::vector<DelaunayTriangle *> tri ;
-		std::vector<bool> pass ;
-		int passNum = 0;
-		double lastError = 10 ;
-		size_t maxGradientIndex = 0 ;
-		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
+
 		if(true /*to_add.size() == 0*/)
 		{
 			double ndivs = 64 ;
@@ -2812,6 +2803,17 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			return *getCachedGaussPoints() ;
 		}
 
+		VirtualMachine vm ;
+		std::vector<Point *> to_add = getIntegrationHints();
+		std::vector<Point *> pointsToCleanup = to_add;
+		std::vector<DelaunayTriangle *> triangleToCleanup;
+		std::vector<DelaunayTriangle *> tri ;
+		std::vector<bool> pass ;
+		int passNum = 0;
+		double lastError = 10 ;
+		size_t maxGradientIndex = 0 ;
+		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
+		
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;
 		if(to_add.size() > 4)
