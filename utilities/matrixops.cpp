@@ -14,7 +14,6 @@ Matrix::Matrix(size_t x, size_t y)
 	r=x ;
 	c=y ;
 	v = new Vector(0., x*y) ;
-	cleanup = true ;
 }
 
 Matrix::Matrix(size_t x, size_t y, Vector * cache)
@@ -23,15 +22,13 @@ Matrix::Matrix(size_t x, size_t y, Vector * cache)
 		cache->resize(x*y) ;
 	r=x ;
 	c=y ;
-	v = cache ;
-	cleanup = false ;
+	v = new Vector(*cache) ;
 }
 
 Matrix::Matrix(size_t rl, size_t k, size_t l, const Matrix & m)
 {
 	r=rl ;
 	c=rl ;
-	cleanup = true ;
 	v = new Vector(rl*rl) ;
 	for(size_t i = 0 ; i< rl ; i++)
 	{
@@ -81,7 +78,6 @@ inline void matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m
 
 Matrix::Matrix(size_t i, size_t j, const Matrix & m)
 {
-	cleanup = true ;
 	r=m.numRows()-1 ;
 	c=m.numCols()-1 ;
 	v = new Vector(r*c) ;
@@ -282,11 +278,9 @@ Matrix::Matrix(const Matrix& m) : r(m.numRows()), c( m.numCols())
 	if(!m.isNull())
 	{
 		v = new Vector(m.array()) ;
-		cleanup = true ;
 	}
 	else
 	{
-		cleanup = false ;
 		v = NULL ;
 	}
 }
@@ -295,7 +289,6 @@ Matrix &Matrix::operator =(const Matrix &m)
 {
 // 	v->resize(m.array().size()) ;
 // 	v = new Vector(m.array()) ;
-	cleanup = true ;
 	if(v == NULL && !m.isNull())
 	{
 		r = m.numRows() ;
@@ -307,7 +300,6 @@ Matrix &Matrix::operator =(const Matrix &m)
 		*v = m.array() ;
 	else
 	{
-		cleanup = false ;
 		delete v ;
 		v = NULL ;
 	}

@@ -113,7 +113,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 }
 
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 3), mesh2d(NULL), self2d(NULL), mesh3d(mesh3d), self3d(self)
+HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 3), mesh2d(NULL), self2d(NULL), mesh3d(mesh3d), self3d(self), equivalent(NULL)
 {
 	source3d = mesh3d->getConflictingElements(self->getPrimitive()) ;
 
@@ -134,7 +134,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 	v.push_back(ZETA);
 } ;
 
-HomogeneisedBehaviour::~HomogeneisedBehaviour() { } ;
+HomogeneisedBehaviour::~HomogeneisedBehaviour() { delete equivalent ; } ;
 
 
 void HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
@@ -149,13 +149,13 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 
         std::vector<Point> corner = self2d->getSamplingBoundingPoints(3) ;
 
-        TriangularInclusion * tri = new TriangularInclusion(corner[0],corner[1],corner[2]) ;
-        tri->setBehaviour(self2d->getBehaviour()) ;
+        TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
+        tri.setBehaviour(self2d->getBehaviour()) ;
 
         Material hom ;
 
-        Material matrix = tri->getBehaviour()->toMaterial() ;
-        double fmat = tri->area() ;
+        Material matrix = tri.getBehaviour()->toMaterial() ;
+        double fmat = tri.area() ;
         for(size_t i = 0 ; i < ft.size() ; i++)
                 fmat -= ft[i]->area() ;
         matrix(TAG_VOLUME,fmat) ;

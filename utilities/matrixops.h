@@ -41,7 +41,6 @@ class Matrix
 {
 	Vector *v;
 	size_t r, c;
-	bool cleanup ;
 public:
 	
 	/** \brief Construct an M x N matrix.
@@ -60,7 +59,6 @@ public:
 	 */
 	Matrix()
 	{
-		cleanup = false ;
 		r = 0 ;
 		c = 0 ;
 		v = NULL ;
@@ -89,7 +87,7 @@ public:
 	/** \brief constructor from a vector<vector<double> > */
 	Matrix(const std::vector<std::vector<double> > & vv) ;
 
-	virtual ~Matrix() { if(cleanup)delete v; }
+	virtual ~Matrix() { delete v; }
 
 	/** \brief Copy-constructor.
 	* If the matrix is not yet initialised, initialise to the source matrix values. Else do 
@@ -144,8 +142,6 @@ public:
 			v = new Vector(zero, x*y) ;
 		else
 			v->resize(x*y, zero) ;
-
-		cleanup = true ;
 	}
 
 	/** \brief check if the matrix has initialised values*/
