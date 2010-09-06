@@ -87,7 +87,7 @@ public:
 	/* \brief returns the value of the property */
 	double val() const {return p ; } ;
 	/* \brief returns the tag of the property */
-	Tag tag() const {return ptag ; } ;
+	const Tag & tag() const {return ptag ; } ;
 	/* \brief checks if the property is from a specific tag */
 	bool is(Tag t) const {return (t == ptag) ; } ;
 	/* \brief changes the tag to NULL */
@@ -97,14 +97,14 @@ public:
 
 	/* \brief changes the tag to a specific tag. 
 	You should use the GeneralConverter instead of this method */
-	void set(Tag t) {ptag = t ; } ;
+	void set(const Tag & t) {ptag = t ; } ;
 	/* \brief changes the value of the property */
 	void set(double v) {p = v ; } ;
-	void set(std::string s) ;
+	void set(const std::string & s) ;
 
 	/* \brief print the property */
-	void print() ;
-	void print(std::string indent) ;
+	void print() const ;
+	void print(const std::string & indent) const ;
 } ;
 
 
@@ -124,7 +124,7 @@ protected:
 public:
 	/* \brief simple constructor */
 	Material() ;
-	Material(std::string n) ;
+	Material(const std::string & n) ;
 	/* \brief simple constructor from a pre-defined material */
 	Material(PredefinedMaterial mat) ;
 	/* \brief simple constructor from a core property*/
@@ -135,70 +135,71 @@ public:
 	Material(const Matrix & cauchy) ;
 
 	/* \brief returns the list of all index for the properties of a specific tag*/
-	std::vector<int> getIndex(Tag t) const ;
+	std::vector<int> getIndex(const Tag & t) const ;
 	/**
 	* @param t a specific tag
 	* @param i the desired position (-1 for last, 0 for first)
 	* @return the index of the ith property in the vector with tag t (-1 if the tag does not exist in the material)
 	*/
-	int getIndex(Tag t, int i) const ;
+	int getIndex(const Tag & t, int i) const ;
 	/* \brief returns the value for a specific tag (i is the index, asd defined for getIndex(Tag t, int i) */
-	double val(Tag t, int i) const ;
+	double val(const Tag & t, int i) const ;
 
 	/**
 	* Adds p to the material, and kills any other property with the same tag as p. If p is from a tag which is set
 	* in tagset, the replacement fails.
 	*/ 
-	bool replace(Properties p) ;
-	void add(Tag t, double val) {this->push_back(Properties(t,val)) ; } ;
+	bool replace(const Properties & p) ;
+	void add(const Tag & t, double val) {this->push_back(Properties(t,val)) ; } ;
 	/* \brief as replace, but force the replacement even if the tag for p is set in the material */
-	bool replaceForce(Properties p) ;
+	bool replaceForce(const Properties & p) ;
 	/* \brief checks if a specific tag is set*/
-	bool isSet(Tag t) const ;
+	bool isSet(const Tag & t) const ;
 	/* \brief set a tag*/
-	bool set(Tag t) ;
+	bool set(const Tag & t) ;
 	/* \brief set a tag, conserve only the ith tagged property (i is the index, as defined for getIndex(Tag t, int i) */
-	bool set(Tag t, int i) ;
+	bool set(const Tag & t, int i) ;
 
-	bool kill(Tag t) ;
+	bool kill(const Tag & t) ;
 
 	/**
 	* Fuse two materials together if and only if they have the same properties on the compare tags. The values on the combine tag
 	* are added together
 	*/
-	bool combine(Material m, std::vector<Tag> compare, Tag combine) ;
+	bool combine(const Material & m, const std::vector<Tag> & compare, const Tag & combine) ;
 	/**
 	* adds all the properties of m to the current material
 	*/
-	bool merge(Material m) ;
+	bool merge(const Material & m) ;
 
-	void rename(std::string n) {name = n ; } ;
+	void rename(const std::string & n) {name = n ; } ;
 
 	/* \brief tries to find missing values for all tags t if possible */
-	bool findMissing(std::vector<Tag> t) ;
+	bool findMissing(const std::vector<Tag> & t) ;
 	/* \brief tries to find a value for the missing tag t, using a GeneralConverter */
-	bool findMissing(Tag t) ;
+	bool findMissing(const Tag & t) ;
 
-	Material operator*(std::string s) ;
-	Material operator+(Material m) ;
+	Material operator*(const std::string & s) ;
+	Material operator+(const Material & m) ;
 	Material operator-(int j) ;
-	double operator()(Tag t) {return val(t,-1) ; };
-	double operator()(Tag t, double d) {replace(Properties(t,d)) ; return val(t,-1) ;} ;
+	double operator() (const Tag & t) const{return val(t,-1) ; };
+	double operator() (const Tag &t, double d) {replace(Properties(t,d)) ; return val(t,-1) ;} ;
 
 	/* \brief prints all the material properties*/
-	void print() ;
-	void print(std::string indent) ;
+	void print() const ;
+	void print(const std::string & indent) const ;
 
 	bool build(Scheme * s, bool self) ;
 
 	void makeFraction(bool volume) ;
 
-	int nPhases() {return phases.size() ; } ;
-	Material child(int i) {return phases[i] ; } ;
+	int nPhases() const {return phases.size() ; } ;
+	Material & child(int i) {return phases[i] ; } ;
+	const Material & child(int i) const {return phases[i] ; } ;
 	void add(Tag t, double val, int i) {phases[i].add(t,val) ; } ;
 	void cleanComposite() {phases.clear() ; } ;
 
-	void divide(int i, std::vector<double> f, bool v) ;
+	void divide(int i, const std::vector<double> & f, bool v) ;
 
 } ;
 

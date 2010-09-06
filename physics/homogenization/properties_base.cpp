@@ -38,7 +38,7 @@ Properties::Properties(const Properties & prop)
 	p = prop.val() ;
 }
 
-void Properties::set(std::string s)
+void Properties::set(const std::string & s)
 {
 	set(TAG_NULL) ;
 	if(s.compare("UNIVERSAL") == 0)
@@ -110,7 +110,7 @@ void Properties::set(std::string s)
 }
 
 
-void Properties::print()
+void Properties::print() const
 {
 	switch(ptag)
 	{
@@ -216,7 +216,7 @@ void Properties::print()
 		std::cout << p << std::endl ;
 }
 
-void Properties::print(std::string indent)
+void Properties::print(const std::string & indent) const
 {
 	std::cout << indent ;
 	print() ;
@@ -237,7 +237,7 @@ Material::Material()
 	name = "MAT" ;
 
 }
-Material::Material(std::string n)
+Material::Material(const std::string & n)
 {
 	name = n ;
 }
@@ -315,7 +315,7 @@ Material::Material(const Matrix & cauchy)
 
 }
 
-std::vector<int> Material::getIndex(Tag t) const
+std::vector<int> Material::getIndex(const Tag & t) const
 {
 	std::vector<int> index ;
 	for(size_t i = 0 ; i < size() ; i++)
@@ -326,7 +326,7 @@ std::vector<int> Material::getIndex(Tag t) const
 	return index ;
 }
 
-int Material::getIndex(Tag t, int i) const
+int Material::getIndex(const Tag & t, int i) const
 {
 	std::vector<int> index = getIndex(t) ;
 	if(index.size() == 0)
@@ -337,7 +337,7 @@ int Material::getIndex(Tag t, int i) const
 	return index[i] ;
 }
 
-double Material::val(Tag t, int i) const
+double Material::val(const Tag & t, int i) const
 {
 	int j = getIndex(t,i) ;
 	if(j+1 == 0)
@@ -345,7 +345,7 @@ double Material::val(Tag t, int i) const
 	return (*this)[j].val() ;
 }
 
-bool Material::replace(Properties p)
+bool Material::replace(const Properties & p)
 {
 	if(isSet(p.tag()))
 		return false ;
@@ -359,7 +359,7 @@ bool Material::replace(Properties p)
 	return true ;
 }
 
-bool Material::replaceForce(Properties p)
+bool Material::replaceForce(const Properties & p)
 {
 	if(replace(p))
 		return true ;
@@ -374,7 +374,7 @@ bool Material::replaceForce(Properties p)
 	
 }
 
-bool Material::isSet(Tag t) const
+bool Material::isSet(const Tag & t) const
 {
 	for(size_t i = 0 ; i < tagset.size() ; i++)
 	{
@@ -384,7 +384,7 @@ bool Material::isSet(Tag t) const
 	return false ;
 }
 
-bool Material::set(Tag t)
+bool Material::set(const Tag & t)
 {
 	if(isSet(t))
 		return true ;
@@ -396,7 +396,7 @@ bool Material::set(Tag t)
 	return true ;
 }
 
-bool Material::set(Tag t, int i)
+bool Material::set(const Tag & t, int i)
 {
 	if((*this)[i].is(t))
 	{
@@ -411,7 +411,7 @@ bool Material::set(Tag t, int i)
 	return false ;
 }
 
-bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
+bool Material::combine(const Material & m, const std::vector<Tag> & compare, const Tag & combine)
 {
 	bool success = true ;
 	for(size_t i = 0 ; i < compare.size() && success ; i++)
@@ -437,7 +437,7 @@ bool Material::combine(Material m, std::vector<Tag> compare, Tag combine)
 	return success ;
 }
 
-bool Material::merge(Material m)
+bool Material::merge(const Material & m)
 {
 	bool success = true ;
 	for(size_t i = 0 ; i < m.size() ; i++)
@@ -445,7 +445,7 @@ bool Material::merge(Material m)
 	return success ;
 }
 
-bool Material::findMissing(std::vector<Tag> t)
+bool Material::findMissing(const std::vector<Tag> & t)
 {
 	bool found = true ;
 	for(size_t i = 0 ; i < t.size() ; i++)
@@ -453,7 +453,7 @@ bool Material::findMissing(std::vector<Tag> t)
 	return found ;
 }
 
-bool Material::findMissing(Tag t)
+bool Material::findMissing(const Tag & t)
 {
 //	Properties dummy(t,0.) ;
 //	dummy.print() ;
@@ -475,7 +475,7 @@ bool Material::findMissing(Tag t)
 	return conv.isOK() ;
 }
 
-bool Material::kill(Tag t)
+bool Material::kill(const Tag &t)
 {
 	bool ret = false ;
 	for(size_t i = 0 ; i < size() ; i++)
@@ -491,7 +491,7 @@ bool Material::kill(Tag t)
 }
 
 
-void Material::print()
+void Material::print() const
 {
 	std::cout << std::endl ;
 	std::cout << "---- " << name << " ----" << std::endl ;
@@ -502,7 +502,7 @@ void Material::print()
 	std::cout << std::endl ;
 }
 
-void Material::print(std::string indent)
+void Material::print(const std::string & indent) const 
 {
 	std::cout << indent << "---- " << name << " ----" << std::endl ;
 	for(size_t i = 0 ; i < size() ; i++)
@@ -511,7 +511,7 @@ void Material::print(std::string indent)
 		phases[i].print(indent+indent.at(indent.length()-1)) ;
 }
 
-Material Material::operator*(std::string s)
+Material Material::operator*(const std::string & s)
 {
 	double f = 0. ;
 	bool go_on = true ;
@@ -571,7 +571,7 @@ Material Material::operator*(std::string s)
 
 }
 
-Material Material::operator+(Material m)
+Material Material::operator+(const Material & m)
 {
 	phases.push_back(m) ;
 	return (*this) ;
@@ -685,7 +685,7 @@ void Material::makeFraction(bool volume)
 
 }
 
-void Material::divide(int i, std::vector<double> f, bool v)
+void Material::divide(int i, const std::vector<double> & f, bool v)
 {
 	Tag base = TAG_MASS ;
 	Tag fraction = TAG_MASS_FRACTION ;
