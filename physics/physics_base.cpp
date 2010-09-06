@@ -20,6 +20,11 @@ LinearForm::LinearForm(const Matrix & p, bool t, bool s, size_t numdof ) : Form(
 	this->type = PURE_LINEAR ;
 }
 
+LinearForm::LinearForm(bool t, bool s, size_t numdof ) : Form(t, s, numdof)
+{
+	this->type = PURE_LINEAR ;
+}
+
 LinearForm::~LinearForm() { } ;
 
 bool LinearForm::fractured() const { return false  ;} ; 
@@ -97,7 +102,7 @@ void NonLinearForm::updateElementState(double timestep, ElementState & s) const
 	}
 }
 
-NonLinearForm::NonLinearForm()
+NonLinearForm::NonLinearForm() : Form(false, false, 2)
 {
 	this->type = NON_LINEAR ;
 }

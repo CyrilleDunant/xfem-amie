@@ -28,6 +28,8 @@ namespace Mu
 	public:
 		LinearForm(const Matrix & p, bool t = false, bool s = false, size_t numdof = 0 ) ;
 		
+		LinearForm(bool t = false, bool s = false, size_t numdof = 0 ) ;
+		
 		virtual XMLTree * toXML() {return new XMLTree("linear form") ; } ;
 
 		virtual ~LinearForm()  ;

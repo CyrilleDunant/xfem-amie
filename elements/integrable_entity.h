@@ -424,7 +424,8 @@ public:
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
-	virtual Material toMaterial(const Point & p)
+	
+	virtual Material toMaterial(const Point & p) const
 	{
 		Material mat(getTensor(p)) ;
 		return mat ;

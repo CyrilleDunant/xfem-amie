@@ -63,14 +63,14 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	std::vector<Point> corner = self->getSamplingBoundingPoints(3) ;
 
 	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
-	tri.setBehaviour(self->getBehaviour()) ;
+	tri.setBehaviour(self->getBehaviour()->getCopy()) ;
 
 	for(size_t i = 0 ; i < feats.size() ; i++)
             ft.push_back(feats[i]) ;
 	
 	Material hom ;
 	
-	Material matrix = tri.getBehaviour()->toMaterial() ;
+	Material matrix = tri.getBehaviour()->toMaterial(tri.getCenter()) ;
 	double fmat = tri.area() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		fmat -= feats[i]->area() ;
@@ -84,7 +84,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	bulkshear.push_back(TAG_SHEAR_MODULUS) ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
-		Material inc = feats[i]->getBehaviour()->toMaterial() ;
+		Material inc = feats[i]->getBehaviour()->toMaterial(feats[i]->getCenter()) ;
 		inc(TAG_VOLUME, feats[i]->area()) ;
 		bool combined = false ;
 		for(size_t j = 0 ; j < hom.nPhases() ; j++)
@@ -134,7 +134,10 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 	v.push_back(ZETA);
 } ;
 
-HomogeneisedBehaviour::~HomogeneisedBehaviour() { delete equivalent ; } ;
+HomogeneisedBehaviour::~HomogeneisedBehaviour() 
+{ 
+	delete equivalent ; 
+} ;
 
 
 void HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
@@ -147,52 +150,52 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 	if(type == VOID_BEHAVIOUR)
 		return ;
 
-        std::vector<Point> corner = self2d->getSamplingBoundingPoints(3) ;
+	std::vector<Point> corner = self2d->getSamplingBoundingPoints(3) ;
 
-        TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
-        tri.setBehaviour(self2d->getBehaviour()) ;
+	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
+	tri.setBehaviour(self2d->getBehaviour()->getCopy()) ;
 
-        Material hom ;
+	Material hom ;
 
-        Material matrix = tri.getBehaviour()->toMaterial() ;
-        double fmat = tri.area() ;
-        for(size_t i = 0 ; i < ft.size() ; i++)
-                fmat -= ft[i]->area() ;
-        matrix(TAG_VOLUME,fmat) ;
+	Material matrix = tri.getBehaviour()->toMaterial(tri.getCenter()) ;
+	double fmat = tri.area() ;
+	for(size_t i = 0 ; i < ft.size() ; i++)
+					fmat -= ft[i]->area() ;
+	matrix(TAG_VOLUME,fmat) ;
 
-        hom = hom + matrix ;
-
-
-        std::vector<Tag> bulkshear ;
-        bulkshear.push_back(TAG_BULK_MODULUS) ;
-        bulkshear.push_back(TAG_SHEAR_MODULUS) ;
-        for(size_t i = 0 ; i < ft.size() ; i++)
-        {
-                Material inc = ft[i]->getBehaviour()->toMaterial() ;
-                inc(TAG_VOLUME, ft[i]->area()) ;
-                bool combined = false ;
-                for(size_t j = 0 ; j < hom.nPhases() ; j++)
-                {
-                        Material tmp = hom.child(j) ;
-                        combined = (combined || tmp.combine(inc,bulkshear,TAG_VOLUME)) ;
-                        if(combined)
-                        {
-                                hom = hom - (int) j ;
-                                hom = hom + tmp ;
-                                break ;
-                        }
-                }
-                if(!combined)
-                        hom = hom + inc ;
-        }
+	hom = hom + matrix ;
 
 
+	std::vector<Tag> bulkshear ;
+	bulkshear.push_back(TAG_BULK_MODULUS) ;
+	bulkshear.push_back(TAG_SHEAR_MODULUS) ;
+	for(size_t i = 0 ; i < ft.size() ; i++)
+	{
+		Material inc = ft[i]->getBehaviour()->toMaterial(ft[i]->getCenter()) ;
+		inc(TAG_VOLUME, ft[i]->area()) ;
+		bool combined = false ;
+		for(size_t j = 0 ; j < hom.nPhases() ; j++)
+		{
+			Material tmp = hom.child(j) ;
+			combined = (combined || tmp.combine(inc,bulkshear,TAG_VOLUME)) ;
+			if(combined)
+			{
+				hom = hom - (int) j ;
+				hom = hom + tmp ;
+				break ;
+			}
+		}
+		if(!combined)
+			hom = hom + inc ;
+	}
 
-        Material eq = homogenize(hom) ;
+
+
+	Material eq = homogenize(hom) ;
 	delete equivalent ;
-        equivalent = getEquivalentBehaviour(eq) ;
+	equivalent = getEquivalentBehaviour(eq) ;
 
-        equivalent->step(timestep, currentState) ;
+	equivalent->step(timestep, currentState) ;
 
 }
 
@@ -211,13 +214,27 @@ bool HomogeneisedBehaviour::fractured() const
 
 Form * HomogeneisedBehaviour::getCopy() const 
 {
-        return new HomogeneisedBehaviour(*this) ;
+	return new HomogeneisedBehaviour(*this) ;
 }
 
 std::vector<BoundaryCondition * > HomogeneisedBehaviour::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
-        return equivalent->getBoundaryConditions(s,id,p_i,gp,Jinv) ;
+	return equivalent->getBoundaryConditions(s,id,p_i,gp,Jinv) ;
 }
+
+HomogeneisedBehaviour::HomogeneisedBehaviour(const HomogeneisedBehaviour & hb) : LinearForm(Matrix(), true, false, hb.getNumberOfDegreesOfFreedom())
+{
+		equivalent = hb.equivalent->getCopy();
+		mesh2d = hb.mesh2d;
+		self2d = hb.self2d;
+		mesh3d = hb.mesh3d;
+		self3d = hb.self3d;
+		v = hb.v;
+		source = hb.source;
+		source3d = hb.source3d;
+		ft = hb.ft;
+}
+
 
 void HomogeneisedBehaviour::homogenize()
 {
@@ -237,7 +254,7 @@ void HomogeneisedBehaviour::homogenize()
 				
 				if(source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					Material thismat = source[i]->getBehaviour()->toMaterial() ;
+					Material thismat = source[i]->getBehaviour()->toMaterial(source[i]->getCenter()) ;
 					thismat(TAG_VOLUME,source[i]->area()) ;
 					if(mat.nPhases() == 0)
 						mat = mat + thismat ;
@@ -294,7 +311,7 @@ void HomogeneisedBehaviour::homogenize()
 				
 				if(source3d[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					Material thismat = source3d[i]->getBehaviour()->toMaterial() ;
+					Material thismat = source3d[i]->getBehaviour()->toMaterial(source3d[i]->getCenter()) ;
 					thismat(TAG_VOLUME,source3d[i]->volume()) ;
 					if(mat.nPhases() == 0)
 						mat = mat + thismat ;
@@ -539,6 +556,12 @@ Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat)
 
 
 	return new VoidForm() ;
+}
+
+Material HomogeneisedBehaviour::toMaterial(const Point & p) const 
+{
+	Material mat(equivalent->getTensor(p)) ;
+	return mat ;
 }
 
 Vector HomogeneisedBehaviour::getImposedStress(const Point & p) const
