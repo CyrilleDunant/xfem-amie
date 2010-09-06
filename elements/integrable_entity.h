@@ -50,6 +50,7 @@ typedef enum
 	PURE_LINEAR,
 	LINEAR_AND_CONSTANT,
 	NON_LINEAR,
+	HOMOGENEISED,
 	VOID_BEHAVIOUR
 } ParametersType ;
 
@@ -410,7 +411,8 @@ public:
 	ParametersType type;
 	
 	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof), param(p) { } ;
-	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)){ } ;
+	Form(bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof) { } ;
+	Form() : time_d(false), space_d(false), num_dof(0) { } ;
 	
 	/** apply the form on a pair of functions
 	 * 
@@ -422,9 +424,9 @@ public:
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
-	virtual Material toMaterial()
+	virtual Material toMaterial(const Point & p)
 	{
-		Material mat(param) ;
+		Material mat(getTensor(p)) ;
 		return mat ;
 	}
 	

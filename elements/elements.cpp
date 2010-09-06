@@ -14,7 +14,6 @@ ElementarySurface::~ElementarySurface()
 {
 	if(isFather)
 		delete this->shapefunc ;
-
 	delete behaviour ;
 }
 
@@ -135,7 +134,7 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 
 void ElementarySurface::setBehaviour(Form * f)
 {
-	delete getBehaviour() ;
+// 	delete behaviour ;
 	this->behaviour = f ;
 }
 
