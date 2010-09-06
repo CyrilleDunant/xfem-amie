@@ -363,6 +363,8 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 	fracture.push_back(TAG_MAX_COMPRESSIVE_STRESS) ;
 	fracture.push_back(TAG_MAX_TENSILE_STRESS) ;
 	fracture.push_back(TAG_RUPTURE_ENERGY) ;
+
+	Scheme * scheme = NULL ;
 	
 	for(size_t i = 0 ; i < fracture.size() ; i++)
 	{
@@ -402,7 +404,9 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 			mat = mat - 0 ;
 			mat = mat + tmp ;
 		}
-		mat.build(new MoriTanaka(), false) ;
+		scheme = new MoriTanaka() ;
+		mat.build(scheme, false) ;
+		delete scheme ;
 
 		bool imp = false ;
 		for(size_t i = 0 ; i < mat.nPhases() ; i++)
@@ -415,14 +419,18 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 				double def = mat.child(i).val(TAG_IMPOSED_STRAIN,-1) ;
 				mat.add(TAG_EXPANSION_COEFFICIENT,def,i) ;
 			}
-			mat.build(new HobbsScheme(), false) ;
+			scheme = new HobbsScheme() ;
+			mat.build(scheme, false) ;
 			mat.add(TAG_IMPOSED_STRAIN,mat(TAG_EXPANSION_COEFFICIENT)) ;
+			delete scheme ;
 		}
 		
 		return mat ;
 	}
 
-	mat.build(new GeneralizedSelfConsistent(), false) ;
+	scheme = new GeneralizedSelfConsistent() ;
+	mat.build(scheme, false) ;
+	delete scheme ;
 
 	return mat ;
 }
