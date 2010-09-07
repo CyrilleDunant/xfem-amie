@@ -51,7 +51,7 @@ physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
 physics/fracturecriteria/nonlocalvonmises.cpp 
-physics/mad.cpp 
+#physics/mad.cpp 
 physics/diffusion.cpp 
 physics/dual_behaviour.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 
@@ -81,16 +81,8 @@ physics/void_form.cpp
 physics/wave.cpp 
 physics/weibull_distributed_stiffness.cpp 
 physics/weibull_distributed_stiffness_with_variable_imposed_deformation_and_fracture.cpp 
-physics/homogenization/converter.cpp
-physics/homogenization/cracked_homogenization.cpp
-physics/homogenization/elastic_bounds.cpp
-physics/homogenization/elastic_homogenization.cpp
-physics/homogenization/expansion_bounds.cpp
-physics/homogenization/expansion_homogenization.cpp
-physics/homogenization/manager.cpp
-physics/homogenization/octave_manager.cpp
-physics/homogenization/properties_base.cpp
-physics/homogenization/scheme_base.cpp
+physics/homogenization/homogenization_base.cpp
+physics/homogenization/scheme_template.cpp
 polynomial/scalarfield.cpp 
 polynomial/vm_base.cpp 
 polynomial/vm_function_base.cpp 
