@@ -152,6 +152,44 @@ PhaseTemplate PhaseTemplate::makeVolumeBulkShearTemplate(int n)
 	return PhaseTemplate(n, t) ;
 }
 
+PhaseTemplate PhaseTemplate::makeExpansionTemplate(int n)
+{
+	std::vector<PType> t ;
+	t.push_back(P_EXPANSION_COEFFICIENT) ;
+	return PhaseTemplate(n, t) ;
+}
+
+PhaseTemplate PhaseTemplate::makeBulkExpansionTemplate(int n)
+{
+	std::vector<PType> t ;
+	t.push_back(P_BULK_MODULUS) ;
+	t.push_back(P_EXPANSION_COEFFICIENT) ;
+	return PhaseTemplate(n, t) ;
+}
+
+PhaseTemplate PhaseTemplate::makeVolumeBulkExpansionTemplate(int n)
+{
+	std::vector<PType> t ;
+	t.push_back(P_VOLUME_FRACTION) ;
+	t.push_back(P_BULK_MODULUS) ;
+	t.push_back(P_EXPANSION_COEFFICIENT) ;
+	return PhaseTemplate(n, t) ;
+}
+
+PhaseTemplate PhaseTemplate::makeVolumeBulkShearExpansionTemplate(int n)
+{
+	std::vector<PType> t ;
+	t.push_back(P_VOLUME_FRACTION) ;
+	t.push_back(P_BULK_MODULUS) ;
+	t.push_back(P_SHEAR_MODULUS) ;
+	t.push_back(P_EXPANSION_COEFFICIENT) ;
+	return PhaseTemplate(n, t) ;
+}
+
+
+
+
+
 SchemeTemplate::SchemeTemplate(PhaseTemplate r, std::vector<PhaseTemplate> p)
 {
 	phases.clear() ;
@@ -190,6 +228,25 @@ SchemeTemplate::SchemeTemplate(HomogenizationScheme s)
 		phases.push_back(inclusion) ;
 		result = PhaseTemplate::makeBulkShearTemplate(1) ;
 	}
+
+	if(s == EXPANSION_HOBBS || s == EXPANSION_TURNER)
+	{
+		PhaseTemplate matrix = PhaseTemplate::makeBulkExpansionTemplate(1) ; 
+		PhaseTemplate inclusion = PhaseTemplate::makeVolumeBulkExpansionTemplate(1) ; 
+		phases.push_back(matrix) ;
+		phases.push_back(inclusion) ;
+		result = PhaseTemplate::makeExpansionTemplate(1) ;
+	}
+
+	if(s == EXPANSION_KERNER)
+	{
+		PhaseTemplate matrix = PhaseTemplate::makeVolumeBulkShearExpansionTemplate(1) ; 
+		PhaseTemplate inclusion = PhaseTemplate::makeBulkExpansionTemplate(1) ; 
+		phases.push_back(matrix) ;
+		phases.push_back(inclusion) ;
+		result = PhaseTemplate::makeExpansionTemplate(1) ;
+	}	
+	
 
 }
 
@@ -261,6 +318,13 @@ std::vector<double> SchemeTemplate::makeScheme(HomogenizationScheme s, std::vect
 			return SchemeTemplate::elasticitySelfConsistentScheme(d) ;
 		case ELASTICITY_GENERALIZED_SELF_CONSISTENT:
 			return SchemeTemplate::elasticityGeneralizedSelfConsistentScheme(d) ;
+		case EXPANSION_HOBBS:
+			return SchemeTemplate::expansionHobbsScheme(d) ;
+		case EXPANSION_KERNER:
+			return SchemeTemplate::expansionKernerScheme(d) ;
+		case EXPANSION_TURNER:
+			return SchemeTemplate::expansionTurnerScheme(d) ;
+
 	}
 	return empty ;
 }
@@ -666,6 +730,58 @@ std::vector<double> SchemeTemplate::elasticityGeneralizedSelfConsistentScheme(st
 	processed.push_back(hom[1]) ;
 
 	return processed ;
+}
+
+std::vector<double> SchemeTemplate::expansionHobbsScheme(std::vector<std::vector<double> > d)
+{
+	double kmat = d[0][0] ;
+	double amat = d[0][1] ;
+	
+	double finc = d[1][0] ;
+	double kinc = d[1][1] ;
+	double ainc = d[1][2] ;
+	
+	std::vector<double> processed ;
+	processed.push_back(amat + 2*finc*kinc*(ainc-amat) / (kmat+kinc+finc*(kinc-kmat))) ;
+
+	return processed ;
+
+}
+
+std::vector<double> SchemeTemplate::expansionKernerScheme(std::vector<std::vector<double> > d)
+{
+	double fmat = 1 - d[1][0] ;
+	double kmat = d[0][1] ;
+	double amat = d[0][3] ;
+	
+	double finc = d[1][0] ;
+	double kinc = d[1][1] ;
+	double ainc = d[1][2] ;
+	
+	std::vector<double> processed ;
+	processed.push_back((amat*kmat*fmat + ainc*kinc*finc) / (kmat*fmat + kinc*finc)) ;
+
+	return processed ;
+
+}
+
+std::vector<double> SchemeTemplate::expansionTurnerScheme(std::vector<std::vector<double> > d)
+{
+	double fmat = d[0][0] ;
+	double kmat = d[0][1] ;
+	double mumat= d[0][2] ;
+	double amat = d[0][3] ;
+	
+	double finc = 1 - d[0][0] ;
+	double kinc = d[1][0] ;
+	double ainc = d[1][1] ;
+	
+	std::vector<double> processed ;
+	processed.push_back(amat*fmat + ainc*finc) ;
+	processed[0] += (fmat*finc)*(ainc - amat)*(kinc-kmat)/(kmat*fmat+kinc*finc+3*kmat*kinc/(4*mumat)) ;
+
+	return processed ;
+
 }
 
 

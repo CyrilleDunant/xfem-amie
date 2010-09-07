@@ -491,6 +491,10 @@ Properties Material::searchProperties(PType t, SearchPattern p, bool next)
 			}
 			break ;
 
+		case P_EXPANSION_COEFFICIENT:
+			setProperties(P_EXPANSION_COEFFICIENT, 0.) ;
+			break ;
+
 		case P_VOLUME:
 			switch(p)
 			{

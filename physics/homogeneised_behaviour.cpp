@@ -159,7 +159,6 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
         equivalent = getEquivalentBehaviour(eq) ;
         equivalent->step(timestep, currentState) ;
 
-	equivalent->param.print() ;
 }
 
 void HomogeneisedBehaviour::stepBack()
@@ -272,6 +271,18 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 			mat.addPhase(tmp) ;
 		}
 		mat.homogenize(ELASTICITY_MORI_TANAKA) ;
+
+		bool imp = false ;
+		for(int i = 0 ; i < mat.sizePhase() ; i++)
+		{
+			imp |= mat.getPhase(i).hasProperties(P_EXPANSION_COEFFICIENT) ;
+		}
+		if(imp)
+		{
+			mat.homogenize(EXPANSION_HOBBS) ;
+		}
+
+
 		return mat ;
 	}
 
@@ -322,8 +333,32 @@ Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat)
 		}
 	}
 	
+	Vector def(3) ;
+	if(mat.hasProperties(P_EXPANSION_COEFFICIENT))
+	{
+		double alpha = mat.valProperties(P_EXPANSION_COEFFICIENT) ;
+		if(self2d)
+		{
+			def[0] = alpha ;
+			def[1] = alpha ;
+		}
+		if(self3d)
+		{
+			def.resize(6) ;
+			def[0] = alpha ;
+			def[1] = alpha ;
+			def[2] = alpha ;
+		}
+		imp = true ;
+	}
+	
 	if(stiff)
 	{
+		if(imp)
+		{
+			return new StiffnessWithImposedDeformation(param, def) ;
+		}
+		
 		return new Stiffness(param) ;
 	}
 

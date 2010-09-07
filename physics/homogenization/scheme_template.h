@@ -31,6 +31,10 @@ public:
 	
 	static PhaseTemplate makeBulkShearTemplate(int n = -1) ;
 	static PhaseTemplate makeVolumeBulkShearTemplate(int n = -1) ;
+	static PhaseTemplate makeExpansionTemplate(int n = -1) ;
+	static PhaseTemplate makeBulkExpansionTemplate(int n = -1) ;
+	static PhaseTemplate makeVolumeBulkExpansionTemplate(int n = -1) ;
+	static PhaseTemplate makeVolumeBulkShearExpansionTemplate(int n = -1) ;
 
 } ;
 
@@ -60,6 +64,9 @@ public:
 	static std::vector<double> elasticitySelfConsistentScheme(std::vector<std::vector<double> > d) ;
 	static std::vector<double> elasticityGeneralizedSelfConsistentScheme(std::vector<std::vector<double> > d) ;
 	
+	static std::vector<double> expansionHobbsScheme(std::vector<std::vector<double> > d) ;
+	static std::vector<double> expansionKernerScheme(std::vector<std::vector<double> > d) ;
+	static std::vector<double> expansionTurnerScheme(std::vector<std::vector<double> > d) ;
 
 } ;
 	
