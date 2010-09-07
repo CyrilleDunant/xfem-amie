@@ -16,7 +16,7 @@
 #include "physics_base.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/damagemodel.h"
-#include "homogenization/properties_base.h"
+#include "homogenization/homogenization_base.h"
 
 namespace Mu
 {

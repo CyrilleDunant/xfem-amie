@@ -25,8 +25,7 @@
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/damagemodel.h"
 #include "../features/features.h"
-#include "homogenization/elastic_homogenization.h"
-#include "homogenization/converter.h"
+#include "homogenization/homogenization_base.h"
 #include "../utilities/optimizer.h"
 #include "../features/crack.h"
 
@@ -41,7 +40,7 @@ namespace Mu
 		FeatureTree * featureTree ;
 		DelaunayTriangle * self2d ;
 		DelaunayTetrahedron * self3d ;
-		GeneralizedSelfConsistent scheme ;
+//		GeneralizedSelfConsistent scheme ;
 		ElementDefinedBoundaryCondition * bc ;
 		LeastSquaresApproximation * leastSquares ;
 		BranchedCrack * equivalentCrack ;

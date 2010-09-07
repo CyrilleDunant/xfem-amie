@@ -23,11 +23,7 @@
 #include "fracturecriteria/ruptureenergy.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/limitstrains.h"
-#include "homogenization/properties_base.h"
-#include "homogenization/scheme_base.h"
-#include "homogenization/elastic_homogenization.h"
-#include "homogenization/expansion_homogenization.h"
-#include "homogenization/converter.h"
+#include "homogenization/homogenization_base.h"
 #include "../features/features.h"
 #include "../features/inclusion.h"
 #include "../features/sample.h"
@@ -60,7 +56,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 
 HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
 {
-	std::vector<Point> corner = self->getSamplingBoundingPoints(3) ;
+	std::vector<Point> corner = self->getSamplingBoundingPoints(0) ;
 
 	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
 	tri.setBehaviour(self->getBehaviour()->getCopy()) ;
@@ -70,45 +66,28 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	
 	Material hom ;
 	
-	Material matrix = tri.getBehaviour()->toMaterial(tri.getCenter()) ;
+	Material matrix = tri.getBehaviour()->toMaterial() ;
 	double fmat = tri.area() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		fmat -= feats[i]->area() ;
-	matrix(TAG_VOLUME,fmat) ;
-
-	hom = hom + matrix ;
+	matrix.setProperties(P_VOLUME, fmat) ;
+	hom.addPhase(matrix) ;
 	
-	
-	std::vector<Tag> bulkshear ;
-	bulkshear.push_back(TAG_BULK_MODULUS) ;
-	bulkshear.push_back(TAG_SHEAR_MODULUS) ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
-		Material inc = feats[i]->getBehaviour()->toMaterial(feats[i]->getCenter()) ;
-		inc(TAG_VOLUME, feats[i]->area()) ;
-		bool combined = false ;
-		for(size_t j = 0 ; j < hom.nPhases() ; j++)
-		{
-			Material tmp = hom.child(j) ;
-			combined = (combined || tmp.combine(inc,bulkshear,TAG_VOLUME)) ;
-			if(combined)
-			{
-				hom = hom - (int) j ;
-				hom = hom + tmp ;
-				break ;
-			}
-		}
-		if(!combined)
-			hom = hom + inc ;
+		Material inc = feats[i]->getBehaviour()->toMaterial() ;
+		inc.setProperties(P_VOLUME, feats[i]->area()) ;
+		hom.addPhase(inc) ;
+		hom.mergePhase() ;
 	}
 
-
-
 	Material eq = homogenize(hom) ;
+
 	equivalent = getEquivalentBehaviour(eq) ;
 
 	v.push_back(XI);
 	v.push_back(ETA);
+
 
 }
 
@@ -150,53 +129,37 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 	if(type == VOID_BEHAVIOUR)
 		return ;
 
-	std::vector<Point> corner = self2d->getSamplingBoundingPoints(3) ;
+        std::vector<Point> corner = self2d->getSamplingBoundingPoints(0) ;
 
-	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
-	tri.setBehaviour(self2d->getBehaviour()->getCopy()) ;
-
-	Material hom ;
-
-	Material matrix = tri.getBehaviour()->toMaterial(tri.getCenter()) ;
-	double fmat = tri.area() ;
-	for(size_t i = 0 ; i < ft.size() ; i++)
-					fmat -= ft[i]->area() ;
-	matrix(TAG_VOLUME,fmat) ;
-
-	hom = hom + matrix ;
+        TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
 
 
-	std::vector<Tag> bulkshear ;
-	bulkshear.push_back(TAG_BULK_MODULUS) ;
-	bulkshear.push_back(TAG_SHEAR_MODULUS) ;
-	for(size_t i = 0 ; i < ft.size() ; i++)
-	{
-		Material inc = ft[i]->getBehaviour()->toMaterial(ft[i]->getCenter()) ;
-		inc(TAG_VOLUME, ft[i]->area()) ;
-		bool combined = false ;
-		for(size_t j = 0 ; j < hom.nPhases() ; j++)
-		{
-			Material tmp = hom.child(j) ;
-			combined = (combined || tmp.combine(inc,bulkshear,TAG_VOLUME)) ;
-			if(combined)
-			{
-				hom = hom - (int) j ;
-				hom = hom + tmp ;
-				break ;
-			}
-		}
-		if(!combined)
-			hom = hom + inc ;
-	}
+        Material hom ;
+
+        Material matrix = self2d->getBehaviour()->toMaterial() ;
+        double fmat = tri.area() ;
+        for(size_t i = 0 ; i < ft.size() ; i++)
+                fmat -= ft[i]->area() ;
+	matrix.setProperties(P_VOLUME, fmat) ;
+	hom.addPhase(matrix) ;
+
+        for(size_t i = 0 ; i < ft.size() ; i++)
+        {
+		Material inc = ft[i]->getBehaviour()->toMaterial() ;
+		inc.setProperties(P_VOLUME, ft[i]->area()) ;
+		hom.addPhase(inc) ;
+		hom.mergePhase() ;
+        }
 
 
 
-	Material eq = homogenize(hom) ;
-	delete equivalent ;
-	equivalent = getEquivalentBehaviour(eq) ;
+        Material eq = homogenize(hom) ;
+	if(equivalent != NULL)
+		delete equivalent ;
+        equivalent = getEquivalentBehaviour(eq) ;
+        equivalent->step(timestep, currentState) ;
 
-	equivalent->step(timestep, currentState) ;
-
+	equivalent->param.print() ;
 }
 
 void HomogeneisedBehaviour::stepBack()
@@ -214,34 +177,17 @@ bool HomogeneisedBehaviour::fractured() const
 
 Form * HomogeneisedBehaviour::getCopy() const 
 {
-	return new HomogeneisedBehaviour(*this) ;
+        return new HomogeneisedBehaviour(*this) ;
 }
 
 std::vector<BoundaryCondition * > HomogeneisedBehaviour::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
-	return equivalent->getBoundaryConditions(s,id,p_i,gp,Jinv) ;
+        return equivalent->getBoundaryConditions(s,id,p_i,gp,Jinv) ;
 }
-
-HomogeneisedBehaviour::HomogeneisedBehaviour(const HomogeneisedBehaviour & hb) : LinearForm(Matrix(), true, false, hb.getNumberOfDegreesOfFreedom())
-{
-		equivalent = hb.equivalent->getCopy();
-		mesh2d = hb.mesh2d;
-		self2d = hb.self2d;
-		mesh3d = hb.mesh3d;
-		self3d = hb.self3d;
-		v = hb.v;
-		source = hb.source;
-		source3d = hb.source3d;
-		ft = hb.ft;
-}
-
 
 void HomogeneisedBehaviour::homogenize()
 {
 	Material mat ;
-	std::vector<Tag> bulkshear ;
-	bulkshear.push_back(TAG_BULK_MODULUS) ;
-	bulkshear.push_back(TAG_SHEAR_MODULUS) ;
 	double totalArea = 0. ;
 	if(self2d)
 	{
@@ -254,49 +200,20 @@ void HomogeneisedBehaviour::homogenize()
 				
 				if(source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					Material thismat = source[i]->getBehaviour()->toMaterial(source[i]->getCenter()) ;
-					thismat(TAG_VOLUME,source[i]->area()) ;
-					if(mat.nPhases() == 0)
-						mat = mat + thismat ;
-					else 
-					{
-						bool combined = false ;
-						for(size_t j = 0 ; j < mat.nPhases() ; j++)
-						{
-							Material tmp = mat.child(j) ;
-							combined = (combined || tmp.combine(thismat,bulkshear,TAG_VOLUME)) ;
-							if(combined)
-							{
-								mat = mat - (int) j ;
-								mat = mat + tmp ;
-								break ;
-							}
-						}
-						if(!combined)
-							mat = mat + thismat ;
-					}
+					Material thismat = source[i]->getBehaviour()->toMaterial() ;
+					thismat.setProperties(P_VOLUME,source[i]->area()) ;
+					mat.addPhase(thismat) ;
+					mat.mergePhase() ;
 					totalArea += source[i]->area() ;
 				}
 				else
 				{
-					size_t bp = source[i]->getBoundingPoints().size() ;
-					Point a = source[i]->getBoundingPoint(0) ;
-					Point b = source[i]->getBoundingPoint(bp/3) ;
-					Point c = source[i]->getBoundingPoint(bp*2/3) ;
-					Material thismat(Properties(TAG_VOLUME, source[i]->area())) ;
-					thismat(TAG_BULK_MODULUS, 1e-9) ;
-					thismat(TAG_SHEAR_MODULUS, 1e-9) ;
-					if(mat.nPhases() == 0)
-						mat = mat + thismat ;
-					else 
-					{
-//						thismat.print() ;
-						bool combined = false ;
-						for(size_t j = 0 ; j < mat.nPhases() ; j++)
-							combined = (combined || mat.child(j).combine(thismat,bulkshear,TAG_VOLUME)) ;
-						if(!combined)
-							mat = mat + thismat ;
-					}
+					Material thismat ;
+					thismat.setProperties(P_BULK_MODULUS, 1e-9) ;
+					thismat.setProperties(P_SHEAR_MODULUS, 1e-9) ;
+					thismat.setProperties(P_VOLUME,source[i]->area()) ;
+					mat.addPhase(thismat) ;
+					mat.mergePhase() ;
 					totalArea += source[i]->area() ;
 				}	
 			}
@@ -311,49 +228,20 @@ void HomogeneisedBehaviour::homogenize()
 				
 				if(source3d[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					Material thismat = source3d[i]->getBehaviour()->toMaterial(source3d[i]->getCenter()) ;
-					thismat(TAG_VOLUME,source3d[i]->volume()) ;
-					if(mat.nPhases() == 0)
-						mat = mat + thismat ;
-					else 
-					{
-						bool combined = false ;
-						for(size_t j = 0 ; j < mat.nPhases() ; j++)
-						{
-							Material tmp = mat.child(j) ;
-							combined = (combined || tmp.combine(thismat,bulkshear,TAG_VOLUME)) ;
-							if(combined)
-							{
-								mat = mat - (int) j ;
-								mat = mat + tmp ;
-								break ;
-							}
-						}
-						if(!combined)
-							mat = mat + thismat ;
-					}
+					Material thismat = source3d[i]->getBehaviour()->toMaterial() ;
+					thismat.setProperties(P_VOLUME,source3d[i]->volume()) ;
+					mat.addPhase(thismat) ;
+					mat.mergePhase() ;
 					totalArea += source3d[i]->volume() ;
 				}
 				else
 				{
-					size_t bp = source3d[i]->getBoundingPoints().size() ;
-					Point a = source3d[i]->getBoundingPoint(0) ;
-					Point b = source3d[i]->getBoundingPoint(bp/3) ;
-					Point c = source3d[i]->getBoundingPoint(bp*2/3) ;
-					Material thismat(Properties(TAG_VOLUME, source3d[i]->volume())) ;
-					thismat(TAG_BULK_MODULUS, 1e-9) ;
-					thismat(TAG_SHEAR_MODULUS, 1e-9) ;
-					if(mat.nPhases() == 0)
-						mat = mat + thismat ;
-					else 
-					{
-//						thismat.print() ;
-						bool combined = false ;
-						for(size_t j = 0 ; j < mat.nPhases() ; j++)
-							combined = (combined || mat.child(j).combine(thismat,bulkshear,TAG_VOLUME)) ;
-						if(!combined)
-							mat = mat + thismat ;
-					}
+					Material thismat ;
+					thismat.setProperties(P_BULK_MODULUS, 1e-9) ;
+					thismat.setProperties(P_SHEAR_MODULUS, 1e-9) ;
+					thismat.setProperties(P_VOLUME,source3d[i]->volume()) ;
+					mat.addPhase(thismat) ;
+					mat.mergePhase() ;
 					totalArea += source3d[i]->volume() ;
 				}	
 			}
@@ -362,6 +250,7 @@ void HomogeneisedBehaviour::homogenize()
 	}
 
 	Material hom = homogenize(mat) ;
+	delete equivalent ;
 	equivalent = getEquivalentBehaviour(hom) ;
 
 }
@@ -369,86 +258,24 @@ void HomogeneisedBehaviour::homogenize()
 
 Material HomogeneisedBehaviour::homogenize(Material mat)
 {
-	if(mat.nPhases() == 1)
-		return mat.child(0) ;
-
-	std::vector<Tag> fracture ;
-	fracture.push_back(TAG_MAX_STRAIN) ;
-	fracture.push_back(TAG_MAX_COMPRESSIVE_STRAIN) ;
-	fracture.push_back(TAG_MAX_TENSILE_STRAIN) ;
-	fracture.push_back(TAG_MAX_STRESS) ;
-	fracture.push_back(TAG_MAX_COMPRESSIVE_STRESS) ;
-	fracture.push_back(TAG_MAX_TENSILE_STRESS) ;
-	fracture.push_back(TAG_RUPTURE_ENERGY) ;
-
-	Scheme * scheme = NULL ;
-	
-	for(size_t i = 0 ; i < fracture.size() ; i++)
+	if(mat.sizePhase() == 1)
 	{
-		int k = -1 ;
-		double val = 0. ;
-		for(size_t j = 0 ; j < mat.nPhases() ; j++)
-		{
-			if(mat.child(j).getIndex(fracture[i],-1) > -1)
-			{
-				double vj = std::abs(mat.child(j).val(fracture[i],-1)) ;
-				if(k == -1)
-				{
-					val = vj ;
-					k = j ;
-				} else {
-					if(vj > val)
-					{
-						val = vj ;
-						k = j ;
-					}
-				}
-			}
-		}
-		if(k+1 > 0)
-		{
-			mat(fracture[i],mat.child(k).val(fracture[i],-1)) ;
-		}
+		return mat.getPhase(0) ;
 	}
 
-	
-	mat.makeFraction(true) ;
-	if(mat.nPhases() == 2)
+	if(mat.sizePhase() == 2)
 	{
-		if(mat.child(0).val(TAG_BULK_MODULUS,-1) < 1e-6)
+		if(mat.getPhase(0).valProperties(P_BULK_MODULUS) < 1e-6)
 		{
-			Material tmp = mat.child(0) ;
-			mat = mat - 0 ;
-			mat = mat + tmp ;
+			Material tmp = mat.getPhase(0) ;
+			mat.removePhase(0) ;
+			mat.addPhase(tmp) ;
 		}
-		scheme = new MoriTanaka() ;
-		mat.build(scheme, false) ;
-		delete scheme ;
-
-		bool imp = false ;
-		for(size_t i = 0 ; i < mat.nPhases() ; i++)
-			 imp = imp || (mat.child(i).getIndex(TAG_IMPOSED_STRAIN,-1) > -1) ;
-
-		if(imp)
-		{
-			for(size_t i = 0 ; i < mat.nPhases() ; i++)
-			{
-				double def = mat.child(i).val(TAG_IMPOSED_STRAIN,-1) ;
-				mat.add(TAG_EXPANSION_COEFFICIENT,def,i) ;
-			}
-			scheme = new HobbsScheme() ;
-			mat.build(scheme, false) ;
-			mat.add(TAG_IMPOSED_STRAIN,mat(TAG_EXPANSION_COEFFICIENT)) ;
-			delete scheme ;
-		}
-		
+		mat.homogenize(ELASTICITY_MORI_TANAKA) ;
 		return mat ;
 	}
 
-	scheme = new GeneralizedSelfConsistent() ;
-	mat.build(scheme, false) ;
-	delete scheme ;
-
+	mat.homogenize(ELASTICITY_GENERALIZED_SELF_CONSISTENT) ;
 	return mat ;
 }
 
@@ -459,112 +286,57 @@ Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat)
 	bool frac = false ;
 	bool imp = false ;
 
-	if(mat.getIndex(TAG_DIFFUSION_COEFFICIENT,-1) > -1)
+	if(mat.hasProperties(P_YOUNG_MODULUS) && mat.hasProperties(P_POISSON_RATIO))
 	{
+		double E = mat.valProperties(P_YOUNG_MODULUS) ;
+		double nu = mat.valProperties(P_POISSON_RATIO) ;
 		if(self2d)
 		{
-			param = Matrix(2,2) ;
-			param[0][0] = mat(TAG_DIFFUSION_COEFFICIENT) ;
-			param[1][1] = mat(TAG_DIFFUSION_COEFFICIENT) ;
+			param = Material::cauchyGreen(std::make_pair(E, nu),true,SPACE_TWO_DIMENSIONAL) ;
 		}
 		if(self3d)
 		{
-			param = Matrix(3,3) ;
-			param[0][0] = mat(TAG_DIFFUSION_COEFFICIENT) ;
-			param[1][1] = mat(TAG_DIFFUSION_COEFFICIENT) ;
-			param[2][2] = mat(TAG_DIFFUSION_COEFFICIENT) ;
+			param = Material::cauchyGreen(std::make_pair(E, nu),true,SPACE_THREE_DIMENSIONAL) ;
 		}
-		diff = true ;
-		return new Diffusion(param) ;
-	}
-
-	if(mat.getIndex(TAG_YOUNG_MODULUS,-1) > -1 && mat.getIndex(TAG_POISSON_RATIO,-1) > -1)
-	{
-		if(self2d)
-			param = cauchyGreen(std::make_pair(mat(TAG_YOUNG_MODULUS),mat(TAG_POISSON_RATIO)),true,SPACE_TWO_DIMENSIONAL) ;
-		if(self3d)
-			param = cauchyGreen(std::make_pair(mat(TAG_YOUNG_MODULUS),mat(TAG_POISSON_RATIO)),true,SPACE_THREE_DIMENSIONAL) ;
 		stiff = true ;
-	} else {
-		if(mat.getIndex(TAG_BULK_MODULUS,-1) > -1 && mat.getIndex(TAG_SHEAR_MODULUS,-1) > -1)
+	}
+	else
+	{
+		if(mat.hasProperties(P_BULK_MODULUS) && mat.hasProperties(P_SHEAR_MODULUS))
 		{
+			double k = mat.valProperties(P_BULK_MODULUS) ;
+			double mu = mat.valProperties(P_SHEAR_MODULUS) ;
 			if(self2d)
-				param = cauchyGreen(std::make_pair(mat(TAG_BULK_MODULUS),mat(TAG_SHEAR_MODULUS)),false,SPACE_TWO_DIMENSIONAL) ;
+			{
+				param = Material::cauchyGreen(std::make_pair(k, mu),false,SPACE_TWO_DIMENSIONAL) ;
+			}
 			if(self3d)
-				param = cauchyGreen(std::make_pair(mat(TAG_BULK_MODULUS),mat(TAG_SHEAR_MODULUS)),false,SPACE_THREE_DIMENSIONAL) ;
-			stiff = true ;
-			if(mat(TAG_BULK_MODULUS) < 1e-6)
-				stiff = false ;
-		} else {
+			{
+				param = Material::cauchyGreen(std::make_pair(k, mu),false,SPACE_THREE_DIMENSIONAL) ;
+			}
+			stiff = ( k > 1e-6) ;
+		}
+		else
+		{
 			std::cout << "warning: no mechanical behaviour detected!" << std::endl ;
 		}
 	}
 	
-	FractureCriterion * crit ;
-	
-	if(mat.getIndex(TAG_MAX_STRAIN,-1) > -1 ||
-	   mat.getIndex(TAG_MAX_TENSILE_STRAIN,-1) > -1 ||
-	   mat.getIndex(TAG_MAX_COMPRESSIVE_STRAIN,-1) > -1 ||
-	   mat.getIndex(TAG_MAX_STRESS,-1) > -1 ||
-	   mat.getIndex(TAG_MAX_TENSILE_STRESS,-1) > -1 ||
-	   mat.getIndex(TAG_MAX_COMPRESSIVE_STRESS,-1) > -1 ||
-	   mat.getIndex(TAG_RUPTURE_ENERGY,-1) > -1)
-	{
-		frac = true ;
-		if(mat.getIndex(TAG_MAX_TENSILE_STRAIN,-1) > -1 && mat.getIndex(TAG_MAX_COMPRESSIVE_STRAIN,-1) > -1)
-			crit = new LimitStrains(mat(TAG_MAX_COMPRESSIVE_STRAIN),mat(TAG_MAX_TENSILE_STRAIN)) ;
-		if(mat.getIndex(TAG_MAX_STRAIN,-1) > -1)
-			crit = new MaximumStrain(mat(TAG_MAX_STRAIN)) ;
-		if(mat.getIndex(TAG_RUPTURE_ENERGY,-1) > -1)
-			crit = new RuptureEnergy(mat(TAG_RUPTURE_ENERGY)) ;
-		if(mat.getIndex(TAG_MAX_TENSILE_STRESS,-1) > -1 && mat.getIndex(TAG_MAX_COMPRESSIVE_STRESS,-1) > -1)
-			crit = new MohrCoulomb(mat(TAG_MAX_TENSILE_STRESS),mat(TAG_MAX_COMPRESSIVE_STRESS)) ;
-		if(mat.getIndex(TAG_MAX_STRESS,-1) > -1)
-			crit = new VonMises(mat(TAG_MAX_STRESS)) ;
-	}
-	
-
-	Vector imposed(3) ;
-	if(self3d)
-		imposed.resize(6) ;
-	if(mat.getIndex(TAG_IMPOSED_STRAIN,-1) > -1)
-	{
-		imposed[0] = mat(TAG_IMPOSED_STRAIN) ;
-		imposed[1] = mat(TAG_IMPOSED_STRAIN) ;
-		if(imposed.size() == 6)
-			imposed[2] = mat(TAG_IMPOSED_STRAIN) ;
-		imp = true ;
-        }
-
 	if(stiff)
 	{
-/*		if(imp && frac)
-                        return new StiffnessWithImposedDeformationAndFracture(param,imposed,crit) ;*/
-
-		if(imp)
-                {
-                    return new StiffnessWithImposedDeformation(param,imposed) ;
-                }
-		
-/*		if(frac)
-                        return new StiffnessAndFracture(param,crit) ;*/
-
 		return new Stiffness(param) ;
 	}
 
-
-
-
 	return new VoidForm() ;
-}
-
-Material HomogeneisedBehaviour::toMaterial(const Point & p) const 
-{
-	Material mat(equivalent->getTensor(p)) ;
-	return mat ;
 }
 
 Vector HomogeneisedBehaviour::getImposedStress(const Point & p) const
 {
     return equivalent->getImposedStress(p) ;
 }
+
+Matrix HomogeneisedBehaviour::getTensor(const Point & p) const
+{
+	return equivalent->getTensor(p) ;
+}
+

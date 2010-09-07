@@ -46,8 +46,6 @@ FractureCriterion * LimitStrains::getCopy() const
 Material LimitStrains::toMaterial()
 {
 	Material mat ;
-	mat(TAG_MAX_TENSILE_STRAIN,maxUpVal) ;
-	mat(TAG_MAX_COMPRESSIVE_STRAIN,maxDownVal) ;
 	return mat ;
 }
 

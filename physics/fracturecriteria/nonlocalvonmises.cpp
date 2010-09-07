@@ -64,7 +64,6 @@ FractureCriterion * NonLocalVonMises::getCopy() const
 Material NonLocalVonMises::toMaterial()
 {
 	Material mat ;
-	mat(TAG_MAX_STRESS,threshold) ;
 	return mat ;
 }
 

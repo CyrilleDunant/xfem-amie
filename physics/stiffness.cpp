@@ -49,7 +49,7 @@ Form * Stiffness::getCopy() const
 
 Material Stiffness::toMaterial()
 {
-	Material mat(param) ;
+	Material mat(getTensor(Point(0,0))) ;
 	return mat ;
 }
 

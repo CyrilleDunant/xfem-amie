@@ -196,8 +196,8 @@ Matrix StiffnessAndFracture::getTensor(const Point & p) const
 
 Material StiffnessAndFracture::toMaterial()
 {
-	Material mat(param) ;
-	mat.merge(criterion->toMaterial()) ;
+	Material mat(getTensor(Point(0,0))) ;
+	mat.setProperties(criterion->toMaterial()) ;
 	return mat ;
 }
 

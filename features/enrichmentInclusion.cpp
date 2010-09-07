@@ -99,9 +99,11 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 		}
 		
 
-		HomogeneisedBehaviour hom(feat, disc[0]) ;
+		disc[0]->getBehaviour()->getTensor(Point(0,0)).print() ;
+		HomogeneisedBehaviour * hom = new HomogeneisedBehaviour(feat, disc[0]) ;
 
-		disc[0]->setBehaviour(hom.getCopy()) ;
+		disc[0]->setBehaviour(hom) ;
+		
 		return ;
 
 

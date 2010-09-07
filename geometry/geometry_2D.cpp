@@ -857,9 +857,11 @@ std::vector<Point> Triangle::getSamplingBoundingPoints(size_t num_points) const
 	std::vector<Point> ret ;
 	assert(num_points%3 == 0) ;
 	
+	int n = getBoundingPoints().size() ;
+	
 	Point v0 = *boundingPoints[0] ;
-	Point v1 = *boundingPoints[1] ;
-	Point v2 = *boundingPoints[2] ;
+	Point v1 = *boundingPoints[n/3] ;
+	Point v2 = *boundingPoints[2*n/3] ;
 		
 	ret.push_back(v0) ;
 	
@@ -881,6 +883,7 @@ std::vector<Point> Triangle::getSamplingBoundingPoints(size_t num_points) const
 	{
 		ret.push_back(v2*3.*(i-2*num_points/3)/num_points + v0*(1.-3.*(i-2*num_points/3)/num_points)) ;
 	}
+
 
 	return ret ;
 }

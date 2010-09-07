@@ -82,8 +82,6 @@ FractureCriterion * MohrCoulomb::getCopy() const
 Material MohrCoulomb::toMaterial()
 {
 	Material mat ;
-	mat(TAG_MAX_TENSILE_STRESS,upVal) ;
-	mat(TAG_MAX_COMPRESSIVE_STRESS,downVal) ;
 	return mat ;
 }
 

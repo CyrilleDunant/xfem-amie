@@ -1374,8 +1374,8 @@ int main(int argc, char *argv[])
 	m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1.-nu*nu) ; m0_soft[1][2] = 0 ; 
 	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
 
-	double width = 500;
-	double height = 500;
+	double width = 0.01;
+	double height = 0.01;
 	Sample sample(NULL, height , height, 0, 0) ;//sample() ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
@@ -1398,10 +1398,11 @@ int main(int argc, char *argv[])
 // 	crack.back()->setEnrichementRadius(.0005) ;
 // 	F.addFeature(&sample, crack.back()) ; //add the crack to the feature tree
 	Vector def(3) ; 
+	def[0] = 0.1 ;
+	def[1] = 0.1 ;
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
-	inc0->setBehaviour(new Stiffness(m0_paste*5)) ;
+	ExpansiveZone * inc0 = new ExpansiveZone(NULL, 0.000005, 0, 0, m0_paste*100, def ) ;
 
 /*	XMLTree * test = inc0->toXML() ;
 	test->print(true) ;
@@ -1420,9 +1421,9 @@ int main(int argc, char *argv[])
 	x->print(true) ;*/
 // 	return 0 ;
 
- 	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
+// 	Inclusion * inc1 = new Inclusion(0.004, 0, 0.002) ;
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
-	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
+//	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
  	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
@@ -1447,7 +1448,7 @@ int main(int argc, char *argv[])
 // F.addFeature(&sample, new TriangularPore(Point( -0.0073, -0.000) , Point( -0.0064, -0.000), Point( -0.0069, 0.0004) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.003, -0.002) , Point( -0.004, -0.002), Point( -0.0035, 0.002) )) ;
 // F.addFeature(&sample, new TriangularPore(Point( -0.002, -0.002) , Point( -0.001, -0.002), Point( -0.0015, 0.002) )) ;
-	std::vector<Pore *> pores;
+/*	std::vector<Pore *> pores;
 
 	double totalMass = 0.25;
 	double density = 25000;
@@ -1463,7 +1464,7 @@ int main(int argc, char *argv[])
 	Point center4 = (center2 + center1)/2;
 	Point center5 = (center1 + Point(0.0,0.01));
 	Point center6 = (center5 + Point(0.0,0.005));
-	double stress = 55 ;
+	double stress = 55 ;*/
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
@@ -1481,9 +1482,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_RIGHT)) ;
 	
-	Circle cercle(.5, 0,0) ;
+//	Circle cercle(.5, 0,0) ;
 
-	F.useMultigrid = true ;
+	F.useMultigrid = false ;
 
 	F.sample(64) ;
 
@@ -1501,7 +1502,7 @@ int main(int argc, char *argv[])
 
 	step() ;
 	
-	
+/*	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
@@ -1543,7 +1544,7 @@ int main(int argc, char *argv[])
 	glShadeModel(GL_SMOOTH);
 	
 	glutDisplayFunc(Display) ;
-	glutMainLoop() ;
+	glutMainLoop() ;*/
 	
 // 	delete dt ;
 	

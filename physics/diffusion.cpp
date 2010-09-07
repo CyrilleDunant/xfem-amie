@@ -47,7 +47,6 @@ Form * Diffusion::getCopy() const
 Material Diffusion::toMaterial()
 {
 	Material mat ;
-	mat(TAG_DIFFUSION_COEFFICIENT,param[0][0]) ;
 	return mat ;
 }
 

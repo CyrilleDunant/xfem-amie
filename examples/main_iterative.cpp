@@ -14,8 +14,6 @@
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/stiffness.h"
 #include "../physics/spatially_distributed_stiffness.h"
-#include "../physics/homogenization/elastic_homogenization.h"
-#include "../physics/homogenization/elastic_bounds.h"
 #include "../features/pore.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
@@ -27,6 +25,7 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../physics/homogenization/homogenization_base.h"
 
 #include <fstream>
 
@@ -558,6 +557,10 @@ Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double r
 
 int main(int argc, char *argv[])
 {
+
+
+	return 0. ;
+
 	double agg_fraction = 0.7 ;
 
 	std::vector<std::pair<double, double > > radius ;

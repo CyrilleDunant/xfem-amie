@@ -11,7 +11,7 @@
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
 #include "../utilities/xml.h"
-#include "../physics/homogenization/properties_base.h"
+#include "../physics/homogenization/homogenization_base.h"
 
 namespace Mu
 {
@@ -50,7 +50,6 @@ typedef enum
 	PURE_LINEAR,
 	LINEAR_AND_CONSTANT,
 	NON_LINEAR,
-	HOMOGENEISED,
 	VOID_BEHAVIOUR
 } ParametersType ;
 
@@ -411,8 +410,7 @@ public:
 	ParametersType type;
 	
 	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof), param(p) { } ;
-	Form(bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof) { } ;
-	Form() : time_d(false), space_d(false), num_dof(0) { } ;
+	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)){ } ;
 	
 	/** apply the form on a pair of functions
 	 * 
@@ -424,10 +422,9 @@ public:
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
-	
-	virtual Material toMaterial(const Point & p) const
+	virtual Material toMaterial()
 	{
-		Material mat(getTensor(p)) ;
+		Material mat(getTensor(Point(0,0))) ;
 		return mat ;
 	}
 	

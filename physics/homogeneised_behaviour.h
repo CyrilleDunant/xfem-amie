@@ -15,7 +15,7 @@
 
 
 #include "physics_base.h"
-#include "homogenization/elastic_homogenization.h"
+#include "homogenization/homogenization_base.h"
 #include "../mesher/mesh.h"
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
@@ -38,7 +38,7 @@ namespace Mu
 		std::vector<Variable> v ;
 		std::vector<DelaunayTriangle *> source ;
 		std::vector<DelaunayTetrahedron *> source3d ;
-		std::vector<Feature *> ft ;
+                std::vector<Feature *> ft ;
 
 		/** \brief Constructor
 		* 
@@ -55,8 +55,7 @@ namespace Mu
 
 		HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) ;
 
-		HomogeneisedBehaviour(const HomogeneisedBehaviour & hb) ;
-		
+
 		virtual ~HomogeneisedBehaviour() ;
 		
 		/** \brief Apply the law.
@@ -76,8 +75,6 @@ namespace Mu
 		
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
-		
-		virtual Material toMaterial(const Point & p) const ;
 
 		/** \brief Homogenizes the elastic behaviour*/
 		void homogenize() ;
@@ -89,18 +86,14 @@ namespace Mu
 		virtual void step(double timestep, ElementState & currentState) ;
 		virtual void stepBack() ;
 
-		Material toMaterial() 
-		{
-			if(self2d)
-				return equivalent->toMaterial(self2d->getCenter()) ; 
-			else
-				return equivalent->toMaterial(self3d->getCenter()) ; 
-		} ;
+		virtual Matrix getTensor(const Point & p) const ;
+
+		Material toMaterial() {return equivalent->toMaterial() ; } ;
 		Material homogenize(Material mat) ;
 
-		virtual Vector getImposedStress(const Point & p) const ;
+                virtual Vector getImposedStress(const Point & p) const ;
 
-		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+                std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 		Form * getEquivalentBehaviour(Material mat) ;	
 
