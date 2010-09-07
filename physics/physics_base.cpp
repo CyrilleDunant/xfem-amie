@@ -20,7 +20,7 @@ LinearForm::LinearForm(const Matrix & p, bool t, bool s, size_t numdof ) : Form(
 	this->type = PURE_LINEAR ;
 }
 
-LinearForm::LinearForm(bool t, bool s, size_t numdof ) : Form(t, s, numdof)
+LinearForm::LinearForm(bool t, bool s, size_t numdof ) : Form(Matrix(), t, s, numdof)
 {
 	this->type = PURE_LINEAR ;
 }
@@ -102,7 +102,7 @@ void NonLinearForm::updateElementState(double timestep, ElementState & s) const
 	}
 }
 
-NonLinearForm::NonLinearForm() : Form(false, false, 2)
+NonLinearForm::NonLinearForm() : Form(Matrix(), false, false, 2)
 {
 	this->type = NON_LINEAR ;
 }
