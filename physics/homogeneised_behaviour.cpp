@@ -48,7 +48,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 		}
 	}
 
-	homogenize() ;	
+//	homogenize() ;	
 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -57,6 +57,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
 {
 	std::vector<Point> corner = self->getSamplingBoundingPoints(0) ;
+	
+	base = self->getBehaviour()->toMaterial() ;
 
 	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
 	tri.setBehaviour(self->getBehaviour()->getCopy()) ;
@@ -66,7 +68,11 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	
 	Material hom ;
 	
-	Material matrix = tri.getBehaviour()->toMaterial() ;
+	Material matrix ;
+	for(int i = 0 ; i < base.sizeProperties() ; i++)
+	{
+		matrix.setProperties(base.getProperties(i)) ;
+	}
 	double fmat = tri.area() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		fmat -= feats[i]->area() ;
@@ -88,7 +94,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	v.push_back(XI);
 	v.push_back(ETA);
 
-
+	reverted = false ;
 }
 
 
@@ -106,7 +112,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayT
 		}
 	}
 
-	homogenize() ;
+//	homogenize() ;
 	
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -129,17 +135,40 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 	if(type == VOID_BEHAVIOUR)
 		return ;
 
+	if(reverted)
+	{
+		return ;
+	}
+	
+	bool revert = false ;
+
         std::vector<Point> corner = self2d->getSamplingBoundingPoints(0) ;
 
         TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
 
-
         Material hom ;
 
-        Material matrix = self2d->getBehaviour()->toMaterial() ;
+        Material matrix ;
+	for(int i = 0 ; i < base.sizeProperties() ; i++)
+	{
+		matrix.setProperties(base.getProperties(i)) ;
+	}
         double fmat = tri.area() ;
         for(size_t i = 0 ; i < ft.size() ; i++)
+        {
+        	revert |= dynamic_cast<Triangle *>(&tri)->intersects(dynamic_cast<Geometry *>(ft[i])) ;
                 fmat -= ft[i]->area() ;
+	}
+	
+	if(revert)
+	{
+		ft.clear() ;
+		delete equivalent ;
+		equivalent = getEquivalentBehaviour(base) ;
+		reverted = true ;
+		return ;
+	}
+	
 	matrix.setProperties(P_VOLUME, fmat) ;
 	hom.addPhase(matrix) ;
 
@@ -151,14 +180,13 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 		hom.mergePhase() ;
         }
 
-
-
         Material eq = homogenize(hom) ;
 	if(equivalent != NULL)
 		delete equivalent ;
         equivalent = getEquivalentBehaviour(eq) ;
-        equivalent->step(timestep, currentState) ;
 
+	if(equivalent->timeDependent())
+	        equivalent->step(timestep, currentState) ;
 }
 
 void HomogeneisedBehaviour::stepBack()

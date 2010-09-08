@@ -86,7 +86,6 @@ Material::Material()
 {
 	prop.clear() ;
 	phases.clear() ;
-	father = NULL ;
 }
 
 Material::Material(std::vector<Properties> p)
@@ -97,7 +96,6 @@ Material::Material(std::vector<Properties> p)
 		prop.push_back(p[i]) ;
 	}
 	phases.clear() ;
-	father = NULL ;
 }
 
 Material::Material(std::vector<Material> p)
@@ -106,10 +104,8 @@ Material::Material(std::vector<Material> p)
 	phases.clear() ;
 	for(size_t i = 0 ; i < p.size() ; i++)
 	{
-		p[i].setFather(this) ;
 		phases.push_back(p[i]) ;
 	}
-	father = NULL ;
 }
 
 Material::Material(const Matrix & cauchy)
@@ -302,7 +298,6 @@ double Material::valProperties(PType t) const
 
 void Material::addPhase(Material m) 
 {
-	m.setFather(this) ;
 	phases.push_back(m) ;
 }
 
@@ -352,7 +347,6 @@ void Material::removePhase(int i)
 {
 	if(!(i < 0 || i > (int) phases.size()))
 	{
-		phases[i].setFather(NULL) ;
 		std::vector<Material> tmp ;
 		for(int j = 0 ; j < (int) phases.size() ; j++)
 		{
@@ -401,48 +395,7 @@ bool Material::equals(Material m, bool extensible) const
 	return true ;
 }
 
-void Material::setFather(Material * m)
-{
-	father = m ;
-}
-
-Properties Material::getFatherProperties(PType t) const 
-{
-	if(father != NULL)
-	{
-		return father->getProperties(t) ;
-	}
-	else
-	{
-		return Properties(P_NO_FATHER, 0.) ;
-	}
-}
-
-bool Material::hasFatherProperties(PType t) const 
-{
-	if(father != NULL)
-	{
-		return father->hasProperties(t) ;
-	}
-	else
-	{
-		return false ;
-	}
-}
-
-double Material::valFatherProperties(PType t) const 
-{
-	if(father != NULL)
-	{
-		return father->valProperties(t) ;
-	}
-	else
-	{
-		return 0. ;
-	}
-}
-
-Properties Material::searchProperties(PType t, SearchPattern p, bool next)
+Properties Material::searchProperties(PType t, SearchPattern p, bool next, Material father)
 {
 	if(!hasProperties(t) && p != SEARCH_TRY_NOTHING)
 	{
@@ -500,7 +453,7 @@ Properties Material::searchProperties(PType t, SearchPattern p, bool next)
 			{
 			case SEARCH_TRY_ANYTHING:
 				searchProperties(P_VOLUME, SEARCH_VOLUME_FROM_MASS_DENSITY, false) ;
-				searchProperties(P_VOLUME, SEARCH_VOLUME_FROM_FATHER_VOLUME, false) ;
+				searchProperties(P_VOLUME, SEARCH_VOLUME_FROM_FATHER_VOLUME, false, father) ;
 				searchProperties(P_VOLUME, SEARCH_VOLUME_FROM_CHILDREN_VOLUME, false) ;
 				break ;
 			
@@ -516,10 +469,10 @@ Properties Material::searchProperties(PType t, SearchPattern p, bool next)
 			
 			case SEARCH_VOLUME_FROM_FATHER_VOLUME:
 				if(searchProperties(P_VOLUME_FRACTION, pattern, false).is(P_VOLUME_FRACTION) 
-					&& father->searchProperties(P_VOLUME, pattern, false).is(P_VOLUME))
+					&& father.searchProperties(P_VOLUME, pattern, false).is(P_VOLUME))
 				{
 					double f = valProperties(P_VOLUME_FRACTION) ;
-					double tot = valFatherProperties(P_VOLUME) ;
+					double tot = father.valProperties(P_VOLUME) ;
 					setProperties(P_VOLUME, f*tot) ;
 				}
 				break ;
@@ -548,9 +501,9 @@ Properties Material::searchProperties(PType t, SearchPattern p, bool next)
 
 		case P_VOLUME_FRACTION:
 			if(searchProperties(P_VOLUME, pattern, false).is(P_VOLUME)
-				 && father->searchProperties(P_VOLUME, SEARCH_VOLUME_FROM_CHILDREN_VOLUME, true).is(P_VOLUME))
+				 && father.searchProperties(P_VOLUME, SEARCH_VOLUME_FROM_CHILDREN_VOLUME, true).is(P_VOLUME))
 			{
-				double tot = valFatherProperties(P_VOLUME) ;
+				double tot = father.valProperties(P_VOLUME) ;
 				double vol = valProperties(P_VOLUME) ;
 				setProperties(P_VOLUME_FRACTION, vol/tot) ;
 			}
@@ -561,7 +514,7 @@ Properties Material::searchProperties(PType t, SearchPattern p, bool next)
 			{
 			case SEARCH_TRY_ANYTHING:
 				searchProperties(P_MASS, SEARCH_MASS_FROM_VOLUME_DENSITY, false) ;
-				searchProperties(P_MASS, SEARCH_MASS_FROM_FATHER_MASS, false) ;
+				searchProperties(P_MASS, SEARCH_MASS_FROM_FATHER_MASS, false, father) ;
 				searchProperties(P_MASS, SEARCH_MASS_FROM_CHILDREN_MASS, false) ;
 				break ;
 			
@@ -577,10 +530,10 @@ Properties Material::searchProperties(PType t, SearchPattern p, bool next)
 			
 			case SEARCH_MASS_FROM_FATHER_MASS:
 				if(searchProperties(P_MASS_FRACTION, pattern, false).is(P_MASS_FRACTION)
-					 && father->searchProperties(P_MASS, pattern, false).is(P_MASS))
+					 && father.searchProperties(P_MASS, pattern, false).is(P_MASS))
 				{
 					double f = valProperties(P_MASS_FRACTION) ;
-					double tot = valFatherProperties(P_MASS) ;
+					double tot = father.valProperties(P_MASS) ;
 					setProperties(P_MASS, f*tot) ;
 				}
 				break ;
@@ -609,9 +562,9 @@ Properties Material::searchProperties(PType t, SearchPattern p, bool next)
 
 		case P_MASS_FRACTION:
 			if(searchProperties(P_MASS, pattern, false).is(P_MASS)
-				 && father->searchProperties(P_MASS, SEARCH_MASS_FROM_CHILDREN_MASS, true).is(P_MASS))
+				 && father.searchProperties(P_MASS, SEARCH_MASS_FROM_CHILDREN_MASS, true).is(P_MASS))
 			{
-				double tot = valFatherProperties(P_MASS) ;
+				double tot = father.valProperties(P_MASS) ;
 				double mass = valProperties(P_MASS) ;
 				setProperties(P_MASS_FRACTION, mass/tot) ;
 			}

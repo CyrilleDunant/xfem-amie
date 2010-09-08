@@ -10,7 +10,6 @@ namespace Mu
 typedef enum
 {
 	P_BAD_INDEX,
-	P_NO_FATHER,
 	P_NULL_PROPERTIES,
 
 	P_BULK_MODULUS,
@@ -143,19 +142,19 @@ public:
  * The other items of the same type will be ignored. 
  * <br>
  * Materials are organized as a tree, which helps to represents matrix-inclusions or similar morphoplogies.
- * They may have an unlimited number of children (stored in a standard vector), and one (or no) father.
+ * They may have an unlimited number of children (stored in a standard vector).
+ * However, information to the upper levels (father) is not stored.
  */
 class Material
 {
 	std::vector<Properties> prop ;
 	std::vector<Material> phases ;
-	Material * father ;
 
 public:
 
 // CONSTRUCTORS
 
-	/* Simple constructor, creates an empty Material with no Properties, no phases, no father */
+	/* Simple constructor, creates an empty Material with no Properties, no phases */
 	Material() ;
 
 	/* Simple constructor, creates a Material from an existing set of Properties. 
@@ -165,7 +164,6 @@ public:
 	Material(std::vector<Properties> p) ;
 
 	/* Simple constructor, creates a Material from an existing set of Materials. 
-	 * The father of each children Material will be set to <b>this</b>
 	 * @param p the Material to use
 	 */
 	Material(std::vector<Material> p) ;
@@ -203,19 +201,72 @@ public:
 	/* Clears all Properties */
 	void clearProperties() ;
 	
+	/* Access the <i>ith</i> properties in the collection. If <i>i</i> is out of bound, it returns a P_BAD_INDEX properties.
+	 * @param i index of the Properties to reach
+	 * @return the <i>ith</i> properties
+	 */
 	Properties getProperties(int i) const ;
+
+	/* Access to the first Properties of given type in the collection, 
+	 * or a P_BAD_INDEX properties if there is no Properties of the given type.
+	 * @param t the Properties type to get
+	 * @return a Properties of type <i>t</i> or P_BAD_INDEX
+	 */
 	Properties getProperties(PType t) const ;
+
+	/* Checks if a Properties of type <i>t</i> is contained in the collection. 
+	 * This method uses the result of indexOfProperties(t).
+	 * Use hasProperties(t) when you don't need to access the specific Properties, but just need to check the existence.
+	 * @param t the Properties type to check
+	 * @return <b>true</b> if there is at least one Properties item of type <i>t</i> in the collection, <b>false</b> otherwise.
+	 */
 	bool hasProperties(PType t) const ;
+
+	/* Search for the first or the last Properties of type <i>t</i> contained in the collection.
+	 * @param t the Properties type to check
+	 * @param first if <b>true</b> (default), get the first Properties, get the last otherwise
+	 * @return the index of the first (or last) Properties item of type <i>t</i> met in the collection, or -1 if not found
+	 */
 	int indexOfProperties(PType t, bool first = true) const ;
+	
+	/* Removes the <i>ith</i> Properties in the collection, do nothing if <i>i</i> is out of bound.
+	 * @param i the index to remove
+	 */
 	void removeProperties(int i) ;
+
+	/* Removes the first Properties of type <i>t</i> in the collection, do nothing if no Properties of type <i>t</i> is to be found
+	 * @param t the Properties type to remove
+	 */
 	void removeProperties(PType t) ;
-	Properties searchProperties(PType t, SearchPattern p = SEARCH_TRY_ANYTHING, bool next = false) ;
+
+	/* Search for a Properties of type <i>t</i>, and tries to deduce it from other informations when possible.
+	 * Various search strategies are possible, depending on the Properties type to find.
+	 * <ul>	<li>If p = SEARCH_TRY_ANYTHING , all known search strategies for the type <i>t</i> will be applied.</li>
+	 *	<li>If p = SEARCH_TRY_NOTHING , this method just checks if a Properties of type <i>t</i> exists within the collection.</li></ul>
+	 * <br>
+	 * Different search strategies are possible depending on the givent type <i>t</i>
+	 * <ul>	<li>P_BULK_MODULUS and P_SHEAR_MODULUS are built from P_YOUNG_MODULUS and P_POISSON_RATIO (and vice-versa)</li>
+	 *	<li>P_EXPANSION_COEFFICIENT is created and set to 0 if not found.</li>
+	 *	<li>P_DENSITY is built from P_VOLUME and P_MASS</li>
+	 *	<li>P_VOLUME_FRACTION (or P_MASS_FRACTION) are built from the P_VOLUME (or P_MASS) of the father and itself</li>
+	 *	<li>P_VOLUME may be built from one of the following strategies:
+	 *	  <ul>	<li>SEARCH_VOLUME_FROM_MASS_DENSITY uses the P_MASS and the P_DENSITY of the current Material</li>
+	 *		<li>SEARCH_VOLUME_FROM_FATHER_VOLUME uses the P_VOLUME_FRACTION of the current Material and the P_VOLUME of the father</li>
+	 *		<li>SEARCH_VOLUME_FROM_CHILDREN_VOLUME makes the sum of the P_VOLUME of all children of the current Material</li></ul>
+	 *	<li>Similar strategies exist for P_MASS</li></ul>
+	 * <br>
+	 * 
+	 *
+	 */
+	Properties searchProperties(PType t, SearchPattern p = SEARCH_TRY_ANYTHING, bool next = false, Material father = Material()) ;
 	void setProperties(PType t, double v) ;
 	void setProperties(Properties p) ;
 	void setProperties(Material m) ;
 	int sizeProperties() const ;
 	double valProperties(int i) const ;
 	double valProperties(PType t) const ;
+	
+// OPERATIONS ON CHILDREN	
 	
 	void addPhase(Material m) ;
 	void clearPhase() ;
@@ -226,14 +277,15 @@ public:
 	double valPhase(int i, PType t) const ;
 	std::vector<double> valPhase(PType t) const ;
 
-	void setFather(Material * m = NULL) ;
-	Properties getFatherProperties(PType t) const ;
-	bool hasFatherProperties(PType t) const ;
-	double valFatherProperties(PType t) const ;
+// OPERATIONS ON OTHER MATERIAL
 
 	bool equals(Material m, bool extensible = false) const ;
 
+// HOMOGENIZATION
+
 	bool homogenize(HomogenizationScheme s) ;
+
+// CONVENIENCE STATIC METHOD
 
 	static Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim) ;
 

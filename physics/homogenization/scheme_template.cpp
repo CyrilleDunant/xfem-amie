@@ -43,7 +43,7 @@ int PhaseTemplate::indexOfProperties(PType t) const
 }
 
 	
-bool PhaseTemplate::cast(Material m)
+bool PhaseTemplate::cast(Material m, Material father)
 {
 	if(filled() || (m.sizeProperties() < (int) prop.size()))
 	{
@@ -55,7 +55,7 @@ bool PhaseTemplate::cast(Material m)
 		int i = 0 ;
 		while(valid && i < (int) prop.size())
 		{
-			valid = cast(i, m.searchProperties(prop[i].type(), SEARCH_TRY_ANYTHING, true)) ;
+			valid = cast(i, m.searchProperties(prop[i].type(), SEARCH_TRY_ANYTHING, true, father)) ;
 			i++ ;
 		}
 		done++ ;
@@ -284,7 +284,7 @@ bool SchemeTemplate::cast(Material m)
 	{
 		while(!phases[i].filled() && j < m.sizePhase())
 		{
-			if(phases[i].cast(m.getPhase(j)))
+			if(phases[i].cast(m.getPhase(j), m))
 			{
 				data.push_back(phases[i].val()) ;
 				j++ ;
@@ -751,8 +751,8 @@ std::vector<double> SchemeTemplate::expansionHobbsScheme(std::vector<std::vector
 std::vector<double> SchemeTemplate::expansionKernerScheme(std::vector<std::vector<double> > d)
 {
 	double fmat = 1 - d[1][0] ;
-	double kmat = d[0][1] ;
-	double amat = d[0][3] ;
+	double kmat = d[0][0] ;
+	double amat = d[0][1] ;
 	
 	double finc = d[1][0] ;
 	double kinc = d[1][1] ;

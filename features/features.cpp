@@ -2557,9 +2557,12 @@ bool FeatureTree::step(double dt)
 						enrichmentChange = enrichmentChange || moved;
 						if(moved)
 						{
-							for(size_t j = 0 ; j < coarseTrees.size() ; j++)
+							if(useMultigrid)
 							{
-								dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &coarseAssemblies[j]->getForces(), coarseTrees[j]) ;
+								for(size_t j = 0 ; j < coarseTrees.size() ; j++)
+								{
+									dynamic_cast<EnrichmentFeature *>(tree[i])->step(dt, &coarseAssemblies[j]->getForces(), coarseTrees[j]) ;
+								}
 							}
 						}
 						needAssembly = true ;

@@ -69,6 +69,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		cache[i]->enrichmentUpdated = true ;
 
 	}
+	
 	if(cache.empty())
 		std::cout << "cache empty !" << std::endl ;
 }
@@ -76,7 +77,9 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	if(updated)
+	{
 		update(dtree) ;
+	}
 	updated = false ;
 	
 	const std::vector<DelaunayTriangle *> & disc  = cache;
@@ -89,7 +92,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 	
 	if(disc.size() == 1) // special case for really small inclusions
 	{
-
+	
 		std::vector<Feature *> brother = this->getFather()->getChildren() ;
 		std::vector<Feature *> feat ;
 		for(size_t i = 0 ; i < brother.size() ; i++)
@@ -97,16 +100,21 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 			if(disc[0]->in(brother[i]->getCenter()))
 				feat.push_back(brother[i]) ;
 		}
-		
+			
 
 		HomogeneisedBehaviour * hom = new HomogeneisedBehaviour(feat, disc[0]) ;
-
+	
 		disc[0]->setBehaviour(hom) ;
 		
 		return ;
 
 
 	}
+
+//	for(size_t i = 0 ; i < disc.size() ; i++)
+//	{
+//		disc[i]->setBehaviour(this->getFather()->getBehaviour()->getCopy()) ;	
+//	}
 
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;

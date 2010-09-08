@@ -31,6 +31,7 @@ namespace Mu
 	struct HomogeneisedBehaviour : public LinearForm
 	{
 		Form * equivalent ;
+		Material base ;
 		Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d ;
 		DelaunayTriangle * self2d ;
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d ;
@@ -39,6 +40,7 @@ namespace Mu
 		std::vector<DelaunayTriangle *> source ;
 		std::vector<DelaunayTetrahedron *> source3d ;
                 std::vector<Feature *> ft ;
+                bool reverted ;
 
 		/** \brief Constructor
 		* 

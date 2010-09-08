@@ -16,7 +16,7 @@ public:
 	PhaseTemplate(int n = 1) ;
 	PhaseTemplate(int n, std::vector<PType> t) ;
 	
-	bool cast(Material m) ;
+	bool cast(Material m, Material father = Material()) ;
 	bool cast(int i, Properties p) ;
 
 	std::vector<double> val() const ;
