@@ -486,15 +486,15 @@ bool Assembly::make_final()
 	
 	if (has3Dims == false)
 	{
-		if( element2d.empty() && !coordinateIndexedMatrix)
+		if( element2d.empty() && coordinateIndexedMatrix != NULL)
 		{
-			std::cerr << "no elements in mesh !" << std::endl ;
+			std::cerr << "no elements in mesh (2D) !" << std::endl ;
 			return false ;
 		}
 		
 		ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		size_t max ;
-		if(!coordinateIndexedMatrix)
+		if(coordinateIndexedMatrix == NULL)
 		{
 			
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
@@ -623,15 +623,15 @@ bool Assembly::make_final()
 	else 
 	{			
 			
-		if(element3d.empty() && !coordinateIndexedMatrix)
+		if(element3d.empty() && coordinateIndexedMatrix != NULL)
 		{
-			std::cerr << "no elements in mesh !" << std::endl ;
+			std::cerr << "no elements in mesh (3D) !" << std::endl ;
 			return false ;
 		}
 				
 		size_t max ;
 		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		if(!coordinateIndexedMatrix)
+		if( coordinateIndexedMatrix == NULL)
 		{
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
 

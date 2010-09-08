@@ -2243,6 +2243,8 @@ bool FeatureTree::step(double dt)
 {
 	Vector lastx(K->getDisplacements()) ;
 	bool ret = true ;
+	
+	
 	if(enrichmentChange)
 	{
 		this->K->clear() ;
@@ -2256,6 +2258,7 @@ bool FeatureTree::step(double dt)
 	}
 
 	assemble() ;
+	
 	if(dtree)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;

@@ -539,7 +539,7 @@ void step()
 		outfile << "TRIANGLES" << std::endl ;
 		outfile << tsize << std::endl ;
 		outfile << 3 << std::endl ;
-		outfile << 8 << std::endl ;
+		outfile << 10 << std::endl ;
 		
 		for(size_t j = 0 ; j < triangles.size() ;j++)
 		{
@@ -549,6 +549,17 @@ void step()
 			{
 				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
 			}
+			
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2] << " ";
+			}
+
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2+1] << " " ;
+			}
+
 
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 			{
@@ -751,7 +762,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 /*&& incs[j]->getRadius() <= 0.002 && incs[j]->getRadius() > 0.001*/)
+			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 && incs[j]->getRadius() <= 0.001 && incs[j]->getRadius() > 0.00)
 			{
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;
@@ -1756,7 +1767,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0.000002;
-	int inclusionNumber = 1 ; //20000 ;
+	int inclusionNumber = 20000 ;
 // 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 // 
@@ -1792,6 +1803,7 @@ int main(int argc, char *argv[])
 
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 13500000)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .002 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .0025 ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	if(restraintDepth > 0)
 	{
@@ -1832,6 +1844,8 @@ int main(int argc, char *argv[])
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
 		WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+		stiff->materialRadius = .0002 ;
+		stiff->neighbourhoodRadius =  .0003 ;
 // 		Stiffness * stiff = new Stiffness(m0_agg) ;
 // 		stiff->variability = .5 ;
 		inclusions[i]->setBehaviour(stiff) ;
@@ -1849,8 +1863,8 @@ int main(int argc, char *argv[])
 	}
 	Circle cercle(.5, 0,0) ;
 
-	zones = generateExpansiveZonesHomogeneously(200/*3000*/, inclusions, F) ;
-	F.sample(128) ;
+	zones = generateExpansiveZonesHomogeneously(3000, inclusions, F) ;
+	F.sample(1024) ;
 	if(restraintDepth > 0)
 	{
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;

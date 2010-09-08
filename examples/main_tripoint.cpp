@@ -263,7 +263,7 @@ void step()
 
 			if(dit < dsteps)
 			{
-				load->setData(load->getData()-3.7e4) ;
+				load->setData(load->getData()-1.5e4) ;
 				break ;
 			}
 		}
@@ -1602,8 +1602,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .5 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .15 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .2 ;
 // 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
 	F.addBoundaryCondition(load) ;
@@ -1636,7 +1636,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(256) ;
+	F.sample(512) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
