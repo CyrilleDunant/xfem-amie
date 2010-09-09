@@ -43,9 +43,9 @@ int PhaseTemplate::indexOfProperties(PType t) const
 }
 
 	
-bool PhaseTemplate::cast(Material m, Material father)
+bool PhaseTemplate::buffer(Material m, Material father)
 {
-	if(filled() || (m.sizeProperties() < (int) prop.size()))
+	if(filled())
 	{
 		return false ;
 	}
@@ -55,7 +55,7 @@ bool PhaseTemplate::cast(Material m, Material father)
 		int i = 0 ;
 		while(valid && i < (int) prop.size())
 		{
-			valid = cast(i, m.searchProperties(prop[i].type(), SEARCH_TRY_ANYTHING, true, father)) ;
+			valid = buffer(i, m.searchProperties(prop[i].type(), SEARCH_TRY_ANYTHING, true, father)) ;
 			i++ ;
 		}
 		done++ ;
@@ -63,7 +63,7 @@ bool PhaseTemplate::cast(Material m, Material father)
 	}
 }
 
-bool PhaseTemplate::cast(int i, Properties p)
+bool PhaseTemplate::buffer(int i, Properties p)
 {
 	if(p.is(prop[i].type()))
 	{
@@ -99,7 +99,7 @@ int PhaseTemplate::phases(int count) const
 	}
 	else
 	{
-		return max ;
+		return max - done ;
 	}
 }
 	
@@ -115,7 +115,7 @@ bool PhaseTemplate::filled() const
 	}
 }
 
-void PhaseTemplate::force(std::vector<double> data)
+void PhaseTemplate::buffer(std::vector<double> data)
 {
 	for(int i = 0 ; i < std::min((int) data.size(), (int) prop.size()) ; i++)
 	{
@@ -190,7 +190,7 @@ PhaseTemplate PhaseTemplate::makeVolumeBulkShearExpansionTemplate(int n)
 
 
 
-SchemeTemplate::SchemeTemplate(PhaseTemplate r, std::vector<PhaseTemplate> p)
+SchemeTemplate::SchemeTemplate(PhaseTemplate r, std::vector<PhaseTemplate> p, HomogenizationScheme s)
 {
 	phases.clear() ;
 	data.clear() ;
@@ -198,7 +198,7 @@ SchemeTemplate::SchemeTemplate(PhaseTemplate r, std::vector<PhaseTemplate> p)
 	{
 		phases.push_back(p[i]) ;
 	}
-	scheme = SCHEME_DO_NOTHING ;
+	scheme = s ;
 }
 
 SchemeTemplate::SchemeTemplate(HomogenizationScheme s)
@@ -262,6 +262,8 @@ Properties SchemeTemplate::getResult(int i) const
 	
 bool SchemeTemplate::cast(Material m)
 {
+	data.clear() ;
+
 	if(scheme == SCHEME_DO_NOTHING)
 	{
 		return true ;
@@ -284,7 +286,7 @@ bool SchemeTemplate::cast(Material m)
 	{
 		while(!phases[i].filled() && j < m.sizePhase())
 		{
-			if(phases[i].cast(m.getPhase(j), m))
+			if(phases[i].buffer(m.getPhase(j), m))
 			{
 				data.push_back(phases[i].val()) ;
 				j++ ;
@@ -295,11 +297,11 @@ bool SchemeTemplate::cast(Material m)
 			}
 		}
 	}
-	result.force(makeScheme(scheme, data)) ;
+	result.buffer(applyScheme(scheme, data)) ;
 	return true ;
 }
 
-std::vector<double> SchemeTemplate::makeScheme(HomogenizationScheme s, std::vector<std::vector<double> > d) 
+std::vector<double> SchemeTemplate::applyScheme(HomogenizationScheme s, std::vector<std::vector<double> > d) 
 {
 	std::vector<double> empty ;
 	switch(s)

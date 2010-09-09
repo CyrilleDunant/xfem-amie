@@ -296,9 +296,13 @@ double Material::valProperties(PType t) const
 	return valProperties(indexOfProperties(t)) ;
 }
 
-void Material::addPhase(Material m) 
+void Material::addPhase(Material m, bool merge) 
 {
 	phases.push_back(m) ;
+	if(merge)
+	{
+		mergePhase() ;
+	}
 }
 
 void Material::clearPhase()
