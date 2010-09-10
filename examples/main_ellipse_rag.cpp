@@ -515,7 +515,7 @@ void step()
 
 		std::cout << tries << std::endl ;
 
-        if (true)
+        if (tries < maxtries && featureTree->solverConverged())
 		{
 			double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/(double)nstepstot ;
                         std::cout << "delta_r => " << delta_r << std::endl ;
@@ -759,11 +759,17 @@ int main(int argc, char *argv[])
 		ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
 	}
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,135000.)) ;
+	WeibullDistributedStiffness * stiffPaste = new WeibullDistributedStiffness(m0_paste,135000.) ;
+	stiffPaste->materialRadius = .002 ;
+	stiffPaste->neighbourhoodRadius =  .0025 ;
+	sample.setBehaviour(stiffPaste) ;
 
         for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
-                ellipses[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,570000.)) ;
+		WeibullDistributedStiffness * stiffAgg = new WeibullDistributedStiffness(m0_agg,57000000) ;
+		stiffAgg->materialRadius = .0002 ;
+		stiffAgg->neighbourhoodRadius =  .0003 ;	
+                ellipses[i]->setBehaviour(stiffAgg) ;
                 F.addFeature(&sample,ellipses[i]) ;
                 placed_area += ellipses[i]->area() ;
         }
