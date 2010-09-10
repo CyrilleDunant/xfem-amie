@@ -65,29 +65,31 @@ namespace Mu
 	*/
 	struct PseudoPlastic : public LinearForm
 	{
+		std::vector<DelaunayTriangle *> cache ;
 		std::vector<Variable> v ;
-		FractureCriterion * crit ;
-		FractureCriterion * localcrit ;
-		DamageModel * damagemodel ;
 		double alpha ;
 		double lastDamage ;
-		double lastCritUp ;
-		double lastCritDown ;
 		bool change ;
 		bool frac ;
 		bool fixedfrac ;
+		double radius ;
+		double limitStrain ;
 		
 		/** \brief Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		*/
-		PseudoPlastic(const Matrix & rig, FractureCriterion * crit, FractureCriterion * localcrit,  DamageModel * damagemodel) ;
+		PseudoPlastic(const Matrix & rig, double limitStrain, double radius) ;
 		
 		void fixLastDamage() ;
 		
 		virtual ~PseudoPlastic() ;
 
-		virtual XMLTree * toXML() { return new XMLTree("pseudoplastic",param) ; } ;
+		virtual XMLTree * toXML() 
+		{ 
+			return new XMLTree("pseudoplastic",param) ; 
+			
+		} ;
 		
 		/** \brief Apply the law.
 		 *

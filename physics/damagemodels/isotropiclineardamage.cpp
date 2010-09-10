@@ -39,13 +39,13 @@ void IsotropicLinearDamage::step(ElementState & s)
 	{
 		double volume ;
 		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			volume = s.getParent()->area() ;
+			volume = sqrt(s.getParent()->area()) ;
 		else
 			volume = pow(s.getParent()->volume(), 2./3.) ;
 		
 		double charVolume ;
 		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			charVolume = M_PI*characteristicRadius*characteristicRadius ;
+			charVolume = sqrt(M_PI*characteristicRadius*characteristicRadius) ;
 		else
 			charVolume = pow(4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius, 2./3.) ;
 		fraction = volume/charVolume ;

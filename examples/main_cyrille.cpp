@@ -15,6 +15,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/fracturecriteria/vonmises.h"
+#include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/stiffness.h"
@@ -374,7 +375,7 @@ void step()
 	
 	bool cracks_did_not_touch = true;
 	size_t max_growth_steps = 10;
-	size_t max_limit = 100 ;
+	size_t max_limit = 1000 ;
 	size_t countit = 0;	
 	int limit = 0 ;
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
@@ -1698,28 +1699,28 @@ int main(int argc, char *argv[])
 // 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 50 ;
-	double mradius = 5 ;
+	double cradius = 40 ;
+	double mradius = 10 ;
 	double tdamage = .999 ;
-	double dincrement = .1 ;
+	double dincrement = .01 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
-	dfunc->setCharacteristicRadius(cradius) ;
+	dfunc->setMaterialCharacteristicRadius(mradius) ;
 	dfunc->setThresholdDamageDensity(tdamage);
 	dfunc->setDamageDensityIncrement(dincrement);
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, new NonLocalVonMises(10./8, cradius), new VonMises(10./8), dfunc) ;
-	psp->crit->setNeighbourhoodRadius(cradius);
-	psp->crit->setMaterialCharacteristicRadius(mradius);
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(10./8), cradius) ;
-	saf->dfunc.setCharacteristicRadius(cradius) ;
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, .0002, mradius) ;
+// 	psp->crit->setNeighbourhoodRadius(cradius);
+// 	psp->crit->setMaterialCharacteristicRadius(mradius);
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(.8), cradius) ;
+	saf->dfunc.setMaterialCharacteristicRadius(mradius) ;
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->dfunc.setThresholdDamageDensity(tdamage);
 	saf->dfunc.setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 	
-// 	sample.setBehaviour(saf) ;
-	sample.setBehaviour(psp) ;
+	sample.setBehaviour(saf) ;
+// 	sample.setBehaviour(psp) ;
 // 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
@@ -1733,16 +1734,19 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, -85, -85) );
 // 	F.addFeature(&sample, new Pore(20, 85, 85) );
 // 	F.addFeature(&sample, new Pore(20, 155, 155) );
+	
+	F.addFeature(&sample, new Pore(20, -250, 0) );
+// 	F.addFeature(&sample, new Pore(20, -200, 0) );
+// 	F.addFeature(&sample, new Pore(20, -150, 0) );
+// 	F.addFeature(&sample, new Pore(20, -100, 0) );
+// 	F.addFeature(&sample, new Pore(20, -50, 0) );
+// 	F.addFeature(&sample, new Pore(20, 0, 0) );
+// 	F.addFeature(&sample, new Pore(20, 50, -0) );
+// 	F.addFeature(&sample, new Pore(20, 100, -0) );
+// 	F.addFeature(&sample, new Pore(20, 150, -0) );
+// 	F.addFeature(&sample, new Pore(20, 200, -0) );
+	F.addFeature(&sample, new Pore(20, 250, -0) );
 
-	F.addFeature(&sample, new Pore(20, -200, 0) );
-	F.addFeature(&sample, new Pore(20, -150, 0) );
-	F.addFeature(&sample, new Pore(20, -100, 0) );
-	F.addFeature(&sample, new Pore(20, -50, 0) );
-	F.addFeature(&sample, new Pore(20, 0, 0) );
-	F.addFeature(&sample, new Pore(20, 50, -0) );
-	F.addFeature(&sample, new Pore(20, 100, -0) );
-	F.addFeature(&sample, new Pore(20, 150, -0) );
-	F.addFeature(&sample, new Pore(20, 200, -0) );
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
@@ -1754,9 +1758,10 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 0)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, 0)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 0)) ;
 
 // 	std::vector<Point *> newTips ;
 // 	newTips.push_back(pb);
@@ -1767,7 +1772,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(1024) ;
+	F.sample(2048) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
@@ -1779,7 +1784,7 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
-	glutCreateWindow("PSP !") ;
+	glutCreateWindow("S&F !") ;
 	
 	int submenu = glutCreateMenu(Menu) ;
 	

@@ -11,6 +11,7 @@
 #include "sample.h"
 #include "sample3d.h"
 #include "../physics/void_form.h"
+#include "../physics/fracturecriteria/fracturecriterion.h"
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
@@ -2516,9 +2517,17 @@ bool FeatureTree::step(double dt)
 				int fracturedCount = 0 ;
 				int ccount = 0 ;
 				for(size_t i = 0 ; i < elements.size() ;i++)
-				{	
+				{
 					if(i%1000 == 0)
-						std::cerr << "\r checking for fractures... " << i << "/" << elements.size() << std::flush ;
+						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
+					if(elements[i]->getBehaviour()->getFractureCriterion())
+						elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
+				}
+				std::cerr << " ...done. " << std::endl ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{	
+					if(i%10000 == 0)
+						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 					{
 						volume += elements[i]->area() ;

@@ -86,29 +86,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	currentState.getParent()->behaviourUpdated = false ;
 	if(!frac && criterion->met(currentState) )
 	{
-// 		double bottomStateVariable = dfunc.state[0] ;
 		dfunc.step(currentState) ;
-// 		if(criterion->grade(currentState) < 0)
-// 		{
-// 			double topStateVariable = dfunc.state[0] ;
-// 			
-// 			while(std::abs(criterion->grade(currentState)) > 1e-5)
-// 			{
-// 				double testStateVariable = (bottomStateVariable+topStateVariable)*.5 ;
-// 				dfunc.state[0] = testStateVariable ;
-// 				if(criterion->grade(currentState) < 0)
-// 				{
-// 					topStateVariable = testStateVariable ;
-// 				}
-// 				else
-// 				{
-// 					bottomStateVariable = testStateVariable ;
-// 				}
-// 			}
-// 		}
-			
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
-// 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
 		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;
 		frac = dfunc.fractured() ;
@@ -181,9 +159,11 @@ bool StiffnessAndFracture::fractured() const
 
 Form * StiffnessAndFracture::getCopy() const 
 {
-	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), eps) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), criterion->getMaterialCharacteristicRadius()) ;
 	copy->damage = damage ;
-	copy->dfunc.setCharacteristicRadius(dfunc.getCharacteristicRadius());
+	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
+	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
+	copy->dfunc.setMaterialCharacteristicRadius(dfunc.getCharacteristicRadius());
 	copy->dfunc.setDamageDensityIncrement(dfunc.getDamageDensityIncrement());
 	copy->dfunc.setThresholdDamageDensity(dfunc.getThresholdDamageDensity());
 	return copy ;

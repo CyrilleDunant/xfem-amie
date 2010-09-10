@@ -201,6 +201,8 @@ public:
 /** \brief get average desplacements over the element*/
 	Vector getAverageDisplacement() const ;
 	
+	double getVonMisesStrain(const Mu::Point& p, bool local = false) const ;
+	
 /** \brief return maximum Von Mises Stress*/
 	double getMaximumVonMisesStress() const ;
 	

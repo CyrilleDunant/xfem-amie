@@ -55,7 +55,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 		 -8.*(criterion*(1.-variability+weib)))) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
-	ret->dfunc.setCharacteristicRadius(materialRadius);
+	ret->dfunc.setMaterialCharacteristicRadius(materialRadius);
 	return ret ;
 }
 

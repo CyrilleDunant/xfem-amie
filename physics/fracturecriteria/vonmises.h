@@ -45,6 +45,37 @@ namespace Mu {
 
 		virtual Material toMaterial() ;
 	};
+	
+	
+		/** \brief The von Mises fracture criterion is met when the vonMises stress reaches a threshold level
+	
+		@author Cyrille Dunant <cyrille.dunant@epfl.ch>
+	*/
+	class VonMisesStrain : public FractureCriterion
+	{
+	public:
+		double threshold ;
+	public:
+	/** \brief Constructor 
+	 * @param thres Set the maximum stress. 
+	 */
+		VonMisesStrain(double thres);
+	
+		virtual ~VonMisesStrain();
+
+	/** \brief Return a copy of this criterion
+	 */
+		virtual FractureCriterion * getCopy() const;
+
+	/** \brief Return normalised distance to the fracture surface
+	 *
+	 * The distance is computed as: \f$ 1.-|\frac{Limit\; stress}{max\; principal\; strain\; in\; element}|  \f$
+	 * @param s ElementState to consider
+	*/
+		virtual double grade(const ElementState &s)  ;
+
+		virtual Material toMaterial() ;
+	};
 
 } ;
 

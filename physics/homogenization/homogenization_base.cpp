@@ -21,17 +21,17 @@ Properties::Properties(const Properties & p)
 	value = p.val() ;
 }
 
-const PType Properties::type() const
+PType Properties::type() const
 {
 	return tag ;
 }
 
-const bool Properties::is(PType t) const
+bool Properties::is(PType t) const
 {
 	return tag == t ;
 }
 
-const bool Properties::isExtensible() const
+bool Properties::isExtensible() const
 {
 	return is(P_VOLUME) || is(P_MASS) ;
 }

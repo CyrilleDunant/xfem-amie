@@ -14,7 +14,7 @@
 #include "../../mesher/delaunay_3d.h"
 namespace Mu {
 
-FractureCriterion::FractureCriterion() : eps(.0005), physicalCharacteristicRadius(.008)
+FractureCriterion::FractureCriterion() : neighbourhoodradius(.0005), physicalCharacteristicRadius(.008), scoreAtState(0)
 {
 }
 
@@ -26,26 +26,37 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 	{
 		if(!cache.empty())
 			return ;
-		Circle epsilon(eps,testedTri->getCenter()) ;
+		Circle epsilon(neighbourhoodradius,testedTri->getCenter()) ;
 		std::vector<DelaunayTriangle *> tempcache = testedTri->tree->getConflictingElements(&epsilon);
 		for(size_t i = 0 ; i < tempcache.size() ; i++)
 		{
 			if(tempcache[i]->getBehaviour()->getFractureCriterion())
+			{
 				cache.push_back(tempcache[i]);
+				area.push_back(cache.back()->area());
+			}
 		}
 	}
 	else if(testedTet)
 	{
 		if(!cache3d.empty())
 			return ;
-		Sphere epsilon(eps,testedTet->getCenter()) ;
+		Sphere epsilon(neighbourhoodradius,testedTet->getCenter()) ;
 		std::vector<DelaunayTetrahedron *> tempcache3d = testedTet->tree->getConflictingElements(&epsilon);
 		for(size_t i = 0 ; i < tempcache3d.size() ; i++)
 		{
 			if(tempcache3d[i]->getBehaviour()->getFractureCriterion())
+			{
 				cache3d.push_back(tempcache3d[i]);
+				area.push_back(cache3d.back()->volume());
+			}
 		}
 	}
+}
+
+void FractureCriterion::step(const ElementState &s)
+{
+	scoreAtState = grade(s) ;
 }
 
 FractureCriterion::~FractureCriterion()
@@ -54,7 +65,7 @@ FractureCriterion::~FractureCriterion()
 
 void FractureCriterion::setNeighbourhoodRadius(double r)
 {
-	eps = r ;
+	neighbourhoodradius = r ;
 	cache.clear() ;
 }
 
@@ -74,36 +85,21 @@ bool FractureCriterion::met(const ElementState &s)
 	if(testedTri)
 	{
 		if(cache.empty())
-		{
-			Circle epsilon(eps,testedTri->getCenter()) ;
-			std::vector<DelaunayTriangle *> tris = testedTri->tree->getElements() ;
-			std::vector<bool> vis(tris.size()) ;
-			for(size_t i = 0 ; i != tris.size() ; ++i)
-			{
-				vis[i] = tris[i]->visited ;
-				tris[i]->clearVisited() ;
-			}
-			cache = testedTri->tree->getConflictingElements(&epsilon);
-			for(size_t i = 0 ; i != tris.size() ; ++i)
-			{
-				tris[i]->visited = vis[i];
-			}
-		}
+			initialiseCache(s) ;
 
 		if(testedTri->visited)
 			return false ;
-		
-		double score = grade(s) ;
-		if (score <= 0)
-		{
-// 			testedTri->visited = true ;
+				
+		if (scoreAtState <= 0)
 			return false ;
-		}
 
 		double maxNeighbourhoodScore = 0 ;
 		double matchedArea = 0 ;
 		std::map<double, DelaunayTriangle *> scores ;
 		std::vector<double> unsortedScores ;
+		std::map<DelaunayTriangle *, double> areatemp ;
+		DelaunayTriangle * maxLocus = NULL;
+		
 		if(!cache.empty())
 		{
 			for(size_t i = 0 ; i< cache.size() ; i++)
@@ -112,12 +108,29 @@ bool FractureCriterion::met(const ElementState &s)
 				if( cache[i]->getBehaviour()->getFractureCriterion() 
 					&& !cache[i]->getBehaviour()->fractured())
 				{
-					double s = cache[i]->getBehaviour()->getFractureCriterion()->grade(cache[i]->getState()) ;
+					double s = cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 					scores[-s] =  cache[i];
 					unsortedScores.push_back(s);
-					maxNeighbourhoodScore = std::max(maxNeighbourhoodScore,s) ;
+					if(s > maxNeighbourhoodScore)
+					{
+						maxNeighbourhoodScore = s ;
+						maxLocus = cache[i] ;
+					}
 				}
-
+				else if(cache[i]->getBehaviour()->getFractureCriterion() 
+					&& cache[i]->getBehaviour()->fractured())
+				{
+					double s = 1 ;
+					scores[-s] =  cache[i];
+					unsortedScores.push_back(s);
+					if(s > maxNeighbourhoodScore)
+					{
+						maxNeighbourhoodScore = s ;
+						maxLocus = cache[i] ;
+					}
+					
+				}
+				areatemp[cache[i]] = area[i] ;
 				
 // 				if ((maxNeighbourhoodScore*tol) > score)
 // 					return false ;
@@ -125,36 +138,39 @@ bool FractureCriterion::met(const ElementState &s)
 			}
 		}
 		
+		if(!maxLocus)
+			return false ;
+		
 		bool foundcutoff = false ;
 		double thresholdscore = maxNeighbourhoodScore ;
+		
 		for(std::map<double, DelaunayTriangle *>::iterator i = scores.begin() ; i != scores.end() ; ++i)
 		{
 			
 			if(!foundcutoff)
 			{
-				if(-i->first > 0)
+				if(-i->first > 0 )
 				{
-					matchedArea += i->second->area() ;
+					matchedArea += areatemp[i->second] ;
 				}
-				if (sqrt(matchedArea) > physicalCharacteristicRadius)
+				if (matchedArea > physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI)
 				{
 					thresholdscore = -i->first ;
 					foundcutoff  = true ;
+					break ;
 				}
 			}
 // 			else
 // 				i->second->visited = true ;
 		}
-// 		std::cout << matchedArea << std::endl ;
-		if (score < thresholdscore )
-					return false ;
+		if (!foundcutoff )
+			return false ;
+
+		if (squareDist2D(maxLocus->getCenter(), s.getParent()->getCenter()) > physicalCharacteristicRadius*physicalCharacteristicRadius)
+			return false ;
 		
-		if( score >= thresholdscore )
-		{
-			testedTri->visited = true ;
-			return true ;
-		}
-		return false ;
+		return true ;
+
 	}
 	if(testedTet)
 	{

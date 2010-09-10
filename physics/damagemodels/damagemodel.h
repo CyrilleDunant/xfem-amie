@@ -36,7 +36,7 @@ public:
 	{ 
 		isNull = true ; 
 		thresholdDamageDensity = .2 ;
-		damageDensityIncrement = .2 ;
+		damageDensityIncrement = .05 ;
 		fraction = -1 ;
 	} ;
 	
@@ -59,7 +59,7 @@ public:
 		thresholdDamageDensity = d ;
 	}
 	
-	void setCharacteristicRadius(double d)
+	void setMaterialCharacteristicRadius(double d)
 	{
 		characteristicRadius = d ;
 	}

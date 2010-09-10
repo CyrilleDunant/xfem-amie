@@ -14,6 +14,8 @@
 #include "../mesher/delaunay.h"
 #include "fracturecriteria/vonmises.h"
 #include "fracturecriteria/mohrcoulomb.h"
+#include "fracturecriteria/nonlocalvonmises.h"
+#include <valarray>
 
 
 using namespace Mu ;
@@ -54,10 +56,9 @@ Material Stiffness::toMaterial()
 }
 
 
-PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, FractureCriterion* crit, FractureCriterion* localcrit,  DamageModel * damagemodel): LinearForm(rig, false, true, rig.numRows()/3+1), crit(crit), localcrit(localcrit), damagemodel(damagemodel), alpha(1), change(true)
+PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(1), change(true)
 {
-// 	lastCritUp = dynamic_cast<MohrCoulomb *>(crit)->upVal ;
-// 	lastCritDown = dynamic_cast<MohrCoulomb *>(crit)->downVal ;
+
 	lastDamage = alpha ;
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -93,39 +94,31 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 
 void PseudoPlastic::step(double timestep, ElementState & currentState)
 {
-	
 	frac = fixedfrac ;
 	change = false ;
-	Vector p(1) ; p[0] = 1.-lastDamage ;
-	if(crit->met(currentState))
+	double lastalpha = alpha ;
+	if(cache.empty())
 	{
-		damagemodel->damageState() = p ;
-		currentState.getParent()->behaviourUpdated = true ;
-		double balpha = lastDamage ;
-		double talpha = 0.00001 ;
-		if(localcrit->grade(currentState) > 0)
-		{
-			while(std::abs(localcrit->grade(currentState)) > 1e-5)
-			{
-				damagemodel->step(currentState);
-				change = true ;
-				alpha = (talpha+balpha)*.5 ;
-				damagemodel->damageState()[0] = 1-alpha ;
-				if(localcrit->grade(currentState) > 0)
-					balpha = alpha ;
-				else
-					talpha = alpha ;
-				
-				frac = damagemodel->fractured() ;
-			}
-		}
-// 		alpha = balpha ;
-// 		std::cout << "c" << std::flush ;
-// 		if(frac)
-// 			alpha = 0.00001 ;
-		
+		Circle c(radius, currentState.getParent()->getCenter()) ;
+		cache = currentState.getParent()->get2DMesh()->getConflictingElements(&c) ;
+	}
+	double area = 0 ;
+	double str = 0 ;
+	
+	for(size_t i = 0 ; i < cache.size() ; i++)
+	{
+		str += cache[i]->getState().getVonMisesStrain(cache[i]->getCenter())*cache[i]->area() ;
+		area += cache[i]->area() ;
 	}
 	
+	double maxStrain = std::abs(str)/area ;
+	
+	if(maxStrain > limitStrain)
+	{
+		currentState.getParent()->behaviourUpdated = true ;
+		alpha = std::min(limitStrain/maxStrain, lastDamage) ;
+		change = std::abs(lastalpha-alpha) < 1e-4 ;
+	}
 }
 
 Matrix PseudoPlastic::getTensor(const Point & p) const
@@ -140,7 +133,7 @@ Matrix PseudoPlastic::getPreviousTensor(const Point & p) const
 
 FractureCriterion * PseudoPlastic::getFractureCriterion() const
 {
-	return crit ;
+	return NULL ;
 }
 
 bool PseudoPlastic::fractured() const
@@ -150,7 +143,7 @@ bool PseudoPlastic::fractured() const
 
 Form * PseudoPlastic::getCopy() const 
 {
-	return new PseudoPlastic(param, crit->getCopy(),localcrit->getCopy(), damagemodel->getCopy()) ;
+	return new PseudoPlastic(param, limitStrain, radius) ;
 	
 }
 

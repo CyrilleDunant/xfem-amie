@@ -227,6 +227,22 @@ ElementState::ElementState(IntegrableEntity * s)
 // 	this->previousPreviousEnrichedDisplacements.resize(s->getEnrichmentFunctions().size()*ndof) ;
 }
 
+double ElementState::getVonMisesStrain(const Point& p, bool local) const
+{
+	Vector eps = getPrincipalStrains(p, local) ;
+	
+	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		return sqrt(2./3*(eps[0]*eps[0]+eps[1]*eps[1])) ;
+	}
+	else if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	{
+		return sqrt(2./3*(eps[0]*eps[0]+eps[1]*eps[1]+eps[2]*eps[2])) ;
+	}
+	
+	return 0 ;
+}
+
 FunctionMatrix ElementState::getStressFunction(const Matrix &Jinv) const
 {
 	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)

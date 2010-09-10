@@ -47,4 +47,39 @@ Material VonMises::toMaterial()
 	return mat ;
 }
 
+
+VonMisesStrain::VonMisesStrain(double thresh) : threshold(thresh)
+{
+}
+
+
+VonMisesStrain::~VonMisesStrain()
+{
+}
+
+double VonMisesStrain::grade(const ElementState &s)
+{
+	double maxStress = s.getVonMisesStrain(s.getParent()->getCenter()) ;
+
+	if(maxStress > threshold )
+	{
+		return 1. - std::abs(threshold/maxStress) ;
+	}
+	else 
+	{
+		return -1.+ std::abs(maxStress/threshold);
+	}
+}
+
+FractureCriterion * VonMisesStrain::getCopy() const
+{
+	return new VonMisesStrain(threshold) ;
+}
+
+Material VonMisesStrain::toMaterial()
+{
+	Material mat ;
+	return mat ;
+}
+
 }

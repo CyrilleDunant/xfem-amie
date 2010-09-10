@@ -91,13 +91,13 @@ public:
 	/** \brief Returns the Properties item type
 	 * @return the type
 	 */
-	const PType type() const ;
+	PType type() const ;
 	
 	/** \brief Checks if the item is of a specific type 
 	 * @param t the type to check
 	 * @return <b>true</b> if the item is of type <i>t</i>
 	 */
-	const bool is(PType t) const ;
+	bool is(PType t) const ;
 	
 	/** \brief Checks if the item is of an extensible type. 
 	 *
@@ -105,7 +105,7 @@ public:
 	 * Example extensible types are <i>P_VOLUME</i> and <i>P_MASS</i>
 	 * @return <b>true</b> if the Properties is extensible
 	 */
-	const bool isExtensible() const ;
+	bool isExtensible() const ;
 
 // OPERATIONS ON THE VALUE
 	
