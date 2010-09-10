@@ -105,7 +105,7 @@ std::vector<DelaunayTriangle *> tris__ ;
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
+std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
 
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -523,7 +523,7 @@ void step()
 				delta_r *= .01 ;
 			double reactedArea = 0 ;
 			
-			Inclusion * current = NULL ;
+			EllipsoidalInclusion * current = NULL ;
 			if(!zones.empty())
 				current = zones[0].second ;
 			double current_area = 0 ;
@@ -588,7 +588,7 @@ void step()
 
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
+std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
   
@@ -604,7 +604,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
 	
-	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
+	std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
@@ -635,18 +635,18 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 //			i-- ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
-	std::map<Inclusion *, int> zonesPerIncs ; 
+	std::map<EllipsoidalInclusion *, int> zonesPerIncs ; 
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-/*			Point ax = incs[j]->getMajorAxis() * (1./incs[j]->getMajorRadius()) ;
+			Point ax = incs[j]->getMajorAxis() * (1./incs[j]->getMajorRadius()) ;
                         double newa = incs[j]->getMajorRadius() - radius*60. ;
                         double newb = incs[j]->getMinorRadius() - radius*60. ;
-			Ellipse ell(incs[j]->getCenter(), ax*newa, newb/newa) ;*/
-			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
-			if(circle.in(zonesToPlace[i]->getCenter()))
+			Ellipse ell(incs[j]->getCenter(), ax*newa, newb/newa) ;
+//			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
+			if(ell.in(zonesToPlace[i]->getCenter()))
 			{
                             if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
                                 std::cout << i << ";" << j << "||" ;
@@ -663,7 +663,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	}
 	
 	int count = 0 ;
-	for(std::map<Inclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	for(std::map<EllipsoidalInclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;
@@ -736,19 +736,19 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0.00005;
- 	int inclusionNumber = 20 ;
+ 	int inclusionNumber = 4100 ;
  	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416*13/50, 1., BOLOME_D)(.00025, .1, inclusionNumber, itzSize);
 
 
-        int n = 20 ;
-//	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
+        int n = 4100 ;
+	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
 	
 	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inclusions.size() ; i++)
-//		feats.push_back(ellipses[i]) ;
-		feats.push_back(inclusions[i]) ;
+	for(size_t i = 0; i < ellipses.size() ; i++)
+		feats.push_back(ellipses[i]) ;
+//		feats.push_back(inclusions[i]) ;
 
-//	ellipses.clear() ;
+	ellipses.clear() ;
 	inclusions.clear() ;
 
 	int nAgg = 1 ;
@@ -756,27 +756,27 @@ int main(int argc, char *argv[])
 
 	for(size_t i = 0; i < feats.size() ; i++)
 	{
-		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
+		ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
 	}
 
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste,135000.)) ;
 
-        for(size_t i = 0 ; i < inclusions.size() ; i++)
+        for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
-                inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,570000.)) ;
-                F.addFeature(&sample,inclusions[i]) ;
-                placed_area += inclusions[i]->area() ;
+                ellipses[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,570000.)) ;
+                F.addFeature(&sample,ellipses[i]) ;
+                placed_area += ellipses[i]->area() ;
         }
 
 
-        zones = generateExpansiveZonesHomogeneously(1300, inclusions, F) ;
+        zones = generateExpansiveZonesHomogeneously(1300, ellipses, F) ;
 
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 
-        F.sample(200) ;
+        F.sample(1024) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
