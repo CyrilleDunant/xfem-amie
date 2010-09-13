@@ -1777,7 +1777,7 @@ int main(int argc, char *argv[])
 	
 	F.sample(1024) ;
 // 	F.useMultigrid = true ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 
 	step() ;

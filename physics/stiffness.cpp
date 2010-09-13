@@ -99,25 +99,28 @@ void PseudoPlastic::step(double timestep, ElementState & currentState)
 	double lastalpha = alpha ;
 	if(cache.empty())
 	{
-		Circle c(radius, currentState.getParent()->getCenter()) ;
+		Circle c(2.*radius, currentState.getParent()->getCenter()) ;
 		cache = currentState.getParent()->get2DMesh()->getConflictingElements(&c) ;
 	}
 	double area = 0 ;
 	double str = 0 ;
-	
+	double fact = 0 ;
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
-		str += cache[i]->getState().getVonMisesStrain(cache[i]->getCenter())*cache[i]->area() ;
-		area += cache[i]->area() ;
+		double d = exp(-squareDist2D(currentState.getParent()->getCenter(), cache[i]->getCenter())/(radius*radius)) ;
+		double a = cache[i]->area() ;
+		str += cache[i]->getState().getVonMisesStrain(cache[i]->getCenter())*a*d ;
+		area += a ;
+		fact+=d*a ;
 	}
 	
-	double maxStrain = std::abs(str)/area ;
+	double maxStrain = std::abs(str)/fact ;
 	
 	if(maxStrain > limitStrain)
 	{
 		currentState.getParent()->behaviourUpdated = true ;
 		alpha = std::min(limitStrain/maxStrain, lastDamage) ;
-		change = std::abs(lastalpha-alpha) < 1e-4 ;
+		change = std::abs(lastalpha-alpha) > 1e-4 ;
 	}
 }
 

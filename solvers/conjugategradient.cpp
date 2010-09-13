@@ -53,8 +53,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
-// 		P = new InverseDiagonal(A) ;
- 		P = new InverseLumpedDiagonal(A) ;
+		P = new InverseDiagonal(A) ;
+//  		P = new InverseLumpedDiagonal(A) ;
 // 		P = new TriDiagonal(A) ;
 // 		P = new NullPreconditionner() ;
 // 		P = new GaussSeidellStep(A) ;
