@@ -11,27 +11,41 @@
 //
 
 #include "inversediagonal.h"
+#include <limits>
+#include <iostream>
 
 using namespace Mu ;
 
-InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix &A)
+InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(0., A.row_size.size()*A.stride)
 {
-	diagonal = new Vector(0., A.row_size.size()*(A.stride+A.stride%2)) ;
-	Vector eye(1., A.row_size.size()*(A.stride+A.stride%2)) ;
-	
-	size_t array_index = 0 ;
 
-	for(size_t i = 0 ; i < diagonal->size() ; i += (A.stride+A.stride%2) )
+	for(size_t i = 0 ; i < A.row_size.size()*A.stride ; i++)
 	{
-		Vector v = A[i]*eye ;
-		for(size_t j = 0 ; j < (A.stride+A.stride%2) ; j++)
-			(*diagonal)[i+j] = 1./v[j] ;
+		for(size_t j = 0 ; j < 1 ; j++)
+		{
+			diagonal[i] += A[i][j] ;
+		}
+		
+		for(size_t j = 1 ; j < A.row_size.size()*A.stride ; j++)
+		{
+			diagonal[i] += A[j][i] ;
+		}
+		
+		double v = diagonal[i] ;
+		if(std::abs(v) > std::numeric_limits<double>::epsilon())
+			diagonal[i] = 1./v ;
+		else
+			diagonal[i] = 1./std::numeric_limits<double>::epsilon() ;
+
+		
+		std::cout << diagonal[i] << std::endl ;
 	}
 }
 
 void  InverseLumpedDiagonal::precondition(const Vector &v, Vector & t) 
 {
-	t=v*(*diagonal) ;
+	for(size_t i = 0 ; i < t.size() ; i++)
+		t[i]=v[i]*diagonal[i] ;
 }
 
 InverseDiagonal::InverseDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.inverseDiagonal())

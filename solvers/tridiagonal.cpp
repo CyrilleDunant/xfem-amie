@@ -29,7 +29,7 @@ TriDiagonal::TriDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.di
 	}
 }
 
-void  TriDiagonal::precondition(const Vector &force, Vector & solution) const
+void  TriDiagonal::precondition(const Vector &force, Vector & solution)
 {
 	Vector b(diagonal) ;
 	Vector c(upper) ;

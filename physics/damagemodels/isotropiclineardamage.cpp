@@ -53,10 +53,10 @@ void IsotropicLinearDamage::step(ElementState & s)
 			std::cout << "elements too large for damage characteristic radius!" << std::endl ;
 		fraction = std::min(fraction, 1.) ;
 	}
-	double E_2 = s.getParent()->getBehaviour()->param[0][0] ; E_2*=E_2 ;
+	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
 	double l_2 = s.getParent()->area() ; 
-	double maxincrement = (l_2*E_2-1.)/(l_2+l_2*E_2) ;
-	state[0] += damageDensityIncrement*fraction ; 
+	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
+	state[0] += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
 	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
 
 }

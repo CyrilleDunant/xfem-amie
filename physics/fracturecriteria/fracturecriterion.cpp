@@ -78,7 +78,7 @@ bool FractureCriterion::met(const ElementState &s)
 {
 	if( s.getParent()->getBehaviour()->fractured())
 		return false ;
-	double tol = 0 ;
+	double tol = 1e-2 ;
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	DelaunayTetrahedron * testedTet = dynamic_cast<DelaunayTetrahedron *>(s.getParent()) ;
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
@@ -141,6 +141,14 @@ bool FractureCriterion::met(const ElementState &s)
 		if(!maxLocus)
 			return false ;
 		
+		std::vector<DelaunayTriangle *> maxloci ;
+		
+		for(size_t i = 0 ; i< cache.size() ; i++)
+		{
+			if(std::abs(cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol)
+				maxloci.push_back(cache[i]) ;
+		}
+		
 		bool foundcutoff = false ;
 		double thresholdscore = maxNeighbourhoodScore ;
 		
@@ -166,10 +174,11 @@ bool FractureCriterion::met(const ElementState &s)
 		if (!foundcutoff )
 			return false ;
 
-		if (squareDist2D(maxLocus->getCenter(), s.getParent()->getCenter()) > physicalCharacteristicRadius*physicalCharacteristicRadius)
-			return false ;
+		for(size_t i = 0 ; i < maxloci.size() ; i++)
+			if(squareDist2D(maxloci[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
+				return true ;
 		
-		return true ;
+		return false ;
 
 	}
 	if(testedTet)

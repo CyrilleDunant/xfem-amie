@@ -23,7 +23,7 @@ namespace Mu
 	struct InverseDiagonal  : public Preconditionner
 	{
 		Vector diagonal ;
-		virtual ~InverseDiagonal() {  ;}
+		virtual ~InverseDiagonal() { }
 		InverseDiagonal(const CoordinateIndexedSparseMatrix &A) ;
 		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;
@@ -31,8 +31,8 @@ namespace Mu
 	/** \brief Preconditionner: inverse lumped diagonal*/
 	struct InverseLumpedDiagonal  : public Preconditionner
 	{
-		Vector * diagonal ;
-		virtual ~InverseLumpedDiagonal() { delete diagonal ; }
+		Vector diagonal ;
+		virtual ~InverseLumpedDiagonal() { }
 		InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix &A) ;
 		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;

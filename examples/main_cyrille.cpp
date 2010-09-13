@@ -374,8 +374,8 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 10;
-	size_t max_limit = 1000 ;
+	size_t max_growth_steps = 1;
+	size_t max_limit = 40 ;
 	size_t countit = 0;	
 	int limit = 0 ;
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
@@ -386,7 +386,10 @@ void step()
 		limit = 0 ;
 		while(!featureTree->step(timepos) && limit < max_limit)//as long as we can update the features
 		{
-			std::cout << "." << std::flush ;
+			if(featureTree->solverConverged())
+				std::cout << "." << std::flush ;
+			else
+				std::cout << "+" << std::flush ;
 // 			timepos-= 0.0001 ;
 			limit++ ;
 		}
@@ -1702,7 +1705,7 @@ int main(int argc, char *argv[])
 	double cradius = 40 ;
 	double mradius = 10 ;
 	double tdamage = .999 ;
-	double dincrement = .01 ;
+	double dincrement = .1 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
 	dfunc->setMaterialCharacteristicRadius(mradius) ;
 	dfunc->setThresholdDamageDensity(tdamage);
@@ -1755,10 +1758,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, inc0) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM/*_LEFT*/)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, 0)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 0)) ;
@@ -1772,9 +1775,9 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(2048) ;
+	F.sample(1024) ;
 // 	F.useMultigrid = true ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.generateElements(0, true) ;
 
 	step() ;

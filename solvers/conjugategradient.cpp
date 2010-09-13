@@ -26,7 +26,7 @@ ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Ve
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-	double realeps = 1e-10 ;
+	double realeps = 1e-12 ;
 	size_t Maxit ;
 	if(maxit != -1)
 		Maxit = maxit ;
@@ -53,7 +53,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
-		P = new InverseDiagonal(A) ;
+// 		P = new InverseDiagonal(A) ;
+ 		P = new InverseLumpedDiagonal(A) ;
 // 		P = new TriDiagonal(A) ;
 // 		P = new NullPreconditionner() ;
 // 		P = new GaussSeidellStep(A) ;
