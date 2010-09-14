@@ -30,7 +30,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		std::vector<DelaunayTriangle *> tempcache = testedTri->tree->getConflictingElements(&epsilon);
 		for(size_t i = 0 ; i < tempcache.size() ; i++)
 		{
-			if(tempcache[i]->getBehaviour()->getFractureCriterion())
+			if(tempcache[i]->getBehaviour())
 			{
 				cache.push_back(tempcache[i]);
 				area.push_back(cache.back()->area());
@@ -45,7 +45,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		std::vector<DelaunayTetrahedron *> tempcache3d = testedTet->tree->getConflictingElements(&epsilon);
 		for(size_t i = 0 ; i < tempcache3d.size() ; i++)
 		{
-			if(tempcache3d[i]->getBehaviour()->getFractureCriterion())
+			if(tempcache3d[i]->getBehaviour())
 			{
 				cache3d.push_back(tempcache3d[i]);
 				area.push_back(cache3d.back()->volume());
@@ -104,33 +104,33 @@ bool FractureCriterion::met(const ElementState &s)
 		{
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
-
-				if( cache[i]->getBehaviour()->getFractureCriterion() 
-					&& !cache[i]->getBehaviour()->fractured())
+				if( cache[i]->getBehaviour()->getFractureCriterion())
 				{
-					double s = cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
-					scores[-s] =  cache[i];
-					unsortedScores.push_back(s);
-					if(s > maxNeighbourhoodScore)
+					if( !cache[i]->getBehaviour()->fractured())
 					{
-						maxNeighbourhoodScore = s ;
-						maxLocus = cache[i] ;
+						double s = cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+						scores[-s] =  cache[i];
+						unsortedScores.push_back(s);
+						if(s > maxNeighbourhoodScore)
+						{
+							maxNeighbourhoodScore = s ;
+							maxLocus = cache[i] ;
+						}
 					}
-				}
-				else if(cache[i]->getBehaviour()->getFractureCriterion() 
-					&& cache[i]->getBehaviour()->fractured())
-				{
-					double s = 1 ;
-					scores[-s] =  cache[i];
-					unsortedScores.push_back(s);
-					if(s > maxNeighbourhoodScore)
+					else if(cache[i]->getBehaviour()->fractured())
 					{
-						maxNeighbourhoodScore = s ;
-						maxLocus = cache[i] ;
+						double s = 1 ;
+						scores[-s] =  cache[i];
+						unsortedScores.push_back(s);
+						if(s > maxNeighbourhoodScore)
+						{
+							maxNeighbourhoodScore = s ;
+							maxLocus = cache[i] ;
+						}
+						
 					}
-					
+					areatemp[cache[i]] = area[i] ;
 				}
-				areatemp[cache[i]] = area[i] ;
 				
 // 				if ((maxNeighbourhoodScore*tol) > score)
 // 					return false ;
@@ -145,8 +145,9 @@ bool FractureCriterion::met(const ElementState &s)
 		
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
-			if(std::abs(cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol)
-				maxloci.push_back(cache[i]) ;
+			if(cache[i]->getBehaviour()->getFractureCriterion())
+				if(std::abs(cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol)
+					maxloci.push_back(cache[i]) ;
 		}
 		
 		bool foundcutoff = false ;
@@ -183,55 +184,101 @@ bool FractureCriterion::met(const ElementState &s)
 	}
 	if(testedTet)
 	{
-		if(testedTet->visited())
+		if(cache.empty())
+			initialiseCache(s) ;
+
+		if(testedTri->visited)
 			return false ;
-		
-		double score = grade(s) ;
-		
-		if (score <= 0)
-		{
-			testedTet->visited() = true ;
+				
+		if (scoreAtState <= 0)
 			return false ;
-		}
-		
-		if(cache3d.empty())
-		{
-			Sphere epsilon(0.0002,testedTet->getCenter()) ;
-			cache3d = testedTet->tree->getConflictingElements(&epsilon);
-		}
 
 		double maxNeighbourhoodScore = 0 ;
-
-		std::vector<double> scores(cache3d.size(), double(0)) ;
-		if(!cache3d.empty())
+		double matchedArea = 0 ;
+		std::map<double, DelaunayTetrahedron *> scores ;
+		std::vector<double> unsortedScores ;
+		std::map<DelaunayTetrahedron *, double> areatemp ;
+		DelaunayTetrahedron * maxLocus = NULL;
+		
+		if(!cache.empty())
 		{
 			for(size_t i = 0 ; i< cache3d.size() ; i++)
 			{
-				
-				if( cache3d[i]->getBehaviour()->getFractureCriterion() 
-					&& !cache3d[i]->getBehaviour()->fractured())
+				if( cache3d[i]->getBehaviour()->getFractureCriterion())
 				{
-					scores[i] = cache3d[i]->getBehaviour()->getFractureCriterion()->grade(cache3d[i]->getState()) ;
-					maxNeighbourhoodScore = std::max(maxNeighbourhoodScore,scores[i]) ;
+					if( !cache3d[i]->getBehaviour()->fractured())
+					{
+						double s = cache3d[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+						scores[-s] =  cache3d[i];
+						unsortedScores.push_back(s);
+						if(s > maxNeighbourhoodScore)
+						{
+							maxNeighbourhoodScore = s ;
+							maxLocus = cache3d[i] ;
+						}
+					}
+					else if(cache3d[i]->getBehaviour()->fractured())
+					{
+						double s = 1 ;
+						scores[-s] =  cache3d[i];
+						unsortedScores.push_back(s);
+						if(s > maxNeighbourhoodScore)
+						{
+							maxNeighbourhoodScore = s ;
+							maxLocus = cache3d[i] ;
+						}
+						
+					}
+					areatemp[cache3d[i]] = area[i] ;
 				}
-
-				if ((maxNeighbourhoodScore*tol) > score)
-					return false ;
 				
+// 				if ((maxNeighbourhoodScore*tol) > score)
+// 					return false ;
+					
 			}
 		}
 		
+		if(!maxLocus)
+			return false ;
 		
-		if(score >= maxNeighbourhoodScore*tol)
+		std::vector<DelaunayTetrahedron *> maxloci ;
+		
+		for(size_t i = 0 ; i< cache3d.size() ; i++)
 		{
-			for(size_t i = 0 ; i< cache3d.size() ; i++)
-			{
-				if(scores[i] < maxNeighbourhoodScore*tol)
-					cache3d[i]->visited() = true;
-			}
-			testedTet->visited() = true ;
-			return true ;
+			if(cache3d[i]->getBehaviour()->getFractureCriterion())
+				if(std::abs(cache3d[i]->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol)
+					maxloci.push_back(cache3d[i]) ;
 		}
+		
+		bool foundcutoff = false ;
+		double thresholdscore = maxNeighbourhoodScore ;
+		
+		for(std::map<double, DelaunayTetrahedron *>::iterator i = scores.begin() ; i != scores.end() ; ++i)
+		{
+			
+			if(!foundcutoff)
+			{
+				if(-i->first > 0 )
+				{
+					matchedArea += areatemp[i->second] ;
+				}
+				if (matchedArea > physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI)
+				{
+					thresholdscore = -i->first ;
+					foundcutoff  = true ;
+					break ;
+				}
+			}
+// 			else
+// 				i->second->visited = true ;
+		}
+		if (!foundcutoff )
+			return false ;
+
+		for(size_t i = 0 ; i < maxloci.size() ; i++)
+			if(squareDist3D(maxloci[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
+				return true ;
+		
 		return false ;
 	}
 	else if(testedHex)

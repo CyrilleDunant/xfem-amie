@@ -375,8 +375,8 @@ void step()
 	
 	bool cracks_did_not_touch = true;
 	size_t max_growth_steps = 1;
-	size_t max_limit = 40 ;
-	size_t countit = 0;	
+	size_t max_limit = 400 ;
+	int countit = 0;	
 	int limit = 0 ;
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
 	{
@@ -396,8 +396,10 @@ void step()
 		if(limit || countit%100 == 0)
 			std::cout << " " << limit << std::endl ;
 		if(limit < max_limit)
-			imposeddisp->setData(imposeddisp->getData()+0.01);
+			imposeddisp->setData(imposeddisp->getData()+0.005);
 
+		if(limit < 3)
+			countit-- ;
 		timepos+= 0.01 ;
 		double da = 0 ;
 		
@@ -634,11 +636,6 @@ void step()
 				static_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
 		}
 		
-		if(countit < 2)
-		{
-			std::cout << std::endl ;
-			std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;
-		}
 		if(limit < max_limit)
 		{
 			std::cout << " " << x_max 
@@ -760,6 +757,9 @@ void Menu(int selection)
 		}
 	case ID_BACK:
 	{
+// 		for(size_t i = 0 ; i < triangles.size() ; i++)
+// 			if(dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour()))
+// 				dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
 		step() ;
 		dlist = false ;
 		break ;
@@ -1702,26 +1702,26 @@ int main(int argc, char *argv[])
 // 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 40 ;
+	double cradius = 250 ;
 	double mradius = 10 ;
 	double tdamage = .999 ;
-	double dincrement = .1 ;
+	double dincrement = .02 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
 	dfunc->setMaterialCharacteristicRadius(mradius) ;
 	dfunc->setThresholdDamageDensity(tdamage);
 	dfunc->setDamageDensityIncrement(dincrement);
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, .0002, mradius) ;
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, .0002, mradius*.5) ;
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(.8), cradius) ;
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(1.5640), cradius) ; // 5625 too low ; 5650 too high
 	saf->dfunc.setMaterialCharacteristicRadius(mradius) ;
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
+	saf->criterion->setNeighbourhoodRadius(cradius);
 	saf->dfunc.setThresholdDamageDensity(tdamage);
 	saf->dfunc.setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-	
 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
 // 	sample.setBehaviour(sf) ;
@@ -1775,11 +1775,12 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(1024) ;
+	F.sample(2048) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 
+	std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;
 	step() ;
 	
 	
@@ -1807,8 +1808,8 @@ int main(int argc, char *argv[])
 	
 	glutCreateMenu(Menu) ;
 
- 	glutAddMenuEntry(" Step          ", ID_NEXT);
-	glutAddMenuEntry(" Go on         ", ID_BACK);
+ 	glutAddMenuEntry(" Step (fix damage) ", ID_NEXT);
+	glutAddMenuEntry(" Step (no fix)         ", ID_BACK);
 	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
 	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
 	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);

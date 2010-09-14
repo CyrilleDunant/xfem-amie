@@ -107,7 +107,7 @@ void PseudoPlastic::step(double timestep, ElementState & currentState)
 	double fact = 0 ;
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
-		double d = exp(-squareDist2D(currentState.getParent()->getCenter(), cache[i]->getCenter())/(radius*radius)) ;
+		double d =  exp(-squareDist2D(currentState.getParent()->getCenter(), cache[i]->getCenter())/(radius*radius)) ;
 		double a = cache[i]->area() ;
 		str += cache[i]->getState().getVonMisesStrain(cache[i]->getCenter())*a*d ;
 		area += a ;
