@@ -31,7 +31,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	if(maxit != -1)
 		Maxit = maxit ;
 	else
-		Maxit = b.size() ;
+		Maxit = round(.25*b.size()) ;
 	if(x0.size() == b.size())
 	{
 		x = x0 ;
@@ -124,11 +124,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		{
 			assign(r, A*x-b) ;
 			r *= -1 ;
-			rho =  parallel_inner_product(&r[0], &r[0], vsize) ;
+			rho =  parallel_inner_product(&r[0], &z[0], vsize) ;
 		}
 		if(	verbose && nit%64 == 0)
 		{
-			std::cerr << /*"\r CG "<< p.size() << " iteration : " << nit << " error :"<<*/  sqrt(rho*rho)  /*<< "             "*/<< std::endl /*std::flush*/ ;
+			std::cerr << /*"\r CG "<< p.size() << " iteration : " << nit << " error :"<<*/  sqrt(rho)  /*<< "             "*/<< std::endl /*std::flush*/ ;
 		}
 // 		if(	verbose )
 // 		{

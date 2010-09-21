@@ -58,6 +58,8 @@ void IsotropicLinearDamage::step(ElementState & s)
 	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
 	state[0] += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
 	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
+	state[0] = std::min(.99999, state[0]) ;
+	state[0] = std::max(0., state[0]) ;
 
 }
 

@@ -263,7 +263,7 @@ void step()
 
 			if(dit < dsteps)
 			{
-				load->setData(load->getData()-1.5e4) ;
+				load->setData(load->getData()-1.5e3) ;
 				break ;
 			}
 		}
@@ -565,12 +565,18 @@ void step()
 			
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 			{
-				outfile << x[triangles[j]->getBoundingPoint(l).id*2] << " " ;
+				if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2]))
+					outfile << x[triangles[j]->getBoundingPoint(l).id*2] << " " ;
+				else
+					outfile << 0 << " " ;
 			}
 			
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 			{
-				outfile << x[triangles[j]->getBoundingPoint(l).id*2+1] << " ";
+				if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2+1]))
+					outfile << x[triangles[j]->getBoundingPoint(l).id*2+1] << " ";
+				else
+					outfile << 0 << " " ;
 			}
 
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
@@ -1596,13 +1602,13 @@ int main(int argc, char *argv[])
 	Sample rightbottomvoid(3.9*.5-1.7-0.15*.5, 0.051, 3.9*.5-(3.9*.5-1.7-0.15*.5)*.5,  -1.2*.5-0.051*.5) ; 
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	Sample rebar(3.9-2*0.047, 0.051, 0,  -1.2*.5+0.064) ; 
-	rebar.setBehaviour(new Stiffness(m0_paste*.2)) ;    
+	rebar.setBehaviour(new Stiffness(m0_paste*.81)) ;    
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .1 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  1. ;
 // 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
@@ -1636,7 +1642,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(512) ;
+	F.sample(800) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

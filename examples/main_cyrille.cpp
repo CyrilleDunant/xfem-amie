@@ -1775,7 +1775,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(2048) ;
+	F.sample(1024) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
