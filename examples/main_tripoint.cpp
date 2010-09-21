@@ -263,7 +263,7 @@ void step()
 
 			if(dit < dsteps)
 			{
-				load->setData(load->getData()-1.5e3) ;
+				load->setData(load->getData()-3e4) ;
 				break ;
 			}
 		}
@@ -1586,11 +1586,11 @@ int main(int argc, char *argv[])
 
 // 	Sample concrete(NULL, 3.9, 1.2,0,0) ;                  concrete.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 	Sample topsupport(0.3, 0.051, 0, 1.2*.5+0.051*.5) ;    
-	topsupport.setBehaviour(new Stiffness(m0_paste*5)) ;
+	topsupport.setBehaviour(new Stiffness(m0_paste*8)) ;
 	Sample baseleft(0.15, 0.051, -1.7, -1.2*.5-0.051*.5) ; 
-	baseleft.setBehaviour(new Stiffness(m0_paste*5)) ;
+	baseleft.setBehaviour(new Stiffness(m0_paste*8)) ;
 	Sample baseright(0.15, 0.051, 1.7, -1.2*.5-0.051*.5) ; 
-	baseright.setBehaviour(new Stiffness(m0_paste*5)) ;
+	baseright.setBehaviour(new Stiffness(m0_paste*8)) ;
 	Sample topleftvoid(3.9*.5-0.15, 0.051, (-3.9*.5+0.15)*.5-0.15, 1.2*.5+0.051*.5) ;     
 	topleftvoid.setBehaviour(new VoidForm()) ;
 	Sample toprightvoid(3.9*.5-0.15, 0.051, (+3.9*.5-0.15)*.5+0.15, 1.2*.5+0.051*.5) ;     
@@ -1618,9 +1618,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM,Point(1.7, -1.2*.5-0.051) ));
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) );
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -2, -1.5, -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -2, -1.5, -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.5, 2,  -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -1.73, -1.67, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -1.73, -1.67, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.67, 1.73,  -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
@@ -1642,7 +1642,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(800) ;
+	F.sample(512) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

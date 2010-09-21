@@ -105,8 +105,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		return true ;
 	}
 	err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
-	double neps = std::max(err0*realeps, realeps*realeps) ;
-	while(last_rho*last_rho> realeps*realeps && n < Maxit )
+	double neps = realeps*realeps ; //std::max(err0*realeps, realeps*realeps) ;
+	while(last_rho*last_rho> neps && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		
@@ -155,13 +155,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	
 	if(verbose)
 	{
-		if(nit <= Maxit && last_rho*last_rho< realeps*realeps)
+		if(nit <= Maxit && last_rho*last_rho< neps)
 			std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
 			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 	
 	
-	return nit < Maxit && last_rho*last_rho< realeps*realeps;
+	return nit < Maxit && last_rho*last_rho< neps;
 }
 
