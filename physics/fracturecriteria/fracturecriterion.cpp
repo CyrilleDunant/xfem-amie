@@ -28,12 +28,35 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			return ;
 		Circle epsilon(neighbourhoodradius,testedTri->getCenter()) ;
 		std::vector<DelaunayTriangle *> tempcache = testedTri->tree->getConflictingElements(&epsilon);
+		std::vector<DelaunayTriangle *> neighbourhood ;
+		for(size_t i = 0 ; i < testedTri->neighbourhood.size() ; i++)
+		{
+			if(testedTri->getNeighbourhood(i)->getBehaviour() && testedTri->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				neighbourhood.push_back(testedTri->getNeighbourhood(i));
+				cache.push_back(testedTri->getNeighbourhood(i));
+			}
+		}
+		
+		
 		for(size_t i = 0 ; i < tempcache.size() ; i++)
 		{
-			if(tempcache[i]->getBehaviour())
+			if(tempcache[i]->getBehaviour() && tempcache[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				cache.push_back(tempcache[i]);
-				area.push_back(cache.back()->area());
+				bool inNeighbourhood = false ;
+				for(size_t j = 0 ; j < neighbourhood.size() ; j++)
+				{
+					if(neighbourhood[j] == tempcache[i])
+					{
+						inNeighbourhood = true ;
+						break ;
+					}
+				}
+				if(!inNeighbourhood)
+				{
+					cache.push_back(tempcache[i]);
+					area.push_back(cache.back()->area());
+				}
 			}
 		}
 	}
@@ -43,12 +66,34 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			return ;
 		Sphere epsilon(neighbourhoodradius,testedTet->getCenter()) ;
 		std::vector<DelaunayTetrahedron *> tempcache3d = testedTet->tree->getConflictingElements(&epsilon);
+		std::vector<DelaunayTetrahedron *> neighbourhood ;
+		for(size_t i = 0 ; i < testedTet->neighbourhood.size() ; i++)
+		{
+			if(testedTet->getNeighbourhood(i)->getBehaviour() && testedTet->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				neighbourhood.push_back(testedTet->getNeighbourhood(i));
+				cache3d.push_back(testedTet->getNeighbourhood(i));
+			}
+		}
+		
 		for(size_t i = 0 ; i < tempcache3d.size() ; i++)
 		{
-			if(tempcache3d[i]->getBehaviour())
+			if(tempcache3d[i]->getBehaviour()&& tempcache3d[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				cache3d.push_back(tempcache3d[i]);
-				area.push_back(cache3d.back()->volume());
+				bool inNeighbourhood = false ;
+				for(size_t j = 0 ; j < neighbourhood.size() ; j++)
+				{
+					if(neighbourhood[j] == tempcache3d[i])
+					{
+						inNeighbourhood = true ;
+						break ;
+					}
+				}
+				if(!inNeighbourhood)
+				{
+					cache3d.push_back(tempcache3d[i]);
+					area.push_back(cache3d.back()->volume());
+				}
 			}
 		}
 	}

@@ -145,7 +145,7 @@ Vector angle(0) ;
 double nu = 0.2 ;
 double E_agg = 58.9e9 ;
 double E_paste = 37e9 ;
-// BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.015, .015, -10, 10, -10.) ;
+// BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,-10.) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
@@ -263,7 +263,7 @@ void step()
 
 			if(dit < dsteps)
 			{
-				load->setData(load->getData()-3e4) ;
+				load->setData(load->getData()-3e3) ;
 				break ;
 			}
 		}
@@ -1584,9 +1584,10 @@ int main(int argc, char *argv[])
 	Sample sample(NULL, 3.9, 1.2+0.051*2,0,0) ;
 	
 
-// 	Sample concrete(NULL, 3.9, 1.2,0,0) ;                  concrete.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 	Sample topsupport(0.3, 0.051, 0, 1.2*.5+0.051*.5) ;    
-	topsupport.setBehaviour(new Stiffness(m0_paste*8)) ;
+	topsupport.setBehaviour(new Stiffness(m0_paste*.89)) ;
+	Sample topvoid(3.9, 0.051, 0, 1.2*.5+0.051*.5) ;    
+	topvoid.setBehaviour(new VoidForm()) ;
 	Sample baseleft(0.15, 0.051, -1.7, -1.2*.5-0.051*.5) ; 
 	baseleft.setBehaviour(new Stiffness(m0_paste*8)) ;
 	Sample baseright(0.15, 0.051, 1.7, -1.2*.5-0.051*.5) ; 
@@ -1608,8 +1609,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37000)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .1 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  1. ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .07 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .5 ;
 // 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
 	F.addBoundaryCondition(load) ;
@@ -1627,8 +1628,9 @@ int main(int argc, char *argv[])
 	
 
 	F.addFeature(&sample,&rebar) ;
+
+// 	F.addFeature(NULL,&topvoid) ;
 	F.addFeature(NULL,&topsupport) ;
-// 	F.addFeature(NULL,&concrete) ;
 	F.addFeature(NULL,&topleftvoid) ;
 	F.addFeature(NULL,&toprightvoid) ;
 	F.addFeature(NULL,&bottomcentervoid) ;
@@ -1642,7 +1644,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(512) ;
+	F.sample(360) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
