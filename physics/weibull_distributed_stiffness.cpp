@@ -15,6 +15,7 @@
 #include "stiffness.h"
 #include "stiffness_and_fracture.h"
 #include "fracturecriteria/mohrcoulomb.h"
+#include "fracturecriteria/confinedmohrcoulomb.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/ruptureenergy.h"
 #include "../utilities/random.h"
@@ -51,8 +52,8 @@ Form * WeibullDistributedStiffness::getCopy() const
 	double weib = RandomNumber().weibull(variability,0.5) ;
 	Matrix newTensor (param*(1.-variability+weib)) ;
 	StiffnessAndFracture * ret = new StiffnessAndFracture(newTensor, 
-		new MohrCoulomb(criterion*(1.-variability+weib),
-		 -8.*(criterion*(1.-variability+weib)))) ;
+		new ConfinedMohrCoulomb(criterion*(1.-variability+weib),
+		 -10.*(criterion*(1.-variability+weib)))) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->dfunc.setMaterialCharacteristicRadius(materialRadius);

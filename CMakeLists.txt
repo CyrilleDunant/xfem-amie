@@ -50,6 +50,8 @@ physics/damagemodels/isotropiclineardamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
+physics/fracturecriteria/confinedmohrcoulomb.cpp
+physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
 #physics/mad.cpp 
 physics/diffusion.cpp 

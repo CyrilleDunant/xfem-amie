@@ -1291,7 +1291,7 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-		std::cout << "Time to solve (s) " << delta/1e6 << std::endl ;
+		std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 		displacements.resize(cg.x.size()) ;
 		displacements = cg.x ;
 	}

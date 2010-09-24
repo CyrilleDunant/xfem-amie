@@ -1,0 +1,53 @@
+//
+// C++ Interface: mohrcoulomb
+//
+// Description: 
+//
+//
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//
+#ifndef MUCONFINEDMOHRCOULOMB_H
+#define MUCONFINEDMOHRCOULOMB_H
+
+#include "fracturecriterion.h"
+
+namespace Mu {
+
+/** \brief Mohr - Coulomb fracture criterion
+	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
+	The Mohr-Coulomb is met when the maximum principal stresses is below or above the prescribed limits 
+	
+*/
+class ConfinedMohrCoulomb : public FractureCriterion
+{
+
+public:
+	double upVal ;
+	double downVal ;
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	ConfinedMohrCoulomb(double up, double down);
+
+	virtual ~ConfinedMohrCoulomb();
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const;
+
+/** \brief return the normalised distance to the fracture surface
+ *
+ * The distance is computed as: \f$ 1.-|\frac{max\; principal\; strain\; in\; element}{Limit\; strain}|  \f$
+ * @param s ElementState to consider
+*/
+	virtual double grade(const ElementState &s)  ;
+
+	virtual Material toMaterial() ;
+};
+
+}
+
+#endif
