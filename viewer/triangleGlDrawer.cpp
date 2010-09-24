@@ -273,26 +273,33 @@ void TriangleGLDrawer::grab()
 		 vals.erase(std::unique(vals.begin(), vals.end()), vals.end()) ;
 		 if(limits.size() <= N)
 		 {
-		   limits.push_back(std::make_pair(vals[.005*(vals.size()-1)], vals[.995*(vals.size()-1)])) ;
+		   limits.push_back(std::make_pair(vals[.001*(vals.size()-1)], vals[.999*(vals.size()-1)])) ;
 		   if(vals.front() > 0 &&  vals.back() > 0)
 		      limits[N].first = 0 ;
 		 }
 		 
-		 if(limits[N].first > vals[.005*(vals.size()-1)])
-		   limits[N].first = vals[.005*(vals.size()-1)] ;
-		 if(limits[N].second < vals[.995*(vals.size()-1)])
-		   limits[N].second = vals[.995*(vals.size()-1)] ;
+		 if(limits[N].first > vals[.001*(vals.size()-1)])
+		   limits[N].first = vals[.001*(vals.size()-1)] ;
+		 if(limits[N].second < vals[.999*(vals.size()-1)])
+		   limits[N].second = vals[.999*(vals.size()-1)] ;
 		 if(vals.front() > 0 &&  vals.back() > 0)
 		      limits[N].first = 0 ;
 		 min_val = limits[N].first ;
 		 max_val = limits[N].second ;
+		 bool logplot = false ;
+		 if(min_val >= 0 &&  max_val >= 0)
+		 {
+				min_val = 0 ;
+				logplot = true ;
+				std::cout <<"logplot" << std::endl ;
+		 }
 		 
-		 if(min_val > 0 &&  max_val > 0)
-		      min_val = 0 ;
+		 double halfval = (min_val + max_val)*.5 ;
 		 double maxdelta = std::max(max_x-min_x, max_y-min_y) ;
 		 double mindelta = std::min(max_x-min_x, max_y-min_y) ;
 		 double cx = 1 ;
 		 double cy = 1 ;
+		 double mag = 10 ;
 		 if(max_x-min_x > max_y-min_y)
 			 cy = mindelta/maxdelta ;
 		 else
@@ -302,47 +309,109 @@ void TriangleGLDrawer::grab()
 			
 			size_t r, g, b ;
 
-			if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] >= min_val && (*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] <= max_val)
+			if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] <= halfval)
 			{
-				glBegin(GL_TRIANGLES) ;
-				for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+				if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] >= min_val && (*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] <= max_val)
 				{
-					float v = (std::max(std::min((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i], max_val), min_val) - min_val)/(max_val-min_val);
-					HSVtoRGB(&r, &g, &b, v*300., 1., 1.) ;
-					glColor4ub(r, g, b, 255) ;
-					
-					glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy) ;
-	// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					glBegin(GL_TRIANGLES) ;
+					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+					{
+						float v = (std::max(std::min((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i], max_val), min_val) - min_val)/(max_val-min_val);
+						HSVtoRGB(&r, &g, &b, 330.-v*360., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
+						glColor4ub(r, g, b, 255) ;
+						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
+						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
+						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx + dx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy +dy) ;
+		// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					}
+					glEnd() ;
 				}
-				glEnd() ;
+				else if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] < min_val)
+				{
+					glBegin(GL_TRIANGLES) ;
+					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+					{
+						HSVtoRGB(&r, &g, &b, 0. , 1., .5) ;
+						glColor4ub(r, g, b, 255) ;
+						
+						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
+						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
+						
+						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx +dx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy +dy) ;
+		// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					}
+					glEnd() ;
+				}
+				else if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] > max_val)
+				{
+					glBegin(GL_TRIANGLES) ;
+					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+					{
+						HSVtoRGB(&r, &g, &b, 1. , 1., .5) ;
+						glColor4ub(r, g, b, 255) ;
+						
+						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
+						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
+						
+						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx+dx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy+dy) ;
+		// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					}
+					glEnd() ;
+				}
 			}
-			else if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] < min_val)
+			else
 			{
-				glBegin(GL_TRIANGLES) ;
-				for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+				if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] >= min_val && (*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] <= max_val)
 				{
-					HSVtoRGB(&r, &g, &b, 0. , 1., .5) ;
-					glColor4ub(r, g, b, 255) ;
-					
-					glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy) ;
-	// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					glBegin(GL_TRIANGLES) ;
+					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+					{
+						float v = (std::max(std::min((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i], max_val), min_val) - min_val)/(max_val-min_val);
+						HSVtoRGB(&r, &g, &b, 330.-v*360., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
+						glColor4ub(r, g, b, 255) ;
+						
+						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
+						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
+						
+						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx +dx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy+dy) ;
+		// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					}
+					glEnd() ;
 				}
-				glEnd() ;
-			}
-			else if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] > max_val)
-			{
-				glBegin(GL_TRIANGLES) ;
-				for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+				else if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] < min_val)
 				{
-					HSVtoRGB(&r, &g, &b, 1. , 1., .5) ;
-					glColor4ub(r, g, b, 255) ;
-					
-					glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy) ;
-	// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					glBegin(GL_TRIANGLES) ;
+					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+					{
+						HSVtoRGB(&r, &g, &b, 0. , 1., .5) ;
+						glColor4ub(r, g, b, 255) ;
+						
+						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
+						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
+						
+						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx +dx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy +dy) ;
+		// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					}
+					glEnd() ;
 				}
-				glEnd() ;
+				else if((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle][i] > max_val)
+				{
+					glBegin(GL_TRIANGLES) ;
+					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+					{
+						HSVtoRGB(&r, &g, &b, 1. , 1., .5) ;
+						glColor4ub(r, g, b, 255) ;
+						
+						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
+						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
+						
+						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx +dx, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy +dy) ;
+		// 				std::cout << ((*valuesAtPoint)[j*2][i]-min_x)/(max_x-min_x)-0.5 << ", "<< ((*valuesAtPoint)[j*2+1][i]-min_y)/(max_y-min_y)-0.5 << std::endl ;
+					}
+					glEnd() ;
+				}
+				
 			}
-			
 		}
 		
 		glEndList() ;
@@ -354,7 +423,7 @@ void TriangleGLDrawer::HSVtoRGB( size_t *r, size_t *g, size_t *b, float h, float
 	float f, p, q, t;
 	if( s == 0 ) {
                 // achromatic (grey)
-		*r = *g = *b = static_cast<size_t>(v*255);
+		*r = *g = *b = static_cast<size_t>(v*255.);
 		return;
 	}
 	h /= 60.;                        // sector 0 to 5
