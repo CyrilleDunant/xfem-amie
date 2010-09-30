@@ -11,6 +11,7 @@
 #include "../physics/physics_base.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
+#include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/void_form.h"
@@ -88,7 +89,6 @@
 #define DISPLAY_LIST_ANGLE 23
 #define DISPLAY_LIST_ENRICHMENT 12
 #define DISPLAY_LIST_STIFFNESS_DARK 24
-#include <physics/fracturecriteria/boundedvonmises.h>
 
 using namespace Mu ;
 
