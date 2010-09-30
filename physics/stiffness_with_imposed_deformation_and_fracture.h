@@ -30,7 +30,7 @@ namespace Mu
 	{
 		std::vector<Variable> v ;
 		Vector imposed ;
-		IsotropicLinearDamage dfunc ;
+		IsotropicLinearDamage * dfunc ;
 		double eps ;
 		Vector previousPreviousDamage ;
 		Vector intermediateDamage ;
@@ -78,6 +78,8 @@ namespace Mu
 		/** \brief Acessor, return the stifness criterion in use*/
 		virtual FractureCriterion * getFractureCriterion() const ;
 
+		virtual DamageModel * getDamageModel() const ;
+		
 		/** \brief return to the previous damage state*/
 		virtual void stepBack() ;
 

@@ -105,8 +105,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		return true ;
 	}
 	err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
-	double neps = realeps*realeps ; //std::max(err0*realeps, realeps*realeps) ;
-	while(last_rho*last_rho> neps && n < Maxit )
+	double neps = std::min(realeps*realeps, err0*realeps) ; //std::max(err0*realeps, realeps*realeps) ;
+	while(last_rho*last_rho > neps && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		

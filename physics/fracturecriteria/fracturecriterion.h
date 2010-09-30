@@ -36,7 +36,8 @@ class DelaunayTetrahedron ;
 		
 	public:
 		
-		
+		bool metInTension ;
+		bool metInCompression ;
 		
 		FractureCriterion() ;
 		virtual void initialiseCache(const ElementState & s) ;
@@ -81,6 +82,8 @@ class DelaunayTetrahedron ;
 		
 		const std::vector<DelaunayTriangle *> & getCache() const { return cache ; } ;
 		const std::vector<DelaunayTetrahedron *> & getCache3d() const { return cache3d ; } ;
+		
+		double getScoreAtState() const { return scoreAtState ; }
 	
 	};
 

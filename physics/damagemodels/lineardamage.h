@@ -24,6 +24,10 @@ class LinearDamage : public DamageModel
 {
 public:
 
+	double tensionDamage ;
+	double compressionDamage ;
+	bool inCompression ;
+	bool inTension ;
 	/** \brief Constructor, set the number of degrees of freedom and a strain limit for failure
 	 * 
 	 * @param numDof 

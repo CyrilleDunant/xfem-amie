@@ -27,8 +27,13 @@ double MaximumStrain::grade(const ElementState &s)
 {
 	Vector pstrain = s.getStrain(s.getParent()->getBoundingPoints()) ;
 	double maxStrain = pstrain.max();
+	metInCompression = false ;
+	metInTension = false ;
 	if(maxStrain > upVal)
+	{
+		metInTension = true ;
 		return 1.-std::abs(upVal/maxStrain) ;
+	}
 	else
 		return -1.+ std::abs(maxStrain/upVal);
 	

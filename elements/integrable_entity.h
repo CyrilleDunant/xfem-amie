@@ -59,6 +59,7 @@ struct Function ;
 struct DelaunayTriangle ;
 struct IntegrableEntity ;
 struct FractureCriterion ;
+struct DamageModel ;
 struct VirtualMachine ;
 struct BoundaryCondition ;
 
@@ -492,6 +493,8 @@ public:
 	virtual ~Form() { } ;
 
 	virtual FractureCriterion * getFractureCriterion() const { return NULL ; }
+	
+	virtual DamageModel * getDamageModel() const { return NULL ; }
 } ;
 
 } ;

@@ -899,7 +899,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
 // 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, 1000000)) ;
+		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, -8000000,1000000)) ;
 		F->addFeature(father, temp) ;
 	}
 	
@@ -1801,7 +1801,7 @@ int main(int argc, char *argv[])
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius()-itzSize 
 		<< ", smallest r =" << feats.back()->getRadius()-itzSize << std::endl ; 
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 13500000)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -8.*13500000, 13500000)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .002 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .0025 ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
@@ -1843,7 +1843,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-		WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,57000000) ;
+		WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,-8.*57000000, 57000000) ;
 		stiff->materialRadius = .0002 ;
 		stiff->neighbourhoodRadius =  .0003 ;
 // 		Stiffness * stiff = new Stiffness(m0_agg) ;

@@ -32,7 +32,7 @@ namespace Mu
 		Vector imposed ;
 		Function x ;
 		Function y ;
-		IsotropicLinearDamage dfunc ;
+		IsotropicLinearDamage * dfunc ;
 		double previousDamage ;
 		FractureCriterion * criterion ;
 		bool frac ;
@@ -87,6 +87,10 @@ namespace Mu
 		virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { previousDamage = std::min(damage,previous[0]) ; } ;
 
 		virtual void artificialDamageStep(double d) ;
+		
+		virtual FractureCriterion * getFractureCriterion() const {return criterion ;}
+		
+		virtual DamageModel * getDamageModel() const {return dfunc ;}
 		
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	} ;

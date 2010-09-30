@@ -16,8 +16,9 @@
 
 using namespace Mu ;
 
-StiffnessWithVariableImposedDeformationAndFracture::StiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * c) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef), dfunc(rig.numRows()-1, .01),criterion(c)
+StiffnessWithVariableImposedDeformationAndFracture::StiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * c) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef),criterion(c)
 {
+	dfunc = new IsotropicLinearDamage(rig.numRows()-1, .01) ;
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
@@ -30,7 +31,10 @@ StiffnessWithVariableImposedDeformationAndFracture::StiffnessWithVariableImposed
 		v.push_back(ZETA);
 } ;
 
-StiffnessWithVariableImposedDeformationAndFracture::~StiffnessWithVariableImposedDeformationAndFracture() { } ;
+StiffnessWithVariableImposedDeformationAndFracture::~StiffnessWithVariableImposedDeformationAndFracture() 
+{ 
+	delete dfunc ;
+} ;
 
 void StiffnessWithVariableImposedDeformationAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
@@ -41,10 +45,10 @@ void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, E
 {
 	if(!frac && criterion->met(currentState) )
 	{
-		dfunc.step(currentState) ;
+		dfunc->step(currentState) ;
 		previousDamage = damage ;
 		
-		Vector state = dfunc.damageState() ;
+		Vector state = dfunc->damageState() ;
 		damage = 0 ;
 		for(size_t i = 0 ; i < state.size() ; i++)
 			damage += state[i] ;
@@ -86,8 +90,8 @@ Vector StiffnessWithVariableImposedDeformationAndFracture::getPreviousDamage()
 void StiffnessWithVariableImposedDeformationAndFracture::artificialDamageStep(double d)
 {
 	previousDamage = damage ;
-	dfunc.artificialDamageStep(d) ;
-	Vector state = dfunc.damageState() ;
+	dfunc->artificialDamageStep(d) ;
+	Vector state = dfunc->damageState() ;
 	damage = 0 ;
 	for(size_t i = 0 ; i < state.size() ; i++)
 		damage += state[i] ;

@@ -759,14 +759,14 @@ int main(int argc, char *argv[])
 		ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
 	}
 
-	WeibullDistributedStiffness * stiffPaste = new WeibullDistributedStiffness(m0_paste,135000.) ;
+	WeibullDistributedStiffness * stiffPaste = new WeibullDistributedStiffness(m0_paste, -8.*135000,135000.) ;
 	stiffPaste->materialRadius = .002 ;
 	stiffPaste->neighbourhoodRadius =  .0025 ;
 	sample.setBehaviour(stiffPaste) ;
 
         for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
-		WeibullDistributedStiffness * stiffAgg = new WeibullDistributedStiffness(m0_agg,57000000) ;
+		WeibullDistributedStiffness * stiffAgg = new WeibullDistributedStiffness(m0_agg, -8.*57000000, 57000000) ;
 		stiffAgg->materialRadius = .0002 ;
 		stiffAgg->neighbourhoodRadius =  .0003 ;	
                 ellipses[i]->setBehaviour(stiffAgg) ;

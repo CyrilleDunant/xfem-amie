@@ -16,13 +16,14 @@
 #include "stiffness_and_fracture.h"
 #include "fracturecriteria/mohrcoulomb.h"
 #include "fracturecriteria/confinedmohrcoulomb.h"
+#include "fracturecriteria/confinedmohrcoulombwithstrain.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/ruptureenergy.h"
 #include "../utilities/random.h"
 
 using namespace Mu ;
 
-WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, double cri) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.1)
+WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, double down, double up) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.1), up(up), down(down)
 {
 	materialRadius = .001;
 	neighbourhoodRadius = .004 ;
@@ -32,7 +33,6 @@ WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, dou
 	if(param.size() == 36)
 		v.push_back(ZETA);
 
-	criterion = cri ;
 } ;
 
 WeibullDistributedStiffness::~WeibullDistributedStiffness() { } ;
@@ -49,14 +49,19 @@ bool WeibullDistributedStiffness::fractured() const
 
 Form * WeibullDistributedStiffness::getCopy() const 
 {
-	double weib = RandomNumber().weibull(variability,0.5) ;
-	Matrix newTensor (param*(1.-variability+weib)) ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(newTensor, 
-		new ConfinedMohrCoulomb(criterion*(1.-variability+weib),
-		 -10.*(criterion*(1.-variability+weib)))) ;
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1 - variability + variability*weib ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(
+															param*factor, 
+															new ConfinedMohrCoulomb(
+																					up*factor,
+																					down*factor 
+																					)
+														 ) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
-	ret->dfunc.setMaterialCharacteristicRadius(materialRadius);
+	ret->dfunc->setMaterialCharacteristicRadius(materialRadius);
+	ret->dfunc->setThresholdDamageDensity(.15);
 	return ret ;
 }
 

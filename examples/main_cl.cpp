@@ -8,6 +8,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics_base.h"
+#include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/fracturecriteria/maxstrain.h"
@@ -135,32 +136,31 @@ double aggregateArea = 0;
 
 
 
-void setBC()
-{
-	triangles = featureTree->getTriangles() ;
-	
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-			if (triangles[k]->getBoundingPoint(c).y < -0.00499 && triangles[k]->getBoundingPoint(c).x < -.0499)
-			{
-				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-// 			else if(triangles[k]->getBoundingPoint(c).x < -.0499 && triangles[k]->getBoundingPoint(c).y > 0.00499)
+// void setBC()
+// {
+// 	triangles = featureTree->getTriangles() ;
+// 	
+// 	for(size_t k = 0 ; k < triangles.size() ;k++)
+// 	{
+// 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
+// 		{
+// 			if (triangles[k]->getBoundingPoint(c).y < -0.00499 && triangles[k]->getBoundingPoint(c).x < -.0499)
 // 			{
-// 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
 // 			}
-// 			else if (triangles[k]->getBoundingPoint(c).y < -0.00499 && triangles[k]->getBoundingPoint(c).x > .0199)
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-
-		}
-
-	}
-
-}
+// // 			else if(triangles[k]->getBoundingPoint(c).x < -.0499 && triangles[k]->getBoundingPoint(c).y > 0.00499)
+// // 			{
+// // 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
+// // 			}
+// // 			else if (triangles[k]->getBoundingPoint(c).y < -0.00499 && triangles[k]->getBoundingPoint(c).x > .0199)
+// // 			{
+// // 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// // 			}
+// 
+// 		}
+// 
+// 	}
+// }
 
 void step()
 {
@@ -170,16 +170,14 @@ void step()
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		setBC() ;
 		tries = !nsteps ;
 		bool go_on = true ;
 		while(go_on && tries < 200)
 		{
-			featureTree->step(1e-4*(tries == 0)) ;
+			featureTree->step(1e-3*(tries == 0)) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
 			std::cout << "." << std::flush ;
 // 			timepos-= 0.0001 ;
-			setBC() ;
 			tries++ ;
 		}
 		std::cout << " " << tries << " tries." << std::endl ;
@@ -187,7 +185,7 @@ void step()
 // 		
 // 		
 	
-	
+		triangles = featureTree->getTriangles() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
@@ -645,7 +643,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
 // 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, 1000000)) ;
+		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, -1000000, 8000000)) ;
 		F->addFeature(father, temp) ;
 	}
 	
@@ -1507,14 +1505,18 @@ int main(int argc, char *argv[])
 	Vector a(3) ;
 	a[0] =  0.00;
 	a[1] =  0.00 ;
-	sample.setBehaviour(new WeibullStiffnessWithVariableImposedDeformationAndFracture(m0_paste,a, new MohrCoulomb(12500000*.2, -8.*12500000*.2)/*new MaximumStrain(.0001)*/)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2500000,-20000000)/*new MaximumStrain(.0001)*/) ;
+	Sample expanding(NULL, 0.1-width*.5, 0.01-width*.5, 0, 0) ;
+	expanding.setBehaviour(new WeibullStiffnessWithVariableImposedDeformationAndFracture(m0_paste,a, new VonMises(25000)/*new MaximumStrain(.0001)*/)) ;
 	Sample core(NULL, 0.1-width, 0.01-width, 0, 0) ;
-	core.setBehaviour(new WeibullDistributedStiffness(m0_paste,12500000)) ;
-	F.addFeature(&sample, &core) ;
+	core.setBehaviour(new WeibullDistributedStiffness(m0_paste, 2500000,-20000000)) ;
+	
+	F.addFeature(&sample, &expanding) ;
+	F.addFeature(&expanding, &core) ;
 
 	double itzSize = 0.00005;
-	int inclusionNumber = 0 ; // 10 100 500 1000 2000 4000
-	inclusions = GranuloBolome(4.79263e-07*0.625, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
+	int inclusionNumber = 1000 ; // 10 100 500 1000 2000 4000
+	inclusions = GranuloBolome(1.06366e-05, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
@@ -1539,12 +1541,15 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000)) ;
+		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000*-8., 57000000)) ;
+		dynamic_cast<WeibullDistributedStiffness *>(inclusions[i]->getBehaviour())->materialRadius = .001 ;
+		dynamic_cast<WeibullDistributedStiffness *>(inclusions[i]->getBehaviour())->neighbourhoodRadius =  0.01 ;
 		F.addFeature(&core,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
-	F.sample(16) ;
-
+	F.sample(256) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_RIGHT));
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT));
 	F.setOrder(LINEAR) ;
 
 	F.generateElements() ;

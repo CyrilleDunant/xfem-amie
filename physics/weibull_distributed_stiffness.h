@@ -28,13 +28,14 @@ namespace Mu
 		double neighbourhoodRadius ;
 		std::vector<Variable> v ;
 		double variability ;
-		double criterion ;
+		double down ;
+		double up ;
 		/** Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param cri stress limit for the Mohr - Coulomb criterion to use
 		*/
-		WeibullDistributedStiffness(const Matrix & rig, double cri)  ;
+		WeibullDistributedStiffness(const Matrix & rig, double down, double up)  ;
 		
 		void setMaterialCharacteristicRadius(double r) {materialRadius = r ;} ;
 		void setNeighbourhoodRadius(double r) {neighbourhoodRadius = r ;}

@@ -15,17 +15,18 @@
 
 using namespace Mu ;
 
-StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, false, false, rig.numRows()/3+1), dfunc(rig.numRows()-1, .01), imposed(imposedDef), criterion(crit), eps(0.2)
+StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, false, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.2)
 {
+	dfunc = new IsotropicLinearDamage(rig.numRows()-1, .01) ;
 	crit->setNeighbourhoodRadius(eps) ;
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
 	previouschange = false ;
-	previousDamage.resize(dfunc.damageState().size()) ; previousDamage =0 ;
-	intermediateDamage.resize(dfunc.damageState().size()) ;intermediateDamage = 0 ;
+	previousDamage.resize(dfunc->damageState().size()) ; previousDamage =0 ;
+	intermediateDamage.resize(dfunc->damageState().size()) ;intermediateDamage = 0 ;
 	count = 0 ;
-	previousPreviousDamage.resize(dfunc.damageState().size()) ;previousPreviousDamage = 0 ;
+	previousPreviousDamage.resize(dfunc->damageState().size()) ;previousPreviousDamage = 0 ;
 	damage = 0 ;	
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -35,6 +36,7 @@ StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFr
 
 StiffnessWithImposedDeformationAndFracture::~StiffnessWithImposedDeformationAndFracture() 
 { 
+	delete dfunc ;
 	delete criterion ;
 }
 
@@ -43,9 +45,14 @@ FractureCriterion * StiffnessWithImposedDeformationAndFracture::getFractureCrite
 	return criterion ;
 }
 
+DamageModel * StiffnessWithImposedDeformationAndFracture::getDamageModel() const 
+{
+	return dfunc ;
+}
+
 void StiffnessWithImposedDeformationAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	vm->ieval(Gradient(p_i) * dfunc.apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
+	vm->ieval(Gradient(p_i) * dfunc->apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
 }
 
 void StiffnessWithImposedDeformationAndFracture::stepBack()
@@ -58,8 +65,8 @@ void StiffnessWithImposedDeformationAndFracture::stepBack()
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
-	dfunc.damageState() = damage ;
-	frac = dfunc.fractured() ;
+	dfunc->damageState() = damage ;
+	frac = dfunc->fractured() ;
 
 	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
@@ -73,19 +80,19 @@ void StiffnessWithImposedDeformationAndFracture::step(double timestep, ElementSt
 	if(!frac && criterion->met(currentState) )
 	{
 		
-		dfunc.step(currentState) ;
+		dfunc->step(currentState) ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
 		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;
-		frac = dfunc.fractured() ;
+		frac = dfunc->fractured() ;
 	}
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 
-	Vector d = dfunc.damageState() ;
+	Vector d = dfunc->damageState() ;
 	damage.resize(d.size()) ;
 	damage = d ;
 }
@@ -95,15 +102,15 @@ void StiffnessWithImposedDeformationAndFracture::artificialDamageStep(double d)
 	previouschange = change ;
 	change = false ;
 
-	dfunc.artificialDamageStep(d) ;
+	dfunc->artificialDamageStep(d) ;
 	change = true ;
-	frac = dfunc.fractured() ;
+	frac = dfunc->fractured() ;
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 
-	Vector d_ = dfunc.damageState() ;
+	Vector d_ = dfunc->damageState() ;
 	damage.resize(d_.size()) ;
 	damage = d ;
 }
@@ -143,7 +150,7 @@ bool StiffnessWithImposedDeformationAndFracture::changed() const
 
 bool StiffnessWithImposedDeformationAndFracture::fractured() const
 {
-	return dfunc.fractured() ;
+	return dfunc->fractured() ;
 }
 
 
@@ -157,7 +164,7 @@ Form * StiffnessWithImposedDeformationAndFracture::getCopy() const
 
 Matrix StiffnessWithImposedDeformationAndFracture::getTensor(const Point & p) const
 {
-	return dfunc.apply(param) ;
+	return dfunc->apply(param) ;
 }
 
 

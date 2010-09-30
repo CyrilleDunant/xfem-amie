@@ -28,8 +28,8 @@ namespace Mu
 	*/
 	struct StiffnessAndFracture : public LinearForm
 	{
-// 		LinearDamage dfunc ;
-		IsotropicLinearDamage dfunc ;
+		LinearDamage * dfunc ;
+// 		IsotropicLinearDamage dfunc ;
 		double eps ;
 		Vector previousPreviousDamage ;
 		Vector intermediateDamage ;
@@ -112,6 +112,8 @@ namespace Mu
 		/** \brief Acessor, return the stifness criterion in use*/
 		virtual FractureCriterion * getFractureCriterion() const ;
 
+		virtual DamageModel * getDamageModel() const ;
+		
 		virtual Material toMaterial() ;
 		
 	} ;

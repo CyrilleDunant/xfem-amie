@@ -9,40 +9,36 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#include "confinedmohrcoulomb.h"
+#include "confinedmohrcoulombwithstrain.h"
 
 namespace Mu {
 
-ConfinedMohrCoulomb::ConfinedMohrCoulomb(double up, double down)
-	: upVal(up), downVal(down)
+ConfinedMohrCoulombWithStrainLimit::ConfinedMohrCoulombWithStrainLimit(double up, double down, double strainLimit)
+	: upVal(up), downVal(down), strainLimit(strainLimit)
 {
 }
 
 
-ConfinedMohrCoulomb::~ConfinedMohrCoulomb()
+ConfinedMohrCoulombWithStrainLimit::~ConfinedMohrCoulombWithStrainLimit()
 {
 }
 
-double ConfinedMohrCoulomb::grade(const ElementState &s) 
+double ConfinedMohrCoulombWithStrainLimit::grade(const ElementState &s) 
 {
 
 	if(s.getParent()->getBehaviour()->fractured())
 		return 0 ;
 
-	Vector pstress0 = s.getPrincipalStresses(Point(0, 0, 0), true) ;
-	Vector pstress1 = s.getPrincipalStresses(Point(0, 1, 0), true) ;
-	Vector pstress2 = s.getPrincipalStresses(Point(1, 0, 0), true) ;
-	double maxStress = std::max(pstress0.max(), std::max(pstress1.max(),pstress2.max()));
-	double minStress = std::min(pstress0.min(), std::min(pstress1.min(),pstress2.min()));
+	Vector pstress = s.getPrincipalStresses(s.getParent()->getCenter()) ;
+	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
+	double maxStress = pstress.max();
+	double minStress = pstress.min();
+	
+	if(pstrain.max() > strainLimit)
+		return 1.-strainLimit/pstrain.max() ;
 	
 	metInCompression = false ;
 	metInTension = false ;
-	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-	{
-		Vector pstress3 = s.getPrincipalStresses(Point(0, 0, 1), true) ;
-		maxStress = std::max(pstress3.max(),maxStress);
-        minStress = std::min(pstress3.min(), minStress);
-	}
 	
 	if(maxStress < 0 && minStress < 0) //we are in a confined situation
 	{
@@ -99,12 +95,12 @@ double ConfinedMohrCoulomb::grade(const ElementState &s)
 	return s1;
 }
 
-FractureCriterion * ConfinedMohrCoulomb::getCopy() const
+FractureCriterion * ConfinedMohrCoulombWithStrainLimit::getCopy() const
 {
-	return new ConfinedMohrCoulomb(*this) ;
+	return new ConfinedMohrCoulombWithStrainLimit(*this) ;
 }
 
-Material ConfinedMohrCoulomb::toMaterial()
+Material ConfinedMohrCoulombWithStrainLimit::toMaterial()
 {
 	Material mat ;
 	return mat ;

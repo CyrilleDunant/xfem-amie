@@ -1425,7 +1425,7 @@ int main(int argc, char *argv[])
 // 	Inclusion * inc2 = new Inclusion(0.004, 0.025, 0.0185) ;
 //	inc1->setBehaviour(new Stiffness(m0_paste*10)) ;
 // 	inc1->setBehaviour(new Stiffness(m0_paste*1000.)) ;
- 	F.addFeature(&sample, inc0) ;
+//  	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&sample, inc1) ;
 //	SpatiallyDistributedStiffness * stiff = new SpatiallyDistributedStiffness(m0_paste*4, m0_paste*4,0.0001,0,0) ;
 // 	WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_paste, 450000) ;
@@ -1473,9 +1473,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_XI , Point(1, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI , LEFT, -stress*(1./.45))) ;
 //	F.addBoundaryCondition(new /*AndRestriction*/BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*, -0.025, -0.0175, -10, 10*/, -stress)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	

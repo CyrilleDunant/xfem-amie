@@ -1715,11 +1715,11 @@ int main(int argc, char *argv[])
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(1.5640), cradius) ; // 5625 too low ; 5650 too high
-	saf->dfunc.setMaterialCharacteristicRadius(mradius) ;
+	saf->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
-	saf->dfunc.setThresholdDamageDensity(tdamage);
-	saf->dfunc.setDamageDensityIncrement(dincrement);
+	saf->dfunc->setThresholdDamageDensity(tdamage);
+	saf->dfunc->setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 	sample.setBehaviour(saf) ;
@@ -1775,7 +1775,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(1024) ;
+	F.sample(512) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

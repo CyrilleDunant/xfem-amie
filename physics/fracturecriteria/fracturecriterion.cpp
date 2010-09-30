@@ -14,7 +14,7 @@
 #include "../../mesher/delaunay_3d.h"
 namespace Mu {
 
-FractureCriterion::FractureCriterion() : neighbourhoodradius(.0005), physicalCharacteristicRadius(.008), scoreAtState(0)
+FractureCriterion::FractureCriterion() : neighbourhoodradius(.0005), physicalCharacteristicRadius(.008), scoreAtState(0), metInTension(false), metInCompression(false)
 {
 }
 
@@ -134,7 +134,7 @@ bool FractureCriterion::met(const ElementState &s)
 
 		if(testedTri->visited)
 			return false ;
-				
+		
 		if (scoreAtState <= 0)
 			return false ;
 
@@ -164,14 +164,14 @@ bool FractureCriterion::met(const ElementState &s)
 					}
 					else if(cache[i]->getBehaviour()->fractured())
 					{
-						double s = 1 ;
-						scores[-s] =  cache[i];
-						unsortedScores.push_back(s);
-						if(s > maxNeighbourhoodScore)
-						{
-							maxNeighbourhoodScore = s ;
-							maxLocus = cache[i] ;
-						}
+// 						double s = POINT_TOLERANCE ;
+// 						scores[-s] =  cache[i];
+// 						unsortedScores.push_back(s);
+// 						if(s > maxNeighbourhoodScore)
+// 						{
+// 							maxNeighbourhoodScore = s ;
+// 							maxLocus = cache[i] ;
+// 						}
 						
 					}
 					areatemp[cache[i]] = area[i] ;
@@ -264,14 +264,14 @@ bool FractureCriterion::met(const ElementState &s)
 					}
 					else if(cache3d[i]->getBehaviour()->fractured())
 					{
-						double s = 1 ;
+						double s = POINT_TOLERANCE ;
 						scores[-s] =  cache3d[i];
 						unsortedScores.push_back(s);
-						if(s > maxNeighbourhoodScore)
-						{
-							maxNeighbourhoodScore = s ;
-							maxLocus = cache3d[i] ;
-						}
+// 						if(s > maxNeighbourhoodScore)
+// 						{
+// 							maxNeighbourhoodScore = s ;
+// 							maxLocus = cache3d[i] ;
+// 						}
 						
 					}
 					areatemp[cache3d[i]] = area[i] ;

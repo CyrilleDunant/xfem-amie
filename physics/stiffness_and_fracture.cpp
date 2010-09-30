@@ -18,18 +18,19 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), dfunc(rig.numRows()-1, eps)/*dfunc(rig.numRows()-1)*/, eps(eps)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), /*dfunc(rig.numRows()-1)*/ eps(eps)
 {
+	dfunc = new LinearDamage(rig.numRows()-1, eps) ;
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
 	previouschange = false ;
-	previousDamage.resize(dfunc.damageState().size()) ; previousDamage =0 ;
-	intermediateDamage.resize(dfunc.damageState().size()) ;intermediateDamage = 0 ;
+	previousDamage.resize(dfunc->damageState().size()) ; previousDamage =0 ;
+	intermediateDamage.resize(dfunc->damageState().size()) ;intermediateDamage = 0 ;
 	count = 0 ;
-	previousPreviousDamage.resize(dfunc.damageState().size()) ;previousPreviousDamage = 0 ;
+	previousPreviousDamage.resize(dfunc->damageState().size()) ;previousPreviousDamage = 0 ;
 	damage = 0 ;
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -49,6 +50,7 @@ void StiffnessAndFracture::setNeighbourhoodRadius(double d)
 StiffnessAndFracture::~StiffnessAndFracture() 
 { 
 	delete criterion ;
+	delete dfunc ;
 } ;
 
 FractureCriterion * StiffnessAndFracture::getFractureCriterion() const
@@ -56,9 +58,14 @@ FractureCriterion * StiffnessAndFracture::getFractureCriterion() const
 	return criterion ;
 }
 
+DamageModel * StiffnessAndFracture::getDamageModel() const
+{
+	return dfunc ;
+}
+
 void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
-	vm->ieval(Gradient(p_i) * dfunc.apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
+	vm->ieval(Gradient(p_i) * dfunc->apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
 }
 
 
@@ -72,8 +79,8 @@ void StiffnessAndFracture::stepBack()
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
-	dfunc.damageState() = damage ;
-	frac = dfunc.fractured() ;
+	dfunc->damageState() = damage ;
+	frac = dfunc->fractured() ;
 
 	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
@@ -86,17 +93,17 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	currentState.getParent()->behaviourUpdated = false ;
 	if(!frac && criterion->met(currentState) )
 	{
-		dfunc.step(currentState) ;
+		dfunc->step(currentState) ;
 		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;
-		frac = dfunc.fractured() ;
+		frac = dfunc->fractured() ;
 	}
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 
-	Vector d = dfunc.damageState() ;
+	Vector d = dfunc->damageState() ;
 	damage.resize(d.size()) ;
 	damage = d ;
     }
@@ -106,15 +113,15 @@ void StiffnessAndFracture::artificialDamageStep(double d)
 	previouschange = change ;
 	change = false ;
 
-	dfunc.artificialDamageStep(d) ;
+	dfunc->artificialDamageStep(d) ;
 	change = true ;
-	frac = dfunc.fractured() ;
+	frac = dfunc->fractured() ;
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 
-	Vector d_ = dfunc.damageState() ;
+	Vector d_ = dfunc->damageState() ;
 	damage.resize(d_.size()) ;
 	damage = d ;
 }
@@ -154,7 +161,7 @@ bool StiffnessAndFracture::changed() const
 
 bool StiffnessAndFracture::fractured() const
 {
-	return dfunc.fractured() ;
+	return dfunc->fractured() ;
 }
 
 Form * StiffnessAndFracture::getCopy() const 
@@ -163,15 +170,15 @@ Form * StiffnessAndFracture::getCopy() const
 	copy->damage = damage ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
-	copy->dfunc.setMaterialCharacteristicRadius(dfunc.getCharacteristicRadius());
-	copy->dfunc.setDamageDensityIncrement(dfunc.getDamageDensityIncrement());
-	copy->dfunc.setThresholdDamageDensity(dfunc.getThresholdDamageDensity());
+	copy->dfunc->setMaterialCharacteristicRadius(dfunc->getCharacteristicRadius());
+	copy->dfunc->setDamageDensityIncrement(dfunc->getDamageDensityIncrement());
+	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
 	return copy ;
 }
 
 Matrix StiffnessAndFracture::getTensor(const Point & p) const
 {
-	return dfunc.apply(param) ;
+	return dfunc->apply(param) ;
 }
 
 Material StiffnessAndFracture::toMaterial()

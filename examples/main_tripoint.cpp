@@ -27,6 +27,8 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/itoa.h"
+#include "../utilities/random.h"
+
 
 
 #include <fstream>
@@ -86,6 +88,7 @@
 #define DISPLAY_LIST_ANGLE 23
 #define DISPLAY_LIST_ENRICHMENT 12
 #define DISPLAY_LIST_STIFFNESS_DARK 24
+#include <physics/fracturecriteria/boundedvonmises.h>
 
 using namespace Mu ;
 
@@ -128,6 +131,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress ;
 std::vector<std::pair<double, double> > load_displacement ;
+std::vector< double > loads ;
+std::vector< double > displacements ;
 
 Vector b(0) ;
 Vector x(0) ;
@@ -144,9 +149,9 @@ Vector angle(0) ;
 
 double nu = 0.2 ;
 double E_agg = 58.9e9 ;
-double E_paste = 37e9 ;
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-// BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,-10.) ;
+double E_paste = 30e9 ;
+// BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
+BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,-1000000.) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
@@ -226,7 +231,7 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 300 ; //16*10;
+	size_t nsteps = 2000 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -250,20 +255,32 @@ void step()
 			while(go_on && dit < dsteps)
 			{
 				featureTree->step(timepos) ;
-				go_on = (featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged())) || (!featureTree->solverConverged() && featureTree->reuseDisplacements);
+				go_on = (
+							featureTree->solverConverged() && 
+							(
+								featureTree->meshChanged() || 
+								featureTree->enrichmentChanged()
+							)
+						) || 
+						(
+							!featureTree->solverConverged() && 
+							featureTree->reuseDisplacements
+						);
 				if(featureTree->solverConverged())
 					std::cout << "." << std::flush ;
 				else
 					std::cout << "x" << std::flush ;
-				if(tries%20 == 0)
+				if(dit%20 == 0)
 					std::cout << dit << std::flush ;
 				dit++ ;
 			}
 			std::cout << ":" << std::endl ;
 
+
 			if(dit < dsteps)
 			{
-				load->setData(load->getData()-1.2e6) ;
+				loads.push_back(load->getData());
+				load->setData(load->getData()-5e3) ;
 				break ;
 			}
 		}
@@ -340,7 +357,7 @@ void step()
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 				{
-					if(!triangles[k]->getBehaviour()->type == VOID_BEHAVIOUR)
+					if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
 						if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
 							x_max = x[triangles[k]->getBoundingPoint(p).id*2];
@@ -350,9 +367,9 @@ void step()
 							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(triangles[k]->getBoundingPoint(p).x > 0.0799)
+						if(triangles[k]->getBoundingPoint(p).y > 1.2*.5+0.05)
 						{
-							e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
+							e_xx+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 							ex_count++ ;
 						}
 					}
@@ -505,40 +522,57 @@ void step()
 			}
 		}
 		
-	
-		std::cout << std::endl ;
-		std::cout << "load :" << 0.3*load->getData()/1000. << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
-		std::cout << "max sigma11 :" << sigma11.max()/1000000. << std::endl ;
-		std::cout << "min sigma11 :" << sigma11.min()/1000000. << std::endl ;
-		std::cout << "max sigma12 :" << sigma12.max()/1000000. << std::endl ;
-		std::cout << "min sigma12 :" << sigma12.min()/1000000. << std::endl ;
-		std::cout << "max sigma22 :" << sigma22.max()/1000000. << std::endl ;
-		std::cout << "min sigma22 :" << sigma22.min()/1000000. << std::endl ;
+		if(dit < dsteps)
+			displacements.push_back(1000.*e_xx/(double)ex_count);
+		if(v%50 == 0)
+		{
+			std::cout << std::endl ;
+			std::cout << "load :" << 0.3*load->getData()/1000. << std::endl ;
+			std::cout << "displacement :" << 1000.*e_xx/(double)ex_count << std::endl ;
+			std::cout << "max value :" << x_max << std::endl ;
+			std::cout << "min value :" << x_min << std::endl ;
+			std::cout << "max sigma11 :" << sigma11.max()/1000000. << std::endl ;
+			std::cout << "min sigma11 :" << sigma11.min()/1000000. << std::endl ;
+			std::cout << "max sigma12 :" << sigma12.max()/1000000. << std::endl ;
+			std::cout << "min sigma12 :" << sigma12.min()/1000000. << std::endl ;
+			std::cout << "max sigma22 :" << sigma22.max()/1000000. << std::endl ;
+			std::cout << "min sigma22 :" << sigma22.min()/1000000. << std::endl ;
+			
+			std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
+			std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
+			std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
+			std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
+			std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
+			std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+			
+			std::cout << "max von Mises :" << vonMises.max()/1000000. << std::endl ;
+			std::cout << "min von Mises :" << vonMises.min()/1000000. << std::endl ;
+			
+			std::cout << "average sigma11 : " << avg_s_xx/area/1000000. << std::endl ;
+			std::cout << "average sigma22 : " << avg_s_yy/area/1000000. << std::endl ;
+			std::cout << "average sigma12 : " << avg_s_xy/area/1000000. << std::endl ;
+			std::cout << "average epsilon11 : " << avg_e_xx/area<< std::endl ;
+			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		}
+// 		for (int i = 0 ; i < displacements.size() ; i++)
+// 		{
+// 			std::cout << loads[i] << "  " << displacements[i] << std::endl ;
+// 		}
+		if(dit < dsteps)	
+			std::cout << 0.3*load->getData()/1000. << "  " << displacements.back() << std::endl ;
+		std::stringstream filename ;
+		if(dit >= dsteps)
+		filename << "intermediate-" ;
+		filename << "triangles-" ;
+		filename << 0.3*load->getData()/1000. ;
+		filename << "-" ;
+		filename << 1000.*e_xx/(double)ex_count ;
 		
-		std::cout << "max epsilon11 :" << epsilon11.max()/1000000. << std::endl ;
-		std::cout << "min epsilon11 :" << epsilon11.min()/1000000. << std::endl ;
-		std::cout << "max epsilon12 :" << epsilon12.max()/1000000. << std::endl ;
-		std::cout << "min epsilon12 :" << epsilon12.min()/1000000. << std::endl ;
-		std::cout << "max epsilon22 :" << epsilon22.max()/1000000. << std::endl ;
-		std::cout << "min epsilon22 :" << epsilon22.min()/1000000. << std::endl ;
-		
-		std::cout << "max von Mises :" << vonMises.max()/1000000. << std::endl ;
-		std::cout << "min von Mises :" << vonMises.min()/1000000. << std::endl ;
-		
-		std::cout << "average sigma11 : " << avg_s_xx/area/1000000. << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy/area/1000000. << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy/area/1000000. << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx/area/1000000.<< std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy/area/1000000. << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy/area/1000000. << std::endl ;
-		
-		std::string filename("triangles") ;
-		filename.append(itoa(totit++, 10)) ;
-		std::cout << filename << std::endl ;
+// 		filename.append(itoa(totit++, 10)) ;
+// 		std::cout << filename.str() << std::endl ;
 		std::fstream outfile  ;
-		outfile.open(filename.c_str(), std::ios::out) ;
+		outfile.open(filename.str().c_str(), std::ios::out) ;
 		
 		outfile << "TRIANGLES" << std::endl ;
 		outfile << tsize << std::endl ;
@@ -1553,10 +1587,6 @@ int main(int argc, char *argv[])
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
 	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
 	
-	Matrix m0_dest(3,3) ;
-	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =0 ; m0_agg[0][2] = 0 ;
-	m0_agg[1][0] = 0 ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
-	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = 1 ; 
 	Matrix m0_steel(3,3) ;
 	m0_steel[0][0] = 200e9/(1-nu*nu) ; m0_steel[0][1] =200e9/(1-nu*nu)*nu ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = 200e9/(1-nu*nu)*nu ; m0_steel[1][1] = 200e9/(1-nu*nu) ; m0_steel[1][2] = 0 ; 
@@ -1576,6 +1606,8 @@ int main(int argc, char *argv[])
 	topsupporta.setBehaviour(new Stiffness(m0_paste*8)) ;
 	Sample topsupportb(0.3, 0.006, 0, 1.2*.5+0.006*.5) ;    
 	topsupportb.setBehaviour(new Stiffness(m0_paste*.1)) ;
+	Sample indestructible(0.6, 0.1, 0,1.2*.5-0.1*.5) ;
+	indestructible.setBehaviour(new Stiffness(m0_paste));
 	Sample topvoid(3.9, 0.051, 0, 1.2*.5+0.051*.5) ;    
 	topvoid.setBehaviour(new VoidForm()) ;
 	Sample baseleft(0.15, 0.051, -1.7, -1.2*.5-0.051*.5) ; 
@@ -1592,16 +1624,18 @@ int main(int argc, char *argv[])
 	leftbottomvoid.setBehaviour(new VoidForm()) ;
 	Sample rightbottomvoid(3.9*.5-1.7-0.15*.5, 0.051, 3.9*.5-(3.9*.5-1.7-0.15*.5)*.5,  -1.2*.5-0.051*.5) ; 
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
-	Sample rebar(3.9-2*0.047, 0.051, 0,  -1.2*.5+0.064) ; 
-	rebar.setBehaviour(new Stiffness(m0_paste*1.1));//rebar.setBehaviour(new Stiffness(m0_paste*.81)) ;    
+	Sample rebar(3.9-2*0.047, 0.03, 0,  -1.2*.5+0.064) ; 
+	//rebar.setBehaviour(new Stiffness(m0_paste*1.1));
+	rebar.setBehaviour(new StiffnessAndFracture(m0_paste*1.2, new BoundedVonMises(1.5e6, 0.675))) ; 
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 37e6/10.)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .07 ;
-// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  1. ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 1.5e6)) ;
+//  	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .04 ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .1 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  4.*dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius ;
 // 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
 	F.addBoundaryCondition(load) ;
@@ -1619,6 +1653,7 @@ int main(int argc, char *argv[])
 	
 
 	F.addFeature(&sample,&rebar) ;
+// 	F.addFeature(&sample,&indestructible) ;
 
 // 	F.addFeature(NULL,&topvoid) ;
 	F.addFeature(NULL,&topsupport) ;
@@ -1637,7 +1672,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(512) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

@@ -27,10 +27,20 @@ double LimitStrains::grade(const ElementState &s)
 {
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	double maxStrain = pstrain.max();
+	metInCompression = false ;
+	metInTension = false ;
 	if(maxUpVal < maxStrain)
+	{
+		metInTension = true ;
+		if(maxDownVal > maxStrain)
+			metInCompression = true ;
 		return 1.-std::abs(maxUpVal/maxStrain) ;
+	}
 	else if(maxDownVal > maxStrain)
+	{
+		metInCompression = true ;
 		return 1.-std::abs(maxDownVal/maxStrain) ;
+	}
 	else if (maxStrain > 0)
 		return -1.+ std::abs(maxStrain/maxUpVal);
 	else
