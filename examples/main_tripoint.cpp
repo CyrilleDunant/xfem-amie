@@ -288,11 +288,8 @@ void step()
 		
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		computeDisplacement() ;
-// 	std::cout << std::endl ;
-// 		saved_load_displacement.push_back(load_displacement.back()) ;
-		load_displacement = saved_load_displacement ;
 	
+		
 // 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
 
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
@@ -560,87 +557,91 @@ void step()
 // 		{
 // 			std::cout << loads[i] << "  " << displacements[i] << std::endl ;
 // 		}
+		
 		if(dit < dsteps)	
 			std::cout << 0.3*0.3*load->getData()/1000. << "  " << displacements.back() << std::endl ;
-		std::stringstream filename ;
-		if(dit >= dsteps)
-			filename << "intermediate-" ;
 		
-		filename << "triangles-" ;
-		filename << 0.3*0.3*load->getData()/1000. ;
-		filename << "-" ;
-		filename << 1000.*e_xx/(double)ex_count ;
-		
-// 		filename.append(itoa(totit++, 10)) ;
-// 		std::cout << filename.str() << std::endl ;
-		std::fstream outfile  ;
-		outfile.open(filename.str().c_str(), std::ios::out) ;
-		
-		outfile << "TRIANGLES" << std::endl ;
-		outfile << tsize << std::endl ;
-		outfile << 3 << std::endl ;
-		outfile << 10 << std::endl ;
-		
-		for(size_t j = 0 ; j < triangles.size() ;j++)
+		if(v%50 == 0)
 		{
-			if(triangles[j]->getBehaviour()->type == VOID_BEHAVIOUR)
-				continue ;
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
-			}
+			std::stringstream filename ;
+			if(dit >= dsteps)
+				filename << "intermediate-" ;
 			
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2]))
-					outfile << x[triangles[j]->getBoundingPoint(l).id*2] << " " ;
-				else
-					outfile << 0 << " " ;
-			}
+			filename << "triangles-" ;
+			filename << 0.3*0.3*load->getData()/1000. ;
+			filename << "-" ;
+			filename << 1000.*e_xx/(double)ex_count ;
 			
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+	// 		filename.append(itoa(totit++, 10)) ;
+	// 		std::cout << filename.str() << std::endl ;
+			std::fstream outfile  ;
+			outfile.open(filename.str().c_str(), std::ios::out) ;
+			
+			outfile << "TRIANGLES" << std::endl ;
+			outfile << tsize << std::endl ;
+			outfile << 3 << std::endl ;
+			outfile << 10 << std::endl ;
+			
+			for(size_t j = 0 ; j < triangles.size() ;j++)
 			{
-				if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2+1]))
-					outfile << x[triangles[j]->getBoundingPoint(l).id*2+1] << " ";
-				else
-					outfile << 0 << " " ;
-			}
+				if(triangles[j]->getBehaviour()->type == VOID_BEHAVIOUR)
+					continue ;
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
+				}
+				
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2]))
+						outfile << x[triangles[j]->getBoundingPoint(l).id*2] << " " ;
+					else
+						outfile << 0 << " " ;
+				}
+				
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2+1]))
+						outfile << x[triangles[j]->getBoundingPoint(l).id*2+1] << " ";
+					else
+						outfile << 0 << " " ;
+				}
 
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon11[j*3+l] << " ";
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile <<  epsilon11[j*3+l] << " ";
+				}
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile <<  epsilon22[j*3+l] << " " ;
+				}
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile <<   epsilon12[j*3+l]<< " " ;
+				}
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile <<  sigma11[j*3+l]<< " " ;
+				}
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile <<  sigma22[j*3+l]<< " ";
+				}
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile <<  sigma12[j*3+l] << " ";
+				}
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile << vonMises[j*3+l]<< " " ;
+				}
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+				{
+					outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
+				}
+				outfile << "\n" ;
 			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon22[j*3+l] << " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<   epsilon12[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma11[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma22[j*3+l]<< " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma12[j*3+l] << " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile << vonMises[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
-			}
-			outfile << "\n" ;
 		}
-		
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
 		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
@@ -1651,11 +1652,11 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM,Point(1.7, -1.2*.5-0.051) ));
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) );
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, TOP, -0.01, 0.01, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, TOP, -0.001, 0.001, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -1.71, -1.69, -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -1.71, -1.69, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -1.709, -1.699, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, 1.69, 1.71,  -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.69, 1.71,  -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.699, 1.709,  -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
@@ -1682,7 +1683,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(256) ;
+	F.sample(128) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

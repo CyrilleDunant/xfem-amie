@@ -16,6 +16,7 @@
 #include "physics_base.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/lineardamage.h"
+#include "damagemodels/anisotropicdamage.h"
 #include "damagemodels/isotropiclineardamage.h"
 #include "homogenization/homogenization_base.h"
 
@@ -28,7 +29,8 @@ namespace Mu
 	*/
 	struct StiffnessAndFracture : public LinearForm
 	{
-		LinearDamage * dfunc ;
+		AnisotropicLinearDamage * dfunc ;
+// 		LinearDamage * dfunc ;
 // 		IsotropicLinearDamage dfunc ;
 		double eps ;
 		Vector previousPreviousDamage ;
