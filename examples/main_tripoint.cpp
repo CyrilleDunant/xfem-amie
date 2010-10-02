@@ -151,7 +151,7 @@ double nu = 0.2 ;
 double E_agg = 58.9e9 ;
 double E_paste = 30e9 ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,-1000000.) ;
+BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
@@ -231,7 +231,7 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 2000 ; //16*10;
+	size_t nsteps = 4000 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -280,10 +280,11 @@ void step()
 			if(dit < dsteps)
 			{
 				loads.push_back(load->getData());
-				load->setData(load->getData()-5e3) ;
+				load->setData(load->getData()-3e3) ;
 				break ;
 			}
 		}
+		
 		
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
@@ -527,7 +528,7 @@ void step()
 		if(v%50 == 0)
 		{
 			std::cout << std::endl ;
-			std::cout << "load :" << 0.3*load->getData()/1000. << std::endl ;
+			std::cout << "load :" << 0.3*0.3*load->getData()/1000. << std::endl ;
 			std::cout << "displacement :" << 1000.*e_xx/(double)ex_count << std::endl ;
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
@@ -560,12 +561,13 @@ void step()
 // 			std::cout << loads[i] << "  " << displacements[i] << std::endl ;
 // 		}
 		if(dit < dsteps)	
-			std::cout << 0.3*load->getData()/1000. << "  " << displacements.back() << std::endl ;
+			std::cout << 0.3*0.3*load->getData()/1000. << "  " << displacements.back() << std::endl ;
 		std::stringstream filename ;
 		if(dit >= dsteps)
-		filename << "intermediate-" ;
+			filename << "intermediate-" ;
+		
 		filename << "triangles-" ;
-		filename << 0.3*load->getData()/1000. ;
+		filename << 0.3*0.3*load->getData()/1000. ;
 		filename << "-" ;
 		filename << 1000.*e_xx/(double)ex_count ;
 		
@@ -1601,7 +1603,7 @@ int main(int argc, char *argv[])
 	
 
 	Sample topsupport(0.3, 0.051, 0, 1.2*.5+0.051*.5) ;    
-	topsupport.setBehaviour(new Stiffness(m0_paste)) ;
+	topsupport.setBehaviour(new Stiffness(m0_steel)) ;
 	Sample topsupporta(0.3, 0.045, 0, 1.2*.5+0.045*.5+0.006) ;    
 	topsupporta.setBehaviour(new Stiffness(m0_paste*8)) ;
 	Sample topsupportb(0.3, 0.006, 0, 1.2*.5+0.006*.5) ;    
@@ -1624,18 +1626,23 @@ int main(int argc, char *argv[])
 	leftbottomvoid.setBehaviour(new VoidForm()) ;
 	Sample rightbottomvoid(3.9*.5-1.7-0.15*.5, 0.051, 3.9*.5-(3.9*.5-1.7-0.15*.5)*.5,  -1.2*.5-0.051*.5) ; 
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
-	Sample rebar(3.9-2*0.047, 0.03, 0,  -1.2*.5+0.064) ; 
-	//rebar.setBehaviour(new Stiffness(m0_paste*1.1));
-	rebar.setBehaviour(new StiffnessAndFracture(m0_paste*1.2, new BoundedVonMises(1.5e6, 0.675))) ; 
+	Sample rebar0(3.9-2*0.047, 0.025, 0,  -1.2*.5+0.064) ; 
+	rebar0.setBehaviour(new Stiffness(m0_steel*.1875));
+	Sample rebar1(3.9-2*0.047, 0.025, 0,  -1.2*.5+0.064+0.085) ; 
+	rebar1.setBehaviour(new Stiffness(m0_steel*.1875));
+// 	rebar.setBehaviour(new StiffnessAndFracture(m0_paste*1.2, new BoundedVonMises(1.5e6, 0.675))) ; 
+// 	rebar.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(.01); 
+// 	rebar.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(.2); 
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 1.5e6)) ;
-//  	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .04 ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 4.3e6)) ;
+ 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .04 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.03 ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .1 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  4.*dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .2;//4.*dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius ;
 // 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
 	F.addBoundaryCondition(load) ;
@@ -1644,15 +1651,18 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM,Point(1.7, -1.2*.5-0.051) ));
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) );
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -1.71, -1.69, -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, TOP, -0.01, 0.01, -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -1.71, -1.69, -10, 10) );
 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -1.71, -1.69, -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, 1.69, 1.71,  -10, 10) );
 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.69, 1.71,  -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
 	
 
-	F.addFeature(&sample,&rebar) ;
+	F.addFeature(&sample,&rebar0) ;
+	F.addFeature(&sample,&rebar1) ;
 // 	F.addFeature(&sample,&indestructible) ;
 
 // 	F.addFeature(NULL,&topvoid) ;

@@ -25,6 +25,7 @@ class DamageModel
 protected:
 	double characteristicRadius ;
 	double thresholdDamageDensity ;
+	double secondaryThresholdDamageDensity ;
 	double damageDensityIncrement ;
 	double fraction ;
 public:
@@ -36,13 +37,19 @@ public:
 	{ 
 		isNull = true ; 
 		thresholdDamageDensity = .2 ;
-		damageDensityIncrement = .05 ;
+		secondaryThresholdDamageDensity = .2 ;
+		damageDensityIncrement = .005 ;
 		fraction = -1 ;
 	} ;
 	
 	double getThresholdDamageDensity() const
 	{
 		return thresholdDamageDensity ;
+	}
+	
+	double getSecondaryThresholdDamageDensity() const
+	{
+		return secondaryThresholdDamageDensity ;
 	}
 	
 	double getCharacteristicRadius() const
@@ -57,6 +64,11 @@ public:
 	void setThresholdDamageDensity(double d)
 	{
 		thresholdDamageDensity = d ;
+	}
+	
+	void setSecondaryThresholdDamageDensity(double d)
+	{
+		secondaryThresholdDamageDensity = d ;
 	}
 	
 	void setMaterialCharacteristicRadius(double d)

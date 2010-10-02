@@ -64,7 +64,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 
 	if(is2D())
 		grid = new Grid((first->getBoundingBox()[1].x-first->getBoundingBox()[0].x)*1.1,
-		                (first->getBoundingBox()[1].y-first->getBoundingBox()[2].y)*1.1, 30,
+		                (first->getBoundingBox()[1].y-first->getBoundingBox()[2].y)*1.1, 100,
 		                Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
 		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
 		                     )) ;

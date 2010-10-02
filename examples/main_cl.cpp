@@ -1515,7 +1515,7 @@ int main(int argc, char *argv[])
 	F.addFeature(&expanding, &core) ;
 
 	double itzSize = 0.00005;
-	int inclusionNumber = 1000 ; // 10 100 500 1000 2000 4000
+	int inclusionNumber = 0 ; // 10 100 500 1000 2000 4000
 	inclusions = GranuloBolome(1.06366e-05, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;

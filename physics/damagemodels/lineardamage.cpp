@@ -16,7 +16,7 @@ namespace Mu {
 
 LinearDamage::LinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
 {
-	state.resize(numDof + 1, 0.) ;
+	state.resize(2, 0.) ;
 	isNull = false ;
 	state = 0 ;
 	tensionDamage = 0 ;
@@ -78,10 +78,12 @@ void LinearDamage::step(ElementState & s)
 		inTension = true ;
 
 		tensionDamage += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
-		tensionDamage = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamage) ;
+		tensionDamage = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamage) ;
 		tensionDamage = std::min(.99999, tensionDamage) ;
 		tensionDamage = std::max(0., tensionDamage) ;
 	}
+	state[0] = compressionDamage ;
+	state[1] = tensionDamage ;
 // 	std::cout << state.sum() << std::flush ;
 }
 
@@ -156,7 +158,7 @@ bool LinearDamage::fractured() const
 		return false ;
 	
 // 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
-	return std::max(tensionDamage, compressionDamage) >= thresholdDamageDensity/fraction  ;
+	return tensionDamage >= secondaryThresholdDamageDensity/fraction || compressionDamage >= thresholdDamageDensity/fraction  ;
 }
 
 LinearDamage::~LinearDamage()
