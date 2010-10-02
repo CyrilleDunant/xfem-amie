@@ -267,21 +267,21 @@ void TriangleGLDrawer::grab()
 
 		  }
 		}
-		 
-		 
+		
+
 		 std::sort(vals.begin(), vals.end()) ;
 		 vals.erase(std::unique(vals.begin(), vals.end()), vals.end()) ;
 		 if(limits.size() <= N)
 		 {
-		   limits.push_back(std::make_pair(vals[.001*(vals.size()-1)], vals[.999*(vals.size()-1)])) ;
+		   limits.push_back(std::make_pair(vals[.01*(vals.size()-1)], vals[.99*(vals.size()-1)])) ;
 		   if(vals.front() > 0 &&  vals.back() > 0)
 		      limits[N].first = 0 ;
 		 }
 		 
-		 if(limits[N].first > vals[.001*(vals.size()-1)])
-		   limits[N].first = vals[.001*(vals.size()-1)] ;
-		 if(limits[N].second < vals[.999*(vals.size()-1)])
-		   limits[N].second = vals[.999*(vals.size()-1)] ;
+		 if(limits[N].first > vals[.01*(vals.size()-1)])
+		   limits[N].first = vals[.01*(vals.size()-1)] ;
+		 if(limits[N].second < vals[.99*(vals.size()-1)])
+		   limits[N].second = vals[.99*(vals.size()-1)] ;
 		 if(vals.front() > 0 &&  vals.back() > 0)
 		      limits[N].first = 0 ;
 		 min_val = limits[N].first ;
@@ -317,7 +317,7 @@ void TriangleGLDrawer::grab()
 					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
 					{
 						float v = (std::max(std::min((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i], max_val), min_val) - min_val)/(max_val-min_val);
-						HSVtoRGB(&r, &g, &b, 330.-v*360., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
+						HSVtoRGB(&r, &g, &b, 360.-v*380., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
 						glColor4ub(r, g, b, 255) ;
 						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
 						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
@@ -367,7 +367,7 @@ void TriangleGLDrawer::grab()
 					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
 					{
 						float v = (std::max(std::min((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i], max_val), min_val) - min_val)/(max_val-min_val);
-						HSVtoRGB(&r, &g, &b, 330.-v*360., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
+						HSVtoRGB(&r, &g, &b, 360.-v*380., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
 						glColor4ub(r, g, b, 255) ;
 						
 						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
