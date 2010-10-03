@@ -127,7 +127,7 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 				ret[0][j]*= 0. ;
 		}
 		
-		if(tensionDamagex < secondaryThresholdDamageDensity/fraction)
+		if(tensionDamagey < secondaryThresholdDamageDensity/fraction)
 		{
 			for(size_t j = 0 ; j < m.numCols() ;j++)
 				ret[1][j]*= 1.-tensionDamagey ;

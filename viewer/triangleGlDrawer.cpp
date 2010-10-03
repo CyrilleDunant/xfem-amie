@@ -317,7 +317,7 @@ void TriangleGLDrawer::grab()
 					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
 					{
 						float v = (std::max(std::min((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i], max_val), min_val) - min_val)/(max_val-min_val);
-						HSVtoRGB(&r, &g, &b, 360.-v*380., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
+						HSVtoRGB(&r, &g, &b, 350.-v*340., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
 						glColor4ub(r, g, b, 255) ;
 						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
 						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
@@ -367,7 +367,7 @@ void TriangleGLDrawer::grab()
 					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
 					{
 						float v = (std::max(std::min((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i], max_val), min_val) - min_val)/(max_val-min_val);
-						HSVtoRGB(&r, &g, &b, 360.-v*380., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
+						HSVtoRGB(&r, &g, &b, 350.-v*340., 1./*-0.5*exp(v+1)/exp(2)*/, 1.) ;
 						glColor4ub(r, g, b, 255) ;
 						
 						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
