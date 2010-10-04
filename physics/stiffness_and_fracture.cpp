@@ -91,7 +91,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	previouschange = change ;
 	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
-	if(!frac && criterion->met(currentState) )
+	if(criterion->met(currentState) )
 	{
 		dfunc->step(currentState) ;
 		change = true ;
