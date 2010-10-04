@@ -604,14 +604,17 @@ bool Assembly::make_final()
 				}
 			}
 			
-			for(size_t j = 0 ; j < test.numRows() ;j++)
+			dmax = std::abs(test.array()).max() ;
+			if(dmax > POINT_TOLERANCE)
 			{
-				for(size_t k = j+1 ; k < test.numCols() ;k++)
+				for(size_t j = 0 ; j < test.numRows() ;j++)
 				{
-					dmax = std::abs(test[j][k] - test[k][j]);
-					vmax = std::max(std::abs(test[j][k]), std::abs(test[k][j])) ;
-					if(vmax > POINT_TOLERANCE)
-						symmetric = symmetric && (dmax/vmax < 1e-12) ;
+					for(size_t k = j+1 ; k < test.numCols() ;k++)
+					{
+						vmax = std::abs(test[j][k]-test[k][j]) ;
+						symmetric = symmetric && (vmax/dmax < 1e-12) ;
+						
+					}
 				}
 			}
 		}
@@ -739,18 +742,22 @@ bool Assembly::make_final()
 					}
 				}
 			}
-			for(size_t j = 0 ; j < test.numRows() ;j++)
+			dmax = std::abs(test.array()).max() ;
+			if(dmax > POINT_TOLERANCE)
 			{
-				for(size_t k = j+1 ; k < test.numCols() ;k++)
+				for(size_t j = 0 ; j < test.numRows() ;j++)
 				{
-					dmax = std::max(dmax,std::abs(test[j][k] - test[k][j]));
-					vmax = std::max(vmax, std::max(std::abs(test[j][k]), std::abs(test[k][j]))) ;
+					for(size_t k = j+1 ; k < test.numCols() ;k++)
+					{
+						vmax = std::abs(test[j][k]-test[k][j]) ;
+						symmetric = symmetric && (vmax/dmax < 1e-12) ;
+						
+					}
 				}
 			}
 		}
 
 // 		
-		symmetric = (dmax/vmax < 1e-12) ;
 		getMatrix().stride =  ndof;
 		std::cerr << " ...done" << std::endl ;
 			
@@ -762,8 +769,7 @@ bool Assembly::make_final()
 
 bool Assembly::mgprepare()
 {
-	bool sym = make_final() ;
-	return sym ;
+	return make_final() ;
 }
 
 
@@ -1281,6 +1287,7 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 	}
 	else
 	{
+		std::cout << "plouf" << std::endl ;
 		std::cerr << "non-symmetrical problem" << std::endl ;
 		timeval time0, time1 ;
 		gettimeofday(&time0, NULL);

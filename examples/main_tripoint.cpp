@@ -1662,8 +1662,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
 	
 
-// 	F.addFeature(&sample,&rebar0) ;
-// 	F.addFeature(&sample,&rebar1) ;
+	F.addFeature(&sample,&rebar0) ;
+	F.addFeature(&sample,&rebar1) ;
 // 	F.addFeature(&sample,&indestructible) ;
 
 // 	F.addFeature(NULL,&topvoid) ;
