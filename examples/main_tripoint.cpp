@@ -280,7 +280,7 @@ void step()
 			if(dit < dsteps)
 			{
 				loads.push_back(load->getData());
-				load->setData(load->getData()-3e3) ;
+				load->setData(load->getData()-3e4) ;
 				break ;
 			}
 		}
@@ -1662,8 +1662,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
 	
 
-	F.addFeature(&sample,&rebar0) ;
-	F.addFeature(&sample,&rebar1) ;
+// 	F.addFeature(&sample,&rebar0) ;
+// 	F.addFeature(&sample,&rebar1) ;
 // 	F.addFeature(&sample,&indestructible) ;
 
 // 	F.addFeature(NULL,&topvoid) ;
@@ -1683,7 +1683,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(128) ;
+	F.sample(256) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

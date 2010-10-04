@@ -608,13 +608,14 @@ bool Assembly::make_final()
 			{
 				for(size_t k = j+1 ; k < test.numCols() ;k++)
 				{
-					dmax = std::max(dmax,std::abs(test[j][k] - test[k][j]));
-					vmax = std::max(vmax, std::max(std::abs(test[j][k]), std::abs(test[k][j]))) ;
+					dmax = std::abs(test[j][k] - test[k][j]);
+					vmax = std::max(std::abs(test[j][k]), std::abs(test[k][j])) ;
+					if(vmax > POINT_TOLERANCE)
+						symmetric = symmetric && (dmax/vmax < 1e-12) ;
 				}
 			}
 		}
 
-		symmetric = dmax/vmax < 1e-12 ;
 		std::cerr << " ...done" << std::endl ;
 		getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		setBoundaryConditions() ;
@@ -749,7 +750,7 @@ bool Assembly::make_final()
 		}
 
 // 		
-		symmetric = dmax/vmax < 1e-12 ;
+		symmetric = (dmax/vmax < 1e-12) ;
 		getMatrix().stride =  ndof;
 		std::cerr << " ...done" << std::endl ;
 			
@@ -1251,16 +1252,14 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 
 bool Assembly::cgsolve(Vector x0, int maxit) 
 {
-	bool sym = true ;
 	bool ret = true ;
 // 	if(this->coordinateIndexedMatrix == NULL)
-		sym = make_final() ;
 // 	double lambda_min = smallestEigenValue(getMatrix()) ;
 // 	double lambda_max = largestEigenValue(getMatrix()) ;
 // 		std::cout << "largest eigenvalue = " << lambda_max << std::endl ;
 // 		std::cout << "smallest eigenvalue = " << lambda_min << std::endl ;
 // 	std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
-	if(sym)
+	if(make_final())
 	{
 		std::cerr << "symmetrical problem" << std::endl ;
 		timeval time0, time1 ;

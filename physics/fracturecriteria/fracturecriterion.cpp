@@ -151,8 +151,8 @@ bool FractureCriterion::met(const ElementState &s)
 			{
 				if( cache[i]->getBehaviour()->getFractureCriterion())
 				{
-					if( !cache[i]->getBehaviour()->fractured())
-					{
+// 					if( !cache[i]->getBehaviour()->fractured())
+// 					{
 						double s = cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 						scores[-s] =  cache[i];
 						unsortedScores.push_back(s);
@@ -161,9 +161,9 @@ bool FractureCriterion::met(const ElementState &s)
 							maxNeighbourhoodScore = s ;
 							maxLocus = cache[i] ;
 						}
-					}
-					else if(cache[i]->getBehaviour()->fractured())
-					{
+// 					}
+// 					else if(cache[i]->getBehaviour()->fractured())
+// 					{
 // 						double s = POINT_TOLERANCE ;
 // 						scores[-s] =  cache[i];
 // 						unsortedScores.push_back(s);
@@ -173,7 +173,7 @@ bool FractureCriterion::met(const ElementState &s)
 // 							maxLocus = cache[i] ;
 // 						}
 						
-					}
+// 					}
 					areatemp[cache[i]] = area[i] ;
 				}
 				

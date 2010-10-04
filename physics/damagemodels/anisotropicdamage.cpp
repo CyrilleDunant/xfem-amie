@@ -197,7 +197,7 @@ bool AnisotropicLinearDamage::fractured() const
 		return false ;
 	
 	if(inTension)
-		if(std::max(tensionDamagey, tensionDamagex) >= secondaryThresholdDamageDensity/fraction)
+		if(std::min(tensionDamagey, tensionDamagex) >= secondaryThresholdDamageDensity/fraction)
 			return true ;
 		
 	if(inCompression)
