@@ -50,7 +50,7 @@ bool WeibullDistributedStiffness::fractured() const
 Form * WeibullDistributedStiffness::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1 - variability + variability*weib ;
+	double factor = 1. - variability + variability*weib ;
 	StiffnessAndFracture * ret = new StiffnessAndFracture(
 															param*factor, 
 															new ConfinedMohrCoulomb(
@@ -64,7 +64,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 // 	ret->dfunc->setThresholdDamageDensity(.2);
 // 	ret->dfunc->setSecondaryThresholdDamageDensity(.2);
 	ret->dfunc->setThresholdDamageDensity(.4);
-	ret->dfunc->setSecondaryThresholdDamageDensity(.05);
+	ret->dfunc->setSecondaryThresholdDamageDensity(.5);
 	return ret ;
 }
 

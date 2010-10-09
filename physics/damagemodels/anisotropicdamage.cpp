@@ -21,6 +21,7 @@ AnisotropicLinearDamage::AnisotropicLinearDamage(int numDof, double characterist
 	state = 0 ;
 	tensionDamagex = 0 ;
 	tensionDamagey = 0 ;
+	shearDamage = 0 ;
 	compressionDamage = 0 ;
 	inCompression = false ;
 	inTension = false ;
@@ -92,6 +93,10 @@ void AnisotropicLinearDamage::step(ElementState & s)
 		tensionDamagey = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagey) ;
 		tensionDamagey = std::min(.99999, tensionDamagey) ;
 		tensionDamagey = std::max(0., tensionDamagey) ;
+		shearDamage += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
+		shearDamage = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, shearDamage) ;
+		shearDamage = std::min(.99999, shearDamage) ;
+		shearDamage = std::max(0., shearDamage) ;
 	}
 	state[0] = compressionDamage ;
 	state[1] = tensionDamagex ;
@@ -136,6 +141,17 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 		{
 			for(size_t j = 0 ; j < m.numCols() ;j++)
 				ret[1][j]*= 0. ;
+		}
+		
+		if(shearDamage < secondaryThresholdDamageDensity/fraction)
+		{
+			for(size_t j = 0 ; j < m.numCols() ;j++)
+				ret[2][j]*= 1.-shearDamage ;
+		}
+		else
+		{
+			for(size_t j = 0 ; j < m.numCols() ;j++)
+				ret[2][j]*= 0. ;
 		}
 		
 		return ret ;

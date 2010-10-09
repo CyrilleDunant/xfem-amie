@@ -1538,6 +1538,7 @@ int main(int argc, char *argv[])
 		<< ", smallest r =" << feats.back()->getRadius() 
 		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
 
+	
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;

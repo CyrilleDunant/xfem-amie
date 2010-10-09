@@ -1287,7 +1287,6 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 	}
 	else
 	{
-		std::cout << "plouf" << std::endl ;
 		std::cerr << "non-symmetrical problem" << std::endl ;
 		timeval time0, time1 ;
 		gettimeofday(&time0, NULL);

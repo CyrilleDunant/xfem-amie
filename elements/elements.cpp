@@ -529,8 +529,6 @@ const GaussPointArray & TriElement::genGaussPoints()
 		{
 			double j = jacobianAtPoint(fin[i].first);
 			fin[i].second *= j;
-			if(j)
-				print() ;
 		}
 
 	}
