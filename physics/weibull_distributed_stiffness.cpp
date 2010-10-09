@@ -16,6 +16,7 @@
 #include "stiffness_and_fracture.h"
 #include "fracturecriteria/mohrcoulomb.h"
 #include "fracturecriteria/confinedmohrcoulomb.h"
+#include "fracturecriteria/mcft.h"
 #include "fracturecriteria/confinedmohrcoulombwithstrain.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/ruptureenergy.h"
@@ -50,10 +51,10 @@ bool WeibullDistributedStiffness::fractured() const
 Form * WeibullDistributedStiffness::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1. - variability + variability*weib ;
+	double factor = 1 - variability + variability*weib ;
 	StiffnessAndFracture * ret = new StiffnessAndFracture(
 															param*factor, 
-															new ConfinedMohrCoulomb(
+															new MCFT(
 																					up*factor,
 																					down*factor 
 																					)
@@ -64,7 +65,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 // 	ret->dfunc->setThresholdDamageDensity(.2);
 // 	ret->dfunc->setSecondaryThresholdDamageDensity(.2);
 	ret->dfunc->setThresholdDamageDensity(.4);
-	ret->dfunc->setSecondaryThresholdDamageDensity(.5);
+	ret->dfunc->setSecondaryThresholdDamageDensity(.3);
 	return ret ;
 }
 

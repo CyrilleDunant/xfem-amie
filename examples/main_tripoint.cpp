@@ -367,10 +367,9 @@ void step()
 							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(triangles[k]->getBoundingPoint(p).y > 1.2*.5+0.05)
+						if(triangles[k]->getBoundingPoint(p).y > (1.2+0.051*2)*.5*.999 && triangles[k]->getBoundingPoint(p).x < 0.0001)
 						{
-							e_xx+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-							ex_count++ ;
+							e_xx=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 						}
 					}
 				}
@@ -1674,7 +1673,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 1.5e6)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 4.3e6)) ;
 //  	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .04 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .1 ;
@@ -1716,7 +1715,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(400) ;
+	F.sample(300) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
