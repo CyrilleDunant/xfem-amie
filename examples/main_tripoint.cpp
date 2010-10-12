@@ -151,7 +151,8 @@ double nu = 0.2 ;
 double E_agg = 58.9e9 ;
 double E_paste = 31.5e9 ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
+// BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0, 1.2), 0) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
@@ -241,7 +242,6 @@ void step()
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 		tries = 0 ;
-		std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
 		while(tries < ntries)
 		{
 			tries++ ;
@@ -280,7 +280,7 @@ void step()
 			if(dit < dsteps)
 			{
 				loads.push_back(load->getData());
-				load->setData(load->getData()-5e4) ;
+				load->setData(load->getData()-5e3) ;
 				break ;
 			}
 		}
@@ -327,7 +327,7 @@ void step()
 		double avg_s_yy = 0;
 		double avg_s_xy = 0;
 		double e_xx = 0 ;
-		double ex_count = 0 ;
+		double ex_count = 1 ;
 		double avg_e_xx_nogel = 0;
 		double avg_e_yy_nogel = 0;
 		double avg_e_xy_nogel = 0;
@@ -526,7 +526,7 @@ void step()
 		if(v%25 == 0)
 		{
 			std::cout << std::endl ;
-			std::cout << "load :" << appliedForce/1000. << std::endl ;
+			std::cout << "load :" << load->getData()/1000. << std::endl ;
 			std::cout << "displacement :" << 1000.*e_xx/(double)ex_count << std::endl ;
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
@@ -560,7 +560,15 @@ void step()
 // 		}
 		
 		if(dit < dsteps)	
-			std::cout << appliedForce/1000. << "  " << displacements.back() << std::endl ;
+			std::cout << load->getData()/1000. << "  " << displacements.back() << std::endl ;
+		
+		std::fstream ldfile  ;
+		ldfile.open("ldn", std::ios::out) ;
+		for(int j = 0 ; j < loads.size() ; j++)
+		{
+			ldfile << displacements[j] << "   " << loads[j]/1000. << "\n" ;
+		}
+		ldfile.close();
 		
 		if(v%25 == 0)
 		{
@@ -569,7 +577,7 @@ void step()
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			filename << round(appliedForce/1000.) ;
+			filename << round(load->getData()/1000.) ;
 			filename << "-" ;
 			filename << 1000.*e_xx/(double)ex_count ;
 			
@@ -1673,12 +1681,12 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 4.3e6)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2e6)) ;
 //  	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .04 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .1 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .2 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .6;//4.*dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .15 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  1.5;//4.*dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius ;
 // 	sample.setBehaviour(new Stiffness/*AndFracture*/(m0_paste/*, new MohrCoulomb(37000, -37000*10)*/)) ;
 
 	F.addBoundaryCondition(load) ;
@@ -1691,7 +1699,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -1.71, -1.69, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -1.709, -1.699, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, 1.699, 1.709,  -10, 10) );
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.699, 1.709,  -10, 10) );
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 1.699, 1.709,  -10, 10) );
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(1.7, -1.2))) ;
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, -0.2095, -0.2005, -10, 10) );
 // 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0.2005, 0.2095,  -10, 10) );
@@ -1715,7 +1724,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(300) ;
+	F.sample(400) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
