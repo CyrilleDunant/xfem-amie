@@ -2790,7 +2790,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			
 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
 			{
-				gp_alternative[i].second = jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
+				gp_alternative[i].second = 0.5*jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
 			}
 			if(gp.gaussPoints.size() < gp_alternative.size())
 			{

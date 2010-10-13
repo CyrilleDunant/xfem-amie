@@ -48,6 +48,7 @@ mesher/delaunay.cpp
 mesher/structuredmesh.cpp 
 physics/damagemodels/isotropiclineardamage.cpp 
 physics/damagemodels/anisotropicdamage.cpp
+physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
@@ -74,6 +75,7 @@ physics/spatially_distributed_stiffness.cpp
 physics/homogeneised_behaviour.cpp 
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
+physics/fraction_stiffness_and_fracture.cpp
 physics/stiffness_with_imposed_deformation.cpp 
 physics/stiffness_with_imposed_deformation_and_fracture.cpp 
 physics/stiffness_with_kinetics_imposed_deformation.cpp
@@ -292,6 +294,9 @@ target_link_libraries( kill Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} 
 
 add_executable(multicrack examples/main_multicrack.cpp )
 target_link_libraries( multicrack Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+
+add_executable(steel examples/main_steel.cpp )
+target_link_libraries( steel Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(alain examples/main_alain.cpp )
 target_link_libraries( alain Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)

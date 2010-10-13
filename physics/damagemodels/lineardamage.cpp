@@ -60,14 +60,12 @@ void LinearDamage::step(ElementState & s)
 		fraction = std::min(fraction, 1.) ;
 	}
 	
-	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
-	double l_2 = s.getParent()->area() ; 
-	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
-	
+
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
 		inCompression = true ;
-		compressionDamage += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
+		
+		compressionDamage += damageDensityIncrement*fraction ; 
 		compressionDamage = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, compressionDamage) ;
 		compressionDamage = std::min(.99999, compressionDamage) ;
 		compressionDamage = std::max(0., compressionDamage) ;
@@ -77,7 +75,7 @@ void LinearDamage::step(ElementState & s)
 	{
 		inTension = true ;
 
-		tensionDamage += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
+		tensionDamage += damageDensityIncrement*fraction ; 
 		tensionDamage = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamage) ;
 		tensionDamage = std::min(.99999, tensionDamage) ;
 		tensionDamage = std::max(0., tensionDamage) ;
@@ -99,29 +97,14 @@ Matrix LinearDamage::apply(const Matrix & m) const
 	
 	if(fractured())
 		return m*0.;
-	//this is a silly way of distinguishing between 2D and 3D
 
 	if(inTension)
 	{
 		return m*(1.-tensionDamage) ;
-// 		for(size_t i = (m.numRows()+1)/2 ; i < m.numRows() ;i++)
-// 		{
-// 			for(size_t j = 0 ; j < m.numCols() ;j++)
-// 			{
-// 				ret[i][j] *= 1.-tensionDamage ;
-// 			}
-// 		}
 	}
 	if(inCompression)
 	{
 		return m*(1.-compressionDamage) ;
-// 		for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
-// 		{
-// 			for(size_t j = 0 ; j < m.numCols() ;j++)
-// 			{
-// 				ret[i][j] *= 1.-compressionDamage ;
-// 			}
-// 		}
 	}
 	return ret*(1.-std::max(tensionDamage, compressionDamage)) ;
 }
