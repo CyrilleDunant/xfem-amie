@@ -114,7 +114,7 @@ Matrix FractionLinearDamage::applyPrevious(const Matrix & m) const
 	Matrix ret(m) ;
 	
 	if(fractured())
-		return ret*0;
+		return remnant*phi;
 	//this is a silly way of distinguishing between 2D and 3D
 	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
 	{
@@ -140,8 +140,7 @@ bool FractionLinearDamage::fractured() const
 	if (fraction < 0)
 		return false ;
 	
-// 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
-	return tensionDamage >= secondaryThresholdDamageDensity/fraction || compressionDamage >= thresholdDamageDensity/fraction  ;
+	return (tensionDamage >= secondaryThresholdDamageDensity) || (compressionDamage >= thresholdDamageDensity)  ;
 }
 
 FractionLinearDamage::~FractionLinearDamage()

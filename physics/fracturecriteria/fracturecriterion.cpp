@@ -10,6 +10,7 @@
 //
 //
 #include "fracturecriterion.h"
+#include "../damagemodels/damagemodel.h"
 #include "../../mesher/delaunay.h"
 #include "../../mesher/delaunay_3d.h"
 namespace Mu {
@@ -121,8 +122,11 @@ void FractureCriterion::setMaterialCharacteristicRadius(double r)
 
 bool FractureCriterion::met(const ElementState &s)
 {
-	if( s.getParent()->getBehaviour()->fractured())
+	if( s.getParent()->getBehaviour()->getDamageModel() == NULL )
 		return false ;
+	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
+		return false ;
+	
 	double tol = 1e-2 ;
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	DelaunayTetrahedron * testedTet = dynamic_cast<DelaunayTetrahedron *>(s.getParent()) ;

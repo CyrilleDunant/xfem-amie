@@ -17,7 +17,7 @@ Triangle::Triangle() : ConvexGeometry(3)
 	boundingPoints[0] = new Point(0, 1) ;
 	boundingPoints[1] = new Point(0, 0) ;
 	boundingPoints[2] = new Point(1, 0) ;
-	
+
 	computeCenter() ;
 	computeCircumCenter() ;
 	radius = 0.471405;
@@ -425,7 +425,6 @@ Triangle::Triangle( Point *p0,  Point *p1,  Point *p2): ConvexGeometry(3)
 		}
 	}
 	
-	
 	computeCircumCenter() ;
 	computeCenter() ;
 	
@@ -571,11 +570,11 @@ double Triangle::area() const
 		pointsInTimePlane = 0 ;
 		double init = getBoundingPoint(0).t ;
 		int counter = 0 ;
-		while(std::abs(getBoundingPoint(counter++).t-init) < 1e-8)
+		while(std::abs(getBoundingPoint(counter++).t-init) < POINT_TOLERANCE)
 			pointsInTimePlane++ ;
 	}
 	Segment s0(getBoundingPoint(0), getBoundingPoint(pointsInTimePlane/3)) ;
-	Segment s1(getBoundingPoint(0), getBoundingPoint(pointsInTimePlane/3 * 2)) ;
+	Segment s1(getBoundingPoint(0), getBoundingPoint(2*pointsInTimePlane/3)) ;
 
 	return 0.5*std::abs((s0.vector()^s1.vector()).z) ;
 }

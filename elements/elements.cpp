@@ -534,7 +534,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	}
 	else
 	{
-		double j = area() ;
+		double j = jacobianAtPoint(Point(1./3, 1./3.));
 		
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{

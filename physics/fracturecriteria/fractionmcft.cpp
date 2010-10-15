@@ -9,24 +9,46 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#include "mcft.h"
+#include "fractionmcft.h"
+#include "../damagemodels/damagemodel.h"
 
 namespace Mu {
 
-MCFT::MCFT(double up, double down)
-	: upVal(up), downVal(down)
+FractionMCFT::FractionMCFT(double up, double down, Matrix concreteCGTensor)
+	: upVal(up), downVal(down), concreteCGTensor(concreteCGTensor)
 {
 }
 
 
-MCFT::~MCFT()
+FractionMCFT::~FractionMCFT()
 {
 }
 
-double MCFT::grade(const ElementState &s) 
+double FractionMCFT::grade(const ElementState &s) 
 {
+	if(s.getParent()->getBehaviour()->getDamageModel()->fractured() == true)
+		return -1 ;
 	Vector pstrain = -s.getPrincipalStrains(s.getParent()->getCenter()) ;
-	Vector pstress = -s.getPrincipalStresses(s.getParent()->getCenter()) ;
+	
+	Vector strains = s.getStrain(Point(1./3., 1./3.),true) ;
+	Vector stresses = strains*concreteCGTensor;
+	
+	if(s.getParent()->getBehaviour()->hasInducedForces())
+			stresses -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
+	Vector pstress(2) ;
+	pstress[0] = -(stresses[0]+stresses[1])/2. - 
+		sqrt(
+			(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+			(stresses[2]*stresses[2])
+			) ;
+	pstress[1] = -(stresses[0]+stresses[1])/2. + 
+		sqrt(
+			(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+			(stresses[2]*stresses[2])
+			) ;
+		
+
+	
 
 	metInCompression = false ;
 	metInTension = false ;
@@ -44,14 +66,17 @@ double MCFT::grade(const ElementState &s)
 		if(-pstress.max() <= maxCompression)
 		{
 			metInCompression = true ;
+
 			return std::max(1. - std::abs(maxTension/-pstress.min() ), 1. - std::abs(maxCompression/-pstress.max())) ;
 		}
+
 		return 1. - std::abs(maxTension/-pstress.min() ) ;
 	}
 		
 	if( -pstress.max() <= maxCompression )
 	{
 		metInCompression = true ;
+
 		return 1. - std::abs(maxCompression/-pstress.max()) ;
 	}
 	
@@ -70,17 +95,20 @@ double MCFT::grade(const ElementState &s)
 	
 	
 	if(std::abs(s0) > std::abs(s1))
+	{
+
 		return s0 ;
+	}
 
 	return s1;
 }
 
-FractureCriterion * MCFT::getCopy() const
+FractureCriterion * FractionMCFT::getCopy() const
 {
-	return new MCFT(*this) ;
+	return new FractionMCFT(*this) ;
 }
 
-Material MCFT::toMaterial()
+Material FractionMCFT::toMaterial()
 {
 	Material mat ;
 	return mat ;

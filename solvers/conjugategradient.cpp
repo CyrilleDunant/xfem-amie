@@ -26,7 +26,7 @@ ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Ve
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-	double realeps = 1e-12 ;
+	double realeps = 1e-14 ;
 	size_t Maxit ;
 	if(maxit != -1)
 		Maxit = maxit ;
@@ -105,7 +105,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		return true ;
 	}
 	err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
-	double neps = std::min(realeps*realeps, err0*realeps) ; //std::max(err0*realeps, realeps*realeps) ;
+	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	while(last_rho*last_rho > neps && n < Maxit )
 	{
 		P->precondition(r,z) ;
@@ -120,7 +120,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		r -= q*alpha ;
 		x += p*alpha ;
 		n++ ;
-		if(n%64 == 0)
+		if(n%32 == 0)
 		{
 			assign(r, A*x-b) ;
 			r *= -1 ;

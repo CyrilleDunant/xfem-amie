@@ -141,7 +141,7 @@ bool LinearDamage::fractured() const
 		return false ;
 	
 // 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
-	return tensionDamage >= secondaryThresholdDamageDensity/fraction || compressionDamage >= thresholdDamageDensity/fraction  ;
+	return tensionDamage >= secondaryThresholdDamageDensity || compressionDamage >= thresholdDamageDensity ;
 }
 
 LinearDamage::~LinearDamage()

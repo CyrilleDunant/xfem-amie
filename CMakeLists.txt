@@ -52,6 +52,7 @@ physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/fracturecriteria/vonmises.cpp 
+physics/fracturecriteria/fractionmcft.cpp 
 physics/fracturecriteria/confinedmohrcoulomb.cpp
 physics/fracturecriteria/confinedmohrcoulombwithstrain.cpp
 physics/fracturecriteria/confinedvonmises.cpp

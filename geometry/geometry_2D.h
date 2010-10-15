@@ -17,6 +17,7 @@ class Function ;
 class Triangle : public ConvexGeometry
 {
 protected:
+	
 	double radius ;
 	double sqradius ;
 	Point circumCenter ;

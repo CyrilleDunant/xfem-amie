@@ -92,7 +92,7 @@ void FractionStiffnessAndFracture::step(double timestep, ElementState & currentS
 	previouschange = change ;
 	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
-	if(criterion->met(currentState) && !dfunc->fractured())
+	if(criterion->met(currentState))
 	{
 		dfunc->step(currentState) ;
 		change = true ;
