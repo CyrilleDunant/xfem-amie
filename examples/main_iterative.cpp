@@ -457,7 +457,7 @@ Matrix tri_directional_step(double box_dim, Matrix m_mat, Matrix m_inc, double r
 
 	int nAgg = n_agg ;
 
-	feats = placement(box.getPrimitive(), feats, &nAgg, nAgg * 1000);
+	feats = placement(box.getPrimitive(), feats, &nAgg, 0, nAgg * 1000);
 
 	for(size_t i = 0; i < feats.size() ; i++)
 		inc.push_back(static_cast<Inclusion3D *>(feats[i])) ;

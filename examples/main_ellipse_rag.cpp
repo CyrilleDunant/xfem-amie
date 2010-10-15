@@ -752,7 +752,7 @@ int main(int argc, char *argv[])
 	inclusions.clear() ;
 
 	int nAgg = 1 ;
-        feats=placement(sample.getPrimitive(), feats, &nAgg, 16000);
+        feats=placement(sample.getPrimitive(), feats, &nAgg,0, 16000);
 
 	for(size_t i = 0; i < feats.size() ; i++)
 	{

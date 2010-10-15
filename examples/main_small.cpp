@@ -1364,7 +1364,7 @@ int main(int argc, char *argv[])
 		feats.push_back(inclusions[i]) ;
 
 	int nAgg = 6000 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg, 60000);
+	feats=placement(sample.getPrimitive(), feats, &nAgg, 0, 60000);
 	
 	MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;

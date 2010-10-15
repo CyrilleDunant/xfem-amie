@@ -1623,7 +1623,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		feats.push_back(inclusions[i]) ;
 	
-	feats=placement(sample.getPrimitive(), feats, &inclusionNumber, 6400);
+	feats=placement(sample.getPrimitive(), feats, &inclusionNumber, 0, 6400);
 
 
 	for(size_t i = 0 ; i < inclusions.size() ; i++)

@@ -1577,7 +1577,7 @@ int main(int argc, char *argv[])
 		feats.push_back(inclusions[i]) ;
 
 	int nAgg = 0 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg, 64000);
+	feats=placement(sample.getPrimitive(), feats, &nAgg, 0, 64000);
 
 	double volume = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)

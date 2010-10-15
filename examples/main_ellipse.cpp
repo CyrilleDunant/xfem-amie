@@ -1551,7 +1551,7 @@ int main(int argc, char *argv[])
         ellipses.clear() ;
 
         int nAgg = 1 ;
-        feats=placement(box.getPrimitive(), feats, &nAgg, 10000);
+        feats=placement(box.getPrimitive(), feats, &nAgg, 0, 10000);
 
 
 /*        Grid grid(box.getPrimitive()->getRadius()*2, box.getPrimitive()->getRadius()*2, 100, box.getCenter()) ;

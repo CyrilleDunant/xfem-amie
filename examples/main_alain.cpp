@@ -1753,7 +1753,7 @@ int main(int argc, char *argv[])
 
 	
 	int nAgg = 1 ;
-	feats=placement(&baseGeometry, feats, &nAgg, 6400);
+	feats=placement(&baseGeometry, feats, &nAgg, 0, 6400);
 	double volume = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		volume += feats[i]->area() ;
