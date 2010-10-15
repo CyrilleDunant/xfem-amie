@@ -93,6 +93,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 
 	v.push_back(XI);
 	v.push_back(ETA);
+	
+	std::cout << "homogenization" << std::endl ;
 
 	reverted = false ;
 }
@@ -279,7 +281,7 @@ void HomogeneisedBehaviour::homogenize()
 	Material hom = homogenize(mat) ;
 	delete equivalent ;
 	equivalent = getEquivalentBehaviour(hom) ;
-
+	
 }
 
 
