@@ -32,7 +32,7 @@ bool bord(double r, double longueurX, double longueurY, double x, double y)//fon
 	return false;
 }
 
-std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int triesMax, bool verbose)
+std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int nombreGranulatsDejaPlaces, int triesMax, bool verbose)
 {
 	int tries = 0 ;
 	
@@ -54,7 +54,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		Grid grid(longueurX, longueurY, 10, box->getCenter()) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
-		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
+		for(size_t i=nombreGranulatsDejaPlaces ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
 			tries++ ;
 			double ix = longueurX - 2.1*inclusions[i]->getRadius() ;
@@ -115,7 +115,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 
 		Grid3D *grid = new Grid3D(longueurX, longueurY, longueurZ, ndiv, offset) ;
 		
-		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
+		for(size_t i=nombreGranulatsDejaPlaces ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
 			tries++ ;
 			Point newCentre(chiffreAleatoire(longueurX-2.1*inclusions[i]->getRadius())-(longueurX-2.1*inclusions[i]->getRadius())/2. + offset.x, 

@@ -2778,7 +2778,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 128 ;
+			double ndivs = 32 ;
 			for(double k = 1  ; k < ndivs ; k++)
 			{
 				for(double l = 1  ; l < ndivs ; l++)
