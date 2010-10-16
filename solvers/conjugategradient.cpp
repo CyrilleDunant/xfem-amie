@@ -124,7 +124,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		{
 			assign(r, A*x-b) ;
 			r *= -1 ;
-			rho =  parallel_inner_product(&r[0], &z[0], vsize) ;
+// 			rho =  parallel_inner_product(&r[0], &z[0], vsize) ;
 		}
 		if(	verbose && nit%64 == 0)
 		{
