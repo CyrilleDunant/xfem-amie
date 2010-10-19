@@ -84,14 +84,14 @@ void MainWindow::createToolBars()
 	fileToolBar->addSeparator() ;
 	
 	alpha  = new QSpinBox(fileToolBar) ;
-	alpha->setRange ( 1, 255 ) ;
-	alpha->setValue ( 1 ) ;
+	alpha->setRange ( -1, 255 ) ;
+	alpha->setValue ( 0 ) ;
 	connect(alpha, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setAlpha(int)));
 	connect(voxeldisplay, SIGNAL(alphaChanged(int)), alpha, SLOT(setValue(int)));
 	fileToolBar->addWidget(alpha);
 	
 	field  = new QSpinBox(fileToolBar) ;
-	field->setRange ( 0, 255 ) ;
+	field->setRange ( -1, 255 ) ;
 	field->setValue ( 0 ) ;
 	connect(field, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setField(int)));
 	connect(voxeldisplay, SIGNAL(fieldChanged(int)), field, SLOT(setValue(int)));
@@ -146,8 +146,7 @@ void MainWindow::open()
 			}
 			delete triangledisplay ;
 			voxeldisplay = NULL ;
-			triangledisplay = new TriangleGLDrawer(fileName) ;
-			triangledisplay->limits = limits;
+			triangledisplay = new TriangleGLDrawer(fileName, limits) ;
 			triangledisplay->xtransleft = xpos ;
 			triangledisplay->ytransleft = ypos ;
 			
@@ -202,7 +201,8 @@ void MainWindow::open(const QString &fileName)
 			delete voxeldisplay ;
 			delete triangledisplay ;
 			voxeldisplay = NULL ;
-			triangledisplay = new TriangleGLDrawer(fileName) ;
+			std::vector<std::pair<float, float> > limits ;
+			triangledisplay = new TriangleGLDrawer(fileName, limits) ;
 			setWindowTitle(fileName);
 			connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
 			connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));

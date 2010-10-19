@@ -74,6 +74,7 @@ protected:
 	float getYtrans() const ; //
 	
 	size_t currentDisplayList ;
+	int currentSet ; ;
 	
 protected:
 	std::vector< std::valarray<float> > * valuesAtPoint ;
@@ -92,7 +93,7 @@ public:
 	int xtransleft ;
 	int ytransleft ;
 	
-	TriangleGLDrawer(QString f, QWidget *parent = 0) ; //
+	TriangleGLDrawer(QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QWidget *parent = 0) ; //
 	~TriangleGLDrawer() ; //
 	

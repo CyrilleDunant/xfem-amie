@@ -153,6 +153,7 @@ Vector angle(0) ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
+GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition(SET_STRESS_XI, new Rectangle(4*.5, 1.5, 3.9*.25, 1.2*.5) ,-9025.2) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
@@ -279,8 +280,7 @@ void step()
 
 			if(dit < dsteps)
 			{
-				loads.push_back(load->getData());
-				load->setData(load->getData()-1e3) ;
+				load->setData(load->getData()-0.5e3) ;
 				break ;
 			}
 		}
@@ -534,7 +534,10 @@ void step()
 		}
 		
 		if(dit < dsteps)
+		{
 			displacements.push_back(1000.*e_xx/(double)ex_count);
+			loads.push_back(load->getData());
+		}
 		if(v%5 == 0)
 		{
 			double lsa = 0 ;
@@ -1631,7 +1634,7 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 0.5e6 ; 
+	double tensionCrit = 0.4e6 ; 
 	double phi = 0.14961835  ;
 	double mradius = .5 ;
 	
@@ -1697,6 +1700,7 @@ int main(int argc, char *argv[])
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  2.;
 	F.addBoundaryCondition(load) ;
+	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(1.7, -1.2))) ;
 

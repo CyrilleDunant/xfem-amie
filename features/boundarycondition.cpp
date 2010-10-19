@@ -1177,7 +1177,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle
 		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 		{
 			Circle c(tol, elements[i]->getBoundingPoint(j)) ; 
-			if(domain->intersects(&c))
+			if(domain->intersects(&c) || domain->in(elements[i]->getBoundingPoint(j)))
 			{
 				id.push_back(elements[i]->getBoundingPoint(j)) ;
 			}
@@ -1197,7 +1197,7 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 		{
 			Sphere c(tol, elements[i]->getBoundingPoint(j)) ; 
-			if(domain->intersects(&c))
+			if(domain->intersects(&c) || domain->in(elements[i]->getBoundingPoint(j)))
 			{
 				id.push_back(elements[i]->getBoundingPoint(j)) ;
 			}
