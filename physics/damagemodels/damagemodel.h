@@ -38,7 +38,7 @@ public:
 		isNull = true ; 
 		thresholdDamageDensity = .2 ;
 		secondaryThresholdDamageDensity = .2 ;
-		damageDensityIncrement = .01 ;
+		damageDensityIncrement = .05 ;
 		fraction = -1 ;
 	} ;
 	

@@ -146,7 +146,7 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-double delta = +0.0001 ;
+double delta = 2e-8 ;
 double tension = 0. ;
 
 void step()
@@ -159,8 +159,8 @@ void step()
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		featureTree->resetBoundaryConditions() ;
-	        featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-		featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, TOP, tension)) ;
+	        featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+		featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, tension)) ;
 		tries = !(nsteps < maxtries) ;
 		bool go_on = true ;
 		while(go_on && tries < maxtries)
@@ -485,6 +485,7 @@ void step()
 		}
 		
 		std::cout << std::endl ;
+		std::cout << "imposed strain :" << tension << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
 		std::cout << "min value :" << x_min << std::endl ;
 		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
@@ -536,6 +537,7 @@ void step()
 			}
 			
 		}
+	}
 	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
 		std::cout << expansion_reaction[i].first << "   " 
 		<< expansion_reaction[i].second << "   " 
@@ -549,7 +551,6 @@ void step()
 		<< damaged_volume[i]  << "   " 
 		<< std::endl ;
 
-	}
 
 }
 
@@ -558,9 +559,9 @@ int main(int argc, char *argv[])
 {
 	cas = atoi(argv[1]) ;
 
-	srand(0) ;
+	srand(cas) ;
 	RandomNumber gen ;
-
+	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 	F.reuseDisplacements = true ;
@@ -593,14 +594,14 @@ int main(int argc, char *argv[])
 			inc->setBehaviour(new AggregateBehaviour()) ;
 			F.addFeature(&sample, inc) ;
 
-			itz = new ITZFeature(inc, inc, m0, m1, 0.0005, 135000, -135000*8) ;
+			itz = new ITZFeature(inc, inc, m0, m1, 0.0025, 135000, -135000*8) ;
 			F.addFeature(inc,itz) ;
 			break ;
 
 		case 2:
 			m0 = sample.getBehaviour()->getTensor(Point(0,0))/2 ;
 			
-			iitz = new Inclusion(0.01+0.0005, ax,ay) ;
+			iitz = new Inclusion(0.01+0.0025, ax,ay) ;
 			iitz->setBehaviour(new StiffnessAndFracture(m0, new MohrCoulomb(67500, -8*67500))) ;
 			F.addFeature(&sample, iitz) ;
 		

@@ -149,9 +149,9 @@ double spread ;
 void step()
 {
 
-        int nsteps = 5;
-	int nstepstot = 10;
-        int maxtries = 5 ;
+        int nsteps = 1000;
+	int nstepstot = 1000;
+        int maxtries = 250 ;
 	int tries = 0 ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
@@ -163,6 +163,8 @@ void step()
 		{
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
+			if(!go_on && !featureTree->solverConverged())
+				go_on = featureTree->reuseDisplacements ;
 			std::cout << "." << std::flush ;
 			tries++ ;
 		}
@@ -734,6 +736,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
+	featureTree->reuseDisplacements = true ;
 
 	double itzSize = 0.00005;
  	int inclusionNumber = 4100 ;
@@ -775,14 +778,14 @@ int main(int argc, char *argv[])
         }
 
 
-        zones = generateExpansiveZonesHomogeneously(1300, ellipses, F) ;
+        zones = generateExpansiveZonesHomogeneously(15000, ellipses, F) ;
 
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 
-        F.sample(1024) ;
+        F.sample(1500) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 

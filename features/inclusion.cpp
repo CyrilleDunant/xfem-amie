@@ -318,7 +318,7 @@ Form * ITZFeature::getBehaviour( const Point & p)
         source->project(&proj) ;
 	static_cast<SpatiallyDistributedStiffness *>(behaviour)->setDistance(dist(p,proj)) ;
 	
-	return this->behaviour ;
+	return this->behaviour->getCopy() ;
 }
 
 

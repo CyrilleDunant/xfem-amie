@@ -18,6 +18,7 @@
 #include "fracturecriteria/vonmises.h"
 #include "stiffness.h"
 #include "stiffness_and_fracture.h"
+#include "../utilities/random.h"
 
 
 using namespace Mu ;
@@ -49,20 +50,18 @@ bool SpatiallyDistributedStiffness::fractured() const
 
 Form * SpatiallyDistributedStiffness::getCopy() const 
 {
-	double randomVar = (double)rand()/(double)RAND_MAX ;
-//	randomVar = 1.*pow(-log(randomVar),.5) ;
-	Matrix newTensor (param*(1.-variability)+param*randomVar*variability*2) ;
-	randomVar = (double)rand()/(double)RAND_MAX ;
-	Matrix por (pore*(1.-variability)+pore*randomVar*variability*2) ;
-	randomVar = (double)rand()/(double)RAND_MAX ;
-	double crita = criteriona*(1.-variability)+criteriona*randomVar*variability*2 ;
-	double critb = criterionb*(1.-variability)+criterionb*randomVar*variability*2 ;
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1 - variability + variability*weib ;
+	Matrix newTensor(param*factor) ;
+	Matrix por(pore*factor) ;
+	double crita = criteriona*factor ;
+	double critb = criterionb*factor ;
 	newTensor = por + (newTensor - por) * distance / length ;
 	crita *= (0.5+0.5*distance/length) ;
 	critb *= (0.5+0.5*distance/length) ;
 //	if(randomVar > 0.5)
 	if(criteriona > 0)
-	  return new StiffnessAndFracture(newTensor, new MohrCoulomb(crita,critb)) ;
+		return new StiffnessAndFracture(newTensor, new MohrCoulomb(crita,critb)) ;
 	return new Stiffness(newTensor) ;	
 //	return new Stiffness(pore) ;
 //	return new Stiffness(/*pore*(1.-variability)+*/pore/**randomVar*variability*/) ;

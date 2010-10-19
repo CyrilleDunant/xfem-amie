@@ -15,8 +15,9 @@ PasteBehaviour::PasteBehaviour(double E, double nu, double tensile, SpaceDimensi
 Form * PasteBehaviour::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1 - variability + variability*weib ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new MohrCoulomb(up*factor,down*factor)) ;
+	double factor = 1. - variability + variability*weib ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new MohrCoulomb(up*factor,down*factor), materialRadius) ;
+	ret->setNeighbourhoodRadius(neighbourhoodRadius) ;
 	return ret ;
 }
 

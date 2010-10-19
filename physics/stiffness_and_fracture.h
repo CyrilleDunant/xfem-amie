@@ -51,7 +51,7 @@ namespace Mu
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param c  FractureCriterion to use. The behaviour is responsible for deleting the criterion upon cleanup.
 		*/
-		StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, double eps = 0.002)  ;
+		StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, double eps = 0.007)  ;
 		void setNeighbourhoodRadius(double d ) ;
 
 		virtual ~StiffnessAndFracture();
