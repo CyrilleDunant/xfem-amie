@@ -47,6 +47,7 @@ mesher/delaunay_3d.cpp
 mesher/delaunay.cpp 
 mesher/structuredmesh.cpp 
 physics/damagemodels/isotropiclineardamage.cpp 
+physics/damagemodels/damagemodel.cpp 
 physics/damagemodels/anisotropicdamage.cpp
 physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp

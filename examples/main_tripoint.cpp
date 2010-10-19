@@ -1633,7 +1633,7 @@ int main(int argc, char *argv[])
 
 	double tensionCrit = 0.5e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .3 ;
+	double mradius = .5 ;
 	
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
@@ -1720,7 +1720,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(400) ;
+	F.sample(200) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

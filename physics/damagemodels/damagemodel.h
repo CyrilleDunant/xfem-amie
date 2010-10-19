@@ -32,54 +32,25 @@ public:
 	
 	Vector state ;
 	Vector previousstate ;
+	bool isNull ;
 	
-	DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
-	{ 
-		isNull = true ; 
-		thresholdDamageDensity = .2 ;
-		secondaryThresholdDamageDensity = .2 ;
-		damageDensityIncrement = .1 ;
-		fraction = -1 ;
-	} ;
+	DamageModel(double characteristicRadius);
 	
-	double getThresholdDamageDensity() const
-	{
-		return thresholdDamageDensity ;
-	}
+	double getThresholdDamageDensity() const;
 	
-	double getSecondaryThresholdDamageDensity() const
-	{
-		return secondaryThresholdDamageDensity ;
-	}
+	double getSecondaryThresholdDamageDensity() const;
 	
-	double getCharacteristicRadius() const
-	{
-		return characteristicRadius ;
-	}
+	double getCharacteristicRadius() const ;
 	
-	double getDamageDensityIncrement() const
-	{
-		return damageDensityIncrement ;
-	}
-	void setThresholdDamageDensity(double d)
-	{
-		thresholdDamageDensity = d ;
-	}
+	double getDamageDensityIncrement() const ;
+
+	void setThresholdDamageDensity(double d);
 	
-	void setSecondaryThresholdDamageDensity(double d)
-	{
-		secondaryThresholdDamageDensity = d ;
-	}
+	void setSecondaryThresholdDamageDensity(double d) ;
 	
-	void setMaterialCharacteristicRadius(double d)
-	{
-		characteristicRadius = d ;
-	}
+	void setMaterialCharacteristicRadius(double d) ;
 	
-	void setDamageDensityIncrement(double d)
-	{
-		damageDensityIncrement = d ;
-	}
+	void setDamageDensityIncrement(double d) ;
 	
 	/** \brief Return a vector of values describing the damage stage of the material
 	 * 
@@ -129,7 +100,7 @@ public:
 	 * @return a new FunctionMatrix
 	 */
 // 	virtual FunctionMatrix apply(const Matrix & m) const = 0 ;
-	bool isNull ;
+
 } ;
 
 /** \brief Null damage model. A material with this damage model can never be damaged.*/
