@@ -14,8 +14,8 @@
 
 namespace Mu {
 
-FractionMCFT::FractionMCFT(double up, double down, Matrix concreteCGTensor)
-	: upVal(up), downVal(down), concreteCGTensor(concreteCGTensor)
+FractionMCFT::FractionMCFT(double up, double down, Matrix concreteCGTensor, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
+	, upVal(up), downVal(down), concreteCGTensor(concreteCGTensor)
 {
 }
 
@@ -58,7 +58,7 @@ double FractionMCFT::grade(const ElementState &s)
 	
 	double maxCompression = -(2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)*downVal/(0.8-0.34*pstrain.min()/critStrain) ;
 	
-	double maxTension = upVal/(1.+sqrt(20000.*std::abs(pstrain.min()))) ;
+	double maxTension = upVal/(1.+sqrt(200.*std::abs(pstrain.min()))) ;
 	
 	if( -pstress.min() >= maxTension )
 	{

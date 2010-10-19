@@ -555,7 +555,6 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
-				
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol )

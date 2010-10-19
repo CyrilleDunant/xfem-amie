@@ -19,6 +19,16 @@ namespace Mu {
 class DelaunayTriangle ;
 class DelaunayTetrahedron ;
 
+typedef enum{
+  NO_MIRROR,
+  MIRROR_X,
+  MIRROR_Y,
+  MIRROR_Z,
+  MIRROR_XY,
+  MIRROR_XZ,
+  MIRROR_YZ
+} MirrorState ;
+
 	/**
 	Abstract definition of a fracture criterion
 	
@@ -33,13 +43,17 @@ class DelaunayTetrahedron ;
 		double neighbourhoodradius ;
 		double physicalCharacteristicRadius ;
 		double scoreAtState ;
+		MirrorState mirroring ;
+		double delta_x ;
+		double delta_y ;
+		double delta_z ;
 		
 	public:
 		
 		bool metInTension ;
 		bool metInCompression ;
 		
-		FractureCriterion() ;
+		FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 		virtual void initialiseCache(const ElementState & s) ;
 	
 		virtual ~FractureCriterion();

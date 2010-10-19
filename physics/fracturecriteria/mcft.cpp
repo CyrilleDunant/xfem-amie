@@ -13,8 +13,8 @@
 
 namespace Mu {
 
-MCFT::MCFT(double up, double down)
-	: upVal(up), downVal(down)
+MCFT::MCFT(double up, double down, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
+	, upVal(up), downVal(down)
 {
 }
 
@@ -36,7 +36,7 @@ double MCFT::grade(const ElementState &s)
 	
 	double maxCompression = -(2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)*downVal/(0.8-0.34*pstrain.min()/critStrain) ;
 	
-	double maxTension = upVal/(1.+sqrt(20000.*std::abs(pstrain.min()))) ;
+	double maxTension = upVal/(1.+sqrt(200.*std::abs(pstrain.min()))) ;
 	
 	if( -pstress.min() >= maxTension )
 	{

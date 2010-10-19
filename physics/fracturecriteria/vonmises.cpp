@@ -13,7 +13,7 @@
 #include "vonmises.h"
 namespace Mu {
 
-VonMises::VonMises(double thresh) : threshold(thresh)
+VonMises::VonMises(double thresh, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), threshold(thresh)
 {
 }
 

@@ -29,7 +29,7 @@ namespace Mu {
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		ConfinedVonMises(double threshup, double theshdown);
+		ConfinedVonMises(double threshup, double theshdown, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 	
 		virtual ~ConfinedVonMises();
 

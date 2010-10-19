@@ -14,6 +14,7 @@
 #define __WEIBULL_STIFFNESS_H_
 
 #include "physics_base.h"
+#include "fracturecriteria/fracturecriterion.h"
 
 namespace Mu
 {
@@ -30,12 +31,16 @@ namespace Mu
 		double variability ;
 		double down ;
 		double up ;
+		MirrorState mirroring; 
+		double dx ;
+		double dy ;
+		double dz ;
 		/** Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param cri stress limit for the Mohr - Coulomb criterion to use
 		*/
-		WeibullDistributedStiffness(const Matrix & rig, double down, double up)  ;
+		WeibullDistributedStiffness(const Matrix & rig, double down, double up, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
 		
 		void setMaterialCharacteristicRadius(double r) {materialRadius = r ;} ;
 		void setNeighbourhoodRadius(double r) {neighbourhoodRadius = r ;}

@@ -966,7 +966,6 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 
 				if(duplicate != multipliers.end())
 				{
-					
 					duplicate->value += val ;
 				}
 				else

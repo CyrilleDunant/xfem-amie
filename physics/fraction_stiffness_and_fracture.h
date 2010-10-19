@@ -45,6 +45,10 @@ namespace Mu
 		double init ;
 		Vector damage ;
 		std::vector<Variable> v ;
+		MirrorState mirroring ;
+		double dx;
+		double dy ; 
+		double dz ;
 
 		/** \brief Constructor
 		* 

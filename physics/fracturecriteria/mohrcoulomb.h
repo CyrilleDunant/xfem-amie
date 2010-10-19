@@ -31,7 +31,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	MohrCoulomb(double up, double down);
+	MohrCoulomb(double up, double down, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 
 	virtual ~MohrCoulomb();
 

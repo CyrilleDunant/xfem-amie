@@ -101,7 +101,7 @@ double E_max = 0;
 double x_max = 0 ;
 double y_max = 0 ;
 double disp = 0 ;
-BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * imposeddisp = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0,0), disp) ;
 double width = 500;
 double height = 500;
 Sample sample(NULL, height , height, 0, 0) ;
@@ -375,7 +375,7 @@ void step()
 	
 	bool cracks_did_not_touch = true;
 	size_t max_growth_steps = 1;
-	size_t max_limit = 400 ;
+	size_t max_limit = 1 ;
 	int countit = 0;	
 	int limit = 0 ;
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
@@ -398,8 +398,8 @@ void step()
 		if(limit < max_limit)
 			imposeddisp->setData(imposeddisp->getData()+0.005);
 
-		if(limit < 3)
-			countit-- ;
+// 		if(limit < 3)
+// 			countit-- ;
 		timepos+= 0.01 ;
 		double da = 0 ;
 		
@@ -1775,9 +1775,9 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(256) ;
+	F.sample(1024) ;
 // 	F.useMultigrid = true ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 
 	std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;

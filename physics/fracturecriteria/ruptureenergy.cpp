@@ -13,8 +13,8 @@
 
 namespace Mu {
 
-RuptureEnergy::RuptureEnergy(double e)
-	: energy(e)
+RuptureEnergy::RuptureEnergy(double e, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
+	, energy(e)
 {
 }
 

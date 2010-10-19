@@ -280,7 +280,7 @@ void step()
 			if(dit < dsteps)
 			{
 				
-				load->setData(load->getData()+1e-5) ;
+				load->setData(load->getData()+5e-7) ;
 				break ;
 			}
 		}
@@ -313,8 +313,6 @@ void step()
 		angle.resize(sigma.size()/3) ;
 		Vector forces(featureTree->getAssembly()->getForces()) ;
 		double appliedForce = std::accumulate(&forces[0], &forces[forces.size()], 0.) ;
-		if(dit < dsteps)
-			loads.push_back(appliedForce/1000.);
 		std::cerr << "unknowns :" << x.size() << std::endl ;
 		
 		
@@ -368,7 +366,7 @@ void step()
 							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(triangles[k]->getBoundingPoint(p).x > 3.9*.4999)
+						if(triangles[k]->getBoundingPoint(p).x > .9999)
 						{
 							e_xx=x[triangles[k]->getBoundingPoint(p).id*2] ;
 							ex_count = 1 ;
@@ -523,8 +521,11 @@ void step()
 			}
 		}
 		
+		
 		if(dit < dsteps)
-			displacements.push_back(1000.*e_xx/(double)ex_count);
+			loads.push_back(avg_s_xx/area);
+		if(dit < dsteps)
+			displacements.push_back(avg_e_xx/area);
 		if(v%25 == 0)
 		{
 			std::cout << std::endl ;
@@ -1609,35 +1610,33 @@ int main(int argc, char *argv[])
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
 	double nu_steel = 0.3 ; 
-	m0_steel[0][0] = E_steel/(1-nu_steel*nu_steel) ; m0_steel[0][1] =E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
-	m0_steel[1][0] = E_steel/(1-nu_steel*nu_steel)*nu_steel ; m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ; m0_steel[1][2] = 0 ; 
-	m0_steel[2][0] = 0 ; m0_steel[2][1] = 0 ; m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)/2. ; 
+	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
+	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
+	m0_steel[2][0] = 0 ;                                       m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)/2. ; 
 	
 	Matrix m0_barSteel(3,3) ;
-	m0_barSteel[0][0] = E_steel*(1-nu_steel)/((1+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[0][1] =E_steel*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[0][2] = 0 ;
-	m0_barSteel[1][0] = E_steel*nu/((1+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[1][1] = E_steel*(1-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[1][2] = 0 ; 
-	m0_barSteel[2][0] = 0 ; m0_barSteel[2][1] = 0 ; m0_barSteel[2][2] = E_steel/((1.+nu_steel)) ; 
+	m0_barSteel[0][0] = E_steel*(1-nu_steel)/((1+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[0][1] =E_steel*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[0][2] = 0 ;
+	m0_barSteel[1][0] = E_steel*nu_steel/((1+nu_steel)*(1.-2.*nu_steel)) ;     m0_barSteel[1][1] = E_steel*(1-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[1][2] = 0 ; 
+	m0_barSteel[2][0] = 0 ;                                                    m0_barSteel[2][1] = 0 ;                                                     m0_barSteel[2][2] = E_steel/((1.+nu_steel)) ; 
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 3.9*.5, 0.064+0.064+0.085, 3.9*.25,-1.2*.5+(0.064+0.064+0.085)*.5) ;
+	Sample sample(NULL, 3.9*.5, 1.2, 0,0) ;
 	
-	Sample rebar0(3.9*.5, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064) ; 
-	rebar0.setBehaviour(new Stiffness(m0_barSteel*0.0058904862));
-	Sample rebar1(3.9*.5, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064+0.085) ; 
-	rebar1.setBehaviour(new Stiffness(m0_barSteel*0.0058904862));
+	Sample rebar0(1, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064) ; 
+	rebar0.setBehaviour(new Stiffness(m0_steel*0.15));
+	Sample rebar1(1, 0.025, (3.9*.5)*.5,  -1.2*.5+0.064+0.085) ; 
+	rebar1.setBehaviour(new Stiffness(m0_steel*0.15));
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2e6)) ;
-//  	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .04 ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 4.3e6)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
-// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .1 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .15 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .3 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  1.5;
 
 	F.addBoundaryCondition(load) ;
@@ -1647,11 +1646,11 @@ int main(int argc, char *argv[])
 
 	
 
-	F.addFeature(&sample,&rebar0) ;
-	F.addFeature(&sample,&rebar1) ;
+// 	F.addFeature(&sample,&rebar0) ;
+// 	F.addFeature(&sample,&rebar1) ;
 	
 	
-	F.sample(100) ;
+	F.sample(400) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 	triangles = F.getTriangles() ;

@@ -71,7 +71,7 @@ public:
 
 	/** \brief compute the stiffness matrix from the damage state
 	 * 
-	 * \f$ K_{ij} = K_{ij}*d_i \f$
+	 * \f$ K_{ij} = K_{ij}*(1-d_i) \f$
 	 * @param m original Matrix
 	 * @return modified Matrix
 	 */

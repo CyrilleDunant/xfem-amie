@@ -24,7 +24,7 @@
 
 using namespace Mu ;
 
-WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, double down, double up) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.1), up(up), down(down)
+WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, double down, double up, MirrorState mirroring, double dx, double dy, double dz) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.1), up(up), down(down), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
 {
 	materialRadius = .001;
 	neighbourhoodRadius = .004 ;
@@ -53,12 +53,12 @@ Form * WeibullDistributedStiffness::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1 - variability + variability*weib ;
 	StiffnessAndFracture * ret = new StiffnessAndFracture(
-															param*factor, 
-															new MCFT(
-																					up*factor,
-																					down*factor 
-																					)
-														 ) ;
+								param*factor, 
+								new MCFT(
+										up*factor,
+										down*factor ,
+										mirroring, dx, dy, dz)
+									 ) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->dfunc->setMaterialCharacteristicRadius(materialRadius);

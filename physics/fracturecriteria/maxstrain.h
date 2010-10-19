@@ -29,7 +29,7 @@ public:
 	/** \brief Constructor 
 	 * @param up Set the maximum strain. 
 	 */
-	MaximumStrain(double up);
+	MaximumStrain(double up, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 	virtual ~MaximumStrain();
 

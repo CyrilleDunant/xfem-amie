@@ -33,7 +33,7 @@ public:
 *
 * @param energy Threshold energy density
 */
-	RuptureEnergy(double energy);
+	RuptureEnergy(double energy, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 
 	virtual ~RuptureEnergy();
 

@@ -15,7 +15,7 @@
 #include "../../mesher/delaunay_3d.h"
 namespace Mu {
 
-FractureCriterion::FractureCriterion() : neighbourhoodradius(.0005), physicalCharacteristicRadius(.008), scoreAtState(0), metInTension(false), metInCompression(false)
+FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), physicalCharacteristicRadius(.008), scoreAtState(0), metInTension(false), metInCompression(false), mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z)
 {
 }
 
@@ -210,6 +210,14 @@ bool FractureCriterion::met(const ElementState &s)
 				if(-i->first > 0 )
 				{
 					matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
 				}
 				if (matchedArea > physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI)
 				{
@@ -310,6 +318,24 @@ bool FractureCriterion::met(const ElementState &s)
 				if(-i->first > 0 )
 				{
 					matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_Z &&  std::abs(i->second->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_Y
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_XZ &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_XZ &&  std::abs(i->second->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_YZ &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
+					if(mirroring == MIRROR_YZ &&  std::abs(i->second->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
+					  matchedArea += areatemp[i->second] ;
 				}
 				if (matchedArea > physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI)
 				{

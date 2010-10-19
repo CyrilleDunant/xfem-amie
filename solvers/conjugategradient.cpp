@@ -67,10 +67,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	}
 
 	assign(r, A*x-b) ;
-	double err0 = std::abs(r).max() ;
+	int vsize = r.size() ;
+	double err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	r*=-1 ;
 
-	if (err0 < realeps)
+	if (err0 < eps)
 	{
 		if(verbose)
 			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
@@ -78,7 +79,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	}
 	//*************************************
 	
-	int vsize = r.size() ;
+	
 	z = r ;
 	P->precondition(r,z) ;
 
@@ -96,17 +97,17 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	
 	assign(r, A*x-b) ;
 	r *= -1 ;	
-	err0 = std::abs(r).max() ;
-	if (err0 < realeps)
+	err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
+	if (err0 < eps)
 	{
 		if(verbose)
 			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 
 		return true ;
 	}
-	err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
+	
 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
-	while(last_rho*last_rho > neps && n < Maxit )
+	while(last_rho*last_rho > eps*eps*err0 && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		
@@ -155,13 +156,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	
 	if(verbose)
 	{
-		if(nit <= Maxit && last_rho*last_rho< neps)
+		if(nit <= Maxit && last_rho*last_rho< eps*eps*err0)
 			std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
 			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 	
 	
-	return nit < Maxit && last_rho*last_rho< neps;
+	return nit < Maxit && last_rho*last_rho< eps*eps*err0;
 }
 
