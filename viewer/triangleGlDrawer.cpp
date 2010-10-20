@@ -138,7 +138,7 @@ void TriangleGLDrawer::paintGL() {
 		glColor4ub(255, 0, 0, 255) ;
 		for(double i = 1. ; i > 0 ; i -= 0.1)
 		{
-			renderText((.805-0.5)+0.1, 
+			renderText((.805-0.5)+0.05, 
 									(i-0.5)*.7,  
 									0.,
 									QString("%0").arg(i*(limits[currentSet].first-limits[currentSet].second)+limits[currentSet].second));

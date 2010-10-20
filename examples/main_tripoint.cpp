@@ -151,8 +151,8 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-// BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
-BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
+BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
+// BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
 GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition(SET_STRESS_XI, new Rectangle(4*.5, 1.5, 3.9*.25, 1.2*.5) ,-9025.2) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
@@ -280,7 +280,7 @@ void step()
 
 			if(dit < dsteps)
 			{
-				load->setData(load->getData()-0.5e3) ;
+				load->setData(load->getData()-1e4) ;
 				break ;
 			}
 		}
@@ -536,7 +536,7 @@ void step()
 		if(dit < dsteps)
 		{
 			displacements.push_back(1000.*e_xx/(double)ex_count);
-			loads.push_back(load->getData());
+			loads.push_back(appliedForce);
 		}
 		if(v%5 == 0)
 		{
@@ -681,7 +681,7 @@ void step()
 				double damage = 0 ;
 				if(triangles[j]->getBehaviour()->getDamageModel())
 				{
-					Vector d = triangles[j]->getBehaviour()->getDamageModel()->state ;
+					Vector d = triangles[j]->getBehaviour()->getDamageModel()->damageState() ;
 					damage = std::inner_product(&d[0],&d[d.size()], &d[0], 0.) ;
 				}
 				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
@@ -1634,7 +1634,7 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 0.4e6 ; 
+	double tensionCrit = .2e6 ; 
 	double phi = 0.14961835  ;
 	double mradius = .5 ;
 	
@@ -1643,7 +1643,7 @@ int main(int argc, char *argv[])
 	double nu_steel = 0.3 ; 
 	
 	double nu = 0.2 ;
-	double E_paste = 36.5e9 ;
+	double E_paste = 25e9 ;
 	
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
@@ -1681,16 +1681,16 @@ int main(int argc, char *argv[])
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
 	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
-	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999999);
+	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
 	
 	Sample rebar1(3.9*.5-0.047, 0.0254, (3.9*.5-0.047)*.5,  -1.2*.5+0.064+0.085) ; 
 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,-37.0e6, m0_paste), MIRROR_X));
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
 	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
-	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999999);
+	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
@@ -1698,7 +1698,7 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, tensionCrit, MIRROR_X)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  2.;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 	F.addBoundaryCondition(load) ;
 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
@@ -1724,7 +1724,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(200) ;
+	F.sample(400) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

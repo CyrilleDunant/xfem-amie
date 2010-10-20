@@ -66,8 +66,8 @@ void LinearDamage::step(ElementState & s)
 		inCompression = true ;
 		
 		compressionDamage += damageDensityIncrement*fraction ; 
-		compressionDamage = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, compressionDamage) ;
-		compressionDamage = std::min(.99999, compressionDamage) ;
+		compressionDamage = std::min(thresholdDamageDensity+POINT_TOLERANCE, compressionDamage) ;
+		compressionDamage = std::min(.9999999, compressionDamage) ;
 		compressionDamage = std::max(0., compressionDamage) ;
 	}
 	
@@ -76,8 +76,8 @@ void LinearDamage::step(ElementState & s)
 		inTension = true ;
 
 		tensionDamage += damageDensityIncrement*fraction ; 
-		tensionDamage = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamage) ;
-		tensionDamage = std::min(.99999, tensionDamage) ;
+		tensionDamage = std::min(secondaryThresholdDamageDensity+POINT_TOLERANCE, tensionDamage) ;
+		tensionDamage = std::min(.9999999, tensionDamage) ;
 		tensionDamage = std::max(0., tensionDamage) ;
 	}
 	state[0] = compressionDamage ;
@@ -88,7 +88,7 @@ void LinearDamage::step(ElementState & s)
 void LinearDamage::artificialDamageStep(double d)
 {
 	for(size_t i = 0 ; i < state.size() -1 ; i++)
-		state[i] = std::min(state[i]+d,0.9999) ;
+		state[i] = std::min(state[i]+d,0.9999999) ;
 }
 
 Matrix LinearDamage::apply(const Matrix & m) const

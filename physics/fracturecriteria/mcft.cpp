@@ -38,7 +38,7 @@ double MCFT::grade(const ElementState &s)
 	
 	double maxTension = upVal/(1.+sqrt(200.*std::abs(pstrain.min()))) ;
 	
-	if( -pstress.min() >= maxTension )
+	if( -pstress.min() >= maxTension && pstrain.min() < critStrain)
 	{
 		metInTension = true ;
 		if(-pstress.max() <= maxCompression)
