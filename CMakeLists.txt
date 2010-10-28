@@ -42,12 +42,13 @@ filters/voxelporefilter.cpp
 geometry/geometry_2D.cpp 
 geometry/geometry_3D.cpp 
 geometry/geometry_base.cpp 
+geometry/geometry_with_exclusion.cpp 
 geometry/level_set.cpp
 mesher/delaunay_3d.cpp 
 mesher/delaunay.cpp 
 mesher/structuredmesh.cpp 
+physics/damagemodels/damagemodel.cpp
 physics/damagemodels/isotropiclineardamage.cpp 
-physics/damagemodels/damagemodel.cpp 
 physics/damagemodels/anisotropicdamage.cpp
 physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp

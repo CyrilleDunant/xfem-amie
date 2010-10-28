@@ -13,6 +13,8 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
@@ -105,7 +107,7 @@ std::vector<DelaunayTriangle *> tris__ ;
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
-std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -151,7 +153,7 @@ void step()
 
         int nsteps = 1000;
 	int nstepstot = 1000;
-        int maxtries = 250 ;
+        int maxtries = 200 ;
 	int tries = 0 ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
@@ -425,7 +427,9 @@ void step()
 				}
 			}
 		}
-		std::string filename("triangles") ;
+		std::string filename("triangles_") ;
+		filename.append(itoa(shape, 10)) ;
+		filename.append("_") ;
 		filename.append(itoa(totit++, 10)) ;
 		std::cout << filename << std::endl ;
 		std::fstream outfile  ;
@@ -438,10 +442,23 @@ void step()
 		
 		for(size_t j = 0 ; j < triangles.size() ;j++)
 		{
+			if(triangles[j]->getBehaviour()->type == VOID_BEHAVIOUR)
+				continue ;
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 			{
 				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
 			}
+			
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2] << " ";
+			}
+
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2+1] << " " ;
+			}
+
 
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 			{
@@ -525,7 +542,7 @@ void step()
 				delta_r *= .01 ;
 			double reactedArea = 0 ;
 			
-			EllipsoidalInclusion * current = NULL ;
+			Inclusion * current = NULL ;
 			if(!zones.empty())
 				current = zones[0].second ;
 			double current_area = 0 ;
@@ -590,7 +607,7 @@ void step()
 
 }
 
-std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
   
@@ -606,7 +623,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
 	
-	std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > ret ;
+	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
@@ -637,18 +654,18 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 //			i-- ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
-	std::map<EllipsoidalInclusion *, int> zonesPerIncs ; 
+	std::map<Inclusion *, int> zonesPerIncs ; 
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			Point ax = incs[j]->getMajorAxis() * (1./incs[j]->getMajorRadius()) ;
+/*			Point ax = incs[j]->getMajorAxis() * (1./incs[j]->getMajorRadius()) ;
                         double newa = incs[j]->getMajorRadius() - radius*60. ;
                         double newb = incs[j]->getMinorRadius() - radius*60. ;
-			Ellipse ell(incs[j]->getCenter(), ax*newa, newb/newa) ;
-//			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
-			if(ell.in(zonesToPlace[i]->getCenter()))
+			Ellipse ell(incs[j]->getCenter(), ax*newa, newb/newa) ;*/
+			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
+			if(circle.in(zonesToPlace[i]->getCenter()))
 			{
                             if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
                                 std::cout << i << ";" << j << "||" ;
@@ -665,7 +682,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	}
 	
 	int count = 0 ;
-	for(std::map<EllipsoidalInclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	for(std::map<Inclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;
@@ -719,9 +736,10 @@ int main(int argc, char *argv[])
 	srand(0) ;
 
 	percent = atof(argv[1]) ;
-	shape = atof(argv[2]) ;
+	shape = atof(argv[2])*(-1e6) ;
+/*	shape = atof(argv[2]) ;
 	orientation = atof(argv[3]) ;
-	spread = atof(argv[4]) ;
+	spread = atof(argv[4]) ;*/
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -736,7 +754,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	featureTree->reuseDisplacements = true ;
+	F.reuseDisplacements = true ;
 
 	double itzSize = 0.00005;
  	int inclusionNumber = 4100 ;
@@ -744,48 +762,50 @@ int main(int argc, char *argv[])
 
 
         int n = 4100 ;
-	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
+//	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
 	
 	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < ellipses.size() ; i++)
-		feats.push_back(ellipses[i]) ;
-//		feats.push_back(inclusions[i]) ;
+	for(size_t i = 0; i < inclusions.size() ; i++)
+//		feats.push_back(ellipses[i]) ;
+	{
+		if(RandomNumber().uniform() < 0.8)
+			feats.push_back(inclusions[i]) ;
+	}
 
-	ellipses.clear() ;
+//	ellipses.clear() ;
 	inclusions.clear() ;
 
 	int nAgg = 1 ;
-        feats=placement(sample.getPrimitive(), feats, &nAgg,0, 16000);
+        feats=placement(sample.getPrimitive(), feats, &nAgg, 0, 16000);
 
 	for(size_t i = 0; i < feats.size() ; i++)
 	{
-		ellipses.push_back(static_cast<EllipsoidalInclusion *>(feats[i])) ;
+		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
 	}
 
-	WeibullDistributedStiffness * stiffPaste = new WeibullDistributedStiffness(m0_paste, -8.*135000,135000.) ;
+/*	WeibullDistributedStiffness * stiffPaste = new WeibullDistributedStiffness(m0_paste, -8.*135000,135000.) ;
 	stiffPaste->materialRadius = .002 ;
-	stiffPaste->neighbourhoodRadius =  .0025 ;
-	sample.setBehaviour(stiffPaste) ;
+	stiffPaste->neighbourhoodRadius =  .0025 ;*/
+	sample.setBehaviour(new PasteBehaviour()) ;
 
-        for(size_t i = 0 ; i < ellipses.size() ; i++)
+        for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-		WeibullDistributedStiffness * stiffAgg = new WeibullDistributedStiffness(m0_agg, -8.*57000000, 57000000) ;
+/*		WeibullDistributedStiffness * stiffAgg = new WeibullDistributedStiffness(m0_agg, -8.*57000000, 57000000) ;
 		stiffAgg->materialRadius = .0002 ;
-		stiffAgg->neighbourhoodRadius =  .0003 ;	
-                ellipses[i]->setBehaviour(stiffAgg) ;
-                F.addFeature(&sample,ellipses[i]) ;
-                placed_area += ellipses[i]->area() ;
+		stiffAgg->neighbourhoodRadius =  .0003 ;*/
+                inclusions[i]->setBehaviour(new AggregateBehaviour()) ;
+                F.addFeature(&sample,inclusions[i]) ;
+                placed_area += inclusions[i]->area() ;
         }
 
 
-        zones = generateExpansiveZonesHomogeneously(15000, ellipses, F) ;
+        zones = generateExpansiveZonesHomogeneously(13000, inclusions, F) ;
 
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_RIGHT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, shape)) ;
 
-        F.sample(1500) ;
+        F.sample(400) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 
