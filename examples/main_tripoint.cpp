@@ -280,7 +280,8 @@ void step()
 
 			if(dit < dsteps)
 			{
-				load->setData(load->getData()-1e4) ;
+// 				load->setData(load->getData()-1e4) ;
+load->setData(load->getData()-1e5) ;
 				break ;
 			}
 		}
@@ -590,13 +591,13 @@ void step()
 // 		}
 		
 		if(dit < dsteps)	
-			std::cout << appliedForce/1000. << "   " << load->getData()/1000. << "  " << displacements.back() << std::endl ;
+			std::cout << .4*appliedForce/1000. << "   " << load->getData()/1000. << "  " << displacements.back() << std::endl ;
 		
 		std::fstream ldfile  ;
 		ldfile.open("ldn", std::ios::out) ;
 		for(int j = 0 ; j < loads.size() ; j++)
 		{
-			ldfile << displacements[j] << "   " << loads[j]/1000. << "\n" ;
+			ldfile << displacements[j] << "   " << .4*loads[j]/1000. << "\n" ;
 		}
 		ldfile.close();
 		
@@ -607,7 +608,7 @@ void step()
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			filename << round(load->getData()/1000.) ;
+			filename << round(.4*appliedForce/1000.) ;
 			filename << "-" ;
 			filename << 1000.*e_xx/(double)ex_count ;
 			
@@ -1634,16 +1635,16 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = .2e6 ; 
+	double tensionCrit = 2.5e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .5 ;
+	double mradius = .05 ;
 	
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
 	double nu_steel = 0.3 ; 
 	
 	double nu = 0.2 ;
-	double E_paste = 25e9 ;
+	double E_paste = 37e9 ;
 	
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
@@ -1675,8 +1676,7 @@ int main(int argc, char *argv[])
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
 	Sample rebar0(3.9*.5-0.047, 0.0254, (3.9*.5-0.047)*.5,  -1.2*.5+0.064) ; 
-
-	
+	rebar0.setBehaviour(new Stiffness(m0_paste));
 	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,-37.0e6, m0_paste), MIRROR_X));
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
@@ -1685,6 +1685,7 @@ int main(int argc, char *argv[])
 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
 	
 	Sample rebar1(3.9*.5-0.047, 0.0254, (3.9*.5-0.047)*.5,  -1.2*.5+0.064+0.085) ; 
+	rebar1.setBehaviour(new Stiffness(m0_paste));
 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,-37.0e6, m0_paste), MIRROR_X));
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
@@ -1724,7 +1725,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(400) ;
+	F.sample(800) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;

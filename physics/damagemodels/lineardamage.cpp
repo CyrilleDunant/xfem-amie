@@ -69,6 +69,12 @@ void LinearDamage::step(ElementState & s)
 		compressionDamage = std::min(thresholdDamageDensity+POINT_TOLERANCE, compressionDamage) ;
 		compressionDamage = std::min(.9999999, compressionDamage) ;
 		compressionDamage = std::max(0., compressionDamage) ;
+		
+		tensionDamage += damageDensityIncrement*fraction ; 
+		tensionDamage = std::min(secondaryThresholdDamageDensity+POINT_TOLERANCE, tensionDamage) ;
+		tensionDamage = std::min(.9999999, tensionDamage) ;
+		tensionDamage = std::max(0., tensionDamage) ;
+		
 	}
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
@@ -93,20 +99,21 @@ void LinearDamage::artificialDamageStep(double d)
 
 Matrix LinearDamage::apply(const Matrix & m) const
 {
-	Matrix ret(m) ;
+// 	std::cout << damageDensityIncrement<< "   "<< tensionDamage << "  " << compressionDamage << std::endl ;
 	
 	if(fractured())
 		return m*0.;
 
-	if(inTension)
+	if(inTension && !inCompression)
 	{
 		return m*(1.-tensionDamage) ;
 	}
-	if(inCompression)
+	else if(inCompression && !inTension)
 	{
 		return m*(1.-compressionDamage) ;
 	}
-	return ret*(1.-std::max(tensionDamage, compressionDamage)) ;
+	
+	return m*(1.-std::max(tensionDamage, compressionDamage)) ;
 }
 
 Matrix LinearDamage::applyPrevious(const Matrix & m) const

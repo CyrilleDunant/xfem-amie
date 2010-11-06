@@ -42,6 +42,8 @@ namespace Mu
 		double init ;
 		double damage ;
 		double variability ;
+		double materialRadius ;
+		double neighbourhoodRadius ;
 		std::vector<Variable> v ;
 		/** Constructor
 		* 

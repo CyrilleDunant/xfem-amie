@@ -101,7 +101,7 @@ double E_max = 0;
 double x_max = 0 ;
 double y_max = 0 ;
 double disp = 0 ;
-BoundingBoxNearestNodeDefinedBoundaryCondition * imposeddisp = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0,0), disp) ;
+BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
 double width = 500;
 double height = 500;
 Sample sample(NULL, height , height, 0, 0) ;
@@ -375,7 +375,7 @@ void step()
 	
 	bool cracks_did_not_touch = true;
 	size_t max_growth_steps = 1;
-	size_t max_limit = 1 ;
+	size_t max_limit = 60 ;
 	int countit = 0;	
 	int limit = 0 ;
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
@@ -396,10 +396,10 @@ void step()
 		if(limit || countit%100 == 0)
 			std::cout << " " << limit << std::endl ;
 		if(limit < max_limit)
-			imposeddisp->setData(imposeddisp->getData()+0.005);
+			imposeddisp->setData(imposeddisp->getData()-5);
 
-// 		if(limit < 3)
-// 			countit-- ;
+		if(limit < 3)
+			countit-- ;
 		timepos+= 0.01 ;
 		double da = 0 ;
 		
@@ -1723,8 +1723,12 @@ int main(int argc, char *argv[])
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 // 	sample.setBehaviour(saf) ;
+		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 // 	sample.setBehaviour(psp) ;
-	sample.setBehaviour(sf) ;
+// 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 // 	F.addFeature(&sample, new Pore(20, -155, 155) );

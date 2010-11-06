@@ -107,7 +107,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	Vector d = dfunc->damageState() ;
 	damage.resize(d.size()) ;
 	damage = d ;
-    }
+}
 
 void StiffnessAndFracture::artificialDamageStep(double d)
 {

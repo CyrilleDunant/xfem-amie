@@ -26,6 +26,8 @@ FractionMCFT::~FractionMCFT()
 
 double FractionMCFT::grade(const ElementState &s) 
 {
+	
+	
 	if(s.getParent()->getBehaviour()->getDamageModel()->fractured() == true)
 		return -1 ;
 	Vector pstrain = -s.getPrincipalStrains(s.getParent()->getCenter()) ;

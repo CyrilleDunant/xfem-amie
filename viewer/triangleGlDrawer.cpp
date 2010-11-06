@@ -129,7 +129,7 @@ void TriangleGLDrawer::paintGL() {
 		glBegin(GL_QUAD_STRIP) ;
 		for(double i = 1. ; i > 0 ; i -= 0.01)
 		{
-			HSVtoRGB(&r, &g, &b, 180., 0., 0.1+0.8*((1.-i)*limits[currentSet].first - limits[currentSet].second)/(limits[currentSet].first-limits[currentSet].second)) ;
+			HSVtoRGB(&r, &g, &b, 180., 0., 0.1+0.8*(1.-i)) ;
 			glColor4ub(r, g, b, 255) ;
 			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
 			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;

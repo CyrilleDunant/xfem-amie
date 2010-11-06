@@ -62,7 +62,6 @@ Form * WeibullDistributedStiffness::getCopy() const
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->dfunc->setMaterialCharacteristicRadius(materialRadius);
-	ret->dfunc->setDamageDensityIncrement(.02);
 	ret->dfunc->setThresholdDamageDensity(.9999999);
 	ret->dfunc->setSecondaryThresholdDamageDensity(.9999999);
 	return ret ;

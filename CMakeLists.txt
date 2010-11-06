@@ -83,6 +83,7 @@ physics/stiffness_with_imposed_deformation.cpp
 physics/stiffness_with_imposed_deformation_and_fracture.cpp 
 physics/stiffness_with_kinetics_imposed_deformation.cpp
 physics/stiffness_with_variable_imposed_deformation_and_fracture.cpp 
+physics/stiffness_with_diffusion_deformation_and_fracture.cpp
 physics/stiffness_with_variable_imposed_deformation.cpp 
 physics/physics_base.cpp
 physics/twod_cohesive_force.cpp

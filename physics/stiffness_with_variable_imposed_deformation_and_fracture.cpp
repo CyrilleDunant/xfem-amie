@@ -43,31 +43,24 @@ void StiffnessWithVariableImposedDeformationAndFracture::apply(const Function & 
 
 void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState)
 {
-	if(!frac && criterion->met(currentState) )
+	change = false ;
+	currentState.getParent()->behaviourUpdated = false ;
+	if(criterion->met(currentState) )
 	{
 		dfunc->step(currentState) ;
-		previousDamage = damage ;
-		
-		Vector state = dfunc->damageState() ;
-		damage = 0 ;
-		for(size_t i = 0 ; i < state.size() ; i++)
-			damage += state[i] ;
+		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;
-		if(damage > .9)
-		{
-			frac = true ;
-// 			damage = .9999 ;
-// 			param[0][1] = 0 ;param[0][1] = 0 ;
-// 			param[2][2] *= 0.0001 ;
-// 			this->type = VOID_BEHAVIOUR ;
-		}
+		frac = dfunc->fractured() ;
 	}
+	previousDamage = damage ;
 
+	damage = dfunc->damageState()[0] ;
+	
 	if(!currentState.getParent()->behaviourUpdated && timestep > std::numeric_limits<double>::epsilon())
 	{
-		double randomVar = (double)rand()/(double)RAND_MAX ;
-		imposed[0] += timestep*randomVar ;
-		imposed[1] += timestep*randomVar ;
+		double randomVar = 1 ; //(double)rand()/(double)RAND_MAX ;
+		imposed[0] = timestep*randomVar ;
+		imposed[1] = timestep*randomVar ;
 		currentState.getParent()->behaviourUpdated = true ;
 	}
 

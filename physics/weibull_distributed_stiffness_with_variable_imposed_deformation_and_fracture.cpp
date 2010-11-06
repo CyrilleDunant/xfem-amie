@@ -23,6 +23,8 @@ WeibullStiffnessWithVariableImposedDeformationAndFracture::WeibullStiffnessWithV
 	previousDamage = 0 ;
 	damage = 0 ;
 	variability = .2 ;	
+	materialRadius = .001;
+	neighbourhoodRadius = .004 ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() == 36)
@@ -135,7 +137,9 @@ Form * WeibullStiffnessWithVariableImposedDeformationAndFracture::getCopy() cons
 	
 	StiffnessWithVariableImposedDeformationAndFracture * copy = new StiffnessWithVariableImposedDeformationAndFracture(newTensor, imposed, criterion->getCopy()) ;
 	copy->damage = damage ;
-
+	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
+	copy->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
+	copy->dfunc->setMaterialCharacteristicRadius(materialRadius);
 	return copy ;
 }
 

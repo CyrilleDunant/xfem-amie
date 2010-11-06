@@ -854,14 +854,14 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	if(x>y)
 	{
 		
-		lengthX = div*(x/y) ;
+		lengthX = div*x/y ;
 		lengthY = div ;
 		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)NULL,lengthY)) ;
 	}
 	else
 	{
 		lengthX = div ;
-		lengthY = div*(y/x) ;
+		lengthY = div*y/x ;
 		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)NULL,lengthY)) ;
 	}
 	

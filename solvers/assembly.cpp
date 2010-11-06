@@ -518,7 +518,6 @@ bool Assembly::make_final()
 					}
 				}
 			}
-			
 			max = map->rbegin()->first +1;
 			size_t realDofs = max ;
 			for(size_t i = 0 ; i < multipliers.size() ; i++)
@@ -535,7 +534,6 @@ bool Assembly::make_final()
 					max++ ;
 				}
 			}
-			
 			//filling eventual gaps
 			for(size_t i = 0 ; i < realDofs ; i++)
 			{
@@ -576,7 +574,7 @@ bool Assembly::make_final()
 		{
 			if(i%1000 == 0)
 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
-			
+
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
 			Matrix test(ids.size()*ndof, ids.size()*ndof) ;
 			for(size_t j = 0 ; j < ids.size() ;j++)
@@ -588,7 +586,6 @@ bool Assembly::make_final()
 						getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += element2d[i]->getElementaryMatrix()[j][j][n][m] ;
 					}
 				}
-	
 				for(size_t k = j+1 ; k < ids.size() ;k++)
 				{
 					for(size_t n = 0 ; n < ndof ; n++)
@@ -935,7 +932,7 @@ void Assembly::clear()
 {
 // 	element2d.clear() ;
 // 	element3d.clear() ;
-	
+	multipliers.clear();
 	delete coordinateIndexedMatrix ;
 	coordinateIndexedMatrix = NULL ;
 	delete nonLinearPartialMatrix ;
