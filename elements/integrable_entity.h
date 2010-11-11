@@ -480,6 +480,11 @@ public:
 		return param ;
 	}
 	
+	virtual void setTensor(const Matrix & m)
+	{
+	 param = m ;
+	}
+	
 	virtual Matrix getPreviousTensor(const Point & p) const
 	{
 		return param ;

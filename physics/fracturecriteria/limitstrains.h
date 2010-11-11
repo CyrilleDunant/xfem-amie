@@ -1,5 +1,5 @@
 //
-// C++ Interface: mohrcoulomb
+// C++ Interface: limit strains
 //
 // Description: 
 //

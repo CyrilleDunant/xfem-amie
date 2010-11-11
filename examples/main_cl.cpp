@@ -127,8 +127,8 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 double nu = 0.3 ;
-double E_agg = 58900000000 ;
-double E_paste = 12000000000 ;
+double E_agg = 58.9e9 ;
+double E_paste = 12e9 ;
 Matrix m0_agg(3,3) ;
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
@@ -169,7 +169,7 @@ double aggregateArea = 0;
 
 void step()
 {
-	size_t nsteps = 5000 ; //16*10;
+	size_t nsteps = 512 ; //16*10;
 	size_t nit = 200 ;
 	size_t ntries = 1;
 	size_t dsteps = 60 ;
@@ -180,27 +180,28 @@ void step()
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 		tries = 0 ;
+		bool go_on = true ;
+		bool no_convergence = true ;
+		bool damage = false ;
+
+		dit = 0;
+		featureTree->step(0.001) ;
+		go_on = (
+						featureTree->solverConverged() && 
+						(
+							featureTree->meshChanged() || 
+							featureTree->enrichmentChanged()
+						)
+					) || 
+					(
+						!featureTree->solverConverged() && 
+						featureTree->reuseDisplacements
+					);
+		
 		while(tries < ntries)
 		{
 			tries++ ;
-			bool go_on = true ;
-			bool no_convergence = true ;
-			bool damage = false ;
-
-			dit = 0;
-			featureTree->step(0.001) ;
-			go_on = (
-							featureTree->solverConverged() && 
-							(
-								featureTree->meshChanged() || 
-								featureTree->enrichmentChanged()
-							)
-						) || 
-						(
-							!featureTree->solverConverged() && 
-							featureTree->reuseDisplacements
-						);
-
+			
 			while(go_on && dit < dsteps)
 			{
 				featureTree->step(0) ;
@@ -548,8 +549,14 @@ void step()
 	// 		std::cout << filename.str() << std::endl ;
 			std::fstream pointfile  ;
 			std::fstream pointfilel  ;
+			std::fstream pointfilelp  ;
+			std::fstream pointfiled  ;
 			
 			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
+			pointfilename << "p" ;
+			pointfilelp.open(pointfilename.str().c_str(), std::ios::out) ;
+			pointfilename << "d" ;
+			pointfiled.open(pointfilename.str().c_str(), std::ios::out) ;
 			pointfilename << v ;
 			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
 			for(double i = -.15/2 ; i<= .15/2+.15/800 ; i += .15/800)
@@ -571,12 +578,16 @@ void step()
 								{
 									pointfile << b->phi << "   " ;
 									pointfilel << b->phi << "   " ;
+									pointfilelp << b->accumulatedPhi << "   " ;
+									pointfiled << b->damage[0] << "   " ;
 									done = true ;
 								}
 								else
 								{
 									pointfile << 0 << "   " ;
 									pointfilel  << 0 << "   " ;
+									pointfilelp << 0 << "   " ;
+									pointfiled << 0 << "   " ;
 									done = true ;
 								}
 								break ;
@@ -586,24 +597,33 @@ void step()
 						{
 							pointfile << 0 << "   " ;
 							pointfilel << 0 << "   " ;
+							pointfilelp << 0 << "   " ;
+							pointfiled << 0 << "   " ;
 						}
 					}
 					else
 					{
 						pointfile << 0 << "   " ;
 						pointfilel << 0 << "   " ;
+						pointfilelp << 0 << "   " ;
+						pointfiled << 0 << "   " ;
 					}
 				}
 				pointfile << "\n" ;
 				pointfilel << "\n" ;
+				pointfilelp << "\n" ;
+				pointfiled << "\n" ;
 			}
-
+			
 			std::stringstream filename ;
 			if(dit >= dsteps)
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			filename << round(loads.back()) ;
+			if(!loads.empty())
+				filename << round(loads.back()) ;
+			else
+				filename << 0 ;
 			filename << "-" ;
 			filename << 1000.*e_xx/(double)ex_count ;
 			
@@ -625,7 +645,6 @@ void step()
 				{
 					outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
 				}
-				
 				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 				{
 					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2]))
@@ -633,7 +652,6 @@ void step()
 					else
 						outfile << 0 << " " ;
 				}
-				
 				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 				{
 					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2+1]))
@@ -641,7 +659,6 @@ void step()
 					else
 						outfile << 0 << " " ;
 				}
-
 				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 				{
 					outfile <<  epsilon11[j*3+l] << " ";
@@ -1745,9 +1762,9 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	Vector a(3) ;
-	a[0] =  0.2;
-	a[1] =  0.2 ;
-	sample.setBehaviour(new StiffnessWithDiffusionDeformationAndFracture(m0_paste,a, new MohrCoulomb(2500000*6, -2500000*8*6)/*new MaximumStrain(.0001)*/)) ; 
+	a[0] =  0.0005;
+	a[1] =  0.0005 ;
+	sample.setBehaviour(new StiffnessWithDiffusionDeformationAndFracture(m0_paste,a, new MohrCoulomb(2.5e6, -20e6)/*new MaximumStrain(.0001)*/)) ; 
 // 	sample.setBehaviour(new PasteBehaviour(E_paste, nu, 2500000*.5, SPACE_TWO_DIMENSIONAL)) ;
 // 
 // 	Sample expanding(&sample, 0.15-width*ratio, 0.012-width*ratio, 0, 0) ;
@@ -1766,7 +1783,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&expanding, &core) ;
 
 	double itzSize = 0.00005;
-	int inclusionNumber = 200 ; // 10 100 500 1000 2000 4000
+	int inclusionNumber = 0 ; // 10 100 500 1000 2000 4000
 	inclusions = GranuloBolome(1.06366e-05*(.15*.012/(.07*.07)), 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;

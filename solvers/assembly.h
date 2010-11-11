@@ -306,14 +306,26 @@ public:
 /** \brief set boundary condition. Point with ID id is fixed*/
 	void fixPoint(size_t id) ;
 
-/** \brief set boundary condition. Point with ID id has fixed displacement*/
+/** \brief set boundary condition. Point with ID id has fixed displacement.
+	 * @param id
+	 */
 	void setPoint(double ex, size_t id) ;
 
-/** \brief set boundary condition. Point with ID id has fixed displacement*/
+/** \brief set boundary condition. Point with ID id has fixed displacement.
+	 * @param ex
+	 * @param ey
+	 * @param id
+	 */
 	void setPoint(double ex, double ey, size_t id) ;
 
-/** \brief set boundary condition. Point with ID id has fixed displacement*/
+/** \brief set boundary condition. Point with ID id has fixed displacement.
+	 * @param ex
+	 * @param ey
+	 * @param ez
+	 * @param id
+	 */
 	void setPoint(double ex, double ey, double ez, size_t id) ;
+	
 /** Set unknown of a given node in a given direction to a given value
 	 * @param var Variable (XI, ETA, or ZETA) along which displacement is fixed
 	 * @param id ID of the node 

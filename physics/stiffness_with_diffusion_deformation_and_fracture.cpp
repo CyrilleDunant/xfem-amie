@@ -15,10 +15,11 @@
 
 using namespace Mu ;
 
-StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.02)
+StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.005)
 {
-	dfunc = new IsotropicLinearDamage(rig.numRows()-1, .01) ;
-	crit->setNeighbourhoodRadius(eps) ;
+	dfunc = new IsotropicLinearDamage(rig.numRows()-1, .005) ;
+	criterion->setNeighbourhoodRadius(eps*6) ;
+	criterion->setMaterialCharacteristicRadius(.005) ;
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
@@ -35,7 +36,7 @@ StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationA
 	phi = 0 ;
 	previousphi = 0 ;
 	diffusivity = 1e-2 ;
-	reactionRate = 0.3e-2;
+	reactionRate = 1e-2;
 	accumulatedPhi = 0;
 	ageing = false ;
 } ;
@@ -155,25 +156,20 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
 	if(std::abs( increment*timestep) > std::numeric_limits<double>::epsilon() )
 		change = true ;
 	phi += diffusivity*increment*timestep/volume ;
-	
 	//now phi gets consumed at the prescribed rate.
 	
 	if(!ageing)
 	{
-		phi -= reactionRate*phi*timestep*volume ;
-		accumulatedPhi += reactionRate*phi*timestep*volume ;
-		if(phi < 0)
-		{
-			accumulatedPhi -= std::abs(phi) ;
-			phi = 0 ;
-		}
+		accumulatedPhi += diffusivity*increment*timestep/volume ;
 	}
 	else
 	{
-		accumulatedPhi -= reactionRate*reactionRate*timestep*volume ;
+		accumulatedPhi -= reactionRate*timestep*volume ;
+		if(accumulatedPhi < 0)
+			accumulatedPhi = 0 ;
 	}
 	
-	if(accumulatedPhi >= 1.)
+	if(accumulatedPhi >= 0.2)
 	{
 		ageing = true ;
 	}
@@ -258,7 +254,10 @@ bool StiffnessWithDiffusionDeformationAndFracture::fractured() const
 Form * StiffnessWithDiffusionDeformationAndFracture::getCopy() const 
 {
 	StiffnessWithDiffusionDeformationAndFracture * copy = new StiffnessWithDiffusionDeformationAndFracture(param, imposed, criterion->getCopy()) ;
+	copy->damage.resize(damage.size());
 	copy->damage = damage ;
+	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
+	copy->dfunc->setMaterialCharacteristicRadius(dfunc->getCharacteristicRadius());
 	return copy ;
 }
 
@@ -271,7 +270,7 @@ Matrix StiffnessWithDiffusionDeformationAndFracture::getTensor(const Point & p) 
 
 Vector StiffnessWithDiffusionDeformationAndFracture::getImposedStress(const Point & p) const
 {
-	return Vector(3, 0. );//((param  * (1-ageing*(1- accumulatedPhi)*.5)* accumulatedPhi) * imposed) ;
+	return ((param  * (1-ageing*(1- accumulatedPhi)*.5)* accumulatedPhi) * imposed) ;
 }
 
 std::vector<BoundaryCondition * > StiffnessWithDiffusionDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
