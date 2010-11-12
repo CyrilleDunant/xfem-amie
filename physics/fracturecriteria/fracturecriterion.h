@@ -98,6 +98,8 @@ typedef enum{
 		const std::vector<DelaunayTetrahedron *> & getCache3d() const { return cache3d ; } ;
 		
 		double getScoreAtState() const { return scoreAtState ; }
+		
+		std::pair<double, double> getDeltaEnergyDeltaCriterion(const ElementState & s, double delta_d) const ;
 	
 	};
 

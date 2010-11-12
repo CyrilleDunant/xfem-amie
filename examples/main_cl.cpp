@@ -169,7 +169,7 @@ double aggregateArea = 0;
 
 void step()
 {
-	size_t nsteps = 512 ; //16*10;
+	size_t nsteps = 1024 ; //16*10;
 	size_t nit = 200 ;
 	size_t ntries = 1;
 	size_t dsteps = 60 ;
@@ -1762,8 +1762,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	Vector a(3) ;
-	a[0] =  0.0005;
-	a[1] =  0.0005 ;
+	a[0] =  0.00075 ; //.0007 low //.00085 high
+	a[1] =  0.00075 ;
 	sample.setBehaviour(new StiffnessWithDiffusionDeformationAndFracture(m0_paste,a, new MohrCoulomb(2.5e6, -20e6)/*new MaximumStrain(.0001)*/)) ; 
 // 	sample.setBehaviour(new PasteBehaviour(E_paste, nu, 2500000*.5, SPACE_TWO_DIMENSIONAL)) ;
 // 
