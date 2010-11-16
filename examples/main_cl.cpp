@@ -1762,8 +1762,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	Vector a(3) ;
-	a[0] =  0.00075 ; //.0007 low //.00085 high
-	a[1] =  0.00075 ;
+	a[0] =  0.000705 ; //.0007 low //.00071 high
+	a[1] =  0.000705 ;
 	sample.setBehaviour(new StiffnessWithDiffusionDeformationAndFracture(m0_paste,a, new MohrCoulomb(2.5e6, -20e6)/*new MaximumStrain(.0001)*/)) ; 
 // 	sample.setBehaviour(new PasteBehaviour(E_paste, nu, 2500000*.5, SPACE_TWO_DIMENSIONAL)) ;
 // 
@@ -1783,7 +1783,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&expanding, &core) ;
 
 	double itzSize = 0.00005;
-	int inclusionNumber = 0 ; // 10 100 500 1000 2000 4000
+	int inclusionNumber = 64 ; // 10 100 500 1000 2000 4000
 	inclusions = GranuloBolome(1.06366e-05*(.15*.012/(.07*.07)), 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 
 	std::vector<Feature *> feats ;

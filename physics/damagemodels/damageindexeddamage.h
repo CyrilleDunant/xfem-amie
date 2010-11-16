@@ -26,13 +26,16 @@ protected:
 	double eps ;
 	FractureCriterion * e;
 	Vector fixedDamage ;
+	double currentEnergy ;
+	double previousEnergy ;
+	double dcost ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
 	 * @param numDof number of degrees of freedom
 	 * @param e the delta energy associated with this damage model
 	 */
-	IndexedLinearDamage(int numDof, FractureCriterion * e) ;
+	IndexedLinearDamage( int numDof, double dcost, FractureCriterion* e) ;
 
 	virtual ~IndexedLinearDamage();
 
@@ -79,9 +82,9 @@ public:
 		*/
 	virtual bool fractured() const  ;
 	
-	virtual DamageModel * getCopy() const { return new IndexedLinearDamage(1, e) ;}
+	virtual DamageModel * getCopy() const { return new IndexedLinearDamage(1,dcost, e) ;}
 };
 
-}
+} ;
 
 #endif

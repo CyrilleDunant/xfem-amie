@@ -1252,7 +1252,7 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 	return ret ;
 }
 
-bool Assembly::cgsolve(Vector x0, int maxit) 
+bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 {
 	bool ret = true ;
 // 	if(this->coordinateIndexedMatrix == NULL)
@@ -1268,7 +1268,7 @@ bool Assembly::cgsolve(Vector x0, int maxit)
 		gettimeofday(&time0, NULL);
 
 		ConjugateGradientWithSecant cg(this) ;
-		ret = cg.solve(x0, NULL, 5e-9, -1, false) ;
+		ret = cg.solve(x0, NULL, 5e-9, -1, verbose) ;
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

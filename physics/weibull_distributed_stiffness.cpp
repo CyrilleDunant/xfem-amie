@@ -33,7 +33,7 @@ WeibullDistributedStiffness::WeibullDistributedStiffness(const Matrix & rig, dou
 	v.push_back(ETA);
 	if(param.size() == 36)
 		v.push_back(ZETA);
-
+	damageModel = NULL ;
 } ;
 
 WeibullDistributedStiffness::~WeibullDistributedStiffness() { } ;
@@ -59,6 +59,11 @@ Form * WeibullDistributedStiffness::getCopy() const
 										down*factor ,
 										mirroring, dx, dy, dz)
 									 ) ;
+	if(damageModel)
+	{
+		delete ret-> dfunc ;
+		ret->dfunc = damageModel->getCopy() ;
+	}
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->dfunc->setMaterialCharacteristicRadius(materialRadius);

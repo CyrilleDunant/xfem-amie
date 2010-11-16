@@ -10,15 +10,18 @@
 //
 //
 #include "damageindexeddamage.h"
+#include "../../mesher/delaunay.h"
+#include "../../mesher/delaunay_3d.h"
 
-namespace Mu {
+using namespace Mu ;
 
-IndexedLinearDamage::IndexedLinearDamage(int numDof, FractureCriterion * e) : DamageModel(e->getMaterialCharacteristicRadius())
+IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCriterion * e) : DamageModel(e->getMaterialCharacteristicRadius()), dcost(dcost),e(e)
 {
 	state.resize(1, 0.);
-	state[0] = 0 ;
-	fixedDamage.resize(1,0.);
+	fixedDamage.resize(1, 0.);
 	isNull = false ;
+	currentEnergy = 0 ;
+	previousEnergy = 0 ;
 }
 
 const Vector & IndexedLinearDamage::damageState() const
@@ -34,34 +37,45 @@ Vector & IndexedLinearDamage::damageState()
 
 void IndexedLinearDamage::step(ElementState & s)
 {
-	previousstate.resize(state.size());
-	previousstate = state ;
-	if(fraction < 0)
+	if(s.getDeltaTime() > POINT_TOLERANCE)
 	{
-		double volume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			volume = sqrt(s.getParent()->area()) ;
-		else
-			volume = pow(s.getParent()->volume(), 2./3.) ;
-		
-		double charVolume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			charVolume = sqrt(M_PI*characteristicRadius*characteristicRadius) ;
-		else
-			charVolume = pow(4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius, 2./3.) ;
-		fraction = volume/charVolume ;
-		if(fraction > 1)
-			std::cout << "elements too large for damage characteristic radius!" << std::endl ;
-		fraction = std::min(fraction, 1.) ;
+		previousEnergy = currentEnergy ;
+		currentEnergy = 0 ;
+		fixedDamage = state ;
+		if(!e->getCache().empty())
+		{
+			for(size_t i = 0 ; i < e->getCache().size() ; i++)
+			{
+				currentEnergy += e->getCache()[i]->getState().elasticEnergy()*e->getCache()[i]->area() ;
+			}
+		}
+		else if(!e->getCache3d().empty())
+		{
+			for(size_t i = 0 ; i < e->getCache3d().size() ; i++)
+			{
+				currentEnergy += e->getCache3d()[i]->getState().elasticEnergy()*e->getCache3d()[i]->volume() ;
+			}
+		}
+		return ;
 	}
-	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
-	double l_2 = s.getParent()->area() ; 
-	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
-	state[0] += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
-	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
-	state[0] = std::min(.99999, state[0]) ;
-	state[0] = std::max(0., state[0]) ;
-
+	else
+	{
+			double dd = 1e-5 ;
+			if((1.-state[0])-1e-5 < POINT_TOLERANCE)
+				dd = -1e-5 ;
+			std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
+			
+			//ener_delta.first*delta_d+ener_delta.second*delta_d*dcost = currentEnergy-previousEnergy ;
+			//delta_d = (ener_delta.first+ener_delta.second*dcost)/(currentEnergy-previousEnergy)
+			double delta_d = dd*dd*(currentEnergy-previousEnergy-ener_delta.first)/(ener_delta.second*dcost) ;
+			std::cout << delta_d << "  " << ener_delta.first << "  " <<ener_delta.second << std::endl ;
+			if(state[0]+delta_d > 1)
+				state[0] = 1 ;
+			else if(state[0]+delta_d < fixedDamage[0])
+				state[0] = fixedDamage[0] ;
+			else
+				state[0] += delta_d ;
+	}
 }
 
 void IndexedLinearDamage::artificialDamageStep(double d)
@@ -91,9 +105,9 @@ Matrix IndexedLinearDamage::applyPrevious(const Matrix & m) const
 
 bool IndexedLinearDamage::fractured() const 
 {
-	if(fraction < 0)
+// 	if(fraction < 0)
 		return false ;
-	return state[0] >= thresholdDamageDensity/fraction ;
+// 	return state[0] >= thresholdDamageDensity/fraction ;
 }
 
 
@@ -102,4 +116,3 @@ IndexedLinearDamage::~IndexedLinearDamage()
 }
 
 
-}

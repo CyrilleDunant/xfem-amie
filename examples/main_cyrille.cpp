@@ -16,11 +16,13 @@
 #include "../physics/kelvinvoight.h"
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/fracturecriteria/maxstrain.h"
+#include "../physics/stiffness_and_indexed_fracture.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/stiffness.h"
 #include "../physics/void_form.h"
 #include "../physics/homogeneised_behaviour.h"
+#include "../physics/damagemodels/damageindexeddamage.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../features/pore.h"
@@ -384,7 +386,8 @@ void step()
 // 		if(countit%100 == 0)
 // 			std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
 		limit = 0 ;
-		while(!featureTree->step(timepos) && limit < max_limit)//as long as we can update the features
+		featureTree->step(0.1) ;
+		while(!featureTree->step(0) && limit < max_limit)//as long as we can update the features
 		{
 			if(featureTree->solverConverged())
 				std::cout << "." << std::flush ;
@@ -396,7 +399,7 @@ void step()
 		if(limit || countit%100 == 0)
 			std::cout << " " << limit << std::endl ;
 		if(limit < max_limit)
-			imposeddisp->setData(imposeddisp->getData()-5);
+			imposeddisp->setData(imposeddisp->getData()-1);
 
 		if(limit < 3)
 			countit-- ;
@@ -1714,19 +1717,26 @@ int main(int argc, char *argv[])
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, .0002, mradius*.5) ;
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(1.5640), cradius) ; // 5625 too low ; 5650 too high
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(0.01), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
 	saf->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	saf->dfunc->setThresholdDamageDensity(tdamage);
 	saf->dfunc->setDamageDensityIncrement(dincrement);
+	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new VonMises(0.01), cradius) ; //1.5640; 5625 too low ; 5650 too high
+	saif->dfunc->setMaterialCharacteristicRadius(mradius) ;
+	saif->criterion->setMaterialCharacteristicRadius(mradius);
+	saif->criterion->setNeighbourhoodRadius(cradius);
+	saif->dfunc->setThresholdDamageDensity(tdamage);
+	saif->dfunc->setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 // 	sample.setBehaviour(saf) ;
-		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
+	sample.setBehaviour(saif) ;
+// 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 // 	sample.setBehaviour(psp) ;
 // 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
@@ -1779,7 +1789,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(1024) ;
+	F.sample(512) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

@@ -14,6 +14,7 @@
 #define __WEIBULL_STIFFNESS_H_
 
 #include "physics_base.h"
+#include "damagemodels/damagemodel.h"
 #include "fracturecriteria/fracturecriterion.h"
 
 namespace Mu
@@ -35,6 +36,7 @@ namespace Mu
 		double dx ;
 		double dy ;
 		double dz ;
+		DamageModel * damageModel ;
 		/** Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
@@ -67,6 +69,9 @@ namespace Mu
 		* The parameters for the copy are determined randomly using a Weibull distribution. As this behaviour is spaceDependant, only the copies are used in elements
 		*/
 		virtual Form * getCopy() const ;
+		
+		void setDamageModel(DamageModel * newmodel) ;
+
 		
 	} ;
 

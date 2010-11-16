@@ -101,7 +101,7 @@ void MainWindow::createToolBars()
 	downSlider->setRange(0, 254);
 	downSlider->setSingleStep(5);
 	downSlider->setPageStep(10);
-	downSlider->setTickInterval(20);
+	downSlider->setTickInterval(1);
 	downSlider->setValue(0) ;
 	downSlider->setTracking ( false ) ;
 // 	downSlider->setTickPosition(QSlider::TicksDown);
@@ -111,9 +111,9 @@ void MainWindow::createToolBars()
 	
 	upSlider = new QSlider(Qt::Horizontal,fileToolBar);
 	upSlider->setRange(1, 255);
-	upSlider->setSingleStep(5);
+	upSlider->setSingleStep(1);
 	upSlider->setPageStep(10);
-	upSlider->setTickInterval(20);
+	upSlider->setTickInterval(1);
 	upSlider->setValue(255) ;
 	upSlider->setTracking ( false ) ;
 // 	upSlider->setTickPosition(QSlider::TicksDown);
@@ -159,8 +159,22 @@ void MainWindow::open()
 			connect(alpha, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSet(int)));
 			connect(triangledisplay, SIGNAL(setChanged(int)), alpha, SLOT(setValue(int)));
 			
+			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
+			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
+			
+			connect(upSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentUp(int)));
+			connect(triangledisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
+			
 			connect(printButton, SIGNAL(released()), triangledisplay, SLOT(grab()));
 			triangledisplay->setZoom(zoomval) ;
+			
+
+			downSlider->setRange(0, 9999);
+			downSlider->setValue(0) ;
+
+			upSlider->setRange(1, 10000);
+			upSlider->setValue(10000) ;
+			
 		}
 		else if(voxels(fileName))
 		{
@@ -206,6 +220,18 @@ void MainWindow::open(const QString &fileName)
 			setWindowTitle(fileName);
 			connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
 			connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
+			
+			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
+			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
+			
+			connect(upSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentUp(int)));
+			connect(triangledisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
+			
+			downSlider->setRange(0, 9999);
+			downSlider->setValue(0) ;
+
+			upSlider->setRange(1, 10000);
+			upSlider->setValue(10000) ;
 		}
 		else if(voxels(fileName))
 		{
@@ -229,6 +255,8 @@ void MainWindow::open(const QString &fileName)
 			
 			connect(upSlider, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setSegmentUp(int)));
 			connect(voxeldisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
+			
+			
 		}
 	}
 }

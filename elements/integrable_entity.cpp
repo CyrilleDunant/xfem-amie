@@ -344,7 +344,7 @@ double ElementState::getPreviousMaximumVonMisesStress() const
 		if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 		{
 			Vector sigma = getPreviousPrincipalStresses( parent->getCenter()) ;
-			return sqrt(((sigma[0]-sigma[1])*(sigma[0]-sigma[1]) + sigma[0] + sigma[1])/2.) ;
+			return sqrt(sigma[0]*sigma[0] + sigma[1]*sigma[1]-sigma[0]*sigma[1]) ;
 		}
 		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
@@ -375,11 +375,9 @@ double ElementState::getPreviousMaximumVonMisesStress() const
 			for(size_t i = 0 ; i < principalStresses.size()/2 ; i++)
 			{
 				maxS = std::max(maxS,
-				                sqrt((
-				                      (principalStresses[i*2+0]
-				                       -principalStresses[i*2+1])
-				                      *(principalStresses[i*2+0]
-				                       -principalStresses[i*2+1]) + principalStresses[i*2+0] + principalStresses[i*2+1])/2.)
+				                sqrt(
+principalStresses[i*2+0]*principalStresses[i*2+0]+principalStresses[i*2+1]*principalStresses[i*2+1]
+				                       -principalStresses[i*2+1]*principalStresses[i*2+0])
 				                ) ;
 			}
 			
@@ -413,7 +411,7 @@ double ElementState::getMaximumVonMisesStress() const
 		if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 		{
 			Vector sigma = getPrincipalStresses( parent->getCenter()) ;
-			return sqrt(((sigma[0]-sigma[1])*(sigma[0]-sigma[1]) + sigma[0] + sigma[1])/2.) ;
+			return sqrt(((sigma[0]-sigma[1])*(sigma[0]-sigma[1]))/2.) ;
 		}
 		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
@@ -444,11 +442,7 @@ double ElementState::getMaximumVonMisesStress() const
 			for(size_t i = 0 ; i < principalStresses.size()/2 ; i++)
 			{
 				maxS = std::max(maxS,
-				                sqrt((
-				                      (principalStresses[i*2+0]
-				                       -principalStresses[i*2+1])
-				                      *(principalStresses[i*2+0]
-				                       -principalStresses[i*2+1]) + principalStresses[i*2+0] + principalStresses[i*2+1])/2.)
+					sqrt(principalStresses[i*2+0]*principalStresses[i*2+0]+principalStresses[i*2+1]*principalStresses[i*2+1]-principalStresses[i*2+0]*principalStresses[i*2+1])
 				                ) ;
 			}
 			
@@ -4522,9 +4516,7 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const std
 
 void ElementState::initialize()
 {
-
 		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		
 		displacements.resize(parent->getBoundingPoints().size()*ndofs) ;
 		displacements = 0 ;
 		previousDisplacements.resize(displacements.size()) ;
@@ -4536,7 +4528,6 @@ void ElementState::initialize()
 		timePos = -0.1 ;
 		previousTimePos = -0.2 ;
 		previousPreviousTimePos = -0.3 ;
-
 		if(parent->getBehaviour()->getFractureCriterion())
 		{
 			parent->getBehaviour()->getFractureCriterion()->initialiseCache(*this) ;

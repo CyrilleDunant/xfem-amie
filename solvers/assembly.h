@@ -247,7 +247,7 @@ public:
 	bool solve(Vector x, size_t maxit = 1000, const bool verbose = false) ;
 
 /** \brief Solve linear system using Preconditionned Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
-	bool cgsolve(Vector x0 = Vector(0), int maxit = -1) ;
+	bool cgsolve(Vector x0 = Vector(0), int maxit = -1, bool verbose = true) ;
 	
 /** \brief Solve linear system using provided solver*/
 

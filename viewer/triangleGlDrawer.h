@@ -74,7 +74,17 @@ protected:
 	float getYtrans() const ; //
 	
 	size_t currentDisplayList ;
-	int currentSet ; ;
+	int currentSet ;
+	double fracup ; 
+	double fracdown ;
+	
+public slots:
+	void setSegmentDown(int) ;
+	void setSegmentUp(int) ;
+	
+signals:
+	void segmentUpChanged(int) ;
+	void segmentDownChanged(int) ;
 	
 protected:
 	std::vector< std::valarray<float> > * valuesAtPoint ;

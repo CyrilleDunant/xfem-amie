@@ -47,13 +47,6 @@ geometry/level_set.cpp
 mesher/delaunay_3d.cpp 
 mesher/delaunay.cpp 
 mesher/structuredmesh.cpp 
-physics/damagemodels/damagemodel.cpp
-physics/damagemodels/isotropiclineardamage.cpp 
-physics/damagemodels/anisotropicdamage.cpp
-physics/damagemodels/fractiondamage.cpp
-physics/damagemodels/strainbrokenisotropiclineardamage.cpp
-physics/damagemodels/lineardamage.cpp 
-physics/damagemodels/damageindexeddamage.cpp
 physics/fracturecriteria/vonmises.cpp 
 physics/fracturecriteria/fractionmcft.cpp 
 physics/fracturecriteria/confinedmohrcoulomb.cpp
@@ -61,6 +54,13 @@ physics/fracturecriteria/confinedmohrcoulombwithstrain.cpp
 physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
 physics/fracturecriteria/boundedvonmises.cpp 
+physics/damagemodels/damagemodel.cpp
+physics/damagemodels/isotropiclineardamage.cpp 
+physics/damagemodels/anisotropicdamage.cpp
+physics/damagemodels/fractiondamage.cpp
+physics/damagemodels/strainbrokenisotropiclineardamage.cpp
+physics/damagemodels/lineardamage.cpp 
+physics/damagemodels/damageindexeddamage.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 
 physics/dual_behaviour.cpp 
@@ -79,6 +79,7 @@ physics/spatially_distributed_stiffness.cpp
 physics/homogeneised_behaviour.cpp 
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
+physics/stiffness_and_indexed_fracture.cpp
 physics/fraction_stiffness_and_fracture.cpp
 physics/stiffness_with_imposed_deformation.cpp 
 physics/stiffness_with_imposed_deformation_and_fracture.cpp 

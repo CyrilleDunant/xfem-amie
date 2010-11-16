@@ -24,6 +24,9 @@
 #include "../utilities/itoa.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../physics/void_form.h"
+#include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/aggregate_behaviour.h"
 
 #include <fstream>
 
@@ -73,7 +76,7 @@
 #define DISPLAY_LIST_ANGLE 23
 #define DISPLAY_LIST_ENRICHMENT 12
 #define DISPLAY_LIST_STIFFNESS_DARK 24
-#include "../physics/void_form.h"
+
 
 using namespace Mu ;
 
@@ -234,8 +237,8 @@ void fastForward (int steps, int nstepstot)
 
 void step()
 {
-	int nsteps = 3000;
-	int nstepstot = 3000;
+	int nsteps = 300;
+	int nstepstot = 300;
 	int maxtries = 200 ;
 	int tries = 0 ;
 	
@@ -1793,7 +1796,7 @@ int main(int argc, char *argv[])
 
 	
 	int nAgg = 1 ;
-	feats=placement(&baseGeometry, feats, &nAgg, 6400);
+	feats = placement(&baseGeometry, feats, &nAgg, 0, 6400);
 	double volume = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		volume += feats[i]->area() ;
@@ -1801,9 +1804,9 @@ int main(int argc, char *argv[])
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius()-itzSize 
 		<< ", smallest r =" << feats.back()->getRadius()-itzSize << std::endl ; 
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -8.*13500000, 13500000)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = .002 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .0025 ;
+	sample.setBehaviour(new PasteBehaviour()) ;
+	dynamic_cast<PasteBehaviour *>(sample.getBehaviour())->materialRadius = .002 ;
+	dynamic_cast<PasteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius =  .0025 ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	if(restraintDepth > 0)
 	{
@@ -1843,7 +1846,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-		WeibullDistributedStiffness * stiff = new WeibullDistributedStiffness(m0_agg,-8.*57000000, 57000000) ;
+		AggregateBehaviour * stiff = new AggregateBehaviour() ;
 		stiff->materialRadius = .0002 ;
 		stiff->neighbourhoodRadius =  .0003 ;
 // 		Stiffness * stiff = new Stiffness(m0_agg) ;

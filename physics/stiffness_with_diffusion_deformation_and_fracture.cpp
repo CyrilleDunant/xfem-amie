@@ -12,14 +12,16 @@
 
 #include "stiffness_with_diffusion_deformation_and_fracture.h"
 #include "../features/boundarycondition.h"
+#include "../utilities/random.h"
 
 using namespace Mu ;
 
-StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.005)
+StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.002)
 {
-	dfunc = new IsotropicLinearDamage(rig.numRows()-1, .005) ;
+	dfunc = new IsotropicLinearDamage(rig.numRows()-1, eps) ;
+	dfunc->setMaterialCharacteristicRadius(eps);
 	criterion->setNeighbourhoodRadius(eps*6) ;
-	criterion->setMaterialCharacteristicRadius(.005) ;
+	criterion->setMaterialCharacteristicRadius(eps) ;
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
@@ -253,11 +255,15 @@ bool StiffnessWithDiffusionDeformationAndFracture::fractured() const
 
 Form * StiffnessWithDiffusionDeformationAndFracture::getCopy() const 
 {
-	StiffnessWithDiffusionDeformationAndFracture * copy = new StiffnessWithDiffusionDeformationAndFracture(param, imposed, criterion->getCopy()) ;
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1 - .1 + .1*weib ;
+	
+	StiffnessWithDiffusionDeformationAndFracture * copy = new StiffnessWithDiffusionDeformationAndFracture(param*factor, imposed, criterion->getCopy()) ;
 	copy->damage.resize(damage.size());
 	copy->damage = damage ;
-	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
-	copy->dfunc->setMaterialCharacteristicRadius(dfunc->getCharacteristicRadius());
+	copy->dfunc->setMaterialCharacteristicRadius(eps);
+	copy->criterion->setNeighbourhoodRadius(eps*6) ;
+	copy->criterion->setMaterialCharacteristicRadius(eps) ;
 	return copy ;
 }
 

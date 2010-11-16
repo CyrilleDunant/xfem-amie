@@ -10,11 +10,12 @@
 //
 //
 
-#ifndef __STIFFNESS_AND_FRACTURE_H
-#define __STIFFNESS_AND_FRACTURE_H
+#ifndef __STIFFNESS_AND_INDEXED_FRACTURE_H
+#define __STIFFNESS_AND_INDEXED_FRACTURE_H
 
 #include "physics_base.h"
 #include "fracturecriteria/fracturecriterion.h"
+#include "damagemodels/damageindexeddamage.h"
 #include "damagemodels/lineardamage.h"
 #include "damagemodels/anisotropicdamage.h"
 #include "damagemodels/isotropiclineardamage.h"
@@ -27,10 +28,10 @@ namespace Mu
 	*
 	* The field param is the Cauchy-Green Strain Tensor
 	*/
-	struct StiffnessAndFracture : public LinearForm
+	struct StiffnessAndIndexedFracture : public LinearForm
 	{
 // 		AnisotropicLinearDamage * dfunc ;
-		DamageModel * dfunc ;
+		IndexedLinearDamage * dfunc ;
 // 		IsotropicLinearDamage dfunc ;
 		double eps ;
 		Vector previousPreviousDamage ;
@@ -51,10 +52,10 @@ namespace Mu
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param c  FractureCriterion to use. The behaviour is responsible for deleting the criterion upon cleanup.
 		*/
-		StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, double eps = 0.007)  ;
+		StiffnessAndIndexedFracture(const Matrix & rig, FractureCriterion * c, double eps = 0.007)  ;
 		void setNeighbourhoodRadius(double d ) ;
 
-		virtual ~StiffnessAndFracture();
+		virtual ~StiffnessAndIndexedFracture();
 		
 		/** Apply the law.
 		* @param p_i first basis polynomial.

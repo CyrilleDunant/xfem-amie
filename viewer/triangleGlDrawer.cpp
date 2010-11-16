@@ -127,9 +127,24 @@ void TriangleGLDrawer::paintGL() {
 	if(!limits.empty())
 	{
 		glBegin(GL_QUAD_STRIP) ;
-		for(double i = 1. ; i > 0 ; i -= 0.01)
+		for(double i = 1. ; i > fracup/10000. ; i -= 0.001)
 		{
-			HSVtoRGB(&r, &g, &b, 180., 0., 0.1+0.8*(1.-i)) ;
+			HSVtoRGB(&r, &g, &b, 180., 0., 0.1) ;
+			glColor4ub(r, g, b, 255) ;
+			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
+			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
+		}
+		for(double i = fracup/10000. ; i > fracdown/10000. ; i -= 0.001)
+		{
+			double where = (i-fracdown/10000.)/(fracup/10000.-fracdown/10000.) ;
+			HSVtoRGB(&r, &g, &b, 180., 0., 0.1+0.8*(1.-where)) ;
+			glColor4ub(r, g, b, 255) ;
+			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
+			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
+		}
+		for(double i = fracdown/10000. ; i > 0 ; i -= 0.001)
+		{
+			HSVtoRGB(&r, &g, &b, 180., 0., 0.9) ;
 			glColor4ub(r, g, b, 255) ;
 			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
 			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
@@ -299,9 +314,9 @@ void TriangleGLDrawer::grab()
 		 {
 		   limits.push_back(std::make_pair(max_val, min_val)) ;
 		 }
-		 if(limits[N].first < max_val)
+		 if(limits[N].first > max_val)
 		   limits[N].first = max_val ;
-		 if(limits[N].second > min_val)
+		 if(limits[N].second < min_val)
 		   limits[N].second = min_val ;
 		 
 		 if(std::abs(limits[N].first+limits[N].second)/(limits[N].first- limits[N].second)< 1e-6 || isnan(std::abs(limits[N].first+limits[N].second)/(limits[N].first- limits[N].second)))
@@ -329,8 +344,17 @@ void TriangleGLDrawer::grab()
 					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
 					{
 						float v = ((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i] - min_val)/(max_val-min_val);
+						
+						if(v < fracdown/10000.)
+							v = 0 ;
+						else if(v > fracup/10000.)
+							v = 1 ;
+						else
+							v = (v- fracdown/10000.)/((fracup-fracdown)/10000.) ;
+
 						HSVtoRGB(&r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 0.9-v*0.8) ;
 						glColor4ub(r, g, b, 255) ;
+
 						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
 						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
 						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx + dx-0.2, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy +dy) ;
@@ -340,6 +364,33 @@ void TriangleGLDrawer::grab()
 
 		glEndList() ;
 	 }
+}
+
+
+void TriangleGLDrawer::setSegmentDown(int v){
+	if (v < 0)
+		v = 0 ;
+	if (v > fracup)
+		v = fracup-1 ;
+	
+	fracdown = v ;
+	computeDisplayList() ;
+	paintGL() ;
+	emit segmentDownChanged(v) ;
+	
+}
+
+void TriangleGLDrawer::setSegmentUp(int v){
+	if (v < fracdown)
+		v = fracdown+1 ;
+	if (v > 10000)
+		v = 10000 ;
+	fracup = v ;
+	
+	computeDisplayList() ;
+	paintGL() ;
+	emit segmentUpChanged(v) ;
+// 	
 }
 
 void TriangleGLDrawer::HSVtoRGB( size_t *r, size_t *g, size_t *b, float h, float s, float v ) const {
@@ -408,6 +459,8 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 	currentSet = 0 ;
 	
 	openFile(f) ;
+	fracup = 10000.; 
+	fracdown = 0;
 
 }
 
@@ -431,6 +484,9 @@ TriangleGLDrawer::TriangleGLDrawer(QWidget *parent) : QGLWidget(parent) {
 	
 	zpos = 1.5 ;	
 	currentSet = 0 ;
+	
+	fracup = 10000.; 
+	fracdown = 0;
 	
 }
 
