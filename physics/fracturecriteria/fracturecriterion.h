@@ -39,17 +39,27 @@ typedef enum{
 	protected:
 		std::vector<DelaunayTriangle *> cache ;
 		std::vector<DelaunayTetrahedron *> cache3d ;
+		std::vector<DelaunayTriangle *> physicalcache ;
+		std::vector<DelaunayTetrahedron *> physicalcache3d ;
 		std::vector<double> area ;
 		double neighbourhoodradius ;
+		double neighbourhoodvolume ;
 		double physicalCharacteristicRadius ;
 		double scoreAtState ;
+		double deltaScoreAtState ;
+		double deltaEnergyAtState ;
+		double currentEnergy ;
+		double previousEnergy ;
 		MirrorState mirroring ;
 		double delta_x ;
 		double delta_y ;
 		double delta_z ;
+		bool energyIndexed ;
+		bool noEnergyUpdate ;
 		
 	public:
 		
+		double getDeltaEnergyAtState()const {return deltaEnergyAtState ;}
 		bool metInTension ;
 		bool metInCompression ;
 		
@@ -88,6 +98,7 @@ typedef enum{
 		 */
 		virtual void setNeighbourhoodRadius(double r) ;
 		double getNeighbourhoodRadius() const { return neighbourhoodradius ;} ;
+		double getNeighbourhoodVolume() const { return neighbourhoodvolume ;} ;
 
 		virtual void setMaterialCharacteristicRadius(double r) ;
 		double getMaterialCharacteristicRadius() const { return physicalCharacteristicRadius ;} ;
@@ -100,6 +111,12 @@ typedef enum{
 		double getScoreAtState() const { return scoreAtState ; }
 		
 		std::pair<double, double> getDeltaEnergyDeltaCriterion(const ElementState & s, double delta_d) const ;
+		
+		/** \brief Set true to compute the energy state at each time step.
+		 * Set true to compute the energy state at each time step. This operation is expensive
+		 * so the default is set to false. 
+		 */
+		const void setEnergyIndexed(bool t) {energyIndexed = t ;};
 	
 	};
 

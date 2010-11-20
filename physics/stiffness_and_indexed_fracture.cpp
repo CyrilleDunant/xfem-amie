@@ -19,7 +19,7 @@
 using namespace Mu ;
 
 
-StiffnessAndIndexedFracture::StiffnessAndIndexedFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), /*dfunc(rig.numRows()-1)*/ eps(eps)
+StiffnessAndIndexedFracture::StiffnessAndIndexedFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), /*dfunc(rig.numRows()-1)*/damagedAtStep(true), eps(eps)
 {
 	dfunc = new IndexedLinearDamage(rig.numRows()-1,1., crit) ; 
 	criterion = crit ;
@@ -92,11 +92,16 @@ void StiffnessAndIndexedFracture::step(double timestep, ElementState & currentSt
 	previouschange = change ;
 	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
-	if(criterion->met(currentState) )
+	if(currentState.getDeltaTime() > POINT_TOLERANCE)
+		damagedAtStep = false ;
+		
+	if( criterion->met(currentState)/* criterion->getScoreAtState() > 0|| damagedAtStep*/)
 	{
+		damagedAtStep = true ;
+		double pdamage = dfunc->state[0] ;
 		dfunc->step(currentState) ;
-		change = true ;
-		currentState.getParent()->behaviourUpdated = true ;
+		change = std::abs(dfunc->state[0]-pdamage) > POINT_TOLERANCE ;
+		currentState.getParent()->behaviourUpdated = change ;
 		frac = dfunc->fractured() ;
 	}
 	previousPreviousDamage.resize(previousDamage.size()) ;
@@ -181,6 +186,7 @@ Matrix StiffnessAndIndexedFracture::getTensor(const Point & p) const
 {
 	return dfunc->apply(param) ;
 }
+
 
 Material StiffnessAndIndexedFracture::toMaterial()
 {

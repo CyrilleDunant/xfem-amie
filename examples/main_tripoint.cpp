@@ -1635,7 +1635,8 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 1.6e6 ; 
+	double tensionCrit = 1.2e6 ; 
+	double compressionCrit = -37.0e6*.9 ; 
 	double phi = 0.14961835  ;
 	double mradius = .05 ;
 	
@@ -1645,6 +1646,7 @@ int main(int argc, char *argv[])
 	
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
+	
 	
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
@@ -1677,26 +1679,26 @@ int main(int argc, char *argv[])
 	
 	Sample rebar0(3.9*.5-0.047, 0.0254, (3.9*.5-0.047)*.5,  -1.2*.5+0.064) ; 
 	rebar0.setBehaviour(new Stiffness(m0_paste));
-	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,-37.0e6*0.8, m0_paste), MIRROR_X));
-	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
-	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999999);
-	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
+// 	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_paste), MIRROR_X));
+// 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+// 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
+// 	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
+// 	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999999);
+// 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
 	
 	Sample rebar1(3.9*.5-0.047, 0.0254, (3.9*.5-0.047)*.5,  -1.2*.5+0.064+0.085) ; 
 	rebar1.setBehaviour(new Stiffness(m0_paste));
-	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,-37.0e6*0.8, m0_paste), MIRROR_X));
-	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
-	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999999);
-	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
+// 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_paste), MIRROR_X));
+// 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+// 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
+// 	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
+// 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999999);
+// 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6*0.8, tensionCrit, MIRROR_X)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
@@ -1725,9 +1727,10 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(512) ;
+	F.sample(800) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
+	F.get2DMesh()->insert(new Point(1.7, -1.2)) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getTriangles() ;
 // 	

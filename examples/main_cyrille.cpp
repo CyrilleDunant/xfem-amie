@@ -371,22 +371,30 @@ void optimize()
 	}
 	
 }
-
+bool go = true ;
 void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 1;
-	size_t max_limit = 60 ;
+	size_t max_growth_steps = 10;
+	size_t max_limit = 1000 ;
 	int countit = 0;	
 	int limit = 0 ;
+	
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
 	{
 		countit++;
 // 		if(countit%100 == 0)
 // 			std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
+		if(limit < max_limit && go)
+		{
+			featureTree->step(0.1) ;
+			std::cout << "moving forward" << std::endl ;
+		}
+		else
+			featureTree->step(0) ;
 		limit = 0 ;
-		featureTree->step(0.1) ;
+		go = false ;
 		while(!featureTree->step(0) && limit < max_limit)//as long as we can update the features
 		{
 			if(featureTree->solverConverged())
@@ -399,10 +407,11 @@ void step()
 		if(limit || countit%100 == 0)
 			std::cout << " " << limit << std::endl ;
 		if(limit < max_limit)
-			imposeddisp->setData(imposeddisp->getData()-1);
+		{
+			imposeddisp->setData(imposeddisp->getData()+1);
+			go = true ;
+		}
 
-		if(limit < 3)
-			countit-- ;
 		timepos+= 0.01 ;
 		double da = 0 ;
 		
@@ -1706,7 +1715,7 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
 	double cradius = 250 ;
-	double mradius = 10 ;
+	double mradius = 15 ;
 	double tdamage = .999 ;
 	double dincrement = .02 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
@@ -1723,7 +1732,7 @@ int main(int argc, char *argv[])
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	saf->dfunc->setThresholdDamageDensity(tdamage);
 	saf->dfunc->setDamageDensityIncrement(dincrement);
-	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new VonMises(0.01), cradius) ; //1.5640; 5625 too low ; 5650 too high
+	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new MohrCoulomb(0.01, -0.01) /*VonMises(0.01)*/, cradius) ; //1.5640; 5625 too low ; 5650 too high
 	saif->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saif->criterion->setMaterialCharacteristicRadius(mradius);
 	saif->criterion->setNeighbourhoodRadius(cradius);
@@ -1777,8 +1786,8 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM/*_LEFT*/)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , LEFT, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , RIGHT, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 // 	std::vector<Point *> newTips ;
 // 	newTips.push_back(pb);

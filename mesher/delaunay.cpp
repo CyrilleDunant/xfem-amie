@@ -1620,9 +1620,9 @@ void DelaunayTriangle::print() const
 {
 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
-		std::cerr << "(" << getBoundingPoint(i).x <<  ";" << getBoundingPoint(i).y <<") " ;
+		std::cout << "(" << getBoundingPoint(i).x <<  ";" << getBoundingPoint(i).y <<") " ;
 	}
-	std::cerr <<  ":: "<< isAlive() << std::endl ;
+	std::cout <<  ":: "<< isAlive() << std::endl ;
 }
 
 
@@ -2778,7 +2778,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 32 ;
+			double ndivs = 48 ;
 			for(double k = 1  ; k < ndivs ; k++)
 			{
 				for(double l = 1  ; l < ndivs ; l++)

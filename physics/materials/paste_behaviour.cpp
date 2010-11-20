@@ -9,7 +9,7 @@ using namespace Mu ;
 PasteBehaviour::PasteBehaviour(double E, double nu, double tensile, SpaceDimensionality dim) : WeibullDistributedStiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim), -8*tensile,tensile)
 {
 	materialRadius = 0.002 ;
-	neighbourhoodRadius = 0.0025 ;
+	neighbourhoodRadius = 0.004 ;
 }
 
 Form * PasteBehaviour::getCopy() const 

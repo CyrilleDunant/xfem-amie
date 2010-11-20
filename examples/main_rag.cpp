@@ -237,8 +237,8 @@ void fastForward (int steps, int nstepstot)
 
 void step()
 {
-	int nsteps = 300;
-	int nstepstot = 300;
+	int nsteps = 600;
+	int nstepstot = 600;
 	int maxtries = 200 ;
 	int tries = 0 ;
 	
@@ -1805,8 +1805,6 @@ int main(int argc, char *argv[])
 		<< ", smallest r =" << feats.back()->getRadius()-itzSize << std::endl ; 
 
 	sample.setBehaviour(new PasteBehaviour()) ;
-	dynamic_cast<PasteBehaviour *>(sample.getBehaviour())->materialRadius = .002 ;
-	dynamic_cast<PasteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius =  .0025 ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	if(restraintDepth > 0)
 	{
@@ -1828,27 +1826,25 @@ int main(int argc, char *argv[])
 		F.addFeature(&sample, voidright);
 		
 		Sample * blocktop = new Sample(NULL, sample.width()-restraintDepth,restraintDepth*.5, sample.getCenter().x, sample.getCenter().y+(sample.height()-restraintDepth)*.5+restraintDepth*.25 ) ;
-		blocktop->setBehaviour(new Stiffness(m0_paste*.005)) ;
+		blocktop->setBehaviour(new Stiffness(m0_paste*.0005)) ;
 		F.addFeature(NULL, blocktop);
 
 		Sample * blockbottom = new Sample(NULL, sample.width()-restraintDepth,restraintDepth*.5, sample.getCenter().x, sample.getCenter().y-(sample.height()-restraintDepth)*.5-restraintDepth*.25 ) ;
-		blockbottom->setBehaviour(new Stiffness(m0_paste*.005)) ;
+		blockbottom->setBehaviour(new Stiffness(m0_paste*.0005)) ;
 		F.addFeature(NULL, blockbottom);
 		
 		Sample * blockleft = new Sample(NULL,restraintDepth*.5, sample.height()-restraintDepth, sample.getCenter().x-(sample.width()-restraintDepth)*.5-restraintDepth*.25, sample.getCenter().y ) ;
-		blockleft->setBehaviour(new Stiffness(m0_paste*.005)) ;
+		blockleft->setBehaviour(new Stiffness(m0_paste*.0005)) ;
 		F.addFeature(NULL, blockleft);
 
 		Sample * blockright = new Sample(NULL,restraintDepth*.5, sample.height()-restraintDepth, sample.getCenter().x+(sample.width()-restraintDepth)*.5+restraintDepth*.25, sample.getCenter().y ) ;
-		blockright->setBehaviour(new Stiffness(m0_paste*.005)) ;
+		blockright->setBehaviour(new Stiffness(m0_paste*.0005)) ;
 		F.addFeature(NULL, blockright);
 	}
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
 		AggregateBehaviour * stiff = new AggregateBehaviour() ;
-		stiff->materialRadius = .0002 ;
-		stiff->neighbourhoodRadius =  .0003 ;
 // 		Stiffness * stiff = new Stiffness(m0_agg) ;
 // 		stiff->variability = .5 ;
 		inclusions[i]->setBehaviour(stiff) ;

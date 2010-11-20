@@ -41,8 +41,9 @@ double NonLocalVonMises::grade(const ElementState &s)
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		double tmparea = cache[i]->area() ;
-		maxStress += cache[i]->getState().getPreviousMaximumVonMisesStress()*tmparea ;
-		area += tmparea ;
+		double d =  exp(-squareDist2D(s.getParent()->getCenter(), cache[i]->getCenter())/(radius*radius)) ;
+		maxStress += cache[i]->getState().getPreviousMaximumVonMisesStress()*tmparea*d ;
+		area += tmparea*d ;
 	}
 
 	maxStress /= area ;

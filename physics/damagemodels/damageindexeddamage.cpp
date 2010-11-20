@@ -20,8 +20,9 @@ IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCrite
 	state.resize(1, 0.);
 	fixedDamage.resize(1, 0.);
 	isNull = false ;
-	currentEnergy = 0 ;
-	previousEnergy = 0 ;
+	thresholdDamageDensity = 1 ;
+	this->dcost = 200 ;
+	e->setEnergyIndexed(true);
 }
 
 const Vector & IndexedLinearDamage::damageState() const
@@ -37,45 +38,38 @@ Vector & IndexedLinearDamage::damageState()
 
 void IndexedLinearDamage::step(ElementState & s)
 {
-	if(s.getDeltaTime() > POINT_TOLERANCE)
-	{
-		previousEnergy = currentEnergy ;
-		currentEnergy = 0 ;
-		fixedDamage = state ;
+		double volume = 0 ;
 		if(!e->getCache().empty())
 		{
-			for(size_t i = 0 ; i < e->getCache().size() ; i++)
-			{
-				currentEnergy += e->getCache()[i]->getState().elasticEnergy()*e->getCache()[i]->area() ;
-			}
+			volume = s.getParent()->area() ;
 		}
 		else if(!e->getCache3d().empty())
 		{
-			for(size_t i = 0 ; i < e->getCache3d().size() ; i++)
-			{
-				currentEnergy += e->getCache3d()[i]->getState().elasticEnergy()*e->getCache3d()[i]->volume() ;
-			}
+			volume = s.getParent()->volume() ;
 		}
-		return ;
-	}
-	else
-	{
-			double dd = 1e-5 ;
-			if((1.-state[0])-1e-5 < POINT_TOLERANCE)
-				dd = -1e-5 ;
-			std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
-			
-			//ener_delta.first*delta_d+ener_delta.second*delta_d*dcost = currentEnergy-previousEnergy ;
-			//delta_d = (ener_delta.first+ener_delta.second*dcost)/(currentEnergy-previousEnergy)
-			double delta_d = dd*dd*(currentEnergy-previousEnergy-ener_delta.first)/(ener_delta.second*dcost) ;
-			std::cout << delta_d << "  " << ener_delta.first << "  " <<ener_delta.second << std::endl ;
-			if(state[0]+delta_d > 1)
-				state[0] = 1 ;
-			else if(state[0]+delta_d < fixedDamage[0])
-				state[0] = fixedDamage[0] ;
-			else
-				state[0] += delta_d ;
-	}
+		
+		double dd = 1e-2 ;
+		if((1.-state[0])-1e-2 < POINT_TOLERANCE)
+			dd = -1e-2 ;
+		std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
+		
+		//ener_delta.first*delta_d+ener_delta.second*delta_d*dcost = currentEnergy-previousEnergy ;
+		//delta_d = (ener_delta.first+ener_delta.second*dcost)/(currentEnergy-previousEnergy)
+		double delta_d =e->getDeltaEnergyAtState()/(volume*dcost +ener_delta.first) ;
+		if(delta_d < -ener_delta.second*state[0])
+			delta_d = -ener_delta.second*state[0] ;
+		if(state[0]+delta_d >= 1)
+			state[0] = 1 ;
+		else if(state[0]+delta_d < fixedDamage[0])
+			state[0] = fixedDamage[0] ;
+		else
+			state[0] += delta_d ;
+		
+		std::cout << ener_delta.second << "  " << delta_d << std::endl ;
+		
+// 		std::cout << " * " << delta_d << "  " << ener_delta.second*dcost*volume << "  " << ener_delta.first<< std::endl ;
+// 		std::cout << " / " << delta_d << "  " << ener_delta.second*dcost/volume << "  " << ener_delta.first<< std::endl ;
+// 		std::cout << " . " << delta_d << "  " << e->getDeltaEnergyAtState()<< "  " << ener_delta.first<< std::endl ;
 }
 
 void IndexedLinearDamage::artificialDamageStep(double d)

@@ -30,6 +30,7 @@ namespace Mu
 	*/
 	struct StiffnessAndIndexedFracture : public LinearForm
 	{
+		bool damagedAtStep ;
 // 		AnisotropicLinearDamage * dfunc ;
 		IndexedLinearDamage * dfunc ;
 // 		IsotropicLinearDamage dfunc ;

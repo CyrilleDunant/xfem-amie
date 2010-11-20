@@ -164,7 +164,7 @@ public:
 	std::pair<Vector, Vector > getStressAndStrain(const Mu::PointArray &) const;
 
 /** \brief return stress and strain at given (gauss) points*/
-	std::pair<Vector, Vector > getStressAndStrain( std::valarray<std::pair<Point, double> > & p) const;
+	std::pair<Vector, Vector > getStressAndStrain( const std::valarray<std::pair<Point, double> > & p) const;
 	
 /** \brief get Principal Stresses at given point*/
 	Vector getPrincipalStresses(const Point & , bool local = false) const ;

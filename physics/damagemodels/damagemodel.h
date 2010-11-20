@@ -33,6 +33,7 @@ public:
 	Vector state ;
 	Vector previousstate ;
 	bool isNull ;
+    
 	
 	DamageModel(double characteristicRadius);
 	

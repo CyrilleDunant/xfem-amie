@@ -26,9 +26,8 @@ protected:
 	double eps ;
 	FractureCriterion * e;
 	Vector fixedDamage ;
-	double currentEnergy ;
-	double previousEnergy ;
 	double dcost ;
+	double volume ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
