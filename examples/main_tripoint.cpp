@@ -1635,8 +1635,8 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 1.2e6 ; 
-	double compressionCrit = -37.0e6*.9 ; 
+	double tensionCrit = 3.7e6 ; 
+	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
 	double mradius = .05 ;
 	
@@ -1645,7 +1645,7 @@ int main(int argc, char *argv[])
 	double nu_steel = 0.3 ; 
 	
 	double nu = 0.2 ;
-	double E_paste = 37e9 ;
+	double E_paste = 38e9 ;
 	
 	
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
@@ -1698,10 +1698,13 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
+// 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  mradius*5;
+	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(tensionCrit, compressionCrit, MIRROR_X))) ;
+	sample.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius) ;
+	sample.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(mradius*5) ;
 	F.addBoundaryCondition(load) ;
 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );

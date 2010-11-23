@@ -24,6 +24,8 @@ VonMises::~VonMises()
 
 double VonMises::grade(const ElementState &s)
 {
+	metInCompression = true ;
+	metInTension = true ;
 	double maxStress = s.getMaximumVonMisesStress() ;
 
 	if(maxStress > threshold )

@@ -113,6 +113,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 	double score = 0 ;
 	double energy = 0 ;
 	double volume = 0 ;
+
 	if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 	{
 		Circle c(getMaterialCharacteristicRadius(), s.getParent()->getCenter()) ;
@@ -168,9 +169,10 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			{
 				double a = elements[i]->area() ;
 				elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
+				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					originalscore += elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				originalenergy += elements[i]->getState().elasticEnergy()*a ;
+					originalscore += sc ;
+				originalenergy += elements[i]->getState().elasticEnergy()*a*(1.-sc)*.5 ;
 			}
 		}
 		
@@ -239,9 +241,10 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			if(elements[i]->getBehaviour()->getFractureCriterion())
 			{
 				double v = elements[i]->volume() ;
+				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					originalscore += elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				originalenergy += elements[i]->getState().elasticEnergy()*v ;
+					originalscore += sc ;
+				originalenergy += elements[i]->getState().elasticEnergy()*v*(1.-sc)*.5 ;
 			}
 		}
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -309,10 +312,11 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			if(elements[i]->getBehaviour()->getFractureCriterion())
 			{
 				double a = elements[i]->area() ;
+				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					score += elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				energy += elements[i]->getState().elasticEnergy()*a ;
+					score += sc;
+				energy += elements[i]->getState().elasticEnergy()*a*(1.-sc)*.5 ;
 			}
 		}
 		
@@ -378,9 +382,10 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 		{
 			if(elements[i]->getBehaviour()->getFractureCriterion())
 			{
+				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					score += elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				energy += elements[i]->getState().elasticEnergy()*elements[i]->volume() ;
+					score += sc ;
+				energy += elements[i]->getState().elasticEnergy()*elements[i]->volume()*(1.-sc)*.5 ;
 			}
 		}
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -390,7 +395,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 	}
 	
 	
-	return std::make_pair((originalscore-score)/delta_d, (originalenergy-energy)/delta_d) ;
+	return std::make_pair( (originalenergy-energy)/(delta_d*volume),(originalscore-score)) ;
 }
 
 void FractureCriterion::step(const ElementState &s)
@@ -477,7 +482,7 @@ bool FractureCriterion::met(const ElementState &s)
 		if(testedTri->visited)
 			return false ;
 		
-		if (scoreAtState <= 0)
+		if (scoreAtState <= -tol)
 			return false ;
 
 		double maxNeighbourhoodScore = 0 ;
@@ -531,38 +536,69 @@ bool FractureCriterion::met(const ElementState &s)
 			return false ;
 		
 		std::vector<DelaunayTriangle *> maxloci ;
+		bool nearmaxlocus = false;
 		
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			if(cache[i]->getBehaviour()->getFractureCriterion())
 				if(std::abs(cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol)
+				{
 					maxloci.push_back(cache[i]) ;
+					if(!nearmaxlocus && squareDist2D(maxloci.back()->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
+						nearmaxlocus = true ;
+				}
 		}
 		
 		bool foundcutoff = false ;
 		double thresholdscore = maxNeighbourhoodScore ;
-		
+		double avgscore = 0 ;
+		double trialarea = std::min(physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI*.25, areamax) ;
 		for(std::map<double, DelaunayTriangle *>::iterator i = scores.begin() ; i != scores.end() ; ++i)
 		{
 			
 			if(!foundcutoff)
 			{
-				if(-i->first > 0 )
+				double parea = matchedArea ;
+				double narea = areatemp[i->second] ;
+				matchedArea += narea ;
+				double a(narea) ;
+				if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
 				{
-					matchedArea += areatemp[i->second] ;
-					if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
-					  matchedArea += areatemp[i->second] ;
-					if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
-					  matchedArea += areatemp[i->second] ;
-					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-					  matchedArea += areatemp[i->second] ;
-					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-					  matchedArea += areatemp[i->second] ;
+					matchedArea += a ;
+					narea += a ;
 				}
-				if (matchedArea > std::min(physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI, areamax))
+				if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+				{
+					matchedArea += a ;
+					narea += a ;
+				}
+				if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+				{
+					matchedArea += a ;
+					narea += a ;
+				}
+				if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+				{
+					matchedArea += a ;
+					narea += a ;
+				}
+				avgscore = (parea*avgscore - narea*i->first)/matchedArea ;
+
+				if (avgscore <= 0 && matchedArea >= trialarea)
 				{
 					thresholdscore = -i->first ;
-					foundcutoff  = true ;
+					foundcutoff = true ;
+					break ;
+				}
+				else if (avgscore < 0 && matchedArea < trialarea)
+				{
+					foundcutoff = false ;
+					break ;
+				}
+				else if (avgscore > 0 && matchedArea >= trialarea)
+				{
+					thresholdscore = -i->first ;
+					foundcutoff = true ;
 					break ;
 				}
 			}
@@ -571,10 +607,8 @@ bool FractureCriterion::met(const ElementState &s)
 		}
 		if (!foundcutoff )
 			return false ;
-
-		for(size_t i = 0 ; i < maxloci.size() ; i++)
-			if(squareDist2D(maxloci[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
-				return true ;
+		if (nearmaxlocus)
+			return true ;
 		
 		return false ;
 

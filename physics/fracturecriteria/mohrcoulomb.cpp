@@ -44,6 +44,8 @@ double MohrCoulomb::grade(const ElementState &s)
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
 	metInTension = false ;
 	metInCompression = false ;
+	metInCompression = std::abs(minStress/downVal) > std::abs(maxStress/upVal) ;
+	metInTension = std::abs(minStress/downVal) < std::abs(maxStress/upVal) ;
 	if( maxStress >= upVal )
 	{
 		metInTension = true;

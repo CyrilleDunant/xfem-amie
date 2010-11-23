@@ -21,8 +21,8 @@ namespace Mu
 	DamageModel::DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
 	{ 
 		isNull = true ; 
-		thresholdDamageDensity = .2 ;
-		secondaryThresholdDamageDensity = .2 ;
+		thresholdDamageDensity = .999999999999 ;
+		secondaryThresholdDamageDensity = .99999999999999 ;
 		damageDensityIncrement = .01 ;
 		fraction = -1 ;
 	} ;

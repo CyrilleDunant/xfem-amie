@@ -48,16 +48,17 @@ void IndexedLinearDamage::step(ElementState & s)
 			volume = s.getParent()->volume() ;
 		}
 		
-		double dd = 1e-2 ;
-		if((1.-state[0])-1e-2 < POINT_TOLERANCE)
-			dd = -1e-2 ;
+		double dd = 1e-4 ;
+		if((1.-state[0])-1e-4 < POINT_TOLERANCE)
+			dd = -1e-4 ;
 		std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
 		
 		//ener_delta.first*delta_d+ener_delta.second*delta_d*dcost = currentEnergy-previousEnergy ;
 		//delta_d = (ener_delta.first+ener_delta.second*dcost)/(currentEnergy-previousEnergy)
-		double delta_d =e->getDeltaEnergyAtState()/(volume*dcost +ener_delta.first) ;
-		if(delta_d < -ener_delta.second*state[0])
-			delta_d = -ener_delta.second*state[0] ;
+		double delta_d = e->getDeltaEnergyAtState()/(dcost*(e->getScoreAtState()+ener_delta.second)*.5 +ener_delta.first) ;
+		delta_d *= volume ;
+// 		if(delta_d < -ener_delta.second+state[0])
+// 			delta_d = -ener_delta.second+state[0] ;
 		if(state[0]+delta_d >= 1)
 			state[0] = 1 ;
 		else if(state[0]+delta_d < fixedDamage[0])
@@ -65,7 +66,7 @@ void IndexedLinearDamage::step(ElementState & s)
 		else
 			state[0] += delta_d ;
 		
-		std::cout << ener_delta.second << "  " << delta_d << std::endl ;
+		std::cout << ener_delta.first << "  " << ener_delta.second << "  " << delta_d << std::endl ;
 		
 // 		std::cout << " * " << delta_d << "  " << ener_delta.second*dcost*volume << "  " << ener_delta.first<< std::endl ;
 // 		std::cout << " / " << delta_d << "  " << ener_delta.second*dcost/volume << "  " << ener_delta.first<< std::endl ;

@@ -376,8 +376,8 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 10;
-	size_t max_limit = 1000 ;
+	size_t max_growth_steps = 1;
+	size_t max_limit = 100 ;
 	int countit = 0;	
 	int limit = 0 ;
 	
@@ -1727,6 +1727,7 @@ int main(int argc, char *argv[])
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(0.01), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
+// 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(0.01, -0.01) , cradius) ; 
 	saf->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
@@ -1740,8 +1741,8 @@ int main(int argc, char *argv[])
 	saif->dfunc->setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-// 	sample.setBehaviour(saf) ;
-	sample.setBehaviour(saif) ;
+	sample.setBehaviour(saf) ;
+// 	sample.setBehaviour(saif) ;
 // 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
