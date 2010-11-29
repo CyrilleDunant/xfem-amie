@@ -104,9 +104,9 @@ double x_max = 0 ;
 double y_max = 0 ;
 double disp = 0 ;
 BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
-double width = 500;
-double height = 500;
-Sample sample(NULL, height , height, 0, 0) ;
+double width = 20;
+double height = 10;
+Sample sample(NULL, width , height, 0, 0) ;
 double x_min = 0 ;
 double y_min = 0 ;
 
@@ -138,7 +138,7 @@ Vector g_count(0) ;
 
 double nu = 0.3 ;
 double E_agg = 30000.;//softest
-double E_paste = 1 ; //E_agg/4. ;//stiff
+double E_paste = 147.25 ; //E_agg/4. ;//stiff
 double E_stiff = E_agg*10. ;//stiffer
 double E_soft = E_agg/10.; //stiffest
 
@@ -408,7 +408,7 @@ void step()
 			std::cout << " " << limit << std::endl ;
 		if(limit < max_limit)
 		{
-			imposeddisp->setData(imposeddisp->getData()+1);
+			imposeddisp->setData(imposeddisp->getData()+0.1);
 			go = true ;
 		}
 
@@ -1702,7 +1702,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	Sample sm(0.07, 0.07, 0, 0) ;
+	Sample sm(0.2, 0.1, 0, 0) ;
 // 	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00002, .72, 65).getFeatures(sm.getPrimitive()) ;
 // 	exit (0);
 // 	for(int i = 0 ; i < incs.size() ; i++)
@@ -1714,16 +1714,16 @@ int main(int argc, char *argv[])
 // 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 250 ;
-	double mradius = 15 ;
+	double cradius = 100 ;
+	double mradius = 1.2 ;
 	double tdamage = .999 ;
-	double dincrement = .02 ;
+	double dincrement = .01 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
 	dfunc->setMaterialCharacteristicRadius(mradius) ;
 	dfunc->setThresholdDamageDensity(tdamage);
 	dfunc->setDamageDensityIncrement(dincrement);
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, .0002, mradius*.5) ;
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 0.156, mradius*.175) ;
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(0.01), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
@@ -1733,7 +1733,7 @@ int main(int argc, char *argv[])
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	saf->dfunc->setThresholdDamageDensity(tdamage);
 	saf->dfunc->setDamageDensityIncrement(dincrement);
-	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new MohrCoulomb(0.01, -0.01) /*VonMises(0.01)*/, cradius) ; //1.5640; 5625 too low ; 5650 too high
+	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new /*MohrCoulomb(0.01, -0.01)*/ VonMises(0.01), cradius) ; //1.5640; 5625 too low ; 5650 too high
 	saif->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saif->criterion->setMaterialCharacteristicRadius(mradius);
 	saif->criterion->setNeighbourhoodRadius(cradius);
@@ -1741,18 +1741,18 @@ int main(int argc, char *argv[])
 	saif->dfunc->setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-	sample.setBehaviour(saf) ;
+// 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(saif) ;
 // 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
-// 	sample.setBehaviour(psp) ;
+	sample.setBehaviour(psp) ;
 // 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
-// 	F.addFeature(&sample, new Pore(20, -155, 155) );
-// 	F.addFeature(&sample, new Pore(20, -85, 85) );
+	F.addFeature(&sample, new Pore(2, -7,2) );
+	F.addFeature(&sample, new Pore(2, 7,-2) );
 // 	F.addFeature(&sample, new Pore(20, 0, 0) );
 // 	F.addFeature(&sample, new Pore(20, 85, -85) );
 // 	F.addFeature(&sample, new Pore(20, 155, -155) );
@@ -1762,7 +1762,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 85, 85) );
 // 	F.addFeature(&sample, new Pore(20, 155, 155) );
 	
-	F.addFeature(&sample, new Pore(20, -250, 0) );
+// 	F.addFeature(&sample, new Pore(20, -250, 0) );
 // 	F.addFeature(&sample, new Pore(20, -200, 0) );
 // 	F.addFeature(&sample, new Pore(20, -150, 0) );
 // 	F.addFeature(&sample, new Pore(20, -100, 0) );
@@ -1772,7 +1772,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 100, -0) );
 // 	F.addFeature(&sample, new Pore(20, 150, -0) );
 // 	F.addFeature(&sample, new Pore(20, 200, -0) );
-	F.addFeature(&sample, new Pore(20, 250, -0) );
+// 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
 
 	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
@@ -1785,10 +1785,11 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM/*_LEFT*/)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM/*_LEFT*/)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 // 	std::vector<Point *> newTips ;
 // 	newTips.push_back(pb);
@@ -1799,7 +1800,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(512) ;
+	F.sample(1024) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

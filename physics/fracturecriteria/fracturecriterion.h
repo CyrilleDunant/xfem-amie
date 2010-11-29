@@ -48,6 +48,8 @@ typedef enum{
 		double scoreAtState ;
 		double deltaScoreAtState ;
 		double deltaEnergyAtState ;
+		double energyDamageDifferential ;
+		double criterionDamageDifferential ;
 		double currentEnergy ;
 		double previousEnergy ;
 		MirrorState mirroring ;
@@ -57,9 +59,13 @@ typedef enum{
 		bool energyIndexed ;
 		bool noEnergyUpdate ;
 		
+	double getDeltaEnergy(const ElementState & s, double delta_d) ;
+		
 	public:
 		
-		double getDeltaEnergyAtState()const {return deltaEnergyAtState ;}
+		double getEnergyDamageDifferential()  const {return energyDamageDifferential ;}
+		double getCriterionDamageDifferential()  const {return criterionDamageDifferential ;}
+		double getDeltaEnergyAtState() const {return deltaEnergyAtState ;}
 		bool metInTension ;
 		bool metInCompression ;
 		

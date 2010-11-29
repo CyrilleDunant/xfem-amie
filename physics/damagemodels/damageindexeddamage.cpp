@@ -48,15 +48,76 @@ void IndexedLinearDamage::step(ElementState & s)
 			volume = s.getParent()->volume() ;
 		}
 		
-		double dd = 1e-4 ;
-		if((1.-state[0])-1e-4 < POINT_TOLERANCE)
-			dd = -1e-4 ;
-		std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
+		double detot = 0 ;
+		double deavg = 0 ;
+		double vtot = 0 ;
+		double remnantEnergy = e->getDeltaEnergyAtState() ;
+		double originalEnergy = remnantEnergy ;
+		std::cout << "originalEnergy : " << originalEnergy << "  "<< std::flush ;
+		std::vector<DelaunayTriangle *> totry ;
+		for(size_t i = 0 ; i < e->getCache().size() ; i++)
+		{
+// 			if(e->getCache()[i]->getBehaviour()->getFractureCriterion()->met(e->getCache()[i]->getState()))
+				totry.push_back(e->getCache()[i]) ;
+		}
+		
+		while(!totry.empty() && remnantEnergy > 0)
+		{
+			int mindeddindex = 0 ;
+			double mindedd = totry[0]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
+			for(size_t i = 0 ; i < totry.size() ; i++)
+			{
+				double dedd = totry[i]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
+				if(dedd < mindedd)
+				{
+					mindedd = dedd ;
+					mindeddindex = i ;
+				}
+			}
+			double dcdd = totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getCriterionDamageDifferential() ;
+			double maxdd = std::max(
+				-1./(1.-totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getScoreAtState())/dcdd,
+				-originalEnergy/totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() 
+ 														) ;
+			if(std::abs(dcdd) < POINT_TOLERANCE)
+				maxdd = 0 ;
+			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] > 1)
+				maxdd = 1.-totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] ;
+			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] < 0)
+				maxdd = totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] ;
+			
+			maxdd *=.1 ;
+			if(totry[mindeddindex] == s.getParent())
+			{
+				if(std::abs(maxdd) > 1e-7)
+					std::cout << maxdd << std::endl ;
+				state[0] += maxdd ;
+				return ;
+			}
+			std::cout << remnantEnergy << "  "<< std::flush ;
+			remnantEnergy += maxdd*totry[mindeddindex]->area()*totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
+			totry.erase(totry.begin()+mindeddindex) ;
+		}
+		
+		for(size_t i = 0 ; i < e->getCache().size() ; i++)
+		{
+			double dedd = e->getCache()[i]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
+			double a = e->getCache()[i]->area() ;
+			deavg += dedd*a ;
+			vtot += a ;
+			detot += dedd*dedd ;
+		}
+		detot = sqrt(detot) ;
+		deavg /= vtot ;
+		if(detot < POINT_TOLERANCE)
+			detot = 1 ;
+
+// 		std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
 		
 		//ener_delta.first*delta_d+ener_delta.second*delta_d*dcost = currentEnergy-previousEnergy ;
 		//delta_d = (ener_delta.first+ener_delta.second*dcost)/(currentEnergy-previousEnergy)
-		double delta_d = e->getDeltaEnergyAtState()/(dcost*(e->getScoreAtState()+ener_delta.second)*.5 +ener_delta.first) ;
-		delta_d *= volume ;
+		double delta_d = -e->getEnergyDamageDifferential()/detot ; /*/(dcost*(e->getScoreAtState()+ener_delta.second)*.5 +ener_delta.first) */;
+// 		delta_d *= volume ;
 // 		if(delta_d < -ener_delta.second+state[0])
 // 			delta_d = -ener_delta.second+state[0] ;
 		if(state[0]+delta_d >= 1)
@@ -66,7 +127,7 @@ void IndexedLinearDamage::step(ElementState & s)
 		else
 			state[0] += delta_d ;
 		
-		std::cout << ener_delta.first << "  " << ener_delta.second << "  " << delta_d << std::endl ;
+		std::cout << delta_d << std::endl ;
 		
 // 		std::cout << " * " << delta_d << "  " << ener_delta.second*dcost*volume << "  " << ener_delta.first<< std::endl ;
 // 		std::cout << " / " << delta_d << "  " << ener_delta.second*dcost/volume << "  " << ener_delta.first<< std::endl ;

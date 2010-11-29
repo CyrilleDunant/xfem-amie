@@ -237,8 +237,8 @@ void fastForward (int steps, int nstepstot)
 
 void step()
 {
-	int nsteps = 600;
-	int nstepstot = 600;
+	int nsteps = 300;
+	int nstepstot = 300;
 	int maxtries = 200 ;
 	int tries = 0 ;
 	
@@ -1863,7 +1863,7 @@ int main(int argc, char *argv[])
 	Circle cercle(.5, 0,0) ;
 
 	zones = generateExpansiveZonesHomogeneously(3000, inclusions, F) ;
-	F.sample(1280) ;
+	F.sample(800) ;
 	if(restraintDepth > 0)
 	{
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;

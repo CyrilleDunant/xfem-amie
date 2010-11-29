@@ -16,9 +16,286 @@
 #include "../../solvers/assembly.h"
 using namespace Mu ;
 
-FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), neighbourhoodvolume(-1), physicalCharacteristicRadius(.008), scoreAtState(0), metInTension(false), metInCompression(false), mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z), deltaScoreAtState(0), deltaEnergyAtState(0), energyIndexed(false), noEnergyUpdate(true)
+FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), neighbourhoodvolume(-1), physicalCharacteristicRadius(.008), scoreAtState(0), metInTension(false), metInCompression(false), mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z), deltaScoreAtState(0), deltaEnergyAtState(0), energyDamageDifferential(0), criterionDamageDifferential(0), energyIndexed(false), noEnergyUpdate(true)
 {
 }
+
+double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
+{
+	Assembly K ;
+	double originalscore = 0 ;
+	double originalenergy = 0 ;
+	double score = 0 ;
+	double energy = 0 ;
+	double volume = 0 ;
+
+	if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		Circle c(getMaterialCharacteristicRadius(), s.getParent()->getCenter()) ;
+
+		std::vector<DelaunayTriangle *> elements ;
+		std::vector<LinearForm *> behaviours ;
+		TriElement father(LINEAR) ;
+
+		for(size_t i = 0 ; i < cache.size() ; i++)
+		{
+
+			elements.push_back(new DelaunayTriangle(NULL, NULL,   cache[i]->first,  cache[i]->second,   cache[i]->third,  NULL) );
+			elements.back()->setBehaviour(cache[i]->getBehaviour()->getCopy()) ;
+			elements.back()->refresh(&father);
+			elements.back()->getState().initialize() ;
+			K.add(elements.back());
+			volume += elements.back()->area() ;
+			for(size_t j = 0 ; j < cache[i]->neighbour.size() ; j++)
+			{
+				if(cache[i]->getNeighbour(j)->isTriangle )
+				{
+					DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(cache[i]->getNeighbour(j)) ;
+					if(tri->getBehaviour()->type != VOID_BEHAVIOUR)
+					{
+						for(size_t k = 0 ; k <  tri->getBoundingPoints().size() ; k++)
+						{
+							if(!c.in(tri->getBoundingPoint(k)))
+							{
+								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
+								{
+									int id = tri->getBoundingPoint(k).id ;
+									double ex = tri->getState().getDisplacements()[l*2];
+									double ey = tri->getState().getDisplacements()[l*2+1];
+									K.setPoint(ex, ey ,id);
+									break ;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		K.cgsolve() ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+			elements[i]->step(0., &K.getDisplacements()) ;
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			if(elements[i]->getBehaviour()->getFractureCriterion())
+			{
+				double a = elements[i]->area() ;
+				originalenergy += elements[i]->getState().elasticEnergy()*a ;
+			}
+		}
+		
+		std::valarray<Point *> nularray(0) ;
+		
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			elements[i]->setBoundingPoints(nularray) ;
+			delete elements[i] ;
+		}
+		
+	}
+	else
+	{
+		Sphere c(getMaterialCharacteristicRadius(), s.getParent()->getCenter()) ;
+		
+		std::vector<DelaunayTetrahedron *> elements ;
+		std::vector<LinearForm *> behaviours ;
+		TetrahedralElement father ;
+		for(size_t i = 0 ; i < cache3d.size() ; i++)
+		{
+
+			elements.push_back(new DelaunayTetrahedron(NULL, NULL,   cache3d[i]->first,  cache3d[i]->second,   cache3d[i]->third, cache3d[i]->fourth,  NULL) );
+			elements.back()->setBehaviour(cache3d[i]->getBehaviour()->getCopy()) ;
+			
+			elements.back()->refresh(&father);
+			elements.back()->getState().initialize() ;
+			K.add(elements.back());
+			volume+= elements.back()->volume() ;
+			
+			for(size_t j = 0 ; j < cache3d[i]->neighbour.size() ; j++)
+			{
+				if(cache3d[i]->getNeighbour(j)->isTetrahedron() )
+				{
+					DelaunayTetrahedron * tri = dynamic_cast<DelaunayTetrahedron *>(cache3d[i]->getNeighbour(j)) ;
+					if(tri->getBehaviour()->type != VOID_BEHAVIOUR)
+					{
+						for(size_t k = 0 ; k <  tri->getBoundingPoints().size() ; k++)
+						{
+							if(!c.in(tri->getBoundingPoint(k)))
+							{
+								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
+								{
+									int id = tri->getBoundingPoint(k).id ;
+									double ex = tri->getState().getDisplacements()[l*3];
+									double ey = tri->getState().getDisplacements()[l*3+1];
+									double ez = tri->getState().getDisplacements()[l*3+2];
+									K.setPoint(ex, ey, ez ,id);
+									break ;
+								}
+							}
+						}
+					}
+				}
+			}
+		
+			
+		}
+	
+		K.cgsolve() ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+			elements[i]->step(0., &K.getDisplacements()) ;
+		
+		double energy = 0 ;
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			if(elements[i]->getBehaviour()->getFractureCriterion())
+			{
+				double v = elements[i]->volume() ;
+				originalenergy += elements[i]->getState().elasticEnergy()*v ;
+			}
+		}
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			delete elements[i] ;
+		}
+	}
+	
+	
+	
+	if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		Circle c(getMaterialCharacteristicRadius(), s.getParent()->getCenter()) ;
+
+		std::vector<DelaunayTriangle *> elements ;
+		std::vector<LinearForm *> behaviours ;
+		TriElement father(LINEAR) ;
+
+		for(size_t i = 0 ; i < cache.size() ; i++)
+		{
+
+			elements.push_back(new DelaunayTriangle(NULL, NULL,   cache[i]->first,  cache[i]->second,   cache[i]->third,  NULL) );
+			elements.back()->setBehaviour(cache[i]->getBehaviour()->getCopy()) ;
+
+			if(cache[i] == s.getParent())
+				elements.back()->getBehaviour()->setTensor(elements.back()->getBehaviour()->getTensor(elements.back()->getCenter())*(1.-delta_d)) ;
+
+			elements.back()->getBehaviour()->getFractureCriterion()->setEnergyIndexed(false) ;
+			elements.back()->refresh(&father);
+			elements.back()->getState().initialize() ;
+			K.add(elements.back());
+			volume += elements.back()->area() ;
+			for(size_t j = 0 ; j < cache[i]->neighbour.size() ; j++)
+			{
+				if(cache[i]->getNeighbour(j)->isTriangle )
+				{
+					DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(cache[i]->getNeighbour(j)) ;
+					if(tri->getBehaviour()->type != VOID_BEHAVIOUR)
+					{
+						for(size_t k = 0 ; k <  tri->getBoundingPoints().size() ; k++)
+						{
+							if(!c.in(tri->getBoundingPoint(k)))
+							{
+								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
+								{
+									int id = tri->getBoundingPoint(k).id ;
+									double ex = tri->getState().getDisplacements()[l*2];
+									double ey = tri->getState().getDisplacements()[l*2+1];
+									K.setPoint(ex, ey ,id);
+									break ;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	
+		K.cgsolve() ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+			elements[i]->step(0., &K.getDisplacements()) ;
+
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			if(elements[i]->getBehaviour()->getFractureCriterion())
+			{
+				double a = elements[i]->area() ;
+				energy += elements[i]->getState().elasticEnergy()*a ;
+			}
+		}
+
+		std::valarray<Point *> nularray(0) ;
+		
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			elements[i]->setBoundingPoints(nularray) ;
+			delete elements[i] ;
+		}
+	}
+	else
+	{
+		Sphere c(getMaterialCharacteristicRadius(), s.getParent()->getCenter()) ;
+		
+		std::vector<DelaunayTetrahedron *> elements ;
+		std::vector<LinearForm *> behaviours ;
+		TetrahedralElement father ;
+		for(size_t i = 0 ; i < cache3d.size() ; i++)
+		{
+			
+			elements.push_back(new DelaunayTetrahedron(NULL, NULL,   cache3d[i]->first,  cache3d[i]->second,   cache3d[i]->third, cache3d[i]->fourth,  NULL) );
+			elements.back()->setBehaviour(cache3d[i]->getBehaviour()->getCopy()) ;
+			if(cache3d[i] == s.getParent())
+				elements.back()->getBehaviour()->setTensor(elements.back()->getBehaviour()->getTensor(elements.back()->getCenter())*(1.-delta_d)) ;
+			elements.back()->getBehaviour()->getFractureCriterion()->setEnergyIndexed(false) ;
+			elements.back()->refresh(&father);
+			elements.back()->getState().initialize() ;
+			K.add(elements.back());
+			volume+= elements.back()->volume() ;
+			
+			for(size_t j = 0 ; j < cache3d[i]->neighbour.size() ; j++)
+			{
+				if(cache3d[i]->getNeighbour(j)->isTetrahedron() )
+				{
+					DelaunayTetrahedron * tri = dynamic_cast<DelaunayTetrahedron *>(cache3d[i]->getNeighbour(j)) ;
+					if(tri->getBehaviour()->type != VOID_BEHAVIOUR)
+					{
+						for(size_t k = 0 ; k <  tri->getBoundingPoints().size() ; k++)
+						{
+							if(!c.in(tri->getBoundingPoint(k)))
+							{
+								int id = tri->getBoundingPoint(k).id ;
+								double ex = tri->getState().getDisplacements()[k*3];
+								double ey = tri->getState().getDisplacements()[k*3+1];
+								double ez = tri->getState().getDisplacements()[k*3+2];
+								K.setPoint(ex, ey, ez ,id);
+							}
+						}
+					}
+				}
+			}
+		
+			
+		}
+	
+		K.cgsolve() ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+			elements[i]->step(0., &K.getDisplacements()) ;
+		
+		double energy = 0 ;
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			if(elements[i]->getBehaviour()->getFractureCriterion())
+			{
+				energy += elements[i]->getState().elasticEnergy()*elements[i]->volume() ;
+			}
+		}
+		for(size_t i = 0 ; i < elements.size() ;i++)
+		{
+			delete elements[i] ;
+		}
+	}
+	
+	
+	return (originalenergy-energy)/(delta_d) ;
+}
+
 
 void FractureCriterion::initialiseCache(const ElementState & s)
 {
@@ -155,24 +432,19 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 					}
 				}
 			}
-		
-			
 		}
-	
 		K.cgsolve() ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 			elements[i]->step(0., &K.getDisplacements()) ;
-		
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{
 			if(elements[i]->getBehaviour()->getFractureCriterion())
 			{
 				double a = elements[i]->area() ;
-				elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
-				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+				double sc = elements[i]->getBehaviour()->getFractureCriterion()->grade(elements[i]->getState()) ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					originalscore += sc ;
-				originalenergy += elements[i]->getState().elasticEnergy()*a*(1.-sc)*.5 ;
+					originalscore += 1./(1.-sc) ;
+				originalenergy += elements[i]->getState().elasticEnergy()*a ;
 			}
 		}
 		
@@ -183,6 +455,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			elements[i]->setBoundingPoints(nularray) ;
 			delete elements[i] ;
 		}
+		
 	}
 	else
 	{
@@ -243,8 +516,8 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 				double v = elements[i]->volume() ;
 				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					originalscore += sc ;
-				originalenergy += elements[i]->getState().elasticEnergy()*v*(1.-sc)*.5 ;
+					originalscore += 1./(1.-sc) ;
+				originalenergy += elements[i]->getState().elasticEnergy()*v ;
 			}
 		}
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -268,8 +541,10 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 
 			elements.push_back(new DelaunayTriangle(NULL, NULL,   cache[i]->first,  cache[i]->second,   cache[i]->third,  NULL) );
 			elements.back()->setBehaviour(cache[i]->getBehaviour()->getCopy()) ;
+
 			if(cache[i] == s.getParent())
 				elements.back()->getBehaviour()->setTensor(elements.back()->getBehaviour()->getTensor(elements.back()->getCenter())*(1.-delta_d)) ;
+
 			elements.back()->getBehaviour()->getFractureCriterion()->setEnergyIndexed(false) ;
 			elements.back()->refresh(&father);
 			elements.back()->getState().initialize() ;
@@ -299,27 +574,24 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 					}
 				}
 			}
-		
-			
 		}
 	
 		K.cgsolve() ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 			elements[i]->step(0., &K.getDisplacements()) ;
-		
+
 		for(size_t i = 0 ; i < elements.size() ;i++)
 		{
 			if(elements[i]->getBehaviour()->getFractureCriterion())
 			{
 				double a = elements[i]->area() ;
-				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
+				double sc = elements[i]->getBehaviour()->getFractureCriterion()->grade(elements[i]->getState()) ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					score += sc;
-				energy += elements[i]->getState().elasticEnergy()*a*(1.-sc)*.5 ;
+					score += 1./(1.-sc);
+				energy += elements[i]->getState().elasticEnergy()*a ;
 			}
 		}
-		
+
 		std::valarray<Point *> nularray(0) ;
 		
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -384,8 +656,8 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			{
 				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
-					score += sc ;
-				energy += elements[i]->getState().elasticEnergy()*elements[i]->volume()*(1.-sc)*.5 ;
+					score += 1./(1.-sc) ;
+				energy += elements[i]->getState().elasticEnergy()*elements[i]->volume() ;
 			}
 		}
 		for(size_t i = 0 ; i < elements.size() ;i++)
@@ -395,7 +667,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 	}
 	
 	
-	return std::make_pair( (originalenergy-energy)/(delta_d*volume),(originalscore-score)) ;
+	return std::make_pair( (energy-originalenergy)/(delta_d),(score-originalscore)/(delta_d)) ;
 }
 
 void FractureCriterion::step(const ElementState &s)
@@ -404,7 +676,7 @@ void FractureCriterion::step(const ElementState &s)
 	if(energyIndexed && s.getDeltaTime() > POINT_TOLERANCE )
 		noEnergyUpdate = true ;
 	
-	if(energyIndexed && noEnergyUpdate && scoreAtState > 0)
+	if(energyIndexed && noEnergyUpdate /*&& scoreAtState > -.5*/)
 	{
 		noEnergyUpdate = false ;
 		currentEnergy = 0 ;
@@ -443,9 +715,19 @@ void FractureCriterion::step(const ElementState &s)
 			}
 		}
 		deltaEnergyAtState = (currentEnergy-previousEnergy) ;
+		
 		previousEnergy = currentEnergy ;
+		
 		return ;
 	}
+	
+	if(energyIndexed /*&& scoreAtState > -.5*/)
+	{
+		std::pair<double, double> dedc = getDeltaEnergyDeltaCriterion(s, 0.0001) ;
+		energyDamageDifferential = dedc.first ;
+		criterionDamageDifferential = dedc.second ;
+	}
+
 }
 
 FractureCriterion::~FractureCriterion()

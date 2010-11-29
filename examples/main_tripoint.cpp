@@ -1702,9 +1702,10 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  mradius*5;
-	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new MohrCoulomb(tensionCrit, compressionCrit, MIRROR_X))) ;
-	sample.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius) ;
-	sample.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(mradius*5) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  mradius*5;
 	F.addBoundaryCondition(load) ;
 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
@@ -1730,7 +1731,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(800) ;
+	F.sample(400) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;
 	F.get2DMesh()->insert(new Point(1.7, -1.2)) ;

@@ -230,9 +230,15 @@ ElementState::ElementState(IntegrableEntity * s)
 double ElementState::getVonMisesStrain(const Point& p, bool local) const
 {
 	Vector eps = getPrincipalStrains(p, local) ;
+	Matrix e = getStrainMatrix(p, local) ;
 	
 	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 	{
+		Matrix p(2, 2) ;
+		p[0][0] = 0.5*(e[0][0]+e[1][1]) ;
+		p[1][1] = 0.5*(e[0][0]+e[1][1]) ;
+		e = e - p ;
+// 		return sqrt(2./3.*(e[0][0]*e[0][0]+e[0][1]*e[0][1]+e[1][0]*e[1][0]+e[1][1]*e[1][1])) ;
 		return sqrt(2./3*(eps[0]*eps[0]+eps[1]*eps[1])) ;
 	}
 	else if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
@@ -344,7 +350,7 @@ double ElementState::getPreviousMaximumVonMisesStress() const
 		if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 		{
 			Vector sigma = getPreviousPrincipalStresses( parent->getCenter()) ;
-			return sqrt(sigma[0]*sigma[0] + sigma[1]*sigma[1]-sigma[0]*sigma[1]) ;
+			return sqrt((sigma[0]*sigma[0] + sigma[1]*sigma[1]+(sigma[0]-sigma[1])*(sigma[0]-sigma[1])))/2. ;
 		}
 		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
@@ -411,7 +417,7 @@ double ElementState::getMaximumVonMisesStress() const
 		if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 		{
 			Vector sigma = getPrincipalStresses( parent->getCenter()) ;
-			return sqrt(((sigma[0]-sigma[1])*(sigma[0]-sigma[1]))/2.) ;
+			return sqrt(((sigma[0]-sigma[1])*(sigma[0]-sigma[1])+sigma[0]*sigma[0]+sigma[1]*sigma[1])/2.) ;
 		}
 		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
@@ -442,8 +448,7 @@ double ElementState::getMaximumVonMisesStress() const
 			for(size_t i = 0 ; i < principalStresses.size()/2 ; i++)
 			{
 				maxS = std::max(maxS,
-					sqrt(principalStresses[i*2+0]*principalStresses[i*2+0]+principalStresses[i*2+1]*principalStresses[i*2+1]-principalStresses[i*2+0]*principalStresses[i*2+1])
-				                ) ;
+					sqrt(((principalStresses[i*2+0]-principalStresses[i*2+1])*(principalStresses[i*2+0]-principalStresses[i*2+1])+principalStresses[i*2+0]*principalStresses[i*2+0]+principalStresses[i*2+1]*principalStresses[i*2+1])/2.)) ;
 			}
 			
 			return maxS ;
