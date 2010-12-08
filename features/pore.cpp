@@ -154,9 +154,9 @@ Point * TriangularPore::pointAfter(size_t i)
 
 void TriangularPore::sample(size_t n)
 {
-	n = std::max(3*n, (size_t)32) ;
+// 	n = std::max(3*n, (size_t)32) ;
 
-	this->sampleSurface(3*n-1) ;
+	this->sampleSurface(n*1.5) ;
 }
 
 

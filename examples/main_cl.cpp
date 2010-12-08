@@ -185,7 +185,7 @@ void step()
 		bool damage = false ;
 
 		dit = 0;
-		featureTree->step(0.001) ;
+		featureTree->step(0.00025) ;
 		go_on = (
 						featureTree->solverConverged() && 
 						(
@@ -1783,21 +1783,19 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&expanding, &core) ;
 
 	double itzSize = 0.00005;
-	int inclusionNumber = 64 ; // 10 100 500 1000 2000 4000
+	int inclusionNumber = 512 ; // 10 100 500 1000 2000 4000
 	inclusions = GranuloBolome(1.06366e-05*(.15*.012/(.07*.07)), 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 
+	
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
 		feats.push_back(inclusions[i]) ;
-
-
+	int nAgg = 0 ;
+	feats=placement(sample.getPrimitive(), feats, &nAgg,0, 6400);
 	inclusions.clear() ;
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
-
 	
-	int nAgg = 0 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg,0, 6400);
 	double volume = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 		volume += feats[i]->area() ;

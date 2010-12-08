@@ -53,7 +53,7 @@ void IndexedLinearDamage::step(ElementState & s)
 		double vtot = 0 ;
 		double remnantEnergy = e->getDeltaEnergyAtState() ;
 		double originalEnergy = remnantEnergy ;
-		std::cout << "originalEnergy : " << originalEnergy << "  "<< std::flush ;
+// 		std::cout << "originalEnergy : " << originalEnergy << "  "<< std::flush ;
 		std::vector<DelaunayTriangle *> totry ;
 		for(size_t i = 0 ; i < e->getCache().size() ; i++)
 		{
@@ -86,15 +86,14 @@ void IndexedLinearDamage::step(ElementState & s)
 			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] < 0)
 				maxdd = totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] ;
 			
-			maxdd *=.1 ;
+			maxdd *=.01 ;
 			if(totry[mindeddindex] == s.getParent())
 			{
-				if(std::abs(maxdd) > 1e-7)
-					std::cout << maxdd << std::endl ;
+// 				if(std::abs(maxdd) > 1e-7)
+// 					std::cout << maxdd << std::endl ;
 				state[0] += maxdd ;
 				return ;
 			}
-			std::cout << remnantEnergy << "  "<< std::flush ;
 			remnantEnergy += maxdd*totry[mindeddindex]->area()*totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
 			totry.erase(totry.begin()+mindeddindex) ;
 		}

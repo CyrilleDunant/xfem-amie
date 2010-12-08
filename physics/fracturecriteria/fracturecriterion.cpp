@@ -296,7 +296,6 @@ double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 	return (originalenergy-energy)/(delta_d) ;
 }
 
-
 void FractureCriterion::initialiseCache(const ElementState & s)
 {
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
@@ -778,7 +777,7 @@ bool FractureCriterion::met(const ElementState &s)
 		{
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
-				if( cache[i]->getBehaviour()->getFractureCriterion())
+				if(cache[i]->getBehaviour()->getFractureCriterion())
 				{
 					if(!cache[i]->getBehaviour()->fractured())
 						areamax += area[i] ;
@@ -837,7 +836,6 @@ bool FractureCriterion::met(const ElementState &s)
 		double trialarea = std::min(physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI*.25, areamax) ;
 		for(std::map<double, DelaunayTriangle *>::iterator i = scores.begin() ; i != scores.end() ; ++i)
 		{
-			
 			if(!foundcutoff)
 			{
 				double parea = matchedArea ;
@@ -887,7 +885,8 @@ bool FractureCriterion::met(const ElementState &s)
 // 			else
 // 				i->second->visited = true ;
 		}
-		if (!foundcutoff )
+		
+		if (!foundcutoff && areamax > s.getParent()->area())
 			return false ;
 		if (nearmaxlocus)
 			return true ;

@@ -376,8 +376,8 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 1;
-	size_t max_limit = 100 ;
+	size_t max_growth_steps = 20;
+	size_t max_limit = 2000 ;
 	int countit = 0;	
 	int limit = 0 ;
 	
@@ -408,7 +408,7 @@ void step()
 			std::cout << " " << limit << std::endl ;
 		if(limit < max_limit)
 		{
-			imposeddisp->setData(imposeddisp->getData()+0.1);
+			imposeddisp->setData(imposeddisp->getData()+.05);
 			go = true ;
 		}
 
@@ -1715,7 +1715,7 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
 	double cradius = 100 ;
-	double mradius = 1.2 ;
+	double mradius = 5 ;
 	double tdamage = .999 ;
 	double dincrement = .01 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
@@ -1726,8 +1726,8 @@ int main(int argc, char *argv[])
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 0.156, mradius*.175) ;
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(0.01), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
-// 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(0.01, -0.01) , cradius) ; 
+// 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(35), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(30, -30) , cradius) ; 
 	saf->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
@@ -1741,13 +1741,13 @@ int main(int argc, char *argv[])
 	saif->dfunc->setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-// 	sample.setBehaviour(saf) ;
+	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(saif) ;
 // 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
-	sample.setBehaviour(psp) ;
+// 	sample.setBehaviour(psp) ;
 // 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;

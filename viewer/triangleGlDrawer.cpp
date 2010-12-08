@@ -127,36 +127,38 @@ void TriangleGLDrawer::paintGL() {
 	if(!limits.empty())
 	{
 		glBegin(GL_QUAD_STRIP) ;
-		for(double i = 1. ; i > fracup/10000. ; i -= 0.001)
+// 		for(double i = 1. ; i > fracup/10000. ; i -= 0.001)
+// 		{
+// 			HSVtoRGB(&r, &g, &b, 180., 0., 0.1) ;
+// 			glColor4ub(r, g, b, 255) ;
+// 			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
+// 			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
+// 		}
+		for(double i = (double)fracup/10000. ; i > (double)fracdown/10000. ; i -= 0.001)
 		{
-			HSVtoRGB(&r, &g, &b, 180., 0., 0.1) ;
-			glColor4ub(r, g, b, 255) ;
-			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
-			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
-		}
-		for(double i = fracup/10000. ; i > fracdown/10000. ; i -= 0.001)
-		{
-			double where = (i-fracdown/10000.)/(fracup/10000.-fracdown/10000.) ;
+			double where = (1.-((double)fracup/10000.-i)/((double)fracup/10000.-(double)fracdown/10000.)) ;
 			HSVtoRGB(&r, &g, &b, 180., 0., 0.1+0.8*(1.-where)) ;
 			glColor4ub(r, g, b, 255) ;
-			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
-			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
+			glVertex2f((.805-0.5) , (where-0.5)*.7 ) ;
+			glVertex2f((.835-0.5) , (where-0.5)*.7 ) ;
 		}
-		for(double i = fracdown/10000. ; i > 0 ; i -= 0.001)
-		{
-			HSVtoRGB(&r, &g, &b, 180., 0., 0.9) ;
-			glColor4ub(r, g, b, 255) ;
-			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
-			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
-		}
+// 		for(double i = fracdown/10000. ; i > 0 ; i -= 0.001)
+// 		{
+// 			HSVtoRGB(&r, &g, &b, 180., 0., 0.9) ;
+// 			glColor4ub(r, g, b, 255) ;
+// 			glVertex2f((.805-0.5) , (i-0.5)*.7 ) ;
+// 			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
+// 		}
 		glEnd() ;
 		glColor4ub(255, 0, 0, 255) ;
 		for(double i = 1. ; i > 0 ; i -= 0.1)
 		{
+
+			double v = i*(limits[currentSet].first-(limits[currentSet].first-limits[currentSet].second)*(1.-fracup/10000.))+(1.-i)*(limits[currentSet].second+(limits[currentSet].first-limits[currentSet].second)*fracdown/10000.) ;
 			renderText((.805-0.5)+0.05, 
 									(i-0.5)*.7,  
 									0.,
-									QString("%0").arg(i*(limits[currentSet].first-limits[currentSet].second)+limits[currentSet].second));
+									QString("%0").arg(v));
 		}
 	}
 	glFlush();
@@ -340,26 +342,26 @@ void TriangleGLDrawer::grab()
 		 size_t r, g, b ;
 		for(size_t i = 0 ; i< numberOfTriangles ; i++)
 		{
-					glBegin(GL_TRIANGLES) ;
-					for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
-					{
-						float v = ((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i] - min_val)/(max_val-min_val);
-						
-						if(v < fracdown/10000.)
-							v = 0 ;
-						else if(v > fracup/10000.)
-							v = 1 ;
-						else
-							v = (v- fracdown/10000.)/((fracup-fracdown)/10000.) ;
+			glBegin(GL_TRIANGLES) ;
+			for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
+			{
+				float v = ((*valuesAtPoint)[(2+N)*numberOfPointsPerTriangle+j][i] - min_val)/(max_val-min_val);
+				
+				if(v < (double)fracdown/10000.)
+					v = 0 ;
+				else if(v > (double)fracup/10000.)
+					v = 1 ;
+				else
+					v = (v- (double)fracdown/10000.)/(((double)fracup-(double)fracdown)/10000.) ;
 
-						HSVtoRGB(&r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 0.9-v*0.8) ;
-						glColor4ub(r, g, b, 255) ;
+				HSVtoRGB(&r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 0.9-v*0.8) ;
+				glColor4ub(r, g, b, 255) ;
 
-						double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
-						double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
-						glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx + dx-0.2, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy +dy) ;
-					}
-					glEnd() ;
+				double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;
+				double dy = (*valuesAtPoint)[(3)*numberOfPointsPerTriangle+j][i]*mag ;
+				glVertex2f(((*valuesAtPoint)[j*2][i]-min_x)/maxdelta-0.5*cx + dx-0.2, ((*valuesAtPoint)[j*2+1][i]-min_y)/maxdelta-0.5*cy +dy) ;
+			}
+			glEnd() ;
 		}
 
 		glEndList() ;
@@ -459,7 +461,7 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 	currentSet = 0 ;
 	
 	openFile(f) ;
-	fracup = 10000.; 
+	fracup = 10000; 
 	fracdown = 0;
 
 }
@@ -485,7 +487,7 @@ TriangleGLDrawer::TriangleGLDrawer(QWidget *parent) : QGLWidget(parent) {
 	zpos = 1.5 ;	
 	currentSet = 0 ;
 	
-	fracup = 10000.; 
+	fracup = 10000; 
 	fracdown = 0;
 	
 }

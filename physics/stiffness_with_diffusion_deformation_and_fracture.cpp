@@ -186,6 +186,9 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
 		currentState.getParent()->behaviourUpdated = true ;
 		frac = dfunc->fractured() ;
 	}
+	if(frac)
+		imposed = 0 ;
+	
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;

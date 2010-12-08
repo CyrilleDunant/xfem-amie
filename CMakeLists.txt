@@ -300,6 +300,9 @@ target_link_libraries( example Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAG
 add_executable(def examples/main_def.cpp )
 target_link_libraries( def Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
+add_executable(detail examples/main_detail.cpp )
+target_link_libraries( detail Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+
 add_executable(kill examples/main_kill.cpp )
 target_link_libraries( kill Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 

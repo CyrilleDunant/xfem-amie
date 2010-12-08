@@ -75,8 +75,8 @@ protected:
 	
 	size_t currentDisplayList ;
 	int currentSet ;
-	double fracup ; 
-	double fracdown ;
+	int fracup ; 
+	int fracdown ;
 	
 public slots:
 	void setSegmentDown(int) ;

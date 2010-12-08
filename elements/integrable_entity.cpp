@@ -4972,7 +4972,7 @@ Vector ElementState::getPrincipalStrains(const Point & p, bool local ) const
 		Vector strains = getStrain(p,local) ;
 	
 // 		if(parent->getBehaviour()->hasInducedForces())
-// 			stresses -= parent->getBehaviour()->getImposedStrains(p) ;
+// 			strains -= parent->getBehaviour()->getImposedStrains(p) ;
 		Vector lprincipal(2) ;
 		lprincipal[0] = (strains[0]+strains[1])*.5 + 
 			sqrt(

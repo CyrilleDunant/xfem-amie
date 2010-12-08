@@ -172,7 +172,7 @@ void TriangularInclusion::sample(size_t n)
 {
 // 	delete this->boundary ;
 // 	this->boundary = new Circle(radius + radius/(0.25*n), this->Circle::getCenter()) ;
-	this->sampleSurface(2*n) ;
+	this->sampleSurface(n/2) ;
 }
 
 std::vector<Geometry *> TriangularInclusion::getRefinementZones(size_t level) const
