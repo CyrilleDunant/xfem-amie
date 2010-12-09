@@ -7,21 +7,22 @@
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
+#include "../physics/radialstiffnessgradient.h"
 #include "../physics/physics_base.h"
-#include "../physics/materials/paste_behaviour.h"
-#include "../physics/stiffness.h"
-#include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/mcft.h"
+#include "../physics/fracturecriteria/fractionmcft.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
-#include "../physics/fracturecriteria/maxstrain.h"
-#include "../physics/stiffness_with_variable_imposed_deformation.h"
-#include "../physics/stiffness_with_variable_imposed_deformation_and_fracture.h"
-#include "../physics/stiffness_with_diffusion_deformation_and_fracture.h"
+#include "../physics/fracturecriteria/boundedvonmises.h"
+#include "../physics/stiffness.h"
+#include "../physics/stiffness_and_fracture.h"
+#include "../physics/fraction_stiffness_and_fracture.h"
+#include "../physics/void_form.h"
 #include "../physics/weibull_distributed_stiffness.h"
-#include "../physics/weibull_distributed_stiffness_with_variable_imposed_deformation_and_fracture.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
+#include "../features/layeredinclusion.h"
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
 #include "../features/enrichmentInclusion.h"
@@ -29,8 +30,21 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../utilities/itoa.h"
+#include "../utilities/random.h"
+
+
 
 #include <fstream>
+#ifdef HAVE_SSE3
+#include <pmmintrin.h>
+#endif
+#ifdef HAVE_SSE4
+#include <smmintrin.h>
+#endif
+#ifdef HAVE_OPENMP
+#include <omp.h>
+#endif
 
 #include <cmath>
 #include <typeinfo>
@@ -81,6 +95,9 @@
 
 using namespace Mu ;
 
+
+
+
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
@@ -94,22 +111,29 @@ double y_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 
-double timepos = 0.00 ;
-double percent = 0.10 ;
-double placed_area = 0 ;
+double timepos = 0.05e-07 ;
 
+double delta_displacement =  1e-5 ;
+double displacement_tolerance = 0.05*delta_displacement ; 
+double softeningFactor = 1. ;
+
+double percent = 0.01 ;
+double displacement  = 0 ;
+double prescribedDisplacement = 0;
+double derror = 0 ;
+double ierror = 0 ;
+double preverror = 0 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
-
+double apriori_command = 0 ;
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
-std::vector<Inclusion *> inclusions ;
 
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress ;
-std::vector<double> apparent_extension ;
+std::vector<std::pair<double, double> > load_displacement ;
 std::vector< double > loads ;
 std::vector< double > displacements ;
 
@@ -126,85 +150,112 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 
-double nu = 0.3 ;
-double E_agg = 58.9e9 ;
-double E_paste = 12e9 ;
-Matrix m0_agg(3,3) ;
-
+// BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
+BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,0) ;
+// BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * selfload = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, .5-.15, .5, -1, 1, -1, 1)  ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
-double factor = 200 ;
+double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-
-
-// void setBC()
-// {
-// 	triangles = featureTree->getTriangles() ;
-// 	
-// 	for(size_t k = 0 ; k < triangles.size() ;k++)
+void computeDisplacement()
+{
+	x.resize(featureTree->getDisplacements().size()) ;
+	x = featureTree->getDisplacements() ;
+	Circle C(.01, 0, 0.05) ;
+	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
+	std::vector<int> indices ;
+	for(size_t i = 0 ; i < t.size() ; i++)
+	{
+		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
+		{
+		if(C.in(t[i]->getBoundingPoint(c)))
+			indices.push_back(t[i]->getBoundingPoint(c).id) ;
+		}
+	}
+	
+	std::sort(indices.begin(), indices.end()) ;
+	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+	displacement = 0 ;
+	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+	{
+		displacement+=x[(*i)*2+1]/(e-indices.begin()) ;
+	}
+	
+	
+// 	Circle C(.000001, -0.0025, -0.05) ;
+// 	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
+// 	std::vector<int> indices ;
+// 	for(size_t i = 0 ; i < t.size() ; i++)
 // 	{
-// 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
+// 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
 // 		{
-// 			if (triangles[k]->getBoundingPoint(c).y < -0.00499 && triangles[k]->getBoundingPoint(c).x < -.0499)
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-// // 			else if(triangles[k]->getBoundingPoint(c).x < -.0499 && triangles[k]->getBoundingPoint(c).y > 0.00499)
-// // 			{
-// // 				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
-// // 			}
-// // 			else if (triangles[k]->getBoundingPoint(c).y < -0.00499 && triangles[k]->getBoundingPoint(c).x > .0199)
-// // 			{
-// // 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// // 			}
-// 
+// 		if(C.in(t[i]->getBoundingPoint(c)))
+// 			indices.push_back(t[i]->getBoundingPoint(c).id) ;
 // 		}
-// 
 // 	}
-// }
+// 	
+// 	std::sort(indices.begin(), indices.end()) ;
+// 	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+// 	displacement = 0 ;
+// 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+// 	{
+// 		displacement+=x[(*i)*2.]/(e-indices.begin()) ;
+// 	}
+// 
+// 	Circle C0(.000001, 0.0025, -0.05) ;
+// 	std::vector<DelaunayTriangle *> t0 = featureTree->get2DMesh()->getConflictingElements(&C) ;
+// 	std::vector<int> indices0 ;
+// 	for(size_t i = 0 ; i < t0.size() ; i++)
+// 	{
+// 		for(size_t c = 0 ;  c < t0[i]->getBoundingPoints().size() ; c++ )
+// 		{
+// 		if(C0.in(t0[i]->getBoundingPoint(c)))
+// 			indices0.push_back(t0[i]->getBoundingPoint(c).id) ;
+// 		}
+// 	}
+// 	
+// 	std::sort(indices0.begin(), indices0.end()) ;
+// 	std::vector<int>::iterator e0 = std::unique(indices0.begin(), indices0.end()) ;
+// 	double displacement0 = 0 ;
+// 	for(std::vector<int>::iterator i = indices0.begin() ; i != e0 ; i++)
+// 	{
+// 		displacement0+=x[(*i)*2.]/(e0-indices0.begin()) ;
+// 	}
+// 
+// displacement = displacement-displacement0 ;
+}
 
 void step()
 {
-	size_t nsteps = 1024 ; //16*10;
-	size_t nit = 200 ;
-	size_t ntries = 1;
+	
+	size_t nsteps = 1000 ; //16*10;
+	size_t nit = 2 ;
+	size_t ntries = 5;
 	size_t dsteps = 60 ;
 	size_t tries = 0 ;
-	
 	size_t dit = 0 ;
 	int totit = 0 ;
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 		tries = 0 ;
-		bool go_on = true ;
-		bool no_convergence = true ;
-		bool damage = false ;
-
-		dit = 0;
-		featureTree->step(0.00025) ;
-		go_on = (
-						featureTree->solverConverged() && 
-						(
-							featureTree->meshChanged() || 
-							featureTree->enrichmentChanged()
-						)
-					) || 
-					(
-						!featureTree->solverConverged() && 
-						featureTree->reuseDisplacements
-					);
-		
 		while(tries < ntries)
 		{
 			tries++ ;
-			
+			bool go_on = true ;
+			bool no_convergence = true ;
+			bool damage = false ;
+
+			dit = 0;
+			go_on = true ;
+
 			while(go_on && dit < dsteps)
 			{
-				featureTree->step(0) ;
+				featureTree->step(timepos) ;
 				go_on = (
 							featureTree->solverConverged() && 
 							(
@@ -226,7 +277,15 @@ void step()
 			}
 			std::cout << ":" << std::endl ;
 
+
+			if(dit < dsteps)
+			{
+				load->setData(load->getData()-2e5) ;
+				selfload->setData(selfload->getData()-2e5) ;
+				break ;
+			}
 		}
+		
 		
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
@@ -253,7 +312,7 @@ void step()
 		epsilon12.resize(sigma.size()/3) ;
 		vonMises.resize(sigma.size()/3) ;
 		angle.resize(sigma.size()/3) ;
-		Vector forces(featureTree->getAssembly()->getForces()) ;
+		Vector forces(featureTree->getAssembly()->getForces()-featureTree->getAssembly()->getNaturalBoundaryConditionForces()) ;
 		double appliedForce = std::accumulate(&forces[0], &forces[forces.size()], 0.) ;
 		
 		std::cerr << "unknowns :" << x.size() << std::endl ;
@@ -313,9 +372,9 @@ void step()
 							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(triangles[k]->getBoundingPoint(p).x > 0.15*.5*.999)
+						if(triangles[k]->getBoundingPoint(p).y > (1.2+0.051*2)*.5*.999 && triangles[k]->getBoundingPoint(p).x < 0.0001)
 						{
-							e_xx=x[triangles[k]->getBoundingPoint(p).id*2] ;
+							e_xx=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 							ex_count = 1 ;
 						}
 						if(triangles[k]->getBoundingPoint(p).x < 0.0001)
@@ -477,8 +536,8 @@ void step()
 		
 		if(dit < dsteps)
 		{
-			displacements.push_back(avg_e_xx/area);
-			loads.push_back( (avg_s_xx/area)/1000000.);
+			displacements.push_back(1000.*e_xx/(double)ex_count);
+			loads.push_back(appliedForce);
 		}
 		if(v%5 == 0)
 		{
@@ -495,6 +554,7 @@ void step()
 				lya += k->second/lineShearAverage.size() ;
 			}
 			std::cout << std::endl ;
+			std::cout << "load :" << load->getData()/1000. << std::endl ;
 			std::cout << "displacement :" << 1000.*e_xx/(double)ex_count << std::endl ;
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
@@ -531,7 +591,7 @@ void step()
 // 		}
 		
 		if(dit < dsteps)	
-			std::cout << loads.back() << "  " << displacements.back() << std::endl ;
+			std::cout << .4*appliedForce/1000. << "   " << load->getData()/1000. << "  " << displacements.back() << std::endl ;
 		
 		std::fstream ldfile  ;
 		ldfile.open("ldn", std::ios::out) ;
@@ -543,87 +603,12 @@ void step()
 		
 		if(v%5 == 0)
 		{
-			std::stringstream pointfilename ;
-			pointfilename << "difp" ;
-	// 		filename.append(itoa(totit++, 10)) ;
-	// 		std::cout << filename.str() << std::endl ;
-			std::fstream pointfile  ;
-			std::fstream pointfilel  ;
-			std::fstream pointfilelp  ;
-			std::fstream pointfiled  ;
-			
-			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
-			pointfilename << "p" ;
-			pointfilelp.open(pointfilename.str().c_str(), std::ios::out) ;
-			pointfilename << "d" ;
-			pointfiled.open(pointfilename.str().c_str(), std::ios::out) ;
-			pointfilename << v ;
-			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
-			for(double i = -.15/2 ; i<= .15/2+.15/800 ; i += .15/800)
-			{
-				for(double j = -0.012/2 ; j <= 0.012/2+0.012/64 ; j += 0.012/64)
-				{
-					Point p(i,j) ;
-					std::vector<DelaunayTriangle *> tris = featureTree->get2DMesh()->getConflictingElements(&p) ;
-					if(!tris.empty())
-					{
-						bool done = false ;
-						for(size_t k = 0 ; k < tris.size() ; k++)
-						{
-							
-							if(tris[k]->in(p))
-							{
-								StiffnessWithDiffusionDeformationAndFracture * b = dynamic_cast<StiffnessWithDiffusionDeformationAndFracture *>(tris[k]->getBehaviour()) ;
-								if(b)
-								{
-									pointfile << b->phi << "   " ;
-									pointfilel << b->phi << "   " ;
-									pointfilelp << b->accumulatedPhi << "   " ;
-									pointfiled << b->damage[0] << "   " ;
-									done = true ;
-								}
-								else
-								{
-									pointfile << 0 << "   " ;
-									pointfilel  << 0 << "   " ;
-									pointfilelp << 0 << "   " ;
-									pointfiled << 0 << "   " ;
-									done = true ;
-								}
-								break ;
-							}
-						}
-						if(!done)
-						{
-							pointfile << 0 << "   " ;
-							pointfilel << 0 << "   " ;
-							pointfilelp << 0 << "   " ;
-							pointfiled << 0 << "   " ;
-						}
-					}
-					else
-					{
-						pointfile << 0 << "   " ;
-						pointfilel << 0 << "   " ;
-						pointfilelp << 0 << "   " ;
-						pointfiled << 0 << "   " ;
-					}
-				}
-				pointfile << "\n" ;
-				pointfilel << "\n" ;
-				pointfilelp << "\n" ;
-				pointfiled << "\n" ;
-			}
-			
 			std::stringstream filename ;
 			if(dit >= dsteps)
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			if(!loads.empty())
-				filename << round(loads.back()) ;
-			else
-				filename << 0 ;
+			filename << round(.4*appliedForce/1000.) ;
 			filename << "-" ;
 			filename << 1000.*e_xx/(double)ex_count ;
 			
@@ -645,6 +630,7 @@ void step()
 				{
 					outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
 				}
+				
 				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 				{
 					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2]))
@@ -652,6 +638,7 @@ void step()
 					else
 						outfile << 0 << " " ;
 				}
+				
 				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 				{
 					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2+1]))
@@ -659,6 +646,7 @@ void step()
 					else
 						outfile << 0 << " " ;
 				}
+
 				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 				{
 					outfile <<  epsilon11[j*3+l] << " ";
@@ -692,24 +680,14 @@ void step()
 					outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
 				}
 				double damage = 0 ;
-				if(!triangles[j]->getBehaviour()->fractured())
+				if(triangles[j]->getBehaviour()->getDamageModel())
 				{
-					if(triangles[j]->getBehaviour()->getDamageModel())
-					{
-						Vector d = triangles[j]->getBehaviour()->getDamageModel()->damageState() ;
-						damage = std::inner_product(&d[0],&d[d.size()], &d[0], 0.) ;
-					}
-					for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-					{
-						outfile <<  damage << " ";
-					}
+					Vector d = triangles[j]->getBehaviour()->getDamageModel()->damageState() ;
+					damage = std::inner_product(&d[0],&d[d.size()], &d[0], 0.) ;
 				}
-				else
+				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 				{
-					for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-					{
-						outfile <<  1 << " ";
-					}
+					outfile <<  damage << " ";
 				}
 				outfile << "\n" ;
 			}
@@ -739,11 +717,12 @@ void step()
 // 			break ;
 	}
 }
+
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E_csh = 31000000000 ;
+	double E_csh = 31e9 ;
 	double nu_csh = .28 ;
-	double nu_incompressible = .499997 ;
+	double nu_incompressible = 0.499924 ;
 	
 	double E = percent*E_csh ;
 	double nu = nu_csh*percent+nu_incompressible*(1.-percent) ;
@@ -759,18 +738,16 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 		aggregateArea += incs[i]->area() ;
 		for(int j = 0 ; j < n ; j++)
 		{
-			double radius = 0.00005 ;
-			
-			Point pos((2.*rand()/RAND_MAX-1.),(2.*rand()/RAND_MAX-1.)) ;
-			pos /= pos.norm() ;
-			pos *= (2.*rand()/RAND_MAX-1.)*(incs[i]->getRadius() - 0.00003) ;
-			Point center = incs[i]->getCenter()+pos ; 
+			double radius = 0.000001 ;
+			double rangle = (2.*rand()/RAND_MAX-1.)*M_PI ;
+			double rradius = (double)rand()/RAND_MAX*(incs[i]->getRadius()-2.*radius*64) ;
+			Point center = incs[i]->getCenter()+Point(rradius*cos(rangle), rradius*sin(rangle)) ; 
 			
 			bool alone  = true ;
 			
 			for(size_t k = 0 ; k < ret.size() ; k++ )
 			{
-				if (squareDist(center, ret[k].first->Circle::getCenter()) < 32.*(radius+radius)*(radius+radius))
+				if (squareDist(center, ret[k].first->Circle::getCenter()) < 2.*(2.*radius)*(2.*radius)*64*64)
 				{
 					alone = false ;
 					break ;
@@ -779,146 +756,18 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			if (alone)
 			{
 				Vector a(double(0), 3) ;
-				a[0] = 0.03 ;
-				a[1] = 0.03 ;
+				a[0] = .2 ;
+				a[1] = .2 ;
 				a[2] = 0.00 ;
 				
 				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
 				ret.push_back(std::make_pair(z, incs[i])) ;
+				F.addFeature(incs[i],z) ; 
 			}
 		}
-	}
-
-	for(size_t i = 0 ; i < ret.size() ; i++)
-	{
-		ret[i].first->setRadius(0.000001) ;
-		F.addFeature(ret[i].second, ret[i].first) ;
 	}
 	std::cout << "initial Reacted Area = " << M_PI*0.000001*0.000001*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
 	return ret ;	
-}
-
-std::vector<BranchedCrack *> generateCracks(size_t n)
-{
-	std::vector<BranchedCrack *> ret ;
-	std::vector<Circle *> pos ;
-	size_t nit = 0 ;
-	for(size_t j =0 ; j < n && nit < 2048; j++)
-	{
-		nit++ ;
-		double radius = 0.1 + 0.5*rand()/RAND_MAX;
-		
-		Point center = Point(
-		                      (2.*rand()/RAND_MAX-1.),
-		                      (2.*rand()/RAND_MAX-1.)
-		                    )*(3. - .2*radius ) ; 
-
-		
-		bool alone  = true ;
-		
-		for(size_t k = 0 ; k < pos.size() ; k++ )
-		{
-			if (squareDist(center, pos[k]->getCenter()) <
-			    (radius+pos[k]->getRadius()+0.05)*(radius+pos[k]->getRadius()+0.05))
-			{
-				alone = false ;
-				break ;
-			}
-		}
-		if (alone)
-		{
-			pos.push_back(new Circle(radius, center)) ;
-		}
-		else
-			j-- ;
-		
-// 		pos.push_back(new Circle(radius, center)) ;
-
-	}
-	
-	for(size_t j = 0 ; j < pos.size() ; j++)
-	{
-		std::valarray<Point *> ptset1(2) ;
-		double angle = (2.*rand()/RAND_MAX-1.)*M_PI ;
-		double x_0 = pos[j]->getCenter().x + pos[j]->getRadius()*cos(angle);
-		double y_0 = pos[j]->getCenter().y + pos[j]->getRadius()*sin(angle);
-		double x_1 = pos[j]->getCenter().x + pos[j]->getRadius()*cos(angle+M_PI) ;
-		double y_1 = pos[j]->getCenter().y + pos[j]->getRadius()*sin(angle+M_PI);
-		
-		ptset1[0] = new Point(x_0, y_0) ;
-		ptset1[1] = new Point(x_1, y_1) ;
-		ret.push_back(new BranchedCrack(ptset1[0], ptset1[1])) ;
-	}
-	std::cout << "placed " << ret.size() << " cracks" << std::endl ;
-	return ret ;
-} ;
-
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, Matrix * tensor, Feature * father, FeatureTree * F)
-{
-// 	srandom(time(NULL)) ;
-	size_t nombre_de_pores = static_cast<size_t>(round(n*fraction)) ;
-	size_t nombre_d_inclusions = static_cast<size_t>(round(n*(1. - fraction))) ;
-	
-	std::pair<std::vector<Inclusion * >, std::vector<Pore * > > ret ;
-	ret.first = std::vector<Inclusion * >() ;
-	ret.second = std::vector<Pore * >() ;
-	double v = 0 ;
-	std::vector<Circle *> cercles ;
-	for(size_t j =0 ; j < n ; j++)
-	{
-		
-		double radius = .0005 + .0025*rand()/RAND_MAX ;
-		
-		Point center = Point(
-		                      (2.*rand()/RAND_MAX-1.)*(.08-2.*radius-0.00001),
-		                      (2.*rand()/RAND_MAX-1.)*(.02-2.*radius-0.00001)
-		                    ); 
-		bool alone  = true ;
-		
-		for(size_t k = 0 ; k < cercles.size() ; k++ )
-		{
-			if (squareDist(center, cercles[k]->getCenter()) < (radius+cercles[k]->getRadius()+0.00001)*(radius+cercles[k]->getRadius()+0.00001))
-			{
-				alone = false ;
-				break ;
-			}
-		}
-		if (alone)
-		{
-			cercles.push_back(new Circle(radius, center)) ;
-			v+= M_PI*radius*radius ;
-		}
-		else
-			j-- ;
-		
-	}
-	for(size_t j =0 ; j < nombre_d_inclusions ; j++)
-	{
-		Vector imp(double(0),3) ;
-		imp[0] = 0.01 ;
-		imp[1] = 0.01 ;
-		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
-		ret.first.push_back(temp) ;
-// 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, -1000000, 8000000)) ;
-		F->addFeature(father, temp) ;
-	}
-	
-	for(size_t j =0 ; j < nombre_de_pores ; j++)
-	{
-		Pore * temp = new Pore(cercles[j+nombre_d_inclusions]->getRadius(), cercles[j+nombre_d_inclusions]->getCenter()) ;
-		ret.second.push_back(temp) ;
-		F->addFeature(father, temp) ;
-	}
-	
-	for(size_t k = 0 ; k < cercles.size() ; k++ )
-	{
-		delete cercles[k] ;
-	}
-	
-	std::cout << "initial aggregate volume was : " << v << std::endl ;
-	aggregateArea = v ;
-	return ret ;
 }
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
@@ -1607,6 +1456,34 @@ void Display(void)
 					glVertex2f( double(triangles[j]->third->x + vx) ,
 					            double(triangles[j]->third->y + vy) );
 				}
+// 				else
+// 				{
+// 					double vx = x[triangles[j]->first->id*2]; 
+// 					double vy = x[triangles[j]->first->id*2+1]; 
+// 					Point a = triangles[j]->inLocalCoordinates(triangles[j]->getBoundingPoint(0)) ;
+// 					
+// 					HSVtoRGB( &c1, &c2, &c3, 0,0, 300. - 300.*(triangles[j]->getBehaviour()->getTensor(a)[0][0]-E_min)/(E_max-E_min)) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					
+// 					glVertex2f( double(triangles[j]->first->x + vx) ,
+// 					            double(triangles[j]->first->y + vy) );
+// 					
+// 					vx = x[triangles[j]->second->id*2];
+// 					vy = x[triangles[j]->second->id*2+1]; 
+// 					
+// 					glVertex2f( double(triangles[j]->second->x + vx) ,
+// 					            double(triangles[j]->second->y + vy) );
+// 					
+// 					
+// 					vx = x[triangles[j]->third->id*2]; 
+// 					vy = x[triangles[j]->third->id*2+1]; 
+// 					
+// 					
+// 					glVertex2f( double(triangles[j]->third->x + vx) ,
+// 					            double(triangles[j]->third->y + vy) );
+// 					
+// 
+// 				}
 			}
 		}
 		glEnd();
@@ -1627,8 +1504,22 @@ void Display(void)
 				glBegin(GL_LINE_LOOP);
 				for(size_t k = 0 ; k < triangles[j]->getBoundingPoints().size() ; k++)
 				{
-					double vx = x[triangles[j]->getBoundingPoint(k).id*2]; 
-					double vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					double vx = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
+					
+				}
+				glEnd();
+			}
+			else
+			{
+				glColor3f(0, 0, 1) ;
+				glBegin(GL_LINE_LOOP);
+				for(size_t k = 0 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				{
+					double vx = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2]; 
+					double vy = 0 ;//x[triangles[j]->getBoundingPoint(k).id*2+1]; 
 					
 					glVertex2f( double(triangles[j]->getBoundingPoint(k).x+vx) ,  double(triangles[j]->getBoundingPoint(k).y+vy) );
 					
@@ -1642,7 +1533,7 @@ void Display(void)
 		
 		
 		glNewList(  DISPLAY_LIST_CRACK,  GL_COMPILE ) ;
-// 		glLineWidth(4) ;
+		glLineWidth(4) ;
 // 		for(size_t k  = 0 ; k < crack.size() ; k++)
 // 		{
 // 			glColor3f(1, 0, 0) ;
@@ -1743,87 +1634,67 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
-	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
-	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
 
-	double width = atof(argv[1]) ;
+	double tensionCrit = 10.*3.7e6 ; 
+	double compressionCrit = -37.0e6 ; 
+	double phi = 0.14961835  ;
+	double mradius = .05 ;
 	
-	double ratio = atof(argv[2]) ;
-
+	Matrix m0_steel(3,3) ;
+	double E_steel = 200e9 ;
+	double nu_steel = 0.3 ; 
+	
+	double nu = 0.2 ;
+	double E_paste = 38e9 ;
+	
+	
+	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
+	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
+	m0_steel[2][0] = 0 ;                                        m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ; 
+	
+	Matrix m0_barSteel(3,3) ;
+	m0_barSteel[0][0] = E_steel*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[0][1] = E_steel*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[0][2] = 0 ;
+	m0_barSteel[1][0] = E_steel*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[1][1] = E_steel*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[1][2] = 0 ; 
+	m0_barSteel[2][0] = 0 ;                                                      m0_barSteel[2][1] = 0 ;                                                      m0_barSteel[2][2] = E_steel/((1.+nu_steel)) ; 
+	
 	Matrix m0_paste(3,3) ;
-	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
+	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
+	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ;    m0_paste[1][2] = 0 ; 
+	m0_paste[2][0] = 0 ;                     m0_paste[2][1] = 0 ;                     m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)*.5 ; 
 
-	Sample sample(NULL, 0.15, 0.012, 0, 0) ;
+	double l1 = .5 ;
+	double l2 = .369 ;
+	double d1 = .097 ;
+	double d2 = .072 ;
+	Sample sample(l1,l2,l1*.5,l2*.5) ;
+	TriangularInclusion unbreakable(NULL, Point(l1-d1,l2), Point(l1-d1,l2-d2),Point(l1-.15,l2)) ;
+	unbreakable.setBehaviour(new Stiffness(m0_paste));
+	TriangularPore pore0(NULL, Point(0,0), Point(l1,l2), Point(l1,0)) ;
+	TriangularPore pore1(NULL, Point(l1,l2), Point(l1-d1,l2), Point(l1-d1,l2-d2)) ;
 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
+	featureTree->addFeature(&sample, &unbreakable);
+	featureTree->addFeature(&sample, &pore0);
+	featureTree->addFeature(&sample, &pore1);
 
-	Vector a(3) ;
-	a[0] =  0.000705 ; //.0007 low //.00071 high
-	a[1] =  0.000705 ;
-	sample.setBehaviour(new StiffnessWithDiffusionDeformationAndFracture(m0_paste,a, new MohrCoulomb(2.5e6, -20e6)/*new MaximumStrain(.0001)*/)) ; 
-// 	sample.setBehaviour(new PasteBehaviour(E_paste, nu, 2500000*.5, SPACE_TWO_DIMENSIONAL)) ;
-// 
-// 	Sample expanding(&sample, 0.15-width*ratio, 0.012-width*ratio, 0, 0) ;
-// 	expanding.setBehaviour(new WeibullStiffnessWithVariableImposedDeformationAndFracture(m0_paste,a, new MohrCoulomb(2500000*6, -2500000*8*6)/*new MaximumStrain(.0001)*/)) ; 
-// 	// 8 high 
-// 	// 4 low
-// 	// 6 damage only external
-// 	dynamic_cast<WeibullStiffnessWithVariableImposedDeformationAndFracture *>(expanding.getBehaviour())->materialRadius = .001 ;
-// 	dynamic_cast<WeibullStiffnessWithVariableImposedDeformationAndFracture *>(expanding.getBehaviour())->neighbourhoodRadius =  0.1;
-// 	
-// 	Sample core(&expanding, 0.15-width, 0.012-width, 0, 0) ;
-// 	core.setBehaviour(new PasteBehaviour(E_paste, nu, 2500000, SPACE_TWO_DIMENSIONAL)) ;
-// 	
-// 	
-// 	F.addFeature(&sample, &expanding) ;
-// 	F.addFeature(&expanding, &core) ;
-
-	double itzSize = 0.00005;
-	int inclusionNumber = 512 ; // 10 100 500 1000 2000 4000
-	inclusions = GranuloBolome(1.06366e-05*(.15*.012/(.07*.07)), 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
+	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  mradius*5;
+	F.addBoundaryCondition(load) ;
+	F.addBoundaryCondition(selfload) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 
 	
-	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inclusions.size() ; i++)
-		feats.push_back(inclusions[i]) ;
-	int nAgg = 0 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg,0, 6400);
-	inclusions.clear() ;
-	for(size_t i = 0; i < feats.size() ; i++)
-		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
-	
-	double volume = 0 ;
-	for(size_t i = 0 ; i < feats.size() ; i++)
-		volume += feats[i]->area() ;
-	if(!feats.empty())
-		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() 
-		<< ", smallest r =" << feats.back()->getRadius() 
-		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
-
-	
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
-	{
-		inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
-// 		inclusions[i]->setBehaviour(new WeibullDistributedStiffness(m0_agg,57000000*-8., 57000000)) ;
-// 		dynamic_cast<WeibullDistributedStiffness *>(inclusions[i]->getBehaviour())->materialRadius = .001 ;
-// 		dynamic_cast<WeibullDistributedStiffness *>(inclusions[i]->getBehaviour())->neighbourhoodRadius =  0.01 ;
-		F.addFeature(&sample,inclusions[i]) ;
-		placed_area += inclusions[i]->area() ;
-	}
-	F.sample(256) ;
-	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT));
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT));
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT));
+	F.sample(1024) ;
 	F.setOrder(LINEAR) ;
+	F.generateElements(0, true) ;
 
-	F.generateElements() ;
 	triangles = F.getTriangles() ;
+// 	
+	
 	step() ;
 	
 	glutInit(&argc, argv) ;	

@@ -816,18 +816,23 @@ bool FractureCriterion::met(const ElementState &s)
 		if(!maxLocus)
 			return false ;
 		
-		std::vector<DelaunayTriangle *> maxloci ;
+// 		std::vector<DelaunayTriangle *> maxloci ;
 		bool nearmaxlocus = false;
 		
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			if(cache[i]->getBehaviour()->getFractureCriterion())
-				if(std::abs(cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol)
+			{
+				if(maxNeighbourhoodScore-cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() < tol)
 				{
-					maxloci.push_back(cache[i]) ;
-					if(!nearmaxlocus && squareDist2D(maxloci.back()->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
+// 					maxloci.push_back(cache[i]) ;
+					if(squareDist2D(cache[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
+					{
 						nearmaxlocus = true ;
+						break ;
+					}
 				}
+			}
 		}
 		
 		bool foundcutoff = false ;
