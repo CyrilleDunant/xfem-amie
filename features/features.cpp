@@ -814,8 +814,8 @@ void FeatureTree::sample(size_t n)
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 			
 			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
-			size_t npoints = .15*(size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
-			
+			size_t npoints = (size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
+			std::cout << "::" << npoints << std::endl ;
 			if(npoints > 14 && !tree[i]->isVirtualFeature)
 				tree[i]->sample(npoints) ;
 
