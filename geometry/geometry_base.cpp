@@ -4617,35 +4617,40 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point f1_(f1-centre) ;
 	Point f2_(f2-centre) ;
 	Point test_(test-centre) ;
-	double scale = 0.001/sqrt(std::max(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()),f2_.sqNorm())) ;
-	f0_ *=scale ;
-	f1_ *=scale ;
-	f2_ *=scale ;
-	test_ *=scale ;
 	
-	if(test == f1)
-		return true ;
-	if(test == f0)
-		return true ;
-	if(test == f2)
-		return true ;
+	double scale = f0_.norm() ;
+	if(f1_.norm() > scale) { scale = f1_.norm() ; }
+	if(f2_.norm() > scale) { scale = f2_.norm() ; }
+	if(test_.norm() > scale) { scale = test_.norm() ; }
+	scale = 1./scale ;
+	f0_ *= scale ;
+	f1_ *= scale ;
+	f2_ *= scale ;
+	test_ *= scale ;
 	
+	if(test_ == f1_)
+		return true ;
+	if(test_ == f0_)
+		return true ;
+	if(test_ == f2_)
+		return true ;
+		
 	Mu::Point A(f1_-f0_) ;
 	Mu::Point B(f2_-f0_) ; 
 	Mu::Point C(f2_-test_) ;
 
 	double c0 = signedCoplanarity(test_, f0_, f1_, f2_) ;
 	double c02 = c0*c0 ;
-	if(c02 > 8.*std::numeric_limits<double>::epsilon()*A.sqNorm())
+	if(c02 > POINT_TOLERANCE)
 		return false ;
-	if(c02 > 8.*std::numeric_limits<double>::epsilon()*B.sqNorm())
+	if(c02 > POINT_TOLERANCE)
 		return false ;
-	if(c02 > 8.*std::numeric_limits<double>::epsilon()*C.sqNorm())
+	if(c02 > POINT_TOLERANCE)
 		return false ;
 	
 
 	Point normal = A^B ;
-	normal /= normal.norm()*4.*sqrt(std::numeric_limits<double>::epsilon()) ;
+//	normal /= scale ;
 	
 	Point a(test_) ; a += normal ;
 	Point b(test_) ; b -= normal ;

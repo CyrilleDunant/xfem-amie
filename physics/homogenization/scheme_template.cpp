@@ -442,7 +442,7 @@ std::vector<double> SchemeTemplate::elasticityMoriTanakaScheme(std::vector<std::
 	k_hom /= (1 + (K + f_inc*(1-K))/Sk) ;
 	mu_hom *= (Mu/Smu + 1 + f_inc*(Mu-1)) ;
 	mu_hom /= (1 + (Mu + f_inc*(1-Mu))/Smu) ;
-
+	
 	processed.push_back(k_hom) ;
 	processed.push_back(mu_hom) ;
 

@@ -768,7 +768,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0; i < inclusions.size() ; i++)
 //		feats.push_back(ellipses[i]) ;
 	{
-		if(RandomNumber().uniform() < 0.8)
+//		if(RandomNumber().uniform() < 0.5)
 			feats.push_back(inclusions[i]) ;
 	}
 
@@ -799,13 +799,13 @@ int main(int argc, char *argv[])
         }
 
 
-        zones = generateExpansiveZonesHomogeneously(13000, inclusions, F) ;
+//        zones = generateExpansiveZonesHomogeneously(0, inclusions, F) ;
 
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_RIGHT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, shape)) ;
 
-        F.sample(400) ;
+        F.sample(2000) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 

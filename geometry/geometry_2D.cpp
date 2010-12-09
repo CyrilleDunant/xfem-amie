@@ -1228,7 +1228,7 @@ void Rectangle::sampleSurface(size_t num_points)
 {
 	if(this->size() == 4)
 	{
-		this->Rectangle::sampleBoundingSurface((size_t)round((double)num_points*std::max(size_x/size_y, size_y/size_x)/(M_PI*2.))) ;
+		this->Rectangle::sampleBoundingSurface((size_t)round((double)num_points*4*std::max(size_x/size_y, size_y/size_x)/(M_PI*2.))) ;
 	}
 	
 	size_t nip = static_cast<size_t>((numberOfPointsAlongX-2)*(numberOfPointsAlongY-2)) ;

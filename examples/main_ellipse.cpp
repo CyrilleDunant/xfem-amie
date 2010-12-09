@@ -439,14 +439,27 @@ void step()
 		outfile << "TRIANGLES" << std::endl ;
 		outfile << triangles.size() << std::endl ;
 		outfile << 3 << std::endl ;
-		outfile << 8 << std::endl ;
+		outfile << 10 << std::endl ;
 		
 		for(size_t j = 0 ; j < triangles.size() ;j++)
 		{
+			if(triangles[j]->getBehaviour()->type == VOID_BEHAVIOUR)
+				continue ;
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 			{
 				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
 			}
+			
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2] << " ";
+			}
+
+			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			{
+			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2+1] << " " ;
+			}
+
 
 			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
 			{
@@ -481,8 +494,7 @@ void step()
 				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
 			}
 			outfile << "\n" ;
-		}
-		
+		}		
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
 		std::cout << "min value :" << x_min << std::endl ;
@@ -726,9 +738,9 @@ int main(int argc, char *argv[])
 	percent = atof(argv[1]) ;
 	shape = 0.5 ;
 	orientation = 0. ;
-	spread = 0. ;
+	spread = 0.005 ;
 
-	srand(atoi(argv[2])) ;
+//	srand(atoi(argv[2])) ;
 		
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
@@ -736,15 +748,19 @@ int main(int argc, char *argv[])
 	featureTree->reuseDisplacements = true ;
 
  	std::vector<Inclusion *> inclusions ;
- 	inclusions.push_back(new Inclusion(0.00075, 0., 0.)) ;
+ 	inclusions.push_back(new Inclusion(0.0005, 0.0016, 0.)) ;
+ 	inclusions.push_back(new Inclusion(0.0005, 0.00, 0.0001)) ;
+ 	inclusions.push_back(new Inclusion(0.0005, -0.00016, 0.0005)) ;
  	
         int n = 10 ;
 	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
 	
+	std::cout << ellipses[0]->getMinorRadius() << std::endl ;
+	
 	sample.setBehaviour(new PasteBehaviour()) ;
 
         inclusions.clear() ;
-        std::vector<Feature *> feats ;
+/*        std::vector<Feature *> feats ;
         int nAgg = 260 ;
         for(int i = 0 ; i < nAgg ; i++)
         	feats.push_back(new Inclusion(0.0001,0.,0.)) ;
@@ -759,7 +775,7 @@ int main(int argc, char *argv[])
         		std::cout << i << std::endl ;
         	}
         }
-        return 0 ;
+        return 0 ;*/
 
         for(size_t i = 0 ; i < ellipses.size() ; i++)
 	{
@@ -768,14 +784,27 @@ int main(int argc, char *argv[])
                 placed_area += ellipses[i]->area() ;
         }
         
-        zones = generateExpansiveZonesHomogeneously(atof(argv[3]), ellipses, F) ;
+/*        if(static_cast<Ellipse *>(ellipses[0])->intersects(static_cast<Ellipse *>(ellipses[1])))
+        	return 1 ;
+        if(static_cast<Ellipse *>(ellipses[0])->intersects(static_cast<Ellipse *>(ellipses[2])))
+        	return 2 ;
+        if(static_cast<Ellipse *>(ellipses[2])->intersects(static_cast<Ellipse *>(ellipses[1])))
+        	return 3 ;*/
+        
+//        zones = generateExpansiveZonesHomogeneously(1000, ellipses, F) ;
 
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
+/*        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM_RIGHT, -0.0001)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, TOP_L, -0.0001)) ;*/
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5*1e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, -5*1e6)) ;
 
-        F.sample(500) ;
+        F.sample(250) ;
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
 

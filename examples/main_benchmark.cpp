@@ -88,6 +88,8 @@ GLuint DISPLAY_LIST_ANGLE  = 0 ;
 GLuint DISPLAY_LIST_ENRICHMENT = 0 ;
 GLuint DISPLAY_LIST_STIFFNESS_DARK = 0 ;
 
+double scale ;
+
 using namespace Mu ;
 
 int viewangle = 0 ;
@@ -99,6 +101,8 @@ std::vector<bool> cracked ;
 
 double E_min = 10;
 double E_max = 0;
+
+double div_ = 100. ;
 
 double x_max = 0 ;
 double y_max = 0 ;
@@ -374,6 +378,79 @@ void step()
 	
 			}
 		}
+		
+			std::stringstream pointfilename ;
+			pointfilename << "difp_2n" ;
+	// 		filename.append(itoa(totit++, 10)) ;
+	// 		std::cout << filename.str() << std::endl ;
+			std::fstream pointfile  ;
+			std::fstream pointfilel  ;
+			std::fstream pointfilelp  ;
+			std::fstream pointfiled  ;
+			
+/*			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
+			pointfilename << "p" ;
+			pointfilelp.open(pointfilename.str().c_str(), std::ios::out) ;
+			pointfilename << "d" ;
+			pointfiled.open(pointfilename.str().c_str(), std::ios::out) ;
+			pointfilename << v ;*/
+			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
+
+			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
+			{
+				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
+				{
+					Point p(i,j,0.075*scale) ;
+					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
+					if(!tris.empty())
+					{
+						bool done = false ;
+						for(size_t k = 0 ; k < tris.size() ; k++)
+						{
+							
+							if(tris[k]->in(p))
+							{
+								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
+								if(b)
+								{
+									pointfile << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
+/*									pointfilel << b->phi << "   " ;
+									pointfilelp << b->accumulatedPhi << "   " ;
+									pointfiled << b->damage[0] << "   " ;*/
+									done = true ;
+								}
+								else
+								{
+									pointfile << -1 << "   " ;
+/*									pointfilel  << 0 << "   " ;
+									pointfilelp << 0 << "   " ;
+									pointfiled << 0 << "   " ;*/
+									done = true ;
+								}
+								break ;
+							}
+						}
+						if(!done)
+						{
+							pointfile << -1 << "   " ;
+/*							pointfilel << 0 << "   " ;
+							pointfilelp << 0 << "   " ;
+							pointfiled << 0 << "   " ;*/
+						}
+					}
+					else
+					{
+						pointfile << -1 << "   " ;
+/*						pointfilel << 0 << "   " ;
+						pointfilelp << 0 << "   " ;
+						pointfiled << 0 << "   " ;*/
+					}
+				}
+				pointfile << "\n" ;
+/*				pointfilel << "\n" ;
+				pointfilelp << "\n" ;
+				pointfiled << "\n" ;*/
+			}
 			
 		xavg /= volume ;
 		
@@ -1362,7 +1439,8 @@ void processMouseActiveMotion(int x, int y) {
 
 int main(int argc, char *argv[])
 {
-	
+	scale = atof(argv[1]) ;
+
 // 	Point *p0 = new Point(500, 500, 0) ;
 // Point *p1 = new Point(500, 0, 500) ;
 // Point *p2 = new Point(500, 0, 0) ;
@@ -1426,15 +1504,15 @@ int main(int argc, char *argv[])
 // 	std::cout << miny << ";" << maxy << std::endl ;
 // 	std::cout << minz << ";" << maxz << std::endl ;
 
-	double scale = 5000 ;
-	Sample3D sample(NULL, 0.01905*scale, 0.0762*scale, 0.0762*scale ,0.01905*scale*.5/*+0.0762*4.*scale*.5*/, 0.0762*scale*.5, 0.0762*scale*.5) ;
-	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
+	scale = atof(argv[1]) ;
+	Sample3D sample(NULL, 0.15*scale, 0.15*scale, 0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+//	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 	double nu = 0.2 ;
-	double E = 250e9 ;
+	double E = 1 ;
 
 	Matrix m0(6,6) ;
 	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
@@ -1456,59 +1534,80 @@ int main(int argc, char *argv[])
 	m1[5][5] = 0.5 - nu ;
 	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
 
-//	Stiffness * smatrix = new Stiffness(m0) ;
 	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 	double v = 0 ;
-// 	if(!inclusions.empty())
-// 	{
-// // 		F.addFeature(&sample, inclusions[0]) ;
-// 		for(size_t i = 0 ; i < 1000/*inclusions.size()*/; i++)
-// 		{
-// 			static_cast<Sphere *>(inclusions[i])->setRadius(inclusions[i]->getRadius()*scale) ;
-// 			static_cast<Sphere *>(inclusions[i])->setCenter(inclusions[i]->getCenter()*scale) ;
-// 			inclusions[i]->setBehaviour(new Stiffness(m1)) ;
-// 			F.addFeature(&sample, inclusions[i]) ;
-// 			v += static_cast<Sphere *>(inclusions[i])->volume() ;
-// 		}
-// 	}
+	
+	std::vector<std::string> columns ;
+	columns.push_back("center_x") ;
+	columns.push_back("center_y") ;
+	columns.push_back("center_z") ;
+	columns.push_back("radius") ;
+	
+	GranuloFromFile spheres("sphere_2024.txt", columns) ;
+	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
+	
+	Stiffness * inclusionStiffness = new Stiffness(m1) ;
+	
+/*	for(int i = 0 ; i < inclusions.size() ; i++)
+	{
+		inclusions[i]->setBehaviour(inclusionStiffness) ;
+		F.addFeature(&sample, inclusions[i]) ;
+		v += inclusions[i]->volume() ;
+	}*/
+	
+	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	inc->setBehaviour(inclusionStiffness) ;
+	F.addFeature(&sample, inc) ;
 
-// 	Inclusion3D * inc = new Inclusion3D(100, 500, 0, 0) ;
-// 	inc->setBehaviour(new Stiffness(m1)) ;
-// 	F.addFeature(&sample, inc) ;
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(4096*8) ;
+	F.sample(atof(argv[2])) ;
+	
+/*	for(int i = 0 ; i < inclusions.size() ; i++)
+	{
+		if(inclusions[i]->intersects(dynamic_cast<Hexahedron *>(&sample)))
+		{
+			PointArray in = inclusions[i]->getInPoints() ;
+			std::vector<Point> innewvector ;
+			for(int j = 0 ; j < in.size() ; j++)
+			{
+				Point p(in[j]->x, in[j]->y, in[j]->z) ;
+				if(! (std::abs(p.x) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.y) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.z) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.x-0.15*scale) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.y-0.15*scale) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.z-0.15*scale) < scale*1000*POINT_TOLERANCE ||
+					(p.x) < scale*1000*POINT_TOLERANCE ||
+					(p.y) < scale*1000*POINT_TOLERANCE ||
+					(p.z) < scale*1000*POINT_TOLERANCE ||
+					(0.15*scale-p.x) < scale*1000*POINT_TOLERANCE ||
+					(0.15*scale-p.y) < scale*1000*POINT_TOLERANCE ||
+					(0.15*scale-p.z) < scale*1000*POINT_TOLERANCE))
+				{
+					innewvector.push_back(p) ;
+				}
+			}
+			PointArray innewarray(innewvector.size()) ;
+			for(int k = 0 ; k < innewvector.size() ; k++)
+			{
+				innewarray[k] = &innewvector[k] ;
+			}
+			if(innewarray.size() != in.size())
+			{
+				inclusions[i]->setInPoints(innewarray) ;
+				std::cout << i << " changed size" << std::endl ;
+			}
+		}
+	}*/
+	
 	F.setOrder(LINEAR) ;
 	F.generateElements() ;
+	
+	div_ = atof(argv[3]) ;
 
-	double rad = 0.0074 ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 2e6)) ;
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 
-																				 -100*scale, 
-																				  100*scale, 
-																				 -rad*scale+0.0762*scale*.5, 
-																				  rad*scale+0.0762*scale*.5, 
-																				 -rad*scale+0.0762*scale*.5, 
-																				  rad*scale+0.0762*scale*.5, 
-																				 0)) ;
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_ALONG_ETA, LEFT, 
-																				 -100*scale, 
-																				  100*scale, 
-																				 -rad*scale+0.0762*scale*.5, 
-																				 rad*scale+0.0762*scale*.5, 
-																				 -rad*scale+0.0762*scale*.5, 
-																				 rad*scale+0.0762*scale*.5, 
-																				 0)) ;
-	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_ALONG_ZETA, LEFT, 
-																				 -100*scale, 
-																				  100*scale, 
-																				 -rad*scale+0.0762*scale*.5,
-																				  rad*scale+0.0762*scale*.5, 
-																				 -rad*scale+0.0762*scale*.5, 
-																				  rad*scale+0.0762*scale*.5, 
-																				 0)) ;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
@@ -1564,7 +1663,7 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(Display) ;
 	glutMainLoop() ;
 	
-// 	delete dt ;
+// 	delete dt ;*/
 	
 	return 0 ;
 }

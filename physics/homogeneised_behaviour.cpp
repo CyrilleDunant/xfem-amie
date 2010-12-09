@@ -34,35 +34,33 @@ using namespace Mu ;
 
 HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
 {
+	source = mesh2d->getConflictingElements(self2d->getPrimitive()) ;
 
-	std::vector<DelaunayTriangle * > feats = mesh2d->getConflictingElements(self->getPrimitive()) ;
-	Material hom ;
-	for(size_t i = 0 ; i < feats.size() ; i++)
+	double totalArea = 0 ;
+	for(size_t i = 0 ; i < source.size() ; i++)
 	{
-		Material inc = feats[i]->getBehaviour()->toMaterial() ;
-		inc.setProperties(P_VOLUME, feats[i]->area()) ;
-		hom.addPhase(inc) ;
-		hom.mergePhase() ;
+		if(source[i]->getBehaviour() && source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		{
+			Form * copy = source[i]->getBehaviour()->getCopy() ;
+			source[i]->setBehaviour(copy) ;
+			param = Matrix(source[i]->getBehaviour()->param.numRows(), source[i]->getBehaviour()->param.numCols()) ;
+			break ;
+		}
 	}
-	Material eq = homogenize(hom) ;
-	equivalent = getEquivalentBehaviour(eq) ;
+
+//	homogenize() ;	
 
 	v.push_back(XI);
 	v.push_back(ETA);
-	
-
-	reverted = false ;
 } ;
 
 HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
 {
 	std::vector<Point> corner = self->getSamplingBoundingPoints(0) ;
 	
-	if(self->getBehaviour())
+	if(self != NULL)
 		base = self->getBehaviour()->toMaterial() ;
-	else
-		base = feats[0]->getBehaviour()->toMaterial() ;
-		
+
 	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
 	tri.setBehaviour(self->getBehaviour()->getCopy()) ;
 
@@ -97,6 +95,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 	v.push_back(XI);
 	v.push_back(ETA);
 	
+	std::cout << "homogenization" << std::endl ;
+
 	reverted = false ;
 }
 
