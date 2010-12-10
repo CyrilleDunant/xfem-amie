@@ -424,6 +424,9 @@ void Tetrahedron::sampleSurface(size_t num_points)
 
 bool Tetrahedron::in(const Point & v) const
 {
+	if(!inCircumSphere(v))
+		return false ;
+	
 	Point  pg=(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
 	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
 	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
@@ -1246,7 +1249,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 void Sphere::smooth(std::vector<Point> & points,double r) const
 {
 	std::valarray<Point> speeds(/*Point(), */points.size()) ;
-	for(size_t i = 0 ; i < 20 ; i++)
+	for(size_t i = 0 ; i < 120 ; i++)
 	{
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -1311,7 +1314,7 @@ void Sphere::sampleSurface(size_t num_points)
 		return ;
 
 	if(this->boundingPoints.size() == 0)
-		sampleBoundingSurface(num_points*4) ;
+		sampleBoundingSurface(num_points*8) ;
 	
 	std::vector<Point> points ;
 
