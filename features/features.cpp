@@ -3379,7 +3379,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 						+ tree[0]->in(proj4)
 						+ tree[0]->in(proj5) ;
 						
-					std::cout << !indescendants << (squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE) << /*inRoot(inter[k]) && */"(" << onSurface << (tooClose == 5) << onEdge << (tooClose == 4) << onVertex<< ")" << std::endl ;
 						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
 						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
 						{
