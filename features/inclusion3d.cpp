@@ -101,7 +101,7 @@ Point * Inclusion3D::pointAfter(size_t i)
 	
 void Inclusion3D::sample(size_t n)
 {
-	this->Sphere::sampleSurface(4*n) ;
+	this->Sphere::sampleSurface(n) ;
 }
 
 OctahedralInclusion::OctahedralInclusion(Feature *father, double r, double x, double y, double z) :RegularOctahedron(r, x, y,z ), Feature(father)

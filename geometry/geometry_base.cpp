@@ -1028,6 +1028,7 @@ Point Plane::intersection(const Line &l) const
 {
 	double lambda = 0  ;
 	double c = p*v ;
+
 	if(std::abs(v*(l.origin() + l.vector() - p )) < POINT_TOLERANCE)
 	{
 		return l.origin() ;
@@ -1924,7 +1925,6 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					return ret ;
 				
 				C.sampleBoundingSurface(num_points) ;
-				
 				for(size_t i = 0 ;  i < num_points ; i++)
 				{
 					ret.push_back(C.getBoundingPoint(i)) ;
@@ -2196,6 +2196,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							break ;
 					}
 				}
+				
 			}
 			if(g->getGeometryType() == TETRAHEDRON)
 			{
@@ -2248,6 +2249,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				Plane p3(*t3.point[0], t3.normal) ;
 				
 			}
+			
 			return ret ;
 		}
 	case TETRAHEDRON:
@@ -2842,6 +2844,8 @@ bool Line::intersects(const Segment &s) const
 
 bool Line::on(const Point &m) const
 {
+	if( m == p)
+		return true ;
 	return isAligned(m, p, (p+v)) ;
 }
 
@@ -2868,7 +2872,6 @@ Point Line::intersection(const Line &l) const
 	invert2x2Matrix(m) ;
 	
 	Vector fac = m * vec ;
-
 	return p + v*fac[0];
 	
 }
@@ -3230,6 +3233,8 @@ Point Line::projection(const Point &m ) const
 {
 	if(on(m))
 		return m ;
+	std::cout << "dir "<< std::flush ;v.print();
+	
 	Point n0 = v^(m-p) ;
 	Point n = v^n0 ;
 	Line line(m, n) ;
@@ -3429,22 +3434,61 @@ bool Segment::intersects(const Geometry *g) const
 
 bool Segment::intersects(const TriPoint *g) const
 {
-	if(isCoplanar(f, *g->point[0],*g->point[1],*g->point[2]))
-		return g->in(f) ;
-	if(isCoplanar(s, *g->point[0],*g->point[1],*g->point[2]))
-		return g->in(s) ;
-	Vector vec(3) ;
-	vec[0] = f.x - g->point[0]->x ;
-	vec[1] = f.y - g->point[0]->y ;
-	vec[2] = f.z - g->point[0]->z ;
-
-	Matrix mat(3,3) ;
-	mat[0][0] = f.x-s.x; mat[0][1] = g->point[1]->x-g->point[0]->x; mat[0][2] = g->point[2]->x-g->point[0]->x; 
-	mat[1][0] = f.y-s.y; mat[1][1] = g->point[1]->y-g->point[0]->y; mat[1][2] = g->point[2]->y-g->point[0]->y; 
-	mat[2][0] = f.z-s.z; mat[2][1] = g->point[1]->z-g->point[0]->z; mat[2][2] = g->point[2]->z-g->point[0]->z; 
-	Vector tuv = inverse3x3Matrix(mat)*vec ;
-
-	return tuv.max() <=1 && tuv.min() >= 0 &&tuv[1] +tuv[2] <= 1  ;
+	
+	Point v(*g->point[1]-*g->point[0]) ;
+	Point u(*g->point[2]-*g->point[0]) ;
+	
+	Point dir = first()-second();        
+	Point w0 = second() - *g->point[0];
+	Point n = u ^ v ;
+	double a = -(n*w0) ;
+	double b = n*dir;
+  if (std::abs(b) < POINT_TOLERANCE) 
+	{
+		if (std::abs(a) < POINT_TOLERANCE) 
+			return true;
+		return false ;
+	}
+	
+	double r = a /b ;
+	
+	if(r < 0 || r > 1)
+		return false ;
+	
+	Point intersect(second()+dir*r) ;
+	Point w(intersect-*g->point[0]) ;
+	
+	double uv = u*v;
+	double wu = u*w;
+	double wv = v*w;
+	double uu = u*u;
+	double vv = u*u;
+	double d = uv*uv -uu*vv ;
+	double s = (uv*wv-vv*wu)/d ;
+	if (s < -POINT_TOLERANCE || s > 1.+POINT_TOLERANCE)        // I is outside T
+         return false;
+	double t = (uv*wu-uu*wv)/d ;
+	if (t < -POINT_TOLERANCE || (s + t) > 1.+POINT_TOLERANCE)
+		return false ;
+	
+	return true ;
+	
+// 	if(isCoplanar(f, *g->point[0],*g->point[1],*g->point[2]))
+// 		return g->in(f) ;
+// 	if(isCoplanar(s, *g->point[0],*g->point[1],*g->point[2]))
+// 		return g->in(s) ;
+// 	Vector vec(3) ;
+// 	vec[0] = f.x - g->point[0]->x ;
+// 	vec[1] = f.y - g->point[0]->y ;
+// 	vec[2] = f.z - g->point[0]->z ;
+// 
+// 	Matrix mat(3,3) ;
+// 	mat[0][0] = f.x-s.x; mat[0][1] = g->point[1]->x-g->point[0]->x; mat[0][2] = g->point[2]->x-g->point[0]->x; 
+// 	mat[1][0] = f.y-s.y; mat[1][1] = g->point[1]->y-g->point[0]->y; mat[1][2] = g->point[2]->y-g->point[0]->y; 
+// 	mat[2][0] = f.z-s.z; mat[2][1] = g->point[1]->z-g->point[0]->z; mat[2][2] = g->point[2]->z-g->point[0]->z; 
+// 	Vector tuv = inverse3x3Matrix(mat)*vec ;
+// 
+// 	return tuv.max() <=1 && tuv.min() >= 0 &&tuv[1] +tuv[2] <= 1  ;
 
 }
 

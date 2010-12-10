@@ -1033,24 +1033,24 @@ void Hexahedron::project(Point * p) const
 	Line l11(bbox[3], bbox[3]-bbox[7]) ;
 	
 	std::map<double, Point> targets ;
-	targets[dist(p0.projection(*p), *p)] = p0.projection(*p) ;// std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
-	targets[dist(p1.projection(*p), *p)] = p1.projection(*p) ;// std::cout << bbox[4].x << " 2 : ";p1.projection(*p).print() ;
-	targets[dist(p2.projection(*p), *p)] = p2.projection(*p) ;// std::cout << bbox[0].y << " 3 : ";p2.projection(*p).print() ;
-	targets[dist(p3.projection(*p), *p)] = p3.projection(*p) ;// std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
-	targets[dist(p4.projection(*p), *p)] = p4.projection(*p) ;// std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
-	targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ;// std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
-	targets[dist(l0.projection(*p), *p)] = l0.projection(*p) ;// std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
-	targets[dist(l1.projection(*p), *p)] = l1.projection(*p) ;// std::cout << bbox[4].x << " 2 : ";p1.projection(*p).print() ;
-	targets[dist(l2.projection(*p), *p)] = l2.projection(*p) ;// std::cout << bbox[0].y << " 3 : ";p2.projection(*p).print() ;
-	targets[dist(l3.projection(*p), *p)] = l3.projection(*p) ;// std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
-	targets[dist(l4.projection(*p), *p)] = l4.projection(*p) ;// std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
-	targets[dist(l5.projection(*p), *p)] = l5.projection(*p) ;// std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
-	targets[dist(l6.projection(*p), *p)] = l6.projection(*p) ;// std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
-	targets[dist(l7.projection(*p), *p)] = l7.projection(*p) ;// std::cout << bbox[4].x << " 2 : ";p1.projection(*p).print() ;
-	targets[dist(l8.projection(*p), *p)] = l8.projection(*p) ;// std::cout << bbox[0].y << " 3 : ";p2.projection(*p).print() ;
-	targets[dist(l9.projection(*p), *p)] = l9.projection(*p) ;// std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
-	targets[dist(l10.projection(*p), *p)] = l10.projection(*p) ;// std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
-	targets[dist(l11.projection(*p), *p)] = l11.projection(*p) ;// std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
+	targets[dist(p0.projection(*p), *p)] = p0.projection(*p) ; std::cout << bbox[0].x << " 1 : "; p0.projection(*p).print() ;
+	targets[dist(p1.projection(*p), *p)] = p1.projection(*p) ; std::cout << bbox[4].x << " 2 : ";p1.projection(*p).print() ;
+	targets[dist(p2.projection(*p), *p)] = p2.projection(*p) ; std::cout << bbox[0].y << " 3 : ";p2.projection(*p).print() ;
+	targets[dist(p3.projection(*p), *p)] = p3.projection(*p) ; std::cout << bbox[2].y << " 4 : ";p3.projection(*p).print() ;
+	targets[dist(p4.projection(*p), *p)] = p4.projection(*p) ; std::cout << bbox[0].z << " 5 : ";p4.projection(*p).print() ;
+	targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ; std::cout << bbox[1].z << " 6 : ";p5.projection(*p).print() ;
+	targets[dist(l0.projection(*p), *p)] = l0.projection(*p) ; std::cout << bbox[0].x << " 7 : "; l0.projection(*p).print() ;
+	targets[dist(l1.projection(*p), *p)] = l1.projection(*p) ; std::cout << bbox[4].x << " 8 : ";l1.projection(*p).print() ;
+	targets[dist(l2.projection(*p), *p)] = l2.projection(*p) ; std::cout << bbox[0].y << " 9 : ";l2.projection(*p).print() ;
+	targets[dist(l3.projection(*p), *p)] = l3.projection(*p) ; std::cout << bbox[2].y << " 10 : ";l3.projection(*p).print() ;
+	targets[dist(l4.projection(*p), *p)] = l4.projection(*p) ; std::cout << bbox[0].z << " 11 : ";l4.projection(*p).print() ;
+	targets[dist(l5.projection(*p), *p)] = l5.projection(*p) ; std::cout << bbox[1].z << " 12 : ";l5.projection(*p).print() ;
+	targets[dist(l6.projection(*p), *p)] = l6.projection(*p) ; std::cout << bbox[0].x << " 13 : "; l6.projection(*p).print() ;
+	targets[dist(l7.projection(*p), *p)] = l7.projection(*p) ; std::cout << bbox[4].x << " 14 : ";l7.projection(*p).print() ;
+	targets[dist(l8.projection(*p), *p)] = l8.projection(*p) ; std::cout << bbox[0].y << " 15 : ";l8.projection(*p).print() ;
+	targets[dist(l9.projection(*p), *p)] = l9.projection(*p) ; std::cout << bbox[2].y << " 16 : ";l9.projection(*p).print() ;
+	targets[dist(l10.projection(*p), *p)] = l10.projection(*p) ; std::cout << bbox[0].z << " 17 : ";l10.projection(*p).print() ;
+	targets[dist(l11.projection(*p), *p)] = l11.projection(*p) ; std::cout << bbox[1].z << " 18 : ";l11.projection(*p).print() ;
 	for(size_t i = 0 ; i < 8 ; i++)
 		targets[dist(*p, bbox[i])] = bbox[i] ;
 	

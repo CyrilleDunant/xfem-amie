@@ -1044,7 +1044,7 @@ void Display(void)
 					double c2 ;
 					double c3 ;
 					
-					if(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01)
+					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->first->id*3]; 
@@ -1070,7 +1070,7 @@ void Display(void)
 						glEnd() ;
 					}
 					
-					if(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
+					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->first->id*3]; 
@@ -1096,7 +1096,7 @@ void Display(void)
 						glEnd() ;
 					}
 					
-					if(std::abs(tets[j]->first->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
+					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->first->id*3]; 
@@ -1122,7 +1122,7 @@ void Display(void)
 						glEnd() ;
 					}
 					
-					if(std::abs(tets[j]->second->x-500) < 0.01 && std::abs(tets[j]->third->x-500) < 0.01 && std::abs(tets[j]->fourth->x-500) < 0.01)
+					if(std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
 					{
 						glBegin(GL_LINE_LOOP);
 						double vx = x[tets[j]->third->id*3]; 
@@ -1556,7 +1556,7 @@ int main(int argc, char *argv[])
 		v += inclusions[i]->volume() ;
 	}*/
 	
-	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.15*scale, 0.075*scale, 0.075*scale) ;
 	inc->setBehaviour(inclusionStiffness) ;
 	F.addFeature(&sample, inc) ;
 
