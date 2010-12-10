@@ -381,25 +381,21 @@ void step()
 		
 			std::stringstream pointfilename ;
 			pointfilename << "difp_2n" ;
-	// 		filename.append(itoa(totit++, 10)) ;
-	// 		std::cout << filename.str() << std::endl ;
 			std::fstream pointfile  ;
 			std::fstream pointfilel  ;
-			std::fstream pointfilelp  ;
-			std::fstream pointfiled  ;
-			
-/*			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
-			pointfilename << "p" ;
-			pointfilelp.open(pointfilename.str().c_str(), std::ios::out) ;
-			pointfilename << "d" ;
-			pointfiled.open(pointfilename.str().c_str(), std::ios::out) ;
-			pointfilename << v ;*/
 			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
-
+			pointfilename << "p" ;
+			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
+			
+			
+			int counter = 0 ;
 			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
 			{
 				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
 				{
+					counter++ ;
+					if(counter%1000 == 0)
+						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
 					Point p(i,j,0.075*scale) ;
 					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
 					if(!tris.empty())
@@ -452,6 +448,72 @@ void step()
 				pointfiled << "\n" ;*/
 			}
 			
+		
+			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
+		
+			counter = 0 ;
+			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
+			{
+				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
+				{
+					counter++ ;
+					if(counter%1000 == 0)
+						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
+					Point p(i,j,1) ;
+					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
+					if(!tris.empty())
+					{
+						bool done = false ;
+						for(size_t k = 0 ; k < tris.size() ; k++)
+						{
+							
+							if(tris[k]->in(p))
+							{
+								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
+								if(b)
+								{
+									pointfilel << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
+/*									pointfilel << b->phi << "   " ;
+									pointfilelp << b->accumulatedPhi << "   " ;
+									pointfiled << b->damage[0] << "   " ;*/
+									done = true ;
+								}
+								else
+								{
+									pointfilel << -1 << "   " ;
+/*									pointfilel  << 0 << "   " ;
+									pointfilelp << 0 << "   " ;
+									pointfiled << 0 << "   " ;*/
+									done = true ;
+								}
+								break ;
+							}
+						}
+						if(!done)
+						{
+							pointfilel << -1 << "   " ;
+/*							pointfilel << 0 << "   " ;
+							pointfilelp << 0 << "   " ;
+							pointfiled << 0 << "   " ;*/
+						}
+					}
+					else
+					{
+						pointfilel << -1 << "   " ;
+/*						pointfilel << 0 << "   " ;
+						pointfilelp << 0 << "   " ;
+						pointfiled << 0 << "   " ;*/
+					}
+				}
+				pointfilel << "\n" ;
+/*				pointfilel << "\n" ;
+				pointfilelp << "\n" ;
+				pointfiled << "\n" ;*/
+			}
+			
+		
+			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
+		
 		xavg /= volume ;
 		
 		std::cout << std::endl ;
@@ -1044,10 +1106,117 @@ void Display(void)
 					double c2 ;
 					double c3 ;
 					
-// 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01)
-					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2)
+// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_LINES);
+// 						double vx = x[tets[j]->first->id*3]; 
+// 						double vy = x[tets[j]->first->id*3+1]; 
+// 						double vz = x[tets[j]->first->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 						
+// 						vx = x[tets[j]->second->id*3]; 
+// 						vy = x[tets[j]->second->id*3+1]; 
+// 						vz = x[tets[j]->second->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
+// 						
+// 						vx = x[tets[j]->third->id*3]; 
+// 						vy = x[tets[j]->third->id*3+1]; 
+// 						vz = x[tets[j]->third->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_LINES);
+// 						double vx = x[tets[j]->first->id*3]; 
+// 						double vy = x[tets[j]->first->id*3+1]; 
+// 						double vz = x[tets[j]->first->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 						
+// 						vx = x[tets[j]->second->id*3]; 
+// 						vy = x[tets[j]->second->id*3+1]; 
+// 						vz = x[tets[j]->second->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+// 						
+// 						vx = x[tets[j]->fourth->id*3]; 
+// 						vy = x[tets[j]->fourth->id*3+1]; 
+// 						vz = x[tets[j]->fourth->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_LINES);
+// 						double vx = x[tets[j]->first->id*3]; 
+// 						double vy = x[tets[j]->first->id*3+1]; 
+// 						double vz = x[tets[j]->first->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 						
+// 						vx = x[tets[j]->third->id*3]; 
+// 						vy = x[tets[j]->third->id*3+1]; 
+// 						vz = x[tets[j]->third->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 						
+// 						vx = x[tets[j]->fourth->id*3]; 
+// 						vy = x[tets[j]->fourth->id*3+1]; 
+// 						vz = x[tets[j]->fourth->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+// // 					if(std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_LINES);
+// 						double vx = x[tets[j]->third->id*3]; 
+// 						double vy = x[tets[j]->third->id*3+1]; 
+// 						double vz = x[tets[j]->third->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 						
+// 						vx = x[tets[j]->second->id*3]; 
+// 						vy = x[tets[j]->second->id*3+1]; 
+// 						vz = x[tets[j]->second->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+// 						
+// 						vx = x[tets[j]->fourth->id*3]; 
+// 						vy = x[tets[j]->fourth->id*3+1]; 
+// 						vz = x[tets[j]->fourth->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 1)
 					{
-						glBegin(GL_LINE_LOOP);
+						glBegin(GL_LINES);
 						double vx = x[tets[j]->first->id*3]; 
 						double vy = x[tets[j]->first->id*3+1]; 
 						double vz = x[tets[j]->first->id*3+2]; 
@@ -1071,10 +1240,9 @@ void Display(void)
 						glEnd() ;
 					}
 					
-// 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
-					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->fourth->x-300) < 1)
 					{
-						glBegin(GL_LINE_LOOP);
+						glBegin(GL_LINES);
 						double vx = x[tets[j]->first->id*3]; 
 						double vy = x[tets[j]->first->id*3+1]; 
 						double vz = x[tets[j]->first->id*3+2]; 
@@ -1098,10 +1266,9 @@ void Display(void)
 						glEnd() ;
 					}
 					
-// 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
-					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
 					{
-						glBegin(GL_LINE_LOOP);
+						glBegin(GL_LINES);
 						double vx = x[tets[j]->first->id*3]; 
 						double vy = x[tets[j]->first->id*3+1]; 
 						double vz = x[tets[j]->first->id*3+2]; 
@@ -1125,10 +1292,9 @@ void Display(void)
 						glEnd() ;
 					}
 					
-// 					if(std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
-					if(std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+					if(std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
 					{
-						glBegin(GL_LINE_LOOP);
+						glBegin(GL_LINES);
 						double vx = x[tets[j]->third->id*3]; 
 						double vy = x[tets[j]->third->id*3+1]; 
 						double vz = x[tets[j]->third->id*3+2]; 
@@ -1553,16 +1719,16 @@ int main(int argc, char *argv[])
 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
 	
-/*	for(int i = 0 ; i < inclusions.size() ; i++)
+	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
 		inclusions[i]->setBehaviour(inclusionStiffness) ;
 		F.addFeature(&sample, inclusions[i]) ;
 		v += inclusions[i]->volume() ;
-	}*/
+	}
 	
-	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.15*scale, 0.075*scale, 0.075*scale) ;
-	inc->setBehaviour(inclusionStiffness) ;
-	F.addFeature(&sample, inc) ;
+// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.15*scale, 0.075*scale, 0.075*scale) ;
+// 	inc->setBehaviour(inclusionStiffness) ;
+// 	F.addFeature(&sample, inc) ;
 
 	std::cout << "aggregate volume : " << v << std::endl ;
 

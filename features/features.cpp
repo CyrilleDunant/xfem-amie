@@ -476,7 +476,24 @@ void FeatureTree::renumber()
 
 bool FeatureTree::inRoot(const Point &p) const
 {
-	return this->tree[0]->in(p) ;
+	if(is2D())
+	{
+		Point p0(p.x, p.y+POINT_TOLERANCE) ;
+		Point p1(p.x, p.y-POINT_TOLERANCE) ;
+		Point p2(p.x+POINT_TOLERANCE, p.y) ;
+		Point p3(p.x-POINT_TOLERANCE, p.y) ;
+		return (tree[0]->in(p) || tree[0]->in(p0) || tree[0]->in(p1) || tree[0]->in(p2) || tree[0]->in(p3)) ;
+	}
+	else
+	{
+		Point p0(p.x, p.y+POINT_TOLERANCE,p.z) ;
+		Point p1(p.x, p.y-POINT_TOLERANCE,p.z) ;
+		Point p2(p.x+POINT_TOLERANCE, p.y,p.z) ;
+		Point p3(p.x-POINT_TOLERANCE, p.y,p.z) ;
+		Point p4(p.x, p.y,p.z+POINT_TOLERANCE) ;
+		Point p5(p.x, p.y,p.z-POINT_TOLERANCE) ;
+		return (tree[0]->in(p) || tree[0]->in(p0) || tree[0]->in(p1) || tree[0]->in(p2) || tree[0]->in(p3) || tree[0]->in(p4) || tree[0]->in(p5)) ;
+	}
 }
 
 void FeatureTree::stitch()
@@ -794,7 +811,7 @@ void FeatureTree::sample(size_t n)
 			double shape_factor =(sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
 			if(shape_factor < POINT_TOLERANCE)
 				continue ;
-			size_t npoints = std::max((size_t)round(sqrt(tree[i]->area()/(total_area*shape_factor))*n), (size_t)8) ;
+			size_t npoints = std::max((size_t)round(.25*sqrt(tree[i]->area()/(total_area*shape_factor))*n), (size_t)8) ;
 
 			if(npoints >= 8 && !tree[i]->isVirtualFeature && npoints < n)
 				tree[i]->sample(npoints) ;
@@ -814,9 +831,9 @@ void FeatureTree::sample(size_t n)
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 			
 			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
-			size_t npoints = (size_t)(((double)n*tree[i]->area()*shape_factor)/(total_area)) ;
-			std::cout << "::" << npoints << std::endl ;
-			if(npoints > 14 && !tree[i]->isVirtualFeature)
+			size_t npoints = (size_t)(((double).5*n*tree[i]->area()*shape_factor)/(total_area)) ;
+
+			if(npoints > 0 && !tree[i]->isVirtualFeature)
 				tree[i]->sample(npoints) ;
 
 		}

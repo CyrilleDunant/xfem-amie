@@ -434,7 +434,7 @@ bool Tetrahedron::in(const Point & v) const
 	TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
 	Segment s(pg,v) ;
 	
-	return s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3) ;
+	return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
 	
 	double alpha;
 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
@@ -1249,7 +1249,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 void Sphere::smooth(std::vector<Point> & points,double r) const
 {
 	std::valarray<Point> speeds(/*Point(), */points.size()) ;
-	for(size_t i = 0 ; i < 120 ; i++)
+	for(size_t i = 0 ; i < 240 ; i++)
 	{
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -1323,6 +1323,21 @@ void Sphere::sampleSurface(size_t num_points)
 	
 	for(size_t i = 0 ; i < numberOfRadii ; i++)
 	{
+		if(i == 0)
+			numPointsOnSurface = 7*numPointsOnSurface/8 ;
+		if(i == 1)
+			numPointsOnSurface = 6*numPointsOnSurface/7 ;
+		if(i == 2)
+			numPointsOnSurface = 5*numPointsOnSurface/6 ;
+		if(i == 3)
+			numPointsOnSurface = 4*numPointsOnSurface/5 ;
+		if(i == 4)
+			numPointsOnSurface = 3*numPointsOnSurface/4 ;
+		if(i == 5)
+			numPointsOnSurface = 2*numPointsOnSurface/3 ;
+		if(i == 6)
+			numPointsOnSurface = 1*numPointsOnSurface/2 ;
+		
 		double r = radius*((double)(numberOfRadii-i-1)/(double)numberOfRadii) ;
 		num_points = (size_t)((double)numPointsOnSurface*((r*r)/(radius*radius)));
 		if(num_points < 8 )

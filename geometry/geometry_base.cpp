@@ -913,7 +913,7 @@ std::vector<Point> Plane::intersection(const Geometry * g) const
 			OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 			
 			size_t num_points = std::max((int)round(23.*sqrt(g->getBoundingPoints().size())*radiusOfIntersection/g->getRadius()), 8 ) ;
-			C.sampleSurface(2*num_points) ;
+			C.sampleSurface(num_points) ;
 			
 			return C.getSamplingBoundingPoints(num_points) ;
 			
@@ -1969,9 +1969,9 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
+					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
 					
-					C.sampleSurface(2*num_points) ;
+					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
 					planeCircle.sampleSurface(num_points) ;
@@ -2007,8 +2007,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(2*num_points) ;
+					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
 					planeCircle.sampleSurface(num_points) ;
@@ -2043,8 +2043,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(2*num_points) ;
+					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
 					planeCircle.sampleSurface(num_points) ;
@@ -2078,8 +2078,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(2*num_points) ;
+					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
 					planeCircle.sampleSurface(num_points) ;
@@ -2113,8 +2113,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(2*num_points) ;
+					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
 					planeCircle.sampleSurface(num_points) ;
@@ -2148,8 +2148,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 8.) ;
-					C.sampleSurface(2*num_points) ;
+					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
 					planeCircle.sampleSurface(num_points) ;
@@ -3478,10 +3478,10 @@ bool Segment::intersects(const Geometry *g) const
 bool Segment::intersects(const TriPoint *g) const
 {
 	
-	Point v(*g->point[1]-*g->point[0]) ;
-	Point u(*g->point[2]-*g->point[0]) ;
+	Point v(*g->point[1] - *g->point[0]) ;
+	Point u(*g->point[2] - *g->point[0]) ;
 	
-	Point dir = first()-second();        
+	Point dir = first() - second();        
 	Point w0 = second() - *g->point[0];
 	Point n = u ^ v ;
 	double a = -(n*w0) ;
@@ -3493,7 +3493,7 @@ bool Segment::intersects(const TriPoint *g) const
 		return false ;
 	}
 	
-	double r = a /b ;
+	double r = a / b ;
 	
 	if(r < 0 || r > 1)
 		return false ;
@@ -3505,12 +3505,12 @@ bool Segment::intersects(const TriPoint *g) const
 	double wu = u*w;
 	double wv = v*w;
 	double uu = u*u;
-	double vv = u*u;
-	double d = uv*uv -uu*vv ;
-	double s = (uv*wv-vv*wu)/d ;
+	double vv = v*v;
+	double d = uv*uv - uu*vv ;
+	double s = (uv*wv - vv*wu)/d ;
 	if (s < -POINT_TOLERANCE || s > 1.+POINT_TOLERANCE)        // I is outside T
          return false;
-	double t = (uv*wu-uu*wv)/d ;
+	double t = (uv*wu - uu*wv)/d ;
 	if (t < -POINT_TOLERANCE || (s + t) > 1.+POINT_TOLERANCE)
 		return false ;
 	
@@ -3967,10 +3967,11 @@ bool TriPoint::in(const Point & p) const
 
 bool Segment::intersects(const TriPoint &g) const
 {
+	
 	Point v(*g.point[1]-*g.point[0]) ;
 	Point u(*g.point[2]-*g.point[0]) ;
 	
-	Point dir = first()-second();        
+	Point dir = first() - second();        
 	Point w0 = second() - *g.point[0];
 	Point n = u ^ v ;
 	double a = -(n*w0) ;
@@ -3979,6 +3980,7 @@ bool Segment::intersects(const TriPoint &g) const
 	{
 		if (std::abs(a) < POINT_TOLERANCE) 
 			return true;
+		
 		return false ;
 	}
 	
@@ -3994,11 +3996,11 @@ bool Segment::intersects(const TriPoint &g) const
 	double wu = u*w;
 	double wv = v*w;
 	double uu = u*u;
-	double vv = u*u;
+	double vv = v*v;
 	double d = uv*uv -uu*vv ;
 	double s = (uv*wv-vv*wu)/d ;
 	if (s < -POINT_TOLERANCE || s > 1.+POINT_TOLERANCE)        // I is outside T
-         return false;
+		return false;
 	double t = (uv*wu-uu*wv)/d ;
 	if (t < -POINT_TOLERANCE || (s + t) > 1.+POINT_TOLERANCE)
 		return false ;
