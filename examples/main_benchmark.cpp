@@ -1109,7 +1109,7 @@ void Display(void)
 // // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01)
 // 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2)
 // 					{
-// 						glBegin(GL_LINES);
+// 						glBegin(GL_TRIANGLES);
 // 						double vx = x[tets[j]->first->id*3]; 
 // 						double vy = x[tets[j]->first->id*3+1]; 
 // 						double vz = x[tets[j]->first->id*3+2]; 
@@ -1136,7 +1136,7 @@ void Display(void)
 // // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
 // 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
 // 					{
-// 						glBegin(GL_LINES);
+// 						glBegin(GL_TRIANGLES);
 // 						double vx = x[tets[j]->first->id*3]; 
 // 						double vy = x[tets[j]->first->id*3+1]; 
 // 						double vz = x[tets[j]->first->id*3+2]; 
@@ -1163,7 +1163,7 @@ void Display(void)
 // // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
 // 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
 // 					{
-// 						glBegin(GL_LINES);
+// 						glBegin(GL_TRIANGLES);
 // 						double vx = x[tets[j]->first->id*3]; 
 // 						double vy = x[tets[j]->first->id*3+1]; 
 // 						double vz = x[tets[j]->first->id*3+2]; 
@@ -1190,7 +1190,7 @@ void Display(void)
 // // 					if(std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
 // 					if(std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
 // 					{
-// 						glBegin(GL_LINES);
+// 						glBegin(GL_TRIANGLES);
 // 						double vx = x[tets[j]->third->id*3]; 
 // 						double vy = x[tets[j]->third->id*3+1]; 
 // 						double vz = x[tets[j]->third->id*3+2]; 
@@ -1216,25 +1216,25 @@ void Display(void)
 // 					
 					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 1)
 					{
-						glBegin(GL_LINES);
+						glBegin(GL_TRIANGLES);
 						double vx = x[tets[j]->first->id*3]; 
 						double vy = x[tets[j]->first->id*3+1]; 
 						double vz = x[tets[j]->first->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
 						
 						vx = x[tets[j]->second->id*3]; 
 						vy = x[tets[j]->second->id*3+1]; 
 						vz = x[tets[j]->second->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
 						
 						vx = x[tets[j]->third->id*3]; 
 						vy = x[tets[j]->third->id*3+1]; 
 						vz = x[tets[j]->third->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
 						glEnd() ;
@@ -1242,25 +1242,25 @@ void Display(void)
 					
 					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->fourth->x-300) < 1)
 					{
-						glBegin(GL_LINES);
+						glBegin(GL_TRIANGLES);
 						double vx = x[tets[j]->first->id*3]; 
 						double vy = x[tets[j]->first->id*3+1]; 
 						double vz = x[tets[j]->first->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
 						
 						vx = x[tets[j]->second->id*3]; 
 						vy = x[tets[j]->second->id*3+1]; 
 						vz = x[tets[j]->second->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
 						
 						vx = x[tets[j]->fourth->id*3]; 
 						vy = x[tets[j]->fourth->id*3+1]; 
 						vz = x[tets[j]->fourth->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
 						glEnd() ;
@@ -1268,25 +1268,25 @@ void Display(void)
 					
 					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
 					{
-						glBegin(GL_LINES);
+						glBegin(GL_TRIANGLES);
 						double vx = x[tets[j]->first->id*3]; 
 						double vy = x[tets[j]->first->id*3+1]; 
 						double vz = x[tets[j]->first->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
 						
 						vx = x[tets[j]->third->id*3]; 
 						vy = x[tets[j]->third->id*3+1]; 
 						vz = x[tets[j]->third->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
 						
 						vx = x[tets[j]->fourth->id*3]; 
 						vy = x[tets[j]->fourth->id*3+1]; 
 						vz = x[tets[j]->fourth->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
 						glEnd() ;
@@ -1294,25 +1294,25 @@ void Display(void)
 					
 					if(std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
 					{
-						glBegin(GL_LINES);
+						glBegin(GL_TRIANGLES);
 						double vx = x[tets[j]->third->id*3]; 
 						double vy = x[tets[j]->third->id*3+1]; 
 						double vz = x[tets[j]->third->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
 						
 						vx = x[tets[j]->second->id*3]; 
 						vy = x[tets[j]->second->id*3+1]; 
 						vz = x[tets[j]->second->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
 						
 						vx = x[tets[j]->fourth->id*3]; 
 						vy = x[tets[j]->fourth->id*3+1]; 
 						vz = x[tets[j]->fourth->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
 						glColor3f(c1, c2, c3) ;
 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
 						glEnd() ;
@@ -1563,7 +1563,7 @@ void Display(void)
 	}
 	
 // 	glTranslatef(20,20,20) ;
-// 	glBegin(GL_LINES) ;
+// 	glBegin(GL_TRIANGLES) ;
 // 	glColor3f(1, 1, 1) ;
 // 	glVertex3f(20, 20, 40) ;
 // 	glVertex3f(20, 20, 0) ;

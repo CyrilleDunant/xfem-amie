@@ -1969,7 +1969,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
 					
 					C.sampleSurface(num_points) ;
 					
@@ -2007,7 +2007,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
 					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
@@ -2043,7 +2043,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
 					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
@@ -2078,7 +2078,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
 					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
@@ -2113,7 +2113,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
 					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
@@ -2148,7 +2148,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
-					size_t num_points = std::max(2.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
+					size_t num_points = std::max(4.*round(sqrt(getBoundingPoints().size())*radiusOfIntersection/getRadius()), 10.) ;
 					C.sampleSurface(num_points) ;
 					
 					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;

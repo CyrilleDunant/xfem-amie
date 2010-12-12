@@ -469,12 +469,13 @@ GranuloFromFile::GranuloFromFile(std::string fname, std::vector<std::string> col
         this->fields.push_back(columns[i]) ;
 
     std::fstream filereader ;
-    filereader.open(this->filename.c_str(),std::ios::in) ;
-    char buff [256] ;
+    filereader.open(this->filename.c_str(),std::ios::in); 
+    
     while(!filereader.eof())
     {
+	double buff ;
         filereader >> buff ;
-        this->values.push_back(atof(buff)) ;
+        this->values.push_back(buff) ;
     }
     filereader.close() ;
     std::cout << "done..." << std::endl ;

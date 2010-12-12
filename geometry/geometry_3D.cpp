@@ -1314,7 +1314,7 @@ void Sphere::sampleSurface(size_t num_points)
 		return ;
 
 	if(this->boundingPoints.size() == 0)
-		sampleBoundingSurface(num_points*4) ;
+		sampleBoundingSurface(num_points*7) ;
 	
 	std::vector<Point> points ;
 
@@ -1325,17 +1325,17 @@ void Sphere::sampleSurface(size_t num_points)
 	{
 // 		if(i == 0)
 // 			numPointsOnSurface = 7*numPointsOnSurface/8 ;
-// 		if(i == 1)
-// 			numPointsOnSurface = 6*numPointsOnSurface/7 ;
-// 		if(i == 2)
-// 			numPointsOnSurface = 5*numPointsOnSurface/6 ;
-// 		if(i == 3)
-// 			numPointsOnSurface = 4*numPointsOnSurface/5 ;
 		if(i == 0)
-			numPointsOnSurface = 3*numPointsOnSurface/4 ;
+			numPointsOnSurface = 6*numPointsOnSurface/7 ;
 		if(i == 1)
-			numPointsOnSurface = 2*numPointsOnSurface/3 ;
+			numPointsOnSurface = 5*numPointsOnSurface/6 ;
 		if(i == 2)
+			numPointsOnSurface = 4*numPointsOnSurface/5 ;
+		if(i == 3)
+			numPointsOnSurface = 3*numPointsOnSurface/4 ;
+		if(i == 4)
+			numPointsOnSurface = 2*numPointsOnSurface/3 ;
+		if(i == 5)
 			numPointsOnSurface = 1*numPointsOnSurface/2 ;
 		
 		double r = radius*((double)(numberOfRadii-i-1)/(double)numberOfRadii) ;

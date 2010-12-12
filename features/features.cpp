@@ -821,9 +821,9 @@ void FeatureTree::sample(size_t n)
 	{
 		std::cout << n << std::endl ;
 		std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
-		tree[0]->sample(n) ;
+		tree[0]->sample(2.5*n) ;
 
-		double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius()) ;
+		double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())*(tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())) ;
 		int count = 0 ;
 #pragma omp parallel for
 		for(int i  = 1 ; i < (int)tree.size() ; i++)
@@ -831,9 +831,9 @@ void FeatureTree::sample(size_t n)
 			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 			
 			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
-			size_t npoints = (size_t)round((4*n*tree[i]->area()*shape_factor)/(total_area)) ;
+			size_t npoints = (size_t)round((1.5*n*tree[i]->area()*shape_factor)/(total_area)) ;
 
-			if(npoints > 8 && !tree[i]->isVirtualFeature)
+			if(npoints > 0 && !tree[i]->isVirtualFeature)
 				tree[i]->sample(npoints) ;
 
 		}
