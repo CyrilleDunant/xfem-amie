@@ -8,7 +8,7 @@ namespace Mu
 {
 	struct PasteBehaviour : public WeibullDistributedStiffness
 	{
-		PasteBehaviour(double E=12e9, double nu=0.3, double tensile=135000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		PasteBehaviour(double E=12e9, double nu=0.3, double tensile=1.35e6, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		

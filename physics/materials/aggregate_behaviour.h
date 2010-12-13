@@ -8,7 +8,7 @@ namespace Mu
 {
 	struct AggregateBehaviour : public WeibullDistributedStiffness
 	{
-		AggregateBehaviour(double E=59e9, double nu=0.3, double tensile=570000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		AggregateBehaviour(double E=59e9, double nu=0.3, double tensile=5.7e6, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		

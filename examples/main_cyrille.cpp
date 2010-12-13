@@ -1715,7 +1715,7 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
 	double cradius = 100 ;
-	double mradius = 5 ;
+	double mradius = 2 ;
 	double tdamage = .999 ;
 	double dincrement = .01 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
