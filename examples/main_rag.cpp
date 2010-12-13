@@ -237,9 +237,9 @@ void fastForward (int steps, int nstepstot)
 
 void step()
 {
-	int nsteps = 600;
-	int nstepstot = 600;
-	int maxtries = 200 ;
+	int nsteps = 1200;
+	int nstepstot = 1200;
+	int maxtries = 400 ;
 	int tries = 0 ;
 	
 // 	fastForward(4, 10) ;
@@ -765,7 +765,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 && incs[j]->getRadius() <= 0.001 && incs[j]->getRadius() > 0.000 && baseGeometry.in(zonesToPlace[i]->getCenter()))
+			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 && incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004 && baseGeometry.in(zonesToPlace[i]->getCenter()))
 			{
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;
