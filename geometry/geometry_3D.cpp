@@ -426,7 +426,7 @@ bool Tetrahedron::in(const Point & v) const
 {
 	if(!inCircumSphere(v))
 		return false ;
-	
+		
 	Point  pg=(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
 	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
 	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;

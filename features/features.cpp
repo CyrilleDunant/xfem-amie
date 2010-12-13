@@ -835,6 +835,8 @@ void FeatureTree::sample(size_t n)
 
 			if(npoints > 0 && !tree[i]->isVirtualFeature)
 				tree[i]->sample(npoints) ;
+			
+			count++ ;
 
 		}
 		std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << " ...done" << std::endl ;

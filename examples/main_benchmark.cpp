@@ -409,7 +409,11 @@ void step()
 								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
 								if(b)
 								{
-									pointfile << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
+									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
+										pointfile << 5 << "   " ;
+									else
+										pointfile << 4 << "   " ;
+									//pointfile << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
 /*									pointfilel << b->phi << "   " ;
 									pointfilelp << b->accumulatedPhi << "   " ;
 									pointfiled << b->damage[0] << "   " ;*/
@@ -417,7 +421,7 @@ void step()
 								}
 								else
 								{
-									pointfile << -1 << "   " ;
+									pointfile << 3 << "   " ;
 /*									pointfilel  << 0 << "   " ;
 									pointfilelp << 0 << "   " ;
 									pointfiled << 0 << "   " ;*/
@@ -428,7 +432,7 @@ void step()
 						}
 						if(!done)
 						{
-							pointfile << -1 << "   " ;
+							pointfile << 2 << "   " ;
 /*							pointfilel << 0 << "   " ;
 							pointfilelp << 0 << "   " ;
 							pointfiled << 0 << "   " ;*/
@@ -436,7 +440,7 @@ void step()
 					}
 					else
 					{
-						pointfile << -1 << "   " ;
+						pointfile << 1 << "   " ;
 /*						pointfilel << 0 << "   " ;
 						pointfilelp << 0 << "   " ;
 						pointfiled << 0 << "   " ;*/
@@ -459,7 +463,7 @@ void step()
 					counter++ ;
 					if(counter%1000 == 0)
 						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
-					Point p(i,j,1) ;
+					Point p(i,j,0.1495*scale) ;
 					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
 					if(!tris.empty())
 					{
@@ -472,7 +476,10 @@ void step()
 								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
 								if(b)
 								{
-									pointfilel << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
+									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
+										pointfile << 5 << "   " ;
+									else
+										pointfile << 4 << "   " ;
 /*									pointfilel << b->phi << "   " ;
 									pointfilelp << b->accumulatedPhi << "   " ;
 									pointfiled << b->damage[0] << "   " ;*/
@@ -480,7 +487,7 @@ void step()
 								}
 								else
 								{
-									pointfilel << -1 << "   " ;
+									pointfilel << 3 << "   " ;
 /*									pointfilel  << 0 << "   " ;
 									pointfilelp << 0 << "   " ;
 									pointfiled << 0 << "   " ;*/
@@ -491,7 +498,7 @@ void step()
 						}
 						if(!done)
 						{
-							pointfilel << -1 << "   " ;
+							pointfilel << 2 << "   " ;
 /*							pointfilel << 0 << "   " ;
 							pointfilelp << 0 << "   " ;
 							pointfiled << 0 << "   " ;*/
@@ -499,7 +506,7 @@ void step()
 					}
 					else
 					{
-						pointfilel << -1 << "   " ;
+						pointfilel << 1 << "   " ;
 /*						pointfilel << 0 << "   " ;
 						pointfilelp << 0 << "   " ;
 						pointfiled << 0 << "   " ;*/
@@ -1674,7 +1681,7 @@ int main(int argc, char *argv[])
 // 	std::cout << miny << ";" << maxy << std::endl ;
 // 	std::cout << minz << ";" << maxz << std::endl ;
 
-	scale = atof(argv[1]) ;
+	scale = (10000) ;
 	Sample3D sample(NULL, 0.15*scale, 0.15*scale, 0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 //	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
 
@@ -1694,7 +1701,7 @@ int main(int argc, char *argv[])
 	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
 
 	nu = 0.2 ;
-	E = 1e-8 ;
+	E = atof(argv[1]) ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1733,7 +1740,7 @@ int main(int argc, char *argv[])
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(atof(argv[2])) ;
+	F.sample(1400) ;
 	
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1774,9 +1781,9 @@ int main(int argc, char *argv[])
 	}*/
 	
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
+	F.generateElements(0,false) ;
 	
-	div_ = atof(argv[3]) ;
+	div_ = (1000) ;
 
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BACK)) ;
@@ -1788,7 +1795,7 @@ int main(int argc, char *argv[])
 	step() ;
 
 
-	glutInit(&argc, argv) ;	
+/*	glutInit(&argc, argv) ;	
 	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;

@@ -4753,11 +4753,6 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	double c02 = c0*c0 ;
 	if(c02 > POINT_TOLERANCE)
 		return false ;
-	if(c02 > POINT_TOLERANCE)
-		return false ;
-	if(c02 > POINT_TOLERANCE)
-		return false ;
-	
 
 	Point normal = A^B ;
 //	normal /= scale ;
