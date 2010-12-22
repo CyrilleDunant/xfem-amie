@@ -632,8 +632,10 @@ bool Assembly::make_final()
 				
 		size_t max ;
 		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		std::cout << ndof << std::endl ;
 		if( coordinateIndexedMatrix == NULL)
 		{
+			std::cout << "coordinate indexed matrix null" << std::endl ;
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
 
 			for(size_t i = 0 ; i < element3d.size() ; i++)

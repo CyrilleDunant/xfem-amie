@@ -742,6 +742,95 @@ Vector ElementState::getStrain(const Point & p, bool local) const
 	return Vector(0., sz) ;
 }
 
+Vector ElementState::getFlux(const Point & p, bool local) const
+{
+	
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+	{
+		Point p_ = parent->inLocalCoordinates(p) ;
+		if(local)
+			p_ = p ;
+		double x_xi = 0;
+		double x_eta = 0;
+		VirtualMachine vm ;
+		Vector lstrain(2) ;
+		
+		for(size_t j = 0 ; j < parent->getBoundingPoints().size(); j++)
+		{
+			double f_xi = vm.deval(parent->getShapeFunction(j),XI, p_) ;
+			double f_eta = vm.deval(parent->getShapeFunction(j),ETA, p_) ;
+			x_xi += f_xi*displacements[j] ;
+			x_eta += f_eta*displacements[j] ;
+		}
+		
+		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++)
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;			
+			x_xi += f_xi*enrichedDisplacements[j] ;
+			x_eta += f_eta*enrichedDisplacements[j] ;
+
+		}
+		
+		Matrix Jinv(2,2) ; parent->getInverseJacobianMatrix(p_, Jinv) ;
+		lstrain[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1] ;
+		lstrain[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1] ;
+				
+		return lstrain ;
+	}
+	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+	{
+		
+		VirtualMachine vm ;
+		Point p_ =  parent->inLocalCoordinates(p) ;
+				
+		if(local)
+			p_ = p ;
+		
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		
+		for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+		{
+			double f_xi = vm.deval(parent->getShapeFunction(j),XI, p_) ;
+			double f_eta = vm.deval(parent->getShapeFunction(j),ETA, p_) ;
+			double f_zeta = vm.deval(parent->getShapeFunction(j),ZETA, p_) ;
+			double x = displacements[j] ;
+			
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+		}
+		
+		Vector lstrain(3) ;
+		
+		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction(j),ZETA,p_) ;
+			double x = enrichedDisplacements[j] ;
+			
+			x_xi += f_xi*x;
+			x_eta += f_eta*x ;
+			x_zeta += f_zeta*x ;
+		}
+		
+		Matrix Jinv(3,3) ; parent->getInverseJacobianMatrix(p_, Jinv) ;
+		lstrain[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1]  + (x_zeta)*Jinv[0][2];
+		lstrain[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1]  + (x_zeta)*Jinv[1][2];
+		lstrain[2] = (x_xi)*Jinv[2][0] + (x_eta)*Jinv[2][1]  + (x_zeta)*Jinv[2][2]; 
+		
+		return lstrain ;
+	}
+	int dofs = 2 ;
+	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+		dofs = 3 ;
+	int sz = dofs+(dofs-1)*(dofs-1) - dofs%2;
+	return Vector(0., sz) ;
+}
+
 Vector ElementState::getStrain(const std::pair<Point, double> & p) const
 {
 	return getStrain(p.first) ;

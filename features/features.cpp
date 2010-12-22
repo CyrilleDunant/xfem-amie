@@ -2222,7 +2222,7 @@ void FeatureTree::elasticStep()
 	this->K->clear() ;
 	assemble() ;
 
-	this->K->cgsolve(lastx) ;
+	this->K->cgsolve(lastx, 100000, true) ;
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;

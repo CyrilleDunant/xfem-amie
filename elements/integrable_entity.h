@@ -100,6 +100,9 @@ public:
 /** \brief Return strain at given point*/
 	Vector getStrain(const Point & , bool local = false) const;
 
+/** \brief Return flux at given point*/
+	Vector getFlux(const Point & p, bool local = false) const ;
+
 /** \brief Return stress at given point*/
 	Vector getPreviousStress(const Point & , bool local = false) const;
 	

@@ -1,5 +1,4 @@
-
-// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2010
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -10,25 +9,24 @@
 #include "../features/features.h"
 #include "../physics/physics_base.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/laplacian.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
-#include "../physics/weibull_distributed_stiffness.h"
-#include "../physics/stiffness.h"
-#include "../physics/stiffness_and_fracture.h"
-#include "../physics/materials/aggregate_behaviour.h"
-#include "../physics/materials/paste_behaviour.h"
-#include "../physics/stiffness_with_imposed_deformation.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
+#include "../features/sample3d.h"
 #include "../features/inclusion.h"
+#include "../features/inclusion3d.h"
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
 #include "../features/enrichmentInclusion.h"
 #include "../mesher/delaunay_3d.h"
+#include "../features/expansiveZone3d.h"
 #include "../solvers/assembly.h"
-#include "../utilities/itoa.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
-#include "../utilities/random.h"
+#include "../physics/stiffness.h"
+#include "../utilities/voxel_writer.h"
+#include <sys/time.h>
 
 #include <fstream>
 
@@ -40,582 +38,1891 @@
 #define DEBUG 
 
 #define ID_QUIT 1
-#define ID_ZOOM 5
-#define ID_UNZOOM 6
-#define ID_NEXT10 7
-#define ID_NEXT100 3
-#define ID_NEXT1000 4
-#define ID_NEXT 2
-#define ID_NEXT_TIME 0
-#define ID_REFINE 8
-#define ID_AMPLIFY 9
-#define ID_DEAMPLIFY 10
+#define ID_ZOOM 2
+#define ID_UNZOOM 3
+#define ID_NEXT10 4
+#define ID_NEXT100 5
+#define ID_NEXT1000 6
+#define ID_NEXT 7
+#define ID_NEXT_TIME 8
+#define ID_REFINE 9
+#define ID_AMPLIFY 10
+#define ID_DEAMPLIFY 11
 
-#define ID_DISP 11
-#define ID_STRAIN_XX 12
-#define ID_STRAIN_XY 13
-#define ID_STRAIN_YY 14
-#define ID_STRESS_XX 15
-#define ID_STRESS_XY 16
-#define ID_STRESS_YY 17
-#define ID_STIFNESS 18
-#define ID_ELEM 19
-#define ID_VON_MISES 20
-#define ID_ANGLE 22
-#define ID_ENRICHMENT 21
+#define ID_DISP 12
+#define ID_STRAIN_XX 13
+#define ID_STRAIN_XY 14
+#define ID_STRAIN_XZ 15
+#define ID_STRAIN_YZ 16
+#define ID_STRAIN_YY 17
+#define ID_STRAIN_ZZ 18
+#define ID_STRESS_XX 19
+#define ID_STRESS_XY 20
+#define ID_STRESS_YY 21
+#define ID_STRESS_ZZ 22
+#define ID_STRESS_XZ 23
+#define ID_STRESS_YZ 24
 
-#define DISPLAY_LIST_DISPLACEMENT 1
-#define DISPLAY_LIST_ELEMENTS 2
-#define DISPLAY_LIST_STRAIN_XX 3
-#define DISPLAY_LIST_STRAIN_YY 4
-#define DISPLAY_LIST_STRAIN_XY 5
-#define DISPLAY_LIST_STRESS_XX 6
-#define DISPLAY_LIST_STRESS_YY 7
-#define DISPLAY_LIST_STRESS_XY 8
-#define DISPLAY_LIST_CRACK 9
-#define DISPLAY_LIST_STIFFNESS 10
-#define DISPLAY_LIST_VON_MISES 11
-#define DISPLAY_LIST_ANGLE 23
-#define DISPLAY_LIST_ENRICHMENT 12
-#define DISPLAY_LIST_STIFFNESS_DARK 24
+#define ID_STIFNESS 25
+#define ID_ELEM 26
+#define ID_VON_MISES 27
+#define ID_ANGLE 28
+#define ID_ENRICHMENT 29
+
+GLuint DISPLAY_LIST_DISPLACEMENT = 0 ;
+GLuint DISPLAY_LIST_ELEMENTS = 0 ;
+GLuint DISPLAY_LIST_STRAIN_XX = 0 ;
+GLuint DISPLAY_LIST_STRAIN_YY = 0 ;
+GLuint DISPLAY_LIST_STRAIN_ZZ = 0 ;
+GLuint DISPLAY_LIST_STRAIN_XY = 0 ;
+GLuint DISPLAY_LIST_STRAIN_XZ = 0 ;
+GLuint DISPLAY_LIST_STRAIN_YZ = 0 ;
+GLuint DISPLAY_LIST_STRESS_XX = 0 ;
+GLuint DISPLAY_LIST_STRESS_YY = 0 ;
+GLuint DISPLAY_LIST_STRESS_ZZ = 0 ;
+GLuint DISPLAY_LIST_STRESS_XY = 0 ;
+GLuint DISPLAY_LIST_STRESS_XZ = 0 ;
+GLuint DISPLAY_LIST_STRESS_YZ = 0 ;
+GLuint DISPLAY_LIST_STIFFNESS = 0 ;
+GLuint DISPLAY_LIST_VON_MISES  = 0 ;
+GLuint DISPLAY_LIST_ANGLE  = 0 ;
+GLuint DISPLAY_LIST_ENRICHMENT = 0 ;
+GLuint DISPLAY_LIST_STIFFNESS_DARK = 0 ;
+
+double scale ;
 
 using namespace Mu ;
 
+int viewangle = 0 ;
+int viewangle2 = 0 ;
+
 FeatureTree * featureTree ;
-std::vector<DelaunayTriangle *> triangles ;
+std::vector<DelaunayTetrahedron *> tets ;
 std::vector<bool> cracked ;
 
 double E_min = 10;
 double E_max = 0;
 
+double div_ = 100. ;
+
 double x_max = 0 ;
 double y_max = 0 ;
+double z_max = 0 ;
 
 double x_min = 0 ;
 double y_min = 0 ;
+double z_min = 0 ;
 
-double timepos = 0.00 ;
-double percent = 0.10 ;
-double placed_area = 0 ;
+GLint xangle = 0;
+GLint yangle = 0;
+GLint zangle = 0;
 
-double stress = 15e6 ;
-
-int cas = 0 ;
-
-Sample sample(NULL, 0.04, 0.04, 0.0, 0.0) ;
+double timepos = 0.0001 ;
 
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
 
+int windowWidth = 600 ;
+int windowHeight = 600 ;
+
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
-
-std::vector<std::pair<double, double> > expansion_reaction ;
-std::vector<std::pair<double, double> > expansion_stress_xx ;
-std::vector<std::pair<double, double> > expansion_stress_yy ;
-std::vector<std::pair<double, double> > apparent_extension ;
-std::vector<double> cracked_volume ;
-std::vector<double> damaged_volume ;
 
 Vector b(0) ;
 Vector x(0) ;
 Vector sigma(0) ; 
 Vector sigma11(0) ; 
 Vector sigma22(0) ; 
+Vector sigma33(0) ; 
 Vector sigma12(0) ; 
+Vector sigma13(0) ; 
+Vector sigma23(0) ; 
 Vector epsilon(0) ; 
 Vector epsilon11(0) ; 
 Vector epsilon22(0) ; 
+Vector epsilon33(0) ; 
 Vector epsilon12(0) ; 
+Vector epsilon13(0) ; 
+Vector epsilon23(0) ; 
 Vector vonMises(0) ; 
+Vector stiffness(0) ; 
 Vector angle(0) ; 
+Vector damage(0) ; 
 
-double nu = 0.3 ;
-double E_agg = 58.9e9 ;
-double E_paste = 12e9 ;
+double nu = 0.2 ;
+double E_agg = 100 ;//softest
+double E_paste = 1 ;//stiff
+double E_stiff = E_agg*10 ;//stiffer
+double E_soft = E_agg/10; //stiffest
 
-int totit = 5 ;
-
-size_t current_list = DISPLAY_LIST_STRAIN_XX ;
-double factor = 200 ;
+size_t current_list = DISPLAY_LIST_DISPLACEMENT ;
+double factor = 0.3 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-double delta = 2e-8 ;
-double tension = 0. ;
 
 void step()
 {
-        int nsteps = 1000;
-        int maxtries = 200 ;
-	int tries = 0 ;
 	
+  int nsteps = 1;// number of steps between two clicks on the opengl thing
+
+
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		featureTree->resetBoundaryConditions() ;
-	        featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-		featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, tension)) ;
-		tries = !(nsteps < maxtries) ;
-		bool go_on = true ;
-		while(go_on && tries < maxtries)
+
+		bool go_on = true;
+		size_t tries = 0;
+		while(go_on && tries < 50)
 		{
 			featureTree->step(timepos) ;
 			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			if(!go_on && !featureTree->solverConverged())
-				go_on = featureTree->reuseDisplacements ;
 			std::cout << "." << std::flush ;
+			// 			timepos-= 0.0001 ;
+			
 			tries++ ;
 		}
 		std::cout << " " << tries << " tries." << std::endl ;
-		
-		if(featureTree->solverConverged())
-		{
-			cracked_volume.push_back(featureTree->crackedVolume) ;
-			damaged_volume.push_back(featureTree->damagedVolume) ;
-		}
 		timepos+= 0.0001 ;
-	
-	
-		triangles = featureTree->getTriangles() ;
+		
+		tets= featureTree->getTetrahedrons() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
+
+		std::pair<Vector, Vector > sigma_epsilon ;
+		sigma_epsilon.first.resize(24*tets.size()) ;
+		sigma_epsilon.second.resize(24*tets.size()) ;
+		sigma_epsilon = featureTree->getStressAndStrain(tets) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
 		epsilon = sigma_epsilon.second ;
+		sigma11.resize(sigma.size()/6, 0.) ;
+		sigma22.resize(sigma.size()/6, 0.) ;
+		sigma33.resize(sigma.size()/6, 0.) ;
+		sigma12.resize(sigma.size()/6, 0.) ;
+		sigma13.resize(sigma.size()/6, 0.) ;
+		sigma23.resize(sigma.size()/6, 0.) ;
 		
-		sigma11.resize(sigma.size()/3) ;
-		sigma22.resize(sigma.size()/3) ;
-		sigma12.resize(sigma.size()/3) ;
-		epsilon11.resize(sigma.size()/3) ;
-		epsilon22.resize(sigma.size()/3) ;
-		epsilon12.resize(sigma.size()/3) ;
-		vonMises.resize(sigma.size()/3) ;
-		angle.resize(sigma.size()/3) ;
-		
+		epsilon11.resize(sigma.size()/6, 0.) ;
+		epsilon22.resize(sigma.size()/6, 0.) ;
+		epsilon33.resize(sigma.size()/6, 0.) ;
+		epsilon12.resize(sigma.size()/6, 0.) ;
+		epsilon13.resize(sigma.size()/6, 0.) ;
+		epsilon23.resize(sigma.size()/6, 0.) ;
+		stiffness.resize(sigma.size()/6, 0.) ;
+		vonMises.resize(sigma.size()/6, 0.) ;
+		angle.resize(sigma.size()/6, 0.) ;
+		damage.resize(sigma.size()/6, 0.) ;
+	
 		std::cout << "unknowns :" << x.size() << std::endl ;
-		
-		cracked.clear() ;
-		
-		int npoints = triangles[0]->getBoundingPoints().size() ;
-		
-		double area = 0 ;
+	
+	
+		int npoints = 4 ;
+	
+		double volume = 0 ;
 		double avg_e_xx = 0;
 		double avg_e_yy = 0;
+		double avg_e_zz = 0;
 		double avg_e_xy = 0;
+		double avg_e_xz = 0;
+		double avg_e_yz = 0;
 		double avg_s_xx = 0;
+		double avg_s_zz = 0;
 		double avg_s_yy = 0;
 		double avg_s_xy = 0;
-		double e_xx_max = 0 ;
-		double e_xx_min = 0 ;
-                double e_yy_max = 0 ;
-                double e_yy_min = 0 ;
-                double ex_count = 0 ;
-		double avg_e_xx_nogel = 0;
-		double avg_e_yy_nogel = 0;
-		double avg_e_xy_nogel = 0;
-		double avg_s_xx_nogel = 0;
-		double avg_s_yy_nogel = 0;
-		double avg_s_xy_nogel = 0;
-		double nogel_area = 0 ;
+		double avg_s_xz = 0;
+		double avg_s_yz = 0;
+		double e_xx = 0 ;
+		double ex_count = 0 ;
+		double xavg = 0 ;
 		
-		for(size_t k = 0 ; k < triangles.size() ; k++)
+		double n_void = 0 ;
+
+		for(size_t k = 0 ; k < 0/*tets.size()*/ ; k++)
 		{
-			bool in = false ;
-			for(size_t m = 0 ; m < tris__.size() ; m++)
-			{
-				if(triangles[k] == tris__[m])
-				{
-					in = true ;
-					break ;
-				}
-			}
-			cracked.push_back(in) ;
 			
-			
-			
-			if(!in && !triangles[k]->getBehaviour()->fractured())
+			if(tets[k]->getBehaviour()->type == VOID_BEHAVIOUR )
+				n_void++ ;
+
+			if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				
-				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
+// 				for(size_t p = 0 ;p < 4 ; p++)
+// 				{
+// 					if(x[tets[k]->getBoundingPoint(p).id*3] > x_max)
+// 						x_max = x[tets[k]->getBoundingPoint(p).id*3];
+// 					if(x[tets[k]->getBoundingPoint(p).id*3] < x_min)
+// 						x_min = x[tets[k]->getBoundingPoint(p).id*3];
+// 					if(x[tets[k]->getBoundingPoint(p).id*3+1] > y_max)
+// 						y_max = x[tets[k]->getBoundingPoint(p).id*3+1];
+// 					if(x[tets[k]->getBoundingPoint(p).id*3+1] < y_min)
+// 						y_min = x[tets[k]->getBoundingPoint(p).id*3+1];
+// 					if(x[tets[k]->getBoundingPoint(p).id*3+2] > z_max)
+// 						z_max = x[tets[k]->getBoundingPoint(p).id*3+2];
+// 					if(x[tets[k]->getBoundingPoint(p).id*3+2] < z_min)
+// 						z_min = x[tets[k]->getBoundingPoint(p).id*3+2];
+// 					if(tets[k]->getBoundingPoint(p).x > 0.0799)
+// 					{
+// 						e_xx+=x[tets[k]->getBoundingPoint(p).id*3] ;
+// 						ex_count++ ;
+// 					}
+// 				}
+				volume += tets[k]->volume() ;
+				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).x > sample.width()*.4999)
-					{
-						if(e_xx_max < x[triangles[k]->getBoundingPoint(p).id*2])
-							e_xx_max=x[triangles[k]->getBoundingPoint(p).id*2] ;
-// 						ex_count++ ;
-					}
-					if(triangles[k]->getBoundingPoint(p).x < -sample.width()*.4999)
-					{
-						if(e_xx_min > x[triangles[k]->getBoundingPoint(p).id*2])
-							e_xx_min=x[triangles[k]->getBoundingPoint(p).id*2] ;
-// 						ex_count++ ;
-					}
-                                        if(triangles[k]->getBoundingPoint(p).y > sample.height()*.4999)
-                                        {
-                                                if(e_yy_max < x[triangles[k]->getBoundingPoint(p).id*2+1])
-                                                        e_yy_max=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-// 						ex_count++ ;
-                                        }
-                                        if(triangles[k]->getBoundingPoint(p).y < -sample.height()*.4999)
-                                        {
-                                                if(e_yy_min > x[triangles[k]->getBoundingPoint(p).id*2+1])
-                                                        e_yy_min=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-// 						ex_count++ ;
-                                        }
-                                }
-				area += triangles[k]->area() ;
-				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-				{
-					if(!triangles[k]->getBehaviour()->param.isNull() && triangles[k]->getBehaviour()->param[0][0] > E_max)
-						E_max = triangles[k]->getBehaviour()->param[0][0] ;
-					if(!triangles[k]->getBehaviour()->param.isNull() && triangles[k]->getBehaviour()->param[0][0] < E_min)
-						E_min = triangles[k]->getBehaviour()->param[0][0] ;
+					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] > E_max)
+						E_max = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
+					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] < E_min)
+						E_min = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
+					
+					stiffness[k*npoints] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
+					stiffness[k*npoints+1] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
+					stiffness[k*npoints+2] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
+					stiffness[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
+					damage[k*npoints] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
+					damage[k*npoints+1] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
+					damage[k*npoints+2] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
+					damage[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
 				}
 					
-				sigma11[k*npoints] = sigma[k*npoints*3];
-				sigma22[k*npoints] = sigma[k*npoints*3+1];
-				sigma12[k*npoints] = sigma[k*npoints*3+2];
-				sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-				sigma22[k*npoints+1] = sigma[k*npoints*3+4];
-				sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-				sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-				sigma22[k*npoints+2] = sigma[k*npoints*3+7];
-				sigma12[k*npoints+2] = sigma[k*npoints*3+8];
+				sigma11[k*npoints] = sigma[k*npoints*6];
+				sigma22[k*npoints] = sigma[k*npoints*6+1];
+				sigma33[k*npoints] = sigma[k*npoints*6+2];
+				sigma12[k*npoints] = sigma[k*npoints*6+3];
+				sigma13[k*npoints] = sigma[k*npoints*6+4];
+				sigma23[k*npoints] = sigma[k*npoints*6+5];
 				
-				if(npoints >3)
+				sigma11[k*npoints+1] = sigma[k*npoints*6+6];
+				sigma22[k*npoints+1] = sigma[k*npoints*6+7];
+				sigma33[k*npoints+1] = sigma[k*npoints*6+8];
+				sigma12[k*npoints+1] = sigma[k*npoints*6+9];
+				sigma13[k*npoints+1] = sigma[k*npoints*6+10];
+				sigma23[k*npoints+1] = sigma[k*npoints*6+11];
+				
+				sigma11[k*npoints+2] = sigma[k*npoints*6+12];
+				sigma22[k*npoints+2] = sigma[k*npoints*6+13];
+				sigma33[k*npoints+2] = sigma[k*npoints*6+14];
+				sigma12[k*npoints+2] = sigma[k*npoints*6+15];
+				sigma13[k*npoints+2] = sigma[k*npoints*6+16];
+				sigma23[k*npoints+2] = sigma[k*npoints*6+17];
+				
+				sigma11[k*npoints+3] = sigma[k*npoints*6+18];
+				sigma22[k*npoints+3] = sigma[k*npoints*6+19];
+				sigma33[k*npoints+3] = sigma[k*npoints*6+20];
+				sigma12[k*npoints+3] = sigma[k*npoints*6+21];
+				sigma13[k*npoints+3] = sigma[k*npoints*6+22];
+				sigma23[k*npoints+3] = sigma[k*npoints*6+23];
+				
+				epsilon11[k*npoints] = epsilon[k*npoints*6];
+				epsilon22[k*npoints] = epsilon[k*npoints*6+1];
+				epsilon33[k*npoints] = epsilon[k*npoints*6+2];
+				epsilon12[k*npoints] = epsilon[k*npoints*6+3];
+				epsilon13[k*npoints] = epsilon[k*npoints*6+4];
+				epsilon23[k*npoints] = epsilon[k*npoints*6+5];
+				
+				epsilon11[k*npoints+1] = epsilon[k*npoints*6+6];
+				epsilon22[k*npoints+1] = epsilon[k*npoints*6+7];
+				epsilon33[k*npoints+1] = epsilon[k*npoints*6+8];
+				epsilon12[k*npoints+1] = epsilon[k*npoints*6+9];
+				epsilon13[k*npoints+1] = epsilon[k*npoints*6+10];
+				epsilon23[k*npoints+1] = epsilon[k*npoints*6+11];
+				
+				epsilon11[k*npoints+2] = epsilon[k*npoints*6+12];
+				epsilon22[k*npoints+2] = epsilon[k*npoints*6+13];
+				epsilon33[k*npoints+2] = epsilon[k*npoints*6+14];
+				epsilon12[k*npoints+2] = epsilon[k*npoints*6+15];
+				epsilon13[k*npoints+2] = epsilon[k*npoints*6+16];
+				epsilon23[k*npoints+2] = epsilon[k*npoints*6+17];
+				
+				epsilon11[k*npoints+3] = epsilon[k*npoints*6+18];
+				epsilon22[k*npoints+3] = epsilon[k*npoints*6+19];
+				epsilon33[k*npoints+3] = epsilon[k*npoints*6+20];
+				epsilon12[k*npoints+3] = epsilon[k*npoints*6+21];
+				epsilon13[k*npoints+3] = epsilon[k*npoints*6+22];
+				epsilon23[k*npoints+3] = epsilon[k*npoints*6+23];
+				
+				double vm0 = 0 ;
+				double agl = 0 ;
+				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+					vm0 = tets[k]->getState().getMaximumVonMisesStress() ;
+				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+					agl = tets[k]->getState().getPrincipalAngle(tets[k]->getCenter()) ;
+				for(size_t l = 0 ; l < 4 ; l++)
 				{
-					sigma11[k*npoints+3] = sigma[k*npoints*3+9];
-					sigma22[k*npoints+3] = sigma[k*npoints*3+10];
-					sigma12[k*npoints+3] = sigma[k*npoints*3+11];
-					sigma11[k*npoints+4] = sigma[k*npoints*3+12];
-					sigma22[k*npoints+4] = sigma[k*npoints*3+13];
-					sigma12[k*npoints+4] = sigma[k*npoints*3+14];
-					sigma11[k*npoints+5] = sigma[k*npoints*3+15];
-					sigma22[k*npoints+5] = sigma[k*npoints*3+16];
-					sigma12[k*npoints+5] = sigma[k*npoints*3+17];
+					vonMises[k*npoints+l]  = vm0 ;
+					angle[k*npoints+l]  = agl ;
 				}
 				
-				epsilon11[k*npoints] = epsilon[k*npoints*3];
-				epsilon22[k*npoints] = epsilon[k*npoints*3+1];
-				epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-				epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-				epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
-				epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-				epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-				epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
-				epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
-				
-				if(npoints > 3)
-				{
-					epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
-					epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
-					epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
-					epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
-					epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
-					epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
-					epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
-					epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
-					epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
-				}  
-				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
-				{
-					Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
-	
-					double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
-					agl = (vm0[0] <= 0 && vm0[1] <= 0)*180. ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
-				}
-				
-				double ar = triangles[k]->area() ;
+				double ar = tets[k]->volume() ;
 				for(size_t l = 0 ; l < npoints ;l++)
 				{
 					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
 					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
+					avg_e_zz += (epsilon33[k*npoints+l]/npoints)*ar;
 					avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
+					avg_e_xz += (epsilon13[k*npoints+l]/npoints)*ar;
+					avg_e_yz += (epsilon23[k*npoints+l]/npoints)*ar;
 					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
 					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
+					avg_s_zz += (sigma33[k*npoints+l]/npoints)*ar;
 					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
+					avg_s_xz += (sigma13[k*npoints+l]/npoints)*ar;
+					avg_s_yz += (sigma23[k*npoints+l]/npoints)*ar;
+					xavg += x[tets[k]->getBoundingPoint(l).id]*ar/npoints ;
 				}
-				
-				if(triangles[k]->getEnrichmentFunctions().size() == 0)
-				{
-					for(size_t l = 0 ; l < npoints ;l++)
-					{
-						avg_e_xx_nogel += (epsilon11[k*npoints+l]/npoints)*ar;
-						avg_e_yy_nogel += (epsilon22[k*npoints+l]/npoints)*ar;
-						avg_e_xy_nogel += (epsilon12[k*npoints+l]/npoints)*ar;
-						avg_s_xx_nogel += (sigma11[k*npoints+l]/npoints)*ar;
-						avg_s_yy_nogel += (sigma22[k*npoints+l]/npoints)*ar;
-						avg_s_xy_nogel += (sigma12[k*npoints+l]/npoints)*ar;
-						
-					}
-					nogel_area+= ar ;
-				}
-
-			}
-			else
-			{
-				sigma11[k*npoints] = 0 ;
-				sigma22[k*npoints] = 0 ;
-				sigma12[k*npoints] = 0 ;
-				sigma11[k*npoints+1] = 0 ;
-				sigma22[k*npoints+1] = 0 ;
-				sigma12[k*npoints+1] = 0 ;
-				sigma11[k*npoints+2] = 0 ;
-				sigma22[k*npoints+2] = 0 ;
-				sigma12[k*npoints+2] = 0 ;
-				
-				if(npoints >3)
-				{
-					sigma11[k*npoints+3] = 0 ;
-					sigma22[k*npoints+3] = 0 ;
-					sigma12[k*npoints+3] = 0 ;
-					sigma11[k*npoints+4] = 0 ;
-					sigma22[k*npoints+4] = 0 ;
-					sigma12[k*npoints+4] = 0 ;
-					sigma11[k*npoints+5] = 0 ;
-					sigma22[k*npoints+5] = 0 ;
-					sigma12[k*npoints+5] =0 ;
-				}
-				
-				epsilon11[k*npoints] = 0 ;
-				epsilon22[k*npoints] = 0 ;
-				epsilon12[k*npoints] = 0 ;
-				epsilon11[k*npoints+1] = 0 ;
-				epsilon22[k*npoints+1] = 0 ;
-				epsilon12[k*npoints+1] = 0 ;
-				epsilon11[k*npoints+2] = 0 ;
-				epsilon22[k*npoints+2] = 0 ;
-				epsilon12[k*npoints+2] = 0 ;
-				
-				if(npoints > 3)
-				{
-					epsilon11[k*npoints+3] = 0 ;
-					epsilon22[k*npoints+3] = 0 ;
-					epsilon12[k*npoints+3] =0 ;
-					epsilon11[k*npoints+4] = 0 ;
-					epsilon22[k*npoints+4] = 0 ;
-					epsilon12[k*npoints+4] =0 ;
-					epsilon11[k*npoints+5] = 0 ;
-					epsilon22[k*npoints+5] =0 ;
-					epsilon12[k*npoints+5] = 0 ;
-				}  
-				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
-				{
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
-				}
+	
 			}
 		}
-		std::string filename("triangles_") ;
-		filename.append(itoa(cas, 10)) ;
-		filename.append("_") ;
-		filename.append(itoa(totit++, 10)) ;
+		
+		if(false)
+		{
+			std::stringstream pointfilename ;
+			pointfilename << "difp_2n" ;
+			std::fstream pointfile  ;
+			std::fstream pointfilel  ;
+			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
+			pointfilename << "p" ;
+			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
+			
+			
+			int counter = 0 ;
+			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
+			{
+				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
+				{
+					counter++ ;
+					if(counter%1000 == 0)
+						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
+					Point p(i,j,0.075*scale) ;
+					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
+					if(!tris.empty())
+					{
+						bool done = false ;
+						for(size_t k = 0 ; k < tris.size() ; k++)
+						{
+							
+							if(tris[k]->in(p))
+							{
+								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
+								if(b)
+								{
+									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
+										pointfile << 5 << "   " ;
+									else
+										pointfile << 4 << "   " ;
+									//pointfile << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
+/*									pointfilel << b->phi << "   " ;
+									pointfilelp << b->accumulatedPhi << "   " ;
+									pointfiled << b->damage[0] << "   " ;*/
+									done = true ;
+								}
+								else
+								{
+									pointfile << 3 << "   " ;
+/*									pointfilel  << 0 << "   " ;
+									pointfilelp << 0 << "   " ;
+									pointfiled << 0 << "   " ;*/
+									done = true ;
+								}
+								break ;
+							}
+						}
+						if(!done)
+						{
+							pointfile << 2 << "   " ;
+/*							pointfilel << 0 << "   " ;
+							pointfilelp << 0 << "   " ;
+							pointfiled << 0 << "   " ;*/
+						}
+					}
+					else
+					{
+						pointfile << 1 << "   " ;
+/*						pointfilel << 0 << "   " ;
+						pointfilelp << 0 << "   " ;
+						pointfiled << 0 << "   " ;*/
+					}
+				}
+				pointfile << "\n" ;
+/*				pointfilel << "\n" ;
+				pointfilelp << "\n" ;
+				pointfiled << "\n" ;*/
+			}
+		
+			
+		
+			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
+		
+			counter = 0 ;
+			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
+			{
+				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
+				{
+					counter++ ;
+					if(counter%1000 == 0)
+						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
+					Point p(i,j,0.1495*scale) ;
+					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
+					if(!tris.empty())
+					{
+						bool done = false ;
+						for(size_t k = 0 ; k < tris.size() ; k++)
+						{
+							
+							if(tris[k]->in(p))
+							{
+								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
+								if(b)
+								{
+									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
+										pointfile << 5 << "   " ;
+									else
+										pointfile << 4 << "   " ;
+/*									pointfilel << b->phi << "   " ;
+									pointfilelp << b->accumulatedPhi << "   " ;
+									pointfiled << b->damage[0] << "   " ;*/
+									done = true ;
+								}
+								else
+								{
+									pointfilel << 3 << "   " ;
+/*									pointfilel  << 0 << "   " ;
+									pointfilelp << 0 << "   " ;
+									pointfiled << 0 << "   " ;*/
+									done = true ;
+								}
+								break ;
+							}
+						}
+						if(!done)
+						{
+							pointfilel << 2 << "   " ;
+/*							pointfilel << 0 << "   " ;
+							pointfilelp << 0 << "   " ;
+							pointfiled << 0 << "   " ;*/
+						}
+					}
+					else
+					{
+						pointfilel << 1 << "   " ;
+/*						pointfilel << 0 << "   " ;
+						pointfilelp << 0 << "   " ;
+						pointfiled << 0 << "   " ;*/
+					}
+				}
+				pointfilel << "\n" ;
+/*				pointfilel << "\n" ;
+				pointfilelp << "\n" ;
+				pointfiled << "\n" ;*/
+			}
+			
+		
+			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
+		}
+		
+/*		std::string filename("voxels") ;
 		std::cout << filename << std::endl ;
 		std::fstream outfile  ;
 		outfile.open(filename.c_str(), std::ios::out) ;
 		
-		outfile << "TRIANGLES" << std::endl ;
-		outfile << triangles.size() << std::endl ;
-		outfile << 3 << std::endl ;
-		outfile << 8 << std::endl ;
+		outfile << "VOXELS" << std::endl ;
+		outfile << 1 << std::endl ;
+		int imax = 30 ;
+		int jmax = 30 ;
+		int kmax = 30 ;
+		outfile << imax-1 << std::endl ;
+		outfile << jmax-1 << std::endl ;
+		outfile << kmax-1 << std::endl ;
+		outfile.close() ;
 		
-		for(size_t j = 0 ; j < triangles.size() ;j++)
+		std::valarray<double> val_double((imax-1)*(jmax-1)*(kmax-1)) ;
+		int count = 0 ;
+		for(int i = 1 ; i < imax ; i++)
 		{
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
+			for(int j = 1 ; j < jmax ; j++)
 			{
-				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
+				for(int k = 1 ; k < kmax ; k++)
+				{
+					Point p((double)0.15*i*scale/imax,(double)0.15*j*scale/jmax,(double)0.15*k*scale/kmax) ;
+					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
+					bool done = false ;
+					if(!tris.empty())
+					{
+						for(size_t l = 0 ; l < tris.size() ; l++)
+						{
+							
+							if(tris[l]->in(p))
+							{
+								Stiffness * b = dynamic_cast<Stiffness *>(tris[l]->getBehaviour()) ;
+								if(b)
+								{
+									val_double[count++] = b->getTensor(Point(0.3,0.3,0.3))[0][0] ;
+									done = true ;
+								}
+								break ;
+							}
+						}
+					}
+					if(!done)
+						val_double[count++] = 0. ;
+				}
 			}
-
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon11[j*3+l] << " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon22[j*3+l] << " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<   epsilon12[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma11[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma22[j*3+l]<< " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma12[j*3+l] << " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile << vonMises[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
-			}
-			outfile << "\n" ;
 		}
 		
+		double vmax = val_double.max() ;
+		double vmin = val_double.min() ;
+		
+		std::cout << vmin << " " << vmax << std::endl ;
+		
+		std::valarray<unsigned short int> val_int(count) ;
+		for(int i = 0 ; i < val_int.size() ; i++)
+			val_int[i] = (unsigned short int) ( (double) (255.*(val_double[i]-vmin)/(vmax-vmin))) ;
+		
+		for(int i = 0 ; i < val_int.size() ; i++)
+		{
+			if(val_int[i] > 0)
+				std::cout << val_int[i] << std::endl ;
+		}
+		
+		std::fstream outbin ;
+		outbin.open(filename.c_str(), std::ios::out|std::ios::binary|std::ios::app) ;
+		for(int i = 0 ; i < val_int.size() ; i++)
+		{
+			char val = val_int[i] ;
+			outbin.put(val) ;
+		}
+		outbin.close() ;*/
+		
+		VoxelWriter test("voxel_test",100,6) ;
+//		test.write(featureTree,F_STIFFNESS) ;
+		test.write(featureTree,F_STRAIN) ;
+		
+		xavg /= volume ;
+		
 		std::cout << std::endl ;
-		std::cout << "imposed strain :" << tension << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
 		std::cout << "min value :" << x_min << std::endl ;
+		std::cout << "avg value :" << xavg << std::endl ;
 		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
 		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
 		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
 		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
+		std::cout << "max sigma13 :" << sigma13.max() << std::endl ;
+		std::cout << "min sigma13 :" << sigma13.min() << std::endl ;
 		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
 		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
+		std::cout << "max sigma23 :" << sigma23.max() << std::endl ;
+		std::cout << "min sigma23 :" << sigma23.min() << std::endl ;
+		std::cout << "max sigma33 :" << sigma33.max() << std::endl ;
+		std::cout << "min sigma33 :" << sigma33.min() << std::endl ;
 		
 		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
 		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
 		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
 		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
+		std::cout << "max epsilon13 :" << epsilon13.max() << std::endl ;
+		std::cout << "min epsilon13 :" << epsilon13.min() << std::endl ;
 		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
 		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+		std::cout << "max epsilon23 :" << epsilon23.max() << std::endl ;
+		std::cout << "min epsilon23 :" << epsilon23.min() << std::endl ;
+		std::cout << "max epsilon33 :" << epsilon33.max() << std::endl ;
+		std::cout << "min epsilon33 :" << epsilon33.min() << std::endl ;
 		
 		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
 		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 		
-		std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		std::cout << "average sigma11 : " << avg_s_xx/volume << std::endl ;
+		std::cout << "average sigma22 : " << avg_s_yy/volume << std::endl ;
+		std::cout << "average sigma33 : " << avg_s_zz/volume << std::endl ;
+		std::cout << "average sigma12 : " << avg_s_xy/volume << std::endl ;
+		std::cout << "average sigma13 : " << avg_s_xz/volume << std::endl ;
+		std::cout << "average sigma23 : " << avg_s_yz/volume << std::endl ;
+		std::cout << "average epsilon11 : " << avg_e_xx/volume << std::endl ;
+		std::cout << "average epsilon22 : " << avg_e_yy/volume << std::endl ;
+		std::cout << "average epsilon33 : " << avg_e_zz/volume << std::endl ;
+		std::cout << "average epsilon12 : " << avg_e_xy/volume << std::endl ;
+		std::cout << "average epsilon13 : " << avg_e_xz/volume << std::endl ;
+		std::cout << "average epsilon23 : " << avg_e_yz/volume << std::endl ;
+		std::cout << "number of void tetrahedrons : " << n_void << "/" << tets.size() << std::endl ;
+		std::cout << "volume of non-void tetrahedrons : " << volume << std::endl ;
 		
-		std::cout << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
-		std::cout << "average sigma22 (no gel): " << avg_s_yy_nogel/nogel_area << std::endl ;
-		std::cout << "average sigma12 (no gel): " << avg_s_xy_nogel/nogel_area << std::endl ;
-		std::cout << "average epsilon11 (no gel): " << avg_e_xx_nogel/nogel_area << std::endl ;
-		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
-		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
-		
-                std::cout << "apparent extension X " << e_xx_max-e_xx_min << std::endl ;
-                std::cout << "apparent extension Y " << e_yy_max-e_yy_min << std::endl ;
-
-		std::cout << tries << std::endl ;
-
-	        if (tries < maxtries && featureTree->solverConverged())
-		{
-			tension += delta ;
-		
-			if(featureTree->solverConverged())
-			{
-				expansion_reaction.push_back(std::make_pair(placed_area/(0.04*0.04), avg_e_xx/area)) ;
-				expansion_stress_xx.push_back(std::make_pair((avg_e_xx_nogel)/(nogel_area), (avg_s_xx_nogel)/(nogel_area))) ;
-				expansion_stress_yy.push_back(std::make_pair((avg_e_yy_nogel)/(nogel_area), (avg_s_yy_nogel)/(nogel_area))) ;
-                                apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
-			}
-			
-		}
 	}
-	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
-		std::cout << expansion_reaction[i].first << "   " 
-		<< expansion_reaction[i].second << "   " 
-		<< expansion_stress_xx[i].first << "   " 
-		<< expansion_stress_xx[i].second << "   " 
-		<< expansion_stress_yy[i].first << "   " 
-		<< expansion_stress_yy[i].second << "   " 
-                << apparent_extension[i].first  << "   "
-                << apparent_extension[i].second  << "   "
-                << cracked_volume[i]  << "   "
-		<< damaged_volume[i]  << "   " 
-		<< std::endl ;
-
 
 }
 
+void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
+{
+	int i;
+	double f, p, q, t;
+	if( s == 0 ) {
+                // achromatic (grey)
+		*r = *g = *b = v;
+		return;
+	}
+	h /= 60.;                        // sector 0 to 5
+	i = (int)floor( h );
+	f = h - i;                      // factorial part of h
+	p = v * ( 1. - s );
+	q = v * ( 1. - s * f );
+	t = v * ( 1. - s * ( 1. - f ) );
+	switch( i ) {
+	case 0:
+		*r = v;
+		*g = t;
+		*b = p;
+		break;
+	case 1:
+		*r = q;
+		*g = v;
+		*b = p;
+		break;
+	case 2:
+		*r = p;
+		*g = v;
+		*b = t;
+		break;
+	case 3:
+		*r = p;
+		*g = q;
+		*b = v;
+		break;
+	case 4:
+		*r = t;
+		*g = p;
+		*b = v;
+		break;
+	default:                // case 5:
+		*r = v;
+		*g = p;
+		*b = q;
+		break;
+	}
+}
+
+void init(void) 
+{
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB) ;
+	glShadeModel (GL_SMOOTH);
+	glEnable(GL_COLOR_MATERIAL) ;
+	GLfloat mat_specular[] = {0.01f, 0.01f, 0.01f, 1.0f};
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+	glColorMaterial(GL_AMBIENT_AND_DIFFUSE, GL_FRONT_AND_BACK) ;
+// 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+	
+// 	glEnable(GL_NORMALIZE) ;
+	glClearColor(0.0f,0.0f,0.0f,1.0f);                                      // Black Background
+	glClearDepth(-0.f);                                                     // Depth Buffer Setup
+	
+	
+	glEnable(GL_LIGHTING) ;
+	glEnable(GL_LIGHT0) ;
+	
+	GLfloat light_ambient[] = { 0.8, 0.8, 0.8, 1.0 };
+	GLfloat light_diffuse[] = { 0.6, 0.6, 0.6, 1.0 };
+	GLfloat light_specular[] = { 0.7, 0.7, 0.7, 1.0 };
+	GLfloat light_position[] = { 1, 0, 0, 0 };
+	
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	
+// 	glEnable(GL_BLEND) ;
+// 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	glDepthRange( 0, 1 ) ;
+	
+}
+
+void Menu(int selection)
+{
+	switch (selection)
+	{
+	case ID_NEXT:
+		{
+			step() ;
+			dlist = false ;
+			break ;
+		}
+	case ID_NEXT_TIME:
+		{
+			timepos +=0.0001 ;
+		}
+	case ID_DISP : 
+		{
+			current_list = DISPLAY_LIST_DISPLACEMENT ;
+			break ;
+		}
+	case ID_STIFNESS : 
+	{
+		current_list = DISPLAY_LIST_STIFFNESS ;
+		break ;
+	}
+	case ID_STRAIN_XX : 
+		{
+			current_list = DISPLAY_LIST_STRAIN_XX ;
+			break ;
+		}
+	case ID_STRAIN_YY : 
+		{
+			current_list = DISPLAY_LIST_STRAIN_YY ;
+			break ;
+		}
+	case ID_STRAIN_ZZ : 
+		{
+			current_list = DISPLAY_LIST_STRAIN_ZZ ;
+			break ;
+		}
+	case ID_STRAIN_XY : 
+		{
+			current_list = DISPLAY_LIST_STRAIN_XY ;
+			break ;
+		}
+	case ID_STRAIN_XZ : 
+		{
+			current_list = DISPLAY_LIST_STRAIN_XZ ;
+			break ;
+		}
+	case ID_STRAIN_YZ : 
+		{
+			current_list = DISPLAY_LIST_STRAIN_YZ ;
+			break ;
+		}
+	case ID_STRESS_XX : 
+		{
+			current_list = DISPLAY_LIST_STRESS_XX ;
+			break ;
+		}
+	case ID_STRESS_YY : 
+		{
+			current_list = DISPLAY_LIST_STRESS_YY ;
+			break ;
+		}
+	case ID_STRESS_ZZ : 
+		{
+			current_list = DISPLAY_LIST_STRESS_ZZ ;
+			break ;
+		}
+	case ID_STRESS_XY : 
+		{
+			current_list = DISPLAY_LIST_STRESS_XY ;
+			break ;
+		}
+	case ID_STRESS_XZ : 
+		{
+			current_list = DISPLAY_LIST_STRESS_XZ ;
+			break ;
+		}
+	case ID_STRESS_YZ : 
+		{
+			current_list = DISPLAY_LIST_STRESS_YZ ;
+			break ;
+		}
+	case ID_ELEM : 
+		{
+			current_list = DISPLAY_LIST_ELEMENTS ;
+			break ;
+		}
+	case ID_VON_MISES: 
+		{
+			current_list = DISPLAY_LIST_VON_MISES ;
+			break ;
+		}
+	case ID_ANGLE: 
+		{
+			current_list = DISPLAY_LIST_ANGLE ;
+			break ;
+		}	
+	case ID_ENRICHMENT: 
+		{
+			current_list = DISPLAY_LIST_ENRICHMENT ;
+			break ;
+		}
+
+	case ID_QUIT : exit(0) ;
+		
+	case ID_ZOOM :
+		{
+			factor *= 1.5 ;
+			break ;
+		}
+	case ID_UNZOOM :
+		{
+			factor /= 1.5 ;
+			break ;
+		}
+		
+	case ID_AMPLIFY :
+		{
+			x *= 1.5 ;
+// 			sigma11 *= 1.5 ;
+// 			sigma22 *= 1.5 ;
+// 			sigma12 *= 1.5 ;
+			dlist = false ;
+			break ;
+		}
+	case ID_DEAMPLIFY :
+		{
+			x /= 1.5 ;
+// 			sigma11 /= 1.5 ;
+// 			sigma22 /= 1.5 ;
+// 			sigma12 /= 1.5 ;
+			dlist = false ;
+			break ;
+		}
+	}
+}
+
+std::pair<double, double> centile(const Vector & v)
+{
+	Vector vs(v) ;
+	std::sort(&vs[0], &vs[vs.size()]) ;
+	return std::make_pair(vs[(vs.size()-1)*0.01], vs[(vs.size()-1)*0.99]) ;
+}
+
+void reshape(int w, int h)
+{
+	windowWidth = w ;
+	windowHeight = h ;
+	glViewport (0, 0, w, h);
+	glMatrixMode (GL_PROJECTION);
+	glLoadIdentity ();
+	gluPerspective(45.0, 1., (double)w/(double)h, 2.);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity() ;
+}
+
+void printScreen()
+{
+	std::valarray<unsigned int> frame(windowWidth*windowHeight) ;
+	glReadPixels(0,0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, &frame[0]) ;
+}
+
+void displayTet(DelaunayTetrahedron * t, int j, std::valarray<double> & vals, double min, double max)
+{
+	if(t->getCenter().y > 200 && t->getCenter().x < 200 && t->getCenter().z < 200)
+	{
+		return ;
+	}
+	double c1 ;
+	double c2 ;
+	double c3 ;
+// 	glBegin(GL_POINTS);
+	double vx = x[t->first->id*3]+x[t->second->id*3]+x[t->third->id*3]+x[t->fourth->id*3]; 
+	double vy = x[t->first->id*3+1]+x[t->second->id*3+1]+x[t->third->id*3+1]+x[t->fourth->id*3+1]; 
+	double vz = x[t->first->id*3+2]+x[t->second->id*3+2]+x[t->third->id*3+2]+x[t->fourth->id*3+2]; 
+// 	vx = 0 ; vy = 0 ; vz = 0 ;
+// 	
+	double v = (vals[j*4]+vals[j*4+1]+vals[j*4+2]+vals[j*4+3])*.25 ;
+	HSVtoRGB( &c1, &c2, &c3, 300. - 240.*(v-min)/(max-min), 1., 1.) ;
+	glColor3f(c1, c2, c3) ;
+	glVertex3f(double(t->getCenter().x + vx*.25) , double(t->getCenter().y + vy*.25), double(t->getCenter().z + vz*.25) );
+// 	glEnd() ;
+// 	glBegin(GL_LINE_LOOP);
+// 		double vx = x[t->first->id*3]; 
+// 		double vy = x[t->first->id*3+1]; 
+// 		double vz = x[t->first->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->first->x + vx) , double(t->first->y + vy), double(t->first->z + vz) );
+// 		
+// 		vx = x[t->second->id*3]; 
+// 		vy = x[t->second->id*3+1]; 
+// 		vz = x[t->second->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+1]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->second->x + vx) , double(t->second->y + vy),  double(t->second->z + vz) );
+// 		
+// 		vx = x[t->third->id*3]; 
+// 		vy = x[t->third->id*3+1]; 
+// 		vz = x[t->third->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+2]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->third->x + vx) , double(t->third->y + vy), double(t->third->z + vz) );
+// 	glEnd() ;
+// 	
+// 	glBegin(GL_LINE_LOOP);
+// 		vx = x[t->first->id*3]; 
+// 		vy = x[t->first->id*3+1]; 
+// 		vz = x[t->first->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+0]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->first->x + vx) , double(t->first->y + vy), double(t->first->z + vz) );
+// 		
+// 		vx = x[t->second->id*3]; 
+// 		vy = x[t->second->id*3+1]; 
+// 		vz = x[t->second->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+1]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->second->x + vx) , double(t->second->y + vy), double(t->second->z + vz) );
+// 		
+// 		vx = x[t->fourth->id*3]; 
+// 		vy = x[t->fourth->id*3+1]; 
+// 		vz = x[t->fourth->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+3]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->fourth->x + vx) , double(t->fourth->y + vy), double(t->fourth->z + vz) );
+// 	glEnd() ;
+// 	
+// 	glBegin(GL_LINE_LOOP);
+// 		vx = x[t->first->id*3]; 
+// 		vy = x[t->first->id*3+1]; 
+// 		vz = x[t->first->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+0]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->first->x + vx) , double(t->first->y + vy), double(t->first->z + vz) );
+// 		
+// 		vx = x[t->third->id*3]; 
+// 		vy = x[t->third->id*3+1]; 
+// 		vz = x[t->third->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+2]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->third->x + vx) , double(t->third->y + vy), double(t->third->z + vz) );
+// 		
+// 		vx = x[t->fourth->id*3]; 
+// 		vy = x[t->fourth->id*3+1]; 
+// 		vz = x[t->fourth->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+3]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->fourth->x + vx) , double(t->fourth->y + vy), double(t->fourth->z + vz) );
+// 	glEnd() ;
+// 	
+// 	glBegin(GL_LINE_LOOP);
+// 		vx = x[t->third->id*3]; 
+// 		vy = x[t->third->id*3+1]; 
+// 		vz = x[t->third->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+2]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->third->x + vx) , double(t->third->y + vy), double(t->third->z + vz) );
+// 		
+// 		vx = x[t->second->id*3]; 
+// 		vy = x[t->second->id*3+1]; 
+// 		vz = x[t->second->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+1]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->second->x + vx) , double(t->second->y + vy), double(t->second->z + vz) );
+// 		
+// 		vx = x[t->fourth->id*3]; 
+// 		vy = x[t->fourth->id*3+1]; 
+// 		vz = x[t->fourth->id*3+2]; 
+// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+3]-min)/(max-min), 1., 1.) ;
+// 		glColor3f(c1, c2, c3) ;
+// 		glVertex3f(double(t->fourth->x + vx) , double(t->fourth->y + vy), double(t->fourth->z + vz) );
+// 	glEnd() ;
+}
+
+void Display(void)
+{
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	
+	glMatrixMode(GL_MODELVIEW);	
+	glLoadIdentity() ;
+	glScalef(.002, .002, .002) ;
+	glRotatef( viewangle, 0, -1, 0) ;
+	glRotatef(-viewangle2 , -1, 0, 0) ;
+	glRotatef(20 , 0, 0, 1) ;
+	glTranslatef(-200,-200, -200) ;
+	glEnable(GL_DEPTH_TEST) ;
+	if(!dlist)
+	{
+		
+		DISPLAY_LIST_ENRICHMENT = glGenLists(1);
+		glNewList( DISPLAY_LIST_ENRICHMENT,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && damage[j*4]<1)
+			{
+				displayTet(tets[j],j , damage, 0, 1) ;
+			}
+		}
+		glEnd() ;
+// 			for (unsigned int j=0 ; j< tets.size() ; j++ )
+// 			{
+// 				
+// 				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR  && tets[j]->getBehaviour()->fractured())
+// 				{
+// 					double c1 ;
+// 					double c2 ;
+// 					double c3 ;
+// 					
+// 					glBegin(GL_LINE_LOOP);
+// 					double vx = x[tets[j]->first->id*3]; 
+// 					double vy = x[tets[j]->first->id*3+1]; 
+// 					double vz = x[tets[j]->first->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 					
+// 					vx = x[tets[j]->second->id*3]; 
+// 					vy = x[tets[j]->second->id*3+1]; 
+// 					vz = x[tets[j]->second->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
+// 					
+// 					vx = x[tets[j]->third->id*3]; 
+// 					vy = x[tets[j]->third->id*3+1]; 
+// 					vz = x[tets[j]->third->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 					glEnd() ;
+// 					
+// 					glBegin(GL_LINE_LOOP);
+// 					vx = x[tets[j]->first->id*3]; 
+// 					vy = x[tets[j]->first->id*3+1]; 
+// 					vz = x[tets[j]->first->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 					
+// 					vx = x[tets[j]->second->id*3]; 
+// 					vy = x[tets[j]->second->id*3+1]; 
+// 					vz = x[tets[j]->second->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+// 					
+// 					vx = x[tets[j]->fourth->id*3]; 
+// 					vy = x[tets[j]->fourth->id*3+1]; 
+// 					vz = x[tets[j]->fourth->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 					glEnd() ;
+// 					
+// 					glBegin(GL_LINE_LOOP);
+// 					vx = x[tets[j]->first->id*3]; 
+// 					vy = x[tets[j]->first->id*3+1]; 
+// 					vz = x[tets[j]->first->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 					
+// 					vx = x[tets[j]->third->id*3]; 
+// 					vy = x[tets[j]->third->id*3+1]; 
+// 					vz = x[tets[j]->third->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 					
+// 					vx = x[tets[j]->fourth->id*3]; 
+// 					vy = x[tets[j]->fourth->id*3+1]; 
+// 					vz = x[tets[j]->fourth->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 					glEnd() ;
+// 					
+// 					glBegin(GL_LINE_LOOP);
+// 					vx = x[tets[j]->third->id*3]; 
+// 					vy = x[tets[j]->third->id*3+1]; 
+// 					vz = x[tets[j]->third->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 					
+// 					vx = x[tets[j]->second->id*3]; 
+// 					vy = x[tets[j]->second->id*3+1]; 
+// 					vz = x[tets[j]->second->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+// 					
+// 					vx = x[tets[j]->fourth->id*3]; 
+// 					vy = x[tets[j]->fourth->id*3+1]; 
+// 					vz = x[tets[j]->fourth->id*3+2]; 
+// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 					glColor3f(c1, c2, c3) ;
+// 					glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 					glEnd() ;
+// 				}
+// 			}
+		glEndList() ;
+		
+		DISPLAY_LIST_DISPLACEMENT = glGenLists(1);
+		glNewList( DISPLAY_LIST_DISPLACEMENT,  GL_COMPILE ) ;
+		double xmin = x.min() ; double xmax = x.max() ;
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+			{
+				std::vector<Point> bb0 = tets[j]->getBoundingBox() ;
+				double min_x_0 = 0, min_y_0 = 0, max_x_0 = 0, max_y_0 = 0, max_z_0 = 0, min_z_0 = 0;
+				min_y_0 = bb0[0].y ;
+				max_y_0 = bb0[0].y ;
+				min_x_0 = bb0[0].x ;
+				max_x_0 = bb0[0].x ;
+				min_z_0 = bb0[0].z ;
+				max_z_0 = bb0[0].z ;
+	
+				for(size_t k  =  1 ; k <  bb0.size() ; k++)
+				{
+					if(bb0[k].y < min_y_0)
+						min_y_0 = bb0[k].y ;
+					if(bb0[k].y > max_y_0)
+						max_y_0 = bb0[k].y ;
+					
+					if(bb0[k].x < min_x_0)
+						min_x_0 = bb0[k].x ;
+					if(bb0[k].x > max_x_0)
+						max_x_0 = bb0[k].x ;
+					
+					if(bb0[k].z < min_z_0)
+						min_z_0 = bb0[k].z ;
+					if(bb0[k].z > max_z_0)
+						max_z_0 = bb0[k].z ;
+				}
+				
+				bool onborder = true ;
+// 					(std::abs(max_x_0-500) < 0.01) 
+/*					|| (min_x_0 < 0.01)
+					|| (std::abs(max_y_0-500) < 0.01)
+					|| (min_y_0 < 0.01)
+					|| (std::abs(max_z_0-500) < 0.01)
+					|| (min_z_0 < 0.01)*/ ;
+				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR  && !tets[j]->getBehaviour()->fractured()
+					&& onborder)
+				{
+					double c1 ;
+					double c2 ;
+					double c3 ;
+					
+// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_TRIANGLES);
+// 						double vx = x[tets[j]->first->id*3]; 
+// 						double vy = x[tets[j]->first->id*3+1]; 
+// 						double vz = x[tets[j]->first->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 						
+// 						vx = x[tets[j]->second->id*3]; 
+// 						vy = x[tets[j]->second->id*3+1]; 
+// 						vz = x[tets[j]->second->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
+// 						
+// 						vx = x[tets[j]->third->id*3]; 
+// 						vy = x[tets[j]->third->id*3+1]; 
+// 						vz = x[tets[j]->third->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_TRIANGLES);
+// 						double vx = x[tets[j]->first->id*3]; 
+// 						double vy = x[tets[j]->first->id*3+1]; 
+// 						double vz = x[tets[j]->first->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 						
+// 						vx = x[tets[j]->second->id*3]; 
+// 						vy = x[tets[j]->second->id*3+1]; 
+// 						vz = x[tets[j]->second->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+// 						
+// 						vx = x[tets[j]->fourth->id*3]; 
+// 						vy = x[tets[j]->fourth->id*3+1]; 
+// 						vz = x[tets[j]->fourth->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_TRIANGLES);
+// 						double vx = x[tets[j]->first->id*3]; 
+// 						double vy = x[tets[j]->first->id*3+1]; 
+// 						double vz = x[tets[j]->first->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+// 						
+// 						vx = x[tets[j]->third->id*3]; 
+// 						vy = x[tets[j]->third->id*3+1]; 
+// 						vz = x[tets[j]->third->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 						
+// 						vx = x[tets[j]->fourth->id*3]; 
+// 						vy = x[tets[j]->fourth->id*3+1]; 
+// 						vz = x[tets[j]->fourth->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+// // 					if(std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
+// 					if(std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
+// 					{
+// 						glBegin(GL_TRIANGLES);
+// 						double vx = x[tets[j]->third->id*3]; 
+// 						double vy = x[tets[j]->third->id*3+1]; 
+// 						double vz = x[tets[j]->third->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+// 						
+// 						vx = x[tets[j]->second->id*3]; 
+// 						vy = x[tets[j]->second->id*3+1]; 
+// 						vz = x[tets[j]->second->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+// 						
+// 						vx = x[tets[j]->fourth->id*3]; 
+// 						vy = x[tets[j]->fourth->id*3+1]; 
+// 						vz = x[tets[j]->fourth->id*3+2]; 
+// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
+// 						glColor3f(c1, c2, c3) ;
+// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+// 						glEnd() ;
+// 					}
+// 					
+					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 1)
+					{
+						glBegin(GL_TRIANGLES);
+						double vx = x[tets[j]->first->id*3]; 
+						double vy = x[tets[j]->first->id*3+1]; 
+						double vz = x[tets[j]->first->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+						
+						vx = x[tets[j]->second->id*3]; 
+						vy = x[tets[j]->second->id*3+1]; 
+						vz = x[tets[j]->second->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
+						
+						vx = x[tets[j]->third->id*3]; 
+						vy = x[tets[j]->third->id*3+1]; 
+						vz = x[tets[j]->third->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+						glEnd() ;
+					}
+					
+					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->fourth->x-300) < 1)
+					{
+						glBegin(GL_TRIANGLES);
+						double vx = x[tets[j]->first->id*3]; 
+						double vy = x[tets[j]->first->id*3+1]; 
+						double vz = x[tets[j]->first->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+						
+						vx = x[tets[j]->second->id*3]; 
+						vy = x[tets[j]->second->id*3+1]; 
+						vz = x[tets[j]->second->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+						
+						vx = x[tets[j]->fourth->id*3]; 
+						vy = x[tets[j]->fourth->id*3+1]; 
+						vz = x[tets[j]->fourth->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+						glEnd() ;
+					}
+					
+					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
+					{
+						glBegin(GL_TRIANGLES);
+						double vx = x[tets[j]->first->id*3]; 
+						double vy = x[tets[j]->first->id*3+1]; 
+						double vz = x[tets[j]->first->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
+						
+						vx = x[tets[j]->third->id*3]; 
+						vy = x[tets[j]->third->id*3+1]; 
+						vz = x[tets[j]->third->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+						
+						vx = x[tets[j]->fourth->id*3]; 
+						vy = x[tets[j]->fourth->id*3+1]; 
+						vz = x[tets[j]->fourth->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+						glEnd() ;
+					}
+					
+					if(std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
+					{
+						glBegin(GL_TRIANGLES);
+						double vx = x[tets[j]->third->id*3]; 
+						double vy = x[tets[j]->third->id*3+1]; 
+						double vz = x[tets[j]->third->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
+						
+						vx = x[tets[j]->second->id*3]; 
+						vy = x[tets[j]->second->id*3+1]; 
+						vz = x[tets[j]->second->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
+						
+						vx = x[tets[j]->fourth->id*3]; 
+						vy = x[tets[j]->fourth->id*3+1]; 
+						vz = x[tets[j]->fourth->id*3+2]; 
+						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
+						glColor3f(c1, c2, c3) ;
+						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
+						glEnd() ;
+					}
+				}
+			}
+		glEndList() ;
+		
+		std::pair<double, double> minmax = centile(sigma11) ;
+		DISPLAY_LIST_STRAIN_XX = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRAIN_XX,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+			for (unsigned int j=0 ; j< tets.size() ; j++ )
+			{
+				
+				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
+				{
+					displayTet(tets[j],j , sigma11, minmax.first, minmax.second) ;
+				}
+			}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(stiffness) ;
+		DISPLAY_LIST_STIFFNESS = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STIFFNESS,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , stiffness, minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(vonMises) ;
+		DISPLAY_LIST_VON_MISES = glGenLists(1);
+		glNewList(  DISPLAY_LIST_VON_MISES,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , vonMises, minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		
+		minmax = centile(angle) ;
+		DISPLAY_LIST_ANGLE = glGenLists(1);
+		glNewList(  DISPLAY_LIST_ANGLE,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , angle,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(sigma22) ;
+		DISPLAY_LIST_STRAIN_YY = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRAIN_YY,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , sigma22, minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(sigma33) ;
+		DISPLAY_LIST_STRAIN_ZZ = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRAIN_ZZ,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , sigma33, minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(sigma12) ;
+		DISPLAY_LIST_STRAIN_XY = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRAIN_XY,  GL_COMPILE ) ;	
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR &&  !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , sigma12, minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(sigma13) ; 
+		DISPLAY_LIST_STRAIN_XZ = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRAIN_XZ,  GL_COMPILE ) ;	
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR &&  !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , sigma13,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(sigma23) ; 
+		DISPLAY_LIST_STRAIN_YZ = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRAIN_YZ,  GL_COMPILE ) ;	
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR &&  !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , sigma23,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(epsilon11) ; 
+		DISPLAY_LIST_STRESS_XX = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRESS_XX,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , epsilon11,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+				
+		minmax = centile(epsilon22) ; 
+		DISPLAY_LIST_STRESS_YY = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRESS_YY,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , epsilon22,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(epsilon33) ; 
+		DISPLAY_LIST_STRESS_ZZ = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRESS_ZZ,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , epsilon33,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(epsilon12) ; 
+		DISPLAY_LIST_STRESS_XY = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRESS_XY,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , epsilon12,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(epsilon13) ; 
+		DISPLAY_LIST_STRESS_XZ = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRESS_XZ,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , epsilon13,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		minmax = centile(epsilon23) ; 
+		DISPLAY_LIST_STRESS_YZ = glGenLists(1);
+		glNewList(  DISPLAY_LIST_STRESS_YZ,  GL_COMPILE ) ;
+		glBegin(GL_POINTS);
+		for (unsigned int j=0 ; j< tets.size() ; j++ )
+		{
+			
+			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
+			{
+				displayTet(tets[j],j , epsilon23,  minmax.first, minmax.second) ;
+			}
+		}
+		glEnd() ;
+		glEndList() ;
+		
+		dlist = true ;
+		glCallList(current_list) ;
+	}
+	else
+	{
+
+		double c1, c2, c3 = 0;
+		HSVtoRGB( &c1, &c2, &c3, 180. + 0, 1., 1.) ;
+		
+		glCallList(current_list) ;
+		glColor3f(1, 1, 1) ;
+
+		
+	}
+	
+// 	glTranslatef(20,20,20) ;
+// 	glBegin(GL_TRIANGLES) ;
+// 	glColor3f(1, 1, 1) ;
+// 	glVertex3f(20, 20, 40) ;
+// 	glVertex3f(20, 20, 0) ;
+// 	
+// 	glVertex3f(0, 40, 40) ;
+// 	glVertex3f(40, 40, 40) ;
+// 	
+// 	glVertex3f(40, 40, 40) ;
+// 	glVertex3f(40, 0, 40) ;
+// 	
+// 	glVertex3f(40, 0, 40) ;
+// 	glVertex3f(0, 0, 40) ;
+// 	
+// 	glVertex3f(0, 0, 40) ;
+// 	glVertex3f(0, 40, 40) ;
+// 	
+// 	glVertex3f(0, 40, 0) ;
+// 	glVertex3f(40, 40, 0) ;
+// 	
+// 	glVertex3f(40, 4, 0) ;
+// 	glVertex3f(40, 0, 0) ;
+// 	
+// 	glVertex3f(40, 0, 0) ;
+// 	glVertex3f(0, 0, 0) ;
+// 	
+// 	glVertex3f(0, 0, 0) ;
+// 	glVertex3f(0, 40, 0) ;
+// 	glEnd() ;
+
+	glColor3f	(1, 0, 0) ;
+	glFlush();
+	glutSwapBuffers();
+}
+
+void processMouseActiveMotion(int x, int y) {
+	viewangle++ ;
+	viewangle %=360 ;
+	viewangle2++ ;
+	viewangle2++ ;
+	viewangle2 %=360 ;
+	Display() ;
+}
 
 int main(int argc, char *argv[])
 {
-	cas = atoi(argv[1]) ;
+// 	Point *p0 = new Point(500, 500, 0) ;
+// Point *p1 = new Point(500, 0, 500) ;
+// Point *p2 = new Point(500, 0, 0) ;
+// Point *p3 = new Point(0, 500, 500) ;
+// DelaunayTree3D dt(p0, p1, p2, p3) ;
+// dt.insert(new Point(0, 500, 0)) ;
+// dt.insert(new Point(500, 500, 500)) ;
+// dt.insert(new Point(0, 0, 500)) ;
+// dt.insert(new Point(0, 0, 0)) ;
+// dt.insert( new Point(497.7976374532, 3.4932919645137, 306.2095113991)) ;
+// dt.insert(new Point(499.59174232694, 3.9847811333998, 183.24226882653)) ;
+// 	
+// 
+// 	return 0 ;
+	
+// 	std::vector<std::string> fields ;
+// 	fields.push_back("center_x") ;
+// 	fields.push_back("center_y") ;
+// 	fields.push_back("center_z") ;
+// 	fields.push_back("radius") ;
+// 	GranuloFromFile gff("sphere_2024.txt",fields) ;
+// 	std::vector<Feature *> feat = gff.getFeatures(SPHERE_INCLUSION, 2024) ;
+// 	std::vector<Inclusion3D *> inclusions ;
+// 	for(size_t i = 0 ; i < feat.size() ; i++)
+// 		inclusions.push_back(static_cast<Inclusion3D *>(feat[i])) ;
 
-	srand(cas) ;
-	RandomNumber gen ;
-	
-	FeatureTree F(&sample) ;
-	featureTree = &F ;
-	F.reuseDisplacements = true ;
+	double maxx = 0.15 ;
+	double maxy = 0.15 ;
+	double maxz = 0.15 ;
+	double minx = 0 ;//-0.025 ;
+	double miny = 0 ;//-0.025 ;
+	double minz = 0 ;//-0.025 ;
 
-	sample.setBehaviour(new PasteBehaviour()) ;
-	
-	double r = 0.01 ;
-	double ax = gen.uniform(-0.01,0.01) ;
-	double ay = gen.uniform(-0.01,0.01) ;
-	
-	Inclusion * inc ;
-	Inclusion * iitz ;
-	ITZFeature * itz ;
-	
-	Matrix m0, m1 ;
-	
-	switch(cas)
+/*	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-		case 0:
-			inc = new Inclusion(0.01,ax,ay) ;
-			inc->setBehaviour(new AggregateBehaviour()) ;
-			F.addFeature(&sample, inc) ;
-			break ;
-			
-		case 1:
-			m0 = sample.getBehaviour()->getTensor(Point(0,0)) ;
-			m1 = m0/2 ;
-	
-			inc = new Inclusion(0.01,ax,ay) ;
-			inc->setBehaviour(new AggregateBehaviour()) ;
-			F.addFeature(&sample, inc) ;
-
-			itz = new ITZFeature(inc, inc, m0, m1, 0.0025, 135000, -135000*8) ;
-			F.addFeature(inc,itz) ;
-			break ;
-
-		case 2:
-			m0 = sample.getBehaviour()->getTensor(Point(0,0))/2 ;
-			
-			iitz = new Inclusion(0.01+0.0025, ax,ay) ;
-			iitz->setBehaviour(new StiffnessAndFracture(m0, new MohrCoulomb(67500, -8*67500))) ;
-			F.addFeature(&sample, iitz) ;
-		
-			inc = new Inclusion(0.01,ax,ay) ;
-			inc->setBehaviour(new AggregateBehaviour()) ;
-			F.addFeature(iitz, inc) ;
-			break ;
+		double r = static_cast<Sphere *>(inclusions[i])->getRadius() ;
+		Point ppp = static_cast<Sphere *>(inclusions[i])->getCenter() ;
+		if(ppp.x + r > maxx)
+			maxx = ppp.x+r ;
+		if(ppp.x - r < minx)
+			minx = ppp.x-r ;
+		if(ppp.y + r > maxy)
+			maxy = ppp.y+r ;
+		if(ppp.y - r < miny)
+			miny = ppp.y-r ;
+		if(ppp.z + r > maxz)
+			maxz = ppp.z+r ;
+		if(ppp.z - r < minz)
+			minz = ppp.z-r ;
 	}
 
-        F.sample(500) ;
-	F.setOrder(LINEAR) ;
-	F.generateElements() ;
+	minx = minx * 1.01 ;
+	miny = miny * 1.01 ;
+	minz = minz * 1.01 ;
 
+	maxx = 0.15 + (maxx - 0.15) * 1.01 ;
+	maxy = 0.15 + (maxy - 0.15) * 1.01 ;
+	maxz = 0.15 + (maxz - 0.15) * 1.01 ;*/
+
+// 	std::cout << minx << ";" << maxx << std::endl ;
+// 	std::cout << miny << ";" << maxy << std::endl ;
+// 	std::cout << minz << ";" << maxz << std::endl ;
+
+	scale = (10000) ;
+	Sample3D sample(NULL, 0.15*scale, 0.15*scale, 0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+//	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
+
+	FeatureTree F(&sample) ;
+	featureTree = &F ;
+
+	double nu = 0.2 ;
+	double E = 1 ;
+
+	Matrix m0(6,6) ;
+	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
+	m0[1][0] = nu ; m0[1][1] = 1. - nu ; m0[1][2] = nu ;
+	m0[2][0] = nu ; m0[2][1] = nu ; m0[2][2] = 1. - nu ;
+	m0[3][3] = 0.5 - nu ;
+	m0[4][4] = 0.5 - nu ;
+	m0[5][5] = 0.5 - nu ;
+	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+
+	nu = 0.4 ;
+	E = 3 ;
+	Matrix m1(6,6) ;
+	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
+	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
+	m1[2][0] = nu ; m1[2][1] = nu ; m1[2][2] = 1. - nu ;
+	m1[3][3] = 0.5 - nu ;
+	m1[4][4] = 0.5 - nu ;
+	m1[5][5] = 0.5 - nu ;
+	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
+
+	sample.setBehaviour(new Stiffness(m0)) ;
+//	Stiffness * sinclusion = new Stiffness(m1) ;
+	double v = 0 ;
+	
+	std::vector<std::string> columns ;
+	columns.push_back("center_x") ;
+	columns.push_back("center_y") ;
+	columns.push_back("center_z") ;
+	columns.push_back("radius") ;
+	
+	GranuloFromFile spheres("sphere_2024.txt", columns) ;
+	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
+	
+	Stiffness * inclusionStiffness = new Stiffness(m1) ;
+	
+	for(int i = 0 ; i < 2 ; i++)
+	{
+		inclusions[i]->setBehaviour(inclusionStiffness) ;
+//		F.addFeature(&sample, inclusions[i]) ;
+		v += inclusions[i]->volume() ;
+	}
+	
+ 	Inclusion3D * inc = new Inclusion3D(0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+ 	inc->setBehaviour(inclusionStiffness) ;
+ 	F.addFeature(&sample, inc) ;
+
+	std::cout << "aggregate volume : " << v << std::endl ;
+
+
+	F.sample(500) ;
+	
+/*	for(int i = 0 ; i < inclusions.size() ; i++)
+	{
+		if(inclusions[i]->intersects(dynamic_cast<Hexahedron *>(&sample)))
+		{
+			PointArray in = inclusions[i]->getInPoints() ;
+			std::vector<Point> innewvector ;
+			for(int j = 0 ; j < in.size() ; j++)
+			{
+				Point p(in[j]->x, in[j]->y, in[j]->z) ;
+				if(! (std::abs(p.x) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.y) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.z) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.x-0.15*scale) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.y-0.15*scale) < scale*1000*POINT_TOLERANCE ||
+					std::abs(p.z-0.15*scale) < scale*1000*POINT_TOLERANCE ||
+					(p.x) < scale*1000*POINT_TOLERANCE ||
+					(p.y) < scale*1000*POINT_TOLERANCE ||
+					(p.z) < scale*1000*POINT_TOLERANCE ||
+					(0.15*scale-p.x) < scale*1000*POINT_TOLERANCE ||
+					(0.15*scale-p.y) < scale*1000*POINT_TOLERANCE ||
+					(0.15*scale-p.z) < scale*1000*POINT_TOLERANCE))
+				{
+					innewvector.push_back(p) ;
+				}
+			}
+			PointArray innewarray(innewvector.size()) ;
+			for(int k = 0 ; k < innewvector.size() ; k++)
+			{
+				innewarray[k] = &innewvector[k] ;
+			}
+			if(innewarray.size() != in.size())
+			{
+				inclusions[i]->setInPoints(innewarray) ;
+				std::cout << i << " changed size" << std::endl ;
+			}
+		}
+	}*/
+	
+	F.setOrder(LINEAR) ;
+	F.generateElements(0,false) ;
+	
+	div_ = (1000) ;
+
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BACK)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, FRONT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
 	step() ;
+
+
+/*	glutInit(&argc, argv) ;	
+	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
+	glutInitWindowSize(600, 600) ;
+	glutReshapeFunc(reshape) ;
+	glutCreateWindow("coucou !") ;
+	glutMotionFunc(processMouseActiveMotion);
+	int submenu = glutCreateMenu(Menu) ;
+	
+	glutAddMenuEntry(" Displacements ", ID_DISP);
+	glutAddMenuEntry(" Stress (s) xx ", ID_STRAIN_XX);
+	glutAddMenuEntry(" Stress (s) yy ", ID_STRAIN_YY);
+	glutAddMenuEntry(" Stress (s) zz ", ID_STRAIN_ZZ);
+	glutAddMenuEntry(" Stress (s) xy ", ID_STRAIN_XY);
+	glutAddMenuEntry(" Stress (s) xz ", ID_STRAIN_XZ);
+	glutAddMenuEntry(" Stress (s) yz ", ID_STRAIN_YZ);
+	glutAddMenuEntry(" Strain (e) xx ", ID_STRESS_XX);
+	glutAddMenuEntry(" Strain (e) yy ", ID_STRESS_YY);
+	glutAddMenuEntry(" Strain (e) zz ", ID_STRESS_ZZ);
+	glutAddMenuEntry(" Strain (e) xy ", ID_STRESS_XY);
+	glutAddMenuEntry(" Strain (e) xz ", ID_STRESS_XZ);
+	glutAddMenuEntry(" Strain (e) yz ", ID_STRESS_YZ);
+	glutAddMenuEntry(" Elements      ", ID_ELEM);
+	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
+	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
+	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
+	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
+	
+	glutCreateMenu(Menu) ;
+
+ 	glutAddMenuEntry(" Step          ", ID_NEXT);
+	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
+	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
+	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
+	glutAddMenuEntry(" Amplify       ", ID_AMPLIFY);
+	glutAddMenuEntry(" Deamplify     ", ID_DEAMPLIFY);
+	glutAddSubMenu(  " Display       ", submenu);
+	glutAddMenuEntry(" Quit          ", ID_QUIT) ;
+	
+	
+	glutAttachMenu(GLUT_RIGHT_BUTTON) ;
+	
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glShadeModel(GL_SMOOTH);
+	
+	glutDisplayFunc(Display) ;
+	glutMainLoop() ;
+	
+// 	delete dt ;*/
 	
 	return 0 ;
 }

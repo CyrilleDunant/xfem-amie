@@ -63,6 +63,7 @@ physics/damagemodels/lineardamage.cpp
 physics/damagemodels/damageindexeddamage.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 
+physics/laplacian.cpp 
 physics/dual_behaviour.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 
 physics/fracturecriteria/limitstrains.cpp 
@@ -130,6 +131,7 @@ utilities/grid.cpp
 utilities/optimizer.cpp
 utilities/granulo.cpp
 utilities/matrixops.cpp
+utilities/voxel_writer.cpp
 utilities/parser.cpp
 utilities/pid.cpp
 utilities/placement.cpp

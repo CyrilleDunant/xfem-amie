@@ -10,6 +10,7 @@
 #include "../physics/physics_base.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/laplacian.h"
+#include "../physics/diffusion.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
@@ -116,7 +117,7 @@ GLint xangle = 0;
 GLint yangle = 0;
 GLint zangle = 0;
 
-double timepos = 0.0001 ;
+double timepos = 0.1 ;
 
 bool firstRun = true ;
 
@@ -214,6 +215,22 @@ void step()
 		epsilon12.resize(sigma.size()/6, 0.) ;
 		epsilon13.resize(sigma.size()/6, 0.) ;
 		epsilon23.resize(sigma.size()/6, 0.) ;
+		
+		sigma11.resize(sigma.size()/3, 0.) ;
+		sigma22.resize(sigma.size()/3, 0.) ;
+		sigma33.resize(sigma.size()/3, 0.) ;
+/*		sigma12.resize(sigma.size()/6, 0.) ;
+		sigma13.resize(sigma.size()/6, 0.) ;
+		sigma23.resize(sigma.size()/6, 0.) ;*/
+		
+		epsilon11.resize(sigma.size()/3, 0.) ;
+		epsilon22.resize(sigma.size()/3, 0.) ;
+		epsilon33.resize(sigma.size()/3, 0.) ;
+/*		epsilon12.resize(sigma.size()/6, 0.) ;
+		epsilon13.resize(sigma.size()/6, 0.) ;
+		epsilon23.resize(sigma.size()/6, 0.) ;*/
+		
+		
 		stiffness.resize(sigma.size()/6, 0.) ;
 		vonMises.resize(sigma.size()/6, 0.) ;
 		angle.resize(sigma.size()/6, 0.) ;
@@ -252,26 +269,26 @@ void step()
 			if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				
-// 				for(size_t p = 0 ;p < 4 ; p++)
-// 				{
-// 					if(x[tets[k]->getBoundingPoint(p).id*3] > x_max)
-// 						x_max = x[tets[k]->getBoundingPoint(p).id*3];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3] < x_min)
-// 						x_min = x[tets[k]->getBoundingPoint(p).id*3];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+1] > y_max)
-// 						y_max = x[tets[k]->getBoundingPoint(p).id*3+1];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+1] < y_min)
-// 						y_min = x[tets[k]->getBoundingPoint(p).id*3+1];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+2] > z_max)
-// 						z_max = x[tets[k]->getBoundingPoint(p).id*3+2];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+2] < z_min)
-// 						z_min = x[tets[k]->getBoundingPoint(p).id*3+2];
-// 					if(tets[k]->getBoundingPoint(p).x > 0.0799)
-// 					{
-// 						e_xx+=x[tets[k]->getBoundingPoint(p).id*3] ;
-// 						ex_count++ ;
-// 					}
-// 				}
+ 				for(size_t p = 0 ;p < 4 ; p++)
+ 				{
+ 					if(x[tets[k]->getBoundingPoint(p).id*3] > x_max)
+ 						x_max = x[tets[k]->getBoundingPoint(p).id*3];
+ 					if(x[tets[k]->getBoundingPoint(p).id*3] < x_min)
+ 						x_min = x[tets[k]->getBoundingPoint(p).id*3];
+ 					if(x[tets[k]->getBoundingPoint(p).id*3+1] > y_max)
+ 						y_max = x[tets[k]->getBoundingPoint(p).id*3+1];
+ 					if(x[tets[k]->getBoundingPoint(p).id*3+1] < y_min)
+ 						y_min = x[tets[k]->getBoundingPoint(p).id*3+1];
+ 					if(x[tets[k]->getBoundingPoint(p).id*3+2] > z_max)
+ 						z_max = x[tets[k]->getBoundingPoint(p).id*3+2];
+ 					if(x[tets[k]->getBoundingPoint(p).id*3+2] < z_min)
+ 						z_min = x[tets[k]->getBoundingPoint(p).id*3+2];
+ 					if(tets[k]->getBoundingPoint(p).x > 0.0799)
+ 					{
+ 						e_xx+=x[tets[k]->getBoundingPoint(p).id*3] ;
+ 						ex_count++ ;
+ 					}
+ 				}
 				volume += tets[k]->volume() ;
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
@@ -1699,6 +1716,12 @@ int main(int argc, char *argv[])
 	m0[4][4] = 0.5 - nu ;
 	m0[5][5] = 0.5 - nu ;
 	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+	
+	Matrix d0(3,3) ;
+	double lambda = 1 ;
+	d0[0][0] = lambda ;
+	d0[1][1] = lambda ;
+	d0[2][2] = lambda ;
 
 	nu = 0.2 ;
 	E = atof(argv[1]) ;
@@ -1711,7 +1734,15 @@ int main(int argc, char *argv[])
 	m1[5][5] = 0.5 - nu ;
 	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
 
-	sample.setBehaviour(new Stiffness(m0)) ;
+	Matrix d1(3,3) ;
+	lambda = atof(argv[2]) ;
+	d1[0][0] = lambda ;
+	d1[1][1] = lambda ;
+	d1[2][2] = lambda ;
+
+
+	sample.setBehaviour(new Laplacian(d0)) ;
+//	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 	double v = 0 ;
 	
@@ -1725,10 +1756,12 @@ int main(int argc, char *argv[])
 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
+	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 	
-	for(int i = 0 ; i < inclusions.size() ; i++)
+	for(int i = 0 ; i < 100 ; i++)
 	{
-		inclusions[i]->setBehaviour(inclusionStiffness) ;
+//		inclusions[i]->setBehaviour(inclusionStiffness) ;
+		inclusions[i]->setBehaviour(inclusionDiffusion) ;
 		F.addFeature(&sample, inclusions[i]) ;
 		v += inclusions[i]->volume() ;
 	}
@@ -1740,7 +1773,7 @@ int main(int argc, char *argv[])
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(1400) ;
+	F.sample(400) ;
 	
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1786,12 +1819,12 @@ int main(int argc, char *argv[])
 	div_ = (1000) ;
 
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BACK)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, FRONT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 	step() ;
 
 

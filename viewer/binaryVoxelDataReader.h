@@ -44,7 +44,8 @@ public:
 			for(size_t j = 0 ; j < numberOfFields ; j++)
 			{
 				streamBin >> (quint8&)((*d)[j])[i] ;
-// 				std::cout << i << " -> "<< (unsigned int)((*d)[j][i]) << std::endl ;
+/* 				if((unsigned int)(*d)[j][i] > 0)
+	 				std::cout << i << " -> "<< (unsigned int)((*d)[j][i]) << std::endl ;*/
 			}
 		}
 		emit progressed(100) ;
