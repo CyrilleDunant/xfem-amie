@@ -25,7 +25,7 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../physics/stiffness.h"
-#include "../utilities/voxel_writer.h"
+#include "../utilities/writer/voxel_writer.h"
 #include <sys/time.h>
 
 #include <fstream>
@@ -599,9 +599,10 @@ void step()
 		}
 		outbin.close() ;*/
 		
-		VoxelWriter test("voxel_test",100,6) ;
-//		test.write(featureTree,F_STIFFNESS) ;
-		test.write(featureTree,F_STRAIN) ;
+		VoxelWriter test("voxel_test",100) ;
+		test.getField(featureTree,VWFT_STIFFNESS) ;
+		test.getField(featureTree,VWFT_STRAIN) ;
+		test.write() ;
 		
 		xavg /= volume ;
 		
