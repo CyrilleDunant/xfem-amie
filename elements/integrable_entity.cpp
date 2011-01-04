@@ -742,7 +742,7 @@ Vector ElementState::getStrain(const Point & p, bool local) const
 	return Vector(0., sz) ;
 }
 
-Vector ElementState::getFlux(const Point & p, bool local) const
+Vector ElementState::getGradient(const Point & p, bool local) const
 {
 	
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
@@ -753,7 +753,7 @@ Vector ElementState::getFlux(const Point & p, bool local) const
 		double x_xi = 0;
 		double x_eta = 0;
 		VirtualMachine vm ;
-		Vector lstrain(2) ;
+		Vector grad(2) ;
 		
 		for(size_t j = 0 ; j < parent->getBoundingPoints().size(); j++)
 		{
@@ -773,10 +773,10 @@ Vector ElementState::getFlux(const Point & p, bool local) const
 		}
 		
 		Matrix Jinv(2,2) ; parent->getInverseJacobianMatrix(p_, Jinv) ;
-		lstrain[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1] ;
-		lstrain[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1] ;
+		grad[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1] ;
+		grad[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1] ;
 				
-		return lstrain ;
+		return grad ;
 	}
 	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
 	{
@@ -803,7 +803,7 @@ Vector ElementState::getFlux(const Point & p, bool local) const
 			x_zeta += f_zeta * x ;
 		}
 		
-		Vector lstrain(3) ;
+		Vector grad(3) ;
 		
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 		{
@@ -818,11 +818,104 @@ Vector ElementState::getFlux(const Point & p, bool local) const
 		}
 		
 		Matrix Jinv(3,3) ; parent->getInverseJacobianMatrix(p_, Jinv) ;
-		lstrain[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1]  + (x_zeta)*Jinv[0][2];
-		lstrain[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1]  + (x_zeta)*Jinv[1][2];
-		lstrain[2] = (x_xi)*Jinv[2][0] + (x_eta)*Jinv[2][1]  + (x_zeta)*Jinv[2][2]; 
+		grad[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1]  + (x_zeta)*Jinv[0][2];
+		grad[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1]  + (x_zeta)*Jinv[1][2];
+		grad[2] = (x_xi)*Jinv[2][0] + (x_eta)*Jinv[2][1]  + (x_zeta)*Jinv[2][2]; 
 		
-		return lstrain ;
+		return grad ;
+	}
+	int dofs = 2 ;
+	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+		dofs = 3 ;
+	int sz = dofs+(dofs-1)*(dofs-1) - dofs%2;
+	return Vector(0., sz) ;
+}
+
+Vector ElementState::getFlux(const Point & p, bool local) const
+{
+	
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+	{
+		Point p_ = parent->inLocalCoordinates(p) ;
+		if(local)
+			p_ = p ;
+		double x_xi = 0;
+		double x_eta = 0;
+		VirtualMachine vm ;
+		Vector grad(2) ;
+		
+		for(size_t j = 0 ; j < parent->getBoundingPoints().size(); j++)
+		{
+			double f_xi = vm.deval(parent->getShapeFunction(j),XI, p_) ;
+			double f_eta = vm.deval(parent->getShapeFunction(j),ETA, p_) ;
+			x_xi += f_xi*displacements[j] ;
+			x_eta += f_eta*displacements[j] ;
+		}
+		
+		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++)
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;			
+			x_xi += f_xi*enrichedDisplacements[j] ;
+			x_eta += f_eta*enrichedDisplacements[j] ;
+
+		}
+		
+		Matrix Jinv(2,2) ; parent->getInverseJacobianMatrix(p_, Jinv) ;
+		grad[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1] ;
+		grad[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1] ;
+				
+		Matrix diff(parent->getBehaviour()->getTensor(p_)) ;
+
+		return -grad*diff ;
+	}
+	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+	{
+		
+		VirtualMachine vm ;
+		Point p_ =  parent->inLocalCoordinates(p) ;
+				
+		if(local)
+			p_ = p ;
+		
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		
+		for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+		{
+			double f_xi = vm.deval(parent->getShapeFunction(j),XI, p_) ;
+			double f_eta = vm.deval(parent->getShapeFunction(j),ETA, p_) ;
+			double f_zeta = vm.deval(parent->getShapeFunction(j),ZETA, p_) ;
+			double x = displacements[j] ;
+			
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+		}
+		
+		Vector grad(3) ;
+		
+		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction(j),ZETA,p_) ;
+			double x = enrichedDisplacements[j] ;
+			
+			x_xi += f_xi*x;
+			x_eta += f_eta*x ;
+			x_zeta += f_zeta*x ;
+		}
+		
+		Matrix Jinv(3,3) ; parent->getInverseJacobianMatrix(p_, Jinv) ;
+		grad[0] = (x_xi)*Jinv[0][0] + (x_eta)*Jinv[0][1]  + (x_zeta)*Jinv[0][2];
+		grad[1] = (x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1]  + (x_zeta)*Jinv[1][2];
+		grad[2] = (x_xi)*Jinv[2][0] + (x_eta)*Jinv[2][1]  + (x_zeta)*Jinv[2][2]; 
+		
+		Matrix diff(parent->getBehaviour()->getTensor(p_)) ;
+
+		return -grad*diff ;
 	}
 	int dofs = 2 ;
 	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
@@ -4106,6 +4199,55 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain(const Mu::PointArray
 		dofs = 3 ;
 	int sz = dofs+(dofs-1)*(dofs-1) - dofs%2;
 	return std::pair<Vector, Vector>(Vector(0., sz*pts.size()), Vector(0., sz*pts.size())) ;
+}
+
+std::pair<Vector, Vector > ElementState::getGradientAndFlux(const Mu::PointArray & pts) const
+{
+	
+	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
+	{
+		if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
+			return std::pair<Vector, Vector>(Vector(0., 2*pts.size()), Vector(0., 2*pts.size())) ;
+
+		Vector grad(2*pts.size()) ;
+		Vector flux(2*pts.size()) ;
+		
+		for(size_t i = 0 ; i < pts.size() ; i++)
+		{
+			Vector gr = getGradient(*pts[i], false) ;
+			Vector fx = getFlux(*pts[i], false) ;
+			grad[2*i+0] = gr[0] ;
+			grad[2*i+1] = gr[1] ;
+			flux[2*i+0] = fx[0] ;
+			flux[2*i+1] = fx[1] ;
+		}
+		return std::make_pair(grad,flux) ;
+	}
+	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3)
+	{
+		if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
+			return std::pair<Vector, Vector>(Vector(0., 3*pts.size()), Vector(0., 3*pts.size())) ;
+
+		Vector grad(3*pts.size()) ;
+		Vector flux(3*pts.size()) ;
+		
+		for(size_t i = 0 ; i < pts.size() ; i++)
+		{
+			Vector gr = getGradient(*pts[i], true) ;
+			Vector fx = getFlux(*pts[i], true) ;
+			grad[3*i+0] = gr[0] ;
+			grad[3*i+1] = gr[1] ;
+			grad[3*i+2] = gr[2] ;
+			flux[3*i+0] = fx[0] ;
+			flux[3*i+1] = fx[1] ;
+			flux[3*i+2] = fx[2] ;
+		}
+		return std::make_pair(grad,flux) ;
+	}
+	int dofs = 2 ;
+	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+		dofs = 3 ;
+	return std::pair<Vector, Vector>(Vector(0., dofs*pts.size()), Vector(0., dofs*pts.size())) ;
 }
 
 std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray<std::pair<Point, double> > & p) const

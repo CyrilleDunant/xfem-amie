@@ -97,11 +97,14 @@ public:
 						
 	ElementState & operator =(const ElementState &) ;
 	
-/** \brief Return strain at given point*/
-	Vector getStrain(const Point & , bool local = false) const;
-
 /** \brief Return flux at given point*/
 	Vector getFlux(const Point & p, bool local = false) const ;
+
+/** \brief Return concentration gradient at givent point*/
+	Vector getGradient(const Point & p, bool local = false) const ;
+
+/** \brief Return strain at given point*/
+	Vector getStrain(const Point & , bool local = false) const;
 
 /** \brief Return stress at given point*/
 	Vector getPreviousStress(const Point & , bool local = false) const;
@@ -165,6 +168,9 @@ public:
 
 /** \brief return stress and strain at given points*/
 	std::pair<Vector, Vector > getStressAndStrain(const Mu::PointArray &) const;
+
+/** \brief return stress and strain at given points*/
+	std::pair<Vector, Vector > getGradientAndFlux(const Mu::PointArray &) const;
 
 /** \brief return stress and strain at given (gauss) points*/
 	std::pair<Vector, Vector > getStressAndStrain( const std::valarray<std::pair<Point, double> > & p) const;

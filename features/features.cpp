@@ -2029,6 +2029,71 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 	}
 }
 
+std::pair<Vector , Vector > FeatureTree::getGradientAndFlux(int g)
+{
+	if(dtree != NULL)
+	{
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		if(useMultigrid)
+		{
+			if(g != -1 && coarseTrees.size() > g)
+				elements = coarseTrees[g]->getElements() ;
+			else if(g != -1 && !coarseTrees.empty())
+				elements = coarseTrees.back()->getElements() ;
+		}
+		std::pair<Vector , Vector > grad_flux(Vector(0., elements[0]->getBoundingPoints().size()*2*elements.size()), Vector(0., elements[0]->getBoundingPoints().size()*2*elements.size())) ;
+		for(size_t i  = 0 ; i < elements.size() ; i++)
+		{
+			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+// 				std::valarray<Point *> pts(3) ;
+// 				pts[0] =  elements[i]->first ;
+// 				pts[1] =  elements[i]->second ;
+// 				pts[2] =  elements[i]->third ;
+				
+				std::pair<Vector, Vector> grflx = elements[i]->getState().getGradientAndFlux(elements[i]->getBoundingPoints()) ;
+				for(size_t j = 0 ; j < elements[0]->getBoundingPoints().size()*2 ; j++)
+				{
+					grad_flux.first[i*elements[0]->getBoundingPoints().size()*2+j] = grflx.first[j] ;
+					grad_flux.second[i*elements[0]->getBoundingPoints().size()*2+j] = grflx.second[j] ;
+				}
+				if(i%1000 == 0)
+					std::cerr << "\r computing gradient+flux... element " << i+1 << "/" << elements.size() << std::flush ;
+			}
+		}
+		std::cerr << " ...done." << std::endl ;
+		return grad_flux ;
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
+		if(g != -1)
+			tets = coarseTrees3D[g]->getElements() ;
+		std::pair<Vector , Vector > grad_flux(Vector(0.f, 4*3*tets.size()), Vector(0.f, 4*3*tets.size())) ;
+		
+		for(size_t i  = 0 ; i < tets.size() ; i++)
+		{
+			std::valarray<Point *> pts(4) ;
+			pts[0] =  tets[i]->first ;
+			pts[1] =  tets[i]->second ;
+			pts[2] =  tets[i]->third ;
+			pts[3] =  tets[i]->fourth ;
+			
+			std::pair<Vector, Vector> grflx = tets[i]->getState().getGradientAndFlux(tets[i]->getBoundingPoints()) ;
+			for(size_t j = 0 ; j < 12 ; j++)
+			{
+				grad_flux.first[i*4*3+j] = grflx.first[j] ;
+				grad_flux.second[i*4*3+j] = grflx.second[j] ;
+			}
+			if(i%1000 == 0)
+				std::cerr << "\r computing gradient+flux... element " << i+1 << "/" << tets.size() << std::flush ;
+		}
+		std::cerr << " ...done." << std::endl ;
+		return grad_flux ;
+	}
+}
+
+
 std::pair<Vector , Vector > FeatureTree::getStressAndStrain(const std::vector<DelaunayTetrahedron *> & tets)
 {
 		std::pair<Vector , Vector > stress_strain(Vector(4*6*tets.size()), Vector(4*6*tets.size())) ;

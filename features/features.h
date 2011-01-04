@@ -268,8 +268,8 @@ public:
 /** \brief Return the stress and strain of a vector of Tetrahedrons*/
 	std::pair<Vector , Vector > getStressAndStrain(const std::vector<DelaunayTetrahedron *> &) ;
 
-/** \brief Return the temperature gradient and the flux of a vector of Tetrahedrons*/
-	void getGradientAndFlux() { } ;
+/** \brief Return the temperature/concentration gradient and the flux of a vector of Tetrahedrons*/
+	std::pair<Vector , Vector > getGradientAndFlux(int grid = -1) ;
 
 /** \brief Return the stress and strain of the elements of the current mesh*/
 	std::pair<Vector , Vector > getStressAndStrain(int grid = -1) ;
