@@ -838,7 +838,7 @@ bool FractureCriterion::met(const ElementState &s)
 		bool foundcutoff = false ;
 		double thresholdscore = maxNeighbourhoodScore ;
 		double avgscore = 0 ;
-		double trialarea = std::min(physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI*.25, areamax) ;
+		double trialarea = std::min(physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI, areamax) ;
 		for(std::map<double, DelaunayTriangle *>::iterator i = scores.begin() ; i != scores.end() ; ++i)
 		{
 			if(!foundcutoff)
@@ -939,19 +939,9 @@ bool FractureCriterion::met(const ElementState &s)
 						double s = POINT_TOLERANCE ;
 						scores[-s] =  cache3d[i];
 						unsortedScores.push_back(s);
-// 						if(s > maxNeighbourhoodScore)
-// 						{
-// 							maxNeighbourhoodScore = s ;
-// 							maxLocus = cache3d[i] ;
-// 						}
-						
 					}
 					areatemp[cache3d[i]] = area[i] ;
 				}
-				
-// 				if ((maxNeighbourhoodScore*tol) > score)
-// 					return false ;
-					
 			}
 		}
 		

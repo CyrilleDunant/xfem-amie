@@ -376,7 +376,7 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 20;
+	size_t max_growth_steps = 2;
 	size_t max_limit = 2000 ;
 	int countit = 0;	
 	int limit = 0 ;
@@ -1741,14 +1741,14 @@ int main(int argc, char *argv[])
 	saif->dfunc->setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-	sample.setBehaviour(saf) ;
+// 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(saif) ;
 // 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 // 	sample.setBehaviour(psp) ;
-// 	sample.setBehaviour(sf) ;
+	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 	F.addFeature(&sample, new Pore(2, -7,2) );
@@ -1800,7 +1800,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(256) ;
+	F.sample(2048) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

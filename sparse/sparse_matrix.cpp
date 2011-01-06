@@ -488,20 +488,28 @@ Vector & Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVe
 Vector & Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c)
 {
 	ret = 0 ;
+	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size() ; 
 // 	timeval time0, time1 ;
 // 	gettimeofday(&time0, NULL);
-// 	int chunk = end/2 ;
+
 #pragma omp parallel for
 	for (int i = 0 ; i <end ; i++)
 	{
-		Vector temp = c.co.sm[i*c.co.sm.stride]*c.co.ve ;
-		for(int j = i*c.co.sm.stride ; j < i*c.co.sm.stride+c.co.sm.stride ; j++)
-			ret[j] = temp[j-i*c.co.sm.stride] - c.ve[j];
+// 		Vector temp = c.co.sm[i*stride]*c.co.ve ;
+		
+		c.co.sm[i*stride].inner_product(c.co.ve, &ret[i*stride]);
+// 		for(int j = i*stride ; j < i*stride+stride ; j++)
+// 			ret[j] = temp[j-i*stride];
 	}
+	
+#pragma omp parallel for
+	for (int i = 0 ; i < ret.size() ; i++)
+		ret[i] -= c.ve[i] ;
+
 // 	gettimeofday(&time1, NULL);
 // 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-// 	std::cerr << (2.*c.co.sm.array.size()+c.ve.size())/delta << std::endl ;
+// 	std::cerr << "mflops: "<< (2.*c.co.sm.array.size()+c.ve.size())/delta << std::endl ;
 	return ret ;
 } ;
 

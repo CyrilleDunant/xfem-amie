@@ -1642,14 +1642,17 @@ void FeatureTree::setElementBehaviours()
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 				
 		std::cerr << " setting behaviours..." << std::flush ;
+		int setcount = 0 ;
+#pragma omp parallel for shared(setcount)
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
-			if (i%1000 == 0)
-				std::cerr << "\r setting behaviours... triangle " << i << "/" << triangles.size() << std::flush ;
+			if (setcount%1000 == 0)
+				std::cerr << "\r setting behaviours... triangle " << setcount << "/" << triangles.size() << "    "<< std::flush ;
 			triangles[i]->refresh(father2D) ;
 			if(!triangles[i]->getBehaviour())
 				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 			n_void++ ;
+			setcount++ ;
 		}
 		std::cerr << " ...done" << std::endl ;
 		
@@ -1690,15 +1693,18 @@ void FeatureTree::setElementBehaviours()
 		std::vector<DelaunayTetrahedron *> tetrahedrons = this->dtree3D->getElements() ;
 		
 		std::cerr << " setting behaviours..." << std::flush ;
+		int setcount = 0 ;
+#pragma omp parallel for
 		for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
 		{
-			if (i%1000 == 0)
-				std::cerr << "\r setting behaviours... tet " << i << "/" << tetrahedrons.size() << std::flush ;
+			if (setcount%1000 == 0)
+				std::cerr << "\r setting behaviours... tet " << setcount << "/" << tetrahedrons.size() << std::flush ;
 			
 			tetrahedrons[i]->refresh(father3D) ;
 			if(!tetrahedrons[i]->getBehaviour())
 				tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
 			n_void++ ;
+			setcount++ ;
 		}
 		if(useMultigrid)
 		{

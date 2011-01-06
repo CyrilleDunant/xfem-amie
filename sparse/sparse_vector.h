@@ -64,6 +64,10 @@ public:
 	 */
 	Vector operator *(const Vector&) const ;
 	
+	/** \brief simultaneously compute a number of dot products equal to the block size and assign.
+	 */
+	void inner_product(const Vector &v, double *dest) const ;
+	
 	/** \brief simultaneously compute a number of dot products equal to the block size, squared. 
 	 * This effectively computes a series of matrix-matrix multiplications. The two sparse vectors 
 	 * need not have the same sparsity pattern. They must, however have the smae block size.
@@ -124,6 +128,11 @@ public:
 	/** \brief simultaneously compute a number of dot products equal to the block size.
 	 */
 	Vector operator *(const Vector&) const ;
+	
+		/** \brief simultaneously compute a number of dot products equal to the block size and assign.
+	 */
+	void inner_product(const Vector &v, double *dest) const ;
+	
 	/** \brief simultaneously compute a number of dot products equal to the block size, squared. 
 	 * This effectively computes a series of matrix-matrix multiplications. The two sparse vectors 
 	 * need not have the same sparsity pattern. They must, however have the smae block size.
