@@ -671,6 +671,11 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 
 void FractureCriterion::step(const ElementState &s)
 {
+	
+
+		if(cache.empty() && cache3d.empty())
+				initialiseCache(s) ;
+		
 	scoreAtState = grade(s) ;
 	if(energyIndexed && s.getDeltaTime() > POINT_TOLERANCE )
 		noEnergyUpdate = true ;
@@ -757,8 +762,6 @@ bool FractureCriterion::met(const ElementState &s)
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
 	{
-		if(cache.empty())
-			initialiseCache(s) ;
 
 		if(testedTri->visited)
 			return false ;
@@ -901,8 +904,6 @@ bool FractureCriterion::met(const ElementState &s)
 	}
 	if(testedTet)
 	{
-		if(cache.empty())
-			initialiseCache(s) ;
 
 		if(testedTri->visited)
 			return false ;

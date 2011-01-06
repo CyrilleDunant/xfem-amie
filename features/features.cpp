@@ -70,7 +70,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 		                     )) ;
  
 	if(is3D())
-		grid3d =new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x)*1.1,
+		grid3d = new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x)*1.1,
 		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y)*1.1,
 		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, 10, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
@@ -1984,6 +1984,8 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 				elements = coarseTrees.back()->getElements() ;
 		}
 		std::pair<Vector , Vector > stress_strain(Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size()), Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size())) ;
+		int donecomputed = 0 ;
+#pragma omp parallel for
 		for(size_t i  = 0 ; i < elements.size() ; i++)
 		{
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -1999,9 +2001,10 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 					stress_strain.first[i*elements[0]->getBoundingPoints().size()*3+j] = str.first[j] ;
 					stress_strain.second[i*elements[0]->getBoundingPoints().size()*3+j] = str.second[j] ;
 				}
-				if(i%1000 == 0)
-					std::cerr << "\r computing strain+stress... element " << i+1 << "/" << elements.size() << std::flush ;
+				if(donecomputed%1000 == 0)
+					std::cerr << "\r computing strain+stress... element " << donecomputed+1 << "/" << elements.size() << std::flush ;
 			}
+			donecomputed++ ;
 		}
 		std::cerr << " ...done." << std::endl ;
 		return stress_strain ;
@@ -2012,23 +2015,28 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 		if(g != -1)
 			tets = coarseTrees3D[g]->getElements() ;
 		std::pair<Vector , Vector > stress_strain(Vector(0.f, 4*6*tets.size()), Vector(0.f, 4*6*tets.size())) ;
-		
+		int donecomputed = 0 ;
 		for(size_t i  = 0 ; i < tets.size() ; i++)
 		{
-			std::valarray<Point *> pts(4) ;
-			pts[0] =  tets[i]->first ;
-			pts[1] =  tets[i]->second ;
-			pts[2] =  tets[i]->third ;
-			pts[3] =  tets[i]->fourth ;
-			
-			std::pair<Vector , Vector > str = tets[i]->getState().getStressAndStrain(pts) ;
-			for(size_t j = 0 ; j < 24 ; j++)
+			if(tets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				stress_strain.first[i*4*6+j] = str.first[j] ;
-				stress_strain.second[i*4*6+j] = str.second[j] ;
+				std::valarray<Point *> pts(4) ;
+				pts[0] =  tets[i]->first ;
+				pts[1] =  tets[i]->second ;
+				pts[2] =  tets[i]->third ;
+				pts[3] =  tets[i]->fourth ;
+				
+				std::pair<Vector , Vector > str = tets[i]->getState().getStressAndStrain(pts) ;
+				for(size_t j = 0 ; j < 24 ; j++)
+				{
+					stress_strain.first[i*4*6+j] = str.first[j] ;
+					stress_strain.second[i*4*6+j] = str.second[j] ;
+				}
 			}
-			if(i%1000 == 0)
-				std::cerr << "\r computing strain+stress... element " << i+1 << "/" << tets.size() << std::flush ;
+			if(donecomputed%1000 == 0)
+				std::cerr << "\r computing strain+stress... element " << donecomputed+1 << "/" << tets.size() << std::flush ;
+			
+			donecomputed++ ;
 		}
 		std::cerr << " ...done." << std::endl ;
 		return stress_strain ;
@@ -2617,6 +2625,7 @@ bool FeatureTree::step(double dt)
 				}
 				
 				std::cerr << " ...done. " << std::endl ;
+#pragma omp parallel for
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{	
 					if(i%10000 == 0)
@@ -2700,12 +2709,22 @@ bool FeatureTree::step(double dt)
 				elements[i]->step(dt, &K->getDisplacements()) ;
 			}
 			std::cerr << " ...done" << std::endl ;
-			int fracturedCount = 0 ;
 			
+			for(size_t i = 0 ; i < elements.size() ;i++)
+			{
+				if(i%1000 == 0)
+					std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
+				if(elements[i]->getBehaviour()->getFractureCriterion())
+					elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
+			}
+			std::cerr << " ...done. " << std::endl ;
+			
+			int fracturedCount = 0 ;
+#pragma omp parallel for
 			for(size_t i = 0 ; i < elements.size() ;i++)
 			{	
 				if(i%1000 == 0)
-					std::cerr << "\r checking for fractures... " << i << "/" << elements.size() << std::flush ;
+					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 				
 				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 				{
