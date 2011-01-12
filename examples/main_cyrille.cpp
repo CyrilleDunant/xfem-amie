@@ -37,6 +37,10 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 
+#ifdef HAVE_OPENMP
+#include <omp.h>
+#endif
+
 #include <fstream>
 
 #include <cmath>
@@ -376,7 +380,7 @@ void step()
 {
 	
 	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 2;
+	size_t max_growth_steps = 3;
 	size_t max_limit = 2000 ;
 	int countit = 0;	
 	int limit = 0 ;
@@ -1699,7 +1703,7 @@ int main(int argc, char *argv[])
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
 	d[2][2] = .1*E_paste ;
-	FeatureTree F(&sample) ;
+	FeatureTree F(&sample, 2) ;
 	featureTree = &F ;
 
 	Sample sm(0.2, 0.1, 0, 0) ;
@@ -1800,7 +1804,7 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(1024*2) ;
+	F.sample(atoi(argv[1])) ;
 // 	F.useMultigrid = true ;
 	F.setOrder(LINEAR) ;
 	F.generateElements(0, true) ;

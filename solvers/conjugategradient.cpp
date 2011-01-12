@@ -19,6 +19,7 @@
 #include "incompletecholeskidecomposition.h"
 #include "eigenvalues.h"
 #include <limits>
+#include <sys/time.h>
 
 using namespace Mu ;
 
@@ -105,7 +106,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
 		return true ;
 	}
-	
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	while(last_rho*last_rho > eps*eps*err0 && n < Maxit )
 	{
@@ -120,37 +122,26 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		
 		r -= q*alpha ;
 		x += p*alpha ;
-		n++ ;
+		
 		if(n%32 == 0)
 		{
 			assign(r, A*x-b) ;
 			r *= -1 ;
-// 			rho =  parallel_inner_product(&r[0], &z[0], vsize) ;
 		}
-		if(	verbose && nit%64 == 0)
+		if(	verbose && n%64 == 0)
 		{
-			std::cerr << /*"\r CG "<< p.size() << " iteration : " << nit << " error :"<<*/  sqrt(rho)  /*<< "             "*/<< std::endl /*std::flush*/ ;
+			std::cerr <<   sqrt(rho) << std::endl  ;
 		}
-// 		if(	verbose )
-// 		{
-// 			Vector rr = A*x-b ;
-// 			for(size_t i = 0 ; i < rr.size() ; i++)
-// 			{
-// 				std::cerr << rr[i] << "  " << std::flush ;
-// 			}
-// 			std::cerr << std::endl ;
-// 		}
-// 		if(	verbose )
-// 		{
-// 			Vector rr = A*x-b ;
-// 			double e = sqrt( parallel_inner_product(&rr[0], &rr[0], vsize)) ;
-// 			std::cerr << e << " vs " << sqrt(rho) << std::endl ;
-// 		}
-		
+	
 		last_rho = rho ;
 		nit++ ;
+		n++ ;
 		
 	}
+	gettimeofday(&time1, NULL);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << "mflops: "<< n*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
+	
 	assign(r,A*x-b) ;
 	double err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	

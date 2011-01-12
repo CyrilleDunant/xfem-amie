@@ -570,6 +570,12 @@ bool Assembly::make_final()
 		coordinateIndexedMatrix->array = 0 ;
 		double dmax = 0 ;
 		double vmax = 0 ;
+		#pragma omp parallel for
+		for(size_t i = 0 ; i < element2d.size() ; i++)
+		{
+			element2d[i]->getElementaryMatrix() ;
+		}
+		
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			if(i%1000 == 0)
@@ -635,7 +641,6 @@ bool Assembly::make_final()
 		std::cout << ndof << std::endl ;
 		if( coordinateIndexedMatrix == NULL)
 		{
-			std::cout << "coordinate indexed matrix null" << std::endl ;
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
 
 			for(size_t i = 0 ; i < element3d.size() ; i++)
@@ -704,6 +709,13 @@ bool Assembly::make_final()
 		coordinateIndexedMatrix->array = 0 ;
 		double dmax = 0 ;
 		double vmax = 0 ;
+		
+#pragma omp parallel for
+		for(size_t i = 0 ; i < element3d.size() ; i++)
+		{
+			element3d[i]->getElementaryMatrix();
+		}
+		
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			if(i%1000 == 0)

@@ -271,21 +271,24 @@ void step()
 				
  				for(size_t p = 0 ;p < 4 ; p++)
  				{
- 					if(x[tets[k]->getBoundingPoint(p).id*3] > x_max)
- 						x_max = x[tets[k]->getBoundingPoint(p).id*3];
- 					if(x[tets[k]->getBoundingPoint(p).id*3] < x_min)
- 						x_min = x[tets[k]->getBoundingPoint(p).id*3];
- 					if(x[tets[k]->getBoundingPoint(p).id*3+1] > y_max)
- 						y_max = x[tets[k]->getBoundingPoint(p).id*3+1];
- 					if(x[tets[k]->getBoundingPoint(p).id*3+1] < y_min)
- 						y_min = x[tets[k]->getBoundingPoint(p).id*3+1];
- 					if(x[tets[k]->getBoundingPoint(p).id*3+2] > z_max)
- 						z_max = x[tets[k]->getBoundingPoint(p).id*3+2];
- 					if(x[tets[k]->getBoundingPoint(p).id*3+2] < z_min)
- 						z_min = x[tets[k]->getBoundingPoint(p).id*3+2];
+ 					if(x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()] > x_max)
+ 						x_max = x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()];
+ 					if(x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()] < x_min)
+ 						x_min = x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()];
+					if(tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom() >1)
+					{
+						if(x[tets[k]->getBoundingPoint(p).id*3+1] > y_max)
+							y_max = x[tets[k]->getBoundingPoint(p).id*3+1];
+						if(x[tets[k]->getBoundingPoint(p).id*3+1] < y_min)
+							y_min = x[tets[k]->getBoundingPoint(p).id*3+1];
+						if(x[tets[k]->getBoundingPoint(p).id*3+2] > z_max)
+							z_max = x[tets[k]->getBoundingPoint(p).id*3+2];
+						if(x[tets[k]->getBoundingPoint(p).id*3+2] < z_min)
+							z_min = x[tets[k]->getBoundingPoint(p).id*3+2];
+					}
  					if(tets[k]->getBoundingPoint(p).x > 0.0799)
  					{
- 						e_xx+=x[tets[k]->getBoundingPoint(p).id*3] ;
+ 						e_xx+=x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()] ;
  						ex_count++ ;
  					}
  				}
@@ -1633,6 +1636,7 @@ void processMouseActiveMotion(int x, int y) {
 
 int main(int argc, char *argv[])
 {
+	std::cout << "fist argument is the scale, second is E and lambda, third is the sampling" << std::endl ;
 	scale = atof(argv[1]) ;
 
 // 	Point *p0 = new Point(500, 500, 0) ;
@@ -1698,7 +1702,6 @@ int main(int argc, char *argv[])
 // 	std::cout << miny << ";" << maxy << std::endl ;
 // 	std::cout << minz << ";" << maxz << std::endl ;
 
-	scale = (10000) ;
 	Sample3D sample(NULL, 0.15*scale, 0.15*scale, 0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 //	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
 
@@ -1724,7 +1727,7 @@ int main(int argc, char *argv[])
 	d0[2][2] = lambda ;
 
 	nu = 0.2 ;
-	E = atof(argv[1]) ;
+	E = atof(argv[2]) ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1758,7 +1761,7 @@ int main(int argc, char *argv[])
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 	
-	for(int i = 0 ; i < 100 ; i++)
+	for(int i = 0 ; i < 0 ; i++)
 	{
 //		inclusions[i]->setBehaviour(inclusionStiffness) ;
 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
@@ -1773,7 +1776,7 @@ int main(int argc, char *argv[])
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(400) ;
+	F.sample(atoi(argv[3])) ;
 	
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{

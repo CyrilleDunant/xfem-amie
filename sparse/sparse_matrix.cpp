@@ -22,6 +22,7 @@ using namespace Mu ;
 
 CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, double> &source, size_t s): stride(s), array(source.size()*s*(s+s%2)/(s*s)), column_index(source.size()/s), row_size(source.rbegin()->first.first/s), accumulated_row_size(source.rbegin()->first.first/s)
 {
+	std::cout << stride+stride%2 << std::endl ;
 	unsigned int * column_index_iterator = &column_index[0] ;
 	unsigned int * row_size_iterator = &row_size[0] ;
 	std::map<std::pair<size_t, size_t>, double>::const_iterator previous = source.begin() ;
@@ -56,6 +57,7 @@ CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<
 
 CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, Matrix> &source) : stride(source.begin()->second.numRows()),  array(source.size()*stride*(stride+stride%2)/(stride*stride)), column_index(source.size()/stride), row_size(source.rbegin()->first.first/stride), accumulated_row_size(source.rbegin()->first.first/stride)
 {
+	std::cout << stride+stride%2 << std::endl ;
 	double * array_iterator = &array[0] ;
 	unsigned int * column_index_iterator = &column_index[0] ;
 	unsigned int * row_size_iterator = &row_size[0] ;
@@ -473,14 +475,17 @@ CompositeSparseMatrixTimesVecMinusVecMinusVec CompositeSparseMatrixTimesVecMinus
 void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c)
 {
 	ret = 0 ;
-	int end = c.co.sm.row_size.size() ; 
 
 #pragma omp parallel for
-	for (int i = 0 ; i <end ; i++)
+	for (int i = 0 ; i < c.co.sm.row_size.size() ; i++)
 	{
-		Vector temp = c.co.sm[i*c.co.sm.stride]*c.co.ve ;
-		for(int j = i*c.co.sm.stride ; j < i*c.co.sm.stride+c.co.sm.stride ; j++)
-			ret[j] = temp[j-i*c.co.sm.stride]+ c.ve[j];
+		c.co.sm[i*c.co.sm.stride].inner_product(c.co.ve, &ret[i*c.co.sm.stride]);
+	}
+	
+#pragma omp parallel for
+	for (int i = 0 ; i < ret.size() ; i++)
+	{
+		ret[i] += c.ve[i] ;
 	}
 } ;
 
@@ -492,19 +497,19 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 // 	timeval time0, time1 ;
 // 	gettimeofday(&time0, NULL);
 
-#pragma omp parallel for
+	const Vector & ve = c.co.ve ;
+	const Vector & vi = c.ve ;
+#pragma omp parallel for //shared(c,ret,ve) 
 	for (int i = 0 ; i <end ; i++)
 	{
-// 		Vector temp = c.co.sm[i*stride]*c.co.ve ;
-		
-		c.co.sm[i*stride].inner_product(c.co.ve, &ret[i*stride]);
-// 		for(int j = i*stride ; j < i*stride+stride ; j++)
-// 			ret[j] = temp[j-i*stride];
+		c.co.sm[i*stride].inner_product(ve, &ret[i*stride]);
 	}
 	
-#pragma omp parallel for
+#pragma omp parallel for //shared(ret,c,vi) 
 	for (int i = 0 ; i < ret.size() ; i++)
-		ret[i] -= c.ve[i] ;
+	{
+		ret[i] = ret[i]-vi[i] ;
+	}
 
 // 	gettimeofday(&time1, NULL);
 // 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
@@ -516,13 +521,19 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 	ret = 0 ;
 	int end = c.sm.row_size.size() ;
 	size_t stride = c.sm.stride ;
-// 	int chunk = end/2 ;
-#pragma omp parallel for
+
+	const Vector & ve = c.ve ;
+	
+// 	timeval time0, time1 ;
+// 	gettimeofday(&time0, NULL);
+	
+#pragma omp parallel for //shared(c,ve,ret) 
 		for (int i = 0 ; i < end; i++)
 		{
-			c.sm[i*stride].inner_product(c.ve, &ret[i*stride]);
-// 			Vector temp = c.sm[i*c.sm.stride]*c.ve ;
-// 			for(int j = i*c.sm.stride ; j < i*c.sm.stride+c.sm.stride ; j++)
-// 				ret[j] = temp[j-i*c.sm.stride];
+			c.sm[i*stride].inner_product(ve, &ret[i*stride]);
 		}
+		
+// 	gettimeofday(&time1, NULL);
+// 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+// 	std::cerr << "mflops: "<< (2.*c.sm.array.size())/delta << std::endl ;
 } ;

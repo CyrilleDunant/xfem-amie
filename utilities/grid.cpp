@@ -898,9 +898,6 @@ std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 			if(pixels[i][j]->coOccur(geo))
 			{
 				pixels[i][j]->coOccuringFeatures(ret,geo) ;
-				std::stable_sort(ret.begin(), ret.end());
-				std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
-				ret.erase(e, ret.end()) ;
 			}
 		}
 	}

@@ -122,7 +122,7 @@ typedef enum{
 		 * Set true to compute the energy state at each time step. This operation is expensive
 		 * so the default is set to false. 
 		 */
-		const void setEnergyIndexed(bool t) {energyIndexed = t ;};
+		void setEnergyIndexed(bool t) {energyIndexed = t ;};
 	
 	};
 

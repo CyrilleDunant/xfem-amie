@@ -18,6 +18,8 @@
 #include "../physics/homogeneised_behaviour.h"
 #include "../solvers/multigrid.h"
 #include "../solvers/multigridstep.h"
+#include <time.h>
+#include <sys/time.h>
 
 
 
@@ -53,7 +55,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles(Feature * f )
 		return f->getBoundingElements(dtree) ;
 }
 
-FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
+FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(NULL)
 {
 	reuseDisplacements = false ; 
 	useMultigrid = false ;
@@ -64,7 +66,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 
 	if(is2D())
 		grid = new Grid((first->getBoundingBox()[1].x-first->getBoundingBox()[0].x)*1.1,
-		                (first->getBoundingBox()[1].y-first->getBoundingBox()[2].y)*1.1, 100,
+		                (first->getBoundingBox()[1].y-first->getBoundingBox()[2].y)*1.1, gridsize,
 		                Point((first->getBoundingBox()[1].x+first->getBoundingBox()[0].x)*.5, 
 		                      (first->getBoundingBox()[1].y+first->getBoundingBox()[2].y)*.5
 		                     )) ;
@@ -72,7 +74,7 @@ FeatureTree::FeatureTree(Feature *first) : grid(NULL), grid3d(NULL)
 	if(is3D())
 		grid3d = new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x)*1.1,
 		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y)*1.1,
-		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, 10, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, gridsize/10, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	this->father3D = NULL;
 	this->father2D = NULL ;
 	this->elemOrder = LINEAR ;
@@ -1643,17 +1645,25 @@ void FeatureTree::setElementBehaviours()
 				
 		std::cerr << " setting behaviours..." << std::flush ;
 		int setcount = 0 ;
-#pragma omp parallel for shared(setcount)
+		for(size_t i = 0 ; i < triangles.size() ;i++)
+			triangles[i]->refresh(father2D) ;
+		
+// #pragma omp parallel for shared(setcount,triangles,n_void) schedule(static, 4)
+
+
+	
+// #pragma omp parallel for shared(setcount,triangles,n_void)
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
 			if (setcount%1000 == 0)
 				std::cerr << "\r setting behaviours... triangle " << setcount << "/" << triangles.size() << "    "<< std::flush ;
-			triangles[i]->refresh(father2D) ;
 			if(!triangles[i]->getBehaviour())
 				triangles[i]->setBehaviour(getElementBehaviour(triangles[i])) ;
 			n_void++ ;
 			setcount++ ;
 		}
+
+// exit(0) ;
 		std::cerr << " ...done" << std::endl ;
 		
 		if(useMultigrid)
@@ -1694,13 +1704,15 @@ void FeatureTree::setElementBehaviours()
 		
 		std::cerr << " setting behaviours..." << std::flush ;
 		int setcount = 0 ;
+		for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
+			tetrahedrons[i]->refresh(father3D) ;
+		
 #pragma omp parallel for
 		for(size_t i = 0 ; i < tetrahedrons.size() ;i++)
 		{
 			if (setcount%1000 == 0)
 				std::cerr << "\r setting behaviours... tet " << setcount << "/" << tetrahedrons.size() << std::flush ;
 			
-			tetrahedrons[i]->refresh(father3D) ;
 			if(!tetrahedrons[i]->getBehaviour())
 				tetrahedrons[i]->setBehaviour(getElementBehaviour(tetrahedrons[i])) ;
 			n_void++ ;
@@ -1985,7 +1997,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 		}
 		std::pair<Vector , Vector > stress_strain(Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size()), Vector(0., elements[0]->getBoundingPoints().size()*3*elements.size())) ;
 		int donecomputed = 0 ;
-#pragma omp parallel for
+#pragma omp parallel for shared(donecomputed)
 		for(size_t i  = 0 ; i < elements.size() ; i++)
 		{
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -2001,7 +2013,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 					stress_strain.first[i*elements[0]->getBoundingPoints().size()*3+j] = str.first[j] ;
 					stress_strain.second[i*elements[0]->getBoundingPoints().size()*3+j] = str.second[j] ;
 				}
-				if(donecomputed%1000 == 0)
+				if(donecomputed%10000 == 0)
 					std::cerr << "\r computing strain+stress... element " << donecomputed+1 << "/" << elements.size() << std::flush ;
 			}
 			donecomputed++ ;
@@ -2016,6 +2028,8 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain(int g)
 			tets = coarseTrees3D[g]->getElements() ;
 		std::pair<Vector , Vector > stress_strain(Vector(0.f, 4*6*tets.size()), Vector(0.f, 4*6*tets.size())) ;
 		int donecomputed = 0 ;
+		
+#pragma omp parallel for shared(donecomputed)
 		for(size_t i  = 0 ; i < tets.size() ; i++)
 		{
 			if(tets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -3006,24 +3020,52 @@ void FeatureTree::initializeElements()
 {
 	if(initialized)
 		return ;
+	
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
 	if(is2D())
 	{
+		omp_set_nested(true) ;
+// 		omp_set_num_threads(1) ;
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 		std::cout << " initialising..." ;
-		for(size_t i = 0 ; i < triangles.size() ;i++)
-		{
-			triangles[i]->refresh(father2D);
-			if(i%1000 == 0)
-				std::cout << "\r initialising... element " << i << "/" << triangles.size() << std::flush ;
-			triangles[i]->getState().initialize() ;
-		}
-		std::cout << "\r initialising... element " << triangles.size() << "/" << triangles.size() << std::endl ;
+// 		int count = 0 ;
+// 			#pragma omp parallel sections shared(count)
+// 			{
+// 				#pragma omp section 
+// 				{
+					#pragma omp parallel for /*schedule(dynamic, 100)*/
+					for(size_t i = 0 ; i < triangles.size() ;i++)
+					{
+						triangles[i]->refresh(father2D);
+						triangles[i]->getState().initialize() ;
+// 						count++ ;
+					}
+// 				}
+					
+// 				#pragma omp section 
+// 				{
+// 					while (count  < triangles.size() - 8)
+// 					{
+// 							std::cout << "\r initialising... element " << count << "/" << triangles.size() << std::flush ;
+// 							sleep(5) ;
+// 							
+// 							if(count >= triangles.size() - 8)
+// 								break ;
+// 					}
+// 				}
+// 			}
+			gettimeofday(&time1, NULL);
+			double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+			std::cout << "\r initialising... element " << triangles.size() << "/" << triangles.size() << ". Time to initialise (s) " << delta/1e6 << std::endl ;
+		
 		if(useMultigrid)
 		{
 			for(size_t i = 0 ; i < coarseTrees.size() ; i++)
 			{
 				triangles = coarseTrees[i]->getElements() ;
 				
+#pragma omp parallel for 
 				for(size_t j = 0 ; j < triangles.size() ;j++)
 				{
 					triangles[j]->refresh(father2D);
@@ -3037,16 +3079,35 @@ void FeatureTree::initializeElements()
 	{
 		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 		std::cout << " initialising..." ;
-		for(size_t i = 0 ; i < tets.size() ;i++)
-		{
-			tets[i]->refresh(father3D);
-			if(i%1000 == 0)
-				std::cout << "\r initialising... element " << i << "/" << tets.size() << std::flush ;
-			tets[i]->getState().initialize() ;
-		}
-		std::cout << "\r initialising... element " << tets.size() << "/" << tets.size() << std::endl ;
+// 		int count = 0 ;
+// 		omp_set_num_threads(4) ;
+// 			omp_set_nested(true) ;
+// 			#pragma omp parallel sections
+// 			{
+// 				#pragma omp section
+// 				{
+					#pragma omp parallel for 
+					for(size_t i = 0 ; i < tets.size() ;i++)
+					{
+						tets[i]->refresh(father3D);
+						tets[i]->getState().initialize() ;
+// 						count++ ;
+					}
+// 				}
+				
+// 				#pragma omp section
+// 				while(count < tets.size())
+// 				{
+// 						std::cout << "\r initialising... element " << count << "/" << tets.size() << std::flush ;
+// 						sleep(10) ;
+// 				}
+				
+// 			}
+		gettimeofday(&time1, NULL);
+		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+		std::cout << "\r initialising... element " << tets.size() << "/" << tets.size() << ". Time to initialise (s) " << delta/1e6 << std::endl ;
 	}
-	
+
 	initialized = true ;
 }
 

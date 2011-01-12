@@ -169,7 +169,7 @@ public:
 	 * @param first Parent of all features. This shoud typically be the sample itself.
 	 * @return 
 	 */
-	FeatureTree(Feature *first) ;
+	FeatureTree(Feature *first, size_t gridsize = 100) ;
 	virtual ~FeatureTree() ;
 	
 	void dumpFeatures(std::string filename) ;
