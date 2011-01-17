@@ -334,7 +334,7 @@ void TriangleGLDrawer::grab()
 		 double mindelta = std::min(max_x-min_x, max_y-min_y)/0.8 ;
 		 double cx = 0.7 ;
 		 double cy = 0.7 ;
-		 double mag = 100 ;
+		 double mag = 20 ;
 		 if(max_x-min_x > max_y-min_y)
 			 cy = 0.7*mindelta/maxdelta ;
 		 else

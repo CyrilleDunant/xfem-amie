@@ -8,7 +8,6 @@
 #include "geometry_base.h"
 //#include "../utilities/xml.h"
 #include <limits>
-#include <iomanip>
 
 #include "../mesher/delaunay.h"
 #include "../polynomial/vm_function_base.h"
@@ -126,10 +125,10 @@ XMLTree * Point::toXML()
 void Point::print() const
 {
 	std::cout << " ( id = " << id << std::flush ;
-	std::cout << " ; "<< std::setprecision(16) << x << std::flush ;
-	std::cout << "; " << std::setprecision(16)<< y << std::flush ;
-	std::cout << "; " << std::setprecision(16)<< z << std::flush ;
-	std::cout << "; " << std::setprecision(16)<< t << ") " << std::endl;
+	std::cout << " ; "<< /*std::setprecision(16) <<*/ x << std::flush ;
+	std::cout << "; " << /*std::setprecision(16)<<*/ y << std::flush ;
+	std::cout << "; " << /*std::setprecision(16)<<*/ z << std::flush ;
+	std::cout << "; " << /*std::setprecision(16)<<*/ t << ") " << std::endl;
 }
 
 double Point::norm() const
@@ -1157,6 +1156,71 @@ Point Plane::projection(const Point &toProject ) const
 	return intersection(Line(toProject, v)) ;
 }
 
+double Geometry::overlapFraction(const Geometry * target) const
+{
+	Point c = getCenter() ;
+	if(dynamic_cast<const Triangle *>(this))
+		c = dynamic_cast<const Triangle *>(this)->getCircumCenter() ;
+	else if(dynamic_cast<const Tetrahedron *>(this))
+		c = *dynamic_cast<const Tetrahedron *>(this)->getCircumCenter() ;
+	
+	Point tc = target->getCenter() ;
+	if(dynamic_cast<const Triangle *>(target))
+		tc = dynamic_cast<const Triangle *>(target)->getCircumCenter() ;
+	else if(dynamic_cast<const Tetrahedron *>(target))
+		tc = *dynamic_cast<const Tetrahedron *>(target)->getCircumCenter() ;
+	
+	
+	if(dist(c, tc)  > getRadius() + target->getRadius())
+		return 0 ;
+	
+	if(dist(c, tc) + getRadius()< target->getRadius())
+		return 1 ;
+	
+	if(spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		double selfin = 0 ;
+		double targin = 0 ;
+		for(double i = c.x-getRadius() ; i < c.x+getRadius() ; i += getRadius()/8.)
+		{
+			for(double j = c.y-getRadius() ; j < c.y+getRadius() ; j += getRadius()/8.)
+			{
+				Point p(i,j) ;
+				if(in(p))
+				{
+					selfin++ ;
+					if(target->in(p))
+						targin++ ;
+				}
+			}
+		}
+		
+		return targin/selfin ;
+	}
+	else
+	{
+		double selfin = 0 ;
+		double targin = 0 ;
+		for(double i = c.x-getRadius() ; i < c.x+getRadius() ; i += getRadius()/8.)
+		{
+			for(double j = c.y-getRadius() ; j < c.y+getRadius() ; j += getRadius()/8.)
+			{
+				for(double k = c.z-getRadius() ; k < c.z+getRadius() ; k += getRadius()/8.)
+				{
+					Point p(i,j,k) ;
+					if(in(p))
+					{
+						selfin++ ;
+						if(target->in(p))
+							targin++ ;
+					}
+				}
+			}
+		}
+		
+		return targin/selfin ;
+	}
+}
 
 const std::valarray<Point* > & Geometry::getInPoints() const
 {

@@ -43,6 +43,9 @@ class FeatureTree
 	
 protected:
 	
+	void duplicate2DMeshPoints() ;
+	void duplicate3DMeshPoints() ;
+	
 	std::vector< BoundaryCondition * > boundaryCondition ;
 	/** \brief Contains all the features. */
 	std::vector<Feature *> tree ;
@@ -97,8 +100,44 @@ protected:
 	void renumber() ;
 
 	void setElementBehaviours() ;
+	
+	template<class MTYPE, class ETYPE>
+	void setElementBehavioursFromMesh( const MTYPE * source, MTYPE * destination)
+	{
+		std::vector<ETYPE * > elems = destination->getElements() ;
+#pragma omp parallel for
+		for(size_t i = 0 ; i < elems.size() ; i++)
+		{
+			std::cout << "\r element " << i << "/" << elems.size() << std::flush ;
+// 			Circle c(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
+// 			Sphere s(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
+			std::vector<ETYPE * > conflicts =  source->getConflictingElements(elems[i]->getPrimitive() );
+// 			if(elems[i]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+// 				conflicts = source->getConflictingElements(&c) ;
+// 			else
+// 				conflicts = source->getConflictingElements(&s) ;
+			
+			ETYPE * main = conflicts.front() ;
+			double overlap = main->overlapFraction(elems[i]->getPrimitive()) ;
+			for(size_t j = 1 ; j < conflicts.size() ; j++)
+			{
+				double testOverlap = conflicts[j]->overlapFraction(elems[i]->getPrimitive()) ;
+				if(testOverlap > overlap)
+				{
+					main = conflicts[j] ;
+					overlap = testOverlap ;
+				}
+			}
+			
+			elems[i]->setBehaviour(main->getBehaviour()->getCopy()) ;
+		}
+		
+		std::cout << "\r element " << elems.size() << "/" << elems.size() << " ...done."<< std::flush ;
+	} ;
+	
 public:
 	bool enrichmentChange ;
+	
 		/** \brief  Generate the triangulation.
 	 * Once the sampling is done, the sampling points are fed into a Delaunay Triangulation algorithm, 
 	 * which generates the triangles. The mesh is still composed of 3 points triangles at this point.
@@ -106,6 +145,14 @@ public:
 	 * @param correctionSteps additional steps where points are inserted in incorrect tetrahedrons.
 	 */
 	void generateElements( size_t correctionSteps = 0, bool computeIntersections = true) ;
+	
+	/** \brief  Generate the triangulation.
+	 * Once the sampling is done, the sampling points are fed into a Delaunay Triangulation algorithm, 
+	 * which generates the triangles. The mesh is still composed of 3 points triangles at this point.
+	 * 
+	 * @param correctionSteps additional steps where points are inserted in incorrect tetrahedrons.
+	 */
+	void reGenerateElements( size_t correctionSteps = 0, bool computeIntersections = true) ;
 	
 	/** \brief  Perform the assembly.
 	 * 

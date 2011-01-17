@@ -16,7 +16,6 @@
 #include "granulo.h"
 #include <iostream>  // I/O 
 #include <fstream>   // file I/O
-#include <iomanip>   // format manipulation
 #include "placement.h"
 #include "../geometry/geometry_base.h"
 

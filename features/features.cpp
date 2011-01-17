@@ -798,50 +798,114 @@ void FeatureTree::stitch()
 	std::cerr << " ...done."<< std::endl ;
 }
 
+void FeatureTree::duplicate2DMeshPoints()
+{
+	std::map<Point *, Point *> oldNew ;
+	for(size_t i = 0 ; i < dtree->getTree().size() ; i++)
+	{
+		if(oldNew.find(dtree->getTree()[i]->first) == oldNew.end())
+			oldNew[dtree->getTree()[i]->first] = new Point(*(dtree->getTree()[i]->first)) ;
+		if(oldNew.find(dtree->getTree()[i]->second)== oldNew.end())
+			oldNew[dtree->getTree()[i]->second] = new Point(*(dtree->getTree()[i]->second)) ;
+		if(oldNew.find(dtree->getTree()[i]->third)== oldNew.end())
+			oldNew[dtree->getTree()[i]->third] = new Point(*(dtree->getTree()[i]->third)) ;
+	}
+	
+	for(size_t i = 0 ; i < dtree->getTree().size() ; i++)
+	{
+		dtree->getTree()[i]->first = oldNew[dtree->getTree()[i]->first] ;
+		dtree->getTree()[i]->second = oldNew[dtree->getTree()[i]->second] ;
+		dtree->getTree()[i]->third = oldNew[dtree->getTree()[i]->third] ;
+	}
+	
+	for (std::map<Point*,Point*>::iterator i  = oldNew.begin() ; i != oldNew.end() ; i++)
+	{
+		dtree->getAdditionalPoints().push_back(i->second) ;
+	}
+}
+
+void FeatureTree::duplicate3DMeshPoints()
+{
+	std::map<Point *, Point *> oldNew ;
+	for(size_t i = 0 ; i < dtree3D->getTree().size() ; i++)
+	{
+		if(oldNew.find(dtree3D->getTree()[i]->first)== oldNew.end())
+			oldNew[dtree3D->getTree()[i]->first] = new Point(*(dtree3D->getTree()[i]->first)) ;
+		if(oldNew.find(dtree3D->getTree()[i]->second)== oldNew.end())
+			oldNew[dtree3D->getTree()[i]->second] = new Point(*(dtree3D->getTree()[i]->second)) ;
+		if(oldNew.find(dtree3D->getTree()[i]->third)== oldNew.end())
+			oldNew[dtree3D->getTree()[i]->third] = new Point(*(dtree3D->getTree()[i]->third)) ;
+		if(oldNew.find(dtree3D->getTree()[i]->fourth)== oldNew.end())
+			oldNew[dtree3D->getTree()[i]->fourth] = new Point(*(dtree3D->getTree()[i]->fourth)) ;
+	}
+	
+	for(size_t i = 0 ; i < dtree3D->getTree().size() ; i++)
+	{
+		dtree3D->getTree()[i]->first = oldNew[dtree3D->getTree()[i]->first] ;
+		dtree3D->getTree()[i]->second = oldNew[dtree3D->getTree()[i]->second] ;
+		dtree3D->getTree()[i]->third = oldNew[dtree3D->getTree()[i]->third] ;
+		dtree3D->getTree()[i]->fourth = oldNew[dtree3D->getTree()[i]->fourth] ;
+	}
+	
+	for (std::map<Point*,Point*>::iterator i  = oldNew.begin() ; i != oldNew.end() ; i++)
+	{
+		dtree3D->getAdditionalPoints().push_back(i->second) ;
+	}
+}
+
+
 void FeatureTree::sample(size_t n)
 {
 	
-	if(is2D())
+	if(meshPoints.empty())
 	{
-		std::cerr << "2D features" << std::endl ;
-		double total_area = tree[0]->area() ;
-
-		tree[0]->sample(n) ;
-
-		for(size_t i  = 1 ; i < this->tree.size() ; i++)
+		if(is2D())
 		{
-			double shape_factor =(sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
-			if(shape_factor < POINT_TOLERANCE)
-				continue ;
-			size_t npoints = std::max((size_t)round(sqrt(tree[i]->area()/(total_area*shape_factor))*n), (size_t)8) ;
+			std::cerr << "2D features" << std::endl ;
+			double total_area = tree[0]->area() ;
 
-			if(npoints >= 8 && !tree[i]->isVirtualFeature && npoints < n)
-				tree[i]->sample(npoints) ;
+			tree[0]->sample(n) ;
+	#pragma omp parallel for
+			for(size_t i  = 1 ; i < this->tree.size() ; i++)
+			{
+				double shape_factor =(sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
+				if(shape_factor < POINT_TOLERANCE)
+					continue ;
+				size_t npoints = std::max((size_t)round(sqrt(tree[i]->area()/(total_area*shape_factor))*n), (size_t)8) ;
+
+				if(npoints >= 8 && !tree[i]->isVirtualFeature && npoints < n)
+					tree[i]->sample(npoints) ;
+			}
+		}
+		else if (is3D())
+		{
+			std::cout << n << std::endl ;
+			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
+			tree[0]->sample(2.5*n) ;
+
+			double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())*(tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())) ;
+			int count = 0 ;
+	#pragma omp parallel for
+			for(int i  = 1 ; i < (int)tree.size() ; i++)
+			{
+				std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
+				
+				double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
+				size_t npoints = (size_t)round((1.5*n*tree[i]->area()*shape_factor)/(total_area)) ;
+
+				if(npoints > 0 && !tree[i]->isVirtualFeature)
+					tree[i]->sample(npoints) ;
+				
+				count++ ;
+
+			}
+			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << " ...done" << std::endl ;
 		}
 	}
-	else if (is3D())
+	else
 	{
-		std::cout << n << std::endl ;
-		std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
-		tree[0]->sample(2.5*n) ;
-
-		double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())*(tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())) ;
-		int count = 0 ;
-#pragma omp parallel for
-		for(int i  = 1 ; i < (int)tree.size() ; i++)
-		{
-			std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
-			
-			double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
-			size_t npoints = (size_t)round((1.5*n*tree[i]->area()*shape_factor)/(total_area)) ;
-
-			if(npoints > 0 && !tree[i]->isVirtualFeature)
-				tree[i]->sample(npoints) ;
-			
-			count++ ;
-
-		}
-		std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << " ...done" << std::endl ;
+		meshPoints.clear();
+		sample(n);
 	}
 }
 
@@ -1695,6 +1759,8 @@ void FeatureTree::setElementBehaviours()
 				std::cerr << " ...done" << std::endl ;
 			}
 		}
+		
+// 		setElementBehavioursFromMesh<Mesh<DelaunayTriangle, DelaunayTreeItem>, DelaunayTriangle>(dtree, dtree) ;
 		
 		setBehaviours = true ;
 	}
@@ -3617,6 +3683,750 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 // 	std::srand(1000) ;
 
 	//shuffle for efficiency
+	shuffleMeshPoints() ;
+	
+//	for(size_t i = 0 ; i < meshPoints.size() ; i++)
+//		meshPoints[i].first->print() ;
+
+	
+
+	if(is2D())
+	{	
+		additionalPoints.push_back(new Point(bbox[0])) ;
+		additionalPoints.push_back(new Point(bbox[2])) ;
+		additionalPoints.push_back(new Point(bbox[4])) ;
+		additionalPoints.push_back(new Point(bbox[6])) ;
+
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-4], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-3], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-2], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-1], tree[0])) ;
+		
+		delete this->dtree ;
+		this->dtree = new DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first) ;
+		this->dtree->insert(meshPoints[3].first) ;
+		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+4 ; i != meshPoints.end(); ++i)
+		{
+			if( (i - meshPoints.begin())%1000 == 0)
+				std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size() << std::flush ;
+			
+			++count ;
+			
+			if(*i->first != bbox[0] &&
+			   *i->first != bbox[2] &&
+			   *i->first != bbox[4] &&
+			   *i->first != bbox[6] && (inRoot(*i->first) || i->second->getFather() == NULL)
+			  )
+			{
+				dtree->insert(i->first) ;
+			}
+		}
+		
+		std::cerr << "\r generating triangles.... point " << meshPoints.size()-3 << "/" << meshPoints.size()-4 << " ...done" << std::endl ;
+		
+		bool correct = false ;
+		int tries = correctionSteps ;
+		
+		while(!correct && tries)
+		{
+			std::vector< DelaunayTriangle * > tets = dtree->getElements();
+			std::vector< Point *> to_insert ;
+			
+			for(size_t i = 0 ; i < tets.size() ;i++)
+			{
+				Point *test = checkElement(tets[i]);
+				if(test)
+				{
+					to_insert.push_back(test);
+				}
+			}
+			
+			if(to_insert.empty())
+				correct = true ;
+			
+			for(size_t i = 0 ; i < to_insert.size() ;i++)
+			{
+				std::cerr << "\r generating triangles.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
+				if(*to_insert[i] != bbox[0] &&
+				   *to_insert[i] != bbox[2] &&
+				   *to_insert[i] != bbox[4] &&
+				   *to_insert[i] != bbox[6] &&
+				   inRoot( *to_insert[i])
+				  )
+					dtree->insert(to_insert[i]) ;
+				if(to_insert[i]->id == -1)
+					delete to_insert[i] ;
+			}
+			
+			tries-- ;
+			
+		}
+		std::cerr << " ...done."<< std::endl ;
+		
+	}
+	else if (is3D())
+	{
+		additionalPoints.push_back(new Point(bbox[0])) ;
+		additionalPoints.push_back(new Point(bbox[1])) ;
+		additionalPoints.push_back(new Point(bbox[7])) ;
+		additionalPoints.push_back(new Point(bbox[2])) ;
+		additionalPoints.push_back(new Point(bbox[3])) ;
+		additionalPoints.push_back(new Point(bbox[4])) ;
+		additionalPoints.push_back(new Point(bbox[5])) ;
+		additionalPoints.push_back(new Point(bbox[6])) ;
+		
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-8], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-7], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-6], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-5], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-4], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-3], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-2], tree[0])) ;
+		meshPoints.push_front(std::make_pair(additionalPoints[additionalPoints.size()-1], tree[0])) ;
+		
+		delete this->dtree3D ;
+		this->dtree3D = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
+		this->dtree3D->insert(meshPoints[4].first) ;
+		this->dtree3D->insert(meshPoints[5].first) ;
+		this->dtree3D->insert(meshPoints[6].first) ;
+		this->dtree3D->insert(meshPoints[7].first) ;
+
+		assert(meshPoints[0].first->id > -1 ) ;
+		assert(meshPoints[1].first->id > -1 ) ;
+		assert(meshPoints[2].first->id > -1 ) ;
+		assert(meshPoints[3].first->id > -1 ) ;
+
+		std::pair<std::vector<int>,std::vector<int> > pb ;
+		for(size_t i = 0 ; i < meshPoints.size() ; i++)
+		{
+			if(meshPoints[i].first == NULL)
+				pb.first.push_back(i) ;
+			if(meshPoints[i].second == NULL)
+				pb.second.push_back(i) ;
+		}
+		std::vector<Point *> toInsert ;
+		for( std::deque<std::pair<Point *, Feature *> >::iterator i = meshPoints.begin()+8 ; i != this->meshPoints.end(); ++i)
+		{
+			if((i - meshPoints.begin())%1000 == 0)
+				std::cerr << "\r generating tetrahedrons... point " << ++count*1000 << "/" << meshPoints.size()-8 <<  std::flush ;
+			if(*i->first != bbox[0] &&
+			   *i->first != bbox[1] &&
+			   *i->first != bbox[2] &&
+			   *i->first != bbox[3] &&
+			   *i->first != bbox[4] &&
+			   *i->first != bbox[5] &&
+			   *i->first != bbox[6] &&
+			   *i->first != bbox[7]
+			  )
+			{
+				dtree3D->insert(i->first) ; 
+				if(i->first->id == -1)
+				{
+					std::cout << "insertion failed" << std::endl ;
+					toInsert.push_back(i->first) ;
+				}
+			}
+		}
+// 		int delta = 1 ;
+// 		while(!toInsert.empty() && delta > 0)
+// 		{
+// 			std::random_shuffle(toInsert.begin(), toInsert.end()) ;
+// 			std::vector<Point *> newToInsert ;
+// 			for( std::vector<Point *>::iterator i = toInsert.begin() ; i != toInsert.end(); ++i)
+// 			{
+// 				if((i - toInsert.begin())%1000 == 0)
+// 					std::cerr << "\r generating tetrahedrons... point " << ++count*1000 << "/" << toInsert.size() <<  std::flush ;
+// 				if(**i != bbox[0] &&
+// 				**i != bbox[1] &&
+// 				**i != bbox[2] &&
+// 				**i != bbox[3] &&
+// 				**i != bbox[4] &&
+// 				**i != bbox[5] &&
+// 				**i != bbox[6] &&
+// 				**i != bbox[7]
+// 				)
+// 				{
+// 					dtree3D->insert(*i) ; 
+// 					if((*i)->id == -1)
+// 					{
+// // 						std::cout << "insertion failed" << std::endl ;
+// 						newToInsert.push_back(*i) ;
+// 					}
+// 				}
+// 			}
+// 			delta = toInsert.size()-newToInsert.size() ;
+// 			toInsert = newToInsert ;
+// 		}
+		
+		for(size_t k  =  0 ; k <  enrichmentFeature.size() ; k++)
+		{
+			std::vector<Point *> pts = dynamic_cast<EnrichmentFeature *>(enrichmentFeature[k])->getSamplingPoints() ;
+			
+			for(size_t i = 0 ; i < pts.size() ;i++)
+			{
+				if(inRoot(*pts[i]))
+				{
+					meshPoints.push_back(std::pair<Point *, Feature *>(pts[i], this->tree[0])) ;
+					std::cerr << "\r generating tetrahedrons.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
+					dtree3D->insert(pts[i]) ;
+				}
+			}
+		}
+		
+		bool correct = false ;
+		int tries = correctionSteps ;
+		
+		while(!correct && tries)
+		{
+			std::vector< DelaunayTetrahedron * > tets = dtree3D->getElements();
+			std::vector< Point *> to_insert ;
+
+			for(size_t i = 0 ; i < tets.size() ;i++)
+			{
+				Point *test = checkElement(tets[i]);
+				if(test)
+				{
+					to_insert.push_back(test);
+				}
+			}
+			
+			if(to_insert.empty())
+				correct = true ;
+			
+			for(size_t i = 0 ; i < to_insert.size() ;i++)
+			{
+				std::cerr << "\r generating tetrahedrons.... point " << ++count << "/" << meshPoints.size()-3 << std::flush ;
+				if(*to_insert[i] != bbox[0] &&
+							*to_insert[i] != bbox[1] &&
+							*to_insert[i] != bbox[2] &&
+							*to_insert[i] != bbox[3] &&
+							*to_insert[i] != bbox[4] &&
+							*to_insert[i] != bbox[5] &&
+							*to_insert[i] != bbox[6] &&
+							*to_insert[i] != bbox[7] &&
+							inRoot( *to_insert[i])
+				)
+					dtree3D->insert(to_insert[i]) ;
+				
+				if(to_insert[i]->id == -1)
+					delete to_insert[i] ;
+			}
+			
+			tries-- ;
+			
+		}
+		std::cerr << " ...done."<< std::endl ;
+//		dtree3D->purge() ;
+		
+	}
+}
+
+void FeatureTree::reGenerateElements( size_t correctionSteps, bool computeIntersections) 
+{
+	double pointDensity = 0 ; 
+	if(is2D())
+		pointDensity = .2*sqrt(tree[0]->area()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size())) ;
+	else
+		pointDensity = .2*pow(tree[0]->volume()/(tree[0]->getBoundingPoints().size()+tree[0]->getInPoints().size()), .33333333333) ;
+		
+	std::cout << "space meshed with " << pointDensity << " points per unit length"<< std::endl ;
+
+	std::valarray<Point> bbox(8) ;
+	double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
+
+	for(size_t j  =  0 ; j <  this->tree[0]->getBoundingPoints().size() ; j++)
+	{
+		if(this->tree[0]->getBoundingPoint(j).y < min_y)
+			min_y = this->tree[0]->getBoundingPoint(j).y ;
+		if(this->tree[0]->getBoundingPoint(j).y > max_y)
+			max_y = this->tree[0]->getBoundingPoint(j).y ;
+		
+		if(this->tree[0]->getBoundingPoint(j).x < min_x)
+			min_x = this->tree[0]->getBoundingPoint(j).x ;
+		if(this->tree[0]->getBoundingPoint(j).x > max_x)
+			max_x = this->tree[0]->getBoundingPoint(j).x ;
+		
+		if(this->tree[0]->getBoundingPoint(j).z < min_z)
+			min_z = this->tree[0]->getBoundingPoint(j).z ;
+		if(this->tree[0]->getBoundingPoint(j).z > max_z)
+			max_z = this->tree[0]->getBoundingPoint(j).z ;
+	}
+
+	bbox[0] = Point(min_x, min_y, min_z) ;
+	
+	bbox[1] = Point(min_x, min_y, max_z) ;
+	
+	bbox[2] = Point(min_x, max_y, min_z) ;
+	
+	bbox[3] = Point(min_x, max_y, max_z) ;
+	
+	bbox[4] = Point(max_x, min_y, min_z) ;
+	
+	bbox[5] = Point(max_x, min_y, max_z) ;
+	
+	bbox[6] = Point(max_x, max_y, min_z) ;
+	
+	bbox[7] = Point(max_x, max_y, max_z) ;
+
+	std::vector<Feature *> enrichmentFeature ;
+	for(size_t i  = 0 ; i < this->tree.size() ; i++)
+	{
+		if(tree[i]->isEnrichmentFeature)
+		{
+			enrichmentFeature.push_back(tree[i]) ;
+		}
+	}
+	int bpcount = 0 ;
+	size_t basepoints = 0 ;
+	std::cerr << " getting mesh points..." << std::flush ;
+	std::vector<Feature *> nullFatherFeatures ;
+	for(size_t i  = 1 ; i < tree.size() ; i++)
+	{
+		if(!tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature)
+		{
+			if(tree[i]->getFather() == NULL)
+				nullFatherFeatures.push_back(tree[i]);
+		}
+	}
+	for(size_t i  = 0 ; i < tree.size() ; i++)
+	{
+		std::cerr << "\r getting mesh points... feature " << i << "/"<< tree.size() << std::flush ;
+		if(!tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature)
+		{
+			std::vector<Feature *> descendants = tree[i]->getDescendants() ;
+			std::stable_sort(descendants.begin(), descendants.end()) ;
+			for(size_t j  =  0 ; j <  tree[i]->getBoundingPoints().size() ; j++)
+			{
+				bool isIn = false ;
+				
+				std::vector<Geometry *> potentialFeaturestmp  ;
+				std::vector<Feature *> potentialFeatures ;
+	
+				if(is2D())
+					potentialFeaturestmp = grid->coOccur(tree[i]->getBoundingPoint(j)) ;
+				else
+				{
+					potentialFeaturestmp = grid3d->coOccur(tree[i]->getBoundingPoint(j)) ;
+				}
+				
+				for(size_t l = 0 ; l < potentialFeaturestmp.size() ; l++)
+					potentialFeatures.push_back(dynamic_cast<Feature *>(potentialFeaturestmp[l]) ) ;
+				
+				std::vector<Feature *> potentialChildren ;
+				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
+				{
+					if(!potentialFeatures[l]->isEnrichmentFeature 
+						&& std::binary_search(descendants.begin(), descendants.end(), potentialFeatures[l]))
+					{
+						potentialChildren.push_back(potentialFeatures[l]) ;
+					}
+				}
+				
+				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
+				{
+					
+					if((!potentialChildren[k]->isVirtualFeature 
+					    && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)) 
+					   || (potentialChildren[k]->isVirtualFeature 
+					       && tree[i]->isVirtualFeature 
+					       && (dynamic_cast<VirtualFeature *>(potentialChildren[k])->getSource() 
+					           != dynamic_cast<VirtualFeature *>(tree[i])->getSource())
+					       && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)
+					      )
+					   )
+					{
+						if(potentialChildren[k]->getBoundingPoints().size())
+						{
+							isIn = true ;
+							break ;
+						}
+					}
+				}
+				
+				if(i != 0 && !inRoot(tree[i]->getBoundingPoint(j)))
+					isIn = true ;
+				if(!isIn && tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
+					isIn = true ;
+				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+					isIn = true ;
+				if(!isIn && i != 0 && tree[0]->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				{
+// 					Point proj(tree[i]->getBoundingPoint(j)) ;
+// 					tree[0]->project(&proj) ;
+// 					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
+						isIn = true ;
+// 					else
+// 					{
+// 						isIn = false ;
+// 					}
+				}
+				
+				if(tree[i]->getFather() == NULL && i != 0)
+					isIn = false ;
+				
+				int nullFeatureIndex = -1 ;
+				for(size_t k = 0 ; k < nullFatherFeatures.size() ; k++)
+				{
+					if(tree[i] == nullFatherFeatures[k])
+					{
+						nullFeatureIndex = k ;
+						break ;
+					}
+				}
+				for(size_t k = 0 ; k < nullFatherFeatures.size() ; k++)
+				{
+					if(tree[i] != nullFatherFeatures[k] && nullFeatureIndex < k)
+					{
+						Point proj(tree[i]->getBoundingPoint(j)) ;
+						nullFatherFeatures[k]->project(&proj) ;
+						if(dist(proj, tree[i]->getBoundingPoint(j)) < 2.*POINT_TOLERANCE)
+						{
+							isIn = true ;
+							break ;
+						}
+						if(nullFatherFeatures[k]->in(tree[i]->getBoundingPoint(j)))
+						{
+							isIn = true ;
+							break ;
+						}
+					}
+				}
+				
+				if(!isIn && tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				{
+					Point proj(tree[i]->getBoundingPoint(j)) ;
+					tree[i]->getFather()->project(&proj) ;
+					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
+						isIn = true ;
+					else
+					{
+						isIn = false ;
+					}
+				}
+				if(!isIn)
+				{
+					if(tree[i]->getBoundingPoint(j) == Point(-250, 0))
+						std::cout << i << " found" << std::endl ;
+					bpcount++ ;
+					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getBoundingPoint(j), this->tree[i])) ;
+					if(i == 0)
+						basepoints++ ;
+				}
+			}
+
+			for(size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++)
+			{
+//                            if(i>0)
+//                                tree[i]->getInPoint(j).print() ;
+                            bool isIn = false ;
+				std::vector<Geometry *> potentialFeaturestmp  ;
+				if(is2D())
+					potentialFeaturestmp = grid->coOccur(tree[i]->getInPoint(j)) ;
+				else
+					potentialFeaturestmp = grid3d->coOccur(tree[i]->getInPoint(j)) ;
+				
+				std::vector<Feature *> potentialFeatures ;
+				for(size_t k = 0 ; k < potentialFeaturestmp.size() ; ++k)
+					potentialFeatures.push_back(dynamic_cast<Feature *>(potentialFeaturestmp[k])) ;
+				
+				std::vector<Feature *> potentialChildren ;
+				
+				for(size_t l = 0 ; l < potentialFeatures.size() ; l++)
+				{
+					if(!potentialFeatures[l]->isVirtualFeature
+					   &&!potentialFeatures[l]->isEnrichmentFeature 
+					   && std::binary_search(descendants.begin(), descendants.end(), potentialFeatures[l] ))
+						potentialChildren.push_back(potentialFeatures[l]) ;
+				}
+				for(size_t k  =  0 ; k <  potentialChildren.size() ; k++)
+				{
+					if(
+					    (
+					      !potentialChildren[k]->isVirtualFeature 
+					      && potentialChildren[k]->inBoundary(tree[i]->getInPoint(j), pointDensity)
+					    ) 
+					   || 
+					      (
+					        potentialChildren[k]->isVirtualFeature 
+					        && tree[i]->isVirtualFeature 
+					        && 
+					        (
+					          dynamic_cast<VirtualFeature *>(potentialChildren[k])->getSource() 
+					          != dynamic_cast<VirtualFeature *>(tree[i])->getSource()
+					        )
+					        && potentialChildren[k]->inBoundary(tree[i]->getInPoint(j), pointDensity)
+					      )
+					  )
+					{
+						if(potentialChildren[k]->getBoundingPoints().size())
+						{
+							isIn = true ;
+							break ;
+						}
+					}
+				}
+				
+				if(i != 0 && !inRoot(tree[i]->getInPoint(j)))
+					isIn = true ;
+				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getInPoint(j), pointDensity))
+					isIn = true ;
+				if(tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getInPoint(j)))
+					isIn = true ;
+					
+				if(i != 0 && tree[0]->onBoundary(tree[i]->getInPoint(j), pointDensity))
+					isIn = true ;
+
+				if(tree[i]->getFather() == NULL && i != 0)
+					isIn = false ;
+				
+				int nullFeatureIndex = -1 ;
+				for(size_t k = 0 ; k < nullFatherFeatures.size() ; k++)
+				{
+					if(tree[i] == nullFatherFeatures[k])
+					{
+						nullFeatureIndex = k ;
+						break ;
+					}
+				}
+				for(size_t k = 0 ; k < nullFatherFeatures.size() ; k++)
+				{
+					if(tree[i] != nullFatherFeatures[k] && nullFeatureIndex < k)
+					{
+						Point proj(tree[i]->getInPoint(j)) ;
+						nullFatherFeatures[k]->project(&proj) ;
+						if(dist(proj, tree[i]->getInPoint(j)) < 2.*POINT_TOLERANCE)
+						{
+							isIn = true ;
+							break ;
+						}
+						if(nullFatherFeatures[k]->in(tree[i]->getInPoint(j)))
+						{
+							isIn = true ;
+							break ;
+						}
+					}
+				}
+				
+				if(!isIn)
+				{
+					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getInPoint(j), tree[i])) ;	
+					if(i == 0)
+						basepoints++ ;
+				}
+			}
+			
+		}
+	}
+	
+	std::cerr << "...done" << std::endl ;
+	
+	if(is2D())
+	{
+		//this approach maximises the number of coincident points between the coarse grids.
+		int ndivs = 4/*std::max(tree[0]->getBoundingPoints().size()/8)*/ ;
+		while( ndivs*ndivs < meshPoints.size()/4)
+		{
+			coarseTrees.push_back(new StructuredMesh((max_x-min_x), (max_y-min_y), ndivs, Point((max_x+min_x)*.5, (max_y+min_y)*.5 ))) ;
+			coarseAssemblies.push_back(new Assembly()) ;
+			ndivs *= 4 ;
+		}
+	}
+	else
+	{
+		
+	}
+	
+	size_t count  = 0 ;
+
+	if(computeIntersections)
+	{
+		for(size_t i = 1 ;  i < tree.size() ; i++)
+		{
+			if(!tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getFather() != NULL)
+			{
+				std::vector<Geometry *> coOccuringFeaturestmp ;
+				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
+
+				if(is3D())
+					coOccuringFeaturestmp = grid3d->coOccur(tree[i]) ;
+				else
+					coOccuringFeaturestmp = grid->coOccur(tree[i]) ;
+				
+				std::vector<Feature *> coOccuringFeatures ;
+				
+				for(size_t k = 0 ; k < coOccuringFeaturestmp.size() ; k++)
+					coOccuringFeatures.push_back(dynamic_cast<Feature *>(coOccuringFeaturestmp[k])) ;
+				
+				for(size_t j  = 0 ; j < coOccuringFeatures.size() ; j++)
+				{
+					if(!coOccuringFeatures[j]->isEnrichmentFeature 
+					   && !coOccuringFeatures[j]->isVirtualFeature 
+					   && tree[i] != coOccuringFeatures[j] 
+					   && tree[i]->intersects(coOccuringFeatures[j]))
+					{
+						std::vector<Point> inter = tree[i]->intersection(coOccuringFeatures[j]) ;
+						for(size_t k = 0 ;  k < inter.size() ; k++)
+						{
+							
+							bool indescendants = false ;
+							for(size_t l = 0 ; l < descendants.size() ; l++)
+							{
+								if(!descendants[l]->isVirtualFeature && descendants[l]->inBoundary(inter[k], pointDensity))
+								{
+									indescendants = true ;
+									break ;
+								}
+							}
+// 	
+							if(!indescendants)
+							{
+								if(inRoot(inter[k]))
+								{
+									Point *p = new Point(inter[k]) ;
+									additionalPoints.push_back(p) ;
+									++count ;
+									meshPoints.push_back(std::make_pair(p, tree[i])) ;
+								}
+							}
+							
+							if(count%100 == 0)
+								std::cerr << "\r adding intersection points... " << count << std::flush ;
+						}
+					}
+				}
+			}
+		}
+
+		for(size_t i = 1 ;  i < tree.size() ; i++)
+		{
+			if(!tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[0]->intersects(tree[i])&& tree[i]->getFather() != NULL)
+			{
+				std::vector<Point> inter = tree[0]->intersection(tree[i]) ;
+				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
+				std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
+				for(size_t k = 0 ;  k < inter.size() ; k++)
+				{
+					bool indescendants = false ;
+					for(size_t l = 0 ; l < descendants.size() ; l++)
+					{
+						if(descendants[l]->inBoundary(inter[k], pointDensity))
+						{
+							indescendants = true ;
+							break ;
+						}
+					}
+					for(size_t l = 0 ; l < fatherdescendants.size() ; l++)
+					{
+						if(fatherdescendants[l] != tree[i] && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->inBoundary(inter[k], pointDensity) && fatherdescendants[l]->getBoundingPoints().size() )
+						{
+							indescendants = true ;
+							break ;
+						}
+					}
+					
+					if(is3D())
+					{
+					
+						Point proj(inter[k]) ;
+						tree[0]->project(&proj) ;
+						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
+						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
+						Point proj4(inter[k]+Point(0, 0, 2.*POINT_TOLERANCE)) ;
+						Point proj5(inter[k]+Point(0, 0, -2.*POINT_TOLERANCE)) ;
+						
+						int position = tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3)
+						+ tree[0]->in(proj4)
+						+ tree[0]->in(proj5) ;
+						
+						bool onSurface = (position == 5) ;
+						bool onEdge = (position == 4) ;
+						bool onVertex = (position == 3) ;
+						proj0= (inter[k]+Point(pointDensity, 0, 0)) ;
+						proj1= (inter[k]+Point(-pointDensity, 0, 0)) ;
+						proj2= (inter[k]+Point(0, pointDensity, 0)) ;
+						proj3= (inter[k]+Point(0, -pointDensity, 0)) ;
+						proj4= (inter[k]+Point(0, 0, pointDensity)) ;
+						proj5= (inter[k]+Point(0, 0, -pointDensity)) ;
+						int tooClose =  tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3)
+						+ tree[0]->in(proj4)
+						+ tree[0]->in(proj5) ;
+						
+						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
+						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
+						{
+							Point *p = new Point(inter[k]) ;
+							additionalPoints.push_back(p) ;
+							++count ;
+							meshPoints.push_back(std::make_pair(p, tree[i])) ;
+						}
+					}
+					else
+					{
+						Point proj(inter[k]) ;
+						tree[0]->project(&proj) ;
+						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
+						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
+						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
+
+						
+						int position = tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3);
+						
+						bool onEdge = (position == 3) ;
+						bool onVertex = (position == 2) ;
+						proj0= (inter[k]+Point(pointDensity, 0, 0)) ;
+						proj1= (inter[k]+Point(-pointDensity, 0, 0)) ;
+						proj2= (inter[k]+Point(0, pointDensity, 0)) ;
+						proj3= (inter[k]+Point(0, -pointDensity, 0)) ;
+
+						int tooClose =  tree[0]->in(proj0) 
+						+ tree[0]->in(proj1)
+						+ tree[0]->in(proj2)
+						+ tree[0]->in(proj3);
+
+						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
+						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && inRoot(inter[k]) && ( (onEdge && tooClose == 3) || onVertex))
+						{
+							Point *p = new Point(inter[k]) ;
+							additionalPoints.push_back(p) ;
+							++count ;
+							meshPoints.push_back(std::make_pair(p, tree[i])) ;
+						}
+					}
+
+				}
+					
+				if(count%100 == 0)
+					std::cerr << "\r adding intersection points... " << count << std::flush ;
+			}
+	
+		}
+	}
+	std::cerr << "\r adding intersection points... " << count << " ...done." << std::endl ;
+	count = 0 ;
+
+	//let us make sure we have no overlap
+// 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_x()) ;
+// 	std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_y()) ;
+// 	if(is3D())
+// 		std::stable_sort(meshPoints.begin(), meshPoints.end(), PairPointFeatureLess_Than_z()) ;
+// 	std::deque<std::pair<Point *, Feature *> > ::iterator e = std::unique(meshPoints.begin(), meshPoints.end(), PairPointFeatureEqual());
+// 	meshPoints.erase(e, meshPoints.end()) ;
+
+// 	std::srand(1000) ;
+
+	//shuffle for efficiency
 	std::random_shuffle(meshPoints.begin(),meshPoints.end()) ;
 	shuffleMeshPoints() ;
 	
@@ -3853,8 +4663,6 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 		
 	}
 }
-
-
 
 
 std::vector<DelaunayTriangle *> FeatureTree::getTriangles(int g)

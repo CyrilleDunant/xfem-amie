@@ -21,6 +21,8 @@ namespace Mu
 		virtual std::vector<DelaunayTriangle *> getElements();
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) const;
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) const;
+		virtual std::vector<Point * > & getAdditionalPoints(){ return points ;} ;
+		virtual const std::vector<Point * > & getAdditionalPoints() const {return points ;} ;
 		virtual void setElementOrder(Order o);
 		virtual void insert(Point *) ;
 		virtual size_t & getLastNodeId();

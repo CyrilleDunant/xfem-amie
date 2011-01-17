@@ -41,24 +41,28 @@ std::vector<DelaunayTriangle *> Pore::getElements( Mesh<DelaunayTriangle, Delaun
 Pore::Pore(Feature *father, double r, double x, double y): Feature(father), Circle(r, x, y)
 {
 	this->isEnrichmentFeature = false ;
+	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 
 Pore::Pore(Feature *father, double r, Point center): Feature(father), Circle(r, center)
 {
 	this->isEnrichmentFeature = false ;
+	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 
 Pore::Pore(double r, double x, double y) : Feature(NULL), Circle(r, x, y)
 {
 	this->isEnrichmentFeature = false ;
+	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 
 Pore::Pore(double r, Point center) :  Feature(NULL), Circle(r, center)
 {
 	this->isEnrichmentFeature = false ;
+	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 

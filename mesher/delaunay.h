@@ -333,6 +333,9 @@ protected:
 	std::vector<DelaunayTreeItem *> tree ;
 	
 public:
+	
+	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ;};
+	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 	virtual std::vector< DelaunayTriangle* > getElements() {return getTriangles() ;};
 	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Mu::Point* p) const
 	{

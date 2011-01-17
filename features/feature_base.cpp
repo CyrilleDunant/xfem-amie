@@ -7,14 +7,11 @@
 using namespace Mu ;
 
 
-Feature::Feature(Feature * father)
+Feature::Feature(Feature * father) : behaviour(NULL)
 {
 	this->isEnrichmentFeature = false ;
 	this->isCompositeFeature = false ;
 	this->isVirtualFeature = false ;
-		
-	this->behaviour = new VoidForm() ;
-
 	
 	m_f = father ;
 	if(father != NULL)
@@ -22,14 +19,12 @@ Feature::Feature(Feature * father)
 
 }
 
-Feature::Feature()
+Feature::Feature() : behaviour(NULL)
 {
 	this->isEnrichmentFeature = false ;
 	this->isCompositeFeature = false ;
 	this->isVirtualFeature = false ;
 
-	this->behaviour = new VoidForm() ;
-	
 	m_f = NULL ;
 }
 
@@ -92,7 +87,8 @@ void  Feature::removeChild(Feature *f)
 
 void Feature::setBehaviour(Form * f)
 {
-	delete this->behaviour ;
+	if(behaviour)
+		delete this->behaviour ;
 	this->behaviour = f ;
 }
 

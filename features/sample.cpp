@@ -11,17 +11,20 @@
 //
 
 #include "sample.h"
+#include "../physics/void_form.h"
 
 using namespace Mu ;
 
 Sample::Sample(Feature * father, double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
+	this->behaviour = new VoidForm() ;
 }
 
 Sample::Sample( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
+	this->behaviour = new VoidForm() ;
 }
 
 Point * Sample::pointAfter(size_t i)

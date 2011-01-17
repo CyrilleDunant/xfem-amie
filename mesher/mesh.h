@@ -38,6 +38,8 @@ namespace Mu
 		public:
 			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
 			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
+			virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
+			virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
 		
 		public:
 			Mesh() {} ;
@@ -406,6 +408,10 @@ namespace Mu
 			}
 			return ret ; 
 		}
+		
+		virtual std::vector<Point * > & getAdditionalPoints() {return points ; };
+		virtual const std::vector<Point * > & getAdditionalPoints() const {return points ;};
+		
 		virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) const
 		{
 			std::vector<ETYPE *> ret ; 

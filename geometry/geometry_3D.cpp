@@ -117,13 +117,8 @@ std::vector<Point> RegularOctahedron::getSamplingBoundingPoints(size_t num_point
 
 void RegularOctahedron::sampleSurface(size_t num_points)
 {
-// 	for(size_t i = 0 ; i < 30 ; i++)
-// 	{
-// 		std::cout << getSamplingBoundingPoints(i).size() << std::endl ;
-// 	}
-// 	exit(0) ;
-	if(boundingPoints.size() == 6)
-		sampleBoundingSurface(num_points) ;
+
+	sampleBoundingSurface(num_points) ;
 	
 	int realPointsOnEquator = Rectangle(length, length, getCenter().x, getCenter().y).getSamplingBoundingPoints(round(sqrt(num_points))).size() ;
 	int iterations = 1 ;
@@ -151,8 +146,10 @@ void RegularOctahedron::sampleSurface(size_t num_points)
 		
 		iterations++ ;
 	}
+	for(size_t i = 0 ; i < inPoints.size() ; i++)
+		delete inPoints[i] ;
 	
-	this->inPoints.resize(samplingPoints.size()) ;
+	inPoints.resize(samplingPoints.size()) ;
 	for(size_t i = 0 ; i < samplingPoints.size() ; i++)
 		inPoints[i] = new Point(samplingPoints[i]) ;
 	
@@ -846,7 +843,7 @@ void Hexahedron::sampleBoundingSurface(size_t num_points)
 	for (size_t i = 0 ; i < boundingPoints.size() ; i++)
 		delete boundingPoints[i] ;
 
-	this->boundingPoints.resize(points.size()) ;
+	boundingPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		boundingPoints[i] = new Point(points[i]) ;
@@ -875,10 +872,7 @@ void Hexahedron::sampleSurface(size_t num_points)
 	
 	size_t factor = 4 ;
 
-	if(this->boundingPoints.size() == 8)
-	{
-		sampleBoundingSurface(num_points*factor) ;
-	}
+	sampleBoundingSurface(num_points*factor) ;
 	
 	int numPointsPerDirection = std::max(static_cast<size_t>(ceil(pow((double)num_points*factor, 1./3.))),(size_t)2) -2;
 	int numPointsPerDirectionOnBoundary = numPointsPerDirection+2 ;
@@ -966,7 +960,10 @@ void Hexahedron::sampleSurface(size_t num_points)
 	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
 	points.erase(e, points.end()) ;
 	
-	this->inPoints.resize(points.size()) ;
+	for (size_t i = 0 ; i < inPoints.size() ; i++)
+		delete inPoints[i] ;
+	
+	inPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		Point randomize(.2*std::min(size_z, std::min(size_x, size_y))/numPointsPerDirectionOnBoundary*(double)rand()/RAND_MAX,
@@ -1298,7 +1295,10 @@ std::vector<Point> Sphere::getSamplingBoundingPoints(size_t num_points) const
 void Sphere::sampleBoundingSurface(size_t num_points)
 {	
 	std::vector<Point> points = getSamplingPointsOnSphere(num_points, radius) ;
-	this->boundingPoints.resize(points.size()) ;
+	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+		delete boundingPoints[i] ;
+	
+	boundingPoints.resize(points.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 // 		std::cout << points[i].x << ";" << points[i].y << ";" << points[i].z << std::endl ;
@@ -1313,8 +1313,7 @@ void Sphere::sampleSurface(size_t num_points)
 	if(num_points < 1)
 		return ;
 
-	if(this->boundingPoints.size() == 0)
-		sampleBoundingSurface(num_points*7) ;
+	sampleBoundingSurface(num_points*7) ;
 	
 	std::vector<Point> points ;
 
@@ -1353,7 +1352,10 @@ void Sphere::sampleSurface(size_t num_points)
 		}
 	}
 	points.push_back(this->center) ;
-	this->inPoints.resize(points.size()) ;
+	for(size_t i = 0 ; i < inPoints.size() ; i++)
+		delete inPoints[i] ;
+	
+	inPoints.resize(points.size()) ;
 	
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{

@@ -7,7 +7,6 @@
 #include "geometry_base.h"
 #include "level_set.h"
 #include <limits>
-#include <iomanip>
 
 #include "../mesher/delaunay.h"
 #include "../polynomial/vm_function_base.h"

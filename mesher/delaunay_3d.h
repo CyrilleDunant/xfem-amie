@@ -342,6 +342,9 @@ protected:
 	std::vector<Point *> additionalPoints ;
 	
 	public:
+	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ; };
+	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
+		
 	virtual std::vector< DelaunayTetrahedron* > getElements() {return getTetrahedrons() ;};
 	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Mu::Point* p) const
 	{

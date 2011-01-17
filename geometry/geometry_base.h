@@ -153,6 +153,10 @@ virtual size_t & timePlanes()                         \
 {                                                          \
  return this->__geo_type__::timePlanes() ;                 \
 }                                                                 \
+virtual double overlapFraction(const Geometry * src) const                         \
+{                                                          \
+ return this->__geo_type__::overlapFraction(src) ;                 \
+}                                                                 \
 virtual size_t timePlanes() const                         \
 {                                                          \
 return this->__geo_type__::timePlanes() ;                 \
@@ -728,12 +732,15 @@ public:
 	 */
 	virtual std::vector<Point> getBoundingBox() const = 0;
 	
-	/** \brief Return the number of space dimensions of the geometry (2 or 3)*/
+	/** \brief Return the number of space dimensions of the geometry (SPACE_TWO_DIMENSIONAL or SPACE_THREE_DIMENSIONAL)*/
 	virtual SpaceDimensionality spaceDimensions() const = 0 ;
 
 	/** \brief Return the number of time slices present in this geometry*/
 	virtual size_t timePlanes() const ;
 	virtual size_t & timePlanes() ;
+	
+	/** \brief return the fraction of the area of the current geometry also lying in the target geometry. */
+	virtual double overlapFraction(const Geometry * target) const ;
 
 } ;
 
