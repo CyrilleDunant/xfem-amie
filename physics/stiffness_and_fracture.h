@@ -118,6 +118,8 @@ namespace Mu
 				
 		virtual Material toMaterial() ;
 		
+		virtual void multiply(double f) ;
+		
 	} ;
 	
 

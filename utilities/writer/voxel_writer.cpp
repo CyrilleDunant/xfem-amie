@@ -213,6 +213,36 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			break ;
 		}
 			
+		case VWFT_GRADIENT:
+		{
+			tmp = tet->getState().getGradient(p,false) ;
+			for(int i = 0 ; i < 3 ; i++)
+				ret[i] = tmp[2-i] ;
+			found = true ;
+			break ;
+		}
+			
+		case VWFT_GRADIENT_AND_FLUX:
+		{
+			tmp = tet->getState().getGradient(p,false) ;
+			for(int i = 0 ; i < 3 ; i++)
+				ret[i] = tmp[2-i] ;
+			tmp = tet->getState().getFlux(p,false) ;
+			for(int i = 0 ; i < 3 ; i++)
+				ret[3+i] = tmp[2-i] ;
+			found = true ;
+			break ;
+		}
+			
+		case VWFT_FLUX:
+		{
+			tmp = tet->getState().getFlux(p,false) ;
+			for(int i = 0 ; i < 3 ; i++)
+				ret[i] = tmp[2-i] ;
+			found = true ;
+			break ;
+		}
+			
 		case VWFT_VON_MISES:
 		{
 			ret[0]=tet->getState().getMaximumVonMisesStress() ;			
@@ -351,6 +381,12 @@ const int numberOfFields(VWFieldType field)
 			return 12 ;
 		case VWFT_STRESS:
 			return 6 ;
+		case VWFT_GRADIENT:
+			return 3 ;
+		case VWFT_GRADIENT_AND_FLUX:
+			return 6 ;
+		case VWFT_FLUX:
+			return 3 ;
 		case VWFT_VON_MISES:
 			return 1 ;
 	}

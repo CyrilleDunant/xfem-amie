@@ -509,6 +509,8 @@ public:
 	virtual FractureCriterion * getFractureCriterion() const { return NULL ; }
 	
 	virtual DamageModel * getDamageModel() const { return NULL ; }
+	
+	virtual void multiply(double f) { param *= f ; }
 } ;
 
 } ;

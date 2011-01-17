@@ -13,7 +13,7 @@ namespace Mu
 		virtual Form * getCopy() const ;
 		
 	} ;
-
+	
 } ;
 
 #endif // PASTE_BEHAVIOUR

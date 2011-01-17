@@ -123,6 +123,8 @@ typedef enum{
 		 * so the default is set to false. 
 		 */
 		void setEnergyIndexed(bool t) {energyIndexed = t ;};
+		
+		virtual void multiply(double f) { } ;
 	
 	};
 

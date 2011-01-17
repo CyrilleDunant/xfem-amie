@@ -221,19 +221,141 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 	}
 	else
 	{
-		std::vector<DelaunayTriangle *> tri = source->getTriangles() ;
-		for(size_t i = 0 ; i < tri.size() ; i++)
+		if(field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX)
 		{
-			std::pair<bool, std::vector<double> > val = getDoubleValue(tri[i], field) ;
-			if(val.first)
+			std::pair<Vector, Vector> gradient_flux = source->getGradientAndFlux() ;
+			switch(field)
 			{
-				for(size_t j = 0 ; j < numberOfFields(field) ; j++)
-					ret[j][i] = val.second[j] ;
+				case TWFT_FLUX:
+					gradient_flux.first.resize(0) ;
+					for(int i = 0 ; i < nTriangles ; i++)
+					{
+						if(!source->getTriangles()[i]->getBehaviour()->fractured())
+						{
+							// j11
+							ret[5][i] = gradient_flux.second[i*3*2+0] ;
+							ret[4][i] = gradient_flux.second[i*3*2+2] ;
+							ret[3][i] = gradient_flux.second[i*3*2+4] ;
+					
+							// j22
+							ret[2][i] = gradient_flux.second[i*3*2+1] ;
+							ret[1][i] = gradient_flux.second[i*3*2+3] ;
+							ret[0][i] = gradient_flux.second[i*3*2+5] ;
+						}
+						else
+						{
+							// j11
+							ret[5][i] = 0 ;
+							ret[4][i] = 0 ;
+							ret[3][i] = 0 ;
+					
+							// j22
+							ret[2][i] = 0 ;
+							ret[1][i] = 0 ;
+							ret[0][i] = 0 ;
+						}
+					}
+					break ;
+				
+				case TWFT_GRADIENT_AND_FLUX:
+					for(int i = 0 ; i < nTriangles ; i++)
+					{
+						if(!source->getTriangles()[i]->getBehaviour()->fractured())
+						{
+							// d11
+							ret[11][i] = gradient_flux.first[i*3*2+0] ;
+							ret[10][i] = gradient_flux.first[i*3*2+2] ;
+							ret[9][i] = gradient_flux.first[i*3*2+4] ;
+					
+							// d22
+							ret[8][i] = gradient_flux.first[i*3*2+1] ;
+							ret[7][i] = gradient_flux.first[i*3*2+3] ;
+							ret[6][i] = gradient_flux.first[i*3*2+5] ;
+
+							// j11
+							ret[5][i] = gradient_flux.second[i*3*2+0] ;
+							ret[4][i] = gradient_flux.second[i*3*2+2] ;
+							ret[3][i] = gradient_flux.second[i*3*2+4] ;
+					
+							// j22
+							ret[2][i] = gradient_flux.second[i*3*2+1] ;
+							ret[1][i] = gradient_flux.second[i*3*2+3] ;
+							ret[0][i] = gradient_flux.second[i*3*2+5] ;
+						}
+						else
+						{
+							// d11
+							ret[11][i] = 0 ;
+							ret[10][i] = 0 ;
+							ret[9][i] = 0 ;
+					
+							// d22
+							ret[8][i] = 0 ;
+							ret[7][i] = 0 ;
+							ret[6][i] = 0 ;
+						
+							// j11
+							ret[5][i] = 0 ;
+							ret[4][i] = 0 ;
+							ret[3][i] = 0 ;
+					
+							// j22
+							ret[2][i] = 0 ;
+							ret[1][i] = 0 ;
+							ret[0][i] = 0 ;
+						}
+					}
+					break ;
+
+				case TWFT_GRADIENT:
+					gradient_flux.second.resize(0) ;
+					for(int i = 0 ; i < nTriangles ; i++)
+					{
+						if(!source->getTriangles()[i]->getBehaviour()->fractured())
+						{
+							// d11
+							ret[5][i] = gradient_flux.first[i*3*2+0] ;
+							ret[4][i] = gradient_flux.first[i*3*2+2] ;
+							ret[3][i] = gradient_flux.first[i*3*2+4] ;
+					
+							// d22
+							ret[2][i] = gradient_flux.first[i*3*2+1] ;
+							ret[1][i] = gradient_flux.first[i*3*2+3] ;
+							ret[0][i] = gradient_flux.first[i*3*2+5] ;
+						}
+						else
+						{
+							// d11
+							ret[5][i] = 0 ;
+							ret[4][i] = 0 ;
+							ret[3][i] = 0 ;
+					
+							// d22
+							ret[2][i] = 0 ;
+							ret[1][i] = 0 ;
+							ret[0][i] = 0 ;
+						}
+					}
+					break ;
 			}
-			else
+		
+		}
+		else
+		{
+			std::vector<DelaunayTriangle *> tri = source->getTriangles() ;
+			for(size_t i = 0 ; i < tri.size() ; i++)
 			{
-				for(size_t j = 0 ; j < numberOfFields(field) ; j++)
-					ret[j][i] = 0 ;
+				std::pair<bool, std::vector<double> > val = getDoubleValue(tri[i], field) ;
+				if(val.first)
+				{
+					for(size_t j = 0 ; j < numberOfFields(field) ; j++)
+						ret[j][i] = val.second[j] ;
+				}
+				else
+				{
+					for(size_t j = 0 ; j < numberOfFields(field) ; j++)
+						ret[j][i] = 0 ;
+				}
 			}
 		}
 	}
@@ -310,6 +432,12 @@ int numberOfFields(TWFieldType field)
 			return 18 ;
 		case TWFT_STRESS:
 			return 9 ;
+		case TWFT_GRADIENT:
+			return 6 ;
+		case TWFT_GRADIENT_AND_FLUX:
+			return 12 ;
+		case TWFT_FLUX:
+			return 6 ;
 		case TWFT_VON_MISES:
 			return 1 ;
 	}

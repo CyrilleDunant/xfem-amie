@@ -46,6 +46,8 @@ public:
 	virtual double grade(const ElementState &s)  ;
 
 	virtual Material toMaterial() ;
+	
+	virtual void multiply(double f) { upVal *=f ; downVal *= f ; } ;
 };
 
 }

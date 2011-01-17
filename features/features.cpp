@@ -3025,7 +3025,7 @@ void FeatureTree::initializeElements()
 	gettimeofday(&time0, NULL);
 	if(is2D())
 	{
-		omp_set_nested(true) ;
+//		omp_set_nested(true) ;
 // 		omp_set_num_threads(1) ;
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 		std::cout << " initialising..." ;

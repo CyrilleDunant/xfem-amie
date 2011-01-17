@@ -189,3 +189,10 @@ Material StiffnessAndFracture::toMaterial()
 	return mat ;
 }
 
+void StiffnessAndFracture::multiply(double f)
+{
+	param *= f ;
+	criterion->multiply(f) ;
+}
+
+
