@@ -72,13 +72,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return all triangles in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
-		
-/** \brief Do nothing*/
-	virtual Point * pointAfter(size_t i) ;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 	virtual void print() const
 	{
@@ -87,6 +84,8 @@ public:
 	
 /** \brief return false */
 	virtual bool isVoid( const Point &) const {return false ;}
+	
+	virtual void setRadius(double newR) ;
 	
 	
 public:
@@ -118,9 +117,7 @@ public:
 * @param c third vertex
 */
 	TriangularInclusion(const Point & a, const Point & b, const Point & c) ;
-	
-/** \brief Do nothing*/
-	virtual void addSamplePoints(PointSet * po ) { };
+
 
 /** \brief return true if the boundary overlaps that of the argument*/
 	virtual bool interacts(Feature * f, double d) const ;
@@ -129,13 +126,11 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return all triangles in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
-	
-	virtual Point * pointAfter(size_t i) ;
-	
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+		
 	virtual void print() const
 	{
 		std::cout << "I am a triangular inclusion" << std::endl ;
@@ -185,13 +180,11 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return all triangles in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
-	
-	virtual Point * pointAfter(size_t i) ;
-	
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+		
 	virtual void print() const
 	{
 		std::cout << "I am an ellipsoidal inclusion" << std::endl ;
@@ -239,12 +232,12 @@ public:
 	virtual void sample(size_t) {} ;
 	virtual bool isVoid(const Mu::Point&) const {return false ;}
 
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  { return std::vector<Mu::DelaunayTriangle*>() ;} ;
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  { return std::vector<Mu::DelaunayTriangle*>() ;} ;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 
 public:
 
-        LEVEL_SET_DERIVED_OBJECT() ;
+   LEVEL_SET_DERIVED_OBJECT() ;
 
 
 } ;

@@ -145,7 +145,7 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 	}
 	
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<DelaunayTriangle *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	auto e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
@@ -301,7 +301,7 @@ void StructuredMesh::insert(Point *)
 void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep)
 {
 
-	for(std::vector<DelaunayTreeItem *>::iterator i = tree.begin() ; i != tree.end() ; ++i)
+	for(auto i = tree.begin() ; i != tree.end() ; ++i)
 	{
 		
 		(*i)->visited = true ;
@@ -383,7 +383,7 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 	}
 			
 	
-	for(std::vector<DelaunayTreeItem *>::iterator i = tree.begin() ; i != tree.end() ; ++i)
+	for(auto i = tree.begin() ; i != tree.end() ; ++i)
 	{
 		(*i)->clearVisited() ;
 	}

@@ -65,7 +65,7 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTre
 						newToTest.push_back(toTest[j]->getNeighbourhood(k));
 				}
 			}
-			std::vector<DelaunayTriangle *>::iterator e = std::unique(newToTest.begin(),newToTest.end() ) ;
+			auto e = std::unique(newToTest.begin(),newToTest.end() ) ;
 			newToTest.erase(e, newToTest.end()) ;
 			toTest = newToTest ;
 			

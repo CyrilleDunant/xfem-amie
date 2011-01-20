@@ -32,10 +32,10 @@
 
 using namespace Mu ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2) , mesh2d(mesh2d), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2) , mesh(mesh), self2d(self), self3d(NULL), equivalent(NULL)
 {
 
-	std::vector<DelaunayTriangle * > feats = mesh2d->getConflictingElements(self->getPrimitive()) ;
+	std::vector<DelaunayTriangle * > feats = mesh->getElements2D(self->getPrimitive()) ;
 	Material hom ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
@@ -54,7 +54,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTree
 	reverted = false ;
 } ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh3d(NULL), self3d(NULL), equivalent(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh(NULL), self3d(NULL), equivalent(NULL)
 {
 	std::vector<Point> corner = self->getSamplingBoundingPoints(0) ;
 	
@@ -101,9 +101,9 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 }
 
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 3), mesh2d(NULL), self2d(NULL), mesh3d(mesh3d), self3d(self), equivalent(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 3), mesh(mesh), self2d(NULL), self3d(self), equivalent(NULL)
 {
-	source3d = mesh3d->getConflictingElements(self->getPrimitive()) ;
+	source3d = mesh->getElements3D(self->getPrimitive()) ;
 
 	double totalVolume = 0 ;
 	for(size_t i = 0 ; i < source3d.size() ; i++)

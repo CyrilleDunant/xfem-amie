@@ -596,10 +596,10 @@ void Triangle::project(Point * p) const
 	{
 		pt.insert(std::make_pair(std::abs(squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
 	}
-	std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
+	auto ptend = pt.begin() ;
 	ptend++ ; ptend++ ; ptend++ ;
 	
-	for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
+	for(auto i = pt.begin() ; i != ptend ; ++i )
 	{
 		pts.push_back(i->second);
 	}

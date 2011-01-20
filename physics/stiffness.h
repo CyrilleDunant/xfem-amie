@@ -63,8 +63,12 @@ namespace Mu
 	/** \brief A linear pseudo-plastic law.
 	* The behaviour is updated when step is called and the secant stifness is computed as a function  of the strain
 	*/
-	struct PseudoPlastic : public LinearForm
+	class PseudoPlastic : public LinearForm
 	{
+	protected:
+		void fixLastDamage() ;
+		
+	public:
 		std::vector<DelaunayTriangle *> cache ;
 		std::vector<Variable> v ;
 		double alpha ;
@@ -81,7 +85,7 @@ namespace Mu
 		*/
 		PseudoPlastic(const Matrix & rig, double limitStrain, double radius) ;
 		
-		void fixLastDamage() ;
+		
 		
 		virtual ~PseudoPlastic() ;
 

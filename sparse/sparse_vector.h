@@ -64,9 +64,122 @@ public:
 	 */
 	Vector operator *(const Vector&) const ;
 	
+	void inner_product(const Vector &v, double *dest) const
+	{
+		if(stride == 2)
+		{
+		#ifdef HAVE_SSE3
+			const __m128d * array_iterator = (__m128d*)&val[start*4] ;
+			const double * vec_iterator = &v[idx[start]*2] ;
+			for(unsigned int j = start ; j != length+start ; vec_iterator += (idx[j+1]-idx[j])*2,j++)
+			{
+				
+				_mm_store_pd(dest,  _mm_add_pd( _mm_load_pd(dest), _mm_add_pd( _mm_mul_pd(*array_iterator,  _mm_set1_pd(*vec_iterator)), _mm_mul_pd(*(array_iterator+1), _mm_set1_pd(*(vec_iterator+1)))))) ;
+				array_iterator+=2 ;
+				if(j+1 == length+start)
+					break ;
+				
+				
+			}
+		#else
+			const double * array_iterator0 = &val[start*4] ;
+			const double * array_iterator1 = &val[start*4+1] ;
+			const double * array_iterator2 = &val[start*4+2] ;
+			const double * array_iterator3 = &val[start*4+3] ;
+			for(unsigned int j = start ; j != length+start ; j++)
+			{
+				*dest += *array_iterator0*v[idx[j]*2]+*array_iterator2*v[idx[j]*2+1] ;
+				*(dest+1) += *array_iterator1*v[idx[j]*2]+*array_iterator3*v[idx[j]*2+1] ;
+				array_iterator0+=4 ;
+				array_iterator1+=4 ;
+				array_iterator2+=4 ;
+				array_iterator3+=4 ;
+			}
+		#endif
+		return ;
+		}
+		
+		const int colLength = stride + stride%2 ;
+		#ifdef HAVE_SSE3
+		const __m128d * array_iterator = (__m128d*)&val[start*colLength*stride] ;
+		for(unsigned int j = start ; j != length+start ; j++)
+		{
+			for(size_t c = 0 ; c < stride ; c++)
+			{
+				const __m128d vval =  _mm_set1_pd(v[idx[j]*stride+c]) ;
+				for(int i = 0 ; i != colLength ; i+=2)
+				{
+					_mm_store_pd((dest+i),  _mm_add_pd( _mm_load_pd((dest+i)), _mm_mul_pd(*array_iterator, vval))) ;
+					array_iterator++ ;
+				}
+			}
+		}
+		#else
+		const double * array_iterator0 = &val[start*colLength*stride] ;
+		const double * array_iterator1 = &val[start*colLength*stride+1] ;
+		for(unsigned int j = start ; j != length+start ; j++)
+		{
+			for(size_t c = 0 ; c < stride ; c++)
+			{
+				const double vval =  v[idx[j]*stride+c] ;
+				for(size_t i = 0 ; i != colLength ; i+=2)
+				{
+					*(dest+i) += *array_iterator0 * vval ;
+					*(dest+i+1) += *array_iterator1 * vval ;
+					array_iterator0 += 2 ;
+					array_iterator1 += 2 ;
+				}
+			}
+		}
+		#endif
+	}
+
+	
 	/** \brief simultaneously compute a number of dot products equal to the block size and assign.
 	 */
-	void inner_product(const Vector &v, double *dest) const ;
+	inline double inner_product(const SparseVector & v0, const SparseVector & v1, const size_t end)
+	{
+		double ret = 0 ;
+
+		unsigned int i = 0 ; 
+		unsigned int j = 0 ; 
+		unsigned int *i_index_pointer = std::lower_bound(&v0.idx[v0.start], &v0.idx[v0.start+v0.length], end) ;
+		unsigned int *j_index_pointer = std::lower_bound(&v1.idx[v1.start], &v1.idx[v1.start+v1.length], end) ;
+		unsigned int i_end = i_index_pointer-&v0.idx[v0.start] ;
+		unsigned int j_end = j_index_pointer-&v1.idx[v1.start] ;
+		
+		if(v0.idx[v0.start] > v1.idx[v1.start])
+		{
+			j_index_pointer = std::lower_bound(&v1.idx[v1.start+j], &v1.idx[v1.start+v1.length], v0.idx[v0.start+i]) ;
+			j = j_index_pointer-&v1.idx[v1.start] ;
+		}
+		else if(v0.idx[v0.start] < v1.idx[v1.start])
+		{
+			i_index_pointer = std::lower_bound(&v0.idx[v0.start+i], &v0.idx[v0.start+v0.length], v1.idx[v1.start + j]) ;
+			i = i_index_pointer-&v0.idx[v0.start] ;
+		}
+		
+		while(i < i_end &&  j < j_end)
+		{
+			ret += v0.val[v0.start +i] * v1.val[v1.start+j] ;
+			i++ ;
+			j++ ;
+			
+			if(v0.idx[v0.start+i] > v1.idx[v1.start+j])
+			{
+				j_index_pointer = std::lower_bound(&v1.idx[v1.start+j], &v1.idx[v1.start+v1.length], v0.idx[v0.start+i]) ;
+				j = j_index_pointer-&v1.idx[v1.start] ;
+			}
+			else if(v0.idx[v0.start+i] < v1.idx[v1.start+j])
+			{
+				i_index_pointer = std::lower_bound(&v0.idx[v0.start+i], &v0.idx[v0.start+v0.length],v1.idx[v1.start + j]) ;
+				i = i_index_pointer-&v0.idx[v0.start] ;
+			}
+
+		}
+		return ret ;
+	}
+
 	
 	/** \brief simultaneously compute a number of dot products equal to the block size, squared. 
 	 * This effectively computes a series of matrix-matrix multiplications. The two sparse vectors 
@@ -131,11 +244,85 @@ public:
 	
 		/** \brief simultaneously compute a number of dot products equal to the block size and assign.
 	 */
-	void inner_product(const Vector &v, double *dest) const ;
+	void inner_product(const Vector &v, double *dest) const
+	{
+
+		switch(stride)
+		{
+			case 1:
+			{
+				for(unsigned int j = start ; j < length+start ; j++)
+				{
+					*dest += v[idx[j]]*val[j*2] ;
+				}
+				return ;
+			}
+			case 2:
+			{
+				const double * array_iterator = &val[start*2*2] ;
+				const double * vec_iterator = &v[idx[start]*2] ;
+				for(unsigned int j = start ; j < length+start ; j++ )
+				{
+					*dest     += *array_iterator*(*vec_iterator);
+					*(dest+1) += *(array_iterator+1)*(*vec_iterator) ;
+					*dest     += *(array_iterator+2)*(*(vec_iterator +1)) ;
+					*(dest+1) += *(array_iterator+3)*(*(vec_iterator +1)) ;
+					array_iterator+=4 ;
+					if(j+1 < idx.size())
+						vec_iterator += idx[j+1]*stride-idx[j]*stride ;
+				}
+				return ;
+			}
+			
+			case 3:
+			{
+				const double * array_iterator = &val[start*3*4] ;
+				const double * vec_iterator = &v[idx[start]*3] ;
+				for(unsigned int j = start ; j < length+start ;j++)
+				{
+					*dest     += *array_iterator     * (*vec_iterator);
+					*(dest+1) += *(array_iterator+1) * (*vec_iterator);
+					*(dest+2) += *(array_iterator+2) * (*vec_iterator);
+					*dest     += *(array_iterator+4) * (*(vec_iterator + 1)) ;
+					*(dest+1) += *(array_iterator+5) * (*(vec_iterator + 1)) ;
+					*(dest+2) += *(array_iterator+6) * (*(vec_iterator + 1)) ;
+					*dest     += *(array_iterator+8 ) * (*(vec_iterator + 2));
+					*(dest+1) += *(array_iterator+9 ) * (*(vec_iterator + 2));
+					*(dest+2) += *(array_iterator+10) * (*(vec_iterator + 2));
+					array_iterator+=12 ;
+					if(j+1 < idx.size())
+					 vec_iterator += idx[j+1]*stride-idx[j]*stride ;
+				}
+				return ;
+			}
+			default:
+			{
+				int colLength = stride + stride%2 ;
+				const double * array_iterator0 = &val[start*colLength*stride] ;
+				const double * array_iterator1 = &val[start*colLength*stride+1] ;
+				for(unsigned int j = start ; j != length+start ; j++)
+				{
+					for(size_t c = 0 ; c < stride ; c++)
+					{
+						const double vval =  v[idx[j]*stride+c] ;
+						for(size_t i = 0 ; i != colLength ; i+=2)
+						{
+							*(dest+i) += *array_iterator0 * vval ;
+							*(dest+i+1) += *array_iterator1 * vval ;
+							array_iterator0 += 2 ;
+							array_iterator1 += 2 ;
+						}
+					}
+				}
+				return ;
+			}
+		}
+	}
+
 	
 	/** \brief simultaneously compute a number of dot products equal to the block size, squared. 
 	 * This effectively computes a series of matrix-matrix multiplications. The two sparse vectors 
-	 * need not have the same sparsity pattern. They must, however have the smae block size.
+	 * need not have the same sparsity pattern. They must, however have the same block size.
 	 */
 	Matrix operator *(const SparseVector&) const ;
 	

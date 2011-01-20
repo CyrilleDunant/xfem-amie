@@ -14,15 +14,6 @@ VibratingMembrane::VibratingMembrane(Feature *father, double radius, double x, d
 
 VibratingMembrane::~VibratingMembrane() {}
 	
-const Circle * VibratingMembrane::getGeometry() const 
-{
-	return static_cast<const Circle *>(this) ;
-}
-
-Circle * VibratingMembrane::getGeometry() 
-{
-	return static_cast<Circle *>(this) ;
-}
 
 void VibratingMembrane::reset() 
 {

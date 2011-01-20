@@ -241,29 +241,14 @@ void step()
 	int nstepstot = 1200;
 	int maxtries = 400 ;
 	int tries = 0 ;
-	
+	featureTree->setMaxIterationsPerStep(400) ;
 // 	fastForward(4, 10) ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		tries = !(nsteps < maxtries) ;
-		bool go_on = true ;
-		while(go_on && tries < maxtries)
-		{
-			featureTree->step(timepos) ;
-			go_on = (featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged())) || (!featureTree->solverConverged() && featureTree->reuseDisplacements);
-			if(featureTree->solverConverged())
-				std::cout << "." << std::flush ;
-			else
-				std::cout << "x" << std::flush ;
-			if(tries%20 == 0)
-				std::cout << tries << std::flush ;
-// 			timepos-= 0.0001 ;
-// 			if(featureTree->solverConverged())
-				tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
+		featureTree->step() ;
+
 		if(featureTree->solverConverged())
 		{
 			cracked_volume.push_back(featureTree->crackedVolume) ;
@@ -271,8 +256,7 @@ void step()
 		}
 	// 		
 	// 		
-		timepos+= 0.0001 ;
-		triangles = featureTree->getTriangles() ;
+		triangles = featureTree->getElements2D() ;
 	
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
@@ -779,7 +763,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	}
 	
 	int count = 0 ;
-	for(std::map<Inclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;
@@ -1872,7 +1856,7 @@ int main(int argc, char *argv[])
 	Circle cercle(.5, 0,0) ;
 
 	zones = generateExpansiveZonesHomogeneously(3000, placedinclusions, F) ;
-	F.sample(1400) ;
+	F.setSamplingNumber(1400) ;
 	if(restraintDepth > 0)
 	{
 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
@@ -1891,7 +1875,6 @@ int main(int argc, char *argv[])
 	}
 	F.setOrder(LINEAR) ;
 // 	F.useMultigrid = true ;
-	F.generateElements() ;
 // 	
 	step() ;
 	

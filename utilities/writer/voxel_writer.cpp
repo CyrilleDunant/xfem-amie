@@ -121,7 +121,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 				p.x += ((top_right.x)-(bottom_left.x))*((double)(i))/(double(nVoxelX-1)) ;
 				p.y += ((top_right.y)-(bottom_left.y))*((double)(j))/(double(nVoxelY-1)) ;
 				p.z += ((top_right.z)-(bottom_left.z))*((double)(k))/(double(nVoxelZ-1)) ;
-				std::vector<DelaunayTetrahedron *> tris = F->get3DMesh()->getConflictingElements(&p) ;
+				std::vector<DelaunayTetrahedron *> tris = F->getElements3D(&p) ;
 				bool done = false ;
 				if(!tris.empty())
 				{
@@ -310,7 +310,7 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
 			p += (xlocal*(double) i) ;
 			p += (ylocal*(double) j) ;
 			
-			std::vector<DelaunayTetrahedron *> tris = F->get3DMesh()->getConflictingElements(&p) ;
+			std::vector<DelaunayTetrahedron *> tris = F->getElements3D(&p) ;
 			bool done = false ;
 			if(!tris.empty())
 			{
@@ -367,7 +367,7 @@ std::valarray<unsigned short int> normalizeArray(std::valarray<double> val, unsi
 	return norm ;
 }
 
-const int numberOfFields(VWFieldType field)
+int numberOfFields(VWFieldType field)
 {
 	switch(field)
 	{

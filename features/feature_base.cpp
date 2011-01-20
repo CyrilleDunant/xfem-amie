@@ -3,15 +3,17 @@
 #include "../physics/void_form.h"
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
+#include "features.h"
 
 using namespace Mu ;
 
 
 Feature::Feature(Feature * father) : behaviour(NULL)
 {
-	this->isEnrichmentFeature = false ;
-	this->isCompositeFeature = false ;
-	this->isVirtualFeature = false ;
+	isEnrichmentFeature = false ;
+	isCompositeFeature = false ;
+	isVirtualFeature = false ;
+	isUpdated = false ;
 	
 	m_f = father ;
 	if(father != NULL)
@@ -21,22 +23,22 @@ Feature::Feature(Feature * father) : behaviour(NULL)
 
 Feature::Feature() : behaviour(NULL)
 {
-	this->isEnrichmentFeature = false ;
-	this->isCompositeFeature = false ;
-	this->isVirtualFeature = false ;
-
+	isEnrichmentFeature = false ;
+	isCompositeFeature = false ;
+	isVirtualFeature = false ;
+	isUpdated = false ;
 	m_f = NULL ;
 }
 
 std::vector<Point *> Feature::doubleSurfaceSampling()
 {
 	std::vector<Point *> ret ;
-	Mu::PointArray newboundingPoints(this->getBoundingPoints().size()*2) ;
-	for(size_t i = 0 ; i < this->getBoundingPoints().size()-1 ; i++)
+	Mu::PointArray newboundingPoints(getBoundingPoints().size()*2) ;
+	for(size_t i = 0 ; i < getBoundingPoints().size()-1 ; i++)
 	{
 		newboundingPoints[i*2] = &getBoundingPoint(i) ;
 		Point * p = new Point(getBoundingPoint(i)*0.5 + getBoundingPoint(i+1)*0.5) ;
-		this->project(p) ;
+		project(p) ;
 		p->id = -1 ;
 		newboundingPoints[i*2+1] = p ;
 		ret.push_back(newboundingPoints[i*2+1]) ;
@@ -45,7 +47,7 @@ std::vector<Point *> Feature::doubleSurfaceSampling()
 	newboundingPoints[(getBoundingPoints().size()-1)*2] = &getBoundingPoint(getBoundingPoints().size()-1) ;
 	newboundingPoints[getBoundingPoints().size()*2-1] = new Point(getBoundingPoint(getBoundingPoints().size()-1)*0.5 + getBoundingPoint(0)*0.5) ;
 	newboundingPoints[getBoundingPoints().size()*2-1]->id = -1 ;
-	this->project(newboundingPoints[getBoundingPoints().size()*2-1]) ;
+	project(newboundingPoints[getBoundingPoints().size()*2-1]) ;
 	ret.push_back(newboundingPoints[getBoundingPoints().size()*2-1]) ;
 	
 	dynamic_cast<Geometry *>(this)->setBoundingPoints(newboundingPoints) ;
@@ -189,9 +191,9 @@ Feature::~Feature()
 	delete this->behaviour ;
 }
 
-std::vector<DelaunayTriangle *> Feature::getBoundingElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)
+std::vector<DelaunayTriangle *> Feature::getBoundingElements2D( FeatureTree * dt)
 {
-	std::vector<DelaunayTriangle *> tri = dt->getConflictingElements(dynamic_cast<Geometry *>(this)) ;
+	std::vector<DelaunayTriangle *> tri = dt->getElements2D(dynamic_cast<Geometry *>(this)) ;
 	
 	std::vector<DelaunayTriangle *> ret  ;
 	
@@ -205,9 +207,9 @@ std::vector<DelaunayTriangle *> Feature::getBoundingElements( Mesh<DelaunayTrian
 
 }
 
-std::vector<DelaunayTetrahedron *> Feature::getBoundingElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)
+std::vector<DelaunayTetrahedron *> Feature::getBoundingElements3D( FeatureTree * dt)
 {
-	std::vector<DelaunayTetrahedron *> tri = dt->getConflictingElements(dynamic_cast<Geometry *>(this)) ;
+	std::vector<DelaunayTetrahedron *> tri = dt->getElements3D(dynamic_cast<Geometry *>(this)) ;
 	
 	std::vector<DelaunayTetrahedron *> ret  ;
 	

@@ -56,9 +56,6 @@ public:
 */
 	Pore3D(double radius, Point center) ;
 	
-/** \brief do nothing */
-	virtual void addSamplePoints(PointSet * po ) { };
-	
 /** \brief return true if the boundary overlaps that of the argument*/
 	virtual bool interacts(Feature * f, double d) const ;
 	
@@ -66,13 +63,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t) const ;
 	
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 	
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  ;
-	
-/** \brief do nothing*/
-	virtual Point * pointAfter(size_t i) ;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt)  ;
 	
 	virtual void print() const
 	{
@@ -80,6 +74,8 @@ public:
 	}
 	
 	virtual bool isVoid( const Point & p) const {return squareDist(p, getCenter()) < 0.90*radius ;}
+	
+	virtual void setRadius(double newR) ;
 	
 	
 public:

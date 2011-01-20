@@ -94,6 +94,8 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 
 void PseudoPlastic::step(double timestep, ElementState & currentState)
 {
+	if(timestep > POINT_TOLERANCE)
+		fixLastDamage() ;
 	frac = fixedfrac ;
 	change = false ;
 	double lastalpha = alpha ;

@@ -128,161 +128,143 @@ double aggregateArea = 0;
 
 
 
-void setBC()
-{
-	triangles = featureTree->getTriangles() ;
-	std::vector<Point *> points ;
-	if(firstRun)
-	{
-		for(size_t k = 0 ; k < triangles.size() ;k++)
-		{
-			for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-			{
-				if(triangles[k]->getBoundingPoint(c).t >= 0)
-				{
-
-					if(triangles[k]->getBoundingPoint(c).x < -.01999 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
-					{
-						featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
-					}
-					if (triangles[k]->getBoundingPoint(c).x > 0.01999 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
-					{
-// 						featureTree->getAssembly()->setPoint( .005,0 ,triangles[k]->getBoundingPoint(c).id) ;
-						
-						points.push_back(&triangles[k]->getBoundingPoint(c)) ;
-					}
-				}
-// 				else if(triangles[k]->getBoundingPoint(c).t == 0)
+// void setBC()
+// {
+// 	triangles = featureTree->getState().getElements2D() ;
+// 	std::vector<Point *> points ;
+// 	if(firstRun)
+// 	{
+// 		for(size_t k = 0 ; k < triangles.size() ;k++)
+// 		{
+// 			for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
+// 			{
+// 				if(triangles[k]->getBoundingPoint(c).t >= 0)
 // 				{
-// 					if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
+// 
+// 					if(triangles[k]->getBoundingPoint(c).x < -.01999 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
 // 					{
 // 						featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
 // 					}
-// 					if (triangles[k]->getBoundingPoint(c).x > 0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+// 					if (triangles[k]->getBoundingPoint(c).x > 0.01999 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
 // 					{
-// // 						featureTree->getAssembly()->setPoint( .0025,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 						featureTree->getAssembly()->setForceOn(XI, 0.5, triangles[k]->getBoundingPoint(c).id) ;
+// // 						featureTree->getAssembly()->setPoint( .005,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// 						
+// 						points.push_back(&triangles[k]->getBoundingPoint(c)) ;
 // 					}
 // 				}
-				else
-				{
-					featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-				}
-			}
-		}
-		firstRun = false ;
-		std::sort(points.begin(), points.end()) ;
-		double mul = 1 ;
-		Point * curr = points.front() ;
-		for(size_t i = 1 ; i < points.size() ; i++)
-		{
-			if(points[i] != curr && mul != 1)
-			{
-				featureTree->getAssembly()->setForceOn(XI, 10000, curr->id) ;
-				mul = 1 ;
-				curr = points[i] ;
-			}
-			else if(mul != 1)
-			{
-				mul++ ;
-			}
-			else
-			{
-				featureTree->getAssembly()->setForceOn(XI, 5000, curr->id) ;
-				mul = 1 ;
-				curr = points[i] ;
-			}
-		}
-		if(mul != 1)
-			featureTree->getAssembly()->setForceOn(XI, 10000, points.back()->id) ;
-		else
-			featureTree->getAssembly()->setForceOn(XI, 5000, points.back()->id) ;
-	}
-	else
-	{
-		for(size_t k = 0 ; k < triangles.size() ;k++)
-		{
-			for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-			{
-				if(triangles[k]->getBoundingPoint(c).t >= 0)
-				{
-
-					if(triangles[k]->getBoundingPoint(c).x < -.01999 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
-					{
-						featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
-					}
-					if (triangles[k]->getBoundingPoint(c).x > 0.01999 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
-					{
-// 						featureTree->getAssembly()->setPoint( .005,0 ,triangles[k]->getBoundingPoint(c).id) ;
-						points.push_back(&triangles[k]->getBoundingPoint(c)) ;
-					}
-				}
-				else
-				{
-					featureTree->getAssembly()->setPoint( x[triangles[k]->getBoundingPoint(c+6).id*2],x[triangles[k]->getBoundingPoint(c+6).id*2+1], triangles[k]->getBoundingPoint(c).id) ;
-				}
-			}
-		}
-		
-		std::sort(points.begin(), points.end()) ;
-		double mul = 1 ;
-		Point * curr = points.front() ;
-		for(size_t i = 1 ; i < points.size() ; i++)
-		{
-			if(points[i] != curr && mul != 1)
-			{
-				featureTree->getAssembly()->setForceOn(XI, 10000, curr->id) ;
-				mul = 1 ;
-				curr = points[i] ;
-			}
-			else if(mul != 1)
-			{
-				mul++ ;
-			}
-			else
-			{
-				featureTree->getAssembly()->setForceOn(XI, 5000, curr->id) ;
-				curr = points[i] ;
-				mul = 1 ;
-			}
-		}
-		if(mul != 1)
-			featureTree->getAssembly()->setForceOn(XI, 10000, points.back()->id) ;
-		else
-			featureTree->getAssembly()->setForceOn(XI, 5000, points.back()->id) ;
-		
-	}
-
-}
+// // 				else if(triangles[k]->getBoundingPoint(c).t == 0)
+// // 				{
+// // 					if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
+// // 					{
+// // 						featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
+// // 					}
+// // 					if (triangles[k]->getBoundingPoint(c).x > 0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+// // 					{
+// // // 						featureTree->getAssembly()->setPoint( .0025,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// // 						featureTree->getAssembly()->setForceOn(XI, 0.5, triangles[k]->getBoundingPoint(c).id) ;
+// // 					}
+// // 				}
+// 				else
+// 				{
+// 					featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// 				}
+// 			}
+// 		}
+// 		firstRun = false ;
+// 		std::sort(points.begin(), points.end()) ;
+// 		double mul = 1 ;
+// 		Point * curr = points.front() ;
+// 		for(size_t i = 1 ; i < points.size() ; i++)
+// 		{
+// 			if(points[i] != curr && mul != 1)
+// 			{
+// 				featureTree->getAssembly()->setForceOn(XI, 10000, curr->id) ;
+// 				mul = 1 ;
+// 				curr = points[i] ;
+// 			}
+// 			else if(mul != 1)
+// 			{
+// 				mul++ ;
+// 			}
+// 			else
+// 			{
+// 				featureTree->getAssembly()->setForceOn(XI, 5000, curr->id) ;
+// 				mul = 1 ;
+// 				curr = points[i] ;
+// 			}
+// 		}
+// 		if(mul != 1)
+// 			featureTree->getAssembly()->setForceOn(XI, 10000, points.back()->id) ;
+// 		else
+// 			featureTree->getAssembly()->setForceOn(XI, 5000, points.back()->id) ;
+// 	}
+// 	else
+// 	{
+// 		for(size_t k = 0 ; k < triangles.size() ;k++)
+// 		{
+// 			for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
+// 			{
+// 				if(triangles[k]->getBoundingPoint(c).t >= 0)
+// 				{
+// 
+// 					if(triangles[k]->getBoundingPoint(c).x < -.01999 /*&& triangles[k]->getBoundingPoint(c).y < -0.0199*/)
+// 					{
+// 						featureTree->getAssembly()->setPoint( 0,0, triangles[k]->getBoundingPoint(c).id) ;
+// 					}
+// 					if (triangles[k]->getBoundingPoint(c).x > 0.01999 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
+// 					{
+// // 						featureTree->getAssembly()->setPoint( .005,0 ,triangles[k]->getBoundingPoint(c).id) ;
+// 						points.push_back(&triangles[k]->getBoundingPoint(c)) ;
+// 					}
+// 				}
+// 				else
+// 				{
+// 					featureTree->getAssembly()->setPoint( x[triangles[k]->getBoundingPoint(c+6).id*2],x[triangles[k]->getBoundingPoint(c+6).id*2+1], triangles[k]->getBoundingPoint(c).id) ;
+// 				}
+// 			}
+// 		}
+// 		
+// 		std::sort(points.begin(), points.end()) ;
+// 		double mul = 1 ;
+// 		Point * curr = points.front() ;
+// 		for(size_t i = 1 ; i < points.size() ; i++)
+// 		{
+// 			if(points[i] != curr && mul != 1)
+// 			{
+// 				featureTree->getAssembly()->setForceOn(XI, 10000, curr->id) ;
+// 				mul = 1 ;
+// 				curr = points[i] ;
+// 			}
+// 			else if(mul != 1)
+// 			{
+// 				mul++ ;
+// 			}
+// 			else
+// 			{
+// 				featureTree->getAssembly()->setForceOn(XI, 5000, curr->id) ;
+// 				curr = points[i] ;
+// 				mul = 1 ;
+// 			}
+// 		}
+// 		if(mul != 1)
+// 			featureTree->getAssembly()->setForceOn(XI, 10000, points.back()->id) ;
+// 		else
+// 			featureTree->getAssembly()->setForceOn(XI, 5000, points.back()->id) ;
+// 		
+// 	}
+// 
+// }
 
 void step()
 {
 	
 	int nsteps = 10;
+	featureTree->setMaxIterationsPerStep(600) ;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		setBC() ;
-		int tries = 0 ;
-		bool go_on = true ;
-		while(go_on && tries < 600)
-		{
-			featureTree->step((tries == 0)) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			std::cout << "." << std::flush ;
 
-			x.resize(featureTree->getDisplacements().size()) ;
-			x = featureTree->getDisplacements() ;
-			if(lastx.size() == 0 || !go_on)
-			{
-				lastx.resize(x.size()) ;
-				lastx = x ;
-			}
-			setBC() ;
-			tries++ ;
-		}
+		bool go_on = featureTree->step() ;
 		
-		std::cout << " " << tries << " tries." << std::endl ;
 // 		
 // 		
 	
@@ -561,7 +543,7 @@ void step()
 		
 		std::cout << "reacted Area : " << reactedArea << std::endl ;
 		
-		if (tries < 600)
+		if (go_on)
 		{
 			expansion_reaction.push_back(std::make_pair(reactedArea, avg_e_xx/area)) ;
 			expansion_stress.push_back(std::make_pair(avg_e_xx_nogel/nogel_area, avg_s_xx_nogel/nogel_area)) ;
@@ -574,7 +556,7 @@ void step()
 			<< expansion_stress[i].second << "   " 
 			<< std::endl ;
 		
-		if (tries >= 600)
+		if (go_on)
 			break ;
 	}
 	
@@ -1635,11 +1617,9 @@ int main(int argc, char *argv[])
 	}
 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*.02)) ;
 
-	F.sample(256) ;
+	F.setSamplingNumber(256) ;
 
 	F.setOrder(LINEAR_TIME_QUADRATIC) ;
-
-	F.generateElements() ;
 
 	step() ;
 	

@@ -155,10 +155,10 @@ public:
 	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
 /** \brief return the list of elements interacting with the crack*/
-	virtual std::vector<DelaunayTriangle*> getElements(Mesh<DelaunayTriangle, DelaunayTreeItem>*) ;
+	virtual std::vector<DelaunayTriangle*> getElements2D(FeatureTree *) ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>*) ;
+	virtual std::vector<DelaunayTetrahedron*> getElements3D(FeatureTree *) ;
 
 /** \brief Return fales*/
 	virtual bool interacts(Feature*, double) const ;

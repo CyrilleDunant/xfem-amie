@@ -170,27 +170,18 @@ void step()
 {
 	
   int nsteps = 1;// number of steps between two clicks on the opengl thing
-
+	featureTree->setMaxIterationsPerStep(50) ;
+	featureTree->setDeltaTime(0.0001);
 
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 
 		bool go_on = true;
 		size_t tries = 0;
-		while(go_on && tries < 50)
-		{
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			std::cout << "." << std::flush ;
-			// 			timepos-= 0.0001 ;
-			
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
-		timepos+= 0.0001 ;
 		
-		tets= featureTree->getTetrahedrons() ;
+		featureTree->step() ;
+		
+		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 
@@ -417,7 +408,7 @@ void step()
 					if(counter%1000 == 0)
 						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
 					Point p(i,j,0.075*scale) ;
-					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
+					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
 					if(!tris.empty())
 					{
 						bool done = false ;
@@ -484,7 +475,7 @@ void step()
 					if(counter%1000 == 0)
 						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
 					Point p(i,j,0.1495*scale) ;
-					std::vector<DelaunayTetrahedron *> tris = featureTree->get3DMesh()->getConflictingElements(&p) ;
+					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
 					if(!tris.empty())
 					{
 						bool done = false ;
@@ -1776,7 +1767,7 @@ int main(int argc, char *argv[])
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.sample(atoi(argv[3])) ;
+	F.setSamplingNumber(atoi(argv[3])) ;
 	
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1817,7 +1808,6 @@ int main(int argc, char *argv[])
 	}*/
 	
 	F.setOrder(LINEAR) ;
-	F.generateElements(0,false) ;
 	
 	div_ = (1000) ;
 

@@ -166,7 +166,7 @@ void computeDisplacement()
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	Circle C(.01, 0, 0.05) ;
-	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
+	std::vector<DelaunayTriangle *> t = featureTree->getElements2D(&C) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
 	{
@@ -178,9 +178,9 @@ void computeDisplacement()
 	}
 	
 	std::sort(indices.begin(), indices.end()) ;
-	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+	auto e = std::unique(indices.begin(), indices.end()) ;
 	displacement = 0 ;
-	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+	for(auto i = indices.begin() ; i != e ; i++)
 	{
 		displacement+=x[(*i)*2+1]/(e-indices.begin()) ;
 	}
@@ -239,6 +239,7 @@ void step()
 	size_t tries = 0 ;
 	size_t dit = 0 ;
 	int totit = 0 ;
+	featureTree->setMaxIterationsPerStep(dsteps) ;
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 		tries = 0 ;
@@ -249,37 +250,10 @@ void step()
 			bool no_convergence = true ;
 			bool damage = false ;
 
-			dit = 0;
-			go_on = true ;
-
-			while(go_on && dit < dsteps)
-			{
-				featureTree->step(timepos) ;
-				go_on = (
-							featureTree->solverConverged() && 
-							(
-								featureTree->meshChanged() || 
-								featureTree->enrichmentChanged()
-							)
-						) || 
-						(
-							!featureTree->solverConverged() && 
-							featureTree->reuseDisplacements
-						);
-				if(featureTree->solverConverged())
-					std::cout << "." << std::flush ;
-				else
-					std::cout << "x" << std::flush ;
-				if(dit%20 == 0)
-					std::cout << dit << std::flush ;
-				dit++ ;
-			}
-			std::cout << ":" << std::endl ;
-
+			go_on = featureTree->step() ;
 
 			if(dit < dsteps)
 			{
-				
 				load->setData(load->getData()+5e-7) ;
 				break ;
 			}
@@ -1650,10 +1624,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,&rebar1) ;
 	
 	
-	F.sample(400) ;
+	F.setSamplingNumber(400) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements(0, true) ;
-	triangles = F.getTriangles() ;
+
+	triangles = F.getElements2D() ;
 // 	
 	
 	step() ;

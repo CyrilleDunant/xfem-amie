@@ -133,59 +133,18 @@ int count = 0 ;
 double aggregateArea = 0;
 
 
-
-void setBC()
-{
-	triangles = featureTree->getTriangles() ;
-	
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-			if (triangles[k]->getBoundingPoint(c).y < -0.0199 && triangles[k]->getBoundingPoint(c).x < -.0199)
-			{
-				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			else if(triangles[k]->getBoundingPoint(c).x < -.0199 /*&& triangles[k]->getBoundingPoint(c).y > 0.0199*/)
-			{
-				featureTree->getAssembly()->setPointAlong( XI,0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			else if (triangles[k]->getBoundingPoint(c).y < -0.0199 /*&& triangles[k]->getBoundingPoint(c).x > .0199*/)
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-
-		}
-
-	}
-
-}
-
 void step()
 {
 	
 	int nsteps = 1;
 	int tries_limit = 50 ;
+	featureTree->setDeltaTime(0.0004);
+	featureTree->setMaxIterationsPerStep(tries_limit) ;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		setBC() ;
 		int tries = 0 ;
-		featureTree->step(0.0004) ;
-		bool go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged()) ;
-		while(go_on && tries < tries_limit)
-		{
-			featureTree->step(0) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			std::cout << "." << std::flush ;
-// 			timepos-= 0.0001 ;
-			setBC() ;
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
-		
-// 		
-// 		
+		featureTree->step() ;
+		bool go_on = featureTree->solverConverged() &&  (featureTree->behaviourChanged() || featureTree->enrichmentChanged()) ;	
 	
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
@@ -1486,18 +1445,19 @@ int main(int argc, char *argv[])
 		F.addFeature(&sample,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
-
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT));
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT));
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT));
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT));
 	
 	std::cout << "largest inclusion with r = " << (*inclusions.begin())->getRadius() << std::endl ;
 	std::cout << "smallest inclusion with r = " << (*inclusions.rbegin())->getRadius() << std::endl ;
 	std::cout << "placed area = " <<  placed_area << std::endl ;
 	Circle cercle(.5, 0,0) ;
 
-	F.sample(1400) ;
+	F.setSamplingNumber(1400) ;
 
 	F.setOrder(LINEAR) ;
-
-	F.generateElements() ;
 	
 	step() ;
 	

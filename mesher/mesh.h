@@ -47,6 +47,44 @@ namespace Mu
 			virtual std::vector<ETYPE *> getElements() = 0;
 			virtual std::vector<ETYPE *> getConflictingElements(const Point  * p) const = 0;
 			virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) const = 0;
+			
+			virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g)
+			{
+				std::set<ETYPE *> to_test ;
+				std::set<ETYPE *> found ;
+				
+				for(size_t i = 0 ; i < start->neighbourhood.size() ; i++)
+				{
+					if(g->in(start->getNeighbourhood(i)->getCenter()) || start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )
+					{
+						to_test.insert(start->getNeighbourhood(i)) ;
+					}
+				}
+				found.insert(to_test.begin(), to_test.end()) ;
+				
+				while(!to_test.empty())
+				{
+					std::set<ETYPE *> new_test ;
+					for(auto j = to_test.begin() ; j != to_test.end() ; j++)
+					{
+						for(size_t i = 0 ; i < (*j)->neighbourhood.size() ; i++)
+						{
+							if(to_test.find((*j)->getNeighbourhood(i)) == to_test.end() && found.find((*j)->getNeighbourhood(i)) == found.end() && ( g->in((*j)->getNeighbourhood(i)->getCenter()) || (*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) ))
+							{
+								new_test.insert((*j)->getNeighbourhood(i)) ;
+							}
+						}
+					}
+					to_test.clear() ;
+					to_test.insert(new_test.begin(), new_test.end()) ;
+					found.insert(new_test.begin(), new_test.end()) ;
+				}
+				std::vector<ETYPE *> ret(found.begin(), found.end()) ;
+				return ret ;
+			}
+
+			
+			
 			virtual void setElementOrder(Order o) = 0;
 			virtual void insert(Point *) = 0 ;
 			template <class ETARGETTYPE>
@@ -54,8 +92,6 @@ namespace Mu
 			*/
 			void project(const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
 			{
-				typedef typename std::map<Point *, std::pair<ETARGETTYPE *, std::vector<double> > >::const_iterator MapIterator ;
-				typedef typename std::vector<ETARGETTYPE *>::const_iterator VecIterator ;
 				if(cache.find(mesh) == cache.end())
 				{
 					std::map<Point *, std::pair<ETYPE *, std::vector<double> > > projectionCache ;
@@ -86,7 +122,7 @@ namespace Mu
 						projection = 0 ;
 					}
 					
-					for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; i++)
+					for(auto i = points.begin() ; i != points.end() ; i++)
 					{
 						std::vector<ETARGETTYPE *> targets ; 
 
@@ -100,7 +136,8 @@ namespace Mu
 						if(!targets.empty())
 						{
 							std::sort(targets.begin(), targets.end()) ;
-							targets.erase(std::unique(targets.begin(), targets.end()),targets.end()) ;
+							auto e = std::unique(targets.begin(), targets.end()) ;
+							targets.erase(e,targets.end()) ;
 						}
 						else
 						{
@@ -229,7 +266,7 @@ namespace Mu
 					projection = 0 ;
 					Vector disps(0.,numDofs) ;
 					
-					for( MapIterator i = cache[mesh].begin() ; i != cache[mesh].end() ; ++i)
+					for( auto i = cache[mesh].begin() ; i != cache[mesh].end() ; ++i)
 					{
 						disps = 0 ;
 						if(i->second.first->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -247,7 +284,7 @@ namespace Mu
 						
 					}
 					
-					for(  std::map<Point*, Point*>::const_iterator j = pointcache[mesh].begin() ; j != pointcache[mesh].end() ; ++j)
+					for( auto j = pointcache[mesh].begin() ; j != pointcache[mesh].end() ; ++j)
 					{
 
 						for(size_t k = 0 ; k < numDofs ; k++)
@@ -283,8 +320,7 @@ namespace Mu
 		
 		void addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep)
 		{
-			__gnu_cxx::__normal_iterator<EABSTRACTTYPE **, std::vector<EABSTRACTTYPE *> > i = tree.begin() ;
-			for( ; i != tree.end() ; ++i)
+			for(auto  i = tree.begin() ; i != tree.end() ; ++i)
 			{
 				
 				(*i)->visited = true ;
@@ -366,7 +402,7 @@ namespace Mu
 			}
 					
 			
-			for( i = tree.begin() ; i != tree.end() ; ++i)
+			for(auto i = tree.begin() ; i != tree.end() ; ++i)
 			{
 				(*i)->clearVisited() ;
 			}

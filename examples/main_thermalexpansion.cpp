@@ -165,55 +165,15 @@ Vector step(int nInc)
 	size_t max_growth_steps = 1;
 	size_t countit = 0;	
 	
+	featureTree->setMaxIterationsPerStep(50) ;
+	
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
 	{
 	  
 		countit++;
-		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
-		setBC() ;
-      
-		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 50)//as long as we can update the features
-		{
-			std::cout << "." << std::flush ;
-// 			timepos-= 0.0001 ;
-			setBC() ;
-			limit++ ;
-	  // check if the two cracks did not touch
-			cracks_did_not_touch = true;
-			for(size_t j = 0 ; j < crack.size() ; j++)
-			{
-				for(size_t k = j+1 ; k < crack.size() ; k++)
-				{
-		  
-					if (static_cast<SegmentedLine *>(crack[j])->intersects(static_cast<SegmentedLine *>(crack[k])))
-					{
-						cracks_did_not_touch = false;
-						break;
-					}
-		  //Circle headj(radius, crack[j]->getHead());
-		  
-		  //	      head0.intersects(crack[1]);
-				}
-			}
-		}
-	
-  // Prints the crack geo to a file for each crack
-		if (cracks_did_not_touch == false) // if cracks touched
-		{
-			std::cout << "** Cracks touched exporting file **" << endl;	
-				// Print the state of the cracks to a file  
-				std::string filename = "crackGeo.txt";
-				fstream filestr;
-				filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
-				filestr << "Crack vertices" << std::endl;
-				filestr << "x" << " " << "y" << std::endl ; 
-		}
-  
+		bool go_on = featureTree->step() ;
 
-		timepos+= 0.0001 ;
-
-		triangles = featureTree->getTriangles() ;
+		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 
@@ -239,11 +199,11 @@ Vector step(int nInc)
 		std::cout << "unknowns :" << x.size() << std::endl ;
 		
 		if(crack.size() > 0)
-			tris__ = crack[0]->getElements(featureTree->get2DMesh()) ;
+			tris__ = crack[0]->getElements2D(featureTree) ;
 		
 		for(size_t k = 1 ; k < crack.size() ; k++)
 		{
-			std::vector<DelaunayTriangle *> temp = crack[k]->getElements(featureTree->get2DMesh()) ;
+			std::vector<DelaunayTriangle *> temp = crack[k]->getElements2D(featureTree) ;
 			if(tris__.empty())
 				tris__ = temp ;
 			else if(!temp.empty())
@@ -532,7 +492,7 @@ Vector step(int nInc)
 		std::cout << "energy index :" << enr << std::endl ;
 		energy.push_back(enr) ;
 		
-		if(limit < 2)
+		if(!go_on)
 			break ;
 		
 	}
@@ -621,9 +581,9 @@ Vector thermalDeformation(Vector matrixProp, Vector inclusionProp, int nInc, dou
 		  inc[i]->setBehaviour(iTDef) ;
 		  F.addFeature(&sample, inc[i]) ;
 	}
-	F.sample(1024) ;
+	F.setSamplingNumber(1024) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
+
 	result = step(nInc) ;
 	return result ;
 		

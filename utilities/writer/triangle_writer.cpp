@@ -23,7 +23,7 @@ TriangleWriter::TriangleWriter(std::string f, FeatureTree * F)
 {
 	filename = f ;
 	source = F ;
-	nTriangles = source->getTriangles().size() ;
+	nTriangles = source->getElements2D().size();
 	getField(TWFT_COORDINATE) ;
 }
 
@@ -63,13 +63,14 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 	if(field == TWFT_STRAIN || field == TWFT_STRAIN_AND_STRESS || field == TWFT_STRESS)
 	{
 		std::pair<Vector, Vector> stress_strain = source->getStressAndStrain() ;
+		std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
 		switch(field)
 		{
 			case TWFT_STRAIN:
 				stress_strain.first.resize(0) ;
 				for(int i = 0 ; i < nTriangles ; i++)
 				{
-					if(!source->getTriangles()[i]->getBehaviour()->fractured())
+					if(!triangles[i]->getBehaviour()->fractured())
 					{
 						// epsilon11
 						ret[8][i] = stress_strain.second[i*3*3+0] ;
@@ -109,7 +110,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 			case TWFT_STRAIN_AND_STRESS:
 				for(int i = 0 ; i < nTriangles ; i++)
 				{
-					if(!source->getTriangles()[i]->getBehaviour()->fractured())
+					if(!triangles[i]->getBehaviour()->fractured())
 					{
 						// epsilon11
 						ret[17][i] = stress_strain.second[i*3*3+0] ;
@@ -180,7 +181,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 				stress_strain.second.resize(0) ;
 				for(int i = 0 ; i < nTriangles ; i++)
 				{
-					if(!source->getTriangles()[i]->getBehaviour()->fractured())
+					if(!triangles[i]->getBehaviour()->fractured())
 					{
 						// sigma11
 						ret[8][i] = stress_strain.first[i*3*3+0] ;
@@ -224,13 +225,15 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 		if(field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX)
 		{
 			std::pair<Vector, Vector> gradient_flux = source->getGradientAndFlux() ;
+			std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
 			switch(field)
 			{
+				
 				case TWFT_FLUX:
 					gradient_flux.first.resize(0) ;
 					for(int i = 0 ; i < nTriangles ; i++)
 					{
-						if(!source->getTriangles()[i]->getBehaviour()->fractured())
+						if(!triangles[i]->getBehaviour()->fractured())
 						{
 							// j11
 							ret[5][i] = gradient_flux.second[i*3*2+0] ;
@@ -260,7 +263,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 				case TWFT_GRADIENT_AND_FLUX:
 					for(int i = 0 ; i < nTriangles ; i++)
 					{
-						if(!source->getTriangles()[i]->getBehaviour()->fractured())
+						if(!triangles[i]->getBehaviour()->fractured())
 						{
 							// d11
 							ret[11][i] = gradient_flux.first[i*3*2+0] ;
@@ -311,7 +314,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 					gradient_flux.second.resize(0) ;
 					for(int i = 0 ; i < nTriangles ; i++)
 					{
-						if(!source->getTriangles()[i]->getBehaviour()->fractured())
+						if(!triangles[i]->getBehaviour()->fractured())
 						{
 							// d11
 							ret[5][i] = gradient_flux.first[i*3*2+0] ;
@@ -342,7 +345,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 		}
 		else
 		{
-			std::vector<DelaunayTriangle *> tri = source->getTriangles() ;
+			std::vector<DelaunayTriangle *> tri = source->getElements2D() ;
 			for(size_t i = 0 ; i < tri.size() ; i++)
 			{
 				std::pair<bool, std::vector<double> > val = getDoubleValue(tri[i], field) ;

@@ -77,7 +77,7 @@ public:
 	virtual void computeCenter() ;
 	
 /** \brief return pointer to the circumcenter of the tetrahedron*/
-	virtual const Point * getCircumCenter() const;
+	virtual const Point & getCircumCenter() const;
 	
 /** \brief return the radius of the circumsphere*/
 	virtual double getRadius() const ;

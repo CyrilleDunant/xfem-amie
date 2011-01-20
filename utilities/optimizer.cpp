@@ -129,7 +129,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		//reproduce - elite individuals are kept
 		for(size_t i = 0 ; i < std::min((int)(population*elitism), (int)sorted.size()) ; i++)
 		{
-			std::map<double, std::vector<std::vector<double> > >::iterator iter = sorted.begin() ;
+			auto iter = sorted.begin() ;
 			for(size_t j = 0 ; j < i ; j++)
 				iter++ ;
 			newindividuals.push_back(iter->second[0]);
@@ -143,7 +143,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		{
 			for(size_t n = 0 ; n < 4 && newindividuals.size() <= individuals.size(); n++)
 			{
-				std::map<double, std::vector<std::vector<double> > >::iterator iter = sorted.begin() ;
+				auto iter = sorted.begin() ;
 				for(size_t j = 0 ; j < i ; j++)
 					iter++ ;
 				newindividuals.push_back(iter->second[0]);
@@ -254,8 +254,8 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 		//reproduce - elite individuals are kept
 		for(int i = 0 ; i < std::max(1, (int)round(elitism*population)) ; i++)
 		{
-			std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-			std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+			auto iter = sorted.begin() ;
+			auto iterend = sorted.end() ;
 			if(iter == iterend)
 				break ;
 			for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
@@ -270,8 +270,8 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			double test = RandomNumber().uniform() ;
 			if(sorted.size() && test >= (double)i/((double)sorted.size()))
 			{
-				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+				auto iter = sorted.begin() ;
+				auto iterend = sorted.end() ;
 				for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
@@ -288,8 +288,8 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			}
 			else
 			{
-				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+				auto iter = sorted.begin() ;
+				auto iterend = sorted.end() ;
 
 				for(size_t j = 0 ; j < i && iter != iterend ; j++)
 					iter++ ;
@@ -375,7 +375,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 				
 			}
 		}
-		std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
+		auto iter = sorted.begin() ;
 		for(size_t i = 0 ;  i < population && iter !=sorted.end() ; i++)
 			iter++ ;
 		if(it != 0)
@@ -385,8 +385,8 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 		//reproduce - elite individuals are kept
 		for(int i = 0 ; i < std::max(1, (int)round(elitism*population)) ; i++)
 		{
-			std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-			std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+			auto iter = sorted.begin() ;
+			auto iterend = sorted.end() ;
 			if(iter == iterend)
 				break ;
 			for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
@@ -401,8 +401,8 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 			double test = RandomNumber().uniform() ;
 			if(sorted.size() && test >= (double)i/((double)sorted.size()))
 			{
-				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+				auto iter = sorted.begin() ;
+				auto iterend = sorted.end() ;
 				for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
@@ -419,8 +419,8 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 			}
 			else
 			{
-				std::map<double, std::vector<double> >::iterator iter = sorted.begin() ;
-				std::map<double, std::vector<double> >::iterator iterend = sorted.end() ;
+				auto iter = sorted.begin() ;
+				auto iterend = sorted.end() ;
 
 				for(size_t j = 0 ; j < i && iter != iterend ; j++)
 					iter++ ;

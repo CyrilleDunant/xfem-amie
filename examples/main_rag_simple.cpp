@@ -136,26 +136,15 @@ double aggregateArea = 0;
 
 void step()
 {
-	
+	featureTree->setMaxIterationsPerStep(2000) ;
 	int nsteps = 1;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		int tries = 0 ;
-		bool go_on = true ;
-		while(go_on && tries < 2000)
-		{
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			std::cout << "." << std::flush ;
-// 			timepos-= 0.0001 ;
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
-		triangles = featureTree->getTriangles() ;
-// 		
-// 		
-		timepos+= 0.000001 ;
+
+		bool go_on = featureTree->step() ;
+
+		triangles = featureTree->getElements2D() ;
+
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
@@ -499,7 +488,7 @@ void step()
 		std::cout << "apparent extension y" << e_yy/ey_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		
-		if (tries < 10000)
+		if (go_on)
 		{
 			expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
 			expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_yy/area)) ;
@@ -508,7 +497,7 @@ void step()
 			apparent_extension.push_back(e_yy/ey_count) ;
 		}
 		
-		if (tries >= 10000)
+		if (!go_on >= 10000)
 			break ;
 
 		for(size_t l = 0 ; l < expansion_reaction.size()/2 ; l++)
@@ -1620,12 +1609,10 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5e6)) ;
-	F.sample(256) ;
+	F.setSamplingNumber(256) ;
 
 	F.setOrder(LINEAR) ;
 
-	F.generateElements(0) ;
-	
 // 	
 	step() ;
 	

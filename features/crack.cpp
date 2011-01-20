@@ -61,7 +61,7 @@ BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), Se
 
 void BranchedCrack::branch(Point* fromTip, const std::vector<Point *> & newTip)
 {
-	for(std::vector<std::pair<Point *, double> >::iterator i = tips.begin() ; i != tips.end() ; ++i)
+	for(auto i = tips.begin() ; i != tips.end() ; ++i)
 	{
 		if(i->first == fromTip)
 		{
@@ -160,7 +160,7 @@ void BranchedCrack::branch(Point* fromTip, const std::vector<Point *> & newTip)
 
 void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 {
-	for(std::vector<std::pair<Point *, double> >::iterator i = tips.begin() ; i !=tips.end() ; ++i)
+	for(auto i = tips.begin() ; i !=tips.end() ; ++i)
 	{
 		if(i->first == fromTip)
 		{
@@ -423,7 +423,7 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 
 void BranchedCrack::grow( Point* fromTip, Point* newTip)
 {
-	for(std::vector<std::pair<Point *, double> >::iterator i = tips.begin() ; i !=tips.end() ; ++i)
+	for(auto i = tips.begin() ; i !=tips.end() ; ++i)
 	{
 		if(i->first == fromTip)
 		{
@@ -1353,12 +1353,12 @@ void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle,DelaunayTree
 {
 	freeIds.clear();
 	std::vector<DelaunayTriangle *> toClear ;
-	for(std::set<DelaunayTriangle *>::iterator i = enrichmentMap.begin() ; i != enrichmentMap.end() ; ++i)
+	for(auto i = enrichmentMap.begin() ; i != enrichmentMap.end() ; ++i)
 	{
 		toClear.push_back(*i) ;
 	}
 	
-	for(std::vector<DelaunayTriangle *>::iterator i = toClear.begin() ; i != toClear.end() ; ++i)
+	for(auto i = toClear.begin() ; i != toClear.end() ; ++i)
 	{
 		std::vector<size_t> idpts = (*i)->clearEnrichment(getPrimitive()) ;
 		for(size_t j = 0 ; j < idpts.size() ; j++)
@@ -1374,24 +1374,25 @@ void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle,DelaunayTree
 	enrichBranches(counter, dtree) ;
 }
 
-std::vector<DelaunayTriangle*> BranchedCrack::getElements(Mesh<DelaunayTriangle,DelaunayTreeItem>* dt)
+std::vector<DelaunayTriangle*> BranchedCrack::getElements2D(FeatureTree* dt)
 {
 	
 	std::vector<DelaunayTriangle*> ret ;
 
 	for(size_t i = 0 ; i < branches.size() ; i++)
 	{
-		std::vector<DelaunayTriangle*> tris = dt->getConflictingElements(branches[i]) ;
+		std::vector<DelaunayTriangle*> tris = dt->getElements2D(branches[i]) ;
 		ret.insert(ret.end(), tris.begin(), tris.end()) ;
 	}
 	
 	std::sort(ret.begin(), ret.end()) ;
-	ret.erase(std::unique(ret.begin(), ret.end()), ret.end()) ;
+	auto e = std::unique(ret.begin(), ret.end()) ;
+	ret.erase(e, ret.end()) ;
 	
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron*> BranchedCrack::getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>*)
+std::vector<DelaunayTetrahedron*> BranchedCrack::getElements3D(FeatureTree* dt)
 {
 	return std::vector<DelaunayTetrahedron*>() ;
 }

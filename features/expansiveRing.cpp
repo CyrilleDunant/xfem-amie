@@ -16,15 +16,6 @@ ExpansiveRing::ExpansiveRing(Feature *father, double radius,double inradius, dou
 
 ExpansiveRing::~ExpansiveRing() {}
 	
-const Circle * ExpansiveRing::getGeometry() const 
-{
-	return static_cast<const Circle *>(this) ;
-}
-
-Circle * ExpansiveRing::getGeometry() 
-{
-	return static_cast<Circle *>(this) ;
-}
 
 void ExpansiveRing::reset() 
 {

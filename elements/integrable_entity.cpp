@@ -4968,9 +4968,12 @@ void ElementState::initialize()
 		previousPreviousDisplacements = 0 ;
 		buffer.resize(displacements.size()) ;
 		buffer = 0 ;
-		timePos = -0.1 ;
-		previousTimePos = -0.2 ;
-		previousPreviousTimePos = -0.3 ;
+		if(std::abs(timePos - previousTimePos) < POINT_TOLERANCE && std::abs(timePos) < POINT_TOLERANCE)
+		{
+			timePos = -0.1 ;
+			previousTimePos = -0.2 ;
+			previousPreviousTimePos = -0.3 ;
+		}
 		if(parent->getBehaviour()->getFractureCriterion())
 		{
 			parent->getBehaviour()->getFractureCriterion()->initialiseCache(*this) ;

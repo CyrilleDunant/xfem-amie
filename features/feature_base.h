@@ -15,6 +15,7 @@ namespace Mu
 	static const size_t DEFAULT_POINTNUMBER = 1000 ;
 	class DelaunayTriangle ;
 	class DelaunayTetrahedron ;
+	class FeatureTree ;
 	
 	/** \brief Feature.
  * 
@@ -53,6 +54,7 @@ public:
 	bool isEnrichmentFeature ;
 	bool isCompositeFeature ;
 	bool isVirtualFeature ;
+	bool isUpdated ;
 	
 	/** \brief Feature constructor.
 	 * 
@@ -149,14 +151,14 @@ public:
 	 * @param dt the DelaunayTree from which to get the triangles.
 	 * @return the vector of triangles satisfying the condition center \f$ \in \f$ Feature. 
 	 */
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  = 0;
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  = 0;
+	virtual std::vector<DelaunayTriangle *> getElements2D(  FeatureTree* dt)  = 0;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D(  FeatureTree* dt)  = 0;
 
 /** \brief return triangles intersecting the feature*/
-	virtual std::vector<DelaunayTriangle *> getBoundingElements( Mu::Mesh< Mu::DelaunayTriangle, DelaunayTreeItem >* dt) ;
+	virtual std::vector<DelaunayTriangle *> getBoundingElements2D( FeatureTree* dt) ;
 
 /** \brief return tetrahedrons intersecting the feature*/
-	virtual std::vector<DelaunayTetrahedron *> getBoundingElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) ;
+	virtual std::vector<DelaunayTetrahedron *> getBoundingElements3D(FeatureTree* dt) ;
 	
 	/** \brief Check for interaction.
 	 * 
@@ -166,16 +168,7 @@ public:
 	 * @return true if interacting.
 	 */
 	virtual bool interacts(Feature * f, double d) const = 0;
-	
-	
-	/** \brief Insert a point on the bounding surface of the feature.
-	 * 
-	 * @param i index of the Point after which to do the insertion.
-	 * @return a pointer to the Point just inserted.
-	 */
-	virtual Point * pointAfter(size_t i) = 0 ;
-	
-	
+
 	/** \brief Define a vector of geometries to use for sucessive refinement.
 	 * 
 	 * @return the vector of geometries.

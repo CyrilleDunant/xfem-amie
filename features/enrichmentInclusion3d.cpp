@@ -176,8 +176,8 @@ void EnrichmentInclusion3D::enrich(size_t & ,  Mesh<DelaunayTetrahedron, Delauna
 	
 	//we make the points in the list unique
 	std::stable_sort(points.begin(), points.end()) ;
-	std::vector<Point *>::iterator e = std::unique(points.begin(), points.end()) ;
-	points.erase(e, points.end()) ;
+	auto e = std::unique(points.begin(), points.end()) ;
+	points.erase(e , points.end()) ;
 	
 	//we build a map of the points and corresponding enrichment ids
 	std::map<Point *, int> dofId ;
@@ -350,15 +350,15 @@ bool EnrichmentInclusion3D::interacts(Feature * f, double d) const { return fals
 	
 bool EnrichmentInclusion3D::inBoundary(const Point & v) const {return false ; }
 	
-std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getTetrahedrons( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt) 
+std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getElements3D( FeatureTree * dt) 
 { 
-	return dt->getConflictingElements(getPrimitive()) ;
+	return dt->getElements3D(getPrimitive()) ;
 }
 	
-std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getIntersectingTetrahedrons( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)
+std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getBoundingElements3D( FeatureTree * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTetrahedron *> disc = dt->getConflictingElements(getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> disc = dt->getElements3D(getPrimitive()) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTetrahedron *> ring ;

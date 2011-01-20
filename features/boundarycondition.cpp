@@ -472,7 +472,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle,
 		}
 	}
 	
-	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; i++)
+	for(auto i = points.begin() ; i != points.end() ; i++)
 	{
 		Point local = surface->inLocalCoordinates(*(*i)) ;
 		std::vector<Point> p ; p.push_back(local);
@@ -504,7 +504,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 		}
 	}
 	
-	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; i++)
+	for(auto i = points.begin() ; i != points.end() ; i++)
 	{
 		Point local = volume->inLocalCoordinates(*(*i)) ;
 		std::vector<Point> p ; p.push_back(local);

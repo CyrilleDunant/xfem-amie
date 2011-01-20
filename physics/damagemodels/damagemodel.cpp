@@ -23,7 +23,7 @@ namespace Mu
 		isNull = true ; 
 		thresholdDamageDensity = .999999999999 ;
 		secondaryThresholdDamageDensity = .99999999999999 ;
-		damageDensityIncrement = .0001 ;
+		damageDensityIncrement = .01 ;
 		fraction = -1 ;
 	} ;
 	
@@ -64,5 +64,10 @@ namespace Mu
 	void DamageModel::setDamageDensityIncrement(double d)
 	{
 		damageDensityIncrement = d ;
+	}
+	
+	bool DamageModel::changed() const
+	{
+		return std::abs(state-previousstate).max() > POINT_TOLERANCE ;
 	}
 } ;	

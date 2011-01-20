@@ -209,59 +209,7 @@ std::pair<std::vector<Feature * >, std::vector<Pore * > > generateInclusionsAndP
 	return ret ;
 }
 
-void setBC()
-{
-  //  cout << "Setting BCs" << endl;
 
-	triangles = featureTree->getTriangles() ;
-	/*
-	if(firstRun)
-	{
-	  //  cout << "Setting BCs -- First run" << endl;
-		for(size_t k = 0 ; k < triangles.size() ;k++)
-		{
-			triangles[k]->setBehaviour(new VoidForm()) ;
-		}
-		
-		firstRun = false ;
-		}
-*/
-	std::vector<size_t> ids ;
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-		  double x = triangles[k]->getBoundingPoint(c).x;
-		  double y = triangles[k]->getBoundingPoint(c).y;
-// 			featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 		  if ((std::abs(x + .06) < 0.001)||(std::abs(x - .06) < 0.001))
-//  			{
-//  				featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-//  			}
-			if (y < -.03999)
-			{
-// 				featureTree->getAssembly()->setForceOn(ETA,-timepos,triangles[k]->getBoundingPoint(c).id) ;
-				ids.push_back(triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if (y > .03999)
-			{
-				featureTree->getAssembly()->setPoint(0, 0,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if (triangles[k]->getBoundingPoint(c).x < -0.05999)
-			{
-				featureTree->getAssembly()->setPointAlong( XI, 0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(triangles[k]->getBoundingPoint(c).x > 0.05999)
-			{
-				featureTree->getAssembly()->setPointAlong( XI, 0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-		}
-	}
-
-	for(size_t i = 0 ; i < ids.size() ; i++)
-		featureTree->getAssembly()->setPoint(0,-timepos,ids[i]) ;
-
-}
 
 
 void step()
@@ -270,17 +218,8 @@ void step()
 	for(size_t i = 0 ; i < 1 ; i++)
 	{
 		std::cout << "\r iteration " << i << "/10" << std::flush ;
-		setBC() ;
-		while(!featureTree->step(timepos))
-		{
-			break ;
-// 			timepos-= 0.0001 ;
-			setBC() ;
-			
-		}
-// 		
-// 		
-		timepos+= 0.0001 ;
+		while(!featureTree->step()) { }
+
 	
 	
 	std::cout << "\r iteration " << "100/100 ... done" << std::endl ;
@@ -1331,9 +1270,8 @@ int main(int argc, char *argv[])
 
 std::pair<std::vector<Feature * >, std::vector<Pore * > > toto = generateInclusionsAndPores(180, 0, &m0, &sample, &F) ;
 
-	F.sample(1200) ;	// specify point density
+	F.setSamplingNumber(1200) ;	// specify point density
 	F.setOrder(LINEAR) ; // element type
-	F.generateElements() ;// mesh
 
 	step() ; // t -> t+dt
 	

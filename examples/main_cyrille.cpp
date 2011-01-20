@@ -36,6 +36,8 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
+
 
 #ifdef HAVE_OPENMP
 #include <omp.h>
@@ -147,7 +149,7 @@ double E_stiff = E_agg*10. ;//stiffer
 double E_soft = E_agg/10.; //stiffest
 
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
-double factor = .01 ;
+double factor = .5 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
 bool dlist = false ;
@@ -199,7 +201,7 @@ void enrichedEquivalentElements()
 	TriElement * father = new TriElement(QUADRATIC) ;
 	father->compileAndPrecalculate() ;
 	mesh->setElementOrder(QUADRATIC);
-	supertris[0]->setBehaviour(new HomogeneisedBehaviour(featureTree->get2DMesh(), supertris[0])) ;
+	supertris[0]->setBehaviour(new HomogeneisedBehaviour(featureTree, supertris[0])) ;
 	supertris[0]->getState().initialize() ;
 	supertris[0]->refresh(father) ;
 	for(int k = 0 ; k < supertris[0]->getBoundingPoints().size() ; k++)
@@ -241,7 +243,7 @@ void enrichedEquivalentElements()
 void setLSBoundaryConditions(LeastSquaresApproximation * ls, int xy)
 {
 	ls->clearParameterValues();
-	for(std::map<Point *,  Point *>::iterator i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
+	for(auto i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
 	{
 		ls->setParameterValue(i->first->id, x[i->second->id*2+xy]);
 	}
@@ -379,50 +381,26 @@ bool go = true ;
 void step()
 {
 	
-	bool cracks_did_not_touch = true;
-	size_t max_growth_steps = 3;
+	size_t max_growth_steps = 1;
 	size_t max_limit = 2000 ;
-	int countit = 0;	
+	int countit = 0;
 	int limit = 0 ;
 	
-	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
+	while ( countit < max_growth_steps )
 	{
-		countit++;
-// 		if(countit%100 == 0)
-// 			std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
-		if(limit < max_limit && go)
-		{
-			featureTree->step(0.1) ;
-			std::cout << "moving forward" << std::endl ;
-		}
-		else
-			featureTree->step(0) ;
-		limit = 0 ;
-		go = false ;
-		while(!featureTree->step(0) && limit < max_limit)//as long as we can update the features
-		{
-			if(featureTree->solverConverged())
-				std::cout << "." << std::flush ;
-			else
-				std::cout << "+" << std::flush ;
-// 			timepos-= 0.0001 ;
-			limit++ ;
-		}
-		if(limit || countit%100 == 0)
-			std::cout << " " << limit << std::endl ;
-		if(limit < max_limit)
-		{
-			imposeddisp->setData(imposeddisp->getData()+.05);
-			go = true ;
-		}
+		countit++ ;
+		go = featureTree->step() ;
 
-		timepos+= 0.01 ;
+// 		if(go)
+// 		{
+// 			imposeddisp->setData(imposeddisp->getData()+.1);
+// 			go = true ;
+// 		}
 		double da = 0 ;
 		
-		triangles = featureTree->getTriangles(grid) ;
+		triangles = featureTree->getElements2D(grid) ;
 		x.resize(featureTree->getDisplacements(grid).size()) ;
 		x = featureTree->getDisplacements(grid) ;
-
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 	
@@ -644,15 +622,7 @@ void step()
 		}
 		avgdisplacement /= avgdisplacementarea ;
 		
-// 		optimize() ;
-		
-		for(size_t i = 0 ; i < triangles.size() ; i++)
-		{
-			if(dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour()))
-				static_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
-		}
-		
-		if(limit < max_limit)
+		if(go)
 		{
 			std::cout << " " << x_max 
 			 << " " << avgdisplacement[0]
@@ -764,19 +734,16 @@ void Menu(int selection)
 	case ID_NEXT:
 		{
 // 			imposeddisp->setData(imposeddisp->getData()+0.025);
-			for(size_t i = 0 ; i < triangles.size() ; i++)
-				if(dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour()))
-					dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
-			step() ;
+		step() ;
+			
 			dlist = false ;
 			break ;
 		}
 	case ID_BACK:
 	{
-// 		for(size_t i = 0 ; i < triangles.size() ; i++)
-// 			if(dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour()))
-// 				dynamic_cast<PseudoPlastic *>(triangles[i]->getBehaviour())->fixLastDamage() ;
+		dynamic_cast<Inclusion *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
 		step() ;
+// 		imposeddisp->setData(imposeddisp->getData()-.1);
 		dlist = false ;
 		break ;
 	}
@@ -1718,8 +1685,8 @@ int main(int argc, char *argv[])
 // 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 100 ;
-	double mradius = 2 ;
+	double cradius = 2 ;
+	double mradius = 1 ;
 	double tdamage = .999 ;
 	double dincrement = .01 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
@@ -1731,7 +1698,7 @@ int main(int argc, char *argv[])
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
 // 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(35), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(30, -30) , cradius) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10, -10*8) , cradius) ; 
 	saf->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
@@ -1745,18 +1712,18 @@ int main(int argc, char *argv[])
 	saif->dfunc->setDamageDensityIncrement(dincrement);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-// 	sample.setBehaviour(saf) ;
+	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(saif) ;
 // 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 // 	sample.setBehaviour(psp) ;
-	sample.setBehaviour(sf) ;
+// 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
-	F.addFeature(&sample, new Pore(2, -7,2) );
-	F.addFeature(&sample, new Pore(2, 7,-2) );
+// 	F.addFeature(&sample, new Pore(2, -7,2) );
+// 	F.addFeature(&sample, new Pore(2, 7,-2) );
 // 	F.addFeature(&sample, new Pore(20, 0, 0) );
 // 	F.addFeature(&sample, new Pore(20, 85, -85) );
 // 	F.addFeature(&sample, new Pore(20, 155, -155) );
@@ -1779,18 +1746,20 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
 
-	Inclusion * inc0 = new Inclusion(100, -200, 0) ;
+	Inclusion * inc0 = new Inclusion(0.2, 0, 0) ;
+	Vector a(3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
-	inc0->setBehaviour(new Stiffness(m0_paste*2.)) ;
-// 	F.addFeature(&sample, inc0) ;
+	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
+	F.addFeature(&sample, inc0) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
-	F.addBoundaryCondition(imposeddisp) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM/*_LEFT*/)) ;
+// 	F.addBoundaryCondition(imposeddisp) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
@@ -1804,13 +1773,10 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.sample(atoi(argv[1])) ;
-// 	F.useMultigrid = true ;
+	F.setSamplingNumber(atoi(argv[1])) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements(0, true) ;
-
-	F.sample(atoi(argv[1])*2) ;
-	F.generateElements(0, true) ;
+	F.setMaxIterationsPerStep(2000) ;
+	F.setDeltaTime(0.1);
 
 	std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;
 	step() ;
@@ -1841,7 +1807,7 @@ int main(int argc, char *argv[])
 	glutCreateMenu(Menu) ;
 
  	glutAddMenuEntry(" Step (fix damage) ", ID_NEXT);
-	glutAddMenuEntry(" Step (no fix)         ", ID_BACK);
+	glutAddMenuEntry(" Grow pore         ", ID_BACK);
 	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
 	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
 	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);

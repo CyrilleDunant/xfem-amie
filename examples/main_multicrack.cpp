@@ -144,6 +144,7 @@ void step()
 	bool cracks_did_not_touch = true;
 	size_t max_growth_steps = 1;
 	size_t countit = 0;	
+	featureTree->setMaxIterationsPerStep(1) ;
 	
 	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
 	{
@@ -151,52 +152,11 @@ void step()
 		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
       
 		int limit = 0 ;
-		while(!featureTree->step(timepos) && limit < 1)//as long as we can update the features
-		{
-// 			if(limit == 1)
-// 			{
-// 				featureTree->getAssembly()->print() ;
-// 				exit(0) ;
-// 			}
-			std::cout << "." << std::flush ;
-// 			timepos-= 0.0001 ;
-			limit++ ;
-	  // check if the two cracks did not touch
-			cracks_did_not_touch = true;
-			for(size_t j = 0 ; j < crack.size() ; j++)
-			{
-				for(size_t k = j+1 ; k < crack.size() ; k++)
-				{
-		  
-					if (static_cast<SegmentedLine *>(crack[j])->intersects(static_cast<SegmentedLine *>(crack[k])))
-					{
-						cracks_did_not_touch = false;
-						break;
-					}
-		  //Circle headj(radius, crack[j]->getHead());
-		  
-		  //	      head0.intersects(crack[1]);
-				}
-			}
-		}
-	
-  // Prints the crack geo to a file for each crack
-		if (cracks_did_not_touch == false) // if cracks touched
-		{
-			std::cout << "** Cracks touched exporting file **" << endl;	
-				// Print the state of the cracks to a file  
-				std::string filename = "crackGeo.txt";
-				fstream filestr;
-				filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
-				filestr << "Crack vertices" << std::endl;
-				filestr << "x" << " " << "y" << std::endl ; 
-		}
-  
+		featureTree->step() ;
 
-		timepos+= 0.0001 ;
 		double da = 0 ;
 
-		triangles = featureTree->getTriangles(-1) ;
+		triangles = featureTree->getElements2D(-1) ;
 		x.resize(featureTree->getDisplacements(-1).size()) ;
 		x = featureTree->getDisplacements(-1) ;
 
@@ -222,11 +182,11 @@ void step()
 		std::cout << "unknowns :" << x.size() << std::endl ;
 		
 		if(crack.size() > 0)
-			tris__ = crack[0]->getElements(featureTree->get2DMesh()) ;
+			tris__ = crack[0]->getElements2D(featureTree) ;
 		
 		for(size_t k = 1 ; k < crack.size() ; k++)
 		{
-			std::vector<DelaunayTriangle *> temp = crack[k]->getElements(featureTree->get2DMesh()) ;
+			std::vector<DelaunayTriangle *> temp = crack[k]->getElements2D(featureTree) ;
 			if(tris__.empty())
 				tris__ = temp ;
 			else if(!temp.empty())
@@ -1486,10 +1446,9 @@ int main(int argc, char *argv[])
 
 	F.useMultigrid = false ;
 
-	F.sample(64) ;
+	F.setSamplingNumber(64) ;
 
 	F.setOrder(QUADRATIC) ;
-	F.generateElements() ;
 // 	F.refine(3) ;
 
 	

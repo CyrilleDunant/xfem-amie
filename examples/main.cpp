@@ -144,7 +144,7 @@ void computeDisplacement()
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	Circle c(.0001, 0., 0.02) ;
-	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&c) ;
+	std::vector<DelaunayTriangle *> t = featureTree->getElements2D(&c) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
 	{
@@ -155,9 +155,9 @@ void computeDisplacement()
 	}
 	
 	std::sort(indices.begin(), indices.end()) ;
-	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+	auto e = std::unique(indices.begin(), indices.end()) ;
 	displacement = 0 ;
-	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+	for(auto i = indices.begin() ; i != e ; i++)
 	{
 		displacement+=x[(*i)*2.+1]/(e-indices.begin()) ;
 	}
@@ -202,37 +202,6 @@ double pidUpdate()
 	return error ;
 }
 
-void setBC()
-{
-	triangles = featureTree->getTriangles() ;
-	std::vector<size_t > xlow ;
-	std::vector<size_t > xhigh ;
-	std::vector<size_t > yhl ;
-	std::vector<size_t > cornerLeft ;
-	std::vector<size_t > cornerRight ;
-
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-			if(std::abs(triangles[k]->getBoundingPoint(c).x + 0.08) < .00001 
-			   && (std::abs(triangles[k]->getBoundingPoint(c).y + 0.02) < .00001 ))
-			{
-				featureTree->getAssembly()->setPoint(0,0,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			else if(std::abs(triangles[k]->getBoundingPoint(c).x + 0.08) < .0001)
-			{
-				featureTree->getAssembly()->setPointAlong(XI,0,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			else if (std::abs(triangles[k]->getBoundingPoint(c).x - 0.08) < .0001)
-			{
-				featureTree->getAssembly()->setPointAlong(XI,prescribedDisplacement,triangles[k]->getBoundingPoint(c).id) ;
-			}
-		}
-	}
-
-}
-
 void step()
 {
 	
@@ -242,32 +211,13 @@ void step()
 
 	for(size_t i = 0 ; i < nit ; i++)
 	{
-		setBC() ;
 		size_t tries = 0 ;
 		bool go_on = true ;
 		std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
 		double originalPrescribedDisplacement = prescribedDisplacement ;
-		while(go_on)
-		{
-			ntries++ ;
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() 
-				&&  (
-				      featureTree->meshChanged() 
-				      || featureTree->enrichmentChanged()
-				    );
-			if(!featureTree->solverConverged())
-			{
-				i = nit ;
-				tries = ntries ;
-				std::cout << "no convergence" << std::endl ;
-				break ;
-			}
 
-			std::cout << "." << std::flush ;
+		featureTree->step() ;
 
-			setBC() ;
-		}
 		std::cout << " " << tries << " tries." << std::endl ;
 		
 // 		saved_load_displacement.push_back(load_displacement.back()) ;
@@ -1652,12 +1602,10 @@ int main(int argc, char *argv[])
 // 	inclusions.erase(inclusions.begin()+1, inclusions.end()) ;
 // 	zones = generateExpansiveZones(1, inclusions, F) ;
 
-	F.sample(400) ;
+	F.setSamplingNumber(400) ;
 
 	F.setOrder(LINEAR) ;
 
-	
-	F.generateElements(0) ;
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	
 // 	

@@ -51,16 +51,14 @@ public:
 	virtual bool inBoundary(const Point & v) const ;
 	
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
 
 /** \brief return the list of elements cut by the feature*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* dt)  ;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D(FeatureTree * dt)  ;
+	
 	
 /** \brief return list of elements cut by the feature*/
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( Mesh< DelaunayTriangle, DelaunayTreeItem > * dt) {return std::vector<DelaunayTriangle *>(0) ;} 
-	
-/** \brief return list of elements cut by the feature*/
-	std::vector<DelaunayTetrahedron *> getIntersectingTetrahedrons( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > * dt) ;
+	std::vector<DelaunayTetrahedron *> getBoundingElements3D( FeatureTree *  dt) ;
 
 /** \brief do nothing*/
 	virtual void setInfluenceRadius(double r) ;

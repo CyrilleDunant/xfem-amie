@@ -167,7 +167,7 @@ void computeDisplacement()
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	Circle C(.01, 0, 0.05) ;
-	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
+	std::vector<DelaunayTriangle *> t = featureTree->getElements2D(&C) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
 	{
@@ -179,9 +179,9 @@ void computeDisplacement()
 	}
 	
 	std::sort(indices.begin(), indices.end()) ;
-	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+	auto e = std::unique(indices.begin(), indices.end()) ;
 	displacement = 0 ;
-	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+	for(auto i = indices.begin() ; i != e ; i++)
 	{
 		displacement+=x[(*i)*2+1]/(e-indices.begin()) ;
 	}
@@ -243,48 +243,18 @@ void step()
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 		tries = 0 ;
-		while(tries < ntries)
-		{
-			tries++ ;
-			bool go_on = true ;
-			bool no_convergence = true ;
-			bool damage = false ;
 
-			dit = 0;
-			go_on = true ;
+		tries++ ;
+		bool go_on = true ;
+		bool no_convergence = true ;
+		bool damage = false ;
 
-			while(go_on && dit < dsteps)
-			{
-				featureTree->step(timepos) ;
-				go_on = (
-							featureTree->solverConverged() && 
-							(
-								featureTree->meshChanged() || 
-								featureTree->enrichmentChanged()
-							)
-						) || 
-						(
-							!featureTree->solverConverged() && 
-							featureTree->reuseDisplacements
-						);
-				if(featureTree->solverConverged())
-					std::cout << "." << std::flush ;
-				else
-					std::cout << "x" << std::flush ;
-				if(dit%20 == 0)
-					std::cout << dit << std::flush ;
-				dit++ ;
-			}
-			std::cout << ":" << std::endl ;
+		go_on = featureTree->step() ;
+			
+		if(go_on)
+			load->setData(load->getData()-1e5) ;
 
 
-			if(dit < dsteps)
-			{
-// 				load->setData(load->getData()-1e4) ;
-load->setData(load->getData()-1e5) ;
-				break ;
-			}
-		}
 		
 		
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -343,198 +313,127 @@ load->setData(load->getData()-1e5) ;
 		std::map<Point *, double > lineYAverage  ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
-	/*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
 			bool in = false ;
-			for(size_t m = 0 ; m < tris__.size() ; m++)
+
+			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
-				if(triangles[k] == tris__[m])
-				{
-					in = true ;
-					break ;
-				}
-			}
-			cracked.push_back(in) ;
-			
-			
-			
-			if(!in )
-			{
-				
-				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
-				{
-					if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					{
-						if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-							x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-						if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-							x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-						if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(triangles[k]->getBoundingPoint(p).y > (1.2+0.051*2)*.5*.999 && triangles[k]->getBoundingPoint(p).x < 0.0001)
-						{
-							e_xx=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-							ex_count = 1 ;
-						}
-						if(triangles[k]->getBoundingPoint(p).x < 0.0001)
-						{
-							lineYAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+0];
-							lineXAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+1];
-							lineShearAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+2];
-						}
-							
-					}
-				}
-				area += triangles[k]->area() ;
 				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					tsize++ ;
-					if(triangles[k]->getBehaviour()->param[0][0] > E_max)
-						E_max = triangles[k]->getBehaviour()->param[0][0] ;
-					if(triangles[k]->getBehaviour()->param[0][0] < E_min)
-						E_min = triangles[k]->getBehaviour()->param[0][0] ;
+					if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
+						x_max = x[triangles[k]->getBoundingPoint(p).id*2];
+					if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
+						x_min = x[triangles[k]->getBoundingPoint(p).id*2];
+					if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
+						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
+					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
+						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
+					if(triangles[k]->getBoundingPoint(p).y > (1.2+0.051*2)*.5*.999 && triangles[k]->getBoundingPoint(p).x < 0.0001)
+					{
+						e_xx=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+						ex_count = 1 ;
+					}
+					if(triangles[k]->getBoundingPoint(p).x < 0.0001)
+					{
+						lineYAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+0];
+						lineXAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+1];
+						lineShearAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+2];
+					}
+						
 				}
-					
-				sigma11[k*npoints] = sigma[k*npoints*3];
-				sigma22[k*npoints] = sigma[k*npoints*3+1];
-				sigma12[k*npoints] = sigma[k*npoints*3+2];
-				sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-				sigma22[k*npoints+1] = sigma[k*npoints*3+4];
-				sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-				sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-				sigma22[k*npoints+2] = sigma[k*npoints*3+7];
-				sigma12[k*npoints+2] = sigma[k*npoints*3+8];
+			}
+			area += triangles[k]->area() ;
+			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				tsize++ ;
+				if(triangles[k]->getBehaviour()->param[0][0] > E_max)
+					E_max = triangles[k]->getBehaviour()->param[0][0] ;
+				if(triangles[k]->getBehaviour()->param[0][0] < E_min)
+					E_min = triangles[k]->getBehaviour()->param[0][0] ;
+			}
 				
-				if(npoints >3)
-				{
-					sigma11[k*npoints+3] = sigma[k*npoints*3+9];
-					sigma22[k*npoints+3] = sigma[k*npoints*3+10];
-					sigma12[k*npoints+3] = sigma[k*npoints*3+11];
-					sigma11[k*npoints+4] = sigma[k*npoints*3+12];
-					sigma22[k*npoints+4] = sigma[k*npoints*3+13];
-					sigma12[k*npoints+4] = sigma[k*npoints*3+14];
-					sigma11[k*npoints+5] = sigma[k*npoints*3+15];
-					sigma22[k*npoints+5] = sigma[k*npoints*3+16];
-					sigma12[k*npoints+5] = sigma[k*npoints*3+17];
-				}
-				
-				epsilon11[k*npoints] = epsilon[k*npoints*3];
-				epsilon22[k*npoints] = epsilon[k*npoints*3+1];
-				epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-				epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-				epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
-				epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-				epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-				epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
-				epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
-				
-				if(npoints > 3)
-				{
-					epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
-					epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
-					epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
-					epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
-					epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
-					epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
-					epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
-					epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
-					epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
-				}  
-				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
-				{
-					Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
-	
-					double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
-				}
-				
-				double ar = triangles[k]->area() ;
+			sigma11[k*npoints] = sigma[k*npoints*3];
+			sigma22[k*npoints] = sigma[k*npoints*3+1];
+			sigma12[k*npoints] = sigma[k*npoints*3+2];
+			sigma11[k*npoints+1] = sigma[k*npoints*3+3];
+			sigma22[k*npoints+1] = sigma[k*npoints*3+4];
+			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
+			sigma11[k*npoints+2] = sigma[k*npoints*3+6];
+			sigma22[k*npoints+2] = sigma[k*npoints*3+7];
+			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
+			
+			if(npoints >3)
+			{
+				sigma11[k*npoints+3] = sigma[k*npoints*3+9];
+				sigma22[k*npoints+3] = sigma[k*npoints*3+10];
+				sigma12[k*npoints+3] = sigma[k*npoints*3+11];
+				sigma11[k*npoints+4] = sigma[k*npoints*3+12];
+				sigma22[k*npoints+4] = sigma[k*npoints*3+13];
+				sigma12[k*npoints+4] = sigma[k*npoints*3+14];
+				sigma11[k*npoints+5] = sigma[k*npoints*3+15];
+				sigma22[k*npoints+5] = sigma[k*npoints*3+16];
+				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
+			}
+			
+			epsilon11[k*npoints] = epsilon[k*npoints*3];
+			epsilon22[k*npoints] = epsilon[k*npoints*3+1];
+			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
+			epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
+			epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
+			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
+			epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
+			epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
+			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
+			
+			if(npoints > 3)
+			{
+				epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
+				epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
+				epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
+				epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
+				epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
+				epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
+				epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
+				epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
+				epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
+			}  
+			
+			for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
+			{
+				Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
+				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
+
+				double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
+				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
+			}
+			
+			double ar = triangles[k]->area() ;
+			for(int l = 0 ; l < npoints ;l++)
+			{
+				avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
+				avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
+				avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
+				avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
+				avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
+				avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
+			}
+			
+			if(triangles[k]->getEnrichmentFunctions().size() == 0)
+			{
 				for(int l = 0 ; l < npoints ;l++)
 				{
-					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
-					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
-					avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
-					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
-					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
+					avg_e_xx_nogel += (epsilon11[k*npoints+l]/npoints)*ar;
+					avg_e_yy_nogel += (epsilon22[k*npoints+l]/npoints)*ar;
+					avg_e_xy_nogel += (epsilon12[k*npoints+l]/npoints)*ar;
+					avg_s_xx_nogel += (sigma11[k*npoints+l]/npoints)*ar;
+					avg_s_yy_nogel += (sigma22[k*npoints+l]/npoints)*ar;
+					avg_s_xy_nogel += (sigma12[k*npoints+l]/npoints)*ar;
+					
 				}
-				
-				if(triangles[k]->getEnrichmentFunctions().size() == 0)
-				{
-					for(int l = 0 ; l < npoints ;l++)
-					{
-						avg_e_xx_nogel += (epsilon11[k*npoints+l]/npoints)*ar;
-						avg_e_yy_nogel += (epsilon22[k*npoints+l]/npoints)*ar;
-						avg_e_xy_nogel += (epsilon12[k*npoints+l]/npoints)*ar;
-						avg_s_xx_nogel += (sigma11[k*npoints+l]/npoints)*ar;
-						avg_s_yy_nogel += (sigma22[k*npoints+l]/npoints)*ar;
-						avg_s_xy_nogel += (sigma12[k*npoints+l]/npoints)*ar;
-						
-					}
-					nogel_area+= ar ;
-				}
-
-			}
-			else
-			{
-				sigma11[k*npoints] = 0 ;
-				sigma22[k*npoints] = 0 ;
-				sigma12[k*npoints] = 0 ;
-				sigma11[k*npoints+1] = 0 ;
-				sigma22[k*npoints+1] = 0 ;
-				sigma12[k*npoints+1] = 0 ;
-				sigma11[k*npoints+2] = 0 ;
-				sigma22[k*npoints+2] = 0 ;
-				sigma12[k*npoints+2] = 0 ;
-				
-				if(npoints >3)
-				{
-					sigma11[k*npoints+3] = 0 ;
-					sigma22[k*npoints+3] = 0 ;
-					sigma12[k*npoints+3] = 0 ;
-					sigma11[k*npoints+4] = 0 ;
-					sigma22[k*npoints+4] = 0 ;
-					sigma12[k*npoints+4] = 0 ;
-					sigma11[k*npoints+5] = 0 ;
-					sigma22[k*npoints+5] = 0 ;
-					sigma12[k*npoints+5] =0 ;
-				}
-				
-				epsilon11[k*npoints] = 0 ;
-				epsilon22[k*npoints] = 0 ;
-				epsilon12[k*npoints] = 0 ;
-				epsilon11[k*npoints+1] = 0 ;
-				epsilon22[k*npoints+1] = 0 ;
-				epsilon12[k*npoints+1] = 0 ;
-				epsilon11[k*npoints+2] = 0 ;
-				epsilon22[k*npoints+2] = 0 ;
-				epsilon12[k*npoints+2] = 0 ;
-				
-				if(npoints > 3)
-				{
-					epsilon11[k*npoints+3] = 0 ;
-					epsilon22[k*npoints+3] = 0 ;
-					epsilon12[k*npoints+3] =0 ;
-					epsilon11[k*npoints+4] = 0 ;
-					epsilon22[k*npoints+4] = 0 ;
-					epsilon12[k*npoints+4] =0 ;
-					epsilon11[k*npoints+5] = 0 ;
-					epsilon22[k*npoints+5] =0 ;
-					epsilon12[k*npoints+5] = 0 ;
-				}  
-				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
-				{
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
-				}
+				nogel_area+= ar ;
 			}
 		}
 		
-		if(dit < dsteps)
+		if(go_on)
 		{
 			displacements.push_back(1000.*e_xx/(double)ex_count);
 			loads.push_back(appliedForce);
@@ -585,12 +484,9 @@ load->setData(load->getData()-1e5) ;
 			std::cout << "line x = " << lxa << std::endl ;
 			std::cout << "line y = " << lya << std::endl ;
 		}
-// 		for (int i = 0 ; i < displacements.size() ; i++)
-// 		{
-// 			std::cout << loads[i] << "  " << displacements[i] << std::endl ;
-// 		}
+
 		
-		if(dit < dsteps)	
+		if(go_on)	
 			std::cout << .4*appliedForce/1000. << "   " << load->getData()/1000. << "  " << displacements.back() << std::endl ;
 		
 		std::fstream ldfile  ;
@@ -693,28 +589,7 @@ load->setData(load->getData()-1e5) ;
 			}
 		}
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
-		
-		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
-		double reactedArea = 0 ;
-			
-// 		if (tries < ntries)
-			for(size_t z = 0 ; z < zones.size() ; z++)
-			{
-				zones[z].first->setRadius(zones[z].first->getRadius()+delta_r) ;	
-		// 		zones[z].first->reset() ;
-				reactedArea += zones[z].first->area() ;
-			}
-		
-		std::cerr << "reacted Area : " << reactedArea << std::endl ;
-		
-// 		if (tries < ntries)
-// 		{
-			expansion_reaction.push_back(std::make_pair(reactedArea, avg_e_xx/area)) ;
-			expansion_stress.push_back(std::make_pair(avg_e_xx_nogel/nogel_area, avg_s_xx_nogel/nogel_area)) ;
-// 		}
-		
-// 		if (tries >= ntries)
-// 			break ;
+	
 	}
 }
 
@@ -1731,13 +1606,13 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.sample(400) ;
+	F.setSamplingNumber(128) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements(0, true) ;
-	F.get2DMesh()->insert(new Point(1.7, -1.2)) ;
-// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
-	triangles = F.getTriangles() ;
+
 // 	
+// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
+	triangles = F.getElements2D() ;
+	F.addPoint(new Point(1.7, -1.2)) ;
 	
 	step() ;
 	

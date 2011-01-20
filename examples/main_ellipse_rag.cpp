@@ -151,36 +151,24 @@ double spread ;
 void step()
 {
 
-        int nsteps = 1000;
+  int nsteps = 1000;
 	int nstepstot = 1000;
-        int maxtries = 200 ;
+  int maxtries = 200 ;
 	int tries = 0 ;
+	featureTree->setMaxIterationsPerStep(200) ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		tries = !(nsteps < maxtries) ;
-		bool go_on = true ;
-		while(go_on && tries < maxtries)
-		{
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			if(!go_on && !featureTree->solverConverged())
-				go_on = featureTree->reuseDisplacements ;
-			std::cout << "." << std::flush ;
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
+
+		bool go_on = featureTree->step() ;
 		
 		if(featureTree->solverConverged())
 		{
 			cracked_volume.push_back(featureTree->crackedVolume) ;
 			damaged_volume.push_back(featureTree->damagedVolume) ;
-		}
-		timepos+= 0.0001 ;
+		}	
 	
-	
-		triangles = featureTree->getTriangles() ;
+		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
@@ -565,7 +553,6 @@ void step()
 						{
 							reactedArea -= zones[z-1-m].first->area() ;
 							zones[z-1-m].first->setRadius(zones[z].first->getRadius()-delta_r) ;
-							featureTree->enrichmentChange = true ;
 							reactedArea += zones[z-1-m].first->area() ;
 						}
 					}
@@ -682,7 +669,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	}
 	
 	int count = 0 ;
-	for(std::map<Inclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;
@@ -754,8 +741,6 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	F.reuseDisplacements = true ;
-
 	double itzSize = 0.00005;
  	int inclusionNumber = 4100 ;
  	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416*13/50, 1., BOLOME_D)(.00025, .1, inclusionNumber, itzSize);
@@ -805,9 +790,8 @@ int main(int argc, char *argv[])
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, shape)) ;
 
-        F.sample(2000) ;
+        F.setSamplingNumber(2000) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
 
 	step() ;
 	

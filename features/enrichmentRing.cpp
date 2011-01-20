@@ -39,7 +39,7 @@ void EnrichmentRing::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 	std::vector<DelaunayTriangle *> inElements = dtree->getConflictingElements(&self) ;
 	cache.insert(cache.end(), inElements.begin(), inElements.end()) ;
 	std::sort(cache.begin(), cache.end()) ;
-	std::vector<DelaunayTriangle *>::iterator e = std::unique(cache.begin(), cache.end()) ;
+	auto e = std::unique(cache.begin(), cache.end()) ;
 	cache.erase(e, cache.end()) ;
 	if(cache.empty())
 	{
@@ -163,8 +163,8 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 		}
 		
 		//we make the points in the list unique
-	// 	std::stable_sort(points.begin(), points.end()) ;
-		std::vector<Point *>::iterator e = std::unique(points.begin(), points.end()) ;
+		std::stable_sort(points.begin(), points.end()) ;
+		auto e = std::unique(points.begin(), points.end()) ;
 		points.erase(e, points.end()) ;
 		
 		//we build a map of the points and corresponding enrichment ids
@@ -333,22 +333,22 @@ void EnrichmentRing::snap(DelaunayTree * dtree) {}
 bool EnrichmentRing::inBoundary(const Point v) const {return false ; }
 bool EnrichmentRing::inBoundary(const Point *v) const { return false ;}
 	
-std::vector<DelaunayTriangle *> EnrichmentRing::getTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> EnrichmentRing::getElements2D( FeatureTree * dt) 
 { 
-	return dt->getConflictingElements(static_cast<Circle *>(this)) ;
+	return dt->getElements2D(getPrimitive()) ;
 }
 	
-std::vector<DelaunayTriangle *> EnrichmentRing::getIntersectingTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)
+std::vector<DelaunayTriangle *> EnrichmentRing::getBoundingElements2D( FeatureTree * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dt->getConflictingElements(static_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> disc = dt->getElements2D(static_cast<Circle *>(this)) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(this->intersects(static_cast<Triangle *>(disc[i])) || self.intersects(static_cast<Triangle *>(disc[i])))
+		if(this->intersects(disc[i]->getPrimitive()) || self.intersects(disc[i]->getPrimitive()))
 			ring.push_back(disc[i]) ;
 	}
 	

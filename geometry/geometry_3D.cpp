@@ -408,9 +408,9 @@ std::vector<Point> Tetrahedron::getBoundingBox() const
 	return ret ;
 }
 
-const Point * Tetrahedron::getCircumCenter() const
+const Mu::Point& Tetrahedron::getCircumCenter() const
 {
-	return &this->circumCenter ;
+	return this->circumCenter ;
 }
 
 void Tetrahedron::sampleSurface(size_t num_points)
@@ -957,7 +957,7 @@ void Hexahedron::sampleSurface(size_t num_points)
 		
 	}
 	std::sort(points.begin(), points.end()) ;
-	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
+	auto e = std::unique(points.begin(), points.end()) ;
 	points.erase(e, points.end()) ;
 	
 	for (size_t i = 0 ; i < inPoints.size() ; i++)
@@ -1054,7 +1054,7 @@ void Hexahedron::project(Point * p) const
 	for(size_t i = 0 ; i < 8 ; i++)
 		targets[dist(*p, bbox[i])] = bbox[i] ;
 	
-	for(std::map<double, Point>::iterator i = targets.begin() ; i!=targets.end() ; ++i)
+	for(auto i = targets.begin() ; i!=targets.end() ; ++i)
 	{
 		if(in(i->second))
 		{
@@ -1219,7 +1219,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	}
 	
 	std::sort(points.begin(), points.end()) ;
-	std::vector<Point>::iterator e = std::unique(points.begin(), points.end()) ;
+	auto e = std::unique(points.begin(), points.end()) ;
 	if(e != points.end())
 		points.erase(e, points.end()) ;
 	

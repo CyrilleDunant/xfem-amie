@@ -461,9 +461,8 @@ int main(int argc, char *argv[])
 // 	
 	ft.addFeature(sample,new Pore3D(25, 50, 50, 50)) ;
 	ft.setOrder(QUADRATIC_TIME_LINEAR) ;
-	ft.sample(256) ;
-	ft.generateElements(0, true) ;
-	std::vector<DelaunayTetrahedron *> elems = ft.getTetrahedrons() ;
+	ft.setSamplingNumber(256) ;
+	std::vector<DelaunayTetrahedron *> elems = ft.getElements3D() ;
 
 	std::set<Point *> points ;
 	for(size_t i = 0 ; i < elems.size() ; i++)
@@ -481,7 +480,7 @@ int main(int argc, char *argv[])
 	}
 	std::cout << " ...done." << std::endl ;
 // 
-// 	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
+// 	for(auto i = points.begin() ; i != points.end() ; ++i)
 // 	{
 // 		
 // 		ft.getAssembly()->setPoint(0., (*i)->id) ;
@@ -492,7 +491,7 @@ int main(int argc, char *argv[])
 // 	x = &ft.getAssembly()->getDisplacements() ;
 
 	
-	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
+	for(auto i = points.begin() ; i != points.end() ; ++i)
 	{
 		if(std::abs((*i)->t  +1) < 1e-6)
 		{
@@ -504,7 +503,9 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	ft.step(0.1) ;
+	ft.setMaxIterationsPerStep(0);
+	ft.setDeltaTime(0.1);
+	ft.step() ;
 
 	for(size_t timestep = 0 ; timestep < 50 ; timestep++)
 	{
@@ -529,15 +530,15 @@ int main(int argc, char *argv[])
 			}
 		}
 		
-		for(std::set<Point *>::iterator i = source.begin() ; i != source.end() ; ++i)
+		for(auto i = source.begin() ; i != source.end() ; ++i)
 			ft.getAssembly()->setPoint(.5,(*i)->id) ;
 		
-		for(std::set<std::pair<Point *, Point *> >::iterator i = init.begin() ; i != init.end() ; ++i)
+		for(auto i = init.begin() ; i != init.end() ; ++i)
 		{
 			ft.getAssembly()->setPoint((*x)[(*i).second->id],(*i).first->id) ;
 		}
 
-		ft.step(0.1) ;
+		ft.step() ;
 	}
 
 	x =  &ft.getAssembly()->getDisplacements() ;

@@ -15,11 +15,11 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> LayeredInclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> LayeredInclusion::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>temp = dt->getElements2D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -87,21 +87,6 @@ LayeredInclusion::LayeredInclusion(double r, Point center) : CompositeFeature(NU
 	}
 }
 
-Point * LayeredInclusion::pointAfter(size_t i)
-{
-	double theta_i = atan2(boundingPoints[i]->y, boundingPoints[i]->x) ;
-	double theta_ip = atan2(boundingPoints[(i+1)%this->boundingPoints.size()]->y, boundingPoints[(i+1)%this->boundingPoints.size()]->x) ;
-	double theta = 0.5*theta_i + 0.5*theta_ip ;
-	
-	Point * to_insert = new Point(cos(theta)*this->getRadius()+ getCenter().x, sin(theta)*getRadius()+ getCenter().y) ;
-	std::valarray<Point *> temp(this->boundingPoints.size()+1) ;
-	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
-	temp[i+1] = to_insert ;
-	std::copy(&boundingPoints[i+1], &boundingPoints[this->boundingPoints.size()], &temp[i+2]) ;
-	this->boundingPoints.resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
-	return to_insert ;
-}
 
 void LayeredInclusion::sample(size_t n)
 {
@@ -224,10 +209,10 @@ std::vector<Geometry *> VirtualLayer::getRefinementZones(size_t level) const
 	return ret ;
 }
 
-std::vector<DelaunayTriangle *> VirtualLayer::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  { 
+std::vector<DelaunayTriangle *> VirtualLayer::getElements2D( FeatureTree * dt)  { 
 	std::vector<DelaunayTriangle *> ret  ;
 	
-	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(dynamic_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> temp = dt->getElements2D(dynamic_cast<Circle *>(this)) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -246,13 +231,8 @@ std::vector<DelaunayTriangle *> VirtualLayer::getElements( Mesh<DelaunayTriangle
 	return ret ;
 }
 
-std::vector<DelaunayTetrahedron *> VirtualLayer::getElements( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * dt)  {
+std::vector<DelaunayTetrahedron *> VirtualLayer::getElements3D( FeatureTree* dt)  {
 	return std::vector<DelaunayTetrahedron *>(0)  ;
-}
-
-
-Point * VirtualLayer::pointAfter(size_t i) { 
-	return NULL ; 
 }
 
 Form * VirtualLayer::getBehaviour(const Point & p)

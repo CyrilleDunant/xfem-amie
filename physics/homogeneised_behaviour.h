@@ -16,7 +16,7 @@
 
 #include "physics_base.h"
 #include "homogenization/homogenization_base.h"
-#include "../mesher/mesh.h"
+#include "../features/features.h"
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
 
@@ -32,9 +32,8 @@ namespace Mu
 	{
 		Form * equivalent ;
 		Material base ;
-		Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d ;
+		FeatureTree * mesh ;
 		DelaunayTriangle * self2d ;
-		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d ;
 		DelaunayTetrahedron * self3d ;
 		std::vector<Variable> v ;
 		std::vector<DelaunayTriangle *> source ;
@@ -47,13 +46,13 @@ namespace Mu
 		* @param mesh2d The 2D mesh for 2D homogeneisation
 		* @param self The element in which the homogeneisation will occur
 		*/
-		HomogeneisedBehaviour(Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh2d, DelaunayTriangle * self) ;
+		HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTriangle * self) ;
 		/** \brief Constructor
 		* 
 		* @param mesh3d The 3D mesh for 3D homogeneisation
 		* @param self The element in which the homogeneisation will occur
 		*/
-		HomogeneisedBehaviour(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh3d, DelaunayTetrahedron * self) ;
+		HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTetrahedron * self) ;
 
 		HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) ;
 

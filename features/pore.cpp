@@ -15,11 +15,11 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> Pore::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> Pore::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *> ret;
 	
-	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *> temp = dt->getElements2D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -66,6 +66,12 @@ Pore::Pore(double r, Point center) :  Feature(NULL), Circle(r, center)
 	this->behaviour = new VoidForm() ;
 }
 
+void Pore::setRadius(double newR)
+{
+	Circle::setRadius(newR);
+	isUpdated = true ;
+}
+
 bool Pore::interacts(Feature * f, double d) const 
 {
 	for(PointSet::const_iterator i = this->begin() ; i != this->end() ; i++)
@@ -80,22 +86,6 @@ void Pore::sample(size_t n)
 // 	this->Circle::sampleBoundingSurface(n) ;
 // 	this->inPoints->resize(1) ;
 // 	(*this->inPoints)[0] = new Point(this->center.x, this->center.y) ;
-}
-
-Point * Pore::pointAfter(size_t i)
-{
-	double theta_i = atan2(boundingPoints[i]->y, boundingPoints[i]->x) ;
-	double theta_ip = atan2(boundingPoints[(i+1)%boundingPoints.size()]->y, boundingPoints[(i+1)%boundingPoints.size()]->x) ;
-	double theta = 0.5*theta_i + 0.5*theta_ip ;
-	
-	Point * to_insert = new Point(cos(theta)*this->getRadius()+ this->Circle::getCenter().x, sin(theta)*this->getRadius()+ this->Circle::getCenter().y) ;
-	std::valarray<Point *> temp(boundingPoints.size()+1) ;
-	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
-	temp[i+1] = to_insert ;
-	std::copy(&boundingPoints[i+1], &boundingPoints[boundingPoints.size()], &temp[i+2]) ;
-	boundingPoints.resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
-	return to_insert ;
 }
 
 std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
@@ -116,10 +106,10 @@ std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 }
 
 
-std::vector<DelaunayTriangle *> TriangularPore::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> TriangularPore::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
-	std::vector<DelaunayTriangle *> temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *> temp = dt->getElements2D(this->getPrimitive()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;
@@ -147,12 +137,6 @@ TriangularPore::TriangularPore(const Point & a, const Point & b, const Point & c
 {
 	this->behaviour = new VoidForm() ;
 	this->isEnrichmentFeature = false ;
-}
-
-
-Point * TriangularPore::pointAfter(size_t i)
-{
-	return NULL ;
 }
 
 

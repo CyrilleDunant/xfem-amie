@@ -85,7 +85,7 @@ private:
 std::valarray<unsigned short int> normalizeArray(std::valarray<double> val, unsigned short int min = 0, unsigned short int max = 255) ;
 
 /** \brief number of different fields contained within a VoxelWriterFieldType, typically 1*/
-const int numberOfFields(VWFieldType field) ;
+int numberOfFields(VWFieldType field) ;
 
 
 

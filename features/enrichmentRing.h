@@ -72,13 +72,13 @@ public:
 	virtual bool inBoundary(const Point *v) const ;
 	
 /** \brief return the triangles in the tree intersecting with either of the circles*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons(const DelaunayTree3D * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	virtual std::vector<DelaunayTetrahedron *> getElements3D(FeatureTree * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 /** \brief return the triangles in the tree intersecting with either of the circles*/
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
+	std::vector<DelaunayTriangle *> getBoundingElements2D( FeatureTree * dt) ;
 	
 /** \brief do nothing*/
 	virtual void setInfluenceRadius(double r) ;

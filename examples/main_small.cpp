@@ -165,27 +165,14 @@ void step()
 {
 	
   int nsteps = 1;// number of steps between two clicks on the opengl thing
-
+	featureTree->setMaxIterationsPerStep(50) ;
 
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 
-		bool go_on = true;
-		size_t tries = 0;
-		while(go_on && tries < 50)
-		{
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			std::cout << "." << std::flush ;
-			// 			timepos-= 0.0001 ;
-			
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
-		timepos+= 0.0001 ;
+		bool go_on = featureTree->step() ;
 		
-		tets= featureTree->getTetrahedrons() ;
+		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 
@@ -1391,7 +1378,7 @@ int main(int argc, char *argv[])
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 // 	F.addFeature(&samplers, inc) ;
 	F.addFeature(&samplers, inc0) ;
-	F.sample(256) ;
+	F.setSamplingNumber(256) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
@@ -1399,7 +1386,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
+
 	step() ;
 
 

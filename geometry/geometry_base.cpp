@@ -1162,19 +1162,19 @@ double Geometry::overlapFraction(const Geometry * target) const
 	if(dynamic_cast<const Triangle *>(this))
 		c = dynamic_cast<const Triangle *>(this)->getCircumCenter() ;
 	else if(dynamic_cast<const Tetrahedron *>(this))
-		c = *dynamic_cast<const Tetrahedron *>(this)->getCircumCenter() ;
+		c = dynamic_cast<const Tetrahedron *>(this)->getCircumCenter() ;
 	
 	Point tc = target->getCenter() ;
 	if(dynamic_cast<const Triangle *>(target))
 		tc = dynamic_cast<const Triangle *>(target)->getCircumCenter() ;
 	else if(dynamic_cast<const Tetrahedron *>(target))
-		tc = *dynamic_cast<const Tetrahedron *>(target)->getCircumCenter() ;
+		tc = dynamic_cast<const Tetrahedron *>(target)->getCircumCenter() ;
 	
 	
 	if(dist(c, tc)  > getRadius() + target->getRadius())
 		return 0 ;
 	
-	if(dist(c, tc) + getRadius()< target->getRadius())
+	if(dist(c, tc) + getRadius() <= target->getRadius())
 		return 1 ;
 	
 	if(spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -2752,7 +2752,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 	std::vector<Point *> temphull ;
 	std::vector<Point *> orderedset ;
 	
-	for(std::map<double, Point*>::const_iterator i = pointSet.begin() ; i!= pointSet.end() ; ++i)
+	for(auto i = pointSet.begin() ; i!= pointSet.end() ; ++i)
 	{
 		orderedset.push_back(i->second) ;
 	}
@@ -2760,7 +2760,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 	temphull.push_back(orderedset[0] ) ;
 	temphull.push_back(orderedset[1] ) ;
 	
-	for(std::vector< Point *>::iterator i = orderedset.begin()+2 ; i != orderedset.end() ; ++i)
+	for(auto i = orderedset.begin()+2 ; i != orderedset.end() ; ++i)
 	{
 		for(size_t j = 0 ; j < temphull.size() ; j++)
 			
@@ -3471,10 +3471,10 @@ bool Segment::intersects(const Geometry *g) const
 				std::abs(
 				squareDist2D(dynamic_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()*g->getRadius()), g->getBoundingPoint(i)));
 			}
-			std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
+			auto ptend = pt.begin() ;
 			ptend++ ; ptend++ ; ptend++ ;
 	
-			for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
+			for(auto i = pt.begin() ; i != ptend ; ++i )
 				pts.push_back(i->second);
 
 			if(this->on(pts[0]) || this->on(pts[1]) || this->on(pts[2]))
@@ -3623,7 +3623,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 					ret.push_back( s.intersection(*this)) ;
 			}
 			std::sort(ret.begin(), ret.end()) ;
-			std::vector<Point>::iterator e = std::unique(ret.begin(), ret.end()) ;
+			auto e = std::unique(ret.begin(), ret.end()) ;
 			ret.erase(e, ret.end()) ;
 			return ret ;
 		}
@@ -4417,7 +4417,7 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
 	std::vector<Point*> temphull ;
 	std::vector<Point*> orderedset ;
 	
-	for(std::map<double, Point*>::const_iterator i = pointSet.begin() ; i!= pointSet.end() ; ++i)
+	for(auto i = pointSet.begin() ; i!= pointSet.end() ; ++i)
 	{
 		std::cout << "point " <<  i->second->x << ", " <<  i->second->y << std::endl ;
 		orderedset.push_back(i->second) ;
@@ -4426,7 +4426,7 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
 	temphull.push_back(orderedset[0] ) ;
 	temphull.push_back(orderedset[1] ) ;
 	
-	for(std::vector< Point *>::iterator i = orderedset.begin()+2 ; i != orderedset.end() ; ++i)
+	for(auto i = orderedset.begin()+2 ; i != orderedset.end() ; ++i)
 	{
 		for(size_t j = 0 ; j < temphull.size() ; j++)
 			std::cout << "(" << temphull[j]->x << ", " << temphull[j]->y << ")" << std::endl ;

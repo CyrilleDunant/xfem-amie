@@ -146,36 +146,25 @@ double spread ;
 void step()
 {
 
-        int nsteps = 20;
+  int nsteps = 20;
 	int nstepstot = 20;
-        int maxtries = 2000 ;
+  int maxtries = 2000 ;
 	int tries = 0 ;
 	
+	featureTree->setDeltaTime(0.0001);
+	featureTree->setMaxIterationsPerStep(maxtries) ;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		tries = !(nsteps < maxtries) ;
-		bool go_on = true ;
-		while(go_on && tries < maxtries)
-		{
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			if(!go_on && !featureTree->solverConverged())
-				go_on = featureTree->reuseDisplacements ;
-			std::cout << "." << std::flush ;
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
-		
+
+		featureTree->step() ;
+
 		if(featureTree->solverConverged())
 		{
 			cracked_volume.push_back(featureTree->crackedVolume) ;
 			damaged_volume.push_back(featureTree->damagedVolume) ;
 		}
-		timepos+= 0.0001 ;
 	
-	
-		triangles = featureTree->getTriangles() ;
+		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
@@ -560,7 +549,6 @@ void step()
 						{
 							reactedArea -= zones[z-1-m].first->area() ;
 							zones[z-1-m].first->setRadius(zones[z].first->getRadius()-delta_r) ;
-							featureTree->enrichmentChange = true ;
 							reactedArea += zones[z-1-m].first->area() ;
 						}
 					}
@@ -664,7 +652,7 @@ void generateITZ(Inclusion * inc, Inclusion * out, FeatureTree & F, double dmax 
 {
 	Point c = inc->getCenter() ;
 	double r = inc->getRadius() ;
-	std::vector<DelaunayTriangle * > trg = F.getTriangles() ;
+	std::vector<DelaunayTriangle * > trg = F.getElements2D() ;
 	double count = 0 ;
 	for(size_t i = 0 ; i < trg.size() ; i++)
 	{
@@ -709,9 +697,8 @@ int main(int argc, char *argv[])
 
 	zones = generateDualExpansiveZones(5, left, right, F) ;
 
-	F.sample(500) ;
+	F.setSamplingNumber(500) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements(0,false) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;

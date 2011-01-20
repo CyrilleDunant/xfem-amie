@@ -95,15 +95,16 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	if(criterion->met(currentState) )
 	{
 		dfunc->step(currentState) ;
-		change = true ;
-		currentState.getParent()->behaviourUpdated = true ;
+		change = dfunc->changed() ;
+		currentState.getParent()->behaviourUpdated = change ;
 		frac = dfunc->fractured() ;
 	}
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;
+	
 	previousDamage = damage ;
-
+	
 	Vector d = dfunc->damageState() ;
 	damage.resize(d.size()) ;
 	damage = d ;
@@ -169,6 +170,10 @@ Form * StiffnessAndFracture::getCopy() const
 {
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), criterion->getMaterialCharacteristicRadius()) ;
 	copy->damage = damage ;
+	copy->dfunc->state.resize(dfunc->state.size());
+	copy->dfunc->state = dfunc->state ;
+	copy->dfunc->previousstate.resize(dfunc->previousstate.size());
+	copy->dfunc->previousstate = dfunc->previousstate ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
 	copy->dfunc->setMaterialCharacteristicRadius(dfunc->getCharacteristicRadius());

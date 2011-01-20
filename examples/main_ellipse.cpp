@@ -152,36 +152,18 @@ double spread ;
 void step()
 {
 
-        int nsteps = 20;
+  int nsteps = 20;
 	int nstepstot = 20;
-        int maxtries = 250 ;
+  int maxtries = 250 ;
 	int tries = 0 ;
-	
+	featureTree->setMaxIterationsPerStep(maxtries) ;
+	featureTree->setDeltaTime(timepos);
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		tries = !(nsteps < maxtries) ;
-		bool go_on = true ;
-		while(go_on && tries < maxtries)
-		{
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			if(!go_on && !featureTree->solverConverged())
-				go_on = featureTree->reuseDisplacements ;
-			std::cout << "." << std::flush ;
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
-		
-		if(featureTree->solverConverged())
-		{
-			cracked_volume.push_back(featureTree->crackedVolume) ;
-			damaged_volume.push_back(featureTree->damagedVolume) ;
-		}
-		timepos+= 0.0001 ;
-	
-	
-		triangles = featureTree->getTriangles() ;
+		bool go_on = featureTree->step() ;
+
+		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
@@ -565,7 +547,6 @@ void step()
 						{
 							reactedArea -= zones[z-1-m].first->area() ;
 							zones[z-1-m].first->setRadius(zones[z].first->getRadius()-delta_r) ;
-							featureTree->enrichmentChange = true ;
 							reactedArea += zones[z-1-m].first->area() ;
 						}
 					}
@@ -682,7 +663,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	}
 	
 	int count = 0 ;
-	for(std::map<EllipsoidalInclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;
@@ -745,8 +726,6 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	featureTree->reuseDisplacements = true ;
-
  	std::vector<Inclusion *> inclusions ;
  	inclusions.push_back(new Inclusion(0.0005, 0.0016, 0.)) ;
  	inclusions.push_back(new Inclusion(0.0005, 0.00, 0.0001)) ;
@@ -804,9 +783,8 @@ int main(int argc, char *argv[])
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -5*1e6)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, -5*1e6)) ;
 
-        F.sample(250) ;
+        F.setSamplingNumber(250) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
 
 	step() ;
 	

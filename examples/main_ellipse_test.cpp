@@ -155,102 +155,26 @@ int totit = 5 ;
 
 std::vector<double> energy ;
 
-void setBC()
-{
-	triangles = featureTree->getTriangles() ;
-	
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-			if (triangles[k]->getBoundingPoint(c).y < 0.001*sample.height() && triangles[k]->getBoundingPoint(c).x < 0.001*sample.width())
-			{
-				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			else if (triangles[k]->getBoundingPoint(c).x < 0.001*sample.width())
-			{
-				featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			else if(triangles[k]->getBoundingPoint(c).y < 0.001*sample.height())
-			{
-				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-
-//				for(size_t l = c+1 ;  l < triangles[k]->getBoundingPoints().size() ; l++)
-//				{
-//					if(triangles[k]->getBoundingPoint(l).x > .499*sample.width())
-//					{
-//						double d = std::abs(triangles[k]->getBoundingPoint(l).y-triangles[k]->getBoundingPoint(c).y) ;
-// 						featureTree->getAssembly()->setPointAlong(ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
-// 						featureTree->getAssembly()->setPointAlong(ETA, 0, triangles[k]->getBoundingPoint(l).id) ;
-//						featureTree->getAssembly()->setForceOn( XI, -stress*d*.25 ,triangles[k]->getBoundingPoint(c).id) ;
-//						featureTree->getAssembly()->setForceOn( XI, -stress*d*.25 ,triangles[k]->getBoundingPoint(l).id) ;
-//						break ;
-//					}
-//				}
-//				break ;
-			}
-		}
-
-	}
-
-}
-
  void step()
  {
  	
  	bool cracks_did_not_touch = true;
  	size_t max_growth_steps = 1;
  	size_t countit = 0;	
-// 	
+
+	featureTree->setMaxIterationsPerStep(50) ;
+	
  	while ( (cracks_did_not_touch) && (countit < max_growth_steps) )
  	{
  		countit++;
  		std::cout << "\r iteration " << countit << "/" << max_growth_steps << std::flush ;
- 		setBC() ;
 //       
  		int limit = 0 ;
- 		while(!featureTree->step(timepos) && limit < 50)//as long as we can update the features
- 		{
- 			std::cout << "." << std::flush ;
- // 			timepos-= 0.0001 ;
- 			setBC() ;
- 			limit++ ;
- 	  // check if the two cracks did not touch
- 			cracks_did_not_touch = true;
- 			for(size_t j = 0 ; j < crack.size() ; j++)
- 			{
- 				for(size_t k = j+1 ; k < crack.size() ; k++)
- 				{
- 		  
- 					if (static_cast<SegmentedLine *>(crack[j])->intersects(static_cast<SegmentedLine *>(crack[k])))
- 					{
- 						cracks_did_not_touch = false;
- 						break;
- 					}
- 		  //Circle headj(radius, crack[j]->getHead());
- 		  
- 		  //	      head0.intersects(crack[1]);
- 				}
-			}
- 		}
- 	
-//   // Prints the crack geo to a file for each crack
-// 		if (cracks_did_not_touch == false) // if cracks touched
-// 		{
-// 			std::cout << "** Cracks touched exporting file **" << endl;	
-// 				// Print the state of the cracks to a file  
-// 				std::string filename = "crackGeo.txt";
-// 				fstream filestr;
-// 				filestr.open (filename.c_str(), fstream::in | fstream::out | fstream::app);
-// 				filestr << "Crack vertices" << std::endl;
-// 				filestr << "x" << " " << "y" << std::endl ; 
-// 		}
-   
- 
-// 		timepos+= 0.0001 ;
+ 		featureTree->step() ;
+
  		double da = 0 ;
  
-		triangles = featureTree->getTriangles() ;
+		triangles = featureTree->getElements2D() ;
  		x.resize(featureTree->getDisplacements().size()) ;
  		x = featureTree->getDisplacements() ;
  
@@ -276,11 +200,11 @@ void setBC()
  		std::cout << "unknowns :" << x.size() << std::endl ;
  		
  		if(crack.size() > 0)
- 			tris__ = crack[0]->getElements(featureTree->get2DMesh()) ;
+ 			tris__ = crack[0]->getElements2D(featureTree) ;
  		
  		for(size_t k = 1 ; k < crack.size() ; k++)
  		{
- 			std::vector<DelaunayTriangle *> temp = crack[k]->getElements(featureTree->get2DMesh()) ;
+ 			std::vector<DelaunayTriangle *> temp = crack[k]->getElements2D(featureTree) ;
  			if(tris__.empty())
  				tris__ = temp ;
  			else if(!temp.empty())
@@ -580,21 +504,8 @@ void stepOLD()
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
-		tries = !(nsteps < maxtries) ;
-		bool go_on = true ;
-		while(go_on && tries < maxtries)
-		{
-			setBC() ;
-			featureTree->step(timepos) ;
-			go_on = featureTree->solverConverged() &&  (featureTree->meshChanged() || featureTree->enrichmentChanged());
-			std::cout << "." << std::flush ;
-// 			timepos-= 0.0001 ;
-			
-			tries++ ;
-		}
-		std::cout << " " << tries << " tries." << std::endl ;
-		
+		bool go_on = featureTree->step() ;
+
 		if(featureTree->solverConverged())
 		{
 			cracked_volume.push_back(featureTree->crackedVolume) ;
@@ -1106,7 +1017,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 	}
 	
 	int count = 0 ;
-	for(std::map<EllipsoidalInclusion *, int>::iterator i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;

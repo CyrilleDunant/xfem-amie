@@ -19,11 +19,11 @@
 
 using namespace Mu ;
 
-std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> Inclusion::getElements2D( FeatureTree* dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>temp = dt->getElements2D(getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -40,6 +40,12 @@ std::vector<DelaunayTriangle *> Inclusion::getElements( Mesh<DelaunayTriangle, D
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
+}
+
+void Inclusion::setRadius(double newR)
+{
+	Circle::setRadius(newR);
+	isUpdated = true ;
 }
 
 Inclusion::Inclusion(Feature * father,double r, double x, double y) : Circle(r, x, y ), Feature(father)
@@ -83,22 +89,6 @@ XMLTree * Inclusion::toXML()
 	return inc ;
 }
 
-Point * Inclusion::pointAfter(size_t i)
-{
-	double theta_i = atan2(boundingPoints[i]->y, boundingPoints[i]->x) ;
-	double theta_ip = atan2(boundingPoints[(i+1)%this->boundingPoints.size()]->y, boundingPoints[(i+1)%this->boundingPoints.size()]->x) ;
-	double theta = 0.5*theta_i + 0.5*theta_ip ;
-	
-	Point * to_insert = new Point(cos(theta)*this->getRadius()+ this->Circle::getCenter().x, sin(theta)*this->getRadius()+ this->Circle::getCenter().y) ;
-	std::valarray<Point *> temp(this->boundingPoints.size()+1) ;
-	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
-	temp[i+1] = to_insert ;
-	std::copy(&boundingPoints[i+1], &boundingPoints[this->boundingPoints.size()], &temp[i+2]) ;
-	this->boundingPoints.resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
-	return to_insert ;
-}
-
 
 void Inclusion::sample(size_t n)
 {
@@ -127,11 +117,11 @@ bool Inclusion::interacts(Feature * f, double d) const
 }
 
 
-std::vector<DelaunayTriangle *> TriangularInclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> TriangularInclusion::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
 	
-	std::vector<DelaunayTriangle *>  temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>  temp = dt->getElements2D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -159,12 +149,6 @@ TriangularInclusion::TriangularInclusion(Feature * father,const Point & a, const
 TriangularInclusion::TriangularInclusion(const Point & a, const Point & b, const Point & c) : Triangle(a, b, c), Feature(NULL)
 {
 	this->isEnrichmentFeature = false ;
-}
-
-
-Point * TriangularInclusion::pointAfter(size_t i)
-{
-	return NULL ;
 }
 
 
@@ -245,11 +229,11 @@ std::vector<Geometry *> EllipsoidalInclusion::getRefinementZones(size_t level) c
 	return ret ;
 }
 	
-std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>temp = dt->getElements2D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -266,28 +250,6 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements( Mesh<Delaunay
 			ret.push_back(temp[i]) ;
 	}
 	return ret ;
-}
-
-Point * EllipsoidalInclusion::pointAfter(size_t i)
-{
-	Point bi = getBoundingPoint(i) ;
-	bi = bi - this->Ellipse::getCenter() ;
-	Point bip = getBoundingPoint((i+1)%this->boundingPoints.size()) ;
-	bip = bip - this->Ellipse::getCenter() ;
-	double theta_i = atan2(bi * this->Ellipse::getMinorAxis(), bi * this->Ellipse::getMajorAxis()) ;
-	double theta_ip = atan2(bip * this->Ellipse::getMinorAxis(), bip * this->Ellipse::getMajorAxis()) ;
-//	double theta_i = atan2((boundingPoints[i] - this->Ellipse::getCenter()) * this->Ellipse::getMinorAxis(), (boundingPoints[i] - this->Ellipse::getCenter()) * this->Ellipse::getMajorAxis()) ;
-//	double theta_ip = atan2((boundingPoints[(i+1)%this->boundingPoints.size()]-this->Ellipse::getCenter()) * this->Ellipse::getMinorAxis(), (boundingPoints[(i+1)%this->boundingPoints.size()]-this->Ellipse::getCenter()) * this->Ellipse::getMajorAxis()) ;
-	double theta = 0.5*theta_i + 0.5*theta_ip ;
-	
-	Point * to_insert = new Point(this->Ellipse::getCenter() + this->Ellipse::getMajorAxis() * (cos(theta)*this->Ellipse::getMajorRadius()) + this->Ellipse::getMinorAxis() * (cos(theta)*this->Ellipse::getMinorRadius())) ;
-	std::valarray<Point *> temp(this->boundingPoints.size()+1) ;
-	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
-	temp[i+1] = to_insert ;
-	std::copy(&boundingPoints[i+1], &boundingPoints[this->boundingPoints.size()], &temp[i+2]) ;
-	this->boundingPoints.resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
-	return to_insert ;
 }
 
 void EllipsoidalInclusion::sample(size_t n)

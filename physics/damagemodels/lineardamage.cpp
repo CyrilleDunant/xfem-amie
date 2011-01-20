@@ -106,14 +106,14 @@ Matrix LinearDamage::apply(const Matrix & m) const
 
 	if(inTension && !inCompression)
 	{
-		return m*(1.-tensionDamage) ;
+		return m*(1.-state[1]) ;
 	}
 	else if(inCompression && !inTension)
 	{
-		return m*(1.-compressionDamage) ;
+		return m*(1.-state[0]) ;
 	}
 	
-	return m*(1.-std::max(tensionDamage, compressionDamage)) ;
+	return m*(1.-std::max(state[1], state[0])) ;
 }
 
 Matrix LinearDamage::applyPrevious(const Matrix & m) const
@@ -148,7 +148,7 @@ bool LinearDamage::fractured() const
 		return false ;
 	
 // 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
-	return tensionDamage >= secondaryThresholdDamageDensity || compressionDamage >= thresholdDamageDensity ;
+	return state[1] >= secondaryThresholdDamageDensity || state[0] >= thresholdDamageDensity ;
 }
 
 LinearDamage::~LinearDamage()

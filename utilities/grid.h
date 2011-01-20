@@ -201,6 +201,13 @@ public:
 * @return true if insertion was successful
 */
 	bool add(Geometry * inc);
+	
+	/** \brief Remove a Feature if it does not overlap with another allready present Feature
+*
+* @param inc Feature to remove
+* @return true if deletion was successful
+*/
+	bool remove(Geometry * inc);
 
 /** \brief Add a Feature unconditionnally*/
 	void forceAdd(Geometry * inc) ;
@@ -261,7 +268,15 @@ public:
 * @return true if insertion was successful
 */
 	bool add(Geometry * inc);
-
+	
+	
+/** \brief Remove a Feature 
+*
+* @param inc Feature to delete
+* @return true if deletion was successful
+*/
+	bool remove(Geometry * inc);
+	
 /** \brief Add a Feature unconditionnally*/
 	void forceAdd(Geometry * inc) ;
 

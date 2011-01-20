@@ -186,14 +186,14 @@ void Star3D::updateNeighbourhood()
 {
 	int count = 0 ;
 	int soncount = 0 ;
-	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	for(auto i = treeitem.begin() ; i != treeitem.end() ;++i)
 	{
 		count += (*i)->son.size() + (*i)->stepson.size() + (*i)->neighbour.size() ;
 		soncount += (*i)->son.size() ;
 	}
 	std::valarray<DelaunayTreeItem3D *> items(count) ;
 	count = 0 ;
-	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	for(auto i = treeitem.begin() ; i != treeitem.end() ;++i)
 	{	
 		for(size_t j = 0 ; j < (*i)->son.size() ; j++)
 		{
@@ -201,7 +201,7 @@ void Star3D::updateNeighbourhood()
 		}
 		
 	}
-	for(std::vector<DelaunayTreeItem3D *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	for(auto i = treeitem.begin() ; i != treeitem.end() ;++i)
 	{	
 		for(size_t j = 0 ; j < (*i)->stepson.size() ; j++)
 		{
@@ -217,7 +217,7 @@ void Star3D::updateNeighbourhood()
 	}
 	
 	std::sort(&items[soncount], &items[count]) ;
-	DelaunayTreeItem3D ** e = std::unique(&items[0], &items[count]) ;
+	auto e = std::unique(&items[0], &items[count]) ;
 	size_t end =  e-&items[0] ;
 	
 	if(!items.size())
@@ -1100,7 +1100,7 @@ bool DelaunayTetrahedron::hasVertexByID(const std::valarray<Point *> * p) const
 }
 
 DelaunayDeadTetrahedron::DelaunayDeadTetrahedron( DelaunayTetrahedron * parent) : DelaunayTreeItem3D(*parent),
-x(parent->getCircumCenter()->x), y(parent->getCircumCenter()->y), z(parent->getCircumCenter()->z),
+x(parent->getCircumCenter().x), y(parent->getCircumCenter().y), z(parent->getCircumCenter().z),
 radius(parent->getRadius())
 {
 	index = parent->index ;
@@ -1346,7 +1346,7 @@ std::vector<Point*> DelaunayTetrahedron::commonSurface( DelaunayTreeItem3D * t)
 	if(t->isTetrahedron())
 	{
 		std::vector<Point*> inter(4) ;
-		std::vector<Point*>::iterator e = std::set_intersection(&first, &first+4, &t->first, &t->first+4, inter.begin())  ;
+		auto e = std::set_intersection(&first, &first+4, &t->first, &t->first+4, inter.begin())  ;
 		inter.erase(e, inter.end()) ;
 		return inter ;
 	}
@@ -1548,7 +1548,7 @@ bool DelaunayTetrahedron::onCircumSphere(const Point &p) const
 	if(p.z < circumCenter.z-1.0001*radius)
 		return false ;
 	
-	double d = dist(*getCircumCenter(), p) ;
+	double d = dist(getCircumCenter(), p) ;
 	return  std::abs(d/radius-1) < POINT_TOLERANCE ;
 }
 
@@ -1980,7 +1980,8 @@ Star3D::Star3D(std::vector<DelaunayTreeItem3D *> *t, const Point *p) :  treeitem
 		}
 	}
 	std::sort(edge.begin(), edge.end()) ;
-	edge.erase(std::unique(edge.begin(), edge.end()), edge.end()) ;
+	auto e = std::unique(edge.begin(), edge.end()) ;
+	edge.erase(e, edge.end()) ;
 }
 	
 size_t Star3D::size()
@@ -2145,7 +2146,7 @@ void DelaunayTree3D::insert(Point *p)
 		}
 	}
 	
-	for(std::vector<DelaunayDemiSpace *>::iterator i = space.begin() ; i != space.end() ; i++)
+	for(auto i = space.begin() ; i != space.end() ; i++)
 	{
 		if(!(*i)->isAlive())
 		{

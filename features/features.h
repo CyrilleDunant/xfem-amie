@@ -14,6 +14,7 @@
 #include "../mesher/structuredmesh.h"
 #include "../utilities/samplingcriterion.h"
 #include "../utilities/grid.h"
+#include "../physics/void_form.h"
 #include "../solvers/assembly.h"
 #include "boundarycondition.h"
 #include "feature_base.h"
@@ -40,7 +41,63 @@ namespace Mu
  */
 class FeatureTree 
 {
+protected:
+	typedef enum
+	{
+		SAMPLED,
+		MESHED,
+		RENUMBERED,
+		BEHAVIOUR_SET,
+		STITCHED,
+		INITIALISED,
+		ENRICHED,
+		ASSEMBLED,
+		SOLVED,
+		BEHAVIOUR_STEPPED,
+		XFEM_STEPPED,
+		FEATURE_STEPPED
+	} StateType ;
 	
+	struct State
+	{
+		bool sampled ;
+		bool meshed ;
+		bool renumbered ;
+		bool behaviourSet ;
+		bool behaviourUpdated ;
+		bool stitched ;
+		bool initialised ;
+		bool enriched ;
+		bool assembled ;
+		bool solved ;
+		bool behaviourStepped ;
+		bool xfemStepped ; 
+		bool featureStepped ; 
+		
+		FeatureTree * ft ;
+		
+		
+		State(FeatureTree * ft) : ft(ft) 
+		{
+			sampled = false ;
+			meshed = false;
+			renumbered = false;
+			behaviourSet = false;
+			behaviourUpdated = false;
+			stitched = false;
+			initialised = false;
+			enriched = false;
+			assembled = false;
+			solved = false;
+			behaviourStepped = false;
+			xfemStepped = false; 
+			featureStepped = false; 
+		} ;
+		void setStateTo(StateType s,bool stepChanged );
+	} ;
+// 
+
+	State state ;
 protected:
 	
 	void duplicate2DMeshPoints() ;
@@ -67,19 +124,29 @@ protected:
 	TetrahedralElement *father3D  ;
 	TriElement *father2D  ;
 
-	bool meshChange ;
+
+	double now ;
+	double deltaTime ; 
+	
+	size_t numdofs ;
+	size_t samplingNumber ;
+	size_t previousSamplingNumber ;
+	size_t maxitPerStep ;
+	
+	bool renumbered ;
+	bool needAssembly ;
+	bool needMeshing ;
+	bool reuseDisplacements ;
+	bool behaviourChange ;
 	bool solverConvergence ;
 	bool setBehaviours ;
+	bool enrichmentChange ;
 	
 	/** \brief  List of points used for the mesh.
 	 * Each point is associated with the feature from whose discretiation it was generated.
 	 */
 	std::deque<std::pair<Point *, Feature *> > meshPoints;
 	std::vector<Point *> additionalPoints ;
-	
-	/** \brief  List of the elements.
-	 */
-	std::vector<DelaunayTetrahedron * > elements3D;
 	
 	/** \brief  Assembly used for the generation of the stiffness matrix and the solving of the problem.
 	 */
@@ -98,53 +165,21 @@ protected:
 	void stitch() ;
 	
 	void renumber() ;
+	void enrich() ;
+	/** \brief  Generate the sample points for all the features. The features are passed a sampling 
+	 * argument proportionnal to their area compared with the area of the root feature. 
+	 * If the number is lower than 10, than the argument passed is 10.
+	 * 
+	 * @param npoints number of sampling points on the boundary of the sample. This number must be 
+	 * divisable by four if the sample is a rectangle.
+	 */
+	void sample() ;
 
 	void setElementBehaviours() ;
-	
-	template<class MTYPE, class ETYPE>
-	void setElementBehavioursFromMesh( const MTYPE * source, MTYPE * destination)
-	{
-		std::vector<ETYPE * > elems = destination->getElements() ;
-#pragma omp parallel for
-		for(size_t i = 0 ; i < elems.size() ; i++)
-		{
-			std::cout << "\r element " << i << "/" << elems.size() << std::flush ;
-// 			Circle c(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
-// 			Sphere s(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
-			std::vector<ETYPE * > conflicts =  source->getConflictingElements(elems[i]->getPrimitive() );
-// 			if(elems[i]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-// 				conflicts = source->getConflictingElements(&c) ;
-// 			else
-// 				conflicts = source->getConflictingElements(&s) ;
-			
-			ETYPE * main = conflicts.front() ;
-			double overlap = main->overlapFraction(elems[i]->getPrimitive()) ;
-			for(size_t j = 1 ; j < conflicts.size() ; j++)
-			{
-				double testOverlap = conflicts[j]->overlapFraction(elems[i]->getPrimitive()) ;
-				if(testOverlap > overlap)
-				{
-					main = conflicts[j] ;
-					overlap = testOverlap ;
-				}
-			}
-			
-			elems[i]->setBehaviour(main->getBehaviour()->getCopy()) ;
-		}
-		
-		std::cout << "\r element " << elems.size() << "/" << elems.size() << " ...done."<< std::flush ;
-	} ;
-	
-public:
-	bool enrichmentChange ;
-	
-		/** \brief  Generate the triangulation.
-	 * Once the sampling is done, the sampling points are fed into a Delaunay Triangulation algorithm, 
-	 * which generates the triangles. The mesh is still composed of 3 points triangles at this point.
-	 * 
-	 * @param correctionSteps additional steps where points are inserted in incorrect tetrahedrons.
-	 */
-	void generateElements( size_t correctionSteps = 0, bool computeIntersections = true) ;
+	void updateElementBehaviours() ;
+	void solve() ;
+	void stepElements() ;
+	void stepXfem() ;
 	
 	/** \brief  Generate the triangulation.
 	 * Once the sampling is done, the sampling points are fed into a Delaunay Triangulation algorithm, 
@@ -152,7 +187,7 @@ public:
 	 * 
 	 * @param correctionSteps additional steps where points are inserted in incorrect tetrahedrons.
 	 */
-	void reGenerateElements( size_t correctionSteps = 0, bool computeIntersections = true) ;
+	void generateElements( size_t correctionSteps = 0, bool computeIntersections = true) ;
 	
 	/** \brief  Perform the assembly.
 	 * 
@@ -161,26 +196,86 @@ public:
 	 * 
 	 */
 	void assemble() ;
+	
+	template<class MTYPE, class ETYPE>
+	void setElementBehavioursFromMesh( const MTYPE * source, MTYPE * destination)
+	{
+		std::cout << "setting element behaviours from previous mesh... " << std::flush ;
+		std::vector<ETYPE * > elems = destination->getElements() ;
+#pragma omp parallel for
+		for(size_t i = 0 ; i < elems.size() ; i++)
+		{
+// 			std::cout << "\r element " << i << "/" << elems.size() << std::flush ;s
+// 			Circle c(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
+// 			Sphere s(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
+			std::vector<ETYPE * > conflicts =  source->getConflictingElements(&(elems[i]->getCircumCenter()) );
+// 			if(elems[i]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+// 				conflicts = source->getConflictingElements(&c) ;
+// 			else
+// 				conflicts = source->getConflictingElements(&s) ;
+			ETYPE * main = NULL ;
+			if(!conflicts.empty())
+				main = conflicts.front() ;
+			else
+				conflicts = source->getConflictingElements(elems[i]->getPrimitive()) ;
+			
+			if(!conflicts.empty())
+			{
+				main = conflicts.front() ;
+				
+				double overlap = main->overlapFraction(elems[i]->getPrimitive()) ;
+				for(size_t j = 1 ; j < conflicts.size() ; j++)
+				{
+					double testOverlap = conflicts[j]->overlapFraction(elems[i]->getPrimitive()) ;
+					if(testOverlap > overlap)
+					{
+						main = conflicts[j] ;
+						overlap = testOverlap ;
+					}
+				}
+				
+				elems[i]->setBehaviour(main->getBehaviour()->getCopy()) ;
+			}
+			else
+				elems[i]->setBehaviour(NULL) ;
+		}
+		
+		std::cout << " ...done."<< std::endl ;
+	} ;
+	
+/** \brief return the 2D mesh*/
+	Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh(int grid = -1) ;
 
+/** \brief return the 3D mesh*/
+	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh(int grid = -1) ;
+	
+	void shuffleMeshPoints() ;
+
+public:
+	
+
+	State & getState() {return state ;}
+	const State & getState() const {return state ;}
 	const std::vector<Feature *> & getFeatures() const {return tree ;}
 	
 	void print() const;
 	void printForFeature(const Feature *f) const;
-	
-	double now ;
-	
-	size_t numdofs ;
-	
-	bool stitched ;
-	bool renumbered ;
-	bool needAssembly ;
-	bool initialized ;
-	bool reuseDisplacements ;
+	void reMesh() ;
 	
 	Point * checkElement( const DelaunayTetrahedron * t ) const;
 	Point * checkElement( const DelaunayTriangle * t ) const ;
 	Feature * getFeatForTetra( const DelaunayTetrahedron * t ) const;
 
+	
+	std::vector<DelaunayTriangle *> getElements2D(int g = -1) ;
+	std::vector<DelaunayTriangle *> getElements2D(const Point *p, int g = -1) ;
+	std::vector<DelaunayTriangle *> getElements2D(const Geometry *p, int g = -1) ;
+	
+	std::vector<DelaunayTetrahedron *> getElements3D(int g = -1) ;
+	std::vector<DelaunayTetrahedron *> getElements3D(const Point *p, int g = -1) ;
+	std::vector<DelaunayTetrahedron *> getElements3D(const Geometry *p, int g = -1) ;
+	
+	
 	/** \brief The solver converged at the last step.
 	* This condition checks whether a numerical solution was found. If false, this means the solver diverged, or 
 	* could not find a solution with the prescribed precision in the given maximum number of iteration
@@ -190,7 +285,7 @@ public:
 	/** \brief At least an element changed behaviour.
 	* This typically occurs when an element is damaged, or a virtual feature changed its geometry.
 	*/
-	bool meshChanged() const ;
+	bool behaviourChanged() const ;
 	
 	/** \brief At least an enrichment feature changed its geometry/behaviour
 	* This typically occurs when a crack grows
@@ -231,19 +326,10 @@ public:
 	 * @param t daughter feature.
 	 */
 	void addFeature(Feature *father, Feature * f) ;
+	
+	void addPoint(Point * p) ;
 
 	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
-	
-	const Vector & getDisplacements(int g = -1) const ;
-	
-	/** \brief  Generate the sample points for all the features. The features are passed a sampling 
-	 * argument proportionnal to their area compared with the area of the root feature. 
-	 * If the number is lower than 10, than the argument passed is 10.
-	 * 
-	 * @param npoints number of sampling points on the boundary of the sample. This number must be 
-	 * divisable by four if the sample is a rectangle.
-	 */
-	void sample(size_t npoints) ;
 	
 	/** \brief  Attempt to enhance the mesh, based on a sampling citerion.
 	 * 
@@ -257,6 +343,9 @@ public:
 	void refine(size_t nit, SamplingCriterion *cri) ;
 	
 	
+	const Vector & getDisplacements(int g = -1)  ;
+	
+	
 	/** \brief  Refine the mesh around the features.
 	 * 
 	 * Features provide a set of geometries which are targets for successive refinement. Refinement is 
@@ -264,8 +353,6 @@ public:
 	 * 
 	 */
 	void refine(size_t level) ;
-
-	void shuffleMeshPoints() ;
 
 	double getResidualError() const {return residualError ;}
 	
@@ -293,6 +380,14 @@ public:
 	 */
 	void setOrder(Order ord) ;
 	
+	void setDeltaTime(double d) {deltaTime = d ;}
+	
+	void setMaxIterationsPerStep(size_t its) {maxitPerStep = its ;}
+	
+		/** \brief  set Sampling parameter
+	 */
+	void setSamplingNumber(size_t news) { samplingNumber = news ;} ;
+	
 	/**  \brief  Postprocess the result.
 	 * 
 	 * Given a vector containing the displacements at each point (containing n times as many elements as 
@@ -301,7 +396,7 @@ public:
 	 * 
 	 * @return strain.
 	 */
-	Vector strainFromDisplacements() const ;
+	Vector strainFromDisplacements()  ;
 	
 	/**  \brief  Postprocess the result.
 	 * 
@@ -310,7 +405,7 @@ public:
 	 * stress values at the mesh points.
 	 * @return stress.
 	 */
-	Vector stressFromDisplacements() const ;
+	Vector stressFromDisplacements()  ;
 	
 /** \brief Return the stress and strain of a vector of Tetrahedrons*/
 	std::pair<Vector , Vector > getStressAndStrain(const std::vector<DelaunayTetrahedron *> &) ;
@@ -324,45 +419,35 @@ public:
 	size_t numPoints() const ;
 	
 /** \brief Step in time
-* @param dt timestep
 */
-	bool step(double dt) ;
+	bool step() ;
 
 /** \brief annul the last timestep*/
 	void stepBack() ;
 
 /** \brief Perform a time step, but do not update the features*/
 	void elasticStep() ;
-
-	std::deque<std::pair<Point *, Feature *> >::iterator begin() ;
-	std::deque<std::pair<Point *, Feature *> >::iterator end() ;
 	
 /** \brief Return the Assembly*/
 	Assembly * getAssembly() ;
 
 /** \brief return the triangles of the mesh*/
-	std::vector<DelaunayTriangle *> getTriangles(int grid = -1);
+// 	std::vector<DelaunayTriangle *> getTriangles(int grid = -1);
 
 /** \brief return the tetrahedrons of the mesh*/
-	std::vector<DelaunayTetrahedron *> getTetrahedrons(int grid = -1) ;
+// 	std::vector<DelaunayTetrahedron *> getTetrahedrons(int grid = -1) ;
 		
 /** \brief return the triangles lying next to a mesh border*/
 	std::vector<DelaunayTriangle *> getBoundingTriangles(Feature * f = NULL) ;	
 	
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	Form * getElementBehaviour(const DelaunayTriangle *) const ;
+	Form * getElementBehaviour(const DelaunayTriangle *t, bool onlyUpdate = false) const ;
 
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	Form * getElementBehaviour(const DelaunayTetrahedron *) const ;
+	Form * getElementBehaviour(const DelaunayTetrahedron *t, bool onlyUpdate = false) const ;
 	
 /** \brief insert a point in the mesh*/
 	void insert(Point * p ) ;
-	
-/** \brief return the 2D mesh*/
-	Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh(int grid = -1) ;
-
-/** \brief return the 3D mesh*/
-	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh(int grid = -1) ;
 	
 /** \brief Return true id the argument lies in the root feature*/
 	bool inRoot(const Point &p) const ;
@@ -375,8 +460,8 @@ public:
 /** \brief initialise the element states*/
 	void initializeElements() ;
 	
-	double getMaximumDisplacement() const ;
-	double getMinimumDisplacement() const ;
+	double getMaximumDisplacement()  ;
+	double getMinimumDisplacement()  ;
 	
 /** \brief return true if the currently defined problem is 3D*/
 	bool is3D() const ;

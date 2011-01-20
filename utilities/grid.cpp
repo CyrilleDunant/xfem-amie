@@ -80,7 +80,7 @@ bool Voxel::coOccur(const Geometry * inc) const
 void Voxel::remove(Geometry * inc)
 {
 
-	std::vector<Geometry *>::iterator e = std::find(features.begin(), features.end(), inc) ;
+	auto e = std::find(features.begin(), features.end(), inc) ;
 	if(e != features.end())
 		features.erase(e) ;
 	
@@ -353,7 +353,7 @@ bool Pixel::coOccur(const Point & p) const
 
 void Pixel::remove(Geometry * inc)
 {
-	std::vector<Geometry *>::iterator e = std::find(features.begin(), features.end(), inc) ;
+	auto e = std::find(features.begin(), features.end(), inc) ;
 	if(e != features.end())
 		features.erase(e) ;
 	
@@ -725,6 +725,23 @@ void Grid3D::forceAdd(Geometry * inc)
 
 }
 
+bool Grid3D::remove(Geometry* inc)
+{
+
+	for(int i = 0 ; i < pixels.size() ; i++)
+	{
+		for(int j = 0 ; j < pixels[i].size() ; j++)
+		{
+			for(int k = 0 ; k < pixels[i][j].size() ; k++)
+			{
+					pixels[i][j][k]->remove(inc) ;
+			}
+		}
+	}
+
+	return true ;
+}
+
 std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 {
 	std::vector<Geometry *> ret ;
@@ -749,19 +766,19 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 	if(geo->getGeometryType() == TETRAHEDRON)
 	{
 		const Tetrahedron * t = dynamic_cast<const Tetrahedron *>(geo) ;
-		startX = .5*x + t->getCircumCenter()->x-t->getRadius()*1.1 ;
+		startX = .5*x + t->getCircumCenter().x-t->getRadius()*1.1 ;
 		startI = std::max(0., startX/psize - 2) ;
 		
 		endX =  startX+2.2*geo->getRadius();
 		endI = std::min(endX/psize + 2, (double)pixels.size());
 		
-		startY = .5*y + t->getCircumCenter()->y-t->getRadius()*1.1 ;
+		startY = .5*y + t->getCircumCenter().y-t->getRadius()*1.1 ;
 		startJ = std::max(0., startY/psize - 2) ;
 		
 		endY =  startY+2.2*t->getRadius();
 		endJ = std::min(endY/psize + 2, (double)pixels[0].size());
 		
-		startZ = .5*z + t->getCircumCenter()->z-t->getRadius()*1.1 ;
+		startZ = .5*z + t->getCircumCenter().z-t->getRadius()*1.1 ;
 		startK = std::max(0., startZ/psize - 2) ;
 		
 		endZ =  startZ+2.2*t->getRadius();
@@ -791,7 +808,7 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 	}
 	
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	auto e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
@@ -832,7 +849,7 @@ std::vector<Geometry *> Grid3D::coOccur(const Point & p) const
 	}
 	
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	auto e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 
@@ -903,7 +920,7 @@ std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 	}
 
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	auto e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
@@ -935,7 +952,7 @@ std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 	}
 	
 	std::stable_sort(ret.begin(), ret.end());
-	std::vector<Geometry *>::iterator e = std::unique(ret.begin(), ret.end()) ;
+	auto e = std::unique(ret.begin(), ret.end()) ;
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
@@ -967,8 +984,19 @@ void Grid::forceAdd(Geometry * inc)
 		}
 		
 	}
+}
 
-
+bool Grid::remove(Geometry * inc)
+{
+	for(int i = 0 ; i < pixels.size() ; i++)
+	{
+		for(int j = 0 ; j < pixels[i].size() ; j++)
+		{
+				pixels[i][j]->remove(inc) ;
+		}
+	}
+	
+	return true ;
 }
 
 Grid Grid::getGrid(int div) const
@@ -983,6 +1011,8 @@ Grid Grid::getGrid(int div) const
 	
 	return ret ;
 }
+
+
 
 bool Grid::add(Geometry * inc)
 {

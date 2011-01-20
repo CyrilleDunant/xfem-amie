@@ -724,7 +724,7 @@ int main(int argc, char *argv[])
 	std::sort(xplus.begin(), xplus.end()) ;
 	std::sort(y.begin(), y.end()) ;
 	std::sort(z.begin(), z.end()) ;
-	std::vector<Point *>::iterator e = std::unique(xminus.begin(), xminus.end()) ;
+	auto e = std::unique(xminus.begin(), xminus.end()) ;
 	xminus.erase(e, xminus.end()) ;
 	e = std::unique(xplus.begin(), xplus.end()) ;
 	xplus.erase(e, xplus.end()) ;

@@ -167,7 +167,7 @@ void computeDisplacement()
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	Circle C(.01, 0, 0.05) ;
-	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
+	std::vector<DelaunayTriangle *> t = featureTree->getElements2D(&C) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
 	{
@@ -179,9 +179,9 @@ void computeDisplacement()
 	}
 	
 	std::sort(indices.begin(), indices.end()) ;
-	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+	auto e = std::unique(indices.begin(), indices.end()) ;
 	displacement = 0 ;
-	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+	for(auto i = indices.begin() ; i != e ; i++)
 	{
 		displacement+=x[(*i)*2+1]/(e-indices.begin()) ;
 	}
@@ -200,9 +200,9 @@ void computeDisplacement()
 // 	}
 // 	
 // 	std::sort(indices.begin(), indices.end()) ;
-// 	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
+// 	auto e = std::unique(indices.begin(), indices.end()) ;
 // 	displacement = 0 ;
-// 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
+// 	for(auto i = indices.begin() ; i != e ; i++)
 // 	{
 // 		displacement+=x[(*i)*2.]/(e-indices.begin()) ;
 // 	}
@@ -220,9 +220,9 @@ void computeDisplacement()
 // 	}
 // 	
 // 	std::sort(indices0.begin(), indices0.end()) ;
-// 	std::vector<int>::iterator e0 = std::unique(indices0.begin(), indices0.end()) ;
+// 	auto e0 = std::unique(indices0.begin(), indices0.end()) ;
 // 	double displacement0 = 0 ;
-// 	for(std::vector<int>::iterator i = indices0.begin() ; i != e0 ; i++)
+// 	for(auto i = indices0.begin() ; i != e0 ; i++)
 // 	{
 // 		displacement0+=x[(*i)*2.]/(e0-indices0.begin()) ;
 // 	}
@@ -240,50 +240,24 @@ void step()
 	size_t tries = 0 ;
 	size_t dit = 0 ;
 	int totit = 0 ;
+	featureTree->setMaxIterationsPerStep(dsteps) ;
+	featureTree->setDeltaTime(timepos);
+	
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 		tries = 0 ;
-		while(tries < ntries)
+
+		bool go_on = true ;
+		bool no_convergence = true ;
+		bool damage = false ;
+
+		go_on = featureTree->step() ;
+
+		if(go_on)
 		{
-			tries++ ;
-			bool go_on = true ;
-			bool no_convergence = true ;
-			bool damage = false ;
-
-			dit = 0;
-			go_on = true ;
-
-			while(go_on && dit < dsteps)
-			{
-				featureTree->step(timepos) ;
-				go_on = (
-							featureTree->solverConverged() && 
-							(
-								featureTree->meshChanged() || 
-								featureTree->enrichmentChanged()
-							)
-						) || 
-						(
-							!featureTree->solverConverged() && 
-							featureTree->reuseDisplacements
-						);
-				if(featureTree->solverConverged())
-					std::cout << "." << std::flush ;
-				else
-					std::cout << "x" << std::flush ;
-				if(dit%20 == 0)
-					std::cout << dit << std::flush ;
-				dit++ ;
-			}
-			std::cout << ":" << std::endl ;
-
-
-			if(dit < dsteps)
-			{
-				load->setData(load->getData()-2e5) ;
-				selfload->setData(selfload->getData()-2e5) ;
-				break ;
-			}
+			load->setData(load->getData()-2e5) ;
+			selfload->setData(selfload->getData()-2e5) ;
+			break ;
 		}
 		
 		
@@ -1688,11 +1662,10 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 
 	
-	F.sample(1024) ;
+	F.setSamplingNumber(1024) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements(0, true) ;
 
-	triangles = F.getTriangles() ;
+	triangles = F.getElements2D() ;
 // 	
 	
 	step() ;

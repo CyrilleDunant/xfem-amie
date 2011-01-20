@@ -37,6 +37,13 @@ Inclusion3D::Inclusion3D(double r, Point center) : Sphere(r,center ), Feature(NU
 	this->isEnrichmentFeature = false ;
 }
 
+void Inclusion3D::setRadius(double newr)
+{
+	Sphere::setRadius(newr);
+	isUpdated = true ;
+}
+
+
 XMLTree * Inclusion3D::toXML()
 {
 	XMLTree * inc = new XMLTree("inclusion3d") ;
@@ -68,14 +75,14 @@ std::vector<Geometry *> Inclusion3D::getRefinementZones(size_t level) const
 	return ret ;
 }
 
-std::vector<DelaunayTriangle *> Inclusion3D::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  { 
+std::vector<DelaunayTriangle *> Inclusion3D::getElements2D( FeatureTree * dt)  { 
 	return std::vector<DelaunayTriangle *> (0) ;
 }
 	
-std::vector<DelaunayTetrahedron *> Inclusion3D::getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  {
+std::vector<DelaunayTetrahedron *> Inclusion3D::getElements3D( FeatureTree * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -93,12 +100,7 @@ std::vector<DelaunayTetrahedron *> Inclusion3D::getElements( Mesh<DelaunayTetrah
 	}
 	return ret ;
 }
-	
-Point * Inclusion3D::pointAfter(size_t i) 
-{ 
-	return NULL ; 
-}
-	
+
 void Inclusion3D::sample(size_t n)
 {
 	this->Sphere::sampleSurface(n) ;
@@ -144,16 +146,16 @@ std::vector<Geometry *> OctahedralInclusion::getRefinementZones(size_t level) co
 	return ret ;
 }
 	
-std::vector<DelaunayTriangle *> OctahedralInclusion::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> OctahedralInclusion::getElements2D( FeatureTree * dt) 
 {
 	return std::vector<DelaunayTriangle *> (0) ;
 }
 	
-std::vector<DelaunayTetrahedron *> OctahedralInclusion::getTetrahedrons( DelaunayTree3D * dt)
+std::vector<DelaunayTetrahedron *> OctahedralInclusion::getElements3D( FeatureTree * dt)
 {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(this->getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -172,16 +174,10 @@ std::vector<DelaunayTetrahedron *> OctahedralInclusion::getTetrahedrons( Delauna
 	return ret ;
 }
 
-Point * OctahedralInclusion::pointAfter(size_t i)
-{
-	return NULL ; 
-}
-
 void OctahedralInclusion::sample(size_t n)
 {
 	this->RegularOctahedron::sampleSurface(n) ;
 }
-
 
 
 
@@ -243,14 +239,14 @@ std::vector<Geometry *> VirtualInclusion3D::getRefinementZones(size_t level) con
 	return ret ;
 }
 
-std::vector<DelaunayTriangle *> VirtualInclusion3D::getTriangles( DelaunayTree * dt)  { 
+std::vector<DelaunayTriangle *> VirtualInclusion3D::getElements2D( FeatureTree * dt)  { 
 	return std::vector<DelaunayTriangle *> (0) ;
 }
 
-std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getTetrahedrons( DelaunayTree3D * dt)  {
+std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getElements3D( FeatureTree * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->conflicts(dynamic_cast<Sphere *>(this)) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -268,12 +264,6 @@ std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getTetrahedrons( Delaunay
 	}
 	return ret ;
 }
-
-
-Point * VirtualInclusion3D::pointAfter(size_t i) { 
-	return NULL ; 
-}
-
 
 
 void VirtualInclusion3D::sample(size_t n)

@@ -27,26 +27,14 @@ Sample::Sample( double x, double y, double originX, double originY) : Rectangle(
 	this->behaviour = new VoidForm() ;
 }
 
-Point * Sample::pointAfter(size_t i)
-{
-	Point * to_insert = new Point(*boundingPoints[i]*0.5 + *boundingPoints[(i+1)%boundingPoints.size()]*0.5) ;
-	std::valarray<Point *> temp(boundingPoints.size()+1) ;
-	std::copy(&boundingPoints[0], &boundingPoints[i], &temp[0]) ;
-	temp[i+1] = to_insert ;
-	std::copy(&boundingPoints[i+1], &boundingPoints[boundingPoints.size()], &temp[i+2]) ;
-	boundingPoints.resize(temp.size()) ;
-	std::copy(&temp[0],&temp[temp.size()] , &boundingPoints[0]) ;
-	return to_insert ;
-}
-
-std::vector<DelaunayTriangle *> Sample::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) 
+std::vector<DelaunayTriangle *> Sample::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *>  ret ;
 	std::vector<DelaunayTriangle *>  temp ;
 	if(this->m_f == NULL)
-		temp = dt->getElements() ;
+		temp = dt->getElements2D() ;
 	else
-		temp = dt->getConflictingElements(this->getPrimitive()) ;
+		temp = dt->getElements2D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

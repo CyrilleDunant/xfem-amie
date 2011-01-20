@@ -13,7 +13,7 @@ using namespace Mu ;
 ElementarySurface::~ElementarySurface()
 {
 	if(isFather)
-		delete this->shapefunc ;
+		delete shapefunc ;
 	delete behaviour ;
 }
 
@@ -555,7 +555,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 	{
 	case CONSTANT :
 		{
-			shapefunc = new std::valarray<Function>(1) ;
+			shapefunc = new std::valarray<Function>(Function(), 1) ;
 			Matrix m(1, 1) ;
 			m[0][0] = 1 ;
 			(*shapefunc)[0] = Function(m) ;
@@ -563,7 +563,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case LINEAR :
 		{
-			shapefunc = new std::valarray<Function>(3) ;
+			shapefunc = new std::valarray<Function>(Function(),3) ;
 			Matrix xi(2,2) ; xi[1][0] = 1 ;
 			Matrix eta(2,2) ; eta[0][1] = 1 ;
 			Matrix one(2,2) ; one[0][0] = 1 ;
@@ -577,7 +577,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case QUADRATIC :
 		{
-			shapefunc = new std::valarray<Function>(6) ;
+			shapefunc = new std::valarray<Function>(Function(),6) ;
 			
 			
 			Matrix xi(3,3) ; xi[1][0] = 1 ;
@@ -602,7 +602,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case CONSTANT_TIME_LINEAR :
 		{
-			shapefunc = new std::valarray<Function>(2) ;
+			shapefunc = new std::valarray<Function>(Function(),2) ;
 			Matrix m(1, 2) ;
 			std::valarray<Matrix> v(m,1) ; v[0] = m ;
 			std::valarray<std::valarray<Matrix> > vv(v,1) ;
@@ -617,7 +617,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case CONSTANT_TIME_QUADRATIC :
 		{
-			shapefunc = new std::valarray<Function>(3) ;
+			shapefunc = new std::valarray<Function>(Function(),3) ;
 			Matrix m(1, 3) ;
 			std::valarray<Matrix> v(m,1) ; v[0] = m ;
 			std::valarray<std::valarray<Matrix> > vv(v,1) ;
@@ -638,7 +638,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case LINEAR_TIME_LINEAR :
 		{
-			shapefunc = new std::valarray<Function>(6) ;
+			shapefunc = new std::valarray<Function>(Function(),6) ;
 
 		//0
 			(*shapefunc)[0] = Function("y 0.5 0.5 t * - *") ;
@@ -656,7 +656,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case LINEAR_TIME_QUADRATIC :
 		{
-			shapefunc = new std::valarray<Function>(9) ;
+			shapefunc = new std::valarray<Function>(Function(),9) ;
 			
 		//0
 			(*shapefunc)[0] = Function("y  t 2 ^ t - 0.5 * * ") ;
@@ -680,7 +680,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case QUADRATIC_TIME_LINEAR:
 		{
-			shapefunc = new std::valarray<Function>(12) ;
+			shapefunc = new std::valarray<Function>(Function(),12) ;
 			
 		//0
 			(*shapefunc)[0] = Function("y y 2 * * y - 0.5 0.5 t * - *") ;
@@ -710,7 +710,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	case QUADRATIC_TIME_QUADRATIC:
 		{
-			shapefunc = new std::valarray<Function>(18) ;
+			shapefunc = new std::valarray<Function>(Function(),18) ;
 			Function t0("t 2 ^ t - 0.5 *") ;
 			Function t1("1 t 2 ^ -") ;
 			Function t2("t 2 ^ t + 0.5 *") ;
@@ -3009,14 +3009,14 @@ void burn(std::vector<Mu::HexahedralElement *> & vec)
 		}
 		
 		std::stable_sort(temp.begin(), temp.end()) ;
-		std::vector<Mu::HexahedralElement *>::iterator e = std::unique(temp.begin(), temp.end()) ;
+		auto e = std::unique(temp.begin(), temp.end()) ;
 		temp.erase(e, temp.end()) ;
 		
 		to_check = temp ;
 	}
 	
 	std::stable_sort(connected.begin(), connected.end()) ;
-	std::vector<Mu::HexahedralElement *>::iterator e = std::unique(connected.begin(), connected.end()) ;
+	auto e = std::unique(connected.begin(), connected.end()) ;
 	connected.erase(e, connected.end()) ;
 	
 	for(size_t i = 0 ; i < vec.size() ; i++)

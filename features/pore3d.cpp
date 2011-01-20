@@ -13,6 +13,7 @@
 #include "pore3d.h"
 #include "../physics/physics_base.h"
 #include "../physics/void_form.h"
+#include "pore.h"
 
 using namespace Mu ;
 
@@ -61,15 +62,20 @@ std::vector<Geometry *> Pore3D::getRefinementZones(size_t level) const
 	return ret ;
 }
 
+void Pore3D::setRadius(double newR)
+{
+	Sphere::setRadius(newR);
+	isUpdated = true ;
+}
 
-std::vector<DelaunayTriangle *> Pore3D::getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt){
+std::vector<DelaunayTriangle *> Pore3D::getElements2D( FeatureTree * dt){
 	return std::vector<DelaunayTriangle *>(0) ;
 }
 
-std::vector<DelaunayTetrahedron *> Pore3D::getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt){
+std::vector<DelaunayTetrahedron *> Pore3D::getElements3D( FeatureTree * dt){
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getConflictingElements(this->getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -88,9 +94,6 @@ std::vector<DelaunayTetrahedron *> Pore3D::getElements( Mesh<DelaunayTetrahedron
 	return ret ;
 }
 
-Point * Pore3D::pointAfter(size_t i) {
-	return NULL ;
-}
 
 void Pore3D::sample(size_t n) {
 	this->Sphere::sampleSurface(4*n) ;

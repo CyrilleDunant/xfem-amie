@@ -71,18 +71,17 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTriangle *> getElements( Mesh<DelaunayTriangle, DelaunayTreeItem> * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 	
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTetrahedron *> getElements( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dt)  ;
-	
-/** \brief do nothing */
-	virtual Point * pointAfter(size_t i) ;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt)  ;
 	
 	virtual void print() const
 	{
 		std::cout << "I am an inclusion" << std::endl ;
 	}
+	
+	virtual void setRadius(double newr);
 	
 /** \brief return false*/
 	virtual bool isVoid( const Point &) const {return false ;}
@@ -147,13 +146,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 	
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt)  ;
-		
-/** \brief do nothing */
-	virtual Point * pointAfter(size_t i) ;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt)  ;
 	
 	virtual void print() const
 	{
@@ -222,10 +218,10 @@ public:
 	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
 	
 /** \brief return empty vector*/
-	virtual std::vector<DelaunayTriangle *> getTriangles( DelaunayTree * dt)  ;
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
 	
 /** \brief return all tets in mesh with at least a vertex in this Feature*/
-	virtual std::vector<DelaunayTetrahedron *> getTetrahedrons( DelaunayTree3D * dt)  ;
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt)  ;
 		
 /** \brief return tthis*/
 	virtual Feature * getSource() ;
@@ -235,9 +231,6 @@ public:
 	
 /** \brief return false*/
 	virtual bool inBoundary(const Point) const ;
-	
-/** \brief do nothing, return NULL*/
-	virtual Point * pointAfter(size_t i) ;
 	
 	virtual void print() const
 	{

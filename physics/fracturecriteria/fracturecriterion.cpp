@@ -303,11 +303,13 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 	if(testedTri)
 	{
 		if(!cache.empty())
-			return ;
+		{
+			cache.clear();
+		}
 		Circle epsilon(neighbourhoodradius,testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
-		std::vector<DelaunayTriangle *> tempcache = testedTri->tree->getConflictingElements(&epsilon);
+		std::vector<DelaunayTriangle *> tempcache = testedTri->tree->getNeighbouringElementsInGeometry(testedTri, &epsilon);
 		std::vector<DelaunayTriangle *> neighbourhood ;
 		for(size_t i = 0 ; i < testedTri->neighbourhood.size() ; i++)
 		{
@@ -343,7 +345,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 	else if(testedTet)
 	{
 		if(!cache3d.empty())
-			return ;
+			cache.clear();
+		
 		Sphere epsilon(neighbourhoodradius,testedTet->getCenter()) ;
 		if(!testedTet->tree)
 			return ;
@@ -671,8 +674,6 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 
 void FractureCriterion::step(const ElementState &s)
 {
-	
-
 		if(cache.empty() && cache3d.empty())
 				initialiseCache(s) ;
 		
@@ -766,7 +767,7 @@ bool FractureCriterion::met(const ElementState &s)
 		if(testedTri->visited)
 			return false ;
 		
-		if (scoreAtState <= -tol)
+		if (scoreAtState < 0)
 			return false ;
 
 		double maxNeighbourhoodScore = 0 ;
@@ -782,36 +783,20 @@ bool FractureCriterion::met(const ElementState &s)
 			{
 				if(cache[i]->getBehaviour()->getFractureCriterion())
 				{
-					if(!cache[i]->getBehaviour()->fractured())
+					if(!cache[i]->getBehaviour()->fractured() && cache[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 						areamax += area[i] ;
-// 					if( !cache[i]->getBehaviour()->fractured())
-// 					{
-						double s = cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
-						scores[-s] =  cache[i];
-						unsortedScores.push_back(s);
-						if(s > maxNeighbourhoodScore)
-						{
-							maxNeighbourhoodScore = s ;
-							maxLocus = cache[i] ;
-						}
-// 					}
-// 					else if(cache[i]->getBehaviour()->fractured())
-// 					{
-// 						double s = POINT_TOLERANCE ;
-// 						scores[-s] =  cache[i];
-// 						unsortedScores.push_back(s);
-// 						if(s > maxNeighbourhoodScore)
-// 						{
-// 							maxNeighbourhoodScore = s ;
-// 							maxLocus = cache[i] ;
-// 						}
-						
-// 					}
+
+					double s = cache[i]->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+					scores[-s] =  cache[i];
+					unsortedScores.push_back(s);
+					if(s > maxNeighbourhoodScore)
+					{
+						maxNeighbourhoodScore = s ;
+						maxLocus = cache[i] ;
+					}
+
 					areatemp[cache[i]] = area[i] ;
 				}
-				
-// 				if ((maxNeighbourhoodScore*tol) > score)
-// 					return false ;
 					
 			}
 		}
@@ -842,53 +827,51 @@ bool FractureCriterion::met(const ElementState &s)
 		double thresholdscore = maxNeighbourhoodScore ;
 		double avgscore = 0 ;
 		double trialarea = std::min(physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI, areamax) ;
-		for(std::map<double, DelaunayTriangle *>::iterator i = scores.begin() ; i != scores.end() ; ++i)
+		for(auto i = scores.begin() ; i != scores.end() ; ++i)
 		{
-			if(!foundcutoff)
-			{
-				double parea = matchedArea ;
-				double narea = areatemp[i->second] ;
-				matchedArea += narea ;
-				double a(narea) ;
-				if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
-				{
-					matchedArea += a ;
-					narea += a ;
-				}
-				if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
-				{
-					matchedArea += a ;
-					narea += a ;
-				}
-				if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-				{
-					matchedArea += a ;
-					narea += a ;
-				}
-				if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-				{
-					matchedArea += a ;
-					narea += a ;
-				}
-				avgscore = (parea*avgscore - narea*i->first)/matchedArea ;
 
-				if (avgscore <= 0 && matchedArea >= trialarea)
-				{
-					thresholdscore = -i->first ;
-					foundcutoff = true ;
-					break ;
-				}
-				else if (avgscore < 0 && matchedArea < trialarea)
-				{
-					foundcutoff = false ;
-					break ;
-				}
-				else if (avgscore > 0 && matchedArea >= trialarea)
-				{
-					thresholdscore = -i->first ;
-					foundcutoff = true ;
-					break ;
-				}
+			double parea = matchedArea ;
+			double narea = areatemp[i->second] ;
+			matchedArea += narea ;
+			double a(narea) ;
+			if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+			{
+				matchedArea += a ;
+				narea += a ;
+			}
+			if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+			{
+				matchedArea += a ;
+				narea += a ;
+			}
+			if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+			{
+				matchedArea += a ;
+				narea += a ;
+			}
+			if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+			{
+				matchedArea += a ;
+				narea += a ;
+			}
+			avgscore = (parea*avgscore - narea*i->first)/matchedArea ;
+
+			if (avgscore <= 0 && matchedArea >= trialarea)
+			{
+				thresholdscore = -i->first ;
+				foundcutoff = true ;
+				break ;
+			}
+			else if (avgscore < 0 && matchedArea < trialarea)
+			{
+				foundcutoff = false ;
+				break ;
+			}
+			else if (avgscore > 0 && matchedArea >= trialarea)
+			{
+				thresholdscore = -i->first ;
+				foundcutoff = true ;
+				break ;
 			}
 // 			else
 // 				i->second->visited = true ;
@@ -961,7 +944,7 @@ bool FractureCriterion::met(const ElementState &s)
 		bool foundcutoff = false ;
 		double thresholdscore = maxNeighbourhoodScore ;
 		
-		for(std::map<double, DelaunayTetrahedron *>::iterator i = scores.begin() ; i != scores.end() ; ++i)
+		for(auto i = scores.begin() ; i != scores.end() ; ++i)
 		{
 			
 			if(!foundcutoff)
@@ -1024,7 +1007,7 @@ bool FractureCriterion::met(const ElementState &s)
 		double maxNeighbourhoodScore = 0 ;
 		if(!neighbourhood.empty())
 		{
-			for(std::set<HexahedralElement *>::iterator i= neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
+			for(auto i= neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
 			{
 				if((*i)->getBehaviour()->getFractureCriterion() 
 					&& !(*i)->getBehaviour()->fractured())

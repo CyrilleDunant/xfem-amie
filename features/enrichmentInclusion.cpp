@@ -297,15 +297,15 @@ void EnrichmentInclusion::snap(DelaunayTree * dtree) {}
 bool EnrichmentInclusion::inBoundary(const Point v) const {return false ; }
 bool EnrichmentInclusion::inBoundary(const Point *v) const { return false ;}
 	
-std::vector<DelaunayTriangle *> EnrichmentInclusion::getTriangles( DelaunayTree * dt) 
+std::vector<DelaunayTriangle *> EnrichmentInclusion::getElements2D( FeatureTree * dt) 
 { 
-	return dt->conflicts(getPrimitive()) ;
+	return dt->getElements2D(getPrimitive()) ;
 }
 	
-std::vector<DelaunayTriangle *> EnrichmentInclusion::getIntersectingTriangles( DelaunayTree * dt)
+std::vector<DelaunayTriangle *> EnrichmentInclusion::getIntersectingTriangles( FeatureTree * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dt->conflicts(getPrimitive()) ;
+	std::vector<DelaunayTriangle *> disc = dt->getElements2D(getPrimitive()) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;

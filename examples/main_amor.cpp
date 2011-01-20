@@ -693,8 +693,8 @@ int main(size_t argc, char * argv[])
 			}
 		
 			std::stable_sort(point_list.begin(), point_list.end()) ;
-			std::vector<size_t>::iterator e = std::unique(point_list.begin(), point_list.end()) ;
-			point_list.erase(e, point_list.end()) ;
+			auto e = std::unique(point_list.begin(), point_list.end()) ;
+			point_list.erase(e , point_list.end()) ;
 			
 			size_t point_counter = 0 ;
 			// CECI ESt IMPORTANT
@@ -747,7 +747,7 @@ int main(size_t argc, char * argv[])
 			for(size_t i = 0 ; i < point_list.size() ; i++)
 			{
 				std::stable_sort(point_list[i].begin(), point_list[i].end()) ;
-				std::vector<size_t>::iterator e = std::unique(point_list[i].begin(), point_list[i].end()) ;
+				auto e = std::unique(point_list[i].begin(), point_list[i].end())
 				point_list[i].erase(e, point_list[i].end()) ;
 			}
 			

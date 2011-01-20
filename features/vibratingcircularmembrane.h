@@ -29,8 +29,8 @@ public:
 	
 	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 	
-	virtual std::vector<Mu::DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
-	virtual std::vector<Mu::DelaunayTriangle*> getElements(Mesh<DelaunayTriangle, DelaunayTreeItem> *) { return std::vector<Mu::DelaunayTriangle*>() ;}
+	virtual std::vector<Mu::DelaunayTetrahedron*> getElements3D(FeatureTree *) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
+	virtual std::vector<Mu::DelaunayTriangle*> getElements2D(FeatureTree *) { return std::vector<Mu::DelaunayTriangle*>() ;}
 	
 	virtual void print() const
 	{
@@ -38,10 +38,6 @@ public:
 	}
 	
 	void reset() ;
-	
-	const Circle * getGeometry() const ;
-
-	Circle * getGeometry() ;
 	
 public:
 	GEO_DERIVED_OBJECT(Circle) ;

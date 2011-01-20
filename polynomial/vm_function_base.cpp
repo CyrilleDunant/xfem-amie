@@ -79,6 +79,11 @@ Function & Function::operator=(const Function &f)
 	
 	if(f.e_diff)
 	{
+		for(size_t i = 0 ; i < derivative.size() ; i++)
+		{
+			derivative[i].~Function() ;
+		}
+		
 		this->derivative.resize(f.derivative.size()) ;
 		this->derivative = f.derivative ;
 		this->e_diff = true ;
@@ -103,11 +108,12 @@ void  Function::preCalculate(const GaussPointArray & gp , std::vector<Variable> 
 	std::map<Variable, Vector *> val ;
 	for(size_t i = 0 ; i < var.size() ; i++)
 	{
-		val[var[i]] = new Vector(VirtualMachine().deval(*this,var[i] ,gp, eps)) ;
+		if(val.find(var[i]) == val.end())
+			val[var[i]] = new Vector(VirtualMachine().deval(*this,var[i] ,gp, eps)) ;
 	}
 	if(dprecalc.find(gp.id) != dprecalc.end())
 	{
-		for(std::map<Variable, Vector *>::iterator i = dprecalc[gp.id].begin() ;  i != dprecalc[gp.id].end() ; ++i)
+		for(auto i = dprecalc[gp.id].begin() ;  i != dprecalc[gp.id].end() ; ++i)
 			delete i->second ;
 	}
 
@@ -138,7 +144,7 @@ bool Function::precalculated(const GaussPointArray & gp) const
 
 bool Function::precalculated(const GaussPointArray & gp, Variable v) const
 {
-	std::map<int, std::map<Variable, Vector *> >::const_iterator precalculatedDerivative = dprecalc.find(gp.id) ;
+	auto precalculatedDerivative = dprecalc.find(gp.id) ;
 	return precalculatedDerivative != dprecalc.end() && precalculatedDerivative->second.find(v) != precalculatedDerivative->second.end() ;
 }
 
@@ -1163,13 +1169,13 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 
 Function::Function(const Function &f): derivative(f.derivative), iPoint(f.iPoint), ptID(f.ptID), dofID(f.dofID), byteCode(f.byteCode), e_diff(f.e_diff), compiled(false)
 {
-	for(std::map<int, Vector *>::const_iterator i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
+	for(auto i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
 		precalc[i->first] = new Vector(*i->second) ;
 
-	for(std::map<int, std::map<Variable, Vector *> >::const_iterator i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
+	for(auto i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
 	{
 		std::map<Variable, Vector *> v ;
-		for(std::map<Variable, Vector *>::const_iterator j = i->second.begin() ; j != i->second.end() ; ++j)
+		for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
 		{
 			v[j->first] = new Vector(*j->second) ;
 		}
@@ -1180,13 +1186,13 @@ Function::Function(const Function &f): derivative(f.derivative), iPoint(f.iPoint
 
 Function::~Function()
 {
-	
-	for(std::map<int, Vector *>::iterator i = precalc.begin() ; i != precalc.end() ; ++i)
+
+	for(auto i = precalc.begin() ; i != precalc.end() ; ++i)
 		delete i->second ;
 
-	for(std::map<int, std::map<Variable, Vector *> >::iterator i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
+	for(auto i = dprecalc.begin() ; i != dprecalc.end() ; ++i)
 	{
-		for(std::map<Variable, Vector *>::iterator j = i->second.begin() ; j != i->second.end() ; ++j)
+		for(auto j = i->second.begin() ; j != i->second.end() ; ++j)
 		{
 			delete j->second ;
 		}
@@ -2177,7 +2183,7 @@ void Function::compile()
 			TokenType sout(std::make_pair(TOKEN_WRITE_VARIABLE,adresses[i]), (double)(0)) ;	
 			size_t subsize = subexpressions[i].size() ;
 
-			for(std::vector<RefCountedToken>::iterator j = bytecode.begin() ; j != bytecode.end() ; ++j)
+			for(auto j = bytecode.begin() ; j != bytecode.end() ; ++j)
 			{
 				if((*j)->type == sout)
 				{
@@ -2602,8 +2608,7 @@ void Function::compile()
 			}
 			
 			bytecode=newByteCode ;
-			newByteCode.clear() ;
-
+			newByteCode.clear();
 		}
 	}
 	

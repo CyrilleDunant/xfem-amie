@@ -177,6 +177,8 @@ void step()
 	
 	size_t dit = 0 ;
 	int totit = 0 ;
+	featureTree->setMaxIterationsPerStep(ntries) ;
+	featureTree->setDeltaTime(0.00025);
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 		tries = 0 ;
@@ -185,49 +187,8 @@ void step()
 		bool damage = false ;
 
 		dit = 0;
-		featureTree->step(0.00025) ;
-		go_on = (
-						featureTree->solverConverged() && 
-						(
-							featureTree->meshChanged() || 
-							featureTree->enrichmentChanged()
-						)
-					) || 
-					(
-						!featureTree->solverConverged() && 
-						featureTree->reuseDisplacements
-					);
-		
-		while(tries < ntries)
-		{
-			tries++ ;
-			
-			while(go_on && dit < dsteps)
-			{
-				featureTree->step(0) ;
-				go_on = (
-							featureTree->solverConverged() && 
-							(
-								featureTree->meshChanged() || 
-								featureTree->enrichmentChanged()
-							)
-						) || 
-						(
-							!featureTree->solverConverged() && 
-							featureTree->reuseDisplacements
-						);
-				if(featureTree->solverConverged())
-					std::cout << "." << std::flush ;
-				else
-					std::cout << "x" << std::flush ;
-				if(dit%20 == 0)
-					std::cout << dit << std::flush ;
-				dit++ ;
-			}
-			std::cout << ":" << std::endl ;
+		featureTree->step() ;
 
-		}
-		
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 	
@@ -564,7 +525,7 @@ void step()
 				for(double j = -0.012/2 ; j <= 0.012/2+0.012/64 ; j += 0.012/64)
 				{
 					Point p(i,j) ;
-					std::vector<DelaunayTriangle *> tris = featureTree->get2DMesh()->getConflictingElements(&p) ;
+					std::vector<DelaunayTriangle *> tris = featureTree->getElements2D(&p) ;
 					if(!tris.empty())
 					{
 						bool done = false ;
@@ -1815,15 +1776,14 @@ int main(int argc, char *argv[])
 		F.addFeature(&sample,inclusions[i]) ;
 		placed_area += inclusions[i]->area() ;
 	}
-	F.sample(256) ;
+	F.setSamplingNumber(256) ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT));
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT));
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT));
 	F.setOrder(LINEAR) ;
 
-	F.generateElements() ;
-	triangles = F.getTriangles() ;
+	triangles = F.getElements2D() ;
 	step() ;
 	
 	glutInit(&argc, argv) ;	

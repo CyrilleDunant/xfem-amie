@@ -100,7 +100,8 @@ public:
 	 * @param m Matrix to modify
 	 * @return a new FunctionMatrix
 	 */
-// 	virtual FunctionMatrix apply(const Matrix & m) const = 0 ;
+	
+	virtual bool changed() const ;
 
 } ;
 

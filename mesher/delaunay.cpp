@@ -171,14 +171,14 @@ void Star::updateNeighbourhood()
 {
 	int count = 0 ;
 	int soncount = 0 ;
-	for(std::vector<DelaunayTreeItem *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	for( auto i = treeitem.begin() ; i != treeitem.end() ;++i)
 	{
 		count += (*i)->son.size() + (*i)->stepson.size() + (*i)->neighbour.size() ;
 		soncount += (*i)->son.size() ;
 	}
 	std::valarray<DelaunayTreeItem *> items(count) ;
 	count = 0 ;
-	for(std::vector<DelaunayTreeItem *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	for(auto i = treeitem.begin() ; i != treeitem.end() ;++i)
 	{	
 		for(size_t j = 0 ; j < (*i)->son.size() ; j++)
 		{
@@ -186,7 +186,7 @@ void Star::updateNeighbourhood()
 		}
 		
 	}
-	for(std::vector<DelaunayTreeItem *>::const_iterator i = treeitem.begin() ; i != treeitem.end() ;++i)
+	for( auto i = treeitem.begin() ; i != treeitem.end() ;++i)
 	{	
 		for(size_t j = 0 ; j < (*i)->stepson.size() ; j++)
 		{
@@ -202,7 +202,7 @@ void Star::updateNeighbourhood()
 	}
 	
 	std::sort(&items[soncount], &items[count]) ;
-	DelaunayTreeItem ** e = std::unique(&items[0], &items[count]) ;
+	auto e = std::unique(&items[0], &items[count]) ;
 	size_t end =  e-&items[0] ;
 	
 	if(!items.size())
@@ -266,7 +266,7 @@ void Star::updateNeighbourhood()
 	
 	std::vector<DelaunayTreeItem *> items ;
 
-	for(std::vector<DelaunayTreeItem *>::iterator i =  treeitem.begin() ; i != treeitem.end() ;++i)
+	for(auto i =  treeitem.begin() ; i != treeitem.end() ;++i)
 	{	
 		for(size_t j = 0 ; j < (*i)->son.size() ; j++)
 			items.push_back((*i)->getSon(j)) ;
@@ -278,16 +278,16 @@ void Star::updateNeighbourhood()
 // 		items.insert(items.end() , treeitem[i]->neighbour.begin() , treeitem[i]->neighbour.end()) ;
 	}
 	std::sort(items.begin(), items.end()) ;
-	std::vector<DelaunayTreeItem *>::iterator e = std::unique(items.begin(), items.end()) ;
+	auto e = std::unique(items.begin(), items.end()) ;
 	items.erase(e, items.end()) ;
 	
 	bool goOn = true ;
 	while(goOn)
 	{
 		goOn = false ;
-		for(std::vector<DelaunayTreeItem *>::iterator i = items.begin() ; i != items.end() ; ++i)
+		for(auto i = items.begin() ; i != items.end() ; ++i)
 		{
-			for(std::vector<DelaunayTreeItem *>::iterator j = i+1 ; j != items.end() ; ++j)
+			for(auto j = i+1 ; j != items.end() ; ++j)
 			{
 				if((*i)->isDuplicate((*j)) && (*i)->isAlive() && (*j)->isAlive())
 				{
@@ -336,9 +336,9 @@ void Star::updateNeighbourhood()
 		}
 	}
 
-	for(std::vector<DelaunayTreeItem *>::iterator i = items.begin() ; i != items.end() ; ++i)
+	for(auto i = items.begin() ; i != items.end() ; ++i)
 	{
-		for(std::vector<DelaunayTreeItem *>::iterator j = i+1 ; j != items.end() ; ++j)
+		for(auto j = i+1 ; j != items.end() ; ++j)
 		{
 			if(!(*i)->erased && !(*j)->erased )
 				makeNeighbours((*i), (*j)) ;
@@ -545,7 +545,7 @@ void DelaunayTree::setElementOrder(Order elemOrder)
 void DelaunayTree::refresh(TriElement *father)
 {
 	
-	for(std::vector<DelaunayTreeItem *>::iterator i = tree.begin() ; i != tree.end() ; ++i)
+	for(auto i = tree.begin() ; i != tree.end() ; ++i)
 	{
 		if((*i)->isAlive() && (*i)->isTriangle)
 		{
@@ -1807,7 +1807,6 @@ DelaunayTree::~DelaunayTree()
 	std::valarray<Point *> nularray(0) ;
 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
 	{
-
 		if(this->tree[i] && this->tree[i]->isTriangle && !this->tree[i]->isDeadTriangle )
 		{
 			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(tree[i]) ;
@@ -2068,7 +2067,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 	}
 
 	std::stable_sort(cons.first.begin(), cons.first.end()) ;
-	std::vector<DelaunayTreeItem *>::iterator e = std::unique(cons.first.begin(), cons.first.end()) ;
+	auto e = std::unique(cons.first.begin(), cons.first.end()) ;
 	cons.first.erase(e, cons.first.end()) ;
 	
 	std::vector<DelaunayTreeItem *> ret ;

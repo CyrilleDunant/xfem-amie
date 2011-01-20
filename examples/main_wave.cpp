@@ -383,19 +383,19 @@ void keyboard (unsigned char key, int x_, int y_)
 					}
 				}
 				
-				for(std::set<Point *>::iterator i = source.begin() ; i != source.end() ; ++i)
+				for(auto i = source.begin() ; i != source.end() ; ++i)
 				{
 					FT->getAssembly()->setPoint(10.*sin(2.*M_PI*(double)(tstep+1)/100.),(*i)->id) ;
 				}
-// 				for(std::set<Point *>::iterator i = border.begin() ; i != border.end() ; ++i)
+// 				for(auto i = border.begin() ; i != border.end() ; ++i)
 // 					FT->getAssembly()->setPoint(0,(*i)->id) ;
 				
-				for(std::set<std::pair<Point *, Point *> >::iterator i = init.begin() ; i != init.end() ; ++i)
+				for(auto i = init.begin() ; i != init.end() ; ++i)
 				{
 					FT->getAssembly()->setPoint((*x)[(*i).second->id],(*i).first->id) ;
 				}
 				
-				FT->step(0.1) ;
+				FT->step() ;
 				x =  &(FT->getAssembly()->getDisplacements()) ;
 				tstep++ ;
 			}
@@ -458,12 +458,11 @@ int main(int argc, char *argv[])
 // 	ft.addFeature(base, new VibratingMembrane(sample,50, 0, 0, diffusionMatrix)) ;
 
 
-	ft.sample(512) ;
+	ft.setSamplingNumber(512) ;
 	ft.setOrder(LINEAR_TIME_QUADRATIC) ;
-	ft.generateElements(0, false) ;
 	
 
-	std::vector<DelaunayTriangle *> elems = ft.getTriangles() ;
+	std::vector<DelaunayTriangle *> elems = ft.getElements2D() ;
 
 	std::set<Point *> points ;
 	for(size_t i = 0 ; i < elems.size() ; i++)
@@ -480,7 +479,7 @@ int main(int argc, char *argv[])
 		}
 	}
 // 
-// 	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
+// 	for(auto i = points.begin() ; i != points.end() ; ++i)
 // 	{
 // 		
 // 		ft.getAssembly()->setPoint(0., (*i)->id) ;
@@ -491,7 +490,7 @@ int main(int argc, char *argv[])
 // 	x = &ft.getAssembly()->getDisplacements() ;
 
 	
-	for(std::set<Point *>::iterator i = points.begin() ; i != points.end() ; ++i)
+	for(auto i = points.begin() ; i != points.end() ; ++i)
 	{
 		if(std::abs(sqrt(((*i)->x)*((*i)->x)+((*i)->y)*((*i)->y)) - 50) < 1e-8)
 		{
@@ -507,7 +506,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	ft.step(0.1) ;
+	ft.step() ;
 	FT = &ft ;
 
 // 	ft.getAssembly()->print() ;
@@ -542,17 +541,17 @@ int main(int argc, char *argv[])
 			}
 		}
 		
-		for(std::set<Point *>::iterator i = source.begin() ; i != source.end() ; ++i)
+		for(auto i = source.begin() ; i != source.end() ; ++i)
 			ft.getAssembly()->setPoint(100.*sin(M_PI*(double)timestep/10),(*i)->id) ;
-		for(std::set<Point *>::iterator i = border.begin() ; i != border.end() ; ++i)
+		for(auto i = border.begin() ; i != border.end() ; ++i)
 			ft.getAssembly()->setPoint(0,(*i)->id) ;
 		
-		for(std::set<std::pair<Point *, Point *> >::iterator i = init.begin() ; i != init.end() ; ++i)
+		for(auto i = init.begin() ; i != init.end() ; ++i)
 		{
 			ft.getAssembly()->setPoint((*x)[(*i).second->id],(*i).first->id) ;
 		}
 
-		ft.step(0.1) ;
+		ft.step() ;
 	}
 
 	x =  &ft.getAssembly()->getDisplacements() ;

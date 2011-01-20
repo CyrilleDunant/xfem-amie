@@ -56,57 +56,12 @@ bool dlist = false ;
 int count = 0 ;
 
 
-void setBC()
-{
-	triangles = featureTree->getTetrahedrons() ;
-	
-	for(size_t k = 0 ; k < triangles.size() ;k++)
-	{
-		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-		{
-			
-			if (triangles[k]->getBoundingPoint(c).x < .00001)
-			{
-				featureTree->getAssembly()->setPoint(-timepos,0 ,0,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(triangles[k]->getBoundingPoint(c).x > .03999)
-			{
-				featureTree->getAssembly()->setPoint( timepos,0, 0,triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if (triangles[k]->getBoundingPoint(c).y < .00001)
-			{
-				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(triangles[k]->getBoundingPoint(c).y > .03999)
-			{
-				featureTree->getAssembly()->setPointAlong( ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if (triangles[k]->getBoundingPoint(c).z < .00001)
-			{
-				featureTree->getAssembly()->setPointAlong( ZETA, 0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-			if(triangles[k]->getBoundingPoint(c).z > .03999)
-			{
-				featureTree->getAssembly()->setPointAlong( ZETA, 0, triangles[k]->getBoundingPoint(c).id) ;
-			}
-		}
-	}
-	
-}
-
 
 void step()
 {
 	
-	for(size_t i = 0 ; i < 1 ; i++)
-	{
-		std::cout << "\r iteration " << i << "/2" << std::flush ;
-		setBC() ;
-		featureTree->step(timepos) ;
-		
-// 		timepos+= 0.01 ;
-	}
-	std::cout << "\r iteration " << "2/2 ... done" << std::endl ;
+	featureTree->step() ;
+
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	sigma.resize(triangles.size()*6*4) ;
@@ -274,9 +229,9 @@ int main(int argc, char *argv[])
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
 	sample.setBehaviour(new Stiffness(m0)) ;
 
-	F.sample(256) ;
+	F.setSamplingNumber(256) ;
 	F.setOrder(LINEAR) ;
-	F.generateElements() ;
+
 	step() ;
 	
 	return 0 ;
