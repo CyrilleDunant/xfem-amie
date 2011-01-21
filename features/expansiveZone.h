@@ -81,7 +81,7 @@ public:
 	virtual ~MaterialInclusion() ;
 	
 /** \brief enrich elements and change their Behaviour if required*/
-	 virtual void enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree);
+	virtual void enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree);
 	
 /** \brief return empty vector*/
 	virtual std::vector<Mu::DelaunayTetrahedron*> getElements(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>*) { return std::vector<Mu::DelaunayTetrahedron*>() ;}

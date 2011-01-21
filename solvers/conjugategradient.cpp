@@ -32,7 +32,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	if(maxit != -1)
 		Maxit = maxit ;
 	else
-		Maxit = round(.25*b.size()) ;
+		Maxit = std::max(round(.25*b.size()), 500.) ;
 	if(x0.size() == b.size())
 	{
 		x = x0 ;
@@ -109,7 +109,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
-	while(last_rho*last_rho > eps*eps*err0 && n < Maxit )
+	while(last_rho*last_rho > 0.01*eps*eps*err0 && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		

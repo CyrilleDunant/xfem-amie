@@ -241,7 +241,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 			Function hat = 1-f_abs((radius - position)/(maxrad-minrad)) ;
 			for(int j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
 			{
-				Function f = father.getShapeFunction(j)*(hat - VirtualMachine().eval(hat, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
+				Function f = ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
@@ -272,14 +272,14 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 							int delta = 0 ;
 							while( &t->getBoundingPoint(delta) != pt->first)
 								delta++ ;
-							Function f = father.getShapeFunction(delta)*(hat - VirtualMachine().eval(hat, t->inLocalCoordinates(t->getBoundingPoint(delta)))) ;
+							Function f = t->getShapeFunction(delta)*(hat - VirtualMachine().eval(hat, t->inLocalCoordinates(t->getBoundingPoint(delta)))) ;
 							if(!hinted)
 							{
 								f.setIntegrationHint(hint) ;
 								hinted = true ;
 							}
-							f.setPoint(pt->first) ;
-							f.setDofID(dofId[pt->first]) ;
+							f.setPoint(&t->getBoundingPoint(delta)) ;
+							f.setDofID(dofId[&t->getBoundingPoint(delta)]) ;
 							t->setEnrichment(f, getPrimitive()) ;
 						}
 					}

@@ -305,6 +305,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		if(!cache.empty())
 		{
 			cache.clear();
+			area.clear();
 		}
 		Circle epsilon(neighbourhoodradius,testedTri->getCenter()) ;
 		if(!testedTri->tree)
@@ -317,6 +318,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			{
 				neighbourhood.push_back(testedTri->getNeighbourhood(i));
 				cache.push_back(testedTri->getNeighbourhood(i));
+				area.push_back(cache.back()->area());
 			}
 		}
 		
@@ -358,6 +360,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			{
 				neighbourhood.push_back(testedTet->getNeighbourhood(i));
 				cache3d.push_back(testedTet->getNeighbourhood(i));
+				area.push_back(cache3d.back()->volume());
 			}
 		}
 		

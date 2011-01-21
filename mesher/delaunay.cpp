@@ -2530,19 +2530,19 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 48 ;
+			double ndivs = 64 ;
 			for(double k = 1  ; k < ndivs ; k++)
 			{
 				for(double l = 1  ; l < ndivs ; l++)
 				{
 					if( k/ndivs + l/ndivs < .5 )
-						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
+						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), .5)) ;
 				}
 			}
 			
 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
 			{
-				gp_alternative[i].second = 0.5*jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
+				gp_alternative[i].second *= jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
 			}
 			if(gp.gaussPoints.size() < gp_alternative.size())
 			{

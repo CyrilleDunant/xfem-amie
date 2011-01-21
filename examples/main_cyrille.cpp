@@ -741,7 +741,7 @@ void Menu(int selection)
 		}
 	case ID_BACK:
 	{
-		dynamic_cast<Inclusion *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
+		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
 		step() ;
 // 		imposeddisp->setData(imposeddisp->getData()-.1);
 		dlist = false ;
@@ -1745,12 +1745,12 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 200, -0) );
 // 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
-
-	Inclusion * inc0 = new Inclusion(0.2, 0, 0) ;
 	Vector a(3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
+	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 0.2, 0., 0.,m0_paste*2., a) ;
+	
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
-	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
+// 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
 	F.addFeature(&sample, inc0) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;

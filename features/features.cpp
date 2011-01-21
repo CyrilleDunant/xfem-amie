@@ -2979,6 +2979,7 @@ void FeatureTree::stepXfem()
 						enrichmentChange = enrichmentChange || moved;
 						if(moved)
 						{
+							reuseDisplacements = false ;
 							if(useMultigrid)
 							{
 								for(size_t j = 0 ; j < coarseTrees.size() ; j++)
@@ -2993,6 +2994,7 @@ void FeatureTree::stepXfem()
 					{
 						needAssembly = true ;
 						needMeshing = true ;
+						reuseDisplacements = false ;
 					}
 				}
 			
@@ -3011,11 +3013,15 @@ void FeatureTree::stepXfem()
 					if(enrichmentChange)
 						
 					needAssembly = true ;
+					
+					if (moved)
+						reuseDisplacements = false ;
 				}
 				else if(tree[i]->isUpdated)
 				{
 					needAssembly = true ;
 					needMeshing = true ;
+					reuseDisplacements = false ;
 				}
 			}
 		}
@@ -3437,17 +3443,16 @@ bool FeatureTree::step()
 	bool ret = true ;
 	size_t it = 0 ;
 	
-	if(enrichmentChange || needMeshing)
+
+	K->clear() ;
+	if(useMultigrid)
 	{
-		this->K->clear() ;
-		if(useMultigrid)
+		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
 		{
-			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
-			{
-				coarseAssemblies[j]->clear() ;
-			}
+			coarseAssemblies[j]->clear() ;
 		}
 	}
+
 	state.setStateTo(XFEM_STEPPED, true ) ;
 	
 	std::cout << it << "." << std::flush ;
@@ -3464,7 +3469,7 @@ bool FeatureTree::step()
 
 		if(enrichmentChange || needMeshing)
 		{
-			this->K->clear() ;
+			K->clear() ;
 			if(useMultigrid)
 			{
 				for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
@@ -3474,6 +3479,8 @@ bool FeatureTree::step()
 			}
 		}
 		state.setStateTo(XFEM_STEPPED, true ) ;
+		
+		
 		if(!solverConverged() && !reuseDisplacements)
 			break ;
 	}

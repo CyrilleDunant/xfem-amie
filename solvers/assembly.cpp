@@ -486,6 +486,7 @@ bool Assembly::make_final()
 	
 	if (has3Dims == false)
 	{
+		
 		if( element2d.empty() && coordinateIndexedMatrix != NULL)
 		{
 			std::cerr << "no elements in mesh (2D) !" << std::endl ;
@@ -564,7 +565,7 @@ bool Assembly::make_final()
 		}
 		else
 		{
-			max = this->coordinateIndexedMatrix->accumulated_row_size.size() ;
+			max = coordinateIndexedMatrix->accumulated_row_size.size() ;
 		}
 		
 		coordinateIndexedMatrix->array = 0 ;

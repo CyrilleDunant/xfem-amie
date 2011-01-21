@@ -23,7 +23,7 @@ namespace Mu
 		isNull = true ; 
 		thresholdDamageDensity = .999999999999 ;
 		secondaryThresholdDamageDensity = .99999999999999 ;
-		damageDensityIncrement = .01 ;
+		damageDensityIncrement = .05 ;
 		fraction = -1 ;
 	} ;
 	
