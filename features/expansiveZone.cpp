@@ -22,10 +22,10 @@ void ExpansiveZone::reset()
 	updated = true ;
 }
 
-void ExpansiveZone::enrich(size_t &  , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	this->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
-	EnrichmentInclusion::enrich(dtree->getLastNodeId(), dtree) ;
+	EnrichmentInclusion::enrich(lastId, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = dtree->getConflictingElements(getPrimitive()) ;
         if(disc.size() < 2)
@@ -37,7 +37,7 @@ void ExpansiveZone::enrich(size_t &  , Mesh<DelaunayTriangle, DelaunayTreeItem> 
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(in(*disc[i]->first) + in(*disc[i]->second) + in(*disc[i]->third) < 3)
+		if(in(*disc[i]->first) + in(*disc[i]->second) + in(*disc[i]->third) < 3 && in(*disc[i]->first) + in(*disc[i]->second) + in(*disc[i]->third) > 0)
 			ring.push_back(disc[i]) ;
 		else if(in(disc[i]->getCenter()))
 			inDisc.push_back(disc[i]) ;

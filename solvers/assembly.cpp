@@ -478,6 +478,27 @@ void Assembly::setBoundaryConditions()
 
 }
 
+void Assembly::initialiseElementaryMatrices()
+{
+	if(has3Dims == false)
+	{
+		#pragma omp parallel for
+		for(size_t i = 0 ; i < element2d.size() ; i++)
+		{
+			element2d[i]->getElementaryMatrix() ;
+		}
+	}
+	else
+	{
+			#pragma omp parallel for
+		for(size_t i = 0 ; i < element3d.size() ; i++)
+		{
+			element3d[i]->getElementaryMatrix() ;
+		}
+	}
+}
+
+
 bool Assembly::make_final()
 {
 	bool symmetric = true ;
@@ -571,11 +592,7 @@ bool Assembly::make_final()
 		coordinateIndexedMatrix->array = 0 ;
 		double dmax = 0 ;
 		double vmax = 0 ;
-		#pragma omp parallel for
-		for(size_t i = 0 ; i < element2d.size() ; i++)
-		{
-			element2d[i]->getElementaryMatrix() ;
-		}
+
 		
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
@@ -710,12 +727,6 @@ bool Assembly::make_final()
 		coordinateIndexedMatrix->array = 0 ;
 		double dmax = 0 ;
 		double vmax = 0 ;
-		
-#pragma omp parallel for
-		for(size_t i = 0 ; i < element3d.size() ; i++)
-		{
-			element3d[i]->getElementaryMatrix();
-		}
 		
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{

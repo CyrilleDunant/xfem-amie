@@ -207,6 +207,9 @@ FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(N
 	samplingNumber = 0 ;
 	previousSamplingNumber = 0 ;
 	
+	
+	lastNodeId = 0;
+	lastEnrichmentId = 0;
 	maxitPerStep = 200 ;
 	deltaTime = .1 ;
 	now = 0 ;
@@ -414,7 +417,7 @@ void FeatureTree::renumber()
 			}
 		}
 		
-		this->dtree->getLastNodeId() = count ;
+		lastNodeId = count ;
 		
 		std::cerr << count*2 << " ...done " << std::endl ;
 
@@ -475,7 +478,8 @@ void FeatureTree::renumber()
 			}
 		}
 		
-		this->dtree3D->getLastNodeId() = count ;
+		
+		lastNodeId = count ;
 		
 		std::cerr << count*3 << " ...done " << std::endl ;
 
@@ -534,7 +538,15 @@ void FeatureTree::renumber()
 				}
 			}
 			
-			coarseTrees[g]->getLastNodeId() = count ;
+			if(coarseLastNodeId.size() > g)
+				coarseLastNodeId[g] = count ;
+			else
+			{
+				while(coarseLastNodeId.size() <= g)
+					coarseLastNodeId.push_back(0);
+				coarseLastNodeId[g] = count ;
+			}
+					
 			
 			std::cerr << count*2 << " ...done " << std::endl ;
 		}
@@ -595,7 +607,14 @@ void FeatureTree::renumber()
 				}
 			}
 			
-			coarseTrees3D[g]->getLastNodeId() = count ;
+			if(coarseLastNodeId.size() > g)
+				coarseLastNodeId[g] = count ;
+			else
+			{
+				while(coarseLastNodeId.size() <= g)
+					coarseLastNodeId.push_back(0);
+				coarseLastNodeId[g] = count ;
+			}
 			
 			std::cerr << count*3 << " ...done " << std::endl ;
 		}
@@ -2171,6 +2190,11 @@ void FeatureTree::updateElementBehaviours()
 
 void FeatureTree::enrich()
 {
+		lastEnrichmentId = lastNodeId ;
+		coarseLastEnrichmentId.clear();
+		if(useMultigrid)
+			for(size_t j =  0 ; j < coarseTrees.size() ; j++)
+				coarseLastEnrichmentId.push_back(coarseLastNodeId[j]) ;
 		
 		for(size_t i = 1 ; i < this->tree.size() ; i++)
 		{
@@ -2178,11 +2202,14 @@ void FeatureTree::enrich()
 			{
 				if(this->tree[i]->isEnrichmentFeature && dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved())
 				{
-					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(dtree3D->getLastNodeId(), dtree3D) ;
+					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree3D) ;
 					if(useMultigrid)
 					{
 						for(size_t j =  0 ; j < coarseTrees.size() ; j++)
-							dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseTrees[j]->getLastNodeId(), coarseTrees[j]) ;
+						{
+							
+							dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseLastEnrichmentId[j], coarseTrees[j]) ;
+						}
 					}
 				}
 			
@@ -2193,13 +2220,14 @@ void FeatureTree::enrich()
 			}
 			else
 			{
+				
 				if(this->tree[i]->isEnrichmentFeature && dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved())
 				{
-					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(dtree->getLastNodeId(), dtree) ;
+					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree) ;
 					if(useMultigrid)
 					{
 						for(size_t j =  0 ; j < coarseTrees.size() ; j++)
-							dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseTrees[j]->getLastNodeId(), coarseTrees[j]) ;
+							dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseLastEnrichmentId[j], coarseTrees[j]) ;
 					}
 				}
 				if(i%10 == 0)
@@ -2727,6 +2755,7 @@ void FeatureTree::elasticStep()
 void FeatureTree::solve()
 {
 	Vector lastx(K->getDisplacements()) ;
+	K->initialiseElementaryMatrices();
 	
 	if(dtree)
 	{

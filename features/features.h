@@ -133,6 +133,10 @@ protected:
 	size_t samplingNumber ;
 	size_t previousSamplingNumber ;
 	size_t maxitPerStep ;
+	size_t lastNodeId ;
+	std::vector<size_t> coarseLastNodeId ;
+	size_t lastEnrichmentId ;
+	std::vector<size_t> coarseLastEnrichmentId ;
 	
 	bool renumbered ;
 	bool needAssembly ;

@@ -27,7 +27,7 @@ IntegrableEntity::IntegrableEntity() : state(this), boundaryConditionCache(NULL)
 
 void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 {
-	if((getBehaviour()->changed() || boundaryConditionCache == NULL || enrichmentUpdated ) && getBehaviour()->type != VOID_BEHAVIOUR)
+	if(getBehaviour()->type != VOID_BEHAVIOUR)
 	{
 		if(boundaryConditionCache)
 		{
@@ -36,7 +36,6 @@ void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 		}
 		
 		delete boundaryConditionCache ;
-	
 		boundaryConditionCache = new std::vector<BoundaryCondition *>();
 		std::valarray<Matrix> Jinv(getGaussPoints().gaussPoints.size()) ;
 

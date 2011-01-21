@@ -364,7 +364,6 @@ protected:
 	
 	std::vector<DelaunayTreeItem3D *> tree ;
 public:
-	size_t & getLastNodeId() {return global_counter ;};
 	const size_t & getLastNodeId() const {return global_counter ;}  ;
 	std::vector<DelaunayDemiSpace *> space ;
 	

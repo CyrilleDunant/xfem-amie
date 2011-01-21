@@ -307,7 +307,6 @@ namespace Mu
 			{
 				
 			}
-			virtual size_t & getLastNodeId() = 0;
 			virtual const size_t & getLastNodeId() const = 0;
 	} ;
 	
@@ -564,7 +563,6 @@ namespace Mu
 		{
 		}
 		
-		virtual size_t & getLastNodeId() { return global_counter ; }
 		virtual const size_t & getLastNodeId() const { return global_counter ; }
 		
 		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }

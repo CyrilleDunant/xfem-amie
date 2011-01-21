@@ -74,14 +74,15 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		std::cout << "cache empty !" << std::endl ;
 }
 
-void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
+	freeIds.clear() ;
 	if(updated)
 	{
 		update(dtree) ;
 	}
 	updated = false ;
-	
+		
 	const std::vector<DelaunayTriangle *> & disc  = cache;
 // 	if(disc.size() < 6)
 // 	{
@@ -131,20 +132,15 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 	}
 	//then we build a list of points to enrich
 	std::set<Point *> points ;
-	double minrad = getRadius()*2 ;
-	double maxrad = 0 ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		for(size_t j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
 		{
 			points.insert(&ring[i]->getBoundingPoint(j)) ;
-			minrad = std::min(minrad, dist(getCenter(), ring[i]->getBoundingPoint(j))) ;
-			maxrad = std::max(maxrad, dist(getCenter(), ring[i]->getBoundingPoint(j))) ;
+
 		}
 	}
-	double del = std::min(std::abs(minrad-radius), std::abs(maxrad-radius)) ;
-	minrad = radius-del/4 ;
-	maxrad = radius+del/4 ;
+
 	
 	//we build a map of the points and corresponding enrichment ids
 	std::map<Point *, int> dofId ;
@@ -152,7 +148,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 	for(std::set<Point * >::const_iterator i = points.begin() ; i != points.end() ; ++i)
 	{
 		if(freeIds[dtree].empty())
-			dofId[*i] = dtree->getLastNodeId()++ ;
+			dofId[*i] = lastId++ ;
 		else
 		{
 			dofId[*i] = *freeIds[dtree].begin() ;
@@ -168,68 +164,14 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		std::vector<Point> triCircleIntersectionPoints = getPrimitive()->intersection(static_cast<Triangle *>(ring[i])) ;
-		std::vector<Segment> insegs ;
-		std::vector<Segment> outsegs ;
-		
-		if(getPrimitive()->in(*ring[i]->first) && !getPrimitive()->in(*ring[i]->second))
-		{
-			std::vector<Point> intersectors = Segment(*ring[i]->first, *ring[i]->second).intersection(getPrimitive()) ;
-			insegs.push_back(Segment(intersectors[0], *ring[i]->first));
-			outsegs.push_back(Segment(intersectors[0], *ring[i]->second));
-		}
-		if(!getPrimitive()->in(*ring[i]->first) && getPrimitive()->in(*ring[i]->second))
-		{
-			std::vector<Point> intersectors = Segment(*ring[i]->first, *ring[i]->second).intersection(getPrimitive()) ;
-			insegs.push_back(Segment(intersectors[0], *ring[i]->second));
-			outsegs.push_back(Segment(intersectors[0], *ring[i]->first));
-		}
-		if(getPrimitive()->in(*ring[i]->second) && !getPrimitive()->in(*ring[i]->third))
-		{
-			std::vector<Point> intersectors = Segment(*ring[i]->second, *ring[i]->third).intersection(getPrimitive()) ;
-			insegs.push_back(Segment(intersectors[0], *ring[i]->second));
-			outsegs.push_back(Segment(intersectors[0], *ring[i]->third));
-		}
-		if(!getPrimitive()->in(*ring[i]->second) && getPrimitive()->in(*ring[i]->third))
-		{
-			std::vector<Point> intersectors = Segment(*ring[i]->second, *ring[i]->third).intersection(getPrimitive()) ;
-			insegs.push_back(Segment(intersectors[0], *ring[i]->third));
-			outsegs.push_back(Segment(intersectors[0], *ring[i]->second));
-		}
-		if(getPrimitive()->in(*ring[i]->third) && !getPrimitive()->in(*ring[i]->first))
-		{
-			std::vector<Point> intersectors = Segment(*ring[i]->third, *ring[i]->first).intersection(getPrimitive()) ;
-			insegs.push_back(Segment(intersectors[0], *ring[i]->third));
-			outsegs.push_back(Segment(intersectors[0], *ring[i]->first));
-		}
-		if(!getPrimitive()->in(*ring[i]->third) && getPrimitive()->in(*ring[i]->first))
-		{
-			std::vector<Point> intersectors = Segment(*ring[i]->third, *ring[i]->first).intersection(getPrimitive()) ;
-			insegs.push_back(Segment(intersectors[0], *ring[i]->first));
-			outsegs.push_back(Segment(intersectors[0], *ring[i]->third));
-		}
-		
+
 			
 		//if there are no intersection points we need not do anything
 		if(!triCircleIntersectionPoints.empty())
 		{
 			std::vector<Point> hint ;
+			hint.push_back(Point(1./3., 1./3.)) ;
 			//if the number of intersection points is not 2, we need not do anything
-			if(triCircleIntersectionPoints.size() == 2)
-			{
-				double d = dist(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0]), ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
-				int npts = (int)std::max(4.,round(8.*d)) ;
-				std::vector<Point> pts = getPrimitive()->getSamplingBoundingPointsOnArc(npts,triCircleIntersectionPoints[0],triCircleIntersectionPoints[1]  ) ;
-				
-				hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
-				for(size_t k = 0 ; k < pts.size() ;k++)
-				{
-					if(ring[i]->in(pts[k]))
-					{
-						hint.push_back(ring[i]->inLocalCoordinates(pts[k])) ;
-					}
-				}
-				hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[1])) ;
-			}
 
 			//we build the enrichment function, first, we get the transforms from the triangle
 			Function x = ring[i]->getXTransform() ;
@@ -238,7 +180,7 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 			//this function returns the distance to the centre
 			Function position(getCenter(), x, y) ;
 			
-			Function hat = 1-f_abs((radius - position)/(maxrad-minrad)) ;
+			Function hat = 1-f_abs((radius - position)) ;
 			for(int j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
 			{
 				Function f = ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)))) ;
@@ -246,8 +188,6 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
 				ring[i]->setEnrichment( f, getPrimitive()) ;
-
-				
 			}
 			
 			for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
@@ -260,10 +200,8 @@ void EnrichmentInclusion::enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeI
 					t->enrichmentUpdated = true ;
 					bool hinted = false ;
 					Function hat = 1-f_abs((radius - Function(getCenter(), 
-					                                 t->getXTransform(), t->getYTransform()))/(maxrad-minrad)) ;
-
-					std::vector<Point> hint;
-					hint.push_back(Point(1./3., 1./3.)) ;
+					                                 t->getXTransform(), t->getYTransform()))) ;
+					
 					for(int k = 0 ; k < t->getBoundingPoints().size() ; k++)
 					{
 						std::map<Point*, int>::const_iterator pt = dofId.find(&t->getBoundingPoint(k)) ;

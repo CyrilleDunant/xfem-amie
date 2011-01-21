@@ -38,13 +38,13 @@ protected:
 	std::vector<SegmentedLine * > forks ;
 	std::set<size_t> freeIds ;
 	
-	void enrichTips(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
-	void enrichTip(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip) ;
+	void enrichTips(size_t & lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
+	void enrichTip(size_t &lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip) ;
 
-	void enrichForks(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
-	void enrichBranches(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
-	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const SegmentedLine * line) ;
-	void enrichSegmentedLine(size_t &, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const SegmentedLine * line, const Point *) ;
+	void enrichForks(size_t &lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
+	void enrichBranches(size_t &lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) ;
+	void enrichSegmentedLine(size_t &lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const SegmentedLine * line) ;
+	void enrichSegmentedLine(size_t &lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dt, const SegmentedLine * line, const Point *) ;
 	
 	double influenceRadius ;
 	
@@ -152,7 +152,7 @@ public:
 	bool isEmpty() const ;
 
 /** \brief Enrich the elements contained in the argument which interact with the crack*/
-	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
+	virtual void enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
 /** \brief return the list of elements interacting with the crack*/
 	virtual std::vector<DelaunayTriangle*> getElements2D(FeatureTree *) ;
@@ -162,9 +162,6 @@ public:
 
 /** \brief Return fales*/
 	virtual bool interacts(Feature*, double) const ;
-
-/** \brief insert a point in the main branch after its ith point.*/
-	virtual Point* pointAfter(size_t i) ;
 
 /** \brief Return the vector of geometries in which the mesh should be refined around this Feature*/
 	virtual std::vector<Mu::Geometry*> getRefinementZones(size_t) const ;

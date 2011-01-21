@@ -25,7 +25,6 @@ namespace Mu
 		virtual const std::vector<Point * > & getAdditionalPoints() const {return points ;} ;
 		virtual void setElementOrder(Order o);
 		virtual void insert(Point *) ;
-		virtual size_t & getLastNodeId();
 		virtual const size_t & getLastNodeId() const;
 		virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}
 		virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}

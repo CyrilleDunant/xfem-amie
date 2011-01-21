@@ -223,6 +223,8 @@ public:
 * @param params Supplementary parameters 
 */
 	void update(ElementaryVolume * e, double dt, Vector * params) ;
+	
+	void initialiseElementaryMatrices() ;
 
 /** \brief return true if Assembly is made of 2D elements*/
 	bool is2D() const;

@@ -66,7 +66,7 @@ void EnrichmentRing::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 		std::cout << "cache empty !" << std::endl ;
 }
 
-void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 // 	counter++ ;
 	if(updated)
@@ -91,9 +91,9 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 	
 			std::map<Point *, int> dofId ;
 			
-			dofId[disc[i]->first] = dtree->getLastNodeId()++ ;
-			dofId[disc[i]->second] = dtree->getLastNodeId()++ ;
-			dofId[disc[i]->third] = dtree->getLastNodeId()++ ;
+			dofId[disc[i]->first] = lastId++ ;
+			dofId[disc[i]->second] = lastId++ ;
+			dofId[disc[i]->third] = lastId++ ;
 	
 			std::vector<Point> hint ;
 			for(size_t j = 0 ; j < 8 ; j++)
@@ -172,7 +172,7 @@ void EnrichmentRing::enrich(size_t & ,  Mesh<DelaunayTriangle, DelaunayTreeItem>
 		
 		for(size_t i = 0 ; i< points.size() ; i++)
 		{
-			dofId[points[i]] = dtree->getLastNodeId()++ ;
+			dofId[points[i]] =lastId++ ;
 		}
 		//now, we will start the enrichment itself
 		

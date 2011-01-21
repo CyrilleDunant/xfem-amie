@@ -356,7 +356,6 @@ public:
 	virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}
 public:
 
-	size_t & getLastNodeId() {return global_counter ;};
 	const size_t & getLastNodeId() const {return global_counter ;}  ;
 	std::vector<DelaunayDemiPlane *> plane ;
 	

@@ -424,7 +424,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 						{
 							additionalPoints.push_back(new Point(proto) ) ;
 							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = additionalPoints.back();
-							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = getLastNodeId()++ ;
+							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = global_counter++ ;
 						}
 						
 						done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
@@ -2536,7 +2536,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 				for(double l = 1  ; l < ndivs ; l++)
 				{
 					if( k/ndivs + l/ndivs < .5 )
-						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), .5)) ;
+						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1)) ;
 				}
 			}
 			
@@ -2546,215 +2546,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			}
 			if(gp.gaussPoints.size() < gp_alternative.size())
 			{
-				
 				gp.gaussPoints.resize(gp_alternative.size()) ;
 				std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
 				gp.id = REGULAR_GRID ;
 			}
 			setCachedGaussPoints(new GaussPointArray(gp)) ;
 			return *getCachedGaussPoints() ;
-		}
-
-		VirtualMachine vm ;
-		std::vector<Point *> to_add = getIntegrationHints();
-		std::vector<Point *> pointsToCleanup = to_add;
-		std::vector<DelaunayTriangle *> triangleToCleanup;
-		std::vector<DelaunayTriangle *> tri ;
-		std::vector<bool> pass ;
-		int passNum = 0;
-		double lastError = 10 ;
-		size_t maxGradientIndex = 0 ;
-		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
-		
-		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
-		TriElement f(LINEAR) ;
-		if(to_add.size() > 4)
-			std::random_shuffle(to_add.begin()+3, to_add.end()) ;
-
-		for(size_t i = 3 ; i < to_add.size() ; i++)
-		{
-			dt->insert(to_add[i]) ;
-		}
-
-		tri = dt->getTriangles(false) ;
-		// original set of triangles
-		
-// 		
-		pass.resize(tri.size(), false) ;
-		
-		for(size_t j = 0 ; j < tri.size() ; j++)
-		{
-			for(size_t k = 0 ; k <  getEnrichmentFunctions().size() ; k++)
-			{
-				
-				double dx = vm.deval(getEnrichmentFunction(k),XI, tri[j]->getCenter()) ;
-				double dy = vm.deval(getEnrichmentFunction(k),ETA, tri[j]->getCenter()) ;
-				grads[k] = std::max((dx*dx+dy*dy), grads[k]) ;
-			}
-		}		
-		
-		for(size_t i = 0 ; i < grads.size() ; i++)
-			if(grads[i] > grads[maxGradientIndex])
-				maxGradientIndex = i ;
-
-		std::vector<double> triIntegral ;
-		double integral = 0 ;
-		for(size_t j = 0 ; j < tri.size() ; j++)
-		{
-			double dx = vm.deval(getEnrichmentFunction(maxGradientIndex),XI, tri[j]->getCenter()) ;
-			double dy = vm.deval(getEnrichmentFunction(maxGradientIndex),ETA, tri[j]->getCenter()) ;
-			double t_integral = (dx*dx+dy*dy)*tri[j]->area() ;
-
-			triIntegral.push_back(t_integral) ;
-			integral += t_integral ;
-			
-		}
-
-// 		vm.print(getEnrichmentFunction(maxGradientIndex)) ;// 		if(to_add.size() < 5)
-// 			numberOfRefinements = 0 ;
-		for(size_t i = 0 ; i < numberOfRefinements ; i++)
-		{
-
-			double newIntegral = 0;
-
-			for(size_t j = 0 ; j < tri.size() ; j++)
-			{
-				if(!pass[j] )
-				{
-					Function x = XTransform(tri[j]->getBoundingPoints(), f.getShapeFunctions()) ;
-					Function y = YTransform(tri[j]->getBoundingPoints(), f.getShapeFunctions()) ;
-					
-					double error = 0 ;
-
-					tri[j]->setOrder(QUADTREE_REFINED) ;
-					GaussPointArray gpquad = tri[j]->getGaussPoints() ;
-					tri[j]->setOrder(LINEAR) ;
-// 					GaussPointArray gplin = tri[j]->getGaussPoints() ;
-					
-					
-					for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
-					{
-						gpquad.gaussPoints[m].first.set(vm.eval(x, gpquad.gaussPoints[m].first), vm.eval(y, gpquad.gaussPoints[m].first)) ;
-					}
-// 					for(size_t m = 0 ; m < gplin.gaussPoints.size() ; m++)
-// 					{
-// 						gplin.gaussPoints[m].first.set(vm.eval(x, gplin.gaussPoints[m].first), vm.eval(y, gplin.gaussPoints[m].first)) ;
-// 					}
-					
-					double newTriIntegral = 0 ;
-
-					for(size_t m = 0 ; m < gpquad.gaussPoints.size() ; m++)
-					{
-						double dx = vm.deval(getEnrichmentFunction(maxGradientIndex),XI, gpquad.gaussPoints[m].first) ;
-						double dy = vm.deval(getEnrichmentFunction(maxGradientIndex),ETA, gpquad.gaussPoints[m].first) ;
-						newTriIntegral += (dx*dx+dy*dy)*gpquad.gaussPoints[m].second ;
-					}
-					
-					newIntegral += newTriIntegral ;
-					error = std::abs((triIntegral[j]-newTriIntegral)) ;;
-					if(error < tol )
-					{
-						pass[j] = true ;
-					}
-				}
-			}
-
-			
-			std::vector<DelaunayTriangle *> newTris ;
-			std::vector<bool> newPass ;
-			triIntegral.clear() ;
-			for(size_t j = 0 ; j < tri.size() ; j++)
-			{
-			
-				if(!pass[j] && tri[j]->area() > sqrt(std::numeric_limits<double>::epsilon()))
-				{
-
-					std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > q =
-						quad(tri[j]) ;
-					newTris.insert(newTris.end(),q.first.begin(), q.first.end()) ;
-			
-					newPass.push_back(false) ;
-					newPass.push_back(false) ;
-					newPass.push_back(false) ;
-					newPass.push_back(false) ;
-					pointsToCleanup.insert(pointsToCleanup.end(),
-							q.second.begin(), 
-							q.second.end()) ;
-					triangleToCleanup.insert(triangleToCleanup.end(), 
-								q.first.begin(), 
-								q.first.end()) ;
-
-				}
-				else if(pass[j])
-				{
-					newTris.push_back(tri[j]) ;
-					newPass.push_back(true) ;
-					passNum++ ;
-				}
-				else
-				{
-					newTris.push_back(tri[j]) ;
-					newPass.push_back(false) ;
-				}
-			}
-
-			tri = newTris ;
-			pass = newPass ;
-			if(std::abs(integral-newIntegral) < 1e-10)
-				break ;
-			integral = newIntegral ;
-			
-			for(size_t j = 0 ; j < tri.size() ; j++)
-			{
-				double dx = vm.deval(getEnrichmentFunction(maxGradientIndex),XI, tri[j]->getCenter()) ;
-				double dy = vm.deval(getEnrichmentFunction(maxGradientIndex),ETA, tri[j]->getCenter()) ;
-				double t_integral = (dx*dx+dy*dy)*tri[j]->area() ;
-
-				triIntegral.push_back(t_integral) ;
-				
-			}
-		}
-// 		
-		for(size_t i = 0 ; i < tri.size() ; i++)
-		{
-
-			Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
-			Function y = YTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
-			
-			tri[i]->setOrder(CUBIC) ;
-			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-			tri[i]->setOrder(LINEAR) ;
-			
-			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
-			{
-				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
-				gp_temp.gaussPoints[j].second *= jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
-				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
-			}
-		}
-
-		delete dt ;
-		if(numberOfRefinements)
-		{
-
-			std::valarray<Point *> nularray(0) ;
-	
-			for(size_t i = 0 ; i < triangleToCleanup.size() ; i++)
-			{
-				triangleToCleanup[i]->setBoundingPoints(nularray) ;
-				delete triangleToCleanup[i];
-			}
-		
-		}
-		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
-			delete pointsToCleanup[i] ;
-		
-		
-		if(gp.gaussPoints.size() < gp_alternative.size())
-		{
-			gp.gaussPoints.resize(gp_alternative.size()) ;
-			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-			gp.id = -1 ;
 		}
 	}
 	

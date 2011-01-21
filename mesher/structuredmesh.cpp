@@ -70,10 +70,6 @@ StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point 
 	
 }
 
-size_t & StructuredMesh::getLastNodeId()
-{
-	return global_counter ;
-}
 const size_t & StructuredMesh::getLastNodeId() const
 {
 	return global_counter ;

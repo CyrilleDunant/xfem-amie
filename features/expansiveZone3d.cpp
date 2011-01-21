@@ -21,9 +21,9 @@ void ExpansiveZone3D::reset()
 	updated = true ;
 }
 
-void ExpansiveZone3D::enrich(size_t&, Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* dtree)
+void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* dtree)
 {
-	EnrichmentInclusion3D::enrich(dtree->getLastNodeId(), dtree) ;
+	EnrichmentInclusion3D::enrich(lastId, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTetrahedron *> disc = cache ;
 
