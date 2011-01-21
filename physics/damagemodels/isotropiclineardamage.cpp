@@ -16,6 +16,7 @@ namespace Mu {
 IsotropicLinearDamage::IsotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
 {
 	state.resize(1, 0.);
+	previousstate.resize(1, 0.);
 	state[0] = 0 ;
 	isNull = false ;
 }
@@ -33,7 +34,6 @@ Vector & IsotropicLinearDamage::damageState()
 
 void IsotropicLinearDamage::step(ElementState & s)
 {
-	previousstate.resize(state.size());
 	previousstate = state ;
 	if(fraction < 0)
 	{

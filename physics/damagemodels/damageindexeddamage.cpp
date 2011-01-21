@@ -18,6 +18,7 @@ using namespace Mu ;
 IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCriterion * e) : DamageModel(e->getMaterialCharacteristicRadius()), dcost(dcost),e(e)
 {
 	state.resize(1, 0.);
+	previousstate.resize(1, 0.);
 	fixedDamage.resize(1, 0.);
 	isNull = false ;
 	thresholdDamageDensity = 1 ;
@@ -38,6 +39,7 @@ Vector & IndexedLinearDamage::damageState()
 
 void IndexedLinearDamage::step(ElementState & s)
 {
+	previousstate = state ;
 		double volume = 0 ;
 		if(!e->getCache().empty())
 		{

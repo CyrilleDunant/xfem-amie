@@ -17,6 +17,7 @@ namespace Mu {
 FractionLinearDamage::FractionLinearDamage(int numDof, double characteristicRadius, Matrix remnant, double phi) : DamageModel(characteristicRadius), remnant(remnant), phi(phi)
 {
 	state.resize(2, 0.) ;
+	previousstate.resize(2, 0.) ;
 	isNull = false ;
 	state = 0 ;
 	tensionDamage = 0 ;

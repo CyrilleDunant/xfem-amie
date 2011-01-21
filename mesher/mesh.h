@@ -69,7 +69,11 @@ namespace Mu
 					{
 						for(size_t i = 0 ; i < (*j)->neighbourhood.size() ; i++)
 						{
-							if(to_test.find((*j)->getNeighbourhood(i)) == to_test.end() && found.find((*j)->getNeighbourhood(i)) == found.end() && ( g->in((*j)->getNeighbourhood(i)->getCenter()) || (*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) ))
+							if(to_test.find((*j)->getNeighbourhood(i)) == to_test.end() 
+								&& found.find((*j)->getNeighbourhood(i)) == found.end() 
+								&& ( g->in((*j)->getNeighbourhood(i)->getCenter()) 
+								|| (*j)->getNeighbourhood(i)->in(g->getCenter()) 
+								|| g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) ))
 							{
 								new_test.insert((*j)->getNeighbourhood(i)) ;
 							}

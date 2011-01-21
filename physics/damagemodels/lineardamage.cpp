@@ -17,6 +17,7 @@ namespace Mu {
 LinearDamage::LinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
 {
 	state.resize(2, 0.) ;
+	previousstate.resize(2, 0.);
 	isNull = false ;
 	state = 0 ;
 	tensionDamage = 0 ;
@@ -37,7 +38,6 @@ Vector & LinearDamage::damageState()
 }
 void LinearDamage::step(ElementState & s)
 {
-	previousstate.resize(state.size());
 	previousstate = state ;
 	inCompression = false ;
 	inTension = false ;

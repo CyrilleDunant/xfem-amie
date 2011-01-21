@@ -17,6 +17,7 @@ namespace Mu {
 AnisotropicLinearDamage::AnisotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
 {
 	state.resize(3, 0.) ;
+	previousstate.resize(3, 0.) ;
 	isNull = false ;
 	state = 0 ;
 	tensionDamagex = 0 ;
@@ -39,7 +40,6 @@ Vector & AnisotropicLinearDamage::damageState()
 }
 void AnisotropicLinearDamage::step(ElementState & s)
 {
-	previousstate.resize(state.size());
 	previousstate = state ;
 	inCompression = false ;
 	inTension = false ;

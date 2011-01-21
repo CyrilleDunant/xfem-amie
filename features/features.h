@@ -15,6 +15,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../utilities/grid.h"
 #include "../physics/void_form.h"
+#include "../physics/damagemodels/damagemodel.h"
 #include "../solvers/assembly.h"
 #include "boundarycondition.h"
 #include "feature_base.h"
@@ -213,28 +214,61 @@ protected:
 // 				conflicts = source->getConflictingElements(&c) ;
 // 			else
 // 				conflicts = source->getConflictingElements(&s) ;
+			
 			ETYPE * main = NULL ;
 			if(!conflicts.empty())
 				main = conflicts.front() ;
 			else
 				conflicts = source->getConflictingElements(elems[i]->getPrimitive()) ;
 			
+			if(conflicts.size() == 1)
+			{
+				for(size_t j = 0 ; j < conflicts[0]->neighbourhood.size() ; j++)
+					conflicts.push_back(conflicts[0]->getNeighbourhood(j)) ;
+			}
+			
+			std::vector<double> fractions ; 
+			for(size_t j = 0 ; j < conflicts.size() ; j++)
+				fractions.push_back(conflicts[j]->overlapFraction(elems[i]->getPrimitive())) ;
+			
 			if(!conflicts.empty())
 			{
 				main = conflicts.front() ;
 				
-				double overlap = main->overlapFraction(elems[i]->getPrimitive()) ;
+				double overlap = fractions[0] ;
 				for(size_t j = 1 ; j < conflicts.size() ; j++)
 				{
-					double testOverlap = conflicts[j]->overlapFraction(elems[i]->getPrimitive()) ;
-					if(testOverlap > overlap)
+					if(fractions[j] > overlap)
 					{
 						main = conflicts[j] ;
-						overlap = testOverlap ;
+						overlap = fractions[j] ;
 					}
 				}
 				
 				elems[i]->setBehaviour(main->getBehaviour()->getCopy()) ;
+				
+				if(elems[i]->getBehaviour()->getDamageModel())
+				{
+					elems[i]->getBehaviour()->getDamageModel()->state = 0 ;
+					elems[i]->getBehaviour()->getDamageModel()->previousstate = 0 ;
+					double renorm(0) ;
+					for(size_t j = 0 ; j < conflicts.size() ; j++)
+					{
+						if(conflicts[j]->getBehaviour() &&
+							conflicts[j]->getBehaviour()->getDamageModel() && 
+							conflicts[j]->getBehaviour()->getDamageModel()->state.size() == elems[i]->getBehaviour()->getDamageModel()->state.size())
+						{
+							elems[i]->getBehaviour()->getDamageModel()->state += conflicts[j]->getBehaviour()->getDamageModel()->state*fractions[j] ;
+							elems[i]->getBehaviour()->getDamageModel()->previousstate += conflicts[j]->getBehaviour()->getDamageModel()->previousstate*fractions[j] ;
+							renorm += fractions[j] ;
+						}
+					}
+					if(std::abs(renorm) > POINT_TOLERANCE)
+					{
+						elems[i]->getBehaviour()->getDamageModel()->state /= renorm ;
+						elems[i]->getBehaviour()->getDamageModel()->previousstate /= renorm ;
+					}
+				}
 			}
 			else
 				elems[i]->setBehaviour(NULL) ;
