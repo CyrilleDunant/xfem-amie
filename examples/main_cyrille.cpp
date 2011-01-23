@@ -1791,7 +1791,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, crack0);
 	
 	F.setSamplingNumber(atoi(argv[1])) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.setMaxIterationsPerStep(2000) ;
 	F.setDeltaTime(0.1);
 
