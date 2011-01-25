@@ -106,10 +106,10 @@ public:
 	virtual bool onCircumCircle(const Point &p) const = 0 ;
 	virtual bool isNeighbour( const DelaunayTreeItem *) const = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
-	virtual void conflicts(std::valarray< bool >& visitedItems, std::pair< std::vector< Mu::DelaunayTreeItem* >, std::vector< Mu::DelaunayTreeItem* > >& ret, const Mu::Point* p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
-	virtual void conflicts(std::valarray< bool >& visitedItems,std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > &, const Geometry *g) ;
-	std::vector<DelaunayTreeItem *> flatConflicts(std::valarray< bool >& visitedItems ,std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > & ret, const Geometry *g) ;
-	std::vector<DelaunayTreeItem *> flatConflicts(std::valarray< bool >& visitedItems, std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> >& ret,const Point *p) ;
+	virtual void conflicts(std::valarray< bool >& visitedItems, std::vector< Mu::DelaunayTreeItem* >& ret, const Mu::Point* p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
+	virtual void conflicts(std::valarray< bool >& visitedItems,std::vector<DelaunayTriangle *> &, const Geometry *g) ;
+	void flatConflicts(std::valarray< bool >& visitedItems , std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTriangle *> & ret, const Geometry *g) ;
+	void flatConflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTreeItem *> & ret,const Point *p) ;
 	virtual void print() const { } ;
 	
 	virtual bool in( const Point & p) const  = 0;
@@ -250,9 +250,9 @@ public:
 	
 	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
 	
-	virtual void conflicts(std::valarray<bool> & visitedItems, std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > &, const Point *p )  ;
+	virtual void conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> &, const Point *p )  ;
 	
-	virtual void conflicts(std::valarray<bool> & visitedItems, std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > &, const Geometry *g)  ;
+	virtual void conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTriangle *> &, const Geometry *g)  ;
 	
 	virtual void print() const ;
 	

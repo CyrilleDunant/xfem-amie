@@ -283,8 +283,8 @@ public:
 	/** \brief update enrichment geometry*/
 	virtual void step(double dt, Vector *, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { };
 	
-	virtual void snap(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) { } ;
-	virtual void snap(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { } ;
+	virtual void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) { } ;
+	virtual void update(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { } ;
 	
 	/** \brief return true if enrichment geometry has changed*/
 	virtual bool moved() const = 0;

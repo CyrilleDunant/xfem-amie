@@ -559,21 +559,17 @@ size_t DelaunayTree::numPoints() const
 	return this->global_counter ;
 }
 
-std::vector<DelaunayTreeItem *> DelaunayTreeItem::flatConflicts(std::valarray< bool >& visitedItems, std::pair< std::vector< DelaunayTriangle* >, std::vector< DelaunayTreeItem* > >& ret, const Mu::Geometry* g)
+void DelaunayTreeItem::flatConflicts(std::valarray< bool >& visitedItems, std::vector<DelaunayTreeItem *> &toTest, std::vector< DelaunayTriangle* > & ret, const Mu::Geometry* g)
 {
-	std::vector<DelaunayTreeItem *> toTest ;
 	if(visitedItems[index])
 	{
-		return toTest ;
+		return ;
 	}
 	visitedItems[index] = true ;
-	
-	ret.second.push_back(this) ;
-	
-	
+
 	if(!isConflicting(g) )
 	{
-		return toTest;
+		return ;
 	}
 
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
@@ -598,7 +594,7 @@ std::vector<DelaunayTreeItem *> DelaunayTreeItem::flatConflicts(std::valarray< b
 	
 	if(isAlive() && isTriangle && !isDeadTriangle && isConflicting(g))
 	{
-		ret.first.push_back(static_cast<DelaunayTriangle *>(this)) ;
+		ret.push_back(static_cast<DelaunayTriangle *>(this)) ;
 	}
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
@@ -610,20 +606,15 @@ std::vector<DelaunayTreeItem *> DelaunayTreeItem::flatConflicts(std::valarray< b
 			toTest.push_back(getNeighbour(i)) ;
 		}
 	}
-	
-	return toTest ;
 }
 
-void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > & ret, const Geometry *g)
+void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTriangle *> & ret, const Geometry *g)
 {
 	if(visitedItems[index])
 	{
 		return ;
 	}
 	visitedItems[index] = true ;
-	
-	ret.second.push_back(this) ;
-	
 	
 	if(!isConflicting(g) )
 	{
@@ -648,7 +639,7 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::pair<s
 	
 	if(isAlive() && isTriangle && !isDeadTriangle && isConflicting(g))
 	{
-		ret.first.push_back(static_cast<DelaunayTriangle *>(this)) ;
+		ret.push_back(static_cast<DelaunayTriangle *>(this)) ;
 	}
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
@@ -662,13 +653,12 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::pair<s
 	}
 }
 
-void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> >& ret,const Point *p)
+void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *>& ret,const Point *p)
 {
 // 	print() ;
 	if(visitedItems[index])
 		return  ;
 	visitedItems[index] = true ;
-	ret.second.push_back(this) ;
 
 
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
@@ -694,7 +684,7 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::pair<s
 		
 	if(isAlive())
 	{
-		ret.first.push_back(this) ;
+		ret.push_back(this) ;
 	}
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
@@ -707,39 +697,41 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::pair<s
 	}
 }
 
- std::vector<DelaunayTreeItem *> DelaunayTreeItem::flatConflicts(std::valarray<bool> & visitedItems,  std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> >& ret,const Point *p)
+ void DelaunayTreeItem::flatConflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> & toTest,  std::vector<DelaunayTreeItem *> & ret,const Point *p)
 {
 // 	print() ;
 
-	std::vector<DelaunayTreeItem *> toTest ;
 	if(visitedItems[index])
-		return toTest ;
+		return  ;
 	visitedItems[index] = true ;
-	ret.second.push_back(this) ;
+
 	if(!inCircumCircle(*p))
-		return toTest ;
+		return  ;
 	
 // 	std::cerr << "stepsons" << std::endl ;
 // 	Point center = (*first+*second+*third)/3. ;
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
 		bool limit = false ;
-		if(!visitedItems[stepson[i]] && getStepson(i)->isTriangle && !getStepson(i)->isDeadTriangle)
+		if(!visitedItems[stepson[i]])
 		{
-			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getStepson(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
-				< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-		}
-		if(!visitedItems[stepson[i]] && getStepson(i)->isDeadTriangle)
-		{
-			DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getStepson(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-				< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-		}
-		
-		if( (!visitedItems[stepson[i]]&& getStepson(i)->inCircumCircle(*p)) || limit) 
-		{
-			toTest.push_back(getStepson(i)) ;
+			if(getStepson(i)->isTriangle && !getStepson(i)->isDeadTriangle)
+			{
+				DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getStepson(i)) ;
+				limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			}
+			if(getStepson(i)->isDeadTriangle)
+			{
+				DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getStepson(i)) ;
+				limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			}
+			
+			if( (getStepson(i)->inCircumCircle(*p)) || limit) 
+			{
+				toTest.push_back(getStepson(i)) ;
+			}
 		}
 	}
 	
@@ -747,55 +739,58 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::pair<s
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		bool limit = false ;
-		if(!visitedItems[son[i]] && getSon(i)->isTriangle && !getSon(i)->isDeadTriangle)
+		if(!visitedItems[son[i]])
 		{
-			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getSon(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
-				< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			if(getSon(i)->isTriangle && !getSon(i)->isDeadTriangle)
+			{
+				DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getSon(i)) ;
+				limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			}
+			if(getSon(i)->isDeadTriangle)
+			{
+				DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getSon(i)) ;
+				limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			}
+			
+			if( (getSon(i)->inCircumCircle(*p)) || limit)
+			{
+				toTest.push_back(getSon(i)) ;
+			}
 		}
-		if(!visitedItems[son[i]]&& getSon(i)->isDeadTriangle)
-		{
-			DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getSon(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-				< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-		}
-		
-		if( (!visitedItems[son[i]] && getSon(i)->inCircumCircle(*p)) || limit)
-		{
-			toTest.push_back(getSon(i)) ;
-		}
-		
 	}
 	
 	if(isAlive())
 	{
-		ret.first.push_back(this) ;
+		ret.push_back(this) ;
 	}
 	
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
 		
 		bool limit = false ;
-		if(!visitedItems[neighbour[i]] && getNeighbour(i)->isTriangle && !getNeighbour(i)->isDeadTriangle)
+		if(!visitedItems[neighbour[i]])
 		{
-			DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getNeighbour(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
-				< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-		}
-		if(!visitedItems[neighbour[i]] && getNeighbour(i)->isDeadTriangle)
-		{
-			DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getNeighbour(i)) ;
-			limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
-				< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-		}
-// 		limit = true ;
-		if( (!visitedItems[neighbour[i]] && getNeighbour(i)->inCircumCircle(*p)) || limit)
-		{
-			toTest.push_back(getNeighbour(i)) ;
+			if(getNeighbour(i)->isTriangle && !getNeighbour(i)->isDeadTriangle)
+			{
+				DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getNeighbour(i)) ;
+				limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			}
+			if(getNeighbour(i)->isDeadTriangle)
+			{
+				DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getNeighbour(i)) ;
+				limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+			}
+	// 		limit = true ;
+			if( (getNeighbour(i)->inCircumCircle(*p)) || limit)
+			{
+				toTest.push_back(getNeighbour(i)) ;
+			}
 		}
 	}
-	
-	return toTest ;
 }
 
 void DelaunayTreeItem::removeNeighbour(DelaunayTreeItem * t)
@@ -1696,66 +1691,55 @@ void DelaunayRoot::insert(std::vector<DelaunayTreeItem *> & ret,Point *p, Star *
 
 
 
-void DelaunayRoot::conflicts( std::valarray<bool> & visitedItems, std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > & ret, const Geometry *g)
+void DelaunayRoot::conflicts( std::valarray<bool> & visitedItems, std::vector<DelaunayTriangle *> & ret, const Geometry *g)
 {
 
 	visitedItems[index] = true ;
 	
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
-		std::pair<std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp  ;
-		std::vector<std::vector<DelaunayTreeItem *> > toTest ; toTest.push_back( getSon(i)->flatConflicts(visitedItems,temp,g)) ;
+		std::vector<DelaunayTreeItem *> toTest ; 
+		getSon(i)->flatConflicts(visitedItems,toTest,ret,g) ;
 		while(!toTest.empty())
 		{
-			std::vector<std::vector<DelaunayTreeItem *> > tempToTest ;
+			std::vector<DelaunayTreeItem *> tempToTest ;
 			for(size_t j  = 0 ;  j < toTest.size() ; j++)
 			{
-				for(size_t k  = 0 ;  k < toTest[j].size() ; k++)
-					tempToTest.push_back(toTest[j][k]->flatConflicts(visitedItems,temp,g)) ;
+				toTest[j]->flatConflicts(visitedItems,tempToTest,ret,g) ;
 			}
 			
 			toTest = tempToTest ;
 		}
-		
-		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
-		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
+
 	}
 	
 	return ;
 }
 
 
- void DelaunayRoot::conflicts(std::valarray<bool> & visitedItems, std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > & ret,const Point *p)
+ void DelaunayRoot::conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> & ret,const Point *p)
 {
 
 	visitedItems[index] = true ;
 	
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
-// 		std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > temp  ;
-// 		getSon(i)->conflicts(temp,p) ;
-// 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
-// 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
-		
-		std::pair<std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > temp  ;
-		std::vector<DelaunayTreeItem *> toTest = getSon(i)->flatConflicts(visitedItems,temp,p) ;
-		while(!toTest.empty())
+		if(!visitedItems[getSon(i)->index])
 		{
-			std::vector<DelaunayTreeItem *> tempToTest ;
-			for(size_t j  = 0 ;  j < toTest.size() ; j++)
+			std::vector<DelaunayTreeItem *> toTest ;
+			getSon(i)->flatConflicts(visitedItems,toTest,ret,p) ;
+			while(!toTest.empty())
 			{
-				std::vector<DelaunayTreeItem *> temp0 = toTest[j]->flatConflicts(visitedItems,temp,p) ;
-				tempToTest.insert(tempToTest.end(), temp0.begin(), temp0.end()) ;
+				std::vector<DelaunayTreeItem *> tempToTest ;
+				for(size_t j  = 0 ;  j < toTest.size() ; j++)
+				{
+					toTest[j]->flatConflicts(visitedItems,tempToTest,ret,p) ;
+				}
+				toTest = tempToTest ;
+				
 			}
-			
-			toTest = tempToTest ;
 		}
-		
-		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
-		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
 	}
-	
-	return  ;
 }
 
 Star::Star(std::vector<DelaunayTreeItem *> *t, const Point *p) : creator(p)
@@ -2031,7 +2015,7 @@ void DelaunayTree::insert(Point *p)
 
 std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 {
-	std::pair< std::vector<DelaunayTreeItem *>,std::vector<DelaunayTreeItem *> > cons ;
+	std::vector<DelaunayTreeItem *> cons ;
 	std::valarray<bool> visited(false, this->tree.size()) ;
 	
 	tree[0]->conflicts(visited,cons,p) ;
@@ -2043,36 +2027,19 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 	
 		if(!visited[plane[i]->index])
 		{
-			std::pair< std::vector<DelaunayTreeItem *>,std::vector<DelaunayTreeItem *> > temp ;
-			plane[i]->conflicts(visited, temp,p) ;
-			
-			cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
-			cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
+			plane[i]->conflicts(visited, cons,p) ;
 			
 			
 			for(size_t j = 0 ; j < plane[i]->neighbour.size() ; j++)
 			{
 				if(!visited[plane[i]->neighbour[j]])
 				{
-					std::pair< std::vector<DelaunayTreeItem *>, std::vector<DelaunayTreeItem *> > temp ;
-					plane[i]->getNeighbour(j)->conflicts(visited, temp,p) ;
-					
-					cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
-					cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
+					plane[i]->getNeighbour(j)->conflicts(visited, cons,p) ;
 				}
 			}
-			
 		}
-		
 	}
-
-	std::stable_sort(cons.first.begin(), cons.first.end()) ;
-	auto e = std::unique(cons.first.begin(), cons.first.end()) ;
-	cons.first.erase(e, cons.first.end()) ;
-	
-	std::vector<DelaunayTreeItem *> ret ;
-	ret.insert(ret.end(), cons.first.begin(), cons.first.end()) ;	
-	return ret ;
+	return cons ;
 }
 
 
@@ -2082,7 +2049,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 //magic value : basically, we don't want to have the center a vertex of the mesh.
 	
 // 	std::vector<DelaunayTriangle *> ret ;
-	std::pair< std::vector<DelaunayTriangle *>,std::vector<DelaunayTreeItem *> > cons ;
+	std::vector<DelaunayTriangle *> cons ;
 	std::valarray<bool> visited(false, tree.size()) ;
 	
 	if(!tree.empty())
@@ -2093,29 +2060,19 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 		
 		if(!plane[i]->visited)
 		{
-			std::pair< std::vector<DelaunayTriangle *>,std::vector<DelaunayTreeItem *> > temp ;
-			plane[i]->conflicts(visited,temp,g) ;
-			
-			cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
-			cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;			
+			plane[i]->conflicts(visited,cons,g) ;
 			
 			for(size_t j = 0 ; j < plane[i]->neighbour.size() ; j++)
 			{
-				std::pair< std::vector<DelaunayTriangle *>, std::vector<DelaunayTreeItem *> > temp ;
-				plane[i]->getNeighbour(j)->conflicts(visited,temp,g) ;
-				
-				cons.first.insert(cons.first.end(), temp.first.begin(),temp.first.end()) ;
-				cons.second.insert(cons.second.end(), temp.second.begin(),temp.second.end()) ;
+				plane[i]->getNeighbour(j)->conflicts(visited,cons,g) ;
+
 			}
 			
 		}
 		
 	}
-
-// 	for(size_t i = 0 ; i < cons.second.size() ; i++)
-// 		cons.second[i]->clearVisited() ;
 	
-	return cons.first ;
+	return cons ;
 }
 
 std::vector<DelaunayDemiPlane *> * DelaunayTree::getConvexHull()
@@ -2530,20 +2487,33 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 128 ;
+			double ndivs = 64 ;
 			for(double k = 1  ; k < ndivs ; k++)
 			{
 				for(double l = 1  ; l < ndivs ; l++)
 				{
-					if( k/ndivs + l/ndivs < .5 )
-						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1)) ;
+					if( k/ndivs + l/ndivs < 1 )
+						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 0.5)) ;
 				}
 			}
 			
-			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+			if(moved)
 			{
-				gp_alternative[i].second *= jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
+				for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+				{
+					double j = jacobianAtPoint(gp_alternative[i].first);
+					gp_alternative[i].second *= j/gp_alternative.size();
+				}
 			}
+			else
+			{
+				double j = 2.*area();
+				for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+				{
+					gp_alternative[i].second *= j/gp_alternative.size();
+				}
+			}
+			
 			if(gp.gaussPoints.size() < gp_alternative.size())
 			{
 				gp.gaussPoints.resize(gp_alternative.size()) ;

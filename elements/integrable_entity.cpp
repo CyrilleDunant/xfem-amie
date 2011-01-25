@@ -44,7 +44,6 @@ void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
 		}
 
-		
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getBoundingPoint(i).id,  getShapeFunction(i), getGaussPoints(), Jinv) ;
@@ -56,6 +55,7 @@ void IntegrableEntity::applyBoundaryCondition(Assembly * a)
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions(getState(),getEnrichmentFunction(i).getDofID(),  getEnrichmentFunction(i), getGaussPoints(), Jinv) ;
 			boundaryConditionCache->insert(boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end()) ;
 		}
+		
 	}
 	if(boundaryConditionCache)
 	{

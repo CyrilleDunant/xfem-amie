@@ -424,7 +424,7 @@ public:
 	
 		/** \brief  set Sampling parameter
 	 */
-	void setSamplingNumber(size_t news) { samplingNumber = news ;} ;
+	void setSamplingNumber(size_t news);
 	
 	/**  \brief  Postprocess the result.
 	 * 

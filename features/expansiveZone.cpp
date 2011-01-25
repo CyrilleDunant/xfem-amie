@@ -4,6 +4,7 @@
 
 #include "expansiveZone.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
+#include "../physics/stiffness.h"
 #include "../physics/dual_behaviour.h"
 
 using namespace Mu ;
@@ -49,7 +50,7 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
 		{
 			ring[i]->setBehaviour(new BimaterialInterface(getPrimitive(),
-														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+														new Stiffness/*WithImposedDeformation*/(cgTensor/*, imposedDef*/),
 														ring[i]->getBehaviour()->getCopy()
 														)) ;
 			ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
@@ -61,7 +62,7 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	for(size_t i = 0 ; i < inDisc.size() ; i++)
 	{
 		if(expansive.find(inDisc[i]) == expansive.end())
-			inDisc[i]->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
+			inDisc[i]->setBehaviour(new Stiffness/*WithImposedDeformation*/(cgTensor/*, imposedDef*/)) ;
 		
 		newExpansive.insert(inDisc[i]) ;
 	}
@@ -73,7 +74,7 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 		if(bimateralInterfaced.find(disc[0]) == bimateralInterfaced.end())
 		{
 			disc[0]->setBehaviour(new BimaterialInterface(getPrimitive(),
-														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+														new Stiffness/*WithImposedDeformation*/(cgTensor/*, imposedDef*/),
 														disc[0]->getBehaviour()->getCopy()
 														)) ;
 			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;

@@ -1518,11 +1518,6 @@ void BranchedCrack::step(double dt, Vector* v, const Mu::Mesh< DelaunayTriangle,
 	}
 }
 
-void BranchedCrack::snap(Mesh<DelaunayTriangle,DelaunayTreeItem>*)
-{
-	
-}
-
 bool BranchedCrack::moved() const
 {
 	return changed ;

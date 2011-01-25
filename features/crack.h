@@ -189,9 +189,6 @@ public:
 */
 	virtual void step(double dt , Vector* v, const Mesh<DelaunayTriangle, DelaunayTreeItem>* tree) ;
 
-/** \brief Do nothing*/
-	virtual void snap(Mesh<DelaunayTriangle, DelaunayTreeItem>*) ;
-
 /** \brief if the crack grew this simulation step, return true*/
 	virtual bool moved() const ;
 

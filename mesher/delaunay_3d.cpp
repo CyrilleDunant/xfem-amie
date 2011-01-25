@@ -2898,19 +2898,22 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 128 ;
+			double ndivs = 32 ;
 			for(double k = 1  ; k < ndivs ; k++)
 			{
 				for(double l = 1  ; l < ndivs ; l++)
 				{
-					if( k/ndivs + l/ndivs < .5 )
-						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 1.)) ;
+					for(double m = 1  ; m < ndivs ; l++)
+					{
+						if( k/ndivs + l/ndivs + m/ndivs< 1 )
+							gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs, m/ndivs), 0.125)) ;
+					}
 				}
 			}
 			
 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
 			{
-				gp_alternative[i].second = 0.5*jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
+				gp_alternative[i].second = jacobianAtPoint(gp_alternative[i].first)/gp_alternative.size() ;
 			}
 			if(gp.gaussPoints.size() < gp_alternative.size())
 			{

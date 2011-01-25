@@ -38,7 +38,6 @@
 #include "../utilities/placement.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 
-
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
@@ -120,6 +119,8 @@ double timepos = 0.00 ;
 int grid = -1 ;
 bool firstRun = true ;
 
+
+int samplingnumber ;
 std::vector<DelaunayTriangle *> tris__ ;
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
@@ -625,52 +626,51 @@ void step()
 		
 		if(go)
 		{
-			for(double k = -width/2 ; k < width/2 ; k += width/100)
+			
+			for(double k = -2 ; k < 2 ; k += 4./400)
 			{
-				Point p(k, 0.) ;
-				auto tri = featureTree->getElements2D(&p) ;
-				
-				for(size_t j = 0 ; j  < tri.size() ; j++ )
+				for(double l = -2 ; l < 2 ; l += 4./400)
 				{
-					if(tri[j]->in(p))
+					Point p(k, l) ;
+					auto tri = featureTree->getElements2D(&p) ;
+					
+					for(size_t j = 0 ; j  < tri.size() ; j++ )
 					{
-						std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
-						break ;
+						if(tri[j]->in(p))
+						{
+							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
+							break ;
+						}
 					}
 				}
+				std::cout << std::endl ;
 			}
 			std::cout << std::endl ;
-// 			std::cout << " " << x_max 
-// 			 << " " << avgdisplacement[0]
-// 			 << " " << x_min 
-// 			 << " " << y_max 
-// 			 << " " << avgdisplacement[1] 
-// 			 << " " << y_min 
-// 			 << " " << sigma11.max() 
-// 			 << " " << sigma11.min() 
-// 			 << " " << sigma12.max() 
-// 			 << " " << sigma12.min() 
-// 			 << " " << sigma22.max() 
-// 			 << " " << sigma22.min() 
-// 			
-// 			 << " " << epsilon11.max()
-// 			 << " " << epsilon11.min()
-// 			 << " " << epsilon12.max()
-// 			 << " " << epsilon12.min()
-// 			 << " " << epsilon22.max()
-// 			 << " " << epsilon22.min()
-// 			
-// 			 << " " << vonMises.max() 
-// 			 << " " << vonMises.min() 
-// 			
-// 			 << " " << avg_s_xx/area 
-// 			 << " " << avg_s_yy/area 
-// 			 << " " << avg_s_xy/area 
-// 			 << " " << avg_e_xx/area 
-// 			 << " " << avg_e_yy/area 
-// 			 << " " << avg_e_xy/area 
-// 				
-// 			<< " " << enr << std::endl ;
+			std::cout << "max value :" << x_max << std::endl ;
+			std::cout << "min value :" << x_min << std::endl ;
+			std::cout << "max sigma11 :" << sigma11.max()/1000000. << std::endl ;
+			std::cout << "min sigma11 :" << sigma11.min()/1000000. << std::endl ;
+			std::cout << "max sigma12 :" << sigma12.max()/1000000. << std::endl ;
+			std::cout << "min sigma12 :" << sigma12.min()/1000000. << std::endl ;
+			std::cout << "max sigma22 :" << sigma22.max()/1000000. << std::endl ;
+			std::cout << "min sigma22 :" << sigma22.min()/1000000. << std::endl ;
+			
+			std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
+			std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
+			std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
+			std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
+			std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
+			std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+			
+			std::cout << "max von Mises :" << vonMises.max()/1000000. << std::endl ;
+			std::cout << "min von Mises :" << vonMises.min()/1000000. << std::endl ;
+			
+			std::cout << "average sigma11 : " << (avg_s_xx/area)/1000000. << std::endl ;
+			std::cout << "average sigma22 : " << (avg_s_yy/area)/1000000. << std::endl ;
+			std::cout << "average sigma12 : " << (avg_s_xy/area)/1000000. << std::endl ;
+			std::cout << "average epsilon11 : " << avg_e_xx/area<< std::endl ;
+			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
+			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		}
 		energy.push_back(enr) ;
 
@@ -757,7 +757,9 @@ void Menu(int selection)
 		}
 	case ID_BACK:
 	{
-		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
+		samplingnumber *= 1.5 ;
+		featureTree->setSamplingNumber(samplingnumber);
+// 		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
 		step() ;
 // 		imposeddisp->setData(imposeddisp->getData()-.1);
 		dlist = false ;
@@ -1761,10 +1763,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 200, -0) );
 // 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
-	Vector a(3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
+	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
 	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 1, 0., 0.,m0_paste*2., a) ;
 // 	Inclusion * inc0 = new Inclusion(1, 0., 0.) ;
-	
+// 	
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
 // 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
@@ -1777,6 +1779,8 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
+	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
@@ -1790,9 +1794,10 @@ int main(int argc, char *argv[])
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
 // 	F.addFeature(&sample, crack0);
 	
-	F.setSamplingNumber(atoi(argv[1])) ;
-	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(2000) ;
+	samplingnumber = atoi(argv[1]);
+	F.setSamplingNumber(samplingnumber) ;
+	F.setOrder(QUADRATIC) ;
+	F.setMaxIterationsPerStep(8) ;
 	F.setDeltaTime(0.1);
 
 	std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;

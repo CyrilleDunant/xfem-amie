@@ -349,19 +349,19 @@ void FeatureTree::setOrder(Order ord)
 	state.stitched = false ;
 	state.renumbered = false ;
 	
-	this->elemOrder = ord ;
+	elemOrder = ord ;
 	
 	if(father3D)
 		delete father3D ;
 	
-	father3D = new TetrahedralElement(this->elemOrder) ;
+	father3D = new TetrahedralElement(elemOrder) ;
 	father3D->compileAndPrecalculate() ;
 
 	
 	if(father2D)
 		delete father2D ;
 	
-	father2D = new TriElement(this->elemOrder) ;
+	father2D = new TriElement(elemOrder) ;
 	father2D->compileAndPrecalculate() ;
 }
 
@@ -369,7 +369,7 @@ void FeatureTree::renumber()
 {
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
+		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
 		size_t count = 0 ;
 		std::cerr << " renumbering... " << std::flush ;
 
@@ -654,8 +654,7 @@ void FeatureTree::stitch()
 	size_t pd = 0 ;
 	if(is2D())
 	{
-
-		if((int)elemOrder-1 > 0 )
+		if( elemOrder >= QUADRATIC )
 		{
 			dtree->setElementOrder(elemOrder) ;
 			
@@ -940,6 +939,14 @@ void FeatureTree::stitch()
 		}
 	}
 	std::cerr << " ...done."<< std::endl ;
+}
+
+void FeatureTree::setSamplingNumber(size_t news) 
+{
+	samplingNumber = news ;
+	needMeshing = true ; 
+	state.enriched = false ;
+	
 }
 
 void FeatureTree::duplicate2DMeshPoints()
@@ -2200,8 +2207,10 @@ void FeatureTree::enrich()
 		{
 			if(is3D())
 			{
-				if(this->tree[i]->isEnrichmentFeature && dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved())
+				if(this->tree[i]->isEnrichmentFeature && (dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved() || !state.enriched))
 				{
+					if(!state.enriched)
+						dynamic_cast<EnrichmentFeature *>(tree[i])->update(dtree3D) ;
 					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree3D) ;
 					if(useMultigrid)
 					{
@@ -2221,8 +2230,10 @@ void FeatureTree::enrich()
 			else
 			{
 				
-				if(this->tree[i]->isEnrichmentFeature && dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved())
+				if(this->tree[i]->isEnrichmentFeature && (dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved()|| !state.enriched))
 				{
+					if(!state.enriched)
+						dynamic_cast<EnrichmentFeature *>(tree[i])->update(dtree) ;
 					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree) ;
 					if(useMultigrid)
 					{
@@ -3323,7 +3334,8 @@ void FeatureTree::State::setStateTo(StateType s,bool stepChanged )
 			}
 			if(stepChanged)
 			{
-				enriched = false ;
+				if(ft->deltaTime > POINT_TOLERANCE)
+					enriched = false ;
 				assembled = false ;
 				solved = false ;
 				behaviourStepped = false;
@@ -3395,14 +3407,6 @@ void FeatureTree::State::setStateTo(StateType s,bool stepChanged )
 			}
 			if(s == BEHAVIOUR_SET)
 				return ;
-			
-			if(!renumbered)
-			{
-				ft->renumber();
-				renumbered = true ;
-			}
-			if(s == RENUMBERED)
-				return ;
 				
 			if(!stitched)
 			{
@@ -3410,6 +3414,15 @@ void FeatureTree::State::setStateTo(StateType s,bool stepChanged )
 				stitched = true ;
 			}
 			if(s == STITCHED)
+				return ;
+			
+			if(!renumbered)
+			{
+				ft->renumber();
+				renumbered = true ;
+			}
+			
+			if(s == RENUMBERED)
 				return ;
 			
 			if(!initialised)
@@ -3487,6 +3500,7 @@ bool FeatureTree::step()
 	std::cout << it << "." << std::flush ;
 	while((behaviourChanged()||!solverConverged()) && ++it < maxitPerStep)
 	{
+		deltaTime = 0 ;
 		if(solverConverged())
 			std::cout << "." << std::flush ;
 		else
@@ -3653,11 +3667,11 @@ void FeatureTree::initializeElements()
 {
 	
 	if(!father3D)
-		father3D = new TetrahedralElement(this->elemOrder) ;
+		father3D = new TetrahedralElement(elemOrder) ;
 	father3D->compileAndPrecalculate() ;
 	
 	if(!father2D)
-		father2D = new TriElement(this->elemOrder) ;
+		father2D = new TriElement(elemOrder) ;
 	father2D->compileAndPrecalculate() ;
 	
 	timeval time0, time1 ;
@@ -4462,8 +4476,10 @@ void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersec
 
 void FeatureTree::shuffleMeshPoints()
 {
+	std::random_shuffle(meshPoints.begin(), meshPoints.end()) ;
 	return ;
 	std::cout << "shuffling mesh points... " ;
+	
 	std::deque<std::pair<Point *, Feature * > > shuffled ;
 	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 		shuffled.push_back(meshPoints[i]) ;
@@ -4572,7 +4588,6 @@ void FeatureTree::shuffleMeshPoints()
 		}
 	}
 	std::cout << "done... " << std::endl ;
-	
 }
 
 
