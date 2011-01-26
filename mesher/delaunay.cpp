@@ -2487,12 +2487,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 64 ;
-			for(double k = 1  ; k < ndivs ; k++)
+			double ndivs = 32 ;
+			for(double k = 0  ; k < ndivs ; k++)
 			{
-				for(double l = 1  ; l < ndivs ; l++)
+				for(double l = 0  ; l < ndivs ; l++)
 				{
-					if( k/ndivs + l/ndivs < 1 )
+					if( k/ndivs + l/ndivs <= 1 )
 						gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs), 0.5)) ;
 				}
 			}

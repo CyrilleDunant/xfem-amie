@@ -3483,7 +3483,7 @@ bool FeatureTree::step()
 	else
 		deltaTime = 0 ;
 	bool ret = true ;
-	size_t it = 0 ;
+	size_t it = 1 ;
 	
 
 	K->clear() ;
@@ -3497,7 +3497,7 @@ bool FeatureTree::step()
 
 	state.setStateTo(XFEM_STEPPED, true ) ;
 	
-	std::cout << it << "." << std::flush ;
+	std::cout << it<<"/" << maxitPerStep << "." << std::flush ;
 	while((behaviourChanged()||!solverConverged()) && ++it < maxitPerStep)
 	{
 		deltaTime = 0 ;

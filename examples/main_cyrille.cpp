@@ -162,12 +162,10 @@ SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElement
 																	  new Point(sample.getCenter().x - sample.width()/2, sample.getCenter().y - sample.height()/2), 
 																	  new Point(sample.getCenter().x - sample.width()/2, sample.getCenter().y + sample.height()/2), 
 																	  new Point(sample.getCenter().x + sample.width()/2, sample.getCenter().y + sample.height()/2), NULL)) ;
-Point *pa = new Point(sample.getCenter().x - sample.width()*0.505, sample.getCenter().y) ;
-Point *pb = new Point(sample.getCenter().x + sample.width()*0.505, sample.getCenter().y) ;
-Point *pc = new Point(sample.getCenter().x, sample.getCenter().y - sample.height()*0.505) ;
-Point *pd = new Point(sample.getCenter().x, sample.getCenter().y + sample.height()*0.505) ;
-Point *pi = new Point(sample.getCenter().x, sample.getCenter().y) ;
-BranchedCrack * crack0 = new BranchedCrack(pa, pi) ;
+Point *pa = new Point(sample.getCenter().x - 2, sample.getCenter().y) ;
+Point *pb = new Point(sample.getCenter().x + 2, sample.getCenter().y) ;
+
+BranchedCrack * crack0 = new BranchedCrack(pa, pb) ;
 
 std::vector<DelaunayTriangle *> supertris = mesh->getElements() ;
 
@@ -385,12 +383,9 @@ void step()
 	
 	size_t max_growth_steps = 1;
 	size_t max_limit = 2000 ;
-	int countit = 0;
 	int limit = 0 ;
 	
-	while ( countit < max_growth_steps )
-	{
-		countit++ ;
+
 		go = featureTree->step() ;
 
 // 		if(go)
@@ -627,9 +622,9 @@ void step()
 		if(go)
 		{
 			
-			for(double k = -2 ; k < 2 ; k += 4./400)
+			for(double k = -3 ; k < 0 ; k += 3./400)
 			{
-				for(double l = -2 ; l < 2 ; l += 4./400)
+				for(double l = -1.5 ; l < 1.5 ; l += 3./400)
 				{
 					Point p(k, l) ;
 					auto tri = featureTree->getElements2D(&p) ;
@@ -674,7 +669,6 @@ void step()
 		}
 		energy.push_back(enr) ;
 
-	}
 // 	for(size_t i = 0 ; i < energy.size() ; i++)
 // 		std::cout << energy[i] << std::endl ;
 }
@@ -1770,20 +1764,21 @@ int main(int argc, char *argv[])
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
 // 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
-	F.addFeature(&sample, inc0) ;
+// 	F.addFeature(&sample, inc0) ;
+	
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
 // 	F.addBoundaryCondition(imposeddisp) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
 // 	std::vector<Point *> newTips ;
 // 	newTips.push_back(pb);
@@ -1791,13 +1786,13 @@ int main(int argc, char *argv[])
 // 	newTips.push_back(pd);
 // 
 // 	crack0->branch(pi, newTips);
-// 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
-// 	F.addFeature(&sample, crack0);
+	crack0->setEnrichementRadius(sample.height()*0.1) ;
+	F.addFeature(&sample, crack0);
 	
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
 	F.setOrder(QUADRATIC) ;
-	F.setMaxIterationsPerStep(8) ;
+	F.setMaxIterationsPerStep(5) ;
 	F.setDeltaTime(0.1);
 
 	std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;

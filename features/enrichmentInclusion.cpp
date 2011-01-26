@@ -74,6 +74,44 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		std::cout << "cache empty !" << std::endl ;
 }
 
+Function getBlendingFunction(const std::map<Point *, int> & dofIds, const DelaunayTriangle * t)
+{
+	TriElement father(LINEAR) ;
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+	{
+		return father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+	{
+		return father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+	{
+		return father.getShapeFunction(2) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+	{
+		return 1-father.getShapeFunction(2) ;
+	}
+	
+	return Function() ;
+}
+
+
 void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	freeIds.clear() ;
@@ -89,7 +127,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 // 		std::cout << "cowardly discarding" << std::endl ;
 // 		return ;
 // 	}
-	TriElement father(disc[0]->getOrder()) ;
+	TriElement father(LINEAR) ;
 	
 	if(disc.size() == 1) // special case for really small inclusions
 	{
@@ -125,42 +163,40 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		Segment s0(*disc[i]->first, *disc[i]->second) ;
 		Segment s1(*disc[i]->second, *disc[i]->third) ;
 		Segment s2(*disc[i]->third, *disc[i]->first) ;
-		if(!(getPrimitive()->in(*disc[i]->first) && getPrimitive()->in(*disc[i]->second) && getPrimitive()->in(*disc[i]->third)) && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		if(!(s0.intersection(getPrimitive()).empty() && s1.intersection(getPrimitive()).empty() && s2.intersection(getPrimitive()).empty())&& disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
 			ring.push_back(disc[i]) ;
 		}
 	}
+	std::sort(ring.begin(), ring.end()) ;
+	
 	//then we build a list of points to enrich
 	std::set<Point *> points ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-		for(size_t j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
+		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
 			points.insert(&ring[i]->getBoundingPoint(j)) ;
-
 		}
 	}
 
 	
 	//we build a map of the points and corresponding enrichment ids
 	std::map<Point *, int> dofId ;
+
+
 	
-	for(std::set<Point * >::const_iterator i = points.begin() ; i != points.end() ; ++i)
+	for(auto i = points.begin() ; i != points.end() ; ++i)
 	{
 			dofId[*i] = lastId++ ;
 	}
-	
-	//now, we will start the enrichment itself
-	
-
-	std::set<std::pair<DelaunayTriangle *, Point *> > done ;
+	std::set<std::pair<DelaunayTriangle *, Point *> > enriched ;
 	//then we iterate on every element
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 
 		std::vector<Point> hint ;
 		hint.push_back(Point(1./3., 1./3.)) ;
-		//if the number of intersection points is not 2, we need not do anything
 
 		//we build the enrichment function, first, we get the transforms from the triangle
 		Function x = ring[i]->getXTransform() ;
@@ -168,59 +204,47 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		
 		//this function returns the distance to the centre
 		Function position(getCenter(), x, y) ;
+		Function hat = f_abs(position-getRadius());
 		
-		Function hat = f_abs((getRadius() - position)) ;
-		for(int j = 0 ; j < ring[i]->getBoundingPoints().size() ; j++)
+		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
-			std::pair<DelaunayTriangle *, Point *> that(ring[i],&ring[i]->getBoundingPoint(j)) ;
-			
-			if(done.find(that) != done.end() )
-				continue ;
-			done.insert(that) ;
-			Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-			Function f = ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat,p.x, p.y )) ;
-			
-// 			for(double k = 0 ; k < 1 ; k += 0.01)
-// 			{
-// 				for(double l = 0 ; l < 1 ; l += 0.01)
-// 				{
-// 					if(k+l < 1)
-// 						std::cout << VirtualMachine().eval(f, k, l) << "  "<<std::flush ;
-// 					else
-// 						std::cout << "0  "<<std::flush ;
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// 			exit(0) ;
-			f.setIntegrationHint(hint) ;
-			f.setPoint(&ring[i]->getBoundingPoint(j)) ;
-			f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
-			ring[i]->setEnrichment( f, getPrimitive()) ;
+			std::pair<DelaunayTriangle *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
+			if(enriched.find(that) == enriched.end())
+			{
+				enriched.insert(that) ;
+				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
+				Function f =  ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y)) ;
+				f.setIntegrationHint(hint) ;
+				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
+				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
+				ring[i]->setEnrichment( f, getPrimitive()) ;
+			}
 		}
 		
 		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
-
+			Function blend = getBlendingFunction(dofId, t) ;
+			if(std::find(ring.begin(), ring.end(), t) != ring.end())
+				blend = Function("1") ;
+			
 			if(!t->enrichmentUpdated)
 				t->clearEnrichment( getPrimitive()) ;
+			
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function hat = f_abs((getRadius() - Function(getCenter(), 
-																				t->getXTransform(), t->getYTransform()))) ;
+			Function position(getCenter(), t->getXTransform(), t->getYTransform()) ;
+			Function hat = f_abs(position-getRadius()) ;
 			
-			for(int k = 0 ; k < t->getBoundingPoints().size() ; k++)
+			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{
-				std::map<Point*, int>::const_iterator pt = dofId.find(&t->getBoundingPoint(k)) ;
-				if(pt != dofId.end())
+				std::pair<DelaunayTriangle *, Point *> that(t, &t->getBoundingPoint(k) ) ;
+				
+				if(dofId.find(&t->getBoundingPoint(k)) != dofId.end() && enriched.find(that) == enriched.end())
 				{
-					std::pair<DelaunayTriangle *, Point *> that(t,&t->getBoundingPoint(k)) ;
-					if(done.find(that) != done.end())
-						continue ;
-					
+					enriched.insert(that) ;
 					Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-					done.insert(that) ;
-					Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y )) ;
+					Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y))*blend ;
 					if(!hinted)
 					{
 						f.setIntegrationHint(hint) ;
@@ -233,8 +257,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			}
 		}
 	}
-
 }
+	
+
+	
 	
 bool EnrichmentInclusion::interacts(Feature * f, double d) const { return false ;}
 void EnrichmentInclusion::snap(DelaunayTree * dtree) {}

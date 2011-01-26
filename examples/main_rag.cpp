@@ -27,6 +27,8 @@
 #include "../physics/void_form.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
+
 
 #include <fstream>
 
@@ -102,7 +104,7 @@ double stress = 15e6 ;
 double restraintDepth = 0.01 ;
 
 Sample sample(NULL, 0.07+restraintDepth, 0.07+restraintDepth, 0, 0) ;
-Rectangle baseGeometry(0.035, 0.035, 0.035*.5, 0.035*.5) ;
+Rectangle baseGeometry(0.07, 0.07, 0, 0) ;
 
 bool firstRun = true ;
 
@@ -237,7 +239,7 @@ void fastForward (int steps, int nstepstot)
 
 void step()
 {
-	int nsteps = 1200;
+	int nsteps = 1;
 	int nstepstot = 1200;
 	int maxtries = 400 ;
 	int tries = 0 ;
@@ -1743,6 +1745,11 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 	
+	Matrix m0_support(3, 3) ;
+	m0_support[0][0] = 1./(1-0.2*0.2) ; m0_support[0][1] =1./(1-0.2*0.2)*0.2 ; m0_support[0][2] = 0 ;
+	m0_support[1][0] = 1./(1-0.2*0.2)*0.2 ; m0_support[1][1] = 1./(1-0.2*0.2) ; m0_support[1][2] = 0 ; 
+	m0_support[2][0] = 0 ; m0_support[2][1] = 0 ; m0_support[2][2] = 1./(1-0.2*0.2)*(1.-0.2)/2. ; 
+	
 // 	Sample reinforcement0(NULL, 8,.15,0,.5) ;
 // 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
 // 	
@@ -1754,7 +1761,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0.000002;
-	int inclusionNumber = 20000 ;
+	int inclusionNumber = 0 ;
 // 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 // 
@@ -1788,8 +1795,9 @@ int main(int argc, char *argv[])
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius()-itzSize 
 		<< ", smallest r =" << feats.back()->getRadius()-itzSize << std::endl ; 
 
-	sample.setBehaviour(new PasteBehaviour()) ;
-// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
+// 	sample.setBehaviour(new PasteBehaviour()) ;
+	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
+	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, a)) ;
 	if(restraintDepth > 0)
 	{
 		Sample * voidtop = new Sample(NULL, restraintDepth*.5,restraintDepth*.5, sample.getCenter().x-(sample.width()-restraintDepth)*.5-restraintDepth*.25, sample.getCenter().y+(sample.height()-restraintDepth)*.5+0.0025 ) ;
@@ -1809,20 +1817,27 @@ int main(int argc, char *argv[])
 		voidright->setBehaviour(new VoidForm());
 		F.addFeature(&sample, voidright);
 		
+		//width are 6544984695	10226538586	14726215564
+		//length are 5113269293	26179938780	40906154344
+
+
+
+
+		
 		Sample * blocktop = new Sample(NULL, sample.width()-restraintDepth,restraintDepth*.5, sample.getCenter().x, sample.getCenter().y+(sample.height()-restraintDepth)*.5+restraintDepth*.25 ) ;
-		blocktop->setBehaviour(new Stiffness(m0_paste*.0005)) ;
+		blocktop->setBehaviour(new Stiffness(m0_support*14726215564)) ;
 		F.addFeature(NULL, blocktop);
 
-// 		Sample * blockbottom = new Sample(NULL, sample.width()-restraintDepth,restraintDepth*.5, sample.getCenter().x, sample.getCenter().y-(sample.height()-restraintDepth)*.5-restraintDepth*.25 ) ;
-// 		blockbottom->setBehaviour(new Stiffness(m0_paste*.0005)) ;
-// 		F.addFeature(NULL, blockbottom);
+		Sample * blockbottom = new Sample(NULL, sample.width()-restraintDepth,restraintDepth*.5, sample.getCenter().x, sample.getCenter().y-(sample.height()-restraintDepth)*.5-restraintDepth*.25 ) ;
+		blockbottom->setBehaviour(new Stiffness(m0_support*14726215564)) ;
+		F.addFeature(NULL, blockbottom);
 		
-// 		Sample * blockleft = new Sample(NULL,restraintDepth*.5, sample.height()-restraintDepth, sample.getCenter().x-(sample.width()-restraintDepth)*.5-restraintDepth*.25, sample.getCenter().y ) ;
-// 		blockleft->setBehaviour(new Stiffness(m0_paste*.0005)) ;
-// 		F.addFeature(NULL, blockleft);
+		Sample * blockleft = new Sample(NULL,restraintDepth*.5, sample.height()-restraintDepth, sample.getCenter().x-(sample.width()-restraintDepth)*.5-restraintDepth*.25, sample.getCenter().y ) ;
+		blockleft->setBehaviour(new Stiffness(m0_support*40906154344)) ;
+		F.addFeature(NULL, blockleft);
 
 		Sample * blockright = new Sample(NULL,restraintDepth*.5, sample.height()-restraintDepth, sample.getCenter().x+(sample.width()-restraintDepth)*.5+restraintDepth*.25, sample.getCenter().y ) ;
-		blockright->setBehaviour(new Stiffness(m0_paste*.0005)) ;
+		blockright->setBehaviour(new Stiffness(m0_support*40906154344)) ;
 		F.addFeature(NULL, blockright);
 	}
 	std::vector<Inclusion *> placedinclusions ;
@@ -1856,11 +1871,11 @@ int main(int argc, char *argv[])
 	Circle cercle(.5, 0,0) ;
 
 	zones = generateExpansiveZonesHomogeneously(3000, placedinclusions, F) ;
-	F.setSamplingNumber(1400) ;
+	F.setSamplingNumber(128) ;
 	if(restraintDepth > 0)
 	{
-		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
-		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_ETA, new Rectangle(0.07+restraintDepth*1.1,0.035+restraintDepth*.5, 0,-(0.035+restraintDepth*.5)*.5))) ;
+// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
+// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_ETA, new Rectangle(0.07+restraintDepth*1.1,0.035+restraintDepth*.5, 0,-(0.035+restraintDepth*.5)*.5))) ;
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
@@ -1873,7 +1888,7 @@ int main(int argc, char *argv[])
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT)) ;
 	}
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 // 	F.useMultigrid = true ;
 // 	
 	step() ;

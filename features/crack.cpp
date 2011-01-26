@@ -658,7 +658,7 @@ const std::vector<SegmentedLine *> & BranchedCrack::getBranches() const
 
 void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt)
 {
-	for(size_t i =  0 ; i < tips.size() ; i++)
+	for(size_t i =  0 ; i < tips.size(); i++)
 	{
 		enrichTip(startid, dt, tips[i]) ;
 	}
@@ -732,8 +732,8 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 		Function r_alt = f_sqrt ( (x_alt^2)  + (y_alt^2) );
 
 
-		Function x_ = f_curvilinear_x(getPrimitive(), (tip.first == getHead()), x, y) ; 
-		Function y_ = f_curvilinear_y(getPrimitive(), (tip.first == getHead()), x, y) ; 
+		Function x_ = x_alt ; //f_curvilinear_x(getPrimitive(), (tip.first == getHead()), x, y) ; 
+		Function y_ = y_alt ; //f_curvilinear_y(getPrimitive(), (tip.first == getHead()), x, y) ; 
 
 
 		Function theta = f_atan2 ( y_, x_ );
@@ -743,42 +743,6 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 		Function f1 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 );
 		Function f2 = f_sqrt ( r_alt ) *f_sin ( theta_alt/2 ) *f_sin ( theta_alt );
 		Function f3 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 ) *f_sin ( theta_alt );
-// 		Function f4 = f_sqrt ( r ) *f_sin ( theta/2 ) *f_sin ( theta * 2);
-// 		Function f5 = f_sqrt ( r ) *f_cos ( theta/2 ) *f_sin ( theta * 2);
-		
-
-// 		if(!triangles[i]->in(*tip.first) && getBoundingPoints().size() == 3)
-// 		{
-// 			for(double k = 0  ; k < 100 ; k++)
-// 			{
-// 				for(double l = 0  ; l < 100 ; l++)
-// 				{
-// 					if( k+l < 100 )
-// 						std::cout << vm.eval(theta, k/100., l/100.) << "  "<< std::flush ;
-// 					else
-// 						std::cout << "0  " << std::flush ;
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// // 			exit(0) ;
-// 		}
-// 
-// 		if(!triangles[i]->in(*tip.first) && getBoundingPoints().size() == 3)
-// 		{
-// 			for(double k = 0  ; k < 100 ; k++)
-// 			{
-// 				for(double l = 0  ; l < 100 ; l++)
-// 				{
-// 					if( k+l < 100 )
-// 						std::cout << vm.eval(r, k/100., l/100.) << "  " << std::flush ;
-// 					else
-// 						std::cout << "0  " << std::flush ;
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// 			
-// 			exit(0) ;
-// 		}
 		
 		std::vector<Point *> currentPoint ;
 		currentPoint.push_back(triangles[i]->first) ;
@@ -795,20 +759,9 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 				int usedId = 0 ;
 				if(done.find(currentPoint[p]) == done.end())
 				{
-					if(freeIds.size() < 4)
-					{
-						done[currentPoint[p]] = dt->getLastNodeId() ;
-						usedId = dt->getLastNodeId() ;
-						lastId+=4 ;
-					}
-					else
-					{
-						done[currentPoint[p]] = *freeIds.begin() ;
-						usedId = *freeIds.begin() ;
-						std::set<size_t>::iterator iter = freeIds.begin() ;
-						++iter ; ++iter ; ++iter ; ++iter ;
-						freeIds.erase(freeIds.begin(), iter);
-					}
+					done[currentPoint[p]] = lastId ;
+					usedId = lastId ;
+					lastId+=4 ;
 				}
 				else
 				{
@@ -943,18 +896,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 		int usedId = 0 ;
 		if(done.find(e->first) == done.end())
 		{
-			if(freeIds.empty())
-			{
-				done[e->first] = dt->getLastNodeId() ;
-				usedId = dt->getLastNodeId() ;
-				lastId++ ;
-			}
-			else
-			{
-				done[e->first] = *freeIds.begin() ;
-				usedId = *freeIds.begin() ;
-				freeIds.erase(freeIds.begin());
-			}
+			done[e->first] = lastId ;
+			usedId = lastId ;
+			lastId++ ;
 		}
 		else
 		{
@@ -969,18 +913,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 		
 		if(done.find(e->second) == done.end())
 		{
-			if(freeIds.empty())
-			{
-				done[e->second] = dt->getLastNodeId() ;
-				usedId = dt->getLastNodeId() ;
+				done[e->second] = lastId ;
+				usedId = lastId ;
 				lastId++ ;
-			}
-			else
-			{
-				done[e->second] = *freeIds.begin() ;
-				usedId = *freeIds.begin() ;
-				freeIds.erase(freeIds.begin());
-			}
 		}
 		else
 		{
@@ -993,18 +928,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 
 		if(done.find(e->third) == done.end())
 		{
-			if(freeIds.empty())
-			{
-				done[e->third] = dt->getLastNodeId() ;
-				usedId = dt->getLastNodeId() ;
-				lastId++ ;
-			}
-			else
-			{
-				done[e->third] = *freeIds.begin() ;
-				usedId = *freeIds.begin() ;
-				freeIds.erase(freeIds.begin());
-			}
+			done[e->third] = lastId ;
+			usedId = lastId ;
+			lastId++ ;
 		}
 		else
 		{
@@ -1172,18 +1098,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 			int usedId = 0 ;
 			if(done.find(e->first) == done.end())
 			{
-				if(freeIds.empty())
-				{
-					done[e->first] = dt->getLastNodeId() ;
-					usedId = dt->getLastNodeId() ;
-					lastId++ ;
-				}
-				else
-				{
-					done[e->first] = *freeIds.begin() ;
-					usedId = *freeIds.begin() ;
-					freeIds.erase(freeIds.begin());
-				}
+				done[e->first] = lastId ;
+				usedId = lastId ;
+				lastId++ ;
 			}
 			else
 			{
@@ -1198,18 +1115,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 			
 			if(done.find(e->second) == done.end())
 			{
-				if(freeIds.empty())
-				{
-					done[e->second] = dt->getLastNodeId() ;
-					usedId = dt->getLastNodeId() ;
-					lastId++ ;
-				}
-				else
-				{
-					done[e->second] = *freeIds.begin() ;
-					usedId = *freeIds.begin() ;
-					freeIds.erase(freeIds.begin());
-				}
+				done[e->second] = lastId ;
+				usedId = lastId ;
+				lastId++ ;
 			}
 			else
 			{
@@ -1222,18 +1130,9 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 
 			if(done.find(e->third) == done.end())
 			{
-				if(freeIds.empty())
-				{
-					done[e->third] = dt->getLastNodeId() ;
-					usedId = dt->getLastNodeId() ;
-					lastId++ ;
-				}
-				else
-				{
-					done[e->third] = *freeIds.begin() ;
-					usedId = *freeIds.begin() ;
-					freeIds.erase(freeIds.begin());
-				}
+				done[e->third] = lastId ;
+				usedId = lastId ;
+				lastId++ ;
 			}
 			else
 			{
@@ -1359,8 +1258,6 @@ void BranchedCrack::enrich(size_t & counter,  Mesh<DelaunayTriangle,DelaunayTree
 	for(auto i = toClear.begin() ; i != toClear.end() ; ++i)
 	{
 		std::vector<size_t> idpts = (*i)->clearEnrichment(getPrimitive()) ;
-		for(size_t j = 0 ; j < idpts.size() ; j++)
-			freeIds.insert(idpts[j]) ;
 		(*i)->enrichmentUpdated = true;
 	}
 	
@@ -1498,6 +1395,7 @@ bool BranchedCrack::enrichmentTarget(DelaunayTriangle* tri)
 void BranchedCrack::step(double dt, Vector* v, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
 	changed = false ;
+	return ;
 	std::vector<Point *> tipsToGrow ; 
 	std::vector<double> angles ; 
 	for(size_t i = 0 ; i < tips.size() ; i++)
