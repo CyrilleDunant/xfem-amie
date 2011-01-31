@@ -136,7 +136,7 @@ Vector angle(0) ;
 
 double nu = 0.3 ;
 double E_agg = 58.9e9 ;
-double E_paste = 12e9 ;
+double E_paste = 37e9 ;
 
 int totit = 1 ;
 
@@ -720,7 +720,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	
 	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
+	double radius = 0.00001 ;
 	Vector a(double(0), 3) ;
 	a[0] = 0.5 ;
 	a[1] = 0.5 ;
@@ -751,7 +751,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 && incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004 && baseGeometry.in(zonesToPlace[i]->getCenter()))
+			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*60 /*&& incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004*/ && baseGeometry.in(zonesToPlace[i]->getCenter()))
 			{
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;
@@ -1761,7 +1761,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0.000002;
-	int inclusionNumber = 0 ;
+	int inclusionNumber = 20000 ;
 // 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 // 
@@ -1796,8 +1796,9 @@ int main(int argc, char *argv[])
 		<< ", smallest r =" << feats.back()->getRadius()-itzSize << std::endl ; 
 
 // 	sample.setBehaviour(new PasteBehaviour()) ;
-	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
-	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, a)) ;
+		sample.setBehaviour(new Stiffness(m0_paste)) ;
+// 	Vector setExpansion(0., 3) ; setExpansion[0] = 0.4 ; setExpansion[1] = 0.4 ; setExpansion[2] = 0 ;
+// 	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, setExpansion)) ;
 	if(restraintDepth > 0)
 	{
 		Sample * voidtop = new Sample(NULL, restraintDepth*.5,restraintDepth*.5, sample.getCenter().x-(sample.width()-restraintDepth)*.5-restraintDepth*.25, sample.getCenter().y+(sample.height()-restraintDepth)*.5+0.0025 ) ;
@@ -1825,19 +1826,19 @@ int main(int argc, char *argv[])
 
 		
 		Sample * blocktop = new Sample(NULL, sample.width()-restraintDepth,restraintDepth*.5, sample.getCenter().x, sample.getCenter().y+(sample.height()-restraintDepth)*.5+restraintDepth*.25 ) ;
-		blocktop->setBehaviour(new Stiffness(m0_support*14726215564)) ;
+		blocktop->setBehaviour(new Stiffness(m0_support*14726215564*2)) ;
 		F.addFeature(NULL, blocktop);
 
 		Sample * blockbottom = new Sample(NULL, sample.width()-restraintDepth,restraintDepth*.5, sample.getCenter().x, sample.getCenter().y-(sample.height()-restraintDepth)*.5-restraintDepth*.25 ) ;
-		blockbottom->setBehaviour(new Stiffness(m0_support*14726215564)) ;
+		blockbottom->setBehaviour(new Stiffness(m0_support*14726215564*2)) ;
 		F.addFeature(NULL, blockbottom);
 		
 		Sample * blockleft = new Sample(NULL,restraintDepth*.5, sample.height()-restraintDepth, sample.getCenter().x-(sample.width()-restraintDepth)*.5-restraintDepth*.25, sample.getCenter().y ) ;
-		blockleft->setBehaviour(new Stiffness(m0_support*40906154344)) ;
+		blockleft->setBehaviour(new Stiffness(m0_support*5113269293)) ;
 		F.addFeature(NULL, blockleft);
 
 		Sample * blockright = new Sample(NULL,restraintDepth*.5, sample.height()-restraintDepth, sample.getCenter().x+(sample.width()-restraintDepth)*.5+restraintDepth*.25, sample.getCenter().y ) ;
-		blockright->setBehaviour(new Stiffness(m0_support*40906154344)) ;
+		blockright->setBehaviour(new Stiffness(m0_support*5113269293)) ;
 		F.addFeature(NULL, blockright);
 	}
 	std::vector<Inclusion *> placedinclusions ;
@@ -1850,8 +1851,9 @@ int main(int argc, char *argv[])
 		if(!(!baseGeometry.in(a) && !baseGeometry.in(b) && !baseGeometry.in(c) && !baseGeometry.in(d)))
 		{
 			inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-			AggregateBehaviour * stiff = new AggregateBehaviour() ;
-// 			Stiffness * stiff = new Stiffness(m0_agg) ;
+// 			AggregateBehaviour * stiff = new AggregateBehaviour() ;
+// 			StiffnessWithImposedDeformation * stiff = new StiffnessWithImposedDeformation(m0_agg, setExpansion) ;
+			Stiffness * stiff = new Stiffness(m0_agg) ;
 	// 		stiff->variability = .5 ;
 			inclusions[i]->setBehaviour(stiff) ;
 			F.addFeature(&sample,inclusions[i]) ;
@@ -1871,7 +1873,7 @@ int main(int argc, char *argv[])
 	Circle cercle(.5, 0,0) ;
 
 	zones = generateExpansiveZonesHomogeneously(3000, placedinclusions, F) ;
-	F.setSamplingNumber(128) ;
+	F.setSamplingNumber(512) ;
 	if(restraintDepth > 0)
 	{
 // 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
@@ -1888,7 +1890,7 @@ int main(int argc, char *argv[])
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT)) ;
 	}
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 // 	F.useMultigrid = true ;
 // 	
 	step() ;

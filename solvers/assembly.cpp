@@ -480,9 +480,13 @@ void Assembly::setBoundaryConditions()
 
 void Assembly::initialiseElementaryMatrices()
 {
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
+	std::cerr << "Generating elementary matrices..." << std::flush ;
 	if(has3Dims == false)
 	{
-		#pragma omp parallel for
+		std::random_shuffle(element2d.begin(), element2d.end());
+// 		#pragma omp parallel for schedule(static)
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			element2d[i]->getElementaryMatrix() ;
@@ -490,12 +494,15 @@ void Assembly::initialiseElementaryMatrices()
 	}
 	else
 	{
-			#pragma omp parallel for
+// 			#pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			element3d[i]->getElementaryMatrix() ;
 		}
 	}
+	gettimeofday(&time1, NULL);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
 }
 
 

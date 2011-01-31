@@ -1085,7 +1085,10 @@ void FeatureTree::sample()
 				size_t npoints = std::max((size_t)round(sqrt(tree[i]->area()/(total_area*shape_factor))*samplingNumber), (size_t)8) ;
 
 				if(npoints >= 8 && !tree[i]->isVirtualFeature && npoints < samplingNumber)
+				{
 					tree[i]->sample(npoints) ;
+					tree[i]->isUpdated = false ;
+				}
 			}
 		}
 		else if (is3D())
@@ -1105,7 +1108,10 @@ void FeatureTree::sample()
 				size_t npoints = (size_t)round((1.5*samplingNumber*tree[i]->area()*shape_factor)/(total_area)) ;
 
 				if(npoints > 0 && !tree[i]->isVirtualFeature)
+				{
 					tree[i]->sample(npoints) ;
+					tree[i]->isUpdated = false ;
+				}
 				
 				count++ ;
 
@@ -3032,6 +3038,7 @@ void FeatureTree::stepXfem()
 					}
 					else if(tree[i]->isUpdated)
 					{
+						std::cout << "update ! " << std::endl ;
 						needAssembly = true ;
 						needMeshing = true ;
 						reuseDisplacements = false ;

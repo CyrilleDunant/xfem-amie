@@ -32,7 +32,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	if(maxit != -1)
 		Maxit = maxit ;
 	else
-		Maxit = std::max(round(.5*b.size()), 500.) ;
+		Maxit = std::max(round(b.size()), 500.) ;
 	if(x0.size() == b.size())
 	{
 		x = x0 ;
@@ -109,7 +109,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
-	while(last_rho*last_rho > eps*eps*err0 && n < Maxit )
+	while(last_rho*last_rho > std::max(eps*eps*err0, eps*eps) && n < Maxit )
 	{
 		P->precondition(r,z) ;
 		
@@ -128,7 +128,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			assign(r, A*x-b) ;
 			r *= -1 ;
 		}
-		if(	verbose && n%64 == 0)
+		if(	verbose && n%128 == 0)
 		{
 			std::cerr <<   sqrt(rho) << std::endl  ;
 		}
@@ -147,13 +147,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	
 	if(verbose)
 	{
-		if(nit <= Maxit && last_rho*last_rho< eps*eps*err0)
+		if(nit <= Maxit && last_rho*last_rho< std::max(eps*eps*err0, eps*eps))
 			std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
 			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 	
 	
-	return nit < Maxit && last_rho*last_rho< eps*eps*err0;
+	return nit < Maxit && last_rho*last_rho< std::max(eps*eps*err0, eps*eps);
 }
 

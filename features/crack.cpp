@@ -664,6 +664,43 @@ void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle,DelaunayT
 	}
 }
 
+Function getBlendingFunction(const Circle * eps, const DelaunayTriangle * t)
+{
+	TriElement father(LINEAR) ;
+	
+	if(eps->in(*t->first) && !eps->in(*t->second) && !eps->in(*t->third) )
+	{
+		return father.getShapeFunction(0) ;
+	}
+	
+	if(!eps->in(*t->first)  && eps->in(*t->second)  && !eps->in(*t->third) )
+	{
+		return father.getShapeFunction(1) ;
+	}
+	
+	if(!eps->in(*t->first)  && !eps->in(*t->second)  && eps->in(*t->third) )
+	{
+		return father.getShapeFunction(2) ;
+	}
+	
+	if(!eps->in(*t->first)  && eps->in(*t->second)  && eps->in(*t->third) )
+	{
+		return 1-father.getShapeFunction(0) ;
+	}
+	
+	if(eps->in(*t->first)  && !eps->in(*t->second)  && eps->in(*t->third) )
+	{
+		return 1-father.getShapeFunction(1) ;
+	}
+	
+	if(eps->in(*t->first)  && eps->in(*t->second)  && !eps->in(*t->third) )
+	{
+		return 1-father.getShapeFunction(2) ;
+	}
+	
+	return Function() ;
+}
+
 void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt, const std::pair<Point *, double> & tip)
 {
 	Circle epsilon(enrichementRadius, Point(*(tip.first))) ;
@@ -671,19 +708,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
 	double angle = tip.second ;
-	std::valarray<Function> shapefunc(3) ;
-	Matrix xi(2,2) ; xi[1][0] = 1 ;
-	Matrix eta(2,2) ; eta[0][1] = 1 ;
-	Matrix one(2,2) ; one[0][0] = 1 ;
-
-	shapefunc[0] = Function(eta) ;
-	shapefunc[1] = Function(one-xi-eta) ;
-	shapefunc[2] = Function(xi) ;
-	
-	std::valarray <Point> pointLocal(3) ;
-	pointLocal[0] = Point ( 0,1 ) ;
-	pointLocal[1] = Point ( 0,0 ) ;
-	pointLocal[2] = Point ( 1,0 )  ;
+	TriElement father (triangles[0]->getOrder()) ;
 	
 	for(size_t  i = 0 ; i < triangles.size() ; i++)
 	{
@@ -729,7 +754,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 		Function y_alt = y - tip.first->y ;
 
 		Function theta_alt = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-		Function r_alt = f_sqrt ( (x_alt^2)  + (y_alt^2) );
+		Function r_alt = Function(*tip.first, x, y);//f_sqrt ( (x_alt^2)  + (y_alt^2) );
 
 
 		Function x_ = x_alt ; //f_curvilinear_x(getPrimitive(), (tip.first == getHead()), x, y) ; 
@@ -737,59 +762,58 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 
 
 		Function theta = f_atan2 ( y_, x_ );
-		Function r = f_sqrt ( (x_^2)  + (y_^2) );
 		
 		Function f0 = f_sqrt ( r_alt ) *f_sin ( theta_alt/2 );
 		Function f1 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 );
 		Function f2 = f_sqrt ( r_alt ) *f_sin ( theta_alt/2 ) *f_sin ( theta_alt );
 		Function f3 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 ) *f_sin ( theta_alt );
 		
-		std::vector<Point *> currentPoint ;
-		currentPoint.push_back(triangles[i]->first) ;
-		currentPoint.push_back(triangles[i]->second) ;
-		currentPoint.push_back(triangles[i]->third) ;
-		
 		bool hinted = false ;
 		int pcount = 0 ;
-		for(size_t p = 0 ; p < 3 ;p++)
+		
+		Function blend = getBlendingFunction(&epsilon, triangles[i]) ;
+		if(epsilon.in(*triangles[i]->first) && epsilon.in(*triangles[i]->first) && epsilon.in(*triangles[i]->first))
+			blend = Function("1") ;
+		
+		for(size_t p = 0 ; p < triangles[i]->getBoundingPoints().size() ;p++)
 		{
-			if(epsilon.in(*currentPoint[p]))
+			if(epsilon.in(triangles[i]->getBoundingPoint(p)))
 			{
 				pcount++ ;
 				int usedId = 0 ;
-				if(done.find(currentPoint[p]) == done.end())
+				if(done.find(&triangles[i]->getBoundingPoint(p)) == done.end())
 				{
-					done[currentPoint[p]] = lastId ;
+					done[&triangles[i]->getBoundingPoint(p)] = lastId ;
 					usedId = lastId ;
-					lastId+=4 ;
+					lastId += 4 ;
 				}
 				else
 				{
-					usedId = done[currentPoint[p]] ;
+					usedId = done[&triangles[i]->getBoundingPoint(p)] ;
 				}
-
-				Function f = shapefunc[p]* ( f0 - vm.eval ( f0, pointLocal[p] ) ) ;
+				Point pt = triangles[i]->inLocalCoordinates( triangles[i]->getBoundingPoint(p)) ;
+				Function f = triangles[i]->getShapeFunction(p)* ( f0 - vm.eval ( f0,  pt) )*blend ;
 				if(!hinted)
 				{
 					f.setIntegrationHint ( hint ) ;
 					hinted = true ;
 				}
-				f.setPoint ( currentPoint[p]) ;
+				f.setPoint ( &triangles[i]->getBoundingPoint(p)) ;
 				f.setDofID ( usedId ) ;
 				triangles[i]->setEnrichment (  f , static_cast<SegmentedLine *>(this)  ) ;
 				
-				f = shapefunc[p]* ( f1 - vm.eval ( f1, pointLocal[p] ) ) ;
-				f.setPoint ( currentPoint[p]) ;
+				f = triangles[i]->getShapeFunction(p)* ( f1 - vm.eval ( f1, pt ) )*blend ;
+				f.setPoint ( &triangles[i]->getBoundingPoint(p)) ;
 				f.setDofID ( usedId+1 ) ;
 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 				
-				f = shapefunc[p]* ( f2 - vm.eval ( f2, pointLocal[p] ) ) ;
-				f.setPoint ( currentPoint[p]) ;
+				f = triangles[i]->getShapeFunction(p)* ( f2 - vm.eval ( f2, pt ) )*blend ;
+				f.setPoint ( &triangles[i]->getBoundingPoint(p)) ;
 				f.setDofID ( usedId+2 ) ;
 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 				
-				f = shapefunc[p]* ( f3 - vm.eval ( f3, pointLocal[p] ) ) ;
-				f.setPoint (currentPoint[p] ) ;
+				f = triangles[i]->getShapeFunction(p)* ( f3 - vm.eval ( f3, pt ) )*blend ;
+				f.setPoint (&triangles[i]->getBoundingPoint(p) ) ;
 				f.setDofID ( usedId+3 ) ;
 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 				
@@ -804,7 +828,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 // 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
 			}
 		}
-		if(pcount == 3)
+		if(pcount == triangles[i]->getBoundingPoints().size())
 			tipEnrichmentMap.insert(triangles[i]) ;
 		
 	}

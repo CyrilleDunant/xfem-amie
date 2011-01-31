@@ -589,49 +589,49 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 			}
 		case XI : 
 			{
-				double h = eps ;
+				double h = std::max(eval(f, x, y, z, t, u, v, w), 1.)*eps ;
 				volatile double temp = x+h ;
 				h = temp - x ;
 				return .5*( eval(f, x+h, y, z, t, u, v, w) - eval(f, x-h, y, z, t, u, v, w))/h ;
 			}
 		case ETA:
 			{
-				double h = eps ;
+				double h = std::max(eval(f, x, y, z, t, u, v, w), 1.)*eps ;
 				volatile double temp = y+h ;
 				h = temp - y ;
 				return .5*( eval(f, x, y+h, z, t, u, v, w) - eval(f, x, y-h, z, t, u, v, w))/h ;
 			}
 		case ZETA:
 			{
-				double h = eps ;
+				double h = std::max(eval(f, x, y, z, t, u, v, w), 1.)*eps ;
 				volatile double temp = z+h ;
 				h = temp - z ;
 				return .5*( eval(f, x, y, z+h, t, u, v, w) - eval(f, x, y, z-h, t, u, v, w))/h ;
 			}
 		case TIME_VARIABLE : 
 			{
-				double h = eps ;
+				double h = std::max(eval(f, x, y, z, t, u, v, w), 1.)*eps ;
 				volatile double temp = t+h ;
 				h = temp - t ;
 				return .5*(eval(f, x, y, z, t+h, u, v, w) - eval(f, x, y, z, t-h, u, v, w))/(h) ;
 			}
 		case U_VARIABLE:
 			{
-				double h = eps ;
+				double h = std::max(eval(f, x, y, z, t, u, v, w), 1.)*eps ;
 				volatile double temp = u+h ;
 				h = temp -u ;
 				return .5*( eval(f, x, y, z, t, u+h, v, w) - eval(f, x, y, z, t, u-h, v, w))/(h) ;
 			}
 		case V_VARIABLE:
 			{
-				double h = eps ;
+				double h = std::max(eval(f, x, y, z, t, u, v, w), 1.)*eps ;
 				volatile double temp = v+h ;
 				h = temp -v ;
 				return .5*( eval(f, x, y, z, t, u, v+h, w) - eval(f, x, y, z, t, u, v-h, w))/(h) ;
 			}
 		case W_VARIABLE:
 			{
-				double h = eps ;
+				double h = std::max(eval(f, x, y, z, t, u, v, w), 1.)*eps ;
 				volatile double temp = w+h ;
 				h = temp -w ;
 				return .5*( eval(f, x, y, z, t, u, v, w+h) - eval(f, x, y, z, t, u, v, w-h))/(h) ;

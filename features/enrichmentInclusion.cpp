@@ -196,7 +196,16 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	{
 
 		std::vector<Point> hint ;
-		hint.push_back(Point(1./3., 1./3.)) ;
+		std::vector<Point> inter = intersection(ring[i]->getPrimitive()) ;
+		Point h0 = inter[0]*0.33333+inter[1]*0.66666 ;
+		project(&h0);
+		Point h1 = inter[1]*0.33333+inter[0]*0.66666 ;
+		project(&h1);
+		
+		hint.push_back(ring[i]->inLocalCoordinates(inter[0])) ;
+		hint.push_back(ring[i]->inLocalCoordinates(inter[1])) ;
+		hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
+		hint.push_back(ring[i]->inLocalCoordinates(h1)) ;
 
 		//we build the enrichment function, first, we get the transforms from the triangle
 		Function x = ring[i]->getXTransform() ;

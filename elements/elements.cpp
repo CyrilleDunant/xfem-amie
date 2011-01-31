@@ -536,7 +536,20 @@ const GaussPointArray & TriElement::genGaussPoints()
 } ;
 
 
-TriElement::TriElement( Point * p0,  Point * p1,  Point * p2, bool father ) : Triangle(p0, p1, p2), ElementarySurface(father), moved(false) { this->order = LINEAR ; };
+TriElement::TriElement( Point * p0,  Point * p1,  Point * p2, bool father ) : Triangle(p0, p1, p2), ElementarySurface(father), moved(false) 
+{ 
+	this->order = LINEAR ; 
+	shapefunc = new std::valarray<Function>(Function(),3) ;
+	Matrix xi(2,2) ; xi[1][0] = 1 ;
+	Matrix eta(2,2) ; eta[0][1] = 1 ;
+	Matrix one(2,2) ; one[0][0] = 1 ;
+//0
+	(*shapefunc)[0] = Function(eta) ;
+//1
+	(*shapefunc)[1] = Function(one-xi-eta) ;
+//2
+	(*shapefunc)[2] = Function(xi) ;
+};
 	
 TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),moved(false) 
 {
