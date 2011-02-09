@@ -713,7 +713,7 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems ,std:
 
  
  
- void DelaunayTreeItem3D::conflicts(std::valarray< bool >& visitedItems, std::pair< std::vector< DelaunayTreeItem3D* >, std::vector< DelaunayTreeItem3D* > >&ret, const Mu::Point* p)
+void DelaunayTreeItem3D::conflicts(std::valarray< bool >& visitedItems, std::pair< std::vector< DelaunayTreeItem3D* >, std::vector< DelaunayTreeItem3D* > >&ret, const Mu::Point* p)
 {
 
 	if(visitedItems[index])
@@ -775,7 +775,7 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems ,std:
 	ret.second.push_back(this) ;
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
-		if( (!getStepson(i)->visited() && getStepson(i)->inCircumSphere(*p)) ) 
+		if( (!visitedItems[stepson[i]] && getStepson(i)->inCircumSphere(*p)) ) 
 		{
 			toTest.push_back(getStepson(i)) ;
 		}
@@ -784,7 +784,7 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems ,std:
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 
-		if( (!getSon(i)->visited() && getSon(i)->inCircumSphere(*p)))
+		if( (!visitedItems[son[i]] && getSon(i)->inCircumSphere(*p)))
 		{
 			toTest.push_back(getSon(i)) ;
 		}
@@ -798,7 +798,7 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems ,std:
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
 		
-		if( (!getNeighbour(i)->visited() && getNeighbour(i)->inCircumSphere(*p)))
+		if( (!visitedItems[neighbour[i]] && getNeighbour(i)->inCircumSphere(*p)))
 		{
 			toTest.push_back(getNeighbour(i)) ;
 		}

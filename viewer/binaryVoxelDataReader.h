@@ -31,18 +31,19 @@ public:
 		std::cout << "datapoints = " << r*c*s << std::endl ;
 		
 		QEventLoop eloop ;
-		for(size_t i = 0 ; i < r*c*s ; i++)
+		for(size_t j = 0 ; j < numberOfFields ; j++)
 		{
-			if(i % (r*c*s/100) == 0)
+			for(size_t i = 0 ; i < r*c*s ; i++)
 			{
-				int percent = (int)((float)i/(float)(r*c*s)*100.f) ;
-				emit progressed(percent) ;
-				eloop.wakeUp() ;
-				eloop.processEvents() ;
-			}
+				if(i % (r*c*s/100) == 0)
+				{
+					int percent = (int)((float)i/(float)(r*c*s)*100.f) ;
+					emit progressed(percent) ;
+					eloop.wakeUp() ;
+					eloop.processEvents() ;
+				}
 			
-			for(size_t j = 0 ; j < numberOfFields ; j++)
-			{
+
 				streamBin >> (quint8&)((*d)[j])[i] ;
 /* 				if((unsigned int)(*d)[j][i] > 0)
 	 				std::cout << i << " -> "<< (unsigned int)((*d)[j][i]) << std::endl ;*/

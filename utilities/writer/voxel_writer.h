@@ -36,7 +36,8 @@ class VoxelWriter
 {
 protected:
 	std::string filename ;
-	std::vector<std::valarray<unsigned short int> > values ;
+	std::vector<std::valarray<unsigned char> > values ;
+	std::valarray<bool> voids ; 
 	int nVoxelX ;
 	int nVoxelY ;
 	int nVoxelZ ;
@@ -73,7 +74,7 @@ public:
 	int nPoints() { return nVoxelX*nVoxelY*nVoxelZ ; }
 	
 	/** \brief utility static method to write a 2D slice of a 3D sample, according to a plane parallel to the specified axis.*/
-	static void writeMap(std::string filename, FeatureTree * F, Variable axis, double pos, int n, VWFieldType field, int k = 0, int min = 0, int max = 255) ;
+	void writeMap(std::string filename, FeatureTree * F, Variable axis, double pos, int n, VWFieldType field, int k = 0, int min = 1, int max = 255) ;
 
 private:
 	/** \brief write the header of the binary file*/
@@ -82,7 +83,7 @@ private:
 } ;
 
 /** \brief normalize an array of double to an array of unsigned short integers*/
-std::valarray<unsigned short int> normalizeArray(const std::valarray< double >& val, short unsigned int min = 0, short unsigned int max = 255) ;
+std::valarray<unsigned char> normalizeArray(const std::valarray< double >& val, const std::valarray< bool >& voids, short unsigned int min = 1, short unsigned int max = 255) ;
 
 /** \brief number of different fields contained within a VoxelWriterFieldType, typically 1*/
 int numberOfFields(VWFieldType field) ;

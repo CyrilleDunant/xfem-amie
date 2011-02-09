@@ -185,7 +185,7 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("output50.vox", 50) ;
+		VoxelWriter vw("output200.vox", 200) ;
 		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
@@ -1721,7 +1721,7 @@ int main(int argc, char *argv[])
 	d0[2][2] = lambda ;
 
 	nu = 0.2 ;
-	E = 2 ;
+	E = 10 ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1763,13 +1763,13 @@ int main(int argc, char *argv[])
 // 		v += inclusions[i]->volume() ;
 // 	}
 	
-	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.15*scale, 0.075*scale, 0.075*scale) ;
+	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 	inc->setBehaviour(inclusionStiffness) ;
 	F.addFeature(&sample, inc) ;
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
-
+	F.setOrder(QUADRATIC);
 	F.setSamplingNumber(512) ;
 	
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
@@ -1815,12 +1815,16 @@ int main(int argc, char *argv[])
 	div_ = (1000) ;
 
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, RIGHT, 0)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 	step() ;
 
 

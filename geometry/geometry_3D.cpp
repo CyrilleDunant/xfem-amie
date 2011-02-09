@@ -1252,7 +1252,8 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 void Sphere::smooth(std::vector<Point> & points,double r) const
 {
 	std::valarray<Point> speeds(/*Point(), */points.size()) ;
-	for(size_t i = 0 ; i < 240 ; i++)
+	Point vec ;
+	for(size_t i = 0 ; i < 40 ; i++)
 	{
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -1260,8 +1261,8 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 			{
 				if(squareDist3D( points[j], points[k]) > 128.*POINT_TOLERANCE*POINT_TOLERANCE)
 				{
-					Point vec = points[j]-points[k] ;
-					vec *= 1./vec.sqNorm() ;
+					vec.set(points[j].x-points[k].x,points[j].y-points[k].y,points[j].z-points[k].z) ;
+					vec *= getRadius()/vec.sqNorm() ;
 
 					speeds[j] += vec ;
 					speeds[k] -= vec ;
@@ -1399,27 +1400,7 @@ double Sphere::volume() const
 
 void Sphere::project(Point * p) const
 {
-
-	if(squareDist3D(p, &center ) < POINT_TOLERANCE*POINT_TOLERANCE)
-	{
-		p->x +=getRadius() ;
-		return ;
-	}
-	
-	Line l(*p, *p-getCenter()) ;
-	
-	std::vector<Point> inter = l.intersection(this) ;
-	if(inter.empty() || inter.size() == 1)
-	{
-		p->print() ;
-		getCenter().print() ;
-	}
-	if(squareDist3D(inter[0], *p) < squareDist3D(inter[1], *p))
-	{
-		*p = inter[0] ;
-		return ;
-	}
-	*p = inter[1] ;
+	return project(p, getRadius()) ;
 }
 
 void Sphere::project(Point * p, double r) const

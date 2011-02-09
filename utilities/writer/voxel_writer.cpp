@@ -15,6 +15,7 @@
 #include "../../geometry/geometry_3D.h"
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 
 namespace Mu
@@ -49,18 +50,26 @@ VoxelWriter::VoxelWriter(std::string f, Point bl, Point tr, int nx, int ny, int 
 
 void VoxelWriter::write()
 {
-	writeHeader() ;
-	std::fstream outbin ;
-	outbin.open(filename.c_str(), std::ios::out|std::ios::binary|std::ios::app) ;
-	for(int i = 0 ; i < nPoints() ; i++)
+	std::string originalName = filename ;
+	for(size_t j = 0 ; j < values.size() ; j++)
 	{
-		for(size_t j = 0 ; j < values.size() ; j++)
-		{
-			unsigned char val = values[j][i] ;
-			outbin.put(val) ;
-		}
+		std::ostringstream newname ;
+		newname << originalName << "_"<< j ;
+		filename = newname.str() ;
+		writeHeader() ;
+		std::fstream outbin ;
+		outbin.open(filename.c_str(), std::ios::out|std::ios::binary|std::ios::app) ;
+	// 	for(size_t j = 0 ; j < values.size() ; j++)
+	// 	{
+			for(int i = 0 ; i < nPoints() ; i++)
+			{
+				unsigned char val = values[j][i] ;
+				outbin.put(val) ;
+			}
+	// 	}
+		outbin.close() ;
 	}
-	outbin.close() ;
+	filename = originalName;
 }
 
 void VoxelWriter::getField(FeatureTree * F, VWFieldType field)
@@ -69,7 +78,7 @@ void VoxelWriter::getField(FeatureTree * F, VWFieldType field)
 	std::vector<std::valarray<double> > val = getDoubleValues(F, field) ;
 	for(int i = 0 ; i < numberOfFields(field) ; i++)
 	{
-		values.push_back(normalizeArray(val.back())) ;
+		values.push_back(normalizeArray(val.back(), voids)) ;
 		val.pop_back() ;
 	}
 }
@@ -80,10 +89,11 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 	
 	int max = nVoxelX*nVoxelY*nVoxelZ ;
 	int count = 0 ;
+	voids.resize(max, false);
 	std::vector<std::valarray<double> > ret ;
 	for(int i = 0 ; i < numberOfFields(field) ; i++)
 	{
-		std::valarray<double> reti(0., max) ;
+		Vector reti(0., max) ;
 		ret.push_back(reti) ;
 	}
 	if(fullSample)
@@ -98,53 +108,129 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 		bottom_left = c-vec ;
 		top_right = c+vec ;
 	}
-	std::cerr << "generating values... "<<count<<"/" << max << std::flush ;
-	for(int i = 0 ; i < nVoxelX ; i++)
+	std::cerr << "generating values... " << count << "/" << max << std::flush ;
+	
+	std::vector<DelaunayTetrahedron *> tris = F->getElements3D() ;
+	
+	for(size_t t = 0 ; t < tris.size() ; t++)
 	{
-		for(int j = 0 ; j < nVoxelY ; j++)
+		double minx = tris[t]->getCircumCenter().x - tris[t]->getRadius()*1.01 ;
+		double miny = tris[t]->getCircumCenter().y - tris[t]->getRadius()*1.01 ;
+		double minz = tris[t]->getCircumCenter().z - tris[t]->getRadius()*1.01 ;
+		
+		double maxx = tris[t]->getCircumCenter().x + tris[t]->getRadius()*1.01 ;
+		double maxy = tris[t]->getCircumCenter().y + tris[t]->getRadius()*1.01 ;
+		double maxz = tris[t]->getCircumCenter().z + tris[t]->getRadius()*1.01 ;
+		
+		for(int i = nVoxelX*(minx-bottom_left.x)/((top_right.x)-(bottom_left.x)) ; i < nVoxelX*(maxx-bottom_left.x)/((top_right.x)-(bottom_left.x)) ; i++)
 		{
-			for(int k = 0 ; k < nVoxelZ ; k++)
+			if(i >= 0 && i < nVoxelX)
 			{
-				Point p(bottom_left) ;
-				p.x += ((top_right.x)-(bottom_left.x))*((double)(i))/(double(nVoxelX-1)) ;
-				p.y += ((top_right.y)-(bottom_left.y))*((double)(j))/(double(nVoxelY-1)) ;
-				p.z += ((top_right.z)-(bottom_left.z))*((double)(k))/(double(nVoxelZ-1)) ;
-				std::vector<DelaunayTetrahedron *> tris = F->getElements3D(&p) ;
-				bool done = false ;
-				for(size_t l = 0 ; l < tris.size() ; l++)
+				for(int j = nVoxelY*(miny-bottom_left.y)/((top_right.y)-(bottom_left.y)) ; j < nVoxelY*(maxy-bottom_left.y)/((top_right.y)-(bottom_left.y)) ; j++)
 				{
-					if(tris[l]->in(p))
+					if(j >= 0 && j < nVoxelY)
 					{
-						std::pair<bool, std::vector<double> > val = getDoubleValue(tris[l],p,field) ;
-						if(val.first)
+						for(int k = nVoxelZ*(minz-bottom_left.z)/((top_right.z)-(bottom_left.z)) ; k < nVoxelZ*(maxz-bottom_left.z)/((top_right.z)-(bottom_left.z)) ; k++)
 						{
-							for(int m = 0 ; m < numberOfFields(field) ; m++)
+							if(k >= 0 && k < nVoxelZ)
 							{
-								ret[m][count] = val.second[m] ;
+								Point p(bottom_left) ;
+								p.x += ((top_right.x)-(bottom_left.x))*((double)(i))/(double(nVoxelX-1)) ;
+								p.y += ((top_right.y)-(bottom_left.y))*((double)(j))/(double(nVoxelY-1)) ;
+								p.z += ((top_right.z)-(bottom_left.z))*((double)(k))/(double(nVoxelZ-1)) ;
+								
+								if(tris[t]->in(p) && tris[t]->getBehaviour()->type != VOID_BEHAVIOUR)
+								{
+									std::pair<bool, std::vector<double> > val = getDoubleValue(tris[t],p,field) ;
+									if(val.first)
+									{
+										for(int m = 0 ; m < numberOfFields(field) ; m++)
+										{
+											ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i] = val.second[m] ;
+										}
+									}
+								}
+								else if(tris[t]->in(p) && tris[t]->getBehaviour()->type == VOID_BEHAVIOUR)
+								{
+									for(int m = 0 ; m < numberOfFields(field) ; m++)
+									{
+										ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i] = 0 ;
+										voids[k+nVoxelY*j+nVoxelY*nVoxelX*i] = true ;
+									}
+								}
 							}
-							count++ ;
-							done = true ;
-							break ;
 						}
 					}
 				}
-
-				
-				if(!done)
-				{
-					for(int m = 0 ; m < numberOfFields(field) ; m++)
-					{
-						ret[m][count] = 0 ;
-					}
-					count++ ;
-				}
-				
-				if(count %10000 == 0)
-					std::cerr << "\rgenerating values... "<<count<<"/" << max << std::flush ;
 			}
 		}
+		if(t %100 == 0)
+					std::cerr << "\rgenerating values... "<< t <<"/" << tris.size() << std::flush ;
 	}
-	std::cerr << "generating values... "<<count<<"/" << max << " ...done." << std::endl ;
+	
+// 	for(int i = 0 ; i < nVoxelX ; i++)
+// 	{
+// 		for(int j = 0 ; j < nVoxelY ; j++)
+// 		{
+// 			bool done = false ;
+// 			std::vector<DelaunayTetrahedron *> tris ;
+// 			
+// 			for(int k = 0 ; k < nVoxelZ ; k++)
+// 			{
+// 				Point p(bottom_left) ;
+// 				p.x += ((top_right.x)-(bottom_left.x))*((double)(i))/(double(nVoxelX-1)) ;
+// 				p.y += ((top_right.y)-(bottom_left.y))*((double)(j))/(double(nVoxelY-1)) ;
+// 				p.z += ((top_right.z)-(bottom_left.z))*((double)(k))/(double(nVoxelZ-1)) ;
+// 				if(!done)
+// 					tris = F->getElements3D(&p) ;
+// 				
+// 				done = false ;
+// 				for(size_t l = 0 ; l < tris.size() && !done ; l++)
+// 				{
+// 					if( tris[l]->in(p) && tris[l]->getBehaviour()->type != VOID_BEHAVIOUR)
+// 					{
+// 						std::pair<bool, std::vector<double> > val = getDoubleValue(tris[l],p,field) ;
+// 						if(val.first)
+// 						{
+// 							for(int m = 0 ; m < numberOfFields(field) ; m++)
+// 							{
+// 								ret[m][count] = val.second[m] ;
+// 							}
+// 							count++ ;
+// 							done = true ;
+// 						}
+// 					}
+// 					else if(tris[l]->in(p) && tris[l]->getBehaviour()->type != VOID_BEHAVIOUR)
+// 					{
+// 							for(int m = 0 ; m < numberOfFields(field) ; m++)
+// 							{
+// 								ret[m][count] = 0 ;
+// 							}
+// 							voids[count] = true ;
+// 							count++ ;
+// 							done = true ;
+// 							break ;
+// 					}
+// 				}
+// 
+// 				
+// 				if(!done)
+// 				{
+// 					for(int m = 0 ; m < numberOfFields(field) ; m++)
+// 					{
+// 						ret[m][count] = 0 ;
+// 					}
+// 					count++ ;
+// 				}
+// 				
+// 				
+// 				
+// 				if(count %10000 == 0)
+// 					std::cerr << "\rgenerating values... "<<count<<"/" << max << std::flush ;
+// 			}
+// 		}
+// 	}
+	std::cerr << "\rgenerating values... "<< tris.size()<< "/" << tris.size() << " ...done." << std::endl ;
 	return ret ;
 }
 
@@ -248,7 +334,7 @@ void VoxelWriter::writeHeader()
 	std::fstream outstream ;
 	outstream.open(filename.c_str(), std::ios::out) ;
 	outstream << "VOXELS" << std::endl ;
-	outstream << (int) values.size() << std::endl ;
+	outstream << 1 << std::endl ;
 	outstream << nVoxelX << std::endl ;
 	outstream << nVoxelY << std::endl ;
 	outstream << nVoxelZ << std::endl ;
@@ -257,7 +343,8 @@ void VoxelWriter::writeHeader()
 
 void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis, double pos, int n, VWFieldType field, int k, int min, int max)
 {
-	std::valarray<double> values((n+1)*(n+1)) ;
+	std::valarray<double> vals((n+1)*(n+1)) ;
+	voids.resize(false, (n+1)*(n+1));
 	
 	Hexahedron * box = dynamic_cast<Hexahedron *>(F->getFeature(0)) ;
 	Point c = box->getCenter() ;
@@ -306,30 +393,39 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
 			{
 				for(size_t l = 0 ; l < tris.size() ; l++)
 				{
-					if(tris[l]->in(p))
+					if(tris[l]->in(p) && tris[l]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
 						std::pair<bool, std::vector<double> > val = dummy->getDoubleValue(tris[l],p,field) ;
 						if(val.first)
 						{	
-							values[count] = val.second[k] ;
+							vals[count] = val.second[k] ;
 							count++ ;
-							done = true ;								
+							done = true ;
 							break ;
 						}
+					}
+					else if(tris[l]->in(p) && tris[l]->getBehaviour()->type == VOID_BEHAVIOUR)
+					{
+							vals[count] = 0 ;
+							voids[count] = 0 ;
+							count++ ;
+							
+							done = true ;
+							break ;
 					}
 				}
 			}
 			if(!done)
 			{
-				values[count] = 0 ;
+				vals[count] = 0 ;
 				count++ ;
 			}
 		}
 	}
 	delete dummy ;
 	
-	std::valarray<unsigned short int> val_int = normalizeArray(values,min,max) ;
-	values.resize(0) ;
+	std::valarray<unsigned char> val_int = normalizeArray(vals, voids, min,max) ;
+	vals.resize(0) ;
 	
 	std::fstream outfile ;
 	outfile.open(filename.c_str(), std::ios::out) ;
@@ -345,14 +441,19 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
 	}
 }
 
-std::valarray<unsigned short int> normalizeArray(const std::valarray<double> & val, unsigned short int min, unsigned short int max)
+std::valarray<unsigned char> normalizeArray(const std::valarray<double> & val, const std::valarray<bool> & voids, unsigned short int min, unsigned short int max)
 {
-	double vmax = val.max() ;
-	double vmin = val.min() ;
-	std::valarray<unsigned short int> norm(val.size()) ;
+	Vector sortedArray = val ;
+	std::sort(&sortedArray[0], &sortedArray[sortedArray.size()]) ;
+	double vmax = sortedArray[sortedArray.size()*.95] ;
+	double vmin = sortedArray[sortedArray.size()*.05] ;
+	std::valarray<unsigned char> norm(val.size()) ;
 	for(size_t i = 0 ; i < val.size() ; i++)
 	{
-		norm[i] = (unsigned short int) std::floor(round((double) min + (max-min)*((val[i]-vmin)/(vmax-vmin)))) ;
+		if(!voids[i])
+			norm[i] = (unsigned char) std::min(std::max(std::floor(round((double) min + (double)(max-min)*((val[i]-vmin)/(vmax-vmin)))), (double)min), (double)max) ;
+		else
+			norm[i] = 0 ;
 	}	
 	return norm ;
 }
