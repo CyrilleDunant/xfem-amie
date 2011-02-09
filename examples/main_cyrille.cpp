@@ -109,8 +109,8 @@ double x_max = 0 ;
 double y_max = 0 ;
 double disp = 0 ;
 BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
-double width = 20;
-double height = 20;
+double width = 30;
+double height = 30;
 Sample sample(NULL, width , height, 0, 0) ;
 double x_min = 0 ;
 double y_min = 0 ;
@@ -622,9 +622,9 @@ void step()
 		if(go)
 		{
 			
-			for(double k = -3 ; k < 0 ; k += 3./400)
+			for(double k = -2 ; k < 2 ; k += 4./400)
 			{
-				for(double l = -1.5 ; l < 1.5 ; l += 3./400)
+				for(double l = -2 ; l < 2 ; l += 4./400)
 				{
 					Point p(k, l) ;
 					auto tri = featureTree->getElements2D(&p) ;
@@ -633,7 +633,8 @@ void step()
 					{
 						if(tri[j]->in(p))
 						{
-							std::cout << tri[j]->getState()./*getDisplacements(p, false)[0]*/getStress(p, false)[0] << "  " << std::flush ;
+							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
+// 							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
 							break ;
 						}
 					}
@@ -751,9 +752,10 @@ void Menu(int selection)
 		}
 	case ID_BACK:
 	{
-		samplingnumber *= 1.5 ;
-		featureTree->setSamplingNumber(samplingnumber);
-// 		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
+// 		samplingnumber *= 1.5 ;
+// 		featureTree->setSamplingNumber(samplingnumber);
+		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
+		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(2))->setRadius(featureTree->getFeature(2)->getRadius()+0.1 ) ;
 		step() ;
 // 		imposeddisp->setData(imposeddisp->getData()-.1);
 		dlist = false ;
@@ -1697,8 +1699,8 @@ int main(int argc, char *argv[])
 // 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 2 ;
-	double mradius = 1 ;
+	double cradius = 10 ;
+	double mradius = 5 ;
 	double tdamage = .999 ;
 	double dincrement = .01 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
@@ -1758,25 +1760,27 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
 	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
-	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 1, 0., 0.,m0_paste*2., a) ;
+	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 0.1, 0.5, 0.,m0_paste*2., a) ;
+	ExpansiveZone * inc1 = new ExpansiveZone(&sample, 0.1, -0.5, 0.,m0_paste*2., a) ;
 // 	Inclusion * inc0 = new Inclusion(1, 0., 0.) ;
 // 	
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
 // 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
 	F.addFeature(&sample, inc0) ;
+	F.addFeature(&sample, inc1) ;
 	
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
-	F.addBoundaryCondition(imposeddisp) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
+// 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, BOTTOM, 20)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, -10)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
@@ -1792,7 +1796,7 @@ int main(int argc, char *argv[])
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
 	F.setOrder(QUADRATIC) ;
-	F.setMaxIterationsPerStep(5) ;
+	F.setMaxIterationsPerStep(200) ;
 	F.setDeltaTime(0.1);
 
 	std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;

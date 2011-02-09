@@ -82,7 +82,7 @@ private:
 } ;
 
 /** \brief normalize an array of double to an array of unsigned short integers*/
-std::valarray<unsigned short int> normalizeArray(std::valarray<double> val, unsigned short int min = 0, unsigned short int max = 255) ;
+std::valarray<unsigned short int> normalizeArray(const std::valarray< double >& val, short unsigned int min = 0, short unsigned int max = 255) ;
 
 /** \brief number of different fields contained within a VoxelWriterFieldType, typically 1*/
 int numberOfFields(VWFieldType field) ;

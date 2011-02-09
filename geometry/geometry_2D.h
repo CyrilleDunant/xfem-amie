@@ -397,6 +397,7 @@ protected:
 	
 public:
 	SegmentedLine(const std::valarray<Point *> & points) ;
+	SegmentedLine(const Point & p0, const Point & p1) ;
 	virtual ~SegmentedLine() { };
 
 	virtual XMLTree * toXML() {return new XMLTree("segmented line") ; } ;

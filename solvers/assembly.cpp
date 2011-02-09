@@ -1291,15 +1291,18 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 // 	if(this->coordinateIndexedMatrix == NULL)
 // 	double lambda_min = smallestEigenValue(getMatrix()) ;
 // 	double lambda_max = largestEigenValue(getMatrix()) ;
-// 		std::cout << "largest eigenvalue = " << lambda_max << std::endl ;
-// 		std::cout << "smallest eigenvalue = " << lambda_min << std::endl ;
+// // 		std::cout << "largest eigenvalue = " << lambda_max << std::endl ;
+// // 		std::cout << "smallest eigenvalue = " << lambda_min << std::endl ;
 // 	std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
 		timeval time0, time1 ;
 		gettimeofday(&time0, NULL);
 
 	if(make_final())
 	{
-		std::cerr << "symmetrical problem" << std::endl ;
+// 		double lambda_min = smallestEigenValue(getMatrix()) ;
+// 		double lambda_max = largestEigenValue(getMatrix()) ;
+// 		std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
+// 		std::cerr << "symmetrical problem" << std::endl ;
 
 		ConjugateGradientWithSecant cg(this) ;
 		ret = cg.solve(x0, NULL, 5e-9, -1, verbose) ;

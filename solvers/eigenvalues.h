@@ -8,10 +8,10 @@
 namespace Mu
 {
 /** \brief Utility. Return largest EigenValue of the argument*/
-  double largestEigenValue(const CoordinateIndexedSparseMatrix & A) ;
+  double largestEigenValue(const CoordinateIndexedSparseMatrix & A, bool sym = true) ;
 
 /** \brief Utility. Return smallest EigenValue of the argument*/
-  double smallestEigenValue(const CoordinateIndexedSparseMatrix & A) ;
+  double smallestEigenValue(const CoordinateIndexedSparseMatrix & A, bool sym = true) ;
   
 }
 

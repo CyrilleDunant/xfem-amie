@@ -123,7 +123,7 @@ public:
 	
 	GEO_DERIVED_OBJECT(Triangle) ;
 	
-	TriElement( Point * p0,  Point * p1,  Point * p2, bool father = false) ;
+	TriElement( Point * p0,  Point * p1,  Point * p2) ;
 	
 	TriElement(Order order = LINEAR, bool father = true) ;
 	void refresh(const TriElement * parent) ;

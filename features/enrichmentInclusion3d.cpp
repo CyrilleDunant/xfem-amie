@@ -59,6 +59,87 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 		std::cout << "cache empty !" << std::endl ;
 }
 
+Function getBlendingFunction(const std::map<Point *, int> & dofIds, const DelaunayTetrahedron * t)
+{
+	TetrahedralElement father(LINEAR) ;
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end() && dofIds.find(t->fourth) == dofIds.end())
+	{
+		return father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end()&& dofIds.find(t->fourth) == dofIds.end())
+	{
+		return father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end()&& dofIds.find(t->fourth) == dofIds.end())
+	{
+		return father.getShapeFunction(2) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end() && dofIds.find(t->fourth) != dofIds.end())
+	{
+		return father.getShapeFunction(3) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end()&& dofIds.find(t->fourth) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end()&& dofIds.find(t->fourth) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end()&& dofIds.find(t->fourth) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(2) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end()&& dofIds.find(t->fourth) == dofIds.end())
+	{
+		return 1-father.getShapeFunction(3) ;
+	}
+	
+	
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end()&& dofIds.find(t->fourth) != dofIds.end())
+	{
+		return father.getShapeFunction(0) + father.getShapeFunction(1);
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end()&& dofIds.find(t->fourth) != dofIds.end())
+	{
+		return father.getShapeFunction(0) + father.getShapeFunction(2);
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end()&& dofIds.find(t->fourth) == dofIds.end())
+	{
+		return father.getShapeFunction(0) + father.getShapeFunction(3) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end()&& dofIds.find(t->fourth) != dofIds.end())
+	{
+		return father.getShapeFunction(1) + father.getShapeFunction(2) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end()&& dofIds.find(t->fourth) == dofIds.end())
+	{
+		return father.getShapeFunction(1) + father.getShapeFunction(3) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end()&& dofIds.find(t->fourth) == dofIds.end())
+	{
+		return father.getShapeFunction(2) + father.getShapeFunction(3) ;
+	}
+	
+	
+	
+	return Function() ;
+}
+
 void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree)
 {
 	if(updated)
@@ -189,7 +270,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 	
 	//now, we will start the enrichment itself
 	
-
+	std::set<std::pair<DelaunayTetrahedron *, Point *> > enriched ;
 	
 	//then we iterate on every element
 	for(size_t i = 0 ; i < ring.size() ; i++)
@@ -225,119 +306,55 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		Function z = ring[i]->getZTransform() ;
 		
 		//this function returns the distance to the centre
-		Function position(getCenter(), x, y, z) ;
-		position -= radius ;
-		Function hatNorm = 1.-f_abs(position) ;/*vm.eval(f_abs(position), Point(1,0,0))*shapefunc[0] +
-												vm.eval(f_abs(position), Point(0,1,0))*shapefunc[1] +
-												vm.eval(f_abs(position), Point(0,0,1))*shapefunc[2] +
-												vm.eval(f_abs(position), Point(0,0,0))*shapefunc[3] -
-												f_abs( vm.eval(position, Point(1,0,0))*shapefunc[0] +
-															vm.eval(position, Point(0,1,0))*shapefunc[1] +
-															vm.eval(position, Point(0,0,1))*shapefunc[2] +
-															vm.eval(position, Point(0,0,0))*shapefunc[3]);*/
-		//finaly, we have the enrichment function
-		Function hat = hatNorm ; //1-f_abs((rmax-position)/(rmin-radius) + ((rmax-rmin)/(radius-rmin)-1));
-
-		//enriching the first point
-		Function f = shapefunc[0]*(hat-vm.eval(hat, Point(1,0,0))) ;
-		f.setIntegrationHint(hint) ;
-		f.setPoint(c) ;
-		f.setDofID(dofId[c]) ;
-		ring[i]->setEnrichment( f, getPrimitive()) ;
-
-		//enriching the second point
-		f = shapefunc[1]*(hat - vm.eval(hat, Point(0,1,0))) ;
-		f.setIntegrationHint(hint) ;
-		f.setPoint(d) ;
-		f.setDofID(dofId[d]) ;
-		ring[i]->setEnrichment( f, getPrimitive()) ;
+		Function position(getCenter(), x, y,z) ;
+		Function hat = f_abs(position-getRadius());
 		
-		//enriching the third point
-		f = shapefunc[2]*(hat - vm.eval(hat, Point(0,0,1))) ;
-		f.setIntegrationHint(hint) ;
-		f.setPoint(a) ;
-		f.setDofID(dofId[a]) ;
-		ring[i]->setEnrichment(f, getPrimitive()) ;
+		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
+		{
+			std::pair<DelaunayTetrahedron *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
+			if(enriched.find(that) == enriched.end())
+			{
+				enriched.insert(that) ;
+				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
+				Function f =  ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
+				f.setIntegrationHint(hint) ;
+				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
+				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
+				ring[i]->setEnrichment( f, getPrimitive()) ;
+			}
+		}
 		
-		//enriching the fourth point
-		f = shapefunc[3]*(hat - vm.eval(hat, Point(0,0,0))) ;
-		f.setIntegrationHint(hint) ;
-		f.setPoint(b) ;
-		f.setDofID(dofId[b]) ;
-		ring[i]->setEnrichment(f, getPrimitive()) ;
-
 		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTetrahedron * t = ring[i]->getNeighbourhood(j) ;
-			if(!enrichmentTarget(t))
+			Function blend = getBlendingFunction(dofId, t) ;
+			if(std::find(ring.begin(), ring.end(), t) != ring.end())
+				blend = Function("1") ;
+			
+			if(!t->enrichmentUpdated)
+				t->clearEnrichment( getPrimitive()) ;
+			
+			t->enrichmentUpdated = true ;
+			bool hinted = false ;
+			Function position(getCenter(), t->getXTransform(), t->getYTransform()) ;
+			Function hat = f_abs(position-getRadius()) ;
+			
+			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{
-				if(!t->enrichmentUpdated)
-					t->clearEnrichment(getPrimitive()) ;
-				t->enrichmentUpdated = true ;
-				bool hinted = false ;
-
-				//this function returns the distance to the centre
-				Function position(getCenter(), t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-				position -= radius ;
-				//finaly, we have the enrichment function
-				Function hat = 1-f_abs(position)/*vm.eval(f_abs(position), Point(1,0,0))*shapefunc[0] +
-												vm.eval(f_abs(position), Point(0,1,0))*shapefunc[1] +
-												vm.eval(f_abs(position), Point(0,0,1))*shapefunc[2] +
-												vm.eval(f_abs(position), Point(0,0,0))*shapefunc[3] -
-												f_abs( vm.eval(position, Point(1,0,0))*shapefunc[0] +
-																vm.eval(position, Point(0,1,0))*shapefunc[1] +
-																vm.eval(position, Point(0,0,1))*shapefunc[2] +
-																vm.eval(position, Point(0,0,0))*shapefunc[3])*/;
-				hint.push_back(Point(1./4., 1./4., 1./4.)) ;
+				std::pair<DelaunayTetrahedron *, Point *> that(t, &t->getBoundingPoint(k) ) ;
 				
-				if(dofId.find(t->third) != dofId.end())
+				if(dofId.find(&t->getBoundingPoint(k)) != dofId.end() && enriched.find(that) == enriched.end())
 				{
-					Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(1,0,0))) ;
+					enriched.insert(that) ;
+					Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
+					Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z))*blend ;
 					if(!hinted)
 					{
 						f.setIntegrationHint(hint) ;
 						hinted = true ;
 					}
-					f.setPoint(t->third) ;
-					f.setDofID(dofId[t->third]) ;
-					t->setEnrichment(f, getPrimitive()) ;
-				}
-				
-				if(dofId.find(t->fourth) != dofId.end())
-				{
-					Function f = shapefunc[1]*(hat - VirtualMachine().eval(hat, Point(0,1,0))) ;
-					if(!hinted)
-					{
-						f.setIntegrationHint(hint) ;
-						hinted = true ;
-					}
-					f.setPoint(t->fourth) ;
-					f.setDofID(dofId[t->fourth]) ;
-					t->setEnrichment(f, getPrimitive()) ;
-				}
-				
-				if(dofId.find(t->first) != dofId.end())
-				{
-					Function f = shapefunc[2]*(hat - VirtualMachine().eval(hat, Point(0,0,1))) ;
-					if(!hinted)
-					{
-						f.setIntegrationHint(hint) ;
-						hinted = true ;
-					}
-					f.setPoint(t->first) ;
-					f.setDofID(dofId[t->first]) ;
-					t->setEnrichment(f, getPrimitive()) ;
-				}
-				if(dofId.find(t->second) != dofId.end())
-				{
-					Function f = shapefunc[3]*(hat - VirtualMachine().eval(hat, Point(0,0,0))) ;
-					if(!hinted)
-					{
-						f.setIntegrationHint(hint) ;
-						hinted = true ;
-					}
-					f.setPoint(t->second) ;
-					f.setDofID(dofId[t->second]) ;
+					f.setPoint(&t->getBoundingPoint(k)) ;
+					f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
 					t->setEnrichment(f, getPrimitive()) ;
 				}
 			}

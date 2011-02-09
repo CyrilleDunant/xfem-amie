@@ -41,11 +41,11 @@ void IndexedLinearDamage::step(ElementState & s)
 {
 	previousstate = state ;
 		double volume = 0 ;
-		if(!e->getCache().empty())
+		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 		{
 			volume = s.getParent()->area() ;
 		}
-		else if(!e->getCache3d().empty())
+		else if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
 			volume = s.getParent()->volume() ;
 		}
@@ -60,7 +60,7 @@ void IndexedLinearDamage::step(ElementState & s)
 		for(size_t i = 0 ; i < e->getCache().size() ; i++)
 		{
 // 			if(e->getCache()[i]->getBehaviour()->getFractureCriterion()->met(e->getCache()[i]->getState()))
-				totry.push_back(e->getCache()[i]) ;
+				totry.push_back(static_cast<DelaunayTriangle *>((*e->mesh2d)[e->getCache()[i]])) ;
 		}
 		
 		while(!totry.empty() && remnantEnergy > 0)
@@ -102,8 +102,9 @@ void IndexedLinearDamage::step(ElementState & s)
 		
 		for(size_t i = 0 ; i < e->getCache().size() ; i++)
 		{
-			double dedd = e->getCache()[i]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
-			double a = e->getCache()[i]->area() ;
+			DelaunayTriangle * tri = static_cast<DelaunayTriangle *>( (*e->mesh2d)[e->getCache()[i]] ) ;
+			double dedd =tri->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
+			double a = tri->area() ;
 			deavg += dedd*a ;
 			vtot += a ;
 			detot += dedd*dedd ;

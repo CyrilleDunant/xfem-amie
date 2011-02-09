@@ -4048,7 +4048,7 @@ bool Segment::intersects(const TriPoint &g) const
 		return false ;
 	}
 	
-	double r = a /b ;
+	double r = a / b ;
 	
 	if(r < 0 || r > 1)
 		return false ;

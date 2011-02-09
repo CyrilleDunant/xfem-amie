@@ -1436,7 +1436,7 @@ void Circle::sampleBoundingSurface(size_t num_points)
 
 void Circle::sampleSurface(size_t num_points)
 {
-
+// 	num_points = std::max(round(num_points*1.5), 16.) ;
 	sampleBoundingSurface(num_points) ;
 	sampled = true ;
 	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
@@ -1671,6 +1671,18 @@ SegmentedLine::SegmentedLine(const std::valarray<Point *> & points) : NonConvexG
 	for(size_t i = 0 ; i < points.size() ; i++)
 		boundingPoints[i] = points[i] ;
 }
+
+SegmentedLine::SegmentedLine(const Point & p0, const Point & p1) : NonConvexGeometry(0)
+{
+	gType = SEGMENTED_LINE ;
+	
+	this->center = (p0+p1)*.5 ;
+
+	this->boundingPoints.resize(2) ;
+	boundingPoints[0] = new Point(p0) ;
+	boundingPoints[1] = new Point(p1) ;
+}
+
 
 void SegmentedLine::computeCenter()
 {

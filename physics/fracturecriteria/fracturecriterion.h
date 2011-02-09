@@ -13,6 +13,7 @@
 #define MUFRACTURECRITERION_H
 
 #include "../../elements/integrable_entity.h"
+#include "../../mesher/mesh.h"
 
 namespace Mu {
 
@@ -37,11 +38,10 @@ typedef enum{
 	class FractureCriterion
 	{
 	protected:
-		std::vector<DelaunayTriangle *> cache ;
-		std::vector<DelaunayTetrahedron *> cache3d ;
-		std::vector<DelaunayTriangle *> physicalcache ;
-		std::vector<DelaunayTetrahedron *> physicalcache3d ;
+		std::vector<unsigned int> cache ;
+		std::vector<unsigned int> physicalcache ;
 		std::vector<double> area ;
+
 		double neighbourhoodradius ;
 		double neighbourhoodvolume ;
 		double physicalCharacteristicRadius ;
@@ -62,6 +62,8 @@ typedef enum{
 	double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
 	public:
+		std::vector<DelaunayTreeItem *>  *mesh2d ;
+		std::vector<DelaunayTreeItem3D *>  *mesh3d ;
 		
 		double getEnergyDamageDifferential()  const {return energyDamageDifferential ;}
 		double getCriterionDamageDifferential()  const {return criterionDamageDifferential ;}
@@ -111,8 +113,7 @@ typedef enum{
 		
 		virtual Material toMaterial() ;
 		
-		const std::vector<DelaunayTriangle *> & getCache() const { return cache ; } ;
-		const std::vector<DelaunayTetrahedron *> & getCache3d() const { return cache3d ; } ;
+		const std::vector<unsigned int> & getCache() const { return cache ; } ;
 		
 		double getScoreAtState() const { return scoreAtState ; }
 		

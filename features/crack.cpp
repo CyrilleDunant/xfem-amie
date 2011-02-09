@@ -710,8 +710,11 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 	double angle = tip.second ;
 	TriElement father (triangles[0]->getOrder()) ;
 	
+	
 	for(size_t  i = 0 ; i < triangles.size() ; i++)
 	{
+// 		if(!triangles[i]->in(*(tip.first)))
+// 			continue ;
 		enrichmentMap.insert(triangles[i]) ;
 		
 		if(!triangles[i]->enrichmentUpdated)
@@ -977,11 +980,15 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 
 		for ( size_t j = 0 ; j < toEnrichAlso.size() ; j++ )
 		{
+			DelaunayTriangle * elem = toEnrichAlso[j]  ;
+			if(tipEnrichmentMap.find(elem) != tipEnrichmentMap.end())
+			{
+				continue ;
+			}
 			if(!toEnrichAlso[j]->enrichmentUpdated)
 				toEnrichAlso[j]->clearEnrichment( static_cast<SegmentedLine *>(this)) ;
 			toEnrichAlso[j]->enrichmentUpdated = true ;
-			
-			DelaunayTriangle * elem = toEnrichAlso[j] ;
+
 			enrichmentMap.insert(elem) ;
 
 			transformed.clear() ;

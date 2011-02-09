@@ -35,6 +35,7 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
+#include "../utilities/writer/voxel_writer.h"
 #define DEBUG 
 
 #define ID_QUIT 1
@@ -184,7 +185,9 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-
+		VoxelWriter vw("output50.vox", 50) ;
+		vw.getField(featureTree, VWFT_STRESS) ;
+		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
 		sigma_epsilon.first.resize(24*tets.size()) ;
 		sigma_epsilon.second.resize(24*tets.size()) ;
@@ -390,147 +393,147 @@ void step()
 			}
 		}
 		
-			std::stringstream pointfilename ;
-			pointfilename << "difp_2n" ;
-			std::fstream pointfile  ;
-			std::fstream pointfilel  ;
-			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
-			pointfilename << "p" ;
-			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
+// 			std::stringstream pointfilename ;
+// 			pointfilename << "difp_2n" ;
+// 			std::fstream pointfile  ;
+// 			std::fstream pointfilel  ;
+// 			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
+// 			pointfilename << "p" ;
+// 			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
 			
 			
 			int counter = 0 ;
-			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
-			{
-				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
-				{
-					counter++ ;
-					if(counter%1000 == 0)
-						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
-					Point p(i,j,0.075*scale) ;
-					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
-					if(!tris.empty())
-					{
-						bool done = false ;
-						for(size_t k = 0 ; k < tris.size() ; k++)
-						{
-							
-							if(tris[k]->in(p))
-							{
-								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
-								if(b)
-								{
-									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
-										pointfile << 5 << "   " ;
-									else
-										pointfile << 4 << "   " ;
-									//pointfile << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
-/*									pointfilel << b->phi << "   " ;
-									pointfilelp << b->accumulatedPhi << "   " ;
-									pointfiled << b->damage[0] << "   " ;*/
-									done = true ;
-								}
-								else
-								{
-									pointfile << 3 << "   " ;
-/*									pointfilel  << 0 << "   " ;
-									pointfilelp << 0 << "   " ;
-									pointfiled << 0 << "   " ;*/
-									done = true ;
-								}
-								break ;
-							}
-						}
-						if(!done)
-						{
-							pointfile << 2 << "   " ;
-/*							pointfilel << 0 << "   " ;
-							pointfilelp << 0 << "   " ;
-							pointfiled << 0 << "   " ;*/
-						}
-					}
-					else
-					{
-						pointfile << 1 << "   " ;
-/*						pointfilel << 0 << "   " ;
-						pointfilelp << 0 << "   " ;
-						pointfiled << 0 << "   " ;*/
-					}
-				}
-				pointfile << "\n" ;
-/*				pointfilel << "\n" ;
-				pointfilelp << "\n" ;
-				pointfiled << "\n" ;*/
-			}
-			
-		
-			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
-		
-			counter = 0 ;
-			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
-			{
-				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
-				{
-					counter++ ;
-					if(counter%1000 == 0)
-						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
-					Point p(i,j,0.1495*scale) ;
-					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
-					if(!tris.empty())
-					{
-						bool done = false ;
-						for(size_t k = 0 ; k < tris.size() ; k++)
-						{
-							
-							if(tris[k]->in(p))
-							{
-								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
-								if(b)
-								{
-									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
-										pointfile << 5 << "   " ;
-									else
-										pointfile << 4 << "   " ;
-/*									pointfilel << b->phi << "   " ;
-									pointfilelp << b->accumulatedPhi << "   " ;
-									pointfiled << b->damage[0] << "   " ;*/
-									done = true ;
-								}
-								else
-								{
-									pointfilel << 3 << "   " ;
-/*									pointfilel  << 0 << "   " ;
-									pointfilelp << 0 << "   " ;
-									pointfiled << 0 << "   " ;*/
-									done = true ;
-								}
-								break ;
-							}
-						}
-						if(!done)
-						{
-							pointfilel << 2 << "   " ;
-/*							pointfilel << 0 << "   " ;
-							pointfilelp << 0 << "   " ;
-							pointfiled << 0 << "   " ;*/
-						}
-					}
-					else
-					{
-						pointfilel << 1 << "   " ;
-/*						pointfilel << 0 << "   " ;
-						pointfilelp << 0 << "   " ;
-						pointfiled << 0 << "   " ;*/
-					}
-				}
-				pointfilel << "\n" ;
-/*				pointfilel << "\n" ;
-				pointfilelp << "\n" ;
-				pointfiled << "\n" ;*/
-			}
-			
-		
-			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
+// 			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
+// 			{
+// 				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
+// 				{
+// 					counter++ ;
+// 					if(counter%1000 == 0)
+// 						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
+// 					Point p(i,j,0.075*scale) ;
+// 					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
+// 					if(!tris.empty())
+// 					{
+// 						bool done = false ;
+// 						for(size_t k = 0 ; k < tris.size() ; k++)
+// 						{
+// 							
+// 							if(tris[k]->in(p))
+// 							{
+// 								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
+// 								if(b)
+// 								{
+// 									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
+// 										pointfile << 5 << "   " ;
+// 									else
+// 										pointfile << 4 << "   " ;
+// 									//pointfile << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
+// /*									pointfilel << b->phi << "   " ;
+// 									pointfilelp << b->accumulatedPhi << "   " ;
+// 									pointfiled << b->damage[0] << "   " ;*/
+// 									done = true ;
+// 								}
+// 								else
+// 								{
+// 									pointfile << 3 << "   " ;
+// /*									pointfilel  << 0 << "   " ;
+// 									pointfilelp << 0 << "   " ;
+// 									pointfiled << 0 << "   " ;*/
+// 									done = true ;
+// 								}
+// 								break ;
+// 							}
+// 						}
+// 						if(!done)
+// 						{
+// 							pointfile << 2 << "   " ;
+// /*							pointfilel << 0 << "   " ;
+// 							pointfilelp << 0 << "   " ;
+// 							pointfiled << 0 << "   " ;*/
+// 						}
+// 					}
+// 					else
+// 					{
+// 						pointfile << 1 << "   " ;
+// /*						pointfilel << 0 << "   " ;
+// 						pointfilelp << 0 << "   " ;
+// 						pointfiled << 0 << "   " ;*/
+// 					}
+// 				}
+// 				pointfile << "\n" ;
+// /*				pointfilel << "\n" ;
+// 				pointfilelp << "\n" ;
+// 				pointfiled << "\n" ;*/
+// 			}
+// 			
+// 		
+// 			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
+// 		
+// 			counter = 0 ;
+// 			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
+// 			{
+// 				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
+// 				{
+// 					counter++ ;
+// 					if(counter%1000 == 0)
+// 						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
+// 					Point p(i,j,0.1495*scale) ;
+// 					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
+// 					if(!tris.empty())
+// 					{
+// 						bool done = false ;
+// 						for(size_t k = 0 ; k < tris.size() ; k++)
+// 						{
+// 							
+// 							if(tris[k]->in(p))
+// 							{
+// 								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
+// 								if(b)
+// 								{
+// 									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
+// 										pointfile << 5 << "   " ;
+// 									else
+// 										pointfile << 4 << "   " ;
+// /*									pointfilel << b->phi << "   " ;
+// 									pointfilelp << b->accumulatedPhi << "   " ;
+// 									pointfiled << b->damage[0] << "   " ;*/
+// 									done = true ;
+// 								}
+// 								else
+// 								{
+// 									pointfilel << 3 << "   " ;
+// /*									pointfilel  << 0 << "   " ;
+// 									pointfilelp << 0 << "   " ;
+// 									pointfiled << 0 << "   " ;*/
+// 									done = true ;
+// 								}
+// 								break ;
+// 							}
+// 						}
+// 						if(!done)
+// 						{
+// 							pointfilel << 2 << "   " ;
+// /*							pointfilel << 0 << "   " ;
+// 							pointfilelp << 0 << "   " ;
+// 							pointfiled << 0 << "   " ;*/
+// 						}
+// 					}
+// 					else
+// 					{
+// 						pointfilel << 1 << "   " ;
+// /*						pointfilel << 0 << "   " ;
+// 						pointfilelp << 0 << "   " ;
+// 						pointfiled << 0 << "   " ;*/
+// 					}
+// 				}
+// 				pointfilel << "\n" ;
+// /*				pointfilel << "\n" ;
+// 				pointfilelp << "\n" ;
+// 				pointfiled << "\n" ;*/
+// 			}
+// 			
+// 		
+// 			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
 		
 		xavg /= volume ;
 		
@@ -1628,7 +1631,7 @@ void processMouseActiveMotion(int x, int y) {
 int main(int argc, char *argv[])
 {
 	std::cout << "fist argument is the scale, second is E and lambda, third is the sampling" << std::endl ;
-	scale = atof(argv[1]) ;
+	scale = 2000 ;
 
 // 	Point *p0 = new Point(500, 500, 0) ;
 // Point *p1 = new Point(500, 0, 500) ;
@@ -1718,7 +1721,7 @@ int main(int argc, char *argv[])
 	d0[2][2] = lambda ;
 
 	nu = 0.2 ;
-	E = atof(argv[2]) ;
+	E = 2 ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1735,39 +1738,39 @@ int main(int argc, char *argv[])
 	d1[2][2] = lambda ;
 
 
-	sample.setBehaviour(new Laplacian(d0)) ;
-//	sample.setBehaviour(new Stiffness(m0)) ;
+// 	sample.setBehaviour(new Laplacian(d0)) ;
+	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
-	double v = 0 ;
+// 	double v = 0 ;
 	
-	std::vector<std::string> columns ;
-	columns.push_back("center_x") ;
-	columns.push_back("center_y") ;
-	columns.push_back("center_z") ;
-	columns.push_back("radius") ;
-	
-	GranuloFromFile spheres("sphere_2024.txt", columns) ;
-	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
-	
+// 	std::vector<std::string> columns ;
+// 	columns.push_back("center_x") ;
+// 	columns.push_back("center_y") ;
+// 	columns.push_back("center_z") ;
+// 	columns.push_back("radius") ;
+// 	
+// 	GranuloFromFile spheres("sphere_2024.txt", columns) ;
+// 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
+// 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
-	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
+// 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
+// 	
+// 	for(int i = 0 ; i < 0 ; i++)
+// 	{
+// //		inclusions[i]->setBehaviour(inclusionStiffness) ;
+// 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
+// 		F.addFeature(&sample, inclusions[i]) ;
+// 		v += inclusions[i]->volume() ;
+// 	}
 	
-	for(int i = 0 ; i < 0 ; i++)
-	{
-//		inclusions[i]->setBehaviour(inclusionStiffness) ;
-		inclusions[i]->setBehaviour(inclusionDiffusion) ;
-		F.addFeature(&sample, inclusions[i]) ;
-		v += inclusions[i]->volume() ;
-	}
-	
-// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.15*scale, 0.075*scale, 0.075*scale) ;
-// 	inc->setBehaviour(inclusionStiffness) ;
-// 	F.addFeature(&sample, inc) ;
+	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.15*scale, 0.075*scale, 0.075*scale) ;
+	inc->setBehaviour(inclusionStiffness) ;
+	F.addFeature(&sample, inc) ;
 
-	std::cout << "aggregate volume : " << v << std::endl ;
+// 	std::cout << "aggregate volume : " << v << std::endl ;
 
 
-	F.setSamplingNumber(atoi(argv[3])) ;
+	F.setSamplingNumber(512) ;
 	
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{

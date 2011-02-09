@@ -20,23 +20,9 @@
 namespace Mu
 {
 
-VoxelWriter::VoxelWriter(std::string f, int n)
-{
-	filename = f ;
-	nVoxelX = n ;
-	nVoxelY = n ;
-	nVoxelZ = n ;
-	fullSample = true ;
-}
+VoxelWriter::VoxelWriter(std::string f, int n)  : filename(f), nVoxelX(n), nVoxelY(n), nVoxelZ(n), fullSample(true) { }
 
-VoxelWriter::VoxelWriter(std::string f, int nx, int ny, int nz)
-{
-	filename = f ;
-	nVoxelX = nx ;
-	nVoxelY = ny ;
-	nVoxelZ = nz ;
-	fullSample = true ;
-}
+VoxelWriter::VoxelWriter(std::string f, int nx, int ny, int nz): filename(f), nVoxelX(nx), nVoxelY(ny), nVoxelZ(nz), fullSample(true) { }
 
 
 VoxelWriter::VoxelWriter(std::string f, Point bl, Point tr, int n)
@@ -64,14 +50,13 @@ VoxelWriter::VoxelWriter(std::string f, Point bl, Point tr, int nx, int ny, int 
 void VoxelWriter::write()
 {
 	writeHeader() ;
-
 	std::fstream outbin ;
 	outbin.open(filename.c_str(), std::ios::out|std::ios::binary|std::ios::app) ;
 	for(int i = 0 ; i < nPoints() ; i++)
 	{
 		for(size_t j = 0 ; j < values.size() ; j++)
 		{
-			char val = values[i][j] ;
+			unsigned char val = values[j][i] ;
 			outbin.put(val) ;
 		}
 	}
@@ -80,10 +65,11 @@ void VoxelWriter::write()
 
 void VoxelWriter::getField(FeatureTree * F, VWFieldType field)
 {
+	values.clear() ;
 	std::vector<std::valarray<double> > val = getDoubleValues(F, field) ;
 	for(int i = 0 ; i < numberOfFields(field) ; i++)
 	{
-		values.push_back(normalizeArray(val[val.size()-1])) ;
+		values.push_back(normalizeArray(val.back())) ;
 		val.pop_back() ;
 	}
 }
@@ -91,12 +77,13 @@ void VoxelWriter::getField(FeatureTree * F, VWFieldType field)
 
 std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F, VWFieldType field)
 {
+	
 	int max = nVoxelX*nVoxelY*nVoxelZ ;
 	int count = 0 ;
 	std::vector<std::valarray<double> > ret ;
 	for(int i = 0 ; i < numberOfFields(field) ; i++)
 	{
-		std::valarray<double> reti(max) ;
+		std::valarray<double> reti(0., max) ;
 		ret.push_back(reti) ;
 	}
 	if(fullSample)
@@ -111,6 +98,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 		bottom_left = c-vec ;
 		top_right = c+vec ;
 	}
+	std::cerr << "generating values... "<<count<<"/" << max << std::flush ;
 	for(int i = 0 ; i < nVoxelX ; i++)
 	{
 		for(int j = 0 ; j < nVoxelY ; j++)
@@ -123,45 +111,47 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 				p.z += ((top_right.z)-(bottom_left.z))*((double)(k))/(double(nVoxelZ-1)) ;
 				std::vector<DelaunayTetrahedron *> tris = F->getElements3D(&p) ;
 				bool done = false ;
-				if(!tris.empty())
+				for(size_t l = 0 ; l < tris.size() ; l++)
 				{
-					for(size_t l = 0 ; l < tris.size() ; l++)
+					if(tris[l]->in(p))
 					{
-						if(tris[l]->in(p))
+						std::pair<bool, std::vector<double> > val = getDoubleValue(tris[l],p,field) ;
+						if(val.first)
 						{
-							std::pair<bool, std::vector<double> > val = getDoubleValue(tris[l],p,field) ;
-							if(val.first)
-							{	
-								for(int m = 0 ; m < numberOfFields(field) ; m++)
-								{
-									ret[m][count] = val.second[m] ;
-								}
-								count++ ;
-								done = true ;								
-								break ;
+							for(int m = 0 ; m < numberOfFields(field) ; m++)
+							{
+								ret[m][count] = val.second[m] ;
 							}
+							count++ ;
+							done = true ;
+							break ;
 						}
 					}
 				}
+
+				
 				if(!done)
 				{
-					std::cout << "not done" << std::endl ;
 					for(int m = 0 ; m < numberOfFields(field) ; m++)
 					{
 						ret[m][count] = 0 ;
 					}
 					count++ ;
 				}
+				
+				if(count %10000 == 0)
+					std::cerr << "\rgenerating values... "<<count<<"/" << max << std::flush ;
 			}
 		}
 	}
+	std::cerr << "generating values... "<<count<<"/" << max << " ...done." << std::endl ;
 	return ret ;
 }
 
 std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahedron * tet, const Point & p, VWFieldType field)
 {
 	std::vector<double> ret(numberOfFields(field)) ;
-	Vector tmp ;
+	
 	bool found = false ;
 	switch(field)
 	{
@@ -185,7 +175,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_STRAIN:
 		{
-			tmp = tet->getState().getStrain(p,false) ;
+			Vector tmp = tet->getState().getStrain(p,false) ;
 			for(int i = 0 ; i < 6 ; i++)
 				ret[i] = tmp[5-i] ;
 			found = true ;
@@ -194,7 +184,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_STRAIN_AND_STRESS:
 		{
-			tmp = tet->getState().getStrain(p,false) ;
+			Vector tmp = tet->getState().getStrain(p,false) ;
 			for(int i = 0 ; i < 6 ; i++)
 				ret[i] = tmp[5-i] ;
 			tmp = tet->getState().getStress(p,false) ;
@@ -206,7 +196,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_STRESS:
 		{
-			tmp = tet->getState().getStress(p,false) ;
+			Vector tmp = tet->getState().getStress(p,false) ;
 			for(int i = 0 ; i < 6 ; i++)
 				ret[i] = tmp[5-i] ;
 			found = true ;
@@ -215,7 +205,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_GRADIENT:
 		{
-			tmp = tet->getState().getGradient(p,false) ;
+			Vector tmp = tet->getState().getGradient(p,false) ;
 			for(int i = 0 ; i < 3 ; i++)
 				ret[i] = tmp[2-i] ;
 			found = true ;
@@ -224,7 +214,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_GRADIENT_AND_FLUX:
 		{
-			tmp = tet->getState().getGradient(p,false) ;
+			Vector tmp = tet->getState().getGradient(p,false) ;
 			for(int i = 0 ; i < 3 ; i++)
 				ret[i] = tmp[2-i] ;
 			tmp = tet->getState().getFlux(p,false) ;
@@ -236,7 +226,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_FLUX:
 		{
-			tmp = tet->getState().getFlux(p,false) ;
+			Vector tmp = tet->getState().getFlux(p,false) ;
 			for(int i = 0 ; i < 3 ; i++)
 				ret[i] = tmp[2-i] ;
 			found = true ;
@@ -355,14 +345,14 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
 	}
 }
 
-std::valarray<unsigned short int> normalizeArray(std::valarray<double> val, unsigned short int min, unsigned short int max)
+std::valarray<unsigned short int> normalizeArray(const std::valarray<double> & val, unsigned short int min, unsigned short int max)
 {
 	double vmax = val.max() ;
 	double vmin = val.min() ;
 	std::valarray<unsigned short int> norm(val.size()) ;
 	for(size_t i = 0 ; i < val.size() ; i++)
 	{
-		norm[i] = (unsigned short int) std::floor((double) min + (max-min)*((val[i]-vmin)/(vmax-vmin))) ;
+		norm[i] = (unsigned short int) std::floor(round((double) min + (max-min)*((val[i]-vmin)/(vmax-vmin)))) ;
 	}	
 	return norm ;
 }
@@ -394,7 +384,7 @@ int numberOfFields(VWFieldType field)
 }
 
 
-}
+} ;
 
 
 
