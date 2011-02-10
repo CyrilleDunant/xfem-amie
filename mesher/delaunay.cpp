@@ -356,7 +356,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 {
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
 
-	for(std::vector<DelaunayTriangle *>::iterator i = tri.begin() ; i != tri.end() ; ++i)
+	for(auto i = tri.begin() ; i != tri.end() ; ++i)
 	{
 		
 		(*i)->visited = true ;
@@ -438,7 +438,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 	}
 			
 	
-	for(std::vector<DelaunayTriangle *>::iterator i = tri.begin() ; i != tri.end() ; ++i)
+	for(auto i = tri.begin() ; i != tri.end() ; ++i)
 	{
 		(*i)->clearVisited() ;
 	}

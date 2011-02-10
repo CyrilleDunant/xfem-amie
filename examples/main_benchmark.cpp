@@ -104,8 +104,6 @@ std::vector<bool> cracked ;
 double E_min = 10;
 double E_max = 0;
 
-double div_ = 100. ;
-
 double x_max = 0 ;
 double y_max = 0 ;
 double z_max = 0 ;
@@ -185,7 +183,7 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("output200.vox", 200) ;
+		VoxelWriter vw("output100.vox", 100) ;
 		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
@@ -392,148 +390,9 @@ void step()
 	
 			}
 		}
-		
-// 			std::stringstream pointfilename ;
-// 			pointfilename << "difp_2n" ;
-// 			std::fstream pointfile  ;
-// 			std::fstream pointfilel  ;
-// 			pointfile.open(pointfilename.str().c_str(), std::ios::out) ;
-// 			pointfilename << "p" ;
-// 			pointfilel.open(pointfilename.str().c_str(), std::ios::out) ;
-			
 			
 			int counter = 0 ;
-// 			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
-// 			{
-// 				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
-// 				{
-// 					counter++ ;
-// 					if(counter%1000 == 0)
-// 						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
-// 					Point p(i,j,0.075*scale) ;
-// 					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
-// 					if(!tris.empty())
-// 					{
-// 						bool done = false ;
-// 						for(size_t k = 0 ; k < tris.size() ; k++)
-// 						{
-// 							
-// 							if(tris[k]->in(p))
-// 							{
-// 								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
-// 								if(b)
-// 								{
-// 									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
-// 										pointfile << 5 << "   " ;
-// 									else
-// 										pointfile << 4 << "   " ;
-// 									//pointfile << b->getTensor(Point(0.3,0.3,0.3))[0][0] << "   " ;
-// /*									pointfilel << b->phi << "   " ;
-// 									pointfilelp << b->accumulatedPhi << "   " ;
-// 									pointfiled << b->damage[0] << "   " ;*/
-// 									done = true ;
-// 								}
-// 								else
-// 								{
-// 									pointfile << 3 << "   " ;
-// /*									pointfilel  << 0 << "   " ;
-// 									pointfilelp << 0 << "   " ;
-// 									pointfiled << 0 << "   " ;*/
-// 									done = true ;
-// 								}
-// 								break ;
-// 							}
-// 						}
-// 						if(!done)
-// 						{
-// 							pointfile << 2 << "   " ;
-// /*							pointfilel << 0 << "   " ;
-// 							pointfilelp << 0 << "   " ;
-// 							pointfiled << 0 << "   " ;*/
-// 						}
-// 					}
-// 					else
-// 					{
-// 						pointfile << 1 << "   " ;
-// /*						pointfilel << 0 << "   " ;
-// 						pointfilelp << 0 << "   " ;
-// 						pointfiled << 0 << "   " ;*/
-// 					}
-// 				}
-// 				pointfile << "\n" ;
-// /*				pointfilel << "\n" ;
-// 				pointfilelp << "\n" ;
-// 				pointfiled << "\n" ;*/
-// 			}
-// 			
-// 		
-// 			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
-// 		
-// 			counter = 0 ;
-// 			for(double i = (.15/div_)*scale/2 ; i< 0.15*scale ; i += (.15/div_)*scale)
-// 			{
-// 				for(double j = (.15/div_)*scale/2 ; j < 0.15*scale ; j += (.15/div_)*scale)
-// 				{
-// 					counter++ ;
-// 					if(counter%1000 == 0)
-// 						std::cout << "\r" << counter << "/" << div_*div_ << std::flush ;
-// 					Point p(i,j,0.1495*scale) ;
-// 					std::vector<DelaunayTetrahedron *> tris = featureTree->getElements3D(&p) ;
-// 					if(!tris.empty())
-// 					{
-// 						bool done = false ;
-// 						for(size_t k = 0 ; k < tris.size() ; k++)
-// 						{
-// 							
-// 							if(tris[k]->in(p))
-// 							{
-// 								Stiffness * b = dynamic_cast<Stiffness *>(tris[k]->getBehaviour()) ;
-// 								if(b)
-// 								{
-// 									if(b->getTensor(Point(0.3,0.3,0.3))[0][0] < 1 || b->getTensor(Point(0.3,0.3,0.3))[0][0] > 3)
-// 										pointfile << 5 << "   " ;
-// 									else
-// 										pointfile << 4 << "   " ;
-// /*									pointfilel << b->phi << "   " ;
-// 									pointfilelp << b->accumulatedPhi << "   " ;
-// 									pointfiled << b->damage[0] << "   " ;*/
-// 									done = true ;
-// 								}
-// 								else
-// 								{
-// 									pointfilel << 3 << "   " ;
-// /*									pointfilel  << 0 << "   " ;
-// 									pointfilelp << 0 << "   " ;
-// 									pointfiled << 0 << "   " ;*/
-// 									done = true ;
-// 								}
-// 								break ;
-// 							}
-// 						}
-// 						if(!done)
-// 						{
-// 							pointfilel << 2 << "   " ;
-// /*							pointfilel << 0 << "   " ;
-// 							pointfilelp << 0 << "   " ;
-// 							pointfiled << 0 << "   " ;*/
-// 						}
-// 					}
-// 					else
-// 					{
-// 						pointfilel << 1 << "   " ;
-// /*						pointfilel << 0 << "   " ;
-// 						pointfilelp << 0 << "   " ;
-// 						pointfiled << 0 << "   " ;*/
-// 					}
-// 				}
-// 				pointfilel << "\n" ;
-// /*				pointfilel << "\n" ;
-// 				pointfilelp << "\n" ;
-// 				pointfiled << "\n" ;*/
-// 			}
-// 			
-// 		
-// 			std::cout << "\r" << counter << "/" << div_*div_ << std::endl ;
+
 		
 		xavg /= volume ;
 		
@@ -1765,13 +1624,12 @@ int main(int argc, char *argv[])
 	
 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 	inc->setBehaviour(inclusionStiffness) ;
-	F.addFeature(&sample, inc) ;
+// 	F.addFeature(&sample, inc) ;
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
-	F.setOrder(QUADRATIC);
-	F.setSamplingNumber(512) ;
-	
+	F.setSamplingNumber(64) ;
+	F.setMaxIterationsPerStep(2);
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
 		if(inclusions[i]->intersects(dynamic_cast<Hexahedron *>(&sample)))
@@ -1812,17 +1670,14 @@ int main(int argc, char *argv[])
 	
 	F.setOrder(LINEAR) ;
 	
-	div_ = (1000) ;
-
-	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, RIGHT, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 	step() ;

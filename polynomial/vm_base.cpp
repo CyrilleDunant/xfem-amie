@@ -575,7 +575,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 
 double VirtualMachine::deval(const Function &f, const Variable v_,  const double x, const double y , const double z,  const double t, const double u, const double v, const double w, const double eps) 
 {
-	if(false &&f.isDifferentiable())
+	if(f.isDifferentiable())
 	{
 		return eval(f.d(v_), x, y, z, t, u, v, w) ;
 	}

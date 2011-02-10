@@ -318,22 +318,15 @@ bool Assembly::nonLinearStep()
 void Assembly::setBoundaryConditions()
 {
 
-	this->externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
+	this->externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
 	this->externalForces = 0 ;
 	this->naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
 	this->naturalBoundaryConditionForces = 0 ;
 	this->nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
 	this->nonLinearExternalForces = 0 ;
-	
+
 	size_t ndofs = multiplier_offset ;
 
-	//we might have voids in the numbering...
-	for(size_t i = 0 ; i < coordinateIndexedMatrix->row_size.size() ; i++)
-	{
-		if(std::abs(getMatrix()[i][i]) < POINT_TOLERANCE)
-			getMatrix()[i][i] = 1 ;
-	}
-	
 	std::sort(multipliers.begin(), multipliers.end()) ;
 	std::valarray<int> multiplierIds(multipliers.size()) ;
 	for(size_t i = 0 ; i < multiplierIds.size() ; i++)
@@ -588,8 +581,8 @@ bool Assembly::make_final()
 			if(this->displacements.size() != max)
 			{
 				this->displacements.resize(max) ;
-				this->displacements = 0 ;
 			}
+			this->displacements = 0 ;
 		}
 		else
 		{
@@ -663,7 +656,7 @@ bool Assembly::make_final()
 				
 		size_t max ;
 		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		std::cout << ndof << std::endl ;
+
 		if( coordinateIndexedMatrix == NULL)
 		{
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
@@ -678,6 +671,7 @@ bool Assembly::make_final()
 				{
 						map->insert(std::make_pair(ids[j], ids[j])) ;
 				}
+				
 				for(size_t j = 0 ; j< ids.size() ;j++)
 				{
 					for(size_t k = j+1 ; k< ids.size() ;k++)
@@ -723,7 +717,12 @@ bool Assembly::make_final()
 			}
 			delete map ;
 			this->coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
-			this->displacements.resize(max, 0.) ;
+			if(this->displacements.size() != max)
+			{
+				this->displacements.resize(max) ;
+				this->displacements = 0 ;
+			}
+			
 			std::cerr << " ...done" << std::endl ;
 		}
 		else
@@ -825,9 +824,9 @@ void Assembly::print()
 	if(this->coordinateIndexedMatrix == NULL)
 		make_final() ;
 	
-	for(size_t i = 0 ; i < getMatrix().row_size.size() ; i++)
+	for(size_t i = 0 ; i < externalForces.size() ; i++)
 	{
-		for(size_t j = 0 ; j < getMatrix().row_size.size() ; j++)
+		for(size_t j = 0 ; j < externalForces.size() ; j++)
 			std::cerr << getMatrix()[i][j] << "   " << std::flush ;
 		
 		std::cerr << std::endl ;
@@ -1297,12 +1296,14 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 		timeval time0, time1 ;
 		gettimeofday(&time0, NULL);
 
-	if(make_final())
+	if(make_final() )
 	{
 // 		double lambda_min = smallestEigenValue(getMatrix()) ;
 // 		double lambda_max = largestEigenValue(getMatrix()) ;
 // 		std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
 // 		std::cerr << "symmetrical problem" << std::endl ;
+// 		print();
+// 		exit(0) ;
 
 		ConjugateGradientWithSecant cg(this) ;
 		ret = cg.solve(x0, NULL, 5e-9, -1, verbose) ;

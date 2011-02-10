@@ -382,7 +382,7 @@ void FeatureTree::renumber()
 		}
 
 		
-		Grid tmpgrid =this->grid->getGrid(std::max((size_t)round(sqrt(triangles.size()))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
+		Grid tmpgrid = grid->getGrid(std::max((size_t)round(sqrt(triangles.size()))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
 		for(auto i = triangles.begin() ; i != triangles.end() ; ++i)
 			tmpgrid.forceAdd((*i)->getPrimitive()) ;
 		
@@ -437,7 +437,7 @@ void FeatureTree::renumber()
 		}
 
 		
-		Grid3D tmpgrid =this->grid3d->getGrid(std::max(((size_t)round(pow(tets.size(), .333333)))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
+		Grid3D tmpgrid =grid3d->getGrid(std::max(((size_t)round(pow(tets.size(), .333333)))/1024, (size_t)1)) ; //magic number such that the cache is full, but not too much
 		for(auto i = tets.begin() ; i != tets.end() ; ++i)
 		{
 			tmpgrid.forceAdd((*i)->getPrimitive()) ;
@@ -810,10 +810,10 @@ void FeatureTree::stitch()
 	}
 	else if (is3D())
 	{
-		if((int)elemOrder-1 > 0 )
+		if(elemOrder >= QUADRATIC )
 		{
 			dtree3D->setElementOrder(elemOrder) ;
-			
+			return ;
 			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
@@ -1095,7 +1095,7 @@ void FeatureTree::sample()
 		{
 			std::cout << samplingNumber << std::endl ;
 			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
-			tree[0]->sample(2.5*samplingNumber) ;
+			tree[0]->sample(samplingNumber) ;
 
 			double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())*(tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())) ;
 			int count = 0 ;
@@ -2208,7 +2208,7 @@ void FeatureTree::enrich()
 		if(useMultigrid)
 			for(size_t j =  0 ; j < coarseTrees.size() ; j++)
 				coarseLastEnrichmentId.push_back(coarseLastNodeId[j]) ;
-		
+		std::cerr << "\r enriching... feature " << 0 <<"/" << this->tree.size() << std::flush ;
 		for(size_t i = 1 ; i < this->tree.size() ; i++)
 		{
 			if(is3D())
@@ -2260,10 +2260,10 @@ void FeatureTree::assemble()
 	std::vector<DelaunayTriangle *> triangles ; 
 	std::vector<DelaunayTetrahedron *> tetrahedrons ; 
 	
-	if(dtree != NULL)
+	if(is2D())
 	{
 		numdofs = dtree->getLastNodeId() ;
-		triangles =dtree->getElements() ;
+		triangles = dtree->getElements() ;
 		
 		for(size_t j = 0 ; j < triangles.size() ; j++)
 		{
@@ -2300,18 +2300,18 @@ void FeatureTree::assemble()
 	else
 	{
 		numdofs = dtree3D->getLastNodeId() ;
-		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
+		tetrahedrons = dtree3D->getElements() ;
 		
-		for(size_t j = 0 ; j < tets.size() ; j++)
+		for(size_t j = 0 ; j < tetrahedrons.size() ; j++)
 		{
-			if(	tets[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+			if(	tetrahedrons[j]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				
 				if(j%1000 == 0)
-					std::cerr << "\r assembling stiffness matrix... tetrahedron " << j+1 << "/" << tets.size() << std::flush ;
+					std::cerr << "\r assembling stiffness matrix... tetrahedron " << j+1 << "/" << tetrahedrons.size() << std::flush ;
 				
-				tets[j]->refresh(father3D) ;
-				K->add(tets[j]) ;
+				tetrahedrons[j]->refresh(father3D) ;
+				K->add(tetrahedrons[j]) ;
 			}
 		}
 		

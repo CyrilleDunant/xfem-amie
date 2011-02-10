@@ -2542,6 +2542,17 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
+	if(jacobianAtPoint(inLocalCoordinates(getCenter()))  < 0)
+	{
+
+		for(size_t i = 0 ; i < dofs.size() ; i++)
+		{
+			for(size_t j = 0 ; j < dofs.size() ; j++)
+			{
+				 cachedElementaryMatrix[i][j] *= -1;
+			}
+		}
+	}
 
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;

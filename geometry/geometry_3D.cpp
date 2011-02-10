@@ -233,11 +233,12 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 	boundingPoints[2] = p2 ;
 	boundingPoints[3] = p3 ;
 	
-	if(this->volume() < 0 )
+	if(volume() < 0 )
 	{
 		boundingPoints[0] = p1; 
 		boundingPoints[1] = p0;
 	}
+	
 	computeCircumCenter() ;
 	Vector r(4) ;
 	r[0] = squareDist3D(*p0, circumCenter) ;
@@ -248,7 +249,7 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 	sqradius = r[0] ;
 	radius = sqrt(sqradius);
 	
-	assert(this->volume() >0 ) ;
+	assert(volume() >0 ) ;
 	computeCenter() ;	
 }
 
@@ -423,17 +424,17 @@ bool Tetrahedron::in(const Point & v) const
 {
 	if(!inCircumSphere(v))
 		return false ;
-		
-	Point  pg=(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
-	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
-	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
-	TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-	TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-	Segment s(pg,v) ;
-	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
-		return true ;
-	
-	return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
+// 	return true ;
+	Point  pg= getCenter() ;//(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
+// 	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
+// 	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
+// 	TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+// 	TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+// 	Segment s(pg,v) ;
+// 	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
+// 		return true ;
+// 	
+// 	return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
 	
 	double alpha;
 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
@@ -1400,7 +1401,7 @@ double Sphere::volume() const
 
 void Sphere::project(Point * p) const
 {
-	return project(p, getRadius()) ;
+	project(p, getRadius()) ;
 }
 
 void Sphere::project(Point * p, double r) const
@@ -1409,15 +1410,15 @@ void Sphere::project(Point * p, double r) const
 	//y = r sin(theta) sin(phi)
 	//z = r cos(theta)
 	int id = p->id ;
-	if(squareDist3D(*p, center ) < POINT_TOLERANCE*POINT_TOLERANCE)
+	if(squareDist3D(*p, getCenter() ) < POINT_TOLERANCE*POINT_TOLERANCE)
 	{
 		p->x =+ r ;
 		return ;
 	}
 	
-	Point p_prime = *p-center ;
+	Point p_prime = *p-getCenter() ;
 	p_prime *= r/p_prime.norm() ;
-	*p = center+p_prime ;
+	*p = getCenter()+p_prime ;
 	p->id = id ;
 	return ;
 

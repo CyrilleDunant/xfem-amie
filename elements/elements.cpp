@@ -946,11 +946,11 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	}
 	else if (order == CUBIC || order == QUADRATIC )
 	{
-		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), -.8) ;
-		fin[1] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.166666666666667), 0.45) ;
-		fin[2] = std::pair<Point, double>(Point(0.5, 0.166666666666667, 0.166666666666667), 0.45) ;
-		fin[3] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667), 0.45) ;
-		fin[4] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5), 0.45) ;
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), 0.1666666666666667*-.8) ;
+		fin[1] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.166666666666667), 0.1666666666666667*0.45) ;
+		fin[2] = std::pair<Point, double>(Point(0.5, 0.166666666666667, 0.166666666666667), 0.1666666666666667*0.45) ;
+		fin[3] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667), 0.1666666666666667*0.45) ;
+		fin[4] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5), 0.1666666666666667*0.45) ;
 	}
 	else if(order == LINEAR_TIME_LINEAR )
 	{
@@ -988,7 +988,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 // 		assert(false) ;
 // 	}
 	
-	if( moved)
+	if( !isFather )
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
@@ -997,7 +997,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	}
 	else
 	{
-		double j = 0.1666666666666666*volume() ;
+		double j = volume()/0.1666666666666666 ;
 
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
@@ -1009,7 +1009,9 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 }
 
 TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father ) : Tetrahedron(p0, p1, p2, p3), ElementaryVolume(father), moved(false) 
-{	 this->order = LINEAR ;}
+{
+	this->order = LINEAR ;
+}
 
 TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3,  Point * p4,  Point * p5,  Point * p6, Point * p7, bool father ) : Tetrahedron(p0, p1, p2, p3, p4, p5, p6, p7), ElementaryVolume(father), moved(false) 
 {	 this->order = QUADRATIC ;}
@@ -1954,9 +1956,7 @@ void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) c
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = zdxi ; 
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ;
 		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta ;
-// 		Matrix o(ret) ;
 		invert3x3Matrix(ret) ;
-// 		((Matrix)(o*ret)).print() ;
 	}
 	else
 	{

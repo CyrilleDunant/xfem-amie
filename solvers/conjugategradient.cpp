@@ -112,8 +112,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	while(last_rho*last_rho > 1e-28/*std::max(eps*eps*err0, eps*eps)*/ && n < Maxit )
 	{
 		P->precondition(r,z) ;
-		
+
 		double rho = parallel_inner_product(&r[0], &z[0], vsize) ;
+
 		double beta = rho/last_rho ;
 		p *= beta ;
 		p += z ;
@@ -141,7 +142,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	gettimeofday(&time1, NULL);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "mflops: "<< n*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
-	
+
 	assign(r,A*x-b) ;
 	double err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	

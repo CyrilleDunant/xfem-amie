@@ -251,10 +251,16 @@ Vector CoordinateIndexedSparseMatrix::inverseDiagonal() const
 	for(size_t i = 0 ; i < row_size.size()*stride ; i++)
 	{
 		double v = (*this)[i][i] ;
-		if(std::abs(v) > std::numeric_limits<double>::epsilon())
+		if(std::abs(v) > 1e-6)
 			ret[i] = 1./v ;
+		else if(v > 0)
+		{
+			ret[i] = 1./1e-6 ;
+		}
 		else
-			ret[i] = 1./std::numeric_limits<double>::epsilon() ;
+		{
+			ret[i] = -1./1e-6 ;
+		}
 	}
 		
 // 		else
