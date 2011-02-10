@@ -1668,7 +1668,7 @@ int main(int argc, char *argv[])
 		}
 	}*/
 	
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;

@@ -426,15 +426,15 @@ bool Tetrahedron::in(const Point & v) const
 		return false ;
 // 	return true ;
 	Point  pg= getCenter() ;//(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
-// 	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
-// 	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
-// 	TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-// 	TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-// 	Segment s(pg,v) ;
-// 	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
-// 		return true ;
-// 	
-// 	return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
+	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
+	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
+	TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+	TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+	Segment s(pg,v) ;
+	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
+		return true ;
+	
+	return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
 	
 	double alpha;
 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
