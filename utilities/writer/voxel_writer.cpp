@@ -93,7 +93,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 	std::vector<std::valarray<double> > ret ;
 	for(int i = 0 ; i < numberOfFields(field) ; i++)
 	{
-		Vector reti(0., max) ;
+		Vector reti(-1e9, max) ;
 		ret.push_back(reti) ;
 	}
 	if(fullSample)
@@ -108,9 +108,10 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 		bottom_left = c-vec ;
 		top_right = c+vec ;
 	}
-	std::cerr << "generating values... " << count << "/" << max << std::flush ;
+	
 	
 	std::vector<DelaunayTetrahedron *> tris = F->getElements3D() ;
+	std::cerr << "generating values... " << count << "/" << tris.size() << std::flush ;
 	
 	for(size_t t = 0 ; t < tris.size() ; t++)
 	{
@@ -142,11 +143,28 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 								if(tris[t]->in(p) && tris[t]->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
 									std::pair<bool, std::vector<double> > val = getDoubleValue(tris[t],p,field) ;
+									std::pair<bool, std::vector<double> > valAlternate ;
+									
 									if(val.first)
 									{
+										bool hasAlternate = false ;
+										for(size_t l = 0 ; l < tris[t]->neighbourhood.size() ; l++)
+										{
+											if( tris[t]->getNeighbourhood(l)->in(p) && tris[t]->getNeighbourhood(l)->getBehaviour()->type != VOID_BEHAVIOUR)
+											{
+												valAlternate = getDoubleValue(tris[t]->getNeighbourhood(l),p,field) ; 
+												hasAlternate = true ;
+												break ;
+											}
+										}
+										
 										for(int m = 0 ; m < numberOfFields(field) ; m++)
 										{
 											ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i] = val.second[m] ;
+											if(hasAlternate)
+											{
+												ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i] = (ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i]+valAlternate.second[m])*.5 ;
+											}
 										}
 									}
 								}

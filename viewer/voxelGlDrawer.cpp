@@ -1180,8 +1180,9 @@ VoxelGLDrawer::VoxelGLDrawer(QMainWindow *parent) : QGLWidget(parent) {
 }
 
 VoxelGLDrawer::~VoxelGLDrawer()  {
+	if(dynamic_cast<QMainWindow *>(parent()))
+		dynamic_cast<QMainWindow *>(parent())->statusBar()->removeWidget(pbar) ;
 	glDeleteLists(displayList, 1) ;
-	delete pbar ;
 	makeCurrent();
 }
 
@@ -1372,7 +1373,7 @@ void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<qui
 	
 	for(size_t i = 0 ; i< c->size() ; i++)
 	{
-		(*c)[i] = (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
+		(*c)[i] = (*d)[0][i] ; //(quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
 		if((*c)[i])
 			(*res)[i] = true ;
 		else

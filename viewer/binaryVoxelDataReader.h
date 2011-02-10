@@ -24,7 +24,7 @@ public:
 		streamBin.skipRawData(21) ;
 		
 		std::vector< std::valarray<quint8> > * d = new  std::vector< std::valarray<quint8> >(numberOfFields,
-			std::valarray<quint8>((quint8)0, r*c*s+3)) ;
+			std::valarray<quint8>((quint8)0, r*c*s)) ;
 
 		
 		std::cout << "fields = " << numberOfFields << std::endl ;

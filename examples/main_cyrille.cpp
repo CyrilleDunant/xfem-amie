@@ -754,8 +754,8 @@ void Menu(int selection)
 	{
 // 		samplingnumber *= 1.5 ;
 // 		featureTree->setSamplingNumber(samplingnumber);
-		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
-		dynamic_cast<ExpansiveZone *>(featureTree->getFeature(2))->setRadius(featureTree->getFeature(2)->getRadius()+0.1 ) ;
+		dynamic_cast<Inclusion *>(featureTree->getFeature(1))->setRadius(featureTree->getFeature(1)->getRadius()+0.1 ) ;
+		dynamic_cast<Inclusion *>(featureTree->getFeature(2))->setRadius(featureTree->getFeature(2)->getRadius()+0.1 ) ;
 		step() ;
 // 		imposeddisp->setData(imposeddisp->getData()-.1);
 		dlist = false ;
@@ -1760,13 +1760,15 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
 	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
-	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 0.1, 0.5, 0.,m0_paste*2., a) ;
-	ExpansiveZone * inc1 = new ExpansiveZone(&sample, 0.1, -0.5, 0.,m0_paste*2., a) ;
-// 	Inclusion * inc0 = new Inclusion(1, 0., 0.) ;
+// 	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 0.1, 0.5, 0.,m0_paste*2., a) ;
+// 	ExpansiveZone * inc1 = new ExpansiveZone(&sample, 0.1, -0.5, 0.,m0_paste*2., a) ;
+	Inclusion * inc0 = new Inclusion(0.1, 0.5, 0.) ;
+	Inclusion * inc1 = new Inclusion(0.1, -0.5, 0.) ;
 // 	
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
-// 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
+	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
+	inc1->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
 	F.addFeature(&sample, inc0) ;
 	F.addFeature(&sample, inc1) ;
 	

@@ -813,7 +813,7 @@ void FeatureTree::stitch()
 		if(elemOrder >= QUADRATIC )
 		{
 			dtree3D->setElementOrder(elemOrder) ;
-			return ;
+
 			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{

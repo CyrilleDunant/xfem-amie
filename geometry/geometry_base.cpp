@@ -4040,9 +4040,9 @@ bool Segment::intersects(const TriPoint &g) const
 	Point n = u ^ v ;
 	double a = -(n*w0) ;
 	double b = n*dir;
-  if (std::abs(b) < POINT_TOLERANCE) 
+  if (std::abs(b) < POINT_TOLERANCE*POINT_TOLERANCE) 
 	{
-		if (std::abs(a) < POINT_TOLERANCE) 
+		if (std::abs(a) < POINT_TOLERANCE*POINT_TOLERANCE) 
 			return true;
 		
 		return false ;
@@ -4050,7 +4050,7 @@ bool Segment::intersects(const TriPoint &g) const
 	
 	double r = a / b ;
 	
-	if(r < 0 || r > 1)
+	if(r < -POINT_TOLERANCE || r > 1.+POINT_TOLERANCE)
 		return false ;
 	
 	Point intersect(second()+dir*r) ;

@@ -169,7 +169,7 @@ void step()
 {
 	
   int nsteps = 1;// number of steps between two clicks on the opengl thing
-	featureTree->setMaxIterationsPerStep(50) ;
+	featureTree->setMaxIterationsPerStep(2) ;
 	featureTree->setDeltaTime(0.0001);
 
 	for(size_t i = 0 ; i < nsteps ; i++)
@@ -183,7 +183,7 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("output400.vox", 400) ;
+		VoxelWriter vw("output200.vox", 200) ;
 		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
@@ -1622,9 +1622,12 @@ int main(int argc, char *argv[])
 // 		v += inclusions[i]->volume() ;
 // 	}
 	
-	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
-	inc->setBehaviour(inclusionStiffness) ;
-// 	F.addFeature(&sample, inc) ;
+// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+// 	inc->setBehaviour(inclusionStiffness) ;
+	Vector a(6) ; a = 0 ;
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+	
+	F.addFeature(&sample, inc) ;
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
@@ -1670,14 +1673,17 @@ int main(int argc, char *argv[])
 	
 	F.setOrder(QUADRATIC) ;
 	
+	Function torz("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 cos *") ;
+	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;
+	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, RIGHT, 0)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 	step() ;

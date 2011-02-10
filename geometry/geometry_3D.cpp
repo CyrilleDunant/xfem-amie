@@ -424,36 +424,66 @@ bool Tetrahedron::in(const Point & v) const
 {
 	if(!inCircumSphere(v))
 		return false ;
-// 	return true ;
-	Point  pg= getCenter() ;//(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
-// 	TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
-// 	TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
-// 	TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-// 	TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-// 	Segment s(pg,v) ;
-// 	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
-// 		return true ;
+
+	Point  pg = getCenter() ;//(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
+	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
+		return true ;
+	
+	if(getBoundingPoints().size() == 4)
+	{
+		TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
+		TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
+		TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+		TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
+		Segment s(pg,v) ;
+
+		return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
+	}
+	else
+	{
+		std::multimap<double, const Point *> pts ;
+		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+		{
+			pts.insert(std::make_pair(std::abs(getRadius()*getRadius()-squareDist3D(getCircumCenter(), getBoundingPoint(i))), & getBoundingPoint(i))) ;
+		}
+		auto p = pts.begin() ;
+		const Point * a = p->second ; ++p ;
+		const Point * b = p->second ; ++p ;
+		const Point * c = p->second ; ++p ;
+		const Point * d = p->second ;
+		
+		TriPoint t0(a,b,c) ;
+		TriPoint t1(a,b,d) ;
+		TriPoint t2(a,c,d) ;
+		TriPoint t3(b,c,d) ;
+		Segment s(pg,v) ;
+
+		
+		return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) || 
+		(isCoplanar(v, *a, *b, *c)) || 
+		(isCoplanar(v, *a, *b, *d)) ||
+		(isCoplanar(v, *a, *c, *d)) ||
+		(isCoplanar(v, *b, *c, *d)) ;
+	}
+	
+// 	double alpha;
+// 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
+// 	if (alpha>=-1 && alpha<=1) 
+// 		return true;
 // 	
-// 	return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
-	
-	double alpha;
-	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
-	if (alpha>=-1 && alpha<=1) 
-		return true;
-	
-	alpha = ((getBoundingPoint(1))*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(1))))/((v-pg)*((getBoundingPoint(1))^(getBoundingPoint(2))));
-	if (alpha>=-1 && alpha<=1) 
-		return true;
-	
-	alpha =  ((getBoundingPoint(2))*((getBoundingPoint(3))^(getBoundingPoint(0)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(0)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(2))))/((v-pg)*((getBoundingPoint(2))^(getBoundingPoint(3))));
-	if (alpha>=-1 && alpha<=1) 
-		return true;
-	
-	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
-	if (alpha>=-1 && alpha<=1) 
-		return true;
-	
-	return false ;
+// 	alpha = ((getBoundingPoint(1))*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(1))))/((v-pg)*((getBoundingPoint(1))^(getBoundingPoint(2))));
+// 	if (alpha>=-1 && alpha<=1) 
+// 		return true;
+// 	
+// 	alpha =  ((getBoundingPoint(2))*((getBoundingPoint(3))^(getBoundingPoint(0)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(0)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(2))))/((v-pg)*((getBoundingPoint(2))^(getBoundingPoint(3))));
+// 	if (alpha>=-1 && alpha<=1) 
+// 		return true;
+// 	
+// 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
+// 	if (alpha>=-1 && alpha<=1) 
+// 		return true;
+// 	
+// 	return false ;
 }
 
 double Tetrahedron::area() const
@@ -1254,7 +1284,7 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 {
 	std::valarray<Point> speeds(/*Point(), */points.size()) ;
 	Point vec ;
-	for(size_t i = 0 ; i < 40 ; i++)
+	for(size_t i = 0 ; i < 50 ; i++)
 	{
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{

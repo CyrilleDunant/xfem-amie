@@ -992,7 +992,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
-			fin[i].second*=this->jacobianAtPoint(fin[i].first) ;
+			fin[i].second *= this->jacobianAtPoint(fin[i].first) ;
 		}
 	}
 	else

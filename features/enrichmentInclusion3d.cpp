@@ -307,7 +307,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		
 		//this function returns the distance to the centre
 		Function position(getCenter(), x, y,z) ;
-		Function hat = f_abs(position-getRadius());
+		Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius());
 		
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
@@ -336,8 +336,9 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function position(getCenter(), t->getXTransform(), t->getYTransform()) ;
-			Function hat = f_abs(position-getRadius()) ;
+			Function position(getCenter(), t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
+
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{
