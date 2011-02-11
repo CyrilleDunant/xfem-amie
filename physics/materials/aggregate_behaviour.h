@@ -13,6 +13,14 @@ namespace Mu
 		virtual Form * getCopy() const ;
 		
 	} ;
+	
+	struct ElasticOnlyAggregateBehaviour : public AggregateBehaviour
+	{
+		ElasticOnlyAggregateBehaviour(double E=59e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		
+		virtual Form * getCopy() const ;
+	
+	} ;
 
 } ;
 

@@ -213,6 +213,8 @@ FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(N
 	maxitPerStep = 200 ;
 	deltaTime = .1 ;
 	now = 0 ;
+	
+	setElementGenerationMethod() ;
 
 }
 
@@ -1983,6 +1985,15 @@ Feature * FeatureTree::getFeatForTetra( const DelaunayTetrahedron * t ) const
 void FeatureTree::setElementBehaviours()
 {
 	double n_void ;
+
+	if(!father3D)
+		father3D = new TetrahedralElement(elemOrder) ;
+	father3D->compileAndPrecalculate() ;
+	
+	if(!father2D)
+		father2D = new TriElement(elemOrder) ;
+	father2D->compileAndPrecalculate() ;
+
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
@@ -1990,8 +2001,9 @@ void FeatureTree::setElementBehaviours()
 		std::cerr << " setting behaviours..." << std::flush ;
 		int setcount = 0 ;
 		for(size_t i = 0 ; i < triangles.size() ;i++)
+		{
 			triangles[i]->refresh(father2D) ;
-		
+		}
 // #pragma omp parallel for shared(setcount,triangles,n_void) schedule(static, 4)
 
 
@@ -3736,7 +3748,7 @@ void FeatureTree::initializeElements()
 
 }
 
-void FeatureTree::generateElements( size_t correctionSteps, bool computeIntersections) 
+void FeatureTree::generateElements() 
 {
 	if(dtree || dtree3D)
 	{

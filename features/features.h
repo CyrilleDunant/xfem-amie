@@ -147,6 +147,9 @@ protected:
 	bool setBehaviours ;
 	bool enrichmentChange ;
 	
+	size_t correctionSteps ;
+	bool computeIntersections ;
+	
 	/** \brief  List of points used for the mesh.
 	 * Each point is associated with the feature from whose discretiation it was generated.
 	 */
@@ -192,7 +195,7 @@ protected:
 	 * 
 	 * @param correctionSteps additional steps where points are inserted in incorrect tetrahedrons.
 	 */
-	void generateElements( size_t correctionSteps = 0, bool computeIntersections = true) ;
+	void generateElements() ;
 	
 	/** \brief  Perform the assembly.
 	 * 
@@ -295,6 +298,8 @@ public:
 	State & getState() {return state ;}
 	const State & getState() const {return state ;}
 	const std::vector<Feature *> & getFeatures() const {return tree ;}
+	
+	void setElementGenerationMethod(size_t c = 0, bool i = true) { correctionSteps = c ; computeIntersections = i ; }
 	
 	void print() const;
 	void printForFeature(const Feature *f) const;

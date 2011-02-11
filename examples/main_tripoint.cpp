@@ -32,6 +32,7 @@
 #include "../utilities/placement.h"
 #include "../utilities/itoa.h"
 #include "../utilities/random.h"
+#include "../utilities/writer/triangle_writer.h"
 
 
 
@@ -510,83 +511,13 @@ void step()
 			
 	// 		filename.append(itoa(totit++, 10)) ;
 	// 		std::cout << filename.str() << std::endl ;
-			std::fstream outfile  ;
-			outfile.open(filename.str().c_str(), std::ios::out) ;
-			
-			outfile << "TRIANGLES" << std::endl ;
-			outfile << tsize << std::endl ;
-			outfile << 3 << std::endl ;
-			outfile << 11 << std::endl ;
-			
-			for(size_t j = 0 ; j < triangles.size() ;j++)
-			{
-				if(triangles[j]->getBehaviour()->type == VOID_BEHAVIOUR)
-					continue ;
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
-				}
-				
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2]))
-						outfile << x[triangles[j]->getBoundingPoint(l).id*2] << " " ;
-					else
-						outfile << 0 << " " ;
-				}
-				
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					if(!isnan(x[triangles[j]->getBoundingPoint(l).id*2+1]))
-						outfile << x[triangles[j]->getBoundingPoint(l).id*2+1] << " ";
-					else
-						outfile << 0 << " " ;
-				}
 
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<  epsilon11[j*3+l] << " ";
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<  epsilon22[j*3+l] << " " ;
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<   epsilon12[j*3+l]<< " " ;
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<  sigma11[j*3+l]<< " " ;
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<  sigma22[j*3+l]<< " ";
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<  sigma12[j*3+l] << " ";
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile << vonMises[j*3+l]<< " " ;
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
-				}
-				double damage = 0 ;
-				if(triangles[j]->getBehaviour()->getDamageModel())
-				{
-					Vector d = triangles[j]->getBehaviour()->getDamageModel()->damageState() ;
-					damage = std::inner_product(&d[0],&d[d.size()], &d[0], 0.) ;
-				}
-				for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-				{
-					outfile <<  damage << " ";
-				}
-				outfile << "\n" ;
-			}
+			TriangleWriter writer(filename.str(), featureTree) ;
+			writer.getField(TWFT_STRAIN_AND_STRESS) ;
+			writer.getField(TWFT_VON_MISES) ;
+			writer.getField(TWFT_STIFFNESS) ;
+			writer.write() ;
+
 		}
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	

@@ -28,5 +28,17 @@ Form * PasteBehaviour::getCopy() const
 	return ret ;
 }
 
+ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim) : PasteBehaviour(E,nu,0.,dim)
+{
+
+}
+
+Form * ElasticOnlyPasteBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1 - variability + variability*weib ;
+	return new Stiffness(param*factor) ;
+}
+
 
 

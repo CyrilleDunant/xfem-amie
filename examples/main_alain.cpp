@@ -26,6 +26,7 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/itoa.h"
+#include "../utilities/writer/triangle_writer.h"
 #include "../utilities/random.h"
 #include "../utilities/placement.h"
 #include "../physics/stiffness.h"
@@ -95,7 +96,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(NULL, 0.04, 0.04, 0.0, 0.0) ;
+Sample sample(0.04,0.04,0.,0.) ;
 
 bool firstRun = true ;
 
@@ -146,9 +147,9 @@ double spread ;
 void step()
 {
 
-  int nsteps = 20;
-	int nstepstot = 20;
-  int maxtries = 2000 ;
+	int nsteps = 1;
+	int nstepstot = 1;
+	int maxtries = 2000 ;
 	int tries = 0 ;
 	
 	featureTree->setDeltaTime(0.0001);
@@ -411,73 +412,6 @@ void step()
 				}
 			}
 		}
-		std::string filename("triangles_") ;
-		filename.append(itoa(shape, 10)) ;
-		filename.append("_") ;
-		filename.append(itoa(totit++, 10)) ;
-		std::cout << filename << std::endl ;
-		std::fstream outfile  ;
-		outfile.open(filename.c_str(), std::ios::out) ;
-		
-		outfile << "TRIANGLES" << std::endl ;
-		outfile << triangles.size() << std::endl ;
-		outfile << 3 << std::endl ;
-		outfile << 10 << std::endl ;
-		
-		for(size_t j = 0 ; j < triangles.size() ;j++)
-		{
-			if(triangles[j]->getBehaviour()->type == VOID_BEHAVIOUR)
-				continue ;
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
-			}
-			
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2] << " ";
-			}
-
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-			       outfile <<  x[triangles[j]->getBoundingPoint(l).id*2+1] << " " ;
-			}
-
-
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon11[j*3+l] << " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon22[j*3+l] << " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<   epsilon12[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma11[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma22[j*3+l]<< " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma12[j*3+l] << " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile << vonMises[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
-			}
-			outfile << "\n" ;
-		}
 		
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
@@ -518,194 +452,35 @@ void step()
 
 		std::cout << tries << std::endl ;
 
-        if (tries < maxtries && featureTree->solverConverged())
-		{
-			double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/(double)nstepstot ;
-                        std::cout << "delta_r => " << delta_r << std::endl ;
-			if(!featureTree->solverConverged())
-				delta_r *= .01 ;
-			double reactedArea = 0 ;
-			
-			Inclusion * current = NULL ;
-			if(!zones.empty())
-				current = zones[0].second ;
-			double current_area = 0 ;
-			int current_number = 0 ;
-			int stopped_reaction = 0 ;
-			for(size_t z = 0 ; z < zones.size() ; z++)
-			{
-				zones[z].first->setRadius(zones[z].first->getRadius()+delta_r) ;	
-				if(zones[z].second == current)
-				{
-					current_area += zones[z].first->area() ;
-					current_number++ ;
-				}
-				else
-				{
-					if(current_area/zones[z-1].second->area() > 0.03)
-					{
-						stopped_reaction++ ;
-						for(size_t m = 0 ; m < current_number ; m++)
-						{
-							reactedArea -= zones[z-1-m].first->area() ;
-							zones[z-1-m].first->setRadius(zones[z].first->getRadius()-delta_r) ;
-							reactedArea += zones[z-1-m].first->area() ;
-						}
-					}
-					current_area = zones[z].first->area() ;
-					current_number = 1 ;
-					current = zones[z].second ;
-				}
-				reactedArea += zones[z].first->area() ;
-			}
-			
-			std::cout << "reacted Area : " << reactedArea << ", reaction stopped in "<< stopped_reaction << " aggs."<< std::endl ;
-
-		
-			if(featureTree->solverConverged())
-			{
-				expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
-				expansion_stress_xx.push_back(std::make_pair((avg_e_xx_nogel)/(nogel_area), (avg_s_xx_nogel)/(nogel_area))) ;
-				expansion_stress_yy.push_back(std::make_pair((avg_e_yy_nogel)/(nogel_area), (avg_s_yy_nogel)/(nogel_area))) ;
-                                apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
-			}
-			
-//			if (tries >= maxtries)
-//				break ;
-		}
-	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
-		std::cout << expansion_reaction[i].first << "   " 
-		<< expansion_reaction[i].second << "   " 
-		<< expansion_stress_xx[i].first << "   " 
-		<< expansion_stress_xx[i].second << "   " 
-		<< expansion_stress_yy[i].first << "   " 
-		<< expansion_stress_yy[i].second << "   " 
-                << apparent_extension[i].first  << "   "
-                << apparent_extension[i].second  << "   "
-                << cracked_volume[i]  << "   "
-		<< damaged_volume[i]  << "   " 
-		<< std::endl ;
-
 	}
-
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateDualExpansiveZones(int n, Inclusion * inc1, Inclusion * inc2 , FeatureTree & F)
-{
-	std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
-	std::vector<Point> center ;
-	RandomNumber gen ;
-	aggregateArea = inc1->area() + inc2->area() ; ;
-	double radius = 0.0000005 ;
-	double radius60 = radius*60 ;
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	double E = 0.7*E_csh ;
-	double nu = nu_csh ;
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
-	a[2] = 0.00 ;
-	for(int i = 0 ; i < n ; i++)
-	{
-		double r_inc = inc1->getRadius() ;
-		double x1 = gen.uniform(r_inc-radius60) ;
-		double x2 = gen.uniform(r_inc-radius60) ;
-		Point x(x1,x2) ;
-		if(x.norm() < r_inc-radius60)
-		{
-			bool alone = true ;
-			for(size_t i = 0 ; i < center.size() ; i++)
-			{
-				if((center[i]-x).norm() < radius60)
-				{
-					alone = false ;
-					break ;
-				}
-			}
-			if(alone)
-			{
-				center.push_back(x) ;
-			}
-		}
-	}
-	for(int i = 0 ; i < center.size() ; i++)
-	{
-		Point c1 = inc1->getCenter() ;
-		Point c2 = inc2->getCenter() ;
-		ExpansiveZone * p1 = new ExpansiveZone(inc1, radius, c1.x+center[i].x, c1.y+center[i].y, m0, a) ;
-		ExpansiveZone * p2 = new ExpansiveZone(inc2, radius, c2.x+center[i].x, c2.y+center[i].y, m0, a) ;
-		F.addFeature(inc1,p1) ;
-		F.addFeature(inc2,p2) ;
-		zones.push_back(std::make_pair(p1,inc1)) ;
-		zones.push_back(std::make_pair(p2,inc2)) ;
-	}
-	return zones ;
-	
-}
-
-void generateITZ(Inclusion * inc, Inclusion * out, FeatureTree & F, double dmax = 0.005)
-{
-	Point c = inc->getCenter() ;
-	double r = inc->getRadius() ;
-	std::vector<DelaunayTriangle * > trg = F.getElements2D() ;
-	double count = 0 ;
-	for(size_t i = 0 ; i < trg.size() ; i++)
-	{
-		Point t = trg[i]->getCenter() ;
-		if(!inc->in(t) && !out->in(t))
-		{
-			Point p(t) ;
-			Point * pp = &p ;
-			inc->project(pp) ;
-			p = *pp ;
-			if((p-t).norm() < dmax)
-			{
-				double m = 0.5 + 0.5*((p-t).norm()/dmax) ;
-/*				std::cout << m << ";" ;
-				if(i%1000 == 0)
-					std::cout << std::endl ;*/
-				trg[i]->getBehaviour()->multiply(m) ;
-				count++ ;
-			}
-		}
-	}
-	std::cout << count << std::endl ;
-}
 
 
 int main(int argc, char *argv[])
 {
-	sample = Sample(NULL, 0.08, 0.04, 0.0, 0.0) ;
-
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	Inclusion * left = new Inclusion(0.01, -0.02, 0.0) ;
-	Inclusion * right = new Inclusion(0.01, 0.02, 0.0) ;
-	F.addFeature(&sample, left) ;
-	F.addFeature(&sample, right) ;
+	Inclusion* cem = new Inclusion(0.01,0.,0.) ;
+	Inclusion* inc = new Inclusion(0.001,0.,0.) ;
 
-	sample.setBehaviour(new PasteBehaviour()) ;
-	
-	left->setBehaviour(new AggregateBehaviour()) ;
-	right->setBehaviour(new AggregateBehaviour()) ;
+	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
+	cem->setBehaviour(new ElasticOnlyPasteBehaviour()) ;
+	inc->setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
 
-	zones = generateDualExpansiveZones(5, left, right, F) ;
+	F.addFeature(&sample, inc) ;
+//	F.addFeature(cem, inc) ;
 
-	F.setSamplingNumber(500) ;
-	F.setOrder(LINEAR) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.setSamplingNumber(200) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
-	
-	generateITZ(left, right, F) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,-0.00005)) ;
 	
 	step() ;	
+	
+	TriangleWriter trg("test",featureTree) ;
+	trg.getField(TWFT_STRAIN_AND_STRESS) ;
+	trg.getField(TWFT_STIFFNESS) ;
+	trg.write() ;
 	return 0 ;
 }

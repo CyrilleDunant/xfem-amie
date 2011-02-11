@@ -25,13 +25,14 @@ TriangleWriter::TriangleWriter(std::string f, FeatureTree * F)
 	source = F ;
 	nTriangles = source->getElements2D().size();
 	getField(TWFT_COORDINATE) ;
+	getField(TWFT_DISPLACEMENTS) ;
 }
 
 void TriangleWriter::write()
 {
 	writeHeader() ;
 	std::fstream outfile  ;
-	outfile.open(filename.c_str(), std::ios::out) ;
+	outfile.open(filename.c_str(), std::ios::out|std::ios::app) ;
 	for(int i = 0 ; i < nTriangles ; i++)
 	{
 		for(size_t j = 0 ; j < values.size() ; j++)
@@ -47,7 +48,7 @@ void TriangleWriter::getField(TWFieldType field)
 	std::vector<std::valarray<double> > val = getDoubleValues(field) ;
 	while((int) val.size() > 0)
 	{
-		values.push_back(val[0]) ;
+		values.push_back(val[val.size()-1]) ;
 		val.pop_back() ;
 	}
 }
@@ -218,7 +219,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 				}
 				break ;
 		}
-		
 	}
 	else
 	{
@@ -345,23 +345,42 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 		}
 		else
 		{
-			std::vector<DelaunayTriangle *> tri = source->getElements2D() ;
-			for(size_t i = 0 ; i < tri.size() ; i++)
+			if(field == TWFT_DISPLACEMENTS)
 			{
-				std::pair<bool, std::vector<double> > val = getDoubleValue(tri[i], field) ;
-				if(val.first)
+				Vector x = source->getDisplacements() ;
+				std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
+				for(int i = 0 ; i < nTriangles ; i++)
 				{
-					for(size_t j = 0 ; j < numberOfFields(field) ; j++)
-						ret[j][i] = val.second[j] ;
+					ret[5][i] = x[triangles[i]->getBoundingPoint(0).id*2] ;
+					ret[4][i] = x[triangles[i]->getBoundingPoint(1).id*2] ;
+					ret[3][i] = x[triangles[i]->getBoundingPoint(2).id*2] ;
+					ret[2][i] = x[triangles[i]->getBoundingPoint(0).id*2+1] ;
+					ret[1][i] = x[triangles[i]->getBoundingPoint(1).id*2+1] ;
+					ret[0][i] = x[triangles[i]->getBoundingPoint(2).id*2+1] ;
 				}
-				else
+				
+			}
+			else
+			{		
+				std::vector<DelaunayTriangle *> tri = source->getElements2D() ;
+				for(size_t i = 0 ; i < tri.size() ; i++)
 				{
-					for(size_t j = 0 ; j < numberOfFields(field) ; j++)
-						ret[j][i] = 0 ;
+					std::pair<bool, std::vector<double> > val = getDoubleValue(tri[i], field) ;
+					if(val.first)
+					{
+						for(size_t j = 0 ; j < numberOfFields(field) ; j++)
+							ret[j][i] = val.second[j] ;
+					}
+					else
+					{
+						for(size_t j = 0 ; j < numberOfFields(field) ; j++)
+							ret[j][i] = 0 ;
+					}
 				}
 			}
 		}
 	}
+	return ret ;
 }
 
 std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTriangle * tri, TWFieldType field)
@@ -381,6 +400,8 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 			break ;
 			
 		case TWFT_PRINCIPAL_ANGLE:
+			ret[2] = tri->getState().getPrincipalAngle(tri->getCenter()) ;
+			ret[1] = tri->getState().getPrincipalAngle(tri->getCenter()) ;
 			ret[0] = tri->getState().getPrincipalAngle(tri->getCenter()) ;
 			found = true ;
 			break ;
@@ -390,6 +411,8 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 			Stiffness * b = dynamic_cast<Stiffness *>(tri->getBehaviour()) ;
 			if(b)
 			{
+				ret[2]=b->getTensor(Point(0.3,0.3))[0][0] ;
+				ret[1]=b->getTensor(Point(0.3,0.3))[0][0] ;
 				ret[0]=b->getTensor(Point(0.3,0.3))[0][0] ;
 				found = true ;
 			}
@@ -398,6 +421,8 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 			
 		case TWFT_VON_MISES:
 		{
+			ret[2]=tri->getState().getMaximumVonMisesStress() ;		
+			ret[1]=tri->getState().getMaximumVonMisesStress() ;		
 			ret[0]=tri->getState().getMaximumVonMisesStress() ;		
 			found = true ;	
 			break ;
@@ -415,7 +440,7 @@ void TriangleWriter::writeHeader()
 	outstream << "TRIANGLES" << std::endl ;
 	outstream << (int) values[0].size() << std::endl ;
 	outstream << 3 << std::endl ;
-	outstream << (int) values.size()-3 << std::endl ;
+	outstream << ((int) values.size()-6)/3 << std::endl ;
 	outstream.close() ;
 }
 
@@ -425,10 +450,12 @@ int numberOfFields(TWFieldType field)
 	{
 		case TWFT_COORDINATE:
 			return 6 ;
+		case TWFT_DISPLACEMENTS:
+			return 6 ;
 		case TWFT_PRINCIPAL_ANGLE:
-			return 1 ;
+			return 3 ;
 		case TWFT_STIFFNESS:
-			return 1 ;
+			return 3 ;
 		case TWFT_STRAIN:
 			return 9 ;
 		case TWFT_STRAIN_AND_STRESS:
@@ -442,7 +469,7 @@ int numberOfFields(TWFieldType field)
 		case TWFT_FLUX:
 			return 6 ;
 		case TWFT_VON_MISES:
-			return 1 ;
+			return 3 ;
 	}
 	return 1 ;
 }

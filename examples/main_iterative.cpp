@@ -29,6 +29,7 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/random.h"
+#include "../utilities/writer/triangle_writer.h"
 
 #include <fstream>
 
@@ -465,55 +466,13 @@ void step()
 		filename.append("_") ;
 		filename.append(itoa((int) ((double) shape*100.), 10)) ;
 		std::cout << filename << std::endl ;
-		std::fstream outfile  ;
-		outfile.open(filename.c_str(), std::ios::out) ;
-		
-		outfile << "TRIANGLES" << std::endl ;
-		outfile << triangles.size() << std::endl ;
-		outfile << 3 << std::endl ;
-		outfile << 8 << std::endl ;
-		
-		for(size_t j = 0 ; j < triangles.size() ;j++)
-		{
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile << triangles[j]->getBoundingPoint(l).x << " " << triangles[j]->getBoundingPoint(l).y << " ";
-			}
 
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon11[j*3+l] << " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  epsilon22[j*3+l] << " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<   epsilon12[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma11[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma22[j*3+l]<< " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  sigma12[j*3+l] << " ";
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile << vonMises[j*3+l]<< " " ;
-			}
-			for(size_t l = 0 ; l < triangles[j]->getBoundingPoints().size() ; l++)
-			{
-				outfile <<  triangles[j]->getBehaviour()->getTensor(Point(.3, .3))[0][0] << " ";
-			}
-			outfile << "\n" ;
-		}
+		TriangleWriter writer(filename, featureTree) ;
+		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+		writer.getField(TWFT_VON_MISES) ;
+		writer.getField(TWFT_STIFFNESS) ;
+		writer.write() ;
+
 		
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;

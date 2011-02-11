@@ -28,5 +28,17 @@ Form * AggregateBehaviour::getCopy() const
 	return ret ;
 }
 
+ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,dim)
+{
+
+}
+
+Form * ElasticOnlyAggregateBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1 - variability + variability*weib ;
+	return new Stiffness(param*factor) ;
+}
+
 
 

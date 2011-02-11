@@ -14,6 +14,15 @@ namespace Mu
 		
 	} ;
 	
+	struct ElasticOnlyPasteBehaviour : public PasteBehaviour
+	{
+		ElasticOnlyPasteBehaviour(double E=12e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		
+		virtual Form * getCopy() const ;
+		
+	
+	} ;
+	
 } ;
 
 #endif // PASTE_BEHAVIOUR
