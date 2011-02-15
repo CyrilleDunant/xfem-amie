@@ -134,8 +134,8 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 
 void ElementarySurface::setBehaviour(Form * f)
 {
-// 	delete behaviour ;
-	this->behaviour = f ;
+	delete behaviour ;
+	behaviour = f ;
 }
 
 void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
@@ -1429,10 +1429,10 @@ void ElementarySurface::setEnrichment( const Function & p, const Geometry * g)
 	bool unique = true ;
 	for(size_t i = 0 ;  i < enrichfunc.size() ; i++)
 	{
-		
 		if (getEnrichmentFunction(i).getDofID() == p.getDofID())
 		{
 			unique = false ;
+			break ;
 		}
 	}
 	if(unique)
@@ -1475,29 +1475,39 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 		factor = 2 ;
 	
 	Matrix S(4,4) ;
-	S[0][0] = this->getBoundingPoint(factor*2).x ; 
-	S[0][1] = this->getBoundingPoint(factor*3).x ;  
-	S[0][2] = this->getBoundingPoint(0      ).x;
-	S[0][3]=  this->getBoundingPoint(factor  ).x; 
+	S[0][0] = this->getBoundingPoint(0       ).x;
+	S[0][1] = this->getBoundingPoint(factor  ).x; 
+	S[0][2] = this->getBoundingPoint(factor*2).x ; 
+	S[0][3] = this->getBoundingPoint(factor*3).x ;  
 	
-	S[1][0] = this->getBoundingPoint(factor*2).y ; 
-	S[1][1] = this->getBoundingPoint(factor*3).y ;  
-	S[1][2] = this->getBoundingPoint(0      ).y ;
-	S[1][3]=  this->getBoundingPoint(factor  ).y;
+	S[1][0] = this->getBoundingPoint(0       ).y ;
+	S[1][1] = this->getBoundingPoint(factor  ).y;
+	S[1][2] = this->getBoundingPoint(factor*2).y ; 
+	S[1][3] = this->getBoundingPoint(factor*3).y ;  
 
-	S[2][0] = this->getBoundingPoint(factor*2).z ; 
-	S[2][1] = this->getBoundingPoint(factor*3).z ;  
-	S[2][2] = this->getBoundingPoint(0      ).z ;
-	S[2][3]=  this->getBoundingPoint(factor  ).z;
+	S[2][0] = this->getBoundingPoint(0       ).z ;
+	S[2][1] = this->getBoundingPoint(factor  ).z;
+	S[2][2] = this->getBoundingPoint(factor*2).z ; 
+	S[2][3] = this->getBoundingPoint(factor*3).z ;  
 	
-	S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]=1;
+	S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
 	
 	Vector v(4) ; 
 	v[0] = p.x ;
 	v[1] = p.y ;
 	v[2] = p.z ;
 	v[3] = 1 ;
+
 	Vector coeff = inverse4x4Matrix(S) * v ;
+	
+// 	VirtualMachine vm ;
+
+// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
+// 	t.print();
+// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
+// 	test.print() ;
+// 	inLocalCoordinates(test) ;
+// 	std::cout << std::endl ;
 	return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
 }
 
@@ -1801,6 +1811,8 @@ void ElementaryVolume::setEnrichment(const Function & p, Geometry * g)
 		enrichfunc.back().compile() ;
 		enrichmentSource.push_back(g) ;
 	}
+	
+	
 }
 
 const Function& ElementaryVolume::getEnrichmentFunction(size_t i)  const
@@ -2007,8 +2019,8 @@ void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) c
 
 void ElementaryVolume::setBehaviour(Form * f)
 {
-	delete getBehaviour() ;
-	this->behaviour =  f ;
+// 	delete behaviour ;
+	behaviour =  f ;
 }
 
 Order ElementaryVolume::getOrder() const

@@ -1631,7 +1631,7 @@ int main(int argc, char *argv[])
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
-	F.setSamplingNumber(512) ;
+	F.setSamplingNumber(256) ;
 	F.setMaxIterationsPerStep(2);
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1671,7 +1671,7 @@ int main(int argc, char *argv[])
 		}
 	}*/
 	
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	
 	Function torz("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 cos *") ;
 	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;

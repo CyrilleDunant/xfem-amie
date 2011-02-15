@@ -161,10 +161,10 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 										for(int m = 0 ; m < numberOfFields(field) ; m++)
 										{
 											ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i] = val.second[m] ;
-											if(hasAlternate)
-											{
-												ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i] = (ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i]+valAlternate.second[m])*.5 ;
-											}
+// 											if(hasAlternate)
+// 											{
+// 												ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i] = (ret[m][k+nVoxelY*j+nVoxelY*nVoxelX*i]+valAlternate.second[m])*.5 ;
+// 											}
 										}
 									}
 								}
@@ -185,69 +185,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 		if(t %100 == 0)
 					std::cerr << "\rgenerating values... "<< t <<"/" << tris.size() << std::flush ;
 	}
-	
-// 	for(int i = 0 ; i < nVoxelX ; i++)
-// 	{
-// 		for(int j = 0 ; j < nVoxelY ; j++)
-// 		{
-// 			bool done = false ;
-// 			std::vector<DelaunayTetrahedron *> tris ;
-// 			
-// 			for(int k = 0 ; k < nVoxelZ ; k++)
-// 			{
-// 				Point p(bottom_left) ;
-// 				p.x += ((top_right.x)-(bottom_left.x))*((double)(i))/(double(nVoxelX-1)) ;
-// 				p.y += ((top_right.y)-(bottom_left.y))*((double)(j))/(double(nVoxelY-1)) ;
-// 				p.z += ((top_right.z)-(bottom_left.z))*((double)(k))/(double(nVoxelZ-1)) ;
-// 				if(!done)
-// 					tris = F->getElements3D(&p) ;
-// 				
-// 				done = false ;
-// 				for(size_t l = 0 ; l < tris.size() && !done ; l++)
-// 				{
-// 					if( tris[l]->in(p) && tris[l]->getBehaviour()->type != VOID_BEHAVIOUR)
-// 					{
-// 						std::pair<bool, std::vector<double> > val = getDoubleValue(tris[l],p,field) ;
-// 						if(val.first)
-// 						{
-// 							for(int m = 0 ; m < numberOfFields(field) ; m++)
-// 							{
-// 								ret[m][count] = val.second[m] ;
-// 							}
-// 							count++ ;
-// 							done = true ;
-// 						}
-// 					}
-// 					else if(tris[l]->in(p) && tris[l]->getBehaviour()->type != VOID_BEHAVIOUR)
-// 					{
-// 							for(int m = 0 ; m < numberOfFields(field) ; m++)
-// 							{
-// 								ret[m][count] = 0 ;
-// 							}
-// 							voids[count] = true ;
-// 							count++ ;
-// 							done = true ;
-// 							break ;
-// 					}
-// 				}
-// 
-// 				
-// 				if(!done)
-// 				{
-// 					for(int m = 0 ; m < numberOfFields(field) ; m++)
-// 					{
-// 						ret[m][count] = 0 ;
-// 					}
-// 					count++ ;
-// 				}
-// 				
-// 				
-// 				
-// 				if(count %10000 == 0)
-// 					std::cerr << "\rgenerating values... "<<count<<"/" << max << std::flush ;
-// 			}
-// 		}
-// 	}
+
 	std::cerr << "\rgenerating values... "<< tris.size()<< "/" << tris.size() << " ...done." << std::endl ;
 	return ret ;
 }
@@ -261,19 +199,20 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 	{
 		case VWFT_PRINCIPAL_ANGLE:
 		{
-			ret[0]=tet->getState().getPrincipalAngle(tet->getCenter()) ;			
+			ret[0]=tet->getState().getPrincipalAngle(tet->inLocalCoordinates(p)) ;
 			found = true ;	
 			break ;
 		}
 
 		case VWFT_STIFFNESS:
 		{
-			Stiffness * b = dynamic_cast<Stiffness *>(tet->getBehaviour()) ;
-			if(b)
-			{
-				ret[0]=b->getTensor(Point(0.3,0.3,0.3))[0][0] ;
-				found = true ;
-			}
+			Matrix m = tet->getBehaviour()->getTensor(tet->inLocalCoordinates(p)) ;
+			if(!m.isNull())
+				ret[0] = m[0][0] ;
+			else
+				ret[0] = 0 ;
+			
+			found = true ;
 			break ;
 		}
 			
@@ -469,7 +408,7 @@ std::valarray<unsigned char> normalizeArray(const std::valarray<double> & val, c
 	for(size_t i = 0 ; i < val.size() ; i++)
 	{
 		if(!voids[i])
-			norm[i] = (unsigned char) std::min(std::max(std::floor(round((double) min + (double)(max-min)*((val[i]-vmin)/(vmax-vmin)))), (double)min), (double)max) ;
+			norm[i] = (unsigned char) std::min(std::max(round((double) min + (double)(max-min)*((val[i]-vmin)/(vmax-vmin))), (double)min), (double)max) ;
 		else
 			norm[i] = 0 ;
 	}	

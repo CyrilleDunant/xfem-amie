@@ -49,12 +49,12 @@ DofDefinedBoundaryCondition::DofDefinedBoundaryCondition(LagrangeMultiplierType 
 	
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface , size_t id, double d ) : BoundaryCondition(t, d), id(id), surface(NULL), volume(volume)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, double d ) : BoundaryCondition(t, d), id(id), surface(NULL), volume(volume)
 {
 	
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface , size_t id, const Function & d ) : BoundaryCondition(t, d), id(id), surface(NULL), volume(volume)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, const Function & d ) : BoundaryCondition(t, d), id(id), surface(NULL), volume(volume)
 {
 	
 }
@@ -189,6 +189,10 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 
 void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a)
 {
+// 	std::cout << "splash" << std::endl ;
+// 	std::cout << (size_t)(e) << std::endl ;
+// 	std::cout << (size_t)(e->getBehaviour()) << std::endl ;
+// 	std::cout << (size_t)(e->getBehaviour()->type) << std::endl ;
 	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
 		return ;
 	for(size_t i = 0 ; i < id.size() ; i++)

@@ -47,7 +47,7 @@ double smallestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
 			
 		double eps = 1 ;
 		size_t it = 0 ;
-		while ( eps > 1e-5 )
+		while ( eps > 1e-5 && it < 30)
 		{
 			x = A*x_ ;
 			Mu::ConjugateGradient cg(A, x) ;
@@ -75,7 +75,7 @@ double smallestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
     
 	double eps = 1 ;
 	size_t it = 0 ;
-	while ( eps > 1e-5 )
+	while ( eps > 1e-5 && it < 30)
 	{
 		x = A*x_ ;
 		Mu::BiConjugateGradientStabilized cg(A, x) ;

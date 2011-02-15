@@ -1145,6 +1145,7 @@ void FeatureTree::sample()
 				{
 					grid->remove(tree[i]) ;
 					grid->forceAdd(tree[i]);
+					
 					double shape_factor =(sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
 					if(shape_factor < POINT_TOLERANCE)
 						continue ;
@@ -1651,28 +1652,31 @@ Form * FeatureTree::getElementBehaviour(const Mu::DelaunayTetrahedron* t, bool o
 {
 	int root_box = 0 ;
 
-	
 	if(!inRoot(t->getCenter())) 
-		return new VoidForm() ;
+	{
+		return new VoidForm();
+	}
+
 	
-// 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
-// 		if( t->getBoundingPoint(i).id == -1)
-// 		{
-// 			return new VoidForm() ;
-// 		}
-	
-	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getCenter()) ;
-	std::vector<Feature *> targets  ;
-	for(size_t i = 0 ; i < targetstmp.size() ; ++i)
-		targets.push_back(dynamic_cast<Feature *>(targetstmp[i])) ;
-	
+	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
+	{
+		if( t->getBoundingPoint(i).id == -1)
+		{
+			return new VoidForm() ;
+		}
+	}
+		
+	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getPrimitive()) ;
+	std::vector<Feature *> targets ;
+	for(size_t i = 0 ; i < targetstmp.size() ; i++)
+		targets.push_back(dynamic_cast<Feature *>(targetstmp[i]) ) ;
+		
 	if(!targets.empty())
 	{
 		for(int i = targets.size()-1 ; i >=0  ; i--)
 		{
-			if (!targets[i]->isEnrichmentFeature && targets[i]->in(t->getCenter())&& (!onlyUpdate || onlyUpdate && targets[i]->isUpdated))
+			if (!targets[i]->isEnrichmentFeature && targets[i]->in(t->getCenter()) && (!onlyUpdate || onlyUpdate && targets[i]->isUpdated))
 			{
-				
 				
 				bool notInChildren  = true ;
 				
@@ -1697,6 +1701,7 @@ Form * FeatureTree::getElementBehaviour(const Mu::DelaunayTetrahedron* t, bool o
 						{
 							Form * b = targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 							b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+							
 							return b ;
 						}
 					}
@@ -1706,6 +1711,7 @@ Form * FeatureTree::getElementBehaviour(const Mu::DelaunayTetrahedron* t, bool o
 					{
 						Form * b = targets[i]->getBehaviour(t->getCenter())->getCopy() ;
 						b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+						
 						return b ;
 					}
 					
@@ -1714,58 +1720,21 @@ Form * FeatureTree::getElementBehaviour(const Mu::DelaunayTetrahedron* t, bool o
 			}
 		}
 	}
-	else
+
+	if(!onlyUpdate)
 	{
-		for(int i = tree.size()-1 ; i >=0  ; i--)
+		if(tree[root_box]->getBehaviour(t->getCenter())->timeDependent())
 		{
-			if (!tree[i]->isEnrichmentFeature && tree[i]->in(t->getCenter()))
+			if( !tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
+				return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
+			else
 			{
-				
-				
-				bool notInChildren  = true ;
-				
-				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
-				
-				for(size_t j = 0 ; j < descendants.size() ; j++)
-				{
-					if(!descendants[j]->isEnrichmentFeature && descendants[j]->in(t->getCenter()))
-					{
-						notInChildren = false ;
-						break ;
-					}
-				}
-				
-				if(notInChildren)
-				{
-					if(tree[i]->getBehaviour(t->getCenter())->timeDependent())
-					{
-						if( !tree[i]->getBehaviour(t->getCenter())->spaceDependent())
-							return targets[i]->getBehaviour(t->getCenter())->getCopy() ;
-						else
-						{
-							Form * b = tree[i]->getBehaviour(t->getCenter())->getCopy() ;
-							b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-							return b ;
-						}
-					}
-					else if(!tree[i]->getBehaviour(t->getCenter())->spaceDependent())
-						return tree[i]->getBehaviour(t->getCenter())->getCopy() ;
-					else
-					{
-						Form * b = tree[i]->getBehaviour(t->getCenter())->getCopy() ;
-						b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-						return b ;
-					}
-					
-					return tree[i]->getBehaviour(t->getCenter())->getCopy() ;
-				}
+				Form * b = tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
+				b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+				return b ;
 			}
 		}
-	}
-	
-	if(tree[root_box]->getBehaviour(t->getCenter())->timeDependent())
-	{
-		if( !tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
+		else if(!tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
 			return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
 		else
 		{
@@ -1773,18 +1742,11 @@ Form * FeatureTree::getElementBehaviour(const Mu::DelaunayTetrahedron* t, bool o
 			b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
 			return b ;
 		}
-	}
-	else if(!tree[root_box]->getBehaviour(t->getCenter())->spaceDependent())
+		
 		return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
-	else
-	{
-		Form * b = tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
-		b->transform(t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-		return b ;
 	}
 	
-	return tree[root_box]->getBehaviour(t->getCenter())->getCopy() ;
-
+	return NULL ;
 }
 
 Point * FeatureTree::checkElement( const DelaunayTetrahedron * t ) const
@@ -2073,6 +2035,9 @@ void FeatureTree::setElementBehaviours()
 			n_void++ ;
 			setcount++ ;
 		}
+		
+		std::cerr << " ...done" << std::endl ;
+		
 		if(useMultigrid)
 		{
 			for(size_t i = 0 ; i < coarseTrees3D.size() ; i++)
@@ -2081,15 +2046,27 @@ void FeatureTree::setElementBehaviours()
 				tetrahedrons = coarseTrees3D[i]->getElements() ;
 				for(size_t j = 0 ; j < tetrahedrons.size() ;j++)
 				{
-					tetrahedrons[j]->refresh(father3D) ;
 					if (j%1000 == 0)
 						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << tetrahedrons.size() << std::flush ;
-					tetrahedrons[j]->setBehaviour(new HomogeneisedBehaviour(this, tetrahedrons[j])) ;
+					tetrahedrons[j]->refresh(father3D) ;
+					std::vector<Geometry * > coocuring ;
+					if(tree.size() > 1)
+						coocuring = grid3d->coOccur(tetrahedrons[j]->getPrimitive()) ;
+					if(coocuring.size() == 1 && !static_cast<Feature *>(coocuring[0])->getBehaviour(tetrahedrons[j]->getCenter())->spaceDependent())
+					{
+						if(coocuring[0]->in(*tetrahedrons[j]->first) && coocuring[0]->in(*tetrahedrons[j]->second) && coocuring[0]->in(*tetrahedrons[j]->third))
+							tetrahedrons[j]->setBehaviour(static_cast<Feature *>(coocuring[0])->getBehaviour(tetrahedrons[j]->getCenter())->getCopy()) ;
+						else
+							tetrahedrons[j]->setBehaviour(new HomogeneisedBehaviour(this, tetrahedrons[j])) ;
+					}
+					else if (tree.size() == 1 && !tree[0]->getBehaviour(tetrahedrons[j]->getCenter())->spaceDependent())
+						tetrahedrons[j]->setBehaviour(tree[0]->getBehaviour(tetrahedrons[j]->getCenter())->getCopy()) ;
+					else
+						tetrahedrons[j]->setBehaviour(new HomogeneisedBehaviour(this, tetrahedrons[j])) ;
 				}
 				std::cerr << " ...done" << std::endl ;
 			}
 		}
-		std::cerr << " ...done" << std::endl ;
 	}
 	
 }

@@ -20,8 +20,8 @@ EnrichmentInclusion3D::~EnrichmentInclusion3D() {}
 	
 bool EnrichmentInclusion3D::enrichmentTarget(DelaunayTetrahedron * t)
 {
-	int pointsin = in(*t->first) + in(*t->second) + in(*t->third) + in(*t->fourth) ;
-		if(intersects(t->getPrimitive()) && pointsin != 4)
+// 	int pointsin = in(*t->first) + in(*t->second) + in(*t->third) + in(*t->fourth) ;
+		if(intersects(t->getPrimitive())/* && pointsin != 4*/)
 			return true ;
 		
 		return false ;
@@ -31,8 +31,6 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 {
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
-		if(!cache[i]->enrichmentUpdated)
-			cache[i]->clearEnrichment(getPrimitive()) ;
 		cache[i]->enrichmentUpdated = true ;
 	}
 	cache = dtree->getConflictingElements(getPrimitive()) ;
@@ -41,20 +39,19 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 		std::vector<DelaunayTetrahedron *> candidates = dtree->getConflictingElements(&getCenter()) ;
 		for(size_t i = 0 ; i < candidates.size() ; i++)
 		{
-			if((candidates[i]->in(getCenter()) || this->intersects(candidates[i]->getPrimitive())) )
+			if(candidates[i]->isTetrahedron() && candidates[i]->in(getCenter()))
 			{
-				cache.push_back(candidates[i]) ;
+				cache.push_back(static_cast<DelaunayTetrahedron *>(candidates[i])) ;
 				break ;
 			}
 		}
 	}
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
-		if(!cache[i]->enrichmentUpdated)
-			cache[i]->clearEnrichment(getPrimitive()) ;
 		cache[i]->enrichmentUpdated = true ;
 
 	}
+	
 	if(cache.empty())
 		std::cout << "cache empty !" << std::endl ;
 }
@@ -151,7 +148,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 
 	std::valarray<Function> shapefunc = TetrahedralElement(LINEAR).getShapeFunctions() ;
 	
-	if(disc.size() < 6) // special case for really small inclusions
+	if(false && disc.size() < 6) // special case for really small inclusions
 	{
 		for(size_t i = 0 ; i < disc.size() ; i++)
 		{
@@ -222,68 +219,37 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			ring.push_back(disc[i]) ;
 		}
 	}
+	//sorting the element for later usage of std::find
+	std::sort(ring.begin(), ring.end()) ;
 	
 	//then we build a list of points to enrich
-	std::vector<Point *> points ;
-	double rmin = radius ;
-	double rmax = radius ;
+	std::set<Point *> points ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-		double d = dist(getCenter(), *ring[i]->first) ;
-		if( d > rmax)
-			rmax = d ;
-		if(d < rmin)
-			rmin = d ;
-		d = dist(getCenter(), *ring[i]->second) ;
-		if( d > rmax)
-			rmax = d ;
-		if(d < rmin)
-			rmin = d ;
-		d = dist(getCenter(), *ring[i]->third) ;
-		if( d > rmax)
-			rmax = d ;
-		if(d < rmin)
-			rmin = d ;
-		d = dist(getCenter(), *ring[i]->fourth) ;
-		if( d > rmax)
-			rmax = d ;
-		if(d < rmin)
-			rmin = d ;
-		points.push_back(ring[i]->first) ;
-		points.push_back(ring[i]->second) ;
-		points.push_back(ring[i]->third) ;
-		points.push_back(ring[i]->fourth) ;
+		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
+		{
+			points.insert(&ring[i]->getBoundingPoint(j)) ;
+		}
 	}
-	
-	//we make the points in the list unique
-	std::stable_sort(points.begin(), points.end()) ;
-	auto e = std::unique(points.begin(), points.end()) ;
-	points.erase(e , points.end()) ;
 	
 	//we build a map of the points and corresponding enrichment ids
 	std::map<Point *, int> dofId ;
-	
-	for(size_t i = 0 ; i< points.size() ; i++)
+
+	for(auto i = points.begin() ; i != points.end() ; ++i)
 	{
-		dofId[points[i]] = lastId++ ;
+			dofId[*i] = lastId++ ;
 	}
 	
 	//now, we will start the enrichment itself
-	
 	std::set<std::pair<DelaunayTetrahedron *, Point *> > enriched ;
 	
 	//then we iterate on every element
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-		std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(static_cast<Tetrahedron *>(ring[i])) ;
+		std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
 
-		//for convenience
-		Point *a = ring[i]->first ;
-		Point *b = ring[i]->second ;
-		Point *c = ring[i]->third ;
-		Point *d = ring[i]->fourth ;
 		std::vector<Point> hint ;
-		//if there are no intersection points we need not do anything
+// 		if there are no intersection points we need not do anything
 		if(!tetSphereIntersectionPoints.empty())
 		{
 			
@@ -306,7 +272,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		Function z = ring[i]->getZTransform() ;
 		
 		//this function returns the distance to the centre
-		Function position(getCenter(), x, y,z) ;
+		Function position(getCenter(), x, y, z) ;
 		Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius());
 		
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)

@@ -38,7 +38,7 @@ bool StiffnessWithImposedDeformation::fractured() const
 
 Form * StiffnessWithImposedDeformation::getCopy() const 
 {
-	return new StiffnessWithImposedDeformation(*this) ;
+	return new StiffnessWithImposedDeformation(param, imposed) ;
 }
 
 Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p) const

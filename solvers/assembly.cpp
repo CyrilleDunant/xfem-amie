@@ -1298,9 +1298,9 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 
 	if(make_final() )
 	{
-// 		double lambda_min = smallestEigenValue(getMatrix()) ;
-// 		double lambda_max = largestEigenValue(getMatrix()) ;
-// 		std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
+		double lambda_min = smallestEigenValue(getMatrix()) ;
+		double lambda_max = largestEigenValue(getMatrix()) ;
+		std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
 // 		std::cerr << "symmetrical problem" << std::endl ;
 // 		print();
 // 		exit(0) ;

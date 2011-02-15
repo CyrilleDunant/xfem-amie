@@ -169,7 +169,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			ring.push_back(disc[i]) ;
 		}
 	}
-	std::sort(ring.begin(), ring.end()) ;
 	
 	//then we build a list of points to enrich
 	std::set<Point *> points ;
@@ -185,12 +184,11 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	//we build a map of the points and corresponding enrichment ids
 	std::map<Point *, int> dofId ;
 
-
-	
 	for(auto i = points.begin() ; i != points.end() ; ++i)
 	{
 			dofId[*i] = lastId++ ;
 	}
+	
 	std::set<std::pair<DelaunayTriangle *, Point *> > enriched ;
 	//then we iterate on every element
 	for(size_t i = 0 ; i < ring.size() ; i++)

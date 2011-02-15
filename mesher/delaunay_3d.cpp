@@ -492,7 +492,7 @@ void DelaunayTreeItem3D::conflicts(std::valarray< bool >& visitedItems, std::pai
 	        g->in(*fourth) 
 	        && isSpace() 
 	      )
-	    ) 
+	    )
 	  )
 	{
 		return  ;
@@ -2467,6 +2467,13 @@ void DelaunayTetrahedron::clearElementaryMatrix()
 
 std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix() 
 {
+// 	std::cout << "--" << std::endl ;
+// 	std::cout <<TetrahedralElement(LINEAR).volume() << std::endl ;
+// 	inLocalCoordinates(getBoundingPoint(0)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(0), inLocalCoordinates(getBoundingPoint(0)))<< std::endl ;
+// 	inLocalCoordinates(getBoundingPoint(1)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(1), inLocalCoordinates(getBoundingPoint(1)))<< std::endl ;
+// 	inLocalCoordinates(getBoundingPoint(2)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(2), inLocalCoordinates(getBoundingPoint(2)))<< std::endl ;
+// 	inLocalCoordinates(getBoundingPoint(3)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(3), inLocalCoordinates(getBoundingPoint(3)))<< std::endl ;
+// 	std::cout << "--" << std::endl ;
 	if(!behaviourUpdated && !enrichmentUpdated)
 	{
 		return cachedElementaryMatrix ;
@@ -2536,13 +2543,14 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 	{
 		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		
-		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		for(size_t j = i+1 ; j < getEnrichmentFunctions().size() ; j++)
 		{
 			 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
-	if(jacobianAtPoint(inLocalCoordinates(getCenter()))  < 0)
+	
+	if(jacobianAtPoint(Point(0.25, 0.25, 0.25))  < 0)
 	{
 
 		for(size_t i = 0 ; i < dofs.size() ; i++)
@@ -2895,6 +2903,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		return *getCachedGaussPoints() ;
 
 	GaussPointArray gp = getGaussPoints() ; 
+			
 	size_t numberOfRefinements = 2;
 	
 	double tol = 1e-6 ;
@@ -2909,17 +2918,40 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 		if(true /*to_add.size() == 0*/)
 		{
-			double ndivs = 32 ;
-			for(double k = 1  ; k < ndivs ; k++)
+			double ndivs = 16 ;
+			double sa = 1./(ndivs*ndivs*ndivs) ;
+			for(int k = 0  ; k <= ndivs-1 ; k++)
 			{
-				for(double l = 1  ; l < ndivs ; l++)
+				for(int l = 0  ; l <= ndivs-1-k ; l++)
 				{
-					for(double m = 1  ; m < ndivs ; l++)
+					for(int m = 0  ; m <= ndivs-1-k-l ; m++)
 					{
-						if( k/ndivs + l/ndivs + m/ndivs< 1 )
-							gp_alternative.push_back(std::make_pair(Point(k/ndivs, l/ndivs, m/ndivs), 0.1666666666666667)) ;
+						double x = 1./(2.*(ndivs)) + (double)k/(double)(ndivs) ;
+						double y = 1./(2.*(ndivs)) + (double)l/(double)(ndivs) ;
+						double z = 1./(2.*(ndivs)) + (double)m/(double)(ndivs) ;
+						gp_alternative.push_back(std::make_pair(Point(x, y, z), sa)) ;
 					}
 				}
+			}
+			double sq = 1./(ndivs*ndivs) ;
+			for(int k = 0  ; k <= ndivs-1 ; k++)
+			{
+				for(int l = 0  ; l <= ndivs-1-k ; l++)
+				{
+					double x = 1./(2.*(ndivs)) + (double)k/(double)(ndivs) ;
+					double y = 1./(2.*(ndivs)) + (double)l/(double)(ndivs) ;
+					double z = 1.- x- y ;
+					gp_alternative.push_back(std::make_pair(Point(x, y, z), sq)) ;
+				}
+			}
+			
+			double st = 0.1666666666666666*sa ;
+			for(int k = 0  ; k < ndivs ; k++)
+			{
+				double x = 1./(4*ndivs) + (double)k/ndivs ;
+				double y = 1.-3./(4*ndivs) - (double)k/ndivs ;
+				double z = 1./(4*ndivs) ;
+				gp_alternative.push_back(std::make_pair(Point(x, y, z), st)) ;
 			}
 			
 			double j = volume()/0.1666666666666666 ;

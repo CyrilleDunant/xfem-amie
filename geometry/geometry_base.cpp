@@ -1477,11 +1477,22 @@ bool Geometry::intersects(const Geometry *g) const
 				if(incount && outcount)
 					return true ;
 				
+				std::multimap<double, const Point *> pts ;
+				for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
+				{
+					pts.insert(std::make_pair(std::abs(g->getRadius()*g->getRadius()-squareDist3D(static_cast<const Tetrahedron*>(g)->getCircumCenter(), g->getBoundingPoint(i))), & g->getBoundingPoint(i))) ;
+				}
+				auto p = pts.begin() ;
+				const Point * a = p->second ; ++p ;
+				const Point * b = p->second ; ++p ;
+				const Point * c = p->second ; ++p ;
+				const Point * d = p->second ;
+				
 				Segment s(g->getCenter(), getCenter()) ;
-				TriPoint t0(&g->getBoundingPoint(0), &g->getBoundingPoint(1), &g->getBoundingPoint(2)) ;
-				TriPoint t1(&g->getBoundingPoint(0), &g->getBoundingPoint(1), &g->getBoundingPoint(3)) ;
-				TriPoint t2(&g->getBoundingPoint(0), &g->getBoundingPoint(2), &g->getBoundingPoint(3)) ;
-				TriPoint t3(&g->getBoundingPoint(1), &g->getBoundingPoint(2), &g->getBoundingPoint(3)) ;
+				TriPoint t0(a, b, c) ;
+				TriPoint t1(a, b, d) ;
+				TriPoint t2(a, c, d) ;
+				TriPoint t3(b, c, d) ;
 				if(s.intersects(t0))
 					return in(s.intersection(t0)[0]) ;
 				if(s.intersects(t1))
@@ -1528,21 +1539,7 @@ bool Geometry::intersects(const Geometry *g) const
 		{
 			if(g->getGeometryType() == SPHERE)
 			{
-				Segment s(g->getCenter(), getCenter()) ;
-				TriPoint t0(&getBoundingPoint(0), &getBoundingPoint(1), &getBoundingPoint(2)) ;
-				TriPoint t1(&getBoundingPoint(0), &getBoundingPoint(1), &getBoundingPoint(3)) ;
-				TriPoint t2(&getBoundingPoint(0), &getBoundingPoint(2), &getBoundingPoint(3)) ;
-				TriPoint t3(&getBoundingPoint(1), &getBoundingPoint(2), &getBoundingPoint(3)) ;
-				if(s.intersects(t0))
-					return g->in(s.intersection(t0)[0]) ;
-				if(s.intersects(t1))
-					return g->in(s.intersection(t1)[0]) ;
-				if(s.intersects(t2))
-					return g->in(s.intersection(t2)[0]) ;
-				if(s.intersects(t3))
-					return g->in(s.intersection(t3)[0]) ;
-
-				return false ;
+				return g->intersects(this) ;
 			}
 		}
 	default:

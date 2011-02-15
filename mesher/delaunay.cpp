@@ -2287,7 +2287,7 @@ std::vector<std::vector<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	{
 		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		
-		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+		for(size_t j = i+1 ; j < getEnrichmentFunctions().size() ; j++)
 		{
 			 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;

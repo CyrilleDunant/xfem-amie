@@ -2,7 +2,7 @@
 
 using namespace Mu ;
 
-BimaterialInterface::BimaterialInterface(Geometry * in, Form * inbehaviour, Form * outbehaviour) : LinearForm(Matrix(outbehaviour->param), true, true, inbehaviour->getNumberOfDegreesOfFreedom()), inGeometry(in),inBehaviour(inbehaviour), outBehaviour(outbehaviour)  { }
+BimaterialInterface::BimaterialInterface(Geometry * in, Form * inbehaviour, Form * outbehaviour) : LinearForm(Matrix(outbehaviour->param), true, true, outbehaviour->getNumberOfDegreesOfFreedom()), inGeometry(in),inBehaviour(inbehaviour), outBehaviour(outbehaviour)  { }
 
 BimaterialInterface::~BimaterialInterface() { } ;
 
@@ -27,7 +27,7 @@ void BimaterialInterface::transform(const Function & x, const Function & y, cons
 Matrix BimaterialInterface::getTensor(const Point & p) const
 {
 	VirtualMachine vm ;
-	Point test = Point(vm.eval(xtransform, p), vm.eval(ytransform, p), vm.eval(ztransform, p)) ;
+	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
 	
 	if(inGeometry->in(test))
 		return inBehaviour->getTensor(p) ;

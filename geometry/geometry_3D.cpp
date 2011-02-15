@@ -506,7 +506,7 @@ double Tetrahedron::volume() const
 		Segment s1(getBoundingPoint(2), getBoundingPoint(0)) ;
 		Segment s2(getBoundingPoint(3), getBoundingPoint(0)) ;
 		
-		return ((s0.vector())^(s1.vector()))*(s2.vector())/6. ;
+		return ((s1.vector())^(s0.vector()))*(s2.vector())/6. ;
 	}
 	else
 	{
@@ -514,7 +514,7 @@ double Tetrahedron::volume() const
 		Segment s1(getBoundingPoint(4), getBoundingPoint(0)) ;
 		Segment s2(getBoundingPoint(6), getBoundingPoint(0)) ;
 		
-		return ((s0.vector())^(s1.vector()))*(s2.vector())/6. ;
+		return ((s1.vector())^(s0.vector()))*(s2.vector())/6. ;
 	}
 }
 
@@ -1464,7 +1464,7 @@ double Sphere::getRadius() const
 void Sphere::setRadius(double newr)
 {
 
-	double ratio = newr/(sqrt(radius)) ;
+	double ratio = newr/radius ;
 	
 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{

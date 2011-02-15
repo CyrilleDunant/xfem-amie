@@ -33,22 +33,22 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		int pointsout = in(*disc[i]->first) + in(*disc[i]->second) + in(*disc[i]->third) + in(*disc[i]->fourth) ;
-		if(/*this->intersects(static_cast<Tetrahedron *>(disc[i])) && */pointsout != 4 && pointsout != 0)
+// 		int pointsout = in(*disc[i]->first) + in(*disc[i]->second) + in(*disc[i]->third) + in(*disc[i]->fourth) ;
+		if(this->intersects(disc[i]->getPrimitive())/* && pointsout != 4 && pointsout != 0*/)
 			ring.push_back(disc[i]) ;
 		else if(this->in(disc[i]->getCenter()))
 			inDisc.push_back(disc[i]) ;
 	}
-	
+	std::sort(ring.begin(), ring.end()) ;
 	std::set<DelaunayTetrahedron *> newInterface ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
 		{
 			ring[i]->setBehaviour(new BimaterialInterface(getPrimitive(),
-														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-														ring[i]->getBehaviour()->getCopy()
-														)) ;
+					      new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+					      ring[i]->getBehaviour()->getCopy()
+					      )) ;
 			ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform(), ring[i]->getZTransform()) ;
 		}
 		newInterface.insert(ring[i]) ;
@@ -69,9 +69,9 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 		if(bimateralInterfaced.find(disc[0]) == bimateralInterfaced.end())
 		{
 			disc[0]->setBehaviour(new BimaterialInterface(getPrimitive(),
-														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-														disc[0]->getBehaviour()->getCopy()
-														)) ;
+					      new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+					      disc[0]->getBehaviour()->getCopy()
+					      )) ;
 			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform(), disc[0]->getZTransform()) ;
 		}
 		newInterface.insert(disc[0]) ;
