@@ -54,7 +54,7 @@ void VoxelWriter::write()
 	for(size_t j = 0 ; j < values.size() ; j++)
 	{
 		std::ostringstream newname ;
-		newname << originalName << "_"<< j ;
+		newname << originalName << "_"<< nVoxelX << "_" << j << ".vox";
 		filename = newname.str() ;
 		writeHeader() ;
 		std::fstream outbin ;

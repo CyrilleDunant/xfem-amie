@@ -2755,7 +2755,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			tri = newTris ;
 		}
 // 		
-		double omega = 0 ;
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
 
@@ -2770,19 +2769,10 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			{
 				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
 				gp_temp.gaussPoints[j].second *= jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
-				omega+= gp_temp.gaussPoints[j].second ;
 				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 			}
 		}
-// 		std::cout << omega/area() << std::endl; 
-		
-// 		if(std::abs(omega/area() - 1) > 0.1)
-// 		{
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 				tri[i]->print() ;
-// 			
-// 			exit(0) ;
-// 		}
+
 		
 		delete dt ;
 		if(numberOfRefinements)

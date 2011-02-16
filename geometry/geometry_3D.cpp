@@ -437,7 +437,11 @@ bool Tetrahedron::in(const Point & v) const
 		TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
 		Segment s(pg,v) ;
 
-		return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ;
+		return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) || 
+		(isCoplanar(v, getBoundingPoint(0), getBoundingPoint(1), getBoundingPoint(2))) || 
+		(isCoplanar(v, getBoundingPoint(0), getBoundingPoint(1), getBoundingPoint(3))) ||
+		(isCoplanar(v, getBoundingPoint(0), getBoundingPoint(2), getBoundingPoint(3))) ||
+		(isCoplanar(v, getBoundingPoint(1), getBoundingPoint(2), getBoundingPoint(3))) ;
 	}
 	else
 	{

@@ -1666,7 +1666,8 @@ Form * FeatureTree::getElementBehaviour(const Mu::DelaunayTetrahedron* t, bool o
 		}
 	}
 		
-	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getPrimitive()) ;
+// 	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getPrimitive()) ;
+	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getCenter()) ;
 	std::vector<Feature *> targets ;
 	for(size_t i = 0 ; i < targetstmp.size() ; i++)
 		targets.push_back(dynamic_cast<Feature *>(targetstmp[i]) ) ;
@@ -2054,7 +2055,7 @@ void FeatureTree::setElementBehaviours()
 						coocuring = grid3d->coOccur(tetrahedrons[j]->getPrimitive()) ;
 					if(coocuring.size() == 1 && !static_cast<Feature *>(coocuring[0])->getBehaviour(tetrahedrons[j]->getCenter())->spaceDependent())
 					{
-						if(coocuring[0]->in(*tetrahedrons[j]->first) && coocuring[0]->in(*tetrahedrons[j]->second) && coocuring[0]->in(*tetrahedrons[j]->third))
+						if(coocuring[0]->in(*tetrahedrons[j]->first) && coocuring[0]->in(*tetrahedrons[j]->second) && coocuring[0]->in(*tetrahedrons[j]->third) && coocuring[0]->in(*tetrahedrons[j]->fourth))
 							tetrahedrons[j]->setBehaviour(static_cast<Feature *>(coocuring[0])->getBehaviour(tetrahedrons[j]->getCenter())->getCopy()) ;
 						else
 							tetrahedrons[j]->setBehaviour(new HomogeneisedBehaviour(this, tetrahedrons[j])) ;

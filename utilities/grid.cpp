@@ -66,6 +66,7 @@ void Voxel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) con
 
 bool Voxel::coOccur(const Geometry * inc) const
 {
+#warning this requires Hexahedron-tetraheron implementation
 	return inc->in(tlf) 
 		|| inc->in(trf) 
 		|| inc->in(brf) 

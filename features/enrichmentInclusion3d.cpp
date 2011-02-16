@@ -58,6 +58,8 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 
 Function getBlendingFunction(const std::map<Point *, int> & dofIds, const DelaunayTetrahedron * t)
 {
+	return Function("1") ;
+	
 	TetrahedralElement father(LINEAR) ;
 	
 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end() && dofIds.find(t->fourth) == dofIds.end())
@@ -273,7 +275,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		
 		//this function returns the distance to the centre
 		Function position(getCenter(), x, y, z) ;
-		Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius());
+		Function hat = f_abs(position-getRadius());
 		
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
@@ -303,7 +305,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
 			Function position(getCenter(), t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
+			Function hat = f_abs(position-getRadius()) ;
 
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)

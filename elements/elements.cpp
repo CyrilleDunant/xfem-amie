@@ -1104,13 +1104,13 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 		std::valarray<Matrix> f9(zero,3) ;
 		f9[1][0][1] = 4 ; // xz
 			
-		(*shapefunc)[0] = Function(f0) ;//z- z*2*(one-x-y-z) - x*z*2 - y*z*2 ; 
+		(*shapefunc)[0] = Function(f0) ;//z- z*2*(one-x-y-z) - x*z*2 - y*z*2 ;  // z
 		(*shapefunc)[1] = Function(f1) ; //z*4*(one-x-y-z) ;
-		(*shapefunc)[2] = Function(f2) ; //one-x-y-z-(one-x-y-z)*(x+y+z)*2 ;
+		(*shapefunc)[2] = Function(f2) ; //one-x-y-z-(one-x-y-z)*(x+y+z)*2 ; // 0
 		(*shapefunc)[3] = Function(f3) ; //x*4*(one-x-y-z) ;
-		(*shapefunc)[4] = Function(f4) ; //x- x*2*(one-x-y-z) - x*z*2 - y*x*2 ; 
+		(*shapefunc)[4] = Function(f4) ; //x- x*2*(one-x-y-z) - x*z*2 - y*x*2 ; //x
 		(*shapefunc)[5] = Function(f5) ; //x*y*4 ; 
-		(*shapefunc)[6] = Function(f6) ; //y- y*2*(one-x-y-z) - y*z*2 - y*x*2 ; 
+		(*shapefunc)[6] = Function(f6) ; //y- y*2*(one-x-y-z) - y*z*2 - y*x*2 ;  //y
 		(*shapefunc)[7] = Function(f7) ; //y*z*4 ;
 		(*shapefunc)[8] = Function(f8) ; //y*4*(one-x-y-z) ;
 		(*shapefunc)[9] = Function(f9) ; //x*z*4 ;
@@ -1468,47 +1468,84 @@ const std::vector<Function> & ElementarySurface::getEnrichmentFunctions() const
 
 Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 {
-	
-	size_t factor = 1 ;
-	
-	if(order == QUADRATIC || order == QUADRATIC_TIME_LINEAR || order == QUADRATIC_TIME_QUADRATIC)
-		factor = 2 ;
-	
-	Matrix S(4,4) ;
-	S[0][0] = this->getBoundingPoint(0       ).x;
-	S[0][1] = this->getBoundingPoint(factor  ).x; 
-	S[0][2] = this->getBoundingPoint(factor*2).x ; 
-	S[0][3] = this->getBoundingPoint(factor*3).x ;  
-	
-	S[1][0] = this->getBoundingPoint(0       ).y ;
-	S[1][1] = this->getBoundingPoint(factor  ).y;
-	S[1][2] = this->getBoundingPoint(factor*2).y ; 
-	S[1][3] = this->getBoundingPoint(factor*3).y ;  
 
-	S[2][0] = this->getBoundingPoint(0       ).z ;
-	S[2][1] = this->getBoundingPoint(factor  ).z;
-	S[2][2] = this->getBoundingPoint(factor*2).z ; 
-	S[2][3] = this->getBoundingPoint(factor*3).z ;  
 	
-	S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
-	
-	Vector v(4) ; 
-	v[0] = p.x ;
-	v[1] = p.y ;
-	v[2] = p.z ;
-	v[3] = 1 ;
+	if(order < QUADRATIC)
+	{
+		Matrix S(4,4) ;
+		S[0][0] = this->getBoundingPoint(0       ).x;
+		S[0][1] = this->getBoundingPoint(1  ).x; 
+		S[0][2] = this->getBoundingPoint(2).x ; 
+		S[0][3] = this->getBoundingPoint(3).x ;  
+		
+		S[1][0] = this->getBoundingPoint(0       ).y ;
+		S[1][1] = this->getBoundingPoint(1 ).y;
+		S[1][2] = this->getBoundingPoint(2).y ; 
+		S[1][3] = this->getBoundingPoint(3).y ;  
 
-	Vector coeff = inverse4x4Matrix(S) * v ;
-	
-// 	VirtualMachine vm ;
+		S[2][0] = this->getBoundingPoint(0       ).z ;
+		S[2][1] = this->getBoundingPoint(1 ).z;
+		S[2][2] = this->getBoundingPoint(2).z ; 
+		S[2][3] = this->getBoundingPoint(3).z ;  
+		
+		S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
+		
+		Vector v(4) ; 
+		v[0] = p.x ;
+		v[1] = p.y ;
+		v[2] = p.z ;
+		v[3] = 1 ;
 
-// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
-// 	t.print();
-// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
-// 	test.print() ;
-// 	inLocalCoordinates(test) ;
-// 	std::cout << std::endl ;
-	return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
+		Vector coeff = inverse4x4Matrix(S) * v ;
+		
+	// 	VirtualMachine vm ;
+
+	// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
+	// 	t.print();
+	// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
+	// 	test.print() ;
+	// 	inLocalCoordinates(test) ;
+	// 	std::cout << std::endl ;
+		return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
+	}
+	else
+	{
+		Matrix S(4,4) ;
+		S[0][0] = this->getBoundingPoint(4       ).x;
+		S[0][1] = this->getBoundingPoint(6  ).x; 
+		S[0][2] = this->getBoundingPoint(0).x ; 
+		S[0][3] = this->getBoundingPoint(2).x ;  
+		
+		S[1][0] = this->getBoundingPoint(4       ).y ;
+		S[1][1] = this->getBoundingPoint(6  ).y;
+		S[1][2] = this->getBoundingPoint(0).y ; 
+		S[1][3] = this->getBoundingPoint(2).y ;  
+
+		S[2][0] = this->getBoundingPoint(4       ).z ;
+		S[2][1] = this->getBoundingPoint(6  ).z;
+		S[2][2] = this->getBoundingPoint(0).z ; 
+		S[2][3] = this->getBoundingPoint(2).z ;  
+		
+		S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
+		
+		Vector v(4) ; 
+		v[0] = p.x ;
+		v[1] = p.y ;
+		v[2] = p.z ;
+		v[3] = 1 ;
+
+		Vector coeff = inverse4x4Matrix(S) * v ;
+		
+	// 	VirtualMachine vm ;
+
+	// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
+	// 	t.print();
+	// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
+	// 	test.print() ;
+	// 	inLocalCoordinates(test) ;
+	// 	std::cout << std::endl ;
+		return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
+	}
 }
 
 Point HexahedralElement::inLocalCoordinates(const Point& p) const

@@ -183,7 +183,7 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("output200.vox", 200) ;
+		VoxelWriter vw("xfem_quadratic_qtree", 200) ;
 		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
@@ -1622,10 +1622,10 @@ int main(int argc, char *argv[])
 // 		v += inclusions[i]->volume() ;
 // 	}
 	
-// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+// 	Inclusion3D * inc = new Inclusion3D(0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 // 	inc->setBehaviour(inclusionStiffness) ;
 	Vector a(6) ; a = 0 ;
-	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
 	F.addFeature(&sample, inc) ;
 
@@ -1671,7 +1671,7 @@ int main(int argc, char *argv[])
 		}
 	}*/
 	
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	
 	Function torz("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 cos *") ;
 	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;
