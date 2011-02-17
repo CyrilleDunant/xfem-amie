@@ -988,7 +988,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 // 		assert(false) ;
 // 	}
 	
-	if( !isFather )
+	if( !isFather && isMoved())
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{

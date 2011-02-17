@@ -2812,87 +2812,7 @@ std::vector<Point *> DelaunayTetrahedron::getIntegrationHints() const
 	to_add.push_back(new Point(0,0,0)) ;
 	to_add.push_back(new Point(1,0.0)) ;
 	to_add.push_back(new Point(0,0,1)) ;
-	
-/*
-	std::vector<std::vector<Segment> > segments ;
-	
-	for(int i = 0 ; i <  (int)getEnrichmentFunctions().size() ; i++)
-	{
-		std::vector<Segment> temp ;
-		for(int j = 0 ; j < (int)getEnrichmentFunction(i).getIntegrationHint().size()-1 ; j++)
-		{
-			temp.push_back(Segment(getEnrichmentFunction(i).getIntegrationHint(j), getEnrichmentFunction(i).getIntegrationHint(j+1))) ;
-		}
-		
-		segments.push_back(temp) ;
-	}
-	for(size_t i = 0 ; i < segments.size() ; i++) // per shape function
-	{
-		for(size_t j = i+1 ; j < segments.size() ; j++) // per other shape function
-		{
-			for(size_t k = 0 ; k < segments[i].size() ; k++) //per segment in first SF
-			{
-				for(size_t l = 0 ; l < segments[j].size() ; l++) //per segment in second SF
-				{
-					if(segments[i][k].intersects(segments[j][l]))
-					{
-						bool go = true ;
-						Point test = segments[i][k].intersection(segments[j][l]) ;
-						for(int k = 0 ; k < to_add.size()  ; k++ )
-						{
-							if(squareDist3D(&test, to_add[k]) 
-							   < 4.*POINT_TOLERANCE*POINT_TOLERANCE)
-							{
-								go = false ;
-								break ;
-							}
-						}
-						if(go)
-						{
-							to_add.push_back(new Point(test)) ;
-							if(to_add.back()->x< 0)
-								to_add.back()->x = 0 ;
-							if(to_add.back()->y < 0)
-								to_add.back()->y = 0 ;
-							if(to_add.back()->z < 0)
-								to_add.back()->z = 0 ;
-						}
-					}
-				}
-			}
-		}
-	}*/
-	
-	for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
-	{
-		
-		for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
-		{
-			bool go = true ;
-			for(int k = 0 ; k < to_add.size()  ; k++ )
-			{
-				if(dist(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k]) 
-				   < 1e-8)
-				{
-					go = false ;
-					break ;
-				}
-			}
-			
-			if(go /*&& f.in(getEnrichmentFunction(i).getIntegrationHint(j))*/
-			  )
-			{
-				to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j))) ;
-				if(to_add.back()->x < 0)
-					to_add.back()->x = 0 ;
-				if(to_add.back()->y < 0)
-					to_add.back()->y = 0 ;
-				if(to_add.back()->z < 0)
-					to_add.back()->z = 0 ;
-			}
-		}
-	}
-	
+
 	return to_add ;
 }
 
@@ -2905,9 +2825,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 	GaussPointArray gp = getGaussPoints() ; 
 			
 	size_t numberOfRefinements = 2;
-	
-	double tol = 1e-6 ;
-	double position_tol = 4.*POINT_TOLERANCE ;
+
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
 	{
@@ -2988,10 +2906,6 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		Function xtrans = getXTransform() ;
 		Function ytrans = getYTransform() ;
 		Function ztrans = getZTransform() ;
-		int passNum = 0;
-		double lastError = 10 ;
-		size_t maxGradientIndex = 0 ;
-		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
 		
 		DelaunayTree3D * dt = new DelaunayTree3D(to_add[0], to_add[1], to_add[2], to_add[3]) ;
 		TetrahedralElement f(LINEAR) ;
@@ -3010,7 +2924,6 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		
 		for(size_t i = 0 ; i < numberOfRefinements ; i++)
 		{
-			std::cout << "plif" << std::endl ;
 			tri = dt->getTetrahedrons(false) ;
 			std::vector<Point> newPoints ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
@@ -3019,6 +2932,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				newPoints.push_back((*tri[j]->first + *tri[j]->second + *tri[j]->fourth)/3);
 				newPoints.push_back((*tri[j]->first + *tri[j]->third + *tri[j]->fourth)/3);
 				newPoints.push_back((*tri[j]->second + *tri[j]->third + *tri[j]->fourth)/3);
+				newPoints.push_back((*tri[j]->second + *tri[j]->third + *tri[j]->fourth+*tri[j]->first)/4);
 			}
 			std::vector<Point> uniquePoints ;
 			uniquePoints.push_back(newPoints.front());
@@ -3039,28 +2953,22 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					uniquePoints.push_back(newPoints[j]);
 				}
 			}
-			
 			for(size_t k = 0 ; k < uniquePoints.size() ; k++)
 			{
 				pointsToCleanup.push_back(new Point(uniquePoints[k])) ;
 				dt->insert(pointsToCleanup.back());
 			}
-			
 		}
-		
 		tri = dt->getTetrahedrons(false) ;
 
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
-
 			Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			Function y = YTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			Function z = ZTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
-			
 			tri[i]->setOrder(LINEAR) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			tri[i]->setOrder(LINEAR) ;
-			
 			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 			{
 				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first),  vm.eval(z, gp_temp.gaussPoints[j].first)) ;
@@ -3068,12 +2976,10 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 			}
 		}
-		
 		delete dt ;
 
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;
-		
 		
 		if(gp.gaussPoints.size() < gp_alternative.size())
 		{

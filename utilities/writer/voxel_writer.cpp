@@ -402,8 +402,8 @@ std::valarray<unsigned char> normalizeArray(const std::valarray<double> & val, c
 {
 	Vector sortedArray = val ;
 	std::sort(&sortedArray[0], &sortedArray[sortedArray.size()]) ;
-	double vmax = sortedArray[sortedArray.size()*.95] ;
-	double vmin = sortedArray[sortedArray.size()*.05] ;
+	double vmax = sortedArray[sortedArray.size()*.99] ;
+	double vmin = sortedArray[sortedArray.size()*.01] ;
 	std::valarray<unsigned char> norm(val.size()) ;
 	for(size_t i = 0 ; i < val.size() ; i++)
 	{

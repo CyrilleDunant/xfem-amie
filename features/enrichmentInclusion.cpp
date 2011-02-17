@@ -74,10 +74,17 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		std::cout << "cache empty !" << std::endl ;
 }
 
-Function getBlendingFunction(const std::map<Point *, int> & dofIds, const DelaunayTriangle * t)
+Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
 {
 // 	return Function("1") ;
-	TriElement father(LINEAR) ;
+	TriElement father(t->getOrder()) ;
+	Function f ;
+	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
+	{
+		if(dofIds.find(&(t->getBoundingPoint(i))) != dofIds.end())
+			f += father.getShapeFunction(i) ;
+	}
+	return f ;
 	
 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
 	{
@@ -182,7 +189,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
 	
 	//we build a map of the points and corresponding enrichment ids
-	std::map<Point *, int> dofId ;
+	std::map<const Point *, int> dofId ;
 
 	for(auto i = points.begin() ; i != points.end() ; ++i)
 	{
@@ -221,7 +228,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		
 		//this function returns the distance to the centre
 		Function position(getCenter(), x, y) ;
-		Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius());
+		Function hat = f_abs(position-getRadius());
+// 		Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius());
 		
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
@@ -251,7 +259,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
 			Function position(getCenter(), t->getXTransform(), t->getYTransform()) ;
-			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
+			Function hat = f_abs(position-getRadius());
+// 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{

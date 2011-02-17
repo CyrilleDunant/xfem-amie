@@ -58,7 +58,7 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 
 Function getBlendingFunction(const std::map<Point *, int> & dofIds, const DelaunayTetrahedron * t)
 {
-	return Function("1") ;
+// 	return Function("1") ;
 	
 	TetrahedralElement father(LINEAR) ;
 	

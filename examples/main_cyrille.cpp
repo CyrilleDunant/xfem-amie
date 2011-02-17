@@ -622,9 +622,9 @@ void step()
 		if(go)
 		{
 			
-			for(double k = 1 ; k < 5 ; k += 4./400)
+			for(double k = 0 ; k < 4 ; k += 4./800)
 			{
-				for(double l = -2 ; l < 2 ; l += 4./400)
+				for(double l = -2 ; l < 2 ; l += 4./800)
 				{
 					Point p(k, l) ;
 					auto tri = featureTree->getElements2D(&p) ;
@@ -633,8 +633,11 @@ void step()
 					{
 						if(tri[j]->in(p))
 						{
+							Vector s = tri[j]->getState().getStress(p, false) ;
+							Vector e = tri[j]->getState().getStrain(p, false) ;
+							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
 // 							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
-							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
+// 							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
 							break ;
 						}
 					}
@@ -1760,15 +1763,17 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
 	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
+// 	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 1, 0, 0.,m0_paste*2., a) ;
+
 // 	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 0.1, 0.5, 0.,m0_paste*2., a) ;
 // 	ExpansiveZone * inc1 = new ExpansiveZone(&sample, 0.1, -0.5, 0.,m0_paste*2., a) ;
 	Inclusion * inc0 = new Inclusion(1, 0, 0.) ;
-	Inclusion * inc1 = new Inclusion(0.1, -0.5, 0.) ;
+// 	Inclusion * inc1 = new Inclusion(0.1, -0.5, 0.) ;
 // 	
 // 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
 // 	inc0->setBehaviour(new VoidForm()) ;
 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
-	inc1->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
+// 	inc1->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
 	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&inc0, inc1) ;
 	

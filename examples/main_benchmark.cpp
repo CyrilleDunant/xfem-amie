@@ -183,7 +183,7 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("xfem_quadratic_qtree", 200) ;
+		VoxelWriter vw("xfem_quadratic_qtree_blended", 300) ;
 		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
@@ -1631,7 +1631,7 @@ int main(int argc, char *argv[])
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
-	F.setSamplingNumber(256) ;
+	F.setSamplingNumber(512) ;
 	F.setMaxIterationsPerStep(2);
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{

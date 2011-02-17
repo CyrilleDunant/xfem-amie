@@ -2475,7 +2475,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		return *getCachedGaussPoints() ;
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 2;
+	size_t numberOfRefinements = 3;
 	
 	double tol = 1e-8 ;
 	double position_tol = 4.*POINT_TOLERANCE ;
@@ -2685,10 +2685,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		std::vector<DelaunayTriangle *> tri ;
 		Function xtrans = getXTransform() ;
 		Function ytrans = getYTransform() ;
-		int passNum = 0;
-		double lastError = 10 ;
-		size_t maxGradientIndex = 0 ;
-		std::vector<double> grads(getEnrichmentFunctions().size(), 0.) ;
 		
 		DelaunayTree * dt = new DelaunayTree(to_add[0], to_add[1], to_add[2]) ;
 		TriElement f(LINEAR) ;
