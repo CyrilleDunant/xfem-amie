@@ -57,7 +57,7 @@ public:
 	ElementarySurface(bool f = false) ;
 	virtual Function jacobian() const = 0;
 	virtual ~ElementarySurface() ;
-	
+	virtual void clearElementaryMatrix() = 0 ;
 	virtual void print()  const = 0 ;
 	
 	bool isFather ;
@@ -111,8 +111,8 @@ public:
 
 class TriElement : public Triangle, public ElementarySurface
 {
-private:
-	std::vector<std::vector<Matrix> > dummy ;
+protected :
+	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
 protected :
 	
 	const GaussPointArray & genGaussPoints();
@@ -128,9 +128,9 @@ public:
 	TriElement(Order order = LINEAR, bool father = true) ;
 	void refresh(const TriElement * parent) ;
 	
-	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
-	
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
+	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
+	virtual void clearElementaryMatrix() { cachedElementaryMatrix.resize(0);} ;
+	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
 	
 	Function jacobian() const ;
 	
@@ -145,7 +145,7 @@ public:
 	virtual void print() const;
 	
 	virtual Point inLocalCoordinates(const Point &p) const ;
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 	
 	virtual Vector getNonLinearForces()  ;
 	virtual Function getXTransform() const ;
@@ -167,7 +167,7 @@ protected:
 	Order order ;
 	NonLinearForm * nonlinbehaviour ;
 	
-	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
+	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
 	Vector cachedForces ;
 
 public:
@@ -183,11 +183,11 @@ public:
 	
 // 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const ;
 	virtual const std::vector< size_t > getDofIds() const ;
-	virtual void clearElementaryMatrix() { } ;
+	virtual void clearElementaryMatrix() { cachedElementaryMatrix.resize(0);} ;
 	virtual void print()  const = 0 ;
 	virtual const GaussPointArray & getGaussPoints() = 0 ;
 
-	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() = 0;
+	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() = 0;
 	virtual Form * getBehaviour() const ;
 	virtual void setBehaviour(Form *);
 
@@ -251,9 +251,9 @@ public:
 	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, Point * p4,  Point * p5,  Point * p6, Point * p7, bool father = false) ;
 	TetrahedralElement(Order order = LINEAR, bool father = true);
 	TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
-	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
 	
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 		
 	virtual Vector getNonLinearForces() ;
 	
@@ -280,7 +280,7 @@ class HexahedralElement : public Hexahedron,  public ElementaryVolume
 {
 protected :
 	const GaussPointArray & genGaussPoints() ;
-	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
+	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
 public:
 	std::vector<HexahedralElement *> neighbourhood ;
 // 	bool moved;
@@ -289,7 +289,7 @@ public:
 	HexahedralElement(Order order, bool f = true) ;
 	HexahedralElement(HexahedralElement * parent,Hexahedron * t);
 
-	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
 	
 	const GaussPointArray & getGaussPoints()
 	{
@@ -299,7 +299,7 @@ public:
 	virtual void print()  const;
 	virtual Point inLocalCoordinates(const Point & p) const ;
 	virtual Vector getNonLinearForces() ;
-	virtual std::vector<std::vector<Mu::Matrix> > getNonLinearElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Mu::Matrix> > getNonLinearElementaryMatrix() ;
 	bool visited ;
 
 	virtual Function getXTransform() const ;

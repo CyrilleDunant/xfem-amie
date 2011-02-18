@@ -129,7 +129,6 @@ public:
 class DelaunayTriangle : virtual public TriElement, public DelaunayTreeItem
 {
 	Vector cachedForces;
-	std::vector<std::vector<Matrix> > cachedElementaryMatrix ;
 	std::vector<Point * > getIntegrationHints() const ;
 public:
 	
@@ -162,8 +161,8 @@ public:
 	void print() const;
 	virtual void refresh(const TriElement *) ;
 	
-	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix() ;
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  ;
+	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
 	virtual Vector getNonLinearForces() ;
 	virtual const GaussPointArray & getSubTriangulatedGaussPoints() ;
 	virtual const GaussPointArray & getSubTriangulatedGaussPoints(const Function & f0, const Function & f1, Matrix &m) ;

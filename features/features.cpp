@@ -2762,7 +2762,7 @@ void FeatureTree::elasticStep()
 void FeatureTree::solve()
 {
 	Vector lastx(K->getDisplacements()) ;
-	K->initialiseElementaryMatrices();
+// 	K->initialiseElementaryMatrices();
 	
 	if(dtree)
 	{

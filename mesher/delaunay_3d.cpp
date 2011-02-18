@@ -2460,12 +2460,12 @@ void DelaunayTetrahedron::clearElementaryMatrix()
 {
 	for(size_t i = 0 ; i <  cachedElementaryMatrix.size() ; i++)
 	{
-		cachedElementaryMatrix[i].clear() ;
+		cachedElementaryMatrix[i].resize(0) ;
 	}
-	cachedElementaryMatrix.clear() ;
+	cachedElementaryMatrix.resize(0) ;
 }
 
-std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix() 
 {
 // 	std::cout << "--" << std::endl ;
 // 	std::cout <<TetrahedralElement(LINEAR).volume() << std::endl ;
@@ -2478,19 +2478,18 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 	{
 		return cachedElementaryMatrix ;
 	}
+	std::vector<size_t > dofs = getDofIds() ;
 	
-	if(enrichmentUpdated)
+	if(enrichmentUpdated || behaviourUpdated)
 	{
-		for(size_t i = 0 ; i <  cachedElementaryMatrix.size() ; i++)
-		{
-			cachedElementaryMatrix[i].clear() ;
-		}
-		cachedElementaryMatrix.clear() ;
+		int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		std::valarray< Matrix > v_j(Matrix(size, size), dofs.size());
+		cachedElementaryMatrix.resize(dofs.size(), v_j) ;
 		getSubTriangulatedGaussPoints() ;
 	}
 	
 	std::valarray<Matrix> Jinv ;
-	std::vector<size_t > dofs = getDofIds() ;
+	
 	if(moved)
 	{
 		Jinv.resize(getGaussPoints().gaussPoints.size()) ;
@@ -2504,22 +2503,6 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 		Matrix J ;
 		getInverseJacobianMatrix(Point( .25, .25, .25), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
-	}
-	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	
-	if(enrichmentUpdated)
-	{
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			std::vector< Matrix > v_j ;
-			
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				v_j.push_back(Matrix(size,size)) ;
-			}
-			
-			cachedElementaryMatrix.push_back(v_j) ;
-		}
 	}
 	
 	VirtualMachine vm ;
@@ -2571,29 +2554,19 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 }
 
 
- std::vector<std::vector<Matrix> > DelaunayTetrahedron::getNonLinearElementaryMatrix() 
+ std::valarray<std::valarray<Matrix> > DelaunayTetrahedron::getNonLinearElementaryMatrix() 
 {
 	
 	std::vector<size_t> dofs = getDofIds() ;
-	std::vector<std::vector<Matrix> > mother ;
+	std::valarray<std::valarray<Matrix> > mother ;
 	
 	Vector dsp = this->getState().getDisplacements() ;
 	this->getState().step(0, &dsp) ;
-	
+	int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
+	std::valarray< Matrix > v_j(Matrix(size, size), dofs.size());
+	mother.resize(dofs.size(), v_j) ;
 	if(!this->getNonLinearBehaviour()->isActive())
 	{
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			std::vector< Matrix > v_j ;
-			
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				v_j.push_back(Matrix()) ;
-			}
-			
-			mother.push_back(v_j) ;
-		}
-		
 		return mother ;
 	}
 	
@@ -2709,19 +2682,8 @@ std::vector<std::vector<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 	
 	Vector displacement_state = this->getState().getDisplacements(gp_points) ;
 
-	int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
 	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
-	{
-		std::vector< Matrix > v_j ;
-		
-		for(size_t j = 0 ; j < dofs.size() ; j++)
-		{
-			v_j.push_back(Matrix(size,size)) ;
-		}
-		
-		mother.push_back(v_j) ;
-	}
+	
 
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
@@ -3093,110 +3055,6 @@ void DelaunayTree3D::setElementOrder(Order elemOrder)
 }
 
 
-
-// GaussPointArray DelaunayTetrahedron::getSubTriangulatedGaussPoints() const
-// {
-// 	GaussPointArray gp = getGaussPoints() ; 
-// 	
-// 	VirtualMachine vm ;
-// 	
-// 	if(getEnrichmentFunctions().size() > 0 )
-// 	{
-// 		std::vector<std::pair<Point, double> > gp_alternative ;
-// 		std::vector<Point> to_add ;
-// 		std::vector<Point> to_add_extra ;
-// 		to_add.push_back(Point(0,1,0)) ;
-// 		to_add.push_back(Point(0,0,0)) ;
-// 		to_add.push_back(Point(1,0,0)) ;
-// 		to_add.push_back(Point(0,0,1)) ;
-// 		for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
-// 		{
-// 			for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
-// 			{
-// 				if(getEnrichmentFunction(i).getIntegrationHint(j) != to_add[0] && 
-// 				   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[1] && 
-// 				   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[2] && 
-// 				   getEnrichmentFunction(i).getIntegrationHint(j) != to_add[3])
-// 				{
-// 					bool ok = true ;
-// 					for(size_t k = 0 ; k < to_add_extra.size() ; k++)
-// 					{
-// 						if(getEnrichmentFunction(i).getIntegrationHint(j) == to_add_extra[k])
-// 						{
-// 							ok = false ;
-// 							break ;
-// 						}
-// 					}
-// 					if(ok)
-// 						to_add_extra.push_back(getEnrichmentFunction(i).getIntegrationHint(j)) ;
-// 				}
-// 			}
-// 		}
-// 
-// 		to_add.insert(to_add.end(), to_add_extra.begin(),to_add_extra.end() ) ;
-// 		DelaunayTree3D dt(&to_add[0], &to_add[1], &to_add[2],&to_add[3] ) ;
-// 		for(size_t i = 4 ; i < to_add.size() ; i++)
-// 		{
-// 			dt.insert(&to_add[i]) ;
-// 		}
-// 		
-// // 		TetrahedralElement father(QUADRATIC) ;
-// // 		dt.addSharedNodes(1) ;
-// // 		dt.refresh( &father) ;
-// 		
-// 		std::vector<DelaunayTetrahedron *> tri = dt.getTetrahedrons(false) ;
-// 				
-// 		if(moved)
-// 		{
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 			{
-// 
-// 				Function x = tri[i]->getXTransform() ;
-// 				Function y = tri[i]->getYTransform() ;
-// 				Function z = tri[i]->getZTransform() ;
-// 				tri[i]->order = QUADRATIC ;
-// 				GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-// 
-// 				for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
-// 				{
-// 	
-// 					gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first),  vm.eval(z, gp_temp.gaussPoints[j].first)) ;
-// 					gp_temp.gaussPoints[j].second *= this->jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
-// 					
-// 					
-// 					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
-// 				}
-// 
-// 			}
-// 		}
-// 		else
-// 		{
-// 			double ja = this->jacobianAtPoint(Point(1./4.,1./4., 1./4.)) ;
-// 			for(size_t i = 0 ; i < tri.size() ; i++)
-// 			{
-// 
-// 				Function x = tri[i]->getXTransform() ;
-// 				Function y = tri[i]->getYTransform() ;
-// 				Function z = tri[i]->getZTransform() ;
-// 				
-// 				GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-// 				
-// 				for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
-// 				{
-// 					gp_temp.gaussPoints[j].second *= ja ;
-// 					gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first), vm.eval(z, gp_temp.gaussPoints[j].first)) ;
-// 					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
-// 				}
-// 
-// 			}
-// 		}
-// 		
-// 		gp.gaussPoints.resize(gp_alternative.size()) ;
-// 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-// 	}
-// 	
-// 	return gp ;
-// }
 
 void Mu::DelaunayTreeItem3D::print() const
 {

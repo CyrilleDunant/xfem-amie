@@ -76,7 +76,7 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 
 Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
 {
-// 	return Function("1") ;
+	return Function("1") ;
 	TriElement father(t->getOrder()) ;
 	Function f ;
 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)

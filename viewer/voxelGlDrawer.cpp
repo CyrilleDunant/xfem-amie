@@ -1,33 +1,16 @@
 #include "voxelGlDrawer.h"
 
 void VoxelGLDrawer::computeDisplay( ) const {
-	
 	glMatrixMode(GL_MODELVIEW);
+
+	if(xangle < 180 || xangle > 360)
+		glCallList(displayList) ;
+	else
+		glCallList(displayList+1) ;
 	
-	
-	glEnable(GL_DEPTH_TEST);
-// 	glEnable(GL_BLEND) ;
-// 	glEnable(GL_TEXTURE_2D) ;
-// 	glDisable(GL_DEPTH_TEST);
-	glCallList(displayList/*+i*64+j*8+k*/) ;
-// 	for(size_t i = 0 ; i < 8 ; i++)
-// 	{
-// 		for(size_t j = 0 ; j < 8 ; j++)
-// 		{
-// 			for(size_t k = 0 ; k < 8 ; k++)
-// 			{
-// 				if(isVisible(i,j,k))
-// 				{
-// // 					glEnable(GL_DEPTH_TEST);
-// 					glCallList(displayList+i*64+j*8+k) ;
-// // 					glDisable(GL_DEPTH_TEST);
-// 				}
-// 			}
-// 		}
-// 	}
-	glEnable(GL_BLEND) ;
+	std::cout <<"\r"<< xangle << "    "<<std::flush ;
+glEnable(GL_DEPTH_TEST);
 	glDisable(GL_TEXTURE_2D) ;
-	glEnable(GL_DEPTH_TEST);
 	glColor4f(1, 1, 1, 0.5f) ;
 	glBegin(GL_LINE_LOOP) ;
 	glVertex3f(0.5f, size_y*0.5f, size_z*0.5f) ;
@@ -51,7 +34,7 @@ void VoxelGLDrawer::computeDisplay( ) const {
 	glVertex3f(0.5f, size_y*0.5f, -size_z*0.5f) ;
 	glVertex3f(-0.5f,size_y*0.5f, -size_z*0.5f) ;
 	glEnd() ;
-	glDisable(GL_BLEND) ;
+	glDisable(GL_DEPTH_TEST);
 // 	for(size_t i = 0 ; i < 64 ; i++)
 // 		glCallList(displayList+i) ;
 
@@ -142,11 +125,11 @@ void VoxelGLDrawer::mouseMoveEvent(QMouseEvent *event) {
 	else if (rightDown)
 	{
 		
-		xangle += (int)round(180.*(float)(mousePosOnRightClick.x()-event->x())/(float)width()) ;
-		yangle += (int)round(180.*(float)(mousePosOnRightClick.y()-event->y())/(float)height()) ;
+		xangle += (int)round(180.*(float)(mousePosOnRightClick.x()-event->x())/(float)width()) + 360;
+		yangle += (int)round(180.*(float)(mousePosOnRightClick.y()-event->y())/(float)height()) + 360;
 
 		xangle%=360 ;
-		yangle%=180 ;
+		yangle%=360 ;
 		
 		emit xAngleChanged(xangle) ;
 		emit yAngleChanged(yangle) ;
@@ -376,21 +359,21 @@ void VoxelGLDrawer::setAlpha(int alpha){
 }
 
 void VoxelGLDrawer::setXAngle(int angle) {
-	xangle = angle ;
+	xangle = angle + 360;
 	xangle%=360 ;
 	emit xAngleChanged(xangle) ;
 	paintGL() ;
 }
 
 void VoxelGLDrawer::setYAngle( int angle) {
-	yangle = angle ;
+	yangle = angle +360;
 	yangle%=360 ;
 	emit yAngleChanged(yangle) ;
 	paintGL() ;
 }
 
 void VoxelGLDrawer::setZAngle( int angle) {
-	zangle = angle ;
+	zangle = angle +360;
 	zangle%=360 ;
 	emit zAngleChanged(zangle) ;
 	paintGL() ;
@@ -420,7 +403,6 @@ void VoxelGLDrawer::paintGL() {
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glRotatef(getXAngle() , 0, -1, 0) ;
 	glRotatef(getYAngle() , -1, 0,0) ;
-	glRotatef(getZAngle() , 0, 0, 1) ;
 
 	computeDisplay()  ;
 	
@@ -527,12 +509,11 @@ void VoxelGLDrawer::initializeGL() {
 	//glActiveTextureARB = (void (*)(GLuint))glXGetProcAddressARB((const GLubyte*)"glActiveTextureARB") ;
 	//glTexEnvf = (void (*)(GLenum, GLenum, GLboolean))glXGetProcAddressARB((const GLubyte*)"glTexEnvf") ;
 	
-	displayList = glGenLists(1) ;
 	glViewport(0, 0, 600, 600) ;
 	LoadGLTextures(&texture[0]) ;
 	glShadeModel(GL_SMOOTH);   // Enables Smooth Shading
 	glEnable(GL_LINE_SMOOTH) ;
-	glEnable(GL_POINT_SMOOTH) ;
+// 	glEnable(GL_POINT_SMOOTH) ;
 	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST) ;
 // 	glEnable(GL_POLYGON_SMOOTH) ;
 // 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST) ;
@@ -548,7 +529,8 @@ void VoxelGLDrawer::initializeGL() {
 	glEnable(GL_NORMALIZE) ;
 	glClearColor(0.0f,0.0f,0.0f,1.0f);                                      // Black Background
 	glClearDepth(1.0f);                                                     // Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST);                                               // Disables Depth Testing
+	glEnable(GL_DEPTH_TEST);     
+// 	glEnable(GL_ALPHA_TEST); 
 	
 	
 	glEnable(GL_LIGHTING) ;
@@ -567,9 +549,10 @@ void VoxelGLDrawer::initializeGL() {
 // 	glEnable(GL_TEXTURE_2D);                                                // Enable Texture Mapping
 // 	glBindTexture(GL_TEXTURE_2D,texture[0]) ;
 	
-// 	glEnable(GL_BLEND);
+	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-
+// 	glBlendFunc(GL_ONE_MINUS_DST_ALPHA,GL_DST_ALPHA); 
+	glEnable(GL_BLEND);
 	glPointSize(1.0f*(float)width()/(float)columns);
 	
 // 	glEnable( GL_POINT_SPRITE_ARB );
@@ -691,6 +674,49 @@ void VoxelGLDrawer::initializePalette(){
 // 	palette.push_back(RGBA2i(255,127,191,255)) ;
 }
 
+void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offset, int mult)
+{
+	glEnable(GL_NORMALIZE) ;
+	glNewList(displayList+ offset, GL_COMPILE) ;
+
+			quint8 current_colour = colour[0] ;
+			size_t c[4] ={ i2RGBA(palette[colour[0]]) };
+			glColor4ub(c[0], c[1], c[2], 25) ;
+			glDisable(GL_DEPTH_TEST);
+// 			glEnable(GL_DEPTH_TEST);
+			glBegin(GL_POINTS) ;
+
+			
+			for(size_t i = 0; i < index.size() ; i++)
+			{
+				if(slice)
+				{
+					unsigned char c[4] ={ i2RGBA(palette[colour[index[i]]]) };
+					glColor4ub(c[0], c[1], c[2], (unsigned char)(round((double)c[3]*4))) ;
+				}
+				else if(colour[index[i]] != current_colour)
+				{
+					size_t c[4] ={ i2RGBA(palette[colour[index[i]]]) };
+					glColor4ub(c[0], c[1], c[2], 25) ;
+					current_colour = colour[index[i]] ;
+				}
+				std::valarray<size_t> xyz = toArrayPos(index[i]) ;
+				glNormal3b(normal[index[i]*3]*mult, normal[index[i]*3+1]*mult, normal[index[i]*3+2]*mult) ;
+				glVertex3f(size_x*(float)(xyz[0]+1)/(float)rows-0.5f, 
+						size_y*(float)(xyz[1]+1)/(float)columns-size_y*0.5f, 
+						size_z*(float)(xyz[2]+1)/(float)strips-size_z*0.5f) ;
+// 				glNormal3b(-normal[index[i]*3], -normal[index[i]*3+1],- normal[index[i]*3+2]) ;
+// 				glVertex3f(size_x*(float)(xyz[0]+1)/(float)rows-0.5f, 
+// 						size_y*(float)(xyz[1]+1)/(float)columns-size_y*0.5f, 
+// 						size_z*(float)(xyz[2]+1)/(float)strips-size_z*0.5f) ;
+			}
+			glEnd() ;
+			glEnable(GL_DEPTH_TEST);
+
+		glEndList() ;
+		
+}
+
 void VoxelGLDrawer::computeDisplayList() {
 	
 	if(slice)
@@ -702,51 +728,36 @@ void VoxelGLDrawer::computeDisplayList() {
 	 if(sz == 0)
 		 return ;
 	 
+	
+	glDeleteLists (displayList , 2 );
+	displayList = glGenLists(2) ;
 
-	glNewList(displayList, GL_COMPILE) ;
-	glBegin(GL_POINTS) ;
-		
-		quint8 current_colour = colour[0] ;
-		size_t c[4] ={ i2RGBA(palette[colour[0]]) };
-		glColor3ub(c[0], c[1], c[2]) ;
+	std::vector< size_t > zordered ;
 
-		for(size_t i = 0; i < rows ; i++)
+	for(int k = 0; k < rows ; k++)
+	{
+		for(int l = 0; l < columns ; l++)
 		{
-			for(size_t j = 0; j< columns ; j++)
+			for(int m = 0 ; m < strips ; m++)
 			{
-				for(size_t k = 0 ; k< strips ; k++)
+				int curr = toIndex(k,l,m) ;
+				if(restriction[curr] && isInRange(curr))
 				{
-					size_t index = toIndex(i,j,k) ;
-					
-				if(restriction[index] && isInRange(index))
-				{
-// 					if(!singlePixel(i,j,k))
-// 					{
-						if(slice)
-						{
-							unsigned char c[4] ={ i2RGBA(palette[colour[index]]) };
-							glColor4ub(c[0], c[1], c[2], (unsigned char)(round((double)c[3]*4))) ;
-						}
-						else if(colour[index] != current_colour)
-						{
-							size_t c[4] ={ i2RGBA(palette[colour[index]]) };
-							glColor3ub(c[0], c[1], c[2]) ;
-							current_colour = colour[index] ;
-							
-						}
-						
-						glNormal3b(normal[index*3], normal[index*3+1], normal[index*3+2]) ;
-						glVertex3f(size_x*(float)(i+1)/(float)rows-0.5f, 
-								size_y*(float)(j+1)/(float)columns-size_y*0.5f, 
-								size_z*(float)(k+1)/(float)strips-size_z*0.5f) ;
+					zordered.push_back(curr) ;
 				}
 			}
-			}
 		}
-		glEnd() ;
-		glEndList() ;
+	}
+	int l = 0 ;
+	std::valarray<size_t> index((size_t)0, zordered.size()) ;
+	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+		index[l++] = *k ;
+	
+	displayPoints(index, 0, 1) ;
+	std::reverse(&index[0], &index[index.size()]);
+	displayPoints(index, 1, 1) ;
 
-// 	glDisable(GL_TEXTURE_2D) ;
+	
 }
 
 quint8 VoxelGLDrawer::valueAverage(int delta, const size_t &x, const size_t &y, const size_t &z) const {
@@ -935,6 +946,7 @@ void VoxelGLDrawer::computeDisplayList(size_t x_0, size_t x_1, size_t y_0, size_
 					           (float)(k+1)/(float)(strips) -0.5f /*+ rpos[ toIndex(i, j, k) *3+2]*/) ;
 				}
 			}
+
 		}
 	}
 	glEnd() ;
@@ -1078,7 +1090,7 @@ VoxelGLDrawer::VoxelGLDrawer(QString f, QMainWindow *mainwin) : QGLWidget(mainwi
 	slice = false;
 	
 	xangle = 20 ;
-	yangle = 90 ;
+	yangle = 20 ;
 	zangle = 0 ;
 	
 	xtransleft = 0;

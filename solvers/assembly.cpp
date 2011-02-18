@@ -15,6 +15,7 @@
 #include "polakribiereconjugategradient.h"
 #include "biconjugategradientstabilized.h"
 #include "eigenvalues.h"
+#include <valarray>
 #include <sys/time.h>
 using namespace Mu ;
 
@@ -253,7 +254,7 @@ bool Assembly::nonLinearStep()
 			if(element2d[i]->getNonLinearBehaviour()->isActive())
 			{
 				std::vector<size_t> ids = element2d[i]->getDofIds() ;
-				std::vector<std::vector<Matrix > > mother  = element2d[i]->getNonLinearElementaryMatrix();
+				std::valarray<std::valarray<Matrix > > mother  = element2d[i]->getNonLinearElementaryMatrix();
 				for(size_t j = 0 ; j < ids.size() ;j++)
 				{
 					getNonLinearMatrix()[ids[j]*2][ids[j]*2] += mother[j][j][0][0] ;
@@ -638,6 +639,8 @@ bool Assembly::make_final()
 					}
 				}
 			}
+			
+			element2d[i]->clearElementaryMatrix() ;
 		}
 
 		std::cerr << " ...done" << std::endl ;
@@ -740,7 +743,7 @@ bool Assembly::make_final()
 				std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
 			
 			std::vector<size_t> ids = element3d[i]->getDofIds() ;
-			std::vector<std::vector<Matrix > > mother = element3d[i]->getElementaryMatrix();
+			std::valarray<std::valarray<Matrix > > mother = element3d[i]->getElementaryMatrix();
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
 				ids[j] *= ndof ;

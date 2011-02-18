@@ -105,7 +105,8 @@ protected:
 	void ( * APIENTRY glPointParameterfvARB)(GLenum, GLfloat *) ;
 	void ( * APIENTRY glTexEnvf )(GLenum, GLenum, GLboolean) ;
 	void ( * APIENTRY glActiveTextureARB)(GLuint) ;
-	
+	void displayPoints(const std::valarray<size_t> & index, int offset, int mult) ;
+
 	
 protected:
 	QPoint mousePosOnLeftClick ;

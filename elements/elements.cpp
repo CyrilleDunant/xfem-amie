@@ -780,14 +780,14 @@ void TriElement::refresh(const TriElement * parent)
 	
 }
 	
-std::vector<std::vector<Matrix> > & TriElement::getElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > & TriElement::getElementaryMatrix() 
 {
-	return dummy ;
+	return cachedElementaryMatrix ;
 }
 
-std::vector<std::vector<Matrix> > TriElement::getNonLinearElementaryMatrix(Vector * state) 
+std::valarray<std::valarray<Matrix> > TriElement::getNonLinearElementaryMatrix(Vector * state) 
 {
-	return std::vector<std::vector<Matrix> >() ;
+	return std::valarray<std::valarray<Matrix> >() ;
 }
 	
 Function TriElement::jacobian() const 
@@ -911,9 +911,9 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 }
 
 
-std::vector<std::vector<Matrix> > TriElement::getNonLinearElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > TriElement::getNonLinearElementaryMatrix() 
 {
-	return std::vector<std::vector<Matrix> >() ;
+	return std::valarray<std::valarray<Matrix> >() ;
 }
 
 Vector TriElement::getNonLinearForces()  
@@ -1301,14 +1301,14 @@ TetrahedralElement::TetrahedralElement(TetrahedralElement * parent, Tetrahedron 
 	std::copy(&t->getBoundingPoints()[0], &t->getBoundingPoints()[t->getBoundingPoints().size()],&this->getBoundingPoints()[0] ) ;
 }
 	
-std::vector<std::vector<Matrix> > & TetrahedralElement::getElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > & TetrahedralElement::getElementaryMatrix() 
 {
 	return cachedElementaryMatrix ;
 }
 
-std::vector<std::vector<Matrix> > TetrahedralElement::getNonLinearElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > TetrahedralElement::getNonLinearElementaryMatrix() 
 {
-	return std::vector<std::vector<Matrix> >() ;
+	return std::valarray<std::valarray<Matrix> >() ;
 }
 
 Function TriElement::getXTransform() const
@@ -1910,9 +1910,9 @@ const std::vector< Function> & ElementaryVolume::getEnrichmentFunctions() const
 // }
 
 
-std::vector<std::vector<Matrix> > & HexahedralElement::getElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix() 
 {
-	if(!cachedElementaryMatrix.empty())
+	if(!cachedElementaryMatrix.size() == 0)
 		return cachedElementaryMatrix ;
 
 		GaussPointArray gp  = this->getGaussPoints(); 
@@ -1926,19 +1926,10 @@ std::vector<std::vector<Matrix> > & HexahedralElement::getElementaryMatrix()
 
 
 		
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			std::vector< Matrix > v_j ;
-			
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				v_j.push_back(Matrix(3,3)) ;
-				
-			}
-			
-			cachedElementaryMatrix.push_back(v_j) ;
-		}
-		
+
+		std::valarray< Matrix > v_j(Matrix(3,3), dofs.size()) ;
+		cachedElementaryMatrix.resize(dofs.size(), v_j);
+
 	
 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
@@ -2049,9 +2040,9 @@ void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) c
 	return Vector(0);
 }
 
- std::vector<std::vector<Mu::Matrix> >  HexahedralElement::getNonLinearElementaryMatrix()  
+ std::valarray<std::valarray<Mu::Matrix> >  HexahedralElement::getNonLinearElementaryMatrix()  
 {
-	return std::vector<std::vector<Mu::Matrix> >(0);
+	return std::valarray<std::valarray<Mu::Matrix> >(0);
 }
 
 void ElementaryVolume::setBehaviour(Form * f)

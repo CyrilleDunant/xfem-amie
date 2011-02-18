@@ -390,8 +390,8 @@ public:
 	
 	virtual Form * getBehaviour() const = 0;
 	virtual NonLinearForm * getNonLinearBehaviour() const = 0;
-	virtual std::vector<std::vector<Matrix> > & getElementaryMatrix()  = 0 ;
-	virtual std::vector<std::vector<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
+	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix()  = 0 ;
+	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
 // 	virtual Vector getForces() = 0 ;
 	virtual Vector getNonLinearForces() = 0 ;
 	virtual void applyBoundaryCondition(Assembly * a) ;

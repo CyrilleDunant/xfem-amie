@@ -1146,10 +1146,7 @@ inline std::pair<Point*, Point*> DelaunayDeadTriangle::commonEdge(const Delaunay
 
 DelaunayTriangle::~DelaunayTriangle()
 {
-	for(size_t i = 0 ; i <  cachedElementaryMatrix.size() ; i++)
-	{
-		cachedElementaryMatrix[i].clear() ;
-	}
+
 }
 
 DelaunayDemiPlane::~DelaunayDemiPlane()
@@ -2215,28 +2212,27 @@ void DelaunayTriangle::refresh(const TriElement * father)
 // 	this->computeCenter() ;
 }
 
-std::vector<std::vector<Matrix> > & DelaunayTriangle::getElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix() 
 {
 	if(!behaviourUpdated && !enrichmentUpdated)
 	{
 		return cachedElementaryMatrix ;
 	}
+	std::vector<size_t > dofs = getDofIds() ;
 	
-	if(enrichmentUpdated)
+	if(enrichmentUpdated || behaviourUpdated)
 	{
-		for(size_t i = 0 ; i <  cachedElementaryMatrix.size() ; i++)
-		{
-			cachedElementaryMatrix[i].clear() ;
-		}
-		cachedElementaryMatrix.clear() ;
+
+		int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		std::valarray< Matrix > v_j(Matrix(size, size), dofs.size()) ;
+		cachedElementaryMatrix.resize(dofs.size(),v_j) ;
 		getSubTriangulatedGaussPoints() ;
 	}
 	
-	std::valarray<Matrix> Jinv ;
-	std::vector<size_t > dofs = getDofIds() ;
+	std::valarray<Matrix> Jinv(Matrix(2, 2),  getGaussPoints().gaussPoints.size()) ;
+	
 	if(moved)
 	{
-		Jinv.resize(getGaussPoints().gaussPoints.size()) ;
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
@@ -2248,22 +2244,7 @@ std::vector<std::vector<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
-	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	
-	if(enrichmentUpdated)
-	{
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			std::vector< Matrix > v_j ;
-			
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				v_j.push_back(Matrix(size,size)) ;
-			}
-			
-			cachedElementaryMatrix.push_back(v_j) ;
-		}
-	}
+
 	
 	VirtualMachine vm ;
 	
@@ -2302,25 +2283,15 @@ std::vector<std::vector<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	return cachedElementaryMatrix ;
 }
 
-std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix() 
+std::valarray<std::valarray<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix() 
 {
 	std::vector<size_t > dofs = getDofIds() ;
-	std::vector<std::vector<Matrix> > mother ;
-	
+	std::valarray<std::valarray<Matrix> > mother ;
+	int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
+	std::valarray< Matrix > v_j(Matrix(size, size), dofs.size()) ;
+	cachedElementaryMatrix.resize(dofs.size(),v_j) ;
 	if(!this->getNonLinearBehaviour()->isActive())
 	{
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			std::vector< Matrix > v_j ;
-			
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				v_j.push_back(Matrix()) ;
-			}
-			
-			mother.push_back(v_j) ;
-		}
-		
 		return mother ;
 	}
 	
@@ -2342,21 +2313,7 @@ std::vector<std::vector<Matrix> > DelaunayTriangle::getNonLinearElementaryMatrix
 		Jinv.resize(gp.gaussPoints.size(), J) ;
 	}
 
-	int size = nonlinbehaviour->getNumberOfDegreesOfFreedom() ;
-	
-	
-	for(size_t i = 0 ; i < dofs.size() ; i++)
-	{
-		std::vector< Matrix > v_j ;
-		
-		for(size_t j = 0 ; j < dofs.size() ; j++)
-		{
-			v_j.push_back(Matrix(size,size)) ;
-		}
-		
-		mother.push_back(v_j) ;
-	}
-	
+
 	VirtualMachine vm ;
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
@@ -2475,7 +2432,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		return *getCachedGaussPoints() ;
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 3;
+	size_t numberOfRefinements = 4;
 	
 	double tol = 1e-8 ;
 	double position_tol = 4.*POINT_TOLERANCE ;
