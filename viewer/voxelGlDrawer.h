@@ -126,6 +126,7 @@ protected:
 	int xangle ;
 	int yangle ;
 	int zangle ;
+	int alpha ;
 	
 	float getXAngle() const ; //
 	float getYAngle() const ; //

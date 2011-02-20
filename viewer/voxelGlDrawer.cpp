@@ -3,38 +3,57 @@
 void VoxelGLDrawer::computeDisplay( ) const {
 	glMatrixMode(GL_MODELVIEW);
 
-	if(xangle < 180 || xangle > 360)
+	if(alpha == 255)
 		glCallList(displayList) ;
 	else
-		glCallList(displayList+1) ;
+	{
+		if(xangle >= 15 && xangle <= 180-15 )
+			glCallList(displayList) ;
+		else if(xangle > 180+15 && xangle < 360-15)
+			glCallList(displayList+1) ;
+		else if(xangle > 180-15 && xangle <= 180+15 )
+		{
+			if(yangle < 90 || yangle > 270)
+				glCallList(displayList+3) ;
+			else
+				glCallList(displayList+4) ;
+		}
+		else
+		{
+			if(yangle < 90 || yangle > 270)
+				glCallList(displayList+2) ;
+			else
+				glCallList(displayList+5) ;
+			
+		}
+	}
 	
-	std::cout <<"\r"<< xangle << "    "<<std::flush ;
-glEnable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D) ;
-	glColor4f(1, 1, 1, 0.5f) ;
-	glBegin(GL_LINE_LOOP) ;
-	glVertex3f(0.5f, size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(0.5f,-size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(0.5f,-size_y*0.5f, -size_z*0.5f) ;
-	glVertex3f(0.5f, size_y*0.5f, -size_z*0.5f) ;
-	glEnd() ;
-	glBegin(GL_LINE_LOOP) ;
-	glVertex3f(-0.5f, size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(-0.5f,-size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(-0.5f,-size_y*0.5f, -size_z*0.5f) ;
-	glVertex3f(-0.5f, size_y*0.5f, -size_z*0.5f) ;
-	glEnd() ;
-	glBegin(GL_LINES) ;
-	glVertex3f(0.5f, size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(-0.5f,size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(0.5f, -size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(-0.5f,-size_y*0.5f, size_z*0.5f) ;
-	glVertex3f(0.5f, -size_y*0.5f, -size_z*0.5f) ;
-	glVertex3f(-0.5f,-size_y*0.5f, -size_z*0.5f) ;
-	glVertex3f(0.5f, size_y*0.5f, -size_z*0.5f) ;
-	glVertex3f(-0.5f,size_y*0.5f, -size_z*0.5f) ;
-	glEnd() ;
-	glDisable(GL_DEPTH_TEST);
+// glEnable(GL_DEPTH_TEST);
+// 	glDisable(GL_TEXTURE_2D) ;
+// 	glColor4f(1, 1, 1, 0.5f) ;
+// 	glBegin(GL_LINE_LOOP) ;
+// 	glVertex3f(0.5f, size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(0.5f,-size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(0.5f,-size_y*0.5f, -size_z*0.5f) ;
+// 	glVertex3f(0.5f, size_y*0.5f, -size_z*0.5f) ;
+// 	glEnd() ;
+// 	glBegin(GL_LINE_LOOP) ;
+// 	glVertex3f(-0.5f, size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(-0.5f,-size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(-0.5f,-size_y*0.5f, -size_z*0.5f) ;
+// 	glVertex3f(-0.5f, size_y*0.5f, -size_z*0.5f) ;
+// 	glEnd() ;
+// 	glBegin(GL_LINES) ;
+// 	glVertex3f(0.5f, size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(-0.5f,size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(0.5f, -size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(-0.5f,-size_y*0.5f, size_z*0.5f) ;
+// 	glVertex3f(0.5f, -size_y*0.5f, -size_z*0.5f) ;
+// 	glVertex3f(-0.5f,-size_y*0.5f, -size_z*0.5f) ;
+// 	glVertex3f(0.5f, size_y*0.5f, -size_z*0.5f) ;
+// 	glVertex3f(-0.5f,size_y*0.5f, -size_z*0.5f) ;
+// 	glEnd() ;
+// 	glDisable(GL_DEPTH_TEST);
 // 	for(size_t i = 0 ; i < 64 ; i++)
 // 		glCallList(displayList+i) ;
 
@@ -344,17 +363,15 @@ bool VoxelGLDrawer::isBoundary(const size_t& x, const size_t& y, const size_t& z
 	
 }
 
-void VoxelGLDrawer::setAlpha(int alpha){
-	alpha = std::max(1,std::min(alpha, 255)) ;
-	
-	for(size_t i = 0 ; i < sz ; i++)
-	{
-		size_t c[4] = {i2RGBA(colour[i])} ;
-		colour[i] = RGBA2i(c[0],c[1],c[2],alpha) ;
-	}
+void VoxelGLDrawer::setAlpha(int a){
+	alpha = std::max(1,std::min(a, 255)) ;
+	if(alpha == 255)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
 	
 	emit alphaChanged(alpha) ;
-	computeDisplayList() ;		
+	computeDisplayList() ;
 	paintGL() ;
 }
 
@@ -681,12 +698,9 @@ void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offse
 
 			quint8 current_colour = colour[0] ;
 			size_t c[4] ={ i2RGBA(palette[colour[0]]) };
-			glColor4ub(c[0], c[1], c[2], 25) ;
-			glDisable(GL_DEPTH_TEST);
-// 			glEnable(GL_DEPTH_TEST);
+			glColor4ub(c[0], c[1], c[2], alpha) ;
 			glBegin(GL_POINTS) ;
 
-			
 			for(size_t i = 0; i < index.size() ; i++)
 			{
 				if(slice)
@@ -697,7 +711,7 @@ void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offse
 				else if(colour[index[i]] != current_colour)
 				{
 					size_t c[4] ={ i2RGBA(palette[colour[index[i]]]) };
-					glColor4ub(c[0], c[1], c[2], 25) ;
+					glColor4ub(c[0], c[1], c[2], alpha) ;
 					current_colour = colour[index[i]] ;
 				}
 				std::valarray<size_t> xyz = toArrayPos(index[i]) ;
@@ -711,8 +725,6 @@ void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offse
 // 						size_z*(float)(xyz[2]+1)/(float)strips-size_z*0.5f) ;
 			}
 			glEnd() ;
-			glEnable(GL_DEPTH_TEST);
-
 		glEndList() ;
 		
 }
@@ -729,8 +741,8 @@ void VoxelGLDrawer::computeDisplayList() {
 		 return ;
 	 
 	
-	glDeleteLists (displayList , 2 );
-	displayList = glGenLists(2) ;
+	glDeleteLists (displayList , 6 );
+	displayList = glGenLists(6) ;
 
 	std::vector< size_t > zordered ;
 
@@ -754,9 +766,117 @@ void VoxelGLDrawer::computeDisplayList() {
 		index[l++] = *k ;
 	
 	displayPoints(index, 0, 1) ;
-	std::reverse(&index[0], &index[index.size()]);
-	displayPoints(index, 1, 1) ;
+// 	std::reverse(&index[0], &index[index.size()]);
+	
+	
+	zordered.clear() ;
 
+	for(int k = rows-1; k >= 0 ; k--)
+	{
+		for(int l = 0; l < columns ; l++)
+		{
+			for(int m = 0 ; m < strips ; m++)
+			{
+				int curr = toIndex(k,l,m) ;
+				if(restriction[curr] && isInRange(curr))
+				{
+					zordered.push_back(curr) ;
+				}
+			}
+		}
+	}
+	l = 0 ;
+	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+		index[l++] = *k ;
+	
+	displayPoints(index, 1, 1) ;
+	
+	zordered.clear() ;
+	for(int m = 0 ; m < strips ; m++)
+	{
+		for(int l = 0; l < columns ; l++)
+		{
+			for(int k = 0; k < rows ; k++)
+			{
+				int curr = toIndex(k,l,m) ;
+				if(restriction[curr] && isInRange(curr))
+				{
+					zordered.push_back(curr) ;
+				}
+			}
+		}
+	}
+	
+	l = 0 ;
+	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+		index[l++] = *k ;
+	displayPoints(index, 2, 1) ;
+	
+	zordered.clear() ;
+	for(int m = strips-1 ; m >=0 ; m--)
+	{
+		for(int l = 0; l < columns ; l++)
+		{
+			for(int k = 0; k < rows ; k++)
+			{
+				int curr = toIndex(k,l,m) ;
+				if(restriction[curr] && isInRange(curr))
+				{
+					zordered.push_back(curr) ;
+				}
+			}
+		}
+	}
+	
+	l = 0 ;
+	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+		index[l++] = *k ;
+	displayPoints(index, 3, 1) ;
+	
+	
+	zordered.clear() ;
+	for(int m = strips-1 ; m >=0 ; m--)
+	{
+		for(int l = 0; l < columns ; l++)
+		{
+			for(int k = 0; k < rows ; k++)
+			{
+				int curr = toIndex(k,l,m) ;
+				if(restriction[curr] && isInRange(curr))
+				{
+					zordered.push_back(curr) ;
+				}
+			}
+		}
+	}
+	
+	l = 0 ;
+	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+		index[l++] = *k ;
+	std::reverse(&index[0], &index[index.size()]);
+	displayPoints(index, 4, 1) ;
+	
+	zordered.clear() ;
+	for(int m = 0 ; m <strips ; m++)
+	{
+		for(int l = 0; l < columns ; l++)
+		{
+			for(int k = 0; k < rows ; k++)
+			{
+				int curr = toIndex(k,l,m) ;
+				if(restriction[curr] && isInRange(curr))
+				{
+					zordered.push_back(curr) ;
+				}
+			}
+		}
+	}
+	
+	l = 0 ;
+	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+		index[l++] = *k ;
+	std::reverse(&index[0], &index[index.size()]);
+	displayPoints(index, 5, 1) ;
 	
 }
 
@@ -1050,13 +1170,13 @@ VoxelGLDrawer::VoxelGLDrawer(const size_t r, const size_t c, const size_t s, trs
 	
 	colour.resize(sz) ;
 	normal.resize(sz*3) ;
-
+	alpha = 255 ;
 	
 	displayList = 1 ; //glGenLists(1);
 	
 	start_offset = 0 ;
 	
-	m_segmentDown  = 1 ;
+	m_segmentDown  = 0 ;
 	m_segmentUp  = 255 ;
 	m_currentField = 0 ;
 	m_zoom = 100 ;
@@ -1110,7 +1230,7 @@ VoxelGLDrawer::VoxelGLDrawer(QString f, QMainWindow *mainwin) : QGLWidget(mainwi
 	
 	start_offset = 0 ;
 	
-	m_segmentDown  = 1 ;
+	m_segmentDown  = 0 ;
 	m_segmentUp  = 255 ;
 	m_currentField = 0 ;
 	
@@ -1124,6 +1244,9 @@ VoxelGLDrawer::VoxelGLDrawer(QString f, QMainWindow *mainwin) : QGLWidget(mainwi
 	
 	m_zoom = 85 ;
 	setZoom(85) ;
+	
+	alpha = 255 ;
+
 
 	size_x = 1 ;
 	size_y = (double)columns/(double)rows ;
@@ -1171,7 +1294,10 @@ VoxelGLDrawer::VoxelGLDrawer(QMainWindow *parent) : QGLWidget(parent) {
 	
 	colour.resize(0) ;
 	
-	m_segmentDown  = 1 ;
+	alpha = 255 ;
+
+	
+	m_segmentDown  = 0 ;
 	m_segmentUp  = 255 ;
 	m_currentField = 0 ;
 	
@@ -1386,10 +1512,10 @@ void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<qui
 	for(size_t i = 0 ; i< c->size() ; i++)
 	{
 		(*c)[i] = (*d)[0][i] ; //(quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
-		if((*c)[i])
+// 		if((*c)[i])
 			(*res)[i] = true ;
-		else
-			(*res)[i] = false ;
+// 		else
+// 			(*res)[i] = false ;
 		
 	}
 // 	for(size_t i = 0 ; i< c->size() ; i++)

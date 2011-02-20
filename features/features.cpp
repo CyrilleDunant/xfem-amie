@@ -4584,6 +4584,7 @@ void FeatureTree::shuffleMeshPoints()
 			}
 		}
 	}
+	std::random_shuffle(meshPoints.begin(), meshPoints.end());
 	std::cout << "done... " << std::endl ;
 }
 

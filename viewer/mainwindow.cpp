@@ -84,7 +84,7 @@ void MainWindow::createToolBars()
 	fileToolBar->addSeparator() ;
 	
 	alpha  = new QSpinBox(fileToolBar) ;
-	alpha->setRange ( -1, 255 ) ;
+	alpha->setRange ( 1, 255 ) ;
 	alpha->setValue ( 0 ) ;
 	connect(alpha, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setAlpha(int)));
 	connect(voxeldisplay, SIGNAL(alphaChanged(int)), alpha, SLOT(setValue(int)));
@@ -168,7 +168,7 @@ void MainWindow::open()
 			connect(printButton, SIGNAL(released()), triangledisplay, SLOT(grab()));
 			triangledisplay->setZoom(zoomval) ;
 			
-
+			alpha->setValue(255) ;
 			downSlider->setRange(0, 9999);
 			downSlider->setValue(0) ;
 
@@ -202,6 +202,8 @@ void MainWindow::open()
 			
 			connect(upSlider, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setSegmentUp(int)));
 			connect(voxeldisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
+			
+			alpha->setValue(255) ;
 		}
 	}
 }
@@ -255,7 +257,6 @@ void MainWindow::open(const QString &fileName)
 			
 			connect(upSlider, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setSegmentUp(int)));
 			connect(voxeldisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
-			
 			
 		}
 	}
