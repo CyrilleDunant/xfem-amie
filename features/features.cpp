@@ -1096,7 +1096,7 @@ void FeatureTree::sample()
 		else if (is3D())
 		{
 			std::cout << samplingNumber << std::endl ;
-			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
+//			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
 			tree[0]->sample(samplingNumber) ;
 
 			double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())*(tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())) ;
@@ -1104,13 +1104,14 @@ void FeatureTree::sample()
 	#pragma omp parallel for
 			for(int i  = 1 ; i < (int)tree.size() ; i++)
 			{
-				std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
+//				std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 				
 				double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 				size_t npoints = (size_t)round((1.5*samplingNumber*tree[i]->area()*shape_factor)/(total_area)) ;
 
 				if(npoints > 0 && !tree[i]->isVirtualFeature)
 				{
+					std::cout << npoints << std::endl ;
 					tree[i]->sample(npoints) ;
 					tree[i]->isUpdated = false ;
 				}
@@ -2535,6 +2536,38 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux(int g)
 	}
 }
 
+std::pair<Vector , Vector > FeatureTree::getGradientAndFlux(const std::vector<DelaunayTetrahedron *> & tets)
+{
+		std::pair<Vector , Vector > stress_strain(Vector(4*3*tets.size()), Vector(4*3*tets.size())) ;
+		
+		for(size_t i  = 0 ; i < tets.size() ; i++)
+		{
+			std::valarray<Point *> pts(4) ;
+			pts[0] =  tets[i]->first ;
+			pts[1] =  tets[i]->second ;
+			pts[2] =  tets[i]->third ;
+			pts[3] =  tets[i]->fourth ;
+			
+			std::pair<Vector , Vector > str ;
+			str.first.resize(12) ;
+			str.second.resize(12) ;
+			str = tets[i]->getState().getGradientAndFlux(pts) ;
+			for(size_t j = 0 ; j < 4 ; j++)
+			{
+				for(size_t k = 0 ; k < 3 ; k++)
+				{
+					stress_strain.first[i*4*3+j*3+k] = str.first[j*3+k] ;
+					stress_strain.second[i*4*3+j*3+k] = str.second[j*3+k] ;
+				}
+			}
+//			if(i%1000 == 0)
+//				std::cerr << "\r computing gradient+flux... element " << i+1 << "/" << tets.size() << std::flush ;
+		}
+		std::cerr << " ...done." << std::endl ;
+		return stress_strain ;
+}
+
+
 std::pair<Vector , Vector > FeatureTree::getStressAndStrain(const std::vector<DelaunayTetrahedron *> & tets)
 {
 	state.setStateTo(XFEM_STEPPED,false ) ;
@@ -2762,7 +2795,7 @@ void FeatureTree::elasticStep()
 void FeatureTree::solve()
 {
 	Vector lastx(K->getDisplacements()) ;
-// 	K->initialiseElementaryMatrices();
+ 	K->initialiseElementaryMatrices();
 	
 	if(dtree)
 	{

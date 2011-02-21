@@ -827,7 +827,7 @@ Vector ElementState::getGradient(const Point & p, bool local) const
 	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		dofs = 3 ;
 	int sz = dofs+(dofs-1)*(dofs-1) - dofs%2;
-	return Vector(0., sz) ;
+	return Vector(0., dofs) ;
 }
 
 Vector ElementState::getFlux(const Point & p, bool local) const
@@ -920,7 +920,7 @@ Vector ElementState::getFlux(const Point & p, bool local) const
 	if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		dofs = 3 ;
 	int sz = dofs+(dofs-1)*(dofs-1) - dofs%2;
-	return Vector(0., sz) ;
+	return Vector(0., dofs) ;
 }
 
 Vector ElementState::getStrain(const std::pair<Point, double> & p) const
@@ -4203,7 +4203,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain(const Mu::PointArray
 std::pair<Vector, Vector > ElementState::getGradientAndFlux(const Mu::PointArray & pts) const
 {
 	
-	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
+	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
 	{
 		if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
 			return std::pair<Vector, Vector>(Vector(0., 2*pts.size()), Vector(0., 2*pts.size())) ;
@@ -4222,7 +4222,7 @@ std::pair<Vector, Vector > ElementState::getGradientAndFlux(const Mu::PointArray
 		}
 		return std::make_pair(grad,flux) ;
 	}
-	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3)
+	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
 	{
 		if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
 			return std::pair<Vector, Vector>(Vector(0., 3*pts.size()), Vector(0., 3*pts.size())) ;
@@ -4232,8 +4232,8 @@ std::pair<Vector, Vector > ElementState::getGradientAndFlux(const Mu::PointArray
 		
 		for(size_t i = 0 ; i < pts.size() ; i++)
 		{
-			Vector gr = getGradient(*pts[i], true) ;
-			Vector fx = getFlux(*pts[i], true) ;
+			Vector gr = getGradient(*pts[i], false) ;
+			Vector fx = getFlux(*pts[i], false) ;
 			grad[3*i+0] = gr[0] ;
 			grad[3*i+1] = gr[1] ;
 			grad[3*i+2] = gr[2] ;

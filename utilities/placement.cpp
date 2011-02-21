@@ -54,12 +54,17 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		Grid grid(longueurX, longueurY, 10, box->getCenter()) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
-		for(size_t i=nombreGranulatsDejaPlaces ; i < inclusions.size() && tries < triesMax ; i++) 
+		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
 			tries++ ;
 			double ix = longueurX - 2.1*inclusions[i]->getRadius() ;
 			double iy = longueurY - 2.1*inclusions[i]->getRadius() ;
-			Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
+			Point newCentre(inclusions[i]->getCenter()) ;
+			if(i >= nombreGranulatsDejaPlaces)
+			{
+				newCentre.x = gen.uniform(ix) - ix/2. + offset.x ;
+				newCentre.y = gen.uniform(iy) - iy/2. + offset.y ;
+			}
 			inclusions[i]->setCenter(newCentre) ;
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
 			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )

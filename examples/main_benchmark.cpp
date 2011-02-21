@@ -150,6 +150,13 @@ Vector stiffness(0) ;
 Vector angle(0) ; 
 Vector damage(0) ; 
 
+Vector epsilon_bcx(6) ;
+Vector sigma_bcx(6) ;
+Vector epsilon_bcy(6) ;
+Vector sigma_bcy(6) ;
+Vector epsilon_bcz(6) ;
+Vector sigma_bcz(6) ;
+
 double nu = 0.2 ;
 double E_agg = 100 ;//softest
 double E_paste = 1 ;//stiff
@@ -163,6 +170,38 @@ bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
+
+Matrix getStiffness(Vector sigma_1, Vector sigma_2, Vector epsilon_1, Vector epsilon_2)
+{
+	Matrix K(4,4) ;
+	K[0][0] = epsilon_1[0] ;
+	K[0][1] = epsilon_1[1] ;
+	K[2][2] = epsilon_1[0] ;
+	K[2][3] = epsilon_1[1] ;
+	K[1][0] = epsilon_2[0] ;
+	K[1][1] = epsilon_2[1] ;
+	K[3][2] = epsilon_2[0] ;
+	K[3][3] = epsilon_2[1] ;
+	Matrix Ki = inverse4x4Matrix(K) ;
+	
+	Vector s(4) ;
+	s[0] = sigma_1[0] ;
+	s[2] = sigma_1[1] ;
+	s[1] = sigma_2[0] ;
+	s[3] = sigma_2[1] ;
+	Vector c = Ki*s ;
+	
+	Matrix stiffness(3,3) ;
+	stiffness[0][0] = c[0] ;
+	stiffness[0][1] = c[2] ;
+	stiffness[1][0] = c[1] ;
+	stiffness[1][1] = c[3] ;
+	stiffness[2][2] = sigma_1[3]/epsilon_1[3] ;
+	
+	return stiffness ;
+}
+
+
 
 
 void step()
@@ -444,6 +483,10 @@ void step()
 		std::cout << "number of void tetrahedrons : " << n_void << "/" << tets.size() << std::endl ;
 		std::cout << "volume of non-void tetrahedrons : " << volume << std::endl ;
 		
+		std::cout << std::endl ;
+		std::cout << avg_s_xx/avg_e_xx << std::endl ;
+		std::cout << avg_s_yy/avg_e_yy << std::endl ;
+		std::cout << avg_s_zz/avg_e_zz << std::endl ;
 	}
 
 }
@@ -1490,7 +1533,7 @@ void processMouseActiveMotion(int x, int y) {
 int main(int argc, char *argv[])
 {
 	std::cout << "fist argument is the scale, second is E and lambda, third is the sampling" << std::endl ;
-	scale = 2000 ;
+	scale = atoi(argv[1]) ;
 
 // 	Point *p0 = new Point(500, 500, 0) ;
 // Point *p1 = new Point(500, 0, 500) ;
@@ -1580,7 +1623,7 @@ int main(int argc, char *argv[])
 	d0[2][2] = lambda ;
 
 	nu = 0.2 ;
-	E = 10 ;
+	E = atof(argv[2]) ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1622,16 +1665,16 @@ int main(int argc, char *argv[])
 // 		v += inclusions[i]->volume() ;
 // 	}
 	
-	Inclusion3D * inc = new Inclusion3D(0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 	inc->setBehaviour(inclusionStiffness) ;
-	Vector a(6) ; a = 0 ;
+	Vector a(6) ; //a = 0 ;
 // 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
 	F.addFeature(&sample, inc) ;
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
-	F.setSamplingNumber(512) ;
+	F.setSamplingNumber(atoi(argv[3])) ;
 	F.setMaxIterationsPerStep(2);
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1681,13 +1724,12 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, RIGHT, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, RIGHT, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.01*scale)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 	step() ;
-
 
 /*	glutInit(&argc, argv) ;	
 	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
