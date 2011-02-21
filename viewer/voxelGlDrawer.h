@@ -226,6 +226,7 @@ protected:
 	void computeDisplayList() ; //
 	void computeDisplayList(size_t x_0, size_t x_1, size_t y_0, size_t y_1, size_t z_0, size_t z_1) ; //
 	GLint displayList ;
+	GLint currentDisplayList ;
 	
 	bool isVisible(const size_t i, const size_t j, const size_t k) const ;
 	
@@ -261,8 +262,8 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event) ; //
 	void wheelEvent(QWheelEvent * event ) ;
 	void keyPressEvent ( QKeyEvent * event ) ; //
-	void computeDisplay( ) const ; //
-	
+	void computeDisplay( ) ; //
+
 };
 
 
