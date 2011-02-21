@@ -30,7 +30,7 @@ void VoxelGLDrawer::computeDisplay( ) {
 				targetList =displayList+2 ;
 			else if(yangle > 90+15 && yangle < 270-15)
 				targetList =displayList+5 ;
-			else if(yangle >= 90-15 && yangle <= 90+15) //to correct
+			else if(yangle >= 90-15 && yangle <= 90+15)
 				targetList = displayList+7 ;
 			else //to correct
 				targetList = displayList+9 ;
@@ -921,9 +921,9 @@ void VoxelGLDrawer::computeDisplayList() {
 	displayPoints(index, 6, 1) ;
 	
 	zordered.clear() ;
-	for(int m = strips-1 ; m >=0  ; m--)
+	for(int l = columns-1; l >= 0 ; l--)
 	{
-		for(int l = columns-1; l >= 0 ; l--)
+		for(int m = strips-1 ; m >=0  ; m--)
 		{
 			for(int k = rows-1 ; k >=0  ; k--)
 			{
@@ -962,9 +962,9 @@ void VoxelGLDrawer::computeDisplayList() {
 	displayPoints(index, 8, 1) ;
 	
 	zordered.clear() ;
-	for(int m = strips-1 ; m >=0  ; m--)
+	for(int l = columns-1; l >= 0 ; l--)
 	{
-		for(int l = columns-1; l >= 0 ; l--)
+		for(int m = strips-1 ; m >=0  ; m--)
 		{
 			for(int k = rows-1 ; k >=0  ; k--)
 			{
@@ -979,6 +979,7 @@ void VoxelGLDrawer::computeDisplayList() {
 	l = 0 ;
 	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
+	std::reverse(&index[0], &index[index.size()]);
 	displayPoints(index, 9, 1) ;
 	
 	
