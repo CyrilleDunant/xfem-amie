@@ -279,13 +279,21 @@ void DelaunayTree3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
+		if(tri[i]->volume() < 0)
+		{
+			for(int j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+				tri[i]->getBoundingPoint(j).print() ;
+			
+			exit(0) ;
+		}
+		
 		std::vector<std::pair<Point, Point> > sides ;
-		sides.push_back(std::make_pair(*tri[i]->first,*tri[i]->second)) ;
-		sides.push_back(std::make_pair(*tri[i]->second,*tri[i]->third)) ;
-		sides.push_back(std::make_pair(*tri[i]->third,*tri[i]->fourth)) ;
-		sides.push_back(std::make_pair(*tri[i]->fourth,*tri[i]->first)) ;
-		sides.push_back(std::make_pair(*tri[i]->fourth,*tri[i]->second)) ;
-		sides.push_back(std::make_pair(*tri[i]->first,*tri[i]->third)) ;
+		sides.push_back(std::make_pair(tri[i]->getBoundingPoint(0),tri[i]->getBoundingPoint(1))) ;
+		sides.push_back(std::make_pair(tri[i]->getBoundingPoint(1),tri[i]->getBoundingPoint(2))) ;
+		sides.push_back(std::make_pair(tri[i]->getBoundingPoint(2),tri[i]->getBoundingPoint(3))) ;
+		sides.push_back(std::make_pair(tri[i]->getBoundingPoint(3),tri[i]->getBoundingPoint(0))) ;
+		sides.push_back(std::make_pair(tri[i]->getBoundingPoint(3),tri[i]->getBoundingPoint(1))) ;
+		sides.push_back(std::make_pair(tri[i]->getBoundingPoint(0),tri[i]->getBoundingPoint(2))) ;
 		std::vector<size_t> positions ;
 		if(nodes_per_side)
 		{
@@ -317,14 +325,19 @@ void DelaunayTree3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 		{
 			positions.push_back(0) ;
 			positions.push_back(1) ;
+			
 			positions.push_back(1) ;
 			positions.push_back(2) ;
+			
 			positions.push_back(2) ;
 			positions.push_back(3) ;
+			
 			positions.push_back(3) ;
 			positions.push_back(0) ;
+			
 			positions.push_back(3) ;
 			positions.push_back(1) ;
+			
 			positions.push_back(0) ;
 			positions.push_back(2) ;
 		}
@@ -421,6 +434,14 @@ void DelaunayTree3D::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 				exit(0) ;
 			}
 		tri[i]->setBoundingPoints(newPoints) ;
+		
+		if(tri[i]->volume() < 0)
+		{
+			for(int j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+				tri[i]->getBoundingPoint(j).print() ;
+			
+			exit(0) ;
+		}
 	}
 	
 	
@@ -1030,9 +1051,9 @@ DelaunayTetrahedron::DelaunayTetrahedron(Mesh<DelaunayTetrahedron, DelaunayTreeI
 {
 	
 	first = &getBoundingPoint(0) ;
-	second = &getBoundingPoint(1) ;
-	third = &getBoundingPoint(2) ;
-	fourth = &getBoundingPoint(3) ;
+	second = &getBoundingPoint(2) ;
+	third = &getBoundingPoint(4) ;
+	fourth = &getBoundingPoint(6) ;
 	std::sort(&first, &first+4) ;
 	assert(in(this->getCenter())) ;
 	
@@ -2530,18 +2551,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 		{
 			 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
-		}
-	}
-	
-	if(jacobianAtPoint(Point(0.25, 0.25, 0.25))  < 0)
-	{
-
-		for(size_t i = 0 ; i < dofs.size() ; i++)
-		{
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				 cachedElementaryMatrix[i][j] *= -1;
-			}
 		}
 	}
 

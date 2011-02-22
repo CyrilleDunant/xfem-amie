@@ -1473,20 +1473,20 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 	if(order < QUADRATIC)
 	{
 		Matrix S(4,4) ;
-		S[0][0] = this->getBoundingPoint(0       ).x;
-		S[0][1] = this->getBoundingPoint(1  ).x; 
-		S[0][2] = this->getBoundingPoint(2).x ; 
-		S[0][3] = this->getBoundingPoint(3).x ;  
+		S[0][0] = this->getBoundingPoint(2).x;
+		S[0][1] = this->getBoundingPoint(3).x; 
+		S[0][2] = this->getBoundingPoint(0).x ; 
+		S[0][3] = this->getBoundingPoint(1).x ;  
 		
-		S[1][0] = this->getBoundingPoint(0       ).y ;
-		S[1][1] = this->getBoundingPoint(1 ).y;
-		S[1][2] = this->getBoundingPoint(2).y ; 
-		S[1][3] = this->getBoundingPoint(3).y ;  
+		S[1][0] = this->getBoundingPoint(2).y ;
+		S[1][1] = this->getBoundingPoint(3).y;
+		S[1][2] = this->getBoundingPoint(0).y ; 
+		S[1][3] = this->getBoundingPoint(1).y ;  
 
-		S[2][0] = this->getBoundingPoint(0       ).z ;
-		S[2][1] = this->getBoundingPoint(1 ).z;
-		S[2][2] = this->getBoundingPoint(2).z ; 
-		S[2][3] = this->getBoundingPoint(3).z ;  
+		S[2][0] = this->getBoundingPoint(2).z ;
+		S[2][1] = this->getBoundingPoint(3).z;
+		S[2][2] = this->getBoundingPoint(0).z ; 
+		S[2][3] = this->getBoundingPoint(1).z ;  
 		
 		S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
 		
@@ -1511,18 +1511,18 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 	else
 	{
 		Matrix S(4,4) ;
-		S[0][0] = this->getBoundingPoint(4       ).x;
-		S[0][1] = this->getBoundingPoint(6  ).x; 
+		S[0][0] = this->getBoundingPoint(4).x;
+		S[0][1] = this->getBoundingPoint(6).x; 
 		S[0][2] = this->getBoundingPoint(0).x ; 
 		S[0][3] = this->getBoundingPoint(2).x ;  
 		
-		S[1][0] = this->getBoundingPoint(4       ).y ;
-		S[1][1] = this->getBoundingPoint(6  ).y;
+		S[1][0] = this->getBoundingPoint(4).y ;
+		S[1][1] = this->getBoundingPoint(6).y;
 		S[1][2] = this->getBoundingPoint(0).y ; 
 		S[1][3] = this->getBoundingPoint(2).y ;  
 
-		S[2][0] = this->getBoundingPoint(4       ).z ;
-		S[2][1] = this->getBoundingPoint(6  ).z;
+		S[2][0] = this->getBoundingPoint(4).z ;
+		S[2][1] = this->getBoundingPoint(6).z;
 		S[2][2] = this->getBoundingPoint(0).z ; 
 		S[2][3] = this->getBoundingPoint(2).z ;  
 		

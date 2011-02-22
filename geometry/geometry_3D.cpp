@@ -250,6 +250,7 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 	radius = sqrt(sqradius);
 	
 	assert(volume() >0 ) ;
+
 	computeCenter() ;	
 }
 
@@ -315,10 +316,10 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 	gType = TETRAHEDRON ;
 	
 	this->boundingPoints.resize(4) ;
-	boundingPoints[0] = new Point(1,0,0) ;
-	boundingPoints[1] = new Point(0,1,0) ;
-	boundingPoints[2] = new Point(0,0,1) ;
-	boundingPoints[3] = new Point(0,0,0) ;
+	boundingPoints[2] = new Point(1,0,0) ;
+	boundingPoints[3] = new Point(0,1,0) ;
+	boundingPoints[0] = new Point(0,0,1) ;
+	boundingPoints[1] = new Point(0,0,0) ;
 	computeCircumCenter() ;
 	Vector r(4) ;
 	r[0] = squareDist3D(*boundingPoints[0], circumCenter) ;
@@ -492,14 +493,27 @@ bool Tetrahedron::in(const Point & v) const
 
 double Tetrahedron::area() const
 {
+	if(this->getBoundingPoints().size() == 4)
+	{
 	Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
-	Segment s1(getBoundingPoint(2), getBoundingPoint(0)) ;
-	Segment s2(getBoundingPoint(3), getBoundingPoint(0)) ;
+	Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;
+	Segment s2(getBoundingPoint(1), getBoundingPoint(3)) ;
 	
 	return 0.5*(((s0.vector()^s1.vector())).norm()+
 	             ((s0.vector()^s2.vector())).norm()+
 	             ((s1.vector()^s2.vector())).norm()+
 	             (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
+	}
+	else
+	{
+		Segment s0(getBoundingPoint(2), getBoundingPoint(0)) ;
+		Segment s1(getBoundingPoint(2), getBoundingPoint(4)) ;
+		Segment s2(getBoundingPoint(2), getBoundingPoint(6)) ;
+		return 0.5*(((s0.vector()^s1.vector())).norm()+
+	             ((s0.vector()^s2.vector())).norm()+
+	             ((s1.vector()^s2.vector())).norm()+
+	             (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
+	}
 }
 
 double Tetrahedron::volume() const
@@ -507,16 +521,16 @@ double Tetrahedron::volume() const
 	if(this->getBoundingPoints().size() == 4)
 	{
 		Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
-		Segment s1(getBoundingPoint(2), getBoundingPoint(0)) ;
-		Segment s2(getBoundingPoint(3), getBoundingPoint(0)) ;
+		Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;
+		Segment s2(getBoundingPoint(1), getBoundingPoint(3)) ;
 		
 		return ((s1.vector())^(s0.vector()))*(s2.vector())/6. ;
 	}
 	else
 	{
 		Segment s0(getBoundingPoint(2), getBoundingPoint(0)) ;
-		Segment s1(getBoundingPoint(4), getBoundingPoint(0)) ;
-		Segment s2(getBoundingPoint(6), getBoundingPoint(0)) ;
+		Segment s1(getBoundingPoint(2), getBoundingPoint(4)) ;
+		Segment s2(getBoundingPoint(2), getBoundingPoint(6)) ;
 		
 		return ((s1.vector())^(s0.vector()))*(s2.vector())/6. ;
 	}
