@@ -32,7 +32,7 @@ void VoxelGLDrawer::computeDisplay( ) {
 				targetList =displayList+5 ;
 			else if(yangle >= 90-15 && yangle <= 90+15)
 				targetList = displayList+7 ;
-			else //to correct
+			else 
 				targetList = displayList+9 ;
 		}
 	}
@@ -728,9 +728,9 @@ void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offse
 		tmpnorm[i*3+1] = normal[index[i]*3+1]*mult;
 		tmpnorm[i*3+2] = normal[index[i]*3+2]*mult;
 		
-		float randx = ((float)rand()/RAND_MAX*2.-1.)*0.3/rows ;
-		float randy = ((float)rand()/RAND_MAX*2.-1.)*0.3/columns ;
-		float randz = ((float)rand()/RAND_MAX*2.-1.)*0.3/strips ;
+		float randx = ((float)rand()/RAND_MAX*2.-1.)*0.2/rows ;
+		float randy = ((float)rand()/RAND_MAX*2.-1.)*0.2/columns ;
+		float randz = ((float)rand()/RAND_MAX*2.-1.)*0.2/strips ;
 		std::valarray<size_t> xyz = toArrayPos(index[i]) ;
 		tmpvert[i*3  ] = size_x*(float)(xyz[0]+1)/(float)rows-0.5f+randx;
 		tmpvert[i*3+1] = size_y*(float)(xyz[1]+1)/(float)columns-size_y*0.5f+randy;

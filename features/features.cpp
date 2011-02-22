@@ -815,7 +815,6 @@ void FeatureTree::stitch()
 		if(elemOrder >= QUADRATIC )
 		{
 			dtree3D->setElementOrder(elemOrder) ;
-			
 			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 			for(size_t j = 1 ; j < this->tree.size() ; j++)
 			{
@@ -825,20 +824,20 @@ void FeatureTree::stitch()
 					
 					for(size_t i = 0 ; i < tets.size() ; i++)
 					{
-						Point proj_0(*tets[i]->first) ;
+						Point proj_0(tets[i]->getBoundingPoint(0)) ;
 						tree[j]->project(&proj_0) ;
-						Point proj_1(*tets[i]->second) ;
+						Point proj_1(tets[i]->getBoundingPoint(2)) ;
 						tree[j]->project(&proj_1) ;
-						Point proj_2(*tets[i]->third) ;
+						Point proj_2(tets[i]->getBoundingPoint(4)) ;
 						tree[j]->project(&proj_2) ;
-						Point proj_3(*tets[i]->fourth) ;
+						Point proj_3(tets[i]->getBoundingPoint(6)) ;
 						tree[j]->project(&proj_3) ;
 
 						
 						
 						if(
-						    squareDist3D(&proj_0 , tets[i]->first ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(&proj_1 , tets[i]->second) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
+						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2)) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
@@ -853,8 +852,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(&proj_0 , tets[i]->first ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(&proj_2 , tets[i]->third) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4)) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
@@ -869,8 +868,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(&proj_0 , tets[i]->first ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(&proj_3 , tets[i]->fourth) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6)) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
@@ -885,8 +884,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(&proj_1 , tets[i]->second ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(&proj_3 , tets[i]->fourth) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6)) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 
@@ -901,8 +900,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(&proj_1 , tets[i]->second ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(&proj_2 , tets[i]->third) < POINT_TOLERANCE*POINT_TOLERANCE
+						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4)) < POINT_TOLERANCE*POINT_TOLERANCE
 						  )
 						{
 							count +=1; 
@@ -917,8 +916,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(&proj_3 , tets[i]->fourth ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(&proj_2 , tets[i]->third) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4)) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
 							count +=1; 

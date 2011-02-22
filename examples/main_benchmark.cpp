@@ -222,7 +222,7 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("fem_small_test", 50) ;
+		VoxelWriter vw("xfem", 300) ;
 		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
@@ -1655,7 +1655,7 @@ int main(int argc, char *argv[])
 // 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
 // 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
-// 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
+	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 // 	
 // 	for(int i = 0 ; i < 0 ; i++)
 // 	{
@@ -1665,10 +1665,10 @@ int main(int argc, char *argv[])
 // 		v += inclusions[i]->volume() ;
 // 	}
 	
-	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
-	inc->setBehaviour(inclusionStiffness) ;
-	Vector a(6) ; //a = 0 ;
-// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+// 	inc->setBehaviour(inclusionStiffness) ;
+	Vector a(6) ; a = 0 ;
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
 	F.addFeature(&sample, inc) ;
 

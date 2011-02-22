@@ -480,7 +480,7 @@ void Assembly::initialiseElementaryMatrices()
 	if(has3Dims == false)
 	{
 		std::random_shuffle(element2d.begin(), element2d.end());
-// 		#pragma omp parallel for schedule(static)
+		#pragma omp parallel for 
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			element2d[i]->getElementaryMatrix() ;
@@ -488,7 +488,7 @@ void Assembly::initialiseElementaryMatrices()
 	}
 	else
 	{
-// 			#pragma omp parallel for 
+			#pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			element3d[i]->getElementaryMatrix() ;
