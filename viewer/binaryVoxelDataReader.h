@@ -21,8 +21,15 @@ public:
 // 			std::cout << position << std::endl ;
 // 		file.seek(position) ;
 		streamBin.setDevice(&file);
-		streamBin.skipRawData(21) ;
-		
+		if(r > 99 && c> 99 && s > 99)
+			streamBin.skipRawData(21) ;
+		if((r > 99) + (c> 99) + (s > 99) == 2)
+			streamBin.skipRawData(20) ;
+		if((r > 99) + (c> 99) + (s > 99) == 1)
+			streamBin.skipRawData(19) ;
+		else
+			streamBin.skipRawData(18) ;
+			
 		std::vector< std::valarray<quint8> > * d = new  std::vector< std::valarray<quint8> >(numberOfFields,
 			std::valarray<quint8>((quint8)0, r*c*s)) ;
 
