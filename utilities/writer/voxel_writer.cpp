@@ -237,6 +237,14 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			break ;
 		}
 			
+		case VWFT_CONCENTRATION:
+		{
+			Vector tmp = tet->getState().getConcentrations(p,false) ;
+			ret[0] = tmp[0] ;
+			found = true ;
+			break ;
+		}
+			
 		case VWFT_STRESS:
 		{
 			Vector tmp = tet->getState().getStress(p,false) ;
@@ -429,6 +437,8 @@ int numberOfFields(VWFieldType field)
 			return 12 ;
 		case VWFT_STRESS:
 			return 6 ;
+		case VWFT_CONCENTRATION:
+			return 1 ;
 		case VWFT_GRADIENT:
 			return 3 ;
 		case VWFT_GRADIENT_AND_FLUX:

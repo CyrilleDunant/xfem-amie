@@ -335,6 +335,8 @@ public:
 	*/
 	bool enrichmentChanged() const ;
 
+	void forceEnrichmentChange() ;
+
 	double residualError ;
 	double crackedVolume ;
 	double damagedVolume ;

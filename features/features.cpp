@@ -197,9 +197,9 @@ FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(N
 
 	K = new Assembly() ;
 	if(is2D())
-		K->set2D() ;
+		K->setSpaceDimension(SPACE_TWO_DIMENSIONAL) ;
 	else
-		K->set3D() ;
+		K->setSpaceDimension(SPACE_THREE_DIMENSIONAL) ;
 
 	crackedVolume = 0 ;
 	damagedVolume = 0 ;
@@ -344,7 +344,6 @@ void FeatureTree::removeBoundaryCondition(BoundaryCondition * bc)
 	std::vector<BoundaryCondition *>::iterator toDelete = std::find(boundaryCondition.begin(), boundaryCondition.end(), bc) ;
 	boundaryCondition.erase(toDelete) ;
 }
-
 
 void FeatureTree::setOrder(Order ord)
 {
@@ -1095,7 +1094,7 @@ void FeatureTree::sample()
 		else if (is3D())
 		{
 			std::cout << samplingNumber << std::endl ;
-//			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
+			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
 			tree[0]->sample(samplingNumber) ;
 
 			double total_area = tree[0]->area()*tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())*(tree[0]->area()/(4.*M_PI*tree[0]->getRadius()*tree[0]->getRadius())) ;
@@ -1103,14 +1102,13 @@ void FeatureTree::sample()
 	#pragma omp parallel for
 			for(int i  = 1 ; i < (int)tree.size() ; i++)
 			{
-//				std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
+				std::cerr << "\r 3D features... sampling feature "<< count << "/" << this->tree.size() << "          " << std::flush ;
 				
 				double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 				size_t npoints = (size_t)round((1.5*samplingNumber*tree[i]->area()*shape_factor)/(total_area)) ;
 
 				if(npoints > 0 && !tree[i]->isVirtualFeature)
 				{
-					std::cout << npoints << std::endl ;
 					tree[i]->sample(npoints) ;
 					tree[i]->isUpdated = false ;
 				}
@@ -2749,13 +2747,20 @@ bool FeatureTree::enrichmentChanged() const
 	return enrichmentChange ;
 }
 
+void FeatureTree::forceEnrichmentChange()
+{
+	enrichmentChange = true ;
+}
+
 void FeatureTree::elasticStep()
 {
 	Vector lastx(K->getDisplacements()) ;
 	this->K->clear() ;
 	assemble() ;
-
-	this->K->cgsolve(lastx, 100000, true) ;
+	solve() ;
+	stepElements() ;
+/*
+//	this->K->cgsolve(lastx, 100000, true) ;
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
@@ -2787,7 +2792,7 @@ void FeatureTree::elasticStep()
 			elements[i]->step(0., &K->getDisplacements()) ;
 			std::cerr << " ...done" << std::endl ;
 		}
-	}
+	}*/
 	
 }
 

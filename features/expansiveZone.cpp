@@ -84,6 +84,23 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 }
 	
 
+void ExpansiveZone::setExpansion(Vector a)
+{
+	imposedDef = a ;
+	updated = true ;
+
+	for( auto i = bimateralInterfaced.begin() ; i != bimateralInterfaced.end() ; i++)
+	{
+		BimaterialInterface* interface = static_cast<BimaterialInterface *>((*i)->getBehaviour()) ;
+		static_cast<StiffnessWithImposedDeformation*>(interface->inBehaviour)->imposed = a ;
+	}
+	
+	for( auto i = expansive.begin() ; i != expansive.end() ; i++)
+	{
+		static_cast<StiffnessWithImposedDeformation*>((*i)->getBehaviour())->imposed = a ;
+	}
+}
+
 
 MaterialInclusion::MaterialInclusion(Feature *father, double radius, double x, double y, LinearForm * inclusionBehaviour) : EnrichmentInclusion(father, radius, x, y),  inclusionBehaviour(inclusionBehaviour)
 {

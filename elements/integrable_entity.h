@@ -240,6 +240,9 @@ public:
 /** \brief return displacements at the nodes of the element*/
 	const Vector & getDisplacements() const;
 
+/** \brief return concentrations at the nodes of the element*/
+	Vector getConcentrations(const Point &, bool local = false, bool fast = false, const Vector * source = NULL) const;
+
 /** \brief Return the elastic energy of this element*/
 	double elasticEnergy() const ;
 

@@ -3670,6 +3670,107 @@ Vector ElementState::getDisplacements(const std::vector<std::pair<Point, double>
 	return Vector(0., sz*p.size()) ;
 }
 
+Vector ElementState::getConcentrations(const Point & p, bool local, bool fast, const Vector * source) const
+{
+	if (fast)
+	{
+		if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+		{
+			Vector ret(0., 1) ;
+			Vector d(0., parent->getBoundingPoints().size()) ;
+			double rr = 2.*parent->getRadius() ;
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				d[j] = dist(p, parent->getBoundingPoint(j)) ;
+				if(d[j] < POINT_TOLERANCE)
+				{
+					ret[0] += (*source)[ parent->getBoundingPoint(j).id] ;
+					return ret ;
+				}
+			}
+			double sd = d.sum() ;
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				double w = (sd-d[j])/(sd*(parent->getBoundingPoints().size()-1)) ;
+				ret[0] += w*(*source)[ parent->getBoundingPoint(j).id] ;
+			}
+			return ret ;
+		}
+		else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+		{
+			Vector ret(0., 1) ;
+			Vector d(0., parent->getBoundingPoints().size()) ;
+			double rr = 2.*parent->getRadius() ;
+			double t = 0 ;
+			
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				d[j] = dist(p, parent->getBoundingPoint(j)) ;
+				if(d[j] < POINT_TOLERANCE)
+				{
+					ret[0] += (*source)[ parent->getBoundingPoint(j).id] ;
+					return ret ;
+				}
+			}
+			double sd = d.sum() ;
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				double w = (sd-d[j])/(sd*(parent->getBoundingPoints().size()-1)) ;
+				ret[0] += w*(*source)[parent->getBoundingPoint(j).id] ;
+			}
+			return ret ;
+		}
+	}
+	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+	{
+		Vector ret(0., 1) ;
+		VirtualMachine vm ;
+		Point p_ = p ;
+		
+		if(!local)
+			p_ = parent->inLocalCoordinates(p) ;
+		
+		for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+		{
+			double f =  vm.eval(parent->getShapeFunction(j), p_) ;
+			ret[0] += f*displacements[j] ;
+		}
+		
+		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+		{
+			double f = vm.eval(parent->getEnrichmentFunction(j), p_) ;
+			ret[0] += f*enrichedDisplacements[j] ;
+		}
+	
+		return ret;
+	}
+	else if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1)
+	{
+		Vector ret(0., 1) ;
+		VirtualMachine vm ;
+		Point p_ = p ;
+		
+		if(!local)
+			p_ = parent->inLocalCoordinates(p) ;
+		
+		for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+		{
+			double f =  vm.eval(parent->getShapeFunction(j), p_) ;
+			ret[0] += f*displacements[j] ;
+		}
+		
+		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+		{
+			double f = vm.eval(parent->getEnrichmentFunction(j), p_) ;
+			ret[0] += f*enrichedDisplacements[j] ;
+		}
+		
+		return ret;
+	}
+	return Vector(0., 1) ;
+}
+
+
 
 Vector ElementState::getPreviousDisplacements(const Point & p) const
 {

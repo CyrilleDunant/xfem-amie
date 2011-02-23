@@ -177,7 +177,8 @@ protected:
 	std::vector<ElementarySurface *> element2d ;
 	std::vector<ElementaryVolume *> element3d ;
 	std::vector<LagrangeMultiplier> multipliers ;
-	bool has3Dims ; 
+	size_t ndof ;
+	SpaceDimensionality dim ;
 
 	Vector externalForces ;
 	Vector naturalBoundaryConditionForces ;
@@ -227,10 +228,10 @@ public:
 	void initialiseElementaryMatrices() ;
 
 /** \brief return true if Assembly is made of 2D elements*/
-	bool is2D() const;
+	bool has2DElements() const;
 
 /** \brief return true if Assembly is made of 3D elements*/
-	bool is3D() const;	
+	bool has3DElements() const;	
 
 /** \brief print assembled matrix ans vector*/
 	void print() ;
@@ -369,8 +370,12 @@ public:
 /** \brief return Froebenius norm of the assembled matrix*/
 	double froebeniusNorm() ;
 	
-	void set3D() ;
-	void set2D() ;
+	void setNumberOfDregreesOfFreedom(int dof) ;
+	int getNumberOfDegreesOfFreedom() const ;
+	
+	void setSpaceDimension(SpaceDimensionality d) ;
+	SpaceDimensionality getSpaceDimension() const ;
+
 	void fix() ;
 	void clear() ;
 	

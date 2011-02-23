@@ -222,45 +222,31 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("xfem", 300) ;
-		vw.getField(featureTree, VWFT_STRESS) ;
+		VoxelWriter vw("fem_small_test", 100) ;
+		vw.getField(featureTree, VWFT_CONCENTRATION) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
-		sigma_epsilon.first.resize(24*tets.size()) ;
-		sigma_epsilon.second.resize(24*tets.size()) ;
-		sigma_epsilon = featureTree->getStressAndStrain(tets) ;
+		sigma_epsilon.first.resize(12*tets.size()) ;
+		sigma_epsilon.second.resize(12*tets.size()) ;
+		sigma_epsilon = featureTree->getGradientAndFlux(tets) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
 		epsilon = sigma_epsilon.second ;
-		sigma11.resize(sigma.size()/6, 0.) ;
-		sigma22.resize(sigma.size()/6, 0.) ;
-		sigma33.resize(sigma.size()/6, 0.) ;
+		sigma11.resize(sigma.size()/3, 0.) ;
+		sigma22.resize(sigma.size()/3, 0.) ;
+		sigma33.resize(sigma.size()/3, 0.) ;
 		sigma12.resize(sigma.size()/6, 0.) ;
 		sigma13.resize(sigma.size()/6, 0.) ;
 		sigma23.resize(sigma.size()/6, 0.) ;
 		
-		epsilon11.resize(sigma.size()/6, 0.) ;
-		epsilon22.resize(sigma.size()/6, 0.) ;
-		epsilon33.resize(sigma.size()/6, 0.) ;
-		epsilon12.resize(sigma.size()/6, 0.) ;
-		epsilon13.resize(sigma.size()/6, 0.) ;
-		epsilon23.resize(sigma.size()/6, 0.) ;
-		
-		sigma11.resize(sigma.size()/3, 0.) ;
-		sigma22.resize(sigma.size()/3, 0.) ;
-		sigma33.resize(sigma.size()/3, 0.) ;
-/*		sigma12.resize(sigma.size()/6, 0.) ;
-		sigma13.resize(sigma.size()/6, 0.) ;
-		sigma23.resize(sigma.size()/6, 0.) ;*/
-		
 		epsilon11.resize(sigma.size()/3, 0.) ;
 		epsilon22.resize(sigma.size()/3, 0.) ;
 		epsilon33.resize(sigma.size()/3, 0.) ;
-/*		epsilon12.resize(sigma.size()/6, 0.) ;
+		epsilon12.resize(sigma.size()/6, 0.) ;
 		epsilon13.resize(sigma.size()/6, 0.) ;
-		epsilon23.resize(sigma.size()/6, 0.) ;*/
-		
+		epsilon23.resize(sigma.size()/6, 0.) ;
+				
 		
 		stiffness.resize(sigma.size()/6, 0.) ;
 		vonMises.resize(sigma.size()/6, 0.) ;
@@ -324,7 +310,7 @@ void step()
  					}
  				}
 				volume += tets[k]->volume() ;
-				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+/*				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
 					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] > E_max)
 						E_max = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
@@ -339,65 +325,41 @@ void step()
 					damage[k*npoints+1] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
 					damage[k*npoints+2] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
 					damage[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-				}
+				}*/
 					
-				sigma11[k*npoints] = sigma[k*npoints*6];
-				sigma22[k*npoints] = sigma[k*npoints*6+1];
-				sigma33[k*npoints] = sigma[k*npoints*6+2];
-				sigma12[k*npoints] = sigma[k*npoints*6+3];
-				sigma13[k*npoints] = sigma[k*npoints*6+4];
-				sigma23[k*npoints] = sigma[k*npoints*6+5];
+				sigma11[k*npoints] = sigma[k*npoints*3];
+				sigma22[k*npoints] = sigma[k*npoints*3+1];
+				sigma33[k*npoints] = sigma[k*npoints*3+2];
 				
-				sigma11[k*npoints+1] = sigma[k*npoints*6+6];
-				sigma22[k*npoints+1] = sigma[k*npoints*6+7];
-				sigma33[k*npoints+1] = sigma[k*npoints*6+8];
-				sigma12[k*npoints+1] = sigma[k*npoints*6+9];
-				sigma13[k*npoints+1] = sigma[k*npoints*6+10];
-				sigma23[k*npoints+1] = sigma[k*npoints*6+11];
+				sigma11[k*npoints+1] = sigma[k*npoints*3+3];
+				sigma22[k*npoints+1] = sigma[k*npoints*3+4];
+				sigma33[k*npoints+1] = sigma[k*npoints*3+5];
 				
-				sigma11[k*npoints+2] = sigma[k*npoints*6+12];
-				sigma22[k*npoints+2] = sigma[k*npoints*6+13];
-				sigma33[k*npoints+2] = sigma[k*npoints*6+14];
-				sigma12[k*npoints+2] = sigma[k*npoints*6+15];
-				sigma13[k*npoints+2] = sigma[k*npoints*6+16];
-				sigma23[k*npoints+2] = sigma[k*npoints*6+17];
+				sigma11[k*npoints+2] = sigma[k*npoints*3+6];
+				sigma22[k*npoints+2] = sigma[k*npoints*3+7];
+				sigma33[k*npoints+2] = sigma[k*npoints*3+8];
 				
-				sigma11[k*npoints+3] = sigma[k*npoints*6+18];
-				sigma22[k*npoints+3] = sigma[k*npoints*6+19];
-				sigma33[k*npoints+3] = sigma[k*npoints*6+20];
-				sigma12[k*npoints+3] = sigma[k*npoints*6+21];
-				sigma13[k*npoints+3] = sigma[k*npoints*6+22];
-				sigma23[k*npoints+3] = sigma[k*npoints*6+23];
+				sigma11[k*npoints+3] = sigma[k*npoints*3+9];
+				sigma22[k*npoints+3] = sigma[k*npoints*3+10];
+				sigma33[k*npoints+3] = sigma[k*npoints*3+11];
 				
-				epsilon11[k*npoints] = epsilon[k*npoints*6];
-				epsilon22[k*npoints] = epsilon[k*npoints*6+1];
-				epsilon33[k*npoints] = epsilon[k*npoints*6+2];
-				epsilon12[k*npoints] = epsilon[k*npoints*6+3];
-				epsilon13[k*npoints] = epsilon[k*npoints*6+4];
-				epsilon23[k*npoints] = epsilon[k*npoints*6+5];
+				epsilon11[k*npoints] = epsilon[k*npoints*3];
+				epsilon22[k*npoints] = epsilon[k*npoints*3+1];
+				epsilon33[k*npoints] = epsilon[k*npoints*3+2];
 				
-				epsilon11[k*npoints+1] = epsilon[k*npoints*6+6];
-				epsilon22[k*npoints+1] = epsilon[k*npoints*6+7];
-				epsilon33[k*npoints+1] = epsilon[k*npoints*6+8];
-				epsilon12[k*npoints+1] = epsilon[k*npoints*6+9];
-				epsilon13[k*npoints+1] = epsilon[k*npoints*6+10];
-				epsilon23[k*npoints+1] = epsilon[k*npoints*6+11];
+				epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
+				epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
+				epsilon33[k*npoints+1] = epsilon[k*npoints*3+5];
 				
-				epsilon11[k*npoints+2] = epsilon[k*npoints*6+12];
-				epsilon22[k*npoints+2] = epsilon[k*npoints*6+13];
-				epsilon33[k*npoints+2] = epsilon[k*npoints*6+14];
-				epsilon12[k*npoints+2] = epsilon[k*npoints*6+15];
-				epsilon13[k*npoints+2] = epsilon[k*npoints*6+16];
-				epsilon23[k*npoints+2] = epsilon[k*npoints*6+17];
+				epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
+				epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
+				epsilon33[k*npoints+2] = epsilon[k*npoints*3+8];
 				
-				epsilon11[k*npoints+3] = epsilon[k*npoints*6+18];
-				epsilon22[k*npoints+3] = epsilon[k*npoints*6+19];
-				epsilon33[k*npoints+3] = epsilon[k*npoints*6+20];
-				epsilon12[k*npoints+3] = epsilon[k*npoints*6+21];
-				epsilon13[k*npoints+3] = epsilon[k*npoints*6+22];
-				epsilon23[k*npoints+3] = epsilon[k*npoints*6+23];
+				epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
+				epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
+				epsilon33[k*npoints+3] = epsilon[k*npoints*3+11];
 				
-				double vm0 = 0 ;
+/*				double vm0 = 0 ;
 				double agl = 0 ;
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 					vm0 = tets[k]->getState().getMaximumVonMisesStress() ;
@@ -407,7 +369,7 @@ void step()
 				{
 					vonMises[k*npoints+l]  = vm0 ;
 					angle[k*npoints+l]  = agl ;
-				}
+				}*/
 				
 				double ar = tets[k]->volume() ;
 				for(size_t l = 0 ; l < npoints ;l++)
@@ -415,15 +377,9 @@ void step()
 					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
 					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
 					avg_e_zz += (epsilon33[k*npoints+l]/npoints)*ar;
-					avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-					avg_e_xz += (epsilon13[k*npoints+l]/npoints)*ar;
-					avg_e_yz += (epsilon23[k*npoints+l]/npoints)*ar;
 					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
 					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
 					avg_s_zz += (sigma33[k*npoints+l]/npoints)*ar;
-					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
-					avg_s_xz += (sigma13[k*npoints+l]/npoints)*ar;
-					avg_s_yz += (sigma23[k*npoints+l]/npoints)*ar;
 					xavg += x[tets[k]->getBoundingPoint(l).id]*ar/npoints ;
 				}
 	
@@ -1533,7 +1489,7 @@ void processMouseActiveMotion(int x, int y) {
 int main(int argc, char *argv[])
 {
 	std::cout << "fist argument is the scale, second is E and lambda, third is the sampling" << std::endl ;
-	scale = atoi(argv[1]) ;
+	scale = (2000) ;
 
 // 	Point *p0 = new Point(500, 500, 0) ;
 // Point *p1 = new Point(500, 0, 500) ;
@@ -1623,7 +1579,7 @@ int main(int argc, char *argv[])
 	d0[2][2] = lambda ;
 
 	nu = 0.2 ;
-	E = atof(argv[2]) ;
+	E = 3 ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1634,14 +1590,14 @@ int main(int argc, char *argv[])
 	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
 
 	Matrix d1(3,3) ;
-	lambda = atof(argv[2]) ;
+	lambda = 0.01 ;
 	d1[0][0] = lambda ;
 	d1[1][1] = lambda ;
 	d1[2][2] = lambda ;
 
 
-// 	sample.setBehaviour(new Laplacian(d0)) ;
-	sample.setBehaviour(new Stiffness(m0)) ;
+ 	sample.setBehaviour(new Laplacian(d0)) ;
+//	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 // 	double v = 0 ;
 	
@@ -1655,7 +1611,7 @@ int main(int argc, char *argv[])
 // 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
 // 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
-	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
+ 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 // 	
 // 	for(int i = 0 ; i < 0 ; i++)
 // 	{
@@ -1665,16 +1621,16 @@ int main(int argc, char *argv[])
 // 		v += inclusions[i]->volume() ;
 // 	}
 	
-// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
-// 	inc->setBehaviour(inclusionStiffness) ;
-	Vector a(6) ; a = 0 ;
-	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	inc->setBehaviour(inclusionDiffusion) ;
+	Vector a(6) ; //a = 0 ;
+// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
 	F.addFeature(&sample, inc) ;
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
-	F.setSamplingNumber(atoi(argv[3])) ;
+	F.setSamplingNumber(256) ;
 	F.setMaxIterationsPerStep(2);
 /*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
@@ -1714,7 +1670,7 @@ int main(int argc, char *argv[])
 		}
 	}*/
 	
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	
 	Function torz("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 cos *") ;
 	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;
@@ -1722,11 +1678,11 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.01*scale)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
 	step() ;

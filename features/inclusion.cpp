@@ -92,7 +92,7 @@ XMLTree * Inclusion::toXML()
 
 void Inclusion::sample(size_t n)
 {
-	this->sampleSurface(n) ;
+	this->sampleSurface(n*5/4) ;
 }
 
 

@@ -11,6 +11,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/laplacian.h"
 #include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/stiffness_and_fracture.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../features/pore.h"
@@ -30,6 +31,7 @@
 #include "../utilities/random.h"
 #include "../utilities/placement.h"
 #include "../physics/stiffness.h"
+#include "../physics/void_form.h"
 #include "../utilities/writer/voxel_writer.h"
 #include <sys/time.h>
 
@@ -106,6 +108,8 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
+std::vector<Inclusion *> inclusions ;
+
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
 std::vector<std::pair<double, double> > expansion_stress_yy ;
@@ -130,6 +134,8 @@ double nu = 0.3 ;
 double E_agg = 58.9e9 ;
 double E_paste = 12e9 ;
 
+VoidForm* black = new VoidForm() ;
+
 int totit = 5 ;
 
 double factor = 200 ;
@@ -143,12 +149,493 @@ double shape ;
 double orientation ;
 double spread ;
 
+struct HomogenizationInformation
+{
+	Matrix C_hom ;
+	Matrix C_paste ;
+	Matrix C_aggregate ;
+	Matrix A_paste ;
+	Matrix A_aggregate ;
+	
+	Vector b_hom ;
+	Vector b_aggregate ;
+	
+	HomogenizationInformation()
+	{
+		C_hom = Matrix(3,3) ;
+		C_paste = Matrix(3,3) ;
+		C_aggregate = Matrix(3,3) ;
+		A_paste = Matrix(3,3) ;
+		A_aggregate = Matrix(3,3) ;
+		
+		b_hom = Vector(3) ;
+		b_aggregate = Vector(3) ;
+	}
+	
+} ;
+
+bool isInInclusions(Point p)
+{
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	{
+		if(inclusions[i]->in(p))
+			return true ;	
+	}
+	return false ;
+}
+
+Matrix getStiffness(Vector sigma_1, Vector sigma_2, Vector epsilon_1, Vector epsilon_2)
+{
+	Matrix K(4,4) ;
+	K[0][0] = epsilon_1[0] ;
+	K[0][1] = epsilon_1[1] ;
+	K[2][2] = epsilon_1[0] ;
+	K[2][3] = epsilon_1[1] ;
+	K[1][0] = epsilon_2[0] ;
+	K[1][1] = epsilon_2[1] ;
+	K[3][2] = epsilon_2[0] ;
+	K[3][3] = epsilon_2[1] ;
+	Matrix Ki = inverse4x4Matrix(K) ;
+	
+	Vector s(4) ;
+	s[0] = sigma_1[0] ;
+	s[2] = sigma_1[1] ;
+	s[1] = sigma_2[0] ;
+	s[3] = sigma_2[1] ;
+	Vector c = Ki*s ;
+	
+	Matrix stiffness(3,3) ;
+	stiffness[0][0] = c[0] ;
+	stiffness[0][1] = c[2] ;
+	stiffness[1][0] = c[1] ;
+	stiffness[1][1] = c[3] ;
+	stiffness[2][2] = sigma_1[3]/epsilon_1[3] ;
+	
+	return stiffness ;
+}
+
+HomogenizationInformation getHomogenizationInformation()
+{
+	HomogenizationInformation hom ;
+
+	Vector sigma_hom_1(3) ;
+	Vector sigma_paste_1(3) ;
+	Vector sigma_aggregate_1(3) ;
+	Vector sigma_hom_2(3) ;
+	Vector sigma_paste_2(3) ;
+	Vector sigma_aggregate_2(3) ;
+	
+	Vector epsilon_hom_1(3) ;
+	Vector epsilon_paste_1(3) ;
+	Vector epsilon_aggregate_1(3) ;
+	Vector epsilon_hom_2(3) ;
+	Vector epsilon_paste_2(3) ;
+	Vector epsilon_aggregate_2(3) ;
+	
+	double area_hom ;
+	double area_paste ;
+	double area_aggregate ;
+
+	Vector a(3) ;	
+	for(size_t i = 0 ; i < zones.size() ; i++)
+		zones[i].first->setExpansion(a) ;
+//	featureTree->forceEnrichmentChange() ;
+	
+	featureTree->resetBoundaryConditions() ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.000001)) ;
+			
+	featureTree->elasticStep() ;
+//	featureTree->elasticStep() ;
+
+	std::cout << "first step done" << std::endl ;
+			
+	triangles = featureTree->getElements2D() ;
+	int npoints = triangles[0]->getBoundingPoints().size() ;
+	std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
+
+	for(size_t i = 0 ; i < triangles.size() ; i++)
+	{
+		Point c = triangles[i]->getCenter() ;
+//		if(c.x*c.x + c.y*c.y < 0.01*0.01)
+		{	
+			double area = triangles[i]->area() ;
+			Point c = triangles[i]->getCenter() ;
+
+			double sgm_11 = 0 ;
+			double sgm_22 = 0 ;
+			double sgm_12 = 0 ;
+
+			double eps_11 = 0 ;
+			double eps_22 = 0 ;
+			double eps_12 = 0 ;
+		
+			if(!triangles[i]->getBehaviour()->fractured())
+			{
+				sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3];
+				sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+3];
+				sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+6];
+		
+				sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+1];
+				sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+4];
+				sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+7];
+
+				sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+2];
+				sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+5];
+				sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+8];
+
+				eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3];
+				eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+3];
+				eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+6];
+		
+				eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+1];
+				eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+4];
+				eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+7];
+
+				eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+2];
+				eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+5];
+				eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+8];
+			}
+		
+			area_hom += area ;
+			sigma_hom_1[0] += sgm_11 ;
+			sigma_hom_1[1] += sgm_22 ;
+			sigma_hom_1[2] += sgm_12 ;
+			
+			epsilon_hom_1[0] += eps_11 ;
+			epsilon_hom_1[1] += eps_22 ;
+			epsilon_hom_1[2] += eps_12 ;
+		
+			if(isInInclusions(c))
+			{
+				area_aggregate += area ;
+
+				sigma_aggregate_1[0] += sgm_11 ;
+				sigma_aggregate_1[1] += sgm_22 ;
+				sigma_aggregate_1[2] += sgm_12 ;
+			
+				epsilon_aggregate_1[0] += eps_11 ;
+				epsilon_aggregate_1[1] += eps_22 ;
+				epsilon_aggregate_1[2] += eps_12 ;		
+			}
+			else
+			{
+				area_paste += area ;
+
+				sigma_paste_1[0] += sgm_11 ;
+				sigma_paste_1[1] += sgm_22 ;
+				sigma_paste_1[2] += sgm_12 ;
+			
+				epsilon_paste_1[0] += eps_11 ;
+				epsilon_paste_1[1] += eps_22 ;
+				epsilon_paste_1[2] += eps_12 ;		
+			}
+		}
+	}	
+
+	std::cout << area_aggregate << std::endl ;
+
+	sigma_hom_1 /= area_hom ;
+	sigma_paste_1 /= area_paste ;
+	sigma_aggregate_1 /= area_aggregate ;
+
+	epsilon_hom_1 /= area_hom ;
+	epsilon_paste_1 /= area_paste ;
+	epsilon_aggregate_1 /= area_aggregate ;
+
+	for(size_t i = 0 ; i < zones.size() ; i++)
+		zones[i].first->setExpansion(a) ;
+
+	featureTree->resetBoundaryConditions() ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0.000001)) ;
+			
+	featureTree->elasticStep() ;
+//	featureTree->elasticStep() ;
+
+	triangles = featureTree->getElements2D() ;
+	sigma_epsilon = featureTree->getStressAndStrain() ;
+
+	for(size_t i = 0 ; i < triangles.size() ; i++)
+	{
+		double area = triangles[i]->area() ;
+		Point c = triangles[i]->getCenter() ;
+//		if(c.x*c.x + c.y*c.y < 0.01*0.01)
+		{	
+
+			double sgm_11 = 0 ;
+			double sgm_22 = 0 ;
+			double sgm_12 = 0 ;
+
+			double eps_11 = 0 ;
+			double eps_22 = 0 ;
+			double eps_12 = 0 ;
+		
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3];
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+3];
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+6];
+		
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+1];
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+4];
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+7];
+
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+2];
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+5];
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+8];
+
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3];
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+3];
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+6];
+		
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+1];
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+4];
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+7];
+
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+2];
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+5];
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+8];
+		
+			sigma_hom_2[0] += sgm_11 ;
+			sigma_hom_2[1] += sgm_22 ;
+			sigma_hom_2[2] += sgm_12 ;
+			
+			epsilon_hom_2[0] += eps_11 ;
+			epsilon_hom_2[1] += eps_22 ;
+			epsilon_hom_2[2] += eps_12 ;
+		
+			if(isInInclusions(c))
+			{
+				sigma_aggregate_2[0] += sgm_11 ;
+				sigma_aggregate_2[1] += sgm_22 ;
+				sigma_aggregate_2[2] += sgm_12 ;
+			
+				epsilon_aggregate_2[0] += eps_11 ;
+				epsilon_aggregate_2[1] += eps_22 ;
+				epsilon_aggregate_2[2] += eps_12 ;		
+			}
+			else
+			{
+				sigma_paste_2[0] += sgm_11 ;
+				sigma_paste_2[1] += sgm_22 ;
+				sigma_paste_2[2] += sgm_12 ;
+			
+				epsilon_paste_2[0] += eps_11 ;
+				epsilon_paste_2[1] += eps_22 ;
+				epsilon_paste_2[2] += eps_12 ;		
+			}
+		}
+	}	
+
+	sigma_hom_2 /= area_hom ;
+	sigma_paste_2 /= area_paste ;
+	sigma_aggregate_2 /= area_aggregate ;
+
+	epsilon_hom_2 /= area_hom ;
+	epsilon_paste_2 /= area_paste ;
+	epsilon_aggregate_2 /= area_aggregate ;
+	
+	std::cout << epsilon_aggregate_1[0] << " " << epsilon_aggregate_1[1] << std::endl ;
+	std::cout << sigma_aggregate_1[0] << " " << sigma_aggregate_1[1] << std::endl ;
+
+	std::cout << epsilon_aggregate_2[0] << " " << epsilon_aggregate_2[1] << std::endl ;
+	std::cout << sigma_aggregate_2[0] << " " << sigma_aggregate_2[1] << std::endl ;
+
+	hom.C_hom = getStiffness(sigma_hom_1,sigma_hom_2,epsilon_hom_1,epsilon_hom_2) ;
+	hom.C_paste = getStiffness(sigma_paste_1,sigma_paste_2,epsilon_paste_1,epsilon_paste_2) ;
+	hom.C_aggregate = getStiffness(sigma_aggregate_1,sigma_aggregate_2,epsilon_aggregate_1,epsilon_aggregate_2) ;
+	
+	hom.A_paste = getStiffness(epsilon_hom_1,epsilon_hom_2,epsilon_paste_1,epsilon_paste_2) ;
+	hom.A_aggregate = getStiffness(epsilon_hom_1,epsilon_hom_2,epsilon_aggregate_1,epsilon_aggregate_2) ;
+	
+	
+	a[0] = 0.5 ;
+	a[1] = 0.5 ;
+	for(size_t i = 0 ; i < zones.size() ; i++)
+		zones[i].first->setExpansion(a) ;
+	
+	
+	featureTree->resetBoundaryConditions() ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+
+	for(size_t i = 0 ; i < triangles.size() ; i++)
+	{
+		double area = triangles[i]->area() ;
+		Point c = triangles[i]->getCenter() ;
+//		if(c.x*c.x + c.y*c.y < 0.01*0.01)
+		{	
+
+			double sgm_11 = 0 ;
+			double sgm_22 = 0 ;
+			double sgm_12 = 0 ;
+
+			double eps_11 = 0 ;
+			double eps_22 = 0 ;
+			double eps_12 = 0 ;
+		
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3];
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+3];
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+6];
+		
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+1];
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+4];
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+7];
+
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+2];
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+5];
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+8];
+
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3];
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+3];
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+6];
+		
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+1];
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+4];
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+7];
+
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+2];
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+5];
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+8];
+		
+			sigma_hom_2[0] += sgm_11 ;
+			sigma_hom_2[1] += sgm_22 ;
+			sigma_hom_2[2] += sgm_12 ;
+			
+			epsilon_hom_2[0] += eps_11 ;
+			epsilon_hom_2[1] += eps_22 ;
+			epsilon_hom_2[2] += eps_12 ;
+		
+			if(isInInclusions(c))
+			{
+				sigma_aggregate_2[0] += sgm_11 ;
+				sigma_aggregate_2[1] += sgm_22 ;
+				sigma_aggregate_2[2] += sgm_12 ;
+			
+				epsilon_aggregate_2[0] += eps_11 ;
+				epsilon_aggregate_2[1] += eps_22 ;
+				epsilon_aggregate_2[2] += eps_12 ;		
+			}
+			else
+			{
+				sigma_paste_2[0] += sgm_11 ;
+				sigma_paste_2[1] += sgm_22 ;
+				sigma_paste_2[2] += sgm_12 ;
+			
+				epsilon_paste_2[0] += eps_11 ;
+				epsilon_paste_2[1] += eps_22 ;
+				epsilon_paste_2[2] += eps_12 ;		
+			}
+		}
+	}
+	
+	hom.b_hom = sigma_hom_2 ;
+
+	std::vector<StiffnessAndFracture* > restore ;
+	for(size_t i = 0 ; i < triangles.size() ; i++)
+	{
+		Point c = triangles[i]->getCenter() ;
+		if(!isInInclusions(c))
+		{
+			restore.push_back(dynamic_cast<StiffnessAndFracture*>(triangles[i]->getBehaviour())) ;
+			triangles[i]->setBehaviour(black) ;
+		}
+	}
+	
+	featureTree->elasticStep() ;
+	
+	for(size_t i = 0 ; i < triangles.size() ; i++)
+	{
+		double area = triangles[i]->area() ;
+		Point c = triangles[i]->getCenter() ;
+		if(isInInclusions(c))
+		{	
+
+			double sgm_11 = 0 ;
+			double sgm_22 = 0 ;
+			double sgm_12 = 0 ;
+
+			double eps_11 = 0 ;
+			double eps_22 = 0 ;
+			double eps_12 = 0 ;
+		
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3];
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+3];
+			sgm_11 += area/npoints * sigma_epsilon.first[i*npoints*3+6];
+		
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+1];
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+4];
+			sgm_22 += area/npoints * sigma_epsilon.first[i*npoints*3+7];
+
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+2];
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+5];
+			sgm_12 += area/npoints * sigma_epsilon.first[i*npoints*3+8];
+
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3];
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+3];
+			eps_11 += area/npoints * sigma_epsilon.second[i*npoints*3+6];
+		
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+1];
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+4];
+			eps_22 += area/npoints * sigma_epsilon.second[i*npoints*3+7];
+
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+2];
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+5];
+			eps_12 += area/npoints * sigma_epsilon.second[i*npoints*3+8];
+		
+			sigma_hom_2[0] += sgm_11 ;
+			sigma_hom_2[1] += sgm_22 ;
+			sigma_hom_2[2] += sgm_12 ;
+			
+			epsilon_hom_2[0] += eps_11 ;
+			epsilon_hom_2[1] += eps_22 ;
+			epsilon_hom_2[2] += eps_12 ;
+		
+			if(isInInclusions(c))
+			{
+				sigma_aggregate_2[0] += sgm_11 ;
+				sigma_aggregate_2[1] += sgm_22 ;
+				sigma_aggregate_2[2] += sgm_12 ;
+			
+				epsilon_aggregate_2[0] += eps_11 ;
+				epsilon_aggregate_2[1] += eps_22 ;
+				epsilon_aggregate_2[2] += eps_12 ;		
+			}
+			else
+			{
+				sigma_paste_2[0] += sgm_11 ;
+				sigma_paste_2[1] += sgm_22 ;
+				sigma_paste_2[2] += sgm_12 ;
+			
+				epsilon_paste_2[0] += eps_11 ;
+				epsilon_paste_2[1] += eps_22 ;
+				epsilon_paste_2[2] += eps_12 ;		
+			}
+		}
+	}
+	
+	hom.b_aggregate = sigma_aggregate_2 ;
+
+	int count = 0 ;	
+	for(size_t i = 0 ; i < triangles.size() ; i++)
+	{
+		Point c = triangles[i]->getCenter() ;
+		if(!isInInclusions(c))
+		{
+			triangles[i]->setBehaviour(restore[count]) ;
+			count++ ;
+		}
+	}
+	
+	return hom ;
+}
+
+
 
 void step()
 {
 
-	int nsteps = 1;
-	int nstepstot = 1;
+	int nsteps = 30;
+	int nstepstot = 30;
 	int maxtries = 2000 ;
 	int tries = 0 ;
 	
@@ -156,8 +643,20 @@ void step()
 	featureTree->setMaxIterationsPerStep(maxtries) ;
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
+		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 
-		featureTree->step() ;
+
+		featureTree->resetBoundaryConditions() ;
+		featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+		featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+		
+		Vector a(3) ;
+		a[0] = 0.5 ;
+		a[1] = 0.5 ;
+		for(size_t j = 0 ; j < zones.size() ; j++)
+			zones[j].first->setExpansion(a) ;
+
+		bool go_on = featureTree->step() ;
 
 		if(featureTree->solverConverged())
 		{
@@ -452,27 +951,332 @@ void step()
 
 		std::cout << tries << std::endl ;
 
+		if (go_on && i < nstepstot-1)
+		{
+			TriangleWriter writer("iteration_"+itoa(i),featureTree) ;
+			writer.getField(TWFT_STIFFNESS) ;
+			writer.write() ;
+			
+			HomogenizationInformation inf = getHomogenizationInformation() ;
+			Matrix C_hom(3,3) ;
+			double f_aggregate = 0.000625 ;
+
+			Matrix C_0 = inf.C_paste ;
+			C_0 *= inf.A_paste ;
+			C_0 *= (1-f_aggregate) ;
+
+			Matrix C_1 = inf.C_aggregate ;
+			C_1 *= inf.A_aggregate ;
+			C_1 *= (f_aggregate) ;
+			
+			
+			C_hom = C_0 + C_1 ;
+			
+			Vector b_hom(3) ;
+			Matrix I(3,3) ;
+			I[0][0] = 1 ;
+			I[1][1] = 1 ;
+			I[2][2] = 1 ;
+			
+			Vector a_hom = (inf.A_aggregate-I)*inf.b_aggregate ;
+			b_hom = f_aggregate*(inf.b_aggregate+a_hom) ;
+			
+			
+			std::fstream hom ;
+			hom.open("homogenization.txt",std::ios::out|std::ios::app) ;
+			hom << inf.C_hom[0][0] << "\t" << inf.C_hom[1][1] << "\t"
+				<< inf.C_paste[0][0] << "\t" << inf.C_paste[1][1] << "\t"
+				<< inf.C_aggregate[0][0] << "\t" << inf.C_aggregate[1][1] << "\t"
+				<< inf.A_paste[0][0] << "\t" << inf.A_paste[1][1] << "\t"
+				<< inf.A_aggregate[0][0] << "\t" << inf.A_aggregate[1][1] << "\t" 
+				<< inf.b_hom[0] << "\t" << inf.b_hom[1] << "\t" 
+				<< inf.b_aggregate[0] << "\t" << inf.b_aggregate[1] << "\t" 
+				<< "HOM\t" 
+				<< b_hom[0] << "\t" << b_hom[1] << "\t" 
+				<< C_hom[0][0] << "\t" << C_hom[1][1] << std::endl ;
+			
+			hom.close() ;
+			
+		
+			double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/(double)nstepstot ;
+			double reactedArea = 0 ;
+			
+			Inclusion * current = NULL ;
+			if(!zones.empty())
+				current = zones[0].second ;
+			double current_area = 0 ;
+			int current_number = 0 ;
+			int stopped_reaction = 0 ;
+			for(size_t z = 0 ; z < zones.size() ; z++)
+			{
+				
+				zones[z].first->setRadius(zones[z].first->getRadius()+delta_r) ;	
+		// 		zones[z].first->reset() ;
+				if(zones[z].second == current)
+				{
+					current_area += zones[z].first->area() ;
+					current_number++ ;
+				}
+				else
+				{
+					if(current_area/zones[z-1].second->area() > 0.03)
+					{
+						stopped_reaction++ ;
+						for(size_t m = 0 ; m < current_number ; m++)
+						{
+							reactedArea -= zones[z-1-m].first->area() ;
+							zones[z-1-m].first->setRadius(zones[z].first->getRadius()-delta_r) ;
+							reactedArea += zones[z-1-m].first->area() ;
+						}
+					}
+					current_area = zones[z].first->area() ;
+					current_number = 1 ;
+					current = zones[z].second ;
+				}
+				reactedArea += zones[z].first->area() ;
+			}
+			
+			std::cout << "reacted Area : " << reactedArea << ", reaction stopped in "<< stopped_reaction << " aggs."<< std::endl ;
+
+		
+			if(go_on)
+			{
+				expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
+				expansion_stress_xx.push_back(std::make_pair((avg_e_xx_nogel)/(nogel_area), (avg_s_xx_nogel)/(nogel_area))) ;
+				expansion_stress_yy.push_back(std::make_pair((avg_e_yy_nogel)/(nogel_area), (avg_s_yy_nogel)/(nogel_area))) ;
+				apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
+			}
+			
+			if (!go_on)
+				break ;
+
+			for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
+			{
+				std::cout << expansion_reaction[i].first << "   " 
+				<< expansion_reaction[i].second << "   " 
+				<< expansion_stress_xx[i].first << "   " 
+				<< expansion_stress_xx[i].second << "   " 
+				<< expansion_stress_yy[i].first << "   " 
+				<< expansion_stress_yy[i].second << "   " 
+				<< apparent_extension[i].first  << "   " 
+				<< apparent_extension[i].second  << "   " 				 
+				<< cracked_volume[i]  << "   " 
+				<< damaged_volume[i]  << "   " 
+				<< std::endl ;
+			}
+			
+		}
+
 	}
 }
 
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, Inclusion* inc , FeatureTree & F)
+{
+	zones.clear() ;
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	double nu_incompressible = .499997 ;
+	double radiusFraction = 10 ;
+	double radius = 0.00001 ;
+	
+	double E = percent*E_csh ;
+	double nu = nu_csh ; //nu_incompressible ;
+	
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
+	aggregateArea = 0 ;
+	
+	Vector a(double(0), 3) ;
+	a[0] = 0.5 ;
+	a[1] = 0.5 ;
+	a[2] = 0.00 ;
+
+	Point c = inc->getCenter() ;
+	double r = inc->getRadius() ;
+	
+	RandomNumber rnd ;
+	
+	while(zones.size() < n)
+	{
+		Point x(rnd.uniform(-r,r), rnd.uniform(-r,r)) ;
+		x += c ;
+		if(inc->in(x))
+		{
+			bool alone = true ;
+			for(size_t i = 0 ; i < zones.size() ; i++)
+			{
+				Point cz = zones[i].first->getCenter() ;
+				if (squareDist(x, cz) < (radius*radiusFraction+radius*radiusFraction)*(radius*radiusFraction+radius*radiusFraction))
+				{
+					alone = false ;
+					break ;
+				}
+			}
+			if(alone)
+			{
+				ExpansiveZone* z = new ExpansiveZone(NULL, radius, x.x, x.y, m0, a) ;
+				F.addFeature(inc, z) ;
+				zones.push_back(std::make_pair(z, inc)) ;
+			}
+		}
+	}
+	return zones ;
+}
+
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
+{
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	double nu_incompressible = .499997 ;
+	double radiusFraction = 10 ;
+	double radius = 0.00001 ;
+	
+	double E = percent*E_csh ;
+	double nu = nu_csh ; //nu_incompressible ;
+	
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
+	aggregateArea = 0 ;
+	
+	Vector a(double(0), 3) ;
+	a[0] = 0.5 ;
+	a[1] = 0.5 ;
+	a[2] = 0.00 ;
+	
+	std::vector<ExpansiveZone *> zonesToPlace ;
+	
+	for(size_t i = 0 ; i < n ; i++)
+	{
+		Point pos(((double)rand()/RAND_MAX-.5)*(sample.width()-radius*radiusFraction),((double)rand()/RAND_MAX-.5)*(sample.height()-radius*radiusFraction)) ;
+		bool alone  = true ;
+		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
+		{
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*radiusFraction+radius*radiusFraction)*(radius*radiusFraction+radius*radiusFraction))
+			{
+				alone = false ;
+				break ;
+			}
+		}
+		if (alone)
+			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+		else
+			i-- ;
+	}
+	std::map<Inclusion *, int> zonesPerIncs ; 
+	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
+	{
+		bool placed = false ;
+		for(int j = 0 ; j < incs.size() ; j++)
+		{
+			if(dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter()) < incs[j]->getRadius()-radius*radiusFraction /*&& incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004*/ && sample.in(zonesToPlace[i]->getCenter()))
+			{
+				zonesPerIncs[incs[j]]++ ; ;
+				F.addFeature(incs[j],zonesToPlace[i]) ;
+				ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
+				placed = true ;
+				break ;
+			}
+		}
+		if(!placed)
+			delete zonesToPlace[i] ;
+	}
+	
+	int count = 0 ;
+	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	{
+		aggregateArea+= i->first->area() ;
+		count+= i->second ;
+		std::cout << aggregateArea << "  " << count << std::endl ;
+	}
+	
+	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
+	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+	return ret ;	
+}
 
 
 int main(int argc, char *argv[])
 {
+	srand(0) ;
+
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	Inclusion* cem = new Inclusion(0.01,0.,0.) ;
-	Inclusion* inc = new Inclusion(0.001,0.,0.) ;
+//	for(int i = 0 ; i < 10 ; i++)
+//		inclusions.push_back(new Inclusion(0.009/(i/2+1),0.,0.)) ;
 
-	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
+	inclusions.push_back(new Inclusion(0.001, 0., 0.)) ;
+	inclusions[0]->sample(40) ;
+
+	Inclusion * cement = new Inclusion(0.004, 0., 0.) ;
+	cement->sample(150) ;
+		
+	double a = 0 ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		a += inclusions[i]->area() ;
+	
+	std::cout << a << std::endl ;
+	
+/*	std::vector<Feature* > feats ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		feats.push_back(inclusions[i]) ;
+	inclusions.clear() ;
+	
+	int n = 0 ; 
+	Sample* box = new Sample(NULL, 0.035, 0.035, 0., 0.);
+	feats = placement(dynamic_cast<Rectangle*>(box), feats, &n) ;
+	
+	for(size_t i = 0 ; i < feats.size() ; i++)
+	{
+		inclusions.push_back(dynamic_cast<Inclusion* >(feats[i])) ;
+		inclusions[i]->getCenter().print() ;
+	}*/
+	
+	sample.setBehaviour(new PasteBehaviour()) ;
+	cement->setBehaviour(new PasteBehaviour()) ;
+//	F.addFeature(&sample, cement) ;
+	
+	AggregateBehaviour* agg = new AggregateBehaviour() ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	{
+		inclusions[i]->setBehaviour(agg) ;
+		F.addFeature(&sample, inclusions[i]) ;
+	}
+	
+	zones = generateExpansiveZones(5, inclusions[0] , F) ;
+	
+	F.setSamplingNumber(500) ;
+
+	step() ;
+	
+/*	TriangleWriter writer("test_elastic",featureTree) ;
+	writer.getField(TWFT_STIFFNESS) ;
+	writer.write() ;*/
+	
+	HomogenizationInformation inf = getHomogenizationInformation() ;
+	inf.C_hom.print() ;
+	inf.C_paste.print() ;
+	inf.C_aggregate.print() ;
+	inf.A_paste.print() ;
+	inf.A_aggregate.print() ;
+	
+	return 0 ;
+
+/*	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
 	cem->setBehaviour(new ElasticOnlyPasteBehaviour()) ;
 	inc->setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
 
 	F.addFeature(&sample, inc) ;
 //	F.addFeature(cem, inc) ;
 
-	F.setSamplingNumber(200) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,-0.00005)) ;
 	
@@ -482,5 +1286,5 @@ int main(int argc, char *argv[])
 	trg.getField(TWFT_STRAIN_AND_STRESS) ;
 	trg.getField(TWFT_STIFFNESS) ;
 	trg.write() ;
-	return 0 ;
+	return 0 ;*/
 }

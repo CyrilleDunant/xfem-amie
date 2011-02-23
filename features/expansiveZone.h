@@ -53,6 +53,8 @@ public:
 	
 	void reset() ;
 	
+	void setExpansion(Vector a) ;
+	
 public:
 	GEO_DERIVED_OBJECT(Circle) ;
 	

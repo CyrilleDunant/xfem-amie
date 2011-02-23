@@ -1436,53 +1436,55 @@ void Circle::sampleBoundingSurface(size_t num_points)
 
 void Circle::sampleSurface(size_t num_points)
 {
-// 	num_points = std::max(round(num_points*1.5), 16.) ;
-	sampleBoundingSurface(num_points) ;
-	sampled = true ;
-	size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
-// 	if(numberOfRings > 0)
-// 		numberOfRings-- ;
-	assert(numberOfRings >= 0) ;
-	double angle = 2.*M_PI/ (num_points) ;
-	double offset = 0 ;
-	
-	//std::cout << "we have " << numberOfRings<< " rings" << std::endl ;
-	size_t num_points_start = num_points ;
-	
-	std::vector<Point*> temp ;
-	
-	for (size_t i = 0 ; i< numberOfRings ; ++i)
+	if(!sampled)
 	{
-		double r = getRadius()*(1. - (double)(i + 1)/(numberOfRings+1)) ;
-		//std::cout << "radius is " << r << std::endl ;
-		
-		for (size_t j = 0 ; j< num_points ; ++j)
+	// 	num_points = std::max(round(num_points*1.5), 16.) ;
+		sampleBoundingSurface(num_points) ;
+		sampled = true ;
+		size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
+	// 	if(numberOfRings > 0)
+	// 		numberOfRings-- ;
+		assert(numberOfRings >= 0) ;
+		double angle = 2.*M_PI/ (num_points) ;
+		double offset = 0 ;
+	
+		//std::cout << "we have " << numberOfRings<< " rings" << std::endl ;
+		size_t num_points_start = num_points ;
+	
+		std::vector<Point*> temp ;
+	
+		for (size_t i = 0 ; i< numberOfRings ; ++i)
 		{
-			double randa= 0 ; //((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.2*(M_PI/num_points) ;
-			double randr= 0 ; //(.2*r/(numberOfRings+1))*((double)rand()/RAND_MAX*2.-1.0) ;
-			temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().x, (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().y));
+			double r = getRadius()*(1. - (double)(i + 1)/(numberOfRings+1)) ;
+			//std::cout << "radius is " << r << std::endl ;
+		
+			for (size_t j = 0 ; j< num_points ; ++j)
+			{
+				double randa= 0 ; //((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.2*(M_PI/num_points) ;
+				double randr= 0 ; //(.2*r/(numberOfRings+1))*((double)rand()/RAND_MAX*2.-1.0) ;
+				temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().x, (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().y));
+			}
+		
+			num_points = (size_t)(/*std::max(*/(double)num_points_start*(r/getRadius())/*, (double)8)*/) ;
+		
+			angle = 2.*M_PI/ (num_points) ;
+		
+			offset = 0.5*(2.*M_PI/ (num_points) -  2.*M_PI/ (num_points*1.1)) ;
+		
+			if(num_points < 5)
+				break ;
 		}
-		
-		num_points = (size_t)(/*std::max(*/(double)num_points_start*(r/getRadius())/*, (double)8)*/) ;
-		
-		angle = 2.*M_PI/ (num_points) ;
-		
-		offset = 0.5*(2.*M_PI/ (num_points) -  2.*M_PI/ (num_points*1.1)) ;
-		
-		if(num_points < 5)
-			break ;
-	}
-	for(size_t i = 0 ; i < inPoints.size() ; i++)
-		delete inPoints[i] ;
+		for(size_t i = 0 ; i < inPoints.size() ; i++)
+			delete inPoints[i] ;
 	
-	inPoints.resize(temp.size() + 1) ;
-	inPoints[0] = new Point(center) ;
-	std::copy(temp.begin(), temp.end(),&inPoints[1]) ;
+		inPoints.resize(temp.size() + 1) ;
+		inPoints[0] = new Point(center) ;
+		std::copy(temp.begin(), temp.end(),&inPoints[1]) ;
 
-//	for(size_t i = 0 ; i < inPoints.size() ; i++)
-//		inPoints[i]->print() ;
-	//std::cout << "we have " << num_points << " sample points" << std::endl ;
-	
+	//	for(size_t i = 0 ; i < inPoints.size() ; i++)
+	//		inPoints[i]->print() ;
+		//std::cout << "we have " << num_points << " sample points" << std::endl ;
+	}	
 }
 
 bool Circle::in(const Point & v) const 

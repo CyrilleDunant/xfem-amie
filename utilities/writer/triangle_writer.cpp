@@ -408,7 +408,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 
 		case TWFT_STIFFNESS:
 		{
-			Stiffness * b = dynamic_cast<Stiffness *>(tri->getBehaviour()) ;
+			LinearForm * b = dynamic_cast<LinearForm *>(tri->getBehaviour()) ;
 			if(b)
 			{
 				ret[2]=b->getTensor(Point(0.3,0.3))[0][0] ;

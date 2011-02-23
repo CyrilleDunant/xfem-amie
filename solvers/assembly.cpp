@@ -73,7 +73,8 @@ Assembly::Assembly()
 	this->externalForces.resize(0) ;
 	this->naturalBoundaryConditionForces.resize(0) ;
 	this->boundaryMatrix = NULL ;
-	has3Dims = true ;
+	ndof = 1 ;
+	dim = SPACE_THREE_DIMENSIONAL ;
 // 	multiplier_offset = 2 ;//bookmark...chk if =3
 }
 
@@ -164,22 +165,22 @@ ElementaryVolume * Assembly::getElement3d(const size_t i)
 
 void Assembly::add(ElementarySurface * e)
 {
-	this->has3Dims = false ;
+	dim = SPACE_TWO_DIMENSIONAL ;
 	std::vector<size_t> ids  = e->getDofIds() ;
 	if(ids.empty())
 		return ;
 
 	std::sort(ids.begin(), ids.end()) ;
-	size_t ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	multiplier_offset =  ndof;
 	element2d.push_back(e) ;
 }
 void Mu::Assembly::add(Mu::ElementaryVolume * e)
 {
-	this->has3Dims = true ;
+	dim = SPACE_THREE_DIMENSIONAL ;
 	std::vector<size_t> ids  = e->getDofIds() ;
 	std::sort(ids.begin(), ids.end()) ;
-	size_t ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	multiplier_offset =  ndof;
 	element3d.push_back(e) ;
 }
@@ -326,7 +327,7 @@ void Assembly::setBoundaryConditions()
 	this->nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
 	this->nonLinearExternalForces = 0 ;
 
-	size_t ndofs = multiplier_offset ;
+//	size_t ndofs = multiplier_offset ;
 
 	std::sort(multipliers.begin(), multipliers.end()) ;
 	std::valarray<int> multiplierIds(multipliers.size()) ;
@@ -477,7 +478,7 @@ void Assembly::initialiseElementaryMatrices()
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
 	std::cerr << "Generating elementary matrices..." << std::flush ;
-	if(has3Dims == false)
+	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
 		std::random_shuffle(element2d.begin(), element2d.end());
 		#pragma omp parallel for 
@@ -486,7 +487,7 @@ void Assembly::initialiseElementaryMatrices()
 			element2d[i]->getElementaryMatrix() ;
 		}
 	}
-	else
+	if(dim == SPACE_THREE_DIMENSIONAL)
 	{
 			#pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
@@ -504,9 +505,9 @@ bool Assembly::make_final()
 {
 	bool symmetric = true ;
 	
-	size_t ndof = 2 ;
+//	size_t ndof = 2 ;
 	
-	if (has3Dims == false)
+	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
 		
 		if( element2d.empty() && coordinateIndexedMatrix != NULL)
@@ -515,7 +516,7 @@ bool Assembly::make_final()
 			return false ;
 		}
 		
-		ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+//		ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		size_t max ;
 		if(coordinateIndexedMatrix == NULL)
 		{
@@ -648,7 +649,7 @@ bool Assembly::make_final()
 		setBoundaryConditions() ;
 		
 	}
-	else 
+	if(dim == SPACE_THREE_DIMENSIONAL)
 	{			
 			
 		if(element3d.empty() && coordinateIndexedMatrix != NULL)
@@ -658,7 +659,7 @@ bool Assembly::make_final()
 		}
 				
 		size_t max ;
-		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+//		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
 		if( coordinateIndexedMatrix == NULL)
 		{
@@ -868,23 +869,26 @@ void Assembly::setPoint(double ex, size_t id)
 
 void Assembly::setPoint(double ex, double ey, size_t id)
 {		
-	set2D() ;
+	setSpaceDimension(SPACE_TWO_DIMENSIONAL) ;
 	Vector c(2) ;
 	std::valarray<unsigned int> i(2) ;
+	
 	auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
 	if(!(multipliers.empty() || duplicate == multipliers.end()))
 		multipliers.erase(duplicate) ;
 
-	multipliers.push_back(LagrangeMultiplier(i,c, ex, id*2)) ;
+	multipliers.push_back(LagrangeMultiplier(i,c, ex, id*ndof)) ;
 	multipliers.back().type = SET_ALONG_XI ;
 
-	duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
-	if(!(multipliers.empty() || duplicate == multipliers.end()))
-		multipliers.erase(duplicate) ;
+	if(ndof > 1)
+	{
+		duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
+		if(!(multipliers.empty() || duplicate == multipliers.end()))
+			multipliers.erase(duplicate) ;
 	
-	multipliers.push_back(LagrangeMultiplier(i,c, ey, id*2+1)) ;
-	multipliers.back().type = SET_ALONG_ETA ;
-
+		multipliers.push_back(LagrangeMultiplier(i,c, ey, id*ndof+1)) ;
+		multipliers.back().type = SET_ALONG_ETA ;
+	}
 
 
 	return ;
@@ -892,76 +896,58 @@ void Assembly::setPoint(double ex, double ey, size_t id)
 
 void Assembly::setPoint(double ex, double ey, double ez, size_t id)
 {
+	setSpaceDimension(SPACE_THREE_DIMENSIONAL) ;
 	Vector c(2) ;
-	set3D() ;
 	std::valarray<unsigned int> i(2) ;
 	
 	auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
 	if(!(multipliers.empty() || duplicate == multipliers.end()))
 		multipliers.erase(duplicate) ;
 	
-	multipliers.push_back(LagrangeMultiplier(i,c, ex, id*3)) ;
+	multipliers.push_back(LagrangeMultiplier(i,c, ex, id*ndof)) ;
 	multipliers.back().type = SET_ALONG_XI ;
 	
-	duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
-	if(!(multipliers.empty() || duplicate == multipliers.end()))
-		multipliers.erase(duplicate) ;
+	if(ndof > 1)
+	{
+		duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
+		if(!(multipliers.empty() || duplicate == multipliers.end()))
+			multipliers.erase(duplicate) ;
 	
-	multipliers.push_back(LagrangeMultiplier(i,c, ey, id*3+1)) ;
-	multipliers.back().type = SET_ALONG_ETA ;
+		multipliers.push_back(LagrangeMultiplier(i,c, ey, id*ndof+1)) ;
+		multipliers.back().type = SET_ALONG_ETA ;
+	}
 	
-	duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
-	if(!(multipliers.empty() || duplicate == multipliers.end()))
-		multipliers.erase(duplicate) ;
+	if(ndof > 2)
+	{
+		duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
+		if(!(multipliers.empty() || duplicate == multipliers.end()))
+			multipliers.erase(duplicate) ;
 	
-	multipliers.push_back(LagrangeMultiplier(i,c, ez, id*3+2)) ;
-	multipliers.back().type = SET_ALONG_ZETA ;
+		multipliers.push_back(LagrangeMultiplier(i,c, ez, id*ndof+2)) ;
+		multipliers.back().type = SET_ALONG_ZETA ;
+	}
 }
 
 void Assembly::setPeriodicPoint(size_t id0, size_t id1)
 {
-	if( has3Dims == false)
+	Vector c(2) ;
+	c[0] = 1 ;
+	c[1] = -1 ;
+	std::valarray<unsigned int> i(2) ;
+	for(size_t n = 0 ; n < ndof ; n++)
 	{
-		Vector c(2) ;
-		c[0] = 1 ;
-		c[1] = -1 ;
-		std::valarray<unsigned int> i(2) ;
-		i[0] = id0*2 ;
-		i[1] = id1*2 ;
-		multipliers.push_back(LagrangeMultiplier(i,c, 0.)) ;
-		i[0] = id0*2 + 1;
-		i[1] = id1*2 + 1;
+		i[0] = id0*ndof+n ;
+		i[1] = id1*ndof+n ;
 		multipliers.push_back(LagrangeMultiplier(i,c, 0.)) ;
 	}
-	else
-	{
-		Vector c(2) ;
-		c[0] = 1 ;
-		c[1] = -1 ;
-		std::valarray<unsigned int> i(2) ;
-		i[0] = id0*2 ;
-		i[1] = id1*2 ;
-		multipliers.push_back(LagrangeMultiplier(i,c, 0.)) ;
-		i[0] = id0*2 + 1;
-		i[1] = id1*2 + 1;
-		multipliers.push_back(LagrangeMultiplier(i,c, 0.)) ;
-		i[0] = id0*3 + 1;
-		i[1] = id1*3 + 1;
-		multipliers.push_back(LagrangeMultiplier(i,c, 0.)) ;
-	}
-	//change ..push bac again
 }
 
 
-void Assembly::set3D()
-{
-	has3Dims = true ;
-}
-
-void Assembly::set2D()
-{
-	has3Dims = false ;
-}
+void Assembly::setNumberOfDregreesOfFreedom(int dof) { ndof = dof ; }
+int Assembly::getNumberOfDegreesOfFreedom() const { return ndof ; }
+	
+void Assembly::setSpaceDimension(SpaceDimensionality d) { dim = d ; }
+SpaceDimensionality Assembly::getSpaceDimension() const { return dim ; }
 
 void Assembly::clear()
 {
@@ -988,190 +974,112 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 {
 	std::valarray<unsigned int> i(2) ;
 	Vector c(2) ;
-	if(!has3Dims)
+	switch(v)
 	{
-		switch(v)
+	case XI:
 		{
-		case XI:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
 
-				if(duplicate != multipliers.end())
-				{
-					duplicate->value += val ;
-				}
-				else
-				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
-					multipliers.back().type = SET_FORCE_XI ;
-				}
-				break ;
-			}
-		case ETA:
+			if(duplicate != multipliers.end())
 			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
+				duplicate->value += val ;
+			}
+			else
+			{
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof)) ;
+				multipliers.back().type = SET_FORCE_XI ;
+			}
+			break ;
+		}
+	case ETA:
+		{
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
 
-				if(duplicate != multipliers.end())
-				{
-					duplicate->value += val ;
-				}
-				else
-				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
-					multipliers.back().type = SET_FORCE_ETA ;
-				}
-				break ;
-			}
-		default:
+			if(duplicate != multipliers.end())
 			{
-				break ;
+				duplicate->value += val ;
 			}
+			else
+			{
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+1)) ;
+				multipliers.back().type = SET_FORCE_ETA ;
+			}
+			break ;
+		}
+	case ZETA:
+		{
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
+
+			if(duplicate != multipliers.end())
+			{
+				duplicate->value += val ;
+			}
+			else
+			if(!(multipliers.empty() || duplicate == multipliers.end()))
+			{
+				multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
+				multipliers.back().type = SET_FORCE_ZETA ;
+			}
+			break ;
+		}
+	default:
+		{
+			break ;
 		}
 	}
-	else
-	{
-		switch(v)
-		{
-		case XI:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
-
-				if(duplicate != multipliers.end())
-				{
-					duplicate->value += val ;
-				}
-				else
-				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
-					multipliers.back().type = SET_FORCE_XI ;
-				}
-				break ;
-			}
-		case ETA:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
-
-				if(duplicate != multipliers.end())
-				{
-					duplicate->value += val ;
-				}
-				else
-				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
-					multipliers.back().type = SET_FORCE_ETA ;
-				}
-				break ;
-			}
-		case ZETA:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
-
-				if(duplicate != multipliers.end())
-				{
-					duplicate->value += val ;
-				}
-				else
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-				{
-					multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
-					multipliers.back().type = SET_FORCE_ZETA ;
-				}
-				break ;
-			}
-		default:
-			{
-				break ;
-			}
-		}
-	}
+	
+	
 	return ;
 }
 void Assembly::addForceOn(Variable v, double val, size_t id)
 {
 	std::valarray<unsigned int> i(2) ;
 	Vector c(2) ;
-	if(!has3Dims)
-	{
-		switch(v)
-		{
-		case XI:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
-				if(!multipliers.empty() && duplicate != multipliers.end())
-				{
-					val += duplicate->value ;
-					
-					multipliers.erase(duplicate) ;
-				}
 
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
-				multipliers.back().type = SET_FORCE_XI ;
-				break ;
-			}
-		case ETA:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
-				if(!multipliers.empty() && duplicate != multipliers.end())
-				{
-					val += duplicate->value ;
-					multipliers.erase(duplicate) ;
-				}
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
-				multipliers.back().type = SET_FORCE_ETA ;
-				break ;
-			}
-		default:
-			{
-				break ;
-			}
-		}
-	}
-	else
+	switch(v)
 	{
-		switch(v)
+	case XI:
 		{
-		case XI:
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
+			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-				{
-					val += (*duplicate).value ;
-					multipliers.erase(duplicate) ;
-				}
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
-				multipliers.back().type = SET_FORCE_XI ;
-				break ;
+				val += (*duplicate).value ;
+				multipliers.erase(duplicate) ;
 			}
-		case ETA:
+			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof)) ;
+			multipliers.back().type = SET_FORCE_XI ;
+			break ;
+		}
+	case ETA:
+		{
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
+			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-				{
-					val += (*duplicate).value ;
-					multipliers.erase(duplicate) ;
-				}
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
-				multipliers.back().type = SET_FORCE_ETA ;
-				break ;
+				val += (*duplicate).value ;
+				multipliers.erase(duplicate) ;
 			}
-		case ZETA:
+			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+1)) ;
+			multipliers.back().type = SET_FORCE_ETA ;
+			break ;
+		}
+	case ZETA:
+		{
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
+			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-				{
-					val += (*duplicate).value ;
-					multipliers.erase(duplicate) ;
-				}
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
-				multipliers.back().type = SET_FORCE_ZETA ;
-				break ;
+				val += (*duplicate).value ;
+				multipliers.erase(duplicate) ;
 			}
-		default:
-			{
-				break ;
-			}
+			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
+			multipliers.back().type = SET_FORCE_ZETA ;
+			break ;
+		}
+	default:
+		{
+			break ;
 		}
 	}
+
 	return ;
 }
 
@@ -1189,77 +1097,41 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 {
 	std::valarray<unsigned int> i(2) ;
 	Vector c(2) ;
-	if(has3Dims == false)
+	switch(v)
 	{
-		
-		switch(v)
+		case XI:
 		{
-			case XI:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
+			if(!(multipliers.empty() || duplicate == multipliers.end()))
+				multipliers.erase(duplicate) ;
 
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2)) ;
-				multipliers.back().type = SET_ALONG_XI ;
-	
-				break ;
-			}
-			case ETA:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*2+1)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*2+1)) ;
-				multipliers.back().type = SET_ALONG_ETA ;
-
-				break ;
-			}
-		default:
-			{
-				break ;
-			}
+			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof)) ;
+			multipliers.back().type = SET_ALONG_XI ;
+			break ;
 		}
-	}
-	else
-	{
-		switch(v)
+		case ETA:
 		{
-			case XI:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3)) ;
-				multipliers.back().type = SET_ALONG_XI ;
-				break ;
-			}
-			case ETA:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+1)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-				
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+1)) ;
-				multipliers.back().type = SET_ALONG_ETA ;
-				break ;
-			}
-			case ZETA:
-			{
-				auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*3+2)) ;
-				if(!(multipliers.empty() || duplicate == multipliers.end()))
-					multipliers.erase(duplicate) ;
-				
-				multipliers.push_back(LagrangeMultiplier(i,c,val, id*3+2)) ;
-				multipliers.back().type = SET_ALONG_ETA ;
-				break ;
-			}
-			default:
-			{
-				break ;
-			}
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
+			if(!(multipliers.empty() || duplicate == multipliers.end()))
+				multipliers.erase(duplicate) ;
+			
+			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+1)) ;
+			multipliers.back().type = SET_ALONG_ETA ;
+			break ;
+		}
+		case ZETA:
+		{
+			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
+			if(!(multipliers.empty() || duplicate == multipliers.end()))
+				multipliers.erase(duplicate) ;
+			
+			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
+			multipliers.back().type = SET_ALONG_ETA ;
+			break ;
+		}
+		default:
+		{
+			break ;
 		}
 	}
 	return ;

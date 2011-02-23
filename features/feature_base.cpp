@@ -89,8 +89,8 @@ void  Feature::removeChild(Feature *f)
 
 void Feature::setBehaviour(Form * f)
 {
-	if(behaviour)
-		delete this->behaviour ;
+/*	if(behaviour)
+		delete this->behaviour ;*/
 	this->behaviour = f ;
 }
 
