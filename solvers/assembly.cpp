@@ -475,6 +475,7 @@ void Assembly::setBoundaryConditions()
 
 void Assembly::initialiseElementaryMatrices()
 {
+	return ;
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
 	std::cerr << "Generating elementary matrices..." << std::flush ;

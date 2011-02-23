@@ -76,15 +76,51 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 
 Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
 {
-	return Function("1") ;
-	TriElement father(t->getOrder()) ;
-	Function f ;
-	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
-	{
-		if(dofIds.find(&(t->getBoundingPoint(i))) != dofIds.end())
-			f += father.getShapeFunction(i) ;
-	}
-	return f ;
+// 	return Function("1") ;
+
+// if(t->getOrder() == QUADRATIC)
+// {
+// 	TriElement father(QUADRATIC) ;
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(0) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(2) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(3);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return father.getShapeFunction(4) + 0.25*father.getShapeFunction(3)+ 0.25*father.getShapeFunction(5);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return father.getShapeFunction(2)+father.getShapeFunction(3)+father.getShapeFunction(4) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return father.getShapeFunction(0) + father.getShapeFunction(5) + father.getShapeFunction(4) + 0.25*father.getShapeFunction(1) +0.25*father.getShapeFunction(3);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(2) + 0.25*father.getShapeFunction(3) + 0.25*father.getShapeFunction(5);
+// 	}
+// }
+
+
+	TriElement father(LINEAR) ;
+// 	Function f ;
+// 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
+// 	{
+// 		if(dofIds.find(&(t->getBoundingPoint(i))) != dofIds.end())
+// 			f += father.getShapeFunction(i) ;
+// 	}
+// 	return f ;
 	
 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
 	{
@@ -198,6 +234,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	
 	std::set<std::pair<DelaunayTriangle *, Point *> > enriched ;
 	//then we iterate on every element
+	
+	std::map<Point*, size_t> extradofs ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 
@@ -270,7 +308,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 				{
 					enriched.insert(that) ;
 					Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-					Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y)) ;
+					Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y)) ;
 					if(!hinted)
 					{
 						f.setIntegrationHint(hint) ;
@@ -278,6 +316,22 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 					}
 					f.setPoint(&t->getBoundingPoint(k)) ;
 					f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
+					t->setEnrichment(f, getPrimitive()) ;
+				}
+				else if(dofId.find(&t->getBoundingPoint(k)) == dofId.end() && enriched.find(that) == enriched.end())
+				{
+					enriched.insert(that) ;
+					Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
+					Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y)) ;
+					if(!hinted)
+					{
+						f.setIntegrationHint(hint) ;
+						hinted = true ;
+					}
+					f.setPoint(&t->getBoundingPoint(k)) ;
+					if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
+						extradofs[&t->getBoundingPoint(k)] = lastId++ ;
+					f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
 					t->setEnrichment(f, getPrimitive()) ;
 				}
 			}

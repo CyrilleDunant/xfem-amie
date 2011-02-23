@@ -2784,7 +2784,31 @@ std::vector<Point *> DelaunayTetrahedron::getIntegrationHints() const
 	to_add.push_back(new Point(1,0.0)) ;
 	to_add.push_back(new Point(0,0,1)) ;
 
+	for(size_t i = 0 ; i <  getEnrichmentFunctions().size() ; i++)
+	{
+		
+		for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
+		{
+			bool go = true ;
+			for(int k = 0 ; k < to_add.size()  ; k++ )
+			{
+				if(dist(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k]) 
+					< POINT_TOLERANCE)
+				{
+					go = false ;
+					break ;
+				}
+			}
+			
+			if(go)
+			{
+				to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j).x, getEnrichmentFunction(i).getIntegrationHint(j).y, getEnrichmentFunction(i).getIntegrationHint(j).z)) ;
+			}
+		}
+	}
+	
 	return to_add ;
+	
 }
 
 

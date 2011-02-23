@@ -619,7 +619,7 @@ void step()
 // 		}
 // // 		avgdisplacement /= avgdisplacementarea ;
 		
-		if(go)
+		if(true)
 		{
 			
 			for(double k = 0 ; k < 4 ; k += 4./800)
@@ -633,8 +633,8 @@ void step()
 					{
 						if(tri[j]->in(p))
 						{
-							Vector s = tri[j]->getState().getStress(p, false) ;
-							Vector e = tri[j]->getState().getStrain(p, false) ;
+// 							Vector s = tri[j]->getState().getStress(p, false) ;
+// 							Vector e = tri[j]->getState().getStrain(p, false) ;
 // 							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
 // 							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
  							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
