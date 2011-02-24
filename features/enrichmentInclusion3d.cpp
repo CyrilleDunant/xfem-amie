@@ -24,7 +24,7 @@ bool EnrichmentInclusion3D::enrichmentTarget(DelaunayTetrahedron * t)
 	if(pointsin != 0 && pointsin != 4)
 		return true ;
 		
-		return false ;
+	return false ;
 }
 
 void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * dtree)
@@ -341,27 +341,27 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 	
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-		std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
+// 		std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
 
 		std::vector<Point> hint ;
 // 		if there are no intersection points we need not do anything
-		if(!tetSphereIntersectionPoints.empty())
-		{
-			
-			//if the number of intersection points is not 3, we need not do anything
-			if(tetSphereIntersectionPoints.size() >= 3)
-			{
-// 				Point bary ;
-				for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
-				{
-					hint.push_back(ring[i]->inLocalCoordinates(tetSphereIntersectionPoints[j])) ;
-// 					bary += tetSphereIntersectionPoints[j]/tetSphereIntersectionPoints.size() ;
-				}
-// 				project(&bary);
-// 				hint.push_back(ring[i]->inLocalCoordinates(bary)) ;
-			}
-		}
-		hint.clear();
+// 		if(!tetSphereIntersectionPoints.empty())
+// 		{
+// 			
+// 			//if the number of intersection points is not 3, we need not do anything
+// 			if(tetSphereIntersectionPoints.size() >= 3)
+// 			{
+// // 				Point bary ;
+// 				for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
+// 				{
+// 					hint.push_back(ring[i]->inLocalCoordinates(tetSphereIntersectionPoints[j])) ;
+// // 					bary += tetSphereIntersectionPoints[j]/tetSphereIntersectionPoints.size() ;
+// 				}
+// // 				project(&bary);
+// // 				hint.push_back(ring[i]->inLocalCoordinates(bary)) ;
+// 			}
+// 		}
+// 		hint.clear();
 		//we build the enrichment function, first, we get the transforms from the triangle
 		Function x = ring[i]->getXTransform() ;
 		Function y = ring[i]->getYTransform() ;
@@ -424,7 +424,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 				{
 					enriched.insert(that) ;
 					Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-					Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z))*blend ;
+					Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
 					if(!hinted)
 					{
 						f.setIntegrationHint(hint) ;

@@ -765,7 +765,7 @@ Vector ElementState::getGradient(const Point & p, bool local) const
 		for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++)
 		{
 			double f_xi = vm.deval( parent->getEnrichmentFunction(j),XI,p_ ) ;
-			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;			
+			double f_eta = vm.deval( parent->getEnrichmentFunction(j),ETA,p_) ;
 			x_xi += f_xi*enrichedDisplacements[j] ;
 			x_eta += f_eta*enrichedDisplacements[j] ;
 
