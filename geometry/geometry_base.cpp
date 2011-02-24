@@ -2261,12 +2261,15 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			if(g->getGeometryType() == TETRAHEDRON)
 			{
-				Segment s0(g->getBoundingPoint(0), g->getBoundingPoint(1)) ;
-				Segment s1(g->getBoundingPoint(0), g->getBoundingPoint(2)) ;
-				Segment s2(g->getBoundingPoint(0), g->getBoundingPoint(3)) ;
-				Segment s3(g->getBoundingPoint(1), g->getBoundingPoint(2)) ;
-				Segment s4(g->getBoundingPoint(1), g->getBoundingPoint(3)) ;
-				Segment s5(g->getBoundingPoint(2), g->getBoundingPoint(3)) ;
+				int mult = 1 ;
+				if(g->getBoundingPoints().size() == 10)
+					mult = 2 ;
+				Segment s0(g->getBoundingPoint(0), g->getBoundingPoint(1*mult)) ;
+				Segment s1(g->getBoundingPoint(0), g->getBoundingPoint(2*mult)) ;
+				Segment s2(g->getBoundingPoint(0), g->getBoundingPoint(3*mult)) ;
+				Segment s3(g->getBoundingPoint(1*mult), g->getBoundingPoint(2*mult)) ;
+				Segment s4(g->getBoundingPoint(1*mult), g->getBoundingPoint(3*mult)) ;
+				Segment s5(g->getBoundingPoint(2*mult), g->getBoundingPoint(3*mult)) ;
 				std::vector<Segment *> intersectingSegments ;
 				if(s0.intersects(this))
 				{
@@ -2299,10 +2302,10 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					ret.insert(ret.end(), inter.begin(), inter.end()) ;
 				}
 				
-				TriPoint t0(&g->getBoundingPoint(0), &g->getBoundingPoint(1), &g->getBoundingPoint(2)) ;
-				TriPoint t1(&g->getBoundingPoint(0), &g->getBoundingPoint(1), &g->getBoundingPoint(3)) ;
-				TriPoint t2(&g->getBoundingPoint(0), &g->getBoundingPoint(2), &g->getBoundingPoint(3)) ;
-				TriPoint t3(&g->getBoundingPoint(1), &g->getBoundingPoint(2), &g->getBoundingPoint(3)) ;
+				TriPoint t0(&g->getBoundingPoint(0), &g->getBoundingPoint(1*mult), &g->getBoundingPoint(2*mult)) ;
+				TriPoint t1(&g->getBoundingPoint(0), &g->getBoundingPoint(1*mult), &g->getBoundingPoint(3*mult)) ;
+				TriPoint t2(&g->getBoundingPoint(0), &g->getBoundingPoint(2*mult), &g->getBoundingPoint(3*mult)) ;
+				TriPoint t3(&g->getBoundingPoint(1*mult), &g->getBoundingPoint(2*mult), &g->getBoundingPoint(3*mult)) ;
 				
 				Plane p0(*t0.point[0], t0.normal) ;
 				Plane p1(*t1.point[0], t1.normal) ;
@@ -4780,6 +4783,60 @@ bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)
 	return isAligned(*test, *f0, *f1) ;
 } ;
 
+
+int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)
+{
+	int count = 0 ;
+	Point centre = (**(pts)+f0+f1+f2)*.25 ;
+	Mu::Point A(f1-f0) ;
+	Mu::Point B(f2-f0) ;
+	Point normal = A^B ;
+	
+	Point f0_(f0-centre) ;
+	Point f1_(f1-centre) ;
+	Point f2_(f2-centre) ;
+	
+	double scale = f0_.sqNorm() ;
+	if(f1_.sqNorm() > scale) 
+		scale = f1_.sqNorm() ; 
+	if(f2_.sqNorm() > scale) 
+		scale = f2_.sqNorm() ; 
+	
+	scale = 1./sqrt(scale) ;		
+	f0_ *= scale ;
+	f1_ *= scale ;
+	f2_ *= scale ;
+	Point AB = (f0_-f1_)^(f2_-f1_) ;
+	for(size_t i = 0 ; i < numpoints ; i++)
+	{
+		Point test_(**(pts+i)-centre) ;
+		test_ *= scale ;
+		
+		if(test_ == f1_ || test_ == f0_ || test_ == f2_)
+		{
+			count++ ;
+			continue ;
+		}
+
+		double c0 = AB*(f2_-test_) ;
+		if(c0*c0 > POINT_TOLERANCE)
+			continue ;
+		
+		Point a(test_) ; a += normal ;
+		Point b(test_) ; b -= normal ;
+
+		double c1 = AB*(f2_-a) ; 
+		double c2 = AB*(f2_-b) ;
+
+		bool positive = c0 > 0 || c1 > 0 || c2 > 0 ;
+		bool negative = c0 < 0 || c1 < 0 || c2 < 0 ;
+		if( positive && negative )
+			count++ ;
+	}
+	
+	return count ;
+}
+
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
 {
 
@@ -4789,11 +4846,11 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	Point f2_(f2-centre) ;
 	Point test_(test-centre) ;
 	
-	double scale = f0_.norm() ;
-	if(f1_.norm() > scale) { scale = f1_.norm() ; }
-	if(f2_.norm() > scale) { scale = f2_.norm() ; }
-	if(test_.norm() > scale) { scale = test_.norm() ; }
-	scale = 1./scale ;
+	double scale = f0_.sqNorm() ;
+	if(f1_.sqNorm() > scale) { scale = f1_.sqNorm() ; }
+	if(f2_.sqNorm() > scale) { scale = f2_.sqNorm() ; }
+	if(test_.sqNorm() > scale) { scale = test_.sqNorm() ; }
+	scale = 1./sqrt(scale) ;
 	f0_ *= scale ;
 	f1_ *= scale ;
 	f2_ *= scale ;

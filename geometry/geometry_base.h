@@ -1400,6 +1400,8 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 /** \brief return true if the four points are coplanar*/
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 
+int coplanarCount( Mu::Point * const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+
 /** \brief Compute a value increasing with decreasing coplanarity of the points*/
 double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 

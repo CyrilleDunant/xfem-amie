@@ -129,53 +129,17 @@ size_t DelaunayTreeItem3D::numberOfCommonVertices(const DelaunayTreeItem3D * s) 
 	}
 	if(this->isTetrahedron() && s->isSpace())
 	{
-		size_t ret = 0 ;
-		
-		if(isCoplanar(first,s->first, s->second, s->third))
-			ret++ ;
-		if(isCoplanar(second,s->first, s->second, s->third ))
-			ret++ ;
-		if(isCoplanar(third,s->first, s->second, s->third ))
-			ret++ ;
-		if(ret != 3 && isCoplanar(fourth,s->first, s->second, s->third ))
-			ret++ ;
-		
-		assert(ret < 4) ;
-		
-		return ret ;
+		return coplanarCount(&first, 4, *s->first, *s->second, *s->third) ;
 	}
+	
 	if(this->isSpace() && s->isSpace())
 	{
-		size_t ret = 0 ;
-		
-		if(isCoplanar(this->first, this->second, this->third ,s->first))
-			ret++ ;
-		if(isCoplanar(this->first, this->second, this->third,s->second))
-			ret++ ;
-		if(isCoplanar(this->first, this->second, this->third,s->third))
-			ret++ ;
-		
-		assert(ret < 4) ;
-		
-		return ret ;
+		return coplanarCount(&s->first, 3, *first, *second, *third) ;
 	}
 	
 	if(this->isSpace() && s->isTetrahedron())
 	{
-		size_t ret = 0 ;
-		
-		if(isCoplanar(s->first,this->first, this->second, this->third  ))
-			ret++ ;
-		if(isCoplanar(s->second,this->first, this->second, this->third ))
-			ret++ ;
-		if(isCoplanar(s->third,this->first, this->second, this->third ))
-			ret++ ;
-		if(ret != 3 && isCoplanar(s->fourth,this->first, this->second, this->third ))
-			ret++ ;
-		
-		assert(ret < 4) ;
-		
-		return ret ;
+		return coplanarCount(&s->first, 4, *first, *second, *third) ;
 	}
 	
 	return 0 ;
@@ -205,12 +169,12 @@ void Star3D::updateNeighbourhood()
 	{	
 		for(size_t j = 0 ; j < (*i)->stepson.size() ; j++)
 		{
-			if((*i)->getStepson(j)->isAlive()&& ((*i)->getStepson(j)->onCircumSphere(*creator) || !(*i)->getStepson(j)->inCircumSphere(*creator)))
+			if((*i)->getStepson(j)->isAlive()&& (!(*i)->getStepson(j)->inCircumSphere(*creator) || (*i)->getStepson(j)->onCircumSphere(*creator)))
 				items[count++] = (*i)->getStepson(j) ;
 		}
 		for(size_t j = 0 ; j < (*i)->neighbour.size() ; j++)
 		{
-			if((*i)->getNeighbour(j)->isAlive() && ((*i)->getNeighbour(j)->onCircumSphere(*creator) || !(*i)->getNeighbour(j)->inCircumSphere(*creator))) ;
+			if((*i)->getNeighbour(j)->isAlive() && (!(*i)->getNeighbour(j)->inCircumSphere(*creator) || (*i)->getNeighbour(j)->onCircumSphere(*creator))) ;
 				items[count++] = (*i)->getNeighbour(j) ;
 		}
 		
@@ -237,7 +201,7 @@ void Star3D::updateNeighbourhood()
 					DelaunayTreeItem3D * jj = *j ;
 
 					size_t jns = jj->neighbour.size() ;
-					if(!jj->isSpace() && ii->numberOfCommonVertices(jj) == 3 && jns != 4)
+					if(!jj->isSpace() && jns != 4 && ii->numberOfCommonVertices(jj) == 3 )
 					{
 						
 						if(std::find(&ii->neighbour[0], &ii->neighbour[ins],jj->index) ==  &ii->neighbour[ins])
@@ -1281,39 +1245,39 @@ std::vector< Point*> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D 
 
 bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 {
-	if(p.x > x+1.0001*radius)
+	if(p.x > x+1.00001*radius)
 		return false ;
-	if(p.x < x-1.0001*radius)
+	if(p.x < x-1.00001*radius)
 		return false ;
-	if(p.y > y+1.0001*radius)
+	if(p.y > y+1.00001*radius)
 		return false ;
-	if(p.y < y-1.0001*radius)
+	if(p.y < y-1.00001*radius)
 		return false ;
-	if(p.z > z+1.0001*radius)
+	if(p.z > z+1.00001*radius)
 		return false ;
-	if(p.z < z-1.0001*radius)
+	if(p.z < z-1.00001*radius)
 		return false ;
 	
-	double d = squareDist3D(Point(x, y, z), p) ;
+	double d = (x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z) ;
 	return  d/(radius*radius)-1 < POINT_TOLERANCE/radius ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
 {
-	if(p.x > x+1.0001*radius)
+	if(p.x > x+1.00001*radius)
 		return false ;
-	if(p.x < x-1.0001*radius)
+	if(p.x < x-1.00001*radius)
 		return false ;
-	if(p.y > y+1.0001*radius)
+	if(p.y > y+1.00001*radius)
 		return false ;
-	if(p.y < y-1.0001*radius)
+	if(p.y < y-1.00001*radius)
 		return false ;
-	if(p.z > z+1.0001*radius)
+	if(p.z > z+1.00001*radius)
 		return false ;
-	if(p.z < z-1.0001*radius)
+	if(p.z < z-1.00001*radius)
 		return false ;
 	
-	double d = squareDist3D(Point(x, y, z), p) ;
+	double d =  (x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z) ;
 	return  std::abs(d/(radius*radius)-1) < POINT_TOLERANCE/radius ;
 }
 
@@ -1537,40 +1501,40 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 
 bool DelaunayTetrahedron::inCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.0001*radius)
+	if(p.x > circumCenter.x+1.00001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.0001*radius)
+	if(p.x < circumCenter.x-1.00001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.0001*radius)
+	if(p.y > circumCenter.y+1.00001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.0001*radius)
+	if(p.y < circumCenter.y-1.00001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.0001*radius)
+	if(p.z > circumCenter.z+1.00001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.0001*radius)
+	if(p.z < circumCenter.z-1.00001*radius)
 		return false ;
 	
-	double d = dist(circumCenter, p) ;
-	return  d/radius-1 < POINT_TOLERANCE ;
+	double d = squareDist3D(circumCenter, p) ;
+	return  d/(sqradius)-1 < POINT_TOLERANCE/radius ;
 }
 
 bool DelaunayTetrahedron::onCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.0001*radius)
+	if(p.x > circumCenter.x+1.00001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.0001*radius)
+	if(p.x < circumCenter.x-1.00001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.0001*radius)
+	if(p.y > circumCenter.y+1.00001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.0001*radius)
+	if(p.y < circumCenter.y-1.00001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.0001*radius)
+	if(p.z > circumCenter.z+1.00001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.0001*radius)
+	if(p.z < circumCenter.z-1.00001*radius)
 		return false ;
 	
-	double d = dist(getCircumCenter(), p) ;
-	return  std::abs(d/radius-1) < POINT_TOLERANCE ;
+	double d = squareDist3D(circumCenter, p) ;
+	return  std::abs(d/(sqradius)-1) < POINT_TOLERANCE/radius ;
 }
 
 
@@ -2923,11 +2887,13 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 			std::vector<Point> newPoints ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
-				newPoints.push_back((*tri[j]->first + *tri[j]->second + *tri[j]->third)/3);
-				newPoints.push_back((*tri[j]->first + *tri[j]->second + *tri[j]->fourth)/3);
-				newPoints.push_back((*tri[j]->first + *tri[j]->third + *tri[j]->fourth)/3);
-				newPoints.push_back((*tri[j]->second + *tri[j]->third + *tri[j]->fourth)/3);
-				newPoints.push_back((*tri[j]->second + *tri[j]->third + *tri[j]->fourth+*tri[j]->first)/4);
+				newPoints.push_back((*tri[j]->first + *tri[j]->second )/2);
+				newPoints.push_back((*tri[j]->first + *tri[j]->fourth)/2);
+				newPoints.push_back((*tri[j]->first + *tri[j]->third )/2);
+				newPoints.push_back((*tri[j]->second + *tri[j]->third )/2);
+				newPoints.push_back((*tri[j]->second + *tri[j]->fourth )/2);
+				newPoints.push_back((*tri[j]->third + *tri[j]->fourth)/2);
+// 				newPoints.push_back((*tri[j]->second + *tri[j]->third + *tri[j]->fourth+*tri[j]->first)/4);
 			}
 			std::vector<Point> uniquePoints ;
 			uniquePoints.push_back(newPoints.front());

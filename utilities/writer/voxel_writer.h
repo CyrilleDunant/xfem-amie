@@ -30,6 +30,7 @@ typedef enum
 	VWFT_FLUX,
 	VWFT_GRADIENT_AND_FLUX,
 	VWFT_VON_MISES,
+	VWFT_ENRICHEMENT,
 } VWFieldType ;
 
 /** \brief utility class to write various fields of a 3D sample in a binary file. You need to call getField() to get your data before writing the file.*/

@@ -290,6 +290,12 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			found = true ;	
 			break ;
 		}
+		case VWFT_ENRICHEMENT:
+		{
+			ret[0]=tet->getEnrichmentFunctions().size() ;
+			found = true ;	
+			break ;
+		}
 	}
 	return std::make_pair(found, ret) ;
 }
@@ -410,8 +416,8 @@ std::valarray<unsigned char> normalizeArray(const std::valarray<double> & val, c
 {
 	Vector sortedArray = val ;
 	std::sort(&sortedArray[0], &sortedArray[sortedArray.size()]) ;
-	double vmax = sortedArray[sortedArray.size()*.99] ;
-	double vmin = sortedArray[sortedArray.size()*.01] ;
+	double vmax = sortedArray[sortedArray.size()*1-1] ;
+	double vmin = sortedArray[sortedArray.size()*0] ;
 	std::valarray<unsigned char> norm(val.size()) ;
 	for(size_t i = 0 ; i < val.size() ; i++)
 	{
@@ -446,6 +452,8 @@ int numberOfFields(VWFieldType field)
 		case VWFT_FLUX:
 			return 3 ;
 		case VWFT_VON_MISES:
+			return 1 ;
+		default:
 			return 1 ;
 	}
 	return 1 ;

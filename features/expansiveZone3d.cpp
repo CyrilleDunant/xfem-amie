@@ -34,7 +34,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
 // 		int pointsout = in(*disc[i]->first) + in(*disc[i]->second) + in(*disc[i]->third) + in(*disc[i]->fourth) ;
-		if(this->intersects(disc[i]->getPrimitive())/* && pointsout != 4 && pointsout != 0*/)
+		if(EnrichmentInclusion3D::enrichmentTarget(disc[i])/* && pointsout != 4 && pointsout != 0*/)
 			ring.push_back(disc[i]) ;
 		else if(this->in(disc[i]->getCenter()))
 			inDisc.push_back(disc[i]) ;

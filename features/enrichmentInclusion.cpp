@@ -287,9 +287,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
+			if(std::binary_search(ring.begin(), ring.end(), t) )
+				continue ;
+			
 			Function blend = getBlendingFunction(dofId, t) ;
-			if(std::find(ring.begin(), ring.end(), t) != ring.end())
-				blend = Function("1") ;
 			
 			if(!t->enrichmentUpdated)
 				t->clearEnrichment( getPrimitive()) ;
