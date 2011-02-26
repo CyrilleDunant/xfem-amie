@@ -111,7 +111,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 	
 	
 	std::vector<DelaunayTetrahedron *> tris = F->getElements3D() ;
-	std::cerr << "generating values... " << count << "/" << tris.size() << std::flush ;
+	std::cerr << "generating values ( "<<filename << " )... " << count << "/" << tris.size() << std::flush ;
 	
 	for(size_t t = 0 ; t < tris.size() ; t++)
 	{
@@ -183,10 +183,10 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 			}
 		}
 		if(t %100 == 0)
-					std::cerr << "\rgenerating values... "<< t <<"/" << tris.size() << std::flush ;
+					std::cerr << "\rgenerating values ( "<<filename << " )... " << t <<"/" << tris.size() << std::flush ;
 	}
 
-	std::cerr << "\rgenerating values... "<< tris.size()<< "/" << tris.size() << " ...done." << std::endl ;
+	std::cerr << "\rgenerating values ( "<<filename << " )... " << tris.size()<< "/" << tris.size() << " ...done." << std::endl ;
 	return ret ;
 }
 
@@ -295,6 +295,21 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			ret[0]=tet->getEnrichmentFunctions().size() ;
 			found = true ;	
 			break ;
+		}
+		case VWFT_DAMAGE:
+		{
+			if(tet->getBehaviour()->getDamageModel())
+			{
+				ret[0]=tet->getEnrichmentFunctions().size() ;
+				found = true ;	
+				break ;
+			}
+			else
+			{
+				Vector s = tet->getBehaviour()->getDamageModel()->damageState() ;
+				double v = std::inner_product(&s[0], &s[s.size()], &s[0], double(0)) ;
+				ret[0]= v ;
+			}
 		}
 	}
 	return std::make_pair(found, ret) ;
@@ -416,8 +431,8 @@ std::valarray<unsigned char> normalizeArray(const std::valarray<double> & val, c
 {
 	Vector sortedArray = val ;
 	std::sort(&sortedArray[0], &sortedArray[sortedArray.size()]) ;
-	double vmax = sortedArray[sortedArray.size()*1-1] ;
-	double vmin = sortedArray[sortedArray.size()*0] ;
+	double vmax = sortedArray[std::min(sortedArray.size()*1-1, (size_t)(sortedArray.size()*.99))] ;
+	double vmin = sortedArray[sortedArray.size()*.01] ;
 	std::valarray<unsigned char> norm(val.size()) ;
 	for(size_t i = 0 ; i < val.size() ; i++)
 	{

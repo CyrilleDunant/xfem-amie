@@ -105,7 +105,9 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end()&& dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
+			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
 			return father.getShapeFunction(0)+father.getShapeFunction(2)+father.getShapeFunction(3) ;
 		}
@@ -150,7 +152,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end()&& dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
+			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
 			return father.getShapeFunction(0) + father.getShapeFunction(3) ;
 		}
@@ -301,14 +303,12 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 	VirtualMachine vm ;
 	const std::vector<DelaunayTetrahedron *> & disc  = cache;
 
-	std::valarray<Function> shapefunc = TetrahedralElement(LINEAR).getShapeFunctions() ;
-
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTetrahedron *> ring ;
-	
+	TetrahedralElement father(disc[0]->getOrder()) ;
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		if(enrichmentTarget(static_cast<DelaunayTetrahedron *>(disc[i])) )
+		if(enrichmentTarget(disc[i]) )
 		{
 			ring.push_back(disc[i]) ;
 		}
@@ -341,27 +341,54 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 	
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-// 		std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
+		std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
 
 		std::vector<Point> hint ;
 // 		if there are no intersection points we need not do anything
-// 		if(!tetSphereIntersectionPoints.empty())
-// 		{
-// 			
-// 			//if the number of intersection points is not 3, we need not do anything
-// 			if(tetSphereIntersectionPoints.size() >= 3)
-// 			{
-// // 				Point bary ;
-// 				for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
-// 				{
-// 					hint.push_back(ring[i]->inLocalCoordinates(tetSphereIntersectionPoints[j])) ;
-// // 					bary += tetSphereIntersectionPoints[j]/tetSphereIntersectionPoints.size() ;
-// 				}
-// // 				project(&bary);
-// // 				hint.push_back(ring[i]->inLocalCoordinates(bary)) ;
-// 			}
-// 		}
-// 		hint.clear();
+		Point bary ;
+		for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
+		{
+			bool add = true ;
+			for(size_t k = 0 ; k < ring[i]->getBoundingPoints().size() ; k++)
+			{
+				if(squareDist3D(ring[i]->getBoundingPoint(k), tetSphereIntersectionPoints[j]) < .01)
+				{
+					add = false ;
+					break ;
+				}
+			}
+			
+			if(add)
+			{
+				hint.push_back(ring[i]->inLocalCoordinates(tetSphereIntersectionPoints[j])) ;
+				bary += tetSphereIntersectionPoints[j]/tetSphereIntersectionPoints.size() ;
+			}
+		}
+		project(&bary);
+		bool add_bary = true ;
+		for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
+		{
+			if(squareDist3D(bary, tetSphereIntersectionPoints[j]) < .01)
+			{
+				add_bary = false ;
+				break ;
+			}
+		}
+			
+		if(add_bary)
+		{
+			hint.push_back(ring[i]->inLocalCoordinates(bary)) ;
+		}
+		if(ring[i]->getOrder() == QUADRATIC)
+		{
+			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(1))) ;
+			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(3))) ;
+			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(5))) ;
+			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(7))) ;
+			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(8))) ;
+			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(9))) ;
+		}
+		
 		//we build the enrichment function, first, we get the transforms from the triangle
 		Function x = ring[i]->getXTransform() ;
 		Function y = ring[i]->getYTransform() ;
@@ -369,7 +396,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		
 		//this function returns the distance to the centre
 		Function position(getCenter(), x, y, z) ;
-		Function hat = f_abs(position-getRadius());
+		Function hat = getRadius()-f_abs(position-getRadius());
 		
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
@@ -378,7 +405,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			{
 				enriched.insert(that) ;
 				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-				Function f =  ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
+				Function f =  father.getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
@@ -391,6 +418,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			DelaunayTetrahedron * t = ring[i]->getNeighbourhood(j) ;
 			if(std::binary_search(ring.begin(), ring.end(), t))
 				continue ;
+			
 			Function blend = getBlendingFunction(dofId, t) ;
 			
 			if(!t->enrichmentUpdated)
@@ -399,42 +427,46 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
 			Function position(getCenter(), t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-			Function hat = f_abs(position-getRadius()) ;
+			Function hat = getRadius()-f_abs(position-getRadius()) ;
 
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{
 				std::pair<DelaunayTetrahedron *, Point *> that(t, &t->getBoundingPoint(k) ) ;
 				
-				if(dofId.find(&t->getBoundingPoint(k)) != dofId.end() && enriched.find(that) == enriched.end())
+				if( enriched.find(that) == enriched.end())
 				{
-					enriched.insert(that) ;
-					Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-					Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
-					if(!hinted)
+					if(dofId.find(&t->getBoundingPoint(k)) != dofId.end() )
 					{
-						f.setIntegrationHint(hint) ;
-						hinted = true ;
+						enriched.insert(that) ;
+						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
+						Function f = father.getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
+						if(!hinted)
+						{
+							f.setIntegrationHint(hint) ;
+							hinted = true ;
+						}
+						f.setPoint(&t->getBoundingPoint(k)) ;
+						f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
-					f.setPoint(&t->getBoundingPoint(k)) ;
-					f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
-					t->setEnrichment(f, getPrimitive()) ;
-				}
-				else if(dofId.find(&t->getBoundingPoint(k)) == dofId.end() && enriched.find(that) == enriched.end())
-				{
-					enriched.insert(that) ;
-					Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-					Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
-					if(!hinted)
+					else 
 					{
-						f.setIntegrationHint(hint) ;
-						hinted = true ;
+						enriched.insert(that) ;
+						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
+						Function f = father.getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z))*blend ;
+						if(!hinted)
+						{
+							f.setIntegrationHint(hint) ;
+							hinted = true ;
+						}
+						f.setPoint(&t->getBoundingPoint(k)) ;
+						if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
+							extradofs[&t->getBoundingPoint(k)] = lastId++ ;
+						
+						f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
+						t->setEnrichment(f, getPrimitive()) ;
 					}
-					f.setPoint(&t->getBoundingPoint(k)) ;
-					if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
-						extradofs[&t->getBoundingPoint(k)] = lastId++ ;
-					f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
-					t->setEnrichment(f, getPrimitive()) ;
 				}
 			}
 		}

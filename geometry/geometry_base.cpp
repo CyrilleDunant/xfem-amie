@@ -2274,43 +2274,70 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 				if(s0.intersects(this))
 				{
 					std::vector<Point> inter = s0.intersection(this) ;
-					ret.insert(ret.end(), inter.begin(), inter.end()) ;
+					if(inter.size() == 1)
+						ret.insert(ret.end(), inter.begin(), inter.end()) ;
 				}
 				if(s1.intersects(this))
 				{
 					std::vector<Point> inter = s1.intersection(this) ;
-					ret.insert(ret.end(), inter.begin(), inter.end()) ;
+					if(inter.size() == 1)
+						ret.insert(ret.end(), inter.begin(), inter.end()) ;
 				}
 				if(s2.intersects(this))
 				{
 					std::vector<Point> inter = s2.intersection(this) ;
-					ret.insert(ret.end(), inter.begin(), inter.end()) ;
+					if(inter.size() == 1)
+						ret.insert(ret.end(), inter.begin(), inter.end()) ;
 				}
 				if(s3.intersects(this))
 				{
 					std::vector<Point> inter = s3.intersection(this) ;
-					ret.insert(ret.end(), inter.begin(), inter.end()) ;
+					if(inter.size() == 1)
+						ret.insert(ret.end(), inter.begin(), inter.end()) ;
 				}
 				if(s4.intersects(this))
 				{
 					std::vector<Point> inter = s4.intersection(this) ;
-					ret.insert(ret.end(), inter.begin(), inter.end()) ;
+					if(inter.size() == 1)
+						ret.insert(ret.end(), inter.begin(), inter.end()) ;
 				}
 				if(s5.intersects(this))
 				{
 					std::vector<Point> inter = s5.intersection(this) ;
-					ret.insert(ret.end(), inter.begin(), inter.end()) ;
+					if(inter.size() == 1)
+						ret.insert(ret.end(), inter.begin(), inter.end()) ;
 				}
 				
-				TriPoint t0(&g->getBoundingPoint(0), &g->getBoundingPoint(1*mult), &g->getBoundingPoint(2*mult)) ;
-				TriPoint t1(&g->getBoundingPoint(0), &g->getBoundingPoint(1*mult), &g->getBoundingPoint(3*mult)) ;
-				TriPoint t2(&g->getBoundingPoint(0), &g->getBoundingPoint(2*mult), &g->getBoundingPoint(3*mult)) ;
-				TriPoint t3(&g->getBoundingPoint(1*mult), &g->getBoundingPoint(2*mult), &g->getBoundingPoint(3*mult)) ;
+				bool haveDuplicates = true ;
+				while(haveDuplicates)
+				{
+					haveDuplicates = false ;
+					for(size_t i  = 0 ; i < ret.size() ; i++)
+					{
+						for(size_t j  = i+1 ; j < ret.size() ; j++)
+						{
+							if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+							{
+								haveDuplicates = true ;
+								ret.erase(ret.begin()+j) ;
+								break ;
+							}
+						}
+						
+						if(haveDuplicates)
+							break ;
+					}
+				}
 				
-				Plane p0(*t0.point[0], t0.normal) ;
-				Plane p1(*t1.point[0], t1.normal) ;
-				Plane p2(*t2.point[0], t2.normal) ;
-				Plane p3(*t3.point[0], t3.normal) ;
+// 				TriPoint t0(&g->getBoundingPoint(0), &g->getBoundingPoint(1*mult), &g->getBoundingPoint(2*mult)) ;
+// 				TriPoint t1(&g->getBoundingPoint(0), &g->getBoundingPoint(1*mult), &g->getBoundingPoint(3*mult)) ;
+// 				TriPoint t2(&g->getBoundingPoint(0), &g->getBoundingPoint(2*mult), &g->getBoundingPoint(3*mult)) ;
+// 				TriPoint t3(&g->getBoundingPoint(1*mult), &g->getBoundingPoint(2*mult), &g->getBoundingPoint(3*mult)) ;
+// 				
+// 				Plane p0(*t0.point[0], t0.normal) ;
+// 				Plane p1(*t1.point[0], t1.normal) ;
+// 				Plane p2(*t2.point[0], t2.normal) ;
+// 				Plane p3(*t3.point[0], t3.normal) ;
 				
 			}
 			
@@ -3358,16 +3385,14 @@ Point Segment::normal() const
 
 Point Segment::normal(const Point & inside) const
 {
-	double nx = vec.y ;
-	double ny = -vec.x ;
-	double dx = mid.x - inside.x ;
-	double dy = mid.y - inside.y ;
-	Point n(nx, ny) ;
-	
-	if((nx*dx+ny*dy) > 0)
+	Point d = (inside-s) ;
+	Point n = vec^d ;
+	n = n^vec ;
+	if(n*d > 0)
 		return n/n.norm() ;
-	else
-		return n/(-n.norm()) ;
+	
+	return n/-n.norm() ;
+
 }
 
 Segment::Segment(const Point & p0, const Point & p1)
@@ -3380,7 +3405,7 @@ Segment::Segment(const Point & p0, const Point & p1)
 
 double Segment::norm() const
 {
-	return sqrt((f.y-s.y)*(f.y-s.y)+(f.x-s.x)*(f.x-s.x)) ;
+	return vec.norm() ;
 }
 
 std::vector<std::pair<Point, double> > Segment::getGaussPoints() const
@@ -3785,25 +3810,28 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 	case SPHERE:
 		{
 			double a = vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
-			double b = (f.x-g->getCenter().x)*2.*vec.x + (f.y-g->getCenter().y)*2.*vec.y + (f.z-g->getCenter().z)*2.*vec.z;
-			double c = (f.x-g->getCenter().x)*(f.x-g->getCenter().x) + (f.y-g->getCenter().y)*(f.y-g->getCenter().y)+ (f.z-g->getCenter().z)*(f.z-g->getCenter().z)-g->getRadius()*g->getRadius() ;
+			double dx = s.x-g->getCenter().x ;
+			double dy = s.y-g->getCenter().y ;
+			double dz = s.z-g->getCenter().z ;
+			double b = 2.*(dx*vec.x + dy*vec.y + dz*vec.z);
+			double c = dx*dx + dy*dy + dz*dz-g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4.*a*c ;
 			
-			if(delta == 0)
+			if(std::abs(delta) < POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
-				Point A(f+vec*(-b/(2.*a))) ;
+				Point A(s+vec*(-b/(2.*a))) ;
 				if(on(A))
 					ret.push_back(A) ;
 				return ret ;
 			}
-			else if (delta > 0)
+			else if (delta >= POINT_TOLERANCE)
 			{
 				std::vector<Point> ret ;
-				Point A(f+vec*(-b + sqrt(delta))/(2.*a)) ;
+				Point A(s+vec*(-b + sqrt(delta))/(2.*a)) ;
 				if(on(A))
 					ret.push_back(A) ;
-				Point B(f+vec*(-b - sqrt(delta))/(2.*a)) ;
+				Point B(s+vec*(-b - sqrt(delta))/(2.*a)) ;
 				if(on(B))
 					ret.push_back(B) ;
 				return ret ;
@@ -4701,7 +4729,19 @@ double OrientableCircle::volume() const
 
 void OrientableCircle::project(Point * p) const
 {
-	return ;
+	Plane plane(center, normal) ;
+	Point pproj = plane.projection(*p) ;
+	if(squareDist3D(center, pproj) > POINT_TOLERANCE*POINT_TOLERANCE)
+	{
+		Point vec = pproj-center ;
+		vec/=vec.norm() ;
+		p->set( center + vec*radius) ;
+		return ;
+	}
+
+	Point p_((double)rand()/RAND_MAX,(double)rand()/RAND_MAX,(double)rand()/RAND_MAX ) ;
+	 project(&p_);
+	*p = p_ ;
 }
 
 void OrientableCircle::computeCenter()

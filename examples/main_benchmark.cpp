@@ -26,6 +26,7 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../physics/stiffness.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
 #include <sys/time.h>
 
 #include <fstream>
@@ -209,7 +210,7 @@ Matrix getStiffness(Vector sigma_1, Vector sigma_2, Vector epsilon_1, Vector eps
 void step()
 {
 	
-  int nsteps = 1;// number of steps between two clicks on the opengl thing
+  int nsteps = 1;
 	featureTree->setMaxIterationsPerStep(2) ;
 	featureTree->setDeltaTime(0.0001);
 
@@ -224,7 +225,7 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("xfem_blend_mesh", 100) ;
+		VoxelWriter vw("xfem_4096", 300) ;
 		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
@@ -1637,12 +1638,12 @@ int main(int argc, char *argv[])
 // 		F.addFeature(&sample, inclusions[i]) ;
 // 		v += inclusions[i]->volume() ;
 // 	}
-	
+	Vector a(6) ; a = 0 ; //a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
 // 	Inclusion3D * inc = new Inclusion3D(0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 // 	inc->setBehaviour(inclusionDiffusion) ;
-// 	inc->setBehaviour(inclusionStiffness) ;
-	Vector a(6) ; a = 0 ;
-	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1, a)) ;
+	
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
 	F.addFeature(&sample, inc) ;
 
@@ -1703,6 +1704,14 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
+	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_RIGHT_BACK)) ;
 	step() ;
 
 /*	glutInit(&argc, argv) ;	

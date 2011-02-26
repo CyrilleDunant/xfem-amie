@@ -752,6 +752,10 @@ void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offse
 }
 
 void VoxelGLDrawer::computeDisplayList() {
+// 	if(alpha == 255)
+// 		glEnable(GL_POINT_SMOOTH) ;
+// 	else
+// 		glDisable(GL_POINT_SMOOTH) ;
 	
 	if(slice)
 	{
@@ -1069,7 +1073,7 @@ std::valarray<qint8> VoxelGLDrawer::normalFromSurroundings(const size_t &x, cons
 					k >= 0 && k < (int)strips 
 					)
 					{
-						val = !isInRange(toIndex(i,j,k)) ;
+						val =  !isInRange(toIndex(i,j,k)); //!restriction[toIndex(i,j,k)];
 					}
 					else
 						val = 1 ;
@@ -1628,7 +1632,20 @@ void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<qui
 	for(size_t i = 0 ; i< c->size() ; i++)
 	{
 		(*c)[i] = (*d)[0][i] ; //(quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
-// 		if((*c)[i])
+// 		if(abs((double)(*c)[i]- 0  ) <=1 || 
+// 			abs((double)(*c)[i] - 20 ) <=1 || 
+// 			abs((double)(*c)[i] - 40 ) <=1 ||
+// 			abs((double)(*c)[i] - 60 ) <=1 ||
+// 			abs((double)(*c)[i] - 80 ) <=1 ||
+// 			abs((double)(*c)[i] - 100) <=1 ||
+// 			abs((double)(*c)[i] - 120) <=1 ||
+// 			abs((double)(*c)[i] - 140) <=1 ||
+// 			abs((double)(*c)[i] - 160) <=1 ||
+// 			abs((double)(*c)[i] - 180) <=1 ||
+// 			abs((double)(*c)[i] - 200) <=1 ||
+// 			abs((double)(*c)[i] - 220) <=1 ||
+// 			abs((double)(*c)[i] - 240) <=1
+// 		)
 			(*res)[i] = true ;
 // 		else
 // 			(*res)[i] = false ;

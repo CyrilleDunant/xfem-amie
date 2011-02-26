@@ -633,11 +633,11 @@ void step()
 					{
 						if(tri[j]->in(p))
 						{
-// 							Vector s = tri[j]->getState().getStress(p, false) ;
-// 							Vector e = tri[j]->getState().getStrain(p, false) ;
-// 							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
+							Vector s = tri[j]->getState().getStress(p, false) ;
+							Vector e = tri[j]->getState().getStrain(p, false) ;
+							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
 // 							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
- 							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
+//  							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
 							break ;
 						}
 					}
@@ -1804,7 +1804,7 @@ int main(int argc, char *argv[])
 	
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.setMaxIterationsPerStep(200) ;
 	F.setDeltaTime(0.1);
 

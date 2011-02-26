@@ -332,12 +332,12 @@ double sign(const double t)
 
 double positivity(const double t)
 {
-	return t > 0 ;
+	return t >= 0 ;
 } 
 
 double negativity(const double t)
 {
-	return t < 0 ;
+	return t <= 0 ;
 } 
 
 

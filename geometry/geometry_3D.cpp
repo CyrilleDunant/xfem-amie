@@ -320,6 +320,10 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 	boundingPoints[3] = new Point(0,1,0) ;
 	boundingPoints[0] = new Point(0,0,1) ;
 	boundingPoints[1] = new Point(0,0,0) ;
+	if(this->volume() < 0 )
+	{
+		std::swap(boundingPoints[0], boundingPoints[1]) ;
+	}
 	computeCircumCenter() ;
 	Vector r(4) ;
 	r[0] = squareDist3D(*boundingPoints[0], circumCenter) ;
