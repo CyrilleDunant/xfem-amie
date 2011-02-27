@@ -130,7 +130,8 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
+			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
 			return father.getShapeFunction(2) + father.getShapeFunction(3);
 		}
@@ -145,14 +146,16 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
+			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
 			return father.getShapeFunction(1) + father.getShapeFunction(2) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
+			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
 			return father.getShapeFunction(0) + father.getShapeFunction(3) ;
 		}
@@ -345,13 +348,34 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 
 		std::vector<Point> hint ;
 // 		if there are no intersection points we need not do anything
-		Point bary ;
+		size_t isize = tetSphereIntersectionPoints.size() ;
+		if(isize == 0)
+			continue ;
+		
+		for(size_t j = 0 ; j < isize ; j++)
+		{
+			for(size_t k = j+1 ; k < isize ; k++)
+			{
+				tetSphereIntersectionPoints.push_back((tetSphereIntersectionPoints[j]+tetSphereIntersectionPoints[k])*.5);
+			}
+		}
+		
 		for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
 		{
+			Point localintersect = ring[i]->inLocalCoordinates(tetSphereIntersectionPoints[j]) ;
 			bool add = true ;
-			for(size_t k = 0 ; k < ring[i]->getBoundingPoints().size() ; k++)
+			for(size_t k = 0 ; k < father.getBoundingPoints().size() ; k++)
 			{
-				if(squareDist3D(ring[i]->getBoundingPoint(k), tetSphereIntersectionPoints[j]) < .01)
+				if(squareDist3D(father.getBoundingPoint(k), localintersect) < .0001)
+				{
+					add = false ;
+					break ;
+				}
+			}
+			
+			for(size_t k = 0 ; k < hint.size() ; k++)
+			{
+				if(squareDist3D(hint[k], localintersect) < .0001)
 				{
 					add = false ;
 					break ;
@@ -360,25 +384,10 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			
 			if(add)
 			{
-				hint.push_back(ring[i]->inLocalCoordinates(tetSphereIntersectionPoints[j])) ;
-				bary += tetSphereIntersectionPoints[j]/tetSphereIntersectionPoints.size() ;
+				hint.push_back(localintersect) ;
 			}
 		}
-		project(&bary);
-		bool add_bary = true ;
-		for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
-		{
-			if(squareDist3D(bary, tetSphereIntersectionPoints[j]) < .01)
-			{
-				add_bary = false ;
-				break ;
-			}
-		}
-			
-		if(add_bary)
-		{
-			hint.push_back(ring[i]->inLocalCoordinates(bary)) ;
-		}
+
 		if(ring[i]->getOrder() == QUADRATIC)
 		{
 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(1))) ;
@@ -396,7 +405,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		
 		//this function returns the distance to the centre
 		Function position(getCenter(), x, y, z) ;
-		Function hat = getRadius()-f_abs(position-getRadius());
+		Function hat =  1-f_abs(position-getRadius())/getRadius();
 		
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
@@ -413,6 +422,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			}
 		}
 		hint.clear();
+		hint.push_back(Point(.25, .25, .25));
 		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTetrahedron * t = ring[i]->getNeighbourhood(j) ;
@@ -427,7 +437,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
 			Function position(getCenter(), t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
-			Function hat = getRadius()-f_abs(position-getRadius()) ;
+			Function hat = 1-f_abs(position-getRadius())/getRadius() ;
 
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
@@ -454,7 +464,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = father.getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z))*blend ;
+						Function f = father.getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;

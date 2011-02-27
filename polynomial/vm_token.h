@@ -164,8 +164,8 @@ typedef std::pair<std::pair<TokenTypeId, short unsigned int>, double> TokenType 
 */
 struct Memory
 {
-	double stack[128];
-	double heap[256] ;
+	double stack[512];
+	double heap[512] ;
 	std::map<std::string, double *> variables ;
 	std::vector<double *> variable_register ;
 	std::string current_variable ;

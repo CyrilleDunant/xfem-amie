@@ -2240,7 +2240,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 	else
 	{
-		Matrix J ;
+		Matrix J(2, 2) ;
 		getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}

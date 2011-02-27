@@ -1325,23 +1325,6 @@ Function TriElement::getYTransform() const
 	return YTransform( this->getBoundingPoints(), TriElement(getOrder()).getShapeFunctions()) ;
 }
 
-Function TetrahedralElement::getXTransform() const
-{
-// 	if(shapefunc)
-// 		return XTransform( this->getBoundingPoints(), getShapeFunctions()) ;
-	
-	return XTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
-}
-
-Function TetrahedralElement::getYTransform() const
-{
-	return YTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
-}
-
-Function TetrahedralElement::getZTransform() const
-{
-	return ZTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
-}
 
 Function HexahedralElement::getXTransform() const
 {
@@ -1671,6 +1654,48 @@ double ElementaryVolume::getdTTransform(Variable v, const Point & p) const
 	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
 }
 
+
+Function TetrahedralElement::getdXTransform(Variable v) const
+{
+	return dXTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+}
+
+Function TetrahedralElement::getdYTransform(Variable v) const
+{
+	return dYTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+}
+
+Function TetrahedralElement::getdZTransform(Variable v) const
+{
+	return dZTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+}
+
+Function TetrahedralElement::getdTTransform(Variable v) const
+{
+	return dTTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+}
+
+
+double TetrahedralElement::getdXTransform(Variable v, const Point & p) const
+{
+	return dXTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+}
+
+double TetrahedralElement::getdYTransform(Variable v, const Point & p) const
+{
+	return dYTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+}
+
+double TetrahedralElement::getdZTransform(Variable v, const Point & p) const
+{
+	return dZTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+}
+
+double TetrahedralElement::getdTTransform(Variable v, const Point & p) const
+{
+	return dTTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+}
+
 std::vector<size_t> ElementaryVolume::clearEnrichment(const Geometry * g)
 {
 	std::vector<size_t> ret ;
@@ -1831,6 +1856,26 @@ Function  ElementaryVolume::getTTransform() const
 	return TTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
 }
 
+Function TetrahedralElement::getXTransform() const
+{
+	return XTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+}
+
+Function  TetrahedralElement::getYTransform() const
+{
+	return YTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+}
+
+Function  TetrahedralElement::getZTransform() const
+{
+	return ZTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+}
+
+Function  TetrahedralElement::getTTransform() const
+{
+	return TTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+}
+
 void ElementaryVolume::setEnrichment(const Function & p, Geometry * g)
 {
 	bool unique = true ;
@@ -1977,6 +2022,67 @@ const Function  & ElementaryVolume::getShapeFunction(size_t i) const
 void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 {
 	if(order < CONSTANT_TIME_LINEAR)
+	{
+		if(ret.isNull())
+			ret.resize(3,3) ;
+		
+		double xdxi = this->getdXTransform(XI,p) ;
+		double ydxi = this->getdYTransform(XI,p) ;
+		double zdxi = this->getdZTransform(XI,p) ;
+		
+		double xdeta = this->getdXTransform(ETA,p) ;
+		double ydeta = this->getdYTransform(ETA,p) ;
+		double zdeta = this->getdZTransform(ETA,p) ;
+		
+		double xdzeta = this->getdXTransform(ZETA,p) ;
+		double ydzeta = this->getdYTransform(ZETA,p) ;
+		double zdzeta = this->getdZTransform(ZETA,p) ;
+		
+		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = zdxi ; 
+		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ;
+		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta ;
+		invert3x3Matrix(ret) ;
+	}
+	else
+	{
+		if(ret.isNull())
+			ret.resize(4,4) ;
+		
+		double xdxi = this->getdXTransform(XI,p) ;
+		double ydxi = this->getdYTransform(XI,p) ;
+		double zdxi = this->getdZTransform(XI,p) ;
+// 		double tdxi = this->getdTTransform(XI,p) ;
+		
+		double xdeta = this->getdXTransform(ETA,p) ;
+		double ydeta = this->getdYTransform(ETA,p) ;
+		double zdeta = this->getdZTransform(ETA,p) ;
+// 		double tdeta = this->getdTTransform(ETA,p) ;
+		
+		double xdzeta = this->getdXTransform(ZETA,p) ;
+		double ydzeta = this->getdYTransform(ZETA,p) ;
+		double zdzeta = this->getdZTransform(ZETA,p) ;
+// 		double tdzeta = this->getdTTransform(ZETA,p) ;
+		
+// 		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
+// 		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
+// 		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
+		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
+		
+		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = zdxi ; ret[0][3] = 0; 
+		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ; ret[1][3] = 0;
+		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta ; ret[2][3] = 0;
+		ret[3][0] = 0 ; ret[3][1] = 0 ; ret[3][2] = 0 ; ret[3][3] = tdtheta;
+
+
+		
+		ret = inverse4x4Matrix(ret) ;
+	}
+
+}
+
+void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
+{
+	if(getOrder() < CONSTANT_TIME_LINEAR)
 	{
 		if(ret.isNull())
 			ret.resize(3,3) ;

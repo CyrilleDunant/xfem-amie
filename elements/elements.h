@@ -252,8 +252,8 @@ public:
 	TetrahedralElement(Order order = LINEAR, bool father = true);
 	TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
-	
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
+	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const;
 		
 	virtual Vector getNonLinearForces() ;
 	
@@ -265,14 +265,26 @@ public:
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
 	virtual Function getZTransform() const ;
+	virtual Function getTTransform() const ;
+
 	
-    virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;};
-    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
+	virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;};
+	virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
 	
 	virtual const GaussPointArray & getGaussPoints()
 	{
 		return genGaussPoints() ;
 	}
+	
+	virtual Function getdXTransform(Variable v) const ;
+	virtual Function getdYTransform(Variable v) const ;
+	virtual Function getdZTransform(Variable v) const ;
+	virtual Function getdTTransform(Variable v) const ;
+
+	virtual double getdXTransform(Variable v, const Point & p) const ;
+	virtual double getdYTransform(Variable v, const Point & p) const ;
+	virtual double getdZTransform(Variable v, const Point & p) const ;
+	virtual double getdTTransform(Variable v, const Point & p) const ;
 
 } ;
 
