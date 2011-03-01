@@ -4,6 +4,10 @@
 
 #include "geometry_3D.h"
 #include "geometry_2D.h"
+#include "../utilities/itoa.h"
+#include "../utilities/random.h"
+#include <fstream>
+#include <iomanip>
 
 using namespace Mu ;
 
@@ -1169,6 +1173,53 @@ XMLTree * Sphere::toXML()
 	return sph ;	
 }
 
+void Sphere::dumpSampleBoundingPoints(size_t n, size_t iter)
+{
+	Sphere sph(1.,0.,0.,0.) ;
+	std::vector<Point> p = sph.getSamplingPointsOnSphere(n,1., iter) ;
+	std::valarray<double> d(p.size()*3) ;
+	for(size_t i = 0 ; i < p.size() ; i++)
+	{
+		d[3*i+0] = p[i].x ;
+		d[3*i+1] = p[i].y ;
+		d[3*i+2] = p[i].z ;
+	}
+	
+	std::string file = "../geometry/sphere_mesh_" ;
+	file += itoa(n,10) ;
+	std::fstream out ;
+	out.open(file.c_str(), std::ios::out|std::ios::binary) ;
+//	out << p.size() << std::endl ;
+	for(size_t i = 0 ; i < d.size() ; i++)
+	{
+//		unsigned char * buf = (unsigned char *) & d[i] ;
+//		for(int j = 0 ; j < sizeof(double) ; j++)
+//			out << buf[j] ;
+		out << std::setprecision(16) << d[i] ;
+	}
+	p[0].print() ;
+	out.close() ;
+}
+
+std::vector<Point> Sphere::importStandardBoundingPoints(size_t n)
+{
+	std::vector<Point> ret ;
+	std::string file = "../geometry/sphere_mesh_" ;
+	file += itoa(n,10) ;
+	std::fstream in ;
+	in.open(file.c_str(), std::ios::in|std::ios::binary) ;
+	double dx, dy, dz ;
+	for(size_t i = 0 ; i < n ; i++)
+	{
+		in >> dx ;
+		in >> dy ;
+		in >> dz ;
+		ret.push_back(Point(dx,dy,dz)) ;
+	}
+	return ret ;
+}
+
+
 std::vector<Point> Sphere::getBoundingBox() const
 {
 	double r = getRadius() ;
@@ -1184,8 +1235,17 @@ std::vector<Point> Sphere::getBoundingBox() const
 	return ret ;
 }
 
-std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r) const
+std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r, size_t iter, size_t threshold) const
 {
+
+	if(num_points > threshold)
+	{
+		std::vector<Point> standard = getStandardSamplingBoundingPointsOnSphere(num_points) ;
+		for(size_t i = 0 ; i < standard.size() ; i++)
+			standard[i] *= r ;
+		
+		return standard ;
+	}
 	
 	//equation of a sphere = 
 	//x = r sin(theta) cos(phi)
@@ -1296,17 +1356,17 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	if(e != points.end())
 		points.erase(e, points.end()) ;
 	
-	smooth(points, r) ;
+	smooth(points, r, iter) ;
 	
 	
 	return points ;
 }
 
-void Sphere::smooth(std::vector<Point> & points,double r) const
+void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 {
 	std::valarray<Point> speeds(/*Point(), */points.size()) ;
 	Point vec ;
-	for(size_t i = 0 ; i < 50 ; i++)
+	for(size_t i = 0 ; i < iter ; i++)
 	{
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -1345,6 +1405,36 @@ void Sphere::smooth(std::vector<Point> & points,double r) const
 // 	{
 // 			project(&points[j],r) ;
 // 	}
+}
+
+std::vector<Point> Sphere::getStandardSamplingBoundingPointsOnSphere(size_t n) const
+{
+	size_t import = 128 ;
+	while(import < n)
+		import *= 2 ;
+	
+	std::vector<Point> p = Sphere::importStandardBoundingPoints(import) ;
+	RandomNumber gen ;
+	while(p.size() > n)
+	{
+		size_t i = gen.dice(p.size()) ;
+		std::vector<Point> tmp ;
+		for(size_t j = 0 ; j < i ; j++)
+			tmp.push_back(p[j]) ; 
+		for(size_t j = i+1 ; j < p.size() ; j++)
+			tmp.push_back(p[j]) ; 
+		p.clear() ;
+		for(size_t j = 0 ; j < tmp.size() ; j++)
+			p.push_back(tmp[j]) ;
+	}
+
+	double ns = ((double) import-n)/(double) (import-import/2) ;
+	ns *= import ;
+	ns = std::max(ns,(double)import/4) ;
+
+	smooth(p,1., int(ns)) ;
+
+	return p ;
 }
 
 std::vector<Point> Sphere::getSamplingBoundingPoints(size_t num_points) const

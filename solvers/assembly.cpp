@@ -788,6 +788,7 @@ bool Assembly::make_final()
 					}
 				}
 			}
+			element3d[i]->clearElementaryMatrix() ;
 		}
 
 // 		

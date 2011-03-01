@@ -477,6 +477,8 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 				a->setPointAlong(XI, 0, id[i].id) ;
 				break ;
 			case SET_ALONG_XI:
+//				std::cout << vm.eval(data, id[i]) << "\t" ;
+//				id[i].print() ;
 				a->setPointAlong(XI, vm.eval(data, id[i]), id[i].id) ;
 				break ;
 			case FIX_ALONG_ETA:

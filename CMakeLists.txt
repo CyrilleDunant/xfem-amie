@@ -135,6 +135,7 @@ utilities/writer/triangle_writer.cpp
 utilities/writer/voxel_writer.cpp
 utilities/parser.cpp
 utilities/pid.cpp
+utilities/itoa.cpp
 utilities/placement.cpp
 utilities/random.cpp
 utilities/samplingcriterion.cpp

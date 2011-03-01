@@ -18,6 +18,7 @@
 #include "../features/sample.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
+#include "../geometry/geometry_3D.h"
 #include "../features/inclusion3d.h"
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
@@ -1203,7 +1204,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 }
 
 
-int main(int argc, char *argv[])
+int main_previous(int argc, char *argv[])
 {
 	srand(0) ;
 
@@ -1288,3 +1289,16 @@ int main(int argc, char *argv[])
 	trg.write() ;
 	return 0 ;*/
 }
+
+int main(int argc, char *argv[])
+{
+	size_t n = 128 ;
+	for(size_t i = 0 ; i < 10 ; i++)
+	{
+		std::cout << n << std::endl ;
+		Sphere::dumpSampleBoundingPoints(n,1000*(i+1)) ;
+		n *= 2 ;
+	}
+	return 0 ;
+}
+

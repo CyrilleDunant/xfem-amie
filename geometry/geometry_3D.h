@@ -281,9 +281,9 @@ protected:
 	double radius ;
 	double sqradius ;
 
-	std::vector<Point> getSamplingPointsOnSphere(size_t num_points, double radius) const ;
+	std::vector<Point> getSamplingPointsOnSphere(size_t num_points, double radius, size_t iter = 50, size_t threshold = 500) const ;
 	virtual void project(Point * p, double r) const;
-	void smooth(std::vector<Point> & points, double r) const ;
+	void smooth(std::vector<Point> & points, double r, size_t iter = 50) const ;
 	
 public:
 	
@@ -317,6 +317,8 @@ public:
 	 */
 	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
 
+	std::vector<Point> getStandardSamplingBoundingPointsOnSphere(size_t n)	const ;
+
 /** \brief sample the volume of the sphere*/
 	virtual void sampleSurface(size_t num_points);
 	
@@ -344,6 +346,9 @@ public:
 	}
 	
 	virtual std::vector<Point> getBoundingBox() const ;
+
+	static void dumpSampleBoundingPoints(size_t n, size_t iter = 50) ;
+	static std::vector<Point> importStandardBoundingPoints(size_t n) ;
 
 } ;
 

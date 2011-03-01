@@ -8,6 +8,7 @@
 #include "geometry_base.h"
 //#include "../utilities/xml.h"
 #include <limits>
+#include <iomanip>
 
 #include "../mesher/delaunay.h"
 #include "../polynomial/vm_function_base.h"
@@ -125,9 +126,9 @@ XMLTree * Point::toXML()
 void Point::print() const
 {
 	std::cout << " ( id = " << id << std::flush ;
-	std::cout << " ; "<< /*std::setprecision(16) <<*/ x << std::flush ;
-	std::cout << "; " << /*std::setprecision(16)<<*/ y << std::flush ;
-	std::cout << "; " << /*std::setprecision(16)<<*/ z << std::flush ;
+	std::cout << " ; "<< std::setprecision(16) << x << std::flush ;
+	std::cout << "; " << std::setprecision(16) << y << std::flush ;
+	std::cout << "; " << std::setprecision(16) << z << std::flush ;
 	std::cout << "; " << /*std::setprecision(16)<<*/ t << ") " << std::endl;
 }
 

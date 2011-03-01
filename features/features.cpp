@@ -2509,24 +2509,21 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux(int g)
 		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		if(g != -1)
 			tets = coarseTrees3D[g]->getElements() ;
-		std::pair<Vector , Vector > grad_flux(Vector(0.f, 4*3*tets.size()), Vector(0.f, 4*3*tets.size())) ;
+		size_t npoints = tets[0]->getBoundingPoints().size() ;
+		std::pair<Vector , Vector > grad_flux(Vector(0.f, npoints*3*tets.size()), Vector(0.f, npoints*3*tets.size())) ;
 		
 		for(size_t i  = 0 ; i < tets.size() ; i++)
 		{
-			std::valarray<Point *> pts(4) ;
-			pts[0] =  tets[i]->first ;
-			pts[1] =  tets[i]->second ;
-			pts[2] =  tets[i]->third ;
-			pts[3] =  tets[i]->fourth ;
 			
 			std::pair<Vector, Vector> grflx = tets[i]->getState().getGradientAndFlux(tets[i]->getBoundingPoints()) ;
-			for(size_t j = 0 ; j < 12 ; j++)
+			for(size_t j = 0 ; j < npoints*3 ; j++)
 			{
-				grad_flux.first[i*4*3+j] = grflx.first[j] ;
-				grad_flux.second[i*4*3+j] = grflx.second[j] ;
+				grad_flux.first[i*npoints*3+j] = grflx.first[j] ;
+				grad_flux.second[i*npoints*3+j] = grflx.second[j] ;
 			}
 			if(i%1000 == 0)
 				std::cerr << "\r computing gradient+flux... element " << i+1 << "/" << tets.size() << std::flush ;
+//				std::cout << grflx.first.size() << std::endl ;
 		}
 		std::cerr << " ...done." << std::endl ;
 		return grad_flux ;
