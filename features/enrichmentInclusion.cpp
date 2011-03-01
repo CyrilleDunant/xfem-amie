@@ -283,7 +283,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 				ring[i]->setEnrichment( f, getPrimitive()) ;
 			}
 		}
-		
+		hint.clear(); hint.push_back(Point(1./3., 1./3.));
 		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;

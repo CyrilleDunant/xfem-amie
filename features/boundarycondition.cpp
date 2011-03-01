@@ -3407,10 +3407,10 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriang
 				}
 				if(!id.empty())
 				{
-				if(!function)
-					apply2DBC(tris[i], id, condition, data, a) ;
-				else
-					apply2DBC(tris[i], id, condition, dataFunction, a) ;
+					if(!function)
+						apply2DBC(tris[i], id, condition, data, a) ;
+					else
+						apply2DBC(tris[i], id, condition, dataFunction, a) ;
 				}
 			}
 		}

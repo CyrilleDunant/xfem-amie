@@ -2799,7 +2799,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ; 
 			
-	size_t numberOfRefinements = 1;
+	size_t numberOfRefinements = 3;
 
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
@@ -2868,12 +2868,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 // 		dt->insert(&extra3) ;
 		for(size_t i = 4 ; i < to_add.size() ; i++)
 		{
-			if(f.in(*to_add[i]))
-			{
-				dt->insert(to_add[i]) ;
-			}
-			else
-				to_add[i]->print() ;
+			dt->insert(to_add[i]) ;
 		}
 
 
@@ -2892,6 +2887,91 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					newPoints.push_back((*tri[j]->second + *tri[j]->third  )/2); radii.push_back(tri[j]->getRadius());
 					newPoints.push_back((*tri[j]->second + *tri[j]->fourth )/2); radii.push_back(tri[j]->getRadius());
 					newPoints.push_back((*tri[j]->third  + *tri[j]->fourth )/2); radii.push_back(tri[j]->getRadius());
+					for(size_t l = 0 ; l < enrichmentSource.size() ; l++)
+					{
+						Tetrahedron globaltet(
+							Point(
+										vm.eval(xtrans,  tri[j]->getBoundingPoint(0)),
+										vm.eval(ytrans,  tri[j]->getBoundingPoint(0)),
+										vm.eval(ztrans,  tri[j]->getBoundingPoint(0))
+							),
+							Point(
+										vm.eval(xtrans,  tri[j]->getBoundingPoint(1)),
+										vm.eval(ytrans,  tri[j]->getBoundingPoint(1)),
+										vm.eval(ztrans,  tri[j]->getBoundingPoint(1))
+							),
+							Point(
+										vm.eval(xtrans,  tri[j]->getBoundingPoint(2)),
+										vm.eval(ytrans,  tri[j]->getBoundingPoint(2)),
+										vm.eval(ztrans,  tri[j]->getBoundingPoint(2))
+							),
+							Point(
+										vm.eval(xtrans,  tri[j]->getBoundingPoint(3)),
+										vm.eval(ytrans,  tri[j]->getBoundingPoint(3)),
+										vm.eval(ztrans,  tri[j]->getBoundingPoint(3))
+							)
+						) ;
+						std::vector<Point> inter = globaltet.intersection(enrichmentSource[l]) ;
+						for(size_t m = 0 ; m < inter.size() ; m++)
+						{
+							Point localPoint(inLocalCoordinates(inter[m])) ;
+							if(localPoint.x < 0.0001)
+								localPoint.x = 0 ;
+							if(localPoint.y < 0.0001)
+								localPoint.y = 0 ;
+							if(localPoint.z < 0.0001)
+								localPoint.z = 0 ;
+							if(std::abs(localPoint.x+localPoint.y-1) <  0.0001)
+							{
+								 if(localPoint.x < localPoint.y)
+								 {
+									 localPoint.x += std::abs(localPoint.x+localPoint.y-1) ;
+								 }
+								 else
+									 localPoint.y += std::abs(localPoint.x+localPoint.y-1) ;
+							}
+							if(std::abs(localPoint.x+localPoint.z-1) <  0.0001)
+							{
+								 if(localPoint.x < localPoint.z)
+								 {
+									 localPoint.x += std::abs(localPoint.x+localPoint.z-1) ;
+								 }
+								 else
+									 localPoint.z += std::abs(localPoint.x+localPoint.z-1) ;
+							}
+							if(std::abs(localPoint.y+localPoint.z-1) <  0.0001)
+							{
+								 if(localPoint.y < localPoint.z)
+								 {
+									 localPoint.y += std::abs(localPoint.y+localPoint.z-1) ;
+								 }
+								 else
+									 localPoint.z += std::abs(localPoint.y+localPoint.z-1) ;
+							}
+							if(std::abs(localPoint.x+localPoint.y+localPoint.z-1) <  0.0001)
+							{
+								if(localPoint.x <= localPoint.y && localPoint.x <= localPoint.z)
+									localPoint.x += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
+								else if(localPoint.y <= localPoint.x && localPoint.y <= localPoint.z)
+									localPoint.y += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
+								else
+									localPoint.z += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
+							}
+							bool out = false ;
+							if(localPoint.x+localPoint.y+localPoint.z > 1)
+								out =true ;
+							
+							if(!out  && 
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(0)) < 0.0001 && 
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(1)) < 0.0001 && 
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(2)) < 0.0001 && 
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(3)) < 0.0001 )
+							{
+								newPoints.push_back(localPoint) ;
+								radii.push_back(tri[j]->getRadius());
+							}
+						}
+					}
 				}
 // 				newPoints.push_back((*tri[j]->second + *tri[j]->third + *tri[j]->fourth+*tri[j]->first)/4);
 			}
@@ -2903,7 +2983,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				bool unique  = true ;
 				for(size_t k = 0 ; k < uniquePoints.size() ; k++)
 				{
-					if(newPoints[j] == uniquePoints[k])
+					if(squareDist3D(newPoints[j], uniquePoints[k]) < 0.0001 )
 					{
 						unique  = false ;
 						break ;
@@ -2923,7 +3003,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					Point proj(vm.eval(xtrans,uniquePoints[k]),  vm.eval(ytrans,uniquePoints[k]),  vm.eval(ytrans,uniquePoints[k])) ;
 					enrichmentSource[l]->project(&proj) ;
 					proj = inLocalCoordinates(proj) ;
-					if(squareDist3D(proj, uniquePoints[k]) < .01*uniqueRadii[k]*uniqueRadii[k] && f.in(proj))
+					if(squareDist3D(proj, uniquePoints[k]) < .04*uniqueRadii[k]*uniqueRadii[k] && f.in(proj))
 						uniquePoints[k] = proj ;
 				}
 			}
@@ -2944,8 +3024,8 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 			tri[i]->setOrder(LINEAR) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			tri[i]->setOrder(LINEAR) ;
-			if(f.in(tri[i]->getCenter()))
-			{
+// 			if(f.in(tri[i]->getCenter()))
+// 			{
 				v += tri[i]->volume() ;
 			
 				Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
@@ -2964,11 +3044,11 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					w += gp_temp.gaussPoints[j].second ;
 					gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 				}
-			}
+// 			}
 		}
 		delete dt ;
 		
-		std::cout << index << "  "<< volume() << "   " << v << "   "<< jac << "  " << w << std::endl ;
+		std::cout << volume() << "   " << v << "   "<< jac << "  " << w << std::endl ;
 // 		exit(0) ;
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;

@@ -2432,7 +2432,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		return *getCachedGaussPoints() ;
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 4;
+	size_t numberOfRefinements = 5;
 	
 	double tol = 1e-8 ;
 	double position_tol = 4.*POINT_TOLERANCE ;
@@ -2523,7 +2523,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			Function y = YTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			
-			tri[i]->setOrder(LINEAR) ;
+			tri[i]->setOrder(QUINTIC) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			tri[i]->setOrder(LINEAR) ;
 			

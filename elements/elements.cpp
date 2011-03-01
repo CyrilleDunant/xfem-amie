@@ -935,6 +935,8 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 		ordre = 2 ;
 	else if (order == CUBIC || order == QUADRATIC || order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR)
 		ordre = 5 ;
+	else if (order == QUADRIC || order == QUINTIC )
+		ordre = 17 ;
 	else
 		ordre = 10 ;
 	
@@ -951,6 +953,27 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 		fin[2] = std::pair<Point, double>(Point(0.5, 0.166666666666667, 0.166666666666667), 0.1666666666666667*0.45) ;
 		fin[3] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667), 0.1666666666666667*0.45) ;
 		fin[4] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5), 0.1666666666666667*0.45) ;
+	}
+	else if (order == QUADRIC || order == QUINTIC )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), 0.031403092789502) ;
+		fin[1] = std::pair<Point, double>(Point(0.731636907957618, 0.089454364014127, 0.089454364014127), 0.011173097287728) ;
+		fin[2] = std::pair<Point, double>(Point(0.089454364014127, 0.089454364014127, 0.089454364014127), 0.011173097287728) ;
+		fin[3] = std::pair<Point, double>(Point(0.089454364014127, 0.731636907957618, 0.089454364014127), 0.011173097287728) ;
+		fin[4] = std::pair<Point, double>(Point(0.089454364014127, 0.089454364014127, 0.731636907957618), 0.011173097287728) ;
+		
+		fin[5] = std::pair<Point, double>(Point(0.132581099938466, 0.024540037929030, 0.421439431066252), 0.007547598727224) ;
+		fin[6] = std::pair<Point, double>(Point(0.132581099938466, 0.421439431066252, 0.024540037929030), 0.007547598727224) ;
+		fin[7] = std::pair<Point, double>(Point(0.132581099938466, 0.421439431066252, 0.421439431066252), 0.007547598727224) ;
+		fin[8] = std::pair<Point, double>(Point(0.024540037929030, 0.132581099938466, 0.421439431066252), 0.007547598727224) ;
+		fin[9] = std::pair<Point, double>(Point(0.024540037929030, 0.421439431066252, 0.132581099938466), 0.007547598727224) ;
+		fin[10] = std::pair<Point, double>(Point(0.024540037929030, 0.421439431066252, 0.421439431066252), 0.007547598727224) ;
+		fin[11] = std::pair<Point, double>(Point(0.421439431066252, 0.132581099938466, 0.024540037929030), 0.007547598727224) ;
+		fin[12] = std::pair<Point, double>(Point(0.421439431066252, 0.132581099938466, 0.421439431066252), 0.007547598727224) ;
+		fin[13] = std::pair<Point, double>(Point(0.421439431066252, 0.024540037929030, 0.132581099938466), 0.007547598727224) ;
+		fin[14] = std::pair<Point, double>(Point(0.421439431066252, 0.024540037929030, 0.421439431066252), 0.007547598727224) ;
+		fin[15] = std::pair<Point, double>(Point(0.421439431066252, 0.421439431066252, 0.132581099938466), 0.007547598727224) ;
+		fin[16] = std::pair<Point, double>(Point(0.421439431066252, 0.421439431066252, 0.024540037929030), 0.007547598727224) ;
 	}
 	else if(order == LINEAR_TIME_LINEAR )
 	{
