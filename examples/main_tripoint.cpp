@@ -126,6 +126,15 @@ double ierror = 0 ;
 double preverror = 0 ;
 bool firstRun = true ;
 
+double sampleLength = 5.5 ;
+double sampleHeight = 1.2 ;
+double supportLever = 2.5 ; 
+double supportMidPointToEndClearance = 0.25 ;
+double platewidth = 0.15 ;
+double plateHeight = 0.051 ;
+double rebarDiametre = 0.0254 ;
+double rebarEndCover = 0.047 ;
+
 std::vector<DelaunayTriangle *> tris__ ;
 double apriori_command = 0 ;
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
@@ -154,7 +163,7 @@ Vector angle(0) ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
-GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition(SET_STRESS_XI, new Rectangle(4*.5, 1.5, 3.9*.25, 1.2*.5) ,-9025.2) ;
+GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition(SET_STRESS_XI, new Rectangle(4*.5, 1.5, sampleLength*.25, sampleHeight*.5) ,-9025.2) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
@@ -234,7 +243,7 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 4000 ; //16*10;
+	size_t nsteps = 1 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -243,7 +252,7 @@ void step()
 	int totit = 0 ;
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
-		tries = 0 ;
+ 		tries = 0 ;
 
 		tries++ ;
 		bool go_on = true ;
@@ -251,13 +260,12 @@ void step()
 		bool damage = false ;
 
 		go_on = featureTree->step() ;
-			
 		if(go_on)
 			load->setData(load->getData()-1e5) ;
 
 
 		
-		
+		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
 	
@@ -328,7 +336,7 @@ void step()
 						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).y > (1.2+0.051*2)*.5*.999 && triangles[k]->getBoundingPoint(p).x < 0.0001)
+					if(triangles[k]->getBoundingPoint(p).y > (sampleHeight+plateHeight*2)*.5*.999 && triangles[k]->getBoundingPoint(p).x < 0.0001)
 					{
 						e_xx=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 						ex_count = 1 ;
@@ -516,8 +524,8 @@ void step()
 			writer.getField(TWFT_STRAIN_AND_STRESS) ;
 			writer.getField(TWFT_VON_MISES) ;
 			writer.getField(TWFT_STIFFNESS) ;
+			writer.getField(TWFT_DAMAGE) ;
 			writer.write() ;
-
 		}
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	
@@ -827,8 +835,7 @@ void Display(void)
 		glNewList( DISPLAY_LIST_DISPLACEMENT,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j] && !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -865,8 +872,7 @@ void Display(void)
 		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -904,8 +910,7 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_VON_MISES,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -942,7 +947,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -979,7 +984,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -1015,7 +1020,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -1048,7 +1053,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -1083,7 +1088,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -1120,7 +1125,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -1157,7 +1162,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -1194,7 +1199,7 @@ void Display(void)
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
 			
-			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !cracked[j]&& !triangles[j]->getBehaviour()->fractured())
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
 				double c2 ;
@@ -1468,22 +1473,27 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ;    m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ;                     m0_paste[2][1] = 0 ;                     m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)*.5 ; 
 
-	Sample sample(NULL, 3.9*.5, 1.2+0.051*2,3.9*.25,0) ;
+	Sample sample(NULL, sampleLength*.5, sampleHeight+plateHeight*2,sampleLength*.25,0) ;
 	
-	Sample topsupport(0.15, 0.051, 0.15*.5, 1.2*.5+0.051*.5) ;    
+	Sample topsupport(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
 	topsupport.setBehaviour(new Stiffness(m0_steel)) ;
-	Sample indestructible(0.6, 0.1, 0,1.2*.5-0.1*.5) ;
+	
+	Sample indestructible(0.6, 0.1, 0,sampleHeight*.5-0.1*.5) ;
 	indestructible.setBehaviour(new Stiffness(m0_paste));
-	Sample baseright(0.15, 0.051, 1.7, -1.2*.5-0.051*.5) ; 
+	
+	Sample baseright(platewidth, plateHeight, supportLever, -sampleHeight*.5-plateHeight*.5) ; 
 	baseright.setBehaviour(new Stiffness(m0_steel)) ;
-	Sample toprightvoid(3.9*.5-0.15, 0.051, (3.9*.5-0.15)*.5+0.15, 1.2*.5+0.051*.5) ;     
+	
+	Sample toprightvoid(sampleLength*.5-platewidth, plateHeight, (sampleLength*.5-platewidth)*.5+platewidth, sampleHeight*.5+plateHeight*.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;
-	Sample bottomcentervoid(1.7-0.15*.5, 0.051, (1.7-0.15*.5)*.5, -1.2*.5-0.051*.5) ;     
+	
+	Sample bottomcentervoid(supportLever-platewidth*.5, plateHeight, (supportLever-platewidth*.5)*.5, -sampleHeight*.5-plateHeight*.5) ;     
 	bottomcentervoid.setBehaviour(new VoidForm()) ;
-	Sample rightbottomvoid(0.25-0.15*.5, 0.051, 3.9*.5-(0.25-0.15*.5)*.5,  -1.2*.5-0.051*.5) ; 
+	
+	Sample rightbottomvoid(supportMidPointToEndClearance-platewidth*.5, plateHeight, sampleLength*.5-(supportMidPointToEndClearance-platewidth*.5)*.5,  -sampleHeight*.5-plateHeight*.5) ; 
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
-	Sample rebar0(3.9*.5-0.047, 0.0254, (3.9*.5-0.047)*.5,  -1.2*.5+0.064) ; 
+	Sample rebar0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064) ; 
 	rebar0.setBehaviour(new Stiffness(m0_paste));
 // 	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_paste), MIRROR_X));
 // 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
@@ -1492,7 +1502,7 @@ int main(int argc, char *argv[])
 // 	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999999);
 // 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
 	
-	Sample rebar1(3.9*.5-0.047, 0.0254, (3.9*.5-0.047)*.5,  -1.2*.5+0.064+0.085) ; 
+	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
 	rebar1.setBehaviour(new Stiffness(m0_paste));
 // 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_paste), MIRROR_X));
 // 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
@@ -1515,7 +1525,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(load) ;
 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(1.7, -1.2))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight))) ;
 
 	
 
@@ -1537,13 +1547,13 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.setSamplingNumber(128) ;
+	F.setSamplingNumber(512) ;
 	F.setOrder(LINEAR) ;
 
 // 	
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getElements2D() ;
-	F.addPoint(new Point(1.7, -1.2)) ;
+	F.addPoint(new Point(supportLever, -(sampleHeight+2.*plateHeight)*.5)) ;
 	
 	step() ;
 	

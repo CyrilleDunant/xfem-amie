@@ -2214,13 +2214,13 @@ void DelaunayTriangle::refresh(const TriElement * father)
 
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix() 
 {
-	if(!behaviourUpdated && !enrichmentUpdated)
+	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size())
 	{
 		return cachedElementaryMatrix ;
 	}
 	std::vector<size_t > dofs = getDofIds() ;
 	
-	if(enrichmentUpdated || behaviourUpdated)
+	if(enrichmentUpdated || behaviourUpdated || cachedElementaryMatrix.size() == 0)
 	{
 
 		int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;

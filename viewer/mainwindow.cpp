@@ -84,14 +84,14 @@ void MainWindow::createToolBars()
 	fileToolBar->addSeparator() ;
 	
 	alpha  = new QSpinBox(fileToolBar) ;
-	alpha->setRange ( 1, 255 ) ;
+	alpha->setRange ( 0, 255 ) ;
 	alpha->setValue ( 0 ) ;
 	connect(alpha, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setAlpha(int)));
 	connect(voxeldisplay, SIGNAL(alphaChanged(int)), alpha, SLOT(setValue(int)));
 	fileToolBar->addWidget(alpha);
 	
 	field  = new QSpinBox(fileToolBar) ;
-	field->setRange ( -1, 255 ) ;
+	field->setRange ( 0, 255 ) ;
 	field->setValue ( 0 ) ;
 	connect(field, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setField(int)));
 	connect(voxeldisplay, SIGNAL(fieldChanged(int)), field, SLOT(setValue(int)));
@@ -168,7 +168,7 @@ void MainWindow::open()
 			connect(printButton, SIGNAL(released()), triangledisplay, SLOT(grab()));
 			triangledisplay->setZoom(zoomval) ;
 			
-			alpha->setValue(255) ;
+			alpha->setValue(0) ;
 			downSlider->setRange(0, 9999);
 			downSlider->setValue(0) ;
 

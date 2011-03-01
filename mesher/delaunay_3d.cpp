@@ -2459,13 +2459,13 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 // 	inLocalCoordinates(getBoundingPoint(2)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(2), inLocalCoordinates(getBoundingPoint(2)))<< std::endl ;
 // 	inLocalCoordinates(getBoundingPoint(3)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(3), inLocalCoordinates(getBoundingPoint(3)))<< std::endl ;
 // 	std::cout << "--" << std::endl ;
-	if(!behaviourUpdated && !enrichmentUpdated)
+	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size())
 	{
 		return cachedElementaryMatrix ;
 	}
 	std::vector<size_t > dofs = getDofIds() ;
 	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	if(enrichmentUpdated || behaviourUpdated)
+	if(enrichmentUpdated || behaviourUpdated || cachedElementaryMatrix.size() == 0)
 	{
 		
 		std::valarray< Matrix > v_j(Matrix(size, size), dofs.size());
@@ -2485,7 +2485,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 	}
 	else
 	{
-		Matrix J ;
+		Matrix J(3,3) ;
 		getInverseJacobianMatrix(Point( .25, .25, .25), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
@@ -2799,7 +2799,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ; 
 			
-	size_t numberOfRefinements = 3;
+	size_t numberOfRefinements = 2;
 
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
