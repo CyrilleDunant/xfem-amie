@@ -2485,7 +2485,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 	}
 	else
 	{
-		Matrix J(size,size) ;
+		Matrix J ;
 		getInverseJacobianMatrix(Point( .25, .25, .25), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
