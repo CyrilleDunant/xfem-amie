@@ -27,16 +27,17 @@
 #include "../utilities/placement.h"
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
+#include "../utilities/writer/voxel_writer.h"
+#include "../physics/stiffness_and_fracture.h"
+
 #include <sys/time.h>
-
 #include <fstream>
-
 #include <cmath>
 #include <typeinfo>
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
-#include "../utilities/writer/voxel_writer.h"
+
 #define DEBUG 
 
 #define ID_QUIT 1
@@ -225,8 +226,8 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("xfem_2_lin_inter", 200) ;
-		vw.getField(featureTree, VWFT_STRESS) ;
+		VoxelWriter vw("fem_damage", 200) ;
+		vw.getField(featureTree, VWFT_DAMAGE) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
 		sigma_epsilon.first.resize(12*tets.size()) ;
@@ -1614,7 +1615,8 @@ int main(int argc, char *argv[])
 
 
 //  	sample.setBehaviour(new Laplacian(d0)) ;
-	sample.setBehaviour(new Stiffness(m0)) ;
+// 	sample.setBehaviour(new Stiffness(m0)) ;
+	sample.setBehaviour(new StiffnessAndFracture(m0, new MohrCoulomb(-4, 4))) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 // 	double v = 0 ;
 	
@@ -1638,12 +1640,12 @@ int main(int argc, char *argv[])
 // 		F.addFeature(&sample, inclusions[i]) ;
 // 		v += inclusions[i]->volume() ;
 // 	}
-	Vector a(6) ; a = 0 ; //a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
-// 	Inclusion3D * inc = new Inclusion3D(0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	Vector a(6) ; a = 0 ; a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
+	Inclusion3D * inc = new Inclusion3D(0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 // 	inc->setBehaviour(inclusionDiffusion) ;
-// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1, a)) ;
+	inc->setBehaviour(new StiffnessWithImposedDeformation(m1, a)) ;
 	
-	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
 	F.addFeature(&sample, inc) ;
 

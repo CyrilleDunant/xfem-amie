@@ -243,7 +243,7 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 1 ; //16*10;
+	size_t nsteps = 2000 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -1446,10 +1446,11 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 3.7e6 ; 
+	double tensionCrit = 3e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .05 ;
+// 	double mradius = .05 ;
+	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
@@ -1547,7 +1548,7 @@ int main(int argc, char *argv[])
 // 	pore->isVirtualFeature = true ;
 	
 	
-	F.setSamplingNumber(512) ;
+	F.setSamplingNumber(atoi(argv[1])) ;
 	F.setOrder(LINEAR) ;
 
 // 	

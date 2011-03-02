@@ -2799,7 +2799,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ; 
 			
-	size_t numberOfRefinements = 2;
+	size_t numberOfRefinements = 3;
 
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
@@ -2996,17 +2996,17 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					uniqueRadii.push_back(radii[j]);
 				}
 			}
-			for(size_t k = 0 ; k < uniquePoints.size() ; k++)
-			{
-				for(size_t l = 0 ; l < enrichmentSource.size() ; l++)
-				{
-					Point proj(vm.eval(xtrans,uniquePoints[k]),  vm.eval(ytrans,uniquePoints[k]),  vm.eval(ytrans,uniquePoints[k])) ;
-					enrichmentSource[l]->project(&proj) ;
-					proj = inLocalCoordinates(proj) ;
-					if(squareDist3D(proj, uniquePoints[k]) < .04*uniqueRadii[k]*uniqueRadii[k] && f.in(proj))
-						uniquePoints[k] = proj ;
-				}
-			}
+// 			for(size_t k = 0 ; k < uniquePoints.size() ; k++)
+// 			{
+// 				for(size_t l = 0 ; l < enrichmentSource.size() ; l++)
+// 				{
+// 					Point proj(vm.eval(xtrans,uniquePoints[k]),  vm.eval(ytrans,uniquePoints[k]),  vm.eval(ytrans,uniquePoints[k])) ;
+// 					enrichmentSource[l]->project(&proj) ;
+// 					proj = inLocalCoordinates(proj) ;
+// 					if(squareDist3D(proj, uniquePoints[k]) < .04*uniqueRadii[k]*uniqueRadii[k] && f.in(proj))
+// 						uniquePoints[k] = proj ;
+// 				}
+// 			}
 			
 			
 			for(size_t k = 0 ; k < uniquePoints.size() ; k++)

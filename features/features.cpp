@@ -3214,7 +3214,7 @@ void FeatureTree::stepElements()
 				
 				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 				{
-					volume += elements[i]->area() ;
+					volume += elements[i]->volume() ;
 					
 					elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
 					
@@ -3227,15 +3227,15 @@ void FeatureTree::stepElements()
 					if(elements[i]->getBehaviour()->fractured())
 					{
 						fracturedCount++ ;
-						crackedVolume +=  elements[i]->area() ;
+						crackedVolume +=  elements[i]->volume() ;
 					}
 					else if(std::abs(elements[i]->getBehaviour()->getTensor(Point(.25,.25,.25 ))[0][0] - elements[i]->getBehaviour()->param[0][0]) > 1e-12*elements[i]->getBehaviour()->getTensor(Point(.25,.25,.25))[0][0] )
 					{
-						damagedVolume +=  elements[i]->area() ;
+						damagedVolume +=  elements[i]->volume() ;
 					}
 				}
 				else if (elements[i]->getBehaviour()->fractured())
-					crackedVolume +=  elements[i]->area() ;
+					crackedVolume +=  elements[i]->volume() ;
 			}
 			std::cerr << " ...done" << std::endl ;
 			for(size_t i = 0 ; i < elements.size() ;i++)
@@ -3560,7 +3560,7 @@ bool FeatureTree::step()
 	}
 	std::cout  << std::endl ;
 	deltaTime = realdt ;
-	return solverConverged() && !behaviourChanged();
+	return solverConverged() && !behaviourChanged() && it < maxitPerStep;
 	
 }
 

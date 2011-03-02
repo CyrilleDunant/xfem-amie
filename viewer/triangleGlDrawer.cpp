@@ -227,9 +227,11 @@ void TriangleGLDrawer::initializeGL() {
 	std::cout << "displayList = " << displayList << std::endl ;
 	currentDisplayList = displayList ;
 	glViewport(0, 0, 600, 600) ;
+	glEnable(GL_BLEND);
 	glShadeModel(GL_SMOOTH);   // Enables Smooth Shading
 	glEnable(GL_LINE_SMOOTH) ;
 	glEnable(GL_POLYGON_SMOOTH);
+	glDisable( GL_DEPTH_TEST );
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST) ;
 	
 // 	glPointSize(std::max(0.4*(float)width()/(float)columns, 1.));
@@ -239,7 +241,7 @@ void TriangleGLDrawer::initializeGL() {
 	
 	
 	
-	glEnable(GL_BLEND);
+	
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE); 
 	
 	computeDisplayList() ;

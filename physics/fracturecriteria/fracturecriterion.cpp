@@ -764,7 +764,7 @@ bool FractureCriterion::met(const ElementState &s)
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 		return false ;
 	
-	double tol = 1e-2 ;
+	double tol = 1e-4 ;
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	DelaunayTetrahedron * testedTet = dynamic_cast<DelaunayTetrahedron *>(s.getParent()) ;
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
@@ -897,7 +897,7 @@ bool FractureCriterion::met(const ElementState &s)
 	if(testedTet)
 	{
 
-		if(testedTri->visited)
+		if(testedTet->visited())
 			return false ;
 				
 		if (scoreAtState <= 0)
