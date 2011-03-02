@@ -318,9 +318,9 @@ void TriangleGLDrawer::grab()
 		 {
 		   limits.push_back(std::make_pair(max_val, min_val)) ;
 		 }
-		 if(limits[N].first > max_val)
+		 if(limits[N].first < max_val)
 		   limits[N].first = max_val ;
-		 if(limits[N].second < min_val)
+		 if(limits[N].second > min_val)
 		   limits[N].second = min_val ;
 		 
 		 if(std::abs(limits[N].first+limits[N].second)/(limits[N].first- limits[N].second)< 1e-6 || isnan(std::abs(limits[N].first+limits[N].second)/(limits[N].first- limits[N].second)))
