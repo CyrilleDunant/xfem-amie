@@ -5411,29 +5411,69 @@ Vector ElementState::getPreviousPrincipalStresses(const Mu::PointArray & v) cons
 	}
 	
 	return principal ;
+	
+	
 }
 
-Vector ElementState::getPrincipalStresses(const Mu::PointArray& v) const
+Vector ElementState::getPrincipalStresses(const Mu::PointArray& v, bool local) const
 {
-	Vector stresses = getStress(v) ;
-	Vector principal(2*v.size()) ;
-	
+	bool is3d = false ;
 	for(size_t i = 0 ; i < v.size() ; i++)
 	{
-		Vector lprincipal(2) ;
-		lprincipal[0] = (stresses[i*3]+stresses[i*3+1])/2. +
-			sqrt(
-			      (stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
-			      stresses[i*3+2]*stresses[i*3+2]*4.
-			    ) ;
-		lprincipal[1] = (stresses[i*3]+stresses[i*3+1])/2. -
-			sqrt(
-			      (stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
-			      stresses[i*3+2]*stresses[i*3+2]*4.
-			    ) ;
-		principal[i*2] = lprincipal[0] ;
-		principal[i*2+1] = lprincipal[1] ;
+		if(std::abs(v[i]->z) > POINT_TOLERANCE)
+		{
+			is3d = true ;
+			break ;
+		}
 	}
-	
-	return principal ;
+	if(!is3d)
+	{
+		Vector stresses = getStress(v) ;
+		Vector principal(2*v.size()) ;
+		
+		for(size_t i = 0 ; i < v.size() ; i++)
+		{
+			Vector lprincipal(2) ;
+			lprincipal[0] = (stresses[i*3]+stresses[i*3+1])/2. +
+				sqrt(
+							(stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
+							stresses[i*3+2]*stresses[i*3+2]*4.
+						) ;
+			lprincipal[1] = (stresses[i*3]+stresses[i*3+1])/2. -
+				sqrt(
+							(stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
+							stresses[i*3+2]*stresses[i*3+2]*4.
+						) ;
+			principal[i*2] = lprincipal[0] ;
+			principal[i*2+1] = lprincipal[1] ;
+		}
+		
+		return principal ;
+	}
+	else
+	{
+		Vector principal(3*v.size()) ;
+		Matrix I(3,3) ; I[0][0] = 1 ; I[1][1] = 1 ; I[2][2] = 1 ;
+		for(size_t i = 0 ; i < v.size() ; i++)
+		{
+			Matrix stresses = getStressMatrix(*v[i],local) ;
+			
+			double m = (stresses[0][0] + stresses[1][1] + stresses[2][2])/3. ;
+			Matrix Am = stresses-I*m ;
+			double q = det(Am)/2. ;
+			double r = std::inner_product(&Am.array()[0], &Am.array()[9],&Am.array()[0],  double(0.))/6. ;
+			double phi = atan2(sqrt(r*r*r-q*q),q)/3. ;
+			if(r*r*r-q*q < 1e-12)
+				phi = atan(0)/3. ;
+			
+			if(phi < 0)
+				phi+= M_PI ;
+			
+			Vector lprincipal(3) ;
+			lprincipal[i*3+0] = m+2.*sqrt(r)*cos(phi) ;
+			lprincipal[i*3+1] = m-sqrt(r)*(cos(phi)+sqrt(3)*sin(phi)) ;
+			lprincipal[i*3+2] = m-sqrt(r)*(cos(phi)-sqrt(3)*sin(phi)) ;
+		}
+		return principal ;
+	}
 }

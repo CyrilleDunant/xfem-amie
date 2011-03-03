@@ -23,7 +23,8 @@ namespace Mu {
 */
 class MohrCoulomb : public FractureCriterion
 {
-
+protected:
+	PointArray testPoints ;
 public:
 	double upVal ;
 	double downVal ;

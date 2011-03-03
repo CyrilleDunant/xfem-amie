@@ -182,7 +182,7 @@ public:
 	Vector getPreviousPrincipalStresses(const Point & , bool local = false) const ;
 
 /** \brief get Principal Stresses at given points*/
-	Vector getPrincipalStresses(const Mu::PointArray &) const ;
+	Vector getPrincipalStresses(const Mu::PointArray &,  bool local = false) const ;
 	
 /** \brief get Principal Stresses at given points*/
 	Vector getPreviousPrincipalStresses(const Mu::PointArray &) const ;

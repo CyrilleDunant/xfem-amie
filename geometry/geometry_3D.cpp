@@ -1237,12 +1237,15 @@ std::vector<Point> Sphere::getBoundingBox() const
 
 std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r, size_t iter, size_t threshold) const
 {
-
 	if(num_points > threshold)
 	{
 		std::vector<Point> standard = getStandardSamplingBoundingPointsOnSphere(num_points) ;
 		for(size_t i = 0 ; i < standard.size() ; i++)
+		{
+			standard[i] -= getCenter() ;
 			standard[i] *= r ;
+			standard[i] += getCenter() ;
+		}
 		
 		return standard ;
 	}
@@ -1559,6 +1562,9 @@ void Sphere::project(Point * p, double r) const
 	}
 	
 	Point p_prime = *p-getCenter() ;
+	double n = p_prime.norm() ;
+	if(std::abs(n - r) < POINT_TOLERANCE)
+		return ;
 	p_prime *= r/p_prime.norm() ;
 	*p = getCenter()+p_prime ;
 	p->id = id ;

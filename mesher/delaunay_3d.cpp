@@ -2330,10 +2330,9 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
 	//std::cout<<tree.size();
 	for(size_t i = 0 ; i < tree.size() ; i++)
 	{
-
-		if(tree[i] && tree[i]->isAlive() && tree[i]->isTetrahedron())
+		if(tree[i]->isAlive() && tree[i]->isTetrahedron())
 		{
-			ret.push_back(static_cast<DelaunayTetrahedron *>(tree[i])) ;
+			ret.push_back((DelaunayTetrahedron *)(tree[i])) ;
 		}
 	}
 	

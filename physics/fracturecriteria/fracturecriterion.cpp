@@ -906,7 +906,6 @@ bool FractureCriterion::met(const ElementState &s)
 		double maxNeighbourhoodScore = 0 ;
 		double matchedArea = 0 ;
 		std::map<double, DelaunayTetrahedron *> scores ;
-		std::vector<double> unsortedScores ;
 		std::map<DelaunayTetrahedron *, double> areatemp ;
 		DelaunayTetrahedron * maxLocus = NULL;
 		
@@ -921,7 +920,6 @@ bool FractureCriterion::met(const ElementState &s)
 					{
 						double s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 						scores[-s] =  ci;
-						unsortedScores.push_back(s);
 						if(s > maxNeighbourhoodScore)
 						{
 							maxNeighbourhoodScore = s ;
@@ -932,7 +930,6 @@ bool FractureCriterion::met(const ElementState &s)
 					{
 						double s = POINT_TOLERANCE ;
 						scores[-s] =  ci;
-						unsortedScores.push_back(s);
 					}
 					areatemp[ci] = area[i] ;
 				}
@@ -982,7 +979,7 @@ bool FractureCriterion::met(const ElementState &s)
 					if(mirroring == MIRROR_YZ &&  std::abs(i->second->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
 					  matchedArea += areatemp[i->second] ;
 				}
-				if (matchedArea > physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI)
+				if (matchedArea > 1.333333333333333333*physicalCharacteristicRadius*physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI)
 				{
 					thresholdscore = -i->first ;
 					foundcutoff  = true ;

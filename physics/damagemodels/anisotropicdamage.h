@@ -26,6 +26,7 @@ public:
 
 	double tensionDamagex ;
 	double tensionDamagey ;
+	double tensionDamagez;
 	double shearDamage ;
 	double compressionDamage ;
 	bool inCompression ;
@@ -86,7 +87,7 @@ public:
 	virtual bool fractured() const ;
 	
 	virtual DamageModel * getCopy() const { return new AnisotropicLinearDamage(state.size()-1, getCharacteristicRadius()) ;}
-	
+
 };
 
 }

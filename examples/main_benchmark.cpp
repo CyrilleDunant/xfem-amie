@@ -212,7 +212,7 @@ void step()
 {
 	
   int nsteps = 1;
-	featureTree->setMaxIterationsPerStep(2) ;
+	featureTree->setMaxIterationsPerStep(200) ;
 	featureTree->setDeltaTime(0.0001);
 
 	for(size_t i = 0 ; i < nsteps ; i++)
@@ -226,8 +226,8 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("fem_damage", 200) ;
-		vw.getField(featureTree, VWFT_DAMAGE) ;
+		VoxelWriter vw("xfem_stress", 200) ;
+		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
 		sigma_epsilon.first.resize(12*tets.size()) ;
@@ -1615,41 +1615,45 @@ int main(int argc, char *argv[])
 
 
 //  	sample.setBehaviour(new Laplacian(d0)) ;
-// 	sample.setBehaviour(new Stiffness(m0)) ;
-	sample.setBehaviour(new StiffnessAndFracture(m0, new MohrCoulomb(-4, 4))) ;
+	sample.setBehaviour(new Stiffness(m0)) ;
+// 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0, new MohrCoulomb(-4, 4)) ;
+// 	saf->getFractureCriterion()->setMaterialCharacteristicRadius(0.005*scale);
+// 	saf->getFractureCriterion()->setNeighbourhoodRadius(0.015*scale);
+// 	sample.setBehaviour(saf) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
-// 	double v = 0 ;
+	double v = 0 ;
 	
-// 	std::vector<std::string> columns ;
-// 	columns.push_back("center_x") ;
-// 	columns.push_back("center_y") ;
-// 	columns.push_back("center_z") ;
-// 	columns.push_back("radius") ;
-// 	
-// 	GranuloFromFile spheres("sphere_2024.txt", columns) ;
-// 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
+	std::vector<std::string> columns ;
+	columns.push_back("center_x") ;
+	columns.push_back("center_y") ;
+	columns.push_back("center_z") ;
+	columns.push_back("radius") ;
+	
+	GranuloFromFile spheres("sphere_2024.txt", columns) ;
+	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
 // 	
 
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 // 	
-// 	for(int i = 0 ; i < 0 ; i++)
-// 	{
-// //		inclusions[i]->setBehaviour(inclusionStiffness) ;
+	for(int i = 0 ; i < 0 ; i++)
+	{
+		inclusions[i]->setBehaviour(inclusionStiffness) ;
 // 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
-// 		F.addFeature(&sample, inclusions[i]) ;
-// 		v += inclusions[i]->volume() ;
-// 	}
-	Vector a(6) ; a = 0 ; a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
-	Inclusion3D * inc = new Inclusion3D(0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+		F.addFeature(&sample, inclusions[i]) ;
+		v += inclusions[i]->volume() ;
+	}
+	Vector a(6) ; a = 0 ; //a[0] = 10 ; a[1] = 10 ; a[2] = 10 ;
+	std::cout << 0.05*scale << std::endl ;
+// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 // 	inc->setBehaviour(inclusionDiffusion) ;
-	inc->setBehaviour(new StiffnessWithImposedDeformation(m1, a)) ;
+// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1, a)) ;
 	
-// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
 	F.addFeature(&sample, inc) ;
 
-// 	std::cout << "aggregate volume : " << v << std::endl ;
+	std::cout << "aggregate volume : " << v << std::endl ;
 
 	F.setSamplingNumber(atoi(argv[3])) ;
 	F.setMaxIterationsPerStep(2);

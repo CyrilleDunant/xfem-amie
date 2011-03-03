@@ -24,7 +24,9 @@ protected:
 	double data ;
 	Function dataFunction ;
 	bool function ;
-
+	std::vector<ElementarySurface *> cache2d ;
+	std::vector<ElementaryVolume *> cache3d ;
+	std::vector<std::vector<Point> > cache ;
 public:
 	BoundaryCondition(LagrangeMultiplierType t, const double & d) ;
 	BoundaryCondition(LagrangeMultiplierType t, const Function & d) ;
@@ -32,6 +34,12 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) = 0 ;
 	void setData(double newval) { data = newval ;}
 	double getData() const { return data ;}
+	void clearCache()
+	{
+		cache.clear();
+		cache2d.clear();
+		cache3d.clear();
+	} ;
 } ;
 
 class NullBoundaryCondition : public BoundaryCondition

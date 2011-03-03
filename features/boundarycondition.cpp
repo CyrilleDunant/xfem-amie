@@ -1984,187 +1984,257 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 		std::cout << "no elements in assembly" << std::endl ;
 		return ;
 	}
-	double minx = elements.front()->getBoundingPoint(0).x ;
-	double miny = elements.front()->getBoundingPoint(0).y ;
-	double maxx = elements.front()->getBoundingPoint(0).x ;
-	double maxy = elements.front()->getBoundingPoint(0).y ; 
-	for(size_t i = 0 ; i < elements.size() ; ++i)
+	
+	if(cache.empty())
 	{
-		if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+		double minx = elements.front()->getBoundingPoint(0).x ;
+		double miny = elements.front()->getBoundingPoint(0).y ;
+		double maxx = elements.front()->getBoundingPoint(0).x ;
+		double maxy = elements.front()->getBoundingPoint(0).y ; 
+		for(size_t i = 0 ; i < elements.size() ; ++i)
 		{
-			for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				if(elements[i]->getBoundingPoint(j).x < minx)
-					minx = elements[i]->getBoundingPoint(j).x ;
-				if(elements[i]->getBoundingPoint(j).x > maxx)
-					maxx = elements[i]->getBoundingPoint(j).x ;
-				if(elements[i]->getBoundingPoint(j).y < miny)
-					miny = elements[i]->getBoundingPoint(j).y ;
-				if(elements[i]->getBoundingPoint(j).y > maxy)
-					maxy = elements[i]->getBoundingPoint(j).y ;
+				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				{
+					if(elements[i]->getBoundingPoint(j).x < minx)
+						minx = elements[i]->getBoundingPoint(j).x ;
+					if(elements[i]->getBoundingPoint(j).x > maxx)
+						maxx = elements[i]->getBoundingPoint(j).x ;
+					if(elements[i]->getBoundingPoint(j).y < miny)
+						miny = elements[i]->getBoundingPoint(j).y ;
+					if(elements[i]->getBoundingPoint(j).y > maxy)
+						maxy = elements[i]->getBoundingPoint(j).y ;
+				}
+			}
+		}
+		
+		double tol = std::min(maxx-minx, maxy-miny)*.0001 ;
+		
+		switch(pos)
+		{
+			case TOP:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			case LEFT:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			case BOTTOM:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			case RIGHT:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			case TOP_LEFT:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			case TOP_RIGHT:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			case BOTTOM_LEFT:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			case BOTTOM_RIGHT:
+			{
+				for(size_t i = 0 ; i < elements.size() ; ++i)
+				{
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+					{
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
+						{
+							if(cache2d.empty() || cache2d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache2d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache2d.empty() && cache2d.back() == elements[i])
+					{
+						if(!function)
+							apply2DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+					}
+				}
+				break ;
+			}
+			default:
+			{
+				break;
 			}
 		}
 	}
-	
-	double tol = std::min(maxx-minx, maxy-miny)*.0001 ;
-	
-	switch(pos)
+	else
 	{
-		case TOP:
+		for(size_t i = 0 ; i < cache2d.size() ; ++i)
 		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		case LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		case BOTTOM:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		case RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		case TOP_LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		case TOP_RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		case BOTTOM_LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		case BOTTOM_RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
-			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
-				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
-					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
-					}
-				}
-				if(!function)
-					apply2DBC(elements[i], id, condition, data, a) ;
-				else
-					apply2DBC(elements[i], id, condition, dataFunction, a) ;
-			}
-			break ;
-		}
-		default:
-		{
-			break;
+			if(!function)
+				apply2DBC(cache2d[i], cache[i], condition, data, a) ;
+			else
+				apply2DBC(cache2d[i], cache[i], condition, dataFunction, a) ;
 		}
 	}
 }
@@ -2198,654 +2268,861 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 	
 	double tol = std::min(std::min(maxx-minx, maxy-miny), maxz-minz)*.0001 ;
 	
-	switch(pos)
+	if(cache3d.empty())
 	{
-		case TOP:
+		switch(pos)
 		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case TOP:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case LEFT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BOTTOM:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BOTTOM:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case RIGHT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case FRONT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case FRONT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BACK:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BACK:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case TOP_LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case TOP_LEFT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case TOP_RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case TOP_RIGHT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BOTTOM_LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BOTTOM_LEFT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BOTTOM_RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BOTTOM_RIGHT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case FRONT_LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case FRONT_LEFT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case FRONT_RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case FRONT_RIGHT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BACK_LEFT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BACK_LEFT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BACK_RIGHT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BACK_RIGHT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case FRONT_TOP:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case FRONT_TOP:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case FRONT_BOTTOM:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case FRONT_BOTTOM:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case TOP_LEFT_FRONT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case TOP_LEFT_FRONT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case TOP_LEFT_BACK:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case TOP_LEFT_BACK:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BOTTOM_LEFT_FRONT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BOTTOM_LEFT_FRONT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BOTTOM_LEFT_BACK:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BOTTOM_LEFT_BACK:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case TOP_RIGHT_FRONT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case TOP_RIGHT_FRONT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case TOP_RIGHT_BACK:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case TOP_RIGHT_BACK:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BOTTOM_RIGHT_FRONT:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BOTTOM_RIGHT_FRONT:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
-		}
-		case BOTTOM_RIGHT_BACK:
-		{
-			for(size_t i = 0 ; i < elements.size() ; ++i)
+			case BOTTOM_RIGHT_BACK:
 			{
-				std::vector<Point> id  ;
-				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
-						&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
-						&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
-						&& elements[i]->getBoundingPoint(j).x >= xmin 
-						&& elements[i]->getBoundingPoint(j).x <= xmax
-						&& elements[i]->getBoundingPoint(j).y >= ymin 
-						&& elements[i]->getBoundingPoint(j).y <= ymax
-						&& elements[i]->getBoundingPoint(j).z >= zmin
-						&& elements[i]->getBoundingPoint(j).z <= zmax
-						)
+					std::vector<Point> id  ;
+					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
-						id.push_back(elements[i]->getBoundingPoint(j)) ;
+						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
+							&& std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
+							&& std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol
+							&& elements[i]->getBoundingPoint(j).x >= xmin 
+							&& elements[i]->getBoundingPoint(j).x <= xmax
+							&& elements[i]->getBoundingPoint(j).y >= ymin 
+							&& elements[i]->getBoundingPoint(j).y <= ymax
+							&& elements[i]->getBoundingPoint(j).z >= zmin
+							&& elements[i]->getBoundingPoint(j).z <= zmax
+							)
+						{
+							if(cache3d.empty() || cache3d.back() != elements[i])
+							{
+								cache.push_back(std::vector<Point>());
+								cache3d.push_back(elements[i]);
+							}
+							cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+						}
+					}
+					if(!cache3d.empty() && cache3d.back() == elements[i])
+					{
+						if(!function)
+							apply3DBC(elements[i], cache.back(), condition, data, a) ;
+						else
+							apply3DBC(elements[i], cache.back(), condition, dataFunction, a) ;
 					}
 				}
-				if(!function)
-					apply3DBC(elements[i], id, condition, data, a) ;
-				else
-					apply3DBC(elements[i], id, condition, dataFunction, a) ;
+				break ;
 			}
-			break ;
+			default:
+			{
+				break;
+			}
 		}
-		default:
+	}
+
+	else
+	{
+		for(size_t i = 0 ; i < cache3d.size() ; ++i)
 		{
-			break;
+			if(!function)
+				apply3DBC(cache3d[i], cache[i], condition, data, a) ;
+			else
+				apply3DBC(cache3d[i], cache[i], condition, dataFunction, a) ;
 		}
 	}
 }
+
 void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;

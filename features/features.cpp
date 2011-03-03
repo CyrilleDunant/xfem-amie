@@ -820,9 +820,10 @@ void FeatureTree::stitch()
 				if(!tree[j]->isEnrichmentFeature)
 				{
 					//In two pass
-					
+
 					for(size_t i = 0 ; i < tets.size() ; i++)
 					{
+
 						Point proj_0(tets[i]->getBoundingPoint(0)) ;
 						tree[j]->project(&proj_0) ;
 						Point proj_1(tets[i]->getBoundingPoint(2)) ;
@@ -831,18 +832,17 @@ void FeatureTree::stitch()
 						tree[j]->project(&proj_2) ;
 						Point proj_3(tets[i]->getBoundingPoint(6)) ;
 						tree[j]->project(&proj_3) ;
-
-						
+						pd+= 6 ;
 						
 						if(
 						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2)) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
-							count +=1; 
+							count++; 
 							Point test = tets[i]->getBoundingPoint(1) ;
 							tree[j]->project(&test) ;
-							if (inRoot(test) && tets[i]->in(test))
+							if (inRoot(test))
 							{
 								tree[j]->project(&tets[i]->getBoundingPoint(1)) ;
 								if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -852,13 +852,13 @@ void FeatureTree::stitch()
 						}
 						if(
 						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4)) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
-							count +=1; 
+							count++; 
 							Point test = tets[i]->getBoundingPoint(9) ;
 							tree[j]->project(&test) ;
-							if (inRoot(test) && tets[i]->in(test))
+							if (inRoot(test) )
 							{
 								tree[j]->project(&tets[i]->getBoundingPoint(9)) ;
 								if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -868,13 +868,13 @@ void FeatureTree::stitch()
 						}
 						if(
 						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6)) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
-							count +=1; 
+							count++; 
 							Point test = tets[i]->getBoundingPoint(7) ;
 							tree[j]->project(&test) ;
-							if (inRoot(test) && tets[i]->in(test))
+							if (inRoot(test) )
 							{
 								tree[j]->project(&tets[i]->getBoundingPoint(7)) ;
 								if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -884,13 +884,13 @@ void FeatureTree::stitch()
 						}
 						if(
 						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6)) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
-							count +=1; 
+							count++; 
 							Point test = tets[i]->getBoundingPoint(8) ;
 							tree[j]->project(&test) ;
-							if (inRoot(test) && tets[i]->in(test))
+							if (inRoot(test))
 							{
 								tree[j]->project(&tets[i]->getBoundingPoint(8)) ;
 								if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -900,13 +900,13 @@ void FeatureTree::stitch()
 						}
 						if(
 						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4)) < POINT_TOLERANCE*POINT_TOLERANCE
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE*POINT_TOLERANCE
 						  )
 						{
-							count +=1; 
+							count++; 
 							Point test = tets[i]->getBoundingPoint(3) ;
 							tree[j]->project(&test) ;
-							if (inRoot(test) && tets[i]->in(test))
+							if (inRoot(test) )
 							{
 								tree[j]->project(&tets[i]->getBoundingPoint(3)) ;
 								if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -916,13 +916,13 @@ void FeatureTree::stitch()
 						}
 						if(
 						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4)) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE*POINT_TOLERANCE 
 						  )
 						{
-							count +=1; 
+							count++; 
 							Point test = tets[i]->getBoundingPoint(5) ;
 							tree[j]->project(&test) ;
-							if (inRoot(test) && tets[i]->in(test))
+							if (inRoot(test))
 							{
 								tree[j]->project(&tets[i]->getBoundingPoint(5)) ;
 								if(elemOrder >= CONSTANT_TIME_LINEAR)
@@ -932,13 +932,13 @@ void FeatureTree::stitch()
 						}
 
 						if(count % 1000 == 0)
-							std::cerr << "\r projecting points on boundaries... point " << count << "/" << ++pd << " feature " << i << std::flush ; 
+							std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " feature " << j << std::flush ; 
 					}
 				}
 			}
 		}
 	}
-	std::cerr << " ...done."<< std::endl ;
+	std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " ...done."<< std::endl ;
 }
 
 void FeatureTree::setSamplingNumber(size_t news) 
@@ -2832,7 +2832,17 @@ void FeatureTree::solve()
 			}
 		}
 		if(dtree3D)
+		{
 			boundaryCondition[i]->apply(K, dtree3D) ;
+			
+			if(useMultigrid)
+			{
+				for(size_t j = 0 ; j < coarseTrees.size() ;j++)
+				{
+					boundaryCondition[i]->apply(coarseAssemblies[j], coarseTrees3D[j]) ;
+				}
+			}
+		}
 	}
 	
 	needAssembly = true ;
@@ -3762,6 +3772,9 @@ void FeatureTree::initializeElements()
 
 void FeatureTree::generateElements() 
 {
+	for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
+		boundaryCondition[i]->clearCache() ;
+	
 	if(dtree || dtree3D)
 	{
 		if(K)
@@ -3958,11 +3971,8 @@ void FeatureTree::generateElements()
 						isIn = false ;
 					}
 				}
-				if(!isIn)
+				if(!isIn )
 				{
-					if(tree[i]->getBoundingPoint(j) == Point(-250, 0))
-						std::cout << i << " found" << std::endl ;
-					bpcount++ ;
 					meshPoints.push_back(std::pair<Point *, Feature *>(&tree[i]->getBoundingPoint(j), this->tree[i])) ;
 					if(i == 0)
 						basepoints++ ;

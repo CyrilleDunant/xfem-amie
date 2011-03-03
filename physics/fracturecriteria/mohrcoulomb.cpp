@@ -21,26 +21,40 @@ MohrCoulomb::MohrCoulomb(double up, double down, MirrorState mirroring, double d
 
 MohrCoulomb::~MohrCoulomb()
 {
+	for(size_t i = 0 ; i < testPoints.size() ; i++)
+		delete testPoints[i] ;
 }
 
 double MohrCoulomb::grade(const ElementState &s) 
 {
-
+	
 	if(s.getParent()->getBehaviour()->fractured())
 		return 0 ;
 
-	Vector pstress0 = s.getPrincipalStresses(Point(0, 0, 0), true) ;
-	Vector pstress1 = s.getPrincipalStresses(Point(0, 1, 0), true) ;
-	Vector pstress2 = s.getPrincipalStresses(Point(1, 0, 0), true) ;
-	double maxStress = std::max(pstress0.max(), std::max(pstress1.max(),pstress2.max()));
-	double minStress = std::min(pstress0.min(), std::min(pstress1.min(),pstress2.min()));
-	
-	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	if(testPoints.size() == 0)
 	{
-		Vector pstress3 = s.getPrincipalStresses(Point(0, 0, 1), true) ;
-		maxStress = std::max(pstress3.max(),maxStress);
-                minStress = std::min(pstress3.min(), minStress);
+		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+		{
+			testPoints.resize(4);
+			testPoints[0] = new Point(0,0,0) ;
+			testPoints[1] = new Point(1,0,0) ;
+			testPoints[2] = new Point(0,1,0) ;
+			testPoints[3] = new Point(0,0,1) ;
+		}
+		else
+		{
+			testPoints.resize(3);
+			testPoints[0] = new Point(0,0,0) ;
+			testPoints[1] = new Point(1,0,0) ;
+			testPoints[2] = new Point(0,1,0) ;
+		}
 	}
+	
+	Vector pstress = s.getPrincipalStresses(testPoints) ;
+
+	double maxStress = pstress.max() ;
+	double minStress = pstress.min() ;
+	
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
 	metInTension = false ;
 	metInCompression = false ;

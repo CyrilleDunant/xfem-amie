@@ -16,12 +16,13 @@ namespace Mu {
 
 AnisotropicLinearDamage::AnisotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
 {
-	state.resize(3, 0.) ;
-	previousstate.resize(3, 0.) ;
+	state.resize(4, 0.) ;
+	previousstate.resize(4, 0.) ;
 	isNull = false ;
 	state = 0 ;
 	tensionDamagex = 0 ;
 	tensionDamagey = 0 ;
+	tensionDamagez = 0. ;
 	shearDamage = 0 ;
 	compressionDamage = 0 ;
 	inCompression = false ;
@@ -62,14 +63,14 @@ void AnisotropicLinearDamage::step(ElementState & s)
 		fraction = std::min(fraction, 1.) ;
 	}
 	
-	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
-	double l_2 = s.getParent()->area() ; 
-	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
+// 	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
+// 	double l_2 = s.getParent()->area() ; 
+// 	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
 		inCompression = true ;
-		compressionDamage += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
+		compressionDamage +=/* std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
 		compressionDamage = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, compressionDamage) ;
 		compressionDamage = std::min(.99999, compressionDamage) ;
 		compressionDamage = std::max(0., compressionDamage) ;
@@ -81,19 +82,30 @@ void AnisotropicLinearDamage::step(ElementState & s)
 		
 		Vector stress = s.getStrain(s.getParent()->getCenter()) ;
 		double norm = sqrt(stress[0]*stress[0]+stress[1]*stress[1]) ;
+		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+			norm = sqrt(stress[0]*stress[0]+stress[1]*stress[1]+stress[2]*stress[2]) ;
 		double factorx= std::abs(stress[0])/norm ;
 		double factory= std::abs(stress[1])/norm ;
+		double factorz= std::abs(stress[2])/norm ;
 		
-		tensionDamagex += factorx*std::min(damageDensityIncrement*fraction, maxincrement ) ; 
+		tensionDamagex += factorx*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
 		tensionDamagex = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagex) ;
 		tensionDamagex = std::min(.99999, tensionDamagex) ;
 		tensionDamagex = std::max(0., tensionDamagex) ;
 		
-		tensionDamagey += factory*std::min(damageDensityIncrement*fraction, maxincrement ) ; 
+		tensionDamagey += factory*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
 		tensionDamagey = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagey) ;
 		tensionDamagey = std::min(.99999, tensionDamagey) ;
 		tensionDamagey = std::max(0., tensionDamagey) ;
-		shearDamage += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
+		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+		{
+			tensionDamagez += factorz*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
+			tensionDamagez = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagez) ;
+			tensionDamagez = std::min(.99999, tensionDamagez) ;
+			tensionDamagez = std::max(0., tensionDamagez) ;
+		}
+		
+		shearDamage += /*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
 		shearDamage = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, shearDamage) ;
 		shearDamage = std::min(.99999, shearDamage) ;
 		shearDamage = std::max(0., shearDamage) ;
@@ -101,6 +113,7 @@ void AnisotropicLinearDamage::step(ElementState & s)
 	state[0] = compressionDamage ;
 	state[1] = tensionDamagex ;
 	state[2] = tensionDamagey ;
+	state[3] = tensionDamagez ;
 // 	std::cout << state.sum() << std::flush ;
 }
 
@@ -114,9 +127,8 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
 	
-// 	if(fractured())
-// 		return m*0.;
-	//this is a silly way of distinguishing between 2D and 3D
+	if(fractured())
+		return m*0.;
 
 	if(inTension)
 	{
@@ -143,15 +155,50 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 				ret[1][j]*= 0. ;
 		}
 		
-		if(shearDamage < secondaryThresholdDamageDensity/fraction)
+		if(tensionDamagez < secondaryThresholdDamageDensity/fraction && ret.numRows() > 3)
 		{
 			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[2][j]*= 1.-shearDamage ;
+				ret[2][j]*= 1.-tensionDamagez ;
 		}
 		else
 		{
 			for(size_t j = 0 ; j < m.numCols() ;j++)
 				ret[2][j]*= 0. ;
+		}
+		
+		if(ret.numRows() <= 3)
+		{
+			if(shearDamage < secondaryThresholdDamageDensity/fraction )
+			{
+				for(size_t j = 0 ; j < m.numCols() ;j++)
+					ret[2][j]*= 1.-shearDamage ;
+			}
+			else
+			{
+				for(size_t j = 0 ; j < m.numCols() ;j++)
+					ret[2][j]*= 0. ;
+			}
+		}
+		else
+		{
+			if(shearDamage < secondaryThresholdDamageDensity/fraction )
+			{
+				for(size_t j = 0 ; j < m.numCols() ;j++)
+				{
+					ret[3][j]*= 1.-shearDamage ;
+					ret[4][j]*= 1.-shearDamage ;
+					ret[5][j]*= 1.-shearDamage ;
+				}
+			}
+			else
+			{
+				for(size_t j = 0 ; j < m.numCols() ;j++)
+				{
+					ret[3][j]*= 0. ;
+					ret[4][j]*= 0. ;
+					ret[5][j]*= 0. ;
+				}
+			}
 		}
 		
 		return ret ;
@@ -178,7 +225,7 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 // 			}
 // 		}
 	}
-	return ret*(1.-std::max(std::max(tensionDamagex, tensionDamagey), compressionDamage)) ;
+	return ret*(1.-std::max(std::max(tensionDamagex, std::max(tensionDamagey,tensionDamagez)), compressionDamage)) ;
 }
 
 Matrix AnisotropicLinearDamage::applyPrevious(const Matrix & m) const
@@ -213,7 +260,7 @@ bool AnisotropicLinearDamage::fractured() const
 		return false ;
 	
 	if(inTension)
-		if(std::min(tensionDamagey, tensionDamagex) >= secondaryThresholdDamageDensity/fraction)
+		if(std::min(tensionDamagey, std::min(tensionDamagex,tensionDamagez)) >= secondaryThresholdDamageDensity/fraction)
 			return true ;
 		
 	if(inCompression)
