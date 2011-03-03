@@ -281,9 +281,9 @@ protected:
 	double radius ;
 	double sqradius ;
 
-	std::vector<Point> getSamplingPointsOnSphere(size_t num_points, double radius, size_t iter = 50, size_t threshold = 500) const ;
+	std::vector<Point> getSamplingPointsOnSphere(size_t num_points, double radius, size_t iter = 100, size_t threshold = 500) const ;
 	virtual void project(Point * p, double r) const;
-	void smooth(std::vector<Point> & points, double r, size_t iter = 50) const ;
+	void smooth(std::vector<Point> & points, double r, size_t iter = 100) const ;
 	
 public:
 	

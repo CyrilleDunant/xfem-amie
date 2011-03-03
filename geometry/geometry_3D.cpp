@@ -1237,7 +1237,18 @@ std::vector<Point> Sphere::getBoundingBox() const
 
 std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r, size_t iter, size_t threshold) const
 {
-	if(num_points > threshold)
+	
+	size_t import = 128 ;
+	while(import < num_points)
+		import *= 2 ;
+
+
+	double ns = ((double) import-num_points)/(double) (import-import/2) ;
+	ns *= import ;
+	ns = std::max(ns,(double)import/4) ;
+
+	
+	if(iter > ns)
 	{
 		std::vector<Point> standard = getStandardSamplingBoundingPointsOnSphere(num_points) ;
 		for(size_t i = 0 ; i < standard.size() ; i++)

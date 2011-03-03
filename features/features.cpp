@@ -2797,7 +2797,9 @@ void FeatureTree::solve()
 {
 	Vector lastx(K->getDisplacements()) ;
  	K->initialiseElementaryMatrices();
-	
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
+	std::cerr << "finding nodes for boundary conditions... " << std::endl ;
 	if(dtree)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
@@ -2816,6 +2818,10 @@ void FeatureTree::solve()
 		}
 		
 	}
+	
+	gettimeofday(&time1, NULL);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << "...done. Time (s) " << delta/1e6 << std::endl ;
 	
 	for(size_t i = 0 ; i < boundaryCondition.size() ; ++i)
 	{
@@ -3731,9 +3737,9 @@ void FeatureTree::initializeElements()
 // 						count++ ;
 		}
 
-			gettimeofday(&time1, NULL);
-			double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-			std::cerr << "\r initialising... element " << triangles.size() << "/" << triangles.size() << ". Time to initialise (s) " << delta/1e6 << std::endl ;
+		gettimeofday(&time1, NULL);
+		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+		std::cerr << "\r initialising... element " << triangles.size() << "/" << triangles.size() << ". Time to initialise (s) " << delta/1e6 << std::endl ;
 		
 		if(useMultigrid)
 		{

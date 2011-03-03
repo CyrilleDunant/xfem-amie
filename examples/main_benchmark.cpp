@@ -1636,7 +1636,7 @@ int main(int argc, char *argv[])
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 // 	
-	for(int i = 0 ; i < 0 ; i++)
+	for(int i = 0 ; i < 400 ; i++)
 	{
 		inclusions[i]->setBehaviour(inclusionStiffness) ;
 // 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
@@ -1644,20 +1644,19 @@ int main(int argc, char *argv[])
 		v += inclusions[i]->volume() ;
 	}
 	Vector a(6) ; a = 0 ; //a[0] = 10 ; a[1] = 10 ; a[2] = 10 ;
-	std::cout << 0.05*scale << std::endl ;
 // 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
-// 	inc->setBehaviour(inclusionDiffusion) ;
+// // 	inc->setBehaviour(inclusionDiffusion) ;
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1, a)) ;
 	
 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
-	F.addFeature(&sample, inc) ;
+// 	F.addFeature(&sample, inc) ;
 
 	std::cout << "aggregate volume : " << v << std::endl ;
 
 	F.setSamplingNumber(atoi(argv[3])) ;
 	F.setMaxIterationsPerStep(2);
-/*	for(int i = 0 ; i < inclusions.size() ; i++)
+	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
 		if(inclusions[i]->intersects(dynamic_cast<Hexahedron *>(&sample)))
 		{
@@ -1693,7 +1692,7 @@ int main(int argc, char *argv[])
 				std::cout << i << " changed size" << std::endl ;
 			}
 		}
-	}*/
+	}
 	
 	F.setOrder(QUADRATIC) ;
 	

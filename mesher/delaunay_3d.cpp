@@ -2798,7 +2798,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ; 
 			
-	size_t numberOfRefinements = 3;
+	size_t numberOfRefinements = 2;
 
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
@@ -3020,7 +3020,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		double w = 0 ;
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
-			tri[i]->setOrder(LINEAR) ;
+			tri[i]->setOrder(QUADRATIC) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			tri[i]->setOrder(LINEAR) ;
 // 			if(f.in(tri[i]->getCenter()))

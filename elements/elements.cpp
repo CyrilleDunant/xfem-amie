@@ -1638,109 +1638,109 @@ Order ElementarySurface::getOrder() const
 
 Function ElementaryVolume::getdXTransform(Variable v) const
 {
-	return dXTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
+	return dXTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 Function ElementaryVolume::getdYTransform(Variable v) const
 {
-	return dYTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
+	return dYTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 Function ElementaryVolume::getdZTransform(Variable v) const
 {
-	return dZTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
+	return dZTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 Function ElementaryVolume::getdTTransform(Variable v) const
 {
-	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v) ;
+	return dTTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 
 double ElementaryVolume::getdXTransform(Variable v, const Point & p) const
 {
-	return dXTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
+	return dXTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
 }
 
 double ElementaryVolume::getdYTransform(Variable v, const Point & p) const
 {
-	return dYTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
+	return dYTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
 }
 
 double ElementaryVolume::getdZTransform(Variable v, const Point & p) const
 {
-	return dZTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
+	return dZTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
 }
 
 double ElementaryVolume::getdTTransform(Variable v, const Point & p) const
 {
-	return dTTransform( this->getBoundingPoints(), this->getShapeFunctions(),v, p) ;
+	return dTTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
 }
 
 
 Function TetrahedralElement::getdXTransform(Variable v) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dXTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dXTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
 	
-	return dXTransform( this->getBoundingPoints(), getShapeFunctions(),v) ;
+	return dXTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 Function TetrahedralElement::getdYTransform(Variable v) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dYTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dYTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
 	
-	return dYTransform( this->getBoundingPoints(), getShapeFunctions(),v) ;
+	return dYTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 Function TetrahedralElement::getdZTransform(Variable v) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dZTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dZTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
 	
-	return dZTransform( this->getBoundingPoints(), getShapeFunctions(),v) ;
+	return dZTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 Function TetrahedralElement::getdTTransform(Variable v) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dTTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dTTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v) ;
 	
-	return dTTransform( this->getBoundingPoints(), getShapeFunctions(),v) ;
+	return dTTransform( getBoundingPoints(), getShapeFunctions(),v) ;
 }
 
 
 double TetrahedralElement::getdXTransform(Variable v, const Point & p) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dXTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dXTransform(getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
 	
-	return dXTransform( this->getBoundingPoints(), getShapeFunctions(),v, p) ;
+	return dXTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
 }
 
 double TetrahedralElement::getdYTransform(Variable v, const Point & p) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dYTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dYTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
 	
-	return dYTransform( this->getBoundingPoints(), getShapeFunctions(),v, p) ;
+	return dYTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
 }
 
 double TetrahedralElement::getdZTransform(Variable v, const Point & p) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dZTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dZTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
 	
-	return dZTransform( this->getBoundingPoints(),getShapeFunctions(),v, p) ;
+	return dZTransform( getBoundingPoints(),getShapeFunctions(),v, p) ;
 }
 
 double TetrahedralElement::getdTTransform(Variable v, const Point & p) const
 {
-	if(shapefunc->size() != getBoundingPoints().size())
-		return dTTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
+	if(getShapeFunctions().size() != getBoundingPoints().size())
+		return dTTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions(),v, p) ;
 	
-	return dTTransform( this->getBoundingPoints(), getShapeFunctions(),v, p) ;
+	return dTTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
 }
 
 std::vector<size_t> ElementaryVolume::clearEnrichment(const Geometry * g)
@@ -1833,15 +1833,15 @@ double ElementaryVolume::jacobianAtPoint(const Point & p) const
 	
 	if(order < CONSTANT_TIME_LINEAR)
 	{
-		double xdxi = this->getdXTransform(XI, p) ;
-		double ydxi = this->getdYTransform(XI, p) ;
-		double zdxi = this->getdZTransform(XI, p) ;
-		double xdeta = this->getdXTransform(ETA, p) ;
-		double ydeta = this->getdYTransform(ETA, p) ;
-		double zdeta = this->getdZTransform(ETA, p) ;
-		double xdzeta = this->getdXTransform(ZETA,p) ;
-		double ydzeta = this->getdYTransform(ZETA,p) ;
-		double zdzeta = this->getdZTransform(ZETA,p) ;
+		double xdxi   = getdXTransform(XI  , p) ;
+		double ydxi   = getdYTransform(XI  , p) ;
+		double zdxi   = getdZTransform(XI  , p) ;
+		double xdeta  = getdXTransform(ETA , p) ;
+		double ydeta  = getdYTransform(ETA , p) ;
+		double zdeta  = getdZTransform(ETA , p) ;
+		double xdzeta = getdXTransform(ZETA, p) ;
+		double ydzeta = getdYTransform(ZETA, p) ;
+		double zdzeta = getdZTransform(ZETA, p) ;
 		
 		return -xdxi*ydeta*zdzeta - zdeta*xdzeta*ydxi - ydzeta*zdxi*xdeta  +
 			xdxi*ydzeta*zdeta + xdeta*ydxi*zdzeta + xdzeta*ydeta*zdxi ;
@@ -1850,25 +1850,25 @@ double ElementaryVolume::jacobianAtPoint(const Point & p) const
 	{
 		Matrix  J0(4,4) ;
 		
-		double xdxi = this->getdXTransform(XI,p) ;
-		double ydxi = this->getdYTransform(XI,p) ;
-		double zdxi = this->getdZTransform(XI,p) ;
+		double xdxi = getdXTransform(XI,p) ;
+		double ydxi = getdYTransform(XI,p) ;
+		double zdxi = getdZTransform(XI,p) ;
 // 		double tdxi = this->getdTTransform(XI,p) ;
 		
-		double xdeta = this->getdXTransform(ETA,p) ;
-		double ydeta = this->getdYTransform(ETA,p) ;
-		double zdeta = this->getdZTransform(ETA,p) ;
+		double xdeta = getdXTransform(ETA,p) ;
+		double ydeta = getdYTransform(ETA,p) ;
+		double zdeta = getdZTransform(ETA,p) ;
 // 		double tdeta = this->getdTTransform(ETA,p) ;
 		
-		double xdzeta = this->getdXTransform(ZETA,p) ;
-		double ydzeta = this->getdYTransform(ZETA,p) ;
-		double zdzeta = this->getdZTransform(ZETA,p) ;
+		double xdzeta = getdXTransform(ZETA,p) ;
+		double ydzeta = getdYTransform(ZETA,p) ;
+		double zdzeta = getdZTransform(ZETA,p) ;
 // 		double tdzeta = this->getdTTransform(ZETA,p) ;
 		
 // 		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
 // 		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
 // 		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
-		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
+		double tdtheta = getdTTransform(TIME_VARIABLE,p) ;
 		
 		J0[0][0] = xdxi ; J0[0][1] = ydxi ; J0[0][2] = zdxi ; J0[0][3] = 0; 
 		J0[1][0] = xdeta ; J0[1][1] = ydeta ; J0[1][2] = zdeta ; J0[1][3] = 0;
@@ -1885,42 +1885,54 @@ double ElementaryVolume::jacobianAtPoint(const Point & p) const
 
 Function ElementaryVolume::getXTransform() const
 {
-	return XTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
+	return XTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 Function  ElementaryVolume::getYTransform() const
 {
-	return YTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
+	return YTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 Function  ElementaryVolume::getZTransform() const
 {
-	return ZTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
+	return ZTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 Function  ElementaryVolume::getTTransform() const
 {
-	return TTransform( this->getBoundingPoints(), this->getShapeFunctions()) ;
+	return TTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 Function TetrahedralElement::getXTransform() const
 {
-	return XTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	if(getBoundingPoints().size() != getShapeFunctions().size())
+		return XTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	
+	return XTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 Function  TetrahedralElement::getYTransform() const
 {
-	return YTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	if(getBoundingPoints().size() != getShapeFunctions().size())
+		return YTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	
+	return YTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 Function  TetrahedralElement::getZTransform() const
 {
-	return ZTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	if(getBoundingPoints().size() != getShapeFunctions().size())
+		return ZTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	
+	return ZTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 Function  TetrahedralElement::getTTransform() const
 {
-	return TTransform( this->getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	if(getBoundingPoints().size() != getShapeFunctions().size())
+		return TTransform( getBoundingPoints(), TetrahedralElement(getOrder()).getShapeFunctions()) ;
+	
+	return TTransform( getBoundingPoints(), getShapeFunctions()) ;
 }
 
 void ElementaryVolume::setEnrichment(const Function & p, Geometry * g)
