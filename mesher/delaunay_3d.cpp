@@ -1245,17 +1245,17 @@ std::vector< Point*> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D 
 
 bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 {
-	if(p.x > x+1.00001*radius)
+	if(p.x > x+1.001*radius)
 		return false ;
-	if(p.x < x-1.00001*radius)
+	if(p.x < x-1.001*radius)
 		return false ;
-	if(p.y > y+1.00001*radius)
+	if(p.y > y+1.001*radius)
 		return false ;
-	if(p.y < y-1.00001*radius)
+	if(p.y < y-1.001*radius)
 		return false ;
-	if(p.z > z+1.00001*radius)
+	if(p.z > z+1.001*radius)
 		return false ;
-	if(p.z < z-1.00001*radius)
+	if(p.z < z-1.001*radius)
 		return false ;
 	
 	double d = sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
@@ -1264,17 +1264,17 @@ bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 
 bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
 {
-	if(p.x > x+1.00001*radius)
+	if(p.x > x+1.001*radius)
 		return false ;
-	if(p.x < x-1.00001*radius)
+	if(p.x < x-1.001*radius)
 		return false ;
-	if(p.y > y+1.00001*radius)
+	if(p.y > y+1.001*radius)
 		return false ;
-	if(p.y < y-1.00001*radius)
+	if(p.y < y-1.001*radius)
 		return false ;
-	if(p.z > z+1.00001*radius)
+	if(p.z > z+1.001*radius)
 		return false ;
-	if(p.z < z-1.00001*radius)
+	if(p.z < z-1.001*radius)
 		return false ;
 	
 	double d =  sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
@@ -1501,40 +1501,40 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 
 bool DelaunayTetrahedron::inCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.0001*radius)
+	if(p.x > circumCenter.x+1.001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.0001*radius)
+	if(p.x < circumCenter.x-1.001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.0001*radius)
+	if(p.y > circumCenter.y+1.001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.0001*radius)
+	if(p.y < circumCenter.y-1.001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.0001*radius)
+	if(p.z > circumCenter.z+1.001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.0001*radius)
+	if(p.z < circumCenter.z-1.001*radius)
 		return false ;
 	
 	double d = dist(circumCenter, p) ;
-	return  d/(radius)-1 < POINT_TOLERANCE/radius ;
+	return  d-radius < POINT_TOLERANCE*radius ;
 }
 
 bool DelaunayTetrahedron::onCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.0001*radius)
+	if(p.x > circumCenter.x+1.001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.0001*radius)
+	if(p.x < circumCenter.x-1.001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.0001*radius)
+	if(p.y > circumCenter.y+1.001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.0001*radius)
+	if(p.y < circumCenter.y-1.001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.0001*radius)
+	if(p.z > circumCenter.z+1.001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.0001*radius)
+	if(p.z < circumCenter.z-1.001*radius)
 		return false ;
 	
 	double d = dist(circumCenter, p) ;
-	return  std::abs(d/(radius)-1) < POINT_TOLERANCE/radius ;
+	return  std::abs(d-radius) < POINT_TOLERANCE*radius ;
 }
 
 

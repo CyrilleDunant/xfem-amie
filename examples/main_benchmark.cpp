@@ -224,8 +224,8 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("fem_small_test", 100) ;
-		vw.getField(featureTree, VWFT_STIFFNESS) ;
+		VoxelWriter vw("fem_2024", 200) ;
+		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
 		sigma_epsilon.first.resize(24*tets.size()) ;
@@ -405,7 +405,7 @@ void step()
 		std::cout << -avg_e_yy/avg_s_yy << std::endl ;
 		std::cout << -avg_e_zz/avg_s_zz << std::endl ;
 		
-/*		Matrix K(2,2) ;
+		Matrix K(2,2) ;
 		K[0][0] = avg_e_xx ;
 		K[0][1] = avg_e_yy*2 ;
 		K[1][0] = avg_e_yy ;
@@ -422,18 +422,10 @@ void step()
 		std::string filebench("benchmark.txt") ;
 		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-		out << "ELASTICITY\tS2024QUAD\t" << "E_inc = " << E_inc << "\t" 
+		out << "ELASTICITY\tS1QUAD\t" << "E_inc = " << E_inc << "\t" 
 			<< "dof = " << x.size() << "\t"
 			<< "C1111 = " << c[0] << "\t"
 			<< "C1122 = " << c[1] << std::endl ;
-		out.close() ;*/
-
-		std::string filebench("benchmark.txt") ;
-		std::fstream out ;
-		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-		out << "DIFFUSION\tS2024QUAD\t" << "D_inc = " << E_inc << "\t" 
-			<< "dof = " << x.size() << "\t"
-			<< "L11 = " << -avg_e_xx/avg_s_xx << std::endl ;
 		out.close() ;
 
 	}
@@ -1547,7 +1539,7 @@ int main(int argc, char *argv[])
 // 	std::cout << miny << ";" << maxy << std::endl ;
 // 	std::cout << minz << ";" << maxz << std::endl ;
 
-	Sample3D sample(NULL, 0.15*scale, 0.15*scale, 0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	Sample3D sample(NULL, scale, scale, scale, .5*scale, .5*scale, .5*scale) ;
 //	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
 
 	FeatureTree F(&sample) ;
@@ -1591,83 +1583,51 @@ int main(int argc, char *argv[])
 	d1[2][2] = lambda ;
 
 
-	sample.setBehaviour(new Laplacian(d0)) ;
-//	sample.setBehaviour(new Stiffness(m0)) ;
+//	sample.setBehaviour(new Laplacian(d0)) ;
+	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 // 	double v = 0 ;
 	
  	std::vector<std::string> columns ;
+ 	columns.push_back("radius") ;
  	columns.push_back("center_x") ;
  	columns.push_back("center_y") ;
  	columns.push_back("center_z") ;
- 	columns.push_back("radius") ;
 // 	
  	GranuloFromFile spheres("sphere_2024.txt", columns) ;
- 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
+ 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale/0.15) ;
+// 	 	GranuloFromFile spheres("sphere_3200txt", columns) ;
+//  	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(3200,scale/400) ;
+	
 // 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
  	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 // 	
- 	for(int i = 0 ; i < inclusions.size() ; i++)
+ 	for(int i = 0 ; i < 800 /*inclusions.size()*/ ; i++)
  	{
-//		inclusions[i]->setBehaviour(inclusionStiffness) ;
- 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
+		inclusions[i]->setBehaviour(inclusionStiffness) ;
+//  		inclusions[i]->setBehaviour(inclusionDiffusion) ;
  		F.addFeature(&sample, inclusions[i]) ; 		
 // 		v += inclusions[i]->volume() ;
  	}
 
-	Inclusion3D * inc = new Inclusion3D(0.0623*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
-	inc->setBehaviour(inclusionDiffusion) ;
-	Vector a(6) ; //a = 0 ;
-// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
-	OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*scale, 0.5*scale,0.5*scale,0.5*scale) ;
+	Inclusion3D * inc = new Inclusion3D(pow(0.3*(3./16.),1./3.)*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
+// 	inc->setBehaviour(inclusionDiffusion) ;
+	inc->setBehaviour(inclusionStiffness) ;
+	Vector a(6) ; //a = 0 ;
+// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z, m1, a) ;
+	
+	OctahedralInclusion* oct = new OctahedralInclusion(NULL, 1.*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
 	oct->setBehaviour(inclusionStiffness) ;
 //	F.addFeature(&sample, oct) ;
 	
-//	F.addFeature(&sample, inc) ;
+// 	F.addFeature(&sample, inc) ;
 
 // 	std::cout << "aggregate volume : " << v << std::endl ;
 
 	F.setSamplingNumber(atoi(argv[3])) ;
 	F.setMaxIterationsPerStep(2);
-/*	for(int i = 0 ; i < inclusions.size() ; i++)
-	{
-		if(inclusions[i]->intersects(dynamic_cast<Hexahedron *>(&sample)))
-		{
-			PointArray in = inclusions[i]->getInPoints() ;
-			std::vector<Point> innewvector ;
-			for(int j = 0 ; j < in.size() ; j++)
-			{
-				Point p(in[j]->x, in[j]->y, in[j]->z) ;
-				if(! (std::abs(p.x) < scale*1000*POINT_TOLERANCE ||
-					std::abs(p.y) < scale*1000*POINT_TOLERANCE ||
-					std::abs(p.z) < scale*1000*POINT_TOLERANCE ||
-					std::abs(p.x-0.15*scale) < scale*1000*POINT_TOLERANCE ||
-					std::abs(p.y-0.15*scale) < scale*1000*POINT_TOLERANCE ||
-					std::abs(p.z-0.15*scale) < scale*1000*POINT_TOLERANCE ||
-					(p.x) < scale*1000*POINT_TOLERANCE ||
-					(p.y) < scale*1000*POINT_TOLERANCE ||
-					(p.z) < scale*1000*POINT_TOLERANCE ||
-					(0.15*scale-p.x) < scale*1000*POINT_TOLERANCE ||
-					(0.15*scale-p.y) < scale*1000*POINT_TOLERANCE ||
-					(0.15*scale-p.z) < scale*1000*POINT_TOLERANCE))
-				{
-					innewvector.push_back(p) ;
-				}
-			}
-			PointArray innewarray(innewvector.size()) ;
-			for(int k = 0 ; k < innewvector.size() ; k++)
-			{
-				innewarray[k] = &innewvector[k] ;
-			}
-			if(innewarray.size() != in.size())
-			{
-				inclusions[i]->setInPoints(innewarray) ;
-				std::cout << i << " changed size" << std::endl ;
-			}
-		}
-	}*/
 	
 	F.setOrder(QUADRATIC) ;
 	
@@ -1675,22 +1635,24 @@ int main(int argc, char *argv[])
 	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;
 	
 	Function x("x") ;
-	Function gradT = x*0.01/0.15;
+	Function gradT = x*0.01;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, TOP, gradT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, gradT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BACK, gradT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, FRONT, gradT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
+
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.01*scale)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
+	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, TOP, gradT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, gradT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BACK, gradT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, FRONT, gradT)) ;
 	F.setElementGenerationMethod(0,false) ;
 	step() ;
 

@@ -1382,11 +1382,12 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 	std::valarray<Point> speeds(Point(0.,0.,0.), points.size()) ;
 //	std::cout << r << std::endl ;
 	Point vec(0.,0.,0.) ;
-	double error = 0. ;
+	double error = 1. ;
 	double last_error = 0. ;
-	for(size_t i = 0 ; i < iter ; i++)
+	int count = 0 ;
+	for(size_t i = 0 ; i < iter && std::abs(error-last_error)/last_error < POINT_TOLERANCE && count == 0; i++)
 	{
-		int count = 0 ;
+		
 		error = 0. ;
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -1411,19 +1412,8 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 				}
 			}
 		}
-		
-		
-				
-		if(i>0)
-		{
-//			std::cout << i << " - " << std::abs(error-last_error)/last_error << std::endl ;
-			if((std::abs(error-last_error)/last_error < POINT_TOLERANCE) && (count ==0))
-			{
-				break ;
-			}
-		}
-		if(i < iter*1000-1)
-			last_error = error ;
+
+		last_error = error ;
 		
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -1431,7 +1421,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 			project(&points[j],r) ;
 		}
 		
-		speeds = Point(0.,0.,0.) ;
+		speeds = Point() ;
 	}
 //				std::cout << std::abs(error-last_error)/last_error << std::endl ;
 	
@@ -1610,7 +1600,7 @@ void Sphere::project(Point * p, double r) const
 	double n = p_prime.norm() ;
 	if(std::abs(n - r) < POINT_TOLERANCE)
 		return ;
-	p_prime *= r/p_prime.norm() ;
+	p_prime *= r/n ;
 	*p = getCenter()+p_prime ;
 	p->id = id ;
 	return ;
