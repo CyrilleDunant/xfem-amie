@@ -26,18 +26,16 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../physics/stiffness.h"
-#include "../physics/stiffness_with_imposed_deformation.h"
-#include "../utilities/writer/voxel_writer.h"
-#include "../physics/stiffness_and_fracture.h"
-
 #include <sys/time.h>
+
 #include <fstream>
+
 #include <cmath>
 #include <typeinfo>
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
-
+#include "../utilities/writer/voxel_writer.h"
 #define DEBUG 
 
 #define ID_QUIT 1
@@ -106,6 +104,8 @@ std::vector<bool> cracked ;
 double E_min = 10;
 double E_max = 0;
 
+double E_inc ;
+
 double x_max = 0 ;
 double y_max = 0 ;
 double z_max = 0 ;
@@ -113,8 +113,6 @@ double z_max = 0 ;
 double x_min = 0 ;
 double y_min = 0 ;
 double z_min = 0 ;
-
-double E_inc ;
 
 GLint xangle = 0;
 GLint yangle = 0;
@@ -211,8 +209,8 @@ Matrix getStiffness(Vector sigma_1, Vector sigma_2, Vector epsilon_1, Vector eps
 void step()
 {
 	
-  int nsteps = 1;
-	featureTree->setMaxIterationsPerStep(200) ;
+  int nsteps = 1;// number of steps between two clicks on the opengl thing
+	featureTree->setMaxIterationsPerStep(2) ;
 	featureTree->setDeltaTime(0.0001);
 
 	for(size_t i = 0 ; i < nsteps ; i++)
@@ -226,40 +224,44 @@ void step()
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("xfem_stress", 200) ;
-		vw.getField(featureTree, VWFT_STRESS) ;
+		VoxelWriter vw("fem_small_test", 100) ;
+		vw.getField(featureTree, VWFT_STIFFNESS) ;
 		vw.write();
 		std::pair<Vector, Vector > sigma_epsilon ;
-		sigma_epsilon.first.resize(12*tets.size()) ;
-		sigma_epsilon.second.resize(12*tets.size()) ;
-		sigma_epsilon = featureTree->getGradientAndFlux() ;
+		sigma_epsilon.first.resize(24*tets.size()) ;
+		sigma_epsilon.second.resize(24*tets.size()) ;
+		sigma_epsilon = featureTree->getStressAndStrain(tets) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
+		std::cout << sigma.size() << std::endl ;
+		std::cout << x.size() << std::endl ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
 		epsilon = sigma_epsilon.second ;
-		sigma11.resize(sigma.size()/3, 0.) ;
-		sigma22.resize(sigma.size()/3, 0.) ;
-		sigma33.resize(sigma.size()/3, 0.) ;
-		sigma12.resize(sigma.size()/3, 0.) ;
-		sigma13.resize(sigma.size()/3, 0.) ;
-		sigma23.resize(sigma.size()/3, 0.) ;
+		sigma11.resize(sigma.size()/6, 0.) ;
+		sigma22.resize(sigma.size()/6, 0.) ;
+		sigma33.resize(sigma.size()/6, 0.) ;
+		sigma12.resize(sigma.size()/6, 0.) ;
+		sigma13.resize(sigma.size()/6, 0.) ;
+		sigma23.resize(sigma.size()/6, 0.) ;
 		
-		epsilon11.resize(sigma.size()/3, 0.) ;
-		epsilon22.resize(sigma.size()/3, 0.) ;
-		epsilon33.resize(sigma.size()/3, 0.) ;
-		epsilon12.resize(sigma.size()/3, 0.) ;
-		epsilon13.resize(sigma.size()/3, 0.) ;
-		epsilon23.resize(sigma.size()/3, 0.) ;		
+		epsilon11.resize(sigma.size()/6, 0.) ;
+		epsilon22.resize(sigma.size()/6, 0.) ;
+		epsilon33.resize(sigma.size()/6, 0.) ;
+		epsilon12.resize(sigma.size()/6, 0.) ;
+		epsilon13.resize(sigma.size()/6, 0.) ;
+		epsilon23.resize(sigma.size()/6, 0.) ;
+				
 		
-		stiffness.resize(sigma.size()/3, 0.) ;
-		vonMises.resize(sigma.size()/3, 0.) ;
-		angle.resize(sigma.size()/3, 0.) ;
-		damage.resize(sigma.size()/3, 0.) ;
+		stiffness.resize(sigma.size()/6, 0.) ;
+		vonMises.resize(sigma.size()/6, 0.) ;
+		angle.resize(sigma.size()/6, 0.) ;
+		damage.resize(sigma.size()/6, 0.) ;
 	
 		std::cout << "unknowns :" << x.size() << std::endl ;
 	
 	
-		int npoints = 4 ;
+		int npoints = 4 ;//tets[0]->getBoundingPoints().size() ;
+		std::cout << npoints << std::endl ;
 	
 		double volume = 0 ;
 		double avg_e_xx = 0;
@@ -289,7 +291,7 @@ void step()
 			if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				
- 				for(size_t p = 0 ;p < 4 ; p++)
+ 				for(size_t p = 0 ;p < npoints ; p++)
  				{
  					if(x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()] > x_max)
  						x_max = x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()];
@@ -312,9 +314,7 @@ void step()
  						ex_count++ ;
  					}
  				}
-				double ar = /*std::abs*/(tets[k]->volume()) ;
- 				
-				volume += ar ;
+				volume += tets[k]->volume() ;
 /*				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
 					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] > E_max)
@@ -332,64 +332,33 @@ void step()
 					damage[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
 				}*/
 					
-				sigma11[k*npoints] = sigma[k*npoints*3];
-				sigma22[k*npoints] = sigma[k*npoints*3+1];
-				sigma33[k*npoints] = sigma[k*npoints*3+2];
-				
-				sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-				sigma22[k*npoints+1] = sigma[k*npoints*3+4];
-				sigma33[k*npoints+1] = sigma[k*npoints*3+5];
-				
-				sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-				sigma22[k*npoints+2] = sigma[k*npoints*3+7];
-				sigma33[k*npoints+2] = sigma[k*npoints*3+8];
-				
-				sigma11[k*npoints+3] = sigma[k*npoints*3+9];
-				sigma22[k*npoints+3] = sigma[k*npoints*3+10];
-				sigma33[k*npoints+3] = sigma[k*npoints*3+11];
-				
-				epsilon11[k*npoints] = epsilon[k*npoints*3];
-				epsilon22[k*npoints] = epsilon[k*npoints*3+1];
-				epsilon33[k*npoints] = epsilon[k*npoints*3+2];
-				
-				epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-				epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
-				epsilon33[k*npoints+1] = epsilon[k*npoints*3+5];
-				
-				epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-				epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
-				epsilon33[k*npoints+2] = epsilon[k*npoints*3+8];
-				
-				epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
-				epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
-				epsilon33[k*npoints+3] = epsilon[k*npoints*3+11];
-				
-/*				double vm0 = 0 ;
-				double agl = 0 ;
-				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					vm0 = tets[k]->getState().getMaximumVonMisesStress() ;
-				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					agl = tets[k]->getState().getPrincipalAngle(tets[k]->getCenter()) ;
-				for(size_t l = 0 ; l < 4 ; l++)
+				for(size_t p = 0 ; p < npoints ; p++)
 				{
-					vonMises[k*npoints+l]  = vm0 ;
-					angle[k*npoints+l]  = agl ;
-				}*/
+					sigma11[k*npoints+p] = sigma[k*npoints*6+p*6];
+					sigma22[k*npoints+p] = sigma[k*npoints*6+p*6+1];
+					sigma33[k*npoints+p] = sigma[k*npoints*6+p*6+2];
+					sigma12[k*npoints+p] = sigma[k*npoints*6+p*6+3];
+					sigma13[k*npoints+p] = sigma[k*npoints*6+p*6+4];
+					sigma23[k*npoints+p] = sigma[k*npoints*6+p*6+5];
+
+					epsilon11[k*npoints+p] = epsilon[k*npoints*6+p*6];
+					epsilon22[k*npoints+p] = epsilon[k*npoints*6+p*6+1];
+					epsilon33[k*npoints+p] = epsilon[k*npoints*6+p*6+2];
+					epsilon12[k*npoints+p] = epsilon[k*npoints*6+p*6+3];
+					epsilon13[k*npoints+p] = epsilon[k*npoints*6+p*6+4];
+					epsilon23[k*npoints+p] = epsilon[k*npoints*6+p*6+5];
+				}
 				
+				
+				double ar = tets[k]->volume() ;
 				for(size_t l = 0 ; l < npoints ;l++)
 				{
 					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
 					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
 					avg_e_zz += (epsilon33[k*npoints+l]/npoints)*ar;
-/*					avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-					avg_e_xz += (epsilon13[k*npoints+l]/npoints)*ar;
-					avg_e_yz += (epsilon23[k*npoints+l]/npoints)*ar;*/
 					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
 					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
 					avg_s_zz += (sigma33[k*npoints+l]/npoints)*ar;
-/*					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
-					avg_s_xz += (sigma13[k*npoints+l]/npoints)*ar;
-					avg_s_yz += (sigma23[k*npoints+l]/npoints)*ar;*/
 					xavg += x[tets[k]->getBoundingPoint(l).id]*ar/npoints ;
 				}
 	
@@ -407,27 +376,15 @@ void step()
 		std::cout << "avg value :" << xavg << std::endl ;
 		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
 		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
-		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
-		std::cout << "max sigma13 :" << sigma13.max() << std::endl ;
-		std::cout << "min sigma13 :" << sigma13.min() << std::endl ;
 		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
 		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
-		std::cout << "max sigma23 :" << sigma23.max() << std::endl ;
-		std::cout << "min sigma23 :" << sigma23.min() << std::endl ;
 		std::cout << "max sigma33 :" << sigma33.max() << std::endl ;
 		std::cout << "min sigma33 :" << sigma33.min() << std::endl ;
 		
 		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
 		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-		std::cout << "max epsilon13 :" << epsilon13.max() << std::endl ;
-		std::cout << "min epsilon13 :" << epsilon13.min() << std::endl ;
 		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
 		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-		std::cout << "max epsilon23 :" << epsilon23.max() << std::endl ;
-		std::cout << "min epsilon23 :" << epsilon23.min() << std::endl ;
 		std::cout << "max epsilon33 :" << epsilon33.max() << std::endl ;
 		std::cout << "min epsilon33 :" << epsilon33.min() << std::endl ;
 		
@@ -437,29 +394,40 @@ void step()
 		std::cout << "average sigma11 : " << avg_s_xx/volume << std::endl ;
 		std::cout << "average sigma22 : " << avg_s_yy/volume << std::endl ;
 		std::cout << "average sigma33 : " << avg_s_zz/volume << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy/volume << std::endl ;
-		std::cout << "average sigma13 : " << avg_s_xz/volume << std::endl ;
-		std::cout << "average sigma23 : " << avg_s_yz/volume << std::endl ;
 		std::cout << "average epsilon11 : " << avg_e_xx/volume << std::endl ;
 		std::cout << "average epsilon22 : " << avg_e_yy/volume << std::endl ;
 		std::cout << "average epsilon33 : " << avg_e_zz/volume << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy/volume << std::endl ;
-		std::cout << "average epsilon13 : " << avg_e_xz/volume << std::endl ;
-		std::cout << "average epsilon23 : " << avg_e_yz/volume << std::endl ;
 		std::cout << "number of void tetrahedrons : " << n_void << "/" << tets.size() << std::endl ;
 		std::cout << "volume of non-void tetrahedrons : " << volume << std::endl ;
 		
 		std::cout << std::endl ;
 		std::cout << -avg_e_xx/avg_s_xx << std::endl ;
-/*		std::cout << avg_s_yy/avg_e_yy << std::endl ;
-		std::cout << avg_s_zz/avg_e_zz << std::endl ;*/
+		std::cout << -avg_e_yy/avg_s_yy << std::endl ;
+		std::cout << -avg_e_zz/avg_s_zz << std::endl ;
 		
-		std::string filebench("benchmark") ;
+		Matrix K(2,2) ;
+		K[0][0] = avg_e_xx ;
+		K[0][1] = avg_e_yy*2 ;
+		K[1][0] = avg_e_yy ;
+		K[1][1] = avg_e_xx + avg_e_yy ;
+		invert2x2Matrix(K) ;
+		K.print() ;
+
+		Vector s(2) ;
+		s[0] = avg_s_xx ;
+		s[1] = avg_s_yy ;
+		
+		Vector c = K*s ;
+
+		std::string filebench("benchmark.txt") ;
 		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-		out << "DIFFUSION\t" << "D_inc = " << E_inc << "\t" 
+		out << "ELASTICITY\tS1QUAD\t" << "E_inc = " << E_inc << "\t" 
 			<< "dof = " << x.size() << "\t"
-			<< "D11 = " << -avg_e_xx/avg_s_xx << std::endl ;
+			<< "C1111 = " << c[0] << "\t"
+			<< "C1122 = " << c[1] << std::endl ;
+		out.close() ;
+
 	}
 
 }
@@ -1571,7 +1539,7 @@ int main(int argc, char *argv[])
 // 	std::cout << miny << ";" << maxy << std::endl ;
 // 	std::cout << minz << ";" << maxz << std::endl ;
 
-	Sample3D sample(NULL, 0.15*scale, 0.15*scale, 0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	Sample3D sample(NULL, 400.*scale, 400.*scale, 400.*scale, 200.*scale, 200.*scale, 200.*scale) ;
 //	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
 
 	FeatureTree F(&sample) ;
@@ -1609,54 +1577,61 @@ int main(int argc, char *argv[])
 
 	Matrix d1(3,3) ;
 	lambda = atof(argv[2]) ;
+//	E_inc = lambda ;
 	d1[0][0] = lambda ;
 	d1[1][1] = lambda ;
 	d1[2][2] = lambda ;
 
 
-//  	sample.setBehaviour(new Laplacian(d0)) ;
+//	sample.setBehaviour(new Laplacian(d0)) ;
 	sample.setBehaviour(new Stiffness(m0)) ;
-// 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0, new MohrCoulomb(-4, 4)) ;
-// 	saf->getFractureCriterion()->setMaterialCharacteristicRadius(0.005*scale);
-// 	saf->getFractureCriterion()->setNeighbourhoodRadius(0.015*scale);
-// 	sample.setBehaviour(saf) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
-	double v = 0 ;
+// 	double v = 0 ;
 	
-	std::vector<std::string> columns ;
-	columns.push_back("center_x") ;
-	columns.push_back("center_y") ;
-	columns.push_back("center_z") ;
-	columns.push_back("radius") ;
-	
-	GranuloFromFile spheres("sphere_2024.txt", columns) ;
-	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
+ 	std::vector<std::string> columns ;
+ 	columns.push_back("radius") ;
+ 	columns.push_back("center_x") ;
+ 	columns.push_back("center_y") ;
+ 	columns.push_back("center_z") ;
 // 	
-
+ 	GranuloFromFile spheres("sphere_3200.txt", columns) ;
+ 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(3200,scale) ;
+// 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
-	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
+ 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 // 	
-	for(int i = 0 ; i < 0 ; i++)
-	{
-		inclusions[i]->setBehaviour(inclusionStiffness) ;
-// 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
-		F.addFeature(&sample, inclusions[i]) ;
-		v += inclusions[i]->volume() ;
-	}
-	Vector a(6) ; a = 0 ; //a[0] = 10 ; a[1] = 10 ; a[2] = 10 ;
-// 	Inclusion3D * inc = new Inclusion3D(0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
-// // 	inc->setBehaviour(inclusionDiffusion) ;
-// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1, a)) ;
-	
-	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
-	
-	F.addFeature(&sample, inc) ;
+ 	for(int i = 0 ; i < inclusions.size() ; i++)
+ 	{
+//		inclusions[i]->setBehaviour(inclusionStiffness) ;
+ 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
+ 		F.addFeature(&sample, inclusions[i]) ; 		
+// 		v += inclusions[i]->volume() ;
+ 	}
 
-	std::cout << "aggregate volume : " << v << std::endl ;
+ 	for(int i = 1 ; i < inclusions.size() ; i++)
+ 	{
+		double ri = inclusions[i]->getRadius() ;
+		double rn = inclusions[i-1]->getRadius() ;
+		if(ri > rn)
+			std::cout << i << std::endl ;
+ 	}
+	
+	Inclusion3D * inc = new Inclusion3D(0.0623*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
+	inc->setBehaviour(inclusionDiffusion) ;
+	Vector a(6) ; //a = 0 ;
+// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
+	
+	OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*scale, 0.5*scale,0.5*scale,0.5*scale) ;
+	oct->setBehaviour(inclusionStiffness) ;
+//	F.addFeature(&sample, oct) ;
+	
+//	F.addFeature(&sample, inc) ;
+
+// 	std::cout << "aggregate volume : " << v << std::endl ;
 
 	F.setSamplingNumber(atoi(argv[3])) ;
 	F.setMaxIterationsPerStep(2);
-	for(int i = 0 ; i < inclusions.size() ; i++)
+/*	for(int i = 0 ; i < inclusions.size() ; i++)
 	{
 		if(inclusions[i]->intersects(dynamic_cast<Hexahedron *>(&sample)))
 		{
@@ -1692,31 +1667,31 @@ int main(int argc, char *argv[])
 				std::cout << i << " changed size" << std::endl ;
 			}
 		}
-	}
+	}*/
 	
 	F.setOrder(QUADRATIC) ;
 	
 	Function torz("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 cos *") ;
 	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;
 	
+	Function x("x") ;
+	Function gradT = x*0.01/400;
+	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, TOP, gradT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, gradT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BACK, gradT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, FRONT, gradT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.01*scale)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT_BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_RIGHT_BACK)) ;
+	F.setElementGenerationMethod(0,false) ;
 	step() ;
 
 /*	glutInit(&argc, argv) ;	

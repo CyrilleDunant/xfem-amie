@@ -1243,10 +1243,11 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 		import *= 2 ;
 
 
-	double ns = ((double) import-num_points)/(double) (import-import/2) ;
+	double ns = ((double) import-(double)num_points)/(double) (import/2) ;
 	ns *= import ;
-	ns = std::max(ns,(double)import/4) ;
+//	ns = std::max(ns,(double)import/4) ;
 
+//	std::cerr << iter << "-" << ns << "-" << import << "-" << num_points << std::endl ;
 	
 	if(iter > ns)
 	{
@@ -1379,9 +1380,14 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 {
 	std::valarray<Point> speeds(/*Point(), */points.size()) ;
+//	std::cout << r << std::endl ;
 	Point vec ;
-	for(size_t i = 0 ; i < iter ; i++)
+	double error = 0. ;
+	double last_error = 0. ;
+	for(size_t i = 0 ; i < iter*1000 ; i++)
 	{
+		int count = 0 ;
+		error = 0. ;
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
 			for(size_t k = j+1 ; k < points.size() ; k++)
@@ -1389,6 +1395,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 				if(squareDist3D( points[j], points[k]) > 128.*POINT_TOLERANCE*POINT_TOLERANCE)
 				{
 					vec.set(points[j].x-points[k].x,points[j].y-points[k].y,points[j].z-points[k].z) ;
+					error += vec.sqNorm() ;
 					vec *= getRadius()/vec.sqNorm() ;
 
 					speeds[j] += vec ;
@@ -1396,7 +1403,8 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 				}
 				else
 				{
-					Point vec(1,0,0) ;
+					count++ ;
+					Point vec(r,0,0) ;
 
 					speeds[j] += vec ;
 					speeds[k] -= vec ;
@@ -1405,15 +1413,27 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 		}
 		
 		
+				
+		if(i>0)
+		{
+//			std::cout << i << " - " << std::abs(error-last_error)/last_error << std::endl ;
+			if((std::abs(error-last_error)/last_error < POINT_TOLERANCE) && (count ==0))
+			{
+				break ;
+			}
+		}
+		if(i < iter*1000-1)
+			last_error = error ;
+		
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
-		
 			points[j] += speeds[j];
 			project(&points[j],r) ;
-
 		}
+		
 		speeds = Point() ;
 	}
+//				std::cout << std::abs(error-last_error)/last_error << std::endl ;
 	
 // 	for(size_t j = 0 ; j < points.size() ; j++)
 // 	{
@@ -1426,6 +1446,11 @@ std::vector<Point> Sphere::getStandardSamplingBoundingPointsOnSphere(size_t n) c
 	size_t import = 128 ;
 	while(import < n)
 		import *= 2 ;
+		
+	if(import > 16384)
+		import = 16384 ;
+	
+//	std::cout << n << "-" << import << std::endl ;
 	
 	std::vector<Point> p = Sphere::importStandardBoundingPoints(import) ;
 	RandomNumber gen ;
@@ -1441,12 +1466,20 @@ std::vector<Point> Sphere::getStandardSamplingBoundingPointsOnSphere(size_t n) c
 		for(size_t j = 0 ; j < tmp.size() ; j++)
 			p.push_back(tmp[j]) ;
 	}
+//	p[0].print() ;
 
+	Point c = getCenter() ;
+/*	for(size_t i = 0 ; i < p.size() ; i++)
+		p[i] += c ;
+*/
 	double ns = ((double) import-n)/(double) (import-import/2) ;
 	ns *= import ;
-	ns = std::max(ns,(double)import/4) ;
+//	ns = std::max(ns,(double)import/4) ;
+//	std::cerr << ns << "here" << std::endl ;
 
 	smooth(p,1., int(ns)) ;
+//	p[0].print() ;
+//	std::cerr << "smoothed" << std::endl ;
 
 	return p ;
 }
