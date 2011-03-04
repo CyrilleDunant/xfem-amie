@@ -2799,7 +2799,7 @@ void FeatureTree::solve()
  	K->initialiseElementaryMatrices();
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
-	std::cerr << "finding nodes for boundary conditions... " << std::endl ;
+	std::cerr << "finding nodes for boundary conditions... " << std::flush ;
 	if(dtree)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
@@ -3727,7 +3727,7 @@ void FeatureTree::initializeElements()
 	{
 
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
-		std::cerr << " initialising..." ;
+		std::cerr << " initialising..." << std::flush;
 
 		#pragma omp parallel for /*schedule(dynamic, 100)*/
 		for(size_t i = 0 ; i < triangles.size() ;i++)

@@ -244,8 +244,8 @@ struct Memory
 	{
 		top_pos = &stack[0] ;
 		prev_top_pos =  top_pos-1 ;
-		for(std::map<std::string, double *>::iterator i = variables.begin(); i!= variables.end() ; i++)
-			*i->second = 0 ;
+// 		for(std::map<std::string, double *>::iterator i = variables.begin(); i!= variables.end() ; i++)
+// 			*i->second = 0 ;
 	}
 	
 	void setNamedVariable(std::string name, double val)

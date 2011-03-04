@@ -1636,7 +1636,7 @@ int main(int argc, char *argv[])
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
 // 	
-	for(int i = 0 ; i < 400 ; i++)
+	for(int i = 0 ; i < 0 ; i++)
 	{
 		inclusions[i]->setBehaviour(inclusionStiffness) ;
 // 		inclusions[i]->setBehaviour(inclusionDiffusion) ;
@@ -1650,7 +1650,7 @@ int main(int argc, char *argv[])
 	
 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.05*scale, 0.075*scale, 0.075*scale, 0.075*scale, m1, a) ;
 	
-// 	F.addFeature(&sample, inc) ;
+	F.addFeature(&sample, inc) ;
 
 	std::cout << "aggregate volume : " << v << std::endl ;
 

@@ -1501,17 +1501,17 @@ void DelaunayDemiSpace::merge(DelaunayDemiSpace * p)
 
 bool DelaunayTetrahedron::inCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.00001*radius)
+	if(p.x > circumCenter.x+1.0001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.00001*radius)
+	if(p.x < circumCenter.x-1.0001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.00001*radius)
+	if(p.y > circumCenter.y+1.0001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.00001*radius)
+	if(p.y < circumCenter.y-1.0001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.00001*radius)
+	if(p.z > circumCenter.z+1.0001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.00001*radius)
+	if(p.z < circumCenter.z-1.0001*radius)
 		return false ;
 	
 	double d = squareDist3D(circumCenter, p) ;
@@ -1520,17 +1520,17 @@ bool DelaunayTetrahedron::inCircumSphere(const Point &p) const
 
 bool DelaunayTetrahedron::onCircumSphere(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.00001*radius)
+	if(p.x > circumCenter.x+1.0001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.00001*radius)
+	if(p.x < circumCenter.x-1.0001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.00001*radius)
+	if(p.y > circumCenter.y+1.0001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.00001*radius)
+	if(p.y < circumCenter.y-1.0001*radius)
 		return false ;
-	if(p.z > circumCenter.z+1.00001*radius)
+	if(p.z > circumCenter.z+1.0001*radius)
 		return false ;
-	if(p.z < circumCenter.z-1.00001*radius)
+	if(p.z < circumCenter.z-1.0001*radius)
 		return false ;
 	
 	double d = squareDist3D(circumCenter, p) ;
