@@ -1371,7 +1371,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	if(e != points.end())
 		points.erase(e, points.end()) ;
 	
-	smooth(points, r, iter) ;
+	smooth(points, r, iter*10) ;
 	
 	
 	return points ;
@@ -1379,12 +1379,12 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 
 void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 {
-	std::valarray<Point> speeds(/*Point(), */points.size()) ;
+	std::valarray<Point> speeds(Point(0.,0.,0.), points.size()) ;
 //	std::cout << r << std::endl ;
-	Point vec ;
+	Point vec(0.,0.,0.) ;
 	double error = 0. ;
 	double last_error = 0. ;
-	for(size_t i = 0 ; i < iter*1000 ; i++)
+	for(size_t i = 0 ; i < iter ; i++)
 	{
 		int count = 0 ;
 		error = 0. ;
@@ -1431,7 +1431,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 			project(&points[j],r) ;
 		}
 		
-		speeds = Point() ;
+		speeds = Point(0.,0.,0.) ;
 	}
 //				std::cout << std::abs(error-last_error)/last_error << std::endl ;
 	
@@ -1469,13 +1469,14 @@ std::vector<Point> Sphere::getStandardSamplingBoundingPointsOnSphere(size_t n) c
 //	p[0].print() ;
 
 	Point c = getCenter() ;
-/*	for(size_t i = 0 ; i < p.size() ; i++)
+	for(size_t i = 0 ; i < p.size() ; i++)
 		p[i] += c ;
-*/
+
 	double ns = ((double) import-n)/(double) (import-import/2) ;
 	ns *= import ;
 //	ns = std::max(ns,(double)import/4) ;
 //	std::cerr << ns << "here" << std::endl ;
+//	std::cout << p.size() << "-" << n << std::endl ; 
 
 	smooth(p,1., int(ns)) ;
 //	p[0].print() ;

@@ -39,7 +39,7 @@ public:
 	/**
 	* \brief reset the seed based on machine time
 	*/
-	virtual void reset() { std::srand((unsigned) time(0)) ; } ;
+	virtual void reset() { std::cout << "caca!" << std::endl ; std::srand((unsigned) time(0)) ; } ;
 	/**
 	* \brief reset the seed according to an arbitrary number
 	*/

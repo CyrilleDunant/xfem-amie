@@ -405,7 +405,7 @@ void step()
 		std::cout << -avg_e_yy/avg_s_yy << std::endl ;
 		std::cout << -avg_e_zz/avg_s_zz << std::endl ;
 		
-		Matrix K(2,2) ;
+/*		Matrix K(2,2) ;
 		K[0][0] = avg_e_xx ;
 		K[0][1] = avg_e_yy*2 ;
 		K[1][0] = avg_e_yy ;
@@ -422,10 +422,18 @@ void step()
 		std::string filebench("benchmark.txt") ;
 		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-		out << "ELASTICITY\tS1QUAD\t" << "E_inc = " << E_inc << "\t" 
+		out << "ELASTICITY\tS2024QUAD\t" << "E_inc = " << E_inc << "\t" 
 			<< "dof = " << x.size() << "\t"
 			<< "C1111 = " << c[0] << "\t"
 			<< "C1122 = " << c[1] << std::endl ;
+		out.close() ;*/
+
+		std::string filebench("benchmark.txt") ;
+		std::fstream out ;
+		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
+		out << "DIFFUSION\tS2024QUAD\t" << "D_inc = " << E_inc << "\t" 
+			<< "dof = " << x.size() << "\t"
+			<< "L11 = " << -avg_e_xx/avg_s_xx << std::endl ;
 		out.close() ;
 
 	}
@@ -1539,7 +1547,7 @@ int main(int argc, char *argv[])
 // 	std::cout << miny << ";" << maxy << std::endl ;
 // 	std::cout << minz << ";" << maxz << std::endl ;
 
-	Sample3D sample(NULL, 400.*scale, 400.*scale, 400.*scale, 200.*scale, 200.*scale, 200.*scale) ;
+	Sample3D sample(NULL, 0.15*scale, 0.15*scale, 0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 //	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
 
 	FeatureTree F(&sample) ;
@@ -1583,19 +1591,19 @@ int main(int argc, char *argv[])
 	d1[2][2] = lambda ;
 
 
-//	sample.setBehaviour(new Laplacian(d0)) ;
-	sample.setBehaviour(new Stiffness(m0)) ;
+	sample.setBehaviour(new Laplacian(d0)) ;
+//	sample.setBehaviour(new Stiffness(m0)) ;
 //	Stiffness * sinclusion = new Stiffness(m1) ;
 // 	double v = 0 ;
 	
  	std::vector<std::string> columns ;
- 	columns.push_back("radius") ;
  	columns.push_back("center_x") ;
  	columns.push_back("center_y") ;
  	columns.push_back("center_z") ;
+ 	columns.push_back("radius") ;
 // 	
- 	GranuloFromFile spheres("sphere_3200.txt", columns) ;
- 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(3200,scale) ;
+ 	GranuloFromFile spheres("sphere_2024.txt", columns) ;
+ 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale) ;
 // 	
 	Stiffness * inclusionStiffness = new Stiffness(m1) ;
  	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
@@ -1608,14 +1616,6 @@ int main(int argc, char *argv[])
 // 		v += inclusions[i]->volume() ;
  	}
 
- 	for(int i = 1 ; i < inclusions.size() ; i++)
- 	{
-		double ri = inclusions[i]->getRadius() ;
-		double rn = inclusions[i-1]->getRadius() ;
-		if(ri > rn)
-			std::cout << i << std::endl ;
- 	}
-	
 	Inclusion3D * inc = new Inclusion3D(0.0623*scale, 0.075*scale, 0.075*scale, 0.075*scale) ;
 	inc->setBehaviour(inclusionDiffusion) ;
 	Vector a(6) ; //a = 0 ;
@@ -1675,7 +1675,7 @@ int main(int argc, char *argv[])
 	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;
 	
 	Function x("x") ;
-	Function gradT = x*0.01/400;
+	Function gradT = x*0.01/0.15;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
