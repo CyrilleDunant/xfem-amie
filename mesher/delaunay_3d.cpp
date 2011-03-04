@@ -1258,8 +1258,8 @@ bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 	if(p.z < z-1.00001*radius)
 		return false ;
 	
-	double d = (x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z) ;
-	return  d/(radius*radius)-1 < POINT_TOLERANCE/radius ;
+	double d = sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
+	return  d/(radius)-1 <  POINT_TOLERANCE/(radius) ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
@@ -1277,8 +1277,8 @@ bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
 	if(p.z < z-1.00001*radius)
 		return false ;
 	
-	double d =  (x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z) ;
-	return  std::abs(d/(radius*radius)-1) < POINT_TOLERANCE/radius ;
+	double d =  sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
+	return  std::abs(d/(radius)-1) <  POINT_TOLERANCE/(radius) ;
 }
 
 bool DelaunayDeadTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
@@ -1514,8 +1514,8 @@ bool DelaunayTetrahedron::inCircumSphere(const Point &p) const
 	if(p.z < circumCenter.z-1.0001*radius)
 		return false ;
 	
-	double d = squareDist3D(circumCenter, p) ;
-	return  d/(sqradius)-1 < POINT_TOLERANCE/radius ;
+	double d = dist(circumCenter, p) ;
+	return  d/(radius)-1 < POINT_TOLERANCE/radius ;
 }
 
 bool DelaunayTetrahedron::onCircumSphere(const Point &p) const 
@@ -1533,8 +1533,8 @@ bool DelaunayTetrahedron::onCircumSphere(const Point &p) const
 	if(p.z < circumCenter.z-1.0001*radius)
 		return false ;
 	
-	double d = squareDist3D(circumCenter, p) ;
-	return  std::abs(d/(sqradius)-1) < POINT_TOLERANCE/radius ;
+	double d = dist(circumCenter, p) ;
+	return  std::abs(d/(radius)-1) < POINT_TOLERANCE/radius ;
 }
 
 
@@ -2517,23 +2517,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
-	for(size_t i = 0 ; i < dofs.size() ; i++)
-	{
-		if(getEnrichmentFunctions().size() && (cachedElementaryMatrix[i][i][0][0] < POINT_TOLERANCE || cachedElementaryMatrix[i][i][1][1] < POINT_TOLERANCE|| cachedElementaryMatrix[i][i][2][2] < POINT_TOLERANCE))
-		{
-			for(size_t j = 0 ; j < dofs.size() ; j++)
-			{
-				std::cout << cachedElementaryMatrix[j][j][0][0] << std::endl ;
-				std::cout << cachedElementaryMatrix[j][j][1][1] << std::endl ;
-				std::cout << cachedElementaryMatrix[j][j][2][2] << std::endl ;
-			}
-			
-			for(size_t j = 0 ; j < getGaussPoints().gaussPoints.size() ;  j++)
-				getGaussPoints().gaussPoints[j].first.print() ;
-			
-			exit(0) ;
-		}
-	}
+
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;
 	if(behaviour->hasInducedForces())
@@ -2798,7 +2782,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ; 
 			
-	size_t numberOfRefinements = 2;
+	size_t numberOfRefinements = 1;
 
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
@@ -3020,7 +3004,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		double w = 0 ;
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
-			tri[i]->setOrder(QUADRATIC) ;
+			tri[i]->setOrder(LINEAR) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			tri[i]->setOrder(LINEAR) ;
 // 			if(f.in(tri[i]->getCenter()))

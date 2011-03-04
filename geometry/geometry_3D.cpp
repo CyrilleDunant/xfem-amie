@@ -1585,7 +1585,7 @@ double Sphere::area() const
 
 double Sphere::volume() const
 {
-	return 4./3.*M_PI*sqradius*radius ;
+	return 1.333333333333333333*M_PI*sqradius*radius ;
 }
 
 void Sphere::project(Point * p) const
