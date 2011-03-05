@@ -1653,7 +1653,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, gradT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BACK, gradT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, FRONT, gradT)) ;
-	F.setElementGenerationMethod(0,false) ;
+	F.setElementGenerationMethod(0,true) ;
 	step() ;
 
 /*	glutInit(&argc, argv) ;	

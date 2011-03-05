@@ -1379,13 +1379,13 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 
 void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 {
-	std::valarray<Point> speeds(Point(0.,0.,0.), points.size()) ;
+	std::valarray<Point> speeds(points.size()) ;
 //	std::cout << r << std::endl ;
-	Point vec(0.,0.,0.) ;
-	double error = 1. ;
-	double last_error = 0. ;
+	Point vec ;
+	double error = 2. ;
+	double last_error = 1. ;
 	int count = 0 ;
-	for(size_t i = 0 ; i < iter && std::abs(error-last_error)/last_error < POINT_TOLERANCE && count == 0; i++)
+	for(size_t i = 0 ; (i < iter) && (std::abs(error-last_error)/last_error > POINT_TOLERANCE*points.size()*points.size()) && (count == 0); i++)
 	{
 		
 		error = 0. ;
@@ -1396,8 +1396,9 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 				if(squareDist3D( points[j], points[k]) > 128.*POINT_TOLERANCE*POINT_TOLERANCE)
 				{
 					vec.set(points[j].x-points[k].x,points[j].y-points[k].y,points[j].z-points[k].z) ;
-					error += vec.sqNorm() ;
-					vec *= getRadius()/vec.sqNorm() ;
+					double n = vec.sqNorm() ;
+					error += n ;
+					vec *= getRadius()/n ;
 
 					speeds[j] += vec ;
 					speeds[k] -= vec ;
@@ -1414,7 +1415,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 		}
 
 		last_error = error ;
-		
+		std::cout << error << std::endl ;
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
 			points[j] += speeds[j];
@@ -1443,19 +1444,10 @@ std::vector<Point> Sphere::getStandardSamplingBoundingPointsOnSphere(size_t n) c
 //	std::cout << n << "-" << import << std::endl ;
 	
 	std::vector<Point> p = Sphere::importStandardBoundingPoints(import) ;
-	RandomNumber gen ;
-	while(p.size() > n)
-	{
-		size_t i = gen.dice(p.size()) ;
-		std::vector<Point> tmp ;
-		for(size_t j = 0 ; j < i ; j++)
-			tmp.push_back(p[j]) ; 
-		for(size_t j = i+1 ; j < p.size() ; j++)
-			tmp.push_back(p[j]) ; 
-		p.clear() ;
-		for(size_t j = 0 ; j < tmp.size() ; j++)
-			p.push_back(tmp[j]) ;
-	}
+	std::random_shuffle(p.begin(), p.end());
+	if(n <= p.size())
+		p.erase(p.begin()+n, p.end()) ;
+	
 //	p[0].print() ;
 
 	Point c = getCenter() ;
@@ -1498,7 +1490,7 @@ void Sphere::sampleBoundingSurface(size_t num_points)
 
 void Sphere::sampleSurface(size_t num_points) 
 {
-	if(num_points < 1)
+	if(num_points < 2)
 		return ;
 
 	sampleBoundingSurface(num_points*7) ;

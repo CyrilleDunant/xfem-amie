@@ -299,7 +299,7 @@ public:
 	const State & getState() const {return state ;}
 	const std::vector<Feature *> & getFeatures() const {return tree ;}
 	
-	void setElementGenerationMethod(size_t c = 0, bool i = true) { correctionSteps = c ; computeIntersections = i ; }
+	void setElementGenerationMethod(size_t correctionSteps_ = 0, bool computeIntersections_ = true) { correctionSteps = correctionSteps_ ; computeIntersections = computeIntersections_ ; }
 	
 	void print() const;
 	void printForFeature(const Feature *f) const;

@@ -183,7 +183,7 @@ FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(N
 	if(is3D())
 		grid3d = new Grid3D((first->getBoundingBox()[7].x-first->getBoundingBox()[0].x)*1.1,
 		                   (first->getBoundingBox()[7].y-first->getBoundingBox()[0].y)*1.1,
-		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, gridsize/10, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
+		                   (first->getBoundingBox()[7].z-first->getBoundingBox()[0].z)*1.1, gridsize/5, (first->getBoundingBox()[7]+first->getBoundingBox()[0])*.5);
 	father3D = NULL;
 	father2D = NULL ;
 	elemOrder = LINEAR ;
