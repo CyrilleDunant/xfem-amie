@@ -576,5 +576,10 @@ int main(int argc, char *argv[])
 	}
 	}
 	
+	VoxelWriter vw("fem_s1", 200) ;
+	vw.getField(featureTree, VWFT_STRESS) ;
+	vw.write();
+
+
 	return 0 ;
 }

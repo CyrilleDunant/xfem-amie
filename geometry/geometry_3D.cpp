@@ -1352,10 +1352,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 		}
 	}
 	
-	std::sort(points.begin(), points.end()) ;
-	auto e = std::unique(points.begin(), points.end()) ;
-	if(e != points.end())
-		points.erase(e, points.end()) ;
+
 	
 	for(size_t i = points.size() ; i < num_points ; i++)
 	{
@@ -1366,28 +1363,47 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 		project(&points[i],r) ;
 	}
 	
-	std::sort(points.begin(), points.end()) ;
-	e = std::unique(points.begin(), points.end()) ;
-	if(e != points.end())
-		points.erase(e, points.end()) ;
+	bool haveDuplicates = true ;
+	while(haveDuplicates)
+	{
+		haveDuplicates = false ;
+		for(size_t i  = 0 ; i < points.size() ; i++)
+		{
+			for(size_t j  = i+1 ; j < points.size() ; j++)
+			{
+				if(squareDist3D(points[i], points[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				{
+					haveDuplicates = true ;
+					points.erase(points.begin()+j) ;
+					break ;
+				}
+			}
+			
+			if(haveDuplicates)
+				break ;
+		}
+	}
 	
 	smooth(points, r, iter*10) ;
-	
 	
 	return points ;
 }
 
 void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 {
+	if(points.empty())
+		return ;
 	std::valarray<Point> speeds(points.size()) ;
 //	std::cout << r << std::endl ;
 	Point vec ;
 	double error = 2. ;
 	double last_error = 1. ;
 	int count = 0 ;
-	for(size_t i = 0 ; (i < iter) && (std::abs(error-last_error)/last_error > POINT_TOLERANCE*points.size()*points.size()) && (count == 0); i++)
+	double derr = 1. ;
+	for(size_t i = 0 ; /*(i < iter) &&*/ std::abs(error-last_error)/last_error > POINT_TOLERANCE*POINT_TOLERANCE*points.size()*points.size() && (count == 0); i++)
 	{
-		
+		derr = std::abs(error-last_error) ;
+		last_error = error ;
 		error = 0. ;
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
@@ -1398,7 +1414,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 					vec.set(points[j].x-points[k].x,points[j].y-points[k].y,points[j].z-points[k].z) ;
 					double n = vec.sqNorm() ;
 					error += n ;
-					vec *= getRadius()/n ;
+					vec *= (sqradius/n) ;
 
 					speeds[j] += vec ;
 					speeds[k] -= vec ;
@@ -1413,9 +1429,8 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 				}
 			}
 		}
-
-		last_error = error ;
-		std::cout << error << std::endl ;
+		
+		
 		for(size_t j = 0 ; j < points.size() ; j++)
 		{
 			points[j] += speeds[j];
@@ -1424,6 +1439,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 		
 		speeds = Point() ;
 	}
+// 	std::cout << error << std::endl ;
 //				std::cout << std::abs(error-last_error)/last_error << std::endl ;
 	
 // 	for(size_t j = 0 ; j < points.size() ; j++)
@@ -1460,7 +1476,7 @@ std::vector<Point> Sphere::getStandardSamplingBoundingPointsOnSphere(size_t n) c
 //	std::cerr << ns << "here" << std::endl ;
 //	std::cout << p.size() << "-" << n << std::endl ; 
 
-	smooth(p,1., int(ns)) ;
+	smooth(p,1., int(ns*2)) ;
 //	p[0].print() ;
 //	std::cerr << "smoothed" << std::endl ;
 
@@ -1493,7 +1509,7 @@ void Sphere::sampleSurface(size_t num_points)
 	if(num_points < 2)
 		return ;
 
-	sampleBoundingSurface(num_points*7) ;
+	sampleBoundingSurface(num_points/**7*/) ;
 	
 	std::vector<Point> points ;
 
