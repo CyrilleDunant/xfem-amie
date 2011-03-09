@@ -90,8 +90,6 @@ GLuint DISPLAY_LIST_ANGLE  = 0 ;
 GLuint DISPLAY_LIST_ENRICHMENT = 0 ;
 GLuint DISPLAY_LIST_STIFFNESS_DARK = 0 ;
 
-double scale ;
-
 using namespace Mu ;
 
 int viewangle = 0 ;
@@ -104,7 +102,7 @@ std::vector<bool> cracked ;
 double E_min = 10;
 double E_max = 0;
 
-double E_inc ;
+double prop ;
 
 double x_max = 0 ;
 double y_max = 0 ;
@@ -173,1537 +171,410 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-Matrix getStiffness(Vector sigma_1, Vector sigma_2, Vector epsilon_1, Vector epsilon_2)
+typedef enum
 {
-	Matrix K(4,4) ;
-	K[0][0] = epsilon_1[0] ;
-	K[0][1] = epsilon_1[1] ;
-	K[2][2] = epsilon_1[0] ;
-	K[2][3] = epsilon_1[1] ;
-	K[1][0] = epsilon_2[0] ;
-	K[1][1] = epsilon_2[1] ;
-	K[3][2] = epsilon_2[0] ;
-	K[3][3] = epsilon_2[1] ;
-	Matrix Ki = inverse4x4Matrix(K) ;
-	
-	Vector s(4) ;
-	s[0] = sigma_1[0] ;
-	s[2] = sigma_1[1] ;
-	s[1] = sigma_2[0] ;
-	s[3] = sigma_2[1] ;
-	Vector c = Ki*s ;
-	
-	Matrix stiffness(3,3) ;
-	stiffness[0][0] = c[0] ;
-	stiffness[0][1] = c[2] ;
-	stiffness[1][0] = c[1] ;
-	stiffness[1][1] = c[3] ;
-	stiffness[2][2] = sigma_1[3]/epsilon_1[3] ;
-	
-	return stiffness ;
+	S1,
+	S2024,
+	S3200,
+	O1,
+} BenchmarkMicrostructure ;
+
+typedef enum
+{
+	DIFFUSION,
+	ELASTICITY,
+} BenchmarkPhenomenon ;
+
+BenchmarkMicrostructure getMicrostructure(std::string micro)
+{
+	if(micro == std::string("S1"))
+		return S1 ;
+	if(micro == std::string("S2024"))
+		return S2024 ;
+	if(micro == std::string("S3200"))
+		return S3200 ;
+	if(micro == std::string("O1"))
+		return O1 ;
+	return S1 ;
 }
 
-
-
-
-void step()
+BenchmarkPhenomenon getPhenomenon(std::string pheno)
 {
-	
-  int nsteps = 1;// number of steps between two clicks on the opengl thing
-	featureTree->setMaxIterationsPerStep(2) ;
-	featureTree->setDeltaTime(0.0001);
+	if(pheno == std::string("diffusion"))
+		return DIFFUSION ;
+	if(pheno == std::string("elasticity"))
+		return ELASTICITY ;
+	return DIFFUSION ;
+}
 
-	for(size_t i = 0 ; i < nsteps ; i++)
+double getLength(BenchmarkMicrostructure micro)
+{
+	switch(micro)
 	{
-
-		bool go_on = true;
-		size_t tries = 0;
-		
-		featureTree->step() ;
-		
-		tets= featureTree->getElements3D() ;
-		x.resize(featureTree->getDisplacements().size()) ;
-		x = featureTree->getDisplacements() ;
-		VoxelWriter vw("fem_2024", 200) ;
-		vw.getField(featureTree, VWFT_STRESS) ;
-		vw.write();
-		std::pair<Vector, Vector > sigma_epsilon ;
-		sigma_epsilon.first.resize(24*tets.size()) ;
-		sigma_epsilon.second.resize(24*tets.size()) ;
-		sigma_epsilon = featureTree->getStressAndStrain(tets) ;
-		sigma.resize(sigma_epsilon.first.size()) ;
-		std::cout << sigma.size() << std::endl ;
-		std::cout << x.size() << std::endl ;
-		sigma = sigma_epsilon.first ;
-		epsilon.resize(sigma_epsilon.second.size()) ;
-		epsilon = sigma_epsilon.second ;
-		sigma11.resize(sigma.size()/6, 0.) ;
-		sigma22.resize(sigma.size()/6, 0.) ;
-		sigma33.resize(sigma.size()/6, 0.) ;
-		sigma12.resize(sigma.size()/6, 0.) ;
-		sigma13.resize(sigma.size()/6, 0.) ;
-		sigma23.resize(sigma.size()/6, 0.) ;
-		
-		epsilon11.resize(sigma.size()/6, 0.) ;
-		epsilon22.resize(sigma.size()/6, 0.) ;
-		epsilon33.resize(sigma.size()/6, 0.) ;
-		epsilon12.resize(sigma.size()/6, 0.) ;
-		epsilon13.resize(sigma.size()/6, 0.) ;
-		epsilon23.resize(sigma.size()/6, 0.) ;
-				
-		
-		stiffness.resize(sigma.size()/6, 0.) ;
-		vonMises.resize(sigma.size()/6, 0.) ;
-		angle.resize(sigma.size()/6, 0.) ;
-		damage.resize(sigma.size()/6, 0.) ;
-	
-		std::cout << "unknowns :" << x.size() << std::endl ;
-	
-	
-		int npoints = 4 ;//tets[0]->getBoundingPoints().size() ;
-		std::cout << npoints << std::endl ;
-	
-		double volume = 0 ;
-		double avg_e_xx = 0;
-		double avg_e_yy = 0;
-		double avg_e_zz = 0;
-		double avg_e_xy = 0;
-		double avg_e_xz = 0;
-		double avg_e_yz = 0;
-		double avg_s_xx = 0;
-		double avg_s_zz = 0;
-		double avg_s_yy = 0;
-		double avg_s_xy = 0;
-		double avg_s_xz = 0;
-		double avg_s_yz = 0;
-		double e_xx = 0 ;
-		double ex_count = 0 ;
-		double xavg = 0 ;
-		
-		double n_void = 0 ;
-
-		for(size_t k = 0 ; k < tets.size() ; k++)
-		{
-			
-			if(tets[k]->getBehaviour()->type == VOID_BEHAVIOUR )
-				n_void++ ;
-
-			if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
-			{
-				
- 				for(size_t p = 0 ;p < npoints ; p++)
- 				{
- 					if(x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()] > x_max)
- 						x_max = x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()];
- 					if(x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()] < x_min)
- 						x_min = x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()];
-					if(tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom() >1)
-					{
-						if(x[tets[k]->getBoundingPoint(p).id*3+1] > y_max)
-							y_max = x[tets[k]->getBoundingPoint(p).id*3+1];
-						if(x[tets[k]->getBoundingPoint(p).id*3+1] < y_min)
-							y_min = x[tets[k]->getBoundingPoint(p).id*3+1];
-						if(x[tets[k]->getBoundingPoint(p).id*3+2] > z_max)
-							z_max = x[tets[k]->getBoundingPoint(p).id*3+2];
-						if(x[tets[k]->getBoundingPoint(p).id*3+2] < z_min)
-							z_min = x[tets[k]->getBoundingPoint(p).id*3+2];
-					}
- 					if(tets[k]->getBoundingPoint(p).x > 0.0799)
- 					{
- 						e_xx+=x[tets[k]->getBoundingPoint(p).id*tets[k]->getBehaviour()->getNumberOfDegreesOfFreedom()] ;
- 						ex_count++ ;
- 					}
- 				}
-				volume += tets[k]->volume() ;
-/*				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-				{
-					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] > E_max)
-						E_max = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] < E_min)
-						E_min = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					
-					stiffness[k*npoints] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					stiffness[k*npoints+1] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					stiffness[k*npoints+2] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					stiffness[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					damage[k*npoints] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-					damage[k*npoints+1] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-					damage[k*npoints+2] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-					damage[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-				}*/
-					
-				for(size_t p = 0 ; p < npoints ; p++)
-				{
-					sigma11[k*npoints+p] = sigma[k*npoints*6+p*6];
-					sigma22[k*npoints+p] = sigma[k*npoints*6+p*6+1];
-					sigma33[k*npoints+p] = sigma[k*npoints*6+p*6+2];
-					sigma12[k*npoints+p] = sigma[k*npoints*6+p*6+3];
-					sigma13[k*npoints+p] = sigma[k*npoints*6+p*6+4];
-					sigma23[k*npoints+p] = sigma[k*npoints*6+p*6+5];
-
-					epsilon11[k*npoints+p] = epsilon[k*npoints*6+p*6];
-					epsilon22[k*npoints+p] = epsilon[k*npoints*6+p*6+1];
-					epsilon33[k*npoints+p] = epsilon[k*npoints*6+p*6+2];
-					epsilon12[k*npoints+p] = epsilon[k*npoints*6+p*6+3];
-					epsilon13[k*npoints+p] = epsilon[k*npoints*6+p*6+4];
-					epsilon23[k*npoints+p] = epsilon[k*npoints*6+p*6+5];
-				}
-				
-				
-				double ar = tets[k]->volume() ;
-				for(size_t l = 0 ; l < npoints ;l++)
-				{
-					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
-					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
-					avg_e_zz += (epsilon33[k*npoints+l]/npoints)*ar;
-					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
-					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
-					avg_s_zz += (sigma33[k*npoints+l]/npoints)*ar;
-					xavg += x[tets[k]->getBoundingPoint(l).id]*ar/npoints ;
-				}
-	
-			}
-		}
-			
-			int counter = 0 ;
-
-		
-		xavg /= volume ;
-		
-		std::cout << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
-		std::cout << "avg value :" << xavg << std::endl ;
-		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
-		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
-		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
-		std::cout << "max sigma33 :" << sigma33.max() << std::endl ;
-		std::cout << "min sigma33 :" << sigma33.min() << std::endl ;
-		
-		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-		std::cout << "max epsilon33 :" << epsilon33.max() << std::endl ;
-		std::cout << "min epsilon33 :" << epsilon33.min() << std::endl ;
-		
-		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
-		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
-		
-		std::cout << "average sigma11 : " << avg_s_xx/volume << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy/volume << std::endl ;
-		std::cout << "average sigma33 : " << avg_s_zz/volume << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx/volume << std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy/volume << std::endl ;
-		std::cout << "average epsilon33 : " << avg_e_zz/volume << std::endl ;
-		std::cout << "number of void tetrahedrons : " << n_void << "/" << tets.size() << std::endl ;
-		std::cout << "volume of non-void tetrahedrons : " << volume << std::endl ;
-		
-		std::cout << std::endl ;
-		std::cout << -avg_e_xx/avg_s_xx << std::endl ;
-		std::cout << -avg_e_yy/avg_s_yy << std::endl ;
-		std::cout << -avg_e_zz/avg_s_zz << std::endl ;
-		
-		Matrix K(2,2) ;
-		K[0][0] = avg_e_xx ;
-		K[0][1] = avg_e_yy*2 ;
-		K[1][0] = avg_e_yy ;
-		K[1][1] = avg_e_xx + avg_e_yy ;
-		invert2x2Matrix(K) ;
-		K.print() ;
-
-		Vector s(2) ;
-		s[0] = avg_s_xx ;
-		s[1] = avg_s_yy ;
-		
-		Vector c = K*s ;
-
-		std::string filebench("benchmark.txt") ;
-		std::fstream out ;
-		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-		out << "ELASTICITY\tS1QUAD\t" << "E_inc = " << E_inc << "\t" 
-			<< "dof = " << x.size() << "\t"
-			<< "C1111 = " << c[0] << "\t"
-			<< "C1122 = " << c[1] << std::endl ;
-		out.close() ;
-
+	case(S1) :
+		return 0.15 ;
+	case(S2024) :
+		return 0.15 ;
+	case(S3200) :
+		return 400. ;
+	case(O1) :
+		return 1. ;
 	}
-
-}
-
-void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
-{
-	int i;
-	double f, p, q, t;
-	if( s == 0 ) {
-                // achromatic (grey)
-		*r = *g = *b = v;
-		return;
-	}
-	h /= 60.;                        // sector 0 to 5
-	i = (int)floor( h );
-	f = h - i;                      // factorial part of h
-	p = v * ( 1. - s );
-	q = v * ( 1. - s * f );
-	t = v * ( 1. - s * ( 1. - f ) );
-	switch( i ) {
-	case 0:
-		*r = v;
-		*g = t;
-		*b = p;
-		break;
-	case 1:
-		*r = q;
-		*g = v;
-		*b = p;
-		break;
-	case 2:
-		*r = p;
-		*g = v;
-		*b = t;
-		break;
-	case 3:
-		*r = p;
-		*g = q;
-		*b = v;
-		break;
-	case 4:
-		*r = t;
-		*g = p;
-		*b = v;
-		break;
-	default:                // case 5:
-		*r = v;
-		*g = p;
-		*b = q;
-		break;
-	}
-}
-
-void init(void) 
-{
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB) ;
-	glShadeModel (GL_SMOOTH);
-	glEnable(GL_COLOR_MATERIAL) ;
-	GLfloat mat_specular[] = {0.01f, 0.01f, 0.01f, 1.0f};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-	glColorMaterial(GL_AMBIENT_AND_DIFFUSE, GL_FRONT_AND_BACK) ;
-// 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	
-// 	glEnable(GL_NORMALIZE) ;
-	glClearColor(0.0f,0.0f,0.0f,1.0f);                                      // Black Background
-	glClearDepth(-0.f);                                                     // Depth Buffer Setup
-	
-	
-	glEnable(GL_LIGHTING) ;
-	glEnable(GL_LIGHT0) ;
-	
-	GLfloat light_ambient[] = { 0.8, 0.8, 0.8, 1.0 };
-	GLfloat light_diffuse[] = { 0.6, 0.6, 0.6, 1.0 };
-	GLfloat light_specular[] = { 0.7, 0.7, 0.7, 1.0 };
-	GLfloat light_position[] = { 1, 0, 0, 0 };
-	
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	
-// 	glEnable(GL_BLEND) ;
-// 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	glDepthRange( 0, 1 ) ;
-	
-}
-
-void Menu(int selection)
-{
-	switch (selection)
-	{
-	case ID_NEXT:
-		{
-			step() ;
-			dlist = false ;
-			break ;
-		}
-	case ID_NEXT_TIME:
-		{
-			timepos +=0.0001 ;
-		}
-	case ID_DISP : 
-		{
-			current_list = DISPLAY_LIST_DISPLACEMENT ;
-			break ;
-		}
-	case ID_STIFNESS : 
-	{
-		current_list = DISPLAY_LIST_STIFFNESS ;
-		break ;
-	}
-	case ID_STRAIN_XX : 
-		{
-			current_list = DISPLAY_LIST_STRAIN_XX ;
-			break ;
-		}
-	case ID_STRAIN_YY : 
-		{
-			current_list = DISPLAY_LIST_STRAIN_YY ;
-			break ;
-		}
-	case ID_STRAIN_ZZ : 
-		{
-			current_list = DISPLAY_LIST_STRAIN_ZZ ;
-			break ;
-		}
-	case ID_STRAIN_XY : 
-		{
-			current_list = DISPLAY_LIST_STRAIN_XY ;
-			break ;
-		}
-	case ID_STRAIN_XZ : 
-		{
-			current_list = DISPLAY_LIST_STRAIN_XZ ;
-			break ;
-		}
-	case ID_STRAIN_YZ : 
-		{
-			current_list = DISPLAY_LIST_STRAIN_YZ ;
-			break ;
-		}
-	case ID_STRESS_XX : 
-		{
-			current_list = DISPLAY_LIST_STRESS_XX ;
-			break ;
-		}
-	case ID_STRESS_YY : 
-		{
-			current_list = DISPLAY_LIST_STRESS_YY ;
-			break ;
-		}
-	case ID_STRESS_ZZ : 
-		{
-			current_list = DISPLAY_LIST_STRESS_ZZ ;
-			break ;
-		}
-	case ID_STRESS_XY : 
-		{
-			current_list = DISPLAY_LIST_STRESS_XY ;
-			break ;
-		}
-	case ID_STRESS_XZ : 
-		{
-			current_list = DISPLAY_LIST_STRESS_XZ ;
-			break ;
-		}
-	case ID_STRESS_YZ : 
-		{
-			current_list = DISPLAY_LIST_STRESS_YZ ;
-			break ;
-		}
-	case ID_ELEM : 
-		{
-			current_list = DISPLAY_LIST_ELEMENTS ;
-			break ;
-		}
-	case ID_VON_MISES: 
-		{
-			current_list = DISPLAY_LIST_VON_MISES ;
-			break ;
-		}
-	case ID_ANGLE: 
-		{
-			current_list = DISPLAY_LIST_ANGLE ;
-			break ;
-		}	
-	case ID_ENRICHMENT: 
-		{
-			current_list = DISPLAY_LIST_ENRICHMENT ;
-			break ;
-		}
-
-	case ID_QUIT : exit(0) ;
-		
-	case ID_ZOOM :
-		{
-			factor *= 1.5 ;
-			break ;
-		}
-	case ID_UNZOOM :
-		{
-			factor /= 1.5 ;
-			break ;
-		}
-		
-	case ID_AMPLIFY :
-		{
-			x *= 1.5 ;
-// 			sigma11 *= 1.5 ;
-// 			sigma22 *= 1.5 ;
-// 			sigma12 *= 1.5 ;
-			dlist = false ;
-			break ;
-		}
-	case ID_DEAMPLIFY :
-		{
-			x /= 1.5 ;
-// 			sigma11 /= 1.5 ;
-// 			sigma22 /= 1.5 ;
-// 			sigma12 /= 1.5 ;
-			dlist = false ;
-			break ;
-		}
-	}
-}
-
-std::pair<double, double> centile(const Vector & v)
-{
-	Vector vs(v) ;
-	std::sort(&vs[0], &vs[vs.size()]) ;
-	return std::make_pair(vs[(vs.size()-1)*0.01], vs[(vs.size()-1)*0.99]) ;
-}
-
-void reshape(int w, int h)
-{
-	windowWidth = w ;
-	windowHeight = h ;
-	glViewport (0, 0, w, h);
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity ();
-	gluPerspective(45.0, 1., (double)w/(double)h, 2.);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity() ;
-}
-
-void printScreen()
-{
-	std::valarray<unsigned int> frame(windowWidth*windowHeight) ;
-	glReadPixels(0,0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, &frame[0]) ;
-}
-
-void displayTet(DelaunayTetrahedron * t, int j, std::valarray<double> & vals, double min, double max)
-{
-	if(t->getCenter().y > 200 && t->getCenter().x < 200 && t->getCenter().z < 200)
-	{
-		return ;
-	}
-	double c1 ;
-	double c2 ;
-	double c3 ;
-// 	glBegin(GL_POINTS);
-	double vx = x[t->first->id*3]+x[t->second->id*3]+x[t->third->id*3]+x[t->fourth->id*3]; 
-	double vy = x[t->first->id*3+1]+x[t->second->id*3+1]+x[t->third->id*3+1]+x[t->fourth->id*3+1]; 
-	double vz = x[t->first->id*3+2]+x[t->second->id*3+2]+x[t->third->id*3+2]+x[t->fourth->id*3+2]; 
-// 	vx = 0 ; vy = 0 ; vz = 0 ;
-// 	
-	double v = (vals[j*4]+vals[j*4+1]+vals[j*4+2]+vals[j*4+3])*.25 ;
-	HSVtoRGB( &c1, &c2, &c3, 300. - 240.*(v-min)/(max-min), 1., 1.) ;
-	glColor3f(c1, c2, c3) ;
-	glVertex3f(double(t->getCenter().x + vx*.25) , double(t->getCenter().y + vy*.25), double(t->getCenter().z + vz*.25) );
-// 	glEnd() ;
-// 	glBegin(GL_LINE_LOOP);
-// 		double vx = x[t->first->id*3]; 
-// 		double vy = x[t->first->id*3+1]; 
-// 		double vz = x[t->first->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->first->x + vx) , double(t->first->y + vy), double(t->first->z + vz) );
-// 		
-// 		vx = x[t->second->id*3]; 
-// 		vy = x[t->second->id*3+1]; 
-// 		vz = x[t->second->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+1]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->second->x + vx) , double(t->second->y + vy),  double(t->second->z + vz) );
-// 		
-// 		vx = x[t->third->id*3]; 
-// 		vy = x[t->third->id*3+1]; 
-// 		vz = x[t->third->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+2]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->third->x + vx) , double(t->third->y + vy), double(t->third->z + vz) );
-// 	glEnd() ;
-// 	
-// 	glBegin(GL_LINE_LOOP);
-// 		vx = x[t->first->id*3]; 
-// 		vy = x[t->first->id*3+1]; 
-// 		vz = x[t->first->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+0]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->first->x + vx) , double(t->first->y + vy), double(t->first->z + vz) );
-// 		
-// 		vx = x[t->second->id*3]; 
-// 		vy = x[t->second->id*3+1]; 
-// 		vz = x[t->second->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+1]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->second->x + vx) , double(t->second->y + vy), double(t->second->z + vz) );
-// 		
-// 		vx = x[t->fourth->id*3]; 
-// 		vy = x[t->fourth->id*3+1]; 
-// 		vz = x[t->fourth->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+3]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->fourth->x + vx) , double(t->fourth->y + vy), double(t->fourth->z + vz) );
-// 	glEnd() ;
-// 	
-// 	glBegin(GL_LINE_LOOP);
-// 		vx = x[t->first->id*3]; 
-// 		vy = x[t->first->id*3+1]; 
-// 		vz = x[t->first->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+0]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->first->x + vx) , double(t->first->y + vy), double(t->first->z + vz) );
-// 		
-// 		vx = x[t->third->id*3]; 
-// 		vy = x[t->third->id*3+1]; 
-// 		vz = x[t->third->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+2]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->third->x + vx) , double(t->third->y + vy), double(t->third->z + vz) );
-// 		
-// 		vx = x[t->fourth->id*3]; 
-// 		vy = x[t->fourth->id*3+1]; 
-// 		vz = x[t->fourth->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+3]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->fourth->x + vx) , double(t->fourth->y + vy), double(t->fourth->z + vz) );
-// 	glEnd() ;
-// 	
-// 	glBegin(GL_LINE_LOOP);
-// 		vx = x[t->third->id*3]; 
-// 		vy = x[t->third->id*3+1]; 
-// 		vz = x[t->third->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+2]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->third->x + vx) , double(t->third->y + vy), double(t->third->z + vz) );
-// 		
-// 		vx = x[t->second->id*3]; 
-// 		vy = x[t->second->id*3+1]; 
-// 		vz = x[t->second->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+1]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->second->x + vx) , double(t->second->y + vy), double(t->second->z + vz) );
-// 		
-// 		vx = x[t->fourth->id*3]; 
-// 		vy = x[t->fourth->id*3+1]; 
-// 		vz = x[t->fourth->id*3+2]; 
-// 		HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(vals[j*4+3]-min)/(max-min), 1., 1.) ;
-// 		glColor3f(c1, c2, c3) ;
-// 		glVertex3f(double(t->fourth->x + vx) , double(t->fourth->y + vy), double(t->fourth->z + vz) );
-// 	glEnd() ;
-}
-
-void Display(void)
-{
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	
-	glMatrixMode(GL_MODELVIEW);	
-	glLoadIdentity() ;
-	glScalef(.002, .002, .002) ;
-	glRotatef( viewangle, 0, -1, 0) ;
-	glRotatef(-viewangle2 , -1, 0, 0) ;
-	glRotatef(20 , 0, 0, 1) ;
-	glTranslatef(-200,-200, -200) ;
-	glEnable(GL_DEPTH_TEST) ;
-	if(!dlist)
-	{
-		
-		DISPLAY_LIST_ENRICHMENT = glGenLists(1);
-		glNewList( DISPLAY_LIST_ENRICHMENT,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && damage[j*4]<1)
-			{
-				displayTet(tets[j],j , damage, 0, 1) ;
-			}
-		}
-		glEnd() ;
-// 			for (unsigned int j=0 ; j< tets.size() ; j++ )
-// 			{
-// 				
-// 				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR  && tets[j]->getBehaviour()->fractured())
-// 				{
-// 					double c1 ;
-// 					double c2 ;
-// 					double c3 ;
-// 					
-// 					glBegin(GL_LINE_LOOP);
-// 					double vx = x[tets[j]->first->id*3]; 
-// 					double vy = x[tets[j]->first->id*3+1]; 
-// 					double vz = x[tets[j]->first->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-// 					
-// 					vx = x[tets[j]->second->id*3]; 
-// 					vy = x[tets[j]->second->id*3+1]; 
-// 					vz = x[tets[j]->second->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
-// 					
-// 					vx = x[tets[j]->third->id*3]; 
-// 					vy = x[tets[j]->third->id*3+1]; 
-// 					vz = x[tets[j]->third->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-// 					glEnd() ;
-// 					
-// 					glBegin(GL_LINE_LOOP);
-// 					vx = x[tets[j]->first->id*3]; 
-// 					vy = x[tets[j]->first->id*3+1]; 
-// 					vz = x[tets[j]->first->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-// 					
-// 					vx = x[tets[j]->second->id*3]; 
-// 					vy = x[tets[j]->second->id*3+1]; 
-// 					vz = x[tets[j]->second->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
-// 					
-// 					vx = x[tets[j]->fourth->id*3]; 
-// 					vy = x[tets[j]->fourth->id*3+1]; 
-// 					vz = x[tets[j]->fourth->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-// 					glEnd() ;
-// 					
-// 					glBegin(GL_LINE_LOOP);
-// 					vx = x[tets[j]->first->id*3]; 
-// 					vy = x[tets[j]->first->id*3+1]; 
-// 					vz = x[tets[j]->first->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-// 					
-// 					vx = x[tets[j]->third->id*3]; 
-// 					vy = x[tets[j]->third->id*3+1]; 
-// 					vz = x[tets[j]->third->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-// 					
-// 					vx = x[tets[j]->fourth->id*3]; 
-// 					vy = x[tets[j]->fourth->id*3+1]; 
-// 					vz = x[tets[j]->fourth->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-// 					glEnd() ;
-// 					
-// 					glBegin(GL_LINE_LOOP);
-// 					vx = x[tets[j]->third->id*3]; 
-// 					vy = x[tets[j]->third->id*3+1]; 
-// 					vz = x[tets[j]->third->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-// 					
-// 					vx = x[tets[j]->second->id*3]; 
-// 					vy = x[tets[j]->second->id*3+1]; 
-// 					vz = x[tets[j]->second->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
-// 					
-// 					vx = x[tets[j]->fourth->id*3]; 
-// 					vy = x[tets[j]->fourth->id*3+1]; 
-// 					vz = x[tets[j]->fourth->id*3+2]; 
-// 					HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 					glColor3f(c1, c2, c3) ;
-// 					glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-// 					glEnd() ;
-// 				}
-// 			}
-		glEndList() ;
-		
-		DISPLAY_LIST_DISPLACEMENT = glGenLists(1);
-		glNewList( DISPLAY_LIST_DISPLACEMENT,  GL_COMPILE ) ;
-		double xmin = x.min() ; double xmax = x.max() ;
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-			{
-				std::vector<Point> bb0 = tets[j]->getBoundingBox() ;
-				double min_x_0 = 0, min_y_0 = 0, max_x_0 = 0, max_y_0 = 0, max_z_0 = 0, min_z_0 = 0;
-				min_y_0 = bb0[0].y ;
-				max_y_0 = bb0[0].y ;
-				min_x_0 = bb0[0].x ;
-				max_x_0 = bb0[0].x ;
-				min_z_0 = bb0[0].z ;
-				max_z_0 = bb0[0].z ;
-	
-				for(size_t k  =  1 ; k <  bb0.size() ; k++)
-				{
-					if(bb0[k].y < min_y_0)
-						min_y_0 = bb0[k].y ;
-					if(bb0[k].y > max_y_0)
-						max_y_0 = bb0[k].y ;
-					
-					if(bb0[k].x < min_x_0)
-						min_x_0 = bb0[k].x ;
-					if(bb0[k].x > max_x_0)
-						max_x_0 = bb0[k].x ;
-					
-					if(bb0[k].z < min_z_0)
-						min_z_0 = bb0[k].z ;
-					if(bb0[k].z > max_z_0)
-						max_z_0 = bb0[k].z ;
-				}
-				
-				bool onborder = true ;
-// 					(std::abs(max_x_0-500) < 0.01) 
-/*					|| (min_x_0 < 0.01)
-					|| (std::abs(max_y_0-500) < 0.01)
-					|| (min_y_0 < 0.01)
-					|| (std::abs(max_z_0-500) < 0.01)
-					|| (min_z_0 < 0.01)*/ ;
-				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR  && !tets[j]->getBehaviour()->fractured()
-					&& onborder)
-				{
-					double c1 ;
-					double c2 ;
-					double c3 ;
-					
-// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01)
-// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2)
-// 					{
-// 						glBegin(GL_TRIANGLES);
-// 						double vx = x[tets[j]->first->id*3]; 
-// 						double vy = x[tets[j]->first->id*3+1]; 
-// 						double vz = x[tets[j]->first->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-// 						
-// 						vx = x[tets[j]->second->id*3]; 
-// 						vy = x[tets[j]->second->id*3+1]; 
-// 						vz = x[tets[j]->second->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
-// 						
-// 						vx = x[tets[j]->third->id*3]; 
-// 						vy = x[tets[j]->third->id*3+1]; 
-// 						vz = x[tets[j]->third->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-// 						glEnd() ;
-// 					}
-// 					
-// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
-// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
-// 					{
-// 						glBegin(GL_TRIANGLES);
-// 						double vx = x[tets[j]->first->id*3]; 
-// 						double vy = x[tets[j]->first->id*3+1]; 
-// 						double vz = x[tets[j]->first->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-// 						
-// 						vx = x[tets[j]->second->id*3]; 
-// 						vy = x[tets[j]->second->id*3+1]; 
-// 						vz = x[tets[j]->second->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
-// 						
-// 						vx = x[tets[j]->fourth->id*3]; 
-// 						vy = x[tets[j]->fourth->id*3+1]; 
-// 						vz = x[tets[j]->fourth->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-// 						glEnd() ;
-// 					}
-// 					
-// // 					if(std::abs(tets[j]->first->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
-// 					if(std::abs(dist(*tets[j]->first,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
-// 					{
-// 						glBegin(GL_TRIANGLES);
-// 						double vx = x[tets[j]->first->id*3]; 
-// 						double vy = x[tets[j]->first->id*3+1]; 
-// 						double vz = x[tets[j]->first->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-// 						
-// 						vx = x[tets[j]->third->id*3]; 
-// 						vy = x[tets[j]->third->id*3+1]; 
-// 						vz = x[tets[j]->third->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-// 						
-// 						vx = x[tets[j]->fourth->id*3]; 
-// 						vy = x[tets[j]->fourth->id*3+1]; 
-// 						vz = x[tets[j]->fourth->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-// 						glEnd() ;
-// 					}
-// 					
-// // 					if(std::abs(tets[j]->second->x-300) < 0.01 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 0.01)
-// 					if(std::abs(dist(*tets[j]->second,Point(300, 150, 150))-100) < 2 && std::abs(dist(*tets[j]->third,Point(300, 150, 150))-100) < 2 &&std::abs(dist(*tets[j]->fourth,Point(300, 150, 150))-100) < 2)
-// 					{
-// 						glBegin(GL_TRIANGLES);
-// 						double vx = x[tets[j]->third->id*3]; 
-// 						double vy = x[tets[j]->third->id*3+1]; 
-// 						double vz = x[tets[j]->third->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-// 						
-// 						vx = x[tets[j]->second->id*3]; 
-// 						vy = x[tets[j]->second->id*3+1]; 
-// 						vz = x[tets[j]->second->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
-// 						
-// 						vx = x[tets[j]->fourth->id*3]; 
-// 						vy = x[tets[j]->fourth->id*3+1]; 
-// 						vz = x[tets[j]->fourth->id*3+2]; 
-// 						HSVtoRGB( &c1, &c2, &c3, 300. - sqrt(((vx-x_min)*(vx-x_min) + (vy-y_min)*(vy-y_min)+ (vz-z_min)*(vz-z_min))/((x_max-x_min)*(x_max-x_min) + (y_max-y_min)*(y_max-y_min) + (z_max-z_min)*(z_max-z_min)))*300., 1., 1. ) ;
-// 						glColor3f(c1, c2, c3) ;
-// 						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-// 						glEnd() ;
-// 					}
-// 					
-					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 1)
-					{
-						glBegin(GL_TRIANGLES);
-						double vx = x[tets[j]->first->id*3]; 
-						double vy = x[tets[j]->first->id*3+1]; 
-						double vz = x[tets[j]->first->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-						
-						vx = x[tets[j]->second->id*3]; 
-						vy = x[tets[j]->second->id*3+1]; 
-						vz = x[tets[j]->second->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy),  double(tets[j]->second->z + vz) );
-						
-						vx = x[tets[j]->third->id*3]; 
-						vy = x[tets[j]->third->id*3+1]; 
-						vz = x[tets[j]->third->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-						glEnd() ;
-					}
-					
-					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->fourth->x-300) < 1)
-					{
-						glBegin(GL_TRIANGLES);
-						double vx = x[tets[j]->first->id*3]; 
-						double vy = x[tets[j]->first->id*3+1]; 
-						double vz = x[tets[j]->first->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-						
-						vx = x[tets[j]->second->id*3]; 
-						vy = x[tets[j]->second->id*3+1]; 
-						vz = x[tets[j]->second->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
-						
-						vx = x[tets[j]->fourth->id*3]; 
-						vy = x[tets[j]->fourth->id*3+1]; 
-						vz = x[tets[j]->fourth->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-						glEnd() ;
-					}
-					
-					if(std::abs(tets[j]->first->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
-					{
-						glBegin(GL_TRIANGLES);
-						double vx = x[tets[j]->first->id*3]; 
-						double vy = x[tets[j]->first->id*3+1]; 
-						double vz = x[tets[j]->first->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->first->x + vx) , double(tets[j]->first->y + vy), double(tets[j]->first->z + vz) );
-						
-						vx = x[tets[j]->third->id*3]; 
-						vy = x[tets[j]->third->id*3+1]; 
-						vz = x[tets[j]->third->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-						
-						vx = x[tets[j]->fourth->id*3]; 
-						vy = x[tets[j]->fourth->id*3+1]; 
-						vz = x[tets[j]->fourth->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-						glEnd() ;
-					}
-					
-					if(std::abs(tets[j]->second->x-300) < 1 && std::abs(tets[j]->third->x-300) < 0.01 && std::abs(tets[j]->fourth->x-300) < 1)
-					{
-						glBegin(GL_TRIANGLES);
-						double vx = x[tets[j]->third->id*3]; 
-						double vy = x[tets[j]->third->id*3+1]; 
-						double vz = x[tets[j]->third->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->third->x + vx) , double(tets[j]->third->y + vy), double(tets[j]->third->z + vz) );
-						
-						vx = x[tets[j]->second->id*3]; 
-						vy = x[tets[j]->second->id*3+1]; 
-						vz = x[tets[j]->second->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->second->x + vx) , double(tets[j]->second->y + vy), double(tets[j]->second->z + vz) );
-						
-						vx = x[tets[j]->fourth->id*3]; 
-						vy = x[tets[j]->fourth->id*3+1]; 
-						vz = x[tets[j]->fourth->id*3+2]; 
-						HSVtoRGB( &c1, &c2, &c3, 300. - tets[j]->index%300, 1., 1. ) ;
-						glColor3f(c1, c2, c3) ;
-						glVertex3f(double(tets[j]->fourth->x + vx) , double(tets[j]->fourth->y + vy), double(tets[j]->fourth->z + vz) );
-						glEnd() ;
-					}
-				}
-			}
-		glEndList() ;
-		
-		std::pair<double, double> minmax = centile(sigma11) ;
-		DISPLAY_LIST_STRAIN_XX = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRAIN_XX,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-			for (unsigned int j=0 ; j< tets.size() ; j++ )
-			{
-				
-				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
-				{
-					displayTet(tets[j],j , sigma11, minmax.first, minmax.second) ;
-				}
-			}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(stiffness) ;
-		DISPLAY_LIST_STIFFNESS = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STIFFNESS,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , stiffness, minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(vonMises) ;
-		DISPLAY_LIST_VON_MISES = glGenLists(1);
-		glNewList(  DISPLAY_LIST_VON_MISES,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , vonMises, minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		
-		minmax = centile(angle) ;
-		DISPLAY_LIST_ANGLE = glGenLists(1);
-		glNewList(  DISPLAY_LIST_ANGLE,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , angle,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(sigma22) ;
-		DISPLAY_LIST_STRAIN_YY = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRAIN_YY,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , sigma22, minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(sigma33) ;
-		DISPLAY_LIST_STRAIN_ZZ = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRAIN_ZZ,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , sigma33, minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(sigma12) ;
-		DISPLAY_LIST_STRAIN_XY = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRAIN_XY,  GL_COMPILE ) ;	
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR &&  !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , sigma12, minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(sigma13) ; 
-		DISPLAY_LIST_STRAIN_XZ = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRAIN_XZ,  GL_COMPILE ) ;	
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR &&  !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , sigma13,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(sigma23) ; 
-		DISPLAY_LIST_STRAIN_YZ = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRAIN_YZ,  GL_COMPILE ) ;	
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR &&  !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , sigma23,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(epsilon11) ; 
-		DISPLAY_LIST_STRESS_XX = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRESS_XX,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , epsilon11,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-				
-		minmax = centile(epsilon22) ; 
-		DISPLAY_LIST_STRESS_YY = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRESS_YY,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , epsilon22,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(epsilon33) ; 
-		DISPLAY_LIST_STRESS_ZZ = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRESS_ZZ,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , epsilon33,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(epsilon12) ; 
-		DISPLAY_LIST_STRESS_XY = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRESS_XY,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , epsilon12,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(epsilon13) ; 
-		DISPLAY_LIST_STRESS_XZ = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRESS_XZ,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , epsilon13,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		minmax = centile(epsilon23) ; 
-		DISPLAY_LIST_STRESS_YZ = glGenLists(1);
-		glNewList(  DISPLAY_LIST_STRESS_YZ,  GL_COMPILE ) ;
-		glBegin(GL_POINTS);
-		for (unsigned int j=0 ; j< tets.size() ; j++ )
-		{
-			
-			if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR && !tets[j]->getBehaviour()->fractured())
-			{
-				displayTet(tets[j],j , epsilon23,  minmax.first, minmax.second) ;
-			}
-		}
-		glEnd() ;
-		glEndList() ;
-		
-		dlist = true ;
-		glCallList(current_list) ;
-	}
-	else
-	{
-
-		double c1, c2, c3 = 0;
-		HSVtoRGB( &c1, &c2, &c3, 180. + 0, 1., 1.) ;
-		
-		glCallList(current_list) ;
-		glColor3f(1, 1, 1) ;
-
-		
-	}
-	
-// 	glTranslatef(20,20,20) ;
-// 	glBegin(GL_TRIANGLES) ;
-// 	glColor3f(1, 1, 1) ;
-// 	glVertex3f(20, 20, 40) ;
-// 	glVertex3f(20, 20, 0) ;
-// 	
-// 	glVertex3f(0, 40, 40) ;
-// 	glVertex3f(40, 40, 40) ;
-// 	
-// 	glVertex3f(40, 40, 40) ;
-// 	glVertex3f(40, 0, 40) ;
-// 	
-// 	glVertex3f(40, 0, 40) ;
-// 	glVertex3f(0, 0, 40) ;
-// 	
-// 	glVertex3f(0, 0, 40) ;
-// 	glVertex3f(0, 40, 40) ;
-// 	
-// 	glVertex3f(0, 40, 0) ;
-// 	glVertex3f(40, 40, 0) ;
-// 	
-// 	glVertex3f(40, 4, 0) ;
-// 	glVertex3f(40, 0, 0) ;
-// 	
-// 	glVertex3f(40, 0, 0) ;
-// 	glVertex3f(0, 0, 0) ;
-// 	
-// 	glVertex3f(0, 0, 0) ;
-// 	glVertex3f(0, 40, 0) ;
-// 	glEnd() ;
-
-	glColor3f	(1, 0, 0) ;
-	glFlush();
-	glutSwapBuffers();
-}
-
-void processMouseActiveMotion(int x, int y) {
-	viewangle++ ;
-	viewangle %=360 ;
-	viewangle2++ ;
-	viewangle2++ ;
-	viewangle2 %=360 ;
-	Display() ;
+	return 1. ;
 }
 
 int main(int argc, char *argv[])
 {
-	std::cout << "fist argument is the scale, second is E and lambda, third is the sampling" << std::endl ;
-	scale = atoi(argv[1]) ;
+	std::cout << "usage: benchmark <microstructure> <phenomenon> <order> <scale> <properties> <sampling>" << std::endl ;
+	std::cout << "all fields are required" << std::endl ;
+	std::cout << "<microstructure>\tstring among <S1, S2024, S3200, O1>" << std::endl ;
+	std::cout << "<phenomenon>\t\tstring among <diffusion, elasticity>" << std::endl ;
+	std::cout << "<order>\t\t\tinteger : order of the elements (1 for linear, 2 for quadratic)" << std::endl ;
+	std::cout << "<scale>\t\t\tdouble : scale factor" << std::endl ;
+	std::cout << "<properties>\t\tdouble : value of the Young's Modulus or Diffusion coefficient of the inclusion(s)" << std::endl ;
+	std::cout << "<sampling>\t\tinteger : number of points at the surface of the REV" << std::endl ;
 
-// 	Point *p0 = new Point(500, 500, 0) ;
-// Point *p1 = new Point(500, 0, 500) ;
-// Point *p2 = new Point(500, 0, 0) ;
-// Point *p3 = new Point(0, 500, 500) ;
-// DelaunayTree3D dt(p0, p1, p2, p3) ;
-// dt.insert(new Point(0, 500, 0)) ;
-// dt.insert(new Point(500, 500, 500)) ;
-// dt.insert(new Point(0, 0, 500)) ;
-// dt.insert(new Point(0, 0, 0)) ;
-// dt.insert( new Point(497.7976374532, 3.4932919645137, 306.2095113991)) ;
-// dt.insert(new Point(499.59174232694, 3.9847811333998, 183.24226882653)) ;
-// 	
-// 
-// 	return 0 ;
-	
-// 	std::vector<std::string> fields ;
-// 	fields.push_back("center_x") ;
-// 	fields.push_back("center_y") ;
-// 	fields.push_back("center_z") ;
-// 	fields.push_back("radius") ;
-// 	GranuloFromFile gff("sphere_2024.txt",fields) ;
-// 	std::vector<Feature *> feat = gff.getFeatures(SPHERE_INCLUSION, 2024) ;
-// 	std::vector<Inclusion3D *> inclusions ;
-// 	for(size_t i = 0 ; i < feat.size() ; i++)
-// 		inclusions.push_back(static_cast<Inclusion3D *>(feat[i])) ;
+	if(argc != 7)
+		return 1 ;
 
-	double maxx = 0.15 ;
-	double maxy = 0.15 ;
-	double maxz = 0.15 ;
-	double minx = 0 ;//-0.025 ;
-	double miny = 0 ;//-0.025 ;
-	double minz = 0 ;//-0.025 ;
+	BenchmarkMicrostructure micro = getMicrostructure(std::string(argv[1])) ;
+	BenchmarkPhenomenon pheno = getPhenomenon(std::string(argv[2])) ;
+	int order = atoi(argv[3]) ;
+	if(order < 1 || order > 2) { order = 1 ; }
+	double scale = atof(argv[4]) ;
+	prop = atof(argv[5]) ;
+	int sampling = atoi(argv[6]) ;
+	double length = getLength(micro) ;
 
-/*	for(size_t i = 0 ; i < inclusions.size() ; i++)
-	{
-		double r = static_cast<Sphere *>(inclusions[i])->getRadius() ;
-		Point ppp = static_cast<Sphere *>(inclusions[i])->getCenter() ;
-		if(ppp.x + r > maxx)
-			maxx = ppp.x+r ;
-		if(ppp.x - r < minx)
-			minx = ppp.x-r ;
-		if(ppp.y + r > maxy)
-			maxy = ppp.y+r ;
-		if(ppp.y - r < miny)
-			miny = ppp.y-r ;
-		if(ppp.z + r > maxz)
-			maxz = ppp.z+r ;
-		if(ppp.z - r < minz)
-			minz = ppp.z-r ;
-	}
+	double size = scale*length ;
+	double halfSize = size/2 ;
 
-	minx = minx * 1.01 ;
-	miny = miny * 1.01 ;
-	minz = minz * 1.01 ;
-
-	maxx = 0.15 + (maxx - 0.15) * 1.01 ;
-	maxy = 0.15 + (maxy - 0.15) * 1.01 ;
-	maxz = 0.15 + (maxz - 0.15) * 1.01 ;*/
-
-// 	std::cout << minx << ";" << maxx << std::endl ;
-// 	std::cout << miny << ";" << maxy << std::endl ;
-// 	std::cout << minz << ";" << maxz << std::endl ;
-
-	Sample3D sample(NULL, scale, scale, scale, .5*scale, .5*scale, .5*scale) ;
-//	Sample3D sampleConcrete(NULL, 0.0762*4.*scale, 0.0762*scale, 0.0762*scale , 0.0762*4.*scale*.5, 0.0762*scale*.5, 0.0762*scale*.5) ;
-
+	Sample3D sample(NULL, size, size, size, halfSize, halfSize, halfSize) ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	double nu = 0.2 ;
-	double E = 1 ;
+	Form* behaviour = NULL ;
 
-	Matrix m0(6,6) ;
-	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
-	m0[1][0] = nu ; m0[1][1] = 1. - nu ; m0[1][2] = nu ;
-	m0[2][0] = nu ; m0[2][1] = nu ; m0[2][2] = 1. - nu ;
-	m0[3][3] = 0.5 - nu ;
-	m0[4][4] = 0.5 - nu ;
-	m0[5][5] = 0.5 - nu ;
-	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+	switch(pheno)
+	{
+	case DIFFUSION:
+	{
+		Matrix d0(3,3) ;
+		double lambda = 1 ;
+		d0[0][0] = lambda ;
+		d0[1][1] = lambda ;
+		d0[2][2] = lambda ;
+		sample.setBehaviour(new Laplacian(d0)) ;
+		
+		Matrix d1(3,3) ;
+		lambda = prop ;
+		d1[0][0] = lambda ;
+		d1[1][1] = lambda ;
+		d1[2][2] = lambda ;
+		behaviour = new Laplacian(d1) ;
+		break ;
+	}
+	case ELASTICITY:
+	{
+		
+		double nu = 0.2 ;
+		double E = 1 ;	
+		Matrix m0(6,6) ;
+		m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
+		m0[1][0] = nu ; m0[1][1] = 1. - nu ; m0[1][2] = nu ;
+		m0[2][0] = nu ; m0[2][1] = nu ; m0[2][2] = 1. - nu ;
+		m0[3][3] = 0.5 - nu ;
+		m0[4][4] = 0.5 - nu ;
+		m0[5][5] = 0.5 - nu ;
+		m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+		sample.setBehaviour(new Stiffness(m0)) ;
+		
+		E = prop ;
+		std::cout << prop << std::endl ;
+		Matrix m1(6,6) ;
+		m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
+		m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
+		m1[2][0] = nu ; m1[2][1] = nu ; m1[2][2] = 1. - nu ;
+		m1[3][3] = 0.5 - nu ;
+		m1[4][4] = 0.5 - nu ;
+		m1[5][5] = 0.5 - nu ;
+		m1 *= E/((1.+nu)*(1.-2.*nu)) ;
+		behaviour = new Stiffness(m1) ;
+		break ;
+	}
+	}
+
+	std::string str_micro = "S1" ;
+	if(micro != O1)
+	{
+		std::vector<Inclusion3D * > inclusions ;
+		if(micro == S1)
+		{
+			inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z)) ;
+			std::cout << inclusions[0]->volume() << std::endl ;
+			std::cout << sample.volume() << std::endl ;
+			std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
+		}
+		else
+		{
+			str_micro = "S2024" ;
+		 	int n = 2024 ;
+			std::string file = "sphere_2024.txt" ;
+		 	std::vector<std::string> columns ;
+		 	columns.push_back("center_x") ;
+		 	columns.push_back("center_y") ;
+		 	columns.push_back("center_z") ;
+		 	columns.push_back("radius") ;
+			if(micro == S3200)
+			{
+				str_micro = "S3200" ;
+				n = 3200 ;
+				file = "sphere_3200.txt" ;
+				columns.clear() ;
+			 	columns.push_back("radius") ;
+			 	columns.push_back("center_x") ;
+			 	columns.push_back("center_y") ;
+			 	columns.push_back("center_z") ;
+			}
+			GranuloFromFile spheres(file, columns) ;
+			inclusions = spheres.getInclusion3D(n, scale) ;
+		}
+		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		{
+			inclusions[i]->setBehaviour(behaviour) ;
+			F.addFeature(&sample, inclusions[i]) ;
+		}
 	
-	Matrix d0(3,3) ;
-	double lambda = 1 ;
-	d0[0][0] = lambda ;
-	d0[1][1] = lambda ;
-	d0[2][2] = lambda ;
+	}
+	else
+	{
+		str_micro = "O1" ;
+		OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
+		oct->setBehaviour(behaviour) ;
+		F.addFeature(&sample, oct) ;
+	}
 
-	nu = 0.2 ;
-	E = atof(argv[2]) ;
-	E_inc = E ;
-	Matrix m1(6,6) ;
-	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
-	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
-	m1[2][0] = nu ; m1[2][1] = nu ; m1[2][2] = 1. - nu ;
-	m1[3][3] = 0.5 - nu ;
-	m1[4][4] = 0.5 - nu ;
-	m1[5][5] = 0.5 - nu ;
-	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
-
-	Matrix d1(3,3) ;
-	lambda = atof(argv[2]) ;
-//	E_inc = lambda ;
-	d1[0][0] = lambda ;
-	d1[1][1] = lambda ;
-	d1[2][2] = lambda ;
-
-
-//	sample.setBehaviour(new Laplacian(d0)) ;
-	sample.setBehaviour(new Stiffness(m0)) ;
-//	Stiffness * sinclusion = new Stiffness(m1) ;
-// 	double v = 0 ;
-	
- 	std::vector<std::string> columns ;
- 	columns.push_back("radius") ;
- 	columns.push_back("center_x") ;
- 	columns.push_back("center_y") ;
- 	columns.push_back("center_z") ;
-// 	
- 	GranuloFromFile spheres("sphere_2024.txt", columns) ;
- 	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(2024,scale/0.15) ;
-// 	 	GranuloFromFile spheres("sphere_3200txt", columns) ;
-//  	std::vector<Inclusion3D *> inclusions = spheres.getInclusion3D(3200,scale/400) ;
-	
-// 	
-	Stiffness * inclusionStiffness = new Stiffness(m1) ;
- 	Laplacian * inclusionDiffusion = new Laplacian(d1) ;
-// 	
- 	for(int i = 0 ; i < 800 /*inclusions.size()*/ ; i++)
- 	{
-		inclusions[i]->setBehaviour(inclusionStiffness) ;
-//  		inclusions[i]->setBehaviour(inclusionDiffusion) ;
- 		F.addFeature(&sample, inclusions[i]) ; 		
-// 		v += inclusions[i]->volume() ;
- 	}
-
-	
-	Inclusion3D * inc = new Inclusion3D(pow(0.3*(3./16.),1./3.)*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
-// 	inc->setBehaviour(inclusionDiffusion) ;
-	inc->setBehaviour(inclusionStiffness) ;
-	Vector a(6) ; //a = 0 ;
-// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&sample, 0.025*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z, m1, a) ;
-	
-	OctahedralInclusion* oct = new OctahedralInclusion(NULL, 1.*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
-	oct->setBehaviour(inclusionStiffness) ;
-//	F.addFeature(&sample, oct) ;
-	
-// 	F.addFeature(&sample, inc) ;
-
-// 	std::cout << "aggregate volume : " << v << std::endl ;
-
-	F.setSamplingNumber(atoi(argv[3])) ;
+	F.setSamplingNumber(sampling) ;
 	F.setMaxIterationsPerStep(2);
-	
-	F.setOrder(QUADRATIC) ;
-	
-	Function torz("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 cos *") ;
-	Function tory("z 150 - 2 ^ y 150 - 2 ^ + sqrt z 150 - y 150 - atan2 sin * -1 *") ;
-	
-	Function x("x") ;
-	Function gradT = x*0.01;
-	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, FRONT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
-
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.01*scale)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, TOP, gradT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, gradT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BACK, gradT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, FRONT, gradT)) ;
+	F.setDeltaTime(0.001);
 	F.setElementGenerationMethod(0,true) ;
-	step() ;
+	
+	if(order == 2)
+		F.setOrder(QUADRATIC) ;
+	else
+		F.setOrder(LINEAR) ;
+	
+	Function pos("x") ;
+	Function grad = pos*0.01/length ;
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.01*scale)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, TOP, grad)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, grad)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BACK, grad)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, FRONT, grad)) ;
 
-/*	glutInit(&argc, argv) ;	
-	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
-	glutInitWindowSize(600, 600) ;
-	glutReshapeFunc(reshape) ;
-	glutCreateWindow("coucou !") ;
-	glutMotionFunc(processMouseActiveMotion);
-	int submenu = glutCreateMenu(Menu) ;
+	F.step() ;
 	
-	glutAddMenuEntry(" Displacements ", ID_DISP);
-	glutAddMenuEntry(" Stress (s) xx ", ID_STRAIN_XX);
-	glutAddMenuEntry(" Stress (s) yy ", ID_STRAIN_YY);
-	glutAddMenuEntry(" Stress (s) zz ", ID_STRAIN_ZZ);
-	glutAddMenuEntry(" Stress (s) xy ", ID_STRAIN_XY);
-	glutAddMenuEntry(" Stress (s) xz ", ID_STRAIN_XZ);
-	glutAddMenuEntry(" Stress (s) yz ", ID_STRAIN_YZ);
-	glutAddMenuEntry(" Strain (e) xx ", ID_STRESS_XX);
-	glutAddMenuEntry(" Strain (e) yy ", ID_STRESS_YY);
-	glutAddMenuEntry(" Strain (e) zz ", ID_STRESS_ZZ);
-	glutAddMenuEntry(" Strain (e) xy ", ID_STRESS_XY);
-	glutAddMenuEntry(" Strain (e) xz ", ID_STRESS_XZ);
-	glutAddMenuEntry(" Strain (e) yz ", ID_STRESS_YZ);
-	glutAddMenuEntry(" Elements      ", ID_ELEM);
-	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
-	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
-	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
-	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
-	
-	glutCreateMenu(Menu) ;
+	tets= F.getElements3D() ;
+	x.resize(F.getDisplacements().size()) ;
+	x = featureTree->getDisplacements() ;
 
- 	glutAddMenuEntry(" Step          ", ID_NEXT);
-	glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
-	glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
-	glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
-	glutAddMenuEntry(" Amplify       ", ID_AMPLIFY);
-	glutAddMenuEntry(" Deamplify     ", ID_DEAMPLIFY);
-	glutAddSubMenu(  " Display       ", submenu);
-	glutAddMenuEntry(" Quit          ", ID_QUIT) ;
-	
-	
-	glutAttachMenu(GLUT_RIGHT_BUTTON) ;
-	
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glShadeModel(GL_SMOOTH);
-	
-	glutDisplayFunc(Display) ;
-	glutMainLoop() ;
-	
-// 	delete dt ;*/
+	switch(pheno)
+	{
+	case DIFFUSION:
+	{
+		Vector gradient11(4*tets.size()) ;
+		Vector gradient22(4*tets.size()) ;
+		Vector gradient33(4*tets.size()) ;
+		Vector flux11(4*tets.size()) ;
+		Vector flux22(4*tets.size()) ;
+		Vector flux33(4*tets.size()) ;
+		{
+			Vector gradient(12*tets.size()) ;
+			Vector flux(12*tets.size()) ;
+			{
+				std::pair<Vector,Vector> gradient_flux ;
+				gradient_flux.first.resize(12*tets.size()) ;
+				gradient_flux.second.resize(12*tets.size()) ;
+				gradient_flux = featureTree->getGradientAndFlux(tets) ;		
+				gradient = gradient_flux.first ;
+				flux = gradient_flux.second ;
+			}
+
+			std::cout << "get gradient and flux..." << std::endl ;		
+			for(size_t i = 0 ; i < tets.size() ; i++)
+			{
+				for(size_t j = 0 ; j < 4 ; j++)
+				{
+					gradient11[4*i+j] = gradient[4*3*i+3*j+0] ;
+					gradient22[4*i+j] = gradient[4*3*i+3*j+1] ;
+					gradient33[4*i+j] = gradient[4*3*i+3*j+2] ;
+					flux11[4*i+j] = flux[4*3*i+3*j+0] ;
+					flux22[4*i+j] = flux[4*3*i+3*j+1] ;
+					flux33[4*i+j] = flux[4*3*i+3*j+2] ;
+				}
+			}
+		}
+
+		std::cout << "averaging gradient and flux..." << std::endl ;		
+		Vector average_gradient(3) ;
+		Vector average_flux(3) ;
+		double total_volume = 0. ;
+		for(size_t i = 0 ; i < tets.size() ; i++)
+		{
+			double volume = tets[i]->volume() ;
+			total_volume += volume ;
+			for(size_t j = 0 ; j < 4 ; j++)
+			{
+				average_gradient[0] += gradient11[4*i+j]*volume/4 ;
+				average_gradient[1] += gradient22[4*i+j]*volume/4 ;
+				average_gradient[2] += gradient33[4*i+j]*volume/4 ;
+				average_flux[0] += flux11[4*i+j]*volume/4 ;
+				average_flux[1] += flux22[4*i+j]*volume/4 ;
+				average_flux[2] += flux33[4*i+j]*volume/4 ;
+			}
+		}
+		
+		std::cout << std::endl ;
+		std::cout << "max value :" << x_max << std::endl ;
+		std::cout << "min value :" << x_min << std::endl ;
+		std::cout << "max flux11 :" << flux11.max() << std::endl ;
+		std::cout << "min flux11 :" << flux11.min() << std::endl ;
+		std::cout << "max flux22 :" << flux22.max() << std::endl ;
+		std::cout << "min flux22 :" << flux22.min() << std::endl ;
+		std::cout << "max flux33 :" << flux33.max() << std::endl ;
+		std::cout << "min flux33 :" << flux33.min() << std::endl ;
+		
+		std::cout << "max gradient11 :" << gradient11.max() << std::endl ;
+		std::cout << "min gradient11 :" << gradient11.min() << std::endl ;
+		std::cout << "max gradient22 :" << gradient22.max() << std::endl ;
+		std::cout << "min gradient22 :" << gradient22.min() << std::endl ;
+		std::cout << "max gradient33 :" << gradient33.max() << std::endl ;
+		std::cout << "min gradient33 :" << gradient33.min() << std::endl ;
+		
+		std::cout << "average flux11 : " << average_flux[0]/total_volume << std::endl ;
+		std::cout << "average flux22 : " << average_flux[1]/total_volume << std::endl ;
+		std::cout << "average flux33 : " << average_flux[2]/total_volume << std::endl ;
+		std::cout << "average gradient11 : " << average_gradient[0]/total_volume << std::endl ;
+		std::cout << "average gradient22 : " << average_gradient[1]/total_volume << std::endl ;
+		std::cout << "average gradient33 : " << average_gradient[2]/total_volume << std::endl ;
+		
+		
+		std::string filebench("benchmark.txt") ;
+		std::fstream out ;
+		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
+		out << "DIFFUSION\t" << str_micro << "\t" << "D_inc = " << prop << "\t" 
+			<< "dof = " << x.size() << "\t"
+			<< "D11 = " << -average_flux[0]/average_gradient[0] << std::endl ;
+		out.close() ;
+		
+		break ;
+	}
+	case ELASTICITY:
+	{
+		Vector strain11(4*tets.size()) ;
+		Vector strain22(4*tets.size()) ;
+		Vector strain33(4*tets.size()) ;
+		Vector stress11(4*tets.size()) ;
+		Vector stress22(4*tets.size()) ;
+		Vector stress33(4*tets.size()) ;
+		{
+			Vector stress(24*tets.size()) ;
+			Vector strain(24*tets.size()) ;
+			{
+				std::pair<Vector,Vector> stress_strain ;
+				stress_strain.first.resize(24*tets.size()) ;
+				stress_strain.second.resize(24*tets.size()) ;
+				stress_strain = featureTree->getStressAndStrain(tets) ;		
+				stress = stress_strain.first ;
+				strain = stress_strain.second ;
+			}
+		
+			std::cout << "get stress and strain..." << std::endl ;		
+			for(size_t i = 0 ; i < tets.size() ; i++)
+			{
+				for(size_t j = 0 ; j < 4 ; j++)
+				{
+					stress11[4*i+j] = stress[4*3*i+6*j+0] ;
+					stress22[4*i+j] = stress[4*3*i+6*j+1] ;
+					stress33[4*i+j] = stress[4*3*i+6*j+2] ;
+					strain11[4*i+j] = strain[4*3*i+6*j+0] ;
+					strain22[4*i+j] = strain[4*3*i+6*j+1] ;
+					strain33[4*i+j] = strain[4*3*i+6*j+2] ;
+				}
+			}
+		}
+		
+		std::cout << "averaging stress and strain..." << std::endl ;		
+		Vector average_stress(3) ;
+		Vector average_strain(3) ;
+		double total_volume = 0. ;
+		for(size_t i = 0 ; i < tets.size() ; i++)
+		{
+			double volume = tets[i]->volume() ;
+			total_volume += volume ;
+			for(size_t j = 0 ; j < 4 ; j++)
+			{
+				average_stress[0] += stress11[4*i+j]*volume/4 ;
+				average_stress[1] += stress22[4*i+j]*volume/4 ;
+				average_stress[2] += stress33[4*i+j]*volume/4 ;
+				average_strain[0] += strain11[4*i+j]*volume/4 ;
+				average_strain[1] += strain22[4*i+j]*volume/4 ;
+				average_strain[2] += strain33[4*i+j]*volume/4 ;
+			}
+		}
+		
+		std::cout << std::endl ;
+		std::cout << "max value :" << x_max << std::endl ;
+		std::cout << "min value :" << x_min << std::endl ;
+		std::cout << "max stress11 :" << stress11.max() << std::endl ;
+		std::cout << "min stress11 :" << stress11.min() << std::endl ;
+		std::cout << "max stress22 :" << stress22.max() << std::endl ;
+		std::cout << "min stress22 :" << stress22.min() << std::endl ;
+		std::cout << "max stress33 :" << stress33.max() << std::endl ;
+		std::cout << "min stress33 :" << stress33.min() << std::endl ;
+		
+		std::cout << "max strain11 :" << strain11.max() << std::endl ;
+		std::cout << "min strain11 :" << strain11.min() << std::endl ;
+		std::cout << "max strain22 :" << strain22.max() << std::endl ;
+		std::cout << "min strain22 :" << strain22.min() << std::endl ;
+		std::cout << "max strain33 :" << strain33.max() << std::endl ;
+		std::cout << "min strain33 :" << strain33.min() << std::endl ;
+		
+		std::cout << "average stress11 : " << average_stress[0]/total_volume << std::endl ;
+		std::cout << "average stress22 : " << average_stress[1]/total_volume << std::endl ;
+		std::cout << "average stress33 : " << average_stress[2]/total_volume << std::endl ;
+		std::cout << "average strain11 : " << average_strain[0]/total_volume << std::endl ;
+		std::cout << "average strain22 : " << average_strain[1]/total_volume << std::endl ;
+		std::cout << "average strain33 : " << average_strain[2]/total_volume << std::endl ;
+		
+		Matrix K(2,2) ;
+		K[0][0] = average_strain[0] ;
+		K[0][1] = average_strain[1]*2 ;
+		K[1][0] = average_strain[1] ;
+		K[1][1] = average_strain[0]+average_strain[1] ;
+		invert2x2Matrix(K) ;
+		K.print() ;
+
+		Vector s(2) ;
+		s[0] = average_stress[0] ;
+		s[1] = average_stress[1] ;
+		
+		Vector c = K*s ;
+		
+		std::string filebench("benchmark.txt") ;
+		std::fstream out ;
+		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
+		out << "ELASTICITY\t" << str_micro << "\t" << "E_inc = " << prop << "\t" 
+			<< "dof = " << x.size() << "\t"
+			<< "C1111 = " << c[0] << "\t"
+			<< "C1122 = " << c[1] << std::endl ;
+		out.close() ;
+		
+		break ;
+	}
+	}
 	
 	return 0 ;
 }
