@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		str_micro = "O1" ;
-		OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
+		OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*2.*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
 		oct->setBehaviour(behaviour) ;
 		F.addFeature(&sample, oct) ;
 	}
@@ -468,6 +468,10 @@ int main(int argc, char *argv[])
 			<< "dof = " << x.size() << "\t"
 			<< "D11 = " << -average_flux[0]/average_gradient[0] << std::endl ;
 		out.close() ;
+
+		VoxelWriter vw("fem_s1", 200) ;
+		vw.getField(featureTree, VWFT_GRADIENT) ;
+		vw.write();
 		
 		break ;
 	}
@@ -496,12 +500,12 @@ int main(int argc, char *argv[])
 			{
 				for(size_t j = 0 ; j < 4 ; j++)
 				{
-					stress11[4*i+j] = stress[4*3*i+6*j+0] ;
-					stress22[4*i+j] = stress[4*3*i+6*j+1] ;
-					stress33[4*i+j] = stress[4*3*i+6*j+2] ;
-					strain11[4*i+j] = strain[4*3*i+6*j+0] ;
-					strain22[4*i+j] = strain[4*3*i+6*j+1] ;
-					strain33[4*i+j] = strain[4*3*i+6*j+2] ;
+					stress11[4*i+j] = stress[4*6*i+6*j+0] ;
+					stress22[4*i+j] = stress[4*6*i+6*j+1] ;
+					stress33[4*i+j] = stress[4*6*i+6*j+2] ;
+					strain11[4*i+j] = strain[4*6*i+6*j+0] ;
+					strain22[4*i+j] = strain[4*6*i+6*j+1] ;
+					strain33[4*i+j] = strain[4*6*i+6*j+2] ;
 				}
 			}
 		}
@@ -566,7 +570,10 @@ int main(int argc, char *argv[])
 		std::string filebench("benchmark.txt") ;
 		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-		out << "ELASTICITY\t" << str_micro << "\t" << "E_inc = " << prop << "\t" 
+		out << "ELASTICITY\t" << str_micro ;
+			if(order==2)
+				std::cout << "QUAD" ;
+			std::cout << "\t" << "E_inc = " << prop << "\t" 
 			<< "dof = " << x.size() << "\t"
 			<< "C1111 = " << c[0] << "\t"
 			<< "C1122 = " << c[1] << std::endl ;
@@ -576,10 +583,5 @@ int main(int argc, char *argv[])
 	}
 	}
 	
-	VoxelWriter vw("fem_s1", 200) ;
-	vw.getField(featureTree, VWFT_STRESS) ;
-	vw.write();
-
-
 	return 0 ;
 }

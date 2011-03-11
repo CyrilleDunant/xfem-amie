@@ -1403,7 +1403,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 	for(size_t i = 0 ; /*(i < iter) &&*/ std::abs(error-last_error)/last_error > POINT_TOLERANCE*POINT_TOLERANCE*points.size()*points.size() && (count == 0); i++)
 	{
 		derr = std::abs(error-last_error) ;
-		if(i%iter ==0)
+		if(iter && i%iter == 0)
 			std::cout << derr << std::endl ;
 		last_error = error ;
 		error = 0. ;
@@ -1411,7 +1411,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 		{
 			for(size_t k = j+1 ; k < points.size() ; k++)
 			{
-				if(squareDist3D( points[j], points[k]) > 128.*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D( points[j], points[k]) > 512.*POINT_TOLERANCE*POINT_TOLERANCE)
 				{
 					vec.set(points[j].x-points[k].x,points[j].y-points[k].y,points[j].z-points[k].z) ;
 					double n = vec.sqNorm() ;
@@ -1438,6 +1438,8 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 			points[j] += speeds[j];
 			project(&points[j],r) ;
 		}
+		if(last_error < 1e-12)
+			break ;
 		
 		speeds = Point() ;
 	}
@@ -1508,7 +1510,7 @@ void Sphere::sampleBoundingSurface(size_t num_points)
 
 void Sphere::sampleSurface(size_t num_points) 
 {
-	if(num_points < 12)
+	if(num_points < 4)
 		return ;
 
 	sampleBoundingSurface(num_points/**7*/) ;

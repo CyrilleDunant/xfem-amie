@@ -1107,7 +1107,7 @@ void FeatureTree::sample()
 				double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 				size_t npoints = (size_t)round((1.5*samplingNumber*tree[i]->area()*shape_factor)/(total_area)) ;
 
-				if(npoints > 12 && !tree[i]->isVirtualFeature)
+				if(npoints > 4 && !tree[i]->isVirtualFeature)
 				{
 					tree[i]->sample(npoints) ;
 					tree[i]->isUpdated = false ;
@@ -1175,7 +1175,7 @@ void FeatureTree::sample()
 					double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 					size_t npoints = (size_t)round((1.5*samplingNumber*tree[i]->area()*shape_factor)/(total_area)) ;
 
-					if(npoints > 12 && !tree[i]->isVirtualFeature)
+					if(npoints > 4 && !tree[i]->isVirtualFeature)
 						tree[i]->sample(npoints) ;
 					
 					count++ ;
@@ -1969,7 +1969,7 @@ void FeatureTree::setElementBehaviours()
 
 
 	
-// #pragma omp parallel for shared(setcount,triangles,n_void)
+//		 #pragma omp parallel for shared(setcount,triangles,n_void)
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
 			if (setcount%1000 == 0)
@@ -3747,7 +3747,7 @@ void FeatureTree::initializeElements()
 			{
 				triangles = coarseTrees[i]->getElements() ;
 				
-#pragma omp parallel for 
+				#pragma omp parallel for 
 				for(size_t j = 0 ; j < triangles.size() ;j++)
 				{
 					triangles[j]->refresh(father2D);

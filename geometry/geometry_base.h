@@ -300,7 +300,7 @@ return this->LevelSet::timePlanes() ;                 \
 namespace Mu
 {
 
-static const double POINT_TOLERANCE =  1e-10 ;//std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE =  1e-7 ;//std::numeric_limits<double>::epsilon() ;
 
 typedef enum
 {

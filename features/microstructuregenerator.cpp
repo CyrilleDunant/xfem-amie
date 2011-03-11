@@ -14,7 +14,7 @@ namespace Mu
 	
 	double AggregateDistribution2DGenerator::score()
 	{
-		srand(0);
+//		srand(0);
 		std::vector<Inclusion *> inclusions ;
 		
 		if(dmax == 0.004)
@@ -93,7 +93,7 @@ namespace Mu
 			inclusionNumber = 4096 ;
 // 		for(int i = 2 ; i < 1000 ; i++)
 // 		{
-			srand(0) ;
+//			srand(0) ;
 // 			massOfAggregates = 10.*area*fill*(double)i/1000 ; // .00000743*.75 ;
 			if(dmax == 0.004)
 				massOfAggregates = log(0.0000416) ;

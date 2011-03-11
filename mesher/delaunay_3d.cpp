@@ -1260,7 +1260,7 @@ bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 
 	
 	double d = sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
-	return  std::abs(d-radius) < POINT_TOLERANCE*radius ;
+	return  d-radius < POINT_TOLERANCE*radius ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
