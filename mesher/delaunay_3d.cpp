@@ -1257,9 +1257,10 @@ bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 		return false ;
 	if(p.z < z-1.001*radius)
 		return false ;
+
 	
 	double d = sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
-	return  d/(radius)-1 <  POINT_TOLERANCE/(radius) ;
+	return  std::abs(d-radius) < POINT_TOLERANCE*radius ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
@@ -1278,7 +1279,7 @@ bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
 		return false ;
 	
 	double d =  sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
-	return  std::abs(d/(radius)-1) <  POINT_TOLERANCE/(radius) ;
+	return  std::abs(d-radius) < POINT_TOLERANCE*radius ;
 }
 
 bool DelaunayDeadTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const

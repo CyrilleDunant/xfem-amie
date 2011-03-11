@@ -1107,7 +1107,7 @@ void FeatureTree::sample()
 				double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 				size_t npoints = (size_t)round((1.5*samplingNumber*tree[i]->area()*shape_factor)/(total_area)) ;
 
-				if(npoints > 0 && !tree[i]->isVirtualFeature)
+				if(npoints > 12 && !tree[i]->isVirtualFeature)
 				{
 					tree[i]->sample(npoints) ;
 					tree[i]->isUpdated = false ;
@@ -1175,7 +1175,7 @@ void FeatureTree::sample()
 					double shape_factor = tree[i]->area()/(4.*M_PI*tree[i]->getRadius()*tree[i]->getRadius());
 					size_t npoints = (size_t)round((1.5*samplingNumber*tree[i]->area()*shape_factor)/(total_area)) ;
 
-					if(npoints > 0 && !tree[i]->isVirtualFeature)
+					if(npoints > 12 && !tree[i]->isVirtualFeature)
 						tree[i]->sample(npoints) ;
 					
 					count++ ;
