@@ -385,7 +385,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 				Vector x(triangles.size()*3) ;
 				for(int i = 0 ; i < triangles.size() ; i++)
 				{
-					if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel())
+					if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel())
 					{
 						Vector dstate =  triangles[i]->getBehaviour()->getDamageModel()->damageState() ;
 						double d = sqrt(std::inner_product(&dstate[0], &dstate[dstate.size()], &dstate[0], double(0))) ;
@@ -394,7 +394,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 						ret[2][iterator++] = d ;
 
 					}
-					else if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+					else if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
 						ret[2][iterator] = 0 ;
 						ret[1][iterator] = 0 ;

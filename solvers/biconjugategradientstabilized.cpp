@@ -1,5 +1,8 @@
 #include "biconjugategradientstabilized.h"
 #include "inversediagonal.h"
+
+#include <sys/time.h>
+
 using namespace Mu ;
 
 BiConjugateGradientStabilized::BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { }
@@ -34,7 +37,6 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	P->precondition(r,r_) ;
 	double rho = std::inner_product(&r[0], &r[r.size()], &r_[0], double(0)) ;
 	
-	Vector invDiag(r.size()) ;
 	
 	if(std::abs(rho) < epsilon*epsilon)
 		return true ;
@@ -59,33 +61,33 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	}
 
 	Vector s_(s) ;
+	
 	P->precondition(s,s_) ;
 	
 	Vector t = A*s_ ;
-	double omega = parallel_inner_product(&t[0], &s[0], vsize)/parallel_inner_product(&t[0], &t[0], vsize) ;
+	Vector t__(t) ;
+	Vector s__(s) ;
+	P->precondition(t,t__) ;
+	P->precondition(s,s__) ;
+	double omega = parallel_inner_product(&t__[0], &s__[0], vsize)/parallel_inner_product(&t__[0], &t__[0], vsize) ;
 	x += p_*alpha +omega*s_ ;
 	r = s- t*omega ;
 	double rho_ =rho ;
+	
+	double err0 = sqrt( std::abs(parallel_inner_product(&r[0], &r[0], vsize))) ;
 	
 	int nit = 0 ;
 	int lastit = std::min(maxit, (int)b.size()/4) ;
 	if(maxit< 0)
 		lastit = b.size() ;
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
 	
-	while(nit < lastit)
+	while(nit < lastit && std::abs(rho)*vsize*vsize > std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon) )
 	{
 		nit++ ;
 		
 		rho = parallel_inner_product(&r[0], &r_[0], vsize) ;
-		if(std::abs(rho) < epsilon*epsilon)
-		{
-			if(verbose)
-				std::cerr << "\n converged after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-			if(cleanup)
-				delete P ;
-			
-			return true ;
-		}
 		
 		double beta = (rho/rho_)*(alpha/omega) ;
 		p = r + (p-v*omega)*beta ;
@@ -99,34 +101,46 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 		//s_ = precondition(s) ;
 		P->precondition(s,s_) ;
 		assign(t, A*s_) ;
-		omega = parallel_inner_product(&t[0], &s[0], vsize)/parallel_inner_product(&t[0], &t[0], vsize) ;
-		
-		if(std::abs(omega) < epsilon*epsilon)
+
+		if(false) //two variants for preconditionning BiCGSTAB
 		{
-			if(verbose)
-				std::cerr << "\n converged after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-			if(cleanup)
-				delete P ;
-			return true ;
+			omega = parallel_inner_product(&t[0], &s[0], vsize)/parallel_inner_product(&t[0], &t[0], vsize) ;
+		}
+		else
+		{
+			P->precondition(t,t__) ;
+			P->precondition(s,s__) ;
+			omega = parallel_inner_product(&t__[0], &s__[0], vsize)/parallel_inner_product(&t__[0], &t__[0], vsize) ;
 		}
 		
 		x += p_*alpha +s_*omega ;
 		r = s- t*omega ;
 		rho_ = rho ;
 
-		if(verbose && nit%60 == 0)
+		
+		if(verbose && nit%128 == 0)
 		{
-// 			r = b - A*x ;
-			std::cerr << "\r iteration : " << nit << " error :"<< rho  << "             "<< std::flush ;
+			std::cerr <<  std::abs(rho) << std::endl  ;
 		}
 		
 	}
+	gettimeofday(&time1, NULL);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << "mflops: "<< nit*2*((2.)*A.array.size()+6*p.size())/delta << std::endl ;
 
+	assign(r,A*x-b) ;
+	double err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
+	
 	if(verbose)
-		std::cerr << "\n did not converge after " << nit << " iterations. Error : " << rho << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+	{
+		if(nit <= lastit && std::abs(rho) <= std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon))
+			std::cerr << "\n BiCGSTAB " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+		else
+			std::cerr << "\n BiCGSTAB " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+	}
 	
 	if(cleanup)
 		delete P ;
-
-	return false ;
+	
+	return nit < lastit && std::abs(rho) <= std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon);
 }

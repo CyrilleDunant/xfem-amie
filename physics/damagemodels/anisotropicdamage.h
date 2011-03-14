@@ -27,7 +27,6 @@ public:
 	double tensionDamagex ;
 	double tensionDamagey ;
 	double tensionDamagez;
-	double shearDamage ;
 	double compressionDamage ;
 	bool inCompression ;
 	bool inTension ;

@@ -263,7 +263,6 @@ void step()
 		if(go_on)
 			load->setData(load->getData()-1e5) ;
 
-
 		
 		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -449,18 +448,7 @@ void step()
 		}
 		if(v%5 == 0)
 		{
-			double lsa = 0 ;
-			double lxa = 0 ;
-			double lya = 0 ;
-			std::map<Point*, double>::iterator i = lineShearAverage.begin() ; 
-			std::map<Point*, double>::iterator j = lineXAverage.begin(); 
-			std::map<Point*, double>::iterator k = lineYAverage.begin();
-			for(; i != lineShearAverage.end() ; i++, j++, k++)
-			{
-				lsa += i->second/lineShearAverage.size() ;
-				lxa += j->second/lineShearAverage.size() ;
-				lya += k->second/lineShearAverage.size() ;
-			}
+
 			std::cout << std::endl ;
 			std::cout << "load :" << load->getData()/1000. << std::endl ;
 			std::cout << "displacement :" << 1000.*e_xx/(double)ex_count << std::endl ;
@@ -489,9 +477,7 @@ void step()
 			std::cout << "average epsilon11 : " << avg_e_xx/area<< std::endl ;
 			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
-			std::cout << "line shear = " << lsa << std::endl ;
-			std::cout << "line x = " << lxa << std::endl ;
-			std::cout << "line y = " << lya << std::endl ;
+
 		}
 
 		

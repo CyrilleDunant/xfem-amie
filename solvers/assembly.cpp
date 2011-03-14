@@ -1202,7 +1202,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 		gettimeofday(&time0, NULL);
 
 		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-		ret = cg.solve(displacements, NULL,1e-22, -1, true) ;
+		ret = cg.solve(displacements, NULL,1e-10, -1, true) ;
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

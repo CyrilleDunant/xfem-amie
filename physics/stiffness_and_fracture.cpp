@@ -28,10 +28,17 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	init = param[0][0] ;
 	change  = false ;
 	previouschange = false ;
-	previousDamage.resize(dfunc->damageState().size()) ; previousDamage =0 ;
-	intermediateDamage.resize(dfunc->damageState().size()) ;intermediateDamage = 0 ;
+	previousDamage.resize(dfunc->damageState().size()) ; 
+	previousDamage =0 ;
+	
+	intermediateDamage.resize(dfunc->damageState().size()) ;
+	intermediateDamage = 0 ;
+	
+	
+	previousPreviousDamage.resize(dfunc->damageState().size()) ;
+	previousPreviousDamage = 0 ;
+	
 	count = 0 ;
-	previousPreviousDamage.resize(dfunc->damageState().size()) ;previousPreviousDamage = 0 ;
 	damage = 0 ;
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -72,11 +79,7 @@ void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, con
 
 void StiffnessAndFracture::stepBack()
 {
-// 	if(change)
-// 	{
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal /= .95 ;
-// 		dynamic_cast<MohrCoulomb *>(criterion)->downVal /= .95 ;
-// 	}
+
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
@@ -102,7 +105,6 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;
-	
 	previousDamage = damage ;
 	
 	Vector d = dfunc->damageState() ;
