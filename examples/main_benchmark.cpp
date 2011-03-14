@@ -349,8 +349,10 @@ int main(int argc, char *argv[])
 	else
 	{
 		str_micro = "O1" ;
-		OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*2.*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
+		OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
 		oct->setBehaviour(behaviour) ;
+		std::cout << oct->volume() << std::endl ;
+		std::cout << sample.volume() << std::endl ;
 		F.addFeature(&sample, oct) ;
 	}
 

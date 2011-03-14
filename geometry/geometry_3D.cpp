@@ -17,14 +17,15 @@ RegularOctahedron::RegularOctahedron(double s, double x, double y, double z) : C
 {
 	this->gType = REGULAR_OCTAHEDRON ;
 	getCenter().set(x, y, z) ;
+	double h = s/std::sqrt(2.) ;
 	//the four points of the basis are
-	boundingPoints[0] = new Point(x-s*.5, y/*-s*.5*/, z) ;
-	boundingPoints[1] = new Point(x/*-s*.5*/, y+s*.5, z) ;
-	boundingPoints[2] = new Point(x+s*.5, y/*+s*.5*/, z) ;
-	boundingPoints[3] = new Point(x/*+s*.5*/, y-s*.5, z) ;
+	boundingPoints[0] = new Point(x-h, y/*-s*.5*/, z) ;
+	boundingPoints[1] = new Point(x/*-s*.5*/, y+h, z) ;
+	boundingPoints[2] = new Point(x+h, y/*+s*.5*/, z) ;
+	boundingPoints[3] = new Point(x/*+s*.5*/, y-h, z) ;
 	//the two points are
-	boundingPoints[4] = new Point(x, y, z+s*0.70711) ;
-	boundingPoints[5] = new Point(x, y, z-s*0.70711) ;
+	boundingPoints[4] = new Point(x, y, z+h) ;
+	boundingPoints[5] = new Point(x, y, z-h) ;
 
 }
 	
@@ -32,25 +33,28 @@ RegularOctahedron::RegularOctahedron(double s, Point c) : ConvexGeometry(6), len
 {
 	this->gType = REGULAR_OCTAHEDRON ;
 	getCenter().set(c) ;
+	double h = s/std::sqrt(2.) ;
 	//the four points of the basis are
-	boundingPoints[0] = new Point(c.x-s*.5, c.y/*-s*.5*/, c.z) ;
-	boundingPoints[1] = new Point(c.x/*-s*.5*/, c.y+s*.5, c.z) ;
-	boundingPoints[2] = new Point(c.x+s*.5, c.y/*+s*.5*/, c.z) ;
-	boundingPoints[3] = new Point(c.x/*+s*.5*/, c.y-s*.5, c.z) ;
+	boundingPoints[0] = new Point(c.x-h, c.y/*-s*.5*/, c.z) ;
+	boundingPoints[1] = new Point(c.x/*-s*.5*/, c.y+h, c.z) ;
+	boundingPoints[2] = new Point(c.x+h, c.y/*+s*.5*/, c.z) ;
+	boundingPoints[3] = new Point(c.x/*+s*.5*/, c.y-h, c.z) ;
 	//the two points are
-	boundingPoints[4] = new Point(c.x, c.y, c.z+s*0.70711) ;
-	boundingPoints[5] = new Point(c.x, c.y, c.z-s*0.70711) ;
+	boundingPoints[4] = new Point(c.x, c.y, c.z+h) ;
+	boundingPoints[5] = new Point(c.x, c.y, c.z-h) ;
 }
 
 	
 void RegularOctahedron::sampleBoundingSurface(size_t num_points)
 {
 	std::vector<Point> samplingPoints = getSamplingBoundingPoints( num_points) ;
-		
+	
 	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
 		delete boundingPoints[i] ;
 	}
+
+	random_shuffle(samplingPoints.begin(), samplingPoints.end()) ;
 	
 	this->boundingPoints.resize(samplingPoints.size()) ;
 	for(size_t i = 0 ; i < samplingPoints.size() ; i++)
@@ -64,7 +68,7 @@ std::vector<Point> RegularOctahedron::getSamplingBoundingPoints(size_t num_point
 	std::vector<Point> samplingPoints ;
 	std::vector<Point> newPoints = Rectangle(length, length, getCenter().x, getCenter().y).getSamplingBoundingPoints(pointsOnEquator) ;
 	size_t realPointsOnEquator = newPoints.size() ;
-	
+
 	Matrix rot(3,3) ;
 	rot[0][0] = cos(M_PI*.25) ;rot[0][1] = sin(M_PI*.25) ;
 	rot[1][0] = -sin(M_PI*.25) ;rot[1][1] = cos(M_PI*.25) ;
@@ -78,6 +82,7 @@ std::vector<Point> RegularOctahedron::getSamplingBoundingPoints(size_t num_point
 	}
 	
 	samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+
 	int iterations = 1 ;
 	while(true)
 	{
@@ -87,31 +92,37 @@ std::vector<Point> RegularOctahedron::getSamplingBoundingPoints(size_t num_point
 		iterations++ ;
 	}
 	double totalIterations = iterations ;
+
 	iterations = 1 ;
 	
+	double sq2 = std::sqrt(2.) ;
 	while(newPoints.size() >= 4)
 	{
 		double factor = (totalIterations-iterations)/totalIterations ;
 		if(factor <= 0)
 			break ;
 		newPoints = Rectangle(length*factor, length*factor, getCenter().x, getCenter().y).getSamplingBoundingPoints(realPointsOnEquator-2.*iterations) ;
-		double sq2 = 0.70711 ;
-		for(size_t i = 0 ; i < newPoints.size() ;i++)
+		if(newPoints.size() >= 4)
 		{
-			newPoints[i] -= Point(center.x, center.y) ;
-			newPoints[i] *= rot ;
-			newPoints[i] += Point(center.x, center.y) ;
-			newPoints[i].z = getCenter().z +sq2*length*(1.-factor); 
-		}
-		samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+			for(size_t i = 0 ; i < newPoints.size() ;i++)
+			{
+				newPoints[i] -= Point(center.x, center.y) ;
+				newPoints[i] *= rot ;
+				newPoints[i] += Point(center.x, center.y) ;
+				newPoints[i].z = center.z + (1.-factor)*length/sq2 ; 
+			}
+			samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
 		
-		for(size_t i = 0 ; i < newPoints.size() ;i++)
-		{
-			newPoints[i].z = getCenter().z -sq2*length*(1.-factor); 
-		}
-		samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+			for(size_t i = 0 ; i < newPoints.size() ;i++)
+			{
+				newPoints[i].z = center.z - (1.-factor)*length/sq2; 
+			}
+			samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
 		
-		iterations++ ;
+			iterations++ ;
+		}
+		else
+			break ;
 	}
 	samplingPoints.push_back(*boundingPoints[4]) ;
 	samplingPoints.push_back(*boundingPoints[5]) ;
@@ -144,14 +155,18 @@ void RegularOctahedron::sampleSurface(size_t num_points)
 		if(factor <= 0)
 			break ;
 		std::vector<Point> newPoints = RegularOctahedron(length*factor, getCenter()).getSamplingBoundingPoints(num_points*factor) ;
-		samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
+
+
 		if(newPoints.size() <= 6)
 			break ;
+		samplingPoints.insert(samplingPoints.end(), newPoints.begin(), newPoints.end()) ;
 		
 		iterations++ ;
 	}
 	for(size_t i = 0 ; i < inPoints.size() ; i++)
 		delete inPoints[i] ;
+		
+	random_shuffle(samplingPoints.begin(), samplingPoints.end()) ;
 	
 	inPoints.resize(samplingPoints.size()) ;
 	for(size_t i = 0 ; i < samplingPoints.size() ; i++)
@@ -161,6 +176,11 @@ void RegularOctahedron::sampleSurface(size_t num_points)
 
 bool RegularOctahedron::in(const Point &p) const
 {
+
+	Point local = p-center ;
+	double test = std::abs(local.x) + std::abs(local.y) + std::abs(local.z) ;
+	return (test-length/std::sqrt(2.)) < POINT_TOLERANCE ;
+
 // 	return true ;
 	Matrix rot(3,3) ;
 	rot[0][0] = cos(-M_PI*.25) ;rot[0][1] = sin(-M_PI*.25) ;
