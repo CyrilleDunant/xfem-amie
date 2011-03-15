@@ -120,7 +120,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 		
 		if(verbose && nit%128 == 0)
 		{
-			std::cerr <<  std::abs(rho) << std::endl  ;
+			std::cerr <<  sqrt(std::abs(rho)) << std::endl  ;
 		}
 		
 	}
@@ -134,9 +134,9 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	if(verbose)
 	{
 		if(nit <= lastit && std::abs(rho) <= std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon))
-			std::cerr << "\n BiCGSTAB " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+			std::cerr << "\n BiCGStab " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
-			std::cerr << "\n BiCGSTAB " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+			std::cerr << "\n BiCGStab " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 	
 	if(cleanup)

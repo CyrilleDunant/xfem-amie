@@ -298,7 +298,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 					if ( currentDir.norm() > 1e-8 )
 					{
 						aangle += current->getState().getPrincipalAngle (
-							current->getBoundingPoint ( j ) ) ;
+							current->getBoundingPoint ( j ) )[0] ;
 						acount++ ;
 					}
 				}

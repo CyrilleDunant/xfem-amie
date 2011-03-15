@@ -449,12 +449,14 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 				break ;
 				
 			case TWFT_PRINCIPAL_ANGLE:
-				ret[2] = tri->getState().getPrincipalAngle(tri->getCenter()) ;
-				ret[1] = tri->getState().getPrincipalAngle(tri->getCenter()) ;
-				ret[0] = tri->getState().getPrincipalAngle(tri->getCenter()) ;
+			{
+				ret[2] = tri->getState().getPrincipalAngle(*tri->first)[0] ;
+				ret[1] = tri->getState().getPrincipalAngle(*tri->second)[0] ;
+				ret[0] = tri->getState().getPrincipalAngle(*tri->third)[0] ;
+			
 				found = true ;
 				break ;
-
+			}
 			case TWFT_STIFFNESS:
 			{
 				LinearForm * b = dynamic_cast<LinearForm *>(tri->getBehaviour()) ;

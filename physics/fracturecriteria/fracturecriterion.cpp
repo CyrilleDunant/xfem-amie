@@ -315,7 +315,9 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		std::vector<DelaunayTriangle *> neighbourhood ;
 		for(size_t i = 0 ; i < testedTri->neighbourhood.size() ; i++)
 		{
-			if(testedTri->getNeighbourhood(i)->getBehaviour() && testedTri->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR)
+			if(testedTri->getNeighbourhood(i)->getBehaviour() && 
+				testedTri->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR && 
+				testedTri->getNeighbourhood(i)->getBehaviour()->getFractureCriterion())
 			{
 				neighbourhood.push_back(testedTri->getNeighbourhood(i));
 				cache.push_back(testedTri->getNeighbourhood(i)->index);
@@ -326,7 +328,9 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		
 		for(size_t i = 0 ; i < tempcache.size() ; i++)
 		{
-			if(tempcache[i]->getBehaviour() && tempcache[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			if(tempcache[i]->getBehaviour() && 
+				tempcache[i]->getBehaviour()->type != VOID_BEHAVIOUR && 
+				tempcache[i]->getBehaviour()->getFractureCriterion())
 			{
 				bool inNeighbourhood = false ;
 				for(size_t j = 0 ; j < neighbourhood.size() ; j++)
@@ -358,7 +362,9 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		std::vector<DelaunayTetrahedron *> neighbourhood ;
 		for(size_t i = 0 ; i < testedTet->neighbourhood.size() ; i++)
 		{
-			if(testedTet->getNeighbourhood(i)->getBehaviour() && testedTet->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR)
+			if(testedTet->getNeighbourhood(i)->getBehaviour()
+				&& testedTet->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR  
+				&& testedTet->getNeighbourhood(i)->getBehaviour()->getFractureCriterion())
 			{
 				neighbourhood.push_back(testedTet->getNeighbourhood(i));
 				cache.push_back(testedTet->getNeighbourhood(i)->index);
@@ -368,7 +374,9 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		
 		for(size_t i = 0 ; i < tempcache3d.size() ; i++)
 		{
-			if(tempcache3d[i]->getBehaviour()&& tempcache3d[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			if(tempcache3d[i]->getBehaviour()
+				&& tempcache3d[i]->getBehaviour()->type != VOID_BEHAVIOUR 
+				&& tempcache3d[i]->getBehaviour()->getFractureCriterion())
 			{
 				bool inNeighbourhood = false ;
 				for(size_t j = 0 ; j < neighbourhood.size() ; j++)
@@ -789,23 +797,21 @@ bool FractureCriterion::met(const ElementState &s)
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-				if(ci->getBehaviour()->getFractureCriterion())
+
+				if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->type != VOID_BEHAVIOUR)
+					areamax += area[i] ;
+
+				double s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+				scores[-s] =  ci;
+				unsortedScores.push_back(s);
+				if(s > maxNeighbourhoodScore)
 				{
-					if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->type != VOID_BEHAVIOUR)
-						areamax += area[i] ;
-
-					double s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
-					scores[-s] =  ci;
-					unsortedScores.push_back(s);
-					if(s > maxNeighbourhoodScore)
-					{
-						maxNeighbourhoodScore = s ;
-						maxLocus = ci ;
-					}
-
-					areatemp[ci] = area[i] ;
+					maxNeighbourhoodScore = s ;
+					maxLocus = ci ;
 				}
-					
+
+				areatemp[ci] = area[i] ;
+
 			}
 		}
 		
@@ -818,16 +824,14 @@ bool FractureCriterion::met(const ElementState &s)
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-			if(ci->getBehaviour()->getFractureCriterion())
+
+			if(maxNeighbourhoodScore-ci->getBehaviour()->getFractureCriterion()->getSteppedScore() < tol)
 			{
-				if(maxNeighbourhoodScore-ci->getBehaviour()->getFractureCriterion()->getSteppedScore() < tol)
-				{
 // 					maxloci.push_back(cache[i]) ;
-					if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
-					{
-						nearmaxlocus = true ;
-						break ;
-					}
+				if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
+				{
+					nearmaxlocus = true ;
+					break ;
 				}
 			}
 		}
@@ -914,25 +918,24 @@ bool FractureCriterion::met(const ElementState &s)
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
-				if( ci->getBehaviour()->getFractureCriterion())
+
+				if( !ci->getBehaviour()->fractured())
 				{
-					if( !ci->getBehaviour()->fractured())
+					double s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+					scores[-s] =  ci;
+					if(s > maxNeighbourhoodScore)
 					{
-						double s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
-						scores[-s] =  ci;
-						if(s > maxNeighbourhoodScore)
-						{
-							maxNeighbourhoodScore = s ;
-							maxLocus = ci ;
-						}
+						maxNeighbourhoodScore = s ;
+						maxLocus = ci ;
 					}
-					else if(ci->getBehaviour()->fractured())
-					{
-						double s = POINT_TOLERANCE ;
-						scores[-s] =  ci;
-					}
-					areatemp[ci] = area[i] ;
 				}
+				else if(ci->getBehaviour()->fractured())
+				{
+					double s = POINT_TOLERANCE ;
+					scores[-s] =  ci;
+				}
+				areatemp[ci] = area[i] ;
+
 			}
 		}
 		

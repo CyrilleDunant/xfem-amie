@@ -79,26 +79,20 @@ void AnisotropicLinearDamage::step(ElementState & s)
 	{
 		inTension = true ;
 		
-		Vector stress = s.getStrain(s.getParent()->getCenter()) ;
-		double norm = sqrt(stress[0]*stress[0]+stress[1]*stress[1]) ;
-		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-			norm = sqrt(stress[0]*stress[0]+stress[1]*stress[1]+stress[2]*stress[2]) ;
-		double factorx= std::abs(stress[0])/norm ;
-		double factory= std::abs(stress[1])/norm ;
-		double factorz= std::abs(stress[2])/norm ;
+		Vector angle = s.getPrincipalAngle(s.getParent()->getCenter()) ;
 		
-		tensionDamagex += factorx*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
+		tensionDamagex += std::abs(cos(angle[0]))*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
 		tensionDamagex = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagex) ;
 		tensionDamagex = std::min(.99999, tensionDamagex) ;
 		tensionDamagex = std::max(0., tensionDamagex) ;
 		
-		tensionDamagey += factory*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
+		tensionDamagey += std::abs(sin(angle[0]))*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
 		tensionDamagey = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagey) ;
 		tensionDamagey = std::min(.99999, tensionDamagey) ;
 		tensionDamagey = std::max(0., tensionDamagey) ;
 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
-			tensionDamagez += factorz*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
+			tensionDamagez += std::abs(cos(angle[2]))*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
 			tensionDamagez = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagez) ;
 			tensionDamagez = std::min(.99999, tensionDamagez) ;
 			tensionDamagez = std::max(0., tensionDamagez) ;

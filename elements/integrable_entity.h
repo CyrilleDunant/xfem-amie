@@ -194,7 +194,7 @@ public:
 	Vector getPrincipalStrains(const Mu::PointArray &) const ;
 	
 /** \brief get Principal angle at given point*/
-	double getPrincipalAngle(const Point & p, bool local= false) const ;
+	Vector getPrincipalAngle(const Point & p, bool local= false) const ;
 
 /** \brief get Principal angle at given points*/
 	Vector getPrincipalAngle(const Mu::PointArray & v) const;

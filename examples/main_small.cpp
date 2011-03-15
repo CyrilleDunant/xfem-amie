@@ -329,7 +329,7 @@ void step()
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 					vm0 = tets[k]->getState().getMaximumVonMisesStress() ;
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					agl = tets[k]->getState().getPrincipalAngle(tets[k]->getCenter()) ;
+					agl = tets[k]->getState().getPrincipalAngle(tets[k]->getCenter())[0] ;
 				for(size_t l = 0 ; l < 4 ; l++)
 				{
 					vonMises[k*npoints+l]  = vm0 ;

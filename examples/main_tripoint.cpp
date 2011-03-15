@@ -316,9 +316,6 @@ void step()
 		double nogel_area = 0 ;
 		int tsize = 0 ;
 		
-		std::map<Point *, double > lineShearAverage  ;
-		std::map<Point *, double > lineXAverage  ;
-		std::map<Point *, double > lineYAverage  ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 			bool in = false ;
@@ -335,16 +332,10 @@ void step()
 						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).y > (sampleHeight+plateHeight*2)*.5*.999 && triangles[k]->getBoundingPoint(p).x < 0.0001)
+					if(dist(triangles[k]->getBoundingPoint(p), Point(0,(sampleHeight+plateHeight*2)*.5)) < 0.0001)
 					{
 						e_xx=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-						ex_count = 1 ;
-					}
-					if(triangles[k]->getBoundingPoint(p).x < 0.0001)
-					{
-						lineYAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+0];
-						lineXAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+1];
-						lineShearAverage[&triangles[k]->getBoundingPoint(p)] = sigma[k*npoints*3+p*npoints*3+2];
+						ex_count++ ;
 					}
 						
 				}
@@ -410,7 +401,7 @@ void step()
 				Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
 				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 
-				double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l)) ;
+				double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l))[0] ;
 				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
 			}
 			
@@ -1443,7 +1434,7 @@ int main(int argc, char *argv[])
 	double nu_steel = 0.3 ; 
 	
 	double nu = 0.2 ;
-	double E_paste = 38e9 ;
+	double E_paste = 37e9 ;
 	
 	
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;

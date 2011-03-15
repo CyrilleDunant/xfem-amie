@@ -5170,39 +5170,56 @@ double ElementState::getDeltaTime() const
 }
 
 
-double ElementState::getPrincipalAngle(const Point & p, bool local) const
+// double ElementState::getPrincipalAngle(const Point & p, bool local) const
+// {
+// 	Vector stresses = getStress(p, local) ;
+// // 	double a0 = 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) + M_PI ;
+// // 	double a1 = 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) + M_PI/4. + M_PI ;
+// // 	double a2 = 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) + M_PI/4. + M_PI ;
+// // 	if(std:: abs(a0) < std:: abs(a1) && std:: abs(a0) < std:: abs(a2))
+// // 		return a0 ;
+// // 	else if (std:: abs(a1) < std:: abs(a0) && std:: abs(a1) < std:: abs(a2))
+// // 		return a1 ;
+// // 	else
+// // 		return a2 ;
+// 	
+// 	return 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) ;
+// }
+
+Vector ElementState::getPrincipalAngle(const Point & p, bool local) const
 {
 	Vector stresses = getStress(p, local) ;
-// 	double a0 = 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) + M_PI ;
-// 	double a1 = 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) + M_PI/4. + M_PI ;
-// 	double a2 = 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) + M_PI/4. + M_PI ;
-// 	if(std:: abs(a0) < std:: abs(a1) && std:: abs(a0) < std:: abs(a2))
-// 		return a0 ;
-// 	else if (std:: abs(a1) < std:: abs(a0) && std:: abs(a1) < std:: abs(a2))
-// 		return a1 ;
-// 	else
-// 		return a2 ;
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		Vector ret(1) ; ret[0] =  0.5*atan2(stresses[0]-stresses[1],-stresses[2]) ;
+		return ret ;
+	}
+	else
+	{
+		Vector ret(3) ;
+		ret[0] =  0.5*atan2(stresses[0]-stresses[1],-stresses[3]) ;
+		ret[1] =  0.5*atan2(stresses[0]-stresses[2],-stresses[4]) ;
+		ret[2] =  0.5*atan2(stresses[1]-stresses[2],-stresses[5]) ;
+		return ret ;
+	}
 	
-	return 0.5*atan2(stresses[0]-stresses[1],-stresses[2]) ;
+	
 }
 
 Vector ElementState::getPrincipalAngle(const Mu::PointArray & v) const
 {
 	Vector stresses = getStress(v) ;
-	Vector principal(v.size()) ;
+	int nangle = 1 ;
+	if(parent->spaceDimensions() != SPACE_TWO_DIMENSIONAL)
+		 nangle = 3 ;
+	Vector principal(v.size()*nangle) ;
 	for(size_t i = 0 ; i < v.size() ; i++)
 	{
-// 		double a0 = 0.5*atan2(stresses[i*3+0]-stresses[i*3+1],-stresses[i*3+2]) + M_PI ;
-// 		double a1 = 0.5*atan2(stresses[i*3+0]-stresses[i*3+1],-stresses[i*3+2]) + M_PI/4. + M_PI;
-// 		double a2 = 0.5*atan2(stresses[i*3+0]-stresses[i*3+1],-stresses[i*3+2]) + M_PI/4. + M_PI ;
-// 		
-// 		if(std:: abs(a0) < std:: abs(a1) && std:: abs(a0) < std:: abs(a2))
-// 			principal[i] = a0 ;
-// 		else if (std:: abs(a1) < std:: abs(a0) && std:: abs(a1) < std:: abs(a2))
-// 			principal[i] = a1 ;
-// 		else
-// 			principal[i] = a2 ;
-		principal[i] =  0.5*atan2(stresses[i*3+0]-stresses[i*3+1],-stresses[i*3+2]) ;
+		Vector a = getPrincipalAngle(*v[i]) ;
+		for(size_t j = 0 ; j < a.size() ; j++)
+		{
+			principal[i*nangle+j] = a[j] ;
+		}
 	}
 	return principal ;
 }
@@ -5309,13 +5326,13 @@ Vector ElementState::getPrincipalStrains(const Point & p, bool local ) const
 // 			strains -= parent->getBehaviour()->getImposedStrains(p) ;
 		Vector lprincipal(2) ;
 		lprincipal[0] = (strains[0]+strains[1])*.5 + 
-			sqrt(
-				(strains[0]-strains[1])*(strains[0]-strains[1])*.25 + 
+			0.5*sqrt(
+				(strains[0]-strains[1])*(strains[0]-strains[1]) + 
 				(strains[2]*strains[2])
 				) ;
 		lprincipal[1] = (strains[0]+strains[1])*.5 - 
-			sqrt(
-				(strains[0]-strains[1])*(strains[0]-strains[1])*.25 + 
+			0.5*sqrt(
+				(strains[0]-strains[1])*(strains[0]-strains[1]) + 
 				(strains[2]*strains[2])
 				) ;
 		
