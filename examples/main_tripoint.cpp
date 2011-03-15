@@ -332,9 +332,9 @@ void step()
 						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(dist(triangles[k]->getBoundingPoint(p), Point(0,(sampleHeight+plateHeight*2)*.5)) < 0.0001)
+					if(triangles[k]->getBoundingPoint(p).y > (sampleHeight+plateHeight*2)*.5*.9999)
 					{
-						e_xx=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 						ex_count++ ;
 					}
 						

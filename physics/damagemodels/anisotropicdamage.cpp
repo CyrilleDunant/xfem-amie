@@ -79,20 +79,28 @@ void AnisotropicLinearDamage::step(ElementState & s)
 	{
 		inTension = true ;
 		
-		Vector angle = s.getPrincipalAngle(s.getParent()->getCenter()) ;
-		
-		tensionDamagex += std::abs(cos(angle[0]))*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
-		tensionDamagex = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagex) ;
-		tensionDamagex = std::min(.99999, tensionDamagex) ;
-		tensionDamagex = std::max(0., tensionDamagex) ;
-		
-		tensionDamagey += std::abs(sin(angle[0]))*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
-		tensionDamagey = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagey) ;
-		tensionDamagey = std::min(.99999, tensionDamagey) ;
-		tensionDamagey = std::max(0., tensionDamagey) ;
+		Vector angle = s.getStrain(s.getParent()->getCenter()) ;
+		double n = sqrt(angle[0]*angle[0]+angle[1]*angle[1]) ;
 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+			n = sqrt(angle[0]*angle[0]+angle[1]*angle[1]+angle[2]*angle[2]) ;
+		
+		if(angle[0] > 0)
 		{
-			tensionDamagez += std::abs(cos(angle[2]))*/*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
+			tensionDamagex += angle[0]/n*damageDensityIncrement*fraction ; 
+			tensionDamagex = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagex) ;
+			tensionDamagex = std::min(.99999, tensionDamagex) ;
+			tensionDamagex = std::max(0., tensionDamagex) ;
+		}
+		if(angle[1] > 0)
+		{
+			tensionDamagey += angle[1]/n*damageDensityIncrement*fraction ; 
+			tensionDamagey = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagey) ;
+			tensionDamagey = std::min(.99999, tensionDamagey) ;
+			tensionDamagey = std::max(0., tensionDamagey) ;
+		}
+		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL && angle[2] > 0)
+		{
+			tensionDamagez += angle[2]/n*damageDensityIncrement*fraction ; 
 			tensionDamagez = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagez) ;
 			tensionDamagez = std::min(.99999, tensionDamagez) ;
 			tensionDamagez = std::max(0., tensionDamagez) ;
@@ -153,7 +161,7 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 			for(size_t j = 0 ; j < m.numCols() ;j++)
 				ret[2][j]*= 1.-state[3] ;
 		}
-		else
+		else if( ret.numRows() > 3)
 		{
 			for(size_t j = 0 ; j < m.numCols() ;j++)
 				ret[2][j]*= 0. ;
