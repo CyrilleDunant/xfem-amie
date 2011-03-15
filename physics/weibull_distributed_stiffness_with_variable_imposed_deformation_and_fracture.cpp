@@ -15,7 +15,7 @@
 
 using namespace Mu ;
 
-WeibullStiffnessWithVariableImposedDeformationAndFracture::WeibullStiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * c) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef), dfunc(rig.numRows()-1, .01),criterion(c)
+WeibullStiffnessWithVariableImposedDeformationAndFracture::WeibullStiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * c) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef), dfunc( .01),criterion(c)
 {
 	frac = false ;
 	init = param[0][0] ;

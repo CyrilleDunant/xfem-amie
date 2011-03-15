@@ -61,7 +61,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 									 ) ;
 	if(damageModel)
 	{
-		delete ret-> dfunc ;
+		delete ret->dfunc ;
 		ret->dfunc = damageModel->getCopy() ;
 	}
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);

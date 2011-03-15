@@ -32,10 +32,9 @@ public:
 	bool inTension ;
 	/** \brief Constructor, set the number of degrees of freedom and a strain limit for failure
 	 * 
-	 * @param numDof 
-	 * @param threshold 
+	 * @param characteristicRadius material characteristic radius
 	 */
-	AnisotropicLinearDamage(int numDof, double characteristicRadius) ;
+	AnisotropicLinearDamage(double characteristicRadius) ;
 
 	virtual ~AnisotropicLinearDamage();
 
@@ -85,7 +84,7 @@ public:
 		*/
 	virtual bool fractured() const ;
 	
-	virtual DamageModel * getCopy() const { return new AnisotropicLinearDamage(state.size()-1, getCharacteristicRadius()) ;}
+	virtual DamageModel * getCopy() const { return new AnisotropicLinearDamage(getCharacteristicRadius()) ;}
 
 };
 

@@ -14,7 +14,7 @@
 
 namespace Mu {
 
-AnisotropicLinearDamage::AnisotropicLinearDamage(int numDof, double characteristicRadius) : DamageModel(characteristicRadius)
+AnisotropicLinearDamage::AnisotropicLinearDamage(double characteristicRadius) : DamageModel(characteristicRadius)
 {
 	state.resize(4, 0.) ;
 	previousstate.resize(4, 0.) ;
@@ -167,6 +167,7 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 				ret[2][j]*= 0. ;
 		}
 		
+		
 		if(ret.numRows() <= 3)
 		{
 			if(state[0] < secondaryThresholdDamageDensity/fraction )
@@ -310,9 +311,9 @@ bool AnisotropicLinearDamage::fractured() const
 	if (fraction < 0)
 		return false ;
 	
-	if(inTension)
-		if(std::min(tensionDamagey, std::min(tensionDamagex,tensionDamagez)) >= secondaryThresholdDamageDensity/fraction)
-			return true ;
+// 	if(inTension)
+// 		if(std::min(tensionDamagey, std::min(tensionDamagex,tensionDamagez)) >= secondaryThresholdDamageDensity/fraction)
+// 			return true ;
 		
 	if(inCompression)
 		if(compressionDamage >= thresholdDamageDensity/fraction)

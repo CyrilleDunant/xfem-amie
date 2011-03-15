@@ -1708,7 +1708,7 @@ int main(int argc, char *argv[])
 	double mradius = 5 ;
 	double tdamage = .999 ;
 	double dincrement = .01 ;
-	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(2, .01) ;
+	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(.01) ;
 	dfunc->setMaterialCharacteristicRadius(mradius) ;
 	dfunc->setThresholdDamageDensity(tdamage);
 	dfunc->setDamageDensityIncrement(dincrement);

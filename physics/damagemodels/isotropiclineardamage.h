@@ -28,7 +28,7 @@ public:
 	 * 
 	 * @param numDof number of degrees of freedom
 	 */
-	IsotropicLinearDamage(int numDof, double characteristicRadius) ;
+	IsotropicLinearDamage(double characteristicRadius) ;
 
 	virtual ~IsotropicLinearDamage();
 
@@ -75,7 +75,7 @@ public:
 		*/
 	virtual bool fractured() const  ;
 	
-	virtual DamageModel * getCopy() const { return new IsotropicLinearDamage(1, getCharacteristicRadius()) ;}
+	virtual DamageModel * getCopy() const { return new IsotropicLinearDamage(getCharacteristicRadius()) ;}
 };
 
 }
