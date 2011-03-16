@@ -15,15 +15,15 @@ namespace Mu {
 
 IsotropicLinearDamage::IsotropicLinearDamage(double characteristicRadius) : DamageModel(characteristicRadius)
 {
-	state.resize(1, 0.);
-	previousstate.resize(1, 0.);
+	getState().resize(1, 0.);
+	getPreviousState().resize(1, 0.);
 	isNull = false ;
 }
 
 Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	Vector ret(1) ;
-	ret[0] =  1.-state[0] ;
+	ret[0] =  1.-getState()[0] ;
 // 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE-state[0], state[0]) ;
 // 	ret[0] = std::min(.99999, state[0]) ;
 // 	ret[0] = std::max(0., state[0]) ;
@@ -33,7 +33,7 @@ Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 
 void IsotropicLinearDamage::artificialDamageStep(double d)
 {
-	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE) ;
+	getState()[0] = std::min(getState()[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE) ;
 }
 
 
@@ -43,7 +43,7 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 
 	if(fractured())
 		return ret*0. ;
-	return ret*(1.-state[0]) ;
+	return ret*(1.-getState()[0]) ;
 }
 
 
@@ -53,14 +53,14 @@ Matrix IsotropicLinearDamage::applyPrevious(const Matrix & m) const
 
 	if(fractured())
 		return ret*0. ;
-	return ret*(1.-previousstate[0]) ;
+	return ret*(1.-getPreviousState()[0]) ;
 }
 
 bool IsotropicLinearDamage::fractured() const 
 {
 	if(fraction < 0)
 		return false ;
-	return state[0] >= thresholdDamageDensity/fraction ;
+	return getState()[0] >= thresholdDamageDensity/fraction ;
 }
 
 

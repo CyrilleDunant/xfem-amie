@@ -21,7 +21,6 @@ namespace Mu
 
 	void DamageModel::step(ElementState & s )
 	{
-		
 		if(fraction < 0)
 		{
 			damageIncrement.resize(state.size(), 0.);
@@ -48,14 +47,14 @@ namespace Mu
 		if(s.getDeltaTime() < POINT_TOLERANCE && lastRank == 1) // we are within the two iteration (bissection and damage)
 		{
 			damageIncrement = computeDamageIncrement(s) ;
-			state -= previousDamageIncrement ;
+			getState() -= previousDamageIncrement ;
 			
 			if(lastRank == 1 && testRank != 1)
 			{
 				upFactor = currentFactor ;
 				currentFactor = (upFactor + downFactor)*.5 ;
 				
-				state += damageIncrement*currentFactor ; 
+				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
 			
 				if(std::abs(currentFactor-upFactor) < damageDensityTolerance) // we have converged
@@ -70,7 +69,7 @@ namespace Mu
 			{
 				downFactor = currentFactor ;
 				currentFactor = (upFactor + downFactor)*.5 ;
-				state += damageIncrement*currentFactor ; 
+				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
 				
 				if(std::abs(currentFactor-upFactor) < damageDensityTolerance) // we have converged
@@ -87,7 +86,7 @@ namespace Mu
 			if( testRank == 1)
 			{
 				damageIncrement = computeDamageIncrement(s) ;
-				state += damageIncrement*.5 ;
+				getState() += damageIncrement*.5 ;
 				previousDamageIncrement = damageIncrement*.5 ;
 				lastRank = 1 ;
 				upFactor = 1 ;
@@ -101,14 +100,12 @@ namespace Mu
 		}
 		else if(s.getDeltaTime() > POINT_TOLERANCE)
 		{
-			if(previousstate.size() != state.size())
-				previousstate.resize(state.size());
-			previousstate = state ;
+			getPreviousState() = getState() ;
 	
 			if(testRank == 1)
 			{
 				damageIncrement = computeDamageIncrement(s) ;
-				state += damageIncrement*.5 ;
+				getState() += damageIncrement*.5 ;
 				previousDamageIncrement = damageIncrement*.5 ;
 				lastRank = 1 ;
 				upFactor = 1 ;

@@ -3153,7 +3153,7 @@ void FeatureTree::stepElements()
 			}
 			
 			std::cerr << " ...done. " << std::endl ;
-#pragma omp parallel for
+// #pragma omp parallel for
 			for(size_t i = 0 ; i < elements.size() ;i++)
 			{	
 				if(i%10000 == 0)

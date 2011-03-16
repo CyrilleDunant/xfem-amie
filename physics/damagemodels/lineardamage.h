@@ -24,8 +24,6 @@ class LinearDamage : public DamageModel
 {
 public:
 
-	double tensionDamage ;
-	double compressionDamage ;
 	bool inCompression ;
 	bool inTension ;
 	/** \brief Constructor, set the number of degrees of freedom and a strain limit for failure
@@ -33,7 +31,7 @@ public:
 	 * @param numDof 
 	 * @param threshold 
 	 */
-	LinearDamage(int numDof, double characteristicRadius) ;
+	LinearDamage(double characteristicRadius) ;
 
 	virtual ~LinearDamage();
 
@@ -69,7 +67,7 @@ public:
 		*/
 	virtual bool fractured() const ;
 	
-	virtual DamageModel * getCopy() const { return new LinearDamage(state.size()-1, getCharacteristicRadius()) ;}
+	virtual DamageModel * getCopy() const { return new LinearDamage(getCharacteristicRadius()) ;}
 	
 };
 
