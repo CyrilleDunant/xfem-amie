@@ -1707,11 +1707,11 @@ int main(int argc, char *argv[])
 	double cradius = 10 ;
 	double mradius = 5 ;
 	double tdamage = .999 ;
-	double dincrement = .01 ;
+	double tol = .001 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage(.01) ;
 	dfunc->setMaterialCharacteristicRadius(mradius) ;
 	dfunc->setThresholdDamageDensity(tdamage);
-	dfunc->setDamageDensityIncrement(dincrement);
+	dfunc->setDamageDensityTolerance(tol);
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 0.156, mradius*.175) ;
 // 	psp->crit->setNeighbourhoodRadius(cradius);
@@ -1722,13 +1722,13 @@ int main(int argc, char *argv[])
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	saf->dfunc->setThresholdDamageDensity(tdamage);
-	saf->dfunc->setDamageDensityIncrement(dincrement);
+	saf->dfunc->setDamageDensityTolerance(tol);
 	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new /*MohrCoulomb(0.01, -0.01)*/ VonMises(0.01), cradius) ; //1.5640; 5625 too low ; 5650 too high
 	saif->dfunc->setMaterialCharacteristicRadius(mradius) ;
 	saif->criterion->setMaterialCharacteristicRadius(mradius);
 	saif->criterion->setNeighbourhoodRadius(cradius);
 	saif->dfunc->setThresholdDamageDensity(tdamage);
-	saif->dfunc->setDamageDensityIncrement(dincrement);
+	saif->dfunc->setDamageDensityTolerance(tol);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 // 	sample.setBehaviour(saf) ;

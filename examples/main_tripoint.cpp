@@ -256,8 +256,6 @@ void step()
 
 		tries++ ;
 		bool go_on = true ;
-		bool no_convergence = true ;
-		bool damage = false ;
 
 		go_on = featureTree->step() ;
 		if(go_on)
@@ -1423,7 +1421,7 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 2e6 ;//3.1e6;//3.7e6 ; 
+	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
 	double mradius = .05 ;
@@ -1497,7 +1495,7 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  mradius*5;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
-// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->setDamageModel(new AnisotropicLinearDamage( mradius)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->setDamageModel(new AnisotropicLinearDamage( mradius)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  mradius*5;
@@ -1533,6 +1531,7 @@ int main(int argc, char *argv[])
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getElements2D() ;
 	F.addPoint(new Point(supportLever, -(sampleHeight+2.*plateHeight)*.5)) ;
+	F.setMaxIterationsPerStep(20000);
 	
 	step() ;
 	

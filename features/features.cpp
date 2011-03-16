@@ -3532,20 +3532,21 @@ bool FeatureTree::step()
 	bool ret = true ;
 	size_t it = 1 ;
 	
-
-	K->clear() ;
-	if(useMultigrid)
+	if(enrichmentChange || needMeshing)
 	{
-		for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+		K->clear() ;
+		if(useMultigrid)
 		{
-			coarseAssemblies[j]->clear() ;
+			for(size_t j = 0 ; j < coarseAssemblies.size() ;j++)
+			{
+				coarseAssemblies[j]->clear() ;
+			}
 		}
 	}
-
 	state.setStateTo(XFEM_STEPPED, true ) ;
 	
 	std::cout << it<<"/" << maxitPerStep << "." << std::flush ;
-	while((behaviourChanged()||!solverConverged()) && ++it < maxitPerStep)
+	while((behaviourChanged()||!solverConverged()) && ++it < maxitPerStep && !(!solverConverged() && !reuseDisplacements))
 	{
 		deltaTime = 0 ;
 		if(solverConverged())
@@ -3569,14 +3570,11 @@ bool FeatureTree::step()
 			}
 		}
 		state.setStateTo(XFEM_STEPPED, true ) ;
-		
-		
-		if(!solverConverged() && !reuseDisplacements)
-			break ;
+
 	}
 	std::cout  << std::endl ;
 	deltaTime = realdt ;
-	return solverConverged() && !behaviourChanged() && it < maxitPerStep;
+	return solverConverged() && !behaviourChanged() && (++it < maxitPerStep);
 	
 }
 

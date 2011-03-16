@@ -32,31 +32,16 @@ Vector & StrainBrokenIsotropicLinearDamage::damageState()
 }
 
 
-void StrainBrokenIsotropicLinearDamage::step(ElementState & s)
+Vector StrainBrokenIsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
-	previousstate = state ;
-	if(fraction < 0)
-	{
-		double volume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			volume = s.getParent()->area() ;
-		else
-			volume = s.getParent()->volume() ;
-		
-		double charVolume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			charVolume = M_PI*characteristicRadius*characteristicRadius ;
-		else
-			charVolume = 4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius ;
-		fraction = volume/charVolume ;
-		fraction = std::min(fraction, 1.) ;
-	}
+	Vector ret(1) ; ret = 0 ;
 	if(s.getPrincipalStrains(s.getParent()->getCenter()).max() > limitStrain)
 	{
-		state[0] = thresholdDamageDensity/fraction+POINT_TOLERANCE ;
+		ret[0] = thresholdDamageDensity/fraction+POINT_TOLERANCE ;
 	}
-	state[0] += damageDensityIncrement*fraction ; 
-	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
+	ret[0] += 0.5 ; 
+// 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
+	return ret ;
 
 }
 
@@ -71,7 +56,7 @@ Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m) const
 	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0.00001 ;
+		return ret*0. ;
 	return ret*(1.-state[0]) ;
 }
 
@@ -81,7 +66,7 @@ Matrix StrainBrokenIsotropicLinearDamage::applyPrevious(const Matrix & m) const
 	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0.00001 ;
+		return ret*0. ;
 	return ret*(1.-previousstate[0]) ;
 }
 

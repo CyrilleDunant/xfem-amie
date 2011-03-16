@@ -92,6 +92,9 @@ typedef enum{
 		 * @return a value between -1 and 1
 		 */
 		virtual double grade(const ElementState & s) = 0 ;
+		
+		virtual int getRank(int fractiles, const ElementState &s) const ;
+		
 		virtual double getSteppedScore() const {return scoreAtState ;} ;
 		
 		/** \brief Produce a copy of the fracture criterion

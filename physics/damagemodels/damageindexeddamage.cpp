@@ -37,18 +37,9 @@ Vector & IndexedLinearDamage::damageState()
 }
 
 
-void IndexedLinearDamage::step(ElementState & s)
+Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 {
-	previousstate = state ;
-		double volume = 0 ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-		{
-			volume = s.getParent()->area() ;
-		}
-		else if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-		{
-			volume = s.getParent()->volume() ;
-		}
+		Vector ret(1) ; ret = 0 ;
 		
 		double detot = 0 ;
 		double deavg = 0 ;
@@ -93,8 +84,8 @@ void IndexedLinearDamage::step(ElementState & s)
 			{
 // 				if(std::abs(maxdd) > 1e-7)
 // 					std::cout << maxdd << std::endl ;
-				state[0] += maxdd ;
-				return ;
+				ret[0] += maxdd ;
+				return ret;
 			}
 			remnantEnergy += maxdd*totry[mindeddindex]->area()*totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
 			totry.erase(totry.begin()+mindeddindex) ;
@@ -122,15 +113,15 @@ void IndexedLinearDamage::step(ElementState & s)
 // 		delta_d *= volume ;
 // 		if(delta_d < -ener_delta.second+state[0])
 // 			delta_d = -ener_delta.second+state[0] ;
-		if(state[0]+delta_d >= 1)
-			state[0] = 1 ;
-		else if(state[0]+delta_d < fixedDamage[0])
-			state[0] = fixedDamage[0] ;
+		if(state[0] + ret[0] + delta_d >= 1)
+			ret[0] = 1 ;
+		else if(state[0] + ret[0] + delta_d < fixedDamage[0])
+			ret[0] = fixedDamage[0] ;
 		else
-			state[0] += delta_d ;
+			ret[0] += delta_d ;
 		
 		std::cout << delta_d << std::endl ;
-		
+		return ret ;
 // 		std::cout << " * " << delta_d << "  " << ener_delta.second*dcost*volume << "  " << ener_delta.first<< std::endl ;
 // 		std::cout << " / " << delta_d << "  " << ener_delta.second*dcost/volume << "  " << ener_delta.first<< std::endl ;
 // 		std::cout << " . " << delta_d << "  " << e->getDeltaEnergyAtState()<< "  " << ener_delta.first<< std::endl ;

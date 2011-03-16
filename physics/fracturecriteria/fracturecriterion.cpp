@@ -685,6 +685,103 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 	return std::make_pair( (energy-originalenergy)/(delta_d),(score-originalscore)/(delta_d)) ;
 }
 
+int FractureCriterion::getRank(int fractiles, const ElementState &s) const
+{
+	if( s.getParent()->getBehaviour()->getDamageModel() == NULL )
+		return 1 ;
+	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
+		return 1 ;
+	
+	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
+	DelaunayTetrahedron * testedTet = dynamic_cast<DelaunayTetrahedron *>(s.getParent()) ;
+	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
+	if(testedTri)
+	{
+		if(cache.size() == 0)
+			return 1 ;
+		
+		Vector scores(cache.size()) ;
+		for(size_t i = 0 ; i< cache.size() ; i++)
+		{
+			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
+			scores[i] = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+		}
+		std::stable_sort(&scores[0], &scores[scores.size()]);
+		double stateScore = testedTri->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+		int fractileCount = 1 ;
+		while(fractileCount < fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
+		{
+			fractileCount++ ;
+		}
+		return fractileCount ;
+		
+	}
+	if(testedTet)
+	{
+		if(cache.size() == 0)
+			return 1 ;
+			
+		Vector scores(cache.size()) ;
+		for(size_t i = 0 ; i< cache.size() ; i++)
+		{
+			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
+			scores[i] = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+		}
+		std::stable_sort(&scores[0], &scores[scores.size()]);
+		double stateScore = testedTri->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+		int fractileCount = 1 ;
+		while(fractileCount<fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
+		{
+			fractileCount++ ;
+		}
+		return fractileCount ;
+	}
+	else if(testedHex)
+	{
+		std::set<HexahedralElement *> neighbourhood ;
+		std::vector<HexahedralElement *> neighbours = testedHex->neighbourhood ;
+		for(size_t i = 0 ; i < neighbours.size() ; i++)
+		{
+			for(size_t j = 0 ; j <  neighbours[i]->neighbourhood.size() ; j++)
+			{
+				if(neighbours[i]->neighbourhood[j] != testedHex 
+				   && !neighbours[i]->neighbourhood[j]->getBehaviour()->fractured())
+					neighbourhood.insert(neighbours[i]->neighbourhood[j]) ;
+			}
+		}
+		
+		std::vector<double> scores ;
+		if(!neighbourhood.empty())
+		{
+			for(auto i= neighbourhood.begin() ; i != neighbourhood.end() ; ++i)
+			{
+				if((*i)->getBehaviour()->getFractureCriterion() 
+					&& !(*i)->getBehaviour()->fractured())
+					scores.push_back((*i)->getBehaviour()->getFractureCriterion()->getSteppedScore());
+			}
+		}
+		if(scores.empty())
+			return 1 ;
+		
+		std::stable_sort(scores.begin(), scores.end());
+		double stateScore = testedTri->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+		int fractileCount = 1 ;
+		while(fractileCount<fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
+		{
+			fractileCount++ ;
+		}
+		return fractileCount ;
+	}
+	else
+	{
+		std::cout << " criterion not implemented for this kind of element" << std::endl ;
+		return false ;
+	}
+	
+	//shut up the compiler
+	return false ;
+}
+
 void FractureCriterion::step(const ElementState &s)
 {
 		if(cache.empty() )

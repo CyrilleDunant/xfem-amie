@@ -45,7 +45,7 @@ public:
 	 * The formula used is \f$ d += .1e^{\frac{A_e}{\pi\epsilon^2}} ; \f$
 	 * @param s ElementState passed as a parameter
 	 */
-	virtual void step(ElementState & s) ;
+	virtual Vector computeDamageIncrement(ElementState & s) ;
 
 	/** \brief Increment the damage from an external value.
 	 * 

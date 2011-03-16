@@ -109,7 +109,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
-	while(last_rho*last_rho > 1e-28/*std::max(eps*eps*err0, eps*eps)*/ && n < Maxit )
+	while(last_rho*last_rho*vsize*vsize > std::max(eps*eps*err0, eps*eps) && n < Maxit )
 	{
 		P->precondition(r,z) ;
 

@@ -26,8 +26,15 @@ protected:
 	double characteristicRadius ;
 	double thresholdDamageDensity ;
 	double secondaryThresholdDamageDensity ;
-	double damageDensityIncrement ;
+	double damageDensityTolerance ;
 	double fraction ;
+	
+	Vector damageIncrement ;
+	Vector previousDamageIncrement ;
+	double upFactor ;
+	double downFactor ;
+	double currentFactor ;
+	int lastRank ;
 public:
 	
 	Vector state ;
@@ -43,7 +50,7 @@ public:
 	
 	double getCharacteristicRadius() const ;
 	
-	double getDamageDensityIncrement() const ;
+	double getDamageDensityTolerance() const ;
 
 	void setThresholdDamageDensity(double d);
 	
@@ -51,7 +58,9 @@ public:
 	
 	void setMaterialCharacteristicRadius(double d) ;
 	
-	void setDamageDensityIncrement(double d) ;
+	void setDamageDensityTolerance(double d) ;
+	
+	double getDamageDensityTolerance() { return damageDensityTolerance ; };
 	
 	/** \brief Return a vector of values describing the damage stage of the material
 	 * 
@@ -64,13 +73,15 @@ public:
 	 * 
 	 * @param s ElementState
 	 */
-	virtual void step(ElementState & s) = 0 ;
+	virtual void step(ElementState & s)  ;
 
 	/** \brief Increment the damage from an external value
 	 * 
 	 * @param d damage
 	 */
 	virtual void artificialDamageStep(double d) = 0 ;
+	
+	virtual Vector computeDamageIncrement(ElementState &s) = 0 ;
 
 	/** \brief Get previous damage value (if stored in the model) */
 	virtual Vector getPreviousDamage() = 0 ;
@@ -123,7 +134,7 @@ public:
 	 * 
 	 * @param s ElementState
 	 */
-	virtual void step(ElementState & s) { } ;
+	virtual Vector computeDamageIncrement(ElementState & s) { return Vector(1) ;} ;
 
 	/** \brief Do nothing
 	 * 

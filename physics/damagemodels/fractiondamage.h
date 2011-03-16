@@ -24,8 +24,6 @@ class FractionLinearDamage : public DamageModel
 {
 public:
 
-	double tensionDamage ;
-	double compressionDamage ;
 	bool inCompression ;
 	bool inTension ;
 	Matrix remnant ;
@@ -69,7 +67,7 @@ public:
 	 * 
 	 * @param s ElementState to consider
 	 */
-	virtual void step(ElementState & s) ;
+	virtual Vector computeDamageIncrement(ElementState & s) ;
 
 	/** \brief compute the stiffness matrix from the damage state
 	 * 

@@ -36,44 +36,28 @@ Vector & LinearDamage::damageState()
 {
 	return state ;
 }
-void LinearDamage::step(ElementState & s)
+
+Vector LinearDamage::computeDamageIncrement(ElementState & s)
 {
-	previousstate = state ;
 	inCompression = false ;
 	inTension = false ;
-	if(fraction < 0)
-	{
-		double volume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			volume = sqrt(s.getParent()->area()) ;
-		else
-			volume = pow(s.getParent()->volume(), 2./3.) ;
-		
-		double charVolume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			charVolume = sqrt(M_PI*characteristicRadius*characteristicRadius) ;
-		else
-			charVolume = pow(4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius, 2./3.) ;
-		fraction = volume/charVolume ;
-		if(fraction > 1)
-			std::cout << "elements too large for damage characteristic radius!" << std::endl ;
-		fraction = std::min(fraction, 1.) ;
-	}
+	Vector ret(2) ; ret = 0 ;
+	compressionDamage = 0 ;
+	tensionDamage = 0 ;
 	
-
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
 		inCompression = true ;
 		
-		compressionDamage += damageDensityIncrement*fraction ; 
-		compressionDamage = std::min(thresholdDamageDensity+POINT_TOLERANCE, compressionDamage) ;
-		compressionDamage = std::min(.9999999, compressionDamage) ;
-		compressionDamage = std::max(0., compressionDamage) ;
+		compressionDamage = 0.5 ; 
+// 		compressionDamage = std::min(thresholdDamageDensity+POINT_TOLERANCE, compressionDamage) ;
+// 		compressionDamage = std::min(.9999999, compressionDamage) ;
+// 		compressionDamage = std::max(0., compressionDamage) ;
 		
-		tensionDamage += damageDensityIncrement*fraction ; 
-		tensionDamage = std::min(secondaryThresholdDamageDensity+POINT_TOLERANCE, tensionDamage) ;
-		tensionDamage = std::min(.9999999, tensionDamage) ;
-		tensionDamage = std::max(0., tensionDamage) ;
+		tensionDamage = 0.5 ; 
+// 		tensionDamage = std::min(secondaryThresholdDamageDensity+POINT_TOLERANCE, tensionDamage) ;
+// 		tensionDamage = std::min(.9999999, tensionDamage) ;
+// 		tensionDamage = std::max(0., tensionDamage) ;
 		
 	}
 	
@@ -81,13 +65,13 @@ void LinearDamage::step(ElementState & s)
 	{
 		inTension = true ;
 
-		tensionDamage += damageDensityIncrement*fraction ; 
-		tensionDamage = std::min(secondaryThresholdDamageDensity+POINT_TOLERANCE, tensionDamage) ;
-		tensionDamage = std::min(.9999999, tensionDamage) ;
-		tensionDamage = std::max(0., tensionDamage) ;
+		tensionDamage = 0.5 ; 
+// 		tensionDamage = std::min(secondaryThresholdDamageDensity+POINT_TOLERANCE, tensionDamage) ;
+// 		tensionDamage = std::min(.9999999, tensionDamage) ;
+// 		tensionDamage = std::max(0., tensionDamage) ;
 	}
-	state[0] = compressionDamage ;
-	state[1] = tensionDamage ;
+	ret[0] = compressionDamage ;
+	ret[1] = tensionDamage ;
 // 	std::cout << state.sum() << std::flush ;
 }
 

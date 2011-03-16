@@ -20,10 +20,7 @@ AnisotropicLinearDamage::AnisotropicLinearDamage(double characteristicRadius) : 
 	previousstate.resize(4, 0.) ;
 	isNull = false ;
 	state = 0 ;
-	tensionDamagex = 0 ;
-	tensionDamagey = 0 ;
-	tensionDamagez = 0. ;
-	compressionDamage = 0 ;
+
 	inCompression = false ;
 	inTension = false ;
 }
@@ -38,41 +35,24 @@ Vector & AnisotropicLinearDamage::damageState()
 {
 	return state ;
 }
-void AnisotropicLinearDamage::step(ElementState & s)
+Vector AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
-	previousstate = state ;
 	inCompression = false ;
 	inTension = false ;
-	if(fraction < 0)
-	{
-		double volume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			volume = sqrt(s.getParent()->area()) ;
-		else
-			volume = pow(s.getParent()->volume(), 2./3.) ;
-		
-		double charVolume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			charVolume = sqrt(M_PI*characteristicRadius*characteristicRadius) ;
-		else
-			charVolume = pow(4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius, 2./3.) ;
-		fraction = volume/charVolume ;
-		if(fraction > 1)
-			std::cout << "elements too large for damage characteristic radius!" << std::endl ;
-		fraction = std::min(fraction, 1.) ;
-	}
+	Vector ret(4) ;
 	
 // 	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
 // 	double l_2 = s.getParent()->area() ; 
 // 	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
+	double compressionDamage = 0;
+	double tensionDamagex = 0;
+	double tensionDamagey = 0;
+	double tensionDamagez = 0;
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
 		inCompression = true ;
-		compressionDamage +=/* std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
-		compressionDamage = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, compressionDamage) ;
-		compressionDamage = std::min(.99999, compressionDamage) ;
-		compressionDamage = std::max(0., compressionDamage) ;
+		compressionDamage = (1.-state[0]) ; 
 	}
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
@@ -86,35 +66,23 @@ void AnisotropicLinearDamage::step(ElementState & s)
 		
 		if(angle[0] > 0)
 		{
-			tensionDamagex += angle[0]/n*damageDensityIncrement*fraction ; 
-			tensionDamagex = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagex) ;
-			tensionDamagex = std::min(.99999, tensionDamagex) ;
-			tensionDamagex = std::max(0., tensionDamagex) ;
+			tensionDamagex = angle[0]/n*(1.-state[1]) ; 
 		}
 		if(angle[1] > 0)
 		{
-			tensionDamagey += angle[1]/n*damageDensityIncrement*fraction ; 
-			tensionDamagey = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagey) ;
-			tensionDamagey = std::min(.99999, tensionDamagey) ;
-			tensionDamagey = std::max(0., tensionDamagey) ;
+			tensionDamagey = angle[1]/n*(1.-state[2]) ; 
 		}
 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL && angle[2] > 0)
 		{
-			tensionDamagez += angle[2]/n*damageDensityIncrement*fraction ; 
-			tensionDamagez = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamagez) ;
-			tensionDamagez = std::min(.99999, tensionDamagez) ;
-			tensionDamagez = std::max(0., tensionDamagez) ;
+			tensionDamagez = angle[2]/n*(1.-state[3]) ; 
 		}
-		
-// 		compressionDamage += /*std::min(*/damageDensityIncrement*fraction/*, maxincrement )*/ ; 
-// 		compressionDamage = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, compressionDamage) ;
-// 		compressionDamage = std::min(.99999, compressionDamage) ;
-// 		compressionDamage = std::max(0., compressionDamage) ;
+
 	}
-	state[0] = compressionDamage ;
-	state[1] = tensionDamagex ;
-	state[2] = tensionDamagey ;
-	state[3] = tensionDamagez ;
+	ret[0] = compressionDamage ;
+	ret[1] = tensionDamagex ;
+	ret[2] = tensionDamagey ;
+	ret[3] = tensionDamagez ;
+	return ret ;
 // 	std::cout << state.sum() << std::flush ;
 }
 
@@ -316,7 +284,7 @@ bool AnisotropicLinearDamage::fractured() const
 // 			return true ;
 		
 	if(inCompression)
-		if(compressionDamage >= thresholdDamageDensity/fraction)
+		if(state[0] >= thresholdDamageDensity/fraction)
 			return true ;
 		
 		return false ;

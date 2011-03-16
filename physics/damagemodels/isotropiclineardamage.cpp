@@ -32,34 +32,14 @@ Vector & IsotropicLinearDamage::damageState()
 }
 
 
-void IsotropicLinearDamage::step(ElementState & s)
+Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
-	previousstate = state ;
-	if(fraction < 0)
-	{
-		double volume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			volume = sqrt(s.getParent()->area()) ;
-		else
-			volume = pow(s.getParent()->volume(), 2./3.) ;
-		
-		double charVolume ;
-		if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			charVolume = sqrt(M_PI*characteristicRadius*characteristicRadius) ;
-		else
-			charVolume = pow(4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius, 2./3.) ;
-		fraction = volume/charVolume ;
-		if(fraction > 1)
-			std::cout << "elements too large for damage characteristic radius!" << std::endl ;
-		fraction = std::min(fraction, 1.) ;
-	}
-	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
-	double l_2 = s.getParent()->area() ; 
-	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
-	state[0] += std::min(damageDensityIncrement*fraction, maxincrement ) ; 
-	state[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
-	state[0] = std::min(.99999, state[0]) ;
-	state[0] = std::max(0., state[0]) ;
+	Vector ret(1) ;
+	ret[0] =  1.-state[0] ;
+// 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE-state[0], state[0]) ;
+// 	ret[0] = std::min(.99999, state[0]) ;
+// 	ret[0] = std::max(0., state[0]) ;
+	return ret ;
 
 }
 
@@ -74,7 +54,7 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0.00001 ;
+		return ret*0. ;
 	return ret*(1.-state[0]) ;
 }
 
@@ -84,7 +64,7 @@ Matrix IsotropicLinearDamage::applyPrevious(const Matrix & m) const
 	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0.00001 ;
+		return ret*0. ;
 	return ret*(1.-previousstate[0]) ;
 }
 

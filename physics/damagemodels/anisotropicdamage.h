@@ -24,10 +24,6 @@ class AnisotropicLinearDamage : public DamageModel
 {
 public:
 
-	double tensionDamagex ;
-	double tensionDamagey ;
-	double tensionDamagez;
-	double compressionDamage ;
 	bool inCompression ;
 	bool inTension ;
 	/** \brief Constructor, set the number of degrees of freedom and a strain limit for failure
@@ -68,7 +64,7 @@ public:
 	 * 
 	 * @param s ElementState to consider
 	 */
-	virtual void step(ElementState & s) ;
+	virtual Vector computeDamageIncrement(ElementState & s) ;
 
 	/** \brief compute the stiffness matrix from the damage state
 	 * 
