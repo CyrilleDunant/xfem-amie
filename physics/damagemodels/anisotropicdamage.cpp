@@ -25,21 +25,11 @@ AnisotropicLinearDamage::AnisotropicLinearDamage(double characteristicRadius) : 
 	inTension = false ;
 }
 
-const Vector & AnisotropicLinearDamage::damageState() const
-{
-	return state ;
-}
-
-
-Vector & AnisotropicLinearDamage::damageState() 
-{
-	return state ;
-}
 Vector AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	inCompression = false ;
 	inTension = false ;
-	Vector ret(4) ;
+	Vector ret(0., 4) ;
 	
 // 	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
 // 	double l_2 = s.getParent()->area() ; 

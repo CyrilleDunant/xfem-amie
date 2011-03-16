@@ -32,13 +32,6 @@ public:
 
 	virtual ~IsotropicLinearDamage();
 
-	/** \brief Return the single-element Vector in which is stored the scaling factor
-	 * 
-	 * @return single-element Vector in which is stored the scaling factor
-	 */
-	virtual const Vector & damageState() const ;
-	virtual Vector & damageState() ;
-
 	/** \brief Increment the damage
 	 * 
 	 * The formula used is \f$ d += .1e^{\frac{A_e}{\pi\epsilon^2}} ; \f$
@@ -51,12 +44,6 @@ public:
 	 * @param d damage
 	 */
 	virtual void artificialDamageStep(double d) ;
-
-	/** \brief returns 0 */
-	virtual Vector getPreviousDamage() {return Vector(0) ; } ;
-
-	/** \brief returns 0 */
-	virtual Vector getPreviousPreviousDamage() {return Vector(0) ; } ;
 
 	/** \brief Do nothing */
 	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { } ;

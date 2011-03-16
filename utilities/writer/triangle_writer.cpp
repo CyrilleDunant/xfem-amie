@@ -387,7 +387,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 				{
 					if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel())
 					{
-						Vector dstate =  triangles[i]->getBehaviour()->getDamageModel()->damageState() ;
+						Vector dstate =  triangles[i]->getBehaviour()->getDamageModel()->getState() ;
 						double d = sqrt(std::inner_product(&dstate[0], &dstate[dstate.size()], &dstate[0], double(0))) ;
 						ret[0][iterator] = d;
 						ret[1][iterator] = d ;

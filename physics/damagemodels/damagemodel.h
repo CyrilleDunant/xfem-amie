@@ -35,10 +35,11 @@ protected:
 	double downFactor ;
 	double currentFactor ;
 	int lastRank ;
-public:
 	
 	Vector state ;
 	Vector previousstate ;
+public:
+	
 	bool isNull ;
     
 	
@@ -66,8 +67,8 @@ public:
 	 * 
 	 * @return a Vector
 	 */
-	virtual const Vector & damageState() const = 0 ;
-	virtual Vector & damageState() = 0 ;
+	virtual const Vector & getState() const { return state ;} ;
+	virtual Vector & getState() { return state ;} ;
 
 	/** \brief Increment the damage from the current state of the element considered
 	 * 
@@ -83,11 +84,9 @@ public:
 	
 	virtual Vector computeDamageIncrement(ElementState &s) = 0 ;
 
-	/** \brief Get previous damage value (if stored in the model) */
-	virtual Vector getPreviousDamage() = 0 ;
-
-	/** \brief Get previous previous damage value (if stored in the model) */
-	virtual Vector getPreviousPreviousDamage() = 0 ;
+	/** \brief Get previous damage value  */
+	virtual Vector & getPreviousState() { return previousstate ; } ;
+	virtual const Vector & getPreviousState() const { return previousstate ; } ;
 
 	/** \brief Impose previous and previous previous damage (if stored in the model) */
 	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) = 0 ;

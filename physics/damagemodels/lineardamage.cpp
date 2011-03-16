@@ -26,17 +26,6 @@ LinearDamage::LinearDamage(int numDof, double characteristicRadius) : DamageMode
 	inTension = false ;
 }
 
-const Vector & LinearDamage::damageState() const
-{
-	return state ;
-}
-
-
-Vector & LinearDamage::damageState() 
-{
-	return state ;
-}
-
 Vector LinearDamage::computeDamageIncrement(ElementState & s)
 {
 	inCompression = false ;

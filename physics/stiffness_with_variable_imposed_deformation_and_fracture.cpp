@@ -54,7 +54,7 @@ void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, E
 	}
 	previousDamage = damage ;
 
-	damage = dfunc->damageState()[0] ;
+	damage = dfunc->getState()[0] ;
 	
 	if(!currentState.getParent()->behaviourUpdated && timestep > std::numeric_limits<double>::epsilon())
 	{
@@ -84,7 +84,7 @@ void StiffnessWithVariableImposedDeformationAndFracture::artificialDamageStep(do
 {
 	previousDamage = damage ;
 	dfunc->artificialDamageStep(d) ;
-	Vector state = dfunc->damageState() ;
+	Vector state = dfunc->getState() ;
 	damage = 0 ;
 	for(size_t i = 0 ; i < state.size() ; i++)
 		damage += state[i] ;

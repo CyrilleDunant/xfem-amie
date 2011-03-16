@@ -256,24 +256,24 @@ protected:
 				
 				if(elems[i]->getBehaviour()->getDamageModel())
 				{
-					elems[i]->getBehaviour()->getDamageModel()->state = 0 ;
-					elems[i]->getBehaviour()->getDamageModel()->previousstate = 0 ;
+					elems[i]->getBehaviour()->getDamageModel()->getState() = 0 ;
+					elems[i]->getBehaviour()->getDamageModel()->getPreviousState() = 0 ;
 					double renorm(0) ;
 					for(size_t j = 0 ; j < conflicts.size() ; j++)
 					{
 						if(conflicts[j]->getBehaviour() &&
 							conflicts[j]->getBehaviour()->getDamageModel() && 
-							conflicts[j]->getBehaviour()->getDamageModel()->state.size() == elems[i]->getBehaviour()->getDamageModel()->state.size())
+							conflicts[j]->getBehaviour()->getDamageModel()->getState().size() == elems[i]->getBehaviour()->getDamageModel()->getState().size())
 						{
-							elems[i]->getBehaviour()->getDamageModel()->state += conflicts[j]->getBehaviour()->getDamageModel()->state*fractions[j] ;
-							elems[i]->getBehaviour()->getDamageModel()->previousstate += conflicts[j]->getBehaviour()->getDamageModel()->previousstate*fractions[j] ;
+							elems[i]->getBehaviour()->getDamageModel()->getState() += conflicts[j]->getBehaviour()->getDamageModel()->getState()*fractions[j] ;
+							elems[i]->getBehaviour()->getDamageModel()->getPreviousState() += conflicts[j]->getBehaviour()->getDamageModel()->getPreviousState()*fractions[j] ;
 							renorm += fractions[j] ;
 						}
 					}
 					if(std::abs(renorm) > POINT_TOLERANCE)
 					{
-						elems[i]->getBehaviour()->getDamageModel()->state /= renorm ;
-						elems[i]->getBehaviour()->getDamageModel()->previousstate /= renorm ;
+						elems[i]->getBehaviour()->getDamageModel()->getState() /= renorm ;
+						elems[i]->getBehaviour()->getDamageModel()->getPreviousState() /= renorm ;
 					}
 				}
 			}

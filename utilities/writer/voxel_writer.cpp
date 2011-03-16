@@ -300,7 +300,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 		{
 			if(tet->getBehaviour()->getDamageModel())
 			{
-				Vector s = tet->getBehaviour()->getDamageModel()->damageState() ;
+				Vector s = tet->getBehaviour()->getDamageModel()->getState() ;
 				double v = std::inner_product(&s[0], &s[s.size()], &s[0], double(0)) ;
 				ret[0]= v ;
 				found = true ;

@@ -131,7 +131,7 @@ namespace Mu
 		isNull = true ; 
 		thresholdDamageDensity = .999999999999 ;
 		secondaryThresholdDamageDensity = .99999999999999 ;
-		damageDensityTolerance = .0001 ;
+		damageDensityTolerance = .00001 ;
 		fraction = -1 ;
 		
 		upFactor = 1;

@@ -26,17 +26,6 @@ IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCrite
 	e->setEnergyIndexed(true);
 }
 
-const Vector & IndexedLinearDamage::damageState() const
-{
-	return state ;
-}
-
-Vector & IndexedLinearDamage::damageState()
-{
-	return state ;
-}
-
-
 Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 {
 		Vector ret(1) ; ret = 0 ;
@@ -74,10 +63,10 @@ Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
  														) ;
 			if(std::abs(dcdd) < POINT_TOLERANCE)
 				maxdd = 0 ;
-			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] > 1)
-				maxdd = 1.-totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] ;
-			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] < 0)
-				maxdd = totry[mindeddindex]->getBehaviour()->getDamageModel()->state[0] ;
+			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] > 1)
+				maxdd = 1.-totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] ;
+			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] < 0)
+				maxdd = totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] ;
 			
 			maxdd *=.01 ;
 			if(totry[mindeddindex] == s.getParent())

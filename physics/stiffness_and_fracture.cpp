@@ -28,14 +28,14 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	init = param[0][0] ;
 	change  = false ;
 	previouschange = false ;
-	previousDamage.resize(dfunc->damageState().size()) ; 
+	previousDamage.resize(dfunc->getState().size()) ; 
 	previousDamage =0 ;
 	
-	intermediateDamage.resize(dfunc->damageState().size()) ;
+	intermediateDamage.resize(dfunc->getState().size()) ;
 	intermediateDamage = 0 ;
 	
 	
-	previousPreviousDamage.resize(dfunc->damageState().size()) ;
+	previousPreviousDamage.resize(dfunc->getState().size()) ;
 	previousPreviousDamage = 0 ;
 	
 	count = 0 ;
@@ -83,7 +83,7 @@ void StiffnessAndFracture::stepBack()
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
-	dfunc->damageState() = damage ;
+	dfunc->getState() = damage ;
 	frac = dfunc->fractured() ;
 
 	previousDamage.resize(previousPreviousDamage.size()) ;
@@ -107,7 +107,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 	
-	Vector d = dfunc->damageState() ;
+	Vector d = dfunc->getState() ;
 	damage.resize(d.size()) ;
 	damage = d ;
 }
@@ -125,7 +125,7 @@ void StiffnessAndFracture::artificialDamageStep(double d)
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 
-	Vector d_ = dfunc->damageState() ;
+	Vector d_ = dfunc->getState() ;
 	damage.resize(d_.size()) ;
 	damage = d ;
 }
@@ -172,10 +172,10 @@ Form * StiffnessAndFracture::getCopy() const
 {
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), criterion->getMaterialCharacteristicRadius()) ;
 	copy->damage = damage ;
-	copy->dfunc->state.resize(dfunc->state.size());
-	copy->dfunc->state = dfunc->state ;
-	copy->dfunc->previousstate.resize(dfunc->previousstate.size());
-	copy->dfunc->previousstate = dfunc->previousstate ;
+	copy->dfunc->getState().resize(dfunc->getState().size());
+	copy->dfunc->getState() = dfunc->getState() ;
+	copy->dfunc->getPreviousState().resize(dfunc->getPreviousState().size());
+	copy->dfunc->getPreviousState() = dfunc->getPreviousState() ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
 	copy->dfunc->setMaterialCharacteristicRadius(dfunc->getCharacteristicRadius());

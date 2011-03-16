@@ -25,16 +25,6 @@ FractionLinearDamage::FractionLinearDamage(int numDof, double characteristicRadi
 	inTension = false ;
 }
 
-const Vector & FractionLinearDamage::damageState() const
-{
-	return state ;
-}
-
-
-Vector & FractionLinearDamage::damageState() 
-{
-	return state ;
-}
 Vector FractionLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	Vector ret(state.size()) ; ret = 0;

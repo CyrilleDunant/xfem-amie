@@ -37,25 +37,11 @@ public:
 
 	virtual ~LinearDamage();
 
-	/** \brief return the damage state.
-	 * 
-	 * @return two-element damage state
-	 */
-	virtual const Vector & damageState() const ;
-	virtual Vector & damageState() ;
-
-
 	/** \brief Increment the damage from an external value.
 	 * 
 	 * @param d damage
 	 */
 	virtual void artificialDamageStep(double d) ;
-
-	/** \brief returns 0 */
-	virtual Vector getPreviousDamage() {return Vector(0) ; } ;
-
-	/** \brief returns 0 */
-	virtual Vector getPreviousPreviousDamage() {return Vector(0) ; } ;
 
 	/** \brief Do nothing */
 	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { } ;

@@ -17,20 +17,8 @@ IsotropicLinearDamage::IsotropicLinearDamage(double characteristicRadius) : Dama
 {
 	state.resize(1, 0.);
 	previousstate.resize(1, 0.);
-	state[0] = 0 ;
 	isNull = false ;
 }
-
-const Vector & IsotropicLinearDamage::damageState() const
-{
-	return state ;
-}
-
-Vector & IsotropicLinearDamage::damageState()
-{
-	return state ;
-}
-
 
 Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {

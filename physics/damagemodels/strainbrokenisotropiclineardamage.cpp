@@ -21,17 +21,6 @@ StrainBrokenIsotropicLinearDamage::StrainBrokenIsotropicLinearDamage(int numDof,
 	isNull = false ;
 }
 
-const Vector & StrainBrokenIsotropicLinearDamage::damageState() const
-{
-	return state ;
-}
-
-Vector & StrainBrokenIsotropicLinearDamage::damageState()
-{
-	return state ;
-}
-
-
 Vector StrainBrokenIsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	Vector ret(1) ; ret = 0 ;

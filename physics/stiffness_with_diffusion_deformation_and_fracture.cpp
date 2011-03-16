@@ -26,10 +26,10 @@ StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationA
 	init = param[0][0] ;
 	change  = false ;
 	previouschange = false ;
-	previousDamage.resize(dfunc->damageState().size()) ; previousDamage =0 ;
-	intermediateDamage.resize(dfunc->damageState().size()) ;intermediateDamage = 0 ;
+	previousDamage.resize(dfunc->getState().size()) ; previousDamage =0 ;
+	intermediateDamage.resize(dfunc->getState().size()) ;intermediateDamage = 0 ;
 	count = 0 ;
-	previousPreviousDamage.resize(dfunc->damageState().size()) ;previousPreviousDamage = 0 ;
+	previousPreviousDamage.resize(dfunc->getState().size()) ;previousPreviousDamage = 0 ;
 	damage = 0 ;	
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -74,7 +74,7 @@ void StiffnessWithDiffusionDeformationAndFracture::stepBack()
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
-	dfunc->damageState() = damage ;
+	dfunc->getState() = damage ;
 	frac = dfunc->fractured() ;
 
 	previousDamage.resize(previousPreviousDamage.size()) ;
@@ -194,7 +194,7 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 
-	Vector d = dfunc->damageState() ;
+	Vector d = dfunc->getState() ;
 	damage.resize(d.size()) ;
 	damage = d ;
 }
@@ -212,7 +212,7 @@ void StiffnessWithDiffusionDeformationAndFracture::artificialDamageStep(double d
 	previousDamage.resize(damage.size()) ;
 	previousDamage = damage ;
 
-	Vector d_ = dfunc->damageState() ;
+	Vector d_ = dfunc->getState() ;
 	damage.resize(d_.size()) ;
 	damage = d ;
 }

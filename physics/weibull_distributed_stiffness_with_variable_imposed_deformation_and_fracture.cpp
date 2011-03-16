@@ -64,7 +64,7 @@ void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double time
 		dfunc.step(currentState) ;
 		previousDamage = damage ;
 		
-		Vector state = dfunc.damageState() ;
+		Vector state = dfunc.getState() ;
 		damage = 0 ;
 		for(size_t i = 0 ; i < state.size() ; i++)
 			damage += state[i] ;
@@ -97,7 +97,7 @@ void WeibullStiffnessWithVariableImposedDeformationAndFracture::artificialDamage
 	dfunc.artificialDamageStep(d) ;
 	previousDamage = damage ;
 		
-	Vector state = dfunc.damageState() ;
+	Vector state = dfunc.getState() ;
 	damage = 0 ;
 	for(size_t i = 0 ; i < state.size() ; i++)
 		damage += state[i] ;
