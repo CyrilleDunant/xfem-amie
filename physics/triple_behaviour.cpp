@@ -1,4 +1,5 @@
 #include "triple_behaviour.h"
+#include "fracturecriteria/fracturecriterion.h"
 
 using namespace Mu ;
 
@@ -246,6 +247,56 @@ void TrimaterialInterface::artificialDamageStep(double d)
 	outBehaviour->artificialDamageStep(d) ;
 }
 
+FractureCriterion * TrimaterialInterface::getFractureCriterion() const
+{
+	double max = 0 ;
+	int ret = 0 ;
+
+	double inScore = 0. ;
+	FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
+	bool hasInCriterion = (inCriterion != NULL) ;
+	if(hasInCriterion)
+	{
+		max = inCriterion->getSteppedScore() ;
+		ret = 1 ;
+	}
+
+	double midScore = 0. ;
+	FractureCriterion * midCriterion = midBehaviour->getFractureCriterion() ;
+	bool hasMidCriterion = (midCriterion != NULL) ;
+	if(hasMidCriterion)
+	{
+		midScore = midCriterion->getSteppedScore() ;
+		if(midScore > max)
+		{
+			max = midScore ;
+			ret = 2 ;
+		}
+	}
+	
+	double outScore = 0. ;
+	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
+	bool hasOutCriterion = (outCriterion != NULL) ;
+	if(hasOutCriterion)
+	{
+		outScore = outCriterion->getSteppedScore() ;
+		if(outScore > max)
+			ret = 3 ;
+	}
+		
+	switch(ret)
+	{
+	case 0:
+		return NULL ;
+	case 1:
+		return inCriterion ;
+	case 2:
+		return midCriterion ;
+	case 3:
+		return outCriterion ;
+	}
+	return NULL ;
+}
 
 
 

@@ -37,6 +37,7 @@ namespace Mu
 				charVolume = sqrt(M_PI*characteristicRadius*characteristicRadius) ;
 			else
 				charVolume = pow(4./3.*M_PI*characteristicRadius*characteristicRadius*characteristicRadius, 2./3.) ;
+
 			fraction = volume/charVolume ;
 			if(fraction > 1)
 				std::cout << "elements too large for damage characteristic radius!" << std::endl ;

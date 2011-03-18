@@ -3180,7 +3180,9 @@ void FeatureTree::stepElements()
 					}
 				}
 				else if (elements[i]->getBehaviour()->fractured())
+				{
 					crackedVolume +=  elements[i]->area() ;
+				}
 				
 			}
 			std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;

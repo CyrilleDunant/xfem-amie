@@ -104,6 +104,9 @@ public:
 	 */
 	std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const; 
 	
+	/** \brief Acessor, return the highest fracture citerion*/
+	virtual FractureCriterion * getFractureCriterion() const ;
+	
 } ;
 
 } ;

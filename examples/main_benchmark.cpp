@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(sampling) ;
 	F.setMaxIterationsPerStep(2);
 	F.setDeltaTime(0.001);
-	F.setElementGenerationMethod(0,true) ;
+	F.setElementGenerationMethod(0,false) ;
 	
 	if(order == 2)
 		F.setOrder(QUADRATIC) ;
@@ -466,8 +466,10 @@ int main(int argc, char *argv[])
 		std::string filebench("benchmark.txt") ;
 		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-		out << "DIFFUSION\t" << str_micro << "\t" << "D_inc = " << prop << "\t" 
-			<< "dof = " << x.size() << "\t"
+		out << "DIFFUSION\t" << str_micro << "\t" << "D_inc = " << prop << "\t" ;
+			if(order==2)
+				out << "QUAD" ;
+			out << "dof = " << x.size() << "\t"
 			<< "D11 = " << -average_flux[0]/average_gradient[0] << std::endl ;
 		out.close() ;
 
@@ -574,8 +576,8 @@ int main(int argc, char *argv[])
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
 		out << "ELASTICITY\t" << str_micro ;
 			if(order==2)
-				std::cout << "QUAD" ;
-			std::cout << "\t" << "E_inc = " << prop << "\t" 
+				out << "QUAD" ;
+			out << "\t" << "E_inc = " << prop << "\t" 
 			<< "dof = " << x.size() << "\t"
 			<< "C1111 = " << c[0] << "\t"
 			<< "C1122 = " << c[1] << std::endl ;

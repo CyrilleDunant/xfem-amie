@@ -704,7 +704,8 @@ int FractureCriterion::getRank(int fractiles, const ElementState &s) const
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-			scores[i] = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+			if(ci->getBehaviour()->getFractureCriterion() != NULL)
+				scores[i] = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 		}
 		std::stable_sort(&scores[0], &scores[scores.size()]);
 		double stateScore = testedTri->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
@@ -875,7 +876,6 @@ bool FractureCriterion::met(const ElementState &s)
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
 	if(testedTri)
 	{
-
 		if(testedTri->visited)
 			return false ;
 		
@@ -898,7 +898,9 @@ bool FractureCriterion::met(const ElementState &s)
 				if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->type != VOID_BEHAVIOUR)
 					areamax += area[i] ;
 
-				double s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+				double s = 0. ;
+				if(ci->getBehaviour()->getFractureCriterion() != NULL)
+					s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 				scores[-s] =  ci;
 				unsortedScores.push_back(s);
 				if(s > maxNeighbourhoodScore)
@@ -908,7 +910,6 @@ bool FractureCriterion::met(const ElementState &s)
 				}
 
 				areatemp[ci] = area[i] ;
-
 			}
 		}
 		
@@ -922,7 +923,7 @@ bool FractureCriterion::met(const ElementState &s)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 
-			if(maxNeighbourhoodScore-ci->getBehaviour()->getFractureCriterion()->getSteppedScore() < tol)
+			if(ci->getBehaviour()->getFractureCriterion() != NULL && maxNeighbourhoodScore-ci->getBehaviour()->getFractureCriterion()->getSteppedScore() < tol)
 			{
 // 					maxloci.push_back(cache[i]) ;
 				if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)

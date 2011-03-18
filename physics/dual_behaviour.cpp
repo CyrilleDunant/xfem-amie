@@ -1,4 +1,5 @@
 #include "dual_behaviour.h"
+#include "fracturecriteria/fracturecriterion.h"
 
 using namespace Mu ;
 
@@ -192,6 +193,41 @@ void BimaterialInterface::artificialDamageStep(double d)
 	outBehaviour->artificialDamageStep(d) ;
 }
 
+FractureCriterion * BimaterialInterface::getFractureCriterion() const
+{
+	double max = 0 ;
+	int ret = 0 ;
+
+	double inScore = 0. ;
+	FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
+	bool hasInCriterion = (inCriterion != NULL) ;
+	if(hasInCriterion)
+	{
+		max = inCriterion->getSteppedScore() ;
+		ret = 1 ;
+	}
+
+	double outScore = 0. ;
+	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
+	bool hasOutCriterion = (outCriterion != NULL) ;
+	if(hasOutCriterion)
+	{
+		outScore = outCriterion->getSteppedScore() ;
+		if(outScore > max)
+			ret = 2 ;
+	}
+		
+	switch(ret)
+	{
+	case 0:
+		return NULL ;
+	case 1:
+		return inCriterion ;
+	case 2:
+		return outCriterion ;
+	}
+	return NULL ;
+}
 
 
 
