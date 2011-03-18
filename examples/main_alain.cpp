@@ -277,7 +277,7 @@ void step()
 				epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
 			}  
 			
-			for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
+/*			for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
 			{
 				Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
 				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
@@ -285,7 +285,7 @@ void step()
 				double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l))[0] ;
 				agl = (vm0[0] <= 0 && vm0[1] <= 0)*180. ;
 				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
-			}
+			}*/
 			
 			double ar = triangles[k]->area() ;
 			for(size_t l = 0 ; l < npoints ;l++)
@@ -411,6 +411,9 @@ void step()
 
 int main(int argc, char *argv[])
 {
+	timeval t0,t1 ;
+	gettimeofday(&t0, NULL);	
+
 	Sample box(NULL, 0.04,0.04,0.,0.) ;
 	box.setBehaviour(new PasteBehaviour()) ;
 
@@ -428,9 +431,9 @@ int main(int argc, char *argv[])
 	Vector a(3) ;
 	a[0] = alpha ; a[1] = alpha ; a[2] = 0. ;
 
-	ExpansiveZone* exp1 = new ExpansiveZone(NULL, 0.001, 0.003, 0.003, m0, a) ;
-	ExpansiveZone* exp2 = new ExpansiveZone(NULL, 0.001, 0.009, 0.0025, m0, a) ;
-	ExpansiveZone* exp3 = new ExpansiveZone(NULL, 0.001, -0.005, 0.003, m0, a) ;
+	ExpansiveZone* exp1 = new ExpansiveZone(NULL, 0.0001, 0.003, 0.003, m0, a) ;
+	ExpansiveZone* exp2 = new ExpansiveZone(NULL, 0.0001, 0.009, 0.0025, m0, a) ;
+	ExpansiveZone* exp3 = new ExpansiveZone(NULL, 0.0001, -0.005, 0.003, m0, a) ;
 
 	FeatureTree F(&box) ;
 	featureTree = &F ;
@@ -440,11 +443,15 @@ int main(int argc, char *argv[])
 	F.addFeature(inc, exp3) ;	
 	F.setSamplingNumber(200) ;
 	F.setDeltaTime(0.0001) ;
-	F.setMaxIterationsPerStep(5) ;
+	F.setMaxIterationsPerStep(2000) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
 	step() ;
+
+	gettimeofday(&t1, NULL);	
+	double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
+	std::cout << delta/1e6 << std::endl ;
 	
 	TriangleWriter writer("test",featureTree) ;
 	writer.getField(TWFT_STIFFNESS) ;
