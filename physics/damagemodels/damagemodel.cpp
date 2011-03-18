@@ -121,6 +121,9 @@ namespace Mu
 				currentFactor = 0.5 ;
 			}
 		}
+		
+		for(size_t i = 0 ; i < getState().size() ; i++)
+			getState()[i] = std::min(getState()[i], 1.) ;
 	}
 	
 	DamageModel::DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)

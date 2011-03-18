@@ -132,7 +132,7 @@ double supportLever = 2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = 0.0254 ;
+double rebarDiametre = 0.0255 ;
 double rebarEndCover = 0.047 ;
 
 std::vector<DelaunayTriangle *> tris__ ;

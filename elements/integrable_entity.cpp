@@ -5233,14 +5233,14 @@ Vector ElementState::getPreviousPrincipalStresses(const Point & p, bool local ) 
 		if(parent->getBehaviour()->hasInducedForces())
 			stresses -= parent->getBehaviour()->getImposedStress(p) ;
 		Vector lprincipal(2) ;
-		lprincipal[0] = (stresses[0]+stresses[1])/2. + 
-			sqrt(
-				(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+		lprincipal[0] = .5*(stresses[0]+stresses[1]) + 
+			.5*sqrt(
+				(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
 				(stresses[2]*stresses[2])
 				) ;
-		lprincipal[1] = (stresses[0]+stresses[1])/2. - 
-			sqrt(
-				(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+		lprincipal[1] = .5*(stresses[0]+stresses[1]) - 
+			.5*sqrt(
+				(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
 				(stresses[2]*stresses[2])
 				) ;
 		
@@ -5279,14 +5279,14 @@ Vector ElementState::getPrincipalStresses(const Point & p, bool local ) const
 		if(parent->getBehaviour()->hasInducedForces())
 			stresses -= parent->getBehaviour()->getImposedStress(p) ;
 		Vector lprincipal(2) ;
-		lprincipal[0] = (stresses[0]+stresses[1])/2. + 
-			sqrt(
-				(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+		lprincipal[0] = 0.5*(stresses[0]+stresses[1]) + 
+			0.5*sqrt(
+				(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
 				(stresses[2]*stresses[2])
 				) ;
-		lprincipal[1] = (stresses[0]+stresses[1])/2. - 
-			sqrt(
-				(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+		lprincipal[1] =0.5* (stresses[0]+stresses[1]) - 
+			0.5*sqrt(
+				(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
 				(stresses[2]*stresses[2])
 				) ;
 		
@@ -5388,15 +5388,15 @@ Vector ElementState::getPrincipalStrains(const Mu::PointArray & v) const
 	for(size_t i = 0 ; i < v.size() ; i++)
 	{
 		Vector lprincipal(2) ;
-		lprincipal[0] = (strains[i*3]+strains[i*3+1])/2. +
-			sqrt(
-			      (strains[i*3]-strains[i*3+1])*(strains[i*3]-strains[i*3+1])/4. +
-			      strains[i*3+2]*strains[i*3+2]*4.
+		lprincipal[0] = .5*(strains[i*3]+strains[i*3+1]) +
+			.5*sqrt(
+			      (strains[i*3]-strains[i*3+1])*(strains[i*3]-strains[i*3+1]) +
+			      strains[i*3+2]*strains[i*3+2]
 			    ) ;
-		lprincipal[1] = (strains[i*3]+strains[i*3+1])/2. -
-			sqrt(
-			      (strains[i*3]-strains[i*3+1])*(strains[i*3]-strains[i*3+1])/4. +
-			      strains[i*3+2]*strains[i*3+2]*4.
+		lprincipal[1] = .5*(strains[i*3]+strains[i*3+1]) -
+			.5*sqrt(
+			      (strains[i*3]-strains[i*3+1])*(strains[i*3]-strains[i*3+1]) +
+			      strains[i*3+2]*strains[i*3+2]
 			    ) ;
 		principal[i*2] = lprincipal[0] ;
 		principal[i*2+1] = lprincipal[1] ;
@@ -5413,15 +5413,15 @@ Vector ElementState::getPreviousPrincipalStresses(const Mu::PointArray & v) cons
 	for(size_t i = 0 ; i < v.size() ; i++)
 	{
 		Vector lprincipal(2) ;
-		lprincipal[0] = (stresses[i*3]+stresses[i*3+1])/2. +
-			sqrt(
-			      (stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
-			      stresses[i*3+2]*stresses[i*3+2]*4.
+		lprincipal[0] = .5*(stresses[i*3]+stresses[i*3+1]) +
+			.5*sqrt(
+			      (stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1]) +
+			      stresses[i*3+2]*stresses[i*3+2]
 			    ) ;
-		lprincipal[1] = (stresses[i*3]+stresses[i*3+1])/2. -
-			sqrt(
-			      (stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
-			      stresses[i*3+2]*stresses[i*3+2]*4.
+		lprincipal[1] = .5*(stresses[i*3]+stresses[i*3+1]) -
+			.5*sqrt(
+			      (stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1]) +
+			      stresses[i*3+2]*stresses[i*3+2]
 			    ) ;
 		principal[i*2] = lprincipal[0] ;
 		principal[i*2+1] = lprincipal[1] ;
@@ -5451,15 +5451,15 @@ Vector ElementState::getPrincipalStresses(const Mu::PointArray& v, bool local) c
 		for(size_t i = 0 ; i < v.size() ; i++)
 		{
 			Vector lprincipal(2) ;
-			lprincipal[0] = (stresses[i*3]+stresses[i*3+1])/2. +
-				sqrt(
-							(stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
-							stresses[i*3+2]*stresses[i*3+2]*4.
+			lprincipal[0] = .5*(stresses[i*3]+stresses[i*3+1]) +
+				.5*sqrt(
+							(stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1]) +
+							stresses[i*3+2]*stresses[i*3+2]
 						) ;
-			lprincipal[1] = (stresses[i*3]+stresses[i*3+1])/2. -
-				sqrt(
-							(stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1])/4. +
-							stresses[i*3+2]*stresses[i*3+2]*4.
+			lprincipal[1] = .5*(stresses[i*3]+stresses[i*3+1]) -
+				.5*sqrt(
+							(stresses[i*3]-stresses[i*3+1])*(stresses[i*3]-stresses[i*3+1]) +
+							stresses[i*3+2]*stresses[i*3+2]
 						) ;
 			principal[i*2] = lprincipal[0] ;
 			principal[i*2+1] = lprincipal[1] ;

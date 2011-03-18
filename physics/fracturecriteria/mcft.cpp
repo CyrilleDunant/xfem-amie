@@ -10,6 +10,7 @@
 //
 //
 #include "mcft.h"
+#include "../damagemodels/damagemodel.h"
 #include <set>
 
 namespace Mu {
@@ -43,18 +44,25 @@ double MCFT::grade(const ElementState &s)
 		cstress = 0 ;
 	
 
-	double critStrain = -0.002 ;
+	double critStrain = -0.002 ;//-0.002
 	double renormCompressionStrain = -cstrain/critStrain ;
 	
 	double maxCompression = -std::abs(downVal)*(2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain) ;
+	
 	if(std::abs((2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain)) > 1)
 		maxCompression = -std::abs(downVal) ;
 	
 	double maxTension = upVal ;
-	if(tstrain > -critStrain)
+	if(tstrain > -critStrain )
 	{
-		maxTension = upVal/(1.+sqrt(2000000.*tstrain)) ;
-// 		maxTension = upVal/(1.+200.*tstrain) ;
+		//Yamamoto model 
+// 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
+		
+		//MCFT model 
+		maxTension = upVal/(1.+sqrt(200.*tstrain)) ;
+		
+		//perfectly brittle
+// 		maxTension = 0 ;
 	}
 
 	metInCompression = std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) ;
