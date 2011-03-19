@@ -45,11 +45,12 @@ namespace Mu
 		}
 		
 		int testRank = s.getParent()->getBehaviour()->getFractureCriterion()->getRank(20,s) ;
+		bool wasBroken = fractured() ;
 		if(s.getDeltaTime() < POINT_TOLERANCE && lastRank == 1) // we are within the two iteration (bissection and damage)
 		{
 			damageIncrement = computeDamageIncrement(s) ;
-			getState() -= previousDamageIncrement ;
 			
+			getState() -= previousDamageIncrement ;
 			if(lastRank == 1 && testRank != 1)
 			{
 				upFactor = currentFactor ;
@@ -57,8 +58,8 @@ namespace Mu
 				
 				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
-			
-				if(std::abs(currentFactor-upFactor) < damageDensityTolerance) // we have converged
+				
+				if(std::abs(currentFactor-upFactor) < damageDensityTolerance || wasBroken && fractured()) // we have converged
 				{
 					lastRank = 2 ;
 					upFactor = 1 ;
@@ -73,7 +74,7 @@ namespace Mu
 				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
 				
-				if(std::abs(currentFactor-upFactor) < damageDensityTolerance) // we have converged
+				if(std::abs(currentFactor-upFactor) < damageDensityTolerance|| wasBroken && fractured()) // we have converged
 				{
 					lastRank = 2 ;
 					upFactor = 1 ;
@@ -103,7 +104,7 @@ namespace Mu
 		{
 			getPreviousState() = getState() ;
 	
-			if(testRank == 1)
+			if(testRank == 1 && !fractured())
 			{
 				damageIncrement = computeDamageIncrement(s) ;
 				getState() += damageIncrement*.5 ;
