@@ -36,6 +36,8 @@ protected:
 	double currentFactor ;
 	int lastRank ;
 	
+	bool change ;
+	
 	Vector state ;
 	Vector previousstate ;
 public:

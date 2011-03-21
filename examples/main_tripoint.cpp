@@ -1424,7 +1424,7 @@ int main(int argc, char *argv[])
 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .25 ;
+	double mradius = .05 ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;

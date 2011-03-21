@@ -48,11 +48,12 @@ namespace Mu
 		bool wasBroken = fractured() ;
 		if(s.getDeltaTime() < POINT_TOLERANCE && lastRank == 1) // we are within the two iteration (bissection and damage)
 		{
+			change = true ;
 			damageIncrement = computeDamageIncrement(s) ;
-			
 			getState() -= previousDamageIncrement ;
-			if(lastRank == 1 && testRank != 1)
+			if(testRank != 1)
 			{
+				
 				upFactor = currentFactor ;
 				currentFactor = (upFactor + downFactor)*.5 ;
 				
@@ -61,13 +62,14 @@ namespace Mu
 				
 				if(std::abs(currentFactor-upFactor) < damageDensityTolerance || wasBroken && fractured()) // we have converged
 				{
+					change = false ;
 					lastRank = 2 ;
 					upFactor = 1 ;
 					downFactor = 0 ;
 					currentFactor = 0.5 ;
 				}
 			}
-			else if( testRank == 1)
+			else
 			{
 				downFactor = currentFactor ;
 				currentFactor = (upFactor + downFactor)*.5 ;
@@ -76,6 +78,7 @@ namespace Mu
 				
 				if(std::abs(currentFactor-upFactor) < damageDensityTolerance|| wasBroken && fractured()) // we have converged
 				{
+					change = false ;
 					lastRank = 2 ;
 					upFactor = 1 ;
 					downFactor = 0 ;
@@ -87,6 +90,7 @@ namespace Mu
 		{
 			if( testRank == 1)
 			{
+				change = true ;
 				damageIncrement = computeDamageIncrement(s) ;
 				getState() += damageIncrement*.5 ;
 				previousDamageIncrement = damageIncrement*.5 ;
@@ -97,6 +101,7 @@ namespace Mu
 			}
 			else
 			{
+				change = false ;
 				lastRank = 2 ;
 			}
 		}
@@ -106,6 +111,7 @@ namespace Mu
 	
 			if(testRank == 1 && !fractured())
 			{
+				change = true ;
 				damageIncrement = computeDamageIncrement(s) ;
 				getState() += damageIncrement*.5 ;
 				previousDamageIncrement = damageIncrement*.5 ;
@@ -116,6 +122,7 @@ namespace Mu
 			}
 			else
 			{
+				change = false ;
 				previousDamageIncrement = 0 ;
 				lastRank = 2 ;
 				upFactor = 1 ;
@@ -130,6 +137,7 @@ namespace Mu
 	
 	DamageModel::DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
 	{ 
+		change = false ;
 		isNull = true ; 
 		thresholdDamageDensity = .999999999999 ;
 		secondaryThresholdDamageDensity = .99999999999999 ;
@@ -180,6 +188,6 @@ namespace Mu
 	
 	bool DamageModel::changed() const
 	{
-		return std::abs(state-previousstate).max() > POINT_TOLERANCE ;
+		return change ;
 	}
 } ;	
