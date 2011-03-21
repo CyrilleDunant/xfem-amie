@@ -2255,7 +2255,7 @@ void FeatureTree::assemble()
 		
 		for(size_t j = 0 ; j < triangles.size() ; j++)
 		{
-			if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+			if(	triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				if(j%1000 == 0)
 					std::cerr << "\r assembling stiffness matrix... triangle " << j+1 << "/" << triangles.size() << std::flush ;
@@ -3127,6 +3127,7 @@ void FeatureTree::stepElements()
 			double volume = 0;	
 			crackedVolume = 0 ;	
 			damagedVolume = 0 ;	
+			averageDamage = 0. ;
 			//this will update the state of all elements. This is necessary as 
 			//the behaviour updates might depend on the global state of the 
 			//simulation.
@@ -3156,11 +3157,12 @@ void FeatureTree::stepElements()
 // #pragma omp parallel for
 			for(size_t i = 0 ; i < elements.size() ;i++)
 			{	
+				double are = elements[i]->area() ;
 				if(i%10000 == 0)
 					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 				{
-					volume += elements[i]->area() ;
+					volume += are ;
 					
 					elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
 					if(elements[i]->getBehaviour()->changed())
@@ -3172,24 +3174,25 @@ void FeatureTree::stepElements()
 					if(elements[i]->getBehaviour()->fractured())
 					{
 						fracturedCount++ ;
-						crackedVolume +=  elements[i]->area() ;
+						crackedVolume += are ;
+						averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
-					else if(std::abs(elements[i]->getBehaviour()->getTensor(Point(1./3.,1./3.))[0][0] - elements[i]->getBehaviour()->param[0][0]) > 1e-12*elements[i]->getBehaviour()->getTensor(Point(1./3.,1./3.))[0][0] )
+					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE)
 					{
-						damagedVolume +=  elements[i]->area() ;
+						damagedVolume += are ;
+						averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
 				}
 				else if (elements[i]->getBehaviour()->fractured())
 				{
-					crackedVolume +=  elements[i]->area() ;
+					crackedVolume +=  are ;
+					averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 				}
 				
 			}
 			std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;
 			for(size_t i = 0 ; i < elements.size() ;i++)
 				elements[i]->clearVisited() ;
-
-			
 		}
 		else if(is3D())
 		{
@@ -3202,6 +3205,7 @@ void FeatureTree::stepElements()
 			double volume = 0;	
 			crackedVolume = 0 ;	
 			damagedVolume = 0 ;	
+			averageDamage = 0 ;
 			//this will update the state of all elements. This is necessary as 
 			//the behaviour updates might depend on the global state of the 
 			//simulation.
@@ -3229,10 +3233,11 @@ void FeatureTree::stepElements()
 			{	
 				if(i%1000 == 0)
 					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
-				
+				double vol = elements[i]->volume() ;
 				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 				{
-					volume += elements[i]->volume() ;
+					
+					volume += vol ;
 					
 					elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
 					
@@ -3245,16 +3250,22 @@ void FeatureTree::stepElements()
 					if(elements[i]->getBehaviour()->fractured())
 					{
 						fracturedCount++ ;
-						crackedVolume +=  elements[i]->volume() ;
+						crackedVolume +=  vol ;
+						averageDamage += vol*elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
-					else if(std::abs(elements[i]->getBehaviour()->getTensor(Point(.25,.25,.25 ))[0][0] - elements[i]->getBehaviour()->param[0][0]) > 1e-12*elements[i]->getBehaviour()->getTensor(Point(.25,.25,.25))[0][0] )
+					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE)
 					{
-						damagedVolume +=  elements[i]->volume() ;
+						damagedVolume +=  vol ;
+						averageDamage += vol*elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
 				}
 				else if (elements[i]->getBehaviour()->fractured())
-					crackedVolume +=  elements[i]->volume() ;
+				{
+					crackedVolume += vol ;
+					averageDamage += vol*elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
+				}
 			}
+			averageDamage /= volume ;
 			std::cerr << " ...done" << std::endl ;
 			for(size_t i = 0 ; i < elements.size() ;i++)
 				elements[i]->clearVisited() ;
@@ -3548,17 +3559,24 @@ bool FeatureTree::step()
 	state.setStateTo(XFEM_STEPPED, true ) ;
 	
 	std::cout << it<<"/" << maxitPerStep << "." << std::flush ;
-	while((behaviourChanged()||!solverConverged()) && ++it < maxitPerStep && !(!solverConverged() && !reuseDisplacements))
+	
+	int notConvergedCounts = 0 ;
+	while((behaviourChanged()||!solverConverged()) && ++it < maxitPerStep && !(!solverConverged() && !reuseDisplacements) && notConvergedCounts < 4)
 	{
 		deltaTime = 0 ;
 		if(solverConverged())
 			std::cout << "." << std::flush ;
 		else
+		{
+			notConvergedCounts++ ;
 			std::cout << "+" << std::flush ;
+		}
 		if(it %100 == 0)
 			std::cout  << std::endl ;
 		if(it % 20 == 0)
-			std::cout  << it << std::flush ;
+		{
+			std::cout  << "["<< averageDamage<< "]"<<std::flush ;
+		}
 
 		if(enrichmentChange || needMeshing)
 		{
@@ -3576,7 +3594,7 @@ bool FeatureTree::step()
 	}
 	std::cout  << std::endl ;
 	deltaTime = realdt ;
-	return solverConverged() && !behaviourChanged() && (++it < maxitPerStep);
+	return solverConverged() && !behaviourChanged() && (++it < maxitPerStep) && (notConvergedCounts < 4);
 	
 }
 

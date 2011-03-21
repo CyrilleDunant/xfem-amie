@@ -45,7 +45,7 @@ Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m) const
 	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0. ;
+		return ret*1e-6 ;
 	return ret*(1.-state[0]) ;
 }
 
@@ -55,7 +55,7 @@ Matrix StrainBrokenIsotropicLinearDamage::applyPrevious(const Matrix & m) const
 	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0. ;
+		return ret*1e-6 ;
 	return ret*(1.-previousstate[0]) ;
 }
 

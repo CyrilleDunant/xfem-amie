@@ -1,6 +1,7 @@
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010
 
 #include "boundarycondition.h"
+#include "../physics/damagemodels/damagemodel.h"
 
 using namespace Mu ;
 
@@ -909,6 +910,9 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle,
 	
 	for(size_t i = 0 ; i < elements.size() ; i++)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+			continue ;
+		
 		for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
 		{
 			Point test(elements[i]->getBoundingPoint(j)) ;
@@ -941,6 +945,9 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 	
 	for(size_t i = 0 ; i < elements.size() ; i++)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+			continue ;
+			
 		for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
 		{
 			Point test(elements[i]->getBoundingPoint(j)) ;
@@ -976,8 +983,12 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 	double maxy = elements.front()->getBoundingPoint(0).y ; 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+			continue ;
+		
 		if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
+			
 			for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 			{
 				if(elements[i]->getBoundingPoint(j).x < minx)
@@ -999,6 +1010,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol )
@@ -1019,6 +1032,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol)
@@ -1039,6 +1054,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -1059,6 +1076,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol)
@@ -1079,6 +1098,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -1099,6 +1120,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -1119,6 +1142,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -1139,6 +1164,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -1178,6 +1205,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 	double maxz = elements.front()->getBoundingPoint(0).z ; 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 		{
 			if(elements[i]->getBoundingPoint(j).x < minx)
@@ -1203,6 +1232,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
+				
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -1223,6 +1255,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol)
@@ -1243,6 +1277,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -1263,6 +1299,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol)
@@ -1283,6 +1321,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
@@ -1303,6 +1343,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
@@ -1323,6 +1365,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -1343,6 +1387,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -1363,6 +1409,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -1383,6 +1431,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -1403,6 +1453,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
@@ -1423,6 +1475,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
@@ -1440,6 +1494,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
@@ -1460,6 +1516,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).z-minz) < tol)
@@ -1480,6 +1538,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
@@ -1497,6 +1557,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol && std::abs(elements[i]->getBoundingPoint(j).z-maxz) < tol)
@@ -1517,6 +1579,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
@@ -1539,6 +1603,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
@@ -1561,6 +1627,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
@@ -1583,6 +1651,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol 
@@ -1605,6 +1675,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
@@ -1627,6 +1699,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
@@ -1649,6 +1723,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
@@ -1671,6 +1747,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol 
@@ -1707,6 +1785,8 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle
 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+				continue ;
 		std::vector<Point> id  ;
 		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 		{
@@ -1730,6 +1810,8 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+			continue ;
 		std::vector<Point> id  ;
 		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 		{
@@ -1759,6 +1841,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 	double maxy = elements.front()->getBoundingPoint(0).y ; 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+			continue ;
 		if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
 			for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
@@ -1782,6 +1866,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -1806,6 +1892,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -1830,6 +1918,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -1854,6 +1944,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -1878,6 +1970,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -1902,6 +1996,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -1926,6 +2022,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -1951,6 +2049,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
 				std::vector<Point> id  ;
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
 					if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol
@@ -1993,6 +2093,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 		double maxy = elements.front()->getBoundingPoint(0).y ; 
 		for(size_t i = 0 ; i < elements.size() ; ++i)
 		{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
@@ -2017,6 +2119,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -2043,6 +2147,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol)
@@ -2069,6 +2175,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -2095,6 +2203,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol)
@@ -2121,6 +2231,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -2147,6 +2259,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -2173,6 +2287,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).x-minx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -2199,6 +2315,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).x-maxx) < tol && std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol)
@@ -2249,6 +2367,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 	double maxz = elements.front()->getBoundingPoint(0).z ; 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
+		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+			continue ;
 		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 		{
 			if(elements[i]->getBoundingPoint(j).x < minx)
@@ -2276,6 +2396,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2310,6 +2432,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2344,6 +2468,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2378,6 +2504,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2412,6 +2540,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2446,6 +2576,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2480,6 +2612,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2514,6 +2648,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2548,6 +2684,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2582,6 +2720,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2616,6 +2756,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2650,6 +2792,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2684,6 +2828,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2718,6 +2864,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2752,6 +2900,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2786,6 +2936,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2820,6 +2972,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2856,6 +3010,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2892,6 +3048,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2928,6 +3086,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -2964,6 +3124,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -3000,6 +3162,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -3036,6 +3200,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -3072,6 +3238,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					std::vector<Point> id  ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
@@ -3134,6 +3302,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 	double maxz = elements.front()->getBoundingPoint(0).z ; 
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 		for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 		{
 			if(elements[i]->getBoundingPoint(j).x < minx)
@@ -3159,6 +3329,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3178,6 +3350,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3197,6 +3371,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3216,6 +3392,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3235,6 +3413,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3254,6 +3434,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3273,6 +3455,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3292,6 +3476,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3311,6 +3497,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3330,6 +3518,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3349,6 +3539,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3368,6 +3560,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3387,6 +3581,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3406,6 +3602,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3425,6 +3623,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3444,6 +3644,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3463,6 +3665,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3484,6 +3688,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3505,6 +3711,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3526,6 +3734,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3547,6 +3757,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3568,6 +3780,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3589,6 +3803,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{
@@ -3610,6 +3826,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 		{
 			for(size_t i = 0 ; i < elements.size() ; ++i)
 			{
+				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+					continue ;
 				std::vector<Point> id  ;
 				for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 				{

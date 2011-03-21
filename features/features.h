@@ -340,6 +340,7 @@ public:
 	double residualError ;
 	double crackedVolume ;
 	double damagedVolume ;
+	double averageDamage;
 	bool useMultigrid;
 	
 public:
@@ -518,6 +519,7 @@ public:
 	bool is2D() const ;
 
 	std::vector<DelaunayTriangle> getSnapshot2D() const ;
+
 
 } ;
 

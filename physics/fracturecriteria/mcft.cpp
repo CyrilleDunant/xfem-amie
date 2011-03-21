@@ -30,18 +30,18 @@ double MCFT::grade(const ElementState &s)
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	Vector pstress = s.getPrincipalStresses(s.getParent()->getCenter()) ;
 
-	double tstrain = pstrain.max();
-	double cstrain = pstrain.min();
-	double tstress = pstress.max();
-	double cstress = pstress.min();
-	if(tstrain < 0)
-		tstrain = 0 ;
-	if(cstrain > 0)
-		cstrain = 0 ;
-	if(tstress < 0)
-		tstress = 0 ;
-	if(cstress > 0)
-		cstress = 0 ;
+	double tstrain = pstrain[0];
+	double cstrain = pstrain[pstrain.size()-1];
+	double tstress = pstress[0];
+	double cstress = pstress[pstrain.size()-1];
+// 	if(tstrain < 0)
+// 		tstrain = 0 ;
+// 	if(cstrain > 0)
+// 		cstrain = 0 ;
+// 	if(tstress < 0)
+// 		tstress = 0 ;
+// 	if(cstress > 0)
+// 		cstress = 0 ;
 	
 
 	double critStrain = -0.002 ;//-0.002
@@ -59,7 +59,7 @@ double MCFT::grade(const ElementState &s)
 // 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
 		
 		//MCFT model 
-		maxTension = upVal/(1.+sqrt(200.*tstrain)) ;
+		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
 		
 		//perfectly brittle
 // 		maxTension = 0 ;

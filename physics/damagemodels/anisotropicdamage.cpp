@@ -86,7 +86,7 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 	Matrix ret(m) ;
 	
 	if(fractured())
-		return m*0.;
+		return m*1e-6;
 
 	if(inTension)
 	{
@@ -177,7 +177,7 @@ Matrix AnisotropicLinearDamage::applyPrevious(const Matrix & m) const
 	Matrix ret(m) ;
 	
 	if(fractured())
-		return m*0.;
+		return m*1e-6;
 
 	if(inTension)
 	{
@@ -255,7 +255,7 @@ Matrix AnisotropicLinearDamage::applyPrevious(const Matrix & m) const
 	if(inCompression)
 	{
 		if(getPreviousState()[0] >= thresholdDamageDensity/fraction)
-			return m*0. ;
+			return m*1e-6 ;
 		
 		return m*(1.-getPreviousState()[0]) ;
 	}
