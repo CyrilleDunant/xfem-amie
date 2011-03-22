@@ -78,13 +78,17 @@ protected:
 	int fracup ; 
 	int fracdown ;
 	
+	int scale ;
+	
 public slots:
 	void setSegmentDown(int) ;
 	void setSegmentUp(int) ;
+	void setScale(int) ;
 	
 signals:
 	void segmentUpChanged(int) ;
 	void segmentDownChanged(int) ;
+	void scaleChanged(int) ;
 	
 protected:
 	std::vector< std::valarray<float> > * valuesAtPoint ;

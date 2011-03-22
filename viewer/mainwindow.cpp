@@ -159,6 +159,9 @@ void MainWindow::open()
 			connect(alpha, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSet(int)));
 			connect(triangledisplay, SIGNAL(setChanged(int)), alpha, SLOT(setValue(int)));
 			
+			connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
+			connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
+			
 			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
 			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
 			
@@ -171,6 +174,9 @@ void MainWindow::open()
 			alpha->setValue(0) ;
 			downSlider->setRange(0, 9999);
 			downSlider->setValue(0) ;
+			
+			field->setValue(1) ;
+			field->setRange(0, 100);
 
 			upSlider->setRange(1, 10000);
 			upSlider->setValue(10000) ;
@@ -223,6 +229,12 @@ void MainWindow::open(const QString &fileName)
 			connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
 			connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
 			
+			connect(alpha, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSet(int)));
+			connect(triangledisplay, SIGNAL(setChanged(int)), alpha, SLOT(setValue(int)));
+			
+			connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
+			connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
+			
 			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
 			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
 			
@@ -231,6 +243,9 @@ void MainWindow::open(const QString &fileName)
 			
 			downSlider->setRange(0, 9999);
 			downSlider->setValue(0) ;
+			
+			field->setValue(1) ;
+			field->setRange(0, 100);
 
 			upSlider->setRange(1, 10000);
 			upSlider->setValue(10000) ;

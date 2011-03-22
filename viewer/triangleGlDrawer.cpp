@@ -336,7 +336,7 @@ void TriangleGLDrawer::grab()
 		 double mindelta = std::min(max_x-min_x, max_y-min_y)/0.8 ;
 		 double cx = 0.7 ;
 		 double cy = 0.7 ;
-		 double mag = 20 ;
+		 double mag = scale ;
 		 if(max_x-min_x > max_y-min_y)
 			 cy = 0.7*mindelta/maxdelta ;
 		 else
@@ -382,6 +382,15 @@ void TriangleGLDrawer::setSegmentDown(int v){
 	paintGL() ;
 	emit segmentDownChanged(v) ;
 	
+}
+
+void TriangleGLDrawer::setScale(int v){
+	if( v < 0)
+		v = 0 ;
+	scale = v ;
+	computeDisplayList() ;
+	paintGL() ;
+	emit scaleChanged(v) ;
 }
 
 void TriangleGLDrawer::setSegmentUp(int v){
@@ -465,6 +474,8 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 	openFile(f) ;
 	fracup = 10000; 
 	fracdown = 0;
+	
+	scale = 1 ;
 
 }
 
@@ -492,6 +503,7 @@ TriangleGLDrawer::TriangleGLDrawer(QWidget *parent) : QGLWidget(parent) {
 	fracup = 10000; 
 	fracdown = 0;
 	
+	scale = 1 ;
 }
 
 TriangleGLDrawer::~TriangleGLDrawer()  {
