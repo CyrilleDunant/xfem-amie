@@ -176,7 +176,7 @@ void MainWindow::open()
 			downSlider->setValue(0) ;
 			
 			field->setValue(1) ;
-			field->setRange(0, 100);
+			field->setRange(0, 1000);
 
 			upSlider->setRange(1, 10000);
 			upSlider->setValue(10000) ;
@@ -245,7 +245,7 @@ void MainWindow::open(const QString &fileName)
 			downSlider->setValue(0) ;
 			
 			field->setValue(1) ;
-			field->setRange(0, 100);
+			field->setRange(0, 1000);
 
 			upSlider->setRange(1, 10000);
 			upSlider->setValue(10000) ;

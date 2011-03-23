@@ -260,7 +260,6 @@ void step()
 		go_on = featureTree->step() ;
 		if(go_on)
 			load->setData(load->getData()-1e5) ;
-
 		
 		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
@@ -481,7 +480,7 @@ void step()
 		}
 		ldfile.close();
 		
-		if(v%5 == 0)
+		if(v%5 == 0 || !go_on)
 		{
 			std::stringstream filename ;
 			if(dit >= dsteps)
@@ -502,6 +501,9 @@ void step()
 			writer.getField(TWFT_DAMAGE) ;
 			writer.write() ;
 		}
+		
+		if(!go_on)
+			break ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	
 	}
@@ -1421,7 +1423,8 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
+	double tensionCrit = 1.6e6 ;
+// 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
 	double mradius = .05 ;

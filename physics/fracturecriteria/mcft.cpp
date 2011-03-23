@@ -49,8 +49,8 @@ double MCFT::grade(const ElementState &s)
 	
 	double maxCompression = -std::abs(downVal)*(2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain) ;
 	
-	if(std::abs((2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain)) > 1)
-		maxCompression = -std::abs(downVal) ;
+// 	if(std::abs((2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain)) > 1)
+// 		maxCompression = -std::abs(downVal) ;
 	
 	double maxTension = upVal ;
 	if(tstrain > -critStrain )

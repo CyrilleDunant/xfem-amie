@@ -10,7 +10,7 @@ using namespace Mu ;
 AggregateBehaviour::AggregateBehaviour(double E, double nu, double tensile, SpaceDimensionality dim) : WeibullDistributedStiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim), -8*tensile,tensile)
 {
 	materialRadius = 0.0005 ;
-	neighbourhoodRadius = 0.002 ;
+	neighbourhoodRadius = 0.001 ;
 }
 
 Form * AggregateBehaviour::getCopy() const 

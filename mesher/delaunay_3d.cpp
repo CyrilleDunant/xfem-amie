@@ -2860,17 +2860,16 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		{
 			tri = dt->getTetrahedrons(false) ;
 			std::vector<Point> newPoints ;
-			std::vector<double> radii ;
 			for(size_t j = 0 ; j < tri.size() ; j++)
 			{
 				if(f.in(tri[j]->getCenter()))
 				{
-					newPoints.push_back((*tri[j]->first  + *tri[j]->second )/2); radii.push_back(tri[j]->getRadius());
-					newPoints.push_back((*tri[j]->first  + *tri[j]->fourth )/2); radii.push_back(tri[j]->getRadius());
-					newPoints.push_back((*tri[j]->first  + *tri[j]->third  )/2); radii.push_back(tri[j]->getRadius());
-					newPoints.push_back((*tri[j]->second + *tri[j]->third  )/2); radii.push_back(tri[j]->getRadius());
-					newPoints.push_back((*tri[j]->second + *tri[j]->fourth )/2); radii.push_back(tri[j]->getRadius());
-					newPoints.push_back((*tri[j]->third  + *tri[j]->fourth )/2); radii.push_back(tri[j]->getRadius());
+					newPoints.push_back((*tri[j]->first  + *tri[j]->second )/2);
+					newPoints.push_back((*tri[j]->first  + *tri[j]->fourth )/2);
+					newPoints.push_back((*tri[j]->first  + *tri[j]->third  )/2); 
+					newPoints.push_back((*tri[j]->second + *tri[j]->third  )/2); 
+					newPoints.push_back((*tri[j]->second + *tri[j]->fourth )/2); 
+					newPoints.push_back((*tri[j]->third  + *tri[j]->fourth )/2); 
 					for(size_t l = 0 ; l < enrichmentSource.size() ; l++)
 					{
 						Tetrahedron globaltet(
@@ -2952,7 +2951,6 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 								squareDist3D(localPoint , tri[j]->getBoundingPoint(3)) < 0.0001 )
 							{
 								newPoints.push_back(localPoint) ;
-								radii.push_back(tri[j]->getRadius());
 							}
 						}
 					}
@@ -2960,7 +2958,6 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 // 				newPoints.push_back((*tri[j]->second + *tri[j]->third + *tri[j]->fourth+*tri[j]->first)/4);
 			}
 			std::vector<Point> uniquePoints ;
-			std::vector<double> uniqueRadii ;
 			uniquePoints.push_back(newPoints.front());
 			for(size_t j = 1 ; j < newPoints.size() ; j++)
 			{
@@ -2977,7 +2974,6 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				if(unique)
 				{
 					uniquePoints.push_back(newPoints[j]);
-					uniqueRadii.push_back(radii[j]);
 				}
 			}
 // 			for(size_t k = 0 ; k < uniquePoints.size() ; k++)

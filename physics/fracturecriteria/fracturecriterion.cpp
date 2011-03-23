@@ -710,6 +710,9 @@ int FractureCriterion::getRank(int fractiles, const ElementState &s) const
 		std::stable_sort(&scores[0], &scores[scores.size()]);
 		double stateScore = testedTri->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 		int fractileCount = 1 ;
+		if(scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
+			return fractileCount ;
+		
 		while(fractileCount < fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
 		{
 			fractileCount++ ;
@@ -731,7 +734,7 @@ int FractureCriterion::getRank(int fractiles, const ElementState &s) const
 		std::stable_sort(&scores[0], &scores[scores.size()]);
 		double stateScore = testedTri->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 		int fractileCount = 1 ;
-		while(fractileCount<fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
+		while(fractileCount < fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
 		{
 			fractileCount++ ;
 		}
@@ -767,7 +770,7 @@ int FractureCriterion::getRank(int fractiles, const ElementState &s) const
 		std::stable_sort(scores.begin(), scores.end());
 		double stateScore = testedTri->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
 		int fractileCount = 1 ;
-		while(fractileCount<fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
+		while(fractileCount < fractiles  &&  scores[(fractiles-fractileCount)*scores.size()/fractiles] >= stateScore)
 		{
 			fractileCount++ ;
 		}
@@ -881,7 +884,6 @@ bool FractureCriterion::met(const ElementState &s)
 		
 		if (scoreAtState < 0)
 			return false ;
-
 		double maxNeighbourhoodScore = 0 ;
 		double matchedArea = 0 ;
 		std::map<double, DelaunayTriangle *> scores ;
@@ -895,12 +897,12 @@ bool FractureCriterion::met(const ElementState &s)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 
-				if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->type != VOID_BEHAVIOUR)
-					areamax += area[i] ;
+				areamax += area[i] ;
 
 				double s = 0. ;
-				if(ci->getBehaviour()->getFractureCriterion() != NULL)
+				if(ci->getBehaviour()->getFractureCriterion() != NULL && !ci->getBehaviour()->fractured())
 					s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+
 				scores[-s] =  ci;
 				unsortedScores.push_back(s);
 				if(s > maxNeighbourhoodScore)
@@ -913,19 +915,20 @@ bool FractureCriterion::met(const ElementState &s)
 			}
 		}
 		
-		if(!maxLocus)
+		if(maxLocus == NULL|| maxNeighbourhoodScore < 0)
+		{
 			return false ;
+		}
 		
-// 		std::vector<DelaunayTriangle *> maxloci ;
 		bool nearmaxlocus = false;
 		
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
+			
 
-			if(ci->getBehaviour()->getFractureCriterion() != NULL && maxNeighbourhoodScore-ci->getBehaviour()->getFractureCriterion()->getSteppedScore() < tol)
+			if(ci->getBehaviour()->getFractureCriterion() && (ci->getBehaviour()->getFractureCriterion()->getSteppedScore() >= maxNeighbourhoodScore-tol || ci->getBehaviour()->getDamageModel()->fractured()))
 			{
-// 					maxloci.push_back(cache[i]) ;
 				if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
 				{
 					nearmaxlocus = true ;
@@ -989,10 +992,13 @@ bool FractureCriterion::met(const ElementState &s)
 		}
 		
 		if (!foundcutoff && areamax > s.getParent()->area())
+		{
 			return false ;
+		}
 		if (nearmaxlocus)
+		{
 			return true ;
-		
+		}
 		return false ;
 
 	}

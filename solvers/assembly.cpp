@@ -481,7 +481,7 @@ void Assembly::initialiseElementaryMatrices()
 	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
 		std::random_shuffle(element2d.begin(), element2d.end());
- 		#pragma omp parallel for 
+//  		#pragma omp parallel for 
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			element2d[i]->getElementaryMatrix() ;
@@ -489,7 +489,7 @@ void Assembly::initialiseElementaryMatrices()
 	}
 	if(dim == SPACE_THREE_DIMENSIONAL)
 	{
-// 			#pragma omp parallel for 
+			#pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			element3d[i]->getElementaryMatrix() ;
@@ -1182,7 +1182,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 // 		exit(0) ;
 
 		ConjugateGradientWithSecant cg(this) ;
-		ret = cg.solve(x0, NULL, 5e-9, -1, verbose) ;
+		ret = cg.solve(x0, NULL, 5e-10, -1, verbose) ;
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

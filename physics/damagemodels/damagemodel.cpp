@@ -44,8 +44,7 @@ namespace Mu
 			fraction = std::min(fraction, 1.) ;
 		}
 		
-		int testRank = s.getParent()->getBehaviour()->getFractureCriterion()->getRank(20,s) ;
-		bool wasBroken = fractured() ;
+		int testRank = s.getParent()->getBehaviour()->getFractureCriterion()->getRank(200,s) ;
 		if(s.getDeltaTime() < POINT_TOLERANCE && lastRank == 1) // we are within the two iteration (bissection and damage)
 		{
 			change = true ;
@@ -55,13 +54,15 @@ namespace Mu
 			{
 				
 				upFactor = currentFactor ;
-				currentFactor = (upFactor + downFactor)*.5 ;
+				currentFactor = downFactor ;
 				
 				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
 				
-				if(std::abs(currentFactor-upFactor) < damageDensityTolerance || wasBroken && fractured()) // we have converged
+				if(std::abs(currentFactor-upFactor) < damageDensityTolerance || (wasBroken && fractured())) // we have converged
 				{
+					if(fractured())
+						wasBroken = true ;
 					change = false ;
 					lastRank = 2 ;
 					upFactor = 1 ;
@@ -71,29 +72,33 @@ namespace Mu
 			}
 			else
 			{
-				downFactor = currentFactor ;
+				if(currentFactor < 1)
+					downFactor = currentFactor ;
+					
 				currentFactor = (upFactor + downFactor)*.5 ;
 				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
 				
 				if(std::abs(currentFactor-upFactor) < damageDensityTolerance|| wasBroken && fractured()) // we have converged
 				{
+					if(fractured())
+						wasBroken = true ;
 					change = false ;
 					lastRank = 2 ;
 					upFactor = 1 ;
 					downFactor = 0 ;
-					currentFactor = 0.5 ;
+					currentFactor = 1 ;
 				}
 			}
 		}
-		else if (s.getDeltaTime() < POINT_TOLERANCE && lastRank != 1) // we are within the damage iteration
+		else if (s.getDeltaTime() < POINT_TOLERANCE && lastRank != 1) // we can enter the damage iteration
 		{
 			if( testRank == 1)
 			{
 				change = true ;
-				damageIncrement = computeDamageIncrement(s) ;
+				damageIncrement = 0 ;
 				getState() += damageIncrement*.5 ;
-				previousDamageIncrement = damageIncrement*.5 ;
+				previousDamageIncrement = 0 ;
 				lastRank = 1 ;
 				upFactor = 1 ;
 				downFactor = 0 ;
@@ -108,7 +113,9 @@ namespace Mu
 		else if(s.getDeltaTime() > POINT_TOLERANCE)
 		{
 			getPreviousState() = getState() ;
-	
+			if(fractured())
+				wasBroken = true ;
+			
 			if(testRank == 1 && !fractured())
 			{
 				change = true ;
@@ -137,6 +144,7 @@ namespace Mu
 	
 	DamageModel::DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
 	{ 
+		wasBroken = false ;
 		change = false ;
 		isNull = true ; 
 		thresholdDamageDensity = .999999999999 ;

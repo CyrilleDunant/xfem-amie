@@ -37,6 +37,7 @@ protected:
 	int lastRank ;
 	
 	bool change ;
+	bool wasBroken ;
 	
 	Vector state ;
 	Vector previousstate ;

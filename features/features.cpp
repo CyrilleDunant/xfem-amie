@@ -3236,7 +3236,6 @@ void FeatureTree::stepElements()
 				double vol = elements[i]->volume() ;
 				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 				{
-					
 					volume += vol ;
 					
 					elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
