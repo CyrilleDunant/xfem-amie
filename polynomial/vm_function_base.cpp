@@ -1630,8 +1630,41 @@ bool Function::isBinaryOperator(const Token * t) const
 	         t->type.first.first == TOKEN_MINUS || 
 	         t->type.first.first == TOKEN_TIMES || 
 	         t->type.first.first == TOKEN_DIVIDES || 
-	         t->type.first.first == TOKEN_POWER || 
+	         t->type.first.first == TOKEN_POWER ||
+	         t->type.first.first == TOKEN_DOMAIN ||
+	         t->type.first.first == TOKEN_POSITION_OPERATOR ||
+	         t->type.first.first == TOKEN_CURVILINEAR_X_OPERATOR ||
+	         t->type.first.first == TOKEN_CURVILINEAR_Y_OPERATOR ||
+	         t->type.first.first == TOKEN_POINT_DISTANCE_OPERATOR ||
+	         t->type.first.first == TOKEN_ANGLE_OPERATOR ||
+	         t->type.first.first == TOKEN_POINT_SQUARE_DISTANCE_OPERATOR ||
+	         t->type.first.first == TOKEN_PROJECTION_OPERATOR ||
+	         t->type.first.first == TOKEN_BINARY_FUNCTION ||
+	         t->type.first.first == TOKEN_INTERPOLATE ||
+	         t->type.first.first == TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_2D ||
+	         t->type.first.first == TOKEN_MULTIPLE_INTERPOLATE_FROM_BOTTOM_2D ||
 	         t->type.first.first == TOKEN_ATAN2) ;
+}
+
+bool Function::isBinaryVectorisableOperator(const Token * t) const
+{
+	return ( t->type.first.first == TOKEN_PLUS || 
+	         t->type.first.first == TOKEN_MINUS || 
+	         t->type.first.first == TOKEN_TIMES || 
+	         t->type.first.first == TOKEN_DIVIDES || 
+	         t->type.first.first == TOKEN_POWER ) ;
+}
+
+bool Function::isTrinaryOperator(const Token * t) const
+{
+	return ( t->type.first.first == TOKEN_POINT_DISTANCE_TRI_OPERATOR ||
+	t->type.first.first == TOKEN_MULTIPLE_INTERPOLATE_FROM_TOP_3D
+	) ;
+}
+
+bool Function::isTrinaryVectorisableOperator(const Token * t) const
+{
+	return false ;
 }
 
 bool Function::isUnaryOperator(const Token * t) const
@@ -1680,8 +1713,7 @@ void Function::compile()
 			{
 				subexpressionEnd++ ;
 				
-				if(isBinaryOperator(bytecode[subexpressionStart]) && 
-					bytecode[subexpressionStart]->type.first.first != TOKEN_ATAN2)
+				if(isBinaryVectorisableOperator(bytecode[subexpressionStart]))
 					foundBinOp = true ;
 				else
 					subexpressionStart++ ;
@@ -2094,6 +2126,7 @@ void Function::compile()
 	while(true)
 	{
 		bool foundBinOp = false ;
+		bool foundTriOp = false ;
 		bool foundUnOp = false ;
 		int subexpressionEnd = precalculatedEnd+1;
 		int subexpressionStart = precalculatedEnd+1 ;
@@ -2101,8 +2134,9 @@ void Function::compile()
 		while((!foundBinOp && !foundUnOp) && subexpressionStart < byteCodeSize-2)
 		{
 			subexpressionEnd++ ;
-			
-			if(isBinaryOperator(bytecode[subexpressionStart]))
+			if(isTrinaryVectorisableOperator(bytecode[subexpressionStart]))
+				foundTriOp = true ;
+			else if(isBinaryVectorisableOperator(bytecode[subexpressionStart]))
 				foundBinOp = true ;
 			else if(isUnaryOperator(bytecode[subexpressionStart]))
 				foundUnOp = true ;
@@ -2113,6 +2147,10 @@ void Function::compile()
 		if(foundBinOp && subexpressionEnd < byteCodeSize-1)
 		{
 			subexpressionStart = subexpressionEnd-3 ;
+		}
+		else if(foundTriOp && subexpressionEnd < byteCodeSize-1)
+		{
+			subexpressionStart = subexpressionEnd-4 ;
 		}
 		else if(foundUnOp&& subexpressionEnd < byteCodeSize-1)
 		{
@@ -2167,6 +2205,7 @@ void Function::compile()
 		{
 			adresses.push_back(lastAddress) ;
 			subexpressions.push_back(subexpression) ;
+			std::cout << "push_back " << lastAddress << std::endl ;
 		}
 		
 		lastAddress++ ;
@@ -2180,21 +2219,27 @@ void Function::compile()
 		for(int i = adresses.size()-1 ; i >=0 ; i--)
 		{
 			TokenType sin(std::make_pair(TOKEN_READ_VARIABLE,adresses[i]), (double)(0)) ;
-			TokenType sout(std::make_pair(TOKEN_WRITE_VARIABLE,adresses[i]), (double)(0)) ;	
+			TokenType sout(std::make_pair(TOKEN_WRITE_VARIABLE,adresses[i]), (double)(0)) ;
 			size_t subsize = subexpressions[i].size() ;
-
-			for(auto j = bytecode.begin() ; j != bytecode.end() ; ++j)
+			bool found  = true ;
+			while(found)
 			{
-				if((*j)->type == sout)
+				found = false ;
+				for(auto j = bytecode.begin() ; j != bytecode.end() ; ++j)
 				{
-					bytecode.erase(j-subsize, j+1) ;
-					j = j - subsize;
-				}
-				if((*j)->type == sin)
-				{
-					bytecode.erase(j) ;
-					bytecode.insert(j,subexpressions[i].begin(), subexpressions[i].end() ) ;
-					j = j + subsize ;
+					if((*j)->type == sout)
+					{
+						found = true ;
+						bytecode.erase(j-subsize, j+1) ;
+						j = j - subsize;
+					}
+					if((*j)->type == sin)
+					{
+						found = true ;
+						bytecode.erase(j) ;
+						bytecode.insert(j,subexpressions[i].begin(), subexpressions[i].end() ) ;
+						j = j + subsize ;
+					}
 				}
 			}
 		}
@@ -2211,8 +2256,7 @@ void Function::compile()
 		{
 			subexpressionEnd++ ;
 			
-			if(isBinaryOperator(bytecode[subexpressionStart]) && 
-			   bytecode[subexpressionStart]->type.first.first != TOKEN_ATAN2)
+			if(isBinaryVectorisableOperator(bytecode[subexpressionStart]) )
 				foundBinOp = true ;
 			else
 				subexpressionStart++ ;

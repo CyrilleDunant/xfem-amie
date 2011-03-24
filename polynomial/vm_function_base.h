@@ -82,6 +82,12 @@ protected:
 	bool isBinaryOperator(const Token * t) const ;
 
 	bool isUnaryOperator(const Token * t) const ;
+	
+	bool isBinaryVectorisableOperator(const Token * t) const ;
+	
+	bool isTrinaryVectorisableOperator(const Token * t) const ;
+
+	bool isTrinaryOperator(const Token * t) const ;
 
 	std::map<int, Vector *> precalc ;
 	std::map<int, std::map<Variable, Vector *> > dprecalc ;
