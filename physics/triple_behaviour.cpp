@@ -236,8 +236,14 @@ std::vector<BoundaryCondition * > TrimaterialInterface::getBoundaryConditions(co
 void TrimaterialInterface::step(double timestep, ElementState & currentState)
 {
 	inBehaviour->step(timestep, currentState) ;
+	if(inBehaviour->getFractureCriterion())
+		inBehaviour->getFractureCriterion()->step(currentState);
 	midBehaviour->step(timestep, currentState) ;
+	if(midBehaviour->getFractureCriterion())
+		midBehaviour->getFractureCriterion()->step(currentState);
 	outBehaviour->step(timestep, currentState) ;
+	if(outBehaviour->getFractureCriterion())
+		outBehaviour->getFractureCriterion()->step(currentState);
 }
 
 void TrimaterialInterface::artificialDamageStep(double d)
@@ -249,13 +255,12 @@ void TrimaterialInterface::artificialDamageStep(double d)
 
 FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 {
-	double max = 0 ;
+	double max = -1 ;
 	int ret = 0 ;
 
 	double inScore = 0. ;
 	FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
-	bool hasInCriterion = (inCriterion != NULL) ;
-	if(hasInCriterion)
+	if(inCriterion)
 	{
 		max = inCriterion->getSteppedScore() ;
 		ret = 1 ;
@@ -263,11 +268,10 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 
 	double midScore = 0. ;
 	FractureCriterion * midCriterion = midBehaviour->getFractureCriterion() ;
-	bool hasMidCriterion = (midCriterion != NULL) ;
-	if(hasMidCriterion)
+	if(midCriterion)
 	{
 		midScore = midCriterion->getSteppedScore() ;
-		if(midScore > max)
+		if(midScore > max || inCriterion == NULL)
 		{
 			max = midScore ;
 			ret = 2 ;
@@ -276,11 +280,10 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	
 	double outScore = 0. ;
 	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
-	bool hasOutCriterion = (outCriterion != NULL) ;
-	if(hasOutCriterion)
+	if(outCriterion)
 	{
 		outScore = outCriterion->getSteppedScore() ;
-		if(outScore > max)
+		if(outScore > max || (inCriterion == NULL && midCriterion == NULL))
 			ret = 3 ;
 	}
 		

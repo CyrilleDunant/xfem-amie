@@ -250,11 +250,14 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 // 		)
 // 			continue ;
 		
-		for(double j = 0.1 ; j < 0.9 ; j += 0.1)
+		if(inter.size() == 2)
 		{
-			Point h0 = inter[0]*j+inter[1]*(1.-j) ;
-			project(&h0);
-			hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
+			for(double j = 0.1 ; j < 0.9 ; j += 0.1)
+			{
+				Point h0 = inter[0]*j+inter[1]*(1.-j) ;
+				project(&h0);
+				hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
+			}
 		}
 		
 		hint.push_back(ring[i]->inLocalCoordinates(inter[0])) ;
