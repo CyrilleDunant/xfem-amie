@@ -330,6 +330,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
 						Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y)) ;
+						std::cout << VirtualMachine().eval(f,  1./3., 1./3.) << std::endl;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;

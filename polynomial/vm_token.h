@@ -243,7 +243,7 @@ struct Memory
 	void reset()
 	{
 		top_pos = &stack[0] ;
-		prev_top_pos =  top_pos-1 ;
+		prev_top_pos = &stack[0]-1 ;
 // 		for(std::map<std::string, double *>::iterator i = variables.begin(); i!= variables.end() ; i++)
 // 			*i->second = 0 ;
 	}
@@ -770,10 +770,10 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double x = *context.memory.top_pos-x0 ;
-		double y = *context.memory.prev_top_pos-y0 ;
+		double x = *(context.memory.top_pos)-x0 ;
+		double y = *(context.memory.prev_top_pos)-y0 ;
 		context.memory.pop_back() ;
-		*context.memory.top_pos = sqrt(x*x+y*y) ;
+		*(context.memory.top_pos) = sqrt(x*x+y*y) ;
 
 	}
 	virtual ~PointDistanceBinaryOperatorToken() { };
@@ -796,8 +796,8 @@ public:
 	
 	virtual void eval(Context & context) const
 	{
-		double x = *context.memory.top_pos-x0 ;
-		double y = *context.memory.prev_top_pos-y0 ;
+		double x = *(context.memory.top_pos)-x0 ;
+		double y = *(context.memory.prev_top_pos)-y0 ;
 		double z = *(context.memory.prev_top_pos-1)-z0 ;
 		context.memory.pop_back() ;
 		context.memory.pop_back() ;

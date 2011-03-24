@@ -927,7 +927,7 @@ bool FractureCriterion::met(const ElementState &s)
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 			
 
-			if(ci->getBehaviour()->getFractureCriterion() && (ci->getBehaviour()->getFractureCriterion()->getSteppedScore() >= maxNeighbourhoodScore-tol || ci->getBehaviour()->getDamageModel()->fractured()))
+			if(ci->getBehaviour()->getFractureCriterion() && (ci->getBehaviour()->getFractureCriterion()->getSteppedScore() >= maxNeighbourhoodScore-tol || ci->getBehaviour()->fractured()))
 			{
 				if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
 				{
@@ -1052,7 +1052,7 @@ bool FractureCriterion::met(const ElementState &s)
 		{
 			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
 			if(ci->getBehaviour()->getFractureCriterion())
-				if(std::abs(ci->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol)
+				if(std::abs(ci->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol || ci->getBehaviour()->fractured())
 					maxloci.push_back(ci) ;
 		}
 		
