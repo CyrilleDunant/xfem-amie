@@ -605,9 +605,10 @@ Vector ElementState::getStrain(const Point & p, bool local) const
 	
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
 	{
-		Point p_ = parent->inLocalCoordinates(p) ;
-		if(local)
-			p_ = p ;
+		Point p_ = p ;
+		if(!local)
+			p_ = parent->inLocalCoordinates(p) ;
+		
 		double x_xi = 0;
 		double x_eta = 0;
 		double y_xi = 0;
@@ -1085,13 +1086,11 @@ Vector ElementState::getStress(const Point & p, bool local) const
 	
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2)
 	{
-		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		if(ndofs!=2)
-			return Vector(3) ;
+		size_t ndofs = 2;
 		
-		Point p_ = parent->inLocalCoordinates(p) ;
-		if(local)
-			p_ = p ;
+		Point p_ = p ;
+		if(!local)
+			p_ = parent->inLocalCoordinates(p) ;
 		
 		double x_xi = 0;
 		double x_eta = 0;

@@ -1489,16 +1489,16 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const 
 {
-	if(v.x < center.x-getRadius())
+	if(v.x < getCenter().x-getRadius()*1.01)
 		return false ;
-	if(v.x > center.x+getRadius())
+	if(v.x > getCenter().x+getRadius()*1.01)
 		return false ;
-	if(v.y < center.y-getRadius())
+	if(v.y < getCenter().y-getRadius()*1.01)
 		return false ;
-	if(v.y > center.y+getRadius())
+	if(v.y > getCenter().y+getRadius()*1.01)
 		return false ;
 	
-	return squareDist2D(v, getCenter()) < getSquareRadius() ;
+	return squareDist2D(v, getCenter()) < sqradius ;
 }
 
 double Circle::getRadius() const

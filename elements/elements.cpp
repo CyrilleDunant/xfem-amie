@@ -1401,7 +1401,7 @@ Function TriElement::getXTransform() const
 Function TriElement::getYTransform() const
 {
 if(shapefunc->size() == getBoundingPoints().size())
-		return XTransform( this->getBoundingPoints(), getShapeFunctions()) ;
+		return YTransform( this->getBoundingPoints(), getShapeFunctions()) ;
 	return YTransform( this->getBoundingPoints(), TriElement(getOrder()).getShapeFunctions()) ;
 }
 

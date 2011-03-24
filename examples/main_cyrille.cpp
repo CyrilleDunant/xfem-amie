@@ -638,9 +638,9 @@ void step()
 		if(true)
 		{
 			
-			for(double k = 0 ; k < 4 ; k += 4./800)
+			for(double k = 0 ; k < 8 ; k += 8./800)
 			{
-				for(double l = -2 ; l < 2 ; l += 4./800)
+				for(double l = -4 ; l < 4 ; l += 8./800)
 				{
 					Point p(k, l) ;
 					auto tri = featureTree->getElements2D(&p) ;
@@ -649,10 +649,16 @@ void step()
 					{
 						if(tri[j]->in(p))
 						{
+							
 							Vector s = tri[j]->getState().getStress(p, false) ;
 							Vector e = tri[j]->getState().getStrain(p, false) ;
 							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
+							
+// 								Point p_ = tri[j]->inLocalCoordinates(p) ;
+// 								std::cout << tri[j]->getBehaviour()->getTensor(p_)[0][0]<< "  " << std::flush ;
+							
 // 							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
+							
 //  							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
 							break ;
 						}
@@ -1746,14 +1752,14 @@ int main(int argc, char *argv[])
 	saif->dfunc->setDamageDensityTolerance(tol);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-	sample.setBehaviour(saf) ;
+// 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(saif) ;
 // 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 // 	sample.setBehaviour(psp) ;
-// 	sample.setBehaviour(sf) ;
+	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 // 	F.addFeature(&sample, new Pore(2, -7,2) );
@@ -1780,7 +1786,7 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
 	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
-	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 1, 0, 0.,m0_paste*2., a) ;
+	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 2, 0, 0.,m0_paste*2., a) ;
 
 // 	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 0.1, 0.5, 0.,m0_paste*2., a) ;
 // 	ExpansiveZone * inc1 = new ExpansiveZone(&sample, 0.1, -0.5, 0.,m0_paste*2., a) ;
@@ -1819,7 +1825,7 @@ int main(int argc, char *argv[])
 	
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.setMaxIterationsPerStep(200) ;
 	F.setDeltaTime(0.1);
 

@@ -270,7 +270,7 @@ if(OPENMP_FOUND)
 endif(OPENMP_FOUND)
 
 if(DEBUG_BUILD EQUAL 1)
-	add_definitions(-g3 -fno-exceptions -O2 -std=c++0x -DNDEBUG -march=native -funroll-loops)
+	add_definitions(-g3 -fno-exceptions -O0 -std=c++0x -DNDEBUG -march=native -funroll-loops)
 	message (STATUS "  Debug Build")
 else()
 	add_definitions(-fno-exceptions -O3 -std=c++0x -DNDEBUG -march=native -funroll-loops)

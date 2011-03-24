@@ -2205,7 +2205,6 @@ void Function::compile()
 		{
 			adresses.push_back(lastAddress) ;
 			subexpressions.push_back(subexpression) ;
-			std::cout << "push_back " << lastAddress << std::endl ;
 		}
 		
 		lastAddress++ ;

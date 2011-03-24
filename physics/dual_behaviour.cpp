@@ -29,24 +29,11 @@ Matrix BimaterialInterface::getTensor(const Point & p) const
 {
 	VirtualMachine vm ;
 	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
-	
+
 	if(inGeometry->in(test))
 		return inBehaviour->getTensor(p) ;
 	
 	return outBehaviour->getTensor(p) ;
-	
-// 	FunctionMatrix C(3,3) ;
-// 	
-// 	Function domain(inGeometry, xtransform, ytransform) ;
-// 	
-// 	for(size_t i = 0 ; i < 3 ; i++)
-// 	{
-// 		for(size_t j = 0 ; j < 3 ; j++)
-// 		{
-// 			C[i][j] = f_positivity(domain)*inBehaviour->getTensor(p)[i][j] + f_negativity(domain)*outBehaviour->getTensor(p)[i][j];
-// 		}
-// 	}
-// 	return vm.eval(C, p.x, p.y) ;
 }
 
 Vector BimaterialInterface::getImposedStress(const Point & p) const

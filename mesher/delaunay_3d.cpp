@@ -3028,7 +3028,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		}
 		delete dt ;
 		
-		std::cout << volume() << "   " << v << "   "<< jac << "  " << w << std::endl ;
+// 		std::cout << volume() << "   " << v << "   "<< jac << "  " << w << std::endl ;
 // 		exit(0) ;
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;

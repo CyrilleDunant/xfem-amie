@@ -3468,9 +3468,16 @@ bool Segment::intersects(const Geometry *g) const
 	{
 	case CIRCLE:
 		{
-			Point proj(g->getCenter()) ;
-			proj = project(proj) ;
-			return squareDist2D(proj, g->getCenter()) < g->getRadius()*g->getRadius() ;
+			if(g->in(s) && g->in(f))
+				return false ;
+			if(g->in(s) || g->in(f))
+				return true ;
+
+			Point center(g->getCenter()) ;
+			Point v = s-f ;
+			double uc = v*g->getCenter() ;
+			double delta = uc*uc - v.sqNorm()*g->getCenter().sqNorm() - g->getRadius()*g->getRadius() ;
+			return delta >= 0 ;
 			
 		}
 	case ELLIPSE:
@@ -3761,28 +3768,36 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case CIRCLE:
 		{
-			std::vector<Point> ret ;
-
-			std::vector<Point> candidates = Line(f, vec).intersection(g) ;
+			double a = vec.x*vec.x + vec.y*vec.y ;
+			double dx = s.x-g->getCenter().x ;
+			double dy = s.y-g->getCenter().y ;
+			double b = 2.*(dx*vec.x + dy*vec.y );
+			double c = dx*dx + dy*dy -g->getRadius()*g->getRadius() ;
+			double delta = b*b - 4.*a*c ;
 			
-			if(candidates.empty())
-				return ret ;
-			
-			if(on(candidates[0]))
+			if(std::abs(delta) < POINT_TOLERANCE)
 			{
-				ret.push_back(candidates[0]) ;
-			}
-			
-			if(candidates.size() == 1)
+				std::vector<Point> ret ;
+				Point A(s+vec*(-b/(2.*a))) ;
+				if(on(A))
+					ret.push_back(A) ;
 				return ret ;
-			
-			if(on(candidates[1]))
-			{
-				ret.push_back(candidates[1]) ;
 			}
-
-			return ret ;
-
+			else if (delta >= POINT_TOLERANCE)
+			{
+				std::vector<Point> ret ;
+				Point A(s+vec*(-b + sqrt(delta))/(2.*a)) ;
+				if(on(A))
+					ret.push_back(A) ;
+				Point B(s+vec*(-b - sqrt(delta))/(2.*a)) ;
+				if(on(B))
+					ret.push_back(B) ;
+				return ret ;
+			}
+			else
+			{
+				return std::vector<Point>(0) ;
+			}
 		}
 	case ELLIPSE:
 		{

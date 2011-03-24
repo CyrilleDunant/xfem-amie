@@ -173,6 +173,7 @@ double aggregateArea = 0;
 
 typedef enum
 {
+	XS1,
 	S1,
 	S2024,
 	S3200,
@@ -187,6 +188,8 @@ typedef enum
 
 BenchmarkMicrostructure getMicrostructure(std::string micro)
 {
+	if(micro == std::string("XS1"))
+		return XS1 ;
 	if(micro == std::string("S1"))
 		return S1 ;
 	if(micro == std::string("S2024"))
@@ -227,7 +230,7 @@ int main(int argc, char *argv[])
 {
 	std::cout << "usage: benchmark <microstructure> <phenomenon> <order> <scale> <properties> <sampling>" << std::endl ;
 	std::cout << "all fields are required" << std::endl ;
-	std::cout << "<microstructure>\tstring among <S1, S2024, S3200, O1>" << std::endl ;
+	std::cout << "<microstructure>\tstring among <XS1, S1, S2024, S3200, O1>" << std::endl ;
 	std::cout << "<phenomenon>\t\tstring among <diffusion, elasticity>" << std::endl ;
 	std::cout << "<order>\t\t\tinteger : order of the elements (1 for linear, 2 for quadratic)" << std::endl ;
 	std::cout << "<scale>\t\t\tdouble : scale factor" << std::endl ;
@@ -254,7 +257,7 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	Form* behaviour = NULL ;
-
+	Matrix m1(6,6) ;
 	switch(pheno)
 	{
 	case DIFFUSION:
@@ -291,7 +294,6 @@ int main(int argc, char *argv[])
 		
 		E = prop ;
 		std::cout << prop << std::endl ;
-		Matrix m1(6,6) ;
 		m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 		m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
 		m1[2][0] = nu ; m1[2][1] = nu ; m1[2][2] = 1. - nu ;
@@ -314,6 +316,11 @@ int main(int argc, char *argv[])
 			std::cout << inclusions[0]->volume() << std::endl ;
 			std::cout << sample.volume() << std::endl ;
 			std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
+		}
+		else if(micro == XS1)
+		{
+			Vector a(6) ; a = 0 ; 
+			featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.0623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z, m1, a));
 		}
 		else
 		{
