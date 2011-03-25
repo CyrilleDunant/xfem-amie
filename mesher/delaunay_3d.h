@@ -376,15 +376,6 @@ public:
 	void insert( Point *p) ;
 	void insert( Segment *s) ;
 	
-	/** \brief Conditionnal insertion of points.
-	 * 
-	 * @param p Point to insert.
-	 * @param v vector of samplingCriterions.
-	 * @param minScore minimum score to insert the point. The score is calculated as : 
-	 *	\f$ \frac{N_{tot}}{N_{pass}}\f$
-	 */
-// 	void insertIf( Point *p, std::vector<SamplingCriterion_3D *> v, double minScore ) ;
-	
 	/** \brief Get the list of triangles in comflict with a point. This method is O(log(n)), except when construction of the mesh has led to circular stepparenthoods. In that case, it is O(log(n)) in general, and O(n) 5% of the times.
 	 * 
 	 * @param p Point to check.

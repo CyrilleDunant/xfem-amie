@@ -89,7 +89,7 @@ namespace Mu
 
 		virtual Matrix getTensor(const Point & p) const ;
 
-		Material toMaterial() {return equivalent->toMaterial() ; } ;
+		Material toMaterial(const Point & p) {return equivalent->toMaterial(p) ; } ;
 		Material homogenize(Material mat) ;
 
                 virtual Vector getImposedStress(const Point & p) const ;

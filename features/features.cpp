@@ -2191,56 +2191,64 @@ void FeatureTree::updateElementBehaviours()
 
 void FeatureTree::enrich()
 {
-		lastEnrichmentId = lastNodeId ;
-		coarseLastEnrichmentId.clear();
-		if(useMultigrid)
-			for(size_t j =  0 ; j < coarseTrees.size() ; j++)
-				coarseLastEnrichmentId.push_back(coarseLastNodeId[j]) ;
-		std::cerr << "\r enriching... feature " << 0 <<"/" << this->tree.size() << std::flush ;
-		for(size_t i = 1 ; i < this->tree.size() ; i++)
+	enrichmentChange = false ;
+	lastEnrichmentId = lastNodeId ;
+	coarseLastEnrichmentId.clear();
+	if(useMultigrid)
+		for(size_t j =  0 ; j < coarseTrees.size() ; j++)
+			coarseLastEnrichmentId.push_back(coarseLastNodeId[j]) ;
+	std::cerr << "\r enriching... feature " << 0 <<"/" << this->tree.size() << std::flush ;
+	for(size_t i = 1 ; i < this->tree.size() ; i++)
+	{
+		if(is3D())
 		{
-			if(is3D())
+			if(this->tree[i]->isEnrichmentFeature && (dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved() || !state.enriched))
 			{
-				if(this->tree[i]->isEnrichmentFeature && (dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved() || !state.enriched))
-				{
-					if(!state.enriched)
-						dynamic_cast<EnrichmentFeature *>(tree[i])->update(dtree3D) ;
-					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree3D) ;
-					if(useMultigrid)
-					{
-						for(size_t j =  0 ; j < coarseTrees.size() ; j++)
-						{
-							
-							dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseLastEnrichmentId[j], coarseTrees[j]) ;
-						}
-					}
-				}
-			
-
-			
-				if(i%10 == 0)
-					std::cerr << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
-			}
-			else
-			{
+				if(!state.enriched)
+					dynamic_cast<EnrichmentFeature *>(tree[i])->update(dtree3D) ;
+				dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree3D) ;
 				
-				if(this->tree[i]->isEnrichmentFeature && (dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved()|| !state.enriched))
+				enrichmentChange = true ;
+				reuseDisplacements = false ;
+				
+				if(useMultigrid)
 				{
-					if(!state.enriched)
-						dynamic_cast<EnrichmentFeature *>(tree[i])->update(dtree) ;
-					dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree) ;
-					if(useMultigrid)
+					for(size_t j =  0 ; j < coarseTrees.size() ; j++)
 					{
-						for(size_t j =  0 ; j < coarseTrees.size() ; j++)
-							dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseLastEnrichmentId[j], coarseTrees[j]) ;
+						dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseLastEnrichmentId[j], coarseTrees[j]) ;
 					}
 				}
-				if(i%10 == 0)
-					std::cerr << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
 			}
+		
+			if(i%10 == 0)
+				std::cerr << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
 		}
+		else
+		{
+			
+			if(this->tree[i]->isEnrichmentFeature && (dynamic_cast<EnrichmentFeature *>(this->tree[i])->moved()|| !state.enriched))
+			{
+				if(!state.enriched)
+					dynamic_cast<EnrichmentFeature *>(tree[i])->update(dtree) ;
+				dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(lastEnrichmentId, dtree) ;
+				
+				enrichmentChange = true ;
+				reuseDisplacements = false ;
+				
+				if(useMultigrid)
+				{
+					for(size_t j =  0 ; j < coarseTrees.size() ; j++)
+					{
+						dynamic_cast<EnrichmentFeature *>(this->tree[i])->enrich(coarseLastEnrichmentId[j], coarseTrees[j]) ;
+					}
+				}
+			}
+			if(i%10 == 0)
+				std::cerr << "\r enriching... feature " << i+1 <<"/" << this->tree.size() << std::flush ;
+		}
+	}
 
-		std::cerr << " ...done" << std::endl ;
+	std::cerr << " ...done" << std::endl ;
 }
 
 void FeatureTree::assemble()
@@ -3098,8 +3106,7 @@ void FeatureTree::stepXfem()
 					bool moved = 
 					enrichmentChange = enrichmentChange || dynamic_cast<EnrichmentFeature *>(tree[i])->moved() ;
 					if(enrichmentChange)
-						
-					needAssembly = true ;
+						needAssembly = true ;
 					
 					if (moved)
 						reuseDisplacements = false ;
@@ -3156,7 +3163,8 @@ void FeatureTree::stepElements()
 			std::cerr << " ...done. " << std::endl ;
 // #pragma omp parallel for
 			for(size_t i = 0 ; i < elements.size() ;i++)
-			{	
+			{
+
 				double are = elements[i]->area() ;
 				if(i%10000 == 0)
 					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
@@ -3230,7 +3238,8 @@ void FeatureTree::stepElements()
 			int fracturedCount = 0 ;
 #pragma omp parallel for
 			for(size_t i = 0 ; i < elements.size() ;i++)
-			{	
+			{
+				
 				if(i%1000 == 0)
 					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 				double vol = elements[i]->volume() ;

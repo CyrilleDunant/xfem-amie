@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
 		std::vector<Inclusion3D * > inclusions ;
 		if(micro == S1)
 		{
-			inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z)) ;
+			inclusions.push_back(new Inclusion3D(0.623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z)) ;
 			std::cout << inclusions[0]->volume() << std::endl ;
 			std::cout << sample.volume() << std::endl ;
 			std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 		else if(micro == XS1)
 		{
 			Vector a(6) ; a = 0 ; 
-			featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.0623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z, m1, a));
+			featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z, m1, a));
 		}
 		else
 		{
@@ -589,6 +589,14 @@ int main(int argc, char *argv[])
 			<< "C1111 = " << c[0] << "\t"
 			<< "C1122 = " << c[1] << std::endl ;
 		out.close() ;
+		
+		VoxelWriter vw("simulation_out_stiffness", 100) ;
+		vw.getField(featureTree, VWFT_STIFFNESS) ;
+		vw.write();
+		
+		VoxelWriter vw0("simulation_out_stress", 100) ;
+		vw0.getField(featureTree, VWFT_STRESS) ;
+		vw0.write();
 		
 		break ;
 	}

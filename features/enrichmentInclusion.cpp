@@ -164,17 +164,11 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		update(dtree) ;
 	}
 	updated = false ;
-		
 	const std::vector<DelaunayTriangle *> & disc  = cache;
-// 	if(disc.size() < 6)
-// 	{
-// 		std::cout << "cowardly discarding" << std::endl ;
-// 		return ;
-// 	}
+
 	
 	if(disc.size() == 1) // special case for really small inclusions
 	{
-	
 		std::vector<Feature *> brother = this->getFather()->getChildren() ;
 		std::vector<Feature *> feat ;
 		for(size_t i = 0 ; i < brother.size() ; i++)
@@ -182,17 +176,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			if(disc[0]->in(brother[i]->getCenter()))
 				feat.push_back(brother[i]) ;
 		}
-			
-
 		HomogeneisedBehaviour * hom = new HomogeneisedBehaviour(feat, disc[0]) ;
-	
 		disc[0]->setBehaviour(hom) ;
-		
 		return ;
-
-
 	}
-
 //	for(size_t i = 0 ; i < disc.size() ; i++)
 //	{
 //		disc[i]->setBehaviour(this->getFather()->getBehaviour()->getCopy()) ;	
@@ -237,7 +224,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	std::map<Point*, size_t> extradofs ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
-
 		std::vector<Point> hint ;
 		std::vector<Point> inter = intersection(ring[i]->getPrimitive()) ;
 		
@@ -249,10 +235,12 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 				project(&h0);
 				hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
 			}
+			
+			hint.push_back(ring[i]->inLocalCoordinates(inter[0])) ;
+			hint.push_back(ring[i]->inLocalCoordinates(inter[1])) ;
 		}
 		
-		hint.push_back(ring[i]->inLocalCoordinates(inter[0])) ;
-		hint.push_back(ring[i]->inLocalCoordinates(inter[1])) ;
+
 
 		//we build the enrichment function, first, we get the transforms from the triangle
 		Function x = ring[i]->getXTransform() ;

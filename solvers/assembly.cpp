@@ -481,7 +481,7 @@ void Assembly::initialiseElementaryMatrices()
 	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
 		std::random_shuffle(element2d.begin(), element2d.end());
- 		#pragma omp parallel for 
+//  		#pragma omp parallel for 
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			element2d[i]->getElementaryMatrix() ;
@@ -489,7 +489,7 @@ void Assembly::initialiseElementaryMatrices()
 	}
 	if(dim == SPACE_THREE_DIMENSIONAL)
 	{
-			#pragma omp parallel for 
+// 			#pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			element3d[i]->getElementaryMatrix() ;
@@ -600,8 +600,8 @@ bool Assembly::make_final()
 		{
 			if(i%1000 == 0)
 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
-
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
+
 			Matrix test(ids.size()*ndof, ids.size()*ndof) ;
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
@@ -626,7 +626,6 @@ bool Assembly::make_final()
 					}
 				}
 			}
-			
 			dmax = std::abs(test.array()).max() ;
 			if(dmax > POINT_TOLERANCE)
 			{
@@ -640,7 +639,6 @@ bool Assembly::make_final()
 					}
 				}
 			}
-			
 // 			element2d[i]->clearElementaryMatrix() ;
 		}
 

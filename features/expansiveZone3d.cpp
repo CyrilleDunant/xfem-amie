@@ -25,7 +25,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 {
 	EnrichmentInclusion3D::enrich(lastId, dtree) ;
 	//first we get All the triangles affected
-	std::vector<DelaunayTetrahedron *> disc = cache ;
+	std::vector<DelaunayTetrahedron *> & disc = EnrichmentInclusion3D::cache ;
 
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTetrahedron *> ring ;
@@ -33,13 +33,11 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-// 		int pointsout = in(*disc[i]->first) + in(*disc[i]->second) + in(*disc[i]->third) + in(*disc[i]->fourth) ;
-		if(EnrichmentInclusion3D::enrichmentTarget(disc[i])/* && pointsout != 4 && pointsout != 0*/)
+		if(EnrichmentInclusion3D::enrichmentTarget(disc[i]))
 			ring.push_back(disc[i]) ;
 		else if(this->in(disc[i]->getCenter()))
 			inDisc.push_back(disc[i]) ;
 	}
-	std::sort(ring.begin(), ring.end()) ;
 	std::set<DelaunayTetrahedron *> newInterface ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{

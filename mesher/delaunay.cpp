@@ -2219,7 +2219,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		return cachedElementaryMatrix ;
 	}
 	std::vector<size_t > dofs = getDofIds() ;
-	
 	if(enrichmentUpdated || behaviourUpdated || cachedElementaryMatrix.size() == 0)
 	{
 
@@ -2228,7 +2227,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		cachedElementaryMatrix.resize(dofs.size(),v_j) ;
 		getSubTriangulatedGaussPoints() ;
 	}
-	
 	std::valarray<Matrix> Jinv(Matrix(2, 2),  getGaussPoints().gaussPoints.size()) ;
 	
 	if(moved)
@@ -2245,7 +2243,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
 
-	
 	VirtualMachine vm ;
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
@@ -2274,7 +2271,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
-
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;
 	if(behaviour->hasInducedForces())

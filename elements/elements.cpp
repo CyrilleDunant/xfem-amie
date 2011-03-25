@@ -134,8 +134,9 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 
 void ElementarySurface::setBehaviour(Form * f)
 {
-	delete behaviour ;
+//	Form * old = behaviour ;
 	behaviour = f ;
+//	delete old ;
 }
 
 void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
@@ -1500,6 +1501,7 @@ void ElementarySurface::setEnrichment( const Function & p, const Geometry * g)
 	}
 	if(unique)
 	{
+		enrichmentUpdated = true ;
 		enrichfunc.push_back(p) ;
 		enrichfunc.back().compile() ;
 		enrichmentSource.push_back(g) ;
@@ -2308,8 +2310,9 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 
 void ElementaryVolume::setBehaviour(Form * f)
 {
-// 	delete behaviour ;
+//	Form * old = behaviour ;
 	behaviour =  f ;
+//	delete old ;
 }
 
 Order ElementaryVolume::getOrder() const

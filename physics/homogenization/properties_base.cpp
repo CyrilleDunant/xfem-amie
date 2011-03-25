@@ -282,7 +282,7 @@ Material::Material(const std::vector<Properties> & p)
 Material::Material(const Matrix & cauchy)
 {
 	name = "MAT" ;
-
+	std::cout << "plouf1.1.1.1" << std::endl ;
 	double E = 0. ;
 	double nu = 0. ;
 	double k = 0. ;
@@ -290,7 +290,7 @@ Material::Material(const Matrix & cauchy)
 
 	double A = cauchy[0][0] ;
 	double B = cauchy[0][1] ;
-
+	std::cout << "plouf1.1.1.2" << std::endl ;
 	if(cauchy.size() > 9)
 	{
 		nu = B / (A+B) ;
@@ -299,12 +299,12 @@ Material::Material(const Matrix & cauchy)
 		nu = B / A ;
 		E = A * (1.-nu*nu) ;
 	}
-
+	std::cout << "plouf1.1.1.3" << std::endl ;
 	GeneralConverter conv(TAG_UNIVERSAL) ;
 
 	k = conv.getBulkModulus(E,nu) ;
 	mu = conv.getShearModulus(E,nu) ;
-
+	std::cout << "plouf1.1.1.4" << std::endl ;
 	if(conv.isOK() || conv.status() == STATUS_RESET)
 	{
 		push_back(Properties(TAG_YOUNG_MODULUS,E)) ;

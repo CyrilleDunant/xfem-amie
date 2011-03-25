@@ -27,9 +27,9 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	this->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
 	EnrichmentInclusion::enrich(lastId, dtree) ;
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;/*dtree->getConflictingElements(getPrimitive()) ;
+	std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
         if(disc.size() < 2)
-		return ;*/
+		return ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;

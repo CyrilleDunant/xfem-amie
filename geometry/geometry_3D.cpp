@@ -1598,12 +1598,12 @@ bool Sphere::in(const Point & v) const
 		return false ;
 	if(v.z > center.z+1.0001*getRadius())
 		return false ;
-	return squareDist3D(v, getCenter()) < sqradius + 2.*radius*POINT_TOLERANCE + POINT_TOLERANCE*POINT_TOLERANCE;
+	return squareDist3D(v, getCenter()) < getRadius()*getRadius() + 2.*getRadius()*POINT_TOLERANCE + POINT_TOLERANCE*POINT_TOLERANCE;
 }
 
 double Sphere::area() const
 {
-	return 4.*M_PI*sqradius ;
+	return 4.*M_PI*getRadius()*getRadius() ;
 }
 
 double Sphere::volume() const

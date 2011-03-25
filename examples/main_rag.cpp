@@ -569,6 +569,7 @@ void step()
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		if (go_on )
 		{
+			featureTree->forceEnrichmentChange();
 			double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/(double)nstepstot ;
 			double reactedArea = 0 ;
 			
@@ -1707,7 +1708,7 @@ int main(int argc, char *argv[])
 
 
 	double itzSize = 0.000002;
-	int inclusionNumber = 20000 ;
+	int inclusionNumber = 10000 ;
 // 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 // 

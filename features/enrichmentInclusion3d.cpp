@@ -21,7 +21,7 @@ EnrichmentInclusion3D::~EnrichmentInclusion3D() {}
 bool EnrichmentInclusion3D::enrichmentTarget(DelaunayTetrahedron * t)
 {
 	int pointsin = in(*t->first) + in(*t->second) + in(*t->third) + in(*t->fourth) ;
-	if(pointsin != 0 && pointsin != 4)
+	if(pointsin && pointsin != 4 || intersects(t->getPrimitive()) || t->in(getCenter()))
 		return true ;
 		
 	return false ;
@@ -349,8 +349,6 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		std::vector<Point> hint ;
 // 		if there are no intersection points we need not do anything
 		size_t isize = tetSphereIntersectionPoints.size() ;
-		if(isize == 0)
-			continue ;
 		
 		for(size_t j = 0 ; j < isize ; j++)
 		{
@@ -419,6 +417,13 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
 				ring[i]->setEnrichment( f, getPrimitive()) ;
+				
+// 						VirtualMachine().print(f);
+// 						std::cout << VirtualMachine().eval(f, 0.25, 0.25, 0.25) << std::endl ;
+// 						f.compile() ;
+// 						VirtualMachine().print(f);
+// 						std::cout << VirtualMachine().eval(f, 0.25, 0.25, 0.25) << std::endl ;
+// 						exit(0) ;
 			}
 		}
 		hint.clear();
@@ -465,6 +470,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
 						Function f = father.getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
+
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;

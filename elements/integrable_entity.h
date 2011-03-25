@@ -437,10 +437,9 @@ public:
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
-	virtual Material toMaterial()
+	virtual Material toMaterial( const Point & p)
 	{
-		Material mat(getTensor(Point(0,0))) ;
-		return mat ;
+		return Material(getTensor(p)) ;
 	}
 	
 	virtual bool timeDependent() const

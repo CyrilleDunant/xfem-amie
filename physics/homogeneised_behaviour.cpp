@@ -34,19 +34,22 @@ using namespace Mu ;
 
 HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2) , mesh(mesh), self2d(self), self3d(NULL), equivalent(NULL)
 {
-
 	std::vector<DelaunayTriangle * > feats = mesh->getElements2D(self->getPrimitive()) ;
 	Material hom ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
-		Material inc = feats[i]->getBehaviour()->toMaterial() ;
+		
+		Material inc = feats[i]->getBehaviour()->toMaterial(Point(1./3., 1./3.)) ;
+		
 		inc.setProperties(P_VOLUME, feats[i]->area()) ;
 		hom.addPhase(inc) ;
+		
 		hom.mergePhase() ;
+		
 	}
 	Material eq = homogenize(hom) ;
 	equivalent = getEquivalentBehaviour(eq) ;
-
+	
 	v.push_back(XI);
 	v.push_back(ETA);
 	
@@ -56,19 +59,25 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTriangl
 
 HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh(NULL), self3d(NULL), equivalent(NULL)
 {
+
 	std::vector<Point> corner = self->getSamplingBoundingPoints(0) ;
 	
 	if(self->getBehaviour())
-		base = self->getBehaviour()->toMaterial() ;
+		base = self->getBehaviour()->toMaterial(Point(1./3., 1./3.)) ;
+	else if(!feats.empty() && feats[0]->getBehaviour())
+		base = feats[0]->getBehaviour()->toMaterial(self->inLocalCoordinates(feats[0]->getCenter())) ;
 	else
-		base = feats[0]->getBehaviour()->toMaterial() ;
-		
+	{
+		std::cout << "cannot do anything." << std::endl ;
+		exit(0) ;
+	}
+	
+	
 	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
 	tri.setBehaviour(self->getBehaviour()->getCopy()) ;
 
 	for(size_t i = 0 ; i < feats.size() ; i++)
             ft.push_back(feats[i]) ;
-	
 	Material hom ;
 	
 	Material matrix ;
@@ -81,19 +90,16 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
 		fmat -= feats[i]->area() ;
 	matrix.setProperties(P_VOLUME, fmat) ;
 	hom.addPhase(matrix) ;
-	
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
-		Material inc = feats[i]->getBehaviour()->toMaterial() ;
+		Material inc = feats[i]->getBehaviour()->toMaterial(self->inLocalCoordinates(feats[i]->getCenter())) ;
 		inc.setProperties(P_VOLUME, feats[i]->area()) ;
 		hom.addPhase(inc) ;
 		hom.mergePhase() ;
 	}
-
 	Material eq = homogenize(hom) ;
 
 	equivalent = getEquivalentBehaviour(eq) ;
-
 	v.push_back(XI);
 	v.push_back(ETA);
 	
@@ -145,13 +151,13 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 	
 	bool revert = false ;
 
-        std::vector<Point> corner = self2d->getSamplingBoundingPoints(0) ;
+	std::vector<Point> corner = self2d->getSamplingBoundingPoints(0) ;
 
-        TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
+	TriangularInclusion tri(corner[0],corner[1],corner[2]) ;
 
-        Material hom ;
+	Material hom ;
 
-        Material matrix ;
+	Material matrix ;
 	for(int i = 0 ; i < base.sizeProperties() ; i++)
 	{
 		matrix.setProperties(base.getProperties(i)) ;
@@ -175,21 +181,34 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 	matrix.setProperties(P_VOLUME, fmat) ;
 	hom.addPhase(matrix) ;
 
-        for(size_t i = 0 ; i < ft.size() ; i++)
-        {
-		Material inc = ft[i]->getBehaviour()->toMaterial() ;
-		inc.setProperties(P_VOLUME, ft[i]->area()) ;
-		hom.addPhase(inc) ;
-		hom.mergePhase() ;
-        }
+	if(self2d)
+	{
+		for(size_t i = 0 ; i < ft.size() ; i++)
+		{
+			Material inc = ft[i]->getBehaviour()->toMaterial(self2d->inLocalCoordinates(ft[i]->getCenter())) ;
+			inc.setProperties(P_VOLUME, ft[i]->area()) ;
+			hom.addPhase(inc) ;
+			hom.mergePhase() ;
+		}
+	}
+	else
+	{
+		for(size_t i = 0 ; i < ft.size() ; i++)
+		{
+			Material inc = ft[i]->getBehaviour()->toMaterial(self3d->inLocalCoordinates(ft[i]->getCenter())) ;
+			inc.setProperties(P_VOLUME, ft[i]->area()) ;
+			hom.addPhase(inc) ;
+			hom.mergePhase() ;
+		}
+	}
 
-        Material eq = homogenize(hom) ;
-	if(equivalent != NULL)
+	Material eq = homogenize(hom) ;
+	if(equivalent)
 		delete equivalent ;
-        equivalent = getEquivalentBehaviour(eq) ;
+	equivalent = getEquivalentBehaviour(eq) ;
 
 	if(equivalent->timeDependent())
-	        equivalent->step(timestep, currentState) ;
+		equivalent->step(timestep, currentState) ;
 }
 
 void HomogeneisedBehaviour::stepBack()
@@ -230,7 +249,7 @@ void HomogeneisedBehaviour::homogenize()
 				
 				if(source[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					Material thismat = source[i]->getBehaviour()->toMaterial() ;
+					Material thismat = source[i]->getBehaviour()->toMaterial(self2d->inLocalCoordinates(source[i]->getCenter())) ;
 					thismat.setProperties(P_VOLUME,source[i]->area()) ;
 					mat.addPhase(thismat) ;
 					mat.mergePhase() ;
@@ -258,7 +277,7 @@ void HomogeneisedBehaviour::homogenize()
 				
 				if(source3d[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					Material thismat = source3d[i]->getBehaviour()->toMaterial() ;
+					Material thismat = source3d[i]->getBehaviour()->toMaterial(self3d->inLocalCoordinates(source3d[i]->getCenter())) ;
 					thismat.setProperties(P_VOLUME,source3d[i]->volume()) ;
 					mat.addPhase(thismat) ;
 					mat.mergePhase() ;
