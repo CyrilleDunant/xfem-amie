@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -61,7 +61,7 @@ Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 				-1./(1.-totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getScoreAtState())/dcdd,
 				-originalEnergy/totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() 
  														) ;
-			if(std::abs(dcdd) < POINT_TOLERANCE)
+			if(std::abs(dcdd) < POINT_TOLERANCE_2D)
 				maxdd = 0 ;
 			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] > 1)
 				maxdd = 1.-totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] ;
@@ -91,7 +91,7 @@ Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 		}
 		detot = sqrt(detot) ;
 		deavg /= vtot ;
-		if(detot < POINT_TOLERANCE)
+		if(detot < POINT_TOLERANCE_2D)
 			detot = 1 ;
 
 // 		std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
@@ -118,7 +118,7 @@ Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 
 void IndexedLinearDamage::artificialDamageStep(double d)
 {
-	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE) ;
+	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
 }
 
 

@@ -3,7 +3,7 @@
 //
 // Description: 
 //
-//
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 // Author: Ruzena Chamrova <ruzena.chamrova@epfl.ch>, (C) 2006
 //
 //

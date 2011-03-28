@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -57,7 +57,7 @@ void InHomogeneousProjectionOperatorToken::eval(Context & context) const
 		for(size_t i = 0 ; i < inProjector.size() ; i++)
 		{
 			double n = inProjector[i].norm() ;
-			if(weight[i] < POINT_TOLERANCE)
+			if(weight[i] < POINT_TOLERANCE_2D)
 			{
 				*context.memory.top_pos = dist(projs[i], inProjector[i].second())/n ;
 				return ;
@@ -66,7 +66,7 @@ void InHomogeneousProjectionOperatorToken::eval(Context & context) const
 			res += (1./weight[i])*dist(projs[i], inProjector[i].second())/n ;
 			renorm += 1./weight[i] ;
 		}
-		if(weight.back() < POINT_TOLERANCE)
+		if(weight.back() < POINT_TOLERANCE_2D)
 		{
 			*context.memory.top_pos = 1 ;
 			return ;
@@ -74,7 +74,7 @@ void InHomogeneousProjectionOperatorToken::eval(Context & context) const
 		res += (1./weight.back())*(1.-dist(projs.back(), test)/inGeo->getRadius()) ;
 		renorm += 1./weight.back() ;
 		
-		if(renorm > POINT_TOLERANCE)
+		if(renorm > POINT_TOLERANCE_2D)
 			res /= renorm ;
 		else
 			res = 0 ;
@@ -103,7 +103,7 @@ void InHomogeneousProjectionOperatorToken::eval(Context & context) const
 		for(size_t i = 0 ; i < outProjector.size() ; i++)
 		{
 			double n = outProjector[i].norm()  ;
-			if(weight[i] < POINT_TOLERANCE)
+			if(weight[i] < POINT_TOLERANCE_2D)
 			{
 				*context.memory.top_pos = dist(projs[i], outProjector[i].second())/n ;
 				return ;
@@ -112,7 +112,7 @@ void InHomogeneousProjectionOperatorToken::eval(Context & context) const
 			res += (1./weight[i])*dist(projs[i], outProjector[i].second())/n ;
 			renorm += 1./weight[i] ;
 		}
-		if(weight.back() < POINT_TOLERANCE)
+		if(weight.back() < POINT_TOLERANCE_2D)
 		{
 			*context.memory.top_pos = 1 ;
 			return ;
@@ -121,7 +121,7 @@ void InHomogeneousProjectionOperatorToken::eval(Context & context) const
 		res += (1./weight.back())*(1.-dist(projs.back(), test)/inGeo->getRadius()) ;
 		renorm += 1./weight.back() ;
 		
-		if(renorm > POINT_TOLERANCE)
+		if(renorm > POINT_TOLERANCE_2D)
 			res /= renorm ;
 		else
 			res = 0 ;

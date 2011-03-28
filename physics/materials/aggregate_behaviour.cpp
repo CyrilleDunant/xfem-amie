@@ -1,3 +1,10 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010-2011
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2010-2011
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//
+
 #include "aggregate_behaviour.h"
 #include "../stiffness_and_fracture.h"
 #include "../stiffness.h"

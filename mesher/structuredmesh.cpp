@@ -1,3 +1,5 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010-2011
+
 #include "structuredmesh.h"
 
 using namespace Mu ;
@@ -128,13 +130,13 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 			static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->project(&proj1) ;
 			if(tree[i*2*grid.pixels[0].size()+j*2]->isAlive())
 			{
-				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->in(*p) || dist(proj0, *p) < 128.*POINT_TOLERANCE)
+				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->in(*p) || dist(proj0, *p) < 128.*POINT_TOLERANCE_2D)
 					ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])) ;
 			}
 			
 			if(tree[i*2*grid.pixels[0].size()+j*2+1]->isAlive())
 			{
-				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->in(*p)|| dist(proj1, *p) < 128.*POINT_TOLERANCE)
+				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->in(*p)|| dist(proj1, *p) < 128.*POINT_TOLERANCE_2D)
 					ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])) ;
 			}
 		}

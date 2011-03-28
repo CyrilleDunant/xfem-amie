@@ -4,7 +4,8 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -1054,18 +1055,18 @@ DelaunayDemiSpace::~DelaunayDemiSpace()
 	
 bool DelaunayTetrahedron::isVertex(const Point * p) const
 {
-	return squareDist3D(*p, *first) < 128.*POINT_TOLERANCE*POINT_TOLERANCE
-			|| squareDist3D(*p, *second) < 128.*POINT_TOLERANCE*POINT_TOLERANCE 
-			|| squareDist3D(*p, *third) < 128.*POINT_TOLERANCE*POINT_TOLERANCE 
-			|| squareDist3D(*p, *fourth) < 128.*POINT_TOLERANCE*POINT_TOLERANCE ;
+	return squareDist3D(*p, *first) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D
+			|| squareDist3D(*p, *second) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+			|| squareDist3D(*p, *third) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+			|| squareDist3D(*p, *fourth) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
 	return (dist(p,first) < 0.0000001 || dist(p,second) < 0.0000001 || dist(p,third) < 0.0000001||dist(p,fourth) < 0.0000001) ;
 }
 
 bool DelaunayDemiSpace::isVertex(const Point * p) const
 {
-	return squareDist3D(*p, *first) < 128.*POINT_TOLERANCE*POINT_TOLERANCE
-			|| squareDist3D(*p, *second) < 128.*POINT_TOLERANCE*POINT_TOLERANCE 
-			|| squareDist3D(*p, *third) < 128.*POINT_TOLERANCE*POINT_TOLERANCE ;
+	return squareDist3D(*p, *first) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D
+			|| squareDist3D(*p, *second) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+			|| squareDist3D(*p, *third) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
 }
 
 bool DelaunayTetrahedron::isVertexByID(const Point * p) const
@@ -1260,7 +1261,7 @@ bool DelaunayDeadTetrahedron::inCircumSphere(const Point & p) const
 
 	
 	double d = sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
-	return  d-radius < POINT_TOLERANCE*radius ;
+	return  d-radius < POINT_TOLERANCE_3D*radius ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
@@ -1279,7 +1280,7 @@ bool DelaunayDeadTetrahedron::onCircumSphere(const Point & p) const
 		return false ;
 	
 	double d =  sqrt((x-p.x)*(x-p.x)+ (y-p.y)*(y-p.y)+ (z-p.z)*(z-p.z)) ;
-	return  std::abs(d-radius) < POINT_TOLERANCE*radius ;
+	return  std::abs(d-radius) < POINT_TOLERANCE_3D*radius ;
 }
 
 bool DelaunayDeadTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
@@ -1292,10 +1293,10 @@ bool DelaunayDeadTetrahedron::isNeighbour( const DelaunayTreeItem3D * t) const
 
 bool DelaunayDeadTetrahedron::isVertex(const Point *p) const
 {
-		return squareDist3D(*p, *first) < 128.*POINT_TOLERANCE*POINT_TOLERANCE
-			|| squareDist3D(*p, *second) < 128.*POINT_TOLERANCE*POINT_TOLERANCE 
-			|| squareDist3D(*p, *third) < 128.*POINT_TOLERANCE*POINT_TOLERANCE 
-			|| squareDist3D(*p, *fourth) < 128.*POINT_TOLERANCE*POINT_TOLERANCE ;
+		return squareDist3D(*p, *first) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D
+			|| squareDist3D(*p, *second) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+			|| squareDist3D(*p, *third) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+			|| squareDist3D(*p, *fourth) < 128.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
 }
 
 bool DelaunayDeadTetrahedron::isVertexByID(const Point *p)
@@ -1516,7 +1517,7 @@ bool DelaunayTetrahedron::inCircumSphere(const Point &p) const
 		return false ;
 	
 	double d = dist(circumCenter, p) ;
-	return  d-radius < POINT_TOLERANCE*radius ;
+	return  d-radius < POINT_TOLERANCE_3D*radius ;
 }
 
 bool DelaunayTetrahedron::onCircumSphere(const Point &p) const 
@@ -1535,7 +1536,7 @@ bool DelaunayTetrahedron::onCircumSphere(const Point &p) const
 		return false ;
 	
 	double d = dist(circumCenter, p) ;
-	return  std::abs(d-radius) < POINT_TOLERANCE*radius ;
+	return  std::abs(d-radius) < POINT_TOLERANCE_3D*radius ;
 }
 
 
@@ -1567,10 +1568,10 @@ bool DelaunayTreeItem3D::isDuplicate( const DelaunayTreeItem3D * t) const
 	if(!t->isTetrahedron() || t->isDeadTetrahedron())
 		return false ;
 
-	if(squareDist3D( static_cast<const DelaunayTetrahedron *>(t)->getCenter(), static_cast<const DelaunayTetrahedron *>(this)->getCenter() ) > POINT_TOLERANCE)
+	if(squareDist3D( static_cast<const DelaunayTetrahedron *>(t)->getCenter(), static_cast<const DelaunayTetrahedron *>(this)->getCenter() ) > POINT_TOLERANCE_3D)
 		return false ;
 	
-	if(squareDist3D( static_cast<const DelaunayTetrahedron *>(t)->getCircumCenter() ,static_cast<const DelaunayTetrahedron *>(this)->getCircumCenter() )  > POINT_TOLERANCE)
+	if(squareDist3D( static_cast<const DelaunayTetrahedron *>(t)->getCircumCenter() ,static_cast<const DelaunayTetrahedron *>(this)->getCircumCenter() )  > POINT_TOLERANCE_3D)
 		return false ;
 	
 	if(!std::binary_search(&first, &first+4, t->first))
@@ -1610,7 +1611,7 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem3D *> & ret, Point
 			
 			std::vector< Point*> pp = this->commonSurface(getNeighbour(i)) ;
 
-			if(Tetrahedron(*p, *pp[0], *pp[1], *pp[2]).volume() > POINT_TOLERANCE)
+			if(Tetrahedron(*p, *pp[0], *pp[1], *pp[2]).volume() > POINT_TOLERANCE_3D)
 			{
 				DelaunayTetrahedron *ss = new DelaunayTetrahedron(this->tree, this, p, pp[0], pp[1],pp[2], p) ;
 
@@ -1670,7 +1671,7 @@ bool DelaunayDemiSpace::inCircumSphere(const Point & p) const
 	double planeConst = first->x*pseudonormal.x + first->y*pseudonormal.y + first->z*pseudonormal.z ;
 	double signedDistP = p.x*pseudonormal.x + p.y*pseudonormal.y + p.z*pseudonormal.z - planeConst;
 	double signedDistF = fourth->x*pseudonormal.x + fourth->y*pseudonormal.y + fourth->z*pseudonormal.z - planeConst;
-	return signedDistF*signedDistP < POINT_TOLERANCE*POINT_TOLERANCE || isCoplanar(&p, first, second, third);
+	return signedDistF*signedDistP < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D || isCoplanar(&p, first, second, third);
 
 }
 
@@ -1679,7 +1680,7 @@ bool DelaunayDemiSpace::onCircumSphere(const Point & p) const
 	double planeConst = first->x*pseudonormal.x + first->y*pseudonormal.y + first->z*pseudonormal.z ;
 	double signedDistP = p.x*pseudonormal.x + p.y*pseudonormal.y + p.z*pseudonormal.z - planeConst;
 	double signedDistF = fourth->x*pseudonormal.x + fourth->y*pseudonormal.y + fourth->z*pseudonormal.z - planeConst;
-	return std::abs(signedDistP) < POINT_TOLERANCE ;
+	return std::abs(signedDistP) < POINT_TOLERANCE_3D ;
 
 }
 

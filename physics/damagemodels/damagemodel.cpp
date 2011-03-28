@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -45,7 +45,7 @@ namespace Mu
 		}
 		
 		int testRank = s.getParent()->getBehaviour()->getFractureCriterion()->getRank(200,s) ;
-		if(s.getDeltaTime() < POINT_TOLERANCE && lastRank == 1) // we are within the two iteration (bissection and damage)
+		if(s.getDeltaTime() < POINT_TOLERANCE_2D && lastRank == 1) // we are within the two iteration (bissection and damage)
 		{
 			change = true ;
 			damageIncrement = computeDamageIncrement(s) ;
@@ -91,7 +91,7 @@ namespace Mu
 				}
 			}
 		}
-		else if (s.getDeltaTime() < POINT_TOLERANCE && lastRank != 1) // we can enter the damage iteration
+		else if (s.getDeltaTime() < POINT_TOLERANCE_2D && lastRank != 1) // we can enter the damage iteration
 		{
 			if( testRank == 1)
 			{
@@ -110,7 +110,7 @@ namespace Mu
 				lastRank = 2 ;
 			}
 		}
-		else if(s.getDeltaTime() > POINT_TOLERANCE)
+		else if(s.getDeltaTime() > POINT_TOLERANCE_2D)
 		{
 			getPreviousState() = getState() ;
 			if(fractured())

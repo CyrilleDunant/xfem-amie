@@ -1,10 +1,9 @@
 //
-// C++ Implementation: stiffness
-//
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2010-2011
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //

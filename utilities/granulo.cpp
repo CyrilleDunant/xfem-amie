@@ -4,7 +4,8 @@
 // Description:
 //
 //
-// Author:  <>, (C) 2007
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2007-2011
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -223,7 +224,7 @@ std::vector <Inclusion *> GranuloBolome::operator()(double rmax, double pourcent
 
 			diameter = dmax*(b - sqrt(b*b-pourcentMasse*pourcentMasse/(25.*25.)))*.5;
 			
-			if(diameter <= 100.*POINT_TOLERANCE)
+			if(diameter <= 100.*POINT_TOLERANCE_2D)
 				 goto out ;
             break ;
 		}

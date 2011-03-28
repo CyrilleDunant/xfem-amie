@@ -1,4 +1,5 @@
-// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2010
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -270,7 +271,7 @@ protected:
 							renorm += fractions[j] ;
 						}
 					}
-					if(std::abs(renorm) > POINT_TOLERANCE)
+					if(std::abs(renorm) > POINT_TOLERANCE_2D)
 					{
 						elems[i]->getBehaviour()->getDamageModel()->getState() /= renorm ;
 						elems[i]->getBehaviour()->getDamageModel()->getPreviousState() /= renorm ;

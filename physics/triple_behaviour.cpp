@@ -1,3 +1,5 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
+
 #include "triple_behaviour.h"
 #include "fracturecriteria/fracturecriterion.h"
 

@@ -1,4 +1,5 @@
-// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010-2011
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2010-2011
 
 #include "boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
@@ -917,7 +918,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle,
 		{
 			Point test(elements[i]->getBoundingPoint(j)) ;
 			surface->project(&test);
-			if(dist(test, elements[i]->getBoundingPoint(j)) < POINT_TOLERANCE)
+			if(dist(test, elements[i]->getBoundingPoint(j)) < POINT_TOLERANCE_2D)
 				points.insert(&elements[i]->getBoundingPoint(j)) ;
 		}
 	}
@@ -952,7 +953,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 		{
 			Point test(elements[i]->getBoundingPoint(j)) ;
 			volume->project(&test);
-			if(dist(test, elements[i]->getBoundingPoint(j)) < POINT_TOLERANCE)
+			if(dist(test, elements[i]->getBoundingPoint(j)) < POINT_TOLERANCE_3D)
 				points.insert(&elements[i]->getBoundingPoint(j)) ;
 		}
 	}

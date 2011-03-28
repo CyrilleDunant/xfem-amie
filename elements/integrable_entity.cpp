@@ -1,5 +1,6 @@
 
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -3423,7 +3424,7 @@ Vector ElementState::getDisplacements(const Point & p, bool local, bool fast, co
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 			{
 				d[j] = dist(p, parent->getBoundingPoint(j)) ;
-				if(d[j] < POINT_TOLERANCE)
+				if(d[j] < POINT_TOLERANCE_2D)
 				{
 					ret[0] += (*source)[ parent->getBoundingPoint(j).id*2] ;
 					ret[1] += (*source)[ parent->getBoundingPoint(j).id*2+1] ;
@@ -3449,7 +3450,7 @@ Vector ElementState::getDisplacements(const Point & p, bool local, bool fast, co
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 			{
 				d[j] = dist(p, parent->getBoundingPoint(j)) ;
-				if(d[j] < POINT_TOLERANCE)
+				if(d[j] < POINT_TOLERANCE_3D)
 				{
 					ret[0] += (*source)[ parent->getBoundingPoint(j).id*3] ;
 					ret[1] += (*source)[ parent->getBoundingPoint(j).id*3+1] ;
@@ -3681,7 +3682,7 @@ Vector ElementState::getConcentrations(const Point & p, bool local, bool fast, c
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 			{
 				d[j] = dist(p, parent->getBoundingPoint(j)) ;
-				if(d[j] < POINT_TOLERANCE)
+				if(d[j] < POINT_TOLERANCE_2D)
 				{
 					ret[0] += (*source)[ parent->getBoundingPoint(j).id] ;
 					return ret ;
@@ -3705,7 +3706,7 @@ Vector ElementState::getConcentrations(const Point & p, bool local, bool fast, c
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 			{
 				d[j] = dist(p, parent->getBoundingPoint(j)) ;
-				if(d[j] < POINT_TOLERANCE)
+				if(d[j] < POINT_TOLERANCE_3D)
 				{
 					ret[0] += (*source)[ parent->getBoundingPoint(j).id] ;
 					return ret ;
@@ -5067,7 +5068,7 @@ void ElementState::initialize()
 		previousPreviousDisplacements = 0 ;
 		buffer.resize(displacements.size()) ;
 		buffer = 0 ;
-		if(std::abs(timePos - previousTimePos) < POINT_TOLERANCE && std::abs(timePos) < POINT_TOLERANCE)
+		if(std::abs(timePos - previousTimePos) < POINT_TOLERANCE_3D && std::abs(timePos) < POINT_TOLERANCE_3D)
 		{
 			timePos = -0.1 ;
 			previousTimePos = -0.2 ;
@@ -5436,7 +5437,7 @@ Vector ElementState::getPrincipalStresses(const Mu::PointArray& v, bool local) c
 	bool is3d = false ;
 	for(size_t i = 0 ; i < v.size() ; i++)
 	{
-		if(std::abs(v[i]->z) > POINT_TOLERANCE)
+		if(std::abs(v[i]->z) > POINT_TOLERANCE_2D)
 		{
 			is3d = true ;
 			break ;

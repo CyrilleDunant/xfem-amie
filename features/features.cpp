@@ -1,5 +1,6 @@
 
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -630,20 +631,20 @@ bool FeatureTree::inRoot(const Point &p) const
 {
 	if(is2D())
 	{
-		Point p0(p.x, p.y+POINT_TOLERANCE) ;
-		Point p1(p.x, p.y-POINT_TOLERANCE) ;
-		Point p2(p.x+POINT_TOLERANCE, p.y) ;
-		Point p3(p.x-POINT_TOLERANCE, p.y) ;
+		Point p0(p.x, p.y+POINT_TOLERANCE_2D) ;
+		Point p1(p.x, p.y-POINT_TOLERANCE_2D) ;
+		Point p2(p.x+POINT_TOLERANCE_2D, p.y) ;
+		Point p3(p.x-POINT_TOLERANCE_2D, p.y) ;
 		return (tree[0]->in(p) || tree[0]->in(p0) || tree[0]->in(p1) || tree[0]->in(p2) || tree[0]->in(p3)) ;
 	}
 	else
 	{
-		Point p0(p.x, p.y+POINT_TOLERANCE,p.z) ;
-		Point p1(p.x, p.y-POINT_TOLERANCE,p.z) ;
-		Point p2(p.x+POINT_TOLERANCE, p.y,p.z) ;
-		Point p3(p.x-POINT_TOLERANCE, p.y,p.z) ;
-		Point p4(p.x, p.y,p.z+POINT_TOLERANCE) ;
-		Point p5(p.x, p.y,p.z-POINT_TOLERANCE) ;
+		Point p0(p.x, p.y+POINT_TOLERANCE_3D,p.z) ;
+		Point p1(p.x, p.y-POINT_TOLERANCE_3D,p.z) ;
+		Point p2(p.x+POINT_TOLERANCE_3D, p.y,p.z) ;
+		Point p3(p.x-POINT_TOLERANCE_3D, p.y,p.z) ;
+		Point p4(p.x, p.y,p.z+POINT_TOLERANCE_3D) ;
+		Point p5(p.x, p.y,p.z-POINT_TOLERANCE_3D) ;
 		return (tree[0]->in(p) || tree[0]->in(p0) || tree[0]->in(p1) || tree[0]->in(p2) || tree[0]->in(p3) || tree[0]->in(p4) || tree[0]->in(p5)) ;
 	}
 }
@@ -687,9 +688,9 @@ void FeatureTree::stitch()
 							tree[j]->project(&proj_2) ;
 							bool changed  = true;
 							
-							if(squareDist2D(&proj_0 , triangles[i]->first ) < POINT_TOLERANCE && 
-								squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE && 
-								squareDist2D(&proj_2 , triangles[i]->third) > 10.*POINT_TOLERANCE)
+							if(squareDist2D(&proj_0 , triangles[i]->first ) < POINT_TOLERANCE_2D && 
+								squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE_2D && 
+								squareDist2D(&proj_2 , triangles[i]->third) > 10.*POINT_TOLERANCE_2D)
 							{
 								count+=changed ; 
 								changed = false ;
@@ -724,9 +725,9 @@ void FeatureTree::stitch()
 								}
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
 							}
-							if(squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE && 
-								squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE && 
-								squareDist2D(&proj_0 , triangles[i]->first) > 10.*POINT_TOLERANCE
+							if(squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE_2D && 
+								squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE_2D && 
+								squareDist2D(&proj_0 , triangles[i]->first) > 10.*POINT_TOLERANCE_2D
 								)
 							{
 								count+=changed ; 
@@ -762,9 +763,9 @@ void FeatureTree::stitch()
 								
 		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(3)->x << ", " << (*triangles)[i]->getBoundingPoint(3)->y << std::endl ;
 							}
-							if(squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE && 
-							   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE &&
-							   squareDist2D(&proj_1, triangles[i]->second) > 10.*POINT_TOLERANCE
+							if(squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE_2D && 
+							   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE_2D &&
+							   squareDist2D(&proj_1, triangles[i]->second) > 10.*POINT_TOLERANCE_2D
 							   ) 
 							{
 								count+=changed ; 
@@ -835,8 +836,8 @@ void FeatureTree::stitch()
 						pd+= 6 ;
 						
 						if(
-						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
 						  )
 						{
 							count++; 
@@ -851,8 +852,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
 						  )
 						{
 							count++; 
@@ -867,8 +868,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
 						  )
 						{
 							count++; 
@@ -883,8 +884,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
 						  )
 						{
 							count++; 
@@ -899,8 +900,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE*POINT_TOLERANCE
+						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D
 						  )
 						{
 							count++; 
@@ -915,8 +916,8 @@ void FeatureTree::stitch()
 							}
 						}
 						if(
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE*POINT_TOLERANCE && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE*POINT_TOLERANCE 
+						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
 						  )
 						{
 							count++; 
@@ -1080,7 +1081,7 @@ void FeatureTree::sample()
 			for(size_t i  = 1 ; i < this->tree.size() ; i++)
 			{
 				double shape_factor =(sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
-				if(shape_factor < POINT_TOLERANCE)
+				if(shape_factor < POINT_TOLERANCE_2D)
 					continue ;
 				size_t npoints = std::max((size_t)round(sqrt(tree[i]->area()/(total_area*shape_factor))*samplingNumber), (size_t)8) ;
 
@@ -1145,7 +1146,7 @@ void FeatureTree::sample()
 					grid->forceAdd(tree[i]);
 					
 					double shape_factor =(sqrt(tree[0]->area())/(2.*M_PI*tree[0]->getRadius()))/(sqrt(tree[i]->area())/(2.*M_PI*tree[i]->getRadius()));
-					if(shape_factor < POINT_TOLERANCE)
+					if(shape_factor < POINT_TOLERANCE_2D)
 						continue ;
 					size_t npoints = std::max((size_t)round(sqrt(tree[i]->area()/(total_area*shape_factor))*samplingNumber), (size_t)8) ;
 
@@ -3185,7 +3186,7 @@ void FeatureTree::stepElements()
 						crackedVolume += are ;
 						averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
-					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE)
+					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D)
 					{
 						damagedVolume += are ;
 						averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
@@ -3261,7 +3262,7 @@ void FeatureTree::stepElements()
 						crackedVolume +=  vol ;
 						averageDamage += vol*elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
-					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE)
+					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D)
 					{
 						damagedVolume +=  vol ;
 						averageDamage += vol*elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
@@ -3402,7 +3403,7 @@ void FeatureTree::State::setStateTo(StateType s,bool stepChanged )
 			}
 			if(stepChanged)
 			{
-				if(ft->deltaTime > POINT_TOLERANCE)
+				if(ft->deltaTime > POINT_TOLERANCE_2D)
 					enriched = false ;
 				assembled = false ;
 				solved = false ;
@@ -3979,7 +3980,7 @@ void FeatureTree::generateElements()
 					{
 						Point proj(tree[i]->getBoundingPoint(j)) ;
 						nullFatherFeatures[k]->project(&proj) ;
-						if(dist(proj, tree[i]->getBoundingPoint(j)) < 2.*POINT_TOLERANCE)
+						if(dist(proj, tree[i]->getBoundingPoint(j)) < 2.*POINT_TOLERANCE_2D)
 						{
 							isIn = true ;
 							break ;
@@ -3996,7 +3997,7 @@ void FeatureTree::generateElements()
 				{
 					Point proj(tree[i]->getBoundingPoint(j)) ;
 					tree[i]->getFather()->project(&proj) ;
-					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
+					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE_2D)
 						isIn = true ;
 					else
 					{
@@ -4091,7 +4092,7 @@ void FeatureTree::generateElements()
 					{
 						Point proj(tree[i]->getInPoint(j)) ;
 						nullFatherFeatures[k]->project(&proj) ;
-						if(dist(proj, tree[i]->getInPoint(j)) < 2.*POINT_TOLERANCE)
+						if(dist(proj, tree[i]->getInPoint(j)) < 2.*POINT_TOLERANCE_2D)
 						{
 							isIn = true ;
 							break ;
@@ -4226,12 +4227,12 @@ void FeatureTree::generateElements()
 					
 						Point proj(inter[k]) ;
 						tree[0]->project(&proj) ;
-						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
-						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
-						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
-						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
-						Point proj4(inter[k]+Point(0, 0, 2.*POINT_TOLERANCE)) ;
-						Point proj5(inter[k]+Point(0, 0, -2.*POINT_TOLERANCE)) ;
+						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE_3D, 0, 0)) ;
+						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE_3D, 0, 0)) ;
+						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE_3D, 0)) ;
+						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE_3D, 0)) ;
+						Point proj4(inter[k]+Point(0, 0, 2.*POINT_TOLERANCE_3D)) ;
+						Point proj5(inter[k]+Point(0, 0, -2.*POINT_TOLERANCE_3D)) ;
 						
 						int position = tree[0]->in(proj0) 
 						+ tree[0]->in(proj1)
@@ -4257,7 +4258,7 @@ void FeatureTree::generateElements()
 						+ tree[0]->in(proj5) ;
 						
 						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
+						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && /*inRoot(inter[k]) && */((onSurface && tooClose == 5) || (onEdge && tooClose == 4) || onVertex))
 						{
 							Point *p = new Point(inter[k]) ;
 							additionalPoints.push_back(p) ;
@@ -4269,10 +4270,10 @@ void FeatureTree::generateElements()
 					{
 						Point proj(inter[k]) ;
 						tree[0]->project(&proj) ;
-						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE, 0, 0)) ;
-						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE, 0, 0)) ;
-						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE, 0)) ;
-						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE, 0)) ;
+						Point proj0(inter[k]+Point(2.*POINT_TOLERANCE_3D, 0, 0)) ;
+						Point proj1(inter[k]+Point(-2.*POINT_TOLERANCE_3D, 0, 0)) ;
+						Point proj2(inter[k]+Point(0, 2.*POINT_TOLERANCE_3D, 0)) ;
+						Point proj3(inter[k]+Point(0, -2.*POINT_TOLERANCE_3D, 0)) ;
 
 						
 						int position = tree[0]->in(proj0) 
@@ -4293,7 +4294,7 @@ void FeatureTree::generateElements()
 						+ tree[0]->in(proj3);
 
 						// no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE*POINT_TOLERANCE && inRoot(inter[k]) && ( (onEdge && tooClose == 3) || onVertex))
+						if(!indescendants && squareDist3D(proj, inter[k]) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && inRoot(inter[k]) && ( (onEdge && tooClose == 3) || onVertex))
 						{
 							Point *p = new Point(inter[k]) ;
 							additionalPoints.push_back(p) ;

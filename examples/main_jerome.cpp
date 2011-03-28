@@ -4,7 +4,8 @@
 // Description: 
 //
 //
-// Author:  Jérôme Krebs <jerome.krebs@epfl.ch>, (C) 2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Jérôme Krebs <jerome.krebs@epfl.ch>, (C) 2007
 //
 // Copyright: See COPYING file that comes with this distribution
 //

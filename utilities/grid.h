@@ -1,3 +1,8 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011S
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//
 #ifndef GRID_H
 #define GRID_H
 #include<valarray>

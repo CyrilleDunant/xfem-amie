@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -94,7 +94,7 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 
 void PseudoPlastic::step(double timestep, ElementState & currentState)
 {
-	if(timestep > POINT_TOLERANCE)
+	if(timestep > POINT_TOLERANCE_2D)
 		fixLastDamage() ;
 	frac = fixedfrac ;
 	change = false ;

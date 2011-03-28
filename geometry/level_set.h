@@ -1,6 +1,6 @@
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 // Author: Ruzena Chamrova <ruzena.chamrova@epfl.ch>, (C) 2007
-// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses, level set)
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 

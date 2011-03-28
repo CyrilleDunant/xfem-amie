@@ -1,6 +1,6 @@
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005-2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 // Author: Ruzena Chamrova <ruzena.chamrova@epfl.ch>, (C) 2007
-// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009 (added: ellipses, level set)
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 
@@ -300,8 +300,10 @@ return this->LevelSet::timePlanes() ;                 \
 namespace Mu
 {
 
-static const double POINT_TOLERANCE =  1e-10 ;//std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE_2D =  1e-10 ;//std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE_3D =  1e-7 ;//std::numeric_limits<double>::epsilon() ;
 
+/** \brief defines the implemented geometries */
 typedef enum
 {
 	NULL_GEOMETRY,
@@ -326,80 +328,81 @@ typedef enum
 /** \brief defines the possible vertices, axes and faces of a bounding box */
 typedef enum
 {
-  TOP,
-  LEFT,
-  BOTTOM,
-  RIGHT,
-  FRONT,
-  BACK,
-  TOP_LEFT,
-  TOP_RIGHT,
-  BOTTOM_LEFT,
-  BOTTOM_RIGHT,
-  FRONT_LEFT,
-  FRONT_RIGHT,
-  BACK_LEFT,
-  BACK_RIGHT,
-  FRONT_TOP,
-  FRONT_BOTTOM,
-  TOP_LEFT_FRONT,
-  TOP_LEFT_BACK,
-  BOTTOM_LEFT_FRONT,
-  BOTTOM_LEFT_BACK,
-  TOP_RIGHT_FRONT,
-  TOP_RIGHT_BACK,
-  BOTTOM_RIGHT_FRONT,
-  BOTTOM_RIGHT_BACK,
+	TOP,
+	LEFT,
+	BOTTOM,
+	RIGHT,
+	FRONT,
+	BACK,
+	TOP_LEFT,
+	TOP_RIGHT,
+	BOTTOM_LEFT,
+	BOTTOM_RIGHT,
+	FRONT_LEFT,
+	FRONT_RIGHT,
+	BACK_LEFT,
+	BACK_RIGHT,
+	FRONT_TOP,
+	FRONT_BOTTOM,
+	TOP_LEFT_FRONT,
+	TOP_LEFT_BACK,
+	BOTTOM_LEFT_FRONT,
+	BOTTOM_LEFT_BACK,
+	TOP_RIGHT_FRONT,
+	TOP_RIGHT_BACK,
+	BOTTOM_RIGHT_FRONT,
+	BOTTOM_RIGHT_BACK,
 	TOP_BEFORE,
-  LEFT_BEFORE,
-  BOTTOM_BEFORE,
-  RIGHT_BEFORE,
-  FRONT_BEFORE,
-  BACK_BEFORE,
-  TOP_LEFT_BEFORE,
-  TOP_RIGHT_BEFORE,
-  BOTTOM_LEFT_BEFORE,
-  BOTTOM_RIGHT_BEFORE,
-  FRONT_LEFT_BEFORE,
-  FRONT_RIGHT_BEFORE,
-  BACK_LEFT_BEFORE,
-  BACK_RIGHT_BEFORE,
-  FRONT_TOP_BEFORE,
-  FRONT_BOTTOM_BEFORE,
-  TOP_LEFT_FRONT_BEFORE,
-  TOP_LEFT_BACK_BEFORE,
-  BOTTOM_LEFT_FRONT_BEFORE,
-  BOTTOM_LEFT_BACK_BEFORE,
-  TOP_RIGHT_FRONT_BEFORE,
-  TOP_RIGHT_BACK_BEFORE,
-  BOTTOM_RIGHT_FRONT_BEFORE,
-  BOTTOM_RIGHT_BACK_BEFORE,
-  TOP_AFTER,
-  LEFT_AFTER,
-  BOTTOM_AFTER,
-  RIGHT_AFTER,
-  FRONT_AFTER,
-  BACK_AFTER,
-  TOP_LEFT_AFTER,
-  TOP_RIGHT_AFTER,
-  BOTTOM_LEFT_AFTER,
-  BOTTOM_RIGHT_AFTER,
-  FRONT_LEFT_AFTER,
-  FRONT_RIGHT_AFTER,
-  BACK_LEFT_AFTER,
-  BACK_RIGHT_AFTER,
-  FRONT_TOP_AFTER,
-  FRONT_BOTTOM_AFTER,
-  TOP_LEFT_FRONT_AFTER,
-  TOP_LEFT_BACK_AFTER,
-  BOTTOM_LEFT_FRONT_AFTER,
-  BOTTOM_LEFT_BACK_AFTER,
-  TOP_RIGHT_FRONT_AFTER,
-  TOP_RIGHT_BACK_AFTER,
-  BOTTOM_RIGHT_FRONT_AFTER,
-  BOTTOM_RIGHT_BACK_AFTER,
+	LEFT_BEFORE,
+	BOTTOM_BEFORE,
+	RIGHT_BEFORE,
+	FRONT_BEFORE,
+	BACK_BEFORE,
+	TOP_LEFT_BEFORE,
+	TOP_RIGHT_BEFORE,
+	BOTTOM_LEFT_BEFORE,
+	BOTTOM_RIGHT_BEFORE,
+	FRONT_LEFT_BEFORE,
+	FRONT_RIGHT_BEFORE,
+	BACK_LEFT_BEFORE,
+	BACK_RIGHT_BEFORE,
+	FRONT_TOP_BEFORE,
+	FRONT_BOTTOM_BEFORE,
+	TOP_LEFT_FRONT_BEFORE,
+	TOP_LEFT_BACK_BEFORE,
+	BOTTOM_LEFT_FRONT_BEFORE,
+	BOTTOM_LEFT_BACK_BEFORE,
+	TOP_RIGHT_FRONT_BEFORE,
+	TOP_RIGHT_BACK_BEFORE,
+	BOTTOM_RIGHT_FRONT_BEFORE,
+	BOTTOM_RIGHT_BACK_BEFORE,
+	TOP_AFTER,
+	LEFT_AFTER,
+	BOTTOM_AFTER,
+	RIGHT_AFTER,
+	FRONT_AFTER,
+	BACK_AFTER,
+	TOP_LEFT_AFTER,
+	TOP_RIGHT_AFTER,
+	BOTTOM_LEFT_AFTER,
+	BOTTOM_RIGHT_AFTER,
+	FRONT_LEFT_AFTER,
+	FRONT_RIGHT_AFTER,
+	BACK_LEFT_AFTER,
+	BACK_RIGHT_AFTER,
+	FRONT_TOP_AFTER,
+	FRONT_BOTTOM_AFTER,
+	TOP_LEFT_FRONT_AFTER,
+	TOP_LEFT_BACK_AFTER,
+	BOTTOM_LEFT_FRONT_AFTER,
+	BOTTOM_LEFT_BACK_AFTER,
+	TOP_RIGHT_FRONT_AFTER,
+	TOP_RIGHT_BACK_AFTER,
+	BOTTOM_RIGHT_FRONT_AFTER,
+	BOTTOM_RIGHT_BACK_AFTER,
 } BoundingBoxPosition ;
 
+/** \brief defines the different space dimensionnalities of the mesh.*/
 typedef enum
 {
 	SPACE_ONE_DIMENSIONAL,
@@ -438,10 +441,13 @@ struct Point
 		} ;
 	};
 	#endif
+	
 	/** \brief ID of the point, useful for mesh indexing*/
 	int id ;
+
 	/** \brief default constructor, coordiantes are nil, and id is -1 */
 	Point();
+	
 	/** \brief initialise x and y values
 	*
 	* @param x
@@ -455,6 +461,7 @@ struct Point
 	* @param y
 	* @param z
 	*/
+
 	Point(double x, double y, double z) ;
 	/** \brief initialise x, y, z and t values
 	*
@@ -467,9 +474,10 @@ struct Point
 	
 	/** \brief copy-constructor.*/
 	Point(const Point & p) ;
-	
-	Point& operator = (const Point & p) ;
 
+	/** \brief copy-constructor.*/
+	Point& operator = (const Point & p) ;
+	
 	/** \brief constructor from a XML tree item*/
 	Point(XMLTree * xml) ;
 
@@ -477,7 +485,6 @@ struct Point
 	* Data structure is <point><vector> 4 x y z t </vector><id> id </id></point>
 	*/
 	XMLTree * toXML() ;
-
 	
 	void setX(double v) ;
 	void setY(double v) ;
@@ -489,7 +496,7 @@ struct Point
 	void set(double v, double vv, double vvv, double vvvv) ;
 	void set(const Point & p) ;
 	void set(const Point * p) ;
-	
+
 	/** Robust point comparator.
 	 * 
 	 * @param p \c Point to compare to.
@@ -617,7 +624,6 @@ struct Point
 	
 	/** \brief access x, y, z or t*/
 	double operator[](size_t i) const ;
-	
 	
 } ;
 
@@ -768,7 +774,7 @@ public:
 	virtual std::vector<Point> intersection(const Geometry *) const ;
 	
 	/** \brief Get the bounding box. 
-   * The points are topLeft, topRight, bottomRight, bottomLeft or in 3D:
+	 * The points are topLeft, topRight, bottomRight, bottomLeft or in 3D:
 	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z+0.5*size_z) ;
 	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z-0.5*size_z) ;
 	 * center.x+0.5*size_x, center.y-0.5*size_y, center.z+0.5*size_z) ;
@@ -785,6 +791,7 @@ public:
 
 	/** \brief Return the number of time slices present in this geometry*/
 	virtual size_t timePlanes() const ;
+	
 	virtual size_t & timePlanes() ;
 	
 	/** \brief return the fraction of the area of the current geometry also lying in the target geometry. */

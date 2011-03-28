@@ -1,3 +1,5 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
+
 #include "eigenvalues.h"
 #include "biconjugategradientstabilized.h"
 #include "conjugategradient.h"

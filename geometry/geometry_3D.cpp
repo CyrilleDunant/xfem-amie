@@ -179,7 +179,7 @@ bool RegularOctahedron::in(const Point &p) const
 
 	Point local = p-center ;
 	double test = std::abs(local.x) + std::abs(local.y) + std::abs(local.z) ;
-	return (test-length/std::sqrt(2.)) < POINT_TOLERANCE ;
+	return (test-length/std::sqrt(2.)) < POINT_TOLERANCE_3D ;
 
 // 	return true ;
 	Matrix rot(3,3) ;
@@ -455,7 +455,7 @@ bool Tetrahedron::in(const Point & v) const
 		return false ;
 
 	Point  pg = getCenter() ;//(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
-	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
+	if(squareDist3D(pg, v) <POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 		return true ;
 	
 	if(getBoundingPoints().size() == 4)
@@ -628,7 +628,7 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 	
 	double d = dist(&circumCenter, p) ;
 
-	return  d-radius < POINT_TOLERANCE ;
+	return  d-radius < POINT_TOLERANCE_3D ;
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)
@@ -826,7 +826,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 			bool in = false ;
 			for(size_t k = 0 ; k < points.size() ; k++)
 			{
-				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 				{
 					in = true ;
 					break ;
@@ -846,7 +846,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 			bool in = false ;
 			for(size_t k = 0 ; k < points.size() ; k++)
 			{
-				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 				{
 					in = true ;
 					break ;
@@ -866,7 +866,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 			bool in = false ;
 			for(size_t k = 0 ; k < points.size() ; k++)
 			{
-				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 				{
 					in = true ;
 					break ;
@@ -886,7 +886,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 			bool in = false ;
 			for(size_t k = 0 ; k < points.size() ; k++)
 			{
-				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 				{
 					in = true ;
 					break ;
@@ -906,7 +906,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
 			bool in = false ;
 			for(size_t k = 0 ; k < points.size() ; k++)
 			{
-				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 				{
 					in = true ;
 					break ;
@@ -1060,12 +1060,12 @@ void Hexahedron::sampleSurface(size_t num_points)
 
 bool Hexahedron::in(const Point & v) const
 {
-	return v.x >= (center.x - size_x*.5 - POINT_TOLERANCE) &&
-		   v.x <= (center.x + size_x*.5 + POINT_TOLERANCE) &&
-		   v.y >= (center.y - size_y*.5 - POINT_TOLERANCE) &&
-		   v.y <= (center.y + size_y*.5 + POINT_TOLERANCE) &&
-		   v.z >= (center.z - size_z*.5 - POINT_TOLERANCE) &&
-		   v.z <= (center.z + size_z*.5 + POINT_TOLERANCE) ;
+	return v.x >= (center.x - size_x*.5 - POINT_TOLERANCE_3D) &&
+		   v.x <= (center.x + size_x*.5 + POINT_TOLERANCE_3D) &&
+		   v.y >= (center.y - size_y*.5 - POINT_TOLERANCE_3D) &&
+		   v.y <= (center.y + size_y*.5 + POINT_TOLERANCE_3D) &&
+		   v.z >= (center.z - size_z*.5 - POINT_TOLERANCE_3D) &&
+		   v.z <= (center.z + size_z*.5 + POINT_TOLERANCE_3D) ;
 }
 
 double Hexahedron::area() const
@@ -1288,7 +1288,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 	//z = r cos(theta)
 	
 	std::vector<Point> points ;
-	if(r  < POINT_TOLERANCE)
+	if(r  < POINT_TOLERANCE_3D)
 		return points ;
 	
 // 		first we sample a cube.
@@ -1391,7 +1391,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 		{
 			for(size_t j  = i+1 ; j < points.size() ; j++)
 			{
-				if(squareDist3D(points[i], points[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D(points[i], points[j])< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 				{
 					haveDuplicates = true ;
 					points.erase(points.begin()+j) ;
@@ -1420,7 +1420,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 	double last_error = 1. ;
 	int count = 0 ;
 	double derr = 1. ;
-	for(size_t i = 0 ; /*(i < iter) &&*/ std::abs(error-last_error)/last_error > POINT_TOLERANCE*POINT_TOLERANCE*points.size()*points.size() && (count == 0); i++)
+	for(size_t i = 0 ; /*(i < iter) &&*/ std::abs(error-last_error)/last_error > POINT_TOLERANCE_3D*POINT_TOLERANCE_3D*points.size()*points.size() && (count == 0); i++)
 	{
 		derr = std::abs(error-last_error) ;
 		if(iter && i%iter == 0)
@@ -1431,7 +1431,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 		{
 			for(size_t k = j+1 ; k < points.size() ; k++)
 			{
-				if(squareDist3D( points[j], points[k]) > 512.*POINT_TOLERANCE*POINT_TOLERANCE)
+				if(squareDist3D( points[j], points[k]) > 512.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 				{
 					vec.set(points[j].x-points[k].x,points[j].y-points[k].y,points[j].z-points[k].z) ;
 					double n = vec.sqNorm() ;
@@ -1598,7 +1598,7 @@ bool Sphere::in(const Point & v) const
 		return false ;
 	if(v.z > center.z+1.0001*getRadius())
 		return false ;
-	return squareDist3D(v, getCenter()) < getRadius()*getRadius() + 2.*getRadius()*POINT_TOLERANCE + POINT_TOLERANCE*POINT_TOLERANCE;
+	return squareDist3D(v, getCenter()) < getRadius()*getRadius() + 2.*getRadius()*POINT_TOLERANCE_3D + POINT_TOLERANCE_3D*POINT_TOLERANCE_3D;
 }
 
 double Sphere::area() const
@@ -1622,7 +1622,7 @@ void Sphere::project(Point * p, double r) const
 	//y = r sin(theta) sin(phi)
 	//z = r cos(theta)
 	int id = p->id ;
-	if(squareDist3D(*p, getCenter() ) < POINT_TOLERANCE*POINT_TOLERANCE)
+	if(squareDist3D(*p, getCenter() ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
 	{
 		p->x =+ r ;
 		return ;
@@ -1630,7 +1630,7 @@ void Sphere::project(Point * p, double r) const
 	
 	Point p_prime = *p-getCenter() ;
 	double n = p_prime.norm() ;
-	if(std::abs(n - r) < POINT_TOLERANCE)
+	if(std::abs(n - r) < POINT_TOLERANCE_3D)
 		return ;
 	p_prime *= r/n ;
 	*p = getCenter()+p_prime ;

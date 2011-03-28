@@ -1,3 +1,5 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
+
 #ifndef EIGEN_H
 #define EIGEN_H
 

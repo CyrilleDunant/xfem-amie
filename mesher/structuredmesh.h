@@ -1,3 +1,5 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010-2011
+
 #ifndef STRUCTURED_MESH_H
 #define STRUCTURED_MESH_H
 

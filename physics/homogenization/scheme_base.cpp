@@ -145,7 +145,7 @@ bool Scheme::check(bool r)
 
 bool Scheme::equalsZero(double x)
 {
-	if(std::abs(x) < POINT_TOLERANCE)
+	if(std::abs(x) < POINT_TOLERANCE_2D)
 	{
 		s = STATUS_BAD_HOMOGENIZATION ;
 		return true ;

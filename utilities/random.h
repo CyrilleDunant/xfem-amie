@@ -4,9 +4,10 @@
 // Description: simple random generator, using the c++ standard rand() function
 //
 //
-// Author: Alain Giorla
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2010-2011
 //
 // Copyright: See COPYING file that comes with this distribution
+//
 //
 //
 

@@ -1,3 +1,8 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010-2011
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//
 
 #include "optimizer.h"
 #include "random.h"

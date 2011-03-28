@@ -1,3 +1,5 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
+
 #ifndef __TRIPLE_BEHAVIOUR_H_
 #define __TRIPLE_BEHAVIOUR_H_
 

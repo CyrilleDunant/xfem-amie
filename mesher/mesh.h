@@ -161,7 +161,7 @@ namespace Mu
 						{
 							Point proj(*(*i)) ;
 							targets[k]->project(&proj) ;
-							if(targets[k]->in(*(*i)) || dist(proj, *(*i)) < 128.*POINT_TOLERANCE)
+							if(targets[k]->in(*(*i)) || dist(proj, *(*i)) < 128.*POINT_TOLERANCE_2D)
 								coincidentElements[dist(*(*i), targets[k]->getCenter())] = targets[k] ;
 						}
 						

@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -26,7 +26,7 @@ Vector StrainBrokenIsotropicLinearDamage::computeDamageIncrement(ElementState & 
 	Vector ret(1) ; ret = 0 ;
 	if(s.getPrincipalStrains(s.getParent()->getCenter()).max() > limitStrain)
 	{
-		ret[0] = thresholdDamageDensity/fraction+POINT_TOLERANCE ;
+		ret[0] = thresholdDamageDensity/fraction+POINT_TOLERANCE_2D ;
 	}
 	ret[0] += 0.5 ; 
 // 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
@@ -36,7 +36,7 @@ Vector StrainBrokenIsotropicLinearDamage::computeDamageIncrement(ElementState & 
 
 void StrainBrokenIsotropicLinearDamage::artificialDamageStep(double d)
 {
-	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE) ;
+	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
 }
 
 

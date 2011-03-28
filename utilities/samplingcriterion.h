@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2005
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //

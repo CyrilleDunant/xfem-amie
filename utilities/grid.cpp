@@ -1,3 +1,5 @@
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
+
 #include "grid.h"
 #include <set>
 
@@ -238,12 +240,12 @@ Voxel::~Voxel()
 
 bool Voxel::coOccur(const Point & p) const
 {
-	return p.x >= tlf.x-POINT_TOLERANCE 
-	   &&  p.x <= trf.x+POINT_TOLERANCE 
-	   &&  p.y >= blf.y-POINT_TOLERANCE 
-	   &&  p.y <= tlf.y+POINT_TOLERANCE 
-	   &&  p.z >= blb.z-POINT_TOLERANCE 
-	   &&  p.z <= tlf.z+POINT_TOLERANCE;
+	return p.x >= tlf.x-POINT_TOLERANCE_3D 
+	   &&  p.x <= trf.x+POINT_TOLERANCE_3D 
+	   &&  p.y >= blf.y-POINT_TOLERANCE_3D 
+	   &&  p.y <= tlf.y+POINT_TOLERANCE_3D 
+	   &&  p.z >= blb.z-POINT_TOLERANCE_3D 
+	   &&  p.z <= tlf.z+POINT_TOLERANCE_3D;
 }
 
 int Voxel::computeFillFactor() const
@@ -346,10 +348,10 @@ bool Pixel::coOccur(const Geometry * inc) const
 
 bool Pixel::coOccur(const Point & p) const
 {
-	return p.x >= tl.x - POINT_TOLERANCE 
-	   &&  p.x <= tr.x + POINT_TOLERANCE 
-	   &&  p.y >= bl.y - POINT_TOLERANCE 
-	   &&  p.y <= tl.y + POINT_TOLERANCE ;
+	return p.x >= tl.x - POINT_TOLERANCE_2D 
+	   &&  p.x <= tr.x + POINT_TOLERANCE_2D 
+	   &&  p.y >= bl.y - POINT_TOLERANCE_2D 
+	   &&  p.y <= tl.y + POINT_TOLERANCE_2D ;
 }
 
 void Pixel::remove(Geometry * inc)

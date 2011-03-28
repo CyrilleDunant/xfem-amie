@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -92,10 +92,10 @@ void StiffnessAndIndexedFracture::step(double timestep, ElementState & currentSt
 	previouschange = change ;
 	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
-	if(currentState.getDeltaTime() > POINT_TOLERANCE)
+	if(currentState.getDeltaTime() > POINT_TOLERANCE_2D)
 		damagedAtStep = false ;
 		
-	if( currentState.getDeltaTime() <= POINT_TOLERANCE && criterion->met(currentState) /*criterion->getScoreAtState() > 0*/|| damagedAtStep)
+	if( currentState.getDeltaTime() <= POINT_TOLERANCE_2D && criterion->met(currentState) /*criterion->getScoreAtState() > 0*/|| damagedAtStep)
 	{
 		damagedAtStep = true ;
 		double pdamage = dfunc->getState()[0] ;
@@ -104,7 +104,7 @@ void StiffnessAndIndexedFracture::step(double timestep, ElementState & currentSt
 		currentState.getParent()->behaviourUpdated = change ;
 		frac = dfunc->fractured() ;
 	}
-	if(currentState.getDeltaTime() > POINT_TOLERANCE)
+	if(currentState.getDeltaTime() > POINT_TOLERANCE_2D)
 		change = true ;
 	
 	previousPreviousDamage.resize(previousDamage.size()) ;

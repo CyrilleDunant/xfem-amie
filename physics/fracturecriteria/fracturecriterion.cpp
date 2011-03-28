@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -457,7 +457,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			{
 				double a = elements[i]->area() ;
 				double sc = elements[i]->getBehaviour()->getFractureCriterion()->grade(elements[i]->getState()) ;
-				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
+				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE_2D)
 					originalscore += 1./(1.-sc) ;
 				originalenergy += elements[i]->getState().elasticEnergy()*a ;
 			}
@@ -530,7 +530,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			{
 				double v = elements[i]->volume() ;
 				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
+				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE_3D)
 					originalscore += 1./(1.-sc) ;
 				originalenergy += elements[i]->getState().elasticEnergy()*v ;
 			}
@@ -601,7 +601,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			{
 				double a = elements[i]->area() ;
 				double sc = elements[i]->getBehaviour()->getFractureCriterion()->grade(elements[i]->getState()) ;
-				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
+				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE_2D)
 					score += 1./(1.-sc);
 				energy += elements[i]->getState().elasticEnergy()*a ;
 			}
@@ -670,7 +670,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 			if(elements[i]->getBehaviour()->getFractureCriterion())
 			{
 				double sc = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE)
+				if(dist(elements[i]->getCenter(), s.getParent()->getCenter()) < POINT_TOLERANCE_3D)
 					score += 1./(1.-sc) ;
 				energy += elements[i]->getState().elasticEnergy()*elements[i]->volume() ;
 			}
@@ -792,7 +792,7 @@ void FractureCriterion::step(const ElementState &s)
 				initialiseCache(s) ;
 		
 	scoreAtState = grade(s) ;
-	if(energyIndexed && s.getDeltaTime() > POINT_TOLERANCE )
+	if(energyIndexed && s.getDeltaTime() > POINT_TOLERANCE_2D )
 		noEnergyUpdate = true ;
 	
 	if(energyIndexed && noEnergyUpdate /*&& scoreAtState > -.5*/)
@@ -1035,7 +1035,7 @@ bool FractureCriterion::met(const ElementState &s)
 				}
 				else if(ci->getBehaviour()->fractured())
 				{
-					double s = POINT_TOLERANCE ;
+					double s = POINT_TOLERANCE_2D ;
 					scores[-s] =  ci;
 				}
 				areatemp[ci] = area[i] ;

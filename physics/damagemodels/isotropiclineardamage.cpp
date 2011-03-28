@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -33,7 +33,7 @@ Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 
 void IsotropicLinearDamage::artificialDamageStep(double d)
 {
-	getState()[0] = std::min(getState()[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE) ;
+	getState()[0] = std::min(getState()[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
 }
 
 
