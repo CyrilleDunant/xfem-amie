@@ -5128,7 +5128,6 @@ void ElementState::step(double dt, const Vector * d)
 	}
 }
 
-
 Vector ElementState::getSpeed(const Point & p) const
 {
 	return (getDisplacements(p) - getPreviousDisplacements(p)) / (timePos-previousTimePos) ;

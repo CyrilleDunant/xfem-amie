@@ -98,9 +98,9 @@ public:
 	virtual NonLinearForm * getNonLinearBehaviour() const;
 	void setNonLinearBehaviour(NonLinearForm * f) ;
 	
-	void step(double dt, const Vector * displacements) ;
-	void stepBack() ;
-	void nonLinearStep(double dt, const Vector * displacements) ;
+	virtual void step(double dt, const Vector * displacements) ;
+	virtual void stepBack() ;
+	virtual void nonLinearStep(double dt, const Vector * displacements) ;
 	
 	Order getOrder() const;
 	void setOrder(Order) ;

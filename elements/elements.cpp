@@ -171,6 +171,7 @@ void ElementaryVolume::step(double dt, const Vector *displacements)
 	getBehaviour()->updateElementState(dt, getState()) ;
 }
 
+
 void ElementaryVolume::stepBack()
 {
 	getState().stepBack() ;

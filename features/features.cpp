@@ -2876,7 +2876,7 @@ void FeatureTree::solve()
 				coarseTrees3D[0]->project(dtree3D, coarseAssemblies[0]->getDisplacements(), lastx) ;
 				coarseAssemblies[0]->cgsolve(coarseAssemblies[0]->getDisplacements()) ;
 			}
-			
+		
 			if(is2D())
 			{
 				std::cerr << " stepping through elements... grid " << 0 << std::flush ;
@@ -2898,7 +2898,7 @@ void FeatureTree::solve()
 				{	
 					if(i%1000 == 0)
 						std::cerr << "\r stepping through  grid " << 0 <<", elements... " << i << "/" << elements.size() << std::flush ;
-					elements[i]->step(deltaTime, &coarseAssemblies[0]->getDisplacements()) ;
+						elements[i]->step(deltaTime, &coarseAssemblies[0]->getDisplacements()) ;
 				}
 				std::cerr << " ...done" << std::endl ;
 
@@ -2996,7 +2996,8 @@ void FeatureTree::solve()
 					{	
 						if(i%1000 == 0)
 							std::cerr << "\r stepping through  grid " << j <<", elements... " << i << "/" << elements.size() << std::flush ;
-						elements[i]->step(deltaTime, &coarseAssemblies[j]->getDisplacements()) ;
+					else
+						elements[i]->step(deltaTime, &coarseAssemblies[0]->getDisplacements()) ;
 					}
 					std::cerr << " ...done" << std::endl ;
 				}
@@ -3151,55 +3152,59 @@ void FeatureTree::stepElements()
 			int fracturedCount = 0 ;
 			int ccount = 0 ;
 			double gmin  = -1 ;
-			for(size_t i = 0 ; i < elements.size() ;i++)
+			if(!elastic)
 			{
-				if(i%1000 == 0)
-					std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
-				if(elements[i]->getBehaviour()->getFractureCriterion())
-					elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
-				if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() > gmin)
-					gmin = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-			}
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{
+					if(i%1000 == 0)
+						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
+					if(elements[i]->getBehaviour()->getFractureCriterion())
+						elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
+					if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() > gmin)
+						gmin = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+				}
 			
-			std::cerr << " ...done. " << std::endl ;
-// #pragma omp parallel for
-			for(size_t i = 0 ; i < elements.size() ;i++)
-			{
+				std::cerr << " ...done. " << std::endl ;
 
-				double are = elements[i]->area() ;
-				if(i%10000 == 0)
-					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
-				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+// #pragma omp parallel for
+				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
-					volume += are ;
+
+					double are = elements[i]->area() ;
+					if(i%10000 == 0)
+						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
+					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+					{
+						volume += are ;
 					
-					elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
-					if(elements[i]->getBehaviour()->changed())
-					{
-						needAssembly = true ;
-						behaviourChange = true ;
-						ccount++ ;
+						elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
+						if(elements[i]->getBehaviour()->changed())
+						{
+							needAssembly = true ;
+							behaviourChange = true ;
+							ccount++ ;
+						}
+						if(elements[i]->getBehaviour()->fractured())
+						{
+							fracturedCount++ ;
+							crackedVolume += are ;
+							averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
+						}
+						else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D)
+						{
+							damagedVolume += are ;
+							averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
+						}
 					}
-					if(elements[i]->getBehaviour()->fractured())
+					else if (elements[i]->getBehaviour()->fractured())
 					{
-						fracturedCount++ ;
-						crackedVolume += are ;
+						crackedVolume +=  are ;
 						averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
-					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D)
-					{
-						damagedVolume += are ;
-						averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
-					}
-				}
-				else if (elements[i]->getBehaviour()->fractured())
-				{
-					crackedVolume +=  are ;
-					averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
-				}
 				
+				}
+				std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;
 			}
-			std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;
 			for(size_t i = 0 ; i < elements.size() ;i++)
 				elements[i]->clearVisited() ;
 		}

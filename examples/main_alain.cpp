@@ -428,25 +428,30 @@ int main(int argc, char *argv[])
 	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
 
-	double alpha = 0.01 ;
+	double alpha = 0.1 ;
 	Vector a(3) ;
 	a[0] = alpha ; a[1] = alpha ; a[2] = 0. ;
 
-	ExpansiveZone* exp1 = new ExpansiveZone(NULL, 0.0001, 0.003, 0.003, m0, a) ;
-	ExpansiveZone* exp2 = new ExpansiveZone(NULL, 0.0001, 0.009, 0.0025, m0, a) ;
+//	ExpansiveZone* exp1 = new ExpansiveZone(NULL, 0.0001, 0.003, 0.003, m0, a) ;
+//	ExpansiveZone* exp2 = new ExpansiveZone(NULL, 0.0001, 0.009, 0.0025, m0, a) ;
 	ExpansiveZone* exp3 = new ExpansiveZone(NULL, 0.0001, -0.005, 0.003, m0, a) ;
 
 	FeatureTree F(&box) ;
 	featureTree = &F ;
-	F.addFeature(&box, inc) ;	
-	F.addFeature(inc, exp1) ;	
-	F.addFeature(inc, exp2) ;	
+	F.addFeature(&box, inc) ;
+	F.setElastic(true) ;	
+//	F.addFeature(inc, exp1) ;	
+//	F.addFeature(inc, exp2) ;	
 	F.addFeature(inc, exp3) ;	
-	F.setSamplingNumber(200) ;
+	F.setSamplingNumber(20) ;
 	F.setDeltaTime(0.0001) ;
-	F.setMaxIterationsPerStep(2000) ;
+	F.setMaxIterationsPerStep(1) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.1)) ;
+
+	step() ;
+
+	F.setElastic(false) ;	
 
 	step() ;
 

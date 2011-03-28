@@ -318,6 +318,7 @@ public:
 	Vector getAcceleration() const ;
 	
 	void step(double dt, const Vector* d ) ;
+	void elasticStep(double dt, const Vector* d ) ;
 	
 	double getTime() const ;
 	double getDeltaTime() const ;

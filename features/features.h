@@ -147,6 +147,8 @@ protected:
 	bool solverConvergence ;
 	bool setBehaviours ;
 	bool enrichmentChange ;
+
+	bool elastic ;
 	
 	size_t correctionSteps ;
 	bool computeIntersections ;
@@ -298,6 +300,8 @@ public:
 
 	State & getState() {return state ;}
 	const State & getState() const {return state ;}
+	void setElastic(bool e) { elastic = e ; }
+	bool isElastic() const { return elastic ; }
 	const std::vector<Feature *> & getFeatures() const {return tree ;}
 	
 	void setElementGenerationMethod(size_t correctionSteps_ = 0, bool computeIntersections_ = true) { correctionSteps = correctionSteps_ ; computeIntersections = computeIntersections_ ; }
