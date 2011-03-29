@@ -895,7 +895,7 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 	}
 	else
 	{
-		if(ret.isNull())
+		if(ret.isNull() || ret.size() != 9)
 			ret.resize(3,3) ;
 
 		double xdxi = 0 ;//this->getdXTransform(XI,p) ;
@@ -926,7 +926,7 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = zdxi ; 
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ;
 		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta;
-		
+
 		invert3x3Matrix(ret) ;
 	}
 }
