@@ -65,50 +65,62 @@ void ElementarySurface::setOrder(Order o)
 	case CONSTANT_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case CONSTANT_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case LINEAR_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case LINEAR_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case QUADRATIC_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case QUADRATIC_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case CUBIC_TIME_LINEAR :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case CUBIC_TIME_QUADRATIC	 :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case QUADRIC_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case QUADRIC_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case QUINTIC_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case QUINTIC_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	default:
 		{
@@ -2359,50 +2371,62 @@ Order ElementaryVolume::getOrder() const
 	case CONSTANT_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case CONSTANT_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case LINEAR_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case LINEAR_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case QUADRATIC_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case QUADRATIC_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case CUBIC_TIME_LINEAR :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case CUBIC_TIME_QUADRATIC	 :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case QUADRIC_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case QUADRIC_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	case QUINTIC_TIME_LINEAR :
 		{
 			timePlanes() = 2 ;
+			break ;
 		}
 	case QUINTIC_TIME_QUADRATIC :
 		{
 			timePlanes() = 3 ;
+			break ;
 		}
 	default:
 		{
