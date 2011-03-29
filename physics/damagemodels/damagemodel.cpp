@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -12,6 +12,7 @@
 
 #include "damagemodel.h"
 #include "../fracturecriteria/fracturecriterion.h"
+#include "../../mesher/delaunay.h"
 
 namespace Mu
 {
@@ -21,6 +22,8 @@ namespace Mu
 
 	void DamageModel::step(ElementState & s )
 	{
+		
+		double fractionIncrease = 0.5;
 		if(fraction < 0)
 		{
 			damageIncrement.resize(state.size(), 0.);
@@ -44,102 +47,115 @@ namespace Mu
 			fraction = std::min(fraction, 1.) ;
 		}
 		
-		int testRank = s.getParent()->getBehaviour()->getFractureCriterion()->getRank(200,s) ;
-		if(s.getDeltaTime() < POINT_TOLERANCE_2D && lastRank == 1) // we are within the two iteration (bissection and damage)
+		change = false ;
+		
+		if(wasBroken)
+			return ;
+		
+		std::pair<bool, bool> inSetAndSetChanged = s.getParent()->getBehaviour()->getFractureCriterion()->inSetAndSetChanged(200,s) ;
+		if(!inSetAndSetChanged.first)
+			return ;
+		
+		if(s.getParent()->getBehaviour()->getFractureCriterion()->met(s) 
+			&& !wasBroken 
+			&& inSetAndSetChanged.first
+			&& !inSetAndSetChanged.second
+			&& converged
+			&& s.getDeltaTime() < POINT_TOLERANCE_2D
+		) //we are at a checkpoint during an iteration
 		{
+// 			std::cout << "checkpoint! " << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << "  "<< getState().max() <<std::endl; 
+			if(fractured())
+			{
+				wasBroken ;
+				return ;
+			}
+			
+			converged = false ;
+			damageIncrement = 1 ; //computeDamageIncrement(s) ;
+			getState() += damageIncrement*fractionIncrease ;
+			previousDamageIncrement = damageIncrement*fractionIncrease ;
+			upFactor = 1 ;
+			downFactor = 0 ;
+			currentFactor = fractionIncrease ;
 			change = true ;
-			damageIncrement = computeDamageIncrement(s) ;
-			getState() -= previousDamageIncrement ;
-			if(testRank != 1)
-			{
-				
-				upFactor = currentFactor ;
-				currentFactor = downFactor ;
-				
-				getState() += damageIncrement*currentFactor ; 
-				previousDamageIncrement = damageIncrement*currentFactor ;
-				
-				if(std::abs(currentFactor-upFactor) < damageDensityTolerance || (wasBroken && fractured())) // we have converged
-				{
-					if(fractured())
-						wasBroken = true ;
-					change = false ;
-					lastRank = 2 ;
-					upFactor = 1 ;
-					downFactor = 0 ;
-					currentFactor = 0.5 ;
-				}
-			}
-			else
-			{
-				if(currentFactor < 1)
-					downFactor = currentFactor ;
-					
-				currentFactor = (upFactor + downFactor)*.5 ;
-				getState() += damageIncrement*currentFactor ; 
-				previousDamageIncrement = damageIncrement*currentFactor ;
-				
-				if(std::abs(currentFactor-upFactor) < damageDensityTolerance|| wasBroken && fractured()) // we have converged
-				{
-					if(fractured())
-						wasBroken = true ;
-					change = false ;
-					lastRank = 2 ;
-					upFactor = 1 ;
-					downFactor = 0 ;
-					currentFactor = 1 ;
-				}
-			}
+			for(size_t i = 0 ; i < getState().size() ; i++)
+				getState()[i] = std::max(0., std::min(getState()[i], 1.)) ;
+			return ;
 		}
-		else if (s.getDeltaTime() < POINT_TOLERANCE_2D && lastRank != 1) // we can enter the damage iteration
-		{
-			if( testRank == 1)
-			{
-				change = true ;
-				damageIncrement = 0 ;
-				getState() += damageIncrement*.5 ;
-				previousDamageIncrement = 0 ;
-				lastRank = 1 ;
-				upFactor = 1 ;
-				downFactor = 0 ;
-				currentFactor = 0.5 ;
-			}
-			else
-			{
-				change = false ;
-				lastRank = 2 ;
-			}
-		}
-		else if(s.getDeltaTime() > POINT_TOLERANCE_2D)
+		
+		if(s.getDeltaTime() > POINT_TOLERANCE_2D ) // initiate iteration
 		{
 			getPreviousState() = getState() ;
 			if(fractured())
 				wasBroken = true ;
 			
-			if(testRank == 1 && !fractured())
+			if(inSetAndSetChanged.first && !wasBroken)
 			{
-				change = true ;
-				damageIncrement = computeDamageIncrement(s) ;
-				getState() += damageIncrement*.5 ;
-				previousDamageIncrement = damageIncrement*.5 ;
-				lastRank = 1 ;
+				converged = false ;
+				damageIncrement = 1 ; //computeDamageIncrement(s) ;
+				getState() += damageIncrement*fractionIncrease ;
+				previousDamageIncrement = damageIncrement*fractionIncrease ;
 				upFactor = 1 ;
 				downFactor = 0 ;
-				currentFactor = 0.5 ;
+				currentFactor = fractionIncrease ;
 			}
 			else
 			{
-				change = false ;
+				converged = true ;
 				previousDamageIncrement = 0 ;
-				lastRank = 2 ;
 				upFactor = 1 ;
 				downFactor = 0 ;
-				currentFactor = 0.5 ;
+				currentFactor = fractionIncrease ;
 			}
 		}
+		else if(s.getDeltaTime() < POINT_TOLERANCE_2D 
+			&& inSetAndSetChanged.first && !converged)
+		{
+			damageIncrement = 1 ; //computeDamageIncrement(s) ;
+			
+			getState() -= previousDamageIncrement ;
+				
+			if(inSetAndSetChanged.second ) //the damage was increased too much
+			{
+				upFactor = currentFactor ;
+				currentFactor = (upFactor + downFactor)*.5 ;
+				
+				getState() += damageIncrement*currentFactor ; 
+				previousDamageIncrement = damageIncrement*currentFactor ;
+				
+				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
+				{
+					converged = true ;
+					upFactor = 1 ;
+					downFactor = 0 ;
+					currentFactor = fractionIncrease ;
+					previousDamageIncrement = 0 ;
+				}
+			}
+			else 
+			{
+				downFactor = currentFactor ;
+				currentFactor = (upFactor + downFactor)*.5 ;
+				getState() += damageIncrement*currentFactor ; 
+				previousDamageIncrement = damageIncrement*currentFactor ;
+				
+				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
+				{
+					converged = true ;
+					upFactor = 1 ;
+					downFactor = 0 ;
+					currentFactor = fractionIncrease ;
+					previousDamageIncrement = 0 ;
+				}
+			}
+
+		}
+
+		change = !converged ;
 		
 		for(size_t i = 0 ; i < getState().size() ; i++)
-			getState()[i] = std::min(getState()[i], 1.) ;
+			getState()[i] = std::max(0., std::min(getState()[i], 1.)) ;
 	}
 	
 	DamageModel::DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
@@ -149,14 +165,14 @@ namespace Mu
 		isNull = true ; 
 		thresholdDamageDensity = .999999999999 ;
 		secondaryThresholdDamageDensity = .99999999999999 ;
-		damageDensityTolerance = .00001 ;
+		damageDensityTolerance = 1e-7 ;
 		fraction = -1 ;
 		
 		upFactor = 1;
 		downFactor = 0;
 		currentFactor = 0.5;
 		
-		lastRank = 2 ;
+		converged = true ;
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

@@ -34,17 +34,18 @@ protected:
 	double upFactor ;
 	double downFactor ;
 	double currentFactor ;
-	int lastRank ;
 	
 	bool change ;
 	bool wasBroken ;
+
 	
 	Vector state ;
 	Vector previousstate ;
+	
 public:
 	
 	bool isNull ;
-    
+	bool converged ;
 	
 	DamageModel(double characteristicRadius);
 	
@@ -65,6 +66,7 @@ public:
 	void setDamageDensityTolerance(double d) ;
 	
 	double getDamageDensityTolerance() { return damageDensityTolerance ; };
+	bool hasConverged() const {return converged ; }
 	
 	/** \brief Return a vector of values describing the damage stage of the material
 	 * 

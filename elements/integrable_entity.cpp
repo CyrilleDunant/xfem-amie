@@ -5057,7 +5057,7 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const std
 	return ret ;
 }
 
-void ElementState::initialize()
+void ElementState::initialize(bool initializeFractureCache)
 {
 		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		displacements.resize(parent->getBoundingPoints().size()*ndofs) ;
@@ -5074,7 +5074,7 @@ void ElementState::initialize()
 			previousTimePos = -0.2 ;
 			previousPreviousTimePos = -0.3 ;
 		}
-		if(parent->getBehaviour()->getFractureCriterion())
+		if(initializeFractureCache && parent->getBehaviour()->getFractureCriterion())
 		{
 			parent->getBehaviour()->getFractureCriterion()->initialiseCache(*this) ;
 		}

@@ -24,7 +24,6 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	dfunc = new LinearDamage(eps) ;
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
-	frac = false ;
 	init = param[0][0] ;
 	change  = false ;
 	previouschange = false ;
@@ -84,7 +83,6 @@ void StiffnessAndFracture::stepBack()
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
 	dfunc->getState() = damage ;
-	frac = dfunc->fractured() ;
 
 	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
@@ -94,22 +92,23 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 {
 	previouschange = change ;
 	change = false ;
-	currentState.getParent()->behaviourUpdated = false ;
-	if(criterion->met(currentState) )
+
+	dfunc->step(currentState) ;
+	change = dfunc->changed() ;
+	currentState.getParent()->behaviourUpdated = change ;
+	if(change)
 	{
-		dfunc->step(currentState) ;
-		change = dfunc->changed() ;
-		currentState.getParent()->behaviourUpdated = change ;
-		frac = dfunc->fractured() ;
+		
+		previousPreviousDamage.resize(previousDamage.size()) ;
+		previousPreviousDamage = previousDamage ;
+		previousDamage.resize(damage.size()) ;
+		previousDamage = damage ;
+		
+		Vector d = dfunc->getState() ;
+		damage.resize(d.size()) ;
+		damage = d ;
 	}
-	previousPreviousDamage.resize(previousDamage.size()) ;
-	previousPreviousDamage = previousDamage ;
-	previousDamage.resize(damage.size()) ;
-	previousDamage = damage ;
-	
-	Vector d = dfunc->getState() ;
-	damage.resize(d.size()) ;
-	damage = d ;
+
 }
 
 void StiffnessAndFracture::artificialDamageStep(double d)
@@ -119,7 +118,6 @@ void StiffnessAndFracture::artificialDamageStep(double d)
 
 	dfunc->artificialDamageStep(d) ;
 	change = true ;
-	frac = dfunc->fractured() ;
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;

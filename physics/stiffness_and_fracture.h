@@ -38,7 +38,6 @@ namespace Mu
 		Vector previousDamage ;
 		int count ;
 		FractureCriterion * criterion ;
-		bool frac ;
 		bool change ; 
 		bool previouschange ; 
 		double sigmaRupt ;

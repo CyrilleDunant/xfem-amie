@@ -1423,11 +1423,11 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 1.6e6 ;
+	double tensionCrit = 2e6 ;
 // 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .025 ;
+	double mradius = .05 ; // .015
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;
@@ -1436,6 +1436,7 @@ int main(int argc, char *argv[])
 	
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
+	double E_rebar = 30e9 ;
 	
 	
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
@@ -1443,9 +1444,9 @@ int main(int argc, char *argv[])
 	m0_steel[2][0] = 0 ;                                        m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ; 
 	
 	Matrix m0_barSteel(3,3) ;
-	m0_barSteel[0][0] = E_steel*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[0][1] = E_steel*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[0][2] = 0 ;
-	m0_barSteel[1][0] = E_steel*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[1][1] = E_steel*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[1][2] = 0 ; 
-	m0_barSteel[2][0] = 0 ;                                                      m0_barSteel[2][1] = 0 ;                                                      m0_barSteel[2][2] = E_steel/((1.+nu_steel)) ; 
+	m0_barSteel[0][0] = E_rebar*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[0][1] = E_rebar*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[0][2] = 0 ;
+	m0_barSteel[1][0] = E_rebar*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[1][1] = E_rebar*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[1][2] = 0 ; 
+	m0_barSteel[2][0] = 0 ;                                                      m0_barSteel[2][1] = 0 ;                                                      m0_barSteel[2][2] = E_rebar/((1.+nu_steel)) ; 
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1473,7 +1474,7 @@ int main(int argc, char *argv[])
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
 	Sample rebar0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064) ; 
-	rebar0.setBehaviour(new Stiffness(m0_paste));
+	rebar0.setBehaviour(new Stiffness(m0_barSteel));
 // 	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_paste), MIRROR_X));
 // 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 // 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);
@@ -1482,7 +1483,7 @@ int main(int argc, char *argv[])
 // 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999999);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
-	rebar1.setBehaviour(new Stiffness(m0_paste));
+	rebar1.setBehaviour(new Stiffness(m0_barSteel));
 // 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_paste), MIRROR_X));
 // 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 // 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(1.5);

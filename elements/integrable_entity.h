@@ -328,7 +328,7 @@ public:
 		return parent ;
 	}
 	
-	void initialize() ;
+	void initialize(bool initializeFractureCache =true) ;
 	
 	const Vector & getBuffer() const ;
 	Vector & getBuffer()  ;

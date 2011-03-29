@@ -3516,19 +3516,26 @@ void FeatureTree::stepElements()
 					if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() > gmin)
 						gmin = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				}
+			for(size_t i = 0 ; i < elements.size() ;i++)
+			{
+				if(i%1000 == 0)
+					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
+				if(elements[i]->getBehaviour()->getFractureCriterion())
+					elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState()) ;
+			}
 			
 				std::cerr << " ...done. " << std::endl ;
 
-// #pragma omp parallel for
+#pragma omp parallel for
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
 
-					double are = elements[i]->area() ;
-					if(i%10000 == 0)
-						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
-					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
-					{
-						volume += are ;
+				double are = elements[i]->area() ;
+				if(i%10000 == 0)
+					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
+				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+				{
+					volume += are ;
 					
 						elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
 						if(elements[i]->getBehaviour()->changed())
@@ -3592,6 +3599,13 @@ void FeatureTree::stepElements()
 				if(elements[i]->getBehaviour()->getFractureCriterion())
 					elements[i]->getBehaviour()->getFractureCriterion()->step(elements[i]->getState()) ;
 			}
+			for(size_t i = 0 ; i < elements.size() ;i++)
+			{
+				if(i%1000 == 0)
+					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
+				if(elements[i]->getBehaviour()->getFractureCriterion())
+					elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState()) ;
+			}
 			std::cerr << " ...done. " << std::endl ;
 			
 			int fracturedCount = 0 ;
@@ -3600,7 +3614,7 @@ void FeatureTree::stepElements()
 			{
 				
 				if(i%1000 == 0)
-					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
+					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
 				double vol = elements[i]->volume() ;
 				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 				{
@@ -3742,6 +3756,7 @@ void FeatureTree::State::setStateTo(StateType s,bool stepChanged )
 			bool behaviourChanged = ft->behaviourChanged() ;
 			bool xfemChanged = ft->enrichmentChanged() ;
 			bool samplingChanged = ft->needMeshing ;
+			bool initialiseFractureCache = ft->needMeshing ;
 			
 			if(samplingChanged)
 			{
@@ -3854,7 +3869,7 @@ void FeatureTree::State::setStateTo(StateType s,bool stepChanged )
 			
 			if(!initialised)
 			{
-				ft->initializeElements();
+				ft->initializeElements(initialiseFractureCache);
 				initialised = true ;
 			}
 			if(s == INITIALISED)
@@ -3961,7 +3976,7 @@ bool FeatureTree::step()
 	}
 	std::cout  << std::endl ;
 	deltaTime = realdt ;
-	return solverConverged() && !behaviourChanged() && (++it < maxitPerStep) && (notConvergedCounts < 4);
+	return solverConverged() && !behaviourChanged() && (++it < maxitPerStep) && (notConvergedCounts < 1);
 	
 }
 
@@ -4095,7 +4110,7 @@ bool FeatureTree::is2D() const
 	return tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL ;
 }
 
-void FeatureTree::initializeElements() 
+void FeatureTree::initializeElements(bool initialiseFractureCache ) 
 {
 	
 	if(!father3D)
@@ -4118,7 +4133,7 @@ void FeatureTree::initializeElements()
 		for(size_t i = 0 ; i < triangles.size() ;i++)
 		{
 			triangles[i]->refresh(father2D);
-			triangles[i]->getState().initialize() ;
+			triangles[i]->getState().initialize(initialiseFractureCache) ;
 // 						count++ ;
 		}
 
@@ -4136,7 +4151,7 @@ void FeatureTree::initializeElements()
 				for(size_t j = 0 ; j < triangles.size() ;j++)
 				{
 					triangles[j]->refresh(father2D);
-					triangles[j]->getState().initialize() ;
+					triangles[j]->getState().initialize(initialiseFractureCache) ;
 				}
 			}
 		}
@@ -4151,12 +4166,27 @@ void FeatureTree::initializeElements()
 		for(size_t i = 0 ; i < tets.size() ;i++)
 		{
 			tets[i]->refresh(father3D);
-			tets[i]->getState().initialize() ;
+			tets[i]->getState().initialize(initialiseFractureCache) ;
 		}
 
 		gettimeofday(&time1, NULL);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 		std::cout << "\r initialising... element " << tets.size() << "/" << tets.size() << ". Time to initialise (s) " << delta/1e6 << std::endl ;
+		
+		if(useMultigrid)
+		{
+			for(size_t i = 0 ; i < coarseTrees.size() ; i++)
+			{
+				tets = coarseTrees3D[i]->getElements() ;
+				
+				#pragma omp parallel for 
+				for(size_t j = 0 ; j < tets.size() ;j++)
+				{
+					tets[j]->refresh(father3D);
+					tets[j]->getState().initialize(initialiseFractureCache) ;
+				}
+			}
+		}
 	}
 
 }

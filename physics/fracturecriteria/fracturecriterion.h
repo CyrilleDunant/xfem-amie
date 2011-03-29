@@ -41,6 +41,8 @@ typedef enum{
 		std::vector<unsigned int> cache ;
 		std::vector<unsigned int> physicalcache ;
 		std::vector<double> area ;
+		
+		std::vector<unsigned int> damagingSet ;
 
 		double neighbourhoodradius ;
 		double neighbourhoodvolume ;
@@ -58,6 +60,7 @@ typedef enum{
 		double delta_z ;
 		bool energyIndexed ;
 		bool noEnergyUpdate ;
+		bool metAtStep ;
 		
 	double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
@@ -77,6 +80,7 @@ typedef enum{
 		virtual ~FractureCriterion();
 		
 		void step(const Mu::ElementState& s) ;
+		void computeNonLocalState(const ElementState &s) ;
 		
 		/** \brief Return true if the fracture criterion is met
 		 * 
@@ -93,7 +97,7 @@ typedef enum{
 		 */
 		virtual double grade(const ElementState & s) = 0 ;
 		
-		virtual int getRank(int fractiles, const ElementState &s) const ;
+		virtual std::pair<bool, bool> inSetAndSetChanged(int fractiles, const ElementState &s)  ;
 		
 		virtual double getSteppedScore() const {return scoreAtState ;} ;
 		

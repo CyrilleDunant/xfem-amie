@@ -27,25 +27,31 @@ LinearDamage::LinearDamage(double characteristicRadius) : DamageModel(characteri
 
 Vector LinearDamage::computeDamageIncrement(ElementState & s)
 {
-	inCompression = false ;
-	inTension = false ;
+	inCompression = true ;
+	inTension = true ;
 	Vector ret(0., 2) ; 
 	double compressionDamage = 0 ;
 	double tensionDamage = 0 ;
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
-		inCompression = true ;
-		
-		compressionDamage = 1.-getState()[0] ; 
-		tensionDamage =1.-getState()[1] ; 
+		compressionDamage = (1.+damageDensityTolerance*64.)*thresholdDamageDensity-getState()[0] ; 
+		tensionDamage =(1.+damageDensityTolerance*64.)*secondaryThresholdDamageDensity-getState()[1] ; 
+	}
+	else
+	{
+		inCompression = false ;
 	}
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
 	{
 		inTension = true ;
 		
-		tensionDamage = 1.-getState()[1] ; 
+		tensionDamage = (1.+damageDensityTolerance*64.)*secondaryThresholdDamageDensity-getState()[1] ; 
+	}
+	else
+	{
+		inTension = false ;
 	}
 	
 	ret[0] = compressionDamage ;
@@ -67,14 +73,14 @@ Matrix LinearDamage::apply(const Matrix & m) const
 	if(fractured())
 		return m*1e-6;
 
-	if(inTension && !inCompression)
-	{
-		return m*(1.-getState()[1]) ;
-	}
-	else if(inCompression && !inTension)
-	{
-		return m*(1.-getState()[0]) ;
-	}
+// 	if(inTension && !inCompression)
+// 	{
+// 		return m*(1.-getState()[1]) ;
+// 	}
+// 	else if(inCompression && !inTension)
+// 	{
+// 		return m*(1.-getState()[0]) ;
+// 	}
 	
 	return m*(1.-getState().max()) ;
 }

@@ -30,27 +30,18 @@ double MCFT::grade(const ElementState &s)
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	Vector pstress = s.getPrincipalStresses(s.getParent()->getCenter()) ;
 
-	double tstrain = pstrain[0];
-	double cstrain = pstrain[pstrain.size()-1];
-	double tstress = pstress[0];
-	double cstress = pstress[pstrain.size()-1];
-// 	if(tstrain < 0)
-// 		tstrain = 0 ;
-// 	if(cstrain > 0)
-// 		cstrain = 0 ;
-// 	if(tstress < 0)
-// 		tstress = 0 ;
-// 	if(cstress > 0)
-// 		cstress = 0 ;
-	
+	double tstrain = pstrain.max();
+	double cstrain = pstrain.min();
+	double tstress = pstress.max();
+	double cstress = pstress.min();
 
 	double critStrain = -0.002 ;//-0.002
-	double renormCompressionStrain = -cstrain/critStrain ;
+	double renormCompressionStrain = cstrain/critStrain ;
 	
 	double maxCompression = -std::abs(downVal)*(2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain) ;
 	
-// 	if(std::abs((2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain)) > 1)
-// 		maxCompression = -std::abs(downVal) ;
+	if( tstrain < 0)
+		maxCompression = -std::abs(downVal) ;
 	
 	double maxTension = upVal ;
 	if(tstrain > -critStrain )
@@ -64,13 +55,20 @@ double MCFT::grade(const ElementState &s)
 		//perfectly brittle
 // 		maxTension = 0 ;
 	}
+	
+	if(tstrain > -2.*critStrain)
+	{
+				//Yamamoto model 
+ 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+2.*critStrain))) ;
+	}
 
-	metInCompression = std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) ;
-	metInTension = std::abs(cstress/maxCompression) < std::abs(tstress/maxTension) ;
+	metInCompression = std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) || tstrain > 0;
+	metInTension = std::abs(cstress/maxCompression) < std::abs(tstress/maxTension) || cstrain < 0;
 	
 	
 	std::vector<double> crits ;
 	crits.push_back(-1) ;
+	
 	if( cstress < 0 && std::abs(cstress) >= std::abs(maxCompression) )
 	{
 		metInCompression = true ;
@@ -89,14 +87,13 @@ double MCFT::grade(const ElementState &s)
 		crits.push_back(-1. + std::abs(tstress/maxTension)) ;
 	}
 
-	if(cstress < 0 && std::abs(cstress) < std::abs(maxCompression))
+	if(cstress < 0 && std::abs(cstress) < std::abs(downVal))
 	{
-		crits.push_back(-1. + std::abs(cstress/maxCompression)) ;
+		crits.push_back(-1. + std::abs(cstress/downVal)) ;
 	}
 	
 	std::sort(crits.begin(), crits.end());
 	return crits.back() ;
-
 }
 
 FractureCriterion * MCFT::getCopy() const

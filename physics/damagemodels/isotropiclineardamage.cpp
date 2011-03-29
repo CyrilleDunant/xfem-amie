@@ -23,7 +23,7 @@ IsotropicLinearDamage::IsotropicLinearDamage(double characteristicRadius) : Dama
 Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	Vector ret(1) ;
-	ret[0] =  1.-getState()[0] ;
+	ret[0] =  (1.+damageDensityTolerance*64.)*thresholdDamageDensity/fraction-getState()[0] ;
 // 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE-state[0], state[0]) ;
 // 	ret[0] = std::min(.99999, state[0]) ;
 // 	ret[0] = std::max(0., state[0]) ;
