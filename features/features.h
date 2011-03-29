@@ -149,6 +149,7 @@ protected:
 	bool enrichmentChange ;
 
 	bool elastic ;
+	bool projectOnBoundaries ;
 	
 	size_t correctionSteps ;
 	bool computeIntersections ;
@@ -175,6 +176,16 @@ protected:
 	/** \brief  Project all points on their respective boundaries.*/
 	void stitch() ;
 	
+	/** \brief Project all points on their respective boundaries (triangles only)
+	 * @param edge number of additionnal points on the edge of the triangles
+	 * @param time number of additionnal time planes in the elements*/
+	void projectTrianglesOnBoundaries(size_t edge, size_t time) ;
+
+	/** \brief Project all points on their respective boundaries (tetrahedrons only)
+	 * @param edge number of additionnal points on the edge of the triangles
+	 * @param time number of additionnal time planes in the elements*/
+	void projectTetrahedronsOnBoundaries(size_t edge, size_t time) ;
+
 	void renumber() ;
 	void enrich() ;
 	/** \brief  Generate the sample points for all the features. The features are passed a sampling 
@@ -300,8 +311,13 @@ public:
 
 	State & getState() {return state ;}
 	const State & getState() const {return state ;}
+	
 	void setElastic(bool e) { elastic = e ; }
-	bool isElastic() const { return elastic ; }
+	bool getElastic() const { return elastic ; }
+
+	void setProjectionOnBoundaries(bool p) { projectOnBoundaries = p ; }
+	bool getProjectionOnBoundaries() const { return projectOnBoundaries ; }
+	
 	const std::vector<Feature *> & getFeatures() const {return tree ;}
 	
 	void setElementGenerationMethod(size_t correctionSteps_ = 0, bool computeIntersections_ = true) { correctionSteps = correctionSteps_ ; computeIntersections = computeIntersections_ ; }

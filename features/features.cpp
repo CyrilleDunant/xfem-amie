@@ -195,6 +195,9 @@ FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(N
 	solverConvergence = false ;
 	enrichmentChange = true ;
 	needMeshing = true ;
+	
+	elastic = false ;
+	projectOnBoundaries = true ;
 
 	K = new Assembly() ;
 	if(is2D())
@@ -649,6 +652,550 @@ bool FeatureTree::inRoot(const Point &p) const
 	}
 }
 
+void FeatureTree::projectTetrahedronsOnBoundaries(size_t edge, size_t time)
+{
+	if(edge+time == 0)
+		return ;
+		
+	size_t first = 0 ;
+	size_t second = (edge+1) ;
+	size_t third = (edge+1)*2  ;
+	size_t fourth = (edge+1)*3  ;
+
+	std::valarray<size_t> indexes(edge*(time+1)*6) ;
+	int l = 0 ;
+	for(size_t j = 0 ; j < 4 ; j++)
+	{
+		for(size_t e = 0 ; e < edge ; e++)
+		{
+			indexes[6*e+j] = j*(edge+1)+e+1 ;
+			for(size_t t = 0 ; t < time ; t++)
+			{
+				indexes[6*(edge*(t+1)+e)+j] = j*(edge+1)+e+1+(4+6*(edge))*(t+1) ;
+			}
+		}
+	}
+	for(size_t j = 0 ; j < 2 ; j++)
+	{
+		for(size_t e = 0 ; e < edge ; e++)
+		{
+			indexes[6*e+j+4] = (4*edge+1)+j*edge+e+3 ;
+			for(size_t t = 0 ; t < time ; t++)
+			{
+				indexes[6*(edge*(t+1)+e)+j+4] = (4*edge+1)+j*edge+e+3+(4+6*(edge))*(t+1) ;
+			}
+		}
+	}
+	
+/* debug to make sure indexes are in good order
+	for(size_t i = 0 ; i < indexes.size()/6 ; i++)
+	{
+		for(size_t j = 0 ; j < 6 ; j++)
+			std::cout << indexes[i*6+j] << "\t" ;
+		std::cout << std::endl ;
+	}*/
+
+	size_t count = 0 ; 
+	size_t pd = 0 ;
+	size_t k = 0 ;
+	size_t n = indexes.size()/6 ;
+
+	std::valarray<Point> originalPoints(n) ;
+
+	Point a (0.25, 0.25, 0.25) ;
+	Point b (0.166666666666667, 0.166666666666667, 0.166666666666667) ;
+	Point c (0.5, 0.166666666666667, 0.166666666666667) ;
+	Point d (0.166666666666667, 0.5, 0.166666666666667) ;
+	Point e (0.166666666666667, 0.166666666666667, 0.5) ;
+
+	for(size_t j = 1 ; j < this->tree.size() ; j++)
+	{
+		if(!tree[j]->isEnrichmentFeature)
+		{
+			//In two pass
+			std::vector<DelaunayTetrahedron *> tets = this->tree[j]->getElements3D(this) ;
+
+			for(size_t i = 0 ; i < tets.size() ; i++)
+			{
+
+				Point proj_0(tets[i]->getBoundingPoint(first)) ;
+				tree[j]->project(&proj_0) ;
+				Point proj_1(tets[i]->getBoundingPoint(second)) ;
+				tree[j]->project(&proj_1) ;
+				Point proj_2(tets[i]->getBoundingPoint(third)) ;
+				tree[j]->project(&proj_2) ;
+				Point proj_3(tets[i]->getBoundingPoint(fourth)) ;
+				tree[j]->project(&proj_3) ;
+				pd+= 6 ;
+				
+				if(
+				    squareDist3D(proj_0 , tets[i]->getBoundingPoint(first) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+				    squareDist3D(proj_1 , tets[i]->getBoundingPoint(second) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+				  )
+				{
+					count++; 
+					Point test = tets[i]->getBoundingPoint(indexes[0]) ;
+					tree[j]->project(&test) ;
+					if (inRoot(test))
+					{
+						for(size_t ni = 0 ; ni < n ; ni++)
+						{
+							k = indexes[6*ni+0] ;
+							originalPoints[ni] = tets[i]->getBoundingPoint(k) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(k)) ;
+						}
+						if(tets[i]->jacobianAtPoint(a) > 0 && 
+						   tets[i]->jacobianAtPoint(b) > 0 && 
+						   tets[i]->jacobianAtPoint(c) > 0 && 
+						   tets[i]->jacobianAtPoint(d) > 0 &&
+						   tets[i]->jacobianAtPoint(e) > 0
+							)
+						{
+							tets[i]->moved = true ;
+							
+							for(size_t j = 0 ; j < 4 ; j++)
+							{
+								if(tets[i]->getNeighbour(j)->isTetrahedron())
+								{
+									dynamic_cast<DelaunayTetrahedron *>(tets[i]->getNeighbour(j))->moved = true ;
+								}
+							}
+						}
+						else
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[6*ni+0] ;
+								tets[i]->getBoundingPoint(k) = originalPoints[ni] ;
+							}
+						}
+					}
+				}
+				if(
+				    squareDist3D(proj_1 , tets[i]->getBoundingPoint(second) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+				    squareDist3D(proj_2 , tets[i]->getBoundingPoint(third) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D
+				  )
+				{
+					count++; 
+					Point test = tets[i]->getBoundingPoint(indexes[1]) ;
+					tree[j]->project(&test) ;
+					if (inRoot(test) )
+					{
+						for(size_t ni = 0 ; ni < n ; ni++)
+						{
+							k = indexes[6*ni+1] ;
+							originalPoints[ni] = tets[i]->getBoundingPoint(k) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(k)) ;
+						}
+						if(tets[i]->jacobianAtPoint(a) > 0 && 
+						   tets[i]->jacobianAtPoint(b) > 0 && 
+						   tets[i]->jacobianAtPoint(c) > 0 && 
+						   tets[i]->jacobianAtPoint(d) > 0 &&
+						   tets[i]->jacobianAtPoint(e) > 0
+							)
+						{
+							tets[i]->moved = true ;
+							
+							for(size_t j = 0 ; j < 4 ; j++)
+							{
+								if(tets[i]->getNeighbour(j)->isTetrahedron())
+								{
+									dynamic_cast<DelaunayTetrahedron *>(tets[i]->getNeighbour(j))->moved = true ;
+								}
+							}
+						}
+						else
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[6*ni+0] ;
+								tets[i]->getBoundingPoint(k) = originalPoints[ni] ;
+							}
+						}
+					}
+				}
+				if(
+				    squareDist3D(proj_3 , tets[i]->getBoundingPoint(fourth) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+				    squareDist3D(proj_2 , tets[i]->getBoundingPoint(third) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+				  )
+				{
+					count++; 
+					Point test = tets[i]->getBoundingPoint(indexes[2]) ;
+					tree[j]->project(&test) ;
+					if (inRoot(test))
+					{
+						for(size_t ni = 0 ; ni < n ; ni++)
+						{
+							k = indexes[6*ni+2] ;
+							originalPoints[ni] = tets[i]->getBoundingPoint(k) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(k)) ;
+						}
+						if(tets[i]->jacobianAtPoint(a) > 0 && 
+						   tets[i]->jacobianAtPoint(b) > 0 && 
+						   tets[i]->jacobianAtPoint(c) > 0 && 
+						   tets[i]->jacobianAtPoint(d) > 0 &&
+						   tets[i]->jacobianAtPoint(e) > 0
+							)
+						{
+							tets[i]->moved = true ;
+							
+							for(size_t j = 0 ; j < 4 ; j++)
+							{
+								if(tets[i]->getNeighbour(j)->isTetrahedron())
+								{
+									dynamic_cast<DelaunayTetrahedron *>(tets[i]->getNeighbour(j))->moved = true ;
+								}
+							}
+						}
+						else
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[6*ni+0] ;
+								tets[i]->getBoundingPoint(k) = originalPoints[ni] ;
+							}
+						}
+					}
+				}
+				if(
+				    squareDist3D(proj_0 , tets[i]->getBoundingPoint(first) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+				    squareDist3D(proj_3 , tets[i]->getBoundingPoint(fourth) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+				  )
+				{
+					count++; 
+					Point test = tets[i]->getBoundingPoint(indexes[3]) ;
+					tree[j]->project(&test) ;
+					if (inRoot(test) )
+					{
+						for(size_t ni = 0 ; ni < n ; ni++)
+						{
+							k = indexes[6*ni+3] ;
+							originalPoints[ni] = tets[i]->getBoundingPoint(k) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(k)) ;
+						}
+						if(tets[i]->jacobianAtPoint(a) > 0 && 
+						   tets[i]->jacobianAtPoint(b) > 0 && 
+						   tets[i]->jacobianAtPoint(c) > 0 && 
+						   tets[i]->jacobianAtPoint(d) > 0 &&
+						   tets[i]->jacobianAtPoint(e) > 0
+							)
+						{
+							tets[i]->moved = true ;
+							
+							for(size_t j = 0 ; j < 4 ; j++)
+							{
+								if(tets[i]->getNeighbour(j)->isTetrahedron())
+								{
+									dynamic_cast<DelaunayTetrahedron *>(tets[i]->getNeighbour(j))->moved = true ;
+								}
+							}
+						}
+						else
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[6*ni+0] ;
+								tets[i]->getBoundingPoint(k) = originalPoints[ni] ;
+							}
+						}
+					}
+				}
+				if(
+				    squareDist3D(proj_1 , tets[i]->getBoundingPoint(second) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+				    squareDist3D(proj_3 , tets[i]->getBoundingPoint(fourth) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+				  )
+				{
+					count++; 
+					Point test = tets[i]->getBoundingPoint(indexes[4]) ;
+					tree[j]->project(&test) ;
+					if (inRoot(test))
+					{
+						for(size_t ni = 0 ; ni < n ; ni++)
+						{
+							k = indexes[6*ni+4] ;
+							originalPoints[ni] = tets[i]->getBoundingPoint(k) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(k)) ;
+						}
+						if(tets[i]->jacobianAtPoint(a) > 0 && 
+						   tets[i]->jacobianAtPoint(b) > 0 && 
+						   tets[i]->jacobianAtPoint(c) > 0 && 
+						   tets[i]->jacobianAtPoint(d) > 0 &&
+						   tets[i]->jacobianAtPoint(e) > 0
+							)
+						{
+							tets[i]->moved = true ;
+							
+							for(size_t j = 0 ; j < 4 ; j++)
+							{
+								if(tets[i]->getNeighbour(j)->isTetrahedron())
+								{
+									dynamic_cast<DelaunayTetrahedron *>(tets[i]->getNeighbour(j))->moved = true ;
+								}
+							}
+						}
+						else
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[6*ni+0] ;
+								tets[i]->getBoundingPoint(k) = originalPoints[ni] ;
+							}
+						}
+					}
+				}
+				if(
+				    squareDist3D(proj_0 , tets[i]->getBoundingPoint(first) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
+				    squareDist3D(proj_2 , tets[i]->getBoundingPoint(third) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
+				  )
+				{
+					count++; 
+					Point test = tets[i]->getBoundingPoint(indexes[5]) ;
+					tree[j]->project(&test) ;
+					if (inRoot(test) )
+					{
+						for(size_t ni = 0 ; ni < n ; ni++)
+						{
+							k = indexes[6*ni+5] ;
+							originalPoints[ni] = tets[i]->getBoundingPoint(k) ;
+							tree[j]->project(&tets[i]->getBoundingPoint(k)) ;
+						}
+						if(tets[i]->jacobianAtPoint(a) > 0 && 
+						   tets[i]->jacobianAtPoint(b) > 0 && 
+						   tets[i]->jacobianAtPoint(c) > 0 && 
+						   tets[i]->jacobianAtPoint(d) > 0 &&
+						   tets[i]->jacobianAtPoint(e) > 0
+							)
+						{
+							tets[i]->moved = true ;
+							
+							for(size_t j = 0 ; j < 4 ; j++)
+							{
+								if(tets[i]->getNeighbour(j)->isTetrahedron())
+								{
+									dynamic_cast<DelaunayTetrahedron *>(tets[i]->getNeighbour(j))->moved = true ;
+								}
+							}
+						}
+						else
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[6*ni+0] ;
+								tets[i]->getBoundingPoint(k) = originalPoints[ni] ;
+							}
+						}
+					}
+				}
+
+				if(count % 1000 == 0)
+					std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " feature " << j << std::flush ; 
+			}
+		}
+	}
+	std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " ...done."<< std::endl ;
+
+}
+
+
+void FeatureTree::projectTrianglesOnBoundaries(size_t edge, size_t time)
+{
+	if(edge+time == 0)
+		return ;
+	std::valarray<size_t> indexes(edge*(time+1)*3) ;
+	for(size_t j = 0 ; j < 3 ; j++)
+	{
+		for(size_t e = 0 ; e < edge ; e++)
+		{
+			indexes[3*e+j] = j*(edge+1)+e+1 ;
+			for(size_t t = 0 ; t < time ; t++)
+			{
+				indexes[3*(edge*(t+1)+e)+j] = j*(edge+1)+e+1+3*(edge+1)*(t+1) ;
+			}
+		}
+	}
+	
+// debug to make sure indexes are in good order
+	for(size_t i = 0 ; i < indexes.size()/3 ; i++)
+	{
+		for(size_t j = 0 ; j < 3 ; j++)
+			std::cout << indexes[i*3+j] << "\t" ;
+		std::cout << std::endl ;
+	}
+
+
+	size_t count = 0 ; 
+	size_t pd = 0 ;
+	size_t k = 0 ;
+	size_t n = indexes.size()/3 ;
+
+	std::valarray<Point> originalPoints(n) ;
+						
+	Point a (0.2, 0.2) ;
+	Point b (0.6, 0.2) ;
+	Point c (0.2, 0.6) ;
+	Point d (1./3., 1./3.) ;
+	for(size_t j = 1 ; j < this->tree.size() ; j++)
+	{
+		if(!tree[j]->isEnrichmentFeature && tree[j]->getGeometryType() != TRIANGLE && tree[j]->getGeometryType() != RECTANGLE)
+		{
+			
+			std::vector<DelaunayTriangle *> triangles = this->tree[j]->getElements2D(this) ;
+
+			for(size_t i = 0 ; i < triangles.size() ; i++)
+			{
+				triangles[i]->refresh(father2D) ;
+				if(triangles[i]->getPrimitive()->intersects(tree[j]))
+				{
+					
+					Point proj_0(*triangles[i]->first) ;
+					tree[j]->project(&proj_0) ;
+					Point proj_1(*triangles[i]->second) ;
+					tree[j]->project(&proj_1) ;
+					Point proj_2(*triangles[i]->third) ;
+					tree[j]->project(&proj_2) ;
+					bool changed  = true;
+					
+					if(squareDist2D(&proj_0 , triangles[i]->first ) < POINT_TOLERANCE_2D && 
+						squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE_2D && 
+						squareDist2D(&proj_2 , triangles[i]->third) > 10.*POINT_TOLERANCE_2D)
+					{
+						count+=changed ; 
+						changed = false ;
+						Point test = triangles[i]->getBoundingPoint(indexes[0]) ;
+						tree[j]->project(&test) ;
+						if (inRoot(test))
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[3*ni+0] ;
+								originalPoints[ni] = triangles[i]->getBoundingPoint(k) ;
+								tree[j]->project(&triangles[i]->getBoundingPoint(k)) ;
+							}
+							if(triangles[i]->jacobianAtPoint(a) > 0 && 
+							   triangles[i]->jacobianAtPoint(b) > 0 && 
+							   triangles[i]->jacobianAtPoint(c) > 0 && 
+							   triangles[i]->jacobianAtPoint(d) > 0
+								)
+							{
+								triangles[i]->moved = true ;
+								
+								for(size_t j = 0 ; j < 3 ; j++)
+								{
+									if(triangles[i]->getNeighbour(j)->isTriangle)
+									{
+										dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+									}
+								}
+							}
+							else
+							{
+								for(size_t ni = 0 ; ni < n ; ni++)
+								{
+									k = indexes[3*ni+0] ;
+									triangles[i]->getBoundingPoint(k) = originalPoints[ni] ;
+								}
+							}
+						}
+// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
+					}
+					if(squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE_2D && 
+						squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE_2D && 
+						squareDist2D(&proj_0 , triangles[i]->first) > 10.*POINT_TOLERANCE_2D
+						)
+					{
+						count+=changed ; 
+						changed = false ;								
+						Point test = triangles[i]->getBoundingPoint(indexes[1]) ;
+						tree[j]->project(&test) ;
+						if (inRoot(test))
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[3*ni+1] ;
+								originalPoints[ni] = triangles[i]->getBoundingPoint(k) ;
+								tree[j]->project(&triangles[i]->getBoundingPoint(k)) ;
+							}
+							if(triangles[i]->jacobianAtPoint(a) > 0 && 
+							   triangles[i]->jacobianAtPoint(b) > 0 && 
+							   triangles[i]->jacobianAtPoint(c) > 0 && 
+							   triangles[i]->jacobianAtPoint(d) > 0
+								)
+							{
+								triangles[i]->moved = true ;
+								for(size_t j = 0 ; j < 3 ; j++)
+								{
+									if(triangles[i]->getNeighbour(j)->isTriangle)
+									{
+										dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+									}
+								}
+							}
+							else
+							{
+								for(size_t ni = 0 ; ni < n ; ni++)
+								{
+									k = indexes[3*ni+1] ;
+									triangles[i]->getBoundingPoint(k) = originalPoints[ni] ;
+								}
+							}
+						}
+						
+// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(3)->x << ", " << (*triangles)[i]->getBoundingPoint(3)->y << std::endl ;
+					}
+					if(squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE_2D && 
+					   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE_2D &&
+					   squareDist2D(&proj_1, triangles[i]->second) > 10.*POINT_TOLERANCE_2D
+					   ) 
+					{
+						count+=changed ; 
+						changed = false ;								
+						Point test = triangles[i]->getBoundingPoint(indexes[2]) ;
+						tree[j]->project(&test) ;
+						if (inRoot(test))
+						{
+							for(size_t ni = 0 ; ni < n ; ni++)
+							{
+								k = indexes[3*ni+2] ;
+								originalPoints[ni] = triangles[i]->getBoundingPoint(k) ;
+								tree[j]->project(&triangles[i]->getBoundingPoint(k)) ;
+							}
+							if(triangles[i]->jacobianAtPoint(a) > 0 && 
+							   triangles[i]->jacobianAtPoint(b) > 0 && 
+							   triangles[i]->jacobianAtPoint(c) > 0 && 
+							   triangles[i]->jacobianAtPoint(d) > 0
+								)
+							{
+								triangles[i]->moved = true ;
+								for(size_t j = 0 ; j < 3 ; j++)
+								{
+									if(triangles[i]->getNeighbour(j)->isTriangle)
+									{
+										dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
+									}
+								}
+							}
+							else
+							{
+								for(size_t ni = 0 ; ni < n ; ni++)
+								{
+									k = indexes[3*ni+2] ;
+									triangles[i]->getBoundingPoint(k) = originalPoints[ni] ;
+								}
+							}
+						}
+					}
+					
+				}
+				if(count % 1000 == 0)
+					std::cerr << "\r projecting points on boundaries... triangle " << count << "/" << triangles.size() << " feature " << i << std::flush ; 
+				
+			}
+		}
+	}
+	std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " ...done."<< std::endl ;
+}
+
+
 void FeatureTree::stitch()
 {
 
@@ -662,284 +1209,90 @@ void FeatureTree::stitch()
 			
 			for(size_t j = 0 ; j < coarseTrees.size() ; j++)
 				coarseTrees[j]->setElementOrder(elemOrder) ;
-			
-			Point a (0.2, 0.2) ;
-			Point b (0.6, 0.2) ;
-			Point c (0.2, 0.6) ;
-			Point d (1./3., 1./3.) ;
-			for(size_t j = 1 ; j < this->tree.size() ; j++)
-			{
-				if(!tree[j]->isEnrichmentFeature && tree[j]->getGeometryType() != TRIANGLE && tree[j]->getGeometryType() != RECTANGLE)
+				
+			if(projectOnBoundaries)
+			{			
+				switch(elemOrder)
 				{
-					
-					std::vector<DelaunayTriangle *> triangles = this->tree[j]->getElements2D(this) ;
-	
-					for(size_t i = 0 ; i < triangles.size() ; i++)
-					{
-						triangles[i]->refresh(father2D) ;
-						if(triangles[i]->getPrimitive()->intersects(tree[j]))
-						{
-							
-							Point proj_0(*triangles[i]->first) ;
-							tree[j]->project(&proj_0) ;
-							Point proj_1(*triangles[i]->second) ;
-							tree[j]->project(&proj_1) ;
-							Point proj_2(*triangles[i]->third) ;
-							tree[j]->project(&proj_2) ;
-							bool changed  = true;
-							
-							if(squareDist2D(&proj_0 , triangles[i]->first ) < POINT_TOLERANCE_2D && 
-								squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE_2D && 
-								squareDist2D(&proj_2 , triangles[i]->third) > 10.*POINT_TOLERANCE_2D)
-							{
-								count+=changed ; 
-								changed = false ;
-								Point test = triangles[i]->getBoundingPoint(1) ;
-								tree[j]->project(&test) ;
-								if (inRoot(test))
-								{
-									Point orig(triangles[i]->getBoundingPoint(1)) ;
-									tree[j]->project(&triangles[i]->getBoundingPoint(1)) ;
-									if(triangles[i]->jacobianAtPoint(a) > 0 && 
-									   triangles[i]->jacobianAtPoint(b) > 0 && 
-									   triangles[i]->jacobianAtPoint(c) > 0 && 
-									   triangles[i]->jacobianAtPoint(d) > 0
-										)
-									{
-										if(elemOrder >= CONSTANT_TIME_LINEAR)
-											tree[j]->project(&triangles[i]->getBoundingPoint(7)) ;
-										triangles[i]->moved = true ;
-										
-										for(size_t j = 0 ; j < 3 ; j++)
-										{
-											if(triangles[i]->getNeighbour(j)->isTriangle)
-											{
-												dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
-											}
-										}
-									}
-									else
-									{
-										triangles[i]->getBoundingPoint(1) = orig ;
-									}
-								}
-		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->x << ", " << (*triangles)[i]->getBoundingPoint(1)->y << std::endl ;
-							}
-							if(squareDist2D(&proj_1 , triangles[i]->second) < POINT_TOLERANCE_2D && 
-								squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE_2D && 
-								squareDist2D(&proj_0 , triangles[i]->first) > 10.*POINT_TOLERANCE_2D
-								)
-							{
-								count+=changed ; 
-								changed = false ;								
-								Point test = triangles[i]->getBoundingPoint(3) ;
-								tree[j]->project(&test) ;
-								if (inRoot(test))
-								{
-									Point orig(triangles[i]->getBoundingPoint(3)) ;
-									tree[j]->project(&triangles[i]->getBoundingPoint(3)) ;
-									if(triangles[i]->jacobianAtPoint(a) > 0 && 
-									   triangles[i]->jacobianAtPoint(b) > 0 && 
-									   triangles[i]->jacobianAtPoint(c) > 0 && 
-									   triangles[i]->jacobianAtPoint(d) > 0
-										)
-									{
-										if(elemOrder >= CONSTANT_TIME_LINEAR)
-											tree[j]->project(&triangles[i]->getBoundingPoint(9)) ;
-										triangles[i]->moved = true ;
-										for(size_t j = 0 ; j < 3 ; j++)
-										{
-											if(triangles[i]->getNeighbour(j)->isTriangle)
-											{
-												dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
-											}
-										}
-									}
-									else
-									{
-										triangles[i]->getBoundingPoint(3) = orig ;
-									}
-								}
-								
-		// 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(3)->x << ", " << (*triangles)[i]->getBoundingPoint(3)->y << std::endl ;
-							}
-							if(squareDist2D(&proj_2 , triangles[i]->third) < POINT_TOLERANCE_2D && 
-							   squareDist2D(&proj_0, triangles[i]->first) < POINT_TOLERANCE_2D &&
-							   squareDist2D(&proj_1, triangles[i]->second) > 10.*POINT_TOLERANCE_2D
-							   ) 
-							{
-								count+=changed ; 
-								changed = false ;								
-								Point test = triangles[i]->getBoundingPoint(5) ;
-								tree[j]->project(&test) ;
-								if (inRoot(test))
-								{
-									Point orig(triangles[i]->getBoundingPoint(5)) ;
-									tree[j]->project(&triangles[i]->getBoundingPoint(5)) ;
-									if(triangles[i]->jacobianAtPoint(a) > 0 && 
-									   triangles[i]->jacobianAtPoint(b) > 0 && 
-									   triangles[i]->jacobianAtPoint(c) > 0 && 
-									   triangles[i]->jacobianAtPoint(d) > 0
-										)
-									{
-										if(elemOrder >= CONSTANT_TIME_LINEAR)
-											tree[j]->project(&triangles[i]->getBoundingPoint(11)) ;
-										triangles[i]->moved = true ;
-										for(size_t j = 0 ; j < 3 ; j++)
-										{
-											if(triangles[i]->getNeighbour(j)->isTriangle)
-											{
-												dynamic_cast<DelaunayTriangle *>(triangles[i]->getNeighbour(j))->moved = true ;
-											}
-										}
-									}
-									else
-									{
-										triangles[i]->getBoundingPoint(5) = orig ;
-									}
-								}
-							}
-							
-						}
-						if(count % 1000 == 0)
-							std::cerr << "\r projecting points on boundaries... triangle " << count << "/" << triangles.size() << " feature " << i << std::flush ; 
-						
-					}
+				case QUADRATIC:
+					projectTrianglesOnBoundaries(1,0) ;
+					break ;
+				case CUBIC:
+					projectTrianglesOnBoundaries(2,0) ;
+					break ;
+				case QUADRIC:
+				case QUINTIC:
+					projectTrianglesOnBoundaries(3,0) ;
+					break ;
+				case QUADRATIC_TIME_LINEAR:
+					projectTrianglesOnBoundaries(1,1) ;
+					break ;
+				case QUADRATIC_TIME_QUADRATIC:
+					projectTrianglesOnBoundaries(1,2) ;
+					break ;
+				case CUBIC_TIME_LINEAR:
+					projectTrianglesOnBoundaries(2,1) ;
+					break ;
+				case CUBIC_TIME_QUADRATIC:
+					projectTrianglesOnBoundaries(2,2) ;
+					break ;
+				case QUADRIC_TIME_LINEAR:
+				case QUINTIC_TIME_LINEAR:
+					projectTrianglesOnBoundaries(3,1) ;
+					break ;
+				case QUADRIC_TIME_QUADRATIC:
+				case QUINTIC_TIME_QUADRATIC:
+					projectTrianglesOnBoundaries(3,2) ;
+					break ;
 				}
 			}
 		}
-		
 	}
 	else if (is3D())
 	{
 		if(elemOrder >= QUADRATIC )
 		{
 			dtree3D->setElementOrder(elemOrder) ;
-			std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
-			for(size_t j = 1 ; j < this->tree.size() ; j++)
+
+			if(projectOnBoundaries)
 			{
-				if(!tree[j]->isEnrichmentFeature)
+				switch(elemOrder)
 				{
-					//In two pass
-
-					for(size_t i = 0 ; i < tets.size() ; i++)
-					{
-
-						Point proj_0(tets[i]->getBoundingPoint(0)) ;
-						tree[j]->project(&proj_0) ;
-						Point proj_1(tets[i]->getBoundingPoint(2)) ;
-						tree[j]->project(&proj_1) ;
-						Point proj_2(tets[i]->getBoundingPoint(4)) ;
-						tree[j]->project(&proj_2) ;
-						Point proj_3(tets[i]->getBoundingPoint(6)) ;
-						tree[j]->project(&proj_3) ;
-						pd+= 6 ;
-						
-						if(
-						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
-						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
-						  )
-						{
-							count++; 
-							Point test = tets[i]->getBoundingPoint(1) ;
-							tree[j]->project(&test) ;
-							if (inRoot(test))
-							{
-								tree[j]->project(&tets[i]->getBoundingPoint(1)) ;
-								if(elemOrder >= CONSTANT_TIME_LINEAR)
-									tree[j]->project(&tets[i]->getBoundingPoint(11)) ;
-								tets[i]->moved = true ;
-							}
-						}
-						if(
-						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
-						  )
-						{
-							count++; 
-							Point test = tets[i]->getBoundingPoint(9) ;
-							tree[j]->project(&test) ;
-							if (inRoot(test) )
-							{
-								tree[j]->project(&tets[i]->getBoundingPoint(9)) ;
-								if(elemOrder >= CONSTANT_TIME_LINEAR)
-									tree[j]->project(&tets[i]->getBoundingPoint(19)) ;
-								tets[i]->moved = true ;
-							}
-						}
-						if(
-						    squareDist3D(proj_0 , tets[i]->getBoundingPoint(0) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
-						  )
-						{
-							count++; 
-							Point test = tets[i]->getBoundingPoint(7) ;
-							tree[j]->project(&test) ;
-							if (inRoot(test) )
-							{
-								tree[j]->project(&tets[i]->getBoundingPoint(7)) ;
-								if(elemOrder >= CONSTANT_TIME_LINEAR)
-									tree[j]->project(&tets[i]->getBoundingPoint(17)) ;
-								tets[i]->moved = true ;
-							}
-						}
-						if(
-						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
-						  )
-						{
-							count++; 
-							Point test = tets[i]->getBoundingPoint(8) ;
-							tree[j]->project(&test) ;
-							if (inRoot(test))
-							{
-								tree[j]->project(&tets[i]->getBoundingPoint(8)) ;
-								if(elemOrder >= CONSTANT_TIME_LINEAR)
-									tree[j]->project(&tets[i]->getBoundingPoint(18)) ;
-								tets[i]->moved = true ;
-							}
-						}
-						if(
-						    squareDist3D(proj_1 , tets[i]->getBoundingPoint(2) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D
-						  )
-						{
-							count++; 
-							Point test = tets[i]->getBoundingPoint(3) ;
-							tree[j]->project(&test) ;
-							if (inRoot(test) )
-							{
-								tree[j]->project(&tets[i]->getBoundingPoint(3)) ;
-								if(elemOrder >= CONSTANT_TIME_LINEAR)
-									tree[j]->project(&tets[i]->getBoundingPoint(13)) ;
-								tets[i]->moved = true ;
-							}
-						}
-						if(
-						    squareDist3D(proj_3 , tets[i]->getBoundingPoint(6) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D && 
-						    squareDist3D(proj_2 , tets[i]->getBoundingPoint(4) ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D 
-						  )
-						{
-							count++; 
-							Point test = tets[i]->getBoundingPoint(5) ;
-							tree[j]->project(&test) ;
-							if (inRoot(test))
-							{
-								tree[j]->project(&tets[i]->getBoundingPoint(5)) ;
-								if(elemOrder >= CONSTANT_TIME_LINEAR)
-									tree[j]->project(&tets[i]->getBoundingPoint(15)) ;
-								tets[i]->moved = true ;
-							}
-						}
-
-						if(count % 1000 == 0)
-							std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " feature " << j << std::flush ; 
-					}
+				case QUADRATIC:
+					projectTetrahedronsOnBoundaries(1,0) ;
+					break ;
+				case CUBIC:
+					projectTetrahedronsOnBoundaries(2,0) ;
+					break ;
+				case QUADRIC:
+				case QUINTIC:
+					projectTetrahedronsOnBoundaries(3,0) ;
+					break ;
+				case QUADRATIC_TIME_LINEAR:
+					projectTetrahedronsOnBoundaries(1,1) ;
+					break ;
+				case QUADRATIC_TIME_QUADRATIC:
+					projectTetrahedronsOnBoundaries(1,2) ;
+					break ;
+				case CUBIC_TIME_LINEAR:
+					projectTetrahedronsOnBoundaries(2,1) ;
+					break ;
+				case CUBIC_TIME_QUADRATIC:
+					projectTetrahedronsOnBoundaries(2,2) ;
+					break ;
+				case QUADRIC_TIME_LINEAR:
+				case QUINTIC_TIME_LINEAR:
+					projectTetrahedronsOnBoundaries(3,1) ;
+					break ;
+				case QUADRIC_TIME_QUADRATIC:
+				case QUINTIC_TIME_QUADRATIC:
+					projectTetrahedronsOnBoundaries(3,2) ;
+					break ;
 				}
 			}
+
 		}
 	}
-	std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " ...done."<< std::endl ;
 }
 
 void FeatureTree::setSamplingNumber(size_t news) 
