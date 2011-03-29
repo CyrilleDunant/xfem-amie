@@ -41,7 +41,7 @@ Vector AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
 		inCompression = true ;
-		compressionDamage = (1.+damageDensityTolerance*64.)*thresholdDamageDensity-getState()[0] ; 
+		compressionDamage = 1 ; 
 	}
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
@@ -55,15 +55,15 @@ Vector AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 		
 		if(angle[0] > 0)
 		{
-			tensionDamagex = angle[0]/n*((1.+damageDensityTolerance*64.)*secondaryThresholdDamageDensity-getState()[1]) ; 
+			tensionDamagex = angle[0] ; 
 		}
 		if(angle[1] > 0)
 		{
-			tensionDamagey = angle[1]/n*((1.+damageDensityTolerance*64.)*secondaryThresholdDamageDensity-getState()[2]) ; 
+			tensionDamagey = angle[1] ; 
 		}
 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL && angle[2] > 0)
 		{
-			tensionDamagez = angle[2]/n*((1.+damageDensityTolerance*64.)*secondaryThresholdDamageDensity-getState()[3]) ; 
+			tensionDamagez = angle[2] ; 
 		}
 
 	}
@@ -86,7 +86,7 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 	Matrix ret(m) ;
 	
 	if(fractured())
-		return m*1e-6;
+		return m*0.;
 
 	if(inTension)
 	{
@@ -177,7 +177,7 @@ Matrix AnisotropicLinearDamage::applyPrevious(const Matrix & m) const
 	Matrix ret(m) ;
 	
 	if(fractured())
-		return m*1e-6;
+		return m*0.;
 
 	if(inTension)
 	{
@@ -255,7 +255,7 @@ Matrix AnisotropicLinearDamage::applyPrevious(const Matrix & m) const
 	if(inCompression)
 	{
 		if(getPreviousState()[0] >= thresholdDamageDensity)
-			return m*1e-6 ;
+			return m*0. ;
 		
 		return m*(1.-getPreviousState()[0]) ;
 	}

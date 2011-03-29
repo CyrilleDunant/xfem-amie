@@ -35,8 +35,8 @@ Vector LinearDamage::computeDamageIncrement(ElementState & s)
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
-		compressionDamage = (1.+damageDensityTolerance*64.)*thresholdDamageDensity-getState()[0] ; 
-		tensionDamage =(1.+damageDensityTolerance*64.)*secondaryThresholdDamageDensity-getState()[1] ; 
+		compressionDamage = 1 ; 
+		tensionDamage = 1 ; 
 	}
 	else
 	{
@@ -47,7 +47,7 @@ Vector LinearDamage::computeDamageIncrement(ElementState & s)
 	{
 		inTension = true ;
 		
-		tensionDamage = (1.+damageDensityTolerance*64.)*secondaryThresholdDamageDensity-getState()[1] ; 
+		tensionDamage = 1 ; 
 	}
 	else
 	{
@@ -71,7 +71,7 @@ Matrix LinearDamage::apply(const Matrix & m) const
 // 	std::cout << damageDensityIncrement<< "   "<< tensionDamage << "  " << compressionDamage << std::endl ;
 	
 	if(fractured())
-		return m*1e-6;
+		return m*0.;
 
 // 	if(inTension && !inCompression)
 // 	{
@@ -90,7 +90,7 @@ Matrix LinearDamage::applyPrevious(const Matrix & m) const
 	Matrix ret(m) ;
 	
 	if(fractured())
-		return ret*1e-6;
+		return ret*0.;
 	//this is a silly way of distinguishing between 2D and 3D
 	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
 	{

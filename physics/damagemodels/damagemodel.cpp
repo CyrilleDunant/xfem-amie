@@ -72,7 +72,10 @@ namespace Mu
 			}
 			
 			converged = false ;
-			damageIncrement = 1 ; //computeDamageIncrement(s) ;
+			damageIncrement = computeDamageIncrement(s) ;
+			damageIncrement /= damageIncrement.max() ;
+// 			damageIncrement = 1 ;
+			
 			getState() += damageIncrement*fractionIncrease ;
 			previousDamageIncrement = damageIncrement*fractionIncrease ;
 			upFactor = 1 ;
@@ -93,7 +96,10 @@ namespace Mu
 			if(inSetAndSetChanged.first && !wasBroken)
 			{
 				converged = false ;
-				damageIncrement = 1 ; //computeDamageIncrement(s) ;
+				damageIncrement = computeDamageIncrement(s) ;
+				damageIncrement /= damageIncrement.max() ;
+// 				damageIncrement = 1 ;
+				
 				getState() += damageIncrement*fractionIncrease ;
 				previousDamageIncrement = damageIncrement*fractionIncrease ;
 				upFactor = 1 ;
@@ -112,7 +118,9 @@ namespace Mu
 		else if(s.getDeltaTime() < POINT_TOLERANCE_2D 
 			&& inSetAndSetChanged.first && !converged)
 		{
-			damageIncrement = 1 ; //computeDamageIncrement(s) ;
+			damageIncrement = computeDamageIncrement(s) ;
+			damageIncrement /= damageIncrement.max() ;
+// 			damageIncrement = 1 ;
 			
 			getState() -= previousDamageIncrement ;
 				
