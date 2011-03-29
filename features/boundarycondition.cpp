@@ -3951,3 +3951,77 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrah
 	}
 }
 
+
+TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition() :BoundaryCondition(GENERAL, 0.) { } ;
+
+void TimeContinuityBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
+{
+	std::vector<DelaunayTriangle *> tri = t->getElements() ;
+	std::vector<Point> id ;
+	size_t timePlanes = tri[0]->timePlanes() ;
+	if(timePlanes < 2)
+		return ;
+	
+	size_t firstTimePlane = tri[0]->getBoundingPoints().size() /timePlanes ;
+	size_t lastTimePlane = tri[0]->getBoundingPoints().size()*(timePlanes-1) /timePlanes ;
+	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	Vector previousDisp ;
+	previousDisp.resize(tri[0]->getState().getPreviousDisplacements().size()) ;
+	if(previousDisp.size() == 0)
+		return ;
+	
+	std::valarray<LagrangeMultiplierType> var(SET_ALONG_XI,3) ;
+	var[1] = SET_ALONG_ETA ;
+	var[2] = SET_ALONG_ZETA ;
+	
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		id.clear() ;
+		previousDisp = tri[i]->getState().getPreviousDisplacements() ;
+		for(size_t k = 0 ; k < firstTimePlane ; k++)
+		{
+			id.push_back(tri[i]->getBoundingPoint(k)) ;
+			for(size_t j = 0 ; j < dof ; j++)
+			{
+				apply2DBC(tri[i], id, var[j], previousDisp[(lastTimePlane+k)*dof+j], a) ;
+			}
+		}
+	}
+}
+
+void TimeContinuityBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
+{
+	std::vector<DelaunayTetrahedron *> tet = t->getElements() ;
+	std::vector<Point> id ;
+	size_t timePlanes = tet[0]->timePlanes() ;
+	if(timePlanes < 2)
+		return ;
+	
+	size_t firstTimePlane = tet[0]->getBoundingPoints().size() /timePlanes ;
+	size_t lastTimePlane = tet[0]->getBoundingPoints().size()*(timePlanes-1) /timePlanes ;
+	size_t dof = tet[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	Vector previousDisp ;
+	previousDisp.resize(tet[0]->getState().getPreviousDisplacements().size()) ;
+	if(previousDisp.size() == 0)
+		return ;
+	
+	std::valarray<LagrangeMultiplierType> var(SET_ALONG_XI,3) ;
+	var[1] = SET_ALONG_ETA ;
+	var[2] = SET_ALONG_ZETA ;
+	
+	for(size_t i = 0 ; i < tet.size() ; i++)
+	{
+		id.clear() ;
+		previousDisp = tet[i]->getState().getPreviousDisplacements() ;
+		for(size_t k = 0; k < firstTimePlane ; k++)
+		{
+			id.push_back(tet[i]->getBoundingPoint(k)) ;
+			for(size_t j = 0 ; j < dof ; j++)
+			{
+				apply3DBC(tet[i], id, var[j], previousDisp[(lastTimePlane+k)*dof+j], a) ;
+			}
+		}
+	}
+}
+
+

@@ -163,6 +163,15 @@ class DofDefinedBoundaryCondition : public BoundaryCondition
 		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
 
+class TimeContinuityBoundaryCondition : public BoundaryCondition
+{
+	public:
+		TimeContinuityBoundaryCondition() ;
+		virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+		
+} ;
+
 
 } ;
 
