@@ -770,20 +770,18 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 	}
 	if(testedTet)
 	{
-				if(cache.size() == 0)
+		if(cache.size() == 0)
 			std::make_pair(false, false) ;
 		
-		unsigned int idx = testedTri->index ;
+		unsigned int idx = testedTet->index ;
 		bool inset = false ;
-		
 		
 		std::vector<unsigned int> newSet ;
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
-			bool converged =  ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->converged ;
-			bool criterionmet = ci->getBehaviour()->getFractureCriterion() && ci->getBehaviour()->getFractureCriterion()->metAtStep ;
-			if(  criterionmet || converged)
+			if( ci->getBehaviour()->getFractureCriterion() 
+				&& ci->getBehaviour()->getFractureCriterion()->metAtStep)
 			{
 				if(ci->index == idx)
 					inset = true ;
@@ -805,36 +803,18 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 			for(size_t i = 0 ; i< damagingSet.size(); i++)
 			{
 				DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[i]]) ;
-				bool converged =  ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->converged ;
-				if(!converged && ci->getBehaviour()->getDamageModel())
+				if(ci->getBehaviour()->getDamageModel() 
+					&& !ci->getBehaviour()->getDamageModel()->converged)
 				{
 					allConverged = false ;
 				}
-				
 				if(ci->index == idx)
 					inset = true ;
-				
-			}
-			
-			if(allConverged) // checkpoint: we work on a new set
-			{
-				damagingSet = newSet ;
-				inset = false ;
-				for(size_t i = 0 ; i< damagingSet.size(); i++)
-				{
-					DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[i]]) ;
-					if(damagingSet[i] == idx)
-					{
-						inset = true ;
-					}
-				}
-				
-				return std::make_pair(inset, false) ;
 			}
 			
 			if(identicalSets)
 			{
-				for(size_t i = 0 ; i< newSet.size(); i++)
+				for(size_t i = 0 ; i< newSet.size() ; i++)
 				{
 					if(newSet[i] != damagingSet[i])
 					{
@@ -842,6 +822,22 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 						break ;
 					}
 				}
+			}
+			
+			if(allConverged && identicalSets) // checkpoint: we work on a new set
+			{
+				damagingSet = newSet ;
+				inset = false ;
+				for(size_t i = 0 ; i< damagingSet.size(); i++)
+				{
+					DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
+					if(damagingSet[i] == idx && metAtStep)
+					{
+						inset = true ;
+					}
+				}
+				
+				return std::make_pair(inset, false) ;
 			}
 			
 			return std::make_pair(inset, identicalSets) ;
