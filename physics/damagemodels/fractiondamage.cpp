@@ -38,8 +38,8 @@ Vector FractionLinearDamage::computeDamageIncrement(ElementState & s)
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
 		inCompression = true ;
-		
-		compressionDamage = (1.+damageDensityTolerance*3.)*thresholdDamageDensity/fraction-state[0] ; 
+		compressionDamage = 1 ; 
+		tensionDamage = 1 ; 
 // 		compressionDamage = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, compressionDamage) ;
 // 		compressionDamage = std::min(.99999, compressionDamage) ;
 // 		compressionDamage = std::max(0., compressionDamage) ;
@@ -49,7 +49,7 @@ Vector FractionLinearDamage::computeDamageIncrement(ElementState & s)
 	{
 		inTension = true ;
 
-		tensionDamage = (1.+damageDensityTolerance*3.)*secondaryThresholdDamageDensity/fraction-state[1] ; 
+		tensionDamage = 1 ; 
 // 		tensionDamage = std::min(secondaryThresholdDamageDensity/fraction+POINT_TOLERANCE, tensionDamage) ;
 // 		tensionDamage = std::min(.99999, tensionDamage) ;
 // 		tensionDamage = std::max(0., tensionDamage) ;

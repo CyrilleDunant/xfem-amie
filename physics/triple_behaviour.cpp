@@ -157,7 +157,7 @@ void TrimaterialInterface::apply(const Function & p_i, const Function & p_j, con
 
 bool TrimaterialInterface::fractured() const
 {
-	return false;
+		return inBehaviour->fractured() && outBehaviour->fractured() && midBehaviour->fractured();
 }
 
 Form * TrimaterialInterface::getCopy() const 
@@ -238,14 +238,8 @@ std::vector<BoundaryCondition * > TrimaterialInterface::getBoundaryConditions(co
 void TrimaterialInterface::step(double timestep, ElementState & currentState)
 {
 	inBehaviour->step(timestep, currentState) ;
-	if(inBehaviour->getFractureCriterion())
-		inBehaviour->getFractureCriterion()->step(currentState);
 	midBehaviour->step(timestep, currentState) ;
-	if(midBehaviour->getFractureCriterion())
-		midBehaviour->getFractureCriterion()->step(currentState);
 	outBehaviour->step(timestep, currentState) ;
-	if(outBehaviour->getFractureCriterion())
-		outBehaviour->getFractureCriterion()->step(currentState);
 }
 
 void TrimaterialInterface::artificialDamageStep(double d)
@@ -257,11 +251,13 @@ void TrimaterialInterface::artificialDamageStep(double d)
 
 FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 {
-	double max = -1 ;
+	double max = -2 ;
 	int ret = 0 ;
 
 	double inScore = 0. ;
 	FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
+	FractureCriterion * midCriterion = midBehaviour->getFractureCriterion() ;
+	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
 	if(inCriterion)
 	{
 		max = inCriterion->getSteppedScore() ;
@@ -269,11 +265,11 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	}
 
 	double midScore = 0. ;
-	FractureCriterion * midCriterion = midBehaviour->getFractureCriterion() ;
+	
 	if(midCriterion)
 	{
 		midScore = midCriterion->getSteppedScore() ;
-		if(midScore > max || inCriterion == NULL)
+		if(midScore > max || (inCriterion == NULL && outCriterion == NULL))
 		{
 			max = midScore ;
 			ret = 2 ;
@@ -281,7 +277,7 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	}
 	
 	double outScore = 0. ;
-	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
+	
 	if(outCriterion)
 	{
 		outScore = outCriterion->getSteppedScore() ;

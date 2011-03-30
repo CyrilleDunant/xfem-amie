@@ -113,7 +113,7 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 
 bool BimaterialInterface::fractured() const
 {
-	return inBehaviour->fractured() || outBehaviour->fractured();
+	return inBehaviour->fractured() && outBehaviour->fractured();
 }
 
 Form * BimaterialInterface::getCopy() const 
@@ -192,19 +192,19 @@ void BimaterialInterface::artificialDamageStep(double d)
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
-	double max = -1 ;
+	double max = -2 ;
 	int ret = 0 ;
 
 	double inScore = 0. ;
+	double outScore = 0. ;
 	FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
+	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
 	if(inCriterion)
 	{
 		max = inCriterion->getSteppedScore() ;
 		ret = 1 ;
 	}
-
-	double outScore = 0. ;
-	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
+	
 	if(outCriterion)
 	{
 		outScore = outCriterion->getSteppedScore() ;

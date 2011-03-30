@@ -30,79 +30,73 @@ double FractionMCFT::grade(const ElementState &s)
 	
 	if(s.getParent()->getBehaviour()->getDamageModel()->fractured() == true)
 		return -1 ;
-	Vector pstrain = -s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	
+	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	Vector strains = s.getStrain(Point(1./3., 1./3.),true) ;
 	Vector stresses = strains*concreteCGTensor;
 	
 	if(s.getParent()->getBehaviour()->hasInducedForces())
 			stresses -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
 	Vector pstress(2) ;
-	pstress[0] = -(stresses[0]+stresses[1])/2. - 
+	pstress[0] = -0.5*(stresses[0]+stresses[1]) - 
 		sqrt(
-			(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+			(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
 			(stresses[2]*stresses[2])
 			) ;
-	pstress[1] = -(stresses[0]+stresses[1])/2. + 
-		sqrt(
-			(stresses[0]-stresses[1])*(stresses[0]-stresses[1])/4. + 
+	pstress[1] = -0.5*(stresses[0]+stresses[1]) + 
+		0.5*sqrt(
+			(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
 			(stresses[2]*stresses[2])
 			) ;
 		
 
-	
+	double tstrain = pstrain.max();
+	double cstrain = pstrain.min();
+	double tstress = pstress.max();
+	double cstress = pstress.min();
 
 	metInCompression = false ;
 	metInTension = false ;
 	
-	double critStrain = -0.002 ;
-	double renormCompressionStrain = pstrain.max()/critStrain ;
+	double critStrain = -0.002 ;//-0.002
+	double renormCompressionStrain = cstrain/critStrain ;
 	
-	double maxCompression = -(2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)*downVal/(0.8-0.34*pstrain.min()/critStrain) ;
+	double mcftFactor = (2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain) ;
+	double maxCompression = -std::abs(downVal)*mcftFactor ;
 	
-	double maxTension = upVal/(1.+sqrt(200.*std::abs(pstrain.min()))) ;
+	if(mcftFactor > 1 || mcftFactor < 0)
+		maxCompression = -std::abs(downVal) ;
 	
-	if( -pstress.min() >= maxTension )
-	{
-		metInTension = true ;
-		if(-pstress.max() <= maxCompression)
-		{
-			metInCompression = true ;
-
-			return std::max(1. - std::abs(maxTension/-pstress.min() ), 1. - std::abs(maxCompression/-pstress.max())) ;
-		}
-
-		return 1. - std::abs(maxTension/-pstress.min() ) ;
-	}
-		
-	if( -pstress.max() <= maxCompression )
+	double maxTension = upVal ;
+	
+	std::vector<double> crits ;
+	crits.push_back(-1) ;
+	
+	if( cstress < 0 && std::abs(cstress) >= std::abs(maxCompression) )
 	{
 		metInCompression = true ;
-
-		return 1. - std::abs(maxCompression/-pstress.max()) ;
+		crits.push_back(1. - std::abs(maxCompression/cstress)) ;
 	}
 	
-	double s0 = -1. + std::abs(-pstress.min()/maxTension);
-	double s1 = -1. + std::abs(-pstress.max()/maxCompression) ;
-	
-	if(-pstress.max() > 0)
+	if(tstress > 0 && std::abs(tstress) >= std::abs(maxTension))
 	{
-		return s0 ;
-	}
-	
-	if(-pstress.min() < 0)
-	{
-		return s1 ;
+		metInTension = true ;
+		crits.push_back(1. - std::abs(maxTension/tstress)) ;
 	}
 	
 	
-	if(std::abs(s0) > std::abs(s1))
+	if(tstress > 0 && std::abs(tstress)  < std::abs(maxTension))
 	{
-
-		return s0 ;
+		crits.push_back(-1. + std::abs(tstress/maxTension)) ;
 	}
 
-	return s1;
+	if(cstress < 0 && std::abs(cstress) < std::abs(downVal))
+	{
+		crits.push_back(-1. + std::abs(cstress/downVal)) ;
+	}
+	
+	std::sort(crits.begin(), crits.end());
+	return crits.back() ;
 }
 
 FractureCriterion * FractionMCFT::getCopy() const
