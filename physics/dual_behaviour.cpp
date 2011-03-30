@@ -176,12 +176,7 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 void BimaterialInterface::step(double timestep, ElementState & currentState)
 {
 	inBehaviour->step(timestep, currentState) ;
-	if(inBehaviour->getFractureCriterion())
-		inBehaviour->getFractureCriterion()->step(currentState);
-	
 	outBehaviour->step(timestep, currentState) ;
-	if(outBehaviour->getFractureCriterion())
-		outBehaviour->getFractureCriterion()->step(currentState);
 }
 
 void BimaterialInterface::artificialDamageStep(double d)
