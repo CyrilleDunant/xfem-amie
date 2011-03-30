@@ -134,6 +134,8 @@ namespace Mu
 				
 				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
 				{
+					if(fractured())
+						wasBroken = true ;
 					converged = true ;
 					upFactor = 1 ;
 					downFactor = 0 ;
@@ -150,6 +152,8 @@ namespace Mu
 				
 				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
 				{
+					if(fractured())
+						wasBroken = true ;
 					converged = true ;
 					upFactor = 1 ;
 					downFactor = 0 ;

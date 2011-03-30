@@ -61,6 +61,7 @@ typedef enum{
 		bool energyIndexed ;
 		bool noEnergyUpdate ;
 		bool metAtStep ;
+		bool stable ;
 		
 	double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
@@ -81,6 +82,7 @@ typedef enum{
 		
 		void step(const Mu::ElementState& s) ;
 		void computeNonLocalState(const ElementState &s) ;
+		bool isStable() const {return stable ;}
 		
 		/** \brief Return true if the fracture criterion is met
 		 * 

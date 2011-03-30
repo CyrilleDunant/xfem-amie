@@ -16,7 +16,7 @@
 #include "../../solvers/assembly.h"
 using namespace Mu ;
 
-FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), neighbourhoodvolume(-1), physicalCharacteristicRadius(.008), scoreAtState(0), metInTension(false), metInCompression(false), metAtStep(false), mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z), deltaScoreAtState(0), deltaEnergyAtState(0), energyDamageDifferential(0), criterionDamageDifferential(0), energyIndexed(false), noEnergyUpdate(true), mesh2d(NULL), mesh3d(NULL)
+FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), neighbourhoodvolume(-1), physicalCharacteristicRadius(.008), scoreAtState(-1), metInTension(false), metInCompression(false), metAtStep(false), mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z), deltaScoreAtState(0), deltaEnergyAtState(0), energyDamageDifferential(0), criterionDamageDifferential(0), energyIndexed(false), noEnergyUpdate(true), mesh2d(NULL), mesh3d(NULL), stable(true)
 {
 }
 
@@ -687,6 +687,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 
 std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const ElementState &s) 
 {
+	stable = true ;
 	if( s.getParent()->getBehaviour()->getDamageModel() == NULL )
 		return std::make_pair(false, false) ;
 	
@@ -723,6 +724,9 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 		}
 		else
 		{
+			if(damagingSet.empty())
+				return std::make_pair(false, false) ;
+			
 			bool identicalSets = (damagingSet.size() == newSet.size()) ;
 			bool allConverged = true ;
 			for(size_t i = 0 ; i< damagingSet.size(); i++)
@@ -749,7 +753,7 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 				}
 			}
 			
-			if(allConverged && identicalSets) // checkpoint: we work on a new set
+			if(allConverged && !identicalSets) // checkpoint: we work on a new set
 			{
 				damagingSet = newSet ;
 				inset = false ;
@@ -764,6 +768,14 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 				
 				return std::make_pair(inset, false) ;
 			}
+			
+			if(allConverged && identicalSets)
+			{
+				std::cout << "loss of stability." << std::endl ;
+				stable = false ;
+				return std::make_pair(inset, false) ;
+			}
+			
 			
 			return std::make_pair(inset, identicalSets) ;
 		}

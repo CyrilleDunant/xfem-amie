@@ -166,6 +166,7 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getElements3D(const Geometry *p,
 
 FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(NULL), state(this)
 {
+	stable  = true ;
 	deltaTime = 0 ;
 	reuseDisplacements = false ; 
 	useMultigrid = false ;
@@ -3481,6 +3482,7 @@ void FeatureTree::stepElements()
 {
 	behaviourChange = false ;
 	needAssembly = false ;
+	stable  = true ;
 	if(solverConvergence)
 	{
 		if(is2D())
@@ -3525,7 +3527,6 @@ void FeatureTree::stepElements()
 			}
 			
 				std::cerr << " ...done. " << std::endl ;
-
 #pragma omp parallel for
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
@@ -3561,6 +3562,9 @@ void FeatureTree::stepElements()
 						crackedVolume +=  are ;
 						averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
+					
+					if(elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->getFractureCriterion()->isStable())
+						stable = false ;
 				
 				}
 				std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;
@@ -3639,6 +3643,9 @@ void FeatureTree::stepElements()
 						damagedVolume +=  vol ;
 						averageDamage += vol*elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
+					
+					if(elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->getFractureCriterion()->isStable())
+						stable = false ;
 				}
 				else if (elements[i]->getBehaviour()->fractured())
 				{
@@ -3940,6 +3947,11 @@ bool FeatureTree::step()
 	}
 	state.setStateTo(XFEM_STEPPED, true ) ;
 	
+	if(!stable)
+	{
+		std::cout << "loss of stability!" << std::endl ;
+		return false ;
+	}
 	std::cout << it<<"/" << maxitPerStep << "." << std::flush ;
 	
 	int notConvergedCounts = 0 ;
@@ -3972,6 +3984,12 @@ bool FeatureTree::step()
 			}
 		}
 		state.setStateTo(XFEM_STEPPED, true ) ;
+		
+		if(!stable)
+		{
+			std::cout << "loss of stability!" << std::endl ;
+			return false ;
+		}
 
 	}
 	std::cout  << std::endl ;
@@ -3980,7 +3998,7 @@ bool FeatureTree::step()
 	
 }
 
-bool FeatureTree::stable(double dt)
+bool FeatureTree::isStable(double dt)
 {
 	bool needAssemblyinit = needAssembly ;
 	bool meshChangeinit = behaviourChange ;

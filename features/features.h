@@ -151,6 +151,8 @@ protected:
 	bool elastic ;
 	bool projectOnBoundaries ;
 	
+	bool stable ;
+	
 	size_t correctionSteps ;
 	bool computeIntersections ;
 	
@@ -428,7 +430,7 @@ public:
 	 * For example, if damage will occur, cracks will grow, etc.
 	 * 
 	 */
-	bool stable(double dt) ;
+	bool isStable(double dt) ;
 
 	/** \brief  Set the constitutive law of the given feature.
 	 * 
