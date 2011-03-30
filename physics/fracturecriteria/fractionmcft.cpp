@@ -14,8 +14,8 @@
 
 namespace Mu {
 
-FractionMCFT::FractionMCFT(double up, double down, Matrix concreteCGTensor, double phi, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-	, upVal(up), downVal(down), concreteCGTensor(concreteCGTensor), phi(phi)
+FractionMCFT::FractionMCFT(double up, double down, Matrix steelCGTensor, double phi, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
+	, upVal(up), downVal(down), steelCGTensor(steelCGTensor), phi(phi)
 {
 }
 
@@ -28,12 +28,14 @@ double FractionMCFT::grade(const ElementState &s)
 {
 	
 	
-	if(s.getParent()->getBehaviour()->getDamageModel()->fractured() == true)
+	if(s.getParent()->getBehaviour()->getDamageModel()->fractured())
 		return -1 ;
 	
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	Vector strains = s.getStrain(Point(1./3., 1./3.),true) ;
-	Vector stresses = strains*concreteCGTensor*(1.-phi); //assume stresses are scaled by the fraction of steel
+	Vector totalstress = s.getStress(Point(1./3., 1./3.),true) ;
+	
+	Vector stresses = totalstress-strains*steelCGTensor*phi; //assume stresses are scaled by the fraction of steel
 	
 	if(s.getParent()->getBehaviour()->hasInducedForces())
 			stresses -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;

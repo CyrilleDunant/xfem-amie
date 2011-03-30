@@ -197,53 +197,12 @@ void fastForward (int steps, int nstepstot)
 	}
 }
 
-// void setBC()
-// {
-// 	triangles = featureTree->getTriangles() ;
-// 	
-// 	for(size_t k = 0 ; k < triangles.size() ;k++)
-// 	{
-// 		for(size_t c = 0 ;  c < triangles[k]->getBoundingPoints().size() ; c++ )
-// 		{
-// 			if (triangles[k]->getBoundingPoint(c).y < -.499*sample.height() && triangles[k]->getBoundingPoint(c).x < -.499*sample.width())
-// 			{
-// 				featureTree->getAssembly()->setPoint( 0,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			else if (triangles[k]->getBoundingPoint(c).x < -.499*sample.width() && triangles[k]->getBoundingPoint(c).y > .499*sample.height())
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( XI,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 			}
-// 			else if(triangles[k]->getBoundingPoint(c).x > .499*sample.width() && triangles[k]->getBoundingPoint(c).y < -.499*sample.height())
-// 			{
-// 				featureTree->getAssembly()->setPointAlong( ETA,0 ,triangles[k]->getBoundingPoint(c).id) ;
-// 
-// //				for(size_t l = c+1 ;  l < triangles[k]->getBoundingPoints().size() ; l++)
-// //				{
-// //					if(triangles[k]->getBoundingPoint(l).x > .499*sample.width())
-// //					{
-// //						double d = std::abs(triangles[k]->getBoundingPoint(l).y-triangles[k]->getBoundingPoint(c).y) ;
-// // 						featureTree->getAssembly()->setPointAlong(ETA, 0, triangles[k]->getBoundingPoint(c).id) ;
-// // 						featureTree->getAssembly()->setPointAlong(ETA, 0, triangles[k]->getBoundingPoint(l).id) ;
-// //						featureTree->getAssembly()->setForceOn( XI, -stress*d*.25 ,triangles[k]->getBoundingPoint(c).id) ;
-// //						featureTree->getAssembly()->setForceOn( XI, -stress*d*.25 ,triangles[k]->getBoundingPoint(l).id) ;
-// //						break ;
-// //					}
-// //				}
-// //				break ;
-// 			}
-// 		}
-// 
-// 	}
-// 
-// }
 
 
 void step()
 {
-	int nsteps = 1000;
+	int nsteps = 30;
 	int nstepstot = 30;
-	int maxtries = 800 ;
-	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(400) ;
 // 	fastForward(4, 10) ;
 	

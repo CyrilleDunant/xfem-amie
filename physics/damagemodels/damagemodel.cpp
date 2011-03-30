@@ -48,14 +48,17 @@ namespace Mu
 		}
 		
 		change = false ;
-		
 		if(wasBroken)
+		{
+			converged = true ;
 			return ;
-		
+		}
 		std::pair<bool, bool> inSetAndSetChanged = s.getParent()->getBehaviour()->getFractureCriterion()->inSetAndSetChanged(200,s) ;
 		if(!inSetAndSetChanged.first)
+		{
+			converged = true ;
 			return ;
-		
+		}
 		if(s.getParent()->getBehaviour()->getFractureCriterion()->met(s) 
 			&& !wasBroken 
 			&& inSetAndSetChanged.first
@@ -120,7 +123,7 @@ namespace Mu
 		{
 			damageIncrement = computeDamageIncrement(s) ;
 			damageIncrement /= damageIncrement.max() ;
-// 			damageIncrement = 1 ;
+
 			bool frac  = fractured() ;
 			getState() -= previousDamageIncrement ;
 				
@@ -134,8 +137,6 @@ namespace Mu
 				
 				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
 				{
-					if(fractured())
-						wasBroken = true ;
 					converged = true ;
 					upFactor = 1 ;
 					downFactor = 0 ;
@@ -143,6 +144,22 @@ namespace Mu
 					previousDamageIncrement = 0 ;
 				}
 			}
+// 			else if(frac) // if I fractured, I _might_ have increased damage too much
+// 			{
+// 				currentFactor = (upFactor + downFactor)*.5 ;
+// 				
+// 				getState() += damageIncrement*currentFactor ; 
+// 				previousDamageIncrement = damageIncrement*currentFactor ;
+// 				
+// 				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
+// 				{
+// 					converged = true ;
+// 					upFactor = 1 ;
+// 					downFactor = 0 ;
+// 					currentFactor = fractionIncrease ;
+// 					previousDamageIncrement = 0 ;
+// 				}
+// 			}
 			else 
 			{
 				downFactor = currentFactor ;
@@ -152,8 +169,6 @@ namespace Mu
 				
 				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
 				{
-					if(fractured())
-						wasBroken = true ;
 					converged = true ;
 					upFactor = 1 ;
 					downFactor = 0 ;

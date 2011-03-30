@@ -67,9 +67,7 @@ void FractionLinearDamage::artificialDamageStep(double d)
 }
 
 Matrix FractionLinearDamage::apply(const Matrix & m) const
-{
-	Matrix ret(m*(1.-phi)+remnant*phi) ;
-	
+{	
 	if(fractured())
 		return remnant*phi;
 
@@ -81,7 +79,8 @@ Matrix FractionLinearDamage::apply(const Matrix & m) const
 	{
 		return m*(1.-state[1])*(1.-phi)+remnant*phi ;
 	}
-	return ret*(1.-std::max(state[0], state[1]))*(1.-phi)+remnant*phi ;
+	
+	return m*(1.-std::max(state[0], state[1]))*(1.-phi)+remnant*phi ;
 }
 
 Matrix FractionLinearDamage::applyPrevious(const Matrix & m) const
@@ -90,24 +89,17 @@ Matrix FractionLinearDamage::applyPrevious(const Matrix & m) const
 	
 	if(fractured())
 		return remnant*phi;
-	//this is a silly way of distinguishing between 2D and 3D
-	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
-	{
-		for(size_t j = 0 ; j < m.numCols() ;j++)
-		{
-			ret[i][j] *= 1.-(previousstate[0]) ;
-		}
-	}
 
-	for(size_t i = (m.numRows()+1)/2 ; i < m.numRows() ;i++)
+	if(inTension)
 	{
-		for(size_t j = 0 ; j < m.numCols() ;j++)
-		{
-			ret[i][j] *= 1.-(previousstate[i]) ;
-		}
+		return m*(1.-previousstate[0])*(1.-phi)+remnant*phi ;
 	}
-
-	return ret ;
+	if(inCompression)
+	{
+		return m*(1.-previousstate[1])*(1.-phi)+remnant*phi ;
+	}
+	
+	return m*(1.-std::max(previousstate[0], previousstate[1]))*(1.-phi)+remnant*phi ;
 }
 
 bool FractionLinearDamage::fractured() const

@@ -771,9 +771,22 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 			
 			if(allConverged && identicalSets)
 			{
-				std::cout << "loss of stability." << std::endl ;
-				stable = false ;
+				
+				inset = false ;
+				for(size_t i = 0 ; i< damagingSet.size(); i++)
+				{
+					DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
+					if(damagingSet[i] == idx && metAtStep)
+					{
+						inset = true ;
+					}
+				}
+				
 				return std::make_pair(inset, false) ;
+				
+// 				std::cout << "loss of stability." << std::endl ;
+// 				stable = false ;
+				return std::make_pair(inset, true) ;
 			}
 			
 			
@@ -936,7 +949,7 @@ void FractureCriterion::step(const ElementState &s)
 
 void FractureCriterion::computeNonLocalState(const ElementState &s)
 {
-	if( s.getParent()->getBehaviour()->getDamageModel() == NULL )
+	if( !s.getParent()->getBehaviour()->getDamageModel())
 	{
 		metAtStep = false ;
 		return  ;

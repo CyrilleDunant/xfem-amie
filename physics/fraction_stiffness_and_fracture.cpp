@@ -91,23 +91,24 @@ void FractionStiffnessAndFracture::step(double timestep, ElementState & currentS
 {
 	previouschange = change ;
 	change = false ;
-	currentState.getParent()->behaviourUpdated = false ;
-	if(criterion->met(currentState))
-	{
-		dfunc->step(currentState) ;
-		change = true ;
-		currentState.getParent()->behaviourUpdated = true ;
-		frac = dfunc->fractured() ;
-	}
-	previousPreviousDamage.resize(previousDamage.size()) ;
-	previousPreviousDamage = previousDamage ;
-	previousDamage.resize(damage.size()) ;
-	previousDamage = damage ;
 
-	Vector d = dfunc->getState() ;
-	damage.resize(d.size()) ;
-	damage = d ;
-    }
+	dfunc->step(currentState) ;
+	change = dfunc->changed() ;
+	currentState.getParent()->behaviourUpdated = change ;
+	if(change)
+	{
+		
+		previousPreviousDamage.resize(previousDamage.size()) ;
+		previousPreviousDamage = previousDamage ;
+		previousDamage.resize(damage.size()) ;
+		previousDamage = damage ;
+		
+		Vector d = dfunc->getState() ;
+		damage.resize(d.size()) ;
+		damage = d ;
+	}
+	
+}
 
 void FractionStiffnessAndFracture::artificialDamageStep(double d)
 {

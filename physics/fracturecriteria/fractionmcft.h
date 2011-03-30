@@ -27,7 +27,7 @@ class FractionMCFT : public FractureCriterion
 public:
 	double upVal ;
 	double downVal ;
-	Matrix concreteCGTensor ;
+	Matrix steelCGTensor ;
 	double phi ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
