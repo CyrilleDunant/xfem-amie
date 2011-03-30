@@ -719,6 +719,25 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 		
 		if(s.getDeltaTime() > POINT_TOLERANCE_2D) //new iteration
 		{
+			
+			inset = false ;
+		
+			std::vector<unsigned int> newSet ;
+			for(size_t i = 0 ; i< cache.size() ; i++)
+			{
+				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
+				if( ci->getBehaviour()->getFractureCriterion() 
+					&& ci->getBehaviour()->getFractureCriterion()->metAtStep
+					&& !ci->getBehaviour()->fractured()
+				)
+				{
+					if(ci->index == idx)
+						inset = true ;
+					
+					newSet.push_back(cache[i]) ;
+				}
+			}
+			std::stable_sort(newSet.begin(), newSet.end()) ;
 			damagingSet = newSet ;
 			return std::make_pair(inset, true) ;
 		}
@@ -795,7 +814,7 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 	}
 	if(testedTet)
 	{
-		if(cache.size() == 0)
+	if(cache.size() == 0)
 			std::make_pair(false, false) ;
 		
 		unsigned int idx = testedTet->index ;
@@ -818,11 +837,33 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 		
 		if(s.getDeltaTime() > POINT_TOLERANCE_3D) //new iteration
 		{
+			
+			inset = false ;
+		
+			std::vector<unsigned int> newSet ;
+			for(size_t i = 0 ; i< cache.size() ; i++)
+			{
+				DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
+				if( ci->getBehaviour()->getFractureCriterion() 
+					&& ci->getBehaviour()->getFractureCriterion()->metAtStep
+					&& !ci->getBehaviour()->fractured()
+				)
+				{
+					if(ci->index == idx)
+						inset = true ;
+					
+					newSet.push_back(cache[i]) ;
+				}
+			}
+			std::stable_sort(newSet.begin(), newSet.end()) ;
 			damagingSet = newSet ;
 			return std::make_pair(inset, true) ;
 		}
 		else
 		{
+			if(damagingSet.empty())
+				return std::make_pair(false, false) ;
+			
 			bool identicalSets = (damagingSet.size() == newSet.size()) ;
 			bool allConverged = true ;
 			for(size_t i = 0 ; i< damagingSet.size(); i++)
@@ -849,9 +890,25 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 				}
 			}
 			
-			if(allConverged && identicalSets) // checkpoint: we work on a new set
+			if(allConverged && !identicalSets) // checkpoint: we work on a new set
 			{
 				damagingSet = newSet ;
+				inset = false ;
+				for(size_t i = 0 ; i< damagingSet.size(); i++)
+				{
+					DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[i]]) ;
+					if(damagingSet[i] == idx && metAtStep)
+					{
+						inset = true ;
+					}
+				}
+				
+				return std::make_pair(inset, false) ;
+			}
+			
+			if(allConverged && identicalSets)
+			{
+				
 				inset = false ;
 				for(size_t i = 0 ; i< damagingSet.size(); i++)
 				{
@@ -863,7 +920,12 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 				}
 				
 				return std::make_pair(inset, false) ;
+				
+// 				std::cout << "loss of stability." << std::endl ;
+// 				stable = false ;
+				return std::make_pair(inset, true) ;
 			}
+			
 			
 			return std::make_pair(inset, identicalSets) ;
 		}
@@ -956,7 +1018,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s)
 	}
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 	{
-		metAtStep = false ;
+		metAtStep = true ;
 		return  ;
 	}
 	

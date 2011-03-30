@@ -1427,7 +1427,8 @@ int main(int argc, char *argv[])
 // 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .03 ; // .015
+	double mradius = .05 ; // .015
+	double nradius = .25 ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;
@@ -1477,19 +1478,19 @@ int main(int argc, char *argv[])
 // 	rebar0.setBehaviour(new Stiffness(m0_barSteel));
 	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(.1);
+	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
-	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
+	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999);
+	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
 // 	rebar1.setBehaviour(new Stiffness(m0_barSteel));
 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(.1);
+	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
-	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
+	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.9999);
+	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.9999);
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
@@ -1502,7 +1503,7 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->setDamageModel(new AnisotropicLinearDamage( mradius)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  .1;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
 	F.addBoundaryCondition(load) ;
 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );

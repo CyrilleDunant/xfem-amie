@@ -23,7 +23,8 @@ namespace Mu
 	void DamageModel::step(ElementState & s )
 	{
 		
-		double fractionIncrease = 0.5;
+		double phi = (1. + sqrt(5.)) *.5 ;
+		double resphi = 2. - phi ;
 		if(fraction < 0)
 		{
 			damageIncrement.resize(state.size(), 0.);
@@ -59,6 +60,9 @@ namespace Mu
 			converged = true ;
 			return ;
 		}
+		
+
+		
 		if(s.getParent()->getBehaviour()->getFractureCriterion()->met(s) 
 			&& !wasBroken 
 			&& inSetAndSetChanged.first
@@ -79,11 +83,11 @@ namespace Mu
 			damageIncrement /= damageIncrement.max() ;
 // 			damageIncrement = 1 ;
 			
-			getState() += damageIncrement*fractionIncrease ;
-			previousDamageIncrement = damageIncrement*fractionIncrease ;
+			getState() += damageIncrement*resphi ;
+			previousDamageIncrement = damageIncrement*resphi ;
 			upFactor = 1 ;
 			downFactor = 0 ;
-			currentFactor = fractionIncrease ;
+			currentFactor = downFactor + resphi * (upFactor - downFactor) ;
 			change = true ;
 			for(size_t i = 0 ; i < getState().size() ; i++)
 				getState()[i] = std::max(0., std::min(getState()[i], 1.)) ;
@@ -103,11 +107,11 @@ namespace Mu
 				damageIncrement /= damageIncrement.max() ;
 // 				damageIncrement = 1 ;
 				
-				getState() += damageIncrement*fractionIncrease ;
-				previousDamageIncrement = damageIncrement*fractionIncrease ;
+				getState() += damageIncrement*resphi ;
+				previousDamageIncrement = damageIncrement*resphi ;
 				upFactor = 1 ;
 				downFactor = 0 ;
-				currentFactor = fractionIncrease ;
+				currentFactor = resphi ;
 			}
 			else
 			{
@@ -115,7 +119,7 @@ namespace Mu
 				previousDamageIncrement = 0 ;
 				upFactor = 1 ;
 				downFactor = 0 ;
-				currentFactor = fractionIncrease ;
+				currentFactor = resphi ;
 			}
 		}
 		else if(s.getDeltaTime() < POINT_TOLERANCE_2D 
@@ -124,13 +128,12 @@ namespace Mu
 			damageIncrement = computeDamageIncrement(s) ;
 			damageIncrement /= damageIncrement.max() ;
 
-			bool frac  = fractured() ;
 			getState() -= previousDamageIncrement ;
 				
-			if(inSetAndSetChanged.second || frac) //the damage was increased too much
+			if(inSetAndSetChanged.second ) //the damage was increased too much
 			{
 				upFactor = currentFactor ;
-				currentFactor = (upFactor + downFactor)*.5 ;
+				currentFactor = downFactor + resphi * (upFactor - downFactor) ;
 				
 				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
@@ -140,39 +143,32 @@ namespace Mu
 					converged = true ;
 					upFactor = 1 ;
 					downFactor = 0 ;
-					currentFactor = fractionIncrease ;
+					currentFactor = downFactor + resphi * (upFactor - downFactor) ;
 					previousDamageIncrement = 0 ;
 				}
 			}
-// 			else if(frac) // if I fractured, I _might_ have increased damage too much
-// 			{
-// 				currentFactor = (upFactor + downFactor)*.5 ;
-// 				
-// 				getState() += damageIncrement*currentFactor ; 
-// 				previousDamageIncrement = damageIncrement*currentFactor ;
-// 				
-// 				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
-// 				{
-// 					converged = true ;
-// 					upFactor = 1 ;
-// 					downFactor = 0 ;
-// 					currentFactor = fractionIncrease ;
-// 					previousDamageIncrement = 0 ;
-// 				}
-// 			}
 			else 
 			{
 				downFactor = currentFactor ;
-				currentFactor = (upFactor + downFactor)*.5 ;
+				currentFactor = downFactor + resphi * (upFactor - downFactor) ;
 				getState() += damageIncrement*currentFactor ; 
 				previousDamageIncrement = damageIncrement*currentFactor ;
+				
+				if(fractured())
+				{
+					getState() -= previousDamageIncrement ;
+					upFactor = currentFactor ;
+					currentFactor = downFactor + resphi * (upFactor - downFactor) ;
+					getState() += damageIncrement*currentFactor ; 
+					previousDamageIncrement = damageIncrement*currentFactor ;
+				}
 				
 				if(std::abs(downFactor-upFactor) < damageDensityTolerance ) // we have converged
 				{
 					converged = true ;
 					upFactor = 1 ;
 					downFactor = 0 ;
-					currentFactor = fractionIncrease ;
+					currentFactor = resphi ;
 					previousDamageIncrement = 0 ;
 				}
 			}
@@ -192,7 +188,7 @@ namespace Mu
 		isNull = true ; 
 		thresholdDamageDensity = .999999999999 ;
 		secondaryThresholdDamageDensity = .99999999999999 ;
-		damageDensityTolerance = 1e-7 ;
+		damageDensityTolerance = 1e-5 ;
 		fraction = -1 ;
 		
 		upFactor = 1;
