@@ -115,7 +115,7 @@ bool FractionLinearDamage::fractured() const
 	if (fraction < 0)
 		return false ;
 	
-	return (state[0] >= secondaryThresholdDamageDensity/fraction) || (state[1] >= thresholdDamageDensity/fraction)  ;
+	return (state[0] >= secondaryThresholdDamageDensity) || (state[1] >= thresholdDamageDensity)  ;
 }
 
 FractionLinearDamage::~FractionLinearDamage()

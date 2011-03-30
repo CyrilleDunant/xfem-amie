@@ -121,10 +121,10 @@ namespace Mu
 			damageIncrement = computeDamageIncrement(s) ;
 			damageIncrement /= damageIncrement.max() ;
 // 			damageIncrement = 1 ;
-			
+			bool frac  = fractured() ;
 			getState() -= previousDamageIncrement ;
 				
-			if(inSetAndSetChanged.second ) //the damage was increased too much
+			if(inSetAndSetChanged.second || frac) //the damage was increased too much
 			{
 				upFactor = currentFactor ;
 				currentFactor = (upFactor + downFactor)*.5 ;
