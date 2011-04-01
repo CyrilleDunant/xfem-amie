@@ -196,13 +196,13 @@ FractureCriterion * BimaterialInterface::getFractureCriterion() const
 	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
 	if(inCriterion)
 	{
-		max = inCriterion->getSteppedScore() ;
+		max = inCriterion->getScoreAtState() ;
 		ret = 1 ;
 	}
 	
 	if(outCriterion)
 	{
-		outScore = outCriterion->getSteppedScore() ;
+		outScore = outCriterion->getScoreAtState() ;
 		if(outScore > max || inCriterion == NULL)
 			ret = 2 ;
 	}

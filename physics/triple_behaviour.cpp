@@ -260,7 +260,7 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;
 	if(inCriterion)
 	{
-		max = inCriterion->getSteppedScore() ;
+		max = inCriterion->getScoreAtState() ;
 		ret = 1 ;
 	}
 
@@ -268,7 +268,7 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	
 	if(midCriterion)
 	{
-		midScore = midCriterion->getSteppedScore() ;
+		midScore = midCriterion->getScoreAtState() ;
 		if(midScore > max || (inCriterion == NULL && outCriterion == NULL))
 		{
 			max = midScore ;
@@ -280,7 +280,7 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	
 	if(outCriterion)
 	{
-		outScore = outCriterion->getSteppedScore() ;
+		outScore = outCriterion->getScoreAtState() ;
 		if(outScore > max || (inCriterion == NULL && midCriterion == NULL))
 			ret = 3 ;
 	}

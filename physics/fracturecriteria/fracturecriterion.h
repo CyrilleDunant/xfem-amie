@@ -63,9 +63,13 @@ typedef enum{
 		bool metAtStep ;
 		bool stable ;
 		
+		bool checkpoint ;
+		bool inset ;
+		
 	double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
 	public:
+
 		std::vector<DelaunayTreeItem *>  *mesh2d ;
 		std::vector<DelaunayTreeItem3D *>  *mesh3d ;
 		
@@ -83,13 +87,17 @@ typedef enum{
 		void step(const Mu::ElementState& s) ;
 		void computeNonLocalState(const ElementState &s) ;
 		bool isStable() const {return stable ;}
+		bool isAtCheckpoint() const {return checkpoint ;}
+		bool isInDamagingSet() const {return inset ;}
+		bool isAtCheckpoint(const ElementState &s) const ;
+		void setCheckpoint( bool c) {checkpoint = c ;} 
 		
 		/** \brief Return true if the fracture criterion is met
 		 * 
 		 * @param s ElementState ton consider
 		 * @return true if the fracture criterion is met
 		 */
-		virtual bool met(const ElementState & s) ;
+		virtual bool met(const ElementState & s) const ;
 
 		/** \brief Return a normalised distance to the fracture surface, 
 		 * 
@@ -99,9 +107,7 @@ typedef enum{
 		 */
 		virtual double grade(const ElementState & s) = 0 ;
 		
-		virtual std::pair<bool, bool> inSetAndSetChanged(int fractiles, const ElementState &s)  ;
-		
-		virtual double getSteppedScore() const {return scoreAtState ;} ;
+		virtual int setChange(const ElementState &s)  ;
 		
 		/** \brief Produce a copy of the fracture criterion
 		 * 

@@ -29,14 +29,12 @@ protected:
 	double damageDensityTolerance ;
 	double fraction ;
 	
-	Vector damageIncrement ;
-	Vector previousDamageIncrement ;
-	double upFactor ;
-	double downFactor ;
-	double currentFactor ;
+	Vector upState ;
+	Vector downState ;
 	
 	bool change ;
 	bool wasBroken ;
+	bool lastDirectionUp ;
 
 	
 	Vector state ;

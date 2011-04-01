@@ -3518,16 +3518,31 @@ void FeatureTree::stepElements()
 					if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() > gmin)
 						gmin = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				}
-			for(size_t i = 0 ; i < elements.size() ;i++)
-			{
-				if(i%1000 == 0)
-					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
-				if(elements[i]->getBehaviour()->getFractureCriterion())
-					elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState()) ;
-			}
+				
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{
+					if(i%1000 == 0)
+						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
+					if(elements[i]->getBehaviour()->getFractureCriterion())
+						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState()) ;
+				}
+				
+				bool foundCheckPoint = false ;
+				for(size_t i = 0 ; i < elements.size() ;i++)
+				{
+					if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->isAtCheckpoint(elements[i]->getState()))
+					{
+						foundCheckPoint = true ;
+						break ;
+					}
+				}
+				if(foundCheckPoint)
+					for(size_t i = 0 ; i < elements.size() ;i++)
+						if(elements[i]->getBehaviour()->getFractureCriterion())
+							elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
 			
 				std::cerr << " ...done. " << std::endl ;
-#pragma omp parallel for
+// #pragma omp parallel for
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
 
@@ -3612,6 +3627,19 @@ void FeatureTree::stepElements()
 			}
 			std::cerr << " ...done. " << std::endl ;
 			
+			bool foundCheckPoint = false ;
+			for(size_t i = 0 ; i < elements.size() ;i++)
+			{
+				if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->isAtCheckpoint(elements[i]->getState()))
+				{
+					foundCheckPoint = true ;
+					break ;
+				}
+			}
+			if(foundCheckPoint)
+				for(size_t i = 0 ; i < elements.size() ;i++)
+					if(elements[i]->getBehaviour()->getFractureCriterion())
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
 			int fracturedCount = 0 ;
 #pragma omp parallel for
 			for(size_t i = 0 ; i < elements.size() ;i++)
@@ -3965,11 +3993,9 @@ bool FeatureTree::step()
 			notConvergedCounts++ ;
 			std::cout << "+" << std::flush ;
 		}
-		if(it %100 == 0)
-			std::cout  << std::endl ;
-		if(it % 20 == 0)
+		if(it % 40 == 0)
 		{
-			std::cout  << "["<< averageDamage<< "]"<<std::flush ;
+			std::cout  << "["<< averageDamage<< "]"<<std::endl ;
 		}
 
 		if(enrichmentChange || needMeshing)

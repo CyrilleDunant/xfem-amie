@@ -1428,7 +1428,7 @@ int main(int argc, char *argv[])
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
 	double mradius = .05 ; // .015
-	double nradius = .25 ;
+	double nradius = .20 ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;

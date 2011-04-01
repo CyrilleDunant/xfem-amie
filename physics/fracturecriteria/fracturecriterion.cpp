@@ -16,7 +16,20 @@
 #include "../../solvers/assembly.h"
 using namespace Mu ;
 
-FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), neighbourhoodvolume(-1), physicalCharacteristicRadius(.008), scoreAtState(-1), metInTension(false), metInCompression(false), metAtStep(false), mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z), deltaScoreAtState(0), deltaEnergyAtState(0), energyDamageDifferential(0), criterionDamageDifferential(0), energyIndexed(false), noEnergyUpdate(true), mesh2d(NULL), mesh3d(NULL), stable(true)
+FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), 
+neighbourhoodvolume(-1), 
+physicalCharacteristicRadius(.008), 
+scoreAtState(-1), 
+metInTension(false), metInCompression(false), metAtStep(false), 
+mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z), 
+deltaScoreAtState(0), 
+deltaEnergyAtState(0), 
+energyDamageDifferential(0), 
+criterionDamageDifferential(0), 
+energyIndexed(false), 
+noEnergyUpdate(true), 
+mesh2d(NULL), mesh3d(NULL), 
+stable(true), checkpoint(false), inset(false)
 {
 }
 
@@ -395,6 +408,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			}
 		}
 	}
+	
+	std::sort(cache.begin(), cache.end()) ;
 }
 
 std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const ElementState & s, double delta_d) const
@@ -685,84 +700,91 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 	return std::make_pair( (energy-originalenergy)/(delta_d),(score-originalscore)/(delta_d)) ;
 }
 
-std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const ElementState &s) 
+bool FractureCriterion::isAtCheckpoint(const ElementState &s) const
+{
+	if( !s.getParent()->getBehaviour()->getDamageModel())
+		return false ;
+	
+	if(s.getDeltaTime() > POINT_TOLERANCE_2D)
+		return true ;
+	
+	if(damagingSet.empty())
+		return false ;
+	
+	if(!inset)
+		return false ;
+	
+	if(!metAtStep)
+		return false ;
+	
+	if(cache.size() == 0)
+		return false ;
+	
+	return s.getParent()->getBehaviour()->getDamageModel()->converged  ;
+}
+
+int FractureCriterion::setChange(const ElementState &s) 
 {
 	stable = true ;
+
 	if( s.getParent()->getBehaviour()->getDamageModel() == NULL )
-		return std::make_pair(false, false) ;
+		return 0 ;
+	if(cache.size() == 0)
+		return 0 ;
+	if(!inset && !checkpoint)
+		return 0 ;
 	
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	DelaunayTetrahedron * testedTet = dynamic_cast<DelaunayTetrahedron *>(s.getParent()) ;
-	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
+/*	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;*/
 	if(testedTri)
 	{
-		if(cache.size() == 0)
-			std::make_pair(false, false) ;
-		
-		unsigned int idx = testedTri->index ;
-		bool inset = false ;
+
 		
 		std::vector<unsigned int> newSet ;
+		std::vector<double> scores ;
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-			if( ci->getBehaviour()->getFractureCriterion() 
-				&& ci->getBehaviour()->getFractureCriterion()->metAtStep)
+			if(ci->getBehaviour()->getFractureCriterion())
 			{
-				if(ci->index == idx)
-					inset = true ;
-				
+				scores.push_back(ci->getBehaviour()->getFractureCriterion()->getScoreAtState());
+			}
+		}
+		std::sort(scores.begin(), scores.end()) ;
+		
+		double thresholdScore = scores[round(0.99*(scores.size()-1))] ;
+		
+		for(size_t i = 0 ; i< cache.size() ; i++)
+		{
+			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
+			if(ci->getBehaviour()->getFractureCriterion() && ci->getBehaviour()->getFractureCriterion()->metAtStep && ci->getBehaviour()->getFractureCriterion()->scoreAtState >= thresholdScore)
+			{
 				newSet.push_back(cache[i]) ;
 			}
 		}
-		std::stable_sort(newSet.begin(), newSet.end()) ;
 		
-		if(s.getDeltaTime() > POINT_TOLERANCE_2D) //new iteration
+		if(checkpoint) //new iteration
 		{
-			
-			inset = false ;
-		
-			std::vector<unsigned int> newSet ;
-			for(size_t i = 0 ; i< cache.size() ; i++)
-			{
-				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-				if( ci->getBehaviour()->getFractureCriterion() 
-					&& ci->getBehaviour()->getFractureCriterion()->metAtStep
-					&& !ci->getBehaviour()->fractured()
-				)
-				{
-					if(ci->index == idx)
-						inset = true ;
-					
-					newSet.push_back(cache[i]) ;
-				}
-			}
-			std::stable_sort(newSet.begin(), newSet.end()) ;
 			damagingSet = newSet ;
-			return std::make_pair(inset, true) ;
+			inset = std::binary_search(damagingSet.begin(), damagingSet.end(), testedTri->index) ;
+			if(!inset)
+				damagingSet.clear();
+			
+			return 0 ;
 		}
 		else
 		{
+			checkpoint = false ;
+			
 			if(damagingSet.empty())
-				return std::make_pair(false, false) ;
+				return 0 ;
 			
-			bool identicalSets = (damagingSet.size() == newSet.size()) ;
-			bool allConverged = true ;
-			for(size_t i = 0 ; i< damagingSet.size(); i++)
-			{
-				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
-				if(ci->getBehaviour()->getDamageModel() 
-					&& !ci->getBehaviour()->getDamageModel()->converged)
-				{
-					allConverged = false ;
-				}
-				if(ci->index == idx)
-					inset = true ;
-			}
+			bool identicalSets = true ;
 			
-			if(identicalSets)
+			if(damagingSet.size() == newSet.size()) // check for set conservation
 			{
-				for(size_t i = 0 ; i< newSet.size() ; i++)
+				for(size_t i = 0 ; i < damagingSet.size() ; i++)
 				{
 					if(newSet[i] != damagingSet[i])
 					{
@@ -771,116 +793,51 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 					}
 				}
 			}
+			else
+				identicalSets = false ;
+
+			if(newSet.size() < damagingSet.size())
+				return -1 ;
+			else if(newSet.size() > damagingSet.size())
+				return 1 ;
 			
-			if(allConverged && !identicalSets) // checkpoint: we work on a new set
-			{
-				damagingSet = newSet ;
-				inset = false ;
-				for(size_t i = 0 ; i< damagingSet.size(); i++)
-				{
-					DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
-					if(damagingSet[i] == idx && metAtStep)
-					{
-						inset = true ;
-					}
-				}
-				
-				return std::make_pair(inset, false) ;
-			}
-			
-			if(allConverged && identicalSets)
-			{
-				
-				inset = false ;
-				for(size_t i = 0 ; i< damagingSet.size(); i++)
-				{
-					DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
-					if(damagingSet[i] == idx && metAtStep)
-					{
-						inset = true ;
-					}
-				}
-				
-				return std::make_pair(inset, false) ;
-				
-// 				std::cout << "loss of stability." << std::endl ;
-// 				stable = false ;
-				return std::make_pair(inset, true) ;
-			}
-			
-			
-			return std::make_pair(inset, identicalSets) ;
+			return 0 ;
 		}
 	}
-	if(testedTet)
+	else if(testedTet)
 	{
-	if(cache.size() == 0)
-			std::make_pair(false, false) ;
-		
-		unsigned int idx = testedTet->index ;
-		bool inset = false ;
-		
 		std::vector<unsigned int> newSet ;
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
-			if( ci->getBehaviour()->getFractureCriterion() 
-				&& ci->getBehaviour()->getFractureCriterion()->metAtStep)
+			if(ci->getBehaviour()->getFractureCriterion() && ci->getBehaviour()->getFractureCriterion()->metAtStep)
 			{
-				if(ci->index == idx)
-					inset = true ;
-				
 				newSet.push_back(cache[i]) ;
 			}
 		}
-		std::stable_sort(newSet.begin(), newSet.end()) ;
 		
-		if(s.getDeltaTime() > POINT_TOLERANCE_3D) //new iteration
+		if(checkpoint) //new iteration
 		{
-			
-			inset = false ;
-		
-			std::vector<unsigned int> newSet ;
-			for(size_t i = 0 ; i< cache.size() ; i++)
-			{
-				DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
-				if( ci->getBehaviour()->getFractureCriterion() 
-					&& ci->getBehaviour()->getFractureCriterion()->metAtStep
-					&& !ci->getBehaviour()->fractured()
-				)
-				{
-					if(ci->index == idx)
-						inset = true ;
-					
-					newSet.push_back(cache[i]) ;
-				}
-			}
-			std::stable_sort(newSet.begin(), newSet.end()) ;
 			damagingSet = newSet ;
-			return std::make_pair(inset, true) ;
+			inset = std::binary_search(damagingSet.begin(), damagingSet.end(), testedTet->index) ;
+			
+			if(!inset)
+				damagingSet.clear();
+			
+			return 0 ;
 		}
 		else
 		{
+			checkpoint = false ;
+			
 			if(damagingSet.empty())
-				return std::make_pair(false, false) ;
+				return 0 ;
 			
-			bool identicalSets = (damagingSet.size() == newSet.size()) ;
-			bool allConverged = true ;
-			for(size_t i = 0 ; i< damagingSet.size(); i++)
-			{
-				DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[i]]) ;
-				if(ci->getBehaviour()->getDamageModel() 
-					&& !ci->getBehaviour()->getDamageModel()->converged)
-				{
-					allConverged = false ;
-				}
-				if(ci->index == idx)
-					inset = true ;
-			}
+			bool identicalSets = true ;
 			
-			if(identicalSets)
+			if(damagingSet.size() == newSet.size()) // check for set conservation
 			{
-				for(size_t i = 0 ; i< newSet.size() ; i++)
+				for(size_t i = 0 ; i < damagingSet.size() ; i++)
 				{
 					if(newSet[i] != damagingSet[i])
 					{
@@ -889,59 +846,25 @@ std::pair<bool, bool> FractureCriterion::inSetAndSetChanged(int fractiles, const
 					}
 				}
 			}
+			else
+				identicalSets = false ;
+
+			if(newSet.size() < damagingSet.size())
+				return -1 ;
+			else if(newSet.size() > damagingSet.size())
+				return 1 ;
 			
-			if(allConverged && !identicalSets) // checkpoint: we work on a new set
-			{
-				damagingSet = newSet ;
-				inset = false ;
-				for(size_t i = 0 ; i< damagingSet.size(); i++)
-				{
-					DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[i]]) ;
-					if(damagingSet[i] == idx && metAtStep)
-					{
-						inset = true ;
-					}
-				}
-				
-				return std::make_pair(inset, false) ;
-			}
-			
-			if(allConverged && identicalSets)
-			{
-				
-				inset = false ;
-				for(size_t i = 0 ; i< damagingSet.size(); i++)
-				{
-					DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
-					if(damagingSet[i] == idx && metAtStep)
-					{
-						inset = true ;
-					}
-				}
-				
-				return std::make_pair(inset, false) ;
-				
-// 				std::cout << "loss of stability." << std::endl ;
-// 				stable = false ;
-				return std::make_pair(inset, true) ;
-			}
-			
-			
-			return std::make_pair(inset, identicalSets) ;
+			return 0 ;
 		}
 	}
-// 	else if(testedHex)
-// 	{
-// 		return std::make_pair(false, false) ;
-// 	}
 	else
 	{
 		std::cout << " criterion not implemented for this kind of element" << std::endl ;
-		return std::make_pair(false, false) ;
+		return 0 ;
 	}
 	
 	//shut up the compiler
-	return std::make_pair(false, false) ;
+	return 0 ;
 }
 
 void FractureCriterion::step(const ElementState &s)
@@ -1018,7 +941,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s)
 	}
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 	{
-		metAtStep = true ;
+		metAtStep = false ;
 		return  ;
 	}
 	
@@ -1050,7 +973,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s)
 
 				double s = 0. ;
 				if(ci->getBehaviour()->getFractureCriterion() != NULL && !ci->getBehaviour()->fractured())
-					s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+					s = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
 				scores[-s] =  ci;
 				unsortedScores.push_back(s);
@@ -1077,7 +1000,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s)
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 			
 
-			if(ci->getBehaviour()->getFractureCriterion() && (ci->getBehaviour()->getFractureCriterion()->getSteppedScore() >= maxNeighbourhoodScore-tol || ci->getBehaviour()->fractured()))
+			if(ci->getBehaviour()->getFractureCriterion() && (ci->getBehaviour()->getFractureCriterion()->getScoreAtState() >= maxNeighbourhoodScore-tol || ci->getBehaviour()->fractured()))
 			{
 				if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
 				{
@@ -1184,7 +1107,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s)
 
 				if( !ci->getBehaviour()->fractured())
 				{
-					double s = ci->getBehaviour()->getFractureCriterion()->getSteppedScore() ;
+					double s = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 					scores[-s] =  ci;
 					if(s > maxNeighbourhoodScore)
 					{
@@ -1214,7 +1137,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s)
 		{
 			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
 			if(ci->getBehaviour()->getFractureCriterion())
-				if(std::abs(ci->getBehaviour()->getFractureCriterion()->getSteppedScore()-maxNeighbourhoodScore) < tol || ci->getBehaviour()->fractured())
+				if(std::abs(ci->getBehaviour()->getFractureCriterion()->getScoreAtState()-maxNeighbourhoodScore) < tol || ci->getBehaviour()->fractured())
 					maxloci.push_back(ci) ;
 		}
 		
@@ -1348,7 +1271,7 @@ void FractureCriterion::setMaterialCharacteristicRadius(double r)
 	physicalCharacteristicRadius = r ;
 }
 
-bool FractureCriterion::met(const ElementState &s)
+bool FractureCriterion::met(const ElementState &s) const
 {
 	return metAtStep ;
 }

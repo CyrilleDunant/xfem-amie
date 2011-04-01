@@ -64,8 +64,8 @@ double MCFT::grade(const ElementState &s)
 //  		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+2.*critStrain))) ;
 // 	}
 
-	metInCompression = std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) || tstrain > 0;
-	metInTension = std::abs(cstress/maxCompression) < std::abs(tstress/maxTension) || cstrain < 0;
+	metInCompression = cstrain < 0 && std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) || tstrain < 0;
+	metInTension = tstrain > 0 && std::abs(cstress/maxCompression) < std::abs(tstress/maxTension) || cstrain > 0;
 	
 	
 	std::vector<double> crits ;
