@@ -30,6 +30,11 @@ typedef enum{
   MIRROR_YZ
 } MirrorState ;
 
+typedef enum{
+	MAX_PROXIMITY_SMOOTH,
+	GAUSSIAN_SMOOTH
+} NonLocalSmoothingType ;
+
 	/**
 	Abstract definition of a fracture criterion
 	
@@ -58,6 +63,7 @@ typedef enum{
 		double delta_x ;
 		double delta_y ;
 		double delta_z ;
+		double fraction ;
 		bool energyIndexed ;
 		bool noEnergyUpdate ;
 		bool metAtStep ;
@@ -85,12 +91,14 @@ typedef enum{
 		virtual ~FractureCriterion();
 		
 		void step(const Mu::ElementState& s) ;
-		void computeNonLocalState(const ElementState &s) ;
+		void computeNonLocalState(const ElementState &s, NonLocalSmoothingType st = MAX_PROXIMITY_SMOOTH) ;
 		bool isStable() const {return stable ;}
 		bool isAtCheckpoint() const {return checkpoint ;}
 		bool isInDamagingSet() const {return inset ;}
 		bool isAtCheckpoint(const ElementState &s) const ;
 		void setCheckpoint( bool c) {checkpoint = c ;} 
+		
+		void setFraction(double f) { fraction = f ;} ;
 		
 		/** \brief Return true if the fracture criterion is met
 		 * 
