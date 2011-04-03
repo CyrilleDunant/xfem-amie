@@ -30,7 +30,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(false), inset(false),
-fraction(.9)
+fraction(.95)
 {
 }
 

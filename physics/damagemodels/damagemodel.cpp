@@ -97,6 +97,14 @@ namespace Mu
 					{
 						up = factor ;
 						factor = (up+down)/2 ;
+						Vector startingState = getState() ;
+						getState() = originalState+damageIncrement*up ;
+						while(!fractured())
+						{
+							up +=2e-12 ;
+							getState() = originalState+damageIncrement*up ;
+						}
+						getState() = startingState ;
 					}
 					else
 					{
@@ -106,9 +114,19 @@ namespace Mu
 				}
 				
 				downState = originalState ;
-				upState = originalState+damageIncrement*up ;
+				upState = originalState+damageIncrement*(up) ;
 				getState() = originalState + (upState-originalState)*explorationIncrement ;
 				iterationcount = 1 ;
+				
+				//no point in performing an iteration. Also, the element should be broken
+				if(std::abs(upState-downState).max() < damageDensityTolerance) 
+				{
+					std::cout << ":" << std::flush ;
+					getState() = upState ;
+					converged = true ;
+					exploring = false ;
+					return ;
+				}
 			}
 			else
 			{
