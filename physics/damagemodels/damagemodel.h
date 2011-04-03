@@ -33,9 +33,13 @@ protected:
 	Vector downState ;
 	
 	bool change ;
+	bool exploring ;
 	bool wasBroken ;
 	bool lastDirectionUp ;
+	bool damageAndSetInPhase ;
+	int iterationcount ;
 
+	double explorationIncrement ;
 	
 	Vector state ;
 	Vector previousstate ;

@@ -24,8 +24,8 @@ namespace Mu
 	{
 		
 		double phi = (1. + sqrt(5.)) *.5 ;
-		double resphi = 2. - phi ;
-// 		resphi = .5 ;
+		double resphi = 2. - phi ; //goldensearch
+		resphi = .5 ;              //bisection
 		
 		if(fraction < 0)
 		{
@@ -75,11 +75,14 @@ namespace Mu
 		if( checkpoint ) // initiate iteration
 		{
 			s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint(false);
+
 			getPreviousState() = getState() ;
 			if(!fractured())
 			{
 				lastDirectionUp = true ;
+				damageAndSetInPhase = true ;
 				converged = false ;
+				exploring = true ;
 				change = true ;
 				Vector damageIncrement = computeDamageIncrement(s) ;
 				if(damageIncrement.max() > POINT_TOLERANCE_2D)
@@ -104,7 +107,8 @@ namespace Mu
 				
 				downState = originalState ;
 				upState = originalState+damageIncrement*up ;
-				getState() = originalState + (upState-originalState)*resphi ;
+				getState() = originalState + (upState-originalState)*explorationIncrement ;
+				iterationcount = 0 ;
 			}
 			else
 			{
@@ -114,38 +118,85 @@ namespace Mu
 		}
 		else if(!converged)
 		{
-			change = true ;
-			bool overdamaged = fractured() || std::abs(getState().max()-1.) < POINT_TOLERANCE_2D;
-			bool underdamaged = getState().min() <= POINT_TOLERANCE_2D ;
-			
-			bool damageAndSetInPhase = false;
-			
-			if(lastDirectionUp && setChange > 0 || !lastDirectionUp && setChange < 0)
-				damageAndSetInPhase = true ;
-			
-			if(!underdamaged && (damageAndSetInPhase && setChange > 0 || !damageAndSetInPhase && setChange < 0 || overdamaged)) //the damage was increased too much
+			if(exploring)
 			{
-				lastDirectionUp = false ;
-				
-				upState = getState() ;
-				getState() = downState + resphi * (upState - downState) ;
-								
-				if(std::abs(downState-upState).max() < damageDensityTolerance ) // we have converged
+				if(setChange == 0)
 				{
-					converged = true ;
+					getState() += explorationIncrement*(upState-downState) ;
+					if(getState().max() > upState.max() || fractured())
+					{
+						upState = downState+ explorationIncrement*(upState-downState) ;
+						getState() = downState ;
+					}
+				}
+				else
+				{
+					std::cout << "!" << std::flush ;
+					Vector delta = explorationIncrement*(upState-downState) ;
+					upState = getState() ;
+					
+					downState = upState - delta ;
+					getState() = downState + resphi * (upState - downState) ;
+					exploring = false ;
+					change = true ;
+					if(setChange > 0)
+					{
+						damageAndSetInPhase = true ;
+					}
+					else
+					{
+						damageAndSetInPhase = false ;
+					}
+					return ;
 				}
 			}
-			else
+			
+			iterationcount++ ;
+			change = true ;
+			if(!exploring)
 			{
-				lastDirectionUp = true ;
-				
-				downState = getState() ;
-				getState() = downState + resphi * (upState - downState) ;
+				bool overdamaged = fractured() || std::abs(getState().max()-1.) < POINT_TOLERANCE_2D;
+				bool underdamaged = getState().min() <= POINT_TOLERANCE_2D ;
 							
-				if(std::abs(downState-upState).max() < damageDensityTolerance ) // we have converged
+				if(lastDirectionUp && setChange > 0 || !lastDirectionUp && setChange < 0)
+					damageAndSetInPhase = true ;
+				if(lastDirectionUp && setChange < 0 || !lastDirectionUp && setChange > 0)
+					damageAndSetInPhase = false ;
+				
+				if(!underdamaged && (damageAndSetInPhase && setChange > 0 || !damageAndSetInPhase && setChange < 0 || overdamaged)) //the damage was increased too much
 				{
-					converged = true ;
+					lastDirectionUp = false ;
+					
+					upState = getState() ;
+					getState() = downState + resphi * (upState - downState) ;
 				}
+				else if(damageAndSetInPhase && setChange < 0 || !damageAndSetInPhase && setChange > 0)
+				{
+					lastDirectionUp = true ;
+					
+					downState = getState() ;
+					getState() = downState + resphi * (upState - downState) ;
+				}
+				else if(setChange == 0 && (lastDirectionUp != damageAndSetInPhase))
+				{
+					lastDirectionUp = false ;
+					
+					upState = getState() ;
+					getState() = downState + resphi * (upState - downState) ;
+				}
+				else // setChange == 0 && (lastDirectionUp == damageAndSetInPhase)
+				{
+					lastDirectionUp = true ;
+					
+					downState = getState() ;
+					getState() = downState + resphi * (upState - downState) ;
+				}
+			}
+			if(std::abs(upState-downState).max() < damageDensityTolerance)
+			{
+				std::cout << "*" << std::flush ;
+				exploring = true ;
+				converged = true ;
 			}
 		}
 	}
@@ -155,14 +206,16 @@ namespace Mu
 		wasBroken = false ;
 		change = false ;
 		isNull = true ; 
+		exploring = true ;
 		thresholdDamageDensity = 1 ;
 		secondaryThresholdDamageDensity = 1 ;
 		damageDensityTolerance = 1e-4 ;
 		fraction = -1 ;
-
+		damageAndSetInPhase = false ;
 		lastDirectionUp = true ;
-		
+		iterationcount = 0 ;
 		converged = true ;
+		explorationIncrement = 0.015 ;
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const
