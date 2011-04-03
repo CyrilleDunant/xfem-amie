@@ -108,7 +108,7 @@ namespace Mu
 				downState = originalState ;
 				upState = originalState+damageIncrement*up ;
 				getState() = originalState + (upState-originalState)*explorationIncrement ;
-				iterationcount = 0 ;
+				iterationcount = 1 ;
 			}
 			else
 			{
@@ -120,19 +120,34 @@ namespace Mu
 		{
 			if(exploring)
 			{
+				// There can be two outcomes: either a change occurs or not.
+				// When no change occurs, either the element is fractured --
+				// and its fracturation does not affect the rest of the mesh
+				// or it is not damaged enough.
+				//
+				// When the change occurs, we can determine the phase of damage
+				// increment and set size.
 				if(setChange == 0)
 				{
-					getState() += explorationIncrement*(upState-downState) ;
-					if(getState().max() > upState.max() || fractured())
+					getState() += explorationIncrement*iterationcount*(upState-downState) ; //harmonic search
+					if(getState().max() >= upState.max() || fractured())
 					{
-						upState = downState+ explorationIncrement*(upState-downState) ;
-						getState() = downState ;
+						for(size_t i = 0 ; i < getState().size() ; i++)
+						{
+							if(getState()[i] > 1 || getState()[i] > upState.max()) //this ensures we are properly fractured
+								getState()[i] = 1 ;
+						}
+						exploring = true ;
+						converged = true ;
+						change = true ;
+						std::cout << "¡" << std::flush ;
+						return ;
 					}
 				}
-				else
+				else //the range for damage has been found
 				{
 					std::cout << "!" << std::flush ;
-					Vector delta = explorationIncrement*(upState-downState) ;
+					Vector delta = explorationIncrement*(iterationcount-1)*(upState-downState) ;
 					upState = getState() ;
 					
 					downState = upState - delta ;
@@ -155,6 +170,10 @@ namespace Mu
 			change = true ;
 			if(!exploring)
 			{
+				// finding the relation of the direction and damage increment sign
+				// is equivalent to determining whether we are in a parallel or
+				// series setup.
+				
 				bool overdamaged = fractured() || std::abs(getState().max()-1.) < POINT_TOLERANCE_2D;
 				bool underdamaged = getState().min() <= POINT_TOLERANCE_2D ;
 							
@@ -209,13 +228,13 @@ namespace Mu
 		exploring = true ;
 		thresholdDamageDensity = 1 ;
 		secondaryThresholdDamageDensity = 1 ;
-		damageDensityTolerance = 1e-4 ;
+		damageDensityTolerance = 1./pow(2., 4) ;
 		fraction = -1 ;
 		damageAndSetInPhase = false ;
 		lastDirectionUp = true ;
 		iterationcount = 0 ;
 		converged = true ;
-		explorationIncrement = 0.015 ;
+		explorationIncrement = 0.1 ;
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

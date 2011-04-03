@@ -30,7 +30,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(false), inset(false),
-fraction(1)
+fraction(.9)
 {
 }
 
@@ -1029,7 +1029,24 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 // 								{
 // 									newToTest.push_back(toTest[i]->getNeighbourhood(j));
 // 									matchingElements.insert(toTest[i]->getNeighbourhood(j)) ;
-// 									matchedArea += toTest[i]->getNeighbourhood(j)->area() ;
+//									double a = toTest[i]->getNeighbourhood(j)->area() ;
+// 									matchedArea += a ;
+// 					if(mirroring == MIRROR_X && std::abs(toTest[i]->getNeighbourhood(j)>getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+// 					{
+// 						matchedArea += a ;
+// 					}
+// 					if(mirroring == MIRROR_Y &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+// 					{
+// 						matchedArea += a ;
+// 					}
+// 					if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+// 					{
+// 						matchedArea += a ;
+// 					}
+// 					if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+// 					{
+// 						matchedArea += a ;
+// 					}
 // 								}
 // 								if(matchedArea >= 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
 // 									goto endloop ;
