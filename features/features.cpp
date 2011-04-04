@@ -3520,6 +3520,7 @@ void FeatureTree::stepElements()
 						gmin = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				}
 				
+#pragma omp parallel for
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
 					if(i%1000 == 0)

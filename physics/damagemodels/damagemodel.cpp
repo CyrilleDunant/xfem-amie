@@ -117,12 +117,12 @@ namespace Mu
 				downState = originalState ;
 				upState = originalState+damageIncrement*(up) ;
 				getState() = originalState + (upState-originalState)*explorationIncrement ;
-				iterationcount = 1 ;
+				iterationcount = 0 ;
 				
 				//no point in performing an iteration. Also, the element should be broken
 				if(std::abs(upState-downState).max() < damageDensityTolerance) 
 				{
-					std::cout << ":" << std::flush ;
+					std::cerr << ":" << std::flush ;
 					getState() = upState ;
 					converged = true ;
 					exploring = false ;
@@ -139,6 +139,7 @@ namespace Mu
 		{
 			if(exploring)
 			{
+				iterationcount++ ;
 				// There can be two outcomes: either a change occurs or not.
 				// When no change occurs, either the element is fractured --
 				// and its fracturation does not affect the rest of the mesh
@@ -148,7 +149,7 @@ namespace Mu
 				// increment and set size.
 				if(setChange == 0)
 				{
-					getState() += explorationIncrement*iterationcount*(upState-downState) ; //harmonic search
+					getState() += explorationIncrement*(upState-downState) ; 
 					if(getState().max() >= upState.max() || fractured())
 					{
 						for(size_t i = 0 ; i < getState().size() ; i++)
@@ -159,16 +160,16 @@ namespace Mu
 						exploring = true ;
 						converged = true ;
 						change = true ;
-						std::cout << "¡" << std::flush ;
+						std::cerr << "¡" << std::flush ;
 						return ;
 					}
 				}
 				else //the range for damage has been found
 				{
-					std::cout << "!" << std::flush ;
-					Vector delta = explorationIncrement*(iterationcount)*(upState-downState) ;
-					upState = downState + 2.*delta  ;
-
+					std::cerr << "!" << std::flush ;
+					Vector delta = explorationIncrement*iterationcount*(upState-downState) ;
+					upState = downState + delta  ;
+					downState = downState + explorationIncrement*(iterationcount-1)*(upState-downState) ;
 					getState() = downState + resphi * (upState - downState) ;
 					exploring = false ;
 					change = true ;
@@ -184,10 +185,36 @@ namespace Mu
 				}
 			}
 			
-			iterationcount++ ;
+			
 			change = true ;
 			if(!exploring)
 			{
+				// we were converged, but with no change in sets
+				if(std::abs(upState-downState).max() < damageDensityTolerance)
+				{
+					if(setChange != 0)
+					{
+						std::cerr << "*" << std::flush ;
+						exploring = true ;
+						converged = true ;
+						return ;
+					}
+					else
+					{
+						upState += damageDensityTolerance ;
+						downState += damageDensityTolerance ;
+						getState() += damageDensityTolerance ;
+						for(size_t i = 0 ; i < getState().size() ; i++)
+						{
+							if(getState()[i] > 1 ) //this ensures we are properly fractured
+								getState()[i] = 1 ;
+						}
+						
+						return ;
+					}
+				}
+					
+					
 				// finding the relation of the direction and damage increment sign
 				// is equivalent to determining whether we are in a parallel or
 				// series setup.
@@ -229,9 +256,10 @@ namespace Mu
 					getState() = downState + resphi * (upState - downState) ;
 				}
 			}
-			if(std::abs(upState-downState).max() < damageDensityTolerance)
+			
+			if(std::abs(upState-downState).max() < damageDensityTolerance && setChange != 0)
 			{
-				std::cout << "*" << std::flush ;
+				std::cerr << "*" << std::flush ;
 				exploring = true ;
 				converged = true ;
 			}
@@ -246,7 +274,7 @@ namespace Mu
 		exploring = true ;
 		thresholdDamageDensity = 1 ;
 		secondaryThresholdDamageDensity = 1 ;
-		damageDensityTolerance = 0.01; //1./pow(2., 8) ; // about 1e-4
+		damageDensityTolerance = 0.001; //1./pow(2., 8) ; // about 1e-4
 		fraction = -1 ;
 		damageAndSetInPhase = false ;
 		lastDirectionUp = true ;
