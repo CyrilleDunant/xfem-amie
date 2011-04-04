@@ -768,8 +768,9 @@ int FractureCriterion::setChange(const ElementState &s)
 		if(!scores.empty())
 		{
 			std::sort(scores.begin(), scores.end()) ;
-			scores[round(fraction*(scores.size()-1))] ;
+			thresholdScore = scores[round(fraction*(scores.size()-1))] ;
 		}
+		
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
