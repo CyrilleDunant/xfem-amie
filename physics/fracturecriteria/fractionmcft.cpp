@@ -27,10 +27,6 @@ FractionMCFT::~FractionMCFT()
 double FractionMCFT::grade(const ElementState &s) 
 {
 	
-	
-	if(s.getParent()->getBehaviour()->getDamageModel()->fractured())
-		return -1 ;
-	
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	Vector strains = s.getStrain(Point(1./3., 1./3.),true) ;
 	Vector totalstress = s.getStress(Point(1./3., 1./3.),true) ;
@@ -73,11 +69,12 @@ double FractionMCFT::grade(const ElementState &s)
 	
 	if(tstrain > -critStrain )
 	{
+		return 1.-std::abs(critStrain/tstrain) ;
 		//Yamamoto model 
-// 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
+		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
 		
 		//MCFT model 
-		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
+// 		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
 		
 		//perfectly brittle
 // 		maxTension = 0 ;

@@ -152,7 +152,7 @@ namespace Mu
 					{
 						for(size_t i = 0 ; i < getState().size() ; i++)
 						{
-							if(getState()[i] > 1 || getState()[i] > upState.max()) //this ensures we are properly fractured
+							if(getState()[i] > 1 || getState()[i] >= upState.max()) //this ensures we are properly fractured
 								getState()[i] = 1 ;
 						}
 						exploring = true ;
@@ -165,7 +165,7 @@ namespace Mu
 				else //the range for damage has been found
 				{
 					std::cout << "!" << std::flush ;
-					Vector delta = explorationIncrement*(iterationcount-1)*(upState-downState) ;
+					Vector delta = explorationIncrement*(iterationcount)*(upState-downState) ;
 					upState = getState() ;
 					
 					downState = upState - delta ;
@@ -246,7 +246,7 @@ namespace Mu
 		exploring = true ;
 		thresholdDamageDensity = 1 ;
 		secondaryThresholdDamageDensity = 1 ;
-		damageDensityTolerance = 1./pow(2., 4) ;
+		damageDensityTolerance = 1./pow(2., 20) ; // about 1e-6
 		fraction = -1 ;
 		damageAndSetInPhase = false ;
 		lastDirectionUp = true ;

@@ -30,7 +30,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(false), inset(false),
-fraction(.95)
+fraction(.99)
 {
 }
 
@@ -889,7 +889,8 @@ void FractureCriterion::step(const ElementState &s)
 		if(cache.empty() )
 				initialiseCache(s) ;
 		
-	scoreAtState = grade(s) ;
+		
+
 	if(energyIndexed && s.getDeltaTime() > POINT_TOLERANCE_2D )
 		noEnergyUpdate = true ;
 	
@@ -937,7 +938,6 @@ void FractureCriterion::step(const ElementState &s)
 		
 		previousEnergy = currentEnergy ;
 		
-		return ;
 	}
 	
 	if(energyIndexed /*&& scoreAtState > -.5*/)
@@ -946,7 +946,14 @@ void FractureCriterion::step(const ElementState &s)
 		energyDamageDifferential = dedc.first ;
 		criterionDamageDifferential = dedc.second ;
 	}
-
+	
+	if(s.getParent()->getBehaviour()->fractured())
+	{
+		scoreAtState = -1 ;
+		return ;
+	}
+	
+	scoreAtState = grade(s) ;
 }
 
 void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoothingType st)
