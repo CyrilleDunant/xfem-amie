@@ -48,12 +48,12 @@ double MCFT::grade(const ElementState &s)
 	
 	if(tstrain > -critStrain )
 	{
-		return 1.-std::abs(critStrain/tstrain) ;
+// 		return 1.-std::abs(critStrain/tstrain) ;
 		//Yamamoto model 
-		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
+// 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
 		
 		//MCFT model 
-// 		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
+		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
 		
 		//perfectly brittle
 // 		maxTension = 0 ;

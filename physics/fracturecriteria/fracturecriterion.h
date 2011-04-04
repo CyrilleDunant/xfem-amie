@@ -31,6 +31,7 @@ typedef enum{
 } MirrorState ;
 
 typedef enum{
+	NULL_SMOOTH,
 	MAX_PROXIMITY_SMOOTH,
 	GAUSSIAN_SMOOTH
 } NonLocalSmoothingType ;

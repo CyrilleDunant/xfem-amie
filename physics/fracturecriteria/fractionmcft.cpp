@@ -69,7 +69,7 @@ double FractionMCFT::grade(const ElementState &s)
 	
 	if(tstrain > -critStrain )
 	{
-		return 1.-std::abs(critStrain/tstrain) ;
+// 		return 1.-std::abs(critStrain/tstrain) ;
 		//Yamamoto model 
 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
 		

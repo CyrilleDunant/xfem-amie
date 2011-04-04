@@ -46,7 +46,7 @@ namespace Mu
 
 			fraction = volume/charVolume ;
 			if(fraction > 1)
-				std::cout << "elements too large for damage characteristic radius!" << std::endl ;
+				std::cerr << "elements too large for damage characteristic radius!" << std::endl ;
 			fraction = std::min(fraction, 1.) ;
 		}
 		
@@ -90,7 +90,8 @@ namespace Mu
 				double factor = 0.5 ;
 				double down = 0 ;
 				double up = 1 ;
-				while(std::abs(up-down) > 1e-12)
+				//convergence requires consistent errors
+				while(std::abs(up-down) > damageDensityTolerance*.25) 
 				{
 					getState() = originalState+damageIncrement*factor ;
 					if(getState().max() >=1 || fractured())
@@ -101,7 +102,7 @@ namespace Mu
 						getState() = originalState+damageIncrement*up ;
 						while(!fractured())
 						{
-							up +=2e-12 ;
+							up += 2.*damageDensityTolerance ;
 							getState() = originalState+damageIncrement*up ;
 						}
 						getState() = startingState ;
@@ -166,9 +167,8 @@ namespace Mu
 				{
 					std::cout << "!" << std::flush ;
 					Vector delta = explorationIncrement*(iterationcount)*(upState-downState) ;
-					upState = getState() ;
-					
-					downState = upState - delta ;
+					upState = downState + 2.*delta  ;
+
 					getState() = downState + resphi * (upState - downState) ;
 					exploring = false ;
 					change = true ;
@@ -231,7 +231,6 @@ namespace Mu
 			}
 			if(std::abs(upState-downState).max() < damageDensityTolerance)
 			{
-				getState() = upState ;
 				std::cout << "*" << std::flush ;
 				exploring = true ;
 				converged = true ;
@@ -247,7 +246,7 @@ namespace Mu
 		exploring = true ;
 		thresholdDamageDensity = 1 ;
 		secondaryThresholdDamageDensity = 1 ;
-		damageDensityTolerance = 1./pow(2., 20) ; // about 1e-6
+		damageDensityTolerance = 0.01; //1./pow(2., 8) ; // about 1e-4
 		fraction = -1 ;
 		damageAndSetInPhase = false ;
 		lastDirectionUp = true ;

@@ -3509,6 +3509,7 @@ void FeatureTree::stepElements()
 			double gmin  = -1 ;
 			if(!elastic)
 			{
+#pragma omp parallel for
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
 					if(i%1000 == 0)
@@ -3542,7 +3543,7 @@ void FeatureTree::stepElements()
 							elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
 			
 				std::cerr << " ...done. " << std::endl ;
-// #pragma omp parallel for
+#pragma omp parallel for
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
 

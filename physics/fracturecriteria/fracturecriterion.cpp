@@ -30,7 +30,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(false), inset(false),
-fraction(.99)
+fraction(1)
 {
 }
 
@@ -762,8 +762,6 @@ int FractureCriterion::setChange(const ElementState &s)
 			}
 		}
 		
-		
-		
 		double thresholdScore = 0 ;
 		if(!scores.empty())
 		{
@@ -775,7 +773,7 @@ int FractureCriterion::setChange(const ElementState &s)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 			if(ci->getBehaviour()->getFractureCriterion() 
-				
+				&& ci->getBehaviour()->getFractureCriterion()->metAtStep
 				&& ci->getBehaviour()->getFractureCriterion()->scoreAtState >= thresholdScore)
 			{
 				newSet.push_back(cache[i]) ;
@@ -962,14 +960,13 @@ void FractureCriterion::step(const ElementState &s)
 
 void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoothingType st)
 {
+	metAtStep = false ;
 	if( !s.getParent()->getBehaviour()->getDamageModel())
 	{
-		metAtStep = false ;
 		return  ;
 	}
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 	{
-		metAtStep = false ;
 		return  ;
 	}
 	
@@ -980,6 +977,13 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 	
 	switch (st)
 	{
+		case NULL_SMOOTH :
+		{
+			if (scoreAtState > 0)
+				metAtStep = true ;
+			
+			return ;
+		}
 		case MAX_PROXIMITY_SMOOTH :
 		{
 			if(testedTri)

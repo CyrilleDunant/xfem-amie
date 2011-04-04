@@ -133,7 +133,6 @@ void NonLinearForm::artificialDamageStep(double d)
 
 }
 
-
 bool NonLinearForm::fractured() const 
 {
 	return false ;
