@@ -231,6 +231,7 @@ namespace Mu
 			}
 			if(std::abs(upState-downState).max() < damageDensityTolerance)
 			{
+				getState() = upState ;
 				std::cout << "*" << std::flush ;
 				exploring = true ;
 				converged = true ;

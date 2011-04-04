@@ -755,24 +755,27 @@ int FractureCriterion::setChange(const ElementState &s)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 			if(ci->getBehaviour()->getFractureCriterion()
+				&& ci->getBehaviour()->getFractureCriterion()->metAtStep
 				)
 			{
 				scores.push_back(ci->getBehaviour()->getFractureCriterion()->scoreAtState);
 			}
 		}
-		if(scores.empty())
-			return 0 ;
 		
-		std::sort(scores.begin(), scores.end()) ;
 		
-		double thresholdScore = scores[round(fraction*(scores.size()-1))] ;
 		
+		double thresholdScore = 0 ;
+		if(!scores.empty())
+		{
+			std::sort(scores.begin(), scores.end()) ;
+			scores[round(fraction*(scores.size()-1))] ;
+		}
 		for(size_t i = 0 ; i< cache.size() ; i++)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 			if(ci->getBehaviour()->getFractureCriterion() 
-				&& ci->getBehaviour()->getFractureCriterion()->metAtStep
-				&& ci->getBehaviour()->getFractureCriterion()->scoreAtState >= thresholdScore-1e-4)
+				
+				&& ci->getBehaviour()->getFractureCriterion()->scoreAtState >= thresholdScore)
 			{
 				newSet.push_back(cache[i]) ;
 			}
