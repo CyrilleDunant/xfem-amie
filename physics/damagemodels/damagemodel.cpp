@@ -199,7 +199,7 @@ namespace Mu
 						converged = true ;
 						return ;
 					}
-					else
+					else 
 					{
 						upState += damageDensityTolerance ;
 						downState += damageDensityTolerance ;
@@ -213,7 +213,6 @@ namespace Mu
 						return ;
 					}
 				}
-					
 					
 				// finding the relation of the direction and damage increment sign
 				// is equivalent to determining whether we are in a parallel or
