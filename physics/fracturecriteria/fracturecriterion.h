@@ -64,12 +64,13 @@ typedef enum{
 		double delta_x ;
 		double delta_y ;
 		double delta_z ;
-		double fraction ;
+		
 		bool energyIndexed ;
 		bool noEnergyUpdate ;
 		bool metAtStep ;
 		bool stable ;
 		
+		double scoreTolerance ;
 		bool checkpoint ;
 		bool inset ;
 		
@@ -99,14 +100,14 @@ typedef enum{
 		bool isAtCheckpoint(const ElementState &s) const ;
 		void setCheckpoint( bool c) {checkpoint = c ;} 
 		
-		void setFraction(double f) { fraction = f ;} ;
+		void setScoreTolerance(double f) { scoreTolerance = f ;} ;
 		
 		/** \brief Return true if the fracture criterion is met
 		 * 
 		 * @param s ElementState ton consider
 		 * @return true if the fracture criterion is met
 		 */
-		virtual bool met(const ElementState & s) const ;
+		virtual bool met() const ;
 
 		/** \brief Return a normalised distance to the fracture surface, 
 		 * 

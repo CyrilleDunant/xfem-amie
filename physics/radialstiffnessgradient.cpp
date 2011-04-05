@@ -63,7 +63,7 @@ void RadialStiffnessGradient::step(double timestep, ElementState & currentState)
 
 	change = false ;
 
-	if(!frac && criterion->met(currentState) )
+	if(!frac  )
 	{
 		dfunc.step(currentState) ;
 		previousDamage = damage ;

@@ -59,7 +59,7 @@ void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double time
 {
 	change = false ;
 
-	if(!frac && criterion->met(currentState) )
+	if(!frac  )
 	{
 		dfunc.step(currentState) ;
 		previousDamage = damage ;
@@ -68,7 +68,7 @@ void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double time
 		damage = 0 ;
 		for(size_t i = 0 ; i < state.size() ; i++)
 			damage += state[i] ;
-		change = true ;//std::abs(damage-previousDamage) > 1e-12 ;
+		change = dfunc.changed() ;//std::abs(damage-previousDamage) > 1e-12 ;
 		if(damage > .9)
 		{
 			frac = true ;

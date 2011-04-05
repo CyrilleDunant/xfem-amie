@@ -48,9 +48,8 @@ double MCFT::grade(const ElementState &s)
 	
 	if(tstrain > -critStrain )
 	{
-// 		return 1.-std::abs(critStrain/tstrain) ;
 		//Yamamoto model 
-// 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
+// 		maxTension = upVal/(1.+sqrt(2e12*(tstrain+critStrain))) ;
 		
 		//MCFT model 
 		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
@@ -59,11 +58,6 @@ double MCFT::grade(const ElementState &s)
 // 		maxTension = 0 ;
 	}
 	
-// 	if(tstrain > -6.*critStrain)
-// 	{
-// 				//Yamamoto model 
-//  		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+2.*critStrain))) ;
-// 	}
 
 	metInCompression = cstrain < 0 && std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) || tstrain < 0;
 	metInTension = tstrain > 0 && std::abs(cstress/maxCompression) < std::abs(tstress/maxTension) || cstrain > 0;

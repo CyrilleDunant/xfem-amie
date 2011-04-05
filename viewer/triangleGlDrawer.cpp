@@ -137,7 +137,7 @@ void TriangleGLDrawer::paintGL() {
 		for(double i = (double)fracup/10000. ; i > (double)fracdown/10000. ; i -= 0.001)
 		{
 			double where = (1.-((double)fracup/10000.-i)/((double)fracup/10000.-(double)fracdown/10000.)) ;
-			HSVtoRGB(&r, &g, &b, 180., 0., 0.1+0.8*(1.-where)) ;
+			HSVtoRGB(&r, &g, &b, 180., 0., 0.01+0.98*(1.-where)) ;
 			glColor4ub(r, g, b, 255) ;
 			glVertex2f((.805-0.5) , (where-0.5)*.7 ) ;
 			glVertex2f((.835-0.5) , (where-0.5)*.7 ) ;
@@ -356,7 +356,7 @@ void TriangleGLDrawer::grab()
 				else
 					v = (v- (double)fracdown/10000.)/(((double)fracup-(double)fracdown)/10000.) ;
 
-				HSVtoRGB(&r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 0.9-v*0.8) ;
+				HSVtoRGB(&r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 0.99-v*0.98) ;
 				glColor4ub(r, g, b, 255) ;
 
 				double dx = (*valuesAtPoint)[(2)*numberOfPointsPerTriangle+j][i]*mag ;

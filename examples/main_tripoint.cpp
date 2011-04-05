@@ -65,6 +65,7 @@
 #define ID_REFINE 8
 #define ID_AMPLIFY 9
 #define ID_DEAMPLIFY 10
+#define ID_FRAC_CRIT 23
 
 #define ID_DISP 11
 #define ID_STRAIN_XX 12
@@ -93,6 +94,8 @@
 #define DISPLAY_LIST_ANGLE 23
 #define DISPLAY_LIST_ENRICHMENT 12
 #define DISPLAY_LIST_STIFFNESS_DARK 24
+#define DISPLAY_LIST_FRAC_CRIT 25
+
 
 using namespace Mu ;
 
@@ -146,6 +149,7 @@ std::vector<std::pair<double, double> > expansion_stress ;
 std::vector<std::pair<double, double> > load_displacement ;
 std::vector< double > loads ;
 std::vector< double > displacements ;
+Vector fracCrit(0) ;
 
 Vector b(0) ;
 Vector x(0) ;
@@ -243,7 +247,7 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 2000 ; //16*10;
+	size_t nsteps = 1000 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -283,6 +287,7 @@ void step()
 		sigma22.resize(sigma.size()/3) ;
 		sigma12.resize(sigma.size()/3) ;
 		epsilon11.resize(sigma.size()/3) ;
+		fracCrit.resize(sigma.size()/3) ;
 		epsilon22.resize(sigma.size()/3) ;
 		epsilon12.resize(sigma.size()/3) ;
 		vonMises.resize(sigma.size()/3) ;
@@ -400,6 +405,11 @@ void step()
 
 				double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l))[0] ;
 				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
+				
+				if(triangles[k]->getBehaviour()->getFractureCriterion())
+				{
+					fracCrit[k*triangles[k]->getBoundingPoints().size()+l] = triangles[k]->getBehaviour()->getFractureCriterion()->grade(triangles[k]->getState()) ;
+				}
 			}
 			
 			double ar = triangles[k]->area() ;
@@ -700,6 +710,11 @@ void Menu(int selection)
 			current_list = DISPLAY_LIST_ENRICHMENT ;
 			break ;
 		}
+		case ID_FRAC_CRIT: 
+		{
+			current_list = DISPLAY_LIST_FRAC_CRIT ;
+			break ;
+		}
 
 	case ID_QUIT : exit(0) ;
 		
@@ -842,6 +857,45 @@ void Display(void)
 			}
 		}
 		glEndList() ;
+		
+		double crit_max = fracCrit.max() ;
+		double crit_min = fracCrit.min() ;
+		glNewList(  DISPLAY_LIST_FRAC_CRIT,  GL_COMPILE ) ;
+		for (unsigned int j=0 ; j< triangles.size() ; j++ )
+		{
+			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR  && triangles[j]->getBehaviour()->getFractureCriterion())
+			{
+				double c1 ;
+				double c2 ;
+				double c3 ;
+				
+				double vx = x[triangles[j]->getBoundingPoint(0).id*2]; 
+				double vy = x[triangles[j]->getBoundingPoint(0).id*2+1]; 
+				double s = 1. ;
+				if(fracCrit[j*triangles[j]->getBoundingPoints().size()] < 1e-12)
+					s = .2 ;
+					
+				glBegin(GL_TRIANGLE_FAN);
+				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()]-crit_min)/(crit_max-crit_min), s, 1.) ;
+				glColor3f(c1, c2, c3) ;
+				
+				glVertex2f(double(triangles[j]->getBoundingPoint(0).x + vx) , double(triangles[j]->getBoundingPoint(0).y + vy) );
+				
+				for(size_t k = 1+0 ; k < triangles[j]->getBoundingPoints().size() ; k++)
+				{
+					vx = x[triangles[j]->getBoundingPoint(k).id*2];
+					vy = x[triangles[j]->getBoundingPoint(k).id*2+1]; 
+					
+					HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()+k]-crit_min)/(crit_max-crit_min), s, 1.) ;
+					glColor3f(c1, c2, c3) ;
+					glVertex2f( double(triangles[j]->getBoundingPoint(k).x + vx) ,  double(triangles[j]->getBoundingPoint(k).y + vy) );
+					
+				}
+				glEnd() ;
+			}
+		}
+		glEndList() ;
+		
 		
 		double sigma11_min = sigma11.min() ;
 		double sigma11_max = sigma11.max() ;
@@ -1427,8 +1481,8 @@ int main(int argc, char *argv[])
 // 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .015 ; // .015
-	double nradius = .06 ;
+	double mradius = .025 ; // .015
+	double nradius = .5 ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;
@@ -1559,6 +1613,7 @@ int main(int argc, char *argv[])
 	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
 	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
 	glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
+	glutAddMenuEntry(" Frac. crit    ", ID_FRAC_CRIT);
 	glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
 	
 	glutCreateMenu(Menu) ;

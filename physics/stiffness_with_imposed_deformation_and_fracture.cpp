@@ -78,16 +78,13 @@ void StiffnessWithImposedDeformationAndFracture::step(double timestep, ElementSt
 	previouschange = change ;
 	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
-	if(!frac && criterion->met(currentState) )
-	{
-		
+
 		dfunc->step(currentState) ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
-		change = true ;
-		currentState.getParent()->behaviourUpdated = true ;
+		change = dfunc->changed() ;
+		currentState.getParent()->behaviourUpdated = change ;
 		frac = dfunc->fractured() ;
-	}
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;

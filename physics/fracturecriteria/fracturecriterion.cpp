@@ -30,7 +30,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(false), inset(false),
-fraction(1)
+scoreTolerance(1e-6)
 {
 }
 
@@ -718,7 +718,6 @@ bool FractureCriterion::isAtCheckpoint(const ElementState &s) const
 	if(cache.size() == 0)
 		return false ;
 	bool allConverged = true ;
-	
 	for(size_t i = 0 ; i < damagingSet.size() ; i++)
 	{
 		DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
@@ -728,6 +727,7 @@ bool FractureCriterion::isAtCheckpoint(const ElementState &s) const
 			break ;
 		}
 	}
+	
 	return allConverged  ;
 }
 
@@ -748,44 +748,38 @@ int FractureCriterion::setChange(const ElementState &s)
 	if(testedTri)
 	{
 
-		
+		// outside of the checkpoints, we only care about the order of the elements in 
+		// term of their score. At the checkpoint, we consider the elements which
+		// have met their criterion
 		std::vector<unsigned int> newSet ;
 		std::vector<double> scores ;
-		for(size_t i = 0 ; i< cache.size() ; i++)
-		{
-			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-			if(ci->getBehaviour()->getFractureCriterion()
-				&& ci->getBehaviour()->getFractureCriterion()->metAtStep
-				)
-			{
-				scores.push_back(ci->getBehaviour()->getFractureCriterion()->scoreAtState);
-			}
-		}
-		
-		double thresholdScore = 0 ;
-		if(!scores.empty())
-		{
-			std::sort(scores.begin(), scores.end()) ;
-			thresholdScore = scores[round(fraction*(scores.size()-1))] ;
-		}
-		
-		for(size_t i = 0 ; i< cache.size() ; i++)
+		double maxscore = testedTri->getBehaviour()->getFractureCriterion()->scoreAtState ;
+		bool isMax = true ;
+		for(size_t i = 1 ; i< cache.size() ; i++)
 		{
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 			if(ci->getBehaviour()->getFractureCriterion() 
-				&& ci->getBehaviour()->getFractureCriterion()->metAtStep
-				&& ci->getBehaviour()->getFractureCriterion()->scoreAtState >= thresholdScore)
+				&& ci->getBehaviour()->getFractureCriterion()->scoreAtState > maxscore 
+				&& cache[i] != testedTri->index)
 			{
-				newSet.push_back(cache[i]) ;
+				isMax = false ;
+				break ;
 			}
 		}
 		
+		if(isMax)
+			newSet.push_back(testedTri->index);
+		
 		if(checkpoint) //new iteration
 		{
-			damagingSet = newSet ;
-			inset = std::binary_search(damagingSet.begin(), damagingSet.end(), testedTri->index) ;
-			if(!inset)
+			if(!metAtStep)
+			{
+				inset = false ;
 				damagingSet.clear();
+				return 0 ;
+			}
+			damagingSet = newSet ;
+			inset = true ;
 			
 			return 0 ;
 		}
@@ -796,51 +790,44 @@ int FractureCriterion::setChange(const ElementState &s)
 			if(damagingSet.empty())
 				return 0 ;
 			
-			bool identicalSets = true ;
-			
-			if(damagingSet.size() == newSet.size()) // check for set conservation
-			{
-				for(size_t i = 0 ; i < damagingSet.size() ; i++)
-				{
-					if(newSet[i] != damagingSet[i])
-					{
-						identicalSets = false ;
-						break ;
-					}
-				}
-			}
-			else
-				identicalSets = false ;
-
-			if(newSet.size() < damagingSet.size())
-				return -1 ;
-			else if(newSet.size() > damagingSet.size())
-				return 1 ;
-							
-			if(!identicalSets)
-				return 1 ;
-			return 0 ;
+			return !isMax  ;
 		}
 	}
 	else if(testedTet)
 	{
+		
+		// outside of the checkpoints, we only care about the order of the elements in 
+		// term of their score. At the checkpoint, we consider the elements which
+		// have met their criterion
 		std::vector<unsigned int> newSet ;
-		for(size_t i = 0 ; i< cache.size() ; i++)
+		std::vector<double> scores ;
+		double maxscore = testedTet->getBehaviour()->getFractureCriterion()->scoreAtState ;
+		bool isMax = true ;
+		for(size_t i = 1 ; i< cache.size() ; i++)
 		{
 			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
-			if(ci->getBehaviour()->getFractureCriterion() && ci->getBehaviour()->getFractureCriterion()->metAtStep)
+			if(ci->getBehaviour()->getFractureCriterion() 
+				&& ci->getBehaviour()->getFractureCriterion()->scoreAtState > maxscore 
+				&& cache[i] != testedTet->index)
 			{
-				newSet.push_back(cache[i]) ;
+				isMax = false ;
+				break ;
 			}
 		}
 		
+		if(isMax)
+			newSet.push_back(testedTet->index);
+		
 		if(checkpoint) //new iteration
 		{
-			damagingSet = newSet ;
-			inset = std::binary_search(damagingSet.begin(), damagingSet.end(), testedTet->index) ;
-			
-			if(!inset)
+			if(!metAtStep)
+			{
+				inset = false ;
 				damagingSet.clear();
+				return 0 ;
+			}
+			damagingSet = newSet ;
+			inset = true ;
 			
 			return 0 ;
 		}
@@ -851,29 +838,7 @@ int FractureCriterion::setChange(const ElementState &s)
 			if(damagingSet.empty())
 				return 0 ;
 			
-			bool identicalSets = true ;
-			
-			if(damagingSet.size() == newSet.size()) // check for set conservation
-			{
-				for(size_t i = 0 ; i < damagingSet.size() ; i++)
-				{
-					if(newSet[i] != damagingSet[i])
-					{
-						identicalSets = false ;
-						break ;
-					}
-				}
-			}
-			else
-				identicalSets = false ;
-
-			if(newSet.size() < damagingSet.size())
-				return -1 ;
-			else if(newSet.size() > damagingSet.size())
-				return 1 ;
-			if(!identicalSets)
-				return 1 ;
-			return 0 ;
+			return !isMax  ;
 		}
 	}
 	else
@@ -970,7 +935,6 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 		return  ;
 	}
 	
-	double tol = 1e-6 ;
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	DelaunayTetrahedron * testedTet = dynamic_cast<DelaunayTetrahedron *>(s.getParent()) ;
 	HexahedralElement * testedHex = dynamic_cast<HexahedralElement *>(s.getParent()) ;
@@ -1024,60 +988,60 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 					return  ;
 				}
 				
-// 				if(maxLocus)
-// 				{
-// 					std::vector<DelaunayTriangle *> toTest ;
-// 					std::set<DelaunayTriangle *> matchingElements ;
-// 					matchingElements.insert(maxLocus) ;
-// 					toTest.push_back(maxLocus);
-// 					while(!toTest.empty())
-// 					{
-// 						std::vector<DelaunayTriangle *> newToTest ;
-// 						for(size_t i = 0 ; i < toTest.size() ; i++)
-// 						{
-// 							for(size_t j = 0 ; j < toTest[i]->neighbourhood.size() ; j++)
-// 							{
-// 								if(matchingElements.find(toTest[i]->getNeighbourhood(j)) == matchingElements.end()
-// 									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()
-// 									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0
-// 								)
-// 								{
-// 									newToTest.push_back(toTest[i]->getNeighbourhood(j));
-// 									matchingElements.insert(toTest[i]->getNeighbourhood(j)) ;
-//									double a = toTest[i]->getNeighbourhood(j)->area() ;
-// 									matchedArea += a ;
-// 					if(mirroring == MIRROR_X && std::abs(toTest[i]->getNeighbourhood(j)>getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
-// 					{
-// 						matchedArea += a ;
-// 					}
-// 					if(mirroring == MIRROR_Y &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
-// 					{
-// 						matchedArea += a ;
-// 					}
-// 					if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-// 					{
-// 						matchedArea += a ;
-// 					}
-// 					if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-// 					{
-// 						matchedArea += a ;
-// 					}
-// 								}
-// 								if(matchedArea >= 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
-// 									goto endloop ;
-// 							}
-// 						}
-// 
-// 						toTest = newToTest ;
-// 					}
-// 				}
-// endloop:
-// 
-// 				if(matchedArea < 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
-// 				{
-// 					metAtStep = false ;
-// 					return ;
-// 				}
+				if(maxLocus)
+				{
+					std::vector<DelaunayTriangle *> toTest ;
+					std::set<DelaunayTriangle *> matchingElements ;
+					matchingElements.insert(maxLocus) ;
+					toTest.push_back(maxLocus);
+					while(!toTest.empty())
+					{
+						std::vector<DelaunayTriangle *> newToTest ;
+						for(size_t i = 0 ; i < toTest.size() ; i++)
+						{
+							for(size_t j = 0 ; j < toTest[i]->neighbourhood.size() ; j++)
+							{
+								if(matchingElements.find(toTest[i]->getNeighbourhood(j)) == matchingElements.end()
+									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()
+									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0
+								)
+								{
+									newToTest.push_back(toTest[i]->getNeighbourhood(j));
+									matchingElements.insert(toTest[i]->getNeighbourhood(j)) ;
+									double a = toTest[i]->getNeighbourhood(j)->area() ;
+									matchedArea += a ;
+									if(mirroring == MIRROR_X && std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+									{
+										matchedArea += a ;
+									}
+									if(mirroring == MIRROR_Y &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+									{
+										matchedArea += a ;
+									}
+									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+									{
+										matchedArea += a ;
+									}
+									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+									{
+										matchedArea += a ;
+									}
+								}
+								if(matchedArea >= 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
+									goto endloop ;
+							}
+						}
+
+						toTest = newToTest ;
+					}
+				}
+endloop:
+
+				if(matchedArea < 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
+				{
+					metAtStep = false ;
+					return ;
+				}
 
 				
 				bool nearmaxlocus = false;
@@ -1087,7 +1051,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 					DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
 					
 
-					if(ci->getBehaviour()->getFractureCriterion() && (ci->getBehaviour()->getFractureCriterion()->getScoreAtState() >= maxNeighbourhoodScore-tol))
+					if(ci->getBehaviour()->getFractureCriterion() && std::abs(ci->getBehaviour()->getFractureCriterion()->getScoreAtState()-maxNeighbourhoodScore) < scoreTolerance)
 					{
 						if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
 						{
@@ -1224,7 +1188,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 				{
 					DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
 					if(ci->getBehaviour()->getFractureCriterion())
-						if(std::abs(ci->getBehaviour()->getFractureCriterion()->getScoreAtState()-maxNeighbourhoodScore) < tol || ci->getBehaviour()->fractured())
+						if(std::abs(ci->getBehaviour()->getFractureCriterion()->getScoreAtState()-maxNeighbourhoodScore) < scoreTolerance)
 							maxloci.push_back(ci) ;
 				}
 				
@@ -1566,7 +1530,7 @@ void FractureCriterion::setMaterialCharacteristicRadius(double r)
 	physicalCharacteristicRadius = r ;
 }
 
-bool FractureCriterion::met(const ElementState &s) const
+bool FractureCriterion::met() const
 {
 	return metAtStep ;
 }

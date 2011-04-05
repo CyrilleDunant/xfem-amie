@@ -177,14 +177,14 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
 		ageing = true ;
 	}
 	
-	if(!frac && criterion->met(currentState) )
+	if(!frac )
 	{
 		
 		dfunc->step(currentState) ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
 // 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
-		change = true ;
-		currentState.getParent()->behaviourUpdated = true ;
+		change = dfunc->changed() ;
+		currentState.getParent()->behaviourUpdated = change ;
 		frac = dfunc->fractured() ;
 	}
 	if(frac)

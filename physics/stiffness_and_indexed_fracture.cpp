@@ -95,12 +95,12 @@ void StiffnessAndIndexedFracture::step(double timestep, ElementState & currentSt
 	if(currentState.getDeltaTime() > POINT_TOLERANCE_2D)
 		damagedAtStep = false ;
 		
-	if( currentState.getDeltaTime() <= POINT_TOLERANCE_2D && criterion->met(currentState) /*criterion->getScoreAtState() > 0*/|| damagedAtStep)
+	if( currentState.getDeltaTime() <= POINT_TOLERANCE_2D  /*criterion->getScoreAtState() > 0*/|| damagedAtStep)
 	{
 		damagedAtStep = true ;
 		double pdamage = dfunc->getState()[0] ;
 		dfunc->step(currentState) ;
-		change = std::abs(dfunc->getState()[0]-pdamage) > 1e-5 ;
+		change = dfunc->changed() ;
 		currentState.getParent()->behaviourUpdated = change ;
 		frac = dfunc->fractured() ;
 	}

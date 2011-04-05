@@ -35,9 +35,6 @@ protected:
 	bool change ;
 	bool exploring ;
 	bool wasBroken ;
-	bool lastDirectionUp ;
-	bool damageAndSetInPhase ;
-	int iterationcount ;
 
 	double explorationIncrement ;
 	

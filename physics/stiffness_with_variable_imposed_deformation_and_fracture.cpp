@@ -43,15 +43,13 @@ void StiffnessWithVariableImposedDeformationAndFracture::apply(const Function & 
 
 void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState)
 {
-	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
-	if(criterion->met(currentState) )
-	{
-		dfunc->step(currentState) ;
-		change = true ;
-		currentState.getParent()->behaviourUpdated = true ;
-		frac = dfunc->fractured() ;
-	}
+
+	dfunc->step(currentState) ;
+	change = dfunc->changed() ;
+	currentState.getParent()->behaviourUpdated = true ;
+	frac = dfunc->fractured() ;
+
 	previousDamage = damage ;
 
 	damage = dfunc->getState()[0] ;

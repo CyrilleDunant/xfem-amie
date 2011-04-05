@@ -268,17 +268,16 @@ bool AnisotropicLinearDamage::fractured() const
 	if (fraction < 0)
 		return false ;
 	
-// 	if(inTension)
-// 		if(std::min(tensionDamagey, std::min(tensionDamagex,tensionDamagez)) >= secondaryThresholdDamageDensity/fraction)
-// 			return true ;
+	if(inTension)
+		if(std::min(getState()[2], std::min(getState()[1],getState()[3])) >= secondaryThresholdDamageDensity)
+			return true ;
 		
 	if(inCompression)
 		if(getState()[0] >= thresholdDamageDensity)
 			return true ;
 		
-		return false ;
 // 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
-// 	return tensionDamagey >= secondaryThresholdDamageDensity/fraction || tensionDamagex >= secondaryThresholdDamageDensity/fraction || compressionDamage >= thresholdDamageDensity/fraction  ;
+	return getState()[2]  >= secondaryThresholdDamageDensity || getState()[1]  >= secondaryThresholdDamageDensity  || getState()[3]  >= secondaryThresholdDamageDensity || getState()[0] >= thresholdDamageDensity;
 }
 
 AnisotropicLinearDamage::~AnisotropicLinearDamage()
