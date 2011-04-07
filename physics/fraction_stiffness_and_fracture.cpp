@@ -21,7 +21,7 @@ using namespace Mu ;
 
 FractionStiffnessAndFracture::FractionStiffnessAndFracture(const Matrix & rig, const Matrix & rig0, double phi, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), /*dfunc(rig.numRows()-1)*/ eps(eps)
 {
-	dfunc = new FractionLinearDamage(rig.numRows()-1, eps,rig0, phi) ;
+	dfunc = new FractionLinearDamage(eps,rig0, phi) ;
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
 	frac = false ;

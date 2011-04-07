@@ -3490,7 +3490,8 @@ void FeatureTree::stepElements()
 			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 			double volume = 0;	
 			crackedVolume = 0 ;	
-			damagedVolume = 0 ;	
+			damagedVolume = 0 ;
+			double previousAverageDamage = averageDamage ;
 			averageDamage = 0. ;
 			//this will update the state of all elements. This is necessary as 
 			//the behaviour updates might depend on the global state of the 
@@ -3529,12 +3530,12 @@ void FeatureTree::stepElements()
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState(), NULL_SMOOTH) ;
 				}
 				
-				bool foundCheckPoint = false ;
+				bool foundCheckPoint = true ;
 				for(size_t i = 0 ; i < elements.size() ;i++)
 				{
-					if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->isAtCheckpoint(elements[i]->getState()))
+					if(elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged)
 					{
-						foundCheckPoint = true ;
+						foundCheckPoint = false ;
 						break ;
 					}
 				}
@@ -3586,6 +3587,8 @@ void FeatureTree::stepElements()
 				}
 				std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;
 			}
+			averageDamage /= volume ;
+			
 			for(size_t i = 0 ; i < elements.size() ;i++)
 				elements[i]->clearVisited() ;
 		}
@@ -3599,7 +3602,8 @@ void FeatureTree::stepElements()
 			//simulation.
 			double volume = 0;	
 			crackedVolume = 0 ;	
-			damagedVolume = 0 ;	
+			damagedVolume = 0 ;
+			double previousAverageDamage  = averageDamage;
 			averageDamage = 0 ;
 			//this will update the state of all elements. This is necessary as 
 			//the behaviour updates might depend on the global state of the 
@@ -3634,15 +3638,18 @@ void FeatureTree::stepElements()
 			{
 				if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->isAtCheckpoint(elements[i]->getState()))
 				{
-					elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
-// 					foundCheckPoint = true ;
-// 					break ;
+					foundCheckPoint = true ;
+					break ;
 				}
 			}
-// 			if(foundCheckPoint)
-// 				for(size_t i = 0 ; i < elements.size() ;i++)
-// 					if(elements[i]->getBehaviour()->getFractureCriterion())
-// 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
+
+			if(foundCheckPoint)
+			{
+#pragma omp parallel for
+				for(size_t i = 0 ; i < elements.size() ;i++)
+					if(elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met())
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
+			}
 			int fracturedCount = 0 ;
 #pragma omp parallel for
 			for(size_t i = 0 ; i < elements.size() ;i++)
@@ -3685,6 +3692,7 @@ void FeatureTree::stepElements()
 				}
 			}
 			averageDamage /= volume ;
+			
 			std::cerr << " ...done" << std::endl ;
 			for(size_t i = 0 ; i < elements.size() ;i++)
 				elements[i]->clearVisited() ;

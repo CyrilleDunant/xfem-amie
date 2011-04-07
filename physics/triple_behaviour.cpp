@@ -157,7 +157,7 @@ void TrimaterialInterface::apply(const Function & p_i, const Function & p_j, con
 
 bool TrimaterialInterface::fractured() const
 {
-		return inBehaviour->fractured() && outBehaviour->fractured() && midBehaviour->fractured();
+		return inBehaviour->fractured() || outBehaviour->fractured() || midBehaviour->fractured();
 }
 
 Form * TrimaterialInterface::getCopy() const 

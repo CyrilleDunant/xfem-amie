@@ -6,6 +6,8 @@
 #include "expansiveZone.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../physics/dual_behaviour.h"
+#include "../physics/damagemodels/fractiondamage.h"
+#include "../physics/stiffness_and_fracture.h"
 
 using namespace Mu ;
 
@@ -52,11 +54,21 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	{
 		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
 		{
-			ring[i]->setBehaviour(new BimaterialInterface(getPrimitive(),
+			BimaterialInterface * bi =new BimaterialInterface(getPrimitive(),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-														ring[i]->getBehaviour()->getCopy()
-														)) ;
-			ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
+														ring[i]->getBehaviour()->getCopy()) ;
+			if(bi->outBehaviour->getDamageModel())
+			{
+				FractionLinearDamage * fd = new FractionLinearDamage(bi->outBehaviour->getDamageModel()->getCharacteristicRadius(), bi->outBehaviour->getTensor(ring[i]->getCenter()), 0.1) ;
+				StiffnessAndFracture * saf = dynamic_cast<StiffnessAndFracture *> (bi->outBehaviour) ;
+				if(saf)
+				{
+					delete saf->dfunc ;
+					saf->dfunc = fd ;
+				}
+			}
+			ring[i]->setBehaviour(bi) ;
+			bi->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
 		}
 		newInterface.insert(ring[i]) ;
 	}

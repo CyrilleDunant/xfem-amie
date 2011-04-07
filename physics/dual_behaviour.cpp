@@ -113,7 +113,7 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 
 bool BimaterialInterface::fractured() const
 {
-	return inBehaviour->fractured() && outBehaviour->fractured();
+	return inBehaviour->fractured() || outBehaviour->fractured();
 }
 
 Form * BimaterialInterface::getCopy() const 
