@@ -492,7 +492,7 @@ void step()
 		}
 		ldfile.close();
 		
-		if(v%5 == 0 || !go_on)
+		if(true)
 		{
 			std::stringstream filename ;
 			if(dit >= dsteps)
@@ -1483,7 +1483,7 @@ int main(int argc, char *argv[])
 // 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .025 ; // .015
+	double mradius = .015 ; // .015
 	double nradius = .2 ;
 // 	double mradius = .25 ;
 	
@@ -1531,22 +1531,22 @@ int main(int argc, char *argv[])
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
 	Sample rebar0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064) ; 
-	rebar0.setBehaviour(new Stiffness(m0_barSteel));
-// 	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
-// 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-// 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
-// 	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-// 	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
-// 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
+// 	rebar0.setBehaviour(new Stiffness(m0_barSteel));
+	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
+	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
+	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
+	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
-	rebar1.setBehaviour(new Stiffness(m0_barSteel));
-// 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
-// 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-// 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
-// 	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-// 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
-// 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
+// 	rebar1.setBehaviour(new Stiffness(m0_barSteel));
+	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
+	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
+	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
+	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;

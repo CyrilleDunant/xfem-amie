@@ -24,8 +24,9 @@ namespace Mu
 	{
 		
 		double phi = (1. + sqrt(5.)) *.5 ;
-		double resphi = 2. - phi ; //goldensearch
+		double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
+// 		resphi = .1 ;                //down bias
 		
 		if(fraction < 0)
 		{
@@ -58,15 +59,16 @@ namespace Mu
 			return ;
 		}
 		
-		Vector originalState = getState() ;
+		
 		bool checkpoint = s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ;
 
-		if( checkpoint ) // initiate iteration
+		Vector startPosition = getState() ;
+		if(checkpoint) // initiate iteration
 		{
 			s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint(false);
 
 			getPreviousState() = getState() ;
-			if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
+			if(!fractured())
 			{
 				converged = false ;
 				change = true ;
@@ -79,17 +81,17 @@ namespace Mu
 				//convergence requires consistent errors
 				while(std::abs(up-down) > damageDensityTolerance*.25) 
 				{
-					getState() = originalState+damageIncrement*factor ;
+					getState() = getPreviousState()+damageIncrement*factor ;
 					if(getState().max() >=1 || fractured())
 					{
 						up = factor ;
 						factor = (up+down)/2 ;
 						Vector startingState = getState() ;
-						getState() = originalState+damageIncrement*up ;
+						getState() = getPreviousState()+damageIncrement*up ;
 						while(!fractured())
 						{
 							up += 2.*damageDensityTolerance ;
-							getState() = originalState+damageIncrement*up ;
+							getState() = getPreviousState()+damageIncrement*up ;
 						}
 						getState() = startingState ;
 					}
@@ -99,19 +101,9 @@ namespace Mu
 						factor = (up+down)/2 ;
 					}
 				}
-				iterationcount = 1 ;
-				downState = originalState ;
-				upState = originalState+damageIncrement*(up) ;
-				getState() = downState*(1.-iterationcount*explorationIncrement) + upState*explorationIncrement*iterationcount ;
-				
-				//no point in performing an iteration. Also, the element should be broken
-				if(std::abs(upState-downState).max()*fraction < damageDensityTolerance) 
-				{
-					std::cerr << ":" << std::flush ;
-					getState() = upState ;
-					converged = true ;
-					return ;
-				}
+				downState = getPreviousState() ;
+				upState = getPreviousState()+damageIncrement*up ;
+				getState() = downState+(upState-downState)*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				
 			}
 			else
@@ -122,7 +114,6 @@ namespace Mu
 		}
 		else if(!converged)
 		{
-			iterationcount++;
 			change = true ;
 
 				
@@ -137,16 +128,17 @@ namespace Mu
 				getState() = downState + resphi * (upState - downState) ;
 			}
 		}
-		
-		if(std::abs(upState-downState).max()*fraction < damageDensityTolerance )
+
+		if(!converged && std::abs(startPosition-getState()).max()*fraction < damageDensityTolerance )
 		{
-			
+
+					
 			if(setChange == 0)
 				std::cerr << "0" << std::flush ;
 			else
 				std::cerr << "1" <<std::flush ;
 			
-			getState() = upState ;
+// 			getState() = upState ;
 			converged = true ;
 		}
 		
@@ -167,10 +159,9 @@ namespace Mu
 		// The exploration increment is crucial for finding 
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
-		// fracture criterion scores is completely non-
-		// monotonic.
-		explorationIncrement = 0.1 ;
-		damageDensityTolerance = 1e-3; //1./pow(2., 8) ; // about 1e-4
+		// fracture criterion scores is non-monotonic.
+		explorationIncrement = 4./pow(2., 8) ;
+		damageDensityTolerance = 1./pow(2., 8) ; // about 1e-4
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

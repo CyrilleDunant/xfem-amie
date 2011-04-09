@@ -54,6 +54,7 @@ typedef enum{
 		double neighbourhoodvolume ;
 		double physicalCharacteristicRadius ;
 		double scoreAtState ;
+		double nonLocalScoreAtState ;
 		double deltaScoreAtState ;
 		double deltaEnergyAtState ;
 		double energyDamageDifferential ;
@@ -97,7 +98,6 @@ typedef enum{
 		bool isStable() const {return stable ;}
 		bool isAtCheckpoint() const {return checkpoint ;}
 		bool isInDamagingSet() const {return inset ;}
-		bool isAtCheckpoint(const ElementState &s) const ;
 		void setCheckpoint( bool c) {checkpoint = c ;} 
 		
 		void setScoreTolerance(double f) { scoreTolerance = f ;} ;
