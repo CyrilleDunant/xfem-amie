@@ -732,7 +732,7 @@ int FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 			
-			int twentieth = 19*sortedElements.size()/20 ;
+			int twentieth = 49*sortedElements.size()/50 ;
 			double thresholdScore = sortedElements.begin()->first ;
 			for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 			{

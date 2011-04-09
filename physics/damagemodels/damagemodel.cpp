@@ -116,16 +116,33 @@ namespace Mu
 		{
 			change = true ;
 
-				
 			if(setChange != 0 || fractured())
 			{
-				upState = getState() ;
-				getState() = downState + resphi * (upState - downState) ;
+				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0)
+				{
+					Vector delta = upState - downState ;
+					upState = getState() ;
+					getState() += s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() * delta ;
+				}
+				else
+				{
+					upState = getState() ;
+					getState() = downState + resphi * (upState - downState) ;
+				}
 			}
 			else
 			{
-				downState = getState() ;
-				getState() = downState + resphi * (upState - downState) ;
+				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < 0)
+				{
+					Vector delta = upState - downState ;
+					downState = getState() ;
+					getState() += s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() * delta ;
+				}
+				else
+				{
+					downState = getState() ;
+					getState() = downState + resphi * (upState - downState) ;
+				}
 			}
 		}
 
