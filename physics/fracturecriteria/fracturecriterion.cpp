@@ -721,12 +721,18 @@ int FractureCriterion::setChange(const ElementState &s)
 		// have met their criterion
 		if(checkpoint) //new iteration
 		{
+			if(!metAtStep)
+			{
+				inset = false ;
+				damagingSet.clear();
+				return 0 ;
+			}
 			std::vector<unsigned int> newSet ;
 			std::multimap<double, DelaunayTriangle *> sortedElements ;
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-				if(ci->getBehaviour()->getFractureCriterion())
+				if(ci->getBehaviour()->getFractureCriterion() && ci->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0)
 				{
 					sortedElements.insert( std::make_pair(ci->getBehaviour()->getFractureCriterion()->getScoreAtState(), ci)) ;
 				}
@@ -748,7 +754,7 @@ int FractureCriterion::setChange(const ElementState &s)
 			double maxscore =  sortedElements.rbegin()->first ;
 			for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 			{
-				if(std::abs(i->second->getBehaviour()->getFractureCriterion()->getScoreAtState()) >= thresholdScore-scoreTolerance && i->second->getBehaviour()->getFractureCriterion()->met())
+				if(i->second->getBehaviour()->getFractureCriterion()->getScoreAtState() >= /*thresholdScore*/maxscore-scoreTolerance && i->second->getBehaviour()->getFractureCriterion()->met())
 				{
 					newSet.push_back(i->second->index);
 				}

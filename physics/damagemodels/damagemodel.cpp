@@ -103,7 +103,10 @@ namespace Mu
 				}
 				downState = getPreviousState() ;
 				upState = getPreviousState()+damageIncrement*up ;
-				getState() = downState+(upState-downState)*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0 && false)
+					getState() = downState+(upState-downState)*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+				else
+					getState() = downState+(upState-downState)*resphi ;
 				
 			}
 			else
@@ -118,7 +121,7 @@ namespace Mu
 
 			if(setChange != 0 || fractured())
 			{
-				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0)
+				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() >= 0 && false)
 				{
 					Vector delta = upState - downState ;
 					upState = getState() ;
@@ -132,7 +135,7 @@ namespace Mu
 			}
 			else
 			{
-				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < 0)
+				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() <= 0 && false)
 				{
 					Vector delta = upState - downState ;
 					downState = getState() ;
@@ -177,8 +180,8 @@ namespace Mu
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
-		explorationIncrement = 4./pow(2., 8) ;
-		damageDensityTolerance = 1./pow(2., 8) ; // about 1e-4
+		explorationIncrement = 4./pow(2., 12) ;
+		damageDensityTolerance = 1./pow(2., 12) ; // about 1e-4
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

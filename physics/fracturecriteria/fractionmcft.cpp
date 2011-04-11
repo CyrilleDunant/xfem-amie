@@ -31,7 +31,8 @@ double FractionMCFT::grade(const ElementState &s)
 	Vector strains = s.getStrain(Point(1./3., 1./3.),true) ;
 	Vector totalstress = s.getStress(Point(1./3., 1./3.),true) ;
 	
-	Vector stresses = totalstress-strains*steelCGTensor*phi; //assume stresses are scaled by the fraction of steel
+// 	Vector stresses = totalstress-strains*steelCGTensor*phi; //assume stresses are scaled by the fraction of steel
+	 	Vector stresses = strains*steelCGTensor*phi; //assume stresses are the same
 	
 	if(s.getParent()->getBehaviour()->hasInducedForces())
 			stresses -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;

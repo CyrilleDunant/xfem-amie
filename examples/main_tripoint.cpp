@@ -1483,7 +1483,7 @@ int main(int argc, char *argv[])
 // 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.0e6 ; 
 	double phi = 0.14961835  ;
-	double mradius = .015 ; // .015
+	double mradius = .025 ; // .015
 	double nradius = .2 ;
 // 	double mradius = .25 ;
 	
@@ -1536,8 +1536,8 @@ int main(int argc, char *argv[])
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
-	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
+	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
 // 	rebar1.setBehaviour(new Stiffness(m0_barSteel));
@@ -1545,12 +1545,19 @@ int main(int argc, char *argv[])
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(1);
-	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(1);
+	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
+	
+	Sample belly(sampleLength*.5-rebarEndCover, rebarDiametre*4+0.085, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085*.5) ;
+	belly.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->variability = 0. ;
+	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->neighbourhoodRadius = nradius;
+	
 // 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
@@ -1566,9 +1573,9 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight))) ;
 
 	
-
-	F.addFeature(&sample,&rebar0) ;
-	F.addFeature(&sample,&rebar1) ;
+	F.addFeature(&sample,&belly) ;
+	F.addFeature(&belly,&rebar0) ;
+	F.addFeature(&belly,&rebar1) ;
 // 	F.addFeature(&sample,&indestructible) ;
 
 	F.addFeature(NULL,&topsupport) ;
@@ -1586,7 +1593,7 @@ int main(int argc, char *argv[])
 	
 	
 	F.setSamplingNumber(atoi(argv[1])) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 // 	
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
