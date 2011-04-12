@@ -13,7 +13,7 @@
 
 namespace Mu {
 
-IsotropicLinearDamage::IsotropicLinearDamage(double characteristicRadius) : DamageModel(characteristicRadius)
+IsotropicLinearDamage::IsotropicLinearDamage() 
 {
 	getState().resize(1, 0.);
 	getPreviousState().resize(1, 0.);

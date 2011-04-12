@@ -31,8 +31,8 @@ double FractionMCFT::grade(const ElementState &s)
 	Vector strains = s.getStrain(Point(1./3., 1./3.),true) ;
 	Vector totalstress = s.getStress(Point(1./3., 1./3.),true) ;
 	
-// 	Vector stresses = totalstress-strains*steelCGTensor*phi; //assume stresses are scaled by the fraction of steel
-	 	Vector stresses = strains*steelCGTensor*phi; //assume stresses are the same
+	Vector stresses = totalstress-strains*steelCGTensor*phi; //assume stresses are scaled by the fraction of steel
+// 	 	Vector stresses = strains*steelCGTensor*phi; //assume stresses are the same
 	
 	if(s.getParent()->getBehaviour()->hasInducedForces())
 			stresses -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
@@ -57,7 +57,8 @@ double FractionMCFT::grade(const ElementState &s)
 	metInCompression = false ;
 	metInTension = false ;
 	
-	double critStrain = -0.002 ;//-0.002
+	double tensionCritStrain = 65e-6 ;
+	double critStrain = -0.002 ;
 	double renormCompressionStrain = cstrain/critStrain ;
 	
 	double mcftFactor = (2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain) ;
@@ -68,7 +69,7 @@ double FractionMCFT::grade(const ElementState &s)
 	
 	double maxTension = upVal ;
 	
-	if(tstrain > -critStrain )
+	if(tstrain > tensionCritStrain )
 	{
 		//Yamamoto model 
 // 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;

@@ -352,6 +352,9 @@ target_link_libraries( tripoint Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLA
 add_executable(visco examples/main_visco.cpp )
 target_link_libraries( visco Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
+add_executable(tension examples/main_tension.cpp )
+target_link_libraries( tension Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+
 add_executable( wave examples/main_wave.cpp )
 target_link_libraries( wave Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 

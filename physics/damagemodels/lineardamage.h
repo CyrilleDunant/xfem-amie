@@ -31,7 +31,7 @@ public:
 	 * @param numDof 
 	 * @param threshold 
 	 */
-	LinearDamage(double characteristicRadius) ;
+	LinearDamage() ;
 
 	virtual ~LinearDamage();
 
@@ -67,7 +67,7 @@ public:
 		*/
 	virtual bool fractured() const ;
 	
-	virtual DamageModel * getCopy() const { return new LinearDamage(getCharacteristicRadius()) ;}
+	virtual DamageModel * getCopy() const { return new LinearDamage() ;}
 	
 };
 

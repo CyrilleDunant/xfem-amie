@@ -1009,7 +1009,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 // 				std::map<double, DelaunayTriangle *> scores ;
 // 				std::vector<double> unsortedScores ;
 // 				std::map<DelaunayTriangle *, double> areatemp ;
-// 				DelaunayTriangle * maxLocus = NULL;
+				DelaunayTriangle * maxLocus = NULL;
 // 				double areamax = 0 ;
 				if(!cache.empty())
 				{
@@ -1024,7 +1024,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 						if(s > maxNeighbourhoodScore)
 						{
 							maxNeighbourhoodScore = s ;
-// 							maxLocus = ci ;
+							maxLocus = ci ;
 						}
 					}
 				}
@@ -1036,60 +1036,60 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 					return  ;
 				}
 				
-// 				if(maxLocus)
-// 				{
-// 					std::vector<DelaunayTriangle *> toTest ;
-// 					std::set<DelaunayTriangle *> matchingElements ;
-// 					matchingElements.insert(maxLocus) ;
-// 					toTest.push_back(maxLocus);
-// 					while(!toTest.empty())
-// 					{
-// 						std::vector<DelaunayTriangle *> newToTest ;
-// 						for(size_t i = 0 ; i < toTest.size() ; i++)
-// 						{
-// 							for(size_t j = 0 ; j < toTest[i]->neighbourhood.size() ; j++)
-// 							{
-// 								if(matchingElements.find(toTest[i]->getNeighbourhood(j)) == matchingElements.end()
-// 									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()
-// 									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0
-// 								)
-// 								{
-// 									newToTest.push_back(toTest[i]->getNeighbourhood(j));
-// 									matchingElements.insert(toTest[i]->getNeighbourhood(j)) ;
-// 									double a = toTest[i]->getNeighbourhood(j)->area() ;
-// 									matchedArea += a ;
-// 									if(mirroring == MIRROR_X && std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 									if(mirroring == MIRROR_Y &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 								}
-// 								if(matchedArea >= 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
-// 									goto endloop ;
-// 							}
-// 						}
-// 
-// 						toTest = newToTest ;
-// 					}
-// 				}
-// endloop:
-// 
-// 				if(matchedArea < 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
-// 				{
-// 					metAtStep = false ;
-// 					return ;
-// 				}
+				if(maxLocus)
+				{
+					std::vector<DelaunayTriangle *> toTest ;
+					std::set<DelaunayTriangle *> matchingElements ;
+					matchingElements.insert(maxLocus) ;
+					toTest.push_back(maxLocus);
+					while(!toTest.empty())
+					{
+						std::vector<DelaunayTriangle *> newToTest ;
+						for(size_t i = 0 ; i < toTest.size() ; i++)
+						{
+							for(size_t j = 0 ; j < toTest[i]->neighbourhood.size() ; j++)
+							{
+								if(matchingElements.find(toTest[i]->getNeighbourhood(j)) == matchingElements.end()
+									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()
+									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0
+								)
+								{
+									newToTest.push_back(toTest[i]->getNeighbourhood(j));
+									matchingElements.insert(toTest[i]->getNeighbourhood(j)) ;
+									double a = toTest[i]->getNeighbourhood(j)->area() ;
+									matchedArea += a ;
+									if(mirroring == MIRROR_X && std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+									{
+										matchedArea += a ;
+									}
+									if(mirroring == MIRROR_Y &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+									{
+										matchedArea += a ;
+									}
+									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+									{
+										matchedArea += a ;
+									}
+									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+									{
+										matchedArea += a ;
+									}
+								}
+								if(matchedArea >= 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
+									goto endloop ;
+							}
+						}
+
+						toTest = newToTest ;
+					}
+				}
+endloop:
+
+				if(matchedArea < 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
+				{
+					metAtStep = false ;
+					return ;
+				}
 
 				
 				bool nearmaxlocus = false;

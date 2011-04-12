@@ -29,7 +29,7 @@ public:
 	 * 
 	 * @param numDof number of degrees of freedom
 	 */
-	StrainBrokenIsotropicLinearDamage(int numDof, double characteristicRadius, double limitStrain) ;
+	StrainBrokenIsotropicLinearDamage(int numDof, double limitStrain) ;
 
 	virtual ~StrainBrokenIsotropicLinearDamage();
 
@@ -62,7 +62,7 @@ public:
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const  ;
-	virtual DamageModel * getCopy() const { return new StrainBrokenIsotropicLinearDamage(1,getCharacteristicRadius(),limitStrain) ;}
+	virtual DamageModel * getCopy() const { return new StrainBrokenIsotropicLinearDamage(1,limitStrain) ;}
 	
 };
 

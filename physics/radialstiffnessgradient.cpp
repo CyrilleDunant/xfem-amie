@@ -14,7 +14,7 @@
 
 using namespace Mu ;
 
-RadialStiffnessGradient::RadialStiffnessGradient(double E_int, double nu_int, double rint, double E_ext, double nu_ext, double rext, Point c) : LinearForm(Matrix(3,3), false, true, 2), paramAlt(3,3), r_ext(rext), r_int(rint), dr(r_ext-r_int), centre(c), dfunc(.01)
+RadialStiffnessGradient::RadialStiffnessGradient(double E_int, double nu_int, double rint, double E_ext, double nu_ext, double rext, Point c) : LinearForm(Matrix(3,3), false, true, 2), paramAlt(3,3), r_ext(rext), r_int(rint), dr(r_ext-r_int), centre(c), dfunc()
 {
 
 	param[0][0] = E_int/(1-nu_int*nu_int) ; param[0][1] =E_int/(1-nu_int*nu_int)*nu_int ; param[0][2] = 0 ;

@@ -14,7 +14,7 @@
 
 namespace Mu {
 
-LinearDamage::LinearDamage(double characteristicRadius) : DamageModel(characteristicRadius)
+LinearDamage::LinearDamage()
 {
 	getState().resize(2, 0.) ;
 	getPreviousState().resize(2, 0.);

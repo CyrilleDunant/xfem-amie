@@ -15,7 +15,7 @@
 
 using namespace Mu ;
 
-IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCriterion * e) : DamageModel(e->getMaterialCharacteristicRadius()), dcost(dcost),e(e)
+IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCriterion * e) : dcost(dcost),e(e)
 {
 	state.resize(1, 0.);
 	previousstate.resize(1, 0.);

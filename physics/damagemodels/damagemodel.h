@@ -23,7 +23,6 @@ namespace Mu
 class DamageModel
 {
 protected:
-	double characteristicRadius ;
 	double thresholdDamageDensity ;
 	double secondaryThresholdDamageDensity ;
 	double damageDensityTolerance ;
@@ -46,22 +45,18 @@ public:
 	bool isNull ;
 	bool converged ;
 	
-	DamageModel(double characteristicRadius);
+	DamageModel();
 	
 	double getThresholdDamageDensity() const;
 	
 	double getSecondaryThresholdDamageDensity() const;
-	
-	double getCharacteristicRadius() const ;
 	
 	double getDamageDensityTolerance() const ;
 
 	void setThresholdDamageDensity(double d);
 	
 	void setSecondaryThresholdDamageDensity(double d) ;
-	
-	void setMaterialCharacteristicRadius(double d) ;
-	
+		
 	void setDamageDensityTolerance(double d) ;
 	
 	double getDamageDensityTolerance() { return damageDensityTolerance ; };
@@ -124,7 +119,7 @@ class NullDamage : public DamageModel
 {
 public:
 
-	NullDamage() : DamageModel(0) { state.resize(0); previousstate.resize(0);} ;
+	NullDamage() : DamageModel() { state.resize(0); previousstate.resize(0);} ;
 
 	/** \brief Return the vector of variables describing the damage state
 	 * 

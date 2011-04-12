@@ -14,7 +14,7 @@
 
 namespace Mu {
 
-AnisotropicLinearDamage::AnisotropicLinearDamage(double characteristicRadius) : DamageModel(characteristicRadius)
+AnisotropicLinearDamage::AnisotropicLinearDamage() 
 {
 	getState().resize(4, 0.) ;
 	getPreviousState().resize(4, 0.) ;

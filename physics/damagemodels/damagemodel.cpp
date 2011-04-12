@@ -164,7 +164,7 @@ namespace Mu
 		
 	}
 	
-	DamageModel::DamageModel(double characteristicRadius) : characteristicRadius(characteristicRadius)
+	DamageModel::DamageModel() 
 	{ 
 		wasBroken = false ;
 		change = false ;
@@ -194,11 +194,6 @@ namespace Mu
 		return secondaryThresholdDamageDensity ;
 	}
 	
-	double DamageModel::getCharacteristicRadius() const
-	{
-		return characteristicRadius ;
-	}
-	
 	void DamageModel::setThresholdDamageDensity(double d)
 	{
 		thresholdDamageDensity = d ;
@@ -207,11 +202,6 @@ namespace Mu
 	void DamageModel::setSecondaryThresholdDamageDensity(double d)
 	{
 		secondaryThresholdDamageDensity = d ;
-	}
-	
-	void DamageModel::setMaterialCharacteristicRadius(double d)
-	{
-		characteristicRadius = d ;
 	}
 	
 	void DamageModel::setDamageDensityTolerance(double d)

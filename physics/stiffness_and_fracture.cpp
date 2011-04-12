@@ -21,7 +21,7 @@ using namespace Mu ;
 
 StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), /*dfunc(rig.numRows()-1)*/ eps(eps)
 {
-	dfunc = new LinearDamage(eps) ;
+	dfunc = new LinearDamage() ;
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
 	init = param[0][0] ;
@@ -176,7 +176,6 @@ Form * StiffnessAndFracture::getCopy() const
 	copy->dfunc->getPreviousState() = dfunc->getPreviousState() ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
-	copy->dfunc->setMaterialCharacteristicRadius(dfunc->getCharacteristicRadius());
 	copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
 	return copy ;

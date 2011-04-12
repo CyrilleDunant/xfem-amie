@@ -13,7 +13,7 @@
 
 namespace Mu {
 
-StrainBrokenIsotropicLinearDamage::StrainBrokenIsotropicLinearDamage(int numDof, double characteristicRadius, double limitStrain) : DamageModel(characteristicRadius), limitStrain(limitStrain)
+StrainBrokenIsotropicLinearDamage::StrainBrokenIsotropicLinearDamage(int numDof, double limitStrain) :  limitStrain(limitStrain)
 {
 	state.resize(1, 0.);
 	previousstate.resize(1, 0.);

@@ -18,7 +18,7 @@ using namespace Mu ;
 
 StiffnessWithVariableImposedDeformationAndFracture::StiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * c) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef),criterion(c)
 {
-	dfunc = new IsotropicLinearDamage(.01) ;
+	dfunc = new IsotropicLinearDamage() ;
 	frac = false ;
 	init = param[0][0] ;
 	change  = false ;

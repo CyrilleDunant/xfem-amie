@@ -35,7 +35,8 @@ double MCFT::grade(const ElementState &s)
 	double tstress = pstress.max();
 	double cstress = pstress.min();
 
-	double critStrain = -0.002 ;//-0.002
+	double tensionCritStrain = 65e-6 ;
+	double critStrain = -0.002 ;
 	double renormCompressionStrain = cstrain/critStrain ;
 	
 	double mcftFactor = (2.*renormCompressionStrain-renormCompressionStrain*renormCompressionStrain)/(0.8-0.34*tstrain/critStrain) ;
@@ -46,7 +47,7 @@ double MCFT::grade(const ElementState &s)
 	
 	double maxTension = upVal ;
 	
-	if(tstrain > -critStrain )
+	if(tstrain > tensionCritStrain)
 	{
 		//Yamamoto model 
 // 		maxTension = upVal/(1.+sqrt(2e12*(tstrain+critStrain))) ;
@@ -57,6 +58,7 @@ double MCFT::grade(const ElementState &s)
 		//perfectly brittle
 // 		maxTension = 0 ;
 	}
+	
 	
 
 	metInCompression = cstrain < 0 && std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) || tstrain < 0;

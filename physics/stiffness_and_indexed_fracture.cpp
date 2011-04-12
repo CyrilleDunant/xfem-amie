@@ -179,8 +179,6 @@ Form * StiffnessAndIndexedFracture::getCopy() const
 	copy->damage = damage ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
-	copy->dfunc->setMaterialCharacteristicRadius(dfunc->getCharacteristicRadius());
-	copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
 	return copy ;
 }

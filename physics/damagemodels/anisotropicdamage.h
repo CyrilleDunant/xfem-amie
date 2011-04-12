@@ -30,7 +30,7 @@ public:
 	 * 
 	 * @param characteristicRadius material characteristic radius
 	 */
-	AnisotropicLinearDamage(double characteristicRadius) ;
+	AnisotropicLinearDamage() ;
 
 	virtual ~AnisotropicLinearDamage();
 
@@ -66,7 +66,7 @@ public:
 		*/
 	virtual bool fractured() const ;
 	
-	virtual DamageModel * getCopy() const { return new AnisotropicLinearDamage(getCharacteristicRadius()) ;}
+	virtual DamageModel * getCopy() const { return new AnisotropicLinearDamage() ;}
 
 };
 

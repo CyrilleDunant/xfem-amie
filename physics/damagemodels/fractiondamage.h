@@ -33,7 +33,7 @@ public:
 	 * @param numDof 
 	 * @param threshold 
 	 */
-	FractionLinearDamage(double characteristicRadius, Matrix remnant, double phi) ;
+	FractionLinearDamage(Matrix remnant, double phi) ;
 
 	virtual ~FractionLinearDamage();
 
@@ -69,7 +69,7 @@ public:
 		*/
 	virtual bool fractured() const ;
 	
-	virtual DamageModel * getCopy() const { return new FractionLinearDamage(getCharacteristicRadius(), remnant, phi) ;}
+	virtual DamageModel * getCopy() const { return new FractionLinearDamage(remnant, phi) ;}
 	
 };
 

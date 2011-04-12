@@ -59,7 +59,7 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 														ring[i]->getBehaviour()->getCopy()) ;
 			if(bi->outBehaviour->getDamageModel())
 			{
-				FractionLinearDamage * fd = new FractionLinearDamage(bi->outBehaviour->getDamageModel()->getCharacteristicRadius(), bi->outBehaviour->getTensor(ring[i]->getCenter()), 0.1) ;
+				FractionLinearDamage * fd = new FractionLinearDamage(bi->outBehaviour->getTensor(ring[i]->getCenter()), 0.1) ;
 				StiffnessAndFracture * saf = dynamic_cast<StiffnessAndFracture *> (bi->outBehaviour) ;
 				if(saf)
 				{
