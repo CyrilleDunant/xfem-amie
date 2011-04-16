@@ -57,7 +57,7 @@ double FractionMCFT::grade(const ElementState &s)
 	metInCompression = false ;
 	metInTension = false ;
 	
-	double tensionCritStrain = 65e-6 ;
+	double tensionCritStrain = 2e6/37e9 ;
 	double critStrain = -0.002 ;
 	double renormCompressionStrain = cstrain/critStrain ;
 	
@@ -72,10 +72,10 @@ double FractionMCFT::grade(const ElementState &s)
 	if(tstrain > tensionCritStrain )
 	{
 		//Yamamoto model 
-// 		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+critStrain))) ;
+//		maxTension = upVal/(1.+sqrt(200000000.*(tstrain+tensionCritStrain))) ;
 		
 		//MCFT model 
-		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
+ 		maxTension = upVal/(1.+sqrt(500.*tstrain)) ;
 		
 		//perfectly brittle
 // 		maxTension = 0 ;

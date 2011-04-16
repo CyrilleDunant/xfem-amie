@@ -167,6 +167,7 @@ Vector angle(0) ;
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,0) ;
+// BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
 // BoundingBoxDefinedBoundaryCondition * loadl = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
@@ -177,78 +178,10 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-void computeDisplacement()
-{
-	x.resize(featureTree->getDisplacements().size()) ;
-	x = featureTree->getDisplacements() ;
-	Circle C(.01, 0, 0.05) ;
-	std::vector<DelaunayTriangle *> t = featureTree->getElements2D(&C) ;
-	std::vector<int> indices ;
-	for(size_t i = 0 ; i < t.size() ; i++)
-	{
-		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
-		{
-		if(C.in(t[i]->getBoundingPoint(c)))
-			indices.push_back(t[i]->getBoundingPoint(c).id) ;
-		}
-	}
-	
-	std::sort(indices.begin(), indices.end()) ;
-	auto e = std::unique(indices.begin(), indices.end()) ;
-	displacement = 0 ;
-	for(auto i = indices.begin() ; i != e ; i++)
-	{
-		displacement+=x[(*i)*2+1]/(e-indices.begin()) ;
-	}
-	
-	
-// 	Circle C(.000001, -0.0025, -0.05) ;
-// 	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
-// 	std::vector<int> indices ;
-// 	for(size_t i = 0 ; i < t.size() ; i++)
-// 	{
-// 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
-// 		{
-// 		if(C.in(t[i]->getBoundingPoint(c)))
-// 			indices.push_back(t[i]->getBoundingPoint(c).id) ;
-// 		}
-// 	}
-// 	
-// 	std::sort(indices.begin(), indices.end()) ;
-// 	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
-// 	displacement = 0 ;
-// 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
-// 	{
-// 		displacement+=x[(*i)*2.]/(e-indices.begin()) ;
-// 	}
-// 
-// 	Circle C0(.000001, 0.0025, -0.05) ;
-// 	std::vector<DelaunayTriangle *> t0 = featureTree->get2DMesh()->getConflictingElements(&C) ;
-// 	std::vector<int> indices0 ;
-// 	for(size_t i = 0 ; i < t0.size() ; i++)
-// 	{
-// 		for(size_t c = 0 ;  c < t0[i]->getBoundingPoints().size() ; c++ )
-// 		{
-// 		if(C0.in(t0[i]->getBoundingPoint(c)))
-// 			indices0.push_back(t0[i]->getBoundingPoint(c).id) ;
-// 		}
-// 	}
-// 	
-// 	std::sort(indices0.begin(), indices0.end()) ;
-// 	std::vector<int>::iterator e0 = std::unique(indices0.begin(), indices0.end()) ;
-// 	double displacement0 = 0 ;
-// 	for(std::vector<int>::iterator i = indices0.begin() ; i != e0 ; i++)
-// 	{
-// 		displacement0+=x[(*i)*2.]/(e0-indices0.begin()) ;
-// 	}
-// 
-// displacement = displacement-displacement0 ;
-}
-
 void step()
 {
 	
-	size_t nsteps = 10 ; //16*10;
+	size_t nsteps = 1 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -263,10 +196,10 @@ void step()
 		bool go_on = true ;
 
 		go_on = featureTree->step() ;
-		double appliedForce = 0.025*loadr->getData()/1000. ;
+		double appliedForce = loadr->getData()*0.165*0.0254 ;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+10e4) ;
+			loadr->setData(loadr->getData()+5e5) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -453,53 +386,53 @@ void step()
 			loads.push_back(appliedForce);
 			damages.push_back(featureTree->averageDamage);
 		}
-		if(v%5 == 0)
+		if(v%5 == 0 || true)
 		{
 
 			std::cout << std::endl ;
-			std::cout << "load :" << loadr->getData()/1000. << std::endl ;
-			std::cout << "displacement :" << 1000.*e_xx/(double)ex_count << std::endl ;
-			std::cout << "max value :" << x_max << std::endl ;
-			std::cout << "min value :" << x_min << std::endl ;
-			std::cout << "max sigma11 :" << sigma11.max()/1000000. << std::endl ;
-			std::cout << "min sigma11 :" << sigma11.min()/1000000. << std::endl ;
-			std::cout << "max sigma12 :" << sigma12.max()/1000000. << std::endl ;
-			std::cout << "min sigma12 :" << sigma12.min()/1000000. << std::endl ;
-			std::cout << "max sigma22 :" << sigma22.max()/1000000. << std::endl ;
-			std::cout << "min sigma22 :" << sigma22.min()/1000000. << std::endl ;
+			std::cout << "load :" <<  appliedForce/1000. << std::endl ;
+			std::cout << "max value :" << x_max*1000 << std::endl ;
+			std::cout << "min value :" << x_min*1000 << std::endl ;
+			std::cout << "max sigma11 :" << sigma11.max()/1e6 << std::endl ;
+			std::cout << "min sigma11 :" << sigma11.min()/1e6 << std::endl ;
+			std::cout << "max sigma12 :" << sigma12.max()/1e6 << std::endl ;
+			std::cout << "min sigma12 :" << sigma12.min()/1e6 << std::endl ;
+			std::cout << "max sigma22 :" << sigma22.max()/1e6 << std::endl ;
+			std::cout << "min sigma22 :" << sigma22.min()/1e6 << std::endl ;
 			
-			std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-			std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-			std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-			std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-			std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-			std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+			std::cout << "max epsilon11 :" << epsilon11.max()*1e6 << std::endl ;
+			std::cout << "min epsilon11 :" << epsilon11.min()*1e6 << std::endl ;
+			std::cout << "max epsilon12 :" << epsilon12.max()*1e6 << std::endl ;
+			std::cout << "min epsilon12 :" << epsilon12.min()*1e6 << std::endl ;
+			std::cout << "max epsilon22 :" << epsilon22.max()*1e6 << std::endl ;
+			std::cout << "min epsilon22 :" << epsilon22.min()*1e6 << std::endl ;
 			
-			std::cout << "max von Mises :" << vonMises.max()/1000000. << std::endl ;
-			std::cout << "min von Mises :" << vonMises.min()/1000000. << std::endl ;
+			std::cout << "max von Mises :" << vonMises.max()/1e6 << std::endl ;
+			std::cout << "min von Mises :" << vonMises.min()/1e6 << std::endl ;
 			
-			std::cout << "average sigma11 : " << (avg_s_xx/area)/1000000. << std::endl ;
-			std::cout << "average sigma22 : " << (avg_s_yy/area)/1000000. << std::endl ;
-			std::cout << "average sigma12 : " << (avg_s_xy/area)/1000000. << std::endl ;
-			std::cout << "average epsilon11 : " << avg_e_xx/area<< std::endl ;
-			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+			std::cout << "average sigma11 : " << (avg_s_xx/area)/1e6 << std::endl ;
+			std::cout << "average sigma22 : " << (avg_s_yy/area)/1e6 << std::endl ;
+			std::cout << "average sigma12 : " << (avg_s_xy/area)/1e6 << std::endl ;
+			std::cout << "average epsilon11 : " << 1e6*avg_e_xx/area<< std::endl ;
+			std::cout << "average epsilon22 : " << 1e6*avg_e_yy/area << std::endl ;
+			std::cout << "average epsilon12 : " << 1e6*avg_e_xy/area << std::endl ;
 
 		}
 
 		
 		if(go_on)
-			std::cout << 2.*appliedForce/1000. << std::endl ;
+			std::cout << appliedForce/1000. << std::endl ;
 		
 		std::fstream ldfile  ;
 		ldfile.open("ldn", std::ios::out) ;
 		for(int j = 0 ; j < loads.size() ; j++)
 		{
-			ldfile << displacements[j] << "   " << 2.*loads[j]/1000. << "   " << damages[j]<< "\n" ;
+			ldfile << displacements[j] << "   " << loads[j]/1000. << "   " << damages[j]<< "\n" ;
 		}
 		ldfile.close();
 		
 		std::fstream strfile  ;
+		std::sort(pos_strain.begin(), pos_strain.end()) ;
 		ldfile.open("str", std::ios::out) ;
 		for(int j = 0 ; j < pos_strain.size() ; j++)
 		{
@@ -514,7 +447,7 @@ void step()
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			filename << round(2.*appliedForce/1000.) ;
+			filename << round(appliedForce/1000.) ;
 			
 	// 		filename.append(itoa(totit++, 10)) ;
 	// 		std::cout << filename.str() << std::endl ;
@@ -531,58 +464,6 @@ void step()
 			break ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	}
-}
-
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
-{
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	double nu_incompressible = 0.499924 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh*percent+nu_incompressible*(1.-percent) ;
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
-	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
-	aggregateArea = 0 ;
-	for(size_t i = 0 ; i < incs.size() ; i++)
-	{
-		aggregateArea += incs[i]->area() ;
-		for(int j = 0 ; j < n ; j++)
-		{
-			double radius = 0.000001 ;
-			double rangle = (2.*rand()/RAND_MAX-1.)*M_PI ;
-			double rradius = (double)rand()/RAND_MAX*(incs[i]->getRadius()-2.*radius*64) ;
-			Point center = incs[i]->getCenter()+Point(rradius*cos(rangle), rradius*sin(rangle)) ; 
-			
-			bool alone  = true ;
-			
-			for(size_t k = 0 ; k < ret.size() ; k++ )
-			{
-				if (squareDist(center, ret[k].first->Circle::getCenter()) < 2.*(2.*radius)*(2.*radius)*64*64)
-				{
-					alone = false ;
-					break ;
-				}
-			}
-			if (alone)
-			{
-				Vector a(double(0), 3) ;
-				a[0] = .2 ;
-				a[1] = .2 ;
-				a[2] = 0.00 ;
-				
-				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
-				ret.push_back(std::make_pair(z, incs[i])) ;
-				F.addFeature(incs[i],z) ; 
-			}
-		}
-	}
-	std::cout << "initial Reacted Area = " << M_PI*0.000001*0.000001*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
-	return ret ;	
 }
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
@@ -1492,10 +1373,9 @@ int main(int argc, char *argv[])
 {
 
 	double tensionCrit = 2.5e6 ;
-// 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
 	double compressionCrit = -37.5e6 ; 
-	double phi = 0.14961835  ;
-	double mradius = .015 ; // .015
+	double steelfraction = (0.0254*0.0254*M_PI*.25)/(0.165*0.0254) ;
+	double mradius = .1 ; // .015
 	double nradius = .2 ;
 // 	double mradius = .25 ;
 	
@@ -1514,9 +1394,6 @@ int main(int argc, char *argv[])
 	
 	Matrix m0_barSteel(m0_steel) ;
 	m0_barSteel *= E_rebar/E_steel ;
-/*	m0_barSteel[0][0] = E_rebar*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[0][1] = E_rebar*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[0][2] = 0 ;
-	m0_barSteel[1][0] = E_rebar*nu_steel/((1.+nu_steel)*(1.-2.*nu_steel)) ;      m0_barSteel[1][1] = E_rebar*(1.-nu_steel)/((1.+nu_steel)*(1.-2.*nu_steel)) ; m0_barSteel[1][2] = 0 ; 
-	m0_barSteel[2][0] = 0 ;                                                      m0_barSteel[2][1] = 0 ;     */                                                 m0_barSteel[2][2] = E_rebar/((1.+nu_steel)) ; 
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1525,44 +1402,34 @@ int main(int argc, char *argv[])
 
 	Sample sample((1.300+.450), .165,0, 0.) ;
 	
-	Sample toprightvoid(.225, (.165-0.025)*.5, 1.300*.5+.225*.5, 0.025*.5+(.165-0.025)*.25) ;     
+	
+	Sample toprightvoid(.225, (.165-0.0254)*.5, 1.300*.5+.225*.5, 0.0254*.5+(.165-0.0254)*.25) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
-	Sample topleftvoid(.225, (.165-0.025)*.5, -1.300*.5-.225*.5, 0.025*.5+(.165-0.025)*.25) ;     
+	Sample topleftvoid(.225, (.165-0.0254)*.5, -1.300*.5-.225*.5, 0.0254*.5+(.165-0.0254)*.25) ;     
 	topleftvoid.setBehaviour(new VoidForm()) ;  
-	Sample bottomrightvoid(.225, (.165-0.025)*.5, 1.300*.5+.225*.5, -0.025*.5-(.165-0.025)*.25) ;     
+	Sample bottomrightvoid(.225, (.165-0.0254)*.5, 1.300*.5+.225*.5, -0.0254*.5-(.165-0.0254)*.25) ;     
 	bottomrightvoid.setBehaviour(new VoidForm()) ;  
-	Sample  bottomleftvoid(.225, (.165-0.025)*.5, -1.300*.5-.225*.5, -0.025*.5-(.165-0.025)*.25) ;     
+	Sample  bottomleftvoid(.225, (.165-0.0254)*.5, -1.300*.5-.225*.5, -0.0254*.5-(.165-0.0254)*.25) ;     
 	bottomleftvoid.setBehaviour(new VoidForm()) ;  
 	
-	Sample rebarleft(.225, .025, -1.300*.5-.225*.5, 0.) ; 
-	rebarleft.setBehaviour(new Stiffness(m0_steel*0.025/0.165));
-	rebarleft.isVirtualFeature = true ;
+	Sample rebarleft(.225, .0254, -1.300*.5-.225*.5, 0.) ; 
+	rebarleft.setBehaviour(new Stiffness(m0_steel*steelfraction));
 	
-	Sample rebarright(.225, .025, 1.300*.5+.225*.5, 0.) ; 
-	rebarright.setBehaviour(new Stiffness(m0_steel*0.025/0.165));
-	rebarright.isVirtualFeature = true ;
+	Sample rebarright(.225, .0254, 1.300*.5+.225*.5, 0.) ; 
+	rebarright.setBehaviour(new Stiffness(m0_steel*steelfraction));
 	
 	Sample rebarinternal((1.300), .025,0, 0.) ; 
-// 	rebar.setBehaviour(new Stiffness(m0_barSteel));
-	rebarinternal.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel, 0.025/0.165,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, 0.025/0.165)));
+// 	rebarinternal.setBehaviour(new Stiffness(m0_steel*0.025*M_PI/0.165));
+	rebarinternal.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel, steelfraction,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, steelfraction)));
 	rebarinternal.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
-// 	rebar.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-// 	rebar.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
-// 	rebar.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	
-	Sample belly(1.300, .075,0, 0.) ;
-	belly.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->variability = 0.01 ;
-	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->neighbourhoodRadius = nradius;
-	
-
+// 	sample.setBehaviour(new VoidForm()) ;
+// 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.01 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
@@ -1570,10 +1437,9 @@ int main(int argc, char *argv[])
 
 	
 	F.addBoundaryCondition(loadr);
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT, Point(0, 0))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT, Point(-1.300*.5-.225, 0.))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT, Point(1.300*.5+.225, 0.))) ;
 	
 // 	F.addFeature(&sample,&belly) ;
 	F.addFeature(NULL,&toprightvoid) ;
@@ -1586,13 +1452,14 @@ int main(int argc, char *argv[])
 // 	F.addFeature(&sample,&indestructible) ;
 	
 	F.setSamplingNumber(atoi(argv[1])) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 // 	
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getElements2D() ;
 	F.setMaxIterationsPerStep(20000);
-	F.addPoint(new Point(0, 0)) ;
+	F.addPoint(new Point(1.300*.5+.225, 0.)) ;
+	F.addPoint(new Point(-1.300*.5-.225, 0.)) ;
 	
 	step() ;
 	

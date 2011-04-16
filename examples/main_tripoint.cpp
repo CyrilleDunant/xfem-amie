@@ -33,7 +33,7 @@
 #include "../utilities/itoa.h"
 #include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
-
+#include "../physics/fracturecriteria/vonmises.h"
 
 
 #include <fstream>
@@ -52,6 +52,7 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
+
 #define DEBUG 
 
 #define ID_QUIT 1
@@ -135,7 +136,7 @@ double supportLever = 2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = 0.0255 ;
+double rebarDiametre = 0.0254 ;
 double rebarEndCover = 0.047 ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -148,6 +149,7 @@ std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress ;
 std::vector<std::pair<double, double> > load_displacement ;
 std::vector< double > loads ;
+std::vector< double > deltas ;
 std::vector< double > displacements ;
 std::vector< double > damages ;
 Vector fracCrit(0) ;
@@ -257,8 +259,12 @@ void step()
 	int totit = 0 ;
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
+		y_max = 0 ;
+		x_max = 0 ;
+		y_min = 0 ;
+		x_min = 0 ;
  		tries = 0 ;
-
+		double appliedForce = platewidth*2.*0.4*load->getData()/1000 ;
 		tries++ ;
 		bool go_on = true ;
 
@@ -271,13 +277,10 @@ void step()
 		x = featureTree->getDisplacements() ;
 	
 		
-// 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
 
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		
-	// 	sigma = F.strainFromDisplacements() ;
-	// 	epsilon = F.stressFromDisplacements() ;
+
 		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
@@ -294,7 +297,6 @@ void step()
 		vonMises.resize(sigma.size()/3) ;
 		angle.resize(sigma.size()/3) ;
 		Vector forces(featureTree->getAssembly()->getForces()-featureTree->getAssembly()->getNaturalBoundaryConditionForces()) ;
-		double appliedForce = std::accumulate(&forces[0], &forces[forces.size()], 0.) ;
 		
 		std::cerr << "unknowns :" << x.size() << std::endl ;
 		
@@ -318,7 +320,8 @@ void step()
 		double avg_s_xy_nogel = 0;
 		double nogel_area = 0 ;
 		int tsize = 0 ;
-		
+		int deltacount = 0 ;
+		double delta = 0 ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 			bool in = false ;
@@ -335,12 +338,17 @@ void step()
 						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).y > (sampleHeight+plateHeight*2)*.5*.9999)
+					if(triangles[k]->getBoundingPoint(p).y > (sampleHeight+plateHeight*2)*.5*.9999 && triangles[k]->getBoundingPoint(p).x < 1e-3)
 					{
 						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 						ex_count++ ;
 					}
-						
+					
+					if(dist(Point(supportLever,-sampleHeight*.5+0.064+0.085), triangles[k]->getBoundingPoint(p)) < .05)
+					{
+						deltacount++ ;
+						delta += x[triangles[k]->getBoundingPoint(p).id*2] ;
+					}
 				}
 			}
 			area += triangles[k]->area() ;
@@ -444,6 +452,7 @@ void step()
 		{
 			displacements.push_back(1000.*e_xx/(double)ex_count);
 			loads.push_back(appliedForce);
+			deltas.push_back(delta);
 			damages.push_back(featureTree->averageDamage);
 		}
 		if(v%5 == 0)
@@ -451,6 +460,7 @@ void step()
 
 			std::cout << std::endl ;
 			std::cout << "load :" << load->getData()/1000. << std::endl ;
+			std::cout << "delta :" << delta*1000. << std::endl ;
 			std::cout << "displacement :" << 1000.*e_xx/(double)ex_count << std::endl ;
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
@@ -482,13 +492,13 @@ void step()
 
 		
 		if(go_on)	
-			std::cout << .4*appliedForce/1000. << "   " << load->getData()/1000. << "  " << displacements.back() << "  "<< damages.back()<<std::endl ;
+			std::cout << appliedForce << "  " << displacements.back() << "  "<< damages.back()<<std::endl ;
 		
 		std::fstream ldfile  ;
 		ldfile.open("ldn", std::ios::out) ;
 		for(int j = 0 ; j < loads.size() ; j++)
 		{
-			ldfile << displacements[j] << "   " << .4*loads[j]/1000. << "   " << damages[j]<< "\n" ;
+			ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j]<< "   "<< deltas[j] << "\n" ;
 		}
 		ldfile.close();
 		
@@ -499,7 +509,7 @@ void step()
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			filename << round(.4*appliedForce/1000.) ;
+			filename << round(appliedForce) ;
 			filename << "-" ;
 			filename << 1000.*e_xx/(double)ex_count ;
 			
@@ -1479,13 +1489,11 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 2e6 ;
-// 	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)  //3.1e6;//3.7e6 ; 
+	double tensionCrit = 2e6 ;//obtained by .33*sqrt(fc_)
 	double compressionCrit = -37.0e6 ; 
-	double phi = 0.14961835  ;
-	double mradius = .025 ; // .015
-	double nradius = .2 ;
-// 	double mradius = .25 ;
+	double phi =  3.*(M_PI*rebarDiametre*rebarDiametre*.25)/(.4*rebarDiametre) ; 
+	double mradius = .1 ; // .015
+	double nradius = .5 ;
 	
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
@@ -1500,8 +1508,7 @@ int main(int argc, char *argv[])
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
 	m0_steel[2][0] = 0 ;                                        m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ; 
 	
-	Matrix m0_barSteel(m0_steel) ;
-	m0_barSteel *= E_rebar/E_steel ;                                                  m0_barSteel[2][1] = 0 ;                                                      m0_barSteel[2][2] = E_rebar/((1.+nu_steel)) ; 
+	Matrix m0_barSteel(m0_steel*phi*.75) ;
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1529,75 +1536,74 @@ int main(int argc, char *argv[])
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
 	Sample rebar0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064) ; 
-	rebar0.setBehaviour(new Stiffness(m0_barSteel));
-// 	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
-// 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-// 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
-// 	rebar0.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-// 	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
-// 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
+	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
-	rebar1.setBehaviour(new Stiffness(m0_barSteel));
-// 	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
-// 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-// 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
-// 	rebar1.getBehaviour()->getDamageModel()->setMaterialCharacteristicRadius(mradius);
-// 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
-// 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
+	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	
+	Sample connector0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064-1.5*rebarDiametre) ; 
+	connector0.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(connector0.getBehaviour())->variability = 0.01 ;
+	dynamic_cast<WeibullDistributedStiffness *>(connector0.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<WeibullDistributedStiffness *>(connector0.getBehaviour())->neighbourhoodRadius = nradius;
+	
+	Sample connector1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085+1.5*rebarDiametre) ; 
+	connector1.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	dynamic_cast<WeibullDistributedStiffness *>(connector1.getBehaviour())->variability = 0.01 ;
+	dynamic_cast<WeibullDistributedStiffness *>(connector1.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<WeibullDistributedStiffness *>(connector1.getBehaviour())->neighbourhoodRadius = nradius;
+	
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
-
 	
-	Sample belly(sampleLength*.5-rebarEndCover, rebarDiametre*4+0.085, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085*.5) ;
-	belly.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->variability = 0. ;
-	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(belly.getBehaviour())->neighbourhoodRadius = nradius;
-// 	belly.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.4);
-// 	belly.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	
-
 	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.01 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
-// 	sample.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.4);
-// 	sample.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+
 	
 	F.addBoundaryCondition(load) ;
 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight))) ;
 
+
+	F.addFeature(&sample,&rebar0) ;
+	F.addFeature(&sample,&rebar1) ;
+// 	F.addFeature(&sample,&connector0) ;
+// 	F.addFeature(&sample,&connector1) ;
 	
-	F.addFeature(&sample,&belly) ;
-	F.addFeature(&belly,&rebar0) ;
-	F.addFeature(&belly,&rebar1) ;
-// 	F.addFeature(&sample,&indestructible) ;
 
 	F.addFeature(NULL,&topsupport) ;
-// 	F.addFeature(NULL,&topleftvoid) ;
 	F.addFeature(NULL,&toprightvoid) ;
 	F.addFeature(NULL,&bottomcentervoid) ;
-// 	F.addFeature(NULL,&leftbottomvoid) ;
 	F.addFeature(NULL,&rightbottomvoid) ;
 	
-// 	F.addFeature(NULL,&baseleft) ;
 	F.addFeature(NULL,&baseright) ;
-// 	F.addFeature(&concrete,&notch) ;
 	
-// 	pore->isVirtualFeature = true ;
 	
 	
 	F.setSamplingNumber(atoi(argv[1])) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 // 	
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getElements2D() ;
 	F.addPoint(new Point(supportLever, -(sampleHeight+2.*plateHeight)*.5)) ;
+	F.addPoint(new Point(0, -sampleHeight*.5+0.064-rebarDiametre*.5)) ;
+	F.addPoint(new Point(0, -sampleHeight*.5+0.064-rebarDiametre*.5+0.085)) ;
+	F.addPoint(new Point(0, -sampleHeight*.5+0.064+rebarDiametre*.5)) ;
+	F.addPoint(new Point(0, -sampleHeight*.5+0.064+rebarDiametre*.5+0.085)) ;
 	F.setMaxIterationsPerStep(20000);
 	
 	step() ;

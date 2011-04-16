@@ -2112,7 +2112,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			}
 		}
 		
-		double tol = std::min(maxx-minx, maxy-miny)*.0001 ;
+		double tol = std::max(std::min(maxx-minx, maxy-miny)*.001, POINT_TOLERANCE_2D) ;
 		
 		switch(pos)
 		{

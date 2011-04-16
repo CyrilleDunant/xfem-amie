@@ -3527,7 +3527,7 @@ void FeatureTree::stepElements()
 					if(i%1000 == 0)
 						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 					if(elements[i]->getBehaviour()->getFractureCriterion())
-						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState(), MAX_PROXIMITY_SMOOTH) ;
+						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState(), GAUSSIAN_SMOOTH) ;
 				}
 			
 				std::cerr << " ...done. " << std::endl ;
@@ -3536,12 +3536,23 @@ void FeatureTree::stepElements()
 				{
 
 				double are = elements[i]->area() ;
-				if(i%10000 == 0)
-					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
-				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
-				{
-					volume += are ;
+					if(i%10000 == 0)
+						std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
 					
+					
+					
+					if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
+					{
+						volume += are ;
+						
+						if(elements[i]->getBehaviour()->getDamageModel())
+						{
+							if(!elements[i]->getBehaviour()->fractured())
+								averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
+							else
+								averageDamage += are ;
+						}
+						
 						elements[i]->getBehaviour()->step(deltaTime, elements[i]->getState()) ;
 						if(elements[i]->getBehaviour()->changed())
 						{
@@ -3553,23 +3564,20 @@ void FeatureTree::stepElements()
 						{
 							fracturedCount++ ;
 							crackedVolume += are ;
-							averageDamage += are ;
 						}
 						else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D)
 						{
 							damagedVolume += are ;
-							averageDamage += are* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 						}
 					}
 					else if (elements[i]->getBehaviour()->fractured())
 					{
 						crackedVolume +=  are ;
-						averageDamage += are ;
 					}
-					
+						
 					if(elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->getFractureCriterion()->isStable())
 						stable = false ;
-				
+					
 				}
 				std::cerr << " ...done. " << ccount << " elements changed."<< std::endl ;
 			}
@@ -3643,6 +3651,15 @@ void FeatureTree::stepElements()
 				if(i%1000 == 0)
 					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
 				double vol = elements[i]->volume() ;
+				
+				if(elements[i]->getBehaviour()->getDamageModel())
+				{
+					if(!elements[i]->getBehaviour()->fractured())
+						averageDamage += vol* elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
+					else
+						averageDamage += vol ;
+				}
+				
 				if(elements[i]->getBehaviour()->type !=VOID_BEHAVIOUR )
 				{
 					volume += vol ;
@@ -3659,12 +3676,10 @@ void FeatureTree::stepElements()
 					{
 						fracturedCount++ ;
 						crackedVolume +=  vol ;
-						averageDamage += vol ;
 					}
 					else if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D)
 					{
 						damagedVolume +=  vol ;
-						averageDamage += vol*elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
 					}
 					
 					if(elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->getFractureCriterion()->isStable())
@@ -3673,7 +3688,6 @@ void FeatureTree::stepElements()
 				else if (elements[i]->getBehaviour()->fractured())
 				{
 					crackedVolume += vol ;
-					averageDamage += vol ;
 				}
 			}
 			averageDamage /= volume ;
@@ -4369,12 +4383,12 @@ void FeatureTree::generateElements()
 				{
 					
 					if((!potentialChildren[k]->isVirtualFeature 
-					    && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)) 
+					    && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity*.25)) 
 					   || (potentialChildren[k]->isVirtualFeature 
 					       && tree[i]->isVirtualFeature 
 					       && (dynamic_cast<VirtualFeature *>(potentialChildren[k])->getSource() 
 					           != dynamic_cast<VirtualFeature *>(tree[i])->getSource())
-					       && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity)
+					       && potentialChildren[k]->inBoundary(tree[i]->getBoundingPoint(j), pointDensity*.25)
 					      )
 					   )
 					{
@@ -4390,9 +4404,9 @@ void FeatureTree::generateElements()
 					isIn = true ;
 				if(!isIn && tree[i]->isVirtualFeature && !tree[i]->in(tree[i]->getBoundingPoint(j)))
 					isIn = true ;
-				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				if(tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity*.25))
 					isIn = true ;
-				if(!isIn && i != 0 && tree[0]->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				if(!isIn && i != 0 && tree[0]->onBoundary(tree[i]->getBoundingPoint(j), pointDensity*.25))
 				{
 // 					Point proj(tree[i]->getBoundingPoint(j)) ;
 // 					tree[0]->project(&proj) ;
@@ -4435,7 +4449,7 @@ void FeatureTree::generateElements()
 					}
 				}
 				
-				if(!isIn && tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity))
+				if(!isIn && tree[i]->getFather() && tree[i]->getFather()->onBoundary(tree[i]->getBoundingPoint(j), pointDensity*.25))
 				{
 					Point proj(tree[i]->getBoundingPoint(j)) ;
 					tree[i]->getFather()->project(&proj) ;

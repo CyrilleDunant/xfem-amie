@@ -103,11 +103,10 @@ namespace Mu
 				}
 				downState = getPreviousState() ;
 				upState = getPreviousState()+damageIncrement*up ;
-				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0 && false)
-					getState() = downState+(upState-downState)*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-				else
-					getState() = downState+(upState-downState)*resphi ;
+				getState() = downState+(upState-downState)*resphi ;
 				
+				if((upState-downState).min() < 0)
+					exit(0) ;
 			}
 			else
 			{
@@ -121,31 +120,31 @@ namespace Mu
 
 			if(setChange != 0 || fractured())
 			{
-				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() >= 0 && false)
-				{
-					Vector delta = upState - downState ;
-					upState = getState() ;
-					getState() += s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() * delta ;
-				}
-				else
-				{
+// 				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() >= 0 && false)
+// 				{
+// 					Vector delta = upState - downState ;
+// 					upState = getState() ;
+// 					getState() += s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() * delta ;
+// 				}
+// 				else
+// 				{
 					upState = getState() ;
 					getState() = downState + resphi * (upState - downState) ;
-				}
+// 				}
 			}
 			else
 			{
-				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() <= 0 && false)
-				{
-					Vector delta = upState - downState ;
-					downState = getState() ;
-					getState() += s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() * delta ;
-				}
-				else
-				{
+// 				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() <= 0 && false)
+// 				{
+// 					Vector delta = upState - downState ;
+// 					downState = getState() ;
+// 					getState() += s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() * delta ;
+// 				}
+// 				else
+// 				{
 					downState = getState() ;
 					getState() = downState + resphi * (upState - downState) ;
-				}
+// 				}
 			}
 		}
 
@@ -180,8 +179,8 @@ namespace Mu
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
-		explorationIncrement = 4./pow(2., 12) ;
-		damageDensityTolerance = 1./pow(2., 12) ; // about 1e-4
+		explorationIncrement = 4e-3;4./pow(2., 16) ;
+		damageDensityTolerance = 1e-3;1./pow(2., 16) ; // about 1e-4
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

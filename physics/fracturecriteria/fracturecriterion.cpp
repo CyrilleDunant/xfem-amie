@@ -1007,8 +1007,8 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 				double maxNeighbourhoodScore = 0 ;
 				double matchedArea = 0 ;
 // 				std::map<double, DelaunayTriangle *> scores ;
-// 				std::vector<double> unsortedScores ;
-// 				std::map<DelaunayTriangle *, double> areatemp ;
+				std::vector<double> scores ;
+				std::vector<DelaunayTriangle *> trisToTest ;
 				DelaunayTriangle * maxLocus = NULL;
 // 				double areamax = 0 ;
 				if(!cache.empty())
@@ -1019,7 +1019,16 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 
 						double s = 0. ;
 						if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured())
+						{
 							s = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+							if(s > 0)
+								scores.push_back(s);
+						}
+						
+						if(s > 0)
+						{
+							trisToTest.push_back(ci) ;
+						}
 
 						if(s > maxNeighbourhoodScore)
 						{
@@ -1091,17 +1100,15 @@ endloop:
 					return ;
 				}
 
-				
+				std::sort(scores.begin(), scores.end()) ;
+				double threshold = scores[round((scores.size()-1)*.9)] ;
 				bool nearmaxlocus = false;
 				
-				for(size_t i = 0 ; i< cache.size() ; i++)
+				for(size_t i = 0 ; i< trisToTest.size() ; i++)
 				{
-					DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-					
-
-					if(ci->getBehaviour()->getFractureCriterion() && std::abs(ci->getBehaviour()->getFractureCriterion()->getScoreAtState()-maxNeighbourhoodScore) < scoreTolerance)
+					if(trisToTest[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() > threshold)
 					{
-						if(squareDist2D(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
+						if(squareDist2D(trisToTest[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
 						{
 							nearmaxlocus = true ;
 							break ;
@@ -1404,7 +1411,7 @@ endloop:
 				}
 				
 				double smoothscore = str/fact ;
-				metAtStep =  smoothscore > 0 ;
+				metAtStep =  (smoothscore > 0) ;
 				nonLocalScoreAtState = smoothscore ;
 				return ;
 
