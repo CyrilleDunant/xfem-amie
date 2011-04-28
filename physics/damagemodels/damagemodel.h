@@ -40,7 +40,7 @@ namespace Mu
 		}
 		PointState extrapolate(double ratio = .5)
 		{
-			return PointState(up.met && down.met, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio)) ;
+			return PointState(up.isMet && down.isMet, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio)) ;
 		}
 
 		double zeroLocation() const

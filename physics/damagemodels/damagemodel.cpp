@@ -173,7 +173,7 @@ namespace Mu
 			}
 			
 			
-			if(std::abs(bestRange.up.fraction*upstate+(1.-bestRange.up.fraction)*downstate - bestRange.down.fraction*upstate - (1.-bestRange.down.fraction)*downstate) < damageDensityTolerance)
+			if(std::abs(bestRange.up.fraction*upState+(1.-bestRange.up.fraction)*downState - bestRange.down.fraction*upState - (1.-bestRange.down.fraction)*downState).max()/std::abs(upState-downState).max() < damageDensityTolerance)
 			{
 				converged = true ;
 			}
