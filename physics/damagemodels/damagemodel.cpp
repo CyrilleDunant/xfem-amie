@@ -125,7 +125,7 @@ namespace Mu
 		{
 			change = true ;
 			
-
+			
 			for(auto i = states.begin() ; i != states.end() ; i++)
 			{
 				if(trialRatio > i->fraction)
@@ -135,9 +135,52 @@ namespace Mu
 				}
 			}
 
-
-			if(setChange != 0 || fractured())
+			//find the most likely midPoint
+			RangeState bestRange(states[1], states[0]) ;
+			PointState bestState = bestRange.extrapolate() ;
+			bool maxDamage = false ;
+			for (size_t i = 1 ; i < states.size()-1 ;i++ )
 			{
+				RangeState trialRange(states[i+1], states[i]) ;
+				PointState trialState = trialRange.extrapolate() ;
+				if(trialState.isMet == false)
+				{	
+					maxDamage = true ;
+					bestState = trialState ;
+					bestRange = trialRange ;
+					break ;
+				}
+				if(trialState.delta < bestState.delta)
+				{
+					bestState = trialState ;
+					bestRange = trialRange ;
+				}
+			}
+			
+			if(maxDamage)
+			{
+				trialRatio = bestState.fraction ;
+				getState() = upState*trialRatio + downState*(1.-trialRatio) ;
+			}
+			else
+			{
+				double zero = bestRange.zeroLocation() ;
+				if(zero > 0)
+					trialRatio = zero ;
+				else
+					trialRatio = bestState.fraction ;
+				getState() = upState*trialRatio + downState*(1.-trialRatio) ;
+			}
+			
+			
+			if(std::abs(bestRange.up.fraction*upstate+(1.-bestRange.up.fraction)*downstate - bestRange.down.fraction*upstate - (1.-bestRange.down.fraction)*downstate) < damageDensityTolerance)
+			{
+				converged = true ;
+			}
+			
+
+//			if(setChange != 0 || fractured())
+//			{
 // 				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() >= 0 && false)
 // 				{
 // 					Vector delta = upState - downState ;
@@ -146,12 +189,12 @@ namespace Mu
 // 				}
 // 				else
 // 				{
-					upState = getState() ;
-					getState() = downState + resphi * (upState - downState) ;
+//					upState = getState() ;
+//					getState() = downState + resphi * (upState - downState) ;
 // 				}
-			}
-			else
-			{
+//			}
+//			else
+//			{
 // 				if(s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() <= 0 && false)
 // 				{
 // 					Vector delta = upState - downState ;
@@ -160,24 +203,24 @@ namespace Mu
 // 				}
 // 				else
 // 				{
-					downState = getState() ;
-					getState() = downState + resphi * (upState - downState) ;
+//					downState = getState() ;
+//					getState() = downState + resphi * (upState - downState) ;
 // 				}
-			}
+//			}
 		}
 
-		if(!converged && std::abs(startPosition-getState()).max()*fraction < damageDensityTolerance )
-		{
-
-					
-			if(setChange == 0)
-				std::cerr << "0" << std::flush ;
-			else
-				std::cerr << "1" <<std::flush ;
-			
+//		if(!converged && std::abs(startPosition-getState()).max()*fraction < damageDensityTolerance )
+//		{
+//
+//					
+//			if(setChange == 0)
+//				std::cerr << "0" << std::flush ;
+//			else
+//				std::cerr << "1" <<std::flush ;
+//			
 // 			getState() = downState ;
-			converged = true ;
-		}
+//			converged = true ;
+//		}
 		
 	}
 	
