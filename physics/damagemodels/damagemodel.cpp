@@ -48,7 +48,7 @@ namespace Mu
 			return ;
 		}
 		
-		int setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange(s) ;
+		double setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange(s) ;
 		
 		if(!s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 		{
@@ -101,12 +101,19 @@ namespace Mu
 						factor = (up+down)/2 ;
 					}
 				}
-				downState = getPreviousState() ;
+
+				states.clear() ;
+				states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, 0.)) ;
+				downState = getPreviousState();
 				upState = getPreviousState()+damageIncrement*up ;
-				getState() = downState+(upState-downState)*resphi ;
-				
+				getState() =upState ;
+				trialRatio = 1 ;
 				if((upState-downState).min() < 0)
-					exit(0) ;
+				{
+					getState() = upState ;
+					converged = true ;
+					wasBroken = true ;
+				}
 			}
 			else
 			{
@@ -117,6 +124,17 @@ namespace Mu
 		else if(!converged)
 		{
 			change = true ;
+			
+
+			for(auto i = states.begin() ; i != states.end() ; i++)
+			{
+				if(trialRatio > i->fraction)
+				{
+					states.insert(i, PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
+					break;
+				}
+			}
+
 
 			if(setChange != 0 || fractured())
 			{
@@ -157,7 +175,7 @@ namespace Mu
 			else
 				std::cerr << "1" <<std::flush ;
 			
-// 			getState() = upState ;
+// 			getState() = downState ;
 			converged = true ;
 		}
 		
@@ -179,8 +197,8 @@ namespace Mu
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
-		explorationIncrement = 4e-3;4./pow(2., 16) ;
-		damageDensityTolerance = 1e-3;1./pow(2., 16) ; // about 1e-4
+		explorationIncrement = 4e-4;4./pow(2., 16) ;
+		damageDensityTolerance = 1e-4;1./pow(2., 16) ; // about 1e-4
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

@@ -19,6 +19,38 @@
 namespace Mu
 {
 
+
+	struct PointState
+	{
+		bool isMet ;
+		double delta ;
+		double fraction ;
+		PointState(bool met, double delta, double frac) : isMet(met), delta(delta), fraction(frac) {} ;
+	} ;
+	struct RangeState
+	{
+		PointState up ;
+		PointState down ;
+		RangeState(const PointState &up, const PointState & down) : up(up), down(down) {} ;
+		RangeState split(const PointState & newMid)
+		{
+			RangeState ret(newMid, up) ;
+			up = newMid ;
+			return ret ;
+		}
+		PointState extrapolate(double ratio = .5)
+		{
+			return PointState(up.met && down.met, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio)) ;
+		}
+
+		double zeroLocation() const
+		{
+			double ret = down.fraction + down.delta*(up.fraction-down.fraction)/(up.delta-down.delta) ;
+			if(ret >= down.fraction && ret <= up.fraction)
+				return ret ;
+			return -1 ;
+		}
+	} ;
 /** \brief Damage model interface */
 class DamageModel
 {
@@ -27,6 +59,7 @@ protected:
 	double secondaryThresholdDamageDensity ;
 	double damageDensityTolerance ;
 	double fraction ;
+	double trialRatio ;
 	
 	Vector upState ;
 	Vector downState ;
@@ -39,6 +72,7 @@ protected:
 	
 	Vector state ;
 	Vector previousstate ;
+	std::vector<PointState> states ;
 	
 public:
 	

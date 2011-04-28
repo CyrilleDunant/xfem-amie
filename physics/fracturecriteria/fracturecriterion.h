@@ -49,6 +49,7 @@ typedef enum{
 		std::vector<double> area ;
 		
 		std::vector<unsigned int> damagingSet ;
+		std::vector<unsigned int> proximitySet ;
 
 		double neighbourhoodradius ;
 		double neighbourhoodvolume ;
@@ -117,7 +118,7 @@ typedef enum{
 		 */
 		virtual double grade(const ElementState & s) = 0 ;
 		
-		virtual int setChange(const ElementState &s)  ;
+		virtual double setChange(const ElementState &s)  ;
 		
 		/** \brief Produce a copy of the fracture criterion
 		 * 
