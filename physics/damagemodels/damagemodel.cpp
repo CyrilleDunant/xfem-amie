@@ -128,9 +128,11 @@ namespace Mu
 			
 			for(auto i = states.begin() ; i != states.end() ; i++)
 			{
+				std::cout << i->delta << std::endl ;
 				if(trialRatio > i->fraction)
 				{
-					states.insert(i, PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
+					
+					states.insert(++i, PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
 					break;
 				}
 			}
