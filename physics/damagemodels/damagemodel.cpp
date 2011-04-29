@@ -49,7 +49,6 @@ namespace Mu
 		}
 		
 		double setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange(s) ;
-		
 		if(!s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 		{
 			s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint(false);
@@ -58,7 +57,6 @@ namespace Mu
 				wasBroken = true ;
 			return ;
 		}
-		
 		
 		bool checkpoint = s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ;
 
@@ -125,14 +123,12 @@ namespace Mu
 		{
 			change = true ;
 			
-			
 			for(auto i = states.begin() ; i != states.end() ; i++)
 			{
-				std::cout << i->delta << std::endl ;
 				if(trialRatio > i->fraction)
 				{
 					
-					states.insert(++i, PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
+					states.insert(i, PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
 					break;
 				}
 			}
@@ -140,7 +136,7 @@ namespace Mu
 			//find the most likely midPoint
 			RangeState bestRange(states[1], states[0]) ;
 			PointState bestState = bestRange.extrapolate() ;
-			bool maxDamage = false ;
+			bool maxDamage = bestState.isMet ;
 			for (size_t i = 1 ; i < states.size()-1 ;i++ )
 			{
 				RangeState trialRange(states[i+1], states[i]) ;
