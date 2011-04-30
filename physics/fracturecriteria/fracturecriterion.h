@@ -86,6 +86,7 @@ typedef enum{
 		double getEnergyDamageDifferential()  const {return energyDamageDifferential ;}
 		double getCriterionDamageDifferential()  const {return criterionDamageDifferential ;}
 		double getDeltaEnergyAtState() const {return deltaEnergyAtState ;}
+		double getScoreTolerance() const { return scoreTolerance ; }
 		bool metInTension ;
 		bool metInCompression ;
 		

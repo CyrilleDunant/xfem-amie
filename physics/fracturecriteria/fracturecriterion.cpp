@@ -740,34 +740,28 @@ double FractureCriterion::setChange(const ElementState &s)
 			
 			int fractile = 95*sortedElements.size()/100 ;
 			double thresholdScore = sortedElements.rbegin()->first ;
-			for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
-			{
-				fractile-- ;
-				thresholdScore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-				if(fractile < 0)
-					break ;
-			}
+//			for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
+//			{
+//				fractile-- ;
+//				thresholdScore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+//				if(fractile < 0)
+//					break ;
+//			}
 			
 			// the scores are local: they give the order of the element damaging
 			// the met() is non-local, it determines whether an element can in
 			// fact be damaged.
 			double minscore =  sortedElements.rbegin()->first ;
-			std::cout << minscore << std::endl ;
-			for(auto i = ++sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
+			for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 			{
-				if(i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState >= thresholdScore-scoreTolerance && i->second->getBehaviour()->getFractureCriterion()->met())
+				if(std::abs(i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState-thresholdScore) < scoreTolerance 
+						&& i->second->getBehaviour()->getFractureCriterion()->met())
 				{
 					newSet.push_back(i->second->index);
+					minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 				}
 				else
-				{
-					if(i != sortedElements.rbegin())
-					{
-						i-- ;
-						minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-					}
 					break ;
-				}
 			}
 			std::stable_sort(newSet.begin(), newSet.end());
 			std::set<unsigned int> newProximity ;

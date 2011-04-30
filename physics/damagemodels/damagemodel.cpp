@@ -101,7 +101,7 @@ namespace Mu
 				}
 
 				states.clear() ;
-				states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, 0.)) ;
+				states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange, 0.)) ;
 				downState = getPreviousState();
 				upState = getPreviousState()+damageIncrement*up ;
 				getState() =upState ;
@@ -123,58 +123,71 @@ namespace Mu
 		{
 			change = true ;
 			
-			for(auto i = states.begin() ; i != states.end() ; i++)
-			{
-				if(trialRatio > i->fraction)
-				{
-					
-					states.insert(i, PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
-					break;
-				}
-			}
+			states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
+			std::stable_sort(states.begin(), states.end()) ;	
+			
 
 			//find the most likely midPoint
-			RangeState bestRange(states[1], states[0]) ;
-			PointState bestState = bestRange.extrapolate() ;
-			bool maxDamage = bestState.isMet ;
+			RangeState bestRangeNonMet(states[1], states[0]) ;
+			RangeState bestRangeZero(states[1], states[0]) ;
+			PointState bestStateNonMet = bestRangeNonMet.extrapolate(0.5) ;
+			PointState bestStateZero = bestRangeZero.extrapolate(0.5) ;
+			bool equilibrium = false ;
 			for (size_t i = 1 ; i < states.size()-1 ;i++ )
 			{
 				RangeState trialRange(states[i+1], states[i]) ;
 				PointState trialState = trialRange.extrapolate() ;
-				if(trialState.isMet == false)
+				double zero = trialRange.zeroLocation() ;
+				if(states[i].isMet!=states[i+1].isMet )
 				{	
-					maxDamage = true ;
-					bestState = trialState ;
-					bestRange = trialRange ;
+					equilibrium = true ;
+					bestStateNonMet = trialState ;
+					bestRangeNonMet = trialRange ;
 					break ;
 				}
-				if(trialState.delta < bestState.delta)
+				if(states[i].delta*states[i+1].delta < 0 && bestRangeZero.up.delta*bestRangeZero.down.delta > 0)
 				{
-					bestState = trialState ;
-					bestRange = trialRange ;
+					bestStateZero = trialState ;
+					bestRangeZero = trialRange ;
+					break ;
 				}
+				
 			}
 			
-			if(maxDamage)
+			RangeState bestRange =  bestRangeNonMet;
+			double zeroloc = bestStateZero.fraction ;
+			if(equilibrium)
 			{
-				trialRatio = bestState.fraction ;
-				getState() = upState*trialRatio + downState*(1.-trialRatio) ;
+				trialRatio = bestStateNonMet.fraction ;
+				getState() = upState*bestStateNonMet.fraction + downState*(1.-bestStateNonMet.fraction) ;
+				if(std::abs(bestRange.up.fraction*upState+(1.-bestRange.up.fraction)*downState - bestRange.down.fraction*upState - (1.-bestRange.down.fraction)*downState).max()< damageDensityTolerance)
+				{
+					converged = true ;
+				}
 			}
 			else
 			{
-				double zero = bestRange.zeroLocation() ;
-				if(zero > 0)
-					trialRatio = zero ;
-				else
-					trialRatio = bestState.fraction ;
+				bestRange = bestRangeZero ;
+				trialRatio = bestStateZero.fraction ;
+				if(zeroloc > 0)
+					trialRatio = zeroloc ;
 				getState() = upState*trialRatio + downState*(1.-trialRatio) ;
+				if( bestRangeZero.down.delta*bestRangeZero.up.delta < 0 && std::max(std::abs(bestRangeZero.down.delta), std::abs(bestRangeZero.up.delta)) < 0.25*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
+				{
+					converged = true ;
+				}
 			}
 			
 			
-			if(std::abs(bestRange.up.fraction*upState+(1.-bestRange.up.fraction)*downState - bestRange.down.fraction*upState - (1.-bestRange.down.fraction)*downState).max()/std::abs(upState-downState).max() < damageDensityTolerance)
-			{
-				converged = true ;
-			}
+			
+
+//			if(std::abs(bestRange.up.fraction*upState+(1.-bestRange.up.fraction)*downState - bestRange.down.fraction*upState - (1.-bestRange.down.fraction)*downState).max()< damageDensityTolerance)
+//			{
+//				for(size_t i = 0 ; i < states.size() ;i++ )
+//					std::cout << states[i].fraction << "  " << states[i].delta << "  " << states[i].isMet <<std::endl ;
+//				getState() =bestStateNonMet.fraction*upState+(1.-bestStateNonMet.fraction)*downState ;
+//				converged = true ;
+//			}
 			
 
 //			if(setChange != 0 || fractured())
@@ -239,7 +252,7 @@ namespace Mu
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
 		explorationIncrement = 4e-4;4./pow(2., 16) ;
-		damageDensityTolerance = 1e-4;1./pow(2., 16) ; // about 1e-4
+		damageDensityTolerance = 1e-3;1./pow(2., 16) ; // about 1e-4
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

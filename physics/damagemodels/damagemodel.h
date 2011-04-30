@@ -26,6 +26,7 @@ namespace Mu
 		double delta ;
 		double fraction ;
 		PointState(bool met, double delta, double frac) : isMet(met), delta(delta), fraction(frac) {} ;
+		bool operator < (const PointState & p) const {return fraction < p.fraction ; }
 	} ;
 	struct RangeState
 	{
