@@ -204,13 +204,18 @@ void TriangleGLDrawer::setZoom(int percent) {
 void TriangleGLDrawer::openFile(const QString f) {
 
 	delete valuesAtPoint ;
-	TriangleDataReader reader(f) ;
+	delete reader ;
 	
-	numberOfTriangles = reader.numberOfTriangles() ;	
-	numberOfPointsPerTriangle = reader.numberOfPointsPerTriangle() ;	
-	numberOfExtraFields = reader.numberOfExtraFields() ;
+	reader = new TriangleDataReader(f) ;
+
+	numberOfTriangles = reader->numberOfTriangles() ;	
+	numberOfPointsPerTriangle = reader->numberOfPointsPerTriangle() ;	
+	numberOfExtraFields = reader->numberOfExtraFields() ;
+	numberOfExtraTimePlanes = reader->numberOfTimePlanes()-1 ;
+	currentTimePlane = 0 ;
 	
-	valuesAtPoint = reader.data() ;
+	valuesAtPoint = reader->data() ;
+	
 }
 
 void TriangleGLDrawer::initializeGL() {
@@ -393,6 +398,40 @@ void TriangleGLDrawer::setScale(int v){
 	emit scaleChanged(v) ;
 }
 
+void TriangleGLDrawer::setTimePlane(int tp)
+{
+	delete valuesAtPoint ;
+
+	if(tp <= numberOfExtraTimePlanes)
+	{
+		valuesAtPoint = reader->dataAtPos(tp) ;
+	}
+	else
+	{
+		valuesAtPoint = reader->dataNext() ;
+		if(valuesAtPoint->size() == 0)
+		{
+			delete valuesAtPoint ;
+			tp = 0 ;
+			valuesAtPoint = reader->dataAtPos(tp) ;			
+		}
+		else
+		{
+			numberOfExtraTimePlanes = tp ;
+		}
+	}	
+	currentTimePlane = tp ;		
+	numberOfTriangles = reader->numberOfTriangles() ;	
+	numberOfPointsPerTriangle = reader->numberOfPointsPerTriangle() ;	
+	numberOfExtraFields = reader->numberOfExtraFields() ;
+
+	computeDisplayList() ;
+	paintGL() ;
+
+	emit timePlaneChanged(tp) ;	
+}
+
+
 void TriangleGLDrawer::setSegmentUp(int v){
 	if (v < fracdown)
 		v = fracdown+1 ;
@@ -457,6 +496,7 @@ void TriangleGLDrawer::HSVtoRGB( size_t *r, size_t *g, size_t *b, float h, float
 TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent) : QGLWidget(parent), limits(limits) {
 	
 	valuesAtPoint = NULL ;
+	reader = NULL ;
 	
 	mousePosOnLeftClick = QPoint(0,0);
 	
@@ -476,12 +516,13 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 	fracdown = 0;
 	
 	scale = 1 ;
-
+	
 }
 
 TriangleGLDrawer::TriangleGLDrawer(QWidget *parent) : QGLWidget(parent) {
 	
 	valuesAtPoint = new std::vector< std::valarray<float> >(0) ;
+	reader = NULL ;
 	
 	mousePosOnLeftClick = QPoint(0,0);
 	

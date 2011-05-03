@@ -84,18 +84,23 @@ public slots:
 	void setSegmentDown(int) ;
 	void setSegmentUp(int) ;
 	void setScale(int) ;
+	void setTimePlane(int) ;
 	
 signals:
 	void segmentUpChanged(int) ;
 	void segmentDownChanged(int) ;
 	void scaleChanged(int) ;
+	void timePlaneChanged(int) ;
 	
 protected:
 	std::vector< std::valarray<float> > * valuesAtPoint ;
+	TriangleDataReader * reader ;
 	
 	quint64 numberOfTriangles ;
 	quint64 numberOfPointsPerTriangle ;
 	quint64 numberOfExtraFields ;
+	quint64 numberOfExtraTimePlanes ;
+	quint64 currentTimePlane ;
 	
 	std::vector< std::valarray<size_t> > colour ;
 

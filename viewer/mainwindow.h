@@ -39,6 +39,7 @@ private:
 	QSpinBox * zoom ;
 	QSpinBox * alpha ;
 	QSpinBox * field ;
+	QSpinBox * time ;
 	QSlider * downSlider ;
 	QSlider * upSlider ;
 	QStatusBar *statusbar ;

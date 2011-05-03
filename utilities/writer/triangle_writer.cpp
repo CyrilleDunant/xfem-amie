@@ -1,7 +1,7 @@
 //
 // C++ Interface: voxel writer
 //
-// Description: 
+// Description:
 //
 //
 // Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2010-2011
@@ -12,6 +12,7 @@
 //
 
 #include "triangle_writer.h"
+#include "voxel_writer.h"
 #include "../../physics/stiffness.h"
 #include <iostream>
 #include <fstream>
@@ -20,25 +21,61 @@
 namespace Mu
 {
 
-TriangleWriter::TriangleWriter(std::string f, FeatureTree * F)
+TriangleWriter::TriangleWriter(std::string f, FeatureTree * F, int t)
 {
 	filename = f ;
 	source = F ;
-	std::vector<DelaunayTriangle *> tri =  source->getElements2D() ;
-	nTriangles = tri.size();
-	int count = 0 ;
-	for(int i = 0 ; i < nTriangles ; i++)
-		if(tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-			count++ ;
-	nTriangles = count ;
-	getField(TWFT_COORDINATE) ;
-	getField(TWFT_DISPLACEMENTS) ;
+	if(source != NULL)
+	{
+	    std::vector<DelaunayTriangle *> tri =  source->getElements2D() ;
+	    nTriangles = tri.size();
+	    int count = 0 ;
+	    for(int i = 0 ; i < nTriangles ; i++)
+		    if(tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			    count++ ;
+	    nTriangles = count ;
+	    timePlane = t ;
+	    if(timePlane < 0)
+		    timePlane = 0 ;
+	    if(timePlane >= tri[0]->timePlanes())
+		    timePlane = tri[0]->timePlanes()-1 ;
+
+	    getField(TWFT_COORDINATE) ;
+	    getField(TWFT_DISPLACEMENTS) ;
+	}
+}
+
+BinaryTriangleWriter::BinaryTriangleWriter(std::string f, FeatureTree * F, int t) : TriangleWriter(f, F, t) { }
+
+void TriangleWriter::reset(FeatureTree * F, int t)
+{
+	values.clear() ;
+
+	source = F ;
+	if(source != NULL)
+	{
+	    std::vector<DelaunayTriangle *> tri =  source->getElements2D() ;
+	    nTriangles = tri.size();
+	    int count = 0 ;
+	    for(int i = 0 ; i < nTriangles ; i++)
+		    if(tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			    count++ ;
+	    nTriangles = count ;
+	    timePlane = t ;
+	    if(timePlane < 0)
+		    timePlane = 0 ;
+	    if(timePlane >= tri[0]->timePlanes())
+		    timePlane = tri[0]->timePlanes()-1 ;
+
+	    getField(TWFT_COORDINATE) ;
+	    getField(TWFT_DISPLACEMENTS) ;
+	}
 }
 
 void TriangleWriter::write()
 {
-	
-	writeHeader() ;
+
+	writeHeader(false) ;
 	std::fstream outfile  ;
 	outfile.open(filename.c_str(), std::ios::out|std::ios::app) ;
 	for(int i = 0 ; i < nTriangles ; i++)
@@ -51,6 +88,82 @@ void TriangleWriter::write()
 	}
 	outfile.close();
 }
+
+void BinaryTriangleWriter::write()
+{
+	writeHeader(false) ;
+
+	std::vector<std::valarray<unsigned char> > norm ;
+	std::valarray<bool> voids(false, values[0].size()) ;
+	for(size_t i = 6 ; i < values.size() ; i++)
+	{
+		std::valarray<unsigned char> n = normalizeArray(values[i], voids) ;
+		norm.push_back(n) ;
+	}
+
+	std::fstream outbin ;
+	outbin.open(filename.c_str(), std::ios::out|std::ios::app) ;
+	for(int i = 0 ; i < nTriangles ; i++)
+	{
+		for(size_t j = 0 ; j < 6 ; j++)
+			outbin << values[j][i] << " " ;
+
+		for(size_t j = 6 ; j < values.size() ; j++)
+		{
+			unsigned char val = norm[j-6][i] ;
+			outbin << (unsigned short int) val << " " ;
+		}
+		outbin << std::endl ;
+	}
+	outbin.close();
+}
+
+void TriangleWriter::append()
+{
+
+	writeHeader(true) ;
+	std::fstream outfile  ;
+	outfile.open(filename.c_str(), std::ios::out|std::ios::app) ;
+	for(int i = 0 ; i < nTriangles ; i++)
+	{
+		for(size_t j = 0 ; j < values.size() ; j++)
+		{
+			outfile << values[j][i] << " " ;
+		}
+		outfile << std::endl ;
+	}
+	outfile.close();
+}
+
+void BinaryTriangleWriter::append()
+{
+	writeHeader(true) ;
+
+	std::vector<std::valarray<unsigned char> > norm ;
+	std::valarray<bool> voids(false, values[0].size()) ;
+	for(size_t i = 6 ; i < values.size() ; i++)
+	{
+		std::valarray<unsigned char> n = normalizeArray(values[i], voids) ;
+		norm.push_back(n) ;
+	}
+
+	std::fstream outbin ;
+	outbin.open(filename.c_str(), std::ios::out|std::ios::app) ;
+	for(int i = 0 ; i < nTriangles ; i++)
+	{
+		for(size_t j = 0 ; j < 6 ; j++)
+			outbin << values[j][i] << " " ;
+
+		for(size_t j = 6 ; j < values.size() ; j++)
+		{
+			unsigned char val = norm[j-6][i] ;
+			outbin << (unsigned short int) val << " " ;
+		}
+		outbin << std::endl ;
+	}
+	outbin.close();
+}
+
 
 void TriangleWriter::getField(TWFieldType field)
 {
@@ -71,13 +184,17 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 	}
 	if(field == TWFT_STRAIN || field == TWFT_STRAIN_AND_STRESS || field == TWFT_STRESS)
 	{
-		
+
 		std::pair<Vector, Vector> stress_strain = source->getStressAndStrain() ;
 		std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
 		int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
+		int pointsPerPlane = pointsPerTri / triangles[0]->timePlanes() ;
 		int factor = 1 ;
 		if(triangles[0]->getBoundingPoints().size() == 6)
 			factor = 2 ;
+
+		int time_offset = timePlane * pointsPerTri / triangles[0]->timePlanes() ;
+
 		switch(field)
 		{
 			case TWFT_STRAIN:
@@ -87,19 +204,19 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 					if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured())
 					{
 						// epsilon11
-						ret[8][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*0+0*factor] ;
-						ret[7][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*1+0*factor] ;
-						ret[6][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*2+0*factor] ;
-					
+						ret[8][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*0*factor+0+3*time_offset] ;
+						ret[7][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*1*factor+0+3*time_offset] ;
+						ret[6][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*2*factor+0+3*time_offset] ;
+
 						// epsilon12
-						ret[5][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*0+1*factor] ;
-						ret[4][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*1+1*factor] ;
-						ret[3][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*2+1*factor] ;
-					
+						ret[5][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*0*factor+1+3*time_offset] ;
+						ret[4][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*1*factor+1+3*time_offset] ;
+						ret[3][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*2*factor+1+3*time_offset] ;
+
 						// epsilon22
-						ret[2][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*0+2*factor] ;
-						ret[1][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerTri*1+2*factor] ;
-						ret[0][iterator++] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*2+2*factor] ;
+						ret[2][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*0*factor+2+3*time_offset] ;
+						ret[1][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*1*factor+2+3*time_offset] ;
+						ret[0][iterator++] = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*2*factor+2+3*time_offset] ;
 					}
 					else if (triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
@@ -107,12 +224,12 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 						ret[8][iterator] = 0 ;
 						ret[7][iterator] = 0 ;
 						ret[6][iterator] = 0 ;
-					
+
 						// epsilon12
 						ret[5][iterator] = 0 ;
 						ret[4][iterator] = 0 ;
 						ret[3][iterator] = 0 ;
-					
+
 						// epsilon22
 						ret[2][iterator] = 0 ;
 						ret[1][iterator] = 0 ;
@@ -120,54 +237,54 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 					}
 				}
 				break ;
-				
+
 			case TWFT_STRAIN_AND_STRESS:
 				for(int i = 0 ; i < triangles.size() ; i++)
 				{
 					if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured())
 					{
 						// epsilon11
-						ret[17][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*0+0*factor] ;
-						ret[16][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*1+0*factor] ;
-						ret[15][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*2+0*factor] ;
-					
+						ret[17][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*0*factor+0+3*time_offset] ;
+						ret[16][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*1*factor+0+3*time_offset] ;
+						ret[15][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*2*factor+0+3*time_offset] ;
+
 						// epsilon12
-						ret[14][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*0+1*factor] ;
-						ret[13][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*1+1*factor] ;
-						ret[12][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*2+1*factor] ;
-					
+						ret[14][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*0*factor+1+3*time_offset] ;
+						ret[13][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*1*factor+1+3*time_offset] ;
+						ret[12][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*2*factor+1+3*time_offset] ;
+
 						// epsilon22
-						ret[11][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*0+2*factor] ;
-						ret[10][iterator] = stress_strain.second[i*3*pointsPerTri+pointsPerTri*1+2*factor] ;
-						ret[9][iterator] = stress_strain.second[ i*3*pointsPerTri+pointsPerTri*2+2*factor] ;
+						ret[11][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*0*factor+2+3*time_offset] ;
+						ret[10][iterator]   = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*1*factor+2+3*time_offset] ;
+						ret[9][iterator]    = stress_strain.second[i*3*pointsPerTri+pointsPerPlane*2*factor+2+3*time_offset] ;
 
 						// sigma11
-						ret[8][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*0+0*factor] ;
-						ret[7][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*1+0*factor] ;
-						ret[6][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*2+0*factor] ;
-					
+						ret[8][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*0*factor+0+3*time_offset] ;
+						ret[7][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*1*factor+0+3*time_offset] ;
+						ret[6][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*2*factor+0+3*time_offset] ;
+
 						// sigma12
-						ret[5][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*0+1*factor] ;
-						ret[4][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*1+1*factor] ;
-						ret[3][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*2+1*factor] ;
-					
+						ret[5][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*0*factor+1+3*time_offset] ;
+						ret[4][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*1*factor+1+3*time_offset] ;
+						ret[3][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*2*factor+1+3*time_offset] ;
+
 						// sigma22
-						ret[2][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*0+2*factor] ;
-						ret[1][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*1+2*factor] ;
-						ret[0][iterator++] = stress_strain.first[i*3*pointsPerTri+pointsPerTri*2+2*factor] ;
-					}	
+						ret[2][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*0*factor+2+3*time_offset] ;
+						ret[1][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*1*factor+2+3*time_offset] ;
+						ret[0][iterator++] = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*2*factor+2+3*time_offset] ;
+					}
 					else if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
 						// epsilon11
 						ret[17][iterator] = 0 ;
 						ret[16][iterator] = 0 ;
 						ret[15][iterator] = 0 ;
-					
+
 						// epsilon12
 						ret[14][iterator] = 0 ;
 						ret[13][iterator] = 0 ;
 						ret[12][iterator] = 0 ;
-					
+
 						// epsilon22
 						ret[11][iterator] = 0 ;
 						ret[10][iterator] = 0 ;
@@ -177,16 +294,16 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 						ret[8][iterator] = 0 ;
 						ret[7][iterator] = 0 ;
 						ret[6][iterator] = 0 ;
-					
+
 						// sigma12
 						ret[5][iterator] = 0 ;
 						ret[4][iterator] = 0 ;
 						ret[3][iterator] = 0 ;
-					
+
 						// sigma22
 						ret[2][iterator] = 0 ;
 						ret[1][iterator] = 0 ;
-						ret[0][iterator++] = 0 ;					
+						ret[0][iterator++] = 0 ;
 					}
 				}
 				break ;
@@ -198,19 +315,19 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 					if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured())
 					{
 						// sigma11
-						ret[8][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*0+0*factor] ;
-						ret[7][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*1+0*factor] ;
-						ret[6][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*2+0*factor] ;
-					
+						ret[8][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*0*factor+0+3*time_offset] ;
+						ret[7][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*1*factor+0+3*time_offset] ;
+						ret[6][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*2*factor+0+3*time_offset] ;
+
 						// sigma12
-						ret[5][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*0+1*factor] ;
-						ret[4][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*1+1*factor] ;
-						ret[3][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*2+1*factor] ;
-					
+						ret[5][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*0*factor+1+3*time_offset] ;
+						ret[4][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*1*factor+1+3*time_offset] ;
+						ret[3][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*2*factor+1+3*time_offset] ;
+
 						// sigma22
-						ret[2][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*0+2*factor] ;
-						ret[1][iterator] =   stress_strain.first[i*3*pointsPerTri+pointsPerTri*1+2*factor] ;
-						ret[0][iterator++] = stress_strain.first[i*3*pointsPerTri+pointsPerTri*2+2*factor] ;
+						ret[2][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*0*factor+2+3*time_offset] ;
+						ret[1][iterator]   = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*1*factor+2+3*time_offset] ;
+						ret[0][iterator++] = stress_strain.first[i*3*pointsPerTri+pointsPerPlane*2*factor+2+3*time_offset] ;
 					}
 					else if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
@@ -218,12 +335,12 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 						ret[8][iterator] = 0 ;
 						ret[7][iterator] = 0 ;
 						ret[6][iterator] = 0 ;
-					
+
 						// sigma12
 						ret[5][iterator] = 0 ;
 						ret[4][iterator] = 0 ;
 						ret[3][iterator] = 0 ;
-					
+
 						// sigma22
 						ret[2][iterator] = 0 ;
 						ret[1][iterator] = 0 ;
@@ -241,7 +358,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 			std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
 			switch(field)
 			{
-				
+
 				case TWFT_FLUX:
 					gradient_flux.first.resize(0) ;
 					for(int i = 0 ; i < triangles.size() ; i++)
@@ -252,7 +369,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 							ret[5][iterator] = gradient_flux.second[i*3*2+0] ;
 							ret[4][iterator] = gradient_flux.second[i*3*2+2] ;
 							ret[3][iterator] = gradient_flux.second[i*3*2+4] ;
-					
+
 							// j22
 							ret[2][iterator] = gradient_flux.second[i*3*2+1] ;
 							ret[1][iterator] = gradient_flux.second[i*3*2+3] ;
@@ -264,7 +381,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 							ret[5][iterator] = 0 ;
 							ret[4][iterator] = 0 ;
 							ret[3][iterator++] = 0 ;
-					
+
 							// j22
 							ret[2][iterator] = 0 ;
 							ret[1][iterator] = 0 ;
@@ -272,7 +389,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 						}
 					}
 					break ;
-				
+
 				case TWFT_GRADIENT_AND_FLUX:
 					for(int i = 0 ; i < triangles.size() ; i++)
 					{
@@ -282,7 +399,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 							ret[11][iterator] = gradient_flux.first[i*3*2+0] ;
 							ret[10][iterator] = gradient_flux.first[i*3*2+2] ;
 							ret[9][iterator] = gradient_flux.first[i*3*2+4] ;
-					
+
 							// d22
 							ret[8][iterator] = gradient_flux.first[i*3*2+1] ;
 							ret[7][iterator] = gradient_flux.first[i*3*2+3] ;
@@ -292,7 +409,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 							ret[5][iterator] = gradient_flux.second[i*3*2+0] ;
 							ret[4][iterator] = gradient_flux.second[i*3*2+2] ;
 							ret[3][iterator] = gradient_flux.second[i*3*2+4] ;
-					
+
 							// j22
 							ret[2][iterator] = gradient_flux.second[i*3*2+1] ;
 							ret[1][iterator] = gradient_flux.second[i*3*2+3] ;
@@ -304,17 +421,17 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 							ret[11][iterator] = 0 ;
 							ret[10][iterator] = 0 ;
 							ret[9][iterator] = 0 ;
-					
+
 							// d22
 							ret[8][iterator] = 0 ;
 							ret[7][iterator] = 0 ;
 							ret[6][iterator] = 0 ;
-						
+
 							// j11
 							ret[5][iterator] = 0 ;
 							ret[4][iterator] = 0 ;
 							ret[3][iterator] = 0 ;
-					
+
 							// j22
 							ret[2][iterator] = 0 ;
 							ret[1][iterator] = 0 ;
@@ -333,7 +450,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 							ret[5][iterator] = gradient_flux.first[i*3*2+0] ;
 							ret[4][iterator] = gradient_flux.first[i*3*2+2] ;
 							ret[3][iterator] = gradient_flux.first[i*3*2+4] ;
-					
+
 							// d22
 							ret[2][iterator] = gradient_flux.first[i*3*2+1] ;
 							ret[1][iterator] = gradient_flux.first[i*3*2+3] ;
@@ -345,7 +462,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 							ret[5][iterator] = 0 ;
 							ret[4][iterator] = 0 ;
 							ret[3][iterator] = 0 ;
-					
+
 							// d22
 							ret[2][iterator] = 0 ;
 							ret[1][iterator] = 0 ;
@@ -354,7 +471,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 					}
 					break ;
 			}
-		
+
 		}
 		else
 		{
@@ -362,17 +479,32 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 			{
 				Vector x = source->getDisplacements() ;
 				std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
-				
+
+				int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
+				int factor = 1 ;
+				if(triangles[0]->getBoundingPoints().size() == 6)
+					factor = 2 ;
+
+				if(timePlane >= triangles[0]->timePlanes())
+					timePlane = triangles[0]->timePlanes()-1 ;
+
+				int time_offset = timePlane * pointsPerTri / triangles[0]->timePlanes() ;
+				std::cerr << time_offset << std::endl ;
+
 				for(int i = 0 ; i < triangles.size() ; i++)
 				{
 					if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
-						ret[5][iterator] = x[triangles[i]->first->id*2] ;
-						ret[4][iterator] = x[triangles[i]->second->id*2] ;
-						ret[3][iterator] = x[triangles[i]->third->id*2] ;
-						ret[2][iterator] = x[triangles[i]->first->id*2+1] ;
-						ret[1][iterator] = x[triangles[i]->second->id*2+1] ;
-						ret[0][iterator++] = x[triangles[i]->third->id*2+1] ;
+						size_t id1 = triangles[i]->getBoundingPoint(factor*0 + time_offset).id ;
+						size_t id2 = triangles[i]->getBoundingPoint(factor*1 + time_offset).id ;
+						size_t id3 = triangles[i]->getBoundingPoint(factor*2 + time_offset).id ;
+
+						ret[5][iterator] = x[id1*2] ;
+						ret[4][iterator] = x[id2*2] ;
+						ret[3][iterator] = x[id3*2] ;
+						ret[2][iterator] = x[id1*2+1] ;
+						ret[1][iterator] = x[id2*2+1] ;
+						ret[0][iterator++] = x[id3*2+1] ;
 					}
 					else if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
@@ -410,7 +542,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 				}
 			}
 			else
-			{		
+			{
 				std::vector<DelaunayTriangle *> tri = source->getElements2D() ;
 				for(size_t i = 0 ; i < tri.size() ; i++)
 				{
@@ -454,35 +586,39 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 				ret[0]=tri->third->y ;
 				found = true ;
 				break ;
-				
+
 			case TWFT_PRINCIPAL_ANGLE:
 			{
 				ret[2] = tri->getState().getPrincipalAngle(*tri->first)[0] ;
 				ret[1] = tri->getState().getPrincipalAngle(*tri->second)[0] ;
 				ret[0] = tri->getState().getPrincipalAngle(*tri->third)[0] ;
-			
+
 				found = true ;
 				break ;
 			}
 			case TWFT_STIFFNESS:
 			{
 				LinearForm * b = dynamic_cast<LinearForm *>(tri->getBehaviour()) ;
+				double t = 0 ;
+				if(tri->timePlanes() > 1)
+					t = -1 + timePlane * 2 / (tri->timePlanes()-1) ;
+
 				if(b)
 				{
-					ret[2]=b->getTensor(Point(1,0))[0][0] ;
-					ret[1]=b->getTensor(Point(0,0))[0][0] ;
-					ret[0]=b->getTensor(Point(0,1))[0][0] ;
+					ret[2]=b->getTensor(Point(1,0,0,t))[0][0] ;
+					ret[1]=b->getTensor(Point(0,0,0,t))[0][0] ;
+					ret[0]=b->getTensor(Point(0,1,0,t))[0][0] ;
 					found = true ;
 				}
 				break ;
 			}
-				
+
 			case TWFT_VON_MISES:
 			{
-				ret[2]=tri->getState().getMaximumVonMisesStress() ;		
-				ret[1]=tri->getState().getMaximumVonMisesStress() ;		
-				ret[0]=tri->getState().getMaximumVonMisesStress() ;		
-				found = true ;	
+				ret[2]=tri->getState().getMaximumVonMisesStress() ;
+				ret[1]=tri->getState().getMaximumVonMisesStress() ;
+				ret[0]=tri->getState().getMaximumVonMisesStress() ;
+				found = true ;
 				break ;
 			}
 		}
@@ -491,11 +627,32 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 
 }
 
-void TriangleWriter::writeHeader()
+void TriangleWriter::writeHeader(bool append)
 {
 	std::fstream outstream ;
-	outstream.open(filename.c_str(), std::ios::out) ;
+	outstream.open(filename.c_str(), std::ios::out|std::ios::app) ;
+	if(!append)
+	{
+		outstream.close() ;
+		outstream.open(filename.c_str(), std::ios::out) ;
+	}
 	outstream << "TRIANGLES" << std::endl ;
+	outstream << (int) values[0].size() << std::endl ;
+	outstream << 3 << std::endl ;
+	outstream << ((int) values.size()-6)/3 << std::endl ;
+	outstream.close() ;
+}
+
+void BinaryTriangleWriter::writeHeader(bool append)
+{
+	std::fstream outstream ;
+	outstream.open(filename.c_str(), std::ios::out|std::ios::app) ;
+	if(!append)
+	{
+		outstream.close() ;
+		outstream.open(filename.c_str(), std::ios::out) ;
+	}
+	outstream << "BIN_TRIANGLES" << std::endl ;
 	outstream << (int) values[0].size() << std::endl ;
 	outstream << 3 << std::endl ;
 	outstream << ((int) values.size()-6)/3 << std::endl ;
@@ -536,7 +693,6 @@ int numberOfFields(TWFieldType field)
 
 
 }
-
 
 
 

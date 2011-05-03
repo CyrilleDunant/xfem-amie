@@ -9,6 +9,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics_base.h"
+#include "../physics/kelvinvoight.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/laplacian.h"
 #include "../physics/materials/aggregate_behaviour.h"
@@ -412,8 +413,13 @@ void step()
 
 int main(int argc, char *argv[])
 {
-	timeval t0,t1 ;
-	gettimeofday(&t0, NULL);	
+
+	double E = 35*1e9 ;
+	double nu = 0.3 ;
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ;
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ;
 
 	Sample box(NULL, 0.04,0.04,0.,0.) ;
 	box.setBehaviour(new PasteBehaviour()) ;
@@ -421,49 +427,47 @@ int main(int argc, char *argv[])
 	Inclusion* inc = new Inclusion(0.01, 0.003,0.003) ;
 	inc->setBehaviour(new AggregateBehaviour()) ;
 	
-	double E = 35*1e9 ;
-	double nu = 0.3 ;
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
 
 	double alpha = 0.1 ;
 	Vector a(3) ;
 	a[0] = alpha ; a[1] = alpha ; a[2] = 0. ;
 
-//	ExpansiveZone* exp1 = new ExpansiveZone(NULL, 0.0001, 0.003, 0.003, m0, a) ;
-//	ExpansiveZone* exp2 = new ExpansiveZone(NULL, 0.0001, 0.009, 0.0025, m0, a) ;
+	ExpansiveZone* exp1 = new ExpansiveZone(NULL, 0.0001, 0.003, 0.003, m0, a) ;
+	ExpansiveZone* exp2 = new ExpansiveZone(NULL, 0.0001, 0.009, 0.0025, m0, a) ;
 	ExpansiveZone* exp3 = new ExpansiveZone(NULL, 0.0001, -0.005, 0.003, m0, a) ;
 
 	FeatureTree F(&box) ;
+
+
 	featureTree = &F ;
 	F.addFeature(&box, inc) ;
-	F.setElastic(true) ;	
-//	F.addFeature(inc, exp1) ;	
-//	F.addFeature(inc, exp2) ;	
-	F.addFeature(inc, exp3) ;	
-	F.setSamplingNumber(20) ;
+	F.addFeature(inc, exp1) ;
+//	F.addFeature(inc, exp2) ;
+//	F.addFeature(inc, exp3) ;
+	F.setSamplingNumber(64) ;
 	F.setDeltaTime(0.0001) ;
-	F.setMaxIterationsPerStep(1) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0.1)) ;
+	F.setMaxIterationsPerStep(200) ;
+	F.setOrder(LINEAR) ;
 
-	step() ;
 
-	F.setElastic(false) ;	
+	TriangleWriter writer("test",NULL,0) ;
 
-	step() ;
+	for(size_t i = 0 ; i < 100 ; i++)
+	{
+	    F.resetBoundaryConditions() ;
+	    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, -0.001*i)) ;
+	    step() ;
 
-	gettimeofday(&t1, NULL);	
-	double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
-	std::cout << delta/1e6 << std::endl ;
-	
-	TriangleWriter writer("test",featureTree) ;
-	writer.getField(TWFT_STIFFNESS) ;
-	writer.getField(TWFT_STRAIN) ;
-	writer.getField(TWFT_STRESS) ;
-	writer.write() ;
+	    writer.reset(featureTree, 0);
+	    writer.getField(TWFT_STIFFNESS) ;
+	    writer.getField(TWFT_STRAIN) ;
+	    writer.getField(TWFT_STRESS) ;
+	    writer.append() ;
+
+	}
+
+
 	
 	return 0 ;
 }
