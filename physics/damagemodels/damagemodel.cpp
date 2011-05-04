@@ -49,6 +49,7 @@ namespace Mu
 		}
 		
 		double setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange(s) ;
+		double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
 		if(!s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 		{
 			s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint(false);
@@ -101,12 +102,18 @@ namespace Mu
 				}
 
 				states.clear() ;
-				states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange, 0.)) ;
+				states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange, 0., score)) ;
 				downState = getPreviousState();
 				upState = getPreviousState()+damageIncrement*up ;
 				getState() =upState ;
 				trialRatio = 1 ;
 				if((upState-downState).min() < 0)
+				{
+					getState() = upState ;
+					converged = true ;
+					wasBroken = true ;
+				}
+				if(std::abs(upState-downState).max()< damageDensityTolerance)
 				{
 					getState() = upState ;
 					converged = true ;
@@ -122,62 +129,163 @@ namespace Mu
 		else if(!converged)
 		{
 			change = true ;
+//			if(std::abs(score) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
+//			{
+//				converged = true ;
+//				return ;
+//			}
+//			if(std::abs(setChange) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
+//			{
+//				converged = true ;
+//				return ;
+//			}
 			
-			states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio)) ;
+			states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio, score)) ;
 			std::stable_sort(states.begin(), states.end()) ;	
-			
+			double stol = 0.25*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
 
 			//find the most likely midPoint
 			RangeState bestRangeNonMet(states[1], states[0]) ;
 			RangeState bestRangeZero(states[1], states[0]) ;
 			PointState bestStateNonMet = bestRangeNonMet.extrapolate(0.5) ;
 			PointState bestStateZero = bestRangeZero.extrapolate(0.5) ;
-			bool equilibrium = false ;
-			for (size_t i = 1 ; i < states.size()-1 ;i++ )
+			bool equilibrium = (states[0].score*states[1].score < 0) ;
+			bool foundzero = (states[0].delta*states[1].delta < 0) ;
+			double minDelta = states[0].delta ;
+			double minScore = states[0].score ;
+			size_t minIndexNonMet = 0 ;
+			size_t minIndexZero = 0 ;
+			if(states[0].score*states[1].score <= 0 
+					&& std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
 			{
-				RangeState trialRange(states[i+1], states[i]) ;
-				PointState trialState = trialRange.extrapolate() ;
-				double zero = trialRange.zeroLocation() ;
-				if(states[i].isMet!=states[i+1].isMet )
-				{	
-					equilibrium = true ;
-					bestStateNonMet = trialState ;
-					bestRangeNonMet = trialRange ;
-					break ;
-				}
-				if(states[i].delta*states[i+1].delta < 0 && bestRangeZero.up.delta*bestRangeZero.down.delta > 0)
-				{
-					bestStateZero = trialState ;
-					bestRangeZero = trialRange ;
-					break ;
-				}
-				
+				getState() = downState + (upState-downState)*std::max(states[1].fraction,explorationIncrement) ;
+				converged = true ;
+				return ;
 			}
-			
+			if(std::max(std::abs(states[0].score), std::abs(states[1].score)) < stol ||std::max(std::abs(states[0].delta), std::abs(states[1].delta)) < stol)
+			{
+				getState() = downState+(upState-downState)*states[1].fraction  ;
+				converged = true ;
+				return ;
+			}
+                       if(states[0].delta*states[1].delta <= 0 
+				       && std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance
+				       && std::max(states[0].delta,states[1].delta) > stol)
+		       {
+				getState() = downState + (upState-downState)*std::max(states[1].fraction,explorationIncrement) ;
+				converged = true ;
+				return ;
+			}
+		       if(std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
+		       {
+				getState() = downState + (upState-downState)*std::max(states[1].fraction, explorationIncrement) ;
+				converged = true ;
+				return ;
+		       }
+
+			if(!foundzero && !equilibrium)
+			{
+				for (size_t i = 1 ; i < states.size()-1 ;i++ )
+				{
+					if(states[i].delta < minDelta)
+					{
+						minDelta = states[i].delta ;
+						minIndexZero = i ;
+					}
+					if(states[i].score < minScore)
+					{
+						minScore = states[i].score ;
+						minIndexNonMet = i ;
+					}
+					RangeState trialRange(states[i+1], states[i]) ;
+					PointState trialState = trialRange.extrapolate(0.5) ;
+					if(states[i].score*states[i+1].score <= 0 )
+					{
+						if(std::abs(states[i].fraction -states[i+1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
+						{
+							getState() = downState+(upState-downState)*states[i+1].fraction  ;
+							converged = true ;
+							return ;
+						}
+						if(std::max(std::abs(states[i].score), std::abs(states[i+1].score)) < stol)
+						{
+							getState() = downState+(upState-downState)*states[i+1].fraction ;
+							converged = true ;
+							return ;
+						}	
+						equilibrium = true ;
+						bestStateNonMet = trialState ;
+						bestRangeNonMet = trialRange ;
+						break ;
+					}
+					if(states[i].delta*states[i+1].delta <= 0 && std::max(states[i].fraction,states[i+1].fraction) >  damageDensityTolerance)
+					{
+                                                if(std::abs(states[i].fraction -states[i+1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance) 
+						{
+							getState() = downState+(upState-downState)*states[i+1].fraction ;
+							converged = true ;
+							return ;
+						}
+						if(std::max(std::abs(states[i].delta), std::abs(states[i+1].delta)) < stol)
+						{
+							getState() = downState+(upState-downState)*states[i+1].fraction ;
+							converged = true ;
+							return ;
+						}
+						if(states[i+1].fraction*std::abs(upState-downState).max() > damageDensityTolerance )
+						{
+							foundzero = true ;
+							bestStateZero = trialState ;
+							bestRangeZero = trialRange ;
+							break ;
+						}
+					}
+					
+					if(std::abs(states[i].fraction -states[i+1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
+					{
+						getState() = downState+(upState-downState)*states[i+1].fraction  ;
+						converged = true ;
+						return ;
+					}
+					
+				}
+			}
+
 			RangeState bestRange =  bestRangeNonMet;
-			double zeroloc = bestStateZero.fraction ;
+			double zeroloc = bestRangeZero.zeroLocation() ;
+			double equilibriumloc = bestRangeNonMet.equilibriumLocation() ;
 			if(equilibrium)
 			{
 				trialRatio = bestStateNonMet.fraction ;
-				getState() = upState*bestStateNonMet.fraction + downState*(1.-bestStateNonMet.fraction) ;
-				if(std::abs(bestRange.up.fraction*upState+(1.-bestRange.up.fraction)*downState - bestRange.down.fraction*upState - (1.-bestRange.down.fraction)*downState).max()< damageDensityTolerance)
-				{
-					converged = true ;
-				}
+//				if(equilibriumloc > 0)
+//					trialRatio = equilibriumloc ;
+				getState() =downState + (upState-downState)*trialRatio ;
+//				if(std::abs(bestRange.down.delta*bestRange.up.delta)  < 0.25*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() || std::abs(bestRange.up.fraction*upState+(1.-bestRange.up.fraction)*downState - bestRange.down.fraction*upState - (1.-bestRange.down.fraction)*downState).max()< damageDensityTolerance)
+//				{
+//					converged = true ;
+//				}
 			}
-			else
+			else if(foundzero)
 			{
 				bestRange = bestRangeZero ;
 				trialRatio = bestStateZero.fraction ;
-				if(zeroloc > 0)
-					trialRatio = zeroloc ;
-				getState() = upState*trialRatio + downState*(1.-trialRatio) ;
-				if( bestRangeZero.down.delta*bestRangeZero.up.delta < 0 && std::max(std::abs(bestRangeZero.down.delta), std::abs(bestRangeZero.up.delta)) < 0.25*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance())
-				{
-					converged = true ;
-				}
+//				if(zeroloc > 0)
+//					trialRatio = zeroloc ;
+				getState() = downState + (upState-downState)*trialRatio ;
+//				if( std::abs(bestRangeZero.down.delta*bestRangeZero.up.delta)  < 0.25*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() || std::abs(bestRange.up.fraction*upState+(1.-bestRange.up.fraction)*downState - bestRange.down.fraction*upState - (1.-bestRange.down.fraction)*downState).max()< damageDensityTolerance)
+//				{
+//					converged = true ;
+//				}
 			}
-			
+			else
+			{
+				size_t idx = minIndexNonMet ;
+				if(std::abs(minDelta) < std::abs(minScore))
+					idx = minIndexZero ;
+				bestRange = RangeState(states[idx], states[idx+1]) ;
+				trialRatio = bestRange.extrapolate(0.5).fraction ;
+				getState() = downState* + (upState-downState)*trialRatio ;
+			}
 			
 			
 
@@ -251,8 +359,8 @@ namespace Mu
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
-		explorationIncrement = 4e-4;4./pow(2., 16) ;
-		damageDensityTolerance = 1e-3;1./pow(2., 16) ; // about 1e-4
+		explorationIncrement = 0.1;4./pow(2., 16) ;
+		damageDensityTolerance = 1e-5;1./pow(2., 16) ; // about 1e-4
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const

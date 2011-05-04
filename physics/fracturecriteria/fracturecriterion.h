@@ -143,6 +143,7 @@ typedef enum{
 		const std::vector<unsigned int> & getCache() const { return cache ; } ;
 		
 		double getScoreAtState() const { return scoreAtState ; }
+		double getNonLocalScoreAtState() const { return nonLocalScoreAtState ;}
 		
 		std::pair<double, double> getDeltaEnergyDeltaCriterion(const ElementState & s, double delta_d) const ;
 		

@@ -3594,6 +3594,7 @@ void FeatureTree::stepElements()
 			}
 			if(foundCheckPoint)
 			{
+				std::cout << "[" << averageDamage << "]" << std::flush ;
 				for(size_t i = 0 ; i < elements.size() ;i++)
 					if(elements[i]->getBehaviour()->getFractureCriterion())
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(true) ;
@@ -4016,10 +4017,6 @@ bool FeatureTree::step()
 		{
 			notConvergedCounts++ ;
 			std::cout << "+" << std::flush ;
-		}
-		if(it % 40 == 0)
-		{
-			std::cout  << "["<< averageDamage<< "]"<<std::endl ;
 		}
 
 		if(enrichmentChange || needMeshing)

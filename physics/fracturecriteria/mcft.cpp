@@ -47,8 +47,8 @@ double MCFT::grade(const ElementState &s)
 	
 	double maxTension = upVal ;
 	
-	if(tstrain > tensionCritStrain)
-	{
+//	if(tstrain > tensionCritStrain)
+//	{
 		//Yamamoto model 
 //		maxTension = upVal/(1.+sqrt(2e6*(tstrain+tensionCritStrain))) ;
 		
@@ -57,36 +57,36 @@ double MCFT::grade(const ElementState &s)
 		
 		//perfectly brittle
 // 		maxTension = 0 ;
-	}
+//	}
 	
 	
 
-	metInCompression = cstrain < 0 && std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) || tstrain < 0;
-	metInTension = tstrain > 0 && std::abs(cstress/maxCompression) < std::abs(tstress/maxTension) || cstrain > 0;
+	metInCompression = cstrain <= 0 && std::abs(cstress/maxCompression) > std::abs(tstress/maxTension) || tstrain <= 0;
+	metInTension = tstrain >= 0 && std::abs(cstress/maxCompression) < std::abs(tstress/maxTension) || cstrain >= 0;
 	
 	
 	std::vector<double> crits ;
 	crits.push_back(-1) ;
 	
-	if( cstress < 0 && std::abs(cstress) >= std::abs(maxCompression) )
+	if( cstress <= 0 && std::abs(cstress) >= std::abs(maxCompression) )
 	{
 		metInCompression = true ;
 		crits.push_back(1. - std::abs(maxCompression/cstress)) ;
 	}
 	
-	if(tstress > 0 && std::abs(tstress) >= std::abs(maxTension))
+	if(tstress >= 0 && std::abs(tstress) >= std::abs(maxTension))
 	{
 		metInTension = true ;
 		crits.push_back(1. - std::abs(maxTension/tstress)) ;
 	}
 	
 	
-	if(tstress > 0 && std::abs(tstress)  < std::abs(maxTension))
+	if(tstress >= 0 && std::abs(tstress)  < std::abs(maxTension))
 	{
 		crits.push_back(-1. + std::abs(tstress/maxTension)) ;
 	}
 
-	if(cstress < 0 && std::abs(cstress) < std::abs(downVal))
+	if(cstress <= 0 && std::abs(cstress) < std::abs(downVal))
 	{
 		crits.push_back(-1. + std::abs(cstress/downVal)) ;
 	}

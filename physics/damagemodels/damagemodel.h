@@ -24,8 +24,9 @@ namespace Mu
 	{
 		bool isMet ;
 		double delta ;
+		double score ;
 		double fraction ;
-		PointState(bool met, double delta, double frac) : isMet(met), delta(delta), fraction(frac) {} ;
+		PointState(bool met, double delta, double frac, double score) : isMet(met), delta(delta), score(score), fraction(frac) {} ;
 		bool operator < (const PointState & p) const {return fraction < p.fraction ; }
 	} ;
 	struct RangeState
@@ -41,7 +42,7 @@ namespace Mu
 		}
 		PointState extrapolate(double ratio = .5)
 		{
-			return PointState(up.isMet && down.isMet, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio)) ;
+			return PointState(up.isMet && down.isMet, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio), up.score*ratio+down.score*(1.-ratio)) ;
 		}
 
 		double zeroLocation() const
@@ -50,6 +51,15 @@ namespace Mu
 			if(ret >= down.fraction && ret <= up.fraction)
 				return ret ;
 			return -1 ;
+		}
+
+		double equilibriumLocation() const
+		{
+			double ret = down.fraction + down.score*(up.fraction-down.fraction)/(up.score-down.score) ;
+			if(ret >= down.fraction && ret <= up.fraction)
+				return ret ;
+			return -1 ;
+
 		}
 	} ;
 /** \brief Damage model interface */
