@@ -100,16 +100,14 @@ namespace Mu
 						factor = (up+down)/2 ;
 					}
 				}
-				for(size_t j = 0 ; j < upState.size ; j++)
-				  upState[j] = std::min(1,std::max(0., upState[j])) ;
 				states.clear() ;
 				states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange, 0., score)) ;
 				downState = getPreviousState();
 				upState = getPreviousState()+damageIncrement*up ;
 				getState() = upState ;
-				for(size_t j = 0 ; j < upState.size ; j++)
+				for(size_t j = 0 ; j < upState.size() ; j++)
 					upState[j] = std::min(downState[j],std::max(0., upState[j])) ;
-				for(size_t j = 0 ; j < downState.size ; j++)
+				for(size_t j = 0 ; j < downState.size() ; j++)
 					downState[j] = std::min(upState[j],std::max(0., upState[j])) ;
 				trialRatio = 1 ;
 				if((upState-downState).min() < 0)
