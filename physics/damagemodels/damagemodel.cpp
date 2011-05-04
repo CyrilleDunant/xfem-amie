@@ -145,29 +145,29 @@ namespace Mu
 			double minScore = states[0].score ;
 			size_t minIndexNonMet = 0 ;
 			size_t minIndexZero = 0 ;
-			if(equilibrium && std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
+			if(equilibrium && std::abs(states[0].fraction -states[1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 			{
-				getState() = downState + (upState-downState)*std::max(states[1].fraction,explorationIncrement*std::abs(upState-downState).max()) ;
+				getState() = downState + (upState-downState)*states[1].fraction,explorationIncrement*(upState-downState).max()) ;
 				converged = true ;
 				return ;
 			}
-			if(foundzero  && std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance )
+			if(foundzero  && std::abs(states[0].fraction -states[1].fraction)*(upState-downState).max()  < damageDensityTolerance )
 		       {
-				getState() = downState + (upState-downState)*std::max(states[1].fraction,explorationIncrement*std::abs(upState-downState).max()) ;
+				getState() = downState + (upState-downState)*states[1].fraction ;
 				converged = true ;
 				return ;
 			}
 			if(std::min(std::abs(states[0].score), std::abs(states[1].score)) < stol 
 			  || std::min(std::abs(states[0].delta), std::abs(states[1].delta)) < stol)
 			{
-				getState() = downState+(upState-downState)*states[1].fraction  ;
+				getState() = downState+(upState-downState)*states[1].fraction ;
 				converged = true ;
 				return ;
 			}
 
-		       if(std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
+		       if(std::abs(states[0].fraction -states[1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 		       {
-				getState() = downState + (upState-downState)*std::max(states[1].fraction, explorationIncrement*std::abs(upState-downState).max()) ;
+				getState() = downState + (upState-downState)*states[1].fraction ;
 				converged = true ;
 				return ;
 		       }
@@ -190,7 +190,7 @@ namespace Mu
 					PointState trialState = trialRange.extrapolate(0.5) ;
 					if(states[i].score*states[i+1].score < 0 )
 					{
-						if(std::abs(states[i].fraction -states[i+1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
+						if(std::abs(states[i].fraction -states[i+1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 						{
 							getState() = downState+(upState-downState)*states[i+1].fraction  ;
 							converged = true ;
@@ -207,9 +207,9 @@ namespace Mu
 						bestRangeNonMet = trialRange ;
 						break ;
 					}
-					if(states[i].delta*states[i+1].delta < 0 && std::max(states[i].fraction,states[i+1].fraction) >  damageDensityTolerance)
+					if(states[i].delta*states[i+1].delta < 0 )
 					{
-                                                if(std::abs(states[i].fraction -states[i+1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance) 
+                                                if(std::abs(states[i].fraction -states[i+1].fraction)*(upState-downState).max()  < damageDensityTolerance) 
 						{
 							getState() = downState+(upState-downState)*states[i+1].fraction ;
 							converged = true ;
@@ -230,7 +230,7 @@ namespace Mu
 						}
 					}
 					
-					if(std::abs(states[i].fraction -states[i+1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance)
+					if(std::abs(states[i].fraction -states[i+1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 					{
 						getState() = downState+(upState-downState)*states[i+1].fraction  ;
 						converged = true ;
@@ -287,8 +287,8 @@ namespace Mu
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
-		explorationIncrement = 0.1;4./pow(2., 16) ;
-		damageDensityTolerance = 1e-5;1./pow(2., 16) ; // about 1e-4
+		explorationIncrement = 0.1;
+		damageDensityTolerance = 1e-5;
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const
