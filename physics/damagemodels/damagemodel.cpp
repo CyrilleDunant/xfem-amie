@@ -105,7 +105,7 @@ namespace Mu
 				states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange, 0., score)) ;
 				downState = getPreviousState();
 				upState = getPreviousState()+damageIncrement*up ;
-				getState() =upState ;
+				getState() = upState ;
 				trialRatio = 1 ;
 				if((upState-downState).min() < 0)
 				{
@@ -113,7 +113,7 @@ namespace Mu
 					converged = true ;
 					wasBroken = true ;
 				}
-				if(std::abs(upState-downState).max()< damageDensityTolerance)
+				if( (upState-downState).max() < damageDensityTolerance)
 				{
 					getState() = upState ;
 					converged = true ;
@@ -157,10 +157,9 @@ namespace Mu
 				converged = true ;
 				return ;
 			}
-			if(std::min(std::abs(states[0].score), std::abs(states[1].score)) < stol 
-			  || std::min(std::abs(states[0].delta), std::abs(states[1].delta)) < stol)
+			if(std::abs(bestStateZero.score) < stol || std::abs(bestStateZero.delta) < stol)
 			{
-				getState() = downState+(upState-downState)*states[1].fraction ;
+				getState() = downState+(upState-downState)*bestStateZero.fraction ;
 				converged = true ;
 				return ;
 			}
@@ -196,9 +195,9 @@ namespace Mu
 							converged = true ;
 							return ;
 						}
-						if(std::min(std::abs(states[i].score), std::abs(states[i+1].score)) < stol)
+						if(std::abs(trialState.score) < stol)
 						{
-							getState() = downState+(upState-downState)*states[i+1].fraction ;
+							getState() = downState+(upState-downState)*trialState.fraction ;
 							converged = true ;
 							return ;
 						}	
@@ -215,9 +214,9 @@ namespace Mu
 							converged = true ;
 							return ;
 						}
-						if(std::min(std::abs(states[i].delta), std::abs(states[i+1].delta)) < stol)
+						if(std::abs(trialState.delta) < stol)
 						{
-							getState() = downState+(upState-downState)*states[i+1].fraction ;
+							getState() = downState+(upState-downState)*trialState.fraction ;
 							converged = true ;
 							return ;
 						}

@@ -1136,66 +1136,7 @@ endloop:
 						}
 					}
 				}
-				
-// 				bool foundcutoff = false ;
-// 				double thresholdscore = maxNeighbourhoodScore ;
-// 				double avgscore = 0 ;
-// 				double trialarea = std::min(physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI, areamax) ;
-// 				for(auto i = scores.begin() ; i != scores.end() ; ++i)
-// 				{
-// 
-// 					double parea = matchedArea ;
-// 					double narea = areatemp[i->second] ;
-// 					matchedArea += narea ;
-// 					double a(narea) ;
-// 					if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
-// 					{
-// 						matchedArea += a ;
-// 						narea += a ;
-// 					}
-// 					if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
-// 					{
-// 						matchedArea += a ;
-// 						narea += a ;
-// 					}
-// 					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-// 					{
-// 						matchedArea += a ;
-// 						narea += a ;
-// 					}
-// 					if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-// 					{
-// 						matchedArea += a ;
-// 						narea += a ;
-// 					}
-// 					avgscore = (parea*avgscore - narea*i->first)/matchedArea ;
-// 
-// 					if (avgscore <= 0 && matchedArea >= trialarea)
-// 					{
-// 						thresholdscore = -i->first ;
-// 						foundcutoff = true ;
-// 						break ;
-// 					}
-// 					else if (avgscore < 0 && matchedArea < trialarea)
-// 					{
-// 						foundcutoff = false ;
-// 						break ;
-// 					}
-// 					else if (avgscore > 0 && matchedArea >= trialarea)
-// 					{
-// 						thresholdscore = -i->first ;
-// 						foundcutoff = true ;
-// 						break ;
-// 					}
-// 		// 			else
-// 		// 				i->second->visited = true ;
-// 				}
-// 				
-// 				if (!foundcutoff && areamax > s.getParent()->area())
-// 				{
-// 					metAtStep = false ;
-// 					return  ;
-// 				}
+
 				if (nearmaxlocus)
 				{
 					nonLocalScoreAtState = maxNeighbourhoodScore ;
