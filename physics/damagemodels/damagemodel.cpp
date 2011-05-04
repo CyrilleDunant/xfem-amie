@@ -160,7 +160,7 @@ namespace Mu
 				converged = true ;
 				return ;
 			}
-			if(std::abs(bestStateZero.score) < stol || std::abs(bestStateZero.delta) < stol)
+			if(foundzero && std::abs(bestStateZero.score) < stol || equilibrium && std::abs(bestStateZero.delta) < stol)
 			{
 				getState() = downState+(upState-downState)*bestStateZero.fraction ;
 				converged = true ;
@@ -248,17 +248,17 @@ namespace Mu
 			if(equilibrium)
 			{
 				trialRatio = bestStateNonMet.fraction ;
-				if(equilibriumloc > 0)
-					trialRatio = equilibriumloc ;
-				getState() =downState + (upState-downState)*trialRatio ;
+// 				if(equilibriumloc > 0)
+// 					trialRatio = equilibriumloc ;
+				getState() = downState + (upState-downState)*trialRatio ;
 
 			}
 			else if(foundzero)
 			{
 				bestRange = bestRangeZero ;
 				trialRatio = bestStateZero.fraction ;
-				if(zeroloc > 0)
-					trialRatio = zeroloc ;
+// 				if(zeroloc > 0)
+// 					trialRatio = zeroloc ;
 				getState() = downState + (upState-downState)*trialRatio ;
 			}
 			else
@@ -268,7 +268,7 @@ namespace Mu
 					idx = minIndexZero ;
 				bestRange = RangeState(states[idx], states[idx+1]) ;
 				trialRatio = bestRange.extrapolate(0.5).fraction ;
-				getState() = downState* + (upState-downState)*trialRatio ;
+				getState() = downState + (upState-downState)*trialRatio ;
 			}
 		}
 	}
