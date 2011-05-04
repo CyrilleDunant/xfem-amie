@@ -150,26 +150,34 @@ namespace Mu
 			size_t minIndexZero = 0 ;
 			if(equilibrium && std::abs(states[0].fraction -states[1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 			{
-				getState() = downState + (upState-downState)*states[1].fraction ;
+				getState() = downState + (upState-downState)*std::max(states[1].fraction, explorationIncrement) ;
 				converged = true ;
+				for(size_t j = 0 ; j < getState().size() ; j++)
+					getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 				return ;
 			}
 			if(foundzero  && std::abs(states[0].fraction -states[1].fraction)*(upState-downState).max()  < damageDensityTolerance )
 		       {
-				getState() = downState + (upState-downState)*states[1].fraction ;
+				getState() = downState + (upState-downState)*std::max(states[1].fraction, explorationIncrement) ;
 				converged = true ;
+				for(size_t j = 0 ; j < getState().size() ; j++)
+					getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 				return ;
 			}
 			if(foundzero && std::abs(bestStateZero.score) < stol || equilibrium && std::abs(bestStateZero.delta) < stol)
 			{
-				getState() = downState+(upState-downState)*bestStateZero.fraction ;
+				getState() = downState+(upState-downState)*std::max(bestStateZero.fraction, explorationIncrement) ;
+				for(size_t j = 0 ; j < getState().size() ; j++)
+					getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 				converged = true ;
 				return ;
 			}
 
 		       if(std::abs(states[0].fraction -states[1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 		       {
-				getState() = downState + (upState-downState)*states[1].fraction ;
+				getState() = downState + (upState-downState)*std::max(states[1].fraction, explorationIncrement) ;
+				for(size_t j = 0 ; j < getState().size() ; j++)
+					getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 				converged = true ;
 				return ;
 		       }
@@ -194,13 +202,17 @@ namespace Mu
 					{
 						if(std::abs(states[i].fraction -states[i+1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 						{
-							getState() = downState+(upState-downState)*states[i+1].fraction  ;
+							getState() = downState+(upState-downState)*std::max(states[i+1].fraction, explorationIncrement)  ;
+							for(size_t j = 0 ; j < getState().size() ; j++)
+								getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 							converged = true ;
 							return ;
 						}
 						if(std::abs(trialState.score) < stol)
 						{
-							getState() = downState+(upState-downState)*trialState.fraction ;
+							getState() = downState+(upState-downState)*std::max(trialState.fraction, explorationIncrement) ;
+							for(size_t j = 0 ; j < getState().size() ; j++)
+								getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 							converged = true ;
 							return ;
 						}	
@@ -213,13 +225,17 @@ namespace Mu
 					{
                                                 if(std::abs(states[i].fraction -states[i+1].fraction)*(upState-downState).max()  < damageDensityTolerance) 
 						{
-							getState() = downState+(upState-downState)*states[i+1].fraction ;
+							getState() = downState+(upState-downState)*std::max(states[i+1].fraction, explorationIncrement) ;
+							for(size_t j = 0 ; j < getState().size() ; j++)
+								getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 							converged = true ;
 							return ;
 						}
 						if(std::abs(trialState.delta) < stol)
 						{
-							getState() = downState+(upState-downState)*trialState.fraction ;
+							getState() = downState+(upState-downState)*std::max(trialState.fraction, explorationIncrement) ;
+							for(size_t j = 0 ; j < getState().size() ; j++)
+								getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 							converged = true ;
 							return ;
 						}
@@ -234,7 +250,9 @@ namespace Mu
 					
 					if(std::abs(states[i].fraction -states[i+1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 					{
-						getState() = downState+(upState-downState)*states[i+1].fraction  ;
+						getState() = downState+(upState-downState)*std::max(states[i+1].fraction, explorationIncrement)  ;
+						for(size_t j = 0 ; j < getState().size() ; j++)
+							getState()[j] = std::min(1.,std::max(downState[j], getState()[j])) ;
 						converged = true ;
 						return ;
 					}
@@ -248,8 +266,8 @@ namespace Mu
 			if(equilibrium)
 			{
 				trialRatio = bestStateNonMet.fraction ;
-// 				if(equilibriumloc > 0)
-// 					trialRatio = equilibriumloc ;
+				if(equilibriumloc > 0)
+					trialRatio = equilibriumloc ;
 				getState() = downState + (upState-downState)*trialRatio ;
 
 			}
@@ -257,8 +275,8 @@ namespace Mu
 			{
 				bestRange = bestRangeZero ;
 				trialRatio = bestStateZero.fraction ;
-// 				if(zeroloc > 0)
-// 					trialRatio = zeroloc ;
+				if(zeroloc > 0)
+					trialRatio = zeroloc ;
 				getState() = downState + (upState-downState)*trialRatio ;
 			}
 			else
