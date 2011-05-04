@@ -151,7 +151,7 @@ namespace Mu
 				converged = true ;
 				return ;
 			}
-			if(foundzero  && std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance
+			if(foundzero  && std::abs(states[0].fraction -states[1].fraction)*std::abs(upState-downState).max()  < damageDensityTolerance )
 		       {
 				getState() = downState + (upState-downState)*std::max(states[1].fraction,explorationIncrement*std::abs(upState-downState).max()) ;
 				converged = true ;
