@@ -106,9 +106,9 @@ namespace Mu
 				upState = getPreviousState()+damageIncrement*up ;
 				getState() = upState ;
 				for(size_t j = 0 ; j < upState.size() ; j++)
-					upState[j] = std::min(downState[j],std::max(0., upState[j])) ;
+					upState[j] = std::min(1,std::max(downState[j], upState[j])) ;
 				for(size_t j = 0 ; j < downState.size() ; j++)
-					downState[j] = std::min(upState[j],std::max(0., upState[j])) ;
+					downState[j] = std::min(upState[j],std::max(0., downState[j])) ;
 				trialRatio = 1 ;
 				if((upState-downState).min() < 0)
 				{
