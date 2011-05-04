@@ -147,7 +147,7 @@ namespace Mu
 			size_t minIndexZero = 0 ;
 			if(equilibrium && std::abs(states[0].fraction -states[1].fraction)*(upState-downState).max()  < damageDensityTolerance)
 			{
-				getState() = downState + (upState-downState)*states[1].fraction,explorationIncrement*(upState-downState).max()) ;
+				getState() = downState + (upState-downState)*states[1].fraction ;
 				converged = true ;
 				return ;
 			}
