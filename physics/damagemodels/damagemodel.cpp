@@ -266,8 +266,8 @@ namespace Mu
 			if(equilibrium)
 			{
 				trialRatio = bestStateNonMet.fraction ;
-				if(equilibriumloc > 0)
-					trialRatio = equilibriumloc ;
+// 				if(equilibriumloc > 0)
+// 					trialRatio = equilibriumloc ;
 				getState() = downState + (upState-downState)*trialRatio ;
 
 			}
@@ -275,8 +275,8 @@ namespace Mu
 			{
 				bestRange = bestRangeZero ;
 				trialRatio = bestStateZero.fraction ;
-				if(zeroloc > 0)
-					trialRatio = zeroloc ;
+// 				if(zeroloc > 0)
+// 					trialRatio = zeroloc ;
 				getState() = downState + (upState-downState)*trialRatio ;
 			}
 			else
@@ -307,7 +307,7 @@ namespace Mu
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
-		explorationIncrement = 0.1;
+		explorationIncrement = 0.01;
 		damageDensityTolerance = 1e-5;
 	} ;
 	
