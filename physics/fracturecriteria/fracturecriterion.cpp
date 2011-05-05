@@ -1374,6 +1374,7 @@ endloop:
 				}
 				
 				double smoothscore = str/fact ;
+				std::cout << scoreAtState << "  " << smoothscore << std::endl ;
 				metAtStep =  (smoothscore > scoreTolerance) ;
 				nonLocalScoreAtState = smoothscore ;
 				return ;
