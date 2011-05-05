@@ -1007,7 +1007,7 @@ void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoo
 	{
 		case NULL_SMOOTH :
 		{
-			if (scoreAtState > -scoreTolerance)
+			if (scoreAtState > scoreTolerance)
 				metAtStep = true ;
 			nonLocalScoreAtState = scoreAtState ;
 			return ;
@@ -1374,7 +1374,7 @@ endloop:
 				}
 				
 				double smoothscore = str/fact ;
-				metAtStep =  (smoothscore > 0) ;
+				metAtStep =  (smoothscore > scoreTolerance) ;
 				nonLocalScoreAtState = smoothscore ;
 				return ;
 

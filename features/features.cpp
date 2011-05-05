@@ -3527,7 +3527,7 @@ void FeatureTree::stepElements()
 					if(i%1000 == 0)
 						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 					if(elements[i]->getBehaviour()->getFractureCriterion())
-						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState(), NULL_SMOOTH) ;
+						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState(elements[i]->getState(), GAUSSIAN_SMOOTH) ;
 				}
 			
 				std::cerr << " ...done. " << std::endl ;
