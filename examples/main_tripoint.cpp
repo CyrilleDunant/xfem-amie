@@ -1604,7 +1604,7 @@ int main(int argc, char *argv[])
 	F.addPoint(new Point(0, -sampleHeight*.5+0.064-rebarDiametre*.5+0.085)) ;
 	F.addPoint(new Point(0, -sampleHeight*.5+0.064+rebarDiametre*.5)) ;
 	F.addPoint(new Point(0, -sampleHeight*.5+0.064+rebarDiametre*.5+0.085)) ;
-	F.setMaxIterationsPerStep(20000);
+	F.setMaxIterationsPerStep(40000);
 	
 	step() ;
 	
