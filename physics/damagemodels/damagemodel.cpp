@@ -308,7 +308,7 @@ namespace Mu
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
 		explorationIncrement = 0.05;
-		damageDensityTolerance = 1e-3;
+		damageDensityTolerance = 0.5e-3;
 	} ;
 	
 	double DamageModel::getThresholdDamageDensity() const
