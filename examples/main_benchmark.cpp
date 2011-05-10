@@ -257,6 +257,8 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
+	F.setProjectionOnBoundaries(false) ;
+
 	Form* behaviour = NULL ;
 	Matrix m1(6,6) ;
 	switch(pheno)
@@ -591,12 +593,12 @@ int main(int argc, char *argv[])
 			<< "C1122 = " << c[1] << std::endl ;
 		out.close() ;
 		
-		VoxelWriter vw("simulation_out_stiffness", 100) ;
-		vw.getField(featureTree, VWFT_STIFFNESS) ;
+		VoxelWriter vw("simulation_out_stiffness", 200) ;
+		vw.getField(featureTree, VWFT_STRESS) ;
 		vw.write();
 		
-		VoxelWriter vw0("simulation_out_stress", 100) ;
-		vw0.getField(featureTree, VWFT_STRESS) ;
+		VoxelWriter vw0("simulation_out_stress", 200) ;
+		vw0.getField(featureTree, VWFT_STRAIN) ;
 		vw0.write();
 		
 		break ;

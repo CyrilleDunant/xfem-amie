@@ -692,7 +692,6 @@ int main(int argc, char *argv[])
  	int inclusionNumber = 4100 ;
  	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416*13/50, 1., BOLOME_D)(.00025, .1, inclusionNumber, itzSize);
 
-
         int n = 4100 ;
 //	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
 	

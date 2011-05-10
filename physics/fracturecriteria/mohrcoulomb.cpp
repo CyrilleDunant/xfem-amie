@@ -155,7 +155,7 @@ double NonLocalMohrCoulomb::grade(const ElementState &s)
 	    for(size_t i = 0 ; i< cache.size() ; i++)
 	    {
 		    DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-		    if(static_cast<IntegrableEntity *>(ci) == s.getParent())
+		    if(dynamic_cast<IntegrableEntity *>(ci) == s.getParent())
 		    {
 			continue ;
 		    }
@@ -164,7 +164,7 @@ double NonLocalMohrCoulomb::grade(const ElementState &s)
 		    {
 			    double d =  exp(-dc/(physicalCharacteristicRadius*physicalCharacteristicRadius) );
 			    double a = ci->area() ;
-			    Vector pstress = s.getPrincipalStresses(testPoints, true) ;
+			    Vector pstress = ci->getState().getPrincipalStresses(testPoints, true) ;
 			    if(!ci->getBehaviour()->fractured())
 			    {
 				    str += pstress*a*d ;
@@ -205,7 +205,7 @@ double NonLocalMohrCoulomb::grade(const ElementState &s)
 	    for(size_t i = 0 ; i< cache.size() ; i++)
 	    {
 		    DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
-		    if(static_cast<IntegrableEntity *>(ci) == s.getParent())
+		    if(dynamic_cast<IntegrableEntity *>(ci) == s.getParent())
 		    {
 			continue ;
 		    }
@@ -214,7 +214,7 @@ double NonLocalMohrCoulomb::grade(const ElementState &s)
 		    {
 			    double d =  exp(-dc/(physicalCharacteristicRadius*physicalCharacteristicRadius) );
 			    double a = ci->volume() ;
-			    Vector pstress = s.getPrincipalStresses(testPoints, true) ;
+			    Vector pstress = ci->getState().getPrincipalStresses(testPoints, true) ;
 			    if(!ci->getBehaviour()->fractured())
 			    {
 				    str += pstress*a*d ;

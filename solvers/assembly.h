@@ -36,6 +36,7 @@ class Preconditionner ;
 typedef enum 
 {
 	GENERAL = 0,
+	FIX_ALONG_ALL,
 	FIX_ALONG_XI,
 	SET_ALONG_XI,
 	FIX_ALONG_ETA,
@@ -81,7 +82,7 @@ public:
 	LagrangeMultiplier(std::valarray<unsigned int> i, Vector c, double v ,int my_id  = -1) ;
 
 /** \brief Create a dummy LM with given ID*/
-	LagrangeMultiplier(int _id){ id  = id ;} 
+	LagrangeMultiplier(int _id){ id  = _id ;} 
 	
 /** \brief Return the sparse matrix corresponding to this lagrange Multiplier*/
 	CoordinateIndexedIncompleteSparseMatrix getMatrix() const ;

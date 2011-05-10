@@ -42,6 +42,8 @@ ViscoElasticity::ViscoElasticity( double _tau_k, double _tau_g, Vector g, Vector
 	param[5][5]  = 0.5 - nu ;
 	param *= E/((1.+nu)*(1.-2.*nu)) ;
 	
+	param.print() ;
+	
 // 		std::cout << "E = " << E << ", nu = " << nu << std::endl; 
 		
 	time_d = true;
@@ -197,13 +199,13 @@ void ViscoElasticity::step(double timestep, ElementState & currentState)
 			// 			for(size_t k = 1 ; k < previousStrain.size() ; k++)
 			// 				std::cout << previousStrain[k] << std::endl ;	
 			average_delta_sigma[j] = -(average_delta_sigma_k+average_delta_sigma_g[j]);
-			std::cout << j  << average_delta_sigma[j]<< std::endl ;
+//			std::cout << j  << average_delta_sigma[j]<< std::endl ;
 		}
 
 		else
 		{
 			average_delta_sigma[j] = -(average_delta_sigma_g[j]);
-			std::cout << j  << average_delta_sigma[j]<< std::endl ;
+//			std::cout << j  << average_delta_sigma[j]<< std::endl ;
 		}
 	}
 }
