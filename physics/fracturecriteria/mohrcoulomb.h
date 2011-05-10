@@ -44,7 +44,7 @@ public:
  * The distance is computed as: \f$ 1.-|\frac{max\; principal\; strain\; in\; element}{Limit\; strain}|  \f$
  * @param s ElementState to consider
 */
-	virtual double grade(const ElementState &s)  ;
+	virtual double grade(ElementState &s)  ;
 
 	virtual Material toMaterial() ;
 	
@@ -74,7 +74,7 @@ public:
  * The distance is computed as: \f$ 1.-|\frac{max\; principal\; strain\; in\; element}{Limit\; strain}|  \f$
  * @param s ElementState to consider
 */
-	virtual double grade(const ElementState &s)  ;
+	virtual double grade(ElementState &s)  ;
 
 	virtual Material toMaterial() ;
 

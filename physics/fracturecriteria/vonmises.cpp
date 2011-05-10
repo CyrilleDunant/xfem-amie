@@ -22,7 +22,7 @@ VonMises::~VonMises()
 {
 }
 
-double VonMises::grade(const ElementState &s)
+double VonMises::grade(ElementState &s)
 {
 	metInCompression = true ;
 	metInTension = true ;
@@ -59,7 +59,7 @@ VonMisesStrain::~VonMisesStrain()
 {
 }
 
-double VonMisesStrain::grade(const ElementState &s)
+double VonMisesStrain::grade(ElementState &s)
 {
 	double maxStress = s.getVonMisesStrain(s.getParent()->getCenter()) ;
 

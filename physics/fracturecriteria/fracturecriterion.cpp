@@ -915,7 +915,7 @@ double FractureCriterion::setChange(const ElementState &s)
 	return 0 ;
 }
 
-void FractureCriterion::step(const ElementState &s)
+void FractureCriterion::step(ElementState &s)
 {
 		if(cache.empty() )
 				initialiseCache(s) ;
@@ -987,7 +987,7 @@ void FractureCriterion::step(const ElementState &s)
 	scoreAtState = grade(s) ;
 }
 
-void FractureCriterion::computeNonLocalState(const ElementState &s, NonLocalSmoothingType st)
+void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingType st)
 {
 	metAtStep = false ;
 	if( !s.getParent()->getBehaviour()->getDamageModel())

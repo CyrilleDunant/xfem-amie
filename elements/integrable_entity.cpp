@@ -135,6 +135,8 @@ ElementState & ElementState::operator =(const ElementState &s)
 
 ElementState::ElementState(const ElementState &s)
 {
+	strainAtNodes.resize(0) ;
+
 	displacements.resize(s.getDisplacements().size()) ; displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize(s.getEnrichedDisplacements().size()) ; 
 	enrichedDisplacements  = s.getEnrichedDisplacements();
@@ -599,6 +601,47 @@ FunctionMatrix ElementState::getDisplacementFunction() const
 		
 		return ret ;
 	}
+}
+
+Vector ElementState::getStrainAtNodes()
+{
+    if(!strainAtNodes.size())
+    {
+	int n = 3 + 3*(parent->spaceDimensions()==SPACE_THREE_DIMENSIONAL) ;
+	strainAtNodes.resize(n*parent->getBoundingPoints().size()) ;
+	PointArray nodes = parent->getBoundingPoints() ;
+	strainAtNodes = getStrain(nodes) ;
+    }
+    return strainAtNodes ;
+
+}
+
+Vector ElementState::getStressAtNodes()
+{
+    getStrainAtNodes() ;
+    Vector stressAtNodes(strainAtNodes.size()) ;
+    size_t nNodes = parent->getBoundingPoints().size() ;
+    int nComponents = 3 + 3*(parent->spaceDimensions()==SPACE_THREE_DIMENSIONAL) ;
+    Vector strain(strainAtNodes.size()/nNodes) ;
+    Vector stress(strain.size()) ;
+    for(size_t i = 0 ; i < nNodes ; i++)
+    {
+	for(size_t j = 0 ; j < nComponents ; j++)
+	{
+	    strain[j] = strainAtNodes[i*nComponents+j] ;
+	}
+
+	Matrix cg = parent->getBehaviour()->getTensor(parent->inLocalCoordinates(parent->getBoundingPoint(i))) ;
+	stress = cg * strain ;
+
+	for(size_t j = 0 ; j < nComponents ; j++)
+	{
+	    stressAtNodes[i*nComponents+j] = stress[j] ;
+	}
+
+    }
+    return stress ;
+
 }
 
 
@@ -5140,6 +5183,9 @@ Vector & ElementState::getBuffer()
 
 void ElementState::step(double dt, const Vector * d)
 {
+	if(strainAtNodes.size())
+		strainAtNodes.resize(0);
+
 	if(!history.empty())
 		history.pop_back() ;
 	history.push_back(ElementState(*this)) ;

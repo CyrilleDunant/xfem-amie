@@ -45,7 +45,7 @@ public:
 * The distance is computed thus: \f$ 1 - \frac{E_c A_e}{\int_e \sigma \epsilon de} \f$
 * @param s ElementState to consider
 */
-	virtual double grade(const ElementState &s)  ;
+	virtual double grade(ElementState &s)  ;
 
 
 	virtual Material toMaterial() ;

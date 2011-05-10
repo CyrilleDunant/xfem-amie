@@ -25,7 +25,7 @@ MCFT::~MCFT()
 {
 }
 
-double MCFT::grade(const ElementState &s) 
+double MCFT::grade(ElementState &s)
 {
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	Vector pstress = s.getPrincipalStresses(s.getParent()->getCenter()) ;

@@ -95,8 +95,8 @@ typedef enum{
 	
 		virtual ~FractureCriterion();
 		
-		void step(const Mu::ElementState& s) ;
-		void computeNonLocalState(const ElementState &s, NonLocalSmoothingType st = MAX_PROXIMITY_SMOOTH) ;
+		void step(Mu::ElementState& s) ;
+		void computeNonLocalState(ElementState &s, NonLocalSmoothingType st = MAX_PROXIMITY_SMOOTH) ;
 		bool isStable() const {return stable ;}
 		bool isAtCheckpoint() const {return checkpoint ;}
 		bool isInDamagingSet() const {return inset ;}
@@ -117,7 +117,7 @@ typedef enum{
 		 * @param  ElementState to consider
 		 * @return a value between -1 and 1
 		 */
-		virtual double grade(const ElementState & s) = 0 ;
+		virtual double grade(ElementState & s) = 0 ;
 		
 		virtual double setChange(const ElementState &s)  ;
 		

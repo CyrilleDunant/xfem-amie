@@ -42,7 +42,7 @@ namespace Mu {
 	 * The distance is computed as: \f$ 1.-|\frac{Limit\; stress}{max\; principal\; strain\; in\; element}|  \f$
 	 * @param s ElementState to consider
 	*/
-		virtual double grade(const ElementState &s)  ;
+		virtual double grade(ElementState &s)  ;
 
 		virtual Material toMaterial() ;
 	};

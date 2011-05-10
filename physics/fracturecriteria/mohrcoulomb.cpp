@@ -27,7 +27,7 @@ MohrCoulomb::~MohrCoulomb()
 		delete testPoints[i] ;
 }
 
-double MohrCoulomb::grade(const ElementState &s) 
+double MohrCoulomb::grade(ElementState &s)
 {
 	
 	if(s.getParent()->getBehaviour()->fractured())
@@ -120,7 +120,7 @@ NonLocalMohrCoulomb::~NonLocalMohrCoulomb()
 		delete testPoints[i] ;
 }
 
-double NonLocalMohrCoulomb::grade(const ElementState &s)
+double NonLocalMohrCoulomb::grade(ElementState &s)
 {
 
 	if(s.getParent()->getBehaviour()->fractured())
@@ -145,7 +145,8 @@ double NonLocalMohrCoulomb::grade(const ElementState &s)
 		}
 	}
 
-	Vector str(s.getPrincipalStresses(testPoints, true)) ;
+//	Vector str(s.getPrincipalStresses(testPoints, true)) ;
+	Vector str(s.getStressAtNodes()) ;
 	if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 	{
 	    str *= s.getParent()->area() ;
@@ -164,7 +165,8 @@ double NonLocalMohrCoulomb::grade(const ElementState &s)
 		    {
 			    double d =  exp(-dc/(physicalCharacteristicRadius*physicalCharacteristicRadius) );
 			    double a = ci->area() ;
-			    Vector pstress = ci->getState().getPrincipalStresses(testPoints, true) ;
+//			    Vector pstress = ci->getState().getPrincipalStresses(testPoints, true) ;
+			    Vector pstress(s.getStressAtNodes()) ;
 			    if(!ci->getBehaviour()->fractured())
 			    {
 				    str += pstress*a*d ;

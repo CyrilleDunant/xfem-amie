@@ -24,7 +24,7 @@ FractionMCFT::~FractionMCFT()
 {
 }
 
-double FractionMCFT::grade(const ElementState &s) 
+double FractionMCFT::grade(ElementState &s)
 {
 	
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;

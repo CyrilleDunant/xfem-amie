@@ -23,7 +23,7 @@ ConfinedVonMises::~ConfinedVonMises()
 {
 }
 
-double ConfinedVonMises::grade(const ElementState &s)
+double ConfinedVonMises::grade(ElementState &s)
 {
 	double maxStress = s.getMaximumVonMisesStress() ;
 	Vector pstress0 = s.getPrincipalStresses(s.getParent()->getCenter()) ;

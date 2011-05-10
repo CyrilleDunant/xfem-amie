@@ -23,7 +23,7 @@ ConfinedMohrCoulombWithStrainLimit::~ConfinedMohrCoulombWithStrainLimit()
 {
 }
 
-double ConfinedMohrCoulombWithStrainLimit::grade(const ElementState &s) 
+double ConfinedMohrCoulombWithStrainLimit::grade(ElementState &s)
 {
 
 	if(s.getParent()->getBehaviour()->fractured())

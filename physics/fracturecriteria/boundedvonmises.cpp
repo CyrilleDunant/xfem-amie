@@ -24,7 +24,7 @@ BoundedVonMises::~BoundedVonMises()
 {
 }
 
-double BoundedVonMises::grade(const ElementState &s)
+double BoundedVonMises::grade(ElementState &s)
 {
 	dmodel = s.getParent()->getBehaviour()->getDamageModel() ;
 	if(dmodel && dmodel->getState().max() > damageThreshold)

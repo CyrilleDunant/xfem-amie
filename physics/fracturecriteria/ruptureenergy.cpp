@@ -23,7 +23,7 @@ RuptureEnergy::~RuptureEnergy()
 {
 }
 
-double RuptureEnergy::grade(const ElementState &s)
+double RuptureEnergy::grade(ElementState &s)
 {
 	Vector pstress = s.getStress(s.getParent()->getGaussPoints().gaussPoints) ;
 	Vector pstrain = s.getStrain(s.getParent()->getGaussPoints().gaussPoints) ;

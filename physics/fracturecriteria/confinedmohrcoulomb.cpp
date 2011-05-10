@@ -23,7 +23,7 @@ ConfinedMohrCoulomb::~ConfinedMohrCoulomb()
 {
 }
 
-double ConfinedMohrCoulomb::grade(const ElementState &s) 
+double ConfinedMohrCoulomb::grade(ElementState &s)
 {
 
 	if(s.getParent()->getBehaviour()->fractured())

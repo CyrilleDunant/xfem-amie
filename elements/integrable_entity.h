@@ -70,6 +70,9 @@ struct BoundaryCondition ;
 class ElementState
 {
 protected:
+
+	Vector strainAtNodes ;
+
 	Vector displacements ;
 	Vector enrichedDisplacements ;
 	
@@ -136,6 +139,9 @@ public:
 
 /** \brief Return strain at given points*/
 	Vector getStrain(const Mu::PointArray &) const;
+
+	Vector getStrainAtNodes() ;
+	Vector getStressAtNodes() ;
 
 /** \brief Return stress at given points*/
 	Vector getPreviousStress(const Mu::PointArray & v) const;

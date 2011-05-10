@@ -24,7 +24,7 @@ NonLocalVonMises::~NonLocalVonMises()
 {
 }
 
-double NonLocalVonMises::grade(const ElementState &s)
+double NonLocalVonMises::grade(ElementState &s)
 {
 	if(cache.empty())
 	{

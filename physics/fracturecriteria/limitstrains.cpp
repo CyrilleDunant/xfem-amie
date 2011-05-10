@@ -23,7 +23,7 @@ LimitStrains::~LimitStrains()
 {
 }
 
-double LimitStrains::grade(const ElementState &s)
+double LimitStrains::grade(ElementState &s)
 {
 	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	double maxStrain = pstrain.max();
