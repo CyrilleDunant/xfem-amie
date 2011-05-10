@@ -25,7 +25,7 @@ Form * AggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1 - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new MohrCoulomb(up*factor,down*factor), materialRadius) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,down*factor), materialRadius) ;
 	ret->setNeighbourhoodRadius(neighbourhoodRadius) ;
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);

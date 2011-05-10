@@ -89,7 +89,7 @@ namespace Mu
 
 			
 			
-			virtual void setElementOrder(Order o) = 0;
+			virtual void setElementOrder(Order o, double dt = 0.) = 0;
 			virtual void insert(Point *) = 0 ;
 			template <class ETARGETTYPE>
 			/** \brief Return the displacements in source mesh projected on current mesh. 
@@ -449,7 +449,7 @@ namespace Mu
 		}
 		
 		virtual std::vector<Point * > & getAdditionalPoints() {return points ; };
-		virtual const std::vector<Point * > & getAdditionalPoints() const {return points ;};
+		virtual const std::vector<Point * > & getAdditionalPoints() const { return points ;};
 		
 		virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) const
 		{
@@ -460,7 +460,7 @@ namespace Mu
 			return ret ; 
 		}
 		/** Does nothing as this is a special-purpose mesh*/
-		virtual void setElementOrder(Order o)
+		virtual void setElementOrder(Order o, double dt = 0.)
 		{
 			switch(o)
 			{
@@ -494,62 +494,62 @@ namespace Mu
 				}
 			case CONSTANT_TIME_LINEAR:
 				{
-					addSharedNodes(0,2,2) ;
+					addSharedNodes(0,2,dt) ;
 					break ;
 				}
 			case CONSTANT_TIME_QUADRATIC:
 				{
-					addSharedNodes(0,3,2) ;
+					addSharedNodes(0,3,dt) ;
 					break ;
 				}
 			case LINEAR_TIME_LINEAR:
 				{
-					addSharedNodes(0,2,2) ;
+					addSharedNodes(0,2,dt) ;
 					break ;
 				}
 			case LINEAR_TIME_QUADRATIC:
 				{
-					addSharedNodes(0,3,2) ;
+					addSharedNodes(0,3,dt) ;
 					break ;
 				}
 			case QUADRATIC_TIME_LINEAR:
 				{
-					addSharedNodes(1,2,2) ;
+					addSharedNodes(1,2,dt) ;
 					break ;
 				}
 			case QUADRATIC_TIME_QUADRATIC:
 				{
-					addSharedNodes(1,3,2) ;
+					addSharedNodes(1,3,dt) ;
 					break ;
 				}
 			case CUBIC_TIME_LINEAR:
 				{
-					addSharedNodes(2,2,2) ;
+					addSharedNodes(2,2,dt) ;
 					break ;
 				}
 			case CUBIC_TIME_QUADRATIC:
 				{
-					addSharedNodes(2,3,2) ;
+					addSharedNodes(2,3,dt) ;
 					break ;
 				}
 			case QUADRIC_TIME_LINEAR:
 				{
-					addSharedNodes(3,2,2) ;
+					addSharedNodes(3,2,dt) ;
 					break ;
 				}
 			case QUADRIC_TIME_QUADRATIC:
 				{
-					addSharedNodes(3,3,2) ;
+					addSharedNodes(3,3,dt) ;
 					break ;
 				}
 			case QUINTIC_TIME_LINEAR:
 				{
-					addSharedNodes(3,2,2) ;
+					addSharedNodes(3,2,dt) ;
 					break ;
 				}
 			case QUINTIC_TIME_QUADRATIC:
 				{
-					addSharedNodes(3,3,2) ;
+					addSharedNodes(3,3,dt) ;
 					break ;
 				}
 			default:

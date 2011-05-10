@@ -25,7 +25,7 @@ namespace Mu
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) const;
 		virtual std::vector<Point * > & getAdditionalPoints(){ return points ;} ;
 		virtual const std::vector<Point * > & getAdditionalPoints() const {return points ;} ;
-		virtual void setElementOrder(Order o);
+		virtual void setElementOrder(Order o, double dt = 0);
 		virtual void insert(Point *) ;
 		virtual const size_t & getLastNodeId() const;
 		virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}

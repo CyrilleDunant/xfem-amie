@@ -356,10 +356,10 @@ bool DelaunayTreeItem::isDuplicate(const DelaunayTreeItem * t) const
 void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TriElement * father)
 {
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
+//	std::cout << timestep << std::endl ;
 
 	for(auto i = tri.begin() ; i != tri.end() ; ++i)
 	{
-		
 		(*i)->visited = true ;
 			
 		size_t nodes_per_plane = nodes_per_side*3+3 ;
@@ -446,7 +446,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 
 }
 
-void DelaunayTree::setElementOrder(Order elemOrder)
+void DelaunayTree::setElementOrder(Order elemOrder, double dt)
 {
 	switch(elemOrder)
 	{
@@ -480,62 +480,62 @@ void DelaunayTree::setElementOrder(Order elemOrder)
 		}
 	case CONSTANT_TIME_LINEAR:
 		{
-			addSharedNodes(0,2,2) ;
+			addSharedNodes(0,2,dt) ;
 			break ;
 		}
 	case CONSTANT_TIME_QUADRATIC:
 		{
-			addSharedNodes(0,3,2) ;
+			addSharedNodes(0,3,dt) ;
 			break ;
 		}
 	case LINEAR_TIME_LINEAR:
 		{
-			addSharedNodes(0,2,2) ;
+			addSharedNodes(0,2,dt) ;
 			break ;
 		}
 	case LINEAR_TIME_QUADRATIC:
 		{
-			addSharedNodes(0,3,2) ;
+			addSharedNodes(0,3,dt) ;
 			break ;
 		}
 	case QUADRATIC_TIME_LINEAR:
 		{
-			addSharedNodes(1,2,2) ;
+			addSharedNodes(1,2,dt) ;
 			break ;
 		}
 	case QUADRATIC_TIME_QUADRATIC:
 		{
-			addSharedNodes(1,3,2) ;
+			addSharedNodes(1,3,dt) ;
 			break ;
 		}
 	case CUBIC_TIME_LINEAR:
 		{
-			addSharedNodes(2,2,2) ;
+			addSharedNodes(2,2,dt) ;
 			break ;
 		}
 	case CUBIC_TIME_QUADRATIC:
 		{
-			addSharedNodes(2,3,2) ;
+			addSharedNodes(2,3,dt) ;
 			break ;
 		}
 	case QUADRIC_TIME_LINEAR:
 		{
-			addSharedNodes(3,2,2) ;
+			addSharedNodes(3,2,dt) ;
 			break ;
 		}
 	case QUADRIC_TIME_QUADRATIC:
 		{
-			addSharedNodes(3,3,2) ;
+			addSharedNodes(3,3,dt) ;
 			break ;
 		}
 	case QUINTIC_TIME_LINEAR:
 		{
-			addSharedNodes(3,2,2) ;
+			addSharedNodes(3,2,dt) ;
 			break ;
 		}
 	case QUINTIC_TIME_QUADRATIC:
 		{
-			addSharedNodes(3,3,2) ;
+			addSharedNodes(3,3,dt) ;
 			break ;
 		}
 	default:
@@ -2007,7 +2007,6 @@ void DelaunayTree::insert(Point *p)
 	delete hull ;
 	delete s ;
 	
-
 }
 
 
@@ -2230,7 +2229,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 	std::valarray<Matrix> Jinv(Matrix(2, 2),  getGaussPoints().gaussPoints.size()) ;
 	
-	if(moved)
+	if(true)//moved)
 	{
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{

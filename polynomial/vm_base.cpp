@@ -847,9 +847,9 @@ std::valarray<Matrix> VirtualMachine::geval(const Function &f, const std::valarr
 	}
 	else if (var.size() == 2)
 	{
+
 		if(transpose)
 		{
-			
 			std::valarray<Matrix> ret(Matrix(3,2), gp.gaussPoints.size()) ;
 			
 			Vector dxi = deval(f, var[0], gp) ;
@@ -1369,8 +1369,8 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 		{
 			
 			Matrix ret(3,2) ;
-			double dxi = deval(f, var[0], x,y,z) ;
-			double deta = deval(f, var[1], x,y,z) ;
+			double dxi = deval(f, var[0], x,y,z,t) ;
+			double deta = deval(f, var[1], x,y,z,t) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 			ret[2][0] = ret[1][1] ;
@@ -1381,8 +1381,8 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 		else
 		{
 			Matrix ret(2,3) ;
-			double dxi = deval(f, var[0], x,y,z) ;
-			double deta = deval(f, var[1], x,y,z) ;
+			double dxi = deval(f, var[0], x,y,z,t) ;
+			double deta = deval(f, var[1], x,y,z,t) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 			ret[0][2] = ret[1][1] ;
@@ -1398,7 +1398,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 			double dxi = deval(f, var[0], x,y,z,t) ;
 			double deta = deval(f, var[1], x,y,z,t) ;
 			double dzeta = deval(f, var[2], x,y,z,t) ;
-			double dteta = deval(f, var[4], x,y,z,t) ;
+			double dteta = deval(f, var[3], x,y,z,t) ;
 			Matrix ret(6,3) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] + dzeta*m[0][2] + dteta*m[0][3];
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] + dzeta*m[1][2] + dteta*m[1][3];
@@ -1415,10 +1415,10 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 		else
 		{
 			Matrix ret(3,6) ;
-			double dxi = deval(f, var[0], x,y,z) ;
-			double deta = deval(f, var[1], x,y,z) ;
-			double dzeta = deval(f, var[2], x,y,z) ;
-			double dteta = deval(f, var[4], x,y,z,t) ;
+			double dxi = deval(f, var[0], x,y,z,t) ;
+			double deta = deval(f, var[1], x,y,z,t) ;
+			double dzeta = deval(f, var[2], x,y,z,t) ;
+			double dteta = deval(f, var[3], x,y,z,t) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] + dzeta*m[0][2]+ dteta*m[0][3];
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] + dzeta*m[1][2]+ dteta*m[0][3];
 			ret[2][2] = dxi*m[2][0] + deta*m[2][1] + dzeta*m[2][2]+ dteta*m[0][3];
@@ -1512,8 +1512,8 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 		{
 			if(ret.isNull()|| ret.numRows() != 3 ||ret.numCols() != 2)
 				ret.resize(3,2) ;
-			double dxi = deval(f, var[0], x,y,z) ;
-			double deta = deval(f, var[1], x,y,z) ;
+			double dxi = deval(f, var[0], x,y,z,t) ;
+			double deta = deval(f, var[1], x,y,z,t) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 			ret[2][0] = ret[1][1] ;
@@ -1525,8 +1525,8 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 		{
 			if(ret.isNull()|| ret.numRows() != 2 ||ret.numCols() != 3)
 				ret.resize(2,3) ;
-			double dxi = deval(f, var[0], x,y,z) ;
-			double deta = deval(f, var[1], x,y,z) ;
+			double dxi = deval(f, var[0], x,y,z,t) ;
+			double deta = deval(f, var[1], x,y,z,t) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 			ret[0][2] = ret[1][1] ;
@@ -1543,7 +1543,7 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 			double dxi = deval(f, var[0], x,y,z,t) ;
 			double deta = deval(f, var[1], x,y,z,t) ;
 			double dzeta = deval(f, var[2], x,y,z,t) ;
-			double dteta = deval(f, var[4], x,y,z,t) ;
+			double dteta = deval(f, var[3], x,y,z,t) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] + dzeta*m[0][2] + dteta*m[0][3];
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] + dzeta*m[1][2] + dteta*m[1][3];
 			ret[2][2] = dxi*m[2][0] + deta*m[2][1] + dzeta*m[2][2] + dteta*m[2][3];
@@ -1559,10 +1559,10 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 		{
 			if(ret.isNull()|| ret.numRows() != 3 ||ret.numCols() != 6)
 				ret.resize(3,6) ;
-			double dxi = deval(f, var[0], x,y,z) ;
-			double deta = deval(f, var[1], x,y,z) ;
-			double dzeta = deval(f, var[2], x,y,z) ;
-			double dteta = deval(f, var[4], x,y,z,t) ;
+			double dxi = deval(f, var[0], x,y,z,t) ;
+			double deta = deval(f, var[1], x,y,z,t) ;
+			double dzeta = deval(f, var[2], x,y,z,t) ;
+			double dteta = deval(f, var[3], x,y,z,t) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] + dzeta*m[0][2]+ dteta*m[0][3];
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] + dzeta*m[1][2]+ dteta*m[0][3];
 			ret[2][2] = dxi*m[2][0] + deta*m[2][1] + dzeta*m[2][2]+ dteta*m[0][3];

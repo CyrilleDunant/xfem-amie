@@ -251,6 +251,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	switch(order)
 	{
 	case CONSTANT:
+	    break;
 	case LINEAR:
 		{
 			ordre = 1 ;
@@ -376,7 +377,48 @@ const GaussPointArray & TriElement::genGaussPoints()
 			fin[11] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115,0,0.577350269189626), 0.066197076394253) ;
 			fin[12] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115,0,0.577350269189626), 0.066197076394253) ;
 			fin[13] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0.577350269189626), 0.1125) ;
-			ordre = 8 ;
+
+/*			double a = 1./6. ;
+			double b = 2./3. ;
+			double c = 0.774596669241483 ;
+			double d = 0.555555555555556 ;
+			double e = 0.888888888888889 ;
+
+			ordre = 9 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(a,a,0,-c), a*d) ;
+			fin[1] = std::pair<Point, double>(Point(b,a,0,-c), a*d) ;
+			fin[2] = std::pair<Point, double>(Point(a,b,0,-c), a*d) ;
+			fin[3] = std::pair<Point, double>(Point(a,a,0,0), a*e) ;
+			fin[4] = std::pair<Point, double>(Point(b,a,0,0), a*e) ;
+			fin[5] = std::pair<Point, double>(Point(a,b,0,0), a*e) ;
+			fin[6] = std::pair<Point, double>(Point(a,a,0,c), a*d) ;
+			fin[7] = std::pair<Point, double>(Point(b,a,0,c), a*d) ;
+			fin[8] = std::pair<Point, double>(Point(a,b,0,c), a*d) ;
+
+			ordre = 12 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-c), 0.2604166666666666667) ;
+			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-c), 0.2604166666666666667) ;
+			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-c), 0.2604166666666666667) ;
+			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-c), -0.28125) ;
+			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.), 0.26041666666666666667) ;
+			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.), 0.26041666666666666667) ;
+			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.), 0.26041666666666666667) ;
+			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.), -0.28125) ;
+			fin[8] = std::pair<Point, double>(Point(0.2, 0.2,0,c), 0.26041666666666666667) ;
+			fin[9] = std::pair<Point, double>(Point(0.6, 0.2,0,c), 0.26041666666666666667) ;
+			fin[10] = std::pair<Point, double>(Point(0.2, 0.6,0,c), 0.26041666666666666667) ;
+			fin[11] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,c), -0.28125) ;*/
+
+			ordre = 2 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,-0.577350269189626), 0.5) ;
+			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0.577350269189626), 0.5) ;
+
+
+
+/*			ordre = 8 ;
 			fin.resize(ordre);
 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
 			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
@@ -385,7 +427,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
 			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
 			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.26041666666666666667) ;
-			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;
+			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;*/
 // 			ordre = 2 ;
 // 			fin.resize(ordre);
 // 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,-0.577350269189626), 0.5) ;
@@ -678,7 +720,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 			shapefunc = new std::valarray<Function>(Function(),9) ;
 			
 		//0
-			(*shapefunc)[0] = Function("y  t 2 ^ t - 0.5 * * ") ;
+			(*shapefunc)[0] = Function("y t 2 ^ t - 0.5 * *") ;
 		//1
 			(*shapefunc)[1] = Function("1 x - y - t 2 ^ t - 0.5 * *") ;
 		//2
@@ -814,6 +856,18 @@ Function TriElement::jacobian() const
 	Function ydeta = this->getdYTransform(ETA) ;
 	
 	Function ret = ydeta*xdxi - ydxi*xdeta  ;
+
+	if(order >= CONSTANT_TIME_LINEAR)
+	{
+	    Function tdxi = this->getdTTransform(XI) ;
+	    Function tdeta = this->getdTTransform(ETA) ;
+	    Function xdtau = this->getdXTransform(TIME_VARIABLE) ;
+	    Function ydtau = this->getdYTransform(TIME_VARIABLE) ;
+	    Function tdtau = this->getdTTransform(TIME_VARIABLE) ;
+
+	    ret = xdxi*ydeta*tdtau + tdeta*xdtau*ydxi + ydtau*tdxi*xdeta  -
+				    xdxi*ydtau*tdeta - xdeta*ydxi*tdtau - xdtau*ydeta*tdxi ;
+	}
 	
 	return ret ;
 	
@@ -848,30 +902,44 @@ double  TriElement::jacobianAtPoint(const Mu::Point& p) const
 	{
 		double xdxi = 0 ;//this->getdXTransform(XI,p) ;
 		double ydxi = 0 ;//this->getdYTransform(XI,p) ;
+		double tdxi = 0 ;
 		
 		double xdeta = 0 ;//this->getdXTransform(ETA,p) ;
 		double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
+		double tdeta = 0 ;
+
+		double xdtau = 0 ;
+		double ydtau = 0 ;
+		double tdtau = 0 ;
 
 		VirtualMachine vm ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
 			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
 			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
+			double dtau = vm.deval(getShapeFunction(i),TIME_VARIABLE,p) ;
 			
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
+			tdxi += dxi*getBoundingPoint(i).t ;
 
 			xdeta += deta*getBoundingPoint(i).x ;
 			ydeta += deta*getBoundingPoint(i).y ;
+			tdeta += deta*getBoundingPoint(i).t ;
+
+			xdtau += dtau*getBoundingPoint(i).x ;
+			ydtau += dtau*getBoundingPoint(i).y ;
+			tdtau += dtau*getBoundingPoint(i).t ;
+
 		}
-		double zdxi = this->getdTTransform(XI, p) ;
+/*		double zdxi = this->getdTTransform(XI, p) ;
 		double zdeta = this->getdTTransform(ETA, p) ;
 		double xdzeta = this->getdXTransform(TIME_VARIABLE,p) ;
 		double ydzeta = this->getdYTransform(TIME_VARIABLE,p) ;
-		double zdzeta = this->getdTTransform(TIME_VARIABLE,p) ;
+		double zdzeta = this->getdTTransform(TIME_VARIABLE,p) ;*/
 		
-		return xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
-			xdxi*ydzeta*zdeta - xdeta*ydxi*zdzeta - xdzeta*ydeta*zdxi ;
+		return xdxi*ydeta*tdtau + tdeta*xdtau*ydxi + ydtau*tdxi*xdeta  -
+			xdxi*ydtau*tdeta - xdeta*ydxi*tdtau - xdtau*ydeta*tdxi ;
 	}
 	
 }
@@ -912,32 +980,50 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 
 		double xdxi = 0 ;//this->getdXTransform(XI,p) ;
 		double ydxi = 0 ;//this->getdYTransform(XI,p) ;
-		
+		double tdxi = 0 ;
+
 		double xdeta = 0 ;//this->getdXTransform(ETA,p) ;
 		double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
+		double tdeta = 0 ;
+
+		double xdtau = 0 ;
+		double ydtau = 0 ;
+		double tdtau = 0 ;
 
 		VirtualMachine vm ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
 			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
 			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
-			
+			double dtau = vm.deval(getShapeFunction(i),TIME_VARIABLE,p) ;
+			if(dtau < POINT_TOLERANCE_2D)
+			    dtau = 0 ;
+//			std::cerr << dxi << "\t" << deta << "\t"  << dtau << std::endl ;
+/*			if(std::abs(dxi) < POINT_TOLERANCE_2D &&
+				std::abs(deta) < POINT_TOLERANCE_2D &&
+				std::abs(dtau) < POINT_TOLERANCE_2D)
+			{
+			    std::cerr << i << "\t" ;
+			    p.print();
+			}*/
+
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
+			tdxi += dxi*getBoundingPoint(i).t ;
 
 			xdeta += deta*getBoundingPoint(i).x ;
 			ydeta += deta*getBoundingPoint(i).y ;
+			tdeta += deta*getBoundingPoint(i).t ;
+
+			xdtau += dtau*getBoundingPoint(i).x ;
+			ydtau += dtau*getBoundingPoint(i).y ;
+			tdtau += dtau*getBoundingPoint(i).t ;
+
 		}
-		
-		double zdxi = this->getdTTransform(XI, p) ;
-		double zdeta = this->getdTTransform(ETA, p) ;
-		double xdzeta = this->getdXTransform(TIME_VARIABLE,p) ;
-		double ydzeta = this->getdYTransform(TIME_VARIABLE,p) ;
-		double zdzeta = this->getdTTransform(TIME_VARIABLE,p) ;
-		
-		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = zdxi ; 
-		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ;
-		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta;
+
+		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = tdxi ;
+		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = tdeta ;
+		ret[2][0] = xdtau ; ret[2][1] = ydtau ; ret[2][2] = tdtau;
 
 		invert3x3Matrix(ret) ;
 	}
@@ -978,8 +1064,18 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 	v[2] = 1 ;
 	
 	Vector coeff = inverse3x3Matrix( S) * v ;
+
+	double tmax = std::abs(getBoundingPoint(0).t) ;
+	Point ret ;
+	ret += Point(0,1,0,0)*coeff[0] ;
+	ret += Point(0,0,0,0)*coeff[1] ;
+	ret += Point(1,0,0,0)*coeff[2] ;
+	if(tmax > 0)
+	{
+	    ret.t = p.t / tmax ;
+	}
 	
-	return Point(0,1,0,p.t)*coeff[0] + Point(0,0,0,p.t)*coeff[1] + Point(1,0,0,p.t)*coeff[2] ; 
+	return ret ;
 }
 
 
@@ -1032,8 +1128,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 		fin[1] = std::pair<Point, double>(Point(0.731636907957618, 0.089454364014127, 0.089454364014127), 0.011173097287728) ;
 		fin[2] = std::pair<Point, double>(Point(0.089454364014127, 0.089454364014127, 0.089454364014127), 0.011173097287728) ;
 		fin[3] = std::pair<Point, double>(Point(0.089454364014127, 0.731636907957618, 0.089454364014127), 0.011173097287728) ;
-		fin[4] = std::pair<Point, double>(Point(0.089454364014127, 0.089454364014127, 0.731636907957618), 0.011173097287728) ;
-		
+		fin[4] = std::pair<Point, double>(Point(0.089454364014127, 0.089454364014127, 0.731636907957618), 0.011173097287728) ;		
 		fin[5] = std::pair<Point, double>(Point(0.132581099938466, 0.024540037929030, 0.421439431066252), 0.007547598727224) ;
 		fin[6] = std::pair<Point, double>(Point(0.132581099938466, 0.421439431066252, 0.024540037929030), 0.007547598727224) ;
 		fin[7] = std::pair<Point, double>(Point(0.132581099938466, 0.421439431066252, 0.421439431066252), 0.007547598727224) ;

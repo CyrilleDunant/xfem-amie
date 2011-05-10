@@ -217,6 +217,7 @@ FeatureTree::FeatureTree(Feature* first, size_t gridsize) : grid(NULL), grid3d(N
 	lastEnrichmentId = 0;
 	maxitPerStep = 200 ;
 	deltaTime = .1 ;
+	realDeltaTime = deltaTime ;
 	now = 0 ;
 	
 	setElementGenerationMethod() ;
@@ -1206,10 +1207,10 @@ void FeatureTree::stitch()
 	{
 		if( elemOrder >= QUADRATIC )
 		{
-			dtree->setElementOrder(elemOrder) ;
+			dtree->setElementOrder(elemOrder, realDeltaTime) ;
 			
 			for(size_t j = 0 ; j < coarseTrees.size() ; j++)
-				coarseTrees[j]->setElementOrder(elemOrder) ;
+				coarseTrees[j]->setElementOrder(elemOrder, realDeltaTime) ;
 				
 			if(projectOnBoundaries)
 			{			

@@ -129,6 +129,7 @@ protected:
 
 	double now ;
 	double deltaTime ; 
+	double realDeltaTime ;
 	
 	size_t numdofs ;
 	size_t samplingNumber ;
@@ -449,7 +450,7 @@ public:
 	 */
 	void setOrder(Order ord) ;
 	
-	void setDeltaTime(double d) {deltaTime = d ;}
+	void setDeltaTime(double d) {deltaTime = d ; realDeltaTime = d ;}
 	
 	void setMaxIterationsPerStep(size_t its) {maxitPerStep = its ;}
 	

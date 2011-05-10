@@ -334,6 +334,8 @@ typedef enum
 	RIGHT,
 	FRONT,
 	BACK,
+	BEFORE,
+	AFTER,
 	TOP_LEFT,
 	TOP_RIGHT,
 	BOTTOM_LEFT,

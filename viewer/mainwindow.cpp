@@ -97,6 +97,13 @@ void MainWindow::createToolBars()
 	connect(voxeldisplay, SIGNAL(fieldChanged(int)), field, SLOT(setValue(int)));
 	fileToolBar->addWidget(field);
 	
+	time  = new QSpinBox(fileToolBar) ;
+	time->setRange ( 0, 255 ) ;
+	time->setValue ( 0 ) ;
+//	connect(field, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setField(int)));
+//	connect(voxeldisplay, SIGNAL(fieldChanged(int)), field, SLOT(setValue(int)));
+	fileToolBar->addWidget(time);
+	
 	downSlider = new QSlider(Qt::Horizontal,fileToolBar);
 	downSlider->setRange(0, 254);
 	downSlider->setSingleStep(5);
@@ -161,6 +168,9 @@ void MainWindow::open()
 			
 			connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
 			connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
+			
+			connect(time, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
+			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), time, SLOT(setValue(int)));
 			
 			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
 			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
@@ -292,7 +302,7 @@ bool MainWindow::triangles(const QString s) const {
 	stream >> type ;
 	file.close();
 	
-	return (type == "TRIANGLES") ;
+	return (type == "TRIANGLES" || type == "BIN_TRIANGLES") ;
 }
 
 bool MainWindow::voxels(const QString s) const {

@@ -1180,6 +1180,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 // 		exit(0) ;
 
 		ConjugateGradientWithSecant cg(this) ;
+//		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
 		ret = cg.solve(x0, NULL, 5e-10, -1, verbose) ;
 
 		gettimeofday(&time1, NULL);

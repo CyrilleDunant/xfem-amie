@@ -119,7 +119,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 					a->addForceOn(XI,forces[0], id[i]) ;
 					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ETA:
 			{
@@ -147,10 +147,11 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
 					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), e->getGaussPoints(), Jinv, v) ;
+//					std::cerr << forces[0] << "\t" << forces[1] << std::endl ;
 					a->addForceOn(XI,forces[0], id[i]) ;
 					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
@@ -181,7 +182,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 					a->addForceOn(XI,forces[0], id[i]) ;
 					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			default:
 				break;
@@ -264,7 +265,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ETA:
 			{
@@ -299,7 +300,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ZETA:
 			{
@@ -334,7 +335,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
@@ -369,7 +370,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_XI_ZETA:
 			{
@@ -404,7 +405,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ETA_ZETA:
 			{
@@ -439,7 +440,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				return ;
+				break ;
 			}
 			default:
 				break;
@@ -468,6 +469,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
 		return ;
 	VirtualMachine vm ;
+//	std::cerr << id.size() << std::endl ;
 	for(size_t i = 0 ; i < id.size() ; i++)
 	{
 		switch(condition)
@@ -479,8 +481,6 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 				a->setPointAlong(XI, 0, id[i].id) ;
 				break ;
 			case SET_ALONG_XI:
-//				std::cout << vm.eval(data, id[i]) << "\t" ;
-//				id[i].print() ;
 				a->setPointAlong(XI, vm.eval(data, id[i]), id[i].id) ;
 				break ;
 			case FIX_ALONG_ETA:
@@ -525,10 +525,12 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 					a->addForceOn(XI,forces[0], id[i].id) ;
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ETA:
 			{
+//				std::cout << vm.eval(data, id[i]) << std::endl ;
+//				id[i].print() ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -548,6 +550,16 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
 				
+				VirtualMachine vm ;
+				Point p1(0,0,0,-1) ;
+				Point p2(0,0,0,0) ;
+				Point p3(0,0,0,1) ;
+				Point p4(1,0,0,-1) ;
+				Point p5(1,0,0,0) ;
+				Point p6(1,0,0,1) ;
+				Point p7(0,1,0,-1) ;
+				Point p8(0,1,0,0) ;
+				Point p9(0,1,0,1) ;
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
 					imposed[0] = 0 ;
@@ -557,7 +569,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 					a->addForceOn(XI,forces[0], id[i].id) ;
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
@@ -589,7 +601,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 					a->addForceOn(XI,forces[0], id[i].id) ;
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			default:
 				break;
@@ -671,7 +683,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ETA:
 			{
@@ -706,7 +718,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ZETA:
 			{
@@ -741,7 +753,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
@@ -776,7 +788,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_XI_ZETA:
 			{
@@ -811,7 +823,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			case SET_STRESS_ETA_ZETA:
 			{
@@ -846,7 +858,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				return ;
+				break ;
 			}
 			default:
 				break;
@@ -2091,7 +2103,22 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 		double minx = elements.front()->getBoundingPoint(0).x ;
 		double miny = elements.front()->getBoundingPoint(0).y ;
 		double maxx = elements.front()->getBoundingPoint(0).x ;
-		double maxy = elements.front()->getBoundingPoint(0).y ; 
+		double maxy = elements.front()->getBoundingPoint(0).y ;
+
+		double mint = elements.front()->getBoundingPoint(0).t ;
+		double maxt = elements.front()->getBoundingPoint(0).t ;
+
+		if(elements.front()->getOrder() >= CONSTANT_TIME_LINEAR)
+		{
+			for(size_t j = 0 ; j < elements.front()->getBoundingPoints().size() ; ++j)
+			{
+				if(elements.front()->getBoundingPoint(j).t < mint)
+					mint = elements.front()->getBoundingPoint(j).t ;
+				if(elements.front()->getBoundingPoint(j).t > maxt)
+					maxt = elements.front()->getBoundingPoint(j).t ;
+			}
+		}
+
 		for(size_t i = 0 ; i < elements.size() ; ++i)
 		{
 				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
@@ -2120,8 +2147,8 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 			{
 				for(size_t i = 0 ; i < elements.size() ; ++i)
 				{
-				if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
-					continue ;
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
 					for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
 					{
 						if(std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol)
@@ -2339,6 +2366,199 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					}
 				}
 				break ;
+			}
+			case BEFORE:
+			{
+				std::cerr << mint << std::endl ;
+				if(maxt != mint)
+				{
+					tol = (maxt-mint)*0.001 ;
+					for(size_t i = 0 ; i < elements.size() ; ++i)
+					{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
+						for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+						{
+							if(std::abs(elements[i]->getBoundingPoint(j).t-mint) < tol)
+							{
+								if(cache2d.empty() || cache2d.back() != elements[i])
+								{
+									cache.push_back(std::vector<Point>());
+									cache2d.push_back(elements[i]);
+								}
+								cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+							}
+						}
+						if(!cache2d.empty() && cache2d.back() == elements[i])
+						{
+							if(!function)
+								apply2DBC(elements[i], cache.back(), condition, data, a) ;
+							else
+								apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+						}
+					}
+				}
+				break ;
+			}
+			case AFTER:
+			{
+				if(maxt != mint)
+				{
+					tol = (maxt-mint)*0.001 ;
+					for(size_t i = 0 ; i < elements.size() ; ++i)
+					{
+					if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+						continue ;
+						for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+						{
+							if(std::abs(elements[i]->getBoundingPoint(j).t-maxt) < tol)
+							{
+								if(cache2d.empty() || cache2d.back() != elements[i])
+								{
+									cache.push_back(std::vector<Point>());
+									cache2d.push_back(elements[i]);
+								}
+								cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+							}
+						}
+						if(!cache2d.empty() && cache2d.back() == elements[i])
+						{
+							if(!function)
+								apply2DBC(elements[i], cache.back(), condition, data, a) ;
+							else
+								apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+						}
+					}
+				}
+				break ;
+			}
+			case TOP_BEFORE:
+			{
+				if(maxt != mint)
+				{
+					double tolt = (maxt-mint)*0.001 ;
+					for(size_t i = 0 ; i < elements.size() ; ++i)
+					{
+						if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+							continue ;
+						for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+						{
+							if((std::abs(elements[i]->getBoundingPoint(j).t-mint) < tolt ) && (std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol))
+							{
+								if(cache2d.empty() || cache2d.back() != elements[i])
+								{
+									cache.push_back(std::vector<Point>());
+									cache2d.push_back(elements[i]);
+								}
+								cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+							}
+						}
+						if(!cache2d.empty() && cache2d.back() == elements[i])
+						{
+							if(!function)
+								apply2DBC(elements[i], cache.back(), condition, data, a) ;
+							else
+								apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+						}
+					}
+					break ;
+				}
+			}
+			case TOP_AFTER:
+			{
+				if(maxt != mint)
+				{
+					double tolt = (maxt-mint)*0.001 ;
+					for(size_t i = 0 ; i < elements.size() ; ++i)
+					{
+						if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+							continue ;
+						for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+						{
+							if((std::abs(elements[i]->getBoundingPoint(j).t-maxt) < tolt ) && (std::abs(elements[i]->getBoundingPoint(j).y-maxy) < tol))
+							{
+								if(cache2d.empty() || cache2d.back() != elements[i])
+								{
+									cache.push_back(std::vector<Point>());
+									cache2d.push_back(elements[i]);
+								}
+								cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+							}
+						}
+						if(!cache2d.empty() && cache2d.back() == elements[i])
+						{
+							if(!function)
+								apply2DBC(elements[i], cache.back(), condition, data, a) ;
+							else
+								apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+						}
+					}
+					break ;
+				}
+			}
+			case BOTTOM_BEFORE:
+			{
+				if(maxt != mint)
+				{
+					double tolt = (maxt-mint)*0.001 ;
+					for(size_t i = 0 ; i < elements.size() ; ++i)
+					{
+						if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+							continue ;
+						for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+						{
+							if((std::abs(elements[i]->getBoundingPoint(j).t-mint) < tolt ) && (std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol))
+							{
+								if(cache2d.empty() || cache2d.back() != elements[i])
+								{
+									cache.push_back(std::vector<Point>());
+									cache2d.push_back(elements[i]);
+								}
+								cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+							}
+						}
+						if(!cache2d.empty() && cache2d.back() == elements[i])
+						{
+							if(!function)
+								apply2DBC(elements[i], cache.back(), condition, data, a) ;
+							else
+								apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+						}
+					}
+					break ;
+				}
+			}
+			case BOTTOM_AFTER:
+			{
+				if(maxt != mint)
+				{
+					double tolt = (maxt-mint)*0.001 ;
+					for(size_t i = 0 ; i < elements.size() ; ++i)
+					{
+						if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
+							continue ;
+						for(size_t j = 0 ;  j< elements[i]->getBoundingPoints().size() ; ++j)
+						{
+							if((std::abs(elements[i]->getBoundingPoint(j).t-maxt) < tolt ) && (std::abs(elements[i]->getBoundingPoint(j).y-miny) < tol))
+							{
+								if(cache2d.empty() || cache2d.back() != elements[i])
+								{
+									cache.push_back(std::vector<Point>());
+									cache2d.push_back(elements[i]);
+								}
+								cache.back().push_back(elements[i]->getBoundingPoint(j)) ;
+							}
+						}
+						if(!cache2d.empty() && cache2d.back() == elements[i])
+						{
+							if(!function)
+								apply2DBC(elements[i], cache.back(), condition, data, a) ;
+							else
+								apply2DBC(elements[i], cache.back(), condition, dataFunction, a) ;
+						}
+					}
+					break ;
+				}
 			}
 			default:
 			{
@@ -3956,6 +4176,7 @@ TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition() :BoundaryCond
 
 void TimeContinuityBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
 {
+	t->getAdditionalPoints() ;
 	std::vector<DelaunayTriangle *> tri = t->getElements() ;
 	std::vector<Point> id ;
 	size_t timePlanes = tri[0]->timePlanes() ;
@@ -3964,26 +4185,34 @@ void TimeContinuityBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle,
 	
 	size_t firstTimePlane = tri[0]->getBoundingPoints().size() /timePlanes ;
 	size_t lastTimePlane = tri[0]->getBoundingPoints().size()*(timePlanes-1) /timePlanes ;
+
 	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	Vector previousDisp ;
-	previousDisp.resize(tri[0]->getState().getPreviousDisplacements().size()) ;
+	previousDisp.resize(tri[0]->getState().getDisplacements().size()) ;
 	if(previousDisp.size() == 0)
 		return ;
-	
-	std::valarray<LagrangeMultiplierType> var(SET_ALONG_XI,3) ;
-	var[1] = SET_ALONG_ETA ;
-	var[2] = SET_ALONG_ZETA ;
-	
+
+	Vector previousStress ;
+	previousStress.resize(tri[0]->getState().getPreviousStress(Point(0,0,0,0)).size()) ;
+	if(previousStress.size() == 0)
+	    return ;
+
+
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
-		id.clear() ;
-		previousDisp = tri[i]->getState().getPreviousDisplacements() ;
-		for(size_t k = 0 ; k < firstTimePlane ; k++)
+		previousDisp = tri[i]->getState().getDisplacements() ;
+		for(size_t tp = 0 ; tp < 1 ; tp++)
 		{
-			id.push_back(tri[i]->getBoundingPoint(k)) ;
-			for(size_t j = 0 ; j < dof ; j++)
+			for(size_t k = 0 ; k < firstTimePlane ; k++)
 			{
-				apply2DBC(tri[i], id, var[j], previousDisp[(lastTimePlane+k)*dof+j], a) ;
+				id.clear() ;
+				id.push_back(tri[i]->getBoundingPoint(firstTimePlane*tp+k)) ;
+				previousStress = tri[i]->getState().getStress(id[k],false) ;
+				apply2DBC(tri[i], id, SET_ALONG_XI, previousDisp[(lastTimePlane+k)*dof+0], a) ;
+				apply2DBC(tri[i], id, SET_ALONG_ETA, previousDisp[(lastTimePlane+k)*dof+1], a) ;
+/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
+				apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
+				apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
 			}
 		}
 	}
@@ -4004,21 +4233,21 @@ void TimeContinuityBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 	previousDisp.resize(tet[0]->getState().getPreviousDisplacements().size()) ;
 	if(previousDisp.size() == 0)
 		return ;
-	
-	std::valarray<LagrangeMultiplierType> var(SET_ALONG_XI,3) ;
-	var[1] = SET_ALONG_ETA ;
-	var[2] = SET_ALONG_ZETA ;
+
+	std::valarray<LagrangeMultiplierType> disp(SET_ALONG_XI,3) ;
+	disp[1] = SET_ALONG_ETA ;
+	disp[2] = SET_ALONG_ZETA ;
 	
 	for(size_t i = 0 ; i < tet.size() ; i++)
 	{
-		id.clear() ;
 		previousDisp = tet[i]->getState().getPreviousDisplacements() ;
 		for(size_t k = 0; k < firstTimePlane ; k++)
 		{
+			id.clear() ;
 			id.push_back(tet[i]->getBoundingPoint(k)) ;
 			for(size_t j = 0 ; j < dof ; j++)
 			{
-				apply3DBC(tet[i], id, var[j], previousDisp[(lastTimePlane+k)*dof+j], a) ;
+				apply3DBC(tet[i], id, disp[j], previousDisp[(lastTimePlane+k)*dof+j], a) ;
 			}
 		}
 	}

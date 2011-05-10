@@ -7,6 +7,7 @@
 
 #include "integrable_entity.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/kelvinvoight.h"
 #include "../solvers/assembly.h"
 #include "../features/boundarycondition.h"
 using namespace Mu ;
@@ -1092,7 +1093,7 @@ Vector ElementState::getStress(const Point & p, bool local) const
 		Point p_ = p ;
 		if(!local)
 			p_ = parent->inLocalCoordinates(p) ;
-		
+
 		double x_xi = 0;
 		double x_eta = 0;
 		double y_xi = 0;
@@ -1131,6 +1132,52 @@ Vector ElementState::getStress(const Point & p, bool local) const
 		lstrain[2] = 0.5*((x_xi)*Jinv[1][0] + (x_eta)*Jinv[1][1]  + (y_xi)*Jinv[0][0] + (y_eta)*Jinv[0][1] );	
 		
 		Matrix cg(parent->getBehaviour()->getTensor(p_)) ;
+
+		if(parent->getBehaviour()->param.size() == 3)
+		{
+		    double xdot_xi = 0;
+		    double xdot_eta = 0;
+		    double ydot_xi = 0;
+		    double ydot_eta = 0;
+		    Vector ldotstrain(3) ;
+
+		    for(size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++)
+		    {
+			    Function f = parent->getShapeFunction(j).d(TIME_VARIABLE) ;
+			    double f_xi = vm.deval(f,XI, p_) ;
+			    double f_eta = vm.deval(f,ETA, p_) ;
+
+
+			    xdot_xi += f_xi*displacements[j*2] ;
+			    xdot_eta += f_eta*displacements[j*2] ;
+			    ydot_xi += f_xi*displacements[j*2+1] ;
+			    ydot_eta += f_eta*displacements[j*2+1] ;
+
+		    }
+
+		    for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+		    {
+			Function f = parent->getEnrichmentFunction(j).d(TIME_VARIABLE) ;
+
+			    double f_xi = vm.deval( f,XI,p_ ) ;
+			    double f_eta = vm.deval( f,ETA,p_) ;
+
+				    xdot_xi += f_xi*enrichedDisplacements[j*2] ;
+				    xdot_eta += f_eta*enrichedDisplacements[j*2] ;
+				    ydot_xi += f_xi*enrichedDisplacements[j*2+1] ;
+				    ydot_eta += f_eta*enrichedDisplacements[j*2+1] ;
+		    }
+		    bool hasTimeSlices = (parent->timePlanes() > 1);
+		    Matrix Jinv(2+hasTimeSlices,2+hasTimeSlices) ; parent->getInverseJacobianMatrix(p_, Jinv) ;
+		    ldotstrain[0] = (xdot_xi)*Jinv[0][0] + (xdot_eta)*Jinv[0][1] ;
+		    ldotstrain[1] = (ydot_xi)*Jinv[1][0] + (ydot_eta)*Jinv[1][1] ;
+		    ldotstrain[2] = 0.5*((xdot_xi)*Jinv[1][0] + (xdot_eta)*Jinv[1][1]  + (ydot_xi)*Jinv[0][0] + (ydot_eta)*Jinv[0][1] );
+
+		    Matrix eta(dynamic_cast<KelvinVoight*>(parent->getBehaviour())->eta) ;
+
+		    return lstrain*cg + ldotstrain*eta ;
+
+		}
 		
 		return lstrain*cg ;
 	}
@@ -4084,7 +4131,11 @@ Vector ElementState::getPreviousPreviousDisplacements(const std::valarray<Point>
 
 std::pair<Vector, Vector > ElementState::getStressAndStrain(const Mu::PointArray & pts) const
 {
-	
+    std::cerr << "---" << std::endl ;
+    std::cerr << parent->getElementaryMatrix().size() << std::endl ;
+    std::cerr << parent->getElementaryMatrix()[0].size() << std::endl ;
+    std::cerr << parent->getElementaryMatrix()[0][0].size() << std::endl ;
+
 	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 && parent->getBehaviour()->type != VOID_BEHAVIOUR)
 	{
 		if(parent->getBehaviour()->type == VOID_BEHAVIOUR)
