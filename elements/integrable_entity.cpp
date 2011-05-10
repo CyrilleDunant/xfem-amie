@@ -4131,10 +4131,6 @@ Vector ElementState::getPreviousPreviousDisplacements(const std::valarray<Point>
 
 std::pair<Vector, Vector > ElementState::getStressAndStrain(const Mu::PointArray & pts) const
 {
-    std::cerr << "---" << std::endl ;
-    std::cerr << parent->getElementaryMatrix().size() << std::endl ;
-    std::cerr << parent->getElementaryMatrix()[0].size() << std::endl ;
-    std::cerr << parent->getElementaryMatrix()[0][0].size() << std::endl ;
 
 	if (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 && parent->getBehaviour()->type != VOID_BEHAVIOUR)
 	{
