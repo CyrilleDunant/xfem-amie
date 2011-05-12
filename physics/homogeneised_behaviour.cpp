@@ -299,7 +299,13 @@ void HomogeneisedBehaviour::homogenize()
 
 	Material hom = homogenize(mat) ;
 	delete equivalent ;
-	equivalent = getEquivalentBehaviour(hom) ;
+	FractureCriterion * frac ;
+	if(self2d)
+	    frac = self2d->getBehaviour()->getFractureCriterion()->getCopy() ;
+	if(self3d)
+	    frac = self3d->getBehaviour()->getFractureCriterion()->getCopy() ;
+
+	equivalent = getEquivalentBehaviour(hom, frac) ;
 	
 }
 
@@ -339,11 +345,10 @@ Material HomogeneisedBehaviour::homogenize(Material mat)
 	return mat ;
 }
 
-Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat)
+Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat, FractureCriterion * frac)
 {
 	bool stiff = false ;
-	bool diff = false ;
-	bool frac = false ;
+//	bool diff = false ;
 	bool imp = false ;
 
 	if(mat.hasProperties(P_YOUNG_MODULUS) && mat.hasProperties(P_POISSON_RATIO))
@@ -405,9 +410,15 @@ Form * HomogeneisedBehaviour::getEquivalentBehaviour(Material mat)
 	{
 		if(imp)
 		{
+		    if(frac)
+		    {
+			return new StiffnessWithImposedDeformationAndFracture(param, def, frac) ;
+		    }
 			return new StiffnessWithImposedDeformation(param, def) ;
 		}
 		
+		if(frac)
+		    return new StiffnessAndFracture(param,frac) ;
 		return new Stiffness(param) ;
 	}
 
