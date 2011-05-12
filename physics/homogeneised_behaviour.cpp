@@ -299,13 +299,13 @@ void HomogeneisedBehaviour::homogenize()
 
 	Material hom = homogenize(mat) ;
 	delete equivalent ;
-	FractureCriterion * frac ;
+/*	FractureCriterion * frac ;
 	if(self2d)
 	    frac = self2d->getBehaviour()->getFractureCriterion()->getCopy() ;
 	if(self3d)
-	    frac = self3d->getBehaviour()->getFractureCriterion()->getCopy() ;
+	    frac = self3d->getBehaviour()->getFractureCriterion()->getCopy() ;*/
 
-	equivalent = getEquivalentBehaviour(hom, frac) ;
+	equivalent = getEquivalentBehaviour(hom) ;
 	
 }
 

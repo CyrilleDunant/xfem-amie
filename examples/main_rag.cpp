@@ -104,8 +104,8 @@ double stress = 15e6 ;
 
 double restraintDepth = 0 ;
 
-Sample sample(NULL, 0.07+restraintDepth, 0.07+restraintDepth, 0, 0) ;
-Rectangle baseGeometry(0.07, 0.07, 0, 0) ;
+Sample sample(NULL, 0.04+restraintDepth, 0.04+restraintDepth, 0, 0) ;
+Rectangle baseGeometry(0.04, 0.04, 0, 0) ;
 
 bool firstRun = true ;
 
@@ -137,7 +137,7 @@ Vector angle(0) ;
 
 double nu = 0.3 ;
 double E_agg = 58.9e9 ;
-double E_paste = 37e9 ;
+double E_paste = 12e9 ;
 
 int totit = 1 ;
 
@@ -149,6 +149,7 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
+TriangleWriter writer("rag_non_local",NULL) ;
 
 void fastForward (int steps, int nstepstot)
 {
@@ -483,12 +484,16 @@ void step()
 		filename.append(itoa(totit++, 10)) ;
 		std::cout << filename << std::endl ;
 
-		TriangleWriter writer(filename, featureTree) ;
+//		TriangleWriter writer(filename, featureTree) ;
+		writer.reset(featureTree) ;
 		writer.getField(TWFT_STRAIN_AND_STRESS) ;
 		writer.getField(TWFT_VON_MISES) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;
-		writer.write() ;
+		if(!i)
+			writer.write() ;		
+		else
+			writer.append() ;
 		
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
@@ -1691,7 +1696,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0; i < feats.size() ; i++)
 		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
 
-	Rectangle placeGeometry(0.07, 0.07, 0, 0) ;
+	Rectangle placeGeometry(0.04, 0.04, 0, 0) ;
 	int nAgg = 1 ;
 	feats = placement(&placeGeometry, feats, &nAgg, 0, 6400);
 	double volume = 0 ;
@@ -1748,7 +1753,7 @@ int main(int argc, char *argv[])
 		F.addFeature(NULL, blockright);
 	}
 	std::vector<Inclusion *> placedinclusions ;
-	for(size_t i = 0 ; i < feats.size() ; i++)
+	for(size_t i = 0 ; i < 5/*feats.size()*/ ; i++)
 	{
 		Point a(inclusions[i]->getCenter()+Point(0,inclusions[i]->getRadius())) ;
 		Point b(inclusions[i]->getCenter()+Point(0,-inclusions[i]->getRadius())) ;
@@ -1778,8 +1783,8 @@ int main(int argc, char *argv[])
 	}
 	Circle cercle(.5, 0,0) ;
 
-	zones = generateExpansiveZonesHomogeneously(3000, placedinclusions, F) ;
-	F.setSamplingNumber(800) ;
+	zones = generateExpansiveZonesHomogeneously(500, placedinclusions, F) ;
+	F.setSamplingNumber(500) ;
 	if(restraintDepth > 0)
 	{
 // 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
@@ -1791,8 +1796,8 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -10e6)) ;
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -10e6)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
 	}
 	F.setOrder(LINEAR) ;
@@ -1800,7 +1805,7 @@ int main(int argc, char *argv[])
 // 	
 	step() ;
 	
-	glutInit(&argc, argv) ;	
+/*	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
@@ -1844,7 +1849,7 @@ int main(int argc, char *argv[])
 // 	delete dt ;
 
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
-		delete inclusions[i] ;
+		delete inclusions[i] ;*/
 	
 	return 0 ;
 }
