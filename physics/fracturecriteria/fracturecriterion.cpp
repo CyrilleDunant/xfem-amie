@@ -1016,7 +1016,7 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 		{
 			if(testedTri)
 			{
-				if (scoreAtState < -scoreTolerance)
+				if (scoreAtState < scoreTolerance)
 				{
 					metAtStep = false ;
 					nonLocalScoreAtState = -1 ;
