@@ -1489,10 +1489,10 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 3e6 ;//obtained by .33*sqrt(fc_)
+	double tensionCrit = 3.7e6 ;// or 2 obtained by .33*sqrt(fc_)
 	double compressionCrit = -37.0e6 ; 
 	double phi =  3.*(M_PI*rebarDiametre*rebarDiametre*.25)/(.4*rebarDiametre) ; 
-	double mradius = .02 ; // .015
+	double mradius = .015 ; // .015
 	double nradius = .2 ;
 	
 	Matrix m0_steel(3,3) ;

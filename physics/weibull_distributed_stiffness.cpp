@@ -54,9 +54,10 @@ Form * WeibullDistributedStiffness::getCopy() const
 	double factor = 1 - variability + variability*weib ;
 	StiffnessAndFracture * ret = new StiffnessAndFracture(
 								param*factor, 
-								new MCFT(
+								new NonLocalMCFT(
 										up*factor,
 										down*factor ,
+										materialRadius,
 										mirroring, dx, dy, dz)
 									 ) ;
 	if(damageModel)

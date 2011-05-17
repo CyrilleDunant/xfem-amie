@@ -279,7 +279,7 @@ namespace Mu
 // 					trialRatio = zeroloc ;
 				getState() = downState + (upState-downState)*trialRatio ;
 			}
-			else
+			else if(states.size() < 4)
 			{
 				size_t idx = minIndexNonMet ;
 				if(std::abs(minDelta) < std::abs(minScore))
@@ -287,6 +287,11 @@ namespace Mu
 				bestRange = RangeState(states[idx], states[idx+1]) ;
 				trialRatio = bestRange.extrapolate(0.5).fraction ;
 				getState() = downState + (upState-downState)*trialRatio ;
+			}
+			else // there probably is no solution
+			{
+				getState() = upState ;
+				converged = true ;
 			}
 		}
 	}

@@ -122,155 +122,293 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 	if( s.getParent()->getBehaviour()->fractured() )
 		return 0 ;
 
-// 	if(testPoints.size() == 0)
-// 	{
-// 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-// 		{
-// 			testPoints.resize(4);
-// 			testPoints[0] = new Point(0,0,0) ;
-// 			testPoints[1] = new Point(1,0,0) ;
-// 			testPoints[2] = new Point(0,1,0) ;
-// 			testPoints[3] = new Point(0,0,1) ;
-// 		}
-// 		else
-// 		{
-// 			testPoints.resize(3);
-// 			testPoints[0] = new Point(0,0,0) ;
-// 			testPoints[1] = new Point(1,0,0) ;
-// 			testPoints[2] = new Point(0,1,0) ;
-// 		}
-// 	}
-
-//	Vector str(s.getPrincipalStresses(testPoints, true)) ;
 	Vector str( s.getPrincipalStressAtNodes() ) ;
 
-	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
-		str *= s.getParent()->area() ;
-		double fact = s.getParent()->area() ;
-
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		std::vector<double> fact ;
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+			fact.push_back(1);
+			
 		// gaussian smooth
-		for( size_t i = 0 ; i < cache.size() ; i++ ) {
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
 
-			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() ) {
+			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() )
+			{
 				continue ;
 			}
 
-			double dc = squareDist2D( s.getParent()->getCenter(), ci->getCenter() ) ;
+			std::vector<double> dc ;
+			for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+				dc.push_back( squareDist2D( ci->getBoundingPoint(j), s.getParent()->getCenter() )) ;
 
-			if( ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured() ) {
-				double d =  exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
-				double a = ci->area() ;
+			if( ci->getBehaviour()->getFractureCriterion() &&  !ci->getBehaviour()->fractured() )
+			{
+				std::vector<double> d ;
+				for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+					d.push_back( exp( -dc[j] / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ));
+				
 				Vector pstress( ci->getState().getPrincipalStressAtNodes() ) ;
+				Vector pstrain( ci->getState().getPrincipalStrainAtNodes() ) ;
 
-				if( !ci->getBehaviour()->fractured() ) {
-					str += pstress * a * d ;
-					fact += a * d ;
+				if( !ci->getBehaviour()->fractured() )
+				{
+					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < 2 ; k++)
+						{
+							str[j*2+k] += pstress[j*2+k] * d[j] ;
+						}
+					}
+					
+					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						fact[j] += d[j] ;
 
-					if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius ) { // MIRROR_X
-						str += pstress * a * d ;
-						fact += a * d ;
+					if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 2 ; k++)
+							{
+								str[j*2+k] += pstress[j*2+k] * d[j] ;
+							}
+						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
 					}
 
-					if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius ) { // MIRROR_Y
-						str += pstress * a * d ;
-						fact += a * d ;
+					if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 2 ; k++)
+							{
+								str[j*2+k] += pstress[j*2+k] * d[j] ;
+							}
+						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
 					}
 
-					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius ) { // MIRROR_XY
-						str += pstress * a * d ;
-						fact += a * d ;
+					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 2 ; k++)
+							{
+								str[j*2+k] += pstress[j*2+k] * d[j] ;
+							}
+						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
 					}
 
-					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius ) { // MIRROR_XY
-						str += pstress * a * d ;
-						fact += a * d ;
+					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 2 ; k++)
+							{
+								str[j*2+k] += pstress[j*2+k] * d[j] ;
+							}
+						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
 					}
 				}
 			}
 		}
 
-		str /= fact ;
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+		{
+			for(size_t k = 0 ; k < 2 ; k++)
+			{
+				str[j*2+k] /= fact[j] ;
+			}
+		}
 
-	} else
-		if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) {
-			str *= s.getParent()->volume() ;
-			double fact = s.getParent()->volume() ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		std::vector<double> fact ;
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+			fact.push_back(1);
 
-			// gaussian smooth
-			for( size_t i = 0 ; i < cache.size() ; i++ ) {
-				DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+		// gaussian smooth
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
 
-				if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() ) {
-					continue ;
-				}
+			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() )
+			{
+				continue ;
+			}
 
-				double dc = squareDist3D( s.getParent()->getCenter(), ci->getCenter() ) ;
+			std::vector<double> dc ;
+			for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+				dc.push_back( squareDist3D( ci->getBoundingPoint(j), s.getParent()->getCenter() )) ;
 
-				if( ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured() ) {
-					double d =  exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
-					double a = ci->volume() ;
-					Vector pstress = ci->getState().getPrincipalStressAtNodes() ;
+			if( ci->getBehaviour()->getFractureCriterion() &&  !ci->getBehaviour()->fractured() )
+			{
+				std::vector<double> d ;
+				for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+					d.push_back( exp( -dc[j] / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ));
+				Vector pstress = ci->getState().getPrincipalStressAtNodes() ;
+				Vector pstrain = ci->getState().getPrincipalStrainAtNodes() ;
 
-					if( !ci->getBehaviour()->fractured() ) {
-						str += pstress * a * d ;
-						fact += a * d ;
-
-						if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius ) { // MIRROR_X
-							str += pstress * a * d ;
-							fact += a * d ;
+				if( !ci->getBehaviour()->fractured() )
+				{
+					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < 3 ; k++)
+						{
+							str[j*3+k] += pstress[j*3+k] * d[j] ;
 						}
+					}
+					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						fact[j] += d[j] ;
 
-						if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius ) { // MIRROR_Y
-							str += pstress * a * d ;
-							fact += a * d ;
+					if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
 
-						if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius ) { // MIRROR_Y
-							str += pstress * a * d ;
-							fact += a * d ;
+					if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
 
-						if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius ) { // MIRROR_XY
-							str += pstress * a * d ;
-							fact += a * d ;
+					if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
 
-						if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius ) { // MIRROR_XY
-							str += pstress * a * d ;
-							fact += a * d ;
+					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
 
-						if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius ) { // MIRROR_XY
-							str += pstress * a * d ;
-							fact += a * d ;;
+					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
 
-						if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius ) { // MIRROR_XY
-							str += pstress * a * d ;
-							fact += a * d ;
+					if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
 
-						if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius ) { // MIRROR_XY
-							str += pstress * a * d ;
-							fact += a * d ;
+					if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
 
-						if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius ) { // MIRROR_XY
-							str += pstress * a * d ;
-							fact += a * d ;
+					if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
 						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
+					}
+
+					if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+					{
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						{
+							for(size_t k = 0 ; k < 3 ; k++)
+							{
+								str[j*3+k] += pstress[j*3+k] * d[j] ;
+							}
+						}
+						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += d[j] ;
 					}
 				}
 			}
-
-			str /= fact ;
-
 		}
 
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+		{
+			for(size_t k = 0 ; k < 3 ; k++)
+			{
+				str[j*3+k] /= fact[j] ;
+			}
+		}
+	}
 
-	double maxStress = str.max() ;
-	double minStress = str.min() ;
+	Vector pstress(0., s.getParent()->spaceDimensions()) ;
+	for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+	{
+		for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+		{
+			pstress[k] += str[j*s.getParent()->spaceDimensions()+k] / s.getParent()->getBoundingPoints().size() ;
+		}
+	}
+	double maxStress = pstress.max() ;
+	double minStress = pstress.min() ;
 
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
 	metInTension = false ;

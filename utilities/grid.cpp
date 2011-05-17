@@ -329,7 +329,7 @@ bool Pixel::coOccur(const Geometry * inc) const
 {
 	std::vector<Point> bbox = inc->getBoundingBox() ;
 	Rectangle test((tl.x+br.x)*.5, (tl.y+br.y)*.5, tr.x-bl.x, tr.y-bl.y) ;
-	return inc->in(tl) 
+	bool ret = inc->in(tl) 
 		|| inc->in(tr) 
 		|| inc->in(br) 
 		|| inc->in(bl) 
@@ -344,6 +344,7 @@ bool Pixel::coOccur(const Geometry * inc) const
 		|| in(bbox[2]) 
 		|| in(bbox[3])  
 		|| test.intersects(inc);
+	return ret ;
 }
 
 bool Pixel::coOccur(const Point & p) const
@@ -874,14 +875,14 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	if(x>y)
 	{
 		
-		lengthX = div*x/y ;
-		lengthY = div ;
+		lengthX = div ;
+		lengthY = std::max((int)round(div*y/x), 1) ;
 		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)NULL,lengthY)) ;
 	}
 	else
 	{
-		lengthX = div ;
-		lengthY = div*y/x ;
+		lengthX = std::max((int)round(div*x/y), 1) ;
+		lengthY = div ;
 		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)NULL,lengthY)) ;
 	}
 	

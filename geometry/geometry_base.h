@@ -407,7 +407,7 @@ typedef enum
 /** \brief defines the different space dimensionnalities of the mesh.*/
 typedef enum
 {
-	SPACE_ONE_DIMENSIONAL,
+	SPACE_ONE_DIMENSIONAL = 1,
 	SPACE_TWO_DIMENSIONAL,
 	SPACE_THREE_DIMENSIONAL
 } SpaceDimensionality ;
