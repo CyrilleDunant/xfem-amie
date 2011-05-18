@@ -540,7 +540,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 	return ret ;	
 }
 
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, Matrix * tensor, Feature * father, FeatureTree * F)
+std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, double E, double nu, Feature * father, FeatureTree * F)
 {
 // 	srandom(time(NULL)) ;
 	size_t nombre_de_pores = static_cast<size_t>(round(n*fraction)) ;
@@ -587,7 +587,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
 // 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor,-8.*1000000, 1000000)) ;
+		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(E, nu, SPACE_TWO_DIMENSIONAL,-8.*1000000, 1000000)) ;
 		F->addFeature(father, temp) ;
 	}
 	
@@ -1511,7 +1511,7 @@ int main(int argc, char *argv[])
 		<< ", smallest r =" << feats.back()->getRadius() 
 		<< ", filling = " << volume/sample.area()*100.<< "%"<< std::endl ; 
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -8.*12500000, 12500000)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, -8.*12500000, 12500000)) ;
 // 	sample.setBehaviour(new Stiffness(m0_paste)) ;
 	Vector a(3) ;
 	a[0] = .5 ;
@@ -1548,7 +1548,7 @@ int main(int argc, char *argv[])
 // 	}
 	Inclusion * inc = new Inclusion(0.010, 0, 0) ;
 // 	inc->setBehaviour(new Stiffness(m0_agg)) ;
-	inc->setBehaviour(new WeibullDistributedStiffness(m0_agg,-8.*57000000,57000000)) ;
+	inc->setBehaviour(new WeibullDistributedStiffness(E_agg, nu, SPACE_TWO_DIMENSIONAL,-8.*57000000,57000000)) ;
 	double rPlus = 0.010+itzSize ;
 	double rMinus = 0.009 ;
 	ExpansiveRing * er = new ExpansiveRing(&sample, rPlus, rMinus, 0, 0,  m0, a) ;

@@ -29,8 +29,10 @@ IntegrableEntity::IntegrableEntity() : state( this ), boundaryConditionCache( NU
 
 void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 {
-	if( getBehaviour()->type != VOID_BEHAVIOUR ) {
-		if( boundaryConditionCache ) {
+	if( getBehaviour()->type != VOID_BEHAVIOUR )
+	{
+		if( boundaryConditionCache )
+		{
 			for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
 				delete( *boundaryConditionCache )[i] ;
 		}
@@ -39,24 +41,29 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 		boundaryConditionCache = new std::vector<BoundaryCondition *>();
 		std::valarray<Matrix> Jinv( getGaussPoints().gaussPoints.size() ) ;
 
-		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ ) {
+		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
+		{
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
 		}
 
-		for( size_t i = 0 ; i < getBoundingPoints().size() ; i++ ) {
+		for( size_t i = 0 ; i < getBoundingPoints().size() ; i++ )
+		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getBoundingPoint( i ).id,  getShapeFunction( i ), getGaussPoints(), Jinv ) ;
 			boundaryConditionCache->insert( boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end() ) ;
 		}
 
-		for( size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++ ) {
+		for( size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++ )
+		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getEnrichmentFunction( i ).getDofID(),  getEnrichmentFunction( i ), getGaussPoints(), Jinv ) ;
 			boundaryConditionCache->insert( boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end() ) ;
 		}
 
 	}
 
-	if( boundaryConditionCache ) {
-		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ ) {
+	if( boundaryConditionCache )
+	{
+		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
+		{
 			if( get2DMesh() )
 				( *boundaryConditionCache )[i]->apply( a, get2DMesh() ) ;
 			else
@@ -68,7 +75,8 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 
 IntegrableEntity::~IntegrableEntity()
 {
-	if( boundaryConditionCache ) {
+	if( boundaryConditionCache )
+	{
 		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
 			delete( *boundaryConditionCache )[i] ;
 	}
@@ -94,7 +102,8 @@ ElementState &IntegrableEntity::getState()
 
 void ElementState::stepBack()
 {
-	if( !history.empty() ) {
+	if( !history.empty() )
+	{
 		*this = history.back() ;
 		history.pop_back() ;
 	}
@@ -192,10 +201,13 @@ Vector ElementState::getAverageDisplacement() const
 	Matrix ret = VirtualMachine().ieval( disps, getParent() ) ;
 	Vector v( ret.numRows() ) ;
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		for( size_t i = 0 ;  i < v.size() ; i++ )
 			v[i] = ret[i][0] / parent->area() ;
-	} else {
+	}
+	else
+	{
 		for( size_t i = 0 ;  i < v.size() ; i++ )
 			v[i] = ret[i][0] / parent->volume() ;
 	}
@@ -231,24 +243,27 @@ double ElementState::getVonMisesStrain( const Point &p, bool local ) const
 	Vector eps = getPrincipalStrains( p, local ) ;
 	Matrix e = getStrainMatrix( p, local ) ;
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		Matrix p( 2, 2 ) ;
 		p[0][0] = 0.5 * ( e[0][0] + e[1][1] ) ;
 		p[1][1] = 0.5 * ( e[0][0] + e[1][1] ) ;
 		e = e - p ;
 // 		return sqrt(2./3.*(e[0][0]*e[0][0]+e[0][1]*e[0][1]+e[1][0]*e[1][0]+e[1][1]*e[1][1])) ;
 		return sqrt( 2. / 3 * ( eps[0] * eps[0] + eps[1] * eps[1] ) ) ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) {
-			return sqrt( 2. / 3 * ( eps[0] * eps[0] + eps[1] * eps[1] + eps[2] * eps[2] ) ) ;
-		}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		return sqrt( 2. / 3 * ( eps[0] * eps[0] + eps[1] * eps[1] + eps[2] * eps[2] ) ) ;
+	}
 
 	return 0 ;
 }
 
 FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		FunctionMatrix ret( 2, 2 ) ;
 		FunctionMatrix temp( 3, 1 ) ;
 
@@ -257,7 +272,8 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv ) const
 		Function y_xi ;
 		Function y_eta ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x_xi += parent->getShapeFunction( j ).d( XI ) * displacements[j * 2] ;
 			x_eta += parent->getShapeFunction( j ).d( ETA ) * displacements[j * 2] ;
 			y_xi += parent->getShapeFunction( j ).d( XI ) * displacements[j * 2 + 1] ;
@@ -278,7 +294,9 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv ) const
 		ret[0][1] = temp[1][0] ;
 
 		return ret ;
-	} else { //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	}
+	else     //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	{
 		FunctionMatrix ret( 3, 3 ) ;
 		FunctionMatrix temp( 6, 1 ) ;
 
@@ -292,7 +310,8 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv ) const
 		Function z_eta ;
 		Function z_zeta ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x_xi += parent->getShapeFunction( j ).d( XI ) * displacements[j * 3] ;
 			x_eta += parent->getShapeFunction( j ).d( ETA ) * displacements[j * 3] ;
 			x_zeta += parent->getShapeFunction( j ).d( ZETA ) * displacements[j * 3] ;
@@ -347,33 +366,42 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv ) const
 
 double ElementState::getPreviousMaximumVonMisesStress() const
 {
-	if( parent->getOrder() == LINEAR ) {
-		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->getOrder() == LINEAR )
+	{
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+		{
 			Vector sigma = getPreviousPrincipalStresses( parent->getCenter() ) ;
 			return sqrt( ( sigma[0] * sigma[0] + sigma[1] * sigma[1] + ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) ) ) / 2. ;
-		} else
-			if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) {
-				Mu::PointArray pts( 4 ) ;
-				pts[0] = &parent->getBoundingPoint( 0 ) ;
-				pts[1] = &parent->getBoundingPoint( 1 ) ;
-				pts[2] = &parent->getBoundingPoint( 2 ) ;
-				pts[3] = &parent->getBoundingPoint( 3 ) ;
-				Vector sigma  = getStress( pts ) ;
-				sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6. ;
-				sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6. ;
-				sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6. ;
-				sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6. ;
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		{
+			Mu::PointArray pts( 4 ) ;
+			pts[0] = &parent->getBoundingPoint( 0 ) ;
+			pts[1] = &parent->getBoundingPoint( 1 ) ;
+			pts[2] = &parent->getBoundingPoint( 2 ) ;
+			pts[3] = &parent->getBoundingPoint( 3 ) ;
+			Vector sigma  = getStress( pts ) ;
+			sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6. ;
+			sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6. ;
+			sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6. ;
+			sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6. ;
 
-				return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
-			} else {
-				return 0 ;
-			}
-	} else {
-		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+			return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
+		}
+		else
+		{
+			return 0 ;
+		}
+	}
+	else
+	{
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+		{
 			Vector principalStresses = getPreviousPrincipalStresses( parent->getBoundingPoints() ) ;
 			double maxS = 0 ;
 
-			for( size_t i = 0 ; i < principalStresses.size() / 2 ; i++ ) {
+			for( size_t i = 0 ; i < principalStresses.size() / 2 ; i++ )
+			{
 				maxS = std::max( maxS,
 				                 sqrt(
 				                     principalStresses[i * 2 + 0] * principalStresses[i * 2 + 0] + principalStresses[i * 2 + 1] * principalStresses[i * 2 + 1]
@@ -383,21 +411,22 @@ double ElementState::getPreviousMaximumVonMisesStress() const
 
 			return maxS ;
 
-		} else
-			if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) {
-				Mu::PointArray pts( 4 ) ;
-				pts[0] = &parent->getBoundingPoint( 0 ) ;
-				pts[1] = &parent->getBoundingPoint( 2 ) ;
-				pts[2] = &parent->getBoundingPoint( 4 ) ;
-				pts[3] = &parent->getBoundingPoint( 6 ) ;
-				Vector sigma  = getPreviousStress( pts ) ;
-				sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6 ;
-				sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6 ;
-				sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6 ;
-				sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6 ;
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		{
+			Mu::PointArray pts( 4 ) ;
+			pts[0] = &parent->getBoundingPoint( 0 ) ;
+			pts[1] = &parent->getBoundingPoint( 2 ) ;
+			pts[2] = &parent->getBoundingPoint( 4 ) ;
+			pts[3] = &parent->getBoundingPoint( 6 ) ;
+			Vector sigma  = getPreviousStress( pts ) ;
+			sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6 ;
+			sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6 ;
+			sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6 ;
+			sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6 ;
 
-				return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
-			}
+			return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
+		}
 	}
 
 	return 0 ;
@@ -405,54 +434,64 @@ double ElementState::getPreviousMaximumVonMisesStress() const
 
 double ElementState::getMaximumVonMisesStress() const
 {
-	if( parent->getOrder() == LINEAR ) {
-		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->getOrder() == LINEAR )
+	{
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+		{
 			Vector sigma = getPrincipalStresses( parent->getCenter() ) ;
 			return sqrt( ( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + sigma[0] * sigma[0] + sigma[1] * sigma[1] ) / 2. ) ;
-		} else
-			if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) {
-				Mu::PointArray pts( 4 ) ;
-				pts[0] = &parent->getBoundingPoint( 0 ) ;
-				pts[1] = &parent->getBoundingPoint( 1 ) ;
-				pts[2] = &parent->getBoundingPoint( 2 ) ;
-				pts[3] = &parent->getBoundingPoint( 3 ) ;
-				Vector sigma  = getStress( pts ) ;
-				sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6. ;
-				sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6. ;
-				sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6. ;
-				sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6. ;
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		{
+			Mu::PointArray pts( 4 ) ;
+			pts[0] = &parent->getBoundingPoint( 0 ) ;
+			pts[1] = &parent->getBoundingPoint( 1 ) ;
+			pts[2] = &parent->getBoundingPoint( 2 ) ;
+			pts[3] = &parent->getBoundingPoint( 3 ) ;
+			Vector sigma  = getStress( pts ) ;
+			sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6. ;
+			sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6. ;
+			sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6. ;
+			sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6. ;
 
-				return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
-			} else {
-				return 0 ;
-			}
-	} else {
-		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+			return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
+		}
+		else
+		{
+			return 0 ;
+		}
+	}
+	else
+	{
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+		{
 			Vector principalStresses = getPrincipalStresses( parent->getBoundingPoints() ) ;
 			double maxS = 0 ;
 
-			for( size_t i = 0 ; i < principalStresses.size() / 2 ; i++ ) {
+			for( size_t i = 0 ; i < principalStresses.size() / 2 ; i++ )
+			{
 				maxS = std::max( maxS,
 				                 sqrt( ( ( principalStresses[i * 2 + 0] - principalStresses[i * 2 + 1] ) * ( principalStresses[i * 2 + 0] - principalStresses[i * 2 + 1] ) + principalStresses[i * 2 + 0] * principalStresses[i * 2 + 0] + principalStresses[i * 2 + 1] * principalStresses[i * 2 + 1] ) / 2. ) ) ;
 			}
 
 			return maxS ;
 
-		} else
-			if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) {
-				Mu::PointArray pts( 4 ) ;
-				pts[0] = &parent->getBoundingPoint( 0 ) ;
-				pts[1] = &parent->getBoundingPoint( 2 ) ;
-				pts[2] = &parent->getBoundingPoint( 4 ) ;
-				pts[3] = &parent->getBoundingPoint( 6 ) ;
-				Vector sigma  = getStress( pts ) ;
-				sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6 ;
-				sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6 ;
-				sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6 ;
-				sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6 ;
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		{
+			Mu::PointArray pts( 4 ) ;
+			pts[0] = &parent->getBoundingPoint( 0 ) ;
+			pts[1] = &parent->getBoundingPoint( 2 ) ;
+			pts[2] = &parent->getBoundingPoint( 4 ) ;
+			pts[3] = &parent->getBoundingPoint( 6 ) ;
+			Vector sigma  = getStress( pts ) ;
+			sigma[0] = sqrt( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + ( sigma[0] - sigma[2] ) * ( sigma[0] - sigma[2] ) + ( sigma[1] - sigma[2] ) * ( sigma[1] - sigma[2] ) ) / 6 ;
+			sigma[1] = sqrt( ( sigma[6] - sigma[7] ) * ( sigma[6] - sigma[7] ) + ( sigma[6] - sigma[8] ) * ( sigma[6] - sigma[8] ) + ( sigma[7] - sigma[8] ) * ( sigma[7] - sigma[8] ) ) / 6 ;
+			sigma[2] = sqrt( ( sigma[12] - sigma[13] ) * ( sigma[12] - sigma[13] ) + ( sigma[12] - sigma[14] ) * ( sigma[12] - sigma[14] ) + ( sigma[13] - sigma[14] ) * ( sigma[13] - sigma[14] ) ) / 6 ;
+			sigma[3] = sqrt( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6 ;
 
-				return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
-			}
+			return std::max( std::max( std::max( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
+		}
 	}
 
 	return 0 ;
@@ -460,7 +499,8 @@ double ElementState::getMaximumVonMisesStress() const
 
 FunctionMatrix ElementState::getStrainFunction( const Matrix &Jinv ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		FunctionMatrix ret( 2, 2 ) ;
 
 		Function x_xi ;
@@ -468,7 +508,8 @@ FunctionMatrix ElementState::getStrainFunction( const Matrix &Jinv ) const
 		Function y_xi ;
 		Function y_eta ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x_xi += parent->getShapeFunction( j ).d( XI ) * displacements[j * 2] ;
 			x_eta += parent->getShapeFunction( j ).d( ETA ) * displacements[j * 2] ;
 			y_xi += parent->getShapeFunction( j ).d( XI ) * displacements[j * 2 + 1] ;
@@ -481,7 +522,9 @@ FunctionMatrix ElementState::getStrainFunction( const Matrix &Jinv ) const
 		ret[1][1] = y_xi * Jinv[1][0] + y_eta * Jinv[1][1] ;
 
 		return ret ;
-	} else { //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	}
+	else     //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	{
 		FunctionMatrix ret( 3, 3 ) ;
 		FunctionMatrix temp( 6, 1 ) ;
 
@@ -495,7 +538,8 @@ FunctionMatrix ElementState::getStrainFunction( const Matrix &Jinv ) const
 		Function z_eta ;
 		Function z_zeta ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x_xi += parent->getShapeFunction( j ).d( XI ) * displacements[j * 3] ;
 			x_eta += parent->getShapeFunction( j ).d( ETA ) * displacements[j * 3] ;
 			x_zeta += parent->getShapeFunction( j ).d( ZETA ) * displacements[j * 3] ;
@@ -547,30 +591,37 @@ FunctionMatrix ElementState::getStrainFunction( const Matrix &Jinv ) const
 
 FunctionMatrix ElementState::getDisplacementFunction() const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		FunctionMatrix ret( 2, 1 ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() &&  j < displacements.size() * 2; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() &&  j < displacements.size() * 2; j++ )
+		{
 			ret[0][0] += parent->getShapeFunction( j ) * displacements[j * 2] ;
 			ret[1][0] += parent->getShapeFunction( j ) * displacements[j * 2 + 1] ;
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+		{
 			ret[0][0] += parent->getEnrichmentFunction( j ) * enrichedDisplacements[j * 2] ;
 			ret[1][0] += parent->getEnrichmentFunction( j ) * enrichedDisplacements[j * 2 + 1] ;
 		}
 
 		return ret ;
-	} else { //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	}
+	else     //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	{
 		FunctionMatrix ret( 3, 1 ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() &&  j < displacements.size() * 3; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() &&  j < displacements.size() * 3; j++ )
+		{
 			ret[0][0] += parent->getShapeFunction( j ) * displacements[j * 3] ;
 			ret[1][0] += parent->getShapeFunction( j ) * displacements[j * 3 + 1] ;
 			ret[2][0] += parent->getShapeFunction( j ) * displacements[j * 3 + 2] ;
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 3; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 3; j++ )
+		{
 			ret[0][0] += parent->getEnrichmentFunction( j ) * enrichedDisplacements[j * 3] ;
 			ret[1][0] += parent->getEnrichmentFunction( j ) * enrichedDisplacements[j * 3 + 1] ;
 			ret[2][0] += parent->getEnrichmentFunction( j ) * enrichedDisplacements[j * 3 + 2] ;
@@ -580,26 +631,42 @@ FunctionMatrix ElementState::getDisplacementFunction() const
 	}
 }
 
-Vector ElementState::getPrincipalStrainAtNodes()
+Vector &ElementState::getPrincipalStrainAtNodes()
 {
-	if( !strainAtNodes.size() ) {
-		int n = 2 + ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ;
-		strainAtNodes.resize( n * parent->getBoundingPoints().size() ) ;
-		PointArray nodes = parent->getBoundingPoints() ;
-		strainAtNodes = getPrincipalStrains( nodes ) ;
+	if( strainAtNodes.size() == 0 )
+	{
+		strainAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
+
+		for( size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++ )
+		{
+			Vector strain  = getPrincipalStrains( parent->getBoundingPoint( i ), false ) ;
+
+			for( size_t j = 0 ; j <  parent->spaceDimensions() ; j++ )
+			{
+				strainAtNodes[i * parent->spaceDimensions() + j] = strain[j] ;
+			}
+		}
 	}
 
 	return strainAtNodes ;
 
 }
 
-Vector ElementState::getPrincipalStressAtNodes()
+Vector &ElementState::getPrincipalStressAtNodes()
 {
-	if( !stressAtNodes.size() ) {
-		int n = 2 + ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ;
-		stressAtNodes.resize( n * parent->getBoundingPoints().size() ) ;
-		PointArray nodes = parent->getBoundingPoints() ;
-		stressAtNodes = getPrincipalStresses( nodes ) ;
+	if( stressAtNodes.size() == 0 )
+	{
+		stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
+
+		for( size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++ )
+		{
+			Vector stress  = getPrincipalStresses( parent->getBoundingPoint( i ), false ) ;
+
+			for( size_t j = 0 ; j < parent->spaceDimensions() ; j++ )
+			{
+				stressAtNodes[i * parent->spaceDimensions() + j] = stress[j] ;
+			}
+		}
 	}
 
 	return stressAtNodes ;
@@ -610,7 +677,8 @@ Vector ElementState::getPrincipalStressAtNodes()
 Vector ElementState::getStrain( const Point &p, bool local ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Point p_ = p ;
 
 		if( !local )
@@ -623,7 +691,8 @@ Vector ElementState::getStrain( const Point &p, bool local ) const
 		VirtualMachine vm ;
 		Vector lstrain( 3 ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 			x_xi += f_xi * displacements[j * 2] ;
@@ -632,7 +701,8 @@ Vector ElementState::getStrain( const Point &p, bool local ) const
 			y_eta += f_eta * displacements[j * 2 + 1] ;
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+		{
 			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
 
@@ -650,95 +720,98 @@ Vector ElementState::getStrain( const Point &p, bool local ) const
 		lstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
 
-			VirtualMachine vm ;
-			Point p_ =  parent->inLocalCoordinates( p ) ;
+		VirtualMachine vm ;
+		Point p_ =  parent->inLocalCoordinates( p ) ;
 
-			if( local )
-				p_ = p ;
+		if( local )
+			p_ = p ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
-			double y_xi = 0;
-			double y_eta = 0;
-			double y_zeta = 0;
-			double z_xi = 0;
-			double z_eta = 0;
-			double z_zeta = 0;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		double y_xi = 0;
+		double y_eta = 0;
+		double y_zeta = 0;
+		double z_xi = 0;
+		double z_eta = 0;
+		double z_zeta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
-				double x = displacements[j * 3] ;
-				double y = displacements[j * 3 + 1] ;
-				double z = displacements[j * 3 + 2] ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+			double x = displacements[j * 3] ;
+			double y = displacements[j * 3 + 1] ;
+			double z = displacements[j * 3 + 2] ;
 
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-				y_xi   += f_xi   * y ;
-				y_eta  += f_eta  * y ;
-				y_zeta += f_zeta * y ;
-				z_xi   += f_xi   * z ;
-				z_eta  += f_eta  * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			Vector lstrain( 6 ) ;
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
-				double x = enrichedDisplacements[j * 3] ;
-				double y = enrichedDisplacements[j * 3 + 1] ;
-				double z = enrichedDisplacements[j * 3 + 2] ;
-
-				x_xi += f_xi * x;
-				x_eta += f_eta * x ;
-				x_zeta += f_zeta * x ;
-				y_xi += f_xi * y ;
-				y_eta += f_eta * y ;
-				y_zeta += f_zeta * y ;
-				z_xi += f_xi * z ;
-				z_eta += f_eta * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-			lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-			lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-			lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-			                     ( y_eta ) * Jinv[2][1] +
-			                     ( y_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[1][0] +
-			                     ( z_eta ) * Jinv[1][1] +
-			                     ( z_zeta ) * Jinv[1][2] );
-
-			lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-			                     ( x_eta ) * Jinv[2][1] +
-			                     ( x_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[0][0] +
-			                     ( z_eta ) * Jinv[0][1] +
-			                     ( z_zeta ) * Jinv[0][2] );
-
-			lstrain[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
-			                     ( y_eta )  * Jinv[0][1] +
-			                     ( y_zeta ) * Jinv[0][2] +
-			                     ( x_xi )   * Jinv[1][0] +
-			                     ( x_eta )  * Jinv[1][1] +
-			                     ( x_zeta ) * Jinv[1][2] );
-
-
-			return lstrain ;
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+			y_xi   += f_xi   * y ;
+			y_eta  += f_eta  * y ;
+			y_zeta += f_zeta * y ;
+			z_xi   += f_xi   * z ;
+			z_eta  += f_eta  * z ;
+			z_zeta += f_zeta * z ;
 		}
+
+		Vector lstrain( 6 ) ;
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
+			double x = enrichedDisplacements[j * 3] ;
+			double y = enrichedDisplacements[j * 3 + 1] ;
+			double z = enrichedDisplacements[j * 3 + 2] ;
+
+			x_xi += f_xi * x;
+			x_eta += f_eta * x ;
+			x_zeta += f_zeta * x ;
+			y_xi += f_xi * y ;
+			y_eta += f_eta * y ;
+			y_zeta += f_zeta * y ;
+			z_xi += f_xi * z ;
+			z_eta += f_eta * z ;
+			z_zeta += f_zeta * z ;
+		}
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+		lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+		lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+		                     ( y_eta ) * Jinv[2][1] +
+		                     ( y_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[1][0] +
+		                     ( z_eta ) * Jinv[1][1] +
+		                     ( z_zeta ) * Jinv[1][2] );
+
+		lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+		                     ( x_eta ) * Jinv[2][1] +
+		                     ( x_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[0][0] +
+		                     ( z_eta ) * Jinv[0][1] +
+		                     ( z_zeta ) * Jinv[0][2] );
+
+		lstrain[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+		                     ( y_eta )  * Jinv[0][1] +
+		                     ( y_zeta ) * Jinv[0][2] +
+		                     ( x_xi )   * Jinv[1][0] +
+		                     ( x_eta )  * Jinv[1][1] +
+		                     ( x_zeta ) * Jinv[1][2] );
+
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -752,7 +825,8 @@ Vector ElementState::getStrain( const Point &p, bool local ) const
 Vector ElementState::getGradient( const Point &p, bool local ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
 		Point p_ = parent->inLocalCoordinates( p ) ;
 
 		if( local )
@@ -763,14 +837,16 @@ Vector ElementState::getGradient( const Point &p, bool local ) const
 		VirtualMachine vm ;
 		Vector grad( 2 ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 			x_xi += f_xi * displacements[j] ;
 			x_eta += f_eta * displacements[j] ;
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++ )
+		{
 			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
 			x_xi += f_xi * enrichedDisplacements[j] ;
@@ -784,51 +860,54 @@ Vector ElementState::getGradient( const Point &p, bool local ) const
 		grad[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1] ;
 
 		return grad ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
 
-			VirtualMachine vm ;
-			Point p_ =  parent->inLocalCoordinates( p ) ;
+		VirtualMachine vm ;
+		Point p_ =  parent->inLocalCoordinates( p ) ;
 
-			if( local )
-				p_ = p ;
+		if( local )
+			p_ = p ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
-				double x = displacements[j] ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+			double x = displacements[j] ;
 
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-			}
-
-			Vector grad( 3 ) ;
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
-				double x = enrichedDisplacements[j] ;
-
-				x_xi += f_xi * x;
-				x_eta += f_eta * x ;
-				x_zeta += f_zeta * x ;
-			}
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-			grad[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			grad[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
-			grad[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
-
-			return grad ;
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
 		}
+
+		Vector grad( 3 ) ;
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
+			double x = enrichedDisplacements[j] ;
+
+			x_xi += f_xi * x;
+			x_eta += f_eta * x ;
+			x_zeta += f_zeta * x ;
+		}
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+		grad[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		grad[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
+		grad[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
+
+		return grad ;
+	}
 
 	int dofs = 2 ;
 
@@ -842,7 +921,8 @@ Vector ElementState::getGradient( const Point &p, bool local ) const
 Vector ElementState::getFlux( const Point &p, bool local ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
 		Point p_ = parent->inLocalCoordinates( p ) ;
 
 		if( local )
@@ -853,14 +933,16 @@ Vector ElementState::getFlux( const Point &p, bool local ) const
 		VirtualMachine vm ;
 		Vector grad( 2 ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 			x_xi += f_xi * displacements[j] ;
 			x_eta += f_eta * displacements[j] ;
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++ )
+		{
 			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
 			x_xi += f_xi * enrichedDisplacements[j] ;
@@ -876,53 +958,56 @@ Vector ElementState::getFlux( const Point &p, bool local ) const
 		Matrix diff( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		return -grad * diff ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
 
-			VirtualMachine vm ;
-			Point p_ =  parent->inLocalCoordinates( p ) ;
+		VirtualMachine vm ;
+		Point p_ =  parent->inLocalCoordinates( p ) ;
 
-			if( local )
-				p_ = p ;
+		if( local )
+			p_ = p ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
-				double x = displacements[j] ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+			double x = displacements[j] ;
 
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-			}
-
-			Vector grad( 3 ) ;
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
-				double x = enrichedDisplacements[j] ;
-
-				x_xi += f_xi * x;
-				x_eta += f_eta * x ;
-				x_zeta += f_zeta * x ;
-			}
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-			grad[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			grad[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
-			grad[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
-
-			Matrix diff( parent->getBehaviour()->getTensor( p_ ) ) ;
-
-			return -grad * diff ;
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
 		}
+
+		Vector grad( 3 ) ;
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
+			double x = enrichedDisplacements[j] ;
+
+			x_xi += f_xi * x;
+			x_eta += f_eta * x ;
+			x_zeta += f_zeta * x ;
+		}
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+		grad[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		grad[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
+		grad[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
+
+		Matrix diff( parent->getBehaviour()->getTensor( p_ ) ) ;
+
+		return -grad * diff ;
+	}
 
 	int dofs = 2 ;
 
@@ -940,7 +1025,8 @@ Vector ElementState::getStrain( const std::pair<Point, double> & p ) const
 
 Vector ElementState::getPreviousStress( const Point &p, bool local ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
 		if( ndofs != 2 )
@@ -958,7 +1044,8 @@ Vector ElementState::getPreviousStress( const Point &p, bool local ) const
 		VirtualMachine vm ;
 		Vector lstrain( 3 ) ;
 
-		for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 
@@ -970,7 +1057,8 @@ Vector ElementState::getPreviousStress( const Point &p, bool local ) const
 
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 
 			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
@@ -991,96 +1079,99 @@ Vector ElementState::getPreviousStress( const Point &p, bool local ) const
 		Matrix cg( parent->getBehaviour()->getPreviousTensor( p_ ) ) ;
 
 		return lstrain * cg ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Point p_ = parent->inLocalCoordinates( p ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Point p_ = parent->inLocalCoordinates( p ) ;
 
-			if( local )
-				p_ = p ;
+		if( local )
+			p_ = p ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
-			double y_xi = 0;
-			double y_eta = 0;
-			double y_zeta = 0;
-			double z_xi = 0;
-			double z_eta = 0;
-			double z_zeta = 0;
-			VirtualMachine vm ;
-			Vector lstrain( 6 ) ;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		double y_xi = 0;
+		double y_eta = 0;
+		double y_zeta = 0;
+		double z_xi = 0;
+		double z_eta = 0;
+		double z_zeta = 0;
+		VirtualMachine vm ;
+		Vector lstrain( 6 ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
-				double x = previousDisplacements[j * 3] ;
-				double y = previousDisplacements[j * 3 + 1] ;
-				double z = previousDisplacements[j * 3 + 2] ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+			double x = previousDisplacements[j * 3] ;
+			double y = previousDisplacements[j * 3 + 1] ;
+			double z = previousDisplacements[j * 3 + 2] ;
 
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-				y_xi   += f_xi   * y ;
-				y_eta  += f_eta  * y ;
-				y_zeta += f_zeta * y ;
-				z_xi   += f_xi   * z ;
-				z_eta  += f_eta  * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
-				double x = previousEnrichedDisplacements[j * 3] ;
-				double y = previousEnrichedDisplacements[j * 3 + 1] ;
-				double z = previousEnrichedDisplacements[j * 3 + 2] ;
-
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-				y_xi   += f_xi   * y ;
-				y_eta  += f_eta  * y ;
-				y_zeta += f_zeta * y ;
-				z_xi   += f_xi   * z ;
-				z_eta  += f_eta  * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-
-			lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-			lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-			lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-			                     ( y_eta ) * Jinv[2][1] +
-			                     ( y_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[1][0] +
-			                     ( z_eta ) * Jinv[1][1] +
-			                     ( z_zeta ) * Jinv[1][2] );
-
-			lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-			                     ( x_eta ) * Jinv[2][1] +
-			                     ( x_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[0][0] +
-			                     ( z_eta ) * Jinv[0][1] +
-			                     ( z_zeta ) * Jinv[0][2] );
-
-			lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
-			                     ( y_eta )  * Jinv[0][1] +
-			                     ( y_zeta ) * Jinv[0][2] +
-			                     ( x_xi )   * Jinv[1][0] +
-			                     ( x_eta )  * Jinv[1][1] +
-			                     ( x_zeta ) * Jinv[1][2] );
-
-			Matrix cg( parent->getBehaviour()->getPreviousTensor( p_ ) ) ;
-
-			Vector ret = lstrain * cg ;
-			return ret ;
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+			y_xi   += f_xi   * y ;
+			y_eta  += f_eta  * y ;
+			y_zeta += f_zeta * y ;
+			z_xi   += f_xi   * z ;
+			z_eta  += f_eta  * z ;
+			z_zeta += f_zeta * z ;
 		}
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
+			double x = previousEnrichedDisplacements[j * 3] ;
+			double y = previousEnrichedDisplacements[j * 3 + 1] ;
+			double z = previousEnrichedDisplacements[j * 3 + 2] ;
+
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+			y_xi   += f_xi   * y ;
+			y_eta  += f_eta  * y ;
+			y_zeta += f_zeta * y ;
+			z_xi   += f_xi   * z ;
+			z_eta  += f_eta  * z ;
+			z_zeta += f_zeta * z ;
+		}
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+
+		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+		lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+		lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+		                     ( y_eta ) * Jinv[2][1] +
+		                     ( y_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[1][0] +
+		                     ( z_eta ) * Jinv[1][1] +
+		                     ( z_zeta ) * Jinv[1][2] );
+
+		lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+		                     ( x_eta ) * Jinv[2][1] +
+		                     ( x_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[0][0] +
+		                     ( z_eta ) * Jinv[0][1] +
+		                     ( z_zeta ) * Jinv[0][2] );
+
+		lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
+		                     ( y_eta )  * Jinv[0][1] +
+		                     ( y_zeta ) * Jinv[0][2] +
+		                     ( x_xi )   * Jinv[1][0] +
+		                     ( x_eta )  * Jinv[1][1] +
+		                     ( x_zeta ) * Jinv[1][2] );
+
+		Matrix cg( parent->getBehaviour()->getPreviousTensor( p_ ) ) ;
+
+		Vector ret = lstrain * cg ;
+		return ret ;
+	}
 
 	int dofs = 2 ;
 
@@ -1094,7 +1185,8 @@ Vector ElementState::getPreviousStress( const Point &p, bool local ) const
 Vector ElementState::getStress( const Point &p, bool local ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		size_t ndofs = 2;
 
 		Point p_ = p ;
@@ -1109,7 +1201,8 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 		VirtualMachine vm ;
 		Vector lstrain( 3 ) ;
 
-		for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 
@@ -1121,7 +1214,8 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 
 			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
@@ -1141,14 +1235,16 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
-		if( parent->getBehaviour()->param.size() == 3 ) {
+		if( parent->getBehaviour()->param.size() == 3 )
+		{
 			double xdot_xi = 0;
 			double xdot_eta = 0;
 			double ydot_xi = 0;
 			double ydot_eta = 0;
 			Vector ldotstrain( 3 ) ;
 
-			for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
+			{
 				Function f = parent->getShapeFunction( j ).d( TIME_VARIABLE ) ;
 				double f_xi = vm.deval( f, XI, p_ ) ;
 				double f_eta = vm.deval( f, ETA, p_ ) ;
@@ -1161,7 +1257,8 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 
 			}
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				Function f = parent->getEnrichmentFunction( j ).d( TIME_VARIABLE ) ;
 
 				double f_xi = vm.deval( f, XI, p_ ) ;
@@ -1187,96 +1284,99 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 		}
 
 		return lstrain * cg ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Point p_ = parent->inLocalCoordinates( p ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Point p_ = parent->inLocalCoordinates( p ) ;
 
-			if( local )
-				p_ = p ;
+		if( local )
+			p_ = p ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
-			double y_xi = 0;
-			double y_eta = 0;
-			double y_zeta = 0;
-			double z_xi = 0;
-			double z_eta = 0;
-			double z_zeta = 0;
-			VirtualMachine vm ;
-			Vector lstrain( 6 ) ;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		double y_xi = 0;
+		double y_eta = 0;
+		double y_zeta = 0;
+		double z_xi = 0;
+		double z_eta = 0;
+		double z_zeta = 0;
+		VirtualMachine vm ;
+		Vector lstrain( 6 ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
-				double x = displacements[j * 3] ;
-				double y = displacements[j * 3 + 1] ;
-				double z = displacements[j * 3 + 2] ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+			double x = displacements[j * 3] ;
+			double y = displacements[j * 3 + 1] ;
+			double z = displacements[j * 3 + 2] ;
 
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-				y_xi   += f_xi   * y ;
-				y_eta  += f_eta  * y ;
-				y_zeta += f_zeta * y ;
-				z_xi   += f_xi   * z ;
-				z_eta  += f_eta  * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
-				double x = enrichedDisplacements[j * 3] ;
-				double y = enrichedDisplacements[j * 3 + 1] ;
-				double z = enrichedDisplacements[j * 3 + 2] ;
-
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-				y_xi   += f_xi   * y ;
-				y_eta  += f_eta  * y ;
-				y_zeta += f_zeta * y ;
-				z_xi   += f_xi   * z ;
-				z_eta  += f_eta  * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-
-			lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-			lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-			lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-			                     ( y_eta ) * Jinv[2][1] +
-			                     ( y_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[1][0] +
-			                     ( z_eta ) * Jinv[1][1] +
-			                     ( z_zeta ) * Jinv[1][2] );
-
-			lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-			                     ( x_eta ) * Jinv[2][1] +
-			                     ( x_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[0][0] +
-			                     ( z_eta ) * Jinv[0][1] +
-			                     ( z_zeta ) * Jinv[0][2] );
-
-			lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
-			                     ( y_eta )  * Jinv[0][1] +
-			                     ( y_zeta ) * Jinv[0][2] +
-			                     ( x_xi )   * Jinv[1][0] +
-			                     ( x_eta )  * Jinv[1][1] +
-			                     ( x_zeta ) * Jinv[1][2] );
-
-			Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
-
-			Vector ret = lstrain * cg ;
-			return ret ;
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+			y_xi   += f_xi   * y ;
+			y_eta  += f_eta  * y ;
+			y_zeta += f_zeta * y ;
+			z_xi   += f_xi   * z ;
+			z_eta  += f_eta  * z ;
+			z_zeta += f_zeta * z ;
 		}
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
+			double x = enrichedDisplacements[j * 3] ;
+			double y = enrichedDisplacements[j * 3 + 1] ;
+			double z = enrichedDisplacements[j * 3 + 2] ;
+
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+			y_xi   += f_xi   * y ;
+			y_eta  += f_eta  * y ;
+			y_zeta += f_zeta * y ;
+			z_xi   += f_xi   * z ;
+			z_eta  += f_eta  * z ;
+			z_zeta += f_zeta * z ;
+		}
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+
+		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+		lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+		lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+		                     ( y_eta ) * Jinv[2][1] +
+		                     ( y_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[1][0] +
+		                     ( z_eta ) * Jinv[1][1] +
+		                     ( z_zeta ) * Jinv[1][2] );
+
+		lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+		                     ( x_eta ) * Jinv[2][1] +
+		                     ( x_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[0][0] +
+		                     ( z_eta ) * Jinv[0][1] +
+		                     ( z_zeta ) * Jinv[0][2] );
+
+		lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
+		                     ( y_eta )  * Jinv[0][1] +
+		                     ( y_zeta ) * Jinv[0][2] +
+		                     ( x_xi )   * Jinv[1][0] +
+		                     ( x_eta )  * Jinv[1][1] +
+		                     ( x_zeta ) * Jinv[1][2] );
+
+		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
+
+		Vector ret = lstrain * cg ;
+		return ret ;
+	}
 
 	int dofs = 2 ;
 
@@ -1290,7 +1390,8 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 
 		Point p_ = parent->inLocalCoordinates( p ) ;
 
@@ -1304,7 +1405,8 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 		VirtualMachine vm ;
 		Vector lstrain( 3 ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 
@@ -1325,76 +1427,78 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		return lstrain * cg ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Point p_ = parent->inLocalCoordinates( p ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Point p_ = parent->inLocalCoordinates( p ) ;
 
-			if( local )
-				p_ = p ;
+		if( local )
+			p_ = p ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
-			double y_xi = 0;
-			double y_eta = 0;
-			double y_zeta = 0;
-			double z_xi = 0;
-			double z_eta = 0;
-			double z_zeta = 0;
-			VirtualMachine vm ;
-			Vector lstrain( 6 ) ;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		double y_xi = 0;
+		double y_eta = 0;
+		double y_zeta = 0;
+		double z_xi = 0;
+		double z_eta = 0;
+		double z_zeta = 0;
+		VirtualMachine vm ;
+		Vector lstrain( 6 ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
-				double x = displacements[j * 3] ;
-				double y = displacements[j * 3 + 1] ;
-				double z = displacements[j * 3 + 2] ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+			double x = displacements[j * 3] ;
+			double y = displacements[j * 3 + 1] ;
+			double z = displacements[j * 3 + 2] ;
 
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-				y_xi   += f_xi   * y ;
-				y_eta  += f_eta  * y ;
-				y_zeta += f_zeta * y ;
-				z_xi   += f_xi   * z ;
-				z_eta  += f_eta  * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-
-			lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-			lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-			lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-			                     ( y_eta ) * Jinv[2][1] +
-			                     ( y_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[1][0] +
-			                     ( z_eta ) * Jinv[1][1] +
-			                     ( z_zeta ) * Jinv[1][2] );
-
-			lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-			                     ( x_eta ) * Jinv[2][1] +
-			                     ( x_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[0][0] +
-			                     ( z_eta ) * Jinv[0][1] +
-			                     ( z_zeta ) * Jinv[0][2] );
-
-			lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
-			                     ( y_eta )  * Jinv[0][1] +
-			                     ( y_zeta ) * Jinv[0][2] +
-			                     ( x_xi )   * Jinv[1][0] +
-			                     ( x_eta )  * Jinv[1][1] +
-			                     ( x_zeta ) * Jinv[1][2] );
-
-			Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
-
-			return lstrain * cg ;
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+			y_xi   += f_xi   * y ;
+			y_eta  += f_eta  * y ;
+			y_zeta += f_zeta * y ;
+			z_xi   += f_xi   * z ;
+			z_eta  += f_eta  * z ;
+			z_zeta += f_zeta * z ;
 		}
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+
+		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+		lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+		lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+		                     ( y_eta ) * Jinv[2][1] +
+		                     ( y_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[1][0] +
+		                     ( z_eta ) * Jinv[1][1] +
+		                     ( z_zeta ) * Jinv[1][2] );
+
+		lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+		                     ( x_eta ) * Jinv[2][1] +
+		                     ( x_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[0][0] +
+		                     ( z_eta ) * Jinv[0][1] +
+		                     ( z_zeta ) * Jinv[0][2] );
+
+		lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
+		                     ( y_eta )  * Jinv[0][1] +
+		                     ( y_zeta ) * Jinv[0][2] +
+		                     ( x_xi )   * Jinv[1][0] +
+		                     ( x_eta )  * Jinv[1][1] +
+		                     ( x_zeta ) * Jinv[1][2] );
+
+		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
+
+		return lstrain * cg ;
+	}
 
 	int dofs = 2 ;
 
@@ -1408,7 +1512,8 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 Vector ElementState::getNonEnrichedStrain( const Point &p, bool local ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 
 		Point p_ = parent->inLocalCoordinates( p ) ;
 
@@ -1422,7 +1527,8 @@ Vector ElementState::getNonEnrichedStrain( const Point &p, bool local ) const
 		VirtualMachine vm ;
 		Vector lstrain( 3 ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 
@@ -1441,73 +1547,75 @@ Vector ElementState::getNonEnrichedStrain( const Point &p, bool local ) const
 		lstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Point p_ = parent->inLocalCoordinates( p ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Point p_ = parent->inLocalCoordinates( p ) ;
 
-			if( local )
-				p_ = p ;
+		if( local )
+			p_ = p ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
-			double y_xi = 0;
-			double y_eta = 0;
-			double y_zeta = 0;
-			double z_xi = 0;
-			double z_eta = 0;
-			double z_zeta = 0;
-			VirtualMachine vm ;
-			Vector lstrain( 6 ) ;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		double y_xi = 0;
+		double y_eta = 0;
+		double y_zeta = 0;
+		double z_xi = 0;
+		double z_eta = 0;
+		double z_zeta = 0;
+		VirtualMachine vm ;
+		Vector lstrain( 6 ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
-				double x = displacements[j * 3] ;
-				double y = displacements[j * 3 + 1] ;
-				double z = displacements[j * 3 + 2] ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+			double x = displacements[j * 3] ;
+			double y = displacements[j * 3 + 1] ;
+			double z = displacements[j * 3 + 2] ;
 
-				x_xi   += f_xi   * x ;
-				x_eta  += f_eta  * x ;
-				x_zeta += f_zeta * x ;
-				y_xi   += f_xi   * y ;
-				y_eta  += f_eta  * y ;
-				y_zeta += f_zeta * y ;
-				z_xi   += f_xi   * z ;
-				z_eta  += f_eta  * z ;
-				z_zeta += f_zeta * z ;
-			}
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-			lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-			lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-			lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-			                     ( y_eta ) * Jinv[2][1] +
-			                     ( y_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[1][0] +
-			                     ( z_eta ) * Jinv[1][1] +
-			                     ( z_zeta ) * Jinv[1][2] );
-
-			lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-			                     ( x_eta ) * Jinv[2][1] +
-			                     ( x_zeta ) * Jinv[2][2] +
-			                     ( z_xi ) * Jinv[0][0] +
-			                     ( z_eta ) * Jinv[0][1] +
-			                     ( z_zeta ) * Jinv[0][2] );
-
-			lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
-			                     ( y_eta )  * Jinv[0][1] +
-			                     ( y_zeta ) * Jinv[0][2] +
-			                     ( x_xi )   * Jinv[1][0] +
-			                     ( x_eta )  * Jinv[1][1] +
-			                     ( x_zeta ) * Jinv[1][2] );
-
-			return lstrain ;
+			x_xi   += f_xi   * x ;
+			x_eta  += f_eta  * x ;
+			x_zeta += f_zeta * x ;
+			y_xi   += f_xi   * y ;
+			y_eta  += f_eta  * y ;
+			y_zeta += f_zeta * y ;
+			z_xi   += f_xi   * z ;
+			z_eta  += f_eta  * z ;
+			z_zeta += f_zeta * z ;
 		}
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+		lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+		lstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+		                     ( y_eta ) * Jinv[2][1] +
+		                     ( y_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[1][0] +
+		                     ( z_eta ) * Jinv[1][1] +
+		                     ( z_zeta ) * Jinv[1][2] );
+
+		lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+		                     ( x_eta ) * Jinv[2][1] +
+		                     ( x_zeta ) * Jinv[2][2] +
+		                     ( z_xi ) * Jinv[0][0] +
+		                     ( z_eta ) * Jinv[0][1] +
+		                     ( z_zeta ) * Jinv[0][2] );
+
+		lstrain[5] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
+		                     ( y_eta )  * Jinv[0][1] +
+		                     ( y_zeta ) * Jinv[0][2] +
+		                     ( x_xi )   * Jinv[1][0] +
+		                     ( x_eta )  * Jinv[1][1] +
+		                     ( x_zeta ) * Jinv[1][2] );
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -1520,75 +1628,81 @@ Vector ElementState::getNonEnrichedStrain( const Point &p, bool local ) const
 
 Matrix ElementState::getPreviousStressMatrix( const Point &p, bool local ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Matrix ret( 2, 2 ) ;
 		Vector stress = getPreviousStress( p, local ) ;
 		ret[0][0] = stress[0] ;
 		ret[1][1] = stress[1] ;
 		ret[0][1] = ret[1][0] = .5 * stress[2] ;
 		return ret ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Matrix ret( 3, 3 ) ;
-			Vector stress = getPreviousStress( p, local ) ;
-			ret[0][0] = stress[0] ;
-			ret[1][1] = stress[1] ;
-			ret[2][2] = stress[2] ;
-			ret[0][2] = ret[2][0] = .5 * stress[4] ;
-			ret[1][2] = ret[2][1] = .5 * stress[3] ;
-			ret[0][1] = ret[1][0] = .5 * stress[5] ;
-			return ret ;
-		}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Matrix ret( 3, 3 ) ;
+		Vector stress = getPreviousStress( p, local ) ;
+		ret[0][0] = stress[0] ;
+		ret[1][1] = stress[1] ;
+		ret[2][2] = stress[2] ;
+		ret[0][2] = ret[2][0] = .5 * stress[4] ;
+		ret[1][2] = ret[2][1] = .5 * stress[3] ;
+		ret[0][1] = ret[1][0] = .5 * stress[5] ;
+		return ret ;
+	}
 
 	return Matrix( parent->getBehaviour()->getNumberOfDegreesOfFreedom() + 1,  parent->getBehaviour()->getNumberOfDegreesOfFreedom() + 1 ) ;
 }
 
 Matrix ElementState::getStressMatrix( const Point &p, bool local ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Matrix ret( 2, 2 ) ;
 		Vector stress = getStress( p, local ) ;
 		ret[0][0] = stress[0] ;
 		ret[1][1] = stress[1] ;
 		ret[0][1] = ret[1][0] = .5 * stress[2] ;
 		return ret ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Matrix ret( 3, 3 ) ;
-			Vector stress = getStress( p, local ) ;
-			ret[0][0] = stress[0] ;
-			ret[1][1] = stress[1] ;
-			ret[2][2] = stress[2] ;
-			ret[0][2] = ret[2][0] = .5 * stress[4] ;
-			ret[1][2] = ret[2][1] = .5 * stress[3] ;
-			ret[0][1] = ret[1][0] = .5 * stress[5] ;
-			return ret ;
-		}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Matrix ret( 3, 3 ) ;
+		Vector stress = getStress( p, local ) ;
+		ret[0][0] = stress[0] ;
+		ret[1][1] = stress[1] ;
+		ret[2][2] = stress[2] ;
+		ret[0][2] = ret[2][0] = .5 * stress[4] ;
+		ret[1][2] = ret[2][1] = .5 * stress[3] ;
+		ret[0][1] = ret[1][0] = .5 * stress[5] ;
+		return ret ;
+	}
 
 	return Matrix( parent->getBehaviour()->getNumberOfDegreesOfFreedom() + 1,  parent->getBehaviour()->getNumberOfDegreesOfFreedom() + 1 ) ;
 }
 
 Matrix ElementState::getStrainMatrix( const Point &p, bool local ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Matrix ret( 2, 2 ) ;
 		Vector strain = getStrain( p, local ) ;
 		ret[0][0] = strain[0] ;
 		ret[1][1] = strain[1] ;
 		ret[0][1] = ret[1][0] = 0.5 * strain[2] ;
 		return ret ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Matrix ret( 3, 3 ) ;
-			Vector strain = getStrain( p, local ) ;
-			ret[0][0] = strain[0] ;
-			ret[1][1] = strain[1] ;
-			ret[2][2] = strain[2] ;
-			ret[0][2] = ret[2][0] = .5 * strain[4] ;
-			ret[1][2] = ret[2][1] = .5 * strain[3] ;
-			ret[0][1] = ret[1][0] = .5 * strain[5] ;
-			return ret ;
-		}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Matrix ret( 3, 3 ) ;
+		Vector strain = getStrain( p, local ) ;
+		ret[0][0] = strain[0] ;
+		ret[1][1] = strain[1] ;
+		ret[2][2] = strain[2] ;
+		ret[0][2] = ret[2][0] = .5 * strain[4] ;
+		ret[1][2] = ret[2][1] = .5 * strain[3] ;
+		ret[0][1] = ret[1][0] = .5 * strain[5] ;
+		return ret ;
+	}
 
 	return Matrix( parent->getBehaviour()->getNumberOfDegreesOfFreedom() + 1,  parent->getBehaviour()->getNumberOfDegreesOfFreedom() + 1 ) ;
 }
@@ -1600,14 +1714,17 @@ Vector ElementState::getStress( const std::pair<Point, double> & p ) const
 
 Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 		}
 
@@ -1620,7 +1737,8 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts ) const
 		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
 
 			double x_xi = 0;
@@ -1628,16 +1746,19 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts ) const
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -1665,112 +1786,120 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts ) const
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
-			}
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
+		}
 
-			//
-			VirtualMachine vm ;
+		//
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * pts.size() ) ;
+		Vector lstrain( 6 * pts.size() ) ;
 
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
 
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
 
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_eta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_eta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_eta * displacements[j * 3] ;
 				}
 
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_eta * displacements[j * 3 + 1] ;
+				}
 
-				Vector llstrain( 6 ) ;
-
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-
-				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-				                      ( y_eta ) * Jinv[2][1] +
-				                      ( y_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[1][0] +
-				                      ( z_eta ) * Jinv[1][1] +
-				                      ( z_zeta ) * Jinv[1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-				                      ( x_eta ) * Jinv[2][1] +
-				                      ( x_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[0][0] +
-				                      ( z_eta ) * Jinv[0][1] +
-				                      ( z_zeta ) * Jinv[0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
-				                      ( y_eta ) * Jinv[0][1] +
-				                      ( y_zeta ) * Jinv[0][2] +
-				                      ( x_xi ) * Jinv[1][0] +
-				                      ( x_eta ) * Jinv[1][1] +
-				                      ( x_zeta ) * Jinv[1][2] );
-
-				llstrain = llstrain * cg ;
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
 			}
 
-			return lstrain ;
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+			Vector llstrain( 6 ) ;
+
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+			llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+			                      ( y_eta ) * Jinv[2][1] +
+			                      ( y_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[1][0] +
+			                      ( z_eta ) * Jinv[1][1] +
+			                      ( z_zeta ) * Jinv[1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+			                      ( x_eta ) * Jinv[2][1] +
+			                      ( x_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[0][0] +
+			                      ( z_eta ) * Jinv[0][1] +
+			                      ( z_zeta ) * Jinv[0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
+			                      ( y_eta ) * Jinv[0][1] +
+			                      ( y_zeta ) * Jinv[0][2] +
+			                      ( x_xi ) * Jinv[1][0] +
+			                      ( x_eta ) * Jinv[1][1] +
+			                      ( x_zeta ) * Jinv[1][2] );
+
+			llstrain = llstrain * cg ;
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
 		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -1783,14 +1912,17 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts ) const
 
 Vector ElementState::getNonEnrichedStrain( const Mu::PointArray &pts ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 		}
 
@@ -1803,23 +1935,27 @@ Vector ElementState::getNonEnrichedStrain( const Mu::PointArray &pts ) const
 		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 
 			double x_xi = 0;
 			double x_eta = 0;
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -1845,109 +1981,117 @@ Vector ElementState::getNonEnrichedStrain( const Mu::PointArray &pts ) const
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
-			}
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
+		}
 
-			//
-			VirtualMachine vm ;
+		//
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * pts.size() ) ;
+		Vector lstrain( 6 * pts.size() ) ;
 
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
 
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_eta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_eta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_eta * displacements[j * 3] ;
 				}
 
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_eta * displacements[j * 3 + 1] ;
+				}
 
-				Vector llstrain( 6 ) ;
-
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-
-				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-				                      ( y_eta ) * Jinv[2][1] +
-				                      ( y_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[1][0] +
-				                      ( z_eta ) * Jinv[1][1] +
-				                      ( z_zeta ) * Jinv[1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-				                      ( x_eta ) * Jinv[2][1] +
-				                      ( x_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[0][0] +
-				                      ( z_eta ) * Jinv[0][1] +
-				                      ( z_zeta ) * Jinv[0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
-				                      ( y_eta ) * Jinv[0][1] +
-				                      ( y_zeta ) * Jinv[0][2] +
-				                      ( x_xi ) * Jinv[1][0] +
-				                      ( x_eta ) * Jinv[1][1] +
-				                      ( x_zeta ) * Jinv[1][2] );
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
 			}
 
-			return lstrain ;
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+			Vector llstrain( 6 ) ;
+
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+			llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+			                      ( y_eta ) * Jinv[2][1] +
+			                      ( y_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[1][0] +
+			                      ( z_eta ) * Jinv[1][1] +
+			                      ( z_zeta ) * Jinv[1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+			                      ( x_eta ) * Jinv[2][1] +
+			                      ( x_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[0][0] +
+			                      ( z_eta ) * Jinv[0][1] +
+			                      ( z_zeta ) * Jinv[0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
+			                      ( y_eta ) * Jinv[0][1] +
+			                      ( y_zeta ) * Jinv[0][2] +
+			                      ( x_xi ) * Jinv[1][0] +
+			                      ( x_eta ) * Jinv[1][1] +
+			                      ( x_zeta ) * Jinv[1][2] );
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
 		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -1961,8 +2105,10 @@ Vector ElementState::getNonEnrichedStrain( const Mu::PointArray &pts ) const
 Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, double> >& pts ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
@@ -1976,7 +2122,8 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 		parent->getInverseJacobianMatrix( pts[0].first, Jinv ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			Matrix cg( parent->getBehaviour()->getTensor( pts[i].first ) ) ;
 
 			double x_xi = 0;
@@ -1984,16 +2131,19 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, pts[i].first ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, pts[i].first ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -2017,112 +2167,120 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
-			}
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
+		}
 
-			//
-			VirtualMachine vm ;
+		//
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * pts.size() ) ;
+		Vector lstrain( 6 * pts.size() ) ;
 
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				Matrix cg( parent->getBehaviour()->getTensor( pts[i].first ) ) ;
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			Matrix cg( parent->getBehaviour()->getTensor( pts[i].first ) ) ;
 
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
 
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_eta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_eta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_eta * displacements[j * 3] ;
 				}
 
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_eta * displacements[j * 3 + 1] ;
+				}
 
-				Vector llstrain( 6 ) ;
-
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-
-				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-				                      ( y_eta ) * Jinv[2][1] +
-				                      ( y_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[1][0] +
-				                      ( z_eta ) * Jinv[1][1] +
-				                      ( z_zeta ) * Jinv[1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-				                      ( x_eta ) * Jinv[2][1] +
-				                      ( x_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[0][0] +
-				                      ( z_eta ) * Jinv[0][1] +
-				                      ( z_zeta ) * Jinv[0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
-				                      ( y_eta ) * Jinv[0][1] +
-				                      ( y_zeta ) * Jinv[0][2] +
-				                      ( x_xi ) * Jinv[1][0] +
-				                      ( x_eta ) * Jinv[1][1] +
-				                      ( x_zeta ) * Jinv[1][2] );
-
-				llstrain = llstrain * cg ;
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
 			}
 
-			return lstrain ;
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+			Vector llstrain( 6 ) ;
+
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+			llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+			                      ( y_eta ) * Jinv[2][1] +
+			                      ( y_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[1][0] +
+			                      ( z_eta ) * Jinv[1][1] +
+			                      ( z_zeta ) * Jinv[1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+			                      ( x_eta ) * Jinv[2][1] +
+			                      ( x_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[0][0] +
+			                      ( z_eta ) * Jinv[0][1] +
+			                      ( z_zeta ) * Jinv[0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
+			                      ( y_eta ) * Jinv[0][1] +
+			                      ( y_zeta ) * Jinv[0][2] +
+			                      ( x_xi ) * Jinv[1][0] +
+			                      ( x_eta ) * Jinv[1][1] +
+			                      ( x_zeta ) * Jinv[1][2] );
+
+			llstrain = llstrain * cg ;
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
 		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -2135,8 +2293,10 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 
 Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, double> >& pts ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
@@ -2150,23 +2310,27 @@ Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, 
 		parent->getInverseJacobianMatrix( pts[0].first, Jinv ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 
 			double x_xi = 0;
 			double x_eta = 0;
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, pts[i].first ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, pts[i].first ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -2188,109 +2352,117 @@ Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, 
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
-			}
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
+		}
 
-			//
-			VirtualMachine vm ;
+		//
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * pts.size() ) ;
+		Vector lstrain( 6 * pts.size() ) ;
 
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
 
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_eta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_eta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_eta * displacements[j * 3] ;
 				}
 
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_eta * displacements[j * 3 + 1] ;
+				}
 
-				Vector llstrain( 6 ) ;
-
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-
-				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-				                      ( y_eta ) * Jinv[2][1] +
-				                      ( y_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[1][0] +
-				                      ( z_eta ) * Jinv[1][1] +
-				                      ( z_zeta ) * Jinv[1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-				                      ( x_eta ) * Jinv[2][1] +
-				                      ( x_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[0][0] +
-				                      ( z_eta ) * Jinv[0][1] +
-				                      ( z_zeta ) * Jinv[0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
-				                      ( y_eta ) * Jinv[0][1] +
-				                      ( y_zeta ) * Jinv[0][2] +
-				                      ( x_xi ) * Jinv[1][0] +
-				                      ( x_eta ) * Jinv[1][1] +
-				                      ( x_zeta ) * Jinv[1][2] );
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
 			}
 
-			return lstrain ;
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+			Vector llstrain( 6 ) ;
+
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+			llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+			                      ( y_eta ) * Jinv[2][1] +
+			                      ( y_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[1][0] +
+			                      ( z_eta ) * Jinv[1][1] +
+			                      ( z_zeta ) * Jinv[1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+			                      ( x_eta ) * Jinv[2][1] +
+			                      ( x_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[0][0] +
+			                      ( z_eta ) * Jinv[0][1] +
+			                      ( z_zeta ) * Jinv[0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
+			                      ( y_eta ) * Jinv[0][1] +
+			                      ( y_zeta ) * Jinv[0][2] +
+			                      ( x_xi ) * Jinv[1][0] +
+			                      ( x_eta ) * Jinv[1][1] +
+			                      ( x_zeta ) * Jinv[1][2] );
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
 		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -2303,8 +2475,10 @@ Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, 
 
 Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, double> >& pts,  const std::valarray<Matrix> &Jinv ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
@@ -2315,7 +2489,8 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 		Vector lstrain( 3 * pts.size() ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			Matrix cg( parent->getBehaviour()->getTensor( pts[i].first ) ) ;
 
 			double x_xi = 0;
@@ -2323,16 +2498,19 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, pts[i].first ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, pts[i].first ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -2353,101 +2531,109 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
-			}
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
+		}
 
-			//
-			VirtualMachine vm ;
+		//
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * pts.size() ) ;
+		Vector lstrain( 6 * pts.size() ) ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				Matrix cg( parent->getBehaviour()->getTensor( pts[i].first ) ) ;
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			Matrix cg( parent->getBehaviour()->getTensor( pts[i].first ) ) ;
 
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
 
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_eta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_eta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_eta * displacements[j * 3] ;
 				}
 
-				Vector llstrain( 6 ) ;
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_eta * displacements[j * 3 + 1] ;
+				}
 
-				llstrain[0] = ( x_xi ) * Jinv[i][0][0] + ( x_eta ) * Jinv[i][0][1]  + ( x_zeta ) * Jinv[i][0][2];
-				llstrain[1] = ( y_xi ) * Jinv[i][1][0] + ( y_eta ) * Jinv[i][1][1]  + ( y_zeta ) * Jinv[i][1][2];
-				llstrain[2] = ( z_xi ) * Jinv[i][2][0] + ( z_eta ) * Jinv[i][2][1]  + ( z_zeta ) * Jinv[i][2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[i][2][0] +
-				                      ( y_eta ) * Jinv[i][2][1] +
-				                      ( y_zeta ) * Jinv[i][2][2] +
-				                      ( z_xi ) * Jinv[i][1][0] +
-				                      ( z_eta ) * Jinv[i][1][1] +
-				                      ( z_zeta ) * Jinv[i][1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[i][2][0] +
-				                      ( x_eta ) * Jinv[i][2][1] +
-				                      ( x_zeta ) * Jinv[i][2][2] +
-				                      ( z_xi ) * Jinv[i][0][0] +
-				                      ( z_eta ) * Jinv[i][0][1] +
-				                      ( z_zeta ) * Jinv[i][0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[i][0][0] +
-				                      ( y_eta ) * Jinv[i][0][1] +
-				                      ( y_zeta ) * Jinv[i][0][2] +
-				                      ( x_xi ) * Jinv[i][1][0] +
-				                      ( x_eta ) * Jinv[i][1][1] +
-				                      ( x_zeta ) * Jinv[i][1][2] );
-
-
-				llstrain = llstrain * cg ;
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
 			}
 
-			return lstrain ;
+			Vector llstrain( 6 ) ;
+
+			llstrain[0] = ( x_xi ) * Jinv[i][0][0] + ( x_eta ) * Jinv[i][0][1]  + ( x_zeta ) * Jinv[i][0][2];
+			llstrain[1] = ( y_xi ) * Jinv[i][1][0] + ( y_eta ) * Jinv[i][1][1]  + ( y_zeta ) * Jinv[i][1][2];
+			llstrain[2] = ( z_xi ) * Jinv[i][2][0] + ( z_eta ) * Jinv[i][2][1]  + ( z_zeta ) * Jinv[i][2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[i][2][0] +
+			                      ( y_eta ) * Jinv[i][2][1] +
+			                      ( y_zeta ) * Jinv[i][2][2] +
+			                      ( z_xi ) * Jinv[i][1][0] +
+			                      ( z_eta ) * Jinv[i][1][1] +
+			                      ( z_zeta ) * Jinv[i][1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[i][2][0] +
+			                      ( x_eta ) * Jinv[i][2][1] +
+			                      ( x_zeta ) * Jinv[i][2][2] +
+			                      ( z_xi ) * Jinv[i][0][0] +
+			                      ( z_eta ) * Jinv[i][0][1] +
+			                      ( z_zeta ) * Jinv[i][0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[i][0][0] +
+			                      ( y_eta ) * Jinv[i][0][1] +
+			                      ( y_zeta ) * Jinv[i][0][2] +
+			                      ( x_xi ) * Jinv[i][1][0] +
+			                      ( x_eta ) * Jinv[i][1][1] +
+			                      ( x_zeta ) * Jinv[i][1][2] );
+
+
+			llstrain = llstrain * cg ;
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
 		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -2460,8 +2646,10 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 
 Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, double> >& pts,  const std::valarray<Matrix> &Jinv ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
@@ -2472,23 +2660,27 @@ Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, 
 		Vector lstrain( 3 * pts.size() ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 
 			double x_xi = 0;
 			double x_eta = 0;
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, pts[i].first ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, pts[i].first ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -2508,98 +2700,106 @@ Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, 
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
-			}
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( pts[i].first ) ) ;
+		}
 
-			//
-			VirtualMachine vm ;
+		//
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * pts.size() ) ;
+		Vector lstrain( 6 * pts.size() ) ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
 
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_eta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_eta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
-
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_eta * displacements[j * 3] ;
 				}
 
-				Vector llstrain( 6 ) ;
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_eta * displacements[j * 3 + 1] ;
+				}
 
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
 
-				llstrain[0] = ( x_xi ) * Jinv[i][0][0] + ( x_eta ) * Jinv[i][0][1]  + ( x_zeta ) * Jinv[i][0][2];
-				llstrain[1] = ( y_xi ) * Jinv[i][1][0] + ( y_eta ) * Jinv[i][1][1]  + ( y_zeta ) * Jinv[i][1][2];
-				llstrain[2] = ( z_xi ) * Jinv[i][2][0] + ( z_eta ) * Jinv[i][2][1]  + ( z_zeta ) * Jinv[i][2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[i][2][0] +
-				                      ( y_eta ) * Jinv[i][2][1] +
-				                      ( y_zeta ) * Jinv[i][2][2] +
-				                      ( z_xi ) * Jinv[i][1][0] +
-				                      ( z_eta ) * Jinv[i][1][1] +
-				                      ( z_zeta ) * Jinv[i][1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[i][2][0] +
-				                      ( x_eta ) * Jinv[i][2][1] +
-				                      ( x_zeta ) * Jinv[i][2][2] +
-				                      ( z_xi ) * Jinv[i][0][0] +
-				                      ( z_eta ) * Jinv[i][0][1] +
-				                      ( z_zeta ) * Jinv[i][0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[i][0][0] +
-				                      ( y_eta ) * Jinv[i][0][1] +
-				                      ( y_zeta ) * Jinv[i][0][2] +
-				                      ( x_xi ) * Jinv[i][1][0] +
-				                      ( x_eta ) * Jinv[i][1][1] +
-				                      ( x_zeta ) * Jinv[i][1][2] );
-
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
 			}
 
-			return lstrain ;
+			Vector llstrain( 6 ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[i][0][0] + ( x_eta ) * Jinv[i][0][1]  + ( x_zeta ) * Jinv[i][0][2];
+			llstrain[1] = ( y_xi ) * Jinv[i][1][0] + ( y_eta ) * Jinv[i][1][1]  + ( y_zeta ) * Jinv[i][1][2];
+			llstrain[2] = ( z_xi ) * Jinv[i][2][0] + ( z_eta ) * Jinv[i][2][1]  + ( z_zeta ) * Jinv[i][2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[i][2][0] +
+			                      ( y_eta ) * Jinv[i][2][1] +
+			                      ( y_zeta ) * Jinv[i][2][2] +
+			                      ( z_xi ) * Jinv[i][1][0] +
+			                      ( z_eta ) * Jinv[i][1][1] +
+			                      ( z_zeta ) * Jinv[i][1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[i][2][0] +
+			                      ( x_eta ) * Jinv[i][2][1] +
+			                      ( x_zeta ) * Jinv[i][2][2] +
+			                      ( z_xi ) * Jinv[i][0][0] +
+			                      ( z_eta ) * Jinv[i][0][1] +
+			                      ( z_zeta ) * Jinv[i][0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[i][0][0] +
+			                      ( y_eta ) * Jinv[i][0][1] +
+			                      ( y_zeta ) * Jinv[i][0][2] +
+			                      ( x_xi ) * Jinv[i][1][0] +
+			                      ( x_eta ) * Jinv[i][1][1] +
+			                      ( x_zeta ) * Jinv[i][1][2] );
+
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
 		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -2612,14 +2812,17 @@ Vector ElementState::getNonEnrichedStrain( const std::valarray<std::pair<Point, 
 
 Vector ElementState::getPreviousStress( const Mu::PointArray &pts ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 		}
 
@@ -2632,7 +2835,8 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts ) const
 		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			Matrix cg( parent->getBehaviour()->getPreviousTensor( p_[i] ) ) ;
 
 			double x_xi = 0;
@@ -2640,16 +2844,19 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts ) const
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < previousDisplacements.size() ) {
+				if( j * 2 < previousDisplacements.size() )
+				{
 					x_xi += f_xi * previousDisplacements[j * 2] ;
 					x_eta += f_eta * previousDisplacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < previousDisplacements.size() ) {
+				if( j * 2 + 1 < previousDisplacements.size() )
+				{
 					y_xi += f_xi * previousDisplacements[j * 2 + 1] ;
 					y_eta += f_eta * previousDisplacements[j * 2 + 1] ;
 				}
@@ -2665,16 +2872,19 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts ) const
 			double delta_y_xi  = 0;
 			double delta_y_eta  = 0;
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < previousEnrichedDisplacements.size() ) {
+				if( j * 2 < previousEnrichedDisplacements.size() )
+				{
 					delta_x_xi += f_xi * previousEnrichedDisplacements[j * 2] ;
 					delta_x_eta += f_eta * previousEnrichedDisplacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < previousEnrichedDisplacements.size() ) {
+				if( j * 2 + 1 < previousEnrichedDisplacements.size() )
+				{
 					delta_y_xi += f_xi * previousEnrichedDisplacements[j * 2 + 1] ;
 					delta_y_eta += f_eta * previousEnrichedDisplacements[j * 2 + 1] ;
 				}
@@ -2696,137 +2906,149 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts ) const
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
-
-			std::vector<Point> p_ ;
-
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
-			}
-
-			//
-			VirtualMachine vm ;
-
-			Vector lstrain( 6 * pts.size() ) ;
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
-
-
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				Matrix cg( parent->getBehaviour()->getPreviousTensor( p_[i] ) ) ;
-
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
-
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
-
-					if( j * 3 < previousDisplacements.size() ) {
-						x_xi += f_xi * previousDisplacements[j * 3] ;
-						x_eta += f_eta * previousDisplacements[j * 3] ;
-						x_zeta += f_zeta * previousDisplacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < previousDisplacements.size() ) {
-						y_xi += f_xi * previousDisplacements[j * 3 + 1] ;
-						y_eta += f_eta * previousDisplacements[j * 3 + 1] ;
-						y_zeta += f_zeta * previousDisplacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < previousDisplacements.size() ) {
-						z_xi += f_xi * previousDisplacements[j * 3 + 2] ;
-						z_eta += f_eta * previousDisplacements[j * 3 + 2] ;
-						z_zeta += f_zeta * previousDisplacements[j * 3 + 2] ;
-					}
-				}
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-				Vector llstrain( 6 ) ;
-
-
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
-
-					if( j * 3 < previousEnrichedDisplacements.size() ) {
-						x_xi += f_xi * previousEnrichedDisplacements[j * 3] ;
-						x_eta += f_eta * previousEnrichedDisplacements[j * 3] ;
-						x_zeta += f_zeta * previousEnrichedDisplacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < previousEnrichedDisplacements.size() ) {
-						y_xi += f_xi * enrichedDisplacements[j * 3 + 1] ;
-						y_eta += f_eta * enrichedDisplacements[j * 3 + 1] ;
-						y_zeta += f_zeta * enrichedDisplacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < previousEnrichedDisplacements.size() ) {
-						z_xi += f_xi * previousEnrichedDisplacements[j * 3 + 2] ;
-						z_eta += f_eta * previousEnrichedDisplacements[j * 3 + 2] ;
-						z_zeta += f_zeta * previousEnrichedDisplacements[j * 3 + 2] ;
-					}
-				}
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-
-				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-				                      ( y_eta ) * Jinv[2][1] +
-				                      ( y_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[1][0] +
-				                      ( z_eta ) * Jinv[1][1] +
-				                      ( z_zeta ) * Jinv[1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-				                      ( x_eta ) * Jinv[2][1] +
-				                      ( x_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[0][0] +
-				                      ( z_eta ) * Jinv[0][1] +
-				                      ( z_zeta ) * Jinv[0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
-				                      ( y_eta ) * Jinv[0][1] +
-				                      ( y_zeta ) * Jinv[0][2] +
-				                      ( x_xi ) * Jinv[1][0] +
-				                      ( x_eta ) * Jinv[1][1] +
-				                      ( x_zeta ) * Jinv[1][2] );
-
-
-				llstrain = llstrain * cg ;
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
-			}
-
-			return lstrain ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
 		}
+
+		std::vector<Point> p_ ;
+
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
+		}
+
+		//
+		VirtualMachine vm ;
+
+		Vector lstrain( 6 * pts.size() ) ;
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
+
+
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			Matrix cg( parent->getBehaviour()->getPreviousTensor( p_[i] ) ) ;
+
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
+
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+
+				if( j * 3 < previousDisplacements.size() )
+				{
+					x_xi += f_xi * previousDisplacements[j * 3] ;
+					x_eta += f_eta * previousDisplacements[j * 3] ;
+					x_zeta += f_zeta * previousDisplacements[j * 3] ;
+				}
+
+				if( j * 3 + 1 < previousDisplacements.size() )
+				{
+					y_xi += f_xi * previousDisplacements[j * 3 + 1] ;
+					y_eta += f_eta * previousDisplacements[j * 3 + 1] ;
+					y_zeta += f_zeta * previousDisplacements[j * 3 + 1] ;
+				}
+
+				if( j * 3 + 2 < previousDisplacements.size() )
+				{
+					z_xi += f_xi * previousDisplacements[j * 3 + 2] ;
+					z_eta += f_eta * previousDisplacements[j * 3 + 2] ;
+					z_zeta += f_zeta * previousDisplacements[j * 3 + 2] ;
+				}
+			}
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+			Vector llstrain( 6 ) ;
+
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
+
+				if( j * 3 < previousEnrichedDisplacements.size() )
+				{
+					x_xi += f_xi * previousEnrichedDisplacements[j * 3] ;
+					x_eta += f_eta * previousEnrichedDisplacements[j * 3] ;
+					x_zeta += f_zeta * previousEnrichedDisplacements[j * 3] ;
+				}
+
+				if( j * 3 + 1 < previousEnrichedDisplacements.size() )
+				{
+					y_xi += f_xi * enrichedDisplacements[j * 3 + 1] ;
+					y_eta += f_eta * enrichedDisplacements[j * 3 + 1] ;
+					y_zeta += f_zeta * enrichedDisplacements[j * 3 + 1] ;
+				}
+
+				if( j * 3 + 2 < previousEnrichedDisplacements.size() )
+				{
+					z_xi += f_xi * previousEnrichedDisplacements[j * 3 + 2] ;
+					z_eta += f_eta * previousEnrichedDisplacements[j * 3 + 2] ;
+					z_zeta += f_zeta * previousEnrichedDisplacements[j * 3 + 2] ;
+				}
+			}
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+			llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+			                      ( y_eta ) * Jinv[2][1] +
+			                      ( y_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[1][0] +
+			                      ( z_eta ) * Jinv[1][1] +
+			                      ( z_zeta ) * Jinv[1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+			                      ( x_eta ) * Jinv[2][1] +
+			                      ( x_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[0][0] +
+			                      ( z_eta ) * Jinv[0][1] +
+			                      ( z_zeta ) * Jinv[0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
+			                      ( y_eta ) * Jinv[0][1] +
+			                      ( y_zeta ) * Jinv[0][2] +
+			                      ( x_xi ) * Jinv[1][0] +
+			                      ( x_eta ) * Jinv[1][1] +
+			                      ( x_zeta ) * Jinv[1][2] );
+
+
+			llstrain = llstrain * cg ;
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
+		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -2839,14 +3061,17 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts ) const
 
 Vector ElementState::getStress( const Mu::PointArray &pts ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 		}
 
@@ -2859,7 +3084,8 @@ Vector ElementState::getStress( const Mu::PointArray &pts ) const
 		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
 
 			double x_xi = 0;
@@ -2867,16 +3093,19 @@ Vector ElementState::getStress( const Mu::PointArray &pts ) const
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -2892,16 +3121,19 @@ Vector ElementState::getStress( const Mu::PointArray &pts ) const
 			double delta_y_xi  = 0;
 			double delta_y_eta  = 0;
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < enrichedDisplacements.size() ) {
+				if( j * 2 < enrichedDisplacements.size() )
+				{
 					delta_x_xi += f_xi * enrichedDisplacements[j * 2] ;
 					delta_x_eta += f_eta * enrichedDisplacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < enrichedDisplacements.size() ) {
+				if( j * 2 + 1 < enrichedDisplacements.size() )
+				{
 					delta_y_xi += f_xi * enrichedDisplacements[j * 2 + 1] ;
 					delta_y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
 				}
@@ -2923,137 +3155,149 @@ Vector ElementState::getStress( const Mu::PointArray &pts ) const
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
-
-			std::vector<Point> p_ ;
-
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
-			}
-
-			//
-			VirtualMachine vm ;
-
-			Vector lstrain( 6 * pts.size() ) ;
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
-
-
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
-
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
-
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
-
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_zeta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_zeta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
-				}
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-				Vector llstrain( 6 ) ;
-
-
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
-
-					if( j * 3 < enrichedDisplacements.size() ) {
-						x_xi += f_xi * enrichedDisplacements[j * 3] ;
-						x_eta += f_eta * enrichedDisplacements[j * 3] ;
-						x_zeta += f_zeta * enrichedDisplacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < enrichedDisplacements.size() ) {
-						y_xi += f_xi * enrichedDisplacements[j * 3 + 1] ;
-						y_eta += f_eta * enrichedDisplacements[j * 3 + 1] ;
-						y_zeta += f_zeta * enrichedDisplacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < enrichedDisplacements.size() ) {
-						z_xi += f_xi * enrichedDisplacements[j * 3 + 2] ;
-						z_eta += f_eta * enrichedDisplacements[j * 3 + 2] ;
-						z_zeta += f_zeta * enrichedDisplacements[j * 3 + 2] ;
-					}
-				}
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-
-				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-				                      ( y_eta ) * Jinv[2][1] +
-				                      ( y_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[1][0] +
-				                      ( z_eta ) * Jinv[1][1] +
-				                      ( z_zeta ) * Jinv[1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-				                      ( x_eta ) * Jinv[2][1] +
-				                      ( x_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[0][0] +
-				                      ( z_eta ) * Jinv[0][1] +
-				                      ( z_zeta ) * Jinv[0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
-				                      ( y_eta ) * Jinv[0][1] +
-				                      ( y_zeta ) * Jinv[0][2] +
-				                      ( x_xi ) * Jinv[1][0] +
-				                      ( x_eta ) * Jinv[1][1] +
-				                      ( x_zeta ) * Jinv[1][2] );
-
-
-				llstrain = llstrain * cg ;
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
-			}
-
-			return lstrain ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
 		}
+
+		std::vector<Point> p_ ;
+
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
+		}
+
+		//
+		VirtualMachine vm ;
+
+		Vector lstrain( 6 * pts.size() ) ;
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
+
+
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
+
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
+
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_zeta * displacements[j * 3] ;
+				}
+
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_zeta * displacements[j * 3 + 1] ;
+				}
+
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
+			}
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+			Vector llstrain( 6 ) ;
+
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
+
+				if( j * 3 < enrichedDisplacements.size() )
+				{
+					x_xi += f_xi * enrichedDisplacements[j * 3] ;
+					x_eta += f_eta * enrichedDisplacements[j * 3] ;
+					x_zeta += f_zeta * enrichedDisplacements[j * 3] ;
+				}
+
+				if( j * 3 + 1 < enrichedDisplacements.size() )
+				{
+					y_xi += f_xi * enrichedDisplacements[j * 3 + 1] ;
+					y_eta += f_eta * enrichedDisplacements[j * 3 + 1] ;
+					y_zeta += f_zeta * enrichedDisplacements[j * 3 + 1] ;
+				}
+
+				if( j * 3 + 2 < enrichedDisplacements.size() )
+				{
+					z_xi += f_xi * enrichedDisplacements[j * 3 + 2] ;
+					z_eta += f_eta * enrichedDisplacements[j * 3 + 2] ;
+					z_zeta += f_zeta * enrichedDisplacements[j * 3 + 2] ;
+				}
+			}
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+			llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+			                      ( y_eta ) * Jinv[2][1] +
+			                      ( y_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[1][0] +
+			                      ( z_eta ) * Jinv[1][1] +
+			                      ( z_zeta ) * Jinv[1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+			                      ( x_eta ) * Jinv[2][1] +
+			                      ( x_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[0][0] +
+			                      ( z_eta ) * Jinv[0][1] +
+			                      ( z_zeta ) * Jinv[0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
+			                      ( y_eta ) * Jinv[0][1] +
+			                      ( y_zeta ) * Jinv[0][2] +
+			                      ( x_xi ) * Jinv[1][0] +
+			                      ( x_eta ) * Jinv[1][1] +
+			                      ( x_zeta ) * Jinv[1][2] );
+
+
+			llstrain = llstrain * cg ;
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
+		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -3081,32 +3325,38 @@ Vector ElementState::getStress( const Mu::PointArray &pts ) const
 
 Vector ElementState::getStress( const std::valarray<std::pair<Point, double> > & p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Vector pts( 3 * p.size() ) ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			Vector str = getStress( p[i].first, true ) ;
 
-			for( size_t j = 0 ; j < 3 ; j++ ) {
+			for( size_t j = 0 ; j < 3 ; j++ )
+			{
 				pts[i * 3 + j] = str[j] ;
 			}
 		}
 
 		return pts ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Vector pts( 6 * p.size() ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Vector pts( 6 * p.size() ) ;
 
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				Vector str = getStress( p[i].first, true ) ;
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			Vector str = getStress( p[i].first, true ) ;
 
-				for( size_t j = 0 ; j < 6 ; j++ ) {
-					pts[i * 6 + j] = str[j] ;
-				}
+			for( size_t j = 0 ; j < 6 ; j++ )
+			{
+				pts[i * 6 + j] = str[j] ;
 			}
-
-			return pts ;
 		}
+
+		return pts ;
+	}
 
 	int dofs = 2 ;
 
@@ -3119,14 +3369,17 @@ Vector ElementState::getStress( const std::valarray<std::pair<Point, double> > &
 
 Vector ElementState::getStrain( const Mu::PointArray &pts ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			return Vector( 0., 3 * pts.size() ) ;
 		}
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 		}
 
@@ -3136,23 +3389,27 @@ Vector ElementState::getStrain( const Mu::PointArray &pts ) const
 		Matrix Jinv( 2, 2 ) ;
 		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
-		for( size_t i = 1 ; i < pts.size() ; i++ ) {
+		for( size_t i = 1 ; i < pts.size() ; i++ )
+		{
 
 			double x_xi = 0;
 			double x_eta = 0;
 			double y_xi = 0;
 			double y_eta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < displacements.size() ) {
+				if( j * 2 < displacements.size() )
+				{
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < displacements.size() ) {
+				if( j * 2 + 1 < displacements.size() )
+				{
 					y_xi += f_xi * displacements[j * 2 + 1] ;
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
@@ -3163,16 +3420,19 @@ Vector ElementState::getStrain( const Mu::PointArray &pts ) const
 			double delta_y_xi  = 0;
 			double delta_y_eta  = 0;
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
 				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
 
-				if( j * 2 < enrichedDisplacements.size() ) {
+				if( j * 2 < enrichedDisplacements.size() )
+				{
 					delta_x_xi += f_xi * enrichedDisplacements[j * 2] ;
 					delta_x_eta += f_eta * enrichedDisplacements[j * 2] ;
 				}
 
-				if( j * 2 + 1 < enrichedDisplacements.size() ) {
+				if( j * 2 + 1 < enrichedDisplacements.size() )
+				{
 					delta_y_xi += f_xi * enrichedDisplacements[j * 2 + 1] ;
 					delta_y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
 				}
@@ -3187,134 +3447,146 @@ Vector ElementState::getStrain( const Mu::PointArray &pts ) const
 		}
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return Vector( 0., 6 * pts.size() ) ;
-			}
-
-			std::vector<Point> p_ ;
-
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
-			}
-
-			//
-			VirtualMachine vm ;
-
-			Vector lstrain( 6 * pts.size() ) ;
-
-			Matrix Jinv( 3, 3 ) ;
-			parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
-
-
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-
-				double x_xi = 0;
-				double x_eta = 0;
-				double x_zeta = 0;
-				double y_xi = 0;
-				double y_eta = 0;
-				double y_zeta = 0;
-				double z_xi = 0;
-				double z_eta = 0;
-				double z_zeta = 0;
-
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
-
-					if( j * 3 < displacements.size() ) {
-						x_xi += f_xi * displacements[j * 3] ;
-						x_eta += f_eta * displacements[j * 3] ;
-						x_zeta += f_zeta * displacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < displacements.size() ) {
-						y_xi += f_xi * displacements[j * 3 + 1] ;
-						y_eta += f_eta * displacements[j * 3 + 1] ;
-						y_zeta += f_zeta * displacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < displacements.size() ) {
-						z_xi += f_xi * displacements[j * 3 + 2] ;
-						z_eta += f_eta * displacements[j * 3 + 2] ;
-						z_zeta += f_zeta * displacements[j * 3 + 2] ;
-					}
-				}
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-				Vector llstrain( 6 ) ;
-
-
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
-					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
-					double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
-
-					if( j * 3 < enrichedDisplacements.size() ) {
-						x_xi += f_xi * enrichedDisplacements[j * 3] ;
-						x_eta += f_eta * enrichedDisplacements[j * 3] ;
-						x_zeta += f_zeta * enrichedDisplacements[j * 3] ;
-					}
-
-					if( j * 3 + 1 < enrichedDisplacements.size() ) {
-						y_xi += f_xi * enrichedDisplacements[j * 3 + 1] ;
-						y_eta += f_eta * enrichedDisplacements[j * 3 + 1] ;
-						y_zeta += f_zeta * enrichedDisplacements[j * 3 + 1] ;
-					}
-
-					if( j * 3 + 2 < enrichedDisplacements.size() ) {
-						z_xi += f_xi * enrichedDisplacements[j * 3 + 2] ;
-						z_eta += f_eta * enrichedDisplacements[j * 3 + 2] ;
-						z_zeta += f_zeta * enrichedDisplacements[j * 3 + 2] ;
-					}
-				}
-
-				if( parent->isMoved() )
-					parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
-
-
-				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-
-				llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-				                      ( y_eta ) * Jinv[2][1] +
-				                      ( y_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[1][0] +
-				                      ( z_eta ) * Jinv[1][1] +
-				                      ( z_zeta ) * Jinv[1][2] );
-
-				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-				                      ( x_eta ) * Jinv[2][1] +
-				                      ( x_zeta ) * Jinv[2][2] +
-				                      ( z_xi ) * Jinv[0][0] +
-				                      ( z_eta ) * Jinv[0][1] +
-				                      ( z_zeta ) * Jinv[0][2] );
-
-				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
-				                      ( y_eta ) * Jinv[0][1] +
-				                      ( y_zeta ) * Jinv[0][2] +
-				                      ( x_xi ) * Jinv[1][0] +
-				                      ( x_eta ) * Jinv[1][1] +
-				                      ( x_zeta ) * Jinv[1][2] );
-
-
-				lstrain[i * 6 + 0] = llstrain[0] ;
-				lstrain[i * 6 + 1] = llstrain[1] ;
-				lstrain[i * 6 + 2] = llstrain[2] ;
-				lstrain[i * 6 + 3] = llstrain[3] ;
-				lstrain[i * 6 + 4] = llstrain[4] ;
-				lstrain[i * 6 + 5] = llstrain[5] ;
-
-			}
-
-			return lstrain ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return Vector( 0., 6 * pts.size() ) ;
 		}
+
+		std::vector<Point> p_ ;
+
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
+		}
+
+		//
+		VirtualMachine vm ;
+
+		Vector lstrain( 6 * pts.size() ) ;
+
+		Matrix Jinv( 3, 3 ) ;
+		parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
+
+
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
+
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+
+				if( j * 3 < displacements.size() )
+				{
+					x_xi += f_xi * displacements[j * 3] ;
+					x_eta += f_eta * displacements[j * 3] ;
+					x_zeta += f_zeta * displacements[j * 3] ;
+				}
+
+				if( j * 3 + 1 < displacements.size() )
+				{
+					y_xi += f_xi * displacements[j * 3 + 1] ;
+					y_eta += f_eta * displacements[j * 3 + 1] ;
+					y_zeta += f_zeta * displacements[j * 3 + 1] ;
+				}
+
+				if( j * 3 + 2 < displacements.size() )
+				{
+					z_xi += f_xi * displacements[j * 3 + 2] ;
+					z_eta += f_eta * displacements[j * 3 + 2] ;
+					z_zeta += f_zeta * displacements[j * 3 + 2] ;
+				}
+			}
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+			Vector llstrain( 6 ) ;
+
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
+				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
+				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
+
+				if( j * 3 < enrichedDisplacements.size() )
+				{
+					x_xi += f_xi * enrichedDisplacements[j * 3] ;
+					x_eta += f_eta * enrichedDisplacements[j * 3] ;
+					x_zeta += f_zeta * enrichedDisplacements[j * 3] ;
+				}
+
+				if( j * 3 + 1 < enrichedDisplacements.size() )
+				{
+					y_xi += f_xi * enrichedDisplacements[j * 3 + 1] ;
+					y_eta += f_eta * enrichedDisplacements[j * 3 + 1] ;
+					y_zeta += f_zeta * enrichedDisplacements[j * 3 + 1] ;
+				}
+
+				if( j * 3 + 2 < enrichedDisplacements.size() )
+				{
+					z_xi += f_xi * enrichedDisplacements[j * 3 + 2] ;
+					z_eta += f_eta * enrichedDisplacements[j * 3 + 2] ;
+					z_zeta += f_zeta * enrichedDisplacements[j * 3 + 2] ;
+				}
+			}
+
+			if( parent->isMoved() )
+				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
+
+
+			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+			llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+			llstrain[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+			                      ( y_eta ) * Jinv[2][1] +
+			                      ( y_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[1][0] +
+			                      ( z_eta ) * Jinv[1][1] +
+			                      ( z_zeta ) * Jinv[1][2] );
+
+			llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+			                      ( x_eta ) * Jinv[2][1] +
+			                      ( x_zeta ) * Jinv[2][2] +
+			                      ( z_xi ) * Jinv[0][0] +
+			                      ( z_eta ) * Jinv[0][1] +
+			                      ( z_zeta ) * Jinv[0][2] );
+
+			llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[0][0] +
+			                      ( y_eta ) * Jinv[0][1] +
+			                      ( y_zeta ) * Jinv[0][2] +
+			                      ( x_xi ) * Jinv[1][0] +
+			                      ( x_eta ) * Jinv[1][1] +
+			                      ( x_zeta ) * Jinv[1][2] );
+
+
+			lstrain[i * 6 + 0] = llstrain[0] ;
+			lstrain[i * 6 + 1] = llstrain[1] ;
+			lstrain[i * 6 + 2] = llstrain[2] ;
+			lstrain[i * 6 + 3] = llstrain[3] ;
+			lstrain[i * 6 + 4] = llstrain[4] ;
+			lstrain[i * 6 + 5] = llstrain[5] ;
+
+		}
+
+		return lstrain ;
+	}
 
 	int dofs = 2 ;
 
@@ -3327,32 +3599,38 @@ Vector ElementState::getStrain( const Mu::PointArray &pts ) const
 
 Vector ElementState::getStrain( const std::valarray<std::pair<Point, double> > &p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Vector pts( 3 * p.size() ) ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			Vector str = getStrain( p[i].first, true ) ;
 
-			for( size_t j = 0 ; j < 3 ; j++ ) {
+			for( size_t j = 0 ; j < 3 ; j++ )
+			{
 				pts[i * 3 + j] = str[j] ;
 			}
 		}
 
 		return pts ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Vector pts( 6 * p.size() ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Vector pts( 6 * p.size() ) ;
 
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				Vector str = getStrain( p[i].first ) ;
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			Vector str = getStrain( p[i].first ) ;
 
-				for( size_t j = 0 ; j < 6 ; j++ ) {
-					pts[i * 6 + j] = str[j] ;
-				}
+			for( size_t j = 0 ; j < 6 ; j++ )
+			{
+				pts[i * 6 + j] = str[j] ;
 			}
-
-			return pts ;
 		}
+
+		return pts ;
+	}
 
 	int dofs = 2 ;
 
@@ -3384,7 +3662,8 @@ std::vector<double> ElementState::getEnrichedInterpolatingFactors( const Point &
 	if( !local )
 		p_ = parent->inLocalCoordinates( p ) ;
 
-	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+	{
 		ret[j] = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
 	}
 
@@ -3401,7 +3680,8 @@ std::vector<double> ElementState::getNonEnrichedInterpolatingFactors( const Poin
 	if( !local )
 		p_ = parent->inLocalCoordinates( p ) ;
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		ret[j] = vm.eval( parent->getShapeFunction( j ), p_ ) ;
 	}
 
@@ -3418,11 +3698,13 @@ std::vector<double> ElementState::getInterpolatingFactors( const Point &p, bool 
 	if( !local )
 		p_ = parent->inLocalCoordinates( p ) ;
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		ret[j] = vm.eval( parent->getShapeFunction( j ), p_ ) ;
 	}
 
-	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+	{
 		ret[j + parent->getBoundingPoints().size()] = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
 	}
 
@@ -3431,16 +3713,20 @@ std::vector<double> ElementState::getInterpolatingFactors( const Point &p, bool 
 
 Vector ElementState::getDisplacements( const Point &p, bool local, bool fast, const Vector *source ) const
 {
-	if( fast ) {
-		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( fast )
+	{
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+		{
 			Vector ret( 0., 2 ) ;
 			Vector d( 0., parent->getBoundingPoints().size() ) ;
 			double rr = 2.*parent->getRadius() ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				d[j] = dist( p, parent->getBoundingPoint( j ) ) ;
 
-				if( d[j] < POINT_TOLERANCE_2D ) {
+				if( d[j] < POINT_TOLERANCE_2D )
+				{
 					ret[0] += ( *source )[ parent->getBoundingPoint( j ).id * 2] ;
 					ret[1] += ( *source )[ parent->getBoundingPoint( j ).id * 2 + 1] ;
 					return ret ;
@@ -3449,45 +3735,51 @@ Vector ElementState::getDisplacements( const Point &p, bool local, bool fast, co
 
 			double sd = d.sum() ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double w = ( sd - d[j] ) / ( sd * ( parent->getBoundingPoints().size() - 1 ) ) ;
 				ret[0] += w * ( *source )[ parent->getBoundingPoint( j ).id * 2] ;
 				ret[1] += w * ( *source )[ parent->getBoundingPoint( j ).id * 2 + 1] ;
 			}
 
 			return ret ;
-		} else
-			if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-				Vector ret( 0., 3 ) ;
-				Vector d( 0., parent->getBoundingPoints().size() ) ;
-				double rr = 2.*parent->getRadius() ;
-				double t = 0 ;
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+		{
+			Vector ret( 0., 3 ) ;
+			Vector d( 0., parent->getBoundingPoints().size() ) ;
+			double rr = 2.*parent->getRadius() ;
+			double t = 0 ;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					d[j] = dist( p, parent->getBoundingPoint( j ) ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				d[j] = dist( p, parent->getBoundingPoint( j ) ) ;
 
-					if( d[j] < POINT_TOLERANCE_3D ) {
-						ret[0] += ( *source )[ parent->getBoundingPoint( j ).id * 3] ;
-						ret[1] += ( *source )[ parent->getBoundingPoint( j ).id * 3 + 1] ;
-						ret[2] += ( *source )[ parent->getBoundingPoint( j ).id * 3 + 2] ;
-						return ret ;
-					}
+				if( d[j] < POINT_TOLERANCE_3D )
+				{
+					ret[0] += ( *source )[ parent->getBoundingPoint( j ).id * 3] ;
+					ret[1] += ( *source )[ parent->getBoundingPoint( j ).id * 3 + 1] ;
+					ret[2] += ( *source )[ parent->getBoundingPoint( j ).id * 3 + 2] ;
+					return ret ;
 				}
-
-				double sd = d.sum() ;
-
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double w = ( sd - d[j] ) / ( sd * ( parent->getBoundingPoints().size() - 1 ) ) ;
-					ret[0] += w * ( *source )[parent->getBoundingPoint( j ).id * 3] ;
-					ret[1] += w * ( *source )[parent->getBoundingPoint( j ).id * 3 + 1] ;
-					ret[2] += w * ( *source )[parent->getBoundingPoint( j ).id * 3 + 2] ;
-				}
-
-				return ret ;
 			}
+
+			double sd = d.sum() ;
+
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double w = ( sd - d[j] ) / ( sd * ( parent->getBoundingPoints().size() - 1 ) ) ;
+				ret[0] += w * ( *source )[parent->getBoundingPoint( j ).id * 3] ;
+				ret[1] += w * ( *source )[parent->getBoundingPoint( j ).id * 3 + 1] ;
+				ret[2] += w * ( *source )[parent->getBoundingPoint( j ).id * 3 + 2] ;
+			}
+
+			return ret ;
+		}
 	}
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Vector ret( 0., 2 ) ;
 		VirtualMachine vm ;
 		Point p_ = p ;
@@ -3495,44 +3787,49 @@ Vector ElementState::getDisplacements( const Point &p, bool local, bool fast, co
 		if( !local )
 			p_ = parent->inLocalCoordinates( p ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			double f =  vm.eval( parent->getShapeFunction( j ), p_ ) ;
 			ret[0] += f * displacements[j * 2] ;
 			ret[1] += f * displacements[j * 2 + 1] ;
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			double f = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
 			ret[0] += f * enrichedDisplacements[j * 2] ;
 			ret[1] += f * enrichedDisplacements[j * 2 + 1] ;
 		}
 
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Vector ret( 0., 3 ) ;
-			VirtualMachine vm ;
-			Point p_ = p ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Vector ret( 0., 3 ) ;
+		VirtualMachine vm ;
+		Point p_ = p ;
 
-			if( !local )
-				p_ = parent->inLocalCoordinates( p ) ;
+		if( !local )
+			p_ = parent->inLocalCoordinates( p ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f =  vm.eval( parent->getShapeFunction( j ), p_ ) ;
-				ret[0] += f * displacements[j * 3] ;
-				ret[1] += f * displacements[j * 3 + 1] ;
-				ret[2] += f * displacements[j * 3 + 2] ;
-			}
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				double f = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
-				ret[0] += f * enrichedDisplacements[j * 3] ;
-				ret[1] += f * enrichedDisplacements[j * 3 + 1] ;
-				ret[2] += f * enrichedDisplacements[j * 3 + 2] ;
-			}
-
-			return ret;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f =  vm.eval( parent->getShapeFunction( j ), p_ ) ;
+			ret[0] += f * displacements[j * 3] ;
+			ret[1] += f * displacements[j * 3 + 1] ;
+			ret[2] += f * displacements[j * 3 + 2] ;
 		}
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			double f = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
+			ret[0] += f * enrichedDisplacements[j * 3] ;
+			ret[1] += f * enrichedDisplacements[j * 3 + 1] ;
+			ret[2] += f * enrichedDisplacements[j * 3 + 2] ;
+		}
+
+		return ret;
+	}
 
 	int dofs = 2 ;
 
@@ -3545,17 +3842,20 @@ Vector ElementState::getDisplacements( const Point &p, bool local, bool fast, co
 
 Vector ElementState::getDisplacements( const std::valarray<Point> & p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Function x ;
 		Function y ;
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
 		}
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x += parent->getShapeFunction( j ) * displacements[j * 2] ;
 			y += parent->getShapeFunction( j ) * displacements[j * 2 + 1] ;
 		}
@@ -3563,11 +3863,13 @@ Vector ElementState::getDisplacements( const std::valarray<Point> & p ) const
 		VirtualMachine vm ;
 		Vector ret( 2 * p.size() ) ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			double delta_x = 0;
 			double delta_y = 0;
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 2] ;
 				delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 2 + 1] ;
 			}
@@ -3577,45 +3879,50 @@ Vector ElementState::getDisplacements( const std::valarray<Point> & p ) const
 		}
 
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Function x ;
-			Function y ;
-			Function z ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Function x ;
+		Function y ;
+		Function z ;
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
-			}
-
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				x += parent->getShapeFunction( j ) * displacements[j * 3] ;
-				y += parent->getShapeFunction( j ) * displacements[j * 3 + 1] ;
-				z += parent->getShapeFunction( j ) * displacements[j * 3 + 2] ;
-			}
-
-			VirtualMachine vm ;
-			Vector ret( 3 * p.size() ) ;
-
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				double delta_x = 0;
-				double delta_y = 0;
-				double delta_z = 0;
-
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-					delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 3] ;
-					delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 3 + 1] ;
-					delta_z += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 3 + 2] ;
-				}
-
-				ret[i * 3 + 0] = vm.eval( x + delta_x, p_[i] ) ;
-				ret[i * 3 + 1] = vm.eval( y + delta_y, p_[i] ) ;
-				ret[i * 3 + 2] = vm.eval( z + delta_z, p_[i] ) ;
-			}
-
-			return ret;
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
 		}
+
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			x += parent->getShapeFunction( j ) * displacements[j * 3] ;
+			y += parent->getShapeFunction( j ) * displacements[j * 3 + 1] ;
+			z += parent->getShapeFunction( j ) * displacements[j * 3 + 2] ;
+		}
+
+		VirtualMachine vm ;
+		Vector ret( 3 * p.size() ) ;
+
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			double delta_x = 0;
+			double delta_y = 0;
+			double delta_z = 0;
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 3] ;
+				delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 3 + 1] ;
+				delta_z += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * enrichedDisplacements[j * 3 + 2] ;
+			}
+
+			ret[i * 3 + 0] = vm.eval( x + delta_x, p_[i] ) ;
+			ret[i * 3 + 1] = vm.eval( y + delta_y, p_[i] ) ;
+			ret[i * 3 + 2] = vm.eval( z + delta_z, p_[i] ) ;
+		}
+
+		return ret;
+	}
 
 	int dofs = 2 ;
 
@@ -3629,18 +3936,22 @@ Vector ElementState::getDisplacements( const std::valarray<Point> & p ) const
 
 Vector ElementState::getDisplacements( const std::vector<std::pair<Point, double> > & p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		VirtualMachine vm ;
 		Vector ret( 0., 2 * p.size() ) ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double f = vm.eval( parent->getShapeFunction( j ), p[i].first ) ;
 				ret[i * 2 + 0] += f * displacements[j * 2] ;
 				ret[i * 2 + 1] += f * displacements[j * 2 + 1] ;
 			}
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				double f = vm.eval( parent->getEnrichmentFunction( j ), p[i].first ) ;
 				ret[i * 2 + 0] += f * enrichedDisplacements[j * 2] ;
 				ret[i * 2 + 1] += f * enrichedDisplacements[j * 2 + 1] ;
@@ -3649,30 +3960,34 @@ Vector ElementState::getDisplacements( const std::vector<std::pair<Point, double
 		}
 
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			VirtualMachine vm ;
-			Vector ret( 0., 3 * p.size() ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		VirtualMachine vm ;
+		Vector ret( 0., 3 * p.size() ) ;
 
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double f = vm.eval( parent->getShapeFunction( j ), p[i].first ) ;
-					ret[i * 3 + 0] += f * displacements[j * 3] ;
-					ret[i * 3 + 1] += f * displacements[j * 3 + 1] ;
-					ret[i * 3 + 2] += f * displacements[j * 3 + 2] ;
-				}
-
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-					double f = vm.eval( parent->getEnrichmentFunction( j ), p[i].first ) ;
-					ret[i * 3 + 0] += f * enrichedDisplacements[j * 3] ;
-					ret[i * 3 + 1] += f * enrichedDisplacements[j * 3 + 1] ;
-					ret[i * 3 + 2] += f * enrichedDisplacements[j * 3 + 2] ;
-				}
-
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f = vm.eval( parent->getShapeFunction( j ), p[i].first ) ;
+				ret[i * 3 + 0] += f * displacements[j * 3] ;
+				ret[i * 3 + 1] += f * displacements[j * 3 + 1] ;
+				ret[i * 3 + 2] += f * displacements[j * 3 + 2] ;
 			}
 
-			return ret;
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				double f = vm.eval( parent->getEnrichmentFunction( j ), p[i].first ) ;
+				ret[i * 3 + 0] += f * enrichedDisplacements[j * 3] ;
+				ret[i * 3 + 1] += f * enrichedDisplacements[j * 3 + 1] ;
+				ret[i * 3 + 2] += f * enrichedDisplacements[j * 3 + 2] ;
+			}
+
 		}
+
+		return ret;
+	}
 
 	int dofs = 2 ;
 
@@ -3685,16 +4000,20 @@ Vector ElementState::getDisplacements( const std::vector<std::pair<Point, double
 
 Vector ElementState::getConcentrations( const Point &p, bool local, bool fast, const Vector *source ) const
 {
-	if( fast ) {
-		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
+	if( fast )
+	{
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+		{
 			Vector ret( 0., 1 ) ;
 			Vector d( 0., parent->getBoundingPoints().size() ) ;
 			double rr = 2.*parent->getRadius() ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				d[j] = dist( p, parent->getBoundingPoint( j ) ) ;
 
-				if( d[j] < POINT_TOLERANCE_2D ) {
+				if( d[j] < POINT_TOLERANCE_2D )
+				{
 					ret[0] += ( *source )[ parent->getBoundingPoint( j ).id] ;
 					return ret ;
 				}
@@ -3702,40 +4021,46 @@ Vector ElementState::getConcentrations( const Point &p, bool local, bool fast, c
 
 			double sd = d.sum() ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
 				double w = ( sd - d[j] ) / ( sd * ( parent->getBoundingPoints().size() - 1 ) ) ;
 				ret[0] += w * ( *source )[ parent->getBoundingPoint( j ).id] ;
 			}
 
 			return ret ;
-		} else
-			if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
-				Vector ret( 0., 1 ) ;
-				Vector d( 0., parent->getBoundingPoints().size() ) ;
-				double rr = 2.*parent->getRadius() ;
-				double t = 0 ;
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+		{
+			Vector ret( 0., 1 ) ;
+			Vector d( 0., parent->getBoundingPoints().size() ) ;
+			double rr = 2.*parent->getRadius() ;
+			double t = 0 ;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					d[j] = dist( p, parent->getBoundingPoint( j ) ) ;
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				d[j] = dist( p, parent->getBoundingPoint( j ) ) ;
 
-					if( d[j] < POINT_TOLERANCE_3D ) {
-						ret[0] += ( *source )[ parent->getBoundingPoint( j ).id] ;
-						return ret ;
-					}
+				if( d[j] < POINT_TOLERANCE_3D )
+				{
+					ret[0] += ( *source )[ parent->getBoundingPoint( j ).id] ;
+					return ret ;
 				}
-
-				double sd = d.sum() ;
-
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-					double w = ( sd - d[j] ) / ( sd * ( parent->getBoundingPoints().size() - 1 ) ) ;
-					ret[0] += w * ( *source )[parent->getBoundingPoint( j ).id] ;
-				}
-
-				return ret ;
 			}
+
+			double sd = d.sum() ;
+
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double w = ( sd - d[j] ) / ( sd * ( parent->getBoundingPoints().size() - 1 ) ) ;
+				ret[0] += w * ( *source )[parent->getBoundingPoint( j ).id] ;
+			}
+
+			return ret ;
+		}
 	}
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
 		Vector ret( 0., 1 ) ;
 		VirtualMachine vm ;
 		Point p_ = p ;
@@ -3743,38 +4068,43 @@ Vector ElementState::getConcentrations( const Point &p, bool local, bool fast, c
 		if( !local )
 			p_ = parent->inLocalCoordinates( p ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			double f =  vm.eval( parent->getShapeFunction( j ), p_ ) ;
 			ret[0] += f * displacements[j] ;
 		}
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			double f = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
 			ret[0] += f * enrichedDisplacements[j] ;
 		}
 
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
-			Vector ret( 0., 1 ) ;
-			VirtualMachine vm ;
-			Point p_ = p ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
+		Vector ret( 0., 1 ) ;
+		VirtualMachine vm ;
+		Point p_ = p ;
 
-			if( !local )
-				p_ = parent->inLocalCoordinates( p ) ;
+		if( !local )
+			p_ = parent->inLocalCoordinates( p ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f =  vm.eval( parent->getShapeFunction( j ), p_ ) ;
-				ret[0] += f * displacements[j] ;
-			}
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				double f = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
-				ret[0] += f * enrichedDisplacements[j] ;
-			}
-
-			return ret;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f =  vm.eval( parent->getShapeFunction( j ), p_ ) ;
+			ret[0] += f * displacements[j] ;
 		}
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			double f = vm.eval( parent->getEnrichmentFunction( j ), p_ ) ;
+			ret[0] += f * enrichedDisplacements[j] ;
+		}
+
+		return ret;
+	}
 
 	return Vector( 0., 1 ) ;
 }
@@ -3783,13 +4113,15 @@ Vector ElementState::getConcentrations( const Point &p, bool local, bool fast, c
 
 Vector ElementState::getPreviousDisplacements( const Point &p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Function x ;
 		Function y ;
 
 		Point p_ = parent->inLocalCoordinates( p ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x += parent->getShapeFunction( j ) * previousDisplacements[j * 2] ;
 			y += parent->getShapeFunction( j ) * previousDisplacements[j * 2 + 1] ;
 		}
@@ -3798,7 +4130,8 @@ Vector ElementState::getPreviousDisplacements( const Point &p ) const
 		double delta_y = 0;
 		VirtualMachine vm ;
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * previousEnrichedDisplacements[j * 2] ;
 			delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * previousEnrichedDisplacements[j * 2 + 1] ;
 		}
@@ -3807,37 +4140,40 @@ Vector ElementState::getPreviousDisplacements( const Point &p ) const
 		ret[0] = vm.eval( x + delta_x, p ) ;
 		ret[1] = vm.eval( y + delta_y, p ) ;
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Function x ;
-			Function y ;
-			Function z ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Function x ;
+		Function y ;
+		Function z ;
 
-			Point p_ = parent->inLocalCoordinates( p ) ;
+		Point p_ = parent->inLocalCoordinates( p ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				x += parent->getShapeFunction( j ) * previousDisplacements[j * 3] ;
-				y += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 1] ;
-				z += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 2] ;
-			}
-
-			double delta_x = 0;
-			double delta_y = 0;
-			double delta_z = 0;
-			VirtualMachine vm ;
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * previousEnrichedDisplacements[j * 3] ;
-				delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * previousEnrichedDisplacements[j * 3 + 1] ;
-				delta_z += vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) * previousEnrichedDisplacements[j * 3 + 2] ;
-			}
-
-			Vector ret( 2 ) ;
-			ret[0] = vm.eval( x + delta_x, p ) ;
-			ret[1] = vm.eval( y + delta_y, p ) ;
-			ret[2] = vm.eval( z + delta_z, p ) ;
-			return ret;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			x += parent->getShapeFunction( j ) * previousDisplacements[j * 3] ;
+			y += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 1] ;
+			z += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 2] ;
 		}
+
+		double delta_x = 0;
+		double delta_y = 0;
+		double delta_z = 0;
+		VirtualMachine vm ;
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * previousEnrichedDisplacements[j * 3] ;
+			delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * previousEnrichedDisplacements[j * 3 + 1] ;
+			delta_z += vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) * previousEnrichedDisplacements[j * 3 + 2] ;
+		}
+
+		Vector ret( 2 ) ;
+		ret[0] = vm.eval( x + delta_x, p ) ;
+		ret[1] = vm.eval( y + delta_y, p ) ;
+		ret[2] = vm.eval( z + delta_z, p ) ;
+		return ret;
+	}
 
 	int dofs = 2 ;
 
@@ -3851,17 +4187,20 @@ Vector ElementState::getPreviousDisplacements( const Point &p ) const
 
 Vector ElementState::getPreviousDisplacements( const std::valarray<Point> & p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Function x ;
 		Function y ;
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
 		}
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x += parent->getShapeFunction( j ) * previousDisplacements[j * 2] ;
 			y += parent->getShapeFunction( j ) * previousDisplacements[j * 2 + 1] ;
 		}
@@ -3870,11 +4209,13 @@ Vector ElementState::getPreviousDisplacements( const std::valarray<Point> & p ) 
 		VirtualMachine vm ;
 		Vector ret( 2 * p.size() ) ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			double delta_x = 0;
 			double delta_y = 0;
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 2] ;
 				delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 2 + 1] ;
 			}
@@ -3884,46 +4225,51 @@ Vector ElementState::getPreviousDisplacements( const std::valarray<Point> & p ) 
 		}
 
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Function x ;
-			Function y ;
-			Function z ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Function x ;
+		Function y ;
+		Function z ;
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
-			}
-
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				x += parent->getShapeFunction( j ) * previousDisplacements[j * 3] ;
-				y += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 1] ;
-				z += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 2] ;
-			}
-
-
-			VirtualMachine vm ;
-			Vector ret( 3 * p.size() ) ;
-
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				double delta_x = 0;
-				double delta_y = 0;
-				double delta_z = 0;
-
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-					delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 3] ;
-					delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 3 + 1] ;
-					delta_z += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 3 + 2] ;
-				}
-
-				ret[i * 3 + 0] = vm.eval( x + delta_x, p[i] ) ;
-				ret[i * 3 + 1] = vm.eval( y + delta_y, p[i] ) ;
-				ret[i * 3 + 2] = vm.eval( z + delta_z, p[i] ) ;
-			}
-
-			return ret;
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
 		}
+
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			x += parent->getShapeFunction( j ) * previousDisplacements[j * 3] ;
+			y += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 1] ;
+			z += parent->getShapeFunction( j ) * previousDisplacements[j * 3 + 2] ;
+		}
+
+
+		VirtualMachine vm ;
+		Vector ret( 3 * p.size() ) ;
+
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			double delta_x = 0;
+			double delta_y = 0;
+			double delta_z = 0;
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 3] ;
+				delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 3 + 1] ;
+				delta_z += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousEnrichedDisplacements[j * 3 + 2] ;
+			}
+
+			ret[i * 3 + 0] = vm.eval( x + delta_x, p[i] ) ;
+			ret[i * 3 + 1] = vm.eval( y + delta_y, p[i] ) ;
+			ret[i * 3 + 2] = vm.eval( z + delta_z, p[i] ) ;
+		}
+
+		return ret;
+	}
 
 	int dofs = 2 ;
 
@@ -3936,13 +4282,15 @@ Vector ElementState::getPreviousDisplacements( const std::valarray<Point> & p ) 
 
 Vector ElementState::getPreviousPreviousDisplacements( const Point &p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Function x ;
 		Function y ;
 
 		Point p_ = parent->inLocalCoordinates( p ) ;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 2] ;
 			y += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 2 + 1] ;
 		}
@@ -3951,7 +4299,8 @@ Vector ElementState::getPreviousPreviousDisplacements( const Point &p ) const
 		double delta_y = 0;
 		VirtualMachine vm ;
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * previousPreviousEnrichedDisplacements[j * 2] ;
 			delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * previousPreviousEnrichedDisplacements[j * 2 + 1] ;
 		}
@@ -3960,37 +4309,40 @@ Vector ElementState::getPreviousPreviousDisplacements( const Point &p ) const
 		ret[0] = vm.eval( x + delta_x, p ) ;
 		ret[1] = vm.eval( y + delta_y, p ) ;
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Function x ;
-			Function y ;
-			Function z ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Function x ;
+		Function y ;
+		Function z ;
 
-			Point p_ = parent->inLocalCoordinates( p ) ;
+		Point p_ = parent->inLocalCoordinates( p ) ;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				x += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3] ;
-				y += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 1] ;
-				z += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 2] ;
-			}
-
-			double delta_x = 0;
-			double delta_y = 0;
-			double delta_z = 0;
-			VirtualMachine vm ;
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-				delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * previousPreviousEnrichedDisplacements[j * 3] ;
-				delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * previousPreviousEnrichedDisplacements[j * 3 + 1] ;
-				delta_z += vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) * previousPreviousEnrichedDisplacements[j * 3 + 2] ;
-			}
-
-			Vector ret( 3 ) ;
-			ret[0] = vm.eval( x + delta_x, p ) ;
-			ret[1] = vm.eval( y + delta_y, p ) ;
-			ret[2] = vm.eval( z + delta_z, p ) ;
-			return ret;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			x += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3] ;
+			y += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 1] ;
+			z += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 2] ;
 		}
+
+		double delta_x = 0;
+		double delta_y = 0;
+		double delta_z = 0;
+		VirtualMachine vm ;
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+			delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * previousPreviousEnrichedDisplacements[j * 3] ;
+			delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * previousPreviousEnrichedDisplacements[j * 3 + 1] ;
+			delta_z += vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) * previousPreviousEnrichedDisplacements[j * 3 + 2] ;
+		}
+
+		Vector ret( 3 ) ;
+		ret[0] = vm.eval( x + delta_x, p ) ;
+		ret[1] = vm.eval( y + delta_y, p ) ;
+		ret[2] = vm.eval( z + delta_z, p ) ;
+		return ret;
+	}
 
 	int dofs = 2 ;
 
@@ -4003,17 +4355,20 @@ Vector ElementState::getPreviousPreviousDisplacements( const Point &p ) const
 
 Vector ElementState::getPreviousPreviousDisplacements( const std::valarray<Point> & p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Function x ;
 		Function y ;
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
 		}
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			x += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 2] ;
 			y += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 2 + 1] ;
 		}
@@ -4022,11 +4377,13 @@ Vector ElementState::getPreviousPreviousDisplacements( const std::valarray<Point
 		VirtualMachine vm ;
 		Vector ret( 2 * p.size() ) ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			double delta_x = 0;
 			double delta_y = 0;
 
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
 				delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 2] ;
 				delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 2 + 1] ;
 			}
@@ -4036,46 +4393,51 @@ Vector ElementState::getPreviousPreviousDisplacements( const std::valarray<Point
 		}
 
 		return ret;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Function x ;
-			Function y ;
-			Function z ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Function x ;
+		Function y ;
+		Function z ;
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
-			}
-
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				x += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3] ;
-				y += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 1] ;
-				z += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 2] ;
-			}
-
-
-			VirtualMachine vm ;
-			Vector ret( 3 * p.size() ) ;
-
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				double delta_x = 0;
-				double delta_y = 0;
-				double delta_z = 0;
-
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-					delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 3] ;
-					delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 3 + 1] ;
-					delta_z += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 3 + 2] ;
-				}
-
-				ret[i * 3 + 0] = vm.eval( x + delta_x, p[i] ) ;
-				ret[i * 3 + 1] = vm.eval( y + delta_y, p[i] ) ;
-				ret[i * 3 + 1] = vm.eval( z + delta_z, p[i] ) ;
-			}
-
-			return ret;
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
 		}
+
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			x += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3] ;
+			y += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 1] ;
+			z += parent->getShapeFunction( j ) * previousPreviousDisplacements[j * 3 + 2] ;
+		}
+
+
+		VirtualMachine vm ;
+		Vector ret( 3 * p.size() ) ;
+
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			double delta_x = 0;
+			double delta_y = 0;
+			double delta_z = 0;
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				delta_x += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 3] ;
+				delta_y += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 3 + 1] ;
+				delta_z += vm.eval( parent->getEnrichmentFunction( j ), p_[i] ) * previousPreviousEnrichedDisplacements[j * 3 + 2] ;
+			}
+
+			ret[i * 3 + 0] = vm.eval( x + delta_x, p[i] ) ;
+			ret[i * 3 + 1] = vm.eval( y + delta_y, p[i] ) ;
+			ret[i * 3 + 1] = vm.eval( z + delta_z, p[i] ) ;
+		}
+
+		return ret;
+	}
 
 	int dofs = 2 ;
 
@@ -4091,15 +4453,18 @@ Vector ElementState::getPreviousPreviousDisplacements( const std::valarray<Point
 std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArray &pts ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 && parent->getBehaviour()->type != VOID_BEHAVIOUR ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 && parent->getBehaviour()->type != VOID_BEHAVIOUR )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			std::cout << "void triangle" << std::endl ;
 			return std::pair<Vector, Vector>( Vector( 0., 3 * pts.size() ), Vector( 0., 3 * pts.size() ) ) ;
 		}
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 		}
 
@@ -4111,8 +4476,10 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		int offset = ndofs - 1 ;
 
-		if( ndofs == 2 ) {
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		if( ndofs == 2 )
+		{
+			for( size_t i = 0 ; i < pts.size() ; i++ )
+			{
 				bool hasTimePlanes = ( parent->timePlanes() > 1 ) ;
 				Matrix Jinv( 2 + hasTimePlanes, 2 + hasTimePlanes ) ;
 				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
@@ -4122,7 +4489,8 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 				double y_xi = 0;
 				double y_eta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+				{
 					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
 					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
 
@@ -4135,7 +4503,8 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 
 				Vector llstrain( 3 ) ;
 
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+				{
 					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
 					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
 
@@ -4166,133 +4535,140 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 		std::pair<Vector, Vector> ret( lstress, lstrain ) ;
 
 		return ret ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return std::pair<Vector, Vector>( Vector( 0., 6 * pts.size() ), Vector( 0., 6 * pts.size() ) ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return std::pair<Vector, Vector>( Vector( 0., 6 * pts.size() ), Vector( 0., 6 * pts.size() ) ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
-			}
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
+		}
 
-			VirtualMachine vm ;
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * pts.size() ) ;
-			Vector lstress( 6 * pts.size() ) ;
+		Vector lstrain( 6 * pts.size() ) ;
+		Vector lstress( 6 * pts.size() ) ;
 
-			size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-			if( ndofs == 3 ) {
-				for( size_t i = 0 ; i < pts.size() ; i++ ) {
-					Matrix Jinv( 3, 3 ) ;
-					parent->getInverseJacobianMatrix( Point( .25, .25, .25 ), Jinv ) ;
-					Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
-					Vector llstrain( 0., 6 ) ;
-					double x_xi = 0;
-					double x_eta = 0;
-					double x_zeta = 0;
-					double y_xi = 0;
-					double y_eta = 0;
-					double y_zeta = 0;
-					double z_xi = 0;
-					double z_eta = 0;
-					double z_zeta = 0;
+		if( ndofs == 3 )
+		{
+			for( size_t i = 0 ; i < pts.size() ; i++ )
+			{
+				Matrix Jinv( 3, 3 ) ;
+				parent->getInverseJacobianMatrix( Point( .25, .25, .25 ), Jinv ) ;
+				Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
+				Vector llstrain( 0., 6 ) ;
+				double x_xi = 0;
+				double x_eta = 0;
+				double x_zeta = 0;
+				double y_xi = 0;
+				double y_eta = 0;
+				double y_zeta = 0;
+				double z_xi = 0;
+				double z_eta = 0;
+				double z_zeta = 0;
 
-					for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ ) {
-						double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-						double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-						double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
-						double x = displacements[j * 3] ;
-						double y = displacements[j * 3 + 1] ;
-						double z = displacements[j * 3 + 2] ;
+				for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
+				{
+					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+					double x = displacements[j * 3] ;
+					double y = displacements[j * 3 + 1] ;
+					double z = displacements[j * 3 + 2] ;
 
-						x_xi   += f_xi   * x ;
-						x_eta  += f_eta  * x ;
-						x_zeta += f_zeta * x ;
-						y_xi   += f_xi   * y ;
-						y_eta  += f_eta  * y ;
-						y_zeta += f_zeta * y ;
-						z_xi   += f_xi   * z ;
-						z_eta  += f_eta  * z ;
-						z_zeta += f_zeta * z ;
-					}
+					x_xi   += f_xi   * x ;
+					x_eta  += f_eta  * x ;
+					x_zeta += f_zeta * x ;
+					y_xi   += f_xi   * y ;
+					y_eta  += f_eta  * y ;
+					y_zeta += f_zeta * y ;
+					z_xi   += f_xi   * z ;
+					z_eta  += f_eta  * z ;
+					z_zeta += f_zeta * z ;
+				}
 
 
-					for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-						double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
-						double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
-						double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
-						double x = enrichedDisplacements[j * 3] ;
-						double y = enrichedDisplacements[j * 3 + 1] ;
-						double z = enrichedDisplacements[j * 3 + 2] ;
+				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+				{
+					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
+					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
+					double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
+					double x = enrichedDisplacements[j * 3] ;
+					double y = enrichedDisplacements[j * 3 + 1] ;
+					double z = enrichedDisplacements[j * 3 + 2] ;
 
-						x_xi   += f_xi   * x ;
-						x_eta  += f_eta  * x ;
-						x_zeta += f_zeta * x ;
-						y_xi   += f_xi   * y ;
-						y_eta  += f_eta  * y ;
-						y_zeta += f_zeta * y ;
-						z_xi   += f_xi   * z ;
-						z_eta  += f_eta  * z ;
-						z_zeta += f_zeta * z ;
-					}
+					x_xi   += f_xi   * x ;
+					x_eta  += f_eta  * x ;
+					x_zeta += f_zeta * x ;
+					y_xi   += f_xi   * y ;
+					y_eta  += f_eta  * y ;
+					y_zeta += f_zeta * y ;
+					z_xi   += f_xi   * z ;
+					z_eta  += f_eta  * z ;
+					z_zeta += f_zeta * z ;
+				}
 
 // 				std::cout << x_xi << ", " << x_eta << ", " << x_zeta << std::endl ;
 // 				std::cout << y_xi << ", " << y_eta << ", " << y_zeta << std::endl ;
 // 				std::cout << z_xi << ", " << z_eta << ", " << z_zeta << std::endl ;
-					llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-					llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-					llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
 
-					llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-					                      ( y_eta ) * Jinv[2][1] +
-					                      ( y_zeta ) * Jinv[2][2] +
-					                      ( z_xi ) * Jinv[1][0] +
-					                      ( z_eta ) * Jinv[1][1] +
-					                      ( z_zeta ) * Jinv[1][2] );
+				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+				                      ( y_eta ) * Jinv[2][1] +
+				                      ( y_zeta ) * Jinv[2][2] +
+				                      ( z_xi ) * Jinv[1][0] +
+				                      ( z_eta ) * Jinv[1][1] +
+				                      ( z_zeta ) * Jinv[1][2] );
 
-					llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-					                      ( x_eta ) * Jinv[2][1] +
-					                      ( x_zeta ) * Jinv[2][2] +
-					                      ( z_xi ) * Jinv[0][0] +
-					                      ( z_eta ) * Jinv[0][1] +
-					                      ( z_zeta ) * Jinv[0][2] );
+				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+				                      ( x_eta ) * Jinv[2][1] +
+				                      ( x_zeta ) * Jinv[2][2] +
+				                      ( z_xi ) * Jinv[0][0] +
+				                      ( z_eta ) * Jinv[0][1] +
+				                      ( z_zeta ) * Jinv[0][2] );
 
-					llstrain[3] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
-					                      ( y_eta )  * Jinv[0][1] +
-					                      ( y_zeta ) * Jinv[0][2] +
-					                      ( x_xi )   * Jinv[1][0] +
-					                      ( x_eta )  * Jinv[1][1] +
-					                      ( x_zeta ) * Jinv[1][2] );
+				llstrain[3] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
+				                      ( y_eta )  * Jinv[0][1] +
+				                      ( y_zeta ) * Jinv[0][2] +
+				                      ( x_xi )   * Jinv[1][0] +
+				                      ( x_eta )  * Jinv[1][1] +
+				                      ( x_zeta ) * Jinv[1][2] );
 
-					lstrain[i * 6 + 0] = llstrain[0] ;
-					lstrain[i * 6 + 1] = llstrain[1] ;
-					lstrain[i * 6 + 2] = llstrain[2] ;
-					lstrain[i * 6 + 3] = llstrain[3] ;
-					lstrain[i * 6 + 4] = llstrain[4] ;
-					lstrain[i * 6 + 5] = llstrain[5] ;
+				lstrain[i * 6 + 0] = llstrain[0] ;
+				lstrain[i * 6 + 1] = llstrain[1] ;
+				lstrain[i * 6 + 2] = llstrain[2] ;
+				lstrain[i * 6 + 3] = llstrain[3] ;
+				lstrain[i * 6 + 4] = llstrain[4] ;
+				lstrain[i * 6 + 5] = llstrain[5] ;
 
-					llstrain = llstrain * cg ;
+				llstrain = llstrain * cg ;
 
-					lstress[i * 6 + 0] = llstrain[0] ;
-					lstress[i * 6 + 1] = llstrain[1] ;
-					lstress[i * 6 + 2] = llstrain[2] ;
-					lstress[i * 6 + 3] = llstrain[3] ;
-					lstress[i * 6 + 4] = llstrain[4] ;
-					lstress[i * 6 + 5] = llstrain[5] ;
-				}
+				lstress[i * 6 + 0] = llstrain[0] ;
+				lstress[i * 6 + 1] = llstrain[1] ;
+				lstress[i * 6 + 2] = llstrain[2] ;
+				lstress[i * 6 + 3] = llstrain[3] ;
+				lstress[i * 6 + 4] = llstrain[4] ;
+				lstress[i * 6 + 5] = llstrain[5] ;
 			}
-
-			std::pair<Vector, Vector> ret ;
-			ret.first.resize( lstress.size() ) ;
-			ret.second.resize( lstrain.size() ) ;
-			ret.first = lstress ;
-			ret.second = lstrain ;
-			return ret ;
 		}
+
+		std::pair<Vector, Vector> ret ;
+		ret.first.resize( lstress.size() ) ;
+		ret.second.resize( lstrain.size() ) ;
+		ret.first = lstress ;
+		ret.second = lstrain ;
+		return ret ;
+	}
 
 	int dofs = 2 ;
 
@@ -4306,14 +4682,16 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 std::pair<Vector, Vector > ElementState::getGradientAndFlux( const Mu::PointArray &pts ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
 		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
 			return std::pair<Vector, Vector>( Vector( 0., 2 * pts.size() ), Vector( 0., 2 * pts.size() ) ) ;
 
 		Vector grad( 2 * pts.size() ) ;
 		Vector flux( 2 * pts.size() ) ;
 
-		for( size_t i = 0 ; i < pts.size() ; i++ ) {
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
 			Vector gr = getGradient( *pts[i], false ) ;
 			Vector fx = getFlux( *pts[i], false ) ;
 			grad[2 * i + 0] = gr[0] ;
@@ -4323,27 +4701,29 @@ std::pair<Vector, Vector > ElementState::getGradientAndFlux( const Mu::PointArra
 		}
 
 		return std::make_pair( grad, flux ) ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
-				return std::pair<Vector, Vector>( Vector( 0., 3 * pts.size() ), Vector( 0., 3 * pts.size() ) ) ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+			return std::pair<Vector, Vector>( Vector( 0., 3 * pts.size() ), Vector( 0., 3 * pts.size() ) ) ;
 
-			Vector grad( 3 * pts.size() ) ;
-			Vector flux( 3 * pts.size() ) ;
+		Vector grad( 3 * pts.size() ) ;
+		Vector flux( 3 * pts.size() ) ;
 
-			for( size_t i = 0 ; i < pts.size() ; i++ ) {
-				Vector gr = getGradient( *pts[i], false ) ;
-				Vector fx = getFlux( *pts[i], false ) ;
-				grad[3 * i + 0] = gr[0] ;
-				grad[3 * i + 1] = gr[1] ;
-				grad[3 * i + 2] = gr[2] ;
-				flux[3 * i + 0] = fx[0] ;
-				flux[3 * i + 1] = fx[1] ;
-				flux[3 * i + 2] = fx[2] ;
-			}
-
-			return std::make_pair( grad, flux ) ;
+		for( size_t i = 0 ; i < pts.size() ; i++ )
+		{
+			Vector gr = getGradient( *pts[i], false ) ;
+			Vector fx = getFlux( *pts[i], false ) ;
+			grad[3 * i + 0] = gr[0] ;
+			grad[3 * i + 1] = gr[1] ;
+			grad[3 * i + 2] = gr[2] ;
+			flux[3 * i + 0] = fx[0] ;
+			flux[3 * i + 1] = fx[1] ;
+			flux[3 * i + 2] = fx[2] ;
 		}
+
+		return std::make_pair( grad, flux ) ;
+	}
 
 	int dofs = 2 ;
 
@@ -4355,15 +4735,18 @@ std::pair<Vector, Vector > ElementState::getGradientAndFlux( const Mu::PointArra
 
 std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray<std::pair<Point, double> > & p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 && parent->getBehaviour()->type != VOID_BEHAVIOUR ) {
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 && parent->getBehaviour()->type != VOID_BEHAVIOUR )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
 			std::cout << "void triangle" << std::endl ;
 			return std::pair<Vector, Vector>( Vector( 0., 3 * p.size() ), Vector( 0., 3 * p.size() ) ) ;
 		}
 
 		std::vector<Point> p_ ;
 
-		for( size_t i = 0 ; i < p.size() ; i++ ) {
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
 			p_.push_back( parent->inLocalCoordinates( p[i].first ) ) ;
 		}
 
@@ -4375,8 +4758,10 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		int offset = ndofs - 1 ;
 
-		if( ndofs == 2 ) {
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
+		if( ndofs == 2 )
+		{
+			for( size_t i = 0 ; i < p.size() ; i++ )
+			{
 				bool hasTimePlanes = ( parent->timePlanes() > 1 ) ;
 				Matrix Jinv( 2 + hasTimePlanes, 2 + hasTimePlanes ) ;
 				parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
@@ -4386,7 +4771,8 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 				double y_xi = 0;
 				double y_eta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+				{
 					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
 					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
 
@@ -4399,7 +4785,8 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 
 				Vector llstrain( 3 ) ;
 
-				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+				{
 					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
 					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
 
@@ -4430,133 +4817,140 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 		std::pair<Vector, Vector> ret( lstress, lstrain ) ;
 
 		return ret ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
-				return std::pair<Vector, Vector>( Vector( 0., 6 * p.size() ), Vector( 0., 6 * p.size() ) ) ;
-			}
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+		{
+			return std::pair<Vector, Vector>( Vector( 0., 6 * p.size() ), Vector( 0., 6 * p.size() ) ) ;
+		}
 
-			std::vector<Point> p_ ;
+		std::vector<Point> p_ ;
 
-			for( size_t i = 0 ; i < p.size() ; i++ ) {
-				p_.push_back( parent->inLocalCoordinates( p[i].first ) ) ;
-			}
+		for( size_t i = 0 ; i < p.size() ; i++ )
+		{
+			p_.push_back( parent->inLocalCoordinates( p[i].first ) ) ;
+		}
 
-			VirtualMachine vm ;
+		VirtualMachine vm ;
 
-			Vector lstrain( 6 * p.size() ) ;
-			Vector lstress( 6 * p.size() ) ;
+		Vector lstrain( 6 * p.size() ) ;
+		Vector lstress( 6 * p.size() ) ;
 
-			size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-			if( ndofs == 3 ) {
-				for( size_t i = 0 ; i < p.size() ; i++ ) {
-					Matrix Jinv( 3, 3 ) ;
-					parent->getInverseJacobianMatrix( Point( .25, .25, .25 ), Jinv ) ;
-					Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
-					Vector llstrain( 0., 6 ) ;
-					double x_xi = 0;
-					double x_eta = 0;
-					double x_zeta = 0;
-					double y_xi = 0;
-					double y_eta = 0;
-					double y_zeta = 0;
-					double z_xi = 0;
-					double z_eta = 0;
-					double z_zeta = 0;
+		if( ndofs == 3 )
+		{
+			for( size_t i = 0 ; i < p.size() ; i++ )
+			{
+				Matrix Jinv( 3, 3 ) ;
+				parent->getInverseJacobianMatrix( Point( .25, .25, .25 ), Jinv ) ;
+				Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
+				Vector llstrain( 0., 6 ) ;
+				double x_xi = 0;
+				double x_eta = 0;
+				double x_zeta = 0;
+				double y_xi = 0;
+				double y_eta = 0;
+				double y_zeta = 0;
+				double z_xi = 0;
+				double z_eta = 0;
+				double z_zeta = 0;
 
-					for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ ) {
-						double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
-						double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
-						double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
-						double x = displacements[j * 3] ;
-						double y = displacements[j * 3 + 1] ;
-						double z = displacements[j * 3 + 2] ;
+				for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
+				{
+					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_[i] ) ;
+					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_[i] ) ;
+					double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_[i] ) ;
+					double x = displacements[j * 3] ;
+					double y = displacements[j * 3 + 1] ;
+					double z = displacements[j * 3 + 2] ;
 
-						x_xi   += f_xi   * x ;
-						x_eta  += f_eta  * x ;
-						x_zeta += f_zeta * x ;
-						y_xi   += f_xi   * y ;
-						y_eta  += f_eta  * y ;
-						y_zeta += f_zeta * y ;
-						z_xi   += f_xi   * z ;
-						z_eta  += f_eta  * z ;
-						z_zeta += f_zeta * z ;
-					}
+					x_xi   += f_xi   * x ;
+					x_eta  += f_eta  * x ;
+					x_zeta += f_zeta * x ;
+					y_xi   += f_xi   * y ;
+					y_eta  += f_eta  * y ;
+					y_zeta += f_zeta * y ;
+					z_xi   += f_xi   * z ;
+					z_eta  += f_eta  * z ;
+					z_zeta += f_zeta * z ;
+				}
 
 
-					for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-						double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
-						double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
-						double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
-						double x = enrichedDisplacements[j * 3] ;
-						double y = enrichedDisplacements[j * 3 + 1] ;
-						double z = enrichedDisplacements[j * 3 + 2] ;
+				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+				{
+					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) ;
+					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) ;
+					double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_[i] ) ;
+					double x = enrichedDisplacements[j * 3] ;
+					double y = enrichedDisplacements[j * 3 + 1] ;
+					double z = enrichedDisplacements[j * 3 + 2] ;
 
-						x_xi   += f_xi   * x ;
-						x_eta  += f_eta  * x ;
-						x_zeta += f_zeta * x ;
-						y_xi   += f_xi   * y ;
-						y_eta  += f_eta  * y ;
-						y_zeta += f_zeta * y ;
-						z_xi   += f_xi   * z ;
-						z_eta  += f_eta  * z ;
-						z_zeta += f_zeta * z ;
-					}
+					x_xi   += f_xi   * x ;
+					x_eta  += f_eta  * x ;
+					x_zeta += f_zeta * x ;
+					y_xi   += f_xi   * y ;
+					y_eta  += f_eta  * y ;
+					y_zeta += f_zeta * y ;
+					z_xi   += f_xi   * z ;
+					z_eta  += f_eta  * z ;
+					z_zeta += f_zeta * z ;
+				}
 
 // 				std::cout << x_xi << ", " << x_eta << ", " << x_zeta << std::endl ;
 // 				std::cout << y_xi << ", " << y_eta << ", " << y_zeta << std::endl ;
 // 				std::cout << z_xi << ", " << z_eta << ", " << z_zeta << std::endl ;
-					llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-					llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-					llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+				llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+				llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+				llstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
 
-					llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-					                      ( y_eta ) * Jinv[2][1] +
-					                      ( y_zeta ) * Jinv[2][2] +
-					                      ( z_xi ) * Jinv[1][0] +
-					                      ( z_eta ) * Jinv[1][1] +
-					                      ( z_zeta ) * Jinv[1][2] );
+				llstrain[5] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+				                      ( y_eta ) * Jinv[2][1] +
+				                      ( y_zeta ) * Jinv[2][2] +
+				                      ( z_xi ) * Jinv[1][0] +
+				                      ( z_eta ) * Jinv[1][1] +
+				                      ( z_zeta ) * Jinv[1][2] );
 
-					llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-					                      ( x_eta ) * Jinv[2][1] +
-					                      ( x_zeta ) * Jinv[2][2] +
-					                      ( z_xi ) * Jinv[0][0] +
-					                      ( z_eta ) * Jinv[0][1] +
-					                      ( z_zeta ) * Jinv[0][2] );
+				llstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+				                      ( x_eta ) * Jinv[2][1] +
+				                      ( x_zeta ) * Jinv[2][2] +
+				                      ( z_xi ) * Jinv[0][0] +
+				                      ( z_eta ) * Jinv[0][1] +
+				                      ( z_zeta ) * Jinv[0][2] );
 
-					llstrain[3] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
-					                      ( y_eta )  * Jinv[0][1] +
-					                      ( y_zeta ) * Jinv[0][2] +
-					                      ( x_xi )   * Jinv[1][0] +
-					                      ( x_eta )  * Jinv[1][1] +
-					                      ( x_zeta ) * Jinv[1][2] );
+				llstrain[3] = 0.5 * ( ( y_xi )  * Jinv[0][0] +
+				                      ( y_eta )  * Jinv[0][1] +
+				                      ( y_zeta ) * Jinv[0][2] +
+				                      ( x_xi )   * Jinv[1][0] +
+				                      ( x_eta )  * Jinv[1][1] +
+				                      ( x_zeta ) * Jinv[1][2] );
 
-					lstrain[i * 6 + 0] = llstrain[0] ;
-					lstrain[i * 6 + 1] = llstrain[1] ;
-					lstrain[i * 6 + 2] = llstrain[2] ;
-					lstrain[i * 6 + 3] = llstrain[3] ;
-					lstrain[i * 6 + 4] = llstrain[4] ;
-					lstrain[i * 6 + 5] = llstrain[5] ;
+				lstrain[i * 6 + 0] = llstrain[0] ;
+				lstrain[i * 6 + 1] = llstrain[1] ;
+				lstrain[i * 6 + 2] = llstrain[2] ;
+				lstrain[i * 6 + 3] = llstrain[3] ;
+				lstrain[i * 6 + 4] = llstrain[4] ;
+				lstrain[i * 6 + 5] = llstrain[5] ;
 
-					llstrain = llstrain * cg ;
+				llstrain = llstrain * cg ;
 
-					lstress[i * 6 + 0] = llstrain[0] ;
-					lstress[i * 6 + 1] = llstrain[1] ;
-					lstress[i * 6 + 2] = llstrain[2] ;
-					lstress[i * 6 + 3] = llstrain[3] ;
-					lstress[i * 6 + 4] = llstrain[4] ;
-					lstress[i * 6 + 5] = llstrain[5] ;
-				}
+				lstress[i * 6 + 0] = llstrain[0] ;
+				lstress[i * 6 + 1] = llstrain[1] ;
+				lstress[i * 6 + 2] = llstrain[2] ;
+				lstress[i * 6 + 3] = llstrain[3] ;
+				lstress[i * 6 + 4] = llstrain[4] ;
+				lstress[i * 6 + 5] = llstrain[5] ;
 			}
-
-			std::pair<Vector, Vector> ret ;
-			ret.first.resize( lstress.size() ) ;
-			ret.second.resize( lstrain.size() ) ;
-			ret.first = lstress ;
-			ret.second = lstrain ;
-			return ret ;
 		}
+
+		std::pair<Vector, Vector> ret ;
+		ret.first.resize( lstress.size() ) ;
+		ret.second.resize( lstrain.size() ) ;
+		ret.first = lstress ;
+		ret.second = lstrain ;
+		return ret ;
+	}
 
 	int dofs = 2 ;
 
@@ -4570,7 +4964,8 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 
 Vector ElementState::getDeltaStrain( const Point &p ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	{
 		Point p_ = parent->inLocalCoordinates( p ) ;
 		VirtualMachine vm ;
 
@@ -4579,7 +4974,8 @@ Vector ElementState::getDeltaStrain( const Point &p ) const
 		double y_xi = 0;
 		double y_eta = 0;
 
-		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
 			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
 			x_xi += f_xi * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
@@ -4598,7 +4994,8 @@ Vector ElementState::getDeltaStrain( const Point &p ) const
 		double delta_y_xi  = 0;
 		double delta_y_eta  = 0;
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			delta_x_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] ) ;
 			delta_x_eta += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] ) ;
 			delta_y_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] ) ;
@@ -4612,74 +5009,77 @@ Vector ElementState::getDeltaStrain( const Point &p ) const
 		lstrain[2] = 0.5 * ( ( x_xi + delta_x_xi ) * Jinv[1][0] + ( x_eta + delta_x_eta ) * Jinv[1][1]  + ( y_xi + delta_y_xi ) * Jinv[0][0] + ( y_eta + delta_y_eta ) * Jinv[0][1] );
 
 		return lstrain ;
-	} else
-		if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 ) {
-			Point p_ = parent->inLocalCoordinates( p ) ;
-			VirtualMachine vm ;
+	}
+	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	{
+		Point p_ = parent->inLocalCoordinates( p ) ;
+		VirtualMachine vm ;
 
-			double x_xi = 0;
-			double x_eta = 0;
-			double x_zeta = 0;
-			double y_xi = 0;
-			double y_eta = 0;
-			double y_zeta = 0;
-			double z_xi = 0;
-			double z_eta = 0;
-			double z_zeta = 0;
+		double x_xi = 0;
+		double x_eta = 0;
+		double x_zeta = 0;
+		double y_xi = 0;
+		double y_eta = 0;
+		double y_zeta = 0;
+		double z_xi = 0;
+		double z_eta = 0;
+		double z_zeta = 0;
 
-			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
-				double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
+		for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+		{
+			double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getShapeFunction( j ), ZETA, p_ ) ;
 
-				x_xi += f_xi * ( displacements[j * 3] - previousDisplacements[j * 3] ) ;
-				x_eta += f_eta * ( displacements[j * 3] - previousDisplacements[j * 3] ) ;
-				x_zeta += f_zeta * ( displacements[j * 3] - previousDisplacements[j * 3] ) ;
-				y_xi += f_xi * ( displacements[j * 3 + 1] - previousDisplacements[j * 3 + 1] ) ;
-				y_eta += f_eta * ( displacements[j * 3 + 1] - previousDisplacements[j * 3 + 1] ) ;
-				y_zeta += f_zeta * ( displacements[j * 3 + 1] - previousDisplacements[j * 3 + 1] ) ;
-				z_xi += f_xi * ( displacements[j * 3 + 2] - previousDisplacements[j * 3 + 2] ) ;
-				z_eta += f_eta * ( displacements[j * 3 + 2] - previousDisplacements[j * 3 + 2] ) ;
-				z_zeta += f_zeta * ( displacements[j * 3 + 2] - previousDisplacements[j * 3 + 2] ) ;
-			}
-
-
-			Vector lstrain( 6 ) ;
-
-			Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
-
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
-
-				double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
-				double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
-				double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
-
-				x_xi += f_xi * ( enrichedDisplacements[j * 3] - previousEnrichedDisplacements[j * 3] ) ;
-				x_eta += f_eta * ( enrichedDisplacements[j * 3] - previousEnrichedDisplacements[j * 3] ) ;
-				x_zeta += f_zeta * ( enrichedDisplacements[j * 3] - previousEnrichedDisplacements[j * 3] ) ;
-				y_xi += f_xi * ( enrichedDisplacements[j * 3 + 1] - previousEnrichedDisplacements[j * 3 + 1] ) ;
-				y_eta += f_eta * ( enrichedDisplacements[j * 3 + 1] - previousEnrichedDisplacements[j * 3 + 1] ) ;
-				y_zeta += f_zeta * ( enrichedDisplacements[j * 3 + 1] - previousEnrichedDisplacements[j * 3 + 1] ) ;
-				z_xi += f_xi * ( enrichedDisplacements[j * 3 + 2] - previousEnrichedDisplacements[j * 3 + 2] ) ;
-				z_eta += f_eta * ( enrichedDisplacements[j * 3 + 2] - previousEnrichedDisplacements[j * 3 + 2] ) ;
-				z_zeta += f_zeta * ( enrichedDisplacements[j * 3 + 2] - previousEnrichedDisplacements[j * 3 + 2] ) ;
-			}
-
-			Matrix Jinv( 3, 3 )  ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-			lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-			lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-			lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-			lstrain[3] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2]
-			                     + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1]  + ( y_zeta ) * Jinv[0][2] );
-			lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2]
-			                     + ( z_xi ) * Jinv[0][0] + ( z_eta ) * Jinv[0][1]  + ( z_zeta ) * Jinv[0][2] );
-			lstrain[5] = 0.5 * ( ( y_xi ) * Jinv[2][0] + ( y_eta ) * Jinv[2][1]  + ( y_zeta ) * Jinv[2][2]
-			                     + ( z_xi ) * Jinv[1][0] + ( z_eta ) * Jinv[1][1]  + ( z_zeta ) * Jinv[1][2] );
-
-			return lstrain ;
+			x_xi += f_xi * ( displacements[j * 3] - previousDisplacements[j * 3] ) ;
+			x_eta += f_eta * ( displacements[j * 3] - previousDisplacements[j * 3] ) ;
+			x_zeta += f_zeta * ( displacements[j * 3] - previousDisplacements[j * 3] ) ;
+			y_xi += f_xi * ( displacements[j * 3 + 1] - previousDisplacements[j * 3 + 1] ) ;
+			y_eta += f_eta * ( displacements[j * 3 + 1] - previousDisplacements[j * 3 + 1] ) ;
+			y_zeta += f_zeta * ( displacements[j * 3 + 1] - previousDisplacements[j * 3 + 1] ) ;
+			z_xi += f_xi * ( displacements[j * 3 + 2] - previousDisplacements[j * 3 + 2] ) ;
+			z_eta += f_eta * ( displacements[j * 3 + 2] - previousDisplacements[j * 3 + 2] ) ;
+			z_zeta += f_zeta * ( displacements[j * 3 + 2] - previousDisplacements[j * 3 + 2] ) ;
 		}
+
+
+		Vector lstrain( 6 ) ;
+
+		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
+
+
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
+
+			double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
+			double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+			double f_zeta = vm.deval( parent->getEnrichmentFunction( j ), ZETA, p_ ) ;
+
+			x_xi += f_xi * ( enrichedDisplacements[j * 3] - previousEnrichedDisplacements[j * 3] ) ;
+			x_eta += f_eta * ( enrichedDisplacements[j * 3] - previousEnrichedDisplacements[j * 3] ) ;
+			x_zeta += f_zeta * ( enrichedDisplacements[j * 3] - previousEnrichedDisplacements[j * 3] ) ;
+			y_xi += f_xi * ( enrichedDisplacements[j * 3 + 1] - previousEnrichedDisplacements[j * 3 + 1] ) ;
+			y_eta += f_eta * ( enrichedDisplacements[j * 3 + 1] - previousEnrichedDisplacements[j * 3 + 1] ) ;
+			y_zeta += f_zeta * ( enrichedDisplacements[j * 3 + 1] - previousEnrichedDisplacements[j * 3 + 1] ) ;
+			z_xi += f_xi * ( enrichedDisplacements[j * 3 + 2] - previousEnrichedDisplacements[j * 3 + 2] ) ;
+			z_eta += f_eta * ( enrichedDisplacements[j * 3 + 2] - previousEnrichedDisplacements[j * 3 + 2] ) ;
+			z_zeta += f_zeta * ( enrichedDisplacements[j * 3 + 2] - previousEnrichedDisplacements[j * 3 + 2] ) ;
+		}
+
+		Matrix Jinv( 3, 3 )  ;
+		parent->getInverseJacobianMatrix( p_, Jinv ) ;
+		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+		lstrain[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+		lstrain[3] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2]
+		                     + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1]  + ( y_zeta ) * Jinv[0][2] );
+		lstrain[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2]
+		                     + ( z_xi ) * Jinv[0][0] + ( z_eta ) * Jinv[0][1]  + ( z_zeta ) * Jinv[0][2] );
+		lstrain[5] = 0.5 * ( ( y_xi ) * Jinv[2][0] + ( y_eta ) * Jinv[2][1]  + ( y_zeta ) * Jinv[2][2]
+		                     + ( z_xi ) * Jinv[1][0] + ( z_eta ) * Jinv[1][1]  + ( z_zeta ) * Jinv[1][2] );
+
+		return lstrain ;
+	}
 
 	return Vector( 0 ) ;
 }
@@ -4697,7 +5097,8 @@ Vector ElementState::getDeltaStress( const Point &p ) const
 	Function y_xi ;
 	Function y_eta ;
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		x_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		x_eta += parent->getShapeFunction( j ).d( ETA ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		y_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2 + 1] - previousDisplacements[j * 2 + 1] ) ;
@@ -4713,7 +5114,8 @@ Vector ElementState::getDeltaStress( const Point &p ) const
 	double delta_y_xi  = 0;
 	double delta_y_eta  = 0;
 
-	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+	{
 		delta_x_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] ) ;
 		delta_x_eta += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] ) ;
 		delta_y_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] );
@@ -4738,13 +5140,15 @@ Vector ElementState::getDeltaStress( const std::pair<Point, double> & p ) const
 
 Vector ElementState::getDeltaStress( const Mu::PointArray &pts ) const
 {
-	if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+	{
 		return Vector( 0., 3 * pts.size() ) ;
 	}
 
 	std::vector<Point> p_ ;
 
-	for( size_t i = 0 ; i < pts.size() ; i++ ) {
+	for( size_t i = 0 ; i < pts.size() ; i++ )
+	{
 		p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 	}
 
@@ -4753,7 +5157,8 @@ Vector ElementState::getDeltaStress( const Mu::PointArray &pts ) const
 	Function y_xi ;
 	Function y_eta ;
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		x_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		x_eta += parent->getShapeFunction( j ).d( ETA ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		y_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2 + 1] - previousDisplacements[j * 2 + 1] ) ;
@@ -4767,7 +5172,8 @@ Vector ElementState::getDeltaStress( const Mu::PointArray &pts ) const
 	Matrix Jinv( 2, 2 )  ;
 	parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
-	for( size_t i = 0 ; i < pts.size() ; i++ ) {
+	for( size_t i = 0 ; i < pts.size() ; i++ )
+	{
 		if( parent->isMoved() )
 			parent->getInverseJacobianMatrix( p_[i], Jinv ) ;
 
@@ -4779,7 +5185,8 @@ Vector ElementState::getDeltaStress( const Mu::PointArray &pts ) const
 		double delta_y_xi  = 0;
 		double delta_y_eta  = 0;
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			delta_x_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 			delta_x_eta += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 			delta_y_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] );
@@ -4808,10 +5215,12 @@ Vector ElementState::getDeltaStress( const std::valarray<std::pair<Point, double
 {
 	Vector pts( 3 * p.size() ) ;
 
-	for( size_t i = 0 ; i < p.size() ; i++ ) {
+	for( size_t i = 0 ; i < p.size() ; i++ )
+	{
 		Vector str = getDeltaStress( p[i].first ) ;
 
-		for( size_t j = 0 ; j < 3 ; j++ ) {
+		for( size_t j = 0 ; j < 3 ; j++ )
+		{
 			pts[i * 3 + j] = str[j] ;
 		}
 	}
@@ -4821,13 +5230,15 @@ Vector ElementState::getDeltaStress( const std::valarray<std::pair<Point, double
 
 Vector ElementState::getDeltaStrain( const Mu::PointArray &pts ) const
 {
-	if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+	{
 		return Vector( 0., 3 * pts.size() ) ;
 	}
 
 	std::vector<Point> p_ ;
 
-	for( size_t i = 0 ; i < pts.size() ; i++ ) {
+	for( size_t i = 0 ; i < pts.size() ; i++ )
+	{
 		p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 	}
 
@@ -4836,7 +5247,8 @@ Vector ElementState::getDeltaStrain( const Mu::PointArray &pts ) const
 	Function y_xi ;
 	Function y_eta ;
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		x_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		x_eta += parent->getShapeFunction( j ).d( ETA ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		y_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2 + 1] - previousDisplacements[j * 2 + 1] ) ;
@@ -4852,14 +5264,16 @@ Vector ElementState::getDeltaStrain( const Mu::PointArray &pts ) const
 	lstrain[1] = vm.eval( y_xi, p_[0] ) * Jinv[1][0] + vm.eval( y_eta, p_[0] ) * Jinv[1][1] ;
 	lstrain[2] = 0.5 * ( vm.eval( x_xi, p_[0] ) * Jinv[1][0] + vm.eval( x_eta, p_[0] ) * Jinv[1][1]  + vm.eval( y_xi, p_[0] ) * Jinv[0][0] + vm.eval( y_eta, p_[0] ) * Jinv[0][1] );
 
-	for( size_t i = 1 ; i < pts.size() ; i++ ) {
+	for( size_t i = 1 ; i < pts.size() ; i++ )
+	{
 
 		double delta_x_xi  = 0;
 		double delta_x_eta  = 0;
 		double delta_y_xi  = 0;
 		double delta_y_eta  = 0;
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			delta_x_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 			delta_x_eta += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 			delta_y_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] );
@@ -4881,10 +5295,12 @@ Vector ElementState::getDeltaStrain( const std::valarray<std::pair<Point, double
 {
 	Vector pts( 3 * p.size() ) ;
 
-	for( size_t i = 0 ; i < p.size() ; i++ ) {
+	for( size_t i = 0 ; i < p.size() ; i++ )
+	{
 		Vector str = getStrain( p[i].first ) ;
 
-		for( size_t j = 0 ; j < 3 ; j++ ) {
+		for( size_t j = 0 ; j < 3 ; j++ )
+		{
 			pts[i * 3 + j] = str[j] ;
 		}
 	}
@@ -4904,7 +5320,8 @@ Vector ElementState::getDeltaDisplacements( const Point &p ) const
 
 	Point p_ = parent->inLocalCoordinates( p ) ;
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		x += parent->getShapeFunction( j ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		y += parent->getShapeFunction( j ) * ( displacements[j * 2 + 1] - previousDisplacements[j * 2 + 1] ) ;
 	}
@@ -4913,7 +5330,8 @@ Vector ElementState::getDeltaDisplacements( const Point &p ) const
 	double delta_y = 0;
 	VirtualMachine vm ;
 
-	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+	{
 		delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 		delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] );
 	}
@@ -4931,16 +5349,19 @@ Vector ElementState::getDeltaDisplacements( const std::valarray<Point> & p ) con
 
 	std::vector<Point> p_ ;
 
-	for( size_t i = 0 ; i < p.size() ; i++ ) {
+	for( size_t i = 0 ; i < p.size() ; i++ )
+	{
 		p_.push_back( parent->inLocalCoordinates( p[i] ) ) ;
 	}
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		x += parent->getShapeFunction( j ) * ( displacements[j * 2] - previousDisplacements[j * 2] );
 		y += parent->getShapeFunction( j ) * ( displacements[j * 2 + 1] - previousDisplacements[j * 2 + 1] );
 	}
 
-	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+	{
 		x += parent->getEnrichmentFunction( j ).d( XI ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 		y += parent->getEnrichmentFunction( j ).d( ETA ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] );
 	}
@@ -4948,11 +5369,13 @@ Vector ElementState::getDeltaDisplacements( const std::valarray<Point> & p ) con
 	VirtualMachine vm ;
 	Vector ret( 2 * p.size() ) ;
 
-	for( size_t i = 0 ; i < p.size() ; i++ ) {
+	for( size_t i = 0 ; i < p.size() ; i++ )
+	{
 		double delta_x = 0;
 		double delta_y = 0;
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			delta_x += vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 			delta_y += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] ) ;
 		}
@@ -4967,13 +5390,15 @@ Vector ElementState::getDeltaDisplacements( const std::valarray<Point> & p ) con
 std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const Mu::PointArray &pts ) const
 {
 
-	if( parent->getBehaviour()->type == VOID_BEHAVIOUR ) {
+	if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
+	{
 		return std::pair<Vector, Vector>( Vector( 0., 3 * pts.size() ), Vector( 0., 3 * pts.size() ) ) ;
 	}
 
 	std::vector<Point> p_ ;
 
-	for( size_t i = 0 ; i < pts.size() ; i++ ) {
+	for( size_t i = 0 ; i < pts.size() ; i++ )
+	{
 		p_.push_back( parent->inLocalCoordinates( *pts[i] ) ) ;
 	}
 
@@ -4982,7 +5407,8 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const Mu:
 	Function y_xi ;
 	Function y_eta ;
 
-	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ ) {
+	for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+	{
 		x_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		x_eta += parent->getShapeFunction( j ).d( ETA ) * ( displacements[j * 2] - previousDisplacements[j * 2] ) ;
 		y_xi += parent->getShapeFunction( j ).d( XI ) * ( displacements[j * 2 + 1] - previousDisplacements[j * 2 + 1] ) ;
@@ -4997,7 +5423,8 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const Mu:
 	Matrix Jinv( 2, 2 ) ;
 	parent->getInverseJacobianMatrix( p_[0], Jinv ) ;
 
-	for( size_t i = 0 ; i < pts.size() ; i++ ) {
+	for( size_t i = 0 ; i < pts.size() ; i++ )
+	{
 		double delta_x_xi  = 0;
 		double delta_x_eta  = 0;
 		double delta_y_xi  = 0;
@@ -5006,7 +5433,8 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const Mu:
 		Vector llstrain( 3 ) ;
 		Matrix cg( parent->getBehaviour()->getTensor( p_[i] ) ) ;
 
-		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ ) {
+		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+		{
 			delta_x_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 			delta_x_eta += vm.deval( parent->getEnrichmentFunction( j ), ETA, p_[i] ) * ( enrichedDisplacements[j * 2] - previousEnrichedDisplacements[j * 2] );
 			delta_y_xi += vm.deval( parent->getEnrichmentFunction( j ), XI, p_[i] ) * ( enrichedDisplacements[j * 2 + 1] - previousEnrichedDisplacements[j * 2 + 1] );
@@ -5041,7 +5469,8 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const std
 {
 	Mu::PointArray pts( p.size() ) ;
 
-	for( size_t i = 0 ; i < p.size() ; i++ ) {
+	for( size_t i = 0 ; i < p.size() ; i++ )
+	{
 		pts[i] = new Point( p[i].first ) ;
 	}
 
@@ -5065,13 +5494,15 @@ void ElementState::initialize( bool initializeFractureCache )
 	buffer.resize( displacements.size() ) ;
 	buffer = 0 ;
 
-	if( std::abs( timePos - previousTimePos ) < POINT_TOLERANCE_3D && std::abs( timePos ) < POINT_TOLERANCE_3D ) {
+	if( std::abs( timePos - previousTimePos ) < POINT_TOLERANCE_3D && std::abs( timePos ) < POINT_TOLERANCE_3D )
+	{
 		timePos = -0.1 ;
 		previousTimePos = -0.2 ;
 		previousPreviousTimePos = -0.3 ;
 	}
 
-	if( initializeFractureCache && parent->getBehaviour()->getFractureCriterion() ) {
+	if( initializeFractureCache && parent->getBehaviour()->getFractureCriterion() )
+	{
 		parent->getBehaviour()->getFractureCriterion()->initialiseCache( *this ) ;
 	}
 
@@ -5101,7 +5532,8 @@ void ElementState::step( double dt, const Vector *d )
 
 	history.push_back( ElementState( *this ) ) ;
 
-	if( parent->getBehaviour()->type != VOID_BEHAVIOUR ) {
+	if( parent->getBehaviour()->type != VOID_BEHAVIOUR )
+	{
 		previousPreviousTimePos = previousTimePos ;
 		previousTimePos = timePos ;
 		timePos += dt ;
@@ -5115,15 +5547,18 @@ void ElementState::step( double dt, const Vector *d )
 		if( buffer.size() != parent->getBoundingPoints().size()*ndofs + parent->getEnrichmentFunctions().size()*ndofs )
 			buffer.resize( parent->getBoundingPoints().size()*ndofs + parent->getEnrichmentFunctions().size()*ndofs ) ;
 
-		for( size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++ ) {
-			for( size_t j = 0 ; j < ndofs ; j++ ) {
+		for( size_t i = 0 ; i < parent->getShapeFunctions().size() ; i++ )
+		{
+			for( size_t j = 0 ; j < ndofs ; j++ )
+			{
 				buffer[i * ndofs + j] = ( *d )[ids[i] * ndofs + j] ;
 			}
 		}
 
 		int nbp = parent->getBoundingPoints().size() ;
 
-		for( size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++ ) {
+		for( size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++ )
+		{
 			for( size_t j = 0 ; j < ndofs ; j++ )
 				buffer[i * ndofs + nbp * ndofs + j] = ( *d )[ids[i + nbp] * ndofs + j] ;
 		}
@@ -5191,11 +5626,14 @@ Vector ElementState::getPrincipalAngle( const Point &p, bool local ) const
 {
 	Vector stresses = getStress( p, local ) ;
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		Vector ret( 1 ) ;
 		ret[0] =  0.5 * atan2( stresses[0] - stresses[1], -stresses[2] ) ;
 		return ret ;
-	} else {
+	}
+	else
+	{
 		Vector ret( 3 ) ;
 		ret[0] =  0.5 * atan2( stresses[0] - stresses[1], -stresses[3] ) ;
 		ret[1] =  0.5 * atan2( stresses[0] - stresses[2], -stresses[4] ) ;
@@ -5216,10 +5654,12 @@ Vector ElementState::getPrincipalAngle( const Mu::PointArray &v ) const
 
 	Vector principal( v.size()*nangle ) ;
 
-	for( size_t i = 0 ; i < v.size() ; i++ ) {
+	for( size_t i = 0 ; i < v.size() ; i++ )
+	{
 		Vector a = getPrincipalAngle( *v[i] ) ;
 
-		for( size_t j = 0 ; j < a.size() ; j++ ) {
+		for( size_t j = 0 ; j < a.size() ; j++ )
+		{
 			principal[i * nangle + j] = a[j] ;
 		}
 	}
@@ -5229,7 +5669,8 @@ Vector ElementState::getPrincipalAngle( const Mu::PointArray &v ) const
 
 Vector ElementState::getPreviousPrincipalStresses( const Point &p, bool local ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		Vector stresses = getPreviousStress( p, local ) ;
 
 		if( parent->getBehaviour()->hasInducedForces() )
@@ -5249,7 +5690,9 @@ Vector ElementState::getPreviousPrincipalStresses( const Point &p, bool local ) 
 
 
 		return lprincipal ;
-	} else {
+	}
+	else
+	{
 		Matrix stresses = getPreviousStressMatrix( p, local ) ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
@@ -5277,7 +5720,8 @@ Vector ElementState::getPreviousPrincipalStresses( const Point &p, bool local ) 
 
 Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		Vector stresses = getStress( p, local ) ;
 
 		if( parent->getBehaviour()->hasInducedForces() )
@@ -5297,7 +5741,9 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 
 
 		return lprincipal ;
-	} else {
+	}
+	else
+	{
 		Matrix stresses = getStressMatrix( p, local ) ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
@@ -5325,7 +5771,8 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 
 Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 {
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ) {
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
 		Vector strains = getStrain( p, local ) ;
 
 // 		if(parent->getBehaviour()->hasInducedForces())
@@ -5344,7 +5791,9 @@ Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 
 
 		return lprincipal ;
-	} else {
+	}
+	else
+	{
 		Matrix strains = getStrainMatrix( p, local ) ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
@@ -5376,10 +5825,12 @@ double ElementState::elasticEnergy() const
 	size_t stresscomponents = stress.first.size() / parent->getGaussPoints().gaussPoints.size() ;
 	double e = 0 ;
 
-	for( size_t i = 0 ; i < parent->getGaussPoints().gaussPoints.size() ; i++ ) {
+	for( size_t i = 0 ; i < parent->getGaussPoints().gaussPoints.size() ; i++ )
+	{
 		double le = 0 ;
 
-		for( size_t j = 0 ; j < stresscomponents ; j++ ) {
+		for( size_t j = 0 ; j < stresscomponents ; j++ )
+		{
 			le += stress.first[i * stresscomponents + j] * stress.second[i * stresscomponents + j] ;
 		}
 
@@ -5395,7 +5846,8 @@ Vector ElementState::getPrincipalStrains( const Mu::PointArray &v ) const
 	Vector strains = getStrain( v ) ;
 	Vector principal( 2 * v.size() ) ;
 
-	for( size_t i = 0 ; i < v.size() ; i++ ) {
+	for( size_t i = 0 ; i < v.size() ; i++ )
+	{
 		Vector lprincipal( 2 ) ;
 		lprincipal[0] = .5 * ( strains[i * 3] + strains[i * 3 + 1] ) +
 		                .5 * sqrt(
@@ -5419,7 +5871,8 @@ Vector ElementState::getPreviousPrincipalStresses( const Mu::PointArray &v ) con
 	Vector stresses = getPreviousStress( v ) ;
 	Vector principal( 2 * v.size() ) ;
 
-	for( size_t i = 0 ; i < v.size() ; i++ ) {
+	for( size_t i = 0 ; i < v.size() ; i++ )
+	{
 		Vector lprincipal( 2 ) ;
 		lprincipal[0] = .5 * ( stresses[i * 3] + stresses[i * 3 + 1] ) +
 		                .5 * sqrt(
@@ -5444,18 +5897,22 @@ Vector ElementState::getPrincipalStresses( const Mu::PointArray &v, bool local )
 {
 	bool is3d = false ;
 
-	for( size_t i = 0 ; i < v.size() ; i++ ) {
-		if( std::abs( v[i]->z ) > POINT_TOLERANCE_2D ) {
+	for( size_t i = 0 ; i < v.size() ; i++ )
+	{
+		if( std::abs( v[i]->z ) > POINT_TOLERANCE_2D )
+		{
 			is3d = true ;
 			break ;
 		}
 	}
 
-	if( !is3d ) {
+	if( !is3d )
+	{
 		Vector stresses = getStress( v ) ;
 		Vector principal( 2 * v.size() ) ;
 
-		for( size_t i = 0 ; i < v.size() ; i++ ) {
+		for( size_t i = 0 ; i < v.size() ; i++ )
+		{
 			Vector lprincipal( 2 ) ;
 			lprincipal[0] = .5 * ( stresses[i * 3] + stresses[i * 3 + 1] ) +
 			                .5 * sqrt(
@@ -5472,14 +5929,17 @@ Vector ElementState::getPrincipalStresses( const Mu::PointArray &v, bool local )
 		}
 
 		return principal ;
-	} else {
+	}
+	else
+	{
 		Vector principal( 3 * v.size() ) ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
 		I[1][1] = 1 ;
 		I[2][2] = 1 ;
 
-		for( size_t i = 0 ; i < v.size() ; i++ ) {
+		for( size_t i = 0 ; i < v.size() ; i++ )
+		{
 			Matrix stresses = getStressMatrix( *v[i], local ) ;
 
 			double m = ( stresses[0][0] + stresses[1][1] + stresses[2][2] ) / 3. ;

@@ -4724,7 +4724,6 @@ void FeatureTree::generateElements()
 		}
 	}
 
-
 	for( size_t i  = 0 ; i < tree.size() ; i++ )
 	{
 		std::cerr << "\r getting mesh points... feature " << i << "/" << tree.size() << std::flush ;
@@ -4783,7 +4782,7 @@ void FeatureTree::generateElements()
 					}
 				}
 
-				if( i != 0 && !inRoot( tree[i]->getBoundingPoint( j ) ) )
+				if( i && tree[i]->getFather() && !inRoot( tree[i]->getBoundingPoint( j ) ) )
 					isIn = true ;
 
 				if( !isIn && tree[i]->isVirtualFeature && !tree[i]->in( tree[i]->getBoundingPoint( j ) ) )
@@ -4792,16 +4791,9 @@ void FeatureTree::generateElements()
 				if( tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
 					isIn = true ;
 
-				if( !isIn && i != 0 && tree[0]->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
+				if( !isIn && i && tree[0]->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
 				{
-// 					Point proj(tree[i]->getBoundingPoint(j)) ;
-// 					tree[0]->project(&proj) ;
-// 					if(dist(proj, tree[i]->getBoundingPoint(j)) > 2.*POINT_TOLERANCE)
 					isIn = true ;
-// 					else
-// 					{
-// 						isIn = false ;
-// 					}
 				}
 
 				if( !tree[i]->getFather() && i)
@@ -4820,23 +4812,14 @@ void FeatureTree::generateElements()
 							break ;
 						}
 					}
-				}
-				
-				
-
-				if( !isIn && tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
-				{
+					
 					Point proj( tree[i]->getBoundingPoint( j ) ) ;
-					tree[i]->getFather()->project( &proj ) ;
-
+					tree[0]->project( &proj ) ;
 					if( dist( proj, tree[i]->getBoundingPoint( j ) ) < 2.*POINT_TOLERANCE_2D )
-						isIn = true ;
-					else
 					{
 						isIn = false ;
 					}
 				}
-
 				if( !isIn )
 				{
 					meshPoints.push_back( std::pair<Point *, Feature *>( &tree[i]->getBoundingPoint( j ), this->tree[i] ) ) ;
@@ -4848,8 +4831,7 @@ void FeatureTree::generateElements()
 
 			for( size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++ )
 			{
-//                            if(i>0)
-//                                tree[i]->getInPoint(j).print() ;
+
 				bool isIn = false ;
 				std::vector<Geometry *> potentialFeaturestmp  ;
 
@@ -4901,7 +4883,7 @@ void FeatureTree::generateElements()
 					}
 				}
 
-				if( i != 0 && !inRoot( tree[i]->getInPoint( j ) ) )
+				if( i && !inRoot( tree[i]->getInPoint( j ) ) )
 					isIn = true ;
 
 				if( tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
@@ -4910,7 +4892,7 @@ void FeatureTree::generateElements()
 				if( tree[i]->isVirtualFeature && !tree[i]->in( tree[i]->getInPoint( j ) ) )
 					isIn = true ;
 
-				if( i != 0 && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
+				if( i && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
 					isIn = true ;
 
 				if( tree[i]->getFather() == NULL && i != 0 )

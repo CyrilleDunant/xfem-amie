@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(false), inset(false),
-scoreTolerance(0.5e-2)
+scoreTolerance(0.5e-3)
 {
 }
 
@@ -753,7 +753,7 @@ double FractureCriterion::setChange(const ElementState &s)
 				else
 					break ;
 			}
-			if(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState -minscore) >= 16.*scoreTolerance)
+			if(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState -minscore) >= scoreTolerance)
 			{
 				proximitySet.clear() ;
 				return 0 ;

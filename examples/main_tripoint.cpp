@@ -1515,7 +1515,9 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ;    m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ;                     m0_paste[2][1] = 0 ;                     m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)*.5 ; 
 
-	Sample sample(NULL, sampleLength*.5, sampleHeight+plateHeight*2,sampleLength*.25,0) ;
+	Sample box(NULL, sampleLength*.5, sampleHeight+plateHeight*2.,sampleLength*.25,0) ;
+	box.setBehaviour(new VoidForm()) ;
+	Sample sample(NULL, sampleLength*.5, sampleHeight,sampleLength*.25,0) ;
 	
 	Sample topsupport(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
 	topsupport.setBehaviour(new Stiffness(m0_steel)) ;
@@ -1550,23 +1552,23 @@ int main(int argc, char *argv[])
 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample connector0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064-1.5*rebarDiametre) ; 
-	connector0.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	connector0.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_X)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(connector0.getBehaviour())->variability = 0.01 ;
 	dynamic_cast<WeibullDistributedStiffness *>(connector0.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(connector0.getBehaviour())->neighbourhoodRadius = nradius;
 	
 	Sample connector1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085+1.5*rebarDiametre) ; 
-	connector1.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	connector1.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_X)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(connector1.getBehaviour())->variability = 0.01 ;
 	dynamic_cast<WeibullDistributedStiffness *>(connector1.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(connector1.getBehaviour())->neighbourhoodRadius = nradius;
 	
 	
-	FeatureTree F(&sample) ;
+	FeatureTree F(&box) ;
 	featureTree = &F ;
 	
 	
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_X)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_X)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.01 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
@@ -1577,33 +1579,21 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight))) ;
 
-
-	F.addFeature(&sample,&rebar0) ;
-	F.addFeature(&sample,&rebar1) ;
-// 	F.addFeature(&sample,&connector0) ;
-// 	F.addFeature(&sample,&connector1) ;
-	
-
 	F.addFeature(NULL,&topsupport) ;
+	F.addFeature(NULL,&baseright) ;
 	F.addFeature(NULL,&toprightvoid) ;
 	F.addFeature(NULL,&bottomcentervoid) ;
 	F.addFeature(NULL,&rightbottomvoid) ;
+	F.addFeature(NULL,&sample) ;
+	F.addFeature(&sample,&rebar0) ;
+	F.addFeature(&sample,&rebar1) ;
 	
-	F.addFeature(NULL,&baseright) ;
-	
-	
-	
+
 	F.setSamplingNumber(atoi(argv[1])) ;
 	F.setOrder(LINEAR) ;
 
-// 	
-// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getElements2D() ;
 	F.addPoint(new Point(supportLever, -(sampleHeight+2.*plateHeight)*.5)) ;
-	F.addPoint(new Point(0, -sampleHeight*.5+0.064-rebarDiametre*.5)) ;
-	F.addPoint(new Point(0, -sampleHeight*.5+0.064-rebarDiametre*.5+0.085)) ;
-	F.addPoint(new Point(0, -sampleHeight*.5+0.064+rebarDiametre*.5)) ;
-	F.addPoint(new Point(0, -sampleHeight*.5+0.064+rebarDiametre*.5+0.085)) ;
 	F.setMaxIterationsPerStep(40000);
 	
 	step() ;

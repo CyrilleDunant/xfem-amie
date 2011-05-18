@@ -796,7 +796,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
 // 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, -8000000,1000000)) ;
+		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(E_agg, nu, SPACE_TWO_DIMENSIONAL, -8000000,1000000)) ;
 		F->addFeature(father, temp) ;
 	}
 

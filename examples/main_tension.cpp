@@ -1426,7 +1426,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, compressionCrit, tensionCrit, MIRROR_Y)) ;
+	sample.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_Y)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.01 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;

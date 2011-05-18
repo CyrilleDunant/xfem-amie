@@ -752,7 +752,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 	return ret ;	
 }
 
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, Matrix * tensor, Feature * father, FeatureTree * F)
+std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, double E_agg, double nu, Feature * father, FeatureTree * F)
 {
 // 	srandom(time(NULL)) ;
 	size_t nombre_de_pores = static_cast<size_t>(round(n*fraction)) ;
@@ -799,7 +799,7 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAn
 		Inclusion * temp = new Inclusion(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
 		ret.first.push_back(temp) ;
 // 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(*tensor, -8000000,1000000)) ;
+		(*ret.first.rbegin())->setBehaviour(new WeibullDistributedStiffness(E_agg, nu, SPACE_TWO_DIMENSIONAL, -8000000,1000000)) ;
 		F->addFeature(father, temp) ;
 	}
 	

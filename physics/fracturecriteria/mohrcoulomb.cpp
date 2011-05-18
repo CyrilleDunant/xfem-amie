@@ -127,8 +127,9 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		std::vector<double> fact ;
+		double area = s.getParent()->area() ;
 		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
-			fact.push_back(1);
+			fact.push_back(area);
 			
 		// gaussian smooth
 		for( size_t i = 0 ; i < cache.size() ; i++ )
@@ -140,12 +141,12 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 				continue ;
 			}
 
-			std::vector<double> dc ;
-			for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-				dc.push_back( squareDist2D( ci->getBoundingPoint(j), s.getParent()->getCenter() )) ;
-
 			if( ci->getBehaviour()->getFractureCriterion() &&  !ci->getBehaviour()->fractured() )
 			{
+				std::vector<double> dc ;
+				for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+					dc.push_back( squareDist2D( ci->getCenter(), s.getParent()->getCenter() )) ;
+				
 				std::vector<double> d ;
 				for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
 					d.push_back( exp( -dc[j] / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ));
@@ -159,12 +160,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 					{
 						for(size_t k = 0 ; k < 2 ; k++)
 						{
-							str[j*2+k] += pstress[j*2+k] * d[j] ;
+							str[j*2+k] += pstress[j*2+k] * d[j] * area;
 						}
+						fact[j] += area ;
 					}
-					
-					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-						fact[j] += d[j] ;
 
 					if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 					{
@@ -172,11 +171,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 2 ; k++)
 							{
-								str[j*2+k] += pstress[j*2+k] * d[j] ;
+								str[j*2+k] += pstress[j*2+k] * d[j] * area;
 							}
+							fact[j] += area ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
@@ -185,11 +183,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 2 ; k++)
 							{
-								str[j*2+k] += pstress[j*2+k] * d[j] ;
+								str[j*2+k] += pstress[j*2+k] * d[j] * area;
 							}
+							fact[j] += area ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -198,11 +195,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 2 ; k++)
 							{
-								str[j*2+k] += pstress[j*2+k] * d[j] ;
+								str[j*2+k] += pstress[j*2+k] * d[j] * area;
 							}
+							fact[j] += area ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -211,12 +207,14 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 2 ; k++)
 							{
-								str[j*2+k] += pstress[j*2+k] * d[j] ;
+								str[j*2+k] += pstress[j*2+k] * d[j] * area;
 							}
+							fact[j] += area ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
+					
+					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+							fact[j] += area ;
 				}
 			}
 		}
@@ -233,8 +231,9 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		std::vector<double> fact ;
+		double volume = s.getParent()->volume() ;
 		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
-			fact.push_back(1);
+			fact.push_back(volume);
 
 		// gaussian smooth
 		for( size_t i = 0 ; i < cache.size() ; i++ )
@@ -246,13 +245,17 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 				continue ;
 			}
 
-			std::vector<double> dc ;
-			for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-				dc.push_back( squareDist3D( ci->getBoundingPoint(j), s.getParent()->getCenter() )) ;
+
 
 			if( ci->getBehaviour()->getFractureCriterion() &&  !ci->getBehaviour()->fractured() )
 			{
+				std::vector<double> dc ;
+				for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+					dc.push_back( squareDist3D( ci->getCenter(), s.getParent()->getCenter() )) ;
+				
 				std::vector<double> d ;
+				volume = ci->volume() ;
+				
 				for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
 					d.push_back( exp( -dc[j] / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ));
 				Vector pstress = ci->getState().getPrincipalStressAtNodes() ;
@@ -264,11 +267,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 					{
 						for(size_t k = 0 ; k < 3 ; k++)
 						{
-							str[j*3+k] += pstress[j*3+k] * d[j] ;
+							str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 						}
+						fact[j] += volume ;
 					}
-					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-						fact[j] += d[j] ;
 
 					if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 					{
@@ -276,11 +278,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
@@ -289,11 +290,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
@@ -302,11 +302,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -315,11 +314,11 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
+
 					}
 
 					if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -328,11 +327,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -341,11 +339,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -354,11 +351,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -367,11 +363,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
 
 					if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -380,12 +375,14 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 						{
 							for(size_t k = 0 ; k < 3 ; k++)
 							{
-								str[j*3+k] += pstress[j*3+k] * d[j] ;
+								str[j*3+k] += pstress[j*3+k] * d[j] * volume;
 							}
+							fact[j] += volume ;
 						}
-						for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-							fact[j] += d[j] ;
 					}
+					
+					for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
+						fact[j] += volume ;
 				}
 			}
 		}
