@@ -29,12 +29,14 @@ public:
 	double downVal ;
 	Matrix steelCGTensor ;
 	double phi ;
+	double tensionCritStrain ;
+	
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
  * @param concreteCGTensor stiffness tensor of the concrete
 */
-	FractionMCFT(double up, double down, Matrix concreteCGTensor, double phi,  MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	FractionMCFT(double up, double down, Matrix concreteCGTensor, double youngModulus, double phi,  MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 
 	virtual ~FractionMCFT();
 

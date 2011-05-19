@@ -2092,26 +2092,35 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, bool only
 					if( targets[i]->getBehaviour( t->getCenter() )->timeDependent() )
 					{
 						if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
-							return targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+						{
+							 Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+							 b->setSource(targets[i]);
+							 return b ;
+						}
 						else
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 							b->transform( t->getXTransform(), t->getYTransform() ) ;
-
+							b->setSource(targets[i]);
 							return b ;
 						}
 					}
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
-						return targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+					{
+						 Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+						 b->setSource(targets[i]);
+						 return b ;
+					}
 					else
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						b->transform( t->getXTransform(), t->getYTransform() ) ;
-
+						b->setSource(targets[i]);
 						return b ;
 					}
-
-					return targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+					b->setSource(targets[i]);
+					return b ;
 				}
 			}
 		}
@@ -2122,24 +2131,35 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, bool only
 		if( tree[root_box]->getBehaviour( t->getCenter() )->timeDependent() )
 		{
 			if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
-				return tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+			{
+				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+				b->setSource(tree[root_box]);
+				return b ;
+			}
 			else
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+				b->setSource(tree[root_box]);
 				b->transform( t->getXTransform(), t->getYTransform() ) ;
 				return b ;
 			}
 		}
 		else if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
+		{
+			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+			b->setSource(tree[root_box]);
 			return tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+		}
 		else
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+			b->setSource(tree[root_box]);
 			b->transform( t->getXTransform(), t->getYTransform() ) ;
 			return b ;
 		}
-
-		return tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+		b->setSource(tree[root_box]);
+		return b ;
 	}
 
 	return NULL ;
@@ -2196,26 +2216,37 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 					if( targets[i]->getBehaviour( t->getCenter() )->timeDependent() )
 					{
 						if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
-							return targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+						{
+							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+							b->setSource(targets[i]);
+							return b ;
+						}
 						else
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 							b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
+							b->setSource(targets[i]);
 
 							return b ;
 						}
 					}
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
-						return targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+					{
+						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+						b->setSource(targets[i]);
+						return b ;
+					}
 					else
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
+						b->setSource(targets[i]);
 
 						return b ;
 					}
-
-					return targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+					b->setSource(targets[i]);
+					return b ;
 				}
 			}
 		}
@@ -2226,24 +2257,35 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 		if( tree[root_box]->getBehaviour( t->getCenter() )->timeDependent() )
 		{
 			if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
-				return tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+			{
+				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+				b->setSource(tree[root_box]);
+				return b ;
+			}
 			else
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+				b->setSource(tree[root_box]);
 				b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
 				return b ;
 			}
 		}
 		else if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
-			return tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+		{
+			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+			b->setSource(tree[root_box]);
+			return b ;
+		}
 		else
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+			b->setSource(tree[root_box]);
 			b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
 			return b ;
 		}
-
-		return tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+		b->setSource(tree[root_box]);
+		return b ;
 	}
 
 	return NULL ;
@@ -3806,7 +3848,6 @@ void FeatureTree::stepElements()
 
 			int fracturedCount = 0 ;
 			int ccount = 0 ;
-			double gmin  = -1 ;
 
 			if( !elastic )
 			{
@@ -3818,9 +3859,6 @@ void FeatureTree::stepElements()
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
-
-					if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() > gmin )
-						gmin = elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 				}
 
 //#pragma omp parallel for

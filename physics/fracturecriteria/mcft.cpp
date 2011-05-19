@@ -144,7 +144,9 @@ double NonLocalMCFT::grade( ElementState &s )
 			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| !ci->getBehaviour()->getFractureCriterion() 
-				|| ci->getBehaviour()->fractured() 
+				|| ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D
+				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
 				|| dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius)
 			{
 				continue ;
@@ -205,7 +207,8 @@ double NonLocalMCFT::grade( ElementState &s )
 			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
 			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
 				|| ci->getBehaviour()->getFractureCriterion() 
-				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
 				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
 			)
 			{

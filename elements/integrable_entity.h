@@ -427,14 +427,17 @@ protected:
 	bool time_d ;
 	bool space_d ;
 	size_t num_dof ;
+	
+	Geometry * source ;
+	
 public:
 	/** A form has at least a parameter, which takes the shape of a Matrix*/
 	Matrix param ;
 	/** The type helps to know the available parameters and methods of the subclasses*/
 	ParametersType type;
 	
-	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof), param(p) { } ;
-	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)){ } ;
+	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof), param(p), source(NULL) { } ;
+	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)), source(NULL){ } ;
 	
 	/** apply the form on a pair of functions
 	 * 
@@ -460,6 +463,9 @@ public:
 	{
 		return this->space_d ;
 	} ;
+	
+	virtual const Geometry * getSource() const { return source  ;}
+	virtual void setSource(Geometry * src) {source = src ;}
 	
 	virtual bool hasInducedForces() const
 	{

@@ -11,12 +11,15 @@
 //
 #include "fractionmcft.h"
 #include "../damagemodels/damagemodel.h"
+#include "../../mesher/delaunay.h"
+#include "../../mesher/delaunay_3d.h"
 
 namespace Mu {
 
-FractionMCFT::FractionMCFT(double up, double down, Matrix steelCGTensor, double phi, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
+FractionMCFT::FractionMCFT(double up, double down , Matrix steelCGTensor, double youngModulus, double phi, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 	, upVal(up), downVal(down), steelCGTensor(steelCGTensor), phi(phi)
 {
+	tensionCritStrain = up / youngModulus ;
 }
 
 
@@ -27,27 +30,196 @@ FractionMCFT::~FractionMCFT()
 double FractionMCFT::grade(ElementState &s)
 {
 	
-	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
-	Vector strains = s.getStrain(Point(1./3., 1./3.),true) ;
-	Vector totalstress = s.getStress(Point(1./3., 1./3.),true) ;
+	Vector str( s.getPrincipalStressAtNodes() ) ;
+	Vector stra( s.getPrincipalStrainAtNodes() ) ;
 	
-	Vector stresses = totalstress-strains*steelCGTensor*phi; //assume stresses are scaled by the fraction of steel
-// 	 	Vector stresses = strains*steelCGTensor*phi; //assume stresses are the same
+	Vector totalStrain = s.getStrain(s.getParent()->getCenter()) ;
+	Vector totalStress = s.getStress(s.getParent()->getCenter()) ;
+	Vector concreteStress = (s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()) - steelCGTensor*phi)*totalStrain ;
 	
-	if(s.getParent()->getBehaviour()->hasInducedForces())
-			stresses -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
-	Vector pstress(2) ;
-	pstress[0] = 0.5*(stresses[0]+stresses[1]) - 
-		0.5*sqrt(
-			(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
-			(stresses[2]*stresses[2])
-			) ;
-	pstress[1] = 0.5*(stresses[0]+stresses[1]) + 
-		0.5*sqrt(
-			(stresses[0]-stresses[1])*(stresses[0]-stresses[1]) + 
-			(stresses[2]*stresses[2])
-			) ;
-		
+	double factor = sqrt(std::inner_product(&concreteStress[0], &concreteStress[concreteStress.size()], &concreteStress[0], double(0)))/sqrt(std::inner_product(&totalStress[0], &totalStress[totalStress.size()], &totalStress[0], double(0))) ;
+
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		double area = s.getParent()->area() ;
+		str *= area ;
+		stra *= area ;
+		double fact = area;
+			
+		// gaussian smooth
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
+				|| !ci->getBehaviour()->getFractureCriterion() 
+				|| ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D
+				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius)
+			{
+				continue ;
+			}
+
+			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
+
+			Vector pstress( ci->getState().getPrincipalStressAtNodes() ) ;
+			pstress *= factor ;
+			Vector pstrain( ci->getState().getPrincipalStrainAtNodes() ) ;
+			
+			area = ci->area() ;
+
+			str += pstress * d * area;
+			stra += pstrain * d * area;
+			fact += area ;
+			
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			{
+				str += pstress * d * area;
+				stra += pstrain * d * area;
+				fact += area ;
+			}
+
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				str += pstress * d * area;
+				stra += pstrain * d * area;
+				fact += area ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				str += pstress * d * area;
+				stra += pstrain * d * area;
+				fact += area ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				str += pstress * d * area;
+				stra += pstrain * d * area;
+				fact += area ;
+			}
+		}
+		str /= fact ;
+		stra /= fact ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		double fact ;
+		double volume = s.getParent()->volume() ;
+		fact = volume;
+
+		// gaussian smooth
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
+				|| ci->getBehaviour()->getFractureCriterion() 
+				|| ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
+			)
+			{
+				continue ;
+			}
+
+			
+
+			volume = ci->volume() ;
+			double d =  exp(-dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius )) ;
+			Vector pstress = ci->getState().getPrincipalStressAtNodes() ;
+			pstress *= factor ;
+			Vector pstrain = ci->getState().getPrincipalStrainAtNodes() ;
+
+			if( !ci->getBehaviour()->fractured() )
+			{
+				str += pstress * d * volume;
+				stra += pstrain * d * volume;
+				fact += volume ;
+
+				if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					stra += pstrain * d * volume;
+					fact += volume ;
+				}
+			}
+		}
+		str /= fact ;
+		stra /= fact ;
+	}
+
+	Vector pstrain(0., s.getParent()->spaceDimensions()) ;
+	Vector pstress(0., s.getParent()->spaceDimensions()) ;
+	for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+	{
+		for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+		{
+			pstrain[k] += stra[j*s.getParent()->spaceDimensions()+k]  ;
+			pstress[k] += str[j*s.getParent()->spaceDimensions()+k]  ;
+		}
+	}
+	pstrain /= s.getParent()->getBoundingPoints().size() ;
+	pstress /= s.getParent()->getBoundingPoints().size() ;
+	
 
 	double tstrain = pstrain.max();
 	double cstrain = pstrain.min();
@@ -57,7 +229,6 @@ double FractionMCFT::grade(ElementState &s)
 	metInCompression = false ;
 	metInTension = false ;
 	
-	double tensionCritStrain = 2e6/37e9 ;
 	double critStrain = -0.002 ;
 	double renormCompressionStrain = cstrain/critStrain ;
 	

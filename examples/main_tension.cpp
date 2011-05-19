@@ -117,6 +117,9 @@ double y_min = 0 ;
 
 double timepos = 0.05e-07 ;
 
+double effectiveRadius = sqrt(0.165*0.165*M_PI*0.25) ;
+double rebarDiametre = 2.*sqrt(0.0248*0.0248*M_PI*0.25) ;
+
 double delta_displacement =  1e-5 ;
 double displacement_tolerance = 0.05*delta_displacement ; 
 double softeningFactor = 1. ;
@@ -135,7 +138,6 @@ double supportLever = 2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = 0.0255 ;
 double rebarEndCover = 0.047 ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -181,7 +183,7 @@ double aggregateArea = 0;
 void step()
 {
 	
-	size_t nsteps = 1 ; //16*10;
+	size_t nsteps = 5 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -196,7 +198,7 @@ void step()
 		bool go_on = true ;
 
 		go_on = featureTree->step() ;
-		double appliedForce = loadr->getData()*0.165*0.0254*M_PI*.5 ;
+		double appliedForce = loadr->getData()*rebarDiametre*rebarDiametre*.5 ;
 		if(go_on)
 		{
 			loadr->setData(loadr->getData()+5e5) ;
@@ -1374,7 +1376,7 @@ int main(int argc, char *argv[])
 
 	double tensionCrit = 2.5e6 ;
 	double compressionCrit = -37.5e6 ; 
-	double steelfraction = (0.0254*0.0254*M_PI*.25)/(0.165*0.0254) ;
+	double steelfraction = rebarDiametre/(2.*effectiveRadius) ;
 	double mradius = .015 ; // .015
 	double nradius = .2 ;
 // 	double mradius = .25 ;
@@ -1400,25 +1402,25 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ;    m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ;                     m0_paste[2][1] = 0 ;                     m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)*.5 ; 
 
-	Sample box(1.300+.225*2, (0.165)*.5, 0, (0.165)*0.25) ;
+	Sample box(1.300+.225*2, effectiveRadius, 0, effectiveRadius*0.5) ;
 	box.setBehaviour(new VoidForm()) ;  
-	Sample sample(1.300, (0.165-0.0254)*.5, 0, 0.0254*.5+(0.165-0.0254)*0.25) ;
+	Sample sample(1.300, effectiveRadius-rebarDiametre*.5, 0, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 	
 	
-	Sample toprightvoid(.225, (.165-0.0254)*.5, 1.300*.5+0.225*0.5, 0.0254*.5+(.165-0.0254)*0.25) ;     
+	Sample toprightvoid(.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
-	Sample topleftvoid(.225, (.165-0.0254)*.5, -1.300*.5-0.225*0.5, 0.0254*.5+(.165-0.0254)*0.25) ;     
+	Sample topleftvoid(.225, effectiveRadius-rebarDiametre*.5, -1.300*.5-0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	topleftvoid.setBehaviour(new VoidForm()) ;  
 	
-	Sample rebarleft(0.225, 0.0254*.5, -1.300*.5-.225*.5, .0254*0.25) ; 
+	Sample rebarleft(0.225, rebarDiametre*.5, -1.300*.5-.225*.5, rebarDiametre*0.25) ; 
 	rebarleft.setBehaviour(new Stiffness(m0_steel*steelfraction));
 	
-	Sample rebarright(0.225, 0.0254*.5, 1.300*.5+.225*.5, .0254*0.25) ; 
+	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
 	rebarright.setBehaviour(new Stiffness(m0_steel*steelfraction));
 	
-	Sample rebarinternal((1.300), .0255*.5, 0, .0254*0.25) ; 
-// 	rebarinternal.setBehaviour(new Stiffness(m0_steel*0.025*M_PI/0.165));
-	rebarinternal.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel, steelfraction,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, steelfraction, MIRROR_Y)));
+	Sample rebarinternal((1.300), rebarDiametre*.5, 0, rebarDiametre*0.25) ; 
+// 	rebarinternal.setBehaviour(new Stiffness(m0_steel*0.025*M_PI/effectiveRadius));
+	rebarinternal.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel, steelfraction,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, E_paste, steelfraction, MIRROR_Y)));
 	rebarinternal.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	
@@ -1448,8 +1450,8 @@ int main(int argc, char *argv[])
 // 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getElements2D() ;
 	F.setMaxIterationsPerStep(20000);
-// 	F.addPoint(new Point(1.300*.5+.225, 0.165*.5)) ;
-// 	F.addPoint(new Point(-1.300*.5-.225, 0.165*.5)) ;
+// 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
+// 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	
 	step() ;
 	

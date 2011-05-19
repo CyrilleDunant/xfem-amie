@@ -136,7 +136,7 @@ double supportLever = 2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = 0.0254 ;
+double rebarDiametre = sqrt(0.0254*0.0254*0.25*M_PI) ;
 double rebarEndCover = 0.047 ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -1489,9 +1489,10 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 3.7e6 ;// or 2 obtained by .33*sqrt(fc_)
+	
 	double compressionCrit = -37.0e6 ; 
-	double phi =  3.*(M_PI*rebarDiametre*rebarDiametre*.25)/(.4*rebarDiametre) ; 
+	double tensionCrit = .33*sqrt(-compressionCrit)*1000 ;// or 2 obtained by .33*sqrt(fc_)
+	double phi =  3.*(rebarDiametre*rebarDiametre)/(.4*rebarDiametre) ; 
 	double mradius = .015 ; // .015
 	double nradius = .2 ;
 	
@@ -1538,14 +1539,14 @@ int main(int argc, char *argv[])
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
 	Sample rebar0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064) ; 
-	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
+	rebar0.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, E_paste, phi, MIRROR_X), MIRROR_X));
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
-	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, phi, MIRROR_X), MIRROR_X));
+	rebar1.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,phi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, E_paste, phi, MIRROR_X), MIRROR_X));
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
