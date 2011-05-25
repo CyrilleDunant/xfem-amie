@@ -57,18 +57,19 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 			BimaterialInterface * bi =new BimaterialInterface(getPrimitive(),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														ring[i]->getBehaviour()->getCopy()) ;
-			if(bi->outBehaviour->getDamageModel())
-			{
-				FractionLinearDamage * fd = new FractionLinearDamage(bi->outBehaviour->getTensor(ring[i]->getCenter()), 0.1) ;
-				StiffnessAndFracture * saf = dynamic_cast<StiffnessAndFracture *> (bi->outBehaviour) ;
-				if(saf)
-				{
-					delete saf->dfunc ;
-					saf->dfunc = fd ;
-				}
-			}
+// 			if(bi->outBehaviour->getDamageModel())
+// 			{
+// 				FractionLinearDamage * fd = new FractionLinearDamage(bi->outBehaviour->getTensor(ring[i]->getCenter()), 0) ;
+// 				StiffnessAndFracture * saf = dynamic_cast<StiffnessAndFracture *> (bi->outBehaviour) ;
+// 				if(saf)
+// 				{
+// 					delete saf->dfunc ;
+// 					saf->dfunc = fd ;
+// 				}
+// 			}
 			ring[i]->setBehaviour(bi) ;
 			bi->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
+			bi->setSource(getPrimitive());
 		}
 		newInterface.insert(ring[i]) ;
 	}
@@ -78,7 +79,7 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	{
 		if(expansive.find(inDisc[i]) == expansive.end())
 			inDisc[i]->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
-		
+		inDisc[i]->getBehaviour()->setSource(getPrimitive());
 		newExpansive.insert(inDisc[i]) ;
 	}
 	expansive = newExpansive ;
@@ -93,6 +94,7 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 														disc[0]->getBehaviour()->getCopy()
 														)) ;
 			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;
+			disc[0]->getBehaviour()->setSource(getPrimitive());
 		}
 		newInterface.insert(disc[0]) ;
 	}

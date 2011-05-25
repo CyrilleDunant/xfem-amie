@@ -23,7 +23,7 @@ AggregateBehaviour::AggregateBehaviour(double E, double nu, double tensile, Spac
 Form * AggregateBehaviour::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1 - variability + variability*weib ;
+	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,down*factor), materialRadius) ;
 	ret->setNeighbourhoodRadius(neighbourhoodRadius) ;

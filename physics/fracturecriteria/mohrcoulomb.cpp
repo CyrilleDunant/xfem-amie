@@ -134,34 +134,34 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		double fact ;
 		double area = s.getParent()->area() ;
-		fact = area ;
-
+		str *= area ;
+		double fact = area;
+			
 		// gaussian smooth
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
-			double dc = squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
-
-			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()
-			        || !ci->getBehaviour()->getFractureCriterion()
-			        || ci->getBehaviour()->fractured()
-			        || dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius
-			  )
+			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
+				|| !ci->getBehaviour()->getFractureCriterion() 
+				|| ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D
+				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius)
 			{
 				continue ;
 			}
 
-
 			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
 
 			Vector pstress( ci->getState().getPrincipalStressAtNodes() ) ;
-			Vector pstrain( ci->getState().getPrincipalStrainAtNodes() ) ;
+			
+			area = ci->area() ;
 
 			str += pstress * d * area;
 			fact += area ;
-
+			
 			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 			{
 				str += pstress * d * area;
@@ -186,98 +186,95 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 				fact += area ;
 			}
 		}
-
 		str /= fact ;
-
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		double fact ;
 		double volume = s.getParent()->volume() ;
-
-		fact = volume ;
+		fact = volume;
 
 		// gaussian smooth
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
 			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
-
-			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()
-			        || !ci->getBehaviour()->getFractureCriterion()
-			        || ci->getBehaviour()->fractured()
-			        || dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius
-			  )
+			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
+				|| ci->getBehaviour()->getFractureCriterion() 
+				|| ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
+			)
 			{
 				continue ;
 			}
 
+			
 
-			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
 			volume = ci->volume() ;
-
+			double d =  exp(-dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius )) ;
 			Vector pstress = ci->getState().getPrincipalStressAtNodes() ;
-			Vector pstrain = ci->getState().getPrincipalStrainAtNodes() ;
 
-
-			str += pstress * d * volume;
-			fact += volume ;
-
-			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			if( !ci->getBehaviour()->fractured() )
 			{
 				str += pstress * d * volume;
 				fact += volume ;
-			}
 
-			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
-			{
-				str += pstress * d * volume;
-				fact += volume ;
-			}
+				if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 
-			if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
-			{
-				str += pstress * d * volume;
-				fact += volume ;
-			}
+				if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				str += pstress * d * volume;
-				fact += volume ;
-			}
+				if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				str += pstress * d * volume;
-				fact += volume ;
-			}
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 
-			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				str += pstress * d * volume;
-				fact += volume ;
-			}
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 
-			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				str += pstress * d * volume;
-				fact += volume ;
-			}
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 
-			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				str += pstress * d * volume;
-				fact += volume ;
-			}
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 
-			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				str += pstress * d * volume;
-				fact += volume ;
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
+
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					str += pstress * d * volume;
+					fact += volume ;
+				}
 			}
 		}
-
 		str /= fact ;
 	}
 
