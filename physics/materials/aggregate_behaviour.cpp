@@ -29,7 +29,7 @@ Form * AggregateBehaviour::getCopy() const
 	ret->setNeighbourhoodRadius(neighbourhoodRadius) ;
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
-	ret->dfunc->setThresholdDamageDensity(.9);
+	ret->dfunc->setThresholdDamageDensity(.95);
 	return ret ;
 }
 

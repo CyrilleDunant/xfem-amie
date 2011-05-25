@@ -104,8 +104,8 @@ double stress = 15e6 ;
 
 double restraintDepth = 0 ;
 
-Sample sample( NULL, 0.04 + restraintDepth, 0.04 + restraintDepth, 0, 0 ) ;
-Rectangle baseGeometry( 0.04, 0.04, 0, 0 ) ;
+Sample sample( NULL, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
+Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
 
 bool firstRun = true ;
 
@@ -1830,7 +1830,7 @@ int main( int argc, char *argv[] )
 	for( size_t i = 0; i < feats.size() ; i++ )
 		inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
 
-	Rectangle placeGeometry( 0.04, 0.04, 0, 0 ) ;
+	Rectangle placeGeometry( 0.07, 0.07, 0, 0 ) ;
 	int nAgg = 1 ;
 	feats = placement( &placeGeometry, feats, &nAgg, 0, 6400 );
 	double volume = 0 ;
@@ -1892,7 +1892,7 @@ int main( int argc, char *argv[] )
 
 	std::vector<Inclusion *> placedinclusions ;
 
-	for( size_t i = 0 ; i < 5/*feats.size()*/ ; i++ )
+	for( size_t i = 0 ; i < 512/*feats.size()*/ ; i++ )
 	{
 		Point a( inclusions[i]->getCenter() + Point( 0, inclusions[i]->getRadius() ) ) ;
 		Point b( inclusions[i]->getCenter() + Point( 0, -inclusions[i]->getRadius() ) ) ;
@@ -1925,8 +1925,8 @@ int main( int argc, char *argv[] )
 
 	Circle cercle( .5, 0, 0 ) ;
 
-	zones = generateExpansiveZonesHomogeneously( 10, placedinclusions, F ) ;
-	F.setSamplingNumber( 512 ) ;
+	zones = generateExpansiveZonesHomogeneously( 1000, placedinclusions, F ) ;
+	F.setSamplingNumber( 800 ) ;
 
 	if( restraintDepth > 0 )
 	{
