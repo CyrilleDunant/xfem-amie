@@ -54,7 +54,7 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	{
 		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
 		{
-			BimaterialInterface * bi =new BimaterialInterface(getPrimitive(),
+			BimaterialInterface * bi = new BimaterialInterface(getPrimitive(),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														ring[i]->getBehaviour()->getCopy()) ;
 // 			if(bi->outBehaviour->getDamageModel())
@@ -78,8 +78,10 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	for(size_t i = 0 ; i < inDisc.size() ; i++)
 	{
 		if(expansive.find(inDisc[i]) == expansive.end())
+		{
 			inDisc[i]->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
-		inDisc[i]->getBehaviour()->setSource(getPrimitive());
+			inDisc[i]->getBehaviour()->setSource(getPrimitive());
+		}
 		newExpansive.insert(inDisc[i]) ;
 	}
 	expansive = newExpansive ;
