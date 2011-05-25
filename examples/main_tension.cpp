@@ -117,8 +117,8 @@ double y_min = 0 ;
 
 double timepos = 0.05e-07 ;
 
-double effectiveRadius = sqrt(0.165*0.165*M_PI*0.25) ;
-double rebarDiametre = 2.*sqrt(0.0248*0.0248*M_PI*0.25) ;
+double effectiveRadius = .5*.165*sqrt(M_PI*.25) ;
+double rebarDiametre = 0.0254*sqrt(M_PI*.25) ;
 
 double delta_displacement =  1e-5 ;
 double displacement_tolerance = 0.05*delta_displacement ; 
@@ -183,7 +183,7 @@ double aggregateArea = 0;
 void step()
 {
 	
-	size_t nsteps = 5 ; //16*10;
+	size_t nsteps = 1 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -198,10 +198,10 @@ void step()
 		bool go_on = true ;
 
 		go_on = featureTree->step() ;
-		double appliedForce = loadr->getData()*rebarDiametre*rebarDiametre*.5 ;
+		double appliedForce = 2.*loadr->getData()*effectiveRadius*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+5e5) ;
+			loadr->setData(loadr->getData()+5e3/(2.*effectiveRadius*rebarDiametre)) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -1374,10 +1374,11 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	double tensionCrit = 2.5e6 ;
 	double compressionCrit = -37.5e6 ; 
-	double steelfraction = rebarDiametre/(2.*effectiveRadius) ;
-	double mradius = .015 ; // .015
+	double tensionCrit = 1.7e6 ; //.33*1000*sqrt(-compressionCrit) ;
+	double steelfraction = 0.15 ; //0.5*rebarDiametre/effectiveRadius ;
+	std::cout << "steel fraction = " << steelfraction << std::endl ;
+	double mradius = .025 ; // .015
 	double nradius = .2 ;
 // 	double mradius = .25 ;
 	
@@ -1387,15 +1388,11 @@ int main(int argc, char *argv[])
 	
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
-	double E_rebar = 22e9 ;
 	
 	
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
 	m0_steel[2][0] = 0 ;                                        m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ; 
-	
-	Matrix m0_barSteel(m0_steel) ;
-	m0_barSteel *= E_rebar/E_steel ;
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
@@ -1419,17 +1416,18 @@ int main(int argc, char *argv[])
 	rebarright.setBehaviour(new Stiffness(m0_steel*steelfraction));
 	
 	Sample rebarinternal((1.300), rebarDiametre*.5, 0, rebarDiametre*0.25) ; 
-// 	rebarinternal.setBehaviour(new Stiffness(m0_steel*0.025*M_PI/effectiveRadius));
+// 	rebarinternal.setBehaviour(new Stiffness(m0_steel*steelfraction));
 	rebarinternal.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel, steelfraction,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, E_paste, steelfraction, MIRROR_Y)));
 	rebarinternal.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
-	
+// 	
 
 	FeatureTree F(&box) ;
 	featureTree = &F ;
 
+// 	sample.setBehaviour(new VoidForm()) ;  
 	sample.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_Y)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.01 ;
+	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.1 ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
 
@@ -1446,8 +1444,6 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(atoi(argv[1])) ;
 	F.setOrder(LINEAR) ;
 
-// 	
-// 	F.refine(2, new MinimumAngle(M_PI/8.)) ;
 	triangles = F.getElements2D() ;
 	F.setMaxIterationsPerStep(20000);
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
