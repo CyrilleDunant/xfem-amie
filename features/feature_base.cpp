@@ -78,19 +78,19 @@ XMLTree * Feature::toXML()
 }
 
 
-void  Feature::addChild(Feature *f)
+void  Feature::addChild(Feature *feat)
 {
-	if(std::find(m_c.begin(), m_c.end(), f) == m_c.end())
+	if(getChildren().empty() || std::find(getChildren().begin(), getChildren().end(), feat) == getChildren().end())
 	{
-		m_c.push_back(f) ;
+		getChildren().push_back(feat) ;
 	}
 }
 
-void  Feature::removeChild(Feature *f)
+void  Feature::removeChild(Feature *feat)
 {
-	std::vector<Feature *>::iterator c = std::find(m_c.begin(), m_c.end(), f) ;
+	std::vector<Feature *>::iterator c = std::find(m_c.begin(), m_c.end(), feat) ;
 	if(c != m_c.end())
-		m_c.erase(c) ;
+		getChildren().erase(c) ;
 }
 
 void Feature::setBehaviour(Form * f)
@@ -142,7 +142,7 @@ bool Feature::onBoundary(const Point &p, double d) const
 
 std::vector<Feature *> Feature::getDescendants() const
 {
-	std::vector<Feature *> childrenToCheck = m_c ;
+	std::vector<Feature *> childrenToCheck = getChildren() ;
 	std::vector<Feature *> ret ;
 	
 	while(!childrenToCheck.empty())

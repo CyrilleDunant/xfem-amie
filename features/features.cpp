@@ -300,6 +300,7 @@ void FeatureTree::addPoint( Point *p )
 
 void FeatureTree::addFeature( Feature *father, Feature *f )
 {
+
 	if( !f->isEnrichmentFeature )
 		needMeshing = true ;
 
@@ -4781,9 +4782,7 @@ void FeatureTree::generateElements()
 				if( is2D() )
 					potentialFeaturestmp = grid->coOccur( tree[i]->getBoundingPoint( j ) ) ;
 				else
-				{
 					potentialFeaturestmp = grid3d->coOccur( tree[i]->getBoundingPoint( j ) ) ;
-				}
 
 				for( size_t l = 0 ; l < potentialFeaturestmp.size() ; l++ )
 					potentialFeatures.push_back( dynamic_cast<Feature *>( potentialFeaturestmp[l] ) ) ;
@@ -4798,10 +4797,12 @@ void FeatureTree::generateElements()
 						potentialChildren.push_back( potentialFeatures[l] ) ;
 					}
 				}
+				
+				if(tree.size() < 128)
+					potentialChildren = descendants ; 
 
 				for( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
 				{
-
 					if( ( !potentialChildren[k]->isVirtualFeature
 					        && potentialChildren[k]->inBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
 					        || ( potentialChildren[k]->isVirtualFeature
@@ -4830,9 +4831,7 @@ void FeatureTree::generateElements()
 					isIn = true ;
 
 				if( !isIn && i && tree[0]->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
-				{
 					isIn = true ;
-				}
 
 				if( !tree[i]->getFather() && i)
 				{
@@ -4841,10 +4840,7 @@ void FeatureTree::generateElements()
 						if( nullFatherFeatures[k] == tree[i] )
 							break ;
 
-						Point proj( tree[i]->getBoundingPoint( j ) ) ;
-						nullFatherFeatures[k]->project( &proj ) ;
-
-						if( dist( proj, tree[i]->getBoundingPoint( j ) ) < 2.*POINT_TOLERANCE_2D )
+						if( nullFatherFeatures[k]->inBoundary(tree[i]->getBoundingPoint( j ), 2.*POINT_TOLERANCE_2D) )
 						{
 							isIn = true ;
 							break ;
@@ -4854,9 +4850,7 @@ void FeatureTree::generateElements()
 					Point proj( tree[i]->getBoundingPoint( j ) ) ;
 					tree[0]->project( &proj ) ;
 					if( dist( proj, tree[i]->getBoundingPoint( j ) ) < 2.*POINT_TOLERANCE_2D )
-					{
 						isIn = false ;
-					}
 				}
 				if( !isIn )
 				{
@@ -4869,7 +4863,6 @@ void FeatureTree::generateElements()
 
 			for( size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++ )
 			{
-
 				bool isIn = false ;
 				std::vector<Geometry *> potentialFeaturestmp  ;
 
@@ -4892,9 +4885,16 @@ void FeatureTree::generateElements()
 					        && std::binary_search( descendants.begin(), descendants.end(), potentialFeatures[l] ) )
 						potentialChildren.push_back( potentialFeatures[l] ) ;
 				}
+				
+				if(tree.size() < 128)
+					potentialChildren = descendants ; 
 
 				for( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
 				{
+					if(i == 0)
+					{
+						potentialChildren[k]->print() ;
+					}
 					if(
 					    (
 					        !potentialChildren[k]->isVirtualFeature
@@ -4904,8 +4904,7 @@ void FeatureTree::generateElements()
 					    (
 					        potentialChildren[k]->isVirtualFeature
 					        && tree[i]->isVirtualFeature
-					        &&
-					        (
+					        &&(
 					            dynamic_cast<VirtualFeature *>( potentialChildren[k] )->getSource()
 					            != dynamic_cast<VirtualFeature *>( tree[i] )->getSource()
 					        )
@@ -4933,7 +4932,7 @@ void FeatureTree::generateElements()
 				if( i && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
 					isIn = true ;
 
-				if( tree[i]->getFather() == NULL && i != 0 )
+				if( !tree[i]->getFather()&& !i )
 					isIn = false ;
 
 
@@ -4942,16 +4941,7 @@ void FeatureTree::generateElements()
 					if( tree[i] == nullFatherFeatures[k] )
 						break ;
 
-					Point proj( tree[i]->getInPoint( j ) ) ;
-					nullFatherFeatures[k]->project( &proj ) ;
-
-					if( dist( proj, tree[i]->getInPoint( j ) ) < 2.*POINT_TOLERANCE_2D )
-					{
-						isIn = true ;
-						break ;
-					}
-
-					if( nullFatherFeatures[k]->in( tree[i]->getInPoint( j ) ) )
+					if( nullFatherFeatures[k]->inBoundary(tree[i]->getInPoint( j ), 2.*POINT_TOLERANCE_2D) )
 					{
 						isIn = true ;
 						break ;

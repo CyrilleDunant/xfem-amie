@@ -250,7 +250,7 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 1000 ; //16*10;
+	size_t nsteps = 1 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -1490,7 +1490,6 @@ void Display(void)
 int main(int argc, char *argv[])
 {
 
-	
 	double compressionCrit = -37.0e6 ; 
 	double tensionCrit = .33*sqrt(-compressionCrit)*1000 ;// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*(rebarDiametre*rebarDiametre)/(.4*rebarDiametre) ; 
@@ -1553,6 +1552,18 @@ int main(int argc, char *argv[])
 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
+	std::vector<Sample*> stirrups ;
+	for(size_t i = 0 ;  i < 7 ; i++)
+	{
+		double psi = 2.*(0.0095*0.0095)/(.4*0.0095) ;
+		stirrups.push_back(new Sample(0.0095, sampleHeight-2.*rebarEndCover, 0.175+i*0.35, 0.));
+		stirrups.back()->setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel,psi,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, E_paste, psi, MIRROR_X), MIRROR_X));
+		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+		stirrups.back()->getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+		stirrups.back()->getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+		stirrups.back()->getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	}
+	
 	Sample connector0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064-1.5*rebarDiametre) ; 
 	connector0.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_X)) ;
 	dynamic_cast<WeibullDistributedStiffness *>(connector0.getBehaviour())->variability = 0.01 ;
@@ -1587,8 +1598,21 @@ int main(int argc, char *argv[])
 	F.addFeature(NULL,&bottomcentervoid) ;
 	F.addFeature(NULL,&rightbottomvoid) ;
 	F.addFeature(NULL,&sample) ;
-	F.addFeature(&sample,&rebar0) ;
-	F.addFeature(&sample,&rebar1) ;
+	if(atoi(argv[2]))
+	{
+		F.addFeature(&sample, stirrups[0]) ;
+		for(size_t i = 1 ;  i < 7 ; i++)
+			F.addFeature(stirrups[i-1], stirrups[i]) ;
+	
+		F.addFeature(stirrups.back(),&rebar0) ;
+		F.addFeature(stirrups.back(),&rebar1) ;
+	}
+	else
+	{
+		F.addFeature(&sample,&rebar0) ;
+		F.addFeature(&sample,&rebar1) ;
+	}
+
 	
 
 	F.setSamplingNumber(atoi(argv[1])) ;
