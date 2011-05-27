@@ -596,6 +596,29 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 				found = true ;
 				break ;
 			}
+			
+			case TWFT_PRINCIPAL_STRESS:
+			{
+				ret[5] = tri->getState().getPrincipalStresses(*tri->first, false)[1] ;
+				ret[4] = tri->getState().getPrincipalStresses(*tri->second, false)[1] ;
+				ret[3] = tri->getState().getPrincipalStresses(*tri->third, false)[1] ;
+				ret[2] = tri->getState().getPrincipalStresses(*tri->first, false)[0] ;
+				ret[1] = tri->getState().getPrincipalStresses(*tri->second, false)[0] ;
+				ret[0] = tri->getState().getPrincipalStresses(*tri->third, false)[0] ;
+				found = true ;
+				break ;
+			}
+			case TWFT_PRINCIPAL_STRAIN:
+			{
+				ret[5] = tri->getState().getPrincipalStrains(*tri->first, false)[1] ;
+				ret[4] = tri->getState().getPrincipalStrains(*tri->second, false)[1] ;
+				ret[3] = tri->getState().getPrincipalStrains(*tri->third, false)[1] ;
+				ret[2] = tri->getState().getPrincipalStrains(*tri->first, false)[0] ;
+				ret[1] = tri->getState().getPrincipalStrains(*tri->second, false)[0] ;
+				ret[0] = tri->getState().getPrincipalStrains(*tri->third, false)[0] ;
+				found = true ;
+				break ;
+			}
 			case TWFT_STIFFNESS:
 			{
 				LinearForm * b = dynamic_cast<LinearForm *>(tri->getBehaviour()) ;
@@ -621,6 +644,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 				found = true ;
 				break ;
 			}
+			
 		}
 	}
 	return std::make_pair(found,ret) ;
@@ -673,6 +697,10 @@ int numberOfFields(TWFieldType field)
 			return 3 ;
 		case TWFT_STRAIN:
 			return 9 ;
+		case TWFT_PRINCIPAL_STRAIN:
+			return 6 ;
+		case TWFT_PRINCIPAL_STRESS:
+			return 6 ;
 		case TWFT_STRAIN_AND_STRESS:
 			return 18 ;
 		case TWFT_STRESS:

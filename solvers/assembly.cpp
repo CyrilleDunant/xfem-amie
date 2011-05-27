@@ -480,8 +480,7 @@ void Assembly::initialiseElementaryMatrices()
 	std::cerr << "Generating elementary matrices..." << std::flush ;
 	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
-		std::random_shuffle(element2d.begin(), element2d.end());
-  		#pragma omp parallel for 
+//   		#pragma omp parallel for 
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			element2d[i]->getElementaryMatrix() ;
@@ -489,7 +488,7 @@ void Assembly::initialiseElementaryMatrices()
 	}
 	if(dim == SPACE_THREE_DIMENSIONAL)
 	{
-		#pragma omp parallel for 
+// 		#pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			element3d[i]->getElementaryMatrix() ;

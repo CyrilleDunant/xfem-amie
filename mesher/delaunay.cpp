@@ -2228,7 +2228,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		getSubTriangulatedGaussPoints() ;
 	}
 	std::valarray<Matrix> Jinv(Matrix(2, 2),  getGaussPoints().gaussPoints.size()) ;
-	
 	if(true)//moved)
 	{
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
@@ -2242,7 +2241,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
-
 	VirtualMachine vm ;
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)

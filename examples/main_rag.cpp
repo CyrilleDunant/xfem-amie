@@ -518,7 +518,9 @@ void step()
 
 		TriangleWriter writer(filename.c_str(), featureTree) ;
 // 		writer.reset( featureTree ) ;
-		writer.getField( TWFT_STRAIN_AND_STRESS ) ;
+// 		writer.getField(TWFT_STRAIN_AND_STRESS ) ;
+		writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+		writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
 		writer.getField( TWFT_VON_MISES ) ;
 		writer.getField( TWFT_STIFFNESS ) ;
 		writer.getField( TWFT_DAMAGE ) ;
@@ -1892,7 +1894,7 @@ int main( int argc, char *argv[] )
 
 	std::vector<Inclusion *> placedinclusions ;
 
-	for( size_t i = 0 ; i < 512/*feats.size()*/ ; i++ )
+	for( size_t i = 0 ; i < feats.size() ; i++ )
 	{
 		Point a( inclusions[i]->getCenter() + Point( 0, inclusions[i]->getRadius() ) ) ;
 		Point b( inclusions[i]->getCenter() + Point( 0, -inclusions[i]->getRadius() ) ) ;
@@ -1925,7 +1927,7 @@ int main( int argc, char *argv[] )
 
 	Circle cercle( .5, 0, 0 ) ;
 
-	zones = generateExpansiveZonesHomogeneously( 1000, placedinclusions, F ) ;
+	zones = generateExpansiveZonesHomogeneously( 2000, placedinclusions, F ) ;
 	F.setSamplingNumber( 800 ) ;
 
 	if( restraintDepth > 0 )
