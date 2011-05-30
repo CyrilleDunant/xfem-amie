@@ -47,6 +47,8 @@ public:
 	virtual double grade(ElementState &s)  ;
 
 	virtual Material toMaterial() ;
+	
+	virtual void scale(double d) {upVal *= d ; downVal *= d ; };
 };
 
 }

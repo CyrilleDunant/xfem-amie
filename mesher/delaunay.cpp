@@ -1787,7 +1787,7 @@ DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2)
 	
 DelaunayTree::~DelaunayTree() 
 { 	
-	std::valarray<Point *> nularray(0) ;
+	PointArray nularray ;
 	for(size_t i = 0 ;  i < this->tree.size() ; i++)
 	{
 		if(this->tree[i] && this->tree[i]->isTriangle && !this->tree[i]->isDeadTriangle )

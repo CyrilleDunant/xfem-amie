@@ -62,6 +62,12 @@ namespace Mu
 		
 		/** \brief return true*/
 		virtual bool changed() const ;
+		
+		virtual void scale(double d) 
+		{
+			param *=d ;
+			eta *=d ;
+		}
 	} ;
 
 } ;

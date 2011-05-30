@@ -12,6 +12,8 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/mcft.h"
 #include "../physics/fracturecriteria/fractionmcft.h"
+#include "../physics/fracturecriteria/vonmises.h"
+#include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/stiffness.h"
@@ -1401,7 +1403,7 @@ int main(int argc, char *argv[])
 
 	Sample box(1.300+.225*2, effectiveRadius, 0, effectiveRadius*0.5) ;
 	box.setBehaviour(new VoidForm()) ;  
-	Sample sample(1.300, effectiveRadius-rebarDiametre*.5, 0, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
+	Sample sample(1.300, effectiveRadius, 0, (effectiveRadius)*0.5) ;
 	
 	
 	Sample toprightvoid(.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
@@ -1417,7 +1419,7 @@ int main(int argc, char *argv[])
 	
 	Sample rebarinternal((1.300), rebarDiametre*.5, 0, rebarDiametre*0.25) ; 
 // 	rebarinternal.setBehaviour(new Stiffness(m0_steel*steelfraction));
-	rebarinternal.setBehaviour(new FractionStiffnessAndFracture(m0_paste, m0_steel, steelfraction,new FractionMCFT(tensionCrit,compressionCrit, m0_steel, E_paste, steelfraction, MIRROR_Y)));
+	rebarinternal.setBehaviour(new StiffnessAndFracture(m0_steel, new VonMises(500e6, MIRROR_Y)));
 	rebarinternal.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 // 	
@@ -1431,10 +1433,11 @@ int main(int argc, char *argv[])
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
 
+	
+	F.addFeature(NULL,&rebarinternal, 0, steelfraction) ; F.setSamplingFactor(&rebarinternal, 2.) ;
 	F.addFeature(NULL,&sample) ;
-	F.addFeature(NULL,&rebarinternal) ;
 	F.addFeature(NULL,&rebarleft) ;
-	F.addFeature(NULL,&rebarright) ;	
+	F.addFeature(NULL,&rebarright) ;
 	F.addFeature(NULL,&toprightvoid) ;
 	F.addFeature(NULL,&topleftvoid) ;
 

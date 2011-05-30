@@ -172,7 +172,7 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getElements3D( const Geometry *p
 	return std::vector<DelaunayTetrahedron *>() ;
 }
 
-FeatureTree::FeatureTree( Feature *first, size_t gridsize ) : grid( NULL ), grid3d( NULL ), state( this )
+FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( NULL ), grid3d( NULL ), state( this )
 {
 	stable  = true ;
 	deltaTime = 0 ;
@@ -180,9 +180,12 @@ FeatureTree::FeatureTree( Feature *first, size_t gridsize ) : grid( NULL ), grid
 	useMultigrid = false ;
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
+	
 
 	if( first )
-		this->addFeature( NULL, first ) ;
+	{
+		this->addFeature( NULL, first, layer, fraction ) ;
+	}
 
 	if( is2D() )
 		grid = new Grid( ( first->getBoundingBox()[1].x - first->getBoundingBox()[0].x ) * 1.1,
@@ -298,7 +301,7 @@ void FeatureTree::addPoint( Point *p )
 
 }
 
-void FeatureTree::addFeature( Feature *father, Feature *f )
+void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fraction )
 {
 
 	if( !f->isEnrichmentFeature )
@@ -330,7 +333,9 @@ void FeatureTree::addFeature( Feature *father, Feature *f )
 	}
 
 	f->setFather( father ) ;
-
+	f->setLayer(layer) ;
+	f->setFraction(fraction) ;
+	
 	if( father != NULL )
 		father->addChild( f ) ;
 
@@ -362,6 +367,7 @@ FeatureTree::~FeatureTree()
 
 	for( size_t i = 0 ; i < boundaryCondition.size() ; ++i )
 		delete boundaryCondition[i] ;
+	
 }
 
 void FeatureTree::addBoundaryCondition( BoundaryCondition *bc )
@@ -398,6 +404,7 @@ void FeatureTree::setOrder( Order ord )
 
 void FeatureTree::renumber()
 {
+	return ;
 	if( is2D() )
 	{
 		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
@@ -1288,6 +1295,9 @@ void FeatureTree::stitch()
 		if( elemOrder >= QUADRATIC )
 		{
 			dtree->setElementOrder( elemOrder, realDeltaTime ) ;
+			
+			for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
+				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
 
 			for( size_t j = 0 ; j < coarseTrees.size() ; j++ )
 				coarseTrees[j]->setElementOrder( elemOrder, realDeltaTime ) ;
@@ -1335,6 +1345,8 @@ void FeatureTree::stitch()
 		if( elemOrder >= QUADRATIC )
 		{
 			dtree3D->setElementOrder( elemOrder ) ;
+			for(auto i = layer3d.begin() ; i != layer3d.end() ; i++)
+				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
 
 			if( projectOnBoundaries )
 			{
@@ -1533,8 +1545,13 @@ void FeatureTree::sample()
 					continue ;
 
 				size_t npoints = std::max( ( size_t )round( sqrt( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ), ( size_t )8 ) ;
-
-				if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < samplingNumber )
+				double correctionfactor = 1. ;
+				if(samplingFactors.find(tree[i]) != samplingFactors.end())
+				{
+					correctionfactor = samplingFactors[tree[i]] ;
+					npoints = ( size_t )round(correctionfactor*npoints) ;
+				}
+				if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
 				{
 					tree[i]->sample( npoints ) ;
 					tree[i]->isUpdated = false ;
@@ -1557,7 +1574,11 @@ void FeatureTree::sample()
 
 				double shape_factor = tree[i]->area() / ( 4.*M_PI * tree[i]->getRadius() * tree[i]->getRadius() );
 				size_t npoints = ( size_t )round( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor ) / ( total_area ) ) ;
-
+				if(samplingFactors.find(tree[i]) != samplingFactors.end())
+				{
+					npoints = ( size_t )round(samplingFactors[tree[i]]*npoints) ;
+				}
+				
 				if( npoints > 4 && !tree[i]->isVirtualFeature )
 				{
 					tree[i]->sample( npoints ) ;
@@ -1607,7 +1628,10 @@ void FeatureTree::sample()
 						continue ;
 
 					size_t npoints = std::max( ( size_t )round( sqrt( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ), ( size_t )8 ) ;
-
+					if(samplingFactors.find(tree[i]) != samplingFactors.end())
+					{
+						npoints = ( size_t )round(samplingFactors[tree[i]]*npoints) ;
+					}
 					if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < samplingNumber )
 						tree[i]->sample( npoints ) ;
 				}
@@ -1635,7 +1659,10 @@ void FeatureTree::sample()
 
 					double shape_factor = tree[i]->area() / ( 4.*M_PI * tree[i]->getRadius() * tree[i]->getRadius() );
 					size_t npoints = ( size_t )round( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor ) / ( total_area ) ) ;
-
+					if(samplingFactors.find(tree[i]) != samplingFactors.end())
+					{
+						npoints = ( size_t )round(samplingFactors[tree[i]]*npoints) ;
+					}
 					if( npoints > 4 && !tree[i]->isVirtualFeature )
 						tree[i]->sample( npoints ) ;
 
@@ -2036,23 +2063,23 @@ void FeatureTree::refine( size_t level )
 	}
 }
 
-Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, bool onlyUpdate ) const
+std::pair<Form *, double> FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, int layer,  bool onlyUpdate ) const
 {
 	int root_box = 0 ;
 
 	if( !inRoot( t->getCenter() ) )
 	{
-		return new VoidForm();
+		return std::make_pair(new VoidForm(), 0.);
 	}
 
 	if( t->getBoundingPoints().size() % 3 != 0 )
-		return new VoidForm() ;
+		return std::make_pair(new VoidForm(),0.) ;
 
 	for( size_t i = 0 ; i < t->getBoundingPoints().size() ; i++ )
 	{
 		if( t->getBoundingPoint( i ).id == -1 )
 		{
-			return new VoidForm() ;
+			return std::make_pair(new VoidForm(),0.) ;
 		}
 	}
 
@@ -2063,32 +2090,42 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, bool only
 		std::vector<Geometry *> targetstmp = grid->coOccur( t->getPrimitive() ) ;
 
 		for( size_t i = 0 ; i < targetstmp.size() ; i++ )
-			targets.push_back( dynamic_cast<Feature *>( targetstmp[i] ) ) ;
+		{
+			Feature * tmp = dynamic_cast<Feature *>( targetstmp[i] ) ;
+			if(tmp->getLayer() == layer)
+				targets.push_back( tmp ) ;
+		}
 	}
 	else
-		targets = tree ;
+	{
+		for( size_t i = 0 ; i < tree.size() ; i++ )
+		{
+			if(tree[i]->getLayer() == layer)
+				targets.push_back( tree[i] ) ;
+		}
+	}
 
 	if( !targets.empty() )
 	{
+
 		for( int i = targets.size() - 1 ; i >= 0  ; i-- )
 		{
 			if( !targets[i]->isEnrichmentFeature && targets[i]->in( t->getCenter() ) && ( !onlyUpdate || onlyUpdate && targets[i]->isUpdated ) )
 			{
-
 				bool notInChildren  = true ;
 
 				std::vector<Feature *> descendants = targets[i]->getDescendants() ;
 
 				for( size_t j = 0 ; j < descendants.size() ; j++ )
 				{
-					if( !descendants[j]->isEnrichmentFeature && descendants[j]->in( t->getCenter() ) )
+					if(descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in( t->getCenter() ) )
 					{
 						notInChildren = false ;
 						break ;
 					}
 				}
 
-				if( notInChildren )
+				if( notInChildren)
 				{
 					if( targets[i]->getBehaviour( t->getCenter() )->timeDependent() )
 					{
@@ -2096,38 +2133,38 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, bool only
 						{
 							 Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 							 b->setSource(targets[i]);
-							 return b ;
+							 return std::make_pair(b, targets[i]->getFraction()) ;
 						}
 						else
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 							b->transform( t->getXTransform(), t->getYTransform() ) ;
 							b->setSource(targets[i]);
-							return b ;
+							return std::make_pair(b, targets[i]->getFraction()) ;
 						}
 					}
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
 					{
 						 Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						 b->setSource(targets[i]);
-						 return b ;
+						 return std::make_pair(b, targets[i]->getFraction()) ;
 					}
 					else
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						b->transform( t->getXTransform(), t->getYTransform() ) ;
 						b->setSource(targets[i]);
-						return b ;
+						return std::make_pair(b, targets[i]->getFraction()) ;
 					}
 					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 					b->setSource(targets[i]);
-					return b ;
+					return std::make_pair(b, targets[i]->getFraction()) ;
 				}
 			}
 		}
 	}
 
-	if( !onlyUpdate )
+	if( !onlyUpdate && tree[root_box]->getLayer() == layer)
 	{
 		if( tree[root_box]->getBehaviour( t->getCenter() )->timeDependent() )
 		{
@@ -2135,45 +2172,48 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, bool only
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 				b->setSource(tree[root_box]);
-				return b ;
+				return std::make_pair(b, tree[root_box]->getFraction()) ;
 			}
 			else
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 				b->setSource(tree[root_box]);
 				b->transform( t->getXTransform(), t->getYTransform() ) ;
-				return b ;
+				return std::make_pair(b, tree[root_box]->getFraction()) ;
 			}
 		}
 		else if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 			b->setSource(tree[root_box]);
-			return tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
+			return std::make_pair(b, tree[root_box]->getFraction()) ;
 		}
 		else
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 			b->setSource(tree[root_box]);
 			b->transform( t->getXTransform(), t->getYTransform() ) ;
-			return b ;
+			return std::make_pair(b, tree[root_box]->getFraction()) ;
 		}
 		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 		b->setSource(tree[root_box]);
-		return b ;
+		return std::make_pair(b, tree[root_box]->getFraction()) ;
 	}
+	else if(!onlyUpdate)
+		return std::make_pair(new VoidForm(), 0.) ;
 
-	return NULL ;
+	Form * n = NULL ;
+	return std::make_pair( n, 0.) ;
 
 }
 
-Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool onlyUpdate ) const
+std::pair<Form *, double> FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int layer,  bool onlyUpdate ) const
 {
 	int root_box = 0 ;
 
 	if( !inRoot( t->getCenter() ) )
 	{
-		return new VoidForm();
+		return std::make_pair(new VoidForm(), 0.) ;
 	}
 
 
@@ -2181,16 +2221,34 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 	{
 		if( t->getBoundingPoint( i ).id == -1 )
 		{
-			return new VoidForm() ;
+			return std::make_pair(new VoidForm(), 0.) ;
 		}
 	}
 
 // 	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getPrimitive()) ;
-	std::vector<Geometry *> targetstmp = grid3d->coOccur( t->getCenter() ) ;
 	std::vector<Feature *> targets ;
 
-	for( size_t i = 0 ; i < targetstmp.size() ; i++ )
-		targets.push_back( dynamic_cast<Feature *>( targetstmp[i] ) ) ;
+	if( tree.size() > 32 )
+	{
+		std::vector<Geometry *> targetstmp = grid3d->coOccur( t->getPrimitive() ) ;
+
+		for( size_t i = 0 ; i < targetstmp.size() ; i++ )
+		{
+			Feature * tmp = dynamic_cast<Feature *>( targetstmp[i] ) ;
+			if(tmp->getLayer() == layer)
+				targets.push_back( tmp ) ;
+		}
+	}
+	else
+	{
+		std::vector<Feature *> targetstmp = tree ;
+		for( size_t i = 0 ; i < targetstmp.size() ; i++ )
+		{
+			if(targetstmp[i]->getLayer() == layer)
+				targets.push_back( targetstmp[i] ) ;
+		}
+	}
+
 
 	if( !targets.empty() )
 	{
@@ -2205,7 +2263,7 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 
 				for( size_t j = 0 ; j < descendants.size() ; j++ )
 				{
-					if( !descendants[j]->isEnrichmentFeature && descendants[j]->in( t->getCenter() ) )
+					if( descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in( t->getCenter() ) )
 					{
 						notInChildren = false ;
 						break ;
@@ -2220,7 +2278,7 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 							b->setSource(targets[i]);
-							return b ;
+							return std::make_pair(b, targets[i]->getFraction()) ;
 						}
 						else
 						{
@@ -2228,14 +2286,14 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 							b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
 							b->setSource(targets[i]);
 
-							return b ;
+							return std::make_pair(b, targets[i]->getFraction()) ;
 						}
 					}
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						b->setSource(targets[i]);
-						return b ;
+						return std::make_pair(b, targets[i]->getFraction()) ;
 					}
 					else
 					{
@@ -2243,17 +2301,17 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 						b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
 						b->setSource(targets[i]);
 
-						return b ;
+						return std::make_pair(b, targets[i]->getFraction()) ;
 					}
 					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 					b->setSource(targets[i]);
-					return b ;
+					return std::make_pair(b, targets[i]->getFraction()) ;
 				}
 			}
 		}
 	}
 
-	if( !onlyUpdate )
+	if( !onlyUpdate && tree[root_box]->getLayer() == layer)
 	{
 		if( tree[root_box]->getBehaviour( t->getCenter() )->timeDependent() )
 		{
@@ -2261,35 +2319,38 @@ Form *FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, bool o
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 				b->setSource(tree[root_box]);
-				return b ;
+				return std::make_pair(b, tree[root_box]->getFraction()) ;
 			}
 			else
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 				b->setSource(tree[root_box]);
 				b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
-				return b ;
+				return std::make_pair(b, tree[root_box]->getFraction()) ;
 			}
 		}
 		else if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 			b->setSource(tree[root_box]);
-			return b ;
+			return std::make_pair(b, tree[root_box]->getFraction()) ;
 		}
 		else
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 			b->setSource(tree[root_box]);
 			b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
-			return b ;
+			return std::make_pair(b, tree[root_box]->getFraction()) ;
 		}
 		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
 		b->setSource(tree[root_box]);
-		return b ;
+		return std::make_pair(b, tree[root_box]->getFraction()) ;
 	}
+	else if(!onlyUpdate)
+		return std::make_pair(new VoidForm(), 0.) ;
 
-	return NULL ;
+	Form * n = NULL ;
+	return std::make_pair( n, 0.) ;
 }
 
 Point *FeatureTree::checkElement( const DelaunayTetrahedron *t ) const
@@ -2524,23 +2585,69 @@ void FeatureTree::setElementBehaviours()
 		{
 			triangles[i]->refresh( father2D ) ;
 		}
-
-// #pragma omp parallel for shared(setcount,triangles,n_void) schedule(static, 4)
-
-
+		
+		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
+		{
+			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
+			for( size_t j = 0 ; j < tris.size() ; j++ )
+			{
+				tris[j]->refresh( father2D ) ;
+			}
+		}
 
 // #pragma omp parallel for
 		for( size_t i = 0 ; i < triangles.size() ; i++ )
 		{
 			if( setcount % 1000 == 0 )
-				std::cerr << "\r setting behaviours... triangle " << setcount << "/" << triangles.size() << "    " << std::flush ;
+				std::cerr << "\r setting behaviours... triangle : base layer :" << setcount << "/" << triangles.size() << "    " << std::flush ;
 
 			if( !triangles[i]->getBehaviour() )
-				triangles[i]->setBehaviour( getElementBehaviour( triangles[i] ) ) ;
+				triangles[i]->setBehaviour( getElementBehaviour( triangles[i], -1 ).first ) ;
 
 			n_void++ ;
 			setcount++ ;
 		}
+		std::cerr << " ...done" << std::endl ;
+		std::map<DelaunayTriangle *, double> rescaleFactors ;
+		
+		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
+		{
+			setcount = 0 ;
+			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
+
+			for( size_t j = 0 ; j < tris.size() ; j++ )
+			{
+				if( setcount % 1000 == 0 )
+					std::cerr << "\r setting behaviours... triangle : layer " <<i->first << "  " << setcount << "/" << triangles.size() << "    " << std::flush ;
+				
+				setcount++ ;
+				std::pair<Form *, double> bf =  getElementBehaviour( tris[j], i->first );
+				if( !tris[j]->getBehaviour() )
+				{
+					tris[j]->setBehaviour( bf.first ) ;
+					
+				}
+				
+				if(tris[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+				{
+					tris[j]->getBehaviour()->scale(bf.second) ;
+					if(rescaleFactors.find(triangles[j]) == rescaleFactors.end())
+					{
+						rescaleFactors[triangles[j]] = bf.second ;
+					}
+					else
+					{
+						rescaleFactors[triangles[j]] += bf.second ;
+					}
+				}
+			}
+			std::cerr << " ...done" << std::endl ;
+		}
+		for(auto j = rescaleFactors.begin() ; j != rescaleFactors.end() ; j++)
+		{
+			j->first->getBehaviour()->scale(1.-j->second) ;
+		}
+		
 
 // exit(0) ;
 		std::cerr << " ...done" << std::endl ;
@@ -2591,19 +2698,60 @@ void FeatureTree::setElementBehaviours()
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
 			tetrahedrons[i]->refresh( father3D ) ;
 
-		#pragma omp parallel for
+		for(auto i = layer3d.begin() ; i != layer3d.end() ; i++)
+		{
+			std::vector<DelaunayTetrahedron *> tets = i->second->getElements() ;
+			for( size_t j = 0 ; j < tets.size() ; j++ )
+			{
+				tets[j]->refresh( father3D ) ;
+			}
+		}
 
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
 		{
 			if( setcount % 1000 == 0 )
-				std::cerr << "\r setting behaviours... tet " << setcount << "/" << tetrahedrons.size() << std::flush ;
+				std::cerr << "\r setting behaviours : base layer : tet " << setcount << "/" << tetrahedrons.size() << std::flush ;
 
 			if( !tetrahedrons[i]->getBehaviour() )
-				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] ) ) ;
+				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] ).first ) ;
 
 			n_void++ ;
 			setcount++ ;
 		}
+		
+
+		std::map<DelaunayTetrahedron *, double> rescaleFactors ;
+		for(auto i = layer3d.begin() ; i != layer3d.end() ; i++)
+		{
+			setcount = 0 ;
+			std::vector<DelaunayTetrahedron *> tets = i->second->getElements() ;
+			for( size_t j = 0 ; j < tets.size() ; j++ )
+			{
+				if( setcount % 1000 == 0 )
+					std::cerr << "\r setting behaviours... tet : layer " <<i->first << "  " << setcount << "/" << tets.size() << "    " << std::flush ;
+				setcount++ ;
+				std::pair<Form *, double> bf =  getElementBehaviour( tets[j], i->first );
+				if( !tets[j]->getBehaviour() )
+					tets[j]->setBehaviour( bf.first ) ;
+				
+				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR)
+				{
+					tets[j]->getBehaviour()->scale(bf.second) ;
+					if(rescaleFactors.find(tetrahedrons[j]) == rescaleFactors.end())
+					{
+						rescaleFactors[tetrahedrons[j]] = bf.second ;
+					}
+					else
+					{
+						rescaleFactors[tetrahedrons[j]] += bf.second ;
+					}
+				}
+			}
+			std::cerr << " ...done" << std::endl ;
+		}
+		for(auto j = rescaleFactors.begin() ; j != rescaleFactors.end() ; j++)
+			j->first->getBehaviour()->scale(1.-j->second) ;
+
 
 		std::cerr << " ...done" << std::endl ;
 
@@ -2658,17 +2806,12 @@ void FeatureTree::updateElementBehaviours()
 		for( size_t i = 0 ; i < triangles.size() ; i++ )
 			triangles[i]->refresh( father2D ) ;
 
-// #pragma omp parallel for shared(setcount,triangles,n_void) schedule(static, 4)
-
-
-
-// #pragma omp parallel for shared(setcount,triangles,n_void)
 		for( size_t i = 0 ; i < triangles.size() ; i++ )
 		{
 			if( setcount % 1000 == 0 )
 				std::cerr << "\r updating behaviours... triangle " << setcount << "/" << triangles.size() << "    " << std::flush ;
 
-			Form *b = getElementBehaviour( triangles[i], true ) ;
+			Form *b = getElementBehaviour( triangles[i], true ).first ;
 
 			if( b )
 			{
@@ -2676,7 +2819,7 @@ void FeatureTree::updateElementBehaviours()
 			}
 
 			if( !triangles[i]->getBehaviour() || triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR )
-				triangles[i]->setBehaviour( getElementBehaviour( triangles[i] ) ) ;
+				triangles[i]->setBehaviour( getElementBehaviour( triangles[i] ).first ) ;
 
 			n_void++ ;
 			setcount++ ;
@@ -2739,13 +2882,13 @@ void FeatureTree::updateElementBehaviours()
 			if( setcount % 1000 == 0 )
 				std::cerr << "\r setting behaviours... tet " << setcount << "/" << tetrahedrons.size() << std::flush ;
 
-			Form *b = getElementBehaviour( tetrahedrons[i], true ) ;
+			Form *b = getElementBehaviour( tetrahedrons[i], true ).first ;
 
 			if( b )
 				tetrahedrons[i]->setBehaviour( b ) ;
 
 			if( !tetrahedrons[i]->getBehaviour() || tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR )
-				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] ) ) ;
+				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] ).first ) ;
 
 			n_void++ ;
 			setcount++ ;
@@ -2874,8 +3017,25 @@ void FeatureTree::assemble()
 				K->add( triangles[j] ) ;
 			}
 		}
-
 		std::cerr << " ...done." << std::endl ;
+		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
+		{
+			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
+			for( size_t j = 0 ; j < tris.size() ; j++ )
+			{
+				if( j % 1000 == 0 )
+					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::flush ;
+						
+				if(tris[j]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					tris[j]->refresh( father2D ) ;
+					K->add( tris[j] ) ;
+				}
+			}
+			std::cerr << " ...done." << std::endl ;
+		}
+
+		
 
 		if( useMultigrid )
 		{
@@ -2915,6 +3075,22 @@ void FeatureTree::assemble()
 
 				tetrahedrons[j]->refresh( father3D ) ;
 				K->add( tetrahedrons[j] ) ;
+			}
+		}
+		
+		for(auto i = layer3d.begin() ; i!= layer3d.end() ; i++)
+		{
+			std::vector<DelaunayTetrahedron *> tets = i->second->getElements() ;
+			for( size_t j = 0 ; j < tets.size() ; j++ )
+			{
+				if(	tets[j]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					if( j % 1000 == 0 )
+						std::cerr << "\r assembling stiffness matrix... triangle " << j + 1 << "/" << tets.size() << std::flush ;
+
+					tets[j]->refresh( father3D ) ;
+					K->add( tets[j] ) ;
+				}
 			}
 		}
 
@@ -3826,7 +4002,13 @@ void FeatureTree::stepElements()
 	{
 		if( is2D() )
 		{
+
 			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+			for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
+			{
+				std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;
+				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
+			}
 			double volume = 0;
 			crackedVolume = 0 ;
 			damagedVolume = 0 ;
@@ -3852,7 +4034,6 @@ void FeatureTree::stepElements()
 
 			if( !elastic )
 			{
-//#pragma omp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -3862,7 +4043,6 @@ void FeatureTree::stepElements()
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 				}
 
-//#pragma omp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -3874,7 +4054,6 @@ void FeatureTree::stepElements()
 
 				std::cerr << " ...done. " << std::endl ;
 
-//#pragma omp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 
@@ -3958,10 +4137,12 @@ void FeatureTree::stepElements()
 		{
 
 			std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
-
-			//this will update the state of all elements. This is necessary as
-			//the behaviour updates might depend on the global state of the
-			//simulation.
+			for(auto j = layer3d.begin() ; j != layer3d.end() ;j++)
+			{
+				std::vector<DelaunayTetrahedron *> elementstmp = j->second->getElements() ;
+				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
+			}
+			
 			double volume = 0;
 			crackedVolume = 0 ;
 			damagedVolume = 0 ;
@@ -4087,14 +4268,17 @@ void FeatureTree::stepElements()
 		if( is2D() )
 		{
 			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+			for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
+			{
+				std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;
+				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
+			}
 			double volume = 0;
 			crackedVolume = 0 ;
 			damagedVolume = 0 ;
 			//this will update the state of all elements. This is necessary as
 			//the behaviour updates might depend on the global state of the
 			//simulation.
-			// 		if(solverConverged())
-			// 		{
 			std::cerr << " stepping through elements... " << std::flush ;
 
 			for( size_t i = 0 ; i < elements.size() ; i++ )
@@ -4115,7 +4299,11 @@ void FeatureTree::stepElements()
 		else if( is3D() )
 		{
 			std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
-
+			for(auto j = layer3d.begin() ; j != layer3d.end() ;j++)
+			{
+				std::vector<DelaunayTetrahedron *> elementstmp = j->second->getElements() ;
+				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
+			}
 			//this will update the state of all elements. This is necessary as
 			//the behaviour updates might depend on the global state of the
 			//simulation.
@@ -4602,13 +4790,27 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 		std::vector<DelaunayTriangle *> triangles = this->dtree->getElements() ;
 		std::cerr << " initialising..." << std::flush;
 
-		#pragma omp parallel for /*schedule(dynamic, 100)*/
+		#pragma omp parallel for 
 
 		for( size_t i = 0 ; i < triangles.size() ; i++ )
 		{
 			triangles[i]->refresh( father2D );
 			triangles[i]->getState().initialize( initialiseFractureCache ) ;
 // 						count++ ;
+		}
+		
+		for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
+		{
+				std::vector<DelaunayTriangle *> tris = j->second->getElements() ;
+
+			#pragma omp parallel for 
+
+			for( size_t i = 0 ; i < tris.size() ; i++ )
+			{
+				tris[i]->refresh( father2D );
+				tris[i]->getState().initialize( initialiseFractureCache ) ;
+	// 						count++ ;
+			}
 		}
 
 		gettimeofday( &time1, NULL );
@@ -4649,6 +4851,20 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 		double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
 		std::cout << "\r initialising... element " << tets.size() << "/" << tets.size() << ". Time to initialise (s) " << delta / 1e6 << std::endl ;
 
+		for(auto j = layer3d.begin() ; j != layer3d.end() ;j++)
+		{
+			std::vector<DelaunayTetrahedron *> tetras = j->second->getElements() ;
+
+			#pragma omp parallel for 
+
+			for( size_t i = 0 ; i < tetras.size() ; i++ )
+			{
+				tetras[i]->refresh( father3D );
+				tetras[i]->getState().initialize( initialiseFractureCache ) ;
+	// 						count++ ;
+			}
+		}
+		
 		if( useMultigrid )
 		{
 			for( size_t i = 0 ; i < coarseTrees.size() ; i++ )
@@ -4763,6 +4979,7 @@ void FeatureTree::generateElements()
 		}
 	}
 
+
 	for( size_t i  = 0 ; i < tree.size() ; i++ )
 	{
 		std::cerr << "\r getting mesh points... feature " << i << "/" << tree.size() << std::flush ;
@@ -4830,11 +5047,12 @@ void FeatureTree::generateElements()
 				if( tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
 					isIn = true ;
 
-				if( !isIn && i && tree[0]->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
+				if( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
 					isIn = true ;
 
 				if( !tree[i]->getFather() && i)
 				{
+					isIn = false ;
 					for( size_t k = 0 ; k < nullFatherFeatures.size() ; k++ )
 					{
 						if( nullFatherFeatures[k] == tree[i] )
@@ -4852,6 +5070,23 @@ void FeatureTree::generateElements()
 					if( dist( proj, tree[i]->getBoundingPoint( j ) ) < 2.*POINT_TOLERANCE_2D )
 						isIn = false ;
 				}
+				
+				//the border is always defined by non-root features of NULL father
+				if(!i && !isIn)
+				{
+					for( size_t k = 0 ; k < nullFatherFeatures.size() ; k++ )
+					{
+						Point proj( tree[i]->getBoundingPoint( j ) ) ;
+						nullFatherFeatures[k]->project( &proj ) ;
+						if( dist( proj, tree[i]->getBoundingPoint( j ) ) < 2.*POINT_TOLERANCE_2D )
+						{
+							isIn = true ;
+							break ;
+						}
+					}
+				}
+				
+				
 				if( !isIn )
 				{
 					meshPoints.push_back( std::pair<Point *, Feature *>( &tree[i]->getBoundingPoint( j ), this->tree[i] ) ) ;
@@ -4929,7 +5164,7 @@ void FeatureTree::generateElements()
 				if( tree[i]->isVirtualFeature && !tree[i]->in( tree[i]->getInPoint( j ) ) )
 					isIn = true ;
 
-				if( i && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
+				if( tree[i]->getFather() && i && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
 					isIn = true ;
 
 				if( !tree[i]->getFather()&& !i )
@@ -5201,6 +5436,18 @@ void FeatureTree::generateElements()
 		this->dtree = new DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first ) ;
 		this->dtree->insert( meshPoints[3].first ) ;
 
+
+		for( size_t i  = 0 ; i < tree.size() ; i++ )
+		{
+			if( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getLayer() != -1)
+			{
+				if(layer2d.find(tree[i]->getLayer()) == layer2d.end())
+				{
+					layer2d[tree[i]->getLayer()] = new DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first) ;
+					layer2d[tree[i]->getLayer()]->insert( meshPoints[3].first ) ;
+				}
+			}
+		}
 		for( auto i = meshPoints.begin() + 4 ; i != meshPoints.end(); ++i )
 		{
 			if( ( i - meshPoints.begin() ) % 1000 == 0 )
@@ -5215,6 +5462,10 @@ void FeatureTree::generateElements()
 			  )
 			{
 				dtree->insert( i->first ) ;
+				for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
+				{
+					j->second->insert(i->first) ;
+				}
 			}
 		}
 
@@ -5298,11 +5549,20 @@ void FeatureTree::generateElements()
 		dtree3D->insert( meshPoints[5].first ) ;
 		dtree3D->insert( meshPoints[6].first ) ;
 		dtree3D->insert( meshPoints[7].first ) ;
-
-		assert( meshPoints[0].first->id > -1 ) ;
-		assert( meshPoints[1].first->id > -1 ) ;
-		assert( meshPoints[2].first->id > -1 ) ;
-		assert( meshPoints[3].first->id > -1 ) ;
+		for( size_t i  = 0 ; i < tree.size() ; i++ )
+		{
+			if( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getLayer() != -1)
+			{
+				if(layer3d.find(tree[i]->getLayer()) == layer3d.end())
+				{
+					layer3d[tree[i]->getLayer()] = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
+					layer3d[tree[i]->getLayer()]->insert( meshPoints[4].first ) ;
+					layer3d[tree[i]->getLayer()]->insert( meshPoints[5].first ) ;
+					layer3d[tree[i]->getLayer()]->insert( meshPoints[6].first ) ;
+					layer3d[tree[i]->getLayer()]->insert( meshPoints[7].first ) ;
+				}
+			}
+		}
 
 		std::pair<std::vector<int>, std::vector<int> > pb ;
 
@@ -5333,6 +5593,10 @@ void FeatureTree::generateElements()
 			  )
 			{
 				dtree3D->insert( i->first ) ;
+				for(auto j = layer3d.begin() ; j != layer3d.end() ; j++)
+				{
+					j->second->insert(i->first) ;
+				}
 
 				if( i->first->id == -1 )
 				{

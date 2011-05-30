@@ -83,7 +83,8 @@ namespace Mu
 					to_test.insert(new_test.begin(), new_test.end()) ;
 					found.insert(new_test.begin(), new_test.end()) ;
 				}
-				std::vector<ETYPE *> ret(found.begin(), found.end()) ;
+				
+				std::vector<ETYPE *> ret(found.begin(),found.end()) ;
 				return ret ;
 			}
 
@@ -320,7 +321,6 @@ namespace Mu
 		std::map<int *, int> trans ; 
 		size_t global_counter ;
 		
-		
 		void addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep)
 		{
 			for(auto  i = tree.begin() ; i != tree.end() ; ++i)
@@ -414,6 +414,9 @@ namespace Mu
 
 		
 	public:
+		
+		int elementLayer(ETYPE * e) const { return -1 ;}
+		void addElementToLayer(const ETYPE * element, int layer) { } ;
 		
 		SingleElementMesh(ETYPE * element) : element(element), global_counter(0)
 		{

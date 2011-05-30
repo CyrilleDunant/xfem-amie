@@ -123,6 +123,9 @@ protected:
 	Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree ;
 	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree3D ;
 	
+	std::map<int, Mesh<DelaunayTriangle, DelaunayTreeItem> *> layer2d ;
+	std::map<int, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *> layer3d ;
+	
 	TetrahedralElement *father3D  ;
 	TriElement *father2D  ;
 
@@ -162,6 +165,7 @@ protected:
 	 */
 	std::deque<std::pair<Point *, Feature *> > meshPoints;
 	std::vector<Point *> additionalPoints ;
+	std::map<Feature *, double> samplingFactors ;
 	
 	/** \brief  Assembly used for the generation of the stiffness matrix and the solving of the problem.
 	 */
@@ -342,6 +346,11 @@ public:
 	std::vector<DelaunayTetrahedron *> getElements3D(const Point *p, int g = -1) ;
 	std::vector<DelaunayTetrahedron *> getElements3D(const Geometry *p, int g = -1) ;
 	
+	void setSamplingFactor(Feature * f, double a) 
+	{
+		samplingFactors[f] = a ;
+	}
+	
 	
 	/** \brief The solver converged at the last step.
 	* This condition checks whether a numerical solution was found. If false, this means the solver diverged, or 
@@ -381,7 +390,7 @@ public:
 	 * @param first Parent of all features. This shoud typically be the sample itself.
 	 * @return 
 	 */
-	FeatureTree(Feature *first, size_t gridsize = 100) ;
+	FeatureTree(Feature *first, int layer = -1, double fraction = 1,  size_t gridsize = 100) ;
 	virtual ~FeatureTree() ;
 	
 	void dumpFeatures(std::string filename) ;
@@ -395,7 +404,7 @@ public:
 	 * @param father Parent feature.
 	 * @param t daughter feature.
 	 */
-	void addFeature(Feature *father, Feature * f) ;
+	void addFeature(Feature *father, Feature * f, int layer = -1, double fraction = 1) ;
 	
 	void addPoint(Point * p) ;
 
@@ -514,10 +523,10 @@ public:
 	std::vector<DelaunayTriangle *> getBoundingTriangles(Feature * f = NULL) ;	
 	
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	Form * getElementBehaviour(const DelaunayTriangle *t, bool onlyUpdate = false) const ;
+	std::pair<Form *, double> getElementBehaviour(const DelaunayTriangle *t, int layer = -1, bool onlyUpdate = false) const ;
 
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	Form * getElementBehaviour(const DelaunayTetrahedron *t, bool onlyUpdate = false) const ;
+	std::pair<Form *, double> getElementBehaviour(const DelaunayTetrahedron *t, int layer = -1, bool onlyUpdate = false) const ;
 	
 /** \brief insert a point in the mesh*/
 	void insert(Point * p ) ;

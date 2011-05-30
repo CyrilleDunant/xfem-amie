@@ -55,6 +55,9 @@ protected:
 	Form * behaviour ;
 	
 	double now ;
+	
+	int layer ;
+	double fraction ;
 
 public:
 	
@@ -67,10 +70,8 @@ public:
 	 * 
 	 * @param father sets the father.
 	 */
-	Feature(Feature *father) ;
+	Feature(Feature *father = NULL) ;
 
-	Feature() ;
-	
 	/** \brief Feature constructor.
 	 * 
 	 * @param father sets the father.
@@ -84,6 +85,11 @@ public:
 	 
 	bool inBoundary(const Point &p, double d) const ;
 	bool onBoundary(const Point &p, double d) const ;
+	
+	int getLayer() const {return layer ;}
+	void setLayer(int l) {layer = l;}
+	double getFraction() const {return fraction ;}
+	void setFraction(double f) {fraction = f;}
 	
 	/** \brief Set the Behaviour
 	 * 

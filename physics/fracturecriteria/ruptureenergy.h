@@ -47,6 +47,7 @@ public:
 */
 	virtual double grade(ElementState &s)  ;
 
+	virtual void scale(double d) {energy *= d ;}
 
 	virtual Material toMaterial() ;
 };

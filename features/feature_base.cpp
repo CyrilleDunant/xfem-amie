@@ -22,18 +22,11 @@ Feature::Feature(Feature * father) : behaviour(NULL)
 	isUpdated = false ;
 	
 	m_f = father ;
+	
+	layer = -1 ;
 	if(father != NULL)
 		father->addChild(this) ;
 
-}
-
-Feature::Feature() : behaviour(NULL)
-{
-	isEnrichmentFeature = false ;
-	isCompositeFeature = false ;
-	isVirtualFeature = false ;
-	isUpdated = false ;
-	m_f = NULL ;
 }
 
 std::vector<Point *> Feature::doubleSurfaceSampling()

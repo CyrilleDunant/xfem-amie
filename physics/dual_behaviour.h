@@ -112,6 +112,14 @@ public:
 	/** \brief Acessor, return the highest fracture citerion*/
 	virtual FractureCriterion * getFractureCriterion() const ;
 	
+		virtual void scale (double d) 
+	{ 
+		if(inBehaviour)
+			inBehaviour->scale(d) ;
+		if(outBehaviour)
+			outBehaviour->scale(d) ;
+	}
+	
 } ;
 
 } ;

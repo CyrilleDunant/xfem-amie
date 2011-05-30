@@ -153,7 +153,7 @@ typedef enum{
 		 */
 		void setEnergyIndexed(bool t) {energyIndexed = t ;};
 		
-		virtual void multiply(double f) { } ;
+		virtual void scale(double d) = 0;
 	
 	};
 

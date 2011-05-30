@@ -27,6 +27,13 @@ IntegrableEntity::IntegrableEntity() : state( this ), boundaryConditionCache( NU
 
 }
 
+void Form::scale(double d) 
+{ 
+	param *= d ;
+	if(getFractureCriterion())
+		getFractureCriterion()->scale(d) ;
+}
+
 void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 {
 	if( getBehaviour()->type != VOID_BEHAVIOUR )

@@ -49,6 +49,8 @@ public:
  * @param s ElementState to consider
 */
 	virtual double grade(ElementState &s)  ;
+	
+	virtual void scale(double d) {upVal *= d ; downVal *=d ;};
 
 	virtual Material toMaterial() ;
 };

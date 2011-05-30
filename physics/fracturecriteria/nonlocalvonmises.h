@@ -22,8 +22,6 @@ namespace Mu {
 	*/
 	class NonLocalVonMises : public FractureCriterion
 	{
-	protected:
-		std::vector<DelaunayTriangle *> cache ;
 	public:
 		double threshold ;
 		double radius ;
@@ -47,6 +45,8 @@ namespace Mu {
 		virtual double grade(ElementState &s)  ;
 
 		virtual Material toMaterial() ;
+		
+		virtual void scale(double d ) { threshold *= d ;}
 	};
 
 } ;

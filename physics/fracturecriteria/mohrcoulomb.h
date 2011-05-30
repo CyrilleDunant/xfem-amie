@@ -48,7 +48,7 @@ public:
 
 	virtual Material toMaterial() ;
 	
-	virtual void multiply(double f) { upVal *=f ; downVal *= f ; } ;
+	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
 };
 
 class NonLocalMohrCoulomb : public FractureCriterion
@@ -78,7 +78,7 @@ public:
 
 	virtual Material toMaterial() ;
 
-	virtual void multiply(double f) { upVal *=f ; downVal *= f ; } ;
+	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
 };
 
 }

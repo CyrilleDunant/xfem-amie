@@ -9,6 +9,7 @@
 #define INTERGRABLE_ENTITY_H
 
 #include "../geometry/geometry_base.h"
+
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
 #include "../utilities/xml.h"
@@ -21,6 +22,7 @@ class DelaunayTreeItem3D;
 class DelaunayTetrahedron;
 class DelaunayTreeItem;
 class Assembly ;
+class FractureCriterion ;
 
 typedef enum
 {
@@ -472,6 +474,7 @@ public:
 		return false ;
 	} ;
 	
+	virtual void scale(double d) ;
 	virtual bool hasInducedBoundaryConditions() const
 	{
 		return false ;
@@ -527,7 +530,6 @@ public:
 	
 	virtual DamageModel * getDamageModel() const { return NULL ; }
 	
-	virtual void multiply(double f) { param *= f ; }
 } ;
 
 } ;

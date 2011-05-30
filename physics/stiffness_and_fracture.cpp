@@ -193,10 +193,10 @@ Material StiffnessAndFracture::toMaterial()
 	return mat ;
 }
 
-void StiffnessAndFracture::multiply(double f)
+void StiffnessAndFracture::scale(double f)
 {
+	criterion->scale(f);
 	param *= f ;
-	criterion->multiply(f) ;
 }
 
 

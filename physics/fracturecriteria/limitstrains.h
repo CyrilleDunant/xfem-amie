@@ -46,6 +46,8 @@ public:
 	virtual FractureCriterion * getCopy() const;
 
 	virtual Material toMaterial() ;
+	
+	virtual void scale(double d) {maxDownVal *= d ; maxUpVal *= d ;};
 
 };
 
