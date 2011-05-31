@@ -35,6 +35,529 @@ scoreTolerance(0.5e-3)
 {
 }
 
+Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
+{
+	Vector stra(s.getParent()->spaceDimensions()) ;
+
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		double area = s.getParent()->area() ;
+
+		Vector strainAtNodes(s.getPrincipalStrainAtNodes()) ;
+		
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+		{
+			for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+			{
+				stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*area/s.getParent()->getBoundingPoints().size() ;
+			}
+		}
+
+		double fact = area ;
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
+				|| !ci->getBehaviour()->getFractureCriterion() 
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 4. * physicalCharacteristicRadius * physicalCharacteristicRadius)
+			{
+				continue ;
+			}
+			
+			//this is to eliminate scaling effects ;
+			double factor = 1 ;
+			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
+
+			Vector strainAtNodes(ci->getState().getPrincipalStrainAtNodes()) ;
+			
+			for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+			{
+				for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+				{
+						stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+				}
+			}
+			fact += area*d ;
+			
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+		}
+		stra /= fact ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		double volume = s.getParent()->volume() ;
+		Vector strainAtNodes(s.getPrincipalStrainAtNodes()) ;
+		
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+		{
+			for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+			{
+				stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume/s.getParent()->getBoundingPoints().size() ;
+			}
+		}
+
+		double fact = volume ;
+		
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			
+			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
+				|| ci->getBehaviour()->getFractureCriterion() 
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() &&ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
+			)
+			{
+				continue ;
+			}
+
+			double volume = ci->volume() ;
+			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
+
+			Vector strainAtNodes(ci->getState().getPrincipalStrainAtNodes()) ;
+			
+			if( !ci->getBehaviour()->fractured() )
+			{
+
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += volume*d ;
+				
+				if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							stra[k] += strainAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+			}
+		}
+		stra /= fact ;
+	}
+	
+	return stra ;
+}
+
+Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
+{
+	Vector str(s.getParent()->spaceDimensions() ) ;
+
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		double area = s.getParent()->area() ;
+
+		Vector stressAtNodes(s.getPrincipalStressAtNodes()) ;
+		
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+		{
+			for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+			{
+				str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*area/s.getParent()->getBoundingPoints().size() ;
+			}
+		}
+
+		double fact = area ;
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
+				|| !ci->getBehaviour()->getFractureCriterion() 
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 4. * physicalCharacteristicRadius * physicalCharacteristicRadius)
+			{
+				continue ;
+			}
+			
+			//this is to eliminate scaling effects ;
+			double factor = 1 ;
+			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
+
+			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()) ;
+			Vector strainAtNodes(ci->getState().getPrincipalStrainAtNodes()) ;
+			
+			for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+			{
+				for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+				{
+						str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+				}
+			}
+			fact += area*d ;
+			
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*area*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += area*d ;
+			}
+		}
+		str /= fact ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		double volume = s.getParent()->volume() ;
+		Vector stressAtNodes(s.getPrincipalStressAtNodes()) ;
+		Vector strainAtNodes(s.getPrincipalStrainAtNodes()) ;
+		
+		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+		{
+			for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+			{
+				str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume/s.getParent()->getBoundingPoints().size() ;
+			}
+		}
+
+		double fact = volume ;
+		
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			
+			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
+				|| ci->getBehaviour()->getFractureCriterion() 
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() &&ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
+			)
+			{
+				continue ;
+			}
+
+			double volume = ci->volume() ;
+			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
+
+			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()) ;
+			
+			if( !ci->getBehaviour()->fractured() )
+			{
+
+				for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+				{
+					for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+					{
+						str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+					}
+				}
+				fact += volume*d ;
+				
+				if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+
+				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+				{
+					for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
+					{
+						for(size_t k = 0 ; k < s.getParent()->spaceDimensions() ; k++)
+						{
+							str[k] += stressAtNodes[j*s.getParent()->spaceDimensions()+k]*volume*d/s.getParent()->getBoundingPoints().size() ;
+						}
+					}
+					fact += volume*d ;
+				}
+			}
+		}
+		str /= fact ;
+	}
+	
+	return str ;
+}
+
+
 double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 {
 	Assembly K ;

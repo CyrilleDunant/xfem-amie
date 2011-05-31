@@ -76,8 +76,9 @@ typedef enum{
 		bool checkpoint ;
 		bool inset ;
 		
-	double getDeltaEnergy(const ElementState & s, double delta_d) ;
-		
+		double getDeltaEnergy(const ElementState & s, double delta_d) ;
+		Vector smoothedPrincipalStress( ElementState &s) const ;
+		Vector smoothedPrincipalStrain( ElementState &s) const;
 	public:
 
 		std::vector<DelaunayTreeItem *>  *mesh2d ;

@@ -519,7 +519,7 @@ void step()
 			TriangleWriter writer(filename.str(), featureTree) ;
 			writer.getField(TWFT_PRINCIPAL_STRESS ) ;
 			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
-			writer.getField(TWFT_VON_MISES) ;
+			writer.getField(TWFT_CRITERION) ;
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.getField(TWFT_DAMAGE) ;
 			writer.write() ;
@@ -1493,8 +1493,8 @@ int main(int argc, char *argv[])
 	double compressionCrit = -37.0e6 ; 
 	double tensionCrit = .33*sqrt(-compressionCrit)*1000 ;// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*(rebarDiametre*rebarDiametre)/(.4*rebarDiametre) ; 
-	double mradius = .015 ; // .015
-	double nradius = .2 ;
+	double mradius = .04 ; // .015
+	double nradius = mradius*4 ;
 	
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
@@ -1588,7 +1588,7 @@ int main(int argc, char *argv[])
 	{
 		int stirruplayer = 0 ;
 		int rebarlayer = 1 ;
-		F.addFeature(&sample, stirrups[0]) ;
+		F.addFeature(&sample, stirrups[0], stirruplayer, psi) ;
 		for(size_t i = 1 ;  i < 7 ; i++)
 			F.addFeature(stirrups[i-1], stirrups[i], stirruplayer, psi) ;
 	
