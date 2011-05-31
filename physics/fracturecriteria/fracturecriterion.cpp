@@ -330,10 +330,11 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 			
 			//this is to eliminate scaling effects ;
 			double factor = 1 ;
+			if(std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+				factor = std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0]) ;
 			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
 
-			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()) ;
-			Vector strainAtNodes(ci->getState().getPrincipalStrainAtNodes()) ;
+			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()*factor) ;
 			
 			for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
 			{
@@ -398,7 +399,6 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 	{
 		double volume = s.getParent()->volume() ;
 		Vector stressAtNodes(s.getPrincipalStressAtNodes()) ;
-		Vector strainAtNodes(s.getPrincipalStrainAtNodes()) ;
 		
 		for(size_t j = 0 ; j < s.getParent()->getBoundingPoints().size() ; j++)
 		{
@@ -428,7 +428,11 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 			double volume = ci->volume() ;
 			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
 
-			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()) ;
+			double factor = 1 ;
+			if(std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+				factor = std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0]) ;
+			
+			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()*factor) ;
 			
 			if( !ci->getBehaviour()->fractured() )
 			{
