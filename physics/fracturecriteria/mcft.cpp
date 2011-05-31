@@ -112,11 +112,10 @@ Material MCFT::toMaterial()
 }
 
 
-NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double charRad, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
+NonLocalMCFT::NonLocalMCFT( double up, double down,  double charRad, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
 	, upVal( up ), downVal( down )
 {
 	physicalCharacteristicRadius = charRad ;
-	tensionCritStrain = up / youngModulus ;
 }
 
 
@@ -144,7 +143,7 @@ double NonLocalMCFT::grade( ElementState &s )
 			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| !ci->getBehaviour()->getFractureCriterion() 
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() &&ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
 				|| dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius)
@@ -152,14 +151,18 @@ double NonLocalMCFT::grade( ElementState &s )
 				continue ;
 			}
 
+			//this is to eliminate scaling effects ;
+			double factor = 1 ;
+			if(std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+				factor = std::max(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0], 1.) ;
 			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
 
 			Vector pstress( ci->getState().getPrincipalStressAtNodes() ) ;
 			Vector pstrain( ci->getState().getPrincipalStrainAtNodes() ) ;
-			
+			pstress *= factor ;
 			area = ci->area() ;
 
-			str += pstress * d * area;
+			str += pstress * d * area ;
 			stra += pstrain * d * area;
 			fact += area ;
 			
@@ -327,19 +330,7 @@ double NonLocalMCFT::grade( ElementState &s )
 
 	double maxTension = upVal ;
 
-// 	if(tstrain > tensionCritStrain)
-// 	{
-	//Yamamoto model
-//		maxTension = upVal/(1.+sqrt(2e6*(tstrain+tensionCritStrain))) ;
-
-	//MCFT model
 	maxTension = upVal / ( 1. + sqrt( 500.*tstrain ) ) ;
-
-	//perfectly brittle
-// 		maxTension = 0 ;
-// 	}
-
-
 
 	metInCompression = cstrain <= 0 && std::abs( cstress / maxCompression ) > std::abs( tstress / maxTension ) || tstrain <= 0;
 	metInTension = tstrain >= 0 && std::abs( cstress / maxCompression ) < std::abs( tstress / maxTension ) || cstrain >= 0;

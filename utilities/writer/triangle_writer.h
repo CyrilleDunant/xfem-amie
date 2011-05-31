@@ -43,9 +43,12 @@ class TriangleWriter
 protected:
 	std::string filename ;
 	FeatureTree * source ;
-	std::vector<std::valarray<double> > values ;
-	int nTriangles ;
-	int timePlane ;
+	std::vector< std::vector<std::valarray<double> > > values ;
+	std::vector<int> nTriangles ;
+	std::vector<int> timePlane ;
+	std::vector<int> layers ;
+	std::vector<TWFieldType> extraFields ;
+	std::map<int, size_t> layerTranslator ;
 
 public:
 	/** \brief simple constructor, get immediately the coordinates of the triangles contained in F */
@@ -61,17 +64,17 @@ public:
 	virtual void append() ;
 
 	/** \brief store the values of the field in the writer*/
-	virtual void getField(TWFieldType field) ;
+	virtual void getField(TWFieldType field, bool extra = true) ;
 
 	/** \brief get the raw values of the specified field from the source*/
-	virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field) ;
+	virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, int layer) ;
 
 	/** \brief get the raw values of the specific field from a single DelaunayTriangle */
 	virtual std::pair<bool, std::vector<double> > getDoubleValue(DelaunayTriangle * tri, TWFieldType field) ;
 
 protected:
 	/** \brief write the header */
-	virtual void writeHeader(bool append = true) ;
+	virtual void writeHeader(int layer, bool append = true) ;
 
 } ;
 

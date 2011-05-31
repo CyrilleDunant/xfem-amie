@@ -80,6 +80,13 @@ protected:
 	
 	int scale ;
 	
+	float max_x ;
+	float max_y ;
+	float min_x ;
+	float min_y ;
+	
+	bool minmaxinit ;
+	
 public slots:
 	void setSegmentDown(int) ;
 	void setSegmentUp(int) ;

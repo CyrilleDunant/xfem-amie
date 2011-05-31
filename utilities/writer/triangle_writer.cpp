@@ -25,23 +25,30 @@ TriangleWriter::TriangleWriter(std::string f, FeatureTree * F, int t)
 {
 	filename = f ;
 	source = F ;
+	
 	if(source != NULL)
 	{
-	    std::vector<DelaunayTriangle *> tri =  source->getElements2D() ;
-	    nTriangles = tri.size();
+		layers = source->listLayers() ;
+		for(size_t j = 0 ; j < layers.size() ; j++)
+		{
+	    std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer(layers[j]) ;
+	    nTriangles.push_back(tri.size());
 	    int count = 0 ;
-	    for(int i = 0 ; i < nTriangles ; i++)
+	    for(int i = 0 ; i < nTriangles.back() ; i++)
 		    if(tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			    count++ ;
-	    nTriangles = count ;
-	    timePlane = t ;
-	    if(timePlane < 0)
-		    timePlane = 0 ;
-	    if(timePlane >= tri[0]->timePlanes())
-		    timePlane = tri[0]->timePlanes()-1 ;
+	    nTriangles.back() = count ;
+	    timePlane.push_back(t) ;
+	    if(timePlane.back() < 0)
+		    timePlane.back() = 0 ;
+	    if(timePlane.back() >= tri[0]->timePlanes())
+		    timePlane.back() = tri[0]->timePlanes()-1 ;
+			layerTranslator[layers[j]] = j ;
+			values.push_back(std::vector<std::valarray<double> >(0));
 
-	    getField(TWFT_COORDINATE) ;
-	    getField(TWFT_DISPLACEMENTS) ;
+		}
+	  getField(TWFT_COORDINATE, false) ;
+	  getField(TWFT_DISPLACEMENTS, false) ;
 	}
 }
 
@@ -50,43 +57,69 @@ BinaryTriangleWriter::BinaryTriangleWriter(std::string f, FeatureTree * F, int t
 void TriangleWriter::reset(FeatureTree * F, int t)
 {
 	values.clear() ;
-
+	nTriangles.clear();
+	layers.clear();
+	timePlane.clear() ;
+	extraFields.clear() ;
+	layerTranslator.clear() ;
 	source = F ;
 	if(source != NULL)
 	{
-	    std::vector<DelaunayTriangle *> tri =  source->getElements2D() ;
-	    nTriangles = tri.size();
+		layers = source->listLayers() ;
+		for(size_t j = 0 ; j < layers.size() ; j++)
+		{
+	    std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer(layers[j]) ;
+	    nTriangles.push_back(tri.size());
 	    int count = 0 ;
-	    for(int i = 0 ; i < nTriangles ; i++)
+	    for(int i = 0 ; i < nTriangles.back() ; i++)
 		    if(tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			    count++ ;
-	    nTriangles = count ;
-	    timePlane = t ;
-	    if(timePlane < 0)
-		    timePlane = 0 ;
-	    if(timePlane >= tri[0]->timePlanes())
-		    timePlane = tri[0]->timePlanes()-1 ;
+	    nTriangles.back() = count ;
+	    timePlane.push_back(t) ;
+	    if(timePlane.back() < 0)
+		    timePlane.back() = 0 ;
+	    if(timePlane.back() >= tri[0]->timePlanes())
+		    timePlane.back() = tri[0]->timePlanes()-1 ;
+			layerTranslator[layers[j]] = j ;
+			values.push_back(std::vector<std::valarray<double> >(0));
 
-	    getField(TWFT_COORDINATE) ;
-	    getField(TWFT_DISPLACEMENTS) ;
+		}
+	    getField(TWFT_COORDINATE, false) ;
+	    getField(TWFT_DISPLACEMENTS, false) ;
 	}
 }
 
 void TriangleWriter::write()
 {
-
-	writeHeader(false) ;
+	
+	writeHeader(layers[0],false) ;
 	std::fstream outfile  ;
 	outfile.open(filename.c_str(), std::ios::out|std::ios::app) ;
-	for(int i = 0 ; i < nTriangles ; i++)
+	for(int i = 0 ; i < nTriangles[0] ; i++)
 	{
-		for(size_t j = 0 ; j < values.size() ; j++)
+		for(size_t j = 0 ; j < values[0].size() ; j++)
 		{
-			outfile << values[j][i] << " " ;
+			outfile << values[0][j][i] << " " ;
 		}
 		outfile << std::endl ;
 	}
 	outfile.close();
+	
+	std::string filename_orig = filename;
+	for(size_t k = 1 ; k < layers.size() ; k++)
+	{
+		writeHeader(layers[k], true) ;
+		outfile.open(filename_orig.c_str(), std::ios::out|std::ios::app) ;
+		for(int i = 0 ; i < nTriangles[k] ; i++)
+		{
+			for(size_t j = 0 ; j < values[k].size() ; j++)
+			{
+				outfile << values[k][j][i] << " " ;
+			}
+			outfile << std::endl ;
+		}
+		outfile.close();
+	}
 }
 
 void BinaryTriangleWriter::write()
@@ -94,21 +127,21 @@ void BinaryTriangleWriter::write()
 	writeHeader(false) ;
 
 	std::vector<std::valarray<unsigned char> > norm ;
-	std::valarray<bool> voids(false, values[0].size()) ;
-	for(size_t i = 6 ; i < values.size() ; i++)
+	std::valarray<bool> voids(false, values[0][0].size()) ;
+	for(size_t i = 6 ; i < values[0].size() ; i++)
 	{
-		std::valarray<unsigned char> n = normalizeArray(values[i], voids) ;
+		std::valarray<unsigned char> n = normalizeArray(values[0][i], voids) ;
 		norm.push_back(n) ;
 	}
 
 	std::fstream outbin ;
 	outbin.open(filename.c_str(), std::ios::out|std::ios::app) ;
-	for(int i = 0 ; i < nTriangles ; i++)
+	for(int i = 0 ; i < nTriangles[0] ; i++)
 	{
 		for(size_t j = 0 ; j < 6 ; j++)
-			outbin << values[j][i] << " " ;
+			outbin << values[0][j][i] << " " ;
 
-		for(size_t j = 6 ; j < values.size() ; j++)
+		for(size_t j = 6 ; j < values[0].size() ; j++)
 		{
 			unsigned char val = norm[j-6][i] ;
 			outbin << (unsigned short int) val << " " ;
@@ -121,18 +154,22 @@ void BinaryTriangleWriter::write()
 void TriangleWriter::append()
 {
 
-	writeHeader(true) ;
-	std::fstream outfile  ;
-	outfile.open(filename.c_str(), std::ios::out|std::ios::app) ;
-	for(int i = 0 ; i < nTriangles ; i++)
-	{
-		for(size_t j = 0 ; j < values.size() ; j++)
+	for(size_t k = 0 ; k < nTriangles.size() ; k++)
+	{	
+		writeHeader(true) ;
+		std::fstream outfile  ;
+		outfile.open(filename.c_str(), std::ios::out|std::ios::app) ;
+		for(int i = 0 ; i < nTriangles[k] ; i++)
 		{
-			outfile << values[j][i] << " " ;
+			for(size_t j = 0 ; j < values[k].size() ; j++)
+			{
+				outfile << values[k][j][i] << " " ;
+			}
+			outfile << std::endl ;
 		}
-		outfile << std::endl ;
+		outfile.close();
 	}
-	outfile.close();
+	
 }
 
 void BinaryTriangleWriter::append()
@@ -143,18 +180,18 @@ void BinaryTriangleWriter::append()
 	std::valarray<bool> voids(false, values[0].size()) ;
 	for(size_t i = 6 ; i < values.size() ; i++)
 	{
-		std::valarray<unsigned char> n = normalizeArray(values[i], voids) ;
+		std::valarray<unsigned char> n = normalizeArray(values[0][i], voids) ;
 		norm.push_back(n) ;
 	}
 
 	std::fstream outbin ;
 	outbin.open(filename.c_str(), std::ios::out|std::ios::app) ;
-	for(int i = 0 ; i < nTriangles ; i++)
+	for(int i = 0 ; i < nTriangles[0] ; i++)
 	{
 		for(size_t j = 0 ; j < 6 ; j++)
-			outbin << values[j][i] << " " ;
+			outbin << values[0][j][i] << " " ;
 
-		for(size_t j = 6 ; j < values.size() ; j++)
+		for(size_t j = 6 ; j < values[0].size() ; j++)
 		{
 			unsigned char val = norm[j-6][i] ;
 			outbin << (unsigned short int) val << " " ;
@@ -165,35 +202,38 @@ void BinaryTriangleWriter::append()
 }
 
 
-void TriangleWriter::getField(TWFieldType field)
+void TriangleWriter::getField(TWFieldType field, bool extra)
 {
-	std::vector<std::valarray<double> > val = getDoubleValues(field) ;
-	std::reverse(val.begin(),val.end());
-	values.insert( values.end(), val.begin(), val.end()) ;
+	for(size_t j = 0 ; j < layers.size() ; j++)
+	{
+		std::vector<std::valarray<double> > val = getDoubleValues(field, layers[j]) ;
+		std::reverse(val.begin(),val.end());
+		values[layerTranslator[layers[j]]].insert( values[layerTranslator[layers[j]]].end(), val.begin(), val.end()) ;
+	}
 
 }
 
-std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType field)
+std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType field, int layer)
 {
 	std::vector<std::valarray<double> > ret ;
 	int iterator = 0 ;
 	for(int i = 0 ; i < numberOfFields(field) ; i++)
 	{
-		std::valarray<double> reti(nTriangles) ;
+		std::valarray<double> reti(nTriangles[layerTranslator[layer]]) ;
 		ret.push_back(reti) ;
 	}
 	if(field == TWFT_STRAIN || field == TWFT_STRAIN_AND_STRESS || field == TWFT_STRESS)
 	{
 
-		std::pair<Vector, Vector> stress_strain = source->getStressAndStrain() ;
-		std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
+		std::pair<Vector, Vector> stress_strain = source->getStressAndStrainInLayer(layer) ;
+		std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer(layer) ;
 		int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
 		int pointsPerPlane = pointsPerTri / triangles[0]->timePlanes() ;
 		int factor = 1 ;
-		if(triangles[0]->getBoundingPoints().size() == 6)
+		if(triangles[0]->getBoundingPoints().size() % 6 == 0)
 			factor = 2 ;
 
-		int time_offset = timePlane * pointsPerTri / triangles[0]->timePlanes() ;
+		int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
 
 		switch(field)
 		{
@@ -354,8 +394,8 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 	{
 		if(field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX)
 		{
-			std::pair<Vector, Vector> gradient_flux = source->getGradientAndFlux() ;
-			std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
+			std::pair<Vector, Vector> gradient_flux = source->getGradientAndFluxInLayer(layer) ;
+			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer(layer) ;
 			switch(field)
 			{
 
@@ -478,17 +518,17 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 			if(field == TWFT_DISPLACEMENTS)
 			{
 				Vector x = source->getDisplacements() ;
-				std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
+				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer(layer) ;
 
 				int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
 				int factor = 1 ;
 				if(triangles[0]->getBoundingPoints().size() == 6)
 					factor = 2 ;
 
-				if(timePlane >= triangles[0]->timePlanes())
-					timePlane = triangles[0]->timePlanes()-1 ;
+				if(timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes())
+					timePlane[layerTranslator[layer]] = triangles[0]->timePlanes()-1 ;
 
-				int time_offset = timePlane * pointsPerTri / triangles[0]->timePlanes() ;
+				int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
 				std::cerr << time_offset << std::endl ;
 
 				for(int i = 0 ; i < triangles.size() ; i++)
@@ -519,7 +559,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 			}
 			else if(field == TWFT_DAMAGE)
 			{
-				std::vector<DelaunayTriangle *> triangles = source->getElements2D() ;
+				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer(layer) ;
 				Vector x(triangles.size()*3) ;
 				for(int i = 0 ; i < triangles.size() ; i++)
 				{
@@ -543,7 +583,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues(TWFieldType 
 			}
 			else
 			{
-				std::vector<DelaunayTriangle *> tri = source->getElements2D() ;
+				std::vector<DelaunayTriangle *> tri = source->getElements2DInLayer(layer) ;
 				for(size_t i = 0 ; i < tri.size() ; i++)
 				{
 					std::pair<bool, std::vector<double> > val = getDoubleValue(tri[i], field) ;
@@ -624,7 +664,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 				LinearForm * b = dynamic_cast<LinearForm *>(tri->getBehaviour()) ;
 				double t = 0 ;
 				if(tri->timePlanes() > 1)
-					t = -1 + timePlane * 2 / (tri->timePlanes()-1) ;
+					t = -1 + timePlane[0] * 2 / (tri->timePlanes()-1) ;
 
 				if(b)
 				{
@@ -651,31 +691,28 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue(DelaunayTri
 
 }
 
-void TriangleWriter::writeHeader(bool append)
+void TriangleWriter::writeHeader(int layer, bool append)
 {
 	std::fstream outstream ;
-	outstream.open(filename.c_str(), std::ios::out|std::ios::app) ;
-	if(!append)
-	{
-		outstream.close() ;
+	if(append)
+		outstream.open(filename.c_str(), std::ios::out|std::ios::app) ;
+	else
 		outstream.open(filename.c_str(), std::ios::out) ;
-	}
+
 	outstream << "TRIANGLES" << std::endl ;
-	outstream << (int) values[0].size() << std::endl ;
+	outstream << (int) nTriangles[layerTranslator[layer]] << std::endl ;
 	outstream << 3 << std::endl ;
-	outstream << ((int) values.size()-6)/3 << std::endl ;
+	outstream << ((int) values[layerTranslator[layer]].size()-6)/3 << std::endl ;
 	outstream.close() ;
 }
 
 void BinaryTriangleWriter::writeHeader(bool append)
 {
 	std::fstream outstream ;
-	outstream.open(filename.c_str(), std::ios::out|std::ios::app) ;
-	if(!append)
-	{
-		outstream.close() ;
+	if(append)
+		outstream.open(filename.c_str(), std::ios::out|std::ios::app) ;
+	else
 		outstream.open(filename.c_str(), std::ios::out) ;
-	}
 	outstream << "BIN_TRIANGLES" << std::endl ;
 	outstream << (int) values[0].size() << std::endl ;
 	outstream << 3 << std::endl ;

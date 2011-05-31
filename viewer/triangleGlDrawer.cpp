@@ -276,11 +276,15 @@ void TriangleGLDrawer::grab()
  
  void TriangleGLDrawer::computeDisplayList() {
 	
-	 float max_x = (*valuesAtPoint)[0][0] ;
-	 float min_x = (*valuesAtPoint)[0][0] ; 
-	 float max_y = (*valuesAtPoint)[1][0] ;
-	 float min_y = (*valuesAtPoint)[1][0] ;
-
+	if(!minmaxinit)
+	{
+		max_x = (*valuesAtPoint)[0][0] ;
+		min_x = (*valuesAtPoint)[0][0] ; 
+		max_y = (*valuesAtPoint)[1][0] ;
+		min_y = (*valuesAtPoint)[1][0] ;
+		minmaxinit = true ;
+	}
+	
 	 for(size_t i =0 ; i< numberOfTriangles ; i++)
 	 {
 	   for(size_t j = 0 ; j < numberOfPointsPerTriangle ; j++)
@@ -517,9 +521,15 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 	
 	scale = 1 ;
 	
+	minmaxinit = false ;
+	
+
+	
 }
 
 TriangleGLDrawer::TriangleGLDrawer(QWidget *parent) : QGLWidget(parent) {
+	
+	minmaxinit = false ;
 	
 	valuesAtPoint = new std::vector< std::valarray<float> >(0) ;
 	reader = NULL ;

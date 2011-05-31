@@ -1493,7 +1493,7 @@ int main(int argc, char *argv[])
 	double compressionCrit = -37.0e6 ; 
 	double tensionCrit = .33*sqrt(-compressionCrit)*1000 ;// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*(rebarDiametre*rebarDiametre)/(.4*rebarDiametre) ; 
-	double mradius = .03 ; // .015
+	double mradius = .015 ; // .015
 	double nradius = .2 ;
 	
 	Matrix m0_steel(3,3) ;

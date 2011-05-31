@@ -333,16 +333,24 @@ public:
 	void printForFeature(const Feature *f) const;
 	void reMesh() ;
 	
+	bool hasLayers() const 
+	{
+		return layer2d.size() || layer3d.size() ;
+	}
+	std::vector<int> listLayers() const ;
+	
 	Point * checkElement( const DelaunayTetrahedron * t ) const;
 	Point * checkElement( const DelaunayTriangle * t ) const ;
 	Feature * getFeatForTetra( const DelaunayTetrahedron * t ) const;
 
 	
 	std::vector<DelaunayTriangle *> getElements2D(int g = -1) ;
+	std::vector<DelaunayTriangle *> getElements2DInLayer(int l = -1) ;
 	std::vector<DelaunayTriangle *> getElements2D(const Point *p, int g = -1) ;
 	std::vector<DelaunayTriangle *> getElements2D(const Geometry *p, int g = -1) ;
 	
 	std::vector<DelaunayTetrahedron *> getElements3D(int g = -1) ;
+	std::vector<DelaunayTetrahedron *> getElements3DInLayer(int l = -1) ;
 	std::vector<DelaunayTetrahedron *> getElements3D(const Point *p, int g = -1) ;
 	std::vector<DelaunayTetrahedron *> getElements3D(const Geometry *p, int g = -1) ;
 	
@@ -494,9 +502,11 @@ public:
 
 /** \brief Return the temperature/concentration gradient and the flux of a vector of Tetrahedrons*/
 	std::pair<Vector , Vector > getGradientAndFlux(int grid = -1) ;
+	std::pair<Vector , Vector > getGradientAndFluxInLayer(int layer) ;
 
 /** \brief Return the stress and strain of the elements of the current mesh*/
 	std::pair<Vector , Vector > getStressAndStrain(int grid = -1) ;
+	std::pair<Vector , Vector > getStressAndStrainInLayer(int layer) ;
 	
 	size_t numPoints() const ;
 	

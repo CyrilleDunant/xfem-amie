@@ -77,6 +77,36 @@ std::vector<DelaunayTriangle *> FeatureTree::getElements2D( int g )
 	return std::vector<DelaunayTriangle *>() ;
 }
 
+std::vector<DelaunayTriangle *> FeatureTree::getElements2DInLayer( int l )
+{
+	if(l == -1)
+		return getElements2D() ;
+	
+	state.setStateTo( MESHED, false ) ;
+
+	if( is2D() && layer2d.find(l) != layer2d.end())
+	{
+			return layer2d[l]->getElements() ;
+	}
+
+	return std::vector<DelaunayTriangle *>() ;
+}
+
+std::vector<DelaunayTetrahedron *> FeatureTree::getElements3DInLayer( int l )
+{
+	if(l == -1)
+		return getElements3D() ;
+	
+	state.setStateTo( MESHED, false ) ;
+
+	if( is3D() && layer3d.find(l) != layer3d.end())
+	{
+			return layer3d[l]->getElements() ;
+	}
+
+	return std::vector<DelaunayTetrahedron *>() ;
+}
+
 std::vector<DelaunayTriangle *> FeatureTree::getElements2D( const Point *p, int g )
 {
 	state.setStateTo( MESHED, false ) ;
@@ -3275,6 +3305,92 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g )
 	}
 }
 
+
+std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g )
+{
+	state.setStateTo( XFEM_STEPPED, false ) ;
+
+	if( dtree != NULL )
+	{
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		if(g != -1 && layer2d.find(g) != layer2d.end())
+			elements = layer2d[g]->getElements() ;
+
+		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
+		int donecomputed = 0 ;
+		#pragma omp parallel for shared(donecomputed)
+
+		for( size_t i  = 0 ; i < elements.size() ; i++ )
+		{
+			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			{
+// 				std::valarray<Point *> pts(3) ;
+// 				pts[0] =  elements[i]->first ;
+// 				pts[1] =  elements[i]->second ;
+// 				pts[2] =  elements[i]->third ;
+
+				std::pair<Vector , Vector > str = elements[i]->getState().getStressAndStrain( elements[i]->getBoundingPoints() ) ;
+
+				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
+				{
+					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.first[j] ;
+					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.second[j] ;
+				}
+
+				if( donecomputed % 10000 == 0 )
+					std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << elements.size() << std::flush ;
+			}
+
+			donecomputed++ ;
+		}
+
+		std::cerr << " ...done." << std::endl ;
+		return stress_strain ;
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
+
+		if(g != -1 && layer3d.find(g) != layer3d.end())
+			tets = layer3d[g]->getElements() ;
+
+		std::pair<Vector , Vector > stress_strain( Vector( 0.f, 4 * 6 * tets.size() ), Vector( 0.f, 4 * 6 * tets.size() ) ) ;
+		int donecomputed = 0 ;
+
+		#pragma omp parallel for shared(donecomputed)
+
+		for( size_t i  = 0 ; i < tets.size() ; i++ )
+		{
+			if( tets[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			{
+				std::valarray<Point *> pts( 4 ) ;
+				pts[0] =  tets[i]->first ;
+				pts[1] =  tets[i]->second ;
+				pts[2] =  tets[i]->third ;
+				pts[3] =  tets[i]->fourth ;
+
+				std::pair<Vector , Vector > str = tets[i]->getState().getStressAndStrain( pts ) ;
+
+				for( size_t j = 0 ; j < 24 ; j++ )
+				{
+					stress_strain.first[i * 4 * 6 + j] = str.first[j] ;
+					stress_strain.second[i * 4 * 6 + j] = str.second[j] ;
+				}
+			}
+
+			if( donecomputed % 1000 == 0 )
+				std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << tets.size() << std::flush ;
+
+			donecomputed++ ;
+		}
+
+		std::cerr << " ...done." << std::endl ;
+		return stress_strain ;
+	}
+}
+
+
+
 std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g )
 {
 	state.setStateTo( XFEM_STEPPED, false ) ;
@@ -3349,6 +3465,99 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g )
 		return grad_flux ;
 	}
 }
+
+
+std::vector<int>FeatureTree:: listLayers() const
+{
+	std::vector<int> ret ;
+	ret.push_back(-1);
+	if(is2D())
+	{
+		for(auto i = layer2d.begin() ; i!= layer2d.end() ; ++i)
+			ret.push_back(i->first);
+	}
+	else
+	{
+		for(auto i = layer3d.begin() ; i!= layer3d.end() ; ++i)
+			ret.push_back(i->first);
+	}
+	
+	return ret ;
+}
+
+std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g )
+{
+	state.setStateTo( XFEM_STEPPED, false ) ;
+
+	if( dtree != NULL )
+	{
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+
+
+		if( g != -1 && layer2d.find(g) != layer2d.end() )
+			elements = layer2d[g]->getElements() ;
+
+
+		std::pair<Vector , Vector > grad_flux( Vector( 0., elements[0]->getBoundingPoints().size() * 2 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 2 * elements.size() ) ) ;
+
+		for( size_t i  = 0 ; i < elements.size() ; i++ )
+		{
+			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			{
+// 				std::valarray<Point *> pts(3) ;
+// 				pts[0] =  elements[i]->first ;
+// 				pts[1] =  elements[i]->second ;
+// 				pts[2] =  elements[i]->third ;
+
+				std::pair<Vector, Vector> grflx = elements[i]->getState().getGradientAndFlux( elements[i]->getBoundingPoints() ) ;
+
+				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 2 ; j++ )
+				{
+					grad_flux.first[i * elements[0]->getBoundingPoints().size() * 2 + j] = grflx.first[j] ;
+					grad_flux.second[i * elements[0]->getBoundingPoints().size() * 2 + j] = grflx.second[j] ;
+				}
+
+				if( i % 1000 == 0 )
+					std::cerr << "\r computing gradient+flux... element " << i + 1 << "/" << elements.size() << std::flush ;
+			}
+		}
+
+		std::cerr << " ...done." << std::endl ;
+		return grad_flux ;
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
+
+		if( g != -1 && layer3d.find(g) != layer3d.end() )
+			tets = layer3d[g]->getElements() ;
+
+		size_t npoints = tets[0]->getBoundingPoints().size() ;
+		std::pair<Vector , Vector > grad_flux( Vector( 0.f, npoints * 3 * tets.size() ), Vector( 0.f, npoints * 3 * tets.size() ) ) ;
+
+		for( size_t i  = 0 ; i < tets.size() ; i++ )
+		{
+
+			std::pair<Vector, Vector> grflx = tets[i]->getState().getGradientAndFlux( tets[i]->getBoundingPoints() ) ;
+
+			for( size_t j = 0 ; j < npoints * 3 ; j++ )
+			{
+				grad_flux.first[i * npoints * 3 + j] = grflx.first[j] ;
+				grad_flux.second[i * npoints * 3 + j] = grflx.second[j] ;
+			}
+
+			if( i % 1000 == 0 )
+				std::cerr << "\r computing gradient+flux... element " << i + 1 << "/" << tets.size() << std::flush ;
+
+//				std::cout << grflx.first.size() << std::endl ;
+		}
+
+		std::cerr << " ...done." << std::endl ;
+		return grad_flux ;
+	}
+}
+
+
 
 std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<DelaunayTetrahedron *> & tets )
 {
