@@ -158,7 +158,8 @@ void MainWindow::open()
 			triangledisplay->ytransleft = ypos ;
 			
 			setCentralWidget(triangledisplay);
-			setWindowTitle(fileName);
+			QFileInfo pathInfo( fileName );
+			setWindowTitle(pathInfo.fileName());
 			triangledisplay->fileName = fileName ;
 			connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
 			connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
@@ -182,11 +183,16 @@ void MainWindow::open()
 			triangledisplay->setZoom(zoomval) ;
 			
 			alpha->setValue(0) ;
+			alpha->setRange(-1, 1000);
+			
 			downSlider->setRange(0, 9999);
 			downSlider->setValue(0) ;
 			
 			field->setValue(1) ;
-			field->setRange(0, 1000);
+			field->setRange(-1, 1000);
+			
+			time->setValue(0) ;
+			time->setRange(-1, 1000) ;
 
 			upSlider->setRange(1, 10000);
 			upSlider->setValue(10000) ;
@@ -200,7 +206,8 @@ void MainWindow::open()
 			voxeldisplay = new VoxelGLDrawer(fileName, this) ;
 			triangledisplay = NULL ;
 			setCentralWidget(voxeldisplay);
-			setWindowTitle(fileName);
+			QFileInfo pathInfo( fileName );
+			setWindowTitle(pathInfo.fileName());
 			
 			connect(printButton, SIGNAL(released()), voxeldisplay, SLOT(grab()));
 			
@@ -235,7 +242,8 @@ void MainWindow::open(const QString &fileName)
 			voxeldisplay = NULL ;
 			std::vector<std::pair<float, float> > limits ;
 			triangledisplay = new TriangleGLDrawer(fileName, limits) ;
-			setWindowTitle(fileName);
+			QFileInfo pathInfo( fileName );
+			setWindowTitle(pathInfo.fileName());
 			connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
 			connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
 			
@@ -255,7 +263,13 @@ void MainWindow::open(const QString &fileName)
 			downSlider->setValue(0) ;
 			
 			field->setValue(1) ;
-			field->setRange(0, 1000);
+			field->setRange(-1, 1000);
+			
+			alpha->setValue(0) ;
+			alpha->setRange(-1, 1000);
+			
+			time->setValue(0) ;
+			time->setRange(-1, 1000) ;
 
 			upSlider->setRange(1, 10000);
 			upSlider->setValue(10000) ;
@@ -267,7 +281,8 @@ void MainWindow::open(const QString &fileName)
 			voxeldisplay = new VoxelGLDrawer(fileName) ;
 			triangledisplay = NULL ;
 			setCentralWidget(voxeldisplay);
-			setWindowTitle(fileName);
+			QFileInfo pathInfo( fileName );
+			setWindowTitle(pathInfo.fileName());
 			connect(zoom, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setZoom(int)));
 			connect(voxeldisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
 			
