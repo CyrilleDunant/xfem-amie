@@ -117,7 +117,6 @@ namespace Mu
 				
 		virtual Material toMaterial() ;
 		
-		virtual void scale(double f) ;
 		
 	} ;
 	

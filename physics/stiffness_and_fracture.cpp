@@ -96,6 +96,7 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 	dfunc->step(currentState) ;
 	change = dfunc->changed() ;
 	currentState.getParent()->behaviourUpdated = change ;
+	
 	if(change)
 	{
 		
@@ -108,7 +109,6 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 		damage.resize(d.size()) ;
 		damage = d ;
 	}
-
 }
 
 void StiffnessAndFracture::artificialDamageStep(double d)
@@ -193,10 +193,5 @@ Material StiffnessAndFracture::toMaterial()
 	return mat ;
 }
 
-void StiffnessAndFracture::scale(double f)
-{
-	criterion->scale(f);
-	param *= f ;
-}
 
 

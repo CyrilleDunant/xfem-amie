@@ -22,7 +22,6 @@ namespace Mu
 
 	void DamageModel::step(ElementState & s )
 	{
-		
 		double phi = (1. + sqrt(5.)) *.5 ;
 		double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
@@ -41,16 +40,16 @@ namespace Mu
 		}
 		
 		change = false ;
-		
 		if(wasBroken)
 		{
 			converged = true ;
 			return ;
 		}
-		
 		double setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange(s) ;
 		double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
-		if(!s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+		bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
+		
+		if(!isInDamagingSet)
 		{
 			s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint(false);
 			converged = true ;
@@ -128,9 +127,11 @@ namespace Mu
 				wasBroken = true ;
 				converged = true ;
 			}
+			
 		}
 		else if(!converged)
 		{
+			
 			change = true ;
 
 			states.push_back(PointState(s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio, score)) ;
@@ -259,7 +260,6 @@ namespace Mu
 					
 				}
 			}
-
 			RangeState bestRange =  bestRangeNonMet;
 			double zeroloc = bestRangeZero.zeroLocation() ;
 			double equilibriumloc = bestRangeNonMet.equilibriumLocation() ;
@@ -312,7 +312,7 @@ namespace Mu
 		// the correct distribution of damage: the effect
 		// of damage increment on the distribution of
 		// fracture criterion scores is non-monotonic.
-		explorationIncrement = 0.05;
+		explorationIncrement = 0.01;
 		damageDensityTolerance = 0.5e-3;
 	} ;
 	

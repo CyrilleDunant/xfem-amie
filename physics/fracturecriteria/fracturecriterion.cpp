@@ -890,6 +890,9 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 				}
 			}
 		}
+		
+		if(cache.empty())
+			cache.push_back(testedTri->index);
 	}
 	else if(testedTet)
 	{
@@ -936,6 +939,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 				}
 			}
 		}
+		if(cache.empty())
+			cache.push_back(testedTet->index);
 	}
 	
 	std::sort(cache.begin(), cache.end()) ;
@@ -1265,20 +1270,23 @@ double FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 			
-			double thresholdScore = sortedElements.rbegin()->first ;
-			double minscore = thresholdScore ;	
-			// the scores are local: they give the order of the element damaging
-			// the met() is non-local, it determines whether an element can in
-			// fact be damaged.
-			for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
-			{
-				if(std::abs(i->first-thresholdScore) < 2.*scoreTolerance )
+			double thresholdScore = 0 ;
+			if(!sortedElements.empty())
+				thresholdScore = sortedElements.rbegin()->first ;
+			double minscore = thresholdScore ;
+			
+			if(!sortedElements.empty())
 				{
-					newSet.push_back(i->second->index);
-					minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
+				{
+					if(std::abs(i->first-thresholdScore) < 2.*scoreTolerance )
+					{
+						newSet.push_back(i->second->index);
+						minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+					}
+					else
+						break ;
 				}
-				else
-					break ;
 			}
 			if(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState -minscore) >= scoreTolerance)
 			{
@@ -1286,7 +1294,8 @@ double FractureCriterion::setChange(const ElementState &s)
 				return 0 ;
 			}
 			inset = true ;
-			std::stable_sort(newSet.begin(), newSet.end());
+			if(!newSet.empty())
+				std::stable_sort(newSet.begin(), newSet.end());
 			damagingSet = newSet ;
 			
 			std::set<unsigned int> newProximity ;

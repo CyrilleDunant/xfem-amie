@@ -52,7 +52,7 @@ namespace Mu
 			{
 				std::set<ETYPE *> to_test ;
 				std::set<ETYPE *> found ;
-				
+				found.insert(start) ;
 				for(size_t i = 0 ; i < start->neighbourhood.size() ; i++)
 				{
 					if(g->in(start->getNeighbourhood(i)->getCenter()) || start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )

@@ -1489,11 +1489,11 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-
+	omp_set_num_threads(8) ;
 	double compressionCrit = -37.0e6 ; 
 	double tensionCrit = .33*sqrt(-compressionCrit)*1000 ;// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*(rebarDiametre*rebarDiametre)/(.4*rebarDiametre) ; 
-	double mradius = .04 ; // .015
+	double mradius = .001 ; // .015
 	double nradius = mradius*4 ;
 	
 	Matrix m0_steel(3,3) ;

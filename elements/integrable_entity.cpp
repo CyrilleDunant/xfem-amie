@@ -640,17 +640,20 @@ FunctionMatrix ElementState::getDisplacementFunction() const
 
 Vector &ElementState::getPrincipalStrainAtNodes()
 {
-	if( strainAtNodes.size() == 0 )
+	#pragma omp critical
 	{
-		strainAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-
-		for( size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++ )
+		if( strainAtNodes.size() == 0 )
 		{
-			Vector strain  = getPrincipalStrains( parent->getBoundingPoint( i ), false ) ;
+			strainAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
 
-			for( size_t j = 0 ; j <  parent->spaceDimensions() ; j++ )
+			for( size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++ )
 			{
-				strainAtNodes[i * parent->spaceDimensions() + j] = strain[j] ;
+				Vector strain  = getPrincipalStrains( parent->getBoundingPoint( i ), false ) ;
+
+				for( size_t j = 0 ; j <  parent->spaceDimensions() ; j++ )
+				{
+					strainAtNodes[i * parent->spaceDimensions() + j] = strain[j] ;
+				}
 			}
 		}
 	}
@@ -661,21 +664,23 @@ Vector &ElementState::getPrincipalStrainAtNodes()
 
 Vector &ElementState::getPrincipalStressAtNodes()
 {
-	if( stressAtNodes.size() == 0 )
+	#pragma omp critical
 	{
-		stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-
-		for( size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++ )
+		if( stressAtNodes.size() == 0 )
 		{
-			Vector stress  = getPrincipalStresses( parent->getBoundingPoint( i ), false ) ;
+			stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
 
-			for( size_t j = 0 ; j < parent->spaceDimensions() ; j++ )
+			for( size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++ )
 			{
-				stressAtNodes[i * parent->spaceDimensions() + j] = stress[j] ;
+				Vector stress  = getPrincipalStresses( parent->getBoundingPoint( i ), false ) ;
+
+				for( size_t j = 0 ; j < parent->spaceDimensions() ; j++ )
+				{
+					stressAtNodes[i * parent->spaceDimensions() + j] = stress[j] ;
+				}
 			}
 		}
 	}
-
 	return stressAtNodes ;
 
 }
@@ -5339,30 +5344,32 @@ Vector ElementState::getPreviousPrincipalStresses( const Point &p, bool local ) 
 
 Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 {
+
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		Vector stresses = getStress( p, local ) ;
-
-		if( parent->getBehaviour()->hasInducedForces() )
-			stresses -= parent->getBehaviour()->getImposedStress( p ) ;
-
 		Vector lprincipal( 2 ) ;
-		lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
-		                0.5 * sqrt(
-		                    ( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
-		                    ( stresses[2] * stresses[2] )
-		                ) ;
-		lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
-		                0.5 * sqrt(
-		                    ( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
-		                    ( stresses[2] * stresses[2] )
-		                ) ;
+			Vector stresses = getStress( p, local ) ;
 
+			if( parent->getBehaviour()->hasInducedForces() )
+				stresses -= parent->getBehaviour()->getImposedStress( p ) ;
+
+			
+			lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
+											0.5 * sqrt(
+													( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+													( stresses[2] * stresses[2] )
+											) ;
+			lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
+											0.5 * sqrt(
+													( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+													( stresses[2] * stresses[2] )
+											) ;
 
 		return lprincipal ;
 	}
 	else
 	{
+		Vector lprincipal( 3 ) ;
 		Matrix stresses = getStressMatrix( p, local ) ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
@@ -5380,7 +5387,7 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 		if( phi < 0 )
 			phi += M_PI ;
 
-		Vector lprincipal( 3 ) ;
+		
 		lprincipal[0] = m + 2.*sqrt( r ) * cos( phi ) ;
 		lprincipal[1] = m - sqrt( r ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
 		lprincipal[2] = m - sqrt( r ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
@@ -5390,13 +5397,15 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 
 Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 {
+
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
+		Vector lprincipal( 2 ) ;
 		Vector strains = getStrain( p, local ) ;
 
 // 		if(parent->getBehaviour()->hasInducedForces())
 // 			strains -= parent->getBehaviour()->getImposedStrains(p) ;
-		Vector lprincipal( 2 ) ;
+		
 		lprincipal[0] = ( strains[0] + strains[1] ) * .5 +
 		                0.5 * sqrt(
 		                    ( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
@@ -5408,11 +5417,11 @@ Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 		                    ( strains[2] * strains[2] )
 		                ) ;
 
-
 		return lprincipal ;
 	}
 	else
 	{
+		Vector lprincipal( 3 ) ;
 		Matrix strains = getStrainMatrix( p, local ) ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
@@ -5430,7 +5439,7 @@ Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 		if( phi < 0 )
 			phi += M_PI ;
 
-		Vector lprincipal( 3 ) ;
+		
 		lprincipal[0] = m + 2.*sqrt( r ) * cos( phi ) ;
 		lprincipal[1] = m - sqrt( r ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
 		lprincipal[2] = m - sqrt( r ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;

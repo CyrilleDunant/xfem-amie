@@ -457,8 +457,9 @@ void step()
 	// 		std::cout << filename.str() << std::endl ;
 
 			TriangleWriter writer(filename.str(), featureTree) ;
-			writer.getField(TWFT_STRAIN_AND_STRESS) ;
-			writer.getField(TWFT_VON_MISES) ;
+			writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
+			writer.getField(TWFT_CRITERION) ;
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.getField(TWFT_DAMAGE) ;
 			writer.write() ;
@@ -1380,8 +1381,8 @@ int main(int argc, char *argv[])
 	double tensionCrit = 1.7e6 ; //.33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.15 ; //0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .025 ; // .015
-	double nradius = .2 ;
+	double mradius = .05 ; // .015
+	double nradius = mradius*4 ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;

@@ -4243,6 +4243,7 @@ void FeatureTree::stepElements()
 
 			if( !elastic )
 			{
+#pragma openmp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4251,7 +4252,8 @@ void FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 				}
-
+				
+#pragma openmp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4263,6 +4265,7 @@ void FeatureTree::stepElements()
 
 				std::cerr << " ...done. " << std::endl ;
 
+#pragma openmp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 
@@ -4284,9 +4287,7 @@ void FeatureTree::stepElements()
 							else
 								averageDamage += are ;
 						}
-
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
-
 						if( elements[i]->getBehaviour()->changed() )
 						{
 							needAssembly = true ;
@@ -5335,10 +5336,6 @@ void FeatureTree::generateElements()
 
 				for( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
 				{
-					if(i == 0)
-					{
-						potentialChildren[k]->print() ;
-					}
 					if(
 					    (
 					        !potentialChildren[k]->isVirtualFeature

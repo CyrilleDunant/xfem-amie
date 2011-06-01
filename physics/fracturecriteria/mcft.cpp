@@ -128,6 +128,11 @@ double NonLocalMCFT::grade( ElementState &s )
 	
 	Vector pstrain(smoothedPrincipalStrain(s)) ;
 	Vector pstress(smoothedPrincipalStress(s)) ;
+	
+// 	Vector pstrain0 = s.getPrincipalStrains( s.getParent()->getCenter() ) ;
+// 	Vector pstress0 = s.getPrincipalStresses( s.getParent()->getCenter() ) ;
+// 	
+// 	std::cout << pstrain0.size() - pstrain.size() << "  " << pstress0.size() - pstress.size() << "  " << std::abs(pstrain0/pstrain-1).max() << "  " << std::abs(pstress0/pstress-1).max() << std::endl ;
 
 	double tstrain = pstrain.max();
 // 	std::cout << tstrain << " vs "<< s.getPrincipalStrains(s.getParent()->getCenter()).max() << std::endl ;
