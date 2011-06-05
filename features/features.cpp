@@ -4228,7 +4228,7 @@ void FeatureTree::stepElements()
 			//the behaviour updates might depend on the global state of the
 			//simulation.
 			std::cerr << " stepping through elements... " << std::flush ;
-
+#pragma openmp parallel for
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
@@ -4244,7 +4244,7 @@ void FeatureTree::stepElements()
 
 			if( !elastic )
 			{
-#pragma openmp parallel for
+
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4280,7 +4280,7 @@ void FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						volume += are ;
-
+						std::cerr << "a" << std::flush ;
 						if( elements[i]->getBehaviour()->getDamageModel() )
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
@@ -4289,13 +4289,14 @@ void FeatureTree::stepElements()
 								averageDamage += are ;
 						}
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
+						std::cerr << "b" << std::flush ;
 						if( elements[i]->getBehaviour()->changed() )
 						{
 							needAssembly = true ;
 							behaviourChange = true ;
 							ccount++ ;
 						}
-
+						std::cerr << "c" << std::flush ;
 						if( elements[i]->getBehaviour()->fractured() )
 						{
 							fracturedCount++ ;
@@ -4305,6 +4306,7 @@ void FeatureTree::stepElements()
 						{
 							damagedVolume += are ;
 						}
+						std::cerr << "d" << std::flush ;
 					}
 					else if( elements[i]->getBehaviour()->fractured() )
 					{

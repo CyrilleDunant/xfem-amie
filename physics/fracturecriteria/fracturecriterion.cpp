@@ -567,7 +567,6 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 	return str ;
 }
 
-
 double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 {
 	Assembly K ;
@@ -1282,7 +1281,7 @@ double FractureCriterion::setChange(const ElementState &s)
 			double minscore = thresholdScore ;
 			
 			if(!sortedElements.empty())
-				{
+			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
 					if(std::abs(i->first-thresholdScore) < 2.*scoreTolerance )
@@ -1305,33 +1304,48 @@ double FractureCriterion::setChange(const ElementState &s)
 			damagingSet = newSet ;
 			
 			std::set<unsigned int> newProximity ;
-			for(size_t i = 0 ; i < newSet.size() ; i++)
+// 			for(size_t i = 0 ; i < newSet.size() ; i++)
+// 			{
+// 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[newSet[i]]) ;
+// 				for(size_t j = 0 ; j < ci->neighbourhood.size() ; j++)
+// 				{
+// 					if(ci->getNeighbourhood(j)->getBehaviour() 
+// 					&& ci->getNeighbourhood(j)->getBehaviour()->getFractureCriterion() 
+// 					&& !std::binary_search(newSet.begin(), newSet.end(),ci->neighbourhood[j]))
+// 						newProximity.insert(ci->neighbourhood[j]) ;
+// 				}
+// 			}
+// 			if(newProximity.empty())
+// 			{
+// 				std::cout << "element too small!" << std::endl ;
+// 				DelaunayTriangle * ci = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
+// 				for(size_t i = 0 ; i < ci->neighbour.size() ; i++)
+// 				{
+// 					if(ci->getNeighbour(i)->isTriangle && static_cast<DelaunayTriangle *>(ci->getNeighbour(i))->getBehaviour()->getFractureCriterion())
+// 						newProximity.insert(ci->neighbour[i]);
+// 				}
+// 			}
+			
+			if(!sortedElements.empty())
 			{
-				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[newSet[i]]) ;
-				for(size_t j = 0 ; j < ci->neighbourhood.size() ; j++)
+				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(ci->getNeighbourhood(j)->getBehaviour() 
-					&& ci->getNeighbourhood(j)->getBehaviour()->getFractureCriterion() 
-					&& !std::binary_search(newSet.begin(), newSet.end(),ci->neighbourhood[j]))
-						newProximity.insert(ci->neighbourhood[j]) ;
+					if(std::abs(i->first-thresholdScore) < 2.*scoreTolerance )
+					{
+						continue ;
+					}
+					else
+						newProximity.insert(i->second->index) ;
 				}
 			}
-			if(newProximity.empty())
-			{
-				std::cout << "element too small!" << std::endl ;
-				DelaunayTriangle * ci = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
-				for(size_t i = 0 ; i < ci->neighbour.size() ; i++)
-				{
-					if(ci->getNeighbour(i)->isTriangle && static_cast<DelaunayTriangle *>(ci->getNeighbour(i))->getBehaviour()->getFractureCriterion())
-						newProximity.insert(ci->neighbour[i]);
-				}
-			}
+			
 			proximitySet.clear() ;
 			proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
 			
 			double maxscore = 0 ;
 
-			maxscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState;
+			if(!proximitySet.empty())
+				maxscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState;
 			for(size_t i = 1 ; i < proximitySet.size() ; i++)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]]) ;
