@@ -1378,11 +1378,11 @@ int main(int argc, char *argv[])
 {
 
 	double compressionCrit = -37.5e6 ; 
-	double tensionCrit = 1.7e6 ; //.33*1000*sqrt(-compressionCrit) ;
+	double tensionCrit = 1.8*.33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.15 ; //0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
 	double mradius = .05 ; // .015
-	double nradius = mradius*4 ;
+	double nradius = std::max(mradius*4, .5) ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;

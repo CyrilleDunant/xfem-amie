@@ -40,16 +40,16 @@ public:
 	/**
 	* \brief reset the seed based on machine time
 	*/
-	virtual void reset() { std::cout << "caca!" << std::endl ; std::srand((unsigned) time(0)) ; } ;
+	virtual void reset() { exit(0) ; std::cout << "caca!" << std::endl ; std::srand((unsigned) time(0)) ; } ;
 	/**
 	* \brief reset the seed according to an arbitrary number
 	*/
-	virtual void reset(int seed) { std::srand(seed) ; } ;
+	virtual void reset(int seed) {  exit(0) ; std::srand(seed) ; } ;
 
 	/**
 	* @return a double between 0 and 1 chosen from an uniform distribution
 	*/
-	virtual double uniform() {return (double) std::rand() / (double) RAND_MAX ; } ;
+	virtual double uniform() {return (double) rand() / (double) RAND_MAX ; } ;
 	/**
 	* @return a double between 0 and a chosen from an uniform distribution
 	*/

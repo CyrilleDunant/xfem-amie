@@ -2655,7 +2655,6 @@ void FeatureTree::setElementBehaviours()
 				if( !tris[j]->getBehaviour() )
 				{
 					tris[j]->setBehaviour( bf.first ) ;
-					
 				}
 				
 				if(tris[j]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -2780,7 +2779,9 @@ void FeatureTree::setElementBehaviours()
 			std::cerr << " ...done" << std::endl ;
 		}
 		for(auto j = rescaleFactors.begin() ; j != rescaleFactors.end() ; j++)
+		{
 			j->first->getBehaviour()->scale(1.-j->second) ;
+		}
 
 
 		std::cerr << " ...done" << std::endl ;

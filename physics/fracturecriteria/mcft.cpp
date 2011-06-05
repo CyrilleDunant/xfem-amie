@@ -151,7 +151,7 @@ double NonLocalMCFT::grade( ElementState &s )
 
 	double maxTension = upVal ;
 
-	maxTension = upVal / ( 1. + sqrt( 500.*tstrain ) ) ;
+	maxTension = upVal / ( 1. + sqrt( 200.*tstrain ) ) ;
 
 	metInCompression = cstrain <= 0 && std::abs( cstress / maxCompression ) > std::abs( tstress / maxTension ) || tstrain <= 0;
 	metInTension = tstrain >= 0 && std::abs( cstress / maxCompression ) < std::abs( tstress / maxTension ) || cstrain >= 0;
