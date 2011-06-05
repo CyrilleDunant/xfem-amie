@@ -4275,8 +4275,6 @@ void FeatureTree::stepElements()
 					if( i % 10000 == 0 )
 						std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
 
-
-
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						volume += are ;

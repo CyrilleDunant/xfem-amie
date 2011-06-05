@@ -45,10 +45,13 @@ namespace Mu
 			converged = true ;
 			return ;
 		}
+		std::cerr << "\n h" << std::flush ;
 		double setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange(s) ;
+		std::cerr << "\n i" << std::flush ;
 		double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
+		std::cerr << "\n j" << std::flush ;
 		bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
-		
+		std::cerr << "\n k" << std::flush ;
 		if(!isInDamagingSet)
 		{
 			s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint(false);
