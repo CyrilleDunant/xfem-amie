@@ -109,7 +109,7 @@ double E_max = 0;
 double x_max = 0 ;
 double y_max = 0 ;
 double disp = 0 ;
-BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
+BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, disp) ;
 double width = 30;
 double height = 30;
 Sample sample(NULL, width , height, 0, 0) ;
@@ -390,11 +390,11 @@ void step()
 
 		go = featureTree->step() ;
 
-// 		if(go)
-// 		{
-// 			imposeddisp->setData(imposeddisp->getData()+.1);
-// 			go = true ;
-// 		}
+		if(go)
+		{
+			imposeddisp->setData(imposeddisp->getData()-.1);
+			go = true ;
+		}
 		double da = 0 ;
 		
 		triangles = featureTree->getElements2D(grid) ;
@@ -635,38 +635,38 @@ void step()
 		writer.getField(TWFT_DAMAGE) ;
 		writer.write() ;
 		
-		if(true)
-		{
-			
-			for(double k = 0 ; k < 8 ; k += 8./800)
-			{
-				for(double l = -4 ; l < 4 ; l += 8./800)
-				{
-					Point p(k, l) ;
-					auto tri = featureTree->getElements2D(&p) ;
-					
-					for(size_t j = 0 ; j  < tri.size() ; j++ )
-					{
-						if(tri[j]->in(p))
-						{
-							
-							Vector s = tri[j]->getState().getStress(p, false) ;
-							Vector e = tri[j]->getState().getStrain(p, false) ;
-							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
-							
-// 								Point p_ = tri[j]->inLocalCoordinates(p) ;
-// 								std::cout << tri[j]->getBehaviour()->getTensor(p_)[0][0]<< "  " << std::flush ;
-							
-// 							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
-							
-//  							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
-							break ;
-						}
-					}
-				}
-				std::cout << std::endl ;
-			}
-			std::cout << std::endl ;
+// 		if(true)
+// 		{
+// 			
+// 			for(double k = 0 ; k < 8 ; k += 8./800)
+// 			{
+// 				for(double l = -4 ; l < 4 ; l += 8./800)
+// 				{
+// 					Point p(k, l) ;
+// 					auto tri = featureTree->getElements2D(&p) ;
+// 					
+// 					for(size_t j = 0 ; j  < tri.size() ; j++ )
+// 					{
+// 						if(tri[j]->in(p))
+// 						{
+// 							
+// 							Vector s = tri[j]->getState().getStress(p, false) ;
+// 							Vector e = tri[j]->getState().getStrain(p, false) ;
+// 							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
+// 							
+// // 								Point p_ = tri[j]->inLocalCoordinates(p) ;
+// // 								std::cout << tri[j]->getBehaviour()->getTensor(p_)[0][0]<< "  " << std::flush ;
+// 							
+// // 							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
+// 							
+// //  							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
+// 							break ;
+// 						}
+// 					}
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 			std::cout << std::endl ;
 			
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
@@ -693,7 +693,7 @@ void step()
 			std::cout << "average epsilon11 : " << avg_e_xx/area<< std::endl ;
 			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
-		}
+// 		}
 		energy.push_back(enr) ;
 
 // 	for(size_t i = 0 ; i < energy.size() ; i++)
@@ -1710,7 +1710,7 @@ int main(int argc, char *argv[])
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
 	d[2][2] = .1*E_paste ;
-	FeatureTree F(&sample, 2) ;
+	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 	Sample sm(0.2, 0.1, 0, 0) ;
@@ -1725,8 +1725,8 @@ int main(int argc, char *argv[])
 // 	}
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
-	double cradius = 10 ;
-	double mradius = 5 ;
+	double cradius = 20 ;
+	double mradius = 10 ;
 	double tdamage = .999 ;
 	double tol = .001 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
@@ -1737,7 +1737,7 @@ int main(int argc, char *argv[])
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
 // 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(35), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new MohrCoulomb(10, -10*8) , cradius) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalMohrCoulomb(10, -10*8) , cradius) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	saf->dfunc->setThresholdDamageDensity(tdamage);
@@ -1749,14 +1749,14 @@ int main(int argc, char *argv[])
 	saif->dfunc->setDamageDensityTolerance(tol);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
-// 	sample.setBehaviour(saf) ;
+	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(saif) ;
 // 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 // 	sample.setBehaviour(psp) ;
-	sample.setBehaviour(sf) ;
+// 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
 // 	F.addFeature(&sample, new Pore(2, -7,2) );
@@ -1794,16 +1794,16 @@ int main(int argc, char *argv[])
 // 	inc0->setBehaviour(new VoidForm()) ;
 // 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
 // 	inc1->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
-	F.addFeature(&sample, inc0) ;
+// 	F.addFeature(&sample, inc0) ;
 // 	F.addFeature(&inc0, inc1) ;
 	
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
-// 	F.addBoundaryCondition(imposeddisp) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(imposeddisp) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;

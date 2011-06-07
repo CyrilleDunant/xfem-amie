@@ -15,7 +15,7 @@ namespace Mu
 {
 	struct ConcreteBehaviour : public WeibullDistributedStiffness
 	{
-		ConcreteBehaviour(double E=59e9, double nu=0.3, double tensile=570000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		ConcreteBehaviour(double E=37e9, double nu=0.3, double tensile=2e6, double compressive = -37e6, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0) ;
 		
 		virtual Form * getCopy() const ;
 		

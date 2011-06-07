@@ -1591,10 +1591,10 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 		{
 			if(testedTri)
 			{
+				nonLocalScoreAtState = scoreAtState ;
 				if (scoreAtState < scoreTolerance)
 				{
 					metAtStep = false ;
-					nonLocalScoreAtState = -1 ;
 					return  ;
 				}
 				double maxNeighbourhoodScore = 0 ;
@@ -1634,7 +1634,6 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 				if(maxNeighbourhoodScore < -scoreTolerance)
 				{
 					metAtStep = false ;
-					nonLocalScoreAtState = -1 ;
 					return  ;
 				}
 				
@@ -1687,11 +1686,11 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 				}
 endloop:
 
-				if(matchedArea < 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
-				{
-					metAtStep = false ;
-					return ;
-				}
+// 				if(matchedArea < 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
+// 				{
+// 					metAtStep = false ;
+// 					return ;
+// 				}
 
 				std::sort(scores.begin(), scores.end()) ;
 				double threshold = scores[round((scores.size()-1)*.9)] ;
@@ -1711,29 +1710,26 @@ endloop:
 
 				if (nearmaxlocus)
 				{
-					nonLocalScoreAtState = maxNeighbourhoodScore ;
 					metAtStep = true ;
 					return  ;
 				}
-				nonLocalScoreAtState = -1 ;
 				metAtStep = false ;
 				return  ;
 
 			}
+			
 			if(testedTet)
 			{
-
+				nonLocalScoreAtState = scoreAtState ;
 				if(testedTet->visited())
 				{
 					metAtStep = false ;
-					nonLocalScoreAtState = -1 ;
 					return  ;
 				}
 						
 				if (scoreAtState <= 0)
 				{
 					metAtStep = false ;
-					nonLocalScoreAtState = -1 ;
 					return  ;
 				}
 
@@ -1771,7 +1767,6 @@ endloop:
 				
 				if(maxNeighbourhoodScore < 0)
 				{
-					nonLocalScoreAtState = -1 ;
 					metAtStep = false ;
 					return  ;
 				}
@@ -1835,11 +1830,9 @@ endloop:
 				for(size_t i = 0 ; i < maxloci.size() ; i++)
 					if(squareDist3D(maxloci[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
 				{
-					nonLocalScoreAtState = maxNeighbourhoodScore ;
 					metAtStep = true ;
 					return  ;
 				}
-				nonLocalScoreAtState = -1 ;
 				metAtStep = false ;
 				return  ;
 			}
@@ -1882,12 +1875,10 @@ endloop:
 				{
 					if(score > maxNeighbourhoodScore)
 					{
-						nonLocalScoreAtState = maxNeighbourhoodScore ;
 						metAtStep = true ;
 						return  ;
 					}
 				}
-				nonLocalScoreAtState = -1 ;
 				metAtStep = false ;
 				return  ;
 			}

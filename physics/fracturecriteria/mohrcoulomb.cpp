@@ -131,7 +131,6 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 		return 0 ;
 
 	Vector pstress( smoothedPrincipalStress(s)) ;
-
 	double maxStress = pstress.max() ;
 	double minStress = pstress.min() ;
 

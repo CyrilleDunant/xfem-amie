@@ -34,6 +34,7 @@
 #include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/fracturecriteria/vonmises.h"
+#include "../physics/materials/concrete_behaviour.h"
 
 
 #include <fstream>
@@ -52,6 +53,7 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
+
 
 #define DEBUG 
 
@@ -130,9 +132,9 @@ double ierror = 0 ;
 double preverror = 0 ;
 bool firstRun = true ;
 
-double sampleLength = 5.5 ;
+double sampleLength = 3.9 ; //5.5 ;
 double sampleHeight = 1.2 ;
-double supportLever = 2.5 ; 
+double supportLever = 1.7 ;//2.5 ; 
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
@@ -1489,9 +1491,15 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
+	sampleLength = atof(argv[3]) ;
+	
+	if(sampleLength > 4)
+		supportLever = 2.5 ;
+	
+	std::cout << sampleLength <<"  " << supportLever << std::endl ;
 	omp_set_num_threads(8) ;
 	double compressionCrit = -37.0e6 ; 
-	double tensionCrit = 3.7e6 ;//330.*sqrt(-compressionCrit) ;// or 2 obtained by .33*sqrt(fc_)
+	double tensionCrit =  3e6 ; //330.*sqrt(-compressionCrit);//3.7e6 ; ;// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*rebarDiametre/(.4) ; 
 	double mradius = .05 ; // .015
 	double nradius = mradius*3 ;
@@ -1522,9 +1530,6 @@ int main(int argc, char *argv[])
 	
 	Sample topsupport(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
 	topsupport.setBehaviour(new Stiffness(m0_steel)) ;
-	
-	Sample indestructible(0.6, 0.1, 0,sampleHeight*.5-0.1*.5) ;
-	indestructible.setBehaviour(new Stiffness(m0_paste));
 	
 	Sample baseright(platewidth, plateHeight, supportLever, -sampleHeight*.5-plateHeight*.5) ; 
 	baseright.setBehaviour(new Stiffness(m0_steel)) ;
@@ -1567,10 +1572,10 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 	
 	
-	sample.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_X)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.01 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
+	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X)) ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
 
 	
 	F.addBoundaryCondition(load) ;
@@ -1589,7 +1594,12 @@ int main(int argc, char *argv[])
 		int stirruplayer = 0 ;
 		int rebarlayer = 1 ;
 		F.addFeature(&sample, stirrups[0], stirruplayer, psi) ;
-		for(size_t i = 1 ;  i < 7 ; i++)
+		
+		int nstirrups = 7 ;
+		if(sampleLength < 5)
+			nstirrups = 5 ;
+		
+		for(size_t i = 1 ;  i < nstirrups ; i++)
 			F.addFeature(stirrups[i-1], stirrups[i], stirruplayer, psi) ;
 	
 		F.addFeature(stirrups.back(),&rebar0, rebarlayer, phi) ;

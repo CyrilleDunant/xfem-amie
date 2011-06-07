@@ -58,6 +58,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 								new NonLocalMCFT(
 										up*factor,
 										down*factor ,
+										E,
 										materialRadius,
 										mirroring, dx, dy, dz)
 									 ) ;
