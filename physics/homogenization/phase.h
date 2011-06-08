@@ -9,6 +9,7 @@
 namespace Mu
 {
 
+/** Simple class containing basic information about behaviours*/
 struct Phase
 {
 private:
