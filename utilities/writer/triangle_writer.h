@@ -15,6 +15,7 @@
 #define __TRIANGLE_WRITER_H__
 
 #include "../../features/features.h"
+#include "../itoa.h"
 
 namespace Mu
 {
@@ -92,6 +93,24 @@ protected:
 
 } ;
 
+class MultiTriangleWriter : public TriangleWriter
+{
+protected:
+    int counter ;
+    std::string head ;
+    std::string base ;
+
+public:
+    MultiTriangleWriter(std::string head, std::string base, FeatureTree * F, int t = 0) ;
+
+    virtual void append() ;
+    int getCounter() { return counter ; }
+    void nextCounter() { counter++ ; filename = base + "_" + itoa(counter) ; }
+    void resetCounter() { counter = 0 ; }
+
+protected:
+    virtual void writeHeader(int layer, bool append = true) ;
+};
 
 
 /** \brief indicates the number of "columns" needed by a specific field type*/

@@ -45,17 +45,24 @@ private:
 	QStatusBar *statusbar ;
 	QToolButton * printButton ;
 	
+	QStringList files ;
+
 	void createActions() ;
 	void createMenus() ;
 	void createToolBars() ;
 	void createStatusBar() ;
 	
 	bool triangles(const QString s) const ;
+	bool multi(const QString s) const ;
 	bool voxels(const QString s) const ;
 	
 public slots:
 	void open() ;
 	void open(const QString &) ;
+	void getFile(int) ;
+
+signals:
+	void prepareFile(const QString &) ;
 };
 
 #endif

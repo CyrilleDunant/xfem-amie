@@ -170,8 +170,8 @@ void MainWindow::open()
 			connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
 			connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
 			
-			connect(time, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
-			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), time, SLOT(setValue(int)));
+//			connect(time, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
+//			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), time, SLOT(setValue(int)));
 			
 			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
 			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
@@ -228,6 +228,36 @@ void MainWindow::open()
 			
 			alpha->setValue(255) ;
 		}
+		else if(multi(fileName))
+		{
+		    QFile list(fileName) ;
+		    if (!list.open(QIODevice::ReadOnly | QIODevice::Text))
+		    {
+			    return ;
+		    }
+		    QTextStream stream ;
+		    stream.setDevice(&list);
+		    QString buff ;
+		    stream >> buff ; // should be "MULTI"
+		    bool go_on = true ;
+		    while(go_on)
+		    {
+			stream >> buff ;
+			if(buff.length() > 0)
+			{
+			    buff = fileName.section('/',0,-2) + "/" + buff ;
+			    files << buff ;
+			}
+			else
+			    go_on = false ;
+		    }
+		    list.close();
+
+		    connect(time, SIGNAL(valueChanged(int)), this, SLOT(getFile(int))) ;
+		    connect(this, SIGNAL(prepareFile(QString)), this, SLOT(open(QString))) ;
+
+		    open(files.at(0)) ;
+		}
 	}
 }
 
@@ -235,44 +265,67 @@ void MainWindow::open(const QString &fileName)
 {
 	if (!fileName.isEmpty())
 	{
-		if(triangles(fileName))
+	    if(triangles(fileName))
 		{
-			delete voxeldisplay ;
-			delete triangledisplay ;
-			voxeldisplay = NULL ;
-			std::vector<std::pair<float, float> > limits ;
-			triangledisplay = new TriangleGLDrawer(fileName, limits) ;
-			QFileInfo pathInfo( fileName );
-			setWindowTitle(pathInfo.fileName());
-			connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
-			connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
-			
-			connect(alpha, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSet(int)));
-			connect(triangledisplay, SIGNAL(setChanged(int)), alpha, SLOT(setValue(int)));
-			
-			connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
-			connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
-			
-			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
-			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
-			
-			connect(upSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentUp(int)));
-			connect(triangledisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
-			
-			downSlider->setRange(0, 9999);
-			downSlider->setValue(0) ;
-			
-			field->setValue(1) ;
-			field->setRange(-1, 1000);
-			
-			alpha->setValue(0) ;
-			alpha->setRange(-1, 1000);
-			
-			time->setValue(0) ;
-			time->setRange(-1, 1000) ;
+		    delete voxeldisplay ;
+		    std::vector<std::pair<float, float> > limits ;
+		    int xpos = 0 ;
+		    int ypos = 0 ;
+		    int zoomval = zoom->value();
+		    if(triangledisplay)
+		    {
+		      limits = triangledisplay->limits ;
+			    xpos = triangledisplay->xtransleft ;
+			    ypos = triangledisplay->ytransleft ;
 
-			upSlider->setRange(1, 10000);
-			upSlider->setValue(10000) ;
+		    }
+		    delete triangledisplay ;
+		    voxeldisplay = NULL ;
+		    triangledisplay = new TriangleGLDrawer(fileName, alpha->value(), limits) ;
+		    triangledisplay->xtransleft = xpos ;
+		    triangledisplay->ytransleft = ypos ;
+
+		    setCentralWidget(triangledisplay);
+		    QFileInfo pathInfo( fileName );
+		    setWindowTitle(pathInfo.fileName());
+		    triangledisplay->fileName = fileName ;
+		    connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
+		    connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
+
+		    connect(alpha, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSet(int)));
+		    connect(triangledisplay, SIGNAL(setChanged(int)), alpha, SLOT(setValue(int)));
+
+		    connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
+		    connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
+
+//			connect(time, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
+//			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), time, SLOT(setValue(int)));
+
+		    connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
+		    connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
+
+		    connect(upSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentUp(int)));
+		    connect(triangledisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
+
+		    connect(printButton, SIGNAL(released()), triangledisplay, SLOT(grab()));
+		    triangledisplay->setZoom(zoomval) ;
+
+//		    alpha->setValue(0) ;
+		    alpha->setRange(-1, 1000);
+
+		    downSlider->setRange(0, 9999);
+		    downSlider->setValue(0) ;
+
+//		    field->setValue(1) ;
+//		    field->setRange(-1, 1000);
+
+//		    time->setValue(0) ;
+//		    time->setRange(-1, 1000) ;
+
+		    upSlider->setRange(1, 10000);
+		    upSlider->setValue(10000) ;
+
+
 		}
 		else if(voxels(fileName))
 		{
@@ -299,7 +352,48 @@ void MainWindow::open(const QString &fileName)
 			connect(voxeldisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
 			
 		}
+		else if(multi(fileName))
+		{
+		    QFile list(fileName) ;
+		    std::cerr << fileName.toStdString() << std::endl ;
+		    if (!list.open(QIODevice::ReadOnly | QIODevice::Text))
+		    {
+			    return ;
+		    }
+		    QTextStream stream ;
+		    stream.setDevice(&list);
+		    QString buff ;
+		    stream >> buff ; // should be "MULTI"
+		    bool go_on = true ;
+		    while(go_on)
+		    {
+			stream >> buff ;
+			if(buff.length() > 0)
+			    files << buff ;
+			else
+			    go_on = false ;
+			std::cerr << buff.toStdString() << std::endl ;
+		    }
+		    list.close();
+
+		    connect(time, SIGNAL(valueChanged(int)), this, SLOT(getFile(int))) ;
+		    connect(this, SIGNAL(prepareFile(QString)), this, SLOT(open(QString))) ;
+
+//		    open(files.at(0)) ;
+		}
 	}
+}
+
+void MainWindow::getFile(int i)
+{
+    int index = i ;
+    if(index >= files.size() || index < 0)
+    {
+	index = 0 ;
+	time->setValue(0);
+    }
+    QString name = files.at(index) ;
+    emit prepareFile(name);
 }
 
 bool MainWindow::triangles(const QString s) const {
@@ -316,6 +410,8 @@ bool MainWindow::triangles(const QString s) const {
 	QString type ;
 	stream >> type ;
 	file.close();
+
+	std::cerr << s.toStdString() << std::endl ;
 	
 	return (type == "TRIANGLES" || type == "BIN_TRIANGLES") ;
 }
@@ -336,4 +432,22 @@ bool MainWindow::voxels(const QString s) const {
 	file.close();
 	
 	return (type == "VOXELS") ;
+}
+
+bool MainWindow::multi(const QString s) const {
+
+	QFile file(s) ;
+
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		return false;
+	}
+
+	QTextStream stream;
+	stream.setDevice(&file);
+	QString type ;
+	stream >> type ;
+	file.close();
+
+	return (type == "MULTI") ;
 }

@@ -230,7 +230,8 @@ void TriangleGLDrawer::initializeGL() {
 	displayList = glGenLists(numberOfExtraFields) ;
 	std::cout << "numberOfExtraFields = " << numberOfExtraFields << std::endl ;
 	std::cout << "displayList = " << displayList << std::endl ;
-	currentDisplayList = displayList ;
+	std::cerr << currentSet << std::endl ;
+	currentDisplayList = currentSet+1 ;
 	glViewport(0, 0, 600, 600) ;
 	glEnable(GL_BLEND);
 	glShadeModel(GL_SMOOTH);   // Enables Smooth Shading
@@ -432,7 +433,7 @@ void TriangleGLDrawer::setTimePlane(int tp)
 	computeDisplayList() ;
 	paintGL() ;
 
-	emit timePlaneChanged(tp) ;	
+//	emit timePlaneChanged(tp) ;
 }
 
 
@@ -525,6 +526,36 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 	
 
 	
+}
+
+TriangleGLDrawer::TriangleGLDrawer(QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent) : QGLWidget(parent), limits(limits) {
+
+	valuesAtPoint = NULL ;
+	reader = NULL ;
+
+	mousePosOnLeftClick = QPoint(0,0);
+
+	leftDown = false;
+	moving = false ;
+
+	xtransleft = 0;
+	ytransleft  = 0;
+
+	zoom = 100 ;
+
+	zpos = 1.5 ;
+	currentSet = set ;
+
+	openFile(f) ;
+	fracup = 10000;
+	fracdown = 0;
+
+	scale = 1 ;
+
+	minmaxinit = false ;
+
+
+
 }
 
 TriangleGLDrawer::TriangleGLDrawer(QWidget *parent) : QGLWidget(parent) {

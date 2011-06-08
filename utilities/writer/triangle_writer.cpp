@@ -61,6 +61,20 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 
 BinaryTriangleWriter::BinaryTriangleWriter( std::string f, FeatureTree *F, int t ) : TriangleWriter( f, F, t ) { }
 
+MultiTriangleWriter::MultiTriangleWriter(std::string h, std::string b, FeatureTree *F, int t) : TriangleWriter(b, F, t)
+{
+    counter = 0 ;
+    head = h ;
+    base = b ;
+
+    std::fstream headstream ;
+
+    headstream.open( head.c_str(), std::ios::out ) ;
+    headstream << "MULTI" << std::endl ;
+    headstream.close();
+
+}
+
 void TriangleWriter::reset( FeatureTree *F, int t )
 {
 	values.clear() ;
@@ -177,6 +191,7 @@ void BinaryTriangleWriter::write()
 	outbin.close();
 }
 
+
 void TriangleWriter::append()
 {
 
@@ -232,6 +247,46 @@ void BinaryTriangleWriter::append()
 	}
 
 	outbin.close();
+}
+
+void MultiTriangleWriter::append()
+{
+
+	writeHeader( layers[0], true ) ;
+	std::fstream outfile  ;
+	outfile.open( filename.c_str(), std::ios::out | std::ios::app ) ;
+
+	for( int i = 0 ; i < nTriangles[0] ; i++ )
+	{
+		for( size_t j = 0 ; j < values[0].size() ; j++ )
+		{
+			outfile << values[0][j][i] << " " ;
+		}
+
+		outfile << std::endl ;
+	}
+
+	outfile.close();
+
+	std::string filename_orig = filename;
+
+	for( size_t k = 1 ; k < layers.size() ; k++ )
+	{
+		writeHeader( layers[k], true ) ;
+		outfile.open( filename_orig.c_str(), std::ios::out | std::ios::app ) ;
+
+		for( int i = 0 ; i < nTriangles[k] ; i++ )
+		{
+			for( size_t j = 0 ; j < values[k].size() ; j++ )
+			{
+				outfile << values[k][j][i] << " " ;
+			}
+
+			outfile << std::endl ;
+		}
+
+		outfile.close();
+	}
 }
 
 
@@ -805,6 +860,26 @@ void BinaryTriangleWriter::writeHeader( bool append )
 	outstream << ( ( int ) values.size() - 6 ) / 3 << std::endl ;
 	outstream.close() ;
 }
+
+void MultiTriangleWriter::writeHeader( int layer, bool append )
+{
+    nextCounter() ;
+	std::fstream headstream ;
+
+	headstream.open( head.c_str(), std::ios::out | std::ios::app ) ;
+	headstream << filename << std::endl ;
+	headstream.close();
+
+	std::fstream outstream ;
+	outstream.open( filename.c_str(), std::ios::out);
+	outstream << "TRIANGLES" << std::endl ;
+	outstream << ( int ) nTriangles[layerTranslator[layer]] << std::endl ;
+	outstream << 3 << std::endl ;
+	outstream << ( ( int ) values[layerTranslator[layer]].size() - 6 ) / 3 << std::endl ;
+	outstream.close() ;
+}
+
+
 
 int numberOfFields( TWFieldType field )
 {

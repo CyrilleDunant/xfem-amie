@@ -120,6 +120,7 @@ public:
 	int ytransleft ;
 	
 	TriangleGLDrawer(QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
+	TriangleGLDrawer(QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QWidget *parent = 0) ; //
 	~TriangleGLDrawer() ; //
 	
