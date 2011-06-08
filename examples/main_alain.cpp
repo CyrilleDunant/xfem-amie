@@ -1781,7 +1781,7 @@ int main(int argc, char *argv[])
 	Circle cercle(.5, 0,0) ;
 
 	zones = generateExpansiveZonesHomogeneously(100, placedinclusions, F) ;
-	F.setSamplingNumber(150) ;
+	F.setSamplingNumber(250) ;
 	if(restraintDepth > 0)
 	{
 // 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;

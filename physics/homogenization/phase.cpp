@@ -69,6 +69,7 @@ Form * Phase::getBehaviour()
     else
 	invert3x3Matrix(S) ;
     alpha = S * beta ;
+    std::cout << alpha[0] << std::endl ;
     return new StiffnessWithImposedDeformation(C,alpha) ;
 }
 
