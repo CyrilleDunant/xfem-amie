@@ -4278,7 +4278,7 @@ void FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						volume += are ;
-						std::cerr << "a" << std::flush ;
+//						std::cerr << "a" << std::flush ;
 						if( elements[i]->getBehaviour()->getDamageModel() )
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
@@ -4287,14 +4287,14 @@ void FeatureTree::stepElements()
 								averageDamage += are ;
 						}
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
-						std::cerr << "b" << std::flush ;
+//						std::cerr << "b" << std::flush ;
 						if( elements[i]->getBehaviour()->changed() )
 						{
 							needAssembly = true ;
 							behaviourChange = true ;
 							ccount++ ;
 						}
-						std::cerr << "c" << std::flush ;
+//						std::cerr << "c" << std::flush ;
 						if( elements[i]->getBehaviour()->fractured() )
 						{
 							fracturedCount++ ;
@@ -4304,7 +4304,7 @@ void FeatureTree::stepElements()
 						{
 							damagedVolume += are ;
 						}
-						std::cerr << "d" << std::flush ;
+//						std::cerr << "d" << std::flush ;
 					}
 					else if( elements[i]->getBehaviour()->fractured() )
 					{

@@ -40,9 +40,8 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTriangl
 	original = dynamic_cast<HomogeneisedBehaviour *>(original)->getOriginalBehaviour() ;
 
     GeneralizedSelfConsistentComposite composite(mesh->getElements2D(self->getPrimitive())) ;
-    composite.apply() ;
     equivalent = composite.getBehaviour() ;
-	
+
     v.push_back(XI);
     v.push_back(ETA);
 
@@ -55,9 +54,10 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, Delau
     if(dynamic_cast<HomogeneisedBehaviour *>(original))
 	original = dynamic_cast<HomogeneisedBehaviour *>(original)->getOriginalBehaviour() ;
 
-    MatrixMultiInclusionComposite composite(self, feats) ;
-    composite.apply() ;
+    VoigtMatrixMultiInclusionComposite composite(self, feats) ;
     equivalent = composite.getBehaviour() ;
+
+//    composite.C.print();
 
     v.push_back(XI);
     v.push_back(ETA);
@@ -73,7 +73,6 @@ HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTetrahe
 	original = dynamic_cast<HomogeneisedBehaviour *>(original)->getOriginalBehaviour() ;
 
     GeneralizedSelfConsistentComposite composite(mesh->getElements3D(self->getPrimitive())) ;
-    composite.apply() ;
     equivalent = composite.getBehaviour() ;
 
     v.push_back(XI);

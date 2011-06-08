@@ -25,17 +25,17 @@ void Composite::apply()
 
 Matrix Composite::I4(Matrix C)
 {
-    Matrix I4(C) ;
-    for(size_t i = 0 ; i < 2+(I4.size()==36) ; i++)
+    Matrix I4(C.numRows(),C.numCols()) ;
+    for(size_t i = 0 ; i < 3+3*(I4.size()==36) ; i++)
     {
-	I4[i][i] = 0 ;
+	I4[i][i] = 1 ;
     }
     return I4 ;
 }
 
 Matrix Composite::eshelby(Matrix C)
 {
-    Matrix S(C) ;
+    Matrix S(C.numRows(),C.numCols()) ;
     double nu = 0.2 ;
     double a = C[0][0] ;
     double b = C[0][1] ;
@@ -137,7 +137,7 @@ void MatrixInclusionComposite::apply()
 
 void MatrixInclusionComposite::getStrainConcentrationTensor()
 {
-    B = Matrix(C) ;
+    B = Matrix(C.numRows(),C.numCols()) ;
 }
 
 VoigtMatrixInclusionComposite::VoigtMatrixInclusionComposite(DelaunayTriangle *tri, Feature *inc) : MatrixInclusionComposite(tri, inc)
@@ -199,7 +199,7 @@ void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
     if(B.size()==36)
 	invert6x6Matrix(B) ;
     else
-	invert6x6Matrix(B) ;
+	invert3x3Matrix(B) ;
     B *= S * (inclusion.C - matrix.C) ;
     B += I ;
     if(B.size()==36)
@@ -244,7 +244,10 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite(DelaunayTriangle *t
 	inclusions[i].volume /= volume ;
 
     for(size_t i = 0 ; i < inclusions.size() ; i++)
+    {
 	grains.push_back(MoriTanakaMatrixInclusionComposite(matrix, inclusions[i])) ;
+	grains[i].volume /= 1.-matrix.volume ;
+    }
 
 }
 
@@ -283,7 +286,10 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite(DelaunayTetrahedron
 	inclusions[i].volume /= volume ;
 
     for(size_t i = 0 ; i < inclusions.size() ; i++)
+    {
 	grains.push_back(MoriTanakaMatrixInclusionComposite(matrix, inclusions[i])) ;
+	grains[i].volume /= 1.-matrix.volume ;
+    }
 
 }
 
@@ -293,21 +299,26 @@ void MatrixMultiInclusionComposite::apply()
     for(size_t i = 0 ; i < grains.size() ; i++)
 	grains[i].apply() ;
 
-    getStrainLocalizationTensor() ;
+    this->getStrainLocalizationTensor() ;
 
-    C = Matrix(C) ;
+    C = Matrix(C.numRows(),C.numCols()) ;
+//    std::cerr << "-----" << std::endl ;
     for(size_t i = 0 ; i < grains.size() ; i++)
 	C += grains[i].A * (grains[i].C * grains[i].volume) ;
 
+//    grains[0].C.print() ;
+  //  std::cerr << grains[0].volume << std::endl ;
+   // grains[0].A.print() ;
+
     beta.resize(beta.size());
     for(size_t i = 0 ; i < grains.size() ; i++)
-	beta += (grains[i].A * grains[i].volume) * grains[i].beta ;
+	beta += (grains[i].A * (grains[i].volume)) * grains[i].beta ;
 }
 
 void MatrixMultiInclusionComposite::getStrainLocalizationTensor()
 {
     for(size_t i = 0 ; i < grains.size() ; i++)
-	grains[i].A = Matrix(C) ;
+	grains[i].A = Matrix(C.numRows(),C.numCols()) ;
 }
 
 VoigtMatrixMultiInclusionComposite::VoigtMatrixMultiInclusionComposite(DelaunayTriangle *tri, std::vector<Feature *> inc) : MatrixMultiInclusionComposite(tri, inc)
@@ -376,7 +387,7 @@ ReussMatrixMultiInclusionComposite::ReussMatrixMultiInclusionComposite(DelaunayT
 
 void ReussMatrixMultiInclusionComposite::getStrainLocalizationTensor()
 {
-    C = Matrix(matrix.C) ;
+    C = Matrix(matrix.C.numRows(),matrix.C.numCols()) ;
     for(size_t i = 0 ; i < grains.size() ; i++)
     {
 	Matrix Cg = grains[i].C ;

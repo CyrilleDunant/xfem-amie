@@ -18,7 +18,7 @@ Phase::Phase(DelaunayTriangle * tri)
     volume = tri->area() ;
     stiffnessFromBehaviour() ;
     expansionFromBehaviour() ;
-    A = Matrix(C) ;
+    A = Matrix(C.numRows(),C.numCols()) ;
 }
 
 Phase::Phase(DelaunayTetrahedron * tet)
@@ -27,7 +27,7 @@ Phase::Phase(DelaunayTetrahedron * tet)
     volume = tet->volume() ;
     stiffnessFromBehaviour() ;
     expansionFromBehaviour() ;
-    A = Matrix(C) ;
+    A = Matrix(C.numRows(),C.numCols()) ;
 }
 
 Phase::Phase(Feature * f)
@@ -39,19 +39,29 @@ Phase::Phase(Feature * f)
 	volume = f->volume() ;
     stiffnessFromBehaviour() ;
     expansionFromBehaviour() ;
-    A = Matrix(C) ;
+    A = Matrix(C.numRows(),C.numCols()) ;
 }
 
 Phase::Phase(const Phase & p)
 {
+    C.resize(p.C.numRows(),p.C.numCols()) ;
     C = p.C ;
+    beta.resize(p.beta.size()) ;
     beta = p.beta ;
+    A.resize(p.A.numRows(),p.A.numCols()) ;
     A = p.A ;
     volume = p.volume ;
 }
 
+void Phase::apply()
+{
+
+}
+
 Form * Phase::getBehaviour()
 {
+    this->apply() ;
+
     Vector alpha ;
     Matrix S = C ;
     if(S.size()==36)
@@ -62,12 +72,27 @@ Form * Phase::getBehaviour()
     return new StiffnessWithImposedDeformation(C,alpha) ;
 }
 
+Phase & Phase::operator =(const Phase & p)
+{
+    C.resize(p.C.numRows(),p.C.numCols()) ;
+    C = p.C ;
+    beta.resize(p.beta.size()) ;
+    beta = p.beta ;
+    A.resize(p.A.numRows(),p.A.numCols()) ;
+    A = p.A ;
+    volume = p.volume ;
+}
+
 void Phase::stiffnessFromBehaviour()
 {
-    C = behaviour->getTensor(Point(1./3,1./3,1./3)) ;
+    Matrix tmp =  behaviour->getTensor(Point(1./3,1./3,1./3)) ;
+    C.resize(tmp.numRows(),tmp.numCols()) ;
+    C = tmp ;
 }
 
 void Phase::expansionFromBehaviour()
 {
-    beta = behaviour->getImposedStress(Point(1./3,1./3,1./3)) ;
+    Vector tmp = behaviour->getImposedStress(Point(1./3,1./3,1./3)) ;
+    beta.resize(tmp.size());
+    beta = tmp ;
 }

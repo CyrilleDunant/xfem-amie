@@ -92,11 +92,11 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 {
 	previouschange = change ;
 	change = false ;
-	std::cerr << "\n" << "e" << std::flush ;
+//	std::cerr << "\n" << "e" << std::flush ;
 	dfunc->step(currentState) ;
-	std::cerr << "\n" << "f" << std::flush ;
+//	std::cerr << "\n" << "f" << std::flush ;
 	change = dfunc->changed() ;
-	std::cerr << "\n" << "g" << std::flush ;
+//	std::cerr << "\n" << "g" << std::flush ;
 	currentState.getParent()->behaviourUpdated = change ;
 	
 	if(change)

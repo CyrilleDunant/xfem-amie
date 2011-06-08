@@ -29,7 +29,10 @@ public:
     Phase(Feature * f) ;
     Phase(const Phase & p) ;
 
+    virtual void apply() ;
     Form * getBehaviour() ;
+
+    Phase & operator = (const Phase & p) ;
 
 private:
     void stiffnessFromBehaviour() ;

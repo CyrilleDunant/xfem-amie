@@ -1260,7 +1260,7 @@ double FractureCriterion::setChange(const ElementState &s)
 		// have met their criterion
 		if(checkpoint) //new iteration
 		{
-			std::cerr << " - j" << std::flush ;
+//			std::cerr << " - j" << std::flush ;
 			if(!metAtStep)
 			{
 				inset = false ;
@@ -1277,7 +1277,7 @@ double FractureCriterion::setChange(const ElementState &s)
 					sortedElements.insert( std::make_pair(ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState, ci)) ;
 				}
 			}
-			std::cerr << " - k" << std::flush ;
+//			std::cerr << " - k" << std::flush ;
 			double thresholdScore = 0 ;
 			if(!sortedElements.empty())
 				thresholdScore = sortedElements.rbegin()->first ;
@@ -1296,7 +1296,7 @@ double FractureCriterion::setChange(const ElementState &s)
 						break ;
 				}
 			}
-			std::cerr << " - l" << std::flush ;
+//			std::cerr << " - l" << std::flush ;
 			if(std::abs(s.getParent()->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState -minscore) >= scoreTolerance)
 			{
 				proximitySet.clear() ;
@@ -1306,7 +1306,7 @@ double FractureCriterion::setChange(const ElementState &s)
 			if(!newSet.empty())
 				std::stable_sort(newSet.begin(), newSet.end());
 			damagingSet = newSet ;
-			std::cerr << " - m" << std::flush ;
+//			std::cerr << " - m" << std::flush ;
 			std::set<unsigned int> newProximity ;
 // 			for(size_t i = 0 ; i < newSet.size() ; i++)
 // 			{
@@ -1377,7 +1377,7 @@ double FractureCriterion::setChange(const ElementState &s)
 
 			if(damagingSet.empty())
 				return 0 ;
-			std::cerr << " - n" << std::flush ;
+//			std::cerr << " - n" << std::flush ;
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[0]]) ;
 			double maxscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
@@ -1391,7 +1391,7 @@ double FractureCriterion::setChange(const ElementState &s)
 			double minscore = 0 ;
 			if(!proximitySet.empty())
 			{
-				std::cerr << " - o" << std::flush ;
+//				std::cerr << " - o" << std::flush ;
 				ci = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]]) ;
 				minscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState;
 				for(size_t i = 1 ; i < proximitySet.size() ; i++)
@@ -1402,7 +1402,7 @@ double FractureCriterion::setChange(const ElementState &s)
 						minscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 				}
 			}
-			std::cerr << " - p" << std::flush ;
+//			std::cerr << " - p" << std::flush ;
 			return maxscore - minscore ;
 		}
 	}
