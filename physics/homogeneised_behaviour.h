@@ -32,6 +32,7 @@ namespace Mu
 	struct HomogeneisedBehaviour : public LinearForm
 	{
 		Form * equivalent ;
+		Form * original ;
 		Material base ;
 		FeatureTree * mesh ;
 		DelaunayTriangle * self2d ;
@@ -78,9 +79,6 @@ namespace Mu
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
 
-		/** \brief Homogenizes the elastic behaviour*/
-		void homogenize() ;
-
 		void refresh() ;
 
 //		void setFeatureTree(FeatureTree ft) {subTree = ft ; } ;
@@ -91,14 +89,13 @@ namespace Mu
 		virtual Matrix getTensor(const Point & p) const ;
 
 		Material toMaterial(const Point & p) {return equivalent->toMaterial(p) ; } ;
-		Material homogenize(Material mat) ;
 
                 virtual Vector getImposedStress(const Point & p) const ;
 
                 std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
-		Form * getEquivalentBehaviour(Material mat, FractureCriterion * frac = NULL) ;
 
+		Form * getOriginalBehaviour() { return original ; }
 	} ;
 
 

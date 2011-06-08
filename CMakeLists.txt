@@ -98,6 +98,8 @@ physics/weibull_distributed_stiffness.cpp
 physics/weibull_distributed_stiffness_with_variable_imposed_deformation_and_fracture.cpp 
 physics/homogenization/homogenization_base.cpp
 physics/homogenization/scheme_template.cpp
+physics/homogenization/phase.cpp
+physics/homogenization/composite.cpp
 physics/materials/aggregate_behaviour.cpp
 physics/materials/paste_behaviour.cpp
 physics/materials/rebar_behaviour.cpp
