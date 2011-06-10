@@ -42,6 +42,7 @@ public slots:
 	void setYTranslation(int)  ; //
 	void setZoom(int)  ; //
 	void openFile(const QString f)  ; //
+	void openFile(TriangleDataReader * f)  ; //
 	void setSet(int set)  ; //
 	void grab() ;
 	
@@ -119,6 +120,8 @@ public:
 	int xtransleft ;
 	int ytransleft ;
 	
+	TriangleGLDrawer(std::vector<std::valarray<float> > * v, int np, int set, QWidget * parent = 0 ) ;
+	TriangleGLDrawer(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QWidget *parent = 0) ; //
@@ -128,6 +131,8 @@ public:
 	
 	size_t numberOfElements() const { return numberOfTriangles ; } //
 	std::vector<std::pair<float, float> > limits ;
+
+	std::vector< std::valarray<float> > * getValuesAtPoint() { return valuesAtPoint ; }
 	
 protected:
 	GLuint texture[1] ;

@@ -16,6 +16,8 @@
 
 #include "voxelGlDrawer.h"
 #include "triangleGlDrawer.h"
+#include "triangleDataReader.h"
+#include "buffer.h"
 
 class MainWindow : public QMainWindow
 {
@@ -39,13 +41,16 @@ private:
 	QSpinBox * zoom ;
 	QSpinBox * alpha ;
 	QSpinBox * field ;
-	QSpinBox * time ;
+	QSpinBox * layer ;
+
+	QSlider * time ;
 	QSlider * downSlider ;
 	QSlider * upSlider ;
+
 	QStatusBar *statusbar ;
 	QToolButton * printButton ;
 	
-	QStringList files ;
+	Buffer buffer ;
 
 	void createActions() ;
 	void createMenus() ;
@@ -55,11 +60,14 @@ private:
 	bool triangles(const QString s) const ;
 	bool multi(const QString s) const ;
 	bool voxels(const QString s) const ;
+
+	void disconnect(TriangleGLDrawer * display) ;
 	
 public slots:
 	void open() ;
 	void open(const QString &) ;
 	void getFile(int) ;
+	void getLayer(int) ;
 
 signals:
 	void prepareFile(const QString &) ;

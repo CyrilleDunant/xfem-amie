@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "triangleDataReader.h"
 
 MainWindow::MainWindow()
 {
@@ -97,13 +98,23 @@ void MainWindow::createToolBars()
 	connect(voxeldisplay, SIGNAL(fieldChanged(int)), field, SLOT(setValue(int)));
 	fileToolBar->addWidget(field);
 	
-	time  = new QSpinBox(fileToolBar) ;
-	time->setRange ( 0, 255 ) ;
-	time->setValue ( 0 ) ;
+	layer  = new QSpinBox(fileToolBar) ;
+	layer->setRange ( 0, 255 ) ;
+	layer->setValue ( 0 ) ;
 //	connect(field, SIGNAL(valueChanged(int)), voxeldisplay, SLOT(setField(int)));
 //	connect(voxeldisplay, SIGNAL(fieldChanged(int)), field, SLOT(setValue(int)));
+	fileToolBar->addWidget(layer);
+
+	time = new QSlider(Qt::Horizontal, fileToolBar) ;
+	time->setRange(0, 1);
+	time->setSingleStep(1);
+	time->setPageStep(5);
+	time->setTickInterval(1);
+	time->setValue(0) ;
+	time->setTracking ( false ) ;
+// 	downSlider->setTickPosition(QSlider::TicksDown);
 	fileToolBar->addWidget(time);
-	
+
 	downSlider = new QSlider(Qt::Horizontal,fileToolBar);
 	downSlider->setRange(0, 254);
 	downSlider->setSingleStep(5);
@@ -134,6 +145,10 @@ void MainWindow::createToolBars()
 
 void MainWindow::open()
 {
+    connect(time, SIGNAL(valueChanged(int)), this, SLOT(getFile(int))) ;
+    connect(this, SIGNAL(prepareFile(QString)), this, SLOT(open(QString))) ;
+
+    connect(layer, SIGNAL(valueChanged(int)), this, SLOT(getLayer(int))) ;
 	QString fileName = QFileDialog::getOpenFileName(this);
 	if (!fileName.isEmpty())
 	{
@@ -153,7 +168,23 @@ void MainWindow::open()
 			}
 			delete triangledisplay ;
 			voxeldisplay = NULL ;
-			triangledisplay = new TriangleGLDrawer(fileName, limits) ;
+
+			int i = buffer.fileInBuffer(fileName) ;
+			if(i < 0)
+			{
+			    FileBuffer fbuff(fileName) ;
+			    buffer.push_back(fbuff);
+			    i = buffer.fileInBuffer(fileName) ;
+			}
+			if(i >= 0)
+			{
+			    LayerBuffer lbuff = buffer.value(i).value(layer->value()) ;
+			    triangledisplay = new TriangleGLDrawer(lbuff.values, lbuff.numberOfPointsPerTriangle, alpha->value()) ;
+			}
+			else
+			{
+			    triangledisplay = new TriangleGLDrawer(fileName, alpha->value(), limits) ;
+			}
 			triangledisplay->xtransleft = xpos ;
 			triangledisplay->ytransleft = ypos ;
 			
@@ -170,8 +201,8 @@ void MainWindow::open()
 			connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
 			connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
 			
-//			connect(time, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
-//			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), time, SLOT(setValue(int)));
+			connect(layer, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
+			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), layer, SLOT(setValue(int)));
 			
 			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
 			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
@@ -191,8 +222,8 @@ void MainWindow::open()
 			field->setValue(1) ;
 			field->setRange(-1, 1000);
 			
-			time->setValue(0) ;
-			time->setRange(-1, 1000) ;
+			layer->setValue(0) ;
+			layer->setRange(-1, 1000) ;
 
 			upSlider->setRange(1, 10000);
 			upSlider->setValue(10000) ;
@@ -230,33 +261,27 @@ void MainWindow::open()
 		}
 		else if(multi(fileName))
 		{
-		    QFile list(fileName) ;
-		    if (!list.open(QIODevice::ReadOnly | QIODevice::Text))
-		    {
-			    return ;
-		    }
-		    QTextStream stream ;
-		    stream.setDevice(&list);
-		    QString buff ;
-		    stream >> buff ; // should be "MULTI"
-		    bool go_on = true ;
-		    while(go_on)
-		    {
-			stream >> buff ;
-			if(buff.length() > 0)
-			{
-			    buff = fileName.section('/',0,-2) + "/" + buff ;
-			    files << buff ;
-			}
-			else
-			    go_on = false ;
-		    }
-		    list.close();
+		    alpha->setValue(0) ;
+		    alpha->setRange(-1, 1000);
 
-		    connect(time, SIGNAL(valueChanged(int)), this, SLOT(getFile(int))) ;
-		    connect(this, SIGNAL(prepareFile(QString)), this, SLOT(open(QString))) ;
+		    downSlider->setRange(0, 9999);
+		    downSlider->setValue(0) ;
 
-		    open(files.at(0)) ;
+		    field->setValue(1) ;
+		    field->setRange(-1, 1000);
+
+		    layer->setValue(0) ;
+		    layer->setRange(-1, 1000) ;
+
+		    upSlider->setRange(1, 10000);
+		    upSlider->setValue(10000) ;
+
+		    buffer.clear() ;
+		    buffer = Buffer(fileName) ;
+
+		    time->setRange(0,buffer.size()-1);
+
+		    open(buffer.at(0).file) ;
 		}
 	}
 }
@@ -272,18 +297,37 @@ void MainWindow::open(const QString &fileName)
 		    int xpos = 0 ;
 		    int ypos = 0 ;
 		    int zoomval = zoom->value();
+		    voxeldisplay = NULL ;
 		    if(triangledisplay)
 		    {
-		      limits = triangledisplay->limits ;
-			    xpos = triangledisplay->xtransleft ;
-			    ypos = triangledisplay->ytransleft ;
+			limits = triangledisplay->limits ;
+			xpos = triangledisplay->xtransleft ;
+			ypos = triangledisplay->ytransleft ;
 
 		    }
 		    delete triangledisplay ;
-		    voxeldisplay = NULL ;
-		    triangledisplay = new TriangleGLDrawer(fileName, alpha->value(), limits) ;
+		    int i = buffer.fileInBuffer(fileName) ;
+		    if(i < 0)
+		    {
+			FileBuffer fbuff(fileName) ;
+			buffer.push_back(fbuff);
+			i = buffer.fileInBuffer(fileName) ;
+		    }
+		    if(i >= 0)
+		    {
+			LayerBuffer lbuff = buffer.value(i).value(layer->value()) ;
+			std::cerr << lbuff.values->size() << std::endl ;
+			triangledisplay = new TriangleGLDrawer(lbuff.values, lbuff.numberOfPointsPerTriangle, alpha->value()) ;
+		    }
+		    else
+		    {
+			triangledisplay = new TriangleGLDrawer(fileName, alpha->value(), limits) ;
+		    }
 		    triangledisplay->xtransleft = xpos ;
 		    triangledisplay->ytransleft = ypos ;
+
+		    if(triangledisplay == NULL)
+			std::cerr << "NULL" << std::endl ;
 
 		    setCentralWidget(triangledisplay);
 		    QFileInfo pathInfo( fileName );
@@ -298,8 +342,8 @@ void MainWindow::open(const QString &fileName)
 		    connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
 		    connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
 
-//			connect(time, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
-//			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), time, SLOT(setValue(int)));
+			connect(layer, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
+			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), layer, SLOT(setValue(int)));
 
 		    connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
 		    connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
@@ -319,12 +363,11 @@ void MainWindow::open(const QString &fileName)
 //		    field->setValue(1) ;
 //		    field->setRange(-1, 1000);
 
-//		    time->setValue(0) ;
-//		    time->setRange(-1, 1000) ;
+//		    layer->setValue(0) ;
+//		    layer->setRange(-1, 1000) ;
 
 		    upSlider->setRange(1, 10000);
 		    upSlider->setValue(10000) ;
-
 
 		}
 		else if(voxels(fileName))
@@ -354,29 +397,9 @@ void MainWindow::open(const QString &fileName)
 		}
 		else if(multi(fileName))
 		{
-		    QFile list(fileName) ;
-		    std::cerr << fileName.toStdString() << std::endl ;
-		    if (!list.open(QIODevice::ReadOnly | QIODevice::Text))
-		    {
-			    return ;
-		    }
-		    QTextStream stream ;
-		    stream.setDevice(&list);
-		    QString buff ;
-		    stream >> buff ; // should be "MULTI"
-		    bool go_on = true ;
-		    while(go_on)
-		    {
-			stream >> buff ;
-			if(buff.length() > 0)
-			    files << buff ;
-			else
-			    go_on = false ;
-			std::cerr << buff.toStdString() << std::endl ;
-		    }
-		    list.close();
+		    buffer = Buffer(fileName) ;
 
-		    connect(time, SIGNAL(valueChanged(int)), this, SLOT(getFile(int))) ;
+		    connect(layer, SIGNAL(valueChanged(int)), this, SLOT(getFile(int))) ;
 		    connect(this, SIGNAL(prepareFile(QString)), this, SLOT(open(QString))) ;
 
 //		    open(files.at(0)) ;
@@ -387,13 +410,33 @@ void MainWindow::open(const QString &fileName)
 void MainWindow::getFile(int i)
 {
     int index = i ;
-    if(index >= files.size() || index < 0)
+    if(index >= buffer.size() || index < 0)
     {
 	index = 0 ;
-	time->setValue(0);
     }
-    QString name = files.at(index) ;
+    QString name = buffer.at(index).file ;
     emit prepareFile(name);
+}
+
+void MainWindow::getLayer(int i)
+{
+    int f = buffer.fileInBuffer(triangledisplay->fileName) ;
+    if(f < 0)
+    {
+
+    }
+    else
+    {
+	int index = i ;
+	if(index < 0 || i >= buffer.at(f).size() )
+	{
+	    index = 0 ;
+	    layer->setValue(index) ;
+	    return ;
+	}
+	open(buffer.at(f).file) ;
+    }
+
 }
 
 bool MainWindow::triangles(const QString s) const {
@@ -411,8 +454,6 @@ bool MainWindow::triangles(const QString s) const {
 	stream >> type ;
 	file.close();
 
-	std::cerr << s.toStdString() << std::endl ;
-	
 	return (type == "TRIANGLES" || type == "BIN_TRIANGLES") ;
 }
 
@@ -451,3 +492,28 @@ bool MainWindow::multi(const QString s) const {
 
 	return (type == "MULTI") ;
 }
+
+void MainWindow::disconnect(TriangleGLDrawer *display)
+{
+    QObject::disconnect(zoom, SIGNAL(valueChanged(int)), display, SLOT(setZoom(int)));
+    QObject::disconnect(display, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
+
+    QObject::disconnect(alpha, SIGNAL(valueChanged(int)), display, SLOT(setSet(int)));
+    QObject::disconnect(display, SIGNAL(setChanged(int)), alpha, SLOT(setValue(int)));
+
+    QObject::disconnect(field, SIGNAL(valueChanged(int)), display, SLOT(setScale(int)));
+    QObject::disconnect(display, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
+
+	QObject::disconnect(layer, SIGNAL(valueChanged(int)), display, SLOT(setTimePlane(int)));
+	QObject::disconnect(display, SIGNAL(timePlaneChanged(int)), layer, SLOT(setValue(int)));
+
+    QObject::disconnect(downSlider, SIGNAL(valueChanged(int)), display, SLOT(setSegmentDown(int)));
+    QObject::disconnect(display, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
+
+    QObject::disconnect(upSlider, SIGNAL(valueChanged(int)), display, SLOT(setSegmentUp(int)));
+    QObject::disconnect(display, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
+
+    QObject::disconnect(printButton, SIGNAL(released()), display, SLOT(grab()));
+
+}
+

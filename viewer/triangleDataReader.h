@@ -45,9 +45,15 @@ public:
 	size_t numberOfTimePlanes() const { return m_positions.size() ;}
 	
 	bool atEnd() const { return stream.atEnd() ; }
+	QString getFileName() { return file.fileName() ; }
+	void reload()
+	{
+	    stream.setDevice(&file);
+	}
 	
 	virtual std::vector< std::valarray<float> > * data()
 	{
+	    std::cerr << file.fileName().toStdString() << std::endl ;
 		std::vector< std::valarray<float> > * d = new  std::vector< std::valarray<float> >();
 		
 		for(size_t j = 0 ; j < m_numberOfPointsPerTriangle ; j++)
@@ -268,7 +274,6 @@ protected:
 			m_numberOfExtraFields = 0 ;
 			m_numberOfTriangles = 0 ;
 			m_numberOfPointsPerTriangle = 0;
-			std::cerr << "hibou" << std::endl ;
 			return false;
 		}
 		binary = (type == QString("BIN_TRIANGLES")) ;

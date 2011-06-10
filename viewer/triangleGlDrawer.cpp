@@ -92,6 +92,7 @@ void TriangleGLDrawer::setSet(int set) {
 		set = 0 ;
 	
 	currentDisplayList = set+displayList ;
+	std::cerr << "hello = " << currentDisplayList << std::endl ;
 	currentSet = set ;
 	paintGL() ;
 	
@@ -215,8 +216,26 @@ void TriangleGLDrawer::openFile(const QString f) {
 	currentTimePlane = 0 ;
 	
 	valuesAtPoint = reader->data() ;
-	
+
 }
+
+void TriangleGLDrawer::openFile(TriangleDataReader * f) {
+
+	delete valuesAtPoint ;
+	delete reader ;
+
+	reader = f ;
+
+	numberOfTriangles = reader->numberOfTriangles() ;
+	numberOfPointsPerTriangle = reader->numberOfPointsPerTriangle() ;
+	numberOfExtraFields = reader->numberOfExtraFields() ;
+	numberOfExtraTimePlanes = reader->numberOfTimePlanes()-1 ;
+	currentTimePlane = 0 ;
+
+	valuesAtPoint = reader->data() ;
+
+}
+
 
 void TriangleGLDrawer::initializeGL() {
 	
@@ -230,7 +249,6 @@ void TriangleGLDrawer::initializeGL() {
 	displayList = glGenLists(numberOfExtraFields) ;
 	std::cout << "numberOfExtraFields = " << numberOfExtraFields << std::endl ;
 	std::cout << "displayList = " << displayList << std::endl ;
-	std::cerr << currentSet << std::endl ;
 	currentDisplayList = currentSet+1 ;
 	glViewport(0, 0, 600, 600) ;
 	glEnable(GL_BLEND);
@@ -277,6 +295,7 @@ void TriangleGLDrawer::grab()
  
  void TriangleGLDrawer::computeDisplayList() {
 	
+
 	if(!minmaxinit)
 	{
 		max_x = (*valuesAtPoint)[0][0] ;
@@ -442,11 +461,14 @@ void TriangleGLDrawer::setSegmentUp(int v){
 		v = fracdown+1 ;
 	if (v > 10000)
 		v = 10000 ;
-	fracup = v ;
-	
-	computeDisplayList() ;
-	paintGL() ;
-	emit segmentUpChanged(v) ;
+	if(fracup != v)
+	{
+	    fracup = v ;
+
+	    computeDisplayList() ;
+	    paintGL() ;
+	    emit segmentUpChanged(v) ;
+	}
 // 	
 }
 
@@ -527,6 +549,71 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 
 	
 }
+
+TriangleGLDrawer::TriangleGLDrawer(std::vector<std::valarray<float> > * v, int np, int set, QWidget * parent) : QGLWidget(parent)
+{
+	valuesAtPoint = v ;
+	reader = NULL ;
+
+	mousePosOnLeftClick = QPoint(0,0);
+
+	leftDown = false;
+	moving = false ;
+
+	xtransleft = 0;
+	ytransleft  = 0;
+
+	zoom = 100 ;
+
+	zpos = 1.5 ;
+	currentSet = set ;
+
+//	openFile(f) ;
+	fracup = 10000;
+	fracdown = 0;
+
+	scale = 1 ;
+
+	minmaxinit = false ;
+
+	numberOfTriangles = (*v)[0].size() ;
+	numberOfPointsPerTriangle = np ;
+	numberOfExtraFields = ((v->size())-2*np)/np ;
+	numberOfExtraTimePlanes = 0 ;
+	currentTimePlane = 0 ;
+
+}
+
+
+TriangleGLDrawer::TriangleGLDrawer(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent)
+{
+    valuesAtPoint = NULL ;
+    reader = NULL ;
+
+    mousePosOnLeftClick = QPoint(0,0);
+
+    leftDown = false;
+    moving = false ;
+
+    xtransleft = 0;
+    ytransleft  = 0;
+
+    zoom = 100 ;
+
+    zpos = 1.5 ;
+    currentSet = set ;
+    currentDisplayList = set+1 ;
+
+    openFile(f) ;
+    fracup = 10000;
+    fracdown = 0;
+
+    scale = 1 ;
+
+    minmaxinit = false ;
+
+}
+
 
 TriangleGLDrawer::TriangleGLDrawer(QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent) : QGLWidget(parent), limits(limits) {
 
