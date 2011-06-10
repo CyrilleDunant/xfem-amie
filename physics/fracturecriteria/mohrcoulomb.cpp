@@ -140,39 +140,27 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 	metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
 	metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
-	if( maxStress >= upVal )
+	std::vector<double> scores ;
+	scores.push_back(-1);
+	if( maxStress >= upVal && maxStress > 0)
 	{
 		metInTension = true;
-
-		if( minStress <= downVal )
-			metInCompression = true ;
-
-		return 1. - std::abs( upVal / maxStress ) ;
+		scores.push_back(1. - std::abs( upVal / maxStress ) );
 	}
+	else if(maxStress > 0)
+			scores.push_back(-1. + std::abs( maxStress / upVal ));
 
-	if( minStress <= downVal )
+	if( minStress <= downVal && minStress < 0)
 	{
 		metInCompression = true ;
-		return 1. - std::abs( downVal / minStress ) ;
+		scores.push_back(1. - std::abs( downVal / minStress )) ;
 	}
-
-	double s0 = -1. + std::abs( maxStress / upVal );
-	double s1 = -1. + std::abs( minStress / downVal ) ;
-
-	if( minStress > 0 )
+	else if(minStress < 0 )
 	{
-		return s0 ;
+		scores.push_back(-1. + std::abs( minStress / downVal )) ;
 	}
-
-	if( maxStress < 0 )
-	{
-		return s1 ;
-	}
-
-	if( std::abs( s0 ) > std::abs( s1 ) )
-		return s0 ;
-
-	return s1;
+	std::sort(scores.begin(), scores.end()) ;
+	return scores.back() ;
 }
 
 FractureCriterion *NonLocalMohrCoulomb::getCopy() const

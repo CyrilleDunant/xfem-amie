@@ -15,6 +15,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/fracturecriteria/vonmises.h"
+#include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/stiffness_and_indexed_fracture.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
@@ -108,10 +109,10 @@ double E_max = 0;
 
 double x_max = 0 ;
 double y_max = 0 ;
-double disp = 0 ;
-BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, disp) ;
-double width = 30;
-double height = 30;
+double disp = 0.352 ;//.350 .355
+BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
+double width = 20;
+double height = 10;
 Sample sample(NULL, width , height, 0, 0) ;
 double x_min = 0 ;
 double y_min = 0 ;
@@ -387,12 +388,13 @@ void step()
 	size_t max_limit = 2000 ;
 	int limit = 0 ;
 	
-
+	for(int s = 0 ; s < max_growth_steps ; s++)
+	{
 		go = featureTree->step() ;
 
 		if(go)
 		{
-			imposeddisp->setData(imposeddisp->getData()-.1);
+			imposeddisp->setData(imposeddisp->getData()+.5);
 			go = true ;
 		}
 		double da = 0 ;
@@ -628,12 +630,12 @@ void step()
 // 		filename.append(itoa(totit++, 10)) ;
 // 		std::cout << filename.str() << std::endl ;
 
-		TriangleWriter writer(filename.str(), featureTree) ;
-		writer.getField(TWFT_STRAIN_AND_STRESS) ;
-		writer.getField(TWFT_VON_MISES) ;
-		writer.getField(TWFT_STIFFNESS) ;
-		writer.getField(TWFT_DAMAGE) ;
-		writer.write() ;
+// 		TriangleWriter writer(filename.str(), featureTree) ;
+// 		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+// 		writer.getField(TWFT_VON_MISES) ;
+// 		writer.getField(TWFT_STIFFNESS) ;
+// 		writer.getField(TWFT_DAMAGE) ;
+// 		writer.write() ;
 		
 // 		if(true)
 // 		{
@@ -695,7 +697,7 @@ void step()
 			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 // 		}
 		energy.push_back(enr) ;
-
+	}
 // 	for(size_t i = 0 ; i < energy.size() ; i++)
 // 		std::cout << energy[i] << std::endl ;
 }
@@ -1089,8 +1091,8 @@ void Display(void)
 		}
 		glEndList() ;
 
-		double crit_max = fracCrit.max() ;
-		double crit_min = fracCrit.min() ;
+		double crit_max = 1 ;
+		double crit_min = -1 ;
 		glNewList(  DISPLAY_LIST_FRAC_CRIT,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
@@ -1104,8 +1106,8 @@ void Display(void)
 				double vx = x[triangles[j]->getBoundingPoint(start).id*2]; 
 				double vy = x[triangles[j]->getBoundingPoint(start).id*2+1]; 
 				double s = 1. ;
-				if(fracCrit[j*triangles[j]->getBoundingPoints().size()] <= 0)
-					s = .2 ;
+// 				if(fracCrit[j*triangles[j]->getBoundingPoints().size()] <= 0)
+// 					s = .2 ;
 					
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()]-crit_min)/(crit_max-crit_min), s, 1.) ;
@@ -1726,27 +1728,19 @@ int main(int argc, char *argv[])
 //  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
 
 	double cradius = 20 ;
-	double mradius = 10 ;
-	double tdamage = .999 ;
-	double tol = .001 ;
+	double mradius = 1.5 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
-	dfunc->setThresholdDamageDensity(tdamage);
-	dfunc->setDamageDensityTolerance(tol);
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 0.156, mradius*.175) ;
 // 	psp->crit->setNeighbourhoodRadius(cradius);
 // 	psp->crit->setMaterialCharacteristicRadius(mradius);
 // 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(35), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalMohrCoulomb(10, -10*8) , cradius) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(10, cradius) ) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
-	saf->dfunc->setThresholdDamageDensity(tdamage);
-	saf->dfunc->setDamageDensityTolerance(tol);
 	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new /*MohrCoulomb(0.01, -0.01)*/ VonMises(0.01), cradius) ; //1.5640; 5625 too low ; 5650 too high
 	saif->criterion->setMaterialCharacteristicRadius(mradius);
 	saif->criterion->setNeighbourhoodRadius(cradius);
-	saif->dfunc->setThresholdDamageDensity(tdamage);
-	saif->dfunc->setDamageDensityTolerance(tol);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 	sample.setBehaviour(saf) ;
@@ -1759,8 +1753,8 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(sf) ;
 //	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
 // 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
-// 	F.addFeature(&sample, new Pore(2, -7,2) );
-// 	F.addFeature(&sample, new Pore(2, 7,-2) );
+	F.addFeature(&sample, new Pore(2, -7,2) );
+	F.addFeature(&sample, new Pore(2, 7,-2) );
 // 	F.addFeature(&sample, new Pore(20, 0, 0) );
 // 	F.addFeature(&sample, new Pore(20, 85, -85) );
 // 	F.addFeature(&sample, new Pore(20, 155, -155) );
@@ -1802,8 +1796,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
@@ -1822,7 +1816,7 @@ int main(int argc, char *argv[])
 	
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.setMaxIterationsPerStep(200) ;
 	F.setDeltaTime(0.1);
 

@@ -108,7 +108,7 @@ void MainWindow::createToolBars()
 	time = new QSlider(Qt::Horizontal, fileToolBar) ;
 	time->setRange(0, 1);
 	time->setSingleStep(1);
-	time->setPageStep(5);
+	time->setPageStep(1);
 	time->setTickInterval(1);
 	time->setValue(0) ;
 	time->setTracking ( false ) ;
@@ -179,7 +179,7 @@ void MainWindow::open()
 			if(i >= 0)
 			{
 			    LayerBuffer lbuff = buffer.value(i).value(layer->value()) ;
-			    triangledisplay = new TriangleGLDrawer(lbuff.values, lbuff.numberOfPointsPerTriangle, alpha->value()) ;
+			    triangledisplay = new TriangleGLDrawer(lbuff.values, lbuff.numberOfPointsPerTriangle, alpha->value(), limits) ;
 			}
 			else
 			{
@@ -261,6 +261,26 @@ void MainWindow::open()
 		}
 		else if(multi(fileName))
 		{
+			connect(zoom, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setZoom(int)));
+			connect(triangledisplay, SIGNAL(zoomChanged(int)), zoom, SLOT(setValue(int)));
+			
+			connect(alpha, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSet(int)));
+			connect(triangledisplay, SIGNAL(setChanged(int)), alpha, SLOT(setValue(int)));
+			
+			connect(field, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setScale(int)));
+			connect(triangledisplay, SIGNAL(scaleChanged(int)), field, SLOT(setValue(int)));
+			
+			connect(layer, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setTimePlane(int)));
+			connect(triangledisplay, SIGNAL(timePlaneChanged(int)), layer, SLOT(setValue(int)));
+			
+			connect(downSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentDown(int)));
+			connect(triangledisplay, SIGNAL(segmentDownChanged(int)), downSlider, SLOT(setValue(int)));
+			
+			connect(upSlider, SIGNAL(valueChanged(int)), triangledisplay, SLOT(setSegmentUp(int)));
+			connect(triangledisplay, SIGNAL(segmentUpChanged(int)), upSlider, SLOT(setValue(int)));
+			
+			connect(printButton, SIGNAL(released()), triangledisplay, SLOT(grab()));
+			
 		    alpha->setValue(0) ;
 		    alpha->setRange(-1, 1000);
 
@@ -290,7 +310,7 @@ void MainWindow::open(const QString &fileName)
 {
 	if (!fileName.isEmpty())
 	{
-	    if(triangles(fileName))
+	   if(triangles(fileName))
 		{
 		    delete voxeldisplay ;
 		    std::vector<std::pair<float, float> > limits ;
@@ -317,7 +337,7 @@ void MainWindow::open(const QString &fileName)
 		    {
 			LayerBuffer lbuff = buffer.value(i).value(layer->value()) ;
 			std::cerr << lbuff.values->size() << std::endl ;
-			triangledisplay = new TriangleGLDrawer(lbuff.values, lbuff.numberOfPointsPerTriangle, alpha->value()) ;
+			triangledisplay = new TriangleGLDrawer(lbuff.values, lbuff.numberOfPointsPerTriangle, alpha->value(),limits) ;
 		    }
 		    else
 		    {

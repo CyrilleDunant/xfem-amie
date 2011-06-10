@@ -169,6 +169,8 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 
+MultiTriangleWriter writer("triangles_head","triangles_layers",NULL) ;
+
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
@@ -506,25 +508,33 @@ void step()
 		
 		if(true)
 		{
-			std::stringstream filename ;
-			if(dit >= dsteps)
-				filename << "intermediate-" ;
+// 			std::stringstream filename ;
+// 			if(dit >= dsteps)
+// 				filename << "intermediate-" ;
+// 			
+// 			filename << "triangles-" ;
+// 			filename << round(appliedForce) ;
+// 			filename << "-" ;
+// 			filename << 1000.*e_xx/(double)ex_count ;
+// 			
+// 	// 		filename.append(itoa(totit++, 10)) ;
+// 	// 		std::cout << filename.str() << std::endl ;
+// 
+// 			TriangleWriter writer(filename.str(), featureTree) ;
+// 			writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+// 			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
+// 			writer.getField(TWFT_CRITERION) ;
+// 			writer.getField(TWFT_STIFFNESS) ;
+// 			writer.getField(TWFT_DAMAGE) ;
+// 			writer.write() ;
 			
-			filename << "triangles-" ;
-			filename << round(appliedForce) ;
-			filename << "-" ;
-			filename << 1000.*e_xx/(double)ex_count ;
-			
-	// 		filename.append(itoa(totit++, 10)) ;
-	// 		std::cout << filename.str() << std::endl ;
-
-			TriangleWriter writer(filename.str(), featureTree) ;
+			writer.reset(featureTree) ;
 			writer.getField(TWFT_PRINCIPAL_STRESS ) ;
 			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
 			writer.getField(TWFT_CRITERION) ;
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.getField(TWFT_DAMAGE) ;
-			writer.write() ;
+			writer.append() ;
 		}
 		
 		if(!go_on)
@@ -1501,10 +1511,10 @@ int main(int argc, char *argv[])
 	omp_set_num_threads(8) ;
 #endif
 	double compressionCrit = -37.0e6 ; 
-	double tensionCrit =  3e6 ; //330.*sqrt(-compressionCrit);//3.7e6 ; ;// or 2 obtained by .33*sqrt(fc_)
+	double tensionCrit =  3.0e6 ; //330.*sqrt(-compressionCrit);// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*rebarDiametre/(.4) ; 
-	double mradius = .05 ; // .015
-	double nradius = mradius*3 ;
+	double mradius = .07 ; // .015
+	double nradius = mradius*5 ;
 	
 	Matrix m0_steel(3,3) ;
 	double E_steel = 200e9 ;
@@ -1560,10 +1570,10 @@ int main(int argc, char *argv[])
 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	std::vector<Sample*> stirrups ;
-	double psi = 2.*0.0084261498/.4 ;
+	double psi = 2.*/*0.0084261498*/0.009525/.4 ;
 	for(size_t i = 0 ;  i < 7 ; i++)
 	{
-		stirrups.push_back(new Sample(0.0084261498, sampleHeight-2.*rebarEndCover, 0.175+i*0.35, 0.));
+		stirrups.push_back(new Sample(/*0.0084261498*/0.009525, sampleHeight-2.*rebarEndCover, 0.175+i*0.35, 0.));
 		stirrups.back()->setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);

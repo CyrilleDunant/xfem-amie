@@ -5374,7 +5374,7 @@ void FeatureTree::generateElements()
 				if( tree[i]->getFather() && i && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
 					isIn = true ;
 
-				if( !tree[i]->getFather()&& !i )
+				if( !tree[i]->getFather()&& i )
 					isIn = false ;
 
 

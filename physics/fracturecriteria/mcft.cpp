@@ -119,7 +119,8 @@ NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double
 	, upVal( up ), downVal( down )
 {
 	physicalCharacteristicRadius = charRad ;
-	tensionCritStrain = up / youngModulus ;
+	tensionCritStrain = up/ youngModulus ;
+	strainBroken = false ;
 }
 
 
@@ -131,37 +132,83 @@ double NonLocalMCFT::grade( ElementState &s )
 {
 	
 	Vector pstrain(smoothedPrincipalStrain(s)) ;
+// 	Vector localpstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	Vector pstress(smoothedPrincipalStress(s)) ;
 
 	double tstrain = pstrain.max();
 	double cstrain = pstrain.min();
+// 	double localtstrain = localpstrain.max();
+// 	double localcstrain = localpstrain.min();
 	double tstress = pstress.max();
 	double cstress = pstress.min();
 ;
 	double critStrain = -0.002 ;
 	double mcftFactor = 1 ;
-	double renormCompressionStrain = cstrain / critStrain ;
+// 	double renormCompressionStrain = cstrain / critStrain ;
 	double maxCompression = -std::abs( downVal ) ;
-	bool compressionBroken  = false ;
 
-	if(cstrain < critStrain)
-	{
-		mcftFactor = ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / ( 0.8 - 0.34 * tstrain / critStrain ) ;
-		maxCompression = -std::abs( downVal ) * mcftFactor ;
-		compressionBroken = true ;
-	}
-
-	if( mcftFactor > 1 || mcftFactor < 0 )
-		maxCompression = -std::abs( downVal ) ;
-
+	double tensionModulus  = std::abs(tstress/tstrain) ;
+	double compressionModulus = std::abs(cstress/cstrain) ;
+	
 	double maxTension = upVal ;
-
-	bool strainBroken = false ;
-	if(tstrain > tensionCritStrain)
+	
+	
+	double tstraincrit = 0 ; 
+	double prevtstraincrit = tstraincrit ;
+	do
 	{
-		maxTension = upVal / ( 1. + sqrt( 200.*tstrain ) ) ;
+		prevtstraincrit = tstraincrit ;
+		if(tstraincrit > tensionCritStrain|| (strainBroken && tstrain > 0))
+		{
+			tstraincrit = upVal / (( 1. + sqrt( 200.*tstraincrit ) )*tensionModulus) ;
+		}
+		else
+		{
+			tstraincrit = tensionCritStrain ;
+		}
+		
+	} while (std::abs(prevtstraincrit - tstraincrit) > POINT_TOLERANCE_2D) ;
+	
+	maxTension = tstraincrit*tensionModulus ;
+	
+// 	if(tstrain > tensionCritStrain || (strainBroken && tstrain > 0))
+// 	{
+// 		maxTension = upVal / ( 1. + sqrt( 200.*tstrain ) ) ;
+		
+// 	}
+	if(tstrain > tstraincrit)
 		strainBroken = true ;
-	}
+	
+	
+	
+	double cstraincrit = 0 ; 
+	double prevtcstraincrit = cstraincrit ;
+	do
+	{
+		prevtcstraincrit = cstraincrit ;
+		if(cstraincrit < critStrain)
+		{
+			double renormCompressionStrain = cstraincrit / critStrain ;
+			cstraincrit = -std::abs( downVal ) * ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / (( 0.8 - 0.34 * tstraincrit / critStrain )*compressionModulus) ;
+		}
+		else
+		{
+			cstraincrit = critStrain ;
+		}
+		
+	} while (std::abs(prevtcstraincrit - cstraincrit) > POINT_TOLERANCE_2D) ;
+	maxCompression = cstraincrit*compressionModulus ;
+	
+// 	if(cstrain < critStrain)
+// 	{
+// 		mcftFactor = ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / ( 0.8 - 0.34 * tstrain / critStrain ) ;
+// 		maxCompression = -std::abs( downVal ) * mcftFactor ;
+// 	}
+
+
+// 	if( mcftFactor > 1 || mcftFactor < 0 )
+// 		maxCompression = -std::abs( downVal ) ;
+
 
 	metInCompression = cstrain <= 0 && std::abs( cstress / maxCompression ) > std::abs( tstress / maxTension ) || tstrain <= 0;
 	metInTension = tstrain >= 0 && std::abs( cstress / maxCompression ) < std::abs( tstress / maxTension ) || cstrain >= 0;
@@ -170,33 +217,37 @@ double NonLocalMCFT::grade( ElementState &s )
 	std::vector<double> crits ;
 	crits.push_back( -1 ) ;
 
-	if( compressionBroken &&  cstress <= 0 && std::abs( cstress ) >= std::abs( maxCompression ) )
+	if( cstress <= 0 && std::abs( cstress ) >= std::abs( maxCompression ) )
 	{
 		metInCompression = true ;
-		crits.push_back( 1. - std::abs( maxCompression / cstress ) ) ;
+// 		crits.push_back( 1. - std::abs( maxCompression / cstress ) ) ;
+		double c = sqrt(cstraincrit*cstraincrit*compressionModulus*compressionModulus+cstraincrit*cstraincrit) ;
+		double s = sqrt(cstress*cstress+cstrain*cstrain) ;
+		crits.push_back( 1. - std::abs( c / s ) ) ;
+	}
+	if( cstress <= 0 && std::abs( cstress ) < std::abs( downVal ) )
+	{
+		double c = sqrt(cstraincrit*cstraincrit*compressionModulus*compressionModulus+cstraincrit*cstraincrit) ;
+		double s = sqrt(cstress*cstress+cstrain*cstrain) ;
+		crits.push_back( -1. + std::abs( s / c ) ) ;
 	}
 
 	if( strainBroken && tstress >= 0 && std::abs( tstress ) >= std::abs( maxTension ) )
 	{
 		metInTension = true ;
-		crits.push_back( 1. - std::abs( maxTension / tstress ) ) ;
+		double c = sqrt(tstraincrit*tstraincrit*tensionModulus*tensionModulus+tstraincrit*tstraincrit) ;
+		double s = sqrt(tstress*tstress+tstrain*tstrain) ;
+		crits.push_back( 1. - std::abs( c / s ) ) ;
+	}
+
+	if( tstress >= 0 && std::abs( tstress )  < std::abs( maxTension ) )
+	{
+		double c = sqrt(tstraincrit*tstraincrit*tensionModulus*tensionModulus+tstraincrit*tstraincrit) ;
+		double s = sqrt(tstress*tstress+tstrain*tstrain) ;
+		crits.push_back( -1. + std::abs( s / c ) ) ;
 	}
 
 
-	if( !strainBroken && tstress >= 0 && std::abs( tstress )  < std::abs( maxTension ) )
-	{
-		crits.push_back( -1. + std::abs( tstress / maxTension ) ) ;
-	}
-	
-	if(tstrain > 0 && tstrain <= tensionCritStrain)
-	{
-		crits.push_back( -1. + tstrain / tensionCritStrain  ) ;
-	}
-
-	if( cstress <= 0 && std::abs( cstress ) < std::abs( downVal ) )
-	{
-		crits.push_back( -1. + std::abs( cstress / downVal ) ) ;
-	}
 
 	std::sort( crits.begin(), crits.end() );
 

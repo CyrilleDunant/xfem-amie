@@ -109,7 +109,7 @@ public:
     void resetCounter() { counter = 0 ; }
 
 protected:
-    virtual void writeHeader(int layer, bool append = true) ;
+    virtual void writeHeader(int layer, bool firstlayer, bool append = true) ;
 };
 
 

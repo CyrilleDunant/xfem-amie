@@ -252,7 +252,7 @@ void BinaryTriangleWriter::append()
 void MultiTriangleWriter::append()
 {
 
-	writeHeader( layers[0], true ) ;
+	writeHeader( layers[0], true ,true ) ;
 	std::fstream outfile  ;
 	outfile.open( filename.c_str(), std::ios::out | std::ios::app ) ;
 
@@ -272,7 +272,7 @@ void MultiTriangleWriter::append()
 
 	for( size_t k = 1 ; k < layers.size() ; k++ )
 	{
-		writeHeader( layers[k], true ) ;
+		writeHeader( layers[k], false, true ) ;
 		outfile.open( filename_orig.c_str(), std::ios::out | std::ios::app ) ;
 
 		for( int i = 0 ; i < nTriangles[k] ; i++ )
@@ -861,17 +861,23 @@ void BinaryTriangleWriter::writeHeader( bool append )
 	outstream.close() ;
 }
 
-void MultiTriangleWriter::writeHeader( int layer, bool append )
+void MultiTriangleWriter::writeHeader( int layer, bool firstlayer, bool append )
 {
-    nextCounter() ;
-	std::fstream headstream ;
+	if(firstlayer)
+	{
+		nextCounter() ;
+		std::fstream headstream ;
 
-	headstream.open( head.c_str(), std::ios::out | std::ios::app ) ;
-	headstream << filename << std::endl ;
-	headstream.close();
+		headstream.open( head.c_str(), std::ios::out | std::ios::app ) ;
+		headstream << filename << std::endl ;
+		headstream.close();
+	}
 
 	std::fstream outstream ;
-	outstream.open( filename.c_str(), std::ios::out);
+	if( append )
+		outstream.open( filename.c_str(), std::ios::out | std::ios::app ) ;
+	else
+		outstream.open( filename.c_str(), std::ios::out ) ;
 	outstream << "TRIANGLES" << std::endl ;
 	outstream << ( int ) nTriangles[layerTranslator[layer]] << std::endl ;
 	outstream << 3 << std::endl ;

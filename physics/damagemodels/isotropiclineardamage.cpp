@@ -60,7 +60,7 @@ bool IsotropicLinearDamage::fractured() const
 {
 	if(fraction < 0)
 		return false ;
-	return getState()[0] >= thresholdDamageDensity/fraction ;
+	return getState()[0] >= thresholdDamageDensity ;
 }
 
 

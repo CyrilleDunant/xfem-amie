@@ -60,6 +60,7 @@ class NonLocalMCFT : public FractureCriterion
 {
 
 public:
+	bool strainBroken ;
 	double upVal ;
 	double downVal ;
 	double tensionCritStrain ;

@@ -550,7 +550,7 @@ TriangleGLDrawer::TriangleGLDrawer(QString f, const std::vector<std::pair<float,
 	
 }
 
-TriangleGLDrawer::TriangleGLDrawer(std::vector<std::valarray<float> > * v, int np, int set, QWidget * parent) : QGLWidget(parent)
+TriangleGLDrawer::TriangleGLDrawer(std::vector<std::valarray<float> > * v, int np, int set, const std::vector<std::pair<float, float> > & limits, QWidget * parent) : QGLWidget(parent), limits(limits)
 {
 	valuesAtPoint = v ;
 	reader = NULL ;
@@ -585,7 +585,7 @@ TriangleGLDrawer::TriangleGLDrawer(std::vector<std::valarray<float> > * v, int n
 }
 
 
-TriangleGLDrawer::TriangleGLDrawer(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent)
+TriangleGLDrawer::TriangleGLDrawer(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent): QGLWidget(parent), limits(limits)
 {
     valuesAtPoint = NULL ;
     reader = NULL ;

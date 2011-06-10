@@ -34,7 +34,6 @@ public:
 
 	/** \brief Increment the damage
 	 * 
-	 * The formula used is \f$ d += .1e^{\frac{A_e}{\pi\epsilon^2}} ; \f$
 	 * @param s ElementState passed as a parameter
 	 */
 	virtual Vector computeDamageIncrement(ElementState & s) ;

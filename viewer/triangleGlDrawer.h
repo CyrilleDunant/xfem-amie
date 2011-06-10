@@ -120,7 +120,7 @@ public:
 	int xtransleft ;
 	int ytransleft ;
 	
-	TriangleGLDrawer(std::vector<std::valarray<float> > * v, int np, int set, QWidget * parent = 0 ) ;
+	TriangleGLDrawer(std::vector<std::valarray<float> > * v, int np, int set, const std::vector<std::pair<float, float> > & limits, QWidget * parent = 0 ) ;
 	TriangleGLDrawer(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //

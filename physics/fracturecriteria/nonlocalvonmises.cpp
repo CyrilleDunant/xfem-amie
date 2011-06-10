@@ -27,18 +27,19 @@ NonLocalVonMises::~NonLocalVonMises()
 
 double NonLocalVonMises::grade(ElementState &s)
 {
-
+	metInCompression = true ;
+	metInTension = true ;
 	Vector str( smoothedPrincipalStress(s) ) ;
-	
 	double maxStress = 0 ;
-		if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-		{
-			maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) / 2. ) ;
-		}
-		else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-		{
-			maxStress = sqrt( ( str[0] - str[1] ) * ( str[0] - str[1] ) + ( str[0] - str[2] ) * ( str[0] - str[2] ) + ( str[1] - str[2] ) * ( str[1] - str[2] ) ) / 6 ;
-		}
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) / 2. ) ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		maxStress = sqrt( ( str[0] - str[1] ) * ( str[0] - str[1] ) + ( str[0] - str[2] ) * ( str[0] - str[2] ) + ( str[1] - str[2] ) * ( str[1] - str[2] ) ) / 6 ;
+	}
+	
 	
 	if(maxStress > threshold )
 	{
