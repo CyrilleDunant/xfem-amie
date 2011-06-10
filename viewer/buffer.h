@@ -56,17 +56,21 @@ class FileBuffer : public QList<LayerBuffer>
 
 class Buffer : public QList<FileBuffer>
 {
+	QString master ;
+	std::vector<QString> files ;
 	public:
 		Buffer() : QList<FileBuffer>() {  }
 
-		Buffer( QString n ) : QList<FileBuffer>()
+		Buffer( const QString & n ) : QList<FileBuffer>()
 		{
+			master = n ;
 			QFile file( n ) ;
 
 			if( !file.open( QIODevice::ReadOnly | QIODevice::Text ) )
 				return ;
 
 			QTextStream stream;
+			
 			stream.setDevice( &file );
 			QString type ;
 			stream >> type ;
@@ -83,10 +87,50 @@ class Buffer : public QList<FileBuffer>
 				stream >> type ;
 
 				if( type.size() > 0 )
-					push_back( FileBuffer( path + type ) ) ;
+					files.push_back( path + type ) ;
 				else
 					go_on = false ;
 			}
+			for(int i = 0 ; i < files.size() ;i++)
+				push_back(FileBuffer(files[i])) ;
+			
+		}
+		
+		bool update()
+		{
+			QFile file( master ) ;
+
+			if( !file.open( QIODevice::ReadOnly | QIODevice::Text ) )
+				return false;
+
+			QTextStream stream;
+			stream.setDevice( &file );
+			QString type ;
+			stream >> type ;
+			file.close();
+
+			if( type != "MULTI" )
+				return false;
+			int originalSize = files.size() ;
+			files.clear() ;
+			bool go_on = true ;
+			QString path = master.section( '/', 0, -2 ) + "/" ;
+			int newSize = 0 ;
+			while( go_on )
+			{
+				newSize++ ;
+				stream >> type ;
+
+				if( type.size() > 0 )
+					files.push_back( path + type ) ;
+				else
+					go_on = false ;
+			}
+			
+			for(int i = originalSize ; i < newSize-1 ; i++)
+				push_back(FileBuffer(files[i])) ;
+			
+			return originalSize != newSize ;
 		}
 
 		int fileInBuffer( QString file )

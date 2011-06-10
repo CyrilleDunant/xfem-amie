@@ -466,11 +466,14 @@ void MainWindow::getFile( int i )
 {
 	int index = i ;
 
+	bool updated = buffer.update() ;
 	if( index >= buffer.size() || index < 0 )
 	{
 		index = 0 ;
 	}
-
+	if(updated)
+		time->setRange( 0, buffer.size() - 1 );
+	
 	QString name = buffer.at( index ).file ;
 	emit prepareFile( name );
 }
