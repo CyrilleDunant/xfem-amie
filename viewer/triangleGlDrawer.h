@@ -124,7 +124,14 @@ public:
 	TriangleGLDrawer(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
 	TriangleGLDrawer(QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //
-	TriangleGLDrawer(QWidget *parent = 0) ; //
+	TriangleGLDrawer(QWidget *parent = 0) ;
+	
+	void reset(std::vector<std::valarray<float> > * v, int np, int set, const std::vector<std::pair<float, float> > & limits) ;
+	void reset(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits) ;
+	void reset(QString f, const std::vector<std::pair<float, float> > & limits) ;
+	void reset(QString f, int set, const std::vector<std::pair<float, float> > & limits) ;
+	void reset() ;
+	
 	~TriangleGLDrawer() ; //
 	
 	QString fileName ;

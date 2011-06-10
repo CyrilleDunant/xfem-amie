@@ -1569,6 +1569,20 @@ int main(int argc, char *argv[])
 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
+	Sample rebar2(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  sampleHeight*.5-0.064) ; 
+	rebar2.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
+	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+	rebar2.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+	rebar2.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+	rebar2.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	
+	Sample rebar3(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  sampleHeight*.5-0.064-0.085) ; 
+	rebar3.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
+	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+	rebar3.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+	rebar3.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
+	rebar3.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
+	
 	std::vector<Sample*> stirrups ;
 	double psi = 2.*/*0.0084261498*/0.009525/.4 ;
 	for(size_t i = 0 ;  i < 7 ; i++)
@@ -1616,12 +1630,16 @@ int main(int argc, char *argv[])
 	
 		F.addFeature(stirrups.back(),&rebar0, rebarlayer, phi) ;
 		F.addFeature(stirrups.back(),&rebar1, rebarlayer, phi) ;
+		F.addFeature(stirrups.back(),&rebar2, rebarlayer, phi) ;
+		F.addFeature(stirrups.back(),&rebar3, rebarlayer, phi) ;
 	}
 	else
 	{
 		int rebarlayer = 0 ;
 		F.addFeature(&sample,&rebar0, rebarlayer, phi) ;
 		F.addFeature(&sample,&rebar1, rebarlayer, phi) ;
+		F.addFeature(&sample,&rebar2, rebarlayer, phi) ;
+		F.addFeature(&sample,&rebar3, rebarlayer, phi) ;
 	}
 
 	
