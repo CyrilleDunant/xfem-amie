@@ -104,7 +104,6 @@ void TriangleGLDrawer::setSet( int set )
 		set = 0 ;
 
 	currentDisplayList = set + displayList ;
-	std::cerr << "hello = " << currentDisplayList << std::endl ;
 	currentSet = set ;
 	paintGL() ;
 
@@ -605,7 +604,6 @@ void TriangleGLDrawer::reset( QString f, const std::vector<std::pair<float, floa
 
 	scale = 1 ;
 
-	minmaxinit = false ;
 	computeDisplayList();
 }
 TriangleGLDrawer::TriangleGLDrawer( QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent ) : QGLWidget( parent ), limits( limits )
@@ -636,7 +634,6 @@ TriangleGLDrawer::TriangleGLDrawer( QString f, const std::vector<std::pair<float
 	minmaxinit = false ;
 
 
-
 }
 
 void TriangleGLDrawer::reset( std::vector<std::valarray<float> > * v, int np, int set, const std::vector<std::pair<float, float> > & l )
@@ -664,8 +661,6 @@ void TriangleGLDrawer::reset( std::vector<std::valarray<float> > * v, int np, in
 	fracdown = 0;
 
 	scale = 1 ;
-
-	minmaxinit = false ;
 
 	numberOfTriangles = ( *v )[0].size() ;
 	numberOfPointsPerTriangle = np ;
@@ -736,7 +731,6 @@ void TriangleGLDrawer::reset( TriangleDataReader *f, int set, const std::vector<
 
 	scale = 1 ;
 
-	minmaxinit = false ;
 	computeDisplayList();
 }
 
@@ -795,7 +789,6 @@ void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<fl
 
 	scale = 1 ;
 
-	minmaxinit = false ;
 	computeDisplayList();
 }
 
@@ -831,7 +824,6 @@ TriangleGLDrawer::TriangleGLDrawer( QString f, int set, const std::vector<std::p
 void TriangleGLDrawer::reset()
 {
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
-	minmaxinit = false ;
 
 	valuesAtPoint = new std::vector< std::valarray<float> >( 0 ) ;
 	reader = NULL ;
