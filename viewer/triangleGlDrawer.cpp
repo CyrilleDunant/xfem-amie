@@ -468,35 +468,38 @@ void TriangleGLDrawer::setScale( int v )
 
 void TriangleGLDrawer::setTimePlane( int tp )
 {
-	delete valuesAtPoint ;
-
-	if( tp <= numberOfExtraTimePlanes )
+	if(reader)
 	{
-		valuesAtPoint = reader->dataAtPos( tp ) ;
-	}
-	else
-	{
-		valuesAtPoint = reader->dataNext() ;
+		delete valuesAtPoint ;
 
-		if( valuesAtPoint->size() == 0 )
+		if( tp <= numberOfExtraTimePlanes )
 		{
-			delete valuesAtPoint ;
-			tp = 0 ;
 			valuesAtPoint = reader->dataAtPos( tp ) ;
 		}
 		else
 		{
-			numberOfExtraTimePlanes = tp ;
+			valuesAtPoint = reader->dataNext() ;
+
+			if( valuesAtPoint->size() == 0 )
+			{
+				delete valuesAtPoint ;
+				tp = 0 ;
+				valuesAtPoint = reader->dataAtPos( tp ) ;
+			}
+			else
+			{
+				numberOfExtraTimePlanes = tp ;
+			}
 		}
+
+		currentTimePlane = tp ;
+		numberOfTriangles = reader->numberOfTriangles() ;
+		numberOfPointsPerTriangle = reader->numberOfPointsPerTriangle() ;
+		numberOfExtraFields = reader->numberOfExtraFields() ;
+
+		computeDisplayList() ;
+		paintGL() ;
 	}
-
-	currentTimePlane = tp ;
-	numberOfTriangles = reader->numberOfTriangles() ;
-	numberOfPointsPerTriangle = reader->numberOfPointsPerTriangle() ;
-	numberOfExtraFields = reader->numberOfExtraFields() ;
-
-	computeDisplayList() ;
-	paintGL() ;
 
 //	emit timePlaneChanged(tp) ;
 }
