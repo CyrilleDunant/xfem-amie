@@ -70,7 +70,6 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		cache[i]->enrichmentUpdated = true ;
 
 	}
-	
 	if(cache.empty())
 		std::cout << "cache empty !" << std::endl ;
 }
@@ -167,10 +166,11 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	updated = false ;
 	const std::vector<DelaunayTriangle *> & disc  = cache;
 
-	
 	if(disc.size() == 1) // special case for really small inclusions
 	{
-		std::vector<Feature *> brother = this->getFather()->getChildren() ;
+		std::vector<Feature *> brother ;
+		if(getFather())
+			brother = this->getFather()->getChildren() ;
 		std::vector<Feature *> feat ;
 		for(size_t i = 0 ; i < brother.size() ; i++)
 		{
@@ -181,6 +181,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		disc[0]->setBehaviour(hom) ;
 		return ;
 	}
+	
 //	for(size_t i = 0 ; i < disc.size() ; i++)
 //	{
 //		disc[i]->setBehaviour(this->getFather()->getBehaviour()->getCopy()) ;	
@@ -199,7 +200,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			ring.push_back(disc[i]) ;
 		}
 	}
-	
 	//then we build a list of points to enrich
 	std::set<Point *> points ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
@@ -210,7 +210,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		}
 	}
 
-	
 	//we build a map of the points and corresponding enrichment ids
 	std::map<const Point *, int> dofId ;
 
@@ -221,7 +220,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	
 	std::set<std::pair<DelaunayTriangle *, Point *> > enriched ;
 	//then we iterate on every element
-	TriElement father(ring[0]->getOrder()) ;
+	Order order = LINEAR ;
+	if(!ring.empty())
+		order = ring[0]->getOrder() ;
+	TriElement father(order) ;
 	std::map<Point*, size_t> extradofs ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{

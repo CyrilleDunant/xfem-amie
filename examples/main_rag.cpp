@@ -1894,7 +1894,7 @@ int main( int argc, char *argv[] )
 
 	std::vector<Inclusion *> placedinclusions ;
 
-	for( size_t i = 0 ; i < feats.size() ; i++ )
+	for( size_t i = 0 ; i < 32/*feats.size()*/ ; i++ )
 	{
 		Point a( inclusions[i]->getCenter() + Point( 0, inclusions[i]->getRadius() ) ) ;
 		Point b( inclusions[i]->getCenter() + Point( 0, -inclusions[i]->getRadius() ) ) ;
@@ -1928,7 +1928,7 @@ int main( int argc, char *argv[] )
 	Circle cercle( .5, 0, 0 ) ;
 
 	zones = generateExpansiveZonesHomogeneously( 2000, placedinclusions, F ) ;
-	F.setSamplingNumber( 800 ) ;
+	F.setSamplingNumber( 512 ) ;
 
 	if( restraintDepth > 0 )
 	{

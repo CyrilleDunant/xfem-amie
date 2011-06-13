@@ -1,5 +1,5 @@
 //
-// Description: 
+// Description:
 //
 //
 // Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2010-2011
@@ -28,84 +28,88 @@
 #include "../features/features.h"
 #include "../features/inclusion.h"
 #include "../features/sample.h"
-#include "../geometry/geometry_base.h" 
+#include "../geometry/geometry_base.h"
 
 
 using namespace Mu ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2) , mesh(mesh), self2d(self), self3d(NULL), equivalent(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ) , mesh( mesh ), self2d( self ), self3d( NULL ), equivalent( NULL )
 {
-    original = self->getBehaviour() ;
-    if(dynamic_cast<HomogeneisedBehaviour *>(original))
-	original = dynamic_cast<HomogeneisedBehaviour *>(original)->getOriginalBehaviour() ;
+	original = self->getBehaviour() ;
 
-    GeneralizedSelfConsistentComposite composite(mesh->getElements2D(self->getPrimitive())) ;
-    equivalent = composite.getBehaviour() ;
+	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
+		original = dynamic_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
-    v.push_back(XI);
-    v.push_back(ETA);
+	GeneralizedSelfConsistentComposite composite( mesh->getElements2D( self->getPrimitive() ) ) ;
+	equivalent = composite.getBehaviour() ;
 
-    reverted = false ;
+	v.push_back( XI );
+	v.push_back( ETA );
+
+	reverted = false ;
 } ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) : LinearForm(Matrix(), true, false, 2), self2d(self), mesh(NULL), self3d(NULL), equivalent(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), self2d( self ), mesh( NULL ), self3d( NULL ), equivalent( NULL )
 {
-    original = self->getBehaviour() ;
-    if(dynamic_cast<HomogeneisedBehaviour *>(original))
-	original = dynamic_cast<HomogeneisedBehaviour *>(original)->getOriginalBehaviour() ;
+	original = self->getBehaviour() ;
 
-    VoigtMatrixMultiInclusionComposite composite(self, feats) ;
-    equivalent = composite.getBehaviour() ;
+	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
+		original = dynamic_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
+	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
+	equivalent = composite.getBehaviour() ;
 //    composite.C.print();
 
-    v.push_back(XI);
-    v.push_back(ETA);
-	
-    reverted = false ;
+	v.push_back( XI );
+	v.push_back( ETA );
+
+	reverted = false ;
 }
 
 
-HomogeneisedBehaviour::HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTetrahedron * self) : LinearForm(Matrix(), false, false, 3), mesh(mesh), self2d(NULL), self3d(self), equivalent(NULL)
+HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahedron *self ) : LinearForm( Matrix(), false, false, 3 ), mesh( mesh ), self2d( NULL ), self3d( self ), equivalent( NULL )
 {
-    original = self->getBehaviour() ;
-    if(dynamic_cast<HomogeneisedBehaviour *>(original))
-	original = dynamic_cast<HomogeneisedBehaviour *>(original)->getOriginalBehaviour() ;
 
-    GeneralizedSelfConsistentComposite composite(mesh->getElements3D(self->getPrimitive())) ;
-    equivalent = composite.getBehaviour() ;
+	original = self->getBehaviour() ;
 
-    v.push_back(XI);
-    v.push_back(ETA);
-    v.push_back(ZETA);
+	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
+		original = dynamic_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
-    reverted = false ;
+	GeneralizedSelfConsistentComposite composite( mesh->getElements3D( self->getPrimitive() ) ) ;
+	equivalent = composite.getBehaviour() ;
+
+	v.push_back( XI );
+	v.push_back( ETA );
+	v.push_back( ZETA );
+
+	reverted = false ;
 
 } ;
 
-HomogeneisedBehaviour::~HomogeneisedBehaviour() 
-{ 
-	delete equivalent ; 
+HomogeneisedBehaviour::~HomogeneisedBehaviour()
+{
+	delete equivalent ;
 } ;
 
 
-void HomogeneisedBehaviour::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+void HomogeneisedBehaviour::apply( const Function &p_i, const Function &p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine *vm ) const
 {
-	equivalent->apply(p_i,p_j,gp,Jinv,ret,vm) ;
+	equivalent->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
 }
 
-void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
+void HomogeneisedBehaviour::step( double timestep, ElementState &currentState )
 {
-	if(type == VOID_BEHAVIOUR)
+	if( type == VOID_BEHAVIOUR )
 		return ;
 
-	if(reverted)
+	if( reverted )
 	{
 		return ;
 	}
-	
+
 	bool revert = false ;
-	if(revert)
+
+	if( revert )
 	{
 		ft.clear() ;
 		delete equivalent ;
@@ -113,13 +117,13 @@ void HomogeneisedBehaviour::step(double timestep, ElementState & currentState)
 		reverted = true ;
 		return ;
 	}
-	
+
 
 }
 
 void HomogeneisedBehaviour::stepBack()
 {
-	if(type == VOID_BEHAVIOUR)
+	if( type == VOID_BEHAVIOUR )
 		return ;
 }
 
@@ -129,23 +133,23 @@ bool HomogeneisedBehaviour::fractured() const
 	return false ;
 }
 
-Form * HomogeneisedBehaviour::getCopy() const 
+Form *HomogeneisedBehaviour::getCopy() const
 {
-        return new HomogeneisedBehaviour(*this) ;
+	return new HomogeneisedBehaviour( *this ) ;
 }
 
-std::vector<BoundaryCondition * > HomogeneisedBehaviour::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+std::vector<BoundaryCondition * > HomogeneisedBehaviour::getBoundaryConditions( const ElementState &s,  size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const
 {
-        return equivalent->getBoundaryConditions(s,id,p_i,gp,Jinv) ;
+	return equivalent->getBoundaryConditions( s, id, p_i, gp, Jinv ) ;
 }
 
-Vector HomogeneisedBehaviour::getImposedStress(const Point & p) const
+Vector HomogeneisedBehaviour::getImposedStress( const Point &p ) const
 {
-    return equivalent->getImposedStress(p) ;
+	return equivalent->getImposedStress( p ) ;
 }
 
-Matrix HomogeneisedBehaviour::getTensor(const Point & p) const
+Matrix HomogeneisedBehaviour::getTensor( const Point &p ) const
 {
-	return equivalent->getTensor(p) ;
+	return equivalent->getTensor( p ) ;
 }
 
