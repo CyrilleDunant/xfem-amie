@@ -56,7 +56,7 @@ Material Stiffness::toMaterial()
 }
 
 
-PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(1), change(true)
+PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(0), change(true)
 {
 	vm = new NonLocalVonMises(limitStrain, radius) ;
 	vm->setMaterialCharacteristicRadius(radius);
@@ -91,51 +91,37 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 // std::cout << "a--" << std::endl ;
 // Jinv[0].print() ;
 // std::cout << "--b" << std::endl ;
-	vm->ieval(Gradient(p_i) * (param*alpha) * Gradient(p_j, true), gp, Jinv,v, ret) ;
+	vm->ieval(Gradient(p_i) * (param*(1.-alpha)) * Gradient(p_j, true), gp, Jinv,v, ret) ;
 // 	ret.print() ;
 }
 
 void PseudoPlastic::step(double timestep, ElementState & currentState)
 {
 	if(timestep > POINT_TOLERANCE_2D)
+	{
 		fixLastDamage() ;
+	}
 	
 	frac = fixedfrac ;
 	change = false ;
 	double lastalpha = alpha ;
-// 	if(cache.empty())
-// 	{
-// 		Circle c(2.*radius, currentState.getParent()->getCenter()) ;
-// 		cache = currentState.getParent()->get2DMesh()->getConflictingElements(&c) ;
-// 	}
-// 	double area = 0 ;
-// 	double str = 0 ;
-// 	double fact = 0 ;
-// 	for(size_t i = 0 ; i < cache.size() ; i++)
-// 	{
-// 		if( cache[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-// 		{
-// 			double d =  exp(-squareDist2D(currentState.getParent()->getCenter(), cache[i]->getCenter())/(radius*radius)) ;
-// 			double a = cache[i]->area() ;
-// 			str += cache[i]->getState().getVonMisesStrain(cache[i]->getCenter())*a*d ;
-// 			area += a ;
-// 			fact+=d*a ;
-// 		}
-// 	}
-// 	
 
-	std::cout << vm->getScoreAtState() << std::endl ;
-	if(vm->getScoreAtState() > 0)
+	Vector str = vm->smoothedPrincipalStress(currentState) ;
+	double maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) / 2. ) ;
+	
+	if(maxStress > POINT_TOLERANCE_2D)
 	{
-		currentState.getParent()->behaviourUpdated = true ;
-		alpha = std::min(vm->getScoreAtState()+1., lastDamage) ;
-		change = std::abs(lastalpha-alpha) > 1e-4 ;
+		alpha = std::max(1.-(vm->threshold/maxStress)*(1.-alpha), lastDamage) ;
+		change = std::abs(alpha-lastalpha) > 1e-4 ;
+		currentState.getParent()->behaviourUpdated = change ;
+		if(change)
+			std::cout << vm->getScoreAtState() << std::endl ;
 	}
 }
 
 Matrix PseudoPlastic::getTensor(const Point & p) const
 {
-	return (param*alpha) ;
+	return (param*(1.-alpha)) ;
 }
 
 

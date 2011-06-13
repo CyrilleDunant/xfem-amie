@@ -128,9 +128,10 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 {
 
 	if( s.getParent()->getBehaviour()->fractured() )
-		return 0 ;
+		return -1 ;
 
 	Vector pstress( smoothedPrincipalStress(s)) ;
+	
 	double maxStress = pstress.max() ;
 	double minStress = pstress.min() ;
 

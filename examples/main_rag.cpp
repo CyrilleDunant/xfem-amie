@@ -1927,7 +1927,7 @@ int main( int argc, char *argv[] )
 
 	Circle cercle( .5, 0, 0 ) ;
 
-	zones = generateExpansiveZonesHomogeneously( 2000, placedinclusions, F ) ;
+	zones = generateExpansiveZonesHomogeneously( 200, placedinclusions, F ) ;
 	F.setSamplingNumber( 512 ) ;
 
 	if( restraintDepth > 0 )

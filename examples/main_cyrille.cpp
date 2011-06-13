@@ -111,7 +111,7 @@ double E_max = 0;
 
 double x_max = 0 ;
 double y_max = 0 ;
-double disp = 0.352 ;//.350 .355
+double disp = 1.052 ;//.350 .355
 BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
 double width = 20;
 double height = 10;
@@ -1725,11 +1725,11 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	double cradius = 1.5*3 ;
+	double cradius = 1.5*4 ;
 	double mradius = 1.5 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 0.156, mradius) ;
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius) ) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);

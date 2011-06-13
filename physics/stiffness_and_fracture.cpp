@@ -21,7 +21,7 @@ using namespace Mu ;
 
 StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1)
 {
-	dfunc = new LinearDamage() ;
+	dfunc = new IsotropicLinearDamage() ;
 	criterion = crit ;
 	init = param[0][0] ;
 	change  = false ;

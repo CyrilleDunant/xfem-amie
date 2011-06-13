@@ -44,9 +44,15 @@ double NonLocalVonMises::grade(ElementState &s)
 		maxStress = sqrt( ( str[0] - str[1] ) * ( str[0] - str[1] ) + ( str[0] - str[2] ) * ( str[0] - str[2] ) + ( str[1] - str[2] ) * ( str[1] - str[2] ) ) / 6 ;
 	}
 	
-	double modulus = maxStress/maxStrain ;
+	if(maxStrain < POINT_TOLERANCE_2D)
+		return -1 ;
+	double modulus =std::abs( maxStress/maxStrain) ;
 	double straincrit = threshold/modulus ;
 	double c = sqrt(straincrit*straincrit*modulus*modulus+straincrit*straincrit) ;
+	
+	if(c < POINT_TOLERANCE_2D)
+		return -1 ;
+	
 	double ss = sqrt(maxStress*maxStress+maxStrain*maxStrain) ;
 	
 // 	return std::abs(maxStrain/threshold)-1.;

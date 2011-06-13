@@ -74,7 +74,7 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
 			
-			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
+			double d = exp( -dc / (2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 
 			Vector strainAtNodes(ci->getState().getPrincipalStrainAtNodes()) ;
 			
@@ -173,7 +173,7 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
 			
-			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
+			double d = exp( -dc / ( 2.*physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 
 			Vector strainAtNodes(ci->getState().getPrincipalStrainAtNodes()) ;
 			
@@ -338,12 +338,13 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 				continue ;
 			}
 			
+			area = ci->area() ;
 			//this is to eliminate scaling effects ;
 			double factor = 1 ;
 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
 			
-			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
+			double d = exp( -dc / (2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 
 			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()) ;
 			
@@ -438,12 +439,12 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 				continue ;
 			}
 
-			double volume = ci->volume() ;
+			volume = ci->volume() ;
 			double factor = 1 ;
 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
 			
-			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
+			double d = exp( -dc / ( 2.*physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 			
 			Vector stressAtNodes(ci->getState().getPrincipalStressAtNodes()) ;
 			
@@ -1270,6 +1271,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				damagingSet.clear();
 				return std::make_pair(0.,0.) ;
 			}
+			
 			std::vector<unsigned int> newSet ;
 			std::multimap<double, DelaunayTriangle *> sortedElements ;
 			for(size_t i = 0 ; i< cache.size() ; i++)
@@ -1291,7 +1293,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*/)
+					if(i->second->getBehaviour()->getFractureCriterion()->met() && std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*/)
 					{
 						newSet.push_back(i->second->index);
 						minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
@@ -1316,7 +1318,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*/)
+					if(i->second->getBehaviour()->getFractureCriterion()->met() && std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*/)
 					{
 						continue ;
 					}
@@ -1343,7 +1345,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 
 			if(!proximitySet.empty())
 			{
-				maxscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;		
+				maxscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 			}
 			for(size_t i = 1 ; i < proximitySet.size() ; i++)
 			{
@@ -1356,25 +1358,18 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 		}
 		else
 		{
-			checkpoint = false ;
 
 			if(damagingSet.empty())
 				return std::make_pair(0.,0.) ;
+			
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[0]]) ;
 			double maxscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-// 			if(maxscore < 0)
-// 				maxscore = 1./(1.+maxscore) ;
-// 			else
-// 				maxscore = 1./(1.-maxscore) ;
-			
+
 			double thresholdScore = maxscore ;
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
 			{
 				double nls = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-// 				if(nls < 0)
-// 					nls = 1./(1.+nls) ;
-// 				else
-// 					nls = 1./(1.-nls) ;
+
 				if(nls < maxscore)
 				{
 					maxscore = nls ;
@@ -1388,17 +1383,11 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			if(!proximitySet.empty())
 			{
 				minscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-// 				if(minscore < 0)
-// 					minscore = 1./(1.+minscore) ;
-// 				else
-// 					minscore = 1./(1.-minscore) ;
+
 				for(size_t i = 1 ; i < proximitySet.size() ; i++)
 				{
 					double nls = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-// 					if(nls < 0)
-// 						nls = 1./(1.+nls) ;
-// 					else
-// 						nls = 1./(1.-nls) ;
+
 					if(nls > minscore)
 						minscore = nls ;
 				}

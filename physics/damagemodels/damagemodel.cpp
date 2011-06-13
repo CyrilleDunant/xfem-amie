@@ -125,8 +125,8 @@ void DamageModel::step( ElementState &s )
 			for( size_t j = 0 ; j < downState.size() ; j++ )
 				downState[j] = std::min( upState[j], std::max( 0., downState[j] ) ) ;
 
-			trialRatio = 0.99*up ;
-			getState() = getPreviousState() + damageIncrement * up *.99;
+			trialRatio = (1.-0.5*damageDensityTolerance)*up ;
+			getState() = getPreviousState() + damageIncrement * up *(1.-0.5*damageDensityTolerance);
 // 			std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << "  " <<  0 << "  "<< score << "  "<< -setChange.first << std::endl ;
 			if( ( upState - downState ).min() < 0 )
 			{
@@ -135,7 +135,7 @@ void DamageModel::step( ElementState &s )
 				wasBroken = true ;
 			}
 
-			if( ( upState - downState ).max() < damageDensityTolerance )
+			if( ( upState - downState ).max() < 2.*damageDensityTolerance )
 			{
 				getState() = upState ;
 				converged = true ;
@@ -183,9 +183,15 @@ void DamageModel::step( ElementState &s )
 			}
 		}
 		trialRatio = (minFraction+maxFraction)*.5 ;
-		getState() = downState + ( upState - downState ) * trialRatio / ( upState - downState ).max()  ;
+		getState() = downState + ( upState - downState ) * trialRatio ;
 		if(std::abs( minFraction - maxFraction ) * ( upState - downState ).max()  < damageDensityTolerance)
 		{
+			getState() = downState + ( upState - downState ) * std::min(trialRatio+damageDensityTolerance, 1.) ;
+			if(states.size() < 4)
+				getState() = upState ;
+// 			std::cout << std::endl ;
+// 			for(int i = 0 ; i < states.size() ; i++)
+// 				std::cout << states[i].fraction << "   " << states[i].score << "   " << states[i].delta << std::endl ;
 			converged = true ;
 		}
 	}
