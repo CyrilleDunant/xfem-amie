@@ -19,11 +19,10 @@
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), /*dfunc(rig.numRows()-1)*/ eps(eps)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1)
 {
 	dfunc = new LinearDamage() ;
 	criterion = crit ;
-	crit->setNeighbourhoodRadius(eps) ;
 	init = param[0][0] ;
 	change  = false ;
 	previouschange = false ;
@@ -51,7 +50,6 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 void StiffnessAndFracture::setNeighbourhoodRadius(double d)
 {
 	criterion->setNeighbourhoodRadius(d);
-	eps = d ;
 }
 
 StiffnessAndFracture::~StiffnessAndFracture() 
@@ -92,11 +90,8 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 {
 	previouschange = change ;
 	change = false ;
-//	std::cerr << "\n" << "e" << std::flush ;
 	dfunc->step(currentState) ;
-//	std::cerr << "\n" << "f" << std::flush ;
 	change = dfunc->changed() ;
-//	std::cerr << "\n" << "g" << std::flush ;
 	currentState.getParent()->behaviourUpdated = change ;
 	
 	if(change)
@@ -170,7 +165,7 @@ bool StiffnessAndFracture::fractured() const
 
 Form * StiffnessAndFracture::getCopy() const 
 {
-	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), criterion->getMaterialCharacteristicRadius()) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy()) ;
 	copy->damage = damage ;
 	copy->dfunc->getState().resize(dfunc->getState().size());
 	copy->dfunc->getState() = dfunc->getState() ;

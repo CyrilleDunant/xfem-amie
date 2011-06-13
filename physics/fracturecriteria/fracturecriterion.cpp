@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(false), inset(false),
-scoreTolerance(1e-3)
+scoreTolerance(1e-4)
 {
 }
 
@@ -1243,18 +1243,18 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 	return std::make_pair( (energy-originalenergy)/(delta_d),(score-originalscore)/(delta_d)) ;
 }
 
-double FractureCriterion::setChange(const ElementState &s) 
+std::pair<double, double> FractureCriterion::setChange(const ElementState &s) 
 {
 	stable = true ;
 
 	if( !s.getParent()->getBehaviour()->getDamageModel())
-		return 0 ;
+		return std::make_pair(0.,0.) ;
 	if(cache.size() == 0)
 	{
 		initialiseCache(s);
 	}
 	if(!inset && !checkpoint)
-		return 0 ;
+		return std::make_pair(0.,0.) ;
 	
 	if(mesh2d)
 	{
@@ -1264,62 +1264,47 @@ double FractureCriterion::setChange(const ElementState &s)
 		// have met their criterion
 		if(checkpoint) //new iteration
 		{
-//			std::cerr << " - j" << std::flush ;
 			if(!metAtStep)
 			{
 				inset = false ;
 				damagingSet.clear();
-				return 0 ;
+				return std::make_pair(0.,0.) ;
 			}
 			std::vector<unsigned int> newSet ;
 			std::multimap<double, DelaunayTriangle *> sortedElements ;
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-				if(ci->getBehaviour()->getFractureCriterion() && ci->getBehaviour()->getFractureCriterion()->met())
+				if(ci->getBehaviour()->getFractureCriterion())
 				{
 					double renormScore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-					if(renormScore < 0)
-						renormScore = 1./(1.+renormScore) ;
-					else
-						renormScore = 1./(1.-renormScore) ;
 					sortedElements.insert( std::make_pair(renormScore, ci)) ;
 				}
 			}
-//			std::cerr << " - k" << std::flush ;
 			double thresholdScore = 0 ;
 			if(!sortedElements.empty())
 				thresholdScore = sortedElements.rbegin()->first ;
 			double minscore = thresholdScore ;
-
-			if(!sortedElements.empty())
+			Point maxLocus = sortedElements.rbegin()->second->getCenter() ;
+			
+			if(!sortedElements.empty() && thresholdScore > 0 )
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(std::abs(i->first-thresholdScore) < 2.*scoreTolerance )
+					if(std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*/)
 					{
 						newSet.push_back(i->second->index);
 						minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-
 					}
 					else
 						break ;
 				}
 			}
-			if(minscore < 0)
-				minscore = 1./(1.+minscore) ;
-			else
-				minscore = 1./(1.-minscore) ;
-//			std::cerr << " - l" << std::flush ;
-			double nls = s.getParent()->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-			if(nls < 0)
-				nls = 1./(1.+nls) ;
-			else
-				nls = 1./(1.-nls) ;
-			if(std::abs(nls -minscore) >= scoreTolerance)
+
+			if(std::abs(nonLocalScoreAtState - thresholdScore) >= scoreTolerance)
 			{
 				proximitySet.clear() ;
-				return 0 ;
+				return std::make_pair(0.,0.) ;
 			}
 			inset = true ;
 			if(!newSet.empty())
@@ -1327,11 +1312,11 @@ double FractureCriterion::setChange(const ElementState &s)
 			damagingSet = newSet ;
 			std::set<unsigned int> newProximity ;
 			
-			if(!sortedElements.empty())
+			if(!sortedElements.empty()&& thresholdScore > 0)
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(std::abs(i->first-thresholdScore) < 2.*scoreTolerance )
+					if(std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*/)
 					{
 						continue ;
 					}
@@ -1359,75 +1344,67 @@ double FractureCriterion::setChange(const ElementState &s)
 			if(!proximitySet.empty())
 			{
 				maxscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;		
-				if(maxscore < 0)
-					maxscore = 1./(1.+maxscore) ;
-				else
-					maxscore = 1./(1.-maxscore) ;
 			}
 			for(size_t i = 1 ; i < proximitySet.size() ; i++)
 			{
 				double nls = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-				if(nls < 0)
-					nls = 1./(1.+nls) ;
-				else
-					nls = 1./(1.-nls) ;
 				if(nls > maxscore)
 					maxscore = nls ;
 			}
-			
 
-			
-
-			
-			return maxscore - minscore ;
+			return std::make_pair(maxscore - minscore, thresholdScore-minscore) ;
 		}
 		else
 		{
 			checkpoint = false ;
 
 			if(damagingSet.empty())
-				return 0 ;
+				return std::make_pair(0.,0.) ;
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[0]]) ;
 			double maxscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-			if(maxscore < 0)
-				maxscore = 1./(1.+maxscore) ;
-			else
-				maxscore = 1./(1.-maxscore) ;
+// 			if(maxscore < 0)
+// 				maxscore = 1./(1.+maxscore) ;
+// 			else
+// 				maxscore = 1./(1.-maxscore) ;
+			
+			double thresholdScore = maxscore ;
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
 			{
 				double nls = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-				if(nls < 0)
-					nls = 1./(1.+nls) ;
-				else
-					nls = 1./(1.-nls) ;
+// 				if(nls < 0)
+// 					nls = 1./(1.+nls) ;
+// 				else
+// 					nls = 1./(1.-nls) ;
 				if(nls < maxscore)
 				{
 					maxscore = nls ;
+				}
+				if(nls > thresholdScore)
+				{
+					thresholdScore = nls ;
 				}
 			}
 			double minscore = 0 ;
 			if(!proximitySet.empty())
 			{
 				minscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-				if(minscore < 0)
-					minscore = 1./(1.+minscore) ;
-				else
-					minscore = 1./(1.-minscore) ;
+// 				if(minscore < 0)
+// 					minscore = 1./(1.+minscore) ;
+// 				else
+// 					minscore = 1./(1.-minscore) ;
 				for(size_t i = 1 ; i < proximitySet.size() ; i++)
 				{
 					double nls = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-					if(nls < 0)
-						nls = 1./(1.+nls) ;
-					else
-						nls = 1./(1.-nls) ;
+// 					if(nls < 0)
+// 						nls = 1./(1.+nls) ;
+// 					else
+// 						nls = 1./(1.-nls) ;
 					if(nls > minscore)
 						minscore = nls ;
 				}
 			}
 
-			
-
-			return maxscore - minscore ;
+			return std::make_pair(maxscore - minscore, thresholdScore-maxscore) ;
 		}
 	}
 	else
@@ -1465,13 +1442,13 @@ double FractureCriterion::setChange(const ElementState &s)
 			if(!inset)
 			{
 				damagingSet.clear();
-				return 0 ;
+				return std::make_pair(0., 0.) ;
 			}
 
 			damagingSet = newSet ;
 			inset = true ;
 			
-			return 0 ;
+			return std::make_pair(0., 0.) ;
 		}
 		else
 		{
@@ -1479,19 +1456,19 @@ double FractureCriterion::setChange(const ElementState &s)
 			checkpoint = false ;
 			
 			if(damagingSet.empty())
-				return 0 ;
+				return std::make_pair(0., 0.) ;
 			if(!metAtStep)
-				return 1 ;
+				return std::make_pair(0., 0.) ;
 			
 			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[0]]) ;
 			double minscore = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 			if(!ci->getBehaviour()->getFractureCriterion()->met())
-				return 1 ;
+				return std::make_pair(0., 0.) ;
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
 			{
 				ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[i]]) ;
 				if(!ci->getBehaviour()->getFractureCriterion()->met())
-					return 1 ;
+					return std::make_pair(0., 0.) ;
 				if(ci->getBehaviour()->getFractureCriterion()->getScoreAtState() < minscore)
 					minscore = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 			}
@@ -1502,24 +1479,22 @@ double FractureCriterion::setChange(const ElementState &s)
 				if(ci->getBehaviour()->getFractureCriterion() )
 				{
 					if(ci->getBehaviour()->getFractureCriterion()->getScoreAtState() > minscore && !std::binary_search(damagingSet.begin(), damagingSet.end(), ci->index))
-						return 1 ;
+						return std::make_pair(0., 0.) ;
 				}
 			}
 			
-			return 0 ;
+			return std::make_pair(0., 0.) ;
 		}
 	}
 	
 	//shut up the compiler
-	return 0 ;
+	return std::make_pair(0., 0.) ;
 }
 
 void FractureCriterion::step(ElementState &s)
 {
 		if(cache.empty() )
 				initialiseCache(s) ;
-		
-		
 
 	if(energyIndexed && s.getDeltaTime() > POINT_TOLERANCE_2D )
 		noEnergyUpdate = true ;
@@ -1589,10 +1564,7 @@ void FractureCriterion::step(ElementState &s)
 void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingType st)
 {
 	metAtStep = false ;
-	if( !s.getParent()->getBehaviour()->getDamageModel())
-	{
-		return  ;
-	}
+
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 	{
 		return  ;
@@ -1606,8 +1578,7 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 	{
 		case NULL_SMOOTH :
 		{
-			if (scoreAtState > 0)
-				metAtStep = true ;
+			metAtStep = scoreAtState > 0 ;
 			nonLocalScoreAtState = scoreAtState ;
 			return ;
 		}

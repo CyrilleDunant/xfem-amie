@@ -48,7 +48,7 @@ void DamageModel::step( ElementState &s )
 	}
 
 	Vector damageIncrement = computeDamageIncrement( s ) ;
-	double setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s ) ;
+	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s ) ;
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
 	bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
 
@@ -70,6 +70,7 @@ void DamageModel::step( ElementState &s )
 	if( checkpoint ) // initiate iteration
 	{
 		s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
+		states.clear() ;
 
 		getPreviousState() = getState() ;
 
@@ -112,11 +113,11 @@ void DamageModel::step( ElementState &s )
 				}
 			}
 
-			states.clear() ;
-			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange, 0., score ) ) ;
+			
+			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange.first, 0., score, setChange.second ) ) ;
 			downState = getPreviousState();
 			upState = getPreviousState() + damageIncrement * up ;
-			getState() = upState ;
+
 
 			for( size_t j = 0 ; j < upState.size() ; j++ )
 				upState[j] = std::min( 1., std::max( downState[j], upState[j] ) ) ;
@@ -124,8 +125,9 @@ void DamageModel::step( ElementState &s )
 			for( size_t j = 0 ; j < downState.size() ; j++ )
 				downState[j] = std::min( upState[j], std::max( 0., downState[j] ) ) ;
 
-			trialRatio = 1 ;
-
+			trialRatio = 0.99*up ;
+			getState() = getPreviousState() + damageIncrement * up *.99;
+// 			std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << "  " <<  0 << "  "<< score << "  "<< -setChange.first << std::endl ;
 			if( ( upState - downState ).min() < 0 )
 			{
 				getState() = upState ;
@@ -149,233 +151,41 @@ void DamageModel::step( ElementState &s )
 	}
 	else if( !converged )
 	{
-
+		double scoreTolerance = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
 		change = true ;
 
-		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange, trialRatio, score ) ) ;
+		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		std::stable_sort( states.begin(), states.end() ) ;
 
-// 		if(states.size() < 4)
-// 		{
-// 			int minPos = 0 ;
-// 			double minRange = states[1].fraction - states[0].fraction ;
-// 			for(int i = 2 ; i < states.size() ; i++)
-// 			{
-// 				if(states[i].fraction - states[i-1].fraction > minRange)
-// 				{
-// 					minRange = states[i].fraction -  states[i-1].fraction ;
-// 					minPos = i-1 ;
-// 				}
-// 			}
-// 			RangeState bestRangeNonMet(states[minPos+1], states[minPos]) ;
-// 			getState() = downState + (upState-downState)*bestRangeNonMet.extrapolate(0.5).fraction ;
-// 			trialRatio = bestRangeNonMet.extrapolate(0.5).fraction  ;
-// 			return ;
-// 		}
-
-
-		double stol = 0.25 * s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
-
-		//find the most likely midPoint
-		RangeState bestRangeNonMet( states[1], states[0] ) ;
-		RangeState bestRangeZero( states[1], states[0] ) ;
-		PointState bestStateNonMet = bestRangeNonMet.extrapolate( 0.5 ) ;
-		PointState bestStateZero = bestRangeZero.extrapolate( 0.5 ) ;
-		bool equilibrium = ( states[0].score * states[1].score < 0 ) ;
-		bool foundzero = ( states[0].delta * states[1].delta < 0 ) ;
-		double minDelta = states[0].delta ;
-		double minScore = states[0].score ;
-		size_t minIndexNonMet = 0 ;
-		size_t minIndexZero = 0 ;
-
-		if( equilibrium && std::abs( states[0].fraction - states[1].fraction ) * ( upState - downState ).max()  < damageDensityTolerance )
+// 		std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << "  " <<  trialRatio << "  "<< score << "  "<< setChange.first << std::endl ;
+		double minFraction = states[0].fraction ;
+		double maxFraction = states[1].fraction ;
+		double prevDelta = states[0].delta ;
+		double prevScore = states[0].score ;
+		double currentDelta = states[0].delta ;
+		double currentScore = states[0].score ;
+// 		std::cout << 0 << "  " <<  states[0].fraction << "  "<< states[0].score << "  "<< states[0].delta << std::endl ;
+		for(int i = 1 ; i < states.size() ; i++)
 		{
-			getState() = downState + ( upState - downState ) * std::max( states[1].fraction, explorationIncrement / ( upState - downState ).max() ) ;
-			converged = true ;
-
-			for( size_t j = 0 ; j < getState().size() ; j++ )
-				getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-			return ;
-		}
-
-		if( foundzero  && std::abs( states[0].fraction - states[1].fraction ) * ( upState - downState ).max()  < damageDensityTolerance )
-		{
-			getState() = downState + ( upState - downState ) * std::max( states[1].fraction, explorationIncrement / ( upState - downState ).max() ) ;
-			converged = true ;
-
-			for( size_t j = 0 ; j < getState().size() ; j++ )
-				getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-			return ;
-		}
-
-		if( foundzero && std::abs( bestStateZero.score ) < stol || equilibrium && std::abs( bestStateZero.delta ) < stol )
-		{
-			getState() = downState + ( upState - downState ) * std::max( bestStateZero.fraction, explorationIncrement / ( upState - downState ).max() ) ;
-
-			for( size_t j = 0 ; j < getState().size() ; j++ )
-				getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-			converged = true ;
-			return ;
-		}
-
-		if( std::abs( states[0].fraction - states[1].fraction ) * ( upState - downState ).max()  < damageDensityTolerance )
-		{
-			getState() = downState + ( upState - downState ) * std::max( states[1].fraction, explorationIncrement / ( upState - downState ).max() ) ;
-
-			for( size_t j = 0 ; j < getState().size() ; j++ )
-				getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-			converged = true ;
-			return ;
-		}
-
-		if( !foundzero && !equilibrium )
-		{
-			for( size_t i = 1 ; i < states.size() - 1 ; i++ )
+// 			std::cout << i << "  " <<  states[i].fraction << "  "<< states[i].score << "  "<< states[i].delta << std::endl ;
+			currentDelta = states[i].delta ;
+			currentScore = states[i].score ;
+			minFraction = states[i-1].fraction ;
+			maxFraction = states[i].fraction ;
+			if(currentDelta*prevDelta < 0 || currentScore*prevScore < 0 )
 			{
-				if( states[i].delta < minDelta )
-				{
-					minDelta = states[i].delta ;
-					minIndexZero = i ;
-				}
-
-				if( states[i].score < minScore )
-				{
-					minScore = states[i].score ;
-					minIndexNonMet = i ;
-				}
-
-				RangeState trialRange( states[i + 1], states[i] ) ;
-				PointState trialState = trialRange.extrapolate( 0.5 ) ;
-
-				if( states[i].score * states[i + 1].score < 0 )
-				{
-					if( std::abs( states[i].fraction - states[i + 1].fraction ) * ( upState - downState ).max()  < damageDensityTolerance )
-					{
-						getState() = downState + ( upState - downState ) * std::max( states[i + 1].fraction, explorationIncrement / ( upState - downState ).max() )  ;
-
-						for( size_t j = 0 ; j < getState().size() ; j++ )
-							getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-						converged = true ;
-						return ;
-					}
-
-					if( std::abs( trialState.score ) < stol )
-					{
-						getState() = downState + ( upState - downState ) * std::max( trialState.fraction, explorationIncrement / ( upState - downState ).max() ) ;
-
-						for( size_t j = 0 ; j < getState().size() ; j++ )
-							getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-						converged = true ;
-						return ;
-					}
-
-					equilibrium = true ;
-					bestStateNonMet = trialState ;
-					bestRangeNonMet = trialRange ;
-					break ;
-				}
-
-				if( states[i].delta * states[i + 1].delta < 0 )
-				{
-					if( std::abs( states[i].fraction - states[i + 1].fraction ) * ( upState - downState ).max()  < damageDensityTolerance )
-					{
-						getState() = downState + ( upState - downState ) * std::max( states[i + 1].fraction, explorationIncrement / ( upState - downState ).max() ) ;
-
-						for( size_t j = 0 ; j < getState().size() ; j++ )
-							getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-						converged = true ;
-						return ;
-					}
-
-					if( std::abs( trialState.delta ) < stol )
-					{
-						getState() = downState + ( upState - downState ) * std::max( trialState.fraction, explorationIncrement / ( upState - downState ).max() ) ;
-
-						for( size_t j = 0 ; j < getState().size() ; j++ )
-							getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-						converged = true ;
-						return ;
-					}
-
-					if( states[i + 1].fraction * std::abs( upState - downState ).max() > damageDensityTolerance )
-					{
-						foundzero = true ;
-						bestStateZero = trialState ;
-						bestRangeZero = trialRange ;
-						break ;
-					}
-				}
-
-				if( std::abs( states[i].fraction - states[i + 1].fraction ) * ( upState - downState ).max()  < damageDensityTolerance )
-				{
-					getState() = downState + ( upState - downState ) * std::max( states[i + 1].fraction, explorationIncrement / ( upState - downState ).max() )  ;
-
-					for( size_t j = 0 ; j < getState().size() ; j++ )
-						getState()[j] = std::min( 1., std::max( downState[j], getState()[j] ) ) ;
-
-					converged = true ;
-					return ;
-				}
-
+				break ;
+			}
+			else
+			{
+				prevDelta = states[i].delta ;
+				prevScore = states[i].score ;
 			}
 		}
-
-		RangeState bestRange =  bestRangeNonMet;
-		double zeroloc = bestRangeZero.zeroLocation() ;
-		double equilibriumloc = bestRangeNonMet.equilibriumLocation() ;
-
-		if( equilibrium )
+		trialRatio = (minFraction+maxFraction)*.5 ;
+		getState() = downState + ( upState - downState ) * trialRatio / ( upState - downState ).max()  ;
+		if(std::abs( minFraction - maxFraction ) * ( upState - downState ).max()  < damageDensityTolerance)
 		{
-			trialRatio = bestStateNonMet.fraction ;
-// 				if(equilibriumloc > 0)
-// 					trialRatio = equilibriumloc ;
-			getState() = downState + ( upState - downState ) * trialRatio ;
-
-		}
-		else if( foundzero )
-		{
-			bestRange = bestRangeZero ;
-			trialRatio = bestStateZero.fraction ;
-// 				if(zeroloc > 0)
-// 					trialRatio = zeroloc ;
-			getState() = downState + ( upState - downState ) * trialRatio ;
-		}
-		else if( states.size() < 12 )
-		{
-			int minPos = 0 ;
-			double minRange = states[1].fraction - states[0].fraction ;
-			for(int i = 2 ; i < states.size() ; i++)
-			{
-				if(states[i].fraction - states[i-1].fraction > minRange)
-				{
-					minRange = states[i].fraction -  states[i-1].fraction ;
-					minPos = i-1 ;
-				}
-			}
-			RangeState bestRangeNonMet(states[minPos+1], states[minPos]) ;
-			getState() = downState + (upState-downState)*bestRangeNonMet.extrapolate(0.5).fraction ;
-			trialRatio = bestRangeNonMet.extrapolate(0.5).fraction  ;
-			return ;
-// 			size_t idx = minIndexNonMet ;
-// 
-// 			if( std::abs( minDelta ) < std::abs( minScore ) )
-// 				idx = minIndexZero ;
-// 
-// 			bestRange = RangeState( states[idx], states[idx + 1] ) ;
-// 			trialRatio = bestRange.extrapolate( 0.5 ).fraction ;
-// 			getState() = downState + ( upState - downState ) * trialRatio ;
-		}
-		else // there probably is no solution
-		{
-			getState() = upState ;
 			converged = true ;
 		}
 	}
@@ -391,13 +201,11 @@ DamageModel::DamageModel()
 
 	fraction = -1 ;
 	converged = true ;
-	iterationcount = 0 ;
 
 	// The exploration increment is crucial for finding
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	explorationIncrement = 0.00001;
 	damageDensityTolerance = 1e-4;
 } ;
 

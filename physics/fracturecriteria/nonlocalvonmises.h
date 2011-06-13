@@ -24,7 +24,6 @@ namespace Mu {
 	{
 	public:
 		double threshold ;
-		double radius ;
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 

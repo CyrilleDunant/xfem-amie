@@ -17,6 +17,7 @@
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/damagemodel.h"
 #include "homogenization/homogenization_base.h"
+#include "fracturecriteria/nonlocalvonmises.h"
 
 namespace Mu
 {
@@ -67,6 +68,8 @@ namespace Mu
 	{
 	protected:
 		void fixLastDamage() ;
+		NonLocalVonMises  * vm ;
+		bool initialised ;
 		
 	public:
 		std::vector<DelaunayTriangle *> cache ;
@@ -125,6 +128,7 @@ namespace Mu
 		
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
+		
 		
 	} ;
 	

@@ -4340,6 +4340,12 @@ void FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
 			}
+// 			else
+// 			{
+// 				for( size_t i = 0 ; i < elements.size() ; i++ )
+// 					if( elements[i]->getBehaviour()->getFractureCriterion() )
+// 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( false ) ;
+// 			}
 
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 				elements[i]->clearVisited() ;

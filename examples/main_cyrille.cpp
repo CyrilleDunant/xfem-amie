@@ -104,6 +104,8 @@ std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
 std::vector<BranchedCrack *> crack ;
 
+MultiTriangleWriter writer("triangles_head","triangles_layers",NULL) ;
+
 double E_min = 10;
 double E_max = 0;
 
@@ -394,7 +396,7 @@ void step()
 
 		if(go)
 		{
-			imposeddisp->setData(imposeddisp->getData()+.5);
+			imposeddisp->setData(imposeddisp->getData()+.05);
 			go = true ;
 		}
 		double da = 0 ;
@@ -697,6 +699,14 @@ void step()
 			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 // 		}
 		energy.push_back(enr) ;
+		
+		writer.reset(featureTree) ;
+		writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+		writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
+		writer.getField(TWFT_CRITERION) ;
+		writer.getField(TWFT_STIFFNESS) ;
+		writer.getField(TWFT_DAMAGE) ;
+		writer.append() ;
 	}
 // 	for(size_t i = 0 ; i < energy.size() ; i++)
 // 		std::cout << energy[i] << std::endl ;
@@ -1715,115 +1725,34 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	Sample sm(0.2, 0.1, 0, 0) ;
-// 	std::vector<Feature *> incs = AggregateDistribution2DGenerator(sm.area(), 0.016, 0.00002, .72, 65).getFeatures(sm.getPrimitive()) ;
-// 	exit (0);
-// 	for(int i = 0 ; i < incs.size() ; i++)
-// 	{
-// 		incs[i]->setBehaviour(new Stiffness(m0_paste*4)) ;
-// 		dynamic_cast<Inclusion * >(incs[i])->setRadius(incs[i]->getRadius()*500./0.2);
-// 		incs[i]->setCenter(incs[i]->getCenter()* 500./0.2)  ;
-// 		F.addFeature(&sample, incs[i]);
-// 	}
-//  	sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, 50./8)) ;
-
-	double cradius = 20 ;
+	double cradius = 1.5*3 ;
 	double mradius = 1.5 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 0.156, mradius*.175) ;
-// 	psp->crit->setNeighbourhoodRadius(cradius);
-// 	psp->crit->setMaterialCharacteristicRadius(mradius);
-// 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new VonMises(35), cradius) ; //1.5640 ; 5625 too low ; 5650 too high
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(10, cradius) ) ; 
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 0.156, mradius) ;
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius) ) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
-	StiffnessAndIndexedFracture * saif = new StiffnessAndIndexedFracture(m0_paste, new /*MohrCoulomb(0.01, -0.01)*/ VonMises(0.01), cradius) ; //1.5640; 5625 too low ; 5650 too high
-	saif->criterion->setMaterialCharacteristicRadius(mradius);
-	saif->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_paste) ;
 
 	sample.setBehaviour(saf) ;
-// 	sample.setBehaviour(saif) ;
-// 		sample.setBehaviour(new WeibullDistributedStiffness(m0_paste, -37.0e6, 2)) ;
-// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0. ;
-// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
-// 	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius =  3.;
 // 	sample.setBehaviour(psp) ;
-// 	sample.setBehaviour(sf) ;
-//	sample.setBehaviour(new StiffnessAndFracture(m0_paste, new VonMises(25))) ;
-// 	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*100.)) ;
+
 	F.addFeature(&sample, new Pore(2, -7,2) );
 	F.addFeature(&sample, new Pore(2, 7,-2) );
-// 	F.addFeature(&sample, new Pore(20, 0, 0) );
-// 	F.addFeature(&sample, new Pore(20, 85, -85) );
-// 	F.addFeature(&sample, new Pore(20, 155, -155) );
-// 	
-// 	F.addFeature(&sample, new Pore(20, -155, -155) );
-// 	F.addFeature(&sample, new Pore(20, -85, -85) );
-// 	F.addFeature(&sample, new Pore(20, 85, 85) );
-// 	F.addFeature(&sample, new Pore(20, 155, 155) );
-	
-// 	F.addFeature(&sample, new Pore(20, -250, 0) );
-// 	F.addFeature(&sample, new Pore(20, -200, 0) );
-// 	F.addFeature(&sample, new Pore(20, -150, 0) );
-// 	F.addFeature(&sample, new Pore(20, -100, 0) );
-// 	F.addFeature(&sample, new Pore(20, -50, 0) );
-// 	F.addFeature(&sample, new Pore(20, 0, 0) );
-// 	F.addFeature(&sample, new Pore(20, 50, -0) );
-// 	F.addFeature(&sample, new Pore(20, 100, -0) );
-// 	F.addFeature(&sample, new Pore(20, 150, -0) );
-// 	F.addFeature(&sample, new Pore(20, 200, -0) );
-// 	F.addFeature(&sample, new Pore(20, 250, -0) );
 
-	Vector a(0., 3) ; a[0] = 1 ; a[1] = 1 ; a[2] = 0 ;
-	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 2, 0, 0.,m0_paste*2., a) ;
 
-// 	ExpansiveZone * inc0 = new ExpansiveZone(&sample, 0.1, 0.5, 0.,m0_paste*2., a) ;
-// 	ExpansiveZone * inc1 = new ExpansiveZone(&sample, 0.1, -0.5, 0.,m0_paste*2., a) ;
-// 	Inclusion * inc0 = new Inclusion(1, 0, 0.) ;
-// 	Inclusion * inc1 = new Inclusion(0.1, -0.5, 0.) ;
-// 	
-// 	inc0->setBehaviour(new PseudoPlastic(m0_paste*2., new MohrCoulomb(20./8, -20), new IsotropicLinearDamage(2, .01))) ;
-// 	inc0->setBehaviour(new VoidForm()) ;
-// 	inc0->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
-// 	inc1->setBehaviour(new StiffnessWithImposedDeformation(m0_paste*2., a)) ;
-// 	F.addFeature(&sample, inc0) ;
-// 	F.addFeature(&inc0, inc1) ;
-	
-
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP/*_LEFT*/)) ;
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_LEFT)) ;
-	
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , TOP)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, -10)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 
-// 	std::vector<Point *> newTips ;
-// 	newTips.push_back(pb);
-// 	newTips.push_back(pc);
-// 	newTips.push_back(pd);
-// 
-// 	crack0->branch(pi, newTips);
-	crack0->setEnrichementRadius(sample.height()*0.1) ;
-// 	F.addFeature(&sample, crack0);
-	
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
 	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(200) ;
+	F.setMaxIterationsPerStep(20000) ;
 	F.setDeltaTime(0.1);
 
-	std::cout << "# max value x ; " << "mean value x ; " <<  "min value x ; " << "max value y ; " << "mean value y ;" << "min value y ; " << "max sigma11 ; " << "min sigma11 ; " << "max sigma12 ; " << "min sigma12 ; " << "max sigma22 ; " << "min sigma22 ; " << "max epsilon11 ; " << "min epsilon11 ; " << "max epsilon12 ; " << "min epsilon12 ; " << "max epsilon22 ; " << "min epsilon22 ; " << "max von Mises : " << "min von Mises : " << "average sigma11 ; " << "average sigma22 ; " << "average sigma12 ; " << "average epsilon11 ; " << "average epsilon22 ; " << "average epsilon12 ; " << "energy index ;" <<  std::endl ;
-	step() ;
-	
-	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;

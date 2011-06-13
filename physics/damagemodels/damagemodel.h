@@ -26,7 +26,8 @@ namespace Mu
 		double delta ;
 		double score ;
 		double fraction ;
-		PointState(bool met, double delta, double frac, double score) : isMet(met), delta(delta), score(score), fraction(frac) {} ;
+		double proximity ;
+		PointState(bool met, double delta, double frac, double score, double proximity) : isMet(met), delta(delta), score(score), fraction(frac), proximity(proximity) {} ;
 		bool operator < (const PointState & p) const {return fraction < p.fraction ; }
 	} ;
 	struct RangeState
@@ -42,7 +43,7 @@ namespace Mu
 		}
 		PointState extrapolate(double ratio = .5)
 		{
-			return PointState(up.isMet && down.isMet, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio), up.score*ratio+down.score*(1.-ratio)) ;
+			return PointState(up.isMet && down.isMet, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio), up.score*ratio+down.score*(1.-ratio), up.proximity*ratio+down.proximity*(1.-ratio)) ;
 		}
 
 		double zeroLocation() const
@@ -77,9 +78,6 @@ protected:
 	
 	bool change ;
 	bool wasBroken ;
-
-	double explorationIncrement ;
-	int iterationcount ;
 	
 	Vector state ;
 	Vector previousstate ;

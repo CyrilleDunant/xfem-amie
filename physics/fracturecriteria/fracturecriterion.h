@@ -77,6 +77,8 @@ typedef enum{
 		bool inset ;
 		
 		double getDeltaEnergy(const ElementState & s, double delta_d) ;
+		
+	public:
 		Vector smoothedPrincipalStress( ElementState &s) const ;
 		Vector smoothedPrincipalStrain( ElementState &s) const;
 	public:
@@ -120,7 +122,7 @@ typedef enum{
 		 */
 		virtual double grade(ElementState & s) = 0 ;
 		
-		virtual double setChange(const ElementState &s)  ;
+		virtual std::pair<double, double> setChange(const ElementState &s)  ;
 		
 		/** \brief Produce a copy of the fracture criterion
 		 * 
