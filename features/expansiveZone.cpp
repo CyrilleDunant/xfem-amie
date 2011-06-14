@@ -6,8 +6,10 @@
 #include "expansiveZone.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../physics/dual_behaviour.h"
+#include "../physics/homogeneised_behaviour.h"
 #include "../physics/damagemodels/fractiondamage.h"
 #include "../physics/stiffness_and_fracture.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
 
 using namespace Mu ;
 
@@ -31,7 +33,9 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	EnrichmentInclusion::enrich(lastId, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
-        if(disc.size() < 2)
+	std::cerr << "stop" << std::endl ;
+	std::cout << disc.size() << std::endl ;
+	if(disc.size() < 2)
 		return ;
 	
 	//then we select those that are cut by the circle
@@ -54,9 +58,18 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	{
 		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
 		{
-			BimaterialInterface * bi = new BimaterialInterface(getPrimitive(),
+		    BimaterialInterface * bi = new BimaterialInterface(getPrimitive(),
+								      new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+								      ring[i]->getBehaviour()->getCopy()) ;
+		    if(dynamic_cast<HomogeneisedBehaviour *>(ring[i]->getBehaviour()))
+		    {
+			std::cout << "get original" << std::endl ;
+			bi = new BimaterialInterface(getPrimitive(),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-														ring[i]->getBehaviour()->getCopy()) ;
+														dynamic_cast<HomogeneisedBehaviour *>(ring[i]->getBehaviour())->original->getCopy()
+														) ;
+			std::cout << dynamic_cast<NonLocalMohrCoulomb *>(dynamic_cast<HomogeneisedBehaviour *>(ring[i]->getBehaviour())->original->getFractureCriterion())->upVal << std::endl ;
+		    }
 // 			if(bi->outBehaviour->getDamageModel())
 // 			{
 // 				FractionLinearDamage * fd = new FractionLinearDamage(bi->outBehaviour->getTensor(ring[i]->getCenter()), 0) ;
@@ -91,10 +104,21 @@ void ExpansiveZone::enrich(size_t & lastId , Mesh<DelaunayTriangle, DelaunayTree
 	{
 		if(bimateralInterfaced.find(disc[0]) == bimateralInterfaced.end())
 		{
+		    if(dynamic_cast<HomogeneisedBehaviour *>(disc[0]->getBehaviour()))
+		    {
+			std::cout << "get original" << std::endl ;
+			disc[0]->setBehaviour(new BimaterialInterface(getPrimitive(),
+														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
+														dynamic_cast<HomogeneisedBehaviour *>(disc[0]->getBehaviour())->original->getCopy()
+														)) ;
+		    }
+		    else
+		    {
 			disc[0]->setBehaviour(new BimaterialInterface(getPrimitive(),
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														disc[0]->getBehaviour()->getCopy()
 														)) ;
+		    }
 			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;
 			disc[0]->getBehaviour()->setSource(getPrimitive());
 		}

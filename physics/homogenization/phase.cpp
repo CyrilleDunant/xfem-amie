@@ -1,6 +1,7 @@
 #include "phase.h"
 #include "../stiffness_with_imposed_deformation.h"
 #include "../../utilities/matrixops.h"
+#include "../fracturecriteria/mohrcoulomb.h"
 
 using namespace Mu ;
 
@@ -18,6 +19,7 @@ Phase::Phase( DelaunayTriangle *tri )
 	volume = tri->area() ;
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
+	ruptureFromBehaviour() ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
@@ -27,6 +29,7 @@ Phase::Phase( DelaunayTetrahedron *tet )
 	volume = tet->volume() ;
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
+	ruptureFromBehaviour() ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
@@ -42,6 +45,7 @@ Phase::Phase( Feature *f )
 
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
+	ruptureFromBehaviour() ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
@@ -54,6 +58,12 @@ Phase::Phase( const Phase &p )
 	A.resize( p.A.numRows(), p.A.numCols() ) ;
 	A = p.A ;
 	volume = p.volume ;
+	for(size_t i = 0 ; i < p.lambda.size() ; i++)
+	{
+	    Vector l(p.lambda[i].size()) ;
+	    l = p.lambda[i] ;
+	    lambda.push_back(l);
+	}
 }
 
 void Phase::apply()
@@ -84,6 +94,12 @@ Phase &Phase::operator =( const Phase &p )
 	A.resize( p.A.numRows(), p.A.numCols() ) ;
 	A = p.A ;
 	volume = p.volume ;
+	for(size_t i = 0 ; i < p.lambda.size() ; i++)
+	{
+	    Vector l(p.lambda[i].size()) ;
+	    l = p.lambda[i] ;
+	    lambda.push_back(l);
+	}
 	return *this ;
 }
 
@@ -99,4 +115,43 @@ void Phase::expansionFromBehaviour()
 	Vector tmp = behaviour->getImposedStress( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
 	beta.resize( tmp.size() );
 	beta = tmp ;
+}
+
+void Phase::ruptureFromBehaviour()
+{
+    lambda.clear() ;
+    FractureCriterion * frac = behaviour->getFractureCriterion() ;
+    if(frac)
+    {
+	if(dynamic_cast<NonLocalMohrCoulomb *>(frac))
+	{
+	    double u = dynamic_cast<NonLocalMohrCoulomb *>(frac)->upVal ;
+	    double d = dynamic_cast<NonLocalMohrCoulomb *>(frac)->downVal ;
+	    Vector up(beta.size()) ;
+	    Vector down(beta.size()) ;
+	    for(size_t i = 0 ; i < beta.size() ; i++)
+	    {
+		up[i] = u ;
+		down[i] = d ;
+	    }
+	    lambda.push_back(up) ;
+	    lambda.push_back(down) ;
+	}
+	if(dynamic_cast<MohrCoulomb *>(frac))
+	{
+	    double u = dynamic_cast<MohrCoulomb *>(frac)->upVal ;
+	    double d = dynamic_cast<MohrCoulomb *>(frac)->downVal ;
+	    Vector up(beta.size()) ;
+	    Vector down(beta.size()) ;
+	    for(size_t i = 0 ; i < beta.size() ; i++)
+	    {
+		up[i] = u ;
+		down[i] = d ;
+	    }
+	    lambda.push_back(up) ;
+	    lambda.push_back(down) ;
+	    return ;
+	}
+
+    }
 }

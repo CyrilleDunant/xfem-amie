@@ -56,9 +56,20 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
 		original = dynamic_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
+
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
 	equivalent = composite.getBehaviour() ;
 //    composite.C.print();
+
+	if(original->getFractureCriterion())
+	{
+	    FractureCriterion * frac = original->getFractureCriterion() ;
+	    Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
+	    Vector alpha = dynamic_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
+
+	    equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac) ;
+	}
+
 
 	v.push_back( XI );
 	v.push_back( ETA );

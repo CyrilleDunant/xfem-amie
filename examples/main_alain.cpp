@@ -204,7 +204,7 @@ void step()
 {
 	int nsteps = 30;
 	int nstepstot = 30;
-	featureTree->setMaxIterationsPerStep(400) ;
+	featureTree->setMaxIterationsPerStep(2000) ;
 // 	fastForward(4, 10) ;
 
 	for(size_t i = 0 ; i < nsteps ; i++)
@@ -490,7 +490,8 @@ void step()
 		writer.getField(TWFT_VON_MISES) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;
-		writer.append() ;
+		if(go_on)
+		    writer.append() ;
 
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
@@ -630,8 +631,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	aggregateArea = 0 ;
 
 	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
+	a[0] = 0.001 ;
+	a[1] = 0.001 ;
 	a[2] = 0.00 ;
 
 	std::vector<ExpansiveZone *> zonesToPlace ;
@@ -1781,7 +1782,7 @@ int main(int argc, char *argv[])
 	Circle cercle(.5, 0,0) ;
 
 	zones = generateExpansiveZonesHomogeneously(100, placedinclusions, F) ;
-	F.setSamplingNumber(50) ;
+	F.setSamplingNumber(100) ;
 	if(restraintDepth > 0)
 	{
 // 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;

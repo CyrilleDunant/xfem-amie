@@ -133,6 +133,39 @@ void MatrixInclusionComposite::apply()
     beta = matrix.A * matrix.volume * matrix.beta ;
     beta += inclusion.A * inclusion.volume * inclusion.beta ;
 
+    lambda.clear() ;
+    Vector b = inclusion.beta ;
+    b -= matrix.beta ;
+    Matrix Cdiff = inclusion.C - matrix.C ;
+    if(Cdiff.size()==36)
+	invert6x6Matrix(Cdiff) ;
+    else
+	invert3x3Matrix(Cdiff) ;
+    Matrix G = inclusion.A - I ;
+    G *= Cdiff ;
+    Vector a = G * b ;
+
+    for(size_t i = 0 ; i < matrix.lambda.size() ; i++)
+    {
+	Matrix S = matrix.C ;
+	if(S.size()==36)
+	    invert6x6Matrix(S) ;
+	else
+	    invert3x3Matrix(S) ;
+	Vector s1 = matrix.lambda[i] - matrix.beta ;
+	s1 = S * s1 ;
+	s1 = s1 - a ;
+
+	Matrix K = inclusion.A ;
+	if(K.size()==36)
+	    invert6x6Matrix(K) ;
+	else
+	    invert3x3Matrix(K) ;
+	K *= C ;
+	s1 = K * s1 ;
+	s1 = s1 + beta ;
+    }
+
 }
 
 void MatrixInclusionComposite::getStrainConcentrationTensor()

@@ -18,6 +18,7 @@ private:
 public:
     Matrix C ;
     Vector beta ;
+    std::vector<Vector> lambda ;
     double volume ;
 
     Matrix A ;
@@ -37,6 +38,7 @@ public:
 private:
     void stiffnessFromBehaviour() ;
     void expansionFromBehaviour() ;
+    void ruptureFromBehaviour() ;
 
 };
 
