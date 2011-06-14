@@ -21,6 +21,12 @@ MainWindow::MainWindow()
 // 	centralWidget()->setLayout(mainLayout);
 
 	setWindowTitle( "empty" );
+
+	connect( time, SIGNAL( valueChanged( int ) ), this, SLOT( getFile( int ) ) ) ;
+	connect( this, SIGNAL( prepareFile( QString ) ), this, SLOT( open( QString ) ) ) ;
+
+	connect( layer, SIGNAL( valueChanged( int ) ), this, SLOT( getLayer( int ) ) ) ;
+
 }
 
 void MainWindow::createStatusBar()
@@ -145,10 +151,6 @@ void MainWindow::createToolBars()
 
 void MainWindow::open()
 {
-	connect( time, SIGNAL( valueChanged( int ) ), this, SLOT( getFile( int ) ) ) ;
-	connect( this, SIGNAL( prepareFile( QString ) ), this, SLOT( open( QString ) ) ) ;
-
-	connect( layer, SIGNAL( valueChanged( int ) ), this, SLOT( getLayer( int ) ) ) ;
 	QString fileName = QFileDialog::getOpenFileName( this );
 
 	if( !fileName.isEmpty() )
@@ -220,9 +222,6 @@ void MainWindow::open()
 			connect( field, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setScale( int ) ) );
 			connect( triangledisplay, SIGNAL( scaleChanged( int ) ), field, SLOT( setValue( int ) ) );
 
-			connect( layer, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setTimePlane( int ) ) );
-			connect( triangledisplay, SIGNAL( timePlaneChanged( int ) ), layer, SLOT( setValue( int ) ) );
-
 			connect( downSlider, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setSegmentDown( int ) ) );
 			connect( triangledisplay, SIGNAL( segmentDownChanged( int ) ), downSlider, SLOT( setValue( int ) ) );
 
@@ -288,9 +287,6 @@ void MainWindow::open()
 
 			connect( field, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setScale( int ) ) );
 			connect( triangledisplay, SIGNAL( scaleChanged( int ) ), field, SLOT( setValue( int ) ) );
-
-			connect( layer, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setTimePlane( int ) ) );
-			connect( triangledisplay, SIGNAL( timePlaneChanged( int ) ), layer, SLOT( setValue( int ) ) );
 
 			connect( downSlider, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setSegmentDown( int ) ) );
 			connect( triangledisplay, SIGNAL( segmentDownChanged( int ) ), downSlider, SLOT( setValue( int ) ) );
@@ -396,9 +392,6 @@ void MainWindow::open( const QString &fileName )
 
 			connect( field, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setScale( int ) ) );
 			connect( triangledisplay, SIGNAL( scaleChanged( int ) ), field, SLOT( setValue( int ) ) );
-
-			connect( layer, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setTimePlane( int ) ) );
-			connect( triangledisplay, SIGNAL( timePlaneChanged( int ) ), layer, SLOT( setValue( int ) ) );
 
 			connect( downSlider, SIGNAL( valueChanged( int ) ), triangledisplay, SLOT( setSegmentDown( int ) ) );
 			connect( triangledisplay, SIGNAL( segmentDownChanged( int ) ), downSlider, SLOT( setValue( int ) ) );
