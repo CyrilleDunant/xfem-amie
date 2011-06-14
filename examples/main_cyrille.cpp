@@ -1725,8 +1725,8 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	double cradius = 1.5*4 ;
-	double mradius = 1.5 ;
+	double cradius = 1*4 ;
+	double mradius = 1 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;

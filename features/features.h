@@ -155,8 +155,6 @@ protected:
 	bool elastic ;
 	bool projectOnBoundaries ;
 	
-	bool stable ;
-	
 	size_t correctionSteps ;
 	bool computeIntersections ;
 	
@@ -277,7 +275,7 @@ protected:
 				
 				if(elems[i]->getBehaviour()->getDamageModel())
 				{
-					elems[i]->getBehaviour()->getDamageModel()->getState() = 0 ;
+					elems[i]->getBehaviour()->getDamageModel()->getState(true) = 0 ;
 					elems[i]->getBehaviour()->getDamageModel()->getPreviousState() = 0 ;
 					double renorm(0) ;
 					for(size_t j = 0 ; j < conflicts.size() ; j++)
@@ -286,14 +284,14 @@ protected:
 							conflicts[j]->getBehaviour()->getDamageModel() && 
 							conflicts[j]->getBehaviour()->getDamageModel()->getState().size() == elems[i]->getBehaviour()->getDamageModel()->getState().size())
 						{
-							elems[i]->getBehaviour()->getDamageModel()->getState() += conflicts[j]->getBehaviour()->getDamageModel()->getState()*fractions[j] ;
+							elems[i]->getBehaviour()->getDamageModel()->getState(true) += conflicts[j]->getBehaviour()->getDamageModel()->getState()*fractions[j] ;
 							elems[i]->getBehaviour()->getDamageModel()->getPreviousState() += conflicts[j]->getBehaviour()->getDamageModel()->getPreviousState()*fractions[j] ;
 							renorm += fractions[j] ;
 						}
 					}
 					if(std::abs(renorm) > POINT_TOLERANCE_2D)
 					{
-						elems[i]->getBehaviour()->getDamageModel()->getState() /= renorm ;
+						elems[i]->getBehaviour()->getDamageModel()->getState(true) /= renorm ;
 						elems[i]->getBehaviour()->getDamageModel()->getPreviousState() /= renorm ;
 					}
 				}

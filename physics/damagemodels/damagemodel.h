@@ -83,6 +83,8 @@ protected:
 	Vector previousstate ;
 	std::vector<PointState> states ;
 	
+	ElementState * elementState ;
+	
 public:
 	
 	bool isNull ;
@@ -110,7 +112,9 @@ public:
 	 * @return a Vector
 	 */
 	virtual const Vector & getState() const { return state ;} ;
-	virtual Vector & getState() { return state ;} ;
+	virtual Vector & getState(bool) ;
+	
+	Vector smoothedState(const ElementState &s) const ;
 
 	/** \brief Increment the damage from the current state of the element considered
 	 * 
@@ -154,6 +158,10 @@ public:
 	 */
 	
 	virtual bool changed() const ;
+	
+	virtual void prepare() { };
+	
+	virtual void postProcess() { } ;
 
 } ;
 
@@ -168,8 +176,6 @@ public:
 	 * 
 	 * @return damage state vector
 	 */
-	virtual const Vector & damageState() const { return state ;} ;
-	virtual Vector & damageState() { return state ;} ;
 
 	/** \brief Do nothing
 	 * 

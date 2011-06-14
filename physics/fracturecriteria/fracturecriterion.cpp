@@ -61,7 +61,6 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| !ci->getBehaviour()->getFractureCriterion() 
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
 				|| dc > 4. * physicalCharacteristicRadius * physicalCharacteristicRadius)
@@ -160,7 +159,6 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
 				|| ci->getBehaviour()->getFractureCriterion() 
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() &&ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
 				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
 			)

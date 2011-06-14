@@ -43,8 +43,9 @@ typedef enum{
 	*/
 	class FractureCriterion
 	{
+		friend class DamageModel ;
 	protected:
-		std::vector<unsigned int> cache ;
+
 		std::vector<unsigned int> physicalcache ;
 		std::vector<double> area ;
 		
@@ -82,7 +83,7 @@ typedef enum{
 		Vector smoothedPrincipalStress( ElementState &s) const ;
 		Vector smoothedPrincipalStrain( ElementState &s) const;
 	public:
-
+		std::vector<unsigned int> cache ;
 		std::vector<DelaunayTreeItem *>  *mesh2d ;
 		std::vector<DelaunayTreeItem3D *>  *mesh3d ;
 		
@@ -100,7 +101,6 @@ typedef enum{
 		
 		void step(Mu::ElementState& s) ;
 		void computeNonLocalState(ElementState &s, NonLocalSmoothingType st = MAX_PROXIMITY_SMOOTH) ;
-		bool isStable() const {return stable ;}
 		bool isAtCheckpoint() const {return checkpoint ;}
 		bool isInDamagingSet() const {return inset ;}
 		void setCheckpoint( bool c) {checkpoint = c ;} 

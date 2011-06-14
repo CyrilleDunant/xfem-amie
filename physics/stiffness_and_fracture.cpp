@@ -15,13 +15,14 @@
 #include "fracturecriteria/ruptureenergy.h"
 #include "fracturecriteria/mcft.h"
 #include "fracturecriteria/mohrcoulomb.h"
+#include "damagemodels/nonlocalisotropiclineardamage.h"
 
 using namespace Mu ;
 
 
 StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1)
 {
-	dfunc = new IsotropicLinearDamage() ;
+	dfunc = new /*NonLocal*/IsotropicLinearDamage() ;
 	criterion = crit ;
 	init = param[0][0] ;
 	change  = false ;
@@ -31,7 +32,6 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	
 	intermediateDamage.resize(dfunc->getState().size()) ;
 	intermediateDamage = 0 ;
-	
 	
 	previousPreviousDamage.resize(dfunc->getState().size()) ;
 	previousPreviousDamage = 0 ;
@@ -80,7 +80,7 @@ void StiffnessAndFracture::stepBack()
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
-	dfunc->getState() = damage ;
+	dfunc->getState(true) = damage ;
 
 	previousDamage.resize(previousPreviousDamage.size()) ;
 	previousDamage = previousPreviousDamage ;
@@ -167,8 +167,8 @@ Form * StiffnessAndFracture::getCopy() const
 {
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy()) ;
 	copy->damage = damage ;
-	copy->dfunc->getState().resize(dfunc->getState().size());
-	copy->dfunc->getState() = dfunc->getState() ;
+	copy->dfunc->getState(true).resize(dfunc->getState().size());
+	copy->dfunc->getState(true) = dfunc->getState() ;
 	copy->dfunc->getPreviousState().resize(dfunc->getPreviousState().size());
 	copy->dfunc->getPreviousState() = dfunc->getPreviousState() ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;

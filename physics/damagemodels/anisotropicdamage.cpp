@@ -16,7 +16,7 @@ namespace Mu {
 
 AnisotropicLinearDamage::AnisotropicLinearDamage() 
 {
-	getState().resize(4, 0.) ;
+	getState(true).resize(4, 0.) ;
 	getPreviousState().resize(4, 0.) ;
 	isNull = false ;
 
@@ -78,7 +78,7 @@ Vector AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 void AnisotropicLinearDamage::artificialDamageStep(double d)
 {
 	for(size_t i = 0 ; i < getState().size() -1 ; i++)
-		getState()[i] = std::min(getState()[i]+d,0.9999) ;
+		getState(true)[i] = std::min(getState()[i]+d,0.9999) ;
 }
 
 Matrix AnisotropicLinearDamage::apply(const Matrix & m) const

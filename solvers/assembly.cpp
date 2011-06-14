@@ -480,7 +480,7 @@ void Assembly::initialiseElementaryMatrices()
 	std::cerr << "Generating elementary matrices..." << std::flush ;
 	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
-#pragma omp parallel for 
+// #pragma omp parallel for 
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
 			element2d[i]->getElementaryMatrix() ;

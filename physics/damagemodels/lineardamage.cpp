@@ -16,7 +16,7 @@ namespace Mu {
 
 LinearDamage::LinearDamage()
 {
-	getState().resize(2, 0.) ;
+	getState(true).resize(2, 0.) ;
 	getPreviousState().resize(2, 0.);
 	isNull = false ;
 	state = 0 ;
@@ -63,7 +63,7 @@ Vector LinearDamage::computeDamageIncrement(ElementState & s)
 void LinearDamage::artificialDamageStep(double d)
 {
 	for(size_t i = 0 ; i < getState().size() -1 ; i++)
-		getState()[i] = std::min(getState()[i]+d,0.9999999) ;
+		getState(true)[i] = std::min(getState()[i]+d,0.9999999) ;
 }
 
 Matrix LinearDamage::apply(const Matrix & m) const

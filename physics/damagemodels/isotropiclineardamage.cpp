@@ -15,7 +15,7 @@ namespace Mu {
 
 IsotropicLinearDamage::IsotropicLinearDamage() 
 {
-	getState().resize(1, 0.);
+	getState(true).resize(1, 0.);
 	getPreviousState().resize(1, 0.);
 	isNull = false ;
 }
@@ -33,7 +33,7 @@ Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 
 void IsotropicLinearDamage::artificialDamageStep(double d)
 {
-	getState()[0] = std::min(getState()[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
+	getState(true)[0] = std::min(getState()[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
 }
 
 

@@ -204,7 +204,6 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getElements3D( const Geometry *p
 
 FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( NULL ), grid3d( NULL ), state( this )
 {
-	stable  = true ;
 	deltaTime = 0 ;
 	reuseDisplacements = false ;
 	useMultigrid = false ;
@@ -3843,6 +3842,7 @@ void FeatureTree::elasticStep()
 void FeatureTree::solve()
 {
 	Vector lastx( K->getDisplacements() ) ;
+
 	K->initialiseElementaryMatrices();
 	timeval time0, time1 ;
 	gettimeofday( &time0, NULL );
@@ -4206,7 +4206,6 @@ void FeatureTree::stepElements()
 {
 	behaviourChange = false ;
 	needAssembly = false ;
-	stable  = true ;
 
 	if( solverConvergence )
 	{
@@ -4244,7 +4243,7 @@ void FeatureTree::stepElements()
 
 			if( !elastic )
 			{
-
+				
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4265,7 +4264,7 @@ void FeatureTree::stepElements()
 				}
 
 				std::cerr << " ...done. " << std::endl ;
-
+				
 #pragma openmp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4278,7 +4277,6 @@ void FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						volume += are ;
-//						std::cerr << "a" << std::flush ;
 						if( elements[i]->getBehaviour()->getDamageModel() )
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
@@ -4287,14 +4285,12 @@ void FeatureTree::stepElements()
 								averageDamage += are ;
 						}
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
-//						std::cerr << "b" << std::flush ;
 						if( elements[i]->getBehaviour()->changed() )
 						{
 							needAssembly = true ;
 							behaviourChange = true ;
 							ccount++ ;
 						}
-//						std::cerr << "c" << std::flush ;
 						if( elements[i]->getBehaviour()->fractured() )
 						{
 							fracturedCount++ ;
@@ -4311,12 +4307,20 @@ void FeatureTree::stepElements()
 						crackedVolume +=  are ;
 					}
 
-					if( elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->getFractureCriterion()->isStable() )
-						stable = false ;
-
 				}
 
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
+				
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( i % 1000 == 0 )
+						std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
+
+					if( elements[i]->getBehaviour()->getDamageModel() )
+						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+				}
+				std::cerr << " ...done. " << std::endl ;
+				
 			}
 
 			averageDamage /= volume ;
@@ -4399,10 +4403,20 @@ void FeatureTree::stepElements()
 			}
 
 			std::cerr << " ...done. " << std::endl ;
+			
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( i % 1000 == 0 )
+					std::cerr << "\r checking for fractures (2')... " << i << "/" << elements.size() << std::flush ;
+
+				if( elements[i]->getBehaviour()->getDamageModel() )
+					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+			}
+			std::cerr << " ...done. " << std::endl ;
 
 			int fracturedCount = 0 ;
+			
 			#pragma omp parallel for
-
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 
@@ -4440,9 +4454,6 @@ void FeatureTree::stepElements()
 					{
 						damagedVolume +=  vol ;
 					}
-
-					if( elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->getFractureCriterion()->isStable() )
-						stable = false ;
 				}
 				else if( elements[i]->getBehaviour()->fractured() )
 				{
@@ -4799,12 +4810,6 @@ bool FeatureTree::step()
 
 	state.setStateTo( XFEM_STEPPED, true ) ;
 
-	if( !stable )
-	{
-		std::cout << "loss of stability!" << std::endl ;
-		return false ;
-	}
-
 	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
 
 	int notConvergedCounts = 0 ;
@@ -4835,12 +4840,6 @@ bool FeatureTree::step()
 		}
 
 		state.setStateTo( XFEM_STEPPED, true ) ;
-
-		if( !stable )
-		{
-			std::cout << "loss of stability!" << std::endl ;
-			return false ;
-		}
 
 	}
 

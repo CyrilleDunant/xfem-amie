@@ -80,7 +80,7 @@ void StiffnessAndIndexedFracture::stepBack()
 	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
-	dfunc->getState() = damage ;
+	dfunc->getState(true) = damage ;
 	frac = dfunc->fractured() ;
 
 	previousDamage.resize(previousPreviousDamage.size()) ;
