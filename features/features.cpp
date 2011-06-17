@@ -4260,7 +4260,9 @@ void FeatureTree::stepElements()
 						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
+					}
 				}
 
 				std::cerr << " ...done. " << std::endl ;
@@ -4317,7 +4319,14 @@ void FeatureTree::stepElements()
 						std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getDamageModel() )
+					{
 						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+						if(elements[i]->getBehaviour()->changed())
+						{
+							needAssembly = true ;
+							behaviourChange = true ;
+						}
+					}
 				}
 				std::cerr << " ...done. " << std::endl ;
 				
@@ -4341,8 +4350,12 @@ void FeatureTree::stepElements()
 				std::cout << "[" << averageDamage << "]" << std::flush ;
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+					}
+				}
 			}
 // 			else
 // 			{
@@ -4403,16 +4416,6 @@ void FeatureTree::stepElements()
 			}
 
 			std::cerr << " ...done. " << std::endl ;
-			
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (2')... " << i << "/" << elements.size() << std::flush ;
-
-				if( elements[i]->getBehaviour()->getDamageModel() )
-					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
-			}
-			std::cerr << " ...done. " << std::endl ;
 
 			int fracturedCount = 0 ;
 			
@@ -4465,6 +4468,23 @@ void FeatureTree::stepElements()
 
 			std::cerr << " ...done" << std::endl ;
 
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( i % 1000 == 0 )
+					std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
+
+				if( elements[i]->getBehaviour()->getDamageModel() )
+				{
+					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+					if(elements[i]->getBehaviour()->changed())
+					{
+						needAssembly = true ;
+						behaviourChange = true ;
+					}
+				}
+			}
+			std::cerr << " ...done. " << std::endl ;
+			
 			bool foundCheckPoint = true ;
 
 			for( size_t i = 0 ; i < elements.size() ; i++ )
@@ -4477,9 +4497,17 @@ void FeatureTree::stepElements()
 			}
 
 			if( foundCheckPoint )
+			{
+				std::cout << "[" << averageDamage << "]" << std::flush ;
+
 				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+					}
+				}
+			}
 
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 				elements[i]->clearVisited() ;

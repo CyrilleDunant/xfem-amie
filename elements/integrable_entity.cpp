@@ -10,6 +10,7 @@
 #include "../physics/kelvinvoight.h"
 #include "../solvers/assembly.h"
 #include "../features/boundarycondition.h"
+#include "../physics/damagemodels/damagemodel.h"
 using namespace Mu ;
 
 const Vector &ElementState::getEnrichedDisplacements() const
@@ -33,6 +34,24 @@ void Form::scale(double d)
 	if(getFractureCriterion())
 		getFractureCriterion()->scale(d) ;
 }
+
+bool Form::hasInducedBoundaryConditions() const
+{
+	if(getDamageModel() && getDamageModel()->hasInducedBoundaryConditions())
+		return true ;
+	return false ;
+} ;
+
+std::vector<BoundaryCondition * > Form::getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+{ 
+	std::vector<BoundaryCondition * > ret ;
+	if(getDamageModel() && getDamageModel()->hasInducedBoundaryConditions())
+	{
+		return getDamageModel()->getBoundaryConditions(s, id,  p_i, gp, Jinv) ;
+	}
+		
+	return  ret ;
+} ;
 
 void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 {

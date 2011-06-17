@@ -64,6 +64,7 @@ public:
 	double upVal ;
 	double downVal ;
 	double tensionCritStrain ;
+	double youngModulus ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)

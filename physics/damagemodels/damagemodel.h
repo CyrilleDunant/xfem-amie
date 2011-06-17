@@ -162,6 +162,16 @@ public:
 	virtual void prepare() { };
 	
 	virtual void postProcess() { } ;
+	
+	virtual bool hasInducedBoundaryConditions() const
+	{
+		return false ;
+	} ;
+	
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+	{
+		return std::vector<BoundaryCondition * >() ;
+	}
 
 } ;
 

@@ -1511,9 +1511,9 @@ int main(int argc, char *argv[])
 	omp_set_num_threads(8) ;
 #endif
 	double compressionCrit = -37.0e6 ; 
-	double tensionCrit =  330.*sqrt(-compressionCrit);// or 2 obtained by .33*sqrt(fc_)
+	double tensionCrit =  3.7e6 ; 330.*sqrt(-compressionCrit);// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*rebarDiametre/(.4) ; 
-	double mradius = .07 ; // .015
+	double mradius = .015 ; // .015
 	double nradius = mradius*5 ;
 	
 	Matrix m0_steel(3,3) ;
@@ -1584,10 +1584,10 @@ int main(int argc, char *argv[])
 	rebar3.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	std::vector<Sample*> stirrups ;
-	double psi = 2.*/*0.0084261498*/0.009525/.4 ;
+	double psi = 2.*0.0084261498/.4 ;
 	for(size_t i = 0 ;  i < 7 ; i++)
 	{
-		stirrups.push_back(new Sample(/*0.0084261498*/0.009525, sampleHeight-2.*rebarEndCover, 0.175+i*0.35, 0.));
+		stirrups.push_back(new Sample(0.0084261498, sampleHeight-2.*(rebarEndCover+0.064+0.085), 0.175+i*0.35, 0.));
 		stirrups.back()->setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
@@ -1605,7 +1605,7 @@ int main(int argc, char *argv[])
 
 	
 	F.addBoundaryCondition(load) ;
-	F.addBoundaryCondition(selfload) ;
+// 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight))) ;
 

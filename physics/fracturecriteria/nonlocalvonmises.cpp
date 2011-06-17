@@ -30,50 +30,51 @@ double NonLocalVonMises::grade(ElementState &s)
 	metInCompression = true ;
 	metInTension = true ;
 	Vector str( smoothedPrincipalStress(s) ) ;
-	Vector stra( smoothedPrincipalStrain(s) ) ;
+// 	Vector stra( smoothedPrincipalStrain(s) ) ;
 	double maxStress = 0 ;
-	double maxStrain = 0 ;
+// 	double maxStrain = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		maxStrain =  sqrt( 2. / 3 * ( stra[0] * stra[0] + stra[1] * stra[1] ) ) ;
+// 		maxStrain =  sqrt( 2. / 3 * ( stra[0] * stra[0] + stra[1] * stra[1] ) ) ;
 		maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) / 2. ) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		maxStrain = sqrt( 2. / 3 * ( stra[0] * stra[0] + stra[1] * stra[1] + stra[2] * stra[2] ) ) ;
+// 		maxStrain = sqrt( 2. / 3 * ( stra[0] * stra[0] + stra[1] * stra[1] + stra[2] * stra[2] ) ) ;
 		maxStress = sqrt( ( str[0] - str[1] ) * ( str[0] - str[1] ) + ( str[0] - str[2] ) * ( str[0] - str[2] ) + ( str[1] - str[2] ) * ( str[1] - str[2] ) ) / 6 ;
 	}
 	
-	if(maxStrain < POINT_TOLERANCE_2D)
-		return -1 ;
-	double modulus =std::abs( maxStress/maxStrain) ;
-	double straincrit = threshold/modulus ;
-	double c = sqrt(straincrit*straincrit*modulus*modulus+straincrit*straincrit) ;
+// 	if(maxStrain < POINT_TOLERANCE_2D)
+// 		return -1 ;
+// 	double modulus =std::abs( maxStress/maxStrain) ;
+// 	double straincrit = threshold/modulus ;
+// 	double c = sqrt(straincrit*straincrit*modulus*modulus+straincrit*straincrit) ;
 	
-	if(c < POINT_TOLERANCE_2D)
-		return -1 ;
+// 	if(c < POINT_TOLERANCE_2D)
+// 		return -1 ;
 	
-	double ss = sqrt(maxStress*maxStress+maxStrain*maxStrain) ;
+// 	double ss = sqrt(maxStress*maxStress+maxStrain*maxStrain) ;
 	
 // 	return std::abs(maxStrain/threshold)-1.;
 	
-// 	if(maxStrain > threshold )
-// 	{
-// 		return 1. - std::abs(threshold/maxStrain) ;
-// 	}
-// 	else 
-// 	{
-// 		return -1.+ std::abs(maxStrain/threshold);
-// 	}
 
-	if(ss > c )
+	if(maxStress > threshold )
 	{
-		return 1. - std::abs( c / ss )  ;
+		return 1. - threshold/maxStress ;
 	}
 	else 
 	{
-		return -1.+ std::abs( ss / c );
+		return -1.+ maxStress/threshold;
 	}
+
+// 	if(ss > c )
+// 	{
+// 		return 1. - std::abs( c / ss )  ;
+// 	}
+// 	else 
+// 	{
+// 		return -1.+ std::abs( ss / c );
+// 	}
 }
 
 FractureCriterion * NonLocalVonMises::getCopy() const

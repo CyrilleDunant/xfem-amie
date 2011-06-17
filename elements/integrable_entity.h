@@ -475,10 +475,7 @@ public:
 	} ;
 	
 	virtual void scale(double d) ;
-	virtual bool hasInducedBoundaryConditions() const
-	{
-		return false ;
-	} ;
+	virtual bool hasInducedBoundaryConditions() const;
 	
 	virtual size_t getNumberOfDegreesOfFreedom() const { return this->num_dof ; }
 	
@@ -497,9 +494,7 @@ public:
 	virtual bool fractured() const = 0 ;
 	virtual bool changed() const { return false ; } ;
 	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & v) const { };
-	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const { 
-		return  std::vector<BoundaryCondition * >() ;
-	} ;
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 	virtual Form * getCopy() const = 0 ;
 	virtual void stepBack() { }  ;

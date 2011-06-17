@@ -25,7 +25,6 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	dfunc = new /*NonLocal*/IsotropicLinearDamage() ;
 	criterion = crit ;
 	init = param[0][0] ;
-	change  = false ;
 	previouschange = false ;
 	previousDamage.resize(dfunc->getState().size()) ; 
 	previousDamage =0 ;
@@ -77,7 +76,6 @@ void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, con
 void StiffnessAndFracture::stepBack()
 {
 
-	change = previouschange ;
 	damage.resize(previousDamage.size()) ;
 	damage = previousDamage ;
 	dfunc->getState(true) = damage ;
@@ -88,13 +86,11 @@ void StiffnessAndFracture::stepBack()
 
 void StiffnessAndFracture::step(double timestep, ElementState & currentState) 
 {
-	previouschange = change ;
-	change = false ;
+	previouschange = dfunc->changed() ;
 	dfunc->step(currentState) ;
-	change = dfunc->changed() ;
-	currentState.getParent()->behaviourUpdated = change ;
+	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
 	
-	if(change)
+	if(dfunc->changed())
 	{
 		
 		previousPreviousDamage.resize(previousDamage.size()) ;
@@ -110,11 +106,9 @@ void StiffnessAndFracture::step(double timestep, ElementState & currentState)
 
 void StiffnessAndFracture::artificialDamageStep(double d)
 {
-	previouschange = change ;
-	change = false ;
+	previouschange = dfunc->changed() ;
 
 	dfunc->artificialDamageStep(d) ;
-	change = true ;
 	previousPreviousDamage.resize(previousDamage.size()) ;
 	previousPreviousDamage = previousDamage ;
 	previousDamage.resize(damage.size()) ;
@@ -155,7 +149,7 @@ void StiffnessAndFracture::artificialPreviousDamage(Vector previous, Vector prev
 
 bool StiffnessAndFracture::changed() const
 {
-	return change ;
+	return dfunc->changed() ;
 } 
 
 bool StiffnessAndFracture::fractured() const

@@ -28,7 +28,7 @@ NonLocalIsotropicLinearDamage::NonLocalIsotropicLinearDamage()
 Vector NonLocalIsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	Vector ret(1) ;
-	ret[0] = 1 ;
+	ret[0] = 1.25 ;
 // 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE-state[0], state[0]) ;
 // 	ret[0] = std::min(.99999, state[0]) ;
 // 	ret[0] = std::max(0., state[0]) ;
@@ -48,7 +48,9 @@ Matrix NonLocalIsotropicLinearDamage::apply(const Matrix & m) const
 
 	if(fractured())
 		return ret*0 ;
-	return ret*(1.-nonLocalState[0]*(2.)+getState()[0]*(1.-2.)) ;
+	
+	double omega = 0.2 ;
+	return ret*std::min(1.-(nonLocalState[0]*(omega)+getState()[0]*(1.-omega)), 1.) ;
 }
 
 
@@ -65,7 +67,7 @@ bool NonLocalIsotropicLinearDamage::fractured() const
 {
 	if(fraction < 0)
 		return false ;
-	return nonLocalState[0] >= thresholdDamageDensity ;
+	return nonLocalState[0] > thresholdDamageDensity ;
 }
 
 void NonLocalIsotropicLinearDamage::prepare() 

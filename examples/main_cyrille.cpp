@@ -1749,7 +1749,7 @@ int main(int argc, char *argv[])
 
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.setMaxIterationsPerStep(20000) ;
 	F.setDeltaTime(0.1);
 
