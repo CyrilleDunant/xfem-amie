@@ -167,10 +167,16 @@ public:
 	{
 		return false ;
 	} ;
+	virtual bool hasInducedForces() const {return false ;}
 	
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 	{
 		return std::vector<BoundaryCondition * >() ;
+	}
+	
+	virtual Vector getImposedStress(const Point & p) const
+	{
+		return Vector(0., 0) ;
 	}
 
 } ;

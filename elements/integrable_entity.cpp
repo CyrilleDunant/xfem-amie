@@ -42,6 +42,19 @@ bool Form::hasInducedBoundaryConditions() const
 	return false ;
 } ;
 
+Vector Form::getImposedStress(const Point & p) const
+{
+	if(getDamageModel() && getDamageModel()->hasInducedForces())
+		return getDamageModel()->getImposedStress(p) ;
+	
+	return Vector(double(0), param.numCols()) ;
+}
+
+bool Form::hasInducedForces() const
+{
+	return false || getDamageModel() && getDamageModel()->hasInducedForces();
+} ;
+
 std::vector<BoundaryCondition * > Form::getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 { 
 	std::vector<BoundaryCondition * > ret ;
@@ -5367,23 +5380,41 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		Vector lprincipal( 2 ) ;
-			Vector stresses = getStress( p, local ) ;
+		Vector stresses = getStress( p, local ) ;
 
-			if( parent->getBehaviour()->hasInducedForces() )
-				stresses -= parent->getBehaviour()->getImposedStress( p ) ;
+		lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
+										0.5 * sqrt(
+												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												( stresses[2] * stresses[2] )
+										) ;
+		lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
+										0.5 * sqrt(
+												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												( stresses[2] * stresses[2] )
+										) ;
+		bool effect = false ;
+		if( parent->getBehaviour()->hasInducedForces() )
+		{
+			stresses -= parent->getBehaviour()->getImposedStress( p ) ;
+			if(std::abs(parent->getBehaviour()->getImposedStress( p )).max() > POINT_TOLERANCE_2D)
+				effect = true ;
+		}
+// 		if(effect)
+// 			std::cout << lprincipal[0] << ", "<< lprincipal[1]<< " vs " << std::flush ;
 
-			
-			lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
-											0.5 * sqrt(
-													( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
-													( stresses[2] * stresses[2] )
-											) ;
-			lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
-											0.5 * sqrt(
-													( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
-													( stresses[2] * stresses[2] )
-											) ;
-
+		
+		lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
+										0.5 * sqrt(
+												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												( stresses[2] * stresses[2] )
+										) ;
+		lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
+										0.5 * sqrt(
+												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												( stresses[2] * stresses[2] )
+										) ;
+// 								if(effect)		
+// 		std::cout << lprincipal[0] << ", " << lprincipal[1] << " : "<< getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState()<< std::endl ;
 		return lprincipal ;
 	}
 	else

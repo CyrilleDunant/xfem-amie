@@ -70,8 +70,8 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			
 			//this is to eliminate scaling effects ;
 			double factor = 1 ;
-			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
-				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
+// 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+// 				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
 			
 			double d = exp( -dc / (2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 
@@ -168,8 +168,8 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 
 			double volume = ci->volume() ;
 			double factor = 1 ;
-			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
-				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
+// 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+// 				factor = std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]) ;
 			
 			double d = exp( -dc / ( 2.*physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 
@@ -1556,6 +1556,8 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 	{
+		metAtStep = scoreAtState > 2.*scoreTolerance ;
+		nonLocalScoreAtState = scoreAtState ;
 		return  ;
 	}
 	

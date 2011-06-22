@@ -61,6 +61,7 @@ physics/damagemodels/anisotropicdamage.cpp
 physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
+physics/damagemodels/plasticstrain.cpp
 physics/damagemodels/damageindexeddamage.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 

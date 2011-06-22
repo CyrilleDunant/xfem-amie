@@ -469,10 +469,7 @@ public:
 	virtual const Geometry * getSource() const { return source  ;}
 	virtual void setSource(Geometry * src) {source = src ;}
 	
-	virtual bool hasInducedForces() const
-	{
-		return false ;
-	} ;
+	virtual bool hasInducedForces() const ;
 	
 	virtual void scale(double d) ;
 	virtual bool hasInducedBoundaryConditions() const;
@@ -514,10 +511,7 @@ public:
 		return param ;
 	}
 
-	virtual Vector getImposedStress(const Point & p) const
-	{
-		return Vector(double(0), param.numCols()) ;
-	}
+	virtual Vector getImposedStress(const Point & p) const ;
 	
 	virtual ~Form() { } ;
 

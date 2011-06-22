@@ -48,7 +48,7 @@ void DamageModel::step( ElementState &s )
 		return ;
 	}
 
-	Vector damageIncrement = computeDamageIncrement( s ) ;
+	
 	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s ) ;
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
 	bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
@@ -63,10 +63,8 @@ void DamageModel::step( ElementState &s )
 
 		return ;
 	}
-
+	Vector damageIncrement = computeDamageIncrement( s ) ;
 	bool checkpoint = s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ;
-
-	Vector startPosition = getState() ;
 
 	if( checkpoint ) // initiate iteration
 	{
@@ -92,7 +90,7 @@ void DamageModel::step( ElementState &s )
 			{
 				getState(true) = getPreviousState() + damageIncrement * factor ;
 
-				if( getState().max() >= 1 || fractured() )
+				if( fractured() )
 				{
 					up = factor ;
 					factor = ( up + down ) / 2 ;
@@ -113,17 +111,9 @@ void DamageModel::step( ElementState &s )
 					factor = ( up + down ) / 2 ;
 				}
 			}
-
 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange.first, 0., score, setChange.second ) ) ;
 			downState = getPreviousState();
 			upState = getPreviousState() + damageIncrement * up ;
-
-
-			for( size_t j = 0 ; j < upState.size() ; j++ )
-				upState[j] = std::min( 1., std::max( downState[j], upState[j] ) ) ;
-
-			for( size_t j = 0 ; j < downState.size() ; j++ )
-				downState[j] = std::min( upState[j], std::max( 0., downState[j] ) ) ;
 
 			trialRatio = up  ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio ;
@@ -133,7 +123,6 @@ void DamageModel::step( ElementState &s )
 				getState( true ) = downState + ( upState - downState ) * trialRatio ;
 			}
 
-// 			std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << "  " <<  0 << "  "<< score << "  "<< -setChange.first << std::endl ;
 			if( ( upState - downState ).min() < 0 )
 			{
 				while(!fractured())
@@ -155,6 +144,7 @@ void DamageModel::step( ElementState &s )
 				converged = true ;
 				wasBroken = true ;
 			}
+			
 		}
 		else
 		{
@@ -171,18 +161,17 @@ void DamageModel::step( ElementState &s )
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		std::stable_sort( states.begin(), states.end() ) ;
 
-// 		std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index << "  " <<  trialRatio << "  "<< score << "  "<< setChange.first << std::endl ;
 		double minFraction = states[0].fraction ;
 		double maxFraction = states[1].fraction ;
 		double prevDelta = states[0].delta ;
 		double prevScore = states[0].score ;
 		double currentDelta = states[0].delta ;
 		double currentScore = states[0].score ;
-		double foundroot = false ;
-// 		std::cout << 0 << "  " <<  states[0].fraction << "  "<< states[0].score << "  "<< states[0].delta << std::endl ;
-		for( int i = 1 ; i < states.size() ; i++ )
+		bool deltaRoot = false ;
+		bool scoreRoot = false ;
+		int i = 1 ;
+		for( ; i < states.size() ; i++ )
 		{
-// 			std::cout << i << "  " <<  states[i].fraction << "  "<< states[i].score << "  "<< states[i].delta << std::endl ;
 			currentDelta = states[i].delta ;
 			currentScore = states[i].score ;
 			minFraction = states[i - 1].fraction ;
@@ -190,8 +179,9 @@ void DamageModel::step( ElementState &s )
 
 			if( currentDelta * prevDelta < 0 || currentScore * prevScore < 0 )
 			{
+				deltaRoot = currentDelta * prevDelta < 0 ;
+				scoreRoot = currentScore * prevScore < 0 ;
 				break ;
-				foundroot = true ;
 			}
 			else
 			{
@@ -201,8 +191,9 @@ void DamageModel::step( ElementState &s )
 		}
 
 		trialRatio = ( minFraction + maxFraction ) * .5 ;
-		getState( true ) = downState + ( upState - downState ) * trialRatio ;
 
+		getState( true ) = downState + ( upState - downState ) * trialRatio ;
+		
 		if( std::abs( minFraction - maxFraction ) * ( upState - downState ).max()  < damageDensityTolerance )
 		{
 			getState( true ) = downState + ( upState - downState ) * trialRatio ;
@@ -219,13 +210,7 @@ void DamageModel::step( ElementState &s )
 
 			converged = true ;
 		}
-		
-// 		if(!foundroot)
-// 		{
-// 			getState( true ) = upState ;
-// 			converged = true ;
-// 			wasBroken = true ;
-// 		}
+
 
 	}
 }
@@ -246,7 +231,7 @@ DamageModel::DamageModel()
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance = 1. / pow( 2., 8 );
+	damageDensityTolerance = 1. / pow( 2., 12 );
 } ;
 
 double DamageModel::getThresholdDamageDensity() const

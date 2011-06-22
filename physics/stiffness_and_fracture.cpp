@@ -16,13 +16,17 @@
 #include "fracturecriteria/mcft.h"
 #include "fracturecriteria/mohrcoulomb.h"
 #include "damagemodels/nonlocalisotropiclineardamage.h"
+#include "damagemodels/plasticstrain.h"
 
 using namespace Mu ;
 
 
-StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit) : LinearForm(rig, false, true, rig.numRows()/3+1)
+StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, DamageModel * d) : LinearForm(rig, false, true, rig.numRows()/3+1)
 {
-	dfunc = new /*NonLocal*/IsotropicLinearDamage() ;
+	if(!d)
+		dfunc = new /*NonLocal*/IsotropicLinearDamage() ;
+	else
+		dfunc = d ;
 	criterion = crit ;
 	init = param[0][0] ;
 	previouschange = false ;
@@ -159,7 +163,7 @@ bool StiffnessAndFracture::fractured() const
 
 Form * StiffnessAndFracture::getCopy() const 
 {
-	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy()) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), dfunc->getCopy()) ;
 	copy->damage = damage ;
 	copy->dfunc->getState(true).resize(dfunc->getState().size());
 	copy->dfunc->getState(true) = dfunc->getState() ;

@@ -19,6 +19,7 @@
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/stiffness_and_indexed_fracture.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
+#include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/stiffness.h"
 #include "../physics/void_form.h"
@@ -1730,7 +1731,7 @@ int main(int argc, char *argv[])
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius) ) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new PlasticStrain() ) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_paste) ;
@@ -1738,18 +1739,17 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
 
-	F.addFeature(&sample, new Pore(2, -7,2) );
-	F.addFeature(&sample, new Pore(2, 7,-2) );
-
+// 	F.addFeature(&sample, new Pore(2, -7,2) );
+// 	F.addFeature(&sample, new Pore(2, 7,-2) );
 
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
 
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.setMaxIterationsPerStep(20000) ;
 	F.setDeltaTime(0.1);
 

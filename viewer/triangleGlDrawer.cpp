@@ -7,10 +7,10 @@ void TriangleGLDrawer::computeDisplay( ) const
 
 	glColor4f( 1, 1, 1, 0.5 ) ;
 	glBegin( GL_LINE_LOOP ) ;
-	glVertex2f( 0.50 * .8 - .15, 0.50 * .8 ) ;
-	glVertex2f( -0.50 * .8 - .15, 0.50 * .8 ) ;
-	glVertex2f( -0.50 * .8 - .15, -0.50 * .8 ) ;
-	glVertex2f( 0.50 * .8 - .15, -0.50 * .8 ) ;
+	glVertex2f( 0.50 * .8 - .15, 0.50 * .8 + .05) ;
+	glVertex2f( -0.50 * .8 - .15, 0.50 * .8 + .05) ;
+	glVertex2f( -0.50 * .8 - .15, -0.50 * .8 + .05) ;
+	glVertex2f( 0.50 * .8 - .15, -0.50 * .8 + .05) ;
 	glEnd() ;
 	glCallList( currentDisplayList ) ;
 }
