@@ -26,7 +26,7 @@ IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCrite
 	e->setEnergyIndexed(true);
 }
 
-Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
+std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 {
 		Vector ret(1) ; ret = 0 ;
 		
@@ -74,7 +74,7 @@ Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 // 				if(std::abs(maxdd) > 1e-7)
 // 					std::cout << maxdd << std::endl ;
 				ret[0] += maxdd ;
-				return ret;
+				return std::make_pair(state,ret);
 			}
 			remnantEnergy += maxdd*totry[mindeddindex]->area()*totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
 			totry.erase(totry.begin()+mindeddindex) ;
@@ -110,7 +110,7 @@ Vector IndexedLinearDamage::computeDamageIncrement(ElementState & s)
 			ret[0] += delta_d ;
 		
 		std::cout << delta_d << std::endl ;
-		return ret ;
+		return std::make_pair(state,ret) ;
 // 		std::cout << " * " << delta_d << "  " << ener_delta.second*dcost*volume << "  " << ener_delta.first<< std::endl ;
 // 		std::cout << " / " << delta_d << "  " << ener_delta.second*dcost/volume << "  " << ener_delta.first<< std::endl ;
 // 		std::cout << " . " << delta_d << "  " << e->getDeltaEnergyAtState()<< "  " << ener_delta.first<< std::endl ;

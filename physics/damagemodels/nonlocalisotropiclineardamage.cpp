@@ -25,14 +25,14 @@ NonLocalIsotropicLinearDamage::NonLocalIsotropicLinearDamage()
 	isNull = false ;
 }
 
-Vector NonLocalIsotropicLinearDamage::computeDamageIncrement(ElementState & s)
+std::pair<Vector, Vector> NonLocalIsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	Vector ret(1) ;
 	ret[0] = 1.25 ;
 // 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE-state[0], state[0]) ;
 // 	ret[0] = std::min(.99999, state[0]) ;
 // 	ret[0] = std::max(0., state[0]) ;
-	return ret ;
+	return std::make_pair(state, ret) ;
 
 }
 

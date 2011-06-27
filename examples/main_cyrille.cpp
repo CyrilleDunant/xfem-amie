@@ -112,7 +112,7 @@ double E_max = 0;
 
 double x_max = 0 ;
 double y_max = 0 ;
-double disp = 1.052 ;//.350 .355
+double disp = 1 ;//.350 .355
 BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
 double width = 20;
 double height = 10;
@@ -1739,8 +1739,8 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
 
-// 	F.addFeature(&sample, new Pore(2, -7,2) );
-// 	F.addFeature(&sample, new Pore(2, 7,-2) );
+	F.addFeature(&sample, new Pore(2, -7,2) );
+	F.addFeature(&sample, new Pore(2, 7,-2) );
 
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
@@ -1750,7 +1750,7 @@ int main(int argc, char *argv[])
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
 	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(20000) ;
+	F.setMaxIterationsPerStep(400) ;
 	F.setDeltaTime(0.1);
 
 	glutInit(&argc, argv) ;	

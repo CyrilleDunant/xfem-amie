@@ -1327,6 +1327,8 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 
 		}
 
+		if(parent->getBehaviour()->hasInducedForces() )
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
 		return lstrain * cg ;
 	}
 	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
@@ -1418,8 +1420,10 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
-		Vector ret = lstrain * cg ;
-		return ret ;
+		if(parent->getBehaviour()->hasInducedForces() )
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
+			
+		return lstrain * cg ;
 	}
 
 	int dofs = 2 ;
@@ -1470,6 +1474,9 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
+		if(parent->getBehaviour()->hasInducedForces() )
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
+			
 		return lstrain * cg ;
 	}
 	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
@@ -1541,6 +1548,9 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
+		if(parent->getBehaviour()->hasInducedForces() )
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
+		
 		return lstrain * cg ;
 	}
 
@@ -5383,38 +5393,16 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 		Vector stresses = getStress( p, local ) ;
 
 		lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
-										0.5 * sqrt(
-												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+										 sqrt(
+												0.5 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
 												( stresses[2] * stresses[2] )
 										) ;
 		lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
-										0.5 * sqrt(
-												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+										 sqrt(
+												0.5 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
 												( stresses[2] * stresses[2] )
 										) ;
-		bool effect = false ;
-		if( parent->getBehaviour()->hasInducedForces() )
-		{
-			stresses -= parent->getBehaviour()->getImposedStress( p ) ;
-			if(std::abs(parent->getBehaviour()->getImposedStress( p )).max() > POINT_TOLERANCE_2D)
-				effect = true ;
-		}
-// 		if(effect)
-// 			std::cout << lprincipal[0] << ", "<< lprincipal[1]<< " vs " << std::flush ;
 
-		
-		lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
-										0.5 * sqrt(
-												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
-												( stresses[2] * stresses[2] )
-										) ;
-		lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
-										0.5 * sqrt(
-												( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
-												( stresses[2] * stresses[2] )
-										) ;
-// 								if(effect)		
-// 		std::cout << lprincipal[0] << ", " << lprincipal[1] << " : "<< getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState()<< std::endl ;
 		return lprincipal ;
 	}
 	else
@@ -5457,13 +5445,13 @@ Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 // 			strains -= parent->getBehaviour()->getImposedStrains(p) ;
 		
 		lprincipal[0] = ( strains[0] + strains[1] ) * .5 +
-		                0.5 * sqrt(
-		                    ( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
+		                 sqrt(
+		                    0.5 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
 		                    ( strains[2] * strains[2] )
 		                ) ;
 		lprincipal[1] = ( strains[0] + strains[1] ) * .5 -
-		                0.5 * sqrt(
-		                    ( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
+		                 sqrt(
+		                    0.5 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
 		                    ( strains[2] * strains[2] )
 		                ) ;
 

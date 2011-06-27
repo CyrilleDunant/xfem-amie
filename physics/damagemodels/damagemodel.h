@@ -84,12 +84,13 @@ protected:
 	std::vector<PointState> states ;
 	
 	ElementState * elementState ;
-	
+protected:
+	bool needRestart ; //it is sometimes necessary to enforce a different scheme for convergence.
 public:
 	
 	bool isNull ;
 	bool converged ;
-	
+
 	DamageModel();
 	
 	double getThresholdDamageDensity() const;
@@ -128,7 +129,7 @@ public:
 	 */
 	virtual void artificialDamageStep(double d) = 0 ;
 	
-	virtual Vector computeDamageIncrement(ElementState &s) = 0 ;
+	virtual std::pair<Vector,Vector> computeDamageIncrement(ElementState &s) = 0 ;
 
 	/** \brief Get previous damage value  */
 	virtual Vector & getPreviousState() { return previousstate ; } ;
@@ -184,6 +185,7 @@ public:
 /** \brief Null damage model. A material with this damage model can never be damaged.*/
 class NullDamage : public DamageModel
 {
+
 public:
 
 	NullDamage() : DamageModel() { state.resize(0); previousstate.resize(0);} ;
@@ -197,7 +199,7 @@ public:
 	 * 
 	 * @param s ElementState
 	 */
-	virtual Vector computeDamageIncrement(ElementState & s) { return Vector(1) ;} ;
+	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s)  { return std::make_pair(Vector(1), Vector(1)) ;} /*override*/;
 
 	/** \brief Do nothing
 	 * 

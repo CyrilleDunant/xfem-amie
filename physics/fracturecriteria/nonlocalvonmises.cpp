@@ -43,9 +43,6 @@ double NonLocalVonMises::grade(ElementState &s)
 
 	if(maxStress > threshold )
 	{
-// 		std::cout << "GRADING !" << std::endl ;
-// std::cout <<  str[0] << " -- "<< str[1] <<std::endl ;
-// std::cout << "GRADING !" << std::endl ;
 		return 1. - threshold/maxStress ;
 	}
 	else 

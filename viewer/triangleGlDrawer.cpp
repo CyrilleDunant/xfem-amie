@@ -426,8 +426,8 @@ void TriangleGLDrawer::computeDisplayList()
 				HSVtoRGB( &r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 1. - v * 0.95 ) ;
 				glColor4ub( r, g, b, 255 ) ;
 
-				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag ;
-				double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag ;
+				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
+				double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
 				glVertex2f( ( ( *valuesAtPoint )[j * 2][i] - min_x ) / maxdelta - 0.5 * cx + dx - 0.2, ( ( *valuesAtPoint )[j * 2 + 1][i] - min_y ) / maxdelta - 0.5 * cy + dy ) ;
 			}
 

@@ -20,14 +20,14 @@ IsotropicLinearDamage::IsotropicLinearDamage()
 	isNull = false ;
 }
 
-Vector IsotropicLinearDamage::computeDamageIncrement(ElementState & s)
+std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Mu::ElementState &s)
 {
 	Vector ret(1) ;
 	ret[0] = 1 ;
 // 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE-state[0], state[0]) ;
 // 	ret[0] = std::min(.99999, state[0]) ;
 // 	ret[0] = std::max(0., state[0]) ;
-	return ret ;
+	return std::make_pair(state, ret) ;
 
 }
 

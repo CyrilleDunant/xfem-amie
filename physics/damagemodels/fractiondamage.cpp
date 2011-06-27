@@ -25,7 +25,7 @@ FractionLinearDamage::FractionLinearDamage( Matrix remnant, double phi) : remnan
 	inTension = false ;
 }
 
-Vector FractionLinearDamage::computeDamageIncrement(ElementState & s)
+std::pair< Vector, Vector > FractionLinearDamage::computeDamageIncrement( Mu::ElementState &s)
 {
 	Vector ret(state.size()) ; ret = 0;
 
@@ -56,7 +56,7 @@ Vector FractionLinearDamage::computeDamageIncrement(ElementState & s)
 	}
 	ret[0] = compressionDamage ;
 	ret[1] = tensionDamage ;
-	return ret ;
+	return std::make_pair(state, ret) ;
 // 	std::cout << state.sum() << std::flush ;
 }
 

@@ -1894,7 +1894,7 @@ int main( int argc, char *argv[] )
 
 	std::vector<Inclusion *> placedinclusions ;
 
-	for( size_t i = 0 ; i < 2048/*feats.size()*/ ; i++ )
+	for( size_t i = 0 ; i < feats.size() ; i++ )
 	{
 		Point a( inclusions[i]->getCenter() + Point( 0, inclusions[i]->getRadius() ) ) ;
 		Point b( inclusions[i]->getCenter() + Point( 0, -inclusions[i]->getRadius() ) ) ;

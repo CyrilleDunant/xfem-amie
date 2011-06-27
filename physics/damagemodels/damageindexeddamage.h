@@ -43,7 +43,7 @@ public:
 	 * The formula used is \f$ d += .1e^{\frac{A_e}{\pi\epsilon^2}} ; \f$
 	 * @param s ElementState passed as a parameter
 	 */
-	virtual Vector computeDamageIncrement(ElementState & s) ;
+	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 
 	/** \brief Increment the damage from an external value.
 	 * 

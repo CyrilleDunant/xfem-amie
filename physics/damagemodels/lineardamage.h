@@ -51,7 +51,7 @@ public:
 	 * 
 	 * @param s ElementState to consider
 	 */
-	virtual Vector computeDamageIncrement(ElementState & s) ;
+	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 
 	/** \brief compute the stiffness matrix from the damage state
 	 * 

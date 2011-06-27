@@ -25,7 +25,7 @@ LinearDamage::LinearDamage()
 	inTension = false ;
 }
 
-Vector LinearDamage::computeDamageIncrement(ElementState & s)
+std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s)
 {
 	inCompression = true ;
 	inTension = true ;
@@ -57,7 +57,7 @@ Vector LinearDamage::computeDamageIncrement(ElementState & s)
 	ret[0] = compressionDamage ;
 	ret[1] = tensionDamage ;
 	
-	return ret ;
+	return std::make_pair(state, ret) ;
 }
 
 void LinearDamage::artificialDamageStep(double d)

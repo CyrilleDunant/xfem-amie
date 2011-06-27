@@ -1587,8 +1587,8 @@ int main(int argc, char *argv[])
 	double psi = 2.*0.0084261498/.4 ;
 	for(size_t i = 0 ;  i < 7 ; i++)
 	{
-		stirrups.push_back(new Sample(0.0084261498, sampleHeight-2.*(/*rebarEndCover+*/0.064/*+0.085*/), 0.175+i*0.35, 0.));
-		stirrups.back()->setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
+		stirrups.push_back(new Sample(0.0084261498, sampleHeight-2.*(0.064), 0.175+i*0.35, 0.));
+		stirrups.back()->setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6)));
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	}

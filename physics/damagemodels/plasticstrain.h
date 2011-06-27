@@ -22,11 +22,12 @@ namespace Mu {
 class PlasticStrain : public DamageModel
 {
 protected:
-	Vector smoothState ;
-	Vector imposedStrain ;
-	Vector previousImposedStrain ;
+	ElementState * es ;
 	std::vector<Variable> v ;
 	Matrix * param ;
+	Vector imposedStrain ;
+	Vector previousImposedStrain ;
+	Vector storedState ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
@@ -40,7 +41,7 @@ public:
 	 * 
 	 * @param s ElementState passed as a parameter
 	 */
-	virtual Vector computeDamageIncrement(ElementState & s) ;
+	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 
 	/** \brief Increment the damage from an external value.
 	 * 
@@ -71,6 +72,8 @@ public:
 	virtual Vector getImposedStress(const Point & p) const ;
 	
 	virtual DamageModel * getCopy() const { return new PlasticStrain() ;}
+	
+	virtual void postProcess() ;
 };
 
 }

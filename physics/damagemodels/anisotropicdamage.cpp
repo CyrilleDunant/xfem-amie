@@ -24,7 +24,7 @@ AnisotropicLinearDamage::AnisotropicLinearDamage()
 	inTension = false ;
 }
 
-Vector AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
+std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
 	inCompression = false ;
 	inTension = false ;
@@ -71,7 +71,9 @@ Vector AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 	ret[1] = tensionDamagex ;
 	ret[2] = tensionDamagey ;
 	ret[3] = tensionDamagez ;
-	return ret ;
+	if( std::abs(ret).max() > POINT_TOLERANCE_2D)
+		ret /= std::abs(ret).max() ;
+	return std::make_pair(state,ret) ;
 // 	std::cout << getState().sum() << std::flush ;
 }
 
