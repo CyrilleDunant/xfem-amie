@@ -12,6 +12,7 @@
 
 #include "stiffness_with_imposed_deformation.h"
 #include "../features/boundarycondition.h"
+#include "homogenization/homogenization_base.h"
 
 using namespace Mu ;
 
@@ -21,6 +22,20 @@ StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & 
 	v.push_back(ETA);
 	if(param.size() == 36)
 		v.push_back(ZETA);
+	this->time_d = false ;
+} ;
+
+StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, 2+dim == SPACE_THREE_DIMENSIONAL)
+{
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() == 36)
+		v.push_back(ZETA);
+		
+	imposed.resize(param.numCols()) ;
+	for(size_t i = 0 ; i < 2+(imposed.size() == 6) ; i++)
+		imposed[i] = alpha ;
+	
 	this->time_d = false ;
 } ;
 

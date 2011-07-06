@@ -103,6 +103,7 @@ physics/homogenization/scheme_template.cpp
 physics/homogenization/phase.cpp
 physics/homogenization/composite.cpp
 physics/materials/aggregate_behaviour.cpp
+physics/materials/gel_behaviour.cpp
 physics/materials/paste_behaviour.cpp
 physics/materials/rebar_behaviour.cpp
 physics/materials/steel_behaviour.cpp

@@ -37,6 +37,8 @@ namespace Mu
 		* @param imposedDef Imposed deformation
 		*/
 		StiffnessWithImposedDeformation(const Matrix & rig, Vector imposedDef) ;
+
+		StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) ;
 		
 		virtual ~StiffnessWithImposedDeformation() ;
 		
