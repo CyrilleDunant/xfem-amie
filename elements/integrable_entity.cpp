@@ -5344,13 +5344,13 @@ Vector ElementState::getPreviousPrincipalStresses( const Point &p, bool local ) 
 
 		Vector lprincipal( 2 ) ;
 		lprincipal[0] = .5 * ( stresses[0] + stresses[1] ) +
-		                .5 * sqrt(
-		                    ( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+		                 sqrt(
+		                    .25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
 		                    ( stresses[2] * stresses[2] )
 		                ) ;
 		lprincipal[1] = .5 * ( stresses[0] + stresses[1] ) -
-		                .5 * sqrt(
-		                    ( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+		                sqrt(
+		                     .25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
 		                    ( stresses[2] * stresses[2] )
 		                ) ;
 
@@ -5394,12 +5394,12 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 
 		lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
 										 sqrt(
-												0.5 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												0.25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
 												( stresses[2] * stresses[2] )
 										) ;
 		lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
 										 sqrt(
-												0.5 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												0.25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
 												( stresses[2] * stresses[2] )
 										) ;
 
@@ -5446,12 +5446,12 @@ Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 		
 		lprincipal[0] = ( strains[0] + strains[1] ) * .5 +
 		                 sqrt(
-		                    0.5 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
+		                    0.25 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
 		                    ( strains[2] * strains[2] )
 		                ) ;
 		lprincipal[1] = ( strains[0] + strains[1] ) * .5 -
 		                 sqrt(
-		                    0.5 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
+		                    0.25 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
 		                    ( strains[2] * strains[2] )
 		                ) ;
 
@@ -5516,13 +5516,13 @@ Vector ElementState::getPrincipalStrains( const Mu::PointArray &v ) const
 	{
 		Vector lprincipal( 2 ) ;
 		lprincipal[0] = .5 * ( strains[i * 3] + strains[i * 3 + 1] ) +
-		                .5 * sqrt(
-		                    ( strains[i * 3] - strains[i * 3 + 1] ) * ( strains[i * 3] - strains[i * 3 + 1] ) +
+		                 sqrt(
+		                    .25 *( strains[i * 3] - strains[i * 3 + 1] ) * ( strains[i * 3] - strains[i * 3 + 1] ) +
 		                    strains[i * 3 + 2] * strains[i * 3 + 2]
 		                ) ;
 		lprincipal[1] = .5 * ( strains[i * 3] + strains[i * 3 + 1] ) -
-		                .5 * sqrt(
-		                    ( strains[i * 3] - strains[i * 3 + 1] ) * ( strains[i * 3] - strains[i * 3 + 1] ) +
+		                 sqrt(
+		                    .25 *( strains[i * 3] - strains[i * 3 + 1] ) * ( strains[i * 3] - strains[i * 3 + 1] ) +
 		                    strains[i * 3 + 2] * strains[i * 3 + 2]
 		                ) ;
 		principal[i * 2] = lprincipal[0] ;
@@ -5541,13 +5541,13 @@ Vector ElementState::getPreviousPrincipalStresses( const Mu::PointArray &v ) con
 	{
 		Vector lprincipal( 2 ) ;
 		lprincipal[0] = .5 * ( stresses[i * 3] + stresses[i * 3 + 1] ) +
-		                .5 * sqrt(
-		                    ( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
+		                sqrt(
+		                     .25 *( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
 		                    stresses[i * 3 + 2] * stresses[i * 3 + 2]
 		                ) ;
 		lprincipal[1] = .5 * ( stresses[i * 3] + stresses[i * 3 + 1] ) -
-		                .5 * sqrt(
-		                    ( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
+		                 sqrt(
+		                    .25 *( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
 		                    stresses[i * 3 + 2] * stresses[i * 3 + 2]
 		                ) ;
 		principal[i * 2] = lprincipal[0] ;
@@ -5581,13 +5581,13 @@ Vector ElementState::getPrincipalStresses( const Mu::PointArray &v, bool local )
 		{
 			Vector lprincipal( 2 ) ;
 			lprincipal[0] = .5 * ( stresses[i * 3] + stresses[i * 3 + 1] ) +
-			                .5 * sqrt(
-			                    ( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
+			                 sqrt(
+			                    .25 *( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
 			                    stresses[i * 3 + 2] * stresses[i * 3 + 2]
 			                ) ;
 			lprincipal[1] = .5 * ( stresses[i * 3] + stresses[i * 3 + 1] ) -
-			                .5 * sqrt(
-			                    ( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
+			                 sqrt(
+			                    .25 *( stresses[i * 3] - stresses[i * 3 + 1] ) * ( stresses[i * 3] - stresses[i * 3 + 1] ) +
 			                    stresses[i * 3 + 2] * stresses[i * 3 + 2]
 			                ) ;
 			principal[i * 2] = lprincipal[0] ;

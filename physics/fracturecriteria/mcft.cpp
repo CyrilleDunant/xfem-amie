@@ -42,15 +42,15 @@ double MCFT::grade( ElementState &s )
 
 	double critStrain = -0.002 ;
 	double renormCompressionStrain = cstrain / critStrain ;
-	double mcftFactor = 1 ;
+	double compressionFactor = 1 ;
 	double maxCompression = -std::abs( downVal ) ;
 	if(cstrain < critStrain)
 	{
-		mcftFactor = ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / ( 0.8 - 0.34 * tstrain / critStrain ) ;
-		double maxCompression = -std::abs( downVal ) * mcftFactor ;
+		compressionFactor = ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / ( 0.8 - 0.34 * tstrain / critStrain ) ;
+		double maxCompression = -std::abs( downVal ) * compressionFactor ;
 	}
 
-	if( mcftFactor > 1 || mcftFactor < 0 )
+	if( compressionFactor > 1 || compressionFactor < 0 )
 		maxCompression = -std::abs( downVal ) ;
 
 	double maxTension = upVal ;
@@ -119,7 +119,8 @@ NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double
 	, upVal( up ), downVal( down )
 {
 	physicalCharacteristicRadius = charRad ;
-	tensionCritStrain = up/ youngModulus ;
+	tensionCritStrain = up / youngModulus ;
+// 	upVal *= 1.87 ;
 	strainBroken = false ;
 }
 
@@ -133,36 +134,53 @@ double NonLocalMCFT::grade( ElementState &s )
 	
 	Vector pstrain(smoothedPrincipalStrain(s)) ;
 	Vector pstress(smoothedPrincipalStress(s)) ;
+	
+// 	if(s.getParent()->getBehaviour()->getDamageModel()->getState().max() < POINT_TOLERANCE_2D && pstrain.max() > tensionCritStrain && pstress.max() > POINT_TOLERANCE_2D)
+// 	{
+// 		std::cout << "before : " << tensionCritStrain << std::flush ;
+// 		tensionCritStrain = upVal / (pstress.max()/pstrain.max()) ;
+// 		std::cout << " ; after : " << tensionCritStrain << std::endl ;
+// 		exit(0) ;
+// 	}
+// 	
 
 	double tstrain = pstrain.max();
 	double cstrain = pstrain.min();
 	double tstress = pstress.max();
 	double cstress = pstress.min();
-;
+
 	double critStrain = -0.002 ;
 	double renormCompressionStrain = cstrain / critStrain ;
-	double mcftFactor = 1 ;
+	double compressionFactor = 1 ;
 	double maxCompression = -std::abs( downVal ) ;
 	if(cstrain < critStrain)
 	{
-		mcftFactor = ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / ( 0.8 - 0.34 * tstrain / critStrain ) ;
-		double maxCompression = -std::abs( downVal ) * mcftFactor ;
+// 		compressionFactor = ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / ( 0.8 - 0.34 * tstrain / critStrain ) ;
+// 		double maxCompression = -std::abs( downVal ) * compressionFactor ;
+		double n = 0.8 + downVal/17e6 ;
+		double k = std::max(0.67 + downVal/62e6, 1.) ;
+		compressionFactor = n*renormCompressionStrain / (n - 1. + pow(renormCompressionStrain, n*k)) ;
 	}
-
-	if( mcftFactor > 1 || mcftFactor < 0 )
+	maxCompression *= compressionFactor ;
+	if( compressionFactor > 1 || compressionFactor < 0 )
 		maxCompression = -std::abs( downVal ) ;
 
-	double maxTension = upVal ;
-
-	if(tstrain > tensionCritStrain)
+	
+	double maxTension = upVal;
+	
+	if(tstrain >= tensionCritStrain)
 	{
 	//Yamamoto model
 //		maxTension = upVal/(1.+sqrt(2e6*(tstrain+tensionCritStrain))) ;
 
 	//MCFT model
 		maxTension = upVal / ( 1. + sqrt( 200.*tstrain ) ) ;
-		strainBroken = true ;
-
+// 		if(s.getParent()->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D && !strainBroken)
+// 		{
+// 			strainBroken = true ;
+// 			tensionCritStrain/= 1.87 ;
+// 			upVal /= 1.87 ;
+// 		}
 	//perfectly brittle
 // 		maxTension = 0 ;
 	}
@@ -182,14 +200,14 @@ double NonLocalMCFT::grade( ElementState &s )
 		crits.push_back( 1. - std::abs( maxCompression / cstress ) ) ;
 	}
 
-	if( tstrain > tensionCritStrain && tstress >= 0 && std::abs( tstress ) >= std::abs( maxTension ) )
+	if( tstrain >= tensionCritStrain && tstress >= 0 && std::abs( tstress ) >= std::abs( maxTension ) )
 	{
 		metInTension = true ;
 		crits.push_back( 1. - std::abs( maxTension / tstress ) ) ;
 	}
 
 
-	if( tstrain > tensionCritStrain && tstress >= 0 && std::abs( tstress )  < std::abs( maxTension ) )
+	if( tstrain >= tensionCritStrain && tstress >= 0 && std::abs( tstress )  < std::abs( maxTension ) )
 	{
 		crits.push_back( -1. + std::abs( tstress / maxTension ) ) ;
 	}
@@ -205,6 +223,10 @@ double NonLocalMCFT::grade( ElementState &s )
 	}
 
 	std::sort( crits.begin(), crits.end() );
+// 	if(crits.back() < -.999 &&  tstrain > 0)
+// 		std::cout << " + "<< tstrain << "  " << std::abs( tstrain / tensionCritStrain ) << std::endl ;
+// 	if(crits.back() < -.999 &&  cstrain < 0)
+// 		std::cout << " + "<< cstrain << "  " << std::abs( cstrain / critStrain ) << std::endl ;
 	return crits.back() ;
 }
 

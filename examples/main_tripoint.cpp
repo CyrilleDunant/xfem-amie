@@ -329,7 +329,16 @@ void step()
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 			bool in = false ;
-
+// 			if(v == 8)
+// 			{
+// 				if(triangles[k]-> getCenter().x < 0.1)
+// 				{
+// 					Vector stre = triangles[k]->getState().getStress(triangles[k]-> getCenter()) ;
+// 					std::cout << triangles[k]-> getCenter().y << "  "<< stre[0] << "  " << stre[1] << "  " << stre[2] << std::endl ;
+// 				}
+// 				if(k == triangles.size()-1)
+// 					exit(0) ;
+// 			}
 			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
 				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -1615,32 +1624,35 @@ int main(int argc, char *argv[])
 	F.addFeature(NULL,&bottomcentervoid) ;
 	F.addFeature(NULL,&rightbottomvoid) ;
 	F.addFeature(NULL,&sample) ;
-	if(atoi(argv[2]))
-	{
-		int stirruplayer = 0 ;
-		int rebarlayer = 1 ;
-		F.addFeature(&sample, stirrups[0], stirruplayer, psi) ;
+// 	if(false)
+// 	{
+		if(atoi(argv[2]))
+		{
+			int stirruplayer = 0 ;
+			int rebarlayer = 1 ;
+			F.addFeature(&sample, stirrups[0], stirruplayer, psi) ;
+			
+			int nstirrups = 7 ;
+			if(sampleLength < 5)
+				nstirrups = 5 ;
+			
+			for(size_t i = 1 ;  i < nstirrups ; i++)
+				F.addFeature(stirrups[i-1], stirrups[i], stirruplayer, psi) ;
 		
-		int nstirrups = 7 ;
-		if(sampleLength < 5)
-			nstirrups = 5 ;
-		
-		for(size_t i = 1 ;  i < nstirrups ; i++)
-			F.addFeature(stirrups[i-1], stirrups[i], stirruplayer, psi) ;
-	
-		F.addFeature(stirrups.back(),&rebar0, rebarlayer, phi) ;
-		F.addFeature(stirrups.back(),&rebar1, rebarlayer, phi) ;
-		F.addFeature(stirrups.back(),&rebar2, rebarlayer, phi) ;
-		F.addFeature(stirrups.back(),&rebar3, rebarlayer, phi) ;
-	}
-	else
-	{
-		int rebarlayer = 0 ;
-		F.addFeature(&sample,&rebar0, rebarlayer, phi) ;
-		F.addFeature(&sample,&rebar1, rebarlayer, phi) ;
-		F.addFeature(&sample,&rebar2, rebarlayer, phi) ;
-		F.addFeature(&sample,&rebar3, rebarlayer, phi) ;
-	}
+			F.addFeature(stirrups.back(),&rebar0, rebarlayer, phi) ;
+			F.addFeature(stirrups.back(),&rebar1, rebarlayer, phi) ;
+			F.addFeature(stirrups.back(),&rebar2, rebarlayer, phi) ;
+			F.addFeature(stirrups.back(),&rebar3, rebarlayer, phi) ;
+		}
+		else
+		{
+			int rebarlayer = 0 ;
+			F.addFeature(&sample,&rebar0, rebarlayer, phi) ;
+			F.addFeature(&sample,&rebar1, rebarlayer, phi) ;
+			F.addFeature(&sample,&rebar2, rebarlayer, phi) ;
+			F.addFeature(&sample,&rebar3, rebarlayer, phi) ;
+		}
+// 	}
 
 	
 

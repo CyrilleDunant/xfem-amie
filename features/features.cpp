@@ -2651,6 +2651,10 @@ void FeatureTree::setElementBehaviours()
 				
 				setcount++ ;
 				std::pair<Form *, double> bf =  getElementBehaviour( tris[j], i->first );
+				
+				if(!bf.first)
+					continue ;
+				
 				if( !tris[j]->getBehaviour() )
 				{
 					tris[j]->setBehaviour( bf.first ) ;
@@ -2673,7 +2677,7 @@ void FeatureTree::setElementBehaviours()
 		}
 		for(auto j = rescaleFactors.begin() ; j != rescaleFactors.end() ; j++)
 		{
-			j->first->getBehaviour()->scale(1.-j->second) ;
+			j->first->getBehaviour()->scale(std::max(1.-j->second, 0.)) ;
 		}
 		
 

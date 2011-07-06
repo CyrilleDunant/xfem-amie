@@ -39,27 +39,24 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
 	{
-	
 		if(v.size() == 2 && !previousImposedStrain.size())
-			previousImposedStrain.resize(2, 0.) ;
+			previousImposedStrain.resize(3, 0.) ;
 		
 		if(v.size() == 3 && !previousImposedStrain.size())
 			previousImposedStrain.resize(6, 0.) ;
 		
 		if(v.size() == 2 && !imposedStrain.size())
-			imposedStrain.resize(2, 0.) ;
+			imposedStrain.resize(3, 0.) ;
 		
 		if(v.size() == 3 && !imposedStrain.size())
 			imposedStrain.resize(6, 0.) ;
-		std::cout << "initiating with score " << s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() << std::endl ;
-		previousImposedStrain = imposedStrain ;
+		
 		imposedStrain = 0 ;
 	}
-	std::cout << s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() << std::endl ;
 	if(ret.size() > 3)
 		v.push_back(ZETA);
 	storedState = state ;
-	return std::make_pair( Vector(1, 0.), Vector(1, 1.)) ;
+	return std::make_pair( Vector(0., 1), Vector(1, 1.)) ;
 
 }
 
@@ -73,8 +70,8 @@ Matrix PlasticStrain::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
 
-	if(fractured())
-		return ret*0 ;
+// 	if(fractured())
+// 		return ret*0 ;
 	return ret*(1.-state[0]) ;
 }
 
@@ -83,8 +80,8 @@ Matrix PlasticStrain::applyPrevious(const Matrix & m) const
 {
 	Matrix ret(m) ;
 
-	if(fractured())
-		return ret*0 ;
+// 	if(fractured())
+// 		return ret*0 ;
 	return ret*(1.-getPreviousState()[0]) ;
 }
 
@@ -95,9 +92,7 @@ std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const Ele
 	std::vector<BoundaryCondition * > ret ;
 	if(!param || !imposedStrain.size())
 		return ret ;
-	
-	Vector f = VirtualMachine().ieval(Gradient(p_i) * (*param * imposedStrain), gp, Jinv,v) ;
-	
+	Vector f = VirtualMachine().ieval(Gradient(p_i) * (*param *imposedStrain), gp, Jinv,v) ;
 	if(f.size() == 2)
 	{
 		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
@@ -121,7 +116,7 @@ Vector PlasticStrain::getImposedStress(const Point & p) const
 		return Vector (0., 6) ;
 	}
 	double m = 0 ;
-	return *param * imposedStrain ;
+	return *param *imposedStrain ;
 }
 
 bool PlasticStrain::fractured() const 
@@ -133,11 +128,17 @@ bool PlasticStrain::fractured() const
 
 void PlasticStrain::postProcess()
 {
-	if(converged && es && state[0] > POINT_TOLERANCE_2D )
+	if(converged && es && state[0] > POINT_TOLERANCE_2D && es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() < 1e-4)
 	{
 		Vector str = es->getStrain(es->getParent()->getCenter()) ;
-		imposedStrain = state[0]*str ;
-		std::cout << "concluding with state = " << state[0] << std::endl ;
+		Vector sigma = es->getStress(es->getParent()->getCenter()) ;
+		if(v.size() == 2 && !imposedStrain.size())
+			imposedStrain.resize(3, 0.) ;
+		
+		if(v.size() == 3 && !imposedStrain.size())
+			imposedStrain.resize(6, 0.) ;
+		imposedStrain = state[0]*str ; ;
+		std::cout << imposedStrain[0] << "  "<< imposedStrain[1]<< "  "<< imposedStrain[2]<< "  : "<< es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()<< std::endl ; 
 		storedState = state[0] ;
 		state[0] = 0 ;
 		wasBroken = false ;

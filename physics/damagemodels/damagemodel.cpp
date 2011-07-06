@@ -77,14 +77,13 @@ void DamageModel::step( ElementState &s )
 		{
 			converged = false ;
 			change = true ;
-			
 
-			
 			downState = damageIncrement.first;
 			upState = damageIncrement.second;
 			if(needRestart)
 			{
 				trialRatio = 0.  ;
+				getState( true ) = downState ;
 				return ;
 			}
 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange.first,0., score, setChange.second ) ) ;
@@ -131,9 +130,15 @@ void DamageModel::step( ElementState &s )
 	{
 		double scoreTolerance = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
 		change = true ;
-		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		
-		if(states.size() == 1)
+		if(needRestart && states.empty()) 
+		{
+			getState( true ) = downState ;
+			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, 0, score, setChange.second ) ) ;
+			return ;
+		}
+
+		if(states.size() == 1 && std::abs(trialRatio - states[0].fraction) < POINT_TOLERANCE_2D)
 		{
 			trialRatio = 1 ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio ;
@@ -145,6 +150,8 @@ void DamageModel::step( ElementState &s )
 			
 			return ;
 		}
+		
+		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		std::stable_sort( states.begin(), states.end() ) ;
 
 		double minFraction = states[0].fraction ;
@@ -195,6 +202,7 @@ void DamageModel::step( ElementState &s )
 			if(!deltaRoot && !scoreRoot)
 			{
 				trialRatio = 1 ;
+				getState( true ) = downState + ( upState - downState ) * trialRatio ;
 			}
 // 			else if(deltaRoot)
 // 			{
@@ -213,7 +221,7 @@ void DamageModel::step( ElementState &s )
 
 			converged = true ;
 
-// 			getState( true ) = downState + ( upState - downState ) * trialRatio ;
+			
 		}
 	}
 }

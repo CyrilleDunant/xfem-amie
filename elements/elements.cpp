@@ -254,6 +254,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	    break;
 	case LINEAR:
 		{
+			
 			ordre = 1 ;
 			fin.resize(ordre);
 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333), 0.5) ;

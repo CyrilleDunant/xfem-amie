@@ -1731,7 +1731,7 @@ int main(int argc, char *argv[])
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new PlasticStrain() ) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new PlasticStrain()) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_paste) ;
@@ -1745,12 +1745,12 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_RIGHT)) ;
 
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
 	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(400) ;
+	F.setMaxIterationsPerStep(900) ;
 	F.setDeltaTime(0.1);
 
 	glutInit(&argc, argv) ;	

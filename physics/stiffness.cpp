@@ -46,7 +46,7 @@ bool Stiffness::fractured() const
 
 Form * Stiffness::getCopy() const 
 {
-	return new Stiffness(*this) ;
+	return new Stiffness(param) ;
 }
 
 Material Stiffness::toMaterial()
