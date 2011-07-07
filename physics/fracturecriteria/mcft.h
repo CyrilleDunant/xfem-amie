@@ -64,6 +64,7 @@ public:
 	double upVal ;
 	double downVal ;
 	double tensionCritStrain ;
+	double critStrain ;
 	double youngModulus ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
@@ -87,8 +88,10 @@ public:
 	
 	virtual void scale(double d) 
 	{
-		upVal *= d ; 
-		downVal *= d ;
+// 		upVal *= d ; 
+// 		downVal *= d ;
+// 		tensionCritStrain /= d ;
+// 		critStrain /= d ;
 	};
 };
 

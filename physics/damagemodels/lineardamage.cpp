@@ -27,14 +27,15 @@ LinearDamage::LinearDamage()
 
 std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s)
 {
-	inCompression = true ;
-	inTension = true ;
+	inCompression = false ;
+	inTension = false ;
 	Vector ret(0., 2) ; 
 	double compressionDamage = 0 ;
 	double tensionDamage = 0 ;
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
+		inCompression = true ;
 		compressionDamage = 1 ; 
 		tensionDamage = 1 ; 
 	}
@@ -73,16 +74,16 @@ Matrix LinearDamage::apply(const Matrix & m) const
 	if(fractured())
 		return m*0.;
 
-// 	if(inTension && !inCompression)
-// 	{
-// 		return m*(1.-getState()[1]) ;
-// 	}
-// 	else if(inCompression && !inTension)
-// 	{
-// 		return m*(1.-getState()[0]) ;
-// 	}
+	if(inTension && !inCompression)
+	{
+		return m*(1.-getState()[1]) ;
+	}
+	else if(inCompression && !inTension)
+	{
+		return m*(1.-getState()[0]) ;
+	}
 	
-	return m*(1.-getState().max()) ;
+	return m ;
 }
 
 Matrix LinearDamage::applyPrevious(const Matrix & m) const
@@ -117,6 +118,11 @@ bool LinearDamage::fractured() const
 		return false ;
 	
 // 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
+		if(inCompression)
+			return getState()[0] >= thresholdDamageDensity ;
+		if(inTension)
+			return getState()[1] >= secondaryThresholdDamageDensity ;
+		
 	return  getState()[1] >= secondaryThresholdDamageDensity || getState()[0] >= thresholdDamageDensity ;
 }
 

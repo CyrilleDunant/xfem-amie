@@ -119,8 +119,8 @@ NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double
 	, upVal( up ), downVal( down )
 {
 	physicalCharacteristicRadius = charRad ;
+	critStrain = -0.002 ;
 	tensionCritStrain = up / youngModulus ;
-// 	upVal *= 1.87 ;
 	strainBroken = false ;
 }
 
@@ -149,7 +149,7 @@ double NonLocalMCFT::grade( ElementState &s )
 	double tstress = pstress.max();
 	double cstress = pstress.min();
 
-	double critStrain = -0.002 ;
+	
 	double renormCompressionStrain = cstrain / critStrain ;
 	double compressionFactor = 1 ;
 	double maxCompression = -std::abs( downVal ) ;

@@ -332,7 +332,8 @@ void FeatureTree::addPoint( Point *p )
 
 void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fraction )
 {
-
+	f->setLayer(layer) ;
+	f->setFraction(fraction) ;
 	if( !f->isEnrichmentFeature )
 		needMeshing = true ;
 
@@ -362,8 +363,7 @@ void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fra
 	}
 
 	f->setFather( father ) ;
-	f->setLayer(layer) ;
-	f->setFraction(fraction) ;
+
 	
 	if( father != NULL )
 		father->addChild( f ) ;
@@ -2092,7 +2092,7 @@ void FeatureTree::refine( size_t level )
 	}
 }
 
-std::pair<Form *, double> FeatureTree::getElementBehaviour( const Mu::DelaunayTriangle *t, int layer,  bool onlyUpdate ) const
+std::pair<Form *, double> FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  bool onlyUpdate ) const
 {
 	int root_box = 0 ;
 
@@ -2193,6 +2193,7 @@ std::pair<Form *, double> FeatureTree::getElementBehaviour( const Mu::DelaunayTr
 		}
 	}
 
+
 	if( !onlyUpdate && tree[root_box]->getLayer() == layer)
 	{
 		if( tree[root_box]->getBehaviour( t->getCenter() )->timeDependent() )
@@ -2228,11 +2229,11 @@ std::pair<Form *, double> FeatureTree::getElementBehaviour( const Mu::DelaunayTr
 		b->setSource(tree[root_box]);
 		return std::make_pair(b, tree[root_box]->getFraction()) ;
 	}
-	else if(!onlyUpdate)
+	else if(!onlyUpdate && tree[root_box]->getLayer() == layer)
 		return std::make_pair(new VoidForm(), 0.) ;
 
-	Form * n = NULL ;
-	return std::make_pair( n, 0.) ;
+
+	return std::make_pair( new VoidForm(), 0.) ;
 
 }
 
@@ -2375,11 +2376,10 @@ std::pair<Form *, double> FeatureTree::getElementBehaviour( const Mu::DelaunayTe
 		b->setSource(tree[root_box]);
 		return std::make_pair(b, tree[root_box]->getFraction()) ;
 	}
-	else if(!onlyUpdate)
+	else if(!onlyUpdate&& tree[root_box]->getLayer() == layer)
 		return std::make_pair(new VoidForm(), 0.) ;
 
-	Form * n = NULL ;
-	return std::make_pair( n, 0.) ;
+	return std::make_pair( new VoidForm(), 0.) ;
 }
 
 Point *FeatureTree::checkElement( const DelaunayTetrahedron *t ) const
@@ -2652,24 +2652,36 @@ void FeatureTree::setElementBehaviours()
 				setcount++ ;
 				std::pair<Form *, double> bf =  getElementBehaviour( tris[j], i->first );
 				
-				if(!bf.first)
-					continue ;
-				
-				if( !tris[j]->getBehaviour() )
-				{
-					tris[j]->setBehaviour( bf.first ) ;
-				}
+				tris[j]->setBehaviour( bf.first ) ;
 				
 				if(tris[j]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
 					tris[j]->getBehaviour()->scale(bf.second) ;
-					if(rescaleFactors.find(triangles[j]) == rescaleFactors.end())
+					if(rescaleFactors.find(triangles[j]) == rescaleFactors.end() && triangles[j]->in( tris[j]->getCenter()))
 					{
 						rescaleFactors[triangles[j]] = bf.second ;
 					}
-					else
+					else if(rescaleFactors.find(triangles[j]) == rescaleFactors.end())
+					{
+						std::vector<DelaunayTriangle *> possibleTriangles = dtree->getConflictingElements(&tris[j]->getCenter()) ;
+						for(size_t k = 0 ; k< possibleTriangles.size() ; k++)
+						{
+							if(possibleTriangles[k]->in( tris[j]->getCenter()))
+								rescaleFactors[possibleTriangles[k]] = bf.second ;
+						}
+					}
+					else if(triangles[j]->in( tris[j]->getCenter()))
 					{
 						rescaleFactors[triangles[j]] += bf.second ;
+					}
+					else
+					{
+						std::vector<DelaunayTriangle *> possibleTriangles = dtree->getConflictingElements(&tris[j]->getCenter()) ;
+						for(size_t k = 0 ; k< possibleTriangles.size() ; k++)
+						{
+							if(possibleTriangles[k]->in( tris[j]->getCenter()))
+								rescaleFactors[possibleTriangles[k]] += bf.second ;
+						}
 					}
 				}
 			}
@@ -2763,19 +2775,36 @@ void FeatureTree::setElementBehaviours()
 					std::cerr << "\r setting behaviours... tet : layer " <<i->first << "  " << setcount << "/" << tets.size() << "    " << std::flush ;
 				setcount++ ;
 				std::pair<Form *, double> bf =  getElementBehaviour( tets[j], i->first );
-				if( !tets[j]->getBehaviour() )
-					tets[j]->setBehaviour( bf.first ) ;
+				tets[j]->setBehaviour( bf.first ) ;
 				
 				if(tets[j]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
 					tets[j]->getBehaviour()->scale(bf.second) ;
-					if(rescaleFactors.find(tetrahedrons[j]) == rescaleFactors.end())
+					if(rescaleFactors.find(tetrahedrons[j]) == rescaleFactors.end() && tetrahedrons[j]->in( tets[j]->getCenter()))
 					{
 						rescaleFactors[tetrahedrons[j]] = bf.second ;
 					}
-					else
+					else if(rescaleFactors.find(tetrahedrons[j]) == rescaleFactors.end())
+					{
+						std::vector<DelaunayTetrahedron *> possibleTriangles = dtree3D->getConflictingElements(&tets[j]->getCenter()) ;
+						for(size_t k = 0 ; k< possibleTriangles.size() ; k++)
+						{
+							if(possibleTriangles[k]->in( tets[j]->getCenter()))
+								rescaleFactors[possibleTriangles[k]] = bf.second ;
+						}
+					}
+					else if(tetrahedrons[j]->in( tets[j]->getCenter()))
 					{
 						rescaleFactors[tetrahedrons[j]] += bf.second ;
+					}
+					else
+					{
+						std::vector<DelaunayTetrahedron *> possibleTriangles = dtree3D->getConflictingElements(&tets[j]->getCenter()) ;
+						for(size_t k = 0 ; k< possibleTriangles.size() ; k++)
+						{
+							if(possibleTriangles[k]->in( tets[j]->getCenter()))
+								rescaleFactors[possibleTriangles[k]] += bf.second ;
+						}
 					}
 				}
 			}

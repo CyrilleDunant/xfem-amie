@@ -24,7 +24,7 @@ Form * ConcreteBehaviour::getCopy() const
 {
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1 - variability + variability*weib ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up, down,E, materialRadius, mirroring , dx, dy, dz)) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up, down,E, materialRadius, mirroring , dx, dy, dz), new LinearDamage()) ;
 	return ret ;
 }
 

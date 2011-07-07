@@ -1291,7 +1291,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(i->second->getBehaviour()->getFractureCriterion()->met() && /*std::abs(i->first-thresholdScore) < scoreTolerance*/squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*.25)
+					if(i->second->getBehaviour()->getFractureCriterion()->met() && std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*.25*/)
 					{
 						newSet.push_back(i->second->index);
 						minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
@@ -1318,7 +1318,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(i->second->getBehaviour()->getFractureCriterion()->met()&&  /*std::abs(i->first-thresholdScore) < scoreTolerance*/squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*.25)
+					if(i->second->getBehaviour()->getFractureCriterion()->met()&&  std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*.25*/)
 					{
 						continue ;
 					}

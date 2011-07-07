@@ -171,8 +171,8 @@ Vector angle(0) ;
 
 MultiTriangleWriter writer("triangles_head","triangles_layers",NULL) ;
 
-// BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, 0) ;
+// BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
 GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition(SET_STRESS_ETA, new Rectangle(sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5) ,-9025.2) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
@@ -351,10 +351,13 @@ void step()
 						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).y > (sampleHeight+plateHeight*2)*.5*.9999 && triangles[k]->getBoundingPoint(p).x < 1e-3)
+					if(!triangles[k]->getBehaviour()->fractured())
 					{
-						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-						ex_count++ ;
+						if(triangles[k]->getBoundingPoint(p).y > (sampleHeight)*.5*.9 && triangles[k]->getBoundingPoint(p).x < (sampleHeight)*.5*.1)
+						{
+							e_xx+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+							ex_count++ ;
+						}
 					}
 					
 					if(dist(Point(supportLever,-sampleHeight*.5+0.064+0.085), triangles[k]->getBoundingPoint(p)) < .05)
@@ -1550,10 +1553,10 @@ int main(int argc, char *argv[])
 	Sample sample(NULL, sampleLength*.5, sampleHeight,sampleLength*.25,0) ;
 	
 	Sample topsupport(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
-	topsupport.setBehaviour(new Stiffness(m0_steel)) ;
+	topsupport.setBehaviour(new VoidForm()/*new Stiffness(m0_steel)*/) ;
 	
 	Sample baseright(platewidth, plateHeight, supportLever, -sampleHeight*.5-plateHeight*.5) ; 
-	baseright.setBehaviour(new Stiffness(m0_steel)) ;
+	baseright.setBehaviour(new VoidForm()/*new Stiffness(m0_steel)*/) ;
 	
 	Sample toprightvoid(sampleLength*.5-platewidth, plateHeight, (sampleLength*.5-platewidth)*.5+platewidth, sampleHeight*.5+plateHeight*.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;
@@ -1616,7 +1619,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(load) ;
 // 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight*.5))) ;
 
 	F.addFeature(NULL,&topsupport) ;
 	F.addFeature(NULL,&baseright) ;
@@ -1660,7 +1663,8 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.addPoint(new Point(supportLever, -(sampleHeight+2.*plateHeight)*.5)) ;
+	F.addPoint(new Point(supportLever, -sampleHeight*.5)) ;
+	F.addPoint(new Point(platewidth*.5, sampleHeight*.5)) ;
 	F.setMaxIterationsPerStep(40000);
 	
 	step() ;
