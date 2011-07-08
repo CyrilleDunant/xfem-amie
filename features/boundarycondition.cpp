@@ -97,7 +97,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 			case SET_STRESS_XI:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -118,19 +118,18 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 				{
 					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
-				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
 					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), e->getGaussPoints(), Jinv, v) ;
 					a->addForceOn(XI,forces[0], id[i]) ;
 					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -151,7 +150,6 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 				{
 					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
-				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
 					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), e->getGaussPoints(), Jinv, v) ;
@@ -159,12 +157,12 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 					a->addForceOn(XI,forces[0], id[i]) ;
 					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -185,14 +183,13 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 				{
 					e->getInverseJacobianMatrix(e->getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 				}
-				
 				for(size_t i = 0 ; i < shapeFunctions.size() ; ++i)
 				{
 					Vector forces =  VirtualMachine().ieval(Gradient(shapeFunctions[i]) * (imposed), e->getGaussPoints(), Jinv, v) ;
 					a->addForceOn(XI,forces[0], id[i]) ;
 					a->addForceOn(ETA,forces[1], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			default:
 				break;
@@ -251,7 +248,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 			case SET_STRESS_XI:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -283,12 +280,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -320,12 +317,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ZETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -357,12 +354,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -394,12 +391,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_XI_ZETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -431,12 +428,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ETA_ZETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -468,7 +465,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 					a->addForceOn(ETA,forces[1], id[i]) ;
 					a->addForceOn(ZETA,forces[2], id[i]) ;
 				}
-				break ;
+				return ;
 			}
 			default:
 				break;
@@ -530,7 +527,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 			case SET_STRESS_XI:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -559,12 +556,12 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 					a->addForceOn(XI,forces[0], id[i].id) ;
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 //				std::cout << vm.eval(data, id[i]) << std::endl ;
 //				id[i].print() ;
 				std::vector<Function> shapeFunctions ;
@@ -605,12 +602,12 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 					a->addForceOn(XI,forces[0], id[i].id) ;
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -639,7 +636,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<Point> & id, LagrangeMul
 					a->addForceOn(XI,forces[0], id[i].id) ;
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			default:
 				break;
@@ -696,7 +693,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 			case SET_STRESS_XI:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -729,12 +726,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -766,12 +763,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ZETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -803,12 +800,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_XI_ETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -840,12 +837,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_XI_ZETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -877,12 +874,12 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			case SET_STRESS_ETA_ZETA:
 			{
 				if(e->getBehaviour()->fractured())
-					break ;
+					return ;
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
@@ -914,7 +911,7 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMult
 					a->addForceOn(ETA,forces[1], id[i].id) ;
 					a->addForceOn(ZETA,forces[2], id[i].id) ;
 				}
-				break ;
+				return ;
 			}
 			default:
 				break;
