@@ -35,7 +35,7 @@
 #include "../utilities/itoa.h"
 #include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
-
+#include "../physics/materials/concrete_behaviour.h"
 
 
 #include <fstream>
@@ -54,6 +54,7 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
+
 #define DEBUG 
 
 #define ID_QUIT 1
@@ -1429,10 +1430,8 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 // 	sample.setBehaviour(new VoidForm()) ;  
-	sample.setBehaviour(new WeibullDistributedStiffness(E_paste, nu, SPACE_TWO_DIMENSIONAL, compressionCrit, tensionCrit, MIRROR_Y)) ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->variability = 0.1 ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<WeibullDistributedStiffness *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
+		
+	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_Y)) ;
 
 	
 	F.addFeature(NULL,&rebarinternal, 0, steelfraction) ; F.setSamplingFactor(&rebarinternal, 2.) ;
