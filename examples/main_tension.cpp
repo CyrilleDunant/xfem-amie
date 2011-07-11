@@ -759,8 +759,8 @@ void Display(void)
 		}
 		glEndList() ;
 		
-		double crit_max = fracCrit.max() ;
-		double crit_min = fracCrit.min() ;
+		double crit_max = 0 ;
+		double crit_min = -1 ;
 		glNewList(  DISPLAY_LIST_FRAC_CRIT,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
@@ -1382,13 +1382,13 @@ int main(int argc, char *argv[])
 	double tensionCrit = 1.8*.33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.15 ; //0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .05 ; // .015
+	double mradius = .025 ; // .015
 	double nradius = std::max(mradius*4, .5) ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;
 	double E_steel = 193e9 ;
-	double nu_steel = 0.3 ; 
+	double nu_steel = 0.2 ; 
 	
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
@@ -1432,7 +1432,8 @@ int main(int argc, char *argv[])
 // 	sample.setBehaviour(new VoidForm()) ;  
 		
 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_Y)) ;
-
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
 	
 	F.addFeature(NULL,&rebarinternal, 0, steelfraction) ; F.setSamplingFactor(&rebarinternal, 2.) ;
 	F.addFeature(NULL,&sample) ;

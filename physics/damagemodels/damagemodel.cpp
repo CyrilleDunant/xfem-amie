@@ -262,7 +262,7 @@ Vector &DamageModel::getState( bool )
 }
 
 
-Vector DamageModel::smoothedState( const ElementState &s ) const
+Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 {
 	if( !s.getParent()->getBehaviour()->getFractureCriterion() )
 		return getState() ;
@@ -289,6 +289,7 @@ Vector DamageModel::smoothedState( const ElementState &s ) const
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+
 			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
 
 			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()
@@ -296,11 +297,16 @@ Vector DamageModel::smoothedState( const ElementState &s ) const
 			        || ci->getBehaviour()->type == VOID_BEHAVIOUR
 			        || ci->getBehaviour()->fractured()
 			        || ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource()
-			        || dc > 2. * physicalCharacteristicRadius * physicalCharacteristicRadius )
+			        || dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius )
 			{
 				continue ;
 			}
 
+			if(setUpdate)
+			{
+				ci->behaviourUpdated = true ;
+				ci->getBehaviour()->getDamageModel()->computeDamageIncrement(ci->getState()) ;
+			}
 			//this is to eliminate scaling effects ;
 			double factor = 1 ;
 
@@ -348,19 +354,24 @@ Vector DamageModel::smoothedState( const ElementState &s ) const
 
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
-			const DelaunayTetrahedron *ci = static_cast<const DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
 			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
 
 			if( dynamic_cast<const IntegrableEntity *>( ci ) == s.getParent()
 			        || ci->getBehaviour()->getFractureCriterion()
 			        || ci->getBehaviour()->type == VOID_BEHAVIOUR
 			        || ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource()
-			        || dc > 2.* physicalCharacteristicRadius * physicalCharacteristicRadius
+			        || dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
 			  )
 			{
 				continue ;
 			}
 
+			if(setUpdate)
+			{
+				ci->behaviourUpdated = true ;
+				ci->getBehaviour()->getDamageModel()->computeDamageIncrement(ci->getState()) ;
+			}
 			double volume = ci->volume() ;
 			double factor = 1 ;
 

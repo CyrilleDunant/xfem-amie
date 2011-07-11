@@ -23,7 +23,7 @@ class NonLocalIsotropicLinearDamage : public DamageModel
 {
 protected:
 	double eps ;
-	Vector nonLocalState ;
+	ElementState * es ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
@@ -64,9 +64,6 @@ public:
 	
 	virtual DamageModel * getCopy() const { return new NonLocalIsotropicLinearDamage() ;}
 	
-	virtual void prepare();
-	
-	virtual void postProcess();
 	
 };
 

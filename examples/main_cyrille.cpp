@@ -397,7 +397,7 @@ void step()
 
 		if(go)
 		{
-			imposeddisp->setData(imposeddisp->getData()+.05);
+			imposeddisp->setData(imposeddisp->getData()+.2);
 			go = true ;
 		}
 		double da = 0 ;
