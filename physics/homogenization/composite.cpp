@@ -39,45 +39,66 @@ Matrix Composite::eshelby(Matrix C)
     double nu = 0.2 ;
     double a = C[0][0] ;
     double b = C[0][1] ;
-    if(C.size()==36)
+//    if(C.size()==36)
 	nu = b / (a+b) ;
-    else
-	nu = b / a ;
-
-    double Siiii = (7-5*nu)/(15*(1-nu)) ;
-    double Siijj = (5*nu-1)/(15*(1-nu)) ;
-    double Sijij = (4-5*nu)/(15*(1-nu)) ;
+//    else
+//	nu = b / a ;
 
     if(S.size() == 9)
     {
-	S[0][0] = Siiii ;
-	S[1][1] = Siiii ;
+	    double Siiii = (7-5*nu)/(15*(1-nu)) ;
+	    double Siijj = (5*nu-1)/(15*(1-nu)) ;
+	    double Sijij = (4-5*nu)/(15*(1-nu)) ;
 
-	S[0][1] = Siijj ;
-	S[1][0] = Siijj ;
+	    S[0][0] = Siiii ;
+	    S[1][1] = Siiii ;
 
-	S[2][2] = Sijij ;
+	    S[0][1] = Siijj ;
+	    S[1][0] = Siijj ;
+
+	    S[2][2] = Sijij ;
     }
 
     if(S.size() == 36)
     {
-	S[0][0] = Siiii ;
-	S[1][1] = Siiii ;
-	S[2][2] = Siiii ;
+	    double Siiii = (7-5*nu)/(15*(1-nu)) ;
+	    double Siijj = (5*nu-1)/(15*(1-nu)) ;
+	    double Sijij = (4-5*nu)/(15*(1-nu)) ;
 
-	S[0][1] = Siijj ;
-	S[0][2] = Siijj ;
-	S[1][0] = Siijj ;
-	S[1][2] = Siijj ;
-	S[2][0] = Siijj ;
-	S[2][1] = Siijj ;
+	    S[0][0] = Siiii ;
+	    S[1][1] = Siiii ;
+	    S[2][2] = Siiii ;
 
-	S[3][3] = Sijij ;
-	S[4][4] = Sijij ;
-	S[5][5] = Sijij ;
+	    S[0][1] = Siijj ;
+	    S[0][2] = Siijj ;
+	    S[1][0] = Siijj ;
+	    S[1][2] = Siijj ;
+	    S[2][0] = Siijj ;
+	    S[2][1] = Siijj ;
+
+	    S[3][3] = Sijij ;
+	    S[4][4] = Sijij ;
+	    S[5][5] = Sijij ;
     }
-
     return S ;
+}
+
+void Composite::invertTensor(Matrix &m)
+{
+	Matrix m1(3,3) ;
+	for(size_t i = 0 ; i < 3 ; i++)
+	{
+		for(size_t j = 0 ; j < 3 ; j++)
+			m1[i][j] = m[i][j] ;
+	}
+	invert3x3Matrix(m1) ;
+	for(size_t i = 0 ; i < 3 ; i++)
+	{
+		for(size_t j = 0 ; j < 3 ; j++)
+			m[i][j] = m1[i][j] ;
+	}
+	for(size_t i = 3 ; i < m.numCols() ; i++ )
+		m[i][i] = 1./m[i][i] ;
 }
 
 MatrixInclusionComposite::MatrixInclusionComposite(DelaunayTriangle *tri, Feature *inc) : Composite(tri, std::vector<Feature *>(0))
@@ -119,21 +140,17 @@ void MatrixInclusionComposite::apply()
     Matrix I = Composite::I4(matrix.C) ;
 
     inclusion.A = B * inclusion.volume + I * matrix.volume ;
-    if(A.size()==36)
-	invert6x6Matrix(inclusion.A) ;
-    else
-	invert3x3Matrix(inclusion.A) ;
-    inclusion.A *= B ;
+    Composite::invertTensor(inclusion.A) ;
 
     matrix.A = (I - inclusion.A * inclusion.volume) / matrix.volume ;
 
     C = ((matrix.A * matrix.volume) * matrix.C) ;
     C += ((inclusion.A * inclusion.volume) * inclusion.C) ;
-    beta.resize(beta.size());
+    beta.resize(matrix.beta.size());
     beta = matrix.A * matrix.volume * matrix.beta ;
     beta += inclusion.A * inclusion.volume * inclusion.beta ;
 
-    lambda.clear() ;
+/*    lambda.clear() ;
     Vector b = inclusion.beta ;
     b -= matrix.beta ;
     Matrix Cdiff = inclusion.C - matrix.C ;
@@ -164,7 +181,7 @@ void MatrixInclusionComposite::apply()
 	K *= C ;
 	s1 = K * s1 ;
 	s1 = s1 + beta ;
-    }
+    }*/
 
 }
 
@@ -173,12 +190,44 @@ void MatrixInclusionComposite::getStrainConcentrationTensor()
     B = Matrix(C.numRows(),C.numCols()) ;
 }
 
+DiluteMatrixInclusionComposite::DiluteMatrixInclusionComposite(DelaunayTriangle *tri, Feature *inc) : MatrixInclusionComposite(tri, inc)
+{
+
+}
+
+DiluteMatrixInclusionComposite::DiluteMatrixInclusionComposite(DelaunayTetrahedron *tet, Feature *inc) : MatrixInclusionComposite(tet, inc)
+{
+
+}
+
+DiluteMatrixInclusionComposite::DiluteMatrixInclusionComposite(Phase mat, Phase inc) : MatrixInclusionComposite(mat, inc)
+{
+
+}
+
+void DiluteMatrixInclusionComposite::getStrainConcentrationTensor()
+{
+	MoriTanakaMatrixInclusionComposite mori(matrix, inclusion) ;
+	mori.apply() ;
+
+	Matrix I = Composite::I4(mori.B) ;
+	B = I - (mori.B * inclusion.volume) ;
+	Composite::invertTensor(B) ;
+	B *= mori.B * matrix.volume ;
+}
+
+
 VoigtMatrixInclusionComposite::VoigtMatrixInclusionComposite(DelaunayTriangle *tri, Feature *inc) : MatrixInclusionComposite(tri, inc)
 {
 
 }
 
 VoigtMatrixInclusionComposite::VoigtMatrixInclusionComposite(DelaunayTetrahedron *tet, Feature *inc) : MatrixInclusionComposite(tet, inc)
+{
+
+}
+
+VoigtMatrixInclusionComposite::VoigtMatrixInclusionComposite(Phase mat, Phase inc) : MatrixInclusionComposite(mat, inc)
 {
 
 }
@@ -198,13 +247,15 @@ ReussMatrixInclusionComposite::ReussMatrixInclusionComposite(DelaunayTetrahedron
 
 }
 
+ReussMatrixInclusionComposite::ReussMatrixInclusionComposite(Phase mat, Phase inc) : MatrixInclusionComposite(mat, inc)
+{
+
+}
+
 void ReussMatrixInclusionComposite::getStrainConcentrationTensor()
 {
     B = inclusion.C ;
-    if(B.size()==36)
-	invert6x6Matrix(B) ;
-    else
-	invert3x3Matrix(B) ;
+    Composite::invertTensor(B);
     B *= matrix.C ;
 }
 
@@ -226,21 +277,111 @@ MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite(Phase mat
 void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
 {
     Matrix I = Composite::I4(C) ;
-    Matrix S = Composite::eshelby(inclusion.C) ;
+    Matrix S = Composite::eshelby(matrix.C) ;
 
     B = matrix.C ;
-    if(B.size()==36)
-	invert6x6Matrix(B) ;
-    else
-	invert3x3Matrix(B) ;
+    Composite::invertTensor(B) ;
     B *= S * (inclusion.C - matrix.C) ;
     B += I ;
-    if(B.size()==36)
-	invert6x6Matrix(B) ;
-    else
-	invert3x3Matrix(B) ;
+    Composite::invertTensor(B) ;
 
 }
+
+InverseMoriTanakaMatrixInclusionComposite::InverseMoriTanakaMatrixInclusionComposite(DelaunayTriangle *tri, Feature *inc) : MatrixInclusionComposite(tri, inc)
+{
+
+}
+
+InverseMoriTanakaMatrixInclusionComposite::InverseMoriTanakaMatrixInclusionComposite(DelaunayTetrahedron *tet, Feature *inc) : MatrixInclusionComposite(tet, inc)
+{
+
+}
+
+InverseMoriTanakaMatrixInclusionComposite::InverseMoriTanakaMatrixInclusionComposite(Phase mat, Phase inc) : MatrixInclusionComposite(mat, inc)
+{
+
+}
+
+void InverseMoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
+{
+    Matrix I = Composite::I4(C) ;
+    Matrix S = Composite::eshelby(inclusion.C) ;
+
+    B = inclusion.C ;
+    Composite::invertTensor(B) ;
+    B *= S * (matrix.C - inclusion.C) ;
+    B += I ;
+//    Composite::invertTensor(B) ;
+}
+
+BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite(DelaunayTriangle *tri, Feature *inc) : MatrixInclusionComposite(tri, inc)
+{
+	crystals.first = matrix ;
+	crystals.second = inclusion ;
+	VoigtMatrixInclusionComposite voigt(matrix, inclusion) ;
+	voigt.apply() ;
+	fictious = voigt ;
+}
+
+BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite(DelaunayTetrahedron *tet, Feature *inc) : MatrixInclusionComposite(tet, inc)
+{
+	crystals.first = matrix ;
+	crystals.second = inclusion ;
+	VoigtMatrixInclusionComposite voigt(matrix, inclusion) ;
+	voigt.apply() ;
+	fictious = voigt ;
+}
+
+BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite(Phase mat, Phase inc) : MatrixInclusionComposite(mat, inc)
+{
+	crystals.first = matrix ;
+	crystals.second = inclusion ;
+	VoigtMatrixInclusionComposite voigt(matrix, inclusion) ;
+	voigt.apply() ;
+	fictious = static_cast<Phase>(voigt) ;
+}
+
+void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
+{
+	double error = 1. ;
+	Matrix S = inclusion.C ;
+	Matrix I = Composite::I4(S) ;
+	while(error > POINT_TOLERANCE_2D)
+	{
+		MoriTanakaMatrixInclusionComposite mtFictiousFirst(fictious, crystals.first) ;
+		mtFictiousFirst.apply() ;
+		MoriTanakaMatrixInclusionComposite mtFictiousSecond(fictious, crystals.second) ;
+		mtFictiousSecond.apply() ;
+
+		Matrix G = mtFictiousFirst.inclusion.A * crystals.first.volume ;
+		G += mtFictiousSecond.inclusion.A * crystals.second.volume ;
+		Composite::invertTensor(G) ;
+		G *= mtFictiousSecond.inclusion.A ;
+		S = G ;
+
+		G *= (crystals.second.C - crystals.first.C)*crystals.second.volume ;
+		G += crystals.first.C ;
+
+		Matrix K = fictious.C - G ;
+		error = 0 ;
+		for(size_t i = 0 ; i < K.numCols() ; i++)
+		{
+			for(size_t j = 0 ; j < K.numRows() ; j++)
+			{
+				if(fictious.C[i][j] != 0)
+					K[i][j] /= fictious.C[i][j] ;
+				if(std::abs(K[i][j]) > error)
+					error = std::abs(K[i][j]) ;
+			}
+		}
+
+		fictious.C = G ;
+	}
+	B = I - S * inclusion.volume ;
+	Composite::invertTensor(B) ;
+	B *= S * matrix.volume ;
+}
+
 
 MatrixMultiInclusionComposite::MatrixMultiInclusionComposite(DelaunayTriangle *tri, std::vector<Feature *> inc) : Composite(tri, inc)
 {
@@ -424,28 +565,17 @@ void ReussMatrixMultiInclusionComposite::getStrainLocalizationTensor()
     for(size_t i = 0 ; i < grains.size() ; i++)
     {
 	Matrix Cg = grains[i].C ;
-	if(Cg.size()==36)
-	    invert6x6Matrix(Cg) ;
-	else
-	    invert3x3Matrix(Cg) ;
-
+	Composite::invertTensor(Cg) ;
 	C += Cg * grains[i].volume ;
 
     }
 
-    if(C.size()==36)
-	invert6x6Matrix(C) ;
-    else
-	invert3x3Matrix(C) ;
+    Composite::invertTensor(C) ;
 
     for(size_t i = 0 ; i < grains.size() ; i++)
     {
 	Matrix Cg = grains[i].C ;
-	if(Cg.size()==36)
-	    invert6x6Matrix(Cg) ;
-	else
-	    invert3x3Matrix(Cg) ;
-
+	Composite::invertTensor(Cg) ;
 	grains[i].A = Cg * C ;
 
     }
@@ -503,10 +633,7 @@ bool GeneralizedSelfConsistentComposite::converged()
 	return false ;
     Matrix epsilon = matrix.C - previous.C ;
     Matrix S = matrix.C ;
-    if(S.size()==36)
-	invert6x6Matrix(S) ;
-    else
-	invert3x3Matrix(S) ;
+    Composite::invertTensor(S) ;
     epsilon *= S ;
 
     Vector r = epsilon.array() ;

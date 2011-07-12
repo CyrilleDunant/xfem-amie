@@ -70,6 +70,43 @@ namespace Mu
 		}
 	} ;
 
+	struct IncrementalKelvinVoight : public LinearForm
+	{
+	    Matrix stiff ;
+	    Matrix eta ;
+	    std::vector<Variable> v ;
+	    Matrix N ;
+	    Vector phi ;
+	    double tau ;
+	    std::valarray<bool> up ;
+
+	    IncrementalKelvinVoight(const Matrix & rig, const Matrix & eta, double dt) ;
+
+	    virtual ~IncrementalKelvinVoight() ;
+
+	    virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+
+	    virtual bool fractured() const {return false ; }
+	    virtual bool changed() const {return false ;}
+
+	    virtual Form * getCopy() const ;
+
+	    virtual void scale(double d)
+	    {
+		param *=d ;
+		eta *=d ;
+		stiff *= d ;
+	    }
+
+	    virtual Vector getImposedStress(const Point &p) const ;
+
+	    virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState &s, size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+
+	    virtual void step(double timestep, ElementState &s) ;
+
+	    void resize(size_t num_points) ;
+	};
+
 } ;
 
 #endif

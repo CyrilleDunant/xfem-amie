@@ -17,6 +17,7 @@ public:
 
     static Matrix I4(Matrix C) ;
     static Matrix eshelby(Matrix C) ;
+    static void invertTensor(Matrix & m) ;
 } ;
 
 struct MatrixInclusionComposite : public Composite
@@ -35,11 +36,22 @@ public:
     virtual void getStrainConcentrationTensor() ;
 };
 
+struct DiluteMatrixInclusionComposite : public MatrixInclusionComposite
+{
+public:
+    DiluteMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
+    DiluteMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
+    DiluteMatrixInclusionComposite(Phase mat, Phase inc) ;
+
+    virtual void getStrainConcentrationTensor() ;
+};
+
 struct VoigtMatrixInclusionComposite : public MatrixInclusionComposite
 {
 public:
     VoigtMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
     VoigtMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
+    VoigtMatrixInclusionComposite(Phase mat, Phase inc) ;
 
     virtual void getStrainConcentrationTensor() ;
 };
@@ -49,6 +61,7 @@ struct ReussMatrixInclusionComposite : public MatrixInclusionComposite
 public:
     ReussMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
     ReussMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
+    ReussMatrixInclusionComposite(Phase mat, Phase inc) ;
 
     virtual void getStrainConcentrationTensor() ;
 };
@@ -61,6 +74,30 @@ public:
     MoriTanakaMatrixInclusionComposite(Phase mat, Phase inc) ;
 
     virtual void getStrainConcentrationTensor() ;
+};
+
+struct InverseMoriTanakaMatrixInclusionComposite : public MatrixInclusionComposite
+{
+public:
+    InverseMoriTanakaMatrixInclusionComposite(DelaunayTriangle * tri, Feature * inc) ;
+    InverseMoriTanakaMatrixInclusionComposite(DelaunayTetrahedron * tet, Feature * inc) ;
+    InverseMoriTanakaMatrixInclusionComposite(Phase mat, Phase inc) ;
+
+    virtual void getStrainConcentrationTensor() ;
+};
+
+struct BiphasicSelfConsistentComposite : public MatrixInclusionComposite
+{
+public:
+	std::pair<Phase, Phase> crystals ;
+	Phase fictious ;
+
+public:
+	BiphasicSelfConsistentComposite(DelaunayTriangle * tri, Feature * inc) ;
+	BiphasicSelfConsistentComposite(DelaunayTetrahedron * tet, Feature * inc) ;
+	BiphasicSelfConsistentComposite(Phase mat, Phase inc) ;
+
+	virtual void getStrainConcentrationTensor() ;
 };
 
 struct MatrixMultiInclusionComposite : public Composite

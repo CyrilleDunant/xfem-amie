@@ -13,6 +13,7 @@
 #include "sample3d.h"
 #include "../physics/void_form.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/kelvinvoight.h"
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
@@ -2592,6 +2593,10 @@ Feature *FeatureTree::getFeatForTetra( const DelaunayTetrahedron *t ) const
 void FeatureTree::setElementBehaviours()
 {
 	double n_void ;
+	if(dynamic_cast<IncrementalKelvinVoight *>(tree[0]->getBehaviour()))
+	{
+	    dynamic_cast<IncrementalKelvinVoight *>(tree[0]->getBehaviour())->resize(numdofs/2) ;
+	}
 
 	if( !father3D )
 		father3D = new TetrahedralElement( elemOrder ) ;

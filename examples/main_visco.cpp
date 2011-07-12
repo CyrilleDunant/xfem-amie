@@ -23,6 +23,7 @@
 #include "../features/inclusion.h"
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
+#include "../features/features.h"
 #include "../physics/viscoelasticity_with_internal_variable.h"
 #include "../features/enrichmentInclusion.h"
 #include "../mesher/delaunay_3d.h"
@@ -366,6 +367,9 @@ void step()
 		double avg_s_xy_nogel = 0;
 		double nogel_area = 0 ;
 
+		y_min = 0 ;
+		y_max = 0 ;
+
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 	/*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
@@ -572,16 +576,12 @@ void step()
 				double ar = triangles[k]->area() ;
 				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ;l++)
 				{
-					if(triangles[k]->getBoundingPoint(l).t > 0)
-					{
-//						std::cerr << x[triangles[k]->getBoundingPoint(l).id*2] << std::endl ;
-						avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
-						avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
-						avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-						avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
-						avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
-						avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
-					}
+				    avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
+				    avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
+				    avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
+				    avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
+				    avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
+				    avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
 				}
 
 				if(triangles[k]->getEnrichmentFunctions().size() > 0)
@@ -684,12 +684,12 @@ void step()
 		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 
-		std::cout << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
+/*		std::cout << "average sigma11 (no gel): " << avg_s_xx_nogel/nogel_area << std::endl ;
 		std::cout << "average sigma22 (no gel): " << avg_s_yy_nogel/nogel_area << std::endl ;
 		std::cout << "average sigma12 (no gel): " << avg_s_xy_nogel/nogel_area << std::endl ;
 		std::cout << "average epsilon11 (no gel): " << avg_e_xx_nogel/nogel_area << std::endl ;
 		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
-		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
+		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;*/
 
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
@@ -708,8 +708,8 @@ void step()
 
 		if (go_on)
 		{
-			expansion_reaction.push_back(std::make_pair(reactedArea, avg_s_yy/area)) ;
-			expansion_stress.push_back(std::make_pair(avg_e_xx_nogel/nogel_area, avg_s_xx_nogel/nogel_area)) ;
+			expansion_reaction.push_back(std::make_pair(y_min, y_max)) ;
+			expansion_stress.push_back(std::make_pair(avg_s_yy/area, avg_e_yy/area)) ;
 		}
 
 		for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
@@ -726,8 +726,250 @@ void step()
 
 }
 
+int FD_implicit()
+{
+	bool elastic = true ;
+
+	Matrix c(3,3) ;
+	double E = 300*1e6 ;
+	double nu = 0.3 ;
+	c[0][0] = E/(1-nu*nu) ; c[0][1] = E/(1-nu*nu)*nu ; c[0][2] = 0 ;
+	c[1][0] = E/(1-nu*nu)*nu ; c[1][1] = E/(1-nu*nu) ; c[1][2] = 0 ;
+	c[2][0] = 0 ; c[2][1] = 0 ; c[2][2] = E/(1-nu*nu)*(1.-nu)/2. ;
+
+	Matrix e(3,3) ;
+	double eta = 760 ;
+	e = c * eta ;
+
+	double tau = 1. ;
+	double alpha = 0.5 ;
+	double at1 = 1./(alpha*tau) ;
+	std::cout << at1 << std::endl ;
+
+	Matrix ce = c + (e*at1) ;
+
+	c.print();
+	e.print();
+	ce.print();
+
+	Vector u ;
+	Vector v ;
+
+	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
+	FeatureTree mainFT(&mainSample) ;
+	mainFT.setSamplingNumber(56) ;
+	mainFT.setOrder(LINEAR) ;
+
+	Sample helpSample(NULL, 0.02,0.02,0,0) ;
+	FeatureTree helpFT(&helpSample) ;
+	helpFT.setSamplingNumber(56) ;
+	helpFT.setOrder(LINEAR) ;
+
+	// initialization u = 0
+	mainSample.setBehaviour(new Stiffness(e)) ;
+	if(elastic)
+		mainSample.setBehaviour(new Stiffness(c)) ;
+
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+
+	mainFT.step() ;
+	v.resize(mainFT.getDisplacements().size()) ;
+	v = mainFT.getDisplacements() ;
+	std::cout << v.min() << "\t" << v.max() << std::endl ;
+
+	if(elastic)
+		return 0 ;
+
+	u.resize(v.size(),0.) ;
+
+	mainSample.setBehaviour(new Stiffness(ce)) ;
+
+	helpSample.setBehaviour(new Stiffness(c)) ;
+	helpFT.step() ;
+
+	// iteration
+	for(size_t i = 0 ; i < 86400 ; i++)
+	{
+		mainFT.resetBoundaryConditions() ;
+
+		// viscoelastic forces
+		Vector k(v.size()) ;
+		k = helpFT.getAssembly()->getMatrix()*v ;
+		k *= tau ;
+		Variable var = XI ;
+		for(size_t j = 0 ; j < k.size() ; j++)
+		{
+			mainFT.getAssembly()->addForceOn(var,-k[j],j/2);
+			if(var == XI)
+				var = ETA ;
+			else
+				var = XI ;
+		}
+
+		// boundary conditions
+		mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+		mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+
+		mainFT.step() ;
+		Vector du(u.size()) ;
+		du = mainFT.getDisplacements() ;
+//		std::cout << du.min() << "\t" << du.max() << std::endl ;
+
+		u = u + v*tau + du ;
+		v = v + du*at1 ;
+
+		std::cout << k.min() << "\t" << k.max() << std::endl ;
+		std::cout << v.min() << "\t" << v.max() << std::endl ;
+		std::cout << du.min() << "\t" << du.max() << std::endl ;
+		std::cout << u.min() << "\t" << u.max() << std::endl ;
+	}
+
+
+	return 0 ;
+}
+
+int FD_explicit()
+{
+	Matrix c(3,3) ;
+	double E = 300*1e6 ;
+	double nu = 0.3 ;
+	c[0][0] = E/(1-nu*nu) ; c[0][1] = E/(1-nu*nu)*nu ; c[0][2] = 0 ;
+	c[1][0] = E/(1-nu*nu)*nu ; c[1][1] = E/(1-nu*nu) ; c[1][2] = 0 ;
+	c[2][0] = 0 ; c[2][1] = 0 ; c[2][2] = E/(1-nu*nu)*(1.-nu)/2. ;
+
+	Matrix e(3,3) ;
+	double eta = 760 ;
+	e = c / eta ;
+
+	double tau = 0.0001 ;
+
+	c.print();
+	e.print();
+
+	Vector u ;
+	Vector ue ;
+	Vector uv ;
+	Vector v ;
+	Vector k ;
+
+	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
+	FeatureTree mainFT(&mainSample) ;
+	mainFT.setSamplingNumber(56) ;
+	mainFT.setOrder(LINEAR) ;
+
+	Sample helpSample(NULL, 0.02,0.02,0,0) ;
+	FeatureTree helpFT(&helpSample) ;
+	helpFT.setSamplingNumber(56) ;
+	helpFT.setOrder(LINEAR) ;
+
+	mainSample.setBehaviour(new Stiffness(c)) ;
+	helpSample.setBehaviour(new Stiffness(e)) ;
+
+	// solve initialization ; u = 0
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+
+	helpFT.step() ;
+	v.resize(helpFT.getDisplacements().size()) ;
+	v = helpFT.getDisplacements() ;
+	u.resize(v.size()) ;
+	ue.resize(v.size()) ;
+	uv.resize(v.size()) ;
+	k.resize(v.size()) ;
+
+	// solve first step
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+
+	mainFT.step() ;
+	ue = mainFT.getDisplacements() ;
+	mainFT.resetBoundaryConditions() ;
+
+	// get viscoelastic forces
+	Vector f(ue.size()) ;
+	f = helpFT.getAssembly()->getMatrix() * ue ;
+	Variable var = XI ;
+	for(size_t j = 0 ; j < f.size() ; j++)
+	{
+		mainFT.getAssembly()->addForceOn(var,-f[j],j/2);
+		if(var == XI)
+			var = ETA ;
+		else
+			var = XI ;
+	}
+
+	// solve auxiliary problem
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+
+	mainFT.step() ;
+	uv = mainFT.getDisplacements() ;
+
+	for(size_t i = 0 ; i < k.size() ; i++)
+	{
+		if(uv[i] < 1e-12 || v[i] < 1e-12)
+			k[i] = -1. ;
+		else
+			k[i] = (tau * v[i] - ue[i]) / uv[i] ;
+	}
+
+//	std::cerr << k.max() << "\t" << k.min() << std::endl ;
+//	return 0 ;
+
+	Vector Auv(u.size()) ;
+	Vector Avv(u.size()) ;
+	Vector Auuv(u.size()) ;
+	Vector Avuv(u.size()) ;
+	for(size_t i = 0 ; i < Auv.size() ; i++)
+	{
+		if(k[i] > -1)
+		{
+			Auv[i] = (1-std::exp(-k[i]))*tau/k[i] ;
+			Avv[i] = std::exp(-k[i]) ;
+			Auuv[i] = 1 - Avv[i] ;
+			Avuv[i] = k[i] * Avv[i] ;
+		}
+		else
+		{
+			Auv[i] = 0 ;
+			Avv[i] = 0 ;
+			Auuv[i] = 1 ;
+			Avuv[i] = 0 ;
+		}
+	}
+
+	for(size_t i = 0 ; i < u.size() ; i++)
+	{
+		u[i] = Auuv[i]*uv[i] + ue[i] ;
+		v[i] = (Avuv[i]*uv[i] + ue[i] ) / tau ;
+	}
+
+
+	std::cerr << uv.max() << "\t" << uv.min() << std::endl ;
+	for(size_t i = 0 ; i < 100 ; i++)
+	{
+		for(size_t j = 0 ; j < u.size() ; j++)
+		{
+			u[j] = u[j] + Auv[j]*v[j] ;
+			v[j] = Avv[j]*v[j] ;
+		}
+		std::cerr << u.max() << "\t" << u.min() << std::endl ;
+	}
+
+	return 0 ;
+
+
+}
+
+
 int main(int argc, char *argv[])
 {
+	return FD_explicit() ;
+
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
 	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ;
@@ -777,8 +1019,9 @@ int main(int argc, char *argv[])
 		inclusions[i]->setBehaviour(agg) ;
 //		F.addFeature(&sample,inclusions[i]) ;
 	}
-	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*e)) ;
-	sample.setBehaviour(new Stiffness(m0_paste));
+//	sample.setBehaviour(new KelvinVoight(m0_paste, m0_paste*e)) ;
+//	sample.setBehaviour(new Stiffness(m0_paste));
+	sample.setBehaviour(new IncrementalKelvinVoight(m0_paste, m0_paste*e,0.0001));
 
 /*	Vector k_csh(8);
 	Vector g_csh(8);
@@ -794,49 +1037,58 @@ int main(int argc, char *argv[])
 //	sample.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(12e9,0.3), true, SPACE_TWO_DIMENSIONAL))) ;
 //	sample.setBehaviour(new PasteBehaviour()) ;
 
-	F.setSamplingNumber(64) ;
+	F.setSamplingNumber(128) ;
 	F.setDeltaTime(3600*24) ;
 	F.setMaxIterationsPerStep(1000) ;
-//	F.setOrder(LINEAR) ;
-	F.setOrder(LINEAR_TIME_QUADRATIC) ;
+	F.setOrder(LINEAR) ;
+//	F.setOrder(LINEAR_TIME_QUADRATIC) ;
 
 	Function t("t") ;
 	Function nt = (t+3600*12)*0.00001 ;
 //	Function top = nt*(0.00001) ;
 	double ntt = VirtualMachine().eval(nt, Point(0,0,0,3600*12)) ;
+	ntt = 1e6 ;
 	std::cerr << ntt << std::endl ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, nt)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, 0)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, nt)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA,TOP, VirtualMachine().eval(nt, Point(0,0,0,0.025)))) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,BEFORE)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BEFORE)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,BEFORE)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BEFORE)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM_AFTER)) ;
 
 	step() ;
 
-	TriangleWriter writer("test",featureTree,2) ;
-	writer.getField(TWFT_STRESS) ;
+	MultiTriangleWriter writer("visco_head","visco",featureTree) ;
+	writer.getField(TWFT_STRAIN) ;
 	writer.write() ;
 
-	for(size_t i = 1 ; i < 0 ; i++)
+	F.resetBoundaryConditions();
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP,ntt)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
+
+	step() ;
+
+	writer.reset(featureTree) ;
+	writer.getField(TWFT_STRAIN) ;
+	writer.append() ;
+
+	for(size_t i = 0 ; i < 10 ; i++)
 	{
-	    nt = nt + 5 ;
+//	    nt = nt + 5 ;
 	    F.resetBoundaryConditions() ;
-	    F.addBoundaryCondition(new TimeContinuityBoundaryCondition());
-	    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, ntt)) ;
+//	    F.addBoundaryCondition(new TimeContinuityBoundaryCondition());
 	    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM)) ;
+	    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 
 
 	    step() ;
-
-		if(i%2 == 0)
-		{
-			writer.reset(featureTree, 2) ;
-			writer.getField(TWFT_STRESS) ;
-			writer.append() ;
-		}
+	writer.reset(featureTree) ;
+	writer.getField(TWFT_STRAIN) ;
+	writer.append() ;
 
 	}
 /*	F.resetBoundaryConditions() ;

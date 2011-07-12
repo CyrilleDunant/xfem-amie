@@ -1279,7 +1279,7 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
-		if( parent->getBehaviour()->param.size() == 3 )
+/*		if( parent->getBehaviour()->param.size() == 3 )
 		{
 			double xdot_xi = 0;
 			double xdot_eta = 0;
@@ -1325,7 +1325,7 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 
 			return lstrain * cg + ldotstrain * eta ;
 
-		}
+		}*/
 
 		if(parent->getBehaviour()->hasInducedForces() )
 			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);

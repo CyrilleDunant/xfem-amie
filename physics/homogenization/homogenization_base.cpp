@@ -623,9 +623,11 @@ Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDim
 		case SPACE_TWO_DIMENSIONAL:
 		{
 			Matrix cg(3,3) ;
-			cg[0][0] = E/(1.-nu*nu) ; cg[0][1] =E/(1.-nu*nu)*nu ; cg[0][2] = 0 ;
-			cg[1][0] = E/(1.-nu*nu)*nu ; cg[1][1] = E/(1.-nu*nu) ; cg[1][2] = 0 ; 
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = .99*E/(1.-nu*nu)*(1.-nu)/2. ; 
+			cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
+			cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (0.5-nu) ;
+			cg *= E/((1+nu)*(1-2*nu)) ;
+			cg.print();
 			return cg ;
 		}
 		case SPACE_THREE_DIMENSIONAL:
