@@ -86,142 +86,74 @@
 
 using namespace Mu ;
 
+int nz ;
+double fraction ;
+int sampling ;
 
-int main(int argc, char *argv[])
+Matrix getStiffnessTensorAndExpansionStress(std::string hom)
 {
-	Inclusion * ag = new Inclusion(0,0,0) ;
-	ag->setBehaviour(new ElasticOnlyAggregateBehaviour(/*59e9, 0.3, SPACE_THREE_DIMENSIONAL*/));
+	std::cerr << hom << std::endl ;
 
-	Inclusion * gl = new Inclusion(0,0,0) ;
-	gl->setBehaviour(new GelBehaviour(/*22e9, 0.28, 0.5, SPACE_THREE_DIMENSIONAL*/));
+	Inclusion * agg = new Inclusion(0,0,0) ;
+	agg->setBehaviour(new ElasticOnlyAggregateBehaviour());
 
-	Phase matrix(ag) ;
-	Phase inclusion(gl) ;
+	Inclusion * gel = new Inclusion(0,0,0) ;
+	gel->setBehaviour(new GelBehaviour());
 
-	std::vector<double> mean ;
-	std::vector<double> inv_mean ;
-	std::vector<double> inter ;
-	std::vector<double> inv_inter ;
-	std::vector<double> sc ;
-	std::vector<double> dil ;
+	Phase matrix(agg) ;
+	Phase inclusion(gel) ;
+	
+	Matrix homogenization(sampling,3) ;
+	
+	MatrixInclusionComposite * scheme = NULL ;
 
-	Matrix m(3,3) ;
-	Vector v(3) ;
-	for(size_t i = 1 ; i < 11 ; i++)
+	for(size_t i = 0 ; i < sampling ; i++)
 	{
-		matrix.volume = 1. - (double) i/1000. ;
-		inclusion.volume = 1. ;
-
-		VoigtMatrixInclusionComposite voigt(matrix, inclusion) ;
-		voigt.apply() ;
-		m = voigt.C ;
-		mean.push_back(m[0][0]) ;
-		mean.push_back(m[0][1]) ;
-		invert3x3Matrix(m) ;
-		v = m * voigt.beta ;
-		mean.push_back(voigt.beta[0]) ;
-
-
-		matrix.volume = 1. - (double) i/1000. ;
-		inclusion.volume = 1. ;
-
-		ReussMatrixInclusionComposite reuss(matrix, inclusion) ;
-		reuss.apply() ;
-		m = reuss.C ;
-		inv_mean.push_back(m[0][0]) ;
-		inv_mean.push_back(m[0][1]) ;
-		invert3x3Matrix(m) ;
-		v = m * reuss.beta ;
-		inv_mean.push_back(reuss.beta[0]) ;
-
-
-/*		matrix.volume = 1. - (double) i/100. ;
-		inclusion.volume = 1. ;
-
-		MoriTanakaMatrixInclusionComposite mori(matrix, inclusion) ;
-		mori.apply() ;
-		m = mori.C ;
-//		invert3x3Matrix(m) ;
-		v = m * mori.beta ;
-
-		inter.push_back(m[0][0]) ;
-		inter.push_back(m[0][1]) ;
-
-		matrix.volume = 1. - (double) i/100. ;
-		inclusion.volume = 1. ;
-
-		InverseMoriTanakaMatrixInclusionComposite inv_mori(matrix, inclusion) ;
-		inv_mori.apply() ;
-		m = inv_mori.C ;
-//		invert3x3Matrix(m) ;
-		v = m * inv_mori.beta ;
-
-		inv_inter.push_back(m[0][0]);
-		inv_inter.push_back(m[0][1]) ;
-
-		matrix.volume = 1. - (double) i/100. ;
-		inclusion.volume = 1. ;
-
-		BiphasicSelfConsistentComposite self(matrix, inclusion) ;
-		self.apply() ;
-		m = self.C ;
-//		invert3x3Matrix(m) ;
-		v = m * self.beta ;
-
-		sc.push_back(m[0][0]);
-		sc.push_back(m[0][1]) ;
-
-		matrix.volume = 1. - (double) i/100. ;
-		inclusion.volume = 1. ;
-
-		DiluteMatrixInclusionComposite dilute(matrix, inclusion) ;
-		dilute.apply() ;
-		m = dilute.C ;
-//		invert3x3Matrix(m) ;
-		v = m * dilute.beta ;
-
-		dil.push_back(m[0][0]);
-		dil.push_back(m[0][1]) ;*/
-
-
+		inclusion.volume = fraction * (double) (i+1) / (double) sampling ;
+		matrix.volume = 1. - inclusion.volume ;
+	
+		if(hom == "voigt")
+			scheme = new VoigtMatrixInclusionComposite(matrix, inclusion) ;
+		if(hom == "reuss")
+			scheme = new ReussMatrixInclusionComposite(matrix, inclusion) ;
+		if(hom == "mori-tanaka")
+			scheme = new MoriTanakaMatrixInclusionComposite(matrix, inclusion) ;
+		if(hom == "inverse-mori-tanaka")
+			scheme = new InverseMoriTanakaMatrixInclusionComposite(matrix, inclusion) ;
+		if(hom == "dilute")
+			scheme = new DiluteMatrixInclusionComposite(matrix, inclusion) ;
+		if(hom == "self-consistent")
+			scheme = new BiphasicSelfConsistentComposite(matrix, inclusion) ;
+			
+		std::cout << scheme->matrix.volume << std::endl ;
+			
+		if(scheme != NULL)
+		{
+			scheme->apply() ;
+			homogenization[i][0] = scheme->C[0][0] ;
+			homogenization[i][1] = scheme->C[0][1] ;
+			homogenization[i][2] = scheme->beta[0] ;
+			
+			delete scheme ;
+		}
+		else
+			homogenization.resize(0,0) ;
 	}
+	
+	return homogenization ;
+}
 
-	for(size_t i = 0 ; i < mean.size()/3 ; i++)
-		std::cout << (double) (i+1)/1000 << "\t" << mean[3*i] << "\t" << mean[3*i+1] << "\t" << mean[3*i+2] << std::endl ;
-
-	for(size_t i = 0 ; i < mean.size()/3 ; i++)
-		std::cout << (double) (i+1)/1000 << "\t" << inv_mean[3*i] << "\t" << inv_mean[3*i+1] << "\t" << inv_mean[3*i+2] << std::endl ;
-
-/*	for(size_t i = 0 ; i < mean.size()/2 ; i++)
-		std::cout << (double) (i+1)/100 << "\t" << inter[2*i] << "\t" << inter[2*i+1] << std::endl ;
-
-	for(size_t i = 0 ; i < mean.size()/2 ; i++)
-		std::cout << (double) (i+1)/100 << "\t" << inv_inter[2*i] << "\t" << inv_inter[2*i+1] << std::endl ;
-
-	for(size_t i = 0 ; i < sc.size()/2 ; i++)
-		std::cout << (double) (i+1)/100 << "\t" << sc[2*i] << "\t" << sc[2*i+1] << std::endl ;
-
-	for(size_t i = 0 ; i < mean.size()/2 ; i++)
-		std::cout << (double) (i+1)/100 << "\t" << dil[2*i] << "\t" << dil[2*i+1] << std::endl ;*/
-
-//	return 0 ;
-
-	std::cout << "first argument is number of zones along a side" << std::endl ;
-	std::cout << "second argument is percentage of area covered by all the zones" << std::endl ;
-	std::cout << "third argument is sampling number" << std::endl ;
-
-	int nz = atoi(argv[1]) ;
-	double area = atof(argv[2]) ;
-
+Vector getStiffnessTensor()
+{
 	ElasticOnlyAggregateBehaviour * aggregate = new ElasticOnlyAggregateBehaviour() ;
-	GelBehaviour * gel = new GelBehaviour() ;
+	GelBehaviour * gel = new GelBehaviour(22e9,0.28,0) ;
 
 	Sample box(0.05, 0.05, 0.025, 0.025) ;
 	box.setBehaviour(aggregate) ;
 
 	std::vector<Inclusion *> inclusions ;
 	double interval = 0.05/(nz+1) ;
-	double radius = std::sqrt(area*(0.05*0.05)/(nz*nz*3.141592)) ;
+	double radius = std::sqrt(fraction*(0.05*0.05)/(nz*nz*3.141592)) ;
 
 	for(size_t i = 0 ; i < nz ; i++)
 	{
@@ -241,12 +173,94 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		F.addFeature(&box, inclusions[i]) ;
 
-	F.setSamplingNumber(atoi(argv[3])) ;
+	F.setSamplingNumber(sampling) ;
 	F.setOrder(LINEAR) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT));
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM));
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, -1e6));
+
+	F.step() ;
+	Vector disp(F.getDisplacements().size()) ;
+	disp = F.getDisplacements() ;
+
+	std::vector<DelaunayTriangle *> tri = F.getElements2D() ;
+	double sxx = 0. ;
+	double syy = 0. ;
+	double sxy = 0. ;
+	double exx = 0. ;
+	double eyy = 0. ;
+	double exy = 0. ;
+	double area = 0. ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		double a = tri[i]->area() ;
+		Point p ;
+		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+			p += tri[i]->getBoundingPoint(j) ;
+		p /= tri[i]->getBoundingPoints().size() ;
+		Vector stress = tri[i]->getState().getStress(p,false) ;
+		sxx += stress[0]*a ;
+		syy += stress[1]*a ;
+		sxy += stress[2]*a ;
+		Vector strain = tri[i]->getState().getStrain(p,false) ;
+		exx += strain[0]*a ;
+		eyy += strain[1]*a ;
+		exy += strain[2]*a ;
+		area += a ;
+	}
+
+	Vector sigma(2) ;
+	sigma[0] = sxx/area ;
+	sigma[1] = syy/area ;
+
+	Matrix epsilon(2,2) ;
+	epsilon[0][0] = exx ;
+	epsilon[0][1] = - eyy ;
+	epsilon[1][0] = - eyy ;
+	epsilon[1][1] = exx ;
+	epsilon /= (exx*exx - eyy*eyy) ;
+	epsilon *= area ;
+	
+	return epsilon * sigma ;
+}
+
+Vector getExpansionStress()
+{
+	ElasticOnlyAggregateBehaviour * aggregate = new ElasticOnlyAggregateBehaviour() ;
+	GelBehaviour * gel = new GelBehaviour() ;
+
+	Sample box(0.05, 0.05, 0.025, 0.025) ;
+	box.setBehaviour(aggregate) ;
+
+	std::vector<Inclusion *> inclusions ;
+	double interval = 0.05/(nz+1) ;
+	double radius = std::sqrt(fraction*(0.05*0.05)/(nz*nz*3.141592)) ;
+
+	for(size_t i = 0 ; i < nz ; i++)
+	{
+		double cx = interval*(i+1) ;
+		for(size_t j = 0 ; j < nz ; j++)
+		{
+			double cy = interval*(j+1) ;
+			inclusions.push_back(new Inclusion(radius, cx, cy)) ;
+		}
+	}
+	std::cerr << inclusions[0]->area()/(0.05*0.05) << std::endl ;
+
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		inclusions[i]->setBehaviour(gel) ;
+
+	FeatureTree F(&box) ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		F.addFeature(&box, inclusions[i]) ;
+
+	F.setSamplingNumber(sampling) ;
+	F.setOrder(LINEAR) ;
+
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT));
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,RIGHT));
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM));
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,TOP));
 
 	F.step() ;
@@ -257,7 +271,7 @@ int main(int argc, char *argv[])
 	double sxx = 0. ;
 	double syy = 0. ;
 	double sxy = 0. ;
-	area = 0. ;
+	double area = 0. ;
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
 		double a = tri[i]->area() ;
@@ -266,20 +280,66 @@ int main(int argc, char *argv[])
 			p += tri[i]->getBoundingPoint(j) ;
 		p /= tri[i]->getBoundingPoints().size() ;
 		Vector stress = tri[i]->getState().getStress(p,false) ;
-		sxx -= stress[0]*a ;
-		syy -= stress[1]*a ;
-		sxy -= stress[2]*a ;
+		sxx += stress[0]*a ;
+		syy += stress[1]*a ;
+		sxy += stress[2]*a ;
 		area += a ;
 	}
 
-	std::cout << sxx/area << "\t" << syy /area<< std::endl ;
+	Vector sigma(2) ;
+	sigma[0] = sxx/area ;
+	sigma[1] = syy/area ;
+	return sigma ;
 
-	FeatureTree * f = &F ;
-	TriangleWriter writer("expansive_zones_"+itoa(nz)+"x"+itoa(nz)+"_"+itoa((int)((double) 100*area))+"_"+argv[3], f) ;
-	writer.getField(TWFT_STIFFNESS) ;
-	writer.getField(TWFT_STRAIN) ;
-	writer.getField(TWFT_STRESS) ;
-	writer.write() ;
+}
+
+int main(int argc, char *argv[])
+{
+	std::string type(argv[1]) ;
+	if(type == "--finite-elements")
+	{
+		std::cout << "first argument is number of zones along a side" << std::endl ;
+		std::cout << "second argument is percentage of area covered by all the zones" << std::endl ;
+		std::cout << "third argument is sampling number" << std::endl ;
+
+		nz = atoi(argv[2]) ;
+		fraction = atof(argv[3]) ;
+		sampling = atoi(argv[4]) ;
+
+		Vector stiffness = getStiffnessTensor() ;
+		Vector expansion = getExpansionStress() ;
+	
+		std::fstream out ;
+		out.open("grid_correct", std::ios::out | std::ios::app) ;
+		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << std::endl ;
+		out.close() ;
+
+		return 0 ;
+	}
+	
+	if(type == "--homogenization")
+	{
+		std::cout << "first argument is homogenization scheme" << std::endl ;
+		std::cout << "second argument is maximum fraction of gel pockets" << std::endl ;
+		std::cout << "third argument is the number of steps" << std::endl ;
+		
+		std::string scheme(argv[2]) ;
+		fraction = atof(argv[3]) ;
+		sampling = atoi(argv[4]) ;
+		
+		Matrix homogenization = getStiffnessTensorAndExpansionStress(scheme) ;
+		if(homogenization.size() > 0)
+		{
+			std::fstream out ;
+			out.open("grid_correct", std::ios::out | std::ios::app) ;
+			for(size_t i = 0 ; i < sampling ; i++)
+				out << scheme << "\t" << fraction * (double) (i+1) / (double) sampling << "\t" << homogenization[i][0] << "\t" << homogenization[i][1] << "\t" << homogenization[i][2] << std::endl ;
+			out.close() ;
+		}
+		
+		return 0 ;
+		
+	}
 
 	return 0 ;
 

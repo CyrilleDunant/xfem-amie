@@ -141,6 +141,7 @@ void MatrixInclusionComposite::apply()
 
     inclusion.A = B * inclusion.volume + I * matrix.volume ;
     Composite::invertTensor(inclusion.A) ;
+    inclusion.A *= B ;
 
     matrix.A = (I - inclusion.A * inclusion.volume) / matrix.volume ;
 

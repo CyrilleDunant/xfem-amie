@@ -15,7 +15,7 @@ Phase::Phase()
 
 Phase::Phase( DelaunayTriangle *tri )
 {
-	behaviour = tri->getBehaviour()->getCopy() ;
+	behaviour = tri->getBehaviour() ;
 	volume = tri->area() ;
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
@@ -25,7 +25,7 @@ Phase::Phase( DelaunayTriangle *tri )
 
 Phase::Phase( DelaunayTetrahedron *tet )
 {
-	behaviour = tet->getBehaviour()->getCopy() ;
+	behaviour = tet->getBehaviour() ;
 	volume = tet->volume() ;
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
@@ -35,7 +35,7 @@ Phase::Phase( DelaunayTetrahedron *tet )
 
 Phase::Phase( Feature *f )
 {
-	behaviour = f->getBehaviour()->getCopy() ;
+	behaviour = f->getBehaviour() ;
 
 	if( f->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 		volume = f->area() ;
