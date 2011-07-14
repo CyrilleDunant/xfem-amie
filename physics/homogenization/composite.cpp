@@ -386,11 +386,13 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 
 MatrixMultiInclusionComposite::MatrixMultiInclusionComposite(DelaunayTriangle *tri, std::vector<Feature *> inc) : Composite(tri, inc)
 {
+
     matrix = Phase(tri) ;
     for(size_t i = 0 ; i < inc.size() ; i++)
     {
 	if(inclusions.empty())
 	    inclusions.push_back(Phase(inc[i])) ;
+	    
 	else
 	{
 	    int found = -1 ;
@@ -407,12 +409,10 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite(DelaunayTriangle *t
 	}
     }
 
-    for(size_t i = 0 ; i < inclusions.size() ; i++)
-	matrix.volume -= inclusions[i].volume ;
 
     volume = matrix.volume ;
     for(size_t i = 0 ; i < inclusions.size() ; i++)
-	volume += inclusions[i].volume ;
+	matrix.volume -= inclusions[i].volume ;
 
     matrix.volume /= volume ;
     for(size_t i = 0 ; i < inclusions.size() ; i++)

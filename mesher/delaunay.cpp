@@ -2043,11 +2043,25 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 {
+	Point * p = new Point(g->getCenter()) ;
+	std::vector<DelaunayTreeItem *> cons = this->conflicts(p) ;
+	DelaunayTriangle * origin = NULL ;
+	for(size_t i = 0 ; i < cons.size() ; i++)
+	{
+		if(dynamic_cast<DelaunayTriangle *>(cons[i])->in(g->getCenter()))
+		{
+			origin = dynamic_cast<DelaunayTriangle *>(cons[i]) ;
+			break ;
+		}
+	}
+	
+	return getNeighbouringElementsInGeometry(origin, g) ;
+	
 // 	Circle neighbourhood(1e-8, g->getCenter()) ; 
 //magic value : basically, we don't want to have the center a vertex of the mesh.
 	
 // 	std::vector<DelaunayTriangle *> ret ;
-	std::vector<DelaunayTriangle *> cons ;
+/*	std::vector<DelaunayTriangle *> cons ;
 	std::valarray<bool> visited(false, tree.size()) ;
 	
 	if(!tree.empty())
@@ -2070,7 +2084,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 		
 	}
 	
-	return cons ;
+	return cons ;*/
 }
 
 std::vector<DelaunayDemiPlane *> * DelaunayTree::getConvexHull()

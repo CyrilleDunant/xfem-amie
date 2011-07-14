@@ -2277,6 +2277,22 @@ void DelaunayTetrahedron::refresh(const TetrahedralElement * father)
 
 std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g) const
 {
+	Point * p = new Point(g->getCenter()) ;
+	std::vector<DelaunayTreeItem3D *> cons = this->conflicts(p) ;
+	DelaunayTetrahedron * origin = NULL ;
+	for(size_t i = 0 ; i < cons.size() ; i++)
+	{
+		if(dynamic_cast<DelaunayTetrahedron *>(cons[i])->in(g->getCenter()))
+		{
+			origin = dynamic_cast<DelaunayTetrahedron *>(cons[i]) ;
+			break ;
+		}
+	}
+	
+	return getNeighbouringElementsInGeometry(origin, g) ;
+	
+/*
+
 	std::pair< std::vector<DelaunayTetrahedron *>,std::vector<DelaunayTreeItem3D *> > cons ;
 	std::valarray<bool> visitedItems(false, tree.size()) ;
 	
@@ -2310,7 +2326,7 @@ std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g)
 	std::vector<DelaunayTetrahedron *> ret  ;
 	ret.insert(ret.end(), cons.first.begin(), cons.first.end()) ;
 
-	return ret ;
+	return ret ;*/
 }
 
 std::vector<DelaunayDemiSpace *>  DelaunayTree3D::getConvexHull()

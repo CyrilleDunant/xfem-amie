@@ -1332,6 +1332,7 @@ bool Geometry::intersects(const Geometry *g) const
 			{
 				intersects = intersects || segs[i].intersects(this) ;
 			}
+			
 			return intersects ;
 		}
 	case ELLIPSE:
@@ -3474,11 +3475,8 @@ bool Segment::intersects(const Geometry *g) const
 				return true ;
 
 			Point center(g->getCenter()) ;
-			Point v = s-f ;
-			double uc = v*g->getCenter() ;
-			double delta = uc*uc - v.sqNorm()*g->getCenter().sqNorm() - g->getRadius()*g->getRadius() ;
-			return delta >= 0 ;
-			
+			Point proj = project(center) ;
+			return g->in(proj) ;
 		}
 	case ELLIPSE:
 		{
