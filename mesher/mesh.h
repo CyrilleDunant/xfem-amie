@@ -48,7 +48,7 @@ namespace Mu
 			virtual std::vector<ETYPE *> getConflictingElements(const Point  * p) const = 0;
 			virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) const = 0;
 			
-			virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g)
+			virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g) const
 			{
 				std::set<ETYPE *> to_test ;
 				std::set<ETYPE *> found ;
