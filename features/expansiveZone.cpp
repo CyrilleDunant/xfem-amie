@@ -33,8 +33,6 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 	EnrichmentInclusion::enrich( lastId, dtree ) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
-	std::cerr << "stop" << std::endl ;
-	std::cout << disc.size() << std::endl ;
 
 	if( disc.size() < 2 )
 		return ;
@@ -65,7 +63,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
 			if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
 			{
-				std::cout << "get original" << std::endl ;
+// 				std::cout << "get original" << std::endl ;
 				bi = new BimaterialInterface( getPrimitive(),
 				                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
 				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getCopy()

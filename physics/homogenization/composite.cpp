@@ -640,6 +640,5 @@ bool GeneralizedSelfConsistentComposite::converged()
     Vector r = epsilon.array() ;
     double rmax =std::abs(r.max()) ;
     double rmin = std::abs(r.min()) ;
-    std::cout << std::max(rmax,rmin) << std::endl ;
     return std::max(rmax,rmin) < POINT_TOLERANCE_3D ;
 }

@@ -1847,7 +1847,7 @@ int main( int argc, char *argv[] )
 // 	sample.setBehaviour( new PasteBehaviour() ) ;
 
 // 		sample.setBehaviour(new Stiffness(m0_paste)) ;
-	Vector setExpansion(0., 3) ; setExpansion[0] = -0.0035 ; setExpansion[1] = -0.0035 ; setExpansion[2] = 0 ;
+	Vector setExpansion(0., 3) ; setExpansion[0] = -0.0015 ; setExpansion[1] = -0.0015 ; setExpansion[2] = 0 ;
 	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, setExpansion)) ;
 	if( restraintDepth > 0 )
 	{
@@ -1872,7 +1872,7 @@ int main( int argc, char *argv[] )
 		//length are 5113269293	26179938780	40906154344
 
 
-
+		double fact = atof( argv[3] ) ;
 
 
 		Sample *blocktop = new Sample( NULL, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
@@ -1884,11 +1884,11 @@ int main( int argc, char *argv[] )
 		F.addFeature( NULL, blockbottom );
 
 		Sample *blockleft = new Sample( NULL, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y ) ;
-		blockleft->setBehaviour( new Stiffness( m0_support * 6544984695 )) ;
+		blockleft->setBehaviour( new Stiffness( m0_support * fact )) ;
 		F.addFeature( NULL, blockleft );
 
 		Sample *blockright = new Sample( NULL, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y ) ;
-		blockright->setBehaviour(new Stiffness( m0_support * 6544984695 ) ) ;
+		blockright->setBehaviour(new Stiffness( m0_support * fact ) ) ;
 		F.addFeature( NULL, blockright );
 	}
 
