@@ -102,7 +102,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-double restraintDepth = 0 ;
+double restraintDepth = 0.01 ;
 
 Sample sample( NULL, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
 Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
@@ -209,7 +209,7 @@ void fastForward( int steps, int nstepstot )
 
 void step()
 {
-	int nsteps = 30;
+	int nsteps = 10;
 	int nstepstot = 30;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
 // 	fastForward(4, 10) ;
@@ -1844,11 +1844,11 @@ int main( int argc, char *argv[] )
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() - itzSize
 		          << ", smallest r =" << feats.back()->getRadius() - itzSize << std::endl ;
 
-	sample.setBehaviour( new PasteBehaviour() ) ;
+// 	sample.setBehaviour( new PasteBehaviour() ) ;
 
 // 		sample.setBehaviour(new Stiffness(m0_paste)) ;
-// 	Vector setExpansion(0., 3) ; setExpansion[0] = 0.4 ; setExpansion[1] = 0.4 ; setExpansion[2] = 0 ;
-// 	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, setExpansion)) ;
+	Vector setExpansion(0., 3) ; setExpansion[0] = -0.0035 ; setExpansion[1] = -0.0035 ; setExpansion[2] = 0 ;
+	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, setExpansion)) ;
 	if( restraintDepth > 0 )
 	{
 		Sample *voidtop = new Sample( NULL, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
@@ -1876,19 +1876,19 @@ int main( int argc, char *argv[] )
 
 
 		Sample *blocktop = new Sample( NULL, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
-		blocktop->setBehaviour( new Stiffness( m0_support * 14726215564 ) ) ;
+		blocktop->setBehaviour( new VoidForm()/*new Stiffness( m0_support * 6544984695 )*/ ) ;
 		F.addFeature( NULL, blocktop );
 
 		Sample *blockbottom = new Sample( NULL, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
-		blockbottom->setBehaviour( new Stiffness( m0_support * 14726215564 ) ) ;
+		blockbottom->setBehaviour( new VoidForm()/*new Stiffness( m0_support * 6544984695 )*/ ) ;
 		F.addFeature( NULL, blockbottom );
 
 		Sample *blockleft = new Sample( NULL, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y ) ;
-		blockleft->setBehaviour( new Stiffness( m0_support * 40906154344 ) ) ;
+		blockleft->setBehaviour( new Stiffness( m0_support * 6544984695 )) ;
 		F.addFeature( NULL, blockleft );
 
 		Sample *blockright = new Sample( NULL, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y ) ;
-		blockright->setBehaviour( new Stiffness( m0_support * 40906154344 ) ) ;
+		blockright->setBehaviour(new Stiffness( m0_support * 6544984695 ) ) ;
 		F.addFeature( NULL, blockright );
 	}
 
@@ -1904,9 +1904,9 @@ int main( int argc, char *argv[] )
 		if( !( !baseGeometry.in( a ) && !baseGeometry.in( b ) && !baseGeometry.in( c ) && !baseGeometry.in( d ) ) )
 		{
 // 			inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-			AggregateBehaviour *stiff = new AggregateBehaviour() ;
+// 			AggregateBehaviour *stiff = new AggregateBehaviour() ;
 // 			StiffnessWithImposedDeformation * stiff = new StiffnessWithImposedDeformation(m0_agg, setExpansion) ;
-// 			Stiffness * stiff = new Stiffness(m0_agg) ;
+			Stiffness * stiff = new Stiffness(m0_agg) ;
 			// 		stiff->variability = .5 ;
 			inclusions[i]->setBehaviour( stiff ) ;
 			F.addFeature( &sample, inclusions[i] ) ;
@@ -1927,7 +1927,7 @@ int main( int argc, char *argv[] )
 
 	Circle cercle( .5, 0, 0 ) ;
 
-	zones = generateExpansiveZonesHomogeneously( 200, placedinclusions, F ) ;
+	zones = generateExpansiveZonesHomogeneously( 2000, placedinclusions, F ) ;
 	F.setSamplingNumber( 512 ) ;
 
 	if( restraintDepth > 0 )
@@ -1936,8 +1936,8 @@ int main( int argc, char *argv[] )
 // 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_ETA, new Rectangle(0.07+restraintDepth*1.1,0.035+restraintDepth*.5, 0,-(0.035+restraintDepth*.5)*.5))) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;
-		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
-		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
+		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM_LEFT ) ) ;
+// 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
 	}
 	else
 	{

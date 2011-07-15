@@ -22,6 +22,7 @@
 #include "../features/crack.h"
 #include "../features/enrichmentInclusion.h"
 #include "../mesher/delaunay_3d.h"
+#include "../utilities/writer/voxel_writer.h"
 #include "../features/expansiveZone3d.h"
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
@@ -406,6 +407,10 @@ void step()
 		std::cout << "average epsilon23 : " << avg_e_yz/volume << std::endl ;
 		
 	}
+	
+		VoxelWriter vw("sphere", 100) ;
+		vw.getField(featureTree, VWFT_STRESS) ;
+		vw.write();
 
 }
 
@@ -1299,7 +1304,6 @@ int main(int argc, char *argv[])
 	double nu = 0.2 ;
 	double E = 1 ;
 
-	Sample3D sample(NULL, 0.04,0.04,0.04,0.02,0.02,0.02) ;
 	Sample3D samplers(NULL, 400,400,400,200,200,200) ;
 
 	FeatureTree F(&samplers) ;
@@ -1351,7 +1355,6 @@ int main(int argc, char *argv[])
 		feats.push_back(inclusions[i]) ;
 
 	int nAgg = 6000 ;
-	feats=placement(sample.getPrimitive(), feats, &nAgg, 0, 60000);
 	
 	MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
@@ -1371,13 +1374,13 @@ int main(int argc, char *argv[])
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	Vector a(6.,0) ;
-// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100/*166.11322368308294*/, 200, 200, 200, m1, a) ;
-	Inclusion3D * inc0 = new Inclusion3D(100/*166.11322368308294*/, 00, 00, 00) ;
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100/*166.11322368308294*/, 200, 200, 200, m0, a) ;
+// 	Inclusion3D * inc0 = new Inclusion3D(100/*166.11322368308294*/, 00, 00, 00) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
-	inc0->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
+// 	inc0->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
-// 	F.addFeature(&samplers, inc) ;
-	F.addFeature(&samplers, inc0) ;
+	F.addFeature(&samplers, inc) ;
+// 	F.addFeature(&samplers, inc0) ;
 	F.setSamplingNumber(256) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
@@ -1385,7 +1388,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, BOTTOM, 10)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	step() ;
 

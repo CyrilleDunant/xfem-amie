@@ -171,11 +171,12 @@ struct Memory
 	std::string current_variable ;
 	double * top_pos ;
 	double * prev_top_pos ;
+	double * prev_prev_top_pos ;
 
 	/** \brief Constructor. Initialises stack and heap to 0.
 	 * 
 	 */
-	Memory() : top_pos(&stack[0]), prev_top_pos(&stack[0]-1)
+	Memory() : top_pos(&stack[0]), prev_top_pos(&stack[0]-1), prev_prev_top_pos(&stack[0]-2)
 	{
 	} ;
 	
@@ -224,6 +225,7 @@ struct Memory
 // 			std::cout << "stack overflow !" << std::endl ;
 		++top_pos ;
 		++prev_top_pos ;
+		++prev_prev_top_pos ;
 		(*top_pos)= a ;
 		
 	}
@@ -235,6 +237,7 @@ struct Memory
 	{
 		--top_pos ;
 		--prev_top_pos ;
+		--prev_prev_top_pos ;
 	}
 	
 	/** \brief reset stack to its original values and positions
@@ -244,6 +247,7 @@ struct Memory
 	{
 		top_pos = &stack[0] ;
 		prev_top_pos = &stack[0]-1 ;
+		prev_prev_top_pos = &stack[0]-2 ;
 // 		for(std::map<std::string, double *>::iterator i = variables.begin(); i!= variables.end() ; i++)
 // 			*i->second = 0 ;
 	}
@@ -798,7 +802,7 @@ public:
 	{
 		double x = *(context.memory.top_pos)-x0 ;
 		double y = *(context.memory.prev_top_pos)-y0 ;
-		double z = *(context.memory.prev_top_pos-1)-z0 ;
+		double z = *(context.memory.prev_prev_top_pos)-z0 ;
 		context.memory.pop_back() ;
 		context.memory.pop_back() ;
 		*context.memory.top_pos = sqrt(x*x+y*y+z*z) ;

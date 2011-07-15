@@ -2017,9 +2017,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 	std::valarray<bool> visited(false, this->tree.size()) ;
 	
 	tree[0]->conflicts(visited,cons,p) ;
-	
-	
-	
+
 	for(size_t i = 0 ; i < plane.size() ; i++)
 	{
 	

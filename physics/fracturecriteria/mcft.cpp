@@ -168,8 +168,9 @@ double NonLocalMCFT::grade( ElementState &s )
 	
 	double maxTension = upVal;
 	
-	if(tstrain >= tensionCritStrain)
+	if(tstrain >= tensionCritStrain || strainBroken && tstrain > 0)
 	{
+		strainBroken = true ;
 	//Yamamoto model
 //		maxTension = upVal/(1.+sqrt(2e6*(tstrain+tensionCritStrain))) ;
 
@@ -200,19 +201,19 @@ double NonLocalMCFT::grade( ElementState &s )
 		crits.push_back( 1. - std::abs( maxCompression / cstress ) ) ;
 	}
 
-	if( tstrain >= tensionCritStrain && tstress >= 0 && std::abs( tstress ) >= std::abs( maxTension ) )
+	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > 0) && tstress >= 0 && std::abs( tstress ) >= std::abs( maxTension ) )
 	{
 		metInTension = true ;
 		crits.push_back( 1. - std::abs( maxTension / tstress ) ) ;
 	}
 
 
-	if( tstrain >= tensionCritStrain && tstress >= 0 && std::abs( tstress )  < std::abs( maxTension ) )
+	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > 0 )&& tstress >= 0 && std::abs( tstress )  < std::abs( maxTension ) )
 	{
 		crits.push_back( -1. + std::abs( tstress / maxTension ) ) ;
 	}
 	
-	if(tstrain < tensionCritStrain && tstrain > 0)
+	if(tstrain < tensionCritStrain && !strainBroken && tstrain > 0)
 	{
 		crits.push_back( -1. + std::abs( tstrain / tensionCritStrain ) ) ;
 	}

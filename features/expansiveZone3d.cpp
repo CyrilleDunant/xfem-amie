@@ -5,6 +5,9 @@
 #include "expansiveZone3d.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../physics/dual_behaviour.h"
+#include "../physics/homogeneised_behaviour.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
+
 
 using namespace Mu ;
 
@@ -39,42 +42,86 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 			inDisc.push_back(disc[i]) ;
 	}
 	std::set<DelaunayTetrahedron *> newInterface ;
-	for(size_t i = 0 ; i < ring.size() ; i++)
+
+	for( size_t i = 0 ; i < ring.size() ; i++ )
 	{
-		if(bimateralInterfaced.find(ring[i]) == bimateralInterfaced.end())
+		if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
 		{
-			ring[i]->setBehaviour(new BimaterialInterface(getPrimitive(),
-					      new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-					      ring[i]->getBehaviour()->getCopy()
-					      )) ;
-			ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform(), ring[i]->getZTransform()) ;
+			BimaterialInterface *bi = NULL ;
+
+			if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
+			{
+				std::cout << "get original" << std::endl ;
+				bi = new BimaterialInterface( getPrimitive(),
+				                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getCopy()
+				                            ) ;
+				std::cout << dynamic_cast<NonLocalMohrCoulomb *>( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getFractureCriterion() )->upVal << std::endl ;
+			}
+			else
+			{
+				bi = new BimaterialInterface( getPrimitive(),
+			        new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+			        ring[i]->getBehaviour()->getCopy() ) ;
+			}
+
+			delete ring[i]->getBehaviour() ;
+			ring[i]->setBehaviour( bi ) ;
+			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform(), ring[i]->getZTransform() ) ;
+			bi->setSource( getPrimitive() );
 		}
-		newInterface.insert(ring[i]) ;
+
+		newInterface.insert( ring[i] ) ;
 	}
-	
+
 	std::set<DelaunayTetrahedron *> newExpansive ;
-	for(size_t i = 0 ; i < inDisc.size() ; i++)
+
+	for( size_t i = 0 ; i < inDisc.size() ; i++ )
 	{
-		if(expansive.find(inDisc[i]) == expansive.end())
-			inDisc[i]->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
-		
-		newExpansive.insert(inDisc[i]) ;
-	}
-	expansive = newExpansive ;
-	
-	if(disc.size() == 1)
-	{
-		if(bimateralInterfaced.find(disc[0]) == bimateralInterfaced.end())
+		if( expansive.find( inDisc[i] ) == expansive.end() )
 		{
-			disc[0]->setBehaviour(new BimaterialInterface(getPrimitive(),
-					      new StiffnessWithImposedDeformation(cgTensor, imposedDef),
-					      disc[0]->getBehaviour()->getCopy()
-					      )) ;
-			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform(), disc[0]->getZTransform()) ;
+			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
+			delete inDisc[i]->getBehaviour() ;
+			inDisc[i]->setBehaviour( bi ) ;
+			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}
-		newInterface.insert(disc[0]) ;
+
+		newExpansive.insert( inDisc[i] ) ;
 	}
-	
+
+	expansive = newExpansive ;
+
+	if( disc.size() == 1 )
+	{
+		if( bimateralInterfaced.find( disc[0] ) == bimateralInterfaced.end() )
+		{
+			if( dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() ) )
+			{
+				std::cout << "get original" << std::endl ;
+				BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
+				                       new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+				                       dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() )->original->getCopy()
+				                                              ) ;
+				delete disc[0]->getBehaviour() ;
+				disc[0]->setBehaviour( bi ) ;
+			}
+			else
+			{
+				BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
+				                       new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+				                       disc[0]->getBehaviour()->getCopy()
+				                                              ) ;
+				delete disc[0]->getBehaviour() ;
+				disc[0]->setBehaviour( bi ) ;
+			}
+
+			disc[0]->getBehaviour()->transform( disc[0]->getXTransform(), disc[0]->getYTransform(), disc[0]->getZTransform() ) ;
+			disc[0]->getBehaviour()->setSource( getPrimitive() );
+		}
+
+		newInterface.insert( disc[0] ) ;
+	}
+
 	bimateralInterfaced = newInterface ;
 	
 }

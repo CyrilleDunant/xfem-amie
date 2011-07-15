@@ -2668,11 +2668,15 @@ void FeatureTree::setElementBehaviours()
 					}
 					else if(rescaleFactors.find(triangles[j]) == rescaleFactors.end())
 					{
-						std::vector<DelaunayTriangle *> possibleTriangles = dtree->getConflictingElements(&tris[j]->getCenter()) ;
+						Circle c(tris[j]->getRadius()*1.01, tris[j]->getCircumCenter()) ;
+						std::vector<DelaunayTriangle *> possibleTriangles = dtree->getConflictingElements(&c) ;
 						for(size_t k = 0 ; k< possibleTriangles.size() ; k++)
 						{
 							if(possibleTriangles[k]->in( tris[j]->getCenter()))
+							{
 								rescaleFactors[possibleTriangles[k]] = bf.second ;
+								break ;
+							}
 						}
 					}
 					else if(triangles[j]->in( tris[j]->getCenter()))

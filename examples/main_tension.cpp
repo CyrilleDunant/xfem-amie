@@ -1393,10 +1393,17 @@ int main(int argc, char *argv[])
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
 	
+	double nu_concreteSteel = 0.2 ;
+	double nu_steelConcrete = 0.2* E_paste/E_steel ;
+	Matrix complianceSteelx(3,3) ;
+	complianceSteelx[0][0] = 1./E_steel ;                complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
+	complianceSteelx[1][0] = -nu_concreteSteel/E_steel ; complianceSteelx[1][1] =  1./E_paste ;
+	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
+	m0_steel = inverse3x3Matrix(complianceSteelx) ;
 	
-	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
+/*	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
-	m0_steel[2][0] = 0 ;                                        m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ; 
+	m0_steel[2][0] = 0 ;                                       m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ;  */
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;

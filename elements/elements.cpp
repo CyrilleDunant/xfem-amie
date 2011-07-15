@@ -1213,7 +1213,6 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 	
 	if(order == LINEAR)
 	{
-		this->Tetrahedron::sampleSurface(4) ;
 		shapefunc = new std::valarray<Function>(4) ;
 		Matrix zero(2,2) ;
 		std::valarray<Matrix> xi(zero, 2) ;

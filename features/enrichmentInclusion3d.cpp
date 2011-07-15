@@ -364,7 +364,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			bool add = true ;
 			for(size_t k = 0 ; k < father.getBoundingPoints().size() ; k++)
 			{
-				if(squareDist3D(father.getBoundingPoint(k), localintersect) < .0001)
+				if(squareDist3D(father.getBoundingPoint(k), localintersect) < .01)
 				{
 					add = false ;
 					break ;
@@ -373,7 +373,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			
 			for(size_t k = 0 ; k < hint.size() ; k++)
 			{
-				if(squareDist3D(hint[k], localintersect) < .0001)
+				if(squareDist3D(hint[k], localintersect) < .01)
 				{
 					add = false ;
 					break ;
@@ -434,7 +434,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			if(std::binary_search(ring.begin(), ring.end(), t))
 				continue ;
 			
-			Function blend = getBlendingFunction(dofId, t) ;
+			Function blend = Function("1") ;getBlendingFunction(dofId, t) ;
 			
 			if(!t->enrichmentUpdated)
 				t->clearEnrichment( getPrimitive()) ;
@@ -469,7 +469,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = father.getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
+						Function f = father.getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
 
 						if(!hinted)
 						{
