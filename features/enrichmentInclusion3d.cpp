@@ -299,6 +299,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 
 void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree)
 {
+	lastId = 40000;
 	if(updated)
 		update(dtree) ;
 	updated = false ;
@@ -308,7 +309,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTetrahedron *> ring ;
-	TetrahedralElement father(disc[0]->getOrder()) ;
+	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
 		if(enrichmentTarget(disc[i]) )
@@ -316,6 +317,11 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			ring.push_back(disc[i]) ;
 		}
 	}
+	
+	Order order = LINEAR ;
+	if(!ring.empty())
+		order = ring[0]->getOrder() ;
+	TetrahedralElement father(order) ;
 	//sorting the element for later usage of std::find
 	std::sort(ring.begin(), ring.end()) ;
 	
@@ -350,13 +356,13 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 // 		if there are no intersection points we need not do anything
 		size_t isize = tetSphereIntersectionPoints.size() ;
 		
-		for(size_t j = 0 ; j < isize ; j++)
-		{
-			for(size_t k = j+1 ; k < isize ; k++)
-			{
-				tetSphereIntersectionPoints.push_back((tetSphereIntersectionPoints[j]+tetSphereIntersectionPoints[k])*.5);
-			}
-		}
+// 		for(size_t j = 0 ; j < isize ; j++)
+// 		{
+// 			for(size_t k = j+1 ; k < isize ; k++)
+// 			{
+// 				tetSphereIntersectionPoints.push_back((tetSphereIntersectionPoints[j]*.6666666666666666666667+tetSphereIntersectionPoints[k])*.3333333333333333333);
+// 			}
+// 		}
 		
 		for(size_t j = 0 ; j < tetSphereIntersectionPoints.size() ; j++)
 		{
@@ -364,7 +370,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			bool add = true ;
 			for(size_t k = 0 ; k < father.getBoundingPoints().size() ; k++)
 			{
-				if(squareDist3D(father.getBoundingPoint(k), localintersect) < .01)
+				if(squareDist3D(father.getBoundingPoint(k), localintersect) < .0001 || !ring[i]->in(tetSphereIntersectionPoints[j]))
 				{
 					add = false ;
 					break ;
@@ -373,7 +379,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			
 			for(size_t k = 0 ; k < hint.size() ; k++)
 			{
-				if(squareDist3D(hint[k], localintersect) < .01)
+				if(squareDist3D(hint[k], localintersect) < .0001)
 				{
 					add = false ;
 					break ;
@@ -412,18 +418,11 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			{
 				enriched.insert(that) ;
 				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-				Function f =  father.getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
+				Function f =  father.getShapeFunction(j)*(hat - vm.eval(hat, p.x, p.y, p.z)) ;
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
 				ring[i]->setEnrichment( f, getPrimitive()) ;
-				
-// 						VirtualMachine().print(f);
-// 						std::cout << VirtualMachine().eval(f, 0.25, 0.25, 0.25) << std::endl ;
-// 						f.compile() ;
-// 						VirtualMachine().print(f);
-// 						std::cout << VirtualMachine().eval(f, 0.25, 0.25, 0.25) << std::endl ;
-// 						exit(0) ;
 			}
 		}
 		hint.clear();
@@ -434,7 +433,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			if(std::binary_search(ring.begin(), ring.end(), t))
 				continue ;
 			
-			Function blend = Function("1") ;getBlendingFunction(dofId, t) ;
+			Function blend = getBlendingFunction(dofId, t) ;
 			
 			if(!t->enrichmentUpdated)
 				t->clearEnrichment( getPrimitive()) ;
@@ -469,7 +468,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = father.getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
+						Function f = father.getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
 
 						if(!hinted)
 						{

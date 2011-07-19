@@ -102,7 +102,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-double restraintDepth = 0.01 ;
+double restraintDepth = 0 ; //0.01 ;
 
 Sample sample( NULL, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
 Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
@@ -1873,14 +1873,15 @@ int main( int argc, char *argv[] )
 
 
 		double fact = atof( argv[3] ) ;
+		double fact0 = atof(argv[4]) ;
 
 
 		Sample *blocktop = new Sample( NULL, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
-		blocktop->setBehaviour( new VoidForm()/*new Stiffness( m0_support * 6544984695 )*/ ) ;
+		blocktop->setBehaviour(/* new VoidForm()*/new Stiffness( m0_support * fact0 ) ) ;
 		F.addFeature( NULL, blocktop );
 
 		Sample *blockbottom = new Sample( NULL, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
-		blockbottom->setBehaviour( new VoidForm()/*new Stiffness( m0_support * 6544984695 )*/ ) ;
+		blockbottom->setBehaviour( /*new VoidForm()*/new Stiffness( m0_support * fact0 ) ) ;
 		F.addFeature( NULL, blockbottom );
 
 		Sample *blockleft = new Sample( NULL, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y ) ;
@@ -1936,8 +1937,8 @@ int main( int argc, char *argv[] )
 // 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_ETA, new Rectangle(0.07+restraintDepth*1.1,0.035+restraintDepth*.5, 0,-(0.035+restraintDepth*.5)*.5))) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;
-		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM_LEFT ) ) ;
-// 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
+		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
+ 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , TOP ) ) ;
 	}
 	else
 	{

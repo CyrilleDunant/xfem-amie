@@ -139,9 +139,9 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 		}
 	}
 	std::valarray<std::pair<Point, double> > inArray(inCount) ;
-	std::valarray<Matrix> inMatrixArray(inCount) ;
+	std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),inCount) ;
 	std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
-	std::valarray<Matrix> outMatrixArray(gp.gaussPoints.size()-inCount) ;
+	std::valarray<Matrix> outMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),gp.gaussPoints.size()-inCount) ;
 	GaussPointArray gpIn(inArray, -1) ;
 	GaussPointArray gpOut(outArray, -1) ;
 

@@ -1323,7 +1323,7 @@ int main(int argc, char *argv[])
 	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
 
 	nu = 0.2 ;
-	E = 4 ;
+	E = 10 ;
 	Matrix m1(6,6) ;
 	m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 	m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -1374,14 +1374,14 @@ int main(int argc, char *argv[])
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	Vector a(6.,0) ;
-	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100/*166.11322368308294*/, 200, 200, 200, m0, a) ;
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,166.11322368308294, 200, 200, 200, m1, a) ;
 // 	Inclusion3D * inc0 = new Inclusion3D(100/*166.11322368308294*/, 00, 00, 00) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
 // 	inc0->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 	F.addFeature(&samplers, inc) ;
 // 	F.addFeature(&samplers, inc0) ;
-	F.setSamplingNumber(256) ;
+	F.setSamplingNumber(512) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;

@@ -2143,7 +2143,11 @@ void DelaunayTree3D::insert(Point *p)
 	}
 
 	if(!correct)
-		std::cout << "inconsistent state, will crash soon" <<std::endl ;	
+	{
+		std::cout << "inconsistent state, will crash soon" <<std::endl ;
+		print();
+		exit(0) ;
+	}
 	
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
@@ -2469,60 +2473,50 @@ void DelaunayTetrahedron::clearElementaryMatrix()
 
 std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix() 
 {
-// 	std::cout << "--" << std::endl ;
-// 	std::cout <<TetrahedralElement(LINEAR).volume() << std::endl ;
-// 	inLocalCoordinates(getBoundingPoint(0)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(0), inLocalCoordinates(getBoundingPoint(0)))<< std::endl ;
-// 	inLocalCoordinates(getBoundingPoint(1)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(1), inLocalCoordinates(getBoundingPoint(1)))<< std::endl ;
-// 	inLocalCoordinates(getBoundingPoint(2)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(2), inLocalCoordinates(getBoundingPoint(2)))<< std::endl ;
-// 	inLocalCoordinates(getBoundingPoint(3)).print() ; std::cout << VirtualMachine().eval(getShapeFunction(3), inLocalCoordinates(getBoundingPoint(3)))<< std::endl ;
-// 	std::cout << "--" << std::endl ;
-	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size())
+if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size())
 	{
 		return cachedElementaryMatrix ;
 	}
-	std::vector<size_t > dofs = getDofIds() ;
-	int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	if(enrichmentUpdated || behaviourUpdated || cachedElementaryMatrix.size() == 0)
+	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
+
+	if(enrichmentUpdated || behaviourUpdated 
+		|| cachedElementaryMatrix.size() == 0 
+		|| cachedElementaryMatrix.size() != dofCount 
+		||  (cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() != dofCount))
 	{
-		
-		std::valarray< Matrix > v_j(Matrix(size, size), dofs.size());
-		cachedElementaryMatrix.resize(dofs.size(), v_j) ;
+		int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		std::valarray< Matrix > v_j(Matrix(size, size), dofCount) ;
+		cachedElementaryMatrix.resize(dofCount,v_j) ;
 		getSubTriangulatedGaussPoints() ;
 	}
-	
-	std::valarray<Matrix> Jinv ;
-	
-	if(isMoved())
+	std::valarray<Matrix> Jinv(Matrix(3, 3),  getGaussPoints().gaussPoints.size()) ;
+	if(true)//moved)
 	{
-		Jinv.resize(getGaussPoints().gaussPoints.size()) ;
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
-			getInverseJacobianMatrix( getCachedGaussPoints()->gaussPoints[i].first, Jinv[i]) ;
+			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 		}
 	}
 	else
 	{
-		Matrix J(3,3) ;
+		Matrix J(3, 3) ;
 		getInverseJacobianMatrix(Point( .25, .25, .25), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
-	
 	VirtualMachine vm ;
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		 behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
-		
+		behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
-			 behaviour->apply(getShapeFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j][i], &vm) ;
+			behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
+			behaviour->apply(getShapeFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j][i], &vm) ;
 		}
-		
 		for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
 		{
-			 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
-			 behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
+			behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
+			behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
 		}
 	}
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
@@ -2535,7 +2529,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
-
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;
 	if(behaviour->hasInducedForces())
@@ -2800,7 +2793,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ; 
 			
-	size_t numberOfRefinements = 1;
+	size_t numberOfRefinements = 2;
 
 	VirtualMachine vm ;
 	if(getEnrichmentFunctions().size() > 0)
@@ -2810,7 +2803,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		
 		std::vector<std::pair<Point, double> > gp_alternative ;
 
-		if(true)
+		if(false)
 		{
 			double npoints = 128 ;
 			while(gp_alternative.size() < npoints)
@@ -2967,10 +2960,10 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 								out =true ;
 							
 							if(!out  && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(0)) <  .01 && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(1)) <  .01 && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(2)) <  .01 && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(3)) <  .01 )
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(0)) <  .0001 && 
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(1)) <  .0001 && 
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(2)) <  .0001 && 
+								squareDist3D(localPoint , tri[j]->getBoundingPoint(3)) <  .0001 )
 							{
 								newPoints.push_back(localPoint) ;
 							}
@@ -2985,7 +2978,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				bool unique  = true ;
 				for(size_t k = 0 ; k < uniquePoints.size() ; k++)
 				{
-					if(squareDist3D(newPoints[j], uniquePoints[k]) < .01 )
+					if(squareDist3D(newPoints[j], uniquePoints[k]) < .0001 )
 					{
 						unique  = false ;
 						break ;

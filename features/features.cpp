@@ -3016,12 +3016,12 @@ void FeatureTree::enrich()
 	{
 		if( is3D() )
 		{
-			if( this->tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *>( this->tree[i] )->moved() || !state.enriched ) )
+			if( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *>( tree[i] )->moved() || !state.enriched ) )
 			{
 				if( !state.enriched )
 					dynamic_cast<EnrichmentFeature *>( tree[i] )->update( dtree3D ) ;
 
-				dynamic_cast<EnrichmentFeature *>( this->tree[i] )->enrich( lastEnrichmentId, dtree3D ) ;
+				dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( lastEnrichmentId, dtree3D ) ;
 
 				enrichmentChange = true ;
 				reuseDisplacements = false ;
@@ -3030,7 +3030,7 @@ void FeatureTree::enrich()
 				{
 					for( size_t j =  0 ; j < coarseTrees.size() ; j++ )
 					{
-						dynamic_cast<EnrichmentFeature *>( this->tree[i] )->enrich( coarseLastEnrichmentId[j], coarseTrees[j] ) ;
+						dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( coarseLastEnrichmentId[j], coarseTrees[j] ) ;
 					}
 				}
 			}
@@ -3041,12 +3041,12 @@ void FeatureTree::enrich()
 		else
 		{
 
-			if( this->tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *>( this->tree[i] )->moved() || !state.enriched ) )
+			if( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *>( tree[i] )->moved() || !state.enriched ) )
 			{
 				if( !state.enriched )
 					dynamic_cast<EnrichmentFeature *>( tree[i] )->update( dtree ) ;
 
-				dynamic_cast<EnrichmentFeature *>( this->tree[i] )->enrich( lastEnrichmentId, dtree ) ;
+				dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( lastEnrichmentId, dtree ) ;
 
 				enrichmentChange = true ;
 				reuseDisplacements = false ;
