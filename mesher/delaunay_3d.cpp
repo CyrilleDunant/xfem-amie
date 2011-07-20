@@ -2805,7 +2805,7 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		if(true)
 		{
 			TetrahedralElement father ;
-			double npoints = 128 ;
+			double npoints = 256 ;
 			while(gp_alternative.size() < npoints)
 			{
 				double x = (double)rand()/(double)RAND_MAX ;
