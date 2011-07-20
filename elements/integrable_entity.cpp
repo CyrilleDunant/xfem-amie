@@ -1333,10 +1333,10 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 	}
 	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
-		Point p_ = parent->inLocalCoordinates( p ) ;
+		Point p_ = p ; 
 
-		if( local )
-			p_ = p ;
+		if( !local )
+			p_ = parent->inLocalCoordinates( p ) ;
 
 		double x_xi = 0;
 		double x_eta = 0;
@@ -1441,10 +1441,10 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
 	{
 
-		Point p_ = parent->inLocalCoordinates( p ) ;
+		Point p_ = p ;
 
-		if( local )
-			p_ = p ;
+		if( !local )
+			p_ = parent->inLocalCoordinates( p ) ;
 
 		double x_xi = 0;
 		double x_eta = 0;
@@ -1481,10 +1481,10 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local ) const
 	}
 	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
-		Point p_ = parent->inLocalCoordinates( p ) ;
+		Point p_ = p ;
 
-		if( local )
-			p_ = p ;
+		if( !local )
+			p_ = parent->inLocalCoordinates( p ) ;
 
 		double x_xi = 0;
 		double x_eta = 0;
@@ -1569,10 +1569,10 @@ Vector ElementState::getNonEnrichedStrain( const Point &p, bool local ) const
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
 	{
 
-		Point p_ = parent->inLocalCoordinates( p ) ;
+		Point p_ = p ;
 
-		if( local )
-			p_ = p ;
+		if( !local )
+			p_ = parent->inLocalCoordinates( p ) ;
 
 		double x_xi = 0;
 		double x_eta = 0;
@@ -1604,10 +1604,10 @@ Vector ElementState::getNonEnrichedStrain( const Point &p, bool local ) const
 	}
 	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
-		Point p_ = parent->inLocalCoordinates( p ) ;
+		Point p_ = p ;
 
-		if( local )
-			p_ = p ;
+		if( !local )
+			p_ = parent->inLocalCoordinates( p ) ;
 
 		double x_xi = 0;
 		double x_eta = 0;

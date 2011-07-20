@@ -805,7 +805,7 @@ public:
 		double z = *(context.memory.prev_prev_top_pos)-z0 ;
 		context.memory.pop_back() ;
 		context.memory.pop_back() ;
-		*context.memory.top_pos = sqrt(x*x+y*y+z*z) ;
+		*(context.memory.top_pos) = sqrt(x*x+y*y+z*z) ;
 
 	}
 	virtual ~PointDistanceTrinaryOperatorToken() { };

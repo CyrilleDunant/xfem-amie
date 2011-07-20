@@ -1378,6 +1378,7 @@ void FeatureTree::stitch()
 			for(auto i = layer3d.begin() ; i != layer3d.end() ; i++)
 				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
 
+			return ;
 			if( projectOnBoundaries )
 			{
 				switch( elemOrder )

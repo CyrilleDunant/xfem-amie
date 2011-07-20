@@ -4,6 +4,7 @@
 
 #include "expansiveZone3d.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
+#include "../physics/stiffness.h"
 #include "../physics/dual_behaviour.h"
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
@@ -53,7 +54,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 			{
 				std::cout << "get original" << std::endl ;
 				bi = new BimaterialInterface( getPrimitive(),
-				                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+				                              new Stiffness/*WithImposedDeformation*/( cgTensor/*, imposedDef */),
 				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getCopy()
 				                            ) ;
 				std::cout << dynamic_cast<NonLocalMohrCoulomb *>( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getFractureCriterion() )->upVal << std::endl ;
@@ -61,7 +62,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 			else
 			{
 				bi = new BimaterialInterface( getPrimitive(),
-			        new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+			        new Stiffness/*WithImposedDeformation*/( cgTensor/*, imposedDef */),
 			        ring[i]->getBehaviour()->getCopy() ) ;
 			}
 
@@ -80,7 +81,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 	{
 		if( expansive.find( inDisc[i] ) == expansive.end() )
 		{
-			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
+			Stiffness/*WithImposedDeformation*/ * bi = new Stiffness/*WithImposedDeformation*/( cgTensor/*, imposedDef */) ;
 			delete inDisc[i]->getBehaviour() ;
 			inDisc[i]->setBehaviour( bi ) ;
 			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
@@ -99,7 +100,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 			{
 				std::cout << "get original" << std::endl ;
 				BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
-				                       new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+				                       new Stiffness/*WithImposedDeformation*/( cgTensor/*, imposedDef */),
 				                       dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() )->original->getCopy()
 				                                              ) ;
 				delete disc[0]->getBehaviour() ;
@@ -108,7 +109,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 			else
 			{
 				BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
-				                       new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+				                       new Stiffness/*WithImposedDeformation*/( cgTensor/*, imposedDef */),
 				                       disc[0]->getBehaviour()->getCopy()
 				                                              ) ;
 				delete disc[0]->getBehaviour() ;

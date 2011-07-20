@@ -2281,14 +2281,13 @@ void DelaunayTetrahedron::refresh(const TetrahedralElement * father)
 
 std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g) const
 {
-	Point * p = new Point(g->getCenter()) ;
-	std::vector<DelaunayTreeItem3D *> cons = this->conflicts(p) ;
+	std::vector<DelaunayTreeItem3D *> cons = conflicts(&g->getCenter()) ;
 	DelaunayTetrahedron * origin = NULL ;
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
-		if(dynamic_cast<DelaunayTetrahedron *>(cons[i])->in(g->getCenter()))
+		if(cons[i]->isTetrahedron() && static_cast<DelaunayTetrahedron *>(cons[i])->in(g->getCenter()))
 		{
-			origin = dynamic_cast<DelaunayTetrahedron *>(cons[i]) ;
+			origin = static_cast<DelaunayTetrahedron *>(cons[i]) ;
 			break ;
 		}
 	}
@@ -2803,15 +2802,16 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		
 		std::vector<std::pair<Point, double> > gp_alternative ;
 
-		if(false)
+		if(true)
 		{
+			TetrahedralElement father ;
 			double npoints = 128 ;
 			while(gp_alternative.size() < npoints)
 			{
 				double x = (double)rand()/(double)RAND_MAX ;
 				double y = (double)rand()/(double)RAND_MAX ;
 				double z =  (double)rand()/(double)RAND_MAX ;
-				if(x+y+z < 1)
+				if(father.in(Point(x, y, z)))
 					gp_alternative.push_back(std::make_pair(Point(x, y, z), 0.1666666666666667/npoints)) ;
 			}
 			
@@ -2830,10 +2830,8 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 			if(gp.gaussPoints.size() < gp_alternative.size())
 			{
-				
 				gp.gaussPoints.resize(gp_alternative.size()) ;
 				std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-				gp.id = REGULAR_GRID ;
 			}
 			delete getCachedGaussPoints() ;
 			setCachedGaussPoints(new GaussPointArray(gp)) ;
@@ -2885,90 +2883,90 @@ const GaussPointArray & DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					newPoints.push_back((*tri[j]->second + *tri[j]->third  )/2); 
 					newPoints.push_back((*tri[j]->second + *tri[j]->fourth )/2); 
 					newPoints.push_back((*tri[j]->third  + *tri[j]->fourth )/2); 
-					for(size_t l = 0 ; l < enrichmentSource.size() ; l++)
-					{
-						Tetrahedron globaltet(
-							Point(
-										vm.eval(xtrans,  tri[j]->getBoundingPoint(0)),
-										vm.eval(ytrans,  tri[j]->getBoundingPoint(0)),
-										vm.eval(ztrans,  tri[j]->getBoundingPoint(0))
-							),
-							Point(
-										vm.eval(xtrans,  tri[j]->getBoundingPoint(1)),
-										vm.eval(ytrans,  tri[j]->getBoundingPoint(1)),
-										vm.eval(ztrans,  tri[j]->getBoundingPoint(1))
-							),
-							Point(
-										vm.eval(xtrans,  tri[j]->getBoundingPoint(2)),
-										vm.eval(ytrans,  tri[j]->getBoundingPoint(2)),
-										vm.eval(ztrans,  tri[j]->getBoundingPoint(2))
-							),
-							Point(
-										vm.eval(xtrans,  tri[j]->getBoundingPoint(3)),
-										vm.eval(ytrans,  tri[j]->getBoundingPoint(3)),
-										vm.eval(ztrans,  tri[j]->getBoundingPoint(3))
-							)
-						) ;
-						std::vector<Point> inter = globaltet.intersection(enrichmentSource[l]) ;
-						for(size_t m = 0 ; m < inter.size() ; m++)
-						{
-							Point localPoint(inLocalCoordinates(inter[m])) ;
-							if(localPoint.x < 0.0001)
-								localPoint.x = 0 ;
-							if(localPoint.y < 0.0001)
-								localPoint.y = 0 ;
-							if(localPoint.z < 0.0001)
-								localPoint.z = 0 ;
-							if(std::abs(localPoint.x+localPoint.y-1) <  0.0001)
-							{
-								 if(localPoint.x < localPoint.y)
-								 {
-									 localPoint.x += std::abs(localPoint.x+localPoint.y-1) ;
-								 }
-								 else
-									 localPoint.y += std::abs(localPoint.x+localPoint.y-1) ;
-							}
-							if(std::abs(localPoint.x+localPoint.z-1) <  0.0001)
-							{
-								 if(localPoint.x < localPoint.z)
-								 {
-									 localPoint.x += std::abs(localPoint.x+localPoint.z-1) ;
-								 }
-								 else
-									 localPoint.z += std::abs(localPoint.x+localPoint.z-1) ;
-							}
-							if(std::abs(localPoint.y+localPoint.z-1) <  0.0001)
-							{
-								 if(localPoint.y < localPoint.z)
-								 {
-									 localPoint.y += std::abs(localPoint.y+localPoint.z-1) ;
-								 }
-								 else
-									 localPoint.z += std::abs(localPoint.y+localPoint.z-1) ;
-							}
-							if(std::abs(localPoint.x+localPoint.y+localPoint.z-1) <  0.0001)
-							{
-								if(localPoint.x <= localPoint.y && localPoint.x <= localPoint.z)
-									localPoint.x += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
-								else if(localPoint.y <= localPoint.x && localPoint.y <= localPoint.z)
-									localPoint.y += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
-								else
-									localPoint.z += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
-							}
-							bool out = false ;
-							if(localPoint.x+localPoint.y+localPoint.z > 1)
-								out =true ;
-							
-							if(!out  && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(0)) <  .0001 && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(1)) <  .0001 && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(2)) <  .0001 && 
-								squareDist3D(localPoint , tri[j]->getBoundingPoint(3)) <  .0001 )
-							{
-								newPoints.push_back(localPoint) ;
-							}
-						}
-					}
+// 					for(size_t l = 0 ; l < enrichmentSource.size() ; l++)
+// 					{
+// 						Tetrahedron globaltet(
+// 							Point(
+// 										vm.eval(xtrans,  tri[j]->getBoundingPoint(0)),
+// 										vm.eval(ytrans,  tri[j]->getBoundingPoint(0)),
+// 										vm.eval(ztrans,  tri[j]->getBoundingPoint(0))
+// 							),
+// 							Point(
+// 										vm.eval(xtrans,  tri[j]->getBoundingPoint(1)),
+// 										vm.eval(ytrans,  tri[j]->getBoundingPoint(1)),
+// 										vm.eval(ztrans,  tri[j]->getBoundingPoint(1))
+// 							),
+// 							Point(
+// 										vm.eval(xtrans,  tri[j]->getBoundingPoint(2)),
+// 										vm.eval(ytrans,  tri[j]->getBoundingPoint(2)),
+// 										vm.eval(ztrans,  tri[j]->getBoundingPoint(2))
+// 							),
+// 							Point(
+// 										vm.eval(xtrans,  tri[j]->getBoundingPoint(3)),
+// 										vm.eval(ytrans,  tri[j]->getBoundingPoint(3)),
+// 										vm.eval(ztrans,  tri[j]->getBoundingPoint(3))
+// 							)
+// 						) ;
+// 						std::vector<Point> inter = globaltet.intersection(enrichmentSource[l]) ;
+// 						for(size_t m = 0 ; m < inter.size() ; m++)
+// 						{
+// 							Point localPoint(inLocalCoordinates(inter[m])) ;
+// 							if(localPoint.x < 0.0001)
+// 								localPoint.x = 0 ;
+// 							if(localPoint.y < 0.0001)
+// 								localPoint.y = 0 ;
+// 							if(localPoint.z < 0.0001)
+// 								localPoint.z = 0 ;
+// 							if(std::abs(localPoint.x+localPoint.y-1) <  0.0001)
+// 							{
+// 								 if(localPoint.x < localPoint.y)
+// 								 {
+// 									 localPoint.x += std::abs(localPoint.x+localPoint.y-1) ;
+// 								 }
+// 								 else
+// 									 localPoint.y += std::abs(localPoint.x+localPoint.y-1) ;
+// 							}
+// 							if(std::abs(localPoint.x+localPoint.z-1) <  0.0001)
+// 							{
+// 								 if(localPoint.x < localPoint.z)
+// 								 {
+// 									 localPoint.x += std::abs(localPoint.x+localPoint.z-1) ;
+// 								 }
+// 								 else
+// 									 localPoint.z += std::abs(localPoint.x+localPoint.z-1) ;
+// 							}
+// 							if(std::abs(localPoint.y+localPoint.z-1) <  0.0001)
+// 							{
+// 								 if(localPoint.y < localPoint.z)
+// 								 {
+// 									 localPoint.y += std::abs(localPoint.y+localPoint.z-1) ;
+// 								 }
+// 								 else
+// 									 localPoint.z += std::abs(localPoint.y+localPoint.z-1) ;
+// 							}
+// 							if(std::abs(localPoint.x+localPoint.y+localPoint.z-1) <  0.0001)
+// 							{
+// 								if(localPoint.x <= localPoint.y && localPoint.x <= localPoint.z)
+// 									localPoint.x += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
+// 								else if(localPoint.y <= localPoint.x && localPoint.y <= localPoint.z)
+// 									localPoint.y += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
+// 								else
+// 									localPoint.z += std::abs(localPoint.x+localPoint.y+localPoint.z-1) ;
+// 							}
+// 							bool out = false ;
+// 							if(localPoint.x+localPoint.y+localPoint.z > 1)
+// 								out =true ;
+// 							
+// 							if(!out  && 
+// 								squareDist3D(localPoint , tri[j]->getBoundingPoint(0)) <  .0001 && 
+// 								squareDist3D(localPoint , tri[j]->getBoundingPoint(1)) <  .0001 && 
+// 								squareDist3D(localPoint , tri[j]->getBoundingPoint(2)) <  .0001 && 
+// 								squareDist3D(localPoint , tri[j]->getBoundingPoint(3)) <  .0001 )
+// 							{
+// 								newPoints.push_back(localPoint) ;
+// 							}
+// 						}
+// 					}
 				}
 			}
 			std::vector<Point> uniquePoints ;

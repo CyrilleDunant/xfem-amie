@@ -2041,14 +2041,13 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 {
-	Point * p = new Point(g->getCenter()) ;
-	std::vector<DelaunayTreeItem *> cons = this->conflicts(p) ;
+	std::vector<DelaunayTreeItem *> cons = this->conflicts(&g->getCenter()) ;
 	DelaunayTriangle * origin = NULL ;
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
-		if(dynamic_cast<DelaunayTriangle *>(cons[i])->in(g->getCenter()))
+		if(cons[i]->isTriangle && static_cast<DelaunayTriangle *>(cons[i])->in(g->getCenter()))
 		{
-			origin = dynamic_cast<DelaunayTriangle *>(cons[i]) ;
+			origin = static_cast<DelaunayTriangle *>(cons[i]) ;
 			break ;
 		}
 	}

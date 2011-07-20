@@ -64,12 +64,23 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 	{
 		TetrahedralElement father(LINEAR) ;
 		
+// 		std::cout << std::endl ;
+// 	for(size_t i = 0 ; i < 4 ; i++)
+// 		{
+// 			for(size_t j = 0 ; j < 4 ; j++)
+// 			{
+// 				std::cout << i << "  " << j << "  " << VirtualMachine().eval(father.getShapeFunction(i), t->inLocalCoordinates(t->getBoundingPoint(j))) << std::endl ;
+// 			}
+// 		}
+// 		std::cout << std::endl ;
+		/*exit(0) */;
+		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() &&
 			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
-			return father.getShapeFunction(0) ;
+			return t->getShapeFunction(0) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -77,7 +88,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
-			return father.getShapeFunction(1) ;
+			return t->getShapeFunction(1) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -85,7 +96,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
-			return father.getShapeFunction(2) ;
+			return t->getShapeFunction(2) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -93,7 +104,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
-			return father.getShapeFunction(3) ;
+			return t->getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -101,7 +112,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
-			return father.getShapeFunction(1)+father.getShapeFunction(2)+father.getShapeFunction(3) ;
+			return t->getShapeFunction(1)+t->getShapeFunction(2)+t->getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -109,7 +120,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
-			return father.getShapeFunction(0)+father.getShapeFunction(2)+father.getShapeFunction(3) ;
+			return t->getShapeFunction(0)+t->getShapeFunction(2)+t->getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -117,7 +128,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
-			return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(3) ;
+			return t->getShapeFunction(1)+t->getShapeFunction(0)+t->getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -125,7 +136,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
-			return father.getShapeFunction(1)+father.getShapeFunction(2)+father.getShapeFunction(0) ;
+			return t->getShapeFunction(1)+t->getShapeFunction(2)+t->getShapeFunction(0) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -133,7 +144,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
-			return father.getShapeFunction(2) + father.getShapeFunction(3);
+			return t->getShapeFunction(2) + t->getShapeFunction(3);
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -141,7 +152,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
-			return father.getShapeFunction(1) + father.getShapeFunction(3);
+			return t->getShapeFunction(1) + t->getShapeFunction(3);
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -149,7 +160,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
-			return father.getShapeFunction(1) + father.getShapeFunction(2) ;
+			return t->getShapeFunction(1) + t->getShapeFunction(2) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -157,7 +168,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
 		{
-			return father.getShapeFunction(0) + father.getShapeFunction(3) ;
+			return t->getShapeFunction(0) + t->getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -165,7 +176,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
-			return father.getShapeFunction(0) + father.getShapeFunction(2) ;
+			return t->getShapeFunction(0) + t->getShapeFunction(2) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -173,7 +184,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
 		{
-			return father.getShapeFunction(0) + father.getShapeFunction(1) ;
+			return t->getShapeFunction(0) + t->getShapeFunction(1) ;
 		}
 	}
 	else
@@ -185,39 +196,40 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
 		{
-			return father.getShapeFunction(0) ;
+			return father.getShapeFunction(2) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
-		{
-			return father.getShapeFunction(1) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
-		{
-			return father.getShapeFunction(2) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
 		{
 			return father.getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
+		{
+			return father.getShapeFunction(0) ;
+		}
+		
+		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
+		{
+			return father.getShapeFunction(1) ;
+		}
+		
+		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
 		{
-			return father.getShapeFunction(1)+father.getShapeFunction(2)+father.getShapeFunction(3) ;
+			
+			return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -225,7 +237,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
 		{
-			return  father.getShapeFunction(0)+father.getShapeFunction(2)+father.getShapeFunction(3) ;
+			return  father.getShapeFunction(0)+father.getShapeFunction(2)+father.getShapeFunction(1) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -233,7 +245,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
 		{
-			return father.getShapeFunction(0)+father.getShapeFunction(1)+father.getShapeFunction(3) ;
+			return father.getShapeFunction(2)+father.getShapeFunction(1)+father.getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -241,7 +253,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
 		{
-			return father.getShapeFunction(0)+father.getShapeFunction(1)+father.getShapeFunction(2) ;
+			return father.getShapeFunction(0)+father.getShapeFunction(3)+father.getShapeFunction(2) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -249,7 +261,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
 		{
-			return father.getShapeFunction(2) + father.getShapeFunction(3);
+			return father.getShapeFunction(0) + father.getShapeFunction(1);
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
@@ -257,31 +269,31 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
 		{
-			return father.getShapeFunction(1) + father.getShapeFunction(3);
+			return father.getShapeFunction(2) + father.getShapeFunction(0);
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
-		{
-			return father.getShapeFunction(1) + father.getShapeFunction(2) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
 		{
 			return father.getShapeFunction(0) + father.getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
+		{
+			return father.getShapeFunction(1) + father.getShapeFunction(2) ;
+		}
+		
+		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
+			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
 		{
-			return father.getShapeFunction(0) + father.getShapeFunction(2) ;
+			return father.getShapeFunction(1) + father.getShapeFunction(3) ;
 		}
 		
 		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
@@ -289,7 +301,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
 			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
 		{
-			return father.getShapeFunction(0) + father.getShapeFunction(1) ;
+			return father.getShapeFunction(2) + father.getShapeFunction(3) ;
 		}
 	}
 	
@@ -418,7 +430,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			{
 				enriched.insert(that) ;
 				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-				Function f =  father.getShapeFunction(j)*(hat - vm.eval(hat, p.x, p.y, p.z)) ;
+				Function f =  ring[i]->getShapeFunction(j)*(hat - vm.eval(hat, p.x, p.y, p.z)) ;
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
@@ -454,7 +466,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = father.getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
+						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;
@@ -468,7 +480,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = father.getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
+						Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
 
 						if(!hinted)
 						{

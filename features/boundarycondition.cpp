@@ -213,19 +213,19 @@ void apply3DBC(ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMul
 				std::cout << "I don't know how to form a General Lagrange Multiplier from the data" << std::endl ;
 				break ;
 			case FIX_ALONG_XI:
-				a->setPointAlong(XI, 0, id[i]) ;
+				a->setPointAlong(XI, 0., id[i]) ;
 				break ;
 			case SET_ALONG_XI:
 				a->setPointAlong(XI, data, id[i]) ;
 				break ;
 			case FIX_ALONG_ETA:
-				a->setPointAlong(ETA, 0, id[i]) ;
+				a->setPointAlong(ETA, 0., id[i]) ;
 				break ;
 			case SET_ALONG_ETA:
 				a->setPointAlong(ETA, data, id[i]) ;
 				break ;
 			case FIX_ALONG_ZETA:
-				a->setPointAlong(ZETA, 0, id[i]) ;
+				a->setPointAlong(ZETA, 0., id[i]) ;
 				break ;
 			case SET_ALONG_ZETA:
 				a->setPointAlong(ZETA, data, id[i]) ;
