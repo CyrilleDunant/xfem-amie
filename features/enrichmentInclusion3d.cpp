@@ -404,15 +404,15 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			}
 		}
 
-		if(ring[i]->getOrder() == QUADRATIC)
-		{
-			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(1))) ;
-			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(3))) ;
-			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(5))) ;
-			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(7))) ;
-			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(8))) ;
-			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(9))) ;
-		}
+// 		if(ring[i]->getOrder() == QUADRATIC)
+// 		{
+// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(1))) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(3))) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(5))) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(7))) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(8))) ;
+// 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(9))) ;
+// 		}
 		
 		//we build the enrichment function, first, we get the transforms from the triangle
 		Function x = ring[i]->getXTransform() ;

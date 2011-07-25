@@ -4838,7 +4838,7 @@ bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)
 } ;
 
 
-int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)
+int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double tolerance)
 {
 	int count = 0 ;
 	Point centre = (**(pts)+f0+f1+f2)*.25 ;
@@ -4873,7 +4873,7 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 		}
 
 		double c0 = AB*(f2_-test_) ;
-		if(c0*c0 > POINT_TOLERANCE_3D)
+		if(c0*c0 > tolerance)
 			continue ;
 		
 		Point a(test_) ; a += normal ;

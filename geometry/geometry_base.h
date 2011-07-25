@@ -301,7 +301,7 @@ namespace Mu
 {
 
 static const double POINT_TOLERANCE_2D =  1e-10 ;//std::numeric_limits<double>::epsilon() ;
-static const double POINT_TOLERANCE_3D =  1e-6 ;//std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE_3D =  1e-7 ;//std::numeric_limits<double>::epsilon() ;
 
 /** \brief defines the implemented geometries */
 typedef enum
@@ -1409,7 +1409,7 @@ bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,
 /** \brief return true if the four points are coplanar*/
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
 
-int coplanarCount( Mu::Point * const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+int coplanarCount( Mu::Point * const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double tol = Mu::POINT_TOLERANCE_3D) ;
 
 /** \brief Compute a value increasing with decreasing coplanarity of the points*/
 double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
