@@ -113,7 +113,7 @@ double E_max = 0;
 double x_max = 0 ;
 double y_max = 0 ;
 double disp = 1 ;//.350 .355
-BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, disp) ;
+BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
 double width = 20;
 double height = 10;
 Sample sample(NULL, width , height, 0, 0) ;
@@ -1712,7 +1712,27 @@ int main(int argc, char *argv[])
 	m0_stiff[0][0] = E_stiff/(1.-nu*nu) ; m0_stiff[0][1] =E_stiff/(1.-nu*nu)*nu ; m0_stiff[0][2] = 0 ;
 	m0_stiff[1][0] = E_stiff/(1.-nu*nu)*nu ; m0_stiff[1][1] = E_stiff/(1.-nu*nu) ; m0_stiff[1][2] = 0 ; 
 	m0_stiff[2][0] = 0 ; m0_stiff[2][1] = 0 ; m0_stiff[2][2] = E_stiff/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	Matrix m0_steely(3,3) ;
+	m0_steely[0][0] =E_paste/(1.-2.*nu*nu) ; m0_steely[0][1] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steely[0][2] = 0 ; 
+	m0_steely[1][0] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steely[1][1] =  E_stiff/(1.-2.*nu*nu) ; m0_steely[1][2] = 0 ; 
+	m0_steely[2][0] = 0 ; m0_steely[2][1] = 0 ; m0_steely[2][2] = 0.25*(E_paste+E_stiff-2.*nu*sqrt(E_stiff*E_paste))/(1.-2.*nu*nu) ; 
 
+	Matrix m0_steelx(3,3) ;
+	m0_steelx[0][0] = E_stiff/(1.-2.*nu*nu) ; m0_steelx[0][1] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steelx[0][2] = 0 ; 
+	m0_steelx[1][0] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steelx[1][1] = E_paste/(1.-2.*nu*nu) ; m0_steelx[1][2] = 0 ; 
+	m0_steelx[2][0] = 0 ; m0_steelx[2][1] = 0 ; m0_steelx[2][2] = 0.25*(E_paste+E_stiff-2.*nu*sqrt(E_stiff*E_paste))/(1.-2.*nu*nu) ; 
+	
+	double nu_concreteSteel = nu ;
+	double nu_steelConcrete = nu* E_paste/E_stiff ;
+	
+	Matrix complianceSteelx(3,3) ;
+	complianceSteelx[0][0] = 1./E_stiff ;                complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
+	complianceSteelx[1][0] = -nu_concreteSteel/E_stiff ; complianceSteelx[1][1] =  1./E_paste ;
+	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
+	
+	m0_steelx = inverse3x3Matrix(complianceSteelx) ;
+	
 	// Material behaviour for the "very" soft inclusion
 	Matrix m0_soft(3,3) ;
 	m0_soft[0][0] = E_soft/(1.-nu*nu) ; m0_soft[0][1] =E_soft/(1.-nu*nu)*nu ; m0_soft[0][2] = 0 ;
@@ -1731,26 +1751,26 @@ int main(int argc, char *argv[])
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new PlasticStrain()) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new PlasticStrain()/*IsotropicLinearDamage()*/) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
-	Stiffness * sf = new Stiffness(m0_paste) ;
+	Stiffness * sf = new Stiffness(m0_steelx) ;
 
+// 	sample.setBehaviour(sf) ;
 	sample.setBehaviour(saf) ;
-// 	sample.setBehaviour(psp) ;
 
 	F.addFeature(&sample, new Pore(2, -7,2) );
 	F.addFeature(&sample, new Pore(2, 7,-2) );
 
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP_RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
 
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(900) ;
+	F.setOrder(QUADRATIC) ;
+	F.setMaxIterationsPerStep(2000) ;
 	F.setDeltaTime(0.1);
 
 	glutInit(&argc, argv) ;	

@@ -190,7 +190,8 @@ void DamageModel::step( ElementState &s )
 		
 		if( std::abs( minFraction - maxFraction ) * std::abs( upState - downState ).max()  < damageDensityTolerance )
 		{
-			getState( true ) = downState + ( upState - downState ) * trialRatio ;
+			//this (the 0,01) ensures that we are moving forward and not getting stuck.
+			getState( true ) = downState + ( upState - downState ) * std::max(trialRatio, 0.01) ;
 
 			if( states.size() < 6 )
 			{

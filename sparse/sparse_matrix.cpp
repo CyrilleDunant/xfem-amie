@@ -489,7 +489,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlu
 	}
 	
 #pragma omp parallel for
-	for (int i = 0 ; i < ret.size() ; i++)
+	for (int i = 0 ; i < ret.size() ; ++i)
 	{
 		ret[i] += c.ve[i] ;
 	}
@@ -506,13 +506,13 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 	const Vector & ve = c.co.ve ;
 	const Vector & vi = c.ve ;
 #pragma omp parallel for //shared(c,ret,ve) 
-	for (int i = 0 ; i <end ; i++)
+	for (int i = 0 ; i <end ; ++i)
 	{
 		c.co.sm[i*stride].inner_product(ve, &ret[i*stride]);
 	}
 	
 #pragma omp parallel for //shared(ret,c,vi) 
-	for (int i = 0 ; i < ret.size() ; i++)
+	for (int i = 0 ; i < ret.size() ; ++i)
 	{
 		ret[i] = ret[i]-vi[i] ;
 	}
@@ -534,7 +534,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 // 	gettimeofday(&time0, NULL);
 	
 #pragma omp parallel for //shared(c,ve,ret) 
-		for (int i = 0 ; i < end; i++)
+		for (int i = 0 ; i < end; ++i)
 		{
 			c.sm[i*stride].inner_product(ve, &ret[i*stride]);
 		}

@@ -82,6 +82,8 @@ typedef enum{
 	public:
 		Vector smoothedPrincipalStress( ElementState &s) const ;
 		Vector smoothedPrincipalStrain( ElementState &s) const;
+		double smoothedPrincipalStressAngle( ElementState &s) const ;
+		double smoothedCrackAngle( ElementState &s) const ;
 	public:
 		std::vector<unsigned int> cache ;
 		std::vector<DelaunayTreeItem *>  *mesh2d ;

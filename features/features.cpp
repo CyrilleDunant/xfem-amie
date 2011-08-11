@@ -4890,7 +4890,10 @@ bool FeatureTree::step()
 		deltaTime = 0 ;
 
 		if( solverConverged() )
+		{
 			std::cout << "." << std::flush ;
+			notConvergedCounts = 0 ;
+		}
 		else
 		{
 			notConvergedCounts++ ;

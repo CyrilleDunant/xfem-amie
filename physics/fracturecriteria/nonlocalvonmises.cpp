@@ -27,7 +27,6 @@ NonLocalVonMises::~NonLocalVonMises()
 
 double NonLocalVonMises::grade(ElementState &s)
 {
-	
 	metInCompression = true ;
 	metInTension = true ;
 	Vector str( smoothedPrincipalStress(s) ) ;
@@ -40,7 +39,6 @@ double NonLocalVonMises::grade(ElementState &s)
 	{
 		maxStress = sqrt( ( str[0] - str[1] ) * ( str[0] - str[1] ) + ( str[0] - str[2] ) * ( str[0] - str[2] ) + ( str[1] - str[2] ) * ( str[1] - str[2] ) ) / 6 ;
 	}
-
 	if(maxStress > threshold )
 	{
 		return 1. - threshold/maxStress ;

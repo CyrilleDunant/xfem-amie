@@ -90,6 +90,7 @@ protected:
 	double timePos ;
 	double previousTimePos ;
 	double previousPreviousTimePos ;
+	double cachedPrincipalStressAngle ;
 	
 	IntegrableEntity * parent ;
 	
@@ -103,6 +104,8 @@ public:
 	ElementState(const ElementState &s) ;
 						
 	ElementState & operator =(const ElementState &) ;
+	
+	double getCachedAngle() const {return cachedPrincipalStressAngle ;}
 	
 /** \brief Return flux at given point*/
 	Vector getFlux(const Point & p, bool local = false) const ;

@@ -116,8 +116,15 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		double rho = parallel_inner_product(&r[0], &z[0], vsize) ;
 
 		double beta = rho/last_rho ;
-		p *= beta ;
-		p += z ;
+		double * iterp = &p[0] ;
+		double * iterz = &z[0] ;
+		for(; iterp != &p[vsize] ;)
+		{
+			*iterp = *iterp*beta+*iterz ;
+			++iterp ;
+			++iterz ;
+		}
+
 		assign(q, A*p) ;
 		alpha = rho/parallel_inner_product(&q[0], &p[0], vsize);
 		

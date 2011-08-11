@@ -133,17 +133,17 @@ size_t DelaunayTreeItem3D::numberOfCommonVertices( const DelaunayTreeItem3D *s )
 
 	if( this->isTetrahedron() && s->isSpace() )
 	{
-		return coplanarCount( &first, 4, *s->first, *s->second, *s->third, POINT_TOLERANCE_3D * 10. ) ;
+		return coplanarCount( &first, 4, *s->first, *s->second, *s->third, POINT_TOLERANCE_3D  ) ;
 	}
 
 	if( this->isSpace() && s->isSpace() )
 	{
-		return coplanarCount( &s->first, 3, *first, *second, *third, POINT_TOLERANCE_3D * 10. ) ;
+		return coplanarCount( &s->first, 3, *first, *second, *third, POINT_TOLERANCE_3D  ) ;
 	}
 
 	if( this->isSpace() && s->isTetrahedron() )
 	{
-		return coplanarCount( &s->first, 4, *first, *second, *third, POINT_TOLERANCE_3D * 10. ) ;
+		return coplanarCount( &s->first, 4, *first, *second, *third, POINT_TOLERANCE_3D  ) ;
 	}
 
 	return 0 ;
@@ -3014,7 +3014,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 					for( size_t k = 0 ; k < uniquePoints.size() ; k++ )
 					{
-						if( squareDist3D( newPoints[j], uniquePoints[k] ) < .005 )
+						if( squareDist3D( newPoints[j], uniquePoints[k] ) < .0005 )
 						{
 							unique  = false ;
 							break ;
@@ -3025,7 +3025,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					{
 						for( size_t k = 0 ; k < to_add.size() ; k++ )
 						{
-							if( squareDist3D( newPoints[j], *to_add[k] ) < .005 )
+							if( squareDist3D( newPoints[j], *to_add[k] ) < .0005 )
 							{
 								unique  = false ;
 								break ;
@@ -3037,7 +3037,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					{
 						for( size_t k = 0 ; k < pointsToCleanup.size() ; k++ )
 						{
-							if( squareDist3D( newPoints[j], *pointsToCleanup[k] ) < .005 )
+							if( squareDist3D( newPoints[j], *pointsToCleanup[k] ) < .0005 )
 							{
 								unique  = false ;
 								break ;
@@ -3051,7 +3051,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					}
 				}
 			}
-
+			std::random_shuffle(uniquePoints.begin(), uniquePoints.end());
 			for( size_t k = 0 ; k < uniquePoints.size() ; k++ )
 			{
 				pointsToCleanup.push_back( new Point( uniquePoints[k] ) ) ;
@@ -3066,7 +3066,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 		for( size_t i = 0 ; i < tri.size() ; i++ )
 		{
-			tri[i]->setOrder( LINEAR ) ;
+			tri[i]->setOrder( QUADRATIC ) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			tri[i]->setOrder( LINEAR ) ;
 

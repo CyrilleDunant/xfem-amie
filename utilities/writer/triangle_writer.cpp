@@ -751,6 +751,25 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				break ;
 			}
 			
+			case TWFT_CRACK_ANGLE:
+			{
+				if(tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+				{
+					ret[2] = tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState()) ;
+					ret[1] = tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState()) ;
+					ret[0] = tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState()) ;
+				}
+				else
+				{
+					ret[2] = 0 ;
+					ret[1] = 0 ;
+					ret[0] = 0 ;
+				}
+
+				found = true ;
+				break ;
+			}
+			
 			case TWFT_CRITERION:
 			{
 				if(tri->getBehaviour()->getFractureCriterion())
@@ -896,6 +915,8 @@ int numberOfFields( TWFieldType field )
 		case TWFT_DISPLACEMENTS:
 			return 6 ;
 		case TWFT_PRINCIPAL_ANGLE:
+			return 3 ;
+		case TWFT_CRACK_ANGLE:
 			return 3 ;
 		case TWFT_STIFFNESS:
 			return 3 ;

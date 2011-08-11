@@ -179,7 +179,7 @@ ElementState::ElementState( const ElementState &s )
 {
 	strainAtNodes.resize( 0 ) ;
 	stressAtNodes.resize( 0 ) ;
-
+	cachedPrincipalStressAngle = 0 ;
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
@@ -477,7 +477,7 @@ double ElementState::getMaximumVonMisesStress() const
 	{
 		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 		{
-			Vector sigma = getPrincipalStresses( parent->getCenter() ) ;
+			Vector sigma = getPrincipalStresses( Point(1./3., 1./3.), true ) ;
 			return sqrt( ( ( sigma[0] - sigma[1] ) * ( sigma[0] - sigma[1] ) + sigma[0] * sigma[0] + sigma[1] * sigma[1] ) / 2. ) ;
 		}
 		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -701,7 +701,7 @@ Vector &ElementState::getPrincipalStressAtNodes()
 		if( stressAtNodes.size() == 0 )
 		{
 			stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-
+			cachedPrincipalStressAngle = getPrincipalAngle(Point(1./3., 1./3.), true)[0] ; 
 			for( size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++ )
 			{
 				Vector stress  = getPrincipalStresses( parent->getBoundingPoint( i ), false ) ;
@@ -5186,6 +5186,8 @@ Vector &ElementState::getBuffer()
 
 void ElementState::step( double dt, const Vector *d )
 {
+	cachedPrincipalStressAngle = 0 ;
+	
 	if( strainAtNodes.size() )
 		strainAtNodes.resize( 0 );
 

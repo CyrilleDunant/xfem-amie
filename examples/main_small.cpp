@@ -408,10 +408,13 @@ void step()
 		
 	}
 	
-		VoxelWriter vw("sphere", 150) ;
-		vw.getField(featureTree, VWFT_STRESS) ;
-		vw.write();
-
+	VoxelWriter vw("sphere_stress", 200) ;
+	vw.getField(featureTree, VWFT_STRESS) ;
+	vw.write();
+	VoxelWriter vw0("sphere_strain", 200) ;
+	vw0.getField(featureTree, VWFT_STRAIN) ;
+	vw0.write();
+	exit(0) ;
 }
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )

@@ -35,6 +35,229 @@ scoreTolerance(1e-4)
 {
 }
 
+double FractureCriterion::smoothedCrackAngle( ElementState &s) const
+{
+	double angle = 0 ;
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		double area = s.getParent()->area() ;
+		double fact = area*s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
+
+		
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
+				|| !ci->getBehaviour()->getFractureCriterion() 
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc >  2.*physicalCharacteristicRadius * physicalCharacteristicRadius)
+			{
+				continue ;
+			}
+			
+			area = ci->area() ;
+			//this is to eliminate scaling effects ;
+			double factor = 1 ;
+// 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+// 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
+			
+			double d = ci->getBehaviour()->getDamageModel()->getState().max() ;
+			angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+			fact += area*d ;
+			
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			{
+				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				fact += area*d ;
+			}
+		}
+		
+		if(fact > POINT_TOLERANCE_2D)
+			angle /= fact ;
+		else
+			return 0 ;
+	}
+	return angle ;
+}
+
+double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s) const
+{
+	double angle = 0 ;
+	smoothedPrincipalStress(s) ;
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		double area = s.getParent()->area() ;
+		double fact = area ;
+		angle += s.getCachedAngle()*fact ;
+
+		
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
+				|| !ci->getBehaviour()->getFractureCriterion() 
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| ci->getBehaviour()->fractured()
+				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 4. * physicalCharacteristicRadius * physicalCharacteristicRadius)
+			{
+				continue ;
+			}
+			
+			area = ci->area() ;
+			//this is to eliminate scaling effects ;
+			double factor = 1 ;
+// 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+// 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
+			
+			double d = exp( -dc / (2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
+			angle += ci->getState().getCachedAngle()*area*d ;
+			fact += area*d ;
+			
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			{
+				angle += ci->getState().getCachedAngle()*area*d ;
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				angle += ci->getState().getCachedAngle()*area*d ;
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*area*d ;
+				fact += area*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*area*d ;
+				fact += area*d ;
+			}
+		}
+		angle /= fact ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		double volume = s.getParent()->volume() ;
+
+		angle += s.getCachedAngle()*volume ;
+
+		double fact = volume ;
+		
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
+			
+			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
+				|| ci->getBehaviour()->getFractureCriterion() 
+				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
+				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() &&ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
+				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
+				|| ci->getBehaviour()->fractured()
+			)
+			{
+				continue ;
+			}
+
+			volume = ci->volume() ;
+			double factor = 1 ;
+// 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
+// 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
+			
+			double d = exp( -dc / (2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
+			angle += ci->getState().getCachedAngle()*volume*d ;
+			fact += volume*d ;
+			
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+
+			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				angle += ci->getState().getCachedAngle()*volume*d ;
+				fact += volume*d ;
+			}
+		}
+		angle /= fact ;
+	}
+	
+	return angle ;
+}
+
 Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 {
 	Vector stra(s.getParent()->spaceDimensions()) ;

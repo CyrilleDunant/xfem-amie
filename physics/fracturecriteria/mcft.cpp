@@ -175,13 +175,17 @@ double NonLocalMCFT::grade( ElementState &s )
 //		maxTension = upVal/(1.+sqrt(2e6*(tstrain+tensionCritStrain))) ;
 
 	//MCFT model
-		maxTension = upVal / ( 1. + sqrt( 200.*tstrain ) ) ;
-// 		if(s.getParent()->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D && !strainBroken)
-// 		{
-// 			strainBroken = true ;
-// 			tensionCritStrain/= 1.87 ;
-// 			upVal /= 1.87 ;
-// 		}
+		double tantheta = tan(smoothedPrincipalStressAngle(s)-smoothedCrackAngle(s)) ;
+
+		double k = std::max(1.64 - 1./tantheta, 0.) ;
+		if(std::abs(tantheta) < POINT_TOLERANCE_2D) 
+			k = 0. ;
+		double w = s.getParent()->getRadius()*tstrain*1000. ;
+		double maxAggsize = 12 ;                                                        //in mm
+		double vcimax = sqrt(std::abs( downVal ))/(0.31+24.*w/(maxAggsize+16.))*1000. ; // in Pa
+		double maxTensionAlt = std::max(vcimax*(0.18+0.3*k*k)*tantheta, POINT_TOLERANCE_2D) ;
+		maxTension = std::min(upVal / ( 1. + sqrt( 500.*tstrain )) , maxTensionAlt) ;
+		
 	//perfectly brittle
 // 		maxTension = 0 ;
 	}
@@ -201,24 +205,24 @@ double NonLocalMCFT::grade( ElementState &s )
 		crits.push_back( 1. - std::abs( maxCompression / cstress ) ) ;
 	}
 
-	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > 0) && tstress >= 0 && std::abs( tstress ) >= std::abs( maxTension ) )
+	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > POINT_TOLERANCE_2D) && tstress >= POINT_TOLERANCE_2D && std::abs( tstress ) >= std::abs( maxTension ) )
 	{
 		metInTension = true ;
 		crits.push_back( 1. - std::abs( maxTension / tstress ) ) ;
 	}
 
 
-	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > 0 )&& tstress >= 0 && std::abs( tstress )  < std::abs( maxTension ) )
+	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > POINT_TOLERANCE_2D )&& tstress > POINT_TOLERANCE_2D && std::abs( tstress )  < std::abs( maxTension ) )
 	{
 		crits.push_back( -1. + std::abs( tstress / maxTension ) ) ;
 	}
 	
-	if(tstrain < tensionCritStrain && !strainBroken && tstrain > 0)
+	if(tstrain < tensionCritStrain && !strainBroken && tstrain > POINT_TOLERANCE_2D)
 	{
 		crits.push_back( -1. + std::abs( tstrain / tensionCritStrain ) ) ;
 	}
 
-	if( cstress <= 0 && std::abs( cstress ) < std::abs( downVal ) )
+	if( cstress <= POINT_TOLERANCE_2D && std::abs( cstress ) < std::abs( downVal ) )
 	{
 		crits.push_back( -1. + std::abs( cstress / downVal ) ) ;
 	}

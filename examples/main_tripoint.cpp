@@ -315,9 +315,9 @@ void step()
 		double avg_s_yy = 0;
 		double avg_s_xy = 0;
 		double e_xx_0 = 0 ;
-		double e_xx_1 = 0 ;
-		double ex_count_0 = 0 ;
-		double ex_count_1 = 0 ;
+		double e_xx_1 = 1 ;
+		double ex_count_0 = 1 ;
+		double ex_count_1 = 1 ;
 		double avg_e_xx_nogel = 0;
 		double avg_e_yy_nogel = 0;
 		double avg_e_xy_nogel = 0;
@@ -362,15 +362,15 @@ void step()
 							used.insert(&triangles[k]->getBoundingPoint(p)) ;
 							forceCheck += forces[triangles[k]->getBoundingPoint(p).id*2+1] ;
 						}
-						if(dist(triangles[k]->getBoundingPoint(p), Point(0,sampleHeight*.5)) < 0.05)
+						if(triangles[k]->getBoundingPoint(p).y >= sampleHeight*.5 && x[triangles[k]->getBoundingPoint(p).id*2+1] < e_xx_0)
 						{
-							e_xx_0+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-							ex_count_0++ ;
+							e_xx_0 = x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+/*							ex_count_0++ ;*/
 						}
-						if(dist(triangles[k]->getBoundingPoint(p), Point(supportLever,0)) < 0.05)
+						if(triangles[k]->getBoundingPoint(p).y >= sampleHeight*.5 )
 						{
-							e_xx_1+= x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-							ex_count_1++ ;
+							e_xx_1= 0 ;
+// 							ex_count_1++ ;
 						}
 					}
 					
@@ -560,6 +560,7 @@ void step()
 			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
 			writer.getField(TWFT_CRITERION) ;
 			writer.getField(TWFT_STIFFNESS) ;
+			writer.getField(TWFT_CRACK_ANGLE) ;
 			writer.getField(TWFT_DAMAGE) ;
 			writer.append() ;
 		}
@@ -1552,21 +1553,27 @@ int main(int argc, char *argv[])
 	double E_paste = 37e9 ;
 	double E_rebar = 30e9 ;
 	//nu_steelConcrete/nu_concreteSteel == E_paste/E_steel
-	double nu_concreteSteel = 0.2 ;
-	double nu_steelConcrete = 0.2* E_paste/E_steel ;
+// 	double nu_concreteSteel = 0.3 ;
+// 	double nu_steelConcrete = 0.3* E_paste/E_steel ;
+// 	
+// 	Matrix complianceSteelx(3,3) ;
+// 	complianceSteelx[0][0] = 1./E_steel ;                complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
+// 	complianceSteelx[1][0] = -nu_concreteSteel/E_steel ; complianceSteelx[1][1] =  1./E_paste ;
+// 	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
+// 	Matrix complianceSteely(3,3) ;
+// 	complianceSteely[0][0] =  1./E_paste ;              complianceSteely[0][1] = -nu_concreteSteel/E_steel ; 
+// 	complianceSteely[1][0] = -nu_steelConcrete/E_paste ;complianceSteely[1][1] = 1./E_steel ; 
+// 	                                                                                                         complianceSteely[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
+// 	
+// 	m0_steelx = inverse3x3Matrix(complianceSteelx) ;
+// 	m0_steely = inverse3x3Matrix(complianceSteely) ;    
+	m0_steelx[0][0] = E_steel/(1.-2.*nu*nu) ; m0_steelx[0][1] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steelx[0][2] = 0 ; 
+	m0_steelx[1][0] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steelx[1][1] = E_paste/(1.-2.*nu*nu) ; m0_steelx[1][2] = 0 ; 
+	m0_steelx[2][0] = 0 ; m0_steelx[2][1] = 0 ; m0_steelx[2][2] = 0.25*(E_paste+E_steel-2.*nu*sqrt(E_steel*E_paste))/(1.-2.*nu*nu) ; 
 	
-	Matrix complianceSteelx(3,3) ;
-	complianceSteelx[0][0] = 1./E_steel ;                complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
-	complianceSteelx[1][0] = -nu_concreteSteel/E_steel ; complianceSteelx[1][1] =  1./E_paste ;
-	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
-	Matrix complianceSteely(3,3) ;
-	complianceSteely[0][0] =  1./E_paste ;              complianceSteely[0][1] = -nu_concreteSteel/E_steel ; 
-	complianceSteely[1][0] = -nu_steelConcrete/E_paste ;complianceSteely[1][1] = 1./E_steel ; 
-	                                                                                                         complianceSteely[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
-	
-	m0_steelx = inverse3x3Matrix(complianceSteelx) ;
-	m0_steely = inverse3x3Matrix(complianceSteely) ;    
-	
+	m0_steely[0][0] =E_paste/(1.-2.*nu*nu) ; m0_steely[0][1] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steely[0][2] = 0 ; 
+	m0_steely[1][0] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steely[1][1] =  E_steel/(1.-2.*nu*nu) ; m0_steely[1][2] = 0 ; 
+	m0_steely[2][0] = 0 ; m0_steely[2][1] = 0 ; m0_steely[2][2] = 0.25*(E_paste+E_steel-2.*nu*sqrt(E_steel*E_paste))/(1.-2.*nu*nu) ; 
 	Matrix m0_barSteel(m0_steelx*phi*.75) ;
 	
 	Matrix m0_paste(3,3) ;
@@ -1585,10 +1592,10 @@ int main(int argc, char *argv[])
 	Sample sample(NULL, sampleLength*.5, sampleHeight,sampleLength*.25,0) ;
 	
 	Sample topsupport(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
-	topsupport.setBehaviour(new VoidForm()/*new Stiffness(m0_steel)*/) ;
+	topsupport.setBehaviour(new Stiffness(m0_paste)) ;
 	
 	Sample baseright(platewidth, plateHeight, supportLever, -sampleHeight*.5-plateHeight*.5) ; 
-	baseright.setBehaviour(new VoidForm()/*new Stiffness(m0_steel)*/) ;
+	baseright.setBehaviour(new Stiffness(m0_paste)) ;
 	
 	Sample toprightvoid(sampleLength*.5-platewidth, plateHeight, (sampleLength*.5-platewidth)*.5+platewidth, sampleHeight*.5+plateHeight*.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;
@@ -1600,28 +1607,28 @@ int main(int argc, char *argv[])
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
 	Sample rebar0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064) ; 
-	rebar0.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
+	rebar0.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
-	rebar1.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
+	rebar1.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar2(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  sampleHeight*.5-0.064) ; 
-	rebar2.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
+	rebar2.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar2.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar2.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar2.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar3(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  sampleHeight*.5-0.064-0.085) ; 
-	rebar3.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
+	rebar3.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar3.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar3.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
@@ -1638,7 +1645,7 @@ int main(int argc, char *argv[])
 	}
 	
 	
-	FeatureTree F(&sample) ;
+	FeatureTree F(&box) ;
 	featureTree = &F ;
 	
 	
@@ -1653,12 +1660,12 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight*.5))) ;
 
-// 	F.addFeature(NULL,&topsupport) ;
-// 	F.addFeature(NULL,&baseright) ;
-// 	F.addFeature(NULL,&toprightvoid) ;
-// 	F.addFeature(NULL,&bottomcentervoid) ;
-// 	F.addFeature(NULL,&rightbottomvoid) ;
-// 	F.addFeature(NULL,&sample) ;
+	F.addFeature(NULL,&topsupport) ;
+	F.addFeature(NULL,&baseright) ;
+	F.addFeature(NULL,&toprightvoid) ;
+	F.addFeature(NULL,&bottomcentervoid) ;
+	F.addFeature(NULL,&rightbottomvoid) ;
+	F.addFeature(NULL,&sample) ;
 // 	if(false)
 // 	{
 		if(atoi(argv[2]))
@@ -1695,8 +1702,8 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.addPoint(new Point(supportLever, -sampleHeight*.5)) ;
-	F.addPoint(new Point(platewidth, sampleHeight*.5)) ;
+	F.addPoint(new Point(supportLever, -sampleHeight*.5-plateHeight)) ;
+// 	F.addPoint(new Point(platewidth, sampleHeight*.5)) ;
 	F.setMaxIterationsPerStep(40000);
 	
 	step() ;

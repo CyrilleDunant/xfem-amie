@@ -27,7 +27,6 @@ protected:
 	Matrix * param ;
 	Vector imposedStrain ;
 	Vector previousImposedStrain ;
-	Vector storedState ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
