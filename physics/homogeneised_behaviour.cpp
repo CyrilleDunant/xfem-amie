@@ -54,7 +54,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 	original = self->getBehaviour() ;
 
 	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
-		original = dynamic_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
+		original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
 
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
@@ -65,7 +65,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 	{
 	    FractureCriterion * frac = original->getFractureCriterion() ;
 	    Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-	    Vector alpha = dynamic_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
+	    Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
 
 	    equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac) ;
 	}
@@ -84,7 +84,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahe
 	original = self->getBehaviour() ;
 
 	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
-		original = dynamic_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
+		original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
 	GeneralizedSelfConsistentComposite composite( mesh->getElements3D( self->getPrimitive() ) ) ;
 	equivalent = composite.getBehaviour() ;

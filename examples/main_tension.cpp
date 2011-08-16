@@ -1379,15 +1379,15 @@ int main(int argc, char *argv[])
 {
 
 	double compressionCrit = -37.5e6 ; 
-	double tensionCrit = 1.8*.33*1000*sqrt(-compressionCrit) ;
-	double steelfraction = 0.15 ; //0.5*rebarDiametre/effectiveRadius ;
+	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
+	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
 	double mradius = .025 ; // .015
 	double nradius = std::max(mradius*4, .5) ;
 // 	double mradius = .25 ;
 	
 	Matrix m0_steel(3,3) ;
-	double E_steel = 193e9 ;
+	double E_steel = 0.6*193e9 ;
 	double nu_steel = 0.2 ; 
 	
 	double nu = 0.2 ;
@@ -1400,6 +1400,10 @@ int main(int argc, char *argv[])
 	complianceSteelx[1][0] = -nu_concreteSteel/E_steel ; complianceSteelx[1][1] =  1./E_paste ;
 	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
 	m0_steel = inverse3x3Matrix(complianceSteelx) ;
+	
+	m0_steel[0][0] = E_steel/(1.-2.*nu*nu) ; m0_steel[0][1] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steel[0][2] = 0 ; 
+	m0_steel[1][0] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steel[1][1] = E_paste/(1.-2.*nu*nu) ; m0_steel[1][2] = 0 ; 
+	m0_steel[2][0] = 0 ; m0_steel[2][1] = 0 ; m0_steel[2][2] = 0.25*(E_paste+E_steel-2.*nu*sqrt(E_steel*E_paste))/(1.-2.*nu*nu) ; 
 	
 /*	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
@@ -1421,10 +1425,10 @@ int main(int argc, char *argv[])
 	topleftvoid.setBehaviour(new VoidForm()) ;  
 	
 	Sample rebarleft(0.225, rebarDiametre*.5, -1.300*.5-.225*.5, rebarDiametre*0.25) ; 
-	rebarleft.setBehaviour(new Stiffness(m0_steel*steelfraction));
+	rebarleft.setBehaviour(new Stiffness(m0_steel*steelfraction/0.6));
 	
 	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
-	rebarright.setBehaviour(new Stiffness(m0_steel*steelfraction));
+	rebarright.setBehaviour(new Stiffness(m0_steel*steelfraction/0.6));
 	
 	Sample rebarinternal((1.300), rebarDiametre*.5, 0, rebarDiametre*0.25) ; 
 // 	rebarinternal.setBehaviour(new Stiffness(m0_steel*steelfraction));

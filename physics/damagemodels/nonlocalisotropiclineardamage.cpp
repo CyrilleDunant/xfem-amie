@@ -17,19 +17,22 @@
 
 namespace Mu {
 
+
 NonLocalIsotropicLinearDamage::NonLocalIsotropicLinearDamage() 
 {
-	state.resize(1, 0.);
-	es = NULL ;
+	nonLocalDamage = 0 ;
+	getState(true).resize(1, 0.);
 	getPreviousState().resize(1, 0.);
+	thresholdDamageDensity = 1 ;
 	isNull = false ;
+	es = NULL ;
 }
 
-std::pair<Vector, Vector> NonLocalIsotropicLinearDamage::computeDamageIncrement(ElementState & s)
+std::pair< Vector, Vector > NonLocalIsotropicLinearDamage::computeDamageIncrement( Mu::ElementState &s)
 {
 	es = &s ;
 	Vector ret(1) ;
-	ret[0] = 1.25 ;
+	ret[0] = 1 ;
 // 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE-state[0], state[0]) ;
 // 	ret[0] = std::min(.99999, state[0]) ;
 // 	ret[0] = std::max(0., state[0]) ;
@@ -46,15 +49,10 @@ void NonLocalIsotropicLinearDamage::artificialDamageStep(double d)
 Matrix NonLocalIsotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;
-	
-	Vector nlstate(state) ;
-	if(es)
-		nlstate = smoothedState(*es, changed()) ;
+
 	if(fractured())
 		return ret*0 ;
-	
-	double omega = 0.2 ;
-	return ret*(1.-std::min(2.*nlstate[0]-state[0], 1.)) ;
+	return ret*std::min(1./*+getState()[0]-2.**/-nonLocalDamage, 1.) ;
 }
 
 
@@ -64,18 +62,24 @@ Matrix NonLocalIsotropicLinearDamage::applyPrevious(const Matrix & m) const
 
 	if(fractured())
 		return ret*0 ;
-	return ret*(1.-getPreviousState()[0]) ;
+	return ret*std::min(1./*+getState()[0]-2.**/-nonLocalDamage, 1.) ;
 }
 
 bool NonLocalIsotropicLinearDamage::fractured() const 
 {
 	if(fraction < 0)
 		return false ;
-	return state[0] > thresholdDamageDensity ;
+	return getState()[0] >= thresholdDamageDensity || -getState()[0]+2.*nonLocalDamage >= thresholdDamageDensity;
 }
 
-NonLocalIsotropicLinearDamage::~NonLocalIsotropicLinearDamage()
+void NonLocalIsotropicLinearDamage::postProcess()
 {
+	if(es)
+	{
+		double newnldamage = smoothedState(*es, false)[0] ;
+		change = std::abs(newnldamage-nonLocalDamage) > POINT_TOLERANCE_2D || change;
+		nonLocalDamage = newnldamage ;
+	}
 }
 
 }

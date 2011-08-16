@@ -27,6 +27,8 @@ protected:
 	Matrix * param ;
 	Vector imposedStrain ;
 	Vector previousImposedStrain ;
+	Vector lastStress ;
+	
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 

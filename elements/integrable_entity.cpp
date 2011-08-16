@@ -179,6 +179,8 @@ ElementState::ElementState( const ElementState &s )
 {
 	strainAtNodes.resize( 0 ) ;
 	stressAtNodes.resize( 0 ) ;
+	strainAtCenter.resize( 0 ) ;
+	stressAtCenter.resize( 0 ) ;
 	cachedPrincipalStressAngle = 0 ;
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
@@ -714,6 +716,49 @@ Vector &ElementState::getPrincipalStressAtNodes()
 		}
 	}
 	return stressAtNodes ;
+
+}
+
+Vector &ElementState::getStrainAtCenter()
+{
+	#pragma omp critical
+	{
+		if( strainAtCenter.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				strainAtCenter.resize( 3 ) ;
+			else
+				strainAtCenter.resize( 6 ) ;
+
+
+			Vector strain  = getStrain( parent->getCenter() ) ;
+
+			strainAtCenter = strain ;
+		}
+	}
+
+	return strainAtCenter ;
+
+}
+
+Vector &ElementState::getStressAtCenter()
+{
+	#pragma omp critical
+	{
+		if( stressAtCenter.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				stressAtCenter.resize( 3 ) ;
+			else
+				stressAtCenter.resize( 6 ) ;		
+			cachedPrincipalStressAngle = getPrincipalAngle(Point(1./3., 1./3.), true)[0] ; 
+			
+
+			Vector stress  = getStress( parent->getCenter()) ;
+			stressAtCenter = stress ;
+		}
+	}
+	return stressAtCenter ;
 
 }
 
@@ -5191,9 +5236,14 @@ void ElementState::step( double dt, const Vector *d )
 	if( strainAtNodes.size() )
 		strainAtNodes.resize( 0 );
 
-
 	if( stressAtNodes.size() )
 		stressAtNodes.resize( 0 );
+	
+	if( strainAtCenter.size() )
+		strainAtCenter.resize( 0 );
+
+	if( stressAtCenter.size() )
+		stressAtCenter.resize( 0 );
 
 	if( !history.empty() )
 		history.pop_back() ;
@@ -5292,20 +5342,20 @@ double ElementState::getDeltaTime() const
 
 Vector ElementState::getPrincipalAngle( const Point &p, bool local ) const
 {
-	Vector stresses = getStress( p, local ) ;
+	Vector strains = getStrain( p, local ) ;
 
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		Vector ret( 1 ) ;
-		ret[0] =  0.5 * atan2( stresses[0] - stresses[1], -stresses[2] ) ;
+		ret[0] =  0.5 * atan2( strains[2], strains[0] - strains[1] ) ;
 		return ret ;
 	}
 	else
 	{
 		Vector ret( 3 ) ;
-		ret[0] =  0.5 * atan2( stresses[0] - stresses[1], -stresses[3] ) ;
-		ret[1] =  0.5 * atan2( stresses[0] - stresses[2], -stresses[4] ) ;
-		ret[2] =  0.5 * atan2( stresses[1] - stresses[2], -stresses[5] ) ;
+		ret[0] =  0.5 * atan2(strains[3] , strains[0] - strains[1] ) ;
+		ret[1] =  0.5 * atan2(strains[4] , strains[0] - strains[2] ) ;
+		ret[2] =  0.5 * atan2(strains[5] , strains[1] - strains[2] ) ;
 		return ret ;
 	}
 
@@ -5314,7 +5364,6 @@ Vector ElementState::getPrincipalAngle( const Point &p, bool local ) const
 
 Vector ElementState::getPrincipalAngle( const Mu::PointArray &v ) const
 {
-	Vector stresses = getStress( v ) ;
 	int nangle = 1 ;
 
 	if( parent->spaceDimensions() != SPACE_TWO_DIMENSIONAL )
@@ -5411,6 +5460,59 @@ Vector ElementState::getPrincipalStresses( const Point &p, bool local ) const
 	{
 		Vector lprincipal( 3 ) ;
 		Matrix stresses = getStressMatrix( p, local ) ;
+		Matrix I( 3, 3 ) ;
+		I[0][0] = 1 ;
+		I[1][1] = 1 ;
+		I[2][2] = 1 ;
+		double m = ( stresses[0][0] + stresses[1][1] + stresses[2][2] ) / 3. ;
+		Matrix Am = stresses - I * m ;
+		double q = det( Am ) / 2. ;
+		double r = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
+		double phi = atan2( sqrt( r * r * r - q * q ), q ) / 3. ;
+
+		if( r * r * r - q * q < 1e-12 )
+			phi = atan( 0 ) / 3. ;
+
+		if( phi < 0 )
+			phi += M_PI ;
+
+		
+		lprincipal[0] = m + 2.*sqrt( r ) * cos( phi ) ;
+		lprincipal[1] = m - sqrt( r ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
+		lprincipal[2] = m - sqrt( r ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
+		return lprincipal ;
+	}
+}
+
+Vector ElementState::getPrincipalImposedStresses() const
+{
+
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		Vector lprincipal( 2 ) ;
+		Vector stresses = getParent()->getBehaviour()->getImposedStress(Point()) ;
+
+		lprincipal[0] = 0.5 * ( stresses[0] + stresses[1] ) +
+										 sqrt(
+												0.25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												( stresses[2] * stresses[2] )
+										) ;
+		lprincipal[1] = 0.5 * ( stresses[0] + stresses[1] ) -
+										 sqrt(
+												0.25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+												( stresses[2] * stresses[2] )
+										) ;
+
+		return lprincipal ;
+	}
+	else
+	{
+		Vector lprincipal( 3 ) ;
+		Vector sv =  getParent()->getBehaviour()->getImposedStress(Point()) ;
+		Matrix stresses(3,3) ;
+		stresses[0][0] = sv[0] ; stresses[0][1] = sv[3] ; stresses[0][2] = sv[4] ;
+		stresses[1][0] = sv[3] ; stresses[1][1] = sv[1] ; stresses[1][2] = sv[5] ;
+		stresses[2][0] = sv[4] ; stresses[2][1] = sv[5] ; stresses[2][2] = sv[2] ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
 		I[1][1] = 1 ;

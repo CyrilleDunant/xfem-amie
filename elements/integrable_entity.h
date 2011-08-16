@@ -75,6 +75,8 @@ protected:
 
 	Vector strainAtNodes ;
 	Vector stressAtNodes ;
+	Vector strainAtCenter ;
+	Vector stressAtCenter ;
 
 	Vector displacements ;
 	Vector enrichedDisplacements ;
@@ -148,6 +150,9 @@ public:
 
 	Vector & getPrincipalStrainAtNodes() ;
 	Vector & getPrincipalStressAtNodes() ;
+	
+	Vector &getStrainAtCenter() ;
+	Vector &getStressAtCenter() ;
 
 /** \brief Return stress at given points*/
 	Vector getPreviousStress(const Mu::PointArray & v) const;
@@ -196,6 +201,8 @@ public:
 
 /** \brief get Principal Stresses at given points*/
 	Vector getPrincipalStresses(const Mu::PointArray &,  bool local = false) const ;
+	
+	Vector getPrincipalImposedStresses() const ;
 	
 /** \brief get Principal Stresses at given points*/
 	Vector getPreviousPrincipalStresses(const Mu::PointArray &) const ;

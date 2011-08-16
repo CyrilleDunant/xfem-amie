@@ -56,6 +56,10 @@ void DamageModel::step( ElementState &s )
 	if( !isInDamagingSet )
 	{
 		s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
+		
+		// this is necessary because we want to trigger side-effects
+		//for example, plasticstrain gets a pointer to s
+		computeDamageIncrement( s ) ;
 		converged = true ;
 
 		if( fractured() )
@@ -75,6 +79,7 @@ void DamageModel::step( ElementState &s )
 
 		if( !fractured() )
 		{
+/*			damageDensityTolerance =  1. / pow( 2., 16 );*/
 			converged = false ;
 			change = true ;
 
@@ -130,6 +135,7 @@ void DamageModel::step( ElementState &s )
 	{
 		double scoreTolerance = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
 		change = true ;
+
 		
 		if(needRestart && states.empty()) 
 		{
@@ -154,6 +160,19 @@ void DamageModel::step( ElementState &s )
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		std::stable_sort( states.begin(), states.end() ) ;
 
+
+// 		trialRatio -= 0.1 ;
+// 		if(trialRatio < 0)
+// 		{
+// 			for( int i = 0 ; i < states.size() ; i++ )
+// 				std::cout << states[i].fraction << "  " << states[i].score << "  " << states[i].delta << std::endl ;
+// 			
+// 			exit(0) ;
+// 		}
+// 		
+// 		getState( true ) = downState + ( upState - downState ) * trialRatio ;
+// 		return ;
+		
 		double minFraction = states[0].fraction ;
 		double maxFraction = states[1].fraction ;
 		double prevDelta = states[0].delta ;
@@ -184,14 +203,24 @@ void DamageModel::step( ElementState &s )
 				prevScore = states[i].score ;
 			}
 		}
-		trialRatio = ( minFraction + maxFraction ) * .5 ;
-
-		getState( true ) = downState + ( upState - downState ) * trialRatio ;
 		
-		if( std::abs( minFraction - maxFraction ) * std::abs( upState - downState ).max()  < damageDensityTolerance )
+// 		if(deltaRoot)
+// 			damageDensityTolerance =  1. / pow( 2., 16 );
+// 		if(scoreRoot)
+// 			damageDensityTolerance =  1. / pow( 2., 8 );
+		
+		trialRatio = ( minFraction + maxFraction ) * .5 ;
+		getState( true ) = downState + ( upState - downState ) *trialRatio ;
+		
+		if( std::abs( minFraction - maxFraction ) < damageDensityTolerance )
 		{
-			//this (the 0,01) ensures that we are moving forward and not getting stuck.
-			getState( true ) = downState + ( upState - downState ) * std::max(trialRatio, 0.01) ;
+// 			std::cout << "\n  --  " << trialRatio <<  std::endl ;
+// 			for( int i = 0 ; i < states.size() ; i++ )
+// 				std::cout << states[i].fraction << "  " << states[i].score << "  " << states[i].delta << std::endl ;
+// 			std::cout << "  --  "<<  std::endl ;
+
+			//this (the 0.005) ensures that we are moving forward and not getting stuck.
+			getState( true ) = downState + ( upState - downState ) * std::max(trialRatio, 0.005) ;
 
 			if( states.size() < 6 )
 			{
@@ -221,8 +250,6 @@ void DamageModel::step( ElementState &s )
 // 			}
 
 			converged = true ;
-
-			
 		}
 	}
 }
@@ -244,7 +271,7 @@ DamageModel::DamageModel()
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance = 0.5e-3 ; 1. / pow( 2., 64 );
+	damageDensityTolerance =  1. / pow( 2., 12 );
 } ;
 
 double DamageModel::getThresholdDamageDensity() const
@@ -296,7 +323,6 @@ Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()
 			        || !ci->getBehaviour()->getFractureCriterion()
 			        || ci->getBehaviour()->type == VOID_BEHAVIOUR
-			        || ci->getBehaviour()->fractured()
 			        || ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource()
 			        || dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius )
 			{
@@ -382,64 +408,62 @@ Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 			double d = exp( -dc / ( 2.*physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 
 
-			if( !ci->getBehaviour()->fractured() )
+
+			stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+			fact += volume * d ;
+
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 			{
 				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
 				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
+			}
 
-				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
-
-				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
-				{
-					stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
-					fact += volume * d ;
-				}
+			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+			{
+				stra += ci->getBehaviour()->getDamageModel()->getState() * volume * d ;
+				fact += volume * d ;
 			}
 		}
 

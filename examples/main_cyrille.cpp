@@ -1747,11 +1747,11 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	double cradius = 1*4 ;
-	double mradius = 1 ;
+	double mradius = 0.5 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new PlasticStrain()/*IsotropicLinearDamage()*/) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new NonLocalIsotropicLinearDamage()) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_steelx) ;
@@ -1769,7 +1769,7 @@ int main(int argc, char *argv[])
 
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.setMaxIterationsPerStep(2000) ;
 	F.setDeltaTime(0.1);
 

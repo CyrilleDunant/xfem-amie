@@ -35,7 +35,7 @@
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/materials/concrete_behaviour.h"
-
+#include "../physics/homogenization/composite.h"
 
 #include <fstream>
 #ifdef HAVE_SSE3
@@ -53,6 +53,7 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
+
 
 
 #define DEBUG 
@@ -1546,12 +1547,16 @@ int main(int argc, char *argv[])
 	
 	Matrix m0_steelx(3,3) ;
 	Matrix m0_steely(3,3) ;
-	double E_steel = 200e9 ;
+	//the .6 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
+	double E_steel = 0.6*200e9 ;
 	double nu_steel = 0.3 ; 
 	
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
 	double E_rebar = 30e9 ;
+	
+
+	
 	//nu_steelConcrete/nu_concreteSteel == E_paste/E_steel
 // 	double nu_concreteSteel = 0.3 ;
 // 	double nu_steelConcrete = 0.3* E_paste/E_steel ;
@@ -1586,6 +1591,22 @@ int main(int argc, char *argv[])
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
 	                                                                                                                      m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ; 
+// 	Point a(0,0) ;
+// 	Point b(0., .4) ;
+// 	Point c(rebarDiametre*2., 0.) ;
+// 	DelaunayTriangle tri(NULL, NULL, &a, &b, &c, NULL) ;
+// 	tri.setBehaviour(new Stiffness(m0_paste));
+// 	std::vector<Feature *> rebs ;
+// 	rebs.push_back(new Inclusion(NULL, rebarDiametre*.5, 0, 0));
+// 	rebs.push_back(new Inclusion(NULL, rebarDiametre*.5, 0, 0));
+// 	rebs.push_back(new Inclusion(NULL, rebarDiametre*.5, 0, 0));
+// 	rebs[0]->setBehaviour(new Stiffness(m0_steelx));
+// 	rebs[1]->setBehaviour(new Stiffness(m0_steelx));
+// 	rebs[2]->setBehaviour(new Stiffness(m0_steelx));
+// 	ReussMatrixMultiInclusionComposite composite(&tri, rebs) ;
+// 	composite.getBehaviour()->param.print();
+// 	(m0_steelx*phi*0.6+m0_paste*(1.-phi)).print();
+// 	exit(0) ;
 	
 	Sample box(NULL, sampleLength*.5, sampleHeight+plateHeight*2.,sampleLength*.25,0) ;
 	box.setBehaviour(new VoidForm()) ;

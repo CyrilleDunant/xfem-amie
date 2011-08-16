@@ -50,7 +50,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		if(v.size() == 3 && !imposedStrain.size())
 			imposedStrain.resize(6, 0.) ;
 		
-		imposedStrain = s.getStress(Point(1./3, 1./3), true) ;
+		imposedStrain = -(s.getStress(s.getParent()->getCenter())-lastStress)*20. ;
 		//we only use the deviatoric stress
 		double diag = (imposedStrain[0]+imposedStrain[1])*.5 ;
 		if(v.size() == 3)
@@ -91,6 +91,12 @@ std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const Ele
 	if(!param || !imposedStrain.size())
 		return ret ;
 	Vector f = VirtualMachine().ieval(Gradient(p_i) * (imposedStrain*state[0]+previousImposedStrain), gp, Jinv,v) ;
+// 	if(state[0] > POINT_TOLERANCE_2D)
+// 	{
+// 		std::cout << "strain = "<< (imposedStrain*state[0]+previousImposedStrain)[0] << "  " << (imposedStrain*state[0]+previousImposedStrain)[1] << std::endl ;
+// 		std::cout << "delta = "<< f[0] << "  " << f[1] << std::endl ;
+// 	}
+
 	if(f.size() == 2)
 	{
 		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, f[0]));
@@ -107,28 +113,46 @@ std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const Ele
 
 Vector PlasticStrain::getImposedStress(const Point & p) const
 {
-	return imposedStrain*state[0]+previousImposedStrain ;
+	if(v.size() == 2 && !param)
+		return Vector(0., 3) ;
+	if(v.size() == 3 && !param)
+		return Vector(0., 6) ;
+		
+	return (imposedStrain*state[0]+previousImposedStrain) ;
 }
 
 bool PlasticStrain::fractured() const 
 {
 	if(fraction < 0)
 		return false ;
-	return state.max() >= 2. ;
+	return state.max() >= 1. ;
 }
 
 void PlasticStrain::postProcess()
 {
+	
+	if(converged)
+	{
+		if(v.size() == 2 && lastStress.size() == 0)
+			lastStress.resize(3, 0.);
+		if(v.size() == 3 && lastStress.size() == 0)
+			lastStress.resize(6, 0.);
+		
+		lastStress = es->getStress(es->getParent()->getCenter()) ;
+	}
+	
 	if(converged && state[0] > POINT_TOLERANCE_2D)
 	{
-		std::cout << previousImposedStrain[0] << " "<< previousImposedStrain[1]<< " "<< previousImposedStrain[2]<< std::endl ; 
+
 		previousImposedStrain += imposedStrain*state[0] ;
+		
 		state[0] = 0;
 		imposedStrain = 0 ;
-		std::cout << previousImposedStrain[0] << " "<< previousImposedStrain[1]<< " "<< previousImposedStrain[2]<< " : "<< es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()<< std::endl ; 
+		 
 
 		wasBroken = false ;
 	}
+
 }
 
 PlasticStrain::~PlasticStrain()

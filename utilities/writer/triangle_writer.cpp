@@ -743,9 +743,9 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 
 			case TWFT_PRINCIPAL_ANGLE:
 			{
-				ret[2] = tri->getState().getPrincipalAngle( *tri->first )[0] ;
-				ret[1] = tri->getState().getPrincipalAngle( *tri->second )[0] ;
-				ret[0] = tri->getState().getPrincipalAngle( *tri->third )[0] ;
+				ret[2] = 180.*tri->getState().getPrincipalAngle( *tri->first )[0]/M_PI ;
+				ret[1] = 180.*tri->getState().getPrincipalAngle( *tri->second )[0]/M_PI ;
+				ret[0] = 180.*tri->getState().getPrincipalAngle( *tri->third )[0]/M_PI ;
 
 				found = true ;
 				break ;
@@ -755,9 +755,12 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			{
 				if(tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
 				{
-					ret[2] = tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState()) ;
-					ret[1] = tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState()) ;
-					ret[0] = tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState()) ;
+					double angle = 180.*tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState())/M_PI ;
+					while (angle < 0)
+						angle += 90 ;
+					ret[2] =  angle ;
+					ret[1] =  angle ;
+					ret[0] =  angle ;
 				}
 				else
 				{
