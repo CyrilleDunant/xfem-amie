@@ -142,6 +142,31 @@ Matrix Matrix::transpose() const
 	return ret ;
 }
 
+Matrix identity(size_t i)
+{
+	Matrix I(i, i) ;
+	for(size_t j = 0 ; j < i ; ++j)
+		I[j][j] = 1 ;
+	
+	return I ;
+}
+
+double trace(const Matrix & m)
+{
+	double ret = 0 ;
+	for(size_t i = 0 ; i < std::min(m.numCols(), m.numRows()) ; ++i)
+		ret += m[i][i] ;
+	
+	return ret ;
+}
+
+double secondInvariant(const Matrix & m)
+{
+	double tr = trace(m) ;
+	return 0.5*(tr*tr - trace(m*m)) ;
+}
+
+
 Matrix &Matrix::operator*=(double d)
 {
 	(*v) *=d ;

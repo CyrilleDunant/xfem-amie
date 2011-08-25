@@ -242,13 +242,6 @@ void TrimaterialInterface::step(double timestep, ElementState & currentState)
 	outBehaviour->step(timestep, currentState) ;
 }
 
-void TrimaterialInterface::artificialDamageStep(double d)
-{
-	inBehaviour->artificialDamageStep(d) ;
-	midBehaviour->artificialDamageStep(d) ;
-	outBehaviour->artificialDamageStep(d) ;
-}
-
 FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 {
 	double max = -2 ;

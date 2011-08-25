@@ -89,10 +89,4 @@ std::vector<BoundaryCondition * > StiffnessWithImposedDeformation::getBoundaryCo
 	return ret ;
 }
 
-Material StiffnessWithImposedDeformation::toMaterial()
-{
-	Material mat(getTensor(Point(0,0))) ;
-	mat.setProperties(P_EXPANSION_COEFFICIENT, imposed[0]) ;
-	return mat ;
-}
 

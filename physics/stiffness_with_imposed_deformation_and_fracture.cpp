@@ -20,15 +20,7 @@ StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFr
 {
 	dfunc = new IsotropicLinearDamage() ;
 	crit->setNeighbourhoodRadius(eps) ;
-	frac = false ;
-	init = param[0][0] ;
 	change  = false ;
-	previouschange = false ;
-	previousDamage.resize(dfunc->getState().size()) ; previousDamage =0 ;
-	intermediateDamage.resize(dfunc->getState().size()) ;intermediateDamage = 0 ;
-	count = 0 ;
-	previousPreviousDamage.resize(dfunc->getState().size()) ;previousPreviousDamage = 0 ;
-	damage = 0 ;	
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() == 36)
@@ -58,92 +50,19 @@ void StiffnessWithImposedDeformationAndFracture::apply(const Function & p_i, con
 
 void StiffnessWithImposedDeformationAndFracture::stepBack()
 {
-// 	if(change)
-// 	{
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal /= .95 ;
-// 		dynamic_cast<MohrCoulomb *>(criterion)->downVal /= .95 ;
-// 	}
-	change = previouschange ;
-	damage.resize(previousDamage.size()) ;
-	damage = previousDamage ;
-	dfunc->getState(true) = damage ;
-	frac = dfunc->fractured() ;
-
-	previousDamage.resize(previousPreviousDamage.size()) ;
-	previousDamage = previousPreviousDamage ;
+	dfunc->stepBack() ;
 }
 
 void StiffnessWithImposedDeformationAndFracture::step(double timestep, ElementState & currentState) 
 {
-	previouschange = change ;
-	change = false ;
-	currentState.getParent()->behaviourUpdated = false ;
 
-		dfunc->step(currentState) ;
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal *= .95 ;
-// 		dynamic_cast<MohrCoulomb *>(criterion)->downVal *= .95 ;
-		change = dfunc->changed() ;
-		currentState.getParent()->behaviourUpdated = change ;
-		frac = dfunc->fractured() ;
-	previousPreviousDamage.resize(previousDamage.size()) ;
-	previousPreviousDamage = previousDamage ;
-	previousDamage.resize(damage.size()) ;
-	previousDamage = damage ;
-
-	Vector d = dfunc->getState() ;
-	damage.resize(d.size()) ;
-	damage = d ;
+	dfunc->step(currentState) ;
+	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
 }
-
-void StiffnessWithImposedDeformationAndFracture::artificialDamageStep(double d)
-{
-	previouschange = change ;
-	change = false ;
-
-	dfunc->artificialDamageStep(d) ;
-	change = true ;
-	frac = dfunc->fractured() ;
-	previousPreviousDamage.resize(previousDamage.size()) ;
-	previousPreviousDamage = previousDamage ;
-	previousDamage.resize(damage.size()) ;
-	previousDamage = damage ;
-
-	Vector d_ = dfunc->getState() ;
-	damage.resize(d_.size()) ;
-	damage = d ;
-}
-
-
-void StiffnessWithImposedDeformationAndFracture::artificialPreviousDamage(Vector previous, Vector previousprevious)
-{
-	previousDamage.resize(damage.size()) ;
-	if(previous.size() < previousDamage.size())
-	{
-		for(size_t i = 0 ; i < previous.size() ; i++)
-			previousDamage[i] = std::min(damage[i],previous[i]) ;
-		for(size_t j = previous.size() ; j < previousDamage.size() ; j++)
-			previousDamage[j] = std::min(damage[j],previous[previous.size() - 1]) ;
-	} else {
-		for(size_t i = 0 ; i < previousDamage.size() ; i++)
-			previousDamage[i] = std::min(damage[i],previous[i]) ;
-	}
-	previousPreviousDamage.resize(damage.size()) ;
-	if(previousprevious.size() < previousPreviousDamage.size())
-	{
-		for(size_t i = 0 ; i < previousprevious.size() ; i++)
-			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
-		for(size_t j = previous.size() ; j < previousPreviousDamage.size() ; j++)
-			previousPreviousDamage[j] = std::min(previousDamage[j],previousprevious[previousprevious.size() - 1]) ;
-	} else {
-		for(size_t i = 0 ; i < previousPreviousDamage.size() ; i++)
-			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
-	}
-}
-
 
 bool StiffnessWithImposedDeformationAndFracture::changed() const
 {
-	return change ;
+	return dfunc->changed() ;
 } 
 
 bool StiffnessWithImposedDeformationAndFracture::fractured() const

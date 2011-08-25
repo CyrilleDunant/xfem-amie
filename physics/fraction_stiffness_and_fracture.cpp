@@ -110,51 +110,6 @@ void FractionStiffnessAndFracture::step(double timestep, ElementState & currentS
 	
 }
 
-void FractionStiffnessAndFracture::artificialDamageStep(double d)
-{
-	previouschange = change ;
-	change = false ;
-
-	dfunc->artificialDamageStep(d) ;
-	change = true ;
-	frac = dfunc->fractured() ;
-	previousPreviousDamage.resize(previousDamage.size()) ;
-	previousPreviousDamage = previousDamage ;
-	previousDamage.resize(damage.size()) ;
-	previousDamage = damage ;
-
-	Vector d_ = dfunc->getState() ;
-	damage.resize(d_.size()) ;
-	damage = d ;
-}
-
-void FractionStiffnessAndFracture::artificialPreviousDamage(Vector previous, Vector previousprevious)
-{
-	previousDamage.resize(damage.size()) ;
-	if(previous.size() < previousDamage.size())
-	{
-		for(size_t i = 0 ; i < previous.size() ; i++)
-			previousDamage[i] = std::min(damage[i],previous[i]) ;
-		for(size_t j = previous.size() ; j < previousDamage.size() ; j++)
-			previousDamage[j] = std::min(damage[j],previous[previous.size() - 1]) ;
-	} else {
-		for(size_t i = 0 ; i < previousDamage.size() ; i++)
-			previousDamage[i] = std::min(damage[i],previous[i]) ;
-	}
-	previousPreviousDamage.resize(damage.size()) ;
-	if(previousprevious.size() < previousPreviousDamage.size())
-	{
-		for(size_t i = 0 ; i < previousprevious.size() ; i++)
-			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
-		for(size_t j = previous.size() ; j < previousPreviousDamage.size() ; j++)
-			previousPreviousDamage[j] = std::min(previousDamage[j],previousprevious[previousprevious.size() - 1]) ;
-	} else {
-		for(size_t i = 0 ; i < previousPreviousDamage.size() ; i++)
-			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
-	}
-}
-
-
 
 bool FractionStiffnessAndFracture::changed() const
 {

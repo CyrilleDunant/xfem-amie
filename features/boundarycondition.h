@@ -23,6 +23,7 @@ class BoundaryCondition
 protected:
 	LagrangeMultiplierType condition;
 	double data ;
+	double scale ;
 	Function dataFunction ;
 	bool function ;
 	std::vector<ElementarySurface *> cache2d ;
@@ -41,6 +42,11 @@ public:
 		cache2d.clear();
 		cache3d.clear();
 	} ;
+	
+	virtual void setScale(double) ;
+	virtual double getScale() const;
+	
+	LagrangeMultiplierType getConditionType() const {return condition ;}  ;
 } ;
 
 class NullBoundaryCondition : public BoundaryCondition

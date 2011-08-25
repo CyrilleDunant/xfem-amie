@@ -96,8 +96,6 @@ public:
 	*/
 	virtual void step(double timestep, ElementState & currentState) ;
 
-	virtual void artificialDamageStep(double d) ;
-	
 
 		/** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise
 	 * 

@@ -28,6 +28,9 @@ protected:
 	Vector imposedStrain ;
 	Vector previousImposedStrain ;
 	Vector lastStress ;
+	double c_psi ;
+	
+	double plasticFlowPotential(const Matrix & m) const ;
 	
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
@@ -43,15 +46,6 @@ public:
 	 * @param s ElementState passed as a parameter
 	 */
 	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
-
-	/** \brief Increment the damage from an external value.
-	 * 
-	 * @param d damage
-	 */
-	virtual void artificialDamageStep(double d) ;
-
-	/** \brief Do nothing */
-	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { } ;
 
 	/** \brief compute the new stifness matrix after damage
 	 * 

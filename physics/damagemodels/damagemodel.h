@@ -77,10 +77,15 @@ protected:
 	Vector downState ;
 	
 	bool change ;
+	bool previouschange ;
 	bool wasBroken ;
 	
 	Vector state ;
+	Vector auxiliarystate ;
+	Vector previouspreviousstate ;
 	Vector previousstate ;
+	Vector previousauxiliarystate ;
+	Vector previouspreviousauxiliarystate ;
 	std::vector<PointState> states ;
 	
 	ElementState * elementState ;
@@ -122,21 +127,18 @@ public:
 	 * @param s ElementState
 	 */
 	virtual void step(ElementState & s)  ;
-
-	/** \brief Increment the damage from an external value
-	 * 
-	 * @param d damage
-	 */
-	virtual void artificialDamageStep(double d) = 0 ;
 	
+	/** \brief decrement the damage from the current state of the element considered
+	 * 
+	 * @param s ElementState
+	 */
+	virtual void stepBack()  ;
+
 	virtual std::pair<Vector,Vector> computeDamageIncrement(ElementState &s) = 0 ;
 
 	/** \brief Get previous damage value  */
 	virtual Vector & getPreviousState() { return previousstate ; } ;
 	virtual const Vector & getPreviousState() const { return previousstate ; } ;
-
-	/** \brief Impose previous and previous previous damage (if stored in the model) */
-	virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) = 0 ;
 
 	/** \brief return true is the element concerned is fractured 
 		*/
@@ -162,7 +164,7 @@ public:
 	
 	virtual void prepare() { };
 	
-	virtual void postProcess() { } ;
+	virtual void postProcess();
 	
 	virtual bool hasInducedBoundaryConditions() const
 	{

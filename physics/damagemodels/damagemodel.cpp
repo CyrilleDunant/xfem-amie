@@ -20,9 +20,25 @@ namespace Mu
 /** \brief Damage model interface */
 
 
+void DamageModel::stepBack()
+{
+	change = previouschange ;
+	previousstate = previouspreviousstate ;
+	state = previousstate ;
+	previousauxiliarystate = previouspreviousauxiliarystate ;
+	auxiliarystate = previousauxiliarystate ;
+}
+
 void DamageModel::step( ElementState &s )
 {
+	previouschange = change ;
+	previouspreviousstate = previousstate ;
+	previousstate = state;
+	previouspreviousauxiliarystate = previousauxiliarystate ;
+	previousauxiliarystate = auxiliarystate ;
 	elementState = &s ;
+	
+	
 	double phi = ( 1. + sqrt( 5. ) ) * .5 ;
 	double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
@@ -68,18 +84,14 @@ void DamageModel::step( ElementState &s )
 		return ;
 	}
 	std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
-	bool checkpoint = s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ;
-
-	if( checkpoint ) // initiate iteration
+	if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ) // initiate iteration
 	{
 		s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
 		states.clear() ;
 
-		getPreviousState() = getState() ;
-
-		if( !fractured() )
+		if(getState().max() < thresholdDamageDensity)
 		{
-/*			damageDensityTolerance =  1. / pow( 2., 16 );*/
+
 			converged = false ;
 			change = true ;
 
@@ -95,7 +107,7 @@ void DamageModel::step( ElementState &s )
 			
 			trialRatio = 1.  ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio ;
-			while(fractured())
+			while(getState().max() > thresholdDamageDensity)
 			{
 				trialRatio -= damageDensityTolerance*.25 ;
 				getState( true ) = downState + ( upState - downState ) * trialRatio ;
@@ -103,7 +115,7 @@ void DamageModel::step( ElementState &s )
 
 			if( ( upState - downState ).min() < 0 )
 			{
-				while(!fractured())
+				while(getState().max() < thresholdDamageDensity)
 				{
 					trialRatio += damageDensityTolerance*.25 ;
 					getState( true ) = downState + ( upState - downState ) * trialRatio ;
@@ -114,7 +126,7 @@ void DamageModel::step( ElementState &s )
 
 			if( ( upState - downState ).max() < 2.*damageDensityTolerance )
 			{
-				while(!fractured())
+				while(getState().max() < thresholdDamageDensity)
 				{
 					trialRatio += damageDensityTolerance*.25 ;
 					getState( true ) = downState + ( upState - downState ) * trialRatio ;
@@ -144,11 +156,11 @@ void DamageModel::step( ElementState &s )
 			return ;
 		}
 
-		if(states.size() == 1 && std::abs(trialRatio - states[0].fraction) < POINT_TOLERANCE_2D)
+		if(needRestart && states.size() == 1 && std::abs(trialRatio - states[0].fraction) < POINT_TOLERANCE_2D)
 		{
 			trialRatio = 1 ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio ;
-			while(fractured())
+			while(getState().max() > thresholdDamageDensity)
 			{
 				trialRatio -= damageDensityTolerance*.25 ;
 				getState( true ) = downState + ( upState - downState ) * trialRatio ;
@@ -160,19 +172,6 @@ void DamageModel::step( ElementState &s )
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		std::stable_sort( states.begin(), states.end() ) ;
 
-
-// 		trialRatio -= 0.1 ;
-// 		if(trialRatio < 0)
-// 		{
-// 			for( int i = 0 ; i < states.size() ; i++ )
-// 				std::cout << states[i].fraction << "  " << states[i].score << "  " << states[i].delta << std::endl ;
-// 			
-// 			exit(0) ;
-// 		}
-// 		
-// 		getState( true ) = downState + ( upState - downState ) * trialRatio ;
-// 		return ;
-		
 		double minFraction = states[0].fraction ;
 		double maxFraction = states[1].fraction ;
 		double prevDelta = states[0].delta ;
@@ -254,10 +253,15 @@ void DamageModel::step( ElementState &s )
 	}
 }
 
-DamageModel::DamageModel()
+void DamageModel::postProcess()
+{
+}
+
+DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0), auxiliarystate(0), previousauxiliarystate(0),previouspreviousauxiliarystate(0)
 {
 	elementState = NULL ;
 	wasBroken = false ;
+	previouschange = false ;
 	change = false ;
 	isNull = true ;
 	needRestart = false ;
@@ -271,7 +275,7 @@ DamageModel::DamageModel()
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance =  1. / pow( 2., 12 );
+	damageDensityTolerance =  1. / pow( 2., 8 );
 } ;
 
 double DamageModel::getThresholdDamageDensity() const
@@ -336,9 +340,9 @@ Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 			}
 			//this is to eliminate scaling effects ;
 			double factor = 1 ;
-
-			if( std::abs( s.getParent()->getBehaviour()->param[0][0] ) > POINT_TOLERANCE_3D )
-				factor = std::abs( ci->getBehaviour()->param[0][0] / s.getParent()->getBehaviour()->param[0][0] ) ;
+			area = ci->area() ;
+// 			if( std::abs( s.getParent()->getBehaviour()->param[0][0] ) > POINT_TOLERANCE_3D )
+// 				factor = std::abs( ci->getBehaviour()->param[0][0] / s.getParent()->getBehaviour()->param[0][0] ) ;
 
 			double d = exp( -dc / ( 2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 
@@ -402,8 +406,8 @@ Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 			double volume = ci->volume() ;
 			double factor = 1 ;
 
-			if( std::abs( s.getParent()->getBehaviour()->param[0][0] ) > POINT_TOLERANCE_3D )
-				factor = std::abs( ci->getBehaviour()->param[0][0] / s.getParent()->getBehaviour()->param[0][0] ) ;
+// 			if( std::abs( s.getParent()->getBehaviour()->param[0][0] ) > POINT_TOLERANCE_3D )
+// 				factor = std::abs( ci->getBehaviour()->param[0][0] / s.getParent()->getBehaviour()->param[0][0] ) ;
 
 			double d = exp( -dc / ( 2.*physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
 

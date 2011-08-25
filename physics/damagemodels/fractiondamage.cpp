@@ -60,12 +60,6 @@ std::pair< Vector, Vector > FractionLinearDamage::computeDamageIncrement( Mu::El
 // 	std::cout << state.sum() << std::flush ;
 }
 
-void FractionLinearDamage::artificialDamageStep(double d)
-{
-	for(size_t i = 0 ; i < state.size() -1 ; i++)
-		state[i] = std::min(state[i]+d,0.9999) ;
-}
-
 Matrix FractionLinearDamage::apply(const Matrix & m) const
 {	
 	if(fractured())

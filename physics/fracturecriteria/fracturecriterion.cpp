@@ -49,7 +49,6 @@ double FractureCriterion::smoothedCrackAngle( ElementState &s) const
 			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| !ci->getBehaviour()->getFractureCriterion() 
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
@@ -60,7 +59,7 @@ double FractureCriterion::smoothedCrackAngle( ElementState &s) const
 			
 			area = ci->area() ;
 			//this is to eliminate scaling effects ;
-			double factor = 1 ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -118,7 +117,6 @@ double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s) const
 			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| !ci->getBehaviour()->getFractureCriterion() 
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
@@ -129,7 +127,7 @@ double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s) const
 			
 			area = ci->area() ;
 			//this is to eliminate scaling effects ;
-			double factor = 1 ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -179,7 +177,6 @@ double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s) const
 			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
 				|| ci->getBehaviour()->getFractureCriterion() 
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() &&ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
 				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
 				|| ci->getBehaviour()->fractured()
@@ -189,7 +186,7 @@ double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s) const
 			}
 
 			volume = ci->volume() ;
-			double factor = 1 ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -276,7 +273,6 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| !ci->getBehaviour()->getFractureCriterion() 
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
@@ -287,7 +283,7 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			
 			area = ci->area() ;
 			//this is to eliminate scaling effects ;
-			double factor = 1 ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -366,7 +362,7 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 			}
 
 			volume = ci->volume() ;
-			double factor = 1 ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -488,7 +484,6 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| !ci->getBehaviour()->getFractureCriterion() 
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() && ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
@@ -499,7 +494,7 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 			
 			area = ci->area() ;
 			//this is to eliminate scaling effects ;
-			double factor = 1 ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -570,7 +565,6 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
 				|| ci->getBehaviour()->getFractureCriterion() 
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
-				|| (!ci->getBehaviour()->getTensor(ci->getCenter()).isNull() &&ci->getBehaviour()->getTensor(ci->getCenter())[0][0] < POINT_TOLERANCE_3D)
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
 				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
 				|| ci->getBehaviour()->fractured()
@@ -580,7 +574,7 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 			}
 
 			volume = ci->volume() ;
-			double factor = 1 ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -1401,17 +1395,17 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(i->second->getBehaviour()->getFractureCriterion()->met() && std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*.25*/)
+					if(std::abs(i->first-thresholdScore) < scoreTolerance)
 					{
 						newSet.push_back(i->second->index);
-						minscore = i->second->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+						minscore = i->first ;
 					}
 					else
 						break ;
 				}
 			}
 
-			if(!(met() && std::abs(nonLocalScoreAtState-thresholdScore) < scoreTolerance))
+			if(std::abs(nonLocalScoreAtState-thresholdScore) >= scoreTolerance)
 			{
 				proximitySet.clear() ;
 				return std::make_pair(0.,0.) ;
@@ -1428,7 +1422,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
 				{
-					if(i->second->getBehaviour()->getFractureCriterion()->met()&&  std::abs(i->first-thresholdScore) < scoreTolerance/*squareDist2D(maxLocus, i->second->getCenter()) <= physicalCharacteristicRadius*physicalCharacteristicRadius*.25*/)
+					if(std::abs(i->first-thresholdScore) < scoreTolerance)
 					{
 						continue ;
 					}
@@ -1478,7 +1472,8 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			double thresholdScore = maxscore ;
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
 			{
-				double nls = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
+				double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 
 				if(nls < maxscore)
 				{
@@ -1492,11 +1487,13 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			double minscore = 0 ;
 			if(!proximitySet.empty())
 			{
-				minscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-
+				ci = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]]) ;
+				minscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				
 				for(size_t i = 1 ; i < proximitySet.size() ; i++)
 				{
-					double nls = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+					ci = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]]) ;
+					double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 
 					if(nls > minscore)
 						minscore = nls ;

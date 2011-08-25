@@ -28,19 +28,7 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 	else
 		dfunc = d ;
 	criterion = crit ;
-	init = param[0][0] ;
-	previouschange = false ;
-	previousDamage.resize(dfunc->getState().size()) ; 
-	previousDamage =0 ;
-	
-	intermediateDamage.resize(dfunc->getState().size()) ;
-	intermediateDamage = 0 ;
-	
-	previousPreviousDamage.resize(dfunc->getState().size()) ;
-	previousPreviousDamage = 0 ;
-	
-	count = 0 ;
-	damage = 0 ;
+
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() == 36 )
@@ -79,77 +67,15 @@ void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, con
 
 void StiffnessAndFracture::stepBack()
 {
-
-	damage.resize(previousDamage.size()) ;
-	damage = previousDamage ;
-	dfunc->getState(true) = damage ;
-
-	previousDamage.resize(previousPreviousDamage.size()) ;
-	previousDamage = previousPreviousDamage ;
+	dfunc->stepBack();
 }
 
 void StiffnessAndFracture::step(double timestep, ElementState & currentState) 
 {
-	previouschange = dfunc->changed() ;
 	dfunc->step(currentState) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
-	
-	if(dfunc->changed())
-	{
-		
-		previousPreviousDamage.resize(previousDamage.size()) ;
-		previousPreviousDamage = previousDamage ;
-		previousDamage.resize(damage.size()) ;
-		previousDamage = damage ;
-		
-		Vector d = dfunc->getState() ;
-		damage.resize(d.size()) ;
-		damage = d ;
-	}
+
 }
-
-void StiffnessAndFracture::artificialDamageStep(double d)
-{
-	previouschange = dfunc->changed() ;
-
-	dfunc->artificialDamageStep(d) ;
-	previousPreviousDamage.resize(previousDamage.size()) ;
-	previousPreviousDamage = previousDamage ;
-	previousDamage.resize(damage.size()) ;
-	previousDamage = damage ;
-
-	Vector d_ = dfunc->getState() ;
-	damage.resize(d_.size()) ;
-	damage = d ;
-}
-
-void StiffnessAndFracture::artificialPreviousDamage(Vector previous, Vector previousprevious)
-{
-	previousDamage.resize(damage.size()) ;
-	if(previous.size() < previousDamage.size())
-	{
-		for(size_t i = 0 ; i < previous.size() ; i++)
-			previousDamage[i] = std::min(damage[i],previous[i]) ;
-		for(size_t j = previous.size() ; j < previousDamage.size() ; j++)
-			previousDamage[j] = std::min(damage[j],previous[previous.size() - 1]) ;
-	} else {
-		for(size_t i = 0 ; i < previousDamage.size() ; i++)
-			previousDamage[i] = std::min(damage[i],previous[i]) ;
-	}
-	previousPreviousDamage.resize(damage.size()) ;
-	if(previousprevious.size() < previousPreviousDamage.size())
-	{
-		for(size_t i = 0 ; i < previousprevious.size() ; i++)
-			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
-		for(size_t j = previous.size() ; j < previousPreviousDamage.size() ; j++)
-			previousPreviousDamage[j] = std::min(previousDamage[j],previousprevious[previousprevious.size() - 1]) ;
-	} else {
-		for(size_t i = 0 ; i < previousPreviousDamage.size() ; i++)
-			previousPreviousDamage[i] = std::min(previousDamage[i],previousprevious[i]) ;
-	}
-}
-
-
 
 bool StiffnessAndFracture::changed() const
 {
@@ -164,7 +90,6 @@ bool StiffnessAndFracture::fractured() const
 Form * StiffnessAndFracture::getCopy() const 
 {
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), dfunc->getCopy()) ;
-	copy->damage = damage ;
 	copy->dfunc->getState(true).resize(dfunc->getState().size());
 	copy->dfunc->getState(true) = dfunc->getState() ;
 	copy->dfunc->getPreviousState().resize(dfunc->getPreviousState().size());
@@ -179,13 +104,6 @@ Form * StiffnessAndFracture::getCopy() const
 Matrix StiffnessAndFracture::getTensor(const Point & p) const
 {
 	return dfunc->apply(param) ;
-}
-
-Material StiffnessAndFracture::toMaterial()
-{
-	Material mat(getTensor(Point(0,0))) ;
-	mat.setProperties(criterion->toMaterial()) ;
-	return mat ;
 }
 
 

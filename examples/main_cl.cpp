@@ -541,7 +541,7 @@ void step()
 									pointfile << b->phi << "   " ;
 									pointfilel << b->phi << "   " ;
 									pointfilelp << b->accumulatedPhi << "   " ;
-									pointfiled << b->damage[0] << "   " ;
+									pointfiled << b->getDamageModel()->getState()[0] << "   " ;
 									done = true ;
 								}
 								else

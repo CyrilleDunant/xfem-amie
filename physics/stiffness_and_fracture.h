@@ -33,15 +33,7 @@ namespace Mu
 // 		AnisotropicLinearDamage * dfunc ;
 		DamageModel * dfunc ;
 // 		IsotropicLinearDamage dfunc ;
-		Vector previousPreviousDamage ;
-		Vector intermediateDamage ;
-		Vector previousDamage ;
-		int count ;
 		FractureCriterion * criterion ;
-		bool previouschange ; 
-		double sigmaRupt ;
-		double init ;
-		Vector damage ;
 		std::vector<Variable> v ;
 
 		/** \brief Constructor
@@ -73,18 +65,6 @@ namespace Mu
 		* if the yield criterion is true, se fractured state to true
 		*/
 		virtual void step(double timestep, ElementState & currentState) ;
-		
-		/** Artificial damage step */
-		virtual void artificialDamageStep(double d) ;
-
-		/** \brief returns the previous damage */
-		virtual Vector getPreviousDamage() {return previousDamage ; } ;
-
-		/** \brief returns the previous previous damage */
-		virtual Vector getPreviousPreviousDamage() {return previousPreviousDamage ; } ;
-
-		/** \brief Impose previous and previous previous damage */
-		virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) ;
 
 		/** \brief Check for fracture state
 		*
@@ -113,8 +93,7 @@ namespace Mu
 		virtual FractureCriterion * getFractureCriterion() const ;
 
 		virtual DamageModel * getDamageModel() const ;
-				
-		virtual Material toMaterial() ;
+
 		
 		
 	} ;

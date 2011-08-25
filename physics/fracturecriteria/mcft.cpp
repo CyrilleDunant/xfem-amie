@@ -168,7 +168,6 @@ double NonLocalMCFT::grade( ElementState &s )
 
 	
 	double maxTension = upVal;
-	double maxTensionAlt = upVal;
 	
 	if(tstrain >= tensionCritStrain)
 	{
@@ -179,7 +178,7 @@ double NonLocalMCFT::grade( ElementState &s )
 // 		double crackAngle = 0 ;
 // 		if(s.getParent()->getBehaviour()->getDamageModel()->getState().max()  >  POINT_TOLERANCE_2D)
 // 			crackAngle = smoothedCrackAngle(s) ;
-// 		
+// // 		
 // 		double stressAngle = smoothedPrincipalStressAngle(s)-crackAngle ;
 // 		while(stressAngle < 0)
 // 			stressAngle += M_PI*.5 ;
@@ -203,14 +202,12 @@ double NonLocalMCFT::grade( ElementState &s )
 // 		maxTensionAlt = std::max(vcimax*(0.18+0.3*k*k)*tantheta, POINT_TOLERANCE_2D) ;
 // 		maxTension = upVal / ( 1. + sqrt( 500.*tstrain )) ;
 
+// 		maxTensionAlt = maxTension ;
 		double energy = 75. ; //N/m
-		double terminalStrain = 2.*energy/(maxTension*getMaterialCharacteristicRadius()) ;
-		if(terminalStrain-tensionCritStrain > POINT_TOLERANCE_2D)
-			maxTension = upVal * (1.- (tstrain - tensionCritStrain)/(terminalStrain-tensionCritStrain) ) ;
-		else
-			maxTension = 0 ;
+		double terminalStrain = 2.*energy/(upVal*getMaterialCharacteristicRadius()) ;
+		maxTension = upVal * (1.- (tstrain - tensionCritStrain)/(terminalStrain-tensionCritStrain) ) ;
 		
-		maxTensionAlt = maxTension ;
+// 		
 	}
 
 
@@ -228,45 +225,32 @@ double NonLocalMCFT::grade( ElementState &s )
 		crits.push_back( 1. - std::abs( maxCompression / cstress ) ) ;
 	}
 	
-	if( cstress <= POINT_TOLERANCE_2D && std::abs( cstress ) < std::abs( maxCompression ) )
+	if( cstress <= 0 && std::abs( cstress ) < std::abs( maxCompression ) )
 	{
 		crits.push_back( -1. + std::abs( cstress / maxCompression ) ) ;
 	}
 	
-	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > POINT_TOLERANCE_2D) && tstress >= POINT_TOLERANCE_2D && std::abs( tstress ) >= std::abs( maxTension ) )
+	if( tstrain >= tensionCritStrain 
+		&& tstress  >= maxTension  )
 	{
 		metInTension = true ;
 		crits.push_back( 1. - std::abs( maxTension / tstress ) ) ;
 	}
-	
-// 	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > POINT_TOLERANCE_2D) && tstress >= POINT_TOLERANCE_2D && std::abs( tstress ) >=  maxTensionAlt  )
-// 	{
-// 		metInTension = true ;
-// 		crits.push_back( 1. - std::abs( maxTensionAlt / tstress ) ) ;
-// 	}
 
-	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > POINT_TOLERANCE_2D )&& tstress > POINT_TOLERANCE_2D && std::abs( tstress )  < std::abs( maxTension ) )
+	if( tstrain >= tensionCritStrain 
+		&& tstress > 0 
+		&& tstress < maxTension )
 	{
 		crits.push_back( -1. + std::abs( tstress / maxTension ) ) ;
 	}
-	
-// 	if( (tstrain >= tensionCritStrain || strainBroken && tstrain > POINT_TOLERANCE_2D )&& tstress > POINT_TOLERANCE_2D && std::abs( tstress )  < std::abs( maxTensionAlt ) && maxTensionAlt > POINT_TOLERANCE_2D)
-// 	{
-// 		crits.push_back( -1. + std::abs( tstress / maxTensionAlt ) ) ;
-// 	}
-	
-	if(tstrain < tensionCritStrain && !strainBroken && tstrain > POINT_TOLERANCE_2D)
+
+	if(tstrain < tensionCritStrain 
+		&& tstrain >= 0)
 	{
 		crits.push_back( -1. + std::abs( tstrain / tensionCritStrain ) ) ;
 	}
 
-
-
 	std::sort( crits.begin(), crits.end() );
-// 	if(crits.back() < -.999 &&  tstrain > 0)
-// 		std::cout << " + "<< tstrain << "  " << std::abs( tstrain / tensionCritStrain ) << std::endl ;
-// 	if(crits.back() < -.999 &&  cstrain < 0)
-// 		std::cout << " + "<< cstrain << "  " << std::abs( cstrain / critStrain ) << std::endl ;
 	return crits.back() ;
 }
 

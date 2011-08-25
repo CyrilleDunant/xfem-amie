@@ -101,8 +101,6 @@ public:
 	*/
 	virtual void step(double timestep, ElementState & currentState) ;
 
-	virtual void artificialDamageStep(double d) ;
-
 	/** \brief return true if the damage state changed during the last step */
 	virtual bool changed() const ;
 

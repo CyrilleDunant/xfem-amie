@@ -24,6 +24,14 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 	v.push_back(XI);
 	v.push_back(ETA);
 	param = NULL ;
+	
+	c_psi = 0.05 ;
+}
+
+double PlasticStrain::plasticFlowPotential(const Matrix &m) const
+{
+	Matrix s = m-identity(3)*trace(m) ;
+	return c_psi * trace(m) + sqrt(secondInvariant(s*s)) ;
 }
 
 std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s)
@@ -49,28 +57,32 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		
 		if(v.size() == 3 && !imposedStrain.size())
 			imposedStrain.resize(6, 0.) ;
+		Matrix stressMatrix = s.getStressMatrix(s.getParent()->getCenter()) ;
+		Matrix strainMatrix(v.size(), v.size()) ;
 		
-		imposedStrain = -(s.getStress(s.getParent()->getCenter())-lastStress)*20. ;
-		//we only use the deviatoric stress
-		double diag = (imposedStrain[0]+imposedStrain[1])*.5 ;
-		if(v.size() == 3)
-			diag = (imposedStrain[0]+imposedStrain[1]+imposedStrain[2])*.333333333333333333333333333 ;
-		imposedStrain[0] -= diag ;
-		imposedStrain[1] -= diag ;
-		if(v.size() == 3)
-			imposedStrain[2] -= diag ;
+		for(size_t i = 0 ; i < v.size() ; i++)
+		{
+			for(size_t j = 0 ; j < v.size() ; j++)
+			{
+				Matrix m_p(stressMatrix) ;
+				Matrix m_m(stressMatrix) ;
+				m_p[i][j] += 1e-5 ;
+				m_m[i][j] -= 1e-5 ;
+				strainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/2e-5 ;
+			}
+		}
+		strainMatrix.print();
+		imposedStrain[0] = strainMatrix[0][0] ;
+		imposedStrain[1] = strainMatrix[1][1] ;
+		imposedStrain[2] = 0.5*strainMatrix[1][0] ;
 		
+		
+		imposedStrain *= 0.01 ;
 	}
 
 	return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
 
 }
-
-void PlasticStrain::artificialDamageStep(double d)
-{
-	getState(true)[0] = std::min(getState()[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
-}
-
 
 Matrix PlasticStrain::apply(const Matrix & m) const
 {
@@ -90,7 +102,7 @@ std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const Ele
 	std::vector<BoundaryCondition * > ret ;
 	if(!param || !imposedStrain.size())
 		return ret ;
-	Vector f = VirtualMachine().ieval(Gradient(p_i) * (imposedStrain*state[0]+previousImposedStrain), gp, Jinv,v) ;
+	Vector f = VirtualMachine().ieval(Gradient(p_i) *( *param *(imposedStrain+previousImposedStrain)), gp, Jinv,v) ;
 // 	if(state[0] > POINT_TOLERANCE_2D)
 // 	{
 // 		std::cout << "strain = "<< (imposedStrain*state[0]+previousImposedStrain)[0] << "  " << (imposedStrain*state[0]+previousImposedStrain)[1] << std::endl ;
@@ -118,7 +130,7 @@ Vector PlasticStrain::getImposedStress(const Point & p) const
 	if(v.size() == 3 && !param)
 		return Vector(0., 6) ;
 		
-	return (imposedStrain*state[0]+previousImposedStrain) ;
+	return  *param *(imposedStrain+previousImposedStrain) ;
 }
 
 bool PlasticStrain::fractured() const 
@@ -144,7 +156,7 @@ void PlasticStrain::postProcess()
 	if(converged && state[0] > POINT_TOLERANCE_2D)
 	{
 
-		previousImposedStrain += imposedStrain*state[0] ;
+		previousImposedStrain += imposedStrain ;
 		
 		state[0] = 0;
 		imposedStrain = 0 ;

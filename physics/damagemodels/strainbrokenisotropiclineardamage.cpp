@@ -34,12 +34,6 @@ std::pair<Vector, Vector> StrainBrokenIsotropicLinearDamage::computeDamageIncrem
 
 }
 
-void StrainBrokenIsotropicLinearDamage::artificialDamageStep(double d)
-{
-	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
-}
-
-
 Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;

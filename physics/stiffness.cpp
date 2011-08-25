@@ -49,12 +49,6 @@ Form * Stiffness::getCopy() const
 	return new Stiffness(param) ;
 }
 
-Material Stiffness::toMaterial()
-{
-	Material mat(getTensor(Point(0,0))) ;
-	return mat ;
-}
-
 
 PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(0), change(true)
 {

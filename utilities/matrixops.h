@@ -197,6 +197,7 @@ public:
 
 } ;
 
+
 /** \brief perform the inner product of two vector of doubles
 * @param v0 Pointer to the start of the first vector
 * @param v1 pointer to the start of the second vector
@@ -450,6 +451,12 @@ inline Vector operator*(const Vector &v , const Mu::Matrix &m )
 */
 Mu::Matrix swapMatrix(size_t l0, size_t l1, size_t dim = 2) ;
 void swapLines(size_t l0, size_t l1, Mu::Matrix * m) ;
+
+double trace(const Mu::Matrix & m) ;
+
+double secondInvariant(const Mu::Matrix & m) ;
+
+Mu::Matrix identity(size_t i) ;
 
 //clever 2x2 Matrix inversion. Thanks the numerical cookbook :)
 

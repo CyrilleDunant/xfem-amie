@@ -86,11 +86,6 @@ namespace Mu
 	
 		/** \brief returns 0 */
 		virtual Vector getPreviousPreviousDamage() {return Vector(0) ; } ;
-	
-		/** \brief Do nothing */
-		virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) { previousDamage = std::min(damage,previous[0]) ; } ;
-
-		virtual void artificialDamageStep(double d) ;
 		
 		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		

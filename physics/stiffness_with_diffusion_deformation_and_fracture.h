@@ -32,23 +32,16 @@ namespace Mu
 		Vector imposed ;
 		IsotropicLinearDamage * dfunc ;
 		double eps ;
-		Vector previousPreviousDamage ;
-		Vector intermediateDamage ;
-		Vector previousDamage ;
 		int count ;
 		FractureCriterion * criterion ;
-		bool frac ;
-		bool change ; 
-		bool previouschange ; 
 		double sigmaRupt ;
-		double init ;
-		Vector damage ;
 		double phi ;
 		double previousphi ;
 		double diffusivity ;
 		double reactionRate ;
 		double accumulatedPhi ;
 		bool ageing ;
+		bool change ;
 		/** \brief Constructor
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
@@ -96,18 +89,7 @@ namespace Mu
 		* if the yield criterion is true, se fractured state to true
 		*/
 		virtual void step(double timestep, ElementState & currentState) ;
-		
-		/** Artificial damage step */
-		virtual void artificialDamageStep(double d) ;
 
-		/** \brief returns the previous damage */
-		virtual Vector getPreviousDamage() {return previousDamage ; } ;
-
-		/** \brief returns the previous previous damage */
-		virtual Vector getPreviousPreviousDamage() { return previousPreviousDamage ; } ;
-
-		/** \brief Impose previous and previous previous damage */
-		virtual void artificialPreviousDamage(Vector previous, Vector previousprevious) ;
 
 		/** \brief return true if the damage state has been modfied*/
 		virtual bool changed() const ;

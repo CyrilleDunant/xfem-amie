@@ -35,13 +35,6 @@ void Form::scale(double d)
 		getFractureCriterion()->scale(d) ;
 }
 
-bool Form::hasInducedBoundaryConditions() const
-{
-	if(getDamageModel() && getDamageModel()->hasInducedBoundaryConditions())
-		return true ;
-	return false ;
-} ;
-
 Vector Form::getImposedStress(const Point & p) const
 {
 	if(getDamageModel() && getDamageModel()->hasInducedForces())

@@ -179,12 +179,6 @@ void BimaterialInterface::step(double timestep, ElementState & currentState)
 	outBehaviour->step(timestep, currentState) ;
 }
 
-void BimaterialInterface::artificialDamageStep(double d)
-{
-	inBehaviour->artificialDamageStep(d) ;
-	outBehaviour->artificialDamageStep(d) ;
-}
-
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
 	double max = -2 ;

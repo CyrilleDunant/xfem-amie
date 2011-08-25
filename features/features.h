@@ -164,6 +164,7 @@ protected:
 	std::deque<std::pair<Point *, Feature *> > meshPoints;
 	std::vector<Point *> additionalPoints ;
 	std::map<Feature *, double> samplingFactors ;
+	std::map<int, double > scalingFactors ;
 	
 	/** \brief  Assembly used for the generation of the stiffness matrix and the solving of the problem.
 	 */
@@ -205,7 +206,7 @@ protected:
 	void setElementBehaviours() ;
 	void updateElementBehaviours() ;
 	void solve() ;
-	void stepElements() ;
+	bool stepElements() ;
 	void stepXfem() ;
 	
 	/** \brief  Generate the triangulation.
@@ -381,13 +382,14 @@ public:
 	double damagedVolume ;
 	double averageDamage;
 	bool useMultigrid;
+	bool foundCheckPoint ;
 	
 public:
 	
 	void addBoundaryCondition(BoundaryCondition * bc) ;
 	void removeBoundaryCondition(BoundaryCondition * bc) ;
 	void resetBoundaryConditions() {  boundaryCondition.clear() ; } ;
-	
+	void scaleBoundaryConditions(double scale) ;
 	
 public:
 	
@@ -446,7 +448,7 @@ public:
 	 * For example, if damage will occur, cracks will grow, etc.
 	 * 
 	 */
-	bool isStable(double dt) ;
+	bool isStable() ;
 
 	/** \brief  Set the constitutive law of the given feature.
 	 * 
@@ -511,6 +513,11 @@ public:
 /** \brief Step in time
 */
 	bool step() ;
+	
+	/** \brief Step to next checkpoint. 
+	 * This finds the load such that the sample is at equilibrium after incrementing the damage
+*/
+	bool stepToCheckPoint() ;
 
 /** \brief annul the last timestep*/
 	void stepBack() ;
@@ -531,10 +538,10 @@ public:
 	std::vector<DelaunayTriangle *> getBoundingTriangles(Feature * f = NULL) ;	
 	
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	std::pair<Form *, double> getElementBehaviour(const DelaunayTriangle *t, int layer = -1, bool onlyUpdate = false) const ;
+	Form * getElementBehaviour(const DelaunayTriangle *t, int layer = -1, bool onlyUpdate = false) const ;
 
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	std::pair<Form *, double> getElementBehaviour(const DelaunayTetrahedron *t, int layer = -1, bool onlyUpdate = false) const ;
+	Form * getElementBehaviour(const DelaunayTetrahedron *t, int layer = -1, bool onlyUpdate = false) const ;
 	
 /** \brief insert a point in the mesh*/
 	void insert(Point * p ) ;

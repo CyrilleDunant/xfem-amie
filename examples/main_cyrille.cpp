@@ -113,7 +113,7 @@ double E_max = 0;
 double x_max = 0 ;
 double y_max = 0 ;
 double disp = 1 ;//.350 .355
-BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
+BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 0) ;
 double width = 20;
 double height = 10;
 Sample sample(NULL, width , height, 0, 0) ;
@@ -145,6 +145,8 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 Vector fracCrit(0) ;
+std::vector<double> scales ;
+std::vector<double> disps ;
 
 Vector g_count(0) ;
 
@@ -395,11 +397,12 @@ void step()
 	{
 		go = featureTree->step() ;
 
+		std::cout << "multiplier = " << imposeddisp->getScale() << std::endl ;
+		scales.push_back(imposeddisp->getScale());
+
 		if(go)
-		{
-			imposeddisp->setData(imposeddisp->getData()+.2);
-			go = true ;
-		}
+			imposeddisp->setData(imposeddisp->getData()+1);
+
 		double da = 0 ;
 		
 		triangles = featureTree->getElements2D(grid) ;
@@ -673,6 +676,10 @@ void step()
 // 			}
 // 			std::cout << std::endl ;
 			
+		disps.push_back(y_max) ;
+			for(size_t i = 0 ; i < scales.size() ; i++)
+				std::cout << disps[i]<< "  "<<  scales[i] << std::endl ;
+		
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
 			std::cout << "max sigma11 :" << sigma11.max()/1000000. << std::endl ;
@@ -1751,7 +1758,7 @@ int main(int argc, char *argv[])
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new NonLocalIsotropicLinearDamage()) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), /*new NonLocalIsotropicLinearDamage()*/new PlasticStrain()) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_steelx) ;

@@ -204,7 +204,7 @@ void step()
 		double appliedForce = 2.*loadr->getData()*effectiveRadius*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+5e3/(2.*effectiveRadius*rebarDiametre)) ;
+			loadr->setData(loadr->getData()+1.5e3/(2.*effectiveRadius*rebarDiametre)) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -260,6 +260,8 @@ void step()
 		std::vector< std::pair<double, double> > pos_strain ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
+			if(!triangles[k]->getBehaviour())
+				continue ;
 			bool in = false ;
 
 			if(std::abs(triangles[k]->getCenter().y) < 0.0125)
@@ -728,6 +730,9 @@ void Display(void)
 		glNewList( DISPLAY_LIST_DISPLACEMENT,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
+				
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -764,6 +769,9 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_FRAC_CRIT,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
+			
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR  && triangles[j]->getBehaviour()->getFractureCriterion())
 			{
 				double c1 ;
@@ -774,7 +782,7 @@ void Display(void)
 				double vy = x[triangles[j]->getBoundingPoint(0).id*2+1]; 
 				double s = 1. ;
 				if(fracCrit[j*triangles[j]->getBoundingPoints().size()] < 1e-12)
-					s = .2 ;
+					s = .8 ;
 					
 				glBegin(GL_TRIANGLE_FAN);
 				HSVtoRGB( &c1, &c2, &c3, 300. - 300.*(fracCrit[j*triangles[j]->getBoundingPoints().size()]-crit_min)/(crit_max-crit_min), s, 1.) ;
@@ -804,6 +812,9 @@ void Display(void)
 		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
+				
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -842,6 +853,9 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_VON_MISES,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
+			
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR&& !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -878,6 +892,8 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_ANGLE,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
@@ -915,6 +931,8 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_STRAIN_YY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
@@ -951,7 +969,8 @@ void Display(void)
 		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -984,7 +1003,8 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_STIFFNESS,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -1019,7 +1039,9 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_STIFFNESS_DARK,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
+			if(!triangles[j]->getBehaviour())
+				continue ;
+				
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -1056,7 +1078,8 @@ void Display(void)
 		
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -1093,7 +1116,8 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_STRESS_YY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -1130,7 +1154,8 @@ void Display(void)
 		glNewList(  DISPLAY_LIST_STRESS_XY,  GL_COMPILE ) ;
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
-			
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[j]->getBehaviour()->fractured())
 			{
 				double c1 ;
@@ -1164,6 +1189,8 @@ void Display(void)
 		glBegin(GL_TRIANGLES);
 		for (unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
 			
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
@@ -1237,6 +1264,9 @@ void Display(void)
 		glColor3f(1, 1, 1) ;
 		for(unsigned int j=0 ; j< triangles.size() ; j++ )
 		{
+			if(!triangles[j]->getBehaviour())
+				continue ;
+			
 			if(triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				if(triangles[j]->getBehaviour()->fractured())
@@ -1382,7 +1412,7 @@ int main(int argc, char *argv[])
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .025 ; // .015
+	double mradius = .015 ; // .015
 	double nradius = std::max(mradius*4, .5) ;
 // 	double mradius = .25 ;
 	
@@ -1401,9 +1431,11 @@ int main(int argc, char *argv[])
 	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
 	m0_steel = inverse3x3Matrix(complianceSteelx) ;
 	
-	m0_steel[0][0] = E_steel/(1.-2.*nu*nu) ; m0_steel[0][1] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steel[0][2] = 0 ; 
-	m0_steel[1][0] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steel[1][1] = E_paste/(1.-2.*nu*nu) ; m0_steel[1][2] = 0 ; 
-	m0_steel[2][0] = 0 ; m0_steel[2][1] = 0 ; m0_steel[2][2] = 0.25*(E_paste+E_steel-2.*nu*sqrt(E_steel*E_paste))/(1.-2.*nu*nu) ; 
+	double orthoFactor = 0.6 ; 
+	
+	m0_steel[0][0] = E_steel/(1.-2.*nu*nu) ; m0_steel[0][1] = nu*sqrt(E_steel*E_steel*orthoFactor)/(1.-2.*nu*nu) ; m0_steel[0][2] = 0 ; 
+	m0_steel[1][0] = nu*sqrt(E_steel*E_steel*orthoFactor)/(1.-2.*nu*nu) ; m0_steel[1][1] = E_steel*orthoFactor/(1.-2.*nu*nu) ; m0_steel[1][2] = 0 ; 
+	m0_steel[2][0] = 0 ; m0_steel[2][1] = 0 ; m0_steel[2][2] = 0.25*(E_steel*orthoFactor+E_steel-2.*nu*sqrt(E_steel*E_steel*orthoFactor))/(1.-2.*nu*nu) ; 
 	
 /*	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
@@ -1414,9 +1446,10 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ;    m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ;                     m0_paste[2][1] = 0 ;                     m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)*.5 ; 
 
-	Sample box(1.300+.225*2, effectiveRadius, 0, effectiveRadius*0.5) ;
+	Sample box(1.300*.5+.225, effectiveRadius, (1.300*.5+.225)*.5, effectiveRadius*0.5) ;
 	box.setBehaviour(new VoidForm()) ;  
-	Sample sample(1.300, effectiveRadius, 0, (effectiveRadius)*0.5) ;
+	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
+	Sample samplef(1.300*.5, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
 	
 	
 	Sample toprightvoid(.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
@@ -1428,13 +1461,13 @@ int main(int argc, char *argv[])
 	rebarleft.setBehaviour(new Stiffness(m0_steel*steelfraction/0.6));
 	
 	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
-	rebarright.setBehaviour(new Stiffness(m0_steel*steelfraction/0.6));
+	rebarright.setBehaviour(new VoidForm());
 	
-	Sample rebarinternal((1.300), rebarDiametre*.5, 0, rebarDiametre*0.25) ; 
+	Sample rebarinternal((1.300)*.5+0.225, rebarDiametre*.5, (1.300)*.25+0.225*.5, rebarDiametre*0.25) ; 
 // 	rebarinternal.setBehaviour(new Stiffness(m0_steel*steelfraction));
-	rebarinternal.setBehaviour(new StiffnessAndFracture(m0_steel, new VonMises(500e6, MIRROR_Y)));
+	rebarinternal.setBehaviour(new StiffnessAndFracture(m0_steel, new VonMises(500e6, MIRROR_XY)));
 	rebarinternal.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
-	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
+// 	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 // 	
 
 	FeatureTree F(&box) ;
@@ -1442,21 +1475,25 @@ int main(int argc, char *argv[])
 
 // 	sample.setBehaviour(new VoidForm()) ;  
 		
-	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_Y)) ;
+	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
+	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-	F.addFeature(NULL,&rebarinternal, 0, steelfraction) ; F.setSamplingFactor(&rebarinternal, 2.) ;
-	F.addFeature(NULL,&sample) ;
-	F.addFeature(NULL,&rebarleft) ;
-	F.addFeature(NULL,&rebarright) ;
+	
+	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 4.) ;
+	F.addFeature(NULL,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
+	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
+// 	F.addFeature(NULL,&rebarleft) ;
+	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
 	F.addFeature(NULL,&toprightvoid) ;
-	F.addFeature(NULL,&topleftvoid) ;
+// 	F.addFeature(NULL,&topleftvoid) ;
 
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
+// 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;

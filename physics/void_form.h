@@ -37,6 +37,8 @@ namespace Mu
 		*/
 		virtual void step(double timestep, ElementState & currentState);
 		
+		virtual void stepBack() { };
+		
 		/** \brief do nothing*/
 		virtual void updateElementState(double timestep, ElementState & s) const ;
 		

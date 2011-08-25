@@ -116,11 +116,6 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 // 		std::cout << " . " << delta_d << "  " << e->getDeltaEnergyAtState()<< "  " << ener_delta.first<< std::endl ;
 }
 
-void IndexedLinearDamage::artificialDamageStep(double d)
-{
-	state[0] = std::min(state[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
-}
-
 
 Matrix IndexedLinearDamage::apply(const Matrix & m) const
 {

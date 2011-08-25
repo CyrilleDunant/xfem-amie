@@ -77,12 +77,6 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
 // 	std::cout << getState().sum() << std::flush ;
 }
 
-void AnisotropicLinearDamage::artificialDamageStep(double d)
-{
-	for(size_t i = 0 ; i < getState().size() -1 ; i++)
-		getState(true)[i] = std::min(getState()[i]+d,0.9999) ;
-}
-
 Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;

@@ -278,7 +278,7 @@ bool Assembly::nonLinearStep()
 			}
 		}
 		
-		if(element2d[i]->getNonLinearBehaviour() != NULL && element2d[i]->getNonLinearBehaviour()->hasInducedBoundaryConditions())
+		if(element2d[i]->getNonLinearBehaviour() != NULL )
 		{
 			if(element2d[i]->getNonLinearBehaviour()->isActive())
 			{
@@ -483,7 +483,8 @@ void Assembly::initialiseElementaryMatrices()
 #pragma omp parallel for 
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
-			element2d[i]->getElementaryMatrix() ;
+			if(element2d[i]->getBehaviour())
+				element2d[i]->getElementaryMatrix() ;
 		}
 	}
 	if(dim == SPACE_THREE_DIMENSIONAL)
@@ -491,7 +492,8 @@ void Assembly::initialiseElementaryMatrices()
 #pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
-			element3d[i]->getElementaryMatrix() ;
+			if(element3d[i]->getBehaviour())	
+				element3d[i]->getElementaryMatrix() ;
 		}
 	}
 	gettimeofday(&time1, NULL);
@@ -597,6 +599,8 @@ bool Assembly::make_final()
 		
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
+			if(!element2d[i]->getBehaviour())
+				continue ;
 			if(i%1000 == 0)
 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;

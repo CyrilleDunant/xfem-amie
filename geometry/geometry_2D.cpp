@@ -1242,11 +1242,17 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 void Rectangle::sampleSurface(size_t num_points)
 {
 	if(std::max(size_x/size_y, size_y/size_x) < 10)
+	{
 		sampleBoundingSurface((size_t)round((double)num_points*2.*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
+	}
 	else if(std::max(size_x/size_y, size_y/size_x) < 60)
-		sampleBoundingSurface((size_t)round((double)num_points*1.7*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
+	{
+		sampleBoundingSurface((size_t)round((double)num_points*0.75*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
+	}
 	else 
-		sampleBoundingSurface((size_t)round((double)num_points*1*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
+	{
+		sampleBoundingSurface((size_t)round((double)num_points*0.3*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
+	}
 	size_t nip = static_cast<size_t>((numberOfPointsAlongX-2)*(numberOfPointsAlongY-2)) ;
 	
 	for(size_t i = 0 ; i < inPoints.size() ; i++)
@@ -1254,14 +1260,14 @@ void Rectangle::sampleSurface(size_t num_points)
 	
 	inPoints.resize(nip) ;
 		
-	double distanceBetweenPointsAlongX = size_x/(this->numberOfPointsAlongX-1) ;
-	double distanceBetweenPointsAlongY = size_y/(this->numberOfPointsAlongY-1) ;
+	double distanceBetweenPointsAlongX = size_x/(numberOfPointsAlongX-1) ;
+	double distanceBetweenPointsAlongY = size_y/(numberOfPointsAlongY-1) ;
 	
 	if(nip > 0)
 	{
-		for(size_t i = 0 ; i < this->numberOfPointsAlongX-2 ; i++)
+		for(size_t i = 0 ; i < numberOfPointsAlongX-2 ; i++)
 		{
-			for(size_t j = 0 ; j < this->numberOfPointsAlongY-2 ; j++)
+			for(size_t j = 0 ; j < numberOfPointsAlongY-2 ; j++)
 			{	
 				double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.1*(size_x/numberOfPointsAlongX) ;
 				double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.1*(size_y/numberOfPointsAlongY) ;

@@ -88,8 +88,8 @@ public:
 	
 	virtual void scale(double d) 
 	{
-// 		upVal *= d ; 
-// 		downVal *= d ;
+		upVal *= d ; 
+		downVal *= d ;
 // 		tensionCritStrain /= d ;
 // 		critStrain /= d ;
 	};

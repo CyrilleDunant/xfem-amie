@@ -44,9 +44,3 @@ Form * Diffusion::getCopy() const
 	return new Diffusion(*this) ;
 }
 
-Material Diffusion::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-

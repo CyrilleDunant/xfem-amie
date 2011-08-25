@@ -53,11 +53,11 @@ namespace Mu
 		/** \brief Return false.*/
 		virtual bool fractured() const ;
 		
+		virtual void stepBack() { };
+		
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
-		
-		virtual Material toMaterial() ;
-		
+
 	} ;
 
 	

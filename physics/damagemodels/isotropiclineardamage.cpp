@@ -31,12 +31,6 @@ std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Mu::E
 
 }
 
-void IsotropicLinearDamage::artificialDamageStep(double d)
-{
-	getState(true)[0] = std::min(getState()[0]+d,thresholdDamageDensity/fraction+POINT_TOLERANCE_2D) ;
-}
-
-
 Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;

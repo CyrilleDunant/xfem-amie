@@ -2225,6 +2225,7 @@ void DelaunayTriangle::refresh(const TriElement * father)
 
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix() 
 {
+
 	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size())
 	{
 		return cachedElementaryMatrix ;

@@ -55,9 +55,6 @@ namespace Mu
 		 * @return a new Diffusion
 		 */
 		virtual Form * getCopy() const ;
-		
-		virtual Material toMaterial() ;
-
 
 	} ;
 

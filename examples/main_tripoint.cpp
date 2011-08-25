@@ -1541,82 +1541,58 @@ int main(int argc, char *argv[])
 #endif
 	double compressionCrit = -37.0e6 ; 
 	double tensionCrit =  330.*sqrt(-compressionCrit);// or 2 obtained by .33*sqrt(fc_)
-	double phi =  3.*rebarDiametre/(.4) ; 
-	double mradius = .025 ; // .015
-	double nradius = mradius*5 ;
+	double phi =  3.*rebarDiametre/.4 ; 
+	double psi = 2.*0.0084261498/.4 ;
+	double mradius = .015 ; // .015
+	double nradius = mradius*4 ;
 	
 	Matrix m0_steelx(3,3) ;
 	Matrix m0_steely(3,3) ;
-	//the .6 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
-	double E_steel = 0.6*200e9 ;
+	
+	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
+	double E_steel = 200e9 ; // next .6
 	double nu_steel = 0.3 ; 
 	
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
 	double E_rebar = 30e9 ;
-	
 
+	m0_steelx[0][0] = E_steel/(1.-2.*nu*nu) ; m0_steelx[0][1] = nu*sqrt(E_steel*E_steel*0.6)/(1.-2.*nu*nu) ; m0_steelx[0][2] = 0 ; 
+	m0_steelx[1][0] = nu*sqrt(E_steel*E_steel*0.6)/(1.-2.*nu*nu) ; m0_steelx[1][1] = E_steel*0.6/(1.-2.*nu*nu) ; m0_steelx[1][2] = 0 ; 
+	m0_steelx[2][0] = 0 ; m0_steelx[2][1] = 0 ; m0_steelx[2][2] = 0.25*(E_steel*0.6+E_steel-2.*nu*sqrt(E_steel*E_steel*0.6))/(1.-2.*nu*nu) ; 
 	
-	//nu_steelConcrete/nu_concreteSteel == E_paste/E_steel
-// 	double nu_concreteSteel = 0.3 ;
-// 	double nu_steelConcrete = 0.3* E_paste/E_steel ;
-// 	
-// 	Matrix complianceSteelx(3,3) ;
-// 	complianceSteelx[0][0] = 1./E_steel ;                complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
-// 	complianceSteelx[1][0] = -nu_concreteSteel/E_steel ; complianceSteelx[1][1] =  1./E_paste ;
-// 	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
-// 	Matrix complianceSteely(3,3) ;
-// 	complianceSteely[0][0] =  1./E_paste ;              complianceSteely[0][1] = -nu_concreteSteel/E_steel ; 
-// 	complianceSteely[1][0] = -nu_steelConcrete/E_paste ;complianceSteely[1][1] = 1./E_steel ; 
-// 	                                                                                                         complianceSteely[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
-// 	
-// 	m0_steelx = inverse3x3Matrix(complianceSteelx) ;
-// 	m0_steely = inverse3x3Matrix(complianceSteely) ;    
-	m0_steelx[0][0] = E_steel/(1.-2.*nu*nu) ; m0_steelx[0][1] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steelx[0][2] = 0 ; 
-	m0_steelx[1][0] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steelx[1][1] = E_paste/(1.-2.*nu*nu) ; m0_steelx[1][2] = 0 ; 
-	m0_steelx[2][0] = 0 ; m0_steelx[2][1] = 0 ; m0_steelx[2][2] = 0.25*(E_paste+E_steel-2.*nu*sqrt(E_steel*E_paste))/(1.-2.*nu*nu) ; 
-	
-	m0_steely[0][0] =E_paste/(1.-2.*nu*nu) ; m0_steely[0][1] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steely[0][2] = 0 ; 
-	m0_steely[1][0] = nu*sqrt(E_steel*E_paste)/(1.-2.*nu*nu) ; m0_steely[1][1] =  E_steel/(1.-2.*nu*nu) ; m0_steely[1][2] = 0 ; 
-	m0_steely[2][0] = 0 ; m0_steely[2][1] = 0 ; m0_steely[2][2] = 0.25*(E_paste+E_steel-2.*nu*sqrt(E_steel*E_paste))/(1.-2.*nu*nu) ; 
-	Matrix m0_barSteel(m0_steelx*phi*.75) ;
+	m0_steely[0][0] =E_steel*0.6/(1.-2.*nu*nu) ; m0_steely[0][1] = nu*sqrt(E_steel*E_steel*0.6)/(1.-2.*nu*nu) ; m0_steely[0][2] = 0 ; 
+	m0_steely[1][0] = nu*sqrt(E_steel*E_steel*0.6)/(1.-2.*nu*nu) ; m0_steely[1][1] =  E_steel/(1.-2.*nu*nu) ; m0_steely[1][2] = 0 ; 
+	m0_steely[2][0] = 0 ; m0_steely[2][1] = 0 ; m0_steely[2][2] = 0.25*(E_steel*0.6+E_steel-2.*nu*sqrt(E_steel*E_steel*0.6))/(1.-2.*nu*nu) ; 
 	
 	Matrix m0_paste(3,3) ;
 	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
 	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ;    m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ;                     m0_paste[2][1] = 0 ;                     m0_paste[2][2] = E_paste/(1.-nu*nu)*(1.-nu)*.5 ; 
-
 	
 	Matrix m0_steel(3,3) ;
 	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[0][1] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[0][2] = 0 ;
 	m0_steel[1][0] = E_steel/(1.-nu_steel*nu_steel)*nu_steel ; m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
-	                                                                                                                      m0_steel[2][2] = E_steel/(1.-nu_steel*nu_steel)*(1.-nu_steel)*.5 ; 
-// 	Point a(0,0) ;
-// 	Point b(0., .4) ;
-// 	Point c(rebarDiametre*2., 0.) ;
-// 	DelaunayTriangle tri(NULL, NULL, &a, &b, &c, NULL) ;
-// 	tri.setBehaviour(new Stiffness(m0_paste));
-// 	std::vector<Feature *> rebs ;
-// 	rebs.push_back(new Inclusion(NULL, rebarDiametre*.5, 0, 0));
-// 	rebs.push_back(new Inclusion(NULL, rebarDiametre*.5, 0, 0));
-// 	rebs.push_back(new Inclusion(NULL, rebarDiametre*.5, 0, 0));
-// 	rebs[0]->setBehaviour(new Stiffness(m0_steelx));
-// 	rebs[1]->setBehaviour(new Stiffness(m0_steelx));
-// 	rebs[2]->setBehaviour(new Stiffness(m0_steelx));
-// 	ReussMatrixMultiInclusionComposite composite(&tri, rebs) ;
-// 	composite.getBehaviour()->param.print();
-// 	(m0_steelx*phi*0.6+m0_paste*(1.-phi)).print();
-// 	exit(0) ;
 	
 	Sample box(NULL, sampleLength*.5, sampleHeight+plateHeight*2.,sampleLength*.25,0) ;
 	box.setBehaviour(new VoidForm()) ;
 	Sample sample(NULL, sampleLength*.5, sampleHeight,sampleLength*.25,0) ;
+	Sample samplebulk(NULL, sampleLength*.5, sampleHeight,sampleLength*.25,0) ;
+	Sample samplestirrupbulk(NULL, sampleLength*.5, sampleHeight,sampleLength*.25,0) ;
 	
 	Sample topsupport(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
 	topsupport.setBehaviour(new Stiffness(m0_paste)) ;
+	Sample topsupportbulk(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
+	topsupportbulk.setBehaviour(new Stiffness(m0_paste)) ;
+	Sample topsupportstirrupbulk(platewidth, plateHeight, platewidth*.5, sampleHeight*.5+plateHeight*.5) ;    
+	topsupportstirrupbulk.setBehaviour(new Stiffness(m0_paste)) ;
 	
 	Sample baseright(platewidth, plateHeight, supportLever, -sampleHeight*.5-plateHeight*.5) ; 
 	baseright.setBehaviour(new Stiffness(m0_paste)) ;
+	Sample baserightbulk(platewidth, plateHeight, supportLever, -sampleHeight*.5-plateHeight*.5) ; 
+	baserightbulk.setBehaviour(new Stiffness(m0_paste)) ;
+	Sample baserightstirrupbulk(platewidth, plateHeight, supportLever, -sampleHeight*.5-plateHeight*.5) ; 
+	baserightstirrupbulk.setBehaviour(new Stiffness(m0_paste)) ;
 	
 	Sample toprightvoid(sampleLength*.5-platewidth, plateHeight, (sampleLength*.5-platewidth)*.5+platewidth, sampleHeight*.5+plateHeight*.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;
@@ -1628,39 +1604,38 @@ int main(int argc, char *argv[])
 	rightbottomvoid.setBehaviour(new VoidForm()) ;    
 	
 	Sample rebar0(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064) ; 
-	rebar0.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
+	rebar0.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar1(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  -sampleHeight*.5+0.064+0.085) ; 
-	rebar1.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
+	rebar1.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar2(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  sampleHeight*.5-0.064) ; 
-	rebar2.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
+	rebar2.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar2.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar2.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar2.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	Sample rebar3(sampleLength*.5-rebarEndCover, rebarDiametre, (sampleLength*.5-rebarEndCover)*.5,  sampleHeight*.5-0.064-0.085) ; 
-	rebar3.setBehaviour(new StiffnessAndFracture(m0_steelx,new VonMises(490e6, MIRROR_X)));
+	rebar3.setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6, MIRROR_X)));
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	rebar3.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	rebar3.getBehaviour()->getDamageModel()->setThresholdDamageDensity(.999);
 	rebar3.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity(.999);
 	
 	std::vector<Sample*> stirrups ;
-	double psi = 2.*0.0084261498/.4 ;
 	for(size_t i = 0 ;  i < 7 ; i++)
 	{
 		stirrups.push_back(new Sample(0.0084261498, sampleHeight-2.*(0.064), 0.175+i*0.35, 0.));
-		stirrups.back()->setBehaviour(new StiffnessAndFracture(m0_steely,new VonMises(490e6)));
+		stirrups.back()->setBehaviour(new StiffnessAndFracture(m0_steel,new VonMises(490e6)));
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 	}
@@ -1674,6 +1649,14 @@ int main(int argc, char *argv[])
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->variability = 0.01 ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius;
+	samplebulk.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X)) ;
+	dynamic_cast<ConcreteBehaviour *>(samplebulk.getBehaviour())->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>(samplebulk.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>(samplebulk.getBehaviour())->neighbourhoodRadius = nradius;
+	samplestirrupbulk.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X)) ;
+	dynamic_cast<ConcreteBehaviour *>(samplestirrupbulk.getBehaviour())->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>(samplestirrupbulk.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>(samplestirrupbulk.getBehaviour())->neighbourhoodRadius = nradius;
 
 	
 	F.addBoundaryCondition(load) ;
@@ -1681,18 +1664,26 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) );
 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(supportLever, -sampleHeight*.5))) ;
 
-	F.addFeature(NULL,&topsupport) ;
-	F.addFeature(NULL,&baseright) ;
+	int stirruplayer = 1 ;
+	int rebarlayer = 0 ;
+	
+	F.addFeature(NULL,&topsupport, rebarlayer, phi) ;
+	F.addFeature(NULL,&baseright, rebarlayer, phi) ;
+	F.addFeature(NULL,&topsupportbulk) ;
+	F.addFeature(NULL,&baserightbulk) ;
 	F.addFeature(NULL,&toprightvoid) ;
 	F.addFeature(NULL,&bottomcentervoid) ;
 	F.addFeature(NULL,&rightbottomvoid) ;
-	F.addFeature(NULL,&sample) ;
+	F.addFeature(NULL,&sample, rebarlayer, phi) ;
+	F.addFeature(NULL,&samplebulk) ;
 // 	if(false)
 // 	{
+
 		if(atoi(argv[2]))
 		{
-			int stirruplayer = 0 ;
-			int rebarlayer = 1 ;
+			F.addFeature(NULL,&samplestirrupbulk, stirruplayer, psi) ;
+			F.addFeature(NULL,&baserightstirrupbulk, stirruplayer, psi) ;
+			F.addFeature(NULL,&topsupportstirrupbulk, stirruplayer, psi) ;
 			F.addFeature(&sample, stirrups[0], stirruplayer, psi) ;
 			
 			int nstirrups = 7 ;
@@ -1709,7 +1700,6 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			int rebarlayer = 0 ;
 			F.addFeature(&sample,&rebar0, rebarlayer, phi) ;
 			F.addFeature(&sample,&rebar1, rebarlayer, phi) ;
 			F.addFeature(&sample,&rebar2, rebarlayer, phi) ;
@@ -1718,7 +1708,10 @@ int main(int argc, char *argv[])
 // 	}
 
 	
-
+	F.setSamplingFactor(&rebar0, 2) ;
+	F.setSamplingFactor(&rebar1, 2) ;
+	F.setSamplingFactor(&rebar2, 2) ;
+	F.setSamplingFactor(&rebar3, 2) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 	F.setOrder(LINEAR) ;
 

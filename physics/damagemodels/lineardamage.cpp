@@ -61,12 +61,6 @@ std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s
 	return std::make_pair(state, ret) ;
 }
 
-void LinearDamage::artificialDamageStep(double d)
-{
-	for(size_t i = 0 ; i < getState().size() -1 ; i++)
-		getState(true)[i] = std::min(getState()[i]+d,0.9999999) ;
-}
-
 Matrix LinearDamage::apply(const Matrix & m) const
 {
 // 	std::cout << damageDensityIncrement<< "   "<< tensionDamage << "  " << compressionDamage << std::endl ;

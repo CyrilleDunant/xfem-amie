@@ -461,10 +461,6 @@ public:
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
-	virtual Material toMaterial( const Point & p)
-	{
-		return Material(getTensor(p)) ;
-	}
 	
 	virtual bool timeDependent() const
 	{
@@ -482,7 +478,6 @@ public:
 	virtual bool hasInducedForces() const ;
 	
 	virtual void scale(double d) ;
-	virtual bool hasInducedBoundaryConditions() const;
 	
 	virtual size_t getNumberOfDegreesOfFreedom() const { return this->num_dof ; }
 	
@@ -495,7 +490,6 @@ public:
 	 * @param currentState State of the element with this behaviour
 	 */
 	virtual void step(double timestep, ElementState & currentState) = 0;
-	virtual void artificialDamageStep(double d) = 0 ;
 	virtual void updateElementState(double timestep, ElementState & currentState) const = 0;
 	
 	virtual bool fractured() const = 0 ;
@@ -504,7 +498,7 @@ public:
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 	virtual Form * getCopy() const = 0 ;
-	virtual void stepBack() { }  ;
+	virtual void stepBack() { std::cout << "step back not implemented" << std::endl ; exit(0) ;}  ;
 	
 	virtual Matrix getTensor(const Point & p) const
 	{
