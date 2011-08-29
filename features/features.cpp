@@ -1335,7 +1335,7 @@ void FeatureTree::stitch()
 	{
 		if( elemOrder >= QUADRATIC )
 		{
-			dtree->setElementOrder( elemOrder, realDeltaTime ) ;
+// 			dtree->setElementOrder( elemOrder, realDeltaTime ) ;
 			
 			for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
@@ -2610,7 +2610,6 @@ Feature *FeatureTree::getFeatForTetra( const DelaunayTetrahedron *t ) const
 
 void FeatureTree::setElementBehaviours()
 {
-	double n_void ;
 	if(dynamic_cast<IncrementalKelvinVoight *>(tree[0]->getBehaviour()))
 	{
 	    dynamic_cast<IncrementalKelvinVoight *>(tree[0]->getBehaviour())->resize(numdofs/2) ;
@@ -2633,6 +2632,11 @@ void FeatureTree::setElementBehaviours()
 		{
 			if(i->first != -1)
 				remainder += scalingFactors[i->first] ;
+			else
+			{
+				remainder = 2.*scalingFactors[i->first]-1 ;
+				break ;
+			}
 		}
 		scalingFactors[-1] = 1.-remainder ;
 		layer2d[-1] = dtree ;
@@ -2646,9 +2650,9 @@ void FeatureTree::setElementBehaviours()
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
 				if( setcount % 1000 == 0 )
-					std::cerr << "\r setting behaviours... triangle : layer " <<i->first << "  " << setcount << "/" << tris.size() << "    " << std::flush ;
+					std::cerr << "\r setting behaviours... triangle : layer " <<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
+				
 				tris[j]->refresh( father2D ) ;
-				setcount++ ;
 				Form * bf =  getElementBehaviour( tris[j], i->first );
 				
 				tris[j]->setBehaviour( bf ) ;
@@ -2723,7 +2727,6 @@ void FeatureTree::setElementBehaviours()
 			if( !tetrahedrons[i]->getBehaviour() )
 				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] ) ) ;
 
-			n_void++ ;
 			setcount++ ;
 		}
 		
@@ -3774,28 +3777,46 @@ void FeatureTree::solve()
 	{
 		if( dtree )
 		{
-				double average = 0 ;
-				for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
-					average += scalingFactors[j->first] ;
-				average /= layer2d.size() ;
-				
-				if(boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
-					boundaryCondition[i]->getConditionType() == SET_FORCE_ETA ||
-					boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
-					boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
-					boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA
-				)
-					boundaryCondition[i]->setScale(boundaryCondition[i]->getScale()*average) ;
+// 				double average = 1 ;
+// 				for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
+// 				{
+// 					std::cout << scalingFactors[j->first] << std::endl ;
+// 	// 					average += scalingFactors[j->first] ;
+// 	// 				average /= layer2d.size() ;
+// 					
+// 					if(boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
+// 						boundaryCondition[i]->getConditionType() == SET_FORCE_ETA ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA)
+// 					{
+// 						if(scalingFactors[j->first] < POINT_TOLERANCE_2D)
+// 							continue ;
+// 					}
+// 						
+// 					if(boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
+// 						boundaryCondition[i]->getConditionType() == SET_FORCE_ETA ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA
+// 					)
+// 					{
+// 						boundaryCondition[i]->setScale(boundaryCondition[i]->getScale()*scalingFactors[j->first]) ;
+// 					}
+// 						
+// 					std::cout << boundaryCondition[i]->getScale() << std::endl ;
+					boundaryCondition[i]->apply( K, dtree ) ;
 					
-				boundaryCondition[i]->apply( K, dtree ) ;
-				
-				if(boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
-					boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
-					boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA ||
-					boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
-					boundaryCondition[i]->getConditionType() == SET_FORCE_ETA
-				)
-					boundaryCondition[i]->setScale(boundaryCondition[i]->getScale()/average) ;
+// 					if(boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
+// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA ||
+// 						boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
+// 						boundaryCondition[i]->getConditionType() == SET_FORCE_ETA
+// 					)
+// 					{
+// 						boundaryCondition[i]->setScale(boundaryCondition[i]->getScale()/scalingFactors[j->first]) ;
+// 					}
+// 				}
 			
 			if( useMultigrid )
 			{
@@ -4131,7 +4152,7 @@ bool FeatureTree::stepElements()
 		if( is2D() )
 		{
 
-			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+			std::vector<DelaunayTriangle *> elements  ;
 			for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
 			{
 				std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;

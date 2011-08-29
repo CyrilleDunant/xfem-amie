@@ -217,8 +217,20 @@ double NonLocalMCFT::grade( ElementState &s )
 
 
 	std::vector<double> crits ;
-	crits.push_back( -1 ) ;
+// 	crits.push_back( -1 ) ;
+crits.push_back(cstress/maxCompression) ;
+crits.push_back(tstress/maxTension) ;
+std::sort( crits.begin(), crits.end() );
+if(crits.back() > 1)
+	return 1.-1./crits.back() ;
+if(crits.back() > 0)
+	return -1.+crits.back() ;
+if(crits.back() > -1)
+	return crits.back() ;
 
+return 1./crits.back() ;
+
+/*	
 	if( cstress <= 0 && std::abs( cstress ) >= std::abs( maxCompression ) )
 	{
 		metInCompression = true ;
@@ -248,7 +260,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		&& tstrain >= 0)
 	{
 		crits.push_back( -1. + std::abs( tstrain / tensionCritStrain ) ) ;
-	}
+	}*/
 
 	std::sort( crits.begin(), crits.end() );
 	return crits.back() ;

@@ -275,7 +275,7 @@ DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0)
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance =  1. / pow( 2., 8 );
+	damageDensityTolerance =  1. / pow( 2., 10 );
 } ;
 
 double DamageModel::getThresholdDamageDensity() const

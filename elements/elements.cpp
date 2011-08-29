@@ -583,7 +583,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	}
 	else
 	{
-		double j = area()*2.;
+		double j = area()*2;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;

@@ -926,7 +926,7 @@ void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, Del
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back(id);
-		apply2DBC(surface, id_, condition, data*scale, a) ;
+		apply2DBC(surface, id_, condition, data*getScale(), a) ;
 	}
 	else
 	{
@@ -936,7 +936,7 @@ void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, Del
 			if(surface->getBoundingPoint(i).id == id)
 			{
 				id_.push_back(surface->getBoundingPoint(i));
-				apply2DBC(surface, id_, condition, dataFunction*scale, a) ;
+				apply2DBC(surface, id_, condition, dataFunction*getScale(), a) ;
 			}
 		}
 	}
@@ -950,7 +950,7 @@ void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, 
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back(id);
-		apply3DBC(volume,  id_, condition, data*scale,  a) ;
+		apply3DBC(volume,  id_, condition, data*getScale(),  a) ;
 	}
 	else
 	{
@@ -960,7 +960,7 @@ void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, 
 			if(volume->getBoundingPoint(i).id == id)
 			{
 				id_.push_back(volume->getBoundingPoint(i));
-				apply3DBC(volume, id_, condition, dataFunction*scale, a) ;
+				apply3DBC(volume, id_, condition, dataFunction*getScale(), a) ;
 			}
 		}
 	}
@@ -1089,9 +1089,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case LEFT:
@@ -1111,9 +1111,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM:
@@ -1133,9 +1133,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case RIGHT:
@@ -1155,9 +1155,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_LEFT:
@@ -1177,9 +1177,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_RIGHT:
@@ -1199,9 +1199,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_LEFT:
@@ -1221,9 +1221,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_RIGHT:
@@ -1243,9 +1243,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply2DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply2DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply2DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		default:
@@ -1312,9 +1312,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case LEFT:
@@ -1334,9 +1334,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM:
@@ -1356,9 +1356,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case RIGHT:
@@ -1378,9 +1378,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case FRONT:
@@ -1400,9 +1400,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BACK:
@@ -1422,9 +1422,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_LEFT:
@@ -1444,9 +1444,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_RIGHT:
@@ -1466,9 +1466,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_LEFT:
@@ -1488,9 +1488,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_RIGHT:
@@ -1510,9 +1510,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case FRONT_LEFT:
@@ -1532,9 +1532,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case FRONT_RIGHT:
@@ -1553,7 +1553,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			}
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
-			apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+			apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			break ;
 		}
 		case BACK_LEFT:
@@ -1573,9 +1573,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BACK_RIGHT:
@@ -1595,9 +1595,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case FRONT_TOP:
@@ -1616,7 +1616,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			}
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
-			apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+			apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			break ;
 		}
 		case FRONT_BOTTOM:
@@ -1636,9 +1636,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_LEFT_FRONT:
@@ -1660,9 +1660,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_LEFT_BACK:
@@ -1684,9 +1684,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_LEFT_FRONT:
@@ -1708,9 +1708,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_LEFT_BACK:
@@ -1732,9 +1732,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_RIGHT_FRONT:
@@ -1756,9 +1756,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case TOP_RIGHT_BACK:
@@ -1780,9 +1780,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_RIGHT_FRONT:
@@ -1804,9 +1804,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		case BOTTOM_RIGHT_BACK:
@@ -1828,9 +1828,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 			std::vector<Point> target ;
 			target.push_back(id.begin()->second.first) ;
 			if(!function)
-				apply3DBC(id.begin()->second.second, target, condition, data*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, data*getScale(), a) ;
 			else
-				apply3DBC(id.begin()->second.second, target, condition, dataFunction*scale, a) ;
+				apply3DBC(id.begin()->second.second, target, condition, dataFunction*getScale(), a) ;
 			break ;
 		}
 		default:
@@ -1863,9 +1863,9 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle
 			}
 		}
 		if(!function)
-			apply2DBC(elements[i], id, condition, data*scale, a) ;
+			apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 		else
-			apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+			apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 	}
 }
 void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
@@ -1888,9 +1888,9 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 			}
 		}
 		if(!function)
-			apply3DBC(elements[i], id, condition, data*scale, a) ;
+			apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 		else
-			apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+			apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 	}
 }
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
@@ -1948,9 +1948,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -1974,9 +1974,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -2000,9 +2000,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -2026,9 +2026,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -2052,9 +2052,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -2078,9 +2078,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -2104,9 +2104,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -2130,9 +2130,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					}
 				}
 				if(!function)
-					apply2DBC(elements[i], id, condition, data*scale, a) ;
+					apply2DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply2DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -2217,9 +2217,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2245,9 +2245,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2273,9 +2273,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2301,9 +2301,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2329,9 +2329,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2357,9 +2357,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2385,9 +2385,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2413,9 +2413,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 					if(!cache2d.empty() && cache2d.back() == elements[i])
 					{
 						if(!function)
-							apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2445,9 +2445,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 						if(!cache2d.empty() && cache2d.back() == elements[i])
 						{
 							if(!function)
-								apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 							else
-								apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 						}
 					}
 				}
@@ -2477,9 +2477,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 						if(!cache2d.empty() && cache2d.back() == elements[i])
 						{
 							if(!function)
-								apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 							else
-								apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 						}
 					}
 				}
@@ -2509,9 +2509,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 						if(!cache2d.empty() && cache2d.back() == elements[i])
 						{
 							if(!function)
-								apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 							else
-								apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 						}
 					}
 					break ;
@@ -2541,9 +2541,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 						if(!cache2d.empty() && cache2d.back() == elements[i])
 						{
 							if(!function)
-								apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 							else
-								apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 						}
 					}
 					break ;
@@ -2573,9 +2573,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 						if(!cache2d.empty() && cache2d.back() == elements[i])
 						{
 							if(!function)
-								apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 							else
-								apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 						}
 					}
 					break ;
@@ -2605,9 +2605,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 						if(!cache2d.empty() && cache2d.back() == elements[i])
 						{
 							if(!function)
-								apply2DBC(elements[i], cache.back(), condition, data*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 							else
-								apply2DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+								apply2DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 						}
 					}
 					break ;
@@ -2624,9 +2624,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 		for(size_t i = 0 ; i < cache2d.size() ; ++i)
 		{
 			if(!function)
-				apply2DBC(cache2d[i], cache[i], condition, data*scale, a) ;
+				apply2DBC(cache2d[i], cache[i], condition, data*getScale(), a) ;
 			else
-				apply2DBC(cache2d[i], cache[i], condition, dataFunction*scale, a) ;
+				apply2DBC(cache2d[i], cache[i], condition, dataFunction*getScale(), a) ;
 		}
 	}
 }
@@ -2695,9 +2695,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2731,9 +2731,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2767,9 +2767,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2803,9 +2803,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2839,9 +2839,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2875,9 +2875,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2911,9 +2911,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2947,9 +2947,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -2983,9 +2983,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3019,9 +3019,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3055,9 +3055,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3091,9 +3091,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3127,9 +3127,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3163,9 +3163,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3199,9 +3199,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3235,9 +3235,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3273,9 +3273,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3311,9 +3311,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3349,9 +3349,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3387,9 +3387,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3425,9 +3425,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3463,9 +3463,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3501,9 +3501,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3539,9 +3539,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 					if(!cache3d.empty() && cache3d.back() == elements[i])
 					{
 						if(!function)
-							apply3DBC(elements[i], cache.back(), condition, data*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, data*getScale(), a) ;
 						else
-							apply3DBC(elements[i], cache.back(), condition, dataFunction*scale, a) ;
+							apply3DBC(elements[i], cache.back(), condition, dataFunction*getScale(), a) ;
 					}
 				}
 				break ;
@@ -3558,9 +3558,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		for(size_t i = 0 ; i < cache3d.size() ; ++i)
 		{
 			if(!function)
-				apply3DBC(cache3d[i], cache[i], condition, data*scale, a) ;
+				apply3DBC(cache3d[i], cache[i], condition, data*getScale(), a) ;
 			else
-				apply3DBC(cache3d[i], cache[i], condition, dataFunction*scale, a) ;
+				apply3DBC(cache3d[i], cache[i], condition, dataFunction*getScale(), a) ;
 		}
 	}
 }
@@ -3614,9 +3614,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3635,9 +3635,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3656,9 +3656,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3677,9 +3677,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3698,9 +3698,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3719,9 +3719,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3740,9 +3740,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3761,9 +3761,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3782,9 +3782,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3803,9 +3803,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3824,9 +3824,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3845,9 +3845,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3866,9 +3866,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3887,9 +3887,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3908,9 +3908,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3929,9 +3929,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3952,9 +3952,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3975,9 +3975,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -3998,9 +3998,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -4021,9 +4021,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -4044,9 +4044,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -4067,9 +4067,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -4090,9 +4090,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -4113,9 +4113,9 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetra
 					}
 				}
 				if(!function)
-					apply3DBC(elements[i], id, condition, data*scale, a) ;
+					apply3DBC(elements[i], id, condition, data*getScale(), a) ;
 				else
-					apply3DBC(elements[i], id, condition, dataFunction*scale, a) ;
+					apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 			}
 			break ;
 		}
@@ -4187,9 +4187,9 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriang
 				if(!id.empty())
 				{
 					if(!function)
-						apply2DBC(tris[i], id, condition, data*scale, a) ;
+						apply2DBC(tris[i], id, condition, data*getScale(), a) ;
 					else
-						apply2DBC(tris[i], id, condition, dataFunction*scale, a) ;
+						apply2DBC(tris[i], id, condition, dataFunction*getScale(), a) ;
 				}
 			}
 		}
@@ -4228,9 +4228,9 @@ void ProjectionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrah
 			}
 		}
 		if(!function)
-			apply3DBC(tris[i], id, condition, data*scale, a) ;
+			apply3DBC(tris[i], id, condition, data*getScale(), a) ;
 		else
-			apply3DBC(tris[i], id, condition, dataFunction*scale, a) ;
+			apply3DBC(tris[i], id, condition, dataFunction*getScale(), a) ;
 	}
 }
 
@@ -4271,8 +4271,8 @@ void TimeContinuityBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle,
 				id.clear() ;
 				id.push_back(tri[i]->getBoundingPoint(firstTimePlane*tp+k)) ;
 				previousStress = tri[i]->getState().getStress(id[k],false) ;
-				apply2DBC(tri[i], id, SET_ALONG_XI, previousDisp[(lastTimePlane+k)*dof+0]*scale, a) ;
-				apply2DBC(tri[i], id, SET_ALONG_ETA, previousDisp[(lastTimePlane+k)*dof+1]*scale, a) ;
+				apply2DBC(tri[i], id, SET_ALONG_XI, previousDisp[(lastTimePlane+k)*dof+0]*getScale(), a) ;
+				apply2DBC(tri[i], id, SET_ALONG_ETA, previousDisp[(lastTimePlane+k)*dof+1]*getScale(), a) ;
 /*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
 				apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
 				apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
@@ -4310,7 +4310,7 @@ void TimeContinuityBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 			id.push_back(tet[i]->getBoundingPoint(k)) ;
 			for(size_t j = 0 ; j < dof ; j++)
 			{
-				apply3DBC(tet[i], id, disp[j], previousDisp[(lastTimePlane+k)*dof+j]*scale, a) ;
+				apply3DBC(tet[i], id, disp[j], previousDisp[(lastTimePlane+k)*dof+j]*getScale(), a) ;
 			}
 		}
 	}

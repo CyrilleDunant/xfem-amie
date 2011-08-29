@@ -107,7 +107,7 @@ double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s) const
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double area = s.getParent()->area() ;
-		double fact = area ;
+		double fact = area*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		angle += s.getCachedAngle()*fact ;
 
 		
@@ -265,8 +265,8 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 		double area = s.getParent()->area() ;
 
 		Vector stressAtNodes(s.getStrainAtCenter()) ;
-		str = stressAtNodes*area ;
-		double fact = area ;
+		str = stressAtNodes*area*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+		double fact = area*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
@@ -276,14 +276,14 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
-				|| dc > 4. * physicalCharacteristicRadius * physicalCharacteristicRadius)
+				|| dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius)
 			{
 				continue ;
 			}
 			
 			area = ci->area() ;
 			//this is to eliminate scaling effects ;
-			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
+			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
@@ -340,9 +340,9 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s) const
 	{
 		double volume = s.getParent()->volume() ;
 		Vector stressAtNodes(s.getStrainAtCenter()) ;
-		str = stressAtNodes*volume ;
+		str = stressAtNodes*volume*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		
-		double fact = volume ;
+		double fact = volume*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
@@ -475,9 +475,9 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 
 		Vector stressAtNodes(s.getStressAtCenter()) ;
 
-		str += (stressAtNodes+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*area ;
+		str += (stressAtNodes+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*area*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 
-		double fact = area ;
+		double fact = area*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
@@ -487,7 +487,7 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 				|| ci->getBehaviour()->fractured()
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
-				|| dc > 4. * physicalCharacteristicRadius * physicalCharacteristicRadius)
+				|| dc > 3. * physicalCharacteristicRadius * physicalCharacteristicRadius)
 			{
 				continue ;
 			}
@@ -553,9 +553,9 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s) const
 		double volume = s.getParent()->volume() ;
 		Vector stressAtNodes(s.getStressAtCenter()) ;
 		
-		str = (stressAtNodes+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*volume ;
+		str = (stressAtNodes+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*volume*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 
-		double fact = volume ;
+		double fact = volume*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
