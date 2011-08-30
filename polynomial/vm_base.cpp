@@ -694,7 +694,7 @@ double VirtualMachine::ieval(const Function &f, const std::vector<std::pair<Segm
 	double ret = 0;
 	for(size_t i = 0 ; i < gamma.size() ; i++)
 	{
-		std::vector< std::pair<Point, double> > gaussPoints = gamma[i].first->getGaussPoints() ;
+		std::valarray< std::pair<Point, double> > gaussPoints = gamma[i].first->getGaussPoints() ;
 		for(size_t j = 0 ; j <  gaussPoints.size() ; j++)
 		{
 			ret += eval(f, gamma[i].second->inLocalCoordinates(gaussPoints[j].first))*gaussPoints[j].second ;

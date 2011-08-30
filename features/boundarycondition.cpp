@@ -65,7 +65,7 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 {
 	if(e->getBehaviour()->type == VOID_BEHAVIOUR)
 		return ;
-	for(size_t i = 0 ; i < id.size() ; i++)
+	for(size_t idit = 0 ; idit < id.size() ; idit++)
 	{
 		switch(condition)
 		{
@@ -73,26 +73,26 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 				std::cout << "I don't know how to form a General Lagrange Multiplier from the data" << std::endl ;
 				break ;
 			case FIX_ALONG_XI:
-				a->setPointAlong(XI, 0, id[i]) ;
+				a->setPointAlong(XI, 0, id[idit]) ;
 				break ;
 			case SET_ALONG_XI:
-				a->setPointAlong(XI, data, id[i]) ;
+				a->setPointAlong(XI, data, id[idit]) ;
 				break ;
 			case FIX_ALONG_ETA:
-				a->setPointAlong(ETA, 0, id[i]) ;
+				a->setPointAlong(ETA, 0, id[idit]) ;
 				break ;
 			case SET_ALONG_ETA:
-				a->setPointAlong(ETA, data, id[i]) ;
+				a->setPointAlong(ETA, data, id[idit]) ;
 				break ;
 			case SET_FORCE_XI:
 			{
 				if(!e->getBehaviour()->fractured())
-					a->setForceOn(XI, data, id[i]) ;
+					a->setForceOn(XI, data, id[idit]) ;
 				break ;
 			}
 			case SET_FORCE_ETA:
 				if(!e->getBehaviour()->fractured())
-					a->setForceOn(ETA, data, id[i]) ;
+					a->setForceOn(ETA, data, id[idit]) ;
 				break ;
 			case SET_STRESS_XI:
 			{
@@ -133,10 +133,12 @@ void apply2DBC(ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMu
 				std::vector<Function> shapeFunctions ;
 				for(size_t j = 0 ; j < id.size() ; j++)
 				{
-					for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+					for(size_t k = 0 ; k < e->getBoundingPoints().size() ; k++)
 					{
-						if(id[j] == e->getBoundingPoint(i).id)
-							shapeFunctions.push_back(e->getShapeFunction(i)) ;
+						if(id[j] == e->getBoundingPoint(k).id)
+						{
+							shapeFunctions.push_back(e->getShapeFunction(k)) ;
+						}
 					}
 				}
 				std::vector<Variable> v(2) ;
@@ -941,6 +943,7 @@ void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, Del
 		}
 	}
 }
+
 void DofDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
 {
 	if(surface)
@@ -971,7 +974,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle,
 	if(volume)
 		return ;
 	
-	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	std::vector<DelaunayTriangle *> elements = t->getElements() ;
 	std::set<Point *> points ;
 	
 	for(size_t i = 0 ; i < elements.size() ; i++)
@@ -1006,7 +1009,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 	if(surface)
 		return ;
 	
-	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 	std::set<Point *> points ;
 	
 	for(size_t i = 0 ; i < elements.size() ; i++)
@@ -1037,7 +1040,7 @@ void ElementDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedr
 
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)  
 {
-	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	std::vector<DelaunayTriangle *> elements = t->getElements() ;
 	if(elements.empty())
 	{
 		std::cout << "no elements in assembly" << std::endl ;
@@ -1257,7 +1260,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<De
 
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  
 {
-	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 	if(elements.empty())
 	{
 		std::cout << "no elements in assembly" << std::endl ;
@@ -1845,7 +1848,7 @@ GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition(LagrangeMulti
 
 void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
-	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	std::vector<DelaunayTriangle *> elements = t->getElements() ;
 	double tol = domain->getRadius()*.0001 ;
 	
 
@@ -1868,12 +1871,12 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle
 			apply2DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 	}
 }
+
 void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) 
 {
-	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 	double tol = domain->getRadius()*.0001 ;
 	
-
 	for(size_t i = 0 ; i < elements.size() ; ++i)
 	{
 		if(elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured())
@@ -1893,9 +1896,10 @@ void GeometryDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahed
 			apply3DBC(elements[i], id, condition, dataFunction*getScale(), a) ;
 	}
 }
+
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
-	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	std::vector<DelaunayTriangle *> elements = t->getElements() ;
 	if(elements.empty())
 	{
 		std::cout << "no elements in assembly" << std::endl ;
@@ -2142,9 +2146,10 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh
 		}
 	}
 }
+
 void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
 {
-	std::vector<ElementarySurface *> & elements = a->getElements2d() ;
+	std::vector<DelaunayTriangle *> elements = t->getElements() ;
 	if(elements.empty())
 	{
 		std::cout << "no elements in assembly" << std::endl ;
@@ -2630,6 +2635,7 @@ void BoundingBoxDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTrian
 		}
 	}
 }
+
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  
 {
 	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;

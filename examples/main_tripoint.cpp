@@ -174,7 +174,7 @@ MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -.15, .15, -10, 10, 0 ) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
-// BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
+// BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 0.6), 0) ;
 GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition( SET_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -9025.2 ) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
@@ -273,7 +273,7 @@ void step()
 		y_min = 0 ;
 		x_min = 0 ;
 		tries = 0 ;
-		double appliedForce = platewidth * 2.*0.4 * load->getData() / 1000 ;
+		double appliedForce = 2.*.4*load->getData()*platewidth / 1000 ;
 		tries++ ;
 		bool go_on = true ;
 
@@ -507,7 +507,6 @@ void step()
 		{
 			displacements.push_back( 1000.*e_xx_0 / ( double )ex_count_0 - 1000.*e_xx_1 / ( double )ex_count_1 );
 			loads.push_back( appliedForce );
-			std::cout << delta/deltacount << std::endl; 
 			deltas.push_back( delta/deltacount );
 			damages.push_back( featureTree->averageDamage );
 		}
@@ -1673,19 +1672,19 @@ int main( int argc, char *argv[] )
 	double compressionCrit = -37.0e6 ;
 	double tensionCrit =  330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*rebarDiametre / .4 ;
+	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .025 ; // .015
+	double mradius = .05 ; // .015
 	double nradius = mradius * 4 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
 	Matrix m0_steely( 3, 3 ) ;
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
-	double E_steel = 0.89*200e9 ; // next .6
+	double E_steel = 200e9 ; // next .6
 	double nu_steel = 0.3 ;
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
-	double E_rebar = 30e9 ;
 
 	m0_steelx[0][0] = E_steel / ( 1. - 2.*nu * nu ) ;
 	m0_steelx[0][1] = nu * sqrt( E_steel * E_steel * 0.6 ) / ( 1. - 2.*nu * nu ) ;
@@ -1764,32 +1763,24 @@ int main( int argc, char *argv[] )
 	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
-	rebar0.getBehaviour()->getDamageModel()->setThresholdDamageDensity( .999 );
-	rebar0.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity( .999 );
 
 	Sample rebar1( sampleLength*.5 - rebarEndCover, rebarDiametre, ( sampleLength*.5 - rebarEndCover )*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
 
 	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
-	rebar1.getBehaviour()->getDamageModel()->setThresholdDamageDensity( .999 );
-	rebar1.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity( .999 );
 
 	Sample rebar2( sampleLength*.5 - rebarEndCover, rebarDiametre, ( sampleLength*.5 - rebarEndCover )*.5,  sampleHeight*.5 - 0.064 ) ;
 
 	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	rebar2.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
-	rebar2.getBehaviour()->getDamageModel()->setThresholdDamageDensity( .999 );
-	rebar2.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity( .999 );
 
 	Sample rebar3( sampleLength*.5 - rebarEndCover, rebarDiametre, ( sampleLength*.5 - rebarEndCover )*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
 
 	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	rebar3.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
-	rebar3.getBehaviour()->getDamageModel()->setThresholdDamageDensity( .999 );
-	rebar3.getBehaviour()->getDamageModel()->setSecondaryThresholdDamageDensity( .999 );
 
 	std::vector<Sample*> stirrups ;
 
@@ -1808,21 +1799,21 @@ int main( int argc, char *argv[] )
 
 
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
+// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.01 ;
+// 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.01 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.01 ;
+// 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.01 ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->neighbourhoodRadius = nradius;
 
 
 	F.addBoundaryCondition( load ) ;
-// 	F.addBoundaryCondition(selfload) ;
+	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) );
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5 ) ) ) ;
 
@@ -1845,14 +1836,18 @@ int main( int argc, char *argv[] )
 		F.addFeature( NULL, &baserightstirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( NULL, &topsupportstirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( &sample, stirrups[0], stirruplayer, psi ) ;
+			F.setSamplingFactor( stirrups[0], 3 ) ;
 
 		int nstirrups = 7 ;
 
 		if ( sampleLength < 5 )
 			nstirrups = 5 ;
 
-// 		for ( size_t i = 1 ;  i < nstirrups ; i++ )
-// 			F.addFeature( stirrups[i-1], stirrups[i], stirruplayer, psi ) ;
+		for ( size_t i = 1 ;  i < nstirrups ; i++ )
+		{
+			F.addFeature( stirrups[i-1], stirrups[i], stirruplayer, psi ) ;
+			F.setSamplingFactor( stirrups[i], 3 ) ;
+		}
 
 		F.addFeature( stirrups.back(), &rebar0, rebarlayer, phi ) ;
 		F.addFeature( stirrups.back(), &rebar1, rebarlayer, phi ) ;
@@ -1868,11 +1863,11 @@ int main( int argc, char *argv[] )
 	}
 
 
-	F.setSamplingFactor( &rebar0, 2 ) ;
+	F.setSamplingFactor( &rebar0, 3 ) ;
 
-	F.setSamplingFactor( &rebar1, 2 ) ;
-	F.setSamplingFactor( &rebar2, 2 ) ;
-	F.setSamplingFactor( &rebar3, 2 ) ;
+	F.setSamplingFactor( &rebar1, 3 ) ;
+	F.setSamplingFactor( &rebar2, 3 ) ;
+	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
 	F.setOrder( LINEAR ) ;
 

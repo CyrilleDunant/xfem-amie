@@ -326,7 +326,12 @@ void FeatureTree::addPoint( Point *p )
 	state.setStateTo( MESHED, false );
 
 	if( dtree )
-		dtree->insert( p );
+	{
+		for(auto j = layer2d.begin() ; j!=layer2d.end() ; ++j)
+		{
+			j->second->insert(p) ;
+		}
+	}
 	else if( dtree3D )
 		dtree3D->insert( p );
 
@@ -382,7 +387,10 @@ FeatureTree::~FeatureTree()
 	delete father2D ;
 	delete grid ;
 	delete grid3d ;
-	delete this->dtree ;
+	for(auto j = layer2d.begin() ; j!=layer2d.end() ; ++j)
+	{
+		delete j->second ;
+	}
 	delete this->dtree3D ;
 	delete this->K ;
 
@@ -448,60 +456,61 @@ void FeatureTree::renumber()
 	return ;
 	if( is2D() )
 	{
-		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
-		size_t count = 0 ;
-		std::cerr << " renumbering... " << std::flush ;
 
-		for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
-		{
-			for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
+			std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
+			size_t count = 0 ;
+			std::cerr << " renumbering... " << std::flush ;
+
+			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 			{
-				( *i )->getBoundingPoint( j ).id = -1 ;
-			}
-		}
-
-
-		Grid tmpgrid = grid->getGrid( std::max( ( size_t )round( sqrt( triangles.size() ) ) / 1024, ( size_t )1 ) ) ; //magic number such that the cache is full, but not too much
-
-		for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
-			tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
-
-		std::vector<Geometry *> sortedElements ;
-		std::set<Geometry *> placedElements ;
-
-		for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
-		{
-			for( size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j )
-			{
-				for( size_t k = 0 ; k < tmpgrid.pixels[i][j]->getFeatures().size() ; ++k )
+				for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
 				{
-					if( placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k] ) == placedElements.end() )
+					( *i )->getBoundingPoint( j ).id = -1 ;
+				}
+			}
+		
+
+			Grid tmpgrid = grid->getGrid( std::max( ( size_t )round( sqrt( triangles.size() ) ) / 1024, ( size_t )1 ) ) ; //magic number such that the cache is full, but not too much
+
+			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
+				tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
+
+			std::vector<Geometry *> sortedElements ;
+			std::set<Geometry *> placedElements ;
+
+			for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
+			{
+				for( size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j )
+				{
+					for( size_t k = 0 ; k < tmpgrid.pixels[i][j]->getFeatures().size() ; ++k )
 					{
-						placedElements.insert( tmpgrid.pixels[i][j]->getFeatures()[k] ) ;
-						sortedElements.push_back( tmpgrid.pixels[i][j]->getFeatures()[k] ) ;
+						if( placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k] ) == placedElements.end() )
+						{
+							placedElements.insert( tmpgrid.pixels[i][j]->getFeatures()[k] ) ;
+							sortedElements.push_back( tmpgrid.pixels[i][j]->getFeatures()[k] ) ;
+						}
+					}
+
+				}
+			}
+
+			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+			{
+				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
+
+				if( tri )
+				{
+					for( size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++ )
+					{
+						if( tri->getBoundingPoint( j ).id == -1 )
+							tri->getBoundingPoint( j ).id = count++ ;
 					}
 				}
-
 			}
-		}
 
-		for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
-		{
-			DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
+			lastNodeId = count ;
 
-			if( tri && tri->getBehaviour()->type != VOID_BEHAVIOUR )
-			{
-				for( size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++ )
-				{
-					if( tri->getBoundingPoint( j ).id == -1 )
-						tri->getBoundingPoint( j ).id = count++ ;
-				}
-			}
-		}
-
-		lastNodeId = count ;
-
-		std::cerr << count * 2 << " ...done " << std::endl ;
+			std::cerr << count * 2 << " ...done " << std::endl ;
 
 	}
 	else if( is3D() )
@@ -714,7 +723,6 @@ void FeatureTree::renumber()
 	}
 
 	renumbered = true ;
-
 
 }
 
@@ -2109,19 +2117,19 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 {
 	int root_box = 0 ;
 
-	if( !inRoot( t->getCenter() ) && layer == -1)
+	if( !inRoot( t->getCenter() ))
 	{
-		return NULL;
+		return new VoidForm();
 	}
 
-	if( t->getBoundingPoints().size() % 3 != 0 && layer == -1)
-		return NULL ;
+	if( t->getBoundingPoints().size() % 3 != 0 )
+		return new VoidForm() ;
 
 	for( size_t i = 0 ; i < t->getBoundingPoints().size() ; i++ )
 	{
-		if( t->getBoundingPoint( i ).id == -1 && layer == -1)
+		if( t->getBoundingPoint( i ).id == -1 )
 		{
-			return NULL ;
+			return new VoidForm() ;
 		}
 	}
 
@@ -2152,6 +2160,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 
 		for( int i = targets.size() - 1 ; i >= 0  ; i-- )
 		{
+			
 			if( !targets[i]->isEnrichmentFeature && targets[i]->in( t->getCenter() ) && ( !onlyUpdate || onlyUpdate && targets[i]->isUpdated ) )
 			{
 				bool notInChildren  = true ;
@@ -2244,15 +2253,10 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 	}
 	else if(!onlyUpdate && tree[root_box]->getLayer() == layer)
 	{
-		if(layer != -1)
-			return new VoidForm() ;
-		return NULL ;
+		return new VoidForm() ;
 	}
 
-	if(layer != -1)
-		return new VoidForm() ;
-
-	return NULL ;
+	return new VoidForm() ;
 
 }
 
@@ -2641,16 +2645,17 @@ void FeatureTree::setElementBehaviours()
 		scalingFactors[-1] = 1.-remainder ;
 		layer2d[-1] = dtree ;
 
-		int setcount = 0 ;
+		
 		
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
+			int setcount = 0 ;
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
-			
+			std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
 				if( setcount % 1000 == 0 )
-					std::cerr << "\r setting behaviours... triangle : layer " <<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
+					std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
 				
 				tris[j]->refresh( father2D ) ;
 				Form * bf =  getElementBehaviour( tris[j], i->first );
@@ -2983,7 +2988,6 @@ void FeatureTree::assemble()
 	{
 		numdofs = dtree->getLastNodeId() ;
 		triangles = dtree->getElements() ;
-		std::cerr << " ...done." << std::endl ;
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
@@ -3777,46 +3781,7 @@ void FeatureTree::solve()
 	{
 		if( dtree )
 		{
-// 				double average = 1 ;
-// 				for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
-// 				{
-// 					std::cout << scalingFactors[j->first] << std::endl ;
-// 	// 					average += scalingFactors[j->first] ;
-// 	// 				average /= layer2d.size() ;
-// 					
-// 					if(boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
-// 						boundaryCondition[i]->getConditionType() == SET_FORCE_ETA ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA)
-// 					{
-// 						if(scalingFactors[j->first] < POINT_TOLERANCE_2D)
-// 							continue ;
-// 					}
-// 						
-// 					if(boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
-// 						boundaryCondition[i]->getConditionType() == SET_FORCE_ETA ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA
-// 					)
-// 					{
-// 						boundaryCondition[i]->setScale(boundaryCondition[i]->getScale()*scalingFactors[j->first]) ;
-// 					}
-// 						
-// 					std::cout << boundaryCondition[i]->getScale() << std::endl ;
-					boundaryCondition[i]->apply( K, dtree ) ;
-					
-// 					if(boundaryCondition[i]->getConditionType() == SET_STRESS_XI ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_ETA ||
-// 						boundaryCondition[i]->getConditionType() == SET_STRESS_XI_ETA ||
-// 						boundaryCondition[i]->getConditionType() == SET_FORCE_XI ||
-// 						boundaryCondition[i]->getConditionType() == SET_FORCE_ETA
-// 					)
-// 					{
-// 						boundaryCondition[i]->setScale(boundaryCondition[i]->getScale()/scalingFactors[j->first]) ;
-// 					}
-// 				}
+			boundaryCondition[i]->apply( K, dtree ) ;
 			
 			if( useMultigrid )
 			{
@@ -4459,7 +4424,7 @@ bool FeatureTree::stepElements()
 
 		if( is2D() )
 		{
-			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+			std::vector<DelaunayTriangle *> elements ;
 			for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
 			{
 				std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;
@@ -4917,7 +4882,12 @@ bool FeatureTree::stepToCheckPoint()
 		
 		if(is2D())
 		{
-			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+			std::vector<DelaunayTriangle *> elements ;
+			for(auto j = layer2d.begin() ; j!= layer2d.end(); ++j)
+			{
+				auto etmp = j->second->getElements() ;
+				elements.insert(elements.end(), etmp.begin(), etmp.end()) ;
+			}
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( elements[i]->getBehaviour()->getFractureCriterion() )
@@ -4958,7 +4928,13 @@ bool FeatureTree::isStable()
 	bool stable = true ;
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		std::vector<DelaunayTriangle *> elements ;
+		for(auto j = layer2d.begin() ; j!=layer2d.end() ; ++j)
+		{
+			auto etmp = j->second->getElements() ;
+			elements.insert(elements.end(), etmp.begin(), etmp.end()) ;
+		}
+		
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
 			if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->getFractureCriterion())

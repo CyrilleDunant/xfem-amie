@@ -386,8 +386,11 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 		if ( gamma[j].second->getBehaviour()->type != VOID_BEHAVIOUR )
 		{
 			// 		FunctionMatrix displacements = gamma[j].second->getState().getDisplacementFunction() ;
-			std::vector<std::pair<Point, double> > gaussPoints = gamma[j].first->getGaussPoints() ;
-			gaussPoints.push_back ( std::make_pair ( gamma[j].first->midPoint(), ( double ) 1 ) );
+			std::valarray<std::pair<Point, double> > gaussPointsi = gamma[j].first->getGaussPoints() ;
+			std::valarray<std::pair<Point, double> > gaussPoints(3) ;
+			gaussPoints[0] = gaussPointsi[0] ; 
+			gaussPoints[1] = gaussPointsi[1] ; 
+			gaussPoints[2] = std::make_pair ( gamma[j].first->midPoint(), ( double ) 1 ) ;
 			Point n = gamma[j].first->normal ( gamma[j].second->getCenter() ) ;
 			
 			

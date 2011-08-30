@@ -186,7 +186,7 @@ double aggregateArea = 0;
 void step()
 {
 	
-	size_t nsteps = 1 ; //16*10;
+	size_t nsteps = 3 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -397,25 +397,25 @@ void step()
 		{
 
 			std::cout << std::endl ;
-			std::cout << "load :" <<  appliedForce/1000. << std::endl ;
-			std::cout << "max value :" << x_max*1000 << std::endl ;
-			std::cout << "min value :" << x_min*1000 << std::endl ;
-			std::cout << "max sigma11 :" << sigma11.max()/1e6 << std::endl ;
-			std::cout << "min sigma11 :" << sigma11.min()/1e6 << std::endl ;
-			std::cout << "max sigma12 :" << sigma12.max()/1e6 << std::endl ;
-			std::cout << "min sigma12 :" << sigma12.min()/1e6 << std::endl ;
-			std::cout << "max sigma22 :" << sigma22.max()/1e6 << std::endl ;
-			std::cout << "min sigma22 :" << sigma22.min()/1e6 << std::endl ;
+			std::cout << "load : " <<  appliedForce/1000. << std::endl ;
+			std::cout << "max value : " << x_max*1000 << std::endl ;
+			std::cout << "min value : " << x_min*1000 << std::endl ;
+			std::cout << "max sigma11 : " << sigma11.max()/1e6 << std::endl ;
+			std::cout << "min sigma11 : " << sigma11.min()/1e6 << std::endl ;
+			std::cout << "max sigma12 : " << sigma12.max()/1e6 << std::endl ;
+			std::cout << "min sigma12 : " << sigma12.min()/1e6 << std::endl ;
+			std::cout << "max sigma22 : " << sigma22.max()/1e6 << std::endl ;
+			std::cout << "min sigma22 : " << sigma22.min()/1e6 << std::endl ;
 			
-			std::cout << "max epsilon11 :" << epsilon11.max()*1e6 << std::endl ;
-			std::cout << "min epsilon11 :" << epsilon11.min()*1e6 << std::endl ;
-			std::cout << "max epsilon12 :" << epsilon12.max()*1e6 << std::endl ;
-			std::cout << "min epsilon12 :" << epsilon12.min()*1e6 << std::endl ;
-			std::cout << "max epsilon22 :" << epsilon22.max()*1e6 << std::endl ;
-			std::cout << "min epsilon22 :" << epsilon22.min()*1e6 << std::endl ;
+			std::cout << "max epsilon11 : " << epsilon11.max()*1e6 << std::endl ;
+			std::cout << "min epsilon11 : " << epsilon11.min()*1e6 << std::endl ;
+			std::cout << "max epsilon12 : " << epsilon12.max()*1e6 << std::endl ;
+			std::cout << "min epsilon12 : " << epsilon12.min()*1e6 << std::endl ;
+			std::cout << "max epsilon22 : " << epsilon22.max()*1e6 << std::endl ;
+			std::cout << "min epsilon22 : " << epsilon22.min()*1e6 << std::endl ;
 			
-			std::cout << "max von Mises :" << vonMises.max()/1e6 << std::endl ;
-			std::cout << "min von Mises :" << vonMises.min()/1e6 << std::endl ;
+			std::cout << "max von Mises : " << vonMises.max()/1e6 << std::endl ;
+			std::cout << "min von Mises : " << vonMises.min()/1e6 << std::endl ;
 			
 			std::cout << "average sigma11 : " << (avg_s_xx/area)/1e6 << std::endl ;
 			std::cout << "average sigma22 : " << (avg_s_yy/area)/1e6 << std::endl ;
@@ -472,7 +472,10 @@ void step()
 			break ;
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	}
+
+	exit(0) ;
 }
+
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
 {
@@ -1410,7 +1413,7 @@ int main(int argc, char *argv[])
 
 	double compressionCrit = -37.5e6 ; 
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
-	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
+	double steelfraction = .5 ; //0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
 	double mradius = .025 ; // .015
 	double nradius = std::max(mradius*4, .5) ;
@@ -1454,12 +1457,15 @@ int main(int argc, char *argv[])
 	Sample toprightvoid(.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
 
-	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
-	rebarright.setBehaviour(new VoidForm());
+// 	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
+// 	rebarright.setBehaviour(new VoidForm());
 	
+	Sample rebarright((1.300)*.5+0.225, rebarDiametre*.5, (1.300)*.25+0.225*.5, rebarDiametre*0.25) ; 
+	rebarright.setBehaviour(new StiffnessAndFracture(m0_steel, new VonMises(500e6, MIRROR_XY)));
+	rebarright.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	
 	Sample rebarinternal((1.300)*.5+0.225, rebarDiametre*.5, (1.300)*.25+0.225*.5, rebarDiametre*0.25) ; 
-	rebarinternal.setBehaviour(new StiffnessAndFracture(m0_steel, new VonMises(500e6, MIRROR_XY)));
+	rebarinternal.setBehaviour(new StiffnessAndFracture(m0_steel*.5, new VonMises(500e6, MIRROR_XY)));
 	rebarinternal.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 // 	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 // 	
@@ -1467,22 +1473,22 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	featureTree = &F ;
 
-// 	sample.setBehaviour(new VoidForm()) ;  
+	sample.setBehaviour(new VoidForm()) ;  
 		
-	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
-	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0.01 ;
+// 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
+// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0.01 ;
 	
 	
 	
-	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 4.) ;
+// 	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 4.) ;
 	F.addFeature(NULL,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
-	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
+// 	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
 	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
-	F.addFeature(NULL,&toprightvoid) ;
+// 	F.addFeature(NULL,&toprightvoid) ;
 
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;

@@ -3410,13 +3410,14 @@ double Segment::norm() const
 	return vec.norm() ;
 }
 
-std::vector<std::pair<Point, double> > Segment::getGaussPoints() const
+std::valarray<std::pair<Point, double> > Segment::getGaussPoints() const
 {
-	std::vector< std::pair<Point, double> > gp ;
+	std::valarray< std::pair<Point, double> > gp(2) ;
 	Point a = f*0.788675134594813+ s*(1.-0.788675134594813) ;
 	Point b = s*0.788675134594813+ f*(1.-0.788675134594813) ;
-	gp.push_back(std::pair<Point, double>(a, 1.0)) ;
-	gp.push_back(std::pair<Point, double>(b, 1.0)) ;
+	double n = norm() ;
+	gp[0] = std::pair<Point, double>(a, 1) ;
+	gp[1] = std::pair<Point, double>(b, 1) ;
 	return gp ;
 }
 

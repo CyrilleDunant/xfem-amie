@@ -1258,7 +1258,7 @@ void Rectangle::sampleSurface(size_t num_points)
 	for(size_t i = 0 ; i < inPoints.size() ; i++)
 		delete inPoints[i] ;
 	
-	inPoints.resize(nip) ;
+	std::vector<Point *> newInPoints ;
 		
 	double distanceBetweenPointsAlongX = size_x/(numberOfPointsAlongX-1) ;
 	double distanceBetweenPointsAlongY = size_y/(numberOfPointsAlongY-1) ;
@@ -1267,16 +1267,20 @@ void Rectangle::sampleSurface(size_t num_points)
 	{
 		for(size_t i = 0 ; i < numberOfPointsAlongX-2 ; i++)
 		{
-			for(size_t j = 0 ; j < numberOfPointsAlongY-2 ; j++)
-			{	
+			for(size_t j = 0 ; j < numberOfPointsAlongY-2-i%2 ; j++)
+			{
 				double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.1*(size_x/numberOfPointsAlongX) ;
 				double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.1*(size_y/numberOfPointsAlongY) ;
 				
-				inPoints[i*(numberOfPointsAlongY-2)+j] = new Point(center.x - 0.5*size_x + (double)(i+1)*distanceBetweenPointsAlongX+randx,
-					center.y - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+ randy) ;
+				newInPoints.push_back( new Point(center.x - 0.5*size_x + (double)(i+1)*distanceBetweenPointsAlongX+(double)((j+1)%2)*distanceBetweenPointsAlongX*.5+randx,
+					center.y - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+(double)(i%2)*distanceBetweenPointsAlongY*.5+ randy)) ;
 			}
 		}
 	}
+	
+	inPoints.resize(newInPoints.size()) ;
+	for(size_t i = 0 ; i < inPoints.size() ; i++)
+		inPoints[i] = newInPoints[i] ;
 }
 
 Circle::Circle(double r, double originX, double originY)
