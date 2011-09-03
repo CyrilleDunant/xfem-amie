@@ -398,6 +398,7 @@ public:
 	
 	virtual Function getXTransform() const = 0;
 	virtual Function getYTransform() const = 0;
+	virtual Function getZTransform() const ;
 
 	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
 	virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
@@ -428,6 +429,7 @@ public:
 	
 	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const = 0 ;
 	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const = 0 ;
+	virtual void setOrder( Order o) = 0;
 	
 } ;
 

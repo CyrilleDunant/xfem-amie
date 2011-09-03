@@ -47,7 +47,8 @@ typedef enum{
 	protected:
 
 		std::vector<unsigned int> physicalcache ;
-		std::vector<double> area ;
+		void initialiseFactors(const ElementState & s) ;
+		std::vector<double> factors ;
 		
 		std::vector<unsigned int> damagingSet ;
 		std::vector<unsigned int> proximitySet ;
@@ -80,9 +81,10 @@ typedef enum{
 		double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
 	public:
-		Vector smoothedPrincipalStress( ElementState &s) const ;
-		Vector smoothedPrincipalStrain( ElementState &s) const;
-		double smoothedPrincipalStressAngle( ElementState &s) const ;
+		Vector smoothedPrincipalStress( ElementState &s) ;
+		Vector smoothedPrincipalStrain( ElementState &s) ;
+		std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s) ;
+		double smoothedPrincipalStressAngle( ElementState &s) ;
 		double smoothedCrackAngle( ElementState &s) const ;
 	public:
 		std::vector<unsigned int> cache ;

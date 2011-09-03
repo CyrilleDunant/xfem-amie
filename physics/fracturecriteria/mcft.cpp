@@ -123,44 +123,8 @@ NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double
 	critStrain = -0.002 ;
 	tensionCritStrain = up / youngModulus ;
 	strainBroken = false ;
-	
-	double energy = 75. ; //N/m
-	strain_ch = 4.*energy/(getMaterialCharacteristicRadius()*upVal) ;
-	
-	if(strain_ch < tensionCritStrain)
-	{
-		std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
-		exit(0) ;
-	}
-	strain_te = 5.*strain_ch;
-	double del_0 = strain_ch-tensionCritStrain ;
-	double del_1 = strain_te-strain_ch ;
-	
-	double k_low = 0 ;
-	double k_high = 1e5 ;
-	double elastic_energy = tensionCritStrain*upVal*.5 ;
-	
-	do
-	{
-		double integral = elastic_energy ;
-		k = 0.5*(k_low+k_high) ;
-		for(double i = 0 ; i < 1000 ; i++)
-		{
-			integral+= upVal/(1.+sqrt(k*i/1000.*del_0))*del_0*1e-3 ;
-		}
-		for(double i = 0 ; i < 1000 ; i++)
-		{
-			integral+= upVal/(1.+sqrt(k*i/1000.*del_1))*del_1*1e-3 ;
-		}
-		if(integral < energy/getMaterialCharacteristicRadius())
-		{
-			k_high = k ;
-		}
-		else
-			k_low = k ;
-		
-	} while(std::abs(k_low-k_high) > 1e-4) ;
-	
+	initialised = false ;
+
 }
 
 
@@ -170,18 +134,51 @@ NonLocalMCFT::~NonLocalMCFT()
 
 double NonLocalMCFT::grade( ElementState &s )
 {
+	if(!initialised)
+	{
+		double energy = 75. ; //N/m
+		strain_ch = energy/(getMaterialCharacteristicRadius()*upVal) ;
+		
+		if(strain_ch < tensionCritStrain)
+		{
+			std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
+			exit(0) ;
+		}
+		strain_te = 5.*strain_ch;
+		double del_0 = strain_ch-tensionCritStrain ;
+		double del_1 = strain_te-strain_ch ;
+		
+		double k_low = 0 ;
+		double k_high = 1e7 ;
+		double elastic_energy = tensionCritStrain*upVal*.5 ;
+		
+		do
+		{
+			double integral = elastic_energy ;
+			k = 0.5*(k_low+k_high) ;
+			for(double i = 0 ; i < 10000 ; i++)
+			{
+				integral+= upVal/(1.+sqrt(k*i/10000.*del_0))*del_0*1e-4 ;
+			}
+			for(double i = 0 ; i < 10000 ; i++)
+			{
+				integral+= upVal/(1.+sqrt(k*i/10000.*del_1))*del_1*1e-4 ;
+			}
+			if(integral < energy/getMaterialCharacteristicRadius())
+			{
+				k_high = k ;
+			}
+			else
+				k_low = k ;
+			
+		} while(std::abs(k_low-k_high) > 1e-6) ;
+		std::cout << k << std::endl ;
+		initialised = true ;
+	}
+	
 	
 	Vector pstrain(smoothedPrincipalStrain(s)) ;
 	Vector pstress(smoothedPrincipalStress(s)) ;
-	
-// 	if(s.getParent()->getBehaviour()->getDamageModel()->getState().max() < POINT_TOLERANCE_2D && pstrain.max() > tensionCritStrain && pstress.max() > POINT_TOLERANCE_2D)
-// 	{
-// 		std::cout << "before : " << tensionCritStrain << std::flush ;
-// 		tensionCritStrain = upVal / (pstress.max()/pstrain.max()) ;
-// 		std::cout << " ; after : " << tensionCritStrain << std::endl ;
-// 		exit(0) ;
-// 	}
-// 	
 
 	double tstrain = pstrain.max();
 	double cstrain = pstrain.min();
@@ -268,40 +265,6 @@ if(crits.back() > -1)
 
 return 1./crits.back() ;
 
-/*	
-	if( cstress <= 0 && std::abs( cstress ) >= std::abs( maxCompression ) )
-	{
-		metInCompression = true ;
-		crits.push_back( 1. - std::abs( maxCompression / cstress ) ) ;
-	}
-	
-	if( cstress <= 0 && std::abs( cstress ) < std::abs( maxCompression ) )
-	{
-		crits.push_back( -1. + std::abs( cstress / maxCompression ) ) ;
-	}
-	
-	if( tstrain >= tensionCritStrain 
-		&& tstress  >= maxTension  )
-	{
-		metInTension = true ;
-		crits.push_back( 1. - std::abs( maxTension / tstress ) ) ;
-	}
-
-	if( tstrain >= tensionCritStrain 
-		&& tstress > 0 
-		&& tstress < maxTension )
-	{
-		crits.push_back( -1. + std::abs( tstress / maxTension ) ) ;
-	}
-
-	if(tstrain < tensionCritStrain 
-		&& tstrain >= 0)
-	{
-		crits.push_back( -1. + std::abs( tstrain / tensionCritStrain ) ) ;
-	}*/
-
-	std::sort( crits.begin(), crits.end() );
-	return crits.back() ;
 }
 
 FractureCriterion *NonLocalMCFT::getCopy() const

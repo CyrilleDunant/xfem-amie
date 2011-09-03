@@ -69,6 +69,7 @@ public:
 	double k ;
 	double strain_ch ;
 	double strain_te ;
+	bool initialised ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)

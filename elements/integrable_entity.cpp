@@ -28,6 +28,9 @@ IntegrableEntity::IntegrableEntity() : state( this ), boundaryConditionCache( NU
 
 }
 
+
+Function IntegrableEntity::getZTransform() const { return Function("1") ;};
+
 void Form::scale(double d) 
 { 
 	param *= d ;

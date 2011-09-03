@@ -206,7 +206,9 @@ void DamageModel::step( ElementState &s )
 		//we have found no root, so now, we disturb the system
 		if(!deltaRoot && !scoreRoot) 
 		{
-			getState( true ) = downState + 0.01 ;
+			trialRatio = 1 ;
+			getState( true ) = upState ;
+			wasBroken = true ;
 			converged = true ;
 			return ;
 		}
