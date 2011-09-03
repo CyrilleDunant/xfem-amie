@@ -171,8 +171,8 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,0) ;
-BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,0) ;
+// BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
 // BoundingBoxDefinedBoundaryCondition * loadl = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
@@ -201,10 +201,10 @@ void step()
 		bool go_on = true ;
 
 		go_on = featureTree->step() ;
-		double appliedForce = loadr->getData();
+		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+1.5e3) ;
+			loadr->setData(loadr->getData()+1.5e4) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -473,7 +473,6 @@ void step()
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	}
 
-	exit(0) ;
 }
 
 
@@ -1457,12 +1456,12 @@ int main(int argc, char *argv[])
 	Sample toprightvoid(.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
 
-// 	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
-// 	rebarright.setBehaviour(new VoidForm());
+	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
+	rebarright.setBehaviour(new VoidForm());
 	
-	Sample rebarright((1.300)*.5+0.225, rebarDiametre*.5, (1.300)*.25+0.225*.5, rebarDiametre*0.25) ; 
-	rebarright.setBehaviour(new StiffnessAndFracture(m0_steel, new VonMises(500e6, MIRROR_XY)));
-	rebarright.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
+// 	Sample rebarright((1.300)*.5+0.225, rebarDiametre*.5, (1.300)*.25+0.225*.5, rebarDiametre*0.25) ; 
+// 	rebarright.setBehaviour(new StiffnessAndFracture(m0_steel, new VonMises(500e6, MIRROR_XY)));
+// 	rebarright.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(mradius);
 	
 	Sample rebarinternal((1.300)*.5+0.225, rebarDiametre*.5, (1.300)*.25+0.225*.5, rebarDiametre*0.25) ; 
 	rebarinternal.setBehaviour(new StiffnessAndFracture(m0_steel*.5, new VonMises(500e6, MIRROR_XY)));
@@ -1473,20 +1472,20 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	featureTree = &F ;
 
-	sample.setBehaviour(new VoidForm()) ;  
+// 	sample.setBehaviour(new VoidForm()) ;  
 		
-// 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
-// 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
-// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
-// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-// 	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0.01 ;
+	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.1 ;
+	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0.1 ;
 	
 	
 	
-// 	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 4.) ;
+	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 4.) ;
 	F.addFeature(NULL,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
-// 	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
+	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
 	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
 // 	F.addFeature(NULL,&toprightvoid) ;
 

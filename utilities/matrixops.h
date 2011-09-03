@@ -64,6 +64,11 @@ public:
 		v = NULL ;
 	}
 	
+	double froebeniusNorm() const
+	{
+		return sqrt(std::inner_product((double *)v, (double *)(v+v->size()), (double *)v, (double)(0))) ;
+	}
+	
 	/** Construct a square submatrix from a given source matrix.
 	 * 
 	 * @param rl size of the submatrix

@@ -113,7 +113,7 @@ double E_max = 0;
 double x_max = 0 ;
 double y_max = 0 ;
 double disp = 1 ;//.350 .355
-BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 0) ;
+BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
 double width = 20;
 double height = 10;
 Sample sample(NULL, width , height, 0, 0) ;
@@ -397,11 +397,10 @@ void step()
 	{
 		go = featureTree->step() ;
 
-		std::cout << "multiplier = " << imposeddisp->getScale() << std::endl ;
 		scales.push_back(imposeddisp->getScale());
 
 		if(go)
-			imposeddisp->setData(imposeddisp->getData()+1);
+			imposeddisp->setData(imposeddisp->getData()+.1);
 
 		double da = 0 ;
 		
@@ -677,8 +676,8 @@ void step()
 // 			std::cout << std::endl ;
 			
 		disps.push_back(y_max) ;
-			for(size_t i = 0 ; i < scales.size() ; i++)
-				std::cout << disps[i]<< "  "<<  scales[i] << std::endl ;
+// 			for(size_t i = 0 ; i < scales.size() ; i++)
+// 				std::cout << disps[i]<< "  "<<  scales[i] << std::endl ;
 		
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
@@ -1703,10 +1702,7 @@ int main(int argc, char *argv[])
 {
 
   // Material behaviour of the matrix
-	Matrix m0_paste(3,3) ;
-	m0_paste[0][0] = E_paste/(1.-nu*nu) ; m0_paste[0][1] =E_paste/(1.-nu*nu)*nu ; m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste/(1.-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1.-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = .99*E_paste/(1.-nu*nu)*(1.-nu)/2. ; 
+	Matrix m0_paste=Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
 
 	// Material behaviour of the fibres
 	Matrix m0_agg(3,3) ;
@@ -1777,7 +1773,7 @@ int main(int argc, char *argv[])
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
 	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(2000) ;
+	F.setMaxIterationsPerStep(800) ;
 	F.setDeltaTime(0.1);
 
 	glutInit(&argc, argv) ;	

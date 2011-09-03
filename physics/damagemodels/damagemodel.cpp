@@ -203,51 +203,25 @@ void DamageModel::step( ElementState &s )
 			}
 		}
 		
-// 		if(deltaRoot)
-// 			damageDensityTolerance =  1. / pow( 2., 16 );
-// 		if(scoreRoot)
-// 			damageDensityTolerance =  1. / pow( 2., 8 );
+		//we have found no root, so now, we disturb the system
+		if(!deltaRoot && !scoreRoot) 
+		{
+			getState( true ) = downState + 0.01 ;
+			converged = true ;
+			return ;
+		}
 		
 		trialRatio = ( minFraction + maxFraction ) * .5 ;
 		getState( true ) = downState + ( upState - downState ) *trialRatio ;
 		
 		if( std::abs( minFraction - maxFraction ) < damageDensityTolerance )
 		{
-// 			std::cout << "\n  --  " << trialRatio <<  std::endl ;
-// 			for( int i = 0 ; i < states.size() ; i++ )
-// 				std::cout << states[i].fraction << "  " << states[i].score << "  " << states[i].delta << std::endl ;
-// 			std::cout << "  --  "<<  std::endl ;
-
-			//this (the 0.005) ensures that we are moving forward and not getting stuck.
-			getState( true ) = downState + ( upState - downState ) * std::max(trialRatio, 0.005) ;
-
 			if( states.size() < 6 )
 			{
 				trialRatio = 1 ;
 				getState( true ) = upState ;
 				wasBroken = true ;
 			}
-			
-			if(!deltaRoot && !scoreRoot)
-			{
-				trialRatio = 1 ;
-				getState( true ) = downState + ( upState - downState ) * trialRatio ;
-			}
-// 			else if(deltaRoot)
-// 			{
-// 				if(prevScore < 0)
-// 					trialRatio = minFraction ;
-// 				else
-// 					trialRatio = maxFraction ;
-// 			}
-// 			else
-// 			{
-// 				if(prevDelta > 0)
-// 					trialRatio = minFraction ;
-// 				else
-// 					trialRatio = maxFraction ;
-// 			}
-
 			converged = true ;
 		}
 	}

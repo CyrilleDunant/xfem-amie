@@ -70,7 +70,8 @@ namespace Mu
 		void fixLastDamage() ;
 		NonLocalVonMises  * vm ;
 		bool initialised ;
-		
+		Vector imposedStrain ;
+		Vector previousImposedStrain ;
 	public:
 		std::vector<DelaunayTriangle *> cache ;
 		std::vector<Variable> v ;

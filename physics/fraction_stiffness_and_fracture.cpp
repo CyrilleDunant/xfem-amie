@@ -24,15 +24,6 @@ FractionStiffnessAndFracture::FractionStiffnessAndFracture(const Matrix & rig, c
 	dfunc = new FractionLinearDamage(rig0, phi) ;
 	criterion = crit ;
 	crit->setNeighbourhoodRadius(eps) ;
-	frac = false ;
-	init = param[0][0] ;
-	change  = false ;
-	previouschange = false ;
-	previousDamage.resize(dfunc->getState().size()) ; previousDamage =0 ;
-	intermediateDamage.resize(dfunc->getState().size()) ;intermediateDamage = 0 ;
-	count = 0 ;
-	previousPreviousDamage.resize(dfunc->getState().size()) ;previousPreviousDamage = 0 ;
-	damage = 0 ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() == 36 )
@@ -72,48 +63,21 @@ void FractionStiffnessAndFracture::apply(const Function & p_i, const Function & 
 
 void FractionStiffnessAndFracture::stepBack()
 {
-// 	if(change)
-// 	{
-// 		dynamic_cast<MohrCoulomb *>(criterion)->upVal /= .95 ;
-// 		dynamic_cast<MohrCoulomb *>(criterion)->downVal /= .95 ;
-// 	}
-	change = previouschange ;
-	damage.resize(previousDamage.size()) ;
-	damage = previousDamage ;
-	dfunc->getState(true) = damage ;
-	frac = dfunc->fractured() ;
-
-	previousDamage.resize(previousPreviousDamage.size()) ;
-	previousDamage = previousPreviousDamage ;
+	dfunc->stepBack() ;
 }
 
 void FractionStiffnessAndFracture::step(double timestep, ElementState & currentState) 
 {
-	previouschange = change ;
-	change = false ;
 
 	dfunc->step(currentState) ;
-	change = dfunc->changed() ;
-	currentState.getParent()->behaviourUpdated = change ;
-	if(change)
-	{
-		
-		previousPreviousDamage.resize(previousDamage.size()) ;
-		previousPreviousDamage = previousDamage ;
-		previousDamage.resize(damage.size()) ;
-		previousDamage = damage ;
-		
-		Vector d = dfunc->getState() ;
-		damage.resize(d.size()) ;
-		damage = d ;
-	}
+	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
 	
 }
 
 
 bool FractionStiffnessAndFracture::changed() const
 {
-	return change ;
+	 dfunc->changed() ;
 } 
 
 bool FractionStiffnessAndFracture::fractured() const
@@ -124,7 +88,6 @@ bool FractionStiffnessAndFracture::fractured() const
 Form * FractionStiffnessAndFracture::getCopy() const 
 {
 	FractionStiffnessAndFracture * copy = new FractionStiffnessAndFracture(param, dfunc->remnant, dfunc->phi, criterion->getCopy(), criterion->getMaterialCharacteristicRadius()) ;
-	copy->damage = damage ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());

@@ -139,7 +139,7 @@ double supportLever = 1.7 ;//2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = sqrt( 0.000509 ) ;
+double rebarDiametre = sqrt( 4.*0.000509/M_PI) ;
 double rebarEndCover = 0.047 ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -1674,14 +1674,14 @@ int main( int argc, char *argv[] )
 	double phi =  3.*rebarDiametre / .4 ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .05 ; // .015
+	double mradius = .02 ; // .015
 	double nradius = mradius * 4 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
 	Matrix m0_steely( 3, 3 ) ;
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
-	double E_steel = 200e9 ; // next .6
+	double E_steel = 0.785*200e9 ; // next .6
 	double nu_steel = 0.3 ;
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
@@ -1705,24 +1705,9 @@ int main( int argc, char *argv[] )
 	m0_steely[2][1] = 0 ;
 	m0_steely[2][2] = 0.25 * ( E_steel * 0.6 + E_steel - 2.*nu * sqrt( E_steel * E_steel * 0.6 ) ) / ( 1. - 2.*nu * nu ) ;
 
-	Matrix m0_paste( 3, 3 ) ;
-	m0_paste[0][0] = E_paste / ( 1. - nu * nu ) ;
-	m0_paste[0][1] = E_paste / ( 1. - nu * nu ) * nu ;
-	m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste / ( 1. - nu * nu ) * nu ;
-	m0_paste[1][1] = E_paste / ( 1. - nu * nu ) ;
-	m0_paste[1][2] = 0 ;
-	m0_paste[2][0] = 0 ;
-	m0_paste[2][1] = 0 ;
-	m0_paste[2][2] = E_paste / ( 1. - nu * nu ) * ( 1. - nu ) * .5 ;
+	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
 
-	Matrix m0_steel( 3, 3 ) ;
-	m0_steel[0][0] = E_steel / ( 1. - nu_steel * nu_steel ) ;
-	m0_steel[0][1] = E_steel / ( 1. - nu_steel * nu_steel ) * nu_steel ;
-	m0_steel[0][2] = 0 ;
-	m0_steel[1][0] = E_steel / ( 1. - nu_steel * nu_steel ) * nu_steel ;
-	m0_steel[1][1] = E_steel / ( 1. - nu_steel * nu_steel ) ;
-	m0_steel[1][2] = 0 ;
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL) ;
 
 	Sample box( NULL, sampleLength*.5, sampleHeight + plateHeight*2., sampleLength*.25, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
@@ -1799,21 +1784,21 @@ int main( int argc, char *argv[] )
 
 
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0. ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-// 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0. ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-// 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0. ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->neighbourhoodRadius = nradius;
 
 
 	F.addBoundaryCondition( load ) ;
-	F.addBoundaryCondition(selfload) ;
+// 	F.addBoundaryCondition(selfload) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) );
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5 ) ) ) ;
 

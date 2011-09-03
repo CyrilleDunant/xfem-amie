@@ -1427,7 +1427,9 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 						continue ;
 					}
 					else
+					{
 						newProximity.insert(i->second->index) ;
+					}
 				}
 			}
 			

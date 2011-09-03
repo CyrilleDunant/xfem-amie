@@ -68,9 +68,8 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 			for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
 				delete( *boundaryConditionCache )[i] ;
 		}
-
 		delete boundaryConditionCache ;
-		boundaryConditionCache = new std::vector<BoundaryCondition *>();
+		boundaryConditionCache = new std::vector<BoundaryCondition *>;
 		std::valarray<Matrix> Jinv( getGaussPoints().gaussPoints.size() ) ;
 
 		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
@@ -92,7 +91,7 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 
 	}
 
-	if( boundaryConditionCache )
+	if(boundaryConditionCache &&  !boundaryConditionCache->empty())
 	{
 		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
 		{
@@ -1316,54 +1315,6 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 		lstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
-
-/*		if( parent->getBehaviour()->param.size() == 3 )
-		{
-			double xdot_xi = 0;
-			double xdot_eta = 0;
-			double ydot_xi = 0;
-			double ydot_eta = 0;
-			Vector ldotstrain( 3 ) ;
-
-			for( size_t j = 0 ; j < parent->getShapeFunctions().size() ; j++ )
-			{
-				Function f = parent->getShapeFunction( j ).d( TIME_VARIABLE ) ;
-				double f_xi = vm.deval( f, XI, p_ ) ;
-				double f_eta = vm.deval( f, ETA, p_ ) ;
-
-
-				xdot_xi += f_xi * displacements[j * 2] ;
-				xdot_eta += f_eta * displacements[j * 2] ;
-				ydot_xi += f_xi * displacements[j * 2 + 1] ;
-				ydot_eta += f_eta * displacements[j * 2 + 1] ;
-
-			}
-
-			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
-			{
-				Function f = parent->getEnrichmentFunction( j ).d( TIME_VARIABLE ) ;
-
-				double f_xi = vm.deval( f, XI, p_ ) ;
-				double f_eta = vm.deval( f, ETA, p_ ) ;
-
-				xdot_xi += f_xi * enrichedDisplacements[j * 2] ;
-				xdot_eta += f_eta * enrichedDisplacements[j * 2] ;
-				ydot_xi += f_xi * enrichedDisplacements[j * 2 + 1] ;
-				ydot_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
-			}
-
-			bool hasTimeSlices = ( parent->timePlanes() > 1 );
-			Matrix Jinv( 2 + hasTimeSlices, 2 + hasTimeSlices ) ;
-			parent->getInverseJacobianMatrix( p_, Jinv ) ;
-			ldotstrain[0] = ( xdot_xi ) * Jinv[0][0] + ( xdot_eta ) * Jinv[0][1] ;
-			ldotstrain[1] = ( ydot_xi ) * Jinv[1][0] + ( ydot_eta ) * Jinv[1][1] ;
-			ldotstrain[2] = 0.5 * ( ( xdot_xi ) * Jinv[1][0] + ( xdot_eta ) * Jinv[1][1]  + ( ydot_xi ) * Jinv[0][0] + ( ydot_eta ) * Jinv[0][1] );
-
-			Matrix eta( dynamic_cast<KelvinVoight *>( parent->getBehaviour() )->eta ) ;
-
-			return lstrain * cg + ldotstrain * eta ;
-
-		}*/
 
 		if(parent->getBehaviour()->hasInducedForces() )
 			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
