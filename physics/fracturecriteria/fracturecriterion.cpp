@@ -363,6 +363,146 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
 
 std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s)
 {
+	Vector str(0., 3) ;
+	if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		str.resize(6, 0.);
+	
+	Vector stra(0., 3) ;
+	if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		stra.resize(6, 0.);
+	
+	if(factors.empty())
+		initialiseFactors(s) ;
+	
+	auto fiterator = factors.begin() ;
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		stra = s.getStrainAtCenter()*(*fiterator) ;
+		str = (s.getStressAtCenter()+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*(*fiterator) ;
+		fiterator++ ;
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			if(ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
+			{
+				factors.back() -= *fiterator ;
+				*fiterator = 0 ;
+				fiterator++ ;
+				continue ;
+			}
+
+			stra += ci->getState().getStrainAtCenter()*(*fiterator) ;
+			str += ci->getState().getStressAtCenter()*(*fiterator) ;
+			fiterator++ ;
+		}
+		str /= factors.back() ;
+		str -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
+		stra /= factors.back() ;
+		
+		Vector lprincipal( 2 ) ;
+
+		lprincipal[0] = 0.5 * ( str[0] + str[1] ) +
+										 sqrt(
+												0.25 *( str[0] - str[1] ) * ( str[0] - str[1] ) +
+												( str[2] * str[2] )
+										) ;
+		lprincipal[1] = 0.5 * ( str[0] + str[1] ) -
+										 sqrt(
+												0.25 *( str[0] - str[1] ) * ( str[0] - str[1] ) +
+												( str[2] * str[2] )
+										) ;
+										
+		Vector lprincipals( 2 ) ;
+
+		lprincipals[0] = 0.5 * ( stra[0] + stra[1] ) +
+										 sqrt(
+												0.25 *( stra[0] - stra[1] ) * ( stra[0] - stra[1] ) +
+												( stra[2] * stra[2] )
+										) ;
+		lprincipals[1] = 0.5 * ( stra[0] + stra[1] ) -
+										 sqrt(
+												0.25 *( stra[0] - stra[1] ) * ( stra[0] - stra[1] ) +
+												( stra[2] * stra[2] )
+										) ;
+
+		return std::make_pair(lprincipal, lprincipals) ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		str = (s.getStressAtCenter()+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*(*fiterator) ;
+		stra = s.getStrainAtCenter()*(*fiterator) ;
+		fiterator++ ;
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+			
+			if( ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
+			{
+				factors.back() -= *fiterator ;
+				*fiterator = 0 ;
+				fiterator++ ;
+				continue ;
+			}
+			str += ci->getState().getStressAtCenter()*(*fiterator) ;
+			stra += ci->getState().getStrainAtCenter()*(*fiterator) ;
+			fiterator++ ;
+		}
+		str /= factors.back() ;
+		str -=  s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
+		stra /= factors.back() ;
+		
+		
+		Vector lprincipal( 3 ) ;
+		Matrix stresses(3,3) ;
+		stresses[0][0] = str[0] ; stresses[0][1] = str[3] ; stresses[0][2] = str[4] ;
+		stresses[1][0] = str[3] ; stresses[1][1] = str[1] ; stresses[1][2] = str[5] ;
+		stresses[2][0] = str[4] ; stresses[2][1] = str[5] ; stresses[2][2] = str[2] ;
+		Matrix I( 3, 3 ) ;
+		I[0][0] = 1 ;
+		I[1][1] = 1 ;
+		I[2][2] = 1 ;
+		double m = ( stresses[0][0] + stresses[1][1] + stresses[2][2] ) / 3. ;
+		Matrix Am = stresses - I * m ;
+		double q = det( Am ) / 2. ;
+		double rr = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
+		double phi = atan2( sqrt( rr * rr * rr - q * q ), q ) / 3. ;
+
+		if( rr * rr * rr - q * q < 1e-12 )
+			phi = atan( 0 ) / 3. ;
+
+		if( phi < 0 )
+			phi += M_PI ;
+
+		
+		lprincipal[0] = m + 2.*sqrt( rr ) * cos( phi ) ;
+		lprincipal[1] = m - sqrt( rr ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
+		lprincipal[2] = m - sqrt( rr ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
+		
+		Vector lprincipals( 3 ) ;
+		Matrix sstresses(3,3) ;
+		sstresses[0][0] = stra[0] ; sstresses[0][1] = stra[3] ; sstresses[0][2] = stra[4] ;
+		sstresses[1][0] = stra[3] ; sstresses[1][1] = stra[1] ; sstresses[1][2] = stra[5] ;
+		sstresses[2][0] = stra[4] ; sstresses[2][1] = stra[5] ; sstresses[2][2] = stra[2] ;
+		m = ( sstresses[0][0] + sstresses[1][1] + sstresses[2][2] ) / 3. ;
+		Am = sstresses - I * m ;
+		q = det( Am ) / 2. ;
+		rr = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
+		phi = atan2( sqrt( rr * rr * rr - q * q ), q ) / 3. ;
+
+		if( rr * rr * rr - q * q < 1e-12 )
+			phi = atan( 0 ) / 3. ;
+
+		if( phi < 0 )
+			phi += M_PI ;
+
+		
+		lprincipals[0] = m + 2.*sqrt( rr ) * cos( phi ) ;
+		lprincipals[1] = m - sqrt( rr ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
+		lprincipals[2] = m - sqrt( rr ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
+		
+		return std::make_pair(lprincipal,lprincipals)  ;
+	}
+	
 	return std::make_pair(smoothedPrincipalStress(s), smoothedPrincipalStrain(s)) ;
 }
 

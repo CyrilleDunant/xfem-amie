@@ -28,6 +28,7 @@ Form * ConcreteBehaviour::getCopy() const
 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up*factor, down*factor,E*factor, materialRadius, mirroring , dx, dy, dz)) ;
 // 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up, down,E, materialRadius, mirroring , dx, dy, dz), new NonLocalIsotropicLinearDamage()) ;
 	ret->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
+	ret->setNeighbourhoodRadius(neighbourhoodRadius);
 	return ret ;
 }
 

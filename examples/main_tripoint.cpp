@@ -1677,7 +1677,7 @@ int main( int argc, char *argv[] )
 	
 	double psi = 2.*0.0084261498 / .4 ;
 	double mradius = .025 ; // .015
-	double nradius = mradius * 4 ;
+	double nradius = .2 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
 	Matrix m0_steely( 3, 3 ) ;

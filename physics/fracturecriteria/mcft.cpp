@@ -149,7 +149,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		double del_1 = strain_te-strain_ch ;
 		
 		double k_low = 0 ;
-		double k_high = 1e7 ;
+		double k_high = 1e5 ;
 		double elastic_energy = tensionCritStrain*upVal*.5 ;
 		
 		do
@@ -162,7 +162,7 @@ double NonLocalMCFT::grade( ElementState &s )
 			}
 			for(double i = 0 ; i < 10000 ; i++)
 			{
-				integral+= upVal/(1.+sqrt(k*i/10000.*del_1))*del_1*1e-4 ;
+				integral+= upVal/(1.+sqrt(k*(i/10000.*del_1+del_0)))*del_1*1e-4 ;
 			}
 			if(integral < energy/getMaterialCharacteristicRadius())
 			{
@@ -176,14 +176,12 @@ double NonLocalMCFT::grade( ElementState &s )
 		initialised = true ;
 	}
 	
-	
-	Vector pstrain(smoothedPrincipalStrain(s)) ;
-	Vector pstress(smoothedPrincipalStress(s)) ;
+	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s) ;
 
-	double tstrain = pstrain.max();
-	double cstrain = pstrain.min();
-	double tstress = pstress.max();
-	double cstress = pstress.min();
+	double tstrain = stressStrain.second.max();
+	double cstrain = stressStrain.second.min();
+	double tstress = stressStrain.first.max();
+	double cstress = stressStrain.first.min();
 
 	
 	double renormCompressionStrain = cstrain / critStrain ;
@@ -211,7 +209,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		if(tstrain <= strain_ch)
 			maxTension = upVal/(1.+sqrt(k*(tstrain-tensionCritStrain))) ;
 		else if(tstrain <= strain_te)
-			maxTension = upVal*(strain_te-tstrain)/(strain_te-strain_ch) ;
+			maxTension = upVal/(1.+sqrt(k*(tstrain-tensionCritStrain)))*(strain_te-tstrain)/(strain_te-strain_ch) ;
 		else
 			return 1.-strain_te/tstrain ;
 
