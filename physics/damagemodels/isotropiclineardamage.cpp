@@ -27,21 +27,20 @@ std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Mu::E
 
 Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 {
-	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0 ;
-	return ret*(1.-getState()[0]) ;
+		return m*0 ;
+	
+	return m*(1.-getState()[0]) ;
 }
 
 
 Matrix IsotropicLinearDamage::applyPrevious(const Matrix & m) const
 {
-	Matrix ret(m) ;
 
 	if(fractured())
-		return ret*0 ;
-	return ret*(1.-getPreviousState()[0]) ;
+		return m*0 ;
+	return m*(1.-getPreviousState()[0]) ;
 }
 
 bool IsotropicLinearDamage::fractured() const 

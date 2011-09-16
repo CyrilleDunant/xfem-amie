@@ -16,247 +16,116 @@ namespace Mu {
 
 AnisotropicLinearDamage::AnisotropicLinearDamage() 
 {
-	getState(true).resize(4, 0.) ;
-	getPreviousState().resize(4, 0.) ;
+// 	getState(true).resize(3, 0.) ;
+// 	getPreviousState().resize(3, 0.) ;
 	isNull = false ;
 
-	inCompression = false ;
-	inTension = false ;
 }
 
 std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
-	inCompression = false ;
-	inTension = false ;
-	Vector ret(0., 4) ;
+
 	
+	if(s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL && getState().size() == 0)
+	{
+		upState.resize(2, 0.) ;
+		downState.resize(2, 0.) ;
+		getState(true).resize(2, 0.) ;
+		previousstate.resize(2, 0.) ;
+		previouspreviousstate.resize(2, 0.) ;
+	}
+	else if( getState().size() == 0 && s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+	{
+		upState.resize(3, 0.) ;
+		downState.resize(3, 0.) ;
+		getState(true).resize(3, 0.) ;
+		previousstate.resize(3, 0.) ;
+		previouspreviousstate.resize(3, 0.) ;
+	}
+	
+	Vector ret(0., state.size()) ;
 // 	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
 // 	double l_2 = s.getParent()->area() ; 
 // 	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
-	double compressionDamage = 0;
 	double tensionDamagex = 0;
 	double tensionDamagey = 0;
 	double tensionDamagez = 0;
 	
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
 	{
-		inCompression = true ;
-		compressionDamage = 1 ; 
+		ret = 1 ;
 	}
-	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
+	else 
 	{
-		inTension = true ;
+		Vector angle = s.getPrincipalAngle(s.getParent()->getCenter()) ;
 		
-		Vector angle = s.getStrain(s.getParent()->getCenter()) ;
-		double n = sqrt(angle[0]*angle[0]+angle[1]*angle[1]) ;
+		Vector stress = s.getStress(s.getParent()->getCenter()) ;
+		
 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-			n = sqrt(angle[0]*angle[0]+angle[1]*angle[1]+angle[2]*angle[2]) ;
+		{
+			tensionDamagex = stress[0]*(stress[0]>0) ;//std::abs(cos(angle[0])) ;
+			tensionDamagey = stress[1]*(stress[1]>0) ;//std::abs(cos(angle[1])) ;
+			tensionDamagez = stress[2]*(stress[2]>0) ;//std::abs(cos(angle[2])) ;
+			ret[2] = tensionDamagez*(getState()[2] < thresholdDamageDensity);
+		}
+		else
+		{
+			tensionDamagex = stress[0]*(stress[0]>0) ;//std::abs(cos(angle[0])) ;
+			tensionDamagey = stress[1]*(stress[1]>0) ;//std::abs(sin(angle[0])) ;
+		}
+		ret[0] = tensionDamagex*(getState()[0] < thresholdDamageDensity);
+		ret[1] = tensionDamagey*(getState()[1] < thresholdDamageDensity);
 		
-		if(angle[0] > 0)
-		{
-			tensionDamagex = angle[0] ; 
-		}
-		if(angle[1] > 0)
-		{
-			tensionDamagey = angle[1] ; 
-		}
-		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL && angle[2] > 0)
-		{
-			tensionDamagez = angle[2] ; 
-		}
-
 	}
-	ret[0] = compressionDamage ;
-	ret[1] = tensionDamagex ;
-	ret[2] = tensionDamagey ;
-	ret[3] = tensionDamagez ;
-	if( std::abs(ret).max() > POINT_TOLERANCE_2D)
-		ret /= std::abs(ret).max() ;
-	return std::make_pair(state,ret) ;
+	if(ret.max() > POINT_TOLERANCE_2D)
+		ret /= ret.max() ;
+	Vector factor = -(state-1.) ;
+	
+	for(int i = 0 ; i < ret.size() ; i++)
+		if(ret[i] < POINT_TOLERANCE_2D)
+			ret[i] = 1 ;
+		
+	factor /= ret ;
+	return std::make_pair(state,state+ret*factor.min()) ;
 // 	std::cout << getState().sum() << std::flush ;
 }
 
 Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 {
+	if(state.max() < POINT_TOLERANCE_2D)
+		return m ;
 	Matrix ret(m) ;
 	
 	if(fractured())
 		return m*0.;
+	Vector rstate = getState() ;
+	for(size_t i = 0 ; i < getState().size() ; i++)
+	{
+		rstate[i] = std::min(thresholdDamageDensity,rstate[i]) ;
+	}
 
-	if(inTension)
-	{
-// 		return m*(1.-tensionDamage) ;
-		if(getState()[1] < secondaryThresholdDamageDensity)
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[0][j]*= 1.-getState()[1] ;
-		}
-		else
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[0][j]*= 0. ;
-		}
-		
-		if(getState()[2] < secondaryThresholdDamageDensity)
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[1][j]*= 1.-getState()[2] ;
-		}
-		else
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[1][j]*= 0. ;
-		}
-		
-		if(getState()[3] < secondaryThresholdDamageDensity && ret.numRows() > 3)
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[2][j]*= 1.-getState()[3] ;
-		}
-		else if( ret.numRows() > 3)
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[2][j]*= 0. ;
-		}
-		
-		
-		if(ret.numRows() <= 3)
-		{
-			if(getState()[0] < secondaryThresholdDamageDensity )
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-					ret[2][j]*= 1.-getState()[0] ;
-			}
-			else
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-					ret[2][j]*= 0. ;
-			}
-		}
-		else
-		{
-			if(getState()[0] < secondaryThresholdDamageDensity )
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-				{
-					ret[3][j]*= 1.-getState()[0] ;
-					ret[4][j]*= 1.-getState()[0] ;
-					ret[5][j]*= 1.-getState()[0] ;
-				}
-			}
-			else
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-				{
-					ret[3][j]*= 0. ;
-					ret[4][j]*= 0. ;
-					ret[5][j]*= 0. ;
-				}
-			}
-		}
-		
-		return ret ;
-	}
-	if(inCompression)
-	{
-		if(getState()[0] >= thresholdDamageDensity)
-			return m*0. ;
-		
-		return m*(1.-getState()[0]) ;
-	}
-	return ret*(1.-std::max(std::max(getState()[1], std::max(getState()[2],getState()[3])), getState()[0])) ;
+	ret[0][0] = m[0][0]*(1.-rstate[0]) ; ret[0][1] = m[0][1]*sqrt((1.-rstate[0])*(1.-rstate[1])) ; ret[0][2] = 0 ;
+	ret[1][0] = m[1][0]*sqrt((1.-rstate[0])*(1.-rstate[1]))  ; ret[1][1] = m[1][1]*(1.-rstate[1])  ; ret[1][2] = 0 ;
+	ret[2][0] = 0 ; ret[2][1] = 0 ; ret[2][2] = m[2][2]*sqrt((1.-rstate[0])*(1.-rstate[1])) ;
+	return ret ;
+
 }
 
 Matrix AnisotropicLinearDamage::applyPrevious(const Matrix & m) const
 {
 	Matrix ret(m) ;
-	
-	if(fractured())
-		return m*0.;
+	Vector rstate = previousstate ;
+	for(size_t i = 0 ; i < state.size() ; i++)
+	{
+		if(rstate[i] >= thresholdDamageDensity)
+			rstate[i] = 1 ;
+	}
 
-	if(inTension)
-	{
-// 		return m*(1.-tensionDamage) ;
-		if(getPreviousState()[1] < secondaryThresholdDamageDensity)
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[0][j]*= 1.-getPreviousState()[1] ;
-		}
-		else
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[0][j]*= 0. ;
-		}
-		
-		if(getPreviousState()[2] < secondaryThresholdDamageDensity)
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[1][j]*= 1.-getPreviousState()[2] ;
-		}
-		else
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[1][j]*= 0. ;
-		}
-		
-		if(getPreviousState()[3] < secondaryThresholdDamageDensity && ret.numRows() > 3)
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[2][j]*= 1.-getPreviousState()[3] ;
-		}
-		else
-		{
-			for(size_t j = 0 ; j < m.numCols() ;j++)
-				ret[2][j]*= 0. ;
-		}
-		
-		if(ret.numRows() <= 3)
-		{
-			if(getPreviousState()[0] < secondaryThresholdDamageDensity )
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-					ret[2][j]*= 1.-getPreviousState()[0] ;
-			}
-			else
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-					ret[2][j]*= 0. ;
-			}
-		}
-		else
-		{
-			if(getPreviousState()[0] < secondaryThresholdDamageDensity )
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-				{
-					ret[3][j]*= 1.-getPreviousState()[0] ;
-					ret[4][j]*= 1.-getPreviousState()[0] ;
-					ret[5][j]*= 1.-getPreviousState()[0] ;
-				}
-			}
-			else
-			{
-				for(size_t j = 0 ; j < m.numCols() ;j++)
-				{
-					ret[3][j]*= 0. ;
-					ret[4][j]*= 0. ;
-					ret[5][j]*= 0. ;
-				}
-			}
-		}
-		
-		return ret ;
-	}
-	if(inCompression)
-	{
-		if(getPreviousState()[0] >= thresholdDamageDensity)
-			return m*0. ;
-		
-		return m*(1.-getPreviousState()[0]) ;
-	}
+	ret[0][0] = m[0][0]*(1.-rstate[0]) ; ret[0][1] = m[0][1]*sqrt((1.-rstate[0])*(1.-rstate[1])) ; ret[0][2] = 0 ;
+	ret[1][0] = m[1][0]*sqrt((1.-rstate[0])*(1.-rstate[1]))  ; ret[1][1] = m[1][1]*(1.-rstate[1])  ; ret[1][2] = 0 ;
+	ret[2][0] = 0 ; ret[2][1] = 0 ; ret[2][2] = m[2][2]*sqrt((1.-rstate[0])*(1.-rstate[1])) ;
+	return ret ;
 	
-	return ret*(1.-std::max(std::max(getPreviousState()[1], std::max(getPreviousState()[2],getPreviousState()[3])), getPreviousState()[0])) ;
 }
 
 bool AnisotropicLinearDamage::fractured() const
@@ -264,16 +133,16 @@ bool AnisotropicLinearDamage::fractured() const
 	if (fraction < 0)
 		return false ;
 	
-	if(inTension)
-		if(std::min(getState()[2], std::min(getState()[1],getState()[3])) >= secondaryThresholdDamageDensity)
-			return true ;
-		
-	if(inCompression)
-		if(getState()[0] >= thresholdDamageDensity)
-			return true ;
+// 	if(inTension)
+// 		if(std::min(getState()[2], std::min(getState()[1],getState()[3])) >= secondaryThresholdDamageDensity)
+// 			return true ;
+// 		
+// 	if(inCompression)
+// 		if(getState()[0] >= thresholdDamageDensity)
+// 			return true ;
 		
 // 	std::cout << std::max(tensionDamage, compressionDamage) <<  " " << thresholdDamageDensity/**fraction*/ << std::endl ;
-	return getState()[2]  >= secondaryThresholdDamageDensity || getState()[1]  >= secondaryThresholdDamageDensity  || getState()[3]  >= secondaryThresholdDamageDensity || getState()[0] >= thresholdDamageDensity;
+	return getState().min() >= thresholdDamageDensity ;
 }
 
 AnisotropicLinearDamage::~AnisotropicLinearDamage()

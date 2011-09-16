@@ -360,7 +360,6 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
 	return str ;
 }
 
-
 std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s)
 {
 	Vector str(0., 3) ;
@@ -385,8 +384,8 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
 			if(ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
 			{
-				factors.back() -= *fiterator ;
-				*fiterator = 0 ;
+// 				factors.back() -= *fiterator ;
+// 				*fiterator = 0 ;
 				fiterator++ ;
 				continue ;
 			}
@@ -519,9 +518,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		Function x = s.getParent()->getXTransform() ;
 		Function y = s.getParent()->getYTransform() ;
 		Function r(s.getParent()->getCenter(), x, y) ;
+		Function rr = r*r ;
+		Function rrn = rr/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 		Order order = s.getParent()->getOrder() ;
 		s.getParent()->setOrder(CUBIC) ;
-		Function smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
+		Function smooth = f_exp(rrn) ;
 		double weight = vm.ieval(smooth, s.getParent()) ;
 		s.getParent()->setOrder(order) ;
 		double fact = weight ;
@@ -532,9 +533,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x ) ;
 			y = s.getParent()->getYTransform() ;
 			r = Function(s.getParent()->getCenter(), x, y) ;
+			rr = r*r ;
+			rrn = rr/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
+			smooth = f_exp(rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
 			factors.back() += weight ;
@@ -609,7 +612,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			order = s.getParent()->getOrder() ;
 			ci->setOrder(CUBIC) ;
 			smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
-			weight = vm.ieval(smooth, s.getParent()) ;
+			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
 			factors.push_back(weight);
 			fact += weight ;
@@ -622,7 +625,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
 				smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
-				weight = vm.ieval(smooth, s.getParent()) ;
+				weight = vm.ieval(smooth, ci) ;
 				factors.back() += weight ;
 				ci->setOrder(order) ;
 				fact += weight ;
@@ -636,7 +639,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
 				smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
-				weight = vm.ieval(smooth, s.getParent()) ;
+				weight = vm.ieval(smooth, ci) ;
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
@@ -650,7 +653,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
 				smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
-				weight = vm.ieval(smooth, s.getParent()) ;
+				weight = vm.ieval(smooth, ci) ;
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
@@ -664,7 +667,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
 				smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
-				weight = vm.ieval(smooth, s.getParent()) ;
+				weight = vm.ieval(smooth, ci) ;
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
@@ -852,7 +855,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
 			smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
-			weight = vm.ieval(smooth, s.getParent()) ;
+			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
 			factors.push_back(weight);
 			fact += weight ;
@@ -1771,7 +1774,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 std::pair<double, double> FractureCriterion::setChange(const ElementState &s) 
 {
 	stable = true ;
-
+	
 	if( !s.getParent()->getBehaviour()->getDamageModel())
 		return std::make_pair(0.,0.) ;
 	if(cache.size() == 0)
@@ -1783,12 +1786,12 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 	
 	if(mesh2d)
 	{
-		
 		// outside of the checkpoints, we only care about the order of the elements in 
 		// term of their score. At the checkpoint, we consider the elements which
 		// have met their criterion
 		if(checkpoint) //new iteration
 		{
+
 			if(!metAtStep)
 			{
 				inset = false ;
@@ -1801,23 +1804,21 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-				if(ci->getBehaviour()->getFractureCriterion())
+				if(ci->getBehaviour()->getFractureCriterion() )
 				{
 					double renormScore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-					sortedElements.insert( std::make_pair(renormScore, ci)) ;
+					sortedElements.insert( std::make_pair(-renormScore, ci)) ;
 				}
 			}
 			double thresholdScore = 0 ;
 			if(!sortedElements.empty())
-				thresholdScore = sortedElements.rbegin()->first ;
+				thresholdScore = sortedElements.begin()->first ;
 			double minscore = thresholdScore ;
-			Point maxLocus = sortedElements.rbegin()->second->getCenter() ;
-			
-			if(!sortedElements.empty() && thresholdScore > 0 )
+			if(!sortedElements.empty() && -thresholdScore > 0 )
 			{
-				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
+				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(std::abs(i->first-thresholdScore) < scoreTolerance)
+					if(i->first < thresholdScore + scoreTolerance)
 					{
 						newSet.push_back(i->second->index);
 						minscore = i->first ;
@@ -1827,7 +1828,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 
-			if(std::abs(nonLocalScoreAtState-thresholdScore) >= scoreTolerance)
+			if(std::abs(-nonLocalScoreAtState-thresholdScore) >= scoreTolerance)
 			{
 				proximitySet.clear() ;
 				return std::make_pair(0.,0.) ;
@@ -1842,7 +1843,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			std::set<unsigned int> newProximity ;
 			if(!sortedElements.empty()&& thresholdScore > 0)
 			{
-				for(auto i = sortedElements.rbegin() ; i != sortedElements.rend() ; i++ )
+				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
 					if(std::abs(i->first-thresholdScore) < scoreTolerance)
 					{
@@ -1873,16 +1874,16 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 
 			if(!proximitySet.empty())
 			{
-				maxscore = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				maxscore = -static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[0]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 			}
 			for(size_t i = 1 ; i < proximitySet.size() ; i++)
 			{
-				double nls = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-				if(nls > maxscore)
+				double nls = -static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				if(nls < maxscore)
 					maxscore = nls ;
 			}
 
-			return std::make_pair(maxscore - minscore, thresholdScore-minscore) ;
+			return std::make_pair(-maxscore + minscore, -thresholdScore+minscore) ;
 		}
 		else
 		{
@@ -2148,8 +2149,8 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 	{
-		metAtStep = scoreAtState > 2.*scoreTolerance ;
-		nonLocalScoreAtState = scoreAtState ;
+		metAtStep = 0 ; scoreAtState > 2.*scoreTolerance ;
+		nonLocalScoreAtState = -1 ; scoreAtState ;
 		return  ;
 	}
 	

@@ -725,10 +725,7 @@ Vector &ElementState::getStrainAtCenter()
 			else
 				strainAtCenter.resize( 6 ) ;
 
-
-			Vector strain  = getStrain( parent->getCenter() ) ;
-
-			strainAtCenter = strain ;
+			strainAtCenter = getStrain( parent->getCenter() ) ;
 		}
 	}
 
@@ -748,9 +745,7 @@ Vector &ElementState::getStressAtCenter()
 				stressAtCenter.resize( 6 ) ;		
 			cachedPrincipalStressAngle = getPrincipalAngle(Point(1./3., 1./3.), true)[0] ; 
 			
-
-			Vector stress  = getStress( parent->getCenter()) ;
-			stressAtCenter = stress ;
+			stressAtCenter = getStress( parent->getCenter()) ;
 		}
 	}
 	return stressAtCenter ;
@@ -5289,7 +5284,7 @@ double ElementState::getDeltaTime() const
 
 Vector ElementState::getPrincipalAngle( const Point &p, bool local ) const
 {
-	Vector strains = getStrain( p, local ) ;
+	Vector strains = getStress( p, local ) ;
 
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{

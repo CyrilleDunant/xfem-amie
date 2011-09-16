@@ -172,7 +172,7 @@ Vector angle( 0 ) ;
 
 MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -.15, .15, -10, 10, 0 ) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -.15, .15, -10, 10, 0 ) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 0.6), 0) ;
 GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition( SET_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -9025.2 ) ;
@@ -282,7 +282,7 @@ void step()
 		go_on = featureTree->step() ;
 
 		if ( go_on )
-			load->setData( load->getData() - 1e5 ) ;
+			load->setData( load->getData() - 0.000083333333 ) ;
 
 		triangles = featureTree->getElements2D() ;
 		x.resize( featureTree->getDisplacements().size() ) ;
@@ -508,7 +508,7 @@ void step()
 		if ( go_on )
 		{
 			displacements.push_back( 1000.*e_xx_0 / ( double )ex_count_0 - 1000.*e_xx_1 / ( double )ex_count_1 );
-			loads.push_back( appliedForce );
+			loads.push_back( avg_s_yy/1000/*appliedForce*/ );
 			deltas.push_back( delta/deltacount );
 			damages.push_back( featureTree->averageDamage );
 		}
@@ -1676,8 +1676,8 @@ int main( int argc, char *argv[] )
 	double phi =  3.*rebarDiametre / .4 ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .025 ; // .015
-	double nradius = .2 ;
+	double mradius = .015 ; // .015
+	double nradius = .3 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
 	Matrix m0_steely( 3, 3 ) ;
@@ -1707,24 +1707,8 @@ int main( int argc, char *argv[] )
 	m0_steely[2][1] = 0 ;
 	m0_steely[2][2] = 0.25 * ( E_steel * 0.6 + E_steel - 2.*nu * sqrt( E_steel * E_steel * 0.6 ) ) / ( 1. - 2.*nu * nu ) ;
 
-	Matrix m0_paste( 3, 3 ) ;
-	m0_paste[0][0] = E_paste / ( 1. - nu * nu ) ;
-	m0_paste[0][1] = E_paste / ( 1. - nu * nu ) * nu ;
-	m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste / ( 1. - nu * nu ) * nu ;
-	m0_paste[1][1] = E_paste / ( 1. - nu * nu ) ;
-	m0_paste[1][2] = 0 ;
-	m0_paste[2][0] = 0 ;
-	m0_paste[2][1] = 0 ;
-	m0_paste[2][2] = E_paste / ( 1. - nu * nu ) * ( 1. - nu ) * .5 ;
-
-	Matrix m0_steel( 3, 3 ) ;
-	m0_steel[0][0] = E_steel / ( 1. - nu_steel * nu_steel ) ;
-	m0_steel[0][1] = E_steel / ( 1. - nu_steel * nu_steel ) * nu_steel ;
-	m0_steel[0][2] = 0 ;
-	m0_steel[1][0] = E_steel / ( 1. - nu_steel * nu_steel ) * nu_steel ;
-	m0_steel[1][1] = E_steel / ( 1. - nu_steel * nu_steel ) ;
-	m0_steel[1][2] = 0 ;
+	Matrix m0_paste= Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL) ;
 
 	Sample box( NULL, sampleLength*.5, sampleHeight + plateHeight*2., sampleLength*.25, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
@@ -1801,23 +1785,23 @@ int main( int argc, char *argv[] )
 
 
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.0 ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-// 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.0 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-// 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.01 ;
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.0 ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->neighbourhoodRadius = nradius;
 
 
 	F.addBoundaryCondition( load ) ;
-	F.addBoundaryCondition(selfload) ;
-	F.addBoundaryCondition(shrinkagex) ;
-	F.addBoundaryCondition(shrinkagey) ;
+//	F.addBoundaryCondition(selfload) ;
+//	F.addBoundaryCondition(shrinkagex) ;
+//	F.addBoundaryCondition(shrinkagey) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) );
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5 ) ) ) ;
 

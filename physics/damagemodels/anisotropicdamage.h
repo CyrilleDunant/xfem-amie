@@ -24,8 +24,6 @@ class AnisotropicLinearDamage : public DamageModel
 {
 public:
 
-	bool inCompression ;
-	bool inTension ;
 	/** \brief Constructor, set the number of degrees of freedom and a strain limit for failure
 	 * 
 	 * @param characteristicRadius material characteristic radius

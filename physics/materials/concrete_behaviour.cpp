@@ -24,8 +24,10 @@ ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double tensile, double
 Form * ConcreteBehaviour::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1 - variability + variability*weib ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up*factor, down*factor,E*factor, materialRadius, mirroring , dx, dy, dz)) ;
+	double factor = 1. - variability + variability*weib ;
+	weib = RandomNumber().weibull(1,5) ;
+	double upFactor = factor ; //1 -.7+.7*weib ; 
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up*upFactor, down*factor,E*factor, materialRadius, mirroring , dx, dy, dz)/*, new AnisotropicLinearDamage()*/) ;
 // 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up, down,E, materialRadius, mirroring , dx, dy, dz), new NonLocalIsotropicLinearDamage()) ;
 	ret->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
 	ret->setNeighbourhoodRadius(neighbourhoodRadius);

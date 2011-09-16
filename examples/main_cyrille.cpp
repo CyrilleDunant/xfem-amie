@@ -1754,13 +1754,13 @@ int main(int argc, char *argv[])
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), /*new NonLocalIsotropicLinearDamage()*/new PlasticStrain()) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new /*NonLocal*/IsotropicLinearDamage()/*new PlasticStrain()*/) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_steelx) ;
 
 // 	sample.setBehaviour(sf) ;
-	sample.setBehaviour(saf) ;
+	sample.setBehaviour(psp) ;
 
 	F.addFeature(&sample, new Pore(2, -7,2) );
 	F.addFeature(&sample, new Pore(2, 7,-2) );

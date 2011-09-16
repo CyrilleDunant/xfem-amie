@@ -37,7 +37,6 @@ std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s
 	{
 		inCompression = true ;
 		compressionDamage = 1 ; 
-		tensionDamage = 1 ; 
 	}
 	else
 	{
@@ -77,7 +76,7 @@ Matrix LinearDamage::apply(const Matrix & m) const
 		return m*(1.-getState()[0]) ;
 	}
 	
-	return m ;
+	return m*(1.-getState().max()) ;
 }
 
 Matrix LinearDamage::applyPrevious(const Matrix & m) const

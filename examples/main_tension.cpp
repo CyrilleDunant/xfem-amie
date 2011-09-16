@@ -120,7 +120,7 @@ double y_min = 0 ;
 
 double timepos = 0.05e-07 ;
 
-double effectiveRadius = .5*.165*sqrt(M_PI*.25) ;
+double effectiveRadius = 2. ; //.5*.165*sqrt(M_PI*.25) ;
 double rebarDiametre = 0.0254*sqrt(M_PI*.25) ;
 
 double delta_displacement =  1e-5 ;
@@ -171,7 +171,7 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,0) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
 // BoundingBoxDefinedBoundaryCondition * loadl = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
@@ -204,7 +204,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+1.5e4) ;
+			loadr->setData(loadr->getData()-1.5e-5) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -356,7 +356,7 @@ void step()
 				
 				if(triangles[k]->getBehaviour()->getFractureCriterion())
 				{
-					fracCrit[k*triangles[k]->getBoundingPoints().size()+l] = triangles[k]->getBehaviour()->getFractureCriterion()->grade(triangles[k]->getState()) ;
+					fracCrit[k*triangles[k]->getBoundingPoints().size()+l] = triangles[k]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
 				}
 			}
 			
@@ -389,8 +389,8 @@ void step()
 		
 		if(go_on)
 		{
-			displacements.push_back(x.max());
-			loads.push_back(appliedForce);
+			displacements.push_back(1e6*avg_e_xx/area);
+			loads.push_back((avg_s_xx/area)/1e6);
 			damages.push_back(featureTree->averageDamage);
 		}
 		if(v%5 == 0 || true)
@@ -434,7 +434,7 @@ void step()
 		ldfile.open("ldn", std::ios::out) ;
 		for(int j = 0 ; j < loads.size() ; j++)
 		{
-			ldfile << displacements[j] << "   " << loads[j]/1000. << "   " << damages[j]<< "\n" ;
+			ldfile << displacements[j] << "   " << loads[j] <</* "   " << damages[j]<<*/ "\n" ;
 		}
 		ldfile.close();
 		
@@ -552,7 +552,10 @@ void Menu(int selection)
 		}
 	case ID_NEXT_TIME:
 		{
+			for(int i = 0 ; i < 10 ; i++)
+				step() ;
 			timepos +=0.0001 ;
+			dlist = false ;
 			break ;
 		}
 	case ID_DISP : 
@@ -1412,41 +1415,20 @@ int main(int argc, char *argv[])
 
 	double compressionCrit = -37.5e6 ; 
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
-	double steelfraction = .5 ; //0.5*rebarDiametre/effectiveRadius ;
+	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .025 ; // .015
+	double mradius = .015 ; // .015
 	double nradius = std::max(mradius*4, .5) ;
 // 	double mradius = .25 ;
 	
-	Matrix m0_steel(3,3) ;
 	double E_steel = 193e9 ;
 	double nu_steel = 0.2 ; 
 	
 	double nu = 0.2 ;
 	double E_paste = 37e9 ;
 	
-	double nu_concreteSteel = 0.2 ;
-	double nu_steelConcrete = 0.2* E_paste/E_steel ;
-	Matrix complianceSteelx(3,3) ;
-	complianceSteelx[0][0] = 1./E_steel ;                complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
-	complianceSteelx[1][0] = -nu_concreteSteel/E_steel ; complianceSteelx[1][1] =  1./E_paste ;
-	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
-	m0_steel = inverse3x3Matrix(complianceSteelx) ;
-	
-	double orthoFactor = 0.6 ; 
-	
-// 	m0_steel[0][0] = E_steel/(1.-2.*nu*nu) ; m0_steel[0][1] = nu*sqrt(E_steel*E_steel*orthoFactor)/(1.-2.*nu*nu) ; m0_steel[0][2] = 0 ; 
-// 	m0_steel[1][0] = nu*sqrt(E_steel*E_steel*orthoFactor)/(1.-2.*nu*nu) ; m0_steel[1][1] = E_steel*orthoFactor/(1.-2.*nu*nu) ; m0_steel[1][2] = 0 ; 
-// 	m0_steel[2][0] = 0 ; m0_steel[2][1] = 0 ; m0_steel[2][2] = 0.25*(E_steel*orthoFactor+E_steel-2.*nu*sqrt(E_steel*E_steel*orthoFactor))/(1.-2.*nu*nu) ; 
-	
-	m0_steel[0][0] = E_steel/(1.-nu_steel*nu_steel) ;           m0_steel[0][1] = (E_steel*nu_steel)/(1.-nu_steel*nu_steel) ; m0_steel[0][2] = 0 ;
-	m0_steel[1][0] = (E_steel*nu_steel)/(1.-nu_steel*nu_steel) ;  m0_steel[1][1] = E_steel/(1.-nu_steel*nu_steel) ;          m0_steel[1][2] = 0 ; 
-	m0_steel[2][0] = 0 ;                                       m0_steel[2][1] = 0 ;                                       m0_steel[2][2] = (E_steel*(1.-nu_steel)*.5)/(1.-nu_steel*nu_steel) ;  
-	
-	Matrix m0_paste(3,3) ;
-	m0_paste[0][0] = E_paste/(1.-nu*nu) ;    m0_paste[0][1] = (E_paste*nu)/(1.-nu*nu) ; m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = (E_paste*nu)/(1.-nu*nu) ; m0_paste[1][1] = E_paste/(1.-nu*nu) ;    m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ;                     m0_paste[2][1] = 0 ;                     m0_paste[2][2] = (E_paste*(1.-nu)*.5)/(1.-nu*nu) ; 
+	Matrix m0_paste= Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL) ;
 
 	Sample box(1.300*.5+.225, effectiveRadius, (1.300*.5+.225)*.5, effectiveRadius*0.5) ;
 	box.setBehaviour(new VoidForm()) ;  
@@ -1469,29 +1451,30 @@ int main(int argc, char *argv[])
 // 	rebarinternal.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius(nradius);
 // 	
 
-	FeatureTree F(&box) ;
-	featureTree = &F ;
+
 
 // 	sample.setBehaviour(new VoidForm()) ;  
 		
-	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.1 ;
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0.1 ;
 	
 	
-	
-	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 4.) ;
-	F.addFeature(NULL,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
-	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
-	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
+	FeatureTree F(&samplef) ;
+// 	FeatureTree F(&box) ;
+	featureTree = &F ;
+// 	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 2.) ;
+// 	F.addFeature(NULL,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
+// 	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
+// 	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
 // 	F.addFeature(NULL,&toprightvoid) ;
 
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;

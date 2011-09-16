@@ -4124,10 +4124,13 @@ bool FeatureTree::stepElements()
 				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
 			}
 			double volume = 0;
-			crackedVolume = 0 ;
-			damagedVolume = 0 ;
+			if(!elastic)
+				crackedVolume = 0 ;
+			if(!elastic)
+				damagedVolume = 0 ;
 			double previousAverageDamage = averageDamage ;
-			averageDamage = 0. ;
+			if(!elastic)
+				averageDamage = 0. ;
 			//this will update the state of all elements. This is necessary as
 			//the behaviour updates might depend on the global state of the
 			//simulation.
@@ -4234,10 +4237,10 @@ bool FeatureTree::stepElements()
 					}
 				}
 				std::cerr << " ...done. " << std::endl ;
-				
+					averageDamage /= volume ;
 			}
 
-			averageDamage /= volume ;
+		
 
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
@@ -4365,57 +4368,59 @@ bool FeatureTree::stepElements()
 				{
 					crackedVolume += vol ;
 				}
-			}
+			
 
-			averageDamage /= volume ;
+				averageDamage /= volume ;
 
-			std::cerr << " ...done" << std::endl ;
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
-
-				if( elements[i]->getBehaviour()->getDamageModel() )
-				{
-					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
-					if(elements[i]->getBehaviour()->changed())
-					{
-						needAssembly = true ;
-						behaviourChange = true ;
-					}
-				}
-			}
-			std::cerr << " ...done. " << std::endl ;
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
-				{
-					foundCheckPoint = false ;
-					break ;
-				}
-			}
-
-			if( foundCheckPoint )
-			{
-				std::cout << "[" << averageDamage << "]" << std::flush ;
+				std::cerr << " ...done" << std::endl ;
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					if( i % 1000 == 0 )
+						std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
+
+					if( elements[i]->getBehaviour()->getDamageModel() )
 					{
-						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+						if(elements[i]->getBehaviour()->changed())
+						{
+							needAssembly = true ;
+							behaviourChange = true ;
+						}
 					}
 				}
+				std::cerr << " ...done. " << std::endl ;
+
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
+					{
+						foundCheckPoint = false ;
+						break ;
+					}
+				}
+
+				if( foundCheckPoint )
+				{
+					std::cout << "[" << averageDamage << "]" << std::flush ;
+
+					for( size_t i = 0 ; i < elements.size() ; i++ )
+					{
+						if( elements[i]->getBehaviour()->getFractureCriterion() )
+						{
+							elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+						}
+					}
+				}
+
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+					elements[i]->clearVisited() ;
+
+				// 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
+				// 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
+
 			}
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-				elements[i]->clearVisited() ;
-
-			// 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
-			// 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
-
+			
 		}
 	}
 	else
@@ -4787,6 +4792,7 @@ bool FeatureTree::stepToCheckPoint()
 	scaleBoundaryConditions(1);
 	double realdt = deltaTime ;
 
+	
 	if( solverConverged() && !behaviourChanged() )
 		now += deltaTime ;
 	else
@@ -4809,14 +4815,9 @@ bool FeatureTree::stepToCheckPoint()
 	}
 
 	state.setStateTo( XFEM_STEPPED, true ) ;
-
-	std::cout << ":" << std::flush ;
-	
 	int notConvergedCounts = 0 ;
+	std::cout << !foundCheckPoint << ( behaviourChanged() || !solverConverged() )  << !( !solverConverged() && !reuseDisplacements ) << (notConvergedCounts < 4) <<":" << std::flush ;
 
-	double upmultiplier = 1 ;
-	double currentmultiplier = 1 ;
-	double downmultiplier = 0 ;
 	while( !foundCheckPoint && ( behaviourChanged() || !solverConverged() )  && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 )
 	{
 		deltaTime = 0 ;
@@ -4849,7 +4850,11 @@ bool FeatureTree::stepToCheckPoint()
 	}
 	
 	if(behaviourChanged())
-	{
+	{	
+		double upmultiplier = 1 ;
+		double currentmultiplier = 0.5 ;
+		double downmultiplier = 0 ;
+		scaleBoundaryConditions(currentmultiplier);
 		while(std::abs(upmultiplier-downmultiplier) > 1./pow(2, 12) )
 		{
 			if(!isStable())
@@ -4864,9 +4869,10 @@ bool FeatureTree::stepToCheckPoint()
 			}
 			scaleBoundaryConditions(currentmultiplier);
 		}
-		scaleBoundaryConditions(upmultiplier);
+		scaleBoundaryConditions((upmultiplier+downmultiplier)*.5);
 		deltaTime = realdt ;
-		state.setStateTo( XFEM_STEPPED, true ) ;
+		elasticStep();
+// 		state.setStateTo( XFEM_STEPPED, true ) ;
 		if( solverConverged() )
 		{
 			std::cout << "." << std::flush ;
@@ -4877,7 +4883,7 @@ bool FeatureTree::stepToCheckPoint()
 			notConvergedCounts++ ;
 			std::cout << "+" << std::flush ;
 		}
-		
+		scaleBoundaryConditions(1);
 
 		
 		if(is2D())
@@ -4907,6 +4913,8 @@ bool FeatureTree::stepToCheckPoint()
 				}
 			}
 		}
+// 	
+		
 	}
 
 	std::cout  << std::endl ;
@@ -4923,9 +4931,10 @@ bool FeatureTree::isStable()
 	double damagedVolumeinit = damagedVolume ;
 	size_t maxits = maxitPerStep ;
 	setMaxIterationsPerStep( 0 ) ;
-	
 	elasticStep();
 	bool stable = true ;
+	
+	
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements ;
@@ -4937,7 +4946,7 @@ bool FeatureTree::isStable()
 		
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
-			if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->getFractureCriterion())
+			if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->fractured())
 			{
 				if(elements[i]->getBehaviour()->getFractureCriterion()->grade(elements[i]->getState()) > 0)
 				{

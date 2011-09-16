@@ -57,13 +57,6 @@ void DamageModel::step( ElementState &s )
 	}
 
 	change = false ;
-
-	if( wasBroken )
-	{
-		converged = true ;
-		return ;
-	}
-
 	
 	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s ) ;
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
@@ -78,25 +71,67 @@ void DamageModel::step( ElementState &s )
 		computeDamageIncrement( s ) ;
 		converged = true ;
 
-		if( fractured() )
-			wasBroken = true ;
-
 		return ;
 	}
+	
 	std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
 	if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ) // initiate iteration
 	{
 		s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
 		states.clear() ;
-
-		if(getState().max() < thresholdDamageDensity)
+		if(!fractured())
 		{
-
 			converged = false ;
 			change = true ;
-
+			
 			downState = damageIncrement.first;
 			upState = damageIncrement.second;
+			double origscore = score ;
+			double signchange = 1 ;
+			bool foundchange1 = false ;
+			for(double i = 0.01 ; i < 1. ; i += 0.01)
+			{
+				getState( true ) = downState + ( upState - downState ) * i ;
+				if( s.getParent()->getBehaviour()->getFractureCriterion()->grade(s)*score < 0 )
+				{
+					signchange = i ;
+					foundchange1 = true ;
+					break ;
+				}
+			}
+			
+			if(!foundchange1 || signchange > .8)
+			{
+				signchange = 0.01 ;
+				double minscore = score ;
+				std::cout << "origmin = " << minscore << std::endl ;
+				for(double i = 0.01 ; i < 1 ; i += 0.01)
+				{
+					getState( true ) = downState + ( upState - downState ) * i ;
+					double g = s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) ;
+					if( g < minscore)
+					{
+						std::cout << "newmin = " << g << std::endl ;
+						minscore = g ;
+						signchange = i+0.01 ;
+						foundchange1 = true ;
+					}
+				}
+
+			}
+			std::cout << signchange << std::endl ;
+			
+			if(signchange > .8 )
+			{
+				for(double i = 0.0 ; i < 1. ; i += 0.01)
+				{
+				getState( true ) = downState + ( upState - downState ) * i ;
+
+				 std::cout  << i << "   " << s.getParent()->getBehaviour()->getFractureCriterion()->grade(s) << std::endl ;
+				}
+				exit(0) ;
+			}
+			
 			if(needRestart)
 			{
 				trialRatio = 0.  ;
@@ -104,41 +139,53 @@ void DamageModel::step( ElementState &s )
 				return ;
 			}
 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), -setChange.first,0., score, setChange.second ) ) ;
-			
-			trialRatio = 1.  ;
+			if(foundchange1)
+				trialRatio = signchange  ;
+			else
+				trialRatio = 1 ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio ;
 			while(getState().max() > thresholdDamageDensity)
 			{
-				trialRatio -= damageDensityTolerance*.25 ;
+				upState -= damageDensityTolerance*.25 ;
+				for(int i = 0 ; i < upState.size() ; i++)
+					upState[i]  = std::max(upState[i], 0.) ;
 				getState( true ) = downState + ( upState - downState ) * trialRatio ;
 			}
-
 			if( ( upState - downState ).min() < 0 )
 			{
-				while(getState().max() < thresholdDamageDensity)
+				for(int i = 0 ; i < downState.size() ; i++)
+					downState[i]  = std::min(downState[i], 1.) ;
+				for(int i = 0 ; i < upState.size() ; i++)
+					upState[i]  = std::min(upState[i], 1.) ;
+				while(( upState - downState ).min() < 0)
 				{
-					trialRatio += damageDensityTolerance*.25 ;
+					upState += damageDensityTolerance*.25 ;
 					getState( true ) = downState + ( upState - downState ) * trialRatio ;
 				}
 				converged = true ;
-				wasBroken = true ;
 			}
-
 			if( ( upState - downState ).max() < 2.*damageDensityTolerance )
 			{
-				while(getState().max() < thresholdDamageDensity)
-				{
-					trialRatio += damageDensityTolerance*.25 ;
-					getState( true ) = downState + ( upState - downState ) * trialRatio ;
-				}
+				getState( true ) += damageDensityTolerance ;
+// 				
+// 				while(getState().max() < thresholdDamageDensity)
+// 				{
+// 					getState( true ) = 1 ;
+// 					for(int i = 0 ; i < upState.size() ; i++)
+// 						upState[i]  = std::min(upState[i], 1.) ;
+// 					getState( true ) = downState + ( upState - downState ) * trialRatio ;
+// 				}
+// 				for(int i = 0 ; i < getState( true ).size() ; i++)
+// 				{
+// 					getState( true )[i]  = std::min(getState( true )[i], 1.) ;
+// 				}
+				
 				converged = true ;
-				wasBroken = true ;
 			}
 			
 		}
 		else
 		{
-			wasBroken = true ;
 			converged = true ;
 		}
 
@@ -203,26 +250,31 @@ void DamageModel::step( ElementState &s )
 			}
 		}
 		
-		//we have found no root, so now, we disturb the system
-		if(!deltaRoot && !scoreRoot) 
-		{
-			trialRatio = 1 ;
-			getState( true ) = upState ;
-			wasBroken = true ;
-			converged = true ;
-			return ;
-		}
-		
-		trialRatio = ( minFraction + maxFraction ) * .5 ;
+
+		trialRatio = minFraction*(1.-0.5) + maxFraction*0.5  ;
 		getState( true ) = downState + ( upState - downState ) *trialRatio ;
 		
 		if( std::abs( minFraction - maxFraction ) < damageDensityTolerance )
 		{
+// 			for(int i = 0 ; i < state.size() ; i++)
+// 				std::cout << state[i] << std::endl ;
+			
+			getState( true ) = downState + ( upState - downState) * trialRatio;
+			for(int i = 0 ; i < getState().size() ; i++)
+					 getState(true)[i]  = std::min(getState(true)[i], 1.) ;
+			//we have found no root, so now, we disturb the system
+			if(!deltaRoot && !scoreRoot) 
+			{
+				trialRatio = 1 ;
+				getState( true ) = upState ;
+				converged = true ;
+				return ;
+			}
+			
 			if( states.size() < 6 )
 			{
 				trialRatio = 1 ;
 				getState( true ) = upState ;
-				wasBroken = true ;
 			}
 			converged = true ;
 		}
@@ -236,7 +288,6 @@ void DamageModel::postProcess()
 DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0), auxiliarystate(0), previousauxiliarystate(0),previouspreviousauxiliarystate(0)
 {
 	elementState = NULL ;
-	wasBroken = false ;
 	previouschange = false ;
 	change = false ;
 	isNull = true ;
@@ -251,7 +302,7 @@ DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0)
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance =  1. / pow( 2., 10 );
+	damageDensityTolerance =  1. / pow( 2., 14 );
 } ;
 
 double DamageModel::getThresholdDamageDensity() const

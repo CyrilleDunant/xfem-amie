@@ -78,7 +78,6 @@ protected:
 	
 	bool change ;
 	bool previouschange ;
-	bool wasBroken ;
 	
 	Vector state ;
 	Vector auxiliarystate ;

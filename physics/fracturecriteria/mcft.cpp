@@ -117,14 +117,13 @@ Material MCFT::toMaterial()
 
 
 NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double charRad, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( up ), downVal( down )
+	, upVal( up ), downVal( down ), youngModulus(youngModulus)
 {
 	physicalCharacteristicRadius = charRad ;
-	critStrain = -0.002 ;
-	tensionCritStrain = up / youngModulus ;
+	critStrain = -0.0015;
+	tensionCritStrain = upVal / youngModulus ;
 	strainBroken = false ;
 	initialised = false ;
-
 }
 
 
@@ -137,7 +136,7 @@ double NonLocalMCFT::grade( ElementState &s )
 	if(!initialised)
 	{
 		double energy = 75. ; //N/m
-		strain_ch = energy/(getMaterialCharacteristicRadius()*upVal) ;
+		strain_ch = 2.*energy/(2.*getMaterialCharacteristicRadius()*upVal) ;
 		
 		if(strain_ch < tensionCritStrain)
 		{
@@ -156,15 +155,18 @@ double NonLocalMCFT::grade( ElementState &s )
 		{
 			double integral = elastic_energy ;
 			k = 0.5*(k_low+k_high) ;
-			for(double i = 0 ; i < 10000 ; i++)
+			
+			for(double i = 0 ; i < 20000 ; i++)
 			{
-				integral+= upVal/(1.+sqrt(k*i/10000.*del_0))*del_0*1e-4 ;
+				integral+= 0.5*(upVal/(1.+sqrt(k*(i)/20000.*del_0)) + upVal/(1.+sqrt(k*(i+1)/20000.*del_0)))*del_0*0.5e-4 ;
 			}
-			for(double i = 0 ; i < 10000 ; i++)
+			
+			for(double i = 0 ; i < 20000 ; i++)
 			{
-				integral+= upVal/(1.+sqrt(k*(i/10000.*del_1+del_0)))*del_1*1e-4 ;
+				integral+= 0.5*(upVal/(1.+sqrt(k*((i)/20000.*del_1+del_0)))+upVal/(1.+sqrt(k*((i+1)/20000.*del_1+del_0))))*del_1*0.5e-4 ;
 			}
-			if(integral < energy/getMaterialCharacteristicRadius())
+			
+			if(integral < energy)
 			{
 				k_high = k ;
 			}
@@ -172,7 +174,6 @@ double NonLocalMCFT::grade( ElementState &s )
 				k_low = k ;
 			
 		} while(std::abs(k_low-k_high) > 1e-6) ;
-		std::cout << k << std::endl ;
 		initialised = true ;
 	}
 	
@@ -183,85 +184,178 @@ double NonLocalMCFT::grade( ElementState &s )
 	double tstress = stressStrain.first.max();
 	double cstress = stressStrain.first.min();
 
-	
-	double renormCompressionStrain = cstrain / critStrain ;
-	double compressionFactor = 1 ;
-	double maxCompression = -std::abs( downVal ) ;
-	if(cstrain < critStrain)
-	{
-		compressionFactor = ( 2.*renormCompressionStrain - renormCompressionStrain * renormCompressionStrain ) / ( 0.8 - 0.34 * tstrain / critStrain ) ;
-// 		 maxCompression = -std::abs( downVal ) * compressionFactor ;
-// 		double n = 0.8 + downVal/17e6 ;
-// 		double k = std::max(0.67 + downVal/62e6, 1.) ;
-// 		compressionFactor = n*renormCompressionStrain / (n - 1. + pow(renormCompressionStrain, n*k)) ;
-	}
-	maxCompression *= compressionFactor ;
-	if( compressionFactor > 1 || compressionFactor < 0 )
-		maxCompression = -std::abs( downVal ) ;
+	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 
+	double maxCompression = downVal  ;
+
+	if(cstrain < critStrain*.5 )
+	{
+// 		strainBroken = true ;
+		double C_d = 0. ;
+		double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;
+		
+		if(-compressiveTensileRatio > 0.2801)
+			C_d =0.35*pow(-compressiveTensileRatio-0.28, 0.8) ;
+		
+		double beta_d = 1./(1.+C_d) ;
+		
+		if(beta_d > 1)
+			beta_d = 1 ;
+		
+		double f_p = beta_d*downVal ;
+		double epsilon_p = beta_d*critStrain ;
+		double n = 0.8 - f_p/17e6 ;
+		double k_c = 0.67 - f_p/62e6 ;
+		
+		double upTestVal = 0 ;
+		double downTestVal = 0 ;
+		bool below = true ;
+		int ninc = 0 ;
+		while(below && ninc < 1000)
+		{
+			ninc++ ;
+			downTestVal = upTestVal ;
+			upTestVal += 1e-3* downVal ;
+			if(upTestVal/pseudoYoung > epsilon_p)
+				k_c = 1. ;
+			else
+				k_c = 0.67 - f_p/62e6 ;
+			double rcs = upTestVal/(epsilon_p*pseudoYoung) ;
+			double factor = n*rcs/(n-1.+pow(rcs, n*k_c)); 
+			if(f_p*factor > upTestVal)
+			{
+				below = false ;
+			}
+		}
+		if(ninc == 1)
+		{
+			upTestVal = cstress ;
+			downTestVal = cstress ;
+			if(upTestVal > epsilon_p/pseudoYoung)
+				k_c = 1. ;
+			else
+				k_c = 0.67 - f_p/62e6 ;
+			double rcs = upTestVal/(epsilon_p*pseudoYoung) ;
+			double factor = n*rcs/(n-1.+pow(rcs, n*k_c)); 
+			upTestVal = downTestVal = f_p*factor ;
+		}
+		if(ninc >= 1000)
+		{
+// 			return 1 ;
+
+// 			upTestVal = downVal ;
+// 			downTestVal = downVal ;
+
+			upTestVal = cstress ;
+			downTestVal = cstress ;
+			if(upTestVal > epsilon_p/pseudoYoung)
+				k_c = 1. ;
+			else
+				k_c = 0.67 - f_p/62e6 ;
+			double rcs = upTestVal/(epsilon_p*pseudoYoung) ;
+			double factor = n*rcs/(n-1.+pow(rcs, n*k_c)); 
+			upTestVal = downTestVal = f_p*factor ;
+			
+			return 1.- std::min(cstress/upTestVal, upTestVal/cstress) ;
+		}
+		
+		while(std::abs(upTestVal-downTestVal) > -1e-5*downVal )
+		{
+			double testVal = (upTestVal+downTestVal)*.5 ;
+
+			if(testVal > epsilon_p/pseudoYoung)
+				k_c = 1. ;
+			else
+				k_c = 0.67 - f_p/62e6 ;
+			double rcs = testVal/(epsilon_p*pseudoYoung);
+			double factor = n*rcs/(n-1.+pow(rcs, n*k_c)); 
+			if(f_p*factor - testVal > 0)
+			{
+				upTestVal = testVal ;
+			}
+			else
+			{
+				downTestVal = testVal ;
+			}
+		}
+		maxCompression = std::min((upTestVal+downTestVal)*.5, -0.) ;
+
+	}
 	
 	double maxTension = upVal;
 	std::vector<double> crits ;
-	if(tstrain >= tensionCritStrain)
-	{
-
-	//Yamamoto model
-		if(tstrain <= strain_ch)
-			maxTension = upVal/(1.+sqrt(k*(tstrain-tensionCritStrain))) ;
-		else if(tstrain <= strain_te)
-			maxTension = upVal/(1.+sqrt(k*(tstrain-tensionCritStrain)))*(strain_te-tstrain)/(strain_te-strain_ch) ;
-		else
-			return 1.-strain_te/tstrain ;
-
-// 	//MCFT model
-// 		double crackAngle = 0 ;
-// 		if(s.getParent()->getBehaviour()->getDamageModel()->getState().max()  >  POINT_TOLERANCE_2D)
-// 			crackAngle = smoothedCrackAngle(s) ;
-// // 		
-// 		double stressAngle = smoothedPrincipalStressAngle(s)-crackAngle ;
-// 		while(stressAngle < 0)
-// 			stressAngle += M_PI*.5 ;
-// 		double tantheta = tan(stressAngle) ;
-// 		
-// 		double k = 0 ;
-// 		if( 1./tantheta < 1.64) 
-// 		{
-// 			k = 1.64 - 1./tantheta ;
-// 		}
-// 		else
-// 		{
-// 			tantheta = 1./1.64 ;
-// 		}
-// 		
-// 		double w = s.getParent()->getRadius()*tstrain*1000. ;
-// 		double maxAggsize = 12 ;                                                        //in mm
-// 		double vcimax = sqrt(std::abs( downVal ))/(0.00031+.024*w/(maxAggsize+16.)) ;   // in Pa
-// 		
-// 		
-// 		maxTensionAlt = std::max(vcimax*(0.18+0.3*k*k)*tantheta, POINT_TOLERANCE_2D) ;
-// 		maxTension = upVal / ( 1. + sqrt( 500.*tstrain )) ;
-
-// 		maxTensionAlt = maxTension ;
 		
-// 		
+	if(tstrain > tensionCritStrain )
+	{
+// 		std::cout << 0 << "  " << 0 << std::endl ;
+// 		for(double i = 0 ; i < 1 ; i += 0.001)
+// 		{
+// 		pseudoYoung = youngModulus*(1.-i) ;
+		double downTestVal = tensionCritStrain*pseudoYoung ;
+		double upTestVal = upVal ;
+		double factor = 1 ;
+		while(std::abs(upTestVal-downTestVal) > 1e-6*upVal )
+		{
+			
+			double testVal = (upTestVal+downTestVal)*.5 ;
+			
+			if(testVal < strain_ch*pseudoYoung)
+				factor = 1./(1.+sqrt(k*(testVal/pseudoYoung-tensionCritStrain))) ;
+			else if(testVal < strain_te*pseudoYoung)
+				factor = 1./(1.+sqrt(k*(testVal/pseudoYoung-tensionCritStrain)))*(strain_te-testVal/pseudoYoung)/(strain_te-strain_ch) ;
+			else
+				factor = 0 ;
+		
+			if( testVal > upVal*factor )
+			{
+				upTestVal = testVal ;
+			}
+			else
+			{
+				downTestVal = testVal ;
+			}
+		}
+// 		std::cout << (upTestVal+downTestVal)*.5/pseudoYoung << "  " << factor << std::endl ;
+		maxTension = (upTestVal+downTestVal)*.5 ;
+		
+// 		}
+// 		exit(0) ;
+// 		if(factor < POINT_TOLERANCE_2D)
+// 			return 1.- strain_te/tstrain ;
+
 	}
 
 
 
-	metInCompression = cstrain <= 0 && std::abs( cstress / maxCompression ) > std::abs( tstress / maxTension ) || tstrain <= 0;
-	metInTension = tstrain >= 0 && std::abs( cstress / maxCompression ) < std::abs( tstress / maxTension ) || cstrain >= 0;
+metInCompression = cstress < -POINT_TOLERANCE_2D  || cstrain < -POINT_TOLERANCE_2D;
+metInTension = tstrain > POINT_TOLERANCE_2D;
 
-crits.push_back(cstress/maxCompression) ;
-crits.push_back(tstress/maxTension) ;
+crits.push_back(0.) ;
+if(std::abs(maxCompression) > POINT_TOLERANCE_2D)
+	crits.push_back(cstress/maxCompression) ;
+else
+	crits.push_back(1e6) ;
+// if(std::abs(maxTension) > POINT_TOLERANCE_2D)
+// 	crits.push_back(tstress/maxTension) ;
+// else
+// 	crits.push_back(1e6) ;
+
 std::sort( crits.begin(), crits.end() );
-if(crits.back() > 1)
-	return 1.-1./crits.back() ;
-if(crits.back() > 0)
-	return -1.+crits.back() ;
-if(crits.back() > -1)
-	return crits.back() ;
 
-return 1./crits.back() ;
+if(crits.back() > 1)
+{
+	return 1.-1./crits.back() ;
+}
+if(crits.back() > -POINT_TOLERANCE_2D)
+{
+	return -1.+crits.back() ;
+}
+if(crits.back() > -1)
+{
+	return crits.back() ;
+}
+
+return -1 ;
 
 }
 
