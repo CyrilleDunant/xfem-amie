@@ -1326,7 +1326,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 
 		double tol = std::min( maxx - minx, maxy - miny ) * .0001 ;
 
-		std::map<double, std::pair<Point, ElementarySurface*> > id  ;
+		std::map<double, std::pair<Point, DelaunayTriangle*> > id  ;
 
 		switch ( pos )
 		{
@@ -3354,7 +3354,7 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
+	std::vector<DelaunayTetrahedron *>  elements = t->getElements() ;
 	double minx = elements.front()->getBoundingPoint( 0 ).x ;
 	double miny = elements.front()->getBoundingPoint( 0 ).y ;
 	double minz = elements.front()->getBoundingPoint( 0 ).z ;

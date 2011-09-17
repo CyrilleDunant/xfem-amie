@@ -3782,7 +3782,6 @@ void FeatureTree::solve()
 		if( dtree )
 		{
 			boundaryCondition[i]->apply( K, dtree ) ;
-			
 			if( useMultigrid )
 			{
 				for( size_t j = 0 ; j < coarseTrees.size() ; j++ )

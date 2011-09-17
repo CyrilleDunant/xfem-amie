@@ -26,8 +26,8 @@ protected:
 	double scale ;
 	Function dataFunction ;
 	bool function ;
-	std::vector<ElementarySurface *> cache2d ;
-	std::vector<ElementaryVolume *> cache3d ;
+	std::vector<DelaunayTriangle *> cache2d ;
+	std::vector<DelaunayTetrahedron *> cache3d ;
 	std::vector<std::vector<Point> > cache ;
 public:
 	BoundaryCondition(LagrangeMultiplierType t, const double & d) ;
