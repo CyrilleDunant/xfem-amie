@@ -184,7 +184,7 @@ double NonLocalMCFT::grade( ElementState &s )
 	double tstress = stressStrain.first.max();
 	double cstress = stressStrain.first.min();
 
-	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+	double pseudoYoung = youngModulus*s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
 
 	double maxCompression = downVal  ;
 
