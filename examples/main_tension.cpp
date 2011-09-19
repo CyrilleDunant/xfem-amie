@@ -120,7 +120,7 @@ double y_min = 0 ;
 
 double timepos = 0.05e-07 ;
 
-double effectiveRadius = 2. ; //.5*.165*sqrt(M_PI*.25) ;
+double effectiveRadius = .5 ; //.5*.165*sqrt(M_PI*.25) ;
 double rebarDiametre = 0.0254*sqrt(M_PI*.25) ;
 
 double delta_displacement =  1e-5 ;
@@ -1417,7 +1417,7 @@ int main(int argc, char *argv[])
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .015 ; // .015
+	double mradius = .15 ; // .015
 	double nradius = std::max(mradius*4, .5) ;
 // 	double mradius = .25 ;
 	
@@ -1457,10 +1457,10 @@ int main(int argc, char *argv[])
 		
 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.1 ;
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0. ;
 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0.1 ;
+	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0. ;
 	
 	
 	FeatureTree F(&samplef) ;

@@ -75,9 +75,11 @@ protected:
 	
 	Vector upState ;
 	Vector downState ;
+	Vector limitState ;
 	
 	bool change ;
 	bool previouschange ;
+	bool haslimit ;
 	
 	Vector state ;
 	Vector auxiliarystate ;

@@ -135,6 +135,12 @@ double NonLocalMCFT::grade( ElementState &s )
 {
 	if(!initialised)
 	{
+		if(s.getParent()->getRadius() > 0.5*getMaterialCharacteristicRadius())
+		{
+			std::cout << "too large elements!" << std::endl ;
+			exit(0) ;
+		}
+		
 		double energy = 75. ; //N/m
 		strain_ch = 2.*energy/(2.*getMaterialCharacteristicRadius()*upVal) ;
 		
@@ -184,11 +190,11 @@ double NonLocalMCFT::grade( ElementState &s )
 	double tstress = stressStrain.first.max();
 	double cstress = stressStrain.first.min();
 
-	double pseudoYoung = youngModulus*s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
+	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 
 	double maxCompression = downVal  ;
 
-	if(cstrain < critStrain*.5 )
+	if(cstrain < critStrain*.5 || true)
 	{
 // 		strainBroken = true ;
 		double C_d = 0. ;
@@ -259,7 +265,7 @@ double NonLocalMCFT::grade( ElementState &s )
 			return 1.- std::min(cstress/upTestVal, upTestVal/cstress) ;
 		}
 		
-		while(std::abs(upTestVal-downTestVal) > -1e-5*downVal )
+		while(std::abs(upTestVal-downTestVal) > -1e-8*downVal )
 		{
 			double testVal = (upTestVal+downTestVal)*.5 ;
 
@@ -294,7 +300,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		double downTestVal = tensionCritStrain*pseudoYoung ;
 		double upTestVal = upVal ;
 		double factor = 1 ;
-		while(std::abs(upTestVal-downTestVal) > 1e-6*upVal )
+		while(std::abs(upTestVal-downTestVal) > 1e-8*upVal )
 		{
 			
 			double testVal = (upTestVal+downTestVal)*.5 ;

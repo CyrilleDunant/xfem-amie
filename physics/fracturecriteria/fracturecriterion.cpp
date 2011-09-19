@@ -1814,12 +1814,11 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			if(!sortedElements.empty())
 				thresholdScore = sortedElements.begin()->first ;
 			double minscore = thresholdScore ;
-			Point locus = sortedElements.begin()->second->getCenter() ;
 			if(!sortedElements.empty() && -thresholdScore > 0 )
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(i->first < 0 && dist(i->second->getCenter(), locus) <= getMaterialCharacteristicRadius())
+					if(i->first < thresholdScore + scoreTolerance)
 					{
 						newSet.push_back(i->second->index);
 						minscore = i->first ;
@@ -1829,7 +1828,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 
-			if(nonLocalScoreAtState < 0 || dist(s.getParent()->getCenter(), locus) > getMaterialCharacteristicRadius())
+			if(std::abs(-nonLocalScoreAtState-thresholdScore) >= scoreTolerance)
 			{
 				proximitySet.clear() ;
 				return std::make_pair(0.,0.) ;
@@ -1846,7 +1845,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(i->first < 0 && dist(i->second->getCenter(), locus) <= getMaterialCharacteristicRadius())
+					if(std::abs(i->first-thresholdScore) < scoreTolerance)
 					{
 						continue ;
 					}
@@ -1871,7 +1870,8 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
 			
 			
-			double maxscore = 0 ;
+			double
+			maxscore = 0 ;
 
 			if(!proximitySet.empty())
 			{
@@ -1884,7 +1884,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 					maxscore = nls ;
 			}
 
-			return std::make_pair(-maxscore + minscore, -thresholdScore+minscore) ;
+			return std::make_pair(+maxscore - minscore, -thresholdScore+minscore) ;
 		}
 		else
 		{
