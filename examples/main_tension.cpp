@@ -204,7 +204,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()-1.5e-5) ;
+			loadr->setData(loadr->getData()+1.5e-6) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -552,7 +552,7 @@ void Menu(int selection)
 		}
 	case ID_NEXT_TIME:
 		{
-			for(int i = 0 ; i < 10 ; i++)
+			for(int i = 0 ; i < 100 ; i++)
 				step() ;
 			timepos +=0.0001 ;
 			dlist = false ;

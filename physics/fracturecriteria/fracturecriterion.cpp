@@ -1814,24 +1814,58 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			if(!sortedElements.empty())
 				thresholdScore = sortedElements.begin()->first ;
 			double minscore = thresholdScore ;
+			
+			std::vector<Point> maxLocus ;
 			if(!sortedElements.empty() && -thresholdScore > 0 )
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(i->first < thresholdScore + scoreTolerance)
+					if(std::abs(i->first-thresholdScore) < std::abs(scoreTolerance*thresholdScore))
 					{
-						newSet.push_back(i->second->index);
-						minscore = i->first ;
+						maxLocus.push_back(i->second->getCenter());
 					}
 					else
 						break ;
 				}
 			}
-
-			if(std::abs(-nonLocalScoreAtState-thresholdScore) >= scoreTolerance)
+			
+			
+			if(!sortedElements.empty() && -thresholdScore > 0 )
 			{
-				proximitySet.clear() ;
-				return std::make_pair(0.,0.) ;
+				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
+				{
+					bool nearLocus = false ;
+					for(size_t j = 0 ; j < maxLocus.size() ; j++)
+					{
+						if(squareDist2D(i->second->getCenter(), maxLocus[j]) < getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius())
+						{
+							nearLocus = true ;
+						}
+					}
+					
+					if(i->first < thresholdScore - scoreTolerance*thresholdScore || nearLocus)
+					{
+						newSet.push_back(i->second->index);
+						minscore = i->first ;
+					}
+				}
+			}
+
+			if(std::abs(-nonLocalScoreAtState-thresholdScore) >= -scoreTolerance*thresholdScore)
+			{
+				bool nearLocus = false ;
+				for(size_t j = 0 ; j < maxLocus.size() ; j++)
+				{
+					if(squareDist2D(s.getParent()->getCenter(), maxLocus[j]) < getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius())
+					{
+						nearLocus = true ;
+					}
+				}
+				if(!nearLocus)
+				{
+					proximitySet.clear() ;
+					return std::make_pair(0.,0.) ;
+				}
 			}
 			
 			inset = true ;
@@ -1845,7 +1879,16 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(std::abs(i->first-thresholdScore) < scoreTolerance)
+					bool nearLocus = false ;
+					for(size_t j = 0 ; j < maxLocus.size() ; j++)
+					{
+						if(squareDist2D(i->second->getCenter(), maxLocus[j]) < getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius())
+						{
+							nearLocus = true ;
+						}
+					}
+					
+					if(std::abs(i->first-thresholdScore) < -scoreTolerance*thresholdScore || nearLocus)
 					{
 						continue ;
 					}
