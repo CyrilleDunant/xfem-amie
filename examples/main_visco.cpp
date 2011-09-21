@@ -134,6 +134,8 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
+double time_step = 60*60 ;
+double true_alpha = 0.5 ; 
 
 
 // void setBC()
@@ -728,21 +730,21 @@ void step()
 
 int FD_implicit()
 {
-	bool elastic = true ;
-
+	bool elastic = false ;
+	
 	Matrix c(3,3) ;
-	double E = 300*1e6 ;
+	double E = 3.*1e9 ;
 	double nu = 0.3 ;
 	c[0][0] = E/(1-nu*nu) ; c[0][1] = E/(1-nu*nu)*nu ; c[0][2] = 0 ;
 	c[1][0] = E/(1-nu*nu)*nu ; c[1][1] = E/(1-nu*nu) ; c[1][2] = 0 ;
 	c[2][0] = 0 ; c[2][1] = 0 ; c[2][2] = E/(1-nu*nu)*(1.-nu)/2. ;
 
 	Matrix e(3,3) ;
-	double eta = 760 ;
+	double eta = 24*3600*60 ; // 2 month
 	e = c * eta ;
 
-	double tau = 1. ;
-	double alpha = 0.5 ;
+	double tau = time_step ; //1 s
+	double alpha = true_alpha ;
 	double at1 = 1./(alpha*tau) ;
 	std::cout << at1 << std::endl ;
 
@@ -754,6 +756,10 @@ int FD_implicit()
 
 	Vector u ;
 	Vector v ;
+	Vector du ;
+	std::vector<double> u_min ;
+	std::vector<double> v_min ;
+	std::vector<double> time ;
 
 	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
 	FeatureTree mainFT(&mainSample) ;
@@ -765,8 +771,8 @@ int FD_implicit()
 	helpFT.setSamplingNumber(56) ;
 	helpFT.setOrder(LINEAR) ;
 
-	// initialization u = 0
-	mainSample.setBehaviour(new Stiffness(e)) ;
+	// initialization step
+	mainSample.setBehaviour(new Stiffness(ce)) ;
 	if(elastic)
 		mainSample.setBehaviour(new Stiffness(c)) ;
 
@@ -775,42 +781,42 @@ int FD_implicit()
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
 	mainFT.step() ;
-	v.resize(mainFT.getDisplacements().size()) ;
-	v = mainFT.getDisplacements() ;
-	std::cout << v.min() << "\t" << v.max() << std::endl ;
+	du = mainFT.getDisplacements() ;
+	std::cout << du.min() << "\t" << du.max() << std::endl ;
 
 	if(elastic)
 		return 0 ;
 
-	u.resize(v.size(),0.) ;
+	u.resize(du.size(),0.) ;
+	v.resize(du.size(),0.) ;
 
-	mainSample.setBehaviour(new Stiffness(ce)) ;
+	u = du ;
+	v = du*at1 ;
 
 	helpSample.setBehaviour(new Stiffness(c)) ;
 	helpFT.step() ;
 
 	// iteration
-	for(size_t i = 0 ; i < 86400 ; i++)
+	for(size_t i = 0 ; i < (long) 60*60*24*365*100/time_step ; i++)
 	{
+		double true_time = i*time_step ;
+		double true_day = true_time/(60*60*24) ;
+	
 		mainFT.resetBoundaryConditions() ;
+
+		// boundary conditions
+		mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+		mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
 		// viscoelastic forces
 		Vector k(v.size()) ;
 		k = helpFT.getAssembly()->getMatrix()*v ;
 		k *= tau ;
-		Variable var = XI ;
-		for(size_t j = 0 ; j < k.size() ; j++)
+		for(size_t j = 0 ; j < k.size()/2 ; j++)
 		{
-			mainFT.getAssembly()->addForceOn(var,-k[j],j/2);
-			if(var == XI)
-				var = ETA ;
-			else
-				var = XI ;
+			mainFT.getAssembly()->addForceOn(XI,-k[j*2],j);
+			mainFT.getAssembly()->addForceOn(ETA,-k[j*2+1],j);
 		}
-
-		// boundary conditions
-		mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-		mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
 		mainFT.step() ;
 		Vector du(u.size()) ;
@@ -824,7 +830,20 @@ int FD_implicit()
 		std::cout << v.min() << "\t" << v.max() << std::endl ;
 		std::cout << du.min() << "\t" << du.max() << std::endl ;
 		std::cout << u.min() << "\t" << u.max() << std::endl ;
+		if(true_day == (int) true_day)
+		{
+			u_min.push_back(u.min()) ;
+			v_min.push_back(v.min()) ;
+			time.push_back(true_day) ;
+			std::cout << "day = " << true_day << std::endl ;
+		}
 	}
+	
+	std::fstream file ;
+	file.open("arrow_"+itoa(time_step)+"_"+itoa((int) ((double) 100*alpha))+".txt", std::ios::out) ;
+	for(unsigned long i = 0 ; i < u_min.size() ; i++)
+		file <<  time[i] << "," << u_min[i] << std::endl ;
+	file.close() ;
 
 
 	return 0 ;
@@ -833,17 +852,17 @@ int FD_implicit()
 int FD_explicit()
 {
 	Matrix c(3,3) ;
-	double E = 300*1e6 ;
+	double E = 3.*1e9 ;
 	double nu = 0.3 ;
 	c[0][0] = E/(1-nu*nu) ; c[0][1] = E/(1-nu*nu)*nu ; c[0][2] = 0 ;
 	c[1][0] = E/(1-nu*nu)*nu ; c[1][1] = E/(1-nu*nu) ; c[1][2] = 0 ;
 	c[2][0] = 0 ; c[2][1] = 0 ; c[2][2] = E/(1-nu*nu)*(1.-nu)/2. ;
 
 	Matrix e(3,3) ;
-	double eta = 760 ;
-	e = c / eta ;
+	double eta = 24*3600*60 ;
+	e = c * eta ;
 
-	double tau = 0.0001 ;
+	double tau = 60*60*24*365 ;
 
 	c.print();
 	e.print();
@@ -867,8 +886,80 @@ int FD_explicit()
 	mainSample.setBehaviour(new Stiffness(c)) ;
 	helpSample.setBehaviour(new Stiffness(e)) ;
 
+	// initialization ; u = 0 ; v = 0 ; sigma = 0 ;
+	// first step ; sigma = sigma_1
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	mainFT.step() ;
+	ue.resize(mainFT.getDisplacements().size()) ;
+	ue = mainFT.getDisplacements() ;
+
+	// blank step for assembly
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	helpFT.step() ;
+
+	// get viscoelastic forces
+	Vector f(ue.size()) ;
+	f = helpFT.getAssembly()->getMatrix() * ue ;
+	f *= (1./tau) ;
+	mainFT.resetBoundaryConditions() ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	for(size_t j = 0 ; j < f.size()/2 ; j++)
+	{
+		mainFT.getAssembly()->addForceOn(XI, -f[j*2],  j);
+		mainFT.getAssembly()->addForceOn(ETA,-f[j*2+1],j);
+	}
+	
+	// solve auxiliary problem
+	mainFT.step() ;
+	uv.resize(mainFT.getDisplacements().size()) ;
+	uv = mainFT.getDisplacements() ;
+	k.resize(uv.size()) ;
+	for(size_t i = 0 ; i < k.size() ; i++)
+		k[i] = -ue[i] / uv[i] ;
+
+	u.resize(uv.size()) ;
+	v.resize(uv.size()) ;
+
+	Vector Auv(u.size()) ;
+	Vector Avv(u.size()) ;
+	Vector Auuv(u.size()) ;
+	Vector Avuv(u.size()) ;
+	for(size_t i = 0 ; i < Auv.size() ; i++)
+	{
+		Auv[i] = (1-std::exp(-k[i]))*tau/k[i] ;
+		Avv[i] = std::exp(-k[i]) ;
+		Auuv[i] = 1 - Avv[i] ;
+		Avuv[i] = k[i] * Avv[i] ;
+	}
+
+	for(size_t i = 0 ; i < u.size() ; i++)
+	{
+		u[i] = Auuv[i]*uv[i] + ue[i] ;
+		v[i] = (Avuv[i]*uv[i] + ue[i] ) / tau ;
+	}
+	std::cerr << u.max() << "\t" << u.min() << std::endl ;
+
+	for(size_t i = 0 ; i < 100 ; i++)
+	{
+		for(size_t j = 0 ; j < u.size() ; j++)
+		{
+			u[j] = u[j] + Auv[j]*v[j] ;
+			v[j] = Avv[j]*v[j] ;
+		}
+//		if(i%24 == 0)
+			std::cerr << i*365 << "\t" << u.min() << std::endl ;
+	}
+
+	return 0 ;
+		
+	
+
 	// solve initialization ; u = 0
-	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
+/*	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
 	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
@@ -891,14 +982,10 @@ int FD_explicit()
 	// get viscoelastic forces
 	Vector f(ue.size()) ;
 	f = helpFT.getAssembly()->getMatrix() * ue ;
-	Variable var = XI ;
-	for(size_t j = 0 ; j < f.size() ; j++)
+	for(size_t j = 0 ; j < f.size()/2 ; j++)
 	{
-		mainFT.getAssembly()->addForceOn(var,-f[j],j/2);
-		if(var == XI)
-			var = ETA ;
-		else
-			var = XI ;
+		mainFT.getAssembly()->addForceOn(XI, -f[j*2],  j);
+		mainFT.getAssembly()->addForceOn(ETA,-f[j*2+1],j);
 	}
 
 	// solve auxiliary problem
@@ -950,7 +1037,7 @@ int FD_explicit()
 
 
 	std::cerr << uv.max() << "\t" << uv.min() << std::endl ;
-	for(size_t i = 0 ; i < 100 ; i++)
+	for(size_t i = 0 ; i < 0 ; i++)
 	{
 		for(size_t j = 0 ; j < u.size() ; j++)
 		{
@@ -958,7 +1045,7 @@ int FD_explicit()
 			v[j] = Avv[j]*v[j] ;
 		}
 		std::cerr << u.max() << "\t" << u.min() << std::endl ;
-	}
+	}*/
 
 	return 0 ;
 
@@ -968,7 +1055,9 @@ int FD_explicit()
 
 int main(int argc, char *argv[])
 {
-	return FD_explicit() ;
+	time_step = atof(argv[1]) ;
+	true_alpha = atof(argv[2]) ;
+	return FD_implicit() ;
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
