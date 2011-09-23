@@ -82,6 +82,7 @@ typedef enum{
 		
 	public:
 		Vector smoothedPrincipalStress( ElementState &s) ;
+		double smoothedScore(ElementState& s) ;
 		Vector smoothedPrincipalStrain( ElementState &s) ;
 		std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s) ;
 		double smoothedPrincipalStressAngle( ElementState &s) ;

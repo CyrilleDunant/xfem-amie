@@ -32,7 +32,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	if(maxit != -1)
 		Maxit = maxit ;
 	else
-		Maxit = std::max(round(b.size()), 500.) ;
+		Maxit = std::max(round(b.size()), 1000.) ;
 	if(x0.size() == b.size())
 	{
 		x = x0 ;

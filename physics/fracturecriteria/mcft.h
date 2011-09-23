@@ -94,6 +94,8 @@ public:
 	{
 		upVal *= d ; 
 		downVal *= d ;
+		youngModulus *=d ;
+		initialised = false ;
 // 		tensionCritStrain /= d ;
 // 		critStrain /= d ;
 	};

@@ -1676,7 +1676,7 @@ int main( int argc, char *argv[] )
 	double phi =  3.*rebarDiametre / .4 ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .05 ; // .015
+	double mradius = .1 ; // .015
 	double nradius = .3 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1785,15 +1785,15 @@ int main( int argc, char *argv[] )
 
 
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.0 ;
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.01 ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.0 ;
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.01 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->neighbourhoodRadius = nradius;
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.0 ;
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.01 ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->neighbourhoodRadius = nradius;
 

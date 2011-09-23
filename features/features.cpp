@@ -4749,7 +4749,7 @@ bool FeatureTree::step()
 
 	int notConvergedCounts = 0 ;
 
-	while( ( behaviourChanged() || !solverConverged() ) && ++it < maxitPerStep && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 )
+	while( ( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 )
 	{
 		deltaTime = 0 ;
 
@@ -4778,7 +4778,9 @@ bool FeatureTree::step()
 		}
 
 		state.setStateTo( XFEM_STEPPED, true ) ;
-
+		
+		if(++it > maxitPerStep && foundCheckPoint)
+			break ;
 	}
 
 	std::cout  << std::endl ;
@@ -4797,9 +4799,6 @@ bool FeatureTree::stepToCheckPoint()
 	else
 		deltaTime = 0 ;
 
-	bool ret = true ;
-	size_t it = 1 ;
-
 	if( enrichmentChange || needMeshing )
 	{
 		K->clear() ;
@@ -4815,12 +4814,9 @@ bool FeatureTree::stepToCheckPoint()
 
 	state.setStateTo( XFEM_STEPPED, true ) ;
 	int notConvergedCounts = 0 ;
-	std::cout << !foundCheckPoint << ( behaviourChanged() || !solverConverged() )  << !( !solverConverged() && !reuseDisplacements ) << (notConvergedCounts < 4) <<":" << std::flush ;
-
-	while( !foundCheckPoint && ( behaviourChanged() || !solverConverged() )  && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 )
+	do
 	{
 		deltaTime = 0 ;
-
 		if( solverConverged() )
 		{
 			std::cout << "." << std::flush ;
@@ -4846,7 +4842,8 @@ bool FeatureTree::stepToCheckPoint()
 		}
 
 		state.setStateTo( XFEM_STEPPED, true ) ;
-	}
+
+	}while( !foundCheckPoint && ( behaviourChanged() || !solverConverged() )  && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
 	
 	if(behaviourChanged())
 	{	
@@ -4868,10 +4865,10 @@ bool FeatureTree::stepToCheckPoint()
 			}
 			scaleBoundaryConditions(currentmultiplier);
 		}
-		scaleBoundaryConditions((upmultiplier+downmultiplier)*.5);
+		scaleBoundaryConditions(downmultiplier);
 		deltaTime = realdt ;
-		elasticStep();
-// 		state.setStateTo( XFEM_STEPPED, true ) ;
+// 		elasticStep();
+		state.setStateTo( XFEM_STEPPED, true ) ;
 		if( solverConverged() )
 		{
 			std::cout << "." << std::flush ;

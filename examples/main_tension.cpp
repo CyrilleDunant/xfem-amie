@@ -120,7 +120,7 @@ double y_min = 0 ;
 
 double timepos = 0.05e-07 ;
 
-double effectiveRadius = .5 ; //.5*.165*sqrt(M_PI*.25) ;
+double effectiveRadius = 0.13506098 ; //.5*.165*sqrt(M_PI*.25) ;
 double rebarDiametre = 0.0254*sqrt(M_PI*.25) ;
 
 double delta_displacement =  1e-5 ;
@@ -186,7 +186,7 @@ double aggregateArea = 0;
 void step()
 {
 	
-	size_t nsteps = 3 ; //16*10;
+	size_t nsteps = 1 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -204,7 +204,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+1.5e-6) ;
+			loadr->setData(loadr->getData()-5e-5) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -454,7 +454,7 @@ void step()
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			filename << round(appliedForce/1000.) ;
+			filename << round(appliedForce*1e7) ;
 			
 	// 		filename.append(itoa(totit++, 10)) ;
 	// 		std::cout << filename.str() << std::endl ;
@@ -552,7 +552,7 @@ void Menu(int selection)
 		}
 	case ID_NEXT_TIME:
 		{
-			for(int i = 0 ; i < 100 ; i++)
+			for(int i = 0 ; i < 1000 ; i++)
 				step() ;
 			timepos +=0.0001 ;
 			dlist = false ;
@@ -1417,10 +1417,10 @@ int main(int argc, char *argv[])
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .15 ; // .015
-	double nradius = std::max(mradius*4, .5) ;
+	double mradius = 0.05 ; // .015
+	double nradius = mradius*10. ;
 // 	double mradius = .25 ;
-	
+	double length = 0.3048 ; //1.300*.5
 	double E_steel = 193e9 ;
 	double nu_steel = 0.2 ; 
 	
@@ -1433,7 +1433,8 @@ int main(int argc, char *argv[])
 	Sample box(1.300*.5+.225, effectiveRadius, (1.300*.5+.225)*.5, effectiveRadius*0.5) ;
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
-	Sample samplef(1.300*.5, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
+// 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
+	Sample samplef(.3048, effectiveRadius, 0, 0) ;
 	
 	Sample toprightvoid(.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
@@ -1457,13 +1458,17 @@ int main(int argc, char *argv[])
 		
 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0. ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = mradius*10 ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.0 ;
 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( samplef.getBehaviour() )->variability = 0. ;
-	
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = mradius*10 ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.0 ;
 	
 	FeatureTree F(&samplef) ;
+// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
+// 	F.addFeature(&samplef, new Pore(samplef.height()*.02, samplef.getCenter().x, samplef.getCenter().y));
+// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
 // 	FeatureTree F(&box) ;
 	featureTree = &F ;
 // 	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 2.) ;
@@ -1474,7 +1479,8 @@ int main(int argc, char *argv[])
 
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;

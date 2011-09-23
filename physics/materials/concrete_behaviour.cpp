@@ -17,7 +17,7 @@ using namespace Mu ;
 ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double tensile, double compressive, SpaceDimensionality dim, MirrorState mirroring , double dx ,double  dy, double dz) : WeibullDistributedStiffness(E,nu, dim, compressive,tensile, mirroring, dx , dy , dz )
 {
 	materialRadius = 0.025 ;
-	neighbourhoodRadius = materialRadius*4 ;
+	neighbourhoodRadius = materialRadius*10 ;
 	variability = 0.01 ;
 }
 
@@ -31,6 +31,7 @@ Form * ConcreteBehaviour::getCopy() const
 // 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up, down,E, materialRadius, mirroring , dx, dy, dz), new NonLocalIsotropicLinearDamage()) ;
 	ret->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
 	ret->setNeighbourhoodRadius(neighbourhoodRadius);
+	ret->getFractureCriterion()->setNeighbourhoodRadius(neighbourhoodRadius);
 	return ret ;
 }
 
