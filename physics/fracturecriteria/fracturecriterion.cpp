@@ -2082,7 +2082,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 					maxscore = nls ;
 			}
 
-			return std::make_pair(maxscore - minscore-scoreTolerance, -thresholdScore+minscore) ;
+			return std::make_pair(maxscore - minscore-scoreTolerance*2., -thresholdScore+minscore) ;
 		}
 		else
 		{
@@ -2124,7 +2124,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 
-			return std::make_pair(maxscore - minscore-scoreTolerance, thresholdScore-maxscore) ;
+			return std::make_pair(maxscore - minscore-scoreTolerance*2., thresholdScore-maxscore) ;
 		}
 	}
 	else
