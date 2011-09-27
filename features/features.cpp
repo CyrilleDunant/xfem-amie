@@ -453,7 +453,7 @@ void FeatureTree::setOrder( Order ord )
 
 void FeatureTree::renumber()
 {
-	return ;
+//	return ;
 	if( is2D() )
 	{
 
@@ -4717,6 +4717,15 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		return ;
 
 }
+
+void FeatureTree::resetBoundaryConditions() 
+{
+	boundaryCondition.clear() ; 
+	needAssembly = true ; 
+	if(K)
+		K->clear() ;
+} ;
+
 
 bool FeatureTree::step()
 {

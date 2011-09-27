@@ -317,7 +317,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 				}
 			case TIME_VARIABLE : 
 				{
-					return( eval(f, x+1e-4, y, z, t+1e-4, u, v, w) - eval(f, x-1e-4, y, z, t+1e-4, u, v, w)- eval(f, x+1e-4, y, z, t-1e-4, u, v, w) + eval(f, x-1e-4, y, z, t-1e-4, u, v, w))/(4.*eps*eps) ;
+					return( eval(f, x+eps, y, z, t+eps, u, v, w) - eval(f, x-eps, y, z, t+eps, u, v, w)- eval(f, x+eps, y, z, t-eps, u, v, w) + eval(f, x-eps, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
 				}
 			case U_VARIABLE:
 				{
@@ -356,7 +356,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 				}
 			case TIME_VARIABLE : 
 				{
-					return ( eval(f, x, y+1e-3, z, t+1e-3, u, v, w) - eval(f, x, y-1e-3, z, t+1e-3, u, v, w)- eval(f, x, y+1e-3, z, t-1e-3, u, v, w) + eval(f, x, y-1e-3, z, t-1e-3, u, v, w))/(4.*1e-3*1e-3) ;
+					return ( eval(f, x, y+eps, z, t+eps, u, v, w) - eval(f, x, y-eps, z, t+eps, u, v, w)- eval(f, x, y+eps, z, t-eps, u, v, w) + eval(f, x, y-eps, z, t-eps, u, v, w))/(4.*eps*eps) ;
 				}
 			case U_VARIABLE:
 				{
@@ -1126,7 +1126,9 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][2][0] = ret[i][1][1] ;
 					ret[i][2][1] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
 				}
+				
 				
 				return ret ;
 			}
@@ -1143,6 +1145,7 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][0][2] = ret[i][1][1] ;
 					ret[i][1][2] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
 				}
 				
 				return ret ;

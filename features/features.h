@@ -388,7 +388,7 @@ public:
 	
 	void addBoundaryCondition(BoundaryCondition * bc) ;
 	void removeBoundaryCondition(BoundaryCondition * bc) ;
-	void resetBoundaryConditions() {  boundaryCondition.clear() ; } ;
+	void resetBoundaryConditions() ;
 	void scaleBoundaryConditions(double scale) ;
 	
 public:
