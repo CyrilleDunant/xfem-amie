@@ -135,7 +135,9 @@ int count = 0 ;
 double aggregateArea = 0;
 
 double time_step = 60*60 ;
-double true_alpha = 0.5 ; 
+double true_alpha = 0.5 ;
+
+int nsteps = 0 ;
 
 
 // void setBC()
@@ -730,8 +732,8 @@ void step()
 
 int FD_implicit()
 {
-	bool elastic = false ;
-	
+	bool elastic = true ;
+
 	Matrix c(3,3) ;
 	double E = 3.*1e9 ;
 	double nu = 0.3 ;
@@ -780,6 +782,7 @@ int FD_implicit()
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
+	srand(0) ;
 	mainFT.step() ;
 	du = mainFT.getDisplacements() ;
 	std::cout << du.min() << "\t" << du.max() << std::endl ;
@@ -794,6 +797,7 @@ int FD_implicit()
 	v = du*at1 ;
 
 	helpSample.setBehaviour(new Stiffness(c)) ;
+	srand(0) ;
 	helpFT.step() ;
 
 	// iteration
@@ -801,7 +805,7 @@ int FD_implicit()
 	{
 		double true_time = i*time_step ;
 		double true_day = true_time/(60*60*24) ;
-	
+
 		mainFT.resetBoundaryConditions() ;
 
 		// boundary conditions
@@ -838,7 +842,7 @@ int FD_implicit()
 			std::cout << "day = " << true_day << std::endl ;
 		}
 	}
-	
+
 	std::fstream file ;
 	file.open("arrow_"+itoa(time_step)+"_"+itoa((int) ((double) 100*alpha))+".txt", std::ios::out) ;
 	for(unsigned long i = 0 ; i < u_min.size() ; i++)
@@ -862,7 +866,7 @@ int FD_explicit()
 	double eta = 24*3600*60 ;
 	e = c * eta ;
 
-	double tau = 60*60*24*365 ;
+	double tau = time_step ;
 
 	c.print();
 	e.print();
@@ -891,6 +895,7 @@ int FD_explicit()
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	srand(0) ;
 	mainFT.step() ;
 	ue.resize(mainFT.getDisplacements().size()) ;
 	ue = mainFT.getDisplacements() ;
@@ -898,6 +903,7 @@ int FD_explicit()
 	// blank step for assembly
 	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	srand(0) ;
 	helpFT.step() ;
 
 	// get viscoelastic forces
@@ -912,7 +918,7 @@ int FD_explicit()
 		mainFT.getAssembly()->addForceOn(XI, -f[j*2],  j);
 		mainFT.getAssembly()->addForceOn(ETA,-f[j*2+1],j);
 	}
-	
+
 	// solve auxiliary problem
 	mainFT.step() ;
 	uv.resize(mainFT.getDisplacements().size()) ;
@@ -920,68 +926,322 @@ int FD_explicit()
 	k.resize(uv.size()) ;
 	for(size_t i = 0 ; i < k.size() ; i++)
 		k[i] = -ue[i] / uv[i] ;
+	std::cout << k[0] << std::endl ;
+//	return 0 ;
 
 	u.resize(uv.size()) ;
 	v.resize(uv.size()) ;
+	std::vector<double> u_min ;
+	std::vector<double> v_min ;
+	std::vector<double> time ;
 
-	Vector Auv(u.size()) ;
+	std::vector<DelaunayTriangle *> mainTri = mainFT.getElements2D() ;
+	std::vector<DelaunayTriangle *> helpTri = helpFT.getElements2D() ;
+
+	mainTri[0]->getBoundingPoint(1).print() ;
+//	for(size_t i = 0 ; i < helpTri.size() ; i++)
+	helpTri[0]->getBoundingPoint(1).print() ;
+//	return 0 ;
+
+/*	Vector Auv(u.size()) ;
 	Vector Avv(u.size()) ;
 	Vector Auuv(u.size()) ;
 	Vector Avuv(u.size()) ;
 	for(size_t i = 0 ; i < Auv.size() ; i++)
 	{
-		Auv[i] = (1-std::exp(-k[i]))*tau/k[i] ;
+		Auv[i] = (1.-std::exp(-k[i]))*tau/k[i] ;
 		Avv[i] = std::exp(-k[i]) ;
-		Auuv[i] = 1 - Avv[i] ;
-		Avuv[i] = k[i] * Avv[i] ;
-	}
+		Auuv[i] = 1. - std::exp(-k[i]) ;
+		Avuv[i] = k[i] * std::exp(-k[i]) ;
+		std::cout << k[i] << std::endl ;
+	}*/
 
 	for(size_t i = 0 ; i < u.size() ; i++)
 	{
-		u[i] = Auuv[i]*uv[i] + ue[i] ;
-		v[i] = (Avuv[i]*uv[i] + ue[i] ) / tau ;
+		u[i] = (1.-std::exp(-k[i]))*uv[i] + ue[i] ;
+		v[i] = ((k[i]*std::exp(-k[i]))*uv[i] + ue[i] ) / tau ;
 	}
 	std::cerr << u.max() << "\t" << u.min() << std::endl ;
+	time.push_back(0) ;
+	u_min.push_back(u.min()) ;
+	v_min.push_back(v.min()) ;
 
-	for(size_t i = 0 ; i < 100 ; i++)
+	for(size_t i = 0 ; i < (long) 60*60*24*365*100/time_step ; i++)
 	{
+		double true_time = i*time_step ;
+		double true_day = true_time/(60*60*24) ;
+
 		for(size_t j = 0 ; j < u.size() ; j++)
 		{
-			u[j] = u[j] + Auv[j]*v[j] ;
-			v[j] = Avv[j]*v[j] ;
+			uv[j] = tau*v[j]/k[j] ;
+			u[j] = u[j] + (1.-std::exp(-k[j]))*uv[j] ;
+			v[j] = ((k[j]*std::exp(-k[j]))*uv[j]) / tau ;
+
+//			u[j] = u[j] + Auv[j]*v[j] ;
+//			v[j] = Avv[j]*v[j] ;
 		}
-//		if(i%24 == 0)
-			std::cerr << i*365 << "\t" << u.min() << std::endl ;
+		if(true_day == (int) true_day)
+		{
+			u_min.push_back(u.min()) ;
+			v_min.push_back(v.min()) ;
+			time.push_back(true_day) ;
+			std::cout << "day = " << true_day << std::endl ;
+		}
 	}
 
-	return 0 ;
-		
-	
+	std::fstream file ;
+	file.open("explicit_"+itoa(time_step)+".txt", std::ios::out) ;
+	for(unsigned long i = 0 ; i < u_min.size() ; i++)
+		file <<  time[i] << "," << u_min[i] << std::endl ;
+	file.close() ;
 
-	// solve initialization ; u = 0
-/*	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
+	return 0 ;
+
+
+}
+
+int burger()
+{
+	double nu = 0.3 ;
+
+	Matrix c_aggregates(3,3) ;
+	double E_aggregates = 59*1e9 ;
+	c_aggregates = Material::cauchyGreen(std::make_pair(E_aggregates, nu), true, SPACE_TWO_DIMENSIONAL) ;
+
+	Matrix c_le_paste(3,3) ;
+	double E_paste = 12*1e9 ;
+	c_le_paste = Material::cauchyGreen(std::make_pair(E_paste, nu), true, SPACE_TWO_DIMENSIONAL) ;
+
+	double kappa = 1.5 ;
+	Matrix c_kv_paste = c_le_paste * kappa ;
+
+	double eta = 3600*30*24 ;
+	Matrix e_kv_paste = c_kv_paste * eta ;
+
+	Matrix c_eq_paste = c_le_paste * (kappa / (1. + kappa) ) ;
+
+	Matrix c_null = c_aggregates*0 ;
+
+	double tau = 3600*24 ;
+
+	double itzSize = 0.000002;
+	double densite = 1.;
+	int inclusionNumber = 40/*96*/ ;
+	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize) ;
+
+	std::vector<Feature *> features ;
+	for( size_t i = 0; i < inclusions.size() ; i++ )
+		features.push_back( inclusions[i] ) ;
+	inclusions.clear() ;
+
+	Rectangle placeGeometry( 0.04, 0.04, 0, 0 ) ;
+	int nAgg = 1 ;
+	features = placement( &placeGeometry, features, &nAgg, 0, 6400 );
+	double volume = 0 ;
+
+	for( size_t i = 0 ; i < features.size() ; i++ )
+		volume += features[i]->area() ;
+	std::cout << "volume fraction of aggregates: " << volume/(0.04*0.04) <<std::endl ;
+
+	Sample mainSample(NULL, 0.04, 0.04, 0, 0) ;
+	FeatureTree mainFT(&mainSample) ;
+	mainFT.setSamplingNumber(256) ;
+	mainFT.setOrder(LINEAR) ;
+
+	Sample helpSample(NULL, 0.04, 0.04, 0, 0) ;
+	FeatureTree helpFT(&helpSample) ;
+	helpFT.setSamplingNumber(256) ;
+	helpFT.setOrder(LINEAR) ;
+
+//	Sample lastSample(NULL, 0.04, 0.04, 0, 0) ;
+//	FeatureTree lastFT(&lastSample) ;
+//	lastFT.setSamplingNumber(256) ;
+//	lastFT.setOrder(LINEAR) ;
+
+	std::vector<Inclusion *> mainInclusions ;
+	std::vector<Inclusion *> helpInclusions ;
+//	std::vector<Inclusion *> lastInclusions ;
+	for(size_t i = 0 ; i < features.size() ; i++)
+	{
+		mainInclusions.push_back(new Inclusion(features[i]->getRadius(), features[i]->getCenter())) ;
+		helpInclusions.push_back(new Inclusion(features[i]->getRadius(), features[i]->getCenter())) ;
+//		lastInclusions.push_back(new Inclusion(features[i]->getRadius(), features[i]->getCenter())) ;
+	}
+
+	mainSample.setBehaviour(new Stiffness(c_eq_paste)) ;
+	helpSample.setBehaviour(new Stiffness(c_le_paste)) ;
+//	lastSample.setBehaviour(new Stiffness(e_kv_paste * (1./tau))) ;
+
+	Stiffness * inclusionStiffness = new Stiffness(c_aggregates) ;
+	Stiffness * nullStiffness = new Stiffness(c_null) ;
+	for(size_t i = 0 ; i < mainInclusions.size() ; i++)
+	{
+		mainInclusions[i]->setBehaviour(inclusionStiffness) ;
+		mainFT.addFeature(&mainSample, mainInclusions[i]) ;
+		helpInclusions[i]->setBehaviour(nullStiffness) ;
+		helpFT.addFeature(&helpSample, helpInclusions[i]) ;
+//		lastInclusions[i]->setBehaviour(inclusionStiffness) ;
+//		lastFT.addFeature(&lastSample, lastInclusions[i]) ;
+	}
+
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -10e6)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	srand(0) ;
+	mainFT.step() ;
+
+	size_t ndof = mainFT.getDisplacements().size() ;
+	Vector u(ndof) ;
+	Vector v(ndof) ;
+	Vector u_le_v(ndof) ;
+	Vector u_le_e(ndof) ;
+	Vector u_kv_v(ndof) ;
+	Vector u_kv_e(ndof) ;
+	Vector u_e(ndof) ;
+	Vector f(ndof) ;
+	Vector k(ndof) ;
+	std::valarray<bool> in_paste(false, ndof/2) ;
+
+	u_e = mainFT.getDisplacements() ;
+
+	// blank steps to force assembly
+	srand(0) ;
+	helpFT.step() ;
+//	srand(0) ;
+//	lastFT.step() ;
+
+	// boundary conditions
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -10e6)) ;
 	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
-	helpFT.step() ;
-	v.resize(helpFT.getDisplacements().size()) ;
-	v = helpFT.getDisplacements() ;
-	u.resize(v.size()) ;
-	ue.resize(v.size()) ;
-	uv.resize(v.size()) ;
-	k.resize(v.size()) ;
+	std::vector<DelaunayTriangle *> triangles = mainFT.getElements2D() ;
+	for(size_t i = 0 ; i < triangles.size() ; i++)
+	{
+		if(triangles[i]->getBehaviour()->getTensor(Point(0.3,0.3,0.,0.)) != c_aggregates)
+		{
+			for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
+				in_paste[triangles[i]->getBoundingPoint(j).id] = true ;
+		}
+	}
+	triangles.clear() ;
 
-	// solve first step
+	// flush known displacements
+	for(size_t i = 0 ; i < ndof/2 ; i++)
+	{
+		if(!in_paste[i])
+		{
+//			helpFT.getAssembly()->setPointAlong(XI, u_e[i*2+0],i) ;
+//			helpFT.getAssembly()->setPointAlong(ETA,u_e[i*2+1],i) ;
+		}
+	}
+
+	helpFT.step() ;
+	u_le_e = helpFT.getDisplacements() ;
+	u_kv_e = u_e - u_le_e ;
+
+//	f = lastFT.getAssembly()->getMatrix()*u_kv_e ;
+
+//	helpFT.resetBoundaryConditions() ;
+//	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+//	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+//	for(size_t i = 0 ; i < ndof/2 ; i++)
+//	{
+//		if(in_paste[i])
+//		{
+//			helpFT.getAssembly()->addForceOn(XI, -f[i*2],  i);
+//			helpFT.getAssembly()->addForceOn(ETA,-f[i*2+1],i);
+//		}
+//		else
+//		{
+//			helpFT.getAssembly()->setPointAlong(XI, u_e[i*2+0],i) ;
+//			helpFT.getAssembly()->setPointAlong(ETA,u_e[i*2+1],i) ;
+//		}
+//	}
+//	helpFT.step() ;
+//	u_kv_v = helpFT.getDisplacements() ;
+	for(size_t i = 0 ; i < ndof ; i++)
+	{
+//		if(in_paste[i/2])
+		{
+			k[i] = tau/eta ;//- u_kv_e[i] / u_kv_v[i] ;
+			u_kv_v[i] = - u_kv_e[i] * k[i] ;
+//			u_le_v[i] = 0 ;
+		}
+//		else
+//		{
+//			u_kv_v[i] = - u_kv_e[i] / k[i] ;
+//			u_le_v[i] = - u_kv_v[i] ;
+//		}
+	}
+
+
+	for(size_t i = 0 ; i < ndof ; i++)
+	{
+		u[i] = u_e[i] + (1. - std::exp(-k[i]))*u_kv_v[i] ;
+		v[i] = u_e[i]/tau + k[i]/tau * std::exp(-k[i])*u_kv_v[i] ;
+	}
+
+	std::cout << u.max() << "\t" << u.min() << std::endl ;
+
+	for(size_t j = 0 ; j < 400 ; j++)
+	{
+		for(size_t i = 0 ; i < ndof ; i++)
+		{
+//			if(in_paste[i/2])
+				u_kv_v[i] = tau/k[i] * v[i] ;
+//			else
+//				u_kv_v[i] = 0 ;
+			u[i] = u[i] + (1. - std::exp(-k[i]))*u_kv_v[i] ;
+			v[i] = k[i]/tau * std::exp(-k[i])*u_kv_v[i] ;
+		}
+		std::cout << u.max() << "\t" << u.min() << std::endl ;
+	}
+
+	return 0 ;
+}
+
+
+/*	srand(0) ;
+	helpFT.step() ;
+
+
+	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
+	FeatureTree mainFT(&mainSample) ;
+	mainFT.setSamplingNumber(56) ;
+	mainFT.setOrder(LINEAR) ;
+
+	Sample helpSample(NULL, 0.02,0.02,0,0) ;
+	FeatureTree helpFT(&helpSample) ;
+	helpFT.setSamplingNumber(56) ;
+	helpFT.setOrder(LINEAR) ;
+
+	mainSample.setBehaviour(new Stiffness(c)) ;
+	helpSample.setBehaviour(new Stiffness(e)) ;
+
+	// initialization ; u = 0 ; v = 0 ; sigma = 0 ;
+	// first step ; sigma = sigma_1
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-
+	srand(0) ;
 	mainFT.step() ;
+	ue.resize(mainFT.getDisplacements().size()) ;
 	ue = mainFT.getDisplacements() ;
-	mainFT.resetBoundaryConditions() ;
+
+	// blank step for assembly
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	helpFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	srand(0) ;
+	helpFT.step() ;
 
 	// get viscoelastic forces
 	Vector f(ue.size()) ;
 	f = helpFT.getAssembly()->getMatrix() * ue ;
+	f *= (1./tau) ;
+	mainFT.resetBoundaryConditions() ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	for(size_t j = 0 ; j < f.size()/2 ; j++)
 	{
 		mainFT.getAssembly()->addForceOn(XI, -f[j*2],  j);
@@ -989,75 +1249,322 @@ int FD_explicit()
 	}
 
 	// solve auxiliary problem
-	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
-	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-
 	mainFT.step() ;
+	uv.resize(mainFT.getDisplacements().size()) ;
 	uv = mainFT.getDisplacements() ;
-
+	k.resize(uv.size()) ;
 	for(size_t i = 0 ; i < k.size() ; i++)
-	{
-		if(uv[i] < 1e-12 || v[i] < 1e-12)
-			k[i] = -1. ;
-		else
-			k[i] = (tau * v[i] - ue[i]) / uv[i] ;
-	}
-
-//	std::cerr << k.max() << "\t" << k.min() << std::endl ;
+		k[i] = -ue[i] / uv[i] ;
+	std::cout << k[0] << std::endl ;
 //	return 0 ;
 
-	Vector Auv(u.size()) ;
+	u.resize(uv.size()) ;
+	v.resize(uv.size()) ;
+	std::vector<double> u_min ;
+	std::vector<double> v_min ;
+	std::vector<double> time ;
+
+	std::vector<DelaunayTriangle *> mainTri = mainFT.getElements2D() ;
+	std::vector<DelaunayTriangle *> helpTri = helpFT.getElements2D() ;
+
+	mainTri[0]->getBoundingPoint(1).print() ;
+//	for(size_t i = 0 ; i < helpTri.size() ; i++)
+	helpTri[0]->getBoundingPoint(1).print() ;
+//	return 0 ;
+
+/*	Vector Auv(u.size()) ;
 	Vector Avv(u.size()) ;
 	Vector Auuv(u.size()) ;
 	Vector Avuv(u.size()) ;
 	for(size_t i = 0 ; i < Auv.size() ; i++)
 	{
-		if(k[i] > -1)
-		{
-			Auv[i] = (1-std::exp(-k[i]))*tau/k[i] ;
-			Avv[i] = std::exp(-k[i]) ;
-			Auuv[i] = 1 - Avv[i] ;
-			Avuv[i] = k[i] * Avv[i] ;
-		}
-		else
-		{
-			Auv[i] = 0 ;
-			Avv[i] = 0 ;
-			Auuv[i] = 1 ;
-			Avuv[i] = 0 ;
-		}
+		Auv[i] = (1.-std::exp(-k[i]))*tau/k[i] ;
+		Avv[i] = std::exp(-k[i]) ;
+		Auuv[i] = 1. - std::exp(-k[i]) ;
+		Avuv[i] = k[i] * std::exp(-k[i]) ;
+		std::cout << k[i] << std::endl ;
 	}
 
 	for(size_t i = 0 ; i < u.size() ; i++)
 	{
-		u[i] = Auuv[i]*uv[i] + ue[i] ;
-		v[i] = (Avuv[i]*uv[i] + ue[i] ) / tau ;
+		u[i] = (1.-std::exp(-k[i]))*uv[i] + ue[i] ;
+		v[i] = ((k[i]*std::exp(-k[i]))*uv[i] + ue[i] ) / tau ;
 	}
+	std::cerr << u.max() << "\t" << u.min() << std::endl ;
+	time.push_back(0) ;
+	u_min.push_back(u.min()) ;
+	v_min.push_back(v.min()) ;
 
-
-	std::cerr << uv.max() << "\t" << uv.min() << std::endl ;
-	for(size_t i = 0 ; i < 0 ; i++)
+	for(size_t i = 0 ; i < (long) 60*60*24*365*100/time_step ; i++)
 	{
+		double true_time = i*time_step ;
+		double true_day = true_time/(60*60*24) ;
+
 		for(size_t j = 0 ; j < u.size() ; j++)
 		{
-			u[j] = u[j] + Auv[j]*v[j] ;
-			v[j] = Avv[j]*v[j] ;
+			uv[j] = tau*v[j]/k[j] ;
+			u[j] = u[j] + (1.-std::exp(-k[j]))*uv[j] ;
+			v[j] = ((k[j]*std::exp(-k[j]))*uv[j]) / tau ;
+
+//			u[j] = u[j] + Auv[j]*v[j] ;
+//			v[j] = Avv[j]*v[j] ;
 		}
-		std::cerr << u.max() << "\t" << u.min() << std::endl ;
-	}*/
+		if(true_day == (int) true_day)
+		{
+			u_min.push_back(u.min()) ;
+			v_min.push_back(v.min()) ;
+			time.push_back(true_day) ;
+			std::cout << "day = " << true_day << std::endl ;
+		}
+	}
+
+	std::fstream file ;
+	file.open("explicit_"+itoa(time_step)+".txt", std::ios::out) ;
+	for(unsigned long i = 0 ; i < u_min.size() ; i++)
+		file <<  time[i] << "," << u_min[i] << std::endl ;
+	file.close() ;
+
+	return 0 ;
+
+
+}*/
+
+int STFE()
+{
+	Matrix c(3,3) ;
+	double E = 3.*1e9 ;
+	double nu = 0.3 ;
+	c[0][0] = E/(1-nu*nu) ; c[0][1] = E/(1-nu*nu)*nu ; c[0][2] = 0 ;
+	c[1][0] = E/(1-nu*nu)*nu ; c[1][1] = E/(1-nu*nu) ; c[1][2] = 0 ;
+	c[2][0] = 0 ; c[2][1] = 0 ; c[2][2] = E/(1-nu*nu)*(1.-nu)/2. ;
+
+	Matrix e(3,3) ;
+	double eta = 24*3600*60 ;
+	e = c * eta ;
+
+	double tau = time_step ;
+
+	c.print();
+	e.print();
+	
+	Vector u ;
+
+	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
+	FeatureTree mainFT(&mainSample) ;
+	mainFT.setSamplingNumber(56) ;
+	mainFT.setOrder(LINEAR_TIME_LINEAR) ;
+	mainFT.setDeltaTime(tau) ;
+
+	mainSample.setBehaviour(new KelvinVoight(c,e)) ;
+// 	mainSample.setBehaviour(new Stiffness(c)) ;
+	
+//	mainFT.generateElements() ;
+	std::vector<DelaunayTriangle *> tri = mainFT.getElements2D() ;
+	std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{	  
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(3)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(4)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(5)), tri[i])) ;
+/*		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(3),&tri[i]->getBoundingPoint(6)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(4),&tri[i]->getBoundingPoint(7)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(5),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
+	}
+	
+	std::set<std::pair<DofDefinedBoundaryCondition *, size_t> > pointBC ;
+	for(auto i = pointList.begin() ; i != pointList.end() ; i++)
+	{
+	  pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_XI, i->second, i->first.first->id, 0),i->first.second->id*2)) ;
+	  pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second, i->first.first->id, 0),i->first.second->id*2+1)) ;
+	}
+	
+	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
+	  mainFT.addBoundaryCondition(i->first) ;
+	
+
+	BoundingBoxDefinedBoundaryCondition * stressAfter = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -1e6/tau) ;
+	BoundingBoxDefinedBoundaryCondition * stressNow = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_NOW, -1e6/tau) ;
+	
+	mainFT.addBoundaryCondition(stressAfter) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_AFTER)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT_AFTER)) ;
+// 	mainFT.addBoundaryCondition(stressNow) ;
+// 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_NOW)) ;
+// 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_NOW)) ;
+
+	mainFT.step() ;
+	u.resize(mainFT.getDisplacements().size()) ;
+	u = mainFT.getDisplacements() ;
+	
+//	mainFT.getAssembly()->print() ;
+//	exit(0) ;
+	
+//	MultiTriangleWriter writera("visco.txt","visco_0",&mainFT) ;
+//	writera.write() ;
+
+//	MultiTriangleWriter writerb("viscoa.txt","visco_1",&mainFT,1) ;
+//	writerb.write() ;
+	
+//	MultiTriangleWriter writerc("visco.txt","visco_2",&mainFT) ;
+	//writera.reset(&mainFT,2) ;
+//	writerc.write() ;
+
+	TriangleWriter writer("toto",&mainFT) ;
+
+	std::cout << u.max() << std::endl ;
+
+	std::vector<double> u_min ;
+	std::vector<double> v_min ;
+	std::vector<double> time ;
+
+	u_min.push_back(u.max()) ;
+	time.push_back(0) ;
+	
+	std::vector<double> u_before ;
+	std::vector<double> u_now ;
+	std::vector<double> u_after ;
+	
+	double u_max_before = 0 ;
+	double u_max_now = 0 ;
+	double u_max_after = 0 ;
+
+	
+
+	for(size_t n = 0 ; n < nsteps/*(long) 60*60*24*365*2/time_step*/ ; n++)
+	{
+		double true_time = n*tau ;
+		double true_day = true_time/(60*60*24) ;
+
+		for(auto j = pointBC.begin() ; j != pointBC.end() ; j++)
+		    j->first->setData(u[j->second]) ;
+		
+//		stressNow->setData(0.001) ;
+
+		mainFT.step() ;
+		u = mainFT.getDisplacements() ;
+
+/*		writera.reset(&mainFT,0) ;
+		writera.write() ;
+		writerb.reset(&mainFT,1) ;
+		writerb.write() ;*/
+/*		writerc.reset(&mainFT,2) ;
+		writerc.write() ;*/
+
+
+		u_max_before = 0 ;
+		u_max_now = 0 ;
+		u_max_after = 0 ;
+
+//		tri = mainFT.getElements2D() ;
+		for(size_t i = 0 ; i < tri.size() ; i++)
+		{
+			for(size_t j = 0 ; j < 3 ; j++)
+			{
+				size_t id_before = tri[i]->getBoundingPoint(j).id ;
+				size_t id_now = tri[i]->getBoundingPoint(j+3).id ;
+//				size_t id_after = tri[i]->getBoundingPoint(j+6).id ;
+
+//				if(u[id_before*2+0] > u_max_before)
+//					u_max_before = u[id_before*2+0] ;
+// 				if(u[id_before*2+1] > u_max_before)
+// 					u_max_before = u[id_before*2+1] ;
+
+//				if(u[id_now*2+0] > u_max_now)
+//					u_max_now = u[id_now*2+0] ;
+				if(u[id_now*2+1] < u_max_now)
+					u_max_now = u[id_now*2+1] ;
+
+//				if(u[id_after*2+0] > u_max_after)
+//					u_max_after = u[id_after*2+0] ;
+/*				if(u[id_after*2+1] > u_max_after)
+					u_max_after = u[id_after*2+1] ;*/
+			
+			}
+		}
+	
+		u_before.push_back(u.min()) ;
+		u_now.push_back(u_max_now) ;
+// 		u_after.push_back(u_max_after) ;
+
+	}
+
+	std::fstream file ;
+	file.open("space-time.txt", std::ios::out) ;
+	for(unsigned long i = 0 ; i < u_before.size() ; i++)
+	{
+		file <<  10*i << "," << u_before[i] /*<< "," << u_now[i] << "," << u_after[i]*/ << std::endl ;
+	}
+	file.close() ;
 
 	return 0 ;
 
 
 }
 
+int analytical()
+{
+	Matrix c(3,3) ;
+	double E = 3.*1e9 ;
+	double nu = 0.3 ;
+	c[0][0] = E/(1-nu*nu) ; c[0][1] = E/(1-nu*nu)*nu ; c[0][2] = 0 ;
+	c[1][0] = E/(1-nu*nu)*nu ; c[1][1] = E/(1-nu*nu) ; c[1][2] = 0 ;
+	c[2][0] = 0 ; c[2][1] = 0 ; c[2][2] = E/(1-nu*nu)*(1.-nu)/2. ;
+
+	Matrix e(3,3) ;
+	double eta = 24*3600*60 ;
+	e = c * eta ;
+
+	double tau = 60*60 ;
+
+	Vector sigma(3) ;
+	sigma[0] = -1e6 ;
+
+	Vector epsilon_elastic(3) ;
+	Vector epsilon_visco(3) ;
+
+	Matrix s = c ;
+	invert3x3Matrix(s) ;
+
+	double k = tau / eta ;
+	std::cout << k << std::endl ;
+
+	epsilon_elastic = s*sigma ;
+	epsilon_visco = -epsilon_elastic / k ;
+
+	double uv = epsilon_visco[0]*0.02 ;
+	double ue = epsilon_elastic[0]*0.02 ;
+
+	double u = (1-std::exp(-k))*uv + ue ;
+	double v = (k/tau * exp(-k))*uv + ue/tau ;
+
+	std::cout << u << "," << v << std::endl ;
+
+	for(unsigned long i = 0 ; i < 24*365*10 ; i++)
+	{
+		uv = tau*v/k ;
+		u = u +(1-exp(-k))*uv ;
+		v = k/tau*exp(-k)*uv ;
+		if(i%24 == 0)
+			std::cout << u << "," << v << std::endl ;
+	}
+
+	return 0 ;
+
+}
 
 int main(int argc, char *argv[])
 {
-	time_step = atof(argv[1]) ;
-	true_alpha = atof(argv[2]) ;
-	return FD_implicit() ;
+      
+  
+  
+  
+  time_step = atof(argv[1]) ;
+	if(argc > 2)
+		nsteps = atof(argv[2]) ;
+	else
+		nsteps = 0 ;
+//	true_alpha = atof(argv[1]) ;
+	return STFE() ;
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1192,3 +1699,4 @@ int main(int argc, char *argv[])
 
 	return 0 ;
 }
+

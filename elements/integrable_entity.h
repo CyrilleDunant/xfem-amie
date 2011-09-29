@@ -360,6 +360,7 @@ struct GaussPointArray
 	std::valarray< std::pair<Point, double> > gaussPoints ;
 	int id ;
 	GaussPointArray() : gaussPoints(std::make_pair(Point(), 1.),1), id(-2) { } ;
+	GaussPointArray(const GaussPointArray & gp) : gaussPoints(gp.gaussPoints), id(-2) { } ;
 	GaussPointArray(const std::valarray< std::pair<Point, double> > & array, int i): gaussPoints(array), id(i) { } ;
 	void operator = (const GaussPointArray & gp) 
 	{

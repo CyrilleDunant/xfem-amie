@@ -900,11 +900,13 @@ void Triangle::sampleBoundingSurface(size_t num_points)
 	Point * v0 = &getBoundingPoint(0) ;
 	Point * v1 = &getBoundingPoint(getBoundingPoints().size()/3) ;
 	Point * v2 = &getBoundingPoint(2*getBoundingPoints().size()/3) ;
-	for(size_t i = 1 ; i < num_points/3 ; i++)
+
+/*	for(size_t i = 1 ; i < num_points/3 ; i++)
 	{
 		if(i != getBoundingPoints().size()/3 && i != 2*getBoundingPoints().size()/3)
 			delete boundingPoints[i] ;
-	}
+	}*/
+	
 	
 	getBoundingPoints().resize(num_points) ;
 	

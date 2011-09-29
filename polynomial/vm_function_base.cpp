@@ -1377,7 +1377,7 @@ Function & Function::d(const Variable v)
 {
 	if(derivative.size() == 0)
 	{
-		derivative.resize(3) ;
+		derivative.resize(4) ;
 		derivative = Function() ;
 		e_diff = true ;
 	}
@@ -2689,6 +2689,11 @@ GDtMtG GDtM::operator*(const Mu::Gradient & f) const
 GDtM GradientDot::operator *(const Matrix & f) const
 {
 	return GDtM(*this, f) ;
+}
+
+GDtV GradientDot::operator *(const Vector & v) const
+{
+	return GDtV(*this, v) ;
 }
 
 VGtM VectorGradient::operator *(const Matrix & f) const 

@@ -440,7 +440,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[0][iterator++] = 0 ;
 					}
 				}
-
 				break ;
 
 			case TWFT_STRESS:

@@ -127,6 +127,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				v[0] = XI ;
 				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+				  v.push_back(TIME_VARIABLE) ;
+				}
+
 				Vector imposed( 3 ) ;
 				imposed[0] = data ;
 				imposed[1] = 0 ;
@@ -171,6 +176,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				v[0] = XI ;
 				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+				  v.push_back(TIME_VARIABLE) ;
+				}
+				
 				Vector imposed( 3 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = data ;
@@ -185,7 +195,6 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
-//					std::cerr << forces[0] << "\t" << forces[1] << std::endl ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 				}
@@ -213,6 +222,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				v[0] = XI ;
 				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 3 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -328,6 +341,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = data ;
 				imposed[1] = 0 ;
@@ -375,6 +392,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = data ;
@@ -421,6 +442,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -467,6 +492,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -513,6 +542,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -559,6 +592,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -680,7 +717,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 
 				v[0] = XI ;
 				v[1] = ETA ;
-
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				
 				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
 
 				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
@@ -725,6 +766,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 
 				v[0] = XI ;
 				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 3 ) ;
 
 				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
@@ -779,6 +824,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 
 				v[0] = XI ;
 				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 3 ) ;
 
 				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
@@ -893,6 +942,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 
 				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
@@ -941,6 +994,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = vm.eval( data, id[i] ) ;
@@ -987,6 +1044,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -1033,6 +1094,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -1079,6 +1144,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -1125,6 +1194,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				v[0] = XI ;
 				v[1] = ETA ;
 				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
 				Vector imposed( 6 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
@@ -2869,7 +2942,6 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
-
 				break ;
 			}
 
@@ -3106,7 +3178,6 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 
 			case BEFORE:
 			{
-				std::cerr << mint << std::endl ;
 
 				if ( maxt != mint )
 				{
@@ -3120,6 +3191,45 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 						{
 							if ( std::abs( elements[i]->getBoundingPoint( j ).t - mint ) < tol )
+							{
+								if ( cache2d.empty() || cache2d.back() != elements[i] )
+								{
+									cache.push_back( std::vector<Point>() );
+									cache2d.push_back( elements[i] );
+								}
+
+								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+							}
+						}
+
+						if ( !cache2d.empty() && cache2d.back() == elements[i] )
+						{
+							if ( !function )
+								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							else
+								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+						}
+					}
+				}
+
+				break ;
+			}
+
+			case NOW:
+			{
+
+				if ( maxt != mint )
+				{
+					tol = ( maxt - mint ) * 0.001 ;
+
+					for ( size_t i = 0 ; i < elements.size() ; ++i )
+					{
+						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+							continue ;
+
+						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+						{
+							if ( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tol )
 							{
 								if ( cache2d.empty() || cache2d.back() != elements[i] )
 								{
@@ -3220,6 +3330,120 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 				}
 			}
 
+			case LEFT_BEFORE:
+			{
+				if ( maxt != mint )
+				{
+					double tolt = ( maxt - mint ) * 0.001 ;
+
+					for ( size_t i = 0 ; i < elements.size() ; ++i )
+					{
+						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+							continue ;
+
+						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+						{
+							if (( std::abs( elements[i]->getBoundingPoint( j ).t - mint ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol ) )
+							{
+								if ( cache2d.empty() || cache2d.back() != elements[i] )
+								{
+									cache.push_back( std::vector<Point>() );
+									cache2d.push_back( elements[i] );
+								}
+
+								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+							}
+						}
+
+						if ( !cache2d.empty() && cache2d.back() == elements[i] )
+						{
+							if ( !function )
+								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							else
+								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+						}
+					}
+
+					break ;
+				}
+			}
+
+			case LEFT_AFTER:
+			{
+				if ( maxt != mint )
+				{
+					double tolt = ( maxt - mint ) * 0.001 ;
+
+					for ( size_t i = 0 ; i < elements.size() ; ++i )
+					{
+						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+							continue ;
+
+						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+						{
+							if (( std::abs( elements[i]->getBoundingPoint( j ).t - maxt ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol ) )
+							{
+								if ( cache2d.empty() || cache2d.back() != elements[i] )
+								{
+									cache.push_back( std::vector<Point>() );
+									cache2d.push_back( elements[i] );
+								}
+
+								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+							}
+						}
+
+						if ( !cache2d.empty() && cache2d.back() == elements[i] )
+						{
+							if ( !function )
+								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							else
+								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+						}
+					}
+
+					break ;
+				}
+			}
+
+		case TOP_NOW:
+		{
+			if ( maxt != mint )
+			{
+				double tolt = ( maxt - mint ) * 0.001 ;
+
+				for ( size_t i = 0 ; i < elements.size() ; ++i )
+				{
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+						continue ;
+
+					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+					{
+						if (( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol ) )
+						{
+							if ( cache2d.empty() || cache2d.back() != elements[i] )
+							{
+								cache.push_back( std::vector<Point>() );
+								cache2d.push_back( elements[i] );
+							}
+
+							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+						}
+					}
+
+					if ( !cache2d.empty() && cache2d.back() == elements[i] )
+					{
+						if ( !function )
+							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+						else
+							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+					}
+				}
+
+				break ;
+			}
+		}
+
 			case TOP_AFTER:
 			{
 				if ( maxt != mint )
@@ -3295,6 +3519,44 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 					break ;
 				}
 			}
+
+		case BOTTOM_NOW:
+		{
+			if ( maxt != mint )
+			{
+				double tolt = ( maxt - mint ) * 0.001 ;
+
+				for ( size_t i = 0 ; i < elements.size() ; ++i )
+				{
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+						continue ;
+
+					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+					{
+						if (( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol ) )
+						{
+							if ( cache2d.empty() || cache2d.back() != elements[i] )
+							{
+								cache.push_back( std::vector<Point>() );
+								cache2d.push_back( elements[i] );
+							}
+
+							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+						}
+					}
+
+					if ( !cache2d.empty() && cache2d.back() == elements[i] )
+					{
+						if ( !function )
+							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+						else
+							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+					}
+				}
+
+				break ;
+			}
+		}
 
 			case BOTTOM_AFTER:
 			{

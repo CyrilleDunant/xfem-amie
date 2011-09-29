@@ -5227,6 +5227,17 @@ void ElementState::step( double dt, const Vector *d )
 
 Vector ElementState::getSpeed( const Point &p ) const
 {
+	if(getParent()->getOrder() > CONSTANT_TIME_LINEAR)
+	{
+		Point p_ = getParent()->inLocalCoordinates(p) ;
+		Vector speed(2,0.) ;
+		for(size_t i = 0 ; i < getParent()->getShapeFunctions().size() ; i++)
+		{
+			speed += VirtualMachine().deval(getParent()->getShapeFunction(i),TIME_VARIABLE, p_) ;
+		}
+		return speed ;
+	}
+
 	return ( getDisplacements( p ) - getPreviousDisplacements( p ) ) / ( timePos - previousTimePos ) ;
 }
 

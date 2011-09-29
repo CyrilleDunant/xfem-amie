@@ -89,6 +89,7 @@ using namespace Mu ;
 int nz ;
 double fraction ;
 int sampling ;
+std::vector<Point> centers ;
 
 Matrix getStiffnessTensorAndExpansionStress(std::string hom)
 {
@@ -143,7 +144,7 @@ Matrix getStiffnessTensorAndExpansionStress(std::string hom)
 	return homogenization ;
 }
 
-Vector getStiffnessTensor()
+Vector getStiffnessTensor(bool random)
 {
 	ElasticOnlyAggregateBehaviour * aggregate = new ElasticOnlyAggregateBehaviour() ;
 	GelBehaviour * gel = new GelBehaviour(22e9,0.28,0) ;
@@ -165,6 +166,29 @@ Vector getStiffnessTensor()
 		}
 	}
 	std::cerr << inclusions[0]->area()/(0.05*0.05) << std::endl ;
+	
+	if(random)
+	{
+		std::vector<Feature *> features ;
+		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		{
+			features.push_back(dynamic_cast<Feature *>(inclusions[i])) ;
+		}
+		inclusions.clear() ;
+		int granulats = 1 ;
+		features = placement(dynamic_cast<Rectangle *>(&box), features, &granulats) ;
+		
+		for(size_t i = 0 ; i < features.size() ; i++)
+		{
+			inclusions.push_back(dynamic_cast<Inclusion *>(features[i])) ;
+			inclusions[i]->getCenter().print() ;
+		}
+		features.clear() ;
+	}
+
+	centers.clear() ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		centers.push_back(inclusions[i]->getCenter()) ;
 
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		inclusions[i]->setBehaviour(gel) ;
@@ -225,7 +249,7 @@ Vector getStiffnessTensor()
 	return epsilon * sigma ;
 }
 
-Vector getExpansionStress()
+Vector getExpansionStress(bool random)
 {
 	ElasticOnlyAggregateBehaviour * aggregate = new ElasticOnlyAggregateBehaviour() ;
 	GelBehaviour * gel = new GelBehaviour() ;
@@ -236,6 +260,7 @@ Vector getExpansionStress()
 	std::vector<Inclusion *> inclusions ;
 	double interval = 0.05/(nz+1) ;
 	double radius = std::sqrt(fraction*(0.05*0.05)/(nz*nz*3.141592)) ;
+	std::cout << radius << std::endl ;
 
 	for(size_t i = 0 ; i < nz ; i++)
 	{
@@ -248,8 +273,31 @@ Vector getExpansionStress()
 	}
 	std::cerr << inclusions[0]->area()/(0.05*0.05) << std::endl ;
 
+/*	if(random)
+	{
+		std::vector<Feature *> features ;
+		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		{
+			features.push_back(dynamic_cast<Feature *>(inclusions[i])) ;
+		}
+		inclusions.clear() ;
+		int granulats = 1 ;
+		features = placement(dynamic_cast<Rectangle *>(&box), features, &granulats) ;
+		
+		for(size_t i = 0 ; i < granulats ; i++)
+		{
+			inclusions.push_back(dynamic_cast<Inclusion *>(features[i])) ;
+			inclusions[i]->getCenter().print() ;
+		}
+		features.clear() ;
+	}*/
+
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	{
 		inclusions[i]->setBehaviour(gel) ;
+		Point c = centers[i] ;
+		dynamic_cast<Circle *>(inclusions[i])->setCenter(c) ;
+	}
 
 	FeatureTree F(&box) ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -295,8 +343,98 @@ Vector getExpansionStress()
 
 int main(int argc, char *argv[])
 {
-	std::string type(argv[1]) ;
-	if(type == "--finite-elements")
+	Function f1 = "0.5 0.5 x * - 0.5 0.5 t * - *" ;
+	Function f2 = "0.5 0.5 x * + 0.5 0.5 t * - *" ;
+	Function f3 = "0.5 0.5 x * - 0.5 0.5 t * + *" ;
+	Function f4 = "0.5 0.5 x * + 0.5 0.5 t * + *" ;
+	
+	VirtualMachine vm ;
+
+	Function fx1 = "0.5 0.5 t * - -0.5 *" ;
+	Function fx2 = "0.5 0.5 t * - 0.5 *" ;
+	Function fx3 = "0.5 0.5 t * + -0.5 *" ;
+	Function fx4 = "0.5 0.5 t * + 0.5 *" ;
+
+	Matrix A(4,4) ;
+	Matrix B(4,4) ;
+	
+	A[0][0] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	A[0][1] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	A[0][2] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	A[0][3] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+	
+	A[1][0] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	A[1][1] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	A[1][2] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	A[1][3] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+
+	A[2][0] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	A[2][1] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	A[2][2] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	A[2][3] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+
+	A[3][0] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	A[3][1] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	A[3][2] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	A[3][3] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+
+// 	 std::endl ;
+
+	B[0][0] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[0][1] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[0][2] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[0][3] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
+	
+	B[1][0] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[1][1] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[1][2] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[1][3] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
+
+	B[2][0] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[2][1] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[2][2] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[2][3] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
+
+	B[3][0] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[3][1] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[3][2] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
+	B[3][3] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
+	
+	((Matrix)(A+B)).print() ; 
+	
+	Matrix C(4,4) ;
+	C[0][0] = vm.deval(f1, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	C[0][1] =  vm.deval(f1, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	C[0][2] =  vm.deval(f1, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	C[0][3] =  vm.deval(f1, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+	
+	C[1][0] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	C[1][1] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	C[1][2] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	C[1][3] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+
+	C[2][0] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	C[2][1] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	C[2][2] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	C[2][3] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+
+	C[3][0] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
+	C[3][1] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
+	C[3][2] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
+	C[3][3] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
+	
+	((Matrix)(C+B+B.transpose())).print() ; 
+	
+	
+	
+	
+	
+	return 0 ;
+	
+	
+
+/*	std::string type(argv[1]) ;
+	if(type == "--regular")
 	{
 		std::cout << "first argument is number of zones along a side" << std::endl ;
 		std::cout << "second argument is percentage of area covered by all the zones" << std::endl ;
@@ -306,41 +444,38 @@ int main(int argc, char *argv[])
 		fraction = atof(argv[3]) ;
 		sampling = atoi(argv[4]) ;
 
-		Vector stiffness = getStiffnessTensor() ;
-		Vector expansion = getExpansionStress() ;
+		Vector stiffness = getStiffnessTensor(false) ;
+		Vector expansion = getExpansionStress(false) ;
 	
 		std::fstream out ;
-		out.open("grid_correct", std::ios::out | std::ios::app) ;
+		out.open("grid_regular", std::ios::out | std::ios::app) ;
 		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << std::endl ;
 		out.close() ;
 
 		return 0 ;
 	}
 	
-	if(type == "--homogenization")
+	if(type == "--random")
 	{
-		std::cout << "first argument is homogenization scheme" << std::endl ;
-		std::cout << "second argument is maximum fraction of gel pockets" << std::endl ;
-		std::cout << "third argument is the number of steps" << std::endl ;
-		
-		std::string scheme(argv[2]) ;
+		std::cout << "first argument is number of zones along a side" << std::endl ;
+		std::cout << "second argument is percentage of area covered by all the zones" << std::endl ;
+		std::cout << "third argument is sampling number" << std::endl ;
+
+		nz = atoi(argv[2]) ;
 		fraction = atof(argv[3]) ;
 		sampling = atoi(argv[4]) ;
-		
-		Matrix homogenization = getStiffnessTensorAndExpansionStress(scheme) ;
-		if(homogenization.size() > 0)
-		{
-			std::fstream out ;
-			out.open("grid_correct", std::ios::out | std::ios::app) ;
-			for(size_t i = 0 ; i < sampling ; i++)
-				out << scheme << "\t" << fraction * (double) (i+1) / (double) sampling << "\t" << homogenization[i][0] << "\t" << homogenization[i][1] << "\t" << homogenization[i][2] << std::endl ;
-			out.close() ;
-		}
-		
+
+		Vector stiffness = getStiffnessTensor(true) ;
+		Vector expansion = getExpansionStress(true) ;
+	
+		std::fstream out ;
+		out.open("grid_random", std::ios::out | std::ios::app) ;
+		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << std::endl ;
+		out.close() ;
+
 		return 0 ;
-		
 	}
 
-	return 0 ;
+	return 0 ;*/
 
 }

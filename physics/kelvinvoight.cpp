@@ -19,6 +19,7 @@ using namespace Mu ;
 
 KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e) : LinearForm(rig, false, false, rig.numRows()/3+1), eta(e)
 {
+	rig.print() ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() > 9)
@@ -33,17 +34,13 @@ void KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gauss
 
 	Matrix temp(ret) ;
 	Matrix temp0(ret) ;
-	
-	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
-	vm->ieval(GradientDot(p_i) * eta * Gradient(p_j, true), gp, Jinv,v,temp);
-	vm->ieval(Gradient(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp0);
+		
+	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
+	vm->ieval(Gradient(p_i) * param * GradientDot(p_j, true), gp, Jinv,v,temp0);
 
-/*	std::cerr << "---" << std::endl ;
-	Jinv[0].print();
-	std::cerr << " " << std::endl ;
-	temp0.print();*/
+	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp);
 
-	ret += temp+temp0;
+	ret = (ret+temp0)*0.5 + temp;
 	
 }
 

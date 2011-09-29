@@ -460,7 +460,7 @@ void Assembly::setBoundaryConditions()
 				|| multipliers[i].type == SET_FORCE_ETA
 				|| multipliers[i].type == SET_FORCE_ZETA)
 		{
-			this->externalForces[multipliers[i].getId()] = multipliers[i].getValue() ; 
+			this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ; 
 		}
 
 	}
@@ -1182,7 +1182,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 // 		print();
 // 		exit(0) ;
 
-		ConjugateGradientWithSecant cg(this) ;
+ 		ConjugateGradientWithSecant cg(this) ;
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
 		ret = cg.solve(x0, NULL, 5e-12, -1, verbose) ;
 

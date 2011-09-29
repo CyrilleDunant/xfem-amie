@@ -483,9 +483,9 @@ int main(int argc, char *argv[])
 			<< "D11 = " << -average_flux[0]/average_gradient[0] << std::endl ;
 		out.close() ;
 
-		VoxelWriter vw("fem_s1", 200) ;
+/*		VoxelWriter vw("fem_s1", 200) ;
 		vw.getField(featureTree, VWFT_GRADIENT) ;
-		vw.write();
+		vw.write();*/
 		
 		break ;
 	}

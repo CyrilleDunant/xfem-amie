@@ -149,12 +149,13 @@ double shape ;
 double orientation ;
 double spread ;
 
+MultiTriangleWriter writer("RAG_10000z","RAG_10000z_step_",NULL) ;
 
 void step()
 {
 
-  int nsteps = 1000;
-	int nstepstot = 1000;
+  int nsteps = 30;
+	int nstepstot = 30;
   int maxtries = 200 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(200) ;
@@ -423,11 +424,11 @@ void step()
 		filename.append(itoa(totit++, 10)) ;
 		std::cout << filename << std::endl ;
 
-		TriangleWriter writer(filename, featureTree) ;
+		writer.reset(featureTree) ;
 		writer.getField(TWFT_STRAIN_AND_STRESS) ;
 		writer.getField(TWFT_VON_MISES) ;
 		writer.getField(TWFT_STIFFNESS) ;
-		writer.write() ;
+		writer.append() ;
 
 		
 		std::cout << std::endl ;
@@ -561,8 +562,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
+	a[0] = 0.25 ;
+	a[1] = 0.25 ;
 	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
@@ -670,7 +671,8 @@ int main(int argc, char *argv[])
 	srand(0) ;
 
 	percent = atof(argv[1]) ;
-	shape = atof(argv[2])*(-1e6) ;
+	shape = 0 ;
+//	shape = atof(argv[2])*(-1e6) ;
 /*	shape = atof(argv[2]) ;
 	orientation = atof(argv[3]) ;
 	spread = atof(argv[4]) ;*/
@@ -730,13 +732,13 @@ int main(int argc, char *argv[])
         }
 
 
-//        zones = generateExpansiveZonesHomogeneously(0, inclusions, F) ;
+        zones = generateExpansiveZonesHomogeneously(10000, inclusions, F) ;
 
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_RIGHT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
         F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, shape)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, shape)) ;
 
-        F.setSamplingNumber(2000) ;
+        F.setSamplingNumber(800) ;
 	F.setOrder(LINEAR) ;
 
 	step() ;

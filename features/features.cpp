@@ -61,7 +61,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles( Feature *f )
 
 std::vector<DelaunayTriangle *> FeatureTree::getElements2D( int g )
 {
-	state.setStateTo( MESHED, false ) ;
+	state.setStateTo( RENUMBERED, false ) ;
 
 	if( is2D() )
 	{
@@ -4730,7 +4730,7 @@ void FeatureTree::resetBoundaryConditions()
 bool FeatureTree::step()
 {
 	double realdt = deltaTime ;
-
+	
 	if( solverConverged() && !behaviourChanged() )
 		now += deltaTime ;
 	else

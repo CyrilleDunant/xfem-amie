@@ -679,6 +679,7 @@ struct DtD ;
 struct VGtMtVG ;
 struct DtGtMtG ;
 struct GDtM ;
+struct GDtV ;
 struct GDtMtGD ;
 struct GDtMtG ;
 struct GtMtGD ;
@@ -776,6 +777,9 @@ struct GradientDot
 	 * @return GDtM
 	 */
 	GDtM operator *(const Matrix & f) const ;
+	GDtV operator *(const Vector & v) const ;
+
+  
 } ;
 
 /** \brief Create a structure for the lazy evaluation of a VectorGradient 
@@ -971,6 +975,19 @@ struct GtV
 	 * @param f Vector
 	 */
 	GtV(const Gradient & g, const Vector & f) : first(g), second(f) { };
+} ;
+
+struct GDtV
+{
+	const GradientDot & first ;
+	const Vector & second ;
+	
+	/**  \brief Constructor, initalise the references
+	 * 
+	 * @param g Gradient
+	 * @param f Vector
+	 */
+	  GDtV(const GradientDot & g, const Vector & f) : first(g), second(f) { };
 } ;
 
 /** \brief Structure for the lazy evaluation of a VectorGradient * Vector */
