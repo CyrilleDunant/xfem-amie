@@ -1352,20 +1352,20 @@ int STFE()
 	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
 	FeatureTree mainFT(&mainSample) ;
 	mainFT.setSamplingNumber(56) ;
-	mainFT.setOrder(LINEAR_TIME_LINEAR) ;
+	mainFT.setOrder(LINEAR) ;
 	mainFT.setDeltaTime(tau) ;
 
-	mainSample.setBehaviour(new KelvinVoight(c,e)) ;
-// 	mainSample.setBehaviour(new Stiffness(c)) ;
+//	mainSample.setBehaviour(new KelvinVoight(c,e)) ;
+ 	mainSample.setBehaviour(new Stiffness(c)) ;
 	
 //	mainFT.generateElements() ;
 	std::vector<DelaunayTriangle *> tri = mainFT.getElements2D() ;
 	std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{	  
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(3)), tri[i])) ;
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(4)), tri[i])) ;
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(5)), tri[i])) ;
+/*		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(6)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(7)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
 /*		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(3),&tri[i]->getBoundingPoint(6)), tri[i])) ;
 		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(4),&tri[i]->getBoundingPoint(7)), tri[i])) ;
 		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(5),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
@@ -1378,19 +1378,19 @@ int STFE()
 	  pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second, i->first.first->id, 0),i->first.second->id*2+1)) ;
 	}
 	
-	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
-	  mainFT.addBoundaryCondition(i->first) ;
+/*	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
+	  mainFT.addBoundaryCondition(i->first) ;*/
 	
 
-	BoundingBoxDefinedBoundaryCondition * stressAfter = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -1e6/tau) ;
-	BoundingBoxDefinedBoundaryCondition * stressNow = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_NOW, -1e6/tau) ;
+	BoundingBoxDefinedBoundaryCondition * stressAfter = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6) ;
+	BoundingBoxDefinedBoundaryCondition * stressNow = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_NOW, -1e6) ;
 	
 	mainFT.addBoundaryCondition(stressAfter) ;
-	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_AFTER)) ;
-	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT_AFTER)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 // 	mainFT.addBoundaryCondition(stressNow) ;
 // 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_NOW)) ;
-// 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_NOW)) ;
+// 	mainFT.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT_NOW)) ;
 
 	mainFT.step() ;
 	u.resize(mainFT.getDisplacements().size()) ;
@@ -1492,7 +1492,7 @@ int STFE()
 	file.open("space-time.txt", std::ios::out) ;
 	for(unsigned long i = 0 ; i < u_before.size() ; i++)
 	{
-		file <<  10*i << "," << u_before[i] /*<< "," << u_now[i] << "," << u_after[i]*/ << std::endl ;
+		file <<  i+1 << "," << u_before[i] /*<< "," << u_now[i] << "," << u_after[i]*/ << std::endl ;
 	}
 	file.close() ;
 

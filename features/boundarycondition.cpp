@@ -67,6 +67,12 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 	if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
 		return ;
 
+	double nTimePlanes = 1 ;
+	if(e->getOrder() > CONSTANT_TIME_LINEAR)
+	{
+		nTimePlanes = e->timePlanes() ;
+	}
+	
 	for ( size_t idit = 0 ; idit < id.size() ; idit++ )
 	{
 		switch ( condition )
@@ -95,15 +101,14 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 			case SET_FORCE_XI:
 			{
 				if ( !e->getBehaviour()->fractured() )
-					a->setForceOn( XI, data, id[idit] ) ;
+					a->setForceOn( XI, data/nTimePlanes, id[idit]) ;
 
 				break ;
 			}
 
 			case SET_FORCE_ETA:
-
 				if ( !e->getBehaviour()->fractured() )
-					a->setForceOn( ETA, data, id[idit] ) ;
+					a->setForceOn( ETA, data/nTimePlanes, id[idit] ) ;
 
 				break ;
 
@@ -145,7 +150,9 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][2][2] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 				}
@@ -194,7 +201,9 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][2][2] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 				}
@@ -239,7 +248,9 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][2][2] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 				}
@@ -361,7 +372,9 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i], true ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][3][3] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -412,7 +425,9 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i], true ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][3][3] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -462,7 +477,9 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i], true ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][3][3] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -512,7 +529,9 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i], true ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][3][3] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -562,7 +581,9 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i], true ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][3][3] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -612,7 +633,9 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces =  VirtualMachine().ieval( Gradient( shapeFunctions[i], true ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+						forces *= Jinv[0][3][3] ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -3368,6 +3391,44 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 				}
 			}
 
+			case LEFT_NOW:
+			{
+				if ( maxt != mint )
+				{
+					double tolt = ( maxt - mint ) * 0.001 ;
+					
+					for ( size_t i = 0 ; i < elements.size() ; ++i )
+					{
+						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+							continue ;
+						
+						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+						{
+							if (( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol ) )
+							{
+								if ( cache2d.empty() || cache2d.back() != elements[i] )
+								{
+									cache.push_back( std::vector<Point>() );
+									cache2d.push_back( elements[i] );
+								}
+								
+								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+							}
+						}
+						
+						if ( !cache2d.empty() && cache2d.back() == elements[i] )
+						{
+							if ( !function )
+								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							else
+								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+						}
+					}
+					
+					break ;
+				}
+			}
+			
 			case LEFT_AFTER:
 			{
 				if ( maxt != mint )

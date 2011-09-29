@@ -1218,7 +1218,6 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 				ret[i][2][0] = ret[i][1][1] ;
 				ret[i][2][1] = ret[i][0][0] ;
 			}
-			
 			return ret ;
 		}
 		else
@@ -1604,7 +1603,8 @@ Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::ve
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[2][0] = ret[1][1] ;
 				ret[2][1] = ret[0][0] ;
-
+				ret *= m[2][2] ;
+				
 				return ret ;
 			}
 			else
@@ -1617,6 +1617,8 @@ Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::ve
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[0][2] = ret[1][1] ;
 				ret[1][2] = ret[0][0] ;
+				ret *= m[2][2] ;
+				
 				return ret ;
 			}
 		}
@@ -1749,7 +1751,8 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[2][0] = ret[1][1] ;
 				ret[2][1] = ret[0][0] ;
-
+				ret *= m[2][2] ;
+				
 				return ;
 			}
 			else
@@ -1763,6 +1766,8 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[0][2] = ret[1][1] ;
 				ret[1][2] = ret[0][0] ;
+				ret *= m[2][2] ;
+				
 				return ;
 			}
 		}
@@ -1817,7 +1822,7 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 			double dxi = ddeval(f, var[0],TIME_VARIABLE, x,y,z) ;
 			double deta = ddeval(f, var[1],TIME_VARIABLE, x,y,z) ;
 				if(ret.isNull() || ret.numRows() !=2 ||ret.numCols() != 2)
-					ret.resize(2,2) ;
+					ret.resize(3,2) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 			ret[2][0] = ret[1][1] ;
@@ -1830,11 +1835,12 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 			double dxi = ddeval(f, var[0],TIME_VARIABLE, x,y,z) ;
 			double deta = ddeval(f, var[1],TIME_VARIABLE, x,y,z) ;
 				if(ret.isNull() || ret.numRows() !=2 ||ret.numCols() != 2)
-					ret.resize(2,2) ;
+					ret.resize(2,3) ;
 			ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;
 			ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 			ret[0][2] = ret[1][1] ;
 			ret[1][2] = ret[0][0] ;
+			
 			
 			return ;
 		}

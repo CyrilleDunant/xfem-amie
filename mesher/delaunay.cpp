@@ -356,8 +356,9 @@ bool DelaunayTreeItem::isDuplicate(const DelaunayTreeItem * t) const
 void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep, const TriElement * father)
 {
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
-//	std::cout << timestep << std::endl ;
 
+	double timeSlice = timestep ;
+	
 	for(auto i = tri.begin() ; i != tri.end() ; ++i)
 	{
 		(*i)->visited = true ;
@@ -376,8 +377,8 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 				
 				if(time_planes> 1)
 				{
-					a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
-					b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+					a.t = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
+					b.t = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
 				}
 				for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
 				{
