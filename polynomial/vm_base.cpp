@@ -776,6 +776,7 @@ std::valarray<Matrix> VirtualMachine::geval(const Function &f, const std::valarr
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][2][0] = ret[i][1][1] ;
 					ret[i][2][1] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
 				}
 				
 				return ret ;
@@ -793,6 +794,7 @@ std::valarray<Matrix> VirtualMachine::geval(const Function &f, const std::valarr
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][0][2] = ret[i][1][1] ;
 					ret[i][1][2] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
 				}
 				return ret ;
 			}

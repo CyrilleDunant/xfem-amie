@@ -256,22 +256,27 @@ void DamageModel::step( ElementState &s )
 		double maxFraction = states[1].fraction ;
 		double prevDelta = states[0].delta ;
 		double prevScore = states[0].score ;
+		double prevProximity = states[0].proximity ;
 		double currentDelta = states[0].delta ;
 		double currentScore = states[0].score ;
+		double currentProximity = states[0].proximity ;
 		bool deltaRoot = false ;
 		bool scoreRoot = false ;
+		bool proximityRoot = false ;
 		
 		for( int i = 1 ; i < states.size() ; i++ )
 		{
 			currentDelta = states[i].delta ;
 			currentScore = states[i].score ;
+			currentProximity = states[i].proximity ;
 			minFraction = states[i - 1].fraction ;
 			maxFraction = states[i].fraction ;
 
-			if( currentDelta * prevDelta < 0 || currentScore * prevScore < 0 )
+			if( currentDelta * prevDelta < 0 || currentScore * prevScore < 0 || currentProximity * prevProximity < 0)
 			{
 				deltaRoot = currentDelta * prevDelta < 0 ;
 				scoreRoot = currentScore * prevScore < 0 ;
+				proximityRoot = currentProximity * prevProximity < 0 ;
 				break ;
 				
 			}
@@ -279,6 +284,7 @@ void DamageModel::step( ElementState &s )
 			{
 				prevDelta = states[i].delta ;
 				prevScore = states[i].score ;
+				prevProximity = states[i].proximity ;
 			}
 		}
 		

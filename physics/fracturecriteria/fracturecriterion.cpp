@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(1e-3)
+scoreTolerance(1e-4)
 {
 }
 
@@ -2082,7 +2082,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 					maxscore = nls ;
 			}
 
-			return std::make_pair(maxscore - minscore-scoreTolerance*2., -thresholdScore+minscore) ;
+			return std::make_pair(maxscore - minscore - scoreTolerance*2., -thresholdScore + minscore + scoreTolerance) ;
 		}
 		else
 		{
@@ -2124,7 +2124,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 
-			return std::make_pair(maxscore - minscore-scoreTolerance*2., thresholdScore-maxscore) ;
+			return std::make_pair(maxscore - minscore - scoreTolerance*2., thresholdScore - maxscore + scoreTolerance) ;
 		}
 	}
 	else

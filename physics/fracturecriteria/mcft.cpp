@@ -381,9 +381,9 @@ double NonLocalMCFT::grade( ElementState &s )
 
 
 crits.push_back(0.) ;
-if(std::abs(cstrain) >= POINT_TOLERANCE_2D && std::abs(tstrain) < POINT_TOLERANCE_2D)
+if(cstrain < 0 && tstrain < 0)
 	metInCompression = true ;
-else if(std::abs(cstrain) < POINT_TOLERANCE_2D && std::abs(tstrain) >= POINT_TOLERANCE_2D)
+else if(cstrain > 0 && tstrain > 0)
 	metInTension = true ;
 else
 {
@@ -391,10 +391,12 @@ else
 	metInTension = !metInCompression;
 }
 
-if(maxCompression < 0 &&  metInCompression)
+if(maxCompression < 0 &&  maxCompressionStrain < 0 &&  metInCompression)
+{
 	crits.push_back(std::min(cstress/maxCompression, cstrain/maxCompressionStrain)) ;
+}
 
-if(maxTensionStrain > 0 && tstress > 0 && !metInCompression)
+if(maxTensionStrain > 0 && tstress > 0 && metInTension)
 	crits.push_back(tstrain/maxTensionStrain) ;
 
 

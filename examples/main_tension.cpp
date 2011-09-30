@@ -204,7 +204,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()-5e-5) ;
+			loadr->setData(loadr->getData()-1e-5) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -1459,11 +1459,11 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = mradius*10 ;
-	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.0 ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.01 ;
 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = mradius*10 ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.0 ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.01 ;
 	
 	FeatureTree F(&samplef) ;
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
@@ -1479,10 +1479,11 @@ int main(int argc, char *argv[])
 
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
-// 	F.setSamplingFactor(&rebarinternal, .5) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+	// 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
