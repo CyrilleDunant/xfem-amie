@@ -203,6 +203,61 @@ public:
 	
 } ;
 
+/** \brief Triangular inclusion*/
+class RectangularInclusion :  public OrientedRectangle,  public Feature
+{
+public:
+	
+	/** \brief construct a triangular inclusion from three points
+	 * 
+	 * @param father father feature
+	 * @param a first vertex
+	 * @param b second vertex
+	 * @param c third vertex
+	 * @param d fourth vertex
+	 */
+	RectangularInclusion(Feature *father, const Point & a, const Point & b, const Point & c, const Point & d) ;
+	
+	/** \brief construct a triangular inclusion from three points
+	 * 
+	 * @param a first vertex
+	 * @param b second vertex
+	 * @param c third vertex
+	 * @param d fourth vertex
+	 */
+	RectangularInclusion(const Point & a, const Point & b, const Point & c, const Point & d) ;
+	
+	
+	/** \brief return true if the boundary overlaps that of the argument*/
+	virtual bool interacts(Feature * f, double d) const ;
+	
+	/** \brief get list of refinement zones*/
+	virtual std::vector<Geometry *> getRefinementZones(size_t ) const ;
+	
+	/** \brief return all triangles in mesh with at least a vertex in this Feature*/
+	virtual std::vector<DelaunayTriangle *> getElements2D( FeatureTree * dt)  ;
+	
+	/** \brief return empty vector*/
+	virtual std::vector<DelaunayTetrahedron *> getElements3D( FeatureTree * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
+	
+	virtual void print() const
+	{
+		std::cout << "I am a rectangular inclusion" << std::endl ;
+	}
+	
+	/** \brief return false */
+	virtual bool isVoid(const Point &) const {return false ;}
+	
+	
+public:
+	
+	GEO_DERIVED_OBJECT(OrientedRectangle) ;
+	
+	virtual void sample(size_t n) ;
+	
+} ;
+
+
 /** \brief Interface Transition Zone*/
 class ITZFeature : public LevelSet, public VirtualFeature
 {

@@ -187,6 +187,75 @@ bool TriangularInclusion::interacts(Feature * f, double d) const
 	return false ;
 }
 
+std::vector<DelaunayTriangle *> RectangularInclusion::getElements2D( FeatureTree * dt) 
+{
+	std::vector<DelaunayTriangle *> ret ;
+	
+	std::vector<DelaunayTriangle *>  temp = dt->getElements2D(this->getPrimitive()) ;
+	
+	for(size_t i = 0 ; i < temp.size() ; i++)
+	{
+		bool inChild = false ;
+		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
+		{
+			if(this->getChild(j)->in(temp[i]->getCenter()))
+			{
+				inChild = true ; 
+				break ;
+			}
+		}
+		if(this->in(temp[i]->getCenter()) && inChild == false)
+			ret.push_back(temp[i]) ;
+	}
+	return ret ;
+}
+
+RectangularInclusion::RectangularInclusion(Feature * father,const Point & a, const Point & b, const Point & c, const Point & d) : OrientedRectangle(a, b, c, d), Feature(father)
+{
+	this->isEnrichmentFeature = false ;
+	
+}
+
+RectangularInclusion::RectangularInclusion(const Point & a, const Point & b, const Point & c, const Point & d) : OrientedRectangle(a, b, c, d), Feature(NULL)
+{
+	this->isEnrichmentFeature = false ;
+}
+
+
+void RectangularInclusion::sample(size_t n)
+{
+	this->sampleSurface(n/2) ;
+}
+
+std::vector<Geometry *> RectangularInclusion::getRefinementZones(size_t level) const
+{
+	Point a = getBoundingPoint(0) ;
+	Point b = getBoundingPoint(boundingPoints.size()/4) ;
+	Point c = getBoundingPoint(2*boundingPoints.size()/4) ;
+	Point d = getBoundingPoint(3*boundingPoints.size()/4) ;
+	Point va = a-getCenter() ;
+	Point vb = b-getCenter() ;
+	Point vc = c-getCenter() ;
+	Point vd = d-getCenter() ;
+	std::vector<Geometry *> ret ;
+	
+	if(level > 0)
+		ret.push_back(new OrientedRectangle(a+va*0.2,b+vb*0.2,c+vc*0.2,d+vd*0.2)) ;
+	if(level > 1)
+		ret.push_back(new OrientedRectangle(a+va*0.15,b+vb*0.15,c+vc*0.15,d+vd*0.15)) ;
+	if(level > 2)
+		ret.push_back(new OrientedRectangle(a+va*0.1,b+vb*0.1,c+vc*0.1,d+vd*0.1)) ;
+	return ret ;
+}
+
+bool RectangularInclusion::interacts(Feature * f, double d) const
+{
+	for(PointSet::const_iterator i =this->begin() ; i < this->end() ; i++)
+		if(f->inBoundary(*(*i), d))
+			return true ;
+		return false ;
+}
+
 
 EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, Point center, Point a, Point b) : Ellipse(center, a, b), Feature(father)
 {
