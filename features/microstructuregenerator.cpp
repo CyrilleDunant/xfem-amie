@@ -149,4 +149,143 @@ namespace Mu
 		return feats ;
 	}
 
+
+
+	InclusionConverter::InclusionConverter(GeometryType type, RandomDistribution * a, RandomDistribution * ar, RandomDistribution * o) 
+	{
+		geom = type ;
+		area = a ;
+		aspectRatio = ar ;
+		orientation = o ;
+	}
+
+	void InclusionConverter::setArea(RandomDistribution * a) 
+	{
+		area = a ;	
+	}
+
+	void InclusionConverter::setAspectRatio(RandomDistribution * ar) 
+	{
+		aspectRatio = ar ;
+	}
+
+	void InclusionConverter::setOrientation(RandomDistribution * o) 
+	{
+		orientation = o ;
+	}
+
+	void InclusionConverter::setArea(double a) 
+	{
+		area = new ConstantDistribution(a) ;
+	}
+
+	void InclusionConverter::setAspectRatio(double ar)
+	{
+		aspectRatio = new ConstantDistribution(ar) ;
+	}
+
+	void InclusionConverter::setOrientation(double o)
+	{
+		orientation = new ConstantDistribution(o) ;
+	}
+
+	Feature * InclusionConverter::convert(Inclusion * inc) const 
+	{
+		double newr, ar, a, b, o, ax, ay, bx, by, cx, cy ;
+		Point center, A, B, C, D ;
+			switch (geom) 
+			{
+				case CIRCLE:
+					newr = inc->getRadius()*std::sqrt(area->draw()) ;
+					return new Inclusion(inc->getFather(), newr, inc->getCenter()) ;
+					
+				case ELLIPSE:
+					newr = inc->getRadius()*std::sqrt(area->draw()) ;
+					
+					ar = aspectRatio->draw() ;
+					if(ar > 1)
+					{
+						a = newr*std::sqrt(ar) ;
+						b = newr/std::sqrt(ar) ;
+					}
+					else
+					{
+						a = newr/std::sqrt(ar) ;
+						b = newr*std::sqrt(ar) ;
+					}
+					
+					o = orientation->draw() ;
+					ax = a*std::cos(o) ;
+					ay = a*std::sin(o) ;
+					bx = b*std::sin(o) ;
+					by = -b*std::cos(o) ;
+					
+					return new EllipsoidalInclusion(inc->getFather(), inc->getCenter(), Point(ax,ay), Point(bx,by)) ;
+					
+				case TRIANGLE:
+					// produces rectangle triangle only !
+					newr = inc->getRadius()*std::sqrt(2.*area->draw()*M_PI) ;
+					
+					ar = aspectRatio->draw() ;
+					a = newr*std::sqrt(ar) ;
+					b = newr/std::sqrt(ar) ;
+					
+					o = orientation->draw() ;
+					bx = a*std::cos(o) ;
+					by = a*std::sin(o) ;
+					cx = b*std::sin(o) ;
+					cy = -b*std::cos(o) ;
+					
+					A = Point(0,0) ;
+					B = Point(bx,by) ;
+					C = Point(cx,cy) ;
+					
+					center = (A+B+C)*0.3333333333333 ;
+					center += inc->getCenter() ;
+					
+					return new TriangularInclusion(inc->getFather(), A-center, B-center, C-center) ;
+					
+				case RECTANGLE:
+					newr = inc->getRadius()*std::sqrt(area->draw()*M_PI) ;
+					
+					ar = aspectRatio->draw() ;
+					a = newr*std::sqrt(ar) ;
+					b = newr/std::sqrt(ar) ;
+					
+					o = orientation->draw() ;
+					bx = a*std::cos(o) ;
+					by = a*std::sin(o) ;
+					cx = b*std::sin(o) ;
+					cy = -b*std::cos(o) ;
+					
+					A = Point(0,0) ;
+					B = Point(bx,by) ;
+					C = Point(cx,cy) ;
+					D = Point(bx,cy) ;
+					
+					center = (A+B+C+D)*0.25 ;
+					center += inc->getCenter() ;
+					
+					return new RectangularInclusion(inc->getFather(), A-center, B-center, C-center, D-center) ;
+					
+				case SPHERE:
+					newr = inc->getRadius()*std::sqrt(area->draw()) ;
+					return new Inclusion3D(inc->getFather(), newr, inc->getCenter()) ;
+					
+					
+					
+					
+			}
+			std::cout << "geometry type unsupported for inclusion translation" << std::endl ;
+			return NULL ;
+	}
+
+	std::vector<Feature *> InclusionConverter::convert(std::vector<Inclusion *> inc) const 
+	{
+			std::vector<Feature *> ret ;
+			for(size_t i = 0 ; i < inc.size() ; i++)
+				ret.push_back(this->convert(inc[i])) ;
+			return ret ;
+	}
+
 }

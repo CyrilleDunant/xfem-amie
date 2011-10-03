@@ -23,6 +23,9 @@
 #define MICROSTRUCTURE_GENERATOR_H
 
 #include "feature_base.h"
+#include "inclusion.h"
+#include "../geometry/geometry_base.h"
+#include "../utilities/random.h"
 
 namespace Mu
 {
@@ -54,6 +57,32 @@ namespace Mu
 		virtual double score() ;
 		virtual void print() const ;
 	} ;
+	
+	/** \brief Utility class to convert circles to any distribution*/
+	struct InclusionConverter
+	{
+		GeometryType geom ;
+		RandomDistribution * area ;
+		RandomDistribution * aspectRatio ;
+		RandomDistribution * orientation ;
+		
+		InclusionConverter(GeometryType type, RandomDistribution * a = new ConstantDistribution(1.), RandomDistribution * ar = new ConstantDistribution(1.), RandomDistribution * o = new ConstantDistribution(0.)) ;
+		
+		void setArea(RandomDistribution * a) ;
+		void setAspectRatio(RandomDistribution * ar) ;
+		void setOrientation(RandomDistribution * o) ;
+		
+		void setArea(double a) ;
+		void setAspectRatio(double ar) ;
+		void setOrientation(double o) ;
+		
+		Feature * convert(Inclusion * inc) const ;
+		std::vector<Feature *> convert(std::vector<Inclusion *> inc) const ;
+		
+		
+	} ;
+	
+	
 } ;
 
 

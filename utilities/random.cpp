@@ -21,7 +21,7 @@ RandomNumber::RandomNumber()
 // 	reset() ;
 }
 
-double RandomNumber::normal() 
+double RandomNumber::normal() const 
 {
 	double y = exponential(1.) ;
 	double floor = std::exp(-(y-1.)*(y-1.)/2) ;
@@ -36,13 +36,13 @@ double RandomNumber::normal()
 	return y ;
 }
 
-double RandomNumber::logistic(double a, double b)
+double RandomNumber::logistic(double a, double b)const 
 {
 	double u = uniform() ;
 	return a + b * std::log(u / (1-u)) ;
 }
 
-double RandomNumber::xhi2(int a)
+double RandomNumber::xhi2(int a)const 
 {
 	double xhi = 0. ;
 	for(int i = 0 ; i < a ; i++)
@@ -53,7 +53,7 @@ double RandomNumber::xhi2(int a)
 	return xhi ;
 }
 
-double RandomNumber::erlang(double a, int b)
+double RandomNumber::erlang(double a, int b)const 
 {
 	double erlng = 0. ;
 	for(int i = 0 ; i < b ; i++)
@@ -145,6 +145,32 @@ UniformDistribution::UniformDistribution(double x, double y) : RandomDistributio
 {
 	a = x ;
 	b = y ;
+}
+
+ConstantDistribution::ConstantDistribution() : RandomDistribution()
+{
+	c = 1. ;
+}
+ConstantDistribution::ConstantDistribution(double constant) : RandomDistribution()
+{
+	c = constant ;
+}
+
+StepDistribution::StepDistribution() : RandomDistribution()
+{
+	values.clear() ;
+}
+StepDistribution::StepDistribution(std::vector<double> v) : RandomDistribution()
+{
+	values.clear() ;
+	for(size_t i = 0 ; i < v.size() ; i++)
+		values.push_back(v[i]) ;
+}
+StepDistribution::StepDistribution(std::valarray<double> v) : RandomDistribution()
+{
+	values.clear() ;
+	for(size_t i = 0 ; i < v.size() ; i++)
+		values.push_back(v[i]) ;
 }
 
 TriangularDistribution::TriangularDistribution() : UniformDistribution() 
