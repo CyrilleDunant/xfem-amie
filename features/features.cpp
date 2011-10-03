@@ -4122,6 +4122,28 @@ bool FeatureTree::stepElements()
 				std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;
 				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
 			}
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
+				{
+					foundCheckPoint = false ;
+					break ;
+				}
+			}
+
+			if( foundCheckPoint )
+			{
+				std::cout << "[" << averageDamage << "]" << std::flush ;
+
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+					}
+				}
+			}
+			
 			double volume = 0;
 			if(!elastic)
 				crackedVolume = 0 ;
@@ -4239,29 +4261,6 @@ bool FeatureTree::stepElements()
 					averageDamage /= volume ;
 			}
 
-		
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
-				{
-					foundCheckPoint = false ;
-					break ;
-				}
-			}
-
-			if( foundCheckPoint )
-			{
-				std::cout << "[" << averageDamage << "]" << std::flush ;
-
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( elements[i]->getBehaviour()->getFractureCriterion() )
-					{
-						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-					}
-				}
-			}
 // 			else
 // 			{
 // 				for( size_t i = 0 ; i < elements.size() ; i++ )

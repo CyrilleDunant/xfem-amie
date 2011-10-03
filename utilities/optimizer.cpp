@@ -15,10 +15,6 @@ GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double> vars, s
 {
 
 }
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<double> & vars, const std::vector<std::pair<double, double> >  & bounds, const Function & objectiveFunction): vars(vars), bounds(bounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL), generator(NULL)
-{
-	
-}
 
 GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, double (*lowLevelFunction)()) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(lowLevelFunction), generator(NULL)
 {
@@ -184,7 +180,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 			i++ ;
 			i = std::min(i, (int)sorted.size()-1) ;
 		}
-// 		std::cout << sorted.begin()->first << std::endl ; 
+		std::cout << sorted.begin()->first << std::endl ; 
 		individuals = newindividuals ;
 		nindividuals = newnindividuals ;
 		llindividuals = newllindividuals ;

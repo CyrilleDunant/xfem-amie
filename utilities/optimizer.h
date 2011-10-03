@@ -36,9 +36,7 @@ protected:
 	
 public:
 	GeneticAlgorithmOptimizer(std::vector<double> vars, std::vector<std::pair<double, double> >  bounds, std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, const Function & objectiveFunction) ;
-	
-	GeneticAlgorithmOptimizer(const std::vector<double> & vars, const std::vector<std::pair<double, double> >  & bounds, const Function & objectiveFunction) ;
-	
+		
 	GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, double (*lowLevelFunction)()) ;
 	
 	GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, MicrostructureGenerator * generator) ;

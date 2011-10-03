@@ -843,11 +843,11 @@ int FD_implicit()
 		}
 	}
 
-	std::fstream file ;
-	file.open("arrow_"+itoa(time_step)+"_"+itoa((int) ((double) 100*alpha))+".txt", std::ios::out) ;
-	for(unsigned long i = 0 ; i < u_min.size() ; i++)
-		file <<  time[i] << "," << u_min[i] << std::endl ;
-	file.close() ;
+// 	std::fstream file ;
+// 	file.open("arrow_"+itoa(time_step)+"_"+itoa((int) ((double) 100*alpha))+".txt", std::ios::out) ;
+// 	for(unsigned long i = 0 ; i < u_min.size() ; i++)
+// 		file <<  time[i] << "," << u_min[i] << std::endl ;
+// 	file.close() ;
 
 
 	return 0 ;
@@ -990,7 +990,7 @@ int FD_explicit()
 	}
 
 	std::fstream file ;
-	file.open("explicit_"+itoa(time_step)+".txt", std::ios::out) ;
+// 	file.open("explicit_"+itoa(time_step)+".txt", std::ios::out) ;
 	for(unsigned long i = 0 ; i < u_min.size() ; i++)
 		file <<  time[i] << "," << u_min[i] << std::endl ;
 	file.close() ;

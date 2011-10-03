@@ -582,7 +582,9 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		s.getParent()->setOrder(order) ;
 		double fact = weight ;
 		factors.push_back(weight);
-
+		
+		double selfarea = s.getParent()->area() ;
+		double farthest = 0 ;
 		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
 			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
@@ -639,7 +641,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			factors.back() += weight ;
 			fact += weight ;
 		}
-		
+		double otherarea = 0 ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
@@ -651,12 +653,14 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				factors.push_back(0.);
 				continue ;
 			}
-			
+			otherarea += ci->area() ;
 			//this is to eliminate scaling effects ;
 			double factor = 1.;//-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
-
+			double d = dist(ci->getCenter(), s.getParent()->getCenter()) ; 
+			if(d > farthest)
+				farthest = d ;
 			x = ci->getXTransform()-s.getParent()->getCenter().x ;
 			y = ci->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
@@ -666,8 +670,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			smooth = f_exp(rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.push_back(weight);
-			fact += weight ;
+			factors.push_back(weight*factor);
+			fact += weight*factor ;
 			
 			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 			{
@@ -730,9 +734,17 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			}
 
 		}
+		double totalAreatarget = M_PI*farthest*farthest-selfarea ;
 		
-		factors.push_back(fact);
-
+		double ratio = otherarea/totalAreatarget ;
+		double w = factors[0] ;
+		for(size_t i = 1 ; i < factors.size() ; i++)
+		{
+			factors[i] /= ratio ;
+			w += factors[i] ;
+		}
+		factors.push_back(w);
+		
 		return ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1447,7 +1459,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		Circle epsilon(std::max(neighbourhoodradius, physicalCharacteristicRadius*5.),testedTri->getCenter()) ;
+		Circle epsilon(std::max(neighbourhoodradius, physicalCharacteristicRadius*3.),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
