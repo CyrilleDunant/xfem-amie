@@ -204,6 +204,36 @@ Point OrientedRectangle::getCircumCenter() const
 	return this->circumCenter ;
 }
 
+std::vector<Point> OrientedRectangle::getBoundingBox() const
+{
+	double maxx = boundingPoints[0]->x ;
+	double minx = boundingPoints[0]->x ;
+	double maxy = boundingPoints[0]->y ;
+	double miny = boundingPoints[0]->y ;
+	
+	for(size_t i = boundingPoints.size()/4-1 ; i < boundingPoints.size() ; i += boundingPoints.size()/4 )
+	{
+		double x = boundingPoints[i]->x ;
+		double y = boundingPoints[i]->y ;
+		if(x > maxx)
+			maxx = x ;
+		if(x < minx)
+			minx = x ;
+		if(y > maxy)
+			maxy = y ;
+		if(y < miny)
+			miny = y ;
+	}
+	
+	std::vector<Point> ret ;
+	ret.push_back(Point(minx,miny)) ;
+	ret.push_back(Point(minx,maxy)) ;
+	ret.push_back(Point(maxx,maxy)) ;
+	ret.push_back(Point(maxx,miny)) ;
+	
+	return  ret ;
+}
+
 void OrientedRectangle::computeCircumCenter()
 {	
 	if (fabs(boundingPoints[1]->y-boundingPoints[0]->y) < 20*POINT_TOLERANCE_2D) 
@@ -271,33 +301,90 @@ void OrientedRectangle::project(Point * p) const
 {
 	Segment s(getCenter(), *p) ;
 	
-	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+	Point c0 = getBoundingPoint(0) ;
+	Point c1 = getBoundingPoint(boundingPoints.size()/4) ;
+	Point c2 = getBoundingPoint(boundingPoints.size()*2/4) ;
+	Point c3 = getBoundingPoint(boundingPoints.size()*3/4) ;
+	
+	Segment s0(c0, c1) ;
+	Segment s1(c1, c2) ;
+	Segment s2(c2, c3) ;
+	Segment s3(c3, c0) ;
+	
+	Point p0(*p) ;
+	Point p1(*p) ;
+	Point p2(*p) ;
+	Point p3(*p) ;
+	
+	p0 = s0.project(p0) ;
+	p1 = s1.project(p1) ;
+	p2 = s2.project(p2) ;
+	p3 = s3.project(p3) ;
+	
+	double d0 = squareDist3D(p0, *p) ;
+	double d1 = squareDist3D(p1, *p) ;
+	double d2 = squareDist3D(p2, *p) ;
+	double d3 = squareDist3D(p3, *p) ;
+	
+	int i = 0 ;
+	double d = d0 ;
+	if(d1 < d)
 	{
-		if(s.on(getPoint(i)) && !Segment(getPoint(i), *p).on(getCenter()))
-		{
-			p->x = getPoint(i).x ;
-			p->y = getPoint(i).y ;
-			return ;
-		}
+		d = d1 ;
+		i = 1 ;
+	}
+	if(d2 < d)
+	{
+		d = d2 ;
+		i = 2 ;
+	}
+	if(d3 < d)
+	{
+		d = d3 ;
+		i = 3 ;
 	}
 	
-	for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+	switch(i)
 	{
-		Segment seg(getPoint(i), getPoint((i+1)%boundingPoints.size())) ;
-		if(s.intersects(seg))
-		{
-			Point t = s.intersection(seg);
-			p->x = t.x ;
-			p->y = t.y ;
-			return ;
-		}
+		case 0:
+			p->x = p0.x ;
+			p->y = p0.y ;
+			break ;
+		case 1:
+			p->x = p1.x ;
+			p->y = p1.y ;
+			break ;
+		case 2:
+			p->x = p2.x ;
+			p->y = p2.y ;
+			break ;
+		case 3:
+			p->x = p3.x ;
+			p->y = p3.y ;
+			break ;
 	}
+	
+	return ;
 	
 }
 
 
 bool OrientedRectangle::in(const Point &p) const
 {
+
+	Point c0 = getBoundingPoint(0) ;
+	Point c1 = getBoundingPoint(boundingPoints.size()/4) ;
+	Point c2 = getBoundingPoint(boundingPoints.size()*2/4) ;
+	Point c3 = getBoundingPoint(boundingPoints.size()*3/4) ;
+	
+	Segment s0(c0, c1) ;
+	Segment s1(c1, c2) ;
+	Segment s2(c2, c3) ;
+	Segment s3(c3, c0) ;
+	
+	Segment t(getCenter(), p) ;
+	
+	return !(t.intersects(s0) || t.intersects(s1) || t.intersects(s2) || t.intersects(s3)) ;
 	
 	bool in = false ;
 	
@@ -359,7 +446,7 @@ std::vector<Point> OrientedRectangle::getSamplingBoundingPoints(size_t num_point
 
 void OrientedRectangle::sampleBoundingSurface(size_t num_points)
 {
-	num_points = num_points + num_points%4 ;
+	num_points = num_points + 4 - num_points%4 ;
 	
 	Point * v0(boundingPoints[0]) ;
 	Point * v1(boundingPoints[boundingPoints.size()/4]) ;
@@ -405,7 +492,45 @@ void OrientedRectangle::sampleBoundingSurface(size_t num_points)
 
 void OrientedRectangle::sampleSurface(size_t num_points)
 {
+//	size_t n = 2*num_points ;
 	this->sampleBoundingSurface(num_points) ;
+	
+	for(size_t i = 0 ; i < inPoints.size() ; i++)
+		delete inPoints[i] ;
+	
+	std::vector<Point> newInPoints ;
+	
+	
+	size_t numberOfPointsAlongX = boundingPoints.size()/4 ;
+	size_t numberOfPointsAlongY = boundingPoints.size()/4 ;
+	size_t numberOfBoundingPoints = boundingPoints.size() ;
+	
+	Point c = getBoundingPoint(boundingPoints.size()/4)-getBoundingPoint(0) ;
+	
+	UniformDistribution uniform(-0.1/numberOfPointsAlongY,+0.1/numberOfPointsAlongY) ;
+	for(size_t i = 1 ; i < numberOfPointsAlongX ; i++)
+	{
+		for(size_t j = 1 ; j < numberOfPointsAlongY ; j++)
+		{
+			double dj = (double) j / (double) numberOfPointsAlongY ;
+			dj += uniform.draw() ;
+			double di = uniform.draw() ;
+			Point p1(*boundingPoints[i]) ;
+			Point p2(*boundingPoints[numberOfBoundingPoints-numberOfPointsAlongX-i]) ;
+			p1 = p1*dj + p2*(1.-dj) + c*di ;
+			if(in(p1))
+				newInPoints.push_back(p1) ;
+		}
+	}
+
+	
+	inPoints.resize(newInPoints.size()) ;
+	for(size_t i = 0 ; i < inPoints.size() ; i++)
+		inPoints[i] = new Point(newInPoints[i]) ;
+	
+	
+	
+	
 }
 
 Triangle::Triangle( Point *p0,  Point *p1,  Point *p2): ConvexGeometry(3)
@@ -937,7 +1062,7 @@ void Triangle::sampleSurface(size_t num_points)
 {
 	num_points += 3-num_points%3 ;
 
-	sampleBoundingSurface(num_points) ;
+	sampleBoundingSurface(num_points*3) ;
 	
 	std::vector<Point> newPoints ;
 	

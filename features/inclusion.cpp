@@ -224,7 +224,7 @@ RectangularInclusion::RectangularInclusion(const Point & a, const Point & b, con
 
 void RectangularInclusion::sample(size_t n)
 {
-	this->sampleSurface(n/2) ;
+	this->sampleSurface(n) ;
 }
 
 std::vector<Geometry *> RectangularInclusion::getRefinementZones(size_t level) const
