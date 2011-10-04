@@ -211,7 +211,7 @@ std::vector<Point> OrientedRectangle::getBoundingBox() const
 	double maxy = boundingPoints[0]->y ;
 	double miny = boundingPoints[0]->y ;
 	
-	for(size_t i = boundingPoints.size()/4-1 ; i < boundingPoints.size() ; i += boundingPoints.size()/4 )
+	for(size_t i = boundingPoints.size()/4 ; i < boundingPoints.size() ; i += boundingPoints.size()/4 )
 	{
 		double x = boundingPoints[i]->x ;
 		double y = boundingPoints[i]->y ;
@@ -227,9 +227,9 @@ std::vector<Point> OrientedRectangle::getBoundingBox() const
 	
 	std::vector<Point> ret ;
 	ret.push_back(Point(minx,miny)) ;
-	ret.push_back(Point(minx,maxy)) ;
-	ret.push_back(Point(maxx,maxy)) ;
 	ret.push_back(Point(maxx,miny)) ;
+	ret.push_back(Point(maxx,maxy)) ;
+	ret.push_back(Point(minx,maxy)) ;
 	
 	return  ret ;
 }
@@ -1068,7 +1068,7 @@ void Triangle::sampleSurface(size_t num_points)
 	
 	size_t end_i = 3*boundingPoints.size()/3 ;
 	
-	for(int i = 0 ; i < (int)num_points/3-1 ; i++)
+	for(int i = 0 ; i < (int)num_points-1 ; i++)
 	{
 		for(int j = 0 ; j < i+1 ; j++)
 		{

@@ -1269,6 +1269,22 @@ bool Geometry::intersects(const Geometry *g) const
 
 			return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g);
 		}
+	case PARALLELOGRAMME:
+	{
+		size_t n = this->getBoundingPoints().size() ;
+		
+		std::vector<Point> box ;
+		box.push_back(this->getBoundingPoint(0)) ;
+		box.push_back(this->getBoundingPoint(n*1/4)) ;
+		box.push_back(this->getBoundingPoint(n*2/4)) ;
+		box.push_back(this->getBoundingPoint(n*3/4)) ;
+		Segment s0(box[0], box[1]) ;
+		Segment s1(box[1], box[2]) ;
+		Segment s2(box[2], box[3]) ;
+		Segment s3(box[3], box[0]) ;
+		
+		return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g);
+	}
 	case SEGMENTED_LINE:
 		{
 			std::vector<Segment> segs ;
@@ -3523,6 +3539,22 @@ bool Segment::intersects(const Geometry *g) const
 			
 			return intersects(s0) || intersects(s1) || intersects(s2) || intersects(s3) ;
 		}
+	case PARALLELOGRAMME:
+	{	
+		size_t n = g->getBoundingPoints().size() ;
+		
+		std::vector<Point> box ;
+		box.push_back(g->getBoundingPoint(0)) ;
+		box.push_back(g->getBoundingPoint(n*1/4)) ;
+		box.push_back(g->getBoundingPoint(n*2/4)) ;
+		box.push_back(g->getBoundingPoint(n*3/4)) ;
+		Segment s0(box[0], box[1]) ;
+		Segment s1(box[1], box[2]) ;
+		Segment s2(box[2], box[3]) ;
+		Segment s3(box[3], box[0]) ;
+		
+		return intersects(s0) || intersects(s1) || intersects(s2) || intersects(s3) ;
+	}
 	case SEGMENTED_LINE :
 		{
 			bool ret = false ;	
