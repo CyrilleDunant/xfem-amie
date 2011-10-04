@@ -1979,7 +1979,7 @@ Point Ellipse::project(Point p) const
 		return p+getMajorAxis() ;
 	} else {
 		Point * proj = new Point(p.x, p.y) ;
-		project(proj) ;
+		this->project(proj) ;
 		return *proj ;
 	}	
 }
@@ -1987,52 +1987,63 @@ Point Ellipse::project(Point p) const
 void Ellipse::project(Point * p) const
 {
     	Point test(p->x,p->y) ;
-        if(test == center) {
+        if(test == center) 
+		{
             p->x += getMinorAxis().x ;
             p->y += getMinorAxis().y ;
             std::cout << "center" << std::endl ;
             return ;
-        } else {
+        } 
+        else 
+		{
             double alpha = majorAxis.angle() ;
             Point prot((*p-center).x*cos(-alpha)-(*p-center).y*sin(-alpha),
                        +(*p-center).x*sin(-alpha)+(*p-center).y*cos(-alpha)) ;
                        
-		Line majL(this->getCenter(), this->getMajorAxis()) ;
-		Line minL(this->getCenter(), this->getMinorAxis()) ;
+			Line majL(this->getCenter(), this->getMajorAxis()) ;
+			Line minL(this->getCenter(), this->getMinorAxis()) ;
 
-	    if(minL.on(test)) {
-	      // case point is colinear to minor axis
-		 Point A = center + getMinorAxis() ;
-		 Point B = center - getMinorAxis() ;
-		 Point pa(p->x-A.x,p->y-A.y)  ;
-		 Point pb(p->x-B.x,p->y-B.y)  ;
-		 if(pa.norm() < pb.norm()) {
-		      p->x = A.x ;
-		      p->y = A.y ;
-		      return ;
-		 } else {
-		      p->x = B.x ;
-		      p->y = B.y ;
-		      return ;
-		 }
-	    }
+			if(minL.on(test)) 
+			{
+				// case point is colinear to minor axis
+				Point A = center + getMinorAxis() ;
+				Point B = center - getMinorAxis() ;
+				Point pa(p->x-A.x,p->y-A.y)  ;
+				Point pb(p->x-B.x,p->y-B.y)  ;
+				if(pa.norm() < pb.norm()) 
+				{
+					p->x = A.x ;
+					p->y = A.y ;
+					return ;
+				}
+				else 
+				{
+					p->x = B.x ;
+					p->y = B.y ;
+					return ;
+				}
+			}
 		       
-	    if(majL.on(test)) {
-	      // case point is colinear to major axis
-		 Point C = center + getMajorAxis() ;
-		 Point D = center - getMajorAxis() ;
-		 Point pc(p->x-C.x,p->y-C.y)  ;
-		 Point pd(p->x-D.x,p->y-D.y)  ;
-		 if(pc.norm() < pd.norm()) {
-		      p->x = C.x ;
-		      p->y = C.y ;
-		      return ;
-		 } else {
-		      p->x = D.x ;
-		      p->y = D.y ;
-		      return ;
-		 }
-	    }
+			if(majL.on(test)) 
+			{
+			// case point is colinear to major axis
+				Point C = center + getMajorAxis() ;
+				Point D = center - getMajorAxis() ;
+				Point pc(p->x-C.x,p->y-C.y)  ;
+				Point pd(p->x-D.x,p->y-D.y)  ;
+				if(pc.norm() < pd.norm()) 
+				{
+					p->x = C.x ;
+					p->y = C.y ;
+					return ;
+				} 
+				else 
+				{
+					p->x = D.x ;
+					p->y = D.y ;
+					return ;
+				}
+			}
 	    
 	    	// else, we need brute force
             Point c_(0.,0.) ;
@@ -2042,15 +2053,19 @@ void Ellipse::project(Point * p) const
 
             Function x("x") ;
             Function y("y") ;
+			
+			Function dist_x(x*x - x*2*prot.x + prot.x*prot.x) ;
+			Function dist_y(y*y - y*2*prot.y + prot.y*prot.y) ;
+			
 
-            Function dist_p_ell(x*x - x*2*prot.x + prot.x*prot.x + y*y - y*2*prot.y + prot.y*prot.y) ;
+            Function dist_p_ell(dist_x + dist_y) ;
             
             double tmin = 0. ;
             double tmax = M_PI * 2. ;
             double found = tmin ;
             double found2 = tmax ;
             int iter = 0 ;
-            while(std::abs(found-found2)>POINT_TOLERANCE_2D || iter < 10)
+            while(std::abs(found-found2) > POINT_TOLERANCE_2D && iter < 10)
             {
             	iter++ ;
             	double dtheta = (tmax - tmin) / 100. ;
@@ -2062,15 +2077,19 @@ void Ellipse::project(Point * p) const
 	            double dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
 	            double dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
 	
-	            while(dist_p > std::min(dist_n,std::min(dist_p,dist_q))) {
-	                if(dist_n < dist_q) {
+	            while(dist_p > std::min(dist_n,std::min(dist_p,dist_q))) 
+				{
+	                if(dist_n < dist_q) 
+					{
 	                    theta_n -= dtheta ;
 	                    theta_p -= dtheta ;
 	                    theta_q -= dtheta ;
 	                    dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
 	                    dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
 	                    dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
-	                } else {
+	                }
+	                else 
+					{
 	                    theta_n += dtheta ;
 	                    theta_p += dtheta ;
 	                    theta_q += dtheta ;
@@ -2085,8 +2104,10 @@ void Ellipse::project(Point * p) const
 	            
 	            found2 = found ;
 	            found = theta_p ;	            
-           	}
-//           	std::cout << iter << std::endl ;
+
+				
+				
+			}
             
 	        p->x = this->getPointOnEllipse(found).x ;
 	        p->y = this->getPointOnEllipse(found).y ;
@@ -2173,7 +2194,7 @@ Function Ellipse::getEllipseFormFunction() const
 bool Ellipse::in(const Point &p) const 
 { 
     Function ellipse = this->getEllipseFormFunction() ;
-    return VirtualMachine().eval(ellipse,p) < 0 ;
+    return VirtualMachine().eval(ellipse,p) < POINT_TOLERANCE_2D ;
 }
 
 std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, double alpha, double beta) const 

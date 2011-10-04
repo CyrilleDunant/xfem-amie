@@ -324,7 +324,7 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements2D( FeatureTree
 
 void EllipsoidalInclusion::sample(size_t n)
 {
-	this->sampleSurface(n) ;
+	this->sampleSurface(n*7/4) ;
 
 }
 

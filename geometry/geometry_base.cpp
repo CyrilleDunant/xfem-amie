@@ -1350,27 +1350,20 @@ bool Geometry::intersects(const Geometry *g) const
 
 			if(g->getGeometryType() == ELLIPSE)
 			{
-				Point onEllipse(g->getCenter()) ;
-				Point onLine =  dynamic_cast<const Ellipse*>(this)->project(onEllipse) ;
-				// nice case, the projection of the center is inside the ellipse
-				if(dynamic_cast<const Ellipse*>(g)->in(onLine))
-					return true ;
-				// nice case, the ellipses are too far away
-				if((g->getCenter()-this->getCenter()).norm() > dynamic_cast<const Ellipse*>(g)->getMajorRadius()*2.1)
-					return false ;
-				// brute force
-				Point onEllipse2(onEllipse) ;
-				onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
-				int nnn = 0 ;
-				while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE_2D)
-				{
-					onEllipse2 = onEllipse ;
-					onLine = dynamic_cast<const Ellipse*>(this)->project(onEllipse) ;
-					onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
-					nnn++ ;
-				}
+				Ellipse copy(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis()*1.01, dynamic_cast<const Ellipse *>(g)->getMinorAxis()*1.01) ;
+				copy.sampleBoundingSurface(128) ;
 				
-				return (onLine-onEllipse).norm() < 100.*POINT_TOLERANCE_2D ; 
+				bool out = false ;
+				bool in = false ;
+				
+				for(size_t i = 0 ; i < copy.getBoundingPoints().size() ; i++)
+				{
+					if(dynamic_cast<const Ellipse *>(this)->in(copy.getBoundingPoint(i)))
+						in = true ;
+					else
+						out = true ;
+				}
+				return in && out ;
 				
 			}
 
