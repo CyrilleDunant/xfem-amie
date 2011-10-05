@@ -205,7 +205,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()-5e-6) ;
+			loadr->setData(loadr->getData()-1e-4) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -1415,11 +1415,17 @@ int main(int argc, char *argv[])
 {
 // 	std::vector<std::pair<std::string, double> >  vars ;
 // 	vars.push_back(std::make_pair("L", 500));
+// 	Function L("L") ;
 // 	vars.push_back(std::make_pair("a", .5));
+// 	Function a("a") ;
 // 	vars.push_back(std::make_pair("h", 1));
+// 	Function h("h") ;
 // 	vars.push_back(std::make_pair("j", 150));
+// 	Function j("j") ;
 // 	vars.push_back(std::make_pair("k", 250));
+// 	Function k("k") ;
 // 	vars.push_back(std::make_pair("f", 2));
+// 	Function f("f") ;
 // 	std::vector<std::pair<double, double> >   bounds ;
 // 	bounds.push_back(std::make_pair(300, 400));
 // 	bounds.push_back(std::make_pair(.5, 1));
@@ -1427,19 +1433,19 @@ int main(int argc, char *argv[])
 // 	bounds.push_back(std::make_pair(150, 400));
 // 	bounds.push_back(std::make_pair(70, 400));
 // 	bounds.push_back(std::make_pair(1.5, 3));
-// 	Function objectiveFunction("L 3 ^ a k 2 ^ j h 3 ^ * * * / 94.56396 f * - 2 ^") ;
+// 	Function objectiveFunction = ((L^3)/(a*k*(h^3)*(k*j*.988*2.7*1e-5 + .500))-f*190000*sqrt(M_PI))^2 ;
 // 	GeneticAlgorithmOptimizer ga(vars, bounds, objectiveFunction) ;
 // 	ga.optimize(1e-8, 10000, 500, .1, .65) ;
 // 	std::vector<std::pair<std::string, double> > vals = ga.getValues() ;
 // 	for(size_t i = 0 ; i < vals.size() ; i++)
 // 		std::cout << vals[i].first << " = " << vals[i].second << std::endl ;
-// 	std::cout << "m = " << vals[3].second* vals[4].second*.988*2.7e-5 << std::endl ;
+// 	std::cout << "m = " << vals[3].second* vals[4].second*.988*2.7e-5 + .50<< std::endl ;
 // 	exit(0) ;
 	double compressionCrit = -37.5e6 ; 
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = 0.05 ; // .015
+	double mradius = 0.04 ; // .015
 	double nradius = mradius*3. ;
 // 	double mradius = .25 ;
 	double length = 0.3048 ; //1.300*.5
@@ -1480,11 +1486,11 @@ int main(int argc, char *argv[])
 		
 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = mradius*10 ;
+	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.0 ;
 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = mradius*10 ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.0 ;
 	
 	FeatureTree F(&samplef) ;

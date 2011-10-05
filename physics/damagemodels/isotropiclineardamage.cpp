@@ -40,6 +40,7 @@ Matrix IsotropicLinearDamage::applyPrevious(const Matrix & m) const
 
 	if(fractured())
 		return m*0 ;
+	
 	return m*(1.-getPreviousState()[0]) ;
 }
 

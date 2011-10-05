@@ -487,7 +487,7 @@ void Assembly::initialiseElementaryMatrices()
 				element2d[i]->getElementaryMatrix() ;
 		}
 	}
-	if(dim == SPACE_THREE_DIMENSIONAL)
+	else if(dim == SPACE_THREE_DIMENSIONAL)
 	{
 #pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)

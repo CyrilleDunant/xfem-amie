@@ -2226,25 +2226,27 @@ void DelaunayTriangle::refresh(const TriElement * father)
 
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix() 
 {
-
-	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size())
+	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
+	int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+// 	std::cout << "aa " << index<< std::endl ;
+	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == dofCount)
 	{
 		return cachedElementaryMatrix ;
 	}
-	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
-
+// 	std::cout << "ab " << index<< std::endl ;
 	if(enrichmentUpdated || behaviourUpdated 
 		|| cachedElementaryMatrix.size() == 0 
 		|| cachedElementaryMatrix.size() != dofCount 
 		||  (cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() != dofCount))
 	{
-		int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		std::valarray< Matrix > v_j(Matrix(size, size), dofCount) ;
+		
+		std::valarray< Matrix > v_j(Matrix(ndofs, ndofs), dofCount) ;
 		cachedElementaryMatrix.resize(dofCount,v_j) ;
 		getSubTriangulatedGaussPoints() ;
 	}
-	std::valarray<Matrix> Jinv(Matrix(2, 2),  getGaussPoints().gaussPoints.size()) ;
-	if(true)//moved)
+// 	std::cout << "a " << index<< std::endl ;
+	std::valarray<Matrix> Jinv(Matrix(ndofs, ndofs),  getGaussPoints().gaussPoints.size()) ;
+	if(moved)
 	{
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
@@ -2253,12 +2255,12 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 	else
 	{
-		Matrix J(2, 2) ;
+		Matrix J(ndofs, ndofs) ;
 		getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
 		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
 	}
+// 	std::cout << "b " << index<< std::endl ;
 	VirtualMachine vm ;
-	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
 		behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
@@ -2273,6 +2275,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
 		}
 	}
+// 	std::cout << "c " << index<< std::endl ;
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
 		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
@@ -2283,6 +2286,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
+// 		std::cout << "d " << index<< std::endl ;
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;
 	if(behaviour->hasInducedForces())

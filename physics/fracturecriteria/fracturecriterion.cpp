@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(1e-4)
+scoreTolerance(1e-2)
 {
 }
 
@@ -1459,7 +1459,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		Circle epsilon(std::max(neighbourhoodradius, physicalCharacteristicRadius*3.),testedTri->getCenter()) ;
+		Circle epsilon(std::max(std::max(neighbourhoodradius, testedTri->getRadius()*3.), physicalCharacteristicRadius*3.),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
@@ -2028,7 +2028,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(i->first < thresholdScore + scoreTolerance)
+					if(i->first <= thresholdScore + scoreTolerance)
 					{
 						newSet.push_back(i->second->index);
 						minscore = i->first ;
@@ -2051,11 +2051,11 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			damagingSet = newSet ;
 			
 			std::set<unsigned int> newProximity ;
-			if(!sortedElements.empty()&& thresholdScore > 0)
+			if(!sortedElements.empty()&& -thresholdScore > 0)
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(std::abs(i->first-thresholdScore) < scoreTolerance)
+					if(i->first <= thresholdScore + scoreTolerance)
 					{
 						continue ;
 					}
@@ -2360,7 +2360,7 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 
 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
 	{
-		metAtStep = 0 ; scoreAtState > 2.*scoreTolerance ;
+		metAtStep = 0 ; scoreAtState > 0 ;
 		nonLocalScoreAtState = -1 ; scoreAtState ;
 		return  ;
 	}
@@ -2373,7 +2373,7 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 	{
 		case NULL_SMOOTH :
 		{
-			metAtStep = scoreAtState > 2.*scoreTolerance ;
+			metAtStep = scoreAtState > 0 ;
 			nonLocalScoreAtState = scoreAtState ;
 			return ;
 		}

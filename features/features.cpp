@@ -209,6 +209,7 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 	reuseDisplacements = false ;
 	useMultigrid = false ;
 	foundCheckPoint = true ;
+	averageDamage = 0 ;
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
 	
@@ -4821,6 +4822,7 @@ bool FeatureTree::stepToCheckPoint()
 
 	state.setStateTo( XFEM_STEPPED, true ) ;
 	int notConvergedCounts = 0 ;
+	
 	do
 	{
 		deltaTime = 0 ;
@@ -4850,15 +4852,15 @@ bool FeatureTree::stepToCheckPoint()
 
 		state.setStateTo( XFEM_STEPPED, true ) ;
 
-	}while( !foundCheckPoint && ( behaviourChanged() || !solverConverged() )  && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
+	}while ( !foundCheckPoint && ( behaviourChanged() || !solverConverged() )  && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
 	
 	if(behaviourChanged())
-	{	
+	{
 		double upmultiplier = 1 ;
 		double currentmultiplier = 0.5 ;
 		double downmultiplier = 0 ;
 		scaleBoundaryConditions(currentmultiplier);
-		while(std::abs(upmultiplier-downmultiplier) > 1./pow(2, 12) )
+		while(std::abs(upmultiplier-downmultiplier) > 1./pow(2, 16) )
 		{
 			if(!isStable())
 			{
@@ -4871,53 +4873,24 @@ bool FeatureTree::stepToCheckPoint()
 				currentmultiplier = (upmultiplier+downmultiplier)*.5 ;
 			}
 			scaleBoundaryConditions(currentmultiplier);
+			std::cout << currentmultiplier << std::endl ;
 		}
+		
 		scaleBoundaryConditions(downmultiplier);
 		deltaTime = realdt ;
-// 		elasticStep();
-		state.setStateTo( XFEM_STEPPED, true ) ;
+		elasticStep();
+// 		state.setStateTo( XFEM_STEPPED, true ) ;
 		if( solverConverged() )
 		{
-			std::cout << "." << std::flush ;
+			std::cout << ":" << std::flush ;
 			notConvergedCounts = 0 ;
 		}
 		else
 		{
 			notConvergedCounts++ ;
-			std::cout << "+" << std::flush ;
+			std::cout << ";" << std::flush ;
 		}
 		scaleBoundaryConditions(1);
-
-		
-		if(is2D())
-		{
-			std::vector<DelaunayTriangle *> elements ;
-			for(auto j = layer2d.begin() ; j!= layer2d.end(); ++j)
-			{
-				auto etmp = j->second->getElements() ;
-				elements.insert(elements.end(), etmp.begin(), etmp.end()) ;
-			}
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getFractureCriterion() )
-				{
-					elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-				}
-			}
-		}
-		else
-		{
-			std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getFractureCriterion() )
-				{
-					elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-				}
-			}
-		}
-// 	
-		
 	}
 
 	std::cout  << std::endl ;
