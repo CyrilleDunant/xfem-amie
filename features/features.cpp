@@ -3743,6 +3743,18 @@ void FeatureTree::solve()
 {
 	Vector lastx( K->getDisplacements() ) ;
 
+	if( enrichmentChange || needMeshing )
+	{
+		K->clear() ;
+
+		if( useMultigrid )
+		{
+			for( size_t j = 0 ; j < coarseAssemblies.size() ; j++ )
+			{
+				coarseAssemblies[j]->clear() ;
+			}
+		}
+	}	
 	K->initialiseElementaryMatrices();
 	timeval time0, time1 ;
 	gettimeofday( &time0, NULL );
@@ -4737,19 +4749,6 @@ bool FeatureTree::step()
 
 	bool ret = true ;
 	size_t it = 1 ;
-
-	if( enrichmentChange || needMeshing )
-	{
-		K->clear() ;
-
-		if( useMultigrid )
-		{
-			for( size_t j = 0 ; j < coarseAssemblies.size() ; j++ )
-			{
-				coarseAssemblies[j]->clear() ;
-			}
-		}
-	}
 
 	state.setStateTo( XFEM_STEPPED, true ) ;
 

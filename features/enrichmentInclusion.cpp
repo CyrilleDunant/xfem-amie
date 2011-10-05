@@ -163,8 +163,19 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	{
 		update(dtree) ;
 	}
-	updated = false ;
+ 	updated = false ;
 	const std::vector<DelaunayTriangle *> & disc  = cache;
+	
+	for(size_t i = 0 ; i < disc.size() ; i++)
+	{
+		Form * original ;
+		HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
+		if(hom)
+		{
+			disc[i]->setBehaviour(hom->original->getCopy()) ;
+			delete hom ;
+		}
+	}
 
 	if(disc.size() == 1) // special case for really small inclusions
 	{
@@ -179,8 +190,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		}
 		HomogeneisedBehaviour * hom = new HomogeneisedBehaviour(feat, disc[0]) ;
 		disc[0]->setBehaviour(hom) ;
+//		updated = true ;
 		return ;
 	}
+	
 	
 //	for(size_t i = 0 ; i < disc.size() ; i++)
 //	{
@@ -328,6 +341,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			}
 		}
 	}
+//	updated = true ;
 }
 	
 
