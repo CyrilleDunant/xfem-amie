@@ -1415,12 +1415,12 @@ bool Geometry::intersects(const Geometry *g) const
 			
 			if(isInSegments)
 			{
-				bool intersects = false ;
 				for(size_t i = 0 ; i < segs.size() ; i++)
 				{
-					intersects = intersects || segs[i].intersects(this) ;
+					if(segs[i].intersects(this))
+						return true ;
 				}
-				return intersects ;
+				return false ;
 			}
 
 			if(g->getGeometryType() == ELLIPSE && (g->in(this->getCenter()) || this->in(g->getCenter())))
@@ -3490,7 +3490,23 @@ bool Segment::intersects(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
+			Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
+			
+			ell.sampleBoundingSurface(128) ;
+			
+			for(size_t i = 0 ; i < ell.getBoundingPoints().size()-1 ; i++)
+			{
+				Segment test(ell.getBoundingPoint(i), ell.getBoundingPoint(i+1)) ;
+				if(this->intersects(test))
+					return true ;
+			}
+			Segment test(ell.getBoundingPoint(ell.getBoundingPoints().size()-1), ell.getBoundingPoint(0)) ;
+			return this->intersects(test) ;
+			
+			
 			Line l(f,s-f) ;
+			
+			
 			std::vector<Point> in = l.intersection(g) ;
 			if(in.size() == 0)
 				return false ;

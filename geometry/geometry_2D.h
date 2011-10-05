@@ -236,7 +236,7 @@ public:
 		return SPACE_TWO_DIMENSIONAL ;
 	}
 	
-	virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ;}
+	virtual std::vector<Point> getBoundingBox() const ;// { return std::vector<Point>(0) ;}
 } ;
 
 /** \brief Circle defined from a center and a radius, in the XY plane*/
