@@ -2982,6 +2982,8 @@ void FeatureTree::enrich()
 
 void FeatureTree::assemble()
 {
+	K->getElements2d().clear();
+	K->getElements3d().clear();
 	std::vector<DelaunayTriangle *> triangles ;
 	std::vector<DelaunayTetrahedron *> tetrahedrons ;
 

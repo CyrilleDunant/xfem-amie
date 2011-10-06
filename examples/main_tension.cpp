@@ -205,7 +205,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()-1e-4) ;
+			loadr->setData(loadr->getData()-1e-5) ;
 		}
 		
 		triangles = featureTree->getElements2D() ;
@@ -1413,8 +1413,9 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
+// 	double woff = .5 ;
 // 	std::vector<std::pair<std::string, double> >  vars ;
-// 	vars.push_back(std::make_pair("L", 500));
+// 	vars.push_back(std::make_pair("L", 150));
 // 	Function L("L") ;
 // 	vars.push_back(std::make_pair("a", .5));
 // 	Function a("a") ;
@@ -1427,19 +1428,19 @@ int main(int argc, char *argv[])
 // 	vars.push_back(std::make_pair("f", 2));
 // 	Function f("f") ;
 // 	std::vector<std::pair<double, double> >   bounds ;
-// 	bounds.push_back(std::make_pair(300, 400));
+// 	bounds.push_back(std::make_pair(100, 350));
 // 	bounds.push_back(std::make_pair(.5, 1));
 // 	bounds.push_back(std::make_pair(1, 2));
-// 	bounds.push_back(std::make_pair(150, 400));
+// 	bounds.push_back(std::make_pair(250, 250));
 // 	bounds.push_back(std::make_pair(70, 400));
 // 	bounds.push_back(std::make_pair(1.5, 3));
-// 	Function objectiveFunction = ((L^3)/(a*k*(h^3)*(k*j*.988*2.7*1e-5 + .500))-f*190000*sqrt(M_PI))^2 ;
+// 	Function objectiveFunction = ((L^3)/(a*k*(h^3)*(k*j*.988*2.7*1e-5 + woff))-f*190000*sqrt(M_PI))^2 ;
 // 	GeneticAlgorithmOptimizer ga(vars, bounds, objectiveFunction) ;
 // 	ga.optimize(1e-8, 10000, 500, .1, .65) ;
 // 	std::vector<std::pair<std::string, double> > vals = ga.getValues() ;
 // 	for(size_t i = 0 ; i < vals.size() ; i++)
 // 		std::cout << vals[i].first << " = " << vals[i].second << std::endl ;
-// 	std::cout << "m = " << vals[3].second* vals[4].second*.988*2.7e-5 + .50<< std::endl ;
+// 	std::cout << "m = " << vals[3].second* vals[4].second*.988*2.7e-5 + woff<< std::endl ;
 // 	exit(0) ;
 	double compressionCrit = -37.5e6 ; 
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;

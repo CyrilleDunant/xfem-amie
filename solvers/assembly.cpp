@@ -166,11 +166,6 @@ ElementaryVolume * Assembly::getElement3d(const size_t i)
 void Assembly::add(ElementarySurface * e)
 {
 	dim = SPACE_TWO_DIMENSIONAL ;
-	std::vector<size_t> ids  = e->getDofIds() ;
-	if(ids.empty())
-		return ;
-
-	std::sort(ids.begin(), ids.end()) ;
 	ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	multiplier_offset =  ndof;
 	element2d.push_back(e) ;
@@ -178,8 +173,6 @@ void Assembly::add(ElementarySurface * e)
 void Mu::Assembly::add(Mu::ElementaryVolume * e)
 {
 	dim = SPACE_THREE_DIMENSIONAL ;
-	std::vector<size_t> ids  = e->getDofIds() ;
-	std::sort(ids.begin(), ids.end()) ;
 	ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	multiplier_offset =  ndof;
 	element3d.push_back(e) ;
