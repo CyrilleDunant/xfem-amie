@@ -1884,20 +1884,18 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			if(!sortedElements.empty())
 				thresholdScore = sortedElements.begin()->first ;
 			double minscore = thresholdScore ;
-			int maxcount = sortedElements.size()*.1 ;
+			auto start = sortedElements.begin() ;
 			if(!sortedElements.empty() && -thresholdScore > 0 )
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
+					start = i ;
 					if(i->first <= thresholdScore + scoreTolerance)
 					{
 						newSet.push_back(i->second->index);
 						minscore = i->first ;
 					}
 					else
-						break ;
-					
-					if(newSet.size() == maxcount)
 						break ;
 				}
 			}
@@ -1915,16 +1913,10 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			damagingSet = newSet ;
 			
 			std::set<unsigned int> newProximity ;
-			int count = 0;
 			if(!sortedElements.empty()&& -thresholdScore > 0)
 			{
-				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
+				for(auto i = ++start ; i != sortedElements.end() ; i++ )
 				{
-					if(i->first <= thresholdScore + scoreTolerance && count++ < maxcount)
-					{
-						continue ;
-					}
-					else
 					{
 						newProximity.insert(i->second->index) ;
 					}
