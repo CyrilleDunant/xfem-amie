@@ -13,6 +13,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/homogeneised_behaviour.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -152,7 +153,7 @@ Vector getStiffnessTensor(bool random)
 	Sample box(0.05, 0.05, 0.025, 0.025) ;
 	box.setBehaviour(aggregate) ;
 
-	std::vector<Inclusion *> inclusions ;
+	std::vector<ExpansiveZone *> inclusions ;
 	double interval = 0.05/(nz+1) ;
 	double radius = std::sqrt(fraction*(0.05*0.05)/(nz*nz*3.141592)) ;
 
@@ -162,7 +163,7 @@ Vector getStiffnessTensor(bool random)
 		for(size_t j = 0 ; j < nz ; j++)
 		{
 			double cy = interval*(j+1) ;
-			inclusions.push_back(new Inclusion(radius, cx, cy)) ;
+			inclusions.push_back(new ExpansiveZone(NULL, radius, cx, cy, gel->param, gel->imposed)) ;
 		}
 	}
 	std::cerr << inclusions[0]->area()/(0.05*0.05) << std::endl ;
@@ -180,7 +181,7 @@ Vector getStiffnessTensor(bool random)
 		
 		for(size_t i = 0 ; i < features.size() ; i++)
 		{
-			inclusions.push_back(dynamic_cast<Inclusion *>(features[i])) ;
+			inclusions.push_back(dynamic_cast<ExpansiveZone *>(features[i])) ;
 			inclusions[i]->getCenter().print() ;
 		}
 		features.clear() ;
@@ -189,7 +190,7 @@ Vector getStiffnessTensor(bool random)
 	centers.clear() ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		centers.push_back(inclusions[i]->getCenter()) ;
-
+	
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		inclusions[i]->setBehaviour(gel) ;
 
@@ -204,6 +205,7 @@ Vector getStiffnessTensor(bool random)
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM));
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, -1e6));
 
+	srand(0) ;
 	F.step() ;
 	Vector disp(F.getDisplacements().size()) ;
 	disp = F.getDisplacements() ;
@@ -216,6 +218,8 @@ Vector getStiffnessTensor(bool random)
 	double eyy = 0. ;
 	double exy = 0. ;
 	double area = 0. ;
+//	int homogenized = 0 ;
+
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
 		double a = tri[i]->area() ;
@@ -232,6 +236,9 @@ Vector getStiffnessTensor(bool random)
 		eyy += strain[1]*a ;
 		exy += strain[2]*a ;
 		area += a ;
+//		Form * test = dynamic_cast<ElementarySurface *>(tri[i])->getBehaviour() ;
+//		if(dynamic_cast<HomogeneisedBehaviour *>(test))
+//			homogenized++ ;
 	}
 
 	Vector sigma(2) ;
@@ -257,7 +264,7 @@ Vector getExpansionStress(bool random)
 	Sample box(0.05, 0.05, 0.025, 0.025) ;
 	box.setBehaviour(aggregate) ;
 
-	std::vector<Inclusion *> inclusions ;
+	std::vector<ExpansiveZone *> inclusions ;
 	double interval = 0.05/(nz+1) ;
 	double radius = std::sqrt(fraction*(0.05*0.05)/(nz*nz*3.141592)) ;
 	std::cout << radius << std::endl ;
@@ -268,33 +275,33 @@ Vector getExpansionStress(bool random)
 		for(size_t j = 0 ; j < nz ; j++)
 		{
 			double cy = interval*(j+1) ;
-			inclusions.push_back(new Inclusion(radius, cx, cy)) ;
+			inclusions.push_back(new ExpansiveZone(NULL, radius, cx, cy, gel->param, gel->imposed)) ;
 		}
 	}
 	std::cerr << inclusions[0]->area()/(0.05*0.05) << std::endl ;
 
-/*	if(random)
-	{
-		std::vector<Feature *> features ;
-		for(size_t i = 0 ; i < inclusions.size() ; i++)
-		{
-			features.push_back(dynamic_cast<Feature *>(inclusions[i])) ;
-		}
-		inclusions.clear() ;
-		int granulats = 1 ;
-		features = placement(dynamic_cast<Rectangle *>(&box), features, &granulats) ;
-		
-		for(size_t i = 0 ; i < granulats ; i++)
-		{
-			inclusions.push_back(dynamic_cast<Inclusion *>(features[i])) ;
-			inclusions[i]->getCenter().print() ;
-		}
-		features.clear() ;
-	}*/
+// 	if(random)
+// 	{
+// 		std::vector<Feature *> features ;
+// 		for(size_t i = 0 ; i < inclusions.size() ; i++)
+// 		{
+// 			features.push_back(dynamic_cast<Feature *>(inclusions[i])) ;
+// 		}
+// 		inclusions.clear() ;
+// 		int granulats = 1 ;
+// 		features = placement(dynamic_cast<Rectangle *>(&box), features, &granulats) ;
+// 		
+// 		for(size_t i = 0 ; i < granulats ; i++)
+// 		{
+// 			inclusions.push_back(dynamic_cast<ExpansiveZone *>(features[i])) ;
+// 			inclusions[i]->getCenter().print() ;
+// 		}
+// 		features.clear() ;
+// 	}
 
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	{
-		inclusions[i]->setBehaviour(gel) ;
+// 		inclusions[i]->setBehaviour(gel) ;
 		Point c = centers[i] ;
 		dynamic_cast<Circle *>(inclusions[i])->setCenter(c) ;
 	}
@@ -311,6 +318,7 @@ Vector getExpansionStress(bool random)
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM));
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,TOP));
 
+	srand(0) ;
 	F.step() ;
 	Vector disp(F.getDisplacements().size()) ;
 	disp = F.getDisplacements() ;
@@ -320,6 +328,7 @@ Vector getExpansionStress(bool random)
 	double syy = 0. ;
 	double sxy = 0. ;
 	double area = 0. ;
+	int homogenized = 0 ;
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
 		double a = tri[i]->area() ;
@@ -332,109 +341,33 @@ Vector getExpansionStress(bool random)
 		syy += stress[1]*a ;
 		sxy += stress[2]*a ;
 		area += a ;
+//		homogenized += tri[i]->getEnrichmentFunctions().size() ;
+//		Form * test = dynamic_cast<ElementarySurface *>(tri[i])->getBehaviour() ;
+//		if(dynamic_cast<HomogeneisedBehaviour *>(test))
+//			homogenized++ ;
 	}
 
 	Vector sigma(2) ;
 	sigma[0] = sxx/area ;
 	sigma[1] = syy/area ;
+	
+	TriangleWriter writer("enrichment-triangles", &F) ;
+	writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+	writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
+	writer.getField( TWFT_VON_MISES ) ;
+	writer.getField( TWFT_STIFFNESS ) ;
+	writer.getField( TWFT_DAMAGE ) ;
+
+	writer.write() ;
+	
 	return sigma ;
 
 }
 
 int main(int argc, char *argv[])
 {
-	Function f1 = "0.5 0.5 x * - 0.5 0.5 t * - *" ;
-	Function f2 = "0.5 0.5 x * + 0.5 0.5 t * - *" ;
-	Function f3 = "0.5 0.5 x * - 0.5 0.5 t * + *" ;
-	Function f4 = "0.5 0.5 x * + 0.5 0.5 t * + *" ;
-	
-	VirtualMachine vm ;
-
-	Function fx1 = "0.5 0.5 t * - -0.5 *" ;
-	Function fx2 = "0.5 0.5 t * - 0.5 *" ;
-	Function fx3 = "0.5 0.5 t * + -0.5 *" ;
-	Function fx4 = "0.5 0.5 t * + 0.5 *" ;
-
-	Matrix A(4,4) ;
-	Matrix B(4,4) ;
-	
-	A[0][0] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	A[0][1] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	A[0][2] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	A[0][3] =  vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-	
-	A[1][0] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	A[1][1] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	A[1][2] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	A[1][3] =  vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-
-	A[2][0] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	A[2][1] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	A[2][2] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	A[2][3] =  vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-
-	A[3][0] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	A[3][1] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	A[3][2] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	A[3][3] =  vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-
-// 	 std::endl ;
-
-	B[0][0] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[0][1] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[0][2] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[0][3] =  vm.deval(f1, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
-	
-	B[1][0] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[1][1] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[1][2] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[1][3] =  vm.deval(f2, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
-
-	B[2][0] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[2][1] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[2][2] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[2][3] =  vm.deval(f3, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
-
-	B[3][0] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f1, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[3][1] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f2, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[3][2] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f3, TIME_VARIABLE,XI, 0,0,0,0)  ;
-	B[3][3] =  vm.deval(f4, XI, 0,0,0,0)*vm.ddeval(f4, TIME_VARIABLE,XI, 0,0,0,0) ;
-	
-	((Matrix)(A+B)).print() ; 
-	
-	Matrix C(4,4) ;
-	C[0][0] = vm.deval(f1, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	C[0][1] =  vm.deval(f1, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	C[0][2] =  vm.deval(f1, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	C[0][3] =  vm.deval(f1, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-	
-	C[1][0] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	C[1][1] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	C[1][2] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	C[1][3] =  vm.deval(f2, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-
-	C[2][0] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	C[2][1] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	C[2][2] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	C[2][3] =  vm.deval(f3, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-
-	C[3][0] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f1, XI, 0,0,0,0)  ;
-	C[3][1] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f2, XI, 0,0,0,0)  ;
-	C[3][2] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f3, XI, 0,0,0,0)  ;
-	C[3][3] =  vm.deval(f4, XI, 0,0,0,0)*vm.deval(f4, XI, 0,0,0,0) ;
-	
-	((Matrix)(C+B+B.transpose())).print() ; 
-	
-	
-	
-	
-	
-	return 0 ;
-	
-	
-
-/*	std::string type(argv[1]) ;
-	if(type == "--regular")
+	std::string type(argv[1]) ;
+	if(type == std::string("--regular"))
 	{
 		std::cout << "first argument is number of zones along a side" << std::endl ;
 		std::cout << "second argument is percentage of area covered by all the zones" << std::endl ;
@@ -455,7 +388,7 @@ int main(int argc, char *argv[])
 		return 0 ;
 	}
 	
-	if(type == "--random")
+	if(type == std::string("--random"))
 	{
 		std::cout << "first argument is number of zones along a side" << std::endl ;
 		std::cout << "second argument is percentage of area covered by all the zones" << std::endl ;
@@ -476,6 +409,6 @@ int main(int argc, char *argv[])
 		return 0 ;
 	}
 
-	return 0 ;*/
+	return 0 ;
 
 }

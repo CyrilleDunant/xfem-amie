@@ -17,6 +17,7 @@
 #include "eigenvalues.h"
 #include <valarray>
 #include <sys/time.h>
+#include <omp.h>
 using namespace Mu ;
 
 
@@ -473,25 +474,31 @@ void Assembly::initialiseElementaryMatrices()
 	std::cerr << "Generating elementary matrices..." << std::flush ;
 	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
-#pragma omp parallel for 
+//	#pragma omp parallel for
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
+// 			std::cout << i << std::endl ;
 			if(element2d[i]->getBehaviour())
+			{
 				element2d[i]->getElementaryMatrix() ;
+			}
 		}
 	}
 	else if(dim == SPACE_THREE_DIMENSIONAL)
 	{
-#pragma omp parallel for 
+	#pragma omp parallel for 
 		for(size_t i = 0 ; i < element3d.size() ; i++)
 		{
 			if(element3d[i]->getBehaviour())	
+			{
 				element3d[i]->getElementaryMatrix() ;
+			}
 		}
 	}
 	gettimeofday(&time1, NULL);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
+
 }
 
 
@@ -1121,7 +1128,7 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 				multipliers.erase(duplicate) ;
 			
 			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
-			multipliers.back().type = SET_ALONG_ETA ;
+			multipliers.back().type = SET_ALONG_ZETA ;
 			break ;
 		}
 		default:
