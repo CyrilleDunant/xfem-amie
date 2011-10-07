@@ -1672,11 +1672,11 @@ int main( int argc, char *argv[] )
 
 #endif
 	double compressionCrit = -37.0e6 ;
-	double tensionCrit =  1.3*330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
+	double tensionCrit =  1.4*330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*rebarDiametre / .4 ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .02 ; // .015
+	double mradius = .03 ; // .015
 	double nradius = mradius*10. ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1862,7 +1862,7 @@ int main( int argc, char *argv[] )
 	triangles = F.getElements2D() ;
 	F.addPoint( new Point( supportLever, -sampleHeight*.5 - plateHeight ) ) ;
 // 	F.addPoint(new Point(platewidth, sampleHeight*.5)) ;
-	F.setMaxIterationsPerStep( 400 );
+	F.setMaxIterationsPerStep( 1600 );
 
 	step() ;
 

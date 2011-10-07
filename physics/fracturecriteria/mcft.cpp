@@ -232,7 +232,7 @@ double NonLocalMCFT::grade( ElementState &s )
 //  double pseudoYoung = youngModulus*(1.-std::min(-s.getParent()->getBehaviour()->getDamageModel()->getState().max()+2.*s.getParent()->getBehaviour()->getDamageModel()->smoothedState(s, true).max(), 1.)) ;
 	double pseudoYoung = youngModulus*(1.-std::min(s.getParent()->getBehaviour()->getDamageModel()->getState().max(), 1.-1e-12));
 	if(pseudoYoung < 1e-9)
-		return 1 ;
+		return -1 ;
 	double maxCompression = downVal  ;
 	double maxCompressionStrain = downVal/pseudoYoung  ;
 
@@ -258,6 +258,8 @@ double NonLocalMCFT::grade( ElementState &s )
 		double upTestVal = 2.*downVal ;
 		double downTestVal = 0 ;
 
+		if(n*f_p/(epsilon_p*pseudoYoung)-n+1. < 0)
+			return -1 ;
 		double rcs = pow(n*f_p/(epsilon_p*pseudoYoung)-n+1., 1./(n*k_c)) ;
 		double testVal = rcs*epsilon_p*pseudoYoung ;
 
@@ -285,7 +287,7 @@ double NonLocalMCFT::grade( ElementState &s )
 // 		{
 // 		pseudoYoung = youngModulus*(1.-i) ;
 		double downTestVal = 0 ;
-		double upTestVal = 2.*upVal ;
+		double upTestVal = upVal ;
 		double factor = 1 ;
 		double delta_tech = strain_te-strain_ch;
 		while(std::abs(upTestVal-downTestVal) > 1e-12*upVal)
