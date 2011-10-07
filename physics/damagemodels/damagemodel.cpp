@@ -227,10 +227,10 @@ void DamageModel::step( ElementState &s )
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		std::stable_sort( states.begin(), states.end() ) ;
 
-		if(std::abs(limitState-downState).max() <= damageDensityTolerance || std::abs(upState-limitState).max() <= damageDensityTolerance)
+		if((limitState-downState).max() <= damageDensityTolerance || (upState-limitState).max() <= damageDensityTolerance)
 			limitState = downState + ( upState - downState ) * .5 ;
 		
-		if(states.size() < 5 && std::abs(limitState-downState).max() > damageDensityTolerance)
+		if(states.size() < 5 && (limitState-downState).max() > damageDensityTolerance)
 		{
 			if(states.size() == 2)
 			{
