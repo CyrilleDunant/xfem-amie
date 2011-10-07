@@ -25,6 +25,8 @@ class ExpansiveZone :  public EnrichmentInclusion
 	std::set<DelaunayTriangle *> expansive ;
 	Vector imposedDef ;
 	Matrix cgTensor ;
+	bool homogeneized ;
+	
 public:
 
 /** \brief Constructor. construct the zone
@@ -52,6 +54,8 @@ public:
 	}
 	
 	void reset() ;
+	
+	bool isHomogeneized() const { return homogeneized ; }
 	
 	void setExpansion(Vector a) ;
 	

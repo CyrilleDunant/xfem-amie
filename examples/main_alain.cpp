@@ -347,9 +347,17 @@ Vector getExpansionStress(bool random)
 //			homogenized++ ;
 	}
 
-	Vector sigma(2) ;
+	Vector sigma(3) ;
 	sigma[0] = sxx/area ;
 	sigma[1] = syy/area ;
+	
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+	{
+		if(inclusions[i]->isHomogeneized())
+			sigma[2]++ ;
+	}
+	
+	std::cout << sigma[2] << std::endl ;
 	
 	TriangleWriter writer("enrichment-triangles", &F) ;
 	writer.getField(TWFT_PRINCIPAL_STRESS ) ;

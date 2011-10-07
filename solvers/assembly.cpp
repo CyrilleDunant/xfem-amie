@@ -14,10 +14,10 @@
 #include "gausseidell.h"
 #include "polakribiereconjugategradient.h"
 #include "biconjugategradientstabilized.h"
+#include "../physics/dual_behaviour.h"
 #include "eigenvalues.h"
 #include <valarray>
 #include <sys/time.h>
-#include <omp.h>
 using namespace Mu ;
 
 
@@ -167,6 +167,11 @@ ElementaryVolume * Assembly::getElement3d(const size_t i)
 void Assembly::add(ElementarySurface * e)
 {
 	dim = SPACE_TWO_DIMENSIONAL ;
+	std::vector<size_t> ids  = e->getDofIds() ;
+	if(ids.empty())
+		return ;
+
+	std::sort(ids.begin(), ids.end()) ;
 	ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	multiplier_offset =  ndof;
 	element2d.push_back(e) ;
@@ -174,6 +179,8 @@ void Assembly::add(ElementarySurface * e)
 void Mu::Assembly::add(Mu::ElementaryVolume * e)
 {
 	dim = SPACE_THREE_DIMENSIONAL ;
+	std::vector<size_t> ids  = e->getDofIds() ;
+	std::sort(ids.begin(), ids.end()) ;
 	ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	multiplier_offset =  ndof;
 	element3d.push_back(e) ;
@@ -472,33 +479,60 @@ void Assembly::initialiseElementaryMatrices()
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
 	std::cerr << "Generating elementary matrices..." << std::flush ;
-	if(dim == SPACE_TWO_DIMENSIONAL)
+	bool cannotParallelize = false ;
+	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
-//	#pragma omp parallel for
-		for(size_t i = 0 ; i < element2d.size() ; i++)
+		if(dynamic_cast<BimaterialInterface *>(element2d[i]->getBehaviour()))
 		{
-// 			std::cout << i << std::endl ;
-			if(element2d[i]->getBehaviour())
+			cannotParallelize = true ;
+			break ;
+		}
+	}
+
+	if(cannotParallelize)
+	{
+		if(dim == SPACE_TWO_DIMENSIONAL)
+		{
+			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
-				element2d[i]->getElementaryMatrix() ;
+				if(element2d[i]->getBehaviour())
+					element2d[i]->getElementaryMatrix() ;
+			}
+		}
+		else if(dim == SPACE_THREE_DIMENSIONAL)
+		{
+			for(size_t i = 0 ; i < element3d.size() ; i++)
+			{
+				if(element3d[i]->getBehaviour())	
+					element3d[i]->getElementaryMatrix() ;
 			}
 		}
 	}
-	else if(dim == SPACE_THREE_DIMENSIONAL)
+	else
 	{
-	#pragma omp parallel for 
-		for(size_t i = 0 ; i < element3d.size() ; i++)
+		if(dim == SPACE_TWO_DIMENSIONAL)
 		{
-			if(element3d[i]->getBehaviour())	
+			#pragma omp parallel for 
+			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
-				element3d[i]->getElementaryMatrix() ;
+				if(element2d[i]->getBehaviour())
+					element2d[i]->getElementaryMatrix() ;
+			}
+		}
+		else if(dim == SPACE_THREE_DIMENSIONAL)
+		{
+			#pragma omp parallel for 
+			for(size_t i = 0 ; i < element3d.size() ; i++)
+			{
+				if(element3d[i]->getBehaviour())	
+					element3d[i]->getElementaryMatrix() ;
 			}
 		}
 	}
+
 	gettimeofday(&time1, NULL);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
-
 }
 
 
@@ -1128,7 +1162,7 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 				multipliers.erase(duplicate) ;
 			
 			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
-			multipliers.back().type = SET_ALONG_ZETA ;
+			multipliers.back().type = SET_ALONG_ETA ;
 			break ;
 		}
 		default:

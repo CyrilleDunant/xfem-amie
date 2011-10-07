@@ -16,6 +16,7 @@ using namespace Mu ;
 ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, const Matrix &tensor, Vector def ) : EnrichmentInclusion( father, radius, x, y ),  imposedDef( def ), cgTensor( tensor )
 {
 	setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
+	homogeneized = false ;
 }
 
 ExpansiveZone::~ExpansiveZone() {}
@@ -35,8 +36,11 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 	std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
 
 	if( disc.size() < 2 )
+	{
+		homogeneized = true ;
 		return ;
-
+	}
+	homogeneized = false ;
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
 	std::vector<DelaunayTriangle *> inDisc ;
@@ -179,6 +183,10 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;
 	std::vector<DelaunayTriangle *> inDisc ;
+	
+	if( disc.size() < 2 )
+		return ;
+	
 
 	for( size_t i = 0 ; i < disc.size() ; i++ )
 	{
@@ -189,7 +197,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 	}
 
 	std::set<DelaunayTriangle *> newInterface ;
-
+	
 	for( size_t i = 0 ; i < ring.size() ; i++ )
 	{
 		if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
@@ -199,7 +207,8 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 			                       ring[i]->getBehaviour()->getCopy()) ;
 			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
-			ring[i]->getBehaviour()->transform( ring[i]->getXTransform(), ring[i]->getYTransform() ) ;
+			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform() ) ;
+			bi->setSource( getPrimitive() );
 		}
 
 		newInterface.insert( ring[i] ) ;
