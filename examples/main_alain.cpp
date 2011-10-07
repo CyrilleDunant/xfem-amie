@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
 	
 		std::fstream out ;
 		out.open("grid_regular", std::ios::out | std::ios::app) ;
-		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << std::endl ;
+		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << "\t" << expansion[2] << std::endl ;
 		out.close() ;
 
 		return 0 ;
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
 	
 		std::fstream out ;
 		out.open("grid_random", std::ios::out | std::ios::app) ;
-		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << std::endl ;
+		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << "\t" << expansion[2] << std::endl ;
 		out.close() ;
 
 		return 0 ;
