@@ -1667,12 +1667,8 @@ int main( int argc, char *argv[] )
 
 	std::cout << sampleLength << "  " << supportLever << std::endl ;
 
-#ifdef HAVE_OPENMP
-	omp_set_num_threads( 8 ) ;
-
-#endif
 	double compressionCrit = -37.0e6 ;
-	double tensionCrit =  1.4*330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
+	double tensionCrit =  330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
 	double phi =  3.*rebarDiametre / .4 ;
 	
 	double psi = 2.*0.0084261498 / .4 ;

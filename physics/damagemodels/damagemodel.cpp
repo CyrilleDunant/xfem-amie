@@ -295,7 +295,7 @@ void DamageModel::step( ElementState &s )
 		
 		if( std::abs( minFraction - maxFraction ) < damageDensityTolerance)
 		{
-			trialRatio = minFraction*(1.-0.5) + maxFraction*0.5  ;
+			trialRatio = maxFraction  ;
 // 			trialRatio = minFraction ;
 			getState( true ) = downState + ( upState - downState ) *trialRatio ;
 			converged = true ;

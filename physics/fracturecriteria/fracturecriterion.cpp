@@ -31,7 +31,8 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(1e-4)
+scoreTolerance(1e-3),
+initialScore(1)
 {
 }
 
@@ -1862,12 +1863,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 		if(checkpoint) //new iteration
 		{
 
-			if(!metAtStep)
-			{
-				inset = false ;
-				damagingSet.clear();
-				return std::make_pair(0.,0.) ;
-			}
+
 			
 			std::vector<unsigned int> newSet ;
 			std::multimap<double, DelaunayTriangle *> sortedElements ;
@@ -1883,6 +1879,15 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			double thresholdScore = 0 ;
 			if(!sortedElements.empty())
 				thresholdScore = sortedElements.begin()->first ;
+			if(thresholdScore < 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
+				initialScore = -thresholdScore ;
+			
+			if(!metAtStep)
+			{
+				inset = false ;
+				damagingSet.clear();
+				return std::make_pair(0.,0.) ;
+			}
 			double minscore = thresholdScore ;
 			auto start = sortedElements.begin() ;
 			if(!sortedElements.empty() && -thresholdScore > 0 )
@@ -1890,8 +1895,9 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
 					start = i ;
-					if(i->first <= thresholdScore + scoreTolerance)
+					if(i->first <= thresholdScore + scoreTolerance*initialScore)
 					{
+// 						std::cout << i->first << "  " << std::flush ;
 						newSet.push_back(i->second->index);
 						minscore = i->first ;
 					}
@@ -1900,7 +1906,9 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 
-			if(std::abs(-nonLocalScoreAtState-thresholdScore) >= scoreTolerance)
+// 			std::cout << newSet.size() << std::endl ;
+			
+			if(std::abs(-nonLocalScoreAtState-thresholdScore) >= scoreTolerance*initialScore)
 			{
 				proximitySet.clear() ;
 				return std::make_pair(0.,0.) ;
@@ -1951,7 +1959,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 					maxscore = nls ;
 			}
 
-			return std::make_pair(maxscore - minscore - scoreTolerance*2., -thresholdScore + minscore + scoreTolerance) ;
+			return std::make_pair(maxscore - minscore - scoreTolerance*2.*initialScore, -thresholdScore + minscore + scoreTolerance*initialScore) ;
 		}
 		else
 		{
@@ -1993,7 +2001,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				}
 			}
 
-			return std::make_pair(maxscore - minscore - scoreTolerance*2., thresholdScore - maxscore + scoreTolerance) ;
+			return std::make_pair(maxscore - minscore - scoreTolerance*2.*initialScore, thresholdScore - maxscore + scoreTolerance*initialScore) ;
 		}
 	}
 	else

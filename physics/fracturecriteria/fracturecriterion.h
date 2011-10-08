@@ -53,6 +53,7 @@ typedef enum{
 		std::vector<unsigned int> damagingSet ;
 		std::vector<unsigned int> proximitySet ;
 
+		double initialScore ;
 		double neighbourhoodradius ;
 		double neighbourhoodvolume ;
 		double physicalCharacteristicRadius ;
