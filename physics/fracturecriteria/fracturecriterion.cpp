@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(0.5e-3),
+scoreTolerance(1e-2),
 initialScore(1)
 {
 }
@@ -754,7 +754,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		}
 		
 // 		std::cout << totalAreatarget << "  " << fact-factors[0] << "  "<<std::flush ;
-		double ratio =( fact-factors[0])/totalAreatarget ;
+		double ratio = 1 ; //( fact-factors[0])/totalAreatarget ;
 // 		std::cout << ratio << std::endl ;
 		double w = factors[0] ;
 		for(size_t i = 1 ; i < factors.size() ; i++)

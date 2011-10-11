@@ -290,7 +290,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		double upTestVal = upVal ;
 		double factor = 1 ;
 		double delta_tech = strain_te-strain_ch;
-		while(std::abs(upTestVal-downTestVal) > 1e-12*upVal)
+		while(std::abs(upTestVal-downTestVal) > 1e-14*upVal)
 		{
 			
 			double testVal = (upTestVal+downTestVal)*.5/pseudoYoung ;
