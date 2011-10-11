@@ -51,14 +51,6 @@ Vector BimaterialInterface::getImposedStress(const Point & p) const
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
 		return inBehaviour->getImposedStress(p) ;
 	}
-	if(dynamic_cast<HomogeneisedBehaviour *>(outBehaviour))
-	{
-		std::cerr << "H" << std::endl ;
-	}
-	else
-	{
-		std::cerr << "E" << std::endl ;
-	}
 	return outBehaviour->getImposedStress(p) ;
 }
 

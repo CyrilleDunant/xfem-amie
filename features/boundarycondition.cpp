@@ -5573,7 +5573,9 @@ void ProjectionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetra
 }
 
 
-TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition() : BoundaryCondition( GENERAL, 0. ) { } ;
+TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition() : BoundaryCondition( GENERAL, 0. ) { 
+	previousDisp.resize(0) ;
+} ;
 
 void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
@@ -5581,6 +5583,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	std::vector<DelaunayTriangle *> tri = t->getElements() ;
 	std::vector<Point> id ;
 	size_t timePlanes = tri[0]->timePlanes() ;
+	std::cout << "time-planes=" << timePlanes << std::endl ;
 
 	if ( timePlanes < 2 )
 		return ;
@@ -5590,10 +5593,14 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	size_t lastTimePlane = tri[0]->getBoundingPoints().size() * ( timePlanes - 1 ) / timePlanes ;
 
 	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	std::cout << "degrees-of-freedom=" << dof << std::endl ;
+	std::cout << "scale=" << getScale() << std::endl ;
 
-	Vector previousDisp ;
-
-	previousDisp.resize( tri[0]->getState().getDisplacements().size() ) ;
+	if(previousDisp.size() == 0)
+	{
+		previousDisp.resize( a->getDisplacements().size()) ;
+		previousDisp = a->getDisplacements() ;
+	}
 
 	if ( previousDisp.size() == 0 )
 		return ;
@@ -5608,21 +5615,21 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 
 	for ( size_t i = 0 ; i < tri.size() ; i++ )
 	{
-		previousDisp = tri[i]->getState().getDisplacements() ;
+//		previousDisp = tri[i]->getState().getDisplacements() ;
+//		std::cout << previousDisp[previousDisp.size()-1] << std::endl ;
 
-		for ( size_t tp = 0 ; tp < 1 ; tp++ )
+		for ( size_t k = 0 ; k < firstTimePlane ; k++ )
 		{
-			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
-			{
-				id.clear() ;
-				id.push_back( tri[i]->getBoundingPoint( firstTimePlane*tp + k ) ) ;
-				previousStress = tri[i]->getState().getStress( id[k], false ) ;
-				apply2DBC( tri[i], id, SET_ALONG_XI, previousDisp[( lastTimePlane+k )*dof+0]*getScale(), a ) ;
-				apply2DBC( tri[i], id, SET_ALONG_ETA, previousDisp[( lastTimePlane+k )*dof+1]*getScale(), a ) ;
+			id.clear() ;
+			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
+			previousStress = tri[i]->getState().getStress( id[k], false ) ;
+			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
+//			std::cout << previousDisp[corresponding*2] << std::endl ;
+			apply2DBC( tri[i], id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
+			apply2DBC( tri[i], id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;
 				/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
-			}
 		}
 	}
 }

@@ -104,6 +104,27 @@ HomogeneisedBehaviour::~HomogeneisedBehaviour()
 
 void HomogeneisedBehaviour::apply( const Function &p_i, const Function &p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine *vm ) const
 {
+	int get = 0 ;
+/*	if(static_cast<StiffnessWithImposedDeformationAndFracture *>(equivalent))
+	{
+		static_cast<StiffnessWithImposedDeformationAndFracture *>(equivalent)->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
+		get = 1 ;
+	}
+	else if(static_cast<StiffnessWithImposedDeformation *>(equivalent))
+	{
+		static_cast<StiffnessWithImposedDeformation *>(equivalent)->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
+		get = 2 ;
+	}
+	else if(static_cast<Stiffness *>(equivalent))
+	{
+		static_cast<Stiffness *>(equivalent)->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
+		get = 3 ;
+	}*/
+//	std::cout << "Jinv=" ;
+//	std::cout << Jinv.size() << std::endl ;
+//	std::cout << "gp=" ;
+//	std::cout << gp.gaussPoints.size() << std::endl ;
+	param.print() ;
 	equivalent->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
 }
 
@@ -143,9 +164,10 @@ bool HomogeneisedBehaviour::fractured() const
 	return false ;
 }
 
-Form *HomogeneisedBehaviour::getCopy() const
+Form * HomogeneisedBehaviour::getCopy() const
 {
-	return new HomogeneisedBehaviour( *this ) ;
+	return equivalent->getCopy() ;
+//	return new HomogeneisedBehaviour( *this ) ;
 }
 
 std::vector<BoundaryCondition * > HomogeneisedBehaviour::getBoundaryConditions( const ElementState &s,  size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const

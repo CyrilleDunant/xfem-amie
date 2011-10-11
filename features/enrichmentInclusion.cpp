@@ -195,6 +195,9 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	}
 	
 	
+// 	std::cout << "not-homogeneized" << std::endl ;
+		
+	
 //	for(size_t i = 0 ; i < disc.size() ; i++)
 //	{
 //		disc[i]->setBehaviour(this->getFather()->getBehaviour()->getCopy()) ;	
@@ -205,6 +208,11 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
+/*		if(dynamic_cast<HomogeneizedBehaviour *>(disc[i]->getBehaviour()))
+		{
+			disc[i]->setBehaviour(dynamic_cast<HomogeneizedBehaviour *>(disc[i]->getBehaviour())->original) ;
+		}*/
+	
 		Segment s0(*disc[i]->first, *disc[i]->second) ;
 		Segment s1(*disc[i]->second, *disc[i]->third) ;
 		Segment s2(*disc[i]->third, *disc[i]->first) ;

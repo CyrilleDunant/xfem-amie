@@ -369,7 +369,7 @@ Vector getExpansionStress(bool random)
 				}
 			}
 // 				stress += tri[i]->getState().getStress(test.getInPoint(i), false) ;//- tri[i]->getBehaviour()->getImposedStress(test.getInPoint(i)) ;
-			stress /= count ;
+			stress /= (2*count) ;
 //			std::cout << count << "\t" << stress[0] << "\t" << stress[1] << std::endl ;
 		}
 		else
@@ -387,7 +387,7 @@ Vector getExpansionStress(bool random)
 //			homogenized++ ;
 	}
 
-	Vector sigma(3) ;
+	Vector sigma(4) ;
 	sigma[0] = sxx/area ;
 	sigma[1] = syy/area ;
 	
@@ -397,7 +397,9 @@ Vector getExpansionStress(bool random)
 			sigma[2]++ ;
 	}
 	
-	std::cout << sigma[2] << std::endl ;
+	sigma[3] = F.getDisplacements().size() ;
+	
+//	std::cout << sigma[2] << std::endl ;
 	
 /*	TriangleWriter writer("enrichment-triangles", &F) ;
 	writer.getField(TWFT_PRINCIPAL_STRESS ) ;
@@ -430,7 +432,7 @@ int main(int argc, char *argv[])
 	
 		std::fstream out ;
 		out.open("grid_regular", std::ios::out | std::ios::app) ;
-		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << "\t" << expansion[2] << std::endl ;
+		out << "finite-elements-" << sampling << "\t" << expansion[3] << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << "\t" << expansion[2] << std::endl ;
 		out.close() ;
 
 		return 0 ;
@@ -451,7 +453,7 @@ int main(int argc, char *argv[])
 	
 		std::fstream out ;
 		out.open("grid_random", std::ios::out | std::ios::app) ;
-		out << "finite-elements-" << sampling << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << "\t" << expansion[2] << std::endl ;
+		out << "finite-elements-" << sampling << "\t" << expansion[3] << "\t" << fraction << "\t" << stiffness[0] << "\t" << stiffness[1] << "\t" << -expansion[0] << "\t" << expansion[2] << std::endl ;
 		out.close() ;
 
 		return 0 ;
