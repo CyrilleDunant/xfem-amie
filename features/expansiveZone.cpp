@@ -100,7 +100,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
 			delete inDisc[i]->getBehaviour() ;
 			inDisc[i]->setBehaviour( bi ) ;
-			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
+//			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}
 
 		newExpansive.insert( inDisc[i] ) ;
@@ -110,6 +110,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
 	if( disc.size() == 1 )
 	{
+		std::cout << "SHOULD NEVER HAPPEN" << std::endl ;
 		if( bimateralInterfaced.find( disc[0] ) == bimateralInterfaced.end() )
 		{
 			if( dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() ) )

@@ -2292,6 +2292,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	if(behaviour->hasInducedForces())
 		cachedForces.resize(0) ;
 	
+	
 	return cachedElementaryMatrix ;
 }
 

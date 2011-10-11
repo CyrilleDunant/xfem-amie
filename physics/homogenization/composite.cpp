@@ -111,7 +111,7 @@ void Composite::invertTensor( Matrix &m )
 MatrixInclusionComposite::MatrixInclusionComposite( DelaunayTriangle *tri, Feature *inc ) : Composite( tri, std::vector<Feature *>( 0 ) )
 {
 	matrix = Phase( tri ) ;
-	inclusion = Phase( inc ) ;
+	inclusion = Phase( inc , tri ) ;
 
 	matrix.volume -= inclusion.volume ;
 	volume = matrix.volume + inclusion.volume ;
@@ -403,7 +403,7 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *
 	for( size_t i = 0 ; i < inc.size() ; i++ )
 	{
 		if( inclusions.empty() )
-			inclusions.push_back( Phase( inc[i] ) ) ;
+			inclusions.push_back( Phase( inc[i] , tri ) ) ;
 
 		else
 		{

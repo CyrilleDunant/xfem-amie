@@ -95,6 +95,8 @@ public:
 	* @param currentState State of the element in which the behaviour is time-stepped
 	*/
 	virtual void step(double timestep, ElementState & currentState) ;
+	
+	virtual bool hasInducedForces() const { return inBehaviour->hasInducedForces() || outBehaviour->hasInducedForces() ; }
 
 
 		/** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise

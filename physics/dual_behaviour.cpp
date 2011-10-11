@@ -4,6 +4,7 @@
 //
 
 #include "dual_behaviour.h"
+#include "homogeneised_behaviour.h"
 #include "fracturecriteria/fracturecriterion.h"
 
 using namespace Mu ;
@@ -43,13 +44,27 @@ Matrix BimaterialInterface::getTensor(const Point & p) const
 
 Vector BimaterialInterface::getImposedStress(const Point & p) const
 {
+	inGeometry->getCenter().print() ;
+	p.print() ;
 	if(inGeometry->in(p))
+	{
+// 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
 		return inBehaviour->getImposedStress(p) ;
+	}
+	if(dynamic_cast<HomogeneisedBehaviour *>(outBehaviour))
+	{
+		std::cerr << "H" << std::endl ;
+	}
+	else
+	{
+		std::cerr << "E" << std::endl ;
+	}
 	return outBehaviour->getImposedStress(p) ;
 }
 
 void BimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
+	
 	bool allin = true ;
 	bool allout = true ;
 	Vector x = vm->eval(xtransform,gp) ;
@@ -108,7 +123,9 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	Matrix retIn(ret) ;
 	inBehaviour->apply(p_i, p_j, gpIn, inMatrixArray, retIn,vm) ; 
 	outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
+	
 	ret += retIn ;
+
 }
 
 bool BimaterialInterface::fractured() const

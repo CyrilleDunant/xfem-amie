@@ -21,7 +21,6 @@ namespace Mu
 // 	double masseInitiale;
 // 	double densite;
 
-
 	double chiffreAleatoire(double );
 } ;
 

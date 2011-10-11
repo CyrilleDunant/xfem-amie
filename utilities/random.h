@@ -156,7 +156,7 @@ struct RandomDistribution
 	RandomNumber * rnd ;
 	
 	RandomDistribution() ;
-	
+
 	virtual RandomNumber * getRandomNumber() { return rnd ; } ;
 	virtual double draw() const { return rnd->uniform() ; }
 } ;

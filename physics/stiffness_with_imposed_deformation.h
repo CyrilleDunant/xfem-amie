@@ -59,6 +59,7 @@ namespace Mu
 		/** \brief Return a copy of this Behaviour*/
 		virtual Form * getCopy() const ;
 	
+		virtual bool hasInducedForces() const { return true ; }
 		
 		/** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
 		virtual Vector getImposedStress(const Point & p) const ;

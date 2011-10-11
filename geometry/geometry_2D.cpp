@@ -925,61 +925,6 @@ bool Triangle::in(const Point &p) const
 	
 }
 
-bool Triangle::inVerbose(const Point &p) const
-{
-	bool isAPoint = false ;
-	for (int i = 0; i <  boundingPoints.size(); i++)
-	{
-		if(p == *boundingPoints[i])
-		{
-			isAPoint = true ;
-			break ;
-		}
-	}
-
-	if(isAPoint)
-		std::cout << "is a point" << std::endl ;
-	
-	Point proj(p) ; project(&proj) ;
-	bool isOnSurface = dist(p, proj) < POINT_TOLERANCE_2D ;
-
-	if(isOnSurface)
-	{
-		std::cout << "is on surface" << std::endl ;
-		p.print() ;
-		proj.print() ;
-	}
-
-	if(this->in(p))
-	{
-		std::cout << "intersection" << std::endl ;
-	}
-	
-	Segment s(p, getCenter()) ;
-	return !s.intersects(this) || isAPoint || isOnSurface;
-		
-	bool in = false ;
-	
-	for (int i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
-	{
-		if( std::abs(boundingPoints[j]->y - boundingPoints[i]->y) > 2.*POINT_TOLERANCE_2D)
-		{
-			if (
-				(((boundingPoints[i]->y < p.y + 2.*POINT_TOLERANCE_2D) 
-					&& (p.y-2.*POINT_TOLERANCE_2D < boundingPoints[j]->y)) 
-					|| ((boundingPoints[j]->y < p.y+2.*POINT_TOLERANCE_2D) 
-					&& (p.y < boundingPoints[i]->y+2.*POINT_TOLERANCE_2D))) 
-					&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) 
-					 * (p.y - boundingPoints[i]->y) 
-					 / (boundingPoints[j]->y - boundingPoints[i]->y) 
-					 + boundingPoints[i]->x + 2.*POINT_TOLERANCE_2D))
-				in = !in;
-		}
-	}
-	
-	return in ;
-	
-}
 
 std::vector<Point> Triangle::getSamplingBoundingPoints(size_t num_points) const
 {

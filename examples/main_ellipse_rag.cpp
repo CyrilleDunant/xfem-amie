@@ -20,6 +20,7 @@
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
+#include "../features/microstructuregenerator.h"
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
 #include "../features/enrichmentInclusion.h"
@@ -101,15 +102,13 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(NULL, 0.04, 0.04, 0.0, 0.0) ;
+Sample sample(NULL, 0.02, 0.02, 0.0, 0.0) ;
 
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
-
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
 std::vector<std::pair<double, double> > expansion_reaction ;
 std::vector<std::pair<double, double> > expansion_stress_xx ;
@@ -149,18 +148,73 @@ double shape ;
 double orientation ;
 double spread ;
 
-MultiTriangleWriter writer("RAG_10000z","RAG_10000z_step_",NULL) ;
+TriangleWriter writer("triangles",NULL) ;
+
+struct Zone
+{
+	GeometryType type ;
+	
+	ExpansiveZone * zone ;
+	Inclusion * inc ;
+	EllipsoidalInclusion * ell ;
+	TriangularInclusion * tri ;
+	RectangularInclusion * rec ;
+
+	Zone() { type = CIRCLE;  zone = NULL ; inc = NULL ; ell = NULL; tri = NULL; rec = NULL; }
+	Zone(ExpansiveZone * z, Inclusion * i) { type = CIRCLE; zone = z ; inc = i ; ell = NULL; tri = NULL; rec = NULL; }
+	Zone(ExpansiveZone * z, EllipsoidalInclusion * i) { type = ELLIPSE; zone = z ; inc = NULL ; ell = i; tri = NULL; rec = NULL; }
+	Zone(ExpansiveZone * z, TriangularInclusion * i) { type = TRIANGLE; zone = z ; inc = NULL ; ell = NULL; tri = i; rec = NULL; }
+	Zone(ExpansiveZone * z, RectangularInclusion * i) { type = RECTANGLE; zone = z ; inc = NULL ; ell = NULL; tri = NULL; rec = i; }
+	Zone(const Zone & z) { type = z.type; zone = z.zone ; inc = z.inc ; ell = z.ell ; tri = z.tri ; rec = z.rec ; }
+	
+	Feature * feature() 
+	{
+		switch(type)
+		{
+			case CIRCLE:
+				return inc ;
+			case ELLIPSE:
+				return ell ;
+			case TRIANGLE:
+				return tri ;
+			case RECTANGLE:
+				return rec ;
+		}
+		return NULL ;
+	}
+	
+	bool is(Feature * f) { return f == feature() ; }	
+	
+	double areaOfInclusion()
+	{
+		switch(type)
+		{
+			case CIRCLE:
+				return inc->area() ;
+			case ELLIPSE:
+				return ell->area() ;
+			case TRIANGLE:
+				return tri->area() ;
+			case RECTANGLE:
+				return rec->area() ;
+		}
+		return 0. ;
+	}
+	
+} ;
+
+std::vector<Zone> zones ;
 
 void step()
 {
 
-  int nsteps = 30;
-	int nstepstot = 30;
-  int maxtries = 200 ;
+	int nsteps = 30;
+	int nstepstot = 1;
+	int maxtries = 200 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(200) ;
 	
-	for(size_t i = 0 ; i < nsteps ; i++)
+	for(size_t i = 0 ; i < 30/*nsteps*/ ; i++)
 	{
 
 		bool go_on = featureTree->step() ;
@@ -207,9 +261,9 @@ void step()
 		double avg_s_xy = 0;
 		double e_xx_max = 0 ;
 		double e_xx_min = 0 ;
-                double e_yy_max = 0 ;
-                double e_yy_min = 0 ;
-                double ex_count = 0 ;
+        double e_yy_max = 0 ;
+        double e_yy_min = 0 ;
+        double ex_count = 0 ;
 		double avg_e_xx_nogel = 0;
 		double avg_e_yy_nogel = 0;
 		double avg_e_xy_nogel = 0;
@@ -258,19 +312,19 @@ void step()
 							e_xx_min=x[triangles[k]->getBoundingPoint(p).id*2] ;
 // 						ex_count++ ;
 					}
-                                        if(triangles[k]->getBoundingPoint(p).y > sample.height()*.4999)
-                                        {
-                                                if(e_yy_max < x[triangles[k]->getBoundingPoint(p).id*2+1])
-                                                        e_yy_max=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+					if(triangles[k]->getBoundingPoint(p).y > sample.height()*.4999)
+					{
+						if(e_yy_max < x[triangles[k]->getBoundingPoint(p).id*2+1])
+							e_yy_max=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 // 						ex_count++ ;
-                                        }
-                                        if(triangles[k]->getBoundingPoint(p).y < -sample.height()*.4999)
-                                        {
-                                                if(e_yy_min > x[triangles[k]->getBoundingPoint(p).id*2+1])
-                                                        e_yy_min=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+					}
+					if(triangles[k]->getBoundingPoint(p).y < -sample.height()*.4999)
+					{
+						if(e_yy_min > x[triangles[k]->getBoundingPoint(p).id*2+1])
+							e_yy_min=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
 // 						ex_count++ ;
-                                        }
-                                }
+					}
+				}
 				area += triangles[k]->area() ;
 				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
@@ -425,10 +479,10 @@ void step()
 		std::cout << filename << std::endl ;
 
 		writer.reset(featureTree) ;
-		writer.getField(TWFT_STRAIN_AND_STRESS) ;
-		writer.getField(TWFT_VON_MISES) ;
+/*		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+		writer.getField(TWFT_VON_MISES) ;*/
 		writer.getField(TWFT_STIFFNESS) ;
-		writer.append() ;
+		writer.write() ;
 
 		
 		std::cout << std::endl ;
@@ -465,50 +519,51 @@ void step()
 		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel/nogel_area << std::endl ;
 		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
 		
-                std::cout << "apparent extension X " << e_xx_max-e_xx_min << std::endl ;
-                std::cout << "apparent extension Y " << e_yy_max-e_yy_min << std::endl ;
+        std::cout << "apparent extension X " << e_xx_max-e_xx_min << std::endl ;
+		std::cout << "apparent extension Y " << e_yy_max-e_yy_min << std::endl ;
 
 		std::cout << tries << std::endl ;
 
         if (tries < maxtries && featureTree->solverConverged())
 		{
-			double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/(double)nstepstot ;
-                        std::cout << "delta_r => " << delta_r << std::endl ;
+			double delta_r = sqrt(aggregateArea*3/((double)zones.size()*M_PI))/(double)nstepstot ;
+            std::cout << "delta_r => " << delta_r << std::endl ;
 			if(!featureTree->solverConverged())
 				delta_r *= .01 ;
+
 			double reactedArea = 0 ;
 			
-			Inclusion * current = NULL ;
+			Feature * current = NULL ;
 			if(!zones.empty())
-				current = zones[0].second ;
+				current = zones[0].feature() ;
 			double current_area = 0 ;
 			int current_number = 0 ;
 			int stopped_reaction = 0 ;
 			for(size_t z = 0 ; z < zones.size() ; z++)
 			{
-				zones[z].first->setRadius(zones[z].first->getRadius()+delta_r) ;	
-				if(zones[z].second == current)
+				zones[z].zone->setRadius(zones[z].zone->getRadius()+delta_r) ;	
+				if(zones[z].is(current))
 				{
-					current_area += zones[z].first->area() ;
+					current_area += zones[z].zone->area() ;
 					current_number++ ;
 				}
 				else
 				{
-					if(current_area/zones[z-1].second->area() > 0.03)
+					if(current_area/zones[z-1].areaOfInclusion() > 0.03)
 					{
 						stopped_reaction++ ;
 						for(size_t m = 0 ; m < current_number ; m++)
 						{
-							reactedArea -= zones[z-1-m].first->area() ;
-							zones[z-1-m].first->setRadius(zones[z].first->getRadius()-delta_r) ;
-							reactedArea += zones[z-1-m].first->area() ;
+							reactedArea -= zones[z-1-m].zone->area() ;
+							zones[z-1-m].zone->setRadius(zones[z].zone->getRadius()-delta_r) ;
+							reactedArea += zones[z-1-m].zone->area() ;
 						}
 					}
-					current_area = zones[z].first->area() ;
+					current_area = zones[z].zone->area() ;
 					current_number = 1 ;
-					current = zones[z].second ;
+					current = zones[z].feature() ;
 				}
-				reactedArea += zones[z].first->area() ;
+				reactedArea += zones[z].zone->area() ;
 			}
 			
 			std::cout << "reacted Area : " << reactedArea << ", reaction stopped in "<< stopped_reaction << " aggs."<< std::endl ;
@@ -519,51 +574,51 @@ void step()
 				expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
 				expansion_stress_xx.push_back(std::make_pair((avg_e_xx_nogel)/(nogel_area), (avg_s_xx_nogel)/(nogel_area))) ;
 				expansion_stress_yy.push_back(std::make_pair((avg_e_yy_nogel)/(nogel_area), (avg_s_yy_nogel)/(nogel_area))) ;
-                                apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
+                apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
 			}
 			
 //			if (tries >= maxtries)
 //				break ;
 		}
-	for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
-		std::cout << expansion_reaction[i].first << "   " 
-		<< expansion_reaction[i].second << "   " 
-		<< expansion_stress_xx[i].first << "   " 
-		<< expansion_stress_xx[i].second << "   " 
-		<< expansion_stress_yy[i].first << "   " 
-		<< expansion_stress_yy[i].second << "   " 
-                << apparent_extension[i].first  << "   "
-                << apparent_extension[i].second  << "   "
-                << cracked_volume[i]  << "   "
-		<< damaged_volume[i]  << "   " 
-		<< std::endl ;
-
+		for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
+		{
+			std::cout << expansion_reaction[i].first << "   " 
+			<< expansion_reaction[i].second << "   " 
+			<< expansion_stress_xx[i].first << "   " 
+			<< expansion_stress_xx[i].second << "   " 
+			<< expansion_stress_yy[i].first << "   " 
+			<< expansion_stress_yy[i].second << "   " 
+			<< apparent_extension[i].first  << "   "
+			<< apparent_extension[i].second  << "   "
+			<< cracked_volume[i]  << "   "
+			<< damaged_volume[i]  << "   " 
+			<< std::endl ;
+		}
 	}
 
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
+std::vector<Zone> generateExpansiveZonesHomogeneously(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
   
 	double E_csh = 31e9 ;
 	double nu_csh = .28 ;
-//	double nu_incompressible = .499997 ;
 	
 	double E = percent*E_csh ;
-	double nu = nu_csh ; //nu_incompressible ;
+	double nu = nu_csh ;
 	
 	Matrix m0(3,3) ;
 	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
 	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
 	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
 	
-	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
+	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
-	a[0] = 0.25 ;
-	a[1] = 0.25 ;
+	a[0] = 0.5 ;
+	a[1] = 0.5 ;
 	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
@@ -585,8 +640,6 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		}
 		if (alone)
 			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
-//		else
-//			i-- ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<Inclusion *, int> zonesPerIncs ; 
@@ -595,10 +648,6 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-/*			Point ax = incs[j]->getMajorAxis() * (1./incs[j]->getMajorRadius()) ;
-                        double newa = incs[j]->getMajorRadius() - radius*60. ;
-                        double newb = incs[j]->getMinorRadius() - radius*60. ;
-			Ellipse ell(incs[j]->getCenter(), ax*newa, newb/newa) ;*/
 			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
 			if(circle.in(zonesToPlace[i]->getCenter()))
 			{
@@ -607,7 +656,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
                             }
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;
-				ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
+				ret.push_back(Zone(zonesToPlace[i],incs[j])) ;
 				placed = true ;
 				break ;
 			}
@@ -621,7 +670,6 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	{
 		aggregateArea+= i->first->area() ;
 		count+= i->second ;
-//		std::cout << aggregateArea << "  " << count << std::endl ;
 	}
 	
 	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
@@ -629,116 +677,394 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	return ret ;	
 }
 
-std::vector<EllipsoidalInclusion *> circlesToEllipses(std::vector<Inclusion *> inc, int n)
+
+
+
+TriangularInclusion * rotate(TriangularInclusion * tri, double alpha)
 {
-	std::vector<EllipsoidalInclusion *> ellipses ;
+	Point A = tri->getBoundingPoint(0) ;
+	Point B = tri->getBoundingPoint(1) ;
+	Point C = tri->getBoundingPoint(2) ;
+	
+	Point center = tri->getCenter() ;
+	
+	A -= center ;
+	B -= center ;
+	C -= center ;
+	
+	double a = A.angle()+alpha ;
+	double b = B.angle()+alpha ;
+	double c = C.angle()+alpha ;
+	
+	double ax = A.norm() ;
+	double bx = B.norm() ;
+	double cx = C.norm() ;
+	
+	A = Point(std::cos(a), std::sin(a))*ax ;
+	B = Point(std::cos(b), std::sin(b))*bx ;
+	C = Point(std::cos(c), std::sin(c))*cx ;
 
-	double da = 1./sqrt(shape) ;
+	A += center ;
+	B += center ;
+	C += center ;
+	
+	return new TriangularInclusion(tri->getFather(), A, B, C) ;
+	
+}
 
-	double theta = M_PI * orientation ;
-	double thetamax = M_PI - theta ;
-	if(theta < 0)
-		thetamax = theta + M_PI ;
-	thetamax *= spread ;
+RectangularInclusion * rotate(RectangularInclusion * rec, double alpha)
+{
+	Point A = rec->getBoundingPoint(0) ;
+	Point B = rec->getBoundingPoint(1) ;
+	Point C = rec->getBoundingPoint(2) ;
+	Point D = rec->getBoundingPoint(3) ;
+	
+	Point center = rec->getCenter() ;
+	
+	A -= center ;
+	B -= center ;
+	C -= center ;
+	D -= center ;
+	
+	double a = A.angle()+alpha ;
+	double b = B.angle()+alpha ;
+	double c = C.angle()+alpha ;
+	double d = D.angle()+alpha ;
+	
+	double ax = A.norm() ;
+	double bx = B.norm() ;
+	double cx = C.norm() ;
+	double dx = D.norm() ;
+	
+	A = Point(std::cos(a), std::sin(a))*ax ;
+	B = Point(std::cos(b), std::sin(b))*bx ;
+	C = Point(std::cos(c), std::sin(c))*cx ;
+	D = Point(std::cos(d), std::sin(d))*dx ;
+	
+	A += center ;
+	B += center ;
+	C += center ;
+	D += center ;
+	
+	return new RectangularInclusion(rec->getFather(), A, B, C, D) ;
+	
+}
 
-	RandomNumber gen ;
+EllipsoidalInclusion * rotate(EllipsoidalInclusion * ell, double alpha)
+{
+	Point A = ell->getMajorAxis() ;
+	Point B = ell->getMinorAxis() ;
+	
+	double a = A.angle()+alpha ;
+	double b = B.angle()+alpha ;
+	
+	double ax = A.norm() ;
+	double bx = B.norm() ;
+	
+	A = Point(std::cos(a), std::sin(a))*ax ;
+	B = Point(std::cos(b), std::sin(b))*bx ;
+	
+	return new EllipsoidalInclusion(ell->getFather(), ell->getCenter(), A, B) ;
+	
+}
 
-	for(size_t i = 0 ; i < inc.size() && i < (size_t) n ; i++)
+
+bool tintersects(std::vector<TriangularInclusion *> triinc, int index, Sample * box)
+{
+	if(triinc[index]->getPrimitive()->intersects(box->getPrimitive()))
 	{
-		double r = inc[i]->getRadius() ;
-		double a = r * da ;
-		double t = theta - thetamax + 2.*thetamax*gen.uniform() ;
-		Point axis(cos(t),sin(t)) ;
-
-		ellipses.push_back(new EllipsoidalInclusion(inc[i]->getCenter(), axis*a, shape)) ;		
+		return true ;
+	}
+	
+	for(size_t i = 0 ; i < index ; i++)
+	{
+		if(triinc[index]->getPrimitive()->intersects(triinc[i]->getPrimitive()))
+		{
+			return true ;
+		}
 	}
 
-	double area = 0. ;
-	for(size_t i = 0 ; i < ellipses.size() ; i++)
-		area += ellipses[i]->area() ;
-		
-	double circle = 0. ;
-	for(size_t i = 0 ; i < ellipses.size() ; i++)
-		circle += inc[i]->area() ;
+	for(size_t i = index+1 ; i < triinc.size() ; i++)
+	{
+		if(triinc[index]->getPrimitive()->intersects(triinc[i]->getPrimitive()))
+		{
+			return true ;
+		}
+	}
+	return false ;
+}
+
+bool tintersects(std::vector<RectangularInclusion *> recinc, int index, Sample * box)
+{
+	if(recinc[index]->getPrimitive()->intersects(box->getPrimitive()))
+	{
+		return true ;
+	}
 	
-	std::cout << circle << ";" << area << std::endl ;
+	for(size_t i = 0 ; i < index ; i++)
+	{
+		if(recinc[index]->getPrimitive()->intersects(recinc[i]->getPrimitive()))
+		{
+			return true ;
+		}
+	}
 	
-	return ellipses ;
+	for(size_t i = index+1 ; i < recinc.size() ; i++)
+	{
+		if(recinc[index]->getPrimitive()->intersects(recinc[i]->getPrimitive()))
+		{
+			return true ;
+		}
+	}
+	return false ;
+}
+
+bool tintersects(std::vector<EllipsoidalInclusion *> ellinc, int index, Sample * box)
+{
+	if(ellinc[index]->getPrimitive()->intersects(box->getPrimitive()))
+	{
+		return true ;
+	}
+	
+	for(size_t i = 0 ; i < index ; i++)
+	{
+		if(ellinc[index]->getPrimitive()->intersects(ellinc[i]->getPrimitive()))
+		{
+			return true ;
+		}
+	}
+	
+	for(size_t i = index+1 ; i < ellinc.size() ; i++)
+	{
+		if(ellinc[index]->getPrimitive()->intersects(ellinc[i]->getPrimitive()))
+		{
+			return true ;
+		}
+	}
+	return false ;
+}
+
+
+bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int index, Sample * box)
+{
+	if(tintersects(triinc, index, box))
+	{
+		TriangularInclusion * next ;
+		int i = 0 ;
+		while(i < 500)
+		{
+			double alpha = UniformDistribution(0,0.25*M_PI).draw() ;
+			triinc[index] = rotate(triinc[index],alpha) ;
+			if(!tintersects(triinc, index, box))
+			{
+				return true ;
+			}
+			i++ ;
+		}
+		return false ;
+	}
+	else
+		return true ;
+}
+
+bool rotateUntilNoIntersection(std::vector<RectangularInclusion *> & recinc, int index, Sample * box)
+{
+	if(tintersects(recinc, index, box))
+	{
+		RectangularInclusion * next ;
+		int i = 0 ;
+		while(i < 500)
+		{
+			double alpha = UniformDistribution(0,0.25*M_PI).draw() ;
+			recinc[index] = rotate(recinc[index],alpha) ;
+			if(!tintersects(recinc, index, box))
+			{
+				return true ;
+			}
+			i++ ;
+		}
+		return false ;
+	}
+	else
+		return true ;
+}
+
+bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int index, Sample * box)
+{
+	if(tintersects(ellinc, index, box))
+	{
+		EllipsoidalInclusion * next ;
+		int i = 0 ;
+		while(i < 50)
+		{
+			double alpha = UniformDistribution(0,0.25*M_PI).draw() ;
+			ellinc[index] = rotate(ellinc[index],alpha) ;
+			if(!tintersects(ellinc, index, box))
+			{
+				return true ;
+			}
+			i++ ;
+		}
+		return false ;
+	}
+	else
+		return true ;
 }
 
 int main(int argc, char *argv[])
 {
-	srand(0) ;
-
-	percent = atof(argv[1]) ;
-	shape = 0 ;
-//	shape = atof(argv[2])*(-1e6) ;
-/*	shape = atof(argv[2]) ;
-	orientation = atof(argv[3]) ;
-	spread = atof(argv[4]) ;*/
-
-	Matrix m0_agg(3,3) ;
-	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
-	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
-	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
+	GeometryType reference = CIRCLE ;
 	
-	Matrix m0_paste(3,3) ;
-	m0_paste[0][0] = E_paste/(1-nu*nu) ; m0_paste[0][1] =E_paste/(1-nu*nu)*nu ; m0_paste[0][2] = 0 ;
-	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
-	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
+	if(argc > 1)
+	{
+		if(std::string(argv[1]) == std::string("--ellipse"))
+			reference = ELLIPSE ;
+		if(std::string(argv[1]) == std::string("--triangle"))
+			reference = TRIANGLE ;
+		if(std::string(argv[1]) == std::string("--rectangle"))
+			reference = RECTANGLE ;
+	}
+	
+	
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	double itzSize = 0.00005;
- 	int inclusionNumber = 4100 ;
- 	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416*13/50, 1., BOLOME_D)(.00025, .1, inclusionNumber, itzSize);
+	double itzSize = 0.0005;
+ 	int inclusionNumber = 12 ;
+ 	std::vector<Inclusion *> inclusions = GranuloBolome(0.00000416*13/50, 1., BOLOME_A)(.00225, .1, inclusionNumber, itzSize);
 
-        int n = 4100 ;
-//	std::vector<EllipsoidalInclusion *> ellipses = circlesToEllipses(inclusions, n) ;
+	double c_area = 0 ;
+	double t_area = 0 ;
 	
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)
-//		feats.push_back(ellipses[i]) ;
 	{
-//		if(RandomNumber().uniform() < 0.5)
-			feats.push_back(inclusions[i]) ;
+		feats.push_back(inclusions[i]) ;
+		c_area += inclusions[i]->area() ;
 	}
-
-//	ellipses.clear() ;
+	
 	inclusions.clear() ;
-
 	int nAgg = 1 ;
-        feats=placement(sample.getPrimitive(), feats, &nAgg, 0, 16000);
-
+	srand(0) ;
+	feats = placement(sample.getPrimitive(), feats, &nAgg, 0, 16000);
+	
 	for(size_t i = 0; i < feats.size() ; i++)
-	{
 		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
+
+	if(reference != CIRCLE)
+	{
+		feats.clear() ;
+		InclusionConverter cnv(reference, new ConstantDistribution(1.), new ConstantDistribution(1.), new UniformDistribution(2.*M_PI)) ;
+/*		if(reference == RECTANGLE)
+			cnv.setOrientation(new UniformDistribution(M_PI)) ;*/
+		if(reference == ELLIPSE)
+		{
+			cnv.setAspectRatio(0.5) ;
+			cnv.setOrientation(new UniformDistribution(M_PI)) ;
+		}
+		feats = cnv.convert(inclusions) ;
 	}
 
-/*	WeibullDistributedStiffness * stiffPaste = new WeibullDistributedStiffness(m0_paste, -8.*135000,135000.) ;
-	stiffPaste->materialRadius = .002 ;
-	stiffPaste->neighbourhoodRadius =  .0025 ;*/
-	sample.setBehaviour(new PasteBehaviour()) ;
-
-        for(size_t i = 0 ; i < inclusions.size() ; i++)
+	std::vector<EllipsoidalInclusion *> ellinc ;
+	std::vector<TriangularInclusion *> triinc ;
+	std::vector<RectangularInclusion *> recinc ;
+	
+	switch(reference)
 	{
-/*		WeibullDistributedStiffness * stiffAgg = new WeibullDistributedStiffness(m0_agg, -8.*57000000, 57000000) ;
-		stiffAgg->materialRadius = .0002 ;
-		stiffAgg->neighbourhoodRadius =  .0003 ;*/
-                inclusions[i]->setBehaviour(new AggregateBehaviour()) ;
-                F.addFeature(&sample,inclusions[i]) ;
-                placed_area += inclusions[i]->area() ;
-        }
+		case ELLIPSE:
+			for(size_t i = 0 ; i < feats.size() ; i++)
+			{
+				ellinc.push_back(dynamic_cast<EllipsoidalInclusion *>(feats[i])) ;
+				t_area += ellinc[i]->area() ;
+			}
+			break ;
+		case TRIANGLE:
+			for(size_t i = 0 ; i < feats.size() ; i++)
+			{
+				triinc.push_back(dynamic_cast<TriangularInclusion *>(feats[i])) ;
+				t_area += triinc[i]->area() ;
+			}
+			break ;
+		case RECTANGLE:
+			for(size_t i = 0 ; i < feats.size() ; i++)
+			{
+				recinc.push_back(dynamic_cast<RectangularInclusion *>(feats[i])) ;
+				t_area += recinc[i]->area() ;
+			}
+			break ;
+	}
+	
+	int rotated = feats.size() ;
+	while(rotated > 0)
+	{
+		rotated = feats.size() ;
+		for(size_t i = 0 ; i < ellinc.size() ; i++)
+		{
+			if(rotateUntilNoIntersection(ellinc, i, &sample))
+				rotated-- ;
+		}
+		
+		for(size_t i = 0 ; i < triinc.size() ; i++)
+		{
+			if(rotateUntilNoIntersection(triinc, i, &sample))
+				rotated-- ;
+		}
+		
+		for(size_t i = 0 ; i < recinc.size() ; i++)
+		{
+			if(rotateUntilNoIntersection(recinc, i, &sample))
+				rotated-- ;
+		}
+		
+		if(reference = CIRCLE)
+			rotated = 0 ;
+		
+		std::cout << rotated << " inclusions not rotated..." << std::endl ;
+		
+	}
 
+	std::cout << c_area << "\t" << t_area << std::endl ;
 
-        zones = generateExpansiveZonesHomogeneously(10000, inclusions, F) ;
+	
+// 	return 0 ;
+	
+	
+	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
+	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
+    for(size_t i = 0 ; i < feats.size() ; i++)
+	{
+		switch(reference)
+		{
+			case CIRCLE:
+				inclusions[i]->setBehaviour(agg) ;
+				F.addFeature(&sample, inclusions[i]) ;
+				placed_area += inclusions[i]->area() ;
+				break ;
+			case ELLIPSE:
+				ellinc[i]->setBehaviour(agg) ;
+				F.addFeature(&sample, ellinc[i]) ;
+				placed_area += ellinc[i]->area() ;
+				break ;
+			case TRIANGLE:
+				triinc[i]->setBehaviour(agg) ;
+				F.addFeature(&sample, triinc[i]) ;
+				placed_area += triinc[i]->area() ;
+				break ;
+			case RECTANGLE:
+				recinc[i]->setBehaviour(agg) ;
+				F.addFeature(&sample, recinc[i]) ;
+				placed_area += recinc[i]->area() ;
+				break ;
+		}
+    }
 
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, shape)) ;
+	zones = generateExpansiveZonesHomogeneously(10, inclusions, F) ;
 
-        F.setSamplingNumber(800) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+
+    F.setSamplingNumber(100) ;
 	F.setOrder(LINEAR) ;
 
 	step() ;

@@ -28,7 +28,8 @@ public:
     Phase(DelaunayTriangle * tri) ;
     Phase(DelaunayTetrahedron * tet) ;
     Phase(Feature * f) ;
-    Phase(const Phase & p) ;
+	Phase(Feature * f, DelaunayTriangle * tri) ;
+	Phase(const Phase & p) ;
 
     virtual void apply() ;
     Form * getBehaviour() ;

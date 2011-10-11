@@ -26,6 +26,7 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../physics/void_form.h"
+#include "../physics/dual_behaviour.h"
 #include "../physics/homogenization/phase.h"
 #include "../physics/homogenization/composite.h"
 #include "../physics/materials/paste_behaviour.h"
@@ -191,6 +192,8 @@ Vector getStiffnessTensor(bool random)
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		centers.push_back(inclusions[i]->getCenter()) ;
 	
+	return Vector(3) ;
+	
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		inclusions[i]->setBehaviour(gel) ;
 
@@ -227,7 +230,23 @@ Vector getStiffnessTensor(bool random)
 		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
 			p += tri[i]->getBoundingPoint(j) ;
 		p /= tri[i]->getBoundingPoints().size() ;
-		Vector stress = tri[i]->getState().getStress(p,false) ;
+		Vector stress(3) ;
+		if(dynamic_cast<BimaterialInterface *>(tri[i]->getBehaviour()))
+		{
+			Triangle test(tri[i]->getBoundingPoint(0),
+						  tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()/3),
+						  tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()*2/3)) ;
+						  test.sampleSurface(50) ;
+						  int count = /*test.getBoundingPoints().size() +*/ test.getInPoints().size() ;
+						  /*			for(size_t i = 0 ; i < test.getBoundingPoints().size() ; i++)
+						   *				stress += tri[i]->getState().getStress(test.getBoundingPoint(i), false) ;//- tri[i]->getBehaviour()->getImposedStress(test.getBoundingPoint(i)) ;*/
+						  for(size_t i = 0 ; i < test.getInPoints().size() ; i++)
+							  stress += tri[i]->getState().getStress(test.getInPoint(i), false) ;//- tri[i]->getBehaviour()->getImposedStress(test.getInPoint(i)) ;
+						  stress /= count ;
+		}
+		else
+			stress = tri[i]->getState().getStress(p,false) ;// - tri[i]->getBehaviour()->getImposedStress(Point(1./3.,1./3.));
+// 		Vector stress = tri[i]->getState().getStress(p,false) ;
 		sxx += stress[0]*a ;
 		syy += stress[1]*a ;
 		sxy += stress[2]*a ;
@@ -267,7 +286,7 @@ Vector getExpansionStress(bool random)
 	std::vector<ExpansiveZone *> inclusions ;
 	double interval = 0.05/(nz+1) ;
 	double radius = std::sqrt(fraction*(0.05*0.05)/(nz*nz*3.141592)) ;
-	std::cout << radius << std::endl ;
+// 	std::cout << radius << std::endl ;
 
 	for(size_t i = 0 ; i < nz ; i++)
 	{
@@ -275,6 +294,7 @@ Vector getExpansionStress(bool random)
 		for(size_t j = 0 ; j < nz ; j++)
 		{
 			double cy = interval*(j+1) ;
+// 			std::cout << gel->imposed[0] << std::endl ;
 			inclusions.push_back(new ExpansiveZone(NULL, radius, cx, cy, gel->param, gel->imposed)) ;
 		}
 	}
@@ -336,7 +356,27 @@ Vector getExpansionStress(bool random)
 		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
 			p += tri[i]->getBoundingPoint(j) ;
 		p /= tri[i]->getBoundingPoints().size() ;
-		Vector stress = tri[i]->getState().getStress(p,false) ;
+		Vector stress(3) ;
+		if(dynamic_cast<BimaterialInterface *>(tri[i]->getBehaviour()))
+		{
+			int count = 0;
+			for(double i = 0.00 ; i < 1. ; i+=0.01)
+			{
+				for(double j = 0.00 ; j < 1.-i ; j += 0.01)
+				{
+					count++ ;
+					stress += tri[i]->getState().getStress(Point(i,j), true) ;
+				}
+			}
+// 				stress += tri[i]->getState().getStress(test.getInPoint(i), false) ;//- tri[i]->getBehaviour()->getImposedStress(test.getInPoint(i)) ;
+			stress /= count ;
+//			std::cout << count << "\t" << stress[0] << "\t" << stress[1] << std::endl ;
+		}
+		else
+		{
+// 			std::cout << "bimaterial behaviour wtf ???" << std::endl ;
+			stress = tri[i]->getState().getStress(p,false) ;// - tri[i]->getBehaviour()->getImposedStress(Point(1./3.,1./3.));
+		}
 		sxx += stress[0]*a ;
 		syy += stress[1]*a ;
 		sxy += stress[2]*a ;
@@ -359,14 +399,14 @@ Vector getExpansionStress(bool random)
 	
 	std::cout << sigma[2] << std::endl ;
 	
-	TriangleWriter writer("enrichment-triangles", &F) ;
+/*	TriangleWriter writer("enrichment-triangles", &F) ;
 	writer.getField(TWFT_PRINCIPAL_STRESS ) ;
 	writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
 	writer.getField( TWFT_VON_MISES ) ;
 	writer.getField( TWFT_STIFFNESS ) ;
 	writer.getField( TWFT_DAMAGE ) ;
 
-	writer.write() ;
+	writer.write() ;*/
 	
 	return sigma ;
 

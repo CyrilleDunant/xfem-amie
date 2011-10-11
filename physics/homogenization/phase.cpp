@@ -1,5 +1,6 @@
 #include "phase.h"
 #include "../stiffness_with_imposed_deformation.h"
+#include "../dual_behaviour.h"
 #include "../../utilities/matrixops.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 
@@ -49,6 +50,40 @@ Phase::Phase( Feature *f )
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }
 
+Phase::Phase( Feature *f , DelaunayTriangle * tri)
+{
+	behaviour = f->getBehaviour() ;
+	
+	if( f->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		volume = f->area() ;
+		if(dynamic_cast<Circle *>(f))
+		{
+			Circle overlap(f->getRadius(), f->getCenter()) ;
+			overlap.sampleSurface(50) ;
+			int count = 0 ;
+			for(size_t i = 0 ; i < overlap.getBoundingPoints().size() ; i++)
+				count += (int) tri->in(overlap.getBoundingPoint(i)) ;
+			for(size_t i = 0 ; i < overlap.getInPoints().size() ; i++)
+				count += (int) tri->in(overlap.getInPoint(i)) ;
+			volume *= count ;
+			volume /= overlap.getBoundingPoints().size() + overlap.getInPoints().size() ;
+// 			std::cout << volume << "/" << tri->area() << std::endl ;
+// 			std::cout << count << "/" << overlap.getBoundingPoints().size() + overlap.getInPoints().size() << std::endl  ;
+			
+		}
+		
+	}
+	
+	if( f->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		volume = f->volume() ;
+	
+	stiffnessFromBehaviour() ;
+	expansionFromBehaviour() ;
+	ruptureFromBehaviour() ;
+	A = Matrix( C.numRows(), C.numCols() ) ;
+}
+
 Phase::Phase( const Phase &p )
 {
 	C.resize( p.C.numRows(), p.C.numCols() ) ;
@@ -80,7 +115,7 @@ Form *Phase::getBehaviour()
 		invert6x6Matrix( S ) ;
 	else
 		invert3x3Matrix( S ) ;
-
+	
 	Vector alpha = S * beta ;
 	return new StiffnessWithImposedDeformation( C, alpha ) ;
 }
@@ -106,6 +141,11 @@ Phase &Phase::operator =( const Phase &p )
 void Phase::stiffnessFromBehaviour()
 {
 	Matrix tmp =  behaviour->getTensor( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
+	if(dynamic_cast<BimaterialInterface *>(behaviour))
+	{
+		std::cout << tmp.size() ;
+		std::cout << std::endl ;
+	}	
 	C.resize( tmp.numRows(), tmp.numCols() ) ;
 	C = tmp ;
 }
@@ -123,35 +163,35 @@ void Phase::ruptureFromBehaviour()
     FractureCriterion * frac = behaviour->getFractureCriterion() ;
     if(frac)
     {
-	if(dynamic_cast<NonLocalMohrCoulomb *>(frac))
-	{
-	    double u = dynamic_cast<NonLocalMohrCoulomb *>(frac)->upVal ;
-	    double d = dynamic_cast<NonLocalMohrCoulomb *>(frac)->downVal ;
-	    Vector up(beta.size()) ;
-	    Vector down(beta.size()) ;
-	    for(size_t i = 0 ; i < beta.size() ; i++)
-	    {
-		up[i] = u ;
-		down[i] = d ;
-	    }
-	    lambda.push_back(up) ;
-	    lambda.push_back(down) ;
-	}
-	if(dynamic_cast<MohrCoulomb *>(frac))
-	{
-	    double u = dynamic_cast<MohrCoulomb *>(frac)->upVal ;
-	    double d = dynamic_cast<MohrCoulomb *>(frac)->downVal ;
-	    Vector up(beta.size()) ;
-	    Vector down(beta.size()) ;
-	    for(size_t i = 0 ; i < beta.size() ; i++)
-	    {
-		up[i] = u ;
-		down[i] = d ;
-	    }
-	    lambda.push_back(up) ;
-	    lambda.push_back(down) ;
-	    return ;
-	}
+		if(dynamic_cast<NonLocalMohrCoulomb *>(frac))
+		{
+			double u = dynamic_cast<NonLocalMohrCoulomb *>(frac)->upVal ;
+			double d = dynamic_cast<NonLocalMohrCoulomb *>(frac)->downVal ;
+			Vector up(beta.size()) ;
+			Vector down(beta.size()) ;
+			for(size_t i = 0 ; i < beta.size() ; i++)
+			{
+			up[i] = u ;
+			down[i] = d ;
+			}
+			lambda.push_back(up) ;
+			lambda.push_back(down) ;
+		}
+		if(dynamic_cast<MohrCoulomb *>(frac))
+		{
+			double u = dynamic_cast<MohrCoulomb *>(frac)->upVal ;
+			double d = dynamic_cast<MohrCoulomb *>(frac)->downVal ;
+			Vector up(beta.size()) ;
+			Vector down(beta.size()) ;
+			for(size_t i = 0 ; i < beta.size() ; i++)
+			{
+			up[i] = u ;
+			down[i] = d ;
+			}
+			lambda.push_back(up) ;
+			lambda.push_back(down) ;
+			return ;
+		}
 
     }
 }

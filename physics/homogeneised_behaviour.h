@@ -88,7 +88,8 @@ namespace Mu
 
 		virtual Matrix getTensor(const Point & p) const ;
 
-
+		virtual bool hasInducedForces() const { return true ; }
+		
 		virtual Vector getImposedStress(const Point & p) const ;
 
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
