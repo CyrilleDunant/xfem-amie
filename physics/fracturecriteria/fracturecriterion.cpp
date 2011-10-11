@@ -1880,7 +1880,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			if(!sortedElements.empty())
 				thresholdScore = sortedElements.begin()->first ;
 			if(thresholdScore < 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
-				initialScore = -thresholdScore ;
+				initialScore = 1.+thresholdScore ;
 			
 			if(!metAtStep)
 			{
