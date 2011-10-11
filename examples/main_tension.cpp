@@ -1446,7 +1446,7 @@ int main(int argc, char *argv[])
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = 0.10 ; // .015
+	double mradius = 0.08 ; // .015
 	double nradius = mradius*5. ;
 // 	double mradius = .25 ;
 	double length = 0.3048 ; //1.300*.5

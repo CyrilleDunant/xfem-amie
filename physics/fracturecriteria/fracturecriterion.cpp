@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(1e-3),
+scoreTolerance(0.5e-3),
 initialScore(1)
 {
 }
@@ -687,6 +687,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				factors.back() += weight ;
 				ci->setOrder(order) ;
 				fact += weight ;
+				otherarea += ci->area() ;
 			}
 
 			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
@@ -702,6 +703,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
+				otherarea += ci->area() ;
 			}
 
 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -717,6 +719,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
+				otherarea += ci->area() ;
 			}
 
 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -732,12 +735,27 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
+				otherarea += ci->area() ;
 			}
 
 		}
-		double totalAreatarget = M_PI*farthest*farthest-selfarea ;
+		rrn = f_exp(Function("x 2 ^ y 2 ^ +")/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
+		double totalAreatarget = 0 ;
+		double da = farthest*farthest/(10.*10) ;
+		for(double x = -farthest ; x < farthest ; x += farthest/10.)
+		{
+			for(double y = -farthest ; y < farthest ; y += farthest/10.)
+			{
+				if(x*x+y*y < farthest*farthest && !s.getParent()->in(Point(x, y)))
+				{
+					totalAreatarget += vm.eval(rrn, x, y)*da ;
+				}
+			}
+		}
 		
-		double ratio = otherarea/totalAreatarget ;
+// 		std::cout << totalAreatarget << "  " << fact-factors[0] << "  "<<std::flush ;
+		double ratio =( fact-factors[0])/totalAreatarget ;
+// 		std::cout << ratio << std::endl ;
 		double w = factors[0] ;
 		for(size_t i = 1 ; i < factors.size() ; i++)
 		{
@@ -764,7 +782,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		
 		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
-			x = s.getParent()->getXTransform()*-1+std::abs( s.getParent()->getCenter().x  - delta_x ) ;
+			x = s.getParent()->getXTransform()*-1.+std::abs( s.getParent()->getCenter().x  - delta_x ) ;
 			y = s.getParent()->getYTransform() ;
 			z = s.getParent()->getZTransform() ;
 			r = Function(s.getParent()->getCenter(), x, y, z) ;
