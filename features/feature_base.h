@@ -48,6 +48,7 @@ protected:
 	/** \brief Father of the feature. 
 	 */
 	Feature * m_f ;
+	Feature * behaviourSource ;
 	
 	/** \brief Constitutive Law describing the behaviour of the feature.
 	 * 
@@ -80,6 +81,9 @@ public:
 	Feature(Feature *father, Geometry * b) ;
 	
 	virtual ~Feature() ;
+	
+	Feature * getBehaviourSource() const ;
+	void setBehaviourSource(Feature * f) ;
 
 	virtual XMLTree * toXML() ;
 	 

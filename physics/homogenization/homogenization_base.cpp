@@ -607,7 +607,7 @@ bool Material::homogenize(HomogenizationScheme s)
 	}
 }
 
-Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim) 
+Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt) 
 {
 	double E = prop.first ;
 	double nu = prop.second ;
@@ -623,14 +623,21 @@ Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDim
 		case SPACE_TWO_DIMENSIONAL:
 		{
 			Matrix cg(3,3) ;
-// 			cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
-// 			cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
-// 			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu) ;
-// 			cg *= E/((1.+nu)*(1.-2.*nu)) ;
+
+			if(pt == PLANE_STRESS)
+			{
 			cg[0][0] = 1. ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1. ; cg[1][2] = 0 ;
 			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu)*.5 ;
 			cg *= E/(1.-nu*nu) ;
+			}
+			else
+			{
+			cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
+			cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu) ;
+			cg *= E/((1.+nu)*(1.-2.*nu)) ;
+			}
 			return cg ;
 		}
 		case SPACE_THREE_DIMENSIONAL:

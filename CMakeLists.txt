@@ -53,6 +53,7 @@ physics/fracturecriteria/confinedmohrcoulomb.cpp
 physics/fracturecriteria/confinedmohrcoulombwithstrain.cpp
 physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
+physics/fracturecriteria/druckerpager.cpp 
 physics/fracturecriteria/boundedvonmises.cpp 
 physics/damagemodels/damagemodel.cpp
 physics/damagemodels/isotropiclineardamage.cpp 

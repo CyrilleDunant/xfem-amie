@@ -20,7 +20,7 @@ Feature::Feature(Feature * father) : behaviour(NULL)
 	isCompositeFeature = false ;
 	isVirtualFeature = false ;
 	isUpdated = false ;
-	
+	behaviourSource = NULL ;
 	m_f = father ;
 	
 	layer = -1 ;
@@ -70,6 +70,15 @@ XMLTree * Feature::toXML()
 	return feat ;
 }
 
+
+Feature * Feature::getBehaviourSource() const
+{
+	return behaviourSource ;
+}
+void Feature::setBehaviourSource(Feature * f)
+{
+	behaviourSource = f ;
+}
 
 void  Feature::addChild(Feature *feat)
 {

@@ -2184,32 +2184,47 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 						if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
 						{
 							 Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-							 b->setSource(targets[i]);
+							 if(targets[i]->getBehaviourSource())
+								b->setSource(targets[i]->getBehaviourSource());
+							 else
+								 b->setSource(targets[i]);
 							 return b ;
 						}
 						else
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 							b->transform( t->getXTransform(), t->getYTransform() ) ;
-							b->setSource(targets[i]);
+							if(targets[i]->getBehaviourSource())
+								b->setSource(targets[i]->getBehaviourSource());
+							else
+								b->setSource(targets[i]);
 							return b ;
 						}
 					}
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
 					{
 						 Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-						 b->setSource(targets[i]);
+						if(targets[i]->getBehaviourSource())
+							b->setSource(targets[i]->getBehaviourSource());
+						else
+							b->setSource(targets[i]);
 						 return b ;
 					}
 					else
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						b->transform( t->getXTransform(), t->getYTransform() ) ;
-						b->setSource(targets[i]);
+							if(targets[i]->getBehaviourSource())
+								b->setSource(targets[i]->getBehaviourSource());
+							else
+								b->setSource(targets[i]);
 						return b ;
 					}
 					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-					b->setSource(targets[i]);
+					if(targets[i]->getBehaviourSource())
+						b->setSource(targets[i]->getBehaviourSource());
+					else
+						b->setSource(targets[i]);
 					return b ;
 				}
 			}
@@ -2224,13 +2239,19 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 			if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-				b->setSource(tree[root_box]);
+				if(tree[root_box]->getBehaviourSource())
+					b->setSource(tree[root_box]->getBehaviourSource());
+				else
+					b->setSource(tree[root_box]);
 				return b ;
 			}
 			else
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-				b->setSource(tree[root_box]);
+				if(tree[root_box]->getBehaviourSource())
+					b->setSource(tree[root_box]->getBehaviourSource());
+				else
+					b->setSource(tree[root_box]);
 				b->transform( t->getXTransform(), t->getYTransform() ) ;
 				return b ;
 			}
@@ -2238,18 +2259,27 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 		else if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-			b->setSource(tree[root_box]);
+				if(tree[root_box]->getBehaviourSource())
+					b->setSource(tree[root_box]->getBehaviourSource());
+				else
+					b->setSource(tree[root_box]);
 			return b ;
 		}
 		else
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-			b->setSource(tree[root_box]);
+				if(tree[root_box]->getBehaviourSource())
+					b->setSource(tree[root_box]->getBehaviourSource());
+				else
+					b->setSource(tree[root_box]);
 			b->transform( t->getXTransform(), t->getYTransform() ) ;
 			return b ;
 		}
 		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-		b->setSource(tree[root_box]);
+				if(tree[root_box]->getBehaviourSource())
+					b->setSource(tree[root_box]->getBehaviourSource());
+				else
+					b->setSource(tree[root_box]);
 		return b ;
 	}
 	else if(!onlyUpdate && tree[root_box]->getLayer() == layer)
@@ -2331,14 +2361,20 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 						if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-							b->setSource(targets[i]);
+							if(targets[i]->getBehaviourSource())
+								b->setSource(targets[i]->getBehaviourSource());
+							else
+								b->setSource(targets[i]);
 							return b ;
 						}
 						else
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 							b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
-							b->setSource(targets[i]);
+							if(targets[i]->getBehaviourSource())
+								b->setSource(targets[i]->getBehaviourSource());
+							else
+								b->setSource(targets[i]);
 
 							return b ;
 						}
@@ -2346,19 +2382,28 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-						b->setSource(targets[i]);
+						if(targets[i]->getBehaviourSource())
+							b->setSource(targets[i]->getBehaviourSource());
+						else
+							b->setSource(targets[i]);
 						return b ;
 					}
 					else
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
-						b->setSource(targets[i]);
+						if(targets[i]->getBehaviourSource())
+							b->setSource(targets[i]->getBehaviourSource());
+						else
+							b->setSource(targets[i]);
 
 						return b ;
 					}
 					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-					b->setSource(targets[i]);
+					if(targets[i]->getBehaviourSource())
+						b->setSource(targets[i]->getBehaviourSource());
+					else
+						b->setSource(targets[i]);
 					return b ;
 				}
 			}
@@ -2372,13 +2417,19 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 			if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-				b->setSource(tree[root_box]);
+				if(tree[root_box]->getBehaviourSource())
+					b->setSource(tree[root_box]->getBehaviourSource());
+				else
+					b->setSource(tree[root_box]);
 				return b ;
 			}
 			else
 			{
 				Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-				b->setSource(tree[root_box]);
+				if(tree[root_box]->getBehaviourSource())
+					b->setSource(tree[root_box]->getBehaviourSource());
+				else
+					b->setSource(tree[root_box]);
 				b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
 				return b ;
 			}
@@ -2386,18 +2437,27 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 		else if( !tree[root_box]->getBehaviour( t->getCenter() )->spaceDependent() )
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-			b->setSource(tree[root_box]);
+			if(tree[root_box]->getBehaviourSource())
+				b->setSource(tree[root_box]->getBehaviourSource());
+			else
+				b->setSource(tree[root_box]);
 			return b ;
 		}
 		else
 		{
 			Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-			b->setSource(tree[root_box]);
+			if(tree[root_box]->getBehaviourSource())
+				b->setSource(tree[root_box]->getBehaviourSource());
+			else
+				b->setSource(tree[root_box]);
 			b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
 			return b ;
 		}
 		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
-		b->setSource(tree[root_box]);
+		if(tree[root_box]->getBehaviourSource())
+			b->setSource(tree[root_box]->getBehaviourSource());
+		else
+			b->setSource(tree[root_box]);
 		return b ;
 	}
 	else if(!onlyUpdate&& tree[root_box]->getLayer() == layer)

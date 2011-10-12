@@ -14,6 +14,7 @@
 #include "../physics/fracturecriteria/fractionmcft.h"
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
+#include "../physics/fracturecriteria/druckerpager.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/stiffness.h"
@@ -1446,7 +1447,7 @@ int main(int argc, char *argv[])
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = 0.08 ; // .015
+	double mradius = 0.015 ; // .015
 	double nradius = mradius*5. ;
 // 	double mradius = .25 ;
 	double length = 0.3048 ; //1.300*.5
@@ -1489,14 +1490,18 @@ int main(int argc, char *argv[])
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
+// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPager(-compressionCrit,0.1 , mradius), new IsotropicLinearDamage())) ;
 	
 	FeatureTree F(&samplef) ;
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
-// 	F.addFeature(&samplef, new Pore(samplef.height()*.02, samplef.getCenter().x, samplef.getCenter().y));
+	Inclusion inc(mradius*.25, samplef.getCenter().x, samplef.getCenter().y) ;
+	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPager(-compressionCrit*.9,0.1 , mradius), new IsotropicLinearDamage()));
+	inc.setBehaviourSource(&samplef);
+	F.addFeature(&samplef, &inc);
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
 // 	FeatureTree F(&box) ;
 	featureTree = &F ;
@@ -1508,8 +1513,8 @@ int main(int argc, char *argv[])
 
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;

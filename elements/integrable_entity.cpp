@@ -277,14 +277,14 @@ ElementState::ElementState( IntegrableEntity *s )
 double ElementState::getVonMisesStrain( const Point &p, bool local ) const
 {
 	Vector eps = getPrincipalStrains( p, local ) ;
-	Matrix e = getStrainMatrix( p, local ) ;
+// 	Matrix e = getStrainMatrix( p, local ) ;
 
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		Matrix p( 2, 2 ) ;
-		p[0][0] = 0.5 * ( e[0][0] + e[1][1] ) ;
-		p[1][1] = 0.5 * ( e[0][0] + e[1][1] ) ;
-		e = e - p ;
+// 		Matrix p( 2, 2 ) ;
+// 		p[0][0] = 0.5 * ( e[0][0] + e[1][1] ) ;
+// 		p[1][1] = 0.5 * ( e[0][0] + e[1][1] ) ;
+// 		e = e - p ;
 // 		return sqrt(2./3.*(e[0][0]*e[0][0]+e[0][1]*e[0][1]+e[1][0]*e[1][0]+e[1][1]*e[1][1])) ;
 		return sqrt( 2. / 3 * ( eps[0] * eps[0] + eps[1] * eps[1] ) ) ;
 	}
