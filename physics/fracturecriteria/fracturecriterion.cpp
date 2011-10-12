@@ -385,6 +385,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
 			if(ci->getBehaviour()->fractured())
 			{
+				stra += ci->getState().getStrainAtCenter()*(*fiterator) ;
 				fracturedFraction += *fiterator ;
 				fiterator++ ;
 				continue ;
@@ -396,7 +397,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		}
 		str /= factors.back()-fracturedFraction ;
 		str -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
-		stra /= factors.back()-fracturedFraction ;
+		stra /= factors.back() ;
 		
 		Vector lprincipal( 2 ) ;
 

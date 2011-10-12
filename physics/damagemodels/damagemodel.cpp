@@ -296,10 +296,11 @@ void DamageModel::step( ElementState &s )
 		
 		if( std::abs( minFraction - maxFraction ) < damageDensityTolerance)
 		{
+// 			trialRatio += damageDensityTolerance ;
 // 			trialRatio = minFraction*(1.-0.25) + maxFraction*0.75  ;
 // 			trialRatio = maxFraction  ;
 // 			trialRatio = minFraction ;
-			getState( true ) = downState + ( upState - downState ) *trialRatio ;
+			getState( true ) = downState + ( upState - downState ) *trialRatio +damageDensityTolerance;
 			converged = true ;
 		}
 	}
@@ -328,8 +329,8 @@ DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0)
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
 	damageDensityTolerance =  1e-4 ;//1. / pow( 2., 14 );
-	thresholdDamageDensity = 1.-damageDensityTolerance ;
-	secondaryThresholdDamageDensity = 1.-damageDensityTolerance ;
+	thresholdDamageDensity = 1.-4.*damageDensityTolerance ;
+	secondaryThresholdDamageDensity = 1.-4.*damageDensityTolerance ;
 } ;
 
 double DamageModel::getThresholdDamageDensity() const

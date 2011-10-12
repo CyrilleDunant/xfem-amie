@@ -174,14 +174,14 @@ double NonLocalMCFT::grade( ElementState &s )
 // 		}
 		
 		double energy = 75. ; //N/m
-		strain_ch = 2.*energy/(2.*getMaterialCharacteristicRadius()*upVal) ;
+		strain_ch = 2.*energy/(2.*/*getMaterialCharacteristicRadius()*/.2*upVal) ;
 		
 		if(strain_ch < tensionCritStrain)
 		{
 			std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
 			exit(0) ;
 		}
-		strain_te = 5.*strain_ch;
+		strain_te = 3.*strain_ch;
 		double del_0 = strain_ch-tensionCritStrain ;
 		double del_1 = strain_te-strain_ch ;
 		
@@ -322,8 +322,8 @@ double NonLocalMCFT::grade( ElementState &s )
 // 		std::cout << maxTensionStrain<< "  " << maxTension << std::endl ;
 // 		}
 // 		exit(0) ;
-// 		if(factor < POINT_TOLERANCE_2D)
-// 			return 1.- strain_te/tstrain ;
+		if(factor < POINT_TOLERANCE_2D)
+			return -1. ;
 
 	}
 
