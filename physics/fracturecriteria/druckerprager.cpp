@@ -10,22 +10,22 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#include "druckerpager.h"
+#include "druckerprager.h"
 #include "../../mesher/delaunay.h"
 namespace Mu {
 
-DruckerPager::DruckerPager(double thresh, double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
+DruckerPrager::DruckerPrager(double thresh, double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 	, threshold(thresh), friction(friction)
 {
 	setMaterialCharacteristicRadius(radius);
 }
 
 
-DruckerPager::~DruckerPager()
+DruckerPrager::~DruckerPrager()
 {
 }
 
-double DruckerPager::grade(ElementState &s)
+double DruckerPrager::grade(ElementState &s)
 {
 	metInCompression = true ;
 	metInTension = true ;
@@ -52,12 +52,12 @@ double DruckerPager::grade(ElementState &s)
 
 }
 
-FractureCriterion * DruckerPager::getCopy() const
+FractureCriterion * DruckerPrager::getCopy() const
 {
-	return new DruckerPager(threshold, friction, getMaterialCharacteristicRadius()) ;
+	return new DruckerPrager(threshold, friction, getMaterialCharacteristicRadius()) ;
 }
 
-Material DruckerPager::toMaterial()
+Material DruckerPrager::toMaterial()
 {
 	Material mat ;
 	return mat ;

@@ -20,7 +20,7 @@ namespace Mu {
 	
 		@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 	*/
-	class DruckerPager : public FractureCriterion
+	class DruckerPrager : public FractureCriterion
 	{
 	public:
 		double threshold ;
@@ -29,9 +29,9 @@ namespace Mu {
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		DruckerPager(double thres, double friction, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+		DruckerPrager(double thres, double friction, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 	
-		virtual ~DruckerPager();
+		virtual ~DruckerPrager();
 
 	/** \brief Return a copy of this criterion
 	 */
