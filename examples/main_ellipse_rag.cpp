@@ -209,7 +209,7 @@ void step()
 {
 
 	int nsteps = 30;
-	int nstepstot = 1;
+	int nstepstot = 30;
 	int maxtries = 200 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(200) ;
@@ -526,7 +526,7 @@ void step()
 
         if (tries < maxtries && featureTree->solverConverged())
 		{
-			double delta_r = sqrt(aggregateArea*3/((double)zones.size()*M_PI))/(double)nstepstot ;
+			double delta_r = sqrt(aggregateArea*.03/((double)zones.size()*M_PI))/(double)nstepstot ;
             std::cout << "delta_r => " << delta_r << std::endl ;
 			if(!featureTree->solverConverged())
 				delta_r *= .01 ;
@@ -1030,8 +1030,8 @@ int main(int argc, char *argv[])
 // 	return 0 ;
 	
 	
-	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
-	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
+	sample.setBehaviour(new PasteBehaviour()) ;
+	AggregateBehaviour * agg = new AggregateBehaviour() ;
     for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		switch(reference)
@@ -1059,12 +1059,12 @@ int main(int argc, char *argv[])
 		}
     }
 
-	zones = generateExpansiveZonesHomogeneously(10, inclusions, F) ;
+	zones = generateExpansiveZonesHomogeneously(80, inclusions, F) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
-    F.setSamplingNumber(100) ;
+    F.setSamplingNumber(600) ;
 	F.setOrder(LINEAR) ;
 
 	step() ;

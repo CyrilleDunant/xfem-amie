@@ -44,8 +44,6 @@ Matrix BimaterialInterface::getTensor(const Point & p) const
 
 Vector BimaterialInterface::getImposedStress(const Point & p) const
 {
-	inGeometry->getCenter().print() ;
-	p.print() ;
 	if(inGeometry->in(p))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
