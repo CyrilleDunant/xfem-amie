@@ -624,10 +624,8 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 
 				int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
-				int factor = 1 ;
-
-				if( triangles[0]->getBoundingPoints().size() == 6 )
-					factor = 2 ;
+				int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
+				int factor = pointsPerTimePlanes / 3 ;
 
 				if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
 					timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
