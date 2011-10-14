@@ -284,7 +284,7 @@ void step()
 		if ( go_on )
 			load->setData( load->getData() - 0.000083333333 ) ;
 
-		triangles = featureTree->getElements2D() ;
+		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements().size() ) ;
 		x = featureTree->getDisplacements() ;
 
@@ -292,7 +292,7 @@ void step()
 
 		sigma.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
 		epsilon.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrainInAllLayers() ;
 		sigma.resize( sigma_epsilon.first.size() ) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize( sigma_epsilon.second.size() ) ;
@@ -424,7 +424,6 @@ void step()
 			sigma11[k*npoints+2] = sigma[k*npoints*3+6];
 			sigma22[k*npoints+2] = sigma[k*npoints*3+7];
 			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
-
 			if ( npoints > 3 )
 			{
 				sigma11[k*npoints+3] = sigma[k*npoints*3+9];
@@ -553,9 +552,7 @@ void step()
 		if ( go_on )
 			std::cout << appliedForce << "  " << displacements.back() << "  " << damages.back() << std::endl ;
 
-		std::fstream ldfile  ;
-
-		ldfile.open( "ldn", std::ios::out ) ;
+		std::fstream ldfile( "ldn", std::ios::out )  ;
 
 		for ( int j = 0 ; j < loads.size() ; j++ )
 		{
@@ -563,7 +560,6 @@ void step()
 		}
 
 		ldfile.close();
-
 		if ( true )
 		{
 // 			std::stringstream filename ;
@@ -592,10 +588,11 @@ void step()
 			writer.getField( TWFT_CRITERION ) ;
 			writer.getField( TWFT_STIFFNESS ) ;
 			writer.getField( TWFT_CRACK_ANGLE ) ;
+			std::cout << "p5f" << std::endl ;
 			writer.getField( TWFT_DAMAGE ) ;
+			std::cout << "p6f" << std::endl ;
 			writer.append() ;
 		}
-
 // 		if ( !go_on )
 // 			break ;
 
@@ -1673,7 +1670,7 @@ int main( int argc, char *argv[] )
 	
 	double psi = 2.*0.0084261498 / .4 ;
 	double mradius = .015 ; // .015
-	double nradius = mradius*10. ;
+	double nradius = mradius*2. ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
 	Matrix m0_steely( 3, 3 ) ;

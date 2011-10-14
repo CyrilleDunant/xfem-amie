@@ -342,12 +342,13 @@ public:
 	Point * checkElement( const DelaunayTriangle * t ) const ;
 	Feature * getFeatForTetra( const DelaunayTetrahedron * t ) const;
 
-	
+	std::vector<DelaunayTriangle *> getActiveElements2D() ;
 	std::vector<DelaunayTriangle *> getElements2D(int g = -1) ;
 	std::vector<DelaunayTriangle *> getElements2DInLayer(int l = -1) ;
 	std::vector<DelaunayTriangle *> getElements2D(const Point *p, int g = -1) ;
 	std::vector<DelaunayTriangle *> getElements2D(const Geometry *p, int g = -1) ;
 	
+	std::vector<DelaunayTetrahedron *> getActiveElements3D() ;
 	std::vector<DelaunayTetrahedron *> getElements3D(int g = -1) ;
 	std::vector<DelaunayTetrahedron *> getElements3DInLayer(int l = -1) ;
 	std::vector<DelaunayTetrahedron *> getElements3D(const Point *p, int g = -1) ;
@@ -507,6 +508,7 @@ public:
 /** \brief Return the stress and strain of the elements of the current mesh*/
 	std::pair<Vector , Vector > getStressAndStrain(int grid = -1) ;
 	std::pair<Vector , Vector > getStressAndStrainInLayer(int layer) ;
+	std::pair<Vector , Vector > getStressAndStrainInAllLayers( ) ;
 	
 	size_t numPoints() const ;
 	

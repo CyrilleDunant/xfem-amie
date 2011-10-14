@@ -84,15 +84,20 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 	extraFields.clear() ;
 	layerTranslator.clear() ;
 	source = F ;
-
-	if( source != NULL )
+	std::cout << "res" << std::endl ;
+	if( source  )
 	{
 		layers = source->listLayers() ;
-
+		std::cout << "ris" << std::endl ;
 		for( size_t j = 0 ; j < layers.size() ; j++ )
 		{
+			std::cout << "ras " << layers[j] << std::endl ;
 			std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer( layers[j] ) ;
+			if(tri.empty())
+				continue ;
+			std::cout << j << " - " << tri.size() << std::endl ;
 			nTriangles.push_back( tri.size() );
+			std::cout << j << " + " << tri.size() << std::endl ;
 			int count = 0 ;
 
 			for( int i = 0 ; i < nTriangles.back() ; i++ )
@@ -110,12 +115,16 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 
 			layerTranslator[layers[j]] = j ;
 			values.push_back( std::vector<std::valarray<double> >( 0 ) );
+			std::cout << "rus " << layers[j] << std::endl ;
 
 		}
-
+		std::cout << "ros " << std::endl ;
 		getField( TWFT_COORDINATE, false ) ;
+		std::cout << "ros0 " << std::endl ;
 		getField( TWFT_DISPLACEMENTS, false ) ;
+		std::cout << "ros1 " << std::endl ;
 	}
+	std::cout << "rose " << std::endl ;
 }
 
 void TriangleWriter::write()
@@ -294,9 +303,13 @@ void TriangleWriter::getField( TWFieldType field, bool extra )
 {
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
+		std::cout << "gf0" << std::endl ;
 		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
+		std::cout << "gf1" << std::endl ;
 		std::reverse( val.begin(), val.end() );
+		std::cout << "gf2" << std::endl ;
 		values[layerTranslator[layers[j]]].insert( values[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
+		std::cout << "gf3" << std::endl ;
 	}
 
 }
@@ -333,7 +346,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
 						// epsilon11
 						ret[8][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
@@ -350,7 +363,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[1][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2 + 3 * time_offset] ;
 						ret[0][iterator++] = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2 + 3 * time_offset] ;
 					}
-					else if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
 						// epsilon11
 						ret[8][iterator] = 0 ;
@@ -375,7 +388,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
 						// epsilon11
 						ret[17][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
@@ -407,7 +420,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[1][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2 + 3 * time_offset] ;
 						ret[0][iterator++] = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2 + 3 * time_offset] ;
 					}
-					else if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
 						// epsilon11
 						ret[17][iterator] = 0 ;
@@ -447,7 +460,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+					if( triangles[i]->getBehaviour()&& triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
 						// sigma11
 						ret[8][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
@@ -464,7 +477,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[1][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2 + 3 * time_offset] ;
 						ret[0][iterator++] = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2 + 3 * time_offset] ;
 					}
-					else if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
 						// sigma11
 						ret[8][iterator] = 0 ;
@@ -501,7 +514,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 					for( int i = 0 ; i < triangles.size() ; i++ )
 					{
-						if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+						if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 						{
 							// j11
 							ret[5][iterator] = gradient_flux.second[i * 3 * 2 + 0] ;
@@ -513,7 +526,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 							ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
 							ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
 						}
-						else if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+						else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						{
 							// j11
 							ret[5][iterator] = 0 ;
@@ -533,7 +546,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 					for( int i = 0 ; i < triangles.size() ; i++ )
 					{
-						if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+						if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 						{
 							// d11
 							ret[11][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
@@ -555,7 +568,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 							ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
 							ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
 						}
-						else if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+						else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						{
 							// d11
 							ret[11][iterator] = 0 ;
@@ -586,7 +599,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 					for( int i = 0 ; i < triangles.size() ; i++ )
 					{
-						if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+						if(  triangles[i]->getBehaviour() &&triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 						{
 							// d11
 							ret[5][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
@@ -598,7 +611,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 							ret[1][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
 							ret[0][iterator++] = gradient_flux.first[i * 3 * 2 + 5] ;
 						}
-						else if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+						else  if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						{
 							// d11
 							ret[5][iterator] = 0 ;
@@ -620,22 +633,23 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		{
 			if( field == TWFT_DISPLACEMENTS )
 			{
+				std::cout << "d0" << std::endl ;
 				Vector x = source->getDisplacements() ;
 				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-
+				std::cout << "d1" << std::endl ;
 				int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
 				int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
 				int factor = pointsPerTimePlanes / 3 ;
-
+				std::cout << "d2" << std::endl ;
 				if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
 					timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
 
 				int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
-				std::cerr << time_offset << std::endl ;
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					std::cout << "d3 - " << i << std::endl ;
+					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
 						size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
@@ -647,15 +661,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[2][iterator] = x[id1 * 2 + 1] ;
 						ret[1][iterator] = x[id2 * 2 + 1] ;
 						ret[0][iterator++] = x[id3 * 2 + 1] ;
-					}
-					else if( triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-					{
-						ret[5][iterator] = 0 ;
-						ret[4][iterator] = 0 ;
-						ret[3][iterator] = 0 ;
-						ret[2][iterator] = 0 ;
-						ret[1][iterator] = 0 ;
-						ret[0][iterator++] = 0 ;
 					}
 				}
 			}
@@ -678,12 +683,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[2][iterator++] = d ;
 
 					}
-					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-					{
-						ret[2][iterator] = 0 ;
-						ret[1][iterator] = 0 ;
-						ret[0][iterator++] = 0 ;
-					}
 				}
 			}
 			else
@@ -694,19 +693,12 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field ) ;
 
-					if( tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					if(  tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						if( val.first )
 						{
 							for( size_t j = 0 ; j < numberOfFields( field ) ; j++ )
 								ret[j][iterator] = val.second[j] ;
-
-							iterator++ ;
-						}
-						else
-						{
-							for( size_t j = 0 ; j < numberOfFields( field ) ; j++ )
-								ret[j][iterator] = 0 ;
 
 							iterator++ ;
 						}
@@ -724,7 +716,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 	bool found = false ;
 	std::vector<double> ret( numberOfFields( field ) ) ;
 
-	if( tri->getBehaviour()->type != VOID_BEHAVIOUR )
+	if( tri->getBehaviour() && tri->getBehaviour()->type != VOID_BEHAVIOUR )
 	{
 		switch( field )
 		{
@@ -750,7 +742,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			
 			case TWFT_CRACK_ANGLE:
 			{
-				if(tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+				if( tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
 				{
 					double angle = 180.*tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState())/M_PI ;
 					while (angle < 0)
@@ -772,14 +764,14 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			
 			case TWFT_CRITERION:
 			{
-				if(tri->getBehaviour()->getFractureCriterion())
+				if( tri->getBehaviour() && tri->getBehaviour()->getFractureCriterion())
 				{
 					double d = tri->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 					ret[2] = d ;
 					ret[1] = d ;
 					ret[0] = d ;
 				}
-				else
+				else if( tri->getBehaviour() )
 				{
 					double d = -1 ;
 					ret[2] = d ;
@@ -819,7 +811,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				double t = 0 ;
 
 				if( tri->timePlanes() > 1 )
-					t = -1 + timePlane[0] * 2 / ( tri->timePlanes() - 1 ) ;
+					t = -1 + timePlane[0] * 2 / ( (int)tri->timePlanes() - 1 ) ;
 
 				if( b )
 				{

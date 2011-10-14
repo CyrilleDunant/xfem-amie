@@ -83,14 +83,45 @@ std::vector<DelaunayTriangle *> FeatureTree::getElements2DInLayer( int l )
 // 	if(l == -1)
 // 		return getElements2D() ;
 	
-	state.setStateTo( MESHED, false ) ;
+	state.setStateTo( RENUMBERED, false ) ;
+
 
 	if( is2D() && layer2d.find(l) != layer2d.end())
 	{
-			return layer2d[l]->getElements() ;
+		std::vector<DelaunayTriangle *> elems = layer2d[l]->getElements() ;
+		return elems ;
 	}
-
 	return std::vector<DelaunayTriangle *>() ;
+}
+
+std::vector<DelaunayTriangle *> FeatureTree::getActiveElements2D()
+{
+	std::vector<DelaunayTriangle *> elements  ;
+	for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
+	{
+		std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;
+		for( size_t i = 0 ; i < elementstmp.size() ; i++ )
+		{
+			if(elementstmp[i]->getBehaviour())
+				elements.push_back(elementstmp[i]);
+		}
+	}
+	return elements ;
+}
+
+std::vector<DelaunayTetrahedron *> FeatureTree::getActiveElements3D()
+{
+	std::vector<DelaunayTetrahedron *> elements  ;
+	for(auto j = layer3d.begin() ; j != layer3d.end() ;j++)
+	{
+		std::vector<DelaunayTetrahedron *> elementstmp = j->second->getElements() ;
+		for( size_t i = 0 ; i < elementstmp.size() ; i++ )
+		{
+			if(elementstmp[i]->getBehaviour())
+				elements.push_back(elementstmp[i]);
+		}
+	}
+	return elements ;
 }
 
 std::vector<DelaunayTetrahedron *> FeatureTree::getElements3DInLayer( int l )
@@ -499,7 +530,7 @@ void FeatureTree::renumber()
 			{
 				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
 
-				if( tri )
+				if( tri && tri->getBehaviour())
 				{
 					for( size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++ )
 					{
@@ -563,7 +594,7 @@ void FeatureTree::renumber()
 		{
 			DelaunayTetrahedron *tet = dynamic_cast<DelaunayTetrahedron *>( *i ) ;
 
-			if( tet && tet->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( tet && tet->getBehaviour() && tet->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				for( size_t j = 0 ; j < tet->getBoundingPoints().size() ; j++ )
 				{
@@ -626,7 +657,7 @@ void FeatureTree::renumber()
 			{
 				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
 
-				if( tri && tri->getBehaviour()->type != VOID_BEHAVIOUR )
+				if( tri && tri->getBehaviour() && tri->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					for( size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++ )
 					{
@@ -699,7 +730,7 @@ void FeatureTree::renumber()
 			{
 				DelaunayTetrahedron *tet = dynamic_cast<DelaunayTetrahedron *>( *i ) ;
 
-				if( tet && tet->getBehaviour()->type != VOID_BEHAVIOUR )
+				if( tet && tet->getBehaviour() && tet->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					for( size_t j = 0 ; j < tet->getBoundingPoints().size() ; j++ )
 					{
@@ -2187,7 +2218,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 							 if(targets[i]->getBehaviourSource())
 								b->setSource(targets[i]->getBehaviourSource());
 							 else
-								 b->setSource(targets[i]);
+								b->setSource(targets[i]);
 							 return b ;
 						}
 						else
@@ -2203,7 +2234,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 					}
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
 					{
-						 Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
+						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						if(targets[i]->getBehaviourSource())
 							b->setSource(targets[i]->getBehaviourSource());
 						else
@@ -2214,10 +2245,10 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 						b->transform( t->getXTransform(), t->getYTransform() ) ;
-							if(targets[i]->getBehaviourSource())
-								b->setSource(targets[i]->getBehaviourSource());
-							else
-								b->setSource(targets[i]);
+						if(targets[i]->getBehaviourSource())
+							b->setSource(targets[i]->getBehaviourSource());
+						else
+							b->setSource(targets[i]);
 						return b ;
 					}
 					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
@@ -2715,8 +2746,8 @@ void FeatureTree::setElementBehaviours()
 			std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
-				if( setcount % 1000 == 0 )
-					std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
+				if( setcount++ % 1000 == 0 )
+					std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount << "/" << tris.size() << "    " << std::flush ;
 				
 				tris[j]->refresh( father2D ) ;
 				Form * bf =  getElementBehaviour( tris[j], i->first );
@@ -2785,6 +2816,8 @@ void FeatureTree::setElementBehaviours()
 			}
 		}
 
+		
+		
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
 		{
 			if( setcount % 1000 == 0 )
@@ -3156,7 +3189,7 @@ Vector FeatureTree::stressFromDisplacements()
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
-			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				std::valarray<Point *> pts( 3 ) ;
 				pts[0] =  elements[i]->first ;
@@ -3239,7 +3272,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g )
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
-			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 // 				std::valarray<Point *> pts(3) ;
 // 				pts[0] =  elements[i]->first ;
@@ -3278,7 +3311,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g )
 
 		for( size_t i  = 0 ; i < tets.size() ; i++ )
 		{
-			if( tets[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( tets[i]->getBehaviour() && tets[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				std::valarray<Point *> pts( 4 ) ;
 				pts[0] =  tets[i]->first ;
@@ -3323,7 +3356,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g )
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
-			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 // 				std::valarray<Point *> pts(3) ;
 // 				pts[0] =  elements[i]->first ;
@@ -3362,7 +3395,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g )
 
 		for( size_t i  = 0 ; i < tets.size() ; i++ )
 		{
-			if( tets[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( tets[i]->getBehaviour() && tets[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				std::valarray<Point *> pts( 4 ) ;
 				pts[0] =  tets[i]->first ;
@@ -3391,6 +3424,85 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g )
 }
 
 
+std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( )
+{
+	state.setStateTo( XFEM_STEPPED, false ) ;
+
+	if( dtree != NULL )
+	{
+		std::vector<DelaunayTriangle *> elements = getActiveElements2D() ;
+
+
+		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
+		int donecomputed = 0 ;
+		#pragma omp parallel for shared(donecomputed)
+
+		for( size_t i  = 0 ; i < elements.size() ; i++ )
+		{
+			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			{
+// 				std::valarray<Point *> pts(3) ;
+// 				pts[0] =  elements[i]->first ;
+// 				pts[1] =  elements[i]->second ;
+// 				pts[2] =  elements[i]->third ;
+
+				std::pair<Vector , Vector > str = elements[i]->getState().getStressAndStrain( elements[i]->getBoundingPoints() ) ;
+
+				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
+				{
+					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.first[j] ;
+					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.second[j] ;
+				}
+
+				if( donecomputed % 10000 == 0 )
+					std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << elements.size() << std::flush ;
+			}
+
+			donecomputed++ ;
+		}
+
+		std::cerr << " ...done." << std::endl ;
+		return stress_strain ;
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
+
+		std::pair<Vector , Vector > stress_strain( Vector( 0.f, 4 * 6 * tets.size() ), Vector( 0.f, 4 * 6 * tets.size() ) ) ;
+		int donecomputed = 0 ;
+
+		#pragma omp parallel for shared(donecomputed)
+
+		for( size_t i  = 0 ; i < tets.size() ; i++ )
+		{
+			if( tets[i]->getBehaviour() && tets[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			{
+				std::valarray<Point *> pts( 4 ) ;
+				pts[0] =  tets[i]->first ;
+				pts[1] =  tets[i]->second ;
+				pts[2] =  tets[i]->third ;
+				pts[3] =  tets[i]->fourth ;
+
+				std::pair<Vector , Vector > str = tets[i]->getState().getStressAndStrain( pts ) ;
+
+				for( size_t j = 0 ; j < 24 ; j++ )
+				{
+					stress_strain.first[i * 4 * 6 + j] = str.first[j] ;
+					stress_strain.second[i * 4 * 6 + j] = str.second[j] ;
+				}
+			}
+
+			if( donecomputed % 1000 == 0 )
+				std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << tets.size() << std::flush ;
+
+			donecomputed++ ;
+		}
+
+		std::cerr << " ...done." << std::endl ;
+		return stress_strain ;
+	}
+}
+
 
 std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g )
 {
@@ -3412,7 +3524,7 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g )
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
-			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 // 				std::valarray<Point *> pts(3) ;
 // 				pts[0] =  elements[i]->first ;
@@ -3497,7 +3609,7 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g )
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
-			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 // 				std::valarray<Point *> pts(3) ;
 // 				pts[0] =  elements[i]->first ;
@@ -3635,7 +3747,7 @@ Vector FeatureTree::strainFromDisplacements()
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
-			if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				std::valarray<Point *> pts( 3 ) ;
 				pts[0] =  elements[i]->first ;
@@ -4578,6 +4690,8 @@ bool FeatureTree::stepElements()
 					if( i % 1000 == 0 )
 						std::cerr << "\r stepping through  grid " << j << ", elements... " << i << "/" << elements.size() << std::flush ;
 
+					if( !elements[i]->getBehaviour())
+						continue ;
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
 				}
@@ -4599,7 +4713,8 @@ bool FeatureTree::stepElements()
 				{
 					if( i % 1000 == 0 )
 						std::cerr << "\r stepping through  grid " << j << ", elements... " << i << "/" << elements.size() << std::flush ;
-
+					if( !elements[i]->getBehaviour())
+						continue ;
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
 				}
@@ -4707,6 +4822,7 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->setElementBehaviours() ;
 		behaviourSet = true;
 		behaviourUpdated = true;
+		initialised = false ;
 	}
 	else if( !behaviourUpdated && behaviourSet )
 	{
@@ -5032,6 +5148,9 @@ double FeatureTree::getMaximumDisplacement()
 
 		for( std::vector<DelaunayTriangle *>::const_iterator i = tri.begin() ; i != tri.end() ; ++i )
 		{
+			if( !( *i )->getBehaviour())
+			continue ;
+			
 			if( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
 				max = std::max( max, ( *i )->getState().getDisplacements().max() ) ;
 		}
@@ -5046,6 +5165,9 @@ double FeatureTree::getMaximumDisplacement()
 
 		for( std::vector<DelaunayTetrahedron *>::const_iterator i = tets.begin() ; i != tets.end() ; ++i )
 		{
+			if( !( *i )->getBehaviour())
+				continue ;
+			
 			if( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
 				max = std::max( max, ( *i )->getState().getDisplacements().max() ) ;
 		}
@@ -5068,6 +5190,8 @@ double FeatureTree::getMinimumDisplacement()
 
 		for( std::vector<DelaunayTriangle *>::const_iterator i = tri.begin() ; i != tri.end() ; ++i )
 		{
+			if( !( *i )->getBehaviour())
+				continue ;
 			if( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
 				max = std::min( max, ( *i )->getState().getDisplacements().min() ) ;
 		}
@@ -5082,6 +5206,8 @@ double FeatureTree::getMinimumDisplacement()
 
 		for( std::vector<DelaunayTetrahedron *>::const_iterator i = tets.begin() ; i != tets.end() ; ++i )
 		{
+			if( !( *i )->getBehaviour())
+				continue ;
 			if( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
 				max = std::min( max, ( *i )->getState().getDisplacements().min() ) ;
 		}
@@ -5160,7 +5286,10 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			for( size_t i = 0 ; i < tris.size() ; i++ )
 			{
 				if(!tris[i]->getBehaviour())
+				{
+					std::cout << "ouch" << std::endl ;
 					continue ;
+				}
 				tris[i]->refresh( father2D );
 				tris[i]->getState().initialize( initialiseFractureCache ) ;
 			}
@@ -5791,9 +5920,9 @@ void FeatureTree::generateElements()
 
 		Mesh<DelaunayTriangle, DelaunayTreeItem> * oldDtree = dtree ;
 
-		this->dtree = new DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first ) ;
-		this->dtree->insert( meshPoints[3].first ) ;
-
+		dtree = new DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first ) ;
+		dtree->insert( meshPoints[3].first ) ;
+		layer2d[-1] = dtree ;
 
 		for( size_t i  = 0 ; i < tree.size() ; i++ )
 		{
@@ -5819,7 +5948,6 @@ void FeatureTree::generateElements()
 			        *i->first != bbox[6] && ( inRoot( *i->first ) || i->second->getFather() == NULL )
 			  )
 			{
-				dtree->insert( i->first ) ;
 				for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
 				{
 					j->second->insert(i->first) ;
@@ -5860,7 +5988,12 @@ void FeatureTree::generateElements()
 				        *to_insert[i] != bbox[6] &&
 				        inRoot( *to_insert[i] )
 				  )
-					dtree->insert( to_insert[i] ) ;
+				{
+					for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
+					{
+						j->second->insert(to_insert[i] ) ;
+					}
+				}
 
 				if( to_insert[i]->id == -1 )
 					delete to_insert[i] ;

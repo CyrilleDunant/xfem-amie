@@ -1266,7 +1266,7 @@ Vector ElementState::getPreviousStress( const Point &p, bool local ) const
 Vector ElementState::getStress( const Point &p, bool local ) const
 {
 
-	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+	if( parent->getBehaviour() && parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
 	{
 		size_t ndofs = 2;
 
@@ -1320,7 +1320,7 @@ Vector ElementState::getStress( const Point &p, bool local ) const
 			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
 		return lstrain * cg ;
 	}
-	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+	else if( parent->getBehaviour() && parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
 		Point p_ = p ; 
 
@@ -5139,9 +5139,9 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const std
 
 void ElementState::initialize( bool initializeFractureCache )
 {
-	if(!parent->getBehaviour())
-		return ;
-	size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	size_t ndofs = 0 ;
+	if(parent->getBehaviour()) 
+		ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	displacements.resize( parent->getBoundingPoints().size()*ndofs ) ;
 	displacements = 0 ;
 	previousDisplacements.resize( displacements.size() ) ;
