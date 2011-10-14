@@ -64,6 +64,8 @@ std::vector<BoundaryCondition * > Form::getBoundaryConditions(const ElementState
 
 void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 {
+	if( !getBehaviour())
+		return ;
 	if( getBehaviour()->type != VOID_BEHAVIOUR )
 	{
 		if( boundaryConditionCache )
@@ -5137,6 +5139,8 @@ std::pair<Vector, Vector > ElementState::getDeltaStressAndDeltaStrain( const std
 
 void ElementState::initialize( bool initializeFractureCache )
 {
+	if(!parent->getBehaviour())
+		return ;
 	size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	displacements.resize( parent->getBoundingPoints().size()*ndofs ) ;
 	displacements = 0 ;

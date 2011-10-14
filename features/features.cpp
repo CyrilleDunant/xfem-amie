@@ -4195,7 +4195,11 @@ bool FeatureTree::stepElements()
 			for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
 			{
 				std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;
-				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
+				for( size_t i = 0 ; i < elementstmp.size() ; i++ )
+				{
+					if(elementstmp[i]->getBehaviour())
+						elements.push_back(elementstmp[i]);
+				}
 			}
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
@@ -4336,15 +4340,6 @@ bool FeatureTree::stepElements()
 					averageDamage /= volume ;
 			}
 
-// 			else
-// 			{
-// 				for( size_t i = 0 ; i < elements.size() ; i++ )
-// 					if( elements[i]->getBehaviour()->getFractureCriterion() )
-// 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( false ) ;
-// 			}
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-				elements[i]->clearVisited() ;
 		}
 		else if( is3D() )
 		{
@@ -4353,7 +4348,33 @@ bool FeatureTree::stepElements()
 			for(auto j = layer3d.begin() ; j != layer3d.end() ;j++)
 			{
 				std::vector<DelaunayTetrahedron *> elementstmp = j->second->getElements() ;
-				elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
+				for( size_t i = 0 ; i < elementstmp.size() ; i++ )
+				{
+					if(elementstmp[i]->getBehaviour())
+						elements.push_back(elementstmp[i]);
+				}
+			}
+			
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
+				{
+					foundCheckPoint = false ;
+					break ;
+				}
+			}
+
+			if( foundCheckPoint )
+			{
+				std::cout << "[" << averageDamage << "]" << std::flush ;
+
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+					}
+				}
 			}
 			
 			double volume = 0;
@@ -4464,30 +4485,8 @@ bool FeatureTree::stepElements()
 				}
 				std::cerr << " ...done. " << std::endl ;
 
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
-					{
-						foundCheckPoint = false ;
-						break ;
-					}
-				}
 
-				if( foundCheckPoint )
-				{
-					std::cout << "[" << averageDamage << "]" << std::flush ;
 
-					for( size_t i = 0 ; i < elements.size() ; i++ )
-					{
-						if( elements[i]->getBehaviour()->getFractureCriterion() )
-						{
-							elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-						}
-					}
-				}
-
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-					elements[i]->clearVisited() ;
 
 				// 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
 				// 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
@@ -5160,6 +5159,8 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			#pragma omp parallel for 
 			for( size_t i = 0 ; i < tris.size() ; i++ )
 			{
+				if(!tris[i]->getBehaviour())
+					continue ;
 				tris[i]->refresh( father2D );
 				tris[i]->getState().initialize( initialiseFractureCache ) ;
 			}
@@ -5180,6 +5181,8 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 				for( size_t j = 0 ; j < triangles.size() ; j++ )
 				{
+					if(!triangles[j]->getBehaviour())
+						continue ;
 					triangles[j]->refresh( father2D );
 					triangles[j]->getState().initialize( initialiseFractureCache ) ;
 				}
@@ -5196,6 +5199,8 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 		for( size_t i = 0 ; i < tets.size() ; i++ )
 		{
+			if(!tets[i]->getBehaviour())
+				continue ;
 			tets[i]->refresh( father3D );
 			tets[i]->getState().initialize( initialiseFractureCache ) ;
 		}
@@ -5212,6 +5217,8 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 			for( size_t i = 0 ; i < tetras.size() ; i++ )
 			{
+				if(!tetras[i]->getBehaviour())
+					continue ;
 				tetras[i]->refresh( father3D );
 				tetras[i]->getState().initialize( initialiseFractureCache ) ;
 	// 						count++ ;
@@ -5228,6 +5235,8 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 				for( size_t j = 0 ; j < tets.size() ; j++ )
 				{
+					if(!tets[j]->getBehaviour())
+						continue ;
 					tets[j]->refresh( father3D );
 					tets[j]->getState().initialize( initialiseFractureCache ) ;
 				}

@@ -482,7 +482,7 @@ public:
 	
 	virtual void scale(double d) ;
 	
-	virtual size_t getNumberOfDegreesOfFreedom() const { return this->num_dof ; }
+	virtual size_t getNumberOfDegreesOfFreedom() const { return num_dof ; }
 	
 	virtual void transform(const Function & x, const Function & y) { } ;
 	virtual void transform(const Function & x, const Function & y, const Function & z) { } ;
