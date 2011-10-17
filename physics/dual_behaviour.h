@@ -98,7 +98,7 @@ public:
 	
 	virtual bool hasInducedForces() const { return inBehaviour->hasInducedForces() || outBehaviour->hasInducedForces() ; }
 	
-	bool inGeometry(const Point & p) const { return inGeometry->in(p) ; }
+	bool insideGeometry(const Point & p) const { return inGeometry->in(p) ; }
 
 
 		/** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise

@@ -28,7 +28,7 @@ Phase::Phase( DelaunayTriangle *tri )
 			for(double j = 0.00 ; j < 1.-i ; j += 0.01)
 			{
 				count++ ;
-				out += (int) !behaviour->inGeometry(Point(i,j)) ;
+				out += (int) !dynamic_cast<BimaterialInterface *>(behaviour)->insideGeometry(Point(i,j)) ;
 			}
 		}
 		volume *= out/count ;
