@@ -588,9 +588,7 @@ void step()
 			writer.getField( TWFT_CRITERION ) ;
 			writer.getField( TWFT_STIFFNESS ) ;
 			writer.getField( TWFT_CRACK_ANGLE ) ;
-			std::cout << "p5f" << std::endl ;
 			writer.getField( TWFT_DAMAGE ) ;
-			std::cout << "p6f" << std::endl ;
 			writer.append() ;
 		}
 // 		if ( !go_on )

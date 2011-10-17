@@ -84,20 +84,15 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 	extraFields.clear() ;
 	layerTranslator.clear() ;
 	source = F ;
-	std::cout << "res" << std::endl ;
 	if( source  )
 	{
 		layers = source->listLayers() ;
-		std::cout << "ris" << std::endl ;
 		for( size_t j = 0 ; j < layers.size() ; j++ )
 		{
-			std::cout << "ras " << layers[j] << std::endl ;
 			std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer( layers[j] ) ;
 			if(tri.empty())
 				continue ;
-			std::cout << j << " - " << tri.size() << std::endl ;
 			nTriangles.push_back( tri.size() );
-			std::cout << j << " + " << tri.size() << std::endl ;
 			int count = 0 ;
 
 			for( int i = 0 ; i < nTriangles.back() ; i++ )
@@ -115,16 +110,11 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 
 			layerTranslator[layers[j]] = j ;
 			values.push_back( std::vector<std::valarray<double> >( 0 ) );
-			std::cout << "rus " << layers[j] << std::endl ;
 
 		}
-		std::cout << "ros " << std::endl ;
 		getField( TWFT_COORDINATE, false ) ;
-		std::cout << "ros0 " << std::endl ;
 		getField( TWFT_DISPLACEMENTS, false ) ;
-		std::cout << "ros1 " << std::endl ;
 	}
-	std::cout << "rose " << std::endl ;
 }
 
 void TriangleWriter::write()
@@ -303,13 +293,9 @@ void TriangleWriter::getField( TWFieldType field, bool extra )
 {
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
-		std::cout << "gf0" << std::endl ;
 		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
-		std::cout << "gf1" << std::endl ;
 		std::reverse( val.begin(), val.end() );
-		std::cout << "gf2" << std::endl ;
 		values[layerTranslator[layers[j]]].insert( values[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
-		std::cout << "gf3" << std::endl ;
 	}
 
 }
@@ -633,14 +619,11 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		{
 			if( field == TWFT_DISPLACEMENTS )
 			{
-				std::cout << "d0" << std::endl ;
 				Vector x = source->getDisplacements() ;
 				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-				std::cout << "d1" << std::endl ;
 				int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
 				int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
 				int factor = pointsPerTimePlanes / 3 ;
-				std::cout << "d2" << std::endl ;
 				if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
 					timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
 
@@ -648,7 +631,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					std::cout << "d3 - " << i << std::endl ;
 					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
@@ -682,6 +664,12 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[1][iterator] = d ;
 						ret[2][iterator++] = d ;
 
+					}
+					else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					{
+						ret[0][iterator] = 0;
+						ret[1][iterator] = 0 ;
+						ret[2][iterator++] = 0 ;
 					}
 				}
 			}
