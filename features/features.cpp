@@ -485,14 +485,15 @@ void FeatureTree::setOrder( Order ord )
 
 void FeatureTree::renumber()
 {
-//	return ;
+	return ;
 	if( is2D() )
 	{
 
 			std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
 			size_t count = 0 ;
-			std::cerr << " renumbering... " << std::flush ;
+			std::cerr << " renumbering... " << std::endl ;
 
+			std::cout << triangles.size() << std::endl ;
 			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 			{
 				for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
@@ -2706,11 +2707,6 @@ Feature *FeatureTree::getFeatForTetra( const DelaunayTetrahedron *t ) const
 
 void FeatureTree::setElementBehaviours()
 {
-	if(dynamic_cast<IncrementalKelvinVoight *>(tree[0]->getBehaviour()))
-	{
-	    dynamic_cast<IncrementalKelvinVoight *>(tree[0]->getBehaviour())->resize(numdofs/2) ;
-	}
-
 	if( !father3D )
 		father3D = new TetrahedralElement( elemOrder ) ;
 
@@ -2728,11 +2724,6 @@ void FeatureTree::setElementBehaviours()
 		{
 			if(i->first != -1)
 				remainder += scalingFactors[i->first] ;
-			else
-			{
-				remainder = 2.*scalingFactors[i->first]-1 ;
-				break ;
-			}
 		}
 		scalingFactors[-1] = 1.-remainder ;
 		layer2d[-1] = dtree ;
