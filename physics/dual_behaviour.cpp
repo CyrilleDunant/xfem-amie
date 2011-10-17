@@ -6,6 +6,7 @@
 #include "dual_behaviour.h"
 #include "homogeneised_behaviour.h"
 #include "fracturecriteria/fracturecriterion.h"
+#include <typeinfo>
 
 using namespace Mu ;
 

@@ -8,6 +8,7 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
+#include <typeinfo>
 
 #include "homogeneised_behaviour.h"
 #include "diffusion.h"
@@ -52,14 +53,13 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangl
 HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), self2d( self ), mesh( NULL ), self3d( NULL ), equivalent( NULL )
 {
 	original = self->getBehaviour() ;
-
+	
 	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
 		original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
 
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
 	equivalent = composite.getBehaviour() ;
-//    composite.C.print();
 
 	if(original->getFractureCriterion())
 	{
@@ -74,6 +74,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 	v.push_back( ETA );
 
 	reverted = false ;
+	
 }
 
 
@@ -105,25 +106,6 @@ HomogeneisedBehaviour::~HomogeneisedBehaviour()
 void HomogeneisedBehaviour::apply( const Function &p_i, const Function &p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine *vm ) const
 {
 	int get = 0 ;
-/*	if(static_cast<StiffnessWithImposedDeformationAndFracture *>(equivalent))
-	{
-		static_cast<StiffnessWithImposedDeformationAndFracture *>(equivalent)->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
-		get = 1 ;
-	}
-	else if(static_cast<StiffnessWithImposedDeformation *>(equivalent))
-	{
-		static_cast<StiffnessWithImposedDeformation *>(equivalent)->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
-		get = 2 ;
-	}
-	else if(static_cast<Stiffness *>(equivalent))
-	{
-		static_cast<Stiffness *>(equivalent)->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
-		get = 3 ;
-	}*/
-//	std::cout << "Jinv=" ;
-//	std::cout << Jinv.size() << std::endl ;
-//	std::cout << "gp=" ;
-//	std::cout << gp.gaussPoints.size() << std::endl ;
 	param.print() ;
 	equivalent->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
 }

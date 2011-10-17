@@ -1,5 +1,6 @@
 #include "phase.h"
 #include "../stiffness_with_imposed_deformation.h"
+#include "../stiffness.h"
 #include "../dual_behaviour.h"
 #include "../../utilities/matrixops.h"
 #include "../fracturecriteria/mohrcoulomb.h"
@@ -18,6 +19,20 @@ Phase::Phase( DelaunayTriangle *tri )
 {
 	behaviour = tri->getBehaviour() ;
 	volume = tri->area() ;
+	if(dynamic_cast<BimaterialInterface *>(behaviour))
+	{
+		int count = 0;
+		int out = 0 ;
+		for(double i = 0.00 ; i < 1. ; i+=0.01)
+		{
+			for(double j = 0.00 ; j < 1.-i ; j += 0.01)
+			{
+				count++ ;
+				out += (int) !behaviour->inGeometry(Point(i,j)) ;
+			}
+		}
+		volume *= out/count ;
+	}
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;
@@ -140,14 +155,24 @@ Phase &Phase::operator =( const Phase &p )
 
 void Phase::stiffnessFromBehaviour()
 {
-	Matrix tmp =  behaviour->getTensor( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
+	Matrix tmp =  behaviour->getTensor( Point(0.,0.) ) ;
 	if(dynamic_cast<BimaterialInterface *>(behaviour))
 	{
-		std::cout << tmp.size() ;
-		std::cout << std::endl ;
+		tmp = Matrix(tmp.numRows(), tmp.numCols()) ;
+		int count = 0;
+		for(double i = 0.00 ; i < 1. ; i+=0.01)
+		{
+			for(double j = 0.00 ; j < 1.-i ; j += 0.01)
+			{
+				count++ ;
+				tmp += behaviour->getTensor(Point(i,j)) ;
+			}
+		}
+		tmp /= (count) ;
 	}	
 	C.resize( tmp.numRows(), tmp.numCols() ) ;
 	C = tmp ;
+		
 }
 
 void Phase::expansionFromBehaviour()

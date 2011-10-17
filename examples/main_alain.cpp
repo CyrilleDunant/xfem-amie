@@ -192,8 +192,6 @@ Vector getStiffnessTensor(bool random)
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		centers.push_back(inclusions[i]->getCenter()) ;
 	
-	return Vector(3) ;
-	
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		inclusions[i]->setBehaviour(gel) ;
 
@@ -233,16 +231,17 @@ Vector getStiffnessTensor(bool random)
 		Vector stress(3) ;
 		if(dynamic_cast<BimaterialInterface *>(tri[i]->getBehaviour()))
 		{
-			Triangle test(tri[i]->getBoundingPoint(0),
-						  tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()/3),
-						  tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()*2/3)) ;
-						  test.sampleSurface(50) ;
-						  int count = /*test.getBoundingPoints().size() +*/ test.getInPoints().size() ;
-						  /*			for(size_t i = 0 ; i < test.getBoundingPoints().size() ; i++)
-						   *				stress += tri[i]->getState().getStress(test.getBoundingPoint(i), false) ;//- tri[i]->getBehaviour()->getImposedStress(test.getBoundingPoint(i)) ;*/
-						  for(size_t i = 0 ; i < test.getInPoints().size() ; i++)
-							  stress += tri[i]->getState().getStress(test.getInPoint(i), false) ;//- tri[i]->getBehaviour()->getImposedStress(test.getInPoint(i)) ;
-						  stress /= count ;
+			int count = 0;
+			for(double i = 0.00 ; i < 1. ; i+=0.01)
+			{
+				for(double j = 0.00 ; j < 1.-i ; j += 0.01)
+				{
+					count++ ;
+					stress += tri[i]->getState().getStress(Point(i,j), true) ;
+				}
+			}
+			// 				stress += tri[i]->getState().getStress(test.getInPoint(i), false) ;//- tri[i]->getBehaviour()->getImposedStress(test.getInPoint(i)) ;
+			stress /= (2*count) ;
 		}
 		else
 			stress = tri[i]->getState().getStress(p,false) ;// - tri[i]->getBehaviour()->getImposedStress(Point(1./3.,1./3.));
