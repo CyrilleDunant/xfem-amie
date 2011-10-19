@@ -30,8 +30,8 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 
 double PlasticStrain::plasticFlowPotential(const Matrix &m) const
 {
-	Matrix s = m-identity(m.numCols())*trace(m) ;
-	return c_psi * trace(m) + sqrt(secondInvariant(s*s)) ;
+	Matrix s(m-identity(m.numCols())*trace(m)/(double)m.numCols()) ;
+	return c_psi * trace(m) + sqrt(secondInvariant(s)) ;
 }
 
 // void PlasticStrain::step(ElementState & s)
@@ -60,46 +60,44 @@ double PlasticStrain::plasticFlowPotential(const Matrix &m) const
 
 std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s)
 {
-	Vector ret = s.getStrain(s.getParent()->getCenter());
-	if(ret.size() > 3 && v.size() == 2)
+	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL && v.size() == 2)
 	{
 		v.push_back(ZETA);
 		previousImposedStrain.resize(6, 0.) ;
 		imposedStrain.resize(6, 0.) ;
 	}
+	
 	if(!param)
 		param = new Matrix(s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
 	if(!es)
 		es =&s ;
 
-		double multiplier_top  = 1 ;
-		double multiplier_down = 0 ;
 
-		if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+		if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
 		{
 			Matrix stressMatrix = s.getStressMatrix(s.getParent()->getCenter()) ;
-			Matrix incrementalStrainMatrix(v.size(), v.size()) ;
+			Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
 			
-			for(size_t i = 0 ; i < v.size() ; i++)
+			for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
 			{
-				for(size_t j = 0 ; j < v.size() ; j++)
+				for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
 				{
 					Matrix m_p(stressMatrix) ;
 					Matrix m_m(stressMatrix) ;
-					m_p[i][j] += 1e-6 ;
-					m_m[i][j] -= 1e-6 ;
-					incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/2e-6 ;
+					m_p[i][j] += 1e-4 ;
+					m_m[i][j] -= 1e-4 ;
+					incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/2e-4 ;
 				}
 			}
-	// 		strainMatrix.print();
+// 			incrementalStrainMatrix.print() ;
+// 			exit(0) ;
 // 			double str = s.getMaximumVonMisesStress() ;
 // 			double down_str = str ;
 			imposedStrain[0] = incrementalStrainMatrix[0][0] ;
 			imposedStrain[1] = incrementalStrainMatrix[1][1] ;
 			imposedStrain[2] = incrementalStrainMatrix[1][0] ;
-			double inorm = sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
-			if(inorm > POINT_TOLERANCE_2D)
-				imposedStrain /= inorm ;
+			
+// 			imposedStrain *= .01 ;
 		}
 		
 	return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
@@ -156,7 +154,7 @@ Vector PlasticStrain::getImposedStress(const Point & p) const
 	if(v.size() == 3 && !param)
 		return Vector(0., 6) ;
 		
-	return  *param *(imposedStrain*getState()[0]+previousImposedStrain) ;
+	return  (Vector)(*param *(imposedStrain*getState()[0]+previousImposedStrain)) ;
 }
 
 bool PlasticStrain::fractured() const 
@@ -168,11 +166,10 @@ bool PlasticStrain::fractured() const
 
 void PlasticStrain::postProcess()
 {
-	
-	if(converged && es && es->getDeltaTime() < POINT_TOLERANCE_2D && getState()[0] > POINT_TOLERANCE_2D)
+	if(converged && es && getState()[0] > POINT_TOLERANCE_2D)
 	{
 		previousImposedStrain += imposedStrain*getState()[0] ;
-// 		std::cout << "dstrain = " <<imposedStrain[0]*getState()[0] << "   " <<imposedStrain[1]*getState()[0] << ", strain = "<< previousImposedStrain[0] << "  " << previousImposedStrain[1] << std::endl ;
+		std::cout << " score =  " << es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() << ", state = " << getState()[0] << ", dstrain = " <<imposedStrain[0]*getState()[0] << "   " <<imposedStrain[1]*getState()[0] << ", strain = "<< previousImposedStrain[0] << "  " << previousImposedStrain[1] << std::endl ;
 		state[0] = 0;
 		imposedStrain = 0 ;
 	}

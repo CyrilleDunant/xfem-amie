@@ -4178,7 +4178,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 				lstrain[i * 3 + 1] = llstrain[1] ;
 				lstrain[i * 3 + 2] = llstrain[2] ;
 
-				llstrain = llstrain * cg ;
+				llstrain = llstrain * cg - parent->getBehaviour()->getImposedStress(p_[i]);
 
 				lstress[i * 3 + 0] = llstrain[0] ;
 				lstress[i * 3 + 1] = llstrain[1] ;
@@ -4306,7 +4306,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 				lstrain[i * 6 + 4] = llstrain[4] ;
 				lstrain[i * 6 + 5] = llstrain[5] ;
 
-				llstrain = llstrain * cg ;
+				llstrain = llstrain * cg - parent->getBehaviour()->getImposedStress(p_[i]);;
 
 				lstress[i * 6 + 0] = llstrain[0] ;
 				lstress[i * 6 + 1] = llstrain[1] ;

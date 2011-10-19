@@ -181,7 +181,7 @@ double NonLocalMCFT::grade( ElementState &s )
 			std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
 			exit(0) ;
 		}
-		strain_te = 3.*strain_ch;
+		strain_te = 5.*strain_ch;
 		double del_0 = strain_ch-tensionCritStrain ;
 		double del_1 = strain_te-strain_ch ;
 		

@@ -393,7 +393,7 @@ void step()
 						}
 					}
 
-					if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 + 0.085 ), triangles[k]->getBoundingPoint( p ) ) < .05 )
+					if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 + 0.085 ), triangles[k]->getBoundingPoint( p ) ) < .1 )
 					{
 						deltacount++ ;
 						delta += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
@@ -1667,7 +1667,7 @@ int main( int argc, char *argv[] )
 	double phi =  3.*rebarDiametre / .4 ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .015 ; // .015
+	double mradius = .01 ; // .015
 	double nradius = mradius*2. ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1830,15 +1830,15 @@ int main( int argc, char *argv[] )
 
 		F.addFeature( stirrups.back(), &rebar0, rebarlayer, phi ) ;
 		F.addFeature( stirrups.back(), &rebar1, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
+// 		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
 	}
 	else
 	{
 		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
 		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
-		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
-		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
 	}
 
 

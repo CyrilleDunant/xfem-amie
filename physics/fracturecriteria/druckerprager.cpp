@@ -41,13 +41,13 @@ double DruckerPrager::grade(ElementState &s)
 		double tr = str.first[0]+str.first[1]+str.first[3] ;
 		maxStress =  tr*friction + sqrt(0.5)*sqrt((str.first[0]-tr/3.)*(str.first[0]-tr/3.)+(str.first[1]-tr/3.)*(str.first[1]-tr/3.)+(str.first[2]-tr/3.)*(str.first[2]-tr/3.)) ;
 	}
-	if(maxStress > threshold )
+	if(std::abs(maxStress) > std::abs(threshold) )
 	{
-		return 1. - threshold/maxStress ;
+		return 1. - std::abs(threshold/maxStress) ;
 	}
 	else 
 	{
-		return -1.+ maxStress/threshold;
+		return -1.+ std::abs(maxStress/threshold);
 	}
 
 }

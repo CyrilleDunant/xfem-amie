@@ -17,6 +17,7 @@
 #include "../physics/fracturecriteria/druckerprager.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/fracturecriteria/boundedvonmises.h"
+#include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/fraction_stiffness_and_fracture.h"
@@ -122,7 +123,7 @@ double y_min = 0 ;
 
 double timepos = 0.05e-07 ;
 
-double effectiveRadius = 0.13506098 ; //.5*.165*sqrt(M_PI*.25) ;
+double effectiveRadius = 0.13506098 ; //.5*.165*sqrt(M_PI*.25) ;//
 double rebarDiametre = 0.0254*sqrt(M_PI*.25) ;
 
 double delta_displacement =  1e-5 ;
@@ -209,33 +210,28 @@ void step()
 			loadr->setData(loadr->getData()+1e-5) ;
 		}
 		
-		triangles = featureTree->getElements2D() ;
-		x.resize(featureTree->getDisplacements().size()) ;
+		triangles = featureTree->getActiveElements2D() ;
+		x.resize( featureTree->getDisplacements().size() ) ;
 		x = featureTree->getDisplacements() ;
-	
-		
-// 		displacement_tolerance = 0.01*(std::abs(delta_displacement)+std::abs(displacement)) ;
 
-		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		
-	// 	sigma = F.strainFromDisplacements() ;
-	// 	epsilon = F.stressFromDisplacements() ;
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
-		sigma.resize(sigma_epsilon.first.size()) ;
+
+
+		sigma.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
+		epsilon.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrainInAllLayers() ;
+		sigma.resize( sigma_epsilon.first.size() ) ;
 		sigma = sigma_epsilon.first ;
-		epsilon.resize(sigma_epsilon.second.size()) ;
+		epsilon.resize( sigma_epsilon.second.size() ) ;
 		epsilon = sigma_epsilon.second ;
-		
-		sigma11.resize(sigma.size()/3) ;
-		sigma22.resize(sigma.size()/3) ;
-		sigma12.resize(sigma.size()/3) ;
-		epsilon11.resize(sigma.size()/3) ;
-		fracCrit.resize(sigma.size()/3) ;
-		epsilon22.resize(sigma.size()/3) ;
-		epsilon12.resize(sigma.size()/3) ;
-		vonMises.resize(sigma.size()/3) ;
-		angle.resize(sigma.size()/3) ;
+		sigma11.resize( sigma.size() / 3 ) ;
+		sigma22.resize( sigma.size() / 3 ) ;
+		sigma12.resize( sigma.size() / 3 ) ;
+		epsilon11.resize( sigma.size() / 3 ) ;
+		fracCrit.resize( sigma.size() / 3 ) ;
+		epsilon22.resize( sigma.size() / 3 ) ;
+		epsilon12.resize( sigma.size() / 3 ) ;
+		vonMises.resize( sigma.size() / 3 ) ;
+		angle.resize( sigma.size() / 3 ) ;
 		
 		std::cerr << "unknowns :" << x.size() << std::endl ;
 		
@@ -399,7 +395,7 @@ void step()
 		{
 
 			std::cout << std::endl ;
-			std::cout << "load : " <<  appliedForce/1000. << std::endl ;
+			std::cout << "load : " <<  loads.back() << std::endl ;
 			std::cout << "max value : " << x_max*1000 << std::endl ;
 			std::cout << "min value : " << x_min*1000 << std::endl ;
 			std::cout << "max sigma11 : " << sigma11.max()/1e6 << std::endl ;
@@ -456,7 +452,7 @@ void step()
 				filename << "intermediate-" ;
 			
 			filename << "triangles-" ;
-			filename << round(appliedForce*1e7) ;
+			filename << round(appliedForce*1e9) ;
 			
 	// 		filename.append(itoa(totit++, 10)) ;
 	// 		std::cout << filename.str() << std::endl ;
@@ -556,7 +552,7 @@ void Menu(int selection)
 		{
 			for(int i = 0 ; i < 1000 ; i++)
 				step() ;
-			timepos +=0.0001 ;
+			timepos +=0.01 ;
 			dlist = false ;
 			break ;
 		}
@@ -1414,43 +1410,43 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-	double woff = .5 ;
-	std::vector<std::pair<std::string, double> >  vars ;
-	vars.push_back(std::make_pair("L", 150));
-	Function L("L") ;
-	vars.push_back(std::make_pair("a", .75));
-	Function a("a") ;
-	vars.push_back(std::make_pair("h", 1.02));
-	Function h("h") ;
-	vars.push_back(std::make_pair("j", 250));
-	Function j("j") ;
-	vars.push_back(std::make_pair("k", 70));
-	Function k("k") ;
-	vars.push_back(std::make_pair("f", 1.));
-	Function f("f") ;
-	std::vector<std::pair<double, double> >   bounds ;
-	bounds.push_back(std::make_pair(100, 450));
-	bounds.push_back(std::make_pair(.5, 1));
-	bounds.push_back(std::make_pair(1.02, 1.02));
-	bounds.push_back(std::make_pair(250, 250));
-	bounds.push_back(std::make_pair(70, 70));
-	bounds.push_back(std::make_pair(1., 1.));
-	Function objectiveFunction = ((L^3)/(a*k*(h^3)*(k*j*.988*2.7*1e-5 + woff))-f*190000*sqrt(M_PI))^2 ;
-	GeneticAlgorithmOptimizer ga(vars, bounds, objectiveFunction) ;
-	ga.optimize(1e-8, 10000, 500, .1, .65) ;
-	std::vector<std::pair<std::string, double> > vals = ga.getValues() ;
-	for(size_t i = 0 ; i < vals.size() ; i++)
-		std::cout << vals[i].first << " = " << vals[i].second << std::endl ;
-	std::cout << "m = " << vals[3].second* vals[4].second*.988*2.7e-5 + woff<< std::endl ;
-	exit(0) ;
+// 	double woff = .5 ;
+// 	std::vector<std::pair<std::string, double> >  vars ;
+// 	vars.push_back(std::make_pair("L", 150));
+// 	Function L("L") ;
+// 	vars.push_back(std::make_pair("a", .75));
+// 	Function a("a") ;
+// 	vars.push_back(std::make_pair("h", 1.02));
+// 	Function h("h") ;
+// 	vars.push_back(std::make_pair("j", 250));
+// 	Function j("j") ;
+// 	vars.push_back(std::make_pair("k", 70));
+// 	Function k("k") ;
+// 	vars.push_back(std::make_pair("f", 1.));
+// 	Function f("f") ;
+// 	std::vector<std::pair<double, double> >   bounds ;
+// 	bounds.push_back(std::make_pair(100, 450));
+// 	bounds.push_back(std::make_pair(.5, 1));
+// 	bounds.push_back(std::make_pair(1.02, 1.02));
+// 	bounds.push_back(std::make_pair(250, 250));
+// 	bounds.push_back(std::make_pair(70, 70));
+// 	bounds.push_back(std::make_pair(1., 1.));
+// 	Function objectiveFunction = ((L^3)/(a*k*(h^3)*(k*j*.988*2.7*1e-5 + woff))-f*190000*sqrt(M_PI))^2 ;
+// 	GeneticAlgorithmOptimizer ga(vars, bounds, objectiveFunction) ;
+// 	ga.optimize(1e-8, 10000, 500, .1, .65) ;
+// 	std::vector<std::pair<std::string, double> > vals = ga.getValues() ;
+// 	for(size_t i = 0 ; i < vals.size() ; i++)
+// 		std::cout << vals[i].first << " = " << vals[i].second << std::endl ;
+// 	std::cout << "m = " << vals[3].second* vals[4].second*.988*2.7e-5 + woff<< std::endl ;
+// 	exit(0) ;
 	double compressionCrit = -37.5e6 ; 
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = 0.1 ; // .015
+	double mradius = 0.1 ; // .010 ;//
 	double nradius = mradius*5. ;
 // 	double mradius = .25 ;
-	double length = 0.3048 ; //1.300*.5
+	double length =  0.3048 ; //1.300*.5;//
 	double E_steel = 193e9 ;
 	double nu_steel = 0.2 ; 
 	
@@ -1464,9 +1460,9 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(1.2/*.3048*/, /*effectiveRadius*/.6, 0, 0) ;
+	Sample samplef(length, effectiveRadius, 0, 0) ;
 	
-	Sample toprightvoid(.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
+	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
 
 	Sample rebarright(0.225, rebarDiametre*.5, 1.300*.5+.225*.5, rebarDiametre*0.25) ; 
@@ -1486,25 +1482,28 @@ int main(int argc, char *argv[])
 
 // 	sample.setBehaviour(new VoidForm()) ;  
 		
-	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
-	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
-	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
+// 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
+// // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
-// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPrager(20e6,0.1 , mradius), new IsotropicLinearDamage())) ;
+// // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
+// // 	
 	
 	FeatureTree F(&samplef) ;
-// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
-	Inclusion inc(mradius*.175, samplef.getCenter().x, samplef.getCenter().y) ;
-	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPrager(20e6*.999,0.1 , mradius), new IsotropicLinearDamage()));
-	inc.setBehaviourSource(&samplef);
-	F.addFeature(&samplef, &inc, 0, .1);
-// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
-// 	FeatureTree F(&box) ;
 	featureTree = &F ;
+	Inclusion inc(mradius*.175, samplef.getCenter().x, samplef.getCenter().y) ;
+	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPrager(20e6*.999,0.1 , mradius), new PlasticStrain()));
+	inc.setBehaviourSource(&samplef);
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPrager(20e6,0.1 , mradius), new PlasticStrain())) ;
+	F.addFeature(&samplef, &inc);
+// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
+// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
+	
+// 	FeatureTree F(&box) ;
+// 	featureTree = &F ;
 // 	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 2.) ;
 // 	F.addFeature(NULL,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
 // 	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;

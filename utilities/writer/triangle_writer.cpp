@@ -673,6 +673,34 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					}
 				}
 			}
+			else if( field == TWFT_IMPOSED_STRESS_NORM )
+			{
+				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+				Vector x( triangles.size() * 3 ) ;
+
+				for( int i = 0 ; i < triangles.size() ; i++ )
+				{
+					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->hasInducedForces() )
+					{
+						Vector dv = triangles[i]->getBehaviour()->getDamageModel()->getImposedStress(triangles[i]->getCenter());
+
+						double d = sqrt(std::inner_product(&dv[0], &dv[dv.size()], &dv[0], 0.));
+						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
+							d = 1 ;
+
+						ret[0][iterator] = d;
+						ret[1][iterator] = d ;
+						ret[2][iterator++] = d ;
+
+					}
+					else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					{
+						ret[0][iterator] = 0;
+						ret[1][iterator] = 0 ;
+						ret[2][iterator++] = 0 ;
+					}
+				}
+			}
 			else
 			{
 				std::vector<DelaunayTriangle *> tri = source->getElements2DInLayer( layer ) ;
@@ -921,6 +949,8 @@ int numberOfFields( TWFieldType field )
 		case TWFT_CRITERION:
 			return 3 ;
 		case TWFT_DAMAGE:
+			return 3 ;
+		case TWFT_IMPOSED_STRESS_NORM:
 			return 3 ;
 	}
 

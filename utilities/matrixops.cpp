@@ -118,15 +118,6 @@ Matrix::Matrix(const std::vector<std::vector<double> > & vv)
 	}
 }
 
-double& Matrix::operator()(size_t x, size_t y)
-{
-	return row(x)[y] ;
-}
-
-double Matrix::operator()(size_t x, size_t y) const
-{
-	return row(x)[y] ;
-}
 
 Matrix Matrix::transpose() const
 {
@@ -162,8 +153,7 @@ double trace(const Matrix & m)
 
 double secondInvariant(const Matrix & m)
 {
-	double tr = trace(m) ;
-	return 0.5*(tr*tr - trace(m*m)) ;
+	return 0.5 * m.squareFroebeniusNorm() ;
 }
 
 

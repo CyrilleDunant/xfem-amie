@@ -66,7 +66,27 @@ public:
 	
 	double froebeniusNorm() const
 	{
-		return sqrt(std::inner_product((double *)v, (double *)(v+v->size()), (double *)v, (double)(0))) ;
+		if(isNull())
+			return 0. ;
+		
+		double n = 0 ;
+		for( size_t i = 0 ; i < v->size() ; i++)
+		{
+			n += (*v)[i]* (*v)[i] ;
+		}
+		return sqrt(n) ;
+	}
+	
+	double squareFroebeniusNorm() const
+	{
+		if(isNull())
+			return 0. ;
+		double n = 0 ;
+		for( size_t i = 0 ; i < v->size() ; i++)
+		{
+			n += (*v)[i]* (*v)[i] ;
+		}
+		return n ;
 	}
 	
 	/** Construct a square submatrix from a given source matrix.
@@ -154,18 +174,6 @@ public:
 	{
 		return v == NULL ;
 	}
-
-	/** \brief FORTRAN-style accessors*/
-	double& operator()(size_t x, size_t y) ;
-	
-	/** \brief FORTRAN-style accessors*/
-	double operator()(size_t x, size_t y) const;
-	
-	/** \brief FORTRAN-style accessor: return row*/
-	Slice_iter< double > operator()(size_t i) {return row(i) ;}
-	
-	/** \brief FORTRAN-style accessor: return row*/
-	Cslice_iter< double > operator()(size_t i) const {return row(i) ;}
 	
 	/** \brief c++-style accessor: return row*/
 	Slice_iter< double > operator[](size_t i) {return row(i) ;}

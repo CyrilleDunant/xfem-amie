@@ -1017,7 +1017,7 @@ int main(int argc, char *argv[])
 				rotated-- ;
 		}
 		
-		if(reference = CIRCLE)
+		if(reference == CIRCLE)
 			rotated = 0 ;
 		
 		std::cout << rotated << " inclusions not rotated..." << std::endl ;
