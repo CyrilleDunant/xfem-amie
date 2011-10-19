@@ -153,7 +153,8 @@ double trace(const Matrix & m)
 
 double secondInvariant(const Matrix & m)
 {
-	return 0.5 * m.squareFroebeniusNorm() ;
+	double tr = trace(m) ;
+	return tr*tr-trace(m*m) ;
 }
 
 

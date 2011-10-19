@@ -34,21 +34,22 @@ double DruckerPrager::grade(ElementState &s)
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double tr = str.first[0]+str.first[1] ;
-		maxStress = tr*friction + sqrt(0.5)*sqrt((str.first[0]-tr*.5)*(str.first[0]-tr*.5)+(str.first[1]-tr*.5)*(str.first[1]-tr*.5)) ;
+		maxStress = tr*friction + sqrt(0.5)*sqrt((str.first[0])*(str.first[0])+(str.first[1])*(str.first[1])) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		double tr = str.first[0]+str.first[1]+str.first[3] ;
-		maxStress =  tr*friction + sqrt(0.5)*sqrt((str.first[0]-tr/3.)*(str.first[0]-tr/3.)+(str.first[1]-tr/3.)*(str.first[1]-tr/3.)+(str.first[2]-tr/3.)*(str.first[2]-tr/3.)) ;
+		maxStress =  tr*friction + sqrt(0.5)*sqrt((str.first[0])*(str.first[0])+(str.first[1])*(str.first[1])+(str.first[2])*(str.first[2])) ;
 	}
-	if(std::abs(maxStress) > std::abs(threshold) )
+	if(maxStress > threshold && maxStress > 0)
 	{
-		return 1. - std::abs(threshold/maxStress) ;
+		return 1. - threshold/maxStress ;
 	}
-	else 
+	else if(maxStress > 0)
 	{
-		return -1.+ std::abs(maxStress/threshold);
+		return -1.+ maxStress/threshold;
 	}
+	return -1 ;
 
 }
 

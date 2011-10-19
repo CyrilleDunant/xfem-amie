@@ -31,7 +31,7 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 double PlasticStrain::plasticFlowPotential(const Matrix &m) const
 {
 	Matrix s(m-identity(m.numCols())*trace(m)/(double)m.numCols()) ;
-	return c_psi * trace(m) + sqrt(secondInvariant(s)) ;
+	return c_psi * trace(m) + sqrt(0.5*s.squareFroebeniusNorm()) ;
 }
 
 // void PlasticStrain::step(ElementState & s)
@@ -169,7 +169,7 @@ void PlasticStrain::postProcess()
 	if(converged && es && getState()[0] > POINT_TOLERANCE_2D)
 	{
 		previousImposedStrain += imposedStrain*getState()[0] ;
-		std::cout << " score =  " << es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() << ", state = " << getState()[0] << ", dstrain = " <<imposedStrain[0]*getState()[0] << "   " <<imposedStrain[1]*getState()[0] << ", strain = "<< previousImposedStrain[0] << "  " << previousImposedStrain[1] << std::endl ;
+// 		std::cout << " score =  " << es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() << ", state = " << getState()[0] << ", dstrain = " <<imposedStrain[0]*getState()[0] << "   " <<imposedStrain[1]*getState()[0] << ", strain = "<< previousImposedStrain[0] << "  " << previousImposedStrain[1] << std::endl ;
 		state[0] = 0;
 		imposedStrain = 0 ;
 	}

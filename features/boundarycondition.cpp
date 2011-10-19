@@ -1271,6 +1271,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 			{
 				id_.push_back( surface->getBoundingPoint( i ) );
 				apply2DBC( surface, id_, condition, dataFunction*getScale(), a ) ;
+				return ;
 			}
 		}
 	}
@@ -1297,6 +1298,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 			{
 				id_.push_back( volume->getBoundingPoint( i ) );
 				apply3DBC( volume, id_, condition, dataFunction*getScale(), a ) ;
+				return ;
 			}
 		}
 	}

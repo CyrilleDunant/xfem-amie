@@ -462,6 +462,7 @@ void step()
 			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
 			writer.getField(TWFT_CRITERION) ;
 			writer.getField(TWFT_STIFFNESS) ;
+			writer.getField(TWFT_IMPOSED_STRESS_NORM) ;
 			writer.getField(TWFT_DAMAGE) ;
 			writer.write() ;
 		}
@@ -1460,7 +1461,7 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(length, effectiveRadius, 0, 0) ;
+	Sample samplef(1.200, .600, 0, 0) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  

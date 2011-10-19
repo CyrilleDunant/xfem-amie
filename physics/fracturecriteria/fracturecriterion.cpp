@@ -378,7 +378,8 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		stra = s.getStrainAtCenter()*(*fiterator) ;
-		str = (s.getStressAtCenter()+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*(*fiterator) ;
+		Vector offset = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
+		str = (s.getStressAtCenter())*(*fiterator) ;
 		fiterator++ ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
@@ -392,11 +393,13 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 			}
 
 			stra += ci->getState().getStrainAtCenter()*(*fiterator) ;
-			str += ci->getState().getStressAtCenter()*(*fiterator) ;
+			str += (ci->getState().getStressAtCenter())*(*fiterator) ;
 			fiterator++ ;
 		}
+// 		std::cout << s.getParent()->area() << "  " << *factors.begin() << "  " << factors.back()-fracturedFraction  << "  " << factors.back()-fracturedFraction-*factors.begin() << "  " << 0.03 << std::endl ;
+	
 		str /= factors.back()-fracturedFraction ;
-		str -= s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
+		str -= offset*(factors.back()-fracturedFraction-factors.front()) ;
 		stra /= factors.back() ;
 		
 		Vector lprincipal( 2 ) ;

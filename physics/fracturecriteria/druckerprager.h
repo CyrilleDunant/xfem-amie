@@ -43,6 +43,8 @@ namespace Mu {
 	 * @param s ElementState to consider
 	*/
 		virtual double grade(ElementState &s)  ;
+		
+		virtual bool fractured() {return false ; }
 
 		virtual Material toMaterial() ;
 		

@@ -4306,7 +4306,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 				lstrain[i * 6 + 4] = llstrain[4] ;
 				lstrain[i * 6 + 5] = llstrain[5] ;
 
-				llstrain = llstrain * cg - parent->getBehaviour()->getImposedStress(p_[i]);;
+				llstrain = llstrain * cg - parent->getBehaviour()->getImposedStress(p_[i]);
 
 				lstress[i * 6 + 0] = llstrain[0] ;
 				lstress[i * 6 + 1] = llstrain[1] ;
@@ -4460,7 +4460,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 				lstrain[i * 3 + 1] = llstrain[1] ;
 				lstrain[i * 3 + 2] = llstrain[2] ;
 
-				llstrain = llstrain * cg ;
+				llstrain = llstrain * cg - parent->getBehaviour()->getImposedStress(p_[i]);
 
 				lstress[i * 3 + 0] = llstrain[0] ;
 				lstress[i * 3 + 1] = llstrain[1] ;
@@ -4588,7 +4588,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 				lstrain[i * 6 + 4] = llstrain[4] ;
 				lstrain[i * 6 + 5] = llstrain[5] ;
 
-				llstrain = llstrain * cg ;
+				llstrain = llstrain * cg - parent->getBehaviour()->getImposedStress(p_[i]);
 
 				lstress[i * 6 + 0] = llstrain[0] ;
 				lstress[i * 6 + 1] = llstrain[1] ;
@@ -4639,10 +4639,7 @@ Vector ElementState::getDeltaStrain( const Point &p ) const
 			y_eta += f_eta * ( displacements[j * 2 + 1] - previousDisplacements[j * 2 + 1] ) ;
 		}
 
-
 		Vector lstrain( 3 ) ;
-
-		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		double delta_x_xi  = 0;
 		double delta_x_eta  = 0;
@@ -4699,9 +4696,6 @@ Vector ElementState::getDeltaStrain( const Point &p ) const
 
 
 		Vector lstrain( 6 ) ;
-
-		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
-
 
 		for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
 		{
