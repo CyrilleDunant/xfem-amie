@@ -192,6 +192,10 @@ public:
 	Matrix operator +(const Matrix &m) const;
 	Matrix& operator -=(const Matrix &m) ;
 	Matrix operator -(const Matrix &m) const;
+	Matrix operator -(const Vector &v) const;
+	Matrix operator +(const Vector &v) const;
+	Matrix &operator -=(const Vector &v);
+	Matrix &operator +=(const Vector &v);
 	Matrix& operator =(const MtM& m) ;
 	Matrix& operator =(const MtMtM& m) ;
 	

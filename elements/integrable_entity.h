@@ -56,6 +56,11 @@ typedef enum
 	VOID_BEHAVIOUR
 } ParametersType ;
 
+typedef enum{
+	REAL_STRESS,
+	EFFECTIVE_STRESS
+} StressCalculationMethod ; 
+
 struct Form ;
 struct NonLinearForm ;
 struct Function ;
@@ -119,13 +124,13 @@ public:
 	Vector getStrain(const Point & , bool local = false) const;
 
 /** \brief Return stress at given point*/
-	Vector getPreviousStress(const Point & , bool local = false) const;
+	Vector getPreviousStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS ) const;
 	
 /** \brief Return stress at given point*/
-	Vector getStress(const Point & , bool local = false) const;
+	Vector getStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return stress at given point, ignoring enrichment functions*/
-	Vector getNonEnrichedStress(const Point & , bool local = false) const;
+	Vector getNonEnrichedStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return strain at given point, ignoring enrichment functions*/
 	Vector getNonEnrichedStrain(const Point & , bool local = false) const;
@@ -134,16 +139,16 @@ public:
 	Matrix getStrainMatrix(const Point & , bool local = false) const;
 
 /** \brief Return stress at given point, in matrix form*/
-	Matrix getPreviousStressMatrix(const Point & p, bool local = false) const;
+	Matrix getPreviousStressMatrix(const Point & p, bool local = false, StressCalculationMethod m = REAL_STRESS) const;
 	
 /** \brief Return stress at given point, in matrix form*/
-	Matrix getStressMatrix(const Point & , bool local = false) const;
+	Matrix getStressMatrix(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return strain at given point*/
 	Vector getStrain(const std::pair<Point, double> &  ) const;
 
 /** \brief Return stress at given point*/
-	Vector getStress(const std::pair<Point, double> &  ) const;
+	Vector getStress(const std::pair<Point, double> & , StressCalculationMethod m = REAL_STRESS ) const;
 
 /** \brief Return strain at given points*/
 	Vector getStrain(const Mu::PointArray &) const;
@@ -152,16 +157,16 @@ public:
 	Vector & getPrincipalStressAtNodes() ;
 	
 	Vector &getStrainAtCenter() ;
-	Vector &getStressAtCenter() ;
+	Vector &getStressAtCenter(StressCalculationMethod m = REAL_STRESS) ;
 
 /** \brief Return stress at given points*/
-	Vector getPreviousStress(const Mu::PointArray & v) const;
+	Vector getPreviousStress(const Mu::PointArray & v, StressCalculationMethod m = REAL_STRESS) const;
 	
 /** \brief Return stress at given points*/
-	Vector getStress(const Mu::PointArray &) const;
+	Vector getStress(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return stress at given points, ignoring enrichment functions*/
-	Vector getNonEnrichedStress(const Mu::PointArray &) const;
+	Vector getNonEnrichedStress(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return strain at given points, ignoring enrichment functions*/
 	Vector getNonEnrichedStrain(const Mu::PointArray &) const;
@@ -170,13 +175,13 @@ public:
 	Vector getStrain(const std::valarray<std::pair<Point, double> > &p) const;
 
 /** \brief Return stress at given (Gauss) points*/
-	Vector getStress(const std::valarray<std::pair<Point, double> > &p) const;
+	Vector getStress(const std::valarray<std::pair<Point, double> > &p, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return stress at given (Gauss) points, ignoring enrichment functions*/
-	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p) const;
+	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return stress at given (Gauss) points, ignoring enrichment functions, given inverse jacobian matrices*/
-	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv) const;
+	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief Return strain at given (Gauss) points, ignoring enrichment functions*/
 	Vector getNonEnrichedStrain(const std::valarray<std::pair<Point, double> > & p) const;
@@ -185,22 +190,22 @@ public:
 	Vector getNonEnrichedStrain(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv) const;
 
 /** \brief return stress and strain at given points*/
-	std::pair<Vector, Vector > getStressAndStrain(const Mu::PointArray &) const;
+	std::pair<Vector, Vector > getStressAndStrain(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief return stress and strain at given points*/
 	std::pair<Vector, Vector > getGradientAndFlux(const Mu::PointArray &) const;
 
 /** \brief return stress and strain at given (gauss) points*/
-	std::pair<Vector, Vector > getStressAndStrain( const std::valarray<std::pair<Point, double> > & p) const;
+	std::pair<Vector, Vector > getStressAndStrain( const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
 	
 /** \brief get Principal Stresses at given point*/
-	Vector getPrincipalStresses(const Point & , bool local = false) const ;
+	Vector getPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
 	
 /** \brief get Principal Stresses at given point*/
-	Vector getPreviousPrincipalStresses(const Point & , bool local = false) const ;
+	Vector getPreviousPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
 
 /** \brief get Principal Stresses at given points*/
-	Vector getPrincipalStresses(const Mu::PointArray &,  bool local = false) const ;
+	Vector getPrincipalStresses(const Mu::PointArray &,  bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
 	
 	Vector getPrincipalImposedStresses() const ;
 	
@@ -220,7 +225,7 @@ public:
 	Vector getPrincipalAngle(const Mu::PointArray & v) const;
 	
 /** \brief get symbolic expression of Stress, given he inverse Jacobian*/
-	FunctionMatrix getStressFunction(const Matrix &Jinv) const;
+	FunctionMatrix getStressFunction(const Matrix &Jinv, StressCalculationMethod m = REAL_STRESS) const;
 
 /** \brief get symbolic expression of Strain, given he inverse Jacobian*/
 	FunctionMatrix getStrainFunction(const Matrix &Jinv) const;
@@ -234,10 +239,10 @@ public:
 	double getVonMisesStrain(const Mu::Point& p, bool local = false) const ;
 	
 /** \brief return maximum Von Mises Stress*/
-	double getMaximumVonMisesStress() const ;
+	double getMaximumVonMisesStress( StressCalculationMethod m = REAL_STRESS) const ;
 	
 /** \brief return maximum Von Mises Stress*/
-	double getPreviousMaximumVonMisesStress() const ;
+	double getPreviousMaximumVonMisesStress( StressCalculationMethod m = REAL_STRESS) const ;
 	
 /** \brief return displacement at point*/
 	Vector getDisplacements(const Point &, bool local = false, bool fast = false, const Vector * source = NULL) const;
@@ -314,15 +319,15 @@ public:
 	void stepBack() ;
 	
 	Vector getDeltaStrain(const Point & ) const;
-	Vector getDeltaStress(const Point & ) const;
+	Vector getDeltaStress(const Point & , StressCalculationMethod m = REAL_STRESS) const;
 	Vector getDeltaStrain(const std::pair<Point, double> &  ) const;
-	Vector getDeltaStress(const std::pair<Point, double> &  ) const;
+	Vector getDeltaStress(const std::pair<Point, double> &  , StressCalculationMethod m = REAL_STRESS) const;
 	Vector getDeltaStrain(const Mu::PointArray &) const;
-	Vector getDeltaStress(const Mu::PointArray &) const;
+	Vector getDeltaStress(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
 	Vector getDeltaStrain(const std::valarray<std::pair<Point, double> > & p) const;
-	Vector getDeltaStress(const std::valarray<std::pair<Point, double> > & p) const;
-	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const Mu::PointArray &) const;
-	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const std::valarray<std::pair<Point, double> > & p) const;
+	Vector getDeltaStress(const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
+	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
+	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
 	
 	Vector getDeltaDisplacements(const Point &) const;
 	Vector getDeltaDisplacements(const std::valarray<Point> & p) const ;

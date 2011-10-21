@@ -266,6 +266,32 @@ Matrix Matrix::operator -(const  Matrix &m) const
 	return ret ;
 }
 
+Matrix Matrix::operator -(const Vector &v) const
+{
+	Matrix ret(*this) ;
+	ret.array() -= v ;
+	return ret ;
+}
+
+Matrix Matrix::operator +(const Vector &v) const
+{
+	Matrix ret(*this) ;
+	ret.array() += v ;
+	return ret ;
+}
+
+Matrix& Matrix::operator -=(const Vector &v)
+{
+	array() -= v ;
+	return *this ;
+}
+
+Matrix& Matrix::operator +=(const Vector &v)
+{
+	array() += v ;
+	return *this ;
+}
+
 bool Matrix::operator ==(const Matrix &m)
 {
 	if(v->size() != m.array().size())

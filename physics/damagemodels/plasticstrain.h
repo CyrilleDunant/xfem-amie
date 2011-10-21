@@ -29,7 +29,8 @@ protected:
 	Vector previousImposedStrain ;
 	Vector lastStress ;
 	double c_psi ;
-	
+	double plasticVariable ; 
+	double eps_f ;
 	double plasticFlowPotential(const Matrix & m) const ;
 	
 public:
@@ -71,6 +72,7 @@ public:
 	virtual DamageModel * getCopy() const { return new PlasticStrain() ;}
 	
 	virtual void postProcess() ;
+	double getDamage() const ;
 };
 
 }

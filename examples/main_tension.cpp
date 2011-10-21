@@ -1495,11 +1495,11 @@ int main(int argc, char *argv[])
 	
 	FeatureTree F(&samplef) ;
 	featureTree = &F ;
-	Inclusion inc(mradius*.175, samplef.getCenter().x, samplef.getCenter().y) ;
-	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPrager(20e6*.999,0.1 , mradius), new PlasticStrain()));
-	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new DruckerPrager(20e6,0.1 , mradius), new PlasticStrain())) ;
-	F.addFeature(&samplef, &inc);
+	Pore inc(mradius*.175, samplef.getCenter().x, samplef.getCenter().y) ;
+// 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new NonLocalVonMises(20e6*0.9, mradius)/*new DruckerPrager(20e6*1.1,0.1 , mradius)*/, new PlasticStrain()));
+// 	inc.setBehaviourSource(&samplef);
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,/*new NonLocalVonMises(20e6, mradius)*/new DruckerPrager(-20e6, 20e6,0.1 , mradius), new PlasticStrain())) ;
+// 	F.addFeature(&samplef, &inc);
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
 	
@@ -1514,7 +1514,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;

@@ -101,10 +101,10 @@ double FractureCriterion::smoothedCrackAngle( ElementState &s) const
 	return angle ;
 }
 
-double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s)
+double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m )
 {
 	double angle = 0 ;
-	smoothedPrincipalStress(s) ;
+	smoothedPrincipalStress(s, m) ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double area = s.getParent()->area() ;
@@ -361,7 +361,7 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
 	return str ;
 }
 
-std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s)
+std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, StressCalculationMethod m )
 {
 	Vector str(0., 3) ;
 	if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -378,8 +378,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		stra = s.getStrainAtCenter()*(*fiterator) ;
-		Vector offset = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
-		str = (s.getStressAtCenter())*(*fiterator) ;
+		str = (s.getStressAtCenter(m))*(*fiterator) ;
 		fiterator++ ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
@@ -393,13 +392,12 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 			}
 
 			stra += ci->getState().getStrainAtCenter()*(*fiterator) ;
-			str += (ci->getState().getStressAtCenter())*(*fiterator) ;
+			str += (ci->getState().getStressAtCenter(m))*(*fiterator) ;
 			fiterator++ ;
 		}
 // 		std::cout << s.getParent()->area() << "  " << *factors.begin() << "  " << factors.back()-fracturedFraction  << "  " << factors.back()-fracturedFraction-*factors.begin() << "  " << 0.03 << std::endl ;
 	
 		str /= factors.back()-fracturedFraction ;
-		str -= offset*(factors.back()-fracturedFraction-factors.front()) ;
 		stra /= factors.back() ;
 		
 		Vector lprincipal( 2 ) ;
@@ -432,7 +430,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		str = (s.getStressAtCenter()+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*(*fiterator) ;
+		str = (s.getStressAtCenter(m))*(*fiterator) ;
 		stra = s.getStrainAtCenter()*(*fiterator) ;
 		fiterator++ ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
@@ -446,12 +444,11 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 				fiterator++ ;
 				continue ;
 			}
-			str += ci->getState().getStressAtCenter()*(*fiterator) ;
+			str += ci->getState().getStressAtCenter(m)*(*fiterator) ;
 			stra += ci->getState().getStrainAtCenter()*(*fiterator) ;
 			fiterator++ ;
 		}
 		str /= factors.back() ;
-		str -=  s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
 		stra /= factors.back() ;
 		
 		
@@ -506,7 +503,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		return std::make_pair(lprincipal,lprincipals)  ;
 	}
 	
-	return std::make_pair(smoothedPrincipalStress(s), smoothedPrincipalStrain(s)) ;
+	return std::make_pair(smoothedPrincipalStress(s, m), smoothedPrincipalStrain(s)) ;
 }
 
 double FractureCriterion::smoothedScore(ElementState& s)
@@ -1095,7 +1092,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 	
 }
 
-Vector FractureCriterion::smoothedPrincipalStress( ElementState &s)
+Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalculationMethod m)
 {
 	Vector str(0., 3) ;
 	if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1108,7 +1105,7 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s)
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 
-		str += (s.getStressAtCenter()+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*(*fiterator) ;
+		str += (s.getStressAtCenter(m))*(*fiterator) ;
 		fiterator++ ;
 
 		for( size_t i = 0 ; i < cache.size() ; i++ )
@@ -1121,12 +1118,11 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s)
 				fiterator++ ;
 				continue ;
 			}
-			str += ci->getState().getStressAtCenter()*(*fiterator) ;
+			str += ci->getState().getStressAtCenter(m)*(*fiterator) ;
 			fiterator++ ;
 		}
 		
 		str /= factors.back() ;
-		str -=  s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
 		
 		Vector lprincipal( 2 ) ;
 
@@ -1145,7 +1141,7 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s)
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		str = (s.getStressAtCenter()+s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()))*(*fiterator) ;
+		str = (s.getStressAtCenter(m))*(*fiterator) ;
 		fiterator++ ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
@@ -1158,11 +1154,10 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s)
 				fiterator++ ;
 				continue ;
 			}
-			str += ci->getState().getStressAtCenter()*(*fiterator) ;
+			str += ci->getState().getStressAtCenter(m)*(*fiterator) ;
 			fiterator++ ;
 		}
 		str /= factors.back() ;
-		str -=  s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
 		
 		
 		Vector lprincipal( 3 ) ;
@@ -1195,6 +1190,69 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s)
 	
 	return str ;
 }
+
+Vector FractureCriterion::smoothedStress( ElementState &s, StressCalculationMethod m)
+{
+	Vector str(0., 3) ;
+	if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		str.resize(6, 0.);
+	
+	if(factors.empty())
+		initialiseFactors(s) ;
+	
+	auto fiterator = factors.begin() ;
+	double fracturedFraction = 0 ;
+	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+
+		str += s.getStressAtCenter(m)*(*fiterator) ;
+		fiterator++ ;
+
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			if(ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
+			{
+				fracturedFraction += *fiterator ;
+				fiterator++ ;
+				continue ;
+			}
+			str += ci->getState().getStressAtCenter(m)*(*fiterator) ;
+			fiterator++ ;
+		}
+		
+		str /= factors.back()-fracturedFraction ;
+		
+		Vector lprincipal( 2 ) ;
+
+
+		return str ;
+	}
+	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+	{
+		str = s.getStressAtCenter(m)*(*fiterator) ;
+		fiterator++ ;
+		for( size_t i = 0 ; i < cache.size() ; i++ )
+		{
+			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
+			
+			if( ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D )
+			{
+				fracturedFraction += *fiterator ;
+				fiterator++ ;
+				continue ;
+			}
+			str += ci->getState().getStressAtCenter(m)*(*fiterator) ;
+			fiterator++ ;
+		}
+		str /= factors.back()-fracturedFraction ;
+		
+		return str ;
+	}
+	
+	return str ;
+}
+
 
 double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 {

@@ -82,11 +82,12 @@ typedef enum{
 		double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
 	public:
-		Vector smoothedPrincipalStress( ElementState &s) ;
+		Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedScore(ElementState& s) ;
 		Vector smoothedPrincipalStrain( ElementState &s) ;
-		std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s) ;
-		double smoothedPrincipalStressAngle( ElementState &s) ;
+		Vector smoothedStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
+		std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
+		double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedCrackAngle( ElementState &s) const ;
 	public:
 		std::vector<unsigned int> cache ;
@@ -163,6 +164,8 @@ typedef enum{
 		void setEnergyIndexed(bool t) {energyIndexed = t ;};
 		
 		virtual void scale(double d) = 0;
+		const std::vector<double> & getFactors() const {return factors ;}
+		
 	
 	};
 

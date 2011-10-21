@@ -23,13 +23,14 @@ namespace Mu {
 	class DruckerPrager : public FractureCriterion
 	{
 	public:
-		double threshold ;
+		double upthreshold ;
+		double downthreshold ;
 		double friction ;
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		DruckerPrager(double thres, double friction, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+		DruckerPrager(double downthres,double upthres, double friction, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 	
 		virtual ~DruckerPrager();
 
@@ -48,7 +49,7 @@ namespace Mu {
 
 		virtual Material toMaterial() ;
 		
-		virtual void scale(double d ) { threshold *= d ;}
+		virtual void scale(double d ) { upthreshold *= d ; downthreshold *= d ; }
 	};
 
 } ;
