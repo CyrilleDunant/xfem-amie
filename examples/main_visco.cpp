@@ -1225,21 +1225,21 @@ int STFE()
 
 	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
 	FeatureTree mainFT(&mainSample) ;
-	mainFT.setSamplingNumber(56) ;
-	mainFT.setOrder(LINEAR) ;
+	mainFT.setSamplingNumber(100) ;
+	mainFT.setOrder(LINEAR_TIME_LINEAR) ;
 	mainFT.setDeltaTime(tau) ;
 
-//	mainSample.setBehaviour(new KelvinVoight(c,e)) ;
- 	mainSample.setBehaviour(new Stiffness(c)) ;
+	mainSample.setBehaviour(new KelvinVoight(c,e)) ;
+// 	mainSample.setBehaviour(new Stiffness(c)) ;
 	
 //	mainFT.generateElements() ;
 	std::vector<DelaunayTriangle *> tri = mainFT.getElements2D() ;
 	std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{	  
-/*		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(6)), tri[i])) ;
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(7)), tri[i])) ;
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(3)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(4)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(5)), tri[i])) ;
 /*		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(3),&tri[i]->getBoundingPoint(6)), tri[i])) ;
 		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(4),&tri[i]->getBoundingPoint(7)), tri[i])) ;
 		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(5),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
@@ -1252,11 +1252,11 @@ int STFE()
 	  pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second, i->first.first->id, 0),i->first.second->id*2+1)) ;
 	}
 	
-/*	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
-	  mainFT.addBoundaryCondition(i->first) ;*/
+	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
+	  mainFT.addBoundaryCondition(i->first) ;
 	
 
-	BoundingBoxDefinedBoundaryCondition * stressAfter = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6) ;
+	BoundingBoxDefinedBoundaryCondition * stressAfter = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -1e6) ;
 	BoundingBoxDefinedBoundaryCondition * stressNow = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_NOW, -1e6) ;
 	
 	mainFT.addBoundaryCondition(stressAfter) ;
@@ -1330,32 +1330,6 @@ int STFE()
 		u_max_after = 0 ;
 
 //		tri = mainFT.getElements2D() ;
-		for(size_t i = 0 ; i < tri.size() ; i++)
-		{
-			for(size_t j = 0 ; j < 3 ; j++)
-			{
-				size_t id_before = tri[i]->getBoundingPoint(j).id ;
-				size_t id_now = tri[i]->getBoundingPoint(j+3).id ;
-//				size_t id_after = tri[i]->getBoundingPoint(j+6).id ;
-
-//				if(u[id_before*2+0] > u_max_before)
-//					u_max_before = u[id_before*2+0] ;
-// 				if(u[id_before*2+1] > u_max_before)
-// 					u_max_before = u[id_before*2+1] ;
-
-//				if(u[id_now*2+0] > u_max_now)
-//					u_max_now = u[id_now*2+0] ;
-				if(u[id_now*2+1] < u_max_now)
-					u_max_now = u[id_now*2+1] ;
-
-//				if(u[id_after*2+0] > u_max_after)
-//					u_max_after = u[id_after*2+0] ;
-/*				if(u[id_after*2+1] > u_max_after)
-					u_max_after = u[id_after*2+1] ;*/
-			
-			}
-		}
-	
 		u_before.push_back(u.min()) ;
 		u_now.push_back(u_max_now) ;
 // 		u_after.push_back(u_max_after) ;
@@ -1398,18 +1372,17 @@ int STFE_burger()
 	Sample mainSample(NULL, 0.02, 0.02,0,0) ;
 	FeatureTree mainFT(&mainSample) ;
 	mainFT.setSamplingNumber(56) ;
-	mainFT.setOrder(LINEAR) ;
+	mainFT.setOrder(LINEAR_TIME_LINEAR) ;
 	mainFT.setDeltaTime(tau) ;
 	
-	mainSample.setBehaviour(new Stiffness(c)) ;
 	
 	std::vector<DelaunayTriangle *> tri = mainFT.getElements2D() ;
 	std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{	  
-		/*		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(6)), tri[i])) ;
-		 *		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(7)), tri[i])) ;
-		 *		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
+/*				pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(6)), tri[i])) ;
+		 		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(7)), tri[i])) ;
+		 		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
 		/*		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(3),&tri[i]->getBoundingPoint(6)), tri[i])) ;
 		 *		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(4),&tri[i]->getBoundingPoint(7)), tri[i])) ;
 		 *		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(5),&tri[i]->getBoundingPoint(8)), tri[i])) ;*/
@@ -1422,11 +1395,11 @@ int STFE_burger()
 		pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second, i->first.first->id, 0),i->first.second->id*2+1)) ;
 	}
 	
-	/*	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
-	 *	  mainFT.addBoundaryCondition(i->first) ;*/
+		for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
+	 	  mainFT.addBoundaryCondition(i->first) ;
 	
 	
-	BoundingBoxDefinedBoundaryCondition * stressAfter = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6) ;
+	BoundingBoxDefinedBoundaryCondition * stressAfter = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -0.1) ;
 	BoundingBoxDefinedBoundaryCondition * stressNow = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_NOW, -1e6) ;
 	
 	mainFT.addBoundaryCondition(stressAfter) ;
@@ -1602,13 +1575,13 @@ int main(int argc, char *argv[])
   
   
   
-  time_step = 1.; //atof(argv[1]) ;
+  time_step = 3600*24; //atof(argv[1]) ;
 /*	if(argc > 2)
 		nsteps = atof(argv[2]) ;
 	else*/
-		nsteps = 0 ;
+		nsteps = 400 ;
 //	true_alpha = atof(argv[1]) ;
-	return STFE_burger() ;
+	return STFE() ;
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;

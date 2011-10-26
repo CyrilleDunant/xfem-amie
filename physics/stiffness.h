@@ -57,7 +57,7 @@ namespace Mu
 		
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
-
+		
 	} ;
 
 	

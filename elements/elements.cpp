@@ -132,6 +132,8 @@ void ElementarySurface::setOrder(Order o)
 
 Form * ElementarySurface::getBehaviour() const
 {
+/*	if(this->behaviour->param[0][0] == 0)
+		this->behaviour->param[2048][2048] = 0 ;*/
 	return this->behaviour ;
 }
 

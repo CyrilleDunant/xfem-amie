@@ -40,7 +40,7 @@ void KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gauss
 
 	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp);
 
-	ret = (ret+temp0) + temp;
+	ret = (ret+temp0) + temp ;
 	
 }
 

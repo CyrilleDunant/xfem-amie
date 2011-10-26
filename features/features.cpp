@@ -485,7 +485,7 @@ void FeatureTree::setOrder( Order ord )
 
 void FeatureTree::renumber()
 {
-	return ;
+//	return ;
 	if( is2D() )
 	{
 

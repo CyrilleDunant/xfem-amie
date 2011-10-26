@@ -3,13 +3,16 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 
+#include <typeinfo>
 #include "expansiveZone.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../physics/dual_behaviour.h"
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/damagemodels/fractiondamage.h"
 #include "../physics/stiffness_and_fracture.h"
+#include "../physics/stiffness.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/materials/aggregate_behaviour.h"
 
 using namespace Mu ;
 
@@ -67,7 +70,6 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
 			if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
 			{
-// 				std::cout << "get original" << std::endl ;
 				bi = new BimaterialInterface( getPrimitive(),
 				                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
 				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getCopy()
