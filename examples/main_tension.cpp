@@ -207,7 +207,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+1e-5) ;
+			loadr->setData(loadr->getData()+0.2e-3) ;
 		}
 		
 		triangles = featureTree->getActiveElements2D() ;
@@ -1452,7 +1452,7 @@ int main(int argc, char *argv[])
 	double nu_steel = 0.2 ; 
 	
 	double nu = 0.2 ;
-	double E_paste = 37e9 ;
+	double E_paste = 30e9 ;
 	
 	Matrix m0_paste= Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
 	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL) ;
@@ -1498,8 +1498,8 @@ int main(int argc, char *argv[])
 	Pore inc(mradius*.175, samplef.getCenter().x, samplef.getCenter().y) ;
 // 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new NonLocalVonMises(20e6*0.9, mradius)/*new DruckerPrager(20e6*1.1,0.1 , mradius)*/, new PlasticStrain()));
 // 	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,/*new NonLocalVonMises(20e6, mradius)*/new DruckerPrager(-20e6, 20e6,0.1 , mradius), new PlasticStrain())) ;
-// 	F.addFeature(&samplef, &inc);
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,/*new NonLocalVonMises(20e6, mradius)*/new DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
+	F.addFeature(&samplef, &inc);
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
 	

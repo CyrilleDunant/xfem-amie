@@ -53,6 +53,16 @@ Vector BimaterialInterface::getImposedStress(const Point & p) const
 	return outBehaviour->getImposedStress(p) ;
 }
 
+Vector BimaterialInterface::getImposedStrain(const Point & p) const
+{
+	if(inGeometry->in(p))
+	{
+// 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
+		return inBehaviour->getImposedStrain(p) ;
+	}
+	return outBehaviour->getImposedStrain(p) ;
+}
+
 void BimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 	

@@ -90,6 +90,11 @@ Vector StiffnessWithImposedDeformationAndFracture::getImposedStress(const Point 
 	return (param * imposed) ;
 }
 
+Vector StiffnessWithImposedDeformationAndFracture::getImposedStrain(const Point & p) const
+{
+	return imposed ;
+}
+
 std::vector<BoundaryCondition * > StiffnessWithImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
 	Vector f = VirtualMachine().ieval(Gradient(p_i) * (param * imposed), gp, Jinv,v) ;

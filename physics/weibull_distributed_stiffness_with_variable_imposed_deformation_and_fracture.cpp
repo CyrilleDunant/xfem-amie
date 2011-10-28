@@ -55,6 +55,11 @@ Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getImposedStre
 	return (param * imposed) ;
 }
 
+Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getImposedStrain(const Point & p) const
+{
+	return imposed ;
+}
+
 void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState)
 {
 	change = false ;

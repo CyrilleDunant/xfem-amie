@@ -21,7 +21,7 @@ namespace Mu {
 */
 class PlasticStrain : public DamageModel
 {
-protected:
+public:
 	ElementState * es ;
 	std::vector<Variable> v ;
 	Matrix * param ;
@@ -31,6 +31,7 @@ protected:
 	double c_psi ;
 	double plasticVariable ; 
 	double eps_f ;
+	double kappa_0 ;
 	double plasticFlowPotential(const Matrix & m) const ;
 	
 public:
@@ -68,6 +69,7 @@ public:
 	
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	virtual Vector getImposedStress(const Point & p) const ;
+	virtual Vector getImposedStrain(const Point & p) const ;
 	
 	virtual DamageModel * getCopy() const { return new PlasticStrain() ;}
 	

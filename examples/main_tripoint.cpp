@@ -139,7 +139,7 @@ double supportLever = 1.7 ;//2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = sqrt( 0.000509 ) ;
+double rebarDiametre = sqrt( 0.000506 ) ;
 double rebarEndCover = 0.047 ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -323,7 +323,7 @@ void step()
 		double avg_s_xy = 0;
 		double e_xx_0 = 0 ;
 		double e_xx_1 = 1 ;
-		double ex_count_0 = 1 ;
+		double ex_count_0 = 0 ;
 		double ex_count_1 = 1 ;
 		double avg_e_xx_nogel = 0;
 		double avg_e_yy_nogel = 0;
@@ -380,10 +380,10 @@ void step()
 							forceCheck += forces[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
 						}
 
-						if ( triangles[k]->getBoundingPoint( p ).y >= sampleHeight*.5 && x[triangles[k]->getBoundingPoint( p ).id*2 + 1] < e_xx_0 )
+						if ( triangles[k]->getBoundingPoint( p ).y >= sampleHeight*.5 && triangles[k]->getBoundingPoint( p ).x < 0.01 )
 						{
-							e_xx_0 = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
-							/*							ex_count_0++ ;*/
+							e_xx_0 += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+							ex_count_0++ ;
 						}
 
 						if ( triangles[k]->getBoundingPoint( p ).y >= sampleHeight*.5 )
@@ -393,7 +393,7 @@ void step()
 						}
 					}
 
-					if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 + 0.085 ), triangles[k]->getBoundingPoint( p ) ) < .1 )
+					if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 + 0.085*.5 ), triangles[k]->getBoundingPoint( p ) ) < .1 )
 					{
 						deltacount++ ;
 						delta += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
@@ -1664,7 +1664,7 @@ int main( int argc, char *argv[] )
 
 	double compressionCrit = -37.0e6 ;
 	double tensionCrit =  330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
-	double phi =  3.*rebarDiametre / .4 ;
+	double phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
 	double mradius = .01 ; // .015
@@ -1794,7 +1794,7 @@ int main( int argc, char *argv[] )
 //	F.addBoundaryCondition(shrinkagex) ;
 //	F.addBoundaryCondition(shrinkagey) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) );
-	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5 ) ) ) ;
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5 - plateHeight) ) ) ;
 
 	int stirruplayer = 1 ;
 	int rebarlayer = 0 ;

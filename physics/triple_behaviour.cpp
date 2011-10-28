@@ -50,6 +50,13 @@ Vector TrimaterialInterface::getImposedStress(const Point & p) const
 	return outBehaviour->getImposedStress(p) ;
 }
 
+Vector TrimaterialInterface::getImposedStrain(const Point & p) const
+{
+	if(inGeometry->in(p))
+		return inBehaviour->getImposedStrain(p) ;
+	return outBehaviour->getImposedStrain(p) ;
+}
+
 bool TrimaterialInterface::changed() const { return false ;}
 
 void TrimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const

@@ -76,6 +76,7 @@ namespace Mu
 		virtual Form * getCopy() const ;
 
 		virtual Vector getImposedStress(const Point & p) const ;
+		virtual Vector getImposedStrain(const Point & p) const ;
 		
 		virtual bool hasInducedForces() const ;
 		

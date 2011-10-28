@@ -1844,11 +1844,11 @@ int main( int argc, char *argv[] )
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() - itzSize
 		          << ", smallest r =" << feats.back()->getRadius() - itzSize << std::endl ;
 
-// 	sample.setBehaviour( new PasteBehaviour() ) ;
+	sample.setBehaviour( new PasteBehaviour() ) ;
 
 // 		sample.setBehaviour(new Stiffness(m0_paste)) ;
 	Vector setExpansion(0., 3) ; setExpansion[0] = -0.0015 ; setExpansion[1] = -0.0015 ; setExpansion[2] = 0 ;
-	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, setExpansion)) ;
+// 	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, setExpansion)) ;
 	if( restraintDepth > 0 )
 	{
 		Sample *voidtop = new Sample( NULL, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
@@ -1905,9 +1905,9 @@ int main( int argc, char *argv[] )
 		if( !( !baseGeometry.in( a ) && !baseGeometry.in( b ) && !baseGeometry.in( c ) && !baseGeometry.in( d ) ) )
 		{
 // 			inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-// 			AggregateBehaviour *stiff = new AggregateBehaviour() ;
+			AggregateBehaviour *stiff = new AggregateBehaviour() ;
 // 			StiffnessWithImposedDeformation * stiff = new StiffnessWithImposedDeformation(m0_agg, setExpansion) ;
-			Stiffness * stiff = new Stiffness(m0_agg) ;
+// 			Stiffness * stiff = new Stiffness(m0_agg) ;
 			// 		stiff->variability = .5 ;
 			inclusions[i]->setBehaviour( stiff ) ;
 			F.addFeature( &sample, inclusions[i] ) ;
@@ -1942,8 +1942,8 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -10e6)) ;
-		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -5e6)) ;
+		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , BOTTOM_LEFT ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
 	}
 

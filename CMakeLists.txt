@@ -93,7 +93,6 @@ physics/stiffness_with_diffusion_deformation_and_fracture.cpp
 physics/stiffness_with_variable_imposed_deformation.cpp 
 physics/physics_base.cpp
 physics/twod_cohesive_force.cpp
-physics/viscoelasticity_with_internal_variable.cpp
 physics/triple_behaviour.cpp 
 physics/void_form.cpp 
 physics/wave.cpp 

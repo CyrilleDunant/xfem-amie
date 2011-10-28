@@ -182,6 +182,10 @@ public:
 	{
 		return Vector(0., 0) ;
 	}
+	virtual Vector getImposedStrain(const Point & p) const
+	{
+		return Vector(0., 0) ;
+	}
 
 } ;
 

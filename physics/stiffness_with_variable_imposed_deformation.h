@@ -58,6 +58,7 @@ namespace Mu
 		
 		/** \brief Return the current imposed strain vector*/
 		virtual Vector getImposedStress(const Point & p) const ;
+		virtual Vector getImposedStrain(const Point & p) const ;
 
 		/** \brief Increment the loading. The loading is increased by the timestep*a random value between 0 and 1 .*/
 		virtual void step(double timestep, ElementState & currentState) ;

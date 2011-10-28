@@ -85,6 +85,11 @@ Vector StiffnessWithVariableImposedDeformationAndFracture::getImposedStress(cons
 	return (param * imposed) ;
 }
 
+Vector StiffnessWithVariableImposedDeformationAndFracture::getImposedStrain(const Point & p) const
+{
+	return imposed ;
+}
+
 Form * StiffnessWithVariableImposedDeformationAndFracture::getCopy() const 
 {
 	StiffnessWithVariableImposedDeformationAndFracture * copy = new StiffnessWithVariableImposedDeformationAndFracture(param, imposed, criterion->getCopy()) ;

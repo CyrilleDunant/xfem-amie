@@ -62,6 +62,7 @@ namespace Mu
 		
 		/** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
 		virtual Vector getImposedStress(const Point & p) const ;
+		virtual Vector getImposedStrain(const Point & p) const ;
 
 		/** \brief Increment the according to the function kinetics. The loading is increased by the timestep*a random value between 0 and 1 .*/
 		virtual void step(double timestep, ElementState & currentState) ;

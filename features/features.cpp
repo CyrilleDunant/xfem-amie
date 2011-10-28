@@ -3259,8 +3259,8 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g )
 
 		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
 		int donecomputed = 0 ;
+		
 		#pragma omp parallel for shared(donecomputed)
-
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
 			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )

@@ -27,6 +27,7 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 	plasticVariable = 0 ;
 	c_psi = 0.05 ;
 	eps_f = 0.0057 ;
+	kappa_0 = 3.350e-3 ; //5 up ; 4 down
 }
 
 double PlasticStrain::plasticFlowPotential(const Matrix &m) const
@@ -162,20 +163,46 @@ Vector PlasticStrain::getImposedStress(const Point & p) const
 		return Vector(0., 3) ;
 	if(v.size() == 3 && !param)
 		return Vector(0., 6) ;
+	if(fractured())
+	{
+		if(v.size() == 2)
+			return Vector(0., 3) ;
+		return Vector(0., 6) ;
+	}
 		
-	return  (Vector)(*param*(imposedStrain*getState()[0]+previousImposedStrain)) ;
+	return  (Vector)(*param*(1.-getDamage())*(imposedStrain*getState()[0]+previousImposedStrain)) ;
+}
+
+Vector PlasticStrain::getImposedStrain(const Point & p) const
+{
+	if(v.size() == 2 && !param)
+		return Vector(0., 3) ;
+	if(v.size() == 3 && !param)
+		return Vector(0., 6) ;
+		
+	if(fractured())
+	{
+		if(v.size() == 2)
+			return Vector(0., 3) ;
+		return Vector(0., 6) ;
+	}
+	return  imposedStrain*getState()[0]+previousImposedStrain ;
 }
 
 double PlasticStrain::getDamage() const
 {
-	return std::max(std::min(1.-exp(-plasticVariable/eps_f), 1.), 0.) ;
+	Vector istrain = imposedStrain*getState()[0] ;
+	double currentPlaticVariable = plasticVariable+sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+	if(currentPlaticVariable > kappa_0)
+		return 1.-exp(-(currentPlaticVariable-kappa_0)/eps_f) ;
+	return 0 ;
 }
 
 bool PlasticStrain::fractured() const 
 {
-// 	if(fraction < 0)
+	if(fraction < 0)
 		return false ;
-// 	return getDamage() >= thresholdDamageDensity ;
+	return getDamage() >= thresholdDamageDensity ;
 }
 
 void PlasticStrain::postProcess()
@@ -183,8 +210,11 @@ void PlasticStrain::postProcess()
 	if(converged && es && getState()[0] > POINT_TOLERANCE_2D)
 	{
 		previousImposedStrain += imposedStrain*getState()[0] ;
-		std::cout << " score =  " << es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() << ", state = " << getState()[0] << ", dstrain = " <<imposedStrain[0]*getState()[0] << "   " <<imposedStrain[1]*getState()[0] << ", strain = "<< previousImposedStrain[0] << "  " << previousImposedStrain[1] << std::endl ;
-		plasticVariable += getState()[0]*sqrt(1./3.+2.*c_psi*c_psi) ;
+// 		std::cout << " score =  " << es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() 
+// 		<< "\t s = " << getDamage() 
+// 		<< "\t ds = " <<sqrt( imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2])*getState()[0] 
+// 		<< "\t strain = "<< sqrt(previousImposedStrain[0]*previousImposedStrain[0] + previousImposedStrain[1]*previousImposedStrain[1]+ previousImposedStrain[2]*previousImposedStrain[2]) << std::endl ;
+		plasticVariable += sqrt(2./3.)*sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2])*getState()[0] ;
 		state[0] = 0;
 		imposedStrain = 0 ;
 	}

@@ -63,6 +63,7 @@ public:
 	 * @return stress Vector 
 	 */
 	virtual Vector getImposedStress(const Point & p) const ;
+	virtual Vector getImposedStrain(const Point & p) const ;
 	
 /** \brief Apply the behaviour
 	* This overloaded apply() is more efficient and is designed to minimise allocating and dealocating memory.

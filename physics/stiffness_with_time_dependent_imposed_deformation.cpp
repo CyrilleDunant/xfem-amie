@@ -51,6 +51,11 @@ Vector StiffnessWithTimeDependentImposedDeformation::getImposedStress(const Poin
 	return (param * imposed) ;
 }
 
+Vector StiffnessWithTimeDependentImposedDeformation::getImposedStrain(const Point & p) const
+{
+	return imposed ;
+}
+
 void StiffnessWithTimeDependentImposedDeformation::step(double timestep, ElementState & currentState)
 {
 	double fprevious = VirtualMachine().eval(kinetics, currentState.getTime()) ;

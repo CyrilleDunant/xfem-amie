@@ -423,7 +423,20 @@ void TriangleGLDrawer::computeDisplayList()
 				else
 					v = ( v - ( double )fracdown / 10000. ) / ( ( ( double )fracup - ( double )fracdown ) / 10000. ) ;
 
-				HSVtoRGB( &r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 1. - v * 0.95 ) ;
+// 				HSVtoRGB( &r, &g, &b, 180., 0./*-0.5*exp(v+1)/exp(2)*/, 1. - v * 0.95 ) ;
+					HSVtoRGB( &r, &g, &b, 180.*(1. - v * 0.95),1 , 1 ) ;
+// 					if(( *valuesAtPoint )[( 2 + N ) * numberOfPointsPerTriangle + j][i] > 0)
+// 					{
+// 						r = 255*v ; 
+// 						g = 255*(1.-v) ;
+// 						b = 0 ;
+// 					}
+// 					else
+// 					{
+// 						r = 0 ; 
+// 						g = 255*v ;
+// 						b = 255*(1.-v) ;
+// 					}
 				glColor4ub( r, g, b, 255 ) ;
 
 				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;

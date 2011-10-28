@@ -162,6 +162,11 @@ Vector HomogeneisedBehaviour::getImposedStress( const Point &p ) const
 	return equivalent->getImposedStress( p ) ;
 }
 
+Vector HomogeneisedBehaviour::getImposedStrain( const Point &p ) const
+{
+	return equivalent->getImposedStrain( p ) ;
+}
+
 Matrix HomogeneisedBehaviour::getTensor( const Point &p ) const
 {
 	return equivalent->getTensor( p ) ;

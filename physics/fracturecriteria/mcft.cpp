@@ -238,8 +238,7 @@ double NonLocalMCFT::grade( ElementState &s )
 
 	if(cstrain < critStrain*.45 )
 	{
-
-	double C_d = 0. ;
+		double C_d = 0. ;
 		double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;
 		
 		if(-compressiveTensileRatio > 0.280001)

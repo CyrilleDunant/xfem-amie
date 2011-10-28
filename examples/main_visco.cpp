@@ -24,7 +24,6 @@
 #include "../features/expansiveZone.h"
 #include "../features/crack.h"
 #include "../features/features.h"
-#include "../physics/viscoelasticity_with_internal_variable.h"
 #include "../features/enrichmentInclusion.h"
 #include "../mesher/delaunay_3d.h"
 #include "../solvers/assembly.h"

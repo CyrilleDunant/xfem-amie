@@ -154,7 +154,7 @@ public:
 	Vector getStrain(const Mu::PointArray &) const;
 
 	Vector & getPrincipalStrainAtNodes() ;
-	Vector & getPrincipalStressAtNodes() ;
+	Vector & getPrincipalStressAtNodes( StressCalculationMethod m = REAL_STRESS) ;
 	
 	Vector &getStrainAtCenter() ;
 	Vector &getStressAtCenter(StressCalculationMethod m = REAL_STRESS) ;
@@ -200,6 +200,9 @@ public:
 	
 /** \brief get Principal Stresses at given point*/
 	Vector getPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
+	
+/** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
+	std::vector<Point> getPrincipalFrame( const Point &p, bool local, StressCalculationMethod m ) const ;
 	
 /** \brief get Principal Stresses at given point*/
 	Vector getPreviousPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
@@ -317,21 +320,6 @@ public:
 	Vector & getPreviousPreviousEnrichedDisplacements() ;
 	
 	void stepBack() ;
-	
-	Vector getDeltaStrain(const Point & ) const;
-	Vector getDeltaStress(const Point & , StressCalculationMethod m = REAL_STRESS) const;
-	Vector getDeltaStrain(const std::pair<Point, double> &  ) const;
-	Vector getDeltaStress(const std::pair<Point, double> &  , StressCalculationMethod m = REAL_STRESS) const;
-	Vector getDeltaStrain(const Mu::PointArray &) const;
-	Vector getDeltaStress(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
-	Vector getDeltaStrain(const std::valarray<std::pair<Point, double> > & p) const;
-	Vector getDeltaStress(const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
-	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
-	std::pair<Vector, Vector > getDeltaStressAndDeltaStrain(const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
-	
-	Vector getDeltaDisplacements(const Point &) const;
-	Vector getDeltaDisplacements(const std::valarray<Point> & p) const ;
-	Vector getDeltaDisplacements() const;
 	
 	Vector getSpeed(const Point &) const ;
 	Vector getSpeed(const std::valarray<Point> & p) const ;
@@ -524,6 +512,7 @@ public:
 	}
 
 	virtual Vector getImposedStress(const Point & p) const ;
+	virtual Vector getImposedStrain(const Point & p) const ;
 	
 	virtual ~Form() { } ;
 
