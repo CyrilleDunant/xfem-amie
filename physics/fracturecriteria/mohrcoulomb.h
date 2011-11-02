@@ -58,11 +58,12 @@ protected:
 public:
 	double upVal ;
 	double downVal ;
+	double stiffness ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	NonLocalMohrCoulomb(double up, double down, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+	NonLocalMohrCoulomb(double up, double down, double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 
 	virtual ~NonLocalMohrCoulomb();
 

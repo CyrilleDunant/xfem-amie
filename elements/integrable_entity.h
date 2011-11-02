@@ -202,7 +202,7 @@ public:
 	Vector getPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
 	
 /** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
-	std::vector<Point> getPrincipalFrame( const Point &p, bool local, StressCalculationMethod m ) const ;
+	std::vector<Point> getPrincipalFrame( const Point &p, bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
 	
 /** \brief get Principal Stresses at given point*/
 	Vector getPreviousPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;

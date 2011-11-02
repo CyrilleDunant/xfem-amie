@@ -209,8 +209,8 @@ void fastForward( int steps, int nstepstot )
 
 void step()
 {
-	int nsteps = 10;
-	int nstepstot = 30;
+	int nsteps = 60;
+	int nstepstot = 60;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
 // 	fastForward(4, 10) ;
 
@@ -686,6 +686,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
 	std::vector<ExpansiveZone *> zonesToPlace ;
 
+	srand(1);
 	for( size_t i = 0 ; i < n ; i++ )
 	{
 		Point pos( ( ( double )rand() / RAND_MAX - .5 ) * ( sample.width() - radius * radiusFraction ), ( ( double )rand() / RAND_MAX - .5 ) * ( sample.height() - radius * radiusFraction ) ) ;
@@ -1805,8 +1806,8 @@ int main( int argc, char *argv[] )
 	featureTree = &F ;
 
 
-	double itzSize = 0.000002;
-	int inclusionNumber = 10000 ;
+	double itzSize = 0.00002;
+	int inclusionNumber = 1 ;
 // 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 //
@@ -1834,7 +1835,7 @@ int main( int argc, char *argv[] )
 
 	Rectangle placeGeometry( 0.07, 0.07, 0, 0 ) ;
 	int nAgg = 1 ;
-	feats = placement( &placeGeometry, feats, &nAgg, 0, 6400 );
+	feats = placement( &placeGeometry, feats, &nAgg, 1, 6400 );
 	double volume = 0 ;
 
 	for( size_t i = 0 ; i < feats.size() ; i++ )
@@ -1904,7 +1905,7 @@ int main( int argc, char *argv[] )
 
 		if( !( !baseGeometry.in( a ) && !baseGeometry.in( b ) && !baseGeometry.in( c ) && !baseGeometry.in( d ) ) )
 		{
-// 			inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
+			inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
 			AggregateBehaviour *stiff = new AggregateBehaviour() ;
 // 			StiffnessWithImposedDeformation * stiff = new StiffnessWithImposedDeformation(m0_agg, setExpansion) ;
 // 			Stiffness * stiff = new Stiffness(m0_agg) ;
@@ -1928,8 +1929,8 @@ int main( int argc, char *argv[] )
 
 	Circle cercle( .5, 0, 0 ) ;
 
-	zones = generateExpansiveZonesHomogeneously( 2000, placedinclusions, F ) ;
-	F.setSamplingNumber( 512 ) ;
+	zones = generateExpansiveZonesHomogeneously( 100, placedinclusions, F ) ;
+	F.setSamplingNumber( 256 ) ;
 
 	if( restraintDepth > 0 )
 	{
@@ -1942,7 +1943,7 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -5e6)) ;
+// 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -15e6)) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , BOTTOM_LEFT ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
 	}

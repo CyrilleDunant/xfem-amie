@@ -282,7 +282,7 @@ void step()
 		go_on = featureTree->step() ;
 
 		if ( go_on )
-			load->setData( load->getData() - 0.000083333333 ) ;
+			load->setData( load->getData() - 0.0000083333333 ) ;
 
 		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements().size() ) ;

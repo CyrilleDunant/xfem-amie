@@ -81,7 +81,15 @@ typedef enum{
 		
 		double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
+		// as described in C. Giry et al. / International Journal of Solids and Structures 48 (2011) 3431–3443
+		double getSquareInfluenceRatio( ElementState & s, const Point & direction) ;
+		
+		double cachedInfluenceRatio ;
+		bool influenceCalc ;
+		
 	public:
+		virtual bool getInfluenceCalculated() const {return influenceCalc ;}
+		virtual void setInfluenceCalculated(bool v) {influenceCalc = v;}
 		Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedScore(ElementState& s) ;
 		Vector smoothedPrincipalStrain( ElementState &s) ;
