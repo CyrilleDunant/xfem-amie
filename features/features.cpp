@@ -4432,6 +4432,7 @@ bool FeatureTree::stepElements()
 					}
 
 				}
+			}
 
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 				
@@ -4452,7 +4453,7 @@ bool FeatureTree::stepElements()
 				}
 				std::cerr << " ...done. " << std::endl ;
 					averageDamage /= volume ;
-			}
+			
 
 		}
 		else if( is3D() )
