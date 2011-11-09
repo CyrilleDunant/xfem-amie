@@ -43,7 +43,7 @@ Vector Form::getImposedStress(const Point & p) const
 	if(getDamageModel() && getDamageModel()->hasInducedForces())
 		return getDamageModel()->getImposedStress(p) ;
 	
-	return Vector(double(0), param.numCols()) ;
+	return Vector(double(0), getTensor(p).numCols()) ;
 }
 
 Vector Form::getImposedStrain(const Point & p) const
@@ -51,7 +51,7 @@ Vector Form::getImposedStrain(const Point & p) const
 	if(getDamageModel() && getDamageModel()->hasInducedForces())
 		return getDamageModel()->getImposedStrain(p) ;
 	
-	return Vector(double(0), param.numCols()) ;
+	return Vector(double(0), getTensor(p).numCols()) ;
 }
 
 bool Form::hasInducedForces() const
@@ -759,7 +759,7 @@ Vector &ElementState::getStressAtCenter( StressCalculationMethod m)
 				stressAtCenter.resize( 3 ) ;
 			else
 				stressAtCenter.resize( 6 ) ;		
-			cachedPrincipalStressAngle = getPrincipalAngle(Point(1./3., 1./3.), true)[0] ; 
+// 			cachedPrincipalStressAngle = getPrincipalAngle(Point(1./3., 1./3.), true)[0] ; 
 			
 			stressAtCenter = getStress(Point(1./3., 1./3.), true, m) ;
 		}
@@ -4942,7 +4942,23 @@ std::vector<Point> ElementState::getPrincipalFrame( const Point &p, bool local, 
 	for(int i = 0 ; i <  principalStresses.size() ; ++i)
 	{
 		principalVectors.push_back(Vector(0.,stressMatrix.numCols())) ;
-		solveSystem( stressMatrix-identity(stressMatrix.numCols())*principalStresses[i], Vector(0., stressMatrix.numCols()), principalVectors.back());
+		Matrix m = (stressMatrix-identity(stressMatrix.numCols())*principalStresses[i]) ;
+		//Assume that the first coefficient is 1 and get a reduced system.
+		Matrix m_reduced (m) ;
+		Vector v_reduced(0., stressMatrix.numCols()) ;
+		v_reduced[0] = 1 ;
+		m_reduced[0][0] = 1 ;
+		for(size_t j = 1 ; j < stressMatrix.numCols() ; j++)
+		{
+			m_reduced[0][j] = 0 ;
+		}
+		for(size_t j = 1 ; j < stressMatrix.numRows() ; j++)
+		{
+			v_reduced[j] -= m_reduced[j][0] ;
+			m_reduced[j][0] = 0 ;
+		}
+		solveSystem( m_reduced, v_reduced, principalVectors.back());
+// 		std::cout << " = " << principalVectors.back()[0] << ",  " << principalVectors.back()[1] << std::endl ;
 	}
 	std::vector<Point> ret ;
 	

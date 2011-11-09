@@ -193,8 +193,45 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 
 void BimaterialInterface::step(double timestep, ElementState & currentState)
 {
+	std::cout << "plouf" << std::endl ;
 	inBehaviour->step(timestep, currentState) ;
+		std::cout << "plif" << std::endl ;
 	outBehaviour->step(timestep, currentState) ;
+	std::cout << "plaf" << std::endl ;
+}
+
+DamageModel * BimaterialInterface::getDamageModel() const
+{
+	double max = -2 ;
+	int ret = 0 ;
+
+	double inScore = 0. ;
+	double outScore = 0. ;
+	DamageModel * inCriterion = inBehaviour->getDamageModel() ;
+	DamageModel * outCriterion = outBehaviour->getDamageModel() ;
+	if(inCriterion)
+	{
+		max = inCriterion->getState().max() ;
+		ret = 1 ;
+	}
+	
+	if(outCriterion)
+	{
+		outScore = outCriterion->getState().max() ;
+		if(outScore > max || inCriterion == NULL)
+			ret = 2 ;
+	}
+		
+	switch(ret)
+	{
+	case 0:
+		return NULL ;
+	case 1:
+		return inCriterion ;
+	case 2:
+		return outCriterion ;
+	}
+	return NULL ;
 }
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const

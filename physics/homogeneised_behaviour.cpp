@@ -66,7 +66,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 	    FractureCriterion * frac = original->getFractureCriterion() ;
 	    Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
 	    Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-	    equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac) ;
+	    equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac->getCopy()) ;
 	}
 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
 

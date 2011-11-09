@@ -2,6 +2,7 @@
 
 #include "triple_behaviour.h"
 #include "fracturecriteria/fracturecriterion.h"
+#include "damagemodels/damagemodel.h"
 
 using namespace Mu ;
 
@@ -247,6 +248,56 @@ void TrimaterialInterface::step(double timestep, ElementState & currentState)
 	inBehaviour->step(timestep, currentState) ;
 	midBehaviour->step(timestep, currentState) ;
 	outBehaviour->step(timestep, currentState) ;
+}
+
+DamageModel * TrimaterialInterface::getDamageModel() const
+{
+	double max = -2 ;
+	int ret = 0 ;
+
+	double inScore = 0. ;
+	DamageModel * inCriterion = inBehaviour->getDamageModel() ;
+	DamageModel * midCriterion = midBehaviour->getDamageModel() ;
+	DamageModel * outCriterion = outBehaviour->getDamageModel() ;
+	if(inCriterion)
+	{
+		max = inCriterion->getState().max() ;
+		ret = 1 ;
+	}
+
+	double midScore = 0. ;
+	
+	if(midCriterion)
+	{
+		midScore = midCriterion->getState().max() ;
+		if(midScore > max || (inCriterion == NULL && outCriterion == NULL))
+		{
+			max = midScore ;
+			ret = 2 ;
+		}
+	}
+	
+	double outScore = 0. ;
+	
+	if(outCriterion)
+	{
+		outScore = outCriterion->getState().max() ;
+		if(outScore > max || (inCriterion == NULL && midCriterion == NULL))
+			ret = 3 ;
+	}
+		
+	switch(ret)
+	{
+	case 0:
+		return NULL ;
+	case 1:
+		return inCriterion ;
+	case 2:
+		return midCriterion ;
+	case 3:
+		return outCriterion ;
+	}
+	return NULL ;
 }
 
 FractureCriterion * TrimaterialInterface::getFractureCriterion() const

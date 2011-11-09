@@ -104,7 +104,7 @@ public:
 
 	/** \brief Acessor, return the highest fracture citerion*/
 	virtual FractureCriterion * getFractureCriterion() const ;
-	
+	virtual DamageModel * getDamageModel() const ;
 	virtual void scale (double d) 
 	{ 
 		if(inBehaviour)

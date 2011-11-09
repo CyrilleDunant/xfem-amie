@@ -209,8 +209,8 @@ void fastForward( int steps, int nstepstot )
 
 void step()
 {
-	int nsteps = 60;
-	int nstepstot = 60;
+	int nsteps = 4;
+	int nstepstot = 2;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
 // 	fastForward(4, 10) ;
 

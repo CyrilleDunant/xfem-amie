@@ -49,6 +49,8 @@ public:
 	virtual Material toMaterial() ;
 	
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
+	
+	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
 class NonLocalMohrCoulomb : public FractureCriterion
@@ -80,6 +82,8 @@ public:
 	virtual Material toMaterial() ;
 
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
+	
+	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
 }

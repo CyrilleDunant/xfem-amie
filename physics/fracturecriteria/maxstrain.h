@@ -47,6 +47,8 @@ public:
 	virtual Material toMaterial() ;
 	
 	virtual void scale(double d) {upVal *= d ;};
+	
+	virtual double getTensileLimit(const ElementState & s) const {return upVal*20e9 ; } ;
 };
 
 }

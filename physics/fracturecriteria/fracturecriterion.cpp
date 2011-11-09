@@ -392,9 +392,9 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
 			Point direction =  ci->getCenter()-s.getParent()->getCenter() ; 
-			iteratorValue = (*fiterator) ;
+			iteratorValue = *fiterator ;
 			if(ci->getBehaviour()->getFractureCriterion())
-				iteratorValue = pow((*fiterator), 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(s,direction)) ;
+				iteratorValue = pow(*fiterator, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(s,direction)) ;
 			if(ci->getBehaviour()->fractured())
 			{
 				stra += ci->getState().getStrainAtCenter()*iteratorValue ;
@@ -403,9 +403,8 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 				fiterator++ ;
 				continue ;
 			}
-
 			stra += ci->getState().getStrainAtCenter()*iteratorValue ;
-			str += (ci->getState().getStressAtCenter(m))*iteratorValue ;
+			str += ci->getState().getStressAtCenter(m)*iteratorValue ;
 			sumStressFactors += iteratorValue ;
 			sumStrainFactors += iteratorValue ;
 			fiterator++ ;
@@ -440,7 +439,6 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 												0.25 *( stra[0] - stra[1] ) * ( stra[0] - stra[1] ) +
 												( stra[2] * stra[2] )
 										) ;
-
 		return std::make_pair(lprincipal, lprincipals) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -597,14 +595,14 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 		{
 			cachedInfluenceRatio = 0 ;
 			setInfluenceCalculated(true);
-			return 1. ;
+			return 0. ;
 		}
-		double costheta = u[0]*(tricross) ; costheta *= costheta/tricrossNorm ;
-		double sintheta = u[1]*(tricross) ; sintheta *= sintheta/tricrossNorm ;
-		double cosphi = u[2]*(direction) ; cosphi *= cosphi/dirnorm ;
+		double costheta = u[0]*tricross ; costheta *= costheta/tricrossNorm ;
+		double sintheta = u[1]*tricross ; sintheta *= sintheta/tricrossNorm ;
+		double cosphi = u[2]*direction ; cosphi *= cosphi/dirnorm ;
 		double sinphi = direction*tricross ; sinphi *= sinphi/(tricrossNorm*dirnorm) ;
 		
-		double limit = 2e6 ; // should be getTensileLimit() ;
+	
 		Vector sigman = s.getPrincipalStressAtNodes() ;
 		Vector sigma(0., sigman.size()/s.getParent()->getBoundingPoints().size()) ;
 		for(int i = 0 ; i < s.getParent()->getBoundingPoints().size() ; ++i )
@@ -614,17 +612,24 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 				sigma[j] += sigman[i*sigma.size()+j]/s.getParent()->getBoundingPoints().size() ;
 			}
 		}
-		
+			double limit = getTensileLimit(s) ;
 		if(std::abs(sigma).min() < POINT_TOLERANCE_2D)
 		{
 			cachedInfluenceRatio = 0 ;
 			setInfluenceCalculated(true);
 			return 0. ;
 		}
+		if(sigma.max() > limit)
+		{
+			cachedInfluenceRatio = 1 ;
+			setInfluenceCalculated(true);
+			return 1. ;
+		}
 		if(sigma.size() == 2)
 		{
 			setInfluenceCalculated(true);
-			cachedInfluenceRatio = std::min(1./(limit*limit*(sinphi*costheta/(sigma[0]*sigma[0]) + sinphi*sintheta/(sigma[1]*sigma[1]) + 1)), 1.) ;
+			cachedInfluenceRatio = std::min(1./(limit*limit*(sinphi*costheta/(sigma[0]*sigma[0]) + sinphi*sintheta/(sigma[1]*sigma[1]))), 1.) ;
+// 			std::cout << cachedInfluenceRatio << std::endl ;
 			return cachedInfluenceRatio ;
 		}
 		if(sigma.size() == 3)

@@ -4367,6 +4367,7 @@ bool FeatureTree::stepElements()
 				
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
+					
 					if( i % 1000 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
@@ -4374,7 +4375,6 @@ bool FeatureTree::stepElements()
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 				}
 					std::cerr << " ...done. " << std::endl ;
-				
 #pragma openmp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4388,7 +4388,6 @@ bool FeatureTree::stepElements()
 				}
 
 				std::cerr << " ...done. " << std::endl ;
-				
 #pragma openmp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4401,10 +4400,11 @@ bool FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						volume += are ;
-						if( elements[i]->getBehaviour()->getDamageModel() )
+						DamageModel * dmodel = elements[i]->getBehaviour()->getDamageModel() ;
+						if( dmodel )
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
-								averageDamage += are * elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
+								averageDamage += are * dmodel->getState().max() ;
 							else
 								averageDamage += are ;
 						}
@@ -4420,11 +4420,10 @@ bool FeatureTree::stepElements()
 							fracturedCount++ ;
 							crackedVolume += are ;
 						}
-						else if( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D )
+						else if( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
 						{
 							damagedVolume += are ;
 						}
-//						std::cerr << "d" << std::flush ;
 					}
 					else if( elements[i]->getBehaviour()->fractured() )
 					{
@@ -4433,7 +4432,6 @@ bool FeatureTree::stepElements()
 
 				}
 			}
-
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 				
 				for( size_t i = 0 ; i < elements.size() ; i++ )

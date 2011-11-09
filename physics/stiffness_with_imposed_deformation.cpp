@@ -65,6 +65,10 @@ Form * StiffnessWithImposedDeformation::getCopy() const
 	return new StiffnessWithImposedDeformation(param, imposed) ;
 }
 
+void StiffnessWithImposedDeformation::step(double timestep, ElementState & currentState)
+{
+}
+
 Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p) const
 {
 	return (param * imposed) ;

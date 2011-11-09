@@ -25,9 +25,17 @@ class MCFT : public FractureCriterion
 {
 
 public:
+	
+	bool strainBroken ;
 	double upVal ;
 	double downVal ;
 	double tensionCritStrain ;
+	double critStrain ;
+	double youngModulus ;
+	double k ;
+	double strain_ch ;
+	double strain_te ;
+	bool initialised ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
@@ -51,6 +59,8 @@ public:
 		upVal *= d ; 
 		downVal *= d ;
 	};
+	
+	virtual double getTensileLimit(const ElementState & s) const ;
 
 	virtual Material toMaterial() ;
 };
@@ -99,6 +109,8 @@ public:
 // 		tensionCritStrain /= d ;
 // 		critStrain /= d ;
 	};
+	
+	virtual double getTensileLimit(const ElementState & s) const ;
 };
 
 }

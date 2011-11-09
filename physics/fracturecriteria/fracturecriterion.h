@@ -174,7 +174,7 @@ typedef enum{
 		virtual void scale(double d) = 0;
 		const std::vector<double> & getFactors() const {return factors ;}
 		
-	
+		virtual double getTensileLimit(const ElementState & s) const = 0 ;
 	};
 
 } ;
