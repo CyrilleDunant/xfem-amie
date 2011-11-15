@@ -198,7 +198,7 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				{
 					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
 				}
-
+				
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					Vector forces =  VirtualMachine().ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + VirtualMachine().ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;

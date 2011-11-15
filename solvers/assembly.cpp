@@ -669,7 +669,7 @@ bool Assembly::make_final()
 					}
 				}
 			}
- 			element2d[i]->clearElementaryMatrix() ;
+// 			element2d[i]->clearElementaryMatrix() ;
 		}
 
 		std::cerr << " ...done" << std::endl ;
