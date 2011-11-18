@@ -1414,39 +1414,31 @@ int main(int argc, char *argv[])
 {
 	double woff = .62 ;
 	std::vector<std::pair<std::string, double> >  vars ;
-	vars.push_back(std::make_pair("L", .300));
+	vars.push_back(std::make_pair("L", .3));
 	Function L("L") ;
-	vars.push_back(std::make_pair("a", 1.));
-	Function a("a") ;
-	vars.push_back(std::make_pair("h", 0.00102));
-	Function h("h") ;
-	vars.push_back(std::make_pair("j", .250));
-	Function j("j") ;
-	vars.push_back(std::make_pair("k", .070));
-	Function k("k") ;
+
 	vars.push_back(std::make_pair("f", 1.));
 	Function f("f") ;
 	vars.push_back(std::make_pair("w", 0.));
+	Function E("E") ;
+	vars.push_back(std::make_pair("E", 200));
 	Function w("w") ;
-	Function I("k h 3 ^ * 12 /") ;
-	Function EI = I*200e9 ;
-	Function stif = (EI*24)/(L^3) ;
-	Function mass = j*k*.00988*2.7*1e12 +woff+w;
+	double I=.07*pow(.00102,3)/12 ;
+	Function EI = E*I*10e9 ;
+	Function stif = (EI/12)/L^3 ;
+	Function mass = w+0.46683+woff;
 	std::vector<std::pair<double, double> >   bounds ;
-	bounds.push_back(std::make_pair(.300, .300));
-	bounds.push_back(std::make_pair(1, 1));
-	bounds.push_back(std::make_pair(1.02, 1.02));
-	bounds.push_back(std::make_pair(.250, .250));
-	bounds.push_back(std::make_pair(.070, .070));
-	bounds.push_back(std::make_pair(0., 2.));
-	bounds.push_back(std::make_pair(0., 20.));
-	Function objectiveFunction = (f-1./(2.*M_PI)*f_sqrt(stif/mass))^2 ;/*(((h^3)*a*k*(k*j*.988*2.7*1e-5 + woff+w))/(L^3)-f/(190000*2)*sqrt(M_PI))^2 ;*/
+	bounds.push_back(std::make_pair(.3, .3));
+	bounds.push_back(std::make_pair(3.1, 3.1));
+	bounds.push_back(std::make_pair(0., 0.));
+	bounds.push_back(std::make_pair(0., 600));
+	
+	Function objectiveFunction = f_abs(f-1./(2.*M_PI)*f_sqrt(stif/mass)) ;/*(((h^3)*a*k*(k*j*.988*2.7*1e-5 + woff+w))/(L^3)-f/(190000*2)*sqrt(M_PI))^2 ;*/
 	GeneticAlgorithmOptimizer ga(vars, bounds, objectiveFunction) ;
 	ga.optimize(1e-8, 100, 5000, .1, .65) ;
 	std::vector<std::pair<std::string, double> > vals = ga.getValues() ;
 	for(size_t i = 0 ; i < vals.size() ; i++)
 		std::cout << vals[i].first << " = " << vals[i].second << std::endl ;
-	std::cout << "m = " << vals[3].second* vals[4].second*.988*2.7e-5 + woff+vals[6].second<< std::endl ;
 	exit(0) ;
 	double compressionCrit = -32.6e6 ; 
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
