@@ -128,6 +128,7 @@ public:
 	
 /** \brief Return stress at given point*/
 	Vector getStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
+	void getStressAndStrain(const Point & , Vector & stress, Vector & strain, bool local = false, StressCalculationMethod m = REAL_STRESS) ;
 
 /** \brief Return stress at given point, ignoring enrichment functions*/
 	Vector getNonEnrichedStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
@@ -158,6 +159,7 @@ public:
 	
 	Vector &getStrainAtCenter() ;
 	Vector &getStressAtCenter(StressCalculationMethod m = REAL_STRESS) ;
+	void getStressAndStrainAtCenter( Vector & stress, Vector & strain, StressCalculationMethod m = REAL_STRESS) ;
 
 /** \brief Return stress at given points*/
 	Vector getPreviousStress(const Mu::PointArray & v, StressCalculationMethod m = REAL_STRESS) const;
@@ -202,7 +204,7 @@ public:
 	Vector getPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
 	
 /** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
-	std::vector<Point> getPrincipalFrame( const Point &p, bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
+	std::vector<Point> getPrincipalFrame( const Point &p, bool local = false, StressCalculationMethod m = REAL_STRESS)  ;
 	
 /** \brief get Principal Stresses at given point*/
 	Vector getPreviousPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;

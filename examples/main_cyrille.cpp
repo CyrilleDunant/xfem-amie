@@ -1753,8 +1753,8 @@ int main(int argc, char *argv[])
 	double mradius = 0.5 ;
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20, mradius), new /*NonLocal*/IsotropicLinearDamage()/*new PlasticStrain()*/) ; 
+	PseudoPlastic * psp = new PseudoPlastic(m0_paste, E_paste, 20, mradius) ;
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20,E_paste, mradius), new /*NonLocal*/IsotropicLinearDamage()/*new PlasticStrain()*/) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_steelx) ;

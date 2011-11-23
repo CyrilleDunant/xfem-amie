@@ -24,11 +24,12 @@ namespace Mu {
 	{
 	public:
 		double threshold ;
+		double E ;
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		NonLocalVonMises(double thres, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+		NonLocalVonMises(double thres, double E, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 	
 		virtual ~NonLocalVonMises();
 

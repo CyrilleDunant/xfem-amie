@@ -209,8 +209,8 @@ void fastForward( int steps, int nstepstot )
 
 void step()
 {
-	int nsteps = 4;
-	int nstepstot = 2;
+	int nsteps = 320;
+	int nstepstot = 320;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
 // 	fastForward(4, 10) ;
 
@@ -624,18 +624,28 @@ void step()
 			}
 
 		}
-
+			std::cout << "reaction" << "   "
+// 			          << expansion_reaction[i].second << "   "
+			          << "eps xx" << "\t"
+			          << "eps yy" << "\t" 
+								<< "sig xx" << "\t"
+			          << "sig yy" << "\t"
+			          << "   dx "  << "\t"
+			          << "   dy "  << "\t"
+			          << "cracks"  << "\t"
+			          << "damage"  << "\t"
+			          << std::endl ;
 		for( size_t i = 0 ; i < expansion_reaction.size() ; i++ )
-			std::cout << expansion_reaction[i].first << "   "
-			          << expansion_reaction[i].second << "   "
-			          << expansion_stress_xx[i].first << "   "
-			          << expansion_stress_xx[i].second << "   "
-			          << expansion_stress_yy[i].first << "   "
-			          << expansion_stress_yy[i].second << "   "
-			          << apparent_extension[i].first  << "   "
-			          << apparent_extension[i].second  << "   "
-			          << cracked_volume[i]  << "   "
-			          << damaged_volume[i]  << "   "
+			std::cout << expansion_reaction[i].first << "\t"
+// 			          << expansion_reaction[i].second << "\t"
+			          << expansion_stress_xx[i].first << "\t"
+			          << expansion_stress_yy[i].first << "\t" 
+								<< expansion_stress_xx[i].second << "\t"
+			          << expansion_stress_yy[i].second << "\t"
+			          << apparent_extension[i].first  << "\t"
+			          << apparent_extension[i].second  << "\t"
+			          << cracked_volume[i]  << "\t"
+			          << damaged_volume[i]  << "\t"
 			          << std::endl ;
 
 	}
@@ -1759,7 +1769,21 @@ void Display( void )
 
 int main( int argc, char *argv[] )
 {
-
+// 	Matrix mat(4,4) ;
+// 	
+// 	mat[0][0] = 1 ;
+// 	mat[1][1] = 2 ;
+// 	mat[2][2] = 3 ;
+// 	mat[3][3] = 4 ;
+// 	
+// 	std::vector<std::pair<Vector, double> > eig = deflate(mat) ;
+// 	for(size_t i = 0 ; i < eig.size() ; i++)
+// 	{
+// 		for(size_t j = 0 ; j < eig[i].first.size() ; j++)
+// 			std::cout << eig[i].first[j] << ", " ;
+// 		std::cout << " : " << eig[i].second << std::endl ;
+// 	}
+// 	exit(0) ;
 	percent = atof( argv[1] ) ;
 	double dmax = atof( argv[2] ) ;
 

@@ -10,11 +10,61 @@
 
 using namespace Mu ;
 
+std::pair<Vector, double> Mu::getLargestEigenValueAndVector(const Matrix & m)
+{
+	Vector evec(1., m.numCols()) ;
+	evec = m*evec ;
+	double eval = sqrt(std::inner_product(&evec[0], &evec[evec.size()], &evec[0], 0.)) ;
+	evec /= eval ;
+	double error = eval ;
+	double initialError = eval ;
+	while(error  > 1e-24)
+	{
+		double peval = eval ;
+		evec = m*evec ;
+		eval = sqrt(std::inner_product(&evec[0], &evec[evec.size()], &evec[0], 0.)) ;
+		evec /= eval ;
+		error = std::abs(peval-eval)/initialError ;
+	}
+	return std::make_pair(evec, eval) ;
+}
+
+std::vector<std::pair<Vector, double> > Mu::deflate(const Matrix & m)
+{
+	std::vector<std::pair<Vector, double> > ret ; 
+	std::pair<Vector, double> largest = getLargestEigenValueAndVector(m) ;
+	ret.push_back(largest);
+	Matrix current = m-Matrix(largest.first, largest.first)*largest.second ;
+	for(size_t j = 1 ; j < m.numCols() ; j++)
+	{
+		largest = getLargestEigenValueAndVector(current) ;
+		ret.push_back(largest);
+		current = current-Matrix(largest.first, largest.first)*largest.second ;
+	}
+	
+	std::reverse(ret.begin(), ret.end());
+	return ret ;
+}
+
 Matrix::Matrix(size_t x, size_t y)
 {
 	r=x ;
 	c=y ;
 	v = new Vector(0., x*y) ;
+}
+
+Matrix::Matrix(const Vector & v1, const Vector & v2)
+{
+	r=v1.size() ;
+	c=v1.size() ;
+	v = new Vector(0., r*c) ;
+	for(size_t i = 0 ; i < r ; i++)
+	{
+		for(size_t j = 0 ; j < c ; j++)
+		{
+			(*this)[i][j] = v1[i]* v2[j] ;
+		}
+	}
 }
 
 Matrix::Matrix(size_t x, size_t y, Vector * cache)

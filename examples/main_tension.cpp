@@ -207,7 +207,7 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()-0.5e-6) ;
+			loadr->setData(loadr->getData()-1e-5) ;
 		}
 		
 		triangles = featureTree->getActiveElements2D() ;
@@ -1412,34 +1412,34 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-	double woff = .62 ;
-	std::vector<std::pair<std::string, double> >  vars ;
-	vars.push_back(std::make_pair("L", .3));
-	Function L("L") ;
-
-	vars.push_back(std::make_pair("f", 1.));
-	Function f("f") ;
-	vars.push_back(std::make_pair("w", 0.));
-	Function E("E") ;
-	vars.push_back(std::make_pair("E", 200));
-	Function w("w") ;
-	double I=.07*pow(.00102,3)/12 ;
-	Function EI = E*I*10e9 ;
-	Function stif = (EI/12)/L^3 ;
-	Function mass = w+0.46683+woff;
-	std::vector<std::pair<double, double> >   bounds ;
-	bounds.push_back(std::make_pair(.3, .3));
-	bounds.push_back(std::make_pair(3.1, 3.1));
-	bounds.push_back(std::make_pair(0., 0.));
-	bounds.push_back(std::make_pair(0., 600));
+// 	std::vector<std::pair<std::string, double> >  vars ;
+// 	vars.push_back(std::make_pair("L", 300)); Function L("L") ;
+// 	vars.push_back(std::make_pair("f", 1.)); Function f("f") ;
+// 	vars.push_back(std::make_pair("m", 2)); Function m("m") ;
+// 	vars.push_back(std::make_pair("E", 200)); Function E("E") ;
+// 	
+// 	double I=70.*pow(1.02,3) ;
+// 	Function EI = E*I*1e6 ;
+// 	Function stif = (EI*2)/(L^3) ;
+// 	Function mass = m+1.080 ; 
+// 	std::vector<std::pair<double, double> >   bounds ;
+// 	bounds.push_back(std::make_pair(450, 450));
+// 	bounds.push_back(std::make_pair(1.2, 1.2));
+// 	bounds.push_back(std::make_pair(0., .5));
+// 	bounds.push_back(std::make_pair(200, 200));
+// 	Function objectiveFunction = f_abs(f/0.64-(1./(2.*M_PI))*f_sqrt(stif/mass)) ;
+// 	GeneticAlgorithmOptimizer ga(vars, bounds, objectiveFunction) ;
+// 	ga.optimize(1e-8, 100, 5000, .1, .65) ;
+// 	std::vector<std::pair<std::string, double> > vals = ga.getValues() ;
+// 	for(size_t i = 0 ; i < vals.size() ; i++)
+// 		std::cout << vals[i].first << " = " << vals[i].second << std::endl ;
+// 	std::cout << "effective f = " << VirtualMachine().eval((0.64/(2.*M_PI))*f_sqrt(stif/mass),ga.getValues() ) << std::endl;
+// 	exit(0) ;
+// 	
+// 	
+// 	
 	
-	Function objectiveFunction = f_abs(f-1./(2.*M_PI)*f_sqrt(stif/mass)) ;/*(((h^3)*a*k*(k*j*.988*2.7*1e-5 + woff+w))/(L^3)-f/(190000*2)*sqrt(M_PI))^2 ;*/
-	GeneticAlgorithmOptimizer ga(vars, bounds, objectiveFunction) ;
-	ga.optimize(1e-8, 100, 5000, .1, .65) ;
-	std::vector<std::pair<std::string, double> > vals = ga.getValues() ;
-	for(size_t i = 0 ; i < vals.size() ; i++)
-		std::cout << vals[i].first << " = " << vals[i].second << std::endl ;
-	exit(0) ;
+	
 	double compressionCrit = -32.6e6 ; 
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
@@ -1461,7 +1461,7 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(0.1200*.5, .1500*.5, 0.1200*.25, .1500*.25) ;
+	Sample samplef(0.1200, .1500, 0.1200*.0, .1500*.0) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
@@ -1487,19 +1487,19 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
+// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
 // // 	
 	
 	FeatureTree F(&samplef) ;
 	featureTree = &F ;
 	Pore inc(.015, 0, 0) ;
-	F.addFeature(&samplef, &inc);
+// 	F.addFeature(&samplef, &inc);
 // 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new NonLocalVonMises(20e6*0.9, mradius)/*new DruckerPrager(20e6*1.1,0.1 , mradius)*/, new PlasticStrain()));
 // 	inc.setBehaviourSource(&samplef);
-	//samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new NonLocalVonMises(20e6, E_paste, mradius)/*DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius)*//*, new PlasticStrain()*/)) ;
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new /*NonLocalVonMises(20e6, E_paste, mradius)*/DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
 	
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
@@ -1514,8 +1514,8 @@ int main(int argc, char *argv[])
 
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,BOTTOM_LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;

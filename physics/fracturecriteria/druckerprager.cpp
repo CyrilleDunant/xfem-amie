@@ -31,7 +31,7 @@ double DruckerPrager::grade(ElementState &s)
 	double factor = 1 ;
 	metInCompression = true ;
 	metInTension = true ;
-	Vector str( smoothedStress(s, EFFECTIVE_STRESS) ) ;
+	Vector str( smoothedStressAndStrain(s, EFFECTIVE_STRESS).first ) ;
 	double maxStress = 0 ;
 	
 	//hardening function from Jirasek et al.
@@ -43,7 +43,7 @@ double DruckerPrager::grade(ElementState &s)
 		Vector istrain = ps->imposedStrain*ps->getState()[0] ;
 		double kappa_p = ps->plasticVariable+sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 	
-		if(str.max() > .001*upthreshold || kappa_p > POINT_TOLERANCE_2D)
+		if(std::abs(str).max() > .0001*upthreshold || kappa_p > POINT_TOLERANCE_2D)
 		{
 			if(kappa_p < kappa_0 )
 				factor = 0.001+0.999*(kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0) ;
@@ -59,7 +59,7 @@ double DruckerPrager::grade(ElementState &s)
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1] ;
-		maxStress = tr*friction + sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[2])*(str[2])) ;
+		maxStress = (tr*friction + sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[2])*(str[2])))*1.5 ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{

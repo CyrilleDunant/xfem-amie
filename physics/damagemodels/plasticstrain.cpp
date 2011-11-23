@@ -79,7 +79,9 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		{
 			
 			Matrix stressMatrix(v.size(), v.size()) ;
-			Vector stress = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStress(s, EFFECTIVE_STRESS) ;
+			Vector stress = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s, EFFECTIVE_STRESS).first ;
+// 			Vector stress = s.getStress(s.getParent()->getCenter(), false, EFFECTIVE_STRESS) ;
+			Vector strain = s.getStrain(s.getParent()->getCenter(), false) -imposedStrain;
 			stressMatrix[0][0] = stress[0] ;
 			stressMatrix[1][1] = stress[1] ;
 			stressMatrix[0][1] = stress[2] ;
@@ -88,13 +90,14 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 			
 			for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
 			{
-				for(size_t j = 0 ; j < stressMatrix.numCols() ; j++)
+				for(size_t j = i ; j < stressMatrix.numCols() ; j++)
 				{
 					Matrix m_p(stressMatrix) ;
 					Matrix m_m(stressMatrix) ;
-					m_p[i][j] += std::max(std::abs(stressMatrix[i][j]), 1.)*1e-6 ;
-					m_m[i][j] -= std::max(std::abs(stressMatrix[i][j]), 1.)*1e-6 ;
-					incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2e-6*std::max(std::abs(stressMatrix[i][j]), 1.)) ;
+					double delta = 1e-6 ; //std::max(std::abs(stressMatrix[i][j]), 1.)*1e-6 ;
+					m_p[i][j] += delta ;
+					m_m[i][j] -= delta ;
+					incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2.*delta) ;
 				}
 			}
 // 			incrementalStrainMatrix.print() ;
@@ -103,9 +106,10 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 // 			double down_str = str ;
 			imposedStrain[0] = incrementalStrainMatrix[0][0] ;
 			imposedStrain[1] = incrementalStrainMatrix[1][1] ;
-			imposedStrain[2] = incrementalStrainMatrix[1][0] ;
+			imposedStrain[2] = incrementalStrainMatrix[0][1] ;
 			
-			imposedStrain *=  s.getParent()->getBehaviour()->getFractureCriterion()->getFactors().back()*0.01;
+			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
+			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
 		}
 		
 	return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
@@ -130,15 +134,8 @@ std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const Ele
 	std::vector<BoundaryCondition * > ret ;
 	if(!param || fractured())
 		return ret ;
-// 	Vector f = VirtualMachine().ieval(Gradient(p_i) *( *param *(imposedStrain*state[0]+previousImposedStrain)), gp, Jinv,v) ;
-// 	if(state[0] > POINT_TOLERANCE_2D)
-// 	{
-// 		std::cerr << "strain = "<< (imposedStrain*getState()[0]+previousImposedStrain)[0] << "  " << (imposedStrain*getState()[0]+previousImposedStrain)[1] << std::endl ;
-// 		std::cout << "delta = "<< f[0] << "  " << f[1] << std::endl ;
-// 		
-// 		exit(0) ;
-// 	}
-	Vector imp = getImposedStress(*p_i.getPoint()) ; //*param*(imposedStrain*getState()[0]+previousImposedStrain) ;
+
+	Vector imp = getImposedStress(*p_i.getPoint()) ; 
 	if(v.size() == 2)
 	{
 		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()), id, imp[0]));
@@ -210,10 +207,6 @@ void PlasticStrain::postProcess()
 	if(converged && es && getState()[0] > POINT_TOLERANCE_2D)
 	{
 		previousImposedStrain += imposedStrain*getState()[0] ;
-// 		std::cout << " score =  " << es->getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() 
-// 		<< "\t s = " << getDamage() 
-// 		<< "\t ds = " <<sqrt( imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2])*getState()[0] 
-// 		<< "\t strain = "<< sqrt(previousImposedStrain[0]*previousImposedStrain[0] + previousImposedStrain[1]*previousImposedStrain[1]+ previousImposedStrain[2]*previousImposedStrain[2]) << std::endl ;
 		plasticVariable += sqrt(2./3.)*sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2])*getState()[0] ;
 		state[0] = 0;
 		imposedStrain = 0 ;

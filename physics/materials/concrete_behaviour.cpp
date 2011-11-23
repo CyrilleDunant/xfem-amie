@@ -18,7 +18,8 @@ ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double tensile, double
 {
 	materialRadius = 0.025 ;
 	neighbourhoodRadius = materialRadius*10 ;
-	variability = 0.01 ;
+	variability = 0. ;
+	
 }
 
 Form * ConcreteBehaviour::getCopy() const 

@@ -782,7 +782,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			{
 				if( tri->getBehaviour() && tri->getBehaviour()->getFractureCriterion())
 				{
-					double d = tri->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
+					double d = std::min(tri->getBehaviour()->getFractureCriterion()->getScoreAtState(), 0.) ;
 					ret[2] = d ;
 					ret[1] = d ;
 					ret[0] = d ;

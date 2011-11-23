@@ -299,8 +299,8 @@ void DamageModel::step( ElementState &s )
 // 			trialRatio += damageDensityTolerance ;
 // 			trialRatio = minFraction*(1.-0.25) + maxFraction*0.75  ;
 // 			trialRatio = maxFraction  ;
-			trialRatio = minFraction ;
-			getState( true ) = downState + ( upState - downState ) *trialRatio +damageDensityTolerance;
+// 			trialRatio = minFraction ;
+			getState( true ) = downState + ( upState - downState ) *trialRatio;
 			converged = true ;
 		}
 	}

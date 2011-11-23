@@ -72,6 +72,7 @@ namespace Mu
 		bool initialised ;
 		Vector imposedStrain ;
 		Vector previousImposedStrain ;
+		double stiffness ;
 	public:
 		std::vector<DelaunayTriangle *> cache ;
 		std::vector<Variable> v ;
@@ -87,7 +88,7 @@ namespace Mu
 		* 
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		*/
-		PseudoPlastic(const Matrix & rig, double limitStrain, double radius) ;
+		PseudoPlastic(const Matrix & rig, double E, double limitStrain, double radius) ;
 		
 		
 		

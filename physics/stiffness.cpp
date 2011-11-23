@@ -50,9 +50,10 @@ Form * Stiffness::getCopy() const
 }
 
 
-PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(0), change(true)
+PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double E, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(0), change(true)
 {
-	vm = new NonLocalVonMises(limitStrain, radius) ;
+	stiffness = E ;
+	vm = new NonLocalVonMises(limitStrain, E, radius) ;
 	vm->setMaterialCharacteristicRadius(radius);
 	vm->setNeighbourhoodRadius(radius*4);
 	initialised = false ;
@@ -136,7 +137,7 @@ bool PseudoPlastic::fractured() const
 
 Form * PseudoPlastic::getCopy() const 
 {
-	return new PseudoPlastic(param, limitStrain, radius) ;
+	return new PseudoPlastic(param, stiffness, limitStrain, radius) ;
 	
 }
 

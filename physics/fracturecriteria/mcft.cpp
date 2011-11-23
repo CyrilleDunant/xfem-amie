@@ -311,7 +311,7 @@ double NonLocalMCFT::grade( ElementState &s )
 // 		}
 		
 		double energy = 75. ; //N/m
-		strain_ch = 2.*energy/(2.*/*getMaterialCharacteristicRadius()*/.2*upVal) ;
+		strain_ch = 2.*energy/(2.*getMaterialCharacteristicRadius()*upVal) ;
 		
 		if(strain_ch < tensionCritStrain)
 		{
@@ -364,7 +364,7 @@ double NonLocalMCFT::grade( ElementState &s )
 	double maxCompression = downVal  ;
 	double maxCompressionStrain = downVal/pseudoYoung  ;
 
-	if(cstrain < critStrain*.45 )
+	if(cstrain < critStrain*.25 )
 	{
 		double C_d = 0. ;
 		double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;
@@ -408,11 +408,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		
 	if(tstrain > tensionCritStrain )
 	{
-// 		pseudoYoung = std::max(tstress/tstrain, pseudoYoung) ;
-// 		std::cout << 0 << "  " << 0 << std::endl ;
-// 		for(double i = 0.0 ; i < 1 ; i += 0.001)
-// 		{
-// 		pseudoYoung = youngModulus*(1.-i) ;
+
 		double downTestVal = 0 ;
 		double upTestVal = upVal ;
 		double factor = 1 ;
@@ -446,9 +442,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		
 		maxTension = (upTestVal+downTestVal)*.5 ;
 		maxTensionStrain = (upTestVal+downTestVal)*.5/pseudoYoung ;
-// 		std::cout << maxTensionStrain<< "  " << maxTension << std::endl ;
-// 		}
-// 		exit(0) ;
+
 		if(factor < POINT_TOLERANCE_2D)
 			return -1. ;
 
@@ -466,13 +460,11 @@ else
 	metInTension = !metInCompression;
 }
 
-if(maxCompression < 0 &&  maxCompressionStrain < 0 &&  metInCompression)
-{
+if(maxCompression < 0 &&  maxCompressionStrain < 0 )
 	crits.push_back(std::min(cstress/maxCompression, cstrain/maxCompressionStrain)) ;
-}
 
-if(maxTensionStrain > 0 && metInTension)
-	crits.push_back(tstrain/maxTensionStrain) ;
+if(maxTensionStrain > 0 && maxTensionStrain > 0 )
+	crits.push_back(std::min(tstress/maxTension, tstrain/maxTensionStrain)) ;
 
 if(crits.empty())
 	return -1 ;

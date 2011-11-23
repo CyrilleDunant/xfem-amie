@@ -172,9 +172,9 @@ Vector angle( 0 ) ;
 
 MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -.15, .15, -10, 10, 0 ) ;
+// BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -.15, .15, -10, 10, 0 ) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
-// BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 0.6), 0) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight), 0) ;
 GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition( SET_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -9025.2 ) ;
 GeometryDefinedBoundaryCondition * shrinkagey = new GeometryDefinedBoundaryCondition( SET_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
 GeometryDefinedBoundaryCondition * shrinkagex = new GeometryDefinedBoundaryCondition( SET_STRESS_XI, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
@@ -380,7 +380,7 @@ void step()
 							forceCheck += forces[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
 						}
 
-						if ( triangles[k]->getBoundingPoint( p ).y >= sampleHeight*.5 && triangles[k]->getBoundingPoint( p ).x < 0.01 )
+						if ( triangles[k]->getBoundingPoint( p ).y >= sampleHeight*.5 && std::abs(triangles[k]->getBoundingPoint( p ).x) < 0.01 )
 						{
 							e_xx_0 += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
 							ex_count_0++ ;
@@ -507,7 +507,7 @@ void step()
 		if ( go_on )
 		{
 			displacements.push_back( 1000.*e_xx_0 / ( double )ex_count_0 - 1000.*e_xx_1 / ( double )ex_count_1 );
-			loads.push_back( avg_s_yy/1000/*appliedForce*/ );
+			loads.push_back( avg_s_yy/1000. );
 			deltas.push_back( delta/deltacount );
 			damages.push_back( featureTree->averageDamage );
 		}
@@ -1667,8 +1667,8 @@ int main( int argc, char *argv[] )
 	double phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .04 ; // .015
-	double nradius = mradius*2. ;
+	double mradius = .025 ; // .015
+// 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
 	Matrix m0_steely( 3, 3 ) ;
@@ -1701,63 +1701,74 @@ int main( int argc, char *argv[] )
 	Matrix m0_paste= Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
 	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL) ;
 
-	Sample box( NULL, sampleLength*.5, sampleHeight + plateHeight*2., sampleLength*.25, 0 ) ;
+	Sample box( NULL, sampleLength, sampleHeight + plateHeight*2., 0, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
 
-	Sample sample( NULL, sampleLength*.5, sampleHeight, sampleLength*.25, 0 ) ;
-	Sample samplebulk( NULL, sampleLength*.5, sampleHeight, sampleLength*.25, 0 ) ;
-	Sample samplestirrupbulk( NULL, sampleLength*.5, sampleHeight, sampleLength*.25, 0 ) ;
+	Sample sample( NULL, sampleLength, sampleHeight, sampleLength*.0, 0 ) ;
+	Sample samplebulk( NULL, sampleLength, sampleHeight, sampleLength*.0, 0 ) ;
+	Sample samplestirrupbulk( NULL, sampleLength, sampleHeight, sampleLength*.0, 0 ) ;
 	
-	Sample topsupport( platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+	Sample topsupport( platewidth*2, plateHeight, 0, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupport.setBehaviour( new Stiffness( m0_paste ) ) ;
 
-	Sample topsupportbulk( platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+	Sample topsupportbulk( platewidth*2, plateHeight, 0, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupportbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
-	Sample topsupportstirrupbulk( platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+	Sample topsupportstirrupbulk( platewidth*2, plateHeight, 0, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupportstirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
 	Sample baseright( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
 	baseright.setBehaviour( new Stiffness( m0_paste ) ) ;
+	
+	Sample baseleft( platewidth, plateHeight, -supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+	baseleft.setBehaviour( new Stiffness( m0_paste ) ) ;
 
 	Sample baserightbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
 	baserightbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
+	
+	Sample baseleftbulk( platewidth, plateHeight, -supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+	baseleftbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
 	Sample baserightstirrupbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
 	baserightstirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
+	
+	Sample baseleftstirrupbulk( platewidth, plateHeight, -supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+	baseleftstirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
 	Sample toprightvoid( sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
 	toprightvoid.setBehaviour( new VoidForm() ) ;
+	
+	Sample topleftvoid( sampleLength*.5 - platewidth, plateHeight, -( sampleLength*.5 - platewidth )*.5 - platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+	topleftvoid.setBehaviour( new VoidForm() ) ;
 
-	Sample bottomcentervoid( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 )*.5, -sampleHeight*.5 - plateHeight*.5 ) ;
+	Sample bottomcentervoid( (supportLever - platewidth)*2., plateHeight, 0, -sampleHeight*.5 - plateHeight*.5 ) ;
 	bottomcentervoid.setBehaviour( new VoidForm() ) ;
 
 	Sample rightbottomvoid( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 )*.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
 	rightbottomvoid.setBehaviour( new VoidForm() ) ;
+	
+	Sample leftbottomvoid( supportMidPointToEndClearance - platewidth*.5, plateHeight, -sampleLength*.5 + ( supportMidPointToEndClearance - platewidth*.5 )*.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
+	leftbottomvoid.setBehaviour( new VoidForm() ) ;
 
-	Sample rebar0( sampleLength*.5 - rebarEndCover, rebarDiametre, ( sampleLength*.5 - rebarEndCover )*.5,  -sampleHeight*.5 + 0.064 ) ;
+	Sample rebar0( sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 ) ;
 
-	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
+	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
-	rebar0.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
 
-	Sample rebar1( sampleLength*.5 - rebarEndCover, rebarDiametre, ( sampleLength*.5 - rebarEndCover )*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
+	Sample rebar1( sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
 
-	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
+	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
-	rebar1.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
 
-	Sample rebar2( sampleLength*.5 - rebarEndCover, rebarDiametre, ( sampleLength*.5 - rebarEndCover )*.5,  sampleHeight*.5 - 0.064 ) ;
+	Sample rebar2( sampleLength - rebarEndCover, rebarDiametre, 0,  sampleHeight*.5 - 0.064 ) ;
 
-	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
+	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
-	rebar2.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
 
-	Sample rebar3( sampleLength*.5 - rebarEndCover, rebarDiametre, ( sampleLength*.5 - rebarEndCover )*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
+	Sample rebar3( sampleLength - rebarEndCover, rebarDiametre, 0,  sampleHeight*.5 - 0.064 - 0.085 ) ;
 
-	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6, MIRROR_X ) ) );
+	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
-	rebar3.getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
 
 	std::vector<Sample*> stirrups ;
 
@@ -1766,7 +1777,12 @@ int main( int argc, char *argv[] )
 		stirrups.push_back( new Sample( 0.0084261498, sampleHeight - 2.*( 0.064 ), 0.175 + i*0.35, 0. ) );
 		stirrups.back()->setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
-		stirrups.back()->getBehaviour()->getFractureCriterion()->setNeighbourhoodRadius( nradius );
+	}
+	for ( size_t i = 0 ;  i < 7 ; i++ )
+	{
+		stirrups.push_back( new Sample( 0.0084261498, sampleHeight - 2.*( 0.064 ), -0.175 - i*0.35, 0. ) );
+		stirrups.back()->setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	}
 
 
@@ -1774,26 +1790,28 @@ int main( int argc, char *argv[] )
 
 	featureTree = &F ;
 
+	
+// 	sample.setBehaviour( new Stiffness( m0_paste ) ) ;
+// 	samplebulk.setBehaviour( new Stiffness( m0_paste ) ) ;
+// 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
-	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
+	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->neighbourhoodRadius = nradius;
-	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
+	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->neighbourhoodRadius = nradius;
-	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL, MIRROR_X ) ) ;
+	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->neighbourhoodRadius = nradius;
 
 
 	F.addBoundaryCondition( load ) ;
 //	F.addBoundaryCondition(selfload) ;
 //	F.addBoundaryCondition(shrinkagex) ;
 //	F.addBoundaryCondition(shrinkagey) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) );
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( -supportLever, -sampleHeight*.5 - plateHeight) ) ) ;
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM, Point( -supportLever, -sampleHeight*.5 - plateHeight) ) ) ;
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5 - plateHeight) ) ) ;
 
 	int stirruplayer = 1 ;
@@ -1801,11 +1819,15 @@ int main( int argc, char *argv[] )
 
 	F.addFeature( NULL, &topsupport, rebarlayer, phi ) ;
 	F.addFeature( NULL, &baseright, rebarlayer, phi ) ;
+	F.addFeature( NULL, &baseleft, rebarlayer, phi ) ;
 	F.addFeature( NULL, &topsupportbulk ) ;
 	F.addFeature( NULL, &baserightbulk ) ;
+	F.addFeature( NULL, &baseleftbulk ) ;
 	F.addFeature( NULL, &toprightvoid ) ;
+	F.addFeature( NULL, &topleftvoid ) ;
 	F.addFeature( NULL, &bottomcentervoid ) ;
 	F.addFeature( NULL, &rightbottomvoid ) ;
+	F.addFeature( NULL, &leftbottomvoid ) ;
 	F.addFeature( NULL, &sample, rebarlayer, phi ) ;
 	F.addFeature( NULL, &samplebulk ) ;
 
@@ -1830,20 +1852,19 @@ int main( int argc, char *argv[] )
 
 		F.addFeature( stirrups.back(), &rebar0, rebarlayer, phi ) ;
 		F.addFeature( stirrups.back(), &rebar1, rebarlayer, phi ) ;
-// 		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
-// 		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
+		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
+		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
 	}
 	else
 	{
 		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
 		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
-// 		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
-// 		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
+		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
+		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
 	}
 
 
 	F.setSamplingFactor( &rebar0, 3 ) ;
-
 	F.setSamplingFactor( &rebar1, 3 ) ;
 	F.setSamplingFactor( &rebar2, 3 ) ;
 	F.setSamplingFactor( &rebar3, 3 ) ;
@@ -1852,7 +1873,8 @@ int main( int argc, char *argv[] )
 
 	triangles = F.getElements2D() ;
 	F.addPoint( new Point( supportLever, -sampleHeight*.5 - plateHeight ) ) ;
-// 	F.addPoint(new Point(platewidth, sampleHeight*.5)) ;
+	F.addPoint( new Point( -supportLever, -sampleHeight*.5 - plateHeight ) ) ;
+	F.addPoint(new Point(0, sampleHeight*.5+ plateHeight)) ;
 	F.setMaxIterationsPerStep( 1600 );
 
 	step() ;

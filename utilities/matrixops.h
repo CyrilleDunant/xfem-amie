@@ -55,6 +55,9 @@ public:
 	/** \brief Special case: construct a matrix with external memory storage.*/
 	Matrix(size_t x, size_t y, Vector * cache);
 	
+	/** \brief Construct a matrix from the product of two vectors.*/
+	Matrix(const Vector & v1, const Vector & v2);
+	
 	/** Construct a 0x0 matrix
 	 */
 	Matrix()
@@ -214,6 +217,8 @@ public:
 
 } ;
 
+std::pair<Vector, double> getLargestEigenValueAndVector(const Mu::Matrix & m) ;
+std::vector<std::pair<Vector, double> > deflate(const Mu::Matrix & m) ;
 
 /** \brief perform the inner product of two vector of doubles
 * @param v0 Pointer to the start of the first vector
