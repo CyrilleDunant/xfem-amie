@@ -141,8 +141,9 @@ double MCFT::grade( ElementState &s )
 	double maxTensionStrain = upVal/pseudoYoung;
 	std::vector<double> crits ;
 		
-	if(tstrain > tensionCritStrain )
+	if(tstrain > tensionCritStrain*0.45 )
 	{
+		strainBroken = true ;
 // 		pseudoYoung = std::max(tstress/tstrain, pseudoYoung) ;
 // 		std::cout << 0 << "  " << 0 << std::endl ;
 // 		for(double i = 0.0 ; i < 1 ; i += 0.001)
@@ -152,7 +153,7 @@ double MCFT::grade( ElementState &s )
 		double upTestVal = upVal ;
 		double factor = 1 ;
 		double delta_tech = strain_te-strain_ch;
-		while(std::abs(upTestVal-downTestVal) > 1e-14*upVal)
+		while(std::abs(upTestVal-downTestVal) > 1e-6*upVal)
 		{
 			
 			double testVal = (upTestVal+downTestVal)*.5/pseudoYoung ;
@@ -206,8 +207,8 @@ if(maxCompression < 0 &&  maxCompressionStrain < 0 &&  metInCompression)
 	crits.push_back(std::min(cstress/maxCompression, cstrain/maxCompressionStrain)) ;
 }
 
-if(maxTensionStrain > 0 && metInTension)
-	crits.push_back(tstrain/maxTensionStrain) ;
+if(maxTensionStrain > 0 && metInTension && tstrain > tensionCritStrain )
+	crits.push_back(std::min(tstrain/maxTensionStrain, tstress/maxTension)) ;
 
 if(crits.empty())
 	return -1 ;

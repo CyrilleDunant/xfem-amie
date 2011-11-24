@@ -682,7 +682,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			factors.back() += weight ;
 			fact += weight ;
 		}
-		double otherarea = 0 ;
+
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
@@ -715,7 +715,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 // 				}
 // 			}
 			
-			otherarea += ci->area() ;
 			//this is to eliminate scaling effects ;
 			double factor = 1.;//-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
@@ -726,7 +725,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			x = ci->getXTransform()-s.getParent()->getCenter().x ;
 			y = ci->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
-			rrn = rr/(mindist * mindist*-2.) ;
+			rrn = rr/(mindist * mindist * -2.) ;
 			order = s.getParent()->getOrder() ;
 			ci->setOrder(CUBIC) ;
 			smooth = f_exp(rrn) ;
@@ -748,7 +747,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				factors.back() += weight ;
 				ci->setOrder(order) ;
 				fact += weight ;
-				otherarea += ci->area() ;
 			}
 
 			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
@@ -764,7 +762,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
-				otherarea += ci->area() ;
 			}
 
 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -780,7 +777,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
-				otherarea += ci->area() ;
 			}
 
 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -796,7 +792,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				ci->setOrder(order) ;
 				factors.back() += weight ;
 				fact += weight ;
-				otherarea += ci->area() ;
 			}
 
 		}
@@ -1283,7 +1278,13 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		{
 			
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			if(!ci->getBehaviour()->getFractureCriterion())
+				factors[i+1] = 0 ;
+
 			iteratorValue = factors[i+1] ;
+			
+			if(ci->getBehaviour()->getDamageModel()->fractured())
+				iteratorValue = 0 ;
 
 			if(iteratorValue > POINT_TOLERANCE_2D)
 			{
@@ -2043,7 +2044,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-				if(ci->getBehaviour()->getFractureCriterion()  && dist(ci->getCenter(), s.getParent()->getCenter()) < 2.*physicalCharacteristicRadius)
+				if(ci->getBehaviour()->getFractureCriterion() /* && dist(ci->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*/)
 				{
 					double renormScore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 					sortedElements.insert( std::make_pair(-renormScore, ci)) ;

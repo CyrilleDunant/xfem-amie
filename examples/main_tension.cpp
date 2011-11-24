@@ -1444,7 +1444,7 @@ int main(int argc, char *argv[])
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = 0.004 ; // .010 ;//
+	double mradius = 0.01 ; // .010 ;//
 	double nradius = mradius*5. ;
 // 	double mradius = .25 ;
 	double length =  0.3048 ; //1.300*.5;//
@@ -1452,7 +1452,7 @@ int main(int argc, char *argv[])
 	double nu_steel = 0.2 ; 
 	
 	double nu = 0.2 ;
-	double E_paste = 27.3e9 ;
+	double E_paste = 30e9 ;
 	
 	Matrix m0_paste= Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
 	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL) ;
@@ -1461,7 +1461,7 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(0.1200, .1500, 0.1200*.0, .1500*.0) ;
+	Sample samplef(0.0600, .1200, 0.1200*.0, .1500*.0) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
@@ -1495,8 +1495,8 @@ int main(int argc, char *argv[])
 	
 	FeatureTree F(&samplef) ;
 	featureTree = &F ;
-	Pore inc(.015, 0, 0) ;
-// 	F.addFeature(&samplef, &inc);
+	Pore inc(.0025, 0, 0) ;
+	F.addFeature(&samplef, &inc);
 // 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new NonLocalVonMises(20e6*0.9, mradius)/*new DruckerPrager(20e6*1.1,0.1 , mradius)*/, new PlasticStrain()));
 // 	inc.setBehaviourSource(&samplef);
 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new /*NonLocalVonMises(20e6, E_paste, mradius)*/DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
