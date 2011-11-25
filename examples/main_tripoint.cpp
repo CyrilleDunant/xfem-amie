@@ -1667,7 +1667,7 @@ int main( int argc, char *argv[] )
 	double phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .004 ; // .015
+	double mradius = .015 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;

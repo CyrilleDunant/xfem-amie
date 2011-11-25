@@ -294,6 +294,7 @@ NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double
 	tensionCritStrain = upVal / youngModulus ;
 	strainBroken = false ;
 	initialised = false ;
+	scaleFactor = 1 ;
 }
 
 
@@ -356,10 +357,10 @@ double NonLocalMCFT::grade( ElementState &s )
 	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s) ;
 	double tstrain = stressStrain.second.max();
 	double cstrain = stressStrain.second.min();
-	double tstress = stressStrain.first.max();
-	double cstress = stressStrain.first.min();
+	double tstress = stressStrain.first.max()/scaleFactor;
+	double cstress = stressStrain.first.min()/scaleFactor;
 
-	double pseudoYoung = youngModulus*(1.-std::min(s.getParent()->getBehaviour()->getDamageModel()->getState().max(), 1.-1e-12));
+	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
 	if(pseudoYoung < 1e-9)
 		return -1 ;
 	double maxCompression = downVal  ;
@@ -414,7 +415,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		double upTestVal = upVal ;
 		double factor = 1 ;
 		double delta_tech = strain_te-strain_ch;
-		while(std::abs(upTestVal-downTestVal) > 1e-14*upVal)
+		while(std::abs(upTestVal-downTestVal) > 1e-6*upVal)
 		{
 			
 			double testVal = (upTestVal+downTestVal)*.5/pseudoYoung ;

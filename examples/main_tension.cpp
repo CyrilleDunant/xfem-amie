@@ -1496,7 +1496,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&samplef) ;
 	featureTree = &F ;
 	Pore inc(.0025, 0, 0) ;
-	F.addFeature(&samplef, &inc);
+// 	F.addFeature(&samplef, &inc);
 // 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ,new NonLocalVonMises(20e6*0.9, mradius)/*new DruckerPrager(20e6*1.1,0.1 , mradius)*/, new PlasticStrain()));
 // 	inc.setBehaviourSource(&samplef);
 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new /*NonLocalVonMises(20e6, E_paste, mradius)*/DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;

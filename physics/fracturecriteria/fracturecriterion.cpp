@@ -1283,8 +1283,18 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 			iteratorValue = factors[i+1] ;
 			
-			if(ci->getBehaviour()->getDamageModel()->fractured())
+// 			double fractureDistance = 0. ;
+// 			
+// 			if(ci->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel())
+// 			{
+// 				Vector dstate = std::abs(ci->getBehaviour()->getDamageModel()->getState() - s.getParent()->getBehaviour()->getDamageModel()->getState()) ;
+// 				fractureDistance = sqrt(std::inner_product(&dstate[0], &dstate[dstate.size()], &dstate[0], 0.)) ;
+// 			}
+			
+			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->fractured())
 				iteratorValue = 0 ;
+			
+// 			iteratorValue *= 1.-fractureDistance ;
 
 			if(iteratorValue > POINT_TOLERANCE_2D)
 			{
@@ -2384,11 +2394,11 @@ void FractureCriterion::step(ElementState &s)
 		criterionDamageDifferential = dedc.second ;
 	}
 	
-	if(s.getParent()->getBehaviour()->fractured())
-	{
-		scoreAtState = -1 ;
-		return ;
-	}
+// 	if(s.getParent()->getBehaviour()->fractured())
+// 	{
+// 		scoreAtState = -1 ;
+// 		return ;
+// 	}
 	scoreAtState = grade(s) ;
 	
 }

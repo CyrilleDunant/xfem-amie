@@ -26,7 +26,7 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 	param = NULL ;
 	plasticVariable = 0 ;
 	c_psi = 0.05 ;
-	eps_f = 0.0057 ;
+	eps_f = 0.0081; //0.0057 ;
 	kappa_0 = 3.350e-3 ; //5 up ; 4 down
 }
 
@@ -108,8 +108,11 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 			imposedStrain[1] = incrementalStrainMatrix[1][1] ;
 			imposedStrain[2] = incrementalStrainMatrix[0][1] ;
 			
-			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
-			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
+			if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
+			{
+				imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
+				imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
+			}
 		}
 		
 	return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
@@ -190,8 +193,8 @@ double PlasticStrain::getDamage() const
 {
 	Vector istrain = imposedStrain*getState()[0] ;
 	double currentPlaticVariable = plasticVariable+sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-	if(currentPlaticVariable > kappa_0)
-		return 1.-exp(-(currentPlaticVariable-kappa_0)/eps_f) ;
+	if(currentPlaticVariable > kappa_0*0.9)
+		return 1.-exp(-(currentPlaticVariable-kappa_0*0.9)/eps_f) ;
 	return 0 ;
 }
 

@@ -80,6 +80,7 @@ public:
 	double strain_ch ;
 	double strain_te ;
 	bool initialised ;
+	double scaleFactor ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
@@ -102,9 +103,10 @@ public:
 	
 	virtual void scale(double d) 
 	{
-		upVal *= d ; 
-		downVal *= d ;
-		youngModulus *=d ;
+		scaleFactor = d ;
+// 		upVal *= d ; 
+// 		downVal *= d ;
+// 		youngModulus *=d ;
 		initialised = false ;
 // 		tensionCritStrain /= d ;
 // 		critStrain /= d ;

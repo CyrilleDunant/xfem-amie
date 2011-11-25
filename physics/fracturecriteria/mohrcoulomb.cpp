@@ -146,7 +146,7 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 	metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
 	double effectiveStiffness = stiffness ;
-	if(s.getParent()->getBehaviour() && s.getParent()->getBehaviour()->getDamageModel())
+	if(s.getParent()->getBehaviour()->getDamageModel())
 		effectiveStiffness =stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 	std::vector<double> scores ;
 	scores.push_back(-1);

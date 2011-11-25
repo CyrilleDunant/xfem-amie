@@ -43,10 +43,10 @@ double DruckerPrager::grade(ElementState &s)
 		Vector istrain = ps->imposedStrain*ps->getState()[0] ;
 		double kappa_p = ps->plasticVariable+sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 	
-		if(std::abs(str).max() > .0001*upthreshold || kappa_p > POINT_TOLERANCE_2D)
+		if(std::abs(str).max() > .01*upthreshold || kappa_p > POINT_TOLERANCE_2D)
 		{
 			if(kappa_p < kappa_0 )
-				factor = 0.001+0.999*(kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0) ;
+				factor = 1e-6+(1-1e-6)*(kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0) ;
 			else
 				factor = 1. ;
 		}
@@ -68,18 +68,18 @@ double DruckerPrager::grade(ElementState &s)
 	}
 	if(maxStress > upthreshold*factor && maxStress > 0)
 	{
-		return 1. - factor*upthreshold/maxStress ;
+		return 1. - std::abs(factor*upthreshold/maxStress) ;
 	}
-	else if(maxStress > 0)
+	else if(maxStress >= 0)
 	{
-		return -1.+ maxStress/(factor*upthreshold);
+		return -1.+ std::abs(maxStress/(factor*upthreshold));
 	}
-	else if(maxStress < factor*downthreshold && maxStress <= 0)
+	else if(maxStress < factor*downthreshold && maxStress < 0)
 	{
-		return 1. - factor*downthreshold/maxStress ;
+		return 1. - std::abs(factor*downthreshold/maxStress) ;
 	}
 	else
-		return -1.+ maxStress/(factor*downthreshold);
+		return -1.+std::abs( maxStress/(factor*downthreshold));
 	
 	return -1 ;
 
