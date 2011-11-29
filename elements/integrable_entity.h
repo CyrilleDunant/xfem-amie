@@ -520,6 +520,8 @@ public:
 
 	virtual FractureCriterion * getFractureCriterion() const { return NULL ; }
 	
+	virtual void setFractureCriterion(FractureCriterion * frac) { } 
+	
 	virtual DamageModel * getDamageModel() const { return NULL ; }
 	
 } ;

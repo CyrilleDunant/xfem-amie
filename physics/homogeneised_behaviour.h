@@ -57,6 +57,8 @@ namespace Mu
 		HomogeneisedBehaviour(FeatureTree * mesh, DelaunayTetrahedron * self) ;
 
 		HomogeneisedBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) ;
+		
+		void updateEquivalentBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) ;
 
 
 		virtual ~HomogeneisedBehaviour() ;

@@ -170,29 +170,45 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	{
 		Form * original ;
 		HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
-		if(hom)
+		if(hom && disc.size() > 1)
 		{
+			FractureCriterion * frac = hom->getFractureCriterion() ;
+			if(frac)
+				frac = frac->getCopy() ;
 			disc[i]->setBehaviour(hom->original->getCopy()) ;
-			delete hom ;
+			disc[i]->getBehaviour()->setFractureCriterion(frac) ;
+		}
+		else if(hom)
+		{
+			std::vector<Feature *> brother ;
+			if(getFather())
+				brother = this->getFather()->getChildren() ;
+			std::vector<Feature *> feat ;
+			for(size_t i = 0 ; i < brother.size() ; i++)
+			{
+				if(disc[0]->in(brother[i]->getCenter()))
+					feat.push_back(brother[i]) ;
+			}
+			hom->updateEquivalentBehaviour(feat, disc[0]) ;
+		} 
+		else if(disc.size() == 1)
+		{
+			std::vector<Feature *> brother ;
+			if(getFather())
+				brother = this->getFather()->getChildren() ;
+			std::vector<Feature *> feat ;
+			for(size_t i = 0 ; i < brother.size() ; i++)
+			{
+				if(disc[0]->in(brother[i]->getCenter()))
+					feat.push_back(brother[i]) ;
+			}
+			HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[0]) ;
+			disc[0]->setBehaviour(hom2) ;
+			//		updated = true ;
+			return ;
 		}
 	}
 
-	if(disc.size() == 1) // special case for really small inclusions
-	{
-		std::vector<Feature *> brother ;
-		if(getFather())
-			brother = this->getFather()->getChildren() ;
-		std::vector<Feature *> feat ;
-		for(size_t i = 0 ; i < brother.size() ; i++)
-		{
-			if(disc[0]->in(brother[i]->getCenter()))
-				feat.push_back(brother[i]) ;
-		}
-		HomogeneisedBehaviour * hom = new HomogeneisedBehaviour(feat, disc[0]) ;
-		disc[0]->setBehaviour(hom) ;
-//		updated = true ;
-		return ;
-	}
 	
 	
 // 	std::cout << "not-homogeneized" << std::endl ;

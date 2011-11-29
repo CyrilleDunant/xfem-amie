@@ -94,6 +94,7 @@ namespace Mu
 
 		virtual DamageModel * getDamageModel() const ;
 
+		virtual void setFractureCriterion(FractureCriterion * frac) ;
 		
 		
 	} ;

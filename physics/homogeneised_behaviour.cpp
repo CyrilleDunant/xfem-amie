@@ -77,6 +77,30 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 	
 }
 
+void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) 
+{
+
+	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
+	FractureCriterion * frac = equivalent->getFractureCriterion() ;
+	FractureCriterion * fracCopy = NULL ;
+	if(frac)
+	{
+		fracCopy = frac->getCopy() ;
+	}
+	delete equivalent ;
+	equivalent = composite.getBehaviour() ;
+	if(fracCopy)
+	{
+		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
+		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
+		delete equivalent ;
+		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,fracCopy) ;
+	}
+	
+	
+}
+
+
 
 HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahedron *self ) : LinearForm( Matrix(), false, false, 3 ), mesh( mesh ), self2d( NULL ), self3d( self ), equivalent( NULL )
 {
@@ -99,7 +123,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahe
 
 HomogeneisedBehaviour::~HomogeneisedBehaviour()
 {
-	delete equivalent ;
+//	delete equivalent ;
 } ;
 
 

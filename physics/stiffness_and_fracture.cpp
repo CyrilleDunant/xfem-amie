@@ -106,5 +106,14 @@ Matrix StiffnessAndFracture::getTensor(const Point & p) const
 	return dfunc->apply(param) ;
 }
 
+void StiffnessAndFracture::setFractureCriterion(FractureCriterion * frac) 
+{
+	if(frac)
+	{
+// //		delete criterion ;
+		criterion = frac ;
+	}
+	
+}
 
 
