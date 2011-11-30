@@ -80,12 +80,13 @@ public:
 	double strain_ch ;
 	double strain_te ;
 	bool initialised ;
+	bool reinforced ;
 	double scaleFactor ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	NonLocalMCFT(double up, double down, double youngModulus, double charDistance, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	NonLocalMCFT(double up, double down, double youngModulus, double charDistance, bool reinforced = false, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 	virtual ~NonLocalMCFT();
 

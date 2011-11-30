@@ -31,7 +31,9 @@ double DruckerPrager::grade(ElementState &s)
 	double factor = 1 ;
 	metInCompression = true ;
 	metInTension = true ;
-	Vector str( smoothedStressAndStrain(s, EFFECTIVE_STRESS).first ) ;
+	std::pair<Vector, Vector> stressstrain( smoothedStressAndStrain(s, EFFECTIVE_STRESS) ) ;
+	Vector str = stressstrain.first ;
+	Vector stra = stressstrain.second ;
 	double maxStress = 0 ;
 	
 	//hardening function from Jirasek et al.
@@ -41,16 +43,16 @@ double DruckerPrager::grade(ElementState &s)
 		double kappa_0 = ps->kappa_0 ;
 		double sigma_y = upthreshold ;
 		Vector istrain = ps->imposedStrain*ps->getState()[0] ;
-		double kappa_p = ps->plasticVariable+sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-	
+		double kappa_p = ps->plasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+		
 		if(std::abs(str).max() > .01*upthreshold || kappa_p > POINT_TOLERANCE_2D)
 		{
 			if(kappa_p < kappa_0 )
-				factor = 1e-6+(1-1e-6)*(kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0) ;
+				factor = std::max((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0),0.001) ;
 			else
 				factor = 1. ;
 		}
-// 		std::cout << kappa_p << "  " << kappa_0 << std::endl ;
+// 		std::cout << kappa_0 << " vs " << kappa_p << " :  " <<  (kappa_p < kappa_0) << " : "<< factor << std::endl ;
 		
 	}
 	

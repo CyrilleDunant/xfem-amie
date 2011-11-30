@@ -1290,7 +1290,7 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 			double randx= 0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongX-1)
 			randx = 0 ;
-		boundingPoints[numberOfPointsAlongY+i-1] = new Point( center.x-0.5*size_x+i*distanceBetweenPointsAlongX+ randx, 
+		boundingPoints[numberOfPointsAlongY+i-1] = new Point( center.x-0.5*size_x + i*distanceBetweenPointsAlongX+ randx, 
 			getCenter().y-0.5*size_y);
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongY ; i++)
@@ -1325,6 +1325,7 @@ void Rectangle::sampleSurface(size_t num_points)
 	{
 		sampleBoundingSurface((size_t)round((double)num_points*0.3*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;
 	}
+
 	size_t nip = static_cast<size_t>((numberOfPointsAlongX-2)*(numberOfPointsAlongY-2)) ;
 	
 	for(size_t i = 0 ; i < inPoints.size() ; i++)

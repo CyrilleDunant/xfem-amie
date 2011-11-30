@@ -20,13 +20,12 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 	getState(true).resize(1, 0.);
 	getPreviousState().resize(1, 0.);
 	isNull = false ;
-	es = NULL ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	param = NULL ;
 	plasticVariable = 0 ;
 	c_psi = 0.05 ;
-	eps_f = 0.0081; //0.0057 ;
+	eps_f = 0.006; //0.0057 ;
 	kappa_0 = 3.350e-3 ; //5 up ; 4 down
 }
 
@@ -71,49 +70,56 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 	
 	if(!param)
 		param = new Matrix(s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
-	if(!es)
-		es =&s ;
 
-
-		if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
+	{
+		Vector imposed = getImposedStrain(s.getParent()->getCenter()) ;
+		Matrix stressMatrix(v.size(), v.size()) ;
+		std::pair<Vector, Vector> stressstrain = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s, EFFECTIVE_STRESS) ;
+		Vector stress = stressstrain.first ;
+		Vector strain = stressstrain.second;
+		stressMatrix[0][0] = stress[0] ;
+		stressMatrix[1][1] = stress[1] ;
+		stressMatrix[0][1] = stress[2] ;
+		stressMatrix[1][0] = stress[2] ;
+		Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
+		double iftynorm = std::abs(stressMatrix.array()).max()+.1 ;
+		
+		for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
 		{
-			
-			Matrix stressMatrix(v.size(), v.size()) ;
-			Vector stress = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s, EFFECTIVE_STRESS).first ;
-// 			Vector stress = s.getStress(s.getParent()->getCenter(), false, EFFECTIVE_STRESS) ;
-			Vector strain = s.getStrain(s.getParent()->getCenter(), false) -imposedStrain;
-			stressMatrix[0][0] = stress[0] ;
-			stressMatrix[1][1] = stress[1] ;
-			stressMatrix[0][1] = stress[2] ;
-			stressMatrix[1][0] = stress[2] ;
-			Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
-			
-			for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
+			for(size_t j = i ; j < stressMatrix.numCols() ; j++)
 			{
-				for(size_t j = i ; j < stressMatrix.numCols() ; j++)
-				{
-					Matrix m_p(stressMatrix) ;
-					Matrix m_m(stressMatrix) ;
-					double delta = 1e-6 ; //std::max(std::abs(stressMatrix[i][j]), 1.)*1e-6 ;
-					m_p[i][j] += delta ;
-					m_m[i][j] -= delta ;
-					incrementalStrainMatrix[i][j] = (plasticFlowPotential(m_p)-plasticFlowPotential(m_m))/(2.*delta) ;
-				}
-			}
-// 			incrementalStrainMatrix.print() ;
-// 			exit(0) ;
-// 			double str = s.getMaximumVonMisesStress() ;
-// 			double down_str = str ;
-			imposedStrain[0] = incrementalStrainMatrix[0][0] ;
-			imposedStrain[1] = incrementalStrainMatrix[1][1] ;
-			imposedStrain[2] = incrementalStrainMatrix[0][1] ;
-			
-			if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
-			{
-				imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
-				imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
+				Matrix m_p(stressMatrix) ;
+				Matrix m_m(stressMatrix) ;
+				Matrix m_p2(stressMatrix) ;
+				Matrix m_m2(stressMatrix) ;
+				double delta = 1e-2*iftynorm ;
+				m_p[i][j] += delta ;
+				m_m[i][j] -= delta ;
+				m_p2[i][j] += 2.*delta ;
+				m_m2[i][j] -=  2.*delta ;
+				incrementalStrainMatrix[i][j] = 0.25 * ( plasticFlowPotential(m_m2)/12. -2./3.*plasticFlowPotential(m_m)-plasticFlowPotential(m_p2)/12. +2./3.*plasticFlowPotential(m_p) ) / delta ;
 			}
 		}
+// 			stressMatrix.print();
+// 			incrementalStrainMatrix.print() ;
+// 			if(incrementalStrainMatrix[0][1] > POINT_TOLERANCE_2D)
+// 			{
+// 				stressMatrix.print();
+// 				exit(0) ;
+// 			}
+// 			double str = s.getMaximumVonMisesStress() ;
+// 			double down_str = str ;
+		imposedStrain[0] = incrementalStrainMatrix[0][0] ;
+		imposedStrain[1] = incrementalStrainMatrix[1][1] ;
+		imposedStrain[2] = incrementalStrainMatrix[0][1] ;
+		
+		if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
+		{
+			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
+			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2])*.1;
+		}
+	}
 		
 	return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
 
@@ -170,7 +176,7 @@ Vector PlasticStrain::getImposedStress(const Point & p) const
 		return Vector(0., 6) ;
 	}
 		
-	return  (Vector)(*param*(1.-getDamage())*(imposedStrain*getState()[0]+previousImposedStrain)) ;
+	return  (Vector)(*param*(1.-getDamage())*getImposedStrain(p)) ;
 }
 
 Vector PlasticStrain::getImposedStrain(const Point & p) const
@@ -193,8 +199,8 @@ double PlasticStrain::getDamage() const
 {
 	Vector istrain = imposedStrain*getState()[0] ;
 	double currentPlaticVariable = plasticVariable+sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-	if(currentPlaticVariable > kappa_0*0.9)
-		return 1.-exp(-(currentPlaticVariable-kappa_0*0.9)/eps_f) ;
+	if(currentPlaticVariable > kappa_0)
+		return 1.-exp(-(currentPlaticVariable-kappa_0)/eps_f) ;
 	return 0 ;
 }
 
@@ -207,7 +213,7 @@ bool PlasticStrain::fractured() const
 
 void PlasticStrain::postProcess()
 {
-	if(converged && es && getState()[0] > POINT_TOLERANCE_2D)
+	if(converged && getState()[0] > POINT_TOLERANCE_2D)
 	{
 		previousImposedStrain += imposedStrain*getState()[0] ;
 		plasticVariable += sqrt(2./3.)*sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2])*getState()[0] ;

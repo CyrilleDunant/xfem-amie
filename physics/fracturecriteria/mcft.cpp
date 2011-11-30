@@ -286,8 +286,8 @@ double MCFT::getTensileLimit(const ElementState & s) const
 } ;
 
 
-NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double charRad, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( up ), downVal( down ), youngModulus(youngModulus)
+NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double charRad, bool reinforced, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
+	, upVal( up ), downVal( down ), youngModulus(youngModulus), reinforced(reinforced)
 {
 	physicalCharacteristicRadius = charRad ;
 	critStrain = -0.0015;
@@ -334,23 +334,18 @@ double NonLocalMCFT::grade( ElementState &s )
 			k = 0.5*(k_low+k_high) ;
 			
 			for(double i = 0 ; i < 20000 ; i++)
-			{
 				integral+= 0.5*(upVal/(1.+sqrt(k*(i)/20000.*del_0)) + upVal/(1.+sqrt(k*(i+1)/20000.*del_0)))*del_0*0.5e-4 ;
-			}
 			
 			for(double i = 0 ; i < 20000 ; i++)
-			{
 				integral+= 0.5*(upVal/(1.+sqrt(k*((i)/20000.*del_1+del_0)))+upVal/(1.+sqrt(k*((i+1)/20000.*del_1+del_0))))*del_1*0.5e-4 ;
-			}
 			
 			if(integral < energy)
-			{
 				k_high = k ;
-			}
 			else
 				k_low = k ;
 			
 		} while(std::abs(k_low-k_high) > 1e-6) ;
+		
 		initialised = true ;
 	}
 	
@@ -389,6 +384,7 @@ double NonLocalMCFT::grade( ElementState &s )
 
 		if(n*f_p/(epsilon_p*pseudoYoung)-n+1. < 0)
 			return -1 ;
+		
 		double rcs = pow(n*f_p/(epsilon_p*pseudoYoung)-n+1., 1./(n*k_c)) ;
 		double testVal = rcs*epsilon_p*pseudoYoung ;
 
@@ -396,6 +392,7 @@ double NonLocalMCFT::grade( ElementState &s )
 			k_c = 1. ;
 		else
 			k_c = 0.67 - f_p/62e6 ;
+		
 		rcs = pow(n*f_p/(epsilon_p*pseudoYoung)-n+1., 1./(n*k_c)) ;
 		testVal = rcs*epsilon_p*pseudoYoung ;
 
@@ -417,7 +414,6 @@ double NonLocalMCFT::grade( ElementState &s )
 		double delta_tech = strain_te-strain_ch;
 		while(std::abs(upTestVal-downTestVal) > 1e-6*upVal)
 		{
-			
 			double testVal = (upTestVal+downTestVal)*.5/pseudoYoung ;
 			double mainCurve = 1./(1.+sqrt(k*(testVal-tensionCritStrain))) ;
 			
@@ -431,26 +427,23 @@ double NonLocalMCFT::grade( ElementState &s )
 				factor = 0 ;
 		
 			if( testVal*pseudoYoung > upVal*factor )
-			{
 				upTestVal = testVal*pseudoYoung ;
-			}
 			else
-			{
 				downTestVal = testVal*pseudoYoung ;
-			}
 			
 		}
 		
 		
 		maxTension = (upTestVal+downTestVal)*.5 ;
 		maxTensionStrain = (upTestVal+downTestVal)*.5/pseudoYoung ;
-
 		if(factor < POINT_TOLERANCE_2D)
 			return -1. ;
 
 	}
 
 
+if(reinforced)
+	tstrain /= 3./2.*M_PI ;
 
 if(cstrain < 0 && tstrain < 0)
 	metInCompression = true ;
@@ -466,7 +459,8 @@ if(maxCompression < 0 &&  maxCompressionStrain < 0 )
 	crits.push_back(std::min(cstress/maxCompression, cstrain/maxCompressionStrain)) ;
 
 if(maxTensionStrain > 0 && maxTensionStrain > 0 )
-	crits.push_back(std::min(tstress/maxTension, tstrain/maxTensionStrain)) ;
+	crits.push_back(tstrain/maxTensionStrain) ;
+
 
 if(crits.empty())
 	return -1 ;

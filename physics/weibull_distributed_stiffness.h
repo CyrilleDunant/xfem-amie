@@ -46,7 +46,7 @@ namespace Mu
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param cri stress limit for the Mohr - Coulomb criterion to use
 		*/
-		WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
+		WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
 		
 		void setMaterialCharacteristicRadius(double r) {materialRadius = r ;} ;
 		void setNeighbourhoodRadius(double r) {neighbourhoodRadius = r ;}

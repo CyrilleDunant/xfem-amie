@@ -1769,6 +1769,27 @@ int main( int argc, char *argv[] )
 
 	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	
+	Sample vrebar0( sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 ) ;
+	vrebar0.isVirtualFeature = true ;
+	vrebar0.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) );
+	dynamic_cast<ConcreteBehaviour *>( vrebar0.getBehaviour() )->materialRadius = mradius ;
+
+	Sample vrebar1( sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
+	vrebar1.isVirtualFeature = true ;
+	vrebar1.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) );
+	dynamic_cast<ConcreteBehaviour *>( vrebar1.getBehaviour() )->materialRadius = mradius ;
+
+	Sample vrebar2( sampleLength - rebarEndCover, rebarDiametre, 0,  sampleHeight*.5 - 0.064 ) ;
+	vrebar2.isVirtualFeature = true ;
+	vrebar2.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) );
+	dynamic_cast<ConcreteBehaviour *>( vrebar2.getBehaviour() )->materialRadius = mradius ;
+
+	Sample vrebar3( sampleLength - rebarEndCover, rebarDiametre, 0,  sampleHeight*.5 - 0.064 - 0.085 ) ;
+	vrebar3.isVirtualFeature = true ;
+	vrebar3.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) );
+	dynamic_cast<ConcreteBehaviour *>( vrebar3.getBehaviour() )->materialRadius = mradius ;
+	
 
 	std::vector<Sample*> stirrups ;
 
@@ -1795,13 +1816,13 @@ int main( int argc, char *argv[] )
 // 	samplebulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 // 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
-	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL ) ) ;
+	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
-	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL ) ) ;
+	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRESS, false, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
-	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL ) ) ;
+	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
 
@@ -1837,7 +1858,7 @@ int main( int argc, char *argv[] )
 		F.addFeature( NULL, &baserightstirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( NULL, &topsupportstirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( &sample, stirrups[0], stirruplayer, psi ) ;
-			F.setSamplingFactor( stirrups[0], 3 ) ;
+		F.setSamplingFactor( stirrups[0], 3 ) ;
 
 		int nstirrups = 7 ;
 
@@ -1852,22 +1873,31 @@ int main( int argc, char *argv[] )
 
 		F.addFeature( stirrups.back(), &rebar0, rebarlayer, phi ) ;
 		F.addFeature( stirrups.back(), &rebar1, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
+// 		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &vrebar0 ) ;
+// 		F.addFeature( &sample, &vrebar1 ) ;
+// 		F.addFeature( &sample, &vrebar2 ) ;
+// 		F.addFeature( &sample, &vrebar3 ) ;
 	}
 	else
 	{
 		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
 		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
-		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
-		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &vrebar0 ) ;
+// 		F.addFeature( &sample, &vrebar1 ) ;
+// 		F.addFeature( &sample, &vrebar2 ) ;
+// 		F.addFeature( &sample, &vrebar3 ) ;
 	}
 
 
+	F.setSamplingFactor( &bottomcentervoid, 3 ) ;
 	F.setSamplingFactor( &rebar0, 3 ) ;
 	F.setSamplingFactor( &rebar1, 3 ) ;
-	F.setSamplingFactor( &rebar2, 3 ) ;
-	F.setSamplingFactor( &rebar3, 3 ) ;
+// 	F.setSamplingFactor( &rebar2, 3 ) ;
+// 	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
 	F.setOrder( LINEAR ) ;
 

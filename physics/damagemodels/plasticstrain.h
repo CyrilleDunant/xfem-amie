@@ -22,7 +22,6 @@ namespace Mu {
 class PlasticStrain : public DamageModel
 {
 public:
-	ElementState * es ;
 	std::vector<Variable> v ;
 	Matrix * param ;
 	Vector imposedStrain ;
