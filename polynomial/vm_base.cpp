@@ -594,7 +594,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 				double h = eps ;
 				volatile double temp = x+h ;
 				h = temp - x ;
-				return 0.25 * ( eval(f, x-2.*h, y, z, t, u, v, w)/12. -2./3. * eval(f, x-h, y, z, t, u, v, w)- eval(f, x+2.*h, y, z, t, u, v, w)/12. +2./3.* eval(f, x+h, y, z, t, u, v, w) ) / h ;
+				return ( eval(f, x-2.*h, y, z, t, u, v, w)/12. -2./3. * eval(f, x-h, y, z, t, u, v, w)- eval(f, x+2.*h, y, z, t, u, v, w)/12. +2./3.* eval(f, x+h, y, z, t, u, v, w) ) / h ;
 				return .5*( eval(f, x+h, y, z, t, u, v, w) - eval(f, x-h, y, z, t, u, v, w))/h ;
 			}
 		case ETA:
@@ -602,7 +602,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 				double h = eps ;
 				volatile double temp = y+h ;
 				h = temp - y ;
-				return 0.25 * ( eval(f, x, y-2.*h, z, t, u, v, w)/12. -2./3. * eval(f, x, y-h, z, t, u, v, w)- eval(f, x, y+2.*h, z, t, u, v, w)/12. +2./3.* eval(f, x, y+h, z, t, u, v, w) ) / h ;
+				return ( eval(f, x, y-2.*h, z, t, u, v, w)/12. -2./3. * eval(f, x, y-h, z, t, u, v, w)- eval(f, x, y+2.*h, z, t, u, v, w)/12. +2./3.* eval(f, x, y+h, z, t, u, v, w) ) / h ;
 				return .5*( eval(f, x, y+h, z, t, u, v, w) - eval(f, x, y-h, z, t, u, v, w))/h ;
 			}
 		case ZETA:
@@ -610,7 +610,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 				double h = eps ;
 				volatile double temp = z+h ;
 				h = temp - z ;
-				return 0.25 * ( eval(f, x, y, z-2.*h, t, u, v, w)/12. -2./3. * eval(f, x, y, z-h, t, u, v, w)- eval(f, x, y, z+2.*h, t, u, v, w)/12. +2./3.* eval(f, x, y, z+h, t, u, v, w) ) / h ;
+				return ( eval(f, x, y, z-2.*h, t, u, v, w)/12. -2./3. * eval(f, x, y, z-h, t, u, v, w)- eval(f, x, y, z+2.*h, t, u, v, w)/12. +2./3.* eval(f, x, y, z+h, t, u, v, w) ) / h ;
 				return .5*( eval(f, x, y, z+h, t, u, v, w) - eval(f, x, y, z-h, t, u, v, w))/h ;
 			}
 		case TIME_VARIABLE : 
@@ -618,7 +618,7 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 				double h = eps ;
 				volatile double temp = t+h ;
 				h = temp - t ;
-				return 0.25 * ( eval(f, x, y, z, t-2.*h, u, v, w)/12. -2./3. * eval(f, x, y, z, t-h, u, v, w)- eval(f, x, y, z, t+2.*h, u, v, w)/12. +2./3.* eval(f, x, y, z, t+h, u, v, w) ) / h ;
+				return ( eval(f, x, y, z, t-2.*h, u, v, w)/12. -2./3. * eval(f, x, y, z, t-h, u, v, w)- eval(f, x, y, z, t+2.*h, u, v, w)/12. +2./3.* eval(f, x, y, z, t+h, u, v, w) ) / h ;
 				return .5*(eval(f, x, y, z, t+h, u, v, w) - eval(f, x, y, z, t-h, u, v, w))/(h) ;
 			}
 		case U_VARIABLE:
