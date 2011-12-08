@@ -24,8 +24,8 @@ class RotatingCrack : public DamageModel
 protected:
 	double currentAngle ;
 	Vector damages ;
+	double currentDamage ;
 	
-	double getDamage() ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
@@ -54,6 +54,8 @@ public:
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const  ;
+	
+	virtual void postProcess() ;
 	
 	virtual DamageModel * getCopy() const { return new RotatingCrack() ;}
 };

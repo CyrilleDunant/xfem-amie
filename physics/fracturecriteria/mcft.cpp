@@ -442,8 +442,8 @@ double NonLocalMCFT::grade( ElementState &s )
 	}
 
 
-if(reinforced)
-	tstrain /= 3./2.*M_PI ;
+// if(reinforced)
+// 	tstrain /= 3./2.*M_PI ;
 
 if(cstrain < 0 && tstrain < 0)
 	metInCompression = true ;

@@ -4923,7 +4923,7 @@ void ElementState::step( double dt, const Vector *d )
 
 	history.push_back( ElementState( *this ) ) ;
 
-	if( parent->getBehaviour()->type != VOID_BEHAVIOUR )
+	if( parent->getBehaviour()&& parent->getBehaviour()->type != VOID_BEHAVIOUR )
 	{
 		previousPreviousTimePos = previousTimePos ;
 		previousTimePos = timePos ;
@@ -4942,7 +4942,10 @@ void ElementState::step( double dt, const Vector *d )
 		{
 			for( size_t j = 0 ; j < ndofs ; j++ )
 			{
-				buffer[i * ndofs + j] = ( *d )[ids[i] * ndofs + j] ;
+				if(ids[i] * ndofs + j < d->size())
+					buffer[i * ndofs + j] = ( *d )[ids[i] * ndofs + j] ;
+				else
+					buffer[i * ndofs + j] = 0 ;
 			}
 		}
 
@@ -4951,7 +4954,12 @@ void ElementState::step( double dt, const Vector *d )
 		for( size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++ )
 		{
 			for( size_t j = 0 ; j < ndofs ; j++ )
-				buffer[i * ndofs + nbp * ndofs + j] = ( *d )[ids[i + nbp] * ndofs + j] ;
+			{
+				if(ids[i + nbp] * ndofs + j < d->size())
+					buffer[i * ndofs + nbp * ndofs + j] = ( *d )[ids[i + nbp] * ndofs + j] ;
+				else
+					buffer[i * ndofs + nbp * ndofs + j] = 0 ;
+			}
 		}
 	}
 }

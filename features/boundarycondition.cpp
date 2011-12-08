@@ -901,10 +901,9 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						dimposed[0] = 0 ;
 						dimposed[1] = vm.deval( data, TIME_VARIABLE, id[i] ) ;
 						dimposed[2] = 0 ;
-						
 						//forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + vm.ieval( Gradient( shapeFunctions[i] ) * ( dimposed ), e->getGaussPoints(), Jinv, v ) ;
 						forces = vm.ieval(Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
-						forces *= Jinv[0][2][2]*2 ;
+						forces *= Jinv[0][2][2] ;
 						
 					}
 					else

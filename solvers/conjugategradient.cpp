@@ -35,6 +35,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		Maxit = std::max(round(b.size()), 1000.) ;
 	if(x0.size() == b.size())
 	{
+		x.resize(x0.size());
 		x = x0 ;
 	}
 	else

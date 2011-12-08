@@ -10,19 +10,36 @@
 //
 //
 #include "rotatingcrack.h"
+#include "damagemodel.h"
+#include "../../elements/integrable_entity.h"
+#include "../fracturecriteria/fracturecriterion.h"
 
 namespace Mu {
 
-RotatingCrack::RotatingCrack(): damages(100, 0.)
+RotatingCrack::RotatingCrack(): damages(0., 100)
 {
 	getState(true).resize(1, 0.);
 	getPreviousState().resize(1, 0.);
 	isNull = false ;
 	currentAngle = 0 ;
+	currentDamage = 0 ;
 }
 
-std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( Mu::ElementState &s)
+std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState &s)
 {
+
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+	{
+		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() ;
+		if(currentAngle > M_PI*.5) 
+			currentAngle -= M_PI ;
+		if (currentAngle < -M_PI*.5)
+			currentAngle += M_PI ;
+		
+		currentDamage = damages[std::max(std::min((int)round(100.*(currentAngle+M_PI*.5)/M_PI)-1, (int)damages.size()-1), 0)] ;
+		state = currentDamage ;
+	}
+	
 	return std::make_pair(state, Vector(1., 1)) ;
 }
 
@@ -36,12 +53,6 @@ Matrix RotatingCrack::apply(const Matrix & m) const
 }
 
 
-double RotatingCrack::getDamage()
-{
-	int index = round(currentAngle/M_PI*99);
-	
-}
-
 Matrix RotatingCrack::applyPrevious(const Matrix & m) const
 {
 
@@ -53,11 +64,42 @@ Matrix RotatingCrack::applyPrevious(const Matrix & m) const
 
 bool RotatingCrack::fractured() const 
 {
+// 	return false ;
 	if(fraction < 0)
 		return false ;
 	return getState()[0] >= thresholdDamageDensity ;
 }
 
+void RotatingCrack::postProcess()
+{
+	if(converged && getState()[0] > POINT_TOLERANCE_2D)
+	{
+		Vector damagesadded(0., damages.size()) ;
+		
+		for(double i = 25 ; i <  75 ; i++)
+		{
+			double cval = cos((M_PI*.5 - M_PI*(i/99.))*2.) ;
+			cval*= getState()[0]-currentDamage ;
+
+// 			double cval = (1.-std::abs(-1 + 2*(i/99.)))*getState()[0] ;
+//			cval*= getState()[0]-currentDamage ;
+			
+// 				double cval = getState()[0]-currentDamage ;
+			if(cval > 0)
+				damagesadded[i] = cval ;
+		}
+		
+		damagesadded.cshift((int)round((2.*currentAngle/M_PI)*100)) ;
+
+		for(size_t i = 0 ; i <  damagesadded.size() ; i++)
+			damages[i] = std::min(damagesadded[i]+damages[i], 1.) ;
+		
+// 		for(size_t i = 0 ; i <  damagesadded.size() ; i++)
+// 			std::cout << damages[i] << "  "<< std::flush ;
+// 		std::cout << std::endl ;
+// 		exit(0) ;
+	}
+}
 
 RotatingCrack::~RotatingCrack()
 {

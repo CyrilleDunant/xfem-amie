@@ -33,9 +33,9 @@ mesh2d(NULL), mesh3d(NULL),
 stable(true), checkpoint(true), inset(false),
 scoreTolerance(1e-2),
 initialScore(1),
-cachedInfluenceRatio(1)
+cachedInfluenceRatio(1),
+currentAngle(0)
 {
-	setInfluenceCalculated(false) ;
 }
 
 double FractureCriterion::smoothedCrackAngle( ElementState &s) const
@@ -106,152 +106,14 @@ double FractureCriterion::smoothedCrackAngle( ElementState &s) const
 double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m )
 {
 	double angle = 0 ;
-	smoothedPrincipalStress(s, m) ;
+	std::pair<Vector, Vector> ss = smoothedStressAndStrain(s, m) ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		double area = s.getParent()->area() ;
-		double fact = area ;
-		angle += s.getCachedAngle()*fact ;
-
-		
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
-			double dc =  squareDist2D( ci->getCenter(), s.getParent()->getCenter() ) ;
-			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
-				|| !ci->getBehaviour()->getFractureCriterion() 
-				|| ci->getBehaviour()->fractured()
-				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
-				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
-				|| dc > 4. * physicalCharacteristicRadius * physicalCharacteristicRadius)
-			{
-				continue ;
-			}
-			
-			area = ci->area() ;
-			//this is to eliminate scaling effects ;
-			double factor = 1.-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
-// 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
-// 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
-			
-			double d = exp( -dc / (2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
-			angle += ci->getState().getCachedAngle()*area*d ;
-			fact += area*d ;
-			
-			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
-			{
-				angle += ci->getState().getCachedAngle()*area*d ;
-				fact += area*d ;
-			}
-
-			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
-			{
-				angle += ci->getState().getCachedAngle()*area*d ;
-				fact += area*d ;
-			}
-
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*area*d ;
-				fact += area*d ;
-			}
-
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*area*d ;
-				fact += area*d ;
-			}
-		}
-		angle /= fact ;
+		return 0.5 * atan2( ss.first[2], ss.first[0] - ss.first[1] ) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		double volume = s.getParent()->volume() ;
-
-		angle += s.getCachedAngle()*volume ;
-
-		double fact = volume ;
-		
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
-			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
-			
-			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
-				|| ci->getBehaviour()->getFractureCriterion() 
-				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
-				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
-				|| dc > 3.* physicalCharacteristicRadius * physicalCharacteristicRadius
-				|| ci->getBehaviour()->fractured()
-			)
-			{
-				continue ;
-			}
-
-			volume = ci->volume() ;
-			double factor = 1.;//-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
-// 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
-// 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
-			
-			double d = exp( -dc / (2.* physicalCharacteristicRadius * physicalCharacteristicRadius ) ) * factor;
-			angle += ci->getState().getCachedAngle()*volume*d ;
-			fact += volume*d ;
-			
-			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-
-			if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
-			{
-				angle += ci->getState().getCachedAngle()*volume*d ;
-				fact += volume*d ;
-			}
-		}
-		angle /= fact ;
+		return  0.5 * atan2(ss.first[3] , ss.first[0] - ss.first[1] ) ;
 	}
 	
 	return angle ;
@@ -259,108 +121,7 @@ double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s, StressC
 
 Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
 {
-	Vector str(0., 3) ;
-	if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-		str.resize(6, 0.);
-	
-	if(factors.empty())
-		initialiseFactors(s) ;
-	
-	auto fiterator = factors.begin() ;
-	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-	{
-		Vector stressAtNodes(s.getStrainAtCenter()) ;
-		str = stressAtNodes*(*fiterator) ;
-		fiterator++ ;
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
-			if(ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
-			{
-				factors.back() -= *fiterator ;
-				*fiterator = 0 ;
-				fiterator++ ;
-				continue ;
-			}
-
-			Vector stressAtNodes(ci->getState().getStrainAtCenter()) ;
-
-			str += stressAtNodes*(*fiterator) ;
-			fiterator++ ;
-		}
-		str /= factors.back() ;
-		
-		Vector lprincipal( 2 ) ;
-
-		lprincipal[0] = 0.5 * ( str[0] + str[1] ) +
-										 sqrt(
-												0.25 *( str[0] - str[1] ) * ( str[0] - str[1] ) +
-												( str[2] * str[2] )
-										) ;
-		lprincipal[1] = 0.5 * ( str[0] + str[1] ) -
-										 sqrt(
-												0.25 *( str[0] - str[1] ) * ( str[0] - str[1] ) +
-												( str[2] * str[2] )
-										) ;
-
-		return lprincipal ;
-	}
-	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-	{
-
-		Vector stressAtNodes(s.getStrainAtCenter()) ;
-		str = stressAtNodes*(*fiterator) ;
-		fiterator++ ;
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
-			
-			if( ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
-			{
-				factors.back() -= *fiterator ;
-				*fiterator = 0 ;
-				fiterator++ ;
-				continue ;
-			}
-
-			Vector stressAtNodes(ci->getState().getStrainAtCenter()) ;
-
-			str += stressAtNodes*(*fiterator) ;
-			fiterator++ ;
-		}
-		str /= factors.back() ;
-		str -=  s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
-		
-		
-		Vector lprincipal( 3 ) ;
-		Matrix stresses(3,3) ;
-		stresses[0][0] = str[0] ; stresses[0][1] = str[3] ; stresses[0][2] = str[4] ;
-		stresses[1][0] = str[3] ; stresses[1][1] = str[1] ; stresses[1][2] = str[5] ;
-		stresses[2][0] = str[4] ; stresses[2][1] = str[5] ; stresses[2][2] = str[2] ;
-		Matrix I( 3, 3 ) ;
-		I[0][0] = 1 ;
-		I[1][1] = 1 ;
-		I[2][2] = 1 ;
-		double m = ( stresses[0][0] + stresses[1][1] + stresses[2][2] ) / 3. ;
-		Matrix Am = stresses - I * m ;
-		double q = det( Am ) / 2. ;
-		double rr = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
-		double phi = atan2( sqrt( rr * rr * rr - q * q ), q ) / 3. ;
-
-		if( rr * rr * rr - q * q < 1e-12 )
-			phi = atan( 0 ) / 3. ;
-
-		if( phi < 0 )
-			phi += M_PI ;
-
-		
-		lprincipal[0] = m + 2.*sqrt( rr ) * cos( phi ) ;
-		lprincipal[1] = m - sqrt( rr ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
-		lprincipal[2] = m - sqrt( rr ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
-		return lprincipal ;
-	}
-	
-	return str ;
+	return smoothedPrincipalStressAndStrain(s).second ;
 }
 
 std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, StressCalculationMethod m , bool useStressLimit )
@@ -370,6 +131,8 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	{
 
 		std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s, m) ;
+		
+		
 		
 		Vector lprincipal( 2 ) ;
 
@@ -519,7 +282,6 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 	if(dirnorm < POINT_TOLERANCE_2D)
 	{
 		cachedInfluenceRatio = 1 ;
-		setInfluenceCalculated(true);
 		return 1. ;
 	}
 	Point renormdir = direction/-dirnorm ;
@@ -532,7 +294,6 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 		if(tricrossNorm < POINT_TOLERANCE_2D)
 		{
 			cachedInfluenceRatio = 1 ;
-			setInfluenceCalculated(true);
 			return 1. ;
 		}
 		tricross /= tricrossNorm ;
@@ -556,13 +317,11 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 		if(std::abs(sigma).min() < POINT_TOLERANCE_2D)
 		{
 			cachedInfluenceRatio = 0 ;
-			setInfluenceCalculated(true);
 			return 0. ;
 		}
 		if(sigma.max() > limit)
 		{
 			cachedInfluenceRatio = 1 ;
-			setInfluenceCalculated(true);
 			return 1. ;
 		}
 		if(sigma.size() == 2)
@@ -572,7 +331,6 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 			double sintheta = u[1]*tricross ; sintheta *= sintheta ;
 			double cosphi = u[2]*renormdir ; cosphi *= cosphi ;
 			double sinphi = renormdir*tricross ; sinphi *= sinphi ;
-			setInfluenceCalculated(true);
 			limit =1 ;
 			sigma = 1 ;
 			cachedInfluenceRatio = std::max(std::min(1./(limit*limit*(sinphi*costheta/(sigma[0]*sigma[0]) + sinphi*sintheta/(sigma[1]*sigma[1]))), 1.), minrho) ;
@@ -588,12 +346,10 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 			double sinphi = renormdir*tricross ; sinphi *= sinphi ;
 			limit =1 ;
 			sigma = 1 ;
-			setInfluenceCalculated(true);
 			cachedInfluenceRatio = std::max(std::min(1./(limit*limit*(sinphi*costheta/(sigma[0]*sigma[0]) + sinphi*sintheta/(sigma[1]*sigma[1]) + cosphi/(sigma[2]*sigma[2]))), 1.), minrho) ;
 			return cachedInfluenceRatio ;
 		}
 		cachedInfluenceRatio = 0 ;
-		setInfluenceCalculated(true);
 		return 0. ;
 	}
 	else
@@ -1149,101 +905,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 
 Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalculationMethod m)
 {
-	Vector str(0., 3) ;
-	if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-		str.resize(6, 0.);
-	
-	if(factors.empty())
-		initialiseFactors(s) ;
-	
-	auto fiterator = factors.begin() ;
-	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-	{
-
-		str += (s.getStressAtCenter(m))*(*fiterator) ;
-		fiterator++ ;
-
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
-			if(ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
-			{
-				factors.back() -= *fiterator ;
-				*fiterator = 0 ;
-				fiterator++ ;
-				continue ;
-			}
-			str += ci->getState().getStressAtCenter(m)*(*fiterator) ;
-			fiterator++ ;
-		}
-		
-		str /= factors.back() ;
-		
-		Vector lprincipal( 2 ) ;
-
-		lprincipal[0] = 0.5 * ( str[0] + str[1] ) +
-										 sqrt(
-												0.25 *( str[0] - str[1] ) * ( str[0] - str[1] ) +
-												( str[2] * str[2] )
-										) ;
-		lprincipal[1] = 0.5 * ( str[0] + str[1] ) -
-										 sqrt(
-												0.25 *( str[0] - str[1] ) * ( str[0] - str[1] ) +
-												( str[2] * str[2] )
-										) ;
-
-		return lprincipal ;
-	}
-	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-	{
-		str = (s.getStressAtCenter(m))*(*fiterator) ;
-		fiterator++ ;
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
-			
-			if( ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D )
-			{
-				factors.back() -= *fiterator ;
-				*fiterator = 0 ;
-				fiterator++ ;
-				continue ;
-			}
-			str += ci->getState().getStressAtCenter(m)*(*fiterator) ;
-			fiterator++ ;
-		}
-		str /= factors.back() ;
-		
-		
-		Vector lprincipal( 3 ) ;
-		Matrix stresses(3,3) ;
-		stresses[0][0] = str[0] ; stresses[0][1] = str[3] ; stresses[0][2] = str[4] ;
-		stresses[1][0] = str[3] ; stresses[1][1] = str[1] ; stresses[1][2] = str[5] ;
-		stresses[2][0] = str[4] ; stresses[2][1] = str[5] ; stresses[2][2] = str[2] ;
-		Matrix I( 3, 3 ) ;
-		I[0][0] = 1 ;
-		I[1][1] = 1 ;
-		I[2][2] = 1 ;
-		double m = ( stresses[0][0] + stresses[1][1] + stresses[2][2] ) / 3. ;
-		Matrix Am = stresses - I * m ;
-		double q = det( Am ) / 2. ;
-		double rr = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
-		double phi = atan2( sqrt( rr * rr * rr - q * q ), q ) / 3. ;
-
-		if( rr * rr * rr - q * q < 1e-12 )
-			phi = atan( 0 ) / 3. ;
-
-		if( phi < 0 )
-			phi += M_PI ;
-
-		
-		lprincipal[0] = m + 2.*sqrt( rr ) * cos( phi ) ;
-		lprincipal[1] = m - sqrt( rr ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
-		lprincipal[2] = m - sqrt( rr ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
-		return lprincipal ;
-	}
-	
-	return str ;
+	return smoothedPrincipalStressAndStrain(s, m).first ;
 }
 
 std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s, StressCalculationMethod m, bool useStressLimit )
@@ -1255,8 +917,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		vlength = 6 ;
 	Vector str(0., vlength) ;
 	Vector stra(0., vlength) ;
-	Vector tmpstr(0., vlength) ;
-	Vector tmpstra(0., vlength) ;
+	Vector tmpstr(vlength) ;
+	Vector tmpstra(vlength) ;
 
 	
 	if(factors.empty())
@@ -1319,6 +981,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		str /= sumStressFactors ;
 		stra /= sumStrainFactors ;
 
+		currentAngle = 0.5 * atan2( str[2], str[0] - str[1] ) ;
+
 		return std::make_pair(str, stra) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1350,7 +1014,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		}
 		str /= sumStressFactors ;
 		stra /= sumStrainFactors ;
-
+		currentAngle = 0.5 * atan2(str[3] , str[0] - str[1] ) ;
 		return std::make_pair(str,stra)  ;
 	}
 	
@@ -2406,12 +2070,12 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 {
 	metAtStep = false ;
 
-	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
-	{
-		metAtStep = 0 ; scoreAtState > 0 ;
-		nonLocalScoreAtState = -1 ; scoreAtState ;
-		return  ;
-	}
+// 	if( s.getParent()->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel()->fractured())
+// 	{
+// 		metAtStep = 0 ; scoreAtState > 0 ;
+// 		nonLocalScoreAtState = -1 ; scoreAtState ;
+// 		return  ;
+// 	}
 	
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;
 	DelaunayTetrahedron * testedTet = dynamic_cast<DelaunayTetrahedron *>(s.getParent()) ;
@@ -2454,131 +2118,6 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 					}
 					metAtStep = true ;
 					return ;
-
-// 				nonLocalScoreAtState = scoreAtState ;
-// 				if (scoreAtState < 0)
-// 				{
-// 					metAtStep = false ;
-// 					return  ;
-// 				}
-// 				double maxNeighbourhoodScore = 0 ;
-// 				double matchedArea = 0 ;
-// // 				std::map<double, DelaunayTriangle *> scores ;
-// 				std::vector<double> scores ;
-// 				std::vector<DelaunayTriangle *> trisToTest ;
-// 				DelaunayTriangle * maxLocus = NULL;
-// // 				double areamax = 0 ;
-// 				if(!cache.empty())
-// 				{
-// 					for(size_t i = 0 ; i< cache.size() ; i++)
-// 					{
-// 						DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-// 
-// 						double s = 0. ;
-// 						if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured())
-// 						{
-// 							s = ci->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-// 							if(s > 0)
-// 								scores.push_back(s);
-// 						}
-// 						
-// 						if(s > 0)
-// 						{
-// 							trisToTest.push_back(ci) ;
-// 						}
-// 
-// 						if(s > maxNeighbourhoodScore)
-// 						{
-// 							maxNeighbourhoodScore = s ;
-// 							maxLocus = ci ;
-// 						}
-// 					}
-// 				}
-// 				
-// 				if(maxNeighbourhoodScore < -scoreTolerance)
-// 				{
-// 					metAtStep = false ;
-// 					return  ;
-// 				}
-// 				
-// 				if(maxLocus)
-// 				{
-// 					std::vector<DelaunayTriangle *> toTest ;
-// 					std::set<DelaunayTriangle *> matchingElements ;
-// 					matchingElements.insert(maxLocus) ;
-// 					toTest.push_back(maxLocus);
-// 					while(!toTest.empty())
-// 					{
-// 						std::vector<DelaunayTriangle *> newToTest ;
-// 						for(size_t i = 0 ; i < toTest.size() ; i++)
-// 						{
-// 							for(size_t j = 0 ; j < toTest[i]->neighbourhood.size() ; j++)
-// 							{
-// 								if(matchingElements.find(toTest[i]->getNeighbourhood(j)) == matchingElements.end()
-// 									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()
-// 									&& toTest[i]->getNeighbourhood(j)->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0
-// 								)
-// 								{
-// 									newToTest.push_back(toTest[i]->getNeighbourhood(j));
-// 									matchingElements.insert(toTest[i]->getNeighbourhood(j)) ;
-// 									double a = toTest[i]->getNeighbourhood(j)->area() ;
-// 									matchedArea += a ;
-// 									if(mirroring == MIRROR_X && std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 									if(mirroring == MIRROR_Y &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 									if(mirroring == MIRROR_XY &&  std::abs(toTest[i]->getNeighbourhood(j)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-// 									{
-// 										matchedArea += a ;
-// 									}
-// 								}
-// 								if(matchedArea >= 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
-// 									goto endloop ;
-// 							}
-// 						}
-// 
-// 						toTest = newToTest ;
-// 					}
-// 				}
-// endloop:
-// 
-// // 				if(matchedArea < 2.*M_PI*physicalCharacteristicRadius*physicalCharacteristicRadius)
-// // 				{
-// // 					metAtStep = false ;
-// // 					return ;
-// // 				}
-// 
-// 				std::sort(scores.begin(), scores.end()) ;
-// 				double threshold = scores[round((scores.size()-1)*.9)] ;
-// 				bool nearmaxlocus = false;
-// 				
-// 				for(size_t i = 0 ; i< trisToTest.size() ; i++)
-// 				{
-// 					if(trisToTest[i]->getBehaviour()->getFractureCriterion()->getScoreAtState() > threshold)
-// 					{
-// 						if(squareDist2D(trisToTest[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)
-// 						{
-// 							nearmaxlocus = true ;
-// 							break ;
-// 						}
-// 					}
-// 				}
-// 
-// 				if (nearmaxlocus)
-// 				{
-// 					metAtStep = true ;
-// 					return  ;
-// 				}
-// 				metAtStep = false ;
-// 				return  ;
 
 			}
 			
@@ -2644,52 +2183,7 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 						if(std::abs(ci->getBehaviour()->getFractureCriterion()->getScoreAtState()-maxNeighbourhoodScore) < scoreTolerance)
 							maxloci.push_back(ci) ;
 				}
-				
-// 				bool foundcutoff = false ;
-// 				double thresholdscore = maxNeighbourhoodScore ;
-// 				
-// 				for(auto i = scores.begin() ; i != scores.end() ; ++i)
-// 				{
-// 					
-// 					if(!foundcutoff)
-// 					{
-// 						if(-i->first > 0 )
-// 						{
-// 							matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_X && std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_Y &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_Z &&  std::abs(i->second->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_Y
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_XY &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_XZ &&  std::abs(i->second->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_XZ &&  std::abs(i->second->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_YZ &&  std::abs(i->second->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
-// 								matchedArea += areatemp[i->second] ;
-// 							if(mirroring == MIRROR_YZ &&  std::abs(i->second->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
-// 								matchedArea += areatemp[i->second] ;
-// 						}
-// 						if (matchedArea > 1.333333333333333333*physicalCharacteristicRadius*physicalCharacteristicRadius*physicalCharacteristicRadius*M_PI)
-// 						{
-// 							thresholdscore = -i->first ;
-// 							foundcutoff  = true ;
-// 							break ;
-// 						}
-// 					}
-// 		// 			else
-// 		// 				i->second->visited = true ;
-// 				}
-// 				if (!foundcutoff )
-// 				{
-// 					metAtStep = false ;
-// 					return  ;
-// 				}
+
 
 				for(size_t i = 0 ; i < maxloci.size() ; i++)
 					if(squareDist3D(maxloci[i]->getCenter(), s.getParent()->getCenter()) < physicalCharacteristicRadius*physicalCharacteristicRadius)

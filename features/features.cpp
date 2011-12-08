@@ -4362,9 +4362,6 @@ bool FeatureTree::stepElements()
 				{
 					if( i % 1000 == 0 )
 						std::cerr << "\r checking for fractures (0)... " << i << "/" << elements.size() << std::flush ;
-
-					if( elements[i]->getBehaviour()->getFractureCriterion() )
-						elements[i]->getBehaviour()->getFractureCriterion()->setInfluenceCalculated(false) ;
 				}
 					std::cerr << " ...done. " << std::endl ;
 				
@@ -4931,13 +4928,11 @@ bool FeatureTree::step()
 
 	bool ret = true ;
 	size_t it = 1 ;
-
 	state.setStateTo( XFEM_STEPPED, true ) ;
 
 	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
 
 	int notConvergedCounts = 0 ;
-
 	while( ( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 )
 	{
 		deltaTime = 0 ;
@@ -4965,15 +4960,14 @@ bool FeatureTree::step()
 				}
 			}
 		}
-
 		state.setStateTo( XFEM_STEPPED, true ) ;
-		
 		if(++it > maxitPerStep && foundCheckPoint)
 			break ;
 	}
 
 	std::cout  << std::endl ;
 	deltaTime = realdt ;
+	
 	return solverConverged() && !behaviourChanged() && ( ++it < maxitPerStep ) && ( notConvergedCounts < 1 );
 }
 

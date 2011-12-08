@@ -19,6 +19,14 @@
 namespace Mu
 {
 
+	typedef enum{
+		DISSIPATIVE_MAX,
+		DISSIPATIVE_MIN,
+		DISSIPATIVE_CENTER,
+		CONSERVATIVE_MAX,
+		CONSERVATIVE_MIN,
+		CONSERVATIVE_CENTER,
+	} ConvergenceType ;
 
 	struct PointState
 	{
@@ -90,6 +98,8 @@ protected:
 	std::vector<PointState> states ;
 	
 	ElementState * elementState ;
+	
+	ConvergenceType ctype ;
 protected:
 	bool needRestart ; //it is sometimes necessary to enforce a different scheme for convergence.
 public:
@@ -110,6 +120,8 @@ public:
 	void setSecondaryThresholdDamageDensity(double d) ;
 		
 	void setDamageDensityTolerance(double d) ;
+	
+	void setConvergenceType(ConvergenceType ct) {ctype = ct ;}
 	
 	double getDamageDensityTolerance() { return damageDensityTolerance ; };
 	bool hasConverged() const {return converged ; }

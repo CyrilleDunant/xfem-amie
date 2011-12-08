@@ -75,6 +75,8 @@ typedef enum{
 		bool metAtStep ;
 		bool stable ;
 		
+		double currentAngle ;
+		
 		double scoreTolerance ;
 		bool checkpoint ;
 		bool inset ;
@@ -85,11 +87,9 @@ typedef enum{
 		double getSquareInfluenceRatio( ElementState & s, const Point & direction) ;
 		
 		double cachedInfluenceRatio ;
-		bool influenceCalc ;
 		
 	public:
-		virtual bool getInfluenceCalculated() const {return influenceCalc ;}
-		virtual void setInfluenceCalculated(bool v) {influenceCalc = v;}
+
 		Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedScore(ElementState& s) ;
 		Vector smoothedPrincipalStrain( ElementState &s) ;
@@ -97,6 +97,8 @@ typedef enum{
 		std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s, StressCalculationMethod m = REAL_STRESS, bool useStressLimit = false) ;
 		double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedCrackAngle( ElementState &s) const ;
+		double getCurrentAngle() const {return currentAngle ; }
+		
 	public:
 		std::vector<unsigned int> cache ;
 		std::vector<DelaunayTreeItem *>  *mesh2d ;

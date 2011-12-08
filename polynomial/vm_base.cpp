@@ -1319,7 +1319,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 				ret[2][0] = ret[1][1] ;
 				ret[2][1] = ret[0][0] ;
 				
-				return ret ;
+				return ret*2. ;
 			}
 			else
 			{
@@ -1332,7 +1332,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 				ret[0][2] = ret[1][1] ;
 				ret[1][2] = ret[0][0] ;
 				
-				return ret ;
+				return ret*2. ;
 			}
 		}
 		else
@@ -1422,7 +1422,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 			ret[5][0] = ret[1][1] ;
 			ret[5][1] = ret[0][0] ;
 			
-			return ret ;
+			return ret*2. ;
 		}
 		else
 		{
@@ -1441,7 +1441,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 			ret[0][5] = ret[1][1] ;
 			ret[1][5] = ret[0][0] ;
 			
-			return ret ;
+			return ret*2. ;
 		}
 	}
 	return Matrix(0,0) ;
@@ -1463,6 +1463,7 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[2][0] = ret[1][1] ;
 				ret[2][1] = ret[0][0] ;
+				ret *= 2. ;
 				
 			}
 			else
@@ -1475,6 +1476,7 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[0][2] = ret[1][1] ;
 				ret[1][2] = ret[0][0] ;
+				ret *= 2. ;
 			}
 		}
 		else
@@ -1565,6 +1567,7 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 			ret[4][2] = ret[0][0] ;
 			ret[5][0] = ret[1][1] ;
 			ret[5][1] = ret[0][0] ;
+			ret *= 2. ;
 			
 		}
 		else
@@ -1584,6 +1587,7 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 			ret[2][4] = ret[0][0] ;
 			ret[0][5] = ret[1][1] ;
 			ret[1][5] = ret[0][0] ;
+			ret *= 2. ;
 			
 		}
 	}

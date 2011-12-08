@@ -162,34 +162,38 @@ void ElementarySurface::setNonLinearBehaviour(NonLinearForm * f)
 void ElementarySurface::step(double dt, const Vector * displacements)
 {
 	getState().step(dt, displacements) ;
-	getBehaviour()->updateElementState(dt, getState()) ;
+	if(getBehaviour())
+		getBehaviour()->updateElementState(dt, getState()) ;
 }
 
 void ElementarySurface::stepBack()
 {
 	getState().stepBack() ;
-	getBehaviour()->stepBack() ;
+	if(getBehaviour())
+		getBehaviour()->stepBack() ;
 }
 
 void ElementarySurface::nonLinearStep(double dt, const Vector *displacements)
 {
 	getState().step(dt, displacements) ;
 	
-// 	if(getNonLinearBehaviour() !=NULL)
+	if(getNonLinearBehaviour())
 		getNonLinearBehaviour()->step(dt,getState()) ;
 }
 
 void ElementaryVolume::step(double dt, const Vector *displacements)
 {
 	getState().step(dt, displacements) ;
-	getBehaviour()->updateElementState(dt, getState()) ;
+	if(getBehaviour())
+		getBehaviour()->updateElementState(dt, getState()) ;
 }
 
 
 void ElementaryVolume::stepBack()
 {
 	getState().stepBack() ;
-	getBehaviour()->stepBack() ;
+	if(getBehaviour())
+		getBehaviour()->stepBack() ;
 }
 
 void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
@@ -197,8 +201,9 @@ void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
 	
 	this->state.step(dt, displacements) ;
 	
-	if(this->nonlinbehaviour !=NULL)
-		this->nonlinbehaviour->step(dt, this->state) ;
+	if(getNonLinearBehaviour())
+		getNonLinearBehaviour()->step(dt, this->state) ;
+	
 }
 
 // const std::vector<std::pair<size_t,const Function &> > ElementarySurface::getDofs() const
@@ -606,7 +611,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	{
 		double j = area()*2 ;
 		if(order > CONSTANT_TIME_LINEAR)
-			j *= (getBoundingPoints()[getBoundingPoints().size()-1]->t - getBoundingPoints()[0]->t) ;
+			j *= 0.5*(getBoundingPoints()[getBoundingPoints().size()-1]->t - getBoundingPoints()[0]->t) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;

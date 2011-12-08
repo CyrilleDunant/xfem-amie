@@ -1667,7 +1667,7 @@ int main( int argc, char *argv[] )
 	double phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
 	
 	double psi = 2.*0.0084261498 / .4 ;
-	double mradius = .015 ; // .015
+	double mradius = .05 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1676,7 +1676,7 @@ int main( int argc, char *argv[] )
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
 	double E_steel = 200e9 ; // next .6
 	double nu_steel = 0.3 ;
-	double nu = 0.2 ;
+	double nu = 0.3 ;
 	double E_paste = 37e9 ;
 
 	m0_steelx[0][0] = E_steel / ( 1. - 2.*nu * nu ) ;
@@ -1751,22 +1751,22 @@ int main( int argc, char *argv[] )
 	leftbottomvoid.setBehaviour( new VoidForm() ) ;
 
 	Sample rebar0( sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 ) ;
-
 	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
 	Sample rebar1( sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
-
 	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
+	Sample rebarbottom(sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 + 0.085*.5 ) ;
+	rebarbottom.setBehaviour( new StiffnessAndFracture( m0_steel*0.5, new VonMises( 490e6 ) ) );
+	rebarbottom.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	
 	Sample rebar2( sampleLength - rebarEndCover, rebarDiametre, 0,  sampleHeight*.5 - 0.064 ) ;
-
 	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
 	Sample rebar3( sampleLength - rebarEndCover, rebarDiametre, 0,  sampleHeight*.5 - 0.064 - 0.085 ) ;
-
 	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	
@@ -1882,8 +1882,11 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
-		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
+// 		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
+
+		F.addFeature( &sample, &rebarbottom, rebarlayer, phi ) ;
+		
 // 		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &vrebar0 ) ;
@@ -1894,8 +1897,10 @@ int main( int argc, char *argv[] )
 
 
 	F.setSamplingFactor( &bottomcentervoid, 3 ) ;
-	F.setSamplingFactor( &rebar0, 3 ) ;
-	F.setSamplingFactor( &rebar1, 3 ) ;
+// 	F.setSamplingFactor( &rebar0, 3 ) ;
+// 	F.setSamplingFactor( &rebar1, 3 ) ;
+	F.setSamplingFactor( &rebarbottom, 3 ) ;
+	
 // 	F.setSamplingFactor( &rebar2, 3 ) ;
 // 	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;

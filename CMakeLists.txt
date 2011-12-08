@@ -64,6 +64,7 @@ physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/damagemodels/plasticstrain.cpp
 physics/damagemodels/damageindexeddamage.cpp
+physics/damagemodels/rotatingcrack.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 
 physics/laplacian.cpp 

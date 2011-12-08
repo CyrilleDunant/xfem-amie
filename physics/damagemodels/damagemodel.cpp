@@ -300,7 +300,28 @@ void DamageModel::step( ElementState &s )
 // 			trialRatio = minFraction*(1.-0.25) + maxFraction*0.75  ;
 // 			trialRatio = maxFraction  ;
 // 			trialRatio = minFraction ;
-			getState( true ) = downState + ( upState - downState ) *trialRatio + 2.*damageDensityTolerance;
+			if(	ctype == DISSIPATIVE_CENTER)
+				getState( true ) = downState + ( upState - downState ) *trialRatio + 2.*damageDensityTolerance;
+			else if(ctype == DISSIPATIVE_MIN)
+			{
+				trialRatio = minFraction ;
+				getState( true ) = downState + ( upState - downState ) *trialRatio + 2.*damageDensityTolerance;
+			}
+			else if(ctype == DISSIPATIVE_MAX)
+			{
+				trialRatio = maxFraction ;
+				getState( true ) = downState + ( upState - downState ) *trialRatio + 2.*damageDensityTolerance;
+			}
+			else if(ctype == CONSERVATIVE_MAX)
+			{
+				trialRatio = maxFraction ;
+				getState( true ) = downState + ( upState - downState ) *trialRatio ;
+			}
+			else if(ctype == CONSERVATIVE_MIN)
+			{
+				trialRatio = minFraction ;
+				getState( true ) = downState + ( upState - downState ) *trialRatio ;
+			}
 			converged = true ;
 		}
 	}
@@ -320,7 +341,7 @@ DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0)
 	haslimit = false ;
 	needRestart = false ;
 
-
+	ctype = DISSIPATIVE_CENTER ;
 	fraction = -1 ;
 	converged = true ;
 

@@ -2447,8 +2447,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
 		}
 	}
-	if(dofCount > 3)
-		exit(0) ;
+
 // 	std::cerr << "c " << index<< std::endl ;
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{

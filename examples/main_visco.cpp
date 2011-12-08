@@ -378,7 +378,7 @@ Vector getSTFEMResults(bool quad = true)
 	F.setSamplingNumber(sampling) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	if(quad)
-		F.setOrder(QUADRATIC_TIME_QUADRATIC) ;
+		F.setOrder(LINEAR_TIME_QUADRATIC) ;
 	F.setDeltaTime(tau) ;
 
 	box.setBehaviour(new KelvinVoight(C,E)) ;
@@ -392,12 +392,15 @@ Vector getSTFEMResults(bool quad = true)
 		std::cout << "quadratiques" << std::endl ;
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{	  
-			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(12)), tri[i])) ;
-			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(13)), tri[i])) ;
-			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(14)), tri[i])) ;
-			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(3),&tri[i]->getBoundingPoint(15)), tri[i])) ;
-			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(4),&tri[i]->getBoundingPoint(16)), tri[i])) ;
-			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(5),&tri[i]->getBoundingPoint(17)), tri[i])) ;
+// 			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(12)), tri[i])) ;
+// 			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(13)), tri[i])) ;
+// 			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(14)), tri[i])) ;
+// 			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(3),&tri[i]->getBoundingPoint(15)), tri[i])) ;
+// 			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(4),&tri[i]->getBoundingPoint(16)), tri[i])) ;
+// 			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(5),&tri[i]->getBoundingPoint(17)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(6)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(7)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(8)), tri[i])) ;
 		}
 	}
 	else
@@ -460,7 +463,6 @@ Vector getSTFEMResults(bool quad = true)
 		
 		F.step() ;
 		u = F.getDisplacements() ;
-
 		results[i] = u.max() ;
 	}
 
@@ -625,34 +627,54 @@ int main(int argc, char *argv[])
 		switch(scheme)
 		{
 			case FDI:
-				fem = getFDIResults() ;
+			{
+				Vector tmp = getFDIResults() ;
+				fem.resize(tmp.size());
+				fem = tmp ;
 				break ;
+			}
 			case FDE:
-				fem = getFDEResults() ;
+			{
+				Vector tmp = getFDEResults() ;
+				fem.resize(tmp.size());
+				fem = tmp ;
 				break ;
+			}
 			case FULL:
-				fem = getFullSTFEMResults() ;
+			{
+				Vector tmp = getFullSTFEMResults() ;
+				fem.resize(tmp.size());
+				fem = tmp ;
 				break ;
+			}
 			case QUAD:
-				fem = getSTFEMResults(true) ;
+			{
+				Vector tmp = getSTFEMResults(true) ;
+				fem.resize(tmp.size());
+				fem = tmp ;
 				break ;
+			}
 			case STFEM:
-				fem = getSTFEMResults(false) ;
+			{
+				Vector tmp = getSTFEMResults(false) ;
+				fem.resize(tmp.size());
+				fem = tmp ;
 				break ;
+			}
 		}
 		
 
 		double error = 0. ;
-		for(size_t i = 0 ; i < analytical.size() ; i++)
+		for(size_t i = 0 ; i < std::min(analytical.size(), fem.size()) ; i++)
 			error += (analytical[i]-fem[i])*(analytical[i]-fem[i]) ;
 
 		std::ofstream out ;
 		std::string filename = getFileName(scheme) ;
 		out.open(filename.c_str(), std::ios::out) ;
-		for(int i = 0 ; i < analytical.size() ; i++)
+		for(int i = 0 ; i < std::min(std::min(analytical.size(), instants.size()),fem.size()) ; i++)
 			out << std::setprecision(16) << instants[i]/day << "\t" << std::setprecision(16) << fem[i] << std::endl ;
 		out.close() ;
-		
+		std::cout << "FINISH" << std::endl ;
 		return 0 ;
 }
 
