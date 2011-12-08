@@ -470,17 +470,21 @@ const GaussPointArray & TriElement::genGaussPoints()
 		}
 	case QUADRATIC_TIME_QUADRATIC:
 		{
-// 			ordre = 8 ;
-// 			fin.resize(ordre);
-// 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
-// 			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
-// 			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.2604166666666666667) ;
-// 			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-0.577350269189626), -0.28125) ;
-// 			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
-// 			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
-// 			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.26041666666666666667) ;
-// 			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;
-			ordre = 14 ;
+			ordre = 8 ;
+			fin.resize(ordre);
+			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
+			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
+			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.2604166666666666667) ;
+			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-0.577350269189626), -0.28125) ;
+			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
+			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
+			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.26041666666666666667) ;
+			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;
+
+			break ;
+			
+			
+/*			ordre = 14 ;
 			fin.resize(ordre);
 			fin[0] = std::pair<Point, double>(Point(0.101286507323456, 0.101286507323456,0,-0.577350269189626), 0.062969590272413) ;
 			fin[1] = std::pair<Point, double>(Point(0.797426985353087, 0.101286507323456,0,-0.577350269189626), 0.062969590272413) ;
@@ -496,7 +500,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 			fin[11] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115,0,0.577350269189626), 0.066197076394253) ;
 			fin[12] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115,0,0.577350269189626), 0.066197076394253) ;
 			fin[13] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0.577350269189626), 0.1125) ;
-			break;
+			break;*/
 		}
 	case CUBIC_TIME_LINEAR:
 		{
@@ -602,7 +606,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	{
 		double j = area()*2 ;
 		if(order > CONSTANT_TIME_LINEAR)
-			j *= 0.5*(getBoundingPoints()[getBoundingPoints().size()-1]->t - getBoundingPoints()[0]->t) ;
+			j *= (getBoundingPoints()[getBoundingPoints().size()-1]->t - getBoundingPoints()[0]->t) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;
@@ -725,9 +729,9 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 			(*shapefunc)[0] = Function("y 0.5 0.5 t * - *") ;
 		//1
 			(*shapefunc)[1] = Function("1 x - y - 0.5 0.5 t * - *") ;
-		//2
+			//2
 			(*shapefunc)[2] = Function("x 0.5 0.5 t * - *") ;
-		//3
+			//3
 			(*shapefunc)[3] = Function("y 0.5 0.5 t * + *") ;
 		//4
 			(*shapefunc)[4] = Function("1 x - y - 0.5 0.5 t * + *") ;
@@ -906,6 +910,7 @@ Function TriElement::jacobian() const
 	
 double  TriElement::jacobianAtPoint(const Mu::Point& p) const 
 {
+	p.print() ;
 	if(order < CONSTANT_TIME_LINEAR)
 	{
 		double xdxi = 0 ;//this->getdXTransform(XI,p) ;
@@ -1060,10 +1065,12 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = 0 ;
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = 0 ;
 		ret[2][0] = 0 ; ret[2][1] = 0 ; ret[2][2] = tdtau;
+		
+		
 
 		invert3x3Matrix(ret) ;
-//		ret.print() ;
-//		std::cout << jacobianAtPoint(p) << std::endl ;
+/*		ret.print() ;
+		std::cout << jacobianAtPoint(p) << std::endl ;*/
 //		exit(0) ;
 
 	}
@@ -1113,7 +1120,7 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 	ret += Point(0,0,0,0)*coeff[1] ;
 	ret += Point(1,0,0,0)*coeff[2] ;
 	if(tmax-tmin > POINT_TOLERANCE_2D)
-	  ret.t = tmin + (p.t-tmin)/(tmax-tmin) ;
+	  ret.t = -1 + 2*(p.t-tmin)/(tmax-tmin) ;
 	
 	return ret ;
 }

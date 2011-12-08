@@ -37,7 +37,7 @@
 #include <typeinfo>
 #include <limits>
 #include <GL/glut.h>
-#include <time.h>
+#include <sys/time.h>
 #define DEBUG
 
 #define ID_QUIT 1
@@ -87,6 +87,8 @@ typedef enum
 	ANALYTICAL,
 	FDI,
 	FDE,
+	FULL,
+	QUAD,
 	STFEM,
 } TimeSteppingScheme ;
 
@@ -118,8 +120,12 @@ TimeSteppingScheme getTimeSteppingScheme(std::string arg)
 			return FDI ;
 	if(arg == std::string("fde"))
 		return FDE ;
+	if(arg == std::string("full"))
+		return FULL ;
 	if(arg == std::string("stfem"))
 		return STFEM ;
+	if(arg == std::string("quad"))
+		return QUAD ;
 	return ANALYTICAL ;
 }
 
@@ -164,6 +170,12 @@ std::string getFileName(TimeSteppingScheme s)
 		case FDE:
 			name.append("fde_") ;
 			break ;
+		case FULL:
+			name.append("full_") ;
+			break ;
+		case QUAD:
+			name.append("quad_") ;
+			break ;
 		case STFEM:
 			name.append("stfem_") ;
 			break ;
@@ -183,6 +195,8 @@ std::string getFileName(TimeSteppingScheme s)
 
 Vector getFDIResults()
 {
+	timeval t1, t2 ;
+	
 	double alphatau = tau * alpha ;
 	Matrix CE = C + (E/alphatau) ;
 	
@@ -208,6 +222,7 @@ Vector getFDIResults()
 	
 	srand(0) ;
 	F.step() ;
+	gettimeofday(&t1, NULL) ;
 	du = F.getDisplacements() ;
 
 	u.resize(du.size(),0.) ;
@@ -217,7 +232,10 @@ Vector getFDIResults()
 	v = du/alphatau ;
 	
 	results[0] = du.max() ;
-
+	gettimeofday(&t2, NULL) ;
+	double delta = t2.tv_sec*1000000 - t1.tv_sec*1000000 + t2.tv_usec - t1.tv_usec ;
+	std::cerr << "Post-processing " << delta/1e6 << std::endl ;
+	
 	srand(0) ;
 	H.step() ;
 
@@ -228,6 +246,7 @@ Vector getFDIResults()
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
 		Vector k(v.size()) ;
+		gettimeofday(&t1, NULL) ;
 		k = H.getAssembly()->getMatrix()*v ;
 		k *= tau ;
 		for(size_t j = 0 ; j < k.size()/2 ; j++)
@@ -235,12 +254,19 @@ Vector getFDIResults()
 			F.getAssembly()->addForceOn(XI,-k[j*2],j);
 			F.getAssembly()->addForceOn(ETA,-k[j*2+1],j);
 		}
-
+		gettimeofday(&t2, NULL) ;
+		delta = t2.tv_sec*1000000 - t1.tv_sec*1000000 + t2.tv_usec - t1.tv_usec ;
+		std::cerr << "Boundary conditions " << delta/1e6 << std::endl ;
+		
 		F.step() ;
 		du = F.getDisplacements() ;
 
+		gettimeofday(&t1, NULL) ;
 		u = u + v*tau + du ;
 		v = v + du/alphatau ;
+		gettimeofday(&t2, NULL) ;
+		delta = t2.tv_sec*1000000 - t1.tv_sec*1000000 + t2.tv_usec - t1.tv_usec ;
+		std::cerr << "Post-processing " << delta/1e6 << std::endl ;
 		std::cout << v.min() << std::endl ;
 
 		results[i] = u.max() ;
@@ -256,6 +282,8 @@ Vector getFDEResults()
 	Vector v ;
 	Vector k ;
 	Vector results(getInstants().size()) ;
+	
+	timeval t1, t2 ;
 
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
@@ -271,16 +299,21 @@ Vector getFDEResults()
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, stress)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	std::cout << "MAIN" << std::endl ;
 	srand(0) ;
 	F.step() ;
 	ue.resize(F.getDisplacements().size()) ;
 	ue = F.getDisplacements() ;
 
+	std::cout << "HELP" << std::endl ;
+	H.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	H.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	srand(0) ;
 	H.step() ;
 
 	// get viscoelastic forces
 	Vector f(ue.size()) ;
+	gettimeofday(&t1, NULL) ;
 	f = H.getAssembly()->getMatrix() * ue ;
 	f *= (1./tau) ;
 	F.resetBoundaryConditions() ;
@@ -291,9 +324,15 @@ Vector getFDEResults()
 		F.getAssembly()->addForceOn(XI, -f[j*2],  j);
 		F.getAssembly()->addForceOn(ETA,-f[j*2+1],j);
 	}
-
+	gettimeofday(&t2, NULL) ;
+	
+	double delta = t2.tv_sec*1000000 - t1.tv_sec*1000000 + t2.tv_usec - t1.tv_usec ;
+	std::cerr << "Additional BC time " << delta/1e6 << std::endl ;
+	
+	
 	// solve auxiliary problem
 	F.step() ;
+	gettimeofday(&t1, NULL) ;
 	uv.resize(F.getDisplacements().size()) ;
 	uv = F.getDisplacements() ;
 	k.resize(uv.size()) ;
@@ -321,13 +360,16 @@ Vector getFDEResults()
 		}
 		results[i] = u.max() ;
 	}
-
+	gettimeofday(&t2, NULL) ;
+	delta = t2.tv_sec*1000000 - t1.tv_sec*1000000 + t2.tv_usec - t1.tv_usec ;
+	std::cerr << "Post-processing " << delta/1e6 << std::endl ;
+	
 	return results ;
 
 }
 
 
-Vector getSTFEMResults()
+Vector getSTFEMResults(bool quad = true)
 {
 	Vector u ;
 	Vector results(getInstants().size()) ;
@@ -335,6 +377,8 @@ Vector getSTFEMResults()
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
+	if(quad)
+		F.setOrder(QUADRATIC_TIME_QUADRATIC) ;
 	F.setDeltaTime(tau) ;
 
 	box.setBehaviour(new KelvinVoight(C,E)) ;
@@ -343,11 +387,27 @@ Vector getSTFEMResults()
 	F.step() ;
 	std::vector<DelaunayTriangle *> tri = F.getElements2D() ;
 	std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
-	for(size_t i = 0 ; i < tri.size() ; i++)
-	{	  
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(3)), tri[i])) ;
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(4)), tri[i])) ;
-		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(5)), tri[i])) ;
+	if(quad)
+	{
+		std::cout << "quadratiques" << std::endl ;
+		for(size_t i = 0 ; i < tri.size() ; i++)
+		{	  
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(12)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(13)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(14)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(3),&tri[i]->getBoundingPoint(15)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(4),&tri[i]->getBoundingPoint(16)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(5),&tri[i]->getBoundingPoint(17)), tri[i])) ;
+		}
+	}
+	else
+	{
+		for(size_t i = 0 ; i < tri.size() ; i++)
+		{	  
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(3)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(4)), tri[i])) ;
+			pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(5)), tri[i])) ;
+		}
 	}
 	
 	std::set<std::pair<DofDefinedBoundaryCondition *, size_t> > pointBC ;
@@ -359,7 +419,21 @@ Vector getSTFEMResults()
 	
 	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
 	  F.addBoundaryCondition(i->first) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, stress)) ;
+	
+	Function stressRamp("t") ;
+	stressRamp = stressRamp + tau/2 ;
+	stressRamp = stressRamp/tau ;
+	stressRamp = stressRamp * stress*0.5 ;
+	std::cout << VirtualMachine().eval(stressRamp, Point(0,0,0,-tau/2)) << std::endl ;
+	std::cout << VirtualMachine().eval(stressRamp, Point(0,0,0, 0)) << std::endl ;
+	std::cout << VirtualMachine().eval(stressRamp, Point(0,0,0, tau/2)) << std::endl ;
+	
+	Function stressConstant("1") ;
+	stressConstant = stressConstant * (stress) ;
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, stressRamp)) ;
+	if(quad)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_NOW, stressRamp)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 
@@ -368,6 +442,16 @@ Vector getSTFEMResults()
 	u = F.getDisplacements() ;
 	
 	results[0] = u.max() ;
+	F.resetBoundaryConditions() ;
+	F.getAssembly()->clear() ;
+	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
+		F.addBoundaryCondition(i->first) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, stressConstant)) ;
+	if(quad)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_NOW, stressConstant)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	
 	
 	for(size_t i = 1 ; i < results.size() ; i++)
 	{
@@ -380,6 +464,84 @@ Vector getSTFEMResults()
 		results[i] = u.max() ;
 	}
 
+	return results ;
+}
+
+Vector getFullSTFEMResults()
+{
+	Vector u ;
+	Vector results(getInstants().size()) ;
+
+	FeatureTree F(&box) ;
+	F.setSamplingNumber(sampling) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setDeltaTime(tau) ;
+	F.instants.resize(results.size()+1) ;
+	F.instants[0] = -tau/2 ;
+	for(size_t i = 1 ; i < F.instants.size() ; i++)
+		F.instants[i] = getInstants()[i-1] ;
+	
+	box.setBehaviour(new KelvinVoight(C,C*0.)) ;
+
+	Function stressRamp("t") ;
+	stressRamp = stressRamp + tau/2 ;
+	stressRamp = stressRamp/tau ;
+	stressRamp = stressRamp * stress ;
+	
+	Function stressConstant("1") ;
+	stressConstant = stressConstant * (stress) ;
+	
+	Function time("t") ;
+	time = time - tau*0.51 ;
+	
+	Function plus = f_positivity(time) ;
+	Function minus = f_negativity(time) ;
+	
+	Function stressFunction = plus * stressConstant + minus * stressRamp ;
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, stressFunction)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BEFORE)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BEFORE)) ;
+
+	srand(0) ;
+	F.step() ;
+/*	F.getAssembly()->print() ;*/
+	u.resize(F.getDisplacements().size()) ;
+	u = F.getDisplacements() ;
+
+	std::vector<DelaunayTriangle *> tri = F.getElements2D() ;
+	size_t pointsPerTriangle = tri[0]->getBoundingPoints().size() ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cout << "processing triangle " << i << "/" << tri.size() << std::endl ;
+	
+		for(size_t j = 0 ; j < pointsPerTriangle ; j++)
+		{
+			Point p = tri[i]->getBoundingPoint(j) ;
+			size_t t = 1 ;
+			bool found = false ;
+			while( t < F.instants.size() && !found)
+			{
+				if(p.t == F.instants[t])
+					found = true ;
+				else t++ ;
+			}
+			if(found)
+			{
+				t-- ;
+				double umax = u[p.id*2+1] ;
+				if(umax > results[t])
+				{
+					results[t] = umax ;
+				}
+			}
+		}
+	}
+
+	
 	return results ;
 }
 
@@ -407,13 +569,35 @@ Vector getAnalyticalResults()
 	Vector instants = getInstants() ;
 	Vector results(instants.size()) ;
 	for(int i = 0 ; i < results.size() ; i++)
-		results[i] = umax*(1.-exp(-instants[i]/eta)) ;
+	{
+		results[i] = (1.-std::exp(-instants[i]/eta))*umax ;
+	}
 	
 	return results ;
 }
 
 int main(int argc, char *argv[])
 {
+/*		Function t("t t *") ;
+		TriElement * element = new TriElement(LINEAR_TIME_LINEAR) ;
+		std::valarray<Point *> points(6) ;
+		points[0] = new Point(0,1,0,-1) ;
+		points[1] = new Point(0,0,0,-1) ;
+		points[2] = new Point(1,0,0,-1) ;
+		points[3] = new Point(0,1,0,1) ;
+		points[4] = new Point(0,0,0,1) ;
+		points[5] = new Point(1,0,0,1) ;
+		element->setBoundingPoints(points) ;
+		std::cout << element->getBoundingPoints().size() << std::endl ;
+		
+		std::cout << element->jacobianAtPoint(Point(0,0,0,-0.5)) << std::endl ;
+		std::cout << element->jacobianAtPoint(Point(0,0,0,+0.5)) << std::endl ;
+		
+		std::cout << VirtualMachine().ieval(t, element) << std::endl ;
+		
+		return 0 ;*/
+	
+	
 		std::cout << "usage = ./visco <scheme> <time-step> <sampling-number> <alpha>" << std::endl ;
 		std::cout << "\t<scheme>\tstring representing the time-stepping scheme among <fdi> <fde> <stfem>" << std::endl ;
 		std::cout << "\t<time-step>\tdouble representing the number of days between two time steps" << std::endl ;
@@ -423,10 +607,10 @@ int main(int argc, char *argv[])
 		scheme = getTimeSteppingScheme(argv[1]) ;
 		tau = getTimeStep(argv[2]) ;
 		sampling = getSampling(argv[3]) ;
-		if(scheme == FDI)
-			alpha = getAlpha(argv[4]) ;
-		else
-			alpha = 0 ;
+//		if(scheme == FDI)
+//			alpha = getAlpha(argv[4]) ;
+//		else
+			alpha = 0.5 ;
 		
 		C[0][0] = 1. ; C[1][0] = nu ; C[2][0] = 0. ;
 		C[0][1] = nu ; C[1][1] = 1. ; C[2][1] = 0. ;
@@ -446,8 +630,14 @@ int main(int argc, char *argv[])
 			case FDE:
 				fem = getFDEResults() ;
 				break ;
+			case FULL:
+				fem = getFullSTFEMResults() ;
+				break ;
+			case QUAD:
+				fem = getSTFEMResults(true) ;
+				break ;
 			case STFEM:
-				fem = getSTFEMResults() ;
+				fem = getSTFEMResults(false) ;
 				break ;
 		}
 		
@@ -459,10 +649,8 @@ int main(int argc, char *argv[])
 		std::ofstream out ;
 		std::string filename = getFileName(scheme) ;
 		out.open(filename.c_str(), std::ios::out) ;
-		out << error << std::endl ;
-		out << std::endl ;
-		for(int i = 0 ; i < fem.size() ; i++)
-			out << instants[i]/day << "\t" << fem[i] << std::endl ;
+		for(int i = 0 ; i < analytical.size() ; i++)
+			out << std::setprecision(16) << instants[i]/day << "\t" << std::setprecision(16) << fem[i] << std::endl ;
 		out.close() ;
 		
 		return 0 ;

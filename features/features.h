@@ -313,7 +313,7 @@ protected:
 	void shuffleMeshPoints() ;
 
 public:
-	
+	Vector instants ;
 
 	State & getState() {return state ;}
 	const State & getState() const {return state ;}

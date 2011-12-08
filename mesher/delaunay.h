@@ -137,7 +137,6 @@ public:
 	DelaunayTriangle( Mesh<DelaunayTriangle, DelaunayTreeItem> *tree, DelaunayTreeItem * father,   Point *p0,   Point *p1,   Point *p2,  Point * c) ;
 	DelaunayTriangle() ;
 	
-	
 	virtual ~DelaunayTriangle() ;
 
 	virtual bool isVertex(const Point * p) const ;
@@ -354,6 +353,10 @@ public:
 	}
 	virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}
 	virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}
+	
+	void extrude(double dt) ;
+	void extrude(Vector dt) ;
+	
 public:
 
 	const size_t & getLastNodeId() const {return global_counter ;}  ;

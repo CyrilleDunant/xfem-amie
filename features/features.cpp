@@ -1470,6 +1470,9 @@ void FeatureTree::stitch()
 
 		}
 	}
+	
+	if(instants.size() > 2 && elemOrder >= CONSTANT_TIME_LINEAR && is2D())
+		dynamic_cast<DelaunayTree *>(dtree)->extrude(instants) ;
 }
 
 void FeatureTree::setSamplingNumber( size_t news )

@@ -425,7 +425,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 				}
 			case ETA:
 				{
-					return( eval(f, x, y+eps, z, t+eps, u, v, w) - eval(f, x, y-eps, z, t+eps, u, v, w)- eval(f, x, y+eps, z, t-eps, u, v, w) + eval(f, x-eps, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
+					return( eval(f, x, y+eps, z, t+eps, u, v, w) - eval(f, x, y-eps, z, t+eps, u, v, w)- eval(f, x, y+eps, z, t-eps, u, v, w) + eval(f, x, y-eps, z, t-eps, u, v, w))/(4.*eps*eps) ;
 				}
 			case ZETA:
 				{
@@ -980,7 +980,7 @@ void VirtualMachine::geval(const Function &f, const std::valarray<Matrix> & m, c
 					ret[i][0][2] = ret[i][1][1] ;
 					ret[i][1][2] = ret[i][0][0] ;
 				}
-				ret[0].print() ;
+//				ret[0].print() ;
 			}
 		}
 		else
@@ -1133,6 +1133,8 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 					ret[i][2][0] = ret[i][1][1] ;
 					ret[i][2][1] = ret[i][0][0] ;
 					ret[i] *= m[i][2][2] ;
+					
+// 					ret[i].print() ;
 				}
 				
 				
@@ -2246,10 +2248,10 @@ void VirtualMachine::ieval(const GDtMtGD & f, const GaussPointArray &gp, const s
 
 	ret = (B[0]*f.second*B_[0]);
 	ret *= gp.gaussPoints[0].second ;
-
+	
 	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
 	{
-		ret += B[i]*f.second*(B_[i]*gp.gaussPoints[i].second) ;
+		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
 	}
 }
 
@@ -2297,10 +2299,10 @@ void VirtualMachine::ieval(const GDtMtG & f, const GaussPointArray &gp, const st
 
 	ret = (B[0]*f.second*B_[0]);
 	ret *= gp.gaussPoints[0].second ;
-
+	
 	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
 	{
-		ret += B[i]*f.second*(B_[i]*gp.gaussPoints[i].second) ;
+		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
 	}
 }
 
@@ -2351,7 +2353,7 @@ void VirtualMachine::ieval(const GtMtGD & f, const GaussPointArray &gp, const st
 
 	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
 	{
-		ret += B[i]*f.second*(B_[i]*gp.gaussPoints[i].second) ;
+		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
 	}
 }
 

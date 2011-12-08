@@ -447,6 +447,168 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 
 }
 
+void DelaunayTree::extrude(double dt)
+{
+	std::map<Point *, Point *> points ;
+	
+	std::vector<DelaunayTriangle *> tri = getTriangles() ;
+	double beginning = tri[0]->getBoundingPoint(0).t ;
+	double end = tri[0]->getBoundingPoint(0).t ;
+	for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
+	{
+		if(tri[0]->getBoundingPoint(i).t < beginning)
+			beginning = tri[0]->getBoundingPoint(i).t ;
+		if(tri[0]->getBoundingPoint(i).t > end)
+			end = tri[0]->getBoundingPoint(i).t ;
+	}
+	
+	int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+	int pointsPerTimePlane = tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+		{
+			Point * next = new Point(tri[i]->getBoundingPoint(j).x, tri[i]->getBoundingPoint(j).y) ;
+			next->t = tri[i]->getBoundingPoint(j).t ;
+			next->t = end + dt * (next->t - beginning) / (end - beginning) ;
+			bool increment = true ;
+			if(next->t == end)
+			{			
+				next = &tri[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
+				increment = false ;
+				next->print() ;
+			}
+			if(increment && !points.find(&tri[i]->getBoundingPoint(j))->second)
+			{
+				next->id = (global_counter++) ;
+			}
+			points.insert(std::pair<Point *, Point *>(&tri[i]->getBoundingPoint(j), next)) ;
+		}
+	}
+	
+	std::map<Point *, Point *>::iterator finder ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		Point * a = points.find(&tri[i]->getBoundingPoint(0))->second ;
+		Point * b = points.find(&tri[i]->getBoundingPoint(pointsPerTimePlane/3))->second ;
+		Point * c = points.find(&tri[i]->getBoundingPoint(2*pointsPerTimePlane/3))->second ;
+		
+		std::valarray<Point *> newPoints(tri[i]->getBoundingPoints().size()) ;
+		for(size_t j = 0 ; j < newPoints.size() ; j++)
+		{
+			newPoints[j] = points.find(&tri[i]->getBoundingPoint(j))->second ;
+//			newPoints[j]->print() ;
+		}
+		
+		DelaunayTriangle * toInsert = new DelaunayTriangle(tri[i]->tree, NULL, a,b,c, a) ;
+		toInsert->setOrder(tri[i]->getOrder()) ;
+		toInsert->setBoundingPoints(newPoints) ;
+		toInsert->setBehaviour(tri[i]->getBehaviour()->getCopy()) ;
+	}
+
+}
+
+
+void DelaunayTree::extrude(Vector dt)
+{
+	std::map<Point *, std::vector<Point *> > points ;
+	std::map<Point *, Point *> pointsInTriangle ;
+	std::map<Point *, std::vector<Point *> >::iterator finder ;
+	
+	std::vector<DelaunayTriangle *> tri = getTriangles() ;
+	double beginning = tri[0]->getBoundingPoint(0).t ;
+	double end = tri[0]->getBoundingPoint(0).t ;
+	for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
+	{
+		if(tri[0]->getBoundingPoint(i).t < beginning)
+			beginning = tri[0]->getBoundingPoint(i).t ;
+		if(tri[0]->getBoundingPoint(i).t > end)
+			end = tri[0]->getBoundingPoint(i).t ;
+	}
+	
+	int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+	int pointsPerTimePlane = tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+		{
+			Point * current = &tri[i]->getBoundingPoint(j) ;
+			current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+//			tri[i]->setBoundingPoint(j, current) ;
+		}
+	}
+	
+	
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+		{
+			Point * current = &tri[i]->getBoundingPoint(j) ;
+			finder = points.find(current) ;
+			if(finder == points.end())
+			{
+				Point * current = &tri[i]->getBoundingPoint(j) ;
+				current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+					
+				std::vector<Point *> newPoints ;
+				if( j < indexOfLastTimePlane)
+				{
+					if( j < pointsPerTimePlane )
+					{
+						newPoints.push_back(&tri[i]->getBoundingPoint(indexOfLastTimePlane+j)) ;
+					}
+					size_t ifirst = newPoints.size() ;
+					for(size_t k = ifirst+1 ; k < dt.size()-1 ; k++)
+					{
+						Point * next = new Point(current->x, current->y) ;
+						next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
+						next->id = (global_counter++) ;
+						newPoints.push_back(next) ;
+					}
+				}
+				else
+				{
+					size_t jp = j - indexOfLastTimePlane ;
+					Point * previous = &tri[i]->getBoundingPoint(jp) ;
+					std::vector<Point *> previousPoints = points.find(previous)->second ;
+					for(size_t k = 1 ; k < previousPoints.size() ; k++)
+						newPoints.push_back(previousPoints[k]) ;
+					Point * next = new Point(current->x, current->y) ;
+					size_t k = dt.size()-2 ;
+					next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
+					next->id = (global_counter++) ;
+					newPoints.push_back(next) ;					
+				}
+				
+				points.insert(std::pair<Point *, std::vector<Point *> >(current, newPoints)) ;
+			}
+		}
+	}
+	
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		std::valarray<Point *> newPoints(tri[i]->getBoundingPoints().size()) ;
+		for(size_t k = 1 ; k < dt.size()-1 ; k++)
+		{
+			for(size_t j = 0 ; j < newPoints.size() ; j++)
+			{
+				std::vector<Point *> found = points.find(&tri[i]->getBoundingPoint(j))->second ;
+				newPoints[j] = found[k-1] ;
+			}
+			
+			DelaunayTriangle * toInsert = new DelaunayTriangle(tri[i]->tree, NULL, newPoints[0],newPoints[pointsPerTimePlane/3],newPoints[pointsPerTimePlane*2/3],newPoints[0]) ;
+			toInsert->setOrder(tri[i]->getOrder()) ;
+			toInsert->setBoundingPoints(newPoints) ;
+			toInsert->setBehaviour(tri[i]->getBehaviour()->getCopy()) ;
+		}
+	}
+	
+	std::cout << getTriangles().size() << "\t" << tri.size() << std::endl ;
+	
+}
+
 void DelaunayTree::setElementOrder(Order elemOrder, double dt)
 {
 	switch(elemOrder)
@@ -2261,9 +2423,19 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 // 	std::cout << "b " << index<< std::endl ;
 	VirtualMachine vm ;
+	Point a(0,1,0,-1) ;
+	Point b(0,0,0,-1) ;
+	Point c(1,0,0,-1) ;
+	Point d(0,1,0,1) ;
+	Point e(0,0,0,1) ;
+	Point f(1,0,0,1) ;
+	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
+		
 		behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
+/*		if(dofCount > 3)
+			cachedElementaryMatrix[i][i].print() ;*/
 		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
 			behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
@@ -2275,7 +2447,9 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
 		}
 	}
-// 	std::cout << "c " << index<< std::endl ;
+	if(dofCount > 3)
+		exit(0) ;
+// 	std::cerr << "c " << index<< std::endl ;
 	for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 	{
 		 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
@@ -2287,6 +2461,20 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		}
 	}
 // 		std::cout << "d " << index<< std::endl ;
+	if(false)//dofCount > 3)
+	{
+		for(size_t i = 0 ; i < cachedElementaryMatrix.size() ; i++)
+		{
+			for(size_t j = 0 ; j < cachedElementaryMatrix[i].size() ; j++)
+				std::cout << cachedElementaryMatrix[i][j][0][0] << "\t" << cachedElementaryMatrix[i][j][0][1] << "\t" ;
+			std::cout << std::endl ;
+			for(size_t j = 0 ; j < cachedElementaryMatrix[i].size() ; j++)
+				std::cout << cachedElementaryMatrix[i][j][1][0] << "\t" << cachedElementaryMatrix[i][j][1][1] << "\t"  ;
+			std::cout << std::endl ;
+		}
+		exit(0) ;
+ 	}
+
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;
 	if(behaviour->hasInducedForces())

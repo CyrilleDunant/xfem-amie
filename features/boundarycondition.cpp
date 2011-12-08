@@ -902,7 +902,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						dimposed[1] = vm.deval( data, TIME_VARIABLE, id[i] ) ;
 						dimposed[2] = 0 ;
 						
-						forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + vm.ieval( Gradient( shapeFunctions[i] ) * ( dimposed ), e->getGaussPoints(), Jinv, v ) ;
+						//forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + vm.ieval( Gradient( shapeFunctions[i] ) * ( dimposed ), e->getGaussPoints(), Jinv, v ) ;
+						forces = vm.ieval(Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+						forces *= Jinv[0][2][2]*2 ;
+						
 					}
 					else
 					{
@@ -3153,6 +3156,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 
 					if ( elements[i]->getBoundingPoint( j ).y > maxy )
 						maxy = elements[i]->getBoundingPoint( j ).y ;
+
+					if ( elements.front()->getOrder() >= CONSTANT_TIME_LINEAR )
+					{
+						for ( size_t j = 0 ; j < elements.front()->getBoundingPoints().size() ; ++j )
+						{
+							if ( elements[i]->getBoundingPoint( j ).t < mint )
+								mint = elements[i]->getBoundingPoint( j ).t ;
+
+							if ( elements[i]->getBoundingPoint( j ).t > maxt )
+								maxt = elements[i]->getBoundingPoint( j ).t ;
+						}
+					}
 				}
 			}
 		}
