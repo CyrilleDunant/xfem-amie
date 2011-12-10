@@ -1675,7 +1675,7 @@ int main( int argc, char *argv[] )
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
 	double E_steel = 200e9 ; // next .6
-	double nu_steel = 0.3 ;
+	double nu_steel = -0.2 ;
 	double nu = 0.3 ;
 	double E_paste = 37e9 ;
 
@@ -1757,10 +1757,6 @@ int main( int argc, char *argv[] )
 	Sample rebar1( sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
 	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
-
-	Sample rebarbottom(sampleLength - rebarEndCover, rebarDiametre, 0,  -sampleHeight*.5 + 0.064 + 0.085*.5 ) ;
-	rebarbottom.setBehaviour( new StiffnessAndFracture( m0_steel*0.5, new VonMises( 490e6 ) ) );
-	rebarbottom.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	
 	Sample rebar2( sampleLength - rebarEndCover, rebarDiametre, 0,  sampleHeight*.5 - 0.064 ) ;
 	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
@@ -1882,10 +1878,9 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-// 		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
-// 		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
+		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
+		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
 
-		F.addFeature( &sample, &rebarbottom, rebarlayer, phi ) ;
 		
 // 		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &rebar3, rebarlayer, phi ) ;
@@ -1897,9 +1892,8 @@ int main( int argc, char *argv[] )
 
 
 	F.setSamplingFactor( &bottomcentervoid, 3 ) ;
-// 	F.setSamplingFactor( &rebar0, 3 ) ;
-// 	F.setSamplingFactor( &rebar1, 3 ) ;
-	F.setSamplingFactor( &rebarbottom, 3 ) ;
+	F.setSamplingFactor( &rebar0, 3 ) ;
+	F.setSamplingFactor( &rebar1, 3 ) ;
 	
 // 	F.setSamplingFactor( &rebar2, 3 ) ;
 // 	F.setSamplingFactor( &rebar3, 3 ) ;

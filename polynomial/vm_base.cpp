@@ -780,7 +780,7 @@ std::valarray<Matrix> VirtualMachine::geval(const Function &f, const std::valarr
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][2][0] = ret[i][1][1] ;
 					ret[i][2][1] = ret[i][0][0] ;
-//					ret[i] *= m[i][2][2] ;
+// 					ret[i] *= m[i][2][2] ;
 				}
 				
 				return ret ;
@@ -798,7 +798,7 @@ std::valarray<Matrix> VirtualMachine::geval(const Function &f, const std::valarr
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][0][2] = ret[i][1][1] ;
 					ret[i][1][2] = ret[i][0][0] ;
-//					ret[i] *= m[i][2][2] ;
+// 					ret[i] *= m[i][2][2] ;
 				}
 				return ret ;
 			}
@@ -1956,7 +1956,7 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 				ret[0][0] = fx*m[0][0] + fy*m[0][1] ;
 				ret[1][0] = fx*m[1][0] + fy*m[1][1] ;
 
-				
+				ret *= 2 ;
 				
 				return ret ;
 			}
@@ -1967,6 +1967,8 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 				double fy = deval(f, var[1], x,y,z,t) ;
 				ret[0][0] = fx*m[0][0] + fy*m[0][1] ;
 				ret[0][1] = fx*m[1][0] + fy*m[1][1] ;
+				
+				ret *= 2 ;
 				
 				return ret ;
 			}
@@ -2008,6 +2010,7 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 			ret[1][0] = fx*m[1][0] + fy*m[1][1] + fz*m[1][2];
 			ret[2][0] = fx*m[2][0] + fy*m[2][1] + fz*m[2][2];
 
+			ret *= 2 ;
 			return ret ;
 		}
 		else
@@ -2020,6 +2023,7 @@ Matrix VirtualMachine::gveval(const Function &f, const Matrix & m, const std::ve
 			ret[0][1] = fx*m[1][0] + fy*m[1][1] + fz*m[1][2];
 			ret[0][2] = fx*m[2][0] + fy*m[2][1] + fz*m[2][2];
 
+			ret *= 2 ;
 			return ret ;
 		}
 	}

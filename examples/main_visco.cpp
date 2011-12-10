@@ -153,7 +153,7 @@ Vector getInstants()
 {
 	double steps = 365./tau*day ;
 	Vector instants((int) steps) ;
-	instants[0] = tau/2 ;
+	instants[0] = tau/2. ;
 	for(int i = 1 ; i < instants.size() ; i++)
 		instants[i] = instants[i-1] + tau ;
 	return instants ;
@@ -553,8 +553,6 @@ Vector getAnalyticalResults()
 	F.setSamplingNumber(sampling) ;
 	F.setOrder(LINEAR) ;
 	
-	Vector u ;
-	
 	box.setBehaviour(new Stiffness(C)) ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, stress)) ;
@@ -563,8 +561,8 @@ Vector getAnalyticalResults()
 	
 	srand(0) ;
 	F.step() ;
-	u.resize(F.getDisplacements().size()) ;
-	u = F.getDisplacements() ;
+	F.step() ;
+	Vector u = F.getDisplacements() ;
 	
 	double umax = u.max() ;
 	
@@ -572,7 +570,7 @@ Vector getAnalyticalResults()
 	Vector results(instants.size()) ;
 	for(int i = 0 ; i < results.size() ; i++)
 	{
-		results[i] = (1.-std::exp(-instants[i]/eta))*umax ;
+		results[i] = (1.-exp(-instants[i]/(eta*86400.)))*umax ;
 	}
 	
 	return results ;
@@ -672,7 +670,7 @@ int main(int argc, char *argv[])
 		std::string filename = getFileName(scheme) ;
 		out.open(filename.c_str(), std::ios::out) ;
 		for(int i = 0 ; i < std::min(std::min(analytical.size(), instants.size()),fem.size()) ; i++)
-			out << std::setprecision(16) << instants[i]/day << "\t" << std::setprecision(16) << fem[i] << std::endl ;
+			out << std::setprecision(16) << instants[i]/day << "\t" << std::setprecision(16) << fem[i] << "\t" << std::setprecision(16) <<analytical[i] <<  std::endl ;
 		out.close() ;
 		std::cout << "FINISH" << std::endl ;
 		return 0 ;

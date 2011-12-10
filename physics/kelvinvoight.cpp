@@ -34,19 +34,24 @@ void KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gauss
 
 	Matrix temp(ret) ;
 	Matrix temp0(ret) ;
+	Matrix temp1(ret) ;
 	
-	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
-	vm->ieval(Gradient(p_i) * param * GradientDot(p_j, true), gp, Jinv,v,temp0);
+	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true), gp, Jinv,v,temp0) ;
+	vm->ieval(Gradient(p_i) * param * GradientDot(p_j, true), gp, Jinv,v,temp1);
 
-// 	vm->ieval(GradientDot(p_j) * param * Gradient(p_i, true), gp, Jinv,v,temp);
+	vm->ieval(Gradient(p_j) * param * Gradient(p_i, true), gp, Jinv,v,ret);
 	
+	if(std::abs((temp0+temp1).array()).max() < 1e-6*std::abs(ret.array()).max())
+		ret *= 0 ;
+	else 
+		ret /= 8100 ;//[81000 825000]
 	
 
 	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp);
 
 // 	temp.print() ;
 	
-	ret = ret+temp0 +temp ;
+	ret = ret + temp ;
 }
 
 bool KelvinVoight::fractured() const

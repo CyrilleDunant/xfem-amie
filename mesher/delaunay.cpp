@@ -2459,20 +2459,19 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			 behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 		}
 	}
-// 		std::cout << "d " << index<< std::endl ;
-	if(false)//dofCount > 3)
-	{
-		for(size_t i = 0 ; i < cachedElementaryMatrix.size() ; i++)
-		{
-			for(size_t j = 0 ; j < cachedElementaryMatrix[i].size() ; j++)
-				std::cout << cachedElementaryMatrix[i][j][0][0] << "\t" << cachedElementaryMatrix[i][j][0][1] << "\t" ;
-			std::cout << std::endl ;
-			for(size_t j = 0 ; j < cachedElementaryMatrix[i].size() ; j++)
-				std::cout << cachedElementaryMatrix[i][j][1][0] << "\t" << cachedElementaryMatrix[i][j][1][1] << "\t"  ;
-			std::cout << std::endl ;
-		}
-		exit(0) ;
- 	}
+// 	if(dofCount > 3)
+// 	{
+// 		for(size_t i = 0 ; i < cachedElementaryMatrix.size() ; i++)
+// 		{
+// 			for(size_t j = 0 ; j < cachedElementaryMatrix[i].size() ; j++)
+// 				std::cout << cachedElementaryMatrix[i][j][0][0] << "\t" << cachedElementaryMatrix[i][j][0][1] << "\t" ;
+// 			std::cout << std::endl ;
+// 			for(size_t j = 0 ; j < cachedElementaryMatrix[i].size() ; j++)
+// 				std::cout << cachedElementaryMatrix[i][j][1][0] << "\t" << cachedElementaryMatrix[i][j][1][1] << "\t"  ;
+// 			std::cout << std::endl ;
+// 		}
+// 		exit(0) ;
+//  	}
 
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;
