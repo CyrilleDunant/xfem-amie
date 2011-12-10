@@ -44,7 +44,7 @@ void KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gauss
 	if(std::abs((temp0+temp1).array()).max() < 1e-6*std::abs(ret.array()).max())
 		ret *= 0 ;
 	else 
-		ret /= 8100 ;//[81000 825000]
+		ret /= vm->ieval(p_j, gp) ;//[81000 825000]
 	
 
 	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp);
