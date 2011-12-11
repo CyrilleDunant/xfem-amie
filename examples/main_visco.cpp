@@ -101,13 +101,13 @@ Sample help(NULL, 0.1,0.1,0.,0.) ;
 
 double young = 3.*1e9 ;
 double nu = 0.3 ;
-double eta = 60 ;
+double eta = 60. ;
 double stress = 10.*1e6 ;
 
 Matrix C(3,3) ;
 Matrix E(3,3) ;
 
-double day = 86400. ;
+double day = 1 ;
 
 double tau ;
 double alpha ;
@@ -151,7 +151,7 @@ double getAlpha(std::string arg)
 
 Vector getInstants()
 {
-	double steps = 365./tau*day ;
+	double steps = 2.*365./tau*day ;
 	Vector instants((int) steps) ;
 	instants[0] = tau/2. ;
 	for(int i = 1 ; i < instants.size() ; i++)
@@ -570,7 +570,7 @@ Vector getAnalyticalResults()
 	Vector results(instants.size()) ;
 	for(int i = 0 ; i < results.size() ; i++)
 	{
-		results[i] = (1.-exp(-instants[i]/(eta*86400.)))*umax ;
+		results[i] = (1.-exp(-instants[i]/(eta)))*umax ;
 	}
 	
 	return results ;
@@ -615,9 +615,10 @@ int main(int argc, char *argv[])
 		C[0][0] = 1. ; C[1][0] = nu ; C[2][0] = 0. ;
 		C[0][1] = nu ; C[1][1] = 1. ; C[2][1] = 0. ;
 		C[0][2] = 0. ; C[1][2] = 0. ; C[2][2] = 1.-nu ;
-		C *= young/(1.-nu*nu) ;
 		
+		C *= young/(1.-nu*nu) ;
 		E = C*eta*day ;
+		
 		
 		Vector instants = getInstants() ;
 		Vector analytical = getAnalyticalResults() ;
@@ -669,6 +670,7 @@ int main(int argc, char *argv[])
 		std::ofstream out ;
 		std::string filename = getFileName(scheme) ;
 		out.open(filename.c_str(), std::ios::out) ;
+		out << std::setprecision(16) << 0 << "\t" << std::setprecision(16) << 0 << "\t" << std::setprecision(16) <<0 <<  std::endl ;
 		for(int i = 0 ; i < std::min(std::min(analytical.size(), instants.size()),fem.size()) ; i++)
 			out << std::setprecision(16) << instants[i]/day << "\t" << std::setprecision(16) << fem[i] << "\t" << std::setprecision(16) <<analytical[i] <<  std::endl ;
 		out.close() ;

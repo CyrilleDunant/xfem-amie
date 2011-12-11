@@ -1132,7 +1132,7 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][2][0] = ret[i][1][1] ;
 					ret[i][2][1] = ret[i][0][0] ;
-// 					ret[i] *= m[i][2][2] ;
+					ret[i] *= m[i][2][2] ;
 					
 // 					ret[i].print() ;
 				}
@@ -1153,7 +1153,7 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
 					ret[i][0][2] = ret[i][1][1] ;
 					ret[i][1][2] = ret[i][0][0] ;
-// 					ret[i] *= m[i][2][2] ;
+					ret[i] *= m[i][2][2] ;
 				}
 				
 				return ret ;
@@ -1319,7 +1319,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 				ret[2][0] = ret[1][1] ;
 				ret[2][1] = ret[0][0] ;
 				
-				return ret*2. ;
+				return ret ;
 			}
 			else
 			{
@@ -1332,7 +1332,7 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 				ret[0][2] = ret[1][1] ;
 				ret[1][2] = ret[0][0] ;
 				
-				return ret*2. ;
+				return ret ;
 			}
 		}
 		else
@@ -1611,7 +1611,7 @@ Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::ve
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[2][0] = ret[1][1] ;
 				ret[2][1] = ret[0][0] ;
-// 				ret *= m[2][2] ;
+				ret *= m[2][2] ;
 				
 				return ret ;
 			}
@@ -1625,7 +1625,7 @@ Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::ve
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[0][2] = ret[1][1] ;
 				ret[1][2] = ret[0][0] ;
-// 				ret *= m[2][2] ;
+				ret *= m[2][2] ;
 				
 				return ret ;
 			}
@@ -1759,7 +1759,7 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[2][0] = ret[1][1] ;
 				ret[2][1] = ret[0][0] ;
-// 				ret *= m[2][2] ;
+				ret *= m[2][2] ;
 				
 				return ;
 			}
@@ -1774,7 +1774,7 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;
 				ret[0][2] = ret[1][1] ;
 				ret[1][2] = ret[0][0] ;
-// 				ret *= m[2][2] ;
+				ret *= m[2][2] ;
 				
 				return ;
 			}

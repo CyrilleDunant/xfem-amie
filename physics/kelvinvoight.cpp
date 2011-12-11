@@ -36,22 +36,44 @@ void KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gauss
 	Matrix temp0(ret) ;
 	Matrix temp1(ret) ;
 	
-	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true), gp, Jinv,v,temp0) ;
-	vm->ieval(Gradient(p_i) * param * GradientDot(p_j, true), gp, Jinv,v,temp1);
 
-	vm->ieval(Gradient(p_j) * param * Gradient(p_i, true), gp, Jinv,v,ret);
-	
-	if(std::abs((temp0+temp1).array()).max() < 1e-6*std::abs(ret.array()).max())
-		ret *= 0 ;
-	else 
-		ret /= vm->ieval(p_j, gp) ;//[81000 825000]
-	
 
-	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gp, Jinv,v,temp);
-
-// 	temp.print() ;
+	Point a(0.25,0.25,0.25,-1) ;
+	Point b(0.25,0.25,0.25,0) ;
+	Point c(0.25,0.25,0.25,1) ;
 	
-	ret = ret + temp ;
+	
+	double off = 1. ;
+	GaussPointArray gpAlt(gp) ;
+	if(vm->eval(p_i, a)*vm->eval(p_j, a) > 0)
+	{
+		for(size_t i = 0 ; i < gpAlt.gaussPoints.size() ; ++i)
+		{
+			gpAlt.gaussPoints[i].second *= -1 ;
+		}
+	}
+	else if(vm->eval(p_i, c)*vm->eval(p_j, c) < 0 || vm->eval(p_i, a)*vm->eval(p_j, a) < 0 || vm->eval(p_i, b)*vm->eval(p_j, b) < 0 )
+		off = 0. ;
+// 	else if(vm->eval(p_i, b)*vm->eval(p_j, b) > 0 && vm->deval(p_i, TIME_VARIABLE, b)*vm->deval(p_j, TIME_VARIABLE, b) < POINT_TOLERANCE_2D)
+// 	{
+// 		for(size_t i = 0 ; i < gpAlt.gaussPoints.size() ; ++i)
+// 		{
+// 			gpAlt.gaussPoints[i].second *= -1 ;
+// 		}
+// 	}
+// 	else
+// 	{
+// 		for(size_t i = 0 ; i < gpAlt.gaussPoints.size() ; ++i)
+// 		{
+// 			gpAlt.gaussPoints[i].first.t = 1 ;
+// 		}
+// 	}
+	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gpAlt, Jinv,v,temp);
+// 	vm->ieval(Gradient(p_j) * param * Gradient(p_i, true), gpAlt, Jinv,v,ret);
+	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true), gpAlt, Jinv,v,temp0) ;
+	vm->ieval(Gradient(p_i) * param * GradientDot(p_j, true), gpAlt, Jinv,v,temp1);
+	
+	ret = (temp0+temp1)*off+temp;
 }
 
 bool KelvinVoight::fractured() const

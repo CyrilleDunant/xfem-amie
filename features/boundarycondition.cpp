@@ -211,14 +211,14 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					Vector forces(2) ;
-					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
-					{
-						forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
-					}
-					else
-					{
+// 					if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+// 					{
+// 						forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) ;
+// 					}
+// 					else
+// 					{
 						forces = vm.ieval(Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
-					}
+// 					}
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -899,10 +899,36 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						
 						Vector dimposed( 3 ) ;
 						dimposed[0] = 0 ;
-						dimposed[1] = vm.deval( data, TIME_VARIABLE, id[i] ) ;
+						dimposed[1] =  vm.deval( data, TIME_VARIABLE, id[i] )*Jinv[0][2][2] ;
+						if(dimposed[1] > POINT_TOLERANCE_2D)
+						{
+							dimposed[1] = imposed[1]/2. ;
+// 							std::cout << " -> " << dimposed[1] << std::endl ;
+// 							std::cout << " -> " << imposed[1] << std::endl ;
+// 							exit(0) ;
+						}
+						
+						Point a(0.25,0.25,0.25,-1) ;
+// 						Point b(0.25,0.25,0.25,0) ;
+						GaussPointArray gpAlt(e->getGaussPoints()) ;
+						if(vm.eval(shapeFunctions[i], a) > 0)
+						{
+							for(size_t j = 0 ; j < gpAlt.gaussPoints.size() ; ++j)
+							{
+								gpAlt.gaussPoints[j].second *= -1 ;
+							}
+						}
+// 						else if(vm.eval(shapeFunctions[i], b) > 0 && vm.deval(shapeFunctions[i], TIME_VARIABLE, b) < POINT_TOLERANCE_2D)
+// 						{
+// 							for(size_t j = 0 ; j < gpAlt.gaussPoints.size() ; ++j)
+// 							{
+// 								gpAlt.gaussPoints[j].second *= -1 ;
+// 							}
+// 						}
+						
 						dimposed[2] = 0 ;
-						//forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v ) + vm.ieval( Gradient( shapeFunctions[i] ) * ( dimposed ), e->getGaussPoints(), Jinv, v ) ;
-						forces = vm.ieval(Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+// 						forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v )/Jinv[0][2][2] + vm.ieval( Gradient( shapeFunctions[i] ) * ( dimposed ), e->getGaussPoints(), Jinv, v ) ;
+						forces = vm.ieval(GradientDot( shapeFunctions[i] ) * ( imposed ), gpAlt, Jinv, v) + vm.ieval(Gradient( shapeFunctions[i] ) * ( dimposed ), gpAlt, Jinv, v);
 						forces *= Jinv[0][2][2] ;
 						
 					}

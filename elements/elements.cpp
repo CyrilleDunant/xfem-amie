@@ -352,111 +352,49 @@ const GaussPointArray & TriElement::genGaussPoints()
 		}
 	case LINEAR_TIME_LINEAR:
 		{
-			ordre = 8 ;
-			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
-			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
-			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.2604166666666666667) ;
-			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-0.577350269189626), -0.28125) ;
-			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
-			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
-			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.26041666666666666667) ;
-			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;
+// 			ordre = 8 ;
+// 			fin.resize(ordre);
+// 			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
+// 			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
+// 			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.2604166666666666667) ;
+// 			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-0.577350269189626), -0.28125) ;
+// 			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
+// 			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
+// 			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.26041666666666666667) ;
+// 			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;
 // 			ordre = 1 ;
 // 			fin.resize(ordre);
 // 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0), 1) ;
-			ordre = 3 ;
+// 			ordre = 3 ;
+// 			fin.resize(ordre);
+// 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
+// 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
+// 			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.774596669241483), 0.5555555555555556*0.5) ;
+			ordre = 5 ;
 			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
-			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
-			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.774596669241483), 0.5555555555555556*0.5) ;
-
+			double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
+			double b = 1./3.*sqrt(5.+2*sqrt(10./7.)) ;
+			fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.-13.*sqrt(70.))/1800.) ;
+			fin[1] = std::pair<Point, double>(Point(1./3., 1./3.,0,-b), (322.-13.*sqrt(70.))/1800.) ;
+			fin[2] = std::pair<Point, double>(Point(1./3., 1./3.,0,0), 128./450.) ;
+			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,b), (322.-13.*sqrt(70.))/1800.) ;
+			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.-13.*sqrt(70.))/1800.) ;
+			
 			break ;
 		}
 	case LINEAR_TIME_QUADRATIC:
 		{
-			ordre = 3 ;
+
+			ordre = 5 ;
 			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
-			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
-			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.774596669241483), 0.5555555555555556*0.5) ;
+			double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
+			double b = 1./3.*sqrt(5.+2*sqrt(10./7.)) ;
+			fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.-13.*sqrt(70.))/1800.) ;
+			fin[1] = std::pair<Point, double>(Point(1./3., 1./3.,0,-b), (322.-13.*sqrt(70.))/1800.) ;
+			fin[2] = std::pair<Point, double>(Point(1./3., 1./3.,0,0), 128./450.) ;
+			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,b), (322.-13.*sqrt(70.))/1800.) ;
+			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.-13.*sqrt(70.))/1800.) ;
 
-/*			ordre = 4 ;
-			fin.resize(ordre) ;
-			fin[0] = std::pair<Point, double>(Point(0.33333333333333, 0.3333333333333, 0, 0.128500756), 0.652145155*0.5) ;
-			fin[1] = std::pair<Point, double>(Point(0.33333333333333, 0.3333333333333, 0, -0.128500756), 0.652145155*0.5) ;
-			fin[2] = std::pair<Point, double>(Point(0.33333333333333, 0.3333333333333, 0, 0.325478932), 0.347854845*0.5) ;
-			fin[3] = std::pair<Point, double>(Point(0.33333333333333, 0.3333333333333, 0, -0.325478932), 0.347854845*0.5) ;*/
-
-/*			fin[0] = std::pair<Point, double>(Point(0,1,0,-1), 0.11111111111111) ;
-			fin[1] = std::pair<Point, double>(Point(0,0,0,-1), 0.11111111111111) ;
-			fin[2] = std::pair<Point, double>(Point(1,0,0,-1), 0.11111111111111) ;
-			fin[3] = std::pair<Point, double>(Point(0,1,0,0), 0.11111111111111) ;
-			fin[4] = std::pair<Point, double>(Point(0,0,0,0), 0.11111111111111) ;
-			fin[5] = std::pair<Point, double>(Point(1,0,0,0), 0.11111111111111) ;
-			fin[6] = std::pair<Point, double>(Point(0,1,0,1), 0.11111111111111) ;
-			fin[7] = std::pair<Point, double>(Point(0,0,0,1), 0.11111111111111) ;
-			fin[8] = std::pair<Point, double>(Point(1,0,0,1), 0.11111111111111) ;*/
-			
-/*			double a = 1./6. ;
-			double b = 2./3. ;
-			double c = 0.774596669241483 ;
-			double d = 0.555555555555556 ;
-			double e = 0.888888888888889 ;
-
-			ordre = 9 ;
-			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(a,a,0,-c), a*d) ;
-			fin[1] = std::pair<Point, double>(Point(b,a,0,-c), a*d) ;
-			fin[2] = std::pair<Point, double>(Point(a,b,0,-c), a*d) ;
-			fin[3] = std::pair<Point, double>(Point(a,a,0,0), a*e) ;
-			fin[4] = std::pair<Point, double>(Point(b,a,0,0), a*e) ;
-			fin[5] = std::pair<Point, double>(Point(a,b,0,0), a*e) ;
-			fin[6] = std::pair<Point, double>(Point(a,a,0,c), a*d) ;
-			fin[7] = std::pair<Point, double>(Point(b,a,0,c), a*d) ;
-			fin[8] = std::pair<Point, double>(Point(a,b,0,c), a*d) ;
-
-			ordre = 12 ;
-			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-c), 0.2604166666666666667) ;
-			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-c), 0.2604166666666666667) ;
-			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-c), 0.2604166666666666667) ;
-			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-c), -0.28125) ;
-			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.), 0.26041666666666666667) ;
-			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.), 0.26041666666666666667) ;
-			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.), 0.26041666666666666667) ;
-			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.), -0.28125) ;
-			fin[8] = std::pair<Point, double>(Point(0.2, 0.2,0,c), 0.26041666666666666667) ;
-			fin[9] = std::pair<Point, double>(Point(0.6, 0.2,0,c), 0.26041666666666666667) ;
-			fin[10] = std::pair<Point, double>(Point(0.2, 0.6,0,c), 0.26041666666666666667) ;
-			fin[11] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,c), -0.28125) ;*/
-
-/*			ordre = 2 ;
-			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,-0.577350269189626), 0.5) ;
-			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0.577350269189626), 0.5) ;*/
-
-
-
-/*			ordre = 8 ;
-			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.2, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
-			fin[1] = std::pair<Point, double>(Point(0.6, 0.2,0,-0.577350269189626), 0.2604166666666666667) ;
-			fin[2] = std::pair<Point, double>(Point(0.2, 0.6,0,-0.577350269189626), 0.2604166666666666667) ;
-			fin[3] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,-0.577350269189626), -0.28125) ;
-			fin[4] = std::pair<Point, double>(Point(0.2, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
-			fin[5] = std::pair<Point, double>(Point(0.6, 0.2,0,0.577350269189626), 0.26041666666666666667) ;
-			fin[6] = std::pair<Point, double>(Point(0.2, 0.6,0,0.577350269189626), 0.26041666666666666667) ;
-			fin[7] = std::pair<Point, double>(Point(0.333333333333333333333, 0.333333333333333333333,0,0.577350269189626), -0.28125) ;*/
-// 			ordre = 2 ;
-// 			fin.resize(ordre);
-// 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,-0.577350269189626), 0.5) ;
-// 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0.577350269189626), 0.5) ;
-// 				ordre = 3 ;
-// 				fin.resize(ordre);
-// 				fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,-1), 0.33333333333333333) ;
-// 				fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0), 0.333333333333333333) ;
-// 				fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,1), 0.333333333333333333) ;
 			break ;
 		}
 	case QUADRATIC_TIME_LINEAR:
@@ -609,11 +547,13 @@ const GaussPointArray & TriElement::genGaussPoints()
 	}
 	else
 	{
-		double j = area()*2 ;
-		if(order > CONSTANT_TIME_LINEAR)
-			j *= 0.5*(getBoundingPoints()[getBoundingPoints().size()-1]->t - getBoundingPoints()[0]->t) ;
+
+
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
+			Matrix J ;
+			getInverseJacobianMatrix(fin[i].first, J) ;
+			double j = det(J);
 			fin[i].second *= j;
 		}
 	}

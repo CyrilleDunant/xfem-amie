@@ -2408,7 +2408,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 // 	std::cout << "a " << index<< std::endl ;
 	std::valarray<Matrix> Jinv(Matrix(ndofs, ndofs),  getGaussPoints().gaussPoints.size()) ;
-	if(moved)
+	if(true ||moved)
 	{
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
