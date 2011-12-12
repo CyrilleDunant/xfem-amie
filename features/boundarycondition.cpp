@@ -911,13 +911,13 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						Point a(0.25,0.25,0.25,-1) ;
 // 						Point b(0.25,0.25,0.25,0) ;
 						GaussPointArray gpAlt(e->getGaussPoints()) ;
-						if(vm.eval(shapeFunctions[i], a) > 0)
-						{
-							for(size_t j = 0 ; j < gpAlt.gaussPoints.size() ; ++j)
-							{
-								gpAlt.gaussPoints[j].second *= -1 ;
-							}
-						}
+// 						if(vm.eval(shapeFunctions[i], a) > 0)
+// 						{
+// 							for(size_t j = 0 ; j < gpAlt.gaussPoints.size() ; ++j)
+// 							{
+// 								gpAlt.gaussPoints[j].second *= -1 ;
+// 							}
+// 						}
 // 						else if(vm.eval(shapeFunctions[i], b) > 0 && vm.deval(shapeFunctions[i], TIME_VARIABLE, b) < POINT_TOLERANCE_2D)
 // 						{
 // 							for(size_t j = 0 ; j < gpAlt.gaussPoints.size() ; ++j)
@@ -928,8 +928,9 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						
 						dimposed[2] = 0 ;
 // 						forces = vm.ieval( GradientDot( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v )/Jinv[0][2][2] + vm.ieval( Gradient( shapeFunctions[i] ) * ( dimposed ), e->getGaussPoints(), Jinv, v ) ;
-						forces = vm.ieval(GradientDot( shapeFunctions[i] ) * ( imposed ), gpAlt, Jinv, v) + vm.ieval(Gradient( shapeFunctions[i] ) * ( dimposed ), gpAlt, Jinv, v);
-						forces *= Jinv[0][2][2] ;
+						forces = vm.ieval(Gradient( shapeFunctions[i] ) * ( imposed*Jinv[0][2][2] ),  e->getGaussPoints(), Jinv, v) ;//+ vm.ieval(GradientDot( shapeFunctions[i] ) * ( imposed ),  e->getGaussPoints(), Jinv, v);
+// 						std::cout <<   << "   "<< vm.ieval(GradientDot( shapeFunctions[i] ) * ( imposed*Jinv[0][2][2] ),  e->getGaussPoints(), Jinv, v)[1] << std::endl ;
+// 						forces *=  Jinv[0][2][2];
 						
 					}
 					else

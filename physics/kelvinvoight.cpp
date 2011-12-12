@@ -17,7 +17,7 @@
 
 using namespace Mu ;
 
-KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e) : LinearForm(rig, false, false, rig.numRows()/3+1), eta(e)
+KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e, double characteristicTime ) : LinearForm(rig, false, false, rig.numRows()/3+1), eta(e), characteristicTime(characteristicTime)
 {
 	rig.print() ;
 	v.push_back(XI);
@@ -45,35 +45,11 @@ void KelvinVoight::apply(const Function & p_i, const Function & p_j, const Gauss
 	
 	double off = 1. ;
 	GaussPointArray gpAlt(gp) ;
-	if(vm->eval(p_i, a)*vm->eval(p_j, a) > 0)
-	{
-		for(size_t i = 0 ; i < gpAlt.gaussPoints.size() ; ++i)
-		{
-			gpAlt.gaussPoints[i].second *= -1 ;
-		}
-	}
-	else if(vm->eval(p_i, c)*vm->eval(p_j, c) < 0 || vm->eval(p_i, a)*vm->eval(p_j, a) < 0 || vm->eval(p_i, b)*vm->eval(p_j, b) < 0 )
-		off = 0. ;
-// 	else if(vm->eval(p_i, b)*vm->eval(p_j, b) > 0 && vm->deval(p_i, TIME_VARIABLE, b)*vm->deval(p_j, TIME_VARIABLE, b) < POINT_TOLERANCE_2D)
-// 	{
-// 		for(size_t i = 0 ; i < gpAlt.gaussPoints.size() ; ++i)
-// 		{
-// 			gpAlt.gaussPoints[i].second *= -1 ;
-// 		}
-// 	}
-// 	else
-// 	{
-// 		for(size_t i = 0 ; i < gpAlt.gaussPoints.size() ; ++i)
-// 		{
-// 			gpAlt.gaussPoints[i].first.t = 1 ;
-// 		}
-// 	}
+
 	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gpAlt, Jinv,v,temp);
-// 	vm->ieval(Gradient(p_j) * param * Gradient(p_i, true), gpAlt, Jinv,v,ret);
 	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true), gpAlt, Jinv,v,temp0) ;
 	vm->ieval(Gradient(p_i) * param * GradientDot(p_j, true), gpAlt, Jinv,v,temp1);
-	
-	ret = (temp0+temp1)*off+temp;
+	ret = (temp0+temp1)+temp*(1.-1./(Jinv[0][2][2]*characteristicTime));
 }
 
 bool KelvinVoight::fractured() const

@@ -28,12 +28,13 @@ struct KelvinVoight : public LinearForm
 {
 	Matrix eta ;
 	std::vector<Variable> v ;
+	double characteristicTime ;
 	/** \brief Constructor
 	*
 	* @param rig Complete expression of the Cauchy-Green Strain Tensor
 	* @param eta Complete expression of the viscosity Tensor
 	*/
-	KelvinVoight( const Matrix & rig, const Matrix & eta ) ;
+	KelvinVoight( const Matrix & rig, const Matrix & eta , double characteristicTime) ;
 
 	virtual ~KelvinVoight() ;
 

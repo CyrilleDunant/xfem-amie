@@ -547,13 +547,12 @@ const GaussPointArray & TriElement::genGaussPoints()
 	}
 	else
 	{
-
+		double j = area()*2. ;
+		if(order > CONSTANT_TIME_LINEAR)
+			j *= 0.5*(getBoundingPoints()[getBoundingPoints().size()-1]->t - getBoundingPoints()[0]->t) ;
 
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
-			Matrix J ;
-			getInverseJacobianMatrix(fin[i].first, J) ;
-			double j = det(J);
 			fin[i].second *= j;
 		}
 	}

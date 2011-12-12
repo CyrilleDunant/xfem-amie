@@ -381,7 +381,7 @@ Vector getSTFEMResults(bool quad = true)
 		F.setOrder(LINEAR_TIME_QUADRATIC) ;
 	F.setDeltaTime(tau) ;
 
-	box.setBehaviour(new KelvinVoight(C,E)) ;
+	box.setBehaviour(new KelvinVoight(C,E, eta)) ;
 
 	srand(0) ;
 	F.step() ;
@@ -483,7 +483,7 @@ Vector getFullSTFEMResults()
 	for(size_t i = 1 ; i < F.instants.size() ; i++)
 		F.instants[i] = getInstants()[i-1] ;
 	
-	box.setBehaviour(new KelvinVoight(C,C*0.)) ;
+	box.setBehaviour(new KelvinVoight(C,E, eta)) ;
 
 	Function stressRamp("t") ;
 	stressRamp = stressRamp + tau/2 ;
