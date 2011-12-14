@@ -635,7 +635,7 @@ Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDim
 			{
 			cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu) ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu)*.5 ;
 			cg *= E/((1.+nu)*(1.-2.*nu)) ;
 			}
 			return cg ;

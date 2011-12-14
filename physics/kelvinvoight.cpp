@@ -31,25 +31,22 @@ KelvinVoight::~KelvinVoight() { } ;
 
 void KelvinVoight::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-
+	bool isSpaceIdentical = (std::abs(p_i.getPoint()->x-p_j.getPoint()->x) + std::abs(p_i.getPoint()->y-p_j.getPoint()->y) + std::abs(p_i.getPoint()->z-p_j.getPoint()->z)) < POINT_TOLERANCE_2D;
+	bool isTimeIdentical = std::abs(p_i.getPoint()->t-p_j.getPoint()->t) < POINT_TOLERANCE_2D ;
+	
 	Matrix temp(ret) ;
 	Matrix temp0(ret) ;
 	Matrix temp1(ret) ;
 	
-
-
-	Point a(0.25,0.25,0.25,-1) ;
-	Point b(0.25,0.25,0.25,0) ;
-	Point c(0.25,0.25,0.25,1) ;
-	
-	
-	double off = 1. ;
-	GaussPointArray gpAlt(gp) ;
-
-	vm->ieval(GradientDot(p_i) * eta * GradientDot(p_j, true), gpAlt, Jinv,v,temp);
-	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true), gpAlt, Jinv,v,temp0) ;
-	vm->ieval(Gradient(p_i) * param * GradientDot(p_j, true), gpAlt, Jinv,v,temp1);
-	ret = (temp0+temp1)+temp*(1.-1./(Jinv[0][2][2]*characteristicTime));
+	vm->ieval(GradientDot(p_i) * eta   * GradientDot(p_j, true), gp, Jinv,v,temp);
+	vm->ieval(GradientDot(p_i) * param * GradientDot(p_j, true),    gp, Jinv,v,temp0) ;
+	vm->ieval(Gradient(p_i)    * param * GradientDot(p_j, true), gp, Jinv,v,temp1);
+// 	if(isSpaceIdentical)
+// 	{
+// 		(temp0+temp1).print();
+// 		exit(0) ;
+// 	}
+	ret = (temp0+temp1) + temp*(1.-1./(Jinv[0][2][2]*characteristicTime)) ; //(1.-1./(Jinv[0][2][2]*characteristicTime)) ;
 }
 
 bool KelvinVoight::fractured() const

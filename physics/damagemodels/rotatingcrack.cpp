@@ -36,7 +36,15 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		if (currentAngle < -M_PI*.5)
 			currentAngle += M_PI ;
 		
-		currentDamage = damages[std::max(std::min((int)round(100.*(currentAngle+M_PI*.5)/M_PI)-1, (int)damages.size()-1), 0)] ;
+		if(ceil(100.*(currentAngle+M_PI*.5)/M_PI - floor(100.*(currentAngle+M_PI*.5)/M_PI)-(currentAngle+M_PI*.5)/M_PI) > POINT_TOLERANCE_2D)
+		{
+			currentDamage = damages[std::max(std::min((int)ceil( 100.*(currentAngle+M_PI*.5)/M_PI)-1, (int)damages.size()-1), 0)]*((currentAngle+M_PI*.5)/M_PI-floor(100.*(currentAngle+M_PI*.5)/M_PI))
+										+ damages[std::max(std::min((int)floor(100.*(currentAngle+M_PI*.5)/M_PI)-1, (int)damages.size()-1), 0)]*(ceil(100.*(currentAngle+M_PI*.5)/M_PI)-(currentAngle+M_PI*.5)/M_PI);
+			currentDamage /= ceil(100.*(currentAngle+M_PI*.5)/M_PI - floor(100.*(currentAngle+M_PI*.5)/M_PI)-(currentAngle+M_PI*.5)/M_PI) ;
+		}
+		else
+			currentDamage = damages[std::max(std::min((int)ceil( 100.*(currentAngle+M_PI*.5)/M_PI)-1, (int)damages.size()-1), 0)] ;
+		
 		state = currentDamage ;
 	}
 	

@@ -419,7 +419,7 @@ public:
 	 * @param dim indicates whether to build the matrix for a 2D or a 3D problem
 	 * @return a 3x3 (for 2D) or 6x6 (for 3D) matrix
 	 */
-	static Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt = PLANE_STRESS) ;
+	static Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt = PLANE_STRAIN) ;
 
 } ;
 

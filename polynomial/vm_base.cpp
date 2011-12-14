@@ -297,6 +297,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case XI : 
 		{
+			return ( deval(f, v_1, x-2.*eps, y, z, t, u, v, w)/12. -2./3. * deval(f, v_1, x-eps, y, z, t, u, v, w)- deval(f, v_1, x+2.*eps, y, z, t, u, v, w)/12. +2./3.* deval(f, v_1, x+eps, y, z, t, u, v, w) ) / eps ;
 			switch(v_1)
 			{
 			case ONE : 
@@ -335,6 +336,8 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case ETA:
 		{
+			return ( deval(f, v_1, x, y-2.*eps, z, t, u, v, w)/12. -2./3. * deval(f, v_1, x, y-eps, z, t, u, v, w)- deval(f, v_1, x, y+2.*eps, z, t, u, v, w)/12. +2./3.* deval(f, v_1, x, y+eps, z, t, u, v, w) ) / eps ;
+
 			switch(v_1)
 			{
 			case ONE : 
@@ -374,6 +377,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case ZETA:
 		{
+			return ( deval(f, v_1, x, y, z-2.*eps, t, u, v, w)/12. -2./3. * deval(f, v_1, x, y, z-eps, t, u, v, w)- deval(f, v_1, x, y, z+2.*eps, t, u, v, w)/12. +2./3.* deval(f, v_1, x, y, z+eps, t, u, v, w) ) / eps ;
 			switch(v_1)
 			{
 			case ONE : 
@@ -413,6 +417,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case TIME_VARIABLE : 
 		{
+			return ( deval(f, v_1, x, y, z, t-2.*eps, u, v, w)/12. -2./3. * deval(f, v_1, x, y, z, t-eps, u, v, w)- deval(f, v_1, x, y, z, t+2.*eps, u, v, w)/12. +2./3.* deval(f, v_1, x, y, z, t+eps, u, v, w) ) / eps ;
 			switch(v_1)
 			{
 			case ONE : 
@@ -452,7 +457,8 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case U_VARIABLE:
 		{
-			std::cerr << "not implemented (ddeval)" << std::endl ;
+			return ( deval(f, v_1, x, y, z, t, u-2.*eps, v, w)/12. -2./3. * deval(f, v_1, x, y, z, t, u-eps, v, w)- deval(f, v_1, x, y, z, t, u+2.*eps, v, w)/12. +2./3.* deval(f, v_1, x, y, z, t, u+eps, v, w) ) / eps ;
+
 			switch(v_1)
 			{
 			case ONE : 
@@ -492,7 +498,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case V_VARIABLE:
 		{
-			std::cerr << "not implemented (ddeval)" << std::endl ;
+			return ( deval(f, v_1, x, y, z, t, u, v-2.*eps, w)/12. -2./3. * deval(f, v_1, x, y, z, t, u, v-eps, w)- deval(f, v_1, x, y, z, t, u, v+2.*eps, w)/12. +2./3.* deval(f, v_1, x, y, z, t, u, v+eps, w) ) / eps ;
 			
 			switch(v_1)
 			{
@@ -533,7 +539,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case W_VARIABLE:
 		{
-			std::cerr << "not implemented (ddeval)" << std::endl ;
+			return ( deval(f, v_1, x, y, z, t, u, v, w-2.*eps)/12. -2./3. * deval(f, v_1, x, y, z, t, u, v, w-eps)- deval(f, v_1, x, y, z, t, u, v, w+2.*eps)/12. +2./3.* deval(f, v_1, x, y, z, t, u, v, w+eps) ) / eps ;
 			
 			switch(v_1)
 			{

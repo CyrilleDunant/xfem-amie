@@ -73,7 +73,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 
 	if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
 	{
-		s.getParent()->getBehaviour()->getDamageModel()->setConvergenceType(CONSERVATIVE_CENTER);
+		s.getParent()->getBehaviour()->getDamageModel()->setConvergenceType(DISSIPATIVE_MIN);
 		Vector imposed = getImposedStrain(s.getParent()->getCenter()) ;
 		Matrix stressMatrix(v.size(), v.size()) ;
 		std::pair<Vector, Vector> stressstrain = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s, EFFECTIVE_STRESS) ;
@@ -99,7 +99,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 				m_m[i][j] -= delta ;
 				m_p2[i][j] += 2.*delta ;
 				m_m2[i][j] -=  2.*delta ;
-				incrementalStrainMatrix[i][j] = 0.25 * ( plasticFlowPotential(m_m2)/12. -2./3.*plasticFlowPotential(m_m)-plasticFlowPotential(m_p2)/12. +2./3.*plasticFlowPotential(m_p) ) / delta ;
+				incrementalStrainMatrix[i][j] = ( plasticFlowPotential(m_m2)/12. -2./3.*plasticFlowPotential(m_m)-plasticFlowPotential(m_p2)/12. +2./3.*plasticFlowPotential(m_p) ) / delta ;
 			}
 		}
 // 			stressMatrix.print();
@@ -118,7 +118,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
 		{
 			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
-			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2])*.25;
+			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]);
 		}
 	}
 		

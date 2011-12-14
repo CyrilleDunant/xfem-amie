@@ -374,11 +374,11 @@ const GaussPointArray & TriElement::genGaussPoints()
 			fin.resize(ordre);
 			double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
 			double b = 1./3.*sqrt(5.+2*sqrt(10./7.)) ;
-			fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.-13.*sqrt(70.))/1800.) ;
+			fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.+13.*sqrt(70.))/1800.) ;
 			fin[1] = std::pair<Point, double>(Point(1./3., 1./3.,0,-b), (322.-13.*sqrt(70.))/1800.) ;
 			fin[2] = std::pair<Point, double>(Point(1./3., 1./3.,0,0), 128./450.) ;
 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,b), (322.-13.*sqrt(70.))/1800.) ;
-			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.-13.*sqrt(70.))/1800.) ;
+			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.+13.*sqrt(70.))/1800.) ;
 			
 			break ;
 		}
@@ -389,11 +389,11 @@ const GaussPointArray & TriElement::genGaussPoints()
 			fin.resize(ordre);
 			double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
 			double b = 1./3.*sqrt(5.+2*sqrt(10./7.)) ;
-			fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.-13.*sqrt(70.))/1800.) ;
+			fin[0] = std::pair<Point, double>(Point(1./3., 1./3.,0,-a), (322.+13.*sqrt(70.))/1800.) ;
 			fin[1] = std::pair<Point, double>(Point(1./3., 1./3.,0,-b), (322.-13.*sqrt(70.))/1800.) ;
 			fin[2] = std::pair<Point, double>(Point(1./3., 1./3.,0,0), 128./450.) ;
 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,b), (322.-13.*sqrt(70.))/1800.) ;
-			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.-13.*sqrt(70.))/1800.) ;
+			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.+13.*sqrt(70.))/1800.) ;
 
 			break ;
 		}
@@ -547,10 +547,9 @@ const GaussPointArray & TriElement::genGaussPoints()
 	}
 	else
 	{
-		double j = area()*2. ;
-		if(order > CONSTANT_TIME_LINEAR)
-			j *= 0.5*(getBoundingPoints()[getBoundingPoints().size()-1]->t - getBoundingPoints()[0]->t) ;
-
+		Matrix J ;
+		getInverseJacobianMatrix(fin[0].first, J);
+		double j = 1./det(J) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;
@@ -813,6 +812,10 @@ void TriElement::refresh(const TriElement * parent)
 		delete this->shapefunc ;
 	}
 	this->shapefunc = parent->shapefunc ;
+	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+	{
+		(*parent->shapefunc)[i].setPoint(&getBoundingPoint(i)) ;
+	}
 	
 }
 	

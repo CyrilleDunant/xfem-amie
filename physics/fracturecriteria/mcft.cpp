@@ -402,10 +402,10 @@ double NonLocalMCFT::grade( ElementState &s )
 	
 	
 	double maxTension = upVal;
-	double maxTensionStrain = upVal/pseudoYoung;
+	double maxTensionStrain = tensionCritStrain*youngModulus/pseudoYoung ; //upVal/pseudoYoung;
 	std::vector<double> crits ;
 		
-	if(tstrain > tensionCritStrain )
+	if(tstrain > tensionCritStrain*youngModulus/pseudoYoung )
 	{
 
 		double downTestVal = 0 ;
@@ -459,7 +459,7 @@ if(maxCompression < 0 &&  maxCompressionStrain < 0 )
 	crits.push_back(std::min(cstress/maxCompression, cstrain/maxCompressionStrain)) ;
 
 if(maxTensionStrain > 0 && maxTensionStrain > 0 )
-	crits.push_back(tstrain/maxTensionStrain) ;
+	crits.push_back(std::min(tstress/maxTension, tstrain/maxTensionStrain)) ;
 
 
 if(crits.empty())
