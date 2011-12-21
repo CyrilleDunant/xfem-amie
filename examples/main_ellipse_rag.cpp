@@ -210,9 +210,9 @@ void step()
 
 	int nsteps = 15;
 	int nstepstot = 15;
-	int maxtries = 200 ;
+	int maxtries = 400 ;
 	int tries = 0 ;
-	featureTree->setMaxIterationsPerStep(200) ;
+	featureTree->setMaxIterationsPerStep(400) ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
@@ -1059,12 +1059,12 @@ int main(int argc, char *argv[])
 		}
     }
 
-	zones = generateExpansiveZonesHomogeneously(280, inclusions, F) ;
+	zones = generateExpansiveZonesHomogeneously(380, inclusions, F) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
-    F.setSamplingNumber(250) ;
+    F.setSamplingNumber(600) ;
 	F.setOrder(LINEAR) ;
 
 	step() ;
