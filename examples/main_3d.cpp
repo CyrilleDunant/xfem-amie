@@ -1,3 +1,4 @@
+
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 //
 // Copyright: See COPYING file that comes with this distribution
@@ -6,833 +7,481 @@
 
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
-#include "../solvers/assembly.h"
-#include "../features/pore3d.h"
-#include "../features/inclusion3d.h"
-#include "../features/sample3d.h"
-#include "../mesher/delaunay_3d.h"
-#include "../filters/voxelfilter.h"
-#include "../physics/void_form.h"
+#include "../features/features.h"
+#include "../physics/physics_base.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/ruptureenergy.h"
+#include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../features/pore.h"
+#include "../features/sample3d.h"
+#include "../features/inclusion3d.h"
+#include "../features/expansiveZone3d.h"
+#include "../features/crack.h"
+#include "../features/enrichmentInclusion.h"
+#include "../mesher/delaunay_3d.h"
+#include "../solvers/assembly.h"
+#include "../utilities/itoa.h"
+#include "../utilities/random.h"
+#include "../utilities/granulo.h"
+#include "../utilities/writer/voxel_writer.h"
+#include "../utilities/placement.h"
+#include "../physics/void_form.h"
+#include "../physics/materials/gel_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
+#include "../utilities/writer/triangle_writer.h"
+
+
+#include <fstream>
 
 #include <cmath>
 #include <typeinfo>
 #include <limits>
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <GL/glut.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
+#include <time.h>
+#define DEBUG
 
-#include <time.h> 
-#define DEBUG 
-
-#define ID_QUIT 0.5
+#define ID_QUIT 1
 #define ID_ZOOM 5
 #define ID_UNZOOM 6
 #define ID_NEXT10 7
 #define ID_NEXT100 3
 #define ID_NEXT1000 4
-#define ID_NEXT 1
+#define ID_NEXT 2
+#define ID_NEXT_TIME 0
 #define ID_REFINE 8
 #define ID_AMPLIFY 9
 #define ID_DEAMPLIFY 10
 
+#define ID_DISP 11
+#define ID_STRAIN_XX 12
+#define ID_STRAIN_XY 13
+#define ID_STRAIN_YY 14
+#define ID_STRESS_XX 15
+#define ID_STRESS_XY 16
+#define ID_STRESS_YY 17
+#define ID_STIFNESS 18
+#define ID_ELEM 19
+#define ID_VON_MISES 20
+#define ID_ANGLE 22
+#define ID_ENRICHMENT 21
+
+#define DISPLAY_LIST_DISPLACEMENT 1
+#define DISPLAY_LIST_ELEMENTS 2
+#define DISPLAY_LIST_STRAIN_XX 3
+#define DISPLAY_LIST_STRAIN_YY 4
+#define DISPLAY_LIST_STRAIN_XY 5
+#define DISPLAY_LIST_STRESS_XX 6
+#define DISPLAY_LIST_STRESS_YY 7
+#define DISPLAY_LIST_STRESS_XY 8
+#define DISPLAY_LIST_CRACK 9
+#define DISPLAY_LIST_STIFFNESS 10
+#define DISPLAY_LIST_VON_MISES 11
+#define DISPLAY_LIST_ANGLE 23
+#define DISPLAY_LIST_ENRICHMENT 12
+#define DISPLAY_LIST_STIFFNESS_DARK 24
 
 
 using namespace Mu ;
 
-double factor = 0.5 ;
+FeatureTree *featureTree ;
+std::vector<DelaunayTetrahedron *> tets ;
+std::vector<bool> cracked ;
 
-std::vector<double> sizered;
-std::vector<DelaunayTetrahedron *> myTets ;
-std::vector<HexahedralElement *> myHexs ;
-std::vector<Point *> points ;
-GLint xangle = 0;
-GLint yangle = 0;
-GLint zangle = 0;
+double E_min = 10;
+double E_max = 0;
+double scale = 10000 ;
 
-double max_x = 5.;
-double maxs = 0;
-double mins = 0;
+double x_max = 0 ;
+double y_max = 0 ;
 
-Vector * x ;
-Vector * sigma ;
+double x_min = 0 ;
+double y_min = 0 ;
 
-std::vector<Point *> pts ;
+double placed_area = 0 ;
 
-std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > generateInclusionsAndPores(size_t n, double fraction, Form * behaviour, Feature * father, FeatureTree * F)
+double stress = 15e6 ;
+
+double restraintDepth = 0 ; //0.01 ;
+
+Sample3D sample( NULL, 0.15*scale,0.15*scale,0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale ) ;
+
+bool firstRun = true ;
+
+std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > zones ;
+
+std::vector<std::pair<double, double> > expansion_reaction ;
+std::vector<std::pair<double, double> > expansion_stress_xx ;
+std::vector<std::pair<double, double> > expansion_stress_yy ;
+std::vector<std::pair<double, double> > expansion_stress_zz ;
+std::vector<std::pair<double, double> > apparent_extension ;
+std::vector<double> cracked_volume ;
+std::vector<double> damaged_volume ;
+
+Vector b( 0 ) ;
+Vector x( 0 ) ;
+Vector sigma( 0 ) ;
+Vector sigma11( 0 ) ;
+Vector sigma22( 0 ) ;
+Vector sigma12( 0 ) ;
+Vector epsilon( 0 ) ;
+Vector epsilon11( 0 ) ;
+Vector epsilon22( 0 ) ;
+Vector epsilon12( 0 ) ;
+Vector vonMises( 0 ) ;
+Vector angle( 0 ) ;
+
+int totit = 1 ;
+
+size_t current_list = DISPLAY_LIST_STRAIN_XX ;
+double factor = 200 ;
+MinimumAngle cri( M_PI / 6. ) ;
+bool nothingToAdd = false ;
+bool dlist = false ;
+int count = 0 ;
+double aggregateArea = 0;
+
+void step()
 {
-// 	srandom(time(NULL)) ;
-	size_t nombre_de_pores = static_cast<size_t>(round(n*fraction)) ;
-	size_t nombre_d_inclusions = static_cast<size_t>(round(n*(1. - fraction))) ;
+	int nsteps = 30 ;
+	int nstepstot = 30 ;
+	featureTree->setMaxIterationsPerStep( 400 ) ;
 	
-	std::pair<std::vector</*Virtual*/Inclusion3D * >, std::vector<Pore3D * > > ret ;
-	ret.first = std::vector</*Virtual*/Inclusion3D * >() ;
-	ret.second = std::vector<Pore3D * >() ;
-	
-	std::vector<Sphere *> cercles ;
-	for(size_t j =0 ; j < n ; j++)
+	for( size_t s = 0 ; s < nsteps ; s++ )
 	{
+		std::cout << "\r iteration " << s << "/" << nsteps << std::flush ;
+		bool go_on = featureTree->step() ;
 		
-		double radius = 0.5 + .9*(double)rand()/((double)RAND_MAX+1) ;
-		radius*=radius ;
+		if( featureTree->solverConverged() )
+		{
+			cracked_volume.push_back( featureTree->crackedVolume ) ;
+			damaged_volume.push_back( featureTree->damagedVolume ) ;
+		}
 		
-		Point center = Point(
-		                      (2.*(double)rand()/((double)RAND_MAX+1)-1.)*(3.-2.*radius-0.05),
-		                      (2.*(double)rand()/((double)RAND_MAX+1)-1.)*(3.-2.*radius-0.05),
-		                      (2.*(double)rand()/((double)RAND_MAX+1)-1.)*(3.-2.*radius-0.05)
-		                    ); 
+		tets = featureTree->getElements3D() ;
+
+		Vector strain11(4*tets.size()) ;
+		Vector strain22(4*tets.size()) ;
+		Vector strain33(4*tets.size()) ;
+		Vector stress11(4*tets.size()) ;
+		Vector stress22(4*tets.size()) ;
+		Vector stress33(4*tets.size()) ;
+		{
+			Vector stress(24*tets.size()) ;
+			Vector strain(24*tets.size()) ;
+			{
+				std::pair<Vector,Vector> stress_strain ;
+				stress_strain.first.resize(24*tets.size()) ;
+				stress_strain.second.resize(24*tets.size()) ;
+				stress_strain = featureTree->getStressAndStrain(tets) ;		
+				stress = stress_strain.first ;
+				strain = stress_strain.second ;
+			}
+			
+			std::cout << "get stress and strain..." << std::endl ;		
+			for(size_t i = 0 ; i < tets.size() ; i++)
+			{
+				for(size_t j = 0 ; j < 4 ; j++)
+				{
+					stress11[4*i+j] = stress[4*6*i+6*j+0] ;
+					stress22[4*i+j] = stress[4*6*i+6*j+1] ;
+					stress33[4*i+j] = stress[4*6*i+6*j+2] ;
+					strain11[4*i+j] = strain[4*6*i+6*j+0] ;
+					strain22[4*i+j] = strain[4*6*i+6*j+1] ;
+					strain33[4*i+j] = strain[4*6*i+6*j+2] ;
+				}
+			}
+		}
+		
+		std::cout << "averaging stress and strain..." << std::endl ;		
+		Vector average_stress(3) ;
+		Vector average_strain(3) ;
+		double total_volume = 0. ;
+		for(size_t i = 0 ; i < tets.size() ; i++)
+		{
+			double volume = tets[i]->volume() ;
+			total_volume += volume ;
+			for(size_t j = 0 ; j < 4 ; j++)
+			{
+				average_stress[0] += stress11[4*i+j]*volume/4 ;
+				average_stress[1] += stress22[4*i+j]*volume/4 ;
+				average_stress[2] += stress33[4*i+j]*volume/4 ;
+				average_strain[0] += strain11[4*i+j]*volume/4 ;
+				average_strain[1] += strain22[4*i+j]*volume/4 ;
+				average_strain[2] += strain33[4*i+j]*volume/4 ;
+			}
+		}
+		
+		std::cout << std::endl ;
+		std::cout << "max value :" << x_max << std::endl ;
+		std::cout << "min value :" << x_min << std::endl ;
+		std::cout << "max stress11 :" << stress11.max() << std::endl ;
+		std::cout << "min stress11 :" << stress11.min() << std::endl ;
+		std::cout << "max stress22 :" << stress22.max() << std::endl ;
+		std::cout << "min stress22 :" << stress22.min() << std::endl ;
+		std::cout << "max stress33 :" << stress33.max() << std::endl ;
+		std::cout << "min stress33 :" << stress33.min() << std::endl ;
+		
+		std::cout << "max strain11 :" << strain11.max() << std::endl ;
+		std::cout << "min strain11 :" << strain11.min() << std::endl ;
+		std::cout << "max strain22 :" << strain22.max() << std::endl ;
+		std::cout << "min strain22 :" << strain22.min() << std::endl ;
+		std::cout << "max strain33 :" << strain33.max() << std::endl ;
+		std::cout << "min strain33 :" << strain33.min() << std::endl ;
+		
+		std::cout << "average stress11 : " << average_stress[0]/total_volume << std::endl ;
+		std::cout << "average stress22 : " << average_stress[1]/total_volume << std::endl ;
+		std::cout << "average stress33 : " << average_stress[2]/total_volume << std::endl ;
+		std::cout << "average strain11 : " << average_strain[0]/total_volume << std::endl ;
+		std::cout << "average strain22 : " << average_strain[1]/total_volume << std::endl ;
+		std::cout << "average strain33 : " << average_strain[2]/total_volume << std::endl ;
+
+		VoxelWriter writer_stiffness("rag3d_out_stiffness_"+itoa(s), 100) ;
+		writer_stiffness.getField(featureTree, VWFT_STIFFNESS) ;
+		writer_stiffness.write();
+		
+		VoxelWriter writer_strain("rag3d_out_strain+itoa(i)_"+itoa(s), 100) ;
+		writer_strain.getField(featureTree, VWFT_STRAIN) ;
+		writer_strain.write();
+
+		VoxelWriter writer_stress("rag3d_out_stress_"+itoa(s), 100) ;
+		writer_stress.getField(featureTree, VWFT_STRESS) ;
+		writer_stress.write();
+		
+		VoxelWriter writer_damage("rag3d_out_damage_"+itoa(s), 100) ;
+		writer_damage.getField(featureTree, VWFT_DAMAGE) ;
+		writer_damage.write();
+				
+		if( go_on )
+		{
+			featureTree->forceEnrichmentChange();
+			double delta_r = std::pow( aggregateArea * 0.03 / ( ( double )zones.size() * 1.333333333 * M_PI ), 0.333333 ) / ( double )nstepstot ;
+			double reactedArea = 0 ;
+			
+			Inclusion3D * current = NULL ;
+			
+			if( !zones.empty() )
+				current = zones[0].second ;
+			
+			double current_area = 0 ;
+			int current_number = 0 ;
+			int stopped_reaction = 0 ;
+			
+			for( size_t z = 0 ; z < zones.size() ; z++ )
+			{
+				
+				zones[z].first->setRadius( zones[z].first->getRadius() + delta_r ) ;
+				
+				if( zones[z].second == current )
+				{
+					current_area += zones[z].first->volume() ;
+					current_number++ ;
+				}
+				else
+				{
+					if( current_area / zones[z - 1].second->volume() > 0.03 )
+					{
+						stopped_reaction++ ;
+						
+						for( size_t m = 0 ; m < current_number ; m++ )
+						{
+							reactedArea -= zones[z - 1 - m].first->volume() ;
+							zones[z - 1 - m].first->setRadius( zones[z].first->getRadius() - delta_r ) ;
+							reactedArea += zones[z - 1 - m].first->volume() ;
+						}
+					}
+					
+					current_area = zones[z].first->volume() ;
+					current_number = 1 ;
+					current = zones[z].second ;
+				}
+				
+				reactedArea += zones[z].first->volume() ;
+			}
+			
+			std::cout << "reacted Area : " << reactedArea << ", reaction stopped in " << stopped_reaction << " aggs." << std::endl ;
+			
+			
+			if( go_on )
+			{
+				expansion_reaction.push_back( std::make_pair( reactedArea / placed_area, (average_strain[0]+average_strain[1]+average_strain[2]) / (3.*total_volume) ) ) ;
+				expansion_stress_xx.push_back( std::make_pair( average_strain[0] / total_volume , average_stress[0] / total_volume ) ) ;
+				expansion_stress_yy.push_back( std::make_pair( average_strain[1] / total_volume , average_stress[1] / total_volume ) ) ;
+				expansion_stress_zz.push_back( std::make_pair( average_strain[2] / total_volume , average_stress[2] / total_volume ) ) ;
+//				apparent_extension.push_back( std::make_pair( e_xx_max - e_xx_min, e_yy_max - e_yy_min ) ) ;
+			}
+			
+		}
+		std::cout << "reaction" << "   "
+		// 			          << expansion_reaction[i].second << "   "
+		<< "eps xx" << "\t"
+		<< "eps yy" << "\t" 
+		<< "eps zz" << "\t" 
+		<< "sig xx" << "\t"
+		<< "sig yy" << "\t"
+		<< "sig zz" << "\t"
+		<< "cracks"  << "\t"
+		<< "damage"  << "\t"
+		<< std::endl ;
+		for( size_t i = 0 ; i < expansion_reaction.size() ; i++ )
+			std::cout << expansion_reaction[i].first << "\t"
+			<< expansion_stress_xx[i].first << "\t"
+			<< expansion_stress_yy[i].first << "\t" 
+			<< expansion_stress_zz[i].first << "\t" 
+			<< expansion_stress_xx[i].second << "\t"
+			<< expansion_stress_yy[i].second << "\t"
+			<< expansion_stress_zz[i].second << "\t" 
+			<< cracked_volume[i]  << "\t"
+			<< damaged_volume[i]  << "\t"
+			<< std::endl ;
+			
+	}
+	for( size_t i = 0 ; i < expansion_reaction.size() ; i++ )
+		std::cout << expansion_reaction[i].first << "\t"
+		<< expansion_stress_xx[i].first << "\t"
+		<< expansion_stress_yy[i].first << "\t" 
+		<< expansion_stress_zz[i].first << "\t" 
+		<< expansion_stress_xx[i].second << "\t"
+		<< expansion_stress_yy[i].second << "\t"
+		<< expansion_stress_zz[i].second << "\t" 
+		<< cracked_volume[i]  << "\t"
+		<< damaged_volume[i]  << "\t"
+		<< std::endl ;
+	
+/*	
+	for( size_t i = 0 ; i < expansion_reaction.size() ; i++ )
+		std::cout << expansion_reaction[i].first << "   "
+		<< expansion_reaction[i].second << "   "
+		<< expansion_stress_xx[i].first << "   "
+		<< expansion_stress_xx[i].second << "   "
+		<< expansion_stress_yy[i].first << "   "
+		<< expansion_stress_yy[i].second << "   "
+		<< apparent_extension[i].first  << "   "
+		<< apparent_extension[i].second  << "   "
+		<< cracked_volume[i]  << "   "
+		<< damaged_volume[i]  << "   "
+		<< std::endl ;*/
+}
+
+std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZonesHomogeneously( int n, std::vector<Inclusion3D *> incs, FeatureTree & F)
+{
+	double radiusFraction = 10 ;
+	double radius = 0.00001*scale ;
+	std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > ret ;
+	aggregateArea = 0 ;
+	std::vector<ExpansiveZone3D *> zonesToPlace ;
+	RandomNumber rnd ;
+	GelBehaviour * gel = new GelBehaviour(22e9, 0.3, 0.5, SPACE_THREE_DIMENSIONAL) ;
+	
+	srand(1);
+	for( size_t i = 0 ; i < n ; i++ )
+	{
+		Point pos( rnd.uniform( sample.getXSize()*0.01, sample.getXSize()*0.99), rnd.uniform( sample.getYSize()*0.01, sample.getYSize()*0.99), rnd.uniform( sample.getZSize()*0.01, sample.getZSize()*0.99) ) ;
+		pos.print() ;
 		bool alone  = true ;
 		
-		for(size_t k = 0 ; k < cercles.size() ; k++ )
+		for( size_t j = 0 ; j < zonesToPlace.size() ; j++ )
 		{
-			if (dist(center, cercles[k]->getCenter()) < (radius+cercles[k]->getRadius()+0.02))
+			Sphere test(radius*radiusFraction, zonesToPlace[j]->getCenter() ) ;
+			if(test.in(pos))
 			{
 				alone = false ;
 				break ;
 			}
 		}
-		if (alone)
-		{
-			cercles.push_back(new Sphere(radius, center)) ;
-		}
-		else
-			j-- ;
 		
+		if( alone )
+			zonesToPlace.push_back( new ExpansiveZone3D( NULL, radius, pos.x, pos.y, pos.z, gel ) ) ;
+/*		else
+			i-- ;*/
 	}
 	
-	Feature * current = father ;
-	for(size_t j =0 ; j < nombre_d_inclusions ; j++)
+	std::map<Inclusion3D *, int> zonesPerIncs ;
+	
+	for( size_t i = 0 ; i < zonesToPlace.size() ; i++ )
 	{
-		/*Virtual*/Inclusion3D * temp = new /*Virtual*/Inclusion3D(cercles[j]->getRadius(), cercles[j]->getCenter()) ;
-		ret.first.push_back(temp) ;
-		temp->setBehaviour(behaviour->getCopy()) ;
-		double fact = (2.*rand()/RAND_MAX-1.)*0.5+1. ;
-		temp->getBehaviour(Point())->param *= fact ;
-		F->addFeature(current, temp) ;
-		current = temp ;
+		bool placed = false ;
+		
+		for( int j = 0 ; j < incs.size() ; j++ )
+		{
+			if( squareDist3D( zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) < std::pow(incs[j]->getRadius() - radius * radiusFraction, 2. ) )
+			{
+				zonesPerIncs[incs[j]]++ ; ;
+				F.addFeature( incs[j], zonesToPlace[i] ) ;
+				ret.push_back( std::make_pair( zonesToPlace[i], incs[j] ) ) ;
+				placed = true ;
+				break ;
+			}
+		}
+		
+		if( !placed )
+			delete zonesToPlace[i] ;
 	}
 	
-	for(size_t j =0 ; j < nombre_de_pores ; j++)
+	int count = 0 ;
+	
+	for( auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i )
 	{
-		Pore3D * temp = new Pore3D(cercles[j+nombre_d_inclusions]->getRadius(), cercles[j+nombre_d_inclusions]->getCenter()) ;
-		ret.second.push_back(temp) ;
-		F->addFeature(current, temp) ;
-		current = temp ;
+		aggregateArea += i->first->volume() ;
+		count += i->second ;
+		std::cout << aggregateArea << "  " << count << std::endl ;
 	}
 	
-	for(size_t k = 0 ; k < cercles.size() ; k++ )
-	{
-		delete cercles[k] ;
-	}
-	
+	std::cout << "initial Reacted Volume = " << M_PI *radius *radius * radius*1.33333333333333333*ret.size() << " in " << ret.size() << " zones" << std::endl ;
+	std::cout << "Reactive aggregate Volume = " << aggregateArea << std::endl ;
 	return ret ;
 }
 
-
-
-void HSV2RGB( double *r, double *g, double *b, double h, double s, double v )
+int main( int argc, char *argv[] )
 {
-	int i;
-	double f, p, q, t;
-	if( s == 0 ) {
-                // achromatic (grey)
-		*r = *g = *b = v;
-		return;
-	}
-	h /= 60.;                        // sector 0 to 5
-	i = (int)floor( h );
-	f = h - i;                      // factorial part of h
-	p = v * ( 1. - s );
-	q = v * ( 1. - s * f );
-	t = v * ( 1. - s * ( 1. - f ) );
-	switch( i ) {
-	case 0:
-		*r = v;
-		*g = t;
-		*b = p;
-		break;
-	case 1:
-		*r = q;
-		*g = v;
-		*b = p;
-		break;
-	case 2:
-		*r = p;
-		*g = v;
-		*b = t;
-		break;
-	case 3:
-		*r = p;
-		*g = q;
-		*b = v;
-		break;
-	case 4:
-		*r = t;
-		*g = p;
-		*b = v;
-		break;
-	default:                // case 5:
-		*r = v;
-		*g = p;
-		*b = q;
-		break;
-	}
-}
-
-
-
-void computeDisplayList()
-{
-	glEnable(GL_DEPTH_TEST);
-	glNewList(1,GL_COMPILE) ;
-// 	myTets= dt->getTetrahedrons() ;
-	double min = sigma->min() ;
-	double max = sigma->max() ;
-	for(size_t i = 0 ; i < myTets.size(); i++)
-	{
-
-// 		if(dist(*myTets[i]->getCenter(), cen) <1.8 || 
-// 		   dist(*myTets[i]->getCenter(), cen1) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen2) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen3) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen4) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen5) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen6) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen7) <0.9 ||
-// 		   dist(*myTets[i]->getCenter(), cen8) <0.9 
-// 		  )
-// 				glColor4ub (255,0,255,10);
-// 			else
-// 				glColor4ub (0,0,255,10); 			
-			
-			double r, g, b ;
-			
-// 		HSV2RGB(&r, &g, &b, 360.-360.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
-// 		glColor4f (r,g,b, .3);
-			
-		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-// 			glColor3f (0,0,0);
-			
-// 			if(!s.in(myTets[i]->first)  ||
-// 			   !s.in(myTets[i]->second) ||
-// 			   !s.in(myTets[i]->third) ||
-// 			   !s.in(myTets[i]->fourth) ||
-// 			   myTets[i]->Tetrahedron::volume() < 1e-6 
-// 			  )
-// 					glColor4ub (255,0,0,255); 		
-
-			
-// 			HSV2RGB(&r, &g, &b, 180.-180.*(myTets[i]->getBehaviour()->param[0][0]-mins)/(maxs-mins), 1., 1.) ;
-// 			glColor4f (r,g,b, .3);
-			
-			HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
-			glColor4f (r,g,b, .3);
-			
-			glBegin(GL_LINES);
-			
-
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-	
-				glVertex3f(myTets[i]->first->x+(*x)[myTets[i]->first->id*3],
-						myTets[i]->first->y+(*x)[myTets[i]->first->id*3+1],
-						myTets[i]->first->z+(*x)[myTets[i]->first->id*3+2]);
-				
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-	
-				glVertex3f(myTets[i]->second->x+(*x)[myTets[i]->second->id*3],
-						myTets[i]->second->y+(*x)[myTets[i]->second->id*3+1],
-						myTets[i]->second->z+(*x)[myTets[i]->second->id*3+2] );
-
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-				
-				glVertex3f(myTets[i]->first->x+(*x)[myTets[i]->first->id*3],
-						myTets[i]->first->y+(*x)[myTets[i]->first->id*3+1],
-						myTets[i]->first->z+(*x)[myTets[i]->first->id*3+2] );
-				
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-	
-				glVertex3f(myTets[i]->third->x+(*x)[myTets[i]->third->id*3],
-						myTets[i]->third->y+(*x)[myTets[i]->third->id*3+1],
-						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2] );
-
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-				
-				glVertex3f(myTets[i]->first->x+(*x)[myTets[i]->first->id*3],
-						myTets[i]->first->y+(*x)[myTets[i]->first->id*3+1],
-						myTets[i]->first->z+(*x)[myTets[i]->first->id*3+2] );
-				
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-	
-				glVertex3f(myTets[i]->fourth->x+(*x)[myTets[i]->fourth->id*3],
-						myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
-						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
-	
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-	
-				glVertex3f(myTets[i]->second->x+(*x)[myTets[i]->second->id*3],
-						myTets[i]->second->y+(*x)[myTets[i]->second->id*3+1],
-						myTets[i]->second->z+(*x)[myTets[i]->second->id*3+2] );
-				
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-	
-				glVertex3f(myTets[i]->third->x+(*x)[myTets[i]->third->id*3],
-						myTets[i]->third->y+(*x)[myTets[i]->third->id*3+1],
-						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2]);
-
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+1]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-				
-				glVertex3f(myTets[i]->second->x+(*x)[myTets[i]->second->id*3],
-						myTets[i]->second->y+(*x)[myTets[i]->second->id*3+1],
-						myTets[i]->second->z+(*x)[myTets[i]->second->id*3+2] );
-				
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-				
-				glVertex3f(myTets[i]->fourth->x+(*x)[myTets[i]->fourth->id*3],
-						myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
-						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
-
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+2]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-				
-				glVertex3f((myTets[i]->third->x)+(*x)[myTets[i]->third->id*3],
-						myTets[i]->third->y+(*x)[myTets[i]->third->id*3+1],
-						myTets[i]->third->z+(*x)[myTets[i]->third->id*3+2] );
-				
-// 				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*4+3]-min)/(max-min), 1., 1.) ;
-// 				glColor4f (r,g,b, .3);
-				
-				glVertex3f(myTets[i]->fourth->x+(*x)[myTets[i]->fourth->id*3],
-						myTets[i]->fourth->y+(*x)[myTets[i]->fourth->id*3+1],
-						myTets[i]->fourth->z+(*x)[myTets[i]->fourth->id*3+2] );
-
-			glEnd();
-
-	}
-	}
-	
-	for(size_t i = 0 ; i < myHexs.size(); i++)
-	{
-
-		double r, g, b ;
+		int n = atof(argv[1]) ;
+		int nsample = atof(argv[2]) ;
 		
-		HSV2RGB(&r, &g, &b, 360.-360.*sqrt(((*sigma)[i]-min)/(max-min)), 1., 1.) ;
-		glColor4f (r,g,b, .3);
-		
-		if(myHexs[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-// 			glColor3f (0,0,0);
-			
-// 			if(!s.in(myTets[i]->first)  ||
-// 			   !s.in(myTets[i]->second) ||
-// 			   !s.in(myTets[i]->third) ||
-// 			   !s.in(myTets[i]->fourth) ||
-// 			   myTets[i]->Tetrahedron::volume() < 1e-6 
-// 			  )
-// 					glColor4ub (255,0,0,255); 		
-			
-			
-			
-			glBegin(GL_LINE_LOOP);
-			
+		FeatureTree F( &sample ) ;
+		featureTree = &F ;
 
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(0).x+(*x)[myHexs[i]->getBoundingPoint(0).id*3],
-			           myHexs[i]->getBoundingPoint(0).y+(*x)[myHexs[i]->getBoundingPoint(0).id*3+1],
-			           myHexs[i]->getBoundingPoint(0).z+(*x)[myHexs[i]->getBoundingPoint(0).id*3+2]);
-				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+1]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(1).x+(*x)[myHexs[i]->getBoundingPoint(1).id*3],
-			           myHexs[i]->getBoundingPoint(1).y+(*x)[myHexs[i]->getBoundingPoint(1).id*3+1],
-			           myHexs[i]->getBoundingPoint(1).z+(*x)[myHexs[i]->getBoundingPoint(1).id*3+2] );
-
-				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+2]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(3).x+(*x)[myHexs[i]->getBoundingPoint(3).id*3],
-			           myHexs[i]->getBoundingPoint(3).y+(*x)[myHexs[i]->getBoundingPoint(3).id*3+1],
-			           myHexs[i]->getBoundingPoint(3).z+(*x)[myHexs[i]->getBoundingPoint(3).id*3+2] );
-
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(2).x+(*x)[myHexs[i]->getBoundingPoint(2).id*3],
-			           myHexs[i]->getBoundingPoint(2).y+(*x)[myHexs[i]->getBoundingPoint(2).id*3+1],
-			           myHexs[i]->getBoundingPoint(2).z+(*x)[myHexs[i]->getBoundingPoint(2).id*3+2] );
-			glEnd();
-			glBegin(GL_LINE_LOOP);
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+3]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(4).x+(*x)[myHexs[i]->getBoundingPoint(4).id*3],
-			           myHexs[i]->getBoundingPoint(4).y+(*x)[myHexs[i]->getBoundingPoint(4).id*3+1],
-			           myHexs[i]->getBoundingPoint(4).z+(*x)[myHexs[i]->getBoundingPoint(4).id*3+2] );
-
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+1]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(5).x+(*x)[myHexs[i]->getBoundingPoint(5).id*3],
-			           myHexs[i]->getBoundingPoint(5).y+(*x)[myHexs[i]->getBoundingPoint(5).id*3+1],
-			           myHexs[i]->getBoundingPoint(5).z+(*x)[myHexs[i]->getBoundingPoint(5).id*3+2] );
-				
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+2]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(7).x+(*x)[myHexs[i]->getBoundingPoint(7).id*3],
-			           myHexs[i]->getBoundingPoint(7).y+(*x)[myHexs[i]->getBoundingPoint(7).id*3+1],
-			           myHexs[i]->getBoundingPoint(7).z+(*x)[myHexs[i]->getBoundingPoint(7).id*3+2] );
-
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+1]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-			glVertex3f(myHexs[i]->getBoundingPoint(6).x+(*x)[myHexs[i]->getBoundingPoint(6).id*3],
-			           myHexs[i]->getBoundingPoint(6).y+(*x)[myHexs[i]->getBoundingPoint(6).id*3+1],
-			           myHexs[i]->getBoundingPoint(6).z+(*x)[myHexs[i]->getBoundingPoint(6).id*3+2] );
-				
-			glEnd();
-			glBegin(GL_LINES);
-			for(size_t t = 0 ; t < 4 ; t++)
-			{
-			
-				HSV2RGB(&r, &g, &b, 360.*((*sigma)[i*8+3]-min)/(max-min), 1., 1.) ;
-				glColor4f (r,g,b, .3);
-				
-				glVertex3f(myHexs[i]->getBoundingPoint(t).x+(*x)[myHexs[i]->getBoundingPoint(t).id*3],
-			           myHexs[i]->getBoundingPoint(t).y+(*x)[myHexs[i]->getBoundingPoint(t).id*3+1],
-			           myHexs[i]->getBoundingPoint(t).z+(*x)[myHexs[i]->getBoundingPoint(t).id*3+2] );
-				
-				glVertex3f(myHexs[i]->getBoundingPoint(t+4).x+(*x)[myHexs[i]->getBoundingPoint(t+4).id*3],
-				           myHexs[i]->getBoundingPoint(t+4).y+(*x)[myHexs[i]->getBoundingPoint(t+4).id*3+1],
-				           myHexs[i]->getBoundingPoint(t+4).z+(*x)[myHexs[i]->getBoundingPoint(t+4).id*3+2] );
-			}
-			
-			glEnd();
-		}
-			
-	
-	}
-	
-	
-	
-	glEndList() ;
-}
-
-
-void init(void)
-{
-	glShadeModel (GL_SMOOTH);
-	glEnable(GL_COLOR_MATERIAL) ;
-	GLfloat mat_specular[] = {0.01f, 0.01f, 0.01f, 1.0f};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-	glColorMaterial(GL_AMBIENT_AND_DIFFUSE, GL_FRONT_AND_BACK) ;
-// 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	
-// 	glEnable(GL_NORMALIZE) ;
-	glClearColor(0.0f,0.0f,0.0f,1.0f);                                      // Black Background
-	glClearDepth(1.0f);                                                     // Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST);                                               // Disables Depth Testing
-	
-	
-// 	glEnable(GL_LIGHTING) ;
-// 	glEnable(GL_LIGHT0) ;
-	
-	GLfloat light_ambient[] = { 0.8, 0.8, 0.8, 1.0 };
-	GLfloat light_diffuse[] = { 0.6, 0.6, 0.6, 1.0 };
-	GLfloat light_specular[] = { 0.7, 0.7, 0.7, 1.0 };
-	GLfloat light_position[] = { 4, 0, 0, 0 };
-	
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	
-// 	glEnable(GL_BLEND) ;
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	computeDisplayList() ;
-	
-}
-
-
-void display(void)
-{
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity() ;
-	glTranslatef(0,0,-10) ;
-	gluLookAt(0, 0, 2, 0, 0, 0, 0, 1, 0) ;
-	glRotatef(xangle , 0, -1, 0) ;
-	glRotatef(yangle , -1, 0, 0) ;
-	glRotatef(zangle , 0, 0, 1) ;
-	glEnable(GL_DEPTH_TEST);
-	
-	GLdouble eq[] = { 0, 1, 0, max_x} ;
-	
-	glClipPlane(GL_CLIP_PLANE0, eq) ;
-	glEnable(GL_CLIP_PLANE0) ;
-	
-	glCallList(1) ;
-	glutSwapBuffers();
-}
-
-void reshape (int w, int h)
-{
-	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity ();
-	gluPerspective(45.0, (GLfloat) w/(GLfloat) h, 1., 40);
-}
- 
-void keyboard (unsigned char key, int x, int y)
-   {
-  	switch (key) {
-
-  	case 'x':
-	  	{
-		  	xangle++ ;
-	  		break;
-	  	}
-  	case 'y':
-	  	{
-		  	yangle++ ;
-		  	break;
-	  	}
-  	case 'z':
-	  	{
-		  	zangle++ ;
-		  	break;
-	  	}
-  	case '+':
-	  	{
-		  	max_x +=0.1 ;
-		  	break;
-	  	}
-  	case '-':
-	  	{
-		  	max_x -=0.1 ;
-		  	break;
-	  	}
-	default:
-  		break;
-  	}
-	   
-	   glutPostRedisplay() ;
-  }
-
-void mouse(int button, int state, int x, int y)
-{
-
-	switch (button) {
-	case GLUT_RIGHT_BUTTON:
-		if (state == GLUT_DOWN) {
-			
-		}
-		if (state == GLUT_UP) {
-			
-		}
-	case GLUT_LEFT_BUTTON:
-		if (state == GLUT_DOWN) {
-		
-		}
-		if (state == GLUT_UP) {
-			
-		}
-		glutPostRedisplay();
-		
-		break;
-	
-	default:
-		break;
-		
-	
-	
-	
-	
-	
-// 	switch (button) {
-// 	case GLUT_LEFT_BUTTON:
-// 		if (state == GLUT_DOWN) {
-// 			shoulder = (shoulder + .05) ;
-// 			glutPostRedisplay();
-// 			break;
-// 		}
-// 		break;
-// 	case GLUT_RIGHT_BUTTON:
-// 		if (state == GLUT_DOWN)
-// 			shoulder = (shoulder - .05);
-// 			glutPostRedisplay();
-// 		break;
-// 		
-// 	default:
-// 		break;
-	}
-}
-
-
-int main(int argc, char *argv[])
-{
-	
-	double E_csh = 31 ;      // in GPa
-	double nu_csh = 0.28 ;
-	
-	double E_ch = 40 ;      // in GPa
-	double nu_ch = 0.3 ;
-	
-	double E_c3s = 135 ;      // in GPa
-	double nu_c3s = 0.31 ;
-	
-	
-	Matrix cgStressC3S(6,6) ;
-	cgStressC3S[0][0] = 1. - nu_c3s ; cgStressC3S[0][1] = nu_c3s ; cgStressC3S[0][2] = nu_c3s ;
-	cgStressC3S[1][0] = nu_c3s ; cgStressC3S[1][1] = 1. - nu_c3s ; cgStressC3S[1][2] = nu_c3s ;
-	cgStressC3S[2][0] = nu_c3s ; cgStressC3S[2][1] = nu_c3s ; cgStressC3S[2][2] = 1. - nu_c3s ;
-	cgStressC3S[3][3] = (0.5 - nu_c3s)*.99 ;
-	cgStressC3S[4][4] = (0.5 - nu_c3s)*.99 ;
-	cgStressC3S[5][5] = (0.5 - nu_c3s)*.99 ;
-	cgStressC3S *= E_c3s/((1.+nu_c3s)*(1.-2.*nu_c3s)) ;
-	
-	Matrix cgStressCSH(6,6) ;
-	cgStressCSH[0][0] = 1. - nu_csh ; cgStressCSH[0][1] = nu_csh ; cgStressCSH[0][2] = nu_csh ;
-	cgStressCSH[1][0] = nu_csh ; cgStressCSH[1][1] = 1. - nu_csh ; cgStressCSH[1][2] = nu_csh ;
-	cgStressCSH[2][0] = nu_csh ; cgStressCSH[2][1] = nu_csh ; cgStressCSH[2][2] = 1. - nu_csh ;
-	cgStressCSH[3][3] = (0.5 - nu_csh)*.99 ;
-	cgStressCSH[4][4] = (0.5 - nu_csh)*.99 ;
-	cgStressCSH[5][5] = (0.5 - nu_csh)*.99 ;
-	cgStressCSH *= E_csh/((1.+nu_csh)*(1.-2.*nu_csh)) ;
-	
-	Matrix cgStressCH(6,6) ;
-	cgStressCH[0][0] = 1. - nu_ch ; cgStressCH[0][1] = nu_ch ; cgStressCH[0][2] = nu_ch ;
-	cgStressCH[1][0] = nu_ch ; cgStressCH[1][1] = 1. - nu_ch ; cgStressCH[1][2] = nu_ch ;
-	cgStressCH[2][0] = nu_ch ; cgStressCH[2][1] = nu_ch ; cgStressCH[2][2] = 1. - nu_ch ;
-	cgStressCH[3][3] = (0.5 - nu_ch)*.99 ;
-	cgStressCH[4][4] = (0.5 - nu_ch)*.99 ;
-	cgStressCH[5][5] = (0.5 - nu_ch)*.99 ;
-	cgStressCH *= E_ch/((1.+nu_ch)*(1.-2.*nu_ch)) ;
-	
-	maxs = std::max(std::max(cgStressC3S[0][0],cgStressCSH[0][0]),cgStressCH[0][0]) ;
-	mins = std::min(std::min(cgStressC3S[0][0],cgStressCSH[0][0]),cgStressCH[0][0]) ;
-	
-	Assembly * K = new Assembly() ;
-	
-	
-	//1 Alite
-	//2 C-S-H
-	//3 CH
-	//4 C-S-H
-	//5   "
-	
-	VoxelFilter microstruct ;
-	
-	microstruct.behaviourMap[0] = new VoidForm() ;
-	microstruct.behaviourMap[1] = new Stiffness(cgStressC3S) ;
-	microstruct.behaviourMap[2] = new Stiffness(cgStressCSH) ;
-	microstruct.behaviourMap[3] = new Stiffness(cgStressCH) ;
-	microstruct.behaviourMap[4] = new Stiffness(cgStressCSH) ;
-	microstruct.behaviourMap[5] = new Stiffness(cgStressCSH) ;
-	
-	microstruct.read(argv[1]) ;
-	std::cout << "reading done" << std::endl ;
-	
-	
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
-	{
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
-			{
-				microstruct.getElements()[i]->getBoundingPoint(j).id = -1 ;
-			}
-		}
-	}
-	
-	int index = 0 ;
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)
-	{
-		
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-			for(size_t j = 0 ;j < microstruct.getElements()[i]->getBoundingPoints().size() ; j++)
-			{
-				if(microstruct.getElements()[i]->getBoundingPoint(j).id == -1)
-					microstruct.getElements()[i]->getBoundingPoint(j).id = index++ ;
-			}
-			
-			K->add(microstruct.getElements()[i]) ;
-			microstruct.getElements()[i]->getState().initialize() ;
-		}
-	}
-	
-	std::cout << "adding done" << std::endl ;
-	
-	std::cout << "setting Boundary Conditions" << std::endl ;
-
-	std::vector<Point *> xplus ;
-	std::vector<Point *> xminus ;
-	std::vector<Point *> y ;
-	std::vector<Point *> z ;
-	for(size_t i = 0 ; i < microstruct.getElements().size() ; i++)	
-	{
-		if(i%1000 == 0)
-			std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-			if(    std::abs(microstruct.getElements()[i]->getCenter().x) > 99 
-			    || std::abs(microstruct.getElements()[i]->getCenter().x) < 1
-			    || std::abs(microstruct.getElements()[i]->getCenter().y) > 99 
-			    || std::abs(microstruct.getElements()[i]->getCenter().y) < 1
-			    || std::abs(microstruct.getElements()[i]->getCenter().z) > 99 
-			    || std::abs(microstruct.getElements()[i]->getCenter().z) < 1
-			)
-				for(size_t j = 0 ; j < microstruct.getElements()[i]->getBoundingPoints().size()  ; j++)
-				{
-					if(microstruct.getElements()[i]->getBoundingPoint(j).x < 1e-9)
-						xminus.push_back(&microstruct.getElements()[i]->getBoundingPoint(j)) ;
-					else if(std::abs(microstruct.getElements()[i]->getBoundingPoint(j).x- 100) < 1e-9)
-						xplus.push_back(&microstruct.getElements()[i]->getBoundingPoint(j)) ;
-					else if(microstruct.getElements()[i]->getBoundingPoint(j).y < 1e-9 
-					|| std::abs(microstruct.getElements()[i]->getBoundingPoint(j).y-100) < 1e-9)
-						y.push_back(&microstruct.getElements()[i]->getBoundingPoint(j));
-					else if(microstruct.getElements()[i]->getBoundingPoint(j).z < 1e-9 
-					|| std::abs(microstruct.getElements()[i]->getBoundingPoint(j).z-100) < 1e-9)
-						z.push_back(&microstruct.getElements()[i]->getBoundingPoint(j));
-				}
-		}
-	}
-
-	std::sort(xminus.begin(), xminus.end()) ;
-	std::sort(xplus.begin(), xplus.end()) ;
-	std::sort(y.begin(), y.end()) ;
-	std::sort(z.begin(), z.end()) ;
-	auto e = std::unique(xminus.begin(), xminus.end()) ;
-	xminus.erase(e, xminus.end()) ;
-	e = std::unique(xplus.begin(), xplus.end()) ;
-	xplus.erase(e, xplus.end()) ;
-	e = std::unique(y.begin(), y.end()) ;
-	y.erase(e, y.end()) ;
-	e = std::unique(z.begin(), z.end()) ;
-	z.erase(e, z.end()) ;
-	for(size_t i = 0 ; i< xplus.size() ; i++)
-		K->setPoint(.2,0,0,xplus[i]->id) ;
-	for(size_t i = 0 ; i< xminus.size() ; i++)
-		K->setPoint(0,0,0,xminus[i]->id) ;
-	for(size_t i = 0 ; i< y.size() ; i++)
-		K->setPoint(.2*(y[i]->x/100.),0,0,y[i]->id) ;
-	for(size_t i = 0 ; i< z.size() ; i++)
-		K->setPoint(.2*(z[i]->x/100.),0,0,z[i]->id) ;
-	
-	std::cout << "BC done" << std::endl ;
-	
-	K->cgsolve() ;
-	
-	
-	x = new Vector(K->getDisplacements()) ;
-
-	std::cerr << " stepping through elements... " << std::flush ;
-	for(size_t i = 0 ; i < microstruct.getElements().size() ;i++)
-	{	
-		if(i%1000 == 0)
-			std::cerr << "\r stepping through elements... " << i << "/" << microstruct.getElements().size() << std::flush ;
-		if(microstruct.getElements()[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
-			microstruct.getElements()[i]->step(.1, &K->getDisplacements()) ;
-			microstruct.getElements()[i]->getBehaviour()->step(.1, microstruct.getElements()[i]->getState()) ;
-		}
-	}
-	std::cerr << " ...done" << std::endl ;
-
-	myTets =  microstruct.getElements() ;
-	sigma = new Vector(myTets.size()*4) ;
-	
-	Vector avg_sigma(0.,6);
-	Vector avg_epsilon(0.,6);
-	int count = 0 ;
-	for(size_t i = 0 ; i < myTets.size(); i++)
-	{
-		if(i%1000 == 0)
-			std::cerr << "\r getting strains ..." << i+1 << "/" << myTets.size() << std::flush ;
-
-
-		if(myTets[i]->getBehaviour()->type != VOID_BEHAVIOUR  )
-		{
-			Vector s = myTets[i]->getState().getStress(Point(0.25,0.25,0.25), true) ;
-			Vector e = myTets[i]->getState().getStrain(Point(0.25,0.25,0.25), true) ;
-			avg_sigma += s ;
-			avg_epsilon += e ;
-			count++;
-			
-			for(size_t j = 0 ; j < 4 ;j++)
-			{
-				
-				(*sigma)[i*4+j] = s[0] ; 
-			}
-		}
+		std::vector<Inclusion3D *> inclusions ;
+		if(n == 1)
+			inclusions.push_back(new Inclusion3D(0.0623*scale,0.075*scale,0.075*scale,0.075*scale)) ;
 		else
 		{
-			for(size_t j = 0 ; j < 4 ;j++)
-			{
-				(*sigma)[i*4+j] = 0 ; 
-			}
+			std::string file = "sphere_2024.txt" ;
+			std::vector<std::string> columns ;
+			columns.push_back("center_x") ;
+			columns.push_back("center_y") ;
+			columns.push_back("center_z") ;
+			columns.push_back("radius") ;
+			GranuloFromFile spheres(file, columns) ;
+			inclusions = spheres.getInclusion3D(n, scale) ;			
 		}
 		
-	}
-	
-	avg_sigma /= count ;
-	avg_epsilon /= count ;
-	std::cout << " ... done" << std::endl ;
-	std::cout << "sigma max = " << sigma->max() << std::endl ;
-	std::cout << "sigma min = " << sigma->min() << std::endl ;
-	std::cout << "sigma avg = " << avg_sigma[0] <<", " <<
-		avg_sigma[1] <<", " << 
-		avg_sigma[2] <<", " << 
-		avg_sigma[3] <<", " <<
-		avg_sigma[4] <<", " <<
-		avg_sigma[5] <<", " <<std::endl ;
-	std::cout << "epsilon avg = " << avg_epsilon[0] <<", " <<
-		avg_epsilon[1] <<", " << 
-		avg_epsilon[2] <<", " << 
-		avg_epsilon[3] <<", " <<
-		avg_epsilon[4] <<", " <<
-		avg_epsilon[5] <<", " <<std::endl ;
-	
-	
-	std::cout << " ... done" << std::endl ;
-	
-	return 0;
-
-	glutInit(&argc, argv);
-	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
-	glutInitWindowSize (500, 500);
-	glutInitWindowPosition (100, 100);
-	glutCreateWindow (argv[0]);
-	init ();
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-	glutKeyboardFunc(keyboard);
-	glutMouseFunc(mouse);
-	glutMainLoop();
-	
- 	
-} 
-
-
+		double volume = 0 ;		
+		for( size_t i = 0 ; i < inclusions.size() ; i++ )
+			volume += inclusions[i]->volume() ;
+		
+		sample.setBehaviour( new /*ElasticOnly*/PasteBehaviour(12e9,0.3,2.9e6,SPACE_THREE_DIMENSIONAL) ) ;
+		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		{
+//			inclusions[i]->setBehaviour(new GelBehaviour(59e9,0.3,0.1,SPACE_THREE_DIMENSIONAL)) ;
+			inclusions[i]->setBehaviour(new /*ElasticOnly*/AggregateBehaviour(59e9,0.3,5.7e6,SPACE_THREE_DIMENSIONAL)) ;
+			F.addFeature(&sample, inclusions[i]) ;
+			placed_area += inclusions[i]->volume() ;
+		}
+				
+		std::cout << "placing zones" << std::endl ;
+		int numberOfZones = 10*10*10 ;
+		if(n==1)
+			numberOfZones = 20 ;
+		zones = generateExpansiveZonesHomogeneously( numberOfZones , inclusions, F ) ;
+		
+		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
+		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;
+		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ZETA , BACK ) ) ;
+		F.setSamplingNumber(nsample) ;
+		F.setOrder( LINEAR ) ;
+		step() ;
+		
+		return 0 ;
+}

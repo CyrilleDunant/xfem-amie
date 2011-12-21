@@ -536,8 +536,10 @@ void invert6x6Matrix(Mu::Matrix &s)
 
 		ret[5][0] = -det(Matrix(0,5,s)) ; ret[5][1] =  det(Matrix(1,5,s)) ; ret[5][2] = -det(Matrix(2,5,s)) ; 
 		ret[5][3] =  det(Matrix(3,5,s)) ; ret[5][4] = -det(Matrix(5,4,s)) ; ret[5][5] =  det(Matrix(5,5,s)) ;
+		
 	
 		s = ret/deti ;
+
 		return ;
 	}
 
@@ -735,6 +737,26 @@ double det(const Mu::Matrix &s)
 //			std::cout << ret << std::endl ;			
 			return ret ;
 
+		}
+		case 6:
+		{
+			double ret = 0 ;
+			
+			for(size_t i = 0 ;  i < 1  ; i++)
+			{
+				for(size_t j = 0 ;  j< 6  ; j++)
+				{
+					double sig = 1 ;
+					for(size_t k = 0 ; k < (i+j)%2 ; k++)
+						sig*=-1 ;
+					
+					Matrix mat(i,j,s) ;
+					
+					ret= fma(sig*s[i][j],det(mat), ret) ;
+				}
+			}
+			//			std::cout << ret << std::endl ;			
+			return ret ;
 		}
 	default:
 		{

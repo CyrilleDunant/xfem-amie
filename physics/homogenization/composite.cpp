@@ -468,13 +468,11 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTetrahedro
 		}
 	}
 
-	for( size_t i = 0 ; i < inclusions.size() ; i++ )
-		matrix.volume -= inclusions[i].volume ;
 
 	volume = matrix.volume ;
 
 	for( size_t i = 0 ; i < inclusions.size() ; i++ )
-		volume += inclusions[i].volume ;
+		matrix.volume -= inclusions[i].volume ;
 
 	matrix.volume /= volume ;
 

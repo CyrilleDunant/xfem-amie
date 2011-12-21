@@ -2922,7 +2922,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ;
 
-	size_t numberOfRefinements = 3;
+	size_t numberOfRefinements = 1;
 
 	VirtualMachine vm ;
 
@@ -3108,7 +3108,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 			gp.id = -1 ;
 		}
 	}
-	std::cout << "." << std::flush ;
+//	std::cout << "." << std::flush ;
 	delete getCachedGaussPoints() ;
 	setCachedGaussPoints( new GaussPointArray( gp ) ) ;
 	return *getCachedGaussPoints();

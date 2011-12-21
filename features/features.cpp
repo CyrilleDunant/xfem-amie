@@ -4388,7 +4388,7 @@ bool FeatureTree::stepElements()
 				}
 
 				std::cerr << " ...done. " << std::endl ;
-#pragma openmp parallel for
+
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 
@@ -4575,38 +4575,38 @@ bool FeatureTree::stepElements()
 				{
 					crackedVolume += vol ;
 				}
-			
-
-				averageDamage /= volume ;
-
-				std::cerr << " ...done" << std::endl ;
-
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( i % 1000 == 0 )
-						std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
-
-					if( elements[i]->getBehaviour()->getDamageModel() )
-					{
-						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
-						if(elements[i]->getBehaviour()->changed())
-						{
-							needAssembly = true ;
-							behaviourChange = true ;
-						}
-					}
-				}
-				std::cerr << " ...done. " << std::endl ;
-
-
-
-
-				// 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
-				// 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
-
 			}
 			
+
+			averageDamage /= volume ;
+
+			std::cerr << " ...done" << std::endl ;
+
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( i % 1000 == 0 )
+					std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
+
+				if( elements[i]->getBehaviour()->getDamageModel() )
+				{
+					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+					if(elements[i]->getBehaviour()->changed())
+					{
+						needAssembly = true ;
+						behaviourChange = true ;
+					}
+				}
+			}
+
+
+
+
+			// 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
+			// 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
+
 		}
+		std::cerr << " ...done. " << std::endl ;
+			
 	}
 	else
 	{

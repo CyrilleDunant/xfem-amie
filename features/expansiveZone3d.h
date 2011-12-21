@@ -8,6 +8,7 @@
 #define __EXPANSIVE_ZONE_3D_H__
 
 #include "enrichmentInclusion3d.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
 
 namespace Mu
 {
@@ -25,6 +26,8 @@ class ExpansiveZone3D :  public EnrichmentInclusion3D
 	std::set<DelaunayTetrahedron *> expansive ;
 	Vector imposedDef ;
 	Matrix cgTensor ;
+	Form * original ;
+	
 public:
 
 /** \brief Constructor. construct the zone
@@ -38,6 +41,7 @@ public:
 * @param deformation Vector of the imposed strain
 */
 	ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, const Matrix & cgTensor, Vector deformation) ;
+	ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedDeformation * exp) ;
 	virtual ~ExpansiveZone3D() ;
 	
 /** \brief enrich elements and change their Behaviour if required*/

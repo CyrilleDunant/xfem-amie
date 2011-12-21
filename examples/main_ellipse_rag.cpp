@@ -208,13 +208,13 @@ std::vector<Zone> zones ;
 void step()
 {
 
-	int nsteps = 30;
-	int nstepstot = 30;
+	int nsteps = 15;
+	int nstepstot = 15;
 	int maxtries = 200 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(200) ;
 	
-	for(size_t i = 0 ; i < 30/*nsteps*/ ; i++)
+	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 
 		bool go_on = featureTree->step() ;
@@ -1059,12 +1059,12 @@ int main(int argc, char *argv[])
 		}
     }
 
-	zones = generateExpansiveZonesHomogeneously(80, inclusions, F) ;
+	zones = generateExpansiveZonesHomogeneously(280, inclusions, F) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
-    F.setSamplingNumber(600) ;
+    F.setSamplingNumber(250) ;
 	F.setOrder(LINEAR) ;
 
 	step() ;

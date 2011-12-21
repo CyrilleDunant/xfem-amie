@@ -330,6 +330,9 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		}
 	}
 	
+	if(ring.size() < 2)
+		return ;
+	
 	Order order = LINEAR ;
 	if(!ring.empty())
 		order = ring[0]->getOrder() ;

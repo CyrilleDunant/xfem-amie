@@ -1,6 +1,7 @@
 #include "phase.h"
 #include "../stiffness_with_imposed_deformation.h"
 #include "../stiffness.h"
+#include "../homogeneised_behaviour.h"
 #include "../dual_behaviour.h"
 #include "../../utilities/matrixops.h"
 #include "../fracturecriteria/mohrcoulomb.h"
@@ -169,7 +170,11 @@ void Phase::stiffnessFromBehaviour()
 			}
 		}
 		tmp /= (count) ;
-	}	
+	}
+	if(dynamic_cast<HomogeneisedBehaviour *>(behaviour))
+	{
+		tmp =  dynamic_cast<HomogeneisedBehaviour *>(behaviour)->original->getTensor( Point(0.,0.) ) ;
+	}
 	C.resize( tmp.numRows(), tmp.numCols() ) ;
 	C = tmp ;
 		
@@ -219,4 +224,12 @@ void Phase::ruptureFromBehaviour()
 		}
 
     }
+}
+
+void Phase::print()
+{
+	C.print() ;
+	std::cout << std::endl ;
+	for(size_t i = 0 ; i < beta.size() ; i++)
+		std::cout << beta[i] << std::endl ;
 }

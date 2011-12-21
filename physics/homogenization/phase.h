@@ -33,6 +33,8 @@ public:
 
     virtual void apply() ;
     Form * getBehaviour() ;
+	
+	void print() ;
 
     Phase & operator = (const Phase & p) ;
 

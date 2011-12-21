@@ -471,7 +471,7 @@ void Assembly::initialiseElementaryMatrices()
 {
 	timeval time0, time1 ;
 	gettimeofday(&time0, NULL);
-	std::cerr << "Generating elementary matrices..." << std::flush ;
+//	std::cerr << "Generating elementary matrices..." << std::flush ;
 	bool cannotParallelize = false ;
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
@@ -488,6 +488,8 @@ void Assembly::initialiseElementaryMatrices()
 		{
 			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
+				if(i%10000 == 0)
+					std::cerr << "Generating elementary matrices... triangle " << i << "/" << element2d.size() << std::flush ;
 				if(element2d[i]->getBehaviour())
 					element2d[i]->getElementaryMatrix() ;
 			}
@@ -496,6 +498,8 @@ void Assembly::initialiseElementaryMatrices()
 		{
 			for(size_t i = 0 ; i < element3d.size() ; i++)
 			{
+				if(i%1000 == 0)
+					std::cerr << "Generating elementary matrices... tetrahedron " << i << "/" << element3d.size() << std::flush ;
 				if(element3d[i]->getBehaviour())	
 					element3d[i]->getElementaryMatrix() ;
 			}

@@ -70,6 +70,13 @@ std::vector<BoundaryCondition * > Form::getBoundaryConditions(const ElementState
 	return  ret ;
 } ;
 
+// void Form::setFractureCriterion(FractureCriterion * frac) 
+// {
+// 	if(frac)
+// 		this->getFractureCriterion() = frac ;
+// }
+
+
 void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 {
 	if( !getBehaviour())
