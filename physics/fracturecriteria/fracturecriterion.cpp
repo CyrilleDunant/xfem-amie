@@ -1998,11 +1998,11 @@ void FractureCriterion::step(ElementState &s)
 		criterionDamageDifferential = dedc.second ;
 	}
 	
-// 	if(s.getParent()->getBehaviour()->fractured())
-// 	{
-// 		scoreAtState = -1 ;
-// 		return ;
-// 	}
+	if(s.getParent()->getBehaviour()->fractured())
+	{
+		scoreAtState = -1 ;
+		return ;
+	}
 	scoreAtState = grade(s) ;
 	
 }
@@ -2026,7 +2026,7 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 	{
 		case NULL_SMOOTH :
 		{
-			metAtStep = scoreAtState > 0 ;
+			metAtStep = scoreAtState > POINT_TOLERANCE_2D ;
 			nonLocalScoreAtState = scoreAtState ;
 			return ;
 		}
