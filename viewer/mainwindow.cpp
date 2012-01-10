@@ -162,9 +162,11 @@ void MainWindow::open()
 			int xpos = 0 ;
 			int ypos = 0 ;
 			int zoomval = zoom->value();
+			int scale =  1 ;
 
 			if( triangledisplay )
 			{
+				scale = triangledisplay->scale ;
 				limits = triangledisplay->limits ;
 				xpos = triangledisplay->xtransleft ;
 				ypos = triangledisplay->ytransleft ;
@@ -208,7 +210,8 @@ void MainWindow::open()
 
 			triangledisplay->xtransleft = xpos ;
 			triangledisplay->ytransleft = ypos ;
-
+			triangledisplay->scale = scale ;
+			
 			setCentralWidget( triangledisplay );
 			QFileInfo pathInfo( fileName );
 			setWindowTitle( pathInfo.fileName() );
@@ -229,7 +232,6 @@ void MainWindow::open()
 			connect( triangledisplay, SIGNAL( segmentUpChanged( int ) ), upSlider, SLOT( setValue( int ) ) );
 
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
-			triangledisplay->setZoom( zoomval ) ;
 
 			alpha->setValue( 0 ) ;
 			alpha->setRange( -1, 1000 );
@@ -237,7 +239,7 @@ void MainWindow::open()
 			downSlider->setRange( 0, 9999 );
 			downSlider->setValue( 0 ) ;
 
-			field->setValue( 1 ) ;
+// 			field->setValue( 1 ) ;
 			field->setRange( -1, 1000 );
 
 			layer->setValue( 0 ) ;
@@ -245,6 +247,9 @@ void MainWindow::open()
 
 			upSlider->setRange( 1, 10000 );
 			upSlider->setValue( 10000 ) ;
+			
+			triangledisplay->setZoom( zoomval ) ;
+			triangledisplay->setScale( scale ); 
 
 		}
 		else if( voxels( fileName ) )
@@ -332,10 +337,12 @@ void MainWindow::open( const QString &fileName )
 			int xpos = 0 ;
 			int ypos = 0 ;
 			int zoomval = zoom->value();
+			int scale = 1 ;
 			voxeldisplay = NULL ;
 
 			if( triangledisplay )
 			{
+				scale = triangledisplay->scale ;
 				limits = triangledisplay->limits ;
 				xpos = triangledisplay->xtransleft ;
 				ypos = triangledisplay->ytransleft ;
@@ -376,7 +383,8 @@ void MainWindow::open( const QString &fileName )
 
 			triangledisplay->xtransleft = xpos ;
 			triangledisplay->ytransleft = ypos ;
-
+			triangledisplay->scale = scale ;
+			
 			if( triangledisplay == NULL )
 				std::cerr << "NULL" << std::endl ;
 
@@ -400,22 +408,15 @@ void MainWindow::open( const QString &fileName )
 			connect( triangledisplay, SIGNAL( segmentUpChanged( int ) ), upSlider, SLOT( setValue( int ) ) );
 
 			connect( printButton, SIGNAL( released() ), triangledisplay, SLOT( grab() ) );
-			triangledisplay->setZoom( zoomval ) ;
-
-//		    alpha->setValue(0) ;
-			alpha->setRange( -1, 1000 );
 
 			downSlider->setRange( 0, 9999 );
 			downSlider->setValue( 0 ) ;
 
-//		    field->setValue(1) ;
-//		    field->setRange(-1, 1000);
-
-//		    layer->setValue(0) ;
-//		    layer->setRange(-1, 1000) ;
-
 			upSlider->setRange( 1, 10000 );
 			upSlider->setValue( 10000 ) ;
+			
+			triangledisplay->setZoom( zoomval ) ;
+			triangledisplay->setScale( scale ) ;
 
 		}
 		else if( voxels( fileName ) )

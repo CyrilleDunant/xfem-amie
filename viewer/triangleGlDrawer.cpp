@@ -673,7 +673,7 @@ void TriangleGLDrawer::reset( std::vector<std::valarray<float> > * v, int np, in
 	fracup = 10000;
 	fracdown = 0;
 
-	scale = 1 ;
+// 	scale = 1 ;
 
 	numberOfTriangles = ( *v )[0].size() ;
 	numberOfPointsPerTriangle = np ;
@@ -742,7 +742,7 @@ void TriangleGLDrawer::reset( TriangleDataReader *f, int set, const std::vector<
 	fracup = 10000;
 	fracdown = 0;
 
-	scale = 1 ;
+// 	scale = 1 ;
 
 	computeDisplayList();
 }
@@ -800,7 +800,7 @@ void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<fl
 	fracup = 10000;
 	fracdown = 0;
 
-	scale = 1 ;
+// 	scale = 1 ;
 
 	computeDisplayList();
 }
@@ -861,7 +861,7 @@ void TriangleGLDrawer::reset()
 	fracup = 10000;
 	fracdown = 0;
 
-	scale = 1 ;
+// 	scale = 1 ;
 	computeDisplayList();
 }
 

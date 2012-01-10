@@ -56,13 +56,11 @@ void DamageModel::step( ElementState &s )
 			fraction = s.getParent()->volume();
 
 	}
-
-	change = false ;
 	
+	change = false ;
 	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s ) ;
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
 	bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
-
 	if( !isInDamagingSet )
 	{
 		s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
@@ -76,6 +74,7 @@ void DamageModel::step( ElementState &s )
 	}
 	
 	std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
+	
 	if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ) // initiate iteration
 	{
 		s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
@@ -188,7 +187,6 @@ void DamageModel::step( ElementState &s )
 			if( ( upState - downState ).max() < 2.*damageDensityTolerance )
 			{
 				getState( true ) += damageDensityTolerance ;
-
 				converged = true ;
 			}
 			
@@ -296,6 +294,7 @@ void DamageModel::step( ElementState &s )
 		
 		if( std::abs( minFraction - maxFraction ) < damageDensityTolerance)
 		{
+// 			std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index<< "  "<< getState().max() << "   "<< score << std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
 				getState( true ) = downState + ( upState - downState ) *trialRatio + 2.*damageDensityTolerance;

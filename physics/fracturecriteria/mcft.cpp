@@ -352,13 +352,13 @@ double NonLocalMCFT::grade( ElementState &s )
 	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s) ;
 	double tstrain = stressStrain.second.max();
 	double cstrain = stressStrain.second.min();
-	double tstress = stressStrain.first.max()/scaleFactor;
-	double cstress = stressStrain.first.min()/scaleFactor;
+	double tstress = stressStrain.first.max();
+	double cstress = stressStrain.first.min();
 
 	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
 	if(pseudoYoung < 1e-9)
-		return -1 ;
-	double maxCompression = downVal  ;
+		return 1 ;
+	double maxCompression = downVal*scaleFactor  ;
 	double maxCompressionStrain = downVal/pseudoYoung  ;
 
 	if(cstrain < critStrain*.25 )
@@ -382,30 +382,31 @@ double NonLocalMCFT::grade( ElementState &s )
 		double upTestVal = 2.*downVal ;
 		double downTestVal = 0 ;
 
-		if(n*f_p/(epsilon_p*pseudoYoung)-n+1. < 0)
-			return -1 ;
-		
-		double rcs = pow(n*f_p/(epsilon_p*pseudoYoung)-n+1., 1./(n*k_c)) ;
-		double testVal = rcs*epsilon_p*pseudoYoung ;
+		if(n*f_p/(epsilon_p*pseudoYoung)-n+1. >= 0)
+		{
+			
+			double rcs = pow(n*f_p/(epsilon_p*pseudoYoung)-n+1., 1./(n*k_c)) ;
+			double testVal = rcs*epsilon_p*pseudoYoung ;
 
-		if(testVal > epsilon_p/pseudoYoung)
-			k_c = 1. ;
-		else
-			k_c = 0.67 - f_p/62e6 ;
-		
-		rcs = pow(n*f_p/(epsilon_p*pseudoYoung)-n+1., 1./(n*k_c)) ;
-		testVal = rcs*epsilon_p*pseudoYoung ;
+			if(testVal > epsilon_p/pseudoYoung)
+				k_c = 1. ;
+			else
+				k_c = 0.67 - f_p/62e6 ;
+			
+			rcs = pow(n*f_p/(epsilon_p*pseudoYoung)-n+1., 1./(n*k_c)) ;
+			testVal = rcs*epsilon_p*pseudoYoung ;
 
-		maxCompression = testVal ;
-		maxCompressionStrain = testVal/pseudoYoung ;
+			maxCompression = testVal*scaleFactor ;
+			maxCompressionStrain = testVal/pseudoYoung ;
+		}
 	}
 	
 	
-	double maxTension = upVal;
-	double maxTensionStrain = tensionCritStrain*youngModulus/pseudoYoung ; //upVal/pseudoYoung;
+	double maxTension = upVal*scaleFactor;
+	double maxTensionStrain = tensionCritStrain ; //upVal/pseudoYoung;
 	std::vector<double> crits ;
 		
-	if(tstrain > tensionCritStrain*youngModulus/pseudoYoung )
+	if(tstrain > tensionCritStrain )
 	{
 
 		double downTestVal = 0 ;
@@ -434,10 +435,10 @@ double NonLocalMCFT::grade( ElementState &s )
 		}
 		
 		
-		maxTension = (upTestVal+downTestVal)*.5 ;
+		maxTension = (upTestVal+downTestVal)*.5*scaleFactor ;
 		maxTensionStrain = (upTestVal+downTestVal)*.5/pseudoYoung ;
 		if(factor < POINT_TOLERANCE_2D)
-			return -1. ;
+			return 1. ;
 
 	}
 
@@ -455,11 +456,19 @@ else
 	metInTension = !metInCompression;
 }
 
-if(maxCompression < 0 &&  maxCompressionStrain < 0 )
+if(maxCompression < -POINT_TOLERANCE_2D &&  maxCompressionStrain < -POINT_TOLERANCE_2D )
 	crits.push_back(std::min(cstress/maxCompression, cstrain/maxCompressionStrain)) ;
+else if(maxCompression < -POINT_TOLERANCE_2D)
+	crits.push_back(std::abs(cstress/maxCompression)) ;
+else if(maxCompressionStrain < -POINT_TOLERANCE_2D)
+	crits.push_back(std::abs(cstrain/maxCompressionStrain)) ;
 
-if(maxTensionStrain > 0 && maxTensionStrain > 0 )
-	crits.push_back(std::min(tstress/maxTension, tstrain/maxTensionStrain)) ;
+if(maxTensionStrain > POINT_TOLERANCE_2D/* && maxTension > POINT_TOLERANCE_2D*/ )
+	crits.push_back(/*std::min(std::abs(tstress/maxTension), */std::abs(tstrain/maxTensionStrain)/*)*/) ;
+else if(maxTensionStrain > POINT_TOLERANCE_2D)
+	crits.push_back(std::abs(tstrain/maxTensionStrain)) ;
+else if(maxTension > POINT_TOLERANCE_2D )
+	crits.push_back(std::abs(tstress/maxTension)) ;
 
 
 if(crits.empty())
@@ -475,12 +484,13 @@ else if(crits.back() >= 0)
 {
 	return -1.+crits.back() ;
 }
+
 if(crits.back() > -1)
 {
 	return crits.back() ;
 }
 
-return -1 ;
+return 1 ;
 
 }
 

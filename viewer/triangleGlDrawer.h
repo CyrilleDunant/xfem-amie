@@ -79,7 +79,7 @@ protected:
 	int fracup ; 
 	int fracdown ;
 	
-	int scale ;
+	
 	
 	float max_x ;
 	float max_y ;
@@ -119,6 +119,7 @@ public:
 	
 	int xtransleft ;
 	int ytransleft ;
+	int scale ;
 	
 	TriangleGLDrawer(std::vector<std::valarray<float> > * v, int np, int set, const std::vector<std::pair<float, float> > & limits, QWidget * parent = 0 ) ;
 	TriangleGLDrawer(TriangleDataReader * f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent = 0) ; //

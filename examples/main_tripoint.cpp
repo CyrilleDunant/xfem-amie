@@ -141,6 +141,9 @@ double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
 double rebarDiametre = sqrt( 0.000506 ) ;
 double rebarEndCover = 0.047 ;
+double phi = 0. ;
+double psi = 0. ;
+bool haveStirrups = false ;
 
 std::vector<DelaunayTriangle *> tris__ ;
 double apriori_command = 0 ;
@@ -477,6 +480,25 @@ void step()
 
 			double ar = triangles[k]->area() ;
 
+			if(!haveStirrups)
+			{
+				if(k < triangles.size()/2)
+						ar *= 1.-phi ;
+				else
+					ar *= phi ;
+			}
+			else
+			{
+				if(k < triangles.size()/3)
+						ar *= 1.-phi-psi ;
+				else if( k < 2*triangles.size()/3)
+					ar *= phi ;
+				else
+					ar *= psi ;
+			}
+				
+				
+				
 			for ( int l = 0 ; l < npoints ;l++ )
 			{
 				avg_e_xx += ( epsilon11[k*npoints+l] / npoints ) * ar;
@@ -1664,11 +1686,11 @@ int main( int argc, char *argv[] )
 
 	double compressionCrit = -37.0e6 ;
 	double tensionCrit =  330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
-	double phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
+	phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
 	
-	double psi = 2.*0.0084261498 / .4 ;
+	psi = 2.*0.0084261498 / .4 ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = .025 ; // .015
+	double mradius = .22 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1833,6 +1855,7 @@ int main( int argc, char *argv[] )
 
 	if ( atoi( argv[2] ) )
 	{
+		haveStirrups = true ;
 		F.addFeature( NULL, &samplestirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( NULL, &baserightstirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( NULL, &topsupportstirrupbulk, stirruplayer, psi ) ;
@@ -1861,8 +1884,8 @@ int main( int argc, char *argv[] )
 	}
 	else
 	{
-// 		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
-// 		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
+		F.addFeature( &sample, &rebar0, rebarlayer, phi ) ;
+		F.addFeature( &sample, &rebar1, rebarlayer, phi ) ;
 
 		
 // 		F.addFeature( &sample, &rebar2, rebarlayer, phi ) ;
@@ -1887,7 +1910,7 @@ int main( int argc, char *argv[] )
 	F.addPoint( new Point( supportLever, -sampleHeight*.5 - plateHeight ) ) ;
 // 	F.addPoint( new Point( -supportLever, -sampleHeight*.5 - plateHeight ) ) ;
 // 	F.addPoint(new Point(0, sampleHeight*.5+ plateHeight)) ;
-	F.setMaxIterationsPerStep( 1600 );
+	F.setMaxIterationsPerStep( 160000 );
 
 	step() ;
 

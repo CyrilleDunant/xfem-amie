@@ -4307,11 +4307,21 @@ bool FeatureTree::stepElements()
 						elements.push_back(elementstmp[i]);
 				}
 			}
+			
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
 				{
 					foundCheckPoint = false ;
+					break ;
+				}
+			}
+			
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met() )
+				{
+					behaviourChange = true ;
 					break ;
 				}
 			}
@@ -4375,6 +4385,7 @@ bool FeatureTree::stepElements()
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 				}
 					std::cerr << " ...done. " << std::endl ;
+					
 #pragma openmp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4388,6 +4399,8 @@ bool FeatureTree::stepElements()
 				}
 
 				std::cerr << " ...done. " << std::endl ;
+				
+#pragma openmp parallel for shared (needAssembly, behaviourChange, averageDamage, crackedVolume, volume)
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4408,6 +4421,9 @@ bool FeatureTree::stepElements()
 							else
 								averageDamage += are ;
 						}
+						
+						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
+						
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
 						if( elements[i]->getBehaviour()->changed() )
 						{
@@ -4419,38 +4435,40 @@ bool FeatureTree::stepElements()
 						{
 							fracturedCount++ ;
 							crackedVolume += are ;
+							
+							if(!wasFractured)
+							{
+								needAssembly = true ;
+								behaviourChange = true ;
+							}
 						}
 						else if( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
 						{
 							damagedVolume += are ;
 						}
 					}
-					else if( elements[i]->getBehaviour()->fractured() )
-					{
-						crackedVolume +=  are ;
-					}
-
 				}
 			}
-				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
-				
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( i % 1000 == 0 )
-						std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
+			
+			std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
+			
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( i % 1000 == 0 )
+					std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
 
-					if( elements[i]->getBehaviour()->getDamageModel() )
+				if( elements[i]->getBehaviour()->getDamageModel() )
+				{
+					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+					if(elements[i]->getBehaviour()->changed())
 					{
-						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
-						if(elements[i]->getBehaviour()->changed())
-						{
-							needAssembly = true ;
-							behaviourChange = true ;
-						}
+						needAssembly = true ;
+						behaviourChange = true ;
 					}
 				}
-				std::cerr << " ...done. " << std::endl ;
-					averageDamage /= volume ;
+			}
+			std::cerr << " ...done. " << std::endl ;
+				averageDamage /= volume ;
 			
 
 		}
@@ -4919,6 +4937,7 @@ void FeatureTree::resetBoundaryConditions()
 
 bool FeatureTree::step()
 {
+
 	double realdt = deltaTime ;
 	
 	if( solverConverged() && !behaviourChanged() )
@@ -4928,15 +4947,15 @@ bool FeatureTree::step()
 
 	bool ret = true ;
 	size_t it = 1 ;
-	state.setStateTo( XFEM_STEPPED, true ) ;
-
-	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
-
 	int notConvergedCounts = 0 ;
-	while( ( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 )
+	
+	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
+	
+	do
 	{
 		deltaTime = 0 ;
-
+		state.setStateTo( XFEM_STEPPED, true ) ;
+		
 		if( solverConverged() )
 		{
 			std::cout << "." << std::flush ;
@@ -4960,15 +4979,21 @@ bool FeatureTree::step()
 				}
 			}
 		}
-		state.setStateTo( XFEM_STEPPED, true ) ;
+		
 		if(++it > maxitPerStep && foundCheckPoint)
+		{
+			ret = false ;
 			break ;
-	}
+		}
+		
+	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
 
-	std::cout  << std::endl ;
+	if(notConvergedCounts >= 4)
+		ret = false ;
+	std::cout << std::endl ;
 	deltaTime = realdt ;
 	
-	return solverConverged() && !behaviourChanged() && ( ++it < maxitPerStep ) && ( notConvergedCounts < 1 );
+	return solverConverged() && !behaviourChanged() && ret ;
 }
 
 bool FeatureTree::stepToCheckPoint()
