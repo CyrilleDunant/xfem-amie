@@ -415,7 +415,71 @@ Vector getExpansionStress(bool random)
 
 int main(int argc, char *argv[])
 {
-	std::string type(argv[1]) ;
+	
+	Sample sample(NULL,0.01,0.01,0.,0.) ;
+	sample.setBehaviour(new PasteBehaviour()) ;
+	
+	GelBehaviour gel ;
+	
+	FeatureTree manager(&sample) ;
+	manager.setSamplingNumber(20) ;
+	manager.step() ;
+	std::vector<DelaunayTriangle *> elements = manager.getElements2D() ;
+	Point p0 = elements[1]->getBoundingPoint(0) ;
+	Point p1 = elements[1]->getBoundingPoint(1) ;
+	Point p2 = elements[1]->getBoundingPoint(2) ;
+	
+	
+	Point pi = p0+p1+p2 ;
+	pi *= 0.333333333333333333333333 ;
+	
+	Point pj = p0+p2 ;
+	pj = pj - pi ;
+	
+	pi.print() ;
+	pj.print() ;
+// 	std::cout << dist(p0,pp) << std::endl ;
+// 	return 0 ;
+
+	Vector imposed = gel.imposed ;
+	imposed *= 10. ;
+	
+	ExpansiveZone * zone1 = new ExpansiveZone(NULL, 0.0002,pi.x,pi.y,gel.getTensor(Point(0.,0.))*10, imposed) ;
+	ExpansiveZone * zone2 = new ExpansiveZone(NULL, 0.0002,-pi.x,-pi.y,gel.getTensor(Point(0.,0.))*10, imposed) ;
+	manager.addFeature(&sample, zone1) ;
+	manager.addFeature(&sample, zone2) ;
+//	manager.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
+//	manager.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
+	
+	
+	for(int i = 0 ; i < 15 ; i++)
+	{
+		manager.resetBoundaryConditions() ;
+		manager.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+		manager.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+		if(i%2 == 0)
+			manager.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.2*i)) ;
+		else
+			manager.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, -0.2*i)) ;
+		
+		
+		manager.step() ;
+		manager.step() ;
+		if(zone1->isHomogeneized())
+			std::cout << "1-homogenized\t" ;
+		else
+			std::cout << "1-x-fem\t" ;
+		if(zone2->isHomogeneized())
+			std::cout << "2-homogenized\n" ;
+		else
+			std::cout << "2-x-fem\n" ;
+		zone1->setRadius(0.0002+0.009*i/8) ;
+		zone2->setRadius(0.0002+0.009*i/8) ;
+		std::cout << 0.002+0.009*i/8 << std::endl ;
+		
+	}
+	
+/*	std::string type(argv[1]) ;
 	if(type == std::string("--regular"))
 	{
 		std::cout << "first argument is number of zones along a side" << std::endl ;
@@ -456,7 +520,7 @@ int main(int argc, char *argv[])
 		out.close() ;
 
 		return 0 ;
-	}
+	}*/
 
 	return 0 ;
 
