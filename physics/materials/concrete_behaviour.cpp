@@ -20,7 +20,6 @@ ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double tensile, double
 	materialRadius = 0.015 ;
 	neighbourhoodRadius = materialRadius*1.5 ;
 	variability = 0. ;
-	
 }
 
 Form * ConcreteBehaviour::getCopy() const 
@@ -29,7 +28,9 @@ Form * ConcreteBehaviour::getCopy() const
 	double factor = 1. - variability + variability*weib ;
 	weib = RandomNumber().weibull(1,5) ;
 	double upFactor = factor ; //1 -.7+.7*weib ; 
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up*upFactor, down*factor,E*factor, materialRadius,reinforced, mirroring , dx, dy, dz)/*, new RotatingCrack()*/) ;
+	NonLocalMCFT * fcrit = new NonLocalMCFT(up*upFactor, down*factor,E*factor, materialRadius,reinforced, mirroring , dx, dy, dz) ;
+	fcrit->rebarLocations = rebarLocations ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, fcrit/*, new RotatingCrack()*/) ;
 // 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up, down,E, materialRadius, mirroring , dx, dy, dz), new NonLocalIsotropicLinearDamage()) ;
 	ret->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
 	return ret ;

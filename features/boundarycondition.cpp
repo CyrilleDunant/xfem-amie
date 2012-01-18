@@ -280,7 +280,7 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				return ;
 			}
-
+			
 			default:
 				break;
 		}
@@ -1471,6 +1471,201 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 }
 
 
+void applyVerticalPlaneSections(double topY, double bottomY, Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
+{
+	std::vector<Point *> points ;
+	std::vector<DelaunayTriangle *> triangles = t->getElements() ;
+	
+	for(size_t i  = 0 ; i < triangles.size() ; i++)
+	{
+		for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
+		{
+			if(triangles[i]->getBoundingPoint(j).y <= topY && triangles[i]->getBoundingPoint(j).y >= bottomY)
+			{
+				points.push_back(&triangles[i]->getBoundingPoint(j));
+			}
+		}
+	}
+	std::sort(points.begin(), points.end()) ;
+	auto e = std::unique(points.begin(), points.end()) ;
+	points.erase(e, points.end()) ;
+	
+	for(size_t i = 0 ; i <  points.size() ; i++)
+	{
+		Point topPoint(points[i]->x, topY) ;
+		Point bottomPoint(points[i]->x, bottomY) ;
+		DelaunayTriangle * topElement = t->getUniqueConflictingElement(&topPoint) ;
+		DelaunayTriangle * bottomElement = t->getUniqueConflictingElement(&bottomPoint) ;
+		if(topElement && bottomElement)
+		{
+			std::vector<int> idstop ;
+			std::vector<double> coefficientstop ;
+			idstop.push_back(topElement->first->id*2);
+			coefficientstop.push_back(((topElement->second->y-topElement->third->y)*(topPoint.x-topElement->third->x)
+			+(topElement->third->x-topElement->second->x)*(topPoint.y-topElement->third->y))
+			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
+			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			
+			idstop.push_back(topElement->second->id*2);
+			coefficientstop.push_back(((topElement->third->y-topElement->first->y)*(topPoint.y-topElement->third->x)
+			+(topElement->first->x-topElement->third->x)*(topPoint.y-topElement->third->y))
+			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
+			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			
+			idstop.push_back(topElement->third->id*2);
+			coefficientstop.push_back(1.-coefficientstop[0]-coefficientstop[1]) ;
+			
+			std::vector<int> idsbot ;
+			std::vector<double> coefficientsbot ;
+			idsbot.push_back(bottomElement->first->id*2);
+			coefficientsbot.push_back(((bottomElement->second->y-bottomElement->third->y)*(bottomPoint.x-bottomElement->third->x)
+			+(bottomElement->third->x-bottomElement->second->x)*(bottomPoint.y-topElement->third->y))
+			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
+			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			
+			idsbot.push_back(bottomElement->second->id*2);
+			coefficientsbot.push_back(((bottomElement->third->y-bottomElement->first->y)*(bottomPoint.x-bottomElement->third->x)
+			+(bottomElement->first->x-bottomElement->third->x)*(bottomPoint.y-bottomElement->third->y))
+			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
+			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			
+			idsbot.push_back(bottomElement->third->id*2);
+			coefficientsbot.push_back(1.-coefficientsbot[0]-coefficientsbot[1]) ;
+			
+			std::valarray<unsigned int> allids(7) ;
+			Vector coefs(7) ;
+			for(size_t j = 0 ; j < 3 ; j++)
+			{
+				coefficientstop[j] *= (points[i]->y-bottomY)/(topY-bottomY) ;
+				coefficientsbot[j] *= (topY - points[i]->y)/(topY-bottomY) ;
+				
+				coefs[j] = coefficientstop[j] ;
+				coefs[j+3] = coefficientsbot[j] ;
+			}
+			coefs[6] = -std::accumulate(&coefs[0], &coefs[6], double(0)) ;
+			allids[0] = topElement->first->id*2 ;
+			allids[1] = topElement->second->id*2 ;
+			allids[2] = topElement->third->id*2 ;
+			allids[3] = bottomElement->first->id*2 ;
+			allids[4] = bottomElement->second->id*2 ;
+			allids[5] = bottomElement->third->id*2 ;
+			allids[6] = points[i]->id*2 ;
+			a->addMultiplier(LagrangeMultiplier(allids, coefs, 0 ));
+		}
+		
+		
+	}
+	
+}
+
+
+void applyHorizontalPlaneSections(double topX, double bottomX, Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
+{
+	std::vector<Point *> points ;
+	std::vector<DelaunayTriangle *> triangles = t->getElements() ;
+	
+	for(size_t i  = 0 ; i < triangles.size() ; i++)
+	{
+		for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
+		{
+			if(triangles[i]->getBoundingPoint(j).x <= topX && triangles[i]->getBoundingPoint(j).x >= bottomX)
+			{
+				points.push_back(&triangles[i]->getBoundingPoint(j));
+			}
+		}
+	}
+	std::sort(points.begin(), points.end()) ;
+	auto e = std::unique(points.begin(), points.end()) ;
+	points.erase(e, points.end()) ;
+	
+	for(size_t i = 0 ; i <  points.size() ; i++)
+	{
+		Point topPoint(topX, points[i]->y) ;
+		Point bottomPoint(bottomX, points[i]->y) ;
+		DelaunayTriangle * topElement = t->getUniqueConflictingElement(&topPoint) ;
+		DelaunayTriangle * bottomElement = t->getUniqueConflictingElement(&bottomPoint) ;
+		if(topElement && bottomElement)
+		{
+			std::vector<int> idstop ;
+			std::vector<double> coefficientstop ;
+			idstop.push_back(topElement->first->id*2+1);
+			coefficientstop.push_back(((topElement->second->y-topElement->third->y)*(topPoint.x-topElement->third->x)
+			+(topElement->third->x-topElement->second->x)*(topPoint.y-topElement->third->y))
+			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
+			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			
+			idstop.push_back(topElement->second->id*2+1);
+			coefficientstop.push_back(((topElement->third->y-topElement->first->y)*(topPoint.y-topElement->third->x)
+			+(topElement->first->x-topElement->third->x)*(topPoint.y-topElement->third->y))
+			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
+			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			
+			idstop.push_back(topElement->third->id*2+1);
+			coefficientstop.push_back(1.-coefficientstop[0]-coefficientstop[1]) ;
+			
+			std::vector<int> idsbot ;
+			std::vector<double> coefficientsbot ;
+			idsbot.push_back(bottomElement->first->id*2+1);
+			coefficientsbot.push_back(((bottomElement->second->y-bottomElement->third->y)*(bottomPoint.x-bottomElement->third->x)
+			+(bottomElement->third->x-bottomElement->second->x)*(bottomPoint.y-topElement->third->y))
+			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
+			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			
+			idsbot.push_back(bottomElement->second->id*2+1);
+			coefficientsbot.push_back(((bottomElement->third->y-bottomElement->first->y)*(bottomPoint.x-bottomElement->third->x)
+			+(bottomElement->first->x-bottomElement->third->x)*(bottomPoint.y-bottomElement->third->y))
+			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
+			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			
+			idsbot.push_back(bottomElement->third->id*2+1);
+			coefficientsbot.push_back(1.-coefficientsbot[0]-coefficientsbot[1]) ;
+			
+			
+			std::valarray<unsigned int> allids(7) ;
+			Vector coefs(7) ;
+			for(size_t j = 0 ; j < 3 ; j++)
+			{
+				coefficientstop[j] *= (points[i]->x-bottomX)/(topX-bottomX) ;
+				coefficientsbot[j] *= (topX - points[i]->x)/(topX-bottomX) ;
+				
+				coefs[j] = coefficientstop[j] ;
+				coefs[j+3] = coefficientsbot[j] ;
+			}
+			coefs[6] = -std::accumulate(&coefs[0], &coefs[6], double(0)) ;
+			allids[0] = topElement->first->id*2+1 ;
+			allids[1] = topElement->second->id*2+1 ;
+			allids[2] = topElement->third->id*2+1 ;
+			allids[3] = bottomElement->first->id*2+1 ;
+			allids[4] = bottomElement->second->id*2+1 ;
+			allids[5] = bottomElement->third->id*2+1 ;
+			allids[6] = points[i]->id*2+1 ;
+			a->addMultiplier(LagrangeMultiplier(allids, coefs, 0 ));
+		}
+		
+		
+	}
+	
+}
+
+
+void PlaneSectionsBoundaryConditions::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
+{
+	if(!isVertical)
+	{
+		applyHorizontalPlaneSections(uplimit, downlimit, a, t) ;
+	}
+	else
+	{
+		applyVerticalPlaneSections(uplimit, downlimit, a, t) ;
+	}
+}
+
+void PlaneSectionsBoundaryConditions::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)
+{
+	
+}
+
+
 void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
 	if ( !function )
@@ -1617,26 +1812,22 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
-			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
 				continue ;
 
-			if ( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
+				if ( elements[i]->getBoundingPoint( j ).x < minx )
+					minx = elements[i]->getBoundingPoint( j ).x ;
 
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( elements[i]->getBoundingPoint( j ).x < minx )
-						minx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).x > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).x ;
 
-					if ( elements[i]->getBoundingPoint( j ).x > maxx )
-						maxx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).y < miny )
+					miny = elements[i]->getBoundingPoint( j ).y ;
 
-					if ( elements[i]->getBoundingPoint( j ).y < miny )
-						miny = elements[i]->getBoundingPoint( j ).y ;
-
-					if ( elements[i]->getBoundingPoint( j ).y > maxy )
-						maxy = elements[i]->getBoundingPoint( j ).y ;
-				}
+				if ( elements[i]->getBoundingPoint( j ).y > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).y ;
 			}
 		}
 
@@ -1651,7 +1842,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						continue ;
 
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
@@ -1682,7 +1873,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						continue ;
 
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
@@ -1712,24 +1903,27 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
 						continue ;
-
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 					{
 						if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
 						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
+							id[sqrt(squareDist2D( elements[i]->getBoundingPoint( j ), nearest ))] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
 						}
 					}
 				}
-
+				
 				std::vector<Point> target ;
 
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-
+// 				nearest.print();
+// 				std::cout << "\n"<<  id.begin()->second.first.x << "   "<<  id.begin()->second.first.y << "   "<< id.begin()->first << std::endl ;
+// 				exit(0) ;
+				
 				if ( !function )
 					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
 				else
@@ -1742,7 +1936,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						continue ;
 
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
@@ -1772,7 +1966,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						continue ;
 
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
@@ -1802,7 +1996,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						continue ;
 
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
@@ -1832,7 +2026,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						continue ;
 
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
@@ -1862,7 +2056,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			{
 				for ( size_t i = 0 ; i < elements.size() ; ++i )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 						continue ;
 
 					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )

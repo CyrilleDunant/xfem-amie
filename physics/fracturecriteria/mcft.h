@@ -82,6 +82,8 @@ public:
 	bool initialised ;
 	bool reinforced ;
 	double scaleFactor ;
+	
+	std::vector<double> rebarLocations ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)

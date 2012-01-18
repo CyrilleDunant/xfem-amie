@@ -1,3 +1,4 @@
+
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 //
 // Copyright: See COPYING file that comes with this distribution
@@ -22,6 +23,7 @@
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/orthothropicstiffness.h"
 #include "../physics/void_form.h"
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/damagemodels/damageindexeddamage.h"
@@ -396,10 +398,10 @@ void step()
 	for(int s = 0 ; s < max_growth_steps ; s++)
 	{
 		go = featureTree->step() ;
-
+		featureTree->setDeltaTime(.1);
 		scales.push_back(imposeddisp->getScale());
 
-		if(go)
+		if(go && imposeddisp->getData() < .2)
 			imposeddisp->setData(imposeddisp->getData()+.1);
 
 		double da = 0 ;
@@ -1760,10 +1762,10 @@ int main(int argc, char *argv[])
 	Stiffness * sf = new Stiffness(m0_steelx) ;
 
 // 	sample.setBehaviour(sf) ;
-	sample.setBehaviour(psp) ;
-
-	F.addFeature(&sample, new Pore(2, -7,2) );
-	F.addFeature(&sample, new Pore(2, 7,-2) );
+// 	sample.setBehaviour(psp) ;
+	sample.setBehaviour(new OrthothropicStiffness(E_paste, E_paste*.5, E_paste*.75, 0.2, 0)) ;
+// 	F.addFeature(&sample, new Pore(2, -7,2) );
+// 	F.addFeature(&sample, new Pore(2, 7,-2) );
 
 	F.addBoundaryCondition(imposeddisp) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
@@ -1772,7 +1774,7 @@ int main(int argc, char *argv[])
 
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 	F.setMaxIterationsPerStep(800) ;
 	F.setDeltaTime(0.1);
 

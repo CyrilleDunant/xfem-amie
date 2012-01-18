@@ -84,6 +84,7 @@ physics/spatially_distributed_stiffness.cpp
 physics/homogeneised_behaviour.cpp 
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
+physics/orthothropicstiffness.cpp 
 physics/stiffness_and_indexed_fracture.cpp
 physics/fraction_stiffness_and_fracture.cpp
 physics/stiffness_with_imposed_deformation.cpp 

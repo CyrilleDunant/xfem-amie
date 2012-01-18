@@ -88,7 +88,17 @@ namespace Mu
 				return ret ;
 			}
 
-			
+			virtual ETYPE * getUniqueConflictingElement(const Point  * p) const
+			{
+				std::vector<ETYPE *> elements = getConflictingElements(p) ;
+				for(size_t i = 0 ; i < elements.size() ; i++)
+				{
+					if(elements[i]->in(*p))
+						return elements[i] ;
+				}
+				
+				return NULL ;
+			}
 			
 			virtual void setElementOrder(Order o, double dt = 0.) = 0;
 			virtual void insert(Point *) = 0 ;

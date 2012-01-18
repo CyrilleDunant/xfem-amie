@@ -15,6 +15,7 @@ namespace Mu
 {
 	struct ConcreteBehaviour : public WeibullDistributedStiffness
 	{
+		std::vector<double> rebarLocations ;
 		bool reinforced ;
 		ConcreteBehaviour(double E=37e9, double nu=0.3, double tensile=2e6, double compressive = -37e6, planeType pt = PLANE_STRESS, bool reinforced = false,  SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0) ;
 		

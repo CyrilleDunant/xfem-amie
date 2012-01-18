@@ -51,7 +51,7 @@ Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * FeatureTree::get3DMesh( int g )
 
 std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles( Feature *f )
 {
-	state.setStateTo( RENUMBERED, false ) ;
+	state.setStateTo( MESHED, false ) ;
 
 	if( f == NULL )
 		return tree[0]->getBoundingElements2D( this ) ;
@@ -61,7 +61,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles( Feature *f )
 
 std::vector<DelaunayTriangle *> FeatureTree::getElements2D( int g )
 {
-	state.setStateTo( RENUMBERED, false ) ;
+	state.setStateTo( MESHED, false ) ;
 
 	if( is2D() )
 	{
@@ -83,7 +83,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getElements2DInLayer( int l )
 // 	if(l == -1)
 // 		return getElements2D() ;
 	
-	state.setStateTo( RENUMBERED, false ) ;
+	state.setStateTo( MESHED, false ) ;
 
 
 	if( is2D() && layer2d.find(l) != layer2d.end())
@@ -2750,6 +2750,12 @@ void FeatureTree::setElementBehaviours()
 				if(bf)
 					tris[j]->getBehaviour()->scale(scalingFactors[i->first]) ;
 				
+				if(!tris[j]->getBehaviour() || tris[j]->getBehaviour()->type == VOID_BEHAVIOUR)
+				{
+					std::cout << "null behaviour element (setBehaviour)" << std::endl ;
+					exit(0) ;
+				}
+				
 			}
 			std::cerr << " ...done" << std::endl ;
 			
@@ -2870,41 +2876,53 @@ void FeatureTree::updateElementBehaviours()
 
 	if( is2D() )
 	{
-		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
-		std::cerr << " updating behaviours..." << std::flush ;
-		int setcount = 0 ;
-
-		for( size_t i = 0 ; i < triangles.size() ; i++ )
-			triangles[i]->refresh( father2D ) ;
-
-		for( size_t i = 0 ; i < triangles.size() ; i++ )
+		double remainder = 0 ;
+		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
-			if( setcount % 1000 == 0 )
-				std::cerr << "\r updating behaviours... triangle " << setcount << "/" << triangles.size() << "    " << std::flush ;
-
-			Form *b = getElementBehaviour( triangles[i], true ) ;
-
-			if( b )
-			{
-				triangles[i]->setBehaviour( b ) ;
-			}
-
-			if( !triangles[i]->getBehaviour() || triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR )
-				triangles[i]->setBehaviour( getElementBehaviour( triangles[i] ) ) ;
-
-			n_void++ ;
-			setcount++ ;
+			if(i->first != -1)
+				remainder += scalingFactors[i->first] ;
 		}
+		scalingFactors[-1] = 1.-remainder ;
+		layer2d[-1] = dtree ;
 
-// exit(0) ;
-		std::cerr << " ...done" << std::endl ;
+		
+		
+		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
+		{
+			int setcount = 0 ;
+			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
+			std::cerr << "\r updating behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
+			for( size_t j = 0 ; j < tris.size() ; j++ )
+			{
+				
+				if( setcount++ % 1000 == 0 )
+					std::cerr << "\r updating behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount << "/" << tris.size() << "    " << std::flush ;
+				
+				tris[j]->refresh( father2D ) ;
+				Form * bf =  getElementBehaviour( tris[j], i->first, true );
+				
+				if(bf && bf->type != VOID_BEHAVIOUR)
+				{
+					tris[j]->setBehaviour( bf ) ;
+					tris[j]->getBehaviour()->scale(scalingFactors[i->first]) ;
+				}
+				
+				if(!tris[j]->getBehaviour() || tris[j]->getBehaviour()->type == VOID_BEHAVIOUR)
+				{
+					std::cout << "null element behaviour (updateElements)" << std::endl ;
+					exit(0) ;
+				}
+			}
+			std::cerr << " ...done" << std::endl ;
+			
+		}
 
 		if( useMultigrid )
 		{
 			for( size_t i = 0 ; i < coarseTrees.size() ; i++ )
 			{
 
-				triangles = coarseTrees[i]->getElements() ;
+				std::vector<DelaunayTriangle *> triangles = coarseTrees[i]->getElements() ;
 
 				for( size_t j = 0 ; j < triangles.size() ; j++ )
 				{
@@ -4940,7 +4958,7 @@ bool FeatureTree::step()
 
 	double realdt = deltaTime ;
 	
-	if( solverConverged() && !behaviourChanged() )
+	if( solverConverged() && !behaviourChanged())
 		now += deltaTime ;
 	else
 		deltaTime = 0 ;
@@ -4953,9 +4971,9 @@ bool FeatureTree::step()
 	
 	do
 	{
-		deltaTime = 0 ;
-		state.setStateTo( XFEM_STEPPED, true ) ;
 		
+		state.setStateTo( XFEM_STEPPED, true ) ;
+		deltaTime = 0 ;
 		if( solverConverged() )
 		{
 			std::cout << "." << std::flush ;

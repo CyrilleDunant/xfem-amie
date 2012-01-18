@@ -290,7 +290,7 @@ NonLocalMCFT::NonLocalMCFT( double up, double down, double youngModulus,  double
 	, upVal( up ), downVal( down ), youngModulus(youngModulus), reinforced(reinforced)
 {
 	physicalCharacteristicRadius = charRad ;
-	critStrain = -0.0015;
+	critStrain = -0.0015 ;//-0.0015;
 	tensionCritStrain = upVal / youngModulus ;
 	strainBroken = false ;
 	initialised = false ;
@@ -349,6 +349,20 @@ double NonLocalMCFT::grade( ElementState &s )
 		initialised = true ;
 	}
 	
+	double distanceToClosestRebar = -1 ;
+	if(!rebarLocations.empty())
+	{
+		double min = std::abs(s.getParent()->getCenter().y - rebarLocations[0]) ;
+		for(size_t i = 1 ; i < rebarLocations.size() ; i++)
+		{
+			min = std::min(min, std::abs(s.getParent()->getCenter().y - rebarLocations[i])) ;
+		}
+		
+		if(min > physicalCharacteristicRadius)
+			distanceToClosestRebar = -1 ;
+	}
+		
+	
 	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s) ;
 	double tstrain = stressStrain.second.max();
 	double cstrain = stressStrain.second.min();
@@ -361,7 +375,7 @@ double NonLocalMCFT::grade( ElementState &s )
 	double maxCompression = downVal*scaleFactor  ;
 	double maxCompressionStrain = downVal/pseudoYoung  ;
 
-	if(cstrain < critStrain*.25 )
+	if(cstrain < critStrain )
 	{
 		double C_d = 0. ;
 		double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;
@@ -405,10 +419,44 @@ double NonLocalMCFT::grade( ElementState &s )
 	double maxTension = upVal*scaleFactor;
 	double maxTensionStrain = tensionCritStrain ; //upVal/pseudoYoung;
 	std::vector<double> crits ;
-		
+	
+
 	if(tstrain > tensionCritStrain )
 	{
+		if(distanceToClosestRebar > 0)
+		{
+// 			double origCritStrain = tensionCritStrain ;
+// 			double f = (1.-sqrt(M_PI*.5)*exp(-distanceToClosestRebar*distanceToClosestRebar/(2.*physicalCharacteristicRadius*physicalCharacteristicRadius))*erf(sqrt(physicalCharacteristicRadius*physicalCharacteristicRadius-distanceToClosestRebar*distanceToClosestRebar)/(sqrt(2.)*distanceToClosestRebar))) ;
+// 			tstrain *= 3./f ;
 
+			double downTestVal = 0 ;
+			double upTestVal = upVal ;
+			double factor = 1 ;
+			while(std::abs(upTestVal-downTestVal) > 1e-6*upVal)
+			{
+				double testVal = (upTestVal+downTestVal)*.5/pseudoYoung ;
+				double mainCurve = 1./(sqrt(200.*testVal)) ;
+				
+				if(testVal < tensionCritStrain)
+					factor = 1. ;
+				else
+					factor = mainCurve ;
+			
+				if( testVal*pseudoYoung > upVal*factor )
+					upTestVal = testVal*pseudoYoung ;
+				else
+					downTestVal = testVal*pseudoYoung ;
+				
+			}
+			
+			
+			maxTension = (upTestVal+downTestVal)*.5*scaleFactor ;
+			maxTensionStrain = (upTestVal+downTestVal)*.5/pseudoYoung ;
+			
+			goto outStrain ;
+		}
+		
+		
 		double downTestVal = 0 ;
 		double upTestVal = upVal ;
 		double factor = 1 ;
@@ -441,10 +489,8 @@ double NonLocalMCFT::grade( ElementState &s )
 			return 1. ;
 
 	}
+outStrain:
 
-
-// if(reinforced)
-// 	tstrain /= 3./2.*M_PI ;
 
 if(cstrain < 0 && tstrain < 0)
 	metInCompression = true ;
@@ -463,8 +509,8 @@ else if(maxCompression < -POINT_TOLERANCE_2D)
 else if(maxCompressionStrain < -POINT_TOLERANCE_2D)
 	crits.push_back(std::abs(cstrain/maxCompressionStrain)) ;
 
-if(maxTensionStrain > POINT_TOLERANCE_2D/* && maxTension > POINT_TOLERANCE_2D*/ )
-	crits.push_back(/*std::min(std::abs(tstress/maxTension), */std::abs(tstrain/maxTensionStrain)/*)*/) ;
+if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
+	crits.push_back(std::min(std::abs(tstress/maxTension), std::abs(tstrain/maxTensionStrain))) ;
 else if(maxTensionStrain > POINT_TOLERANCE_2D)
 	crits.push_back(std::abs(tstrain/maxTensionStrain)) ;
 else if(maxTension > POINT_TOLERANCE_2D )

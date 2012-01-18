@@ -656,4 +656,54 @@ Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDim
 	return Matrix(0,0) ;
 }
 
+Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt) 
+{
+
+	Matrix cg(3,3) ;
+
+	if(pt == PLANE_STRESS)
+	{
+		double nu_12 = nu ;
+		double nu_21 = nu_12*E_2/E_1 ;
+		double gamma = 1./(1.-nu_12*nu_21) ;
+		cg[0][0] = E_1*gamma ; 
+		cg[1][1] = E_2*gamma ;
+		cg[0][1] = nu_21*E_1*gamma ;
+		cg[1][0] = cg[0][1] ;
+		cg[2][2] = G ;
+	}
+	else
+	{
+		cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
+		cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
+		cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu)*.5 ;
+		cg *= E_1/((1.+nu)*(1.-2.*nu)) ;
+	}
+	return cg ;
+}
+
+Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu) 
+{
+
+	Matrix cg(6,6) ;
+	double nu_12 = nu ;
+	double nu_13 = nu ;
+	double nu_23 = nu ;
+	double nu_21 = nu_12*E_2/E_1 ;
+	double nu_31 = nu_13*E_3/E_1 ;
+	double nu_32 = nu_23*E_3/E_2 ;
+	double gamma = 1./(1.-nu_12*nu_21-nu_23*nu_32-nu_13*nu_31-2.*nu_12*nu_32*nu_13) ;
+	cg[0][0] = E_1*(1.-nu_23*nu_32)*gamma ;
+	cg[1][1] = E_2*(1.-nu_13*nu_31)*gamma ;
+	cg[2][2] = E_3*(1.-nu_12*nu_21)*gamma ;
+	cg[0][1] = E_1*(nu_21+nu_31*nu_23)*gamma ; cg[1][0] = cg[0][1] ;
+	cg[0][2] = E_1*(nu_31+nu_21*nu_32)*gamma ; cg[2][0] = cg[0][2] ;
+	cg[1][2] = E_2*(nu_32+nu_12*nu_31)*gamma ; cg[2][1] = cg[1][2] ;
+	cg[3][3] = G_1 ;
+	cg[4][4] = G_2 ;
+	cg[5][5] = G_3 ;
+	
+	return cg ;
+}
+
 

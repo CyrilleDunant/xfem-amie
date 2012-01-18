@@ -933,7 +933,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			
 		stra = tmpstra*iteratorValue*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		str = tmpstr*iteratorValue ;
-		sumStressFactors += iteratorValue ;
+		sumStressFactors += iteratorValue*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		sumStrainFactors += iteratorValue*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 		
 		for( size_t i = 0 ; i < cache.size() ; i++ )
@@ -963,20 +963,18 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
-				if(ci->getBehaviour()->fractured())
-				{
-// 					stra += tmpstra*iteratorValue ;
-				}
-				else
+				if(!ci->getBehaviour()->fractured())
 				{
 					stra += tmpstra*iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
-					str += tmpstr*iteratorValue ;
+					str += tmpstr*iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
 				}
 			}
 
 			if(ci->getBehaviour()->getDamageModel())
+			{
 				sumStrainFactors += iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
-			sumStressFactors += iteratorValue ;
+				sumStressFactors += iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
+			}
 		}
 
 		str /= sumStressFactors ;

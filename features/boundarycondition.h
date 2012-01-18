@@ -49,6 +49,18 @@ public:
 	LagrangeMultiplierType getConditionType() const {return condition ;}  ;
 } ;
 
+class PlaneSectionsBoundaryConditions : public BoundaryCondition
+{
+	bool isVertical ;
+	double uplimit ;
+	double downlimit ;
+public:
+	PlaneSectionsBoundaryConditions(bool isVertical, double down, double up) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), downlimit(down), uplimit(up) { };
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) ;
+} ;
+
+
 class NullBoundaryCondition : public BoundaryCondition
 {
 	public:
