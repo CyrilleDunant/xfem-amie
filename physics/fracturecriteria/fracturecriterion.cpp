@@ -931,10 +931,10 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		s.getStressAndStrainAtCenter(tmpstr, tmpstra, m) ;
 		// 		bool kill = std::abs(tmpstr).max() > POINT_TOLERANCE_2D ;
 			
-		stra = tmpstra*iteratorValue*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
-		str = tmpstr*iteratorValue ;
-		sumStressFactors += iteratorValue*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
-		sumStrainFactors += iteratorValue*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+		stra = tmpstra*iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
+		str = tmpstr*iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
+		sumStressFactors += iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
+		sumStrainFactors += iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
 		
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
@@ -965,15 +965,15 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				
 				if(!ci->getBehaviour()->fractured())
 				{
-					stra += tmpstra*iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
-					str += tmpstr*iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
+					stra += tmpstra*iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
+					str += tmpstr*iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
 				}
 			}
 
 			if(ci->getBehaviour()->getDamageModel())
 			{
-				sumStrainFactors += iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
-				sumStressFactors += iteratorValue*(1.-ci->getBehaviour()->getDamageModel()->getState().max()) ;
+				sumStrainFactors += iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
+				sumStressFactors += iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
 			}
 		}
 

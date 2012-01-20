@@ -583,7 +583,7 @@ void step()
 		}
 
 		ldfile.close();
-		if ( true )
+		if ( go_on )
 		{
 // 			std::stringstream filename ;
 // 			if(dit >= dsteps)
@@ -1691,7 +1691,7 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498 / .4 ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.055 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.03 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1821,26 +1821,26 @@ int main( int argc, char *argv[] )
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, false, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocations.push_back(-0.6+0.064);
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocations.push_back(-0.6+0.064+0.085);
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocations.push_back(0.6-0.064);
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocations.push_back(0.6-0.064-0.085);
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
 	sample.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocations.push_back(-0.6+0.064);
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocations.push_back(-0.6+0.064+0.085);
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocations.push_back(0.6-0.064);
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocations.push_back(0.6-0.064-0.085);
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
 	samplestirrupbulk.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocations.push_back(-0.6+0.064);
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocations.push_back(-0.6+0.064+0.085);
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocations.push_back(0.6-0.064);
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocations.push_back(0.6-0.064-0.085);
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
 
 
 	F.addBoundaryCondition( load ) ;

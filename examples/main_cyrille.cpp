@@ -23,7 +23,7 @@
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../physics/stiffness.h"
-#include "../physics/orthothropicstiffness.h"
+#include "../physics/orthotropicstiffness.h"
 #include "../physics/void_form.h"
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/damagemodels/damageindexeddamage.h"
@@ -115,7 +115,9 @@ double E_max = 0;
 double x_max = 0 ;
 double y_max = 0 ;
 double disp = 1 ;//.350 .355
-BoundingBoxDefinedBoundaryCondition * imposeddisp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
+BoundingBoxDefinedBoundaryCondition * imposeddispright = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 0) ;
+BoundingBoxDefinedBoundaryCondition * imposeddisptop = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 0) ;
+
 double width = 20;
 double height = 10;
 Sample sample(NULL, width , height, 0, 0) ;
@@ -385,13 +387,15 @@ void setupLeastSquares()
 // 	}
 // 	
 // }
-
 bool go = true ;
 int countit = 0 ;
+std::vector<double> ang ;
+std::vector<double> sig ;
+std::vector<double> eps ;
 void step()
 {
 	
-	size_t max_growth_steps = 1;
+	size_t max_growth_steps = 200;
 	size_t max_limit = 2000 ;
 	int limit = 0 ;
 	
@@ -399,10 +403,13 @@ void step()
 	{
 		go = featureTree->step() ;
 		featureTree->setDeltaTime(.1);
-		scales.push_back(imposeddisp->getScale());
+		scales.push_back(imposeddisptop->getScale());
 
-		if(go && imposeddisp->getData() < .2)
-			imposeddisp->setData(imposeddisp->getData()+.1);
+		if(go)
+		{
+			imposeddispright->setData(1e1);
+			imposeddisptop->setData(1e1);
+		}
 
 		double da = 0 ;
 		
@@ -707,6 +714,18 @@ void step()
 			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 // 		}
+			
+			if(!triangles.empty())
+			{
+				ang.push_back(dynamic_cast<OrthothropicStiffness *>(triangles[0]->getBehaviour())->angle) ;
+				sig.push_back((avg_s_yy/area)/1000000.);
+				eps.push_back((avg_e_yy/area)/1000000.);
+				
+				for(size_t j = 0 ; j < ang.size() ; j++)
+				{
+					std::cout << ang[j] << "  " << sig[j] << "  " << eps[j] << std::endl ;
+				}
+			}
 		energy.push_back(enr) ;
 		
 		writer.reset(featureTree) ;
@@ -1763,18 +1782,20 @@ int main(int argc, char *argv[])
 
 // 	sample.setBehaviour(sf) ;
 // 	sample.setBehaviour(psp) ;
-	sample.setBehaviour(new OrthothropicStiffness(E_paste, E_paste*.5, E_paste*.75, 0.2, 0)) ;
+	sample.setBehaviour(new OrthothropicStiffness(E_paste, E_paste*.5, E_paste*.75, 0., 0)) ;
 // 	F.addFeature(&sample, new Pore(2, -7,2) );
 // 	F.addFeature(&sample, new Pore(2, 7,-2) );
 
-	F.addBoundaryCondition(imposeddisp) ;
+
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , TOP)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
+	F.addBoundaryCondition(imposeddispright) ;
+	F.addBoundaryCondition(imposeddisptop) ;
 
 	samplingnumber = atoi(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 	F.setMaxIterationsPerStep(800) ;
 	F.setDeltaTime(0.1);
 

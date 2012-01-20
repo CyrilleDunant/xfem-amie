@@ -10,7 +10,7 @@
 //
 //
 
-#include "orthothropicstiffness.h"
+#include "orthotropicstiffness.h"
 #include "../mesher/delaunay.h"
 #include "fracturecriteria/vonmises.h"
 #include "fracturecriteria/mohrcoulomb.h"
@@ -54,10 +54,10 @@ OrthothropicStiffness::~OrthothropicStiffness() { } ;
 void OrthothropicStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 	Matrix transform(3,3) ;
-	transform[0][0] = cos(angle)*cos(angle) ; transform[0][1] = sin(angle)*sin(angle) ; transform[0][2] = 2*sin(angle)*cos(angle) ;
-	transform[1][1] = cos(angle)*cos(angle) ; transform[1][0] = sin(angle)*sin(angle) ; transform[1][2] = 2*sin(angle)*cos(angle) ;
-	transform[2][2] = 1 ; transform[2][0] = 0.5*sin(angle)*cos(angle) ; transform[2][1] = 0.5*sin(angle)*cos(angle) ;
-	Matrix effective = transform*param*transform.transpose() ;
+	transform[0][0] = cos(angle)*cos(angle) ;      transform[0][1] = sin(angle)*sin(angle) ;     transform[0][2] = 2.*sin(angle)*cos(angle) ;
+	transform[1][0] = sin(angle)*sin(angle) ;   transform[1][1] = cos(angle)*cos(angle) ;     transform[1][2] = -2.*sin(angle)*cos(angle) ;
+	transform[2][0] = -sin(angle)*cos(angle) ;  transform[2][1] = sin(angle)*cos(angle) ; transform[2][2] = cos(angle)*cos(angle)-sin(angle)*sin(angle) ; 
+	Matrix effective = transform*(param*transform.transpose()) ;
 	vm->ieval(Gradient(p_i) * effective * Gradient(p_j, true), gp, Jinv,v, ret) ;
 
 }
@@ -67,7 +67,7 @@ void OrthothropicStiffness::step(double timestep, ElementState & currentState)
 	change = false ;
 	if(timestep > POINT_TOLERANCE_2D)
 	{
-		angle +=.1 ;
+		angle +=.01 ;
 		change = true ;
 		currentState.getParent()->behaviourUpdated = true ;
 	}
