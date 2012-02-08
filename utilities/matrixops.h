@@ -7,8 +7,9 @@
 #ifndef __MATRIXOPS_H__
 #define __MATRIXOPS_H__
 
-#include <valarray>
+
 #include <iostream>
+#include <valarray>
 #include "sliceiters.h"
 #include <vector>
 #include <numeric>

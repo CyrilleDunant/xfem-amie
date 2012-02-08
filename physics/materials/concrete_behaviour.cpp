@@ -30,7 +30,7 @@ Form * ConcreteBehaviour::getCopy() const
 	double upFactor = factor ; //1 -.7+.7*weib ; 
 	NonLocalMCFT * fcrit = new NonLocalMCFT(up*upFactor, down*factor,E*factor, materialRadius,reinforced, mirroring , dx, dy, dz) ;
 	fcrit->rebarLocationsAndDiameters = rebarLocationsAndDiameters ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, fcrit/*, new RotatingCrack()*/) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, fcrit, new RotatingCrack(E, nu)) ;
 // 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMCFT(up, down,E, materialRadius, mirroring , dx, dy, dz), new NonLocalIsotropicLinearDamage()) ;
 	ret->getFractureCriterion()->setMaterialCharacteristicRadius(materialRadius);
 	return ret ;

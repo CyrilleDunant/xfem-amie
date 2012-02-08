@@ -2752,8 +2752,9 @@ void FeatureTree::setElementBehaviours()
 				
 				if(!tris[j]->getBehaviour() || tris[j]->getBehaviour()->type == VOID_BEHAVIOUR)
 				{
-					std::cout << "null behaviour element (setBehaviour)" << std::endl ;
-					exit(0) ;
+					tris[j]->setBehaviour( new VoidForm ) ;
+// 					std::cout << "null behaviour element (setBehaviour)" << std::endl ;
+// 					exit(0) ;
 				}
 				
 			}

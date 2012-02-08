@@ -36,6 +36,8 @@ void Form::scale(double d)
 	param *= d ;
 	if(getFractureCriterion())
 		getFractureCriterion()->scale(d) ;
+	if(getDamageModel())
+		getDamageModel()->scale(d) ;
 }
 
 Vector Form::getImposedStress(const Point & p) const

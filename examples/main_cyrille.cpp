@@ -395,7 +395,7 @@ std::vector<double> eps ;
 void step()
 {
 	
-	size_t max_growth_steps = 200;
+	size_t max_growth_steps = 20;
 	size_t max_limit = 2000 ;
 	int limit = 0 ;
 	
@@ -407,7 +407,7 @@ void step()
 
 		if(go)
 		{
-			imposeddispright->setData(1e1);
+// 			imposeddispright->setData(1e1);
 			imposeddisptop->setData(1e1);
 		}
 
@@ -1775,20 +1775,21 @@ int main(int argc, char *argv[])
 	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
 	
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, E_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20,E_paste, mradius), new /*NonLocal*/IsotropicLinearDamage()/*new PlasticStrain()*/) ; 
+	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20,E_paste, mradius), /*new NonLocal*//*IsotropicLinearDamage()*/new PlasticStrain()) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
 	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_steelx) ;
 
-// 	sample.setBehaviour(sf) ;
+// 	sample.setBehaviour(sf) ;	
+	sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
-	sample.setBehaviour(new OrthothropicStiffness(E_paste, E_paste*.5, E_paste*.75, 0., 0)) ;
+// 	sample.setBehaviour(new OrthothropicStiffness(E_paste, E_paste*.5, E_paste*.75, 0., 0)) ;
 // 	F.addFeature(&sample, new Pore(2, -7,2) );
 // 	F.addFeature(&sample, new Pore(2, 7,-2) );
 
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
 	F.addBoundaryCondition(imposeddispright) ;
 	F.addBoundaryCondition(imposeddisptop) ;

@@ -14,6 +14,7 @@
 
 #include "damagemodel.h"
 
+extern Mu::Matrix E;
 namespace Mu {
 
 /** \brief Rotating crack damage model. The stifness of an affected element is scaled by a factor between 1 and 0
@@ -23,17 +24,31 @@ class RotatingCrack : public DamageModel
 {
 protected:
 	double currentAngle ;
-	Vector damages ;
 	double currentDamage ;
+  
+	bool inTension ;
+	bool damaging ;
 	
+	double tdamage ;
+	double cdamage ;
+	
+	double E ;
+	double nu ;
+	double factor ;
+	
+	std::vector< std::pair<double, double> > compressionAngles ;
+	std::vector< std::pair<double, double> > tensionAngles ;
+  std::vector<double> compressionweights ;
+	std::vector<double> tensionweights ;
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
 	 * @param numDof number of degrees of freedom
 	 */
-	RotatingCrack() ;
+	RotatingCrack(double E, double nu) ;
 
 	virtual ~RotatingCrack();
+	virtual void scale(double s) { factor = s ;} ;
 
 	/** \brief Increment the damage
 	 * 
@@ -57,7 +72,7 @@ public:
 	
 	virtual void postProcess() ;
 	
-	virtual DamageModel * getCopy() const { return new RotatingCrack() ;}
+	virtual DamageModel * getCopy() const { return new RotatingCrack(E, nu) ;}
 };
 
 }

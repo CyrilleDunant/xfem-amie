@@ -157,6 +157,8 @@ std::vector<std::pair<double, double> > expansion_stress ;
 std::vector<std::pair<double, double> > load_displacement ;
 std::vector< double > loads ;
 std::vector< double > displacements ;
+std::vector< double > loadsx ;
+std::vector< double > displacementsx ;
 std::vector< double > damages ;
 Vector fracCrit(0) ;
 
@@ -175,6 +177,7 @@ Vector angle(0) ;
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
 // BoundingBoxDefinedBoundaryCondition * loadl = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
@@ -189,7 +192,7 @@ double aggregateArea = 0;
 void step()
 {
 	
-	size_t nsteps = 1 ; //16*10;
+	size_t nsteps = 5000 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -205,10 +208,16 @@ void step()
 
 		go_on = featureTree->step() ;
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
-		if(go_on)
-		{
-			loadr->setData(loadr->getData()-1e-5) ;
-		}
+// 		if(go_on && v < 3800)
+// 		{
+// 			loadt->setData(loadt->getData()-4e-7) ;
+// 			loadr->setData(0) ;
+// 		}
+// 		else if(go_on && v >= 3800)
+// 		{
+			loadr->setData(loadr->getData()+2e-7) ;
+			loadt->setData(0) ;
+// 		}
 		
 		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements().size() ) ;
@@ -389,6 +398,8 @@ void step()
 		{
 			displacements.push_back(1e6*avg_e_yy/area);
 			loads.push_back((avg_s_yy/area)/1e6);
+			displacementsx.push_back(1e6*avg_e_xx/area);
+			loadsx.push_back((avg_s_xx/area)/1e6);
 			damages.push_back(featureTree->averageDamage);
 			
 		}
@@ -433,7 +444,7 @@ void step()
 		ldfile.open("ldn", std::ios::out) ;
 		for(int j = 0 ; j < loads.size() ; j++)
 		{
-			ldfile << displacements[j] << "   " << loads[j] <</* "   " << damages[j]<<*/ "\n" ;
+			ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << "\n" ;
 		}
 		ldfile.close();
 		
@@ -1461,7 +1472,7 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(0.0600, .1200, 0.1200*.0, .1500*.0) ;
+	Sample samplef(.1200, .1200, 0.1200*.0, .1500*.0) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
@@ -1487,21 +1498,21 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
-// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL,MIRROR_XY)) ;
-// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
+	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit)) ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
 // // 	
 	
 	FeatureTree F(&samplef) ;
 	featureTree = &F ;
-	Inclusion inc(.0025, 0, 0) ;
-	F.addFeature(&samplef, &inc);
-	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new DruckerPrager(-12.315e6*.9, 12.315e6*.9,0.1 , mradius), new PlasticStrain()));
-	inc.isVirtualFeature = true ;
-// 	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new /*NonLocalVonMises(20e6, E_paste, mradius)*/DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
-	
+// 	Inclusion inc(.0025, 0, 0) ;
+// 	F.addFeature(&samplef, &inc);
+// 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new DruckerPrager(-12.315e6*.9, 12.315e6*.9,0.1 , mradius), new PlasticStrain()));
+// 	inc.isVirtualFeature = true ;
+// // 	inc.setBehaviourSource(&samplef);
+// 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new /*NonLocalVonMises(20e6, E_paste, mradius)*/DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
+// 	
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
 	
@@ -1514,9 +1525,10 @@ int main(int argc, char *argv[])
 // 	F.addFeature(NULL,&toprightvoid) ;
 
 	F.addBoundaryCondition(loadr);
+	F.addBoundaryCondition(loadt);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;

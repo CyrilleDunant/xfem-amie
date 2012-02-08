@@ -342,7 +342,7 @@ DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0)
 	haslimit = false ;
 	needRestart = false ;
 
-	ctype = DISSIPATIVE_CENTER ;
+	ctype = CONSERVATIVE_CENTER ; //DISSIPATIVE_CENTER ;
 	fraction = -1 ;
 	converged = true ;
 

@@ -27,6 +27,8 @@ namespace Mu
 	*/
 	struct OrthothropicStiffness : public LinearForm
 	{
+		virtual Matrix getTensor(const Point & p) ;
+		void getTensor(Matrix & m) const ;
 		double E_1; 
 		double E_2; 
 		double E_3; 
@@ -37,6 +39,18 @@ namespace Mu
 		double angle ;
 		bool change ;
 		std::vector<Variable> v ;
+		
+		/** \brief Constructor
+		 * 
+		 * @param E_1 stifness in the first principal direction
+		 * @param E_2 stifness in the second principal direction
+		 * @param nu_12 Poisson ratio
+		 * @param nu_21 Poisson ratio
+		 * @param angle angle of the fibres
+		 * @param poissondefined dummy parameter
+		 */
+		OrthothropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) ;
+		
 		/** \brief Constructor
 		* 
 		* @param E_1 stifness in the first principal direction

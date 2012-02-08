@@ -174,7 +174,8 @@ public:
 	 */
 	
 	virtual bool changed() const ;
-	
+
+	virtual void scale(double s) { } ;	
 	virtual void prepare() { };
 	
 	virtual void postProcess();
