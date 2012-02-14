@@ -25,8 +25,8 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 	param = NULL ;
 	plasticVariable = 0 ;
 	c_psi = 0.05 ;
-	eps_f = 0.0051; //0.0057 ;
-	kappa_0 = 1e-5 ; //3.350e-3 ; //5 up ; 4 down
+	eps_f = 0.0057; //0.0057 ;
+	kappa_0 = 0 ;  //3.350e-3 ; // ; //3.350e-3 ; //5 up ; 4 down
 }
 
 double PlasticStrain::plasticFlowPotential(const Matrix &m) const
@@ -71,20 +71,21 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 	if(!param)
 		param = new Matrix(s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
 
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
+	if(  s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() 
+		&& s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
 	{
-		s.getParent()->getBehaviour()->getDamageModel()->setConvergenceType(DISSIPATIVE_MIN);
+// 		s.getParent()->getBehaviour()->getDamageModel()->setConvergenceType(CONSERVATIVE_MIN);
 		Vector imposed = getImposedStrain(s.getParent()->getCenter()) ;
 		Matrix stressMatrix(v.size(), v.size()) ;
 		std::pair<Vector, Vector> stressstrain = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s, EFFECTIVE_STRESS) ;
 		Vector stress = stressstrain.first ;
-		Vector strain = stressstrain.second;
+		Vector strain = stressstrain.second -imposed;
 		stressMatrix[0][0] = stress[0] ;
 		stressMatrix[1][1] = stress[1] ;
 		stressMatrix[0][1] = stress[2] ;
 		stressMatrix[1][0] = stress[2] ;
 		Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
-		double iftynorm = std::abs(stressMatrix.array()).max()+.1 ;
+		double iftynorm = std::abs(stressMatrix.array()).max() + .1 ;
 		
 		for(size_t i = 0 ; i < stressMatrix.numRows() ; i++)
 		{
@@ -94,23 +95,15 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 				Matrix m_m(stressMatrix) ;
 				Matrix m_p2(stressMatrix) ;
 				Matrix m_m2(stressMatrix) ;
-				double delta = 1e-2*iftynorm ;
+				double delta = 1e-6*iftynorm ;
 				m_p[i][j] += delta ;
 				m_m[i][j] -= delta ;
 				m_p2[i][j] += 2.*delta ;
-				m_m2[i][j] -=  2.*delta ;
-				incrementalStrainMatrix[i][j] = ( plasticFlowPotential(m_m2)/12. -2./3.*plasticFlowPotential(m_m)-plasticFlowPotential(m_p2)/12. +2./3.*plasticFlowPotential(m_p) ) / delta ;
+				m_m2[i][j] -= 2.*delta ;
+				incrementalStrainMatrix[i][j] = ( plasticFlowPotential(m_m2)/12. - 2./3.*plasticFlowPotential(m_m) + 2./3.*plasticFlowPotential(m_p) - plasticFlowPotential(m_p2)/12. ) / (4.*delta) ;
 			}
 		}
-// 			stressMatrix.print();
-// 			incrementalStrainMatrix.print() ;
-// 			if(incrementalStrainMatrix[0][1] > POINT_TOLERANCE_2D)
-// 			{
-// 				stressMatrix.print();
-// 				exit(0) ;
-// 			}
-// 			double str = s.getMaximumVonMisesStress() ;
-// 			double down_str = str ;
+
 		imposedStrain[0] = incrementalStrainMatrix[0][0] ;
 		imposedStrain[1] = incrementalStrainMatrix[1][1] ;
 		imposedStrain[2] = incrementalStrainMatrix[0][1] ;
@@ -118,8 +111,9 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
 		{
 			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
-			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]);
+			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
 		}
+		
 	}
 		
 	return std::make_pair( Vector(0., 1), Vector(1., 1)) ;
@@ -136,7 +130,9 @@ Matrix PlasticStrain::apply(const Matrix & m) const
 
 Matrix PlasticStrain::applyPrevious(const Matrix & m) const
 {
-	return m ;
+	if(fractured())
+		return m*0. ;
+	return m*(1.-getDamage()) ;
 }
 
 std::vector<BoundaryCondition * > PlasticStrain::getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -199,8 +195,8 @@ Vector PlasticStrain::getImposedStrain(const Point & p) const
 double PlasticStrain::getDamage() const
 {
 	Vector istrain = imposedStrain*getState()[0] ;
-	double currentPlaticVariable = plasticVariable+sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-	if(currentPlaticVariable > kappa_0)
+	double currentPlaticVariable = plasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+	if(currentPlaticVariable >= kappa_0)
 		return 1.-exp(-(currentPlaticVariable-kappa_0)/eps_f) ;
 	return 0 ;
 }
@@ -216,12 +212,13 @@ void PlasticStrain::postProcess()
 {
 	if(converged && getState()[0] > POINT_TOLERANCE_2D)
 	{
-		previousImposedStrain += imposedStrain*getState()[0] ;
-		plasticVariable += sqrt(2./3.)*sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2])*getState()[0] ;
+		previousImposedStrain += imposedStrain * getState()[0] ;
+		plasticVariable += sqrt(2./3.) * sqrt( imposedStrain[0]*imposedStrain[0] + 
+		                                       imposedStrain[1]*imposedStrain[1] + 
+		                                       imposedStrain[2]*imposedStrain[2] ) * getState()[0] ;
 		state[0] = 0;
 		imposedStrain = 0 ;
 	}
-
 }
 
 PlasticStrain::~PlasticStrain()

@@ -215,7 +215,7 @@ void step()
 // 		}
 // 		else if(go_on && v >= 3800)
 // 		{
-			loadr->setData(loadr->getData()+2e-7) ;
+			loadr->setData(loadr->getData()+2e-6) ;
 			loadt->setData(0) ;
 // 		}
 		
@@ -1498,9 +1498,9 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit)) ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
+// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
 // // 	
 	
@@ -1511,7 +1511,7 @@ int main(int argc, char *argv[])
 // 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new DruckerPrager(-12.315e6*.9, 12.315e6*.9,0.1 , mradius), new PlasticStrain()));
 // 	inc.isVirtualFeature = true ;
 // // 	inc.setBehaviourSource(&samplef);
-// 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new /*NonLocalVonMises(20e6, E_paste, mradius)*/DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius) /*DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius)*/, new PlasticStrain())) ;
 // 	
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, -samplef.height()*.5+samplef.getCenter().y));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));

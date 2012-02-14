@@ -15,8 +15,7 @@
 #include "../damagemodels/plasticstrain.h"
 namespace Mu {
 
-DruckerPrager::DruckerPrager(double downthres,double upthres, double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-	, upthreshold(upthres), downthreshold(downthres), friction(friction)
+DruckerPrager::DruckerPrager(double downthres,double upthres, double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), upthreshold(upthres), downthreshold(downthres), friction(friction)
 {
 	setMaterialCharacteristicRadius(radius);
 }

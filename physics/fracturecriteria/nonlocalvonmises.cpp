@@ -30,36 +30,24 @@ double NonLocalVonMises::grade(ElementState &s)
 {
 	metInCompression = true ;
 	metInTension = true ;
-	std::pair<Vector, Vector> str( smoothedPrincipalStressAndStrain(s) ) ;
-	double effectiveStiffness = E ;
-	if(s.getParent()->getBehaviour() && s.getParent()->getBehaviour()->getDamageModel())
-		effectiveStiffness = E*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+	std::pair<Vector, Vector> str( smoothedPrincipalStressAndStrain(s, REAL_STRESS) ) ;
 	
 	double maxStress = 0 ;
-	double maxStrain = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{           
 		maxStress = sqrt( ( ( str.first[0] - str.first[1] ) * ( str.first[0] - str.first[1] ) + str.first[0] * str.first[0] + str.first[1] * str.first[1] ) * .5 ) ;
-		maxStrain = sqrt( ( ( str.second[0] - str.second[1] ) * ( str.second[0] - str.second[1] ) + str.second[0] * str.second[0] + str.second[1] * str.second[1] ) / 6.) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		maxStress = sqrt( ( str.first[0] - str.first[1] ) * ( str.first[0] - str.first[1] ) + ( str.first[0] - str.first[2] ) * ( str.first[0] - str.first[2] ) + ( str.first[1] - str.first[2] ) * ( str.first[1] - str.first[2] ) ) / 6 ;
-		maxStrain =sqrt( ( str.second[0] - str.second[1] ) * ( str.second[0] - str.second[1] ) + ( str.second[0] - str.second[2] ) * ( str.second[0] - str.second[2] ) + ( str.second[1] - str.second[2] ) * ( str.second[1] - str.second[2] ) ) *2./ 3. ;
 	}
 	
-	std::vector<double> scores ;
-	scores.push_back(-1);
-	if( maxStress >= threshold  /*|| maxStrain > threshold/effectiveStiffness && maxStrain > 0*/)
+	if( maxStress >= threshold )
 	{
-		metInTension = true;
-		scores.push_back(std::min(1. - std::abs( threshold / maxStress ), 1. - std::abs( threshold / maxStress ) ));
+		 return 1. - std::abs( threshold / maxStress );
 	}
-	else 
-			scores.push_back(-1. + std::abs( maxStress / threshold ));
-
-	std::sort(scores.begin(), scores.end()) ;
-	return scores.back() ;
+	
+	return -1. + std::abs( maxStress / threshold );
 
 }
 

@@ -1547,7 +1547,8 @@ void ElementState::getStressAndStrain(const Point & p, Vector & stress, Vector &
 
 		if(m == REAL_STRESS)
 			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) *  parent->getBehaviour()->getTensor( p_ ) ;
-		stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->param ;
+		else
+			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->param ;
 	}
 	else if( parent->getBehaviour() && parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
@@ -1634,11 +1635,11 @@ void ElementState::getStressAndStrain(const Point & p, Vector & stress, Vector &
 		                     ( x_xi )   * Jinv[1][0] +
 		                     ( x_eta )  * Jinv[1][1] +
 		                     ( x_zeta ) * Jinv[1][2] );
-		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		if(m == REAL_STRESS)
-			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * cg ;
-		stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->param ;
+			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->getTensor( p_ ) ;
+		else
+			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->param ;
 	}
 }
 
@@ -1679,10 +1680,9 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local, StressCal
 		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 		lstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
-		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		if(m == REAL_STRESS )
-			return lstrain * cg ;
+			return lstrain * parent->getBehaviour()->getTensor( p_ ) ;
 			
 		return lstrain * parent->getBehaviour()->param ;
 	}

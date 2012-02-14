@@ -112,7 +112,7 @@ void OrthothropicStiffness::getTensor(Matrix & m) const
 		transform[3][0] = lx*rx ; transform[3][1] = ly*ry ; transform[3][5] = lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
 		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
 		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
-		m= transform*(param*transform.transpose()) ;
+		m = transform*(param*transform.transpose()) ;
 	}
 }
 
@@ -121,8 +121,8 @@ Matrix OrthothropicStiffness::getTensor(const Point & p)
 	if(v.size() == 2)
 	{
 		Matrix transform(3,3) ;
-		transform[0][0] =  cos(angle)*cos(angle) ;   transform[0][1] = sin(angle)*sin(angle) ; transform[0][2] =  2.*sin(angle)*cos(angle) ;
-		transform[1][0] =  sin(angle)*sin(angle) ;   transform[1][1] = cos(angle)*cos(angle) ; transform[1][2] = -2.*sin(angle)*cos(angle) ;
+		transform[0][0] =  cos(angle)*cos(angle) ;  transform[0][1] = sin(angle)*sin(angle) ; transform[0][2] =  2.*sin(angle)*cos(angle) ;
+		transform[1][0] =  sin(angle)*sin(angle) ;  transform[1][1] = cos(angle)*cos(angle) ; transform[1][2] = -2.*sin(angle)*cos(angle) ;
 		transform[2][0] = -sin(angle)*cos(angle) ;  transform[2][1] = sin(angle)*cos(angle) ; transform[2][2] =     cos(angle)*cos(angle) - sin(angle)*sin(angle) ; 
 		return transform*(param*transform.transpose()) ;
 	}

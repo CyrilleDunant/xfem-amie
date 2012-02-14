@@ -222,7 +222,6 @@ void DamageModel::step( ElementState &s )
 			
 			return ;
 		}
-		
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second ) ) ;
 		std::stable_sort( states.begin(), states.end() ) ;
 
@@ -324,6 +323,7 @@ void DamageModel::step( ElementState &s )
 				getState( true ) = downState + ( upState - downState ) *trialRatio ;
 			}
 			converged = true ;
+			
 		}
 	}
 }
