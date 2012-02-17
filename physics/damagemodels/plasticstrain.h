@@ -33,6 +33,9 @@ public:
 	double kappa_0 ;
 	double plasticFlowPotential(const Matrix & m) const ;
 	
+	Vector flowDirection ;
+	Vector potentialFlowDirection ;
+	
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
@@ -74,6 +77,11 @@ public:
 	
 	virtual void postProcess() ;
 	double getDamage() const ;
+	
+	virtual Vector getFlowDirection() const { return flowDirection ;};
+	
+	virtual Vector getPotentialFlowDirection() const { return potentialFlowDirection ;};
+	
 };
 
 }

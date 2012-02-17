@@ -917,6 +917,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		vlength = 6 ;
 	Vector str(0., vlength) ;
+	Vector estr(0., vlength) ;
 	Vector stra(0., vlength) ;
 	Vector tmpstr(vlength) ;
 	Vector tmpstra(vlength) ;
@@ -928,14 +929,13 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double iteratorValue = factors[0] ;
-		s.getStressAndStrainAtCenter(tmpstr, tmpstra, m) ;
-		// 		bool kill = std::abs(tmpstr).max() > POINT_TOLERANCE_2D ;
-			
-		stra = tmpstra*iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
-		str = tmpstr*iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
-		sumStressFactors += iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
-		sumStrainFactors += iteratorValue/**(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max())*/ ;
-		
+		s.getStressAndStrainAtCenter(tmpstr, tmpstra, REAL_STRESS) ;
+		stra = tmpstra*iteratorValue ;
+		str = tmpstr*iteratorValue ;
+		s.getStressAndStrainAtCenter(tmpstr, tmpstra, EFFECTIVE_STRESS) ;
+		estr = tmpstr*iteratorValue ;
+		sumStressFactors += iteratorValue ;
+		sumStrainFactors += iteratorValue ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
@@ -959,30 +959,42 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			
 			if(iteratorValue > POINT_TOLERANCE_2D)
 			{
-				ci->getState().getStressAndStrainAtCenter(tmpstr, tmpstra, m) ;
+				ci->getState().getStressAndStrainAtCenter(tmpstr, tmpstra, REAL_STRESS) ;
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
 				if(!ci->getBehaviour()->fractured())
 				{
-					stra += tmpstra*iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
-					str += tmpstr*iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
+					stra += tmpstra*iteratorValue ;
+					str += tmpstr*iteratorValue ;
+					ci->getState().getStressAndStrainAtCenter(tmpstr, tmpstra, EFFECTIVE_STRESS) ;
+					estr = tmpstr*iteratorValue ;
 				}
 			}
 
 			if(ci->getBehaviour()->getDamageModel())
 			{
-				sumStrainFactors += iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
-				sumStressFactors += iteratorValue/**(1.-ci->getBehaviour()->getDamageModel()->getState().max())*/ ;
+				sumStrainFactors += iteratorValue ;
+				sumStressFactors += iteratorValue ;
 			}
 		}
 
 		str /= sumStressFactors ;
+		estr /= sumStressFactors ;
 		stra /= sumStrainFactors ;
 
-		currentAngle = 0.5 * atan2( str[2], str[0] - str[1] ) ;
+
 		
-		return std::make_pair(str, stra) ;
+		if(m == REAL_STRESS)
+		{
+			if(std::abs(str[0] - str[1]) > POINT_TOLERANCE_2D)
+				currentAngle = 0.5*atan2( str[2], str[0] - str[1] ) ;
+			return std::make_pair(str, stra) ;
+		}
+		
+		if(std::abs(estr[0] - estr[1]) > POINT_TOLERANCE_2D)
+			currentAngle = 0.5*atan2( estr[2], estr[0] - estr[1] ) ;
+		return std::make_pair(estr, stra) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{

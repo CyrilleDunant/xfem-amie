@@ -40,15 +40,10 @@ double damageAtAngle( const std::vector<std::pair<double, double> > & increments
 	for ( size_t i = 0 ; i <  increments.size() ; i++ )
 	{
 		rettest += increments[i].second ;
-
-		if ( cos( std::abs( increments[i].first - angle ) ) > 0 ||
-		        cos( std::abs( increments[i].first - angle + M_PI ) ) > 0 ||
-		        cos( std::abs( increments[i].first - angle - M_PI ) ) > 0 )
+		if ( cos( increments[i].first - angle ) > POINT_TOLERANCE_2D )
 		{
-			double a = cos( std::abs( increments[i].first - angle ) ) * cos( std::abs( increments[i].first - angle ) ) ;
-			double b = cos( std::abs( increments[i].first - angle + M_PI ) ) * cos( std::abs( increments[i].first - angle + M_PI ) ) ;
-			double c = cos( std::abs( increments[i].first - angle - M_PI ) ) * cos( std::abs( increments[i].first - angle - M_PI ) ) ;
-			ret += std::max( a, std::max( b, c ) ) * increments[i].second ;
+			double a = cos(  increments[i].first - angle ) * cos(  increments[i].first - angle ) ;
+			ret +=  a * increments[i].second ;
 		}
 	}
 
@@ -57,47 +52,31 @@ double damageAtAngle( const std::vector<std::pair<double, double> > & increments
 
 std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState &s )
 {
-	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
+	
+	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && 
+		   s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
 	{
-		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
-
-		if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
-		{
-			damaging = false ;
-
-			if ( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
-				damaging = true ;
-		}
+		currentAngle = M_PI*.5 ;s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+		damaging = true ;
 
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->metInTension )
 		{
-			if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
-				inTension = true ;
+			inTension = true ;
 
 			cdamage = damageAtAngle( compressionAngles, currentAngle ) ;
-
 			tdamage = damageAtAngle( tensionAngles, currentAngle ) ;
-
-			if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint()  || converged )
-				currentDamage = damageAtAngle( tensionAngles, currentAngle ) ;
+			currentDamage = damageAtAngle( tensionAngles, currentAngle ) ;
 		}
 		else
 		{
-			if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
-				inTension = false ;
+			inTension = false ;
 
 			tdamage = damageAtAngle( tensionAngles, currentAngle ) ;
-
 			cdamage = damageAtAngle( compressionAngles, currentAngle ) ;
-
-			if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint()  || converged )
-				currentDamage = damageAtAngle( compressionAngles, currentAngle ) ;
+			currentDamage = damageAtAngle( compressionAngles, currentAngle ) ;
 		}
-
-		if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() || converged )
-			state = currentDamage ;
+		state = currentDamage ;
 	}
-
 	return std::make_pair( state, Vector( 1., 1 ) ) ;
 }
 
@@ -111,19 +90,27 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 	        && cdamage < POINT_TOLERANCE_2D )
 		return m ;
 
-	if ( damaging )
-	{
+// 	if ( damaging )
+// 	{
 		if ( inTension )
 		{
-			return OrthothropicStiffness( factor *E * ( 1. - getState()[0] ), factor * E * ( 1. - cdamage ), factor * E * ( 1. - 0.5 * ( cdamage + getState()[0] ) ) * ( 1. - nu ) * .5, nu *( 1. - std::max( getState()[0], cdamage ) ), currentAngle ).getTensor( Point() ) ;
+			return OrthothropicStiffness( factor * E * ( 1. - getState()[0] ), 
+																		factor * E * ( 1. - cdamage ), 
+																		factor * E * ( 1. - 0.5 * ( cdamage + getState()[0] ) ) * ( 1. - nu ) * .5, 
+																		nu * ( 1. - std::max( getState()[0], cdamage ) ), 
+																		currentAngle ).getTensor( Point() ) ;
 		}
 		else
 		{
-			return OrthothropicStiffness( factor * E * ( 1. - tdamage ), factor * E * ( 1. - getState()[0] ), factor * E * ( 1. - 0.5 * ( getState()[0] + tdamage ) ) * ( 1. - nu ) * .5, nu, currentAngle ).getTensor( Point() ) ;
+			return OrthothropicStiffness( factor * E * ( 1. - tdamage ), 
+																		factor * E * ( 1. - getState()[0] ), 
+																		factor * E * ( 1. - 0.5 * ( getState()[0] + tdamage ) ) * ( 1. - nu ) * .5, 
+																		nu * ( 1. - std::max( getState()[0], tdamage ) ), 
+																    currentAngle ).getTensor( Point() ) ;
 		}
-	}
-
-	return OrthothropicStiffness( factor * E * ( 1. - tdamage ), factor * E * ( 1. - cdamage ), factor * E * ( 1. - 0.5 * ( cdamage + tdamage ) ) * ( 1. - nu ) * .5, nu*( 1. - std::max( tdamage, cdamage ) ), currentAngle ).getTensor( Point() ) ;
+// 	}
+// 
+// 	return OrthothropicStiffness( factor * E * ( 1. - tdamage ), factor * E * ( 1. - cdamage ), factor * E * ( 1. - 0.5 * ( cdamage + tdamage ) ) * ( 1. - nu ) * .5, nu*( 1. - std::max( tdamage, cdamage ) ), currentAngle ).getTensor( Point() ) ;
 }
 
 
@@ -148,18 +135,17 @@ bool RotatingCrack::fractured() const
 void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::vector<double> & weights, double a, double v, double tol = 1e-2 )
 {
 
-	for ( size_t i = 0 ; i < target.size() ; i++ )
-	{
-		if ( std::abs( target[i].first - a ) < tol )
-		{
-			double newa = ( target[i].first * weights[i] + a ) / ( weights[i] + 1 ) ;
-			double newv = target[i].second + v ;
-			target[i] = std::make_pair( newa, newv ) ;
-			weights[i]++ ;
-			return ;
-		}
-	}
-
+// 	for ( size_t i = 0 ; i < target.size() ; i++ )
+// 	{
+// 		if ( std::abs( target[i].first - a ) < tol )
+// 		{
+// 			double newa = ( target[i].first * weights[i] + a ) / ( weights[i] + 1 ) ;
+// 			double newv = target[i].second + v ;
+// 			target[i] = std::make_pair( newa, newv ) ;
+// 			weights[i]++ ;
+// 			return ;
+// 		}
+// 	}
 	target.push_back( std::make_pair( a, v ) ) ;
 
 	weights.push_back( 1 ) ;
@@ -167,18 +153,17 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 
 void RotatingCrack::postProcess()
 {
-	if ( converged && getState()[0] > POINT_TOLERANCE_2D && damaging )
+	if ( converged && getState()[0] > 0 && damaging )
 	{
 		if ( inTension )
 		{
 			addAndConsolidate( tensionAngles, tensionweights, currentAngle, getState()[0] - currentDamage ) ;
-			addAndConsolidate( compressionAngles, compressionweights, currentAngle, 0.01*(getState()[0] - currentDamage) ) ;
 		}
 		else
 		{
 			addAndConsolidate( compressionAngles, compressionweights, currentAngle, getState()[0] - currentDamage ) ;
-			addAndConsolidate( tensionAngles, tensionweights, currentAngle, 0.01*(getState()[0] - currentDamage) ) ;
 		}
+		damaging = false ;
 	}
 
 //  if(tensionAngles.size() > 400)

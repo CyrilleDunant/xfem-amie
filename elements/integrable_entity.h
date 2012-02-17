@@ -82,6 +82,7 @@ protected:
 	Vector stressAtNodes ;
 	Vector strainAtCenter ;
 	Vector stressAtCenter ;
+	Vector effectiveStressAtCenter ;
 
 	Vector displacements ;
 	Vector enrichedDisplacements ;

@@ -374,7 +374,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, do
 	if(tstrain > tensionCritStrain )
 	{
 		double downTestVal = 0 ;
-		double upTestVal = upVal*2. ;
+		double upTestVal = upVal ;
 		double factor = 1 ;
 		double delta_tech = strain_te-strain_ch;
 
@@ -385,10 +385,10 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, do
 
 			if(testVal < tensionCritStrain)
 				factor = 1. ;
-			else if(testVal < strain_te)
+			else if(testVal < strain_ch)
 				factor = mainCurve ;
-// 			else if(testVal < strain_te)
-// 			        factor = mainCurve*(strain_te-testVal)/delta_tech ;
+			else if(testVal < strain_te)
+			        factor = mainCurve*(strain_te-testVal)/delta_tech ;
 			else
 				factor = 0 ;
 
@@ -402,7 +402,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, do
 		maxTension = (upTestVal+downTestVal)*.5*scaleFactor ;
 		maxTensionStrain = (upTestVal+downTestVal)*.5/pseudoYoung ;
 		
-		if(factor < POINT_TOLERANCE_2D || maxTensionStrain > 2.*strain_te)
+		if(factor < POINT_TOLERANCE_2D || maxTensionStrain > strain_te)
 			return 1. ;
 	}
 	

@@ -77,7 +77,7 @@ void FractionStiffnessAndFracture::step(double timestep, ElementState & currentS
 
 bool FractionStiffnessAndFracture::changed() const
 {
-	 dfunc->changed() ;
+	 return dfunc->changed() ;
 } 
 
 bool FractionStiffnessAndFracture::fractured() const

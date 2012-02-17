@@ -174,7 +174,7 @@ Vector vonMises( 0 ) ;
 Vector angle( 0 ) ;
 
 MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
-MultiTriangleWriter writersteps( "converged_triangles_head", "converged_triangles_layers", NULL ) ;
+MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", NULL ) ;
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -platewidth, platewidth, -10, 10, 0 ) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5)) ;
@@ -583,7 +583,7 @@ void step()
 		}
 
 		ldfile.close();
-		if ( go_on )
+		if ( true )
 		{
 // 			std::stringstream filename ;
 // 			if(dit >= dsteps)
@@ -605,22 +605,24 @@ void step()
 // 			writer.getField(TWFT_DAMAGE) ;
 // 			writer.write() ;
 
-			writersteps.reset( featureTree ) ;
-			writersteps.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writersteps.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writersteps.getField( TWFT_CRITERION ) ;
-			writersteps.getField( TWFT_STIFFNESS ) ;
-			writersteps.getField( TWFT_DAMAGE ) ;
-			writersteps.append() ;
+			writer.reset( featureTree ) ;
+			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
+			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
+			writer.getField( TWFT_CRITERION ) ;
+			writer.getField( TWFT_STIFFNESS ) ;
+			writer.getField( TWFT_DAMAGE ) ;
+			writer.append() ;
 		}
-		
-		writer.reset( featureTree ) ;
-		writer.getField( TWFT_PRINCIPAL_STRESS ) ;
-		writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
-		writer.getField( TWFT_CRITERION ) ;
-		writer.getField( TWFT_STIFFNESS ) ;
-		writer.getField( TWFT_DAMAGE ) ;
-		writer.append() ;
+		if(go_on)
+		{
+			writerc.reset( featureTree ) ;
+			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
+			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
+			writerc.getField( TWFT_CRITERION ) ;
+			writerc.getField( TWFT_STIFFNESS ) ;
+			writerc.getField( TWFT_DAMAGE ) ;
+			writerc.append() ;
+		}
 // 		if ( !go_on )
 // 			break ;
 
@@ -1693,12 +1695,12 @@ int main( int argc, char *argv[] )
 	std::cout << sampleLength << "  " << supportLever << std::endl ;
 
 	double compressionCrit = -37.0e6 ;
-	double tensionCrit = 330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
+	double tensionCrit =  330.*sqrt( -compressionCrit );// or 2 obtained by .33*sqrt(fc_)
 	phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
 	
 	psi = 2.*0.0084261498 / .4 ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.018; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.024; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1806,11 +1808,11 @@ int main( int argc, char *argv[] )
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
 	sample.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
 	samplestirrupbulk.isVirtualFeature = true ;

@@ -164,6 +164,11 @@ void ElementState::stepBack()
 
 ElementState &ElementState::operator =( const ElementState &s )
 {
+	stressAtCenter.resize(0);
+	strainAtCenter.resize(0);
+	effectiveStressAtCenter.resize(0);
+	strainAtNodes.resize(0);
+	stressAtNodes.resize(0);
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
@@ -195,6 +200,7 @@ ElementState::ElementState( const ElementState &s )
 	stressAtNodes.resize( 0 ) ;
 	strainAtCenter.resize( 0 ) ;
 	stressAtCenter.resize( 0 ) ;
+	effectiveStressAtCenter.resize(0);
 	cachedPrincipalStressAngle = 0 ;
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
@@ -812,15 +818,27 @@ void ElementState::getStressAndStrainAtCenter(Vector & stress, Vector & strain, 
 			else
 				stressAtCenter.resize( 6 ) ;	
 		}
+		if( effectiveStressAtCenter.size() == 0 )
+		{
+			resize = true ;
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				effectiveStressAtCenter.resize( 3 ) ;
+			else
+				effectiveStressAtCenter.resize( 6 ) ;	
+		}
 		if(resize)
 		{
 			Point center(.33333333333, .33333333333) ;
 			if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 				center.set(.25, .25, .25);
-			getStressAndStrain(center, stressAtCenter, strainAtCenter, true, m);
+			getStressAndStrain(center, stressAtCenter, strainAtCenter, true, REAL_STRESS);
+			getStressAndStrain(center, effectiveStressAtCenter, strainAtCenter, true, EFFECTIVE_STRESS);
 		}
 	}
-	stress = stressAtCenter ;
+	if(m == REAL_STRESS)
+		stress = stressAtCenter ;
+	else
+		stress = effectiveStressAtCenter ;
 	strain = strainAtCenter ;
 }
 
@@ -4921,11 +4939,13 @@ void ElementState::step( double dt, const Vector *d )
 {
 	cachedPrincipalStressAngle = 0 ;
 	
-		strainAtNodes.resize( 0 );
-		stressAtNodes.resize( 0 );
+	strainAtNodes.resize( 0 );
+	stressAtNodes.resize( 0 );
 
-		strainAtCenter.resize( 0 );
-		stressAtCenter.resize( 0 );
+	strainAtCenter.resize( 0 );
+	stressAtCenter.resize( 0 );
+	
+	effectiveStressAtCenter.resize(0);
 
 	if( !history.empty() )
 		history.pop_back() ;
