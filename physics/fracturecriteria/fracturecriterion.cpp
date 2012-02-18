@@ -989,6 +989,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		{
 			if(std::abs(str[0] - str[1]) > POINT_TOLERANCE_2D)
 				currentAngle = 0.5*atan2( str[2], str[0] - str[1] ) ;
+			else
+				std::cout << "oops" << std::endl ;
 			return std::make_pair(str, stra) ;
 		}
 		
