@@ -596,7 +596,11 @@ double NonLocalMCFT::grade( ElementState &s )
 		return 1 ;
 	}
 
+	if(cstress < -POINT_TOLERANCE_2D && cstrain < -POINT_TOLERANCE_2D)
+    pseudoYoung = cstress/cstrain ;
 	double ccrit = getConcreteCompressiveCriterion(s, pseudoYoung, cstrain, tstress, cstress) ;
+  if(tstress > POINT_TOLERANCE_2D && tstrain > POINT_TOLERANCE_2D)
+    pseudoYoung = tstress/tstrain ;
 	double tcrit = getConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
 	if( ccrit > tcrit)

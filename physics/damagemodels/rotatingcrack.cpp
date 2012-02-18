@@ -147,8 +147,8 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 		}
 		if(target[i].first > a)
 		{
-			target.insert(target.begin()+i-1, std::make_pair( a, v )) ;
-			weights.insert(weights.begin()+i-1, 1 ) ;
+			target.insert(target.begin()+i, std::make_pair( a, v )) ;
+			weights.insert(weights.begin()+i, 1 ) ;
 			return  ;
 		}
 	}
