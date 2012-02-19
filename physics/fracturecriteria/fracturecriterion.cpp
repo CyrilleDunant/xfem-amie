@@ -928,6 +928,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	double sumStrainFactors = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
+    double cangle = 0 ;
 		double iteratorValue = factors[0] ;
 		s.getStressAndStrainAtCenter(tmpstr, tmpstra, REAL_STRESS) ;
 		stra = tmpstra*iteratorValue ;
@@ -936,6 +937,22 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		estr = tmpstr*iteratorValue ;
 		sumStressFactors += iteratorValue ;
 		sumStrainFactors += iteratorValue ;
+    
+    if(m == REAL_STRESS)
+    {
+      if(std::abs(str[0] - str[1]) > POINT_TOLERANCE_2D)
+        cangle = 0.5*atan2( str[2], str[0] - str[1] )*iteratorValue ;
+      if(cangle < 0)
+        cangle += M_PI*iteratorValue ;
+    }
+    else
+    {
+      if(std::abs(estr[0] - estr[1]) > POINT_TOLERANCE_2D)
+        cangle = 0.5*atan2( estr[2], estr[0] - estr[1] )*iteratorValue ;
+      if(cangle < 0)
+        cangle += M_PI*iteratorValue ;
+    }
+    
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
@@ -963,13 +980,30 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
+        double tangle = 0 ;
 				if(!ci->getBehaviour()->fractured())
 				{
 					stra += tmpstra*iteratorValue ;
 					str += tmpstr*iteratorValue ;
+          if(m == REAL_STRESS)
+          {
+            if(std::abs(tmpstr[0] - tmpstr[1]) > POINT_TOLERANCE_2D)
+              tangle = 0.5*atan2( tmpstr[2], tmpstr[0] - tmpstr[1] ) ;
+            if(currentAngle < 0)
+              tangle += M_PI ;
+          }
 					ci->getState().getStressAndStrainAtCenter(tmpstr, tmpstra, EFFECTIVE_STRESS) ;
-					estr = tmpstr*iteratorValue ;
+          if(m == EFFECTIVE_STRESS)
+          {
+            if(std::abs(tmpstr[0] - tmpstr[1]) > POINT_TOLERANCE_2D)
+              tangle = 0.5*atan2( tmpstr[2], tmpstr[0] - tmpstr[1] ) ;
+            if(currentAngle < 0)
+              tangle += M_PI ;
+          }
+					estr += tmpstr*iteratorValue ;
+          cangle += tangle*iteratorValue ;
 				}
+				
 			}
 
 			if(ci->getBehaviour()->getDamageModel())
@@ -982,18 +1016,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		str /= sumStressFactors ;
 		estr /= sumStressFactors ;
 		stra /= sumStrainFactors ;
+    cangle /= sumStrainFactors ;
 
-
-		
-		if(m == REAL_STRESS)
-		{
-			if(std::abs(str[0] - str[1]) > POINT_TOLERANCE_2D)
-				currentAngle = 0.5*atan2( str[2], str[0] - str[1] ) ;
-			return std::make_pair(str, stra) ;
-		}
-		
-		if(std::abs(estr[0] - estr[1]) > POINT_TOLERANCE_2D)
-			currentAngle = 0.5*atan2( estr[2], estr[0] - estr[1] ) ;
+    currentAngle = cangle ;
 		return std::make_pair(estr, stra) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )

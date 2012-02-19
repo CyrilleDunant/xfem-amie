@@ -247,7 +247,7 @@ double MCFT::getTensileLimit(const ElementState & s) const
 {
 	double maxTension = upVal;
 	double pseudoYoung = youngModulus*(1.-std::min(s.getParent()->getBehaviour()->getDamageModel()->getState().max(), 1.-1e-12));
-	double maxTensionStrain = upVal/pseudoYoung;
+	double maxTensionStrain = tensionCritStrain;
 	std::vector<double> crits ;
 		
 
@@ -305,7 +305,7 @@ NonLocalMCFT::~NonLocalMCFT()
 double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress)
 {
 	double maxTension = upVal*scaleFactor;
-	double maxTensionStrain = tensionCritStrain ; //upVal/pseudoYoung;
+	double maxTensionStrain = tensionCritStrain;
 	
 	if(tstrain > tensionCritStrain )
 	{
@@ -369,7 +369,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress)
 {
 	double maxTension = upVal*scaleFactor;
-	double maxTensionStrain = tensionCritStrain ; //upVal/pseudoYoung;
+	double maxTensionStrain = tensionCritStrain;
 	
 	if(tstrain > tensionCritStrain )
 	{
@@ -381,7 +381,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, do
 		while(std::abs(upTestVal-downTestVal) > 1e-8*upVal)
 		{
 			double testVal = (upTestVal+downTestVal)*.5/pseudoYoung ;
-			double mainCurve = 0.4*1./(1.+sqrt(500*testVal)) ;
+			double mainCurve = 1./(1.+sqrt(500*testVal)) ;
 
 			if(testVal < tensionCritStrain)
 				factor = 1. ;
@@ -581,7 +581,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		initialise();
 	
 
-	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s) ;
+	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s, REAL_STRESS) ;
 	double tstrain = stressStrain.second.max();
 	double cstrain = stressStrain.second.min();
 	double tstress = stressStrain.first.max();
@@ -596,11 +596,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		return 1 ;
 	}
 
-	if(cstress < -POINT_TOLERANCE_2D && cstrain < -POINT_TOLERANCE_2D)
-    pseudoYoung = cstress/cstrain ;
 	double ccrit = getConcreteCompressiveCriterion(s, pseudoYoung, cstrain, tstress, cstress) ;
-  if(tstress > POINT_TOLERANCE_2D && tstrain > POINT_TOLERANCE_2D)
-    pseudoYoung = tstress/tstrain ;
 	double tcrit = getConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
 	if( ccrit > tcrit)

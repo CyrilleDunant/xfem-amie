@@ -26,7 +26,7 @@ RotatingCrack::RotatingCrack( double E, double nu ): tdamage( 0 ), cdamage( 0 ),
 	isNull = false ;
 	currentAngle = 0 ;
 	currentDamage = 0 ;
-	inTension = false ;
+	inTension = true ;
 	damaging = false ;
 	factor = 1 ;
 }
