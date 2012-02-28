@@ -60,6 +60,8 @@ public:
 	
 	virtual DamageModel * getCopy() const { return new LinearDamage() ;}
 	
+	virtual void computeDelta(const ElementState & s) ;
+	
 };
 
 }

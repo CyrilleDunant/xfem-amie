@@ -1700,7 +1700,7 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498 / .4 ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.015; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.035; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1797,7 +1797,7 @@ int main( int argc, char *argv[] )
 // 	samplebulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 // 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
-	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, false, SPACE_TWO_DIMENSIONAL ) ) ;
+	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
@@ -1805,7 +1805,7 @@ int main( int argc, char *argv[] )
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
 	
-	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
+	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	sample.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
@@ -1814,7 +1814,7 @@ int main( int argc, char *argv[] )
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	
-	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, true, SPACE_TWO_DIMENSIONAL ) ) ;
+	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	samplestirrupbulk.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;

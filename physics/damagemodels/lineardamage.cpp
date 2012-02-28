@@ -29,7 +29,7 @@ std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s
 {
 	inCompression = false ;
 	inTension = false ;
-	Vector ret(0., 2) ; 
+	Vector ret = state ; 
 	double compressionDamage = 0 ;
 	double tensionDamage = 0 ;
 	
@@ -58,6 +58,29 @@ std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s
 	ret[1] = tensionDamage ;
 	
 	return std::make_pair(state, ret) ;
+}
+
+void LinearDamage::computeDelta(const ElementState & s)
+{
+	Vector ret = state ; 
+	double compressionDamage = 0 ;
+	double tensionDamage = 0 ;
+	
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	{
+		compressionDamage = 1 ; 
+	}
+	
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
+	{
+		tensionDamage = 1 ; 
+	}
+	
+	ret[0] = compressionDamage ;
+	ret[1] = tensionDamage ;
+	
+	delta = (ret-state).max() ;
+	
 }
 
 Matrix LinearDamage::apply(const Matrix & m) const

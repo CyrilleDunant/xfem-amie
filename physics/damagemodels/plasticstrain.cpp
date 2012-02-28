@@ -120,6 +120,11 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 
 }
 
+void PlasticStrain::computeDelta(const ElementState & s)
+{
+	delta = 1 ;
+}
+
 Matrix PlasticStrain::apply(const Matrix & m) const
 {
 	if(fractured())

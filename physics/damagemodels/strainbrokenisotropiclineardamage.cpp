@@ -23,7 +23,7 @@ StrainBrokenIsotropicLinearDamage::StrainBrokenIsotropicLinearDamage(int numDof,
 
 std::pair<Vector, Vector> StrainBrokenIsotropicLinearDamage::computeDamageIncrement(ElementState & s)
 {
-	Vector ret(1) ; ret = 0 ;
+	Vector ret(1) ; 
 	if(s.getPrincipalStrains(s.getParent()->getCenter()).max() > limitStrain)
 	{
 		ret[0] = (1.+damageDensityTolerance*64.)*thresholdDamageDensity/fraction - state[0] ; //thresholdDamageDensity/fraction+POINT_TOLERANCE ;
@@ -33,6 +33,19 @@ std::pair<Vector, Vector> StrainBrokenIsotropicLinearDamage::computeDamageIncrem
 	return std::make_pair(state, ret) ;
 
 }
+
+void StrainBrokenIsotropicLinearDamage::computeDelta(const ElementState & s)
+{
+	Vector ret(1) ; 
+	if(s.getPrincipalStrains(s.getParent()->getCenter()).max() > limitStrain)
+	{
+		ret[0] = (1.+damageDensityTolerance*64.)*thresholdDamageDensity/fraction - state[0] ; //thresholdDamageDensity/fraction+POINT_TOLERANCE ;
+	}
+	// 	ret[0] += 0.5 ; 
+	// 	ret[0] = std::min(thresholdDamageDensity/fraction+POINT_TOLERANCE, state[0]) ;
+	delta = (ret-state).max() ;
+}
+
 
 Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m) const
 {

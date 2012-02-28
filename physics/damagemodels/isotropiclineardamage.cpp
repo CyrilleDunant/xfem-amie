@@ -25,6 +25,11 @@ std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Mu::E
 	return std::make_pair(state, Vector(1., 1)) ;
 }
 
+void IsotropicLinearDamage::computeDelta(const ElementState & s)
+{
+	delta = 1.-state[0] ;
+}
+
 Matrix IsotropicLinearDamage::apply(const Matrix & m) const
 {
 

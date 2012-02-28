@@ -4419,6 +4419,20 @@ bool FeatureTree::stepElements()
 
 				std::cerr << " ...done. " << std::endl ;
 				
+#pragma openmp parallel for
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( i % 1000 == 0 )
+						std::cerr << "\r checking for fractures (2')... " << i << "/" << elements.size() << std::flush ;
+					
+					if( elements[i]->getBehaviour()->getDamageModel() )
+					{
+						elements[i]->getBehaviour()->getDamageModel()->computeDelta(elements[i]->getState()) ;
+					}
+				}
+				
+				std::cerr << " ...done. " << std::endl ;	
+				
 #pragma openmp parallel for shared (needAssembly, behaviourChange, averageDamage, crackedVolume, volume)
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
@@ -4567,6 +4581,20 @@ bool FeatureTree::stepElements()
 
 			std::cerr << " ...done. " << std::endl ;
 
+			#pragma openmp parallel for
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( i % 1000 == 0 )
+					std::cerr << "\r checking for fractures (2')... " << i << "/" << elements.size() << std::flush ;
+				
+				if( elements[i]->getBehaviour()->getDamageModel() )
+				{
+					elements[i]->getBehaviour()->getDamageModel()->computeDelta(elements[i]->getState()) ;
+				}
+			}
+			
+			std::cerr << " ...done. " << std::endl ;	
+			
 			int fracturedCount = 0 ;
 			
 			#pragma omp parallel for

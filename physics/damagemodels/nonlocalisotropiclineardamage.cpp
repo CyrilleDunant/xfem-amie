@@ -34,6 +34,11 @@ std::pair< Vector, Vector > NonLocalIsotropicLinearDamage::computeDamageIncremen
 	return std::make_pair(Vector(std::max(std::min(-state[0]+2.*auxiliarystate[0], 1.), state[0]), 1), Vector(1., 1) ) ;
 }
 
+void NonLocalIsotropicLinearDamage::computeDelta(const ElementState & s)
+{
+	delta = (Vector(1., 1) - Vector(std::max(std::min(-state[0]+2.*auxiliarystate[0], 1.), state[0]), 1)).max() ;
+}
+
 Matrix NonLocalIsotropicLinearDamage::apply(const Matrix & m) const
 {
 	Matrix ret(m) ;

@@ -27,7 +27,7 @@ namespace Mu
 	*/
 	struct OrthothropicStiffness : public LinearForm
 	{
-		virtual Matrix getTensor(const Point & p) ;
+		virtual Matrix getTensor(const Mu::Point & p) ;
 		void getTensor(Matrix & m) const ;
 		double E_1; 
 		double E_2; 

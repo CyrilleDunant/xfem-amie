@@ -76,6 +76,8 @@ typedef enum{
 		bool stable ;
 		
 		double currentAngle ;
+		double maxScoreInNeighbourhood ;
+		double minDeltaInNeighbourhood ;
 		
 		double scoreTolerance ;
 		bool checkpoint ;
@@ -98,6 +100,7 @@ typedef enum{
 		double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedCrackAngle( ElementState &s) const ;
 		double getCurrentAngle() const {return currentAngle ; }
+		double getMaxScoreInNeighbourhood() const { return maxScoreInNeighbourhood ; }
 		
 	public:
 		std::vector<unsigned int> cache ;
@@ -108,6 +111,7 @@ typedef enum{
 		double getCriterionDamageDifferential()  const {return criterionDamageDifferential ;}
 		double getDeltaEnergyAtState() const {return deltaEnergyAtState ;}
 		double getScoreTolerance() const { return scoreTolerance ; }
+		double getMinDeltaInNeighbourhood() const { return minDeltaInNeighbourhood ;}
 		bool metInTension ;
 		bool metInCompression ;
 		

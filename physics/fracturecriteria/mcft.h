@@ -65,6 +65,12 @@ public:
 	virtual Material toMaterial() ;
 };
 
+typedef enum
+{
+	UPPER_BOUND,
+	LOWER_BOUND,
+	AVERAGE
+} RedistributionType ;
 
 class NonLocalMCFT : public FractureCriterion
 {
@@ -74,8 +80,10 @@ class NonLocalMCFT : public FractureCriterion
 	double getConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
 	double getConcreteCompressiveCriterion(const ElementState & s, double pseudoYoung, double cstrain, double tstress, double cstress) ;
 	void initialise() ;
+	RedistributionType rtype ;
 public:
 	bool strainBroken ;
+	bool initialised ;
 	double upVal ;
 	double downVal ;
 	double tensionCritStrain ;
@@ -84,8 +92,7 @@ public:
 	double k ;
 	double strain_ch ;
 	double strain_te ;
-	bool initialised ;
-	bool reinforced ;
+	
 	double scaleFactor ;
 	
 	std::vector<std::pair<double, double> > rebarLocationsAndDiameters ;
@@ -93,7 +100,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-	NonLocalMCFT(double up, double down, double youngModulus, double charDistance, bool reinforced = false, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+NonLocalMCFT(double up, double down, double youngModulus, double charDistance, RedistributionType r = UPPER_BOUND, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 	virtual ~NonLocalMCFT();
 

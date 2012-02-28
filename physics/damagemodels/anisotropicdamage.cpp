@@ -90,6 +90,56 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
 // 	std::cout << getState().sum() << std::flush ;
 }
 
+void AnisotropicLinearDamage::computeDelta(const ElementState & s)
+{
+
+	
+	Vector ret = state ;
+	// 	double E_2 = s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())[0][0] ; E_2*=E_2 ;
+	// 	double l_2 = s.getParent()->area() ; 
+	// 	double maxincrement = std::abs((l_2*E_2-1.)/(l_2+l_2*E_2)) ;
+	double tensionDamagex = 0;
+	double tensionDamagey = 0;
+	double tensionDamagez = 0;
+	
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	{
+		ret = 1 ;
+	}
+	else 
+	{
+		Vector angle = s.getPrincipalAngle(s.getParent()->getCenter()) ;
+		
+		Vector stress = s.getStress(s.getParent()->getCenter()) ;
+		
+		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+		{
+			tensionDamagex = stress[0]*(stress[0]>0) ;//std::abs(cos(angle[0])) ;
+			tensionDamagey = stress[1]*(stress[1]>0) ;//std::abs(cos(angle[1])) ;
+			tensionDamagez = stress[2]*(stress[2]>0) ;//std::abs(cos(angle[2])) ;
+			ret[2] = tensionDamagez*(getState()[2] < thresholdDamageDensity);
+		}
+		else
+		{
+			tensionDamagex = stress[0]*(stress[0]>0) ;//std::abs(cos(angle[0])) ;
+			tensionDamagey = stress[1]*(stress[1]>0) ;//std::abs(sin(angle[0])) ;
+		}
+		ret[0] = tensionDamagex*(getState()[0] < thresholdDamageDensity);
+		ret[1] = tensionDamagey*(getState()[1] < thresholdDamageDensity);
+		
+	}
+	if(ret.max() > POINT_TOLERANCE_2D)
+		ret /= ret.max() ;
+	Vector factor = -(state-1.) ;
+	
+	for(int i = 0 ; i < ret.size() ; i++)
+		if(ret[i] < POINT_TOLERANCE_2D)
+			ret[i] = 1 ;
+		
+		factor /= ret ;
+	delta = (state+ret*factor.min()-state).max() ;
+}
+
 Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 {
 	if(state.max() < POINT_TOLERANCE_2D)

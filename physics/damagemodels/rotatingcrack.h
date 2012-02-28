@@ -29,9 +29,6 @@ protected:
 	bool inTension ;
 	bool damaging ;
 	
-	double tdamage ;
-	double cdamage ;
-	
 	double E ;
 	double nu ;
 	double factor ;
@@ -40,7 +37,12 @@ protected:
 	std::vector< std::pair<double, double> > tensionAngles ;
   std::vector<double> compressionweights ;
 	std::vector<double> tensionweights ;
+	ElementState * es ;
 public:
+	bool tensionFailure ;
+	bool compressionFailure ;
+
+	
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
 	 * @param numDof number of degrees of freedom
@@ -49,6 +51,7 @@ public:
 
 	virtual ~RotatingCrack();
 	virtual void scale(double s) { factor = s ;} ;
+	virtual void computeDelta(const ElementState &s) ;
 
 	/** \brief Increment the damage
 	 * 

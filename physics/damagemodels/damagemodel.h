@@ -83,7 +83,8 @@ protected:
 	
 	Vector upState ;
 	Vector downState ;
-	Vector limitState ;
+	double delta ;
+	double effectiveDeltaFraction ;
 	
 	bool change ;
 	bool previouschange ;
@@ -125,6 +126,8 @@ public:
 	
 	double getDamageDensityTolerance() { return damageDensityTolerance ; };
 	bool hasConverged() const {return converged ; }
+	double getDelta() const {return delta ;}
+	virtual void computeDelta(const ElementState &s) = 0 ;
 	
 	/** \brief Return a vector of values describing the damage stage of the material
 	 * 
@@ -247,6 +250,8 @@ public:
 	virtual bool fractured() const {return false ; } ;
 	
 	virtual DamageModel * getCopy() const { return new NullDamage() ;}
+	
+	virtual void computeDelta(const ElementState & s) {} ;
 
 // 	virtual FunctionMatrix apply(const Matrix & m) const
 // 	{

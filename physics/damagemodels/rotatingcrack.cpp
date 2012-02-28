@@ -19,16 +19,19 @@
 namespace Mu
 {
 
-RotatingCrack::RotatingCrack( double E, double nu ): tdamage( 0 ), cdamage( 0 ), E( E ), nu( nu )
+RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 {
-	getState( true ).resize( 1, 0. );
-	getPreviousState().resize( 1, 0. );
+	getState( true ).resize( 2, 0. );
+	getPreviousState().resize( 2, 0. );
 	isNull = false ;
 	currentAngle = 0 ;
 	currentDamage = 0 ;
 	inTension = true ;
 	damaging = false ;
+	tensionFailure = false ;
+	compressionFailure = false ;
 	factor = 1 ;
+	es = NULL ;
 }
 
 
@@ -40,79 +43,73 @@ double damageAtAngle( const std::vector<std::pair<double, double> > & increments
 	for ( size_t i = 0 ; i <  increments.size() ; i++ )
 	{
 		rettest += increments[i].second ;
-// 		if ( cos( increments[i].first - angle ) > POINT_TOLERANCE_2D )
-// 		{
-// 			double a = cos(  increments[i].first - angle ) * cos(  increments[i].first - angle ) ;
-// 			ret +=  a * increments[i].second ;
-// 		}
+		if ( cos( increments[i].first - angle ) > POINT_TOLERANCE_2D )
+		{
+			double a = cos(  increments[i].first - angle ) * cos(  increments[i].first - angle ) ;
+			ret +=  a * increments[i].second ;
+		}
 	}
 
-	return rettest ;
+	return ret ;
 }
 
 std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState &s )
 {
-	
+	Vector range( 1., 2 ) ;
+// 	std::cout << s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << std::endl ;
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && 
 		   s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
 	{
-		damaging = true ;
+		es = &s ;
+// 		damaging = true ;
 		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
-		
-		if ( s.getParent()->getBehaviour()->getFractureCriterion()->metInTension )
+	
+		if ( s.getParent()->getBehaviour()->getFractureCriterion()->metInTension && !tensionFailure)
 		{
 			inTension = true ;
-
-			cdamage = damageAtAngle( compressionAngles, currentAngle ) ;
-			tdamage = damageAtAngle( tensionAngles, currentAngle ) ;
-			currentDamage = damageAtAngle( tensionAngles, currentAngle ) ;
+			range[1] = getState()[1] ;
 		}
-		else
+		else if(!compressionFailure)
 		{
 			inTension = false ;
-
-			tdamage = damageAtAngle( tensionAngles, currentAngle ) ;
-			cdamage = damageAtAngle( compressionAngles, currentAngle ) ;
-			currentDamage = damageAtAngle( compressionAngles, currentAngle ) ;
+			range[0] = getState()[0] ;
 		}
-		state = currentDamage ;
 	}
-	return std::make_pair( state, Vector( 1., 1 ) ) ;
+	return std::make_pair( state,  range) ;
 }
 
 Matrix RotatingCrack::apply( const Matrix &m ) const
 {
-	if ( fractured() )
-		return m * 0. ;
 
-	if ( getState()[0] < POINT_TOLERANCE_2D
-	        && tdamage < POINT_TOLERANCE_2D
-	        && cdamage < POINT_TOLERANCE_2D )
+	if ( getState().max() < POINT_TOLERANCE_2D)
 		return m ;
 
-// 	if ( damaging )
-// 	{
-		if ( inTension )
-		{
-			return OrthothropicStiffness( factor * E * ( 1. - getState()[0] ), 
-																		factor * E * ( 1. - cdamage ), 
-																		factor * E * ( 1. - std::max( cdamage , getState()[0] ) ) * ( 1. - nu ) * .5, 
-																		nu * ( 1. - std::max( getState()[0], cdamage ) ), 
-																		currentAngle ).getTensor( Point() ) ;
-		}
-		else
-		{
-			return OrthothropicStiffness( factor * E * ( 1. - tdamage ), 
-																		factor * E * ( 1. - getState()[0] ), 
-																		factor * E * ( 1. -  std::max( getState()[0] , tdamage ) ) * ( 1. - nu ) * .5, 
-																		nu * ( 1. - std::max( getState()[0], tdamage ) ), 
-																    currentAngle ).getTensor( Point() ) ;
-		}
-// 	}
-// 
-// 	return OrthothropicStiffness( factor * E * ( 1. - tdamage ), factor * E * ( 1. - cdamage ), factor * E * ( 1. - 0.5 * ( cdamage + tdamage ) ) * ( 1. - nu ) * .5, nu*( 1. - std::max( tdamage, cdamage ) ), currentAngle ).getTensor( Point() ) ;
+
+	return OrthothropicStiffness( factor * E * ( 1. - getState()[0] ), 
+																factor * E * ( 1. - getState()[1] ), 
+																factor * E * ( 1. -  getState()[1] ) * ( 1. - nu ) * .5, 
+																nu * ( 1. -  getState()[0]), 
+																currentAngle ).getTensor( Point() ) ;
+
+
 }
 
+
+void  RotatingCrack::computeDelta(const ElementState &s)
+{
+	Vector range( 1., 2 ) ;
+
+		
+	if ( s.getParent()->getBehaviour()->getFractureCriterion()->metInTension && !tensionFailure)
+	{
+		range[1] = getState()[1] ;
+	}
+	else if(!compressionFailure)
+	{
+		range[0] = getState()[0] ;
+	}
+	delta = (range-state).max() ;
+}
 
 Matrix RotatingCrack::applyPrevious( const Matrix &m ) const
 {
@@ -125,11 +122,11 @@ Matrix RotatingCrack::applyPrevious( const Matrix &m ) const
 
 bool RotatingCrack::fractured() const
 {
-//  return false ;
-	if ( fraction < 0 )
-		return false ;
+ return false ;
+// 	if ( fraction < 0 )
+// 		return false ;
 
-	return getState()[0] >= thresholdDamageDensity ;
+// 	return getState()[0] >= thresholdDamageDensity ;
 }
 
 void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::vector<double> & weights, double a, double v, double tol = 1e-2 )
@@ -158,27 +155,17 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 
 void RotatingCrack::postProcess()
 {
-	if ( converged && getState()[0] > currentDamage && damaging )
+	if(converged && getState()[0]>= thresholdDamageDensity)
 	{
-		if ( inTension )
-		{
-			addAndConsolidate( tensionAngles, tensionweights, currentAngle, getState()[0] - currentDamage ) ;
-		}
-		else
-		{
-			addAndConsolidate( compressionAngles, compressionweights, currentAngle, getState()[0] - currentDamage ) ;
-		}
-		damaging = false ;
+		tensionFailure = true ;
+		getState(true)[0] = 1 ;
+	}
+	if(converged && getState()[1]>= thresholdDamageDensity)
+	{
+		compressionFailure = true ;
+		getState(true)[1] = 1 ;
 	}
 
-//  if(tensionAngles.size() > 400)
-//  {
-//    for(double i = 0 ; i < M_PI ; i+= 0.01)
-//    {
-//      std::cout << i << "   " << damageAtAngle(tensionAngles, i) << std::endl ;
-//    }
-//    exit(0) ;
-//  }
 }
 
 RotatingCrack::~RotatingCrack()

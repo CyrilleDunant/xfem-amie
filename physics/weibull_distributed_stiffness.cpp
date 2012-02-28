@@ -59,7 +59,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 										up*factor,
 										down*factor ,
 										E,
-										materialRadius, false,
+										materialRadius, UPPER_BOUND,
 										mirroring, dx, dy, dz)
 									 ) ;
 	if(damageModel)
