@@ -612,7 +612,6 @@ double NonLocalMCFT::grade( ElementState &s )
 	if(!initialised)
 		initialise();
 	
-
 	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s, REAL_STRESS) ;
 	double tstrain = stressStrain.second.max();
 	double cstrain = stressStrain.second.min();

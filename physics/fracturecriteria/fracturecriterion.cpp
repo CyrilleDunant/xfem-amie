@@ -31,11 +31,13 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(1e-1),
+scoreTolerance(1e-4),
 initialScore(1),
 cachedInfluenceRatio(1),
 currentAngle(0),
-minDeltaInNeighbourhood(1)
+minDeltaInNeighbourhood(1),
+maxModeInNeighbourhood(-1),
+maxAngleShiftInNeighbourhood(0)
 {
 }
 
@@ -1352,7 +1354,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		Circle epsilon(std::max(std::max(neighbourhoodradius, testedTri->getRadius()*10), physicalCharacteristicRadius*10),testedTri->getCenter()) ;
+		Circle epsilon(/*std::max(std::max(neighbourhoodradius, testedTri->getRadius()*3.5), */physicalCharacteristicRadius*3.5/*)*/,testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
@@ -1773,6 +1775,27 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			if(!sortedElements.empty())
 			{
 				thresholdScore = -sortedElements.begin()->first ;
+// 				double count =1 ;
+// 				double d = 0 ;
+// 				std::vector<double> deltas ;
+// 				for(auto i = ++sortedElements.begin() ; i != sortedElements.end() ; i++)
+// 				{
+// 					auto j = i ;
+// 					--j ;
+// 					double delta = -j->first +i->first ;
+// 					if(delta > POINT_TOLERANCE_2D && i->first < 0 )
+// 					{
+// 						deltas.push_back(delta);
+// 						d += delta ;
+// 						count++ ;
+// 					}
+// 				}
+// 				if(!deltas.empty())
+// 				{
+// 					std::sort(deltas.begin(), deltas.end()) ;
+// // 					std::cout << d/count << "  "<< deltas[deltas.size()/2]<< std::endl;
+// 					scoreTolerance = std::max(deltas[deltas.size()/2]*2, 1.e-4) ;
+// 				}
 // 				scoreTolerance = thresholdScore + (++sortedElements.begin())->first ;
 // 				double secondScore = 0 ;
 // 				double count = 1 ;
@@ -1789,7 +1812,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 // 						}
 // 					}
 // 				}
-// 				scoreTolerance = std::max((thresholdScore-secondScore)*.5, 1.e-2) ;
+				
 			}
 			if(thresholdScore < 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
 				initialScore = std::max(1.+thresholdScore, POINT_TOLERANCE_2D) ;
@@ -1797,18 +1820,25 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			double maxscore = 0 ;
 			bool foundmaxscore = false ;
 			minDeltaInNeighbourhood = 1 ;
+			maxModeInNeighbourhood = -1 ;
+			maxAngleShiftInNeighbourhood = 0 ;
 			if(!sortedElements.empty() && thresholdScore > 0 )
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(-i->first >= thresholdScore - scoreTolerance*initialScore)
+					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore)
+// 					if(-i->first > 0)
 					{
 						if(i->second == s.getParent() && met())
 							inset = true ;
 						if(i->second->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE_2D)
+						{
 							minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getDelta()) ;
-						newSet.push_back(i->second->index);
-						minscore = -i->first ;
+							maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getMode()) ;
+							maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getAngleShift()) ;
+							newSet.push_back(i->second->index);
+							minscore = -i->first ;
+						}
 					}
 					else
 					{
@@ -1846,21 +1876,20 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			checkpoint = false ;
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[0]]) ;
 			double maxscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-
+			maxModeInNeighbourhood = ci->getBehaviour()->getDamageModel()->getMode() ;
+			maxAngleShiftInNeighbourhood = ci->getBehaviour()->getDamageModel()->getAngleShift() ;
+			
 			double thresholdScore = maxscore ;
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
 			{
 				ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[i]]) ;
 				double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
+				maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
+				
+				maxscore = std::min(maxscore,nls) ;
+				thresholdScore = std::max(thresholdScore,nls) ;
 
-				if(nls < maxscore)
-				{
-					maxscore = nls ;
-				}
-				if(nls > thresholdScore)
-				{
-					thresholdScore = nls ;
-				}
 			}
 			maxScoreInNeighbourhood = thresholdScore ;
 			double minscore = 0 ;
@@ -1874,8 +1903,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 					ci = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]]) ;
 					double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 
-					if(nls > minscore)
-						minscore = nls ;
+					minscore = std::max(nls, minscore) ;
 				}
 			}
 			return std::make_pair(maxscore - minscore /*- scoreTolerance*2.*initialScore*/, thresholdScore - maxscore /*+ scoreTolerance*initialScore*/) ;

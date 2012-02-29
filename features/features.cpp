@@ -4401,37 +4401,12 @@ bool FeatureTree::stepElements()
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
-						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
-				}
-					std::cerr << " ...done. " << std::endl ;
-					
-#pragma openmp parallel for
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( i % 1000 == 0 )
-						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
-
-					if( elements[i]->getBehaviour()->getFractureCriterion() )
 					{
+						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;						
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
 					}
 				}
-
-				std::cerr << " ...done. " << std::endl ;
-				
-#pragma openmp parallel for
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( i % 1000 == 0 )
-						std::cerr << "\r checking for fractures (2')... " << i << "/" << elements.size() << std::flush ;
-					
-					if( elements[i]->getBehaviour()->getDamageModel() )
-					{
-						elements[i]->getBehaviour()->getDamageModel()->computeDelta(elements[i]->getState()) ;
-					}
-				}
-				
-				std::cerr << " ...done. " << std::endl ;	
+					std::cerr << " ...done. " << std::endl ;
 				
 #pragma openmp parallel for shared (needAssembly, behaviourChange, averageDamage, crackedVolume, volume)
 
@@ -4441,7 +4416,7 @@ bool FeatureTree::stepElements()
 					double are = elements[i]->area() ;
 
 					if( i % 10000 == 0 )
-						std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
+						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
@@ -4488,7 +4463,7 @@ bool FeatureTree::stepElements()
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
+					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
 
 				if( elements[i]->getBehaviour()->getDamageModel() )
 				{
@@ -4538,6 +4513,8 @@ bool FeatureTree::stepElements()
 					{
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
 					}
+					if( elements[i]->getBehaviour()->getDamageModel() )
+						elements[i]->getBehaviour()->getDamageModel()->computeDelta(elements[i]->getState()) ;
 				}
 			}
 			

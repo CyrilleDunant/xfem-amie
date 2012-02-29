@@ -78,6 +78,8 @@ typedef enum{
 		double currentAngle ;
 		double maxScoreInNeighbourhood ;
 		double minDeltaInNeighbourhood ;
+		int maxModeInNeighbourhood ;
+		double maxAngleShiftInNeighbourhood ;
 		
 		double scoreTolerance ;
 		bool checkpoint ;

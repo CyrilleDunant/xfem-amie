@@ -35,8 +35,14 @@ namespace Mu
 		double score ;
 		double fraction ;
 		double proximity ;
-		PointState(bool met, double delta, double frac, double score, double proximity) : isMet(met), delta(delta), score(score), fraction(frac), proximity(proximity) {} ;
+		double angleShift ;
+		int mode ;
+		PointState(bool met, double delta, double frac, double score, double proximity, double angleShift, double mode) : isMet(met), delta(delta), score(score), fraction(frac), proximity(proximity), angleShift(angleShift), mode(mode) {} ;
 		bool operator < (const PointState & p) const {return fraction < p.fraction ; }
+		void print() const
+		{
+			std::cout << fraction << " " << isMet << " delta = " << delta << ", score = " << score << ", proximity = " << proximity << ", angleShift = "<< angleShift<< ", mode = "<< mode<< std::endl; 
+		}
 	} ;
 	struct RangeState
 	{
@@ -51,7 +57,7 @@ namespace Mu
 		}
 		PointState extrapolate(double ratio = .5)
 		{
-			return PointState(up.isMet && down.isMet, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio), up.score*ratio+down.score*(1.-ratio), up.proximity*ratio+down.proximity*(1.-ratio)) ;
+			return PointState(up.isMet && down.isMet, up.delta*ratio + down.delta*(1.-ratio), up.fraction*ratio+down.fraction*(1.-ratio), up.score*ratio+down.score*(1.-ratio), up.proximity*ratio+down.proximity*(1.-ratio),up.angleShift*ratio+down.angleShift*(1.-ratio),round(up.mode*ratio+down.mode*(1.-ratio))) ;
 		}
 
 		double zeroLocation() const
@@ -70,6 +76,7 @@ namespace Mu
 			return -1 ;
 
 		}
+		
 	} ;
 /** \brief Damage model interface */
 class DamageModel
@@ -107,6 +114,7 @@ public:
 	
 	bool isNull ;
 	bool converged ;
+	double error ;
 
 	DamageModel();
 	
@@ -126,7 +134,14 @@ public:
 	
 	double getDamageDensityTolerance() { return damageDensityTolerance ; };
 	bool hasConverged() const {return converged ; }
-	double getDelta() const {return delta ;}
+	virtual double getDelta() const {return delta ;}
+	virtual int getMode() const 
+	{
+		if(fractured())
+			return 1 ;
+		return -1 ;
+	}
+	virtual double getAngleShift() const { return 0. ;}
 	virtual void computeDelta(const ElementState &s) = 0 ;
 	
 	/** \brief Return a vector of values describing the damage stage of the material

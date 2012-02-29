@@ -38,6 +38,7 @@ protected:
   std::vector<double> compressionweights ;
 	std::vector<double> tensionweights ;
 	ElementState * es ;
+	
 public:
 	bool tensionFailure ;
 	bool compressionFailure ;
@@ -76,6 +77,10 @@ public:
 	virtual void postProcess() ;
 	
 	virtual DamageModel * getCopy() const { return new RotatingCrack(E, nu) ;}
+	
+	virtual int getMode() const ;
+	
+	virtual double getAngleShift() const ;
 };
 
 }

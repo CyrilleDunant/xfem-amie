@@ -53,6 +53,24 @@ double damageAtAngle( const std::vector<std::pair<double, double> > & increments
 	return ret ;
 }
 
+int RotatingCrack::getMode() const 
+{ 
+	if(es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() &&
+		!inTension && es->getParent()->getBehaviour()->getFractureCriterion()->metInTension )
+	{
+		std::cout << es->getParent()->getBehaviour()->getFractureCriterion()->metInTension << inTension << es->getParent()->getBehaviour()->getFractureCriterion()->metInCompression << std::endl  ;
+		return 1 ;
+	}
+	return -1 ;
+}
+
+double RotatingCrack::getAngleShift() const
+{
+	if(!es)
+		return 0 ;
+	return std::abs(currentAngle-es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
+}
+
 std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState &s )
 {
 	Vector range( 1., 2 ) ;
@@ -61,7 +79,6 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		   s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
 	{
 		es = &s ;
-// 		damaging = true ;
 		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 	
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->metInTension && !tensionFailure)
@@ -75,6 +92,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			range[0] = getState()[0] ;
 		}
 	}
+
 	return std::make_pair( state,  range) ;
 }
 
@@ -98,7 +116,6 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 void  RotatingCrack::computeDelta(const ElementState &s)
 {
 	Vector range( 1., 2 ) ;
-
 		
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->metInTension && !tensionFailure)
 	{
@@ -122,11 +139,11 @@ Matrix RotatingCrack::applyPrevious( const Matrix &m ) const
 
 bool RotatingCrack::fractured() const
 {
- return false ;
-// 	if ( fraction < 0 )
-// 		return false ;
+//  return false ;
+	if ( fraction < 0 )
+		return false ;
 
-// 	return getState()[0] >= thresholdDamageDensity ;
+ return getState()[0] >= thresholdDamageDensity && getState()[1] >= thresholdDamageDensity;
 }
 
 void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::vector<double> & weights, double a, double v, double tol = 1e-2 )
