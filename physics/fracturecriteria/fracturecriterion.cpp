@@ -1826,7 +1826,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore)
+					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore && -i->first > 0)
 // 					if(-i->first > 0)
 					{
 						if(i->second == s.getParent() && met())
