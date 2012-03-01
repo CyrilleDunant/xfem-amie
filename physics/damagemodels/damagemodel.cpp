@@ -253,15 +253,15 @@ void DamageModel::step( ElementState &s )
 			}
 			converged = true ;
 			
-// 			if(error > 1e-3 && !shiftRoot)
-// 			{
-// 				std::cout << "\n" << effectiveDeltaFraction << ", "<<error << std::endl ;
-// 				for(size_t i = 0 ; i < states.size() ; i++ )
-// 				{
-// 					states[i].print();
-// 				}
-// 				exit(0) ;
-// 			}
+			if(error > 1e-3 && !shiftRoot)
+			{
+				std::cout << "\n" << effectiveDeltaFraction << ", "<<error << std::endl ;
+				for(size_t i = 0 ; i < states.size() ; i++ )
+				{
+					states[i].print();
+				}
+				exit(0) ;
+			}
 		}
 	}
 }

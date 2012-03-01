@@ -1851,7 +1851,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 					}
 				}
 			}
-			maxScoreInNeighbourhood = thresholdScore ;
+			maxScoreInNeighbourhood = minscore ;
 // 			std::cout << newSet.size() << std::endl ;
 			
 			if(!inset)
@@ -1886,12 +1886,12 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 				maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
 				maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
-				
 				maxscore = std::min(maxscore,nls) ;
 				thresholdScore = std::max(thresholdScore,nls) ;
 
 			}
-			maxScoreInNeighbourhood = thresholdScore ;
+			maxScoreInNeighbourhood = maxscore ;
+
 			double minscore = 0 ;
 			if(!proximitySet.empty())
 			{
@@ -1902,7 +1902,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				{
 					ci = static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]]) ;
 					double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-
+					
 					minscore = std::max(nls, minscore) ;
 				}
 			}
