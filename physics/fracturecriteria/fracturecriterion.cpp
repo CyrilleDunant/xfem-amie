@@ -1827,18 +1827,15 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
 					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore && -i->first > 0)
-// 					if(-i->first > 0)
 					{
 						if(i->second == s.getParent() && met())
 							inset = true ;
 						if(i->second->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE_2D)
-						{
 							minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getDelta()) ;
-							maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getMode()) ;
-							maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getAngleShift()) ;
-							newSet.push_back(i->second->index);
-							minscore = -i->first ;
-						}
+						maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getMode()) ;
+						maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getAngleShift()) ;
+						newSet.push_back(i->second->index);
+						minscore = std::min(-i->first, thresholdScore) ;
 					}
 					else
 					{

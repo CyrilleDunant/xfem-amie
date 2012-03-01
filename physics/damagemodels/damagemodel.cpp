@@ -94,7 +94,7 @@ void DamageModel::step( ElementState &s )
 				return ;
 			}
 			double scoreTolerance = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
-			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -1e-4, -1 ) ) ;
+// 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -1e-4, -1 ) ) ;
 			trialRatio = 1 ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio*effectiveDeltaFraction  ;
 			
@@ -134,6 +134,12 @@ void DamageModel::step( ElementState &s )
 		
 		
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-1e-4, globalMode ) ) ;
+		if(states.size() == 1)
+		{
+			trialRatio = 0 ;
+			getState( true ) = downState ;
+			return ;
+		}
 // 		if(states.size() == 2)
 // 		{
 // 			trialRatio = .5 ;
