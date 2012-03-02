@@ -108,8 +108,7 @@ protected:
 	ElementState * elementState ;
 	
 	ConvergenceType ctype ;
-protected:
-	bool needRestart ; //it is sometimes necessary to enforce a different scheme for convergence.
+
 public:
 	
 	bool isNull ;

@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(1e-4),
+scoreTolerance(1e-3),
 initialScore(1),
 cachedInfluenceRatio(1),
 currentAngle(0),
@@ -931,7 +931,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	double sumStrainFactors = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-    double cangle = 0 ;
 		double iteratorValue = factors[0] ;
 		s.getStressAndStrainAtCenter(tmpstr, tmpstra, REAL_STRESS) ;
 		stra = tmpstra*iteratorValue ;
@@ -943,22 +942,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		}
 		sumStressFactors += iteratorValue ;
 		sumStrainFactors += iteratorValue ;
-    
-    if(m == REAL_STRESS)
-    {
-      if(std::abs(str[0] - str[1]) > POINT_TOLERANCE_2D)
-        cangle = 0.5*atan2( str[2], str[0] - str[1] ) ;
-      if(cangle < 0)
-        cangle += M_PI ;
-    }
-    else
-    {
-      if(std::abs(estr[0] - estr[1]) > POINT_TOLERANCE_2D)
-        cangle = 0.5*atan2( estr[2], estr[0] - estr[1] ) ;
-      if(cangle < 0)
-        cangle += M_PI ;
-    }
-    cangle *= iteratorValue ;
+
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
@@ -992,25 +976,13 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				{
 					stra += tmpstra*iteratorValue ;
 					str += tmpstr*iteratorValue ;
-          if(m == REAL_STRESS)
-          {
-            if(std::abs(tmpstr[0] - tmpstr[1]) > POINT_TOLERANCE_2D)
-							tangle = 0.5*atan2( tmpstr[2], tmpstr[0] - tmpstr[1] ) ;
-            if(currentAngle < 0)
-							tangle += M_PI ;
-          }
 					
           if(m == EFFECTIVE_STRESS)
           {
 						ci->getState().getStressAndStrainAtCenter(tmpstr, tmpstra, EFFECTIVE_STRESS) ;
 						estr += tmpstr*iteratorValue ;
-            if(std::abs(tmpstr[0] - tmpstr[1]) > POINT_TOLERANCE_2D)
-							tangle = 0.5*atan2( tmpstr[2], tmpstr[0] - tmpstr[1] ) ;
-            if(currentAngle < 0)
-							tangle += M_PI ;
           }
 					
-          cangle += tangle*iteratorValue ;
 				}
 				
 			}
@@ -1025,11 +997,16 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		str /= sumStressFactors ;
 		estr /= sumStressFactors ;
 		stra /= sumStrainFactors ;
-    cangle /= sumStrainFactors ;
 
-    currentAngle = cangle ;
+		currentAngle =  0.5*atan2( str[2], str[0] - str[1] ) ;
+		if(currentAngle < 0)
+			currentAngle += M_PI ;
 		if(m == REAL_STRESS)
 			return std::make_pair(str, stra) ;
+		
+		currentAngle =  0.5*atan2( estr[2], estr[0] - estr[1] ) ;
+		if(currentAngle < 0)
+			currentAngle += M_PI ;
 		return std::make_pair(estr, stra) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1354,7 +1331,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		Circle epsilon(/*std::max(std::max(neighbourhoodradius, testedTri->getRadius()*3.5), */physicalCharacteristicRadius*3.5/*)*/,testedTri->getCenter()) ;
+		Circle epsilon(std::max(std::max(neighbourhoodradius, testedTri->getRadius()*5.), physicalCharacteristicRadius*5.),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
@@ -1814,7 +1791,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 // 				}
 				
 			}
-			if(thresholdScore < 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
+			if(thresholdScore > 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
 				initialScore = std::max(1.+thresholdScore, POINT_TOLERANCE_2D) ;
 			double minscore = thresholdScore ;
 			double maxscore = 0 ;
@@ -1842,7 +1819,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 						newProximity.insert(i->second->index) ;
 						if(!foundmaxscore)
 						{
-							maxscore =  -i->first ;
+							maxscore = -i->first ;
 							foundmaxscore = true ;
 						}
 					}

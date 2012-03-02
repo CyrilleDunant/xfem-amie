@@ -648,7 +648,6 @@ double NonLocalMCFT::grade( ElementState &s )
 		}
 		else if(tpseudoYoung> 1e-6)
 		{
-			
 			double tcrit = getConcreteTensileCriterion(s, tpseudoYoung, tstrain, tstress) ;
 // 			std::cout << "tc " << tcrit << std::endl ;
 			metInCompression = false ;
@@ -657,17 +656,25 @@ double NonLocalMCFT::grade( ElementState &s )
 		}
 		else if (cpseudoYoung > 1e-6)
 		{
-			
 			double ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain, tstress, cstress) ;
 // 			std::cout << "c " << ccrit << "  " << std::endl ;
 			metInCompression = true ;
 			metInTension = false ;
 			return ccrit ;
 		}
+// 		else if (cpseudoYoung > 1e-6 && tstress < 0)
+// 		{
+// 			
+// 			double ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, tstrain, tstress, tstress) ;
+// 			// 			std::cout << "c " << ccrit << "  " << std::endl ;
+// 			metInCompression = true ;
+// 			metInTension = false ;
+// 			return ccrit ;
+// 		}
 // 		std::cout << "0 " << -1 << std::endl ;
 		metInCompression = true ;
 		metInTension = true ;
-		return -1 ;
+		return 1 ;
 	}
 	
 	double ccrit = getConcreteCompressiveCriterion(s, pseudoYoung, cstrain, tstress, cstress) ;

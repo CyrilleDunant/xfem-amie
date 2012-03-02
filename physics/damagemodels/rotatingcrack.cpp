@@ -58,7 +58,6 @@ int RotatingCrack::getMode() const
 	if(es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() &&
 		!inTension && es->getParent()->getBehaviour()->getFractureCriterion()->metInTension )
 	{
-		std::cout << es->getParent()->getBehaviour()->getFractureCriterion()->metInTension << inTension << es->getParent()->getBehaviour()->getFractureCriterion()->metInCompression << std::endl  ;
 		return 1 ;
 	}
 	return -1 ;
@@ -68,13 +67,14 @@ double RotatingCrack::getAngleShift() const
 {
 	if(!es)
 		return 0 ;
-	return std::abs(currentAngle-es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
+	return std::min(std::abs(currentAngle-es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()), std::abs(std::abs(currentAngle-es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle())-M_PI)) ;
 }
 
 std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState &s )
 {
 	Vector range( 1., 2 ) ;
 // 	std::cout << s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << std::endl ;
+	
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && 
 		   s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
 	{
@@ -91,6 +91,14 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			inTension = false ;
 			range[0] = getState()[0] ;
 		}
+		
+		if(tensionFailure)
+		{
+			inTension = false ;
+			range[0] = getState()[0] ;
+		}
+		if(compressionFailure)
+			range[1] = getState()[1] ;
 	}
 
 	return std::make_pair( state,  range) ;
@@ -105,8 +113,8 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 
 	return OrthothropicStiffness( factor * E * ( 1. - getState()[0] ), 
 																factor * E * ( 1. - getState()[1] ), 
-																factor * E * ( 1. -  getState()[1] ) * ( 1. - nu ) * .5, 
-																nu * ( 1. -  getState()[0]), 
+																factor * E * ( 1. - getState().max() ) * ( 1. - nu ) * .5, 
+																nu * ( 1. -  getState().max()), 
 																currentAngle ).getTensor( Point() ) ;
 
 
@@ -125,6 +133,14 @@ void  RotatingCrack::computeDelta(const ElementState &s)
 	{
 		range[0] = getState()[0] ;
 	}
+	
+	if(tensionFailure)
+	{
+		range[0] = getState()[0] ;
+	}
+	if(compressionFailure)
+		range[1] = getState()[1] ;
+	
 	delta = (range-state).max() ;
 }
 
@@ -182,7 +198,6 @@ void RotatingCrack::postProcess()
 		compressionFailure = true ;
 		getState(true)[1] = 1 ;
 	}
-
 }
 
 RotatingCrack::~RotatingCrack()

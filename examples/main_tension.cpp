@@ -176,8 +176,8 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
-BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
+BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
 // BoundingBoxDefinedBoundaryCondition * loadl = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
@@ -210,8 +210,8 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 // 		if(go_on && v < 3800)
 // 		{
-			loadt->setData(loadt->getData()-4e-7) ;
 			loadr->setData(loadr->getData()+4e-7) ;
+// 			loadt->setData(loadt->getData()-4e-7) ;
 // 			loadt->setData(0) ;
 // 		}
 // 		else if(go_on && v >= 3800)
@@ -270,6 +270,8 @@ void step()
 		{
 			if(!triangles[k]->getBehaviour())
 				continue ;
+			if(triangles[k]->getBehaviour()->type == VOID_BEHAVIOUR)
+				continue ;
 			bool in = false ;
 
 			if(std::abs(triangles[k]->getCenter().y) < 0.0125)
@@ -307,15 +309,16 @@ void step()
 				if(triangles[k]->getBehaviour()->param[0][0] < E_min)
 					E_min = triangles[k]->getBehaviour()->param[0][0] ;
 			}
-				
-			sigma11[k*npoints] = sigma[k*npoints*3];
-			sigma22[k*npoints] = sigma[k*npoints*3+1];
+			Vector pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getCenter()) ;
+			Vector se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getCenter()) ;
+			sigma11[k*npoints] = se[0] ;//sigma[k*npoints*3];
+			sigma22[k*npoints] = se[1] ;//sigma[k*npoints*3+1];
 			sigma12[k*npoints] = sigma[k*npoints*3+2];
-			sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-			sigma22[k*npoints+1] = sigma[k*npoints*3+4];
+			sigma11[k*npoints+1] = se[0] ;//sigma[k*npoints*3+3];
+			sigma22[k*npoints+1] = se[1] ;//sigma[k*npoints*3+4];
 			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-			sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-			sigma22[k*npoints+2] = sigma[k*npoints*3+7];
+			sigma11[k*npoints+2] = se[0] ;//sigma[k*npoints*3+6];
+			sigma22[k*npoints+2] = se[1] ;//[k*npoints*3+7];
 			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
 			
 			if(npoints >3)
@@ -331,14 +334,14 @@ void step()
 				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
 			}
 			
-			epsilon11[k*npoints] = epsilon[k*npoints*3];
-			epsilon22[k*npoints] = epsilon[k*npoints*3+1];
+			epsilon11[k*npoints] = pe[0] ;//epsilon[k*npoints*3];
+			epsilon22[k*npoints] = pe[1] ;// epsilon[k*npoints*3+1];
 			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-			epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-			epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
+			epsilon11[k*npoints+1] = pe[0] ;//epsilon[k*npoints*3+3];
+			epsilon22[k*npoints+1] = pe[1] ;//epsilon[k*npoints*3+4];
 			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-			epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-			epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
+			epsilon11[k*npoints+2] = pe[0] ;//epsilon[k*npoints*3+6];
+			epsilon22[k*npoints+2] = pe[1] ;//epsilon[k*npoints*3+7];
 			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
 			
 			if(npoints > 3)
@@ -1499,7 +1502,7 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit,PLANE_STRESS , UPPER_BOUND)) ;
+	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN , UPPER_BOUND)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
