@@ -208,12 +208,12 @@ void step()
 
 		go_on = featureTree->step() ;
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
-// 		if(go_on && v < 3800)
-// 		{
+		if(go_on)
+		{
 			loadr->setData(loadr->getData()+4e-7) ;
 // 			loadt->setData(loadt->getData()-4e-7) ;
 // 			loadt->setData(0) ;
-// 		}
+		}
 // 		else if(go_on && v >= 3800)
 // 		{
 // 			loadr->setData(loadr->getData()+2e-7) ;

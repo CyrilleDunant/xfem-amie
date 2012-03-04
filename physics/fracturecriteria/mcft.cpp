@@ -345,7 +345,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	}
 	
 	double criterion = 0 ;
-	if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
+	/*if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
 	{
 		if(rtype == UPPER_BOUND)
 			criterion = std::min(std::abs(tstress/maxTension), std::abs(tstrain/maxTensionStrain)) ;
@@ -354,10 +354,10 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 		else
 			criterion = (std::abs(tstress/maxTension)+ std::abs(tstrain/maxTensionStrain))*.5 ;
 	}
-	else if(maxTensionStrain > POINT_TOLERANCE_2D)
+	else */if(maxTensionStrain > POINT_TOLERANCE_2D)
 		criterion = std::abs(tstrain/maxTensionStrain) ;
-	else if(maxTension > POINT_TOLERANCE_2D )
-		criterion = std::abs(tstress/maxTension) ;
+// 	else if(maxTension > POINT_TOLERANCE_2D )
+// 		criterion = std::abs(tstress/maxTension) ;
 	
 	if(criterion >= 1)
 	{
@@ -415,7 +415,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, do
 	}
 	
 	double criterion = 0 ;
-	if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
+/*	if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
 	{
 		if(rtype == UPPER_BOUND)
 			criterion = std::min(std::abs(tstress/maxTension), std::abs(tstrain/maxTensionStrain)) ;
@@ -424,10 +424,10 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, do
 		else
 			criterion = (std::abs(tstress/maxTension)+ std::abs(tstrain/maxTensionStrain))*0.5 ;
 	}
-	else if(maxTensionStrain > POINT_TOLERANCE_2D)
+	else */if(maxTensionStrain > POINT_TOLERANCE_2D)
 		criterion = std::abs(tstrain/maxTensionStrain) ;
-	else if(maxTension > POINT_TOLERANCE_2D )
-		criterion = std::abs(tstress/maxTension) ;
+// 	else if(maxTension > POINT_TOLERANCE_2D )
+// 		criterion = std::abs(tstress/maxTension) ;
 	
 	if(criterion >= 1)
 	{

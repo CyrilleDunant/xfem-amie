@@ -110,8 +110,8 @@ void DamageModel::step( ElementState &s )
 
 		if(states.size() == 1)
 		{
-			trialRatio = 1e-2 ;
-			getState( true ) = downState + ( upState - downState ) * 1e-2*effectiveDeltaFraction ;
+			trialRatio = 1e-3 ;
+			getState( true ) = downState + ( upState - downState ) * 1e-3*effectiveDeltaFraction ;
 			return ;
 		}
 		if(states.size() == 2)
@@ -295,9 +295,9 @@ DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0)
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance =  1e-5 ; //1e-8 ;//1. / pow( 2., 14 );
-	thresholdDamageDensity = 1.-std::max(1e-5, 2.*damageDensityTolerance) ;
-	secondaryThresholdDamageDensity = 1.-std::max(1e-5, 2.*damageDensityTolerance) ;
+	damageDensityTolerance =  1e-4 ; //1e-8 ;//1. / pow( 2., 14 );
+	thresholdDamageDensity = 1.-std::max(1e-4, 2.*damageDensityTolerance) ;
+	secondaryThresholdDamageDensity = 1.-std::max(1e-4, 2.*damageDensityTolerance) ;
 } ;
 
 double DamageModel::getThresholdDamageDensity() const
