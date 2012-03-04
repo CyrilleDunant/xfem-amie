@@ -151,6 +151,7 @@ protected:
 	bool solverConvergence ;
 	bool setBehaviours ;
 	bool enrichmentChange ;
+	bool stateConverged ;
 
 	bool elastic ;
 	bool projectOnBoundaries ;

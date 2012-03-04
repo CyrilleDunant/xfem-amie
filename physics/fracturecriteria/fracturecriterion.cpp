@@ -1752,44 +1752,6 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			if(!sortedElements.empty())
 			{
 				thresholdScore = -sortedElements.begin()->first ;
-// 				double count =1 ;
-// 				double d = 0 ;
-// 				std::vector<double> deltas ;
-// 				for(auto i = ++sortedElements.begin() ; i != sortedElements.end() ; i++)
-// 				{
-// 					auto j = i ;
-// 					--j ;
-// 					double delta = -j->first +i->first ;
-// 					if(delta > POINT_TOLERANCE_2D && i->first < 0 )
-// 					{
-// 						deltas.push_back(delta);
-// 						d += delta ;
-// 						count++ ;
-// 					}
-// 				}
-// 				if(!deltas.empty())
-// 				{
-// 					std::sort(deltas.begin(), deltas.end()) ;
-// // 					std::cout << d/count << "  "<< deltas[deltas.size()/2]<< std::endl;
-// 					scoreTolerance = std::max(deltas[deltas.size()/2]*2, 1.e-4) ;
-// 				}
-// 				scoreTolerance = thresholdScore + (++sortedElements.begin())->first ;
-// 				double secondScore = 0 ;
-// 				double count = 1 ;
-// 				for(size_t i = 0 ; i < sortedElements.begin()->second->neighbourhood.size() ; i++)
-// 				{
-// 					if(sortedElements.begin()->second->getNeighbourhood(i)->getBehaviour()->getFractureCriterion() &&
-// 						sortedElements.begin()->second->getNeighbourhood(i)->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() 
-// 					)
-// 					{
-// 						if(sortedElements.begin()->second->getNeighbourhood(i)->getBehaviour()->getFractureCriterion()->getScoreAtState() > 0)
-// 						{
-// 							secondScore = std::min(secondScore, -sortedElements.begin()->second->getNeighbourhood(i)->getBehaviour()->getFractureCriterion()->getScoreAtState()) ;
-// 							count++ ;
-// 						}
-// 					}
-// 				}
-				
 			}
 			if(thresholdScore > 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
 				initialScore = std::max(1.+thresholdScore, POINT_TOLERANCE_2D) ;
@@ -1803,7 +1765,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore && -i->first > 0)
+					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore && -i->first > -1e-5)
 					{
 						if(i->second == s.getParent() && met())
 							inset = true ;

@@ -87,7 +87,7 @@ void DamageModel::step( ElementState &s )
 			downState = damageIncrement.first;
 			upState = damageIncrement.second;
 
-			std::cout << "0'   "<< score << std::endl ;
+// 			std::cout << "0'   "<< score << std::endl ;
 // 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
 			trialRatio = 1 ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio*effectiveDeltaFraction  ;
@@ -110,36 +110,38 @@ void DamageModel::step( ElementState &s )
 
 		if(states.size() == 1)
 		{
-			trialRatio = damageDensityTolerance ;
-			getState( true ) = downState + ( upState - downState ) * trialRatio*effectiveDeltaFraction ;
+			trialRatio = 1e-2 ;
+			getState( true ) = downState + ( upState - downState ) * 1e-2*effectiveDeltaFraction ;
 			return ;
 		}
 		if(states.size() == 2)
 		{
-			if(states[1].score < 0)
+			if(states[1].score < 0 ||
+				states[1].proximity < 1e-5 && states[1].score < 1e-5
+			)
 			{
-				std::cout << states[1].fraction << "   "<< states[1].score << std::endl ;
+				change = false ;
+// 				std::cout << states[1].fraction << "   "<< states[1].score << std::endl ;
 				converged = true ;
 				return ;
 			}
-			
 			
 			trialRatio = .5 ;
 			getState( true ) = downState + ( upState - downState ) * .5*effectiveDeltaFraction ;
 			return ;
 		}
-		if(states.size() == 3)
-		{
-			trialRatio = .75 ;
-			getState( true ) = downState + ( upState - downState ) * .75*effectiveDeltaFraction ;
-			return ;
-		}
-		if(states.size() == 4)
-		{
-			trialRatio = .25 ;
-			getState( true ) = downState + ( upState - downState ) * .25*effectiveDeltaFraction ;
-			return ;
-		}
+// 		if(states.size() == 3)
+// 		{
+// 			trialRatio = .75 ;
+// 			getState( true ) = downState + ( upState - downState ) * .75*effectiveDeltaFraction ;
+// 			return ;
+// 		}
+// 		if(states.size() == 4)
+// 		{
+// 			trialRatio = .25 ;
+// 			getState( true ) = downState + ( upState - downState ) * .25*effectiveDeltaFraction ;
+// 			return ;
+// 		}
 		
 		std::stable_sort( states.begin(), states.end() ) ;
 

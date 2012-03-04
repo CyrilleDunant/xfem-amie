@@ -241,6 +241,7 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 	useMultigrid = false ;
 	foundCheckPoint = true ;
 	averageDamage = 0 ;
+	stateConverged = false ;
 	this->dtree = NULL ;
 	this->dtree3D = NULL ;
 	
@@ -4310,7 +4311,9 @@ bool FeatureTree::stepElements()
 	behaviourChange = false ;
 	needAssembly = false ;
 	foundCheckPoint = true ;
-
+	stateConverged = false ;
+	double maxScore = -1 ;
+	double maxTolerance = 0 ;
 	if( solverConvergence )
 	{
 		if( is2D() )
@@ -4354,6 +4357,8 @@ bool FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 					{
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+						maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
 					}
 				}
 			}
@@ -4502,6 +4507,15 @@ bool FeatureTree::stepElements()
 					break ;
 				}
 			}
+			
+			for( size_t i = 0 ; i < elements.size() ; i++ )
+			{
+				if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met() )
+				{
+					behaviourChange = true ;
+					break ;
+				}
+			}
 
 			if( foundCheckPoint )
 			{
@@ -4512,22 +4526,25 @@ bool FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 					{
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+						maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
 					}
-					if( elements[i]->getBehaviour()->getDamageModel() )
-						elements[i]->getBehaviour()->getDamageModel()->computeDelta(elements[i]->getState()) ;
 				}
 			}
 			
 			double volume = 0;
-			crackedVolume = 0 ;
-			damagedVolume = 0 ;
-			double previousAverageDamage  = averageDamage;
-			averageDamage = 0 ;
+			if(!elastic)
+				crackedVolume = 0 ;
+			if(!elastic)
+				damagedVolume = 0 ;
+			double previousAverageDamage = averageDamage ;
+			if(!elastic)
+				averageDamage = 0. ;
 			//this will update the state of all elements. This is necessary as
 			//the behaviour updates might depend on the global state of the
 			//simulation.
 			std::cerr << " stepping through elements... " << std::flush ;
-
+#pragma openmp parallel for
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
@@ -4538,96 +4555,89 @@ bool FeatureTree::stepElements()
 
 			std::cerr << " ...done" << std::endl ;
 
-			for( size_t i = 0 ; i < elements.size() ; i++ )
+			int fracturedCount = 0 ;
+			int ccount = 0 ;
+
+			if( !elastic )
 			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
-
-				if( elements[i]->getBehaviour()->getFractureCriterion() )
-					elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
-			}
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
-
-				if( elements[i]->getBehaviour()->getFractureCriterion() )
-					elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
-			}
-
-			std::cerr << " ...done. " << std::endl ;
-
-			#pragma openmp parallel for
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (2')... " << i << "/" << elements.size() << std::flush ;
 				
-				if( elements[i]->getBehaviour()->getDamageModel() )
+				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					elements[i]->getBehaviour()->getDamageModel()->computeDelta(elements[i]->getState()) ;
+					if( i % 1000 == 0 )
+						std::cerr << "\r checking for fractures (0)... " << i << "/" << elements.size() << std::flush ;
+				}
+					std::cerr << " ...done. " << std::endl ;
+				
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					
+					if( i % 1000 == 0 )
+						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
+
+					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
+						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;						
+						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
+					}
+				}
+					std::cerr << " ...done. " << std::endl ;
+				
+#pragma openmp parallel for shared (needAssembly, behaviourChange, averageDamage, crackedVolume, volume)
+
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+
+					double are = elements[i]->area() ;
+
+					if( i % 10000 == 0 )
+						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
+
+					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					{
+						volume += are ;
+						DamageModel * dmodel = elements[i]->getBehaviour()->getDamageModel() ;
+						if( dmodel )
+						{
+							if( !elements[i]->getBehaviour()->fractured() )
+								averageDamage += are * dmodel->getState().max() ;
+							else
+								averageDamage += are ;
+						}
+						
+						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
+						
+						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
+						if( elements[i]->getBehaviour()->changed() )
+						{
+							needAssembly = true ;
+							behaviourChange = true ;
+							ccount++ ;
+						}
+						if( elements[i]->getBehaviour()->fractured() )
+						{
+							fracturedCount++ ;
+							crackedVolume += are ;
+							
+							if(!wasFractured)
+							{
+								needAssembly = true ;
+								behaviourChange = true ;
+							}
+						}
+						else if( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
+						{
+							damagedVolume += are ;
+						}
+					}
 				}
 			}
 			
-			std::cerr << " ...done. " << std::endl ;	
+			std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 			
-			int fracturedCount = 0 ;
-			
-			#pragma omp parallel for
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
-
 				if( i % 1000 == 0 )
 					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
-
-				double vol = elements[i]->volume() ;
-
-				if( elements[i]->getBehaviour()->getDamageModel() )
-				{
-					if( !elements[i]->getBehaviour()->fractured() )
-						averageDamage += vol * elements[i]->getBehaviour()->getDamageModel()->getState().max() ;
-					else
-						averageDamage += vol ;
-				}
-
-				if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-				{
-					volume += vol ;
-
-					elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
-
-					if( elements[i]->getBehaviour()->changed() )
-					{
-						needAssembly = true ;
-						behaviourChange = true ;
-					}
-
-					if( elements[i]->getBehaviour()->fractured() )
-					{
-						fracturedCount++ ;
-						crackedVolume +=  vol ;
-					}
-					else if( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_3D )
-					{
-						damagedVolume +=  vol ;
-					}
-				}
-				else if( elements[i]->getBehaviour()->fractured() )
-				{
-					crackedVolume += vol ;
-				}
-			}
-			
-
-			averageDamage /= volume ;
-
-			std::cerr << " ...done" << std::endl ;
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (3')... " << i << "/" << elements.size() << std::flush ;
 
 				if( elements[i]->getBehaviour()->getDamageModel() )
 				{
@@ -4639,12 +4649,9 @@ bool FeatureTree::stepElements()
 					}
 				}
 			}
-
-
-
-
-			// 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
-			// 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
+			std::cerr << " ...done. " << std::endl ;
+				averageDamage /= volume ;
+			
 
 		}
 		std::cerr << " ...done. " << std::endl ;
@@ -4767,7 +4774,8 @@ bool FeatureTree::stepElements()
 		}
 	}
 	
-	return foundCheckPoint ;
+	stateConverged = foundCheckPoint && maxScore < maxTolerance ;
+	return foundCheckPoint  && maxScore < maxTolerance;
 }
 
 
@@ -5010,14 +5018,14 @@ bool FeatureTree::step()
 			break ;
 		}
 		
-	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
+	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) /*!stateConverged*/ && notConvergedCounts < 4 ) ;
 
 	if(notConvergedCounts >= 4)
 		ret = false ;
 	std::cout << std::endl ;
 	deltaTime = realdt ;
 	
-	return solverConverged() && !behaviourChanged() && ret ;
+	return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
 }
 
 bool FeatureTree::stepToCheckPoint()
