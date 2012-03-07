@@ -106,22 +106,23 @@ void DamageModel::step( ElementState &s )
 		int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
 		change = true ;
 		
-		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, /*globalAngleShift*/-M_PI*.01, globalMode ) ) ;
+		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.01, globalMode ) ) ;
 
 		if(states.size() == 1)
 		{
-			trialRatio = 1e-3 ;
-			getState( true ) = downState + ( upState - downState ) * 1e-3*effectiveDeltaFraction ;
+			trialRatio = 0 ;
+			getState( true ) = downState + ( upState - downState ) * 2.*damageDensityTolerance*effectiveDeltaFraction ;
+			for(size_t i = 0 ; i <  state.size() ; i++)
+				state[i] = std::min(state[i], 1.) ;
 			return ;
 		}
 		if(states.size() == 2)
 		{
-			if(states[1].score < 0 ||
+			if(states[1].score < 0 /*||
 				states[1].proximity < 1e-5 && states[1].score < 1e-5
-			)
+			*/)
 			{
 				change = false ;
-// 				std::cout << states[1].fraction << "   "<< states[1].score << std::endl ;
 				converged = true ;
 				return ;
 			}
@@ -130,18 +131,18 @@ void DamageModel::step( ElementState &s )
 			getState( true ) = downState + ( upState - downState ) * .5*effectiveDeltaFraction ;
 			return ;
 		}
-// 		if(states.size() == 3)
-// 		{
-// 			trialRatio = .75 ;
-// 			getState( true ) = downState + ( upState - downState ) * .75*effectiveDeltaFraction ;
-// 			return ;
-// 		}
-// 		if(states.size() == 4)
-// 		{
-// 			trialRatio = .25 ;
-// 			getState( true ) = downState + ( upState - downState ) * .25*effectiveDeltaFraction ;
-// 			return ;
-// 		}
+		if(states.size() == 3)
+		{
+			trialRatio = .75 ;
+			getState( true ) = downState + ( upState - downState ) * .75*effectiveDeltaFraction ;
+			return ;
+		}
+		if(states.size() == 4)
+		{
+			trialRatio = .25 ;
+			getState( true ) = downState + ( upState - downState ) * .25*effectiveDeltaFraction ;
+			return ;
+		}
 		
 		std::stable_sort( states.begin(), states.end() ) ;
 
@@ -258,7 +259,7 @@ void DamageModel::step( ElementState &s )
 		}
 		else if(std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction)
 		{
-			getState( true ) = downState + 1e-2*effectiveDeltaFraction ;
+			getState( true ) = downState + ( upState - downState ) *1.*effectiveDeltaFraction ;
 			
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;

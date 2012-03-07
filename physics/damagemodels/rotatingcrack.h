@@ -23,7 +23,7 @@ namespace Mu {
 class RotatingCrack : public DamageModel
 {
 protected:
-	double currentAngle ;
+	
 	double currentDamage ;
   
 	bool inTension ;
@@ -42,7 +42,7 @@ protected:
 public:
 	bool tensionFailure ;
 	bool compressionFailure ;
-
+double currentAngle ;
 	
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 

@@ -270,6 +270,8 @@ void step()
 		{
 			if(!triangles[k]->getBehaviour())
 				continue ;
+// 			if(triangles[k]->getBehaviour()->fractured())
+// 				continue ;
 			if(triangles[k]->getBehaviour()->type == VOID_BEHAVIOUR)
 				continue ;
 			bool in = false ;
@@ -1502,7 +1504,7 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN , UPPER_BOUND)) ;
+	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN , LOWER_BOUND)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;

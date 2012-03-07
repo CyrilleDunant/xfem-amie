@@ -345,7 +345,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	}
 	
 	double criterion = 0 ;
-	/*if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
+/*	if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
 	{
 		if(rtype == UPPER_BOUND)
 			criterion = std::min(std::abs(tstress/maxTension), std::abs(tstrain/maxTensionStrain)) ;
@@ -415,7 +415,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const ElementState & s, do
 	}
 	
 	double criterion = 0 ;
-/*	if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
+	/*if(maxTensionStrain > POINT_TOLERANCE_2D && maxTension > POINT_TOLERANCE_2D )
 	{
 		if(rtype == UPPER_BOUND)
 			criterion = std::min(std::abs(tstress/maxTension), std::abs(tstrain/maxTensionStrain)) ;
@@ -457,16 +457,16 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty())
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*0.5;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*0.5 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5 ;
 		
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*0.5 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*0.5 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -475,7 +475,7 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!inRebarInfluence)
 		return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
- 	if(distanceToRebar < effectiveInfluenceDistance/(0.5*7.5*.5))
+ 	if(distanceToRebar < effectiveInfluenceDistance/(7.5*.5))
  		return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
 
@@ -539,7 +539,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 	}
 	
 	double criterion = 0 ;
-	if(std::abs(maxCompressionStrain) > POINT_TOLERANCE_2D && std::abs(maxCompression) > POINT_TOLERANCE_2D )
+/*	if(std::abs(maxCompressionStrain) > POINT_TOLERANCE_2D && std::abs(maxCompression) > POINT_TOLERANCE_2D )
 	{
 		if(rtype == UPPER_BOUND)
 			criterion = std::min(std::abs(cstress/maxCompression), std::abs(cstrain/maxCompressionStrain)) ;
@@ -548,10 +548,10 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 		else
 			criterion =(std::abs(cstress/maxCompression)+ std::abs(cstrain/maxCompressionStrain))*0.5 ;
 	}
-	else if(std::abs(maxCompressionStrain) > POINT_TOLERANCE_2D)
+	else */if(std::abs(maxCompressionStrain) > POINT_TOLERANCE_2D)
 		criterion = std::abs(cstrain/maxCompressionStrain) ;
-	else if(std::abs(maxCompression) > POINT_TOLERANCE_2D )
-		criterion = std::abs(cstress/maxCompression) ;
+// 	else if(std::abs(maxCompression) > POINT_TOLERANCE_2D )
+// 		criterion = std::abs(cstress/maxCompression) ;
 	
 	if(criterion >= 1)
 	{
@@ -613,24 +613,23 @@ double NonLocalMCFT::grade( ElementState &s )
 		initialise();
 	
 	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s, REAL_STRESS) ;
-	double tstrain = stressStrain.second.max();
-	double cstrain = stressStrain.second.min();
-	double tstress = stressStrain.first.max();
-	double cstress = stressStrain.first.min();
+	double tstrain = stressStrain.second[0];
+	double cstrain = stressStrain.second[1];
+	double tstress = stressStrain.first[0];
+	double cstress = stressStrain.first[1];
 
 	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
-	
-// 	if(pseudoYoung < 1e-9)
-// 	{
-// 		metInCompression = true ;
-// 		metInTension = true ;
-// 		return -1 ;
-// 	}
+	metInCompression = false ;
+	metInTension = false ;
+
 	if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()))
 	{
 		double cpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[1]) ;
 		double tpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
-		if(cpseudoYoung > 1e-6 && tpseudoYoung> 1e-6 )
+
+		bool tfail = dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->tensionFailure ;
+		bool cfail = dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->compressionFailure ;
+		if(!tfail && !cfail )
 		{
 			double ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain, tstress, cstress) ;
 			double tcrit = getConcreteTensileCriterion(s, tpseudoYoung, tstrain, tstress) ;
@@ -646,35 +645,46 @@ double NonLocalMCFT::grade( ElementState &s )
 			metInTension = true ;
 			return tcrit ;
 		}
-		else if(tpseudoYoung> 1e-6)
+		else if(!tfail)
 		{
+			
 			double tcrit = getConcreteTensileCriterion(s, tpseudoYoung, tstrain, tstress) ;
-// 			std::cout << "tc " << tcrit << std::endl ;
-			metInCompression = false ;
-			metInTension = true ;
-			return tcrit ;
-		}
-		else if (cpseudoYoung > 1e-6)
-		{
-			double ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain, tstress, cstress) ;
-// 			std::cout << "c " << ccrit << "  " << std::endl ;
+			if(tcrit < 0 && cstrain < -POINT_TOLERANCE_2D)
+			{
+				metInCompression = false ;
+				metInTension = true ;
+				return -1 ;
+			}
+			
 			metInCompression = true ;
 			metInTension = false ;
+
+			return tcrit ;
+		}
+		else if (!cfail)
+		{
+			double ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain, tstress, cstress) ;
+			if(ccrit < 0 && tstrain > POINT_TOLERANCE_2D)
+			{
+				metInCompression = false ;
+				metInTension = true ;
+				return -1 ;
+			}
+			metInCompression = true ;
+			metInTension = false ;
+			
 			return ccrit ;
 		}
-// 		else if (cpseudoYoung > 1e-6 && tstress < 0)
-// 		{
-// 			
-// 			double ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, tstrain, tstress, tstress) ;
-// 			// 			std::cout << "c " << ccrit << "  " << std::endl ;
-// 			metInCompression = true ;
-// 			metInTension = false ;
-// 			return ccrit ;
-// 		}
-// 		std::cout << "0 " << -1 << std::endl ;
+		
 		metInCompression = true ;
 		metInTension = true ;
 		return 1 ;
+	}
+	else if(pseudoYoung < 1e-9)
+	{
+				metInCompression = true ;
+		metInTension = true ;
+		return -1 ;
 	}
 	
 	double ccrit = getConcreteCompressiveCriterion(s, pseudoYoung, cstrain, tstress, cstress) ;

@@ -927,7 +927,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 	if(factors.empty())
 		initialiseFactors(s) ;
-	double sumStressFactors = 0;
+	double sumStressFactors = 0 ;
 	double sumStrainFactors = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
@@ -959,10 +959,10 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 // 				fractureDistance = sqrt(std::inner_product(&dstate[0], &dstate[dstate.size()], &dstate[0], 0.)) ;
 // 			}
 			
-// 			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->fractured())
-// 				iteratorValue = 0 ;
+			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->fractured())
+				iteratorValue = 0 ;
 
-			iteratorValue *= 1.-fractureDistance ;
+// 			iteratorValue *= 1.-fractureDistance ;
 			
 			
 			if(iteratorValue > POINT_TOLERANCE_2D)
@@ -971,7 +971,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
-        double tangle = 0 ;
 				if(!ci->getBehaviour()->fractured())
 				{
 					stra += tmpstra*iteratorValue ;
@@ -997,16 +996,43 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		str /= sumStressFactors ;
 		estr /= sumStressFactors ;
 		stra /= sumStrainFactors ;
+		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
+		{
+			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
+			if(currentAngle < 0)
+				currentAngle += M_PI ;
+		}
 
-		currentAngle =  0.5*atan2( str[2], str[0] - str[1] ) ;
-		if(currentAngle < 0)
-			currentAngle += M_PI ;
 		if(m == REAL_STRESS)
+		{
+// 			str = stra*s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()) ;
+// 			if(std::abs(str[0]-str[1]) > POINT_TOLERANCE_2D)
+// 			{
+// 				currentAngle =  0.5*atan2( str[2], str[0] - str[1] ) ;
+// 				if(currentAngle < 0)
+// 					currentAngle += M_PI ;
+// 			}
+// 			else if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
+// 			{
+// 				currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
+// 				if(currentAngle < 0)
+// 					currentAngle += M_PI ;
+// 			}
 			return std::make_pair(str, stra) ;
-		
-		currentAngle =  0.5*atan2( estr[2], estr[0] - estr[1] ) ;
-		if(currentAngle < 0)
-			currentAngle += M_PI ;
+		}
+// 		estr = stra*s.getParent()->getBehaviour()->param ;
+// 		if(std::abs(estr[0]-estr[1]) > POINT_TOLERANCE_2D)
+// 		{
+// 			currentAngle =  0.5*atan2( estr[2], estr[0] - estr[1] ) ;
+// 			if(currentAngle < 0)
+// 				currentAngle += M_PI ;
+// 		}
+// 		else if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
+// 		{
+// 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
+// 			if(currentAngle < 0)
+// 				currentAngle += M_PI ;
+// 		}
 		return std::make_pair(estr, stra) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1743,7 +1769,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
-				if(ci->getBehaviour()->getFractureCriterion())
+				if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured())
 				{
 					double renormScore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 					sortedElements.insert( std::make_pair(-renormScore, ci)) ;
@@ -1765,7 +1791,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore && -i->first > -1e-5)
+					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore && -i->first > 0)
 					{
 						if(i->second == s.getParent() && met())
 							inset = true ;
