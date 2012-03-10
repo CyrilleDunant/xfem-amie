@@ -475,14 +475,14 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!inRebarInfluence)
 		return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
- 	if(distanceToRebar < effectiveInfluenceDistance/(7.5*.5))
+ 	if(distanceToRebar < effectiveInfluenceDistance*.5)
  		return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
 
 	double barecrit = getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	double rebcrit = getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
-	double f = distanceToRebar/effectiveInfluenceDistance ;
+	double f = (distanceToRebar-7.5*.5)/effectiveInfluenceDistance ;
 	double df = 3.*f*f-2.*f*f*f ;
 	
 	return df*barecrit + (1.-df)*rebcrit ;
