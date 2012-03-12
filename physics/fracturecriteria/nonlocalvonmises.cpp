@@ -19,6 +19,8 @@ NonLocalVonMises::NonLocalVonMises(double thresh, double E, double radius, Mirro
 	, threshold(thresh), E(E)
 {
 	setMaterialCharacteristicRadius(radius);
+	metInCompression = true ;
+	metInTension = true ;
 }
 
 

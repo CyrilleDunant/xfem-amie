@@ -39,6 +39,7 @@
 #include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/concrete_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
 
 
 #include <fstream>
@@ -211,7 +212,7 @@ void step()
 		if(go_on)
 		{
 			loadr->setData(loadr->getData()+4e-7) ;
-// 			loadt->setData(loadt->getData()-4e-7) ;
+			loadt->setData(loadt->getData()+4e-7) ;
 // 			loadt->setData(0) ;
 		}
 // 		else if(go_on && v >= 3800)
@@ -1504,8 +1505,13 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
+	
 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit,PLANE_STRAIN , LOWER_BOUND)) ;
 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	
+// 	samplef.setBehaviour(new PasteBehaviour()) ;
+// 	dynamic_cast<PasteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;
 // // 	

@@ -22,9 +22,13 @@ namespace Mu {
 	*/
 	class NonLocalVonMises : public FractureCriterion
 	{
+		bool metInCompression ;
+		bool metInTension ;
 	public:
 		double threshold ;
 		double E ;
+		virtual bool directionInTension(size_t direction) {return metInCompression ;}
+		virtual bool directionInCompression(size_t direction) {return metInTension ;}
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 

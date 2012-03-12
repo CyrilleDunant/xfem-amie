@@ -94,6 +94,10 @@ typedef enum{
 		
 	public:
 
+		virtual bool directionInTension(size_t direction) {return true ;}
+		virtual bool directionInCompression(size_t direction) {return true ;}
+		virtual bool directionMet(size_t direction) {return metAtStep ;}
+		
 		Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedScore(ElementState& s) ;
 		Vector smoothedPrincipalStrain( ElementState &s) ;
@@ -114,8 +118,6 @@ typedef enum{
 		double getDeltaEnergyAtState() const {return deltaEnergyAtState ;}
 		double getScoreTolerance() const { return scoreTolerance ; }
 		double getMinDeltaInNeighbourhood() const { return minDeltaInNeighbourhood ;}
-		bool metInTension ;
-		bool metInCompression ;
 		
 		FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 		virtual void initialiseCache(const ElementState & s) ;

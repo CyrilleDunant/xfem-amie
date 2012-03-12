@@ -28,8 +28,6 @@ DruckerPrager::~DruckerPrager()
 double DruckerPrager::grade(ElementState &s)
 {
 	double factor = 1 ;
-	metInCompression = true ;
-	metInTension = true ;
 	std::pair<Vector, Vector> stressstrain( smoothedStressAndStrain(s, EFFECTIVE_STRESS) ) ;
 	Vector str = stressstrain.first ;
 	Vector stra = stressstrain.second ;

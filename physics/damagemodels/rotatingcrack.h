@@ -24,25 +24,25 @@ class RotatingCrack : public DamageModel
 {
 protected:
 	
-	double currentDamage ;
-  
-	bool inTension ;
-	bool damaging ;
-	
 	double E ;
 	double nu ;
 	double factor ;
 	
-	std::vector< std::pair<double, double> > compressionAngles ;
-	std::vector< std::pair<double, double> > tensionAngles ;
-  std::vector<double> compressionweights ;
-	std::vector<double> tensionweights ;
+// 	std::vector< std::pair<double, double> > compressionAngles ;
+// 	std::vector< std::pair<double, double> > tensionAngles ;
+//   std::vector<double> compressionweights ;
+// 	std::vector<double> tensionweights ;
+	bool firstTension ;
+	bool secondTension ;
+	bool firstTensionFailure ;
+	bool secondTensionFailure ;
+	bool firstCompressionFailure ;
+	bool secondCompressionFailure ;
 	ElementState * es ;
 	
 public:
-	bool tensionFailure ;
-	bool compressionFailure ;
-double currentAngle ;
+
+	double currentAngle ;
 	
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 

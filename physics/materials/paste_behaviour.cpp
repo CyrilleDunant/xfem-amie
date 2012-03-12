@@ -29,7 +29,7 @@ Form * PasteBehaviour::getCopy() const
 	ret->setNeighbourhoodRadius(neighbourhoodRadius) ;
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
-	ret->dfunc->setThresholdDamageDensity(.95);
+	ret->dfunc->setThresholdDamageDensity(.6);
 	return ret ;
 }
 

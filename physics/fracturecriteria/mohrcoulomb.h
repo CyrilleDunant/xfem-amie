@@ -28,6 +28,11 @@ protected:
 public:
 	double upVal ;
 	double downVal ;
+	bool metInCompression  ;
+	bool metInTension  ;
+	
+	virtual bool directionInTension(size_t direction) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction) {return metInTension ;}
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
@@ -61,6 +66,12 @@ public:
 	double upVal ;
 	double downVal ;
 	double stiffness ;
+	bool metInCompression  ;
+	bool metInTension  ;
+	
+	virtual bool directionInTension(size_t direction) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction) {return metInTension ;}
+	
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)

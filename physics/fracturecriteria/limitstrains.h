@@ -27,6 +27,11 @@ class LimitStrains : public FractureCriterion
 	double maxUpVal ;
 	double maxDownVal ;
 public:
+	bool metInCompression  ;
+	bool metInTension  ;
+	
+	virtual bool directionInTension(size_t direction) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction) {return metInTension ;}
 	/** \brief Constructor 
 	 * @param up Set the maximum strain. 
 	 */

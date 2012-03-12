@@ -30,6 +30,11 @@ public:
 	Matrix steelCGTensor ;
 	double phi ;
 	double tensionCritStrain ;
+	bool metInCompression  ;
+	bool metInTension  ;
+	
+	virtual bool directionInTension(size_t direction) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction) {return metInTension ;}
 	
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)

@@ -16,55 +16,6 @@
 
 namespace Mu {
 
-/** \brief Modified Compression Field Theorz derived fracture criterion
-	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
-	The Mohr-Coulomb is met when the maximum principal stresses is below or above the prescribed limits 
-	
-*/
-class MCFT : public FractureCriterion
-{
-
-public:
-	
-	bool strainBroken ;
-	double upVal ;
-	double downVal ;
-	double tensionCritStrain ;
-	double critStrain ;
-	double youngModulus ;
-	double k ;
-	double strain_ch ;
-	double strain_te ;
-	bool initialised ;
-/** \brief Constructor, set the maximum and minimum strain
- * @param up Maximum stress (tension)
- * @param down Minimum stress (compression)
-*/
-	MCFT(double up, double down, double youngModulus, double charRad, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-
-	virtual ~MCFT();
-
-/** \brief Return a copy of this fracture criterion*/
-	virtual FractureCriterion * getCopy() const;
-
-/** \brief return the normalised distance to the fracture surface
- *
- * The distance is computed as: \f$ 1.-|\frac{max\; principal\; strain\; in\; element}{Limit\; strain}|  \f$
- * @param s ElementState to consider
-*/
-	virtual double grade(ElementState &s)  ;
-	
-	virtual void scale(double d) 
-	{
-		upVal *= d ; 
-		downVal *= d ;
-	};
-	
-	virtual double getTensileLimit(const ElementState & s) const ;
-
-	virtual Material toMaterial() ;
-};
-
 typedef enum
 {
 	UPPER_BOUND,
@@ -82,8 +33,13 @@ class NonLocalMCFT : public FractureCriterion
 	void initialise() ;
 	RedistributionType rtype ;
 public:
-	bool strainBroken ;
 	bool initialised ;
+	bool firstTension ;
+	bool firstCompression ;
+	bool secondTension ;
+	bool secondCompression ;
+	bool firstMet ;
+	bool secondMet ;
 	double upVal ;
 	double downVal ;
 	double tensionCritStrain ;
@@ -92,9 +48,32 @@ public:
 	double k ;
 	double strain_ch ;
 	double strain_te ;
-	
+
 	double scaleFactor ;
-	
+	virtual bool directionInTension(size_t direction) 
+	{
+		if(direction == 0)
+			return firstTension ;
+		if(direction == 1)
+			return secondTension ;
+		return false ;
+	}
+	virtual bool directionInCompression(size_t direction) 
+	{
+		if(direction == 0)
+			return firstCompression ;
+		if(direction == 1)
+			return secondCompression ;
+		return false ;
+	}
+	virtual bool directionMet(size_t direction) 
+	{
+		if(direction == 0)
+			return firstMet ;
+		if(direction == 1)
+			return secondMet ;
+		return false ;
+	}
 	std::vector<std::pair<double, double> > rebarLocationsAndDiameters ;
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)

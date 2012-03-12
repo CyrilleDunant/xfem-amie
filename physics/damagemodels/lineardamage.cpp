@@ -33,7 +33,7 @@ std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s
 	double compressionDamage = 0 ;
 	double tensionDamage = 0 ;
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(0))
 	{
 		inCompression = true ;
 		compressionDamage = 1 ; 
@@ -43,7 +43,7 @@ std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s
 		inCompression = false ;
 	}
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
 	{
 		inTension = true ;
 		
@@ -66,12 +66,12 @@ void LinearDamage::computeDelta(const ElementState & s)
 	double compressionDamage = 0 ;
 	double tensionDamage = 0 ;
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
 	{
 		compressionDamage = 1 ; 
 	}
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(0))
 	{
 		tensionDamage = 1 ; 
 	}

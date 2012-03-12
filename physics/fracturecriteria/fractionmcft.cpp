@@ -20,6 +20,8 @@ FractionMCFT::FractionMCFT(double up, double down , Matrix steelCGTensor, double
 	, upVal(up), downVal(down), steelCGTensor(steelCGTensor), phi(phi)
 {
 	tensionCritStrain = up / youngModulus ;
+	metInCompression = false ;
+	metInTension = false ;
 }
 
 

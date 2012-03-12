@@ -20,6 +20,8 @@ namespace Mu
 MohrCoulomb::MohrCoulomb( double up, double down, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
 	, upVal( up ), downVal( down )
 {
+	metInTension = false ;
+	metInCompression = false ;
 }
 
 
@@ -116,6 +118,8 @@ Material MohrCoulomb::toMaterial()
 NonLocalMohrCoulomb::NonLocalMohrCoulomb( double up, double down, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
 	, upVal( up ), downVal( down ), stiffness(E)
 {
+	metInTension = false ;
+	metInCompression = false ;
 }
 
 

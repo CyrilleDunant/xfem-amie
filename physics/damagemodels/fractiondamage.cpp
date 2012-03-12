@@ -35,7 +35,7 @@ std::pair< Vector, Vector > FractionLinearDamage::computeDamageIncrement( Mu::El
 	double compressionDamage = 0 ;
 	double tensionDamage = 0 ;
 
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(0))
 	{
 		inCompression = true ;
 		compressionDamage = 1 ; 
@@ -45,7 +45,7 @@ std::pair< Vector, Vector > FractionLinearDamage::computeDamageIncrement( Mu::El
 // 		compressionDamage = std::max(0., compressionDamage) ;
 	}
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
 	{
 		inTension = true ;
 
@@ -70,7 +70,7 @@ void FractionLinearDamage::computeDelta(const ElementState & s)
 	double compressionDamage = 0 ;
 	double tensionDamage = 0 ;
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
 	{
 		inCompression = true ;
 		compressionDamage = 1 ; 
@@ -80,7 +80,7 @@ void FractionLinearDamage::computeDelta(const ElementState & s)
 		// 		compressionDamage = std::max(0., compressionDamage) ;
 	}
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInTension)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(0))
 	{
 		inTension = true ;
 		

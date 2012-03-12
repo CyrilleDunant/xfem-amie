@@ -51,7 +51,7 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
 	double tensionDamagey = 0;
 	double tensionDamagez = 0;
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(1))
 	{
 		ret = 1 ;
 	}
@@ -102,7 +102,7 @@ void AnisotropicLinearDamage::computeDelta(const ElementState & s)
 	double tensionDamagey = 0;
 	double tensionDamagez = 0;
 	
-	if(s.getParent()->getBehaviour()->getFractureCriterion()->metInCompression)
+	if(s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(1))
 	{
 		ret = 1 ;
 	}

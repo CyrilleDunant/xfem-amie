@@ -23,10 +23,15 @@ namespace Mu {
 */
 class ConfinedMohrCoulomb : public FractureCriterion
 {
-
+	bool metInCompression  ;
+	bool metInTension  ;
 public:
 	double upVal ;
 	double downVal ;
+
+	
+	virtual bool directionInTension(size_t direction) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction) {return metInTension ;}
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)

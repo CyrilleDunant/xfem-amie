@@ -25,7 +25,13 @@ namespace Mu {
 class MaximumStrain : public FractureCriterion
 {
 	double upVal ;
+	bool metInCompression  ;
+	bool metInTension  ;
 public:
+	
+	virtual bool directionInTension(size_t direction) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction) {return metInTension ;}
+
 	/** \brief Constructor 
 	 * @param up Set the maximum strain. 
 	 */
