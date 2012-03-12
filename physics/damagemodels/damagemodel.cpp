@@ -110,7 +110,7 @@ void DamageModel::step( ElementState &s )
 
 		if(states.size() == 1)
 		{
-			trialRatio = 0 ;
+			trialRatio = 2.*damageDensityTolerance ;
 			getState( true ) = downState + ( upState - downState ) * 2.*damageDensityTolerance*effectiveDeltaFraction ;
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;
@@ -118,9 +118,7 @@ void DamageModel::step( ElementState &s )
 		}
 		if(states.size() == 2)
 		{
-			if(states[1].score < 0 /*||
-				states[1].proximity < 1e-5 && states[1].score < 1e-5
-			*/)
+			if(states[1].score < 0)
 			{
 				change = false ;
 				converged = true ;

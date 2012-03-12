@@ -175,7 +175,7 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 	
 	return OrthothropicStiffness( E_0, 
 																E_1, 
-																E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
+															 factor *E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
 																nu * ( 1. -  std::max(fs, ss)), 
 																currentAngle ).getTensor( Point() ) ;
 
