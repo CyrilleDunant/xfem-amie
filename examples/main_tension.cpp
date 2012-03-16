@@ -177,10 +177,10 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,4e-7) ;
- BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
+BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
-// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,1e6) ;
+// BoundingBoxDefinedBoundaryCondition * loadl = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
@@ -212,7 +212,7 @@ void step()
 		if(go_on)
 		{
 			loadr->setData(loadr->getData()+4e-7) ;
-			loadt->setData(loadt->getData()+4e-7) ;
+// 			loadt->setData(loadt->getData()+4e-7) ;
 // 			loadt->setData(0) ;
 		}
 // 		else if(go_on && v >= 3800)
@@ -1462,7 +1462,7 @@ int main(int argc, char *argv[])
 	double tensionCrit = .33*1000*sqrt(-compressionCrit) ;
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = 0.04 ; // .010 ;//
+	double mradius = 0.032 ; // .010 ;//
 	double nradius = mradius*5. ;
 // 	double mradius = .25 ;
 	double length =  0.3048 ; //1.300*.5;//
@@ -1552,7 +1552,7 @@ int main(int argc, char *argv[])
 	
 	step() ;
 	
-/*	glutInit(&argc, argv) ;	
+	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;
 	glutInitWindowSize(600, 600) ;
 	glutReshapeFunc(reshape) ;
@@ -1592,7 +1592,7 @@ int main(int argc, char *argv[])
 	glShadeModel(GL_SMOOTH);
 	
 	glutDisplayFunc(Display) ;
-	glutMainLoop() ;*/
+	glutMainLoop() ;
 	
 // 	delete dt ;
 	

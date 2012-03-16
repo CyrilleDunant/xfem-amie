@@ -1700,7 +1700,7 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498 / .4 ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.035; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.032; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1757,20 +1757,20 @@ int main( int argc, char *argv[] )
 	
 
 	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
-	rebar0.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
-// 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
 	Sample rebar1(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
-	rebar1.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
-// 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	
 	Sample rebar2(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 ) ;
-	rebar2.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
-// 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
 	Sample rebar3(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
-	rebar3.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
-// 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	
 
 	std::vector<Sample*> stirrups ;
