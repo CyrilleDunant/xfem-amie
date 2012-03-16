@@ -13,35 +13,36 @@ namespace Mu
 struct Phase
 {
 private:
-    Form * behaviour ;
+	Form * behaviour ;
 
 public:
-    Matrix C ;
-    Vector beta ;
-    std::vector<Vector> lambda ;
-    double volume ;
+	Matrix C ;
+	Vector beta ;
+	std::vector<Vector> lambda ;
+	double volume ;
 
-    Matrix A ;
+	Matrix A ;
 
 public:
-    Phase() ;
-    Phase(DelaunayTriangle * tri) ;
-    Phase(DelaunayTetrahedron * tet) ;
-    Phase(Feature * f) ;
+	Phase() ;
+	Phase(DelaunayTriangle * tri) ;
+	Phase(DelaunayTetrahedron * tet) ;
+	Phase(Feature * f) ;
 	Phase(Feature * f, DelaunayTriangle * tri) ;
+	Phase(Form * behaviour, double f) ;
 	Phase(const Phase & p) ;
 
-    virtual void apply() ;
-    Form * getBehaviour() ;
+	virtual void apply() ;
+	Form * getBehaviour() ;
 	
 	void print() ;
 
-    Phase & operator = (const Phase & p) ;
+	Phase & operator = (const Phase & p) ;
 
 private:
-    void stiffnessFromBehaviour() ;
-    void expansionFromBehaviour() ;
-    void ruptureFromBehaviour() ;
+	void stiffnessFromBehaviour() ;
+	void expansionFromBehaviour() ;
+	void ruptureFromBehaviour() ;
 
 };
 

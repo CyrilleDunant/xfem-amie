@@ -857,7 +857,7 @@ Function TriElement::jacobian() const
 	
 double  TriElement::jacobianAtPoint(const Mu::Point& p) const 
 {
-	p.print() ;
+//	p.print() ;
 	if(order < CONSTANT_TIME_LINEAR)
 	{
 		double xdxi = 0 ;//this->getdXTransform(XI,p) ;

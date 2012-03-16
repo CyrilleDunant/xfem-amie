@@ -16,6 +16,16 @@ Phase::Phase()
 	A = Matrix( 6, 6 ) ;
 }
 
+Phase::Phase( Form * b, double f)
+{
+	behaviour = b ;
+	volume = f ;
+	stiffnessFromBehaviour() ;
+	expansionFromBehaviour() ;
+	ruptureFromBehaviour() ;
+	A = Matrix( C.numRows(), C.numCols() ) ;
+}	
+
 Phase::Phase( DelaunayTriangle *tri )
 {
 	behaviour = tri->getBehaviour() ;
