@@ -27,7 +27,7 @@ class NonLocalMCFT : public FractureCriterion
 {
 
 	double getBareConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
-	double getRebarConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
+	double getRebarConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress, double value = 300) ;
 	double getConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
 	double getConcreteCompressiveCriterion(const ElementState & s, double pseudoYoung, double cstrain, double tstress, double cstress) ;
 	void initialise() ;
@@ -79,7 +79,7 @@ public:
  * @param up Maximum stress (tension)
  * @param down Minimum stress (compression)
 */
-NonLocalMCFT(double up, double down, double youngModulus, double charDistance, RedistributionType r = UPPER_BOUND, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	NonLocalMCFT(double down, double youngModulus, double charDistance, RedistributionType r = UPPER_BOUND, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 	virtual ~NonLocalMCFT();
 

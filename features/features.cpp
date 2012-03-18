@@ -5018,7 +5018,7 @@ bool FeatureTree::step()
 			break ;
 		}
 		
-	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) /*!stateConverged*/ && notConvergedCounts < 4 ) ;
+	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
 
 	if(notConvergedCounts >= 4)
 		ret = false ;

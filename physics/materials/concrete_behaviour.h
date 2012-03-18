@@ -18,7 +18,7 @@ namespace Mu
 	{
 		std::vector<std::pair<double, double> > rebarLocationsAndDiameters ;
 		RedistributionType rtype ;
-		ConcreteBehaviour(double E=37e9, double nu=0.3, double tensile=2e6, double compressive = -37e6, planeType pt = PLANE_STRESS, RedistributionType rtype = UPPER_BOUND,  SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0) ;
+		ConcreteBehaviour(double E=37e9, double nu=0.3, double compressive = -37e6, planeType pt = PLANE_STRESS, RedistributionType rtype = UPPER_BOUND,  SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0) ;
 		
 		virtual Form * getCopy() const ;
 		

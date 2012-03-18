@@ -56,7 +56,6 @@ Form * WeibullDistributedStiffness::getCopy() const
 	StiffnessAndFracture * ret = new StiffnessAndFracture(
 								Material::cauchyGreen(std::make_pair(E,nu), true,dim)*factor, 
 								new NonLocalMCFT(
-										up*factor,
 										down*factor ,
 										E,
 										materialRadius, UPPER_BOUND,
