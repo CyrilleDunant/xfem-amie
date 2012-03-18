@@ -140,11 +140,13 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 			else if(testVal < strain_ch)
 				factor = mainCurve ;
 			else if(testVal < strain_te)
+			{
 			  factor = mainCurve*(strain_te-testVal)/delta_tech ;
+			}
 			else
 				factor = 0 ;
 
-			if( testVal*pseudoYoung*modulusFactor > upVal*factor )
+			if( testVal*pseudoYoung*modulusFactor > upVal*factor*stressFactor )
 				upTestVal = testVal*pseudoYoung*modulusFactor ;
 			else
 				downTestVal = testVal*pseudoYoung*modulusFactor ;
@@ -216,12 +218,12 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 		}
 	}
 	
-	if(!inRebarInfluence)
-	{
-		return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
-	}
-	
- 	if(distanceToRebar < effectiveInfluenceDistance*.666666)
+// 	if(!inRebarInfluence)
+// 	{
+// 		return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
+// 	}
+// 	
+//  	if(distanceToRebar < effectiveInfluenceDistance*.666666)
  		return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
 
@@ -319,7 +321,7 @@ void NonLocalMCFT::initialise()
 	double stressFactor = 1 ;
 	double strainFactor = 1 ;
 	double energy = 75. ; //N/m
-	strain_ch = 2.*energy/(upVal*stressFactor) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
+	strain_ch = 2.*energy/(getMaterialCharacteristicRadius()*10.*upVal*stressFactor) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 	
 	if(strain_ch < tensionCritStrain)
 	{
