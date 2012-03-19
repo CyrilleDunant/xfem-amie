@@ -1505,11 +1505,11 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
 	
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRAIN , LOWER_BOUND)) ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRAIN , LOWER_BOUND)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-// 	samplef.setBehaviour(new PasteBehaviour()) ;
-// 	dynamic_cast<PasteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	samplef.setBehaviour(new PasteBehaviour()) ;
+	dynamic_cast<PasteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour() )->variability = 0.03 ;

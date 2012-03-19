@@ -156,7 +156,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 		maxTension = (upTestVal+downTestVal)*.5*scaleFactor/stressFactor ;
 		maxTensionStrain = (upTestVal+downTestVal)*.5/(pseudoYoung*modulusFactor*strainFactor) ;
 		
-		if(factor < POINT_TOLERANCE_2D || maxTensionStrain > strain_te/strainFactor)
+		if(factor < POINT_TOLERANCE_2D || maxTensionStrain > strain_te)
 			return 1. ;
 	}
 	
@@ -218,12 +218,12 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 		}
 	}
 	
-// 	if(!inRebarInfluence)
-// 	{
-// 		return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
-// 	}
-// 	
-//  	if(distanceToRebar < effectiveInfluenceDistance*.666666)
+ 	if(!inRebarInfluence)
+ 	{
+ 		return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
+ 	}
+ 	
+  	if(distanceToRebar < effectiveInfluenceDistance*.666666)
  		return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
 
