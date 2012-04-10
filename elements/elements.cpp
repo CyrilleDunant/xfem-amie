@@ -1931,6 +1931,40 @@ std::vector<size_t> ElementaryVolume::clearEnrichment(const Geometry * g)
 	return ret ;
 }
 
+std::vector<size_t> ElementarySurface::clearAllEnrichment()
+{
+	std::vector<size_t> ret ;
+	std::vector<Function> newFunc ;
+	std::vector<const Geometry *> newSource ;
+
+	for(size_t i = 0 ; i < enrichmentSource.size() ; i++)
+	{
+		ret.push_back(enrichfunc[i].getDofID());
+	}
+
+	enrichfunc = newFunc ;
+	enrichmentSource = newSource ;
+	
+	return ret ;
+}
+
+std::vector<size_t> ElementaryVolume::clearAllEnrichment()
+{
+	std::vector<size_t> ret ;
+	std::vector<Function> newFunc ;
+	std::vector<Geometry *> newSource ;
+
+	for(size_t i = 0 ; i < enrichmentSource.size() ; i++)
+	{
+		ret.push_back(enrichfunc[i].getDofID());
+	}
+
+	enrichfunc = newFunc ;
+	enrichmentSource = newSource ;
+	
+	return ret ;
+}
+
 std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 {
 	std::vector<size_t> ret ;

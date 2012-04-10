@@ -35,6 +35,7 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) = 0 ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) = 0 ;
 	void setData(double newval) { data = newval ;}
+	void setData(const Function & f) { dataFunction = f ;}
 	double getData() const { return data ;}
 	void clearCache()
 	{

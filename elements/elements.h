@@ -107,6 +107,7 @@ public:
 
 	virtual void compileAndPrecalculate();
 	virtual std::vector<size_t> clearEnrichment(const Geometry * g) ;
+	virtual std::vector<size_t> clearAllEnrichment() ;
 	
 } ;
 
@@ -238,6 +239,8 @@ public:
 	
 	virtual void compileAndPrecalculate();
 	virtual std::vector<size_t> clearEnrichment(const Geometry * g) ;
+	virtual std::vector<size_t> clearAllEnrichment() ;
+
 } ;
 
 

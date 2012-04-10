@@ -4,6 +4,7 @@
 //
 
 #include "crack.h"
+#include "../physics/fracturecriteria/fracturecriterion.h"
 
 #include <fstream>
 
@@ -14,7 +15,7 @@ BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : Enrichment
 	boundingPoints[0] = a ;
 	boundingPoints[1] = b ;
 	this->SegmentedLine::center = *a ;
-
+	scorePropagation = true ;
 	if(father->in(*a))
 		tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
 	if(father->in(*b))
@@ -33,6 +34,7 @@ bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
 
 BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), SegmentedLine(std::valarray<Point * >(2))
 {
+	scorePropagation = true ;
 	if(a->x < b->x)
 	{
 		boundingPoints[0] = a ;
@@ -1426,27 +1428,60 @@ bool BranchedCrack::enrichmentTarget(DelaunayTriangle* tri)
 	return enrichmentMap.find(tri) != enrichmentMap.end() ;
 }
 
+void BranchedCrack::setScorePropagationMethod()
+{
+	scorePropagation = true ;
+}
+	
+void BranchedCrack::setEnergyPropagationMethod()
+{
+	scorePropagation = false ;
+}
+
 void BranchedCrack::step(double dt, Vector* v, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
-	changed = false ;
 	return ;
+	changed = false ;
 	std::vector<Point *> tipsToGrow ; 
 	std::vector<double> angles ; 
-	for(size_t i = 0 ; i < tips.size() ; i++)
+	double pdistance = enrichementRadius * .5 ;
+	if(!scorePropagation)
 	{
-		std::pair<double, double> energy  = computeJIntegralAtTip(tips[i], dtree);
-		if(energy.first*energy.first + energy.second*energy.second > 0)
+		for(size_t i = 0 ; i < tips.size() ; i++)
 		{
-			tipsToGrow.push_back(tips[i].first) ;
-			changed = true ;
-			angles.push_back(propagationAngleFromTip(tips[i], dtree)) ;
+			std::pair<double, double> energy  = computeJIntegralAtTip(tips[i], dtree);
+			if(energy.first*energy.first + energy.second*energy.second > 0)
+			{
+				tipsToGrow.push_back(tips[i].first) ;
+				changed = true ;
+				angles.push_back(propagationAngleFromTip(tips[i], dtree)) ;
+			}
+		}
+	}
+	else
+	{
+		pdistance = -1 ;
+		for(size_t i = 0 ; i < tips.size() ; i++)
+		{
+			
+			DelaunayTriangle * tri = dtree->getUniqueConflictingElement(tips[i].first) ;
+			pdistance = std::max(tri->getRadius()*2.,pdistance) ;
+			double score = -1 ;
+			if(tri->getBehaviour()->getFractureCriterion())
+				score = tri->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
+			if(score > 0)
+			{
+				tipsToGrow.push_back(tips[i].first) ;
+				changed = true ;
+				angles.push_back(tri->getBehaviour()->getFractureCriterion()->getCurrentAngle()+M_PI*.5) ;
+			}
 		}
 	}
 	
 	for(size_t i = 0 ; i < tipsToGrow.size() ; i++)
 	{
-		grow(tipsToGrow[i], new Point(tipsToGrow[i]->x+enrichementRadius*.5*cos(angles[i]),
-		                              tipsToGrow[i]->y+enrichementRadius*.5* sin(angles[i]))) ;
+		grow(tipsToGrow[i], new Point(tipsToGrow[i]->x + pdistance * cos(angles[i]),
+																	tipsToGrow[i]->y + pdistance * sin(angles[i]))) ;
 	}
 }
 

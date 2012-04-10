@@ -680,7 +680,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->hasInducedForces() )
+					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->hasInducedForces() && triangles[i]->getBehaviour()->getDamageModel())
 					{
 						Vector dv = triangles[i]->getBehaviour()->getDamageModel()->getImposedStress(triangles[i]->getCenter());
 
@@ -782,7 +782,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			{
 				if( tri->getBehaviour() && tri->getBehaviour()->getFractureCriterion())
 				{
-					double d = std::min(tri->getBehaviour()->getFractureCriterion()->getScoreAtState(), 0.) ;
+					double d = tri->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 					ret[2] = d ;
 					ret[1] = d ;
 					ret[0] = d ;

@@ -3809,6 +3809,8 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 	case CIRCLE:
 		{
 			double a = vec.x*vec.x + vec.y*vec.y ;
+			if(a < POINT_TOLERANCE_2D)
+				return std::vector<Point>(0) ;
 			double dx = s.x-g->getCenter().x ;
 			double dy = s.y-g->getCenter().y ;
 			double b = 2.*(dx*vec.x + dy*vec.y );
@@ -3969,10 +3971,15 @@ bool Segment::on(const Point &p) const
 {
 	//origin is s
 
+	double ds = dist(s, p) ;
+	double df = dist(f, p) ;
+	
+	if(ds < 2.*POINT_TOLERANCE_2D || df < 2.*POINT_TOLERANCE_2D)
+		return true ;
 	if(!isAligned(p, f, s))
 		return false ;
 
-	return std::abs(dist(s, p)+dist(f, p) - dist(f, s)) < 2.*POINT_TOLERANCE_2D ;
+	return std::abs(ds + df - dist(f, s)) < 2.*POINT_TOLERANCE_2D ;
 	
 }
 

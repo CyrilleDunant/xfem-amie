@@ -4350,7 +4350,7 @@ bool FeatureTree::stepElements()
 
 			if( foundCheckPoint )
 			{
-				std::cout << "[" << averageDamage << "]" << std::flush ;
+				std::cout << "[" << averageDamage << " ; " << std::flush ;
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4361,6 +4361,7 @@ bool FeatureTree::stepElements()
 						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
 					}
 				}
+				std::cout << maxScore << "]" << std::flush ;
 			}
 			
 			double volume = 0;
@@ -4519,7 +4520,7 @@ bool FeatureTree::stepElements()
 
 			if( foundCheckPoint )
 			{
-				std::cout << "[" << averageDamage << "]" << std::flush ;
+				std::cout << "[" << averageDamage << " ; " << std::flush ;
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4530,6 +4531,7 @@ bool FeatureTree::stepElements()
 						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
 					}
 				}
+				std::cout << maxScore << "]" << std::flush ;
 			}
 			
 			double volume = 0;

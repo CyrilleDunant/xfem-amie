@@ -176,8 +176,9 @@ Vector angle( 0 ) ;
 MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
 MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", NULL ) ;
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -platewidth, platewidth, -10, 10, 0 ) ;
-// BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5)) ;
+Function loadFunction("0") ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth*1.5, -10, 10, loadFunction ) ;
+//  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
 GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition( SET_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -9025.2 ) ;
@@ -279,15 +280,22 @@ void step()
 		x_max = 0 ;
 		y_min = 0 ;
 		x_min = 0 ;
-		tries = 0 ;
 		double appliedForce = 2.*.4*load->getData()*platewidth / 1000. ;
-		tries++ ;
+		
 		bool go_on = true ;
 
 		go_on = featureTree->step() ;
 
 		if ( go_on )
-			load->setData( load->getData() - 6e-3/300./*1e5*/ ) ;
+		{
+			tries++ ;
+			Function x("x") ;
+			Function f = (x-platewidth)/platewidth ;
+			Function df = 3.*f*f-2.*f*f*f ;
+			loadFunction = f_negativity(x-platewidth*.5)*(-4e4*tries) - f_positivity(x-platewidth*.5)*4e4*tries*(1.-df) ;
+			load->setData( loadFunction ) ;
+			
+		}
 
 		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements().size() ) ;
@@ -1699,7 +1707,7 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498 / .4 ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.032; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.038; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 	
 	Matrix m0_steelx( 3, 3 ) ;
@@ -1733,7 +1741,7 @@ int main( int argc, char *argv[] )
 	double halfSampleOffset = sampleLength*.25 ;
 	
 	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
-	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,0), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
 
 	Sample box( NULL, sampleLength*.5+ plateHeight*2, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
@@ -1743,13 +1751,13 @@ int main( int argc, char *argv[] )
 	Sample samplestirrupbulk( NULL, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
 	
 	Sample topsupport( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
-	topsupport.setBehaviour( new Stiffness( m0_paste*.15 ) ) ;
+	topsupport.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
 
 	Sample topsupportbulk( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
-	topsupportbulk.setBehaviour( new Stiffness( m0_paste*.15 ) ) ;
+	topsupportbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
 
 	Sample topsupportstirrupbulk( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
-	topsupportstirrupbulk.setBehaviour( new Stiffness( m0_paste*.15 ) ) ;
+	topsupportstirrupbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
 
 	Sample toprightvoid( NULL, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
 	toprightvoid.setBehaviour( new VoidForm() ) ;
@@ -1807,11 +1815,12 @@ int main( int argc, char *argv[] )
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	sample.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
+	
 	
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	samplestirrupbulk.isVirtualFeature = true ;

@@ -85,7 +85,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 	{
 		es = &s ;
-		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+// 		if(getState().max() < POINT_TOLERANCE_2D)
+			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 // 		if(!fractured())
 
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
@@ -171,12 +172,10 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 		E_1 *= ( 1. - ss ) ;
 	}
 	
-
-	
 	return OrthothropicStiffness( E_0, 
 																E_1, 
-															 factor *E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
-																nu * ( 1. -  std::max(fs, ss)), 
+																factor * E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
+																nu * ( 1. -  std::max(getState()[1], getState()[2])), 
 																currentAngle ).getTensor( Point() ) ;
 
 
@@ -229,14 +228,14 @@ bool RotatingCrack::fractured() const
 	if ( fraction < 0 )
 		return false ;
 
-	if(firstTension && firstTensionFailure)
-		return true ;
-	if(!firstTension && firstCompressionFailure)
-		return true ;
-	if(secondTension && secondTensionFailure)
-		return true ;
-	if(!secondTension && secondCompressionFailure)
-		return true ;
+// 	if(firstTension && firstTensionFailure)
+// 		return true ;
+// 	if(!firstTension && firstCompressionFailure)
+// 		return true ;
+// 	if(secondTension && secondTensionFailure)
+// 		return true ;
+// 	if(!secondTension && secondCompressionFailure)
+// 		return true ;
 	
  return getState().min() >= thresholdDamageDensity ;
 }

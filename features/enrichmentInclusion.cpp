@@ -228,13 +228,14 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		{
 			disc[i]->setBehaviour(dynamic_cast<HomogeneizedBehaviour *>(disc[i]->getBehaviour())->original) ;
 		}*/
-	
+		disc[i]->clearAllEnrichment() ;
 		Segment s0(*disc[i]->first, *disc[i]->second) ;
 		Segment s1(*disc[i]->second, *disc[i]->third) ;
 		Segment s2(*disc[i]->third, *disc[i]->first) ;
 		if(!(s0.intersection(getPrimitive()).empty() && s1.intersection(getPrimitive()).empty() && s2.intersection(getPrimitive()).empty())&& disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 		{
-			ring.push_back(disc[i]) ;
+			if(!(in(*disc[i]->first) && in(*disc[i]->second) && in(*disc[i]->third)))
+				ring.push_back(disc[i]) ;
 		}
 	}
 	//then we build a list of points to enrich
@@ -244,6 +245,11 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
 			points.insert(&ring[i]->getBoundingPoint(j)) ;
+		}
+		ring[i]->enrichmentUpdated = false ;
+		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+		{
+			ring[i]->getNeighbourhood(j)->enrichmentUpdated = false ;
 		}
 	}
 

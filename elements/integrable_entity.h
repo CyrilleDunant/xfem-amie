@@ -408,6 +408,7 @@ public:
 	
 	virtual void compileAndPrecalculate() = 0 ;
 	virtual std::vector<size_t> clearEnrichment(const Geometry * g) = 0 ;
+	virtual std::vector<size_t> clearAllEnrichment() = 0;
 	virtual const std::vector< size_t > getDofIds() const = 0;
 	
 	virtual Form * getBehaviour() const = 0;

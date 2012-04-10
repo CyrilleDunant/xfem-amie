@@ -66,6 +66,8 @@ protected:
 	std::pair<double, double> computeJIntegralAtTip ( std::pair< Mu::Point*, double >& tip, const Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree ) ;
 	std::set<Point *> donePoints ;
 	
+	bool scorePropagation ; 
+	
 public:
 	
 	/** \brief Instantiate a branching crack.
@@ -194,6 +196,12 @@ public:
 
 	virtual ~BranchedCrack() ;
 		
+	
+	/** \brief if the crack grows if the fracture criterion in the tip element is met*/
+	void setScorePropagationMethod() ;
+	
+	/** \brief if the crack grows if the J integral reaches a certain value*/
+	void setEnergyPropagationMethod() ;
 	
 public:
 	GEO_DERIVED_OBJECT(SegmentedLine) ;

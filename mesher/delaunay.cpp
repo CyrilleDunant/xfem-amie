@@ -965,8 +965,20 @@ void DelaunayTreeItem::removeNeighbour(DelaunayTreeItem * t)
 	if(e !=  &neighbour[neighbour.size()])
 	{
 		std::valarray<unsigned int>  newneighbours(neighbour.size()-1) ;
+		int iterator = 0 ;
+		for(int i = 0 ; i < neighbour.size() ; i++)
+		{
+			if(neighbour[i] == t->index)
+				continue ;
+			
+			newneighbours[iterator] = neighbour[i] ;
+			iterator++ ;
+		}
+/*		
+		
 		std::copy(&neighbour[0], e, &newneighbours[0]) ;
-		std::copy(e+1, &neighbour[neighbour.size()], &newneighbours[e-&neighbour[0]]) ;
+		if(e+1 != &neighbour[neighbour.size()])
+			std::copy(e+1, &neighbour[neighbour.size()], &newneighbours[e-&neighbour[0]]) ;*/
 		neighbour.resize(neighbour.size()-1) ;
 		neighbour = newneighbours ;
 	}
@@ -2550,7 +2562,8 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 	to_add.push_back(new Point(0,1)) ;
 	to_add.push_back(new Point(0,0)) ;
 	to_add.push_back(new Point(1,0)) ;
-	
+	return to_add ;
+	Triangle tf ;
 
 // 	std::vector<std::vector<Segment> > segments ;
 // 	
@@ -2607,8 +2620,10 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 			bool go = true ;
 			for(int k = 0 ; k < to_add.size()  ; k++ )
 			{
+				Point pr = *to_add[k] ;
+				tf.project(&pr) ;
 				if(dist(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k]) 
-					< 0.001)
+					< 0.001 || (dist(*to_add[k], pr) < 0.1 && dist(*to_add[k], pr) > 2.*POINT_TOLERANCE_2D))
 				{
 					go = false ;
 					break ;
@@ -2631,7 +2646,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		return *getCachedGaussPoints() ;
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 3;
+	size_t numberOfRefinements = 2;
 	
 	double tol = 1e-8 ;
 	double position_tol = 4.*POINT_TOLERANCE_2D ;

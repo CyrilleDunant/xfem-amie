@@ -110,8 +110,8 @@ void DamageModel::step( ElementState &s )
 
 		if(states.size() == 1)
 		{
-			trialRatio = 2.*damageDensityTolerance ;
-			getState( true ) = downState + ( upState - downState ) * 2.*damageDensityTolerance*effectiveDeltaFraction ;
+			trialRatio = 4.*damageDensityTolerance ;
+			getState( true ) = downState + ( upState - downState ) * trialRatio * effectiveDeltaFraction ;
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;
 			return ;

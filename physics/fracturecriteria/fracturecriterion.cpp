@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(1e-2),
+scoreTolerance(.5e-2),
 initialScore(1),
 cachedInfluenceRatio(1),
 currentAngle(0),
@@ -359,7 +359,6 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 	else
 		return cachedInfluenceRatio ;
 	}
-
 
 void FractureCriterion::initialiseFactors(const ElementState & s)
 {
@@ -959,8 +958,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 // 				fractureDistance = sqrt(std::inner_product(&dstate[0], &dstate[dstate.size()], &dstate[0], 0.)) ;
 // 			}
 			
-			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->fractured())
-				iteratorValue = 0 ;
+// 			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->fractured())
+// 				iteratorValue = 0 ;
 
 // 			iteratorValue *= 1.-fractureDistance ;
 			
@@ -976,20 +975,28 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					stra += tmpstra*iteratorValue ;
 					str += tmpstr*iteratorValue ;
 					
-          if(m == EFFECTIVE_STRESS)
-          {
+					if(m == EFFECTIVE_STRESS)
+					{
 						ci->getState().getStressAndStrainAtCenter(tmpstr, tmpstra, EFFECTIVE_STRESS) ;
 						estr += tmpstr*iteratorValue ;
-          }
+					}
 					
 				}
+// 				else
+// 				{
+// 				  stra += tmpstra*iteratorValue ;
+// 				}
 				
 			}
 
 			if(ci->getBehaviour()->getDamageModel())
 			{
-				sumStrainFactors += iteratorValue ;
-				sumStressFactors += iteratorValue ;
+				
+				if(!ci->getBehaviour()->fractured())
+				{
+					sumStrainFactors += iteratorValue ;
+				  sumStressFactors += iteratorValue ;
+				}
 			}
 		}
 
@@ -1005,34 +1012,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 		if(m == REAL_STRESS)
 		{
-// 			str = stra*s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()) ;
-// 			if(std::abs(str[0]-str[1]) > POINT_TOLERANCE_2D)
-// 			{
-// 				currentAngle =  0.5*atan2( str[2], str[0] - str[1] ) ;
-// 				if(currentAngle < 0)
-// 					currentAngle += M_PI ;
-// 			}
-// 			else if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
-// 			{
-// 				currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
-// 				if(currentAngle < 0)
-// 					currentAngle += M_PI ;
-// 			}
 			return std::make_pair(str, stra) ;
 		}
-// 		estr = stra*s.getParent()->getBehaviour()->param ;
-// 		if(std::abs(estr[0]-estr[1]) > POINT_TOLERANCE_2D)
-// 		{
-// 			currentAngle =  0.5*atan2( estr[2], estr[0] - estr[1] ) ;
-// 			if(currentAngle < 0)
-// 				currentAngle += M_PI ;
-// 		}
-// 		else if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
-// 		{
-// 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
-// 			if(currentAngle < 0)
-// 				currentAngle += M_PI ;
-// 		}
 		return std::make_pair(estr, stra) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )

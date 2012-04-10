@@ -670,12 +670,14 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			A[1][0] = 0 ; A[1][1] = 1. ;
 			Vector b(2) ; b[0] = 0 ; b[1] = nu ;
 			b = inverse2x2Matrix(A)*b ;
-			double nu_12 = b[0];
-			double nu_21 = b[1] ;
+			double nu_12 = b[1];
+			double nu_21 = b[0] ;
 
 			double gamma = 1./(1.-nu_12*nu_21) ;
 			cg[0][0] = E_1*gamma ; cg[0][1] = nu_21*E_1*gamma ;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*gamma ;
+			
+			G = E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)) ;
 			
 			cg[2][2] = G ;
 		}
@@ -687,7 +689,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			double gamma = 1./(1.-nu_12*nu_21) ;
 			cg[0][0] = E_1*gamma ; cg[0][1] = 0 ;
 			cg[1][0] = 0 ;         cg[1][1] = 0 ;
-			
+			G = E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)) ;
 			cg[2][2] = G ;
 		}
 		else if(E_2 > POINT_TOLERANCE_2D)
@@ -698,7 +700,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			double gamma = 1./(1.-nu_12*nu_21) ;
 			cg[0][0] = 0 ; cg[0][1] = 0 ;
 			cg[1][0] = 0 ; cg[1][1] = E_2*gamma ;
-			
+			G = E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)) ;
 			cg[2][2] = G ;
 		}
 		else
@@ -713,13 +715,13 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			A[1][0] = 0 ; A[1][1] = 1. ;
 			Vector b(2) ; b[0] = 0 ; b[1] = nu ;
 			b = inverse2x2Matrix(A)*b ;
-			double nu_12 = b[0];
-			double nu_21 = b[1] ;
+			double nu_12 = b[1];
+			double nu_21 = b[0] ;
 			
 			double gamma = 1./(1.-nu_12*nu_21) ;
 			cg[0][0] = E_1*gamma ; cg[0][1] = nu_21*E_1*gamma ;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*gamma ;
-			
+			G = E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)) ;
 			cg[2][2] = G ;
 		}
 		else if(E_1 > POINT_TOLERANCE_2D)
@@ -730,7 +732,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			double gamma = 1./(1.-nu_12*nu_21) ;
 			cg[0][0] = E_1*gamma ; cg[0][1] = 0 ;
 			cg[1][0] = 0 ;         cg[1][1] = 0 ;
-			
+			G = E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)) ;
 			cg[2][2] = G ;
 		}
 		else if(E_2 > POINT_TOLERANCE_2D)
@@ -741,7 +743,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			double gamma = 1./(1.-nu_12*nu_21) ;
 			cg[0][0] = 0 ; cg[0][1] = 0 ;
 			cg[1][0] = 0 ; cg[1][1] = E_2*gamma ;
-			
+			G = E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)) ;
 			cg[2][2] = G ;
 		}
 		else
