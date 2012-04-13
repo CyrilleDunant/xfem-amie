@@ -312,14 +312,16 @@ void step()
 				if(triangles[k]->getBehaviour()->getTensor(triangles[k]->getCenter())[0][0] < E_min)
 					E_min = triangles[k]->getBehaviour()->getTensor(triangles[k]->getCenter())[0][0] ;
 			}
-			Vector pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getCenter()) ;
-			Vector se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getCenter()) ;
+			
+			Vector se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(0)) ;
 			sigma11[k*npoints] = se[0] ;//sigma[k*npoints*3];
 			sigma22[k*npoints] = se[1] ;//sigma[k*npoints*3+1];
 			sigma12[k*npoints] = sigma[k*npoints*3+2];
+			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(1)) ;
 			sigma11[k*npoints+1] = se[0] ;//sigma[k*npoints*3+3];
 			sigma22[k*npoints+1] = se[1] ;//sigma[k*npoints*3+4];
 			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
+			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(2)) ;
 			sigma11[k*npoints+2] = se[0] ;//sigma[k*npoints*3+6];
 			sigma22[k*npoints+2] = se[1] ;//[k*npoints*3+7];
 			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
@@ -336,13 +338,15 @@ void step()
 				sigma22[k*npoints+5] = sigma[k*npoints*3+16];
 				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
 			}
-			
+			Vector pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(0)) ;
 			epsilon11[k*npoints] = pe[0] ;//epsilon[k*npoints*3];
 			epsilon22[k*npoints] = pe[1] ;// epsilon[k*npoints*3+1];
 			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
+			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(1)) ;
 			epsilon11[k*npoints+1] = pe[0] ;//epsilon[k*npoints*3+3];
 			epsilon22[k*npoints+1] = pe[1] ;//epsilon[k*npoints*3+4];
 			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
+			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(2)) ;
 			epsilon11[k*npoints+2] = pe[0] ;//epsilon[k*npoints*3+6];
 			epsilon22[k*npoints+2] = pe[1] ;//epsilon[k*npoints*3+7];
 			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
@@ -1509,8 +1513,8 @@ int main(int argc, char *argv[])
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRAIN , LOWER_BOUND)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
-// 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
+// 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
+		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
 // 	samplef.setBehaviour(new PasteBehaviour()) ;
 // 	dynamic_cast<PasteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
@@ -1539,18 +1543,18 @@ int main(int argc, char *argv[])
 // 	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
 // 	F.addFeature(NULL,&toprightvoid) ;
 
-	BranchedCrack * bc = new BranchedCrack(new Point(0, samplef.height()*.25), new Point(0, -samplef.height()*.25));
-	bc->setEnrichementRadius(samplef.height()*0.03) ;
+	BranchedCrack * bc = new BranchedCrack(new Point(0, samplef.height()*.15), new Point(0, -samplef.height()*.15));
+	bc->setEnrichementRadius(samplef.height()*0.) ;
 	F.addFeature(&sample, bc) ; //add the crack to the feature tree
 	
-	BranchedCrack * bd = new BranchedCrack(new Point(samplef.height()*.25, 0), new Point(-samplef.height()*.25, 0));
-	bd->setEnrichementRadius(samplef.height()*0.03) ;
+	BranchedCrack * bd = new BranchedCrack(new Point(samplef.height()*.15, 0), new Point(-samplef.height()*.15, 0));
+	bd->setEnrichementRadius(samplef.height()*0.) ;
 	F.addFeature(&sample, bd) ; //add the crack to the feature tree
 	
 	Vector def(3) ; 
 	def[0] = 0.1 ;
 	def[1] = 0.1 ;
-	F.addFeature(&sample, new ExpansiveZone(&sample, samplef.height()*0.05, 0, 0, m0_paste, def)) ;
+	F.addFeature(&sample, new ExpansiveZone(&sample, samplef.height()*0.05, 0, 0, m0_paste*.5, def)) ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
@@ -1582,12 +1586,12 @@ int main(int argc, char *argv[])
 	int submenu = glutCreateMenu(Menu) ;
 	
 	glutAddMenuEntry(" Displacements ", ID_DISP);
-	glutAddMenuEntry(" Strain (s) xx ", ID_STRAIN_XX);
-	glutAddMenuEntry(" Strain (s) yy ", ID_STRAIN_YY);
-	glutAddMenuEntry(" Strain (s) xy ", ID_STRAIN_XY);
-	glutAddMenuEntry(" Stress (e) xx ", ID_STRESS_XX);
-	glutAddMenuEntry(" Stress (e) yy ", ID_STRESS_YY);
-	glutAddMenuEntry(" Stress (e) xy ", ID_STRESS_XY);
+	glutAddMenuEntry(" Stress (s) xx ", ID_STRAIN_XX);
+	glutAddMenuEntry(" Stress (s) yy ", ID_STRAIN_YY);
+	glutAddMenuEntry(" Stress (s) xy ", ID_STRAIN_XY);
+	glutAddMenuEntry(" Strain (e) xx ", ID_STRESS_XX);
+	glutAddMenuEntry(" Strain (e) yy ", ID_STRESS_YY);
+	glutAddMenuEntry(" Strain (e) xy ", ID_STRESS_XY);
 	glutAddMenuEntry(" Elements      ", ID_ELEM);
 	glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
 	glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);

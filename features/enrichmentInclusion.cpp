@@ -228,15 +228,14 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		{
 			disc[i]->setBehaviour(dynamic_cast<HomogeneizedBehaviour *>(disc[i]->getBehaviour())->original) ;
 		}*/
-		disc[i]->clearAllEnrichment() ;
 		Segment s0(*disc[i]->first, *disc[i]->second) ;
 		Segment s1(*disc[i]->second, *disc[i]->third) ;
 		Segment s2(*disc[i]->third, *disc[i]->first) ;
-		if(!(s0.intersection(getPrimitive()).empty() && s1.intersection(getPrimitive()).empty() && s2.intersection(getPrimitive()).empty())&& disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-		{
+// 		if(!(s0.intersection(getPrimitive()).empty() && s1.intersection(getPrimitive()).empty() && s2.intersection(getPrimitive()).empty())&& disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+// 		{
 			if(!(in(*disc[i]->first) && in(*disc[i]->second) && in(*disc[i]->third)))
 				ring.push_back(disc[i]) ;
-		}
+// 		}
 	}
 	//then we build a list of points to enrich
 	std::set<Point *> points ;
@@ -262,6 +261,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	}
 	
 	std::set<std::pair<DelaunayTriangle *, Point *> > enriched ;
+	std::set<DelaunayTriangle *> enrichedElem;
 	//then we iterate on every element
 	Order order = LINEAR ;
 	if(!ring.empty())
@@ -270,6 +270,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	std::map<Point*, size_t> extradofs ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
+		enrichedElem.insert(ring[i]) ;
 		std::vector<Point> hint ;
 		std::vector<Point> inter = intersection(ring[i]->getPrimitive()) ;
 		
@@ -315,6 +316,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
+			enrichedElem.insert(t) ;
 			if(std::binary_search(ring.begin(), ring.end(), t) )
 				continue ;
 			
@@ -370,6 +372,12 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 				}
 			}
 		}
+	}
+	
+	for(size_t i = 0 ; i < disc.size() ; i++)
+	{
+		if(enrichedElem.find(disc[i]) == enrichedElem.end())
+			disc[i]->clearAllEnrichment() ;
 	}
 //	updated = true ;
 }

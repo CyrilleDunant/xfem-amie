@@ -341,9 +341,9 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv , StressCalcu
 			y_eta += parent->getShapeFunction( j ).d( ETA ) * displacements[j * 2 + 1] ;
 		}
 
-		temp[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] - parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[0];
-		temp[2][0] = ( x_xi * Jinv[1][0] + x_eta * Jinv[1][1] + y_xi * Jinv[0][0] + y_eta * Jinv[0][1] ) * 0.5 - parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[2];
-		temp[1][0] = y_xi * Jinv[1][0] + y_eta * Jinv[1][1] - parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[1];
+		temp[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] ;
+		temp[2][0] = ( x_xi * Jinv[1][0] + x_eta * Jinv[1][1] + y_xi * Jinv[0][0] + y_eta * Jinv[0][1] ) * 0.5 ;
+		temp[1][0] = y_xi * Jinv[1][0] + y_eta * Jinv[1][1] ;
 
 		Matrix cg( parent->getBehaviour()->getTensor( getParent()->getCenter() ) ) ;
 
@@ -387,27 +387,27 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv , StressCalcu
 			z_zeta += parent->getShapeFunction( j ).d( ZETA ) * displacements[j * 3 + 2] ;
 		}
 
-		temp[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] + x_zeta * Jinv[0][2]- parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[0];
-		temp[1][0] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2]- parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[1];
-		temp[2][0] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2]- parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[2];
+		temp[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] + x_zeta * Jinv[0][2];
+		temp[1][0] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+		temp[2][0] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
 		temp[3][0] = ( ( y_xi ) * Jinv[2][0] +
 		               ( y_eta ) * Jinv[2][1] +
 		               ( y_zeta ) * Jinv[2][2] +
 		               ( z_xi ) * Jinv[1][0] +
 		               ( z_eta ) * Jinv[1][1] +
-		               ( z_zeta ) * Jinv[1][2] ) * .5- parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[3];
+		               ( z_zeta ) * Jinv[1][2] ) * .5;
 		temp[4][0] = ( ( x_xi ) * Jinv[2][0] +
 		               ( x_eta ) * Jinv[2][1] +
 		               ( x_zeta ) * Jinv[2][2] +
 		               ( z_xi ) * Jinv[0][0] +
 		               ( z_eta ) * Jinv[0][1] +
-		               ( z_zeta ) * Jinv[0][2] ) * .5- parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[4];
+		               ( z_zeta ) * Jinv[0][2] ) * .5;
 		temp[5][0] = ( ( y_xi )  * Jinv[0][0] +
 		               ( y_eta )  * Jinv[0][1] +
 		               ( y_zeta ) * Jinv[0][2] +
 		               ( x_xi )   * Jinv[1][0] +
 		               ( x_eta )  * Jinv[1][1] +
-		               ( x_zeta ) * Jinv[1][2] ) * .5- parent->getBehaviour()->getImposedStrain(getParent()->getCenter())[5];
+		               ( x_zeta ) * Jinv[1][2] ) * .5;
 
 		Matrix cg( parent->getBehaviour()->getTensor( getParent()->getCenter() ) ) ;
 
@@ -1243,7 +1243,7 @@ Vector ElementState::getPreviousStress( const Point &p, bool local, StressCalcul
 		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 		lstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
-		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
+// 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 		Matrix cg( parent->getBehaviour()->getPreviousTensor( p_ ) ) ;
 
 		if(m == REAL_STRESS)
@@ -1339,7 +1339,7 @@ Vector ElementState::getPreviousStress( const Point &p, bool local, StressCalcul
 
 		Matrix cg( parent->getBehaviour()->getPreviousTensor( p_ ) ) ;
 
-		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
+// 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 		if(m == REAL_STRESS)
 			return lstrain * cg ;
 		return lstrain * parent->getBehaviour()->param ;
@@ -1404,7 +1404,7 @@ Vector ElementState::getStress( const Point &p, bool local, StressCalculationMet
 		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 		lstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
-		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
+// 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 
 		if(m == REAL_STRESS)
 			return lstrain * parent->getBehaviour()->getTensor( p_ ) ;
@@ -1496,7 +1496,7 @@ Vector ElementState::getStress( const Point &p, bool local, StressCalculationMet
 		                     ( x_xi )   * Jinv[1][0] +
 		                     ( x_eta )  * Jinv[1][1] +
 		                     ( x_zeta ) * Jinv[1][2] );
-		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
+// 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
@@ -1564,9 +1564,9 @@ void ElementState::getStressAndStrain(const Point & p, Vector & stress, Vector &
 		strain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 
 		if(m == REAL_STRESS)
-			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) *  parent->getBehaviour()->getTensor( p_ ) ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) *  parent->getBehaviour()->getTensor( p_ ) ;
 		else
-			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->param ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->param ;
 	}
 	else if( parent->getBehaviour() && parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
@@ -1655,9 +1655,9 @@ void ElementState::getStressAndStrain(const Point & p, Vector & stress, Vector &
 		                     ( x_zeta ) * Jinv[1][2] );
 
 		if(m == REAL_STRESS)
-			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->getTensor( p_ ) ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->getTensor( p_ ) ;
 		else
-			stress = (strain-parent->getBehaviour()->getImposedStrain(p_)) * parent->getBehaviour()->param ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->param ;
 	}
 }
 
@@ -1697,7 +1697,7 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local, StressCal
 		lstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 		lstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 		lstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
-		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
+// 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 
 		if(m == REAL_STRESS )
 			return lstrain * parent->getBehaviour()->getTensor( p_ ) ;
@@ -1770,7 +1770,7 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local, StressCal
 		                     ( x_xi )   * Jinv[1][0] +
 		                     ( x_eta )  * Jinv[1][1] +
 		                     ( x_zeta ) * Jinv[1][2] );
-		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
+// 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		if(m == REAL_STRESS )
@@ -2055,7 +2055,7 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts, StressCalc
 			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 			llstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 			if(m == REAL_STRESS)
 				llstrain = llstrain * cg;
 			else
@@ -2168,7 +2168,7 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts, StressCalc
 			                      ( x_xi ) * Jinv[1][0] +
 			                      ( x_eta ) * Jinv[1][1] +
 			                      ( x_zeta ) * Jinv[1][2] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 
 			if(m == REAL_STRESS)
 				llstrain = llstrain * cg ;
@@ -2443,7 +2443,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 			llstrain[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 			llstrain[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 			llstrain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
 
 			if(m == REAL_STRESS)
 				llstrain = llstrain * cg ;
@@ -2557,7 +2557,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 			                      ( x_xi ) * Jinv[1][0] +
 			                      ( x_eta ) * Jinv[1][1] +
 			                      ( x_zeta ) * Jinv[1][2] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
 
 			if(m == REAL_STRESS)
 				llstrain = llstrain * cg ;
@@ -2815,7 +2815,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 			llstrain[0] = ( x_xi ) * Jinv[i][0][0] + ( x_eta ) * Jinv[i][0][1] ;
 			llstrain[1] = ( y_xi ) * Jinv[i][1][0] + ( y_eta ) * Jinv[i][1][1] ;
 			llstrain[2] = 0.5 * ( ( x_xi ) * Jinv[i][1][0] + ( x_eta ) * Jinv[i][1][1]  + ( y_xi ) * Jinv[i][0][0] + ( y_eta ) * Jinv[i][0][1] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
 
 			if(m == REAL_STRESS)
 				llstrain = llstrain * cg ;
@@ -2917,7 +2917,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 			                      ( x_xi ) * Jinv[i][1][0] +
 			                      ( x_eta ) * Jinv[i][1][1] +
 			                      ( x_zeta ) * Jinv[i][1][2] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(pts[i].first) ;
 
 			if(m == REAL_STRESS)
 				llstrain = llstrain * cg ;
@@ -3197,7 +3197,7 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts, StressCalcula
 			llstrain[0] = ( x_xi + delta_x_xi ) * Jinv[0][0] + ( x_eta + delta_x_eta ) * Jinv[0][1] ;
 			llstrain[1] = ( y_xi + delta_y_xi ) * Jinv[1][0] + ( y_eta + delta_y_eta ) * Jinv[1][1] ;
 			llstrain[2] = 0.5 * ( ( x_xi + delta_x_xi ) * Jinv[1][0] + ( x_eta + delta_x_eta ) * Jinv[1][1]  + ( y_xi + delta_y_xi ) * Jinv[0][0] + ( y_eta + delta_y_eta ) * Jinv[0][1] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 
 			if(m == REAL_STRESS)
 				llstrain = llstrain * cg ;
@@ -3339,7 +3339,7 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts, StressCalcula
 			                      ( x_xi ) * Jinv[1][0] +
 			                      ( x_eta ) * Jinv[1][1] +
 			                      ( x_zeta ) * Jinv[1][2] );
-			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 			llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 
 
 			if(m == REAL_STRESS)
@@ -4376,12 +4376,6 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 
 	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 && parent->getBehaviour()->type != VOID_BEHAVIOUR )
 	{
-		if( parent->getBehaviour()->type == VOID_BEHAVIOUR )
-		{
-			std::cout << "void triangle" << std::endl ;
-			return std::pair<Vector, Vector>( Vector( 0., 3 * pts.size() ), Vector( 0., 3 * pts.size() ) ) ;
-		}
-
 		std::vector<Point> p_ ;
 
 		for( size_t i = 0 ; i < pts.size() ; i++ )
@@ -4443,7 +4437,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 				lstrain[i * 3 + 0] = llstrain[0] ;
 				lstrain[i * 3 + 1] = llstrain[1] ;
 				lstrain[i * 3 + 2] = llstrain[2] ;
-				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 				if(m == REAL_STRESS)
 					llstrain = llstrain * cg ;
 				else
@@ -4574,7 +4568,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 				lstrain[i * 6 + 3] = llstrain[3] ;
 				lstrain[i * 6 + 4] = llstrain[4] ;
 				lstrain[i * 6 + 5] = llstrain[5] ;
-				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 
 				if(m == REAL_STRESS)
 					llstrain = llstrain * cg ;
@@ -4732,7 +4726,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 				lstrain[i * 3 + 0] = llstrain[0] ;
 				lstrain[i * 3 + 1] = llstrain[1] ;
 				lstrain[i * 3 + 2] = llstrain[2] ;
-				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 
 				if(m == REAL_STRESS)
 					llstrain = llstrain * cg ;
@@ -4864,7 +4858,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 				lstrain[i * 6 + 3] = llstrain[3] ;
 				lstrain[i * 6 + 4] = llstrain[4] ;
 				lstrain[i * 6 + 5] = llstrain[5] ;
-				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
+// 				llstrain -= parent->getBehaviour()->getImposedStrain(p_[i]) ;
 
 				if(m == REAL_STRESS)
 					llstrain = llstrain * cg ;

@@ -87,11 +87,15 @@ void DamageModel::step( ElementState &s )
 			downState = damageIncrement.first;
 			upState = damageIncrement.second;
 
+// 			for(size_t i = 0 ; i < upState.size() ; i++)
+// 				upState[i] = std::min(upState[i], 1.-2.*thresholdDamageDensity) ;
 // 			std::cout << "0'   "<< score << std::endl ;
 // 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
 			trialRatio = 1 ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio*effectiveDeltaFraction  ;
 			
+ 			for(size_t i = 0 ; i < upState.size() ; i++)
+					getState( true )[i] = std::min(getState( true )[i], 1.-2.*thresholdDamageDensity) ;
 		}
 		else
 		{
@@ -110,10 +114,8 @@ void DamageModel::step( ElementState &s )
 
 		if(states.size() == 1)
 		{
-			trialRatio = 4.*damageDensityTolerance ;
+			trialRatio = 2.*damageDensityTolerance ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio * effectiveDeltaFraction ;
-			for(size_t i = 0 ; i <  state.size() ; i++)
-				state[i] = std::min(state[i], 1.) ;
 			return ;
 		}
 		if(states.size() == 2)
@@ -213,7 +215,6 @@ void DamageModel::step( ElementState &s )
 			&& (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)
 		)
 		{
-
 // 			std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index<< "  "<< getState().max() << "   "<< score << std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{

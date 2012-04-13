@@ -1449,7 +1449,7 @@ public:
 	virtual void eval(Context & context) const
 	{
 		double s = sign(*context.memory.top_pos) ;
-		if(s > 0)
+		if(s >= 0)
 			*context.memory.top_pos = 1 ;
 		else
 			*context.memory.top_pos = 0 ;

@@ -663,6 +663,7 @@ const std::vector<SegmentedLine *> & BranchedCrack::getBranches() const
 
 void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt)
 {
+	return ;
 	for(size_t i =  0 ; i < tips.size(); i++)
 	{
 		enrichTip(startid, dt, tips[i]) ;
@@ -1440,7 +1441,6 @@ void BranchedCrack::setEnergyPropagationMethod()
 
 void BranchedCrack::step(double dt, Vector* v, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
-	return ;
 	changed = false ;
 	std::vector<Point *> tipsToGrow ; 
 	std::vector<double> angles ; 

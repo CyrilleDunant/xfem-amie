@@ -269,22 +269,22 @@ void RotatingCrack::postProcess()
 	if(converged && getState()[0] >= thresholdDamageDensity)
 	{
 		firstTensionFailure = true ;
-		getState(true)[0] = 1 ;
+		getState(true)[0] = 1.-1e-6 ;
 	}
 	if(converged && getState()[1] >= thresholdDamageDensity)
 	{
 		firstCompressionFailure = true ;
-		getState(true)[1] = 1 ;
+		getState(true)[1] = 1.-1e-6 ;
 	}
 	if(converged && getState()[2] >= thresholdDamageDensity)
 	{
 		secondTensionFailure = true ;
-		getState(true)[2] = 1 ;
+		getState(true)[2] = 1.-1e-6 ;
 	}
 	if(converged && getState()[3] >= thresholdDamageDensity)
 	{
 		secondCompressionFailure = true ;
-		getState(true)[3] = 1 ;
+		getState(true)[3] = 1.-1e-6 ;
 	}
 }
 

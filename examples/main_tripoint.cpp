@@ -290,9 +290,9 @@ void step()
 		{
 			tries++ ;
 			Function x("x") ;
-			Function f = (x-platewidth)/platewidth ;
+			Function f = (x-platewidth*.5)/platewidth ;
 			Function df = 3.*f*f-2.*f*f*f ;
-			loadFunction = f_negativity(x-platewidth*.5)*(-4e4*tries) - f_positivity(x-platewidth*.5)*4e4*tries*(1.-df) ;
+			loadFunction = f_negativity(x-platewidth*.5)*(-20e4*tries) - f_positivity(x-platewidth*.5)*20e4*tries*(1.-df) ;
 			load->setData( loadFunction ) ;
 			
 		}
@@ -1755,14 +1755,24 @@ int main( int argc, char *argv[] )
 
 	Sample topsupportbulk( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupportbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-
 	Sample topsupportstirrupbulk( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupportstirrupbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-
 	Sample toprightvoid( NULL, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
 	toprightvoid.setBehaviour( new VoidForm() ) ;
 	
+	Sample baseright( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+	baseright.setBehaviour( new Stiffness( m0_paste ) ) ;
+	Sample baserightbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+	baserightbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
+	Sample baserightstirrupbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+	baserightstirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
+	Sample bottomcentervoid( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 )*.5, -sampleHeight*.5 - plateHeight*.5 ) ;
+	bottomcentervoid.setBehaviour( new VoidForm() ) ;
+	Sample rightbottomvoid( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 )*.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
+	rightbottomvoid.setBehaviour( new VoidForm() ) ;
+
+	
 	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
 	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
@@ -1838,7 +1848,7 @@ int main( int argc, char *argv[] )
 //	F.addBoundaryCondition(shrinkagey) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( -supportLever, -sampleHeight*.5 - plateHeight) ) ) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
-	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5) ) ) ;
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight) ) ) ;
 
 	int stirruplayer = 1 ;
 	int rebarlayer = 0 ;
@@ -1847,6 +1857,12 @@ int main( int argc, char *argv[] )
 	F.addFeature( NULL, &topsupportbulk ) ;
 	F.addFeature( NULL, &toprightvoid ) ;
 	F.addFeature( NULL, &sample, rebarlayer, phi ) ;
+	F.addFeature( NULL,&baseright, rebarlayer, phi ) ;
+	F.addFeature( NULL,&baserightbulk);
+
+	F.addFeature( NULL,&bottomcentervoid);
+	F.addFeature( NULL,&rightbottomvoid) ;
+
 
 	if ( atoi( argv[2] ) )
 	{
@@ -1854,6 +1870,7 @@ int main( int argc, char *argv[] )
 		F.addFeature( NULL, &samplestirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( NULL, &topsupportstirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( &sample, stirrups[0], stirruplayer, psi ) ;
+		F.addFeature( NULL,&baserightstirrupbulk, stirruplayer, psi);
 		F.setSamplingFactor( stirrups[0], 3 ) ;
 
 		int nstirrups = 7 ;
@@ -1899,7 +1916,8 @@ int main( int argc, char *argv[] )
 	F.setOrder( LINEAR ) ;
 
 	
-// 	F.addPoint( new Point( supportLever, -sampleHeight*.5 ) ) ;
+// 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;
+// 	F.addPoint( new Point( supportLever-platewidth*.02, -sampleHeight*.5 ) ) ;
 // 	F.addPoint( new Point( -supportLever, -sampleHeight*.5 - plateHeight ) ) ;
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
 	F.setMaxIterationsPerStep( 1600 );
@@ -1915,12 +1933,12 @@ int main( int argc, char *argv[] )
 	int submenu = glutCreateMenu( Menu ) ;
 
 	glutAddMenuEntry( " Displacements ", ID_DISP );
-	glutAddMenuEntry( " Strain (s) xx ", ID_STRAIN_XX );
-	glutAddMenuEntry( " Strain (s) yy ", ID_STRAIN_YY );
-	glutAddMenuEntry( " Strain (s) xy ", ID_STRAIN_XY );
-	glutAddMenuEntry( " Stress (e) xx ", ID_STRESS_XX );
-	glutAddMenuEntry( " Stress (e) yy ", ID_STRESS_YY );
-	glutAddMenuEntry( " Stress (e) xy ", ID_STRESS_XY );
+	glutAddMenuEntry( " Stress (s) xx ", ID_STRAIN_XX );
+	glutAddMenuEntry( " Stress (s) yy ", ID_STRAIN_YY );
+	glutAddMenuEntry( " Stress (s) xy ", ID_STRAIN_XY );
+	glutAddMenuEntry( " Strain (e) xx ", ID_STRESS_XX );
+	glutAddMenuEntry( " Strain (e) yy ", ID_STRESS_YY );
+	glutAddMenuEntry( " Strain (e) xy ", ID_STRESS_XY );
 	glutAddMenuEntry( " Elements      ", ID_ELEM );
 	glutAddMenuEntry( " Stiffness     ", ID_STIFNESS );
 	glutAddMenuEntry( " Von Mises     ", ID_VON_MISES );
