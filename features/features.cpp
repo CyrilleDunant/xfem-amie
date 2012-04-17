@@ -1,4 +1,5 @@
 
+
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 // Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
 //
@@ -5020,9 +5021,9 @@ bool FeatureTree::step()
 			break ;
 		}
 		
-	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
+	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 8 ) ;
 
-	if(notConvergedCounts >= 4)
+	if(notConvergedCounts >= 8)
 		ret = false ;
 	std::cout << std::endl ;
 	deltaTime = realdt ;

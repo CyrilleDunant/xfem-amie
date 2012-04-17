@@ -823,17 +823,70 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			}
 			case TWFT_STIFFNESS:
 			{
+				double t = 0 ;
+
+				if( tri->timePlanes() > 1 )
+					t = -1 + timePlane[0] * 2 / ( (int)tri->timePlanes() - 1 ) ;
+
+				if( dynamic_cast<LinearForm *>( tri->getBehaviour() ) )
+				{
+					ret[2] = (dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 1, 0, 0, t ) )[0][0]+dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 1, 0, 0, t ) )[1][1])*.5 ;
+					ret[1] = ret[2] ;
+					ret[0] = ret[2] ;
+					found = true ;
+				}
+
+				break ;
+			}
+			case TWFT_STIFFNESS_X:
+			{
 				LinearForm *b = dynamic_cast<LinearForm *>( tri->getBehaviour() ) ;
 				double t = 0 ;
 
 				if( tri->timePlanes() > 1 )
 					t = -1 + timePlane[0] * 2 / ( (int)tri->timePlanes() - 1 ) ;
 
-				if( b )
+				if( dynamic_cast<LinearForm *>( tri->getBehaviour() ) )
 				{
-					ret[2] = b->getTensor( Point( 1, 0, 0, t ) )[0][0] ;
-					ret[1] = b->getTensor( Point( 0, 0, 0, t ) )[0][0] ;
-					ret[0] = b->getTensor( Point( 0, 1, 0, t ) )[0][0] ;
+					ret[2] =dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 1, 0, 0, t ) )[0][0] ;
+					ret[1] = ret[2] ;
+					ret[0] = ret[2] ;
+					found = true ;
+				}
+
+				break ;
+			}
+			case TWFT_STIFFNESS_Y:
+			{
+				LinearForm *b = dynamic_cast<LinearForm *>( tri->getBehaviour() ) ;
+				double t = 0 ;
+
+				if( tri->timePlanes() > 1 )
+					t = -1 + timePlane[0] * 2 / ( (int)tri->timePlanes() - 1 ) ;
+
+				if( dynamic_cast<LinearForm *>( tri->getBehaviour() ) )
+				{
+					ret[2] = dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 1, 0, 0, t ) )[1][1] ;
+					ret[1] = ret[2] ;
+					ret[0] = ret[2] ;
+					found = true ;
+				}
+
+				break ;
+			}
+			case TWFT_STIFFNESS_Z:
+			{
+				LinearForm *b = dynamic_cast<LinearForm *>( tri->getBehaviour() ) ;
+				double t = 0 ;
+
+				if( tri->timePlanes() > 1 )
+					t = -1 + timePlane[0] * 2 / ( (int)tri->timePlanes() - 1 ) ;
+
+				if( dynamic_cast<LinearForm *>( tri->getBehaviour() ) )
+				{
+					ret[2] = dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 1, 0, 0, t ) )[2][2] ;
+					ret[1] = ret[2] ;
+					ret[0] = ret[2] ;
 					found = true ;
 				}
 
@@ -927,6 +980,12 @@ int numberOfFields( TWFieldType field )
 		case TWFT_CRACK_ANGLE:
 			return 3 ;
 		case TWFT_STIFFNESS:
+			return 3 ;
+		case TWFT_STIFFNESS_X:
+			return 3 ;
+		case TWFT_STIFFNESS_Y:
+			return 3 ;
+		case TWFT_STIFFNESS_Z:
 			return 3 ;
 		case TWFT_STRAIN:
 			return 9 ;

@@ -109,26 +109,46 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			
 		if(s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0))
 		{
-			if ( firstTension )
+			if ( firstTension && !firstTensionFailure)
 			{
 				range[1] = getState()[1] ;
 			}
-			else
+			else if(!firstCompressionFailure)
 			{
 				range[0] = getState()[0] ;
 			}
+			else
+			{
+				range[1] = getState()[1] ;
+				range[0] = getState()[0] ;
+			}
+		}
+		else
+		{
+			range[1] = getState()[1] ;
+			range[0] = getState()[0] ;
 		}
 		
 		if(s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1))
 		{
-			if ( secondTension )
+			if ( secondTension && !secondTensionFailure)
 			{
 				range[3] = getState()[3] ;
 			}
-			else
+			else if(!secondCompressionFailure)
 			{
 				range[2] = getState()[2] ;
 			}
+			else
+			{
+				range[1] = getState()[1] ;
+				range[0] = getState()[0] ;
+			}
+		}
+		else
+		{
+			range[3] = getState()[3] ;
+			range[2] = getState()[2] ;
 		}
 		
 // 		if(tensionFailure)
@@ -138,6 +158,26 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 // 		}
 // 		if(compressionFailure)
 // 			range[1] = getState()[1] ;
+	}
+	else if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+	{
+		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
+		{
+			firstTension = true ;
+		}
+		else
+		{
+			firstTension = false ;
+		}
+
+		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(1) )
+		{
+			secondTension = true ;
+		}
+		else
+		{
+			secondTension = false ;
+		}
 	}
 
 	return std::make_pair( state,  range) ;
@@ -149,33 +189,25 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 	if ( getState().max() < POINT_TOLERANCE_2D)
 		return m ;
 	
-	if(fractured())
-		return m *0 ;
+// 	if(fractured())
+// 		return m *0 ;
 	
 	double E_0 = factor*E ;
 	double E_1 = factor*E ;
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
-	if(firstTension)
-		E_0 *= ( 1. - fs ) ;
-	else
-	{
+	if(!firstTension)
 		fs = getState()[1] ;
-		E_0 *= ( 1. - fs ) ;
-	}
-	
-	if(secondTension)
-		E_1 *= ( 1. - ss ) ;
-	else
-	{
+	if(!secondTension)
 		ss = getState()[3] ;
-		E_1 *= ( 1. - ss ) ;
-	}
+	
+	E_0 *= ( 1. - fs ) ;
+	E_1 *= ( 1. - ss ) ;
 	
 	return OrthothropicStiffness( E_0, 
 																E_1, 
 																factor * E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
-																nu * ( 1. -  std::max(getState()[1], getState()[2])), 
+																nu * ( 1. -  getState().max()), 
 																currentAngle ).getTensor( Point() ) ;
 
 
@@ -184,7 +216,7 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 
 void  RotatingCrack::computeDelta(const ElementState &s)
 {
-	Vector range( 1., 2 ) ;
+	Vector range( 1., 4 ) ;
 		
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
 	{
@@ -224,20 +256,11 @@ Matrix RotatingCrack::applyPrevious( const Matrix &m ) const
 
 bool RotatingCrack::fractured() const
 {
-//  return false ;
-	if ( fraction < 0 )
+// 	if ( fraction < 0 )
 		return false ;
 
-// 	if(firstTension && firstTensionFailure)
-// 		return true ;
-// 	if(!firstTension && firstCompressionFailure)
-// 		return true ;
-// 	if(secondTension && secondTensionFailure)
-// 		return true ;
-// 	if(!secondTension && secondCompressionFailure)
-// 		return true ;
+	return (firstTension && firstTensionFailure || !firstTension && firstCompressionFailure) || ( secondTension && secondTensionFailure || !secondTension && secondCompressionFailure ) ;
 	
- return getState().min() >= thresholdDamageDensity ;
 }
 
 void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::vector<double> & weights, double a, double v, double tol = 1e-2 )
@@ -266,25 +289,26 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 
 void RotatingCrack::postProcess()
 {
+	
 	if(converged && getState()[0] >= thresholdDamageDensity)
 	{
 		firstTensionFailure = true ;
-		getState(true)[0] = 1.-1e-6 ;
+		getState(true)[0] = 1. ;
 	}
 	if(converged && getState()[1] >= thresholdDamageDensity)
 	{
 		firstCompressionFailure = true ;
-		getState(true)[1] = 1.-1e-6 ;
+		getState(true)[1] = 1. ;
 	}
 	if(converged && getState()[2] >= thresholdDamageDensity)
 	{
 		secondTensionFailure = true ;
-		getState(true)[2] = 1.-1e-6 ;
+		getState(true)[2] = 1. ;
 	}
 	if(converged && getState()[3] >= thresholdDamageDensity)
 	{
 		secondCompressionFailure = true ;
-		getState(true)[3] = 1.-1e-6 ;
+		getState(true)[3] = 1. ;
 	}
 }
 

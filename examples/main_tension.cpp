@@ -211,8 +211,8 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+1e-7) ;
-// 			loadt->setData(loadt->getData()+4e-7) ;
+			loadr->setData(loadr->getData()-1e-6) ;
+			loadt->setData(loadt->getData()+1e-6) ;
 // 			loadt->setData(0) ;
 		}
 // 		else if(go_on && v >= 3800)
@@ -1505,16 +1505,16 @@ int main(int argc, char *argv[])
 
 // 	sample.setBehaviour(new VoidForm()) ;  
 		
-// 	sample.setBehaviour(new ConcreteBehaviour(E_paste, nu, tensionCrit, compressionCrit, SPACE_TWO_DIMENSIONAL/*,MIRROR_XY*/)) ;
-// 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->materialRadius = mradius ;
-// 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour())->neighbourhoodRadius = nradius ;
+	samplef.setBehaviour(new ConcreteBehaviour()) ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
 	
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRAIN , LOWER_BOUND)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
-		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
+// 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
 // 	samplef.setBehaviour(new PasteBehaviour()) ;
 // 	dynamic_cast<PasteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
@@ -1543,35 +1543,35 @@ int main(int argc, char *argv[])
 // 	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
 // 	F.addFeature(NULL,&toprightvoid) ;
 
-	BranchedCrack * bc = new BranchedCrack(new Point(0, samplef.height()*.15), new Point(0, -samplef.height()*.15));
-	bc->setEnrichementRadius(samplef.height()*0.) ;
-	F.addFeature(&sample, bc) ; //add the crack to the feature tree
+// 	BranchedCrack * bc = new BranchedCrack(new Point(0, samplef.height()*.15), new Point(0, -samplef.height()*.15));
+// 	bc->setEnrichementRadius(samplef.height()*0.) ;
+// 	F.addFeature(&sample, bc) ; //add the crack to the feature tree
+// 	
+// 	BranchedCrack * bd = new BranchedCrack(new Point(samplef.height()*.15, 0), new Point(-samplef.height()*.15, 0));
+// 	bd->setEnrichementRadius(samplef.height()*0.) ;
+// 	F.addFeature(&sample, bd) ; //add the crack to the feature tree
 	
-	BranchedCrack * bd = new BranchedCrack(new Point(samplef.height()*.15, 0), new Point(-samplef.height()*.15, 0));
-	bd->setEnrichementRadius(samplef.height()*0.) ;
-	F.addFeature(&sample, bd) ; //add the crack to the feature tree
+// 	Vector def(3) ; 
+// 	def[0] = 0.1 ;
+// 	def[1] = 0.1 ;
+// 	F.addFeature(&sample, new ExpansiveZone(&sample, samplef.height()*0.05, 0, 0, m0_paste*.5, def)) ;
 	
-	Vector def(3) ; 
-	def[0] = 0.1 ;
-	def[1] = 0.1 ;
-	F.addFeature(&sample, new ExpansiveZone(&sample, samplef.height()*0.05, 0, 0, m0_paste*.5, def)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
-	
-// 	F.addBoundaryCondition(loadr);
-// 	F.addBoundaryCondition(loadt);
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-// // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
+	F.addBoundaryCondition(loadr);
+	F.addBoundaryCondition(loadt);
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.setMaxIterationsPerStep(20000);
+	F.setMaxIterationsPerStep(10000);
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	

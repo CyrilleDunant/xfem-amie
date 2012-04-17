@@ -250,7 +250,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 	double maxCompression = downVal*scaleFactor  ;
 	double maxCompressionStrain = downVal/pseudoYoung  ;
 
-	if(cstrain < 0.85*critStrain )
+	if(cstrain < 0.25*critStrain )
 	{
 		double C_d = 0. ;
 		double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;

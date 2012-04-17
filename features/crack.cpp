@@ -1469,7 +1469,7 @@ void BranchedCrack::step(double dt, Vector* v, const Mu::Mesh< DelaunayTriangle,
 			double score = -1 ;
 			if(tri->getBehaviour()->getFractureCriterion())
 				score = tri->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
-			if(score > 0)
+			if(score > 0 || true)
 			{
 				tipsToGrow.push_back(tips[i].first) ;
 				changed = true ;
