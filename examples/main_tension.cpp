@@ -211,8 +211,8 @@ void step()
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()-1e-6) ;
-			loadt->setData(loadt->getData()+1e-6) ;
+			loadr->setData(loadr->getData()+1e-7) ;
+			loadt->setData(loadt->getData()+1e-7) ;
 // 			loadt->setData(0) ;
 		}
 // 		else if(go_on && v >= 3800)

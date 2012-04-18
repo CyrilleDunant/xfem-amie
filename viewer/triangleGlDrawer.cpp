@@ -21,7 +21,12 @@ void TriangleGLDrawer::mouseReleaseEvent( QMouseEvent *event )
 	leftDown = false ;
 
 	if( event->button() == Qt::LeftButton )
+	{
+		QImage fb = this->grabFrameBuffer() ;
+		QRgb color = fb.pixel(event->x(), event->y());
+		valUnderCursor = limits[currentSet].first + (((float)QColor(color).lightness()-15.56339)*1.065)/255.*(limits[currentSet].second-limits[currentSet].first) ;
 		mousePosOnLeftClick = QPoint( 0, 0 ) ;
+	}
 
 	paintGL() ;
 }
@@ -139,8 +144,12 @@ void TriangleGLDrawer::paintGL()
 	renderText( 10, 20, QString( "%0 fps" ).arg( 1000.0f / ( float )elapsedTime ) );
 	size_t r, g, b ;
 
+	renderText( 10, 40, QString( "%0 []" ).arg( ( float )valUnderCursor) );
+	
+	
 	if( !limits.empty() )
 	{
+		double rel =  (1.-(valUnderCursor-limits[currentSet].first)/(limits[currentSet].second - limits[currentSet].first)) ;
 		glBegin( GL_QUAD_STRIP ) ;
 
 // 		for(double i = 1. ; i > fracup/10000. ; i -= 0.001)
@@ -154,6 +163,13 @@ void TriangleGLDrawer::paintGL()
 		{
 			double where = ( 1. - ( ( double )fracup / 10000. - i ) / ( ( double )fracup / 10000. - ( double )fracdown / 10000. ) ) ;
 			HSVtoRGB( &r, &g, &b, 180., 0., 0.05 + 0.95 * ( 1. - where ) ) ;
+			if(std::abs(rel-where) < .5e-2 )
+			{
+				r = 255 ;
+				g = 0 ;
+				b = 0 ;
+			}
+			
 			glColor4ub( r, g, b, 255 ) ;
 			glVertex2f( ( .805 - 0.5 ) , ( where - 0.5 )*.7 ) ;
 			glVertex2f( ( .835 - 0.5 ) , ( where - 0.5 )*.7 ) ;
@@ -394,7 +410,17 @@ void TriangleGLDrawer::computeDisplayList()
 
 		max_val = limits[N].first ;
 		min_val = limits[N].second ;
-
+		if(max_val > 0 && min_val > 0)
+		{
+			min_val = 0 ;
+			limits[N].second = 0;
+		}
+		if(max_val < 0 && min_val < 0)
+		{
+			max_val = 0 ;
+			limits[N].first = 0;
+		}
+		
 		double maxdelta = std::max( max_x - min_x, max_y - min_y ) / 0.8 ;
 		double mindelta = std::min( max_x - min_x, max_y - min_y ) / 0.8 ;
 		double cx = 0.7 ;
@@ -681,10 +707,12 @@ void TriangleGLDrawer::reset( std::vector<std::valarray<float> > * v, int np, in
 	numberOfExtraTimePlanes = 0 ;
 	currentTimePlane = 0 ;
 	computeDisplayList();
+	valUnderCursor = 0 ;
 }
 
 TriangleGLDrawer::TriangleGLDrawer( std::vector<std::valarray<float> > * v, int np, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent ) : QGLWidget( parent ), limits( limits )
 {
+	valUnderCursor = 0 ;
 	valuesAtPoint = v ;
 	reader = NULL ;
 
@@ -751,7 +779,7 @@ TriangleGLDrawer::TriangleGLDrawer( TriangleDataReader *f, int set, const std::v
 {
 	valuesAtPoint = NULL ;
 	reader = NULL ;
-
+	valUnderCursor = 0 ;
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
 	leftDown = false;
@@ -807,7 +835,7 @@ void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<fl
 
 TriangleGLDrawer::TriangleGLDrawer( QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent ) : QGLWidget( parent ), limits( limits )
 {
-
+	valUnderCursor = 0 ;
 	valuesAtPoint = NULL ;
 	reader = NULL ;
 
@@ -867,7 +895,7 @@ void TriangleGLDrawer::reset()
 
 TriangleGLDrawer::TriangleGLDrawer( QWidget *parent ) : QGLWidget( parent )
 {
-
+	valUnderCursor = 0 ;
 	minmaxinit = false ;
 
 	valuesAtPoint = new std::vector< std::valarray<float> >( 0 ) ;

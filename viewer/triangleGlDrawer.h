@@ -88,6 +88,8 @@ protected:
 	
 	bool minmaxinit ;
 	
+	float valUnderCursor ;
+	
 public slots:
 	void setSegmentDown(int) ;
 	void setSegmentUp(int) ;
