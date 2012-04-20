@@ -24,7 +24,16 @@ void TriangleGLDrawer::mouseReleaseEvent( QMouseEvent *event )
 	{
 		QImage fb = this->grabFrameBuffer() ;
 		QRgb color = fb.pixel(event->x(), event->y());
-		valUnderCursor = limits[currentSet].first + (((float)QColor(color).lightness()-15.56339)*1.065)/255.*(limits[currentSet].second-limits[currentSet].first) ;
+		
+		
+// 		double prop = (((float)QColor(color).lightness()-15.56339)*1.065)/255. ;
+// 		valUnderCursor = prop * ( limits[currentSet].first - ( limits[currentSet].first - limits[currentSet].second ) * ( 1. - fracup / 10000. ) ) + ( 1. - prop ) * ( limits[currentSet].second + ( limits[currentSet].first - limits[currentSet].second ) * fracdown / 10000. ) ;
+		
+		double downcut =  ( limits[currentSet].first - limits[currentSet].second ) * ( fracdown / 10000. ) ;
+		double upcut =  ( limits[currentSet].second - limits[currentSet].first ) * ( fracup / 10000.-1. ) ;
+		std::cout << downcut << "  " << upcut << " " << limits[currentSet].second+upcut- limits[currentSet].first +downcut << std::endl ;
+		std::cout << fracdown / 10000. << "  " << fracup / 10000. << " " <<  std::endl ;
+		valUnderCursor = 1.049*limits[currentSet].first + downcut + (float)QColor(color).lightness()/255.*( limits[currentSet].second- limits[currentSet].first ) - ((float)QColor(color).lightness()/255.)*0.049 - downcut;
 		mousePosOnLeftClick = QPoint( 0, 0 ) ;
 	}
 

@@ -16,11 +16,10 @@
 namespace Mu {
 
 NonLocalVonMises::NonLocalVonMises(double thresh, double E, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-	, threshold(thresh), E(E)
+	, threshold(std::abs(thresh)), E(E)
 {
 	setMaterialCharacteristicRadius(radius);
-	metInCompression = true ;
-	metInTension = true ;
+	met = false ;
 }
 
 
@@ -30,8 +29,7 @@ NonLocalVonMises::~NonLocalVonMises()
 
 double NonLocalVonMises::grade(ElementState &s)
 {
-	metInCompression = true ;
-	metInTension = true ;
+	met = false ;
 	std::pair<Vector, Vector> str( smoothedPrincipalStressAndStrain(s, REAL_STRESS) ) ;
 	
 	double maxStress = 0 ;
@@ -46,6 +44,7 @@ double NonLocalVonMises::grade(ElementState &s)
 	
 	if( maxStress >= threshold )
 	{
+		met = true ;
 		 return 1. - std::abs( threshold / maxStress );
 	}
 	

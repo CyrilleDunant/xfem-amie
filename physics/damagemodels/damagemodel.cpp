@@ -110,7 +110,7 @@ void DamageModel::step( ElementState &s )
 		int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
 		change = true ;
 		
-		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.01, globalMode ) ) ;
+		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.03, globalMode ) ) ;
 
 		if(states.size() == 1)
 		{
